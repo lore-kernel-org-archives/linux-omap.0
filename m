@@ -1,376 +1,487 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 3/9] omap3: pm: srf: introduce accessor function
-Date: Wed, 11 Nov 2009 23:45:15 -0600
-Message-ID: <1258004721-7315-4-git-send-email-nm@ti.com>
+Subject: [PATCH 2/9] omap3: pm: introduce opp accessor functions
+Date: Wed, 11 Nov 2009 23:45:14 -0600
+Message-ID: <1258004721-7315-3-git-send-email-nm@ti.com>
 References: <1258004721-7315-1-git-send-email-nm@ti.com>
  <1258004721-7315-2-git-send-email-nm@ti.com>
- <1258004721-7315-3-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46673 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751357AbZKLFpp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Nov 2009 00:45:45 -0500
-In-Reply-To: <1258004721-7315-3-git-send-email-nm@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46928 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752702AbZKLFpq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 00:45:46 -0500
+In-Reply-To: <1258004721-7315-2-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Sanjeev Premi <premi@ti.com>
 
-With the accessor functions, many of the direct accesses are
-redundant. Cleanup of SRF to:
-a) Remove get_opp as it redundant as freq_to_opp does exactly the
-   samething.
-b) Remove any direct dereference of opp tables except thru accessor
-   functions.
+Modifies the initial patch From Sanjeev:
+http://patchwork.kernel.org/patch/50998/
 
-NOTE: the implementation is just a start and leaves scope for
-further performance and robustness improvements which can be added on
-top.
+NOTE:
+The original opp_table introduced by Sanjeev is not needed anymore as
+we can use enabled flag to have better granularity in enable/disable
+of OPPs.
+
+This introduces the following accessor functions:
+
+freq_to_opp and opp_to_freq: Matching functions to convert OPP to freq
+and viceversa.
+
+freq_to_vsel: Converts a frequency to corresponding voltage.
+
+opp_onoff: To enable/disable a specific OPP in a OPP table this allows
+granular runtime disable/enable of specific OPPs, esp when used in
+conjunction with search and mapping functions
+
+get_next_freq: A search function to get next matching frequency. This
+could possibly provide the basis for more complex OPP transition algos
+of the future.
+
+get_limit_freq: A search function to get the least or maximum
+frequency based on search criteria. Allows for independence from
+OPP_IDs in the future.
+
+Since the accessor functions hide the details of the table
+implementation, the opp table is now moved away from omap3-opp.h to
+pm34xx.c. The terminator entry is needed at the start and end of the
+table as it is still needed for reverse and forward search as the
+length of the table is unknown.
+
+Tests done: Accessor functions standalone tested on a PC host with
+dummy OPP table to simulate boundary, invalid and valid conditions,
+SDP3430 for system stability.
 
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Romit Dasgupta <romit@ti.com>
-Cc: Sanjeev Premi <premi@ti.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
 Cc: Thara Gopinath <thara@ti.com>
 Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
 
+Signed-off-by: Sanjeev Premi <premi@ti.com>
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/resource34xx.c |  178 ++++++++++++++++++++++--------------
- 1 files changed, 109 insertions(+), 69 deletions(-)
+ arch/arm/mach-omap2/omap3-opp.h           |   40 +-------
+ arch/arm/mach-omap2/pm.c                  |  160 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm34xx.c              |   42 ++++++++
+ arch/arm/plat-omap/include/plat/omap-pm.h |  109 ++++++++++++++++++++
+ 4 files changed, 314 insertions(+), 37 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index af6b3c1..15b5cb6 100644
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -155,29 +155,14 @@ static int curr_vdd1_opp;
- static int curr_vdd2_opp;
- static DEFINE_MUTEX(dvfs_mutex);
+diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
+index 42557e1..27e2ca5 100644
+--- a/arch/arm/mach-omap2/omap3-opp.h
++++ b/arch/arm/mach-omap2/omap3-opp.h
+@@ -21,42 +21,8 @@
+ #define S83M    83000000
+ #define S166M   166000000
  
--static unsigned short get_opp(struct omap_opp *opp_freq_table,
--		unsigned long freq)
--{
--	struct omap_opp *prcm_config;
--	prcm_config = opp_freq_table;
+-static struct omap_opp omap3_mpu_rate_table[] = {
+-	{0, 0, 0, 0},
+-	/*OPP1*/
+-	{true, S125M, VDD1_OPP1, 0x1E},
+-	/*OPP2*/
+-	{true, S250M, VDD1_OPP2, 0x26},
+-	/*OPP3*/
+-	{true, S500M, VDD1_OPP3, 0x30},
+-	/*OPP4*/
+-	{true, S550M, VDD1_OPP4, 0x36},
+-	/*OPP5*/
+-	{true, S600M, VDD1_OPP5, 0x3C},
+-};
 -
--	if (prcm_config->rate <= freq)
--		return prcm_config->opp_id; /* Return the Highest OPP */
--	for (; prcm_config->rate; prcm_config--)
--		if (prcm_config->rate < freq)
--			return (prcm_config+1)->opp_id;
--		else if (prcm_config->rate == freq)
--			return prcm_config->opp_id;
--	/* Return the least OPP */
--	return (prcm_config+1)->opp_id;
--}
+-static struct omap_opp omap3_l3_rate_table[] = {
+-	{0, 0, 0, 0},
+-	/*OPP1*/
+-	{false, 0, VDD2_OPP1, 0x1E},
+-	/*OPP2*/
+-	{true, S83M, VDD2_OPP2, 0x24},
+-	/*OPP3*/
+-	{true, S166M, VDD2_OPP3, 0x2C},
+-};
 -
- /**
-  * init_opp - Initialize the OPP resource
-  */
- void init_opp(struct shared_resource *resp)
- {
- 	struct clk *l3_clk;
-+	int ret;
-+	u8 opp_id;
- 	resp->no_of_users = 0;
+-static struct omap_opp omap3_dsp_rate_table[] = {
+-	{0, 0, 0, 0},
+-	/*OPP1*/
+-	{true, S90M, VDD1_OPP1, 0x1E},
+-	/*OPP2*/
+-	{true, S180M, VDD1_OPP2, 0x26},
+-	/*OPP3*/
+-	{true, S360M, VDD1_OPP3, 0x30},
+-	/*OPP4*/
+-	{true, S400M, VDD1_OPP4, 0x36},
+-	/*OPP5*/
+-	{true, S430M, VDD1_OPP5, 0x3C},
+-};
++extern struct omap_opp omap3_mpu_rate_table[];
++extern struct omap_opp omap3_dsp_rate_table[];
++extern struct omap_opp omap3_l3_rate_table[];
  
- 	if (!mpu_opps || !dsp_opps || !l3_opps)
-@@ -190,17 +175,18 @@ void init_opp(struct shared_resource *resp)
- 		vdd1_resp = resp;
- 		dpll1_clk = clk_get(NULL, "dpll1_ck");
- 		dpll2_clk = clk_get(NULL, "dpll2_ck");
--		resp->curr_level = get_opp(mpu_opps + MAX_VDD1_OPP,
--				dpll1_clk->rate);
--		curr_vdd1_opp = resp->curr_level;
-+		ret = freq_to_opp(&opp_id, mpu_opps, dpll1_clk->rate);
-+		BUG_ON(ret); /* TBD Cleanup handling */
-+		curr_vdd1_opp = opp_id;
- 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
- 		vdd2_resp = resp;
- 		dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
- 		l3_clk = clk_get(NULL, "l3_ick");
--		resp->curr_level = get_opp(l3_opps + MAX_VDD2_OPP,
--				l3_clk->rate);
--		curr_vdd2_opp = resp->curr_level;
-+		ret = freq_to_opp(&opp_id, l3_opps, l3_clk->rate);
-+		BUG_ON(ret); /* TBD Cleanup handling */
-+		curr_vdd2_opp = opp_id;
- 	}
-+	resp->curr_level = opp_id;
- 	return;
+ #endif
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index f50e93d..9dcb5c7 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -33,6 +33,7 @@
+ #include <plat/powerdomain.h>
+ #include <plat/resource.h>
+ #include <plat/omap34xx.h>
++#include <plat/omap-pm.h>
+ 
+ #include "prm-regbits-34xx.h"
+ #include "pm.h"
+@@ -203,3 +204,162 @@ static int __init omap_pm_init(void)
+ 	return error;
  }
- 
-@@ -242,24 +228,40 @@ static int program_opp_freq(int res, int target_level, int current_level)
- {
- 	int ret = 0, l3_div;
- 	int *curr_opp;
-+	unsigned long mpu_freq, dsp_freq, l3_freq;
-+#ifndef CONFIG_CPU_FREQ
-+	unsigned long mpu_cur_freq
-+#endif
+ late_initcall(omap_pm_init);
 +
-+	/* Check if I can actually switch or not */
-+	if (res == VDD1_OPP) {
-+		ret = opp_to_freq(&mpu_freq, mpu_opps, target_level);
-+		ret |= opp_to_freq(&dsp_freq, dsp_opps, target_level);
-+#ifndef CONFIG_CPU_FREQ
-+		ret |= opp_to_freq(&mpu_cur_freq, mpu_opps, current_level);
-+#endif
-+	} else {
-+		ret = opp_to_freq(&l3_freq, l3_opps, target_level);
-+	}
-+	/* we would have caught all bad levels earlier.. */
-+	if (unlikely(ret))
-+		return ret;
- 
- 	lock_scratchpad_sem();
- 	if (res == VDD1_OPP) {
- 		curr_opp = &curr_vdd1_opp;
--		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
--		clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
-+		clk_set_rate(dpll1_clk, mpu_freq);
-+		clk_set_rate(dpll2_clk, dsp_freq);
- #ifndef CONFIG_CPU_FREQ
- 		/*Update loops_per_jiffy if processor speed is being changed*/
- 		loops_per_jiffy = compute_lpj(loops_per_jiffy,
--			mpu_opps[current_level].rate/1000,
--			mpu_opps[target_level].rate/1000);
-+			mpu_cur_freq / 1000, mpu_freq / 1000);
- #endif
- 	} else {
- 		curr_opp = &curr_vdd2_opp;
- 		l3_div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
- 			OMAP3430_CLKSEL_L3_MASK;
--		ret = clk_set_rate(dpll3_clk,
--				l3_opps[target_level].rate * l3_div);
-+		ret = clk_set_rate(dpll3_clk, l3_freq * l3_div);
- 	}
- 	if (ret) {
- 		unlock_scratchpad_sem();
-@@ -278,6 +280,7 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
- 		int current_level)
- {
- 	int i, ret = 0, raise;
-+	unsigned long freq;
- #ifdef CONFIG_OMAP_SMARTREFLEX
- 	unsigned long t_opp, c_opp;
- 
-@@ -285,13 +288,10 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
- 	c_opp = ID_VDD(res) | ID_OPP_NO(opp[current_level].opp_id);
- #endif
- 
--	/* Only allow enabled OPPs */
--	if (!opp[target_level].enabled)
--		return -EINVAL;
--
--	/* Sanity check of the OPP params before attempting to set */
--	if (!opp[target_level].rate || !opp[target_level].vsel)
--		return -EINVAL;
-+	/* See if have a freq associated, if not, invalid opp */
-+	ret = opp_to_freq(&freq, opp, target_level);
-+	if (unlikely(ret))
-+		return ret;
- 
- 	if (target_level > current_level)
- 		raise = 1;
-@@ -303,10 +303,16 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
- 			ret = program_opp_freq(res, target_level,
- 					current_level);
- #ifdef CONFIG_OMAP_SMARTREFLEX
--		else
-+		else {
-+			u8 v_current, v_target;
-+			/* none of the following should fail.. */
-+			BUG_ON(freq_to_vsel(&v_target, opp, freq));
-+			BUG_ON(opp_to_freq(&freq, opp, current_level));
-+			BUG_ON(freq_to_vsel(&v_current, opp, freq));
-+			/* ok to scale.. */
- 			sr_voltagescale_vcbypass(t_opp, c_opp,
--				opp[target_level].vsel,
--				opp[current_level].vsel);
-+				v_target, v_current);
++int opp_to_freq(unsigned long *freq, const struct omap_opp *opps, u8 opp_id)
++{
++	int i = 1;
++
++	BUG_ON(!freq || !opps);
++
++	/* The first entry is a dummy one, loop till we hit terminator */
++	while (!IS_OPP_TERMINATOR(opps, i)) {
++		if (opps[i].enabled && (opps[i].opp_id == opp_id)) {
++			*freq = opps[i].rate;
++			return 0;
 +		}
- #endif
- 	}
- 
-@@ -315,7 +321,8 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
- 
- int resource_set_opp_level(int res, u32 target_level, int flags)
- {
--	unsigned long mpu_freq, mpu_old_freq;
-+	unsigned long mpu_freq, mpu_old_freq, l3_freq;
-+	int ret;
- #ifdef CONFIG_CPU_FREQ
- 	struct cpufreq_freqs freqs_notify;
- #endif
-@@ -334,6 +341,16 @@ int resource_set_opp_level(int res, u32 target_level, int flags)
- 	if (!mpu_opps || !dsp_opps || !l3_opps)
- 		return 0;
- 
-+	/* Check if I can actually switch or not */
-+	if (res == VDD1_OPP) {
-+		ret = opp_to_freq(&mpu_freq, mpu_opps, target_level);
-+		ret |= opp_to_freq(&mpu_old_freq, mpu_opps, resp->curr_level);
-+	} else {
-+		ret = opp_to_freq(&l3_freq, l3_opps, target_level);
++		i++;
 +	}
-+	if (ret)
-+		return ret;
 +
- 	mutex_lock(&dvfs_mutex);
- 
- 	if (res == VDD1_OPP) {
-@@ -341,9 +358,6 @@ int resource_set_opp_level(int res, u32 target_level, int flags)
- 			mutex_unlock(&dvfs_mutex);
- 			return 0;
- 		}
--		mpu_old_freq = mpu_opps[resp->curr_level].rate;
--		mpu_freq = mpu_opps[target_level].rate;
--
- #ifdef CONFIG_CPU_FREQ
- 		freqs_notify.old = mpu_old_freq/1000;
- 		freqs_notify.new = mpu_freq/1000;
-@@ -371,15 +385,13 @@ int resource_set_opp_level(int res, u32 target_level, int flags)
- 
- int set_opp(struct shared_resource *resp, u32 target_level)
- {
--	unsigned long tput;
--	unsigned long req_l3_freq;
--	int ind;
-+	int ret = -EINVAL;
- 
- 	if (resp == vdd1_resp) {
- 		if (target_level < 3)
- 			resource_release("vdd2_opp", &vdd2_dev);
- 
--		resource_set_opp_level(VDD1_OPP, target_level, 0);
-+		ret = resource_set_opp_level(VDD1_OPP, target_level, 0);
- 		/*
- 		 * For VDD1 OPP3 and above, make sure the interconnect
- 		 * is at 100Mhz or above.
-@@ -389,21 +401,28 @@ int set_opp(struct shared_resource *resp, u32 target_level)
- 			resource_request("vdd2_opp", &vdd2_dev, 400000);
- 
- 	} else if (resp == vdd2_resp) {
--		tput = target_level;
-+		unsigned long req_l3_freq;
- 
- 		/* Convert the tput in KiB/s to Bus frequency in MHz */
--		req_l3_freq = (tput * 1000)/4;
--
--		for (ind = 2; ind <= MAX_VDD2_OPP; ind++)
--			if ((l3_opps + ind)->rate >= req_l3_freq) {
--				target_level = ind;
--				break;
--			}
--
--		/* Set the highest OPP possible */
--		if (ind > MAX_VDD2_OPP)
--			target_level = ind-1;
--		resource_set_opp_level(VDD2_OPP, target_level, 0);
-+		req_l3_freq = (target_level * 1000)/4;
++	return -EINVAL;
++}
++EXPORT_SYMBOL(opp_to_freq);
 +
-+		/* Get the best freq around */
-+		ret = get_next_freq(&req_l3_freq, l3_opps, true, true, false);
++int freq_to_vsel(u8 *vsel, const struct omap_opp *opps, unsigned long freq)
++{
++	int i = 1;
 +
-+		/* If we dont find a good freq, then use the highest
-+		 * possible freq
++	BUG_ON(!vsel || !opps);
++
++	/* The first entry is a dummy one, loop till we hit terminator */
++	while (!IS_OPP_TERMINATOR(opps, i)) {
++		if (opps[i].enabled && (opps[i].rate == freq)) {
++			*vsel = opps[i].vsel;
++			return 0;
++		}
++		i++;
++	}
++
++	return -EINVAL;
++}
++EXPORT_SYMBOL(freq_to_vsel);
++
++int freq_to_opp(u8 *opp_id, const struct omap_opp *opps, unsigned long freq)
++{
++	int i = 1;
++
++	BUG_ON(!opp_id || !opps);
++
++	/* The first entry is a dummy one, loop till we hit terminator */
++	while (!IS_OPP_TERMINATOR(opps, i)) {
++		if (opps[i].enabled && (opps[i].rate == freq)) {
++			*opp_id = opps[i].opp_id;
++			return 0;
++		}
++		i++;
++	}
++
++	return -EINVAL;
++}
++EXPORT_SYMBOL(freq_to_opp);
++
++int opp_onoff(struct omap_opp *opps, unsigned long freq, bool enable)
++{
++	int i = 1;
++
++	BUG_ON(!opps);
++
++	/* The first entry is a dummy one, loop till we hit terminator */
++	while (!IS_OPP_TERMINATOR(opps, i)) {
++		if (opps[i].rate == freq) {
++			opps[i].enabled = enable;
++			return 0;
++		}
++		i++;
++	}
++
++	return -EINVAL;
++}
++EXPORT_SYMBOL(opp_onoff);
++
++int get_next_freq(unsigned long *freq, const struct omap_opp *opps,
++		bool search_higher, bool search_enabled_only, bool exact_search)
++{
++	int i = 1, inc = 1;
++	bool found = false;
++
++	BUG_ON(!opps || !freq || !(*freq));
++
++	/* The first entry is a dummy one, loop till we hit terminator
++	 * XXX: The following algorithm works only on a presorted
++	 * list of OPPs
++	 */
++	while (!IS_OPP_TERMINATOR(opps, i)) {
++		/* if we found the original freq, then
++		 * case 1: enabled search ONLY, check opp is enabled or not
++		 * case 2: the next available freq if enabled is not searched
 +		 */
-+		if (ret)
-+			ret = get_limit_freq(&req_l3_freq, l3_opps, true, true);
++		if ((found && search_enabled_only && opps[i].enabled) ||
++		    (found && !search_enabled_only)) {
++			*freq = opps[i].rate;
++			return 0;
++		}
 +
-+		/* uh uh.. no OPPs?? */
-+		BUG_ON(ret);
++		/* Find the baseline freq first.. */
++		if (!found && ((exact_search && opps[i].rate == *freq) ||
++				(!exact_search && opps[i].rate >= *freq))) {
++			/* found.. next decide direction */
++			inc = search_higher ? 1 : -1;
++			found = true;
++			/* handle an exception case for exact search.. */
++			if (exact_search || !search_higher)
++				i += inc;
++			/* fall thru to search for the right match */
++		} else {
++			i += inc;
++		}
++	}
 +
-+		ret = freq_to_opp((u8 *)&target_level, l3_opps, req_l3_freq);
-+		/* we dont expect this to fail */
-+		BUG_ON(ret);
++	return -EINVAL;
++}
++EXPORT_SYMBOL(get_next_freq);
 +
-+		ret = resource_set_opp_level(VDD2_OPP, target_level, 0);
- 	}
- 	return 0;
- }
-@@ -416,6 +435,11 @@ int set_opp(struct shared_resource *resp, u32 target_level)
++int get_limit_freq(unsigned long *freq, const struct omap_opp *opps,
++		bool search_highest, bool search_enabled_only)
++{
++	int i = 1;
++	unsigned long cur_freq_match = search_highest ? 0 : -1;
++	bool found = false;
++
++	BUG_ON(!opps || !freq);
++
++	/* The first entry is a dummy one, loop till we hit terminator
++	 * XXX: The following algorithm works only on a presorted
++	 * list of OPPs
++	 * We could use get_next_freq to search, but that will tend
++	 * to be inefficient
++	 */
++	while (!IS_OPP_TERMINATOR(opps, i)) {
++		/* match condition:
++		 * check if the enabled cases match (only invalid case is:
++		 * search_enabled=1,enabled=0)
++		 * then we look for comparison condition, based on direction
++		 */
++		if (!(search_enabled_only && !opps[i].enabled) &&
++		     ((search_highest && (opps[i].rate > cur_freq_match)) ||
++		     (!search_highest && (opps[i].rate < cur_freq_match)))) {
++			cur_freq_match = opps[i].rate;
++			found = true;
++			/* if we are searching for least, the first match
++			 * is the right one, look no further.
++			 */
++			if (!search_highest)
++				break;
++		}
++		i++;
++	}
++	if (!found)
++		return -EINVAL;
++	*freq = cur_freq_match;
++	return 0;
++}
++EXPORT_SYMBOL(get_limit_freq);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 3a2dc2b..92f11d7 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -50,6 +50,7 @@
+ #include "prm.h"
+ #include "pm.h"
+ #include "sdrc.h"
++#include "omap3-opp.h"
+ 
+ static int regset_save_on_suspend;
+ 
+@@ -98,6 +99,47 @@ static struct prm_setup_vc prm_setup = {
+ 	.vdd1_off = 0x00,	/* 0.6v */
+ };
+ 
++struct omap_opp omap3_mpu_rate_table[] = {
++	{0, 0, 0, 0},
++	/*OPP1*/
++	{true, S125M, VDD1_OPP1, 0x1E},
++	/*OPP2*/
++	{true, S250M, VDD1_OPP2, 0x26},
++	/*OPP3*/
++	{true, S500M, VDD1_OPP3, 0x30},
++	/*OPP4*/
++	{true, S550M, VDD1_OPP4, 0x36},
++	/*OPP5*/
++	{true, S600M, VDD1_OPP5, 0x3C},
++	{0, 0, 0, 0},
++};
++
++struct omap_opp omap3_l3_rate_table[] = {
++	{0, 0, 0, 0},
++	/*OPP1*/
++	{false, 0, VDD2_OPP1, 0x1E},
++	/*OPP2*/
++	{true, S83M, VDD2_OPP2, 0x24},
++	/*OPP3*/
++	{true, S166M, VDD2_OPP3, 0x2C},
++	{0, 0, 0, 0},
++};
++
++struct omap_opp omap3_dsp_rate_table[] = {
++	{0, 0, 0, 0},
++	/*OPP1*/
++	{true, S90M, VDD1_OPP1, 0x1E},
++	/*OPP2*/
++	{true, S180M, VDD1_OPP2, 0x26},
++	/*OPP3*/
++	{true, S360M, VDD1_OPP3, 0x30},
++	/*OPP4*/
++	{true, S400M, VDD1_OPP4, 0x36},
++	/*OPP5*/
++	{true, S430M, VDD1_OPP5, 0x3C},
++	{0, 0, 0, 0},
++};
++
+ static inline void omap3_per_save_context(void)
+ {
+ 	omap_gpio_save_context();
+diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+index 5dc2048..693b8c1 100644
+--- a/arch/arm/plat-omap/include/plat/omap-pm.h
++++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+@@ -35,6 +35,10 @@ struct omap_opp {
+ 	u16 vsel;
+ };
+ 
++/* Identify a OPP terminator */
++#define IS_OPP_TERMINATOR(opps, i) (!opps[i].enabled && (opps[i].rate == 0) &&\
++			(opps[i].vsel == 0))
++
+ extern struct omap_opp *mpu_opps;
+ extern struct omap_opp *dsp_opps;
+ extern struct omap_opp *l3_opps;
+@@ -324,5 +328,110 @@ unsigned long omap_pm_cpu_get_freq(void);
   */
- int validate_opp(struct shared_resource *resp, u32 target_level)
- {
-+	unsigned long x;
-+	if (strcmp(resp->name, "mpu_freq") == 0)
-+		return opp_to_freq(&x, mpu_opps, target_level);
-+	else if (strcmp(resp->name, "dsp_freq") == 0)
-+		return opp_to_freq(&x, dsp_opps, target_level);
- 	return 0;
- }
+ int omap_pm_get_dev_context_loss_count(struct device *dev);
  
-@@ -425,6 +449,8 @@ int validate_opp(struct shared_resource *resp, u32 target_level)
- void init_freq(struct shared_resource *resp)
- {
- 	char *linked_res_name;
-+	int ret = -EINVAL;
-+	unsigned long freq;
- 	resp->no_of_users = 0;
++/**
++ * freq_to_opp - Get opp_id corresponding to a frequency if enabled
++ * This function can also be used to check if a certain frequency is enabled
++ * in the opp list.
++ *
++ * @opp_id: the ID to return
++ * @opps: the opps table to search through
++ * @freq: the frequency to search for
++ *
++ * returns 0 if *opp_id is populated, else returns EINVAL
++ */
++int freq_to_opp(u8 *opp_id, const struct omap_opp *opps, unsigned long freq);
  
- 	if (!mpu_opps || !dsp_opps)
-@@ -436,32 +462,46 @@ void init_freq(struct shared_resource *resp)
- 	*/
- 	if (strcmp(resp->name, "mpu_freq") == 0)
- 		/* MPU freq in Mhz */
--		resp->curr_level = mpu_opps[curr_vdd1_opp].rate;
-+		ret = opp_to_freq(&freq, mpu_opps, curr_vdd1_opp);
- 	else if (strcmp(resp->name, "dsp_freq") == 0)
- 		/* DSP freq in Mhz */
--		resp->curr_level = dsp_opps[curr_vdd1_opp].rate;
-+		ret = opp_to_freq(&freq, dsp_opps, curr_vdd1_opp);
-+	BUG_ON(ret);
++/**
++ * freq_to_vsel - Get voltage corresponding to a frequency if enabled
++ * This function can also be used to check if a certain frequency is enabled
++ * in the opp list.
++ *
++ * @vsel: voltage corresponding to return
++ * @opps: the opps table to search through
++ * @freq: the frequency to search for
++ *
++ * returns 0 if *vsel is populated, else returns EINVAL
++ */
++int freq_to_vsel(u8 *vsel, const struct omap_opp *opps, unsigned long freq);
 +
-+	resp->curr_level = freq;
- 	return;
- }
- 
- int set_freq(struct shared_resource *resp, u32 target_level)
- {
--	unsigned int vdd1_opp;
-+	u8 vdd1_opp;
-+	int ret = -EINVAL;
- 
- 	if (!mpu_opps || !dsp_opps)
- 		return 0;
- 
- 	if (strcmp(resp->name, "mpu_freq") == 0) {
--		vdd1_opp = get_opp(mpu_opps + MAX_VDD1_OPP, target_level);
--		resource_request("vdd1_opp", &dummy_mpu_dev, vdd1_opp);
-+		ret = freq_to_opp(&vdd1_opp, mpu_opps, target_level);
-+		if (!ret)
-+			ret = resource_request("vdd1_opp", &dummy_mpu_dev,
-+					vdd1_opp);
- 	} else if (strcmp(resp->name, "dsp_freq") == 0) {
--		vdd1_opp = get_opp(dsp_opps + MAX_VDD1_OPP, target_level);
--		resource_request("vdd1_opp", &dummy_dsp_dev, vdd1_opp);
-+		ret = freq_to_opp(&vdd1_opp, dsp_opps, target_level);
-+		if (!ret)
-+			ret = resource_request("vdd1_opp", &dummy_dsp_dev,
-+					vdd1_opp);
- 	}
--	resp->curr_level = target_level;
--	return 0;
-+	if (!ret)
-+		resp->curr_level = target_level;
-+	return ret;
- }
- 
- int validate_freq(struct shared_resource *resp, u32 target_level)
- {
-+	u8 x;
-+	if (strcmp(resp->name, "mpu_freq") == 0)
-+		return freq_to_opp(&x, mpu_opps, target_level);
-+	else if (strcmp(resp->name, "dsp_freq") == 0)
-+		return freq_to_opp(&x, dsp_opps, target_level);
- 	return 0;
- }
++/**
++ * opp_to_freq - Get frequency corresponding to an OPP if enabled
++ * This function can also be used to check if a certain opp_id is enabled
++ * in the opp list.
++ *
++ * @freq: return the frequency on this
++ * @opps: the opps table to search through
++ * @opp_id: the ID to search for
++ *
++ * returns 0 if *freq is populated, else returns EINVAL
++ */
++int opp_to_freq(unsigned long *freq, const struct omap_opp *opps, u8 opp_id);
++
++/**
++ * opp_onoff - Disable or enable an OPP in the supported OPPs if available
++ *
++ * @opps: the opps table to search through
++ * @freq: the frequency to search for
++ * @enable: true to enable the OPP, false to disable it
++ *
++ * returns 0 if the OPP is found, else returns EINVAL. if the opp is found
++ * NOTE: Even if it was in the same state as requested, the functions returns 0.
++ */
++int opp_onoff(struct omap_opp *opps, unsigned long freq, bool enable);
++
++/**
++ * get_next_freq - search for next matching frequency, given a starting
++ * frequency. This can be combined to create a search logic etc without
++ * knowing OPP IDs.
++ * Example usages:
++ * a) I have an approximate frequency, get enabled opp freq at least freq
++ *	if a match is achieved, result_freq >= requested_freq
++ *   res = get_next_freq(&freq, opps, true, true, false)
++ * b) I have an approximate frequency, get enabled opp freq less than freq
++ *	if a match is achieved, result_freq < requested_freq
++ *   res = get_next_freq(&freq, opps, false, true, false)
++ * c) I have exact OPP freq I want to check -> search for higher enabled
++ *    frequency
++ *   res = get_next_freq(&freq, opps, true, true, true)
++ * d) I have exact OPP freq I want to check -> search for lower enabled
++ *    frequency
++ *   res = get_next_freq(&freq, opps, false, true, true)
++ *
++ * Then we can create all sorts of search combinations -> including searching
++ * for an OPP freq we would like to enable by controlling search_enabled_only
++ *
++ * @freq: Which frequency to start from- should be a valid frequency,
++ *	  even if not enabled.
++ *	  if a match is found, this will contain the matched frequency
++ * @opps: the opp table to search through
++ * @search_higher: should the search go up the list (search for higher freq)
++ *	  if true, searches for next highest freq, else searches for the next
++ *	  lowest frequency
++ * @search_enabled_only: Should the search only for enabled frequencies.
++ *	  if true, searches for only enabled OPP frequencies, else does not
++ *	  care for enabled status of the OPP (useful to enable OPPs)
++ * @exact_search: start search iff start *freq gets an exact match
++ *
++ * If a match is found, returns the matched frequency in *freq and returns 0,
++ * else, returns EINVAL, *freq is unchanged
++ */
++int get_next_freq(unsigned long *freq, const struct omap_opp *opps,
++	bool search_higher, bool search_enabled_only, bool exact_search);
++
++/**
++ * get_limit_freq: Get the max or min frequency for an opp table
++ * we can search for just the enabled opps, or the max or least in
++ * the table
++ *
++ * @freq: returns the max or min opp if a match was found
++ * @opps: opp table to search
++ * @search_highest: search for the highest if true, else search for lowest
++ *	frequency
++ * @search_enabled_only: search only for enabled OPPs
++ *
++ * returns 0 if a match is found and *freq contains the matched frequency
++ * else, returns EINVAL, *freq is unchanged
++ */
++int get_limit_freq(unsigned long *freq, const struct omap_opp *opps,
++		bool search_highest, bool search_enabled_only);
+ #endif
 -- 
 1.6.3.3
 
