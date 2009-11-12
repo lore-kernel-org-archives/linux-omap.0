@@ -1,66 +1,80 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH 00/19] OMAP: DSS2 v5 intro
-Date: Thu, 12 Nov 2009 07:03:42 +0200
-Message-ID: <1258002222.21596.1129.camel@localhost>
-References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
-	 <1257856848.21596.753.camel@localhost>
-	 <1257929140.20378.51.camel@tubuntu.research.nokia.com>
-	 <1257932641.20378.77.camel@tubuntu.research.nokia.com>
-	 <20091111184208.GC24837@atomide.com>
-Reply-To: dedekind1@gmail.com
+From: "Lohithakshan, Ranjith" <ranjithl@ti.com>
+Subject: RE: [PATCH] AM35xx: Clock table updates for AM3505/17
+Date: Thu, 12 Nov 2009 10:36:36 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BBA00659@dbde02.ent.ti.com>
+References: <1257417540-21120-1-git-send-email-ranjithl@ti.com>
+ <87iqdg20wn.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752206AbZKLFFt@vger.kernel.org>
-In-Reply-To: <20091111184208.GC24837@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45160 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750927AbZKLFGf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 00:06:35 -0500
+In-Reply-To: <87iqdg20wn.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2009-11-11 at 10:42 -0800, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [091111 01:43]:
-> > On Wed, 2009-11-11 at 09:45 +0100, Valkeinen Tomi (Nokia-D/Helsinki=
-)
-> > wrote:
-> > > On Tue, 2009-11-10 at 13:40 +0100, Artem Bityutskiy wrote:
-> > > > Tomi,
-> > > >=20
-> > > > could you please kindly ask Stephen (CCed) to include the DSS2 =
-tree into
-> > > > linux-next, because you are going to merge it the next merge wi=
-ndow, and
-> > > > there does not seem to be any blocker for this.
-> > > >=20
-> > > > Being in linux-next for a while is really important.
-> > >=20
-> > > Stephen, would this be possible? DSS2 driver is rather big piece =
-of
-> > > code, even if it's quite isolated, so it would be nice to have it=
- in
-> > > linux-next.
-> > >=20
-> > > What does it require from me? A git tree, obviously, but what sho=
-uld it
-> > > be based on?
-> >=20
-> > Ah, I just realized that DSS2 patches depend on patches from Tony's
-> > tree. I guess I should base my tree on top of some Tony's tree that=
- is
-> > going to linux-next?
->=20
-> Or I can merge them into my for-next if that's OK with everybody. Thi=
-s
-> merge cycle is a pain for omap as we've moved all the common headers =
-from
-> include/mach to include/plat.
+Hello Kevin, 
 
-I thought everything stable which you are going to merge next merge
-window should be in the next branch by default. Especially these massiv=
-e
-re-names which potentially may break many things, right?
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Thursday, November 12, 2009 3:13 AM
+> To: Lohithakshan, Ranjith
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] AM35xx: Clock table updates for AM3505/17
+> 
+> Ranjith Lohithakshan <ranjithl@ti.com> writes:
+> 
+> > AM3505/17 though a OMAP3530 derivative have the following
+> > main differences
+> >
+> > 	- Removal of the following OMAP3 modules
+> > 		- IVA
+> > 		- ISP/CAM
+> > 		- Modem and D2D components (MAD2D, SAD2D)
+> > 		- USIM
+> > 		- SSI
+> > 		- Mailboxes
+> > 		- USB OTG
+> > 		- ICR
+> > 		- MSPRO
+> > 		- SmartReflex
+> > 	- SDRC replaced with EMIF4 Controller in the SDRC subsystem
+> > 	  thus adding support for DDR2 memory devices
+> > 	- Addition of the following new modules
+> > 		- Ethernet MAC (CPGMAC)
+> > 		- CAN Controller (HECC)
+> > 		- New USB OTG Controller with integrated Phy
+> > 		- Video Processing Front End (VPFE)
+> > 		- Additional UART (UART4)
+> > 	- All security accelerators disabled on GP devices and not to
+> > 	  be accessed or configured
+> >
+> > This patch defines CPU flags for AM3505/17 and update the 
+> clock table.
+> > Clock support for new modules will be added by subsequent patches.
+> >
+> > Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+> 
+> A question on the approach here, as I'm wondering if this approach is
+> really needed.
+> 
+> Rather than handling these details in the clock tree, why not handle
+> the special cases using the feature checks: omap_has_*().  
+> 
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+The differences (mainly removals) are many and too unique to AM3517/05. 
+As per the chip spec, the clock related registers for the removed modules are 
+not to be programmed and we need a way to prevent these clocks getting 
+registered from the existing table (even if they are not enabled or used later). 
+In my opinion, if we define feature macros for modules like (MSPRO, USIM,Mailbox etc) 
+they will be too specific for the AM35xx use. Taking these aspects into 
+consideration, I feel tha defining CK_35XX flags and using it in clock table appear 
+to be better.
+
+Ranjith
