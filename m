@@ -1,37 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] omap3evm: make HSMMC driver built-in.
-Date: Wed, 11 Nov 2009 21:22:53 -0500
-Message-ID: <notify-1257992576@atomide.com>
-References: <1256881606-24545-1-git-send-email-srk@ti.com>
+Subject: Re: MMC related patches
+Date: Wed, 11 Nov 2009 18:29:31 -0800
+Message-ID: <20091112022931.GV24837@atomide.com>
+References: <00b401ca632b$8c84d6e0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57994 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64013 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759907AbZKLCWx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 21:22:53 -0500
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1N8PKs-0000GC-TQ
-	for linux-omap@vger.kernel.org; Thu, 12 Nov 2009 02:22:59 +0000
-In-Reply-To: <1256881606-24545-1-git-send-email-srk@ti.com>
+	with ESMTP id S1759936AbZKLC31 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 21:29:27 -0500
 Content-Disposition: inline
+In-Reply-To: <00b401ca632b$8c84d6e0$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Madhusudhan <madhu.cr@ti.com> [091111 16:02]:
+> Hi Tony,
+> 
+> Just a ping on the below patches. I did not see any comments on them. Are
+> you planning to push them?
+> 
+> Regards,
+> Madhu
+> 
+> http://marc.info/?l=linux-omap&m=125668573422479&w=2
+> http://marc.info/?l=linux-omap&m=125624185318767&w=2
 
-Branch in linux-omap: for-next
+OK, adding.
 
-Initial commit ID (Likely to change): 4c7a71d871497836afb33e371c0a24acf4ae7adb
+> http://marc.info/?l=linux-omap&m=125623349405262&w=2
 
-PatchWorks
-http://patchwork.kernel.org/patch/56570/
+This needs to be refreshed against board-zoom-peripherals.c now
+in omap for-next. But if it depends on 3630 mux patch,
+let's wait on that until we have the new mux framework.
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=4c7a71d871497836afb33e371c0a24acf4ae7adb
+> http://marc.info/?l=linux-omap&m=125623339105103&w=2
+> http://marc.info/?l=linux-omap&m=125623327504912&w=2
 
+Adding.
 
+Also, this needs to be refreshed:
+
+http://patchwork.kernel.org/patch/45196/
+
+Thanks for summarizing the patches, that always helps.
+Maybe use patchwork.kernel.org links the next time,
+as I can directly apply from those?
+
+Or even better, just set a git branch against some static
+commit :) (Not against for-next as that's still changing)
+
+BTW, some of these patches I had to unwrap manually again..
+
+Regards,
+
+Tony
