@@ -1,55 +1,58 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 5/5] OMAP3: PM: Disable OTG autoidle when waking up from
- off-mode
-Date: Thu, 12 Nov 2009 21:10:56 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8537@dbde02.ent.ti.com>
-References: <1258020444-3809-1-git-send-email-tero.kristo@nokia.com>
-	<1258020444-3809-2-git-send-email-tero.kristo@nokia.com>
-	<1258020444-3809-3-git-send-email-tero.kristo@nokia.com>
-	<1258020444-3809-4-git-send-email-tero.kristo@nokia.com>
-	<1258020444-3809-5-git-send-email-tero.kristo@nokia.com>
-	<1258020444-3809-6-git-send-email-tero.kristo@nokia.com>
- <87zl6ru53p.fsf@deeprootsystems.com>
+From: Daniel Toussaint <daniel@dmhome.net>
+Subject: Re: [PATCH 3/4] Add support for DEVKIT8000 LCD
+Date: Fri, 13 Nov 2009 00:28:33 +0800
+Message-ID: <4AFC37B1.7060801@dmhome.net>
+References: <838d5a2d54d0668ad72fffee7196d595@djdvant.com>	 <1258026396.20378.106.camel@tubuntu.research.nokia.com>
+Reply-To: daniel@dmhome.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46387 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753158AbZKLPk7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 10:40:59 -0500
-In-Reply-To: <87zl6ru53p.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:36965 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753005AbZKLQ2p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 11:28:45 -0500
+Received: by mail-fx0-f221.google.com with SMTP id 21so2430876fxm.21
+        for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 08:28:50 -0800 (PST)
+In-Reply-To: <1258026396.20378.106.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> Tero Kristo <tero.kristo@nokia.com> writes:
-> 
-> > From: Tero Kristo <tero.kristo@nokia.com>
-> >
-> > OMAP3 sleep can be prevented in some cases where OTG autoidle is enabled.
-> > This patch force disables autoidle during wakeup from off-mode. See omap
-> > errata 1.164.
-> >
-> > This fix can't be done in driver level, as off-mode entry resets and enables
-> > the autoidle bit, and driver does not access the register after each off-mode
-> > entry even if it is loaded.
-> >
-> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> 
-> Thanks Tero for the updated changelog.
-> 
-> Applying to PM branch reluctantly and with grumbles.  I sure hope
-> someone in TI is reporting all these ROM code issues to the ROM code
-> team so they get appropriate fixes.
-> 
-> Kevin
 
-Yes, rest assured we're following these up with the HW teams.
 
-This particular one should not matter on 3630, we can keep autoidle
-enabled all the time, I think.
+On Thu, Nov 12, 2009 at 7:46 PM, Tomi Valkeinen 
+<tomi.valkeinen@nokia.com <mailto:tomi.valkeinen@nokia.com>> wrote:
 
-- Anand
+    On Thu, 2009-11-12 at 11:23 +0100, ext Kim Botherway wrote:
+     > This patch add support for the Timll DEVKIT8000 LCD panel
+
+    I don't handle old omapfb patches. I think you should contact Imre Deak
+    for those, although my advise would be to use the new display subsystem
+    driver.
+
+
+Question more or less related to this thread : when submitting new 
+boards, it is better to work with DSS2 directly right ? I am also 
+preparing a new board patch at this point, so I would like to know what 
+is the sanest way to work ? Patch the linux-omap-2.6 tree with DSS2 
+patches , and then diff from there ? Or is is wiser to first submit 
+without display related items, and wait for linux-omap-2.6 tree to have 
+DSS2 support - which is going to happen soon I guess. 
+
+Thanks
+
+
+ 
+
+     Tomi
+
+
+    --
+    To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+    the body of a message to majordomo@vger.kernel.org
+    <mailto:majordomo@vger.kernel.org>
+    More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
