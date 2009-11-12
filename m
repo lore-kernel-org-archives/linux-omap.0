@@ -1,37 +1,194 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] omap3evm: Add board revision function
-Date: Thu, 12 Nov 2009 18:23:24 -0500
-Message-ID: <notify-1258068208@atomide.com>
-References: <1256729925-28650-1-git-send-email-ajay.gupta@ti.com>
+Subject: Re: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
+Date: Thu, 12 Nov 2009 15:25:45 -0800
+Message-ID: <20091112232545.GJ24837@atomide.com>
+References: <1256737736-31774-1-git-send-email-srk@ti.com>
+ <19F8576C6E063C45BE387C64729E73940436F9377A@dbde02.ent.ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA5CB820@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59451 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754656AbZKLXXY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 18:23:24 -0500
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1N8j0k-0000gx-4D
-	for linux-omap@vger.kernel.org; Thu, 12 Nov 2009 23:23:30 +0000
-In-Reply-To: <1256729925-28650-1-git-send-email-ajay.gupta@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49989 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755035AbZKLXZm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 18:25:42 -0500
 Content-Disposition: inline
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA5CB820@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Govindarajan, Sriramakrishnan" <srk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Govindarajan, Sriramakrishnan <srk@ti.com> [091111 00:12]:
+> Tony,
+> Are there comments with respect to this patch. Will this be merged in the next window?
 
-Branch in linux-omap: for-next
+Looks OK to me, but needs to be refreshed against omap for-next to apply.
 
-Initial commit ID (Likely to change): 35bb10f7c977e01e499546c5754df1c7257b87e1
+Tony
 
-PatchWorks
-http://patchwork.kernel.org/patch/56274/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=35bb10f7c977e01e499546c5754df1c7257b87e1
-
-
+> Regards
+> Sriram
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Govindarajan, Sriramakrishnan
+> > Sent: Wednesday, October 28, 2009 7:19 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: Govindarajan, Sriramakrishnan
+> > Subject: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
+> > 
+> > Migrate to smsc911x ethernet driver instead of smc911x driver.
+> > The smsc911x ethernet driver supports NAPI and performs better
+> > under heavy traffic. With the smc911x driver we were witnessing
+> > very high iowait time for high IO load over NFS.
+> > 
+> > Signed-off-by: Sriramakrishnan <srk@ti.com>
+> > ---
+> > This patch is generated against tip of for-next branch.
+> > 
+> >  arch/arm/configs/omap3_evm_defconfig |    4 +-
+> >  arch/arm/mach-omap2/board-omap3evm.c |   36
+> > +++++++++++++++++++++++++--------
+> >  2 files changed, 29 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/arch/arm/configs/omap3_evm_defconfig
+> > b/arch/arm/configs/omap3_evm_defconfig
+> > index d5ff477..50afc67 100644
+> > --- a/arch/arm/configs/omap3_evm_defconfig
+> > +++ b/arch/arm/configs/omap3_evm_defconfig
+> > @@ -617,8 +617,8 @@ CONFIG_MII=y
+> >  # CONFIG_DM9000 is not set
+> >  # CONFIG_ENC28J60 is not set
+> >  # CONFIG_ETHOC is not set
+> > -CONFIG_SMC911X=y
+> > -# CONFIG_SMSC911X is not set
+> > +# CONFIG_SMC911X is not set
+> > +CONFIG_SMSC911X=y
+> >  # CONFIG_DNET is not set
+> >  # CONFIG_IBM_NEW_EMAC_ZMII is not set
+> >  # CONFIG_IBM_NEW_EMAC_RGMII is not set
+> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> > omap2/board-omap3evm.c
+> > index 5d2310e..9bcdaf7 100644
+> > --- a/arch/arm/mach-omap2/board-omap3evm.c
+> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> > @@ -21,11 +21,13 @@
+> >  #include <linux/gpio.h>
+> >  #include <linux/input.h>
+> >  #include <linux/leds.h>
+> > +#include <linux/interrupt.h>
+> > 
+> >  #include <linux/spi/spi.h>
+> >  #include <linux/spi/ads7846.h>
+> >  #include <linux/i2c/twl4030.h>
+> >  #include <linux/usb/otg.h>
+> > +#include <linux/smsc911x.h>
+> > 
+> >  #include <linux/regulator/machine.h>
+> > 
+> > @@ -51,7 +53,8 @@
+> >  #define OMAP3EVM_ETHR_GPIO_IRQ	176
+> >  #define OMAP3EVM_SMC911X_CS	5
+> > 
+> > -static struct resource omap3evm_smc911x_resources[] = {
+> > +#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+> > +static struct resource omap3evm_smsc911x_resources[] = {
+> >  	[0] =	{
+> >  		.start	= OMAP3EVM_ETHR_START,
+> >  		.end	= (OMAP3EVM_ETHR_START + OMAP3EVM_ETHR_SIZE - 1),
+> > @@ -60,18 +63,28 @@ static struct resource
+> > omap3evm_smc911x_resources[] = {
+> >  	[1] =	{
+> >  		.start	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
+> >  		.end	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
+> > -		.flags	= IORESOURCE_IRQ,
+> > +		.flags	= (IORESOURCE_IRQ | IRQF_TRIGGER_LOW),
+> >  	},
+> >  };
+> > 
+> > -static struct platform_device omap3evm_smc911x_device = {
+> > -	.name		= "smc911x",
+> > +static struct smsc911x_platform_config smsc911x_config = {
+> > +	.phy_interface  = PHY_INTERFACE_MODE_MII,
+> > +	.irq_polarity   = SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
+> > +	.irq_type       = SMSC911X_IRQ_TYPE_OPEN_DRAIN,
+> > +	.flags          = (SMSC911X_USE_32BIT |
+> > SMSC911X_SAVE_MAC_ADDRESS),
+> > +};
+> > +
+> > +static struct platform_device omap3evm_smsc911x_device = {
+> > +	.name		= "smsc911x",
+> >  	.id		= -1,
+> > -	.num_resources	= ARRAY_SIZE(omap3evm_smc911x_resources),
+> > -	.resource	= &omap3evm_smc911x_resources[0],
+> > +	.num_resources	= ARRAY_SIZE(omap3evm_smsc911x_resources),
+> > +	.resource	= &omap3evm_smsc911x_resources[0],
+> > +	.dev		= {
+> > +		.platform_data = &smsc911x_config,
+> > +	},
+> >  };
+> > 
+> > -static inline void __init omap3evm_init_smc911x(void)
+> > +static inline void __init omap3evm_init_smsc911x(void)
+> >  {
+> >  	int eth_cs;
+> >  	struct clk *l3ck;
+> > @@ -92,8 +105,14 @@ static inline void __init
+> > omap3evm_init_smc911x(void)
+> >  	}
+> > 
+> >  	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
+> > +
+> > +	platform_device_register(&omap3evm_smsc911x_device);
+> >  }
+> > 
+> > +#else
+> > +static inline void __init omap3evm_init_smsc911x(void) { return; }
+> > +#endif
+> > +
+> >  static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
+> >  	.supply			= "vmmc",
+> >  };
+> > @@ -335,12 +354,10 @@ static void __init omap3_evm_init_irq(void)
+> >  	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
+> >  	omap_init_irq();
+> >  	omap_gpio_init();
+> > -	omap3evm_init_smc911x();
+> >  }
+> > 
+> >  static struct platform_device *omap3_evm_devices[] __initdata = {
+> >  	&omap3_evm_lcd_device,
+> > -	&omap3evm_smc911x_device,
+> >  };
+> > 
+> >  static void __init omap3_evm_init(void)
+> > @@ -359,6 +376,7 @@ static void __init omap3_evm_init(void)
+> >  #endif
+> >  	usb_musb_init();
+> >  	ads7846_dev_init();
+> > +	omap3evm_init_smsc911x();
+> >  }
+> > 
+> >  static void __init omap3_evm_map_io(void)
+> 
+> [Hiremath, Vaibhav] I validated this patch on OMAP3EVM and it is working for me. At-least I could able to mount NFS and work without any issue, which was failing before with SMC911x. For me, earlier I was not able to mount NFS filesystem at all. 
+> 
+> Verified-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Thanks,
+> Vaibhav
+> 
+> > --
+> > 1.6.2.4
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> > omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
