@@ -1,26 +1,23 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 5/9] omap3: pm: sr: replace get_opp with freq_to_opp
-Date: Fri, 13 Nov 2009 00:05:18 -0600
-Message-ID: <1258092322-30833-6-git-send-email-nm@ti.com>
+Subject: [PATCH 1/9] omap3: pm: introduce enabled flag to omap_opp
+Date: Fri, 13 Nov 2009 00:05:14 -0600
+Message-ID: <1258092322-30833-2-git-send-email-nm@ti.com>
 References: <1258092322-30833-1-git-send-email-nm@ti.com>
- <1258092322-30833-2-git-send-email-nm@ti.com>
- <1258092322-30833-3-git-send-email-nm@ti.com>
- <1258092322-30833-4-git-send-email-nm@ti.com>
- <1258092322-30833-5-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41336 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37266 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752471AbZKMGFV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752528AbZKMGFV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 13 Nov 2009 01:05:21 -0500
-In-Reply-To: <1258092322-30833-5-git-send-email-nm@ti.com>
+In-Reply-To: <1258092322-30833-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, SuiLun Lam <s-lam@ti.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-SmartReflex implements a get_opp to search through the opp table,
-replace it with the accessor function as it is a duplicate of
-freq_to_opp
+We used to enable and disable OPPs based on rate being set to 0, this
+has been confusing in general. So, we now allow specific OPPs to be
+now enabled/disabled by an explicit enabled flag instead of re-using
+rate flag itself.
 
 Tested on: SDP3430, SDP3630
 
@@ -39,71 +36,108 @@ Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   36 ++++++++----------------------------
- 1 files changed, 8 insertions(+), 28 deletions(-)
+ arch/arm/mach-omap2/omap3-opp.h           |   32 ++++++++++++++--------------
+ arch/arm/mach-omap2/resource34xx.c        |    4 +++
+ arch/arm/plat-omap/include/plat/omap-pm.h |    2 +
+ 3 files changed, 22 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index be3a1da..d34224d 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -146,49 +146,29 @@ static u32 cal_test_nvalue(u32 sennval, u32 senpval)
- 		(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT);
- }
+diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
+index c773ea7..42557e1 100644
+--- a/arch/arm/mach-omap2/omap3-opp.h
++++ b/arch/arm/mach-omap2/omap3-opp.h
+@@ -22,41 +22,41 @@
+ #define S166M   166000000
  
--/* determine the current OPP from the frequency
-- * we need to give this function last element of OPP rate table
-- * and the frequency
-- */
--static u16 get_opp(struct omap_opp *opp_freq_table,
--					unsigned long freq)
--{
--	struct omap_opp *prcm_config;
--
--	prcm_config = opp_freq_table;
--
--	if (prcm_config->rate <= freq)
--		return prcm_config->opp_id; /* Return the Highest OPP */
--	for (; prcm_config->rate; prcm_config--)
--		if (prcm_config->rate < freq)
--			return (prcm_config+1)->opp_id;
--		else if (prcm_config->rate == freq)
--			return prcm_config->opp_id;
--	/* Return the least OPP */
--	return (prcm_config+1)->opp_id;
--}
--
--static u16 get_vdd1_opp(void)
-+static u8 get_vdd1_opp(void)
- {
--	u16 opp;
-+	u8 opp;
+ static struct omap_opp omap3_mpu_rate_table[] = {
+-	{0, 0, 0},
++	{0, 0, 0, 0},
+ 	/*OPP1*/
+-	{S125M, VDD1_OPP1, 0x1E},
++	{true, S125M, VDD1_OPP1, 0x1E},
+ 	/*OPP2*/
+-	{S250M, VDD1_OPP2, 0x26},
++	{true, S250M, VDD1_OPP2, 0x26},
+ 	/*OPP3*/
+-	{S500M, VDD1_OPP3, 0x30},
++	{true, S500M, VDD1_OPP3, 0x30},
+ 	/*OPP4*/
+-	{S550M, VDD1_OPP4, 0x36},
++	{true, S550M, VDD1_OPP4, 0x36},
+ 	/*OPP5*/
+-	{S600M, VDD1_OPP5, 0x3C},
++	{true, S600M, VDD1_OPP5, 0x3C},
+ };
  
- 	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk) ||
- 							mpu_opps == NULL)
- 		return 0;
+ static struct omap_opp omap3_l3_rate_table[] = {
+-	{0, 0, 0},
++	{0, 0, 0, 0},
+ 	/*OPP1*/
+-	{0, VDD2_OPP1, 0x1E},
++	{false, 0, VDD2_OPP1, 0x1E},
+ 	/*OPP2*/
+-	{S83M, VDD2_OPP2, 0x24},
++	{true, S83M, VDD2_OPP2, 0x24},
+ 	/*OPP3*/
+-	{S166M, VDD2_OPP3, 0x2C},
++	{true, S166M, VDD2_OPP3, 0x2C},
+ };
  
--	opp = get_opp(mpu_opps + MAX_VDD1_OPP, sr1.vdd_opp_clk->rate);
-+	/* Not expected to fail.. */
-+	BUG_ON(freq_to_opp(&opp, mpu_opps, sr1.vdd_opp_clk->rate));
- 	return opp;
- }
+ static struct omap_opp omap3_dsp_rate_table[] = {
+-	{0, 0, 0},
++	{0, 0, 0, 0},
+ 	/*OPP1*/
+-	{S90M, VDD1_OPP1, 0x1E},
++	{true, S90M, VDD1_OPP1, 0x1E},
+ 	/*OPP2*/
+-	{S180M, VDD1_OPP2, 0x26},
++	{true, S180M, VDD1_OPP2, 0x26},
+ 	/*OPP3*/
+-	{S360M, VDD1_OPP3, 0x30},
++	{true, S360M, VDD1_OPP3, 0x30},
+ 	/*OPP4*/
+-	{S400M, VDD1_OPP4, 0x36},
++	{true, S400M, VDD1_OPP4, 0x36},
+ 	/*OPP5*/
+-	{S430M, VDD1_OPP5, 0x3C},
++	{true, S430M, VDD1_OPP5, 0x3C},
+ };
  
--static u16 get_vdd2_opp(void)
-+static u8 get_vdd2_opp(void)
- {
--	u16 opp;
-+	u8 opp;
+ #endif
+diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+index 04be4d2..af6b3c1 100644
+--- a/arch/arm/mach-omap2/resource34xx.c
++++ b/arch/arm/mach-omap2/resource34xx.c
+@@ -285,6 +285,10 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
+ 	c_opp = ID_VDD(res) | ID_OPP_NO(opp[current_level].opp_id);
+ #endif
  
- 	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk) ||
- 							l3_opps == NULL)
- 		return 0;
++	/* Only allow enabled OPPs */
++	if (!opp[target_level].enabled)
++		return -EINVAL;
++
+ 	/* Sanity check of the OPP params before attempting to set */
+ 	if (!opp[target_level].rate || !opp[target_level].vsel)
+ 		return -EINVAL;
+diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+index 583e540..5dc2048 100644
+--- a/arch/arm/plat-omap/include/plat/omap-pm.h
++++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+@@ -21,6 +21,7 @@
  
--	opp = get_opp(l3_opps + MAX_VDD2_OPP, sr2.vdd_opp_clk->rate);
-+	/* Not expected to fail.. */
-+	BUG_ON(freq_to_opp(&opp, l3_opps, sr2.vdd_opp_clk->rate));
- 	return opp;
- }
- 
+ /**
+  * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
++ * @enabled: enabled if true, disabled if false
+  * @rate: target clock rate
+  * @opp_id: OPP ID
+  * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
+@@ -28,6 +29,7 @@
+  * Operating performance point data.  Can vary by OMAP chip and board.
+  */
+ struct omap_opp {
++	bool enabled;
+ 	unsigned long rate;
+ 	u8 opp_id;
+ 	u16 vsel;
 -- 
 1.6.3.3
 
