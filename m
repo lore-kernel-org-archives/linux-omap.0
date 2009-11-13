@@ -1,43 +1,144 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
 Subject: RE: Some patches need reposting, inbox cleared, patchwork cleared
-Date: Fri, 13 Nov 2009 23:59:43 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309C862EA@dbde02.ent.ti.com>
+Date: Sat, 14 Nov 2009 00:37:24 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA6892A1@dbde02.ent.ti.com>
 References: <20091113003851.GN24837@atomide.com>
  <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8605@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C860A@dbde02.ent.ti.com>,<20091113180323.GC3684@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030A8C860A@dbde02.ent.ti.com>
+ <20091113180323.GC3684@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA689287@dbde02.ent.ti.com>
+ <20091113181550.GD3684@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA689291@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+	boundary="_002_FCCFB4CDC6E5564B9182F639FC35608702FA6892A1dbde02enttico_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46647 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49948 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756610AbZKMSaq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 13:30:46 -0500
-In-Reply-To: <20091113180323.GC3684@atomide.com>
+	id S1756428AbZKMTHZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Nov 2009 14:07:25 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA689291@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> 
-> Hmm, it should be all merged into master branch also:
-> 
-> $ git log --pretty=oneline --grep=3630 -n100 master arch/arm/mach-omap2
-> 1739bbc268aeffc8d3d040cf6493ef4399a1a181 omap: 3630sdp: introduce 3630 sdp board support
-> 13ac7e77f407e4c529eb1cb058031f896fd3e80c omap: zoom3: introduce zoom3 board support
-> 79c6fce9daa80936eba830c49b6c559f5ca6295d omap: zoom: drop i2c-1 speed to 2400
-> 3efbe15e7755108268b9ed72d3b6c6539f671ebe omap: zoom: rename zoom2 name to generic zoom
-> 97bd76cf5e5c18ddcc8d38f997ae7aec4db3bb01 omap: zoom2: split board file for software reuse
-> 2c8681ac36b4247c26c5789f63de9f522436c1c5 omap3630: Set omap3630 MMC1 I/O speed to 52Mhz
-> 9283cf8a9d21889fb838634e7017e84acf69e79f omap3630: Configure HSMMC1 to 4-bit
-> 1a309b7370e5aa6d703eded1afc53218a205a71f omap3630: Add HSMMC related checks
-> 1e9e0b997c30b81b2165fa68cad4411e6136a8d2 omap3: 3630: update is_chip variable
-> 6fb081fb525c05aed6fee28bf73fe4ee1fe2d5bd omap3: Introduce OMAP3630
-> 
-> Can you check and let me know if something is missing?
-> 
+--_002_FCCFB4CDC6E5564B9182F639FC35608702FA6892A1dbde02enttico_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Looks like I pulled too early. I did a git pull now and the files are back.
+Tony
 
-- Anand
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kerne=
+l.org] On Behalf Of
+>Pandita, Vikram
+>>From: Tony Lindgren [mailto:tony@atomide.com]
+>>> I just verified booting zoom3 on l-o master, and its working fine.
+>>
+>>OK good. Can you also try booting this patch from Felipe on 3630:
+>>
+>>http://patchwork.kernel.org/patch/59540/
+>
+>Patch does not apply. Rebasing now and testing.
+
+Rebased Patch (attached) boots up fine now on 3630 Zoom3 board.
+
+Logs:
+CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=3D10c53c7f
+CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+Machine: OMAP Zoom3 board
+Memory policy: ECC disabled, Data cache writeback
+OMAP3630 ES1.0 (l2cache iva sgx neon isp )
+
+
+
+--_002_FCCFB4CDC6E5564B9182F639FC35608702FA6892A1dbde02enttico_
+Content-Type: application/octet-stream;
+	name="arm-omap-code-cleanup-to-id.c.patch"
+Content-Description: arm-omap-code-cleanup-to-id.c.patch
+Content-Disposition: attachment;
+	filename="arm-omap-code-cleanup-to-id.c.patch"; size=4283;
+	creation-date="Sat, 14 Nov 2009 00:34:42 GMT";
+	modification-date="Sat, 14 Nov 2009 00:34:42 GMT"
+Content-Transfer-Encoding: base64
+
+RnJvbTogRmVsaXBlIEJhbGJpIDxmZWxpcGUuYmFsYmlAbm9raWEuY29tPgoKQ2xlYW51cCB0aGUg
+Y29kaW5nIHN0eWxlIGluIGlkLmMgd2hpbGUgYXZvaWRpbmcgdW5uZWVkZWQgc3dpdGNoKCkKc3Rh
+dGVtZW50cy4KClNpZ25lZC1vZmYtYnk6IEZlbGlwZSBCYWxiaSA8ZmVsaXBlLmJhbGJpQG5va2lh
+LmNvbT4KCi0tLQpyZWZyZXNoZWQgb24gdG9wIG9mIFRvZGF5J3MgbGludXgtb21hcCAoMGFhZjQ4
+NTlmNjJkMmVhZDJkZDk0OTY0NmQxMmIwMjE2NDM5ZmFjZCkKCnRoaXMgcGF0Y2ggd2FzIGNvbXBp
+bGUtdGVzdGVkIG9ubHkgd2l0aCBhbGwgb21hcCBkZWZjb25maWdzLCBpdCB3b3VsZCBiZQpuaWNl
+IHRvIHNlZSBpdCBib290LXRlc3RlZCBvbiBzZXZlcmFsIGJvYXJkcyBiZWZvcmUgd2UgYXBwbHkg
+aXQuCgogYXJjaC9hcm0vbWFjaC1vbWFwMi9pZC5jIHwgICA2MSArKysrKysrKysrKysrKysrLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDIxIGluc2VydGlv
+bnMoKyksIDQwIGRlbGV0aW9ucygtKQoKSW5kZXg6IGwtby9hcmNoL2FybS9tYWNoLW9tYXAyL2lk
+LmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PQotLS0gbC1vLm9yaWcvYXJjaC9hcm0vbWFjaC1vbWFwMi9pZC5jCTIwMDkt
+MTEtMTMgMDg6MTg6MTYuMDAwMDAwMDAwIC0wNjAwCisrKyBsLW8vYXJjaC9hcm0vbWFjaC1vbWFw
+Mi9pZC5jCTIwMDktMTEtMTMgMTM6MDI6MTYuMDAwMDAwMDAwIC0wNjAwCkBAIC01MywxMSArNTMs
+MTEgQEAgaW50IG9tYXBfdHlwZSh2b2lkKQogewogCXUzMiB2YWwgPSAwOwogCi0JaWYgKGNwdV9p
+c19vbWFwMjR4eCgpKQorCWlmIChjcHVfaXNfb21hcDI0eHgoKSkgewogCQl2YWwgPSBvbWFwX2N0
+cmxfcmVhZGwoT01BUDI0WFhfQ09OVFJPTF9TVEFUVVMpOwotCWVsc2UgaWYgKGNwdV9pc19vbWFw
+MzR4eCgpKQorCX0gZWxzZSBpZiAoY3B1X2lzX29tYXAzNHh4KCkpIHsKIAkJdmFsID0gb21hcF9j
+dHJsX3JlYWRsKE9NQVAzNDNYX0NPTlRST0xfU1RBVFVTKTsKLQllbHNlIHsKKwl9IGVsc2Ugewog
+CQlwcl9lcnIoIkNhbm5vdCBkZXRlY3Qgb21hcCB0eXBlIVxuIik7CiAJCWdvdG8gb3V0OwogCX0K
+QEAgLTIyNCwyNCArMjI0LDEyIEBAIHZvaWQgX19pbml0IG9tYXAzX2NoZWNrX3JldmlzaW9uKHZv
+aWQpCiAJCQlvbWFwX3JldmlzaW9uID0gT01BUDM0MzBfUkVWX0VTM18wOwogCQkJYnJlYWs7CiAJ
+CWNhc2UgNDoKLQkJCW9tYXBfcmV2aXNpb24gPSBPTUFQMzQzMF9SRVZfRVMzXzE7Ci0JCQlicmVh
+azsKKwkJLyogRkFMTFRIUk9VR0ggKi8KIAkJZGVmYXVsdDoKIAkJCS8qIFVzZSB0aGUgbGF0ZXN0
+IGtub3duIHJldmlzaW9uIGFzIGRlZmF1bHQgKi8KIAkJCW9tYXBfcmV2aXNpb24gPSBPTUFQMzQz
+MF9SRVZfRVMzXzE7CiAJCX0KIAkJYnJlYWs7Ci0JY2FzZSAweGI4OTE6Ci0JCS8qIEhhbmRsZSAz
+Nnh4IGRldmljZXMgKi8KLQkJc3dpdGNoIChyZXYpIHsKLQkJY2FzZSAwOgotCQkJb21hcF9yZXZp
+c2lvbiA9IE9NQVAzNjMwX1JFVl9FUzFfMDsKLQkJCWJyZWFrOwotCQlkZWZhdWx0OgotCQkJLyog
+VXNlIHRoZSBsYXRlc3Qga25vd24gcmV2aXNpb24gYXMgZGVmYXVsdCAqLwotCQkJb21hcF9yZXZp
+c2lvbiA9IE9NQVAzNjMwX1JFVl9FUzFfMDsKLQkJfQotCQlicmVhazsKIAljYXNlIDB4Yjg2ODoK
+IAkJLyogSGFuZGxlIE9NQVAzNXh4L0FNMzV4eCBkZXZpY2VzCiAJCSAqCkBAIC0yNTAsNiArMjM4
+LDggQEAgdm9pZCBfX2luaXQgb21hcDNfY2hlY2tfcmV2aXNpb24odm9pZCkKIAkJICovCiAJCW9t
+YXBfcmV2aXNpb24gPSBPTUFQMzUwNV9SRVYocmV2KTsKIAkJYnJlYWs7CisJY2FzZSAweGI4OTE6
+CisJLyogRkFMTFRIUk9VR0ggKi8KIAlkZWZhdWx0OgogCQkvKiBVbmtub3duIGRlZmF1bHQgdG8g
+bGF0ZXN0IHNpbGljb24gcmV2IGFzIGRlZmF1bHQqLwogCQlvbWFwX3JldmlzaW9uID0gT01BUDM2
+MzBfUkVWX0VTMV8wOwpAQCAtMjcxLDM1ICsyNjEsMjkgQEAgdm9pZCBfX2luaXQgb21hcDNfY3B1
+aW5mbyh2b2lkKQogCSAqIG9uIGF2YWlsYWJsZSBmZWF0dXJlcy4gVXBvbiBkZXRlY3Rpb24sIHVw
+ZGF0ZSB0aGUgQ1BVIGlkCiAJICogYW5kIENQVSBjbGFzcyBiaXRzLgogCSAqLwotCWlmIChjcHVf
+aXNfb21hcDM2MzAoKSkKKwlpZiAoY3B1X2lzX29tYXAzNjMwKCkpIHsKIAkJc3RyY3B5KGNwdV9u
+YW1lLCAiT01BUDM2MzAiKTsKLQllbHNlIGlmIChjcHVfaXNfb21hcDM1MDUoKSkgeworCX0gZWxz
+ZSBpZiAoY3B1X2lzX29tYXAzNTA1KCkpIHsKIAkJLyoKIAkJICogQU0zNXh4IGRldmljZXMKIAkJ
+ICovCiAJCWlmIChvbWFwM19oYXNfc2d4KCkpIHsKIAkJCW9tYXBfcmV2aXNpb24gPSBPTUFQMzUx
+N19SRVYocmV2KTsKIAkJCXN0cmNweShjcHVfbmFtZSwgIkFNMzUxNyIpOwotCQl9Ci0JCWVsc2Ug
+eworCQl9IGVsc2UgewogCQkJLyogQWxyZWFkeSBzZXQgaW4gb21hcDNfY2hlY2tfcmV2aXNpb24o
+KSAqLwogCQkJc3RyY3B5KGNwdV9uYW1lLCAiQU0zNTA1Iik7CiAJCX0KLQl9Ci0JLyoKLQkgKiBP
+TUFQMzQzMCwgT01BUDM1MjUsIE9NQVAzNTE1LCBPTUFQMzUwMyBkZXZpY2VzCi0JICovCi0JZWxz
+ZSBpZiAob21hcDNfaGFzX2l2YSgpICYmIG9tYXAzX2hhc19zZ3goKSkKKwl9IGVsc2UgaWYgKG9t
+YXAzX2hhc19pdmEoKSAmJiBvbWFwM19oYXNfc2d4KCkpIHsKKwkJLyogT01BUDM0MzAsIE9NQVAz
+NTI1LCBPTUFQMzUxNSwgT01BUDM1MDMgZGV2aWNlcyAqLwogCQlzdHJjcHkoY3B1X25hbWUsICJP
+TUFQMzQzMC8zNTMwIik7Ci0JZWxzZSBpZiAob21hcDNfaGFzX3NneCgpKSB7CisJfSBlbHNlIGlm
+IChvbWFwM19oYXNfc2d4KCkpIHsKIAkJb21hcF9yZXZpc2lvbiA9IE9NQVAzNTI1X1JFVihyZXYp
+OwogCQlzdHJjcHkoY3B1X25hbWUsICJPTUFQMzUyNSIpOwotCX0KLQllbHNlIGlmIChvbWFwM19o
+YXNfaXZhKCkpIHsKKwl9IGVsc2UgaWYgKG9tYXAzX2hhc19pdmEoKSkgewogCQlvbWFwX3Jldmlz
+aW9uID0gT01BUDM1MTVfUkVWKHJldik7CiAJCXN0cmNweShjcHVfbmFtZSwgIk9NQVAzNTE1Iik7
+Ci0JfQotCWVsc2UgeworCX0gZWxzZSB7CiAJCW9tYXBfcmV2aXNpb24gPSBPTUFQMzUwM19SRVYo
+cmV2KTsKIAkJc3RyY3B5KGNwdV9uYW1lLCAiT01BUDM1MDMiKTsKIAl9CkBAIC0zMTgsMTYgKzMw
+MiwxMyBAQCB2b2lkIF9faW5pdCBvbWFwM19jcHVpbmZvKHZvaWQpCiAJCXN0cmNweShjcHVfcmV2
+LCAiMy4wIik7CiAJCWJyZWFrOwogCWNhc2UgT01BUF9SRVZCSVRTXzQwOgotCQlzdHJjcHkoY3B1
+X3JldiwgIjMuMSIpOwotCQlicmVhazsKKwkvKiBGQUxMVEhST1VHSCAqLwogCWRlZmF1bHQ6CiAJ
+CS8qIFVzZSB0aGUgbGF0ZXN0IGtub3duIHJldmlzaW9uIGFzIGRlZmF1bHQgKi8KIAkJc3RyY3B5
+KGNwdV9yZXYsICIzLjEiKTsKIAl9CiAKLQkvKgotCSAqIFByaW50IHZlcmJvc2UgaW5mb3JtYXRp
+b24KLQkgKi8KKwkvKiBQcmludCB2ZXJib3NlIGluZm9ybWF0aW9uICovCiAJcHJfaW5mbygiJXMg
+RVMlcyAoIiwgY3B1X25hbWUsIGNwdV9yZXYpOwogCiAJT01BUDNfU0hPV19GRUFUVVJFKGwyY2Fj
+aGUpOwpAQCAtMzQ4LDE4ICszMjksMTggQEAgdm9pZCBfX2luaXQgb21hcDJfY2hlY2tfcmV2aXNp
+b24odm9pZCkKIAkgKiBBdCB0aGlzIHBvaW50IHdlIGhhdmUgYW4gaWRlYSBhYm91dCB0aGUgcHJv
+Y2Vzc29yIHJldmlzaW9uIHNldAogCSAqIGVhcmxpZXIgd2l0aCBvbWFwMl9zZXRfZ2xvYmFsc190
+YXAoKS4KIAkgKi8KLQlpZiAoY3B1X2lzX29tYXAyNHh4KCkpCisJaWYgKGNwdV9pc19vbWFwMjR4
+eCgpKSB7CiAJCW9tYXAyNHh4X2NoZWNrX3JldmlzaW9uKCk7Ci0JZWxzZSBpZiAoY3B1X2lzX29t
+YXAzNHh4KCkpIHsKKwl9IGVsc2UgaWYgKGNwdV9pc19vbWFwMzR4eCgpKSB7CiAJCW9tYXAzX2No
+ZWNrX3JldmlzaW9uKCk7CiAJCW9tYXAzX2NoZWNrX2ZlYXR1cmVzKCk7CiAJCW9tYXAzX2NwdWlu
+Zm8oKTsKLQl9Ci0JZWxzZSBpZiAoY3B1X2lzX29tYXA0NHh4KCkpIHsKKwl9IGVsc2UgaWYgKGNw
+dV9pc19vbWFwNDR4eCgpKSB7CiAJCXByaW50ayhLRVJOX0lORk8gIkZJWE1FOiBDUFUgcmV2aXNp
+b24gPSBPTUFQNDQzMFxuIik7CiAJCXJldHVybjsKLQl9IGVsc2UKKwl9IGVsc2UgewogCQlwcl9l
+cnIoIk9NQVAgcmV2aXNpb24gdW5rbm93biwgcGxlYXNlIGZpeCFcbiIpOworCX0KIAogCS8qCiAJ
+ICogT0ssIG5vdyB3ZSBrbm93IHRoZSBleGFjdCByZXZpc2lvbi4gSW5pdGlhbGl6ZSBvbWFwX2No
+aXAgYml0cwo=
+
+--_002_FCCFB4CDC6E5564B9182F639FC35608702FA6892A1dbde02enttico_--
