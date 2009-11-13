@@ -1,68 +1,69 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Some patches need reposting, inbox cleared, patchwork cleared
-Date: Fri, 13 Nov 2009 10:14:02 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C860A@dbde02.ent.ti.com>
-References: <20091113003851.GN24837@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8605@dbde02.ent.ti.com>
+Subject: RE: [PATCH] omap3: Change the default silicon
+Date: Fri, 13 Nov 2009 10:41:28 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C864A@dbde02.ent.ti.com>
+References: <1256826908-14703-1-git-send-email-premi@ti.com>
+ <20091112222127.GF24837@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34178 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39486 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755635AbZKMEoC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 23:44:02 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8605@dbde02.ent.ti.com>
+	id S1751986AbZKMFLa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 00:11:30 -0500
+In-Reply-To: <20091112222127.GF24837@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Gadiyar, Anand wrote:
-> Tony Lindgren wrote:
-> > Hi all,
+Tony Lindgren wrote:
+> * Sanjeev Premi <premi@ti.com> [091029 07:35]:
+> > Currently the default silicon - in absence of
+> > identification - is set to OMAP3630 ES1.0.
 > > 
-> > I'm finally done sorting through the patchwork patches to add to
-> > the omap for-next queue. So I've nuked my linux-omap inbox, and
-> > cleared the patches that I'm supposed to deal with in patchwork.
-> > 
-> > Please check that you patch is applied (or merged into some existing
-> > patch) in the omap for-next branch.
-> > 
-> > If you don't see your patch in the omap for-next branch, and you
-> > don't see the patch in the patchwork list, please repost your
-> > patch. When reposting, please send the whole series again.
-> > 
-> > The patchwork pending patches are at:
-> > 
-> > http://patchwork.kernel.org/project/linux-omap/list/
-> > 
-> > I have not touched the patches in patchwork that are tagged for
-> > felipebalbi, khilman or pwsan, so this message only concerns the
-> > ones I'm supposed to deal with.
-> > 
-> > If you have lots of patches, you can also post a git branch that's
-> > rebased on commit 8171d88089ad63fc442b2bf32af7c18653adc5cb.
-> > Don't use the omap for-next for rebasing, as it's still changing.
-> > 
-> > I've dropped all the patches that did not apply to for-next,
-> > or that have dependency to some other subsystem. I've commented
-> > on few of the patches that don't apply, but not all of them.
-> > Then some fix patches I've merged to the earlier patches,
-> > and for those there's no APPLIED email message.
-> > 
-> > I've probably also accidentally trashed some perfectly valid
-> > patches too.. So please check and repost as needed!
-> > 
+> > Though, condition may/should not arise; but
+> > the default should be latest in the most
+> > common silicon variant - currently OMAP3430
+> > ES3.1.
 > 
-> Tony,
+> Is this still needed? To me it seems more likely there will
+> more 3630 based silicon than 3430 based silicon?
 > 
-> What happened to the 3630 support stuff that had been merged to
-> your master branch as of yesterday?
-> 
-> - Anand
 
-I meant, I see these patches in for-next, but they're not present
-in the l-o master branch. Is this deliberate?
+3430 ES3.1s are the most common I believe. All boards in the wild
+are 3430 based.
+
+3630 is just coming up and will take a while to be as common.
+
+IMO, 3430 ES3.1 should be default.
 
 - Anand
+
+
+> Regards,
+> 
+> Tony
+>  
+> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/id.c |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 1c15112..0162623 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -243,8 +243,8 @@ void __init omap3_check_revision(void)
+> >  		}
+> >  		break;
+> >  	default:
+> > -		/* Unknown default to latest silicon rev as default*/
+> > -		omap_revision = OMAP3630_REV_ES1_0;
+> > +		/* Unknown. Default to latest among all variants */
+> > +		omap_revision = OMAP3430_REV_ES3_1;
+> >  	}
+> >  }
+> >  
