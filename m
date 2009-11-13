@@ -1,81 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 14/14] omap3: drop all IVA-related address base definitions
-Date: Thu, 12 Nov 2009 16:09:56 -0800
-Message-ID: <20091113000955.9034.72230.stgit@localhost>
-References: <20091113000444.9034.41293.stgit@localhost>
+Subject: Some patches need reposting, inbox cleared, patchwork cleared
+Date: Thu, 12 Nov 2009 16:38:51 -0800
+Message-ID: <20091113003851.GN24837@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53345 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51024 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755880AbZKMAJv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 19:09:51 -0500
-In-Reply-To: <20091113000444.9034.41293.stgit@localhost>
+	with ESMTP id S1754746AbZKMAit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 19:38:49 -0500
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1N8kBj-000Lfe-23
+	for linux-omap@vger.kernel.org; Fri, 13 Nov 2009 00:38:55 +0000
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-From: Paul Walmsley <paul@pwsan.com>
+Hi all,
 
-All of the OMAP3 IVA physical address macros in
-plat-omap/include/plat/omap34xx.h are wrong[1]:
+I'm finally done sorting through the patchwork patches to add to
+the omap for-next queue. So I've nuked my linux-omap inbox, and
+cleared the patches that I'm supposed to deal with in patchwork.
 
-OMAP34XX_IVA_INTC_BASE: The IVA interrupt controller does not appear
-to be accessible from the L3 interconnect, and in any case is
-definitely not at 0x40000000; the latter address appears to be the
-internal IVA physical address base for the OMAP2420's interrupt control[2].
+Please check that you patch is applied (or merged into some existing
+patch) in the omap for-next branch.
 
-OMAP34XX_DSP_BASE: The section of L3 physical address space mapped to
-the IVA starts at 0x5c000000, not 0x58000000.
+If you don't see your patch in the omap for-next branch, and you
+don't see the patch in the patchwork list, please repost your
+patch. When reposting, please send the whole series again.
 
-OMAP34XX_DSP_MEM_BASE: It's not clear what this refers to, but it's not
-in the L3 IVA address space.
+The patchwork pending patches are at:
 
-OMAP34XX_DSP_IPI_BASE: The Intrusive Port Interface is a relic from
-the OMAP2420 days and no longer applies to OMAP3.
+http://patchwork.kernel.org/project/linux-omap/list/
 
-OMAP34XX_DSP_MMU_BASE: The DSP MMU is mapped at 0x5d000000, not 0x5a000000.
+I have not touched the patches in patchwork that are tagged for
+felipebalbi, khilman or pwsan, so this message only concerns the
+ones I'm supposed to deal with.
 
+If you have lots of patches, you can also post a git branch that's
+rebased on commit 8171d88089ad63fc442b2bf32af7c18653adc5cb.
+Don't use the omap for-next for rebasing, as it's still changing.
 
-Nothing that uses these can possibly be working, so drop them.  When
-future code needs these, correct versions can be added in.
+I've dropped all the patches that did not apply to for-next,
+or that have dependency to some other subsystem. I've commented
+on few of the patches that don't apply, but not all of them.
+Then some fix patches I've merged to the earlier patches,
+and for those there's no APPLIED email message.
 
-1. OMAP34xx Multimedia Device Silicon Revision 3.1.x Rev. W, Table 2-8:
-   "L3 Interconnect View of the IVA2.2 Subsystem Memory Space."  p. 229.
+I've probably also accidentally trashed some perfectly valid
+patches too.. So please check and repost as needed!
 
-2. OMAP2420 Multimedia Processor Silicon Revision 2.1.1, 2.2 (Rev. Q),
-   section 2.2.4.1, "IVA Memory Space Seen by L3", p. 132.
+Cheers,
 
-3. ibid., section 4.3.11, "DSP IPI Overview", p. 200.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/include/plat/omap34xx.h |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
-index 4655707..077f059 100644
---- a/arch/arm/plat-omap/include/plat/omap34xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap34xx.h
-@@ -72,7 +72,6 @@
- #define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
- #define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
- 
--#define OMAP34XX_IVA_INTC_BASE	0x40000000
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
- #define OMAP34XX_UHH_CONFIG_BASE	(L4_34XX_BASE + 0x64000)
-@@ -83,9 +82,5 @@
- 
- #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
- 
--#define OMAP34XX_DSP_BASE	0x58000000
--#define OMAP34XX_DSP_MEM_BASE	(OMAP34XX_DSP_BASE + 0x0)
--#define OMAP34XX_DSP_IPI_BASE	(OMAP34XX_DSP_BASE + 0x1000000)
--#define OMAP34XX_DSP_MMU_BASE	(OMAP34XX_DSP_BASE + 0x2000000)
- #endif /* __ASM_ARCH_OMAP34XX_H */
- 
-
+Tony
