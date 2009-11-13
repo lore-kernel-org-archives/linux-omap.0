@@ -1,72 +1,64 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: Some patches need reposting, inbox cleared, patchwork cleared
-Date: Fri, 13 Nov 2009 23:36:24 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA689287@dbde02.ent.ti.com>
-References: <20091113003851.GN24837@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8605@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C860A@dbde02.ent.ti.com>
- <20091113180323.GC3684@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure fix
+Date: Fri, 13 Nov 2009 18:10:33 +0000
+Message-ID: <CCAAF334-EA45-4C37-9EAB-CD3494B7EC34@opensource.wolfsonmicro.com>
+References: <1258133987-20488-1-git-send-email-jwang@ti.com> (sfid-20091113_173850_761073_9598FCAB) <171D41FE-0C40-4921-97FF-B8DE2D360C9A@opensource.wolfsonmicro.com> <13B9B4C6EF24D648824FF11BE8967162039B9BAA0F@dlee02.ent.ti.com> (sfid-20091113_175312_309321_139F5501)
+Mime-Version: 1.0 (iPhone Mail 7D11)
+Content-Type: text/plain;
+	charset=us-ascii;
+	format=flowed;
+	delsp=yes
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46279 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754777AbZKMSGZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 13:06:25 -0500
-In-Reply-To: <20091113180323.GC3684@atomide.com>
-Content-Language: en-US
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:60592 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754828AbZKMSK3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Nov 2009 13:10:29 -0500
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B9BAA0F@dlee02.ent.ti.com> (sfid-20091113_175312_309321_139F5501)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Wang, Jane" <jwang@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@nokia.com" <peter.ujfalusi@nokia.com>
 
+On 13 Nov 2009, at 17:52, "Wang, Jane" <jwang@ti.com> wrote:
 
-
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
->Lindgren
->Sent: Friday, November 13, 2009 12:03 PM
->To: Gadiyar, Anand
->Cc: linux-omap@vger.kernel.org
->Subject: Re: Some patches need reposting, inbox cleared, patchwork cleared
 >
->> > Tony,
->> >
->> > What happened to the 3630 support stuff that had been merged to
->> > your master branch as of yesterday?
->> >
->> > - Anand
+>
+>> -----Original Message-----
+>> From: alsa-devel-bounces@alsa-project.org [mailto:alsa-devel- 
+>> bounces@alsa-
+>> project.org] On Behalf Of Mark Brown
+>> Sent: Friday, November 13, 2009 11:49 AM
+>> To: Wang, Jane
+>> Cc: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org;
+>> peter.ujfalusi@nokia.com; Wang, Jane
+>> Subject: Re: [alsa-devel] [PATCH 1/2] OMAP3: MCBSP: Suspend/resume  
+>> failure
+>> fix
 >>
->> I meant, I see these patches in for-next, but they're not present
->> in the l-o master branch. Is this deliberate?
+>> On 13 Nov 2009, at 17:39, Jane Wang <jwang@ti.com> wrote:
+>>
+>>> McBSP fucntional clock is not disabled when suspend is triggerd  
+>>> which
+>>> prevents PER domain entering target low-power state. To fix the
+>>> problem:
+>>>
+>>> 1. Disable/enable McBSP functional clock for suspend/resume.
+>>>
+>>> 2. In addition, reconfigure McBSP, this is needed when systerm comes
+>>> out of OFF state.
+>>>
+>>
+>> There is no need to resend your patches this iften - please allow at
+>> least a week or so for review. You only need to repost if addressing
+>> comments or it looks like the patch got missed.
+>>
 >
->Hmm, it should be all merged into master branch also:
->
->$ git log --pretty=oneline --grep=3630 -n100 master arch/arm/mach-omap2
->1739bbc268aeffc8d3d040cf6493ef4399a1a181 omap: 3630sdp: introduce 3630 sdp board support
->13ac7e77f407e4c529eb1cb058031f896fd3e80c omap: zoom3: introduce zoom3 board support
->79c6fce9daa80936eba830c49b6c559f5ca6295d omap: zoom: drop i2c-1 speed to 2400
->3efbe15e7755108268b9ed72d3b6c6539f671ebe omap: zoom: rename zoom2 name to generic zoom
->97bd76cf5e5c18ddcc8d38f997ae7aec4db3bb01 omap: zoom2: split board file for software reuse
->2c8681ac36b4247c26c5789f63de9f522436c1c5 omap3630: Set omap3630 MMC1 I/O speed to 52Mhz
->9283cf8a9d21889fb838634e7017e84acf69e79f omap3630: Configure HSMMC1 to 4-bit
->1a309b7370e5aa6d703eded1afc53218a205a71f omap3630: Add HSMMC related checks
->1e9e0b997c30b81b2165fa68cad4411e6136a8d2 omap3: 3630: update is_chip variable
->6fb081fb525c05aed6fee28bf73fe4ee1fe2d5bd omap3: Introduce OMAP3630
->
->Can you check and let me know if something is missing?
+> Sorry for sending this again. Something is not set correctly with my
+> git send-email. The email did not reach the mailing lists, it only  
+> reached
+> people in cc.
 
-I just verified booting zoom3 on l-o master, and its working fine.
-
-Only extra patch that I have to add is the 8250 patch, that needs posting separately.
-
->
->Regards,
->
->Tony
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+No, your posts are making it through to the lists just fine. Note that  
+alsa-devel is moderated for non-subscribers
