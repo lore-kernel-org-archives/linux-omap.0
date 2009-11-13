@@ -1,27 +1,51 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 6/9] omap3: clk: use pm accessor functions for cpufreq table
-Date: Fri, 13 Nov 2009 00:05:19 -0600
-Message-ID: <1258092322-30833-7-git-send-email-nm@ti.com>
+Subject: [PATCH 9/9 v2] omap3: pm: introduce 3630 opps
+Date: Fri, 13 Nov 2009 00:05:22 -0600
+Message-ID: <1258092322-30833-10-git-send-email-nm@ti.com>
 References: <1258092322-30833-1-git-send-email-nm@ti.com>
  <1258092322-30833-2-git-send-email-nm@ti.com>
  <1258092322-30833-3-git-send-email-nm@ti.com>
  <1258092322-30833-4-git-send-email-nm@ti.com>
  <1258092322-30833-5-git-send-email-nm@ti.com>
  <1258092322-30833-6-git-send-email-nm@ti.com>
+ <1258092322-30833-7-git-send-email-nm@ti.com>
+ <1258092322-30833-8-git-send-email-nm@ti.com>
+ <1258092322-30833-9-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34864 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:34865 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053AbZKMGFW (ORCPT
+	with ESMTP id S1753199AbZKMGFW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 01:05:22 -0500
-In-Reply-To: <1258092322-30833-6-git-send-email-nm@ti.com>
+In-Reply-To: <1258092322-30833-9-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, SuiLun Lam <s-lam@ti.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-omap2_clk_init_cpufreq_table currently directly accesses the opp
-table, making it unscalable to various OMAPs. Instead use the
-accessor functions to populate the cpufreq table
+Introduce the OMAP3630 OPPs including the defined OPP tuples.
+
+Further information on OMAP3630 can be found here:
+http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
+
+OMAP36xx family introduces:
+VDD1 with 4 OPPs, of which OPP3 & 4 are available only on devices yet
+to be introduced in 36xx family. Meanwhile, VDD2 has 2 opps.
+
+Range of OPPs supported by Devices(tentative)->
+           |<-3630-600->| (default)
+           |<-      3630-800  ->| (device: TBD)
+           |<-      3630-1000             ->| (device: TBD)
+H/w OPP-> OPP50 OPP100       OPP-Turbo   OPP1G-SB
+VDD1      OPP1  OPP2         OPP3        OPP4
+VDD2      OPP1  OPP2         OPP2        OPP2
+
+Note:
+a) TI h/w naming for OPPs are now standardized in terms of OPP50, 100,
+   Turbo and SB. This maps as shown above to the opp IDs (s/w term).
+b) For boards which need custom VDD1/2 OPPs, the opp table can be
+   updated by the board file on a need basis after the
+   omap3_pm_init_opp_table call. The OPPs introduced here are the
+   official OPP table at this point in time.
 
 Tested on: SDP3430, SDP3630
 
@@ -40,74 +64,151 @@ Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/clock34xx.c |   46 +++++++++++++++++++++++++++-----------
- 1 files changed, 32 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/omap3-opp.h |    9 ++++
+ arch/arm/mach-omap2/pm34xx.c    |   87 +++++++++++++++++++++++++++++++-------
+ 2 files changed, 80 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index da5bc1f..daec6ea 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -1042,28 +1042,46 @@ static unsigned long omap3_clkoutx2_recalc(struct clk *clk)
- #if defined(CONFIG_ARCH_OMAP3)
+diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
+index 7f27f44..a5880b8 100644
+--- a/arch/arm/mach-omap2/omap3-opp.h
++++ b/arch/arm/mach-omap2/omap3-opp.h
+@@ -4,22 +4,31 @@
+ #include <plat/omap-pm.h>
  
- #ifdef CONFIG_CPU_FREQ
--static struct cpufreq_frequency_table freq_table[MAX_VDD1_OPP+1];
-+
-+/* Use a dummy table with no entries to start with */
-+static struct cpufreq_frequency_table dummy_freq_table = {
-+	.frequency = CPUFREQ_TABLE_END,
+ /* MPU speeds */
++#define S1000M  1000000000
++#define S800M   800000000
+ #define S600M   600000000
+ #define S550M   550000000
+ #define S500M   500000000
++#define S300M   300000000
+ #define S250M   250000000
+ #define S125M   125000000
+ 
+ /* DSP speeds */
++#define S875M   875000000
++#define S660M   660000000
++#define S520M   520000000
+ #define S430M   430000000
+ #define S400M   400000000
+ #define S360M   360000000
++#define S260M   260000000
+ #define S180M   180000000
+ #define S90M    90000000
+ 
+ /* L3 speeds */
+ #define S83M    83000000
++#define S100M   100000000
+ #define S166M   166000000
++#define S200M   200000000
+ 
+ extern struct omap_opp *omap3_mpu_rate_table;
+ extern struct omap_opp *omap3_dsp_rate_table;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 14131f8..86137bb 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -141,6 +141,41 @@ static __initdata struct omap_opp omap34xx_dsp_rate_table[] = {
+ 	{0, 0, 0, 0},
+ };
+ 
++static __initdata struct omap_opp omap36xx_mpu_rate_table[] = {
++	{0, 0, 0, 0},
++	/*OPP1 - 930mV - OPP50*/
++	{true, S300M, VDD1_OPP1, 0x1a},
++	/*OPP2 - 1.100V - OPP100*/
++	{true, S600M, VDD1_OPP2, 0x28},
++	/*OPP3 - 1.260V - OPP-Turbo*/
++	{false, S800M, VDD1_OPP3, 0x34},
++	/*OPP4 - 1.310V - OPP-SB*/
++	{false, S1000M, VDD1_OPP4, 0x38},
++	{0, 0, 0, 0},
 +};
-+static struct cpufreq_frequency_table *freq_table = &dummy_freq_table;
- 
- void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
++
++static __initdata struct omap_opp omap36xx_l3_rate_table[] = {
++	{0, 0, 0, 0},
++	/*OPP1 - 930mV - OPP50 */
++	{true, S100M, VDD2_OPP1, 0x1a},
++	/*OPP2 - 1.375V - OPP100, OPP-Turbo, OPP-SB*/
++	{true, S200M, VDD2_OPP2, 0x2b},
++	{0, 0, 0, 0},
++};
++
++static __initdata struct omap_opp omap36xx_dsp_rate_table[] = {
++	{0, 0, 0, 0},
++	/*OPP1 - OPP50*/
++	{true, S260M, VDD1_OPP1, 0x1a},
++	/*OPP2 - OPP100*/
++	{true, S520M, VDD1_OPP2, 0x28},
++	/*OPP3 - OPP-Turbo*/
++	{false, S660M, VDD1_OPP3, 0x34},
++	/*OPP4 - OPP-SB*/
++	{false, S875M, VDD1_OPP4, 0x38},
++	{0, 0, 0, 0},
++};
++
+ struct omap_opp *omap3_mpu_rate_table;
+ struct omap_opp *omap3_dsp_rate_table;
+ struct omap_opp *omap3_l3_rate_table;
+@@ -1287,22 +1322,42 @@ static void __init configure_vc(void)
+ void __init omap3_pm_init_opp_table(void)
  {
--	struct omap_opp *prcm;
--	int i = 0;
-+	int i;
-+	int ret;
-+	u8 opp_id;
-+	unsigned long freq;
- 
- 	if (!mpu_opps)
- 		return;
+ 	/* Populate the base CPU rate tables here */
+-	omap3_mpu_rate_table = kmalloc(sizeof(omap34xx_mpu_rate_table),
+-			GFP_KERNEL);
+-	omap3_dsp_rate_table = kmalloc(sizeof(omap34xx_dsp_rate_table),
+-			GFP_KERNEL);
+-	omap3_l3_rate_table = kmalloc(sizeof(omap34xx_l3_rate_table),
+-			GFP_KERNEL);
 -
--	prcm = mpu_opps + MAX_VDD1_OPP;
--	for (; prcm->rate; prcm--) {
--		freq_table[i].index = i;
--		freq_table[i].frequency = prcm->rate / 1000;
--		i++;
-+	ret = get_limit_freq(&freq, mpu_opps, true, true);
-+	if (ret) {
-+		pr_warning("%s: failed to initialize frequency"
-+				"table\n", __func__);
-+		return;
- 	}
-+	/* The following should'nt fail */
-+	BUG_ON(freq_to_opp(&opp_id, mpu_opps, freq));
- 
--	if (i == 0) {
--		printk(KERN_WARNING "%s: failed to initialize frequency \
--								table\n",
--								__func__);
--		return;
-+	/* There is a risk of overallocating if the lower/intermediate
-+	 * OPPs are disabled, but the amount is not expected to be high
-+	 * in comparison to reallocating to exactly available opps
-+	 */
-+	freq_table = kmalloc(sizeof(struct cpufreq_frequency_table) *
-+			(opp_id + 1), GFP_KERNEL);
+-	BUG_ON(!omap3_mpu_rate_table || !omap3_dsp_rate_table ||
+-		!omap3_l3_rate_table);
+-
+-	memcpy(omap3_mpu_rate_table, omap34xx_mpu_rate_table,
+-			sizeof(omap34xx_mpu_rate_table));
+-	memcpy(omap3_dsp_rate_table, omap34xx_dsp_rate_table,
+-			sizeof(omap34xx_dsp_rate_table));
+-	memcpy(omap3_l3_rate_table, omap34xx_l3_rate_table,
+-			sizeof(omap34xx_l3_rate_table));
++	if (cpu_is_omap3630()) {
++		omap3_mpu_rate_table = kmalloc(sizeof(omap36xx_mpu_rate_table),
++				GFP_KERNEL);
++		omap3_dsp_rate_table = kmalloc(sizeof(omap36xx_dsp_rate_table),
++				GFP_KERNEL);
++		omap3_l3_rate_table = kmalloc(sizeof(omap36xx_l3_rate_table),
++				GFP_KERNEL);
 +
-+	/* Populate the first index.. we already found the freq */
-+	freq_table[0].index = 0;
-+	freq_table[0].frequency =  freq / 1000;
++		BUG_ON(!omap3_mpu_rate_table || !omap3_dsp_rate_table ||
++			!omap3_l3_rate_table);
 +
-+	/* Populate the table highest to lowest */
-+	for (i = 1; !get_next_freq(&freq, mpu_opps, false, true, true); i++) {
-+		freq_table[i].index = i;
-+		freq_table[i].frequency =  freq / 1000;
- 	}
++		memcpy(omap3_mpu_rate_table, omap36xx_mpu_rate_table,
++				sizeof(omap36xx_mpu_rate_table));
++		memcpy(omap3_dsp_rate_table, omap36xx_dsp_rate_table,
++				sizeof(omap36xx_dsp_rate_table));
++		memcpy(omap3_l3_rate_table, omap36xx_l3_rate_table,
++				sizeof(omap36xx_l3_rate_table));
++	} else {
++		/* Default to 34xx devices */
++		omap3_mpu_rate_table = kmalloc(sizeof(omap34xx_mpu_rate_table),
++				GFP_KERNEL);
++		omap3_dsp_rate_table = kmalloc(sizeof(omap34xx_dsp_rate_table),
++				GFP_KERNEL);
++		omap3_l3_rate_table = kmalloc(sizeof(omap34xx_l3_rate_table),
++				GFP_KERNEL);
++
++		BUG_ON(!omap3_mpu_rate_table || !omap3_dsp_rate_table ||
++			!omap3_l3_rate_table);
++
++		memcpy(omap3_mpu_rate_table, omap34xx_mpu_rate_table,
++				sizeof(omap34xx_mpu_rate_table));
++		memcpy(omap3_dsp_rate_table, omap34xx_dsp_rate_table,
++				sizeof(omap34xx_dsp_rate_table));
++		memcpy(omap3_l3_rate_table, omap34xx_l3_rate_table,
++				sizeof(omap34xx_l3_rate_table));
++	}
+ }
  
- 	freq_table[i].index = i;
+ static int __init omap3_pm_early_init(void)
 -- 
 1.6.3.3
 
