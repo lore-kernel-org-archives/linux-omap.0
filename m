@@ -1,170 +1,119 @@
 From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
-Subject: [PATCH 3/10] omap: mailbox: remove sequence bit checking
-Date: Fri, 13 Nov 2009 18:01:04 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE4C4992@dbde02.ent.ti.com>
+Subject: [PATCH 2/10] omap: mailbox: OMAP4 - Add resources
+Date: Fri, 13 Nov 2009 18:01:00 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE4C4991@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49617 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991AbZKMMar convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 07:30:47 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:52680 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751599AbZKMMam convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 07:30:42 -0500
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: "Gupta, Ramesh" <grgupta@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>
 
->From 39b709da59a8f146169577702c4d77048050c3d0 Mon Sep 17 00:00:00 2001
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+>From 80f2bf9ba7e2d87490a36346d25517c41033677f Mon Sep 17 00:00:00 2001
+From: C A Subramaniam <subramaniam.ca@ti.com>
 Date: Thu, 12 Nov 2009 16:18:04 -0800
-Subject: [PATCH 3/10] omap: mailbox: remove sequence bit checking
+Subject: [PATCH 2/10] omap: mailbox: OMAP4 - Add resources and mailbox register base address for OMAP4 mailbox
 
-Any protocol should be handled in the upper layer and mailbox driver
-shouldn't care about the contents of messages.
+This patch adds resource information of mailbox driver for
+OMAP4 mailbox module. Register base address also added
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: C A Subramaniam <subramaniam.ca@ti.com>
+Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/mailbox.c |   70 ++---------------------------------------
- 1 files changed, 4 insertions(+), 66 deletions(-)
+ arch/arm/mach-omap2/devices.c              |   36 +++++++++++++++++++++-------
+ arch/arm/plat-omap/include/plat/omap44xx.h |    2 +
+ 2 files changed, 29 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index 734bff3..f82810e 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -28,54 +28,9 @@
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 8b6cd8c..733d3dc 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -136,9 +136,10 @@ static inline void omap_init_camera(void)
  
- #include <plat/mailbox.h>
+ #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
  
--static int enable_seq_bit;
--module_param(enable_seq_bit, bool, 0);
--MODULE_PARM_DESC(enable_seq_bit, "Enable sequence bit checking.");
--
- static struct omap_mbox *mboxes;
- static DEFINE_RWLOCK(mboxes_lock);
+-#define MBOX_REG_SIZE	0x120
++#define MBOX_REG_SIZE   0x120
  
--/*
-- * Mailbox sequence bit API
-- */
--
--/* seq_rcv should be initialized with any value other than
-- * 0 and 1 << 31, to allow either value for the first
-- * message.  */
--static inline void mbox_seq_init(struct omap_mbox *mbox)
--{
--	if (!enable_seq_bit)
--		return;
--
--	/* any value other than 0 and 1 << 31 */
--	mbox->seq_rcv = 0xffffffff;
--}
--
--static inline void mbox_seq_toggle(struct omap_mbox *mbox, mbox_msg_t * msg)
--{
--	if (!enable_seq_bit)
--		return;
--
--	/* add seq_snd to msg */
--	*msg = (*msg & 0x7fffffff) | mbox->seq_snd;
--	/* flip seq_snd */
--	mbox->seq_snd ^= 1 << 31;
--}
--
--static inline int mbox_seq_test(struct omap_mbox *mbox, mbox_msg_t msg)
--{
--	mbox_msg_t seq;
--
--	if (!enable_seq_bit)
--		return 0;
--
--	seq = msg & (1 << 31);
--	if (seq == mbox->seq_rcv)
--		return -1;
--	mbox->seq_rcv = seq;
--	return 0;
--}
--
- /* Mailbox FIFO handle functions */
- static inline mbox_msg_t mbox_fifo_read(struct omap_mbox *mbox)
- {
-@@ -113,13 +68,6 @@ static inline int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- 	return mbox->ops->is_irq(mbox, irq);
- }
- 
--/* Mailbox Sequence Bit function */
--void omap_mbox_init_seq(struct omap_mbox *mbox)
--{
--	mbox_seq_init(mbox);
--}
--EXPORT_SYMBOL(omap_mbox_init_seq);
--
- /*
-  * message sender
-  */
-@@ -141,7 +89,6 @@ static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg, void *arg)
- 			goto out;
- 	}
- 
--	mbox_seq_toggle(mbox, &msg);
- 	mbox_fifo_write(mbox, msg);
-  out:
- 	return ret;
-@@ -254,11 +201,11 @@ static void mbox_rx_work(struct work_struct *work)
- /*
-  * Mailbox interrupt handler
-  */
--static void mbox_txq_fn(struct request_queue * q)
-+static void mbox_txq_fn(struct request_queue *q)
- {
- }
- 
--static void mbox_rxq_fn(struct request_queue * q)
-+static void mbox_rxq_fn(struct request_queue *q)
- {
- }
- 
-@@ -284,11 +231,6 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
- 
- 		msg = mbox_fifo_read(mbox);
- 
--		if (unlikely(mbox_seq_test(mbox, msg))) {
--			pr_info("mbox: Illegal seq bit!(%08x)\n", msg);
--			if (mbox->err_notify)
--				mbox->err_notify();
--		}
- 
- 		blk_insert_request(q, rq, 0, (void *)msg);
- 		if (mbox->ops->type == OMAP_MBOX_TYPE1)
-@@ -320,7 +262,7 @@ static irqreturn_t mbox_interrupt(int irq, void *p)
-  */
- static ssize_t
- omap_mbox_write(struct device *dev, struct device_attribute *attr,
--		const char * buf, size_t count)
-+		const char *buf, size_t count)
- {
- 	int ret;
- 	mbox_msg_t *p = (mbox_msg_t *)buf;
-@@ -357,10 +299,6 @@ omap_mbox_read(struct device *dev, struct device_attribute *attr, char *buf)
- 
- 		blk_end_request_all(rq, 0);
- 
--		if (unlikely(mbox_seq_test(mbox, *p))) {
--			pr_info("mbox: Illegal seq bit!(%08x) ignored\n", *p);
--			continue;
--		}
- 		p++;
- 	}
- 
-@@ -383,7 +321,7 @@ static struct class omap_mbox_class = {
+-static struct resource omap2_mbox_resources[] = {
++#ifdef CONFIG_ARCH_OMAP2
++static struct resource omap_mbox_resources[] = {
+ 	{
+ 		.start		= OMAP24XX_MAILBOX_BASE,
+ 		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+@@ -153,8 +154,10 @@ static struct resource omap2_mbox_resources[] = {
+ 		.flags		= IORESOURCE_IRQ,
+ 	},
  };
++#endif
  
- static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
--					request_fn_proc * proc,
-+					request_fn_proc *proc,
- 					void (*work) (struct work_struct *))
+-static struct resource omap3_mbox_resources[] = {
++#ifdef CONFIG_ARCH_OMAP3
++static struct resource omap_mbox_resources[] = {
+ 	{
+ 		.start		= OMAP34XX_MAILBOX_BASE,
+ 		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+@@ -165,6 +168,24 @@ static struct resource omap3_mbox_resources[] = {
+ 		.flags		= IORESOURCE_IRQ,
+ 	},
+ };
++#endif
++
++#ifdef CONFIG_ARCH_OMAP4
++
++#define OMAP4_MBOX_REG_SIZE	0x130
++static struct resource omap_mbox_resources[] = {
++	{
++		.start          = OMAP44XX_MAILBOX_BASE,
++		.end            = OMAP44XX_MAILBOX_BASE +
++					OMAP4_MBOX_REG_SIZE - 1,
++		.flags          = IORESOURCE_MEM,
++	},
++	{
++		.start          = INT_44XX_MAIL_U0_MPU,
++		.flags          = IORESOURCE_IRQ,
++	},
++};
++#endif
+ 
+ static struct platform_device mbox_device = {
+ 	.name		= "omap2-mailbox",
+@@ -173,12 +194,9 @@ static struct platform_device mbox_device = {
+ 
+ static inline void omap_init_mbox(void)
  {
- 	struct request_queue *q;
+-	if (cpu_is_omap2420()) {
+-		mbox_device.num_resources = ARRAY_SIZE(omap2_mbox_resources);
+-		mbox_device.resource = omap2_mbox_resources;
+-	} else if (cpu_is_omap3430()) {
+-		mbox_device.num_resources = ARRAY_SIZE(omap3_mbox_resources);
+-		mbox_device.resource = omap3_mbox_resources;
++	if (cpu_is_omap2420() || cpu_is_omap3430() || cpu_is_omap44xx()) {
++		mbox_device.num_resources = ARRAY_SIZE(omap_mbox_resources);
++		mbox_device.resource = omap_mbox_resources;
+ 	} else {
+ 		pr_err("%s: platform not supported\n", __func__);
+ 		return;
+diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
+index 3361897..e52902a 100644
+--- a/arch/arm/plat-omap/include/plat/omap44xx.h
++++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+@@ -40,5 +40,7 @@
+ #define OMAP44XX_LOCAL_TWD_BASE		0x48240600
+ #define OMAP44XX_WKUPGEN_BASE		0x48281000
+ 
++#define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
++
+ #endif /* __ASM_ARCH_OMAP44XX_H */
+ 
 -- 
 1.5.3.2
