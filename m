@@ -1,103 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [build errro on for-next branch] RE: [1/3] omap3evm: ehci: Add
- EHCI padconfig for board Rev >= E
-Date: Fri, 13 Nov 2009 17:03:59 -0800
-Message-ID: <20091114010358.GJ3684@atomide.com>
-References: <20091112232832.GK24837@atomide.com>
- <19F8576C6E063C45BE387C64729E7394043702B09E@dbde02.ent.ti.com>
+Subject: Re: Some patches need reposting, inbox cleared, patchwork cleared
+Date: Fri, 13 Nov 2009 17:08:00 -0800
+Message-ID: <20091114010800.GK3684@atomide.com>
+References: <20091113003851.GN24837@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8605@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030A8C860A@dbde02.ent.ti.com>
+ <20091113180323.GC3684@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA689287@dbde02.ent.ti.com>
+ <20091113181550.GD3684@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA689291@dbde02.ent.ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA6892A1@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50049 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54306 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753048AbZKNBDz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 20:03:55 -0500
+	with ESMTP id S1752861AbZKNBH4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 20:07:56 -0500
 Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394043702B09E@dbde02.ent.ti.com>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA6892A1@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Gupta, Ajay Kumar <ajay.gupta@ti.com> [091113 00:58]:
-> Hi,
-> > 
-> > * Ajay Kumar Gupta <ajay.gupta@ti.com> [091028 16:12]:
-> > > OMAP3EVM (Rev >= E) has EHCI port on main board itself. Apart from this
-> > > there is a slot to connect Mistral Daughter Card (MDC) to it which also
-> > > has one EHCI port. Only one EHCI port can be used at a time and we can
-> > > choose the port using GPIO61.
-> > >
-> > > These are the new GPIO lines used for different purpose on EHCI
-> > interface.
-> > > 	- GPIO21 - EHCI phy reset
-> > > 	- GPIO22 - EHCI VBUS enable
-> > > 	- GPIO61 - Selects EHCI port either on main board or on Mistral
-> > > 	  Daughter Card (MDC).
-> > 
-> > Let's put this on hold until we have the new mux framework. Should be
-> > trivial to do then.
+* Pandita, Vikram <vikram.pandita@ti.com> [091113 11:06]:
+> Tony
 > 
-> Tony,
+> >-----Original Message-----
+> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> >Pandita, Vikram
+> >>From: Tony Lindgren [mailto:tony@atomide.com]
+> >>> I just verified booting zoom3 on l-o master, and its working fine.
+> >>
+> >>OK good. Can you also try booting this patch from Felipe on 3630:
+> >>
+> >>http://patchwork.kernel.org/patch/59540/
+> >
+> >Patch does not apply. Rebasing now and testing.
 > 
-> Another patch [1] which depends on this is already merged to 'for-next'
-> branch causing a compilation error.
+> Rebased Patch (attached) boots up fine now on 3630 Zoom3 board.
 > 
-> [1] omap3evm: ehci: Update EHCI support on OMAP3EVM (Rev >= E)
+> Logs:
+> CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7f
+> CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+> Machine: OMAP Zoom3 board
+> Memory policy: ECC disabled, Data cache writeback
+> OMAP3630 ES1.0 (l2cache iva sgx neon isp )
 > 
-> So either revert the above patch from 'for-next' or merge the pinmux
-> patch also.
 
-OK, merged the additional pinmux patch into the "Update EHCI support.."
-patch.
+OK, thanks applying it.
 
-Tony
- 
-> Regards,
-> Ajay
-> > 
-> > Tony
-> > 
-> > > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > >
-> > > ---
-> > > arch/arm/mach-omap2/mux.c             |    7 +++++++
-> > >  arch/arm/plat-omap/include/plat/mux.h |    5 +++++
-> > >  2 files changed, 12 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> > > index 32c953e..00ad592 100644
-> > > --- a/arch/arm/mach-omap2/mux.c
-> > > +++ b/arch/arm/mach-omap2/mux.c
-> > > @@ -551,6 +551,13 @@ MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
-> > >  MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
-> > >  		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
-> > >  		OMAP34XX_MUX_MODE0)
-> > > +/* EHCI GPIO's on OMAP3EVM (Rev >= E) */
-> > > +MUX_CFG_34XX("AH14_34XX_GPIO21", 0x5ea,
-> > > +	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> > > +MUX_CFG_34XX("AF9_34XX_GPIO22", 0x5ec,
-> > > +	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> > > +MUX_CFG_34XX("U3_34XX_GPIO61", 0x0c8,
-> > > +	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> > >  };
-> > >
-> > >  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-> > > diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-
-> > omap/include/plat/mux.h
-> > > index f3c1d8a..8316d4f 100644
-> > > --- a/arch/arm/plat-omap/include/plat/mux.h
-> > > +++ b/arch/arm/plat-omap/include/plat/mux.h
-> > > @@ -840,6 +840,11 @@ enum omap34xx_index {
-> > >
-> > >  	/* SYS_NIRQ T2 INT1 */
-> > >  	AF26_34XX_SYS_NIRQ,
-> > > +
-> > > +	/* EHCI GPIO's for OMAP3EVM (Rev >= E) */
-> > > +	AH14_34XX_GPIO21,
-> > > +	AF9_34XX_GPIO22,
-> > > +	U3_34XX_GPIO61,
-> > >  };
-> > >
-> > >  struct omap_mux_cfg {
-> 
+Tony 
+
+
