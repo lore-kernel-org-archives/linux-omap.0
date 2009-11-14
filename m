@@ -1,93 +1,365 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 8/9 v2] omap3: pm: introduce dynamic OPP
-Date: Fri, 13 Nov 2009 17:31:28 -0800
-Message-ID: <87hbsxnb7z.fsf@deeprootsystems.com>
-References: <1258092322-30833-1-git-send-email-nm@ti.com>
-	<1258092322-30833-2-git-send-email-nm@ti.com>
-	<1258092322-30833-3-git-send-email-nm@ti.com>
-	<1258092322-30833-4-git-send-email-nm@ti.com>
-	<1258092322-30833-5-git-send-email-nm@ti.com>
-	<1258092322-30833-6-git-send-email-nm@ti.com>
-	<1258092322-30833-7-git-send-email-nm@ti.com>
-	<1258092322-30833-8-git-send-email-nm@ti.com>
-	<1258092322-30833-9-git-send-email-nm@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC][PATCH] ARM: OMAP: McBSP: Use register cache
+Date: Sat, 14 Nov 2009 03:06:39 +0100
+Message-ID: <200911140306.44784.jkrzyszt@tis.icnet.pl>
+References: <200908121239.26346.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:38197 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753107AbZKNBbZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 20:31:25 -0500
-Received: by pwi3 with SMTP id 3so2312499pwi.21
-        for <linux-omap@vger.kernel.org>; Fri, 13 Nov 2009 17:31:30 -0800 (PST)
-In-Reply-To: <1258092322-30833-9-git-send-email-nm@ti.com> (Nishanth Menon's message of "Fri\, 13 Nov 2009 00\:05\:21 -0600")
+Received: from d1.icnet.pl ([212.160.220.21]:54329 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753584AbZKNCHa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Nov 2009 21:07:30 -0500
+In-Reply-To: <200908121239.26346.jkrzyszt@tis.icnet.pl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, Jon Hunter <jon-hunter@ti.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, SuiLun Lam <s-lam@ti.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Samuel Ortiz <samuel@sortiz.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Nishanth Menon <nm@ti.com> writes:
+Hi,
 
-> OPP tables have been used as static arrays till now this causes
-> limitations in terms of ability to dynamically making decisions
-> for cpu types and populating it with the right values. This
-> implementation is based on the discussions in the thread:
-> http://marc.info/?l=linux-omap&m=125482970102327&w=2
-> inputs from Romit, Benoit, Kevin, Sanjeev, Santosh acked.
->
-> omap3_pm_init_opp_table is introduced here, and the default omap3
-> tables have been renamed to omap34xx_ tables, original omap3_xx
-> tables are now dynamically allocated and populated.
->
-> Corresponding board files calling omap2_init_common_hw with the
-> active opp table params have been updated with this patch.
->
-> This now paves way to introduce 3630 OPP tables.
->
-> Tested on: SDP3430 - SDP3630 boot breaks with this patch
-> (as SDP3630 needs corresponding correct VDD2 freq w.r.t SDRC clk.
-> The next patch in this series fixes things)
->
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Jon Hunter <jon-hunter@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Romit Dasgupta <romit@ti.com>
-> Cc: Sanjeev Premi <premi@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
-> Cc: SuiLun Lam <s-lam@ti.com>
-> Cc: Thara Gopinath <thara@ti.com>
-> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+This patch got outdated and does not apply any more, but the idea still hangs 
+in my queue. I am not sure why the patch has never been acknowledged nor 
+rejected. Maybe it just got missed?
 
-[...]
+Could you please take a position on this idea?
 
-> +void __init omap3_pm_init_opp_table(void)
-> +{
-> +	/* Populate the base CPU rate tables here */
-> +	omap3_mpu_rate_table = kmalloc(sizeof(omap34xx_mpu_rate_table),
-> +			GFP_KERNEL);
-> +	omap3_dsp_rate_table = kmalloc(sizeof(omap34xx_dsp_rate_table),
-> +			GFP_KERNEL);
-> +	omap3_l3_rate_table = kmalloc(sizeof(omap34xx_l3_rate_table),
-> +			GFP_KERNEL);
+Thanks,
+Janusz
+
+http://www.spinics.net/lists/linux-omap/msg16720.html
+
+Wednesday 12 August 2009 12:39:25 Janusz Krzysztofik wrote:
+> Change the way McBSP registers are updated: use cached values instead of
+> relying upon those read back from the device.
+>
+> With this patch, I have finally managed to get rid of all random
+> playback/recording hangups on my OMAP1510 based Amstrad Delta (buggy?)
+> hardware. Before that, I could suspect that values read back from McBSP
+> registers before updating them happened to be errornous.
+>
+> I think there is one important point that makes this patch worth of
+> applying, apart from my hardware quality. With the current code, if it ever
+> happens to any machine, no matter if OMAP1510 or newer, to read incorrect
+> value from a McBSP register, this wrong value will get written back without
+> any checking. That can lead to hardware damage if, for example, an input
+> pin is turned into output as a result.
+>
+> Created against linux-2.6.31-rc5
+>
+> Tested on Amstrad Delta
+>
+> Signed-off-by: Janusz Krzysztofik
+>
+> ---
+> ---
+> linux-2.6.31-rc5/arch/arm/plat-omap/include/mach/mcbsp.h.orig	2009-08-11
+> 23:43:25.000000000 +0200 +++
+> linux-2.6.31-rc5/arch/arm/plat-omap/include/mach/mcbsp.h	2009-08-11
+> 23:45:46.000000000 +0200 @@ -377,6 +377,8 @@ struct omap_mcbsp {
+>  	struct omap_mcbsp_platform_data *pdata;
+>  	struct clk *iclk;
+>  	struct clk *fclk;
 > +
-> +	BUG_ON(!omap3_mpu_rate_table || !omap3_dsp_rate_table ||
-> +		!omap3_l3_rate_table);
-> +
-> +	memcpy(omap3_mpu_rate_table, omap34xx_mpu_rate_table,
-> +			sizeof(omap34xx_mpu_rate_table));
-> +	memcpy(omap3_dsp_rate_table, omap34xx_dsp_rate_table,
-> +			sizeof(omap34xx_dsp_rate_table));
-> +	memcpy(omap3_l3_rate_table, omap34xx_l3_rate_table,
-> +			sizeof(omap34xx_l3_rate_table));
-> +}
-> +
+> +	struct omap_mcbsp_reg_cfg reg_cache;
+>  };
+>  extern struct omap_mcbsp **mcbsp_ptr;
+>  extern int omap_mcbsp_count;
+> --- linux-2.6.31-rc5/arch/arm/plat-omap/mcbsp.c.orig	2009-08-11
+> 23:43:25.000000000 +0200 +++
+> linux-2.6.31-rc5/arch/arm/plat-omap/mcbsp.c	2009-08-11 23:45:35.000000000
+> +0200 @@ -91,6 +91,7 @@ static void omap_mcbsp_dump_reg(u8 id)
+>  static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
+>  {
+>  	struct omap_mcbsp *mcbsp_tx = dev_id;
+> +	struct omap_mcbsp_reg_cfg *reg_cache = &mcbsp_tx->reg_cache;
+>  	u16 irqst_spcr2;
+>
+>  	irqst_spcr2 = OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2);
+> @@ -101,7 +102,7 @@ static irqreturn_t omap_mcbsp_tx_irq_han
+>  			irqst_spcr2);
+>  		/* Writing zero to XSYNC_ERR clears the IRQ */
+>  		OMAP_MCBSP_WRITE(mcbsp_tx->io_base, SPCR2,
+> -			irqst_spcr2 & ~(XSYNC_ERR));
+> +			reg_cache->spcr2 &= ~(XSYNC_ERR));
+>  	} else {
+>  		complete(&mcbsp_tx->tx_irq_completion);
+>  	}
+> @@ -112,6 +113,7 @@ static irqreturn_t omap_mcbsp_tx_irq_han
+>  static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
+>  {
+>  	struct omap_mcbsp *mcbsp_rx = dev_id;
+> +	struct omap_mcbsp_reg_cfg *reg_cache = &mcbsp_rx->reg_cache;
+>  	u16 irqst_spcr1;
+>
+>  	irqst_spcr1 = OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR1);
+> @@ -122,7 +124,7 @@ static irqreturn_t omap_mcbsp_rx_irq_han
+>  			irqst_spcr1);
+>  		/* Writing zero to RSYNC_ERR clears the IRQ */
+>  		OMAP_MCBSP_WRITE(mcbsp_rx->io_base, SPCR1,
+> -			irqst_spcr1 & ~(RSYNC_ERR));
+> +			reg_cache->spcr1 &= ~(RSYNC_ERR));
+>  	} else {
+>  		complete(&mcbsp_rx->tx_irq_completion);
+>  	}
+> @@ -167,6 +169,7 @@ static void omap_mcbsp_rx_dma_callback(i
+>  void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg
+> *config) {
+>  	struct omap_mcbsp *mcbsp;
+> +	struct omap_mcbsp_reg_cfg *reg_cache;
+>  	void __iomem *io_base;
+>
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+> @@ -174,26 +177,27 @@ void omap_mcbsp_config(unsigned int id,
+>  		return;
+>  	}
+>  	mcbsp = id_to_mcbsp_ptr(id);
+> +	reg_cache = &mcbsp->reg_cache;
+>
+>  	io_base = mcbsp->io_base;
+>  	dev_dbg(mcbsp->dev, "Configuring McBSP%d  phys_base: 0x%08lx\n",
+>  			mcbsp->id, mcbsp->phys_base);
+>
+>  	/* We write the given config */
+> -	OMAP_MCBSP_WRITE(io_base, SPCR2, config->spcr2);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR1, config->spcr1);
+> -	OMAP_MCBSP_WRITE(io_base, RCR2, config->rcr2);
+> -	OMAP_MCBSP_WRITE(io_base, RCR1, config->rcr1);
+> -	OMAP_MCBSP_WRITE(io_base, XCR2, config->xcr2);
+> -	OMAP_MCBSP_WRITE(io_base, XCR1, config->xcr1);
+> -	OMAP_MCBSP_WRITE(io_base, SRGR2, config->srgr2);
+> -	OMAP_MCBSP_WRITE(io_base, SRGR1, config->srgr1);
+> -	OMAP_MCBSP_WRITE(io_base, MCR2, config->mcr2);
+> -	OMAP_MCBSP_WRITE(io_base, MCR1, config->mcr1);
+> -	OMAP_MCBSP_WRITE(io_base, PCR0, config->pcr0);
+> +	OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 = config->spcr2);
+> +	OMAP_MCBSP_WRITE(io_base, SPCR1, reg_cache->spcr1 = config->spcr1);
+> +	OMAP_MCBSP_WRITE(io_base, RCR2, reg_cache->rcr2 = config->rcr2);
+> +	OMAP_MCBSP_WRITE(io_base, RCR1, reg_cache->rcr1 = config->rcr1);
+> +	OMAP_MCBSP_WRITE(io_base, XCR2, reg_cache->xcr2 = config->xcr2);
+> +	OMAP_MCBSP_WRITE(io_base, XCR1, reg_cache->xcr1 = config->xcr1);
+> +	OMAP_MCBSP_WRITE(io_base, SRGR2, reg_cache->srgr2 = config->srgr2);
+> +	OMAP_MCBSP_WRITE(io_base, SRGR1, reg_cache->srgr1 = config->srgr1);
+> +	OMAP_MCBSP_WRITE(io_base, MCR2, reg_cache->mcr2 = config->mcr2);
+> +	OMAP_MCBSP_WRITE(io_base, MCR1, reg_cache->mcr1 = config->mcr1);
+> +	OMAP_MCBSP_WRITE(io_base, PCR0, reg_cache->pcr0 = config->pcr0);
+>  	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+> -		OMAP_MCBSP_WRITE(io_base, XCCR, config->xccr);
+> -		OMAP_MCBSP_WRITE(io_base, RCCR, config->rccr);
+> +		OMAP_MCBSP_WRITE(io_base, XCCR, reg_cache->xccr = config->xccr);
+> +		OMAP_MCBSP_WRITE(io_base, RCCR, reg_cache->rccr = config->rccr);
+>  	}
+>  }
+>  EXPORT_SYMBOL(omap_mcbsp_config);
+> @@ -232,6 +236,7 @@ EXPORT_SYMBOL(omap_mcbsp_set_io_type);
+>  int omap_mcbsp_request(unsigned int id)
+>  {
+>  	struct omap_mcbsp *mcbsp;
+> +	struct omap_mcbsp_reg_cfg *reg_cache;
+>  	int err;
+>
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+> @@ -239,6 +244,7 @@ int omap_mcbsp_request(unsigned int id)
+>  		return -ENODEV;
+>  	}
+>  	mcbsp = id_to_mcbsp_ptr(id);
+> +	reg_cache = &mcbsp->reg_cache;
+>
+>  	spin_lock(&mcbsp->lock);
+>  	if (!mcbsp->free) {
+> @@ -261,8 +267,8 @@ int omap_mcbsp_request(unsigned int id)
+>  	 * Make sure that transmitter, receiver and sample-rate generator are
+>  	 * not running before activating IRQs.
+>  	 */
+> -	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR1, 0);
+> -	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR2, 0);
+> +	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR1, reg_cache->spcr1 = 0);
+> +	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR2, reg_cache->spcr2 = 0);
+>
+>  	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
+>  		/* We need to get IRQs here */
+> @@ -335,42 +341,38 @@ EXPORT_SYMBOL(omap_mcbsp_free);
+>  void omap_mcbsp_start(unsigned int id, int tx, int rx)
+>  {
+>  	struct omap_mcbsp *mcbsp;
+> +	struct omap_mcbsp_reg_cfg *reg_cache;
+>  	void __iomem *io_base;
+>  	int idle;
+> -	u16 w;
+>
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return;
+>  	}
+>  	mcbsp = id_to_mcbsp_ptr(id);
+> +	reg_cache = &mcbsp->reg_cache;
+>  	io_base = mcbsp->io_base;
+>
+> -	mcbsp->rx_word_length = (OMAP_MCBSP_READ(io_base, RCR1) >> 5) & 0x7;
+> -	mcbsp->tx_word_length = (OMAP_MCBSP_READ(io_base, XCR1) >> 5) & 0x7;
+> +	mcbsp->rx_word_length = (reg_cache->rcr1 >> 5) & 0x7;
+> +	mcbsp->tx_word_length = (reg_cache->xcr1 >> 5) & 0x7;
+>
+> -	idle = !((OMAP_MCBSP_READ(io_base, SPCR2) |
+> -		OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
+> +	idle = !((reg_cache->spcr2 | reg_cache->spcr1) & 1);
+>
+>  	if (idle) {
+>  		/* Start the sample generator */
+> -		w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 6));
+> +		OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 |= (1 << 6));
+>  	}
+>
+>  	/* Enable transmitter and receiver */
+> -	w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (tx & 1));
+> +	OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 |= (tx & 1));
+>
+> -	w = OMAP_MCBSP_READ(io_base, SPCR1);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR1, w | (rx & 1));
+> +	OMAP_MCBSP_WRITE(io_base, SPCR1, reg_cache->spcr1 |= (rx & 1));
+>
+>  	udelay(100);
+>
+>  	if (idle) {
+>  		/* Start frame sync */
+> -		w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 7));
+> +		OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 |= (1 << 7));
+>  	}
+>
+>  	/* Dump McBSP Regs */
+> @@ -381,9 +383,9 @@ EXPORT_SYMBOL(omap_mcbsp_start);
+>  void omap_mcbsp_stop(unsigned int id, int tx, int rx)
+>  {
+>  	struct omap_mcbsp *mcbsp;
+> +	struct omap_mcbsp_reg_cfg *reg_cache;
+>  	void __iomem *io_base;
+>  	int idle;
+> -	u16 w;
+>
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+> @@ -391,23 +393,20 @@ void omap_mcbsp_stop(unsigned int id, in
+>  	}
+>
+>  	mcbsp = id_to_mcbsp_ptr(id);
+> +	reg_cache = &mcbsp->reg_cache;
+>  	io_base = mcbsp->io_base;
+>
+>  	/* Reset transmitter */
+> -	w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(tx & 1));
+> +	OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 &= ~(tx & 1));
+>
+>  	/* Reset receiver */
+> -	w = OMAP_MCBSP_READ(io_base, SPCR1);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(rx & 1));
+> +	OMAP_MCBSP_WRITE(io_base, SPCR1, reg_cache->spcr1 &= ~(rx & 1));
+>
+> -	idle = !((OMAP_MCBSP_READ(io_base, SPCR2) |
+> -		OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
+> +	idle = !((reg_cache->spcr2 | reg_cache->spcr1) & 1);
+>
+>  	if (idle) {
+>  		/* Reset the sample rate generator */
+> -		w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -		OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
+> +		OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 &= ~(1 << 6));
+>  	}
+>  }
+>  EXPORT_SYMBOL(omap_mcbsp_stop);
+> @@ -557,6 +556,7 @@ EXPORT_SYMBOL(omap_mcbsp_recv_word);
+>  int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word)
+>  {
+>  	struct omap_mcbsp *mcbsp;
+> +	struct omap_mcbsp_reg_cfg *reg_cache;
+>  	void __iomem *io_base;
+>  	omap_mcbsp_word_length tx_word_length;
+>  	omap_mcbsp_word_length rx_word_length;
+> @@ -567,6 +567,7 @@ int omap_mcbsp_spi_master_xmit_word_poll
+>  		return -ENODEV;
+>  	}
+>  	mcbsp = id_to_mcbsp_ptr(id);
+> +	reg_cache = &mcbsp->reg_cache;
+>  	io_base = mcbsp->io_base;
+>  	tx_word_length = mcbsp->tx_word_length;
+>  	rx_word_length = mcbsp->rx_word_length;
+> @@ -580,9 +581,11 @@ int omap_mcbsp_spi_master_xmit_word_poll
+>  		spcr2 = OMAP_MCBSP_READ(io_base, SPCR2);
+>  		if (attempts++ > 1000) {
+>  			/* We must reset the transmitter */
+> -			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 & (~XRST));
+> +			OMAP_MCBSP_WRITE(io_base, SPCR2,
+> +					reg_cache->spcr2 &= (~XRST));
+>  			udelay(10);
+> -			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
+> +			OMAP_MCBSP_WRITE(io_base, SPCR2,
+> +					reg_cache->spcr2 |= XRST);
+>  			udelay(10);
+>  			dev_err(mcbsp->dev, "McBSP%d transmitter not "
+>  				"ready\n", mcbsp->id);
+> @@ -601,9 +604,11 @@ int omap_mcbsp_spi_master_xmit_word_poll
+>  		spcr1 = OMAP_MCBSP_READ(io_base, SPCR1);
+>  		if (attempts++ > 1000) {
+>  			/* We must reset the receiver */
+> -			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 & (~RRST));
+> +			OMAP_MCBSP_WRITE(io_base, SPCR1,
+> +					reg_cache->spcr1 &= (~RRST));
+>  			udelay(10);
+> -			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
+> +			OMAP_MCBSP_WRITE(io_base, SPCR1,
+> +					reg_cache->spcr1 |= RRST);
+>  			udelay(10);
+>  			dev_err(mcbsp->dev, "McBSP%d receiver not "
+>  				"ready\n", mcbsp->id);
+> @@ -623,6 +628,7 @@ EXPORT_SYMBOL(omap_mcbsp_spi_master_xmit
+>  int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
+>  {
+>  	struct omap_mcbsp *mcbsp;
+> +	struct omap_mcbsp_reg_cfg *reg_cache;
+>  	u32 clock_word = 0;
+>  	void __iomem *io_base;
+>  	omap_mcbsp_word_length tx_word_length;
+> @@ -635,6 +641,7 @@ int omap_mcbsp_spi_master_recv_word_poll
+>  	}
+>
+>  	mcbsp = id_to_mcbsp_ptr(id);
+> +	reg_cache = &mcbsp->reg_cache;
+>  	io_base = mcbsp->io_base;
+>
+>  	tx_word_length = mcbsp->tx_word_length;
+> @@ -649,9 +656,11 @@ int omap_mcbsp_spi_master_recv_word_poll
+>  		spcr2 = OMAP_MCBSP_READ(io_base, SPCR2);
+>  		if (attempts++ > 1000) {
+>  			/* We must reset the transmitter */
+> -			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 & (~XRST));
+> +			OMAP_MCBSP_WRITE(io_base, SPCR2,
+> +					reg_cache->spcr2 &= (~XRST));
+>  			udelay(10);
+> -			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
+> +			OMAP_MCBSP_WRITE(io_base, SPCR2,
+> +					reg_cache->spcr2 |= XRST);
+>  			udelay(10);
+>  			dev_err(mcbsp->dev, "McBSP%d transmitter not "
+>  				"ready\n", mcbsp->id);
+> @@ -670,9 +679,11 @@ int omap_mcbsp_spi_master_recv_word_poll
+>  		spcr1 = OMAP_MCBSP_READ(io_base, SPCR1);
+>  		if (attempts++ > 1000) {
+>  			/* We must reset the receiver */
+> -			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 & (~RRST));
+> +			OMAP_MCBSP_WRITE(io_base, SPCR1,
+> +					reg_cache->spcr1 &= (~RRST));
+>  			udelay(10);
+> -			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
+> +			OMAP_MCBSP_WRITE(io_base, SPCR1,
+> +					reg_cache->spcr1 |= RRST);
+>  			udelay(10);
+>  			dev_err(mcbsp->dev, "McBSP%d receiver not "
+>  				"ready\n", mcbsp->id);
 
-Minor issue, but FYI... rather than the kmalloc + memcpy, you can use
-kmemdup() to do the same thing.
 
-Kevin
