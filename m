@@ -1,66 +1,100 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 12/14] omap3: move check_revision above check_features,
- v2
-Date: Fri, 13 Nov 2009 12:55:53 -0800
-Message-ID: <20091113205553.GF3684@atomide.com>
-References: <20091113000444.9034.41293.stgit@localhost>
- <20091113000932.9034.66321.stgit@localhost>
+Subject: Re: [PATCH 7/10] omap mailbox: expose
+ omap_mbox_enable()/disable_irq()
+Date: Fri, 13 Nov 2009 16:40:04 -0800
+Message-ID: <20091114004004.GG3684@atomide.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE4C4998@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="7JfCtLOvnd9MIVvH"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55749 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56063 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932313AbZKMUz6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 15:55:58 -0500
+	with ESMTP id S932491AbZKNAkB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Nov 2009 19:40:01 -0500
 Content-Disposition: inline
-In-Reply-To: <20091113000932.9034.66321.stgit@localhost>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE4C4998@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Nishanth Menon <nm@ti.com>, Mika Westerberg <mika.westerberg@iki.fi>, linux-omap@vger.kernel.org
+To: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ramesh" <grgupta@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>
 
+* C.A, Subramaniam <subramaniam.ca@ti.com> [091113 04:32]:
+> From 177e2efb7384c03ac445b55e2e4ccf44e2160051 Mon Sep 17 00:00:00 2001
+> From: C A Subramaniam <subramaniam.ca@ti.com>
+> Date: Fri, 13 Nov 2009 15:04:57 +0530
+> Subject: [PATCH 7/10] omap mailbox: expose omap_mbox_enable()/disable_irq()
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
---7JfCtLOvnd9MIVvH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Is this missing a Signed-off-by: C A Subramaniam <subramaniam.ca@ti.com>,
+or should this be From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>?
 
-* Tony Lindgren <tony@atomide.com> [091112 16:09]:
-> From: Tony Lindgren <Menon>
-
-Looks like the From: got messed up. Here's a fixed version.
+Regards,
 
 Tony
 
---7JfCtLOvnd9MIVvH
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="cpu-omap3-move-check_revision-above-check_features.patch"
-
->From b6c79698403f9926fb43d7e5cef9503a30b5709f Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Fri, 13 Nov 2009 12:41:25 -0800
-Subject: [PATCH] omap3: move check_revision above check_features
-
-omap3_check_revision() does not depend on omap3_check_features()
-move this above so that we can add logic based on revision
-detected in check_features.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Acked-by: Mika Westerberg <mika.westerberg@iki.fi>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 441ca26..6c11b41 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -352,8 +352,8 @@ void __init omap2_check_revision(void)
- 	if (cpu_is_omap24xx())
- 		omap24xx_check_revision();
- 	else if (cpu_is_omap34xx()) {
--		omap3_check_features();
- 		omap3_check_revision();
-+		omap3_check_features();
- 		omap3_cpuinfo();
- 	}
- 	else if (cpu_is_omap44xx()) {
-
---7JfCtLOvnd9MIVvH--
+> ---
+>  arch/arm/plat-omap/include/plat/mailbox.h |   12 ++++++++++++
+>  arch/arm/plat-omap/mailbox.c              |   12 ++----------
+>  2 files changed, 14 insertions(+), 10 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
+> index 8260a3f..bf06953 100644
+> --- a/arch/arm/plat-omap/include/plat/mailbox.h
+> +++ b/arch/arm/plat-omap/include/plat/mailbox.h
+> @@ -92,4 +92,16 @@ static inline void omap_mbox_restore_ctx(struct omap_mbox *mbox)
+>  	mbox->ops->restore_ctx(mbox);
+>  }
+>  
+> +static inline void omap_mbox_enable_irq(struct omap_mbox *mbox,
+> +					omap_mbox_irq_t irq)
+> +{
+> +	mbox->ops->enable_irq(mbox, irq);
+> +}
+> +
+> +static inline void omap_mbox_disable_irq(struct omap_mbox *mbox,
+> +					 omap_mbox_irq_t irq)
+> +{
+> +	mbox->ops->disable_irq(mbox, irq);
+> +}
+> +
+>  #endif /* MAILBOX_H */
+> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+> index eb76df2..d5377a3 100644
+> --- a/arch/arm/plat-omap/mailbox.c
+> +++ b/arch/arm/plat-omap/mailbox.c
+> @@ -50,14 +50,6 @@ static inline int mbox_fifo_full(struct omap_mbox *mbox)
+>  }
+>  
+>  /* Mailbox IRQ handle functions */
+> -static inline void enable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+> -{
+> -	mbox->ops->enable_irq(mbox, irq);
+> -}
+> -static inline void disable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+> -{
+> -	mbox->ops->disable_irq(mbox, irq);
+> -}
+>  static inline void ack_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+>  {
+>  	if (mbox->ops->ack_irq)
+> @@ -144,7 +136,7 @@ static void mbox_tx_work(struct work_struct *work)
+>  
+>  		ret = __mbox_msg_send(mbox, tx_data->msg);
+>  		if (ret) {
+> -			enable_mbox_irq(mbox, IRQ_TX);
+> +			omap_mbox_enable_irq(mbox, IRQ_TX);
+>  			spin_lock(q->queue_lock);
+>  			blk_requeue_request(q, rq);
+>  			spin_unlock(q->queue_lock);
+> @@ -196,7 +188,7 @@ static void mbox_rxq_fn(struct request_queue *q)
+>  
+>  static void __mbox_tx_interrupt(struct omap_mbox *mbox)
+>  {
+> -	disable_mbox_irq(mbox, IRQ_TX);
+> +	omap_mbox_disable_irq(mbox, IRQ_TX);
+>  	ack_mbox_irq(mbox, IRQ_TX);
+>  	schedule_work(&mbox->txq->work);
+>  }
+> -- 
+> 1.5.3.2
