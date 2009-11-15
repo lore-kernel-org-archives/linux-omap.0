@@ -1,51 +1,97 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Modifying the kernel keymap
-Date: Mon, 16 Nov 2009 00:31:05 +0200
-Message-ID: <1258324265.10351.1.camel@gandalf>
-References: <6cb013310911151206s2496a6edxb3101d2d96c8dea0@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCH 00/19] OMAP: DSS2 v5 intro
+Date: Mon, 16 Nov 2009 09:38:20 +1100
+Message-ID: <20091116093820.aa5a36b7.sfr@canb.auug.org.au>
+References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
+	<1257856848.21596.753.camel@localhost>
+	<1257929140.20378.51.camel@tubuntu.research.nokia.com>
+	<1257932641.20378.77.camel@tubuntu.research.nokia.com>
+	<20091111184208.GC24837@atomide.com>
+	<20091112161028.427787d9.sfr@canb.auug.org.au>
+	<20091112181457.GX24837@atomide.com>
+	<20091113074811.ee61948f.sfr@canb.auug.org.au>
+	<1258106168.20378.119.camel@tubuntu.research.nokia.com>
+	<20091113175928.GB3684@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__16_Nov_2009_09_38_20_+1100_n/X=n6l48RMZsTpN"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:59839 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751713AbZKOWbF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Nov 2009 17:31:05 -0500
-In-Reply-To: <6cb013310911151206s2496a6edxb3101d2d96c8dea0@mail.gmail.com>
+Received: from chilli.pcug.org.au ([203.10.76.44]:58638 "EHLO smtps.tip.net.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751652AbZKOWiS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 15 Nov 2009 17:38:18 -0500
+In-Reply-To: <20091113175928.GB3684@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>
 
-Hi,
+--Signature=_Mon__16_Nov_2009_09_38_20_+1100_n/X=n6l48RMZsTpN
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, 2009-11-15 at 12:06 -0800, Cory Maccarrone wrote:
-> All,
-> 
-> I'm working with the Wing Linux and Linwizard projects in porting
-> various omap850-based devices to Linux, and was wondering about
-> keymaps.
-> 
-> In particular, I'm working with the HTC Herald, which uses an Alt key
-> to access things like numbers and symbols on a physical keyboard.  In
-> Linux, the keymappings are wrong for this -- Alt does something
-> different and doesn't allow access to those extra characters.
-> 
-> In Linwizard, we've modified the defkeymap and added makefile rules to
-> compile our modified defkeymap when a specific board was selected, but
-> this isn't portable when building a kernel for many boards at once,
-> each having a different mapping.
-> 
-> So, my question is, what is the best way to go about changing the
-> defkeymap, or supplying a keymap that allows all the keys to function
-> correctly, but doesn't require non-portable makefile hacks?
+Tomi,
 
-how about letting xmodmap handle that ? If you use alt key, then kernel
-passes alt key. Userland can later remap that key to some other
-function.
+On Fri, 13 Nov 2009 09:59:28 -0800 Tony Lindgren <tony@atomide.com> wrote:
+>
+> > I rebased DSS2 on top of 8171d88089ad63fc442b2bf32af7c18653adc5cb. It
+> > can be found from git://gitorious.org/linux-omap-dss2/linux.git for-next
+> > branch.
+> >=20
+> > I'm ok with Tony pulling DSS2 to his next-branch, or Stephen pulling
+> > directly, which ever works easier for you.
+>=20
+> I'd rather see Stephen pulling directly from Tomi, that's a good long
+> term solution for maintaining the DSS2 code.
 
--- 
-balbi
+OK, I have added that branch to linux-next from today.  Thanks for all
+the efforts.
 
+Thanks for adding your subsystem tree as a participant of linux-next.  As
+you may know, this is not a judgment of your code.  The purpose of
+linux-next is for integration testing and to lower the impact of
+conflicts between subsystems in the next merge window.=20
 
+You will need to ensure that the patches/commits in your tree/series have
+been:
+     * submitted under GPL v2 (or later) and include the Contributor's
+	Signed-off-by,
+     * posted to the relevant mailing list,
+     * reviewed by you (or another maintainer of your subsystem tree),
+     * successfully unit tested, and=20
+     * destined for the current or next Linux merge window.
+
+Basically, this should be just what you would send to Linus (or ask him
+to fetch).  It is allowed to be rebased if you deem it necessary.
+
+--=20
+Cheers,
+Stephen Rothwell=20
+sfr@canb.auug.org.au
+
+Legal Stuff:
+By participating in linux-next, your subsystem tree contributions are
+public and will be included in the linux-next trees.  You may be sent
+e-mail messages indicating errors or other issues when the
+patches/commits from your subsystem tree are merged and tested in
+linux-next.  These messages may also be cross-posted to the linux-next
+mailing list, the linux-kernel mailing list, etc.  The linux-next tree
+project and IBM (my employer) make no warranties regarding the linux-next
+project, the testing procedures, the results, the e-mails, etc.  If you
+don't agree to these ground rules, let me know and I'll remove your tree
+from participation in linux-next.
+
+--Signature=_Mon__16_Nov_2009_09_38_20_+1100_n/X=n6l48RMZsTpN
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAksAgtwACgkQjjKRsyhoI8xdqwCfUD3obuFIYephPf3KR43fRQf4
+kjkAn2GFoTwHHT0CH5IakQF0mCGJjCCj
+=6z9F
+-----END PGP SIGNATURE-----
+
+--Signature=_Mon__16_Nov_2009_09_38_20_+1100_n/X=n6l48RMZsTpN--
