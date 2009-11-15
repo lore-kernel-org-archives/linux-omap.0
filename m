@@ -1,78 +1,62 @@
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 1/7] musb: Add structure to get board specific data
-Date: Sun, 15 Nov 2009 14:29:32 +0530
-Message-ID: <1258275578-1773-2-git-send-email-ajay.gupta@ti.com>
-References: <1258275578-1773-1-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH 0/7] musb: Add structure 'musb_hdrc_board_data'
+Date: Sun, 15 Nov 2009 14:29:31 +0530
+Message-ID: <1258275578-1773-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54654 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752324AbZKOI7u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Nov 2009 03:59:50 -0500
-In-Reply-To: <1258275578-1773-1-git-send-email-ajay.gupta@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:34343 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752413AbZKOI7t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 15 Nov 2009 03:59:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
 Cc: felipe.balbi@nokia.com, khilman@deeprootsystems.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Adding 'musb_hdrc_board_data' which will have all the board specific
-parameters such as; mA power, potpgt, extvbus, gpios etc.
+Hi,
 
-Currently only 'power' and 'potpgt' is being moved from existing
-'musb_hdrc_platform_data' to 'musb_hdrc_board_data' but any further
-board specific functions or parameter can be added to this structure
-later.
+This patch set adds a new structure 'musb_hdrc_board_data' to get all
+board specific data from board files.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- include/linux/usb/musb.h |   18 ++++++++++++------
- 1 files changed, 12 insertions(+), 6 deletions(-)
+It is actually done to accomodate ULPI_VBUSCONTROL programming required
+for OMAP3EVM Rev >=E which uses external Vbus supply to support 500mA.
 
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index d437556..6e1426c 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -27,6 +27,15 @@ struct musb_hdrc_eps_bits {
- 	u8		bits;
- };
- 
-+/* MUSB board-specific details */
-+struct musb_hdrc_board_data {
-+	/* power (mA/2) sourcing capability */
-+	u8	power;
-+	/* (HOST or OTG) msec/2 after VBUS on till power good */
-+	u8		potpgt;
-+
-+};
-+
- struct musb_hdrc_config {
- 	/* MUSB configuration-specific details */
- 	unsigned	multipoint:1;	/* multipoint device */
-@@ -67,15 +76,9 @@ struct musb_hdrc_platform_data {
- 	/* (HOST or OTG) switch VBUS on/off */
- 	int		(*set_vbus)(struct device *dev, int is_on);
- 
--	/* (HOST or OTG) mA/2 power supplied on (default = 8mA) */
--	u8		power;
--
- 	/* (PERIPHERAL) mA/2 max power consumed (default = 100mA) */
- 	u8		min_power;
- 
--	/* (HOST or OTG) msec/2 after VBUS on till power good */
--	u8		potpgt;
--
- 	/* Power the device on or off */
- 	int		(*set_power)(int state);
- 
-@@ -84,6 +87,9 @@ struct musb_hdrc_platform_data {
- 
- 	/* MUSB configuration-specific details */
- 	struct musb_hdrc_config	*config;
-+
-+	/* MUSB board-specific details */
-+	struct musb_hdrc_board_data *board_data;
- };
- 
- 
--- 
-1.6.2.4
+Necessarly changes have been done in all the OMAP and Davinci platform
+based boards.
+
+Please review and provide your feedback.
+[patches created against linux-omap/master branch and tested on OMAP3EVM]
+
+Regards,
+Ajay
+
+Ajay Kumar Gupta (7):
+  musb: Add structure to get board specific data
+  musb: Get power (mA) from board data
+  musb: Update musb_init() call for all OMAP3 boards
+  musb: Update setup_usb() call for all Davinci boards
+  musb: Add 'extvbus' in musb_hdrc_board_data
+  musb: set 'extvbus' default value to zero
+  musb: set 'extvbus' for OMAP3EVM Rev >=E
+
+ arch/arm/mach-davinci/board-dm355-evm.c     |   10 +++++++++-
+ arch/arm/mach-davinci/board-dm355-leopard.c |   10 +++++++++-
+ arch/arm/mach-davinci/board-dm644x-evm.c    |    9 ++++++++-
+ arch/arm/mach-davinci/board-sffsdr.c        |   10 +++++++++-
+ arch/arm/mach-davinci/include/mach/common.h |    7 +++++--
+ arch/arm/mach-davinci/usb.c                 |    8 ++++----
+ arch/arm/mach-omap2/board-2430sdp.c         |    8 +++++++-
+ arch/arm/mach-omap2/board-3430sdp.c         |    8 +++++++-
+ arch/arm/mach-omap2/board-cm-t35.c          |    8 +++++++-
+ arch/arm/mach-omap2/board-ldp.c             |    8 +++++++-
+ arch/arm/mach-omap2/board-omap3beagle.c     |    8 +++++++-
+ arch/arm/mach-omap2/board-omap3evm.c        |   10 +++++++++-
+ arch/arm/mach-omap2/board-omap3pandora.c    |    8 +++++++-
+ arch/arm/mach-omap2/board-overo.c           |    8 +++++++-
+ arch/arm/mach-omap2/board-rx51.c            |    8 +++++++-
+ arch/arm/mach-omap2/usb-musb.c              |   13 +++++--------
+ arch/arm/plat-omap/include/plat/usb.h       |    3 ++-
+ drivers/usb/musb/musb_core.c                |   14 +++++++++++++-
+ drivers/usb/musb/musb_regs.h                |    5 +++++
+ include/linux/usb/musb.h                    |   19 +++++++++++++------
+ 20 files changed, 147 insertions(+), 35 deletions(-)
 
