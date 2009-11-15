@@ -1,39 +1,40 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Modifying the kernel keymap
-Date: Sun, 15 Nov 2009 12:06:29 -0800
-Message-ID: <6cb013310911151206s2496a6edxb3101d2d96c8dea0@mail.gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: CPU driver
+Date: Sun, 15 Nov 2009 14:25:55 -0600
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012B23F17C@dlee02.ent.ti.com>
+References: <82cfbe860911150433l713e446fu2eba2ea96cc2ab11@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:41042 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753633AbZKOUGn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Nov 2009 15:06:43 -0500
-Received: by pwi3 with SMTP id 3so2889072pwi.21
-        for <linux-omap@vger.kernel.org>; Sun, 15 Nov 2009 12:06:49 -0800 (PST)
+Received: from comal.ext.ti.com ([198.47.26.152]:54102 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753633AbZKOUZw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Nov 2009 15:25:52 -0500
+In-Reply-To: <82cfbe860911150433l713e446fu2eba2ea96cc2ab11@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: tarek attia <tarek.m.attia@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-All,
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of tarek attia
+> Sent: Sunday, November 15, 2009 6:33 AM
+> 
+> I have downloaded uImage on the beagleboard with the pm branch,and
+> enabled all the CPU power management ,and after booting I found all
+> the files concerning it in the CPUFREQ folder in CPU0,,however i
+> couldn't type cpufreq commands .
+> 
+> like cpufreq-info ,cpu-set ,,etc
+> 
+> 
+> Any suggestions will be appreciated ,,
+> 
+> thnx in advance .
+See [1]
 
-I'm working with the Wing Linux and Linwizard projects in porting
-various omap850-based devices to Linux, and was wondering about
-keymaps.
-
-In particular, I'm working with the HTC Herald, which uses an Alt key
-to access things like numbers and symbols on a physical keyboard.  In
-Linux, the keymappings are wrong for this -- Alt does something
-different and doesn't allow access to those extra characters.
-
-In Linwizard, we've modified the defkeymap and added makefile rules to
-compile our modified defkeymap when a specific board was selected, but
-this isn't portable when building a kernel for many boards at once,
-each having a different mapping.
-
-So, my question is, what is the best way to go about changing the
-defkeymap, or supplying a keymap that allows all the keys to function
-correctly, but doesn't require non-portable makefile hacks?
-
-Thanks,
-Cory
+Regards,
+Nishanth Menon
+Ref:
+[1] http://www.kernel.org/pub/linux/utils/kernel/cpufreq/cpufrequtils.html 
