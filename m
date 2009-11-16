@@ -1,62 +1,56 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [v3, for-next] OMAP: DMA: Use some define rather than a hexadecimal constant for LCD register
-Date: Mon, 16 Nov 2009 23:46:51 +0100
-Message-ID: <200911162346.53321.jkrzyszt@tis.icnet.pl>
-References: <20091116222517.GT3684@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH 2/2] omap: serial: fix non-empty rx uart fifo abort
+Date: Mon, 16 Nov 2009 16:53:56 -0600
+Message-ID: <1258412036-31986-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:41129 "EHLO d1.icnet.pl"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57590 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752121AbZKPWrT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 17:47:19 -0500
-In-Reply-To: <20091116222517.GT3684@atomide.com>
-Content-Disposition: inline
+	id S1754931AbZKPWyJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Nov 2009 17:54:09 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAGMsFO1020741
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 16:54:15 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-Monday 16 November 2009 23:25:18 Tony Lindgren napisa=C5=82(a):
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091116 20:40]:
-> > The patch corrects the issue introduced with my previous patch:
-> >         "OMAP: DMA: Fix omapfb/lcdc on OMAP1510 broken when PM set"
-> > as pointed out by OMAP subsystem maintainer.
-> >
-> > Created and tested against linux-omap for-next,
-> > commit 155a75d9725e66e5ec8a383822957dee52427057
->
-> Oops, looks like this needs one more update. This breaks building
-> for mach-omap2 machines:
->
-> arch/arm/plat-omap/dma.c: In function 'omap_dma_running':
-> arch/arm/plat-omap/dma.c:1132: error: 'OMAP_LCDC_CONTROL' undeclared =
-(first
-> use in this function) arch/arm/plat-omap/dma.c:1132: error: (Each
-> undeclared identifier is reported only once arch/arm/plat-omap/dma.c:=
-1132:
-> error: for each function it appears in.) arch/arm/plat-omap/dma.c:113=
-2:
-> error: 'OMAP_LCDC_CTRL_LCD_EN' undeclared (first use in this function=
-)
->
-> So removing from omap for-next.
-[snip]
-> >  	if (cpu_is_omap1510())
-> > -		if (omap_readw(0xfffec000 + 0x00) & (1 << 0))
-> > +		if (omap_readw(OMAP_LCDC_CONTROL) & OMAP_LCDC_CTRL_LCD_EN)
-> >  			return 1;
-> >
+Empty uart rx fifo read can cause omap to abort
+OMAP silicon affected: OMAP3630, OMAP4430
+OMAP silicon not-affected: omap1/2/3
 
-Sorry, I was sure it would be optimized out by a compiler. I'll put tha=
-t into=20
-#ifdef block then.
+So pass flag UPF_NO_EMPTY_FIFO_READ in plat_serial8250_port, so that 8250
+driver does not abort on empty rx fifo read
 
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tested on zoom3(3630) board
+
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ arch/arm/mach-omap2/serial.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 2e17b57..669652b 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -624,8 +624,15 @@ void __init omap_serial_early_init(void)
+ 		uart->p = p;
+ 		list_add_tail(&uart->node, &uart_list);
+ 
+-		if (cpu_is_omap44xx())
++		if (cpu_is_omap44xx()) {
+ 			p->irq += 32;
++			/* Do not read empty UART fifo on omap4 */
++			p->flags |= UPF_NO_EMPTY_FIFO_READ;
++		}
++
++		/* Do not read empty UART fifo on omap3630 */
++		if (cpu_is_omap3630())
++			p->flags |= UPF_NO_EMPTY_FIFO_READ;
+ 
+ 		omap_uart_enable_clocks(uart);
+ 	}
+-- 
+1.6.5.1.69.g36942
+
