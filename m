@@ -1,52 +1,71 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] omap3: ehci: Add regulator framework
-Date: Mon, 16 Nov 2009 09:55:14 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA6893B6@dbde02.ent.ti.com>
-References: <1258274748-28053-1-git-send-email-ajay.gupta@ti.com>
+From: Gregoire Gentil <gregoire@gentil.com>
+Subject: [PATCH 0/5] AI TB: Always Innovating OMAP3-based Touch Book
+Date: Sun, 15 Nov 2009 20:30:09 -0800
+Message-ID: <1258345809.9089.15.camel@gregoire-laptop>
+References: <1258228079.16065.17.camel@runt>
+Reply-To: gregoire@gentil.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56323 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751147AbZKPEZR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Nov 2009 23:25:17 -0500
-In-Reply-To: <1258274748-28053-1-git-send-email-ajay.gupta@ti.com>
-Content-Language: en-US
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:52290 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752184AbZKPEaG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Nov 2009 23:30:06 -0500
+Received: by pwi3 with SMTP id 3so3039846pwi.21
+        for <linux-omap@vger.kernel.org>; Sun, 15 Nov 2009 20:30:10 -0800 (PST)
+In-Reply-To: <1258228079.16065.17.camel@runt>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Tim Yamin <plasmaroo@gmail.com>
 
-Ajay
+This series adds support for the Always Innovating OMAP3-based Touch
+Book,
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gupta,
->Ajay Kumar
->Sent: Sunday, November 15, 2009 2:46 AM
->To: linux-omap@vger.kernel.org
->Cc: felipe.balbi@nokia.com; broonie@opensource.wolfsonmicro.com; Gupta, Ajay Kumar
->Subject: [PATCH] omap3: ehci: Add regulator framework
-<snip>
->+	/* get ehci regulator and enable */
->+	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
->+		if (omap->port_mode[i] != EHCI_HCD_OMAP_MODE_PHY) {
->+			omap->regulator[i] = NULL;
->+			continue;
->+		}
->+		snprintf(supply, sizeof(supply), "hsusb%d", i);
+Gr=C3=A9goire Gentil
 
-supply[] being auto variable, is it guaranteed to be null terminated? 
-Suggestion:
-		n = snprintf(supply, sizeof(supply), "hsusb%d", i);
-		supply[n] = '\0';
 
->+		omap->regulator[i] = regulator_get(omap->dev, supply);
->+		if (IS_ERR(omap->regulator[i]))
->+			dev_dbg(&pdev->dev,
->+			"failed to get ehci port%d regulator\n", i);
->+		else
->+			regulator_enable(omap->regulator[i]);
->+	}
->+
-<snip>
+
+
+Gregoire Gentil (5):
+  Defconfig file of the Always Innovating OMAP3-based Touch Book.
+  Board file of the Always Innovating OMAP3-based Touch Book.
+  Driver for the Freescale MMA7455L accelerometer
+  Driver for the Always Innovating Touch Book keyboard.
+  Additional modifications for the Always Innovating OMAP3-based
+
+arch/arm/configs/omap3_touchbook_defconfig | 2441
+++++++++++++++++++++++++++++
+arch/arm/mach-omap2/Kconfig                |    5 +
+arch/arm/mach-omap2/Makefile               |    2 +
+arch/arm/mach-omap2/board-omap3touchbook.c |  683 ++++++++
+drivers/hid/Kconfig                        |    7 +
+drivers/hid/Makefile                       |    1 +
+drivers/hid/hid-alwaysinnovating.c         |  262 +++
+drivers/hid/hid-core.c                     |    1 +
+drivers/hid/hid-ids.h                      |    3 +
+drivers/input/misc/Kconfig                 |    9 +
+drivers/input/misc/Makefile                |    2 +-
+drivers/input/misc/mma7455l.c              |  625 +++++++
+drivers/video/omap/lcd_omap3touchbook.c    |  130 ++
+include/linux/mma7455l.h                   |   11 +
+sound/soc/omap/Kconfig                     |    8 +
+sound/soc/omap/Makefile                    |    2 +
+sound/soc/omap/omap3touchbook.c            |  211 +++
+17 files changed, 4402 insertions(+), 1 deletions(-)
+create mode 100644 arch/arm/configs/omap3_touchbook_defconfig
+create mode 100644 arch/arm/mach-omap2/board-omap3touchbook.c
+create mode 100644 drivers/hid/hid-alwaysinnovating.c
+create mode 100644 drivers/input/misc/mma7455l.c
+create mode 100644 drivers/video/omap/lcd_omap3touchbook.c
+create mode 100644 include/linux/mma7455l.h
+create mode 100644 sound/soc/omap/omap3touchbook.c
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
