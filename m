@@ -1,37 +1,80 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH v3 for-next] OMAP: DMA: Use some define rather than a
-Date: Mon, 16 Nov 2009 15:46:56 -0500
-Message-ID: <notify-1258404420@atomide.com>
-References: <200911162140.19988.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 2/3] htcherald: Modify Makefiles and Kconfig for HTC
+ Herald
+Date: Mon, 16 Nov 2009 12:49:30 -0800
+Message-ID: <20091116204930.GO3684@atomide.com>
+References: <1258228077.16065.16.camel@runt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49929 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752432AbZKPUq4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 15:46:56 -0500
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1NA8TV-0003Mt-R6
-	for linux-omap@vger.kernel.org; Mon, 16 Nov 2009 20:47:02 +0000
-In-Reply-To: <200911162140.19988.jkrzyszt@tis.icnet.pl>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63785 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753965AbZKPUt2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 15:49:28 -0500
 Content-Disposition: inline
+In-Reply-To: <1258228077.16065.16.camel@runt>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Cory Maccarrone <darkstar6262@gmail.com> [091114 11:47]:
+> The Makefiles and Kconfig files were modified to include the new
+> HTC Herald board support and LCD panel configuration code.
 
-Branch in linux-omap: for-next
+Ended up merging this with the board-htcherald.c patch.
 
-Initial commit ID (Likely to change): f69a6bb287ffdef1343222af9d3d82222cbb6d5a
-
-PatchWorks
-http://patchwork.kernel.org/patch/60478/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=f69a6bb287ffdef1343222af9d3d82222cbb6d5a
-
-
+Tony
+ 
+> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+> ---
+>  arch/arm/mach-omap1/Kconfig  |    6 ++++++
+>  arch/arm/mach-omap1/Makefile |    1 +
+>  drivers/video/omap/Makefile  |    1 +
+>  3 files changed, 8 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
+> index 3232726..27f4897 100644
+> --- a/arch/arm/mach-omap1/Kconfig
+> +++ b/arch/arm/mach-omap1/Kconfig
+> @@ -57,6 +57,12 @@ config MACH_OMAP_HTCWIZARD
+>  	help
+>  	  HTC Wizard smartphone support (AKA QTEK 9100, ...)
+>  
+> +config MACH_HERALD
+> +	bool "HTC Herald"
+> +	depends on ARCH_OMAP850
+> +	help
+> +	  HTC Herald smartphone support (AKA T-Mobile Wing, ...)
+> +
+>  config MACH_OMAP_OSK
+>  	bool "TI OSK Support"
+>  	depends on ARCH_OMAP1 && ARCH_OMAP16XX
+> diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+> index 6867cd3..87e539a 100644
+> --- a/arch/arm/mach-omap1/Makefile
+> +++ b/arch/arm/mach-omap1/Makefile
+> @@ -34,6 +34,7 @@ obj-$(CONFIG_MACH_OMAP_PALMTT)		+= board-palmtt.o
+>  obj-$(CONFIG_MACH_NOKIA770)		+= board-nokia770.o
+>  obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o
+>  obj-$(CONFIG_MACH_SX1)			+= board-sx1.o board-sx1-mmc.o
+> +obj-$(CONFIG_MACH_HERALD)		+= board-htcherald.o
+>  
+>  ifeq ($(CONFIG_ARCH_OMAP15XX),y)
+>  # Innovator-1510 FPGA
+> diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
+> index b63b198..49226a1 100644
+> --- a/drivers/video/omap/Makefile
+> +++ b/drivers/video/omap/Makefile
+> @@ -35,6 +35,7 @@ objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+>  objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+>  objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+>  objs-y$(CONFIG_MACH_OVERO) += lcd_overo.o
+> +objs-y$(CONFIG_MACH_HERALD) += lcd_htcherald.o
+>  
+>  omapfb-objs := $(objs-yy)
+>  
+> -- 
+> 1.6.3.3
+> 
+> 
