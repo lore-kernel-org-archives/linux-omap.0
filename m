@@ -1,65 +1,77 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [alsa-devel] [PATCH] ASoC: OMAP: enable Overo driver for CM-T35
-Date: Mon, 16 Nov 2009 14:00:19 +0000
-Message-ID: <1258380019.3570.113.camel@odin>
-References: <1258379603-29089-1-git-send-email-mike@compulab.co.il>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 3/3] OMAP clock/hwmod: fix off-by-one errors
+Date: Mon, 16 Nov 2009 14:08:30 +0000
+Message-ID: <20091116140830.GA31522@n2100.arm.linux.org.uk>
+References: <20091116133237.14128.39687.stgit@localhost.localdomain> <20091116133654.14128.175.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:19994 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752555AbZKPOAY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 09:00:24 -0500
-Received: by fg-out-1718.google.com with SMTP id e12so2419067fga.1
-        for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 06:00:30 -0800 (PST)
-In-Reply-To: <1258379603-29089-1-git-send-email-mike@compulab.co.il>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34073 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752738AbZKPOIs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 09:08:48 -0500
+Content-Disposition: inline
+In-Reply-To: <20091116133654.14128.175.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: broonie@opensource.wolfsonmicro.com, linux-omap@vger.kernel.org, steve@sakoman.com, alsa-devel@alsa-project.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org, Juha =?iso-8859-1?Q?Lepp=E4nen?= <juha_motorsportcom@luukku.com>, linux-omap@vger.kernel.org
 
-On Mon, 2009-11-16 at 15:53 +0200, Mike Rapoport wrote:
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> ---
->  sound/soc/omap/Kconfig |    7 ++++---
->  sound/soc/omap/overo.c |    2 +-
->  2 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index 653a362..bb42681 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -43,12 +43,13 @@ config SND_OMAP_SOC_OSK5912
->  	  Say Y if you want to add support for SoC audio on osk5912.
->  
->  config SND_OMAP_SOC_OVERO
-> -	tristate "SoC Audio support for Gumstix Overo"
-> -	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OVERO
-> +	tristate "SoC Audio support for Gumstix Overo and CompuLab CM-T35"
-> +	depends on TWL4030_CORE && SND_OMAP_SOC && (MACH_OVERO || MACH_CM_T35)
->  	select SND_OMAP_SOC_MCBSP
->  	select SND_SOC_TWL4030
->  	help
-> -	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
-> +	  Say Y if you want to add support for SoC audio on the
-> +	  Gumstix Overo or CompuLab CM-T35
->  
->  config SND_OMAP_SOC_OMAP2EVM
->  	tristate "SoC Audio support for OMAP2EVM board"
-> diff --git a/sound/soc/omap/overo.c b/sound/soc/omap/overo.c
-> index 624f40e..1bf440b 100644
-> --- a/sound/soc/omap/overo.c
-> +++ b/sound/soc/omap/overo.c
-> @@ -107,7 +107,7 @@ static int __init overo_soc_init(void)
->  {
->  	int ret;
->  
-> -	if (!machine_is_overo()) {
-> +	if (!(machine_is_overo() || machine_is_cm_t35())) {
->  		pr_debug("Not Overo!\n");
+On Mon, Nov 16, 2009 at 06:36:55AM -0700, Paul Walmsley wrote:
+> Fix loop bailout off-by-one bugs reported by Juha Lepp=E4nen
+> <juha_motorsportcom@luukku.com>.
 
-Its probably best to update the pr_debug message too.
+I'm not sure the new code is any easier to read than the old code.
+And what with some checks post-loop being <=3D and others being >, it's
+a recipe for cut'n'paste errors happening.
 
-Liam
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
+map_hwmod.c
+> index 633b216..a4a9518 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -759,14 +759,12 @@ static int _reset(struct omap_hwmod *oh)
+>  	_write_sysconfig(v, oh);
+> =20
+>  	c =3D 0;
+> -	while (c < MAX_MODULE_RESET_WAIT &&
+> -	       !(omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
+> -		 SYSS_RESETDONE_MASK)) {
+> +	while (!(omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
+> +		 SYSS_RESETDONE_MASK) &&
+> +	       (c++ < MAX_MODULE_RESET_WAIT))
+>  		udelay(1);
+> -		c++;
+> -	}
+> =20
+> -	if (c =3D=3D MAX_MODULE_RESET_WAIT)
+> +	if (c > MAX_MODULE_RESET_WAIT)
+>  		WARN(1, "omap_hwmod: %s: failed to reset in %d usec\n",
+>  		     oh->name, MAX_MODULE_RESET_WAIT);
+>  	else
 
+How about:
+
+	for (c =3D 0; c <=3D MAX_MODULE_RESET_WAIT; c++) {
+		if (omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
+		    SYSS_RESETDONE_MASK) {
+			pr_debug("omap_hwmod: %s: reset in %d usec\n",
+				oh->name, c);
+			return 0;
+		}
+	}
+
+	WARN(1, "omap_hwmod: %s: failed to reset in %d usec\n",
+                     oh->name, c - 1);
+	return -ETIMEDOUT;
+
+?
+
+Even better would be to turn this into a helper much like wait_event(),
+which would stop silly mistakes happening.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
