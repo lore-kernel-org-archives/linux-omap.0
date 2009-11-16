@@ -1,77 +1,75 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 3/3] OMAP clock/hwmod: fix off-by-one errors
-Date: Mon, 16 Nov 2009 14:08:30 +0000
-Message-ID: <20091116140830.GA31522@n2100.arm.linux.org.uk>
-References: <20091116133237.14128.39687.stgit@localhost.localdomain> <20091116133654.14128.175.stgit@localhost.localdomain>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH] omap3: ehci: Add regulator framework
+Date: Mon, 16 Nov 2009 19:42:45 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA68981F@dbde02.ent.ti.com>
+References: <1258274748-28053-1-git-send-email-ajay.gupta@ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA6893B6@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34073 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752738AbZKPOIs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 09:08:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20091116133654.14128.175.stgit@localhost.localdomain>
+Received: from bear.ext.ti.com ([192.94.94.41]:52960 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751214AbZKPOMw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 09:12:52 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA6893B6@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, Juha =?iso-8859-1?Q?Lepp=E4nen?= <juha_motorsportcom@luukku.com>, linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-On Mon, Nov 16, 2009 at 06:36:55AM -0700, Paul Walmsley wrote:
-> Fix loop bailout off-by-one bugs reported by Juha Lepp=E4nen
-> <juha_motorsportcom@luukku.com>.
 
-I'm not sure the new code is any easier to read than the old code.
-And what with some checks post-loop being <=3D and others being >, it's
-a recipe for cut'n'paste errors happening.
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>Pandita, Vikram
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gupta,
+>>Ajay Kumar
+>>Sent: Sunday, November 15, 2009 2:46 AM
+>>To: linux-omap@vger.kernel.org
+>>Cc: felipe.balbi@nokia.com; broonie@opensource.wolfsonmicro.com; Gupta, Ajay Kumar
+>>Subject: [PATCH] omap3: ehci: Add regulator framework
+><snip>
+>>+	/* get ehci regulator and enable */
+>>+	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
+>>+		if (omap->port_mode[i] != EHCI_HCD_OMAP_MODE_PHY) {
+>>+			omap->regulator[i] = NULL;
+>>+			continue;
+>>+		}
+>>+		snprintf(supply, sizeof(supply), "hsusb%d", i);
+>
+>supply[] being auto variable, is it guaranteed to be null terminated?
+>Suggestion:
+>		n = snprintf(supply, sizeof(supply), "hsusb%d", i);
+>		supply[n] = '\0';
 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
-map_hwmod.c
-> index 633b216..a4a9518 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -759,14 +759,12 @@ static int _reset(struct omap_hwmod *oh)
->  	_write_sysconfig(v, oh);
-> =20
->  	c =3D 0;
-> -	while (c < MAX_MODULE_RESET_WAIT &&
-> -	       !(omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
-> -		 SYSS_RESETDONE_MASK)) {
-> +	while (!(omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
-> +		 SYSS_RESETDONE_MASK) &&
-> +	       (c++ < MAX_MODULE_RESET_WAIT))
->  		udelay(1);
-> -		c++;
-> -	}
-> =20
-> -	if (c =3D=3D MAX_MODULE_RESET_WAIT)
-> +	if (c > MAX_MODULE_RESET_WAIT)
->  		WARN(1, "omap_hwmod: %s: failed to reset in %d usec\n",
->  		     oh->name, MAX_MODULE_RESET_WAIT);
->  	else
+Setting null is redundant as snprintf() does that internally too.
 
-How about:
+Can see snprinf calls vsnprintf and:
+vsnprintf( ... ) 
+...
+       if (size > 0) {
+                if (str < end)
+>>>>                        *str = '\0';
+                else
+                        end[-1] = '\0';
+        }
+...
+So I guess this is a noisy review comment :) and please ignore.
+Patch looks good.
 
-	for (c =3D 0; c <=3D MAX_MODULE_RESET_WAIT; c++) {
-		if (omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
-		    SYSS_RESETDONE_MASK) {
-			pr_debug("omap_hwmod: %s: reset in %d usec\n",
-				oh->name, c);
-			return 0;
-		}
-	}
+>
+>>+		omap->regulator[i] = regulator_get(omap->dev, supply);
+>>+		if (IS_ERR(omap->regulator[i]))
+>>+			dev_dbg(&pdev->dev,
+>>+			"failed to get ehci port%d regulator\n", i);
+>>+		else
+>>+			regulator_enable(omap->regulator[i]);
+>>+	}
+>>+
+><snip>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-	WARN(1, "omap_hwmod: %s: failed to reset in %d usec\n",
-                     oh->name, c - 1);
-	return -ETIMEDOUT;
-
-?
-
-Even better would be to turn this into a helper much like wait_event(),
-which would stop silly mistakes happening.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
