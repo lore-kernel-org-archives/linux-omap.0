@@ -1,129 +1,80 @@
-From: Steve Sakoman <steve@sakoman.com>
-Subject: Re: [PATCH] ASoC: OMAP: enable Overo driver for CM-T35
-Date: Mon, 16 Nov 2009 06:34:46 -0800
-Message-ID: <1258382086.4971.44.camel@quadra>
-References: <1258379603-29089-1-git-send-email-mike@compulab.co.il>
-	<1258380019.3570.113.camel@odin>  <4B015F6D.1000001@compulab.co.il>
-Reply-To: steve@sakoman.com
+From: Manjunatha GK <manjugk@ti.com>
+Subject: [PATCH v3] [OMAP3_PM] Fix zoom2/zoom3 build error
+Date: Mon, 16 Nov 2009 20:16:52 +0530
+Message-ID: <20091116144652.GA31051@DFL-61>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <4B015F6D.1000001@compulab.co.il>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, alsa-devel@alsa-project.org, Liam Girdwood <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35970 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087AbZKPOpv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 09:45:51 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com
 
-On Mon, 2009-11-16 at 16:19 +0200, Mike Rapoport wrote:
-> Liam Girdwood wrote:
-> > On Mon, 2009-11-16 at 15:53 +0200, Mike Rapoport wrote:
-> >> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> >> ---
-> >>  sound/soc/omap/Kconfig |    7 ++++---
-> >>  sound/soc/omap/overo.c |    2 +-
-> >>  2 files changed, 5 insertions(+), 4 deletions(-)
-> >>
-> >> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> >> index 653a362..bb42681 100644
-> >> --- a/sound/soc/omap/Kconfig
-> >> +++ b/sound/soc/omap/Kconfig
-> >> @@ -43,12 +43,13 @@ config SND_OMAP_SOC_OSK5912
-> >>  	  Say Y if you want to add support for SoC audio on osk5912.
-> >>  
-> >>  config SND_OMAP_SOC_OVERO
-> >> -	tristate "SoC Audio support for Gumstix Overo"
-> >> -	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OVERO
-> >> +	tristate "SoC Audio support for Gumstix Overo and CompuLab CM-T35"
-> >> +	depends on TWL4030_CORE && SND_OMAP_SOC && (MACH_OVERO || MACH_CM_T35)
-> >>  	select SND_OMAP_SOC_MCBSP
-> >>  	select SND_SOC_TWL4030
-> >>  	help
-> >> -	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
-> >> +	  Say Y if you want to add support for SoC audio on the
-> >> +	  Gumstix Overo or CompuLab CM-T35
-> >>  
-> >>  config SND_OMAP_SOC_OMAP2EVM
-> >>  	tristate "SoC Audio support for OMAP2EVM board"
-> >> diff --git a/sound/soc/omap/overo.c b/sound/soc/omap/overo.c
-> >> index 624f40e..1bf440b 100644
-> >> --- a/sound/soc/omap/overo.c
-> >> +++ b/sound/soc/omap/overo.c
-> >> @@ -107,7 +107,7 @@ static int __init overo_soc_init(void)
-> >>  {
-> >>  	int ret;
-> >>  
-> >> -	if (!machine_is_overo()) {
-> >> +	if (!(machine_is_overo() || machine_is_cm_t35())) {
-> >>  		pr_debug("Not Overo!\n");
-> > 
-> > Its probably best to update the pr_debug message too.
-> 
-> I'm ok if it'll say "Not Overo!" :)
-> Anyway, here's the update:
-> 
-> From 4f3628ff75bdeb57e751622f2a92e223f68e81e3 Mon Sep 17 00:00:00 2001
-> In-Reply-To: <1258380019.3570.113.camel@odin>
-> References: <1258380019.3570.113.camel@odin>
-> From: Mike Rapoport <mike@compulab.co.il>
-> Date: Mon, 16 Nov 2009 15:35:00 +0200
-> Subject: [PATCH] ASoC: OMAP: enable Overo driver for CM-T35
-> 
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> ---
->  sound/soc/omap/Kconfig |    7 ++++---
->  sound/soc/omap/overo.c |    4 ++--
->  2 files changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index 653a362..bb42681 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -43,12 +43,13 @@ config SND_OMAP_SOC_OSK5912
->  	  Say Y if you want to add support for SoC audio on osk5912.
-> 
->  config SND_OMAP_SOC_OVERO
-> -	tristate "SoC Audio support for Gumstix Overo"
-> -	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OVERO
-> +	tristate "SoC Audio support for Gumstix Overo and CompuLab CM-T35"
-> +	depends on TWL4030_CORE && SND_OMAP_SOC && (MACH_OVERO || MACH_CM_T35)
->  	select SND_OMAP_SOC_MCBSP
->  	select SND_SOC_TWL4030
->  	help
-> -	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
-> +	  Say Y if you want to add support for SoC audio on the
-> +	  Gumstix Overo or CompuLab CM-T35
-> 
->  config SND_OMAP_SOC_OMAP2EVM
->  	tristate "SoC Audio support for OMAP2EVM board"
-> diff --git a/sound/soc/omap/overo.c b/sound/soc/omap/overo.c
-> index 624f40e..c25f527 100644
-> --- a/sound/soc/omap/overo.c
-> +++ b/sound/soc/omap/overo.c
-> @@ -107,8 +107,8 @@ static int __init overo_soc_init(void)
->  {
->  	int ret;
-> 
-> -	if (!machine_is_overo()) {
-> -		pr_debug("Not Overo!\n");
-> +	if (!(machine_is_overo() || machine_is_cm_t35())) {
-> +		pr_debug("Incomatible machine!\n");
->  		return -ENODEV;
->  	}
->  	printk(KERN_INFO "overo SoC init\n");
-> -- 
-> 1.6.4.4
+The Zoom2 and Zoom3 build breaks on linux-omap-pm(HEAD:pm)
+when CONFIG_DEBUG_FS is not enabled. 
 
-Acked-by: Steve Sakoman <steve@sakoman.com>
+Build error log:
+arch/arm/mach-omap2/built-in.o: In function `omap_sram_idle':
+arch/arm/mach-omap2/pm34xx.c:449: undefined reference to `pm_dbg_regset_save'
+arch/arm/mach-omap2/pm34xx.c:460: undefined reference to `pm_dbg_regset_save'
+arch/arm/mach-omap2/built-in.o: In function `configure_vc':
+arch/arm/mach-omap2/pm34xx.c:1237: undefined reference to `pm_dbg_regset_init'
+arch/arm/mach-omap2/pm34xx.c:1238: undefined reference to `pm_dbg_regset_init'
+make: *** [.tmp_vmlinux1] Error 1
 
-Regards,
+This patch fixes the above errors.
 
-Steve
+Kernel booting is tested on omap zoom2 and zoom3 boards.
+
+Review Comments fixed:
+http://patchwork.kernel.org/patch/56955/
+http://patchwork.kernel.org/patch/56946/
+
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
+---
+ arch/arm/mach-omap2/pm-debug.c |    2 --
+ arch/arm/mach-omap2/pm.h       |    8 ++++++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 767ebbc..5284967 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -623,6 +623,4 @@ static int __init pm_dbg_init(void)
+ }
+ arch_initcall(pm_dbg_init);
+ 
+-#else
+-void pm_dbg_update_time(struct powerdomain *pwrdm, int prev) {}
+ #endif
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index c195b14..7bc86b6 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -76,12 +76,16 @@ extern struct omap_dm_timer *gptimer_wakeup;
+ #ifdef CONFIG_PM_DEBUG
+ extern void omap2_pm_dump(int mode, int resume, unsigned int us);
+ extern int omap2_pm_debug;
++#else
++#define omap2_pm_dump(mode, resume, us)		do {} while (0);
++#define omap2_pm_debug				0
++#endif
++
++#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+ extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+ extern int pm_dbg_regset_save(int reg_set);
+ extern int pm_dbg_regset_init(int reg_set);
+ #else
+-#define omap2_pm_dump(mode, resume, us)		do {} while (0);
+-#define omap2_pm_debug				0
+ #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
+ #define pm_dbg_regset_save(reg_set) do {} while (0);
+ #define pm_dbg_regset_init(reg_set) do {} while (0);
+-- 
+1.6.0.4
+
