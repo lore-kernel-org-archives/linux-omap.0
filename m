@@ -1,29 +1,116 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [PATCH] ASoC: OMAP: enable Overo driver for CM-T35
-Date: Mon, 16 Nov 2009 16:05:12 +0000
-Message-ID: <20091116160512.GA29365@rakim.wolfsonmicro.main>
-References: <1258379603-29089-1-git-send-email-mike@compulab.co.il>
- <1258380019.3570.113.camel@odin>
- <4B015F6D.1000001@compulab.co.il>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHV3] OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
+Date: Mon, 16 Nov 2009 08:08:14 -0800
+Message-ID: <87zl6mlafl.fsf@deeprootsystems.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702FA1748E0@dbde02.ent.ti.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702FA174C6D@dbde02.ent.ti.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702FA689729@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:52479 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751982AbZKPQFI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Nov 2009 11:05:08 -0500
-Content-Disposition: inline
-In-Reply-To: <4B015F6D.1000001@compulab.co.il>
+Received: from qw-out-2122.google.com ([74.125.92.27]:43939 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750987AbZKPQIM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 11:08:12 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so1096144qwe.37
+        for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 08:08:18 -0800 (PST)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA689729@dbde02.ent.ti.com> (Vishwanath Sripathy's message of "Mon\, 16 Nov 2009 16\:41\:40 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, steve@sakoman.com, alsa-devel@alsa-project.org
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Nov 16, 2009 at 04:19:25PM +0200, Mike Rapoport wrote:
+"Sripathy, Vishwanath" <vishwanath.bs@ti.com> writes:
 
-> I'm ok if it'll say "Not Overo!" :)
-> Anyway, here's the update:
+> As part of Core domain context restoration while coming out of off mode
+> there are some registers being restored which are not required to be restored.
+> ROM code will have restored them already. Overwriting some of them can have
+> potential side effect. Eg: CM_CLKEN_PLL register should not be written while dpll is locked.
+> Tested on OMAP 3430 SDP for suspend/resume and off mode with sleep_while_idle enabled.
+>
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 
-Applied, thanks (with manual hacking to remove the reply chain from the
-commit log).
+Thanks, applying to PM branch.
+
+Kevin
+
+> ---
+>
+> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+> index fb864cc..88182a8 100644
+> --- a/arch/arm/mach-omap2/prcm.c
+> +++ b/arch/arm/mach-omap2/prcm.c
+> @@ -43,7 +43,6 @@ struct omap3_prcm_regs {
+>  	u32 iva2_cm_clksel2;
+>  	u32 cm_sysconfig;
+>  	u32 sgx_cm_clksel;
+> -	u32 wkup_cm_clksel;
+>  	u32 dss_cm_clksel;
+>  	u32 cam_cm_clksel;
+>  	u32 per_cm_clksel;
+> @@ -52,7 +51,6 @@ struct omap3_prcm_regs {
+>  	u32 pll_cm_autoidle2;
+>  	u32 pll_cm_clksel4;
+>  	u32 pll_cm_clksel5;
+> -	u32 pll_cm_clken;
+>  	u32 pll_cm_clken2;
+>  	u32 cm_polctrl;
+>  	u32 iva2_cm_fclken;
+> @@ -76,7 +74,6 @@ struct omap3_prcm_regs {
+>  	u32 usbhost_cm_iclken;
+>  	u32 iva2_cm_autiidle2;
+>  	u32 mpu_cm_autoidle2;
+> -	u32 pll_cm_autoidle;
+>  	u32 iva2_cm_clkstctrl;
+>  	u32 mpu_cm_clkstctrl;
+>  	u32 core_cm_clkstctrl;
+> @@ -279,7 +276,6 @@ void omap3_prcm_save_context(void)
+>  	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
+>  	prcm_context.sgx_cm_clksel =
+>  			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
+> -	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
+>  	prcm_context.dss_cm_clksel =
+>  			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
+>  	prcm_context.cam_cm_clksel =
+> @@ -296,8 +292,6 @@ void omap3_prcm_save_context(void)
+>  			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
+>  	prcm_context.pll_cm_clksel5 =
+>  			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
+> -	prcm_context.pll_cm_clken =
+> -			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+>  	prcm_context.pll_cm_clken2 =
+>  			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+>  	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
+> @@ -343,8 +337,6 @@ void omap3_prcm_save_context(void)
+>  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
+>  	prcm_context.mpu_cm_autoidle2 =
+>  			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
+> -	prcm_context.pll_cm_autoidle =
+> -			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
+>  	prcm_context.iva2_cm_clkstctrl =
+>  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
+>  	prcm_context.mpu_cm_clkstctrl =
+> @@ -436,7 +428,6 @@ void omap3_prcm_restore_context(void)
+>  	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
+>  	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
+>  					 CM_CLKSEL);
+> -	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
+>  	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
+>  					 CM_CLKSEL);
+>  	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
+> @@ -453,7 +444,6 @@ void omap3_prcm_restore_context(void)
+>  					OMAP3430ES2_CM_CLKSEL4);
+>  	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
+>  					 OMAP3430ES2_CM_CLKSEL5);
+> -	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
+>  	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
+>  					OMAP3430ES2_CM_CLKEN2);
+>  	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
+> @@ -492,7 +482,6 @@ void omap3_prcm_restore_context(void)
+>  	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
+>  					CM_AUTOIDLE2);
+>  	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
+> -	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
+>  	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
+>  					CM_CLKSTCTRL);
+>  	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
