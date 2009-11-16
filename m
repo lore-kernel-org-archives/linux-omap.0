@@ -1,80 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3] htcherald: Modify Makefiles and Kconfig for HTC
- Herald
-Date: Mon, 16 Nov 2009 12:49:30 -0800
-Message-ID: <20091116204930.GO3684@atomide.com>
-References: <1258228077.16065.16.camel@runt>
+Subject: Re: Modifying the kernel keymap
+Date: Mon, 16 Nov 2009 12:54:16 -0800
+Message-ID: <20091116205416.GP3684@atomide.com>
+References: <6cb013310911151206s2496a6edxb3101d2d96c8dea0@mail.gmail.com>
+ <1258324265.10351.1.camel@gandalf>
+ <6cb013310911151442x2ecf9d2dnbfa6fbb7f6ca3b89@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63785 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54960 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753965AbZKPUt2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 15:49:28 -0500
+	with ESMTP id S1754015AbZKPUyN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 15:54:13 -0500
 Content-Disposition: inline
-In-Reply-To: <1258228077.16065.16.camel@runt>
+In-Reply-To: <6cb013310911151442x2ecf9d2dnbfa6fbb7f6ca3b89@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org
+Cc: me@felipebalbi.com, linux-omap@vger.kernel.org
 
-* Cory Maccarrone <darkstar6262@gmail.com> [091114 11:47]:
-> The Makefiles and Kconfig files were modified to include the new
-> HTC Herald board support and LCD panel configuration code.
+* Cory Maccarrone <darkstar6262@gmail.com> [091115 14:49]:
+> On Sun, Nov 15, 2009 at 2:31 PM, Felipe Balbi <me@felipebalbi.com> wr=
+ote:
+> > Hi,
+> >
+> > On Sun, 2009-11-15 at 12:06 -0800, Cory Maccarrone wrote:
+> >> All,
+> >>
+> >> I'm working with the Wing Linux and Linwizard projects in porting
+> >> various omap850-based devices to Linux, and was wondering about
+> >> keymaps.
+> >>
+> >> In particular, I'm working with the HTC Herald, which uses an Alt =
+key
+> >> to access things like numbers and symbols on a physical keyboard. =
+=A0In
+> >> Linux, the keymappings are wrong for this -- Alt does something
+> >> different and doesn't allow access to those extra characters.
+> >>
+> >> In Linwizard, we've modified the defkeymap and added makefile rule=
+s to
+> >> compile our modified defkeymap when a specific board was selected,=
+ but
+> >> this isn't portable when building a kernel for many boards at once=
+,
+> >> each having a different mapping.
+> >>
+> >> So, my question is, what is the best way to go about changing the
+> >> defkeymap, or supplying a keymap that allows all the keys to funct=
+ion
+> >> correctly, but doesn't require non-portable makefile hacks?
+> >
+> > how about letting xmodmap handle that ? If you use alt key, then ke=
+rnel
+> > passes alt key. Userland can later remap that key to some other
+> > function.
+> >
+> > --
+> > balbi
+> >
+> >
+> >
+>=20
+> For X-based interfaces that would work, and there's an equivalent for
+> Android too.  My question is more geared towards the console (i.e. no
+> X or Android, just plain linux console).
 
-Ended up merging this with the board-htcherald.c patch.
+Maybe post the patch for reference to linux-input list? Please Cc this
+list too, it will be interesting to see what Dmitry suggests.
+
+IMHO, we should find a way to support various keyboards with platform_d=
+ata
+specified keymaps in order to use the shell with standard distros.
 
 Tony
- 
-> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
-> ---
->  arch/arm/mach-omap1/Kconfig  |    6 ++++++
->  arch/arm/mach-omap1/Makefile |    1 +
->  drivers/video/omap/Makefile  |    1 +
->  3 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-> index 3232726..27f4897 100644
-> --- a/arch/arm/mach-omap1/Kconfig
-> +++ b/arch/arm/mach-omap1/Kconfig
-> @@ -57,6 +57,12 @@ config MACH_OMAP_HTCWIZARD
->  	help
->  	  HTC Wizard smartphone support (AKA QTEK 9100, ...)
->  
-> +config MACH_HERALD
-> +	bool "HTC Herald"
-> +	depends on ARCH_OMAP850
-> +	help
-> +	  HTC Herald smartphone support (AKA T-Mobile Wing, ...)
-> +
->  config MACH_OMAP_OSK
->  	bool "TI OSK Support"
->  	depends on ARCH_OMAP1 && ARCH_OMAP16XX
-> diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-> index 6867cd3..87e539a 100644
-> --- a/arch/arm/mach-omap1/Makefile
-> +++ b/arch/arm/mach-omap1/Makefile
-> @@ -34,6 +34,7 @@ obj-$(CONFIG_MACH_OMAP_PALMTT)		+= board-palmtt.o
->  obj-$(CONFIG_MACH_NOKIA770)		+= board-nokia770.o
->  obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o
->  obj-$(CONFIG_MACH_SX1)			+= board-sx1.o board-sx1-mmc.o
-> +obj-$(CONFIG_MACH_HERALD)		+= board-htcherald.o
->  
->  ifeq ($(CONFIG_ARCH_OMAP15XX),y)
->  # Innovator-1510 FPGA
-> diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-> index b63b198..49226a1 100644
-> --- a/drivers/video/omap/Makefile
-> +++ b/drivers/video/omap/Makefile
-> @@ -35,6 +35,7 @@ objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
->  objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
->  objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
->  objs-y$(CONFIG_MACH_OVERO) += lcd_overo.o
-> +objs-y$(CONFIG_MACH_HERALD) += lcd_htcherald.o
->  
->  omapfb-objs := $(objs-yy)
->  
-> -- 
-> 1.6.3.3
-> 
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
