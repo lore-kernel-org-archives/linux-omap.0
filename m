@@ -1,80 +1,108 @@
-From: Sergey Lapin <slapinid@gmail.com>
-Subject: OMAP3515 vs 3525 inversion
-Date: Mon, 16 Nov 2009 13:28:30 +0300
-Message-ID: <48239d390911160228y61e3c3dbk11b7a819f266b4bd@mail.gmail.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: [PATCHV3] OMAP3: PM: Removing redundant and potentially dangerous
+ PRCM configration
+Date: Mon, 16 Nov 2009 16:41:40 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA689729@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702FA1748E0@dbde02.ent.ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA174C6D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0015174be4fc8c2bde04787a78ed
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:49032 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987AbZKPK20 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 05:28:26 -0500
-Received: by ey-out-2122.google.com with SMTP id 9so1910522eyd.19
-        for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 02:28:30 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:50906 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751043AbZKPLLi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 06:11:38 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA174C6D@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
---0015174be4fc8c2bde04787a78ed
-Content-Type: text/plain; charset=ISO-8859-1
+As part of Core domain context restoration while coming out of off mode
+there are some registers being restored which are not required to be restored.
+ROM code will have restored them already. Overwriting some of them can have
+potential side effect. Eg: CM_CLKEN_PLL register should not be written while dpll is locked.
+Tested on OMAP 3430 SDP for suspend/resume and off mode with sleep_while_idle enabled.
 
-Hi, all!
-I think I found a bug in processor detection code.
-as I see,
-> > +	/* OMAP3430 and OMAP3530 are assumed to be same.
-> > +	 *
-> > +	 * OMAP3525, OMAP3515 and OMAP3503 can be detected only based
-> > +	 * on available features. Upon detection, update the CPU id
-> > +	 * and CPU class bits.
-> > +	 */
-> > +	if (omap3_has_iva() && omap3_has_sgx()) {
-> > +		strcpy(cpu_name, "3430/3530");
-> > +	}
-> > +	else if (omap3_has_sgx()) {
-> > +		omap_revision = OMAP3525_REV (rev);
-> > +		strcpy(cpu_name, "3525");
-> > +	}
-> > +	else if (omap3_has_iva()) {
-> > +		omap_revision = OMAP3515_REV (rev);
-> > +		strcpy(cpu_name, "3515");
-> > +	}
-> > +	else {
-> > +		omap_revision = OMAP3503_REV (rev);
-> > +		strcpy(cpu_name, "3503");
-> > +	}
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+---
 
-But, actually, 3515 has no DSP, but has PowerVR,
-and 3525 has no PowerVR but has DSP. In-tree code inverses this detection.
-
-Please consider applying attached patch. (sorry, no git-send-email
-available here).
-
---0015174be4fc8c2bde04787a78ed
-Content-Type: text/x-diff; charset=US-ASCII;
-	name="0001-OMAP3-id-code-detection-3525-vs-3515.patch"
-Content-Disposition: attachment;
-	filename="0001-OMAP3-id-code-detection-3525-vs-3515.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g233c5mx0
-
-RnJvbSA5M2FjOWM2YjJkY2NiMGNlZGIyODQxNDYxMmVkMmIxYjc3NTM3ZGVjIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTZXJnZXkgTGFwaW4gPHNsYXBpbkBvc3NmYW5zLm9yZz4KRGF0
-ZTogTW9uLCAxNiBOb3YgMjAwOSAxMzoyMzo0NSArMDMwMApTdWJqZWN0OiBbUEFUQ0hdIE9NQVAz
-OiBpZCBjb2RlIGRldGVjdGlvbiAzNTI1IHZzIDM1MTUKCkluIGN1cnJlbnQgdHJlZSBDUFUgZGV0
-ZWN0aW9uIG9mIDM1MjUgdnMgMzUxNSBpcyByZXZlcnNlZAoKClNpZ25lZC1vZmYtYnk6IFNlcmdl
-eSBMYXBpbiA8c2xhcGluQG9zc2ZhbnMub3JnPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvaWQu
-YyB8ICAgIDYgKysrLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMyBkZWxl
-dGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2lkLmMgYi9hcmNoL2Fy
-bS9tYWNoLW9tYXAyL2lkLmMKaW5kZXggZjQ4YTRiMi4uMmY5NzU3NyAxMDA2NDQKLS0tIGEvYXJj
-aC9hcm0vbWFjaC1vbWFwMi9pZC5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvaWQuYwpAQCAt
-Mjc4LDExICsyNzgsMTEgQEAgdm9pZCBfX2luaXQgb21hcDNfY3B1aW5mbyh2b2lkKQogCQkvKiBP
-TUFQMzQzMCwgT01BUDM1MjUsIE9NQVAzNTE1LCBPTUFQMzUwMyBkZXZpY2VzICovCiAJCXN0cmNw
-eShjcHVfbmFtZSwgIk9NQVAzNDMwLzM1MzAiKTsKIAl9IGVsc2UgaWYgKG9tYXAzX2hhc19zZ3go
-KSkgewotCQlvbWFwX3JldmlzaW9uID0gT01BUDM1MjVfUkVWKHJldik7Ci0JCXN0cmNweShjcHVf
-bmFtZSwgIk9NQVAzNTI1Iik7Ci0JfSBlbHNlIGlmIChvbWFwM19oYXNfaXZhKCkpIHsKIAkJb21h
-cF9yZXZpc2lvbiA9IE9NQVAzNTE1X1JFVihyZXYpOwogCQlzdHJjcHkoY3B1X25hbWUsICJPTUFQ
-MzUxNSIpOworCX0gZWxzZSBpZiAob21hcDNfaGFzX2l2YSgpKSB7CisJCW9tYXBfcmV2aXNpb24g
-PSBPTUFQMzUyNV9SRVYocmV2KTsKKwkJc3RyY3B5KGNwdV9uYW1lLCAiT01BUDM1MjUiKTsKIAl9
-IGVsc2UgewogCQlvbWFwX3JldmlzaW9uID0gT01BUDM1MDNfUkVWKHJldik7CiAJCXN0cmNweShj
-cHVfbmFtZSwgIk9NQVAzNTAzIik7Ci0tIAoxLjYuNQoK
---0015174be4fc8c2bde04787a78ed--
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index fb864cc..88182a8 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -43,7 +43,6 @@ struct omap3_prcm_regs {
+ 	u32 iva2_cm_clksel2;
+ 	u32 cm_sysconfig;
+ 	u32 sgx_cm_clksel;
+-	u32 wkup_cm_clksel;
+ 	u32 dss_cm_clksel;
+ 	u32 cam_cm_clksel;
+ 	u32 per_cm_clksel;
+@@ -52,7 +51,6 @@ struct omap3_prcm_regs {
+ 	u32 pll_cm_autoidle2;
+ 	u32 pll_cm_clksel4;
+ 	u32 pll_cm_clksel5;
+-	u32 pll_cm_clken;
+ 	u32 pll_cm_clken2;
+ 	u32 cm_polctrl;
+ 	u32 iva2_cm_fclken;
+@@ -76,7 +74,6 @@ struct omap3_prcm_regs {
+ 	u32 usbhost_cm_iclken;
+ 	u32 iva2_cm_autiidle2;
+ 	u32 mpu_cm_autoidle2;
+-	u32 pll_cm_autoidle;
+ 	u32 iva2_cm_clkstctrl;
+ 	u32 mpu_cm_clkstctrl;
+ 	u32 core_cm_clkstctrl;
+@@ -279,7 +276,6 @@ void omap3_prcm_save_context(void)
+ 	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
+ 	prcm_context.sgx_cm_clksel =
+ 			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
+-	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
+ 	prcm_context.dss_cm_clksel =
+ 			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
+ 	prcm_context.cam_cm_clksel =
+@@ -296,8 +292,6 @@ void omap3_prcm_save_context(void)
+ 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
+ 	prcm_context.pll_cm_clksel5 =
+ 			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
+-	prcm_context.pll_cm_clken =
+-			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+ 	prcm_context.pll_cm_clken2 =
+ 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+ 	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
+@@ -343,8 +337,6 @@ void omap3_prcm_save_context(void)
+ 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
+ 	prcm_context.mpu_cm_autoidle2 =
+ 			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
+-	prcm_context.pll_cm_autoidle =
+-			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
+ 	prcm_context.iva2_cm_clkstctrl =
+ 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
+ 	prcm_context.mpu_cm_clkstctrl =
+@@ -436,7 +428,6 @@ void omap3_prcm_restore_context(void)
+ 	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
+ 	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
+ 					 CM_CLKSEL);
+-	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
+ 	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
+ 					 CM_CLKSEL);
+ 	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
+@@ -453,7 +444,6 @@ void omap3_prcm_restore_context(void)
+ 					OMAP3430ES2_CM_CLKSEL4);
+ 	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
+ 					 OMAP3430ES2_CM_CLKSEL5);
+-	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
+ 	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
+ 					OMAP3430ES2_CM_CLKEN2);
+ 	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
+@@ -492,7 +482,6 @@ void omap3_prcm_restore_context(void)
+ 	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
+ 					CM_AUTOIDLE2);
+ 	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
+-	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
+ 	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
+ 					CM_CLKSTCTRL);
+ 	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
