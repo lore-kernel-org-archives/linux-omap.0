@@ -1,172 +1,129 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/12] omap: Cleanup the coding style in id.c
-Date: Mon, 16 Nov 2009 15:26:44 -0800
-Message-ID: <20091116232644.24892.64375.stgit@localhost>
+Subject: [PATCH 02/12] omap: GPIO module enable/disable
+Date: Mon, 16 Nov 2009 15:26:58 -0800
+Message-ID: <20091116232658.24892.92547.stgit@localhost>
 References: <20091116232435.24892.81547.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55079 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754955AbZKPX0m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 18:26:42 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57366 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755174AbZKPX0y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 18:26:54 -0500
 In-Reply-To: <20091116232435.24892.81547.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Charulatha V <charu@ti.com>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+From: Charulatha V <charu@ti.com>
 
-Cleanup the coding style in id.c while avoiding unneeded switch()
-statements.
+This patch disables a GPIO module when all pins of a GPIO
+module are inactive (clock gating forced at module level) and
+enables the module when any gpio in the module is requested.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+The module is enabled only when "mod_usage" indicates that no GPIO
+in that  module is currently active and the GPIO being requested
+is the 1st one to be active in that module.
+
+Each module would be disabled in omap_gpio_free() API when all
+GPIOs in a particular module becomes inactive. The module is
+re-enabled in omap_gpio_request() API when a GPIO is requested
+from the module that was previously disabled.
+
+Since individual GPIO's bookkeeping is added in this patch
+via "mod_usage", the same is used in omap_set_gpio_debounce()
+& omap_set_gpio_debounce_time() APIs to ensure that the gpio being
+used is actually "requested" prior to being used (Nishant Menon's
+<nm@ti.comSuggestion)
+
+GPIO module level details are specific to hardware and hence
+introducing this patch in low level layer (plat-omap/gpio.c)
+
+Signed-off-by: Charulatha V <charu@ti.com>
+Acked-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/id.c |   61 ++++++++++++++++------------------------------
- 1 files changed, 21 insertions(+), 40 deletions(-)
+ arch/arm/plat-omap/gpio.c |   32 ++++++++++++++++++++++++++++++++
+ 1 files changed, 32 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 4984660..f48a4b2 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -53,11 +53,11 @@ int omap_type(void)
- {
- 	u32 val = 0;
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index b71052c..ce4f0cd 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -195,6 +195,7 @@ struct gpio_bank {
+ 	spinlock_t lock;
+ 	struct gpio_chip chip;
+ 	struct clk *dbck;
++	u32 mod_usage;
+ };
  
--	if (cpu_is_omap24xx())
-+	if (cpu_is_omap24xx()) {
- 		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
--	else if (cpu_is_omap34xx())
-+	} else if (cpu_is_omap34xx()) {
- 		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
--	else {
-+	} else {
- 		pr_err("Cannot detect omap type!\n");
- 		goto out;
- 	}
-@@ -224,24 +224,12 @@ void __init omap3_check_revision(void)
- 			omap_revision = OMAP3430_REV_ES3_0;
- 			break;
- 		case 4:
--			omap_revision = OMAP3430_REV_ES3_1;
--			break;
-+		/* FALLTHROUGH */
- 		default:
- 			/* Use the latest known revision as default */
- 			omap_revision = OMAP3430_REV_ES3_1;
- 		}
- 		break;
--	case 0xb891:
--		/* Handle 36xx devices */
--		switch (rev) {
--		case 0:
--			omap_revision = OMAP3630_REV_ES1_0;
--			break;
--		default:
--			/* Use the latest known revision as default */
--			omap_revision = OMAP3630_REV_ES1_0;
--		}
--		break;
- 	case 0xb868:
- 		/* Handle OMAP35xx/AM35xx devices
- 		 *
-@@ -250,6 +238,8 @@ void __init omap3_check_revision(void)
- 		 */
- 		omap_revision = OMAP3505_REV(rev);
- 		break;
-+	case 0xb891:
-+	/* FALLTHROUGH */
- 	default:
- 		/* Unknown default to latest silicon rev as default*/
- 		omap_revision = OMAP3630_REV_ES1_0;
-@@ -271,35 +261,29 @@ void __init omap3_cpuinfo(void)
- 	 * on available features. Upon detection, update the CPU id
- 	 * and CPU class bits.
- 	 */
--	if (cpu_is_omap3630())
-+	if (cpu_is_omap3630()) {
- 		strcpy(cpu_name, "OMAP3630");
--	else if (cpu_is_omap3505()) {
-+	} else if (cpu_is_omap3505()) {
- 		/*
- 		 * AM35xx devices
- 		 */
- 		if (omap3_has_sgx()) {
- 			omap_revision = OMAP3517_REV(rev);
- 			strcpy(cpu_name, "AM3517");
--		}
--		else {
-+		} else {
- 			/* Already set in omap3_check_revision() */
- 			strcpy(cpu_name, "AM3505");
- 		}
--	}
--	/*
--	 * OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices
--	 */
--	else if (omap3_has_iva() && omap3_has_sgx())
-+	} else if (omap3_has_iva() && omap3_has_sgx()) {
-+		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
- 		strcpy(cpu_name, "OMAP3430/3530");
--	else if (omap3_has_sgx()) {
-+	} else if (omap3_has_sgx()) {
- 		omap_revision = OMAP3525_REV(rev);
- 		strcpy(cpu_name, "OMAP3525");
--	}
--	else if (omap3_has_iva()) {
-+	} else if (omap3_has_iva()) {
- 		omap_revision = OMAP3515_REV(rev);
- 		strcpy(cpu_name, "OMAP3515");
--	}
--	else {
-+	} else {
- 		omap_revision = OMAP3503_REV(rev);
- 		strcpy(cpu_name, "OMAP3503");
- 	}
-@@ -318,16 +302,13 @@ void __init omap3_cpuinfo(void)
- 		strcpy(cpu_rev, "3.0");
- 		break;
- 	case OMAP_REVBITS_40:
--		strcpy(cpu_rev, "3.1");
--		break;
-+	/* FALLTHROUGH */
- 	default:
- 		/* Use the latest known revision as default */
- 		strcpy(cpu_rev, "3.1");
- 	}
- 
--	/*
--	 * Print verbose information
--	 */
-+	/* Print verbose information */
- 	pr_info("%s ES%s (", cpu_name, cpu_rev);
- 
- 	OMAP3_SHOW_FEATURE(l2cache);
-@@ -348,18 +329,18 @@ void __init omap2_check_revision(void)
- 	 * At this point we have an idea about the processor revision set
- 	 * earlier with omap2_set_globals_tap().
- 	 */
--	if (cpu_is_omap24xx())
-+	if (cpu_is_omap24xx()) {
- 		omap24xx_check_revision();
--	else if (cpu_is_omap34xx()) {
-+	} else if (cpu_is_omap34xx()) {
- 		omap3_check_revision();
- 		omap3_check_features();
- 		omap3_cpuinfo();
--	}
--	else if (cpu_is_omap44xx()) {
-+	} else if (cpu_is_omap44xx()) {
- 		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
- 		return;
--	} else
-+	} else {
- 		pr_err("OMAP revision unknown, please fix!\n");
+ #define METHOD_MPUIO		0
+@@ -628,6 +629,10 @@ void omap_set_gpio_debounce(int gpio, int enable)
+ #else
+ 	reg += OMAP24XX_GPIO_DEBOUNCE_EN;
+ #endif
++	if (!(bank->mod_usage & l)) {
++		printk(KERN_ERR "GPIO %d not requested\n", gpio);
++		return;
 +	}
  
- 	/*
- 	 * OK, now we know the exact revision. Initialize omap_chip bits
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	val = __raw_readl(reg);
+@@ -663,6 +668,11 @@ void omap_set_gpio_debounce_time(int gpio, int enc_time)
+ 	bank = get_gpio_bank(gpio);
+ 	reg = bank->base;
+ 
++	if (!bank->mod_usage) {
++		printk(KERN_ERR "GPIO not requested\n");
++		return;
++	}
++
+ 	enc_time &= 0xff;
+ #ifdef CONFIG_ARCH_OMAP4
+ 	reg += OMAP4_GPIO_DEBOUNCINGTIME;
+@@ -1144,6 +1154,16 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ 		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
+ 	}
+ #endif
++	if (!cpu_class_is_omap1()) {
++		if (!bank->mod_usage) {
++			u32 ctrl;
++			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
++			ctrl &= 0xFFFFFFFE;
++			/* Module is enabled, clocks are not gated */
++			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
++		}
++		bank->mod_usage |= 1 << offset;
++	}
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+@@ -1170,6 +1190,16 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ 		__raw_writel(1 << offset, reg);
+ 	}
+ #endif
++	if (!cpu_class_is_omap1()) {
++		bank->mod_usage &= ~(1 << offset);
++		if (!bank->mod_usage) {
++			u32 ctrl;
++			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
++			/* Module is disabled, clocks are gated */
++			ctrl |= 1;
++			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
++		}
++	}
+ 	_reset_gpio(bank, bank->chip.base + offset);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ }
+@@ -1749,6 +1779,8 @@ static int __init _omap_gpio_init(void)
+ 			gpio_count = 32;
+ 		}
+ #endif
++
++		bank->mod_usage = 0;
+ 		/* REVISIT eventually switch from OMAP-specific gpio structs
+ 		 * over to the generic ones
+ 		 */
 
