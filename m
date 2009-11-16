@@ -1,98 +1,35 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v3] [OMAP3_PM] Fix zoom2/zoom3 build error
-Date: Mon, 16 Nov 2009 08:52:21 -0600
-Message-ID: <4B016725.3030007@ti.com>
-References: <20091116144652.GA31051@DFL-61>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] omap3: ehci: Add regulator framework
+Date: Mon, 16 Nov 2009 15:13:38 +0000
+Message-ID: <20091116151338.GB20513@opensource.wolfsonmicro.com>
+References: <1258274748-28053-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55376 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750987AbZKPOwQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Nov 2009 09:52:16 -0500
-In-Reply-To: <20091116144652.GA31051@DFL-61>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45072 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752731AbZKPPNd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Nov 2009 10:13:33 -0500
+Content-Disposition: inline
+In-Reply-To: <1258274748-28053-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manjunatha GK <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
-Manjunatha GK had written, on 11/16/2009 08:46 AM, the following:
-Thanks.
- >Re: [PATCH v3] [OMAP3_PM] Fix zoom2/zoom3 build error
-please rename subject to:
-[PATCH V3] OMAP3: PM: Fix build failure with !DEBUG_FS
-
-this is not zoom2/zoom3 specific - am I right?
-
-> The Zoom2 and Zoom3 build breaks on linux-omap-pm(HEAD:pm)
-> when CONFIG_DEBUG_FS is not enabled. 
+On Sun, Nov 15, 2009 at 02:15:48PM +0530, Ajay Kumar Gupta wrote:
+> Adding regulator framework in EHCI driver.
 > 
-> Build error log:
-> arch/arm/mach-omap2/built-in.o: In function `omap_sram_idle':
-> arch/arm/mach-omap2/pm34xx.c:449: undefined reference to `pm_dbg_regset_save'
-> arch/arm/mach-omap2/pm34xx.c:460: undefined reference to `pm_dbg_regset_save'
-> arch/arm/mach-omap2/built-in.o: In function `configure_vc':
-> arch/arm/mach-omap2/pm34xx.c:1237: undefined reference to `pm_dbg_regset_init'
-> arch/arm/mach-omap2/pm34xx.c:1238: undefined reference to `pm_dbg_regset_init'
-> make: *** [.tmp_vmlinux1] Error 1
+> OMAP3 has three HS USB ports so it can have three different regulator
+> for each PHY connected to each port.
 > 
-> This patch fixes the above errors.
-you could state "provide entries for the same when the DEBUG_FS is 
-undefined"
+> Currently these regulators are assumed to be optional and driver doesn't
+> fail but continue with the initialization if it doesn't get any regulators.
+> 
+> Regulator supply names has to be mapped in board files as 'hsusbN' where
+> 'N' is port number and can be {0, 1 ,2}.
+> 
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-> 
-> Kernel booting is tested on omap zoom2 and zoom3 boards.
-> 
-> Review Comments fixed:
-> http://patchwork.kernel.org/patch/56955/
-> http://patchwork.kernel.org/patch/56946/
-you may want to move this into the diffstat section
-> 
-> Signed-off-by: Manjunatha GK <manjugk@ti.com>
-CC the reviewers might be nice.
-
-> ---
->  arch/arm/mach-omap2/pm-debug.c |    2 --
->  arch/arm/mach-omap2/pm.h       |    8 ++++++--
->  2 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-> index 767ebbc..5284967 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -623,6 +623,4 @@ static int __init pm_dbg_init(void)
->  }
->  arch_initcall(pm_dbg_init);
->  
-> -#else
-> -void pm_dbg_update_time(struct powerdomain *pwrdm, int prev) {}
->  #endif
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index c195b14..7bc86b6 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -76,12 +76,16 @@ extern struct omap_dm_timer *gptimer_wakeup;
->  #ifdef CONFIG_PM_DEBUG
->  extern void omap2_pm_dump(int mode, int resume, unsigned int us);
->  extern int omap2_pm_debug;
-> +#else
-> +#define omap2_pm_dump(mode, resume, us)		do {} while (0);
-> +#define omap2_pm_debug				0
-> +#endif
-> +
-> +#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
->  extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
->  extern int pm_dbg_regset_save(int reg_set);
->  extern int pm_dbg_regset_init(int reg_set);
->  #else
-> -#define omap2_pm_dump(mode, resume, us)		do {} while (0);
-> -#define omap2_pm_debug				0
->  #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
->  #define pm_dbg_regset_save(reg_set) do {} while (0);
->  #define pm_dbg_regset_init(reg_set) do {} while (0);
-
-
--- 
-Regards,
-Nishanth Menon
+This looks OK from a regulator API point of view.
