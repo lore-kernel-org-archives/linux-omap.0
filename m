@@ -1,75 +1,130 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] omap3: ehci: Add regulator framework
-Date: Mon, 16 Nov 2009 19:42:45 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA68981F@dbde02.ent.ti.com>
-References: <1258274748-28053-1-git-send-email-ajay.gupta@ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA6893B6@dbde02.ent.ti.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH] ASoC: OMAP: enable Overo driver for CM-T35
+Date: Mon, 16 Nov 2009 16:19:25 +0200
+Message-ID: <4B015F6D.1000001@compulab.co.il>
+References: <1258379603-29089-1-git-send-email-mike@compulab.co.il>
+	<1258380019.3570.113.camel@odin>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52960 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751214AbZKPOMw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 09:12:52 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA6893B6@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1258380019.3570.113.camel@odin>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, alsa-devel@alsa-project.org, steve@sakoman.com
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+
+Liam Girdwood wrote:
+> On Mon, 2009-11-16 at 15:53 +0200, Mike Rapoport wrote:
+>> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+>> ---
+>>  sound/soc/omap/Kconfig |    7 ++++---
+>>  sound/soc/omap/overo.c |    2 +-
+>>  2 files changed, 5 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+>> index 653a362..bb42681 100644
+>> --- a/sound/soc/omap/Kconfig
+>> +++ b/sound/soc/omap/Kconfig
+>> @@ -43,12 +43,13 @@ config SND_OMAP_SOC_OSK5912
+>>  	  Say Y if you want to add support for SoC audio on osk5912.
+>>  
+>>  config SND_OMAP_SOC_OVERO
+>> -	tristate "SoC Audio support for Gumstix Overo"
+>> -	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OVERO
+>> +	tristate "SoC Audio support for Gumstix Overo and CompuLab CM-T35"
+>> +	depends on TWL4030_CORE && SND_OMAP_SOC && (MACH_OVERO || MACH_CM_T35)
+>>  	select SND_OMAP_SOC_MCBSP
+>>  	select SND_SOC_TWL4030
+>>  	help
+>> -	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
+>> +	  Say Y if you want to add support for SoC audio on the
+>> +	  Gumstix Overo or CompuLab CM-T35
+>>  
+>>  config SND_OMAP_SOC_OMAP2EVM
+>>  	tristate "SoC Audio support for OMAP2EVM board"
+>> diff --git a/sound/soc/omap/overo.c b/sound/soc/omap/overo.c
+>> index 624f40e..1bf440b 100644
+>> --- a/sound/soc/omap/overo.c
+>> +++ b/sound/soc/omap/overo.c
+>> @@ -107,7 +107,7 @@ static int __init overo_soc_init(void)
+>>  {
+>>  	int ret;
+>>  
+>> -	if (!machine_is_overo()) {
+>> +	if (!(machine_is_overo() || machine_is_cm_t35())) {
+>>  		pr_debug("Not Overo!\n");
+> 
+> Its probably best to update the pr_debug message too.
+
+I'm ok if it'll say "Not Overo!" :)
+Anyway, here's the update:
+
+>From 4f3628ff75bdeb57e751622f2a92e223f68e81e3 Mon Sep 17 00:00:00 2001
+In-Reply-To: <1258380019.3570.113.camel@odin>
+References: <1258380019.3570.113.camel@odin>
+From: Mike Rapoport <mike@compulab.co.il>
+Date: Mon, 16 Nov 2009 15:35:00 +0200
+Subject: [PATCH] ASoC: OMAP: enable Overo driver for CM-T35
+
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+---
+ sound/soc/omap/Kconfig |    7 ++++---
+ sound/soc/omap/overo.c |    4 ++--
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 653a362..bb42681 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -43,12 +43,13 @@ config SND_OMAP_SOC_OSK5912
+ 	  Say Y if you want to add support for SoC audio on osk5912.
+
+ config SND_OMAP_SOC_OVERO
+-	tristate "SoC Audio support for Gumstix Overo"
+-	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OVERO
++	tristate "SoC Audio support for Gumstix Overo and CompuLab CM-T35"
++	depends on TWL4030_CORE && SND_OMAP_SOC && (MACH_OVERO || MACH_CM_T35)
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TWL4030
+ 	help
+-	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
++	  Say Y if you want to add support for SoC audio on the
++	  Gumstix Overo or CompuLab CM-T35
+
+ config SND_OMAP_SOC_OMAP2EVM
+ 	tristate "SoC Audio support for OMAP2EVM board"
+diff --git a/sound/soc/omap/overo.c b/sound/soc/omap/overo.c
+index 624f40e..c25f527 100644
+--- a/sound/soc/omap/overo.c
++++ b/sound/soc/omap/overo.c
+@@ -107,8 +107,8 @@ static int __init overo_soc_init(void)
+ {
+ 	int ret;
+
+-	if (!machine_is_overo()) {
+-		pr_debug("Not Overo!\n");
++	if (!(machine_is_overo() || machine_is_cm_t35())) {
++		pr_debug("Incomatible machine!\n");
+ 		return -ENODEV;
+ 	}
+ 	printk(KERN_INFO "overo SoC init\n");
+-- 
+1.6.4.4
 
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->Pandita, Vikram
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gupta,
->>Ajay Kumar
->>Sent: Sunday, November 15, 2009 2:46 AM
->>To: linux-omap@vger.kernel.org
->>Cc: felipe.balbi@nokia.com; broonie@opensource.wolfsonmicro.com; Gupta, Ajay Kumar
->>Subject: [PATCH] omap3: ehci: Add regulator framework
-><snip>
->>+	/* get ehci regulator and enable */
->>+	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
->>+		if (omap->port_mode[i] != EHCI_HCD_OMAP_MODE_PHY) {
->>+			omap->regulator[i] = NULL;
->>+			continue;
->>+		}
->>+		snprintf(supply, sizeof(supply), "hsusb%d", i);
->
->supply[] being auto variable, is it guaranteed to be null terminated?
->Suggestion:
->		n = snprintf(supply, sizeof(supply), "hsusb%d", i);
->		supply[n] = '\0';
+> Liam
+> 
+> 
 
-Setting null is redundant as snprintf() does that internally too.
-
-Can see snprinf calls vsnprintf and:
-vsnprintf( ... ) 
-...
-       if (size > 0) {
-                if (str < end)
->>>>                        *str = '\0';
-                else
-                        end[-1] = '\0';
-        }
-...
-So I guess this is a noisy review comment :) and please ignore.
-Patch looks good.
-
->
->>+		omap->regulator[i] = regulator_get(omap->dev, supply);
->>+		if (IS_ERR(omap->regulator[i]))
->>+			dev_dbg(&pdev->dev,
->>+			"failed to get ehci port%d regulator\n", i);
->>+		else
->>+			regulator_enable(omap->regulator[i]);
->>+	}
->>+
-><snip>
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Sincerely yours,
+Mike.
