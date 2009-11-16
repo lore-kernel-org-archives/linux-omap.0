@@ -1,24 +1,23 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 6/6] OMAP3: CPUidle: Added peripheral pwrdm checks into bm check
-Date: Mon, 16 Nov 2009 11:58:50 -0800
-Message-ID: <87k4xqi6md.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 5/6] OMAP: Powerdomains: Add support for checking if pwrdm can idle
+Date: Mon, 16 Nov 2009 12:13:26 -0800
+Message-ID: <87vdhagrdl.fsf@deeprootsystems.com>
 References: <1258045359-7962-1-git-send-email-tero.kristo@nokia.com>
 	<1258045359-7962-2-git-send-email-tero.kristo@nokia.com>
 	<1258045359-7962-3-git-send-email-tero.kristo@nokia.com>
 	<1258045359-7962-4-git-send-email-tero.kristo@nokia.com>
 	<1258045359-7962-5-git-send-email-tero.kristo@nokia.com>
 	<1258045359-7962-6-git-send-email-tero.kristo@nokia.com>
-	<1258045359-7962-7-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:37714 "EHLO
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:54211 "EHLO
 	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753402AbZKPT6r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 14:58:47 -0500
-Received: by pzk1 with SMTP id 1so3021300pzk.33
-        for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 11:58:53 -0800 (PST)
-In-Reply-To: <1258045359-7962-7-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Thu\, 12 Nov 2009 19\:02\:39 +0200")
+	with ESMTP id S1752181AbZKPUNW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 15:13:22 -0500
+Received: by pzk1 with SMTP id 1so3029879pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 12:13:28 -0800 (PST)
+In-Reply-To: <1258045359-7962-6-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Thu\, 12 Nov 2009 19\:02\:38 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <tero.kristo@nokia.com>
@@ -28,191 +27,175 @@ Tero Kristo <tero.kristo@nokia.com> writes:
 
 > From: Tero Kristo <tero.kristo@nokia.com>
 >
-> Following checks are made (and their reasoning):
+> pwrdm_can_idle(pwrdm) will check if the specified powerdomain can enter
+> idle. This is done by checking the current fclk enable bits.
 >
-> - If CAM domain is active, prevent idle completely
->   * CAM pwrdm does not have HW wakeup capability
-> - If PER is likely to remain on, prevent PER off
->   * Saves on unnecessary context save/restore
-> - If CORE domain is active, prevent PER off-mode
->   * PER off in this case would prevent wakeups from PER completely
-> - Only allow CORE off, if all peripheral domains are off
->   * CORE off will cause a chipwide reset
->
-> Also, enabled CHECK_BM flag for C2, as this is needed for the camera case.
+> This call can be used e.g. inside cpuidle to decide which power states
+> core and mpu should enter during idle, as there are certain dependencies
+> between wakeup capabilities and reset logic.
 >
 > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 
-Some questions and a couple minor style comments below...
+In your initial implementatio, you were checking all (most) of the
+fclks in a given powerdomain.  In this version, you're currently only
+checking masks in CORE (UART1 and 2) and PER (UART3.)
+
+I'll assume it's just to propose the idea and we can add more fclks
+later.  
+
+That being said, I'm a little reluctant to add another list of FCLK
+masks. This seems like something that clock/clockdomain code should be
+handling.
+
+In terms of cleanness, it seems that pwrdm_can_idle() should call some
+sort of clkdm_can_idle() call for all the clockdomains associated with
+it (pwrdm->pwrdm_clkdms[].)
+
+The clockdomain code already tracks its usecount, so clkdm_can_idle()
+might be as simple as checking clkdm->usecount.  Just a thought
+without digging into the clkdm code.
+
+Kevin
 
 > ---
->  arch/arm/mach-omap2/cpuidle34xx.c |  105 ++++++++++++++++++++++++++++++++++---
->  1 files changed, 98 insertions(+), 7 deletions(-)
+>  arch/arm/mach-omap2/powerdomain.c             |   22 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/powerdomains34xx.h        |   14 ++++++++++++++
+>  arch/arm/plat-omap/include/plat/powerdomain.h |    9 +++++++++
+>  3 files changed, 45 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index e46345f..4654e87 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -58,7 +58,8 @@ struct omap3_processor_cx {
->  
->  struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
->  struct omap3_processor_cx current_cx_state;
-> -struct powerdomain *mpu_pd, *core_pd;
-> +struct powerdomain *mpu_pd, *core_pd, *per_pd, *iva2_pd;
-> +struct powerdomain *sgx_pd, *usb_pd, *cam_pd, *dss_pd;
->  
->  /*
->   * The latencies/thresholds for various C states have
-> @@ -91,6 +92,13 @@ static int omap3_idle_bm_check(void)
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 1237717..bf2b97a 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -1217,6 +1217,28 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
 >  	return 0;
 >  }
-
-> +static int pwrdm_get_idle_state(struct powerdomain *pwrdm)
-
-could use a function comment
-
+>  
+> +/**
+> + * pwrdm_can_idle - check if the powerdomain can enter idle
+> + * @pwrdm: struct powerdomain * the powerdomain to check status of
+> + *
+> + * Does a functional clock check for the powerdomain and returns 1 if the
+> + * powerdomain can enter idle, 0 if not.
+> + */
+> +int pwrdm_can_idle(struct powerdomain *pwrdm)
 > +{
-> +	if (pwrdm_can_idle(pwrdm))
-> +		return pwrdm_read_next_pwrst(pwrdm);
-> +	return PWRDM_POWER_ON;
+> +	int i;
+> +	const int fclk_regs[] = { CM_FCLKEN, OMAP3430ES2_CM_FCLKEN3 };
+> +
+> +	if (!pwrdm)
+> +		return -EINVAL;
+> +
+> +	for (i = 0; i < pwrdm->fclk_reg_amt; i++)
+> +		if (cm_read_mod_reg(pwrdm->prcm_offs, fclk_regs[i]) &
+> +				(0xffffffff ^ pwrdm->fclk_masks[i]))
+> +			return 0;
+> +	return 1;
 > +}
 > +
-
-Possible candidate for powerdomain API?
-
->  /**
->   * omap3_enter_idle - Programs OMAP3 to enter the specified state
->   * @dev: cpuidle device
-> @@ -153,14 +161,90 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  			       struct cpuidle_state *state)
+>  int pwrdm_state_switch(struct powerdomain *pwrdm)
 >  {
->  	struct cpuidle_state *new_state = state;
-> -
-> -	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
-> -		BUG_ON(!dev->safe_state);
-> -		new_state = dev->safe_state;
-> +	u32 per_state = 0, saved_per_state = 0, cam_state, usb_state;
-> +	u32 iva2_state, sgx_state, dss_state, new_core_state;
-> +	struct omap3_processor_cx *cx;
-> +	int ret;
-> +
-> +	if (state->flags & CPUIDLE_FLAG_CHECK_BM) {
-> +		if (omap3_idle_bm_check()) {
-> +			BUG_ON(!dev->safe_state);
-> +			new_state = dev->safe_state;
-> +			goto select_state;
-> +		}
-> +		cx = cpuidle_get_statedata(state);
-> +		new_core_state = cx->core_state;
-> +
-> +		/* Check if CORE is active, if yes, fallback to inactive */
-> +		if (!pwrdm_can_idle(core_pd))
-> +			new_core_state = PWRDM_POWER_INACTIVE;
-> +
-> +		/*
-> +		 * Prevent idle completely if CAM is active.
-> +		 * CAM does not have wakeup capability in OMAP3.
-> +		 */
-> +		cam_state = pwrdm_get_idle_state(cam_pd);
-> +		if (cam_state == PWRDM_POWER_ON) {
-> +			new_state = dev->safe_state;
-> +			goto select_state;
-> +		}
-> +
-> +		/*
-> +		 * Check if PER can idle or not. If we are not likely
-> +		 * to idle, deny PER off. This prevents unnecessary
-> +		 * context save/restore.
-> +		 */
-> +		saved_per_state = pwrdm_read_next_pwrst(per_pd);
-> +		if (pwrdm_can_idle(per_pd)) {
-> +			per_state = saved_per_state;
-> +			/*
-> +			 * Prevent PER off if CORE is active as this
-> +			 * would disable PER wakeups completely
-> +			 */
-> +			if (per_state == PWRDM_POWER_OFF &&
-> +			    new_core_state > PWRDM_POWER_RET)
-> +				per_state = PWRDM_POWER_RET;
-> +
-> +		} else if (saved_per_state == PWRDM_POWER_OFF)
-> +			per_state = PWRDM_POWER_RET;
-> +
-> +		/*
-> +		 * If we are attempting CORE off, check if any other
-> +		 * powerdomains are at retention or higher. CORE off causes
-> +		 * chipwide reset which would reset these domains also.
-> +		 */
-> +		if (new_core_state == PWRDM_POWER_OFF) {
-> +			dss_state = pwrdm_get_idle_state(dss_pd);
-> +			iva2_state = pwrdm_get_idle_state(iva2_pd);
-> +			sgx_state = pwrdm_get_idle_state(sgx_pd);
-> +			usb_state = pwrdm_get_idle_state(usb_pd);
-> +
-> +			if (cam_state > PWRDM_POWER_OFF ||
-> +			    dss_state > PWRDM_POWER_OFF ||
-> +			    iva2_state > PWRDM_POWER_OFF ||
-> +			    per_state > PWRDM_POWER_OFF ||
-> +			    sgx_state > PWRDM_POWER_OFF ||
-> +			    usb_state > PWRDM_POWER_OFF)
-> +				new_core_state = PWRDM_POWER_RET;
-> +		}
-
-add a blank line here
-
-> +		/* Fallback to new target core state */
-> +		while (cx->core_state > new_core_state) {
-> +			state--;
-> +			cx = cpuidle_get_statedata(state);
-> +		}
-> +		new_state = state;
-
-here
-
-> +		/* Are we changing PER target state? */
-> +		if (per_state != saved_per_state)
-> +			pwrdm_set_next_pwrst(per_pd, per_state);
->  	}
+>  	return _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
+> diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+> index 9eb2dc5..c8cd297 100644
+> --- a/arch/arm/mach-omap2/powerdomains34xx.h
+> +++ b/arch/arm/mach-omap2/powerdomains34xx.h
+> @@ -180,6 +180,7 @@ static struct powerdomain iva2_pwrdm = {
+>  		[2] = PWRSTS_OFF_ON,
+>  		[3] = PWRDM_POWER_ON,
+>  	},
+> +	.fclk_reg_amt	  = 1,
+>  };
 >  
-> +select_state:
->  	dev->last_state = new_state;
-> -	return omap3_enter_idle(dev, new_state);
-> +	ret = omap3_enter_idle(dev, new_state);
-
-here
-
-> +	/* Restore potentially tampered PER state */
-> +	if (per_state != saved_per_state)
-> +		pwrdm_set_next_pwrst(per_pd, saved_per_state);
-
-and here
-
-+	return ret;
->  }
+>  static struct powerdomain mpu_34xx_pwrdm = {
+> @@ -236,6 +237,11 @@ static struct powerdomain core_34xx_es3_1_pwrdm = {
+>  		[0] = PWRSTS_OFF_RET_INA_ON, /* MEM1ONSTATE */
+>  		[1] = PWRSTS_OFF_RET_INA_ON, /* MEM2ONSTATE */
+>  	},
+> +	.fclk_reg_amt	  = 2,
+> +	.fclk_masks	  = {
+> +		[0] = OMAP3430_EN_UART2 | OMAP3430_EN_UART1,
+> +		[1] = 0,
+> +	},
+>  };
 >  
->  DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
-> @@ -220,7 +304,8 @@ void omap_init_power_states(void)
->  			cpuidle_params_table[OMAP3_STATE_C2].threshold;
->  	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_INACTIVE;
->  	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_INACTIVE;
-> -	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID;
-> +	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID |
-> +				CPUIDLE_FLAG_CHECK_BM;
+>  /* Another case of bit name collisions between several registers: EN_DSS */
+> @@ -255,6 +261,7 @@ static struct powerdomain dss_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+>  	},
+> +	.fclk_reg_amt	  = 1,
+>  };
 >  
->  	/* C3 . MPU CSWR + Core inactive */
->  	omap3_power_states[OMAP3_STATE_C3].valid = 1;
-> @@ -313,6 +398,12 @@ int __init omap3_idle_init(void)
+>  /*
+> @@ -278,6 +285,7 @@ static struct powerdomain sgx_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+>  	},
+> +	.fclk_reg_amt	  = 1,
+>  };
 >  
->  	mpu_pd = pwrdm_lookup("mpu_pwrdm");
->  	core_pd = pwrdm_lookup("core_pwrdm");
-> +	per_pd = pwrdm_lookup("per_pwrdm");
-> +	iva2_pd = pwrdm_lookup("iva2_pwrdm");
-> +	sgx_pd = pwrdm_lookup("sgx_pwrdm");
-> +	usb_pd = pwrdm_lookup("usbhost_pwrdm");
-> +	cam_pd = pwrdm_lookup("cam_pwrdm");
-> +	dss_pd = pwrdm_lookup("dss_pwrdm");
+>  static struct powerdomain cam_pwrdm = {
+> @@ -295,6 +303,7 @@ static struct powerdomain cam_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+>  	},
+> +	.fclk_reg_amt	  = 1,
+>  };
 >  
->  	omap_init_power_states();
->  	cpuidle_register_driver(&omap3_idle_driver);
+>  static struct powerdomain per_pwrdm = {
+> @@ -313,6 +322,10 @@ static struct powerdomain per_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+>  	},
+> +	.fclk_reg_amt	  = 1,
+> +	.fclk_masks	  = {
+> +		[0] = OMAP3430_EN_UART3,
+> +	},
+>  };
+>  
+>  static struct powerdomain emu_pwrdm = {
+> @@ -352,6 +365,7 @@ static struct powerdomain usbhost_pwrdm = {
+>  	.pwrsts_mem_on	  = {
+>  		[0] = PWRDM_POWER_ON,  /* MEMONSTATE */
+>  	},
+> +	.fclk_reg_amt	  = 1,
+>  };
+>  
+>  static struct powerdomain dpll1_pwrdm = {
+> diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+> index 55350d0..b004d88 100644
+> --- a/arch/arm/plat-omap/include/plat/powerdomain.h
+> +++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+> @@ -57,6 +57,12 @@
+>   */
+>  #define PWRDM_MAX_CLKDMS	4
+>  
+> +/*
+> + * Maximum number of FCLK register masks that can be associated with a
+> + * powerdomain. CORE powerdomain on OMAP3 is the worst case
+> + */
+> +#define PWRDM_MAX_FCLK		2
+> +
+>  /* XXX A completely arbitrary number. What is reasonable here? */
+>  #define PWRDM_TRANSITION_BAILOUT 100000
+>  
+> @@ -124,6 +130,8 @@ struct powerdomain {
+>  	s8 next_state;
+>  	unsigned state_counter[4];
+>  
+> +	u8 fclk_reg_amt;
+> +	u32 fclk_masks[PWRDM_MAX_FCLK];
+>  #ifdef CONFIG_PM_DEBUG
+>  	s64 timer;
+>  	s64 state_timer[4];
+> @@ -177,6 +185,7 @@ int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
+>  bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
+>  
+>  int pwrdm_wait_transition(struct powerdomain *pwrdm);
+> +int pwrdm_can_idle(struct powerdomain *pwrdm);
+>  
+>  int pwrdm_state_switch(struct powerdomain *pwrdm);
+>  int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
 > -- 
 > 1.5.4.3
