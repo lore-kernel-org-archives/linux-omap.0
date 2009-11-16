@@ -1,122 +1,190 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH 1/2] serial: 8250: add UPF_NO_EMPTY_FIFO_READ flag
-Date: Mon, 16 Nov 2009 16:53:40 -0600
-Message-ID: <1258412020-31946-1-git-send-email-vikram.pandita@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH v4, for-next] OMAP: DMA: Use some define rather than a hexadecimal constant for LCD register
+Date: Tue, 17 Nov 2009 00:13:38 +0100
+Message-ID: <200911170013.41260.jkrzyszt@tis.icnet.pl>
+References: <20091116222517.GT3684@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36591 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754824AbZKPWxx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 17:53:53 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAGMrxi4032195
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 16:53:59 -0600
+Received: from d1.icnet.pl ([212.160.220.21]:44525 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755017AbZKPXNs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Nov 2009 18:13:48 -0500
+In-Reply-To: <20091116222517.GT3684@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-OMAP3630 and OMAP4430 UART IP blocks have a restriction wrt RX FIFO.
-Empty RX fifo read causes an abort. OMAP1/2/3 do not have this restriction.
+The patch corrects the issue introduced with my previous patch:
+        "OMAP: DMA: Fix omapfb/lcdc on OMAP1510 broken when PM set"
+as pointed out by OMAP subsystem maintainer.
 
-So interoduce a flag in 8250 driver: UPF_NO_EMPTY_FIFO_READ
+Created and tested against linux-omap for-next,
+commit 155a75d9725e66e5ec8a383822957dee52427057
 
-If this flag is specified for an 8250 port, then first check if rx fifo has
-contents, and only then proceed to read the fifo.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-The change affects only boards passing this flag in port data and hence is
-non-disruptive for other boards.
-
-First reported/fixed on omap4430 by Shilimkar, Santosh
-
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Cc: Shilimkar, Santosh <santosh.shilimkar@ti.com>
 ---
- drivers/serial/8250.c       |   30 +++++++++++++++++++++++++-----
- include/linux/serial_core.h |    1 +
- 2 files changed, 26 insertions(+), 5 deletions(-)
+Monday 16 November 2009 23:25:18 Tony Lindgren wrote:
+> Oops, looks like this needs one more update. This breaks building
+> for mach-omap2 machines:
+>
+> arch/arm/plat-omap/dma.c: In function 'omap_dma_running':
+> arch/arm/plat-omap/dma.c:1132: error: 'OMAP_LCDC_CONTROL' undeclared (first
+> use in this function) arch/arm/plat-omap/dma.c:1132: error: (Each
+> undeclared identifier is reported only once arch/arm/plat-omap/dma.c:1132:
+> error: for each function it appears in.) arch/arm/plat-omap/dma.c:1132:
+> error: 'OMAP_LCDC_CTRL_LCD_EN' undeclared (first use in this function)
+>
+> So removing from omap for-next.
 
-diff --git a/drivers/serial/8250.c b/drivers/serial/8250.c
-index 737b4c9..03c890e 100644
---- a/drivers/serial/8250.c
-+++ b/drivers/serial/8250.c
-@@ -1245,7 +1245,11 @@ static void autoconfig(struct uart_8250_port *up, unsigned int probeflags)
- #endif
- 	serial_outp(up, UART_MCR, save_mcr);
- 	serial8250_clear_fifos(up);
--	serial_in(up, UART_RX);
-+	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
-+		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
-+			serial_in(up, UART_RX);
-+	} else
-+		serial_in(up, UART_RX);
- 	if (up->capabilities & UART_CAP_UUE)
- 		serial_outp(up, UART_IER, UART_IER_UUE);
- 	else
-@@ -1289,7 +1293,11 @@ static void autoconfig_irq(struct uart_8250_port *up)
- 	}
- 	serial_outp(up, UART_IER, 0x0f);	/* enable all intrs */
- 	(void)serial_inp(up, UART_LSR);
--	(void)serial_inp(up, UART_RX);
-+	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
-+		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
-+			(void)serial_inp(up, UART_RX);
-+	} else
-+		(void)serial_inp(up, UART_RX);
- 	(void)serial_inp(up, UART_IIR);
- 	(void)serial_inp(up, UART_MSR);
- 	serial_outp(up, UART_TX, 0xFF);
-@@ -1984,7 +1992,11 @@ static int serial8250_startup(struct uart_port *port)
- 	 * Clear the interrupt registers.
- 	 */
- 	(void) serial_inp(up, UART_LSR);
--	(void) serial_inp(up, UART_RX);
-+	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
-+		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
-+			(void) serial_inp(up, UART_RX);
-+	} else
-+		(void) serial_inp(up, UART_RX);
- 	(void) serial_inp(up, UART_IIR);
- 	(void) serial_inp(up, UART_MSR);
- 
-@@ -2141,7 +2153,11 @@ dont_test_tx_en:
- 	 * routines or the previous session.
- 	 */
- 	serial_inp(up, UART_LSR);
--	serial_inp(up, UART_RX);
-+	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
-+		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
-+			serial_inp(up, UART_RX);
-+	} else
-+		serial_inp(up, UART_RX);
- 	serial_inp(up, UART_IIR);
- 	serial_inp(up, UART_MSR);
- 	up->lsr_saved_flags = 0;
-@@ -2207,7 +2223,11 @@ static void serial8250_shutdown(struct uart_port *port)
- 	 * Read data port to reset things, and then unlink from
- 	 * the IRQ chain.
- 	 */
--	(void) serial_in(up, UART_RX);
-+	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
-+		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
-+			(void) serial_inp(up, UART_RX);
-+	} else
-+		(void) serial_in(up, UART_RX);
- 
- 	del_timer_sync(&up->timer);
- 	up->timer.function = serial8250_timeout;
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index db532ce..0d65bb3 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -308,6 +308,7 @@ struct uart_port {
- #define UPF_SPD_WARP		((__force upf_t) (0x1010))
- #define UPF_SKIP_TEST		((__force upf_t) (1 << 6))
- #define UPF_AUTO_IRQ		((__force upf_t) (1 << 7))
-+#define UPF_NO_EMPTY_FIFO_READ	((__force upf_t) (1 << 8))
- #define UPF_HARDPPS_CD		((__force upf_t) (1 << 11))
- #define UPF_LOW_LATENCY		((__force upf_t) (1 << 13))
- #define UPF_BUGGY_UART		((__force upf_t) (1 << 14))
--- 
-1.6.5.1.69.g36942
+This time, compile tested with omap_generic_2420_defconfig as well.
+Once again, sorry for that noise :(.
 
+Thanks,
+Janusz
+
+diff -uprN a/arch/arm/mach-omap1/include/mach/lcdc.h b/arch/arm/mach-omap1/include/mach/lcdc.h
+--- a/arch/arm/mach-omap1/include/mach/lcdc.h	1970-01-01 01:00:00.000000000 +0100
++++ b/arch/arm/mach-omap1/include/mach/lcdc.h	2009-11-16 21:13:33.000000000 +0100
+@@ -0,0 +1,59 @@
++/*
++ * Heder file for OMAP1 internal LCD controller
++ *
++ * Extracted from drivers/video/omap/lcdc.c
++ *
++ * Copyright (C) 2004 Nokia Corporation
++ * Author: Imre Deak <imre.deak@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#ifndef __ARCH_OMAP_LCDC_H__
++#define __ARCH_OMAP_LCDC_H__
++
++#define OMAP_LCDC_BASE			0xfffec000
++#define OMAP_LCDC_SIZE			256
++#define OMAP_LCDC_IRQ			INT_LCD_CTRL
++
++#define OMAP_LCDC_CONTROL		(OMAP_LCDC_BASE + 0x00)
++#define OMAP_LCDC_TIMING0		(OMAP_LCDC_BASE + 0x04)
++#define OMAP_LCDC_TIMING1		(OMAP_LCDC_BASE + 0x08)
++#define OMAP_LCDC_TIMING2		(OMAP_LCDC_BASE + 0x0c)
++#define OMAP_LCDC_STATUS		(OMAP_LCDC_BASE + 0x10)
++#define OMAP_LCDC_SUBPANEL		(OMAP_LCDC_BASE + 0x14)
++#define OMAP_LCDC_LINE_INT		(OMAP_LCDC_BASE + 0x18)
++#define OMAP_LCDC_DISPLAY_STATUS	(OMAP_LCDC_BASE + 0x1c)
++
++#define OMAP_LCDC_STAT_DONE		(1 << 0)
++#define OMAP_LCDC_STAT_VSYNC		(1 << 1)
++#define OMAP_LCDC_STAT_SYNC_LOST	(1 << 2)
++#define OMAP_LCDC_STAT_ABC		(1 << 3)
++#define OMAP_LCDC_STAT_LINE_INT		(1 << 4)
++#define OMAP_LCDC_STAT_FUF		(1 << 5)
++#define OMAP_LCDC_STAT_LOADED_PALETTE	(1 << 6)
++
++#define OMAP_LCDC_CTRL_LCD_EN		(1 << 0)
++#define OMAP_LCDC_CTRL_LCD_TFT		(1 << 7)
++#define OMAP_LCDC_CTRL_LINE_IRQ_CLR_SEL	(1 << 10)
++
++#define OMAP_LCDC_IRQ_VSYNC		(1 << 2)
++#define OMAP_LCDC_IRQ_DONE		(1 << 3)
++#define OMAP_LCDC_IRQ_LOADED_PALETTE	(1 << 4)
++#define OMAP_LCDC_IRQ_LINE_NIRQ		(1 << 5)
++#define OMAP_LCDC_IRQ_LINE		(1 << 6)
++#define OMAP_LCDC_IRQ_MASK		(((1 << 5) - 1) << 2)
++
++#endif
+diff -uprN a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+--- a/arch/arm/plat-omap/dma.c	2009-11-14 23:48:41.000000000 +0100
++++ b/arch/arm/plat-omap/dma.c	2009-11-16 23:49:30.000000000 +0100
+@@ -36,6 +36,10 @@
+ 
+ #include <plat/tc.h>
+ 
++#ifdef CONFIG_ARCH_OMAP1
++#include <mach/lcdc.h>
++#endif
++
+ #undef DEBUG
+ 
+ #ifndef CONFIG_ARCH_OMAP1
+@@ -1124,9 +1128,11 @@ int omap_dma_running(void)
+ 	 * On OMAP1510, internal LCD controller will start the transfer
+ 	 * when it gets enabled, so assume DMA running if LCD enabled.
+ 	 */
++#ifdef CONFIG_ARCH_OMAP1
+ 	if (cpu_is_omap1510())
+-		if (omap_readw(0xfffec000 + 0x00) & (1 << 0))
++		if (omap_readw(OMAP_LCDC_CONTROL) & OMAP_LCDC_CTRL_LCD_EN)
+ 			return 1;
++#endif
+ 
+ 	/* Check if LCD DMA is running */
+ 	if (cpu_is_omap16xx())
+diff -uprN a/drivers/video/omap/lcdc.c b/drivers/video/omap/lcdc.c
+--- a/drivers/video/omap/lcdc.c	2009-11-14 23:49:16.000000000 +0100
++++ b/drivers/video/omap/lcdc.c	2009-11-16 21:10:53.000000000 +0100
+@@ -31,6 +31,7 @@
+ 
+ #include <plat/dma.h>
+ #include <plat/omapfb.h>
++#include <mach/lcdc.h>
+ 
+ #include <asm/mach-types.h>
+ 
+@@ -38,38 +39,6 @@
+ 
+ #define MODULE_NAME			"lcdc"
+ 
+-#define OMAP_LCDC_BASE			0xfffec000
+-#define OMAP_LCDC_SIZE			256
+-#define OMAP_LCDC_IRQ			INT_LCD_CTRL
+-
+-#define OMAP_LCDC_CONTROL		(OMAP_LCDC_BASE + 0x00)
+-#define OMAP_LCDC_TIMING0		(OMAP_LCDC_BASE + 0x04)
+-#define OMAP_LCDC_TIMING1		(OMAP_LCDC_BASE + 0x08)
+-#define OMAP_LCDC_TIMING2		(OMAP_LCDC_BASE + 0x0c)
+-#define OMAP_LCDC_STATUS		(OMAP_LCDC_BASE + 0x10)
+-#define OMAP_LCDC_SUBPANEL		(OMAP_LCDC_BASE + 0x14)
+-#define OMAP_LCDC_LINE_INT		(OMAP_LCDC_BASE + 0x18)
+-#define OMAP_LCDC_DISPLAY_STATUS	(OMAP_LCDC_BASE + 0x1c)
+-
+-#define OMAP_LCDC_STAT_DONE		(1 << 0)
+-#define OMAP_LCDC_STAT_VSYNC		(1 << 1)
+-#define OMAP_LCDC_STAT_SYNC_LOST	(1 << 2)
+-#define OMAP_LCDC_STAT_ABC		(1 << 3)
+-#define OMAP_LCDC_STAT_LINE_INT		(1 << 4)
+-#define OMAP_LCDC_STAT_FUF		(1 << 5)
+-#define OMAP_LCDC_STAT_LOADED_PALETTE	(1 << 6)
+-
+-#define OMAP_LCDC_CTRL_LCD_EN		(1 << 0)
+-#define OMAP_LCDC_CTRL_LCD_TFT		(1 << 7)
+-#define OMAP_LCDC_CTRL_LINE_IRQ_CLR_SEL	(1 << 10)
+-
+-#define OMAP_LCDC_IRQ_VSYNC		(1 << 2)
+-#define OMAP_LCDC_IRQ_DONE		(1 << 3)
+-#define OMAP_LCDC_IRQ_LOADED_PALETTE	(1 << 4)
+-#define OMAP_LCDC_IRQ_LINE_NIRQ		(1 << 5)
+-#define OMAP_LCDC_IRQ_LINE		(1 << 6)
+-#define OMAP_LCDC_IRQ_MASK		(((1 << 5) - 1) << 2)
+-
+ #define MAX_PALETTE_SIZE		PAGE_SIZE
+ 
+ enum lcdc_load_mode {
