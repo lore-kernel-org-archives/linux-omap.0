@@ -1,748 +1,723 @@
 From: Gregoire Gentil <gregoire@gentil.com>
-Subject: [PATCH 2/5] AI TB: Board file of the Always Innovating OMAP3-based
- Touch Book.
-Date: Sun, 15 Nov 2009 20:30:26 -0800
-Message-ID: <1258345826.9089.17.camel@gregoire-laptop>
+Subject: [PATCH 3/5] AI TB: Driver for the Freescale MMA7455L accelerometer
+Date: Sun, 15 Nov 2009 20:30:35 -0800
+Message-ID: <1258345835.9089.19.camel@gregoire-laptop>
 References: <1258228079.16065.17.camel@runt>
 Reply-To: gregoire@gentil.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:52290 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526AbZKPEaW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Nov 2009 23:30:22 -0500
-Received: by mail-pw0-f42.google.com with SMTP id 3so3039846pwi.21
-        for <linux-omap@vger.kernel.org>; Sun, 15 Nov 2009 20:30:28 -0800 (PST)
+Received: from mail-px0-f180.google.com ([209.85.216.180]:59617 "EHLO
+	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752699AbZKPEab (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Nov 2009 23:30:31 -0500
 In-Reply-To: <1258228079.16065.17.camel@runt>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Tim Yamin <plasmaroo@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Tim Yamin <plasmaroo@gmail.com>, linux-kernel@vger.kernel.org
 
-Board file of the Always Innovating OMAP3-based Touch Book.
+Driver for the Freescale MMA7455L accelerometer
 
 
 
 
 Signed-off-by: Gregoire Gentil <gregoire@gentil.com>
 ---
-arch/arm/mach-omap2/board-omap3touchbook.c |  683
-++++++++++++++++++++++++++++
-1 files changed, 683 insertions(+), 0 deletions(-)
-create mode 100644 arch/arm/mach-omap2/board-omap3touchbook.c
+drivers/input/misc/Kconfig    |    9 +
+drivers/input/misc/Makefile   |    2 +-
+drivers/input/misc/mma7455l.c |  625
++++++++++++++++++++++++++++++++++++++++++
+include/linux/mma7455l.h      |   11 +
+4 files changed, 646 insertions(+), 1 deletions(-)
+create mode 100644 drivers/input/misc/mma7455l.c
+create mode 100644 include/linux/mma7455l.h
 
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c
-b/arch/arm/mach-omap2/board-omap3touchbook.c
+diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+index a9bb254..454bac7 100644
+--- a/drivers/input/misc/Kconfig
++++ b/drivers/input/misc/Kconfig
+@@ -317,4 +317,13 @@ config INPUT_PCAP
+  To compile this driver as a module, choose M here: the
+  module will be called pcap_keys.
+
++config INPUT_MMA7455L
++ tristate "Freescale MMA7455L 3-axis accelerometer"
++ depends on SPI_MASTER
++ help
++   SPI driver for the Freescale MMA7455L 3-axis accelerometer.
++
++   The userspace interface is a 3-axis (X/Y/Z) relative movement
++   Linux input device, reporting REL_[XYZ] events.
++
+endif
+diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+index a8b8485..3db6347 100644
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -30,4 +30,4 @@ obj-$(CONFIG_INPUT_WINBOND_CIR) += winbond-cir.o
+obj-$(CONFIG_INPUT_WISTRON_BTNS) += wistron_btns.o
+obj-$(CONFIG_INPUT_WM831X_ON) += wm831x-on.o
+obj-$(CONFIG_INPUT_YEALINK) += yealink.o
+-
++obj-$(CONFIG_INPUT_MMA7455L) += mma7455l.o
+diff --git a/drivers/input/misc/mma7455l.c
+b/drivers/input/misc/mma7455l.c
 new file mode 100644
-index 0000000..ad3ef6e
+index 0000000..771d4b7
 --- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -0,0 +1,683 @@
++++ b/drivers/input/misc/mma7455l.c
+@@ -0,0 +1,625 @@
++/* Linux kernel driver for the Freescale MMA7455L 3-axis accelerometer
++ *
++ * Copyright (C) 2009 by Always Innovating, Inc.
++ * Author: Gregoire Gentil <gregoire@gentil.com>
++ * Author: Tim Yamin <plasm@roo.me.uk>
++ * All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++ * MA 02111-1307 USA
++ *
++ */
++
 +/*
-+ * linux/arch/arm/mach-omap2/board-omap3touchbook.c
++ * What this driver doesn't yet support:
 + *
-+ * Copyright (C) 2009 Always Innovating
-+ *
-+ * Modified from mach-omap2/board-omap3beagleboard.c
-+ *
-+ * Initial code: Gr=C3=A9goire Gentil, Tim Yamin
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * - I2C
++ * - INT2 handling
++ * - Pulse detection (and the sysctls to control it)
++ * - 10-bit measurement
 + */
 +
 +#include <linux/kernel.h>
-+#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/module.h>
++#include <linux/device.h>
 +#include <linux/platform_device.h>
 +#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+#include <linux/leds.h>
-+#include <linux/gpio.h>
 +#include <linux/input.h>
-+#include <linux/gpio_keys.h>
++#include <linux/irq.h>
++#include <linux/interrupt.h>
++#include <linux/sysfs.h>
++#include <linux/gpio.h>
 +
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/partitions.h>
-+#include <linux/mtd/nand.h>
-+
-+#include <plat/mcspi.h>
++#include <linux/mma7455l.h>
 +#include <linux/spi/spi.h>
 +
-+#include <linux/spi/ads7846.h>
-+#include <linux/mma7455l.h>
++#define MMA7455L_WHOAMI_MAGIC 0x55
 +
-+#include <plat/dmtimer.h>
-+#include <linux/backlight.h>
-+
-+#include <linux/regulator/machine.h>
-+#include <linux/i2c/twl4030.h>
-+
-+#include <mach/hardware.h>
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+#include <asm/mach/map.h>
-+#include <asm/mach/flash.h>
-+
-+#include <plat/board.h>
-+#include <plat/common.h>
-+#include <plat/gpmc.h>
-+#include <plat/nand.h>
-+#include <plat/mux.h>
-+#include <plat/usb.h>
-+#include <plat/timer-gp.h>
-+
-+#include "mmc-twl4030.h"
-+
-+#include <asm/setup.h>
-+
-+#define GPMC_CS0_BASE  0x60
-+#define GPMC_CS_SIZE   0x30
-+
-+#define NAND_BLOCK_SIZE SZ_128K
-+
-+#define OMAP3_AC_GPIO 136
-+#define OMAP3_TS_GPIO 162
-+#define TB_BL_PWM_TIMER 9
-+#define TB_KILL_POWER_GPIO 168
-+
-+unsigned long touchbook_revision;
-+
-+static struct mtd_partition omap3touchbook_nand_partitions[] =3D {
-+ /* All the partition sizes are listed in terms of NAND block size */
-+ {
-+ .name =3D "X-Loader",
-+ .offset =3D 0,
-+ .size =3D 4 * NAND_BLOCK_SIZE,
-+ .mask_flags =3D MTD_WRITEABLE, /* force read-only */
-+ },
-+ {
-+ .name =3D "U-Boot",
-+ .offset =3D MTDPART_OFS_APPEND, /* Offset =3D 0x80000 */
-+ .size =3D 15 * NAND_BLOCK_SIZE,
-+ .mask_flags =3D MTD_WRITEABLE, /* force read-only */
-+ },
-+ {
-+ .name =3D "U-Boot Env",
-+ .offset =3D MTDPART_OFS_APPEND, /* Offset =3D 0x260000 */
-+ .size =3D 1 * NAND_BLOCK_SIZE,
-+ },
-+ {
-+ .name =3D "Kernel",
-+ .offset =3D MTDPART_OFS_APPEND, /* Offset =3D 0x280000 */
-+ .size =3D 32 * NAND_BLOCK_SIZE,
-+ },
-+ {
-+ .name =3D "File System",
-+ .offset =3D MTDPART_OFS_APPEND, /* Offset =3D 0x680000 */
-+ .size =3D MTDPART_SIZ_FULL,
-+ },
++enum mma7455l_reg {
++ MMA7455L_REG_XOUTL = 0x00,
++ MMA7455L_REG_XOUTH = 0x01,
++ MMA7455L_REG_YOUTL = 0x02,
++ MMA7455L_REG_YOUTH = 0x03,
++ MMA7455L_REG_ZOUTL = 0x04,
++ MMA7455L_REG_ZOUTH = 0x05,
++ MMA7455L_REG_XOUT8 = 0x06,
++ MMA7455L_REG_YOUT8 = 0x07,
++ MMA7455L_REG_ZOUT8 = 0x08,
++ MMA7455L_REG_STATUS = 0x09,
++ MMA7455L_REG_DETSRC = 0x0a,
++ MMA7455L_REG_TOUT = 0x0b,
++ MMA7455L_REG_RESERVED1 = 0x0c,
++ MMA7455L_REG_I2CAD = 0x0d,
++ MMA7455L_REG_USRINF = 0x0e,
++ MMA7455L_REG_WHOAMI = 0x0f,
++ MMA7455L_REG_XOFFL = 0x10,
++ MMA7455L_REG_XOFFH = 0x11,
++ MMA7455L_REG_YOFFL = 0x12,
++ MMA7455L_REG_YOFFH = 0x13,
++ MMA7455L_REG_ZOFFL = 0x14,
++ MMA7455L_REG_ZOFFH = 0x15,
++ MMA7455L_REG_MCTL = 0x16,
++ MMA7455L_REG_INTRST = 0x17,
++ MMA7455L_REG_CTL1 = 0x18,
++ MMA7455L_REG_CTL2 = 0x19,
++ MMA7455L_REG_LDTH = 0x1a,
++ MMA7455L_REG_PDTH = 0x1b,
++ MMA7455L_REG_PW = 0x1c,
++ MMA7455L_REG_LT = 0x1d,
++ MMA7455L_REG_TW = 0x1e,
++ MMA7455L_REG_RESERVED2 = 0x1f,
 +};
 +
-+static struct omap_nand_platform_data omap3touchbook_nand_data =3D {
-+ .options =3D NAND_BUSWIDTH_16,
-+ .parts =3D omap3touchbook_nand_partitions,
-+ .nr_parts =3D ARRAY_SIZE(omap3touchbook_nand_partitions),
-+ .dma_channel =3D -1, /* disable DMA in OMAP NAND driver */
-+ .nand_setup =3D NULL,
-+ .dev_ready =3D NULL,
++enum mma7455l_reg_status {
++ MMA7455L_STATUS_XDA = 0x08,
++ MMA7455L_STATUS_YDA = 0x10,
++ MMA7455L_STATUS_ZDA = 0x20,
 +};
 +
-+static struct resource omap3touchbook_nand_resource =3D {
-+ .flags =3D IORESOURCE_MEM,
++enum mma7455l_mode {
++ MMA7455L_MODE_STANDBY = 0,
++ MMA7455L_MODE_MEASUREMENT = 1,
++ MMA7455L_MODE_LEVELDETECTION = 0x42, /* Set DRPD to on */
++ MMA7455L_MODE_PULSEDETECTION = 0x43, /* Set DRPD to on */
++ MMA7455L_MODE_MASK = 0x43,
 +};
 +
-+static struct platform_device omap3touchbook_nand_device =3D {
-+ .name =3D "omap2-nand",
-+ .id =3D -1,
-+ .dev =3D {
-+ .platform_data =3D &omap3touchbook_nand_data,
-+ },
-+ .num_resources =3D 1,
-+ .resource =3D &omap3touchbook_nand_resource,
++enum mma7455l_gselect {
++ MMA7455L_GSELECT_8 = 0x0,
++ MMA7455L_GSELECT_2 = 0x4,
++ MMA7455L_GSELECT_4 = 0x8,
++ MMA7455L_GSELECT_MASK = 0xC,
 +};
 +
-+#include "sdram-micron-mt46h32m32lf-6.h"
++/* FIXME */
++#define MMA7455L_F_FS 0x0020 /* ADC full scale */
 +
-+static struct twl4030_hsmmc_info mmc[] =3D {
-+ {
-+ .mmc =3D 1,
-+ .wires =3D 8,
-+ .gpio_wp =3D 29,
-+ },
-+ {} /* Terminator */
++struct mma7455l_info {
++ struct spi_device *spi_dev;
++ struct input_dev *input_dev;
++ struct mutex lock;
++ struct delayed_work work;
++
++ u8 mode;
++ u8 gSelect;
++
++ u8 flags;
++ u8 working;
 +};
 +
-+static struct platform_device omap3_touchbook_lcd_device =3D {
-+ .name =3D "omap3touchbook_lcd",
-+ .id =3D -1,
-+};
++/* lowlevel register access functions */
 +
-+static struct omap_lcd_config omap3_touchbook_lcd_config __initdata =3D=
- {
-+ .ctrl_name =3D "internal",
-+};
++#define WRITE_BIT (1 << 7)
++#define ADDR_SHIFT 1
 +
-+static struct regulator_consumer_supply touchbook_vmmc1_supply =3D {
-+ .supply =3D "vmmc",
-+};
-+
-+static struct regulator_consumer_supply touchbook_vsim_supply =3D {
-+ .supply =3D "vmmc_aux",
-+};
-+
-+static struct gpio_led gpio_leds[];
-+
-+static int touchbook_twl_gpio_setup(struct device *dev,
-+ unsigned gpio, unsigned ngpio)
++static inline u_int8_t __reg_read(struct mma7455l_info *mma, u_int8_t
+reg)
 +{
-+ if (system_rev >=3D 0x20 && system_rev <=3D 0x34301000) {
-+ omap_cfg_reg(AG9_34XX_GPIO23);
-+ mmc[0].gpio_wp =3D 23;
-+ } else {
-+ omap_cfg_reg(AH8_34XX_GPIO29);
-+ }
-+ /* gpio + 0 is "mmc0_cd" (input/IRQ) */
-+ mmc[0].gpio_cd =3D gpio + 0;
-+ twl4030_mmc_init(mmc);
++ int rc;
++ u_int8_t cmd;
 +
-+ /* link regulators to MMC adapters */
-+ touchbook_vmmc1_supply.dev =3D mmc[0].dev;
-+ touchbook_vsim_supply.dev =3D mmc[0].dev;
++ cmd = ((reg & 0x3f) << ADDR_SHIFT);
++ rc = spi_w8r8(mma->spi_dev, cmd);
 +
-+ /* REVISIT: need ehci-omap hooks for external VBUS
-+ * power switch and overcurrent detect
-+ */
-+
-+ gpio_request(gpio + 1, "EHCI_nOC");
-+ gpio_direction_input(gpio + 1);
-+
-+ /* TWL4030_GPIO_MAX + 0 =3D=3D ledA, EHCI nEN_USB_PWR (out, active lo=
-w) */
-+ gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
-+ gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
-+
-+ /* TWL4030_GPIO_MAX + 1 =3D=3D ledB, PMU_STAT (out, active low LED) *=
-/
-+ gpio_leds[2].gpio =3D gpio + TWL4030_GPIO_MAX + 1;
-+
-+ return 0;
++ return rc;
 +}
 +
-+static struct twl4030_gpio_platform_data touchbook_gpio_data =3D {
-+ .gpio_base =3D OMAP_MAX_GPIO_LINES,
-+ .irq_base =3D TWL4030_GPIO_IRQ_BASE,
-+ .irq_end =3D TWL4030_GPIO_IRQ_END,
-+ .use_leds =3D true,
-+ .pullups =3D BIT(1),
-+ .pulldowns =3D BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
-+ | BIT(15) | BIT(16) | BIT(17),
-+ .setup =3D touchbook_twl_gpio_setup,
-+};
-+
-+static struct regulator_consumer_supply touchbook_vdac_supply =3D {
-+ .supply =3D "vdac",
-+ .dev =3D &omap3_touchbook_lcd_device.dev,
-+};
-+
-+static struct regulator_consumer_supply touchbook_vdvi_supply =3D {
-+ .supply =3D "vdvi",
-+ .dev =3D &omap3_touchbook_lcd_device.dev,
-+};
-+
-+/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card =3D=3D m=
-ax
-220 mA) */
-+static struct regulator_init_data touchbook_vmmc1 =3D {
-+ .constraints =3D {
-+ .min_uV =3D 1850000,
-+ .max_uV =3D 3150000,
-+ .valid_modes_mask =3D REGULATOR_MODE_NORMAL
-+ | REGULATOR_MODE_STANDBY,
-+ .valid_ops_mask =3D REGULATOR_CHANGE_VOLTAGE
-+ | REGULATOR_CHANGE_MODE
-+ | REGULATOR_CHANGE_STATUS,
-+ },
-+ .num_consumer_supplies =3D 1,
-+ .consumer_supplies =3D &touchbook_vmmc1_supply,
-+};
-+
-+/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card =3D=3D max 50 mA) */
-+static struct regulator_init_data touchbook_vsim =3D {
-+ .constraints =3D {
-+ .min_uV =3D 1800000,
-+ .max_uV =3D 3000000,
-+ .valid_modes_mask =3D REGULATOR_MODE_NORMAL
-+ | REGULATOR_MODE_STANDBY,
-+ .valid_ops_mask =3D REGULATOR_CHANGE_VOLTAGE
-+ | REGULATOR_CHANGE_MODE
-+ | REGULATOR_CHANGE_STATUS,
-+ },
-+ .num_consumer_supplies =3D 1,
-+ .consumer_supplies =3D &touchbook_vsim_supply,
-+};
-+
-+/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
-+static struct regulator_init_data touchbook_vdac =3D {
-+ .constraints =3D {
-+ .min_uV =3D 1800000,
-+ .max_uV =3D 1800000,
-+ .valid_modes_mask =3D REGULATOR_MODE_NORMAL
-+ | REGULATOR_MODE_STANDBY,
-+ .valid_ops_mask =3D REGULATOR_CHANGE_MODE
-+ | REGULATOR_CHANGE_STATUS,
-+ },
-+ .num_consumer_supplies =3D 1,
-+ .consumer_supplies =3D &touchbook_vdac_supply,
-+};
-+
-+/* VPLL2 for digital video outputs */
-+static struct regulator_init_data touchbook_vpll2 =3D {
-+ .constraints =3D {
-+ .name =3D "VDVI",
-+ .min_uV =3D 1800000,
-+ .max_uV =3D 1800000,
-+ .valid_modes_mask =3D REGULATOR_MODE_NORMAL
-+ | REGULATOR_MODE_STANDBY,
-+ .valid_ops_mask =3D REGULATOR_CHANGE_MODE
-+ | REGULATOR_CHANGE_STATUS,
-+ },
-+ .num_consumer_supplies =3D 1,
-+ .consumer_supplies =3D &touchbook_vdvi_supply,
-+};
-+
-+static struct twl4030_usb_data touchbook_usb_data =3D {
-+ .usb_mode =3D T2_USB_MODE_ULPI,
-+};
-+
-+static struct twl4030_codec_audio_data touchbook_audio_data =3D {
-+ .audio_mclk =3D 26000000,
-+};
-+
-+static struct twl4030_codec_data touchbook_codec_data =3D {
-+ .audio_mclk =3D 26000000,
-+ .audio =3D &touchbook_audio_data,
-+};
-+
-+static struct twl4030_platform_data touchbook_twldata =3D {
-+ .irq_base =3D TWL4030_IRQ_BASE,
-+ .irq_end =3D TWL4030_IRQ_END,
-+
-+ /* platform_data for children goes here */
-+ .usb =3D &touchbook_usb_data,
-+ .gpio =3D &touchbook_gpio_data,
-+ .codec =3D &touchbook_codec_data,
-+ .vmmc1 =3D &touchbook_vmmc1,
-+ .vsim =3D &touchbook_vsim,
-+ .vdac =3D &touchbook_vdac,
-+ .vpll2 =3D &touchbook_vpll2,
-+};
-+
-+static struct i2c_board_info __initdata touchbook_i2c_boardinfo[] =3D =
-{
-+ {
-+ I2C_BOARD_INFO("twl4030", 0x48),
-+ .flags =3D I2C_CLIENT_WAKE,
-+ .irq =3D INT_34XX_SYS_NIRQ,
-+ .platform_data =3D &touchbook_twldata,
-+ },
-+};
-+
-+static struct i2c_board_info __initdata touchBook_i2c_boardinfo[] =3D =
-{
-+ {
-+ I2C_BOARD_INFO("bq27200", 0x55),
-+ },
-+};
-+
-+static int __init omap3_touchbook_i2c_init(void)
++static u_int8_t reg_read(struct mma7455l_info *mma, u_int8_t reg)
 +{
-+ /* Standard TouchBook bus */
-+ omap_register_i2c_bus(1, 2600, touchbook_i2c_boardinfo,
-+ ARRAY_SIZE(touchbook_i2c_boardinfo));
++ u_int8_t ret;
 +
-+ /* Additional TouchBook bus */
-+ omap_register_i2c_bus(3, 100, touchBook_i2c_boardinfo,
-+ ARRAY_SIZE(touchBook_i2c_boardinfo));
++ mutex_lock(&mma->lock);
++ ret = __reg_read(mma, reg);
++ mutex_unlock(&mma->lock);
 +
-+ return 0;
++ return ret;
 +}
 +
-+static void __init omap3_ads7846_init(void)
++static s16 __reg_read_10(struct mma7455l_info *mma, u8 reg1, u8 reg2)
 +{
-+ if (gpio_request(OMAP3_TS_GPIO, "ads7846_pen_down")) {
-+ printk(KERN_ERR "Failed to request GPIO %d for "
-+ "ads7846 pen down IRQ\n", OMAP3_TS_GPIO);
-+ return;
-+ }
++ u8 v1, v2;
 +
-+ gpio_direction_input(OMAP3_TS_GPIO);
-+ omap_set_gpio_debounce(OMAP3_TS_GPIO, 1);
-+ omap_set_gpio_debounce_time(OMAP3_TS_GPIO, 0xa);
++ v1 = __reg_read(mma, reg1);
++ v2 = __reg_read(mma, reg2);
++
++ return (v2 & 0x4) << 13 | (v2 & 0x3) << 8 | v1;
 +}
 +
-+static struct ads7846_platform_data ads7846_config =3D {
-+ .x_min =3D 100,
-+ .y_min =3D 265,
-+ .x_max =3D 3950,
-+ .y_max =3D 3750,
-+ .x_plate_ohms =3D 40,
-+ .pressure_max =3D 255,
-+ .debounce_max =3D 10,
-+ .debounce_tol =3D 5,
-+ .debounce_rep =3D 1,
-+ .gpio_pendown =3D OMAP3_TS_GPIO,
-+ .keep_vref_on =3D 1,
-+};
-+
-+static struct omap2_mcspi_device_config ads7846_mcspi_config =3D {
-+ .turbo_mode =3D 0,
-+ .single_channel =3D 1, /* 0: slave, 1: master */
-+};
-+
-+static struct spi_board_info omap3_ads7846_spi_board_info[] __initdata
-=3D {
-+ {
-+ .modalias =3D "ads7846",
-+ .bus_num =3D 4,
-+ .chip_select =3D 0,
-+ .max_speed_hz =3D 1500000,
-+ .controller_data =3D &ads7846_mcspi_config,
-+ .irq =3D OMAP_GPIO_IRQ(OMAP3_TS_GPIO),
-+ .platform_data =3D &ads7846_config,
-+ }
-+};
-+
-+static struct gpio_led gpio_leds[] =3D {
-+ {
-+ .name =3D "touchbook::usr0",
-+ .default_trigger =3D "heartbeat",
-+ .gpio =3D 150,
-+ },
-+ {
-+ .name =3D "touchbook::usr1",
-+ .default_trigger =3D "mmc0",
-+ .gpio =3D 149,
-+ },
-+ {
-+ .name =3D "touchbook::pmu_stat",
-+ .gpio =3D -EINVAL, /* gets replaced */
-+ .active_low =3D true,
-+ },
-+};
-+
-+static struct gpio_led_platform_data gpio_led_info =3D {
-+ .leds =3D gpio_leds,
-+ .num_leds =3D ARRAY_SIZE(gpio_leds),
-+};
-+
-+static struct platform_device leds_gpio =3D {
-+ .name =3D "leds-gpio",
-+ .id =3D -1,
-+ .dev =3D {
-+ .platform_data =3D &gpio_led_info,
-+ },
-+};
-+
-+static struct gpio_keys_button gpio_buttons[] =3D {
-+ {
-+ .code =3D BTN_EXTRA,
-+ .gpio =3D 7,
-+ .desc =3D "user",
-+ .wakeup =3D 1,
-+ },
-+ {
-+ .code =3D KEY_POWER,
-+ .gpio =3D 183,
-+ .desc =3D "power",
-+ .wakeup =3D 1,
-+ },
-+};
-+
-+static struct gpio_keys_platform_data gpio_key_info =3D {
-+ .buttons =3D gpio_buttons,
-+ .nbuttons =3D ARRAY_SIZE(gpio_buttons),
-+};
-+
-+static struct platform_device keys_gpio =3D {
-+ .name =3D "gpio-keys",
-+ .id =3D -1,
-+ .dev =3D {
-+ .platform_data =3D &gpio_key_info,
-+ },
-+};
-+
-+static struct omap_board_config_kernel omap3_touchbook_config[]
-__initdata =3D {
-+ { OMAP_TAG_LCD, &omap3_touchbook_lcd_config },
-+};
-+
-+static void __init omap3_touchbook_init_irq(void)
++static inline int __reg_write(struct mma7455l_info *mma,
++ u_int8_t reg, u_int8_t val)
 +{
-+ omap_board_config =3D omap3_touchbook_config;
-+ omap_board_config_size =3D ARRAY_SIZE(omap3_touchbook_config);
-+ omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-+      mt46h32m32lf6_sdrc_params);
-+ omap_init_irq();
-+#ifdef CONFIG_OMAP_32K_TIMER
-+ omap2_gp_clockevent_set_gptimer(12);
-+#endif
-+ omap_gpio_init();
++ u_int8_t buf[2];
++
++ buf[0] = ((reg & 0x3f) << ADDR_SHIFT) | WRITE_BIT;
++ buf[1] = val;
++
++ return spi_write(mma->spi_dev, buf, sizeof(buf));
 +}
 +
-+static struct platform_device *omap3_touchbook_devices[] __initdata =3D=
- {
-+ &omap3_touchbook_lcd_device,
-+ &leds_gpio,
-+ &keys_gpio,
-+};
-+
-+static void __init omap3touchbook_flash_init(void)
-+{
-+ u8 cs =3D 0;
-+ u8 nandcs =3D GPMC_CS_NUM + 1;
-+
-+ u32 gpmc_base_add =3D OMAP34XX_GPMC_VIRT;
-+
-+ /* find out the chip-select on which NAND exists */
-+ while (cs < GPMC_CS_NUM) {
-+ u32 ret =3D 0;
-+ ret =3D gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-+
-+ if ((ret & 0xC00) =3D=3D 0x800) {
-+ printk(KERN_INFO "Found NAND on CS%d\n", cs);
-+ if (nandcs > GPMC_CS_NUM)
-+ nandcs =3D cs;
-+ }
-+ cs++;
-+ }
-+
-+ if (nandcs > GPMC_CS_NUM) {
-+ printk(KERN_INFO "NAND: Unable to find configuration "
-+ "in GPMC\n ");
-+ return;
-+ }
-+
-+ if (nandcs < GPMC_CS_NUM) {
-+ omap3touchbook_nand_data.cs =3D nandcs;
-+ omap3touchbook_nand_data.gpmc_cs_baseaddr =3D (void *)
-+ (gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-+ omap3touchbook_nand_data.gpmc_baseaddr =3D
-+ (void *) (gpmc_base_add);
-+
-+ printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
-+ if (platform_device_register(&omap3touchbook_nand_device) < 0)
-+ printk(KERN_ERR "Unable to register NAND device\n");
-+ }
-+}
-+
-+static void __init omap3_mma7455l_init(void)
++static int reg_write(struct mma7455l_info *mma, u_int8_t reg, u_int8_t
+val)
 +{
 + int ret;
 +
-+ ret =3D gpio_request(OMAP3_AC_GPIO, "mma7455l");
-+ if (ret < 0) {
-+ printk(KERN_ERR "Failed to request GPIO %d for mma7455l IRQ\n",
-+ OMAP3_AC_GPIO);
-+ return;
-+ }
++ mutex_lock(&mma->lock);
++ ret = __reg_write(mma, reg, val);
++ mutex_unlock(&mma->lock);
 +
-+ gpio_direction_input(OMAP3_AC_GPIO);
++ return ret;
 +}
 +
-+static struct mma7455l_platform_data mma7455l_config =3D {
-+ .calibration_x =3D -4,
-+ .calibration_y =3D 28,
-+ .calibration_z =3D -28,
-+};
-+
-+static struct omap2_mcspi_device_config mma7455l_mcspi_config =3D {
-+ .turbo_mode =3D 0,
-+ .single_channel =3D 1, /* 0: slave, 1: master */
-+};
-+
-+static struct spi_board_info omap3_mma7455l_spi_board_info[] __initdat=
-a
-=3D {
-+ {
-+ .modalias =3D "mma7455l",
-+ .bus_num =3D 3,
-+ .chip_select =3D 0,
-+ .max_speed_hz =3D 200000,
-+ .irq =3D OMAP_GPIO_IRQ(OMAP3_AC_GPIO),
-+ .controller_data =3D &mma7455l_mcspi_config,
-+ .platform_data =3D &mma7455l_config,
-+ }
-+};
-+
-+static struct ehci_hcd_omap_platform_data ehci_pdata __initconst =3D {
-+
-+ .port_mode[0] =3D EHCI_HCD_OMAP_MODE_PHY,
-+ .port_mode[1] =3D EHCI_HCD_OMAP_MODE_PHY,
-+ .port_mode[2] =3D EHCI_HCD_OMAP_MODE_UNKNOWN,
-+
-+ .phy_reset  =3D true,
-+ .reset_gpio_port[0]  =3D -EINVAL,
-+ .reset_gpio_port[1]  =3D 147,
-+ .reset_gpio_port[2]  =3D -EINVAL
-+};
-+
-+static int touchbook_backlight_brightness =3D 50;
-+static struct omap_dm_timer *touchbook_backlight_pwm;
-+
-+static int touchbook_backlight_read(struct backlight_device *bd)
++static s16 __reg_write_10(struct mma7455l_info *mma,
++ u8 reg1, u8 reg2, s16 value)
 +{
-+ return touchbook_backlight_brightness;
++ int ret;
++ u8 v1, v2;
++
++ v1 = value & 0xFF;
++ if (value < 0)
++ v2 = ((value >> 8) & 0x3) | 0x4;
++ else
++ v2 = 0;
++
++ ret = __reg_write(mma, reg1, v1);
++ ret = __reg_write(mma, reg2, v2);
++ return ret;
 +}
 +
-+static int touchbook_backlight_update(struct backlight_device *bd)
++static void mma7455l_work(struct work_struct *work)
 +{
-+ int value =3D bd->props.brightness;
-+ touchbook_backlight_brightness =3D value;
++ struct mma7455l_info *mma =
++ container_of(work, struct mma7455l_info, work.work);
 +
-+ /* Frequency calculation:
-+    - For 200Hz PWM, you want to load -164 (=3D> -32768Hz / 200Hz).
-+    - Minimum duty cycle for the backlight is 15%.
-+    - You have (164*0.85) =3D> ~140 levels of brightness.
-+ */
++ s8 val;
++ mma->working = 1;
 +
-+ /* For maximum brightness, just stop the timer... */
-+ if (value !=3D bd->props.max_brightness) {
-+ /* Load the appropriate value for 200Hz PWM */
-+ u32 period =3D clk_get_rate(omap_dm_timer_get_fclk(
-+ touchbook_backlight_pwm)) / 200;
++ /* FIXME: 10 bit accuracy? */
++ if (!(mma->flags & MMA7455L_STATUS_XDA)) {
++ val = reg_read(mma, MMA7455L_REG_XOUT8);
++ input_report_abs(mma->input_dev, ABS_X, val);
++ }
++ if (!(mma->flags & MMA7455L_STATUS_YDA)) {
++ val = reg_read(mma, MMA7455L_REG_YOUT8);
++ input_report_abs(mma->input_dev, ABS_Y, val);
++ }
++ if (!(mma->flags & MMA7455L_STATUS_ZDA)) {
++ val = reg_read(mma, MMA7455L_REG_ZOUT8);
++ input_report_abs(mma->input_dev, ABS_Z, val);
++ }
 +
-+ /* Minimum duty cycle is 15% */
-+ u32 minimum =3D (period * 3) / 20;
-+ u32 maximum =3D (period * 17) / 20;
++ mma->working = 0;
++ input_sync(mma->input_dev);
++ put_device(&mma->spi_dev->dev);
 +
-+ /* Work out match value */
-+ u32 match =3D (maximum * value) / 100;
++ /* Enable IRQ and clear out interrupt */
++ reg_write(mma, MMA7455L_REG_INTRST, 0x3);
++ reg_write(mma, MMA7455L_REG_INTRST, 0x0);
++ enable_irq(mma->spi_dev->irq);
++}
 +
-+ /* Start... */
-+ omap_dm_timer_set_load(touchbook_backlight_pwm,
-+ 1, 0xFFFFFFFF - period - 1);
-+ omap_dm_timer_set_match(touchbook_backlight_pwm,
-+ 1, 0xFFFFFFFF - minimum - match);
-+ omap_dm_timer_write_counter(touchbook_backlight_pwm, -1);
-+ omap_dm_timer_start(touchbook_backlight_pwm);
++static void mma7455l_schedule_work(struct mma7455l_info *mma)
++{
++ int status;
++
++ get_device(&mma->spi_dev->dev);
++ status = schedule_delayed_work(&mma->work, HZ / 10);
++}
++
++static irqreturn_t mma7455l_interrupt(int irq, void *_mma)
++{
++ struct mma7455l_info *mma = _mma;
++ mma7455l_schedule_work(mma);
++
++ /* Disable any further interrupts until we have processed
++ * the current one */
++ disable_irq(mma->spi_dev->irq);
++ return IRQ_HANDLED;
++}
++
++/* sysfs */
++
++static void get_mode(struct mma7455l_info *mma, u8 *mode, u8 *gSelect)
++{
++ u8 tmp = reg_read(mma, MMA7455L_REG_MCTL);
++
++ *mode = tmp & MMA7455L_MODE_MASK;
++ *gSelect = tmp & MMA7455L_GSELECT_MASK;
++}
++
++static void set_mode(struct mma7455l_info *mma, u8 mode, u8 gSelect)
++{
++ reg_write(mma, MMA7455L_REG_MCTL, mode | gSelect);
++}
++
++static void update_mode(struct mma7455l_info *mma, u8 mode, u8 gSelect)
++{
++ mma->mode = mode;
++ mma->gSelect = gSelect;
++
++ reg_write(mma, MMA7455L_REG_MCTL, mma->mode | mma->gSelect);
++}
++
++static ssize_t show_measure(struct device *dev,
++ struct device_attribute *attr, char *buf)
++{
++ struct mma7455l_info *mma = dev_get_drvdata(dev);
++ s8 x, y, z;
++ u8 old_Mode, old_gSelect;
++
++ get_mode(mma, &old_Mode, &old_gSelect);
++ set_mode(mma, MMA7455L_MODE_MEASUREMENT, MMA7455L_GSELECT_2);
++
++ while (reg_read(mma, MMA7455L_REG_STATUS) == 0)
++ msleep(10);
++
++ x = reg_read(mma, MMA7455L_REG_XOUT8);
++ y = reg_read(mma, MMA7455L_REG_YOUT8);
++ z = reg_read(mma, MMA7455L_REG_ZOUT8);
++
++ set_mode(mma, old_Mode, old_gSelect);
++ return sprintf(buf, "%d %d %d\n", x, y, z);
++}
++
++static ssize_t show_mode(struct device *dev,
++ struct device_attribute *attr, char *buf)
++{
++ struct mma7455l_info *mma = dev_get_drvdata(dev);
++
++ switch (mma->mode) {
++ case MMA7455L_MODE_STANDBY:
++ return sprintf(buf, "Standby\n");
++ break;
++ case MMA7455L_MODE_MEASUREMENT:
++ return sprintf(buf, "Measurement\n");
++ break;
++ case MMA7455L_MODE_LEVELDETECTION:
++ return sprintf(buf, "Level Detection\n");
++ break;
++ case MMA7455L_MODE_PULSEDETECTION:
++ return sprintf(buf, "Pulse Detection\n");
++ break;
++ }
++
++ return sprintf(buf, "Unknown mode!\n");
++}
++
++static ssize_t show_gSelect(struct device *dev,
++ struct device_attribute *attr, char *buf)
++{
++ struct mma7455l_info *mma = dev_get_drvdata(dev);
++
++ switch (mma->gSelect) {
++ case MMA7455L_GSELECT_8:
++ return sprintf(buf, "8\n");
++ break;
++ case MMA7455L_GSELECT_4:
++ return sprintf(buf, "4\n");
++ break;
++ case MMA7455L_GSELECT_2:
++ return sprintf(buf, "2\n");
++ break;
++ }
++
++ return sprintf(buf, "Unknown gSelect!\n");
++}
++
++static ssize_t show_level_threshold(struct device *dev,
++ struct device_attribute *attr, char *buf)
++{
++ struct mma7455l_info *mma = dev_get_drvdata(dev);
++ return sprintf(buf, "%u\n", reg_read(mma, MMA7455L_REG_LDTH));
++}
++
++static ssize_t show_calibration(struct device *dev,
++ struct device_attribute *attr, char *buf)
++{
++ s16 x, y, z;
++ struct mma7455l_info *mma = dev_get_drvdata(dev);
++
++ mutex_lock(&mma->lock);
++ x = __reg_read_10(mma, MMA7455L_REG_XOFFL, MMA7455L_REG_XOFFH);
++ y = __reg_read_10(mma, MMA7455L_REG_YOFFL, MMA7455L_REG_YOFFH);
++ z = __reg_read_10(mma, MMA7455L_REG_ZOFFL, MMA7455L_REG_ZOFFH);
++ mutex_unlock(&mma->lock);
++
++ return sprintf(buf, "%d %d %d\n", x, y, z);
++}
++
++static ssize_t write_mode(struct device *dev,
++ struct device_attribute *attr, const char *buf, size_t count)
++{
++ struct mma7455l_info *mma = dev_get_drvdata(dev);
++
++ if (!strncmp(buf, "Standby", count))
++ update_mode(mma, MMA7455L_MODE_STANDBY, mma->gSelect);
++ else if (!strncmp(buf, "Measurement", count))
++ update_mode(mma, MMA7455L_MODE_MEASUREMENT, mma->gSelect);
++ else if (!strncmp(buf, "Level Detection", count))
++ update_mode(mma, MMA7455L_MODE_LEVELDETECTION, mma->gSelect);
++ else if (!strncmp(buf, "Pulse Detection", count))
++ update_mode(mma, MMA7455L_MODE_PULSEDETECTION, mma->gSelect);
++
++ return count;
++}
++
++static ssize_t write_gSelect(struct device *dev,
++ struct device_attribute *attr, const char *buf, size_t count)
++{
++ unsigned long v;
++ struct mma7455l_info *mma = dev_get_drvdata(dev);
++
++ if (strict_strtoul(buf, 10, &v) == 0) {
++ switch (v) {
++ case 8:
++ update_mode(mma, mma->mode, MMA7455L_GSELECT_8);
++ break;
++ case 4:
++ update_mode(mma, mma->mode, MMA7455L_GSELECT_4);
++ break;
++ case 2:
++ update_mode(mma, mma->mode, MMA7455L_GSELECT_2);
++ break;
++ default:
++ return -EINVAL;
++ break;
++ }
++ return count;
++ }
++
++ return -EINVAL;
++}
++
++static ssize_t write_level_threshold(struct device *dev,
++ struct device_attribute *attr, const char *buf, size_t count)
++{
++ unsigned long v;
++ struct mma7455l_info *mma = dev_get_drvdata(dev);
++
++ if (strict_strtoul(buf, 10, &v) == 0) {
++ if (v <= 0xFF) {
++ reg_write(mma, MMA7455L_REG_LDTH, v);
++ return count;
 + } else
-+ omap_dm_timer_stop(touchbook_backlight_pwm);
++ return -EINVAL;
++ }
 +
++ return -EINVAL;
++}
++
++static ssize_t write_calibration(struct device *dev,
++ struct device_attribute *attr, const char *buf, size_t count)
++{
++ int x, y, z;
++ struct mma7455l_info *mma = dev_get_drvdata(dev);
++
++ if (sscanf(buf, "%d %d %d", &x, &y, &z) == 3) {
++ mutex_lock(&mma->lock);
++ __reg_write_10(mma, MMA7455L_REG_XOFFL, MMA7455L_REG_XOFFH, x);
++ __reg_write_10(mma, MMA7455L_REG_YOFFL, MMA7455L_REG_YOFFH, y);
++ __reg_write_10(mma, MMA7455L_REG_ZOFFL, MMA7455L_REG_ZOFFH, z);
++ mutex_unlock(&mma->lock);
++
++ return count;
++ }
++
++ return -EINVAL;
++}
++
++static DEVICE_ATTR(measure, S_IRUGO, show_measure, NULL);
++static DEVICE_ATTR(mode, S_IRUGO | S_IWUGO, show_mode, write_mode);
++static DEVICE_ATTR(gSelect, S_IRUGO | S_IWUGO, show_gSelect,
+write_gSelect);
++static DEVICE_ATTR(level_threshold, S_IRUGO | S_IWUGO,
+show_level_threshold,
++ write_level_threshold);
++static DEVICE_ATTR(calibration, S_IRUGO | S_IWUGO, show_calibration,
++ write_calibration);
++
++static struct attribute *mma7455l_sysfs_entries[] = {
++       &dev_attr_measure.attr,
++ &dev_attr_mode.attr,
++ &dev_attr_gSelect.attr,
++ &dev_attr_level_threshold.attr,
++ &dev_attr_calibration.attr,
++ NULL
++};
++
++static struct attribute_group mma7455l_attr_group = {
++       .attrs  = mma7455l_sysfs_entries,
++};
++
++/* input device handling and driver core interaction */
++static int mma7455l_input_open(struct input_dev *inp)
++{
++ struct mma7455l_info *mma = input_get_drvdata(inp);
++ if (mma->mode == MMA7455L_MODE_STANDBY)
++ update_mode(mma, MMA7455L_MODE_MEASUREMENT, mma->gSelect);
 +
 + return 0;
 +}
 +
-+static struct backlight_ops touchbook_backlight_properties =3D {
-+ .get_brightness =3D touchbook_backlight_read,
-+ .update_status =3D touchbook_backlight_update,
++static void mma7455l_input_close(struct input_dev *inp)
++{
++ struct mma7455l_info *mma = input_get_drvdata(inp);
++ update_mode(mma, MMA7455L_MODE_STANDBY, MMA7455L_GSELECT_2);
++}
++
++static int __devinit mma7455l_probe(struct spi_device *spi)
++{
++ int rc;
++ struct mma7455l_info *mma;
++ struct mma7455l_platform_data *pdata = spi->dev.platform_data;
++ u_int8_t wai;
++
++ mma = kzalloc(sizeof(*mma), GFP_KERNEL);
++ if (!mma)
++ return -ENOMEM;
++
++ mutex_init(&mma->lock);
++ INIT_DELAYED_WORK(&mma->work, mma7455l_work);
++ mma->spi_dev = spi;
++ mma->flags = mma->working = 0;
++
++ spi_set_drvdata(spi, mma);
++
++ rc = spi_setup(spi);
++ if (rc < 0) {
++ printk(KERN_ERR
++ "mma7455l error durign spi_setup of mma7455l driver\n");
++ dev_set_drvdata(&spi->dev, NULL);
++ kfree(mma);
++ return rc;
++ }
++
++ wai = reg_read(mma, MMA7455L_REG_WHOAMI);
++ if (wai != MMA7455L_WHOAMI_MAGIC) {
++ printk(KERN_ERR
++ "mma7455l unknown whoami signature 0x%02x\n", wai);
++ dev_set_drvdata(&spi->dev, NULL);
++ kfree(mma);
++ return -ENODEV;
++ }
++
++ rc = request_irq(mma->spi_dev->irq, mma7455l_interrupt,
++ IRQF_TRIGGER_HIGH, "mma7455l", mma);
++ if (rc < 0) {
++ dev_err(&spi->dev, "mma7455l error requesting IRQ %d\n",
++ mma->spi_dev->irq);
++ /* FIXME */
++ return rc;
++ }
++
++ rc = sysfs_create_group(&spi->dev.kobj, &mma7455l_attr_group);
++ if (rc) {
++ dev_err(&spi->dev, "error creating sysfs group\n");
++ return rc;
++ }
++
++ /* initialize input layer details */
++ mma->input_dev = input_allocate_device();
++ if (!mma->input_dev) {
++ dev_err(&spi->dev,
++ "mma7455l Unable to allocate input device\n");
++ /* FIXME */
++ }
++
++ set_bit(EV_ABS, mma->input_dev->evbit);
++ set_bit(ABS_X, mma->input_dev->absbit);
++ set_bit(ABS_Y, mma->input_dev->absbit);
++ set_bit(ABS_Z, mma->input_dev->absbit);
++
++ input_set_drvdata(mma->input_dev, mma);
++ mma->input_dev->name = "MMA7455L";
++ mma->input_dev->open = mma7455l_input_open;
++ mma->input_dev->close = mma7455l_input_close;
++
++ rc = input_register_device(mma->input_dev);
++ if (!rc) {
++ update_mode(mma, MMA7455L_MODE_STANDBY, MMA7455L_GSELECT_2);
++
++ mutex_lock(&mma->lock);
++ __reg_write_10(mma, MMA7455L_REG_XOFFL,
++ MMA7455L_REG_XOFFH, pdata->calibration_x);
++ __reg_write_10(mma, MMA7455L_REG_YOFFL,
++ MMA7455L_REG_YOFFH, pdata->calibration_y);
++ __reg_write_10(mma, MMA7455L_REG_ZOFFL,
++ MMA7455L_REG_ZOFFH, pdata->calibration_z);
++ mutex_unlock(&mma->lock);
++
++ return 0;
++ }
++
++ input_free_device(mma->input_dev);
++ return rc;
++}
++
++static int __devexit mma7455l_remove(struct spi_device *spi)
++{
++ struct mma7455l_info *mma = dev_get_drvdata(&spi->dev);
++
++ sysfs_remove_group(&spi->dev.kobj, &mma7455l_attr_group);
++ input_unregister_device(mma->input_dev);
++ dev_set_drvdata(&spi->dev, NULL);
++ kfree(mma);
++
++ return 0;
++}
++
++#ifdef CONFIG_PM
++static int mma7455l_suspend(struct spi_device *spi, pm_message_t
+message)
++{
++ struct mma7455l_info *mma = dev_get_drvdata(&spi->dev);
++ get_mode(mma, &mma->mode, &mma->gSelect);
++ set_mode(mma, MMA7455L_MODE_STANDBY, MMA7455L_GSELECT_2);
++
++ return 0;
++}
++
++static int mma7455l_resume(struct spi_device *spi)
++{
++ struct mma7455l_info *mma = dev_get_drvdata(&spi->dev);
++ update_mode(mma, mma->mode, mma->gSelect);
++
++ return 0;
++}
++#else
++#define mma7455l_suspend NULL
++#define mma7455l_resume  NULL
++#endif
++
++static struct spi_driver mma7455l_driver = {
++ .driver = {
++ .name = "mma7455l",
++ .owner = THIS_MODULE,
++ },
++
++ .probe = mma7455l_probe,
++ .remove = __devexit_p(mma7455l_remove),
++ .suspend = mma7455l_suspend,
++ .resume = mma7455l_resume,
 +};
 +
-+static void __init omap3_touchbook_backlight_init(void)
++static int __init mma7455l_init(void)
 +{
-+ static struct backlight_device *bd;
-+ bd =3D backlight_device_register("touchbook", NULL, NULL,
-+ &touchbook_backlight_properties);
-+
-+ if (bd) {
-+ touchbook_backlight_pwm =3D omap_dm_timer_request_specific(
-+ TB_BL_PWM_TIMER);
-+ omap_dm_timer_enable(touchbook_backlight_pwm);
-+ omap_dm_timer_set_source(touchbook_backlight_pwm,
-+ OMAP_TIMER_SRC_SYS_CLK);
-+ omap_dm_timer_set_pwm(touchbook_backlight_pwm,
-+ 1, 1, OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
-+
-+ bd->props.max_brightness =3D 100;
-+ bd->props.brightness =3D touchbook_backlight_brightness;
-+ }
-+
-+ touchbook_backlight_update(bd);
++ return spi_register_driver(&mma7455l_driver);
 +}
 +
-+static void omap3_touchbook_poweroff(void)
++static void __exit mma7455l_exit(void)
 +{
-+ int r;
-+
-+ r =3D gpio_request(TB_KILL_POWER_GPIO, "DVI reset");
-+ if (r < 0) {
-+ printk(KERN_ERR "Unable to get kill power GPIO\n");
-+ return;
-+ }
-+
-+ gpio_direction_output(TB_KILL_POWER_GPIO, 0);
++ spi_unregister_driver(&mma7455l_driver);
 +}
 +
-+static void __init early_touchbook_revision(char **p)
-+{
-+ if (!*p)
-+ return;
++MODULE_AUTHOR("Gregoire Gentil <gregoire@gentil.com>");
++MODULE_LICENSE("GPL");
 +
-+ strict_strtoul(*p, 10, &touchbook_revision);
-+}
-+__early_param("tbr=3D", early_touchbook_revision);
++module_init(mma7455l_init);
++module_exit(mma7455l_exit);
+diff --git a/include/linux/mma7455l.h b/include/linux/mma7455l.h
+new file mode 100644
+index 0000000..12ab50a
+--- /dev/null
++++ b/include/linux/mma7455l.h
+@@ -0,0 +1,11 @@
++#ifndef _LINUX_MMA7455L_H
++#define _LINUX_MMA7455L_H
 +
-+static void __init omap3_touchbook_init(void)
-+{
-+ pm_power_off =3D omap3_touchbook_poweroff;
++struct mma7455l_platform_data {
++ /* Calibration offsets */
++ s16 calibration_x;
++ s16 calibration_y;
++ s16 calibration_z;
++};
 +
-+ omap3_touchbook_i2c_init();
-+ platform_add_devices(omap3_touchbook_devices,
-+ ARRAY_SIZE(omap3_touchbook_devices));
-+ omap_serial_init();
-+
-+ omap_cfg_reg(J25_34XX_GPIO170);
-+ gpio_request(176, "DVI_nPD");
-+ /* REVISIT leave DVI powered down until it's needed ... */
-+ gpio_direction_output(176, true);
-+
-+ /* Touchscreen and accelerometer */
-+ spi_register_board_info(omap3_ads7846_spi_board_info,
-+ ARRAY_SIZE(omap3_ads7846_spi_board_info));
-+ spi_register_board_info(omap3_mma7455l_spi_board_info,
-+ ARRAY_SIZE(omap3_mma7455l_spi_board_info));
-+ omap3_ads7846_init();
-+ omap3_mma7455l_init();
-+
-+ omap3_touchbook_backlight_init();
-+
-+ usb_musb_init();
-+ usb_ehci_init(&ehci_pdata);
-+ omap3touchbook_flash_init();
-+
-+ /* Ensure SDRC pins are mux'd for self-refresh */
-+ omap_cfg_reg(H16_34XX_SDRC_CKE0);
-+ omap_cfg_reg(H17_34XX_SDRC_CKE1);
-+}
-+
-+static void __init omap3_touchbook_map_io(void)
-+{
-+ omap2_set_globals_343x();
-+ omap2_map_common_io();
-+}
-+
-+MACHINE_START(TOUCHBOOK, "OMAP3 touchbook Board")
-+ /* Maintainer: Gregoire Gentil - http://www.alwaysinnovating.com */
-+ .phys_io =3D 0x48000000,
-+ .io_pg_offst =3D ((0xd8000000) >> 18) & 0xfffc,
-+ .boot_params =3D 0x80000100,
-+ .map_io =3D omap3_touchbook_map_io,
-+ .init_irq =3D omap3_touchbook_init_irq,
-+ .init_machine =3D omap3_touchbook_init,
-+ .timer =3D &omap_timer,
-+MACHINE_END
---=20
++#endif /* _LINUX_MMA7455L_H */
+-- 
 1.6.0.4
 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
