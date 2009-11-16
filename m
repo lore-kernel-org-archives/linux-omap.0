@@ -1,51 +1,39 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: Dose OMAP3 support split transfer?
-Date: Mon, 16 Nov 2009 14:55:25 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394043702B3DB@dbde02.ent.ti.com>
-References: <c27069990911151802s4f7e8da4k83dfa9bce6219cd5@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
+ tree
+Date: Mon, 16 Nov 2009 12:06:41 +0200
+Message-ID: <1258366001.2384.25.camel@tubuntu.research.nokia.com>
+References: <20091116160402.deb0cc82.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54298 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751469AbZKPJZZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 04:25:25 -0500
-In-Reply-To: <c27069990911151802s4f7e8da4k83dfa9bce6219cd5@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20091116160402.deb0cc82.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Stephen Rothwell <sfr@canb.auug.org.au>
 List-Id: linux-omap@vger.kernel.org
-To: jung songtan <jungsongtan@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of jung songtan
-> Sent: Monday, November 16, 2009 7:32 AM
-> To: linux-omap@vger.kernel.org
-> Subject: Dose OMAP3 support split transfer?
+On Mon, 2009-11-16 at 06:04 +0100, ext Stephen Rothwell wrote:
+> Hi Tomi,
 > 
-> Hi Guys,
+> Today's linux-next merge of the omap_dss2 tree got a conflict in
+> arch/arm/configs/omap_3430sdp_defconfig between the omap tree and the
+> omap_dss2 tree.
 > 
-> Dose OMAP3 support split transaction?
+> I just used the version from the omap tree as I can't figure out anything
+> better, sorry.
 
-Yes, it supports.
+Tony, 
 
-OMAP3 has one USB2.0 OTG port and three HSUSB host only ports which can
-Act as a high speed host(using EHCI) or full/low speed port(using OHCI). 
+These patches in omap tree seem to cause the conflicts. Are they stable,
+ie. can I cherry pick them to my for-next tree, and put my patches on
+top of them?
 
-You can connect any FS/LS or HS devices to OTG port directly and it will 
-work. While you can connect only HS devices to ports using EHCI and
-FS/LS devices to ports using OHCI.
+b30dcf5f37023d591caee80c233bf33706bc5a21
+omap3: 3430sdp: Enable Linux Regulator framework
 
-FS/LS devices can be connected to EHCI via a high speed hub with a TT. 
+fc89f86e06c11b8828ce1d6c669f724877546c03
+ARM: OMAP3: Fix 3430SDP defconfig
 
--Ajay
-> 
-> Thanks,
-> --
-> K T Jung
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+ Tomi
