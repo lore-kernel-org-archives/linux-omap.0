@@ -1,53 +1,191 @@
-From: Mike Rapoport <mike.rapoport@gmail.com>
-Subject: Re: [alsa-devel] [PATCH] ASoC: OMAP: enable Overo driver for CM-T35
-Date: Mon, 16 Nov 2009 23:33:20 +0200
-Message-ID: <f870da180911161333x567fd846hd1c2cbd893fe363f@mail.gmail.com>
-References: <1258379603-29089-1-git-send-email-mike@compulab.co.il>
-	 <1258380019.3570.113.camel@odin> <4B015F6D.1000001@compulab.co.il>
-	 <20091116160512.GA29365@rakim.wolfsonmicro.main>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [v3, for-next] OMAP: DMA: Use some define rather than a
+ hexadecimal constant for LCD register
+Date: Mon, 16 Nov 2009 14:25:18 -0800
+Message-ID: <20091116222517.GT3684@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f178.google.com ([209.85.223.178]:65049 "EHLO
-	mail-iw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753945AbZKPVdP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 16:33:15 -0500
-Received: by iwn8 with SMTP id 8so4562511iwn.33
-        for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 13:33:20 -0800 (PST)
-In-Reply-To: <20091116160512.GA29365@rakim.wolfsonmicro.main>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59371 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754167AbZKPWZP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 17:25:15 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Mike Rapoport <mike@compulab.co.il>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, steve@sakoman.com, alsa-devel@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Nov 16, 2009 at 6:05 PM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Mon, Nov 16, 2009 at 04:19:25PM +0200, Mike Rapoport wrote:
->
->> I'm ok if it'll say "Not Overo!" :)
->> Anyway, here's the update:
->
-> Applied, thanks (with manual hacking to remove the reply chain from t=
-he
-> commit log).
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091116 20:40]:
+> The patch corrects the issue introduced with my previous patch:
+>         "OMAP: DMA: Fix omapfb/lcdc on OMAP1510 broken when PM set"
+> as pointed out by OMAP subsystem maintainer.
+> 
+> Created and tested against linux-omap for-next,
+> commit 155a75d9725e66e5ec8a383822957dee52427057
 
-Sorry, was too much in a hurry...
+Oops, looks like this needs one more update. This breaks building
+for mach-omap2 machines:
 
+arch/arm/plat-omap/dma.c: In function 'omap_dma_running':
+arch/arm/plat-omap/dma.c:1132: error: 'OMAP_LCDC_CONTROL' undeclared (first use in this function)
+arch/arm/plat-omap/dma.c:1132: error: (Each undeclared identifier is reported only once
+arch/arm/plat-omap/dma.c:1132: error: for each function it appears in.)
+arch/arm/plat-omap/dma.c:1132: error: 'OMAP_LCDC_CTRL_LCD_EN' undeclared (first use in this function)
+
+So removing from omap for-next.
+
+Regards,
+
+Tony
+ 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> 
+> ---
+> This version creates a new OMAP1 machine specific header file instead of 
+> modifying an OMAP platform common one.
+> 
+> Thanks,
+> Janusz
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
-
-
-
---=20
-	Sincerely Yours,
-		Mike.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> diff -uprN a/arch/arm/mach-omap1/include/mach/lcdc.h b/arch/arm/mach-omap1/include/mach/lcdc.h
+> --- a/arch/arm/mach-omap1/include/mach/lcdc.h	1970-01-01 01:00:00.000000000 +0100
+> +++ b/arch/arm/mach-omap1/include/mach/lcdc.h	2009-11-16 21:13:33.000000000 +0100
+> @@ -0,0 +1,59 @@
+> +/*
+> + * Header file for OMAP1 internal LCD controller
+> + *
+> + * Extracted from drivers/video/omap/lcdc.c
+> + *
+> + * Copyright (C) 2004 Nokia Corporation
+> + * Author: Imre Deak <imre.deak@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, write to the Free Software Foundation, Inc.,
+> + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+> + */
+> +
+> +#ifndef __ARCH_OMAP_LCDC_H__
+> +#define __ARCH_OMAP_LCDC_H__
+> +
+> +#define OMAP_LCDC_BASE			0xfffec000
+> +#define OMAP_LCDC_SIZE			256
+> +#define OMAP_LCDC_IRQ			INT_LCD_CTRL
+> +
+> +#define OMAP_LCDC_CONTROL		(OMAP_LCDC_BASE + 0x00)
+> +#define OMAP_LCDC_TIMING0		(OMAP_LCDC_BASE + 0x04)
+> +#define OMAP_LCDC_TIMING1		(OMAP_LCDC_BASE + 0x08)
+> +#define OMAP_LCDC_TIMING2		(OMAP_LCDC_BASE + 0x0c)
+> +#define OMAP_LCDC_STATUS		(OMAP_LCDC_BASE + 0x10)
+> +#define OMAP_LCDC_SUBPANEL		(OMAP_LCDC_BASE + 0x14)
+> +#define OMAP_LCDC_LINE_INT		(OMAP_LCDC_BASE + 0x18)
+> +#define OMAP_LCDC_DISPLAY_STATUS	(OMAP_LCDC_BASE + 0x1c)
+> +
+> +#define OMAP_LCDC_STAT_DONE		(1 << 0)
+> +#define OMAP_LCDC_STAT_VSYNC		(1 << 1)
+> +#define OMAP_LCDC_STAT_SYNC_LOST	(1 << 2)
+> +#define OMAP_LCDC_STAT_ABC		(1 << 3)
+> +#define OMAP_LCDC_STAT_LINE_INT		(1 << 4)
+> +#define OMAP_LCDC_STAT_FUF		(1 << 5)
+> +#define OMAP_LCDC_STAT_LOADED_PALETTE	(1 << 6)
+> +
+> +#define OMAP_LCDC_CTRL_LCD_EN		(1 << 0)
+> +#define OMAP_LCDC_CTRL_LCD_TFT		(1 << 7)
+> +#define OMAP_LCDC_CTRL_LINE_IRQ_CLR_SEL	(1 << 10)
+> +
+> +#define OMAP_LCDC_IRQ_VSYNC		(1 << 2)
+> +#define OMAP_LCDC_IRQ_DONE		(1 << 3)
+> +#define OMAP_LCDC_IRQ_LOADED_PALETTE	(1 << 4)
+> +#define OMAP_LCDC_IRQ_LINE_NIRQ		(1 << 5)
+> +#define OMAP_LCDC_IRQ_LINE		(1 << 6)
+> +#define OMAP_LCDC_IRQ_MASK		(((1 << 5) - 1) << 2)
+> +
+> +#endif
+> diff -uprN a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> --- a/arch/arm/plat-omap/dma.c	2009-11-14 23:48:41.000000000 +0100
+> +++ b/arch/arm/plat-omap/dma.c	2009-11-16 21:14:50.000000000 +0100
+> @@ -36,6 +36,10 @@
+>  
+>  #include <plat/tc.h>
+>  
+> +#ifdef CONFIG_ARCH_OMAP1
+> +#include <mach/lcdc.h>
+> +#endif
+> +
+>  #undef DEBUG
+>  
+>  #ifndef CONFIG_ARCH_OMAP1
+> @@ -1125,7 +1129,7 @@ int omap_dma_running(void)
+>  	 * when it gets enabled, so assume DMA running if LCD enabled.
+>  	 */
+>  	if (cpu_is_omap1510())
+> -		if (omap_readw(0xfffec000 + 0x00) & (1 << 0))
+> +		if (omap_readw(OMAP_LCDC_CONTROL) & OMAP_LCDC_CTRL_LCD_EN)
+>  			return 1;
+>  
+>  	/* Check if LCD DMA is running */
+> diff -uprN a/drivers/video/omap/lcdc.c b/drivers/video/omap/lcdc.c
+> --- a/drivers/video/omap/lcdc.c	2009-11-14 23:49:16.000000000 +0100
+> +++ b/drivers/video/omap/lcdc.c	2009-11-16 21:10:53.000000000 +0100
+> @@ -31,6 +31,7 @@
+>  
+>  #include <plat/dma.h>
+>  #include <plat/omapfb.h>
+> +#include <mach/lcdc.h>
+>  
+>  #include <asm/mach-types.h>
+>  
+> @@ -38,38 +39,6 @@
+>  
+>  #define MODULE_NAME			"lcdc"
+>  
+> -#define OMAP_LCDC_BASE			0xfffec000
+> -#define OMAP_LCDC_SIZE			256
+> -#define OMAP_LCDC_IRQ			INT_LCD_CTRL
+> -
+> -#define OMAP_LCDC_CONTROL		(OMAP_LCDC_BASE + 0x00)
+> -#define OMAP_LCDC_TIMING0		(OMAP_LCDC_BASE + 0x04)
+> -#define OMAP_LCDC_TIMING1		(OMAP_LCDC_BASE + 0x08)
+> -#define OMAP_LCDC_TIMING2		(OMAP_LCDC_BASE + 0x0c)
+> -#define OMAP_LCDC_STATUS		(OMAP_LCDC_BASE + 0x10)
+> -#define OMAP_LCDC_SUBPANEL		(OMAP_LCDC_BASE + 0x14)
+> -#define OMAP_LCDC_LINE_INT		(OMAP_LCDC_BASE + 0x18)
+> -#define OMAP_LCDC_DISPLAY_STATUS	(OMAP_LCDC_BASE + 0x1c)
+> -
+> -#define OMAP_LCDC_STAT_DONE		(1 << 0)
+> -#define OMAP_LCDC_STAT_VSYNC		(1 << 1)
+> -#define OMAP_LCDC_STAT_SYNC_LOST	(1 << 2)
+> -#define OMAP_LCDC_STAT_ABC		(1 << 3)
+> -#define OMAP_LCDC_STAT_LINE_INT		(1 << 4)
+> -#define OMAP_LCDC_STAT_FUF		(1 << 5)
+> -#define OMAP_LCDC_STAT_LOADED_PALETTE	(1 << 6)
+> -
+> -#define OMAP_LCDC_CTRL_LCD_EN		(1 << 0)
+> -#define OMAP_LCDC_CTRL_LCD_TFT		(1 << 7)
+> -#define OMAP_LCDC_CTRL_LINE_IRQ_CLR_SEL	(1 << 10)
+> -
+> -#define OMAP_LCDC_IRQ_VSYNC		(1 << 2)
+> -#define OMAP_LCDC_IRQ_DONE		(1 << 3)
+> -#define OMAP_LCDC_IRQ_LOADED_PALETTE	(1 << 4)
+> -#define OMAP_LCDC_IRQ_LINE_NIRQ		(1 << 5)
+> -#define OMAP_LCDC_IRQ_LINE		(1 << 6)
+> -#define OMAP_LCDC_IRQ_MASK		(((1 << 5) - 1) << 2)
+> -
+>  #define MAX_PALETTE_SIZE		PAGE_SIZE
+>  
+>  enum lcdc_load_mode {
