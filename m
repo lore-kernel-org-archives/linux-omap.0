@@ -1,90 +1,79 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Some patches need reposting, inbox cleared, patchwork cleared
-Date: Mon, 16 Nov 2009 12:59:48 -0800
-Message-ID: <20091116205948.GQ3684@atomide.com>
-References: <20091113003851.GN24837@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8605@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C860A@dbde02.ent.ti.com>
- <20091113180323.GC3684@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA689287@dbde02.ent.ti.com>
- <20091113181550.GD3684@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA689291@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA6892A1@dbde02.ent.ti.com>
- <20091114010800.GK3684@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8C3A@dbde02.ent.ti.com>
+Subject: Re: [PATCH 0/7] musb: Add structure 'musb_hdrc_board_data'
+Date: Mon, 16 Nov 2009 13:08:32 -0800
+Message-ID: <20091116210832.GR3684@atomide.com>
+References: <1258275578-1773-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64387 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753951AbZKPU7p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 15:59:45 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59567 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754242AbZKPVIa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 16:08:30 -0500
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8C3A@dbde02.ent.ti.com>
+In-Reply-To: <1258275578-1773-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, felipe.balbi@nokia.com, khilman@deeprootsystems.com
 
-* Aggarwal, Anuj <anuj.aggarwal@ti.com> [091116 03:37]:
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> > Sent: Saturday, November 14, 2009 6:38 AM
-> > To: Pandita, Vikram
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: Some patches need reposting, inbox cleared, patchwork cleared
-> > 
-> > * Pandita, Vikram <vikram.pandita@ti.com> [091113 11:06]:
-> > > Tony
-> > >
-> > > >-----Original Message-----
-> > > >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of
-> > > >Pandita, Vikram
-> > > >>From: Tony Lindgren [mailto:tony@atomide.com]
-> > > >>> I just verified booting zoom3 on l-o master, and its working fine.
-> > > >>
-> > > >>OK good. Can you also try booting this patch from Felipe on 3630:
-> > > >>
-> > > >>http://patchwork.kernel.org/patch/59540/
-> > > >
-> > > >Patch does not apply. Rebasing now and testing.
-> > >
-> > > Rebased Patch (attached) boots up fine now on 3630 Zoom3 board.
-> > >
-> > > Logs:
-> > > CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7f
-> > > CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-> > > Machine: OMAP Zoom3 board
-> > > Memory policy: ECC disabled, Data cache writeback
-> > > OMAP3630 ES1.0 (l2cache iva sgx neon isp )
-> > >
-> > 
-> > OK, thanks applying it.
-> Tony,
+* Ajay Kumar Gupta <ajay.gupta@ti.com> [091115 00:59]:
+> Hi,
 > 
-> I am not able to see the following patch in the list:
+> This patch set adds a new structure 'musb_hdrc_board_data' to get all
+> board specific data from board files.
 > 
-> OMAP3EVM: Use the twl4030_setup_data for headset pop-removal
-> http://marc.info/?l=linux-omap&m=125368984011630&w=2
+> It is actually done to accomodate ULPI_VBUSCONTROL programming required
+> for OMAP3EVM Rev >=E which uses external Vbus supply to support 500mA.
 > 
-> Can you apply it please?
+> Necessarly changes have been done in all the OMAP and Davinci platform
+> based boards.
+> 
+> Please review and provide your feedback.
+> [patches created against linux-omap/master branch and tested on OMAP3EVM]
 
-It looks like it should go in via the ASoC, so not taking it.
-
->From MAINTAINERS file:
-
-SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEMENT (ASoC)
-M:      Liam Girdwood <lrg@slimlogic.co.uk>
-M:      Mark Brown <broonie@opensource.wolfsonmicro.com>
-T:      git git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound-2.6.git
-L:      alsa-devel@alsa-project.org (moderated for non-subscribers)
-W:      http://alsa-project.org/main/index.php/ASoC
-S:      Supported
-F:      sound/soc/
-F:      include/sound/soc*
+Can you please resend with linux-usb also Cc'd? There are more architectures
+using musb other than omap and davinci.
 
 Regards,
 
 Tony
+ 
+> Regards,
+> Ajay
+> 
+> Ajay Kumar Gupta (7):
+>   musb: Add structure to get board specific data
+>   musb: Get power (mA) from board data
+>   musb: Update musb_init() call for all OMAP3 boards
+>   musb: Update setup_usb() call for all Davinci boards
+>   musb: Add 'extvbus' in musb_hdrc_board_data
+>   musb: set 'extvbus' default value to zero
+>   musb: set 'extvbus' for OMAP3EVM Rev >=E
+> 
+>  arch/arm/mach-davinci/board-dm355-evm.c     |   10 +++++++++-
+>  arch/arm/mach-davinci/board-dm355-leopard.c |   10 +++++++++-
+>  arch/arm/mach-davinci/board-dm644x-evm.c    |    9 ++++++++-
+>  arch/arm/mach-davinci/board-sffsdr.c        |   10 +++++++++-
+>  arch/arm/mach-davinci/include/mach/common.h |    7 +++++--
+>  arch/arm/mach-davinci/usb.c                 |    8 ++++----
+>  arch/arm/mach-omap2/board-2430sdp.c         |    8 +++++++-
+>  arch/arm/mach-omap2/board-3430sdp.c         |    8 +++++++-
+>  arch/arm/mach-omap2/board-cm-t35.c          |    8 +++++++-
+>  arch/arm/mach-omap2/board-ldp.c             |    8 +++++++-
+>  arch/arm/mach-omap2/board-omap3beagle.c     |    8 +++++++-
+>  arch/arm/mach-omap2/board-omap3evm.c        |   10 +++++++++-
+>  arch/arm/mach-omap2/board-omap3pandora.c    |    8 +++++++-
+>  arch/arm/mach-omap2/board-overo.c           |    8 +++++++-
+>  arch/arm/mach-omap2/board-rx51.c            |    8 +++++++-
+>  arch/arm/mach-omap2/usb-musb.c              |   13 +++++--------
+>  arch/arm/plat-omap/include/plat/usb.h       |    3 ++-
+>  drivers/usb/musb/musb_core.c                |   14 +++++++++++++-
+>  drivers/usb/musb/musb_regs.h                |    5 +++++
+>  include/linux/usb/musb.h                    |   19 +++++++++++++------
+>  20 files changed, 147 insertions(+), 35 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
