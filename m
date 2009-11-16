@@ -1,161 +1,118 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 06/12] omap3evm: ehci: Update EHCI support on OMAP3EVM (Rev >=
-	E)
-Date: Mon, 16 Nov 2009 15:27:46 -0800
-Message-ID: <20091116232746.24892.79074.stgit@localhost>
+Subject: [PATCH 07/12] omap3evm: Initialize vmmc and vmmc_aux regulators
+Date: Mon, 16 Nov 2009 15:27:57 -0800
+Message-ID: <20091116232757.24892.39771.stgit@localhost>
 References: <20091116232435.24892.81547.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55823 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755204AbZKPX1l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 18:27:41 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58513 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754816AbZKPX1x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 18:27:53 -0500
 In-Reply-To: <20091116232435.24892.81547.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
 
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: Mike Rapoport <mike@compulab.co.il>
 
-Added runtime programming for the differences in EHCI interface between
-OMAP3EVM revisions (Rev >= E) and (Rev < E).
+Initialize vmmc and vmmc_aux regulators
 
-Changes:
-	- EHCI PHY reset GPIO pin is 21 on Rev >= E while Rev < E
-	  uses GPIO pin 135.
-	- Rev >= E uses EHCI Vbus enable GPIO22 line.
-	- Rev >= E uses GPIO61 to select EHCI port either on main board or
-	  on Mistral Daughter Card (MDC). OMAP3EVM Rev < E doesn't have
-	  EHCI port on main board.
-	- Currently GPIO61 it programmed to enable EHCI port on main
-	  board only.
+Note that the omap3evm_twldata.vmmc1 and omap3evm_twldata.vsim
+are set in omap3_evm_i2c_init() to avoid a merge conflict
+with the MFD tree. These will be initialized in omap3evm_i2c_boardinfo
+as a fix later on.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/omap3_evm_defconfig  |   12 +++++++++---
- arch/arm/mach-omap2/board-omap3evm.c  |   29 ++++++++++++++++++++++++++---
- arch/arm/mach-omap2/mux.c             |    7 +++++++
- arch/arm/plat-omap/include/plat/mux.h |    5 +++++
- 4 files changed, 47 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/board-omap3evm.c |   51 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 51 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
-index 180bf9f..da69732 100644
---- a/arch/arm/configs/omap3_evm_defconfig
-+++ b/arch/arm/configs/omap3_evm_defconfig
-@@ -676,13 +676,19 @@ CONFIG_INPUT_EVDEV=y
- # Input Device Drivers
- #
- CONFIG_INPUT_KEYBOARD=y
-+# CONFIG_KEYBOARD_ADP5588 is not set
- # CONFIG_KEYBOARD_ATKBD is not set
--# CONFIG_KEYBOARD_SUNKBD is not set
-+# CONFIG_QT2160 is not set
- # CONFIG_KEYBOARD_LKKBD is not set
--# CONFIG_KEYBOARD_XTKBD is not set
-+# CONFIG_KEYBOARD_GPIO is not set
-+# CONFIG_KEYBOARD_MATRIX is not set
-+# CONFIG_KEYBOARD_MAX7359 is not set
- # CONFIG_KEYBOARD_NEWTON is not set
-+# CONFIG_KEYBOARD_OPENCORES is not set
- # CONFIG_KEYBOARD_STOWAWAY is not set
--# CONFIG_KEYBOARD_GPIO is not set
-+# CONFIG_KEYBOARD_SUNKBD is not set
-+CONFIG_KEYBOARD_TWL4030=y
-+# CONFIG_KEYBOARD_XTKBD is not set
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
- # CONFIG_INPUT_TABLET is not set
 diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 6bb9a37..64c1ae0 100644
+index 64c1ae0..148de2e 100644
 --- a/arch/arm/mach-omap2/board-omap3evm.c
 +++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -43,6 +43,8 @@
- #include "mmc-twl4030.h"
+@@ -28,6 +28,8 @@
+ #include <linux/i2c/twl4030.h>
+ #include <linux/usb/otg.h>
  
- #define OMAP3_EVM_TS_GPIO	175
-+#define OMAP3_EVM_EHCI_VBUS	22
-+#define OMAP3_EVM_EHCI_SELECT	61
- 
- #define OMAP3EVM_ETHR_START	0x2c000000
- #define OMAP3EVM_ETHR_SIZE	1024
-@@ -345,8 +347,9 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
- 
- 	.phy_reset  = true,
-+	/* PHY reset GPIO will be runtime programmed based on EVM version */
- 	.reset_gpio_port[0]  = -EINVAL,
--	.reset_gpio_port[1]  = 135,
-+	.reset_gpio_port[1]  = -EINVAL,
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-@@ -366,9 +369,29 @@ static void __init omap3_evm_init(void)
- 	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
- 	usb_nop_xceiv_register();
- #endif
-+	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
-+		/* enable EHCI VBUS using GPIO22 */
-+		omap_cfg_reg(AF9_34XX_GPIO22);
-+		gpio_request(OMAP3_EVM_EHCI_VBUS, "enable EHCI VBUS");
-+		gpio_direction_output(OMAP3_EVM_EHCI_VBUS, 0);
-+		gpio_set_value(OMAP3_EVM_EHCI_VBUS, 1);
++#include <linux/regulator/machine.h>
 +
-+		/* Select EHCI port on main board */
-+		omap_cfg_reg(U3_34XX_GPIO61);
-+		gpio_request(OMAP3_EVM_EHCI_SELECT, "select EHCI port");
-+		gpio_direction_output(OMAP3_EVM_EHCI_SELECT, 0);
-+		gpio_set_value(OMAP3_EVM_EHCI_SELECT, 0);
-+
-+		/* setup EHCI phy reset config */
-+		omap_cfg_reg(AH14_34XX_GPIO21);
-+		ehci_pdata.reset_gpio_port[1] = 21;
-+
-+	} else {
-+		/* setup EHCI phy reset on MDC */
-+		omap_cfg_reg(AF4_34XX_GPIO135_OUT);
-+		ehci_pdata.reset_gpio_port[1] = 135;
-+	}
- 	usb_musb_init();
--	/* Setup EHCI phy reset padconfig */
--	omap_cfg_reg(AF4_34XX_GPIO135_OUT);
- 	usb_ehci_init(&ehci_pdata);
- 	ads7846_dev_init();
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -125,6 +127,44 @@ static inline void __init omap3evm_init_smc911x(void)
+ 	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
  }
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 83256d3..c18a94e 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -559,6 +559,13 @@ MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
- MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
- 		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
- 		OMAP34XX_MUX_MODE0)
-+/* EHCI GPIO's on OMAP3EVM (Rev >= E) */
-+MUX_CFG_34XX("AH14_34XX_GPIO21", 0x5ea,
-+	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AF9_34XX_GPIO22", 0x5ec,
-+	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("U3_34XX_GPIO61", 0x0c8,
-+	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
- };
  
- #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
-index f74331d..ba77de6 100644
---- a/arch/arm/plat-omap/include/plat/mux.h
-+++ b/arch/arm/plat-omap/include/plat/mux.h
-@@ -849,6 +849,11 @@ enum omap34xx_index {
- 
- 	/* SYS_NIRQ T2 INT1 */
- 	AF26_34XX_SYS_NIRQ,
++static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
++	.supply			= "vmmc",
++};
 +
-+	/* EHCI GPIO's for OMAP3EVM (Rev >= E) */
-+	AH14_34XX_GPIO21,
-+	AF9_34XX_GPIO22,
-+	U3_34XX_GPIO61,
- };
++static struct regulator_consumer_supply omap3evm_vsim_supply = {
++	.supply			= "vmmc_aux",
++};
++
++/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
++static struct regulator_init_data omap3evm_vmmc1 = {
++	.constraints = {
++		.min_uV			= 1850000,
++		.max_uV			= 3150000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &omap3evm_vmmc1_supply,
++};
++
++/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
++static struct regulator_init_data omap3evm_vsim = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 3000000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &omap3evm_vsim_supply,
++};
++
+ static struct twl4030_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+@@ -167,6 +207,10 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
+ 	mmc[0].gpio_cd = gpio + 0;
+ 	twl4030_mmc_init(mmc);
  
- struct omap_mux_cfg {
++	/* link regulators to MMC adapters */
++	omap3evm_vmmc1_supply.dev = mmc[0].dev;
++	omap3evm_vsim_supply.dev = mmc[0].dev;
++
+ 	/*
+ 	 * Most GPIOs are for USB OTG.  Some are mostly sent to
+ 	 * the P2 connector; notably LEDA for the LCD backlight.
+@@ -259,6 +303,13 @@ static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
+ 
+ static int __init omap3_evm_i2c_init(void)
+ {
++	/*
++	 * REVISIT: These entries can be set in omap3evm_twl_data
++	 * after a merge with MFD tree
++	 */
++	omap3evm_twldata.vmmc1 = &omap3evm_vmmc1;
++	omap3evm_twldata.vsim = &omap3evm_vsim;
++
+ 	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
+ 			ARRAY_SIZE(omap3evm_i2c_boardinfo));
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
 
