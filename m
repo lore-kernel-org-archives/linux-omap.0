@@ -1,116 +1,55 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHV3] OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
-Date: Mon, 16 Nov 2009 08:08:14 -0800
-Message-ID: <87zl6mlafl.fsf@deeprootsystems.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA1748E0@dbde02.ent.ti.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702FA174C6D@dbde02.ent.ti.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702FA689729@dbde02.ent.ti.com>
+Subject: Re: [PATCH v3] [OMAP3_PM] Fix zoom2/zoom3 build error
+Date: Mon, 16 Nov 2009 09:31:23 -0800
+Message-ID: <87ocn2l6l0.fsf@deeprootsystems.com>
+References: <20091116144652.GA31051@DFL-61> <4B016725.3030007@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:43939 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987AbZKPQIM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 11:08:12 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so1096144qwe.37
-        for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 08:08:18 -0800 (PST)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA689729@dbde02.ent.ti.com> (Vishwanath Sripathy's message of "Mon\, 16 Nov 2009 16\:41\:40 +0530")
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:38012 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752095AbZKPRbU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Nov 2009 12:31:20 -0500
+Received: by pzk1 with SMTP id 1so2929056pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2009 09:31:25 -0800 (PST)
+In-Reply-To: <4B016725.3030007@ti.com> (Nishanth Menon's message of "Mon\, 16 Nov 2009 08\:52\:21 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: Manjunatha GK <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Sripathy, Vishwanath" <vishwanath.bs@ti.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> As part of Core domain context restoration while coming out of off mode
-> there are some registers being restored which are not required to be restored.
-> ROM code will have restored them already. Overwriting some of them can have
-> potential side effect. Eg: CM_CLKEN_PLL register should not be written while dpll is locked.
-> Tested on OMAP 3430 SDP for suspend/resume and off mode with sleep_while_idle enabled.
+> Manjunatha GK had written, on 11/16/2009 08:46 AM, the following:
+> Thanks.
+>>Re: [PATCH v3] [OMAP3_PM] Fix zoom2/zoom3 build error
+> please rename subject to:
+> [PATCH V3] OMAP3: PM: Fix build failure with !DEBUG_FS
 >
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> this is not zoom2/zoom3 specific - am I right?
+>
+>> The Zoom2 and Zoom3 build breaks on linux-omap-pm(HEAD:pm)
+>> when CONFIG_DEBUG_FS is not enabled. 
+>>
+>> Build error log:
+>> arch/arm/mach-omap2/built-in.o: In function `omap_sram_idle':
+>> arch/arm/mach-omap2/pm34xx.c:449: undefined reference to `pm_dbg_regset_save'
+>> arch/arm/mach-omap2/pm34xx.c:460: undefined reference to `pm_dbg_regset_save'
+>> arch/arm/mach-omap2/built-in.o: In function `configure_vc':
+>> arch/arm/mach-omap2/pm34xx.c:1237: undefined reference to `pm_dbg_regset_init'
+>> arch/arm/mach-omap2/pm34xx.c:1238: undefined reference to `pm_dbg_regset_init'
+>> make: *** [.tmp_vmlinux1] Error 1
+>>
+>> This patch fixes the above errors.
+> you could state "provide entries for the same when the DEBUG_FS is
+> undefined"
+>
 
-Thanks, applying to PM branch.
+I agree with Nishanth's comments.
+
+Since these are minor, I'll do cleanups to subject and changelog and
+push this to the PM branch.
+
+Thanks,
 
 Kevin
-
-> ---
->
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index fb864cc..88182a8 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -43,7 +43,6 @@ struct omap3_prcm_regs {
->  	u32 iva2_cm_clksel2;
->  	u32 cm_sysconfig;
->  	u32 sgx_cm_clksel;
-> -	u32 wkup_cm_clksel;
->  	u32 dss_cm_clksel;
->  	u32 cam_cm_clksel;
->  	u32 per_cm_clksel;
-> @@ -52,7 +51,6 @@ struct omap3_prcm_regs {
->  	u32 pll_cm_autoidle2;
->  	u32 pll_cm_clksel4;
->  	u32 pll_cm_clksel5;
-> -	u32 pll_cm_clken;
->  	u32 pll_cm_clken2;
->  	u32 cm_polctrl;
->  	u32 iva2_cm_fclken;
-> @@ -76,7 +74,6 @@ struct omap3_prcm_regs {
->  	u32 usbhost_cm_iclken;
->  	u32 iva2_cm_autiidle2;
->  	u32 mpu_cm_autoidle2;
-> -	u32 pll_cm_autoidle;
->  	u32 iva2_cm_clkstctrl;
->  	u32 mpu_cm_clkstctrl;
->  	u32 core_cm_clkstctrl;
-> @@ -279,7 +276,6 @@ void omap3_prcm_save_context(void)
->  	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
->  	prcm_context.sgx_cm_clksel =
->  			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
-> -	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
->  	prcm_context.dss_cm_clksel =
->  			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
->  	prcm_context.cam_cm_clksel =
-> @@ -296,8 +292,6 @@ void omap3_prcm_save_context(void)
->  			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
->  	prcm_context.pll_cm_clksel5 =
->  			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
-> -	prcm_context.pll_cm_clken =
-> -			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
->  	prcm_context.pll_cm_clken2 =
->  			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
->  	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
-> @@ -343,8 +337,6 @@ void omap3_prcm_save_context(void)
->  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
->  	prcm_context.mpu_cm_autoidle2 =
->  			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
-> -	prcm_context.pll_cm_autoidle =
-> -			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
->  	prcm_context.iva2_cm_clkstctrl =
->  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
->  	prcm_context.mpu_cm_clkstctrl =
-> @@ -436,7 +428,6 @@ void omap3_prcm_restore_context(void)
->  	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
->  	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
->  					 CM_CLKSEL);
-> -	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
->  	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
->  					 CM_CLKSEL);
->  	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
-> @@ -453,7 +444,6 @@ void omap3_prcm_restore_context(void)
->  					OMAP3430ES2_CM_CLKSEL4);
->  	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
->  					 OMAP3430ES2_CM_CLKSEL5);
-> -	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
->  	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
->  					OMAP3430ES2_CM_CLKEN2);
->  	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
-> @@ -492,7 +482,6 @@ void omap3_prcm_restore_context(void)
->  	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
->  					CM_AUTOIDLE2);
->  	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
-> -	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
->  	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
->  					CM_CLKSTCTRL);
->  	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
