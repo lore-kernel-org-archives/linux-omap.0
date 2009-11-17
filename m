@@ -1,78 +1,104 @@
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 1/8] musb: Add structure to get board specific data
-Date: Tue, 17 Nov 2009 20:39:49 +0530
-Message-ID: <1258470596-24321-2-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH 5/8] musb: Add 'extvbus' in musb_hdrc_board_data
+Date: Tue, 17 Nov 2009 20:39:53 +0530
+Message-ID: <1258470596-24321-6-git-send-email-ajay.gupta@ti.com>
 References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>
+ <1258470596-24321-2-git-send-email-ajay.gupta@ti.com>
+ <1258470596-24321-3-git-send-email-ajay.gupta@ti.com>
+ <1258470596-24321-4-git-send-email-ajay.gupta@ti.com>
+ <1258470596-24321-5-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33295 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33219 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754644AbZKQPKk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Nov 2009 10:10:40 -0500
-In-Reply-To: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>
+	id S1754356AbZKQPK3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Nov 2009 10:10:29 -0500
+In-Reply-To: <1258470596-24321-5-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, felipe.balbi@nokia.com, david-b@pacbell.net, cooloney@kernel.org, gadiyar@ti.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Adding 'musb_hdrc_board_data' which will have all the board specific
-parameters such as; mA power, potpgt, extvbus, gpios etc.
+Some of the board might use external Vbus power supply on musb
+interface which would require to program ULPI_BUSCONTROL register.
 
-Currently only 'power' and 'potpgt' is being moved from existing
-'musb_hdrc_platform_data' to 'musb_hdrc_board_data' but any further
-board specific functions or parameter can be added to this structure
-later.
+Adding 'extvbus' flag which can be set from such boards which will
+be checked at musb driver files before programming ULPI_BUSCONTROL.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- include/linux/usb/musb.h |   18 ++++++++++++------
- 1 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/usb/musb/musb_core.c |   12 +++++++++++-
+ drivers/usb/musb/musb_regs.h |    5 +++++
+ include/linux/usb/musb.h     |    3 ++-
+ 3 files changed, 18 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 818ccda..c0a6760 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2027,15 +2027,25 @@ bad_config:
+ 	/* host side needs more setup */
+ 	if (is_host_enabled(musb)) {
+ 		struct usb_hcd	*hcd = musb_to_hcd(musb);
++		u8 busctl;
+ 
+ 		otg_set_host(musb->xceiv, &hcd->self);
+ 
+ 		if (is_otg_enabled(musb))
+ 			hcd->self.otg_port = 1;
+ 		musb->xceiv->host = &hcd->self;
+-		if (plat->board_data)
++		if (plat->board_data) {
+ 			hcd->power_budget =
+ 				2 * (plat->board_data->power ? : 250);
++			/* program PHY to use external vBus if required */
++			if (plat->board_data->extvbus) {
++				busctl = musb_readb(musb->mregs,
++						MUSB_ULPI_BUSCONTROL);
++				busctl |= ULPI_USE_EXTVBUS;
++				musb_writeb(musb->mregs,
++						MUSB_ULPI_BUSCONTROL, busctl);
++			}
++		}
+ 	}
+ 
+ 	/* For the host-only role, we can activate right away.
+diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
+index cc1d71b..a0314df 100644
+--- a/drivers/usb/musb/musb_regs.h
++++ b/drivers/usb/musb/musb_regs.h
+@@ -72,6 +72,10 @@
+ #define MUSB_DEVCTL_HR		0x02
+ #define MUSB_DEVCTL_SESSION	0x01
+ 
++/* ULPI VBUSCONTROL */
++#define ULPI_USE_EXTVBUS	0x01
++#define ULPI_USE_EXTVBUSIND	0x02
++
+ /* TESTMODE */
+ #define MUSB_TEST_FORCE_HOST	0x80
+ #define MUSB_TEST_FIFO_ACCESS	0x40
+@@ -246,6 +250,7 @@
+ 
+ /* REVISIT: vctrl/vstatus: optional vendor utmi+phy register at 0x68 */
+ #define MUSB_HWVERS		0x6C	/* 8 bit */
++#define MUSB_ULPI_BUSCONTROL	0x70	/* 8 bit */
+ 
+ #define MUSB_EPINFO		0x78	/* 8 bit */
+ #define MUSB_RAMINFO		0x79	/* 8 bit */
 diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index d437556..6e1426c 100644
+index 6e1426c..45fd7d1 100644
 --- a/include/linux/usb/musb.h
 +++ b/include/linux/usb/musb.h
-@@ -27,6 +27,15 @@ struct musb_hdrc_eps_bits {
- 	u8		bits;
+@@ -33,7 +33,8 @@ struct musb_hdrc_board_data {
+ 	u8	power;
+ 	/* (HOST or OTG) msec/2 after VBUS on till power good */
+ 	u8		potpgt;
+-
++	/* flag to program PHY to use external Vbus */
++	unsigned	extvbus:1;
  };
  
-+/* MUSB board-specific details */
-+struct musb_hdrc_board_data {
-+	/* power (mA/2) sourcing capability */
-+	u8	power;
-+	/* (HOST or OTG) msec/2 after VBUS on till power good */
-+	u8		potpgt;
-+
-+};
-+
  struct musb_hdrc_config {
- 	/* MUSB configuration-specific details */
- 	unsigned	multipoint:1;	/* multipoint device */
-@@ -67,15 +76,9 @@ struct musb_hdrc_platform_data {
- 	/* (HOST or OTG) switch VBUS on/off */
- 	int		(*set_vbus)(struct device *dev, int is_on);
- 
--	/* (HOST or OTG) mA/2 power supplied on (default = 8mA) */
--	u8		power;
--
- 	/* (PERIPHERAL) mA/2 max power consumed (default = 100mA) */
- 	u8		min_power;
- 
--	/* (HOST or OTG) msec/2 after VBUS on till power good */
--	u8		potpgt;
--
- 	/* Power the device on or off */
- 	int		(*set_power)(int state);
- 
-@@ -84,6 +87,9 @@ struct musb_hdrc_platform_data {
- 
- 	/* MUSB configuration-specific details */
- 	struct musb_hdrc_config	*config;
-+
-+	/* MUSB board-specific details */
-+	struct musb_hdrc_board_data *board_data;
- };
- 
- 
 -- 
 1.6.2.4
 
