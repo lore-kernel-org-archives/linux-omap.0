@@ -1,36 +1,36 @@
-From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 2/2] ASoC: Modifying the license string GPLv2 for OMAP3 EVM
-Date: Tue, 17 Nov 2009 21:43:42 +0530
-Message-ID: <1258474422-29738-1-git-send-email-anuj.aggarwal@ti.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: Win FREE OMAP L 138 based HawkBoard !!!
+Date: Tue, 17 Nov 2009 21:46:41 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C0037D46AE7F@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59571 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:60001 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751902AbZKQQNl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 11:13:41 -0500
+	with ESMTP id S1751981AbZKQQQu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 11:16:50 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, Anuj Aggarwal <anuj.aggarwal@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-arm-kernel@lists.
 
-Correcting the license string from GPLv2 -> GPL v2.
-Found the problem while building OMAP3 ASoC driver as
-module.
+FYI,
 
-Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
----
- sound/soc/omap/omap3evm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/sound/soc/omap/omap3evm.c b/sound/soc/omap/omap3evm.c
-index 41a91b5..627fadb 100644
---- a/sound/soc/omap/omap3evm.c
-+++ b/sound/soc/omap/omap3evm.c
-@@ -144,4 +144,4 @@ module_exit(omap3evm_soc_exit);
- 
- MODULE_AUTHOR("Anuj Aggarwal <anuj.aggarwal@ti.com>");
- MODULE_DESCRIPTION("ALSA SoC OMAP3 EVM");
--MODULE_LICENSE("GPLv2");
-+MODULE_LICENSE("GPL v2");
--- 
-1.6.2.4
-
+> -----Original Message-----
+> From: Khasim Syed Mohammed [mailto:khasim@beagleboard.org]
+> Sent: Tuesday, November 17, 2009 9:43 PM
+> To: beagleboard@googlegroups.com; hawkboard@googlegroups.com
+> Subject: [beagleboard] Win FREE OMAP L 138 based HawkBoard !!!
+> 
+> Hello,
+> 
+> Today we will be announcing "Early Adopter Program" for Hawkboards.
+> 
+> Join us at http://wiki.omap.com/index.php/ETechDays_Community_Lightning_Talks 
+>
+> @ 1 PM CST  to know more....
+> 
+> Regards,
+> Khasim
+> 
