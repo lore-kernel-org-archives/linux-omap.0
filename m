@@ -1,311 +1,147 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/12] omap3: rx51: Add SDRAM init
-Date: Tue, 17 Nov 2009 15:05:24 -0800
-Message-ID: <20091117230524.19869.32639.stgit@localhost>
+Subject: [PATCH 04/12] omap3: rx51: Add wl1251 wlan driver support
+Date: Tue, 17 Nov 2009 15:05:37 -0800
+Message-ID: <20091117230537.19869.72210.stgit@localhost>
 References: <20091117230324.19869.44927.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54847 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755042AbZKQXFY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 18:05:24 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60773 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755122AbZKQXFd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 18:05:33 -0500
 In-Reply-To: <20091117230324.19869.44927.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Samu Onkalo <samu.p.onkalo@nokia.com>, Lauri Leukkunen <lauri.leukkunen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>, linux-omap@vger.kernel.org
+Cc: Kalle Valo <kalle.valo@nokia.com>, linux-omap@vger.kernel.org
 
-From: Tero Kristo <tero.kristo@nokia.com>
+From: Kalle Valo <kalle.valo@nokia.com>
 
-This patch adds board specific SDRAM init for RX51. This patch is a
-collaboration of work from following people:
+wl1251 is connected to the SPI bus in rx51, add support for this.
 
-Juha Yrjola: Original code
-Lauri Leukkunen: Port to RX51
-Tero Kristo: Support for multiple OPP:s, merge of patches
-Samu Onkalo: Fixed SDRAM parameters according to specs
-Kalle Jokiniemi: A fix for rounding error
-
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Cc: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-Cc: Juha Yrjola <juha.yrjola@solidboot.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Kalle Valo <kalle.valo@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Makefile           |    1 
- arch/arm/mach-omap2/board-rx51-sdram.c |  221 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-rx51.c       |    7 +
- 3 files changed, 228 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-rx51-sdram.c
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   85 ++++++++++++++++++++++++++
+ 1 files changed, 85 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f40619e..d56fb2b 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -72,6 +72,7 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
-+					   board-rx51-sdram.o \
- 					   board-rx51-peripherals.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
-diff --git a/arch/arm/mach-omap2/board-rx51-sdram.c b/arch/arm/mach-omap2/board-rx51-sdram.c
-new file mode 100644
-index 0000000..f392844
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-rx51-sdram.c
-@@ -0,0 +1,221 @@
-+/*
-+ * SDRC register values for RX51
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ *
-+ * Lauri Leukkunen <lauri.leukkunen@nokia.com>
-+ *
-+ * Original code by Juha Yrjola <juha.yrjola@solidboot.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index cf4583a..caaeadc 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -14,6 +14,7 @@
+ #include <linux/input.h>
+ #include <linux/input/matrix_keypad.h>
+ #include <linux/spi/spi.h>
++#include <linux/spi/wl12xx.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c/twl4030.h>
+ #include <linux/clk.h>
+@@ -36,6 +37,37 @@
+ #define SYSTEM_REV_B_USES_VAUX3	0x1699
+ #define SYSTEM_REV_S_USES_VAUX3 0x8
+ 
++#define RX51_WL1251_POWER_GPIO		87
++#define RX51_WL1251_IRQ_GPIO		42
 +
-+#include <linux/kernel.h>
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
++static void rx51_wl1251_set_power(bool enable);
 +
-+#include <plat/io.h>
-+#include <plat/common.h>
-+#include <plat/clock.h>
-+#include <plat/sdrc.h>
-+
-+
-+/* In picoseconds, except for tREF (ns), tXP, tCKE, tWTR (clks) */
-+struct sdram_timings {
-+	u32 casl;
-+	u32 tDAL;
-+	u32 tDPL;
-+	u32 tRRD;
-+	u32 tRCD;
-+	u32 tRP;
-+	u32 tRAS;
-+	u32 tRC;
-+	u32 tRFC;
-+	u32 tXSR;
-+
-+	u32 tREF; /* in ns */
-+
-+	u32 tXP;
-+	u32 tCKE;
-+	u32 tWTR;
++static struct wl12xx_platform_data wl1251_pdata = {
++	.set_power = rx51_wl1251_set_power,
 +};
 +
-+struct omap_sdrc_params rx51_sdrc_params[4];
++static struct omap2_mcspi_device_config wl1251_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,
++};
 +
-+static const struct sdram_timings rx51_timings[] = {
-+	{
-+		.casl = 3,
-+		.tDAL = 33000,
-+		.tDPL = 15000,
-+		.tRRD = 12000,
-+		.tRCD = 22500,
-+		.tRP = 18000,
-+		.tRAS = 42000,
-+		.tRC = 66000,
-+		.tRFC = 138000,
-+		.tXSR = 200000,
++/* list all spi devices here */
++enum {
++	RX51_SPI_WL1251,
++};
 +
-+		.tREF = 7800,
-+
-+		.tXP = 2,
-+		.tCKE = 2,
-+		.tWTR = 2
++static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
++	[RX51_SPI_WL1251] = {
++		.modalias		= "wl1251",
++		.bus_num		= 4,
++		.chip_select		= 0,
++		.max_speed_hz   	= 48000000,
++		.mode                   = SPI_MODE_2,
++		.controller_data	= &wl1251_mcspi_config,
++		.platform_data		= &wl1251_pdata,
 +	},
 +};
 +
-+static unsigned long sdrc_get_fclk_period(long rate)
-+{
-+	/* In picoseconds */
-+	return 1000000000 / rate;
-+}
-+
-+static unsigned int sdrc_ps_to_ticks(unsigned int time_ps, long rate)
-+{
-+	unsigned long tick_ps;
-+
-+	/* Calculate in picosecs to yield more exact results */
-+	tick_ps = sdrc_get_fclk_period(rate);
-+
-+	return (time_ps + tick_ps - 1) / tick_ps;
-+}
-+#undef DEBUG
-+#ifdef DEBUG
-+static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
-+				int ticks, long rate, const char *name)
-+#else
-+static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
-+			       int ticks)
-+#endif
-+{
-+	int mask, nr_bits;
-+
-+	nr_bits = end_bit - st_bit + 1;
-+	if (ticks >= 1 << nr_bits)
-+		return -1;
-+	mask = (1 << nr_bits) - 1;
-+	*regval &= ~(mask << st_bit);
-+	*regval |= ticks << st_bit;
-+#ifdef DEBUG
-+	printk(KERN_INFO "SDRC %s: %i ticks %i ns\n", name, ticks,
-+			(unsigned int)sdrc_get_fclk_period(rate) * ticks /
-+			1000);
-+#endif
-+
-+	return 0;
-+}
-+
-+#ifdef DEBUG
-+#define SDRC_SET_ONE(reg, st, end, field, rate) \
-+	if (set_sdrc_timing_regval((reg), (st), (end), \
-+			rx51_timings->field, (rate), #field) < 0) \
-+		err = -1;
-+#else
-+#define SDRC_SET_ONE(reg, st, end, field, rate) \
-+	if (set_sdrc_timing_regval((reg), (st), (end), \
-+			rx51_timings->field) < 0) \
-+		err = -1;
-+#endif
-+
-+#ifdef DEBUG
-+static int set_sdrc_timing_regval_ps(u32 *regval, int st_bit, int end_bit,
-+				int time, long rate, const char *name)
-+#else
-+static int set_sdrc_timing_regval_ps(u32 *regval, int st_bit, int end_bit,
-+				int time, long rate)
-+#endif
-+{
-+	int ticks, ret;
-+	ret = 0;
-+
-+	if (time == 0)
-+		ticks = 0;
-+	else
-+		ticks = sdrc_ps_to_ticks(time, rate);
-+
-+#ifdef DEBUG
-+	ret = set_sdrc_timing_regval(regval, st_bit, end_bit, ticks,
-+				     rate, name);
-+#else
-+	ret = set_sdrc_timing_regval(regval, st_bit, end_bit, ticks);
-+#endif
-+
-+	return ret;
-+}
-+
-+#ifdef DEBUG
-+#define SDRC_SET_ONE_PS(reg, st, end, field, rate) \
-+	if (set_sdrc_timing_regval_ps((reg), (st), (end), \
-+			rx51_timings->field, \
-+			(rate), #field) < 0) \
-+		err = -1;
-+
-+#else
-+#define SDRC_SET_ONE_PS(reg, st, end, field, rate) \
-+	if (set_sdrc_timing_regval_ps((reg), (st), (end), \
-+			rx51_timings->field, (rate)) < 0) \
-+		err = -1;
-+#endif
-+
-+static int sdrc_timings(int id, long rate)
-+{
-+	u32 ticks_per_ms;
-+	u32 rfr, l;
-+	u32 actim_ctrla = 0, actim_ctrlb = 0;
-+	u32 rfr_ctrl;
-+	int err = 0;
-+	long l3_rate = rate / 1000;
-+
-+	SDRC_SET_ONE_PS(&actim_ctrla,  0,  4, tDAL, l3_rate);
-+	SDRC_SET_ONE_PS(&actim_ctrla,  6,  8, tDPL, l3_rate);
-+	SDRC_SET_ONE_PS(&actim_ctrla,  9, 11, tRRD, l3_rate);
-+	SDRC_SET_ONE_PS(&actim_ctrla, 12, 14, tRCD, l3_rate);
-+	SDRC_SET_ONE_PS(&actim_ctrla, 15, 17, tRP, l3_rate);
-+	SDRC_SET_ONE_PS(&actim_ctrla, 18, 21, tRAS, l3_rate);
-+	SDRC_SET_ONE_PS(&actim_ctrla, 22, 26, tRC, l3_rate);
-+	SDRC_SET_ONE_PS(&actim_ctrla, 27, 31, tRFC, l3_rate);
-+
-+	SDRC_SET_ONE_PS(&actim_ctrlb,  0,  7, tXSR, l3_rate);
-+
-+	SDRC_SET_ONE(&actim_ctrlb,  8, 10, tXP, l3_rate);
-+	SDRC_SET_ONE(&actim_ctrlb, 12, 14, tCKE, l3_rate);
-+	SDRC_SET_ONE(&actim_ctrlb, 16, 17, tWTR, l3_rate);
-+
-+	ticks_per_ms = l3_rate;
-+	rfr = rx51_timings[0].tREF * ticks_per_ms / 1000000;
-+	if (rfr > 65535 + 50)
-+		rfr = 65535;
-+	else
-+		rfr -= 50;
-+
-+#ifdef DEBUG
-+	printk(KERN_INFO "SDRC tREF: %i ticks\n", rfr);
-+#endif
-+
-+	l = rfr << 8;
-+	rfr_ctrl = l | 0x1; /* autorefresh, reload counter with 1xARCV */
-+
-+	rx51_sdrc_params[id].rate = rate;
-+	rx51_sdrc_params[id].actim_ctrla = actim_ctrla;
-+	rx51_sdrc_params[id].actim_ctrlb = actim_ctrlb;
-+	rx51_sdrc_params[id].rfr_ctrl = rfr_ctrl;
-+	rx51_sdrc_params[id].mr = 0x32;
-+
-+	rx51_sdrc_params[id + 1].rate = 0;
-+
-+	return err;
-+}
-+
-+struct omap_sdrc_params *rx51_get_sdram_timings(void)
-+{
-+	int err;
-+
-+	err = sdrc_timings(0, 41500000);
-+	err |= sdrc_timings(1, 83000000);
-+	err |= sdrc_timings(2, 166000000);
-+
-+	return &rx51_sdrc_params[0];
-+}
-+
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index f1e7e5b..1bb1de2 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -30,6 +30,8 @@
- #include <plat/gpmc.h>
- #include <plat/usb.h>
- 
-+struct omap_sdrc_params *rx51_get_sdram_timings(void);
-+
- static struct omap_lcd_config rx51_lcd_config = {
- 	.ctrl_name	= "internal",
+ static int board_keymap[] = {
+ 	KEY(0, 0, KEY_Q),
+ 	KEY(0, 1, KEY_O),
+@@ -257,6 +289,55 @@ static struct regulator_init_data rx51_vdac = {
+ 	},
  };
-@@ -55,9 +57,12 @@ static struct omap_board_config_kernel rx51_config[] = {
  
- static void __init rx51_init_irq(void)
- {
-+	struct omap_sdrc_params *sdrc_params;
++static void rx51_wl1251_set_power(bool enable)
++{
++	gpio_set_value(RX51_WL1251_POWER_GPIO, enable);
++}
 +
- 	omap_board_config = rx51_config;
- 	omap_board_config_size = ARRAY_SIZE(rx51_config);
--	omap2_init_common_hw(NULL, NULL);
-+	sdrc_params = rx51_get_sdram_timings();
-+	omap2_init_common_hw(sdrc_params, sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
++static void __init rx51_init_wl1251(void)
++{
++	int irq, ret;
++
++	ret = gpio_request(RX51_WL1251_POWER_GPIO, "wl1251 power");
++	if (ret < 0)
++		goto error;
++
++	ret = gpio_direction_output(RX51_WL1251_POWER_GPIO, 0);
++	if (ret < 0)
++		goto err_power;
++
++	ret = gpio_request(RX51_WL1251_IRQ_GPIO, "wl1251 irq");
++	if (ret < 0)
++		goto err_power;
++
++	ret = gpio_direction_input(RX51_WL1251_IRQ_GPIO);
++	if (ret < 0)
++		goto err_irq;
++
++	irq = gpio_to_irq(RX51_WL1251_IRQ_GPIO);
++	if (irq < 0)
++		goto err_irq;
++
++	rx51_peripherals_spi_board_info[RX51_SPI_WL1251].irq = irq;
++
++	return;
++
++err_irq:
++	gpio_free(RX51_WL1251_IRQ_GPIO);
++
++err_power:
++	gpio_free(RX51_WL1251_POWER_GPIO);
++
++error:
++	printk(KERN_ERR "wl1251 board initialisation failed\n");
++	wl1251_pdata.set_power = NULL;
++
++	/*
++	 * Now rx51_peripherals_spi_board_info[1].irq is zero and
++	 * set_power is null, and wl1251_probe() will fail.
++	 */
++}
++
+ static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
+ {
+ 	/* FIXME this gpio setup is just a placeholder for now */
+@@ -538,6 +619,10 @@ static inline void board_smc91x_init(void)
+ 
+ void __init rx51_peripherals_init(void)
+ {
++	rx51_init_wl1251();
++
++	spi_register_board_info(rx51_peripherals_spi_board_info,
++				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+ 	rx51_i2c_init();
+ 	board_onenand_init();
+ 	board_smc91x_init();
 
