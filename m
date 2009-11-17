@@ -1,74 +1,75 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Force write last pad config register into save area
-Date: Tue, 17 Nov 2009 10:34:29 -0800
-Message-ID: <87my2lf1ai.fsf@deeprootsystems.com>
-References: <1258475693-22068-1-git-send-email-tero.kristo@nokia.com>
+From: Troy Kisky <troy.kisky@boundarydevices.com>
+Subject: Re: Artifacts present in AIC23 capture for 48
+ KHz	sampling rate
+Date: Tue, 17 Nov 2009 12:09:21 -0700
+Message-ID: <4B02F4E1.3060405@boundarydevices.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C9109@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:48800 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308AbZKQSec (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 13:34:32 -0500
-Received: by yxe17 with SMTP id 17so285291yxe.33
-        for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2009 10:34:38 -0800 (PST)
-In-Reply-To: <1258475693-22068-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Tue\, 17 Nov 2009 18\:34\:53 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C9109@dbde02.ent.ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+Aggarwal, Anuj wrote:
+>> -----Original Message-----
+>> From: Aggarwal, Anuj
+>> Sent: Friday, November 06, 2009 6:28 PM
+>> To: alsa-devel@alsa-project.org; 'linux-omap@vger.kernel.org'
+>> Subject: Artifacts present in AIC23 capture for 48 KHz sampling rate
+>>
+>> Hi,
+>>
+>> I am observing artifacts (sharp spikes at fixed intervals) while
+>> capturing audio on AM3517 EVM and AIC23 codec. They are present only
+>> in one of the channels when I am capturing at 48 KHz. All other
+>> sampling rates are working fine with the above said combination.
+>>
+>> I have also attached the screenshot taken with the help of Audacity
+>> utility. Here, I tried recording silence but artifacts were observed
+>> on one channel.
+>>
+>> Has anyone also observed the similar behavior with AIC23 codec? Any
+>> hints on what could be the root cause?
+> [Aggarwal, Anuj] On further debugging, I found that the function
+> find_rate() in sound/soc/codecs/tlv320aic23.c is not returning 
+> the correct value for capture in 48KHz sample rate. In USB mode
+> (MCLK=12MHz), for 48KHz, it returns 0x7D (CLKOUT=0, CLKIN=1, 
+> SR[3:0]=0xF, BOSR=1, Normal=1) whereas as per the AIC23B spec, 
 
-> From: Tero Kristo <tero.kristo@nokia.com>
->
-> Due to OMAP3 errata XYZ, the save of the last pad register (ETK_D14 and
-> ETK_D15) can fail sometimes when there is simultaneous OCP access to the
-> SCM register area. Fixed by writing the last register to the save area.
->
-> Also, optimized the delay loop for the HW save to include an udelay(1),
-> which limits the number of unnecessary HW accesses to SCM register area
-> during the save.
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+0x7D would be BOSR = 0, USB/NORMAL = 1, SR=0xff, div2 = 1
 
-I certainly like this fix much better than the original proposal:
+The bug is with sr_valid_mask,
 
-  http://marc.info/?l=linux-omap&m=125474186609661&w=2
+static const unsigned short sr_valid_mask[] = {
+	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 0*/
+	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 1*/
+	LOWER_GROUP,			/* Usb, bosr - 0*/
+	UPPER_GROUP,			/* Usb, bosr - 1*/
+};
 
-Pulling into PM branch after s/XYZ/1.157/
+should be
 
-Kevin
+static const unsigned short sr_valid_mask[] = {
+	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 0*/
+	LOWER_GROUP,			/* Usb, bosr - 0*/
+	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 1*/
+	UPPER_GROUP,			/* Usb, bosr - 1*/
+};
 
-> ---
->  arch/arm/mach-omap2/pm34xx.c |   10 +++++++++-
->  1 files changed, 9 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 4b01303..4ead40e 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -155,7 +155,15 @@ static void omap3_core_save_context(void)
->  	/* wait for the save to complete */
->  	while (!(omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
->  			& PADCONF_SAVE_DONE))
-> -		;
-> +		udelay(1);
-> +
-> +	/*
-> +	 * Force write last pad into memory, as this can fail in some
-> +	 * cases according to errata XYZ
-> +	 */
-> +	omap_ctrl_writel(omap_ctrl_readl(OMAP343X_PADCONF_ETK_D14),
-> +		OMAP343X_CONTROL_MEM_WKUP + 0x2a0);
-> +
->  	/* Save the Interrupt controller context */
->  	omap_intc_save_context();
->  	/* Save the GPMC context */
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Can you give this a try and let me know?
+
+Thanks
+Troy
