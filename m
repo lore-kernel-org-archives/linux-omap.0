@@ -1,56 +1,67 @@
-From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Subject: Re: Artifacts present in AIC23 capture for 48 KHz
-	sampling rate
-Date: Tue, 17 Nov 2009 18:45:52 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C9109@dbde02.ent.ti.com>
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: Is the OMAP patch process badly flawed?
+Date: Tue, 17 Nov 2009 13:30:43 +0000
+Message-ID: <4B02A583.8090602@blueyonder.co.uk>
+References: <20091116160402.deb0cc82.sfr@canb.auug.org.au> <4B0213AC.6050502@blueyonder.co.uk>
+Reply-To: sboyce@blueyonder.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "troy.kisky@boundarydevices.com" <troy.kisky@boundarydevices.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out3.blueyonder.co.uk ([195.188.213.6]:57192 "EHLO
+	smtp-out3.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752161AbZKQNao (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Nov 2009 08:30:44 -0500
+Received: from [172.23.170.139] (helo=anti-virus01-10)
+	by smtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1NAO8v-0003zK-7a
+	for linux-omap@vger.kernel.org; Tue, 17 Nov 2009 13:30:49 +0000
+Received: from [94.171.130.58] (helo=[192.168.10.2])
+	by asmtp-out5.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1NAO8u-0004dL-Iq
+	for linux-omap@vger.kernel.org; Tue, 17 Nov 2009 13:30:48 +0000
+In-Reply-To: <4B0213AC.6050502@blueyonder.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Aggarwal, Anuj
-> Sent: Friday, November 06, 2009 6:28 PM
-> To: alsa-devel@alsa-project.org; 'linux-omap@vger.kernel.org'
-> Subject: Artifacts present in AIC23 capture for 48 KHz sampling rate
-> 
-> Hi,
-> 
-> I am observing artifacts (sharp spikes at fixed intervals) while
-> capturing audio on AM3517 EVM and AIC23 codec. They are present only
-> in one of the channels when I am capturing at 48 KHz. All other
-> sampling rates are working fine with the above said combination.
-> 
-> I have also attached the screenshot taken with the help of Audacity
-> utility. Here, I tried recording silence but artifacts were observed
-> on one channel.
-> 
-> Has anyone also observed the similar behavior with AIC23 codec? Any
-> hints on what could be the root cause?
-[Aggarwal, Anuj] On further debugging, I found that the function
-find_rate() in sound/soc/codecs/tlv320aic23.c is not returning 
-the correct value for capture in 48KHz sample rate. In USB mode
-(MCLK=12MHz), for 48KHz, it returns 0x7D (CLKOUT=0, CLKIN=1, 
-SR[3:0]=0xF, BOSR=1, Normal=1) whereas as per the AIC23B spec, 
-it should have been 0x5D (CLKOUT=0, CLKIN=1, SR[3:0]=0x7, 
-BOSR=1, Normal=1). When I forcefully write the above said value
-to the Sample Rate Control register, things work fine for me
-for 48KHz capture.
-Is my understanding correct for this problem? Can someone help
-me understand how the function calculates the appropriate value?
-> 
-> Regards,
-> Anuj Aggarwal
+I'm curious - I download, build and test kernels on x86 and x86_64
+platforms, -rc, -rc-git and -git all build and run.
+On the OMAP platform I have so far not been able to do that with
+omap-git, omap-dss2-git trees and snapshots all missing basic hardware
+support, e.g:- I get the latest from gitorious.org, make
+omap3_beagle_defconfg, make xconfig, but there is no EHCI config
+available. I hunt down the patch and hand apply "default y if
+ARCH_OMAP34XX" to drivers/usb/Kconfig, next the build complains that
+drivers/usb/host/ehci-hcd.c: 1143:2: error: #error "missing bus glue for
+ehci-hcd"
+
+The bus glue patch ... ehci-omap.c no longer exists.
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -1108,6 +1108,11 @@ MODULE_LICENSE ("GPL");
+ #define        PLATFORM_DRIVER         ehci_hcd_au1xxx_driver
+ #endif
+
++#ifdef CONFIG_ARCH_OMAP34XX
++#include "ehci-omap.c"
++#define        PLATFORM_DRIVER         ehci_hcd_omap_driver
++#endif
++
+ #ifdef CONFIG_PPC_PS3
+ #include "ehci-ps3.c"
+ #define        PS3_SYSTEM_BUS_DRIVER   ps3_ehci_driver
+
+I would expect patches sent upstream would result in all the basics for
+long established platforms to be fully covered. Appreciating that
+development is quite fast paced with mods and supporting new platforms.
+Could someone please enlighten me?
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
+
