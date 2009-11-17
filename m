@@ -1,133 +1,135 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v4, for-next] OMAP: DMA: Use some define rather than a hexadecimal constant for LCD register
-Date: Tue, 17 Nov 2009 11:45:53 +0100
-Message-ID: <200911171145.55658.jkrzyszt@tis.icnet.pl>
-References: <20091116222517.GT3684@atomide.com> <200911170138.04915.jkrzyszt@tis.icnet.pl> <20091117012435.GA3684@atomide.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH 2/6] OMAP3: PM: Added support for INACTIVE and ON states
+ for powerdomains
+Date: Tue, 17 Nov 2009 12:07:33 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A2236D7ECB9F@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1258045359-7962-1-git-send-email-tero.kristo@nokia.com>
+	<1258045359-7962-2-git-send-email-tero.kristo@nokia.com>
+	<1258045359-7962-3-git-send-email-tero.kristo@nokia.com>
+ <87bpj2jlyr.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:54971 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753226AbZKQKqV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 05:46:21 -0500
-In-Reply-To: <20091117012435.GA3684@atomide.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:31710 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754788AbZKQLIE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 06:08:04 -0500
+In-Reply-To: <87bpj2jlyr.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: khilman@deeprootsystems.com
 Cc: linux-omap@vger.kernel.org
 
-Tuesday 17 November 2009 02:24:35 Tony Lindgren napisa=C5=82(a):
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091116 16:38]:
-> > Tuesday 17 November 2009 01:16:58 Tony Lindgren napisa=C5=82(a):
-> > > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091116 15:13]:
-> > > > diff -uprN a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.=
-c
-> > > > --- a/arch/arm/plat-omap/dma.c	2009-11-14 23:48:41.000000000 +0=
-100
-> > > > +++ b/arch/arm/plat-omap/dma.c	2009-11-16 23:49:30.000000000 +0=
-100
-> > > > @@ -36,6 +36,10 @@
-> > > >
-> > > >  #include <plat/tc.h>
-> > > >
-> > > > +#ifdef CONFIG_ARCH_OMAP1
-> > > > +#include <mach/lcdc.h>
-> > > > +#endif
-> > > > +
-> > > >  #undef DEBUG
-> > > >
-> > > >  #ifndef CONFIG_ARCH_OMAP1
-> > > > @@ -1124,9 +1128,11 @@ int omap_dma_running(void)
-> > > >  	 * On OMAP1510, internal LCD controller will start the transf=
-er
-> > > >  	 * when it gets enabled, so assume DMA running if LCD enabled=
-=2E
-> > > >  	 */
-> > > > +#ifdef CONFIG_ARCH_OMAP1
-> > > >  	if (cpu_is_omap1510())
-> > > > -		if (omap_readw(0xfffec000 + 0x00) & (1 << 0))
-> > > > +		if (omap_readw(OMAP_LCDC_CONTROL) & OMAP_LCDC_CTRL_LCD_EN)
-> > > >  			return 1;
-> > > > +#endif
-> > > >
-> > > >  	/* Check if LCD DMA is running */
-> > > >  	if (cpu_is_omap16xx())
-> > >
-> > > Hmm, this is getting complicated... How about just add function t=
-o
-> > > drivers/video/omap/lcdc.c for something like omap_lcdc_get_status=
-()
-> > > or similar?
-> >
-> > Good idea.
+ 
 
-=2E.. for a function itself, but not for putting it there, since omapfb=
-, that=20
-lcdc is a part of, can be build as a module :).
-
-> > > Then you can define that function in some header as:
-> > >
-> > > #if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_FB_OMAP)
-> > > extern int omap_lcdc_get_status(void);
-> > > #else
-> > > static inline int omap_lcdc_get_status(void)
-> > > {
-> > > 	return -ENODEV;
-> > > }
-> > > #endif
-> > >
-> > > That way the defines can stay where they are and you don't need t=
-he
-> > > ugly ifdefs.
-> >
-> > Sorry if my question seems stupid, but assuming the function can be=
- as
-> > simple as:
-> >
-> > int omap_lcdc_get_status(void)
-> > {
-> > 	return omap_readw(OMAP_LCDC_CONTROL) & OMAP_LCDC_CTRL_LCD_EN;
-> > }
-> >
-> > could't it be defined as static inline too and put inside lcdc.h?
+>-----Original Message-----
+>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: 16 November, 2009 21:42
+>To: Kristo Tero (Nokia-D/Tampere)
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCH 2/6] OMAP3: PM: Added support for INACTIVE 
+>and ON states for powerdomains
 >
-> Sure, but then you need to move the defines again, no?
+>Tero Kristo <tero.kristo@nokia.com> writes:
+>
+>> From: Tero Kristo <tero.kristo@nokia.com>
+>>
+>> Previously omap_sram_idle() did not know about the 
+>difference between ON and
+>> INACTIVE states, which complicated the state handling in these cases.
+>
+>This changelog needs an update.
+>
+>This patch changes makes the IO-chain arming conditional and removes
+>the clockdomain idle calls.
 
-I can see 3 options:
+IO-chain arming is already conditional, the condition needs to be changed a bit due to changed powerdomain states.
 
-1. While keeping those hex constants as they are for now, solve the iss=
-ue=20
-during refactoring arch/arm/plat-omap/dma.c for a separate=20
-arch/arm/mach-omap1/lcd_dma.c, as Paul suggested (may take some time). =
-Since=20
-the register test would be put there, some headers will have to be move=
-d out=20
-of drivers/video/omap/lcdc.c anyway.
+- previously: less than PWRDM_POWER_ON = RET and OFF
+- now: less than or equal to PWRDM_POWER_RET = RET and OFF
 
-2. Temporarily apply v2 of the patch. It compiles cleanly since defines=
- are=20
-put into <plat/omapfb.h> that exists for all OMAP classes. Then, clean =
-up=20
-things while doing #1. I'm not sure if that temporary solution could re=
-sult=20
-in one more conflict with DSS2.
+What is changed actually is that if CORE or PER is going INACTIVE, we will disable UART clocks which will allow CORE and UART to go inactive. Previously this did not happen.
 
-3. Based on v4 and your suggestion for a function, work out an intermed=
-iate=20
-solution as soon as possible. I would appreciate any further suggestion=
-s on=20
-how that could be arranged.
+>While I understand the clkdm idle call removal, It's not clear from
+>the changelog how these are related to the new handling of INACTIVE
+>states.
 
-If there are no better options, please suggest which of those three you=
- would=20
-like me to take.
+Yes, I can try to fix the changelog a bit regarding this.
 
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>> ---
+>>  arch/arm/mach-omap2/pm34xx.c |   14 +++++++-------
+>>  1 files changed, 7 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c 
+>b/arch/arm/mach-omap2/pm34xx.c
+>> index 9d0a9b4..7b52f30 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -383,6 +383,7 @@ void omap_sram_idle(void)
+>>  	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+>>  	switch (mpu_next_state) {
+>>  	case PWRDM_POWER_ON:
+>> +	case PWRDM_POWER_INACTIVE:
+>>  	case PWRDM_POWER_RET:
+>>  		/* No need to save context */
+>>  		save_state = 0;
+>> @@ -448,9 +449,11 @@ void omap_sram_idle(void)
+>>  						OMAP3430_GR_MOD,
+>>  						
+>OMAP3_PRM_VOLTCTRL_OFFSET);
+>>  		}
+>> -		/* Enable IO-PAD and IO-CHAIN wakeups */
+>> -		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
+>> -		omap3_enable_io_chain();
+>> +		if (core_next_state <= PWRDM_POWER_RET) {
+>> +			/* Enable IO-PAD and IO-CHAIN wakeups */
+>> +			prm_set_mod_reg_bits(OMAP3430_EN_IO, 
+>WKUP_MOD, PM_WKEN);
+>> +			omap3_enable_io_chain();
+>> +		}
+>>  	}
+>>  	omap3_intc_prepare_idle();
+>>  
+>> @@ -542,15 +545,13 @@ void omap_sram_idle(void)
+>>  	}
+>>  
+>>  	/* Disable IO-PAD and IO-CHAIN wakeup */
+>> -	if (core_next_state < PWRDM_POWER_ON) {
+>> +	if (core_next_state <= PWRDM_POWER_ON) {
+>
+>Hmm, did you mean <= RET here?   
+
+True, this is a bug. Should be RET.
+
+>Otherwise, you can just remove the conditional.
+>
+>>  		prm_clear_mod_reg_bits(OMAP3430_EN_IO, 
+>WKUP_MOD, PM_WKEN);
+>>  		omap3_disable_io_chain();
+>>  	}
+>>  
+>>  
+>>  	pwrdm_post_transition();
+>> -
+>> -	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+>>  }
+>>  
+>>  int omap3_can_sleep(void)
+>> @@ -598,7 +599,6 @@ int set_pwrdm_state(struct powerdomain 
+>*pwrdm, u32 state)
+>>  	}
+>>  
+>>  	if (sleep_switch) {
+>> -		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+>>  		pwrdm_wait_transition(pwrdm);
+>>  		pwrdm_state_switch(pwrdm);
+>>  	}
+>> -- 
+>> 1.5.4.3
+>
+>Kevin
+>
