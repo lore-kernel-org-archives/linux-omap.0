@@ -1,230 +1,34 @@
-From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCH (for-next)] ASoC: Add support for IGEP v2
-Date: Tue, 17 Nov 2009 18:31:07 +0100
-Message-ID: <1258479067-2564-1-git-send-email-eballetbo@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 8/10 v2] omap mailbox: OMAP4-Mailbox - Adds code
+ changes to support OMAP4 mailbox.
+Date: Tue, 17 Nov 2009 09:37:06 -0800
+Message-ID: <20091117173706.GF29266@atomide.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE563EB2@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:42140 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754692AbZKQRa6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 12:30:58 -0500
-Received: by bwz27 with SMTP id 27so166367bwz.21
-        for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2009 09:31:02 -0800 (PST)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63670 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751839AbZKQRhC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 12:37:02 -0500
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE563EB2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+To: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>
 
-From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+* C.A, Subramaniam <subramaniam.ca@ti.com> [091117 06:50]:
+> Hi Tony,
+> Following is the version 2 of Patch 8/10 (removing all #fidefs)
 
-
-Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
----
- arch/arm/mach-omap2/Kconfig |    2 +-
- sound/soc/omap/Kconfig      |    7 ++
- sound/soc/omap/Makefile     |    2 +
- sound/soc/omap/igep0020.c   |  148 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 158 insertions(+), 1 deletions(-)
- create mode 100644 sound/soc/omap/igep0020.c
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 68866f3..6922198 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -114,7 +114,7 @@ config MACH_OMAP_3630SDP
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+Thanks, I have now them all in the for-next branch.
  
- config MACH_IGEP0020
--	bool "IGEP0020"
-+	bool "IGEP v2 board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
- 
- config MACH_OMAP_4430SDP
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 653a362..5cc8a63 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -99,3 +99,10 @@ config SND_OMAP_SOC_ZOOM2
- 	help
- 	  Say Y if you want to add support for Soc audio on Zoom2 board.
- 
-+config SND_OMAP_SOC_IGEP0020
-+	tristate "SoC Audio support for IGEP v2"
-+	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_IGEP0020
-+	select SND_OMAP_SOC_MCBSP
-+	select SND_SOC_TWL4030
-+	help
-+	  Say Y if you want to add support for Soc audio on IGEP v2 board.
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index 02d6947..d4ed23a 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -16,6 +16,7 @@ snd-soc-sdp3430-objs := sdp3430.o
- snd-soc-omap3pandora-objs := omap3pandora.o
- snd-soc-omap3beagle-objs := omap3beagle.o
- snd-soc-zoom2-objs := zoom2.o
-+snd-soc-igep0020-objs := igep0020.o
- 
- obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
- obj-$(CONFIG_SND_OMAP_SOC_AMS_DELTA) += snd-soc-ams-delta.o
-@@ -27,3 +28,4 @@ obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
- obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
-+obj-$(CONFIG_SND_OMAP_SOC_IGEP0020) += snd-soc-igep0020.o
-diff --git a/sound/soc/omap/igep0020.c b/sound/soc/omap/igep0020.c
-new file mode 100644
-index 0000000..3583c42
---- /dev/null
-+++ b/sound/soc/omap/igep0020.c
-@@ -0,0 +1,148 @@
-+/*
-+ * igep0020.c  --  SoC audio for IGEP v2
-+ *
-+ * Based on sound/soc/omap/overo.c by Steve Sakoman
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/platform_device.h>
-+#include <sound/core.h>
-+#include <sound/pcm.h>
-+#include <sound/soc.h>
-+#include <sound/soc-dapm.h>
-+
-+#include <asm/mach-types.h>
-+#include <mach/hardware.h>
-+#include <mach/gpio.h>
-+#include <plat/mcbsp.h>
-+
-+#include "omap-mcbsp.h"
-+#include "omap-pcm.h"
-+#include "../codecs/twl4030.h"
-+
-+static int igep2_hw_params(struct snd_pcm_substream *substream,
-+	struct snd_pcm_hw_params *params)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
-+	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-+	int ret;
-+
-+	/* Set codec DAI configuration */
-+	ret = snd_soc_dai_set_fmt(codec_dai,
-+				  SND_SOC_DAIFMT_I2S |
-+				  SND_SOC_DAIFMT_NB_NF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set codec DAI configuration\n");
-+		return ret;
-+	}
-+
-+	/* Set cpu DAI configuration */
-+	ret = snd_soc_dai_set_fmt(cpu_dai,
-+				  SND_SOC_DAIFMT_I2S |
-+				  SND_SOC_DAIFMT_NB_NF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set cpu DAI configuration\n");
-+		return ret;
-+	}
-+
-+	/* Set the codec system clock for DAC and ADC */
-+	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
-+					    SND_SOC_CLOCK_IN);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set codec system clock\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct snd_soc_ops igep2_ops = {
-+	.hw_params = igep2_hw_params,
-+};
-+
-+/* Digital audio interface glue - connects codec <--> CPU */
-+static struct snd_soc_dai_link igep2_dai = {
-+	.name = "TWL4030",
-+	.stream_name = "TWL4030",
-+	.cpu_dai = &omap_mcbsp_dai[0],
-+	.codec_dai = &twl4030_dai[TWL4030_DAI_HIFI],
-+	.ops = &igep2_ops,
-+};
-+
-+/* Audio machine driver */
-+static struct snd_soc_card snd_soc_card_igep2 = {
-+	.name = "igep2",
-+	.platform = &omap_soc_platform,
-+	.dai_link = &igep2_dai,
-+	.num_links = 1,
-+};
-+
-+/* Audio subsystem */
-+static struct snd_soc_device igep2_snd_devdata = {
-+	.card = &snd_soc_card_igep2,
-+	.codec_dev = &soc_codec_dev_twl4030,
-+};
-+
-+static struct platform_device *igep2_snd_device;
-+
-+static int __init igep2_soc_init(void)
-+{
-+	int ret;
-+
-+	if (!machine_is_igep0020()) {
-+		pr_debug("Not IGEP v2!\n");
-+		return -ENODEV;
-+	}
-+	printk(KERN_INFO "IGEP v2 SoC init\n");
-+
-+	igep2_snd_device = platform_device_alloc("soc-audio", -1);
-+	if (!igep2_snd_device) {
-+		printk(KERN_ERR "Platform device allocation failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	platform_set_drvdata(igep2_snd_device, &igep2_snd_devdata);
-+	igep2_snd_devdata.dev = &igep2_snd_device->dev;
-+	*(unsigned int *)igep2_dai.cpu_dai->private_data = 1; /* McBSP2 */
-+
-+	ret = platform_device_add(igep2_snd_device);
-+	if (ret)
-+		goto err1;
-+
-+	return 0;
-+
-+err1:
-+	printk(KERN_ERR "Unable to add platform device\n");
-+	platform_device_put(igep2_snd_device);
-+
-+	return ret;
-+}
-+module_init(igep2_soc_init);
-+
-+static void __exit igep2_soc_exit(void)
-+{
-+	platform_device_unregister(igep2_snd_device);
-+}
-+module_exit(igep2_soc_exit);
-+
-+MODULE_AUTHOR("Enric Balletbo i Serra <eballetbo@iseebcn.com>");
-+MODULE_DESCRIPTION("ALSA SoC IGEP v2");
-+MODULE_LICENSE("GPL");
--- 
-1.5.4.3
+> +/* OMAP4 specific data structure. Use the cpu_is_omap4xxx()
+> +to use this*/
 
+I've updated the patch to have this comment is on one line now.
+
+Regards,
+
+Tony
