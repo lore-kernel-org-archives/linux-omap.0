@@ -1,21 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH 1/3] OMAP3 clock: Fix the DPLL freqsel computations
-Date: Tue, 17 Nov 2009 17:14:08 -0500
-Message-ID: <notify-1258496051@atomide.com>
-References: <20091116133649.14128.89383.stgit@localhost.localdomain>
+Subject: [APPLIED] [PATCH 2/3] OMAP3: Clock: Fixed dpll3_m2x2 rate calculation
+Date: Tue, 17 Nov 2009 17:14:46 -0500
+Message-ID: <notify-1258496090@atomide.com>
+References: <20091116133653.14128.48304.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60627 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755527AbZKQWOI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 17:14:08 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55437 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755940AbZKQWOq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 17:14:46 -0500
 Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
 	(envelope-from <tony@atomide.com>)
-	id 1NAWJR-0005BV-GR
-	for linux-omap@vger.kernel.org; Tue, 17 Nov 2009 22:14:13 +0000
-In-Reply-To: <20091116133649.14128.89383.stgit@localhost.localdomain>
+	id 1NAWK4-0008Dn-8a
+	for linux-omap@vger.kernel.org; Tue, 17 Nov 2009 22:14:52 +0000
+In-Reply-To: <20091116133653.14128.48304.stgit@localhost.localdomain>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -26,12 +26,12 @@ by youw fwiendly patch wobot.
 
 Branch in linux-omap: omap-fixes
 
-Initial commit ID (Likely to change): 8c3b128f6b50f9b8a6b015afeead77fd6de366a6
+Initial commit ID (Likely to change): 2dcbc9ebbe46c92e748e6180133d10cce69acb4d
 
 PatchWorks
-http://patchwork.kernel.org/patch/60367/
+http://patchwork.kernel.org/patch/60368/
 
 Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=8c3b128f6b50f9b8a6b015afeead77fd6de366a6
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=2dcbc9ebbe46c92e748e6180133d10cce69acb4d
 
 
