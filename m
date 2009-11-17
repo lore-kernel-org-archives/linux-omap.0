@@ -1,67 +1,46 @@
-From: Manjunatha GK <manjugk@ti.com>
-Subject: [PATCH] OMAP3 : Enable TWL4030 Keypad for Zoom2 and Zoom3 boards
-Date: Tue, 17 Nov 2009 21:53:46 +0530
-Message-ID: <20091117162346.GA16240@DFL-61>
+From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Subject: Re: [PATCH 3/8] musb: Update musb_init() call for all OMAP3 boards
+Date: Tue, 17 Nov 2009 19:30:57 +0300
+Message-ID: <4B02CFC1.3090601@ru.mvista.com>
+References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-2-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-3-git-send-email-ajay.gupta@ti.com> <1258470596-24321-4-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41366 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751788AbZKQQWp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Nov 2009 11:22:45 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAHGMmhq006992
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2009 10:22:50 -0600
-Received: from localhost (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAHGMlF7002795
-	for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2009 21:52:47 +0530 (IST)
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1258470596-24321-4-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-The TWL4030 keypad driver is not enabled by default for zoom2 and zoom3
-boards.
+Ajay Kumar Gupta wrote:
 
-This patch will enable the same for both zoom2 and zoom3 boards.
+> musb_init() has been modified to pass board specific data so updating
+> this function call from all OMAP3 boards.
 
-Tested on zoom2(3430) and zoom3(3630) boards.
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-Signed-off-by: Manjunatha GK <manjugk@ti.com>
----
- arch/arm/configs/omap_zoom2_defconfig |    3 ++-
- arch/arm/configs/omap_zoom3_defconfig |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+[...]
 
-diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
-index eef9362..4b00a43 100644
---- a/arch/arm/configs/omap_zoom2_defconfig
-+++ b/arch/arm/configs/omap_zoom2_defconfig
-@@ -610,7 +610,8 @@ CONFIG_INPUT_EVDEV=y
- #
- # Input Device Drivers
- #
--# CONFIG_INPUT_KEYBOARD is not set
-+CONFIG_INPUT_KEYBOARD=y
-+CONFIG_KEYBOARD_TWL4030=y
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
- # CONFIG_INPUT_TABLET is not set
-diff --git a/arch/arm/configs/omap_zoom3_defconfig b/arch/arm/configs/omap_zoom3_defconfig
-index f0e7d0f..0d7e37a 100644
---- a/arch/arm/configs/omap_zoom3_defconfig
-+++ b/arch/arm/configs/omap_zoom3_defconfig
-@@ -629,7 +629,8 @@ CONFIG_INPUT_EVDEV=y
- #
- # Input Device Drivers
- #
--# CONFIG_INPUT_KEYBOARD is not set
-+CONFIG_INPUT_KEYBOARD=y
-+CONFIG_KEYBOARD_TWL4030=y
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
- # CONFIG_INPUT_TABLET is not set
--- 
-1.6.0.4
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index 1145a25..0e9380c 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -124,12 +124,6 @@ static struct musb_hdrc_platform_data musb_plat = {
+>  	/* .clock is set dynamically */
+>  	.set_clock	= musb_set_clock,
+>  	.config		= &musb_config,
+> -
+> -	/* REVISIT charge pump on TWL4030 can supply up to
+> -	 * 100 mA ... but this value is board-specific, like
+> -	 * "mode", and should be passed to usb_musb_init().
+> -	 */
+> -	.power		= 50,			/* up to 100 mA */
 
+    That should obviously be a part of patch 1/8...
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
