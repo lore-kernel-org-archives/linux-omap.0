@@ -1,78 +1,57 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2] OMAP: timekeeping: time should not stop during suspend
-Date: Tue, 17 Nov 2009 15:41:13 -0800
-Message-ID: <1258501273-17595-1-git-send-email-khilman@deeprootsystems.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:60402 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756271AbZKQXlL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 18:41:11 -0500
-Received: by pwi3 with SMTP id 3so312285pwi.21
-        for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2009 15:41:17 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
+ tree
+Date: Wed, 18 Nov 2009 10:49:36 +1100
+Message-ID: <20091118104936.75206ca1.sfr@canb.auug.org.au>
+References: <20091116160402.deb0cc82.sfr@canb.auug.org.au>
+	<1258366001.2384.25.camel@tubuntu.research.nokia.com>
+	<20091116183425.GN3684@atomide.com>
+	<1258452031.2419.2.camel@tubuntu.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__18_Nov_2009_10_49_36_+1100_MJZQ7b1e8Qcb0nPo"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752859AbZKQXtr@vger.kernel.org>
+In-Reply-To: <1258452031.2419.2.camel@tubuntu.research.nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Tony Lindgren <tony@atomide.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jon Hunter <jon-hunter@ti.com>
 
-During suspend, the kernel timekeeping subsystem is shut down.  Before
-suspend and upon resume, it uses a weak function
-read_persistent_clock() to determine the amount of time that elapsed
-during suspend.
+--Signature=_Wed__18_Nov_2009_10_49_36_+1100_MJZQ7b1e8Qcb0nPo
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This function was not implemented on OMAP, so from the timekeeping
-subsystem perspective (and thus userspace as well) it appeared that no
-time elapsed during suspend.
+Hi Tomi,
 
-This patch uses the 32k sync timer as a the persistent clock the 32k
-sync timer value converted to seconds.
+On Tue, 17 Nov 2009 12:00:31 +0200 Tomi Valkeinen <tomi.valkeinen@nokia.com=
+> wrote:
+>
+> On Mon, 2009-11-16 at 19:34 +0100, ext Tony Lindgren wrote:
+> > Tomi, please update your patch by leaving out the now unnecessary
+> > TWL4030 and regulator sections. See also the updated version of
+> > your patch attached.
+>=20
+> Thanks, updated. Now I'm able to merge linux-omap/for-next and
+> dss/for-next without conflicts.
 
-NOTE: This does *NOT* handle wrapping of the 32k sync timer, so
-      wrapping of the 32k sync timer during suspend may cause
-      problems.  Also, there are not interrupts when the 32k sync
-      timer wraps, so something else has to be done.
+Great, thanks.
 
-Reported-by: Jon Hunter <jon-hunter@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Since v1 of this patch, the signature of this function changed.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-Also note that forthcoming omap_device patches will depend on this
-function instead of getnstimeofday() since the timekeeping subsystem
-is suspended when we want to do omap_device timing measurements.
+--Signature=_Wed__18_Nov_2009_10_49_36_+1100_MJZQ7b1e8Qcb0nPo
+Content-Type: application/pgp-signature
 
- arch/arm/plat-omap/common.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index cc050b3..8057966 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -172,6 +172,25 @@ unsigned long long sched_clock(void)
- 				  clocksource_32k.mult, clocksource_32k.shift);
- }
- 
-+/**
-+ * read_persistent_clock -  Return time from the persistent clock.
-+ *
-+ * Reads the time from a source which isn't disabled during PM: 32k sync
-+ * Returns a timespec with tv_sec=0 and tv_nsec=0 if unsupported.
-+ *
-+ */
-+void read_persistent_clock(struct timespec *ts)
-+{
-+	unsigned long long nsecs;
-+	cycle_t cycles;
-+
-+	ts->tv_sec = ts->tv_nsec = 0;
-+	cycles = clocksource_32k.read(&clocksource_32k);
-+	nsecs = clocksource_cyc2ns(cycles,
-+				   clocksource_32k.mult, clocksource_32k.shift);
-+	timespec_add_ns(ts, nsecs);
-+}
-+
- static int __init omap_init_clocksource_32k(void)
- {
- 	static char err[] __initdata = KERN_ERR
--- 
-1.6.5.1
+iEYEARECAAYFAksDNpAACgkQjjKRsyhoI8z1TwCeMFccmTDeCwA72F5ZnGJFQN44
+adUAnAqHxqw8F7lv963HQ/MESa2qDkzA
+=rauR
+-----END PGP SIGNATURE-----
 
+--Signature=_Wed__18_Nov_2009_10_49_36_+1100_MJZQ7b1e8Qcb0nPo--
