@@ -1,32 +1,129 @@
-From: tarek attia <tarek.m.attia@gmail.com>
-Subject: Scalling_setspeed doesn't work
-Date: Tue, 17 Nov 2009 18:58:02 +0200
-Message-ID: <82cfbe860911170858j2a115673qff7588ac9eb4463c@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 7/10] omap mailbox: expose
+ omap_mbox_enable()/disable_irq()
+Date: Tue, 17 Nov 2009 08:58:50 -0800
+Message-ID: <20091117165850.GB29266@atomide.com>
+References: <20091114004004.GG3684@atomide.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DE563E00@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:43799 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308AbZKQQ55 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 11:57:57 -0500
-Received: by ey-out-2122.google.com with SMTP id 9so53898eyd.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2009 08:58:02 -0800 (PST)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58905 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752955AbZKQQ6r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 11:58:47 -0500
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE563E00@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ramesh" <grgupta@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>
 
-When I try to change the value of (scalling_setspeed) file ,it doesn't
-change however it doesn't rise errors as well,,but after changing it
-and trying to rereading it ,I found that nothing is changed
-!!!?????????
+* C.A, Subramaniam <subramaniam.ca@ti.com> [091117 05:06]:
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com] 
+> > Sent: Saturday, November 14, 2009 6:10 AM
+> > To: C.A, Subramaniam
+> > Cc: linux-omap@vger.kernel.org; Gupta, Ramesh; Kanigeri, 
+> > Hari; Hiroshi DOYU
+> > Subject: Re: [PATCH 7/10] omap mailbox: expose 
+> > omap_mbox_enable()/disable_irq()
+> > 
+> > * C.A, Subramaniam <subramaniam.ca@ti.com> [091113 04:32]:
+> > > From 177e2efb7384c03ac445b55e2e4ccf44e2160051 Mon Sep 17 
+> > 00:00:00 2001
+> > > From: C A Subramaniam <subramaniam.ca@ti.com>
+> > > Date: Fri, 13 Nov 2009 15:04:57 +0530
+> > > Subject: [PATCH 7/10] omap mailbox: expose 
+> > > omap_mbox_enable()/disable_irq()
+> > > 
+> > > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > 
+> > Is this missing a Signed-off-by: C A Subramaniam 
+> > <subramaniam.ca@ti.com>, or should this be From: Hiroshi DOYU 
+> > <Hiroshi.DOYU@nokia.com>?
+> > 
+> Hi Tony,
+> The patch is given by Hiroshi. Since it was sent as part of the OMAP4
+> Mailbox patch series the From has C A Subramaniam <subramaniam.ca@ti.com>
 
+OK, I'll change the From: field to be from Hiroshi then.
 
-BTW:-I'm using Linux kernel(2.6.29) on the beagleboard with the power
-management branch
+Regards,
 
-
-
-Any help will be appreciated .
-
-Best Regards,
-tarek
+Tony 
+ 
+> > Regards,
+> > 
+> > Tony
+> > 
+> > > ---
+> > >  arch/arm/plat-omap/include/plat/mailbox.h |   12 ++++++++++++
+> > >  arch/arm/plat-omap/mailbox.c              |   12 ++----------
+> > >  2 files changed, 14 insertions(+), 10 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/plat-omap/include/plat/mailbox.h 
+> > > b/arch/arm/plat-omap/include/plat/mailbox.h
+> > > index 8260a3f..bf06953 100644
+> > > --- a/arch/arm/plat-omap/include/plat/mailbox.h
+> > > +++ b/arch/arm/plat-omap/include/plat/mailbox.h
+> > > @@ -92,4 +92,16 @@ static inline void 
+> > omap_mbox_restore_ctx(struct omap_mbox *mbox)
+> > >  	mbox->ops->restore_ctx(mbox);
+> > >  }
+> > >  
+> > > +static inline void omap_mbox_enable_irq(struct omap_mbox *mbox,
+> > > +					omap_mbox_irq_t irq)
+> > > +{
+> > > +	mbox->ops->enable_irq(mbox, irq);
+> > > +}
+> > > +
+> > > +static inline void omap_mbox_disable_irq(struct omap_mbox *mbox,
+> > > +					 omap_mbox_irq_t irq)
+> > > +{
+> > > +	mbox->ops->disable_irq(mbox, irq);
+> > > +}
+> > > +
+> > >  #endif /* MAILBOX_H */
+> > > diff --git a/arch/arm/plat-omap/mailbox.c 
+> > > b/arch/arm/plat-omap/mailbox.c index eb76df2..d5377a3 100644
+> > > --- a/arch/arm/plat-omap/mailbox.c
+> > > +++ b/arch/arm/plat-omap/mailbox.c
+> > > @@ -50,14 +50,6 @@ static inline int mbox_fifo_full(struct 
+> > omap_mbox 
+> > > *mbox)  }
+> > >  
+> > >  /* Mailbox IRQ handle functions */
+> > > -static inline void enable_mbox_irq(struct omap_mbox *mbox, 
+> > > omap_mbox_irq_t irq) -{
+> > > -	mbox->ops->enable_irq(mbox, irq);
+> > > -}
+> > > -static inline void disable_mbox_irq(struct omap_mbox *mbox, 
+> > > omap_mbox_irq_t irq) -{
+> > > -	mbox->ops->disable_irq(mbox, irq);
+> > > -}
+> > >  static inline void ack_mbox_irq(struct omap_mbox *mbox, 
+> > > omap_mbox_irq_t irq)  {
+> > >  	if (mbox->ops->ack_irq)
+> > > @@ -144,7 +136,7 @@ static void mbox_tx_work(struct 
+> > work_struct *work)
+> > >  
+> > >  		ret = __mbox_msg_send(mbox, tx_data->msg);
+> > >  		if (ret) {
+> > > -			enable_mbox_irq(mbox, IRQ_TX);
+> > > +			omap_mbox_enable_irq(mbox, IRQ_TX);
+> > >  			spin_lock(q->queue_lock);
+> > >  			blk_requeue_request(q, rq);
+> > >  			spin_unlock(q->queue_lock);
+> > > @@ -196,7 +188,7 @@ static void mbox_rxq_fn(struct request_queue *q)
+> > >  
+> > >  static void __mbox_tx_interrupt(struct omap_mbox *mbox)  {
+> > > -	disable_mbox_irq(mbox, IRQ_TX);
+> > > +	omap_mbox_disable_irq(mbox, IRQ_TX);
+> > >  	ack_mbox_irq(mbox, IRQ_TX);
+> > >  	schedule_work(&mbox->txq->work);
+> > >  }
+> > > --
+> > > 1.5.3.2
+> > 
+> > 
