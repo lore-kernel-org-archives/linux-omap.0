@@ -1,62 +1,45 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Is the OMAP patch process badly flawed?
-Date: Tue, 17 Nov 2009 20:21:37 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C916A@dbde02.ent.ti.com>
-References: <20091116160402.deb0cc82.sfr@canb.auug.org.au>
- <4B0213AC.6050502@blueyonder.co.uk> <4B02A583.8090602@blueyonder.co.uk>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C911F@dbde02.ent.ti.com>
- <4B02AC98.8030507@blueyonder.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 2/8] musb: Get power (mA) from board data
+Date: Tue, 17 Nov 2009 20:39:50 +0530
+Message-ID: <1258470596-24321-3-git-send-email-ajay.gupta@ti.com>
+References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>
+ <1258470596-24321-2-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59958 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753673AbZKQOvh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 09:51:37 -0500
-In-Reply-To: <4B02AC98.8030507@blueyonder.co.uk>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:52436 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754617AbZKQPKk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 10:10:40 -0500
+In-Reply-To: <1258470596-24321-2-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "sboyce@blueyonder.co.uk" <sboyce@blueyonder.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, felipe.balbi@nokia.com, david-b@pacbell.net, cooloney@kernel.org, gadiyar@ti.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Sid Boyce wrote:
+Different board may have different power sourcing capability and
+now with 'struct musb_hdrc_board_data' in place; pass this data
+from board files and also modify musb_core.c to get 'power' data
+from 'plat->board_data'.
 
-<snip>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musb_core.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-> >>
-> >> I would expect patches sent upstream would result in all the basics for
-> >> long established platforms to be fully covered. Appreciating that
-> >> development is quite fast paced with mods and supporting new platforms.
-> >> Could someone please enlighten me?
-> > 
-> > Sid,
-> > 
-> > Speaking purely for EHCI, this is now queued up in Greg's USB queue
-> > for upstream and will get merged in the next cycle.
-> > 
-> > Until then, the linux-omap code does have working EHCI support
-> > on beagle, evm and the other boards. If you're cloning from
-> > gitorious, you're probably picking the wrong tree.
-> > 
-> > - Anand
-> > 
-> > 
-> 
-> Thanks, that explains a lot as I can't remember seeing those patches on
-> the linux-usb list for submission upstream.
-> What tree is best to clone?
-
-
-Not sure which is best - I suppose that depends on what all you need.
-The canonical linux-omap tree maintained by Tony is at [1].
-
-For EHCI, Felipe sent the driver to Greg who queued it up for .33 [2].
-Tony lined up the board files and mach-omap2/usb-ehci.c in the for-next
-branch.
-
-
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-[2] http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-07-usb-2.6.32-rc6.patch
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 3a61ddb..818ccda 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2033,7 +2033,9 @@ bad_config:
+ 		if (is_otg_enabled(musb))
+ 			hcd->self.otg_port = 1;
+ 		musb->xceiv->host = &hcd->self;
+-		hcd->power_budget = 2 * (plat->power ? : 250);
++		if (plat->board_data)
++			hcd->power_budget =
++				2 * (plat->board_data->power ? : 250);
+ 	}
  
+ 	/* For the host-only role, we can activate right away.
+-- 
+1.6.2.4
+
