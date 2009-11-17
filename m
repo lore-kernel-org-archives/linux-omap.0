@@ -1,145 +1,52 @@
-From: Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH v2] rx51: add wl1251 wlan driver support
-Date: Tue, 17 Nov 2009 18:05:50 +0200
-Message-ID: <20091117160549.19011.79696.stgit@tikku>
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Re: [PATCH 4/8] musb: Update setup_usb() call for all Davinci boards
+Date: Tue, 17 Nov 2009 19:10:17 +0300
+Message-ID: <4B02CAE9.4050106@ru.mvista.com>
+References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-2-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-3-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-4-git-send-email-ajay.gupta@ti.com> <1258470596-24321-5-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gateway-1237.mvista.com ([206.112.117.35]:1388 "HELO
+	imap.sh.mvista.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S1752130AbZKQQJl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 11:09:41 -0500
+In-Reply-To: <1258470596-24321-5-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-usb@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, cooloney@kernel.org, felipe.balbi@nokia.com, linux-omap@vger.kernel.org, gadiyar@ti.com
 
-From: Kalle Valo <kalle.valo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Ajay Kumar Gupta wrote:
 
-wl1251 is connected to the SPI bus in rx51, add support for this.
+> setup_usb() has been modified to pass board specific data so updating
+> this function call from all Davinci based boards.
 
-Signed-off-by: Kalle Valo <kalle.valo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
----
+> Added "struct device;" to fix below compilation warning for Davinci boards.
+> "musb.h: struct device, defined within parameter list"
 
- arch/arm/mach-omap2/board-rx51-peripherals.c |   85 ++++++++++++++++++++++++++
- 1 files changed, 85 insertions(+), 0 deletions(-)
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index e34d96a..2417193 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -14,6 +14,7 @@
- #include <linux/input.h>
- #include <linux/input/matrix_keypad.h>
- #include <linux/spi/spi.h>
-+#include <linux/spi/wl12xx.h>
- #include <linux/i2c.h>
- #include <linux/i2c/twl4030.h>
- #include <linux/clk.h>
-@@ -36,6 +37,37 @@
- #define SYSTEM_REV_B_USES_VAUX3	0x1699
- #define SYSTEM_REV_S_USES_VAUX3 0x8
- 
-+#define RX51_WL1251_POWER_GPIO		87
-+#define RX51_WL1251_IRQ_GPIO		42
-+
-+static void rx51_wl1251_set_power(bool enable);
-+
-+static struct wl12xx_platform_data wl1251_pdata = {
-+	.set_power = rx51_wl1251_set_power,
-+};
-+
-+static struct omap2_mcspi_device_config wl1251_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,
-+};
-+
-+/* list all spi devices here */
-+enum {
-+	RX51_SPI_WL1251,
-+};
-+
-+static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
-+	[RX51_SPI_WL1251] = {
-+		.modalias		= "wl1251",
-+		.bus_num		= 4,
-+		.chip_select		= 0,
-+		.max_speed_hz   	= 48000000,
-+		.mode                   = SPI_MODE_2,
-+		.controller_data	= &wl1251_mcspi_config,
-+		.platform_data		= &wl1251_pdata,
-+	},
-+};
-+
- static int board_keymap[] = {
- 	KEY(0, 0, KEY_Q),
- 	KEY(0, 1, KEY_O),
-@@ -257,6 +289,55 @@ static struct regulator_init_data rx51_vdac = {
- 	},
- };
- 
-+static void rx51_wl1251_set_power(bool enable)
-+{
-+	gpio_set_value(RX51_WL1251_POWER_GPIO, enable);
-+}
-+
-+static void __init rx51_init_wl1251(void)
-+{
-+	int irq, ret;
-+
-+	ret = gpio_request(RX51_WL1251_POWER_GPIO, "wl1251 power");
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = gpio_direction_output(RX51_WL1251_POWER_GPIO, 0);
-+	if (ret < 0)
-+		goto err_power;
-+
-+	ret = gpio_request(RX51_WL1251_IRQ_GPIO, "wl1251 irq");
-+	if (ret < 0)
-+		goto err_power;
-+
-+	ret = gpio_direction_input(RX51_WL1251_IRQ_GPIO);
-+	if (ret < 0)
-+		goto err_irq;
-+
-+	irq = gpio_to_irq(RX51_WL1251_IRQ_GPIO);
-+	if (irq < 0)
-+		goto err_irq;
-+
-+	rx51_peripherals_spi_board_info[RX51_SPI_WL1251].irq = irq;
-+
-+	return;
-+
-+err_irq:
-+	gpio_free(RX51_WL1251_IRQ_GPIO);
-+
-+err_power:
-+	gpio_free(RX51_WL1251_POWER_GPIO);
-+
-+error:
-+	printk(KERN_ERR "wl1251 board initialisation failed\n");
-+	wl1251_pdata.set_power = NULL;
-+
-+	/*
-+	 * Now rx51_peripherals_spi_board_info[1].irq is zero and
-+	 * set_power is null, and wl1251_probe() will fail.
-+	 */
-+}
-+
- static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
- {
- 	/* FIXME this gpio setup is just a placeholder for now */
-@@ -538,6 +619,10 @@ static inline void board_smc91x_init(void)
- 
- void __init rx51_peripherals_init(void)
- {
-+	rx51_init_wl1251();
-+
-+	spi_register_board_info(rx51_peripherals_spi_board_info,
-+				ARRAY_SIZE(rx51_peripherals_spi_board_info));
- 	rx51_i2c_init();
- 	board_onenand_init();
- 	board_smc91x_init();
+[...]
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-davinci/usb.c b/arch/arm/mach-davinci/usb.c
+> index 06f5593..1b164dc 100644
+> --- a/arch/arm/mach-davinci/usb.c
+> +++ b/arch/arm/mach-davinci/usb.c
+> @@ -85,10 +85,10 @@ static struct platform_device usb_dev = {
+>  	.num_resources  = ARRAY_SIZE(usb_resources),
+>  };
+>  
+> -void __init setup_usb(unsigned mA, unsigned potpgt_msec)
+> +void __init setup_usb(struct musb_hdrc_board_data *board_data)
+>  {
+> -	usb_data.power = mA / 2;
+> -	usb_data.potpgt = potpgt_msec / 2;
+
+    Hm, again, you can't separate this patch from patch 1/8 to keep the code 
+compiling between the patches.  It looks like you have no choice but lump 
+most of your patches together (and get rid of some others :-). Either that 
+or better separate your change to the struct musb_hdrc_platfrpom_data and 
+your change to setup_usb() prototype.
+
+WBR, Sergei
