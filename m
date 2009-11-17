@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/12] omap1: Add board support and LCD for HTC Herald
-Date: Tue, 17 Nov 2009 15:04:58 -0800
-Message-ID: <20091117230458.19869.91550.stgit@localhost>
+Subject: [PATCH 02/12] omap1: Add default kernel configuration for Herald
+Date: Tue, 17 Nov 2009 15:05:12 -0800
+Message-ID: <20091117230512.19869.44698.stgit@localhost>
 References: <20091117230324.19869.44927.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60044 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60235 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753078AbZKQXE4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 18:04:56 -0500
+	with ESMTP id S1754362AbZKQXFI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 18:05:08 -0500
 In-Reply-To: <20091117230324.19869.44927.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,450 +19,1161 @@ Cc: linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
 
 From: Cory Maccarrone <darkstar6262@gmail.com>
 
-This patch introduces support for the HTC Herald (T-Mobile
-Wing, etc.) series of smart phones -- board support and LCD
-panel settings.
+This adds a new defconfig for the HTC Herald series of devices.
 
 Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/Kconfig           |    6 +
- arch/arm/mach-omap1/Makefile          |    1 
- arch/arm/mach-omap1/board-htcherald.c |  247 +++++++++++++++++++++++++++++++++
- drivers/video/omap/Makefile           |    1 
- drivers/video/omap/lcd_htcherald.c    |  130 +++++++++++++++++
- 5 files changed, 385 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap1/board-htcherald.c
- create mode 100644 drivers/video/omap/lcd_htcherald.c
+ arch/arm/configs/htcherald_defconfig | 1142 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 1142 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/configs/htcherald_defconfig
 
-diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-index 3232726..27f4897 100644
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -57,6 +57,12 @@ config MACH_OMAP_HTCWIZARD
- 	help
- 	  HTC Wizard smartphone support (AKA QTEK 9100, ...)
- 
-+config MACH_HERALD
-+	bool "HTC Herald"
-+	depends on ARCH_OMAP850
-+	help
-+	  HTC Herald smartphone support (AKA T-Mobile Wing, ...)
-+
- config MACH_OMAP_OSK
- 	bool "TI OSK Support"
- 	depends on ARCH_OMAP1 && ARCH_OMAP16XX
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index 6867cd3..87e539a 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -34,6 +34,7 @@ obj-$(CONFIG_MACH_OMAP_PALMTT)		+= board-palmtt.o
- obj-$(CONFIG_MACH_NOKIA770)		+= board-nokia770.o
- obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o
- obj-$(CONFIG_MACH_SX1)			+= board-sx1.o board-sx1-mmc.o
-+obj-$(CONFIG_MACH_HERALD)		+= board-htcherald.o
- 
- ifeq ($(CONFIG_ARCH_OMAP15XX),y)
- # Innovator-1510 FPGA
-diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
+diff --git a/arch/arm/configs/htcherald_defconfig b/arch/arm/configs/htcherald_defconfig
 new file mode 100644
-index 0000000..5f28a5c
+index 0000000..3382676
 --- /dev/null
-+++ b/arch/arm/mach-omap1/board-htcherald.c
-@@ -0,0 +1,247 @@
-+/*
-+ * HTC Herald board configuration
-+ * Copyright (C) 2009 Cory Maccarrone <darkstar6262@gmail.com>
-+ * Copyright (C) 2009 Wing Linux
-+ *
-+ * Based on the board-htcwizard.c file from the linwizard project:
-+ * Copyright (C) 2006 Unai Uribarri
-+ * Copyright (C) 2008 linwizard.sourceforge.net
-+ *
-+ * This  program is  free  software; you  can  redistribute it  and/or
-+ * modify  it under the  terms of  the GNU  General Public  License as
-+ * published by the Free Software  Foundation; either version 2 of the
-+ * License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
-+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have  received a copy of the  GNU General Public License
-+ * along  with  this program;  if  not,  write  to the  Free  Software
-+ * Foundation,  Inc.,  51 Franklin  Street,  Fifth  Floor, Boston,  MA
-+ * 02110-1301, USA.
-+ *
-+ */
++++ b/arch/arm/configs/htcherald_defconfig
+@@ -0,0 +1,1142 @@
++#
++# Automatically generated make config: don't edit
++# Linux kernel version: 2.6.32-rc6
++# Sat Nov 14 10:56:01 2009
++#
++CONFIG_ARM=y
++CONFIG_SYS_SUPPORTS_APM_EMULATION=y
++CONFIG_GENERIC_GPIO=y
++CONFIG_GENERIC_TIME=y
++CONFIG_GENERIC_CLOCKEVENTS=y
++CONFIG_GENERIC_HARDIRQS=y
++CONFIG_STACKTRACE_SUPPORT=y
++CONFIG_HAVE_LATENCYTOP_SUPPORT=y
++CONFIG_LOCKDEP_SUPPORT=y
++CONFIG_TRACE_IRQFLAGS_SUPPORT=y
++CONFIG_HARDIRQS_SW_RESEND=y
++CONFIG_GENERIC_IRQ_PROBE=y
++CONFIG_RWSEM_GENERIC_SPINLOCK=y
++CONFIG_ARCH_HAS_CPUFREQ=y
++CONFIG_GENERIC_HWEIGHT=y
++CONFIG_GENERIC_CALIBRATE_DELAY=y
++CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
++CONFIG_VECTORS_BASE=0xffff0000
++CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
++CONFIG_CONSTRUCTORS=y
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/input.h>
-+#include <linux/bootmem.h>
-+#include <linux/io.h>
-+#include <linux/gpio.h>
++#
++# General setup
++#
++CONFIG_EXPERIMENTAL=y
++CONFIG_BROKEN_ON_SMP=y
++CONFIG_LOCK_KERNEL=y
++CONFIG_INIT_ENV_ARG_LIMIT=32
++CONFIG_LOCALVERSION=""
++CONFIG_LOCALVERSION_AUTO=y
++CONFIG_SWAP=y
++CONFIG_SYSVIPC=y
++CONFIG_SYSVIPC_SYSCTL=y
++# CONFIG_POSIX_MQUEUE is not set
++# CONFIG_BSD_PROCESS_ACCT is not set
++# CONFIG_TASKSTATS is not set
++# CONFIG_AUDIT is not set
 +
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
++#
++# RCU Subsystem
++#
++CONFIG_TREE_RCU=y
++# CONFIG_TREE_PREEMPT_RCU is not set
++# CONFIG_RCU_TRACE is not set
++CONFIG_RCU_FANOUT=32
++# CONFIG_RCU_FANOUT_EXACT is not set
++# CONFIG_TREE_RCU_TRACE is not set
++# CONFIG_IKCONFIG is not set
++CONFIG_LOG_BUF_SHIFT=14
++# CONFIG_GROUP_SCHED is not set
++# CONFIG_CGROUPS is not set
++# CONFIG_SYSFS_DEPRECATED_V2 is not set
++# CONFIG_RELAY is not set
++CONFIG_NAMESPACES=y
++# CONFIG_UTS_NS is not set
++# CONFIG_IPC_NS is not set
++# CONFIG_USER_NS is not set
++# CONFIG_PID_NS is not set
++# CONFIG_NET_NS is not set
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_INITRAMFS_SOURCE=""
++CONFIG_RD_GZIP=y
++CONFIG_RD_BZIP2=y
++CONFIG_RD_LZMA=y
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_SYSCTL=y
++CONFIG_ANON_INODES=y
++# CONFIG_EMBEDDED is not set
++CONFIG_UID16=y
++CONFIG_SYSCTL_SYSCALL=y
++CONFIG_KALLSYMS=y
++# CONFIG_KALLSYMS_EXTRA_PASS is not set
++CONFIG_HOTPLUG=y
++CONFIG_PRINTK=y
++CONFIG_BUG=y
++CONFIG_ELF_CORE=y
++CONFIG_BASE_FULL=y
++CONFIG_FUTEX=y
++CONFIG_EPOLL=y
++CONFIG_SIGNALFD=y
++CONFIG_TIMERFD=y
++CONFIG_EVENTFD=y
++CONFIG_SHMEM=y
++CONFIG_AIO=y
 +
-+#include <plat/omap7xx.h>
-+#include <plat/common.h>
-+#include <plat/board.h>
-+#include <plat/keypad.h>
++#
++# Kernel Performance Events And Counters
++#
++CONFIG_VM_EVENT_COUNTERS=y
++CONFIG_COMPAT_BRK=y
++CONFIG_SLAB=y
++# CONFIG_SLUB is not set
++# CONFIG_SLOB is not set
++# CONFIG_PROFILING is not set
++CONFIG_HAVE_OPROFILE=y
++# CONFIG_KPROBES is not set
++CONFIG_HAVE_KPROBES=y
++CONFIG_HAVE_KRETPROBES=y
++CONFIG_HAVE_CLK=y
 +
-+#include <mach/irqs.h>
++#
++# GCOV-based kernel profiling
++#
++# CONFIG_SLOW_WORK is not set
++CONFIG_HAVE_GENERIC_DMA_COHERENT=y
++CONFIG_SLABINFO=y
++CONFIG_RT_MUTEXES=y
++CONFIG_BASE_SMALL=0
++CONFIG_MODULES=y
++# CONFIG_MODULE_FORCE_LOAD is not set
++CONFIG_MODULE_UNLOAD=y
++# CONFIG_MODULE_FORCE_UNLOAD is not set
++# CONFIG_MODVERSIONS is not set
++# CONFIG_MODULE_SRCVERSION_ALL is not set
++CONFIG_BLOCK=y
++CONFIG_LBDAF=y
++# CONFIG_BLK_DEV_BSG is not set
++# CONFIG_BLK_DEV_INTEGRITY is not set
 +
-+#include <linux/delay.h>
++#
++# IO Schedulers
++#
++CONFIG_IOSCHED_NOOP=y
++CONFIG_IOSCHED_AS=y
++CONFIG_IOSCHED_DEADLINE=y
++CONFIG_IOSCHED_CFQ=y
++# CONFIG_DEFAULT_AS is not set
++# CONFIG_DEFAULT_DEADLINE is not set
++CONFIG_DEFAULT_CFQ=y
++# CONFIG_DEFAULT_NOOP is not set
++CONFIG_DEFAULT_IOSCHED="cfq"
++CONFIG_FREEZER=y
 +
-+/* LCD register definition */
-+#define       OMAP_LCDC_CONTROL               (0xfffec000 + 0x00)
-+#define       OMAP_LCDC_STATUS                (0xfffec000 + 0x10)
-+#define       OMAP_DMA_LCD_CCR                (0xfffee300 + 0xc2)
-+#define       OMAP_DMA_LCD_CTRL               (0xfffee300 + 0xc4)
-+#define       OMAP_LCDC_CTRL_LCD_EN           (1 << 0)
-+#define       OMAP_LCDC_STAT_DONE             (1 << 0)
++#
++# System Type
++#
++CONFIG_MMU=y
++# CONFIG_ARCH_AAEC2000 is not set
++# CONFIG_ARCH_INTEGRATOR is not set
++# CONFIG_ARCH_REALVIEW is not set
++# CONFIG_ARCH_VERSATILE is not set
++# CONFIG_ARCH_AT91 is not set
++# CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_GEMINI is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_EP93XX is not set
++# CONFIG_ARCH_FOOTBRIDGE is not set
++# CONFIG_ARCH_MXC is not set
++# CONFIG_ARCH_STMP3XXX is not set
++# CONFIG_ARCH_NETX is not set
++# CONFIG_ARCH_H720X is not set
++# CONFIG_ARCH_NOMADIK is not set
++# CONFIG_ARCH_IOP13XX is not set
++# CONFIG_ARCH_IOP32X is not set
++# CONFIG_ARCH_IOP33X is not set
++# CONFIG_ARCH_IXP23XX is not set
++# CONFIG_ARCH_IXP2000 is not set
++# CONFIG_ARCH_IXP4XX is not set
++# CONFIG_ARCH_L7200 is not set
++# CONFIG_ARCH_KIRKWOOD is not set
++# CONFIG_ARCH_LOKI is not set
++# CONFIG_ARCH_MV78XX0 is not set
++# CONFIG_ARCH_ORION5X is not set
++# CONFIG_ARCH_MMP is not set
++# CONFIG_ARCH_KS8695 is not set
++# CONFIG_ARCH_NS9XXX is not set
++# CONFIG_ARCH_W90X900 is not set
++# CONFIG_ARCH_PNX4008 is not set
++# CONFIG_ARCH_PXA is not set
++# CONFIG_ARCH_MSM is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_SA1100 is not set
++# CONFIG_ARCH_S3C2410 is not set
++# CONFIG_ARCH_S3C64XX is not set
++# CONFIG_ARCH_S5PC1XX is not set
++# CONFIG_ARCH_SHARK is not set
++# CONFIG_ARCH_LH7A40X is not set
++# CONFIG_ARCH_U300 is not set
++# CONFIG_ARCH_DAVINCI is not set
++CONFIG_ARCH_OMAP=y
++# CONFIG_ARCH_BCMRING is not set
 +
-+static struct omap_lcd_config htcherald_lcd_config __initdata = {
-+	.ctrl_name	= "internal",
-+};
++#
++# TI OMAP Implementations
++#
++CONFIG_ARCH_OMAP_OTG=y
++CONFIG_ARCH_OMAP1=y
++# CONFIG_ARCH_OMAP2 is not set
++# CONFIG_ARCH_OMAP3 is not set
++# CONFIG_ARCH_OMAP4 is not set
 +
-+static struct omap_board_config_kernel htcherald_config[] __initdata = {
-+	{ OMAP_TAG_LCD, &htcherald_lcd_config },
-+};
++#
++# OMAP Feature Selections
++#
++# CONFIG_OMAP_RESET_CLOCKS is not set
++# CONFIG_OMAP_MUX is not set
++CONFIG_OMAP_MCBSP=y
++# CONFIG_OMAP_MBOX_FWK is not set
++CONFIG_OMAP_MPU_TIMER=y
++# CONFIG_OMAP_32K_TIMER is not set
++CONFIG_OMAP_LL_DEBUG_UART1=y
++# CONFIG_OMAP_LL_DEBUG_UART2 is not set
++# CONFIG_OMAP_LL_DEBUG_UART3 is not set
++# CONFIG_OMAP_LL_DEBUG_NONE is not set
++# CONFIG_OMAP_PM_NONE is not set
++CONFIG_OMAP_PM_NOOP=y
 +
-+/* Keyboard definition */
++#
++# OMAP Core Type
++#
++# CONFIG_ARCH_OMAP730 is not set
++CONFIG_ARCH_OMAP850=y
++# CONFIG_ARCH_OMAP15XX is not set
++# CONFIG_ARCH_OMAP16XX is not set
 +
-+static int htc_herald_keymap[] = {
-+	KEY(0, 0, KEY_RECORD), /* Mail button */
-+	KEY(0, 1, KEY_CAMERA), /* Camera */
-+	KEY(0, 2, KEY_PHONE), /* Send key */
-+	KEY(0, 3, KEY_VOLUMEUP), /* Volume up */
-+	KEY(0, 4, KEY_F2),  /* Right bar (landscape) */
-+	KEY(0, 5, KEY_MAIL), /* Win key (portrait) */
-+	KEY(0, 6, KEY_DIRECTORY), /* Right bar (protrait) */
-+	KEY(1, 0, KEY_LEFTCTRL), /* Windows key */
-+	KEY(1, 1, KEY_COMMA),
-+	KEY(1, 2, KEY_M),
-+	KEY(1, 3, KEY_K),
-+	KEY(1, 4, KEY_SLASH), /* OK key */
-+	KEY(1, 5, KEY_I),
-+	KEY(1, 6, KEY_U),
-+	KEY(2, 0, KEY_LEFTALT),
-+	KEY(2, 1, KEY_TAB),
-+	KEY(2, 2, KEY_N),
-+	KEY(2, 3, KEY_J),
-+	KEY(2, 4, KEY_ENTER),
-+	KEY(2, 5, KEY_H),
-+	KEY(2, 6, KEY_Y),
-+	KEY(3, 0, KEY_SPACE),
-+	KEY(3, 1, KEY_L),
-+	KEY(3, 2, KEY_B),
-+	KEY(3, 3, KEY_V),
-+	KEY(3, 4, KEY_BACKSPACE),
-+	KEY(3, 5, KEY_G),
-+	KEY(3, 6, KEY_T),
-+	KEY(4, 0, KEY_CAPSLOCK), /* Shift */
-+	KEY(4, 1, KEY_C),
-+	KEY(4, 2, KEY_F),
-+	KEY(4, 3, KEY_R),
-+	KEY(4, 4, KEY_O),
-+	KEY(4, 5, KEY_E),
-+	KEY(4, 6, KEY_D),
-+	KEY(5, 0, KEY_X),
-+	KEY(5, 1, KEY_Z),
-+	KEY(5, 2, KEY_S),
-+	KEY(5, 3, KEY_W),
-+	KEY(5, 4, KEY_P),
-+	KEY(5, 5, KEY_Q),
-+	KEY(5, 6, KEY_A),
-+	KEY(6, 0, KEY_CONNECT), /* Voice button */
-+	KEY(6, 2, KEY_CANCEL), /* End key */
-+	KEY(6, 3, KEY_VOLUMEDOWN), /* Volume down */
-+	KEY(6, 4, KEY_F1), /* Left bar (landscape) */
-+	KEY(6, 5, KEY_WWW), /* OK button (portrait) */
-+	KEY(6, 6, KEY_CALENDAR), /* Left bar (portrait) */
-+	0
-+};
++#
++# OMAP Board Type
++#
++# CONFIG_MACH_OMAP_HTCWIZARD is not set
++CONFIG_MACH_HERALD=y
 +
-+struct omap_kp_platform_data htcherald_kp_data = {
-+	.rows	= 7,
-+	.cols	= 7,
-+	.delay = 20,
-+	.rep = 1,
-+	.keymap = htc_herald_keymap,
-+};
++#
++# OMAP CPU Speed
++#
++# CONFIG_OMAP_CLOCKS_SET_BY_BOOTLOADER is not set
++CONFIG_OMAP_ARM_195MHZ=y
++# CONFIG_OMAP_ARM_182MHZ is not set
++# CONFIG_OMAP_ARM_168MHZ is not set
++# CONFIG_OMAP_ARM_120MHZ is not set
++# CONFIG_OMAP_ARM_60MHZ is not set
++# CONFIG_OMAP_ARM_30MHZ is not set
 +
-+static struct resource kp_resources[] = {
-+	[0] = {
-+		.start	= INT_7XX_MPUIO_KEYPAD,
-+		.end	= INT_7XX_MPUIO_KEYPAD,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
++#
++# Processor Type
++#
++CONFIG_CPU_32=y
++CONFIG_CPU_ARM925T=y
++CONFIG_CPU_ARM926T=y
++CONFIG_CPU_32v4T=y
++CONFIG_CPU_32v5=y
++CONFIG_CPU_ABRT_EV4T=y
++CONFIG_CPU_ABRT_EV5TJ=y
++CONFIG_CPU_PABRT_LEGACY=y
++CONFIG_CPU_CACHE_V4WT=y
++CONFIG_CPU_CACHE_VIVT=y
++CONFIG_CPU_COPY_V4WB=y
++CONFIG_CPU_TLB_V4WBI=y
++CONFIG_CPU_CP15=y
++CONFIG_CPU_CP15_MMU=y
 +
-+static struct platform_device kp_device = {
-+	.name		= "omap-keypad",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data = &htcherald_kp_data,
-+	},
-+	.num_resources	= ARRAY_SIZE(kp_resources),
-+	.resource	= kp_resources,
-+};
++#
++# Processor Features
++#
++CONFIG_ARM_THUMB=y
++# CONFIG_CPU_ICACHE_DISABLE is not set
++# CONFIG_CPU_DCACHE_DISABLE is not set
++CONFIG_CPU_DCACHE_WRITETHROUGH=y
++# CONFIG_CPU_CACHE_ROUND_ROBIN is not set
++CONFIG_ARM_L1_CACHE_SHIFT=5
++CONFIG_COMMON_CLKDEV=y
 +
-+/* LCD Device resources */
-+static struct platform_device lcd_device = {
-+	.name           = "lcd_htcherald",
-+	.id             = -1,
-+};
++#
++# Bus support
++#
++# CONFIG_PCI_SYSCALL is not set
++# CONFIG_ARCH_SUPPORTS_MSI is not set
++# CONFIG_PCCARD is not set
 +
-+static struct platform_device *devices[] __initdata = {
-+	&kp_device,
-+	&lcd_device,
-+};
++#
++# Kernel Features
++#
++# CONFIG_NO_HZ is not set
++# CONFIG_HIGH_RES_TIMERS is not set
++CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
++CONFIG_VMSPLIT_3G=y
++# CONFIG_VMSPLIT_2G is not set
++# CONFIG_VMSPLIT_1G is not set
++CONFIG_PAGE_OFFSET=0xC0000000
++# CONFIG_PREEMPT_NONE is not set
++# CONFIG_PREEMPT_VOLUNTARY is not set
++CONFIG_PREEMPT=y
++CONFIG_HZ=100
++CONFIG_AEABI=y
++CONFIG_OABI_COMPAT=y
++# CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
++# CONFIG_ARCH_SELECT_MEMORY_MODEL is not set
++# CONFIG_HIGHMEM is not set
++CONFIG_SELECT_MEMORY_MODEL=y
++CONFIG_FLATMEM_MANUAL=y
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=y
++CONFIG_FLAT_NODE_MEM_MAP=y
++CONFIG_PAGEFLAGS_EXTENDED=y
++CONFIG_SPLIT_PTLOCK_CPUS=4096
++# CONFIG_PHYS_ADDR_T_64BIT is not set
++CONFIG_ZONE_DMA_FLAG=0
++CONFIG_VIRT_TO_BUS=y
++CONFIG_HAVE_MLOCK=y
++CONFIG_HAVE_MLOCKED_PAGE_BIT=y
++# CONFIG_KSM is not set
++CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
++CONFIG_LEDS=y
++CONFIG_ALIGNMENT_TRAP=y
++# CONFIG_UACCESS_WITH_MEMCPY is not set
 +
-+/*
-+ * Init functions from here on
-+ */
++#
++# Boot options
++#
++CONFIG_ZBOOT_ROM_TEXT=0x0
++CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_CMDLINE="mem=32M console=ttyS0,115200 ip=dhcp"
++# CONFIG_XIP_KERNEL is not set
++# CONFIG_KEXEC is not set
 +
-+static void __init htcherald_lcd_init(void)
-+{
-+	u32 reg;
-+	unsigned int tries = 200;
++#
++# CPU Power Management
++#
++# CONFIG_CPU_FREQ is not set
++# CONFIG_CPU_IDLE is not set
 +
-+	/* disable controller if active */
-+	reg = omap_readl(OMAP_LCDC_CONTROL);
-+	if (reg & OMAP_LCDC_CTRL_LCD_EN) {
-+		reg &= ~OMAP_LCDC_CTRL_LCD_EN;
-+		omap_writel(reg, OMAP_LCDC_CONTROL);
++#
++# Floating point emulation
++#
 +
-+		/* wait for end of frame */
-+		while (!(omap_readl(OMAP_LCDC_STATUS) & OMAP_LCDC_STAT_DONE)) {
-+			tries--;
-+			if (!tries)
-+				break;
-+		}
-+		if (!tries)
-+			printk(KERN_WARNING "Timeout waiting for end of frame "
-+			       "-- LCD may not be available\n");
++#
++# At least one emulation must be selected
++#
++CONFIG_FPE_NWFPE=y
++# CONFIG_FPE_NWFPE_XP is not set
++# CONFIG_FPE_FASTFPE is not set
++# CONFIG_VFP is not set
 +
-+		/* turn off DMA */
-+		reg = omap_readw(OMAP_DMA_LCD_CCR);
-+		reg &= ~(1 << 7);
-+		omap_writew(reg, OMAP_DMA_LCD_CCR);
++#
++# Userspace binary formats
++#
++CONFIG_BINFMT_ELF=y
++# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
++CONFIG_HAVE_AOUT=y
++# CONFIG_BINFMT_AOUT is not set
++# CONFIG_BINFMT_MISC is not set
 +
-+		reg = omap_readw(OMAP_DMA_LCD_CTRL);
-+		reg &= ~(1 << 8);
-+		omap_writew(reg, OMAP_DMA_LCD_CTRL);
-+	}
-+}
++#
++# Power management options
++#
++CONFIG_PM=y
++# CONFIG_PM_DEBUG is not set
++CONFIG_PM_SLEEP=y
++CONFIG_SUSPEND=y
++CONFIG_SUSPEND_FREEZER=y
++# CONFIG_APM_EMULATION is not set
++# CONFIG_PM_RUNTIME is not set
++CONFIG_ARCH_SUSPEND_POSSIBLE=y
++CONFIG_NET=y
 +
-+static void __init htcherald_map_io(void)
-+{
-+	omap1_map_common_io();
++#
++# Networking options
++#
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++CONFIG_UNIX=y
++CONFIG_XFRM=y
++# CONFIG_XFRM_USER is not set
++# CONFIG_XFRM_SUB_POLICY is not set
++# CONFIG_XFRM_MIGRATE is not set
++# CONFIG_XFRM_STATISTICS is not set
++# CONFIG_NET_KEY is not set
++CONFIG_INET=y
++CONFIG_IP_MULTICAST=y
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_FIB_HASH=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++# CONFIG_IP_PNP_RARP is not set
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_IP_MROUTE is not set
++# CONFIG_ARPD is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_INET_AH is not set
++# CONFIG_INET_ESP is not set
++# CONFIG_INET_IPCOMP is not set
++# CONFIG_INET_XFRM_TUNNEL is not set
++# CONFIG_INET_TUNNEL is not set
++CONFIG_INET_XFRM_MODE_TRANSPORT=y
++CONFIG_INET_XFRM_MODE_TUNNEL=y
++CONFIG_INET_XFRM_MODE_BEET=y
++CONFIG_INET_LRO=y
++CONFIG_INET_DIAG=y
++CONFIG_INET_TCP_DIAG=y
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_TCP_CONG_CUBIC=y
++CONFIG_DEFAULT_TCP_CONG="cubic"
++# CONFIG_TCP_MD5SIG is not set
++# CONFIG_IPV6 is not set
++# CONFIG_NETWORK_SECMARK is not set
++# CONFIG_NETFILTER is not set
++# CONFIG_IP_DCCP is not set
++# CONFIG_IP_SCTP is not set
++# CONFIG_RDS is not set
++# CONFIG_TIPC is not set
++# CONFIG_ATM is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_NET_DSA is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_DECNET is not set
++# CONFIG_LLC2 is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_X25 is not set
++# CONFIG_LAPB is not set
++# CONFIG_ECONET is not set
++# CONFIG_WAN_ROUTER is not set
++# CONFIG_PHONET is not set
++# CONFIG_IEEE802154 is not set
++# CONFIG_NET_SCHED is not set
++# CONFIG_DCB is not set
 +
-+	/*
-+	 * The LCD panel must be disabled and DMA turned off here, as doing
-+	 * it later causes the LCD never to reinitialize.
-+	 */
-+	htcherald_lcd_init();
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++# CONFIG_HAMRADIO is not set
++# CONFIG_CAN is not set
++# CONFIG_IRDA is not set
++# CONFIG_BT is not set
++# CONFIG_AF_RXRPC is not set
++CONFIG_WIRELESS=y
++# CONFIG_CFG80211 is not set
++CONFIG_CFG80211_DEFAULT_PS_VALUE=0
++# CONFIG_WIRELESS_OLD_REGULATORY is not set
++# CONFIG_WIRELESS_EXT is not set
++# CONFIG_LIB80211 is not set
 +
-+	printk(KERN_INFO "htcherald_map_io done.\n");
-+}
++#
++# CFG80211 needs to be enabled for MAC80211
++#
++# CONFIG_WIMAX is not set
++# CONFIG_RFKILL is not set
++# CONFIG_NET_9P is not set
 +
-+static void __init htcherald_disable_watchdog(void)
-+{
-+	/* Disable watchdog if running */
-+	if (omap_readl(OMAP_WDT_TIMER_MODE) & 0x8000) {
-+		/*
-+		 * disable a potentially running watchdog timer before
-+		 * it kills us.
-+		 */
-+		printk(KERN_WARNING "OMAP850 Watchdog seems to be activated, disabling it for now.\n");
-+		omap_writel(0xF5, OMAP_WDT_TIMER_MODE);
-+		omap_writel(0xA0, OMAP_WDT_TIMER_MODE);
-+	}
-+}
++#
++# Device Drivers
++#
 +
-+static void __init htcherald_init(void)
-+{
-+	printk(KERN_INFO "HTC Herald init.\n");
++#
++# Generic Driver Options
++#
++CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++# CONFIG_DEVTMPFS is not set
++CONFIG_STANDALONE=y
++CONFIG_PREVENT_FIRMWARE_BUILD=y
++CONFIG_FW_LOADER=y
++CONFIG_FIRMWARE_IN_KERNEL=y
++CONFIG_EXTRA_FIRMWARE=""
++# CONFIG_SYS_HYPERVISOR is not set
++# CONFIG_CONNECTOR is not set
++# CONFIG_MTD is not set
++# CONFIG_PARPORT is not set
++CONFIG_BLK_DEV=y
++# CONFIG_BLK_DEV_COW_COMMON is not set
++CONFIG_BLK_DEV_LOOP=y
++# CONFIG_BLK_DEV_CRYPTOLOOP is not set
++# CONFIG_BLK_DEV_NBD is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_COUNT=16
++CONFIG_BLK_DEV_RAM_SIZE=8192
++# CONFIG_BLK_DEV_XIP is not set
++# CONFIG_CDROM_PKTCDVD is not set
++# CONFIG_ATA_OVER_ETH is not set
++# CONFIG_MG_DISK is not set
++CONFIG_MISC_DEVICES=y
++# CONFIG_ENCLOSURE_SERVICES is not set
++# CONFIG_C2PORT is not set
 +
-+	omap_gpio_init();
++#
++# EEPROM support
++#
++# CONFIG_EEPROM_93CX6 is not set
++CONFIG_HAVE_IDE=y
++# CONFIG_IDE is not set
 +
-+	omap_board_config = htcherald_config;
-+	omap_board_config_size = ARRAY_SIZE(htcherald_config);
-+	platform_add_devices(devices, ARRAY_SIZE(devices));
++#
++# SCSI device support
++#
++# CONFIG_RAID_ATTRS is not set
++# CONFIG_SCSI is not set
++# CONFIG_SCSI_DMA is not set
++# CONFIG_SCSI_NETLINK is not set
++# CONFIG_ATA is not set
++# CONFIG_MD is not set
++CONFIG_NETDEVICES=y
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_MACVLAN is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++# CONFIG_VETH is not set
++# CONFIG_PHYLIB is not set
++CONFIG_NET_ETHERNET=y
++CONFIG_MII=y
++# CONFIG_AX88796 is not set
++CONFIG_SMC91X=y
++# CONFIG_DM9000 is not set
++# CONFIG_ETHOC is not set
++# CONFIG_SMC911X is not set
++# CONFIG_SMSC911X is not set
++# CONFIG_DNET is not set
++# CONFIG_IBM_NEW_EMAC_ZMII is not set
++# CONFIG_IBM_NEW_EMAC_RGMII is not set
++# CONFIG_IBM_NEW_EMAC_TAH is not set
++# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
++# CONFIG_IBM_NEW_EMAC_NO_FLOW_CTRL is not set
++# CONFIG_IBM_NEW_EMAC_MAL_CLR_ICINTSTAT is not set
++# CONFIG_IBM_NEW_EMAC_MAL_COMMON_ERR is not set
++# CONFIG_B44 is not set
++# CONFIG_KS8842 is not set
++# CONFIG_KS8851_MLL is not set
++CONFIG_NETDEV_1000=y
++CONFIG_NETDEV_10000=y
++CONFIG_WLAN=y
++# CONFIG_WLAN_PRE80211 is not set
++# CONFIG_WLAN_80211 is not set
 +
-+	htcherald_disable_watchdog();
-+}
++#
++# Enable WiMAX (Networking options) to see the WiMAX drivers
++#
++# CONFIG_WAN is not set
++# CONFIG_PPP is not set
++# CONFIG_SLIP is not set
++# CONFIG_NETCONSOLE is not set
++# CONFIG_NETPOLL is not set
++# CONFIG_NET_POLL_CONTROLLER is not set
++# CONFIG_ISDN is not set
++# CONFIG_PHONE is not set
 +
-+static void __init htcherald_init_irq(void)
-+{
-+	printk(KERN_INFO "htcherald_init_irq.\n");
-+	omap1_init_common_hw();
-+	omap_init_irq();
-+}
++#
++# Input device support
++#
++CONFIG_INPUT=y
++# CONFIG_INPUT_FF_MEMLESS is not set
++# CONFIG_INPUT_POLLDEV is not set
 +
-+MACHINE_START(HERALD, "HTC Herald")
-+	/* Maintainer: Cory Maccarrone <darkstar6262@gmail.com> */
-+	/* Maintainer: wing-linux.sourceforge.net */
-+	.phys_io        = 0xfff00000,
-+	.io_pg_offst    = ((0xfef00000) >> 18) & 0xfffc,
-+	.boot_params    = 0x10000100,
-+	.map_io         = htcherald_map_io,
-+	.init_irq       = htcherald_init_irq,
-+	.init_machine   = htcherald_init,
-+	.timer          = &omap_timer,
-+MACHINE_END
-diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-index b63b198..49226a1 100644
---- a/drivers/video/omap/Makefile
-+++ b/drivers/video/omap/Makefile
-@@ -35,6 +35,7 @@ objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
- objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
- objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
- objs-y$(CONFIG_MACH_OVERO) += lcd_overo.o
-+objs-y$(CONFIG_MACH_HERALD) += lcd_htcherald.o
- 
- omapfb-objs := $(objs-yy)
- 
-diff --git a/drivers/video/omap/lcd_htcherald.c b/drivers/video/omap/lcd_htcherald.c
-new file mode 100644
-index 0000000..2e0c81e
---- /dev/null
-+++ b/drivers/video/omap/lcd_htcherald.c
-@@ -0,0 +1,130 @@
-+/*
-+ * File: drivers/video/omap/lcd-htcherald.c
-+ *
-+ * LCD panel support for the HTC Herald
-+ *
-+ * Copyright (C) 2009 Cory Maccarrone <darkstar6262@gmail.com>
-+ * Copyright (C) 2009 Wing Linux
-+ *
-+ * Based on the lcd_htcwizard.c file from the linwizard project:
-+ * Copyright (C) linwizard.sourceforge.net
-+ * Author: Angelo Arrifano <miknix@gmail.com>
-+ * Based on lcd_h4 by Imre Deak <imre.deak@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
++#
++# Userland interfaces
++#
++CONFIG_INPUT_MOUSEDEV=y
++CONFIG_INPUT_MOUSEDEV_PSAUX=y
++CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
++CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
++# CONFIG_INPUT_JOYDEV is not set
++# CONFIG_INPUT_EVDEV is not set
++# CONFIG_INPUT_EVBUG is not set
 +
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
++#
++# Input Device Drivers
++#
++CONFIG_INPUT_KEYBOARD=y
++# CONFIG_KEYBOARD_ATKBD is not set
++# CONFIG_KEYBOARD_LKKBD is not set
++# CONFIG_KEYBOARD_GPIO is not set
++# CONFIG_KEYBOARD_MATRIX is not set
++# CONFIG_KEYBOARD_NEWTON is not set
++# CONFIG_KEYBOARD_OPENCORES is not set
++# CONFIG_KEYBOARD_STOWAWAY is not set
++# CONFIG_KEYBOARD_SUNKBD is not set
++CONFIG_KEYBOARD_OMAP=y
++# CONFIG_KEYBOARD_XTKBD is not set
++# CONFIG_INPUT_MOUSE is not set
++# CONFIG_INPUT_JOYSTICK is not set
++# CONFIG_INPUT_TABLET is not set
++# CONFIG_INPUT_TOUCHSCREEN is not set
++# CONFIG_INPUT_MISC is not set
 +
-+#include <plat/omapfb.h>
++#
++# Hardware I/O ports
++#
++CONFIG_SERIO=y
++CONFIG_SERIO_SERPORT=y
++# CONFIG_SERIO_RAW is not set
++# CONFIG_GAMEPORT is not set
 +
-+static int htcherald_panel_init(struct lcd_panel *panel,
-+					struct omapfb_device *fbdev)
-+{
-+	return 0;
-+}
++#
++# Character devices
++#
++CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
++CONFIG_VT_CONSOLE=y
++CONFIG_HW_CONSOLE=y
++# CONFIG_VT_HW_CONSOLE_BINDING is not set
++CONFIG_DEVKMEM=y
++# CONFIG_SERIAL_NONSTANDARD is not set
 +
-+static void htcherald_panel_cleanup(struct lcd_panel *panel)
-+{
-+}
++#
++# Serial drivers
++#
++CONFIG_SERIAL_8250=m
++CONFIG_SERIAL_8250_NR_UARTS=4
++CONFIG_SERIAL_8250_RUNTIME_UARTS=4
++# CONFIG_SERIAL_8250_EXTENDED is not set
 +
-+static int htcherald_panel_enable(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
++#
++# Non-8250 serial port support
++#
++CONFIG_SERIAL_CORE=m
++CONFIG_UNIX98_PTYS=y
++# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
++# CONFIG_LEGACY_PTYS is not set
++# CONFIG_IPMI_HANDLER is not set
++CONFIG_HW_RANDOM=m
++# CONFIG_HW_RANDOM_TIMERIOMEM is not set
++# CONFIG_R3964 is not set
++# CONFIG_RAW_DRIVER is not set
++# CONFIG_TCG_TPM is not set
++# CONFIG_I2C is not set
++# CONFIG_SPI is not set
 +
-+static void htcherald_panel_disable(struct lcd_panel *panel)
-+{
-+}
++#
++# PPS support
++#
++# CONFIG_PPS is not set
++CONFIG_ARCH_REQUIRE_GPIOLIB=y
++CONFIG_GPIOLIB=y
++# CONFIG_GPIO_SYSFS is not set
 +
-+static unsigned long htcherald_panel_get_caps(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
++#
++# Memory mapped GPIO expanders:
++#
 +
-+/* Found on WIZ200 (miknix) and some HERA110 models (darkstar62) */
-+struct lcd_panel htcherald_panel_1 = {
-+	.name		= "lcd_herald",
-+	.config		= OMAP_LCDC_PANEL_TFT |
-+			  OMAP_LCDC_INV_HSYNC |
-+			  OMAP_LCDC_INV_VSYNC |
-+			  OMAP_LCDC_INV_PIX_CLOCK,
-+	.bpp		= 16,
-+	.data_lines	= 16,
-+	.x_res		= 240,
-+	.y_res		= 320,
-+	.pixel_clock	= 6093,
-+	.pcd		= 0, /* 15 */
-+	.hsw		= 10,
-+	.hfp		= 10,
-+	.hbp		= 20,
-+	.vsw		= 3,
-+	.vfp		= 2,
-+	.vbp		= 2,
++#
++# I2C GPIO expanders:
++#
 +
-+	.init		= htcherald_panel_init,
-+	.cleanup	= htcherald_panel_cleanup,
-+	.enable		= htcherald_panel_enable,
-+	.disable	= htcherald_panel_disable,
-+	.get_caps	= htcherald_panel_get_caps,
-+};
++#
++# PCI GPIO expanders:
++#
 +
-+static int htcherald_panel_probe(struct platform_device *pdev)
-+{
-+	omapfb_register_panel(&htcherald_panel_1);
-+	return 0;
-+}
++#
++# SPI GPIO expanders:
++#
 +
-+static int htcherald_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
++#
++# AC97 GPIO expanders:
++#
++# CONFIG_W1 is not set
++# CONFIG_POWER_SUPPLY is not set
++CONFIG_HWMON=y
++# CONFIG_HWMON_VID is not set
++# CONFIG_HWMON_DEBUG_CHIP is not set
 +
-+static int htcherald_panel_suspend(struct platform_device *pdev,
-+						pm_message_t mesg)
-+{
-+	return 0;
-+}
++#
++# Native drivers
++#
++# CONFIG_SENSORS_F71805F is not set
++# CONFIG_SENSORS_F71882FG is not set
++# CONFIG_SENSORS_IT87 is not set
++# CONFIG_SENSORS_PC87360 is not set
++# CONFIG_SENSORS_PC87427 is not set
++# CONFIG_SENSORS_SHT15 is not set
++# CONFIG_SENSORS_SMSC47M1 is not set
++# CONFIG_SENSORS_SMSC47B397 is not set
++# CONFIG_SENSORS_VT1211 is not set
++# CONFIG_SENSORS_W83627HF is not set
++# CONFIG_SENSORS_W83627EHF is not set
++# CONFIG_THERMAL is not set
++# CONFIG_WATCHDOG is not set
++CONFIG_SSB_POSSIBLE=y
 +
-+static int htcherald_panel_resume(struct platform_device *pdev)
-+{
-+	return 0;
-+}
++#
++# Sonics Silicon Backplane
++#
++# CONFIG_SSB is not set
 +
-+struct platform_driver htcherald_panel_driver = {
-+	.probe		= htcherald_panel_probe,
-+	.remove		= htcherald_panel_remove,
-+	.suspend	= htcherald_panel_suspend,
-+	.resume		= htcherald_panel_resume,
-+	.driver		= {
-+		.name	= "lcd_htcherald",
-+		.owner	= THIS_MODULE,
-+	},
-+};
++#
++# Multifunction device drivers
++#
++# CONFIG_MFD_CORE is not set
++# CONFIG_MFD_SM501 is not set
++# CONFIG_MFD_ASIC3 is not set
++# CONFIG_HTC_EGPIO is not set
++# CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
++# CONFIG_MFD_T7L66XB is not set
++# CONFIG_MFD_TC6387XB is not set
++# CONFIG_MFD_TC6393XB is not set
++# CONFIG_REGULATOR is not set
++# CONFIG_MEDIA_SUPPORT is not set
 +
-+static int htcherald_panel_drv_init(void)
-+{
-+	return platform_driver_register(&htcherald_panel_driver);
-+}
++#
++# Graphics support
++#
++# CONFIG_VGASTATE is not set
++CONFIG_VIDEO_OUTPUT_CONTROL=m
++CONFIG_FB=y
++# CONFIG_FIRMWARE_EDID is not set
++# CONFIG_FB_DDC is not set
++# CONFIG_FB_BOOT_VESA_SUPPORT is not set
++CONFIG_FB_CFB_FILLRECT=y
++CONFIG_FB_CFB_COPYAREA=y
++CONFIG_FB_CFB_IMAGEBLIT=y
++# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
++# CONFIG_FB_SYS_FILLRECT is not set
++# CONFIG_FB_SYS_COPYAREA is not set
++# CONFIG_FB_SYS_IMAGEBLIT is not set
++# CONFIG_FB_FOREIGN_ENDIAN is not set
++# CONFIG_FB_SYS_FOPS is not set
++# CONFIG_FB_SVGALIB is not set
++# CONFIG_FB_MACMODES is not set
++# CONFIG_FB_BACKLIGHT is not set
++CONFIG_FB_MODE_HELPERS=y
++# CONFIG_FB_TILEBLITTING is not set
 +
-+static void htcherald_panel_drv_cleanup(void)
-+{
-+	platform_driver_unregister(&htcherald_panel_driver);
-+}
++#
++# Frame buffer hardware drivers
++#
++# CONFIG_FB_S1D13XXX is not set
++# CONFIG_FB_VIRTUAL is not set
++# CONFIG_FB_METRONOME is not set
++# CONFIG_FB_MB862XX is not set
++# CONFIG_FB_BROADSHEET is not set
++CONFIG_FB_OMAP=y
++# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
++# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
++CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
++# CONFIG_FB_OMAP_DMA_TUNE is not set
++# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
 +
-+module_init(htcherald_panel_drv_init);
-+module_exit(htcherald_panel_drv_cleanup);
++#
++# Display device support
++#
++# CONFIG_DISPLAY_SUPPORT is not set
 +
++#
++# Console display driver support
++#
++# CONFIG_VGA_CONSOLE is not set
++CONFIG_DUMMY_CONSOLE=y
++CONFIG_FRAMEBUFFER_CONSOLE=y
++# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
++CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
++CONFIG_FONTS=y
++# CONFIG_FONT_8x8 is not set
++# CONFIG_FONT_8x16 is not set
++# CONFIG_FONT_6x11 is not set
++# CONFIG_FONT_7x14 is not set
++# CONFIG_FONT_PEARL_8x8 is not set
++# CONFIG_FONT_ACORN_8x8 is not set
++CONFIG_FONT_MINI_4x6=y
++# CONFIG_FONT_SUN8x16 is not set
++# CONFIG_FONT_SUN12x22 is not set
++# CONFIG_FONT_10x18 is not set
++# CONFIG_LOGO is not set
++# CONFIG_SOUND is not set
++CONFIG_HID_SUPPORT=y
++CONFIG_HID=y
++# CONFIG_HIDRAW is not set
++# CONFIG_HID_PID is not set
++
++#
++# Special HID drivers
++#
++CONFIG_USB_SUPPORT=y
++CONFIG_USB_ARCH_HAS_HCD=y
++CONFIG_USB_ARCH_HAS_OHCI=y
++# CONFIG_USB_ARCH_HAS_EHCI is not set
++# CONFIG_USB is not set
++# CONFIG_USB_MUSB_HDRC is not set
++# CONFIG_USB_GADGET_MUSB_HDRC is not set
++
++#
++# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
++#
++CONFIG_USB_GADGET=y
++# CONFIG_USB_GADGET_DEBUG_FILES is not set
++CONFIG_USB_GADGET_VBUS_DRAW=2
++CONFIG_USB_GADGET_SELECTED=y
++# CONFIG_USB_GADGET_AT91 is not set
++# CONFIG_USB_GADGET_ATMEL_USBA is not set
++# CONFIG_USB_GADGET_FSL_USB2 is not set
++# CONFIG_USB_GADGET_LH7A40X is not set
++CONFIG_USB_GADGET_OMAP=y
++CONFIG_USB_OMAP=y
++# CONFIG_USB_GADGET_PXA25X is not set
++# CONFIG_USB_GADGET_R8A66597 is not set
++# CONFIG_USB_GADGET_PXA27X is not set
++# CONFIG_USB_GADGET_S3C_HSOTG is not set
++# CONFIG_USB_GADGET_IMX is not set
++# CONFIG_USB_GADGET_S3C2410 is not set
++# CONFIG_USB_GADGET_M66592 is not set
++# CONFIG_USB_GADGET_AMD5536UDC is not set
++# CONFIG_USB_GADGET_FSL_QE is not set
++# CONFIG_USB_GADGET_CI13XXX is not set
++# CONFIG_USB_GADGET_NET2280 is not set
++# CONFIG_USB_GADGET_GOKU is not set
++# CONFIG_USB_GADGET_LANGWELL is not set
++# CONFIG_USB_GADGET_DUMMY_HCD is not set
++# CONFIG_USB_GADGET_DUALSPEED is not set
++# CONFIG_USB_ZERO is not set
++# CONFIG_USB_AUDIO is not set
++CONFIG_USB_ETH=y
++# CONFIG_USB_ETH_RNDIS is not set
++# CONFIG_USB_ETH_EEM is not set
++# CONFIG_USB_GADGETFS is not set
++# CONFIG_USB_FILE_STORAGE is not set
++# CONFIG_USB_G_SERIAL is not set
++# CONFIG_USB_MIDI_GADGET is not set
++# CONFIG_USB_G_PRINTER is not set
++# CONFIG_USB_CDC_COMPOSITE is not set
++
++#
++# OTG and related infrastructure
++#
++CONFIG_USB_OTG_UTILS=y
++# CONFIG_USB_GPIO_VBUS is not set
++# CONFIG_NOP_USB_XCEIV is not set
++CONFIG_MMC=y
++# CONFIG_MMC_DEBUG is not set
++# CONFIG_MMC_UNSAFE_RESUME is not set
++
++#
++# MMC/SD/SDIO Card Drivers
++#
++CONFIG_MMC_BLOCK=y
++CONFIG_MMC_BLOCK_BOUNCE=y
++# CONFIG_SDIO_UART is not set
++# CONFIG_MMC_TEST is not set
++
++#
++# MMC/SD/SDIO Host Controller Drivers
++#
++CONFIG_MMC_SDHCI=y
++CONFIG_MMC_SDHCI_PLTFM=y
++CONFIG_MMC_OMAP=y
++# CONFIG_MMC_AT91 is not set
++# CONFIG_MMC_ATMELMCI is not set
++# CONFIG_MEMSTICK is not set
++# CONFIG_NEW_LEDS is not set
++# CONFIG_ACCESSIBILITY is not set
++CONFIG_RTC_LIB=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_HCTOSYS=y
++CONFIG_RTC_HCTOSYS_DEVICE="rtc0"
++# CONFIG_RTC_DEBUG is not set
++
++#
++# RTC interfaces
++#
++CONFIG_RTC_INTF_SYSFS=y
++CONFIG_RTC_INTF_PROC=y
++CONFIG_RTC_INTF_DEV=y
++# CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
++# CONFIG_RTC_DRV_TEST is not set
++
++#
++# SPI RTC drivers
++#
++
++#
++# Platform RTC drivers
++#
++# CONFIG_RTC_DRV_CMOS is not set
++# CONFIG_RTC_DRV_DS1286 is not set
++# CONFIG_RTC_DRV_DS1511 is not set
++# CONFIG_RTC_DRV_DS1553 is not set
++# CONFIG_RTC_DRV_DS1742 is not set
++# CONFIG_RTC_DRV_STK17TA8 is not set
++# CONFIG_RTC_DRV_M48T86 is not set
++# CONFIG_RTC_DRV_M48T35 is not set
++# CONFIG_RTC_DRV_M48T59 is not set
++# CONFIG_RTC_DRV_BQ4802 is not set
++# CONFIG_RTC_DRV_V3020 is not set
++
++#
++# on-CPU RTC drivers
++#
++# CONFIG_DMADEVICES is not set
++# CONFIG_AUXDISPLAY is not set
++# CONFIG_UIO is not set
++
++#
++# TI VLYNQ
++#
++# CONFIG_STAGING is not set
++
++#
++# File systems
++#
++CONFIG_EXT2_FS=y
++# CONFIG_EXT2_FS_XATTR is not set
++# CONFIG_EXT2_FS_XIP is not set
++CONFIG_EXT3_FS=y
++# CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
++CONFIG_EXT3_FS_XATTR=y
++# CONFIG_EXT3_FS_POSIX_ACL is not set
++# CONFIG_EXT3_FS_SECURITY is not set
++# CONFIG_EXT4_FS is not set
++CONFIG_JBD=y
++CONFIG_FS_MBCACHE=y
++# CONFIG_REISERFS_FS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
++# CONFIG_XFS_FS is not set
++# CONFIG_GFS2_FS is not set
++# CONFIG_OCFS2_FS is not set
++# CONFIG_BTRFS_FS is not set
++# CONFIG_NILFS2_FS is not set
++CONFIG_FILE_LOCKING=y
++CONFIG_FSNOTIFY=y
++CONFIG_DNOTIFY=y
++CONFIG_INOTIFY=y
++CONFIG_INOTIFY_USER=y
++# CONFIG_QUOTA is not set
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_FUSE_FS is not set
++
++#
++# Caches
++#
++# CONFIG_FSCACHE is not set
++
++#
++# CD-ROM/DVD Filesystems
++#
++# CONFIG_ISO9660_FS is not set
++# CONFIG_UDF_FS is not set
++
++#
++# DOS/FAT/NT Filesystems
++#
++# CONFIG_MSDOS_FS is not set
++# CONFIG_VFAT_FS is not set
++# CONFIG_NTFS_FS is not set
++
++#
++# Pseudo filesystems
++#
++CONFIG_PROC_FS=y
++CONFIG_PROC_SYSCTL=y
++CONFIG_PROC_PAGE_MONITOR=y
++CONFIG_SYSFS=y
++CONFIG_TMPFS=y
++# CONFIG_TMPFS_POSIX_ACL is not set
++# CONFIG_HUGETLB_PAGE is not set
++# CONFIG_CONFIGFS_FS is not set
++CONFIG_MISC_FILESYSTEMS=y
++# CONFIG_ADFS_FS is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_HFSPLUS_FS is not set
++# CONFIG_BEFS_FS is not set
++# CONFIG_BFS_FS is not set
++# CONFIG_EFS_FS is not set
++# CONFIG_CRAMFS is not set
++# CONFIG_SQUASHFS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_OMFS_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_ROMFS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_UFS_FS is not set
++CONFIG_NETWORK_FILESYSTEMS=y
++CONFIG_NFS_FS=y
++# CONFIG_NFS_V3 is not set
++# CONFIG_NFS_V4 is not set
++CONFIG_ROOT_NFS=y
++# CONFIG_NFSD is not set
++CONFIG_LOCKD=y
++CONFIG_NFS_COMMON=y
++CONFIG_SUNRPC=y
++# CONFIG_RPCSEC_GSS_KRB5 is not set
++# CONFIG_RPCSEC_GSS_SPKM3 is not set
++# CONFIG_SMB_FS is not set
++# CONFIG_CIFS is not set
++# CONFIG_NCP_FS is not set
++# CONFIG_CODA_FS is not set
++# CONFIG_AFS_FS is not set
++
++#
++# Partition Types
++#
++# CONFIG_PARTITION_ADVANCED is not set
++CONFIG_MSDOS_PARTITION=y
++# CONFIG_NLS is not set
++# CONFIG_DLM is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PRINTK_TIME is not set
++CONFIG_ENABLE_WARN_DEPRECATED=y
++CONFIG_ENABLE_MUST_CHECK=y
++CONFIG_FRAME_WARN=1024
++# CONFIG_MAGIC_SYSRQ is not set
++# CONFIG_STRIP_ASM_SYMS is not set
++# CONFIG_UNUSED_SYMBOLS is not set
++# CONFIG_DEBUG_FS is not set
++# CONFIG_HEADERS_CHECK is not set
++# CONFIG_DEBUG_KERNEL is not set
++CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++# CONFIG_RCU_CPU_STALL_DETECTOR is not set
++# CONFIG_LATENCYTOP is not set
++# CONFIG_SYSCTL_SYSCALL_CHECK is not set
++CONFIG_HAVE_FUNCTION_TRACER=y
++CONFIG_TRACING_SUPPORT=y
++# CONFIG_FTRACE is not set
++# CONFIG_SAMPLES is not set
++CONFIG_HAVE_ARCH_KGDB=y
++CONFIG_ARM_UNWIND=y
++# CONFIG_DEBUG_USER is not set
++
++#
++# Security options
++#
++# CONFIG_KEYS is not set
++# CONFIG_SECURITY is not set
++# CONFIG_SECURITYFS is not set
++# CONFIG_SECURITY_FILE_CAPABILITIES is not set
++CONFIG_CRYPTO=y
++
++#
++# Crypto core or helper
++#
++CONFIG_CRYPTO_ALGAPI=y
++CONFIG_CRYPTO_ALGAPI2=y
++CONFIG_CRYPTO_PCOMP=y
++# CONFIG_CRYPTO_MANAGER is not set
++# CONFIG_CRYPTO_MANAGER2 is not set
++# CONFIG_CRYPTO_GF128MUL is not set
++# CONFIG_CRYPTO_NULL is not set
++# CONFIG_CRYPTO_CRYPTD is not set
++# CONFIG_CRYPTO_AUTHENC is not set
++# CONFIG_CRYPTO_TEST is not set
++
++#
++# Authenticated Encryption with Associated Data
++#
++# CONFIG_CRYPTO_CCM is not set
++# CONFIG_CRYPTO_GCM is not set
++# CONFIG_CRYPTO_SEQIV is not set
++
++#
++# Block modes
++#
++# CONFIG_CRYPTO_CBC is not set
++# CONFIG_CRYPTO_CTR is not set
++# CONFIG_CRYPTO_CTS is not set
++# CONFIG_CRYPTO_ECB is not set
++# CONFIG_CRYPTO_LRW is not set
++# CONFIG_CRYPTO_PCBC is not set
++# CONFIG_CRYPTO_XTS is not set
++
++#
++# Hash modes
++#
++# CONFIG_CRYPTO_HMAC is not set
++# CONFIG_CRYPTO_XCBC is not set
++# CONFIG_CRYPTO_VMAC is not set
++
++#
++# Digest
++#
++# CONFIG_CRYPTO_CRC32C is not set
++# CONFIG_CRYPTO_GHASH is not set
++# CONFIG_CRYPTO_MD4 is not set
++# CONFIG_CRYPTO_MD5 is not set
++# CONFIG_CRYPTO_MICHAEL_MIC is not set
++# CONFIG_CRYPTO_RMD128 is not set
++# CONFIG_CRYPTO_RMD160 is not set
++# CONFIG_CRYPTO_RMD256 is not set
++# CONFIG_CRYPTO_RMD320 is not set
++# CONFIG_CRYPTO_SHA1 is not set
++# CONFIG_CRYPTO_SHA256 is not set
++# CONFIG_CRYPTO_SHA512 is not set
++# CONFIG_CRYPTO_TGR192 is not set
++# CONFIG_CRYPTO_WP512 is not set
++
++#
++# Ciphers
++#
++# CONFIG_CRYPTO_AES is not set
++# CONFIG_CRYPTO_ANUBIS is not set
++# CONFIG_CRYPTO_ARC4 is not set
++# CONFIG_CRYPTO_BLOWFISH is not set
++# CONFIG_CRYPTO_CAMELLIA is not set
++# CONFIG_CRYPTO_CAST5 is not set
++# CONFIG_CRYPTO_CAST6 is not set
++# CONFIG_CRYPTO_DES is not set
++# CONFIG_CRYPTO_FCRYPT is not set
++# CONFIG_CRYPTO_KHAZAD is not set
++# CONFIG_CRYPTO_SALSA20 is not set
++# CONFIG_CRYPTO_SEED is not set
++# CONFIG_CRYPTO_SERPENT is not set
++# CONFIG_CRYPTO_TEA is not set
++# CONFIG_CRYPTO_TWOFISH is not set
++
++#
++# Compression
++#
++CONFIG_CRYPTO_DEFLATE=y
++CONFIG_CRYPTO_ZLIB=y
++CONFIG_CRYPTO_LZO=y
++
++#
++# Random Number Generation
++#
++# CONFIG_CRYPTO_ANSI_CPRNG is not set
++CONFIG_CRYPTO_HW=y
++# CONFIG_BINARY_PRINTF is not set
++
++#
++# Library routines
++#
++CONFIG_BITREVERSE=y
++CONFIG_GENERIC_FIND_LAST_BIT=y
++# CONFIG_CRC_CCITT is not set
++# CONFIG_CRC16 is not set
++# CONFIG_CRC_T10DIF is not set
++# CONFIG_CRC_ITU_T is not set
++CONFIG_CRC32=y
++# CONFIG_CRC7 is not set
++# CONFIG_LIBCRC32C is not set
++CONFIG_ZLIB_INFLATE=y
++CONFIG_ZLIB_DEFLATE=y
++CONFIG_LZO_COMPRESS=y
++CONFIG_LZO_DECOMPRESS=y
++CONFIG_DECOMPRESS_GZIP=y
++CONFIG_DECOMPRESS_BZIP2=y
++CONFIG_DECOMPRESS_LZMA=y
++CONFIG_HAS_IOMEM=y
++CONFIG_HAS_IOPORT=y
++CONFIG_HAS_DMA=y
++CONFIG_NLATTR=y
 
