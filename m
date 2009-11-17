@@ -1,31 +1,40 @@
-From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Subject: Re: [PATCH 8/8] musb: set 'extvbus = 0' for Blackfin boards
-Date: Tue, 17 Nov 2009 19:13:09 +0300
-Message-ID: <4B02CB95.4080306@ru.mvista.com>
-References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-2-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-3-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-4-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-5-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-6-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-7-git-send-email-ajay.gupta@ti.com>	<1258470596-24321-8-git-send-email-ajay.gupta@ti.com> <1258470596-24321-9-git-send-email-ajay.gupta@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1258470596-24321-9-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org
+From: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Subject: [PATCH 1/2] ASoC: Correcting the config options in soc/omap/Makefile
+Date: Tue, 17 Nov 2009 21:43:18 +0530
+Message-ID: <1258474398-29695-1-git-send-email-anuj.aggarwal@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59545 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708AbZKQQNU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 11:13:20 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: broonie@opensource.wolfsonmicro.com, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-Ajay Kumar Gupta wrote:
+Wrong config options were being used in the soc/omap/Makefile
+for OMAP2 & OMAP3 and AM3517 EVMs.
 
-> Default value of 'extvbus' is being set as '0' to maintain the
-> current programming state of all Blackfin musb boards.
+Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+---
+ sound/soc/omap/Makefile |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-    Again, you could keep the structures unitialized so that they default to 
-all zeros (which they do anyway for the 'power' and 'potpgt' fields with 
-your patch).
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index 02d6947..a69bd04 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -21,8 +21,8 @@ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
+ obj-$(CONFIG_SND_OMAP_SOC_AMS_DELTA) += snd-soc-ams-delta.o
+ obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
+ obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
+-obj-$(CONFIG_MACH_OMAP2EVM) += snd-soc-omap2evm.o
+-obj-$(CONFIG_MACH_OMAP3EVM) += snd-soc-omap3evm.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP2EVM) += snd-soc-omap2evm.o
++obj-$(CONFIG_SND_SOC_OMAP_OMAP3EVM) += snd-soc-omap3evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
+-- 
+1.6.2.4
 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
