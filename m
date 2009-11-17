@@ -1,7 +1,7 @@
 From: "Y, Kishore" <kishore.y@ti.com>
-Subject: [RFC] [PATCH] omap_vout: default colorspace for RGB565 set to SRGB
-Date: Tue, 17 Nov 2009 19:45:52 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940254299E0F@dbde02.ent.ti.com>
+Subject: [RFC] [PATCH] omap_vout: Change allocated buffer to only needed size
+Date: Tue, 17 Nov 2009 20:01:01 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940254299E21@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
@@ -15,32 +15,32 @@ List-Id: linux-omap@vger.kernel.org
 This patch is dependent on the patch
 [PATCH 4/4] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on top of DSS2
 
->From 41b85f02f441771ace6c42ee08475ab7be04eb90 Mon Sep 17 00:00:00 2001
+>From eb4302232f15e0af075604a9cf24fcaa9688e8a5 Mon Sep 17 00:00:00 2001
 From: Kishore Y <kishore.y@ti.com>
-Date: Wed, 11 Nov 2009 19:47:14 +0530
-Subject: [PATCH] omap_vout: default colorspace for RGB565 set to SRGB
+Date: Tue, 10 Nov 2009 21:44:10 +0530
+Subject: [PATCH] omap_vout: Change allocated buffer to only needed size
+ This patch change allocation size of IO buffers to allocate
+ only needed size depending on pix.width, pix.height and bytes
+ per pixel. The buffer size is rounded to allocate always a PAGE_SIZE multiple
 
-Default video format is set to RGB565 and the colorspace is set to
-JPEG. Best colorspace for RGB565 is SRGB and hence changed to it.
-
-Signed-off-by: Kishore Y <kishore.y@ti.com>
+Signed-off-by:  Kishore Y <kishore.y@ti.com>
 ---
- drivers/media/video/omap/omap_vout.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/video/omap/omap_vout.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 6118665..7092ef2 100644
+index a13f65e..8064c2d 100644
 --- a/drivers/media/video/omap/omap_vout.c
 +++ b/drivers/media/video/omap/omap_vout.c
-@@ -2078,7 +2078,7 @@ static int __init omap_vout_setup_video_data(struct omap_vout_device *vout)
- 	pix->bytesperline = pix->width * 2;
- 	pix->sizeimage = pix->bytesperline * pix->height;
- 	pix->priv = 0;
--	pix->colorspace = V4L2_COLORSPACE_JPEG;
-+	pix->colorspace = V4L2_COLORSPACE_SRGB;
+@@ -855,6 +855,8 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
  
- 	vout->bpp = RGB565_BPP;
- 	vout->fbuf.fmt.width  =  display->panel.timings.x_res;
+ 	/* Now allocated the V4L2 buffers */
+ 	*size = vout->buffer_size;
++	*size = vout->pix.width * vout->pix.height * vout->bpp;
++	*size = PAGE_ALIGN(*size);
+ 	startindex = (vout->vid == OMAP_VIDEO1) ?
+ 		video1_numbuffers : video2_numbuffers;
+ 	for (i = startindex; i < *count; i++) {
 -- 
 1.5.4.3
 
