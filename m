@@ -1,101 +1,92 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] OMAP clock/hwmod: fix off-by-one errors
-Date: Tue, 17 Nov 2009 14:24:10 -0800
-Message-ID: <20091117222409.GH29266@atomide.com>
-References: <20091116133237.14128.39687.stgit@localhost.localdomain>
- <20091116133654.14128.175.stgit@localhost.localdomain>
- <20091116140830.GA31522@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.0911171036430.27682@utopia.booyaka.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA689E6A@dbde02.ent.ti.com>
+Subject: [PATCH 00/12] New omap boards and rx51/n900 updates for 2.6.33
+Date: Tue, 17 Nov 2009 15:04:44 -0800
+Message-ID: <20091117230324.19869.44927.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55752 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753078AbZKQWYa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 17:24:30 -0500
-Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA689E6A@dbde02.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53914 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752678AbZKQXEl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 18:04:41 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Juha =?iso-8859-1?Q?Lepp=E4nen?= <juha_motorsportcom@luukku.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Pandita, Vikram <vikram.pandita@ti.com> [091117 09:50]:
-> Paul
->=20
-> >-----Original Message-----
-> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger=
-=2Ekernel.org] On Behalf Of Paul
-> >Walmsley
-> >Sent: Tuesday, November 17, 2009 11:39 AM
-> >To: Russell King - ARM Linux
-> >Cc: linux-arm-kernel@lists.infradead.org; Juha Lepp=E4nen; linux-oma=
-p@vger.kernel.org
-> >Subject: Re: [PATCH 3/3] OMAP clock/hwmod: fix off-by-one errors
-> <snip>
-> >
-> >+/**
-> >+ * omap_test_timeout - busy-loop, testing a condition
-> >+ * @cond: condition to test until it evaluates to true
-> >+ * @timeout: maximum number of microseconds in the timeout
-> >+ * @index: loop index (integer)
-> >+ *
-> >+ * Loop waiting for @cond to become true or until at least @timeout
-> >+ * microseconds have passed.  To use, define some integer @index in=
- the
-> >+ * calling code.  After running, if @index =3D=3D @timeout, then th=
-e loop has
-> >+ * timed out.
-> >+ */
-> >+#define omap_test_timeout(cond, timeout, index)			\
-> >+({								\
-> >+	for (index =3D 0; index < timeout; index++) {		\
-> >+		if (cond)					\
-> >+			break;					\
-> >+		udelay(1);					\
-> >+	}							\
-> >+})
-> >+
->=20
-> There is a similar kind of function implemented in USB host, that ret=
-urns -ETIMEDOUT
-> Which makes more sense for failure case.
->=20
-> Maybe such a generic function for all omaps is needed.
->=20
-> Refer:
-> drivers/usb/host/ehci-hcd.c
-> static int handshake (struct ehci_hcd *ehci, void __iomem *ptr,
->                       u32 mask, u32 done, int usec)
-> {
->         u32     result;
->=20
->         do {
->                 result =3D ehci_readl(ehci, ptr);
->                 if (result =3D=3D ~(u32)0)          /* card removed *=
-/
->                         return -ENODEV;
->                 result &=3D mask;
->                 if (result =3D=3D done)
->                         return 0;
->                 udelay (1);
->                 usec--;
->         } while (usec > 0);
->         return -ETIMEDOUT;
-> }
->=20
->=20
-> > #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+Hi all,
 
-Well we need to stick to minimal changes if we plan to send this in as =
-a fix.
-Anything more complex we should do the next merge window.
+Here are some omap patches for review for the 2.6.33 merge window.
+
+This series mostly adds support for new boards, and updates the
+rx51/n900 devices.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+---
+
+Cory Maccarrone (2):
+      omap1: Add board support and LCD for HTC Herald
+      omap1: Add default kernel configuration for Herald
+
+Enric Balletbo i Serra (2):
+      omap3: Add minimal IGEP v2 support
+      omap3: Add defconfig for IGEP v2 board
+
+Kalle Valo (1):
+      omap3: rx51: Add wl1251 wlan driver support
+
+Mike Rapoport (2):
+      omap3: Add CompuLab CM-T35 board support
+      omap3: Add CompuLab CM-T35 defconfig
+
+Ranjith Lohithakshan (2):
+      AM35xx: Add support for AM3517 EVM board
+      AM35xx: Defconfig for AM3517 EVM board
+
+Tero Kristo (1):
+      omap3: rx51: Add SDRAM init
+
+vikram pandita (2):
+      omap: 3630sdp: introduce 3630 sdp board support
+      omap: 3630sdp: defconfig creation
+
+
+ arch/arm/configs/am3517_evm_defconfig        | 1207 ++++++++++++++++++
+ arch/arm/configs/cm_t35_defconfig            | 1733 ++++++++++++++++++++++++++
+ arch/arm/configs/htcherald_defconfig         | 1142 +++++++++++++++++
+ arch/arm/configs/igep0020_defconfig          | 1554 +++++++++++++++++++++++
+ arch/arm/configs/omap_3630sdp_defconfig      | 1611 ++++++++++++++++++++++++
+ arch/arm/mach-omap1/Kconfig                  |    6 
+ arch/arm/mach-omap1/Makefile                 |    1 
+ arch/arm/mach-omap1/board-htcherald.c        |  247 ++++
+ arch/arm/mach-omap2/Kconfig                  |   16 
+ arch/arm/mach-omap2/Makefile                 |   10 
+ arch/arm/mach-omap2/board-3630sdp.c          |  101 ++
+ arch/arm/mach-omap2/board-am3517evm.c        |   86 +
+ arch/arm/mach-omap2/board-cm-t35.c           |  507 ++++++++
+ arch/arm/mach-omap2/board-igep0020.c         |  251 ++++
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   85 +
+ arch/arm/mach-omap2/board-rx51-sdram.c       |  221 +++
+ arch/arm/mach-omap2/board-rx51.c             |    7 
+ drivers/video/omap/Makefile                  |    1 
+ drivers/video/omap/lcd_htcherald.c           |  130 ++
+ 19 files changed, 8915 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/configs/am3517_evm_defconfig
+ create mode 100644 arch/arm/configs/cm_t35_defconfig
+ create mode 100644 arch/arm/configs/htcherald_defconfig
+ create mode 100644 arch/arm/configs/igep0020_defconfig
+ create mode 100644 arch/arm/configs/omap_3630sdp_defconfig
+ create mode 100644 arch/arm/mach-omap1/board-htcherald.c
+ create mode 100755 arch/arm/mach-omap2/board-3630sdp.c
+ create mode 100644 arch/arm/mach-omap2/board-am3517evm.c
+ create mode 100644 arch/arm/mach-omap2/board-cm-t35.c
+ create mode 100644 arch/arm/mach-omap2/board-igep0020.c
+ create mode 100644 arch/arm/mach-omap2/board-rx51-sdram.c
+ create mode 100644 drivers/video/omap/lcd_htcherald.c
+
+-- 
+Signature
