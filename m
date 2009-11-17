@@ -1,75 +1,118 @@
-From: Troy Kisky <troy.kisky@boundarydevices.com>
-Subject: Re: Artifacts present in AIC23 capture for 48
- KHz	sampling rate
-Date: Tue, 17 Nov 2009 12:09:21 -0700
-Message-ID: <4B02F4E1.3060405@boundarydevices.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C9109@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C9109@dbde02.ent.ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH 1/2] serial: 8250: add UPF_NO_EMPTY_FIFO_READ flag
+Date: Tue, 17 Nov 2009 15:16:55 -0600
+Message-ID: <1258492615-15963-1-git-send-email-vikram.pandita@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43042 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752194AbZKQVRR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Nov 2009 16:17:17 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-serial@vger.kernel.org, akpm@linux-foundation.org
+Cc: alan@lxorguk.ukuu.org.uk, linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Aggarwal, Anuj wrote:
->> -----Original Message-----
->> From: Aggarwal, Anuj
->> Sent: Friday, November 06, 2009 6:28 PM
->> To: alsa-devel@alsa-project.org; 'linux-omap@vger.kernel.org'
->> Subject: Artifacts present in AIC23 capture for 48 KHz sampling rate
->>
->> Hi,
->>
->> I am observing artifacts (sharp spikes at fixed intervals) while
->> capturing audio on AM3517 EVM and AIC23 codec. They are present only
->> in one of the channels when I am capturing at 48 KHz. All other
->> sampling rates are working fine with the above said combination.
->>
->> I have also attached the screenshot taken with the help of Audacity
->> utility. Here, I tried recording silence but artifacts were observed
->> on one channel.
->>
->> Has anyone also observed the similar behavior with AIC23 codec? Any
->> hints on what could be the root cause?
-> [Aggarwal, Anuj] On further debugging, I found that the function
-> find_rate() in sound/soc/codecs/tlv320aic23.c is not returning 
-> the correct value for capture in 48KHz sample rate. In USB mode
-> (MCLK=12MHz), for 48KHz, it returns 0x7D (CLKOUT=0, CLKIN=1, 
-> SR[3:0]=0xF, BOSR=1, Normal=1) whereas as per the AIC23B spec, 
+OMAP3630 and OMAP4430 UART IP blocks have a restriction wrt RX FIFO.
+Empty RX fifo read causes an abort. OMAP1/2/3 do not have this restriction.
 
-0x7D would be BOSR = 0, USB/NORMAL = 1, SR=0xff, div2 = 1
+So interoduce a flag in 8250 driver: UPF_NO_EMPTY_FIFO_READ
 
-The bug is with sr_valid_mask,
+If this flag is specified for an 8250 port, then first check if rx fifo has
+contents, and only then proceed to read the fifo.
 
-static const unsigned short sr_valid_mask[] = {
-	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 0*/
-	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 1*/
-	LOWER_GROUP,			/* Usb, bosr - 0*/
-	UPPER_GROUP,			/* Usb, bosr - 1*/
-};
+The change affects only boards passing this flag in port data and hence is
+non-disruptive for other boards.
 
-should be
+First reported/fixed on omap4430 by Shilimkar, Santosh
 
-static const unsigned short sr_valid_mask[] = {
-	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 0*/
-	LOWER_GROUP,			/* Usb, bosr - 0*/
-	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 1*/
-	UPPER_GROUP,			/* Usb, bosr - 1*/
-};
+Cc: Shilimkar, Santosh <santosh.shilimkar@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ drivers/serial/8250.c       |   30 +++++++++++++++++++++++++-----
+ include/linux/serial_core.h |    1 +
+ 2 files changed, 26 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/serial/8250.c b/drivers/serial/8250.c
+index 737b4c9..03c890e 100644
+--- a/drivers/serial/8250.c
++++ b/drivers/serial/8250.c
+@@ -1245,7 +1245,11 @@ static void autoconfig(struct uart_8250_port *up, unsigned int probeflags)
+ #endif
+ 	serial_outp(up, UART_MCR, save_mcr);
+ 	serial8250_clear_fifos(up);
+-	serial_in(up, UART_RX);
++	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
++		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
++			serial_in(up, UART_RX);
++	} else
++		serial_in(up, UART_RX);
+ 	if (up->capabilities & UART_CAP_UUE)
+ 		serial_outp(up, UART_IER, UART_IER_UUE);
+ 	else
+@@ -1289,7 +1293,11 @@ static void autoconfig_irq(struct uart_8250_port *up)
+ 	}
+ 	serial_outp(up, UART_IER, 0x0f);	/* enable all intrs */
+ 	(void)serial_inp(up, UART_LSR);
+-	(void)serial_inp(up, UART_RX);
++	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
++		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
++			(void)serial_inp(up, UART_RX);
++	} else
++		(void)serial_inp(up, UART_RX);
+ 	(void)serial_inp(up, UART_IIR);
+ 	(void)serial_inp(up, UART_MSR);
+ 	serial_outp(up, UART_TX, 0xFF);
+@@ -1984,7 +1992,11 @@ static int serial8250_startup(struct uart_port *port)
+ 	 * Clear the interrupt registers.
+ 	 */
+ 	(void) serial_inp(up, UART_LSR);
+-	(void) serial_inp(up, UART_RX);
++	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
++		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
++			(void) serial_inp(up, UART_RX);
++	} else
++		(void) serial_inp(up, UART_RX);
+ 	(void) serial_inp(up, UART_IIR);
+ 	(void) serial_inp(up, UART_MSR);
+ 
+@@ -2141,7 +2153,11 @@ dont_test_tx_en:
+ 	 * routines or the previous session.
+ 	 */
+ 	serial_inp(up, UART_LSR);
+-	serial_inp(up, UART_RX);
++	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
++		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
++			serial_inp(up, UART_RX);
++	} else
++		serial_inp(up, UART_RX);
+ 	serial_inp(up, UART_IIR);
+ 	serial_inp(up, UART_MSR);
+ 	up->lsr_saved_flags = 0;
+@@ -2207,7 +2223,11 @@ static void serial8250_shutdown(struct uart_port *port)
+ 	 * Read data port to reset things, and then unlink from
+ 	 * the IRQ chain.
+ 	 */
+-	(void) serial_in(up, UART_RX);
++	if (up->port.flags & UPF_NO_EMPTY_FIFO_READ) {
++		if (serial_inp(up, UART_LSR) & UART_LSR_DR)
++			(void) serial_inp(up, UART_RX);
++	} else
++		(void) serial_in(up, UART_RX);
+ 
+ 	del_timer_sync(&up->timer);
+ 	up->timer.function = serial8250_timeout;
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index db532ce..0d65bb3 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -308,6 +308,7 @@ struct uart_port {
+ #define UPF_SPD_WARP		((__force upf_t) (0x1010))
+ #define UPF_SKIP_TEST		((__force upf_t) (1 << 6))
+ #define UPF_AUTO_IRQ		((__force upf_t) (1 << 7))
++#define UPF_NO_EMPTY_FIFO_READ	((__force upf_t) (1 << 8))
+ #define UPF_HARDPPS_CD		((__force upf_t) (1 << 11))
+ #define UPF_LOW_LATENCY		((__force upf_t) (1 << 13))
+ #define UPF_BUGGY_UART		((__force upf_t) (1 << 14))
+-- 
+1.6.5.1.69.g36942
 
-Can you give this a try and let me know?
-
-Thanks
-Troy
