@@ -1,34 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 8/10 v2] omap mailbox: OMAP4-Mailbox - Adds code
- changes to support OMAP4 mailbox.
-Date: Tue, 17 Nov 2009 09:37:06 -0800
-Message-ID: <20091117173706.GF29266@atomide.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DE563EB2@dbde02.ent.ti.com>
+Subject: [APPLIED] [PATCH v2] rx51: add wl1251 wlan driver support
+Date: Tue, 17 Nov 2009 12:38:41 -0500
+Message-ID: <notify-1258479525@atomide.com>
+References: <20091117160549.19011.79696.stgit@tikku>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63670 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49391 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751839AbZKQRhC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 12:37:02 -0500
+	with ESMTP id S1752494AbZKQRil (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 12:38:41 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NAS0t-00026V-1G
+	for linux-omap@vger.kernel.org; Tue, 17 Nov 2009 17:38:47 +0000
+In-Reply-To: <20091117160549.19011.79696.stgit@tikku>
 Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE563EB2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "C.A, Subramaniam" <subramaniam.ca@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>
+To: linux-omap@vger.kernel.org
 
-* C.A, Subramaniam <subramaniam.ca@ti.com> [091117 06:50]:
-> Hi Tony,
-> Following is the version 2 of Patch 8/10 (removing all #fidefs)
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Thanks, I have now them all in the for-next branch.
- 
-> +/* OMAP4 specific data structure. Use the cpu_is_omap4xxx()
-> +to use this*/
+Branch in linux-omap: for-next
 
-I've updated the patch to have this comment is on one line now.
+Initial commit ID (Likely to change): 342dd6ea3d2067e84c0fdee5e07e264ce40827e0
 
-Regards,
+PatchWorks
+http://patchwork.kernel.org/patch/60697/
 
-Tony
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=342dd6ea3d2067e84c0fdee5e07e264ce40827e0
+
+
