@@ -1,221 +1,138 @@
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 4/8] musb: Update setup_usb() call for all Davinci boards
-Date: Tue, 17 Nov 2009 20:39:52 +0530
-Message-ID: <1258470596-24321-5-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH 6/8] musb: set 'extvbus = 0' for OMAP3 boards
+Date: Tue, 17 Nov 2009 20:39:54 +0530
+Message-ID: <1258470596-24321-7-git-send-email-ajay.gupta@ti.com>
 References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>
  <1258470596-24321-2-git-send-email-ajay.gupta@ti.com>
  <1258470596-24321-3-git-send-email-ajay.gupta@ti.com>
  <1258470596-24321-4-git-send-email-ajay.gupta@ti.com>
+ <1258470596-24321-5-git-send-email-ajay.gupta@ti.com>
+ <1258470596-24321-6-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52366 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754376AbZKQPKb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 10:10:31 -0500
-In-Reply-To: <1258470596-24321-4-git-send-email-ajay.gupta@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41383 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753924AbZKQPKd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Nov 2009 10:10:33 -0500
+In-Reply-To: <1258470596-24321-6-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, felipe.balbi@nokia.com, david-b@pacbell.net, cooloney@kernel.org, gadiyar@ti.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-setup_usb() has been modified to pass board specific data so updating
-this function call from all Davinci based boards.
+Default value of 'extvbus' is being set as '0' to maintain the
+current programming state of all OMAP3 musb boards.
 
-Added "struct device;" to fix below compilation warning for Davinci boards.
-"musb.h: struct device, defined within parameter list"
+This flag should be set to '1' for boards using external vbus
+supply such as, OMAP3EVM Rev >=E.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- arch/arm/mach-davinci/board-dm355-evm.c     |    9 ++++++++-
- arch/arm/mach-davinci/board-dm355-leopard.c |    9 ++++++++-
- arch/arm/mach-davinci/board-dm644x-evm.c    |    8 +++++++-
- arch/arm/mach-davinci/board-sffsdr.c        |    9 ++++++++-
- arch/arm/mach-davinci/include/mach/common.h |    7 +++++--
- arch/arm/mach-davinci/usb.c                 |    8 ++++----
- 6 files changed, 40 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp.c      |    1 +
+ arch/arm/mach-omap2/board-3430sdp.c      |    1 +
+ arch/arm/mach-omap2/board-ldp.c          |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c  |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c     |    1 +
+ arch/arm/mach-omap2/board-omap3pandora.c |    1 +
+ arch/arm/mach-omap2/board-overo.c        |    1 +
+ arch/arm/mach-omap2/board-rx51.c         |    1 +
+ 8 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-dm355-evm.c b/arch/arm/mach-davinci/board-dm355-evm.c
-index 77e8067..31c5741 100644
---- a/arch/arm/mach-davinci/board-dm355-evm.c
-+++ b/arch/arm/mach-davinci/board-dm355-evm.c
-@@ -24,6 +24,7 @@
- #include <media/tvp514x.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/eeprom.h>
-+#include <linux/usb/musb.h>
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 970dcab..0a2abf1 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -197,6 +197,7 @@ static struct twl4030_hsmmc_info mmc[] __initdata = {
  
- #include <asm/setup.h>
- #include <asm/mach-types.h>
-@@ -317,6 +318,12 @@ static struct spi_board_info dm355_evm_spi_info[] __initconst = {
- 	},
+ static struct musb_hdrc_board_data musb_bdata __initdata = {
+ 	.power = 50,
++	.extvbus = 0,
  };
  
-+/* musb board specific data */
-+static struct musb_hdrc_board_data musb_bdata __initdata = {
-+	.power = 250,	/* (power in mA)/2 */
-+	.potpgt = 4,	/* (potpgt in msec)/2 */
-+};
-+
- static __init void dm355_evm_init(void)
- {
- 	struct clk *aemif;
-@@ -344,7 +351,7 @@ static __init void dm355_evm_init(void)
- 	gpio_request(2, "usb_id_toggle");
- 	gpio_direction_output(2, USB_ID_VALUE);
- 	/* irlml6401 switches over 1A in under 8 msec */
--	setup_usb(500, 8);
-+	setup_usb(&musb_bdata);
- 
- 	davinci_setup_mmc(0, &dm355evm_mmc_config);
- 	davinci_setup_mmc(1, &dm355evm_mmc_config);
-diff --git a/arch/arm/mach-davinci/board-dm355-leopard.c b/arch/arm/mach-davinci/board-dm355-leopard.c
-index 84ad5d1..2c534f1 100644
---- a/arch/arm/mach-davinci/board-dm355-leopard.c
-+++ b/arch/arm/mach-davinci/board-dm355-leopard.c
-@@ -21,6 +21,7 @@
- #include <linux/clk.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/eeprom.h>
-+#include <linux/usb/musb.h>
- 
- #include <asm/setup.h>
- #include <asm/mach-types.h>
-@@ -243,6 +244,12 @@ static struct spi_board_info dm355_leopard_spi_info[] __initconst = {
- 	},
+ static void __init omap_2430sdp_init(void)
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 85cd24f..8dbb03a 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -488,6 +488,7 @@ static void enable_board_wakeup_source(void)
+ /* musb board specific details */
+ static struct musb_hdrc_board_data musb_bdata __initdata = {
+ 	.power = 50,
++	.extvbus = 0,
  };
  
-+/* musb board specific data */
-+static struct musb_hdrc_board_data musb_bdata __initdata = {
-+	.power = 250,	/* (power in mA)/2 */
-+	.potpgt = 4,	/* (potpgt in msec)/2 */
-+};
-+
- static __init void dm355_leopard_init(void)
- {
- 	struct clk *aemif;
-@@ -270,7 +277,7 @@ static __init void dm355_leopard_init(void)
- 	gpio_request(2, "usb_id_toggle");
- 	gpio_direction_output(2, USB_ID_VALUE);
- 	/* irlml6401 switches over 1A in under 8 msec */
--	setup_usb(500, 8);
-+	setup_usb(&musb_bdata);
+ static void __init omap_3430sdp_init(void)
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index a8338a4..dfee4c5 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -377,6 +377,7 @@ static struct platform_device *ldp_devices[] __initdata = {
  
- 	davinci_setup_mmc(0, &dm355leopard_mmc_config);
- 	davinci_setup_mmc(1, &dm355leopard_mmc_config);
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index 1213a00..307520e 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -29,6 +29,7 @@
- #include <linux/phy.h>
- #include <linux/clk.h>
- #include <linux/videodev2.h>
-+#include <linux/usb/musb.h>
- 
- #include <media/tvp514x.h>
- 
-@@ -438,6 +439,11 @@ static struct pcf857x_platform_data pcf_data_u18 = {
- 	.teardown	= evm_u18_teardown,
+ static struct musb_hdrc_board_data musb_bdata __initdata = {
+ 	.power = 50,
++	.extvbus = 0,
  };
  
-+/* musb board specific data */
-+static struct musb_hdrc_board_data musb_bdata __initdata = {
-+	.power = 250,	/* (power in mA)/2 */
-+	.potpgt = 4,	/* (potpgt in msec)/2 */
-+};
- 
- /* U35 - various I/O signals used to manage USB, CF, ATA, etc */
- 
-@@ -477,7 +483,7 @@ evm_u35_setup(struct i2c_client *client, int gpio, unsigned ngpio, void *c)
- 	/* irlml6401 switches over 1A, in under 8 msec;
- 	 * now it can be managed by nDRV_VBUS ...
- 	 */
--	setup_usb(500, 8);
-+	setup_usb(&musb_bdata);
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-davinci/board-sffsdr.c b/arch/arm/mach-davinci/board-sffsdr.c
-index 7acdfd8..e61d7d7 100644
---- a/arch/arm/mach-davinci/board-sffsdr.c
-+++ b/arch/arm/mach-davinci/board-sffsdr.c
-@@ -38,6 +38,7 @@
- #include <linux/mtd/partitions.h>
- #include <linux/mtd/physmap.h>
- #include <linux/io.h>
-+#include <linux/usb/musb.h>
- 
- #include <asm/setup.h>
- #include <asm/mach-types.h>
-@@ -149,6 +150,12 @@ static struct davinci_uart_config uart_config __initdata = {
- 	.enabled_uarts = (1 << 0),
+ static void __init omap_ldp_init(void)
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 113bcfe..34ec334 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -404,6 +404,7 @@ static void __init omap3beagle_flash_init(void)
+ /* musb board specific details */
+ static struct musb_hdrc_board_data musb_bdata __initdata = {
+ 	.power = 50,
++	.extvbus = 0,
  };
  
-+/* musb board specific data */
-+static struct musb_hdrc_board_data musb_bdata __initdata = {
-+	.power = 0,	/* (power in mA)/2 */
-+	.potpgt = 0,	/* (potpgt in msec)/2 */
-+};
-+
- static void __init davinci_sffsdr_map_io(void)
- {
- 	dm644x_init();
-@@ -164,7 +171,7 @@ static __init void davinci_sffsdr_init(void)
- 	davinci_serial_init(&uart_config);
- 	soc_info->emac_pdata->phy_mask = SFFSDR_PHY_MASK;
- 	soc_info->emac_pdata->mdio_max_freq = SFFSDR_MDIO_FREQUENCY;
--	setup_usb(0, 0); /* We support only peripheral mode. */
-+	setup_usb(&musb_bdata); /* We support only peripheral mode. */
- 
- 	/* mux VLYNQ pins */
- 	davinci_cfg_reg(DM644X_VLYNQEN);
-diff --git a/arch/arm/mach-davinci/include/mach/common.h b/arch/arm/mach-davinci/include/mach/common.h
-index 1fd3917..dab784c 100644
---- a/arch/arm/mach-davinci/include/mach/common.h
-+++ b/arch/arm/mach-davinci/include/mach/common.h
-@@ -20,11 +20,14 @@ extern void davinci_irq_init(void);
- extern void __iomem *davinci_intc_base;
- extern int davinci_intc_type;
- 
-+struct device;
-+#include <linux/usb/musb.h>
-+
- /* parameters describe VBUS sourcing for host mode */
--extern void setup_usb(unsigned mA, unsigned potpgt_msec);
-+extern void setup_usb(struct musb_hdrc_board_data *board_data);
- 
- /* parameters describe VBUS sourcing for host mode */
--extern void setup_usb(unsigned mA, unsigned potpgt_msec);
-+extern void setup_usb(struct musb_hdrc_board_data *board_data);
- 
- struct davinci_timer_instance {
- 	void __iomem	*base;
-diff --git a/arch/arm/mach-davinci/usb.c b/arch/arm/mach-davinci/usb.c
-index 06f5593..1b164dc 100644
---- a/arch/arm/mach-davinci/usb.c
-+++ b/arch/arm/mach-davinci/usb.c
-@@ -85,10 +85,10 @@ static struct platform_device usb_dev = {
- 	.num_resources  = ARRAY_SIZE(usb_resources),
+ static void __init omap3_beagle_init(void)
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 9e2656a..0066bee 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -301,6 +301,7 @@ static struct platform_device *omap3_evm_devices[] __initdata = {
+ /* musb board specific details */
+ static struct musb_hdrc_board_data musb_bdata __initdata = {
+ 	.power = 50,
++	.extvbus = 0,
  };
  
--void __init setup_usb(unsigned mA, unsigned potpgt_msec)
-+void __init setup_usb(struct musb_hdrc_board_data *board_data)
- {
--	usb_data.power = mA / 2;
--	usb_data.potpgt = potpgt_msec / 2;
-+	/* get board-specific data */
-+	usb_data.board_data = board_data;
+ static void __init omap3_evm_init(void)
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 9bcd324..bf387b8 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -391,6 +391,7 @@ static struct platform_device *omap3pandora_devices[] __initdata = {
+ /* musb board specific details */
+ static struct musb_hdrc_board_data musb_bdata __initdata = {
+ 	.power = 50,
++	.extvbus = 0,
+ };
  
- 	if (cpu_is_davinci_dm646x()) {
- 		/* Override the defaults as DM6467 uses different IRQs. */
-@@ -102,7 +102,7 @@ void __init setup_usb(unsigned mA, unsigned potpgt_msec)
+ static void __init omap3pandora_init(void)
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index e2acb91..d53c61d 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -388,6 +388,7 @@ static struct platform_device *overo_devices[] __initdata = {
+ /* musb board specific details */
+ static struct musb_hdrc_board_data musb_bdata __initdata = {
+ 	.power = 50,
++	.extvbus = 0,
+ };
  
- #else
+ static void __init overo_init(void)
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 839d7a8..1b2ece0 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -56,6 +56,7 @@ static struct omap_board_config_kernel rx51_config[] = {
  
--void __init setup_usb(unsigned mA, unsigned potpgt_msec)
-+void __init setup_usb(struct musb_hdrc_board_data *board_data)
- {
- }
+ static struct musb_hdrc_board_data musb_bdata __initdata = {
+ 	.power = 50,
++	.extvbus = 0,
+ };
  
+ static void __init rx51_init_irq(void)
 -- 
 1.6.2.4
 
