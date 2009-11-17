@@ -1,92 +1,468 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/12] New omap boards and rx51/n900 updates for 2.6.33
-Date: Tue, 17 Nov 2009 15:04:44 -0800
-Message-ID: <20091117230324.19869.44927.stgit@localhost>
+Subject: [PATCH 01/12] omap1: Add board support and LCD for HTC Herald
+Date: Tue, 17 Nov 2009 15:04:58 -0800
+Message-ID: <20091117230458.19869.91550.stgit@localhost>
+References: <20091117230324.19869.44927.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53914 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678AbZKQXEl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 18:04:41 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60044 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753078AbZKQXE4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 18:04:56 -0500
+In-Reply-To: <20091117230324.19869.44927.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
 
-Hi all,
+From: Cory Maccarrone <darkstar6262@gmail.com>
 
-Here are some omap patches for review for the 2.6.33 merge window.
+This patch introduces support for the HTC Herald (T-Mobile
+Wing, etc.) series of smart phones -- board support and LCD
+panel settings.
 
-This series mostly adds support for new boards, and updates the
-rx51/n900 devices.
-
-Regards,
-
-Tony
-
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
-
-Cory Maccarrone (2):
-      omap1: Add board support and LCD for HTC Herald
-      omap1: Add default kernel configuration for Herald
-
-Enric Balletbo i Serra (2):
-      omap3: Add minimal IGEP v2 support
-      omap3: Add defconfig for IGEP v2 board
-
-Kalle Valo (1):
-      omap3: rx51: Add wl1251 wlan driver support
-
-Mike Rapoport (2):
-      omap3: Add CompuLab CM-T35 board support
-      omap3: Add CompuLab CM-T35 defconfig
-
-Ranjith Lohithakshan (2):
-      AM35xx: Add support for AM3517 EVM board
-      AM35xx: Defconfig for AM3517 EVM board
-
-Tero Kristo (1):
-      omap3: rx51: Add SDRAM init
-
-vikram pandita (2):
-      omap: 3630sdp: introduce 3630 sdp board support
-      omap: 3630sdp: defconfig creation
-
-
- arch/arm/configs/am3517_evm_defconfig        | 1207 ++++++++++++++++++
- arch/arm/configs/cm_t35_defconfig            | 1733 ++++++++++++++++++++++++++
- arch/arm/configs/htcherald_defconfig         | 1142 +++++++++++++++++
- arch/arm/configs/igep0020_defconfig          | 1554 +++++++++++++++++++++++
- arch/arm/configs/omap_3630sdp_defconfig      | 1611 ++++++++++++++++++++++++
- arch/arm/mach-omap1/Kconfig                  |    6 
- arch/arm/mach-omap1/Makefile                 |    1 
- arch/arm/mach-omap1/board-htcherald.c        |  247 ++++
- arch/arm/mach-omap2/Kconfig                  |   16 
- arch/arm/mach-omap2/Makefile                 |   10 
- arch/arm/mach-omap2/board-3630sdp.c          |  101 ++
- arch/arm/mach-omap2/board-am3517evm.c        |   86 +
- arch/arm/mach-omap2/board-cm-t35.c           |  507 ++++++++
- arch/arm/mach-omap2/board-igep0020.c         |  251 ++++
- arch/arm/mach-omap2/board-rx51-peripherals.c |   85 +
- arch/arm/mach-omap2/board-rx51-sdram.c       |  221 +++
- arch/arm/mach-omap2/board-rx51.c             |    7 
- drivers/video/omap/Makefile                  |    1 
- drivers/video/omap/lcd_htcherald.c           |  130 ++
- 19 files changed, 8915 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/configs/am3517_evm_defconfig
- create mode 100644 arch/arm/configs/cm_t35_defconfig
- create mode 100644 arch/arm/configs/htcherald_defconfig
- create mode 100644 arch/arm/configs/igep0020_defconfig
- create mode 100644 arch/arm/configs/omap_3630sdp_defconfig
+ arch/arm/mach-omap1/Kconfig           |    6 +
+ arch/arm/mach-omap1/Makefile          |    1 
+ arch/arm/mach-omap1/board-htcherald.c |  247 +++++++++++++++++++++++++++++++++
+ drivers/video/omap/Makefile           |    1 
+ drivers/video/omap/lcd_htcherald.c    |  130 +++++++++++++++++
+ 5 files changed, 385 insertions(+), 0 deletions(-)
  create mode 100644 arch/arm/mach-omap1/board-htcherald.c
- create mode 100755 arch/arm/mach-omap2/board-3630sdp.c
- create mode 100644 arch/arm/mach-omap2/board-am3517evm.c
- create mode 100644 arch/arm/mach-omap2/board-cm-t35.c
- create mode 100644 arch/arm/mach-omap2/board-igep0020.c
- create mode 100644 arch/arm/mach-omap2/board-rx51-sdram.c
  create mode 100644 drivers/video/omap/lcd_htcherald.c
 
--- 
-Signature
+diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
+index 3232726..27f4897 100644
+--- a/arch/arm/mach-omap1/Kconfig
++++ b/arch/arm/mach-omap1/Kconfig
+@@ -57,6 +57,12 @@ config MACH_OMAP_HTCWIZARD
+ 	help
+ 	  HTC Wizard smartphone support (AKA QTEK 9100, ...)
+ 
++config MACH_HERALD
++	bool "HTC Herald"
++	depends on ARCH_OMAP850
++	help
++	  HTC Herald smartphone support (AKA T-Mobile Wing, ...)
++
+ config MACH_OMAP_OSK
+ 	bool "TI OSK Support"
+ 	depends on ARCH_OMAP1 && ARCH_OMAP16XX
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index 6867cd3..87e539a 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -34,6 +34,7 @@ obj-$(CONFIG_MACH_OMAP_PALMTT)		+= board-palmtt.o
+ obj-$(CONFIG_MACH_NOKIA770)		+= board-nokia770.o
+ obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o
+ obj-$(CONFIG_MACH_SX1)			+= board-sx1.o board-sx1-mmc.o
++obj-$(CONFIG_MACH_HERALD)		+= board-htcherald.o
+ 
+ ifeq ($(CONFIG_ARCH_OMAP15XX),y)
+ # Innovator-1510 FPGA
+diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
+new file mode 100644
+index 0000000..5f28a5c
+--- /dev/null
++++ b/arch/arm/mach-omap1/board-htcherald.c
+@@ -0,0 +1,247 @@
++/*
++ * HTC Herald board configuration
++ * Copyright (C) 2009 Cory Maccarrone <darkstar6262@gmail.com>
++ * Copyright (C) 2009 Wing Linux
++ *
++ * Based on the board-htcwizard.c file from the linwizard project:
++ * Copyright (C) 2006 Unai Uribarri
++ * Copyright (C) 2008 linwizard.sourceforge.net
++ *
++ * This  program is  free  software; you  can  redistribute it  and/or
++ * modify  it under the  terms of  the GNU  General Public  License as
++ * published by the Free Software  Foundation; either version 2 of the
++ * License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
++ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
++ * General Public License for more details.
++ *
++ * You should have  received a copy of the  GNU General Public License
++ * along  with  this program;  if  not,  write  to the  Free  Software
++ * Foundation,  Inc.,  51 Franklin  Street,  Fifth  Floor, Boston,  MA
++ * 02110-1301, USA.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/input.h>
++#include <linux/bootmem.h>
++#include <linux/io.h>
++#include <linux/gpio.h>
++
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++
++#include <plat/omap7xx.h>
++#include <plat/common.h>
++#include <plat/board.h>
++#include <plat/keypad.h>
++
++#include <mach/irqs.h>
++
++#include <linux/delay.h>
++
++/* LCD register definition */
++#define       OMAP_LCDC_CONTROL               (0xfffec000 + 0x00)
++#define       OMAP_LCDC_STATUS                (0xfffec000 + 0x10)
++#define       OMAP_DMA_LCD_CCR                (0xfffee300 + 0xc2)
++#define       OMAP_DMA_LCD_CTRL               (0xfffee300 + 0xc4)
++#define       OMAP_LCDC_CTRL_LCD_EN           (1 << 0)
++#define       OMAP_LCDC_STAT_DONE             (1 << 0)
++
++static struct omap_lcd_config htcherald_lcd_config __initdata = {
++	.ctrl_name	= "internal",
++};
++
++static struct omap_board_config_kernel htcherald_config[] __initdata = {
++	{ OMAP_TAG_LCD, &htcherald_lcd_config },
++};
++
++/* Keyboard definition */
++
++static int htc_herald_keymap[] = {
++	KEY(0, 0, KEY_RECORD), /* Mail button */
++	KEY(0, 1, KEY_CAMERA), /* Camera */
++	KEY(0, 2, KEY_PHONE), /* Send key */
++	KEY(0, 3, KEY_VOLUMEUP), /* Volume up */
++	KEY(0, 4, KEY_F2),  /* Right bar (landscape) */
++	KEY(0, 5, KEY_MAIL), /* Win key (portrait) */
++	KEY(0, 6, KEY_DIRECTORY), /* Right bar (protrait) */
++	KEY(1, 0, KEY_LEFTCTRL), /* Windows key */
++	KEY(1, 1, KEY_COMMA),
++	KEY(1, 2, KEY_M),
++	KEY(1, 3, KEY_K),
++	KEY(1, 4, KEY_SLASH), /* OK key */
++	KEY(1, 5, KEY_I),
++	KEY(1, 6, KEY_U),
++	KEY(2, 0, KEY_LEFTALT),
++	KEY(2, 1, KEY_TAB),
++	KEY(2, 2, KEY_N),
++	KEY(2, 3, KEY_J),
++	KEY(2, 4, KEY_ENTER),
++	KEY(2, 5, KEY_H),
++	KEY(2, 6, KEY_Y),
++	KEY(3, 0, KEY_SPACE),
++	KEY(3, 1, KEY_L),
++	KEY(3, 2, KEY_B),
++	KEY(3, 3, KEY_V),
++	KEY(3, 4, KEY_BACKSPACE),
++	KEY(3, 5, KEY_G),
++	KEY(3, 6, KEY_T),
++	KEY(4, 0, KEY_CAPSLOCK), /* Shift */
++	KEY(4, 1, KEY_C),
++	KEY(4, 2, KEY_F),
++	KEY(4, 3, KEY_R),
++	KEY(4, 4, KEY_O),
++	KEY(4, 5, KEY_E),
++	KEY(4, 6, KEY_D),
++	KEY(5, 0, KEY_X),
++	KEY(5, 1, KEY_Z),
++	KEY(5, 2, KEY_S),
++	KEY(5, 3, KEY_W),
++	KEY(5, 4, KEY_P),
++	KEY(5, 5, KEY_Q),
++	KEY(5, 6, KEY_A),
++	KEY(6, 0, KEY_CONNECT), /* Voice button */
++	KEY(6, 2, KEY_CANCEL), /* End key */
++	KEY(6, 3, KEY_VOLUMEDOWN), /* Volume down */
++	KEY(6, 4, KEY_F1), /* Left bar (landscape) */
++	KEY(6, 5, KEY_WWW), /* OK button (portrait) */
++	KEY(6, 6, KEY_CALENDAR), /* Left bar (portrait) */
++	0
++};
++
++struct omap_kp_platform_data htcherald_kp_data = {
++	.rows	= 7,
++	.cols	= 7,
++	.delay = 20,
++	.rep = 1,
++	.keymap = htc_herald_keymap,
++};
++
++static struct resource kp_resources[] = {
++	[0] = {
++		.start	= INT_7XX_MPUIO_KEYPAD,
++		.end	= INT_7XX_MPUIO_KEYPAD,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device kp_device = {
++	.name		= "omap-keypad",
++	.id		= -1,
++	.dev		= {
++		.platform_data = &htcherald_kp_data,
++	},
++	.num_resources	= ARRAY_SIZE(kp_resources),
++	.resource	= kp_resources,
++};
++
++/* LCD Device resources */
++static struct platform_device lcd_device = {
++	.name           = "lcd_htcherald",
++	.id             = -1,
++};
++
++static struct platform_device *devices[] __initdata = {
++	&kp_device,
++	&lcd_device,
++};
++
++/*
++ * Init functions from here on
++ */
++
++static void __init htcherald_lcd_init(void)
++{
++	u32 reg;
++	unsigned int tries = 200;
++
++	/* disable controller if active */
++	reg = omap_readl(OMAP_LCDC_CONTROL);
++	if (reg & OMAP_LCDC_CTRL_LCD_EN) {
++		reg &= ~OMAP_LCDC_CTRL_LCD_EN;
++		omap_writel(reg, OMAP_LCDC_CONTROL);
++
++		/* wait for end of frame */
++		while (!(omap_readl(OMAP_LCDC_STATUS) & OMAP_LCDC_STAT_DONE)) {
++			tries--;
++			if (!tries)
++				break;
++		}
++		if (!tries)
++			printk(KERN_WARNING "Timeout waiting for end of frame "
++			       "-- LCD may not be available\n");
++
++		/* turn off DMA */
++		reg = omap_readw(OMAP_DMA_LCD_CCR);
++		reg &= ~(1 << 7);
++		omap_writew(reg, OMAP_DMA_LCD_CCR);
++
++		reg = omap_readw(OMAP_DMA_LCD_CTRL);
++		reg &= ~(1 << 8);
++		omap_writew(reg, OMAP_DMA_LCD_CTRL);
++	}
++}
++
++static void __init htcherald_map_io(void)
++{
++	omap1_map_common_io();
++
++	/*
++	 * The LCD panel must be disabled and DMA turned off here, as doing
++	 * it later causes the LCD never to reinitialize.
++	 */
++	htcherald_lcd_init();
++
++	printk(KERN_INFO "htcherald_map_io done.\n");
++}
++
++static void __init htcherald_disable_watchdog(void)
++{
++	/* Disable watchdog if running */
++	if (omap_readl(OMAP_WDT_TIMER_MODE) & 0x8000) {
++		/*
++		 * disable a potentially running watchdog timer before
++		 * it kills us.
++		 */
++		printk(KERN_WARNING "OMAP850 Watchdog seems to be activated, disabling it for now.\n");
++		omap_writel(0xF5, OMAP_WDT_TIMER_MODE);
++		omap_writel(0xA0, OMAP_WDT_TIMER_MODE);
++	}
++}
++
++static void __init htcherald_init(void)
++{
++	printk(KERN_INFO "HTC Herald init.\n");
++
++	omap_gpio_init();
++
++	omap_board_config = htcherald_config;
++	omap_board_config_size = ARRAY_SIZE(htcherald_config);
++	platform_add_devices(devices, ARRAY_SIZE(devices));
++
++	htcherald_disable_watchdog();
++}
++
++static void __init htcherald_init_irq(void)
++{
++	printk(KERN_INFO "htcherald_init_irq.\n");
++	omap1_init_common_hw();
++	omap_init_irq();
++}
++
++MACHINE_START(HERALD, "HTC Herald")
++	/* Maintainer: Cory Maccarrone <darkstar6262@gmail.com> */
++	/* Maintainer: wing-linux.sourceforge.net */
++	.phys_io        = 0xfff00000,
++	.io_pg_offst    = ((0xfef00000) >> 18) & 0xfffc,
++	.boot_params    = 0x10000100,
++	.map_io         = htcherald_map_io,
++	.init_irq       = htcherald_init_irq,
++	.init_machine   = htcherald_init,
++	.timer          = &omap_timer,
++MACHINE_END
+diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
+index b63b198..49226a1 100644
+--- a/drivers/video/omap/Makefile
++++ b/drivers/video/omap/Makefile
+@@ -35,6 +35,7 @@ objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+ objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+ objs-y$(CONFIG_MACH_OVERO) += lcd_overo.o
++objs-y$(CONFIG_MACH_HERALD) += lcd_htcherald.o
+ 
+ omapfb-objs := $(objs-yy)
+ 
+diff --git a/drivers/video/omap/lcd_htcherald.c b/drivers/video/omap/lcd_htcherald.c
+new file mode 100644
+index 0000000..2e0c81e
+--- /dev/null
++++ b/drivers/video/omap/lcd_htcherald.c
+@@ -0,0 +1,130 @@
++/*
++ * File: drivers/video/omap/lcd-htcherald.c
++ *
++ * LCD panel support for the HTC Herald
++ *
++ * Copyright (C) 2009 Cory Maccarrone <darkstar6262@gmail.com>
++ * Copyright (C) 2009 Wing Linux
++ *
++ * Based on the lcd_htcwizard.c file from the linwizard project:
++ * Copyright (C) linwizard.sourceforge.net
++ * Author: Angelo Arrifano <miknix@gmail.com>
++ * Based on lcd_h4 by Imre Deak <imre.deak@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++
++#include <plat/omapfb.h>
++
++static int htcherald_panel_init(struct lcd_panel *panel,
++					struct omapfb_device *fbdev)
++{
++	return 0;
++}
++
++static void htcherald_panel_cleanup(struct lcd_panel *panel)
++{
++}
++
++static int htcherald_panel_enable(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++static void htcherald_panel_disable(struct lcd_panel *panel)
++{
++}
++
++static unsigned long htcherald_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++/* Found on WIZ200 (miknix) and some HERA110 models (darkstar62) */
++struct lcd_panel htcherald_panel_1 = {
++	.name		= "lcd_herald",
++	.config		= OMAP_LCDC_PANEL_TFT |
++			  OMAP_LCDC_INV_HSYNC |
++			  OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_PIX_CLOCK,
++	.bpp		= 16,
++	.data_lines	= 16,
++	.x_res		= 240,
++	.y_res		= 320,
++	.pixel_clock	= 6093,
++	.pcd		= 0, /* 15 */
++	.hsw		= 10,
++	.hfp		= 10,
++	.hbp		= 20,
++	.vsw		= 3,
++	.vfp		= 2,
++	.vbp		= 2,
++
++	.init		= htcherald_panel_init,
++	.cleanup	= htcherald_panel_cleanup,
++	.enable		= htcherald_panel_enable,
++	.disable	= htcherald_panel_disable,
++	.get_caps	= htcherald_panel_get_caps,
++};
++
++static int htcherald_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&htcherald_panel_1);
++	return 0;
++}
++
++static int htcherald_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int htcherald_panel_suspend(struct platform_device *pdev,
++						pm_message_t mesg)
++{
++	return 0;
++}
++
++static int htcherald_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver htcherald_panel_driver = {
++	.probe		= htcherald_panel_probe,
++	.remove		= htcherald_panel_remove,
++	.suspend	= htcherald_panel_suspend,
++	.resume		= htcherald_panel_resume,
++	.driver		= {
++		.name	= "lcd_htcherald",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int htcherald_panel_drv_init(void)
++{
++	return platform_driver_register(&htcherald_panel_driver);
++}
++
++static void htcherald_panel_drv_cleanup(void)
++{
++	platform_driver_unregister(&htcherald_panel_driver);
++}
++
++module_init(htcherald_panel_drv_init);
++module_exit(htcherald_panel_drv_cleanup);
++
+
