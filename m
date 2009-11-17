@@ -1,51 +1,32 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH 2/2] omap: serial: fix non-empty rx uart fifo abort
-Date: Tue, 17 Nov 2009 15:17:31 -0600
-Message-ID: <1258492651-16002-1-git-send-email-vikram.pandita@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39599 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753309AbZKQVR6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Nov 2009 16:17:58 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 1/2] serial: 8250: add UPF_NO_EMPTY_FIFO_READ flag
+Date: Tue, 17 Nov 2009 21:25:47 +0000
+Message-ID: <20091117212547.0a81fa46@lxorguk.ukuu.org.uk>
+References: <1258492615-15963-1-git-send-email-vikram.pandita@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1258492615-15963-1-git-send-email-vikram.pandita@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, akpm@linux-foundation.org, linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-serial@vger.kernel.org, akpm@linux-foundation.org
-Cc: alan@lxorguk.ukuu.org.uk, linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>
 
-OMAP3630 and OMAP4430 UART IP blocks have a restriction wrt RX FIFO.
-Empty RX fifo read causes an abort. OMAP1/2/3 do not have this restriction.
+On Tue, 17 Nov 2009 15:16:55 -0600
+Vikram Pandita <vikram.pandita@ti.com> wrote:
 
-so pass the flag UPF_NO_EMPTY_FIFO_READ in plat_serial8250_port, so that 8250
-driver does not abort on empty rx fifo read
+> OMAP3630 and OMAP4430 UART IP blocks have a restriction wrt RX FIFO.
+> Empty RX fifo read causes an abort. OMAP1/2/3 do not have this restriction.
 
-tested on zoom3(3630) board
+Nothing wrong with the requirement but I think it would keep 8250.c a lot
+cleaner if you implemented that in the serial_in method for the
+OMAP3630/4430. It would also mean anyone adding a UART_RX or any cases
+you miss don't break in future
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
- arch/arm/mach-omap2/serial.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+This is especially true now as you can pass a private
+serial_in/serial_out method in the port register function.
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 2e17b57..669652b 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -624,8 +624,15 @@ void __init omap_serial_early_init(void)
- 		uart->p = p;
- 		list_add_tail(&uart->node, &uart_list);
- 
--		if (cpu_is_omap44xx())
-+		if (cpu_is_omap44xx()) {
- 			p->irq += 32;
-+			/* Do not read empty UART fifo on omap4 */
-+			p->flags |= UPF_NO_EMPTY_FIFO_READ;
-+		}
-+
-+		/* Do not read empty UART fifo on omap3630 */
-+		if (cpu_is_omap3630())
-+			p->flags |= UPF_NO_EMPTY_FIFO_READ;
- 
- 		omap_uart_enable_clocks(uart);
- 	}
--- 
-1.6.5.1.69.g36942
+Care to submit an alternate patch doing it that way, or see any reason
+for not ?
 
+Alan
