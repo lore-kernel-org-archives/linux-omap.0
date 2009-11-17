@@ -1,164 +1,67 @@
 From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 8/8] musb: set 'extvbus = 0' for Blackfin boards
-Date: Tue, 17 Nov 2009 20:39:56 +0530
-Message-ID: <1258470596-24321-9-git-send-email-ajay.gupta@ti.com>
-References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>
-	<1258470596-24321-2-git-send-email-ajay.gupta@ti.com>
-	<1258470596-24321-3-git-send-email-ajay.gupta@ti.com>
-	<1258470596-24321-4-git-send-email-ajay.gupta@ti.com>
-	<1258470596-24321-5-git-send-email-ajay.gupta@ti.com>
-	<1258470596-24321-6-git-send-email-ajay.gupta@ti.com>
-	<1258470596-24321-7-git-send-email-ajay.gupta@ti.com>
-	<1258470596-24321-8-git-send-email-ajay.gupta@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1258470596-24321-8-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Subject: [PATCH 0/8] musb: Add structure 'musb_hdrc_board_data'
+Date: Tue, 17 Nov 2009 20:39:48 +0530
+Message-ID: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Default value of 'extvbus' is being set as '0' to maintain the
-current programming state of all Blackfin musb boards.
+Hi,
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
----
- arch/blackfin/mach-bf527/boards/cm_bf527.c |    6 ++++++
- arch/blackfin/mach-bf527/boards/ezbrd.c    |    6 ++++++
- arch/blackfin/mach-bf527/boards/ezkit.c    |    6 ++++++
- arch/blackfin/mach-bf548/boards/cm_bf548.c |    6 ++++++
- arch/blackfin/mach-bf548/boards/ezkit.c    |    6 ++++++
- 5 files changed, 30 insertions(+), 0 deletions(-)
+This patch set adds a new structure 'musb_hdrc_board_data' to get all
+board specific data from board files.
 
-diff --git a/arch/blackfin/mach-bf527/boards/cm_bf527.c b/arch/blackfin/mach-bf527/boards/cm_bf527.c
-index f1996b1..48e1591 100644
---- a/arch/blackfin/mach-bf527/boards/cm_bf527.c
-+++ b/arch/blackfin/mach-bf527/boards/cm_bf527.c
-@@ -104,6 +104,11 @@ static struct musb_hdrc_config musb_config = {
- 	.gpio_vrsel	= GPIO_PF11,
- };
- 
-+/* musb board specific details */
-+static struct musb_hdrc_board_data musb_bdata = {
-+	.extvbus = 0,
-+};
-+
- static struct musb_hdrc_platform_data musb_plat = {
- #if defined(CONFIG_USB_MUSB_OTG)
- 	.mode		= MUSB_OTG,
-@@ -113,6 +118,7 @@ static struct musb_hdrc_platform_data musb_plat = {
- 	.mode		= MUSB_PERIPHERAL,
- #endif
- 	.config		= &musb_config,
-+	.board_data	= &musb_bdata,
- };
- 
- static u64 musb_dmamask = ~(u32)0;
-diff --git a/arch/blackfin/mach-bf527/boards/ezbrd.c b/arch/blackfin/mach-bf527/boards/ezbrd.c
-index cad23b1..bc56ea9 100644
---- a/arch/blackfin/mach-bf527/boards/ezbrd.c
-+++ b/arch/blackfin/mach-bf527/boards/ezbrd.c
-@@ -64,6 +64,11 @@ static struct musb_hdrc_config musb_config = {
- 	.gpio_vrsel	= GPIO_PG13,
- };
- 
-+/* musb board specific details */
-+static struct musb_hdrc_board_data musb_bdata = {
-+	.extvbus = 0,
-+};
-+
- static struct musb_hdrc_platform_data musb_plat = {
- #if defined(CONFIG_USB_MUSB_OTG)
- 	.mode		= MUSB_OTG,
-@@ -73,6 +78,7 @@ static struct musb_hdrc_platform_data musb_plat = {
- 	.mode		= MUSB_PERIPHERAL,
- #endif
- 	.config		= &musb_config,
-+	.board_data	= &musb_bdata,
- };
- 
- static u64 musb_dmamask = ~(u32)0;
-diff --git a/arch/blackfin/mach-bf527/boards/ezkit.c b/arch/blackfin/mach-bf527/boards/ezkit.c
-index f09665f..c99e8f2 100644
---- a/arch/blackfin/mach-bf527/boards/ezkit.c
-+++ b/arch/blackfin/mach-bf527/boards/ezkit.c
-@@ -102,6 +102,11 @@ static struct musb_hdrc_config musb_config = {
- 	.gpio_vrsel	= GPIO_PG13,
- };
- 
-+/* musb board specific details */
-+static struct musb_hdrc_board_data musb_bdata = {
-+	.extvbus = 0,
-+};
-+
- static struct musb_hdrc_platform_data musb_plat = {
- #if defined(CONFIG_USB_MUSB_OTG)
- 	.mode		= MUSB_OTG,
-@@ -111,6 +116,7 @@ static struct musb_hdrc_platform_data musb_plat = {
- 	.mode		= MUSB_PERIPHERAL,
- #endif
- 	.config		= &musb_config,
-+	.board_data	= &musb_bdata,
- };
- 
- static u64 musb_dmamask = ~(u32)0;
-diff --git a/arch/blackfin/mach-bf548/boards/cm_bf548.c b/arch/blackfin/mach-bf548/boards/cm_bf548.c
-index ccdcd6d..f745ab3 100644
---- a/arch/blackfin/mach-bf548/boards/cm_bf548.c
-+++ b/arch/blackfin/mach-bf548/boards/cm_bf548.c
-@@ -333,6 +333,11 @@ static struct musb_hdrc_config musb_config = {
- 	.gpio_vrsel	= GPIO_PH6,
- };
- 
-+/* musb board specific details */
-+static struct musb_hdrc_board_data musb_bdata = {
-+	.extvbus = 0,
-+};
-+
- static struct musb_hdrc_platform_data musb_plat = {
- #if defined(CONFIG_USB_MUSB_OTG)
- 	.mode		= MUSB_OTG,
-@@ -342,6 +347,7 @@ static struct musb_hdrc_platform_data musb_plat = {
- 	.mode		= MUSB_PERIPHERAL,
- #endif
- 	.config		= &musb_config,
-+	.board_data	= &musb_bdata,
- };
- 
- static u64 musb_dmamask = ~(u32)0;
-diff --git a/arch/blackfin/mach-bf548/boards/ezkit.c b/arch/blackfin/mach-bf548/boards/ezkit.c
-index 1a5286b..00995e8 100644
---- a/arch/blackfin/mach-bf548/boards/ezkit.c
-+++ b/arch/blackfin/mach-bf548/boards/ezkit.c
-@@ -435,6 +435,11 @@ static struct musb_hdrc_config musb_config = {
- 	.gpio_vrsel	= GPIO_PE7,
- };
- 
-+/* musb board specific details */
-+static struct musb_hdrc_board_data musb_bdata = {
-+	.extvbus = 0,
-+};
-+
- static struct musb_hdrc_platform_data musb_plat = {
- #if defined(CONFIG_USB_MUSB_OTG)
- 	.mode		= MUSB_OTG,
-@@ -444,6 +449,7 @@ static struct musb_hdrc_platform_data musb_plat = {
- 	.mode		= MUSB_PERIPHERAL,
- #endif
- 	.config		= &musb_config,
-+	.board_data	= &musb_bdata,
- };
- 
- static u64 musb_dmamask = ~(u32)0;
--- 
-1.6.2.4
+It is actually done to accomodate ULPI_VBUSCONTROL programming required
+for OMAP3EVM Rev >=E which uses external Vbus supply to support 500mA.
+
+Necessarly changes have been done in all the OMAP, Davinci and Blackfin
+platform based boards.
+
+[patches created against linus's tree and tested on OMAP3EVM]
+
+Regards,
+Ajay
+
+Ajay Kumar Gupta (8):
+  musb: Add structure to get board specific data
+  musb: Get power (mA) from board data
+  musb: Update musb_init() call for all OMAP3 boards
+  musb: Update setup_usb() call for all Davinci boards
+  musb: Add 'extvbus' in musb_hdrc_board_data
+  musb: set 'extvbus = 0' for OMAP3 boards
+  musb: set 'extvbus = 0' for Davinci boards
+  musb: set 'extvbus = 0' for Blackfin boards
+
+ arch/arm/mach-davinci/board-dm355-evm.c     |   10 +++++++++-
+ arch/arm/mach-davinci/board-dm355-leopard.c |   10 +++++++++-
+ arch/arm/mach-davinci/board-dm644x-evm.c    |    9 ++++++++-
+ arch/arm/mach-davinci/board-sffsdr.c        |   10 +++++++++-
+ arch/arm/mach-davinci/include/mach/common.h |    7 +++++--
+ arch/arm/mach-davinci/usb.c                 |    8 ++++----
+ arch/arm/mach-omap2/board-2430sdp.c         |    8 +++++++-
+ arch/arm/mach-omap2/board-3430sdp.c         |    9 ++++++++-
+ arch/arm/mach-omap2/board-ldp.c             |    8 +++++++-
+ arch/arm/mach-omap2/board-omap3beagle.c     |    9 ++++++++-
+ arch/arm/mach-omap2/board-omap3evm.c        |    9 ++++++++-
+ arch/arm/mach-omap2/board-omap3pandora.c    |    9 ++++++++-
+ arch/arm/mach-omap2/board-overo.c           |    9 ++++++++-
+ arch/arm/mach-omap2/board-rx51.c            |    8 +++++++-
+ arch/arm/mach-omap2/board-zoom2.c           |    8 +++++++-
+ arch/arm/mach-omap2/usb-musb.c              |   13 +++++--------
+ arch/arm/plat-omap/include/mach/usb.h       |    3 ++-
+ arch/blackfin/mach-bf527/boards/cm_bf527.c  |    6 ++++++
+ arch/blackfin/mach-bf527/boards/ezbrd.c     |    6 ++++++
+ arch/blackfin/mach-bf527/boards/ezkit.c     |    6 ++++++
+ arch/blackfin/mach-bf548/boards/cm_bf548.c  |    6 ++++++
+ arch/blackfin/mach-bf548/boards/ezkit.c     |    6 ++++++
+ drivers/usb/musb/musb_core.c                |   14 +++++++++++++-
+ drivers/usb/musb/musb_regs.h                |    5 +++++
+ include/linux/usb/musb.h                    |   19 +++++++++++++------
+ 25 files changed, 180 insertions(+), 35 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
