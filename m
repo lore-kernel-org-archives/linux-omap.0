@@ -1,64 +1,86 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Is the OMAP patch process badly flawed?
-Date: Tue, 17 Nov 2009 19:04:52 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C911F@dbde02.ent.ti.com>
-References: <20091116160402.deb0cc82.sfr@canb.auug.org.au>
- <4B0213AC.6050502@blueyonder.co.uk> <4B02A583.8090602@blueyonder.co.uk>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: OMAP3515 vs 3525 inversion
+Date: Tue, 17 Nov 2009 19:09:53 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE563E29@dbde02.ent.ti.com>
+References: <48239d390911160228y61e3c3dbk11b7a819f266b4bd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46230 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752653AbZKQNew convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 08:34:52 -0500
-In-Reply-To: <4B02A583.8090602@blueyonder.co.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:37363 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751041AbZKQNjw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 08:39:52 -0500
+In-Reply-To: <48239d390911160228y61e3c3dbk11b7a819f266b4bd@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "sboyce@blueyonder.co.uk" <sboyce@blueyonder.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Sergey Lapin <slapinid@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Sid Boyce wrote: 
-> I'm curious - I download, build and test kernels on x86 and x86_64
-> platforms, -rc, -rc-git and -git all build and run.
-> On the OMAP platform I have so far not been able to do that with
-> omap-git, omap-dss2-git trees and snapshots all missing basic hardware
-> support, e.g:- I get the latest from gitorious.org, make
-> omap3_beagle_defconfg, make xconfig, but there is no EHCI config
-> available. I hunt down the patch and hand apply "default y if
-> ARCH_OMAP34XX" to drivers/usb/Kconfig, next the build complains that
-> drivers/usb/host/ehci-hcd.c: 1143:2: error: #error "missing 
-> bus glue for
-> ehci-hcd"
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Sergey Lapin
+> Sent: Monday, November 16, 2009 3:59 PM
+> To: linux-omap@vger.kernel.org
+> Subject: OMAP3515 vs 3525 inversion
 > 
-> The bus glue patch ... ehci-omap.c no longer exists.
-> --- a/drivers/usb/host/ehci-hcd.c
-> +++ b/drivers/usb/host/ehci-hcd.c
-> @@ -1108,6 +1108,11 @@ MODULE_LICENSE ("GPL");
->  #define        PLATFORM_DRIVER         ehci_hcd_au1xxx_driver
->  #endif
+> Hi, all!
+> I think I found a bug in processor detection code.
+> as I see,
+> > > +	/* OMAP3430 and OMAP3530 are assumed to be same.
+> > > +	 *
+> > > +	 * OMAP3525, OMAP3515 and OMAP3503 can be detected only based
+> > > +	 * on available features. Upon detection, update the CPU id
+> > > +	 * and CPU class bits.
+> > > +	 */
+> > > +	if (omap3_has_iva() && omap3_has_sgx()) {
+> > > +		strcpy(cpu_name, "3430/3530");
+> > > +	}
+> > > +	else if (omap3_has_sgx()) {
+> > > +		omap_revision = OMAP3525_REV (rev);
+> > > +		strcpy(cpu_name, "3525");
+> > > +	}
+> > > +	else if (omap3_has_iva()) {
+> > > +		omap_revision = OMAP3515_REV (rev);
+> > > +		strcpy(cpu_name, "3515");
+> > > +	}
+> > > +	else {
+> > > +		omap_revision = OMAP3503_REV (rev);
+> > > +		strcpy(cpu_name, "3503");
+> > > +	}
 > 
-> +#ifdef CONFIG_ARCH_OMAP34XX
-> +#include "ehci-omap.c"
-> +#define        PLATFORM_DRIVER         ehci_hcd_omap_driver
-> +#endif
-> +
->  #ifdef CONFIG_PPC_PS3
->  #include "ehci-ps3.c"
->  #define        PS3_SYSTEM_BUS_DRIVER   ps3_ehci_driver
+> But, actually, 3515 has no DSP, but has PowerVR,
+> and 3525 has no PowerVR but has DSP. In-tree code inverses 
+> this detection.
+
+This error seems to have crept in while reworking the patch. I
+believe the patch can be minimized to:
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 1c15112..e5a0747 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -270,11 +270,11 @@ void __init omap3_cpuinfo(void)
+                strcpy(cpu_name, "3630");
+        else if (omap3_has_iva() && omap3_has_sgx())
+                strcpy(cpu_name, "3430/3530");
+-       else if (omap3_has_sgx()) {
++       else if (omap3_has_iva()) {
+                omap_revision = OMAP3525_REV(rev);
+                strcpy(cpu_name, "3525");
+        }
+-       else if (omap3_has_iva()) {
++       else if (omap3_has_sgx()) {
+                omap_revision = OMAP3515_REV(rev);
+                strcpy(cpu_name, "3515");
+        }
+
+I can submit this on your behalf.
+
+Best regards,
+Sanjeev
+
 > 
-> I would expect patches sent upstream would result in all the basics for
-> long established platforms to be fully covered. Appreciating that
-> development is quite fast paced with mods and supporting new platforms.
-> Could someone please enlighten me?
-
-Sid,
-
-Speaking purely for EHCI, this is now queued up in Greg's USB queue
-for upstream and will get merged in the next cycle.
-
-Until then, the linux-omap code does have working EHCI support
-on beagle, evm and the other boards. If you're cloning from
-gitorious, you're probably picking the wrong tree.
-
-- Anand
+> Please consider applying attached patch. (sorry, no git-send-email
+> available here).
+> 
