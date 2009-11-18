@@ -1,107 +1,101 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/8] OMAP: hwmod: warn on missing clockdomain
-Date: Wed, 18 Nov 2009 07:03:34 -0800
-Message-ID: <878we3euyh.fsf@deeprootsystems.com>
-References: <1258506313-17115-1-git-send-email-khilman@deeprootsystems.com>
-	<1258506313-17115-2-git-send-email-khilman@deeprootsystems.com>
-	<1258506313-17115-3-git-send-email-khilman@deeprootsystems.com>
-	<alpine.DEB.2.00.0911180404050.25515@utopia.booyaka.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] V4L2: clear buf when vrfb buf not allocated
+Date: Wed, 18 Nov 2009 20:43:57 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394043702BAA3@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E9402543305C5@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:62061 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757389AbZKRPD3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 10:03:29 -0500
-Received: by pzk1 with SMTP id 1so849363pzk.33
-        for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 07:03:36 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.0911180404050.25515@utopia.booyaka.com> (Paul Walmsley's message of "Wed\, 18 Nov 2009 04\:07\:23 -0700 \(MST\)")
+Received: from bear.ext.ti.com ([192.94.94.41]:36479 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757168AbZKRPNx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 10:13:53 -0500
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402543305C5@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: "Y, Kishore" <kishore.y@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Paul Walmsley <paul@pwsan.com> writes:
 
-> Hi Kevin
->
-> On Tue, 17 Nov 2009, Kevin Hilman wrote:
->
->> WARN if a clock/hwmod is missing a clockdomain association since
->> resulting hwmod will not be able to correctly enable/disable clocks.
->
-> Wouldn't this check be best placed in the clock code?  
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Y, Kishore
+> Sent: Wednesday, November 18, 2009 7:20 PM
+> To: linux-media@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH] V4L2: clear buf when vrfb buf not allocated
+> 
+> From 15246e4dfa6853d9aef48a4b8633f93efe40ed81 Mon Sep 17 00:00:00
+> 2001
+> From: Kishore Y <kishore.y@ti.com>
+> Date: Thu, 12 Nov 2009 20:47:58 +0530
+> Subject: [PATCH] V4L2: clear buf when vrfb buf not allocated
+> 
+> 	buffer memory is set to 0 only for the first time
+> before the vrfb buffer is allocated
+> 
+> Signed-off-by:  Kishore Y <kishore.y@ti.com>
+> ---
+> This patch is dependent on the patch
+> [PATCH 4/4] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on top
+> of DSS2
+> 
+>  drivers/media/video/omap/omap_vout.c |   10 +++++++---
+>  1 files changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index 7092ef2..0a9fdd7 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -223,9 +223,11 @@ static int
+> omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
+>  		unsigned int *count, int startindex)
+>  {
+>  	int i, j;
+> +	int buffer_set;
+> 
+>  	for (i = 0; i < *count; i++) {
+> -		if (!vout->smsshado_virt_addr[i]) {
+> +		buffer_set = vout->smsshado_virt_addr[i];
+> +		if (!buffer_set) {
+>  			vout->smsshado_virt_addr[i] =
+>  				omap_vout_alloc_buffer(vout->smsshado_size,
+>  						&vout->smsshado_phy_addr[i]);
+> @@ -247,8 +249,10 @@ static int
+> omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
+>  			*count = 0;
+>  			return -ENOMEM;
+>  		}
+> -		memset((void *) vout->smsshado_virt_addr[i], 0,
+> -				vout->smsshado_size);
+> +		if (!buffer_set) {
+> +			memset((void *) vout->smsshado_virt_addr[i], 0,
+> +					vout->smsshado_size);
+> +		}
+>  	}
+[Hiremath, Vaibhav] Why do we need this? Anyway if I understand correctly this function is getting called only once during REQBUF or probe, right?
 
-Possibly.  The idea here was to flag an issue that will prevent the
-hwmod code from crashing.
+If you are selecting static_vrfb_allocation through module_params, then anyway REQBUF won't call this function again, since the buffers are already allocated.
 
-Doing something like below in the clock code may be the right
-place, but it creates lots of noise that didn't help debug the hwmod
-problem.
+Thanks,
+Vaibhav
 
-clock omap_32k_fck is missing clockdomain
-clock virt_12m_ck is missing clockdomain
-clock virt_13m_ck is missing clockdomain
-clock virt_16_8m_ck is missing clockdomain
-clock virt_19_2m_ck is missing clockdomain
-clock virt_26m_ck is missing clockdomain
-clock virt_38_4m_ck is missing clockdomain
-clock osc_sys_ck is missing clockdomain
-clock sys_ck is missing clockdomain
-clock sys_altclk is missing clockdomain
-clock mcbsp_clks is missing clockdomain
-clock sys_clkout1 is missing clockdomain
-clock core_ck is missing clockdomain
-clock omap_96m_alwon_fck is missing clockdomain
-clock omap_96m_fck is missing clockdomain
-clock cm_96m_fck is missing clockdomain
-clock omap_54m_fck is missing clockdomain
-clock omap_48m_fck is missing clockdomain
-clock omap_12m_fck is missing clockdomain
-clock sys_clkout2 is missing clockdomain
-clock corex2_fck is missing clockdomain
-clock dpll1_fck is missing clockdomain
-clock emu_mpu_alwon_ck is missing clockdomain
-clock dpll2_fck is missing clockdomain
-clock rm_ick is missing clockdomain
-clock cpefuse_fck is missing clockdomain
-clock ts_fck is missing clockdomain
-clock usbtll_fck is missing clockdomain
-clock mcspi_fck is missing clockdomain
-clock mcspi_fck is missing clockdomain
-clock mcspi_fck is missing clockdomain
-clock mcspi_fck is missing clockdomain
-clock hdq_fck is missing clockdomain
-clock ssi_sst_fck is missing clockdomain
-clock security_l3_ick is missing clockdomain
-clock pka_ick is missing clockdomain
-clock omapctrl_ick is missing clockdomain
-clock security_l4_ick2 is missing clockdomain
-clock aes1_ick is missing clockdomain
-clock rng_ick is missing clockdomain
-clock sha11_ick is missing clockdomain
-clock des1_ick is missing clockdomain
-clock usim_fck is missing clockdomain
-clock sr1_fck is missing clockdomain
-clock sr2_fck is missing clockdomain
-clock secure_32k_fck is missing clockdomain
-clock gpt12_fck is missing clockdomain
-clock wdt1_fck is missing clockdomain
+>  	return 0;
+>  }
+> --
+> 1.5.4.3
+> 
+> 
+> Regards,
+> Kishore Y
+> Ph:- +918039813085
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 4716206..9022858 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -153,8 +153,10 @@ void omap2_init_clk_clkdm(struct clk *clk)
- {
- 	struct clockdomain *clkdm;
- 
--	if (!clk->clkdm_name)
-+	if (!clk->clkdm_name) {
-+		pr_debug("clock %s is missing clockdomain\n", clk->name);
- 		return;
-+	}
- 
- 	clkdm = clkdm_lookup(clk->clkdm_name);
- 	if (clkdm) {
-k
