@@ -1,27 +1,41 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [PATCH (for-next 2)] ASoC: Add support for IGEP v2
-Date: Wed, 18 Nov 2009 13:25:03 +0000
-Message-ID: <20091118132503.GB698@sirena.org.uk>
-References: <1258536929-2392-1-git-send-email-eballetbo@gmail.com> <4B03C56C.2000803@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH] omap3: zoom2/3: make MMC slot work again
+Date: Wed, 18 Nov 2009 19:09:10 +0530
+Message-ID: <1258551550-25301-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:51507 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753691AbZKRNZB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 08:25:01 -0500
-Content-Disposition: inline
-In-Reply-To: <4B03C56C.2000803@compulab.co.il>
+Received: from bear.ext.ti.com ([192.94.94.41]:58446 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756721AbZKRNjJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Nov 2009 08:39:09 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAIDdCbu001350
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 07:39:14 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, Enric Balletbo i Serra <eballetbo@iseebcn.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Anand Gadiyar <gadiyar@ti.com>
 
-On Wed, Nov 18, 2009 at 11:59:08AM +0200, Mike Rapoport wrote:
-> (adding ALSA mailing list to CC again :) )
+omap3: zoom2/3: make MMC slot work again
 
-Enric, please follow the instructions in Documentaion/SubmittingPatches
-when submitting patches - in particular, please do remember to CC both
-the maintainers for the relevant subsystems and the mailing list for the
-subsystem.  In this case I don't have a copy of the original patch so
-could you please resend.
+Commit 12f8dfb56 accidentally broke MMC on zoom2/3.
+The .vmmc1 field of zoom_twldata was deleted. Restoring it
+allows the MMC slot to work again
+
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    1 +
+ 1 files changed, 1 insertion(+)
+
+Index: linux-omap-2.6/arch/arm/mach-omap2/board-zoom-peripherals.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ linux-omap-2.6/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -236,6 +236,7 @@ static struct twl4030_platform_data zoom
+ 	.gpio		= &zoom_gpio_data,
+ 	.keypad		= &zoom_kp_twl4030_data,
+ 	.codec		= &zoom_codec_data,
++	.vmmc1          = &zoom_vmmc1,
+ 	.vmmc2          = &zoom_vmmc2,
+ 	.vsim           = &zoom_vsim,
+ 
