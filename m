@@ -1,61 +1,51 @@
-From: "Reddy, Teerth" <teerth@ti.com>
-Subject: [PATCH] ZOOM2: PM: Add T2 keypad as wakeup source for Zoom2
-Date: Wed, 18 Nov 2009 14:16:45 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CA99F@dbde02.ent.ti.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: Scalling_setspeed doesn't work
+Date: Wed, 18 Nov 2009 14:19:53 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA68A167@dbde02.ent.ti.com>
+References: <82cfbe860911170858j2a115673qff7588ac9eb4463c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36365 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39762 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752927AbZKRIqp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 03:46:45 -0500
+	id S1753807AbZKRIt5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 03:49:57 -0500
+In-Reply-To: <82cfbe860911170858j2a115673qff7588ac9eb4463c@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: tarek attia <tarek.m.attia@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-From: Lesly A M <x0080970@ti.com>
+You need to use userspace governor before trying to set speed using scalling_setspeed. Can you pls confirm that? 
+You can select userspace governor by using below command
+echo userspace > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 
-    Zoom2: Add T2 Keypad as a wakeup source
-    
-    Changes for setting the padconf value for sys_nirq line which is
-    connected to T2 INTR1. This will fix the T2 keypad wakeup.
-    
-Signed-off-by: Lesly A M <x0080970@ti.com>
-Signed-off-by: Teerth Reddy <teerth@ti.com>
+Vishwa
 
----
- arch/arm/mach-omap2/board-zoom2.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of tarek attia
+Sent: Tuesday, November 17, 2009 10:28 PM
+To: linux-omap
+Subject: Scalling_setspeed doesn't work
 
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 10b50f1..367215c 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -18,6 +18,7 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- 
-+#include <plat/mux.h>
- #include <plat/common.h>
- #include <plat/board.h>
- 
-@@ -66,10 +67,16 @@ static struct twl4030_platform_data zoom2_twldata = {
- extern int __init omap_zoom2_debugboard_init(void);
- extern void __init zoom_peripherals_init(void);
- 
-+static void enable_board_wakeup_source(void)
-+{
-+	omap_cfg_reg(AF26_34XX_SYS_NIRQ); /* T2 interrupt line */
-+}
-+
- static void __init omap_zoom2_init(void)
- {
- 	zoom_peripherals_init();
- 	omap_zoom2_debugboard_init();
-+	enable_board_wakeup_source();
- }
- 
- static void __init omap_zoom2_map_io(void)
+When I try to change the value of (scalling_setspeed) file ,it doesn't
+change however it doesn't rise errors as well,,but after changing it
+and trying to rereading it ,I found that nothing is changed
+!!!?????????
+
+
+BTW:-I'm using Linux kernel(2.6.29) on the beagleboard with the power
+management branch
+
+
+
+Any help will be appreciated .
+
+Best Regards,
+tarek
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
