@@ -1,36 +1,39 @@
-From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Subject: Re: [PATCH 0/8] musb: Add structure 'musb_hdrc_board_data'
-Date: Wed, 18 Nov 2009 17:20:03 +0300
-Message-ID: <4B040293.1020501@ru.mvista.com>
-References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>
+From: Peter Barada <peterb@logicpd.com>
+Subject: Problem trying to pull particular commit from PM tree
+Date: Wed, 18 Nov 2009 09:25:11 -0500
+Message-ID: <1258554311.750.33.camel@blitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1258470596-24321-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.logicpd.com ([66.162.60.3]:2836 "EHLO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757044AbZKROUh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Nov 2009 09:20:37 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Hello.
+Is it possible to back up in time on the PM tree to find a particular
+commit, even across rebasings?  I'm interested in the commit used by TI
+to base their AM3517 work on which is:
 
-Ajay Kumar Gupta wrote:
+[Commit:ef25c2a0e0]: OMAP3: PM: defconfig: enable SRF by default.
 
-> This patch set adds a new structure 'musb_hdrc_board_data' to get all
-> board specific data from board files.
+I tried:
 
-> It is actually done to accomodate ULPI_VBUSCONTROL programming required
-> for OMAP3EVM Rev >=E which uses external Vbus supply to support 500mA.
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+git checkout -b pm origin/pm
+git reset --hard ef25c2a0
 
-    It's not clear why it was necessary to create yet another structure. You 
-could your new field to 'struct musb_hdrc_platfrom_data'...
+But that came back with:
 
-> Regards,
-> Ajay
+fatal: ambiguous argument 'ef25c2a0': unknown revision or path not in
+the working tree.
 
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+My git 'fu' is pretty weak.  Any ideas why this doesn't work?
+Thanks in advance!
+
+-- 
+Peter Barada <peterb@logicpd.com>
+Logic Product Development, Inc.
