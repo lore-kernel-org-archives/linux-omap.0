@@ -1,36 +1,33 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: Query: Enabling DEBUG_LL on Zoom2/3 boards
-Date: Wed, 18 Nov 2009 17:11:03 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CAAA6@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 8/10 v3] omap mailbox: OMAP4-Mailbox - Adds code
+ changes to support OMAP4 mailbox.
+Date: Wed, 18 Nov 2009 13:52:22 +0200 (EET)
+Message-ID: <20091118.135222.52180698.Hiroshi.DOYU@nokia.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE564410@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47937 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751126AbZKRLlE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 06:41:04 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAIBf7kw026471
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 05:41:09 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAIBf6R8022711
-	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 17:11:06 +0530 (IST)
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:36004 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751452AbZKRLxL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 06:53:11 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE564410@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
+To: subramaniam.ca@ti.com
+Cc: tony@atomide.com, grgupta@ti.com, h-kanigeri2@ti.com, linux-omap@vger.kernel.org
 
-Vikram,
+From: "ext C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: [PATCH 8/10 v3] omap mailbox: OMAP4-Mailbox - Adds code changes to support OMAP4 mailbox.
+Date: Wed, 18 Nov 2009 10:32:01 +0100
 
-With the recent changes to DEBUG_LL on Zoom2/3 boards,
-it looks like I can no longer get any debug UART activity
-if DEBUG_LL is enabled on these boards (tested on Zoom3).
+> Hi Tony,
+> Following is the version 3 of patch 8/10. It removes one typo in the v2 patch that I sent out earlier.
+> Request you to take this version of the patch.
+> 
+> Hiroshi,
+> Thank you for pointing out the error. Request you to please review the patch.
 
-Is it fair to expect at least the normal UART activity to
-work even when CONFIG_DEBUG_LL is enabled and
-CONFIG_OMAP_LL_DEBUG_NONE is set?
-
-- Anand
+There may be some possibility to arrange multiple mailbox setup in
+more cleaner way, but for the moment it looks ok for me.
