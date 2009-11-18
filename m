@@ -1,204 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/10] omap: mailbox: OMAP4 Mailbox-driver Patch to support
-	tasklet implementation
-Date: Wed, 18 Nov 2009 11:21:52 -0800
-Message-ID: <20091118192152.31148.69206.stgit@localhost>
-References: <20091118191852.31148.93980.stgit@localhost>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP: Exporting functions doing common register access
+Date: Wed, 18 Nov 2009 12:30:33 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0911181220560.9248@utopia.booyaka.com>
+References: <1258384836-24854-1-git-send-email-anuj.aggarwal@ti.com> <alpine.DEB.2.00.0911161408260.29213@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8EC2@dbde02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB030A9CA8F7@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.0911180324350.25515@utopia.booyaka.com> <20091118163314.d0325283.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51781 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932394AbZKRTVu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 14:21:50 -0500
-In-Reply-To: <20091118191852.31148.93980.stgit@localhost>
+Received: from utopia.booyaka.com ([72.9.107.138]:43625 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758083AbZKRTa1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 14:30:27 -0500
+In-Reply-To: <20091118163314.d0325283.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Ramesh Gupta G <grgupta@ti.com>, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, C A Subramaniam <subramaniam.ca@ti.com>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 
-From: C A Subramaniam <subramaniam.ca@ti.com>
+Hi Jarkko,
 
-This patch uses a tasklet implementation for
-sending mailbox messages.
+On Wed, 18 Nov 2009, Jarkko Nikula wrote:
 
-Signed-off-by: C A Subramaniam <subramaniam.ca@ti.com>
-Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/include/plat/mailbox.h |    8 +++-
- arch/arm/plat-omap/mailbox.c              |   59 ++++++++---------------------
- 2 files changed, 23 insertions(+), 44 deletions(-)
+> On Wed, 18 Nov 2009 03:40:40 -0700 (MST)
+> Paul Walmsley <paul@pwsan.com> wrote:
+> 
+> > In the interim, I would suggest that you remove the the clock source and 
+> > receiver source change functions from omap-mcbsp.c, split them into OMAP1 
+> > and OMAP2/3 variants, and place them into arch/arm/mach-omap*/mcbsp.c.  
+> > Expand struct omap_mcbsp_ops to add function pointers to those functions.  
+> > Call those from soc/omap-mcbsp.c via mcbsp->pdata->ops. That way you won't 
+> > need those exports.
+> > 
+> Paul: What's your opinnion, would it be possible or would it be wise to
+> handle these McBSP clock route setups with the clock framework instead?
+> 
+> Functions omap_mcbsp_dai_set_clks_src and omap_mcbsp_dai_set_rcvr_src
+> are basically just setting up the input clock for McBSP SRG or McBSP1
+> receiver.
 
-diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
-index bf06953..729166b 100644
---- a/arch/arm/plat-omap/include/plat/mailbox.h
-+++ b/arch/arm/plat-omap/include/plat/mailbox.h
-@@ -6,6 +6,7 @@
- #include <linux/wait.h>
- #include <linux/workqueue.h>
- #include <linux/blkdev.h>
-+#include <linux/interrupt.h>
- 
- typedef u32 mbox_msg_t;
- struct omap_mbox;
-@@ -28,8 +29,10 @@ struct omap_mbox_ops {
- 	int		(*fifo_empty)(struct omap_mbox *mbox);
- 	int		(*fifo_full)(struct omap_mbox *mbox);
- 	/* irq */
--	void		(*enable_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
--	void		(*disable_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
-+	void		(*enable_irq)(struct omap_mbox *mbox,
-+						omap_mbox_irq_t irq);
-+	void		(*disable_irq)(struct omap_mbox *mbox,
-+						omap_mbox_irq_t irq);
- 	void		(*ack_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
- 	int		(*is_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
- 	/* ctx */
-@@ -41,6 +44,7 @@ struct omap_mbox_queue {
- 	spinlock_t		lock;
- 	struct request_queue	*queue;
- 	struct work_struct	work;
-+	struct tasklet_struct	tasklet;
- 	int	(*callback)(void *);
- 	struct omap_mbox	*mbox;
- };
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index 4d7947e..8e90633 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -80,74 +80,45 @@ static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
- 	return ret;
- }
- 
--struct omap_msg_tx_data {
--	mbox_msg_t	msg;
--};
--
--static void omap_msg_tx_end_io(struct request *rq, int error)
--{
--	kfree(rq->special);
--	__blk_put_request(rq->q, rq);
--}
- 
- int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
- {
--	struct omap_msg_tx_data *tx_data;
-+
- 	struct request *rq;
- 	struct request_queue *q = mbox->txq->queue;
- 
--	tx_data = kmalloc(sizeof(*tx_data), GFP_ATOMIC);
--	if (unlikely(!tx_data))
--		return -ENOMEM;
--
- 	rq = blk_get_request(q, WRITE, GFP_ATOMIC);
--	if (unlikely(!rq)) {
--		kfree(tx_data);
-+	if (unlikely(!rq))
- 		return -ENOMEM;
--	}
- 
--	tx_data->msg = msg;
--	rq->end_io = omap_msg_tx_end_io;
--	blk_insert_request(q, rq, 0, tx_data);
-+	blk_insert_request(q, rq, 0, (void *) msg);
-+	tasklet_schedule(&mbox->txq->tasklet);
- 
--	schedule_work(&mbox->txq->work);
- 	return 0;
- }
- EXPORT_SYMBOL(omap_mbox_msg_send);
- 
--static void mbox_tx_work(struct work_struct *work)
-+static void mbox_tx_tasklet(unsigned long tx_data)
- {
- 	int ret;
- 	struct request *rq;
--	struct omap_mbox_queue *mq = container_of(work,
--				struct omap_mbox_queue, work);
--	struct omap_mbox *mbox = mq->queue->queuedata;
-+	struct omap_mbox *mbox = (struct omap_mbox *)tx_data;
- 	struct request_queue *q = mbox->txq->queue;
- 
- 	while (1) {
--		struct omap_msg_tx_data *tx_data;
- 
--		spin_lock(q->queue_lock);
- 		rq = blk_fetch_request(q);
--		spin_unlock(q->queue_lock);
- 
- 		if (!rq)
- 			break;
- 
--		tx_data = rq->special;
--
--		ret = __mbox_msg_send(mbox, tx_data->msg);
-+		ret = __mbox_msg_send(mbox, (mbox_msg_t)rq->special);
- 		if (ret) {
- 			omap_mbox_enable_irq(mbox, IRQ_TX);
--			spin_lock(q->queue_lock);
- 			blk_requeue_request(q, rq);
--			spin_unlock(q->queue_lock);
- 			return;
- 		}
--
--		spin_lock(q->queue_lock);
--		__blk_end_request_all(rq, 0);
--		spin_unlock(q->queue_lock);
-+		blk_end_request_all(rq, 0);
- 	}
- }
- 
-@@ -192,7 +163,7 @@ static void __mbox_tx_interrupt(struct omap_mbox *mbox)
- {
- 	omap_mbox_disable_irq(mbox, IRQ_TX);
- 	ack_mbox_irq(mbox, IRQ_TX);
--	schedule_work(&mbox->txq->work);
-+	tasklet_schedule(&mbox->txq->tasklet);
- }
- 
- static void __mbox_rx_interrupt(struct omap_mbox *mbox)
-@@ -235,7 +206,8 @@ static irqreturn_t mbox_interrupt(int irq, void *p)
- 
- static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
- 					request_fn_proc *proc,
--					void (*work) (struct work_struct *))
-+					void (*work) (struct work_struct *),
-+					void (*tasklet)(unsigned long))
- {
- 	struct request_queue *q;
- 	struct omap_mbox_queue *mq;
-@@ -252,8 +224,11 @@ static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
- 	q->queuedata = mbox;
- 	mq->queue = q;
- 
--	INIT_WORK(&mq->work, work);
-+	if (work)
-+		INIT_WORK(&mq->work, work);
- 
-+	if (tasklet)
-+		tasklet_init(&mq->tasklet, tasklet, (unsigned long)mbox);
- 	return mq;
- error:
- 	kfree(mq);
-@@ -292,14 +267,14 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 		goto fail_request_irq;
- 	}
- 
--	mq = mbox_queue_alloc(mbox, mbox_txq_fn, mbox_tx_work);
-+	mq = mbox_queue_alloc(mbox, mbox_txq_fn, NULL, mbox_tx_tasklet);
- 	if (!mq) {
- 		ret = -ENOMEM;
- 		goto fail_alloc_txq;
- 	}
- 	mbox->txq = mq;
- 
--	mq = mbox_queue_alloc(mbox, mbox_rxq_fn, mbox_rx_work);
-+	mq = mbox_queue_alloc(mbox, mbox_rxq_fn, mbox_rx_work, NULL);
- 	if (!mq) {
- 		ret = -ENOMEM;
- 		goto fail_alloc_rxq;
+Sure.  There already should be some support for it in clock34xx.h, but I 
+doubt anyone's tested it:
 
+static struct clk mcbsp1_fck = {
+        .name           = "mcbsp_fck",
+        .ops            = &clkops_omap2_dflt_wait,
+        .id             = 1,
+        .init           = &omap2_init_clksel_parent,
+        .enable_reg     = OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+        .enable_bit     = OMAP3430_EN_MCBSP1_SHIFT,
+        .clksel_reg     = OMAP343X_CTRL_REGADDR(OMAP2_CONTROL_DEVCONF0),
+        .clksel_mask    = OMAP2_MCBSP1_CLKS_MASK,
+        .clksel         = mcbsp_15_clksel,
+        .clkdm_name     = "core_l4_clkdm",
+        .recalc         = &omap2_clksel_recalc,
+};
+
+etc.  Some similar entries would need to be added to the clock24xx.h file.
+
+> > I don't understand how this code compiled on OMAP1 in any case, since it 
+> > doesn't have a System Control Module.
+> > 
+> OMAP1 can include control.h as well :-)
+
+Yeah, I guess it is this stuff in control.h that makes it work:
+
+#define omap_ctrl_base_get()            0
+#define omap_ctrl_readb(x)              0
+#define omap_ctrl_readw(x)              0
+#define omap_ctrl_readl(x)              0
+#define omap_ctrl_writeb(x, y)          WARN_ON(1)
+#define omap_ctrl_writew(x, y)          WARN_ON(1)
+#define omap_ctrl_writel(x, y)          WARN_ON(1)
+
+Would be nice to get rid of that at some point.
+
+
+- Paul
