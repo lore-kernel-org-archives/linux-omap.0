@@ -1,136 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-v5 1/4] OMAP2/3: Add support for flash on SDP boards
-Date: Wed, 18 Nov 2009 09:03:09 -0800
-Message-ID: <20091118170308.GK29266@atomide.com>
-References: <ce9ab5790911100208j33822a11s5b521e69a94a08a3@mail.gmail.com>
- <20091112204042.GB24837@atomide.com>
- <ce9ab5790911180726q7eb27bc8g98c5f151d4e80362@mail.gmail.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH] omap3: zoom2/3: make MMC slot work again
+Date: Wed, 18 Nov 2009 11:04:40 -0600
+Message-ID: <003f01ca6871$37cd3930$544ff780@am.dhcp.ti.com>
+References: <1258551550-25301-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61711 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757895AbZKRRDF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 12:03:05 -0500
-Content-Disposition: inline
-In-Reply-To: <ce9ab5790911180726q7eb27bc8g98c5f151d4e80362@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:45133 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757746AbZKRREi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Nov 2009 12:04:38 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAIH4ijs031323
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 11:04:44 -0600
+In-Reply-To: <1258551550-25301-1-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: 'Anand Gadiyar' <gadiyar@ti.com>, linux-omap@vger.kernel.org
 
-* Vimal Singh <vimal.newwork@gmail.com> [091118 07:25]:
-> On Fri, Nov 13, 2009 at 2:10 AM, Tony Lindgren <tony@atomide.com> wro=
-te:
-> > * Vimal Singh <vimal.newwork@gmail.com> [091110 02:08]:
-> >> From 42f080e0915bbce1509fc8ab3773569fec0a44f1 Mon Sep 17 00:00:00 =
-2001
-> >> From: Vimal Singh <vimalsingh@ti.com>
-> >> Date: Tue, 10 Nov 2009 11:39:39 +0530
-> >> Subject: [PATCH] OMAP2/3: Add support for flash on SDP boards
-> >>
->=20
-> [...]
->=20
-> >> + =A0 =A0 if (!(__raw_readw(fpga_map_addr + REG_FPGA_REV)))
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* we dont have an DEBUG FPGA??? */
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* Depend on #defines!! default to strat=
-a boot return param */
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 return 0x0;
-> >
-> > Should iounmap before returning, or goto unmap.
->=20
-> will correct it in next version.
->=20
-> >
-> >
-> >> + =A0 =A0 /* S8-DIP-OFF =3D 1, S8-DIP-ON =3D 0 */
-> >> + =A0 =A0 cs =3D __raw_readw(fpga_map_addr + REG_FPGA_DIP_SWITCH_I=
-NPUT2) & 0xf;
-> >> +
-> >> + =A0 =A0 /* ES2.0 SDP's onwards 4 dip switches are provided for C=
-S */
-> >> + =A0 =A0 if (omap_rev() >=3D OMAP3430_REV_ES1_0)
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* change (S8-1:4=3DDS-2:0) to (S8-4:1=3D=
-DS-2:0) */
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 cs =3D ((cs & 8) >> 3) | ((cs & 4) >> 1)=
- |
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ((cs & 2) << 1) | ((cs &=
- 1) << 3);
-> >> + =A0 =A0 else
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* change (S8-1:3=3DDS-2:0) to (S8-3:1=3D=
-DS-2:0) */
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 cs =3D ((cs & 4) >> 2) | (cs & 2) | ((cs=
- & 1) << 2);
-> >> +
-> >> + =A0 =A0 iounmap(fpga_map_addr);
-> >> + =A0 =A0 return cs;
-> >> +}
-> >> +
-> >> +/**
-> >> + * sdp3430_flash_init - Identify devices connected to GPMC and re=
-gister.
-> >> + *
-> >> + * @return - void.
-> >> + */
-> >> +void __init sdp_flash_init(void)
-> >> +{
-> >> + =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0cs =3D 0;
-> >> + =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0nandcs =3D GPMC_CS_NUM + 1=
-;
-> >> + =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0onenandcs =3D GPMC_CS_NUM =
-+ 1;
-> >> + =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0idx;
-> >> + =A0 =A0 unsigned char =A0 *config_sel =3D NULL;
-> >> +
-> >> + =A0 =A0 /* REVISIT: Is this return correct idx for 2430 SDP?
-> >> + =A0 =A0 =A0* for which cs configuration matches for 2430 SDP?
-> >> + =A0 =A0 =A0*/
-> >> + =A0 =A0 idx =3D get_gpmc0_type();
-> >> + =A0 =A0 if (idx >=3D MAX_SUPPORTED_GPMC_CONFIG) {
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "%s: Invalid chip select=
-: %d\n", __func__, cs);
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 return;
-> >> + =A0 =A0 }
-> >> + =A0 =A0 config_sel =3D (unsigned char *)(chip_sel_sdp[idx]);
-> >> +
-> >> + =A0 =A0 /* Configure start address and size of NOR device */
-> >> + =A0 =A0 if (omap_rev() >=3D OMAP3430_REV_ES1_0) {
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 sdp_nor_resource.start =A0=3D FLASH_BASE=
-_SDPV2;
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 sdp_nor_resource.end =A0 =A0=3D FLASH_BA=
-SE_SDPV2
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 + FLASH_SIZE_SDPV2 - 1;
-> >> + =A0 =A0 } else {
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 sdp_nor_resource.start =A0=3D FLASH_BASE=
-_SDPV1;
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 sdp_nor_resource.end =A0 =A0=3D FLASH_BA=
-SE_SDPV1
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 + FLASH_SIZE_SDPV1 - 1;
-> >> + =A0 =A0 }
-> >
-> > This should be done with gpmc_cs_request using the chip select and =
-size.
-> > Please see gpmc_smc91x_init() for an example.
->=20
-> I do not think this should be done with 'gpmc_cs_request'. NOR flashe=
-s
-> have been treated somehow differently.
 
-Can you please specify what the issue using gpmc_cs_request is?
 
-To me it seems that if you're not doing gpmc_cs_request, the gpmc can
-be in uninitialized state. I don't think we want to build our kernel
-assuming some hardcoded GPMC settings from the bootloader.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Anand Gadiyar
+> Sent: Wednesday, November 18, 2009 7:39 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Anand Gadiyar
+> Subject: [PATCH] omap3: zoom2/3: make MMC slot work again
+> 
+> omap3: zoom2/3: make MMC slot work again
+> 
+> Commit 12f8dfb56 accidentally broke MMC on zoom2/3.
+> The .vmmc1 field of zoom_twldata was deleted. Restoring it
+> allows the MMC slot to work again
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 
-Regards,
+Good catch. Ack.
+Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    1 +
+>  1 files changed, 1 insertion(+)
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap2/board-zoom-peripherals.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-zoom-peripherals.c
+> +++ linux-omap-2.6/arch/arm/mach-omap2/board-zoom-peripherals.c
+> @@ -236,6 +236,7 @@ static struct twl4030_platform_data zoom
+>  	.gpio		= &zoom_gpio_data,
+>  	.keypad		= &zoom_kp_twl4030_data,
+>  	.codec		= &zoom_codec_data,
+> +	.vmmc1          = &zoom_vmmc1,
+>  	.vmmc2          = &zoom_vmmc2,
+>  	.vsim           = &zoom_vsim,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
