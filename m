@@ -1,67 +1,93 @@
-From: "Y, Kishore" <kishore.y@ti.com>
-Subject: [PATCH] V4L2: clear buf when vrfb buf not allocated
-Date: Wed, 18 Nov 2009 19:20:29 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402543305C5@dbde02.ent.ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH] OMAP3: PM: Force write last pad config register into
+ save area
+Date: Wed, 18 Nov 2009 19:41:03 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CAB51@dbde02.ent.ti.com>
+References: <1258475693-22068-1-git-send-email-tero.kristo@nokia.com>
+ <87my2lf1ai.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-media-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41338 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753293AbZKROLH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 09:11:07 -0500
+In-Reply-To: <87my2lf1ai.fsf@deeprootsystems.com>
 Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
->From 15246e4dfa6853d9aef48a4b8633f93efe40ed81 Mon Sep 17 00:00:00 2001
-From: Kishore Y <kishore.y@ti.com>
-Date: Thu, 12 Nov 2009 20:47:58 +0530
-Subject: [PATCH] V4L2: clear buf when vrfb buf not allocated
-
-	buffer memory is set to 0 only for the first time
-before the vrfb buffer is allocated
-
-Signed-off-by:  Kishore Y <kishore.y@ti.com>
----
-This patch is dependent on the patch
-[PATCH 4/4] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on top of DSS2
-
- drivers/media/video/omap/omap_vout.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 7092ef2..0a9fdd7 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -223,9 +223,11 @@ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
- 		unsigned int *count, int startindex)
- {
- 	int i, j;
-+	int buffer_set;
- 
- 	for (i = 0; i < *count; i++) {
--		if (!vout->smsshado_virt_addr[i]) {
-+		buffer_set = vout->smsshado_virt_addr[i];
-+		if (!buffer_set) {
- 			vout->smsshado_virt_addr[i] =
- 				omap_vout_alloc_buffer(vout->smsshado_size,
- 						&vout->smsshado_phy_addr[i]);
-@@ -247,8 +249,10 @@ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
- 			*count = 0;
- 			return -ENOMEM;
- 		}
--		memset((void *) vout->smsshado_virt_addr[i], 0,
--				vout->smsshado_size);
-+		if (!buffer_set) {
-+			memset((void *) vout->smsshado_virt_addr[i], 0,
-+					vout->smsshado_size);
-+		}
- 	}
- 	return 0;
- }
--- 
-1.5.4.3
+To: Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-Regards,
-Kishore Y
-Ph:- +918039813085
+
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
+>>Hilman
+>>Sent: Wednesday, November 18, 2009 12:04 AM
+>>To: Tero Kristo
+>>Cc: linux-omap@vger.kernel.org
+>>Subject: Re: [PATCH] OMAP3: PM: Force write last pad config register into save area
+>>
+>>Tero Kristo <tero.kristo@nokia.com> writes:
+>>
+>>> From: Tero Kristo <tero.kristo@nokia.com>
+>>>
+>>> Due to OMAP3 errata XYZ, the save of the last pad register (ETK_D14 and
+>>> ETK_D15) can fail sometimes when there is simultaneous OCP access to the
+>>> SCM register area. Fixed by writing the last register to the save area.
+>>>
+>>> Also, optimized the delay loop for the HW save to include an udelay(1),
+>>> which limits the number of unnecessary HW accesses to SCM register area
+>>> during the save.
+>>>
+>>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>>
+>>I certainly like this fix much better than the original proposal:
+>>
+>>  http://marc.info/?l=linux-omap&m=125474186609661&w=2
+
+Please do not merge this patch until TI officially confirms the workaround.
+>>
+>>Pulling into PM branch after s/XYZ/1.157/
+>>
+>>Kevin
+>>
+>>> ---
+>>>  arch/arm/mach-omap2/pm34xx.c |   10 +++++++++-
+>>>  1 files changed, 9 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+>>> index 4b01303..4ead40e 100644
+>>> --- a/arch/arm/mach-omap2/pm34xx.c
+>>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>>> @@ -155,7 +155,15 @@ static void omap3_core_save_context(void)
+>>>  	/* wait for the save to complete */
+>>>  	while (!(omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
+>>>  			& PADCONF_SAVE_DONE))
+>>> -		;
+>>> +		udelay(1);
+>>> +
+>>> +	/*
+>>> +	 * Force write last pad into memory, as this can fail in some
+>>> +	 * cases according to errata XYZ
+>>> +	 */
+>>> +	omap_ctrl_writel(omap_ctrl_readl(OMAP343X_PADCONF_ETK_D14),
+>>> +		OMAP343X_CONTROL_MEM_WKUP + 0x2a0);
+>>> +
+>>>  	/* Save the Interrupt controller context */
+>>>  	omap_intc_save_context();
+>>>  	/* Save the GPMC context */
+>>> --
+>>> 1.5.4.3
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
