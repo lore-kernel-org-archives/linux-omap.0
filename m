@@ -1,93 +1,48 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH] OMAP3: PM: Force write last pad config register into
- save area
-Date: Wed, 18 Nov 2009 19:41:03 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CAB51@dbde02.ent.ti.com>
-References: <1258475693-22068-1-git-send-email-tero.kristo@nokia.com>
- <87my2lf1ai.fsf@deeprootsystems.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: [PATCH 0/4] OMAP3: Clock changes for OMAP3630
+Date: Wed, 18 Nov 2009 19:43:56 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA7510C2@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41338 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753293AbZKROLH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 09:11:07 -0500
-In-Reply-To: <87my2lf1ai.fsf@deeprootsystems.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:60309 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753491AbZKRONy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 09:13:54 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAIEDw52021634
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 08:14:00 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAIEDvJJ001220
+	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 19:43:57 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
+This patch set introduces clock changes for OMAP3630. Major changes in OMAP3630 w.r.t clock are
+1. Introduction of j type dpll4
+2. CLKSEL filed width is increased by 1 bit for DPLL4M3, M4, M5 and M6
+3. SGX can be run at 192Mhz
 
+Patch set has been created for linux-omap-pm tree
 
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
->>Hilman
->>Sent: Wednesday, November 18, 2009 12:04 AM
->>To: Tero Kristo
->>Cc: linux-omap@vger.kernel.org
->>Subject: Re: [PATCH] OMAP3: PM: Force write last pad config register into save area
->>
->>Tero Kristo <tero.kristo@nokia.com> writes:
->>
->>> From: Tero Kristo <tero.kristo@nokia.com>
->>>
->>> Due to OMAP3 errata XYZ, the save of the last pad register (ETK_D14 and
->>> ETK_D15) can fail sometimes when there is simultaneous OCP access to the
->>> SCM register area. Fixed by writing the last register to the save area.
->>>
->>> Also, optimized the delay loop for the HW save to include an udelay(1),
->>> which limits the number of unnecessary HW accesses to SCM register area
->>> during the save.
->>>
->>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->>
->>I certainly like this fix much better than the original proposal:
->>
->>  http://marc.info/?l=linux-omap&m=125474186609661&w=2
+Richard Woodruff (1):
+  OMAP3:clk - introduce DPLL4 jtype support
 
-Please do not merge this patch until TI officially confirms the workaround.
->>
->>Pulling into PM branch after s/XYZ/1.157/
->>
->>Kevin
->>
->>> ---
->>>  arch/arm/mach-omap2/pm34xx.c |   10 +++++++++-
->>>  1 files changed, 9 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->>> index 4b01303..4ead40e 100644
->>> --- a/arch/arm/mach-omap2/pm34xx.c
->>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>> @@ -155,7 +155,15 @@ static void omap3_core_save_context(void)
->>>  	/* wait for the save to complete */
->>>  	while (!(omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
->>>  			& PADCONF_SAVE_DONE))
->>> -		;
->>> +		udelay(1);
->>> +
->>> +	/*
->>> +	 * Force write last pad into memory, as this can fail in some
->>> +	 * cases according to errata XYZ
->>> +	 */
->>> +	omap_ctrl_writel(omap_ctrl_readl(OMAP343X_PADCONF_ETK_D14),
->>> +		OMAP343X_CONTROL_MEM_WKUP + 0x2a0);
->>> +
->>>  	/* Save the Interrupt controller context */
->>>  	omap_intc_save_context();
->>>  	/* Save the GPMC context */
->>> --
->>> 1.5.4.3
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Vishwanath BS (3):
+  OMAP3:clk - Clock Type change for OMAP3 Clocks
+  OMAP3:clk - correct width for CLKSEL Fields
+  OMAP3:clk - add support for 192Mhz sgx clock
+
+ arch/arm/mach-omap2/clock.h             |   12 +-
+ arch/arm/mach-omap2/clock34xx.c         |  438 ++++++++++++++++++-------------
+ arch/arm/mach-omap2/clock34xx.h         |  244 +++++++++++------
+ arch/arm/mach-omap2/cm-regbits-34xx.h   |   11 +
+ arch/arm/mach-omap2/id.c                |    4 +-
+ arch/arm/plat-omap/include/plat/clock.h |    9 +-
+ arch/arm/plat-omap/include/plat/cpu.h   |    3 +-
+ 7 files changed, 441 insertions(+), 280 deletions(-)
 
