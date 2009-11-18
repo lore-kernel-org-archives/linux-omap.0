@@ -1,33 +1,43 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: Error detecting mmc card on zoom3
-Date: Wed, 18 Nov 2009 15:35:03 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309DAC22C@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] OMAP: Exporting functions doing common register access
+Date: Wed, 18 Nov 2009 03:40:40 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0911180324350.25515@utopia.booyaka.com>
+References: <1258384836-24854-1-git-send-email-anuj.aggarwal@ti.com> <alpine.DEB.2.00.0911161408260.29213@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8EC2@dbde02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB030A9CA8F7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48869 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751812AbZKRKFI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 05:05:08 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAIA5BqR009769
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 04:05:13 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAIA5AVM026253
-	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 15:35:10 +0530 (IST)
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:58813 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752973AbZKRKke (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 05:40:34 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CA8F7@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 
-I'm unable to use MMC on a zoom3 board with current linux-omap kernel.
-I see the following error in the bootlogs.
+On Wed, 18 Nov 2009, Aggarwal, Anuj wrote:
 
-  mmci-omap-hs mmci-omap-hs.0: err -19 configuring card detect
+> [Aggarwal, Anuj] Any comments on this patch? Do I have to re-work this?
+
+Yes.  omap_ctrl_*() should not be exported, as mentioned earlier.
+
+A lot of rework will be needed at some point in sound/soc/omap/ to get all 
+of the chip- and board-integration details out of these files.  DMA 
+channels, IRQs, board data, etc. should all go into arch/arm/*omap*.  
+plat-omap/mcbsp.c needs to be moved to somewhere under drivers/ at some 
+point, but the platform_device setup for it should be kept under 
+arch/arm/*omap*.
+
+In the interim, I would suggest that you remove the the clock source and 
+receiver source change functions from omap-mcbsp.c, split them into OMAP1 
+and OMAP2/3 variants, and place them into arch/arm/mach-omap*/mcbsp.c.  
+Expand struct omap_mcbsp_ops to add function pointers to those functions.  
+Call those from soc/omap-mcbsp.c via mcbsp->pdata->ops. That way you won't 
+need those exports.
+
+I don't understand how this code compiled on OMAP1 in any case, since it 
+doesn't have a System Control Module.
 
 
-I'll take a stab at this in a couple of hours unless someone beats me to it.
-
-- Anand
+- Paul
