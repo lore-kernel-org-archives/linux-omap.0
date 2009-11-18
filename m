@@ -1,38 +1,48 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 0/8] omap_hwmod/omap_device prep work
-Date: Tue, 17 Nov 2009 17:05:05 -0800
-Message-ID: <1258506313-17115-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 1/8] OMAP3: clock: add clockdomains for UART1 & 2
+Date: Tue, 17 Nov 2009 17:05:06 -0800
+Message-ID: <1258506313-17115-2-git-send-email-khilman@deeprootsystems.com>
+References: <1258506313-17115-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-yx0-f187.google.com ([209.85.210.187]:61295 "EHLO
 	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756353AbZKRBFL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 20:05:11 -0500
-Received: by yxe17 with SMTP id 17so614173yxe.33
-        for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2009 17:05:16 -0800 (PST)
+	with ESMTP id S1756443AbZKRBFN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Nov 2009 20:05:13 -0500
+Received: by mail-yx0-f187.google.com with SMTP id 17so614173yxe.33
+        for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2009 17:05:19 -0800 (PST)
+In-Reply-To: <1258506313-17115-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-In converting the UART drivers over to omap_hwmod/omap_device, I
-found a few issues. 
+UART1 & 2 were missing clockdomains resulting in broken omap_hwmod
+init for these devices.
 
-Kevin Hilman (7):
-  OMAP3: clock: add clockdomains for UART1 & 2
-  OMAP: hwmod: warn on missing clockdomain
-  OMAP: omap_device: deactivate latency typo
-  OMAP: omap_device: add usecounting
-  OMAP: omap_device: use read_persistent_clock() instead of
-    getnstimeofday()
-  OMAP: omap_device: warn about expected latencies only if non-zero
-  OMAP: omap_device: use UINT_MAX for default wakeup latency limit
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/clock34xx.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Paul Walmsley (1):
-  OMAP3 hwmod: Add automatic OCP_SYSCONFIG AUTOIDLE handling
-
- arch/arm/mach-omap2/clock34xx.h               |    2 +
- arch/arm/mach-omap2/omap_hwmod.c              |   53 ++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/omap_device.h |    1 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    8 +++-
- arch/arm/plat-omap/omap_device.c              |   43 +++++++++++++-------
- 5 files changed, 86 insertions(+), 21 deletions(-)
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index a1b3de7..cbc3d8a 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -1507,6 +1507,7 @@ static struct clk uart2_fck = {
+ 	.parent		= &core_48m_fck,
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+ 	.enable_bit	= OMAP3430_EN_UART2_SHIFT,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+@@ -1516,6 +1517,7 @@ static struct clk uart1_fck = {
+ 	.parent		= &core_48m_fck,
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+ 	.enable_bit	= OMAP3430_EN_UART1_SHIFT,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-- 
+1.6.5.1
 
