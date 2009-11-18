@@ -1,41 +1,67 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH] omap3: zoom2/3: make MMC slot work again
-Date: Wed, 18 Nov 2009 19:09:10 +0530
-Message-ID: <1258551550-25301-1-git-send-email-gadiyar@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58446 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756721AbZKRNjJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Nov 2009 08:39:09 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAIDdCbu001350
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 07:39:14 -0600
-Sender: linux-omap-owner@vger.kernel.org
+From: "Y, Kishore" <kishore.y@ti.com>
+Subject: [PATCH] V4L2: clear buf when vrfb buf not allocated
+Date: Wed, 18 Nov 2009 19:20:29 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402543305C5@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Anand Gadiyar <gadiyar@ti.com>
 
-omap3: zoom2/3: make MMC slot work again
+>From 15246e4dfa6853d9aef48a4b8633f93efe40ed81 Mon Sep 17 00:00:00 2001
+From: Kishore Y <kishore.y@ti.com>
+Date: Thu, 12 Nov 2009 20:47:58 +0530
+Subject: [PATCH] V4L2: clear buf when vrfb buf not allocated
 
-Commit 12f8dfb56 accidentally broke MMC on zoom2/3.
-The .vmmc1 field of zoom_twldata was deleted. Restoring it
-allows the MMC slot to work again
+	buffer memory is set to 0 only for the first time
+before the vrfb buffer is allocated
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Signed-off-by:  Kishore Y <kishore.y@ti.com>
 ---
- arch/arm/mach-omap2/board-zoom-peripherals.c |    1 +
- 1 files changed, 1 insertion(+)
+This patch is dependent on the patch
+[PATCH 4/4] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on top of DSS2
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/board-zoom-peripherals.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ linux-omap-2.6/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -236,6 +236,7 @@ static struct twl4030_platform_data zoom
- 	.gpio		= &zoom_gpio_data,
- 	.keypad		= &zoom_kp_twl4030_data,
- 	.codec		= &zoom_codec_data,
-+	.vmmc1          = &zoom_vmmc1,
- 	.vmmc2          = &zoom_vmmc2,
- 	.vsim           = &zoom_vsim,
+ drivers/media/video/omap/omap_vout.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 7092ef2..0a9fdd7 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -223,9 +223,11 @@ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
+ 		unsigned int *count, int startindex)
+ {
+ 	int i, j;
++	int buffer_set;
  
+ 	for (i = 0; i < *count; i++) {
+-		if (!vout->smsshado_virt_addr[i]) {
++		buffer_set = vout->smsshado_virt_addr[i];
++		if (!buffer_set) {
+ 			vout->smsshado_virt_addr[i] =
+ 				omap_vout_alloc_buffer(vout->smsshado_size,
+ 						&vout->smsshado_phy_addr[i]);
+@@ -247,8 +249,10 @@ static int omap_vout_allocate_vrfb_buffers(struct omap_vout_device *vout,
+ 			*count = 0;
+ 			return -ENOMEM;
+ 		}
+-		memset((void *) vout->smsshado_virt_addr[i], 0,
+-				vout->smsshado_size);
++		if (!buffer_set) {
++			memset((void *) vout->smsshado_virt_addr[i], 0,
++					vout->smsshado_size);
++		}
+ 	}
+ 	return 0;
+ }
+-- 
+1.5.4.3
+
+
+Regards,
+Kishore Y
+Ph:- +918039813085
