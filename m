@@ -1,45 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 8/10 v3] omap mailbox: OMAP4-Mailbox - Adds code
- changes to support OMAP4 mailbox.
-Date: Wed, 18 Nov 2009 11:16:42 -0800
-Message-ID: <20091118191642.GS29266@atomide.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DE564410@dbde02.ent.ti.com>
- <20091118.135222.52180698.Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 00/10] Omap mailbox updates for omap4 for 2.6.33
+Date: Wed, 18 Nov 2009 11:19:47 -0800
+Message-ID: <20091118191852.31148.93980.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59719 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932585AbZKRTQk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 14:16:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20091118.135222.52180698.Hiroshi.DOYU@nokia.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65098 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932608AbZKRTTq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 14:19:46 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: subramaniam.ca@ti.com, grgupta@ti.com, h-kanigeri2@ti.com, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [091118 03:52]:
-> From: "ext C.A, Subramaniam" <subramaniam.ca@ti.com>
-> Subject: [PATCH 8/10 v3] omap mailbox: OMAP4-Mailbox - Adds code changes to support OMAP4 mailbox.
-> Date: Wed, 18 Nov 2009 10:32:01 +0100
-> 
-> > Hi Tony,
-> > Following is the version 3 of patch 8/10. It removes one typo in the v2 patch that I sent out earlier.
-> > Request you to take this version of the patch.
-> > 
-> > Hiroshi,
-> > Thank you for pointing out the error. Request you to please review the patch.
-> 
-> There may be some possibility to arrange multiple mailbox setup in
-> more cleaner way, but for the moment it looks ok for me.
+Hi all,
 
-OK, I've updated the patch in for-next.
-
-I'll post the omap4 mailbox series for review to linux-arm-kernel
-today. Please check that all the related patches in linux-omap
-for-next are OK too.
+Here are omap4 related mailbox changes for review.
 
 Regards,
 
 Tony
+
+---
+
+C A Subramaniam (6):
+      omap: mailbox: Add build specific changes to support omap mailbox
+      omap: mailbox: Add resources and mailbox register base address for OMAP4 mailbox
+      omap: mailbox: remove unnecessary arg for omap_mbox_msg_send
+      omap: mailbox: Adds code changes to support OMAP4 mailbox
+      omap: mailbox: OMAP4 Mailbox Patch to change the IRQ flag from IRQF_DISABLED to IRQF_SHARED
+      omap: mailbox: OMAP4 Mailbox-driver Patch to support tasklet implementation
+
+Hiroshi DOYU (4):
+      omap: mailbox: remove sequence bit checking
+      omap: mailbox: remove class interface
+      omap: mailbox: remove disable_/enable_mbox_irq in isr
+      omap: mailbox: Expose omap_mbox_enable()/disable_irq()
+
+
+ arch/arm/mach-omap2/Makefile               |    3 
+ arch/arm/mach-omap2/devices.c              |   36 +++-
+ arch/arm/mach-omap2/mailbox.c              |  140 ++++++++++++--
+ arch/arm/plat-omap/include/plat/mailbox.h  |   23 ++
+ arch/arm/plat-omap/include/plat/omap44xx.h |    2 
+ arch/arm/plat-omap/mailbox.c               |  282 +++++-----------------------
+ 6 files changed, 217 insertions(+), 269 deletions(-)
+
+-- 
+Signature
