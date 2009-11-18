@@ -1,78 +1,89 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Re: [PATCH (for-next)] ASoC: Add support for IGEP v2
-Date: Wed, 18 Nov 2009 10:11:34 +0100
-Message-ID: <70c9a9110911180111k4c4e889cx93a1187e27cb5984@mail.gmail.com>
-References: <1258479067-2564-1-git-send-email-eballetbo@gmail.com>
-	 <4B03B7B2.9090401@compulab.co.il>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB030A9CA9BB@dbde02.ent.ti.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: Re: Artifacts present in AIC23 capture for 48
+	KHz	sampling rate
+Date: Wed, 18 Nov 2009 14:50:08 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CA9D0@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C9109@dbde02.ent.ti.com>
+	<4B02F4E1.3060405@boundarydevices.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:61413 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751706AbZKRJL3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 04:11:29 -0500
-Received: by fxm21 with SMTP id 21so911556fxm.21
-        for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 01:11:34 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CA9BB@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <4B02F4E1.3060405@boundarydevices.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Troy Kisky <troy.kisky@boundarydevices.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Mike Rapoport <mike@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 
-> This part isn't relevant to ASoC. Shouldn't it go separately through =
-linux-omap?
->
-> It could possibly get folded into the patch adding this board support=
- in the
-> first place.
->
-> - Anand
-
-Oops, sorry is a mistake I will resend the patch without this.
-
-Thanks,
-
-Enric
-
-2009/11/18 Gadiyar, Anand <gadiyar@ti.com>:
-> Mike Rapoport wrote:
->> Enric Balletbo i Serra wrote:
->> > From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
->> >
->> >
->> > Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
->> > ---
->> > =C2=A0arch/arm/mach-omap2/Kconfig | =C2=A0 =C2=A02 +-
->> > =C2=A0sound/soc/omap/Kconfig =C2=A0 =C2=A0 =C2=A0| =C2=A0 =C2=A07 =
-++
->> > =C2=A0sound/soc/omap/Makefile =C2=A0 =C2=A0 | =C2=A0 =C2=A02 +
->> > =C2=A0sound/soc/omap/igep0020.c =C2=A0 | =C2=A0148 +++++++++++++++=
-++++++++++++++++++++++++++++
->> > =C2=A04 files changed, 158 insertions(+), 1 deletions(-)
->> > =C2=A0create mode 100644 sound/soc/omap/igep0020.c
->> >
->> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kco=
-nfig
->> > index 68866f3..6922198 100644
->> > --- a/arch/arm/mach-omap2/Kconfig
->> > +++ b/arch/arm/mach-omap2/Kconfig
->> > @@ -114,7 +114,7 @@ config MACH_OMAP_3630SDP
->> > =C2=A0 =C2=A0 depends on ARCH_OMAP3 && ARCH_OMAP34XX
->> >
->> > =C2=A0config MACH_IGEP0020
->> > - =C2=A0 bool "IGEP0020"
->> > + =C2=A0 bool "IGEP v2 board"
->> > =C2=A0 =C2=A0 depends on ARCH_OMAP3 && ARCH_OMAP34XX
->> >
->> > =C2=A0config MACH_OMAP_4430SDP
->
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Troy Kisky [mailto:troy.kisky@boundarydevices.com]
+> Sent: Wednesday, November 18, 2009 12:39 AM
+> To: Aggarwal, Anuj
+> Cc: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org
+> Subject: Re: [alsa-devel] Artifacts present in AIC23 capture for 48 KHz
+> sampling rate
+> 
+> Aggarwal, Anuj wrote:
+> >> -----Original Message-----
+> >> From: Aggarwal, Anuj
+> >> Sent: Friday, November 06, 2009 6:28 PM
+> >> To: alsa-devel@alsa-project.org; 'linux-omap@vger.kernel.org'
+> >> Subject: Artifacts present in AIC23 capture for 48 KHz sampling rate
+> >>
+> >> Hi,
+> >>
+> >> I am observing artifacts (sharp spikes at fixed intervals) while
+> >> capturing audio on AM3517 EVM and AIC23 codec. They are present only
+> >> in one of the channels when I am capturing at 48 KHz. All other
+> >> sampling rates are working fine with the above said combination.
+> >>
+> >> I have also attached the screenshot taken with the help of Audacity
+> >> utility. Here, I tried recording silence but artifacts were observed
+> >> on one channel.
+> >>
+> >> Has anyone also observed the similar behavior with AIC23 codec? Any
+> >> hints on what could be the root cause?
+> > [Aggarwal, Anuj] On further debugging, I found that the function
+> > find_rate() in sound/soc/codecs/tlv320aic23.c is not returning
+> > the correct value for capture in 48KHz sample rate. In USB mode
+> > (MCLK=12MHz), for 48KHz, it returns 0x7D (CLKOUT=0, CLKIN=1,
+> > SR[3:0]=0xF, BOSR=1, Normal=1) whereas as per the AIC23B spec,
+> 
+> 0x7D would be BOSR = 0, USB/NORMAL = 1, SR=0xff, div2 = 1
+> 
+> The bug is with sr_valid_mask,
+> 
+> static const unsigned short sr_valid_mask[] = {
+> 	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 0*/
+> 	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 1*/
+> 	LOWER_GROUP,			/* Usb, bosr - 0*/
+> 	UPPER_GROUP,			/* Usb, bosr - 1*/
+> };
+> 
+> should be
+> 
+> static const unsigned short sr_valid_mask[] = {
+> 	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 0*/
+> 	LOWER_GROUP,			/* Usb, bosr - 0*/
+> 	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 1*/
+> 	UPPER_GROUP,			/* Usb, bosr - 1*/
+> };
+> 
+> 
+> Can you give this a try and let me know?
+[Aggarwal, Anuj] I tried this on AM3517 EVM + AIC23B; it works
+fine for me. But I have tested the fix only with a 12 MHz clock.
+Thanks for quickly fixing this.
+> 
+> Thanks
+> Troy
+> 
