@@ -1,51 +1,109 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 3/8] OMAP3 hwmod: Add automatic OCP_SYSCONFIG AUTOIDLE handling
-Date: Wed, 18 Nov 2009 10:37:42 -0800
-Message-ID: <874oord6h5.fsf@deeprootsystems.com>
-References: <1258506313-17115-1-git-send-email-khilman@deeprootsystems.com>
-	<1258506313-17115-2-git-send-email-khilman@deeprootsystems.com>
-	<1258506313-17115-3-git-send-email-khilman@deeprootsystems.com>
-	<1258506313-17115-4-git-send-email-khilman@deeprootsystems.com>
-	<ce9ab5790911180045sa35c96bgc5d49fddc83d5ffc@mail.gmail.com>
-	<alpine.DEB.2.00.0911180259330.25515@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] OMAP clock/hwmod: fix off-by-one errors
+Date: Wed, 18 Nov 2009 10:47:40 -0800
+Message-ID: <20091118184740.GQ29266@atomide.com>
+References: <20091116133237.14128.39687.stgit@localhost.localdomain>
+ <20091116133654.14128.175.stgit@localhost.localdomain>
+ <20091116140830.GA31522@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.0911171036430.27682@utopia.booyaka.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA689E6A@dbde02.ent.ti.com>
+ <20091117222409.GH29266@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:53052 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932337AbZKRShn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 13:37:43 -0500
-Received: by bwz27 with SMTP id 27so1445012bwz.21
-        for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 10:37:48 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.0911180259330.25515@utopia.booyaka.com> (Paul Walmsley's message of "Wed\, 18 Nov 2009 03\:01\:07 -0700 \(MST\)")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56859 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754582AbZKRSrz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 13:47:55 -0500
+Content-Disposition: inline
+In-Reply-To: <20091117222409.GH29266@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Vimal Singh <vimal.newwork@gmail.com>, linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Juha =?iso-8859-1?Q?Lepp=E4nen?= <juha_motorsportcom@luukku.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Paul Walmsley <paul@pwsan.com> writes:
+* Tony Lindgren <tony@atomide.com> [091117 14:24]:
+> * Pandita, Vikram <vikram.pandita@ti.com> [091117 09:50]:
+> > Paul
+> >=20
+> > >-----Original Message-----
+> > >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vg=
+er.kernel.org] On Behalf Of Paul
+> > >Walmsley
+> > >Sent: Tuesday, November 17, 2009 11:39 AM
+> > >To: Russell King - ARM Linux
+> > >Cc: linux-arm-kernel@lists.infradead.org; Juha Lepp=E4nen; linux-o=
+map@vger.kernel.org
+> > >Subject: Re: [PATCH 3/3] OMAP clock/hwmod: fix off-by-one errors
+> > <snip>
+> > >
+> > >+/**
+> > >+ * omap_test_timeout - busy-loop, testing a condition
+> > >+ * @cond: condition to test until it evaluates to true
+> > >+ * @timeout: maximum number of microseconds in the timeout
+> > >+ * @index: loop index (integer)
+> > >+ *
+> > >+ * Loop waiting for @cond to become true or until at least @timeo=
+ut
+> > >+ * microseconds have passed.  To use, define some integer @index =
+in the
+> > >+ * calling code.  After running, if @index =3D=3D @timeout, then =
+the loop has
+> > >+ * timed out.
+> > >+ */
+> > >+#define omap_test_timeout(cond, timeout, index)			\
+> > >+({								\
+> > >+	for (index =3D 0; index < timeout; index++) {		\
+> > >+		if (cond)					\
+> > >+			break;					\
+> > >+		udelay(1);					\
+> > >+	}							\
+> > >+})
+> > >+
+> >=20
+> > There is a similar kind of function implemented in USB host, that r=
+eturns -ETIMEDOUT
+> > Which makes more sense for failure case.
+> >=20
+> > Maybe such a generic function for all omaps is needed.
+> >=20
+> > Refer:
+> > drivers/usb/host/ehci-hcd.c
+> > static int handshake (struct ehci_hcd *ehci, void __iomem *ptr,
+> >                       u32 mask, u32 done, int usec)
+> > {
+> >         u32     result;
+> >=20
+> >         do {
+> >                 result =3D ehci_readl(ehci, ptr);
+> >                 if (result =3D=3D ~(u32)0)          /* card removed=
+ */
+> >                         return -ENODEV;
+> >                 result &=3D mask;
+> >                 if (result =3D=3D done)
+> >                         return 0;
+> >                 udelay (1);
+> >                 usec--;
+> >         } while (usec > 0);
+> >         return -ETIMEDOUT;
+> > }
+> >=20
+> >=20
+> > > #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+>=20
+> Well we need to stick to minimal changes if we plan to send this in a=
+s a fix.
+> Anything more complex we should do the next merge window.
 
-> On Wed, 18 Nov 2009, Vimal Singh wrote:
->
->> On Wed, Nov 18, 2009 at 6:35 AM, Kevin Hilman
->> <khilman@deeprootsystems.com> wrote:
->> > From: Paul Walmsley <paul@pwsan.com>
->> >
->> > This patch fills in the OCP_SYSCONFIG.AUTOIDLE handling in the OMAP
->> > hwmod code.
->> >
->> > After this patch, the hwmod code will set the module AUTOIDLE bit (generally
->> > <module>.OCP_SYSCONFIG.AUTOIDLE) to 1 by default upon enable, and 1 upon
->> > disable.
->> 
->> You wanted to say:  "0 upon disable", isn't it?
->
-> No, the original wording was intended, although it is somewhat confusing.
->
-> This patch wasn't intended to be posted publicly; it combines two 
-> unrelated changes that should be split.
+To me it sounds like this can wait until the merge window,
+so not adding to omap-fixes for now.
 
-Paul, sorry for posting this one.  I didn't mean to include it in this
-series.
+Regards,
 
-Kevin
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
