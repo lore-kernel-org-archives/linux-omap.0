@@ -1,124 +1,56 @@
-From: Romit Dasgupta <romit@ti.com>
-Subject: Re: [PM-WIP-OPP][PATCH] OPP: Introduces enum for addressing different
- OPP types
-Date: Wed, 13 Jan 2010 16:11:48 +0530
-Message-ID: <4B4DA36C.7040206@ti.com>
-References: <1263299979.1536.7.camel@boson> <7A436F7769CA33409C6B44B358BFFF0C012E309BE6@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Enric Balletbo i Serra <eballetbo@gmail.com>
+Subject: [PATCHv2 1/8] omap3: Add platform data for the twl4030_codec MFD on IGEP v2
+Date: Wed, 18 Nov 2009 21:20:33 +0100
+Message-ID: <1258575640-8169-2-git-send-email-eballetbo@gmail.com>
+References: <1258575640-8169-1-git-send-email-eballetbo@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55727 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755746Ab0AMKl6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jan 2010 05:41:58 -0500
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C012E309BE6@dlee02.ent.ti.com>
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:63735 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755264Ab0AMLCn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 06:02:43 -0500
+Received: by mail-ew0-f209.google.com with SMTP id 1so323499ewy.28
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jan 2010 03:02:43 -0800 (PST)
+In-Reply-To: <1258575640-8169-1-git-send-email-eballetbo@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Menon, Nishanth wrote:
-> 
-> General comment: might be good to state the enum types you are introducing
-> for OMAP3 in the commit message
-Actually the introduction of enum type itself is the heart of the patch. The
-details are irrelevant.
-> 
->> Signed-off-by: Romit Dasgupta <romit@ti.com>
->> ---
->>
->>         omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
->>                                 omap34xx_opp_def_list;
->> -       for (i = 0; i < ARRAY_SIZE(omap3_rate_tables); i++) {
->> -               *omap3_rate_tables[i] = opp_init_list(omap3_opp_def_list[i]);
->> +       entries = cpu_is_omap3630() ? ARRAY_SIZE(omap34xx_opp_def_list) :
->> +                       ARRAY_SIZE(omap36xx_opp_def_list);
->> +       for (i = 1; i <= entries; i++) {
->> +               ret = opp_init_list(i, omap3_opp_def_list[i - 1]);
-> a) if you remove OPP_NONE, i-1 is not needed (same everywhere in the patch)
-Frankly, I did not want to introduce OPP_NONE but did so as you are checking all
-parameters passed to the OPP APIs.
-
-> b) if we modify the ENUMS or the sequence of definitions in opp_t the logic
-> here becomes fault. it might be good to retain an equivalent of
-> omap3_rate_table with enum equivalents and register by indexing off that.
-You are right but this is a kernel level API and user level code is not going to
-use this. Having said this there is no scope for a programmer to introduce new
-sequences without understanding the consequences.
-> 
->>                 /* We dont want half configured system at the moment */
->> -               BUG_ON(IS_ERR(omap3_rate_tables[i]));
->> +               BUG_ON(ret);
->>         }
->>  }
->>
->> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
->> index 157b38e..38c44ee 100644
->> --- a/arch/arm/mach-omap2/resource34xx.c
->> +++ b/arch/arm/mach-omap2/resource34xx.c
->> @@ -161,7 +161,7 @@ static DEFINE_MUTEX(dvfs_mutex);
->>  /**
->>   * opp_to_freq - convert OPPID to frequency (DEPRECATED)
->>   * @freq: return frequency back to caller
->> - * @opps: opp list
->> + * @opp_t: OPP type where we need to look.
->>   * @opp_id: OPP ID we are searching for
->>   *
->>   * return 0 and freq is populated if we find the opp_id, else,
->> @@ -169,14 +169,14 @@ static DEFINE_MUTEX(dvfs_mutex);
->>   *
->>   * NOTE: this function is a standin for the timebeing as opp_id is deprecated
->>   */
->> -static int __deprecated opp_to_freq(unsigned long *freq,
->> -               const struct omap_opp *opps, u8 opp_id)
->> +static int __deprecated opp_to_freq(unsigned long *freq, enum opp_t opp_t,
-> 
-> Enum type and variable have the same name :( mebbe a rename of variable is
-> appropriate
-
-Not sure why you say this. Did you see the compiler throwing up any warning?
->> @@ -188,20 +188,20 @@ static int __deprecated opp_to_freq(unsigned long *freq,
->> -static int __deprecated freq_to_opp(u8 *opp_id, struct omap_opp *opps,
->> +static int __deprecated freq_to_opp(u8 *opp_id, enum opp_t opp_t,
-> Re: enum type and variable have the same name :( mebbe a rename of variable is
-> appropriate
->>                 unsigned long freq)
->>  {
->>         struct omap_opp *opp;
->>
->> -       BUG_ON(!opp_id || !opps);
->> -       opp = opp_find_freq_ceil(opps, &freq);
->> +       BUG_ON(opp_t == OPP_NONE || opp_t > OPP_TYPES);
->> +       opp = opp_find_freq_ceil(opp_t, &freq);
->>         if (IS_ERR(opp))
->>                 return -EINVAL;
->>         *opp_id = opp_get_opp_id(opp);
->> @@ -218,9 +218,6 @@ void init_opp(struct shared_resource *resp)
->>         u8 opp_id;
->>         resp->no_of_users = 0;
->>
->> -       if (!mpu_opps || !dsp_opps || !l3_opps)
->> -               return;
->> -
-> the original intent of this check is lost here - if the initializations did not
-> take place, we will not proceed. An equivalent check might be good to maintain
-> at this point.
-
-You are partially correct. I took off the checks because we have a BUG_ON() call
-in the beginning of the boot code right after we initialize the OPP tables. So
-we should not hit this check.
->> @@ -519,19 +513,16 @@ void init_freq(struct shared_resource *resp)
->>         unsigned long freq;
->>         resp->no_of_users = 0;
->>
->> -       if (!mpu_opps || !dsp_opps)
->> -               return;
->> -
-> again the initial intent is lost -> to handle cases where the initialization was
-> not being done.
-Same comment as before.
+From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
 
-Thanks,
--Romit
+Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+---
+ arch/arm/mach-omap2/board-igep0020.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 117b8fd..5beea22 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -173,12 +173,22 @@ static void __init igep2_init_irq(void)
+ 	omap_gpio_init();
+ }
+ 
++static struct twl4030_codec_audio_data igep2_audio_data = {
++	.audio_mclk = 26000000,
++};
++
++static struct twl4030_codec_data igep2_codec_data = {
++	.audio_mclk = 26000000,
++	.audio = &igep2_audio_data,
++};
++
+ static struct twl4030_platform_data igep2_twldata = {
+ 	.irq_base	= TWL4030_IRQ_BASE,
+ 	.irq_end	= TWL4030_IRQ_END,
+ 
+ 	/* platform_data for children goes here */
+ 	.usb		= &igep2_usb_data,
++	.codec		= &igep2_codec_data,
+ 	.gpio		= &igep2_gpio_data,
+ 	.vmmc1          = &igep2_vmmc1,
+ 
+-- 
+1.5.4.3
+
