@@ -1,82 +1,100 @@
-From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Subject: RE: [PATCH] OMAP: Exporting functions doing common register access
-Date: Wed, 18 Nov 2009 11:59:00 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CA8F7@dbde02.ent.ti.com>
-References: <1258384836-24854-1-git-send-email-anuj.aggarwal@ti.com>
- <alpine.DEB.2.00.0911161408260.29213@utopia.booyaka.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8EC2@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 8/10 v2] omap mailbox: OMAP4-Mailbox - Adds code
+ changes to support OMAP4 mailbox.
+Date: Wed, 18 Nov 2009 10:06:12 +0200 (EET)
+Message-ID: <20091118.100612.98874554.Hiroshi.DOYU@nokia.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE563EB2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33818 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752979AbZKRG3E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 01:29:04 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8EC2@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:64639 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbZKRIGQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 03:06:16 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE563EB2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+To: subramaniam.ca@ti.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, grgupta@ti.com
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aggarwal, Anuj
-> Sent: Tuesday, November 17, 2009 11:28 AM
-> To: Paul Walmsley
-> Cc: linux-omap@vger.kernel.org; alsa-devel@alsa-project.org
-> Subject: RE: [PATCH] OMAP: Exporting functions doing common register
-> access
-> 
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Tuesday, November 17, 2009 2:46 AM
-> > To: Aggarwal, Anuj
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH] OMAP: Exporting functions doing common register
-> > access
-> >
-> > Hello Anuj,
-> >
-> > On Mon, 16 Nov 2009, Anuj Aggarwal wrote:
-> >
-> > > These functions need to be exported so that drivers (e.g. McBSP) can
-> > > be configured as modules.
-> > >
-> > > McBSP driver gets built as a module when ASoC driver for OMAP3 EVM
-> > > is configured as module. McBSP driver uses functions like
-> > > omap_ctrl_readl/omap_ctrl_writel, which are defined in control.c
-> > > file but not exported. Without that, McBSP driver fails to build as
-> > > a module.
-> > >
-> > > Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
-> >
-> > This will prevent the McBSP driver from being usable across chips.  For
-> > example, if a future OMAP comes out with McBSP clock source switching
-> > implemented in a different way, or if a DaVinci chip comes out with a
-> > McBSP block but no SCM block, this either won't build or won't run.
-> >
-> > A better approach would be to move the OMAP2/3-specific functions from
-> the
-> > McBSP driver into the OMAP McBSP integration code,
-> > arch/arm/*omap*/mcbsp.c, and to define function pointers in
-> > struct platform_data for these functions, and to pass them from the
-> > integration code into the device driver code.  That will make these
-> > drivers independent of chip integration details.
-> Sorry to confuse you, I was talking about the platform specific ASoC-McBSP
-> code for OMAP (file - sound/soc/omap/omap-mcbsp.c) platform. The McBSP
-> driver - both platform and machine specific - doesn't use the functions
-> exported by the patch.
-> 
-> Including alsa-devel list too...
-[Aggarwal, Anuj] Any comments on this patch? Do I have to re-work this?
-> >
-> >
-> > - Paul
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: "ext C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: [PATCH 8/10 v2] omap mailbox: OMAP4-Mailbox - Adds code changes to support OMAP4 mailbox.
+Date: Tue, 17 Nov 2009 15:51:14 +0100
 
+> Hi Tony,
+> Following is the version 2 of Patch 8/10 (removing all #fidefs)
+> 
+> Regards
+> Subbu
+>  
+> From 775dde65217785f519efe2a202489a791460f861 Mon Sep 17 00:00:00 2001
+> From: C A Subramaniam <subramaniam.ca@ti.com>
+> Date: Fri, 13 Nov 2009 16:42:40 +0530
+> Subject: [PATCH 8/10 v2] omap mailbox: OMAP4-Mailbox - Adds code changes to support OMAP4 mailbox.
+> 
+> This patch adds code changes in the mailbox driver module to
+> add support for OMAP4 mailbox.
+> Removed #ifdef CONFIG_ARCH_OMAP4
+> 
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> Signed-off-by: C A Subramaniam <subramaniam.ca@ti.com>
+> Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+> ---
+>  arch/arm/mach-omap2/mailbox.c |  140 ++++++++++++++++++++++++++++++++++-------
+>  arch/arm/plat-omap/mailbox.c  |   25 ++++++--
+>  2 files changed, 136 insertions(+), 29 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+> index 5ba3aa6..d20550f 100644
+> --- a/arch/arm/mach-omap2/mailbox.c
+> +++ b/arch/arm/mach-omap2/mailbox.c
+> @@ -18,6 +18,8 @@
+>  #include <plat/mailbox.h>
+>  #include <mach/irqs.h>
+>  
+> +#define DRV_NAME "omap2-mailbox"
+> +
+>  #define MAILBOX_REVISION		0x000
+>  #define MAILBOX_SYSCONFIG		0x010
+>  #define MAILBOX_SYSSTATUS		0x014
+> @@ -27,8 +29,12 @@
+>  #define MAILBOX_IRQSTATUS(u)		(0x100 + 8 * (u))
+>  #define MAILBOX_IRQENABLE(u)		(0x104 + 8 * (u))
+>  
+> -#define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
+> -#define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
+> +#define OMAP4_MAILBOX_IRQSTATUS(u)	(0x104 + 10 * (u))
+> +#define OMAP4_MAILBOX_IRQENABLE(u)	(0x108 + 10 * (u))
+> +#define OMAP4_MAILBOX_IRQENABLE_CLR(u)	(0x10c + 10 * (u))
+> +
+> +#define MAILBOX_IRQ_NEWMSG(m)		(1 << (2 * (m)))
+> +#define MAILBOX_IRQ_NOTFULL(m)		(1 << (2 * (m) + 1))
+>  
+>  /* SYSCONFIG: register bit definition */
+>  #define AUTOIDLE	(1 << 0)
+> @@ -39,7 +45,11 @@
+>  #define RESETDONE	(1 << 0)
+>  
+>  #define MBOX_REG_SIZE			0x120
+> +
+> +#define OMAP4_MBOX_REG_SIZE		0x130
+> +
+>  #define MBOX_NR_REGS			(MBOX_REG_SIZE / sizeof(u32))
+> +#define OMAP4_MBOX_NR_REGS		(OMAP4_MBOX_REG_SIZE / sizeof(u32))
+
+Doesn't this modification break other OMAP arch support?
+
+We need to support OMAP2/3/4 mailbox with this file.
+
+>  
+>  static void __iomem *mbox_base;
+>  
+> @@ -56,7 +66,8 @@ struct omap_mbox2_priv {
+>  	unsigned long irqstatus;
+>  	u32 newmsg_bit;
+>  	u32 notfull_bit;
+> -	u32 ctx[MBOX_NR_REGS];
+> +	u32 ctx[OMAP4_MBOX_REG_SIZE];
+
+Is this only valid for OMAP4?
