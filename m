@@ -1,56 +1,96 @@
-From: "Wang, Jane" <jwang@ti.com>
-Subject: Re: [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure
-	fix
-Date: Wed, 18 Nov 2009 12:49:42 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162039BB36BED@dlee02.ent.ti.com>
-References: <1258133987-20488-1-git-send-email-jwang@ti.com>
-	<20091114102024.b5c302bb.jhnikula@gmail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB030A9CABBE@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] OMAP: timekeeping: time should not stop during
+ suspend
+Date: Wed, 18 Nov 2009 10:58:31 -0800
+Message-ID: <20091118185831.GR29266@atomide.com>
+References: <1258501273-17595-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CABBE@dbde02.ent.ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@nokia.com" <peter.ujfalusi@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60479 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758269AbZKRS62 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 13:58:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1258501273-17595-1-git-send-email-khilman@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>
 
-> > Also context save/restore operations belongs more to PM callbacks
-> > of .../plat-omap/mcbsp.c. Or probably that can be done also dynamically
-> > inside the omap_mcbsp_start/-stop for keeping the whole McBSP shutdown
-> > whenever it is idle.
-> [Aggarwal, Anuj] I am sorry I couldn't understand that. Did you mean that
-> PM hooks can be added in the mcbsp driver which can be registered and
-> called
-> As and when required? Any reference driver for this, if my understanding
-> is correct?
-> >
-> > I think it's worth to look McBSP register cache concept [1] from Janusz
-> > Krzysztofik would it help all of this context save/restore operations.
-> [Aggarwal, Anuj] I tried these two patches on omap3 evm but they didn't
-> work for me. The system doesn't go to the suspend state when I do:
-> echo mem > /sys/power/state
-> And the culprits were core (think sdma) and per domain. I tried
-> disabling the mcbsp i/f clock as well but it didn't help. On mcbsp
-> register dump, I couldn't find the sysconfig register getting
-> configured. Could that be the root cause?
+* Kevin Hilman <khilman@deeprootsystems.com> [091117 15:41]:
+> During suspend, the kernel timekeeping subsystem is shut down.  Before
+> suspend and upon resume, it uses a weak function
+> read_persistent_clock() to determine the amount of time that elapsed
+> during suspend.
+> 
+> This function was not implemented on OMAP, so from the timekeeping
+> subsystem perspective (and thus userspace as well) it appeared that no
+> time elapsed during suspend.
+> 
+> This patch uses the 32k sync timer as a the persistent clock the 32k
+> sync timer value converted to seconds.
+> 
+> NOTE: This does *NOT* handle wrapping of the 32k sync timer, so
+>       wrapping of the 32k sync timer during suspend may cause
+>       problems.  Also, there are not interrupts when the 32k sync
+>       timer wraps, so something else has to be done.
 
-Did you include this patch?
-http://git.kernel.org/?p=linux/kernel/git/broonie/sound-2.6.git;a=commit;h=9da65a99e5e6a074c586474961dbf560e439df50
+Kevin, are you planning to queue this in your PM series for the next
+merge window? In that case Acked-by: Tony Lindgren <tony@atomide.com>
 
-Without this patch, omap_stop_dma() did not disable DMA channel.
-
+If you want me to queue this as a fix for the -rc series, let me know.
 
 Regards,
 
--Jane
+Tony
+ 
+> Reported-by: Jon Hunter <jon-hunter@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+> Since v1 of this patch, the signature of this function changed.
+> 
+> Also note that forthcoming omap_device patches will depend on this
+> function instead of getnstimeofday() since the timekeeping subsystem
+> is suspended when we want to do omap_device timing measurements.
+> 
+>  arch/arm/plat-omap/common.c |   19 +++++++++++++++++++
+>  1 files changed, 19 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> index cc050b3..8057966 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -172,6 +172,25 @@ unsigned long long sched_clock(void)
+>  				  clocksource_32k.mult, clocksource_32k.shift);
+>  }
+>  
+> +/**
+> + * read_persistent_clock -  Return time from the persistent clock.
+> + *
+> + * Reads the time from a source which isn't disabled during PM: 32k sync
+> + * Returns a timespec with tv_sec=0 and tv_nsec=0 if unsupported.
+> + *
+> + */
+> +void read_persistent_clock(struct timespec *ts)
+> +{
+> +	unsigned long long nsecs;
+> +	cycle_t cycles;
+> +
+> +	ts->tv_sec = ts->tv_nsec = 0;
+> +	cycles = clocksource_32k.read(&clocksource_32k);
+> +	nsecs = clocksource_cyc2ns(cycles,
+> +				   clocksource_32k.mult, clocksource_32k.shift);
+> +	timespec_add_ns(ts, nsecs);
+> +}
+> +
+>  static int __init omap_init_clocksource_32k(void)
+>  {
+>  	static char err[] __initdata = KERN_ERR
+> -- 
+> 1.6.5.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
