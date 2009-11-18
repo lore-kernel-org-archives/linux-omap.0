@@ -1,100 +1,126 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] FIX OMAP3:McBSP poll read and write for OMAP3
-Date: Wed, 18 Nov 2009 09:52:43 -0800
-Message-ID: <20091118175243.GM29266@atomide.com>
-References: <20091112211111.GE24837@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BBB94B71@dbde02.ent.ti.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: Re: [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure
+	fix
+Date: Wed, 18 Nov 2009 23:58:17 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CABBE@dbde02.ent.ti.com>
+References: <1258133987-20488-1-git-send-email-jwang@ti.com>
+	<20091114102024.b5c302bb.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60928 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755851AbZKRRwk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 12:52:40 -0500
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BBB94B71@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091114102024.b5c302bb.jhnikula@gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>, "Wang, Jane" <jwang@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@nokia.com" <peter.ujfalusi@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charu Latha" <charu@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>
 
-* Varadarajan, Charu Latha <charu@ti.com> [091118 00:58]:
->  
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Jarkko Nikula
+> Sent: Saturday, November 14, 2009 1:50 PM
+> To: Wang, Jane
+> Cc: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org;
+> peter.ujfalusi@nokia.com; broonie@opensource.wolfsonmicro.com
+> Subject: Re: [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure fix
 > 
-> >-----Original Message-----
-> >From: Tony Lindgren [mailto:tony@atomide.com] 
-> >Sent: Friday, November 13, 2009 2:41 AM
-> >To: Varadarajan, Charu Latha
-> >Cc: linux-omap@vger.kernel.org; Syed, Rafiuddin
-> >Subject: Re: [PATCH V2] FIX OMAP3:McBSP poll read and write for OMAP3
+> Hi
+> 
+> On Fri, 13 Nov 2009 11:39:47 -0600
+> Jane Wang <jwang@ti.com> wrote:
+> 
+> > McBSP fucntional clock is not disabled when suspend is triggerd which
+> > prevents PER domain entering target low-power state. To fix the problem:
 > >
-> >* charu@ti.com <charu@ti.com> [091019 23:41]:
-> >> omap_mcbsp_pollwrite and omap_mcbsp_pollread functions access
-> >> McBSP registers as 16-bit registers.
-> >> 
-> >> In OMAP3, McBSP registers (DRR_REG and DXR_REG) are limited to
-> >> 32-bit data accesses (L4 Interconnect). 16-bit and 8-bit is
-> >> not allowed and can corrupt register content.
-> >> 
-> >> This patch adds omap3_mcbsp_pollwrite and
-> >> omap3_mcbsp_pollread functions for OMAP3 cpu, inorder to
-> >> perform 32 bit access of above mentioned McBSP registers.
+> > 1. Disable/enable McBSP functional clock for suspend/resume.
 > >
-> >How about making the functions generic, I don't think we want
-> >to have separate omap1_mcbsp_pollread, omap2_mcbsp_pollread,
-> >omap3_mcbsp_pollread..
+> > 2. In addition, reconfigure McBSP, this is needed when systerm comes out
+> of OFF state.
 > >
-> >If it's not obvious how to implement it for some omap, just
-> >return an error based on the CPU type.
+> ...
+> > --- a/arch/arm/plat-omap/include/mach/mcbsp.h
+> > +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+> > @@ -440,6 +440,8 @@ static inline int
+> omap_mcbsp_get_dma_op_mode(unsigned int id) { return 0; }
+> >  #endif
+> >  int omap_mcbsp_request(unsigned int id);
+> >  void omap_mcbsp_free(unsigned int id);
+> > +void omap_mcbsp_disable_fclk(unsigned int id);
+> > +void omap_mcbsp_enable_fclk(unsigned int id);
+> ...
+> > --- a/sound/soc/omap/omap-mcbsp.c
+> > +++ b/sound/soc/omap/omap-mcbsp.c
+> > @@ -229,18 +229,28 @@ static int omap_mcbsp_dai_trigger(struct
+> snd_pcm_substream *substream, int cmd,
+> >
+> >  	switch (cmd) {
+> >  	case SNDRV_PCM_TRIGGER_START:
+> > -	case SNDRV_PCM_TRIGGER_RESUME:
+> >  	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+> >  		mcbsp_data->active++;
+> >  		omap_mcbsp_start(mcbsp_data->bus_id, play, !play);
+> >  		break;
+> > +	case SNDRV_PCM_TRIGGER_RESUME:
+> > +		mcbsp_data->active++;
+> > +		omap_mcbsp_enable_fclk(mcbsp_data->bus_id);
+> > +		omap_mcbsp_config(mcbsp_data->bus_id,
+> > +					&mcbsp_data->regs);
+> > +		omap_mcbsp_start(mcbsp_data->bus_id, play, !play);
+> > +		break;
+> >
+> For me this looks more like a simple workaround for the audio case than
+> comprehensive implementation to McBSP OFF mode context save/restore. My
+> thoughts:
+> 
+> 1. McBSP clock management partially moved out of low-level driver
+> 2. McBSP client must do the context restore
+> 
+> I do know that arch/arm/plat-omap/mcbsp.c enables the clocks in
+> omap_mcbsp_request, I don't know do some API or feature there really
+> require clocks (or McBSP itself) to be active just after the request
+> time but I would look that path instead (even it is more complicated).
+> 
+> If no API or feature would require active McBSP block before the
+> omap_mcbsp_start call, then the clock management could be done inside
+> the omap_mcbsp_start/-stop functions.
+[Aggarwal, Anuj] I tried doing that but it didn't work because before
+_start, we need to call set_hw_params which configures mcbsp, for which
+clocks are required.
+> 
+> Also context save/restore operations belongs more to PM callbacks
+> of .../plat-omap/mcbsp.c. Or probably that can be done also dynamically
+> inside the omap_mcbsp_start/-stop for keeping the whole McBSP shutdown
+> whenever it is idle.
+[Aggarwal, Anuj] I am sorry I couldn't understand that. Did you mean that
+PM hooks can be added in the mcbsp driver which can be registered and called
+As and when required? Any reference driver for this, if my understanding
+is correct?
+> 
+> I think it's worth to look McBSP register cache concept [1] from Janusz
+> Krzysztofik would it help all of this context save/restore operations.
+[Aggarwal, Anuj] I tried these two patches on omap3 evm but they didn't
+work for me. The system doesn't go to the suspend state when I do:
+echo mem > /sys/power/state
+And the culprits were core (think sdma) and per domain. I tried 
+disabling the mcbsp i/f clock as well but it didn't help. On mcbsp 
+register dump, I couldn't find the sysconfig register getting 
+configured. Could that be the root cause?
 > 
 > 
-> My v1 patch handles this in a single generic API. 
-> [http://www.spinics.net/lists/linux-omap/msg19074.html and
-> http://patchwork.kernel.org/patch/53631/]
-
-Well first of all we don't have any references to this function
-in our tree. Second, we have:
-
-#define OMAP_MCBSP_REG_DRR2	0x00
-#define OMAP_MCBSP_REG_DRR1	0x02
-#define OMAP_MCBSP_REG_DXR2	0x04
-#define OMAP_MCBSP_REG_DXR1	0x06
-
-Meaning that both DRR and DXR are 32-bits in length. And based
-on that it seems that at least omap_mcbsp_pollwrite is broken
-if it supports only one 16-bit write instead of 16 + 16 bits
-that the hardware seems to support.
-
-> As per the review comments received for v1 patch, v2 patch is 
-> modified to have new API "omap3_mcbsp_pollread/write" in 
-> addition to "omap_mcbsp_pollread/write" APIs. 
-
-That does not make much sense based on the fact that the
-hardware has 32-bits for DRR and DXR. 
- 
-> Review comments for V1 mentioned that API signartures should not be 
-> changed from 16bit to 32 bit input parameters. 
-> If the API needs to be made generic, API signature has to be 
-> modified as given below (as in patch v1):
-> -int omap_mcbsp_pollread(unsigned int id, u16 *buf)
-> +int omap_mcbsp_pollread(unsigned int id, u32 *buf)
+> --
+> Jarkko
 > 
-> If agreed for this generic API change, I shall post v3 patch
-> which would handle cputypes dynamically inside the API
-
-To me it smells like the all drivers using the the
-omap_mcbsp_pollread/write are broken legacy drivers.
-So maybe we should just remove these two functions?
-
-If we really want to keep these around, we should review
-the drivers using these functions. And if we end up keeping
-these functions around, I like the first patch better, except
-it does not seem to support DRR2 and DXR2 on older hardware,
-so that's broken too.
-
-IMHO, we should rather set up this driver as a proper
-bus driver as suggested by Paul in a related thread.
-
-Regards,
-
-Tony
+> 1. http://www.spinics.net/lists/linux-omap/msg16720.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
