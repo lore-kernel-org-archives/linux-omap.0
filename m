@@ -1,69 +1,77 @@
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-Subject: Re: Is the OMAP patch process badly flawed?
-Date: Wed, 18 Nov 2009 03:20:45 +0000
-Message-ID: <4B03680D.6010808@blueyonder.co.uk>
-References: <20091116160402.deb0cc82.sfr@canb.auug.org.au>	 <4B0213AC.6050502@blueyonder.co.uk>	 <4B02A583.8090602@blueyonder.co.uk> <94a0d4530911171407r6e1f378al9acb3b985196158b@mail.gmail.com>
-Reply-To: sboyce@blueyonder.co.uk
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 3/8] musb: Update musb_init() call for all OMAP3 boards
+Date: Wed, 18 Nov 2009 09:34:46 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394043702B856@dbde02.ent.ti.com>
+References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>
+	<1258470596-24321-2-git-send-email-ajay.gupta@ti.com>
+	<1258470596-24321-3-git-send-email-ajay.gupta@ti.com>
+	<1258470596-24321-4-git-send-email-ajay.gupta@ti.com>
+	<4B02CFC1.3090601@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out3.blueyonder.co.uk ([195.188.213.6]:41314 "EHLO
-	smtp-out3.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753908AbZKRDUq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Nov 2009 22:20:46 -0500
-Received: from [172.23.170.147] (helo=anti-virus03-10)
-	by smtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1NAb6B-0000G1-6x
-	for linux-omap@vger.kernel.org; Wed, 18 Nov 2009 03:20:51 +0000
-Received: from [94.171.130.58] (helo=[192.168.10.2])
-	by asmtp-out1.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1NAb6A-00050T-PC
-	for linux-omap@vger.kernel.org; Wed, 18 Nov 2009 03:20:50 +0000
-In-Reply-To: <94a0d4530911171407r6e1f378al9acb3b985196158b@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <4B02CFC1.3090601-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 17/11/09 22:07, Felipe Contreras wrote:
-> On Tue, Nov 17, 2009 at 3:30 PM, Sid Boyce <sboyce@blueyonder.co.uk> wrote:
->> I'm curious - I download, build and test kernels on x86 and x86_64
->> platforms, -rc, -rc-git and -git all build and run.
+Hi,
+> -----Original Message-----
+> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sergei Shtylyov
+> Sent: Tuesday, November 17, 2009 10:01 PM
+> To: Gupta, Ajay Kumar
+> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; davinci-linux-open-
+> source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org; cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org;
+> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Gadiyar, Anand
+> Subject: Re: [PATCH 3/8] musb: Update musb_init() call for all OMAP3
+> boards
+> 
+> Ajay Kumar Gupta wrote:
+> 
+> > musb_init() has been modified to pass board specific data so updating
+> > this function call from all OMAP3 boards.
+> 
+> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 > 
 > [...]
 > 
->> I would expect patches sent upstream would result in all the basics for
->> long established platforms to be fully covered. Appreciating that
->> development is quite fast paced with mods and supporting new platforms.
->> Could someone please enlighten me?
+> > diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-
+> musb.c
+> > index 1145a25..0e9380c 100644
+> > --- a/arch/arm/mach-omap2/usb-musb.c
+> > +++ b/arch/arm/mach-omap2/usb-musb.c
+> > @@ -124,12 +124,6 @@ static struct musb_hdrc_platform_data musb_plat = {
+> >  	/* .clock is set dynamically */
+> >  	.set_clock	= musb_set_clock,
+> >  	.config		= &musb_config,
+> > -
+> > -	/* REVISIT charge pump on TWL4030 can supply up to
+> > -	 * 100 mA ... but this value is board-specific, like
+> > -	 * "mode", and should be passed to usb_musb_init().
+> > -	 */
+> > -	.power		= 50,			/* up to 100 mA */
 > 
-> Previously all the linux-omap work had to be queued through the
-> linux-arm tree, that made it a bit difficult to push things to the
-> mainline, but now Tony is sending the pull requests directly to Linus,
-> so maybe kernels post 2.6.32 will be much better.
-> 
-I certainly hope so, it would be nice for the mainline to catch up so we
-can work from the one code base.
+>     That should obviously be a part of patch 1/8...
 
-> However, the only way to make sure that there's good OMAP support in
-> Linux is for the community to actively test the mainline and make sure
-> the patches are properly pushed and queued, and regressions are found
-> quickly, not only on the linux-omap tree, but linux-usb, fbdev, etc.
-> Unfortunately we haven't done such a great job on that, perhaps
-> because many people use old "stable" aka "frozen" kernels, but things
-> are improving.
-> 
-> Cheers.
-> 
+It was actually a part of 1/8 earlier but as this is OMAP specific and
+[1/8] is generic so moved it to OMAP specific patch here.
 
-Thanks, I use vanilla kernels exclusively on my x86 and x86_64 boxes,
-looking for anything that's regressed or broken with API changes.
-Regards
-Sid.
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
-
+-Ajay
+> 
+> WBR, Sergei
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
