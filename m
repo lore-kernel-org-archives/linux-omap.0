@@ -1,54 +1,69 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH] OMAP: Exporting functions doing common
-	register access
-Date: Wed, 18 Nov 2009 16:33:14 +0200
-Message-ID: <20091118163314.d0325283.jhnikula@gmail.com>
-References: <1258384836-24854-1-git-send-email-anuj.aggarwal@ti.com>
-	<alpine.DEB.2.00.0911161408260.29213@utopia.booyaka.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB030A8C8EC2@dbde02.ent.ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB030A9CA8F7@dbde02.ent.ti.com>
-	<alpine.DEB.2.00.0911180324350.25515@utopia.booyaka.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 5/8] OMAP: omap_device: add usecounting
+Date: Wed, 18 Nov 2009 06:33:04 -0800
+Message-ID: <87tywrewdb.fsf@deeprootsystems.com>
+References: <1258506313-17115-1-git-send-email-khilman@deeprootsystems.com>
+	<1258506313-17115-2-git-send-email-khilman@deeprootsystems.com>
+	<1258506313-17115-3-git-send-email-khilman@deeprootsystems.com>
+	<1258506313-17115-4-git-send-email-khilman@deeprootsystems.com>
+	<1258506313-17115-5-git-send-email-khilman@deeprootsystems.com>
+	<1258506313-17115-6-git-send-email-khilman@deeprootsystems.com>
+	<alpine.DEB.2.00.0911180349590.25515@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <alpine.DEB.2.00.0911180324350.25515@utopia.booyaka.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:53182 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757242AbZKROdB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 09:33:01 -0500
+Received: by pzk1 with SMTP id 1so829831pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 06:33:07 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.0911180349590.25515@utopia.booyaka.com> (Paul Walmsley's message of "Wed\, 18 Nov 2009 03\:51\:10 -0700 \(MST\)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, 18 Nov 2009 03:40:40 -0700 (MST)
-Paul Walmsley <paul@pwsan.com> wrote:
+Paul Walmsley <paul@pwsan.com> writes:
 
-> In the interim, I would suggest that you remove the the clock source and 
-> receiver source change functions from omap-mcbsp.c, split them into OMAP1 
-> and OMAP2/3 variants, and place them into arch/arm/mach-omap*/mcbsp.c.  
-> Expand struct omap_mcbsp_ops to add function pointers to those functions.  
-> Call those from soc/omap-mcbsp.c via mcbsp->pdata->ops. That way you won't 
-> need those exports.
-> 
-Paul: What's your opinnion, would it be possible or would it be wise to
-handle these McBSP clock route setups with the clock framework instead?
+> Hello Kevin,
+>
+> On Tue, 17 Nov 2009, Kevin Hilman wrote:
+>
+>> Add use counters to omap_device to enable multiple potential users of
+>> an omap_device.  This is needed if ever there are multiple users or
+>> multiple instances of a driver with a single omap_device.
+>> 
+>> Without usecounting, with multiple users, the first one to call idle
+>> may forcibly idle the device while other users are still active.
+>
+> Could you please send along an example of the use case for this?  
 
-Functions omap_mcbsp_dai_set_clks_src and omap_mcbsp_dai_set_rcvr_src
-are basically just setting up the input clock for McBSP SRG or McBSP1
-receiver.
+The current use case is the serial driver (not yet ready for posting.)
 
-> I don't understand how this code compiled on OMAP1 in any case, since it 
-> doesn't have a System Control Module.
-> 
-OMAP1 can include control.h as well :-)
+While there is only a single driver bound to the omap_device, there
+are effectivily multiple instances of the driver.  One for initial
+init/probe requriring and early _enable, followed by _idle in the
+late_init hook.  Another when the actual serial driver gets started
+and the inactivity timers etc. start firing.  These usages overlap
+slightly and the easiest way I saw to handle this was with
+usecounting.
 
-Access is anyway protected with the cpu_class_is_omap1().
+> I would prefer not to add usecounting at this layer unless it is
+> absolutely necessary, since only one driver should be bound to a
+> device at a time.
 
--- 
-Jarkko
+What about mulitple instances of the same driver?
+
+Or, what about drivers like i2c which might do _enable/_idle on a
+per-transfer basis and there might be multiple transfers pending at
+any given time.
+
+We already have use-counting in the clock framework for this same
+purpose.  I'm essentially proposing the usecounting for the same reason,
+but it also need to protect enable/idle parts of hwmod as well.
+
+Maybe usecounting at the hwmod level is more appropriate since that's
+where the problem lies.  I'm fine with that.
+
+Kevin
