@@ -1,42 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/8] OMAP3 hwmod: Add automatic OCP_SYSCONFIG AUTOIDLE
- handling
-Date: Wed, 18 Nov 2009 03:01:07 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0911180259330.25515@utopia.booyaka.com>
-References: <1258506313-17115-1-git-send-email-khilman@deeprootsystems.com>  <1258506313-17115-2-git-send-email-khilman@deeprootsystems.com>  <1258506313-17115-3-git-send-email-khilman@deeprootsystems.com>  <1258506313-17115-4-git-send-email-khilman@deeprootsystems.com>
- <ce9ab5790911180045sa35c96bgc5d49fddc83d5ffc@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Error detecting mmc card on zoom3
+Date: Wed, 18 Nov 2009 15:35:03 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309DAC22C@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36282 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756990AbZKRKBC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 05:01:02 -0500
-In-Reply-To: <ce9ab5790911180045sa35c96bgc5d49fddc83d5ffc@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:48869 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751812AbZKRKFI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 05:05:08 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAIA5BqR009769
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 04:05:13 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAIA5AVM026253
+	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 15:35:10 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 18 Nov 2009, Vimal Singh wrote:
+I'm unable to use MMC on a zoom3 board with current linux-omap kernel.
+I see the following error in the bootlogs.
 
-> On Wed, Nov 18, 2009 at 6:35 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
-> > From: Paul Walmsley <paul@pwsan.com>
-> >
-> > This patch fills in the OCP_SYSCONFIG.AUTOIDLE handling in the OMAP
-> > hwmod code.
-> >
-> > After this patch, the hwmod code will set the module AUTOIDLE bit (generally
-> > <module>.OCP_SYSCONFIG.AUTOIDLE) to 1 by default upon enable, and 1 upon
-> > disable.
-> 
-> You wanted to say:  "0 upon disable", isn't it?
-
-No, the original wording was intended, although it is somewhat confusing.
-
-This patch wasn't intended to be posted publicly; it combines two 
-unrelated changes that should be split.
+  mmci-omap-hs mmci-omap-hs.0: err -19 configuring card detect
 
 
-- Paul
+I'll take a stab at this in a couple of hours unless someone beats me to it.
+
+- Anand
