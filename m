@@ -1,109 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] OMAP clock/hwmod: fix off-by-one errors
-Date: Wed, 18 Nov 2009 10:47:40 -0800
-Message-ID: <20091118184740.GQ29266@atomide.com>
-References: <20091116133237.14128.39687.stgit@localhost.localdomain>
- <20091116133654.14128.175.stgit@localhost.localdomain>
- <20091116140830.GA31522@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.0911171036430.27682@utopia.booyaka.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA689E6A@dbde02.ent.ti.com>
- <20091117222409.GH29266@atomide.com>
+From: "Wang, Jane" <jwang@ti.com>
+Subject: Re: [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure
+	fix
+Date: Wed, 18 Nov 2009 12:49:42 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162039BB36BED@dlee02.ent.ti.com>
+References: <1258133987-20488-1-git-send-email-jwang@ti.com>
+	<20091114102024.b5c302bb.jhnikula@gmail.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030A9CABBE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56859 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754582AbZKRSrz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 13:47:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20091117222409.GH29266@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CABBE@dbde02.ent.ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@nokia.com" <peter.ujfalusi@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Juha =?iso-8859-1?Q?Lepp=E4nen?= <juha_motorsportcom@luukku.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [091117 14:24]:
-> * Pandita, Vikram <vikram.pandita@ti.com> [091117 09:50]:
-> > Paul
-> >=20
-> > >-----Original Message-----
-> > >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vg=
-er.kernel.org] On Behalf Of Paul
-> > >Walmsley
-> > >Sent: Tuesday, November 17, 2009 11:39 AM
-> > >To: Russell King - ARM Linux
-> > >Cc: linux-arm-kernel@lists.infradead.org; Juha Lepp=E4nen; linux-o=
-map@vger.kernel.org
-> > >Subject: Re: [PATCH 3/3] OMAP clock/hwmod: fix off-by-one errors
-> > <snip>
-> > >
-> > >+/**
-> > >+ * omap_test_timeout - busy-loop, testing a condition
-> > >+ * @cond: condition to test until it evaluates to true
-> > >+ * @timeout: maximum number of microseconds in the timeout
-> > >+ * @index: loop index (integer)
-> > >+ *
-> > >+ * Loop waiting for @cond to become true or until at least @timeo=
-ut
-> > >+ * microseconds have passed.  To use, define some integer @index =
-in the
-> > >+ * calling code.  After running, if @index =3D=3D @timeout, then =
-the loop has
-> > >+ * timed out.
-> > >+ */
-> > >+#define omap_test_timeout(cond, timeout, index)			\
-> > >+({								\
-> > >+	for (index =3D 0; index < timeout; index++) {		\
-> > >+		if (cond)					\
-> > >+			break;					\
-> > >+		udelay(1);					\
-> > >+	}							\
-> > >+})
-> > >+
-> >=20
-> > There is a similar kind of function implemented in USB host, that r=
-eturns -ETIMEDOUT
-> > Which makes more sense for failure case.
-> >=20
-> > Maybe such a generic function for all omaps is needed.
-> >=20
-> > Refer:
-> > drivers/usb/host/ehci-hcd.c
-> > static int handshake (struct ehci_hcd *ehci, void __iomem *ptr,
-> >                       u32 mask, u32 done, int usec)
-> > {
-> >         u32     result;
-> >=20
-> >         do {
-> >                 result =3D ehci_readl(ehci, ptr);
-> >                 if (result =3D=3D ~(u32)0)          /* card removed=
- */
-> >                         return -ENODEV;
-> >                 result &=3D mask;
-> >                 if (result =3D=3D done)
-> >                         return 0;
-> >                 udelay (1);
-> >                 usec--;
-> >         } while (usec > 0);
-> >         return -ETIMEDOUT;
-> > }
-> >=20
-> >=20
-> > > #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
->=20
-> Well we need to stick to minimal changes if we plan to send this in a=
-s a fix.
-> Anything more complex we should do the next merge window.
+> > Also context save/restore operations belongs more to PM callbacks
+> > of .../plat-omap/mcbsp.c. Or probably that can be done also dynamically
+> > inside the omap_mcbsp_start/-stop for keeping the whole McBSP shutdown
+> > whenever it is idle.
+> [Aggarwal, Anuj] I am sorry I couldn't understand that. Did you mean that
+> PM hooks can be added in the mcbsp driver which can be registered and
+> called
+> As and when required? Any reference driver for this, if my understanding
+> is correct?
+> >
+> > I think it's worth to look McBSP register cache concept [1] from Janusz
+> > Krzysztofik would it help all of this context save/restore operations.
+> [Aggarwal, Anuj] I tried these two patches on omap3 evm but they didn't
+> work for me. The system doesn't go to the suspend state when I do:
+> echo mem > /sys/power/state
+> And the culprits were core (think sdma) and per domain. I tried
+> disabling the mcbsp i/f clock as well but it didn't help. On mcbsp
+> register dump, I couldn't find the sysconfig register getting
+> configured. Could that be the root cause?
 
-To me it sounds like this can wait until the merge window,
-so not adding to omap-fixes for now.
+Did you include this patch?
+http://git.kernel.org/?p=linux/kernel/git/broonie/sound-2.6.git;a=commit;h=9da65a99e5e6a074c586474961dbf560e439df50
+
+Without this patch, omap_stop_dma() did not disable DMA channel.
+
 
 Regards,
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Jane
