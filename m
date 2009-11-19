@@ -1,63 +1,39 @@
-From: "Aguilar Pena, Leed" <leed.aguilar@ti.com>
-Subject: [PATCH] USB: twl4030: Enable USB regulators before enabling USB
- charging
-Date: Thu, 19 Nov 2009 12:34:55 -0600
-Message-ID: <23D0CDE7C386D144A4F26EB0F427F8C074CF85B0@dlee04.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/3] omap3: pm: removes hardcoded VDD1/2 OPP values and make threshold generic
+Date: Thu, 19 Nov 2009 10:53:53 -0800
+Message-ID: <87y6m28hxa.fsf@deeprootsystems.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940254330A61@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56919 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752932AbZKSSeu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Nov 2009 13:34:50 -0500
-Content-Language: en-US
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:38535 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751222AbZKSSxt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Nov 2009 13:53:49 -0500
+Received: by pwi3 with SMTP id 3so1578869pwi.21
+        for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2009 10:53:55 -0800 (PST)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940254330A61@dbde02.ent.ti.com> (G. N.'s message of "Thu\, 19 Nov 2009 16\:52\:29 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
+To: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-For TWL family of power management ICs, USB charging works only
-when USB regulators are in enabled state: 3v1, 1v5, 1v8
+"G.N, Vijayakumar" <vijaykumar.gn@ti.com> writes:
 
-On a USB cable attach, twl4030_phy_resume(twl) function enables
-the regulators. Enable USB charging, only after all regulators
-are enabled.
+> With 3 patches I am trying to 
+> 1. Remove hardcoded VDD1 OPP values and make threshold generic
+> 2. Remove hardcoded VDD2 OPP values and make threshold generic
+> 3. adding new api inplace of MIN/MAX_VDD1/VDD2_OPP 
+>          to support 3630 OPP constraning along with the existing 3430 constraint.
+>
+> Patches are rebased on the 2.6.32-rc7.
+>
+> Patches have been tested for 3630 for 2.6.32-rc5.
 
-Its observed that enabling USB charging before regulators are
-enabled, causes USB charging to fail.
+I'm going to hold off on this series.
 
-Tested on: Zoom2: omap3430: ES3.1 + TWL5030
-Needs T2-MADC and T2-BCI drivers which are still not upstreamed.
+We're in the middle of discussions and proposals on a major rework of
+the OPP layer, so I don't think it's worthwhile to spend time on these
+relatively minor cleanups at the moment.
 
-Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
-Signed-off-by: Leed Aguilar <leed.aguilar@ti.com>
-Acked-by: Vikram Pandita <vikram.pandita@ti.com>
-Acked-by: Anand Gadiyar <gadiyar@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
-
----
- drivers/usb/otg/twl4030-usb.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-index 9e3e7a5..bd9883f 100644
---- a/drivers/usb/otg/twl4030-usb.c
-+++ b/drivers/usb/otg/twl4030-usb.c
-@@ -598,12 +598,12 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- 		 * USB_LINK_VBUS state.  musb_hdrc won't care until it
- 		 * starts to handle softconnect right.
- 		 */
--		twl4030charger_usb_en(status == USB_LINK_VBUS);
--
- 		if (status == USB_LINK_NONE)
- 			twl4030_phy_suspend(twl, 0);
- 		else
- 			twl4030_phy_resume(twl);
-+
-+		twl4030charger_usb_en(status == USB_LINK_VBUS);
- 	}
- 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
- 
--- 
-1.6.0.4
+Kevin
