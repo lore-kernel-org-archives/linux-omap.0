@@ -1,93 +1,37 @@
-From: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
-Subject: RE: [PATCH 3/3] omap3: pm: removes hardcoded VDD1/2 OPP values and
- make threshold generic
-Date: Thu, 19 Nov 2009 20:18:23 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940253BCA30E@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA75152B@dbde02.ent.ti.com>,<8B823DEBFBDBFA468B80E3A09407512602CA1908BB@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH 0/2] VFP context save/restore support for OMAP3
+Date: Thu, 19 Nov 2009 19:06:13 +0200
+Message-ID: <1258650375-9793-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51314 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753226AbZKSOt6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Nov 2009 09:49:58 -0500
-In-Reply-To: <8B823DEBFBDBFA468B80E3A09407512602CA1908BB@dbde02.ent.ti.com>
-Content-Language: en-GB
+Received: from smtp.nokia.com ([192.100.105.134]:46285 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753817AbZKSPMl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Nov 2009 10:12:41 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nAJFCajV008194
+	for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2009 09:12:47 -0600
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nAJFCd3P010273
+	for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2009 17:12:40 +0200
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-My apologies for the noise generated for the below patches submitted by me.
- 
-http://patchwork.kernel.org/patch/61277/
-http://patchwork.kernel.org/patch/61276/
-http://patchwork.kernel.org/patch/61275/
- 
- 
-I was not aware of the discussions happening on dynamic OPP management for supporting multiple OMAP cpu types.
- 
-Please disregard the above patch series
+From: Tero Kristo <tero.kristo@nokia.com>
 
-====================
-Best Regards
-Vijay
+These two patches add support for VFP context save and restore. These patches
+are a collaboration from several people (listed in CC), I have mainly
+split the original patch in two parts (one generic ARM, one for OMAP3 PM),
+and optimized the code a bit. No sign-offs added from anybody except myself
+at the moment because I have modified the patches quite heavily.
 
+I think patch #1 should actually go to linux-arm list, however I thought to
+get some comments about the patches on omap list first.
 
+These will apply on top of PM branch.
 
+-Tero
 
------Original Message-----
-From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G.N, Vijayakumar
-Sent: Thursday, November 19, 2009 4:56 PM
-To: khilman@deeprootsystems.com; linux-omap@vger.kernel.org
-Subject: [PATCH 3/3] omap3: pm: removes hardcoded VDD1/2 OPP values and make threshold generic
-
->From 202416dbdf3fce31bfd76f1e74dda89b382a78c3 Mon Sep 17 00:00:00 2001
-From: Vijay Kumar <vijaykumar.gn@ti.com>
-Date: Thu, 19 Nov 2009 15:07:38 +0530
-Subject: [PATCH 3/3] OMAP 3630: Update VDD2 values  The OMAP3630 VDD2 minimum value is 1 and Maximum value is 2. The VDD2  API's are updated to return proper VDD2 values.
-
-
-Signed-off-by: Charulatha V <charu@ti.com>
-Signed-off-by: Manjunath GK <manjugk@ti.com>
-Signed-off-by: Vijay Kumar <vijaykumar.gn@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c index 1ed7f53..c240804 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -1080,7 +1080,7 @@ EXPORT_SYMBOL(omap3_get_min_vdd1_opp);
- int omap3_get_max_vdd2_opp(void)
- {
-        if (cpu_is_omap3630())
--               return VDD2_OPP3;
-+               return VDD2_OPP2;
-        else /* Place holder for other 34xx (3430/3440) */
-                return VDD2_OPP3;
-
-@@ -1090,9 +1090,9 @@ EXPORT_SYMBOL(omap3_get_max_vdd2_opp);
- int omap3_get_min_vdd2_opp(void)
- {
-        if (cpu_is_omap3630())
--               return VDD2_OPP2;
--       else /* Place holder for other 34xx (3430/3440) */
-                return VDD2_OPP1;
-+       else /* Place holder for other 34xx (3430/3440) */
-+               return VDD2_OPP2;
-
- }
- EXPORT_SYMBOL(omap3_get_min_vdd2_opp);
---
-1.5.4.3
-
-
-
-========================
-Thanks and Regards
-Vijay--
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
