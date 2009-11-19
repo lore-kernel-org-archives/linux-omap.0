@@ -1,69 +1,40 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 0/8] musb: Add structure 'musb_hdrc_board_data'
-Date: Thu, 19 Nov 2009 11:21:39 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394043702BB7A@dbde02.ent.ti.com>
-References: <1258470596-24321-1-git-send-email-ajay.gupta@ti.com>
-	<4B040293.1020501@ru.mvista.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 5/8] AI TB: HID file for Always Innovating OMAP3-based
+	Touch Book keyboard
+Date: Wed, 18 Nov 2009 22:30:41 -0800
+Message-ID: <20091119063040.GA3010@core.coreip.homeip.net>
+References: <1258228079.16065.17.camel@runt> <1258345850.9089.21.camel@gregoire-laptop> <1258599474.8001.36.camel@gregoire-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <4B040293.1020501-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1258599474.8001.36.camel@gregoire-laptop>
+Sender: linux-input-owner@vger.kernel.org
+To: Gregoire Gentil <gregoire@gentil.com>
+Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tim Yamin <plasmaroo@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-> -----Original Message-----
-> From: Sergei Shtylyov [mailto:sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org] 
-> Sent: Wednesday, November 18, 2009 7:50 PM
-> To: Gupta, Ajay Kumar
-> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
-> davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org; 
-> cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; 
-> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Gadiyar, Anand
-> Subject: Re: [PATCH 0/8] musb: Add structure 'musb_hdrc_board_data'
-> 
-> Hello.
-> 
-> Ajay Kumar Gupta wrote:
-> 
-> > This patch set adds a new structure 'musb_hdrc_board_data' 
-> to get all 
-> > board specific data from board files.
-> 
-> > It is actually done to accomodate ULPI_VBUSCONTROL programming 
-> > required for OMAP3EVM Rev >=E which uses external Vbus 
-> supply to support 500mA.
-> 
->     It's not clear why it was necessary to create yet another 
-> structure. You could your new field to 'struct 
-> musb_hdrc_platfrom_data'...
+Hi Gregoire,
 
-This a actually a simpler approach and would avoid changing Davinci/BLackFin
-Specific files.
+On Wed, Nov 18, 2009 at 06:57:54PM -0800, Gregoire Gentil wrote:
+> +
+> +int touchbook_create_sysfs(struct hid_device *hdev)
+> +{
+> + int i;
+> + int r;
+> +
+> + for (i = 0; i < ARRAY_SIZE(touchbook_hid_attrs); i++) {
+> + r = device_create_file(&hdev->dev,
+> + &touchbook_hid_attrs[i]);
+> +
+> + if (r) {
+> + dev_err(&hdev->dev, "failed to create sysfs file\n");
+> + return r;
+> + }
+> + }
+> +
 
-Felipe/Anand,
-Is it ok to add 'extvbus' in 'musb_hdrc_platform_data' and pass this data
-from all OMAP board files. 
+You just reimplemented sysfs attribute group.
 
-Anyways we do have 'musb_config' which has all platform sepecific information.
-
--Ajay
-> 
-> > Regards,
-> > Ajay
-> 
-> WBR, Sergei
-> 
-> 
+-- 
+Dmitry
