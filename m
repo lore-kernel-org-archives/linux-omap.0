@@ -1,592 +1,265 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: [PATCH-v6 4/4] OMAP: 3430SDP: Enable NAND in defconfig
-Date: Thu, 19 Nov 2009 19:46:50 +0530
-Message-ID: <ce9ab5790911190616g5f88209ao90adc44e10fb6da0@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH-v6 2/4] OMAP3: Add support for NAND on ZOOM/LDP boards
+Date: Thu, 19 Nov 2009 08:20:04 -0600
+Message-ID: <4B055414.8060200@ti.com>
+References: <ce9ab5790911190616r6808feacr78d581dd958e6362@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:61215 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752988AbZKSORG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Nov 2009 09:17:06 -0500
-Received: by fxm21 with SMTP id 21so2446544fxm.21
-        for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2009 06:17:11 -0800 (PST)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43058 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752251AbZKSOUJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Nov 2009 09:20:09 -0500
+In-Reply-To: <ce9ab5790911190616r6808feacr78d581dd958e6362@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>
-Cc: Tony Lindgren <tony@atomide.com>, vimal singh <vimalsingh@ti.com>
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux MTD <linux-mtd@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Singh, Vimal" <vimalsingh@ti.com>
 
->From cff30e52d3702c154310557145090b2375c870c3 Mon Sep 17 00:00:00 2001
-From: Vimal Singh <vimalsingh@ti.com>
-Date: Thu, 19 Nov 2009 19:17:38 +0530
-Subject: [PATCH] OMAP: 3430SDP: Enable NAND in defconfig
+Vimal Singh had written, on 11/19/2009 08:16 AM, the following:
+> From 43df1ee9e29d454100e59ee4902db157072b81b6 Mon Sep 17 00:00:00 2001
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Thu, 19 Nov 2009 14:37:44 +0530
+> Subject: [PATCH] OMAP3: Add support for NAND on ZOOM/LDP boards
+> 
+> Adding NAND support for ZOOM2/3 and LDP board.
+> I have tested it for ZOOM2 boards. Someone can verify it for LDP
+> and ZOOM3 boards, hopefully it should not have any problem.
+> 
+> The size of the U-Boot environment partition was increased to 1.25MB.
+> 
+> Vikram: Changed ldp name to zoom.
+>       Future boards will be called Zoom2/3/4 etc.
+>       LDP is a Zoom1. Somhow the LDP name got stuck to that.
+> 
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> Cc: Vikram Pandita <vikram.pandita@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/Makefile                 |    3 +
+>  arch/arm/mach-omap2/board-ldp.c              |    2 +
+>  arch/arm/mach-omap2/board-zoom-flash.c       |   92 ++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +
+>  arch/arm/plat-omap/include/plat/board-zoom.h |   36 ++++++++++
+>  5 files changed, 135 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-zoom-flash.c
+>  create mode 100644 arch/arm/plat-omap/include/plat/board-zoom.h
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index b0e5b46..c2ca76e 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -62,6 +62,7 @@ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+>  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+>  					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+> +					   board-zoom-flash.o \
+>  					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+>  					   mmc-twl4030.o
+> @@ -78,10 +79,12 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+>  					   board-rx51-peripherals.o \
+>  					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+> + 					   board-zoom-flash.o \
+>  					   board-zoom-peripherals.o \
+>  					   mmc-twl4030.o \
+>  					   board-zoom-debugboard.o
+>  obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+> + 					   board-zoom-flash.o \
+>  					   board-zoom-peripherals.o \
+>  					   mmc-twl4030.o \
+>  					   board-zoom-debugboard.o
+> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+> index c062238..8aebdf9 100644
+> --- a/arch/arm/mach-omap2/board-ldp.c
+> +++ b/arch/arm/mach-omap2/board-ldp.c
+> @@ -42,6 +42,7 @@
+>  #include <asm/delay.h>
+>  #include <plat/control.h>
+>  #include <plat/usb.h>
+> +#include <plat/board-zoom.h>
+> 
+>  #include "mmc-twl4030.h"
+> 
+> @@ -385,6 +386,7 @@ static void __init omap_ldp_init(void)
+>  	ads7846_dev_init();
+>  	omap_serial_init();
+>  	usb_musb_init();
+> +	zoom_flash_init();
+> 
+>  	twl4030_mmc_init(mmc);
+>  	/* link regulators to MMC adapters */
+> diff --git a/arch/arm/mach-omap2/board-zoom-flash.c
+> b/arch/arm/mach-omap2/board-zoom-flash.c
+> new file mode 100644
+> index 0000000..1867d6a
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-zoom-flash.c
+> @@ -0,0 +1,92 @@
+> +/*
+> + * board-zoom-flash.c
+> + *
+> + * Copyright (C) 2008-09 Texas Instruments Inc.
+> + *
+> + * Modified from mach-omap2/board-2430sdp-flash.c
+> + * Author(s): Vimal Singh <vimalsingh@ti.com>
+> + *            Rohit Choraria <rohitkc@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/delay.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/mtd/mtd.h>
+> +#include <linux/mtd/partitions.h>
+> +#include <linux/mtd/nand.h>
+> +#include <linux/types.h>
+> +#include <linux/io.h>
+> +
+> +#include <asm/mach/flash.h>
+> +#include <plat/board.h>
+> +#include <plat/gpmc.h>
+> +#include <plat/nand.h>
+> +
+> +#include <plat/board-zoom.h>
+> +
+> +static struct mtd_partition zoom_nand_partitions[] = {
+> +	/* All the partition sizes are listed in terms of NAND block size */
+> +	{
+> +		.name		= "X-Loader-NAND",
+> +		.offset		= 0,
+> +		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
+> +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+> +	},
+> +	{
+> +		.name		= "U-Boot-NAND",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+> +		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
+> +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+> +	},
+> +	{
+> +		.name		= "Boot Env-NAND",
+> +		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
+> +		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
+> +	},
+> +	{
+> +		.name		= "Kernel-NAND",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
+> +		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
+> +	},
+> +	{
+> +		.name		= "File System - NAND",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
+> +		.size		= MTDPART_SIZ_FULL,
+> +	},
+> +};
+> +
+> +/* NAND chip access: 16 bit */
+> +static struct omap_nand_platform_data zoom_nand_data = {
+> +	.parts		= zoom_nand_partitions,
+> +	.nr_parts	= ARRAY_SIZE(zoom_nand_partitions),
+> +	.nand_setup	= NULL,
+> +	.dma_channel	= -1,	/* disable DMA in OMAP NAND driver */
+> +	.dev_ready	= NULL,
+> +	.devsize	= 1,	/* '0' for 8-bit, '1' for 16-bit device */
+> +};
+> +
+> +/**
+> + * zoom_flash_init - Identify devices connected to GPMC and register.
+> + *
+> + * @return - void.
+> + */
+> +void __init zoom_flash_init(void)
 
-Enable NAND by default in 3430sdp_defconfig file.
-Other changes in defconfig come from make menuconfig syncup
+Should take CS number as a parameter -> this will break SDP3630 otherwise.
 
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
----
- arch/arm/configs/omap_3430sdp_defconfig |  140 +++++++++++++++++++++----------
- 1 files changed, 96 insertions(+), 44 deletions(-)
+> +{
+> +	u8 nandcs = GPMC_CS_NUM + 1;
+> +	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
+> +
+> +	/* pop nand part */
+> +	nandcs = LDP3430_NAND_CS;
+> +
+> +	zoom_nand_data.cs = nandcs;
+> +	zoom_nand_data.gpmc_cs_baseaddr = (void *)(gpmc_base_add +
+> +					GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
+> +	zoom_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
+> +
+> +	gpmc_nand_init(&zoom_nand_data);
+> +}
+> +
+> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> index f14baa3..fcc2836 100755
+> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> @@ -21,6 +21,7 @@
+>  #include <asm/mach/arch.h>
+>  #include <asm/mach/map.h>
+> 
+> +#include <plat/board-zoom.h>
+>  #include <plat/common.h>
+>  #include <plat/usb.h>
+> 
+> @@ -264,4 +265,5 @@ void __init zoom_peripherals_init(void)
+>  	omap_i2c_init();
+>  	omap_serial_init();
+>  	usb_musb_init();
+> +	zoom_flash_init();
+probably should be called by board files independently. zoom-peripherals 
+get used by sdp3630,zoom2, zoom3.
 
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig
-b/arch/arm/configs/omap_3430sdp_defconfig
-index 8482958..f1e79aa 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -1,14 +1,13 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.31-rc9-omap1
--# Tue Sep 15 16:48:34 2009
-+# Linux kernel version: 2.6.32-rc7
-+# Thu Nov 19 19:15:31 2009
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
- CONFIG_GENERIC_GPIO=y
- CONFIG_GENERIC_TIME=y
- CONFIG_GENERIC_CLOCKEVENTS=y
--CONFIG_MMU=y
- CONFIG_GENERIC_HARDIRQS=y
- CONFIG_STACKTRACE_SUPPORT=y
- CONFIG_HAVE_LATENCYTOP_SUPPORT=y
-@@ -17,6 +16,7 @@ CONFIG_TRACE_IRQFLAGS_SUPPORT=y
- CONFIG_HARDIRQS_SW_RESEND=y
- CONFIG_GENERIC_IRQ_PROBE=y
- CONFIG_RWSEM_GENERIC_SPINLOCK=y
-+CONFIG_ARCH_HAS_CPUFREQ=y
- CONFIG_GENERIC_HWEIGHT=y
- CONFIG_GENERIC_CALIBRATE_DELAY=y
- CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
-@@ -44,11 +44,12 @@ CONFIG_BSD_PROCESS_ACCT=y
- #
- # RCU Subsystem
- #
--CONFIG_CLASSIC_RCU=y
--# CONFIG_TREE_RCU is not set
--# CONFIG_PREEMPT_RCU is not set
-+CONFIG_TREE_RCU=y
-+# CONFIG_TREE_PREEMPT_RCU is not set
-+# CONFIG_RCU_TRACE is not set
-+CONFIG_RCU_FANOUT=32
-+# CONFIG_RCU_FANOUT_EXACT is not set
- # CONFIG_TREE_RCU_TRACE is not set
--# CONFIG_PREEMPT_RCU_TRACE is not set
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=14
-@@ -58,8 +59,7 @@ CONFIG_FAIR_GROUP_SCHED=y
- CONFIG_USER_SCHED=y
- # CONFIG_CGROUP_SCHED is not set
- # CONFIG_CGROUPS is not set
--# CONFIG_SYSFS_DEPRECATED=y is not set
--# CONFIG_SYSFS_DEPRECATED_V2=y is not set
-+# CONFIG_SYSFS_DEPRECATED_V2 is not set
- # CONFIG_RELAY is not set
- # CONFIG_NAMESPACES is not set
- CONFIG_BLK_DEV_INITRD=y
-@@ -90,16 +90,14 @@ CONFIG_SHMEM=y
- CONFIG_AIO=y
+>  }
+> diff --git a/arch/arm/plat-omap/include/plat/board-zoom.h
+> b/arch/arm/plat-omap/include/plat/board-zoom.h
+> new file mode 100644
+> index 0000000..8d63f7e
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/plat/board-zoom.h
+> @@ -0,0 +1,36 @@
+> +/*
+> + * board-zoom.h
+> + *
+> + * Hardware definitions for TI OMAP3 LDP/ZOOM2.
+> + *
+> + * Copyright (C) 2008-09 Texas Instruments Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, write to the Free Software Foundation, Inc.,
+> + * 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef __ASM_ARCH_OMAP_LDP_H
+> +#define __ASM_ARCH_OMAP_LDP_H
+> +
+> +extern void zoom_flash_init(void);
+> +
+> +#define LDP3430_NAND_CS               0
+> +
+> +#endif /* __ASM_ARCH_OMAP_LDP_H */
 
- #
--# Performance Counters
-+# Kernel Performance Events And Counters
- #
- CONFIG_VM_EVENT_COUNTERS=y
--# CONFIG_STRIP_ASM_SYMS is not set
- CONFIG_COMPAT_BRK=y
- CONFIG_SLAB=y
- # CONFIG_SLUB is not set
- # CONFIG_SLOB is not set
- # CONFIG_PROFILING is not set
--# CONFIG_MARKERS is not set
- CONFIG_HAVE_OPROFILE=y
- # CONFIG_KPROBES is not set
- CONFIG_HAVE_KPROBES=y
-@@ -143,6 +141,7 @@ CONFIG_FREEZER=y
- #
- # System Type
- #
-+CONFIG_MMU=y
- # CONFIG_ARCH_AAEC2000 is not set
- # CONFIG_ARCH_INTEGRATOR is not set
- # CONFIG_ARCH_REALVIEW is not set
-@@ -157,6 +156,7 @@ CONFIG_FREEZER=y
- # CONFIG_ARCH_STMP3XXX is not set
- # CONFIG_ARCH_NETX is not set
- # CONFIG_ARCH_H720X is not set
-+# CONFIG_ARCH_NOMADIK is not set
- # CONFIG_ARCH_IOP13XX is not set
- # CONFIG_ARCH_IOP32X is not set
- # CONFIG_ARCH_IOP33X is not set
-@@ -179,11 +179,13 @@ CONFIG_FREEZER=y
- # CONFIG_ARCH_SA1100 is not set
- # CONFIG_ARCH_S3C2410 is not set
- # CONFIG_ARCH_S3C64XX is not set
-+# CONFIG_ARCH_S5PC1XX is not set
- # CONFIG_ARCH_SHARK is not set
- # CONFIG_ARCH_LH7A40X is not set
- # CONFIG_ARCH_U300 is not set
- # CONFIG_ARCH_DAVINCI is not set
- CONFIG_ARCH_OMAP=y
-+# CONFIG_ARCH_BCMRING is not set
 
- #
- # TI OMAP Implementations
-@@ -212,6 +214,7 @@ CONFIG_OMAP_DM_TIMER=y
- CONFIG_OMAP_LL_DEBUG_UART1=y
- # CONFIG_OMAP_LL_DEBUG_UART2 is not set
- # CONFIG_OMAP_LL_DEBUG_UART3 is not set
-+# CONFIG_OMAP_LL_DEBUG_NONE is not set
- # CONFIG_OMAP_PM_NONE is not set
- CONFIG_OMAP_PM_NOOP=y
- CONFIG_ARCH_OMAP34XX=y
-@@ -224,10 +227,15 @@ CONFIG_ARCH_OMAP3430=y
- # CONFIG_MACH_OMAP_LDP is not set
- # CONFIG_MACH_OVERO is not set
- # CONFIG_MACH_OMAP3EVM is not set
-+# CONFIG_MACH_OMAP3517EVM is not set
- # CONFIG_MACH_OMAP3_PANDORA is not set
- CONFIG_MACH_OMAP_3430SDP=y
- # CONFIG_MACH_NOKIA_RX51 is not set
- # CONFIG_MACH_OMAP_ZOOM2 is not set
-+# CONFIG_MACH_OMAP_ZOOM3 is not set
-+# CONFIG_MACH_CM_T35 is not set
-+# CONFIG_MACH_IGEP0020 is not set
-+# CONFIG_MACH_OMAP_3630SDP is not set
-
- #
- # Processor Type
-@@ -237,7 +245,7 @@ CONFIG_CPU_32v6K=y
- CONFIG_CPU_V7=y
- CONFIG_CPU_32v7=y
- CONFIG_CPU_ABRT_EV7=y
--CONFIG_CPU_PABRT_IFAR=y
-+CONFIG_CPU_PABRT_V7=y
- CONFIG_CPU_CACHE_V7=y
- CONFIG_CPU_CACHE_VIPT=y
- CONFIG_CPU_COPY_V6=y
-@@ -255,6 +263,7 @@ CONFIG_ARM_THUMB=y
- # CONFIG_CPU_DCACHE_DISABLE is not set
- # CONFIG_CPU_BPREDICT_DISABLE is not set
- CONFIG_HAS_TLS_REG=y
-+CONFIG_ARM_L1_CACHE_SHIFT=6
- # CONFIG_ARM_ERRATA_430973 is not set
- # CONFIG_ARM_ERRATA_458693 is not set
- # CONFIG_ARM_ERRATA_460075 is not set
-@@ -278,8 +287,11 @@ CONFIG_VMSPLIT_3G=y
- # CONFIG_VMSPLIT_2G is not set
- # CONFIG_VMSPLIT_1G is not set
- CONFIG_PAGE_OFFSET=0xC0000000
-+CONFIG_PREEMPT_NONE=y
-+# CONFIG_PREEMPT_VOLUNTARY is not set
- # CONFIG_PREEMPT is not set
- CONFIG_HZ=128
-+# CONFIG_THUMB2_KERNEL is not set
- CONFIG_AEABI=y
- CONFIG_OABI_COMPAT=y
- # CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
-@@ -298,6 +310,7 @@ CONFIG_ZONE_DMA_FLAG=0
- CONFIG_VIRT_TO_BUS=y
- CONFIG_HAVE_MLOCK=y
- CONFIG_HAVE_MLOCKED_PAGE_BIT=y
-+# CONFIG_KSM is not set
- CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
- # CONFIG_LEDS is not set
- CONFIG_ALIGNMENT_TRAP=y
-@@ -364,6 +377,7 @@ CONFIG_PM_SLEEP=y
- CONFIG_SUSPEND=y
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
-+# CONFIG_PM_RUNTIME is not set
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
-
-@@ -412,6 +426,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_NETFILTER is not set
- # CONFIG_IP_DCCP is not set
- # CONFIG_IP_SCTP is not set
-+# CONFIG_RDS is not set
- # CONFIG_TIPC is not set
- # CONFIG_ATM is not set
- # CONFIG_BRIDGE is not set
-@@ -452,6 +467,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # Generic Driver Options
- #
- CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-+# CONFIG_DEVTMPFS is not set
- CONFIG_STANDALONE=y
- CONFIG_PREVENT_FIRMWARE_BUILD=y
- # CONFIG_FW_LOADER is not set
-@@ -461,9 +477,9 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
- # CONFIG_CONNECTOR is not set
- CONFIG_MTD=y
- # CONFIG_MTD_DEBUG is not set
-+# CONFIG_MTD_TESTS is not set
- CONFIG_MTD_CONCAT=y
- CONFIG_MTD_PARTITIONS=y
--# CONFIG_MTD_TESTS is not set
- # CONFIG_MTD_REDBOOT_PARTS is not set
- CONFIG_MTD_CMDLINE_PARTS=y
- # CONFIG_MTD_AFS_PARTS is not set
-@@ -521,6 +537,7 @@ CONFIG_MTD_OMAP_NOR=y
- #
- # CONFIG_MTD_DATAFLASH is not set
- # CONFIG_MTD_M25P80 is not set
-+# CONFIG_MTD_SST25L is not set
- # CONFIG_MTD_SLRAM is not set
- # CONFIG_MTD_PHRAM is not set
- # CONFIG_MTD_MTDRAM is not set
-@@ -537,7 +554,9 @@ CONFIG_MTD_NAND=y
- # CONFIG_MTD_NAND_ECC_SMC is not set
- # CONFIG_MTD_NAND_MUSEUM_IDS is not set
- # CONFIG_MTD_NAND_GPIO is not set
--# CONFIG_MTD_NAND_OMAP2 is not set
-+CONFIG_MTD_NAND_OMAP2=y
-+CONFIG_MTD_NAND_OMAP_PREFETCH=y
-+# CONFIG_MTD_NAND_OMAP_PREFETCH_DMA is not set
- CONFIG_MTD_NAND_IDS=y
- # CONFIG_MTD_NAND_DISKONCHIP is not set
- # CONFIG_MTD_NAND_NANDSIM is not set
-@@ -570,7 +589,6 @@ CONFIG_BLK_DEV_RAM_SIZE=16384
- # CONFIG_MG_DISK is not set
- CONFIG_MISC_DEVICES=y
- # CONFIG_ICS932S401 is not set
--# CONFIG_OMAP_STI is not set
- # CONFIG_ENCLOSURE_SERVICES is not set
- # CONFIG_ISL29003 is not set
- # CONFIG_C2PORT is not set
-@@ -675,12 +693,10 @@ CONFIG_SMC91X=y
- # CONFIG_B44 is not set
- # CONFIG_KS8842 is not set
- # CONFIG_KS8851 is not set
-+# CONFIG_KS8851_MLL is not set
- CONFIG_NETDEV_1000=y
- CONFIG_NETDEV_10000=y
--
--#
--# Wireless LAN
--#
-+CONFIG_WLAN=y
- # CONFIG_WLAN_PRE80211 is not set
- # CONFIG_WLAN_80211 is not set
-
-@@ -703,6 +719,7 @@ CONFIG_NETDEV_10000=y
- # CONFIG_NETPOLL is not set
- # CONFIG_NET_POLL_CONTROLLER is not set
- # CONFIG_ISDN is not set
-+# CONFIG_PHONE is not set
-
- #
- # Input device support
-@@ -723,14 +740,19 @@ CONFIG_INPUT_EVDEV=y
- # Input Device Drivers
- #
- CONFIG_INPUT_KEYBOARD=y
-+# CONFIG_KEYBOARD_ADP5588 is not set
- # CONFIG_KEYBOARD_ATKBD is not set
-+# CONFIG_QT2160 is not set
- # CONFIG_KEYBOARD_LKKBD is not set
- # CONFIG_KEYBOARD_GPIO is not set
- # CONFIG_KEYBOARD_MATRIX is not set
- # CONFIG_KEYBOARD_LM8323 is not set
-+# CONFIG_KEYBOARD_MAX7359 is not set
- # CONFIG_KEYBOARD_NEWTON is not set
-+# CONFIG_KEYBOARD_OPENCORES is not set
- # CONFIG_KEYBOARD_STOWAWAY is not set
- # CONFIG_KEYBOARD_SUNKBD is not set
-+# CONFIG_KEYBOARD_TWL4030 is not set
- # CONFIG_KEYBOARD_XTKBD is not set
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
-@@ -746,6 +768,7 @@ CONFIG_TOUCHSCREEN_ADS7846=y
- # CONFIG_TOUCHSCREEN_GUNZE is not set
- # CONFIG_TOUCHSCREEN_ELO is not set
- # CONFIG_TOUCHSCREEN_WACOM_W8001 is not set
-+# CONFIG_TOUCHSCREEN_MCS5000 is not set
- # CONFIG_TOUCHSCREEN_MTOUCH is not set
- # CONFIG_TOUCHSCREEN_INEXIO is not set
- # CONFIG_TOUCHSCREEN_MK712 is not set
-@@ -805,6 +828,7 @@ CONFIG_HW_RANDOM=y
- # CONFIG_TCG_TPM is not set
- CONFIG_I2C=y
- CONFIG_I2C_BOARDINFO=y
-+CONFIG_I2C_COMPAT=y
- CONFIG_I2C_CHARDEV=y
- CONFIG_I2C_HELPER_AUTO=y
-
-@@ -838,9 +862,6 @@ CONFIG_I2C_OMAP=y
- # Miscellaneous I2C Chip support
- #
- # CONFIG_DS1682 is not set
--# CONFIG_SENSORS_PCF8574 is not set
--# CONFIG_PCF8575 is not set
--# CONFIG_SENSORS_PCA9539 is not set
- # CONFIG_SENSORS_TSL2550 is not set
- # CONFIG_I2C_DEBUG_CORE is not set
- # CONFIG_I2C_DEBUG_ALGO is not set
-@@ -862,6 +883,11 @@ CONFIG_SPI_OMAP24XX=y
- #
- # CONFIG_SPI_SPIDEV is not set
- # CONFIG_SPI_TLE62X0 is not set
-+
-+#
-+# PPS support
-+#
-+# CONFIG_PPS is not set
- CONFIG_ARCH_REQUIRE_GPIOLIB=y
- CONFIG_GPIOLIB=y
- # CONFIG_DEBUG_GPIO is not set
-@@ -888,11 +914,15 @@ CONFIG_GPIO_TWL4030=y
- #
- # CONFIG_GPIO_MAX7301 is not set
- # CONFIG_GPIO_MCP23S08 is not set
-+# CONFIG_GPIO_MC33880 is not set
-+
-+#
-+# AC97 GPIO expanders:
-+#
- # CONFIG_W1 is not set
- # CONFIG_POWER_SUPPLY is not set
- # CONFIG_HWMON is not set
- # CONFIG_THERMAL is not set
--# CONFIG_THERMAL_HWMON is not set
- CONFIG_WATCHDOG=y
- CONFIG_WATCHDOG_NOWAYOUT=y
-
-@@ -924,25 +954,42 @@ CONFIG_SSB_POSSIBLE=y
- # CONFIG_HTC_PASIC3 is not set
- # CONFIG_TPS65010 is not set
- CONFIG_TWL4030_CORE=y
-+# CONFIG_TWL4030_POWER is not set
-+# CONFIG_TWL4030_CODEC is not set
- # CONFIG_MFD_TMIO is not set
- # CONFIG_MFD_T7L66XB is not set
- # CONFIG_MFD_TC6387XB is not set
- # CONFIG_MFD_TC6393XB is not set
- # CONFIG_PMIC_DA903X is not set
- # CONFIG_MFD_WM8400 is not set
-+# CONFIG_MFD_WM831X is not set
- # CONFIG_MFD_WM8350_I2C is not set
- # CONFIG_MFD_PCF50633 is not set
-+# CONFIG_MFD_MC13783 is not set
- # CONFIG_AB3100_CORE is not set
- # CONFIG_EZX_PCAP is not set
-+CONFIG_REGULATOR=y
-+# CONFIG_REGULATOR_DEBUG is not set
-+# CONFIG_REGULATOR_FIXED_VOLTAGE is not set
-+# CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
-+# CONFIG_REGULATOR_USERSPACE_CONSUMER is not set
-+# CONFIG_REGULATOR_BQ24022 is not set
-+# CONFIG_REGULATOR_MAX1586 is not set
-+CONFIG_REGULATOR_TWL4030=y
-+# CONFIG_REGULATOR_LP3971 is not set
-+# CONFIG_REGULATOR_TPS65023 is not set
-+# CONFIG_REGULATOR_TPS6507X is not set
- # CONFIG_MEDIA_SUPPORT is not set
-
- #
- # Graphics support
- #
- # CONFIG_VGASTATE is not set
-+# CONFIG_VIDEO_OUTPUT_CONTROL is not set
- CONFIG_FB=y
- # CONFIG_FIRMWARE_EDID is not set
- # CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
- CONFIG_FB_CFB_FILLRECT=y
- CONFIG_FB_CFB_COPYAREA=y
- CONFIG_FB_CFB_IMAGEBLIT=y
-@@ -963,8 +1010,13 @@ CONFIG_FB_CFB_IMAGEBLIT=y
- #
- # CONFIG_FB_S1D13XXX is not set
- # CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
- CONFIG_FB_OMAP=y
-+# CONFIG_FB_OMAP_LCD_VGA is not set
- # CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
-+# CONFIG_FB_OMAP_LCD_MIPID is not set
- # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
- CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-@@ -996,7 +1048,6 @@ CONFIG_LOGO_LINUX_CLUT224=y
- # CONFIG_SOUND is not set
- CONFIG_HID_SUPPORT=y
- CONFIG_HID=y
--# CONFIG_HID_DEBUG is not set
- # CONFIG_HIDRAW is not set
-
- #
-@@ -1019,6 +1070,7 @@ CONFIG_USB_HID=y
- # CONFIG_HID_EZKEY is not set
- # CONFIG_HID_KYE is not set
- # CONFIG_HID_GYRATION is not set
-+# CONFIG_HID_TWINHAN is not set
- # CONFIG_HID_KENSINGTON is not set
- # CONFIG_HID_LOGITECH is not set
- # CONFIG_HID_MICROSOFT is not set
-@@ -1037,7 +1089,7 @@ CONFIG_USB_HID=y
- CONFIG_USB_SUPPORT=y
- CONFIG_USB_ARCH_HAS_HCD=y
- CONFIG_USB_ARCH_HAS_OHCI=y
--CONFIG_USB_ARCH_HAS_EHCI=y
-+# CONFIG_USB_ARCH_HAS_EHCI is not set
- CONFIG_USB=y
- CONFIG_USB_DEBUG=y
- CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
-@@ -1060,12 +1112,10 @@ CONFIG_USB_MON=y
- # USB Host Controller Drivers
- #
- # CONFIG_USB_C67X00_HCD is not set
--CONFIG_USB_EHCI_HCD=m
--# CONFIG_USB_EHCI_ROOT_HUB_TT is not set
--# CONFIG_USB_EHCI_TT_NEWSCHED is not set
- # CONFIG_USB_OXU210HP_HCD is not set
- # CONFIG_USB_ISP116X_HCD is not set
- # CONFIG_USB_ISP1760_HCD is not set
-+# CONFIG_USB_ISP1362_HCD is not set
- # CONFIG_USB_OHCI_HCD is not set
- # CONFIG_USB_SL811_HCD is not set
- # CONFIG_USB_R8A66597_HCD is not set
-@@ -1163,6 +1213,7 @@ CONFIG_USB_GADGET_SELECTED=y
- # CONFIG_USB_GADGET_LH7A40X is not set
- # CONFIG_USB_GADGET_OMAP is not set
- # CONFIG_USB_GADGET_PXA25X is not set
-+# CONFIG_USB_GADGET_R8A66597 is not set
- # CONFIG_USB_GADGET_PXA27X is not set
- # CONFIG_USB_GADGET_S3C_HSOTG is not set
- # CONFIG_USB_GADGET_IMX is not set
-@@ -1180,6 +1231,7 @@ CONFIG_USB_GADGET_DUALSPEED=y
- # CONFIG_USB_AUDIO is not set
- CONFIG_USB_ETH=m
- CONFIG_USB_ETH_RNDIS=y
-+# CONFIG_USB_ETH_EEM is not set
- CONFIG_USB_GADGETFS=m
- CONFIG_USB_FILE_STORAGE=m
- # CONFIG_USB_FILE_STORAGE_TEST is not set
-@@ -1212,19 +1264,18 @@ CONFIG_SDIO_UART=y
- # MMC/SD/SDIO Host Controller Drivers
- #
- # CONFIG_MMC_SDHCI is not set
-+# CONFIG_MMC_OMAP is not set
- CONFIG_MMC_OMAP_HS=y
-+# CONFIG_MMC_AT91 is not set
-+# CONFIG_MMC_ATMELMCI is not set
- # CONFIG_MMC_SPI is not set
- # CONFIG_MEMSTICK is not set
--# CONFIG_ACCESSIBILITY is not set
- CONFIG_NEW_LEDS=y
- CONFIG_LEDS_CLASS=y
-
- #
- # LED drivers
- #
--# CONFIG_LEDS_OMAP_DEBUG is not set
--# CONFIG_LEDS_OMAP is not set
--# CONFIG_LEDS_OMAP_PWM is not set
- # CONFIG_LEDS_PCA9532 is not set
- CONFIG_LEDS_GPIO=y
- CONFIG_LEDS_GPIO_PLATFORM=y
-@@ -1246,6 +1297,7 @@ CONFIG_LEDS_TRIGGER_HEARTBEAT=y
- #
- # iptables trigger is under Netfilter config (LED target)
- #
-+# CONFIG_ACCESSIBILITY is not set
- CONFIG_RTC_LIB=y
- CONFIG_RTC_CLASS=y
- CONFIG_RTC_HCTOSYS=y
-@@ -1290,6 +1342,7 @@ CONFIG_RTC_DRV_TWL4030=y
- # CONFIG_RTC_DRV_R9701 is not set
- # CONFIG_RTC_DRV_RS5C348 is not set
- # CONFIG_RTC_DRV_DS3234 is not set
-+# CONFIG_RTC_DRV_PCF2123 is not set
-
- #
- # Platform RTC drivers
-@@ -1311,16 +1364,11 @@ CONFIG_RTC_DRV_TWL4030=y
- #
- # CONFIG_DMADEVICES is not set
- # CONFIG_AUXDISPLAY is not set
--CONFIG_REGULATOR=y
--# CONFIG_REGULATOR_DEBUG is not set
--# CONFIG_REGULATOR_FIXED_VOLTAGE is not set
--# CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
--# CONFIG_REGULATOR_USERSPACE_CONSUMER is not set
--# CONFIG_REGULATOR_BQ24022 is not set
--# CONFIG_REGULATOR_MAX1586 is not set
--CONFIG_REGULATOR_TWL4030=y
--# CONFIG_REGULATOR_LP3971 is not set
- # CONFIG_UIO is not set
-+
-+#
-+# TI VLYNQ
-+#
- # CONFIG_STAGING is not set
-
- #
-@@ -1347,6 +1395,7 @@ CONFIG_JBD=y
- # CONFIG_GFS2_FS is not set
- # CONFIG_OCFS2_FS is not set
- # CONFIG_BTRFS_FS is not set
-+# CONFIG_NILFS2_FS is not set
- CONFIG_FILE_LOCKING=y
- CONFIG_FSNOTIFY=y
- CONFIG_DNOTIFY=y
-@@ -1428,7 +1477,6 @@ CONFIG_JFFS2_CMODE_PRIORITY=y
- # CONFIG_ROMFS_FS is not set
- # CONFIG_SYSV_FS is not set
- # CONFIG_UFS_FS is not set
--# CONFIG_NILFS2_FS is not set
- CONFIG_NETWORK_FILESYSTEMS=y
- CONFIG_NFS_FS=y
- CONFIG_NFS_V3=y
-@@ -1521,6 +1569,7 @@ CONFIG_ENABLE_WARN_DEPRECATED=y
- CONFIG_ENABLE_MUST_CHECK=y
- CONFIG_FRAME_WARN=1024
- CONFIG_MAGIC_SYSRQ=y
-+# CONFIG_STRIP_ASM_SYMS is not set
- # CONFIG_UNUSED_SYMBOLS is not set
- CONFIG_DEBUG_FS=y
- # CONFIG_HEADERS_CHECK is not set
-@@ -1556,12 +1605,14 @@ CONFIG_DEBUG_INFO=y
- # CONFIG_DEBUG_LIST is not set
- # CONFIG_DEBUG_SG is not set
- # CONFIG_DEBUG_NOTIFIERS is not set
-+# CONFIG_DEBUG_CREDENTIALS is not set
- CONFIG_FRAME_POINTER=y
- # CONFIG_BOOT_PRINTK_DELAY is not set
- # CONFIG_RCU_TORTURE_TEST is not set
- # CONFIG_RCU_CPU_STALL_DETECTOR is not set
- # CONFIG_BACKTRACE_SELF_TEST is not set
- # CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
-+# CONFIG_DEBUG_FORCE_WEAK_PER_CPU is not set
- # CONFIG_FAULT_INJECTION is not set
- # CONFIG_LATENCYTOP is not set
- # CONFIG_PAGE_POISONING is not set
-@@ -1591,7 +1642,6 @@ CONFIG_CRYPTO=y
- #
- # Crypto core or helper
- #
--# CONFIG_CRYPTO_FIPS is not set
- CONFIG_CRYPTO_ALGAPI=y
- CONFIG_CRYPTO_ALGAPI2=y
- CONFIG_CRYPTO_AEAD2=y
-@@ -1633,11 +1683,13 @@ CONFIG_CRYPTO_PCBC=m
- #
- # CONFIG_CRYPTO_HMAC is not set
- # CONFIG_CRYPTO_XCBC is not set
-+# CONFIG_CRYPTO_VMAC is not set
-
- #
- # Digest
- #
- CONFIG_CRYPTO_CRC32C=y
-+# CONFIG_CRYPTO_GHASH is not set
- # CONFIG_CRYPTO_MD4 is not set
- CONFIG_CRYPTO_MD5=y
- # CONFIG_CRYPTO_MICHAEL_MIC is not set
 -- 
-1.5.5
+Regards,
+Nishanth Menon
