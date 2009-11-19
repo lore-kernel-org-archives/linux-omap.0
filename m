@@ -1,40 +1,94 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 5/8] AI TB: HID file for Always Innovating OMAP3-based
-	Touch Book keyboard
-Date: Wed, 18 Nov 2009 22:30:41 -0800
-Message-ID: <20091119063040.GA3010@core.coreip.homeip.net>
-References: <1258228079.16065.17.camel@runt> <1258345850.9089.21.camel@gregoire-laptop> <1258599474.8001.36.camel@gregoire-laptop>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure
+	fix
+Date: Thu, 19 Nov 2009 09:34:49 +0200
+Message-ID: <bd7b27490911182334r7b9b4682o29a094e8ee521bc5@mail.gmail.com>
+References: <1258133987-20488-1-git-send-email-jwang@ti.com>
+	<20091114102024.b5c302bb.jhnikula@gmail.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030A9CABBE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1258599474.8001.36.camel@gregoire-laptop>
-Sender: linux-input-owner@vger.kernel.org
-To: Gregoire Gentil <gregoire@gentil.com>
-Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tim Yamin <plasmaroo@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A9CABBE@dbde02.ent.ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@nokia.com" <peter.ujfalusi@nokia.com>, "Wang,
+	Jane" <jwang@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Gregoire,
+On Wed, Nov 18, 2009 at 8:28 PM, Aggarwal, Anuj <anuj.aggarwal@ti.com>wrote:
 
-On Wed, Nov 18, 2009 at 06:57:54PM -0800, Gregoire Gentil wrote:
-> +
-> +int touchbook_create_sysfs(struct hid_device *hdev)
-> +{
-> + int i;
-> + int r;
-> +
-> + for (i = 0; i < ARRAY_SIZE(touchbook_hid_attrs); i++) {
-> + r = device_create_file(&hdev->dev,
-> + &touchbook_hid_attrs[i]);
-> +
-> + if (r) {
-> + dev_err(&hdev->dev, "failed to create sysfs file\n");
-> + return r;
-> + }
-> + }
-> +
+> > If no API or feature would require active McBSP block before the
+> > omap_mcbsp_start call, then the clock management could be done inside
+> > the omap_mcbsp_start/-stop functions.
+> [Aggarwal, Anuj] I tried doing that but it didn't work because before
+> _start, we need to call set_hw_params which configures mcbsp, for which
+> clocks are required.
+> >
+>
 
-You just reimplemented sysfs attribute group.
+First modification to .../plat-omap/mcbsp.c could be just a patch which
+keeps the
+clocks on only when needed. I.e. keep them disabled when returning from
+request
+and activate them only when accessing the McBSP registers or when it is
+running.
+
+But that said, I don't know are there some use case or API which requires
+active
+clocks after request so that should be checked.
+
+
+> > Also context save/restore operations belongs more to PM callbacks
+> > of .../plat-omap/mcbsp.c. Or probably that can be done also dynamically
+> > inside the omap_mcbsp_start/-stop for keeping the whole McBSP shutdown
+> > whenever it is idle.
+> [Aggarwal, Anuj] I am sorry I couldn't understand that. Did you mean that
+> PM hooks can be added in the mcbsp driver which can be registered and
+> called
+> As and when required? Any reference driver for this, if my understanding
+> is correct?
+> >
+>
+
+Yep, the PM hooks in .../plat-omap/mcbsp.c should take care of saving the
+McBSP registers before going into suspend or restore them back when
+resuming.
+This would be second patch after the clock change patch.
+
+The comment about dynamic PM was an idea that if McBSP could be unpowered
+whenever it's not running and do the resume only when calling
+omap_mcbsp_start.
+But that would be some future improvements after basic suspend/resume
+functionality.
+
+> I think it's worth to look McBSP register cache concept [1] from Janusz
+> > Krzysztofik would it help all of this context save/restore operations.
+> [Aggarwal, Anuj] I tried these two patches on omap3 evm but they didn't
+> work for me. The system doesn't go to the suspend state when I do:
+> echo mem > /sys/power/state
+> And the culprits were core (think sdma) and per domain. I tried
+> disabling the mcbsp i/f clock as well but it didn't help. On mcbsp
+> register dump, I couldn't find the sysconfig register getting
+> configured. Could that be the root cause?
+>
+
+Does it go into suspend if the audio is not running (i.e. McBSP not
+requested) or
+if you don't even compile the McBSP support? I haven't looked are there
+checks
+for active clocks in PM core but PM is easier to start with bare minimum and
+to
+see that system can do suspend/resume and then add more features one by one.
 
 -- 
-Dmitry
+Jarkko
