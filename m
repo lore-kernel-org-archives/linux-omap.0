@@ -1,118 +1,93 @@
-From: hvaibhav@ti.com
-Subject: [PATCH 3/3] AM3517: Add support for TSC2004 driver
-Date: Thu, 19 Nov 2009 20:17:07 +0530
-Message-ID: <1258642027-2520-1-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+From: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
+Subject: RE: [PATCH 3/3] omap3: pm: removes hardcoded VDD1/2 OPP values and
+ make threshold generic
+Date: Thu, 19 Nov 2009 20:18:23 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940253BCA30E@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702FA75152B@dbde02.ent.ti.com>,<8B823DEBFBDBFA468B80E3A09407512602CA1908BB@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56063 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51314 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753287AbZKSOrE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Nov 2009 09:47:04 -0500
-In-Reply-To: <hvaibhav@ti.com>
+	id S1753226AbZKSOt6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Nov 2009 09:49:58 -0500
+In-Reply-To: <8B823DEBFBDBFA468B80E3A09407512602CA1908BB@dbde02.ent.ti.com>
+Content-Language: en-GB
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
+To: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+My apologies for the noise generated for the below patches submitted by me.
+ 
+http://patchwork.kernel.org/patch/61277/
+http://patchwork.kernel.org/patch/61276/
+http://patchwork.kernel.org/patch/61275/
+ 
+ 
+I was not aware of the discussions happening on dynamic OPP management for supporting multiple OMAP cpu types.
+ 
+Please disregard the above patch series
+
+====================
+Best Regards
+Vijay
 
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G.N, Vijayakumar
+Sent: Thursday, November 19, 2009 4:56 PM
+To: khilman@deeprootsystems.com; linux-omap@vger.kernel.org
+Subject: [PATCH 3/3] omap3: pm: removes hardcoded VDD1/2 OPP values and make threshold generic
+
+>From 202416dbdf3fce31bfd76f1e74dda89b382a78c3 Mon Sep 17 00:00:00 2001
+From: Vijay Kumar <vijaykumar.gn@ti.com>
+Date: Thu, 19 Nov 2009 15:07:38 +0530
+Subject: [PATCH 3/3] OMAP 3630: Update VDD2 values  The OMAP3630 VDD2 minimum value is 1 and Maximum value is 2. The VDD2  API's are updated to return proper VDD2 values.
+
+
+Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Manjunath GK <manjugk@ti.com>
+Signed-off-by: Vijay Kumar <vijaykumar.gn@ti.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |   62 +++++++++++++++++++++++++++++++++
- 1 files changed, 62 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 415a13d..ae47b51 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -20,6 +20,8 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
-+#include <linux/irq.h>
-+#include <linux/i2c/tsc2004.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -27,10 +29,64 @@
- #include <asm/mach/map.h>
- 
- #include <plat/board.h>
-+#include <plat/mux.h>
- #include <plat/common.h>
- #include <plat/usb.h>
- 
- /*
-+ * TSC 2004 Support
-+ */
-+#define	GPIO_TSC2004_IRQ	65
-+
-+static int tsc2004_init_irq(void)
-+{
-+	int ret = 0;
-+
-+	ret = gpio_request(GPIO_TSC2004_IRQ, "tsc2004-irq");
-+	if (ret < 0) {
-+		printk(KERN_WARNING "failed to request GPIO#%d: %d\n",
-+				GPIO_TSC2004_IRQ, ret);
-+		return ret;
-+	}
-+
-+	if (gpio_direction_input(GPIO_TSC2004_IRQ)) {
-+		printk(KERN_WARNING "GPIO#%d cannot be configured as "
-+				"input\n", GPIO_TSC2004_IRQ);
-+		return -ENXIO;
-+	}
-+
-+	omap_set_gpio_debounce(GPIO_TSC2004_IRQ, 1);
-+	omap_set_gpio_debounce_time(GPIO_TSC2004_IRQ, 0xa);
-+	return ret;
-+}
-+
-+static void tsc2004_exit_irq(void)
-+{
-+	gpio_free(GPIO_TSC2004_IRQ);
-+}
-+
-+static int tsc2004_get_irq_level(void)
-+{
-+	return gpio_get_value(GPIO_TSC2004_IRQ) ? 0 : 1;
-+}
-+
-+struct tsc2004_platform_data am3517evm_tsc2004data = {
-+	.model = 2004,
-+	.x_plate_ohms = 180,
-+	.get_pendown_state = tsc2004_get_irq_level,
-+	.init_platform_hw = tsc2004_init_irq,
-+	.exit_platform_hw = tsc2004_exit_irq,
-+};
-+
-+static struct i2c_board_info __initdata am3517evm_tsc_i2c_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("tsc2004", 0x4B),
-+		.type		= "tsc2004",
-+		.platform_data	= &am3517evm_tsc2004data,
-+	},
-+};
-+
-+/*
-  * Board initialization
-  */
- static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
-@@ -67,6 +123,12 @@ static void __init am3517_evm_init(void)
- 
- 	omap_serial_init();
- 	usb_ehci_init(&ehci_pdata);
-+
-+	/* TSC 2004 */
-+	omap_cfg_reg(U1_34XX_GPIO65);
-+	am3517evm_tsc_i2c_boardinfo[0].irq = gpio_to_irq(GPIO_TSC2004_IRQ);
-+	i2c_register_board_info(1, am3517evm_tsc_i2c_boardinfo,
-+				ARRAY_SIZE(am3517evm_tsc_i2c_boardinfo));
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c index 1ed7f53..c240804 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -1080,7 +1080,7 @@ EXPORT_SYMBOL(omap3_get_min_vdd1_opp);
+ int omap3_get_max_vdd2_opp(void)
+ {
+        if (cpu_is_omap3630())
+-               return VDD2_OPP3;
++               return VDD2_OPP2;
+        else /* Place holder for other 34xx (3430/3440) */
+                return VDD2_OPP3;
+
+@@ -1090,9 +1090,9 @@ EXPORT_SYMBOL(omap3_get_max_vdd2_opp);
+ int omap3_get_min_vdd2_opp(void)
+ {
+        if (cpu_is_omap3630())
+-               return VDD2_OPP2;
+-       else /* Place holder for other 34xx (3430/3440) */
+                return VDD2_OPP1;
++       else /* Place holder for other 34xx (3430/3440) */
++               return VDD2_OPP2;
+
  }
- 
- static void __init am3517_evm_map_io(void)
--- 
-1.6.2.4
+ EXPORT_SYMBOL(omap3_get_min_vdd2_opp);
+--
+1.5.4.3
+
+
+
+========================
+Thanks and Regards
+Vijay--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
