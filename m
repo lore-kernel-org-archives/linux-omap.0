@@ -1,751 +1,122 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Subject: Re: [PATCH 3/8] Freescale MMA7455 accelerometer driver
-Date: Thu, 19 Nov 2009 19:24:49 +0000
-Message-ID: <4B059B81.8040708@cam.ac.uk>
-References: <1258651091-31727-1-git-send-email-gregoire@gentil.com> <1258651091-31727-2-git-send-email-gregoire@gentil.com> <1258651091-31727-3-git-send-email-gregoire@gentil.com> <1258651091-31727-4-git-send-email-gregoire@gentil.com>
+From: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Subject: Re: [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure
+	fix
+Date: Fri, 20 Nov 2009 01:18:26 +0530
+Message-ID: <2ee9e08d0911191148x9da6112s960a283a7cffea7b@mail.gmail.com>
+References: <1258133987-20488-1-git-send-email-jwang@ti.com>
+	<20091114102024.b5c302bb.jhnikula@gmail.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030A9CABBE@dbde02.ent.ti.com>
+	<bd7b27490911182334r7b9b4682o29a094e8ee521bc5@mail.gmail.com>
+Reply-To: anuj.aggarwal@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1258651091-31727-4-git-send-email-gregoire@gentil.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Gregoire Gentil <gregoire@gentil.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tim Yamin <plasmaroo@gmail.com>, linux-input@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <bd7b27490911182334r7b9b4682o29a094e8ee521bc5@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@nokia.com" <peter.ujfalusi@nokia.com>, "Wang,
+	Jane" <jwang@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Gregoire,
+On Thu, Nov 19, 2009 at 1:04 PM, Jarkko Nikula <jhnikula@gmail.com> wrote:
+> On Wed, Nov 18, 2009 at 8:28 PM, Aggarwal, Anuj <anuj.aggarwal@ti.com>wrote:
+>
+>> > If no API or feature would require active McBSP block before the
+>> > omap_mcbsp_start call, then the clock management could be done inside
+>> > the omap_mcbsp_start/-stop functions.
+>> [Aggarwal, Anuj] I tried doing that but it didn't work because before
+>> _start, we need to call set_hw_params which configures mcbsp, for which
+>> clocks are required.
+>> >
+>>
+>
+> First modification to .../plat-omap/mcbsp.c could be just a patch which
+> keeps the
+> clocks on only when needed. I.e. keep them disabled when returning from
+> request
+> and activate them only when accessing the McBSP registers or when it is
+> running.
+>
+> But that said, I don't know are there some use case or API which requires
+> active
+> clocks after request so that should be checked.
+>
+>
+>> > Also context save/restore operations belongs more to PM callbacks
+>> > of .../plat-omap/mcbsp.c. Or probably that can be done also dynamically
+>> > inside the omap_mcbsp_start/-stop for keeping the whole McBSP shutdown
+>> > whenever it is idle.
+>> [Aggarwal, Anuj] I am sorry I couldn't understand that. Did you mean that
+>> PM hooks can be added in the mcbsp driver which can be registered and
+>> called
+>> As and when required? Any reference driver for this, if my understanding
+>> is correct?
+>> >
+>>
+>
+> Yep, the PM hooks in .../plat-omap/mcbsp.c should take care of saving the
+> McBSP registers before going into suspend or restore them back when
+> resuming.
+> This would be second patch after the clock change patch.
+>
+> The comment about dynamic PM was an idea that if McBSP could be unpowered
+> whenever it's not running and do the resume only when calling
+> omap_mcbsp_start.
+> But that would be some future improvements after basic suspend/resume
+> functionality.
+>
+>> I think it's worth to look McBSP register cache concept [1] from Janusz
+>> > Krzysztofik would it help all of this context save/restore operations.
+>> [Aggarwal, Anuj] I tried these two patches on omap3 evm but they didn't
+>> work for me. The system doesn't go to the suspend state when I do:
+>> echo mem > /sys/power/state
+>> And the culprits were core (think sdma) and per domain. I tried
+>> disabling the mcbsp i/f clock as well but it didn't help. On mcbsp
+>> register dump, I couldn't find the sysconfig register getting
+>> configured. Could that be the root cause?
+>>
+>
+> Does it go into suspend if the audio is not running (i.e. McBSP not
+> requested) or
+> if you don't even compile the McBSP support? I haven't looked are there
+> checks
+> for active clocks in PM core but PM is easier to start with bare minimum and
+> to
+> see that system can do suspend/resume and then add more features one by one.
+[Anuj] Yes, w/o audio, it goes into suspend neatly.
+After going through the entire patch series "[PATCHv5 00/20] OMAP
+ASoC changes in DMA utilization", which I missed earlier, I found that the
+sysfs entry dma_op_mode can be toggled among element/frame/threshold,
+by default which is element hence not allowing the mcbsp driver to go into
+idle state. I changed that at run time and after that I am able to hit
+the suspend
+state while playing back audio (at least the log doesn't
+show that the system is not able to hit suspend).
+My question is: is sysfs the only way to choose threshold or can it be made as
+default? I could not see that happening in the code so thinking of the possible
+reason of choosing not to do so. Because the user who wants to hit suspend
+will not like to issue driver specific commands. Any specific reason of not
+doing that by default?
+>
+> --
+> Jarkko
+> _______________________________________________
+> Alsa-devel mailing list
+> Alsa-devel@alsa-project.org
+> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
+>
 
-Couple of minor style type comments you are welcome to ignore
 
-Bigger ones are that I don't understand your signed 10 bit conversion
-functions and the bits of the probe function that don't seem to have been
-written (error handling etc).
 
-Jonathan
-
-Gregoire Gentil wrote:
-> Signed-off-by: Gregoire Gentil <gregoire@gentil.com>
-> ---
->  drivers/input/misc/Kconfig    |    9 +
->  drivers/input/misc/Makefile   |    2 +-
->  drivers/input/misc/mma7455l.c |  626 +++++++++++++++++++++++++++++++++++++++++
->  include/linux/mma7455l.h      |   11 +
->  4 files changed, 647 insertions(+), 1 deletions(-)
->  create mode 100644 drivers/input/misc/mma7455l.c
->  create mode 100644 include/linux/mma7455l.h
-> 
-> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-> index a9bb254..454bac7 100644
-> --- a/drivers/input/misc/Kconfig
-> +++ b/drivers/input/misc/Kconfig
-> @@ -317,4 +317,13 @@ config INPUT_PCAP
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called pcap_keys.
->  
-> +config INPUT_MMA7455L
-> +	tristate "Freescale MMA7455L 3-axis accelerometer"
-> +	depends on SPI_MASTER
-> +	help
-> +	  SPI driver for the Freescale MMA7455L 3-axis accelerometer.
-> +
-> +	  The userspace interface is a 3-axis (X/Y/Z) relative movement
-> +	  Linux input device, reporting REL_[XYZ] events.
-> +
->  endif
-> diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-> index a8b8485..3db6347 100644
-> --- a/drivers/input/misc/Makefile
-> +++ b/drivers/input/misc/Makefile
-> @@ -30,4 +30,4 @@ obj-$(CONFIG_INPUT_WINBOND_CIR)		+= winbond-cir.o
->  obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
->  obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
->  obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
-> -
-> +obj-$(CONFIG_INPUT_MMA7455L)		+= mma7455l.o
-> diff --git a/drivers/input/misc/mma7455l.c b/drivers/input/misc/mma7455l.c
-> new file mode 100644
-> index 0000000..d415bb0
-> --- /dev/null
-> +++ b/drivers/input/misc/mma7455l.c
-> @@ -0,0 +1,626 @@
-> +/* Linux kernel driver for the Freescale MMA7455L 3-axis accelerometer
-> + *
-> + * Copyright (C) 2009 by Always Innovating, Inc.
-> + * Author: Gregoire Gentil <gregoire@gentil.com>
-> + * Author: Tim Yamin <plasm@roo.me.uk>
-> + * All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation; either version 2 of
-> + * the License, or (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-> + * MA 02111-1307 USA
-> + *
-> + */
-> +
-> +/*
-> + * What this driver doesn't yet support:
-> + *
-> + * - I2C
-> + * - INT2 handling
-> + * - Pulse detection (and the sysctls to control it)
-> + * - 10-bit measurement
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/types.h>
-> +#include <linux/module.h>
-> +#include <linux/device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/delay.h>
-> +#include <linux/input.h>
-> +#include <linux/irq.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/sysfs.h>
-> +#include <linux/gpio.h>
-> +
-> +#include <linux/mma7455l.h>
-> +#include <linux/spi/spi.h>
-> +
-> +#define MMA7455L_WHOAMI_MAGIC		0x55
-> +
-> +enum mma7455l_reg {
-> +	MMA7455L_REG_XOUTL		= 0x00,
-> +	MMA7455L_REG_XOUTH		= 0x01,
-> +	MMA7455L_REG_YOUTL		= 0x02,
-> +	MMA7455L_REG_YOUTH		= 0x03,
-> +	MMA7455L_REG_ZOUTL 		= 0x04,
-> +	MMA7455L_REG_ZOUTH		= 0x05,
-> +	MMA7455L_REG_XOUT8		= 0x06,
-> +	MMA7455L_REG_YOUT8		= 0x07,
-> +	MMA7455L_REG_ZOUT8		= 0x08,
-> +	MMA7455L_REG_STATUS		= 0x09,
-> +	MMA7455L_REG_DETSRC		= 0x0a,
-> +	MMA7455L_REG_TOUT		= 0x0b,
-> +	MMA7455L_REG_RESERVED1		= 0x0c,
-> +	MMA7455L_REG_I2CAD		= 0x0d,
-> +	MMA7455L_REG_USRINF		= 0x0e,
-> +	MMA7455L_REG_WHOAMI		= 0x0f,
-> +	MMA7455L_REG_XOFFL		= 0x10,
-> +	MMA7455L_REG_XOFFH		= 0x11,
-> +	MMA7455L_REG_YOFFL		= 0x12,
-> +	MMA7455L_REG_YOFFH		= 0x13,
-> +	MMA7455L_REG_ZOFFL		= 0x14,
-> +	MMA7455L_REG_ZOFFH		= 0x15,
-> +	MMA7455L_REG_MCTL		= 0x16,
-> +	MMA7455L_REG_INTRST		= 0x17,
-> +	MMA7455L_REG_CTL1		= 0x18,
-> +	MMA7455L_REG_CTL2		= 0x19,
-> +	MMA7455L_REG_LDTH		= 0x1a,
-> +	MMA7455L_REG_PDTH		= 0x1b,
-> +	MMA7455L_REG_PW			= 0x1c,
-> +	MMA7455L_REG_LT			= 0x1d,
-> +	MMA7455L_REG_TW			= 0x1e,
-> +	MMA7455L_REG_RESERVED2		= 0x1f,
-> +};
-> +
-> +enum mma7455l_reg_status {
-> +	MMA7455L_STATUS_XDA		= 0x08,
-> +	MMA7455L_STATUS_YDA		= 0x10,
-> +	MMA7455L_STATUS_ZDA		= 0x20,
-> +};
-> +
-> +enum mma7455l_mode {
-> +	MMA7455L_MODE_STANDBY		= 0,
-> +	MMA7455L_MODE_MEASUREMENT	= 1,
-> +	MMA7455L_MODE_LEVELDETECTION	= 0x42, /* Set DRPD to on */
-> +	MMA7455L_MODE_PULSEDETECTION	= 0x43, /* Set DRPD to on */
-> +	MMA7455L_MODE_MASK		= 0x43,
-> +};
-> +
-> +enum mma7455l_gselect {
-> +	MMA7455L_GSELECT_8		= 0x0,
-> +	MMA7455L_GSELECT_2		= 0x4,
-> +	MMA7455L_GSELECT_4		= 0x8,
-> +	MMA7455L_GSELECT_MASK		= 0xC,
-> +};
-> +
-> +/* FIXME */
-> +#define MMA7455L_F_FS			0x0020 	/* ADC full scale */
-> +
-> +
-> +struct mma7455l_info {
-> +	struct spi_device *spi_dev;
-> +	struct input_dev *input_dev;
-> +	struct mutex lock;		/* Struct mutex lock */
-> +	struct delayed_work work;
-> +
-> +	u8 mode;
-> +	u8 gSelect;
-> +
-> +	u8 flags;
-> +	u8 working;
-> +};
-> +
-> +/* lowlevel register access functions */
-> +
-> +#define WRITE_BIT	(1 << 7)
-> +#define ADDR_SHIFT	1
-> +
-> +static inline u_int8_t __reg_read(struct mma7455l_info *mma, u_int8_t reg)
-> +{
-> +	int rc;
-> +	u_int8_t cmd;
-> +
-> +	cmd = ((reg & 0x3f) << ADDR_SHIFT);
-Might as well loose the rc and roll next two lines into one. Might as well roll the
-cmd variable in as well seeing as it's relatively straight forward.
-Mind you if you think it is clearer this way, feel free to leave it alone.
-> +	rc = spi_w8r8(mma->spi_dev, cmd);
-> +
-> +	return rc;
-> +}
-> +
-> +static u_int8_t reg_read(struct mma7455l_info *mma, u_int8_t reg)
-> +{
-> +	u_int8_t ret;
-> +
-> +	mutex_lock(&mma->lock);
-> +	ret = __reg_read(mma, reg);
-> +	mutex_unlock(&mma->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static s16 __reg_read_10(struct mma7455l_info *mma, u8 reg1, u8 reg2)
-> +{
-> +	u8 v1, v2;
-> +
-> +	v1 = __reg_read(mma, reg1);
-> +	v2 = __reg_read(mma, reg2);
-> +
-Not sure I follow this.  Are we dealing with an architecture
-where we aren't using 2's complement for signed integers? 
-If not you'll need
-to sign extend rather than what looks to be happening here, where you are
-simply moving the sign bit to the 16th lsb.  If you are doing this for
-some other reason, please clarify with a comment.
-> +	return (v2 & 0x4) << 13 | (v2 & 0x3) << 8 | v1;
-> +}
-> +
-> +static inline int __reg_write(struct mma7455l_info *mma,
-> +				u_int8_t reg, u_int8_t val)
-> +{
-> +	u_int8_t buf[2];
-> +
-> +	buf[0] = ((reg & 0x3f) << ADDR_SHIFT) | WRITE_BIT;
-> +	buf[1] = val;
-Could roll these two into an array initialization.
-> +
-> +	return spi_write(mma->spi_dev, buf, sizeof(buf));
-> +}
-> +
-> +static int reg_write(struct mma7455l_info *mma, u_int8_t reg, u_int8_t val)
-> +{
-> +	int ret;
-> +
-> +	mutex_lock(&mma->lock);
-> +	ret = __reg_write(mma, reg, val);
-> +	mutex_unlock(&mma->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static s16 __reg_write_10(struct mma7455l_info *mma,
-> +				u8 reg1, u8 reg2, s16 value)
-> +{
-> +	int ret;
-> +	u8 v1, v2;
-> +
-> +	v1 = value & 0xFF;
-This is somewhat odd as well. 
-> +	if (value < 0)
-> +		v2 = ((value >> 8) & 0x3) | 0x4;
-> +	else
-> +		v2 = 0;
-> +
-> +	ret = __reg_write(mma, reg1, v1);
-> +	ret = __reg_write(mma, reg2, v2);
-> +	return ret;
-> +}
-> +
-> +static void mma7455l_work(struct work_struct *work)
-> +{
-> +	struct mma7455l_info *mma =
-> +			container_of(work, struct mma7455l_info, work.work);
-unconventional spacing here.  Should be a newline after parameter declarations
-rather than here.
-> +
-> +	s8 val;
-> +	mma->working = 1;
-> +
-> +	/* FIXME: 10 bit accuracy? */
-> +	if (!(mma->flags & MMA7455L_STATUS_XDA)) {
-> +		val = reg_read(mma, MMA7455L_REG_XOUT8);
-> +		input_report_abs(mma->input_dev, ABS_X, val);
-> +	}
-> +	if (!(mma->flags & MMA7455L_STATUS_YDA)) {
-> +		val = reg_read(mma, MMA7455L_REG_YOUT8);
-> +		input_report_abs(mma->input_dev, ABS_Y, val);
-> +	}
-> +	if (!(mma->flags & MMA7455L_STATUS_ZDA)) {
-> +		val = reg_read(mma, MMA7455L_REG_ZOUT8);
-> +		input_report_abs(mma->input_dev, ABS_Z, val);
-> +	}
-> +
-> +	mma->working = 0;
-> +	input_sync(mma->input_dev);
-> +	put_device(&mma->spi_dev->dev);
-> +
-> +	/* Enable IRQ and clear out interrupt */
-> +	reg_write(mma, MMA7455L_REG_INTRST, 0x3);
-> +	reg_write(mma, MMA7455L_REG_INTRST, 0x0);
-> +	enable_irq(mma->spi_dev->irq);
-> +}
-
-Why status given you do nothing with it? 
-> +static void mma7455l_schedule_work(struct mma7455l_info *mma)
-> +{
-> +	int status;
-> +
-> +	get_device(&mma->spi_dev->dev);
-> +	status = schedule_delayed_work(&mma->work, HZ / 10);
-> +}
-> +
-> +static irqreturn_t mma7455l_interrupt(int irq, void *_mma)
-> +{
-> +	struct mma7455l_info *mma = _mma;
-> +	mma7455l_schedule_work(mma);
-> +
-> +	/* Disable any further interrupts until we have processed
-> +	 * the current one */
-> +	disable_irq(mma->spi_dev->irq);
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +/* sysfs */
-> +
-> +static void get_mode(struct mma7455l_info *mma, u8 *mode, u8 *gSelect)
-> +{
-> +	u8 tmp = reg_read(mma, MMA7455L_REG_MCTL);
-> +
-> +	*mode = tmp & MMA7455L_MODE_MASK;
-> +	*gSelect = tmp & MMA7455L_GSELECT_MASK;
-> +}
-> +
-> +static void set_mode(struct mma7455l_info *mma, u8 mode, u8 gSelect)
-> +{
-> +	reg_write(mma, MMA7455L_REG_MCTL, mode | gSelect);
-> +}
-> +
-> +static void update_mode(struct mma7455l_info *mma, u8 mode, u8 gSelect)
-> +{
-> +	mma->mode = mode;
-> +	mma->gSelect = gSelect;
-> +
-> +	reg_write(mma, MMA7455L_REG_MCTL, mma->mode | mma->gSelect);
-> +}
-> +
-> +static ssize_t show_measure(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct mma7455l_info *mma = dev_get_drvdata(dev);
-> +	s8 x, y, z;
-> +	u8 old_Mode, old_gSelect;
-> +
-> +	get_mode(mma, &old_Mode, &old_gSelect);
-> +	set_mode(mma, MMA7455L_MODE_MEASUREMENT, MMA7455L_GSELECT_2);
-> +
-This would probably benefit from an explanatory comment.
-> +	while (reg_read(mma, MMA7455L_REG_STATUS) == 0)
-> +		msleep(10);
-> +
-> +	x = reg_read(mma, MMA7455L_REG_XOUT8);
-> +	y = reg_read(mma, MMA7455L_REG_YOUT8);
-> +	z = reg_read(mma, MMA7455L_REG_ZOUT8);
-> +
-> +	set_mode(mma, old_Mode, old_gSelect);
-> +	return sprintf(buf, "%d %d %d\n", x, y, z);
-> +}
-> +
-> +static ssize_t show_mode(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct mma7455l_info *mma = dev_get_drvdata(dev);
-> +
-> +	switch (mma->mode) {
-> +	case MMA7455L_MODE_STANDBY:
-> +		return sprintf(buf, "Standby\n");
-> +		break;
-> +	case MMA7455L_MODE_MEASUREMENT:
-> +		return sprintf(buf, "Measurement\n");
-> +		break;
-> +	case MMA7455L_MODE_LEVELDETECTION:
-> +		return sprintf(buf, "Level Detection\n");
-> +		break;
-> +	case MMA7455L_MODE_PULSEDETECTION:
-> +		return sprintf(buf, "Pulse Detection\n");
-> +		break;
-> +	}
-> +
-Is this possible?  If not I'd go for returning suitable error code rather
-than printing.
-> +	return sprintf(buf, "Unknown mode!\n");
-> +}
-> +
-> +static ssize_t show_gSelect(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct mma7455l_info *mma = dev_get_drvdata(dev);
-> +
-> +	switch (mma->gSelect) {
-> +	case MMA7455L_GSELECT_8:
-> +		return sprintf(buf, "8\n");
-> +		break;
-> +	case MMA7455L_GSELECT_4:
-> +		return sprintf(buf, "4\n");
-> +		break;
-> +	case MMA7455L_GSELECT_2:
-> +		return sprintf(buf, "2\n");
-> +		break;
-> +	}
-> +
-Likewise here.  Not useful in a sense to say we don't know what it is.
-> +	return sprintf(buf, "Unknown gSelect!\n");
-> +}
-> +
-> +static ssize_t show_level_threshold(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct mma7455l_info *mma = dev_get_drvdata(dev);
-> +	return sprintf(buf, "%u\n", reg_read(mma, MMA7455L_REG_LDTH));
-> +}
-> +
-> +static ssize_t show_calibration(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	s16 x, y, z;
-> +	struct mma7455l_info *mma = dev_get_drvdata(dev);
-> +
-> +	mutex_lock(&mma->lock);
-> +	x = __reg_read_10(mma, MMA7455L_REG_XOFFL, MMA7455L_REG_XOFFH);
-> +	y = __reg_read_10(mma, MMA7455L_REG_YOFFL, MMA7455L_REG_YOFFH);
-> +	z = __reg_read_10(mma, MMA7455L_REG_ZOFFL, MMA7455L_REG_ZOFFH);
-> +	mutex_unlock(&mma->lock);
-> +
-> +	return sprintf(buf, "%d %d %d\n", x, y, z);
-> +}
-
-Are there any more standardized terms for these?  Not sure having sysfs interface
-where you have to write such long names is ideal...
-> +static ssize_t write_mode(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t count)
-> +{
-> +	struct mma7455l_info *mma = dev_get_drvdata(dev);
-> +
-> +	if (!strncmp(buf, "Standby", count))
-> +		update_mode(mma, MMA7455L_MODE_STANDBY, mma->gSelect);
-> +	else if (!strncmp(buf, "Measurement", count))
-> +		update_mode(mma, MMA7455L_MODE_MEASUREMENT, mma->gSelect);
-> +	else if (!strncmp(buf, "Level Detection", count))
-> +		update_mode(mma, MMA7455L_MODE_LEVELDETECTION, mma->gSelect);
-> +	else if (!strncmp(buf, "Pulse Detection", count))
-> +		update_mode(mma, MMA7455L_MODE_PULSEDETECTION, mma->gSelect);
-> +
-> +	return count;
-> +}
-> +
-> +static ssize_t write_gSelect(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t count)
-> +{
-> +	unsigned long v;
-> +	struct mma7455l_info *mma = dev_get_drvdata(dev);
-> +
-Worth rounding to nearest rather than only accepting a subset that the userspace
-program might not know about? Either that or publishing via sysfs what values
-are valid?  Or at absolute minimum documenting this in the api docs.
-> +	if (strict_strtoul(buf, 10, &v) == 0) {
-> +		switch (v) {
-> +		case 8:
-> +			update_mode(mma, mma->mode, MMA7455L_GSELECT_8);
-> +			break;
-> +		case 4:
-> +			update_mode(mma, mma->mode, MMA7455L_GSELECT_4);
-> +			break;
-> +		case 2:
-> +			update_mode(mma, mma->mode, MMA7455L_GSELECT_2);
-> +			break;
-> +		default:
-> +			return -EINVAL;
-> +			break;
-> +		}
-> +		return count;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static ssize_t write_level_threshold(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t count)
-> +{
-> +	unsigned long v;
-> +	struct mma7455l_info *mma = dev_get_drvdata(dev);
-> +
-> +	if (strict_strtoul(buf, 10, &v) == 0) {
-> +		if (v <= 0xFF) {
-> +			reg_write(mma, MMA7455L_REG_LDTH, v);
-> +			return count;
-
-Else is pointless as dropping through will return same error. Hence
-you might as well make this function
-
-unsigned long v;
-struct mma7455l_info *mma = dev_get_drvdata(dev);
-if ((struct_strtoul(buf, 10, &v) == 0) && (v <= 0xFF))
-	return count;
-return -EINVAL; 
-> +		} else
-> +			return -EINVAL;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static ssize_t write_calibration(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t count)
-> +{
-> +	int x, y, z;
-> +	struct mma7455l_info *mma = dev_get_drvdata(dev);
-> +
-> +	if (sscanf(buf, "%d %d %d", &x, &y, &z) == 3) {
-> +		mutex_lock(&mma->lock);
-> +		__reg_write_10(mma, MMA7455L_REG_XOFFL, MMA7455L_REG_XOFFH, x);
-> +		__reg_write_10(mma, MMA7455L_REG_YOFFL, MMA7455L_REG_YOFFH, y);
-> +		__reg_write_10(mma, MMA7455L_REG_ZOFFL, MMA7455L_REG_ZOFFH, z);
-> +		mutex_unlock(&mma->lock);
-> +
-> +		return count;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static DEVICE_ATTR(measure, S_IRUGO, show_measure, NULL);
-> +static DEVICE_ATTR(mode, S_IRUGO | S_IWUGO, show_mode, write_mode);
-> +static DEVICE_ATTR(gSelect, S_IRUGO | S_IWUGO, show_gSelect, write_gSelect);
-> +static DEVICE_ATTR(level_threshold, S_IRUGO | S_IWUGO, show_level_threshold,
-> +			write_level_threshold);
-> +static DEVICE_ATTR(calibration, S_IRUGO | S_IWUGO, show_calibration,
-> +			write_calibration);
-> +
-> +static struct attribute *mma7455l_sysfs_entries[] = {
-> +       &dev_attr_measure.attr,
-> +	&dev_attr_mode.attr,
-> +	&dev_attr_gSelect.attr,
-> +	&dev_attr_level_threshold.attr,
-> +	&dev_attr_calibration.attr,
-> +	NULL
-> +};
-> +
-> +static struct attribute_group mma7455l_attr_group = {
-> +       .attrs  = mma7455l_sysfs_entries,
-> +};
-> +
-> +/* input device handling and driver core interaction */
-> +static int mma7455l_input_open(struct input_dev *inp)
-> +{
-> +	struct mma7455l_info *mma = input_get_drvdata(inp);
-> +	if (mma->mode == MMA7455L_MODE_STANDBY)
-> +		update_mode(mma, MMA7455L_MODE_MEASUREMENT, mma->gSelect);
-> +
-> +	return 0;
-> +}
-> +
-> +static void mma7455l_input_close(struct input_dev *inp)
-> +{
-> +	struct mma7455l_info *mma = input_get_drvdata(inp);
-> +	update_mode(mma, MMA7455L_MODE_STANDBY, MMA7455L_GSELECT_2);
-> +}
-> +
-> +static int __devinit mma7455l_probe(struct spi_device *spi)
-> +{
-> +	int rc;
-> +	struct mma7455l_info *mma;
-> +	struct mma7455l_platform_data *pdata = spi->dev.platform_data;
-> +	u_int8_t wai;
-> +
-> +	mma = kzalloc(sizeof(*mma), GFP_KERNEL);
-> +	if (!mma)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&mma->lock);
-> +	INIT_DELAYED_WORK(&mma->work, mma7455l_work);
-> +	mma->spi_dev = spi;
-> +	mma->flags = 0;
-> +	mma->working = 0;
-> +
-> +	spi_set_drvdata(spi, mma);
-> +
-
-There is a lot of repeated clean up code in the error conditions.  Use
-goto and do it all at the end of the function.
-> +	rc = spi_setup(spi);
-> +	if (rc < 0) {
-> +		printk(KERN_ERR
-> +			"mma7455l error durign spi_setup of mma7455l driver\n");
-> +		dev_set_drvdata(&spi->dev, NULL);
-> +		kfree(mma);
-> +		return rc;
-> +	}
-> +
-> +	wai = reg_read(mma, MMA7455L_REG_WHOAMI);
-> +	if (wai != MMA7455L_WHOAMI_MAGIC) {
-> +		printk(KERN_ERR
-> +			"mma7455l unknown whoami signature 0x%02x\n", wai);
-> +		dev_set_drvdata(&spi->dev, NULL);
-> +		kfree(mma);
-> +		return -ENODEV;
-> +	}
-> +
-> +	rc = request_irq(mma->spi_dev->irq, mma7455l_interrupt,
-> +			IRQF_TRIGGER_HIGH, "mma7455l", mma);
-> +	if (rc < 0) {
-> +		dev_err(&spi->dev, "mma7455l error requesting IRQ %d\n",
-> +			mma->spi_dev->irq);
-> +		/* FIXME */
-Fix what? I'm guessing the fact that there is no cleanup going on.
-> +		return rc;
-> +	}
-> +
-> +	rc = sysfs_create_group(&spi->dev.kobj, &mma7455l_attr_group);
-> +	if (rc) {
-> +		dev_err(&spi->dev, "error creating sysfs group\n");
-> +		return rc;
-> +	}
-> +
-> +	/* initialize input layer details */
-> +	mma->input_dev = input_allocate_device();
-> +	if (!mma->input_dev) {
-> +		dev_err(&spi->dev,
-> +			"mma7455l Unable to allocate input device\n");
-> +		/* FIXME */
-All sorts of fun could occur here ;)
-> +	}
-> +
-> +	set_bit(EV_ABS, mma->input_dev->evbit);
-> +	set_bit(ABS_X, mma->input_dev->absbit);
-> +	set_bit(ABS_Y, mma->input_dev->absbit);
-> +	set_bit(ABS_Z, mma->input_dev->absbit);
-> +
-> +	input_set_drvdata(mma->input_dev, mma);
-> +	mma->input_dev->name = "MMA7455L";
-> +	mma->input_dev->open = mma7455l_input_open;
-> +	mma->input_dev->close = mma7455l_input_close;
-> +
-> +	rc = input_register_device(mma->input_dev);
-> +	if (!rc) {
-> +		update_mode(mma, MMA7455L_MODE_STANDBY, MMA7455L_GSELECT_2);
-> +
-> +		mutex_lock(&mma->lock);
-> +		__reg_write_10(mma, MMA7455L_REG_XOFFL,
-> +				MMA7455L_REG_XOFFH, pdata->calibration_x);
-> +		__reg_write_10(mma, MMA7455L_REG_YOFFL,
-> +				MMA7455L_REG_YOFFH, pdata->calibration_y);
-> +		__reg_write_10(mma, MMA7455L_REG_ZOFFL,
-> +				MMA7455L_REG_ZOFFH, pdata->calibration_z);
-> +		mutex_unlock(&mma->lock);
-> +
-> +		return 0;
-> +	}
-> +
-> +	input_free_device(mma->input_dev);
-> +	return rc;
-> +}
-> +
-> +static int __devexit mma7455l_remove(struct spi_device *spi)
-> +{
-> +	struct mma7455l_info *mma = dev_get_drvdata(&spi->dev);
-> +
-> +	sysfs_remove_group(&spi->dev.kobj, &mma7455l_attr_group);
-> +	input_unregister_device(mma->input_dev);
-> +	dev_set_drvdata(&spi->dev, NULL);
-> +	kfree(mma);
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_PM
-> +static int mma7455l_suspend(struct spi_device *spi, pm_message_t message)
-> +{
-> +	struct mma7455l_info *mma = dev_get_drvdata(&spi->dev);
-> +	get_mode(mma, &mma->mode, &mma->gSelect);
-> +	set_mode(mma, MMA7455L_MODE_STANDBY, MMA7455L_GSELECT_2);
-> +
-> +	return 0;
-> +}
-> +
-> +static int mma7455l_resume(struct spi_device *spi)
-> +{
-> +	struct mma7455l_info *mma = dev_get_drvdata(&spi->dev);
-> +	update_mode(mma, mma->mode, mma->gSelect);
-> +
-> +	return 0;
-> +}
-> +#else
-> +#define mma7455l_suspend NULL
-> +#define mma7455l_resume  NULL
-> +#endif
-> +
-> +static struct spi_driver mma7455l_driver = {
-> +	.driver = {
-> +		.name	= "mma7455l",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +
-> +	.probe	 = mma7455l_probe,
-> +	.remove	 = __devexit_p(mma7455l_remove),
-> +	.suspend = mma7455l_suspend,
-> +	.resume	 = mma7455l_resume,
-> +};
-> +
-> +static int __init mma7455l_init(void)
-> +{
-> +	return spi_register_driver(&mma7455l_driver);
-> +}
-> +
-> +static void __exit mma7455l_exit(void)
-> +{
-> +	spi_unregister_driver(&mma7455l_driver);
-> +}
-> +
-> +MODULE_AUTHOR("Gregoire Gentil <gregoire@gentil.com>");
-> +MODULE_LICENSE("GPL");
-> +
-> +module_init(mma7455l_init);
-> diff --git a/include/linux/mma7455l.h b/include/linux/mma7455l.h
-> new file mode 100644
-> index 0000000..12ab50a
-> --- /dev/null
-> +++ b/include/linux/mma7455l.h
-> @@ -0,0 +1,11 @@
-> +#ifndef _LINUX_MMA7455L_H
-> +#define _LINUX_MMA7455L_H
-> +
-> +struct mma7455l_platform_data {
-> +	/* Calibration offsets */
-> +	s16 calibration_x;
-> +	s16 calibration_y;
-> +	s16 calibration_z;
-> +};
-> +
-> +#endif /* _LINUX_MMA7455L_H */
-
+-- 
+Best Regards,
+Anuj Aggarwal
