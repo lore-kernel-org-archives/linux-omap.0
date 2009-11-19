@@ -1,66 +1,175 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Problem trying to pull particular commit from PM tree
-Date: Wed, 18 Nov 2009 14:46:45 -0800
-Message-ID: <87einvbgdm.fsf@deeprootsystems.com>
-References: <1258554311.750.33.camel@blitz>
-	<20091118165738.GJ29266@atomide.com> <1258581497.750.57.camel@blitz>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the input tree with the omap tree
+Date: Thu, 19 Nov 2009 13:12:16 +1100
+Message-ID: <20091119131216.da16845c.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f180.google.com ([209.85.216.180]:57654 "EHLO
-	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756215AbZKRWql (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Nov 2009 17:46:41 -0500
-Received: by pxi10 with SMTP id 10so1149464pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2009 14:46:47 -0800 (PST)
-In-Reply-To: <1258581497.750.57.camel@blitz> (Peter Barada's message of "Wed\, 18 Nov 2009 16\:58\:17 -0500")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Kalle Valo <kalle.valo@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Jani Nikula <ext-jani.1.nikula@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Peter Barada <peterb@logicpd.com> writes:
+Hi Dmitry,
 
-> On Wed, 2009-11-18 at 08:57 -0800, Tony Lindgren wrote:
->> * Peter Barada <peterb@logicpd.com> [091118 06:20]:
->> > Is it possible to back up in time on the PM tree to find a particular
->> > commit, even across rebasings?  I'm interested in the commit used by TI
->> > to base their AM3517 work on which is:
->> > 
->> > [Commit:ef25c2a0e0]: OMAP3: PM: defconfig: enable SRF by default.
->> > 
->> > I tried:
->> > 
->> > git clone git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
->> > git checkout -b pm origin/pm
->> > git reset --hard ef25c2a0
->> > 
->> > But that came back with:
->> > 
->> > fatal: ambiguous argument 'ef25c2a0': unknown revision or path not in
->> > the working tree.
->> > 
->> > My git 'fu' is pretty weak.  Any ideas why this doesn't work?
->> > Thanks in advance!
->> 
->> Maybe ef25c2a0e0 is some TI internal commit?
->
-> I wouldn't think so.  Their comment in the release notes is:
->
-> This release package includes a series of patches on top of the "pm"
-> branch maintained at
-> "http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=shortlog;h=pm". Baseline: [Commit:ef25c2a0e0]: OMAP3: PM: defconfig: enable SRF by default.
->
-> 1) How can I search the linux-omap git world to see if the commit string
-> exists?
->
-> 2) When trees are rebased, are the previous commits in the tree lost -
-> i.e. if tree A has commits A', A'', etc, and is rebased on tree B(which
-> does not have the commits A', A'' in it), are the commits A', A'', etc
-> lost?
+Today's linux-next merge of the input tree got a conflict in
+arch/arm/mach-omap2/board-rx51-peripherals.c between commit
+ebff0472f451a07fae9f4e72bdc2af4c52ebb682 ("omap3: rx51: Add wl1251 wlan
+driver support") from the omap tree and commit
+5018461a887d58f4601207deeebb7c352c2da20a ("ARM OMAP3: RX-51 board - add
+initialization of gpio keys") from the input tree.
 
-When a branch is rebased, all the commit IDs in that branch change, so
-finding a change by commit ID in a rebased branch (like PM branch) is
-impossible.
+Just overlapping additions.  I fixed it up (see below) and can carry the
+fix as necessary.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-Kevin
+diff --cc arch/arm/mach-omap2/board-rx51-peripherals.c
+index caaeadc,a5c02a4..0000000
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@@ -21,53 -20,103 +21,134 @@@
+  #include <linux/delay.h>
+  #include <linux/regulator/machine.h>
+  #include <linux/gpio.h>
++ #include <linux/gpio_keys.h>
+  #include <linux/mmc/host.h>
+  
+ -#include <mach/mcspi.h>
+ -#include <mach/mux.h>
+ -#include <mach/board.h>
+ -#include <mach/common.h>
+ -#include <mach/dma.h>
+ -#include <mach/gpmc.h>
+ -#include <mach/onenand.h>
+ -#include <mach/gpmc-smc91x.h>
+ +#include <plat/mcspi.h>
+ +#include <plat/mux.h>
+ +#include <plat/board.h>
+ +#include <plat/common.h>
+ +#include <plat/dma.h>
+ +#include <plat/gpmc.h>
+ +#include <plat/onenand.h>
+ +#include <plat/gpmc-smc91x.h>
+  
+  #include "mmc-twl4030.h"
+  
+  #define SYSTEM_REV_B_USES_VAUX3	0x1699
+  #define SYSTEM_REV_S_USES_VAUX3 0x8
+  
+ +#define RX51_WL1251_POWER_GPIO		87
+ +#define RX51_WL1251_IRQ_GPIO		42
+ +
+ +static void rx51_wl1251_set_power(bool enable);
+ +
+ +static struct wl12xx_platform_data wl1251_pdata = {
+ +	.set_power = rx51_wl1251_set_power,
+ +};
+ +
+ +static struct omap2_mcspi_device_config wl1251_mcspi_config = {
+ +	.turbo_mode	= 0,
+ +	.single_channel	= 1,
+ +};
+ +
+ +/* list all spi devices here */
+ +enum {
+ +	RX51_SPI_WL1251,
+ +};
+ +
+ +static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ +	[RX51_SPI_WL1251] = {
+ +		.modalias		= "wl1251",
+ +		.bus_num		= 4,
+ +		.chip_select		= 0,
+ +		.max_speed_hz   	= 48000000,
+ +		.mode                   = SPI_MODE_2,
+ +		.controller_data	= &wl1251_mcspi_config,
+ +		.platform_data		= &wl1251_pdata,
+ +	},
+ +};
+ +
++ #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
++ 
++ #define RX51_GPIO_CAMERA_LENS_COVER	110
++ #define RX51_GPIO_CAMERA_FOCUS		68
++ #define RX51_GPIO_CAMERA_CAPTURE	69
++ #define RX51_GPIO_KEYPAD_SLIDE		71
++ #define RX51_GPIO_LOCK_BUTTON		113
++ #define RX51_GPIO_PROXIMITY		89
++ 
++ #define RX51_GPIO_DEBOUNCE_TIMEOUT	10
++ 
++ static struct gpio_keys_button rx51_gpio_keys[] = {
++ 	{
++ 		.desc			= "Camera Lens Cover",
++ 		.type			= EV_SW,
++ 		.code			= SW_CAMERA_LENS_COVER,
++ 		.gpio			= RX51_GPIO_CAMERA_LENS_COVER,
++ 		.active_low		= 1,
++ 		.debounce_interval	= RX51_GPIO_DEBOUNCE_TIMEOUT,
++ 	}, {
++ 		.desc			= "Camera Focus",
++ 		.type			= EV_KEY,
++ 		.code			= KEY_CAMERA_FOCUS,
++ 		.gpio			= RX51_GPIO_CAMERA_FOCUS,
++ 		.active_low		= 1,
++ 		.debounce_interval	= RX51_GPIO_DEBOUNCE_TIMEOUT,
++ 	}, {
++ 		.desc			= "Camera Capture",
++ 		.type			= EV_KEY,
++ 		.code			= KEY_CAMERA,
++ 		.gpio			= RX51_GPIO_CAMERA_CAPTURE,
++ 		.active_low		= 1,
++ 		.debounce_interval	= RX51_GPIO_DEBOUNCE_TIMEOUT,
++ 	}, {
++ 		.desc			= "Lock Button",
++ 		.type			= EV_KEY,
++ 		.code			= KEY_SCREENLOCK,
++ 		.gpio			= RX51_GPIO_LOCK_BUTTON,
++ 		.active_low		= 1,
++ 		.debounce_interval	= RX51_GPIO_DEBOUNCE_TIMEOUT,
++ 	}, {
++ 		.desc			= "Keypad Slide",
++ 		.type			= EV_SW,
++ 		.code			= SW_KEYPAD_SLIDE,
++ 		.gpio			= RX51_GPIO_KEYPAD_SLIDE,
++ 		.active_low		= 1,
++ 		.debounce_interval	= RX51_GPIO_DEBOUNCE_TIMEOUT,
++ 	}, {
++ 		.desc			= "Proximity Sensor",
++ 		.type			= EV_SW,
++ 		.code			= SW_FRONT_PROXIMITY,
++ 		.gpio			= RX51_GPIO_PROXIMITY,
++ 		.active_low		= 0,
++ 		.debounce_interval	= RX51_GPIO_DEBOUNCE_TIMEOUT,
++ 	}
++ };
++ 
++ static struct gpio_keys_platform_data rx51_gpio_keys_data = {
++ 	.buttons	= rx51_gpio_keys,
++ 	.nbuttons	= ARRAY_SIZE(rx51_gpio_keys),
++ };
++ 
++ static struct platform_device rx51_gpio_keys_device = {
++ 	.name	= "gpio-keys",
++ 	.id	= -1,
++ 	.dev	= {
++ 		.platform_data	= &rx51_gpio_keys_data,
++ 	},
++ };
++ 
++ static void __init rx51_add_gpio_keys(void)
++ {
++ 	platform_device_register(&rx51_gpio_keys_device);
++ }
++ #else
++ static void __init rx51_add_gpio_keys(void)
++ {
++ }
++ #endif /* CONFIG_KEYBOARD_GPIO || CONFIG_KEYBOARD_GPIO_MODULE */
++ 
+  static int board_keymap[] = {
+  	KEY(0, 0, KEY_Q),
+  	KEY(0, 1, KEY_O),
