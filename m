@@ -1,83 +1,176 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure
-	fix
-Date: Fri, 20 Nov 2009 09:51:13 +0200
-Message-ID: <200911200951.13181.peter.ujfalusi@nokia.com>
-References: <1258133987-20488-1-git-send-email-jwang@ti.com>
-	<bd7b27490911182334r7b9b4682o29a094e8ee521bc5@mail.gmail.com>
-	<2ee9e08d0911191148x9da6112s960a283a7cffea7b@mail.gmail.com>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency constraint	in
+ i2c
+Date: Fri, 20 Nov 2009 09:35:20 +0100
+Message-ID: <E839BB5467CE1640B3CC2F90F647A52C274A01DB80@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <> <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
+	 <1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
+	 <1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
+	 <1256125881-12441-4-git-send-email-kalle.jokiniemi@digia.com>
+	 <CD8CC2B65FEE304DA95744A5472698F2029E427B04@dlee06.ent.ti.com>
+ <1256806523.31764.57.camel@ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <2ee9e08d0911191148x9da6112s960a283a7cffea7b@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "anuj.aggarwal@ti.com" <anuj.aggarwal@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Wang,
-	Jane" <jwang@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:48887 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752485AbZKTIfr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 03:35:47 -0500
+In-Reply-To: <1256806523.31764.57.camel@ubuntu>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, m-sonasath@ti.com, jouni.hogander@nokia.com
 
-On Thursday 19 November 2009 21:48:26 ext Anuj Aggarwal wrote:
-> [Anuj] Yes, w/o audio, it goes into suspend neatly.
-> After going through the entire patch series "[PATCHv5 00/20] OMAP
-> ASoC changes in DMA utilization", which I missed earlier, I found that the
-> sysfs entry dma_op_mode can be toggled among element/frame/threshold,
-> by default which is element hence not allowing the mcbsp driver to go into
-> idle state. I changed that at run time and after that I am able to hit
-> the suspend
-> state while playing back audio (at least the log doesn't
-> show that the system is not able to hit suspend).
-> My question is: is sysfs the only way to choose threshold or can it be ma=
-de
->  as default? I could not see that happening in the code so thinking of the
->  possible reason of choosing not to do so. Because the user who wants to
->  hit suspend will not like to issue driver specific commands. Any specific
->  reason of not doing that by default?
+Kevin,
 
-It is not selected as default on OMAP3, since it is a new feature, and we d=
-on't =
+Could you please take this patch in? Currently i2c is not working very well with cpuidle and off mode, and the patch is needed.
 
-want to change the behavior of the audio. If the reports are positive regar=
-ding =
+I would go with V4 of the patch.
 
-to the threshold mode, than we can make it as default on OMAP3, at least th=
-at is =
+- Kalle
 
-the plan AFAIK. =
-
-In some cases the element mode is desirable over the threshold mode, and =
-
-probably there are additional modes can be implemented for other cases, hen=
-ce =
-
-the sysfs interface is really useful feature.
-
-Back than there were quite a bit of discussion here about the threshold mod=
-e: in =
-
-the original series the threshold mode was the default, but we decided to n=
-ot to =
-
-do that before others have the chance to test it. We have been using the =
-
-threshold mode without issues internally, so it should be really stable, bu=
-t it =
-
-is still a new mode, which can break other implementations.
-
-So please test the threshold mode in your HW, and report if it is working t=
-here =
-
-OK, if we have enough positive feedbacks, than we can make it as default.
-
--- =
-
-P=E9ter
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org 
+>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
+>Kalle Jokiniemi
+>Sent: 29. lokakuuta 2009 10:55
+>To: Sonasath, Moiz
+>Cc: khilman@deeprootsystems.com; linux-omap@vger.kernel.org
+>Subject: RE: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency 
+>constraint in i2c
+>
+>OK, let's try this once more, since my mail did not seem to go 
+>to linux-omap.
+>
+>Sorry for the spam.
+>
+>See my comments below:
+>
+>On Fri, 2009-10-23 at 18:53 +0300, Sonasath, Moiz wrote:
+>> Hello Jokiniemi!
+>> 
+>> > -----Original Message-----
+>> > From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com]
+>> > Sent: Wednesday, October 21, 2009 6:51 AM
+>> > To: khilman@deeprootsystems.com
+>> > Cc: linux-omap@vger.kernel.org; Kalle Jokiniemi; Sonasath, Moiz;
+>> Jarkko
+>> > Nikula; Paul Walmsley; Menon, Nishanth
+>> > Subject: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency
+>> constraint in
+>> > i2c
+>> > 
+>> > While waiting for completion of the i2c transfer, the MPU 
+>could hit 
+>> > OFF mode and cause several msecs of delay that made i2c transfers 
+>> > fail more often. The extra delays and subsequent re-trys cause i2c 
+>> > clocks to be active more often. This has also an negative 
+>effect on 
+>> > power consumption.
+>> > 
+>> > Created a mechanism for passing and using the constraint setting 
+>> > function in driver code. The used mpu wake up latency constraints 
+>> > are now set individually per bus, and they are calculated based on 
+>> > clock rate and fifo size.
+>> > 
+>> > Thanks to Jarkko Nikula, Moiz Sonasath, Paul Walmsley, and 
+>Nishanth 
+>> > Menon for tuning out the details of this patch.
+>> > 
+>> > Cc: Moiz Sonasath <m-sonasath@ti.com>
+>> > Cc: Jarkko Nikula <jhnikula@gmail.com>
+>> > Cc: Paul Walmsley <paul@pwsan.com>
+>> > Cc: Nishanth Menon <nm@ti.com>
+>> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+>> > ---
+>> > 
+>> 
+>> 
+>> >  	dev->speed = speed;
+>> >  	dev->idle = 1;
+>> > @@ -911,6 +923,11 @@ omap_i2c_probe(struct platform_device *pdev)
+>> >  		 */
+>> >  		dev->fifo_size = (dev->fifo_size / 2);
+>> >  		dev->b_hw = 1; /* Enable hardware fixes */
+>> > +
+>> > +		/* calculate wakeup latency constraint for MPU */
+>> > +		if (dev->set_mpu_wkup_lat != NULL)
+>> > +			dev->latency = (1000000 * dev->fifo_size) /
+>> > +				       (1000 * speed / 8);
+>> >  	}
+>> 
+>> IMHO, here instead of using 'dev->fifo_size' for calculating the 
+>> 'dev->latency', we need to use:
+>> 
+>> 1. For RX case, to avoid Reciver overrun:
+>> 	if (msg->flags & I2C_M_RD)
+>> 		Use [(FIFO Depth)bytes - (FIFO THRSH)bytes] in 
+>calculating 
+>> 		dev->latency
+>> 
+>> Because conceptually, RDR/RRDY interrupts are generated when 
+>RTRSH is 
+>> reached, so we want the MPU to be wake up within the time it 
+>takes to 
+>> fill the FIFO from RTRSH to FIFO Depth (FIFO full).
+>> 
+>> 2. For TX case, to avoid Transmitter Underflow:
+>> 	if (!(msg->flags & I2C_M_RD))
+>> 		Use (FIFO THRSH)bytes in calculating dev->latency
+>> 
+>> Because conceptually, XDR/XRDY interrupts are generated when 
+>XTRSH is 
+>> reached, so we want the MPU to be wake up within the time it 
+>takes to 
+>> drain the FIFO from XTRSH to Zero (FIFO empty).
+>> 
+>> Using, dev->fifo_size instead, works in the present code because we 
+>> have a RTRSH/XTRSH = dev->fifo_size/2 = 4 bytes And therefore, (FIFO 
+>> Depth)bytes - (FIFO THRSH)bytes = 8 - 4 = 4 bytes
+>> 
+>> But, to make it more generic in future and to make it independent of 
+>> any changes in the RTRSH/XTRSH values or FIFO depths in future, we 
+>> should use a generic code here.
+>
+>Well, I don't completely agree with the necessity of preparing 
+>for different rx/tx thresholds. For this to make sense, the 
+>i2c-omap driver should first separate in it's code the use of 
+>rx and tx thresholds. If someone is planning to do that, 
+>he/she should anyway update the usage of fifo_size throughout 
+>the code, including the wake up latency setting.
+>
+>Anyways, attached a patch that separates the mpu wake up 
+>latencies for rx and tx. In case that is needed. Though I'm 
+>not for it, since it adds unneeded complexity.
+>
+>- Kalle
+>
+>> 
+>> > 
+>> >  	/* reset ASAP, clearing any IRQs */ diff --git 
+>> > a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h new 
+>file mode 
+>> > 100644 index 0000000..1362fba
+>> > --- /dev/null
+>> > +++ b/include/linux/i2c-omap.h
+>> > @@ -0,0 +1,9 @@
+>> > +#ifndef __I2C_OMAP_H__
+>> > +#define __I2C_OMAP_H__
+>> > +
+>> > +struct omap_i2c_bus_platform_data {
+>> > +	u32		clkrate;
+>> > +	void		(*set_mpu_wkup_lat)(struct device *dev, 
+>int set);
+>> > +};
+>> > +
+>> > +#endif
+>> > --
+>> > 1.5.4.3
+>> 
+>> Regards
+>> Moiz Sonasath
+>> 
+>
