@@ -1,78 +1,39 @@
-From: Maxime Petazzoni <mpetazzoni@mvista.com>
-Subject: Re: VDD1 voltage after resume from idle
-Date: Fri, 20 Nov 2009 17:29:33 +0100
-Message-ID: <20091120162933.GC2354@mvista.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 2/3] Input:TouchScreen: Introduce TSC2004 driver support
+Date: Fri, 20 Nov 2009 09:02:20 -0800
+Message-ID: <20091120170220.GA16447@core.coreip.homeip.net>
+References: <hvaibhav@ti.com> <1258642000-2271-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+xNpyl7Qekk2NvDX"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hu47.mvista.com ([206.112.117.47]:60447 "HELO
-	gateway-1237.mvista.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with SMTP id S1753346AbZKTQ31 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Nov 2009 11:29:27 -0500
+Received: from mail-px0-f204.google.com ([209.85.216.204]:57471 "EHLO
+	mail-px0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751547AbZKTRCT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 12:02:19 -0500
 Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
+In-Reply-To: <1258642000-2271-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: hvaibhav@ti.com
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
+
+Hi Vaibhav,
+
+On Thu, Nov 19, 2009 at 08:16:40PM +0530, hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
 
---+xNpyl7Qekk2NvDX
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+If I do:
 
-Hi,
+sed 's/2004/2007/g' drivers/input/touchscreen/tsc2004.c | diff -u
+drivers/input/touchscreen/tsc2007.c -
 
-* Premi, Sanjeev <premi@ti.com> [2009-11-20 21:17:04]:
+the diff is miniscule so why can't TSC2004 support be simply added to
+TSC2007 driver?
 
-> I am facing a strange problem on OMAP3EVM after resuming from idle.
-> When using OPP5, the VDD1 voltage ramps to 1.35V.
->  
-> However, when i go thru the idle/wakeup cycle, the voltage never
-> ramps back to 1.35V but stays at 1.20V.
-
-I'm seeing some interesting behavior with the OPP values here, too, with
-suspend/resume. I'm using SRF based PM and CPUFREQ. Here's what happens:
-
-When changing the CPU frequency through the scaling_setfreq knob of
-CPUFREQ, the vdd{1,2}_opp values are updated accordingly. After a
-suspend/resume cycles, the OPPs return to their pre-suspend values, all
-is fine.
-
-But when changing the OPP values by hand through the vdd{1,2}_opp knobs,
-the CPU frequency is changed accordingly, which is expected. But after a
-suspend/resume cycle, the OPP values return to the value CPUFREQ set
-them to (which may be different than the default OPP values of 3).
-
-Is this the normal behavior? Is cpufreq authoritative on the OPP values
-on resume? Or should it follow whatever value was manually set before
-suspending?
-
-Thanks,
-- Maxime
-
-PS: if I was not clear, I can provide a console log that may be more
-explicit--just ask.
+Thanks.
 
 -- 
-Maxime Petazzoni
-Linux kernel & software dev
-MontaVista Software, Inc
-
---+xNpyl7Qekk2NvDX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAksGw+0ACgkQ7KsOe4Pmrg2ATQCfZ7kal3/5VU99NKfAzruGYiTj
-K64AoJ/e59oywpc9gZC6AmgueBrf5BsM
-=qIaU
------END PGP SIGNATURE-----
-
---+xNpyl7Qekk2NvDX--
+Dmitry
