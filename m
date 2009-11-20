@@ -1,45 +1,45 @@
 From: "Y, Kishore" <kishore.y@ti.com>
-Subject: [PATCH 4/5]  ZOOM2: DSS2: zoom2 defconfig changes to enable dss2
-Date: Fri, 20 Nov 2009 19:58:11 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940254331088@dbde02.ent.ti.com>
+Subject: [PATCH 5/5] ZOOM3: DSS2: zoom3 defconfig changes to enable dss2
+Date: Fri, 20 Nov 2009 19:58:20 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940254331089@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36507 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36518 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753781AbZKTO2H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 09:28:07 -0500
+	id S1752296AbZKTO2Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 09:28:16 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKESA3C009714
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKESJdR009728
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 08:28:12 -0600
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 08:28:21 -0600
 Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKESAaB020407
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 19:58:10 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKESJGE020420
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 19:58:19 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 39c06b756d9683ae257ef1166dd8d593e6886709 Mon Sep 17 00:00:00 2001
+>From c4e51b87aa1d619ff97c220c03363437e5b9b452 Mon Sep 17 00:00:00 2001
 From: Kishore <x0114913@ti.com>
-Date: Tue, 10 Nov 2009 15:01:11 +0530
-Subject: [PATCH] ZOOM2: DSS2: zoom2 defconfig changes to enable dss2
+Date: Tue, 10 Nov 2009 15:00:09 +0530
+Subject: [PATCH] ZOOM3: DSS2: zoom3 defconfig changes to enable dss2
 
 Defconfig has been changed to enable nec panel and dss2 on
-zoom2 board.
+zoom3 board.
 
 Signed-off-by: Kishore Y <kishore.y@ti.com>
 ---
- arch/arm/configs/omap_zoom2_defconfig |  161 ++++++++++++++++++++++++++++++++-
- 1 files changed, 159 insertions(+), 2 deletions(-)
+ arch/arm/configs/omap_zoom3_defconfig |  159 ++++++++++++++++++++++++++++++++-
+ 1 files changed, 157 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
-index 146304c..a66e1f3 100644
---- a/arch/arm/configs/omap_zoom2_defconfig
-+++ b/arch/arm/configs/omap_zoom2_defconfig
-@@ -210,6 +210,7 @@ CONFIG_OMAP_MUX_DEBUG=y
+diff --git a/arch/arm/configs/omap_zoom3_defconfig b/arch/arm/configs/omap_zoom3_defconfig
+index cccd85a..b2cb3b0 100644
+--- a/arch/arm/configs/omap_zoom3_defconfig
++++ b/arch/arm/configs/omap_zoom3_defconfig
+@@ -209,6 +209,7 @@ CONFIG_OMAP_MUX_DEBUG=y
  CONFIG_OMAP_MUX_WARNINGS=y
  CONFIG_OMAP_MCBSP=y
  # CONFIG_OMAP_MBOX_FWK is not set
@@ -47,7 +47,7 @@ index 146304c..a66e1f3 100644
  # CONFIG_OMAP_MPU_TIMER is not set
  CONFIG_OMAP_32K_TIMER=y
  # CONFIG_OMAP3_DEBOBS is not set
-@@ -982,14 +983,159 @@ CONFIG_REGULATOR_TWL4030=y
+@@ -1002,14 +1003,157 @@ CONFIG_REGULATOR_TWL4030=y
  # CONFIG_REGULATOR_LP3971 is not set
  # CONFIG_REGULATOR_TPS65023 is not set
  # CONFIG_REGULATOR_TPS6507X is not set
@@ -145,7 +145,6 @@ index 146304c..a66e1f3 100644
 +# CONFIG_RADIO_TEA5764 is not set
 +# CONFIG_DAB is not set
 +
-+
  
  #
  # Graphics support
@@ -191,7 +190,7 @@ index 146304c..a66e1f3 100644
 +CONFIG_OMAP2_DSS_VENC=y
 +# CONFIG_OMAP2_DSS_SDI is not set
 +# CONFIG_OMAP2_DSS_DSI is not set
-+ CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
++# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
 +CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
 +CONFIG_FB_OMAP2=y
 +CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
@@ -205,11 +204,10 @@ index 146304c..a66e1f3 100644
 +# CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
 +# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
 +CONFIG_PANEL_NEC=y
-+
  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
  
  #
-@@ -1002,6 +1148,17 @@ CONFIG_VIDEO_OUTPUT_CONTROL=m
+@@ -1022,6 +1166,17 @@ CONFIG_VIDEO_OUTPUT_CONTROL=m
  #
  # CONFIG_VGA_CONSOLE is not set
  CONFIG_DUMMY_CONSOLE=y
