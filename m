@@ -1,329 +1,64 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCHV2 3/4] OMAP3: Correct width for CLKSEL Fields
-Date: Fri, 20 Nov 2009 09:57:51 -0600
-Message-ID: <A24693684029E5489D1D202277BE89444DA61E22@dlee02.ent.ti.com>
-References: <1258730937-1962-1-git-send-email-vishwanath.bs@ti.com>
- <1258730937-1962-2-git-send-email-vishwanath.bs@ti.com>
- <1258730937-1962-3-git-send-email-vishwanath.bs@ti.com>
- <1258730937-1962-4-git-send-email-vishwanath.bs@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: VDD1 voltage after resume from idle
+Date: Fri, 20 Nov 2009 09:59:20 -0600
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012B438CA1@dlee02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C012B438C7E@dlee02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5C0@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41756 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52262 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753811AbZKTP4U convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 10:56:20 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKFuNAY030025
+	id S1753048AbZKTP7Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 10:59:16 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKFxMjO019747
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 09:56:26 -0600
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 09:59:22 -0600
 Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id nAKFuMt6021563
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 09:56:22 -0600 (CST)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKFuMYK004215
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 09:56:22 -0600 (CST)
-In-Reply-To: <1258730937-1962-4-git-send-email-vishwanath.bs@ti.com>
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id nAKFxLL3004471
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 09:59:21 -0600 (CST)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKFxL5g005653
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 09:59:21 -0600 (CST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5C0@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Vishwa, 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Sripathy, Vishwanath
-> Sent: Friday, November 20, 2009 9:29 AM
-> To: linux-omap@vger.kernel.org; Sripathy, Vishwanath
-> Subject: [PATCHV2 3/4] OMAP3: Correct width for CLKSEL Fields
+> From: Premi, Sanjeev
+> Sent: Friday, November 20, 2009 9:54 AM
+> > >
+> > > Hi,
+> > >
+> > > I am facing a strange problem on OMAP3EVM after resuming from idle.
+> > > When using OPP5, the VDD1 voltage ramps to 1.35V.
+> > >
+> > > However, when i go thru the idle/wakeup cycle, the voltage never
+> > > ramps back to 1.35V but stays at 1.20V.
+> > >
+> > > I don't notice many changes in smartreflex.c since 2.6.31-rc7 but
+> > > this problem is not observed there. Actually, here the voltage
+> > > did not drop during suspend at all.
+> > >
+> > > While I continue to debug, any suggestions?
+> >
+> > Look for retention voltage setup (they should be OPP dependent)..
+> > this was one of my plans of cleanups anyways..
 > 
-> DPLL4 M, M3, M4, M5 and M6 field width has been increased by 1 bit in
-> 3630.This patch has changes to accommodate this in CM 
-> dynamically based on
-> chip version.
+> So far the problem seems to be optimizations in the enable_smartreflex and
+> disable_smartreflex.
 > 
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> ---
->  arch/arm/mach-omap2/clock34xx.c         |   18 ++++++++--
->  arch/arm/mach-omap2/clock34xx.h         |   53 
-> ++++++++++++++++++++++++++++--
->  arch/arm/mach-omap2/cm-regbits-34xx.h   |    7 +++-
->  arch/arm/plat-omap/include/plat/clock.h |    4 +-
->  4 files changed, 71 insertions(+), 11 deletions(-)
->  mode change 100644 => 100755 arch/arm/mach-omap2/clock34xx.c
-
-No file mode changes, please.
-
+> On resume path, enable_smartreflex() is called, but doesn't do anything
+> unless autocomp flag is on. This is different from the boot-time where
+> the current freq is looked at and appropriate voltage is set.
 > 
-> diff --git a/arch/arm/mach-omap2/clock34xx.c 
-> b/arch/arm/mach-omap2/clock34xx.c
-> index 167f075..1e35f9a
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -43,6 +43,7 @@
->  #include "prm-regbits-34xx.h"
->  #include "cm.h"
->  #include "cm-regbits-34xx.h"
-> +#include <plat/cpu.h>
->  
->  static const struct clkops clkops_noncore_dpll_ops;
->  
-> @@ -97,6 +98,7 @@ struct omap_clk {
->  #define CK_3XXX		(1 << 0)
->  #define CK_3430ES1	(1 << 1)
->  #define CK_3430ES2	(1 << 2)
-> +#define CK_363X		(1 << 3)
->  
->  static struct omap_clk omap34xx_clks[] = {
->  	CLK(NULL,	"omap_32k_fck",	&omap_32k_fck,	CK_3XXX),
-> @@ -134,13 +136,13 @@ static struct omap_clk omap34xx_clks[] = {
->  	CLK(NULL,	"omap_12m_fck",	&omap_12m_fck,	CK_3XXX),
->  	CLK(NULL,	"dpll4_m2_ck",	&dpll4_m2_ck,	CK_3XXX),
->  	CLK(NULL,	"dpll4_m2x2_ck", &dpll4_m2x2_ck, CK_3XXX),
-> -	CLK(NULL,	"dpll4_m3_ck",	&dpll4_m3_ck,	CK_3XXX),
-> +	CLK(NULL,	"dpll4_m3_ck",	&dpll4_m3_ck,	CK_3XXX 
-> | CK_363X),
-
-Shouldn't CK_363X replace CK_3XXX?
-
-CK_363X is always inside the CK_3XXX scope, but not the other way around.
-
->  	CLK(NULL,	"dpll4_m3x2_ck", &dpll4_m3x2_ck, CK_3XXX),
-> -	CLK(NULL,	"dpll4_m4_ck",	&dpll4_m4_ck,	CK_3XXX),
-> +	CLK(NULL,	"dpll4_m4_ck",	&dpll4_m4_ck,	CK_3XXX 
-> | CK_363X),
->  	CLK(NULL,	"dpll4_m4x2_ck", &dpll4_m4x2_ck, CK_3XXX),
-> -	CLK(NULL,	"dpll4_m5_ck",	&dpll4_m5_ck,	CK_3XXX),
-> +	CLK(NULL,	"dpll4_m5_ck",	&dpll4_m5_ck,	CK_3XXX 
-> | CK_363X),
->  	CLK(NULL,	"dpll4_m5x2_ck", &dpll4_m5x2_ck, CK_3XXX),
-> -	CLK(NULL,	"dpll4_m6_ck",	&dpll4_m6_ck,	CK_3XXX),
-> +	CLK(NULL,	"dpll4_m6_ck",	&dpll4_m6_ck,	CK_3XXX 
-> | CK_363X),
->  	CLK(NULL,	"dpll4_m6x2_ck", &dpll4_m6x2_ck, CK_3XXX),
->  	CLK(NULL,	"emu_per_alwon_ck", &emu_per_alwon_ck, CK_3XXX),
->  	CLK(NULL,	"dpll5_ck",	&dpll5_ck,	CK_3430ES2),
-> @@ -1222,6 +1224,8 @@ int __init omap2_clk_init(void)
->  				OMAP3630_PERIPH_DPLL_DCO_SEL_MASK;
->  			dpll4_ck.dpll_data->sd_div_mask =
->  				OMAP3630_PERIPH_DPLL_SD_DIV_MASK;
-> +			dpll4_dd.mult_mask = 
-> OMAP3630_PERIPH_DPLL_MULT_MASK;
-> +			cpu_mask |= RATE_IN_363X;
->  			}
->  	}
->  
-> @@ -1232,6 +1236,12 @@ int __init omap2_clk_init(void)
->  
->  	for (c = omap34xx_clks; c < omap34xx_clks + 
-> ARRAY_SIZE(omap34xx_clks); c++)
->  		if (c->cpu & cpu_clkflg) {
-> +			/* for 3630, change the mask value for 
-> clocks which are
-> +				marked as CK_363X*/
-> +			if (cpu_is_omap3630() && (c->cpu & CK_363X)) {
-> +				c->lk.clk->clksel_mask =
-> +						
-> c->lk.clk->clksel_mask_3630;
-> +			}
->  			clkdev_add(&c->lk);
->  			clk_register(c->lk.clk);
->  			omap2_init_clk_clkdm(c->lk.clk);
-> diff --git a/arch/arm/mach-omap2/clock34xx.h 
-> b/arch/arm/mach-omap2/clock34xx.h
-> index 813a83e..93c92e5 100644
-> --- a/arch/arm/mach-omap2/clock34xx.h
-> +++ b/arch/arm/mach-omap2/clock34xx.h
-> @@ -243,6 +243,42 @@ static const struct clksel_rate 
-> div16_dpll_rates[] = {
->  	{ .div = 0 }
->  };
->  
-> +static const struct clksel_rate div32_dpll_rates[] = {
-> +	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX | DEFAULT_RATE },
-> +	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
-> +	{ .div = 3, .val = 3, .flags = RATE_IN_3XXX },
-> +	{ .div = 4, .val = 4, .flags = RATE_IN_3XXX },
-> +	{ .div = 5, .val = 5, .flags = RATE_IN_3XXX },
-> +	{ .div = 6, .val = 6, .flags = RATE_IN_3XXX },
-> +	{ .div = 7, .val = 7, .flags = RATE_IN_3XXX },
-> +	{ .div = 8, .val = 8, .flags = RATE_IN_3XXX },
-> +	{ .div = 9, .val = 9, .flags = RATE_IN_3XXX },
-> +	{ .div = 10, .val = 10, .flags = RATE_IN_3XXX },
-> +	{ .div = 11, .val = 11, .flags = RATE_IN_3XXX },
-> +	{ .div = 12, .val = 12, .flags = RATE_IN_3XXX },
-> +	{ .div = 13, .val = 13, .flags = RATE_IN_3XXX },
-> +	{ .div = 14, .val = 14, .flags = RATE_IN_3XXX },
-> +	{ .div = 15, .val = 15, .flags = RATE_IN_3XXX },
-> +	{ .div = 16, .val = 16, .flags = RATE_IN_3XXX },
-> +	{ .div = 17, .val = 17, .flags = RATE_IN_363X },
-> +	{ .div = 18, .val = 18, .flags = RATE_IN_363X },
-> +	{ .div = 19, .val = 19, .flags = RATE_IN_363X },
-> +	{ .div = 20, .val = 20, .flags = RATE_IN_363X },
-> +	{ .div = 21, .val = 21, .flags = RATE_IN_363X },
-> +	{ .div = 22, .val = 22, .flags = RATE_IN_363X },
-> +	{ .div = 23, .val = 23, .flags = RATE_IN_363X },
-> +	{ .div = 24, .val = 24, .flags = RATE_IN_363X },
-> +	{ .div = 25, .val = 25, .flags = RATE_IN_363X },
-> +	{ .div = 26, .val = 26, .flags = RATE_IN_363X },
-> +	{ .div = 27, .val = 27, .flags = RATE_IN_363X },
-> +	{ .div = 28, .val = 28, .flags = RATE_IN_363X },
-> +	{ .div = 29, .val = 29, .flags = RATE_IN_363X },
-> +	{ .div = 30, .val = 30, .flags = RATE_IN_363X },
-> +	{ .div = 31, .val = 31, .flags = RATE_IN_363X },
-> +	{ .div = 32, .val = 32, .flags = RATE_IN_363X },
-> +	{ .div = 0 }
-> +};
-> +
->  /* DPLL1 */
->  /* MPU clock source */
->  /* Type: DPLL */
-> @@ -588,6 +624,11 @@ static const struct clksel 
-> div16_dpll4_clksel[] = {
->  	{ .parent = NULL }
->  };
->  
-> +static const struct clksel div32_dpll4_clksel[] = {
-> +	{ .parent = &dpll4_ck, .rates = div32_dpll_rates },
-> +	{ .parent = NULL }
-> +};
-> +
->  /* This virtual clock is the source for dpll4_m2x2_ck */
->  static struct clk dpll4_m2_ck = {
->  	.name		= "dpll4_m2_ck",
-> @@ -668,7 +709,8 @@ static struct clk dpll4_m3_ck = {
->  	.init		= &omap2_init_clksel_parent,
->  	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
->  	.clksel_mask	= OMAP3430_CLKSEL_TV_MASK,
-> -	.clksel		= div16_dpll4_clksel,
-> +	.clksel_mask_3630 = OMAP3630_CLKSEL_TV_MASK,
-> +	.clksel		= div32_dpll4_clksel,
->  	.clkdm_name	= "dpll4_clkdm",
->  	.recalc		= &omap2_clksel_recalc,
->  };
-> @@ -754,7 +796,8 @@ static struct clk dpll4_m4_ck = {
->  	.init		= &omap2_init_clksel_parent,
->  	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
->  	.clksel_mask	= OMAP3430_CLKSEL_DSS1_MASK,
-> -	.clksel		= div16_dpll4_clksel,
-> +	.clksel_mask_3630 = OMAP3630_CLKSEL_DSS1_MASK,
-> +	.clksel		= div32_dpll4_clksel,
->  	.clkdm_name	= "dpll4_clkdm",
->  	.recalc		= &omap2_clksel_recalc,
->  	.set_rate	= &omap2_clksel_set_rate,
-> @@ -781,7 +824,8 @@ static struct clk dpll4_m5_ck = {
->  	.init		= &omap2_init_clksel_parent,
->  	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_CLKSEL),
->  	.clksel_mask	= OMAP3430_CLKSEL_CAM_MASK,
-> -	.clksel		= div16_dpll4_clksel,
-> +	.clksel_mask_3630 = OMAP3630_CLKSEL_CAM_MASK,
-> +	.clksel		= div32_dpll4_clksel,
->  	.clkdm_name	= "dpll4_clkdm",
->  	.recalc		= &omap2_clksel_recalc,
->  };
-> @@ -806,7 +850,8 @@ static struct clk dpll4_m6_ck = {
->  	.init		= &omap2_init_clksel_parent,
->  	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
->  	.clksel_mask	= OMAP3430_DIV_DPLL4_MASK,
-> -	.clksel		= div16_dpll4_clksel,
-> +	.clksel_mask_3630 = OMAP3630_DIV_DPLL4_MASK,
-> +	.clksel		= div32_dpll4_clksel,
->  	.clkdm_name	= "dpll4_clkdm",
->  	.recalc		= &omap2_clksel_recalc,
->  };
-> diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h 
-> b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> index 6f2802b..a6383f9 100644
-> --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-> +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> @@ -516,7 +516,8 @@
->  
->  /* CM_CLKSEL2_PLL */
->  #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
-> -#define OMAP3430_PERIPH_DPLL_MULT_MASK			
-> (0xfff << 8)
-> +#define OMAP3430_PERIPH_DPLL_MULT_MASK			
-> (0x7ff << 8)
-> +#define OMAP3630_PERIPH_DPLL_MULT_MASK			
-> (0xfff << 8)
->  #define OMAP3430_PERIPH_DPLL_DIV_SHIFT			0
->  #define OMAP3430_PERIPH_DPLL_DIV_MASK			
-> (0x7f << 0)
->  #define OMAP3630_PERIPH_DPLL_DCO_SEL_SHIFT		21
-> @@ -573,8 +574,10 @@
->  /* CM_CLKSEL_DSS */
->  #define OMAP3430_CLKSEL_TV_SHIFT			8
->  #define OMAP3430_CLKSEL_TV_MASK				
-> (0x1f << 8)
-> +#define OMAP3630_CLKSEL_TV_MASK				
-> (0x3f << 8)
->  #define OMAP3430_CLKSEL_DSS1_SHIFT			0
->  #define OMAP3430_CLKSEL_DSS1_MASK			(0x1f << 0)
-> +#define OMAP3630_CLKSEL_DSS1_MASK			(0x3f << 0)
->  
->  /* CM_SLEEPDEP_DSS specific bits */
->  
-> @@ -602,6 +605,7 @@
->  /* CM_CLKSEL_CAM */
->  #define OMAP3430_CLKSEL_CAM_SHIFT			0
->  #define OMAP3430_CLKSEL_CAM_MASK			(0x1f << 0)
-> +#define OMAP3630_CLKSEL_CAM_MASK			(0x3f << 0)
->  
->  /* CM_SLEEPDEP_CAM specific bits */
->  
-> @@ -697,6 +701,7 @@
->  /* CM_CLKSEL1_EMU */
->  #define OMAP3430_DIV_DPLL4_SHIFT			24
->  #define OMAP3430_DIV_DPLL4_MASK				
-> (0x1f << 24)
-> +#define OMAP3630_DIV_DPLL4_MASK				
-> (0x3f << 24)
->  #define OMAP3430_DIV_DPLL3_SHIFT			16
->  #define OMAP3430_DIV_DPLL3_MASK				
-> (0x1f << 16)
->  #define OMAP3430_CLKSEL_TRACECLK_SHIFT			11
-> diff --git a/arch/arm/plat-omap/include/plat/clock.h 
-> b/arch/arm/plat-omap/include/plat/clock.h
-> index 359ccb4..0e0a5cc 100644
-> --- a/arch/arm/plat-omap/include/plat/clock.h
-> +++ b/arch/arm/plat-omap/include/plat/clock.h
-> @@ -93,7 +93,7 @@ struct clk {
->  		defined(CONFIG_ARCH_OMAP4)
->  	u8			fixed_div;
->  	void __iomem		*clksel_reg;
-> -	u32			clksel_mask;
-> +	u32			clksel_mask, clksel_mask_3630;
->  	const struct clksel	*clksel;
->  	struct dpll_data	*dpll_data;
->  	const char		*clkdm_name;
-> @@ -159,7 +159,7 @@ extern const struct clkops clkops_null;
->  #define RATE_IN_243X		(1 << 2)
->  #define RATE_IN_3XXX		(1 << 3)	/* rates common 
-> to all 343X */
->  #define RATE_IN_3430ES2		(1 << 4)	/* 
-> 3430ES2 rates only */
-> -
-> +#define RATE_IN_363X		(1 << 5)        /* rates common 
-> to all 343X */
-
-Bad comment? Please revisit.
-
+> I am currently trying to get rid of optimizations and see the result.
+> We do need the optimizations; but may be different ones.
+What specific optimization are you talking about?
+http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=blob;f=arch/arm/mach-omap2/resource34xx.c;h=04be4d26945beccf81cad08a8cdfc6086d6ce70a;hb=refs/heads/pm#l277 ?
 Regards,
-Sergio
-
->  #define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
->  
->  
-> -- 
-> 1.5.6.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Nishanth Menon
