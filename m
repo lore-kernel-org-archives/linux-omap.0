@@ -1,103 +1,74 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS2 DSI Sync
-Date: Fri, 20 Nov 2009 15:53:08 +0200
-Message-ID: <1258725188.32674.45.camel@tubuntu.research.nokia.com>
-References: <bdad095e0911171511tf66f3c7v8f60dd508fa0995d@mail.gmail.com>
-	 <1258535499.2419.76.camel@tubuntu.research.nokia.com>
-	 <bdad095e0911180439w34d4c1a7ye5c2c885cb219dd1@mail.gmail.com>
-	 <1258550758.2419.121.camel@tubuntu.research.nokia.com>
-	 <bdad095e0911180648k5060ea38sec44f16cb0eb7d61@mail.gmail.com>
-	 <1258556689.2419.134.camel@tubuntu.research.nokia.com>
-	 <bdad095e0911180820l6c72ea7an5b0d688513754459@mail.gmail.com>
-	 <1258717256.32674.16.camel@tubuntu.research.nokia.com>
-	 <bdad095e0911200529s303a0321vc042e25798a6f0c4@mail.gmail.com>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: Re: [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure
+ fix
+Date: Fri, 20 Nov 2009 16:09:16 +0200
+Message-ID: <1258726156.6157.11.camel@eenurkka-desktop>
+References: <1258133987-20488-1-git-send-email-jwang@ti.com>
+	<bd7b27490911182334r7b9b4682o29a094e8ee521bc5@mail.gmail.com>
+	<2ee9e08d0911191148x9da6112s960a283a7cffea7b@mail.gmail.com>
+	<200911200951.13181.peter.ujfalusi@nokia.com>
+	<20091120155343.baf0b9d3.jhnikula@gmail.com>
+Reply-To: ext-eero.nurkkala@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:26167 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750989AbZKTNxd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 08:53:33 -0500
-In-Reply-To: <bdad095e0911200529s303a0321vc042e25798a6f0c4@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091120155343.baf0b9d3.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Wang,
+	Jane" <jwang@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "anuj.aggarwal@ti.com" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Steven Fischer <steven.fischer@motorola.com>
-Cc: Linux-Omap <linux-omap@vger.kernel.org>
 
-On Fri, 2009-11-20 at 14:29 +0100, ext Steven Fischer wrote:
+On Fri, 2009-11-20 at 14:53 +0100, ext Jarkko Nikula wrote:
+> On Fri, 20 Nov 2009 09:51:13 +0200
+> Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+> 
+> > > My question is: is sysfs the only way to choose threshold or can it be made
+> > >  as default? I could not see that happening in the code so thinking of the
+> > >  possible reason of choosing not to do so. Because the user who wants to
+> > >  hit suspend will not like to issue driver specific commands. Any specific
+> > >  reason of not doing that by default?
+> > 
+> > It is not selected as default on OMAP3, since it is a new feature, and we don't 
+> > want to change the behavior of the audio. If the reports are positive regarding 
+> > to the threshold mode, than we can make it as default on OMAP3, at least that is 
+> > the plan AFAIK. 
+> 
+> Yep. Currently we want to keep DMA behaviour consistent across the
+> OMAPs and McBSP ports since the large internal FIFO is found only
+> from McBSP2 on OMAP3.
+> 
+> This is good finding that you have found that it's the audio preventing
+> the suspend and the threshold transfer mode can make it hit better.
+> 
+> But anyway, I'm afraid that threshold mode doesn't help to create
+> robust suspend. Threshold allow the DMA and core to be mode in idle
+> between the FIFO fills and probably that's why suspend might work
+> during these idle periods. For robust implementation there must be
+> explicit code stopping and resuming all activity gracefully so that it
+> can hit the suspend also if the fill is happening or if using another
+> transfer mode.
 > 
 > 
-> On Fri, Nov 20, 2009 at 5:40 AM, Tomi Valkeinen
-> <tomi.valkeinen@nokia.com> wrote:
 
->         Just out of interest, may I ask why you are not using omapfb?
->         Are you
->         using V4L2 driver from TI?
->         
->         
-> For the graphic plane, we don't use the "omapfb" code as an
-> optimization.  We have a shorter path which is being used.  For the
-> video planes, we have a V4L2 overlay driver we wrote.  It is based on
-> the V4L2 driver from TI, but we found the TI driver had some gaps, so
-> we wrote our own.
+Looking at the very original patch, I don't know how things could get
+into deep sleep by disabling the fclk only... need to disable the iclk
+also. In threshold mode, HW autogates the iclk, so you may be just
+"lucky".
 
-You can configure omapfb to use only one framebuffer. Was there some
-spesific part in omapfb that was too slow? I'd be happy to get it
-optimized.
+One may want to be aware of this also:
 
-> Given that the DSS2 exposes all three planes and knowing that there is
-> at least two expected input paths, omapfb and the TI V4L2 driver, how
-> is one expected to use the DSS2?  Are you suggesting that omapfb or
-> V4L2 be used exclusively, not in combination?
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=72cc6d715d5b018e2cff4adb68966855850d4e77
 
-No, I'm not suggesting that. This is a known problem, but it can't be
-solved inside the kernel.
+I think it's an undocumented feature.
 
-Optimally all the changes to overlays are done first, then one update is
-issued. But if the overlays are handled by different entities, there's
-no synchronization point and the entities compete about the display. And
-the kernel driver cannot know what is going to happen next, so it cannot
-wait for the next entity to issue update, before actually starting the
-update.
-
-I don't know how it should be handled with V4L2, but the same problem is
-with omapfb. One entity is drawing to fb0, and some other entity draws
-to fb1. The only solution I see is that there's one control point
-between the kernel and the drawing-entities, and in our case this is X
-server (I think). The X server has a better understanding of what is
-going on, and can do updates better.
-
->         So how double buffering is supposed to be done is:
->         
->         1) Fill frame A
->         2) Setup overlay for A
->         3) Wait until Frame B is done, with sync()
->         4) Start sending frame A, with update()
->         5) Fill frame B
->         6) Setup overlay for B
->         7) sync()
->         8) update()
->         9) Go back to 1
->         
-> When you say "Setup overlay" I assume you mean both
-> "overlay->set_overlay_info()" and "manager->apply()", correct?
-
-Yes, I think apply is needed also.
-
-> 
-> We have been calling sync after calling update as a means of
-> determining that the previous buffer is free.  In your example, sync
-> is called, I assume, to ensure the previous update is complete before
-> calling update again.  I need to consider this to see if this helps or
-> hinders our cause.
-
-If you call sync after update, you'll wait for that update to finish.
-Which is not what you want. So yes, the idea is to start the update for
-the front buffer, modify the back buffer, and when back buffer is ready,
-use sync to make sure that the previous transfer has been finished.
-
- Tomi
-
-
-
+- Eero
