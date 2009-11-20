@@ -1,170 +1,60 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 4/4] OMAP3: add support for 192Mhz sgx clock
-Date: Fri, 20 Nov 2009 15:43:40 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA751923@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA7510C6@dbde02.ent.ti.com>
- <4B0425A7.4080205@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure
+ fix
+Date: Fri, 20 Nov 2009 15:53:43 +0200
+Message-ID: <20091120155343.baf0b9d3.jhnikula@gmail.com>
+References: <1258133987-20488-1-git-send-email-jwang@ti.com>
+	<bd7b27490911182334r7b9b4682o29a094e8ee521bc5@mail.gmail.com>
+	<2ee9e08d0911191148x9da6112s960a283a7cffea7b@mail.gmail.com>
+	<200911200951.13181.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41080 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751502AbZKTKNj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 05:13:39 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKADhxC012458
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 04:13:45 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKADgPv010059
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 15:43:42 +0530 (IST)
-In-Reply-To: <4B0425A7.4080205@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <200911200951.13181.peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "anuj.aggarwal@ti.com" <anuj.aggarwal@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Wang,
+	Jane" <jwang@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+
+On Fri, 20 Nov 2009 09:51:13 +0200
+Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+
+> > My question is: is sysfs the only way to choose threshold or can it be made
+> >  as default? I could not see that happening in the code so thinking of the
+> >  possible reason of choosing not to do so. Because the user who wants to
+> >  hit suspend will not like to issue driver specific commands. Any specific
+> >  reason of not doing that by default?
+> 
+> It is not selected as default on OMAP3, since it is a new feature, and we don't 
+> want to change the behavior of the audio. If the reports are positive regarding 
+> to the threshold mode, than we can make it as default on OMAP3, at least that is 
+> the plan AFAIK. 
+
+Yep. Currently we want to keep DMA behaviour consistent across the
+OMAPs and McBSP ports since the large internal FIFO is found only
+from McBSP2 on OMAP3.
+
+This is good finding that you have found that it's the audio preventing
+the suspend and the threshold transfer mode can make it hit better.
+
+But anyway, I'm afraid that threshold mode doesn't help to create
+robust suspend. Threshold allow the DMA and core to be mode in idle
+between the FIFO fills and probably that's why suspend might work
+during these idle periods. For robust implementation there must be
+explicit code stopping and resuming all activity gracefully so that it
+can hit the suspend also if the fill is happening or if using another
+transfer mode.
 
 
-
-> -----Original Message-----
-> From: Menon, Nishanth
-> Sent: Wednesday, November 18, 2009 10:20 PM
-> To: Sripathy, Vishwanath
-> Cc: linux-omap
-> Subject: Re: [PATCH 4/4] OMAP3: add support for 192Mhz sgx clock
-> 
-> Sripathy, Vishwanath had written, on 11/18/2009 08:16 AM, the following:
-> > SGX can run at 192MHz on 3630 and this patch has changes to support this feature.
-> >
-> > Signed-off-by: Vishwanath BS <Vishwanath.bs@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/clock34xx.c       |   10 ++++++++++
-> >  arch/arm/mach-omap2/clock34xx.h       |   33
-> +++++++++++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
-> >  3 files changed, 45 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-
-> omap2/clock34xx.c
-> > index 77b88aa..885043e 100755
-> > --- a/arch/arm/mach-omap2/clock34xx.c
-> > +++ b/arch/arm/mach-omap2/clock34xx.c
-> > @@ -128,6 +128,7 @@ static struct omap_clk omap34xx_clks[] = {
-> >  	CLK(NULL,	"emu_core_alwon_ck", &emu_core_alwon_ck, CK_3XXX),
-> >  	CLK(NULL,	"dpll4_ck",	&dpll4_ck,	CK_3XXX),
-> >  	CLK(NULL,	"dpll4_x2_ck",	&dpll4_x2_ck,	CK_3XXX),
-> > +       CLK(NULL,       "omap_192m_alwon_ck", &omap_192m_alwon_ck,
-> CK_363X),
-> >  	CLK(NULL,	"omap_96m_alwon_fck", &omap_96m_alwon_fck, CK_3XXX),
-> >  	CLK(NULL,	"omap_96m_fck",	&omap_96m_fck,	CK_3XXX),
-> >  	CLK(NULL,	"cm_96m_fck",	&cm_96m_fck,	CK_3XXX),
-> > @@ -1224,6 +1225,15 @@ int __init omap2_clk_init(void)
-> >  			dpll4_ck.dpll_data->sd_div_mask =
-> OMAP3630_PERIPH_DPLL_SD_DIV_MASK;
-> >  			dpll4_dd.mult_mask = OMAP3630_PERIPH_DPLL_MULT_MASK;
-> >  			cpu_mask |= RATE_IN_363X;
-> > +			cpu_clkflg |= CK_363X;
-> > +			omap_96m_alwon_fck.parent = &omap_192m_alwon_ck;
-> > +			omap_96m_alwon_fck.init = &omap2_init_clksel_parent;
-> > +			omap_96m_alwon_fck.clksel_reg =
-> > +					OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
-> > +			omap_96m_alwon_fck.clksel_mask =
-> > +						OMAP3630_CLKSEL_96M_MASK;
-> > +			omap_96m_alwon_fck.clksel = omap_96m_alwon_fck_clksel;
-> > +			omap_96m_alwon_fck.recalc = &omap2_clksel_recalc;
-> 
-> We should not ideally be linking this to j type DPLL perhaps? are'nt
-> these 36xx series specific? do we need FEATURE_HAS_192Mhz_CLK? that way
-> the future AM series/37xx series could also use this.
-
-I will add FEATURE_HAS_192Mhz_CLK and put the code under this feature.
-> 
-> >  			}
-> >  	}
-> >
-> > diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-
-> omap2/clock34xx.h
-> > index 93c92e5..6fe89df 100755
-> > --- a/arch/arm/mach-omap2/clock34xx.h
-> > +++ b/arch/arm/mach-omap2/clock34xx.h
-> > @@ -654,12 +654,31 @@ static struct clk dpll4_m2x2_ck = {
-> >  	.recalc		= &omap3_clkoutx2_recalc,
-> >  };
-> >
-> > +/* Adding 192MHz Clock node needed by SGX */
-> > +static struct clk omap_192m_alwon_ck = {
-> > +	.name           = "omap_192m_alwon_ck",
-> > +	.ops            = &clkops_null,
-> > +	.parent         = &dpll4_m2x2_ck,
-> > +	.recalc         = &followparent_recalc,
-> > +};
-> > +
-> >  /*
-> >   * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
-> >   * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
-> >   * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
-> >   * CM_96K_(F)CLK.
-> >   */
-> > +static const struct clksel_rate omap_96m_alwon_fck_rates[] = {
-> > +	{ .div = 1, .val = 1, .flags = RATE_IN_363X },
-> > +	{ .div = 2, .val = 2, .flags = RATE_IN_363X | DEFAULT_RATE },
-> > +	{ .div = 0 }
-> > +};
-> > +
-> > +static const struct clksel omap_96m_alwon_fck_clksel[] = {
-> > +	{ .parent = &omap_192m_alwon_ck, .rates = omap_96m_alwon_fck_rates },
-> > +	{ .parent = NULL }
-> > +};
-> > +
-> >  static struct clk omap_96m_alwon_fck = {
-> >  	.name		= "omap_96m_alwon_fck",
-> >  	.ops		= &clkops_null,
-> > @@ -1223,6 +1242,18 @@ static const struct clksel_rate sgx_core_rates[] = {
-> >  	{ .div = 3, .val = 0, .flags = RATE_IN_3XXX | DEFAULT_RATE },
-> >  	{ .div = 4, .val = 1, .flags = RATE_IN_3XXX },
-> >  	{ .div = 6, .val = 2, .flags = RATE_IN_3XXX },
-> > +	{ .div = 2, .val = 5, .flags = RATE_IN_363X },
-> > +	{ .div = 0 },
-> > +};
-> > +
-> > +static const struct clksel_rate sgx_192m_rates[] = {
-> > +	{ .div = 1,  .val = 4, .flags = RATE_IN_363X | DEFAULT_RATE },
-> > +	{ .div = 0 },
-> > +};
-> > +
-> > +static const struct clksel_rate sgx_corex2_rates[] = {
-> > +	{ .div = 3, .val = 6, .flags = RATE_IN_363X | DEFAULT_RATE },
-> > +	{ .div = 5, .val = 7, .flags = RATE_IN_363X },
-> >  	{ .div = 0 },
-> >  };
-> >
-> > @@ -1234,6 +1265,8 @@ static const struct clksel_rate sgx_96m_rates[] = {
-> >  static const struct clksel sgx_clksel[] = {
-> >  	{ .parent = &core_ck,	 .rates = sgx_core_rates },
-> >  	{ .parent = &cm_96m_fck, .rates = sgx_96m_rates },
-> > +	{ .parent = &omap_192m_alwon_ck, .rates = sgx_192m_rates },
-> > +	{ .parent = &corex2_fck, .rates = sgx_corex2_rates },
-> >  	{ .parent = NULL },
-> >  };
-> >
-> > diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-
-> regbits-34xx.h
-> > index a6383f9..39b3399 100755
-> > --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-> > +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> > @@ -336,6 +336,8 @@
-> >  #define OMAP3430_CLKSEL_L4_MASK				(0x3 << 2)
-> >  #define OMAP3430_CLKSEL_L3_SHIFT			0
-> >  #define OMAP3430_CLKSEL_L3_MASK				(0x3 << 0)
-> > +#define OMAP3630_CLKSEL_96M_SHIFT                      12
-> > +#define OMAP3630_CLKSEL_96M_MASK                       (0x3 << 12)
-> >
-> >  /* CM_CLKSTCTRL_CORE */
-> >  #define OMAP3430ES1_CLKTRCTRL_D2D_SHIFT			4
-> 
-> 
-> --
-> Regards,
-> Nishanth Menon
+-- 
+Jarkko
