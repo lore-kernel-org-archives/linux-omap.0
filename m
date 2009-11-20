@@ -1,50 +1,76 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v3 0/2] omap: serial: handle abort on empty rx fifo read
-Date: Fri, 20 Nov 2009 10:02:34 -0600
-Message-ID: <1258732956-18799-1-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH v3 2/2] omap: serial: fix non-empty uart fifo read abort
+Date: Fri, 20 Nov 2009 10:02:36 -0600
+Message-ID: <1258732956-18799-3-git-send-email-vikram.pandita@ti.com>
+References: <1258732956-18799-1-git-send-email-vikram.pandita@ti.com>
+ <1258732956-18799-2-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52467 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38744 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753102AbZKTQCf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Nov 2009 11:02:35 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKG2euJ021938
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:02:41 -0600
+	id S1753160AbZKTQCl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Nov 2009 11:02:41 -0500
+In-Reply-To: <1258732956-18799-2-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-introduce OMAP3_HAS_UART_NO_EMPTY_FIFO_READ feature
+OMAP3630 and OMAP4430 UART IP blocks have a restriction wrt RX FIFO.
+Empty RX fifo read causes an abort. OMAP1/2/3 do not have this restriction.
 
-this feature is set for omap3630 and omap4 currently as 
-empty uart rx fifo read causes an abort
+Override the default 8250 read handler: mem_serial_in()
+by a custom handler: serial_in_8250()
 
-check on this feature on omap3630 and omap4 for now and extend for future
-vairants in future
+serial_in_8250() makes sure that RX fifo is not read when empty,
+on omap4 and 3630 silicons only
 
-Patch history:
-V1: initial implementation
-	http://patchwork.kernel.org/patch/60785/
-	http://patchwork.kernel.org/patch/60786/
+tested on zoom3(3630) board
 
-V2: incorporate review comments from Alan Cox
-	http://patchwork.kernel.org/patch/60785/
-	to remove 8250.c file changes by override serial_in
-	No 8250 driver change required now
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+---
+ arch/arm/mach-omap2/serial.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-V3: incorporate review comments
-	khilman: make function override only for affected silicons
-	nishant m: interoduce has_feature check, rather than cpu_is
-	anand g: minor commit message change
-
-Vikram Pandita (2):
-  omap: introduce uart_no_empty_fifo_read feature
-  omap: serial: fix non-empty uart fifo read abort
-
- arch/arm/mach-omap2/id.c              |    7 +++++++
- arch/arm/mach-omap2/serial.c          |   21 +++++++++++++++++++++
- arch/arm/plat-omap/include/plat/cpu.h |    2 ++
- 3 files changed, 30 insertions(+), 0 deletions(-)
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 2e17b57..600e4d2 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -572,6 +572,23 @@ static struct omap_uart_state omap_uart[] = {
+ #endif
+ };
+ 
++/*
++ * Override the default 8250 read handler: mem_serial_in()
++ * Empty RX fifo read causes an abort on omap3630 and omap4
++ * This function makes sure that an empty rx fifo is not read on these silicons
++ * (OMAP1/2/3 are not affected)
++ */
++static unsigned int serial_in_override(struct uart_port *up, int offset)
++{
++	if (UART_RX == offset) {
++		unsigned int lsr;
++		lsr = serial_read_reg(omap_uart[up->line].p, UART_LSR);
++		if (!(lsr & UART_LSR_DR))
++			return -EPERM;
++	}
++	return serial_read_reg(omap_uart[up->line].p, offset);
++}
++
+ void __init omap_serial_early_init(void)
+ {
+ 	int i;
+@@ -627,6 +644,10 @@ void __init omap_serial_early_init(void)
+ 		if (cpu_is_omap44xx())
+ 			p->irq += 32;
+ 
++		/* Do not read empty UART fifo on omap3630/omap4 */
++		if (omap3_has_uart_no_empty_fifo_read())
++			p->serial_in = serial_in_override;
++
+ 		omap_uart_enable_clocks(uart);
+ 	}
+ }
+-- 
+1.6.5.1.69.g36942
 
