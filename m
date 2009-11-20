@@ -1,225 +1,189 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHV2 4/4] OMAP3: add support for 192Mhz sgx clock
-Date: Fri, 20 Nov 2009 10:19:14 -0600
-Message-ID: <4B06C182.4090009@ti.com>
-References: <1258730937-1962-1-git-send-email-vishwanath.bs@ti.com> <1258730937-1962-2-git-send-email-vishwanath.bs@ti.com> <1258730937-1962-3-git-send-email-vishwanath.bs@ti.com> <1258730937-1962-4-git-send-email-vishwanath.bs@ti.com> <1258730937-1962-5-git-send-email-vishwanath.bs@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency constraint	in i2c
+Date: Fri, 20 Nov 2009 08:28:05 -0800
+Message-ID: <87eint6u0a.fsf@deeprootsystems.com>
+References: <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
+	<1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
+	<1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
+	<1256125881-12441-4-git-send-email-kalle.jokiniemi@digia.com>
+	<CD8CC2B65FEE304DA95744A5472698F2029E427B04@dlee06.ent.ti.com>
+	<1256806523.31764.57.camel@ubuntu>
+	<E839BB5467CE1640B3CC2F90F647A52C274A01DB80@NOK-EUMSG-02.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56705 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752344AbZKTQTJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 11:19:09 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKGJF10025924
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:19:15 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id nAKGJF1q005477
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:19:15 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKGJFZj015168
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:19:15 -0600 (CST)
-In-Reply-To: <1258730937-1962-5-git-send-email-vishwanath.bs@ti.com>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:36466 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209AbZKTQ2B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 11:28:01 -0500
+Received: by pzk1 with SMTP id 1so2502697pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 08:28:07 -0800 (PST)
+In-Reply-To: <E839BB5467CE1640B3CC2F90F647A52C274A01DB80@NOK-EUMSG-02.mgdnok.nokia.com> (kalle jokiniemi's message of "Fri\, 20 Nov 2009 09\:35\:20 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: kalle.jokiniemi@nokia.com, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, m-sonasath@ti.com, jouni.hogander@nokia.com
 
-unrelated to this patch comment: we might want to consider thinking in 
-terms of optimizing the memory as OMAP4 also kicks in.. some sort of 
-dynamic clock tree traversal and __initdata method perhaps??
+<kalle.jokiniemi@nokia.com> writes:
 
-Hi Vishwa,
-Thanks for the patch, few minor comments follow:
+> Could you please take this patch in? Currently i2c is not working
+> very well with cpuidle and off mode, and the patch is needed.
+>
+> I would go with V4 of the patch.
 
-Sripathy, Vishwanath had written, on 11/20/2009 09:28 AM, the following:
-> SGX can run at 192MHz on 3630 and this patch has changes to support this
-> feature. Basically DPLL4 M2 will be 192Mhz which will be used as SGX
-> Clock. 192Mhz clock is divided by 2 (using CM_CLKSEL_CORE) to generate
-> 96Mh clock
-   ^^^^ <- you probably intended 96Mhz
-> 
-> Signed-off-by: Vishwanath BS <Vishwanath.bs@ti.com>
-> ---
->  arch/arm/mach-omap2/clock34xx.c       |   16 +++++++++++++++-
->  arch/arm/mach-omap2/clock34xx.h       |   33 +++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
->  arch/arm/mach-omap2/id.c              |    7 +++++--
->  arch/arm/plat-omap/include/plat/cpu.h |    3 +++
->  5 files changed, 58 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index 1e35f9a..bce7e46 100755
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -128,6 +128,7 @@ static struct omap_clk omap34xx_clks[] = {
->  	CLK(NULL,	"emu_core_alwon_ck", &emu_core_alwon_ck, CK_3XXX),
->  	CLK(NULL,	"dpll4_ck",	&dpll4_ck,	CK_3XXX),
->  	CLK(NULL,	"dpll4_x2_ck",	&dpll4_x2_ck,	CK_3XXX),
-> +       CLK(NULL,       "omap_192m_alwon_ck", &omap_192m_alwon_ck, CK_363X),
->  	CLK(NULL,	"omap_96m_alwon_fck", &omap_96m_alwon_fck, CK_3XXX),
->  	CLK(NULL,	"omap_96m_fck",	&omap_96m_fck,	CK_3XXX),
->  	CLK(NULL,	"cm_96m_fck",	&cm_96m_fck,	CK_3XXX),
-> @@ -1226,7 +1227,20 @@ int __init omap2_clk_init(void)
->  				OMAP3630_PERIPH_DPLL_SD_DIV_MASK;
->  			dpll4_dd.mult_mask = OMAP3630_PERIPH_DPLL_MULT_MASK;
->  			cpu_mask |= RATE_IN_363X;
-> -			}
-> +			cpu_clkflg |= CK_363X;
+Kalle,
 
-I think introduce CK_36XX should be done seperately.
+Last I saw with this thread, it didn't look like there was resolution.
+If things are resolved, this shouldn't go upstream via PM branch, since
+it doesn't seem to have any dependencies on the PM branch.
 
-> +		}
-> +
-> +		if (omap3_has_192mhz_clk()) {
-> +			omap_96m_alwon_fck.parent = &omap_192m_alwon_ck;
-> +			omap_96m_alwon_fck.init = &omap2_init_clksel_parent;
-> +			omap_96m_alwon_fck.clksel_reg =
-> +					OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
-> +			omap_96m_alwon_fck.clksel_mask =
-> +						OMAP3630_CLKSEL_96M_MASK;
-> +			omap_96m_alwon_fck.clksel = omap_96m_alwon_fck_clksel;
-> +			omap_96m_alwon_fck.recalc = &omap2_clksel_recalc;
-> +		}
-> +
->  	}
->  
->  	clk_init(&omap2_clk_functions);
-> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-> index 93c92e5..6fe89df 100644
-> --- a/arch/arm/mach-omap2/clock34xx.h
-> +++ b/arch/arm/mach-omap2/clock34xx.h
-> @@ -654,12 +654,31 @@ static struct clk dpll4_m2x2_ck = {
->  	.recalc		= &omap3_clkoutx2_recalc,
->  };
->  
-> +/* Adding 192MHz Clock node needed by SGX */
-> +static struct clk omap_192m_alwon_ck = {
-> +	.name           = "omap_192m_alwon_ck",
-> +	.ops            = &clkops_null,
-> +	.parent         = &dpll4_m2x2_ck,
-> +	.recalc         = &followparent_recalc,
-> +};
-> +
->  /*
->   * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
->   * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
->   * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
->   * CM_96K_(F)CLK.
->   */
-> +static const struct clksel_rate omap_96m_alwon_fck_rates[] = {
-> +	{ .div = 1, .val = 1, .flags = RATE_IN_363X },
-> +	{ .div = 2, .val = 2, .flags = RATE_IN_363X | DEFAULT_RATE },
-> +	{ .div = 0 }
-> +};
-> +
-> +static const struct clksel omap_96m_alwon_fck_clksel[] = {
-> +	{ .parent = &omap_192m_alwon_ck, .rates = omap_96m_alwon_fck_rates },
-> +	{ .parent = NULL }
-> +};
-> +
->  static struct clk omap_96m_alwon_fck = {
->  	.name		= "omap_96m_alwon_fck",
->  	.ops		= &clkops_null,
-> @@ -1223,6 +1242,18 @@ static const struct clksel_rate sgx_core_rates[] = {
->  	{ .div = 3, .val = 0, .flags = RATE_IN_3XXX | DEFAULT_RATE },
->  	{ .div = 4, .val = 1, .flags = RATE_IN_3XXX },
->  	{ .div = 6, .val = 2, .flags = RATE_IN_3XXX },
-> +	{ .div = 2, .val = 5, .flags = RATE_IN_363X },
-dont we have more options here? thinking: does this mean that all 3XXX 
-and 36XX defines are valid ones for SGX?
+It should go upstream either via the I2C list, or via Tony.
 
-> +	{ .div = 0 },
-> +};
-> +
-> +static const struct clksel_rate sgx_192m_rates[] = {
-> +	{ .div = 1,  .val = 4, .flags = RATE_IN_363X | DEFAULT_RATE },
-> +	{ .div = 0 },
-> +};
-> +
-> +static const struct clksel_rate sgx_corex2_rates[] = {
-> +	{ .div = 3, .val = 6, .flags = RATE_IN_363X | DEFAULT_RATE },
-> +	{ .div = 5, .val = 7, .flags = RATE_IN_363X },
->  	{ .div = 0 },
->  };
->  
-> @@ -1234,6 +1265,8 @@ static const struct clksel_rate sgx_96m_rates[] = {
->  static const struct clksel sgx_clksel[] = {
->  	{ .parent = &core_ck,	 .rates = sgx_core_rates },
->  	{ .parent = &cm_96m_fck, .rates = sgx_96m_rates },
-> +	{ .parent = &omap_192m_alwon_ck, .rates = sgx_192m_rates },
-> +	{ .parent = &corex2_fck, .rates = sgx_corex2_rates },
->  	{ .parent = NULL },
->  };
->  
-> diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> index a6383f9..39b3399 100644
-> --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-> +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> @@ -336,6 +336,8 @@
->  #define OMAP3430_CLKSEL_L4_MASK				(0x3 << 2)
->  #define OMAP3430_CLKSEL_L3_SHIFT			0
->  #define OMAP3430_CLKSEL_L3_MASK				(0x3 << 0)
-> +#define OMAP3630_CLKSEL_96M_SHIFT                      12
-> +#define OMAP3630_CLKSEL_96M_MASK                       (0x3 << 12)
->  
->  /* CM_CLKSTCTRL_CORE */
->  #define OMAP3430ES1_CLKTRCTRL_D2D_SHIFT			4
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 3c1194c..b1bc79d 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -176,8 +176,10 @@ void __init omap3_check_features(void)
->  	OMAP3_CHECK_FEATURE(status, NEON);
->  	OMAP3_CHECK_FEATURE(status, ISP);
->  
-> -	if (cpu_is_omap3630())
-> -		omap3_features |= OMAP3_HAS_JTYPE_DPLL4;
-> +	if (cpu_is_omap3630()) {
-> +		omap3_features |= OMAP3_HAS_JTYPE_DPLL4 |
-> +							OMAP3_HAS_192MHZ_CLK;
-might be better to do this as a next entry -> you may want other chips 
-having 192Mhz to also use it..
+If it goes via i2c list, I can add it to PM branch while waiting for
+it to merge.
 
-Please Ref: http://patchwork.kernel.org/patch/61671/ to see how it is 
-done clean.
-
-> +	}
->  	/*
->  	 * TODO: Get additional info (where applicable)
->  	 *       e.g. Size of L2 cache.
-> @@ -319,6 +321,7 @@ void __init omap3_cpuinfo(void)
->  	OMAP3_SHOW_FEATURE(neon);
->  	OMAP3_SHOW_FEATURE(isp);
->  	OMAP3_SHOW_FEATURE(jtype_dpll4);
-> +	OMAP3_SHOW_FEATURE(192mhz_clk);
->  	printk(")\n");
->  }
->  
-> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-> index 65c08d5..1dffe25 100644
-> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -498,6 +498,7 @@ extern u32 omap3_features;
->  #define OMAP3_HAS_NEON			BIT(3)
->  #define OMAP3_HAS_ISP			BIT(4)
->  #define OMAP3_HAS_JTYPE_DPLL4		BIT(5)
-> +#define OMAP3_HAS_192MHZ_CLK		BIT(6)
->  
->  #define OMAP3_HAS_FEATURE(feat,flag)			\
->  static inline unsigned int omap3_has_ ##feat(void)	\
-> @@ -511,4 +512,6 @@ OMAP3_HAS_FEATURE(iva, IVA)
->  OMAP3_HAS_FEATURE(neon, NEON)
->  OMAP3_HAS_FEATURE(isp, ISP)
->  OMAP3_HAS_FEATURE(jtype_dpll4, JTYPE_DPLL4)
-> +OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-> +
-EOL
->  #endif
+Kevin
 
 
--- 
-Regards,
-Nishanth Menon
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org 
+>>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
+>>Kalle Jokiniemi
+>>Sent: 29. lokakuuta 2009 10:55
+>>To: Sonasath, Moiz
+>>Cc: khilman@deeprootsystems.com; linux-omap@vger.kernel.org
+>>Subject: RE: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency 
+>>constraint in i2c
+>>
+>>OK, let's try this once more, since my mail did not seem to go 
+>>to linux-omap.
+>>
+>>Sorry for the spam.
+>>
+>>See my comments below:
+>>
+>>On Fri, 2009-10-23 at 18:53 +0300, Sonasath, Moiz wrote:
+>>> Hello Jokiniemi!
+>>> 
+>>> > -----Original Message-----
+>>> > From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com]
+>>> > Sent: Wednesday, October 21, 2009 6:51 AM
+>>> > To: khilman@deeprootsystems.com
+>>> > Cc: linux-omap@vger.kernel.org; Kalle Jokiniemi; Sonasath, Moiz;
+>>> Jarkko
+>>> > Nikula; Paul Walmsley; Menon, Nishanth
+>>> > Subject: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency
+>>> constraint in
+>>> > i2c
+>>> > 
+>>> > While waiting for completion of the i2c transfer, the MPU 
+>>could hit 
+>>> > OFF mode and cause several msecs of delay that made i2c transfers 
+>>> > fail more often. The extra delays and subsequent re-trys cause i2c 
+>>> > clocks to be active more often. This has also an negative 
+>>effect on 
+>>> > power consumption.
+>>> > 
+>>> > Created a mechanism for passing and using the constraint setting 
+>>> > function in driver code. The used mpu wake up latency constraints 
+>>> > are now set individually per bus, and they are calculated based on 
+>>> > clock rate and fifo size.
+>>> > 
+>>> > Thanks to Jarkko Nikula, Moiz Sonasath, Paul Walmsley, and 
+>>Nishanth 
+>>> > Menon for tuning out the details of this patch.
+>>> > 
+>>> > Cc: Moiz Sonasath <m-sonasath@ti.com>
+>>> > Cc: Jarkko Nikula <jhnikula@gmail.com>
+>>> > Cc: Paul Walmsley <paul@pwsan.com>
+>>> > Cc: Nishanth Menon <nm@ti.com>
+>>> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+>>> > ---
+>>> > 
+>>> 
+>>> 
+>>> >  	dev->speed = speed;
+>>> >  	dev->idle = 1;
+>>> > @@ -911,6 +923,11 @@ omap_i2c_probe(struct platform_device *pdev)
+>>> >  		 */
+>>> >  		dev->fifo_size = (dev->fifo_size / 2);
+>>> >  		dev->b_hw = 1; /* Enable hardware fixes */
+>>> > +
+>>> > +		/* calculate wakeup latency constraint for MPU */
+>>> > +		if (dev->set_mpu_wkup_lat != NULL)
+>>> > +			dev->latency = (1000000 * dev->fifo_size) /
+>>> > +				       (1000 * speed / 8);
+>>> >  	}
+>>> 
+>>> IMHO, here instead of using 'dev->fifo_size' for calculating the 
+>>> 'dev->latency', we need to use:
+>>> 
+>>> 1. For RX case, to avoid Reciver overrun:
+>>> 	if (msg->flags & I2C_M_RD)
+>>> 		Use [(FIFO Depth)bytes - (FIFO THRSH)bytes] in 
+>>calculating 
+>>> 		dev->latency
+>>> 
+>>> Because conceptually, RDR/RRDY interrupts are generated when 
+>>RTRSH is 
+>>> reached, so we want the MPU to be wake up within the time it 
+>>takes to 
+>>> fill the FIFO from RTRSH to FIFO Depth (FIFO full).
+>>> 
+>>> 2. For TX case, to avoid Transmitter Underflow:
+>>> 	if (!(msg->flags & I2C_M_RD))
+>>> 		Use (FIFO THRSH)bytes in calculating dev->latency
+>>> 
+>>> Because conceptually, XDR/XRDY interrupts are generated when 
+>>XTRSH is 
+>>> reached, so we want the MPU to be wake up within the time it 
+>>takes to 
+>>> drain the FIFO from XTRSH to Zero (FIFO empty).
+>>> 
+>>> Using, dev->fifo_size instead, works in the present code because we 
+>>> have a RTRSH/XTRSH = dev->fifo_size/2 = 4 bytes And therefore, (FIFO 
+>>> Depth)bytes - (FIFO THRSH)bytes = 8 - 4 = 4 bytes
+>>> 
+>>> But, to make it more generic in future and to make it independent of 
+>>> any changes in the RTRSH/XTRSH values or FIFO depths in future, we 
+>>> should use a generic code here.
+>>
+>>Well, I don't completely agree with the necessity of preparing 
+>>for different rx/tx thresholds. For this to make sense, the 
+>>i2c-omap driver should first separate in it's code the use of 
+>>rx and tx thresholds. If someone is planning to do that, 
+>>he/she should anyway update the usage of fifo_size throughout 
+>>the code, including the wake up latency setting.
+>>
+>>Anyways, attached a patch that separates the mpu wake up 
+>>latencies for rx and tx. In case that is needed. Though I'm 
+>>not for it, since it adds unneeded complexity.
+>>
+>>- Kalle
+>>
+>>> 
+>>> > 
+>>> >  	/* reset ASAP, clearing any IRQs */ diff --git 
+>>> > a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h new 
+>>file mode 
+>>> > 100644 index 0000000..1362fba
+>>> > --- /dev/null
+>>> > +++ b/include/linux/i2c-omap.h
+>>> > @@ -0,0 +1,9 @@
+>>> > +#ifndef __I2C_OMAP_H__
+>>> > +#define __I2C_OMAP_H__
+>>> > +
+>>> > +struct omap_i2c_bus_platform_data {
+>>> > +	u32		clkrate;
+>>> > +	void		(*set_mpu_wkup_lat)(struct device *dev, 
+>>int set);
+>>> > +};
+>>> > +
+>>> > +#endif
+>>> > --
+>>> > 1.5.4.3
+>>> 
+>>> Regards
+>>> Moiz Sonasath
+>>> 
+>>
