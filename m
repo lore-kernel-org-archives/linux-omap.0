@@ -1,105 +1,87 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: FEATURES - is it good enough (was Re: [PATCH v3 1/2] omap:
- introduce uart_no_empty_fifo_read feature)
-Date: Fri, 20 Nov 2009 22:36:54 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BBC43A27@dbde02.ent.ti.com>
-References: <1258732956-18799-1-git-send-email-vikram.pandita@ti.com>
- <1258732956-18799-2-git-send-email-vikram.pandita@ti.com>
- <4B06BF4D.2090201@ti.com>
- <A24693684029E5489D1D202277BE89444DA61E77@dlee02.ent.ti.com>
- <4B06C0F0.7070007@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: VDD1 voltage after resume from idle
+Date: Fri, 20 Nov 2009 23:45:55 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE60C@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
+ <20091120162933.GC2354@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42697 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50038 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753376AbZKTRGy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 12:06:54 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKH6vf0015833
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 11:07:00 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKH6v2X010473
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 22:36:57 +0530 (IST)
-In-Reply-To: <4B06C0F0.7070007@ti.com>
+	id S1753919AbZKTSQL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 13:16:11 -0500
+In-Reply-To: <20091120162933.GC2354@mvista.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-Started reading threads today....
+To: Maxime Petazzoni <mpetazzoni@mvista.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Menon, Nishanth
-> Sent: Friday, November 20, 2009 9:47 PM
-> To: Aguirre, Sergio
-> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> Subject: FEATURES - is it good enough (was Re: [PATCH v3 1/2] omap:
-> introduce uart_no_empty_fifo_read feature)
+> From: Maxime Petazzoni [mailto:mpetazzoni@mvista.com] 
+> Sent: Friday, November 20, 2009 10:00 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: VDD1 voltage after resume from idle
 > 
-> Aguirre, Sergio had written, on 11/20/2009 10:14 AM, the following:
-> >
-> >
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org
-> >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Nishanth
-> Menon
-> >> Sent: Friday, November 20, 2009 10:10 AM
-> >> To: Pandita, Vikram
-> >> Cc: linux-omap@vger.kernel.org
-> >> Subject: Re: [PATCH v3 1/2] omap: introduce
-> >> uart_no_empty_fifo_read feature
-> >>
-> >> Vikram Pandita had written, on 11/20/2009 10:02 AM, the
-> following:
-> >>> Interoduce omap feature OMAP3_HAS_UART_NO_EMPTY_FIFO_READ
-> >>     ^^^^^^^^^ <- you meant introduce
-> >>> On omap3630/omap4 an empty fifo read causes a crash
-> >>>
-> >>> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> >>> Ack-by: Menon, Nishanth <nm@ti.com>
-> >>     ^^^^^ <- :P nope you dont have my Acked-by until you
-> >> change this to
-> >> Acked from Ack ;)..
-> >>
-> >> Thanks for the simpler patch.
-> >>
-> >>> ---
-> >>>  arch/arm/mach-omap2/id.c              |    7 +++++++
-> >>>  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
-> >>>  2 files changed, 9 insertions(+), 0 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> >>> index f48a4b2..3e266cd 100644
-> >>> --- a/arch/arm/mach-omap2/id.c
-> >>> +++ b/arch/arm/mach-omap2/id.c
-> >>> @@ -176,6 +176,12 @@ void __init omap3_check_features(void)
-> >>>  	OMAP3_CHECK_FEATURE(status, NEON);
-> >>>  	OMAP3_CHECK_FEATURE(status, ISP);
-> >>>
-> >>> +	/* On omap3630 and omap4: UART empty rx fifo read aborts */
-> >>> +	if (cpu_is_omap3630())
-> >>> +		omap3_features |= OMAP3_HAS_UART_NO_EMPTY_FIFO_READ;
-> >>> +	if (cpu_is_omap44xx())
-> >>> +		omap3_features |= OMAP3_HAS_UART_NO_EMPTY_FIFO_READ;
-> >>> +
-> >
-> > Probably not something ot be attached in this patch, but...
-> >
-> > I'm a bit curious about something:
-> >
-> > Why touching omap3_features in OMAP4?
-> >
-> > Isn't there a omap4_features?
-> >
-> > Or even better, an omap_features?
+> Hi,
+> 
+> * Premi, Sanjeev <premi@ti.com> [2009-11-20 21:17:04]:
+> 
+> > I am facing a strange problem on OMAP3EVM after resuming from idle.
+> > When using OPP5, the VDD1 voltage ramps to 1.35V.
+> >  
+> > However, when i go thru the idle/wakeup cycle, the voltage never
+> > ramps back to 1.35V but stays at 1.20V.
+> 
+> I'm seeing some interesting behavior with the OPP values 
+> here, too, with
+> suspend/resume. I'm using SRF based PM and CPUFREQ. Here's 
+> what happens:
+> 
+> When changing the CPU frequency through the scaling_setfreq knob of
+> CPUFREQ, the vdd{1,2}_opp values are updated accordingly. After a
+> suspend/resume cycles, the OPPs return to their pre-suspend 
+> values, all
+> is fine.
+> 
+> But when changing the OPP values by hand through the 
+> vdd{1,2}_opp knobs,
+> the CPU frequency is changed accordingly, which is expected. 
+> But after a
+> suspend/resume cycle, the OPP values return to the value CPUFREQ set
+> them to (which may be different than the default OPP values of 3).
+> 
+> Is this the normal behavior? Is cpufreq authoritative on the 
+> OPP values
+> on resume? Or should it follow whatever value was manually set before
+> suspending?
 
-This "is_feature" suppose to take care of Errata's also, is it?
-This is errata more than a feature..... We better differentiate in this regard
+I guess the root cause could be same. I have not been able to ascertain
+the reason for the voltage changing during the idle/wakeup sequence.
+Also tried to eliminate the enable_smartreflex() calls on wakeup path.
+Sill I see voltage ramp-up.
 
-Regards,
-Santosh
+I am trying to find the cause of voltage ramping to 1.2V in hope that
+the reason for ramp down will be just inverted reflection.
+
+With smartreflex disabled, there is no change in the voltage during
+suspend; so the problem area seems to be smartreflex.
+
+Best regards,
+Sanjeev
+
+> 
+> Thanks,
+> - Maxime
+> 
+> PS: if I was not clear, I can provide a console log that may be more
+> explicit--just ask.
+> 
+> -- 
+> Maxime Petazzoni
+> Linux kernel & software dev
+> MontaVista Software, Inc
+> 
