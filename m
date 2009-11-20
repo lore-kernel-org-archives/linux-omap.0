@@ -1,83 +1,170 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCHv3 0/3] OMAP UART: Adding support for omap-serial driver.
-Date: Fri, 20 Nov 2009 15:21:26 +0530
-Message-ID: <d6a0f7aa0911200151xb948a28kf4f22d79e61b993e@mail.gmail.com>
-References: <35552.192.168.10.88.1256713953.squirrel@dbdmail.itg.ti.com>
-	 <44977.192.168.10.88.1258095220.squirrel@dbdmail.itg.ti.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCH 4/4] OMAP3: add support for 192Mhz sgx clock
+Date: Fri, 20 Nov 2009 15:43:40 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA751923@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702FA7510C6@dbde02.ent.ti.com>
+ <4B0425A7.4080205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:26939 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751547AbZKTJvU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 04:51:20 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so706646qwe.37
-        for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 01:51:26 -0800 (PST)
-In-Reply-To: <44977.192.168.10.88.1258095220.squirrel@dbdmail.itg.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41080 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751502AbZKTKNj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 05:13:39 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKADhxC012458
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 04:13:45 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKADgPv010059
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 15:43:42 +0530 (IST)
+In-Reply-To: <4B0425A7.4080205@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, "Pandita, Vikram" <vikram.pandita@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
-
-I have not seen any comments on this patch series yet.
-
-Tony,
-Is there something I need to modify?
-
-Or it can be unstreamed now?
-
----
-Regards,
-Govindraj.R
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
 
-On Fri, Nov 13, 2009 at 12:23 PM, Govindraj.R <govindraj.raja@ti.com> w=
-rote:
->
-> From 8dae69c5e17421123b88414021289974e968fd02 Mon Sep 17 00:00:00 200=
-1
-> From: Govindraj R <govindraj.raja@ti.com>
-> Date: Fri, 13 Nov 2009 12:09:38 +0530
-> Subject: [PATCH] OMAP UART: Adding support for omap-serial driver.
->
-> The Following series of patch adds support for OMAP3430-HIGH SPEED UA=
-RT Controller.
->
-> Govindraj R (3):
-> =A0OMAP UART: Add omap-serial driver support.
-> =A0OMAP UART: Add platform data for omap-serial driver.
-> =A0OMAP UART: Add omap-serial driver support in omap_3430sdp_defconfi=
-g
->
-> =A0arch/arm/configs/omap_3430sdp_defconfig =A0 =A0 =A0 | =A0 =A01 +
-> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
-=A0335 +++++--
-> =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0115 +++
-> =A0drivers/serial/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 23 +
-> =A0drivers/serial/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- | =A0 =A01 +
-> =A0drivers/serial/omap-serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
-1330 +++++++++++++++++++++++++
-> =A0include/linux/serial_core.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =
-=A0 =A03 +
-> =A07 files changed, 1714 insertions(+), 94 deletions(-)
-> =A0create mode 100644 arch/arm/plat-omap/include/plat/omap-serial.h
-> =A0create mode 100644 drivers/serial/omap-serial.c
->
->
+
+> -----Original Message-----
+> From: Menon, Nishanth
+> Sent: Wednesday, November 18, 2009 10:20 PM
+> To: Sripathy, Vishwanath
+> Cc: linux-omap
+> Subject: Re: [PATCH 4/4] OMAP3: add support for 192Mhz sgx clock
+> 
+> Sripathy, Vishwanath had written, on 11/18/2009 08:16 AM, the following:
+> > SGX can run at 192MHz on 3630 and this patch has changes to support this feature.
+> >
+> > Signed-off-by: Vishwanath BS <Vishwanath.bs@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/clock34xx.c       |   10 ++++++++++
+> >  arch/arm/mach-omap2/clock34xx.h       |   33
+> +++++++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
+> >  3 files changed, 45 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-
+> omap2/clock34xx.c
+> > index 77b88aa..885043e 100755
+> > --- a/arch/arm/mach-omap2/clock34xx.c
+> > +++ b/arch/arm/mach-omap2/clock34xx.c
+> > @@ -128,6 +128,7 @@ static struct omap_clk omap34xx_clks[] = {
+> >  	CLK(NULL,	"emu_core_alwon_ck", &emu_core_alwon_ck, CK_3XXX),
+> >  	CLK(NULL,	"dpll4_ck",	&dpll4_ck,	CK_3XXX),
+> >  	CLK(NULL,	"dpll4_x2_ck",	&dpll4_x2_ck,	CK_3XXX),
+> > +       CLK(NULL,       "omap_192m_alwon_ck", &omap_192m_alwon_ck,
+> CK_363X),
+> >  	CLK(NULL,	"omap_96m_alwon_fck", &omap_96m_alwon_fck, CK_3XXX),
+> >  	CLK(NULL,	"omap_96m_fck",	&omap_96m_fck,	CK_3XXX),
+> >  	CLK(NULL,	"cm_96m_fck",	&cm_96m_fck,	CK_3XXX),
+> > @@ -1224,6 +1225,15 @@ int __init omap2_clk_init(void)
+> >  			dpll4_ck.dpll_data->sd_div_mask =
+> OMAP3630_PERIPH_DPLL_SD_DIV_MASK;
+> >  			dpll4_dd.mult_mask = OMAP3630_PERIPH_DPLL_MULT_MASK;
+> >  			cpu_mask |= RATE_IN_363X;
+> > +			cpu_clkflg |= CK_363X;
+> > +			omap_96m_alwon_fck.parent = &omap_192m_alwon_ck;
+> > +			omap_96m_alwon_fck.init = &omap2_init_clksel_parent;
+> > +			omap_96m_alwon_fck.clksel_reg =
+> > +					OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+> > +			omap_96m_alwon_fck.clksel_mask =
+> > +						OMAP3630_CLKSEL_96M_MASK;
+> > +			omap_96m_alwon_fck.clksel = omap_96m_alwon_fck_clksel;
+> > +			omap_96m_alwon_fck.recalc = &omap2_clksel_recalc;
+> 
+> We should not ideally be linking this to j type DPLL perhaps? are'nt
+> these 36xx series specific? do we need FEATURE_HAS_192Mhz_CLK? that way
+> the future AM series/37xx series could also use this.
+
+I will add FEATURE_HAS_192Mhz_CLK and put the code under this feature.
+> 
+> >  			}
+> >  	}
+> >
+> > diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-
+> omap2/clock34xx.h
+> > index 93c92e5..6fe89df 100755
+> > --- a/arch/arm/mach-omap2/clock34xx.h
+> > +++ b/arch/arm/mach-omap2/clock34xx.h
+> > @@ -654,12 +654,31 @@ static struct clk dpll4_m2x2_ck = {
+> >  	.recalc		= &omap3_clkoutx2_recalc,
+> >  };
+> >
+> > +/* Adding 192MHz Clock node needed by SGX */
+> > +static struct clk omap_192m_alwon_ck = {
+> > +	.name           = "omap_192m_alwon_ck",
+> > +	.ops            = &clkops_null,
+> > +	.parent         = &dpll4_m2x2_ck,
+> > +	.recalc         = &followparent_recalc,
+> > +};
+> > +
+> >  /*
+> >   * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
+> >   * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
+> >   * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
+> >   * CM_96K_(F)CLK.
+> >   */
+> > +static const struct clksel_rate omap_96m_alwon_fck_rates[] = {
+> > +	{ .div = 1, .val = 1, .flags = RATE_IN_363X },
+> > +	{ .div = 2, .val = 2, .flags = RATE_IN_363X | DEFAULT_RATE },
+> > +	{ .div = 0 }
+> > +};
+> > +
+> > +static const struct clksel omap_96m_alwon_fck_clksel[] = {
+> > +	{ .parent = &omap_192m_alwon_ck, .rates = omap_96m_alwon_fck_rates },
+> > +	{ .parent = NULL }
+> > +};
+> > +
+> >  static struct clk omap_96m_alwon_fck = {
+> >  	.name		= "omap_96m_alwon_fck",
+> >  	.ops		= &clkops_null,
+> > @@ -1223,6 +1242,18 @@ static const struct clksel_rate sgx_core_rates[] = {
+> >  	{ .div = 3, .val = 0, .flags = RATE_IN_3XXX | DEFAULT_RATE },
+> >  	{ .div = 4, .val = 1, .flags = RATE_IN_3XXX },
+> >  	{ .div = 6, .val = 2, .flags = RATE_IN_3XXX },
+> > +	{ .div = 2, .val = 5, .flags = RATE_IN_363X },
+> > +	{ .div = 0 },
+> > +};
+> > +
+> > +static const struct clksel_rate sgx_192m_rates[] = {
+> > +	{ .div = 1,  .val = 4, .flags = RATE_IN_363X | DEFAULT_RATE },
+> > +	{ .div = 0 },
+> > +};
+> > +
+> > +static const struct clksel_rate sgx_corex2_rates[] = {
+> > +	{ .div = 3, .val = 6, .flags = RATE_IN_363X | DEFAULT_RATE },
+> > +	{ .div = 5, .val = 7, .flags = RATE_IN_363X },
+> >  	{ .div = 0 },
+> >  };
+> >
+> > @@ -1234,6 +1265,8 @@ static const struct clksel_rate sgx_96m_rates[] = {
+> >  static const struct clksel sgx_clksel[] = {
+> >  	{ .parent = &core_ck,	 .rates = sgx_core_rates },
+> >  	{ .parent = &cm_96m_fck, .rates = sgx_96m_rates },
+> > +	{ .parent = &omap_192m_alwon_ck, .rates = sgx_192m_rates },
+> > +	{ .parent = &corex2_fck, .rates = sgx_corex2_rates },
+> >  	{ .parent = NULL },
+> >  };
+> >
+> > diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-
+> regbits-34xx.h
+> > index a6383f9..39b3399 100755
+> > --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
+> > +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> > @@ -336,6 +336,8 @@
+> >  #define OMAP3430_CLKSEL_L4_MASK				(0x3 << 2)
+> >  #define OMAP3430_CLKSEL_L3_SHIFT			0
+> >  #define OMAP3430_CLKSEL_L3_MASK				(0x3 << 0)
+> > +#define OMAP3630_CLKSEL_96M_SHIFT                      12
+> > +#define OMAP3630_CLKSEL_96M_MASK                       (0x3 << 12)
+> >
+> >  /* CM_CLKSTCTRL_CORE */
+> >  #define OMAP3430ES1_CLKTRCTRL_D2D_SHIFT			4
+> 
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
-
-
-
---
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> Nishanth Menon
