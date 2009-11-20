@@ -1,142 +1,223 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: FEATURES - is it good enough (was Re: [PATCH v3 1/2] omap: introduce
- uart_no_empty_fifo_read feature)
-Date: Fri, 20 Nov 2009 10:16:48 -0600
-Message-ID: <4B06C0F0.7070007@ti.com>
-References: <1258732956-18799-1-git-send-email-vikram.pandita@ti.com> <1258732956-18799-2-git-send-email-vikram.pandita@ti.com> <4B06BF4D.2090201@ti.com> <A24693684029E5489D1D202277BE89444DA61E77@dlee02.ent.ti.com>
+Subject: Re: [PATCHV2 4/4] OMAP3: add support for 192Mhz sgx clock
+Date: Fri, 20 Nov 2009 10:19:14 -0600
+Message-ID: <4B06C182.4090009@ti.com>
+References: <1258730937-1962-1-git-send-email-vishwanath.bs@ti.com> <1258730937-1962-2-git-send-email-vishwanath.bs@ti.com> <1258730937-1962-3-git-send-email-vishwanath.bs@ti.com> <1258730937-1962-4-git-send-email-vishwanath.bs@ti.com> <1258730937-1962-5-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39561 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753149AbZKTQQm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Nov 2009 11:16:42 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKGGnQ6009735
+Received: from devils.ext.ti.com ([198.47.26.153]:56705 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752344AbZKTQTJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 11:19:09 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKGJF10025924
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:16:49 -0600
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:19:15 -0600
 Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id nAKGGmbm029257
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:16:48 -0600 (CST)
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id nAKGJF1q005477
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:19:15 -0600 (CST)
 Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKGGmxq014153
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:16:48 -0600 (CST)
-In-Reply-To: <A24693684029E5489D1D202277BE89444DA61E77@dlee02.ent.ti.com>
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKGJFZj015168
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:19:15 -0600 (CST)
+In-Reply-To: <1258730937-1962-5-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Aguirre, Sergio had written, on 11/20/2009 10:14 AM, the following:
+unrelated to this patch comment: we might want to consider thinking in 
+terms of optimizing the memory as OMAP4 also kicks in.. some sort of 
+dynamic clock tree traversal and __initdata method perhaps??
+
+Hi Vishwa,
+Thanks for the patch, few minor comments follow:
+
+Sripathy, Vishwanath had written, on 11/20/2009 09:28 AM, the following:
+> SGX can run at 192MHz on 3630 and this patch has changes to support this
+> feature. Basically DPLL4 M2 will be 192Mhz which will be used as SGX
+> Clock. 192Mhz clock is divided by 2 (using CM_CLKSEL_CORE) to generate
+> 96Mh clock
+   ^^^^ <- you probably intended 96Mhz
+> 
+> Signed-off-by: Vishwanath BS <Vishwanath.bs@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock34xx.c       |   16 +++++++++++++++-
+>  arch/arm/mach-omap2/clock34xx.h       |   33 +++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
+>  arch/arm/mach-omap2/id.c              |    7 +++++--
+>  arch/arm/plat-omap/include/plat/cpu.h |    3 +++
+>  5 files changed, 58 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index 1e35f9a..bce7e46 100755
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -128,6 +128,7 @@ static struct omap_clk omap34xx_clks[] = {
+>  	CLK(NULL,	"emu_core_alwon_ck", &emu_core_alwon_ck, CK_3XXX),
+>  	CLK(NULL,	"dpll4_ck",	&dpll4_ck,	CK_3XXX),
+>  	CLK(NULL,	"dpll4_x2_ck",	&dpll4_x2_ck,	CK_3XXX),
+> +       CLK(NULL,       "omap_192m_alwon_ck", &omap_192m_alwon_ck, CK_363X),
+>  	CLK(NULL,	"omap_96m_alwon_fck", &omap_96m_alwon_fck, CK_3XXX),
+>  	CLK(NULL,	"omap_96m_fck",	&omap_96m_fck,	CK_3XXX),
+>  	CLK(NULL,	"cm_96m_fck",	&cm_96m_fck,	CK_3XXX),
+> @@ -1226,7 +1227,20 @@ int __init omap2_clk_init(void)
+>  				OMAP3630_PERIPH_DPLL_SD_DIV_MASK;
+>  			dpll4_dd.mult_mask = OMAP3630_PERIPH_DPLL_MULT_MASK;
+>  			cpu_mask |= RATE_IN_363X;
+> -			}
+> +			cpu_clkflg |= CK_363X;
+
+I think introduce CK_36XX should be done seperately.
+
+> +		}
+> +
+> +		if (omap3_has_192mhz_clk()) {
+> +			omap_96m_alwon_fck.parent = &omap_192m_alwon_ck;
+> +			omap_96m_alwon_fck.init = &omap2_init_clksel_parent;
+> +			omap_96m_alwon_fck.clksel_reg =
+> +					OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+> +			omap_96m_alwon_fck.clksel_mask =
+> +						OMAP3630_CLKSEL_96M_MASK;
+> +			omap_96m_alwon_fck.clksel = omap_96m_alwon_fck_clksel;
+> +			omap_96m_alwon_fck.recalc = &omap2_clksel_recalc;
+> +		}
+> +
+>  	}
 >  
-> 
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org 
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Nishanth Menon
->> Sent: Friday, November 20, 2009 10:10 AM
->> To: Pandita, Vikram
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: [PATCH v3 1/2] omap: introduce 
->> uart_no_empty_fifo_read feature
->>
->> Vikram Pandita had written, on 11/20/2009 10:02 AM, the following:
->>> Interoduce omap feature OMAP3_HAS_UART_NO_EMPTY_FIFO_READ
->>     ^^^^^^^^^ <- you meant introduce
->>> On omap3630/omap4 an empty fifo read causes a crash
->>>
->>> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->>> Ack-by: Menon, Nishanth <nm@ti.com>
->>     ^^^^^ <- :P nope you dont have my Acked-by until you 
->> change this to 
->> Acked from Ack ;)..
->>
->> Thanks for the simpler patch.
->>
->>> ---
->>>  arch/arm/mach-omap2/id.c              |    7 +++++++
->>>  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
->>>  2 files changed, 9 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
->>> index f48a4b2..3e266cd 100644
->>> --- a/arch/arm/mach-omap2/id.c
->>> +++ b/arch/arm/mach-omap2/id.c
->>> @@ -176,6 +176,12 @@ void __init omap3_check_features(void)
->>>  	OMAP3_CHECK_FEATURE(status, NEON);
->>>  	OMAP3_CHECK_FEATURE(status, ISP);
->>>  
->>> +	/* On omap3630 and omap4: UART empty rx fifo read aborts */
->>> +	if (cpu_is_omap3630())
->>> +		omap3_features |= OMAP3_HAS_UART_NO_EMPTY_FIFO_READ;
->>> +	if (cpu_is_omap44xx())
->>> +		omap3_features |= OMAP3_HAS_UART_NO_EMPTY_FIFO_READ;
->>> +
-> 
-> Probably not something ot be attached in this patch, but...
-> 
-> I'm a bit curious about something:
-> 
-> Why touching omap3_features in OMAP4?
-> 
-> Isn't there a omap4_features?
-> 
-> Or even better, an omap_features?
+>  	clk_init(&omap2_clk_functions);
+> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+> index 93c92e5..6fe89df 100644
+> --- a/arch/arm/mach-omap2/clock34xx.h
+> +++ b/arch/arm/mach-omap2/clock34xx.h
+> @@ -654,12 +654,31 @@ static struct clk dpll4_m2x2_ck = {
+>  	.recalc		= &omap3_clkoutx2_recalc,
+>  };
+>  
+> +/* Adding 192MHz Clock node needed by SGX */
+> +static struct clk omap_192m_alwon_ck = {
+> +	.name           = "omap_192m_alwon_ck",
+> +	.ops            = &clkops_null,
+> +	.parent         = &dpll4_m2x2_ck,
+> +	.recalc         = &followparent_recalc,
+> +};
+> +
+>  /*
+>   * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
+>   * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
+>   * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
+>   * CM_96K_(F)CLK.
+>   */
+> +static const struct clksel_rate omap_96m_alwon_fck_rates[] = {
+> +	{ .div = 1, .val = 1, .flags = RATE_IN_363X },
+> +	{ .div = 2, .val = 2, .flags = RATE_IN_363X | DEFAULT_RATE },
+> +	{ .div = 0 }
+> +};
+> +
+> +static const struct clksel omap_96m_alwon_fck_clksel[] = {
+> +	{ .parent = &omap_192m_alwon_ck, .rates = omap_96m_alwon_fck_rates },
+> +	{ .parent = NULL }
+> +};
+> +
+>  static struct clk omap_96m_alwon_fck = {
+>  	.name		= "omap_96m_alwon_fck",
+>  	.ops		= &clkops_null,
+> @@ -1223,6 +1242,18 @@ static const struct clksel_rate sgx_core_rates[] = {
+>  	{ .div = 3, .val = 0, .flags = RATE_IN_3XXX | DEFAULT_RATE },
+>  	{ .div = 4, .val = 1, .flags = RATE_IN_3XXX },
+>  	{ .div = 6, .val = 2, .flags = RATE_IN_3XXX },
+> +	{ .div = 2, .val = 5, .flags = RATE_IN_363X },
+dont we have more options here? thinking: does this mean that all 3XXX 
+and 36XX defines are valid ones for SGX?
 
-yep, that is a limitation in today's FEATUREs design which we have to 
-fix. I see issues such as:
-a) ability to scale across silicons (OMAP1 - 4)
-b) differentiate between silicon feature vs erratas
-c) limit to 32 bits.. meaning, we may want to think something else at a 
-later point..
+> +	{ .div = 0 },
+> +};
+> +
+> +static const struct clksel_rate sgx_192m_rates[] = {
+> +	{ .div = 1,  .val = 4, .flags = RATE_IN_363X | DEFAULT_RATE },
+> +	{ .div = 0 },
+> +};
+> +
+> +static const struct clksel_rate sgx_corex2_rates[] = {
+> +	{ .div = 3, .val = 6, .flags = RATE_IN_363X | DEFAULT_RATE },
+> +	{ .div = 5, .val = 7, .flags = RATE_IN_363X },
+>  	{ .div = 0 },
+>  };
+>  
+> @@ -1234,6 +1265,8 @@ static const struct clksel_rate sgx_96m_rates[] = {
+>  static const struct clksel sgx_clksel[] = {
+>  	{ .parent = &core_ck,	 .rates = sgx_core_rates },
+>  	{ .parent = &cm_96m_fck, .rates = sgx_96m_rates },
+> +	{ .parent = &omap_192m_alwon_ck, .rates = sgx_192m_rates },
+> +	{ .parent = &corex2_fck, .rates = sgx_corex2_rates },
+>  	{ .parent = NULL },
+>  };
+>  
+> diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> index a6383f9..39b3399 100644
+> --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
+> +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> @@ -336,6 +336,8 @@
+>  #define OMAP3430_CLKSEL_L4_MASK				(0x3 << 2)
+>  #define OMAP3430_CLKSEL_L3_SHIFT			0
+>  #define OMAP3430_CLKSEL_L3_MASK				(0x3 << 0)
+> +#define OMAP3630_CLKSEL_96M_SHIFT                      12
+> +#define OMAP3630_CLKSEL_96M_MASK                       (0x3 << 12)
+>  
+>  /* CM_CLKSTCTRL_CORE */
+>  #define OMAP3430ES1_CLKTRCTRL_D2D_SHIFT			4
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 3c1194c..b1bc79d 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -176,8 +176,10 @@ void __init omap3_check_features(void)
+>  	OMAP3_CHECK_FEATURE(status, NEON);
+>  	OMAP3_CHECK_FEATURE(status, ISP);
+>  
+> -	if (cpu_is_omap3630())
+> -		omap3_features |= OMAP3_HAS_JTYPE_DPLL4;
+> +	if (cpu_is_omap3630()) {
+> +		omap3_features |= OMAP3_HAS_JTYPE_DPLL4 |
+> +							OMAP3_HAS_192MHZ_CLK;
+might be better to do this as a next entry -> you may want other chips 
+having 192Mhz to also use it..
 
-FEATUREs is the first step in this.. we have more to go for a uniform system
+Please Ref: http://patchwork.kernel.org/patch/61671/ to see how it is 
+done clean.
 
-> 
-> Regards,
-> Sergio
-> 
->>>  	/*
->>>  	 * TODO: Get additional info (where applicable)
->>>  	 *       e.g. Size of L2 cache.
->>> @@ -316,6 +322,7 @@ void __init omap3_cpuinfo(void)
->>>  	OMAP3_SHOW_FEATURE(sgx);
->>>  	OMAP3_SHOW_FEATURE(neon);
->>>  	OMAP3_SHOW_FEATURE(isp);
->>> +	OMAP3_SHOW_FEATURE(uart_no_empty_fifo_read);
->>>  
->>>  	printk(")\n");
->>>  }
->>> diff --git a/arch/arm/plat-omap/include/plat/cpu.h 
->> b/arch/arm/plat-omap/include/plat/cpu.h
->>> index 2e17890..c32f015 100644
->>> --- a/arch/arm/plat-omap/include/plat/cpu.h
->>> +++ b/arch/arm/plat-omap/include/plat/cpu.h
->>> @@ -497,6 +497,7 @@ extern u32 omap3_features;
->>>  #define OMAP3_HAS_SGX			BIT(2)
->>>  #define OMAP3_HAS_NEON			BIT(3)
->>>  #define OMAP3_HAS_ISP			BIT(4)
->>> +#define OMAP3_HAS_UART_NO_EMPTY_FIFO_READ	BIT(5)
->>>  
->>>  #define OMAP3_HAS_FEATURE(feat,flag)			\
->>>  static inline unsigned int omap3_has_ ##feat(void)	\
->>> @@ -509,5 +510,6 @@ OMAP3_HAS_FEATURE(sgx, SGX)
->>>  OMAP3_HAS_FEATURE(iva, IVA)
->>>  OMAP3_HAS_FEATURE(neon, NEON)
->>>  OMAP3_HAS_FEATURE(isp, ISP)
->>> +OMAP3_HAS_FEATURE(uart_no_empty_fifo_read, UART_NO_EMPTY_FIFO_READ)
->>>  
->>>  #endif
->>
->> -- 
->> Regards,
->> Nishanth Menon
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+> +	}
+>  	/*
+>  	 * TODO: Get additional info (where applicable)
+>  	 *       e.g. Size of L2 cache.
+> @@ -319,6 +321,7 @@ void __init omap3_cpuinfo(void)
+>  	OMAP3_SHOW_FEATURE(neon);
+>  	OMAP3_SHOW_FEATURE(isp);
+>  	OMAP3_SHOW_FEATURE(jtype_dpll4);
+> +	OMAP3_SHOW_FEATURE(192mhz_clk);
+>  	printk(")\n");
+>  }
+>  
+> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+> index 65c08d5..1dffe25 100644
+> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> @@ -498,6 +498,7 @@ extern u32 omap3_features;
+>  #define OMAP3_HAS_NEON			BIT(3)
+>  #define OMAP3_HAS_ISP			BIT(4)
+>  #define OMAP3_HAS_JTYPE_DPLL4		BIT(5)
+> +#define OMAP3_HAS_192MHZ_CLK		BIT(6)
+>  
+>  #define OMAP3_HAS_FEATURE(feat,flag)			\
+>  static inline unsigned int omap3_has_ ##feat(void)	\
+> @@ -511,4 +512,6 @@ OMAP3_HAS_FEATURE(iva, IVA)
+>  OMAP3_HAS_FEATURE(neon, NEON)
+>  OMAP3_HAS_FEATURE(isp, ISP)
+>  OMAP3_HAS_FEATURE(jtype_dpll4, JTYPE_DPLL4)
+> +OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+> +
+EOL
+>  #endif
 
 
 -- 
