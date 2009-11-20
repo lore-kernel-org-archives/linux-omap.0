@@ -1,7 +1,7 @@
-From: "Premi, Sanjeev" <premi@ti.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
 Subject: RE: FEATURES - is it good enough
-Date: Sat, 21 Nov 2009 01:11:35 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE620@dbde02.ent.ti.com>
+Date: Fri, 20 Nov 2009 13:43:13 -0600
+Message-ID: <A24693684029E5489D1D202277BE89444DA62170@dlee02.ent.ti.com>
 References: <1258732956-18799-1-git-send-email-vikram.pandita@ti.com>
 	<1258732956-18799-2-git-send-email-vikram.pandita@ti.com>
 	<4B06BF4D.2090201@ti.com>
@@ -13,21 +13,22 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38947 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753123AbZKTTlh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 14:41:37 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:50157 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753399AbZKTTlq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 14:41:46 -0500
 In-Reply-To: <4B06ECDD.2030100@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Menon, Nishanth" <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+ 
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Menon, Nishanth
-> Sent: Saturday, November 21, 2009 12:54 AM
+> From: Menon, Nishanth 
+> Sent: Friday, November 20, 2009 1:24 PM
 > To: Kevin Hilman
 > Cc: Shilimkar, Santosh; Aguirre, Sergio; Pandita, Vikram; 
 > linux-omap@vger.kernel.org
@@ -68,34 +69,36 @@ Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Aguirre, Sergio" <saaguirr
 > omap4? can we go ahead with features marking it clearly as a 
 > "misuse of 
 > features for the time being"
+
+IMHO, That "for the time being" will stay forever if we don't do something now.
+
+Most of the big problems are raised because someone says "ok, lets have this for
+the time being". But that time never comes.
+
+See that crazy CaMeL-Casing hanging around in /drivers/dsp/bridge/ for a while as
+an example. When that will ever be fixed? I bet someone said some time:
+"ok, lets fix it later" :-)
+
+On the other hand. What's the big motivation to have this as a "feature"?
+
+Who else than the serial driver cares about the "feature" awareness?
+
 > b) a common silicon errata handling mechanism: Does anyone have 
 > proposals for this? I can see it help in numerous places in our code 
 > today and will help readability of the code instead of 
 > getting the risk 
 > of "feature not a bug" misread.. ;)..
 
-Can we define omap3_errata on lines of omap3_features?
+My very personal opinion is that, good code commenting can make this very
+clear.
 
-To the original question of why resue omap3_xyz name for omap4?
-I guess very valid - unlike features, erratas may not be reused.
-So it may make sense to have another omap4_errata as well. Any
-duplications due to IP reuse can be handled on the omap3_errata
-list (original IP where errata applies).
+But, the way it is right now, brings so much confusion (being a feature).
 
-Deciding whether errata is feature or vice versa?
-...ahem, pass.
-
-Best regards,
-Sanjeev
+Regards,
+Sergio
 
 > 
 > -- 
 > Regards,
 > Nishanth Menon
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 > 
