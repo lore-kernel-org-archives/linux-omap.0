@@ -1,189 +1,78 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency constraint	in i2c
-Date: Fri, 20 Nov 2009 08:28:05 -0800
-Message-ID: <87eint6u0a.fsf@deeprootsystems.com>
-References: <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
-	<1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
-	<1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
-	<1256125881-12441-4-git-send-email-kalle.jokiniemi@digia.com>
-	<CD8CC2B65FEE304DA95744A5472698F2029E427B04@dlee06.ent.ti.com>
-	<1256806523.31764.57.camel@ubuntu>
-	<E839BB5467CE1640B3CC2F90F647A52C274A01DB80@NOK-EUMSG-02.mgdnok.nokia.com>
+From: Maxime Petazzoni <mpetazzoni@mvista.com>
+Subject: Re: VDD1 voltage after resume from idle
+Date: Fri, 20 Nov 2009 17:29:33 +0100
+Message-ID: <20091120162933.GC2354@mvista.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+xNpyl7Qekk2NvDX"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:36466 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209AbZKTQ2B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 11:28:01 -0500
-Received: by pzk1 with SMTP id 1so2502697pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 08:28:07 -0800 (PST)
-In-Reply-To: <E839BB5467CE1640B3CC2F90F647A52C274A01DB80@NOK-EUMSG-02.mgdnok.nokia.com> (kalle jokiniemi's message of "Fri\, 20 Nov 2009 09\:35\:20 +0100")
+Received: from hu47.mvista.com ([206.112.117.47]:60447 "HELO
+	gateway-1237.mvista.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with SMTP id S1753346AbZKTQ31 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Nov 2009 11:29:27 -0500
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kalle.jokiniemi@nokia.com, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, m-sonasath@ti.com, jouni.hogander@nokia.com
-
-<kalle.jokiniemi@nokia.com> writes:
-
-> Could you please take this patch in? Currently i2c is not working
-> very well with cpuidle and off mode, and the patch is needed.
->
-> I would go with V4 of the patch.
-
-Kalle,
-
-Last I saw with this thread, it didn't look like there was resolution.
-If things are resolved, this shouldn't go upstream via PM branch, since
-it doesn't seem to have any dependencies on the PM branch.
-
-It should go upstream either via the I2C list, or via Tony.
-
-If it goes via i2c list, I can add it to PM branch while waiting for
-it to merge.
-
-Kevin
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org 
->>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
->>Kalle Jokiniemi
->>Sent: 29. lokakuuta 2009 10:55
->>To: Sonasath, Moiz
->>Cc: khilman@deeprootsystems.com; linux-omap@vger.kernel.org
->>Subject: RE: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency 
->>constraint in i2c
->>
->>OK, let's try this once more, since my mail did not seem to go 
->>to linux-omap.
->>
->>Sorry for the spam.
->>
->>See my comments below:
->>
->>On Fri, 2009-10-23 at 18:53 +0300, Sonasath, Moiz wrote:
->>> Hello Jokiniemi!
->>> 
->>> > -----Original Message-----
->>> > From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com]
->>> > Sent: Wednesday, October 21, 2009 6:51 AM
->>> > To: khilman@deeprootsystems.com
->>> > Cc: linux-omap@vger.kernel.org; Kalle Jokiniemi; Sonasath, Moiz;
->>> Jarkko
->>> > Nikula; Paul Walmsley; Menon, Nishanth
->>> > Subject: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency
->>> constraint in
->>> > i2c
->>> > 
->>> > While waiting for completion of the i2c transfer, the MPU 
->>could hit 
->>> > OFF mode and cause several msecs of delay that made i2c transfers 
->>> > fail more often. The extra delays and subsequent re-trys cause i2c 
->>> > clocks to be active more often. This has also an negative 
->>effect on 
->>> > power consumption.
->>> > 
->>> > Created a mechanism for passing and using the constraint setting 
->>> > function in driver code. The used mpu wake up latency constraints 
->>> > are now set individually per bus, and they are calculated based on 
->>> > clock rate and fifo size.
->>> > 
->>> > Thanks to Jarkko Nikula, Moiz Sonasath, Paul Walmsley, and 
->>Nishanth 
->>> > Menon for tuning out the details of this patch.
->>> > 
->>> > Cc: Moiz Sonasath <m-sonasath@ti.com>
->>> > Cc: Jarkko Nikula <jhnikula@gmail.com>
->>> > Cc: Paul Walmsley <paul@pwsan.com>
->>> > Cc: Nishanth Menon <nm@ti.com>
->>> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
->>> > ---
->>> > 
->>> 
->>> 
->>> >  	dev->speed = speed;
->>> >  	dev->idle = 1;
->>> > @@ -911,6 +923,11 @@ omap_i2c_probe(struct platform_device *pdev)
->>> >  		 */
->>> >  		dev->fifo_size = (dev->fifo_size / 2);
->>> >  		dev->b_hw = 1; /* Enable hardware fixes */
->>> > +
->>> > +		/* calculate wakeup latency constraint for MPU */
->>> > +		if (dev->set_mpu_wkup_lat != NULL)
->>> > +			dev->latency = (1000000 * dev->fifo_size) /
->>> > +				       (1000 * speed / 8);
->>> >  	}
->>> 
->>> IMHO, here instead of using 'dev->fifo_size' for calculating the 
->>> 'dev->latency', we need to use:
->>> 
->>> 1. For RX case, to avoid Reciver overrun:
->>> 	if (msg->flags & I2C_M_RD)
->>> 		Use [(FIFO Depth)bytes - (FIFO THRSH)bytes] in 
->>calculating 
->>> 		dev->latency
->>> 
->>> Because conceptually, RDR/RRDY interrupts are generated when 
->>RTRSH is 
->>> reached, so we want the MPU to be wake up within the time it 
->>takes to 
->>> fill the FIFO from RTRSH to FIFO Depth (FIFO full).
->>> 
->>> 2. For TX case, to avoid Transmitter Underflow:
->>> 	if (!(msg->flags & I2C_M_RD))
->>> 		Use (FIFO THRSH)bytes in calculating dev->latency
->>> 
->>> Because conceptually, XDR/XRDY interrupts are generated when 
->>XTRSH is 
->>> reached, so we want the MPU to be wake up within the time it 
->>takes to 
->>> drain the FIFO from XTRSH to Zero (FIFO empty).
->>> 
->>> Using, dev->fifo_size instead, works in the present code because we 
->>> have a RTRSH/XTRSH = dev->fifo_size/2 = 4 bytes And therefore, (FIFO 
->>> Depth)bytes - (FIFO THRSH)bytes = 8 - 4 = 4 bytes
->>> 
->>> But, to make it more generic in future and to make it independent of 
->>> any changes in the RTRSH/XTRSH values or FIFO depths in future, we 
->>> should use a generic code here.
->>
->>Well, I don't completely agree with the necessity of preparing 
->>for different rx/tx thresholds. For this to make sense, the 
->>i2c-omap driver should first separate in it's code the use of 
->>rx and tx thresholds. If someone is planning to do that, 
->>he/she should anyway update the usage of fifo_size throughout 
->>the code, including the wake up latency setting.
->>
->>Anyways, attached a patch that separates the mpu wake up 
->>latencies for rx and tx. In case that is needed. Though I'm 
->>not for it, since it adds unneeded complexity.
->>
->>- Kalle
->>
->>> 
->>> > 
->>> >  	/* reset ASAP, clearing any IRQs */ diff --git 
->>> > a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h new 
->>file mode 
->>> > 100644 index 0000000..1362fba
->>> > --- /dev/null
->>> > +++ b/include/linux/i2c-omap.h
->>> > @@ -0,0 +1,9 @@
->>> > +#ifndef __I2C_OMAP_H__
->>> > +#define __I2C_OMAP_H__
->>> > +
->>> > +struct omap_i2c_bus_platform_data {
->>> > +	u32		clkrate;
->>> > +	void		(*set_mpu_wkup_lat)(struct device *dev, 
->>int set);
->>> > +};
->>> > +
->>> > +#endif
->>> > --
->>> > 1.5.4.3
->>> 
->>> Regards
->>> Moiz Sonasath
->>> 
->>
+--+xNpyl7Qekk2NvDX
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi,
+
+* Premi, Sanjeev <premi@ti.com> [2009-11-20 21:17:04]:
+
+> I am facing a strange problem on OMAP3EVM after resuming from idle.
+> When using OPP5, the VDD1 voltage ramps to 1.35V.
+>  
+> However, when i go thru the idle/wakeup cycle, the voltage never
+> ramps back to 1.35V but stays at 1.20V.
+
+I'm seeing some interesting behavior with the OPP values here, too, with
+suspend/resume. I'm using SRF based PM and CPUFREQ. Here's what happens:
+
+When changing the CPU frequency through the scaling_setfreq knob of
+CPUFREQ, the vdd{1,2}_opp values are updated accordingly. After a
+suspend/resume cycles, the OPPs return to their pre-suspend values, all
+is fine.
+
+But when changing the OPP values by hand through the vdd{1,2}_opp knobs,
+the CPU frequency is changed accordingly, which is expected. But after a
+suspend/resume cycle, the OPP values return to the value CPUFREQ set
+them to (which may be different than the default OPP values of 3).
+
+Is this the normal behavior? Is cpufreq authoritative on the OPP values
+on resume? Or should it follow whatever value was manually set before
+suspending?
+
+Thanks,
+- Maxime
+
+PS: if I was not clear, I can provide a console log that may be more
+explicit--just ask.
+
+-- 
+Maxime Petazzoni
+Linux kernel & software dev
+MontaVista Software, Inc
+
+--+xNpyl7Qekk2NvDX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAksGw+0ACgkQ7KsOe4Pmrg2ATQCfZ7kal3/5VU99NKfAzruGYiTj
+K64AoJ/e59oywpc9gZC6AmgueBrf5BsM
+=qIaU
+-----END PGP SIGNATURE-----
+
+--+xNpyl7Qekk2NvDX--
