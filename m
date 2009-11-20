@@ -1,133 +1,144 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH v3 1/2] omap: introduce uart_no_empty_fifo_read feature
-Date: Fri, 20 Nov 2009 10:14:40 -0600
-Message-ID: <A24693684029E5489D1D202277BE89444DA61E77@dlee02.ent.ti.com>
-References: <1258732956-18799-1-git-send-email-vikram.pandita@ti.com>
- <1258732956-18799-2-git-send-email-vikram.pandita@ti.com>
- <4B06BF4D.2090201@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: FEATURES - is it good enough (was Re: [PATCH v3 1/2] omap: introduce
+ uart_no_empty_fifo_read feature)
+Date: Fri, 20 Nov 2009 10:16:48 -0600
+Message-ID: <4B06C0F0.7070007@ti.com>
+References: <1258732956-18799-1-git-send-email-vikram.pandita@ti.com> <1258732956-18799-2-git-send-email-vikram.pandita@ti.com> <4B06BF4D.2090201@ti.com> <A24693684029E5489D1D202277BE89444DA61E77@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39320 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39561 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753149AbZKTQNK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 11:13:10 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKGDH2B009274
+	id S1753149AbZKTQQm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Nov 2009 11:16:42 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKGGnQ6009735
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:13:17 -0600
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:16:49 -0600
 Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKGDGce003529
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:13:16 -0600 (CST)
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id nAKGGmbm029257
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:16:48 -0600 (CST)
 Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKGDG0r012383
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:13:16 -0600 (CST)
-In-Reply-To: <4B06BF4D.2090201@ti.com>
-Content-Language: en-US
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKGGmxq014153
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:16:48 -0600 (CST)
+In-Reply-To: <A24693684029E5489D1D202277BE89444DA61E77@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Nishanth Menon
-> Sent: Friday, November 20, 2009 10:10 AM
-> To: Pandita, Vikram
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v3 1/2] omap: introduce 
-> uart_no_empty_fifo_read feature
+Aguirre, Sergio had written, on 11/20/2009 10:14 AM, the following:
+>  
 > 
-> Vikram Pandita had written, on 11/20/2009 10:02 AM, the following:
-> > Interoduce omap feature OMAP3_HAS_UART_NO_EMPTY_FIFO_READ
->     ^^^^^^^^^ <- you meant introduce
-> > 
-> > On omap3630/omap4 an empty fifo read causes a crash
-> > 
-> > Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> > Ack-by: Menon, Nishanth <nm@ti.com>
->     ^^^^^ <- :P nope you dont have my Acked-by until you 
-> change this to 
-> Acked from Ack ;)..
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Nishanth Menon
+>> Sent: Friday, November 20, 2009 10:10 AM
+>> To: Pandita, Vikram
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH v3 1/2] omap: introduce 
+>> uart_no_empty_fifo_read feature
+>>
+>> Vikram Pandita had written, on 11/20/2009 10:02 AM, the following:
+>>> Interoduce omap feature OMAP3_HAS_UART_NO_EMPTY_FIFO_READ
+>>     ^^^^^^^^^ <- you meant introduce
+>>> On omap3630/omap4 an empty fifo read causes a crash
+>>>
+>>> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+>>> Ack-by: Menon, Nishanth <nm@ti.com>
+>>     ^^^^^ <- :P nope you dont have my Acked-by until you 
+>> change this to 
+>> Acked from Ack ;)..
+>>
+>> Thanks for the simpler patch.
+>>
+>>> ---
+>>>  arch/arm/mach-omap2/id.c              |    7 +++++++
+>>>  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
+>>>  2 files changed, 9 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+>>> index f48a4b2..3e266cd 100644
+>>> --- a/arch/arm/mach-omap2/id.c
+>>> +++ b/arch/arm/mach-omap2/id.c
+>>> @@ -176,6 +176,12 @@ void __init omap3_check_features(void)
+>>>  	OMAP3_CHECK_FEATURE(status, NEON);
+>>>  	OMAP3_CHECK_FEATURE(status, ISP);
+>>>  
+>>> +	/* On omap3630 and omap4: UART empty rx fifo read aborts */
+>>> +	if (cpu_is_omap3630())
+>>> +		omap3_features |= OMAP3_HAS_UART_NO_EMPTY_FIFO_READ;
+>>> +	if (cpu_is_omap44xx())
+>>> +		omap3_features |= OMAP3_HAS_UART_NO_EMPTY_FIFO_READ;
+>>> +
 > 
-> Thanks for the simpler patch.
+> Probably not something ot be attached in this patch, but...
 > 
-> > ---
-> >  arch/arm/mach-omap2/id.c              |    7 +++++++
-> >  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
-> >  2 files changed, 9 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > index f48a4b2..3e266cd 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -176,6 +176,12 @@ void __init omap3_check_features(void)
-> >  	OMAP3_CHECK_FEATURE(status, NEON);
-> >  	OMAP3_CHECK_FEATURE(status, ISP);
-> >  
-> > +	/* On omap3630 and omap4: UART empty rx fifo read aborts */
-> > +	if (cpu_is_omap3630())
-> > +		omap3_features |= OMAP3_HAS_UART_NO_EMPTY_FIFO_READ;
-> > +	if (cpu_is_omap44xx())
-> > +		omap3_features |= OMAP3_HAS_UART_NO_EMPTY_FIFO_READ;
-> > +
-
-Probably not something ot be attached in this patch, but...
-
-I'm a bit curious about something:
-
-Why touching omap3_features in OMAP4?
-
-Isn't there a omap4_features?
-
-Or even better, an omap_features?
-
-Regards,
-Sergio
-
-> >  	/*
-> >  	 * TODO: Get additional info (where applicable)
-> >  	 *       e.g. Size of L2 cache.
-> > @@ -316,6 +322,7 @@ void __init omap3_cpuinfo(void)
-> >  	OMAP3_SHOW_FEATURE(sgx);
-> >  	OMAP3_SHOW_FEATURE(neon);
-> >  	OMAP3_SHOW_FEATURE(isp);
-> > +	OMAP3_SHOW_FEATURE(uart_no_empty_fifo_read);
-> >  
-> >  	printk(")\n");
-> >  }
-> > diff --git a/arch/arm/plat-omap/include/plat/cpu.h 
-> b/arch/arm/plat-omap/include/plat/cpu.h
-> > index 2e17890..c32f015 100644
-> > --- a/arch/arm/plat-omap/include/plat/cpu.h
-> > +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> > @@ -497,6 +497,7 @@ extern u32 omap3_features;
-> >  #define OMAP3_HAS_SGX			BIT(2)
-> >  #define OMAP3_HAS_NEON			BIT(3)
-> >  #define OMAP3_HAS_ISP			BIT(4)
-> > +#define OMAP3_HAS_UART_NO_EMPTY_FIFO_READ	BIT(5)
-> >  
-> >  #define OMAP3_HAS_FEATURE(feat,flag)			\
-> >  static inline unsigned int omap3_has_ ##feat(void)	\
-> > @@ -509,5 +510,6 @@ OMAP3_HAS_FEATURE(sgx, SGX)
-> >  OMAP3_HAS_FEATURE(iva, IVA)
-> >  OMAP3_HAS_FEATURE(neon, NEON)
-> >  OMAP3_HAS_FEATURE(isp, ISP)
-> > +OMAP3_HAS_FEATURE(uart_no_empty_fifo_read, UART_NO_EMPTY_FIFO_READ)
-> >  
-> >  #endif
+> I'm a bit curious about something:
 > 
+> Why touching omap3_features in OMAP4?
 > 
-> -- 
+> Isn't there a omap4_features?
+> 
+> Or even better, an omap_features?
+
+yep, that is a limitation in today's FEATUREs design which we have to 
+fix. I see issues such as:
+a) ability to scale across silicons (OMAP1 - 4)
+b) differentiate between silicon feature vs erratas
+c) limit to 32 bits.. meaning, we may want to think something else at a 
+later point..
+
+FEATUREs is the first step in this.. we have more to go for a uniform system
+
+> 
 > Regards,
-> Nishanth Menon
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Sergio
 > 
-> 
+>>>  	/*
+>>>  	 * TODO: Get additional info (where applicable)
+>>>  	 *       e.g. Size of L2 cache.
+>>> @@ -316,6 +322,7 @@ void __init omap3_cpuinfo(void)
+>>>  	OMAP3_SHOW_FEATURE(sgx);
+>>>  	OMAP3_SHOW_FEATURE(neon);
+>>>  	OMAP3_SHOW_FEATURE(isp);
+>>> +	OMAP3_SHOW_FEATURE(uart_no_empty_fifo_read);
+>>>  
+>>>  	printk(")\n");
+>>>  }
+>>> diff --git a/arch/arm/plat-omap/include/plat/cpu.h 
+>> b/arch/arm/plat-omap/include/plat/cpu.h
+>>> index 2e17890..c32f015 100644
+>>> --- a/arch/arm/plat-omap/include/plat/cpu.h
+>>> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+>>> @@ -497,6 +497,7 @@ extern u32 omap3_features;
+>>>  #define OMAP3_HAS_SGX			BIT(2)
+>>>  #define OMAP3_HAS_NEON			BIT(3)
+>>>  #define OMAP3_HAS_ISP			BIT(4)
+>>> +#define OMAP3_HAS_UART_NO_EMPTY_FIFO_READ	BIT(5)
+>>>  
+>>>  #define OMAP3_HAS_FEATURE(feat,flag)			\
+>>>  static inline unsigned int omap3_has_ ##feat(void)	\
+>>> @@ -509,5 +510,6 @@ OMAP3_HAS_FEATURE(sgx, SGX)
+>>>  OMAP3_HAS_FEATURE(iva, IVA)
+>>>  OMAP3_HAS_FEATURE(neon, NEON)
+>>>  OMAP3_HAS_FEATURE(isp, ISP)
+>>> +OMAP3_HAS_FEATURE(uart_no_empty_fifo_read, UART_NO_EMPTY_FIFO_READ)
+>>>  
+>>>  #endif
+>>
+>> -- 
+>> Regards,
+>> Nishanth Menon
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+
+
+-- 
+Regards,
+Nishanth Menon
