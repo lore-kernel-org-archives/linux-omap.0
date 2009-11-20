@@ -1,57 +1,61 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
+From: Maxime Petazzoni <mpetazzoni@mvista.com>
 Subject: Re: VDD1 voltage after resume from idle
-Date: Fri, 20 Nov 2009 10:29:02 -0800
-Message-ID: <87my2h3v9t.fsf@deeprootsystems.com>
+Date: Fri, 20 Nov 2009 19:31:42 +0100
+Message-ID: <20091120183142.GD2354@mvista.com>
 References: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
-	<20091120162933.GC2354@mvista.com>
+ <20091120162933.GC2354@mvista.com>
+ <87my2h3v9t.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9UV9rz0O2dU/yYYn"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f204.google.com ([209.85.216.204]:53819 "EHLO
-	mail-px0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652AbZKTS26 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 13:28:58 -0500
-Received: by pxi42 with SMTP id 42so1943720pxi.5
-        for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:29:04 -0800 (PST)
-In-Reply-To: <20091120162933.GC2354@mvista.com> (Maxime Petazzoni's message of "Fri\, 20 Nov 2009 17\:29\:33 +0100")
+Received: from hu47.mvista.com ([206.112.117.47]:42292 "HELO
+	gateway-1237.mvista.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with SMTP id S1753643AbZKTScS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Nov 2009 13:32:18 -0500
+Content-Disposition: inline
+In-Reply-To: <87my2h3v9t.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Maxime Petazzoni <mpetazzoni@mvista.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Maxime Petazzoni <mpetazzoni@mvista.com> writes:
 
-> Hi,
->
-> * Premi, Sanjeev <premi@ti.com> [2009-11-20 21:17:04]:
->
->> I am facing a strange problem on OMAP3EVM after resuming from idle.
->> When using OPP5, the VDD1 voltage ramps to 1.35V.
->>  
->> However, when i go thru the idle/wakeup cycle, the voltage never
->> ramps back to 1.35V but stays at 1.20V.
->
-> I'm seeing some interesting behavior with the OPP values here, too, with
-> suspend/resume. I'm using SRF based PM and CPUFREQ. Here's what happens:
->
-> When changing the CPU frequency through the scaling_setfreq knob of
-> CPUFREQ, the vdd{1,2}_opp values are updated accordingly. After a
-> suspend/resume cycles, the OPPs return to their pre-suspend values, all
-> is fine.
->
-> But when changing the OPP values by hand through the vdd{1,2}_opp knobs,
-> the CPU frequency is changed accordingly, which is expected. But after a
-> suspend/resume cycle, the OPP values return to the value CPUFREQ set
-> them to (which may be different than the default OPP values of 3).
->
-> Is this the normal behavior? Is cpufreq authoritative on the OPP values
-> on resume? Or should it follow whatever value was manually set before
-> suspending?
+--9UV9rz0O2dU/yYYn
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-FWIW, the vdd*_opp sysfs hooks were for initial debug/dev and should
-be considered experimental (a.k.a broken.) They will disappear from
-the PM branch shortly.
+* Kevin Hilman <khilman@deeprootsystems.com> [2009-11-20 10:29:02]:
 
-CPUfreq should be the only interface used for DVFS.
+> FWIW, the vdd*_opp sysfs hooks were for initial debug/dev and should
+> be considered experimental (a.k.a broken.) They will disappear from
+> the PM branch shortly.
+> 
+> CPUfreq should be the only interface used for DVFS.
 
-Kevin
+Ah, well then I guess that fixes my problem. So, was I right on saying
+that CPUfreq is "taking control" of the OPP values on wake up? (just
+trying to make sure I understand how this works correctly).
+
+Thanks for the info,
+- Maxime
+-- 
+Maxime Petazzoni
+Linux kernel & software dev
+MontaVista Software, Inc
+
+--9UV9rz0O2dU/yYYn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAksG4I4ACgkQ7KsOe4Pmrg3LnQCeNga9YEP8Fo1ds3HBAZ7WZBI7
+GJsAoITBmcapBGE9ZQjZTmm0RbO2jbS+
+=z1nN
+-----END PGP SIGNATURE-----
+
+--9UV9rz0O2dU/yYYn--
