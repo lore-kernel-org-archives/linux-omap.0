@@ -1,35 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Additional patches for USB support on HTC Herald?
-Date: Sun, 22 Nov 2009 12:22:25 -0800
-Message-ID: <20091122202225.GD4860@atomide.com>
-References: <6cb013310911221154t6e902548x3d5f212f4834692c@mail.gmail.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: [PATCH v2] mmc-omap: Add support for 16-bit and 32-bit registers
+Date: Sun, 22 Nov 2009 12:29:26 -0800
+Message-ID: <6cb013310911221229n49b2ac9bn1002c1c1f2b416bf@mail.gmail.com>
+References: <1258918484.31123.7.camel@runt> <20091122202051.GC4860@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52792 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752480AbZKVUWV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Nov 2009 15:22:21 -0500
-Content-Disposition: inline
-In-Reply-To: <6cb013310911221154t6e902548x3d5f212f4834692c@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20091122202051.GC4860@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org
 
-* Cory Maccarrone <darkstar6262@gmail.com> [091122 11:54]:
-> Hi all,
-> 
-> I recently submitted patches to get HTC Herald board support into the
-> kernel, and they've been added to the for-next branch.  Since then,
-> I've managed to get USB support working for that board, so my question
-> is, with the patches not yet pulled into the kernel proper, if I
-> submitted an incremental patch against my previous one, is that ok?
-> Or should I re-submit the whole herald board patchset with USB in?
+On Sun, Nov 22, 2009 at 12:20 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi,
+>
+> You need to set the register shift dynamically during init as cpu_is_omap7xx
+> is not static if multiple omaps are compiled in.
+>
+> Then maybe set functions for omap_mmc_read/write that shift the registers?
+>
 
-Please submit the additional patches against the omap for-next branch,
-we should still have enough time to get those in.
+Ah, right, that got by me.  I had something like that in the original
+patch -- I'll put it back in.
 
-Regards,
+>
+> This change should be left out.
+>
 
-Tony
+Alright.
+
+I'll make those changes and resubmit.
+
+- Cory
