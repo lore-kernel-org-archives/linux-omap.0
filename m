@@ -1,130 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] AM3517: Add support for TSC2004 driver
-Date: Mon, 23 Nov 2009 09:55:15 -0800
-Message-ID: <20091123175515.GE22923@atomide.com>
-References: <hvaibhav@ti.com>
- <1258642027-2520-1-git-send-email-hvaibhav@ti.com>
+Subject: Re: [PATCH] USB: twl4030: Enable USB regulators before enabling
+ USB charging
+Date: Mon, 23 Nov 2009 09:59:48 -0800
+Message-ID: <20091123175948.GF22923@atomide.com>
+References: <23D0CDE7C386D144A4F26EB0F427F8C074CF85B0@dlee04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62615 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505AbZKWRzM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 12:55:12 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61158 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750725AbZKWR7p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 12:59:45 -0500
 Content-Disposition: inline
-In-Reply-To: <1258642027-2520-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <23D0CDE7C386D144A4F26EB0F427F8C074CF85B0@dlee04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Aguilar Pena, Leed" <leed.aguilar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+* Aguilar Pena, Leed <leed.aguilar@ti.com> [091119 10:34]:
+> For TWL family of power management ICs, USB charging works only
+> when USB regulators are in enabled state: 3v1, 1v5, 1v8
+> 
+> On a USB cable attach, twl4030_phy_resume(twl) function enables
+> the regulators. Enable USB charging, only after all regulators
+> are enabled.
+> 
+> Its observed that enabling USB charging before regulators are
+> enabled, causes USB charging to fail.
+> 
+> Tested on: Zoom2: omap3430: ES3.1 + TWL5030
+> Needs T2-MADC and T2-BCI drivers which are still not upstreamed.
 
-* hvaibhav@ti.com <hvaibhav@ti.com> [091119 06:46]:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/mach-omap2/board-am3517evm.c |   62 +++++++++++++++++++++++++++++++++
->  1 files changed, 62 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-> index 415a13d..ae47b51 100644
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@ -20,6 +20,8 @@
->  #include <linux/init.h>
->  #include <linux/platform_device.h>
->  #include <linux/gpio.h>
-> +#include <linux/irq.h>
-> +#include <linux/i2c/tsc2004.h>
->  
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
-> @@ -27,10 +29,64 @@
->  #include <asm/mach/map.h>
->  
->  #include <plat/board.h>
-> +#include <plat/mux.h>
->  #include <plat/common.h>
->  #include <plat/usb.h>
->  
->  /*
-> + * TSC 2004 Support
-> + */
-> +#define	GPIO_TSC2004_IRQ	65
-> +
-> +static int tsc2004_init_irq(void)
-> +{
-> +	int ret = 0;
-> +
-> +	ret = gpio_request(GPIO_TSC2004_IRQ, "tsc2004-irq");
-> +	if (ret < 0) {
-> +		printk(KERN_WARNING "failed to request GPIO#%d: %d\n",
-> +				GPIO_TSC2004_IRQ, ret);
-> +		return ret;
-> +	}
-> +
-> +	if (gpio_direction_input(GPIO_TSC2004_IRQ)) {
-> +		printk(KERN_WARNING "GPIO#%d cannot be configured as "
-> +				"input\n", GPIO_TSC2004_IRQ);
-> +		return -ENXIO;
-> +	}
-> +
-> +	omap_set_gpio_debounce(GPIO_TSC2004_IRQ, 1);
-> +	omap_set_gpio_debounce_time(GPIO_TSC2004_IRQ, 0xa);
-> +	return ret;
-> +}
-> +
-> +static void tsc2004_exit_irq(void)
-> +{
-> +	gpio_free(GPIO_TSC2004_IRQ);
-> +}
-> +
-> +static int tsc2004_get_irq_level(void)
-> +{
-> +	return gpio_get_value(GPIO_TSC2004_IRQ) ? 0 : 1;
-> +}
-> +
-> +struct tsc2004_platform_data am3517evm_tsc2004data = {
-> +	.model = 2004,
-> +	.x_plate_ohms = 180,
-> +	.get_pendown_state = tsc2004_get_irq_level,
-> +	.init_platform_hw = tsc2004_init_irq,
-> +	.exit_platform_hw = tsc2004_exit_irq,
-> +};
-> +
-> +static struct i2c_board_info __initdata am3517evm_tsc_i2c_boardinfo[] = {
-> +	{
-> +		I2C_BOARD_INFO("tsc2004", 0x4B),
-> +		.type		= "tsc2004",
-> +		.platform_data	= &am3517evm_tsc2004data,
-> +	},
-> +};
-> +
-> +/*
->   * Board initialization
->   */
->  static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
-> @@ -67,6 +123,12 @@ static void __init am3517_evm_init(void)
->  
->  	omap_serial_init();
->  	usb_ehci_init(&ehci_pdata);
-> +
-> +	/* TSC 2004 */
-> +	omap_cfg_reg(U1_34XX_GPIO65);
-> +	am3517evm_tsc_i2c_boardinfo[0].irq = gpio_to_irq(GPIO_TSC2004_IRQ);
-> +	i2c_register_board_info(1, am3517evm_tsc_i2c_boardinfo,
-> +				ARRAY_SIZE(am3517evm_tsc_i2c_boardinfo));
->  }
->  
->  static void __init am3517_evm_map_io(void)
-
-Can you please leave out the omap_cfg_reg call for new mux registers
-from this patch? This way it will still compile and we can patch
-in the muxing later on.
+This should go to linux-usb list with linux-omap list Cc'd.
 
 Regards,
 
 Tony
+ 
+> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
+> Signed-off-by: Leed Aguilar <leed.aguilar@ti.com>
+> Acked-by: Vikram Pandita <vikram.pandita@ti.com>
+> Acked-by: Anand Gadiyar <gadiyar@ti.com>
+> Acked-by: Nishanth Menon <nm@ti.com>
+> 
+> ---
+>  drivers/usb/otg/twl4030-usb.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+> index 9e3e7a5..bd9883f 100644
+> --- a/drivers/usb/otg/twl4030-usb.c
+> +++ b/drivers/usb/otg/twl4030-usb.c
+> @@ -598,12 +598,12 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+>  		 * USB_LINK_VBUS state.  musb_hdrc won't care until it
+>  		 * starts to handle softconnect right.
+>  		 */
+> -		twl4030charger_usb_en(status == USB_LINK_VBUS);
+> -
+>  		if (status == USB_LINK_NONE)
+>  			twl4030_phy_suspend(twl, 0);
+>  		else
+>  			twl4030_phy_resume(twl);
+> +
+> +		twl4030charger_usb_en(status == USB_LINK_VBUS);
+>  	}
+>  	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+>  
+> -- 
+> 1.6.0.4
