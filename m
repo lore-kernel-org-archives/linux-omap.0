@@ -1,254 +1,380 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCHV2 4/4] OMAP3: add support for 192Mhz sgx clock
-Date: Mon, 23 Nov 2009 15:00:48 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA751E44@dbde02.ent.ti.com>
-References: <1258730937-1962-1-git-send-email-vishwanath.bs@ti.com>
- <1258730937-1962-2-git-send-email-vishwanath.bs@ti.com>
- <1258730937-1962-3-git-send-email-vishwanath.bs@ti.com>
- <1258730937-1962-4-git-send-email-vishwanath.bs@ti.com>
- <1258730937-1962-5-git-send-email-vishwanath.bs@ti.com>
- <4B06C182.4090009@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 2/5] ZOOM: DSS2: Add nec panel for zoom display
+Date: Mon, 23 Nov 2009 15:05:30 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404370D736C@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940254331086@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49252 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:49482 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755792AbZKWJar convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 04:30:47 -0500
+	with ESMTP id S1755792AbZKWJfZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 04:35:25 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAN9UonW023436
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAN9ZSo2026290
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 03:30:53 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAN9UoQs000363
-	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 15:00:50 +0530 (IST)
-In-Reply-To: <4B06C182.4090009@ti.com>
+	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 03:35:31 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAN9ZSLj002061
+	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 15:05:28 +0530 (IST)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940254331086@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
+To: "Y, Kishore" <kishore.y@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
 > -----Original Message-----
-> From: Menon, Nishanth
-> Sent: Friday, November 20, 2009 9:49 PM
-> To: Sripathy, Vishwanath
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCHV2 4/4] OMAP3: add support for 192Mhz sgx clock
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Y, Kishore
+> Sent: Friday, November 20, 2009 7:58 PM
+> To: linux-omap@vger.kernel.org
+> Subject: [PATCH 2/5] ZOOM: DSS2: Add nec panel for zoom display
 > 
-> unrelated to this patch comment: we might want to consider thinking in
-> terms of optimizing the memory as OMAP4 also kicks in.. some sort of
-> dynamic clock tree traversal and __initdata method perhaps??
+> From df64194feedc16c3f3f552dc26bc3050b7245005 Mon Sep 17 00:00:00
+> 2001
+> From: Mukund Mittal <mmittal@ti.com>
+> Date: Fri, 20 Nov 2009 18:35:26 +0530
+> Subject: [PATCH] ZOOM: DSS2: Add nec panel for zoom display
+> 
+> Nec panel has been added which is used on both
+> zoom2 and zoom3 boards
+> 
+> Signed-off-by: Kishore Y <kishore.y@ti.com>
+> ---
+>  drivers/video/omap2/displays/panel-nec.c |  291
+> ++++++++++++++++++++++++++++++
+>  1 files changed, 291 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/video/omap2/displays/panel-nec.c
+> 
+> diff --git a/drivers/video/omap2/displays/panel-nec.c
+> b/drivers/video/omap2/displays/panel-nec.c
+> new file mode 100644
+> index 0000000..c18f3ba
+> --- /dev/null
+> +++ b/drivers/video/omap2/displays/panel-nec.c
+> @@ -0,0 +1,291 @@
+> +/*
+> + * NEC panel support
+> + *
+> + * Copyright (C) 2008 Nokia Corporation
+> + * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> + *
+[Hiremath, Vaibhav] Can you please verify/cross-check this? 
 
+Thanks,
+Vaibhav
 
+> + * This program is free software; you can redistribute it and/or
+> modify it
+> + * under the terms of the GNU General Public License version 2 as
+> published by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of
+> MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+> License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public
+> License along with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/delay.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/i2c/twl4030.h>
+> +#include <linux/spi/spi.h>
+> +
+> +#include <mach/gpio.h>
+> +#include <mach/gpio.h>
+> +#include <plat/mux.h>
+> +#include <asm/mach-types.h>
+> +#include <plat/control.h>
+> +
+> +#include <plat/display.h>
+> +
+> +#define LCD_XRES		800
+> +#define LCD_YRES		480
+> +
+> +#define LCD_PIXCLOCK_MIN      	21800 /* NEC MIN PIX Clock is
+> 21.8MHz */
+> +#define LCD_PIXCLOCK_TYP      	23800 /* Typical PIX clock is
+> 23.8MHz */
+> +#define LCD_PIXCLOCK_MAX      	25700 /* Maximum is 25.7MHz */
+> +
+> +/* Current Pixel clock */
+> +#define LCD_PIXEL_CLOCK		LCD_PIXCLOCK_MIN
+> +
+> +
+> +/*NEC NL8048HL11-01B  Manual
+> + * defines HFB, HSW, HBP, VFP, VSW, VBP as shown below
+> + */
+> +
+> +static struct omap_video_timings nec_panel_timings = {
+> +	/* 800 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
+> +	.x_res          = LCD_XRES,
+> +	.y_res          = LCD_YRES,
+> +	.pixel_clock    = LCD_PIXEL_CLOCK,
+> +	.hfp            = 6,
+> +	.hsw            = 1,
+> +	.hbp            = 4,
+> +	.vfp            = 3,
+> +	.vsw            = 1,
+> +	.vbp            = 4,
+> +};
+> +
+> +static int nec_panel_probe(struct omap_dss_device *dssdev)
+> +{
+> +	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+> +                                OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_RF
+> |
+> +                                OMAP_DSS_LCD_ONOFF;
+> +	dssdev->panel.timings = nec_panel_timings;
+> +	dssdev->panel.recommended_bpp = 16;
+> +
+> +	return 0;
+> +}
+> +
+> +static void nec_panel_remove(struct omap_dss_device *dssdev)
+> +{
+> +}
+> +
+> +static int nec_panel_enable(struct omap_dss_device *dssdev)
+> +{
+> +	int r = 0;
+> +
+> +	mdelay(4);
+> +	if (dssdev->platform_enable)
+> +		r = dssdev->platform_enable(dssdev);
+> +
+> +	return r;
+> +}
+> +
+> +static void nec_panel_disable(struct omap_dss_device *dssdev)
+> +{
+> +	if (dssdev->platform_disable)
+> +		dssdev->platform_disable(dssdev);
+> +	mdelay(4);
+> +}
+> +
+> +static int nec_panel_suspend(struct omap_dss_device *dssdev)
+> +{
+> +	nec_panel_disable(dssdev);
+> +	return 0;
+> +}
+> +
+> +static int nec_panel_resume(struct omap_dss_device *dssdev)
+> +{
+> +	return nec_panel_enable(dssdev);
+> +}
+> +
+> +static struct omap_dss_driver nec_driver = {
+> +	.probe          = nec_panel_probe,
+> +	.remove         = nec_panel_remove,
+> +
+> +	.enable         = nec_panel_enable,
+> +	.disable        = nec_panel_disable,
+> +	.suspend        = nec_panel_suspend,
+> +	.resume         = nec_panel_resume,
+> +
+> +	.driver		= {
+> +		.name	= "NEC_panel",
+> +		.owner 	= THIS_MODULE,
+> +	},
+> +};
+> +
+> +static int
+> +spi_send(struct spi_device *spi, unsigned char reg_addr, unsigned
+> char reg_data)
+> +{
+> +	int ret = 0;
+> +	unsigned int cmd = 0;
+> +	unsigned int data = 0;
+> +
+> +	cmd = 0x0000 | reg_addr; /* register address write */
+> +	data = 0x0100 | reg_data ; /* register data write */
+> +	data = (cmd << 16) | data;
+> +	if (spi_write(spi, (unsigned char *)&data, 4))
+> +		printk(KERN_WARNING "error in spi_write %x\n", data);
+> +
+> +	udelay(10);
+> +	return ret;
+> +}
+> +
+> +
+> +static int init_nec_wvga_lcd(struct spi_device *spi)
+> +{
+> +	/* Initialization Sequence */
+> +	spi_send(spi, 3, 0x01);    /* R3 = 01h */
+> +	spi_send(spi, 0, 0x00);    /* R0 = 00h */
+> +	spi_send(spi, 1, 0x01);    /* R1 = 0x01 (normal), 0x03
+> (reversed) */
+> +	spi_send(spi, 4, 0x00);    /* R4 = 00h */
+> +	spi_send(spi, 5, 0x14);    /* R5 = 14h */
+> +	spi_send(spi, 6, 0x24);    /* R6 = 24h */
+> +	spi_send(spi, 16, 0xD7);   /* R16 = D7h */
+> +	spi_send(spi, 17, 0x00);   /* R17 = 00h */
+> +	spi_send(spi, 18, 0x00);   /* R18 = 00h */
+> +	spi_send(spi, 19, 0x55);   /* R19 = 55h */
+> +	spi_send(spi, 20, 0x01);   /* R20 = 01h */
+> +	spi_send(spi, 21, 0x70);   /* R21 = 70h */
+> +	spi_send(spi, 22, 0x1E);   /* R22 = 1Eh */
+> +	spi_send(spi, 23, 0x25);   /* R23 = 25h */
+> +	spi_send(spi, 24, 0x25);   /* R24 = 25h */
+> +	spi_send(spi, 25, 0x02);   /* R25 = 02h */
+> +	spi_send(spi, 26, 0x02);   /* R26 = 02h */
+> +	spi_send(spi, 27, 0xA0);   /* R27 = A0h */
+> +	spi_send(spi, 32, 0x2F);   /* R32 = 2Fh */
+> +	spi_send(spi, 33, 0x0F);   /* R33 = 0Fh */
+> +	spi_send(spi, 34, 0x0F);   /* R34 = 0Fh */
+> +	spi_send(spi, 35, 0x0F);   /* R35 = 0Fh */
+> +	spi_send(spi, 36, 0x0F);   /* R36 = 0Fh */
+> +	spi_send(spi, 37, 0x0F);   /* R37 = 0Fh */
+> +	spi_send(spi, 38, 0x0F);   /* R38 = 0Fh */
+> +	spi_send(spi, 39, 0x00);   /* R39 = 00h */
+> +	spi_send(spi, 40, 0x02);   /* R40 = 02h */
+> +	spi_send(spi, 41, 0x02);   /* R41 = 02h */
+> +	spi_send(spi, 42, 0x02);   /* R42 = 02h */
+> +	spi_send(spi, 43, 0x0F);   /* R43 = 0Fh */
+> +	spi_send(spi, 44, 0x0F);   /* R44 = 0Fh */
+> +	spi_send(spi, 45, 0x0F);   /* R45 = 0Fh */
+> +	spi_send(spi, 46, 0x0F);   /* R46 = 0Fh */
+> +	spi_send(spi, 47, 0x0F);   /* R47 = 0Fh */
+> +	spi_send(spi, 48, 0x0F);   /* R48 = 0Fh */
+> +	spi_send(spi, 49, 0x0F);   /* R49 = 0Fh */
+> +	spi_send(spi, 50, 0x00);   /* R50 = 00h */
+> +	spi_send(spi, 51, 0x02);   /* R51 = 02h */
+> +	spi_send(spi, 52, 0x02);   /* R52 = 02h */
+> +	spi_send(spi, 53, 0x02);   /* R53 = 02h */
+> +	spi_send(spi, 80, 0x0C);   /* R80 = 0Ch */
+> +	spi_send(spi, 83, 0x42);   /* R83 = 42h */
+> +	spi_send(spi, 84, 0x42);   /* R84 = 42h */
+> +	spi_send(spi, 85, 0x41);   /* R85 = 41h */
+> +	spi_send(spi, 86, 0x14);   /* R86 = 14h */
+> +	spi_send(spi, 89, 0x88);   /* R89 = 88h */
+> +	spi_send(spi, 90, 0x01);   /* R90 = 01h */
+> +	spi_send(spi, 91, 0x00);   /* R91 = 00h */
+> +	spi_send(spi, 92, 0x02);   /* R92 = 02h */
+> +	spi_send(spi, 93, 0x0C);   /* R93 = 0Ch */
+> +	spi_send(spi, 94, 0x1C);   /* R94 = 1Ch */
+> +	spi_send(spi, 95, 0x27);   /* R95 = 27h */
+> +	spi_send(spi, 98, 0x49);   /* R98 = 49h */
+> +	spi_send(spi, 99, 0x27);   /* R99 = 27h */
+> +	spi_send(spi, 102, 0x76);  /* R102 = 76h */
+> +	spi_send(spi, 103, 0x27);  /* R103 = 27h */
+> +	spi_send(spi, 112, 0x01);  /* R112 = 01h */
+> +	spi_send(spi, 113, 0x0E);  /* R113 = 0Eh */
+> +	spi_send(spi, 114, 0x02);  /* R114 = 02h */
+> +	spi_send(spi, 115, 0x0C);  /* R115 = 0Ch */
+> +	spi_send(spi, 118, 0x0C);  /* R118 = 0Ch */
+> +	spi_send(spi, 121, 0x30); /* R121 = 0x30 (normal), 0x10
+> (reversed) */
+> +	spi_send(spi, 130, 0x00);  /* R130 = 00h */
+> +	spi_send(spi, 131, 0x00);  /* R131 = 00h */
+> +	spi_send(spi, 132, 0xFC);  /* R132 = FCh */
+> +	spi_send(spi, 134, 0x00);  /* R134 = 00h */
+> +	spi_send(spi, 136, 0x00);  /* R136 = 00h */
+> +	spi_send(spi, 138, 0x00);  /* R138 = 00h */
+> +	spi_send(spi, 139, 0x00);  /* R139 = 00h */
+> +	spi_send(spi, 140, 0x00);  /* R140 = 00h */
+> +	spi_send(spi, 141, 0xFC);  /* R141 = FCh */
+> +	spi_send(spi, 143, 0x00);  /* R143 = 00h */
+> +	spi_send(spi, 145, 0x00);  /* R145 = 00h */
+> +	spi_send(spi, 147, 0x00);  /* R147 = 00h */
+> +	spi_send(spi, 148, 0x00);  /* R148 = 00h */
+> +	spi_send(spi, 149, 0x00);  /* R149 = 00h */
+> +	spi_send(spi, 150, 0xFC);  /* R150 = FCh */
+> +	spi_send(spi, 152, 0x00);  /* R152 = 00h */
+> +	spi_send(spi, 154, 0x00);  /* R154 = 00h */
+> +	spi_send(spi, 156, 0x00);  /* R156 = 00h */
+> +	spi_send(spi, 157, 0x00);  /* R157 = 00h */
+> +	udelay(20);
+> +	spi_send(spi, 2, 0x00);    /* R2 = 00h */
+> +	return 0;
+> +}
+> +
+> +static int dss_spi_probe(struct spi_device *spi)
+> +{
+> +	spi->mode = SPI_MODE_0;
+> +	spi->bits_per_word = 32;
+> +	spi_setup(spi);
+> +
+> +	init_nec_wvga_lcd(spi);
+> +
+> +	omap_dss_register_driver(&nec_driver);
+> +	return 0;
+> +}
+> +
+> +static int dss_spi_remove(struct spi_device *spi)
+> +{
+> +	omap_dss_unregister_driver(&nec_driver);
+> +
+> +	return 0;
+> +}
+> +
+> +static int dss_spi_suspend(struct spi_device *spi, pm_message_t
+> mesg)
+> +{
+> +	spi_send(spi, 2, 0x01);  /* R2 = 01h */
+> +	mdelay(40);
+> +
+> +	return 0;
+> +}
+> +
+> +static int dss_spi_resume(struct spi_device *spi)
+> +{
+> +	/* reinitialize the panel */
+> +	spi_setup(spi);
+> +	spi_send(spi, 2, 0x00);  /* R2 = 00h */
+> +	init_nec_wvga_lcd(spi);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct spi_driver dss_spi_driver = {
+> +	.probe           = dss_spi_probe,
+> +	.remove	= __devexit_p(dss_spi_remove),
+> +	.suspend         = dss_spi_suspend,
+> +	.resume          = dss_spi_resume,
+> +	.driver         = {
+> +		.name   = "disp_spi",
+> +		.bus    = &spi_bus_type,
+> +		.owner  = THIS_MODULE,
+> +	},
+> +};
+> +
+> +static int __init nec_lcd_init(void)
+> +{
+> +	return spi_register_driver(&dss_spi_driver);
+> +}
+> +
+> +static void __exit nec_lcd_exit(void)
+> +{
+> +	return spi_unregister_driver(&dss_spi_driver);
+> +}
+> +
+> +
+> +module_init(nec_lcd_init);
+> +module_exit(nec_lcd_exit);
+> +MODULE_LICENSE("GPL");
+> +
+> --
+> 1.5.4.3
 > 
-> Hi Vishwa,
-> Thanks for the patch, few minor comments follow:
 > 
-> Sripathy, Vishwanath had written, on 11/20/2009 09:28 AM, the following:
-> > SGX can run at 192MHz on 3630 and this patch has changes to support this
-> > feature. Basically DPLL4 M2 will be 192Mhz which will be used as SGX
-> > Clock. 192Mhz clock is divided by 2 (using CM_CLKSEL_CORE) to generate
-> > 96Mh clock
->    ^^^^ <- you probably intended 96Mhz
-
-Yes, is should be 96Mhz.
-> >
-> > Signed-off-by: Vishwanath BS <Vishwanath.bs@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/clock34xx.c       |   16 +++++++++++++++-
-> >  arch/arm/mach-omap2/clock34xx.h       |   33
-> +++++++++++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
-> >  arch/arm/mach-omap2/id.c              |    7 +++++--
-> >  arch/arm/plat-omap/include/plat/cpu.h |    3 +++
-> >  5 files changed, 58 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-
-> omap2/clock34xx.c
-> > index 1e35f9a..bce7e46 100755
-> > --- a/arch/arm/mach-omap2/clock34xx.c
-> > +++ b/arch/arm/mach-omap2/clock34xx.c
-> > @@ -128,6 +128,7 @@ static struct omap_clk omap34xx_clks[] = {
-> >  	CLK(NULL,	"emu_core_alwon_ck", &emu_core_alwon_ck, CK_3XXX),
-> >  	CLK(NULL,	"dpll4_ck",	&dpll4_ck,	CK_3XXX),
-> >  	CLK(NULL,	"dpll4_x2_ck",	&dpll4_x2_ck,	CK_3XXX),
-> > +       CLK(NULL,       "omap_192m_alwon_ck", &omap_192m_alwon_ck,
-> CK_363X),
-> >  	CLK(NULL,	"omap_96m_alwon_fck", &omap_96m_alwon_fck, CK_3XXX),
-> >  	CLK(NULL,	"omap_96m_fck",	&omap_96m_fck,	CK_3XXX),
-> >  	CLK(NULL,	"cm_96m_fck",	&cm_96m_fck,	CK_3XXX),
-> > @@ -1226,7 +1227,20 @@ int __init omap2_clk_init(void)
-> >  				OMAP3630_PERIPH_DPLL_SD_DIV_MASK;
-> >  			dpll4_dd.mult_mask = OMAP3630_PERIPH_DPLL_MULT_MASK;
-> >  			cpu_mask |= RATE_IN_363X;
-> > -			}
-> > +			cpu_clkflg |= CK_363X;
-> 
-> I think introduce CK_36XX should be done seperately.
-
-Ack. It should have been part of patch3.
-> 
-> > +		}
-> > +
-> > +		if (omap3_has_192mhz_clk()) {
-> > +			omap_96m_alwon_fck.parent = &omap_192m_alwon_ck;
-> > +			omap_96m_alwon_fck.init = &omap2_init_clksel_parent;
-> > +			omap_96m_alwon_fck.clksel_reg =
-> > +					OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
-> > +			omap_96m_alwon_fck.clksel_mask =
-> > +						OMAP3630_CLKSEL_96M_MASK;
-> > +			omap_96m_alwon_fck.clksel = omap_96m_alwon_fck_clksel;
-> > +			omap_96m_alwon_fck.recalc = &omap2_clksel_recalc;
-> > +		}
-> > +
-> >  	}
-> >
-> >  	clk_init(&omap2_clk_functions);
-> > diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-
-> omap2/clock34xx.h
-> > index 93c92e5..6fe89df 100644
-> > --- a/arch/arm/mach-omap2/clock34xx.h
-> > +++ b/arch/arm/mach-omap2/clock34xx.h
-> > @@ -654,12 +654,31 @@ static struct clk dpll4_m2x2_ck = {
-> >  	.recalc		= &omap3_clkoutx2_recalc,
-> >  };
-> >
-> > +/* Adding 192MHz Clock node needed by SGX */
-> > +static struct clk omap_192m_alwon_ck = {
-> > +	.name           = "omap_192m_alwon_ck",
-> > +	.ops            = &clkops_null,
-> > +	.parent         = &dpll4_m2x2_ck,
-> > +	.recalc         = &followparent_recalc,
-> > +};
-> > +
-> >  /*
-> >   * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
-> >   * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
-> >   * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
-> >   * CM_96K_(F)CLK.
-> >   */
-> > +static const struct clksel_rate omap_96m_alwon_fck_rates[] = {
-> > +	{ .div = 1, .val = 1, .flags = RATE_IN_363X },
-> > +	{ .div = 2, .val = 2, .flags = RATE_IN_363X | DEFAULT_RATE },
-> > +	{ .div = 0 }
-> > +};
-> > +
-> > +static const struct clksel omap_96m_alwon_fck_clksel[] = {
-> > +	{ .parent = &omap_192m_alwon_ck, .rates = omap_96m_alwon_fck_rates },
-> > +	{ .parent = NULL }
-> > +};
-> > +
-> >  static struct clk omap_96m_alwon_fck = {
-> >  	.name		= "omap_96m_alwon_fck",
-> >  	.ops		= &clkops_null,
-> > @@ -1223,6 +1242,18 @@ static const struct clksel_rate sgx_core_rates[] = {
-> >  	{ .div = 3, .val = 0, .flags = RATE_IN_3XXX | DEFAULT_RATE },
-> >  	{ .div = 4, .val = 1, .flags = RATE_IN_3XXX },
-> >  	{ .div = 6, .val = 2, .flags = RATE_IN_3XXX },
-> > +	{ .div = 2, .val = 5, .flags = RATE_IN_363X },
-> dont we have more options here? thinking: does this mean that all 3XXX
-> and 36XX defines are valid ones for SGX?
-
->From PRCM point of view all 3XXX configurations are valid for 3430. All 3XXX and 363X are valid for 3630. May be SGX driver not use all these configurations, however Clock node should support all. 
-
-> 
-> > +	{ .div = 0 },
-> > +};
-> > +
-> > +static const struct clksel_rate sgx_192m_rates[] = {
-> > +	{ .div = 1,  .val = 4, .flags = RATE_IN_363X | DEFAULT_RATE },
-> > +	{ .div = 0 },
-> > +};
-> > +
-> > +static const struct clksel_rate sgx_corex2_rates[] = {
-> > +	{ .div = 3, .val = 6, .flags = RATE_IN_363X | DEFAULT_RATE },
-> > +	{ .div = 5, .val = 7, .flags = RATE_IN_363X },
-> >  	{ .div = 0 },
-> >  };
-> >
-> > @@ -1234,6 +1265,8 @@ static const struct clksel_rate sgx_96m_rates[] = {
-> >  static const struct clksel sgx_clksel[] = {
-> >  	{ .parent = &core_ck,	 .rates = sgx_core_rates },
-> >  	{ .parent = &cm_96m_fck, .rates = sgx_96m_rates },
-> > +	{ .parent = &omap_192m_alwon_ck, .rates = sgx_192m_rates },
-> > +	{ .parent = &corex2_fck, .rates = sgx_corex2_rates },
-> >  	{ .parent = NULL },
-> >  };
-> >
-> > diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-
-> regbits-34xx.h
-> > index a6383f9..39b3399 100644
-> > --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-> > +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> > @@ -336,6 +336,8 @@
-> >  #define OMAP3430_CLKSEL_L4_MASK				(0x3 << 2)
-> >  #define OMAP3430_CLKSEL_L3_SHIFT			0
-> >  #define OMAP3430_CLKSEL_L3_MASK				(0x3 << 0)
-> > +#define OMAP3630_CLKSEL_96M_SHIFT                      12
-> > +#define OMAP3630_CLKSEL_96M_MASK                       (0x3 << 12)
-> >
-> >  /* CM_CLKSTCTRL_CORE */
-> >  #define OMAP3430ES1_CLKTRCTRL_D2D_SHIFT			4
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > index 3c1194c..b1bc79d 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -176,8 +176,10 @@ void __init omap3_check_features(void)
-> >  	OMAP3_CHECK_FEATURE(status, NEON);
-> >  	OMAP3_CHECK_FEATURE(status, ISP);
-> >
-> > -	if (cpu_is_omap3630())
-> > -		omap3_features |= OMAP3_HAS_JTYPE_DPLL4;
-> > +	if (cpu_is_omap3630()) {
-> > +		omap3_features |= OMAP3_HAS_JTYPE_DPLL4 |
-> > +							OMAP3_HAS_192MHZ_CLK;
-> might be better to do this as a next entry -> you may want other chips
-> having 192Mhz to also use it..
-> 
-> Please Ref: http://patchwork.kernel.org/patch/61671/ to see how it is
-> done clean.
-
-Ack. Will do it as part of V3
-> 
-> > +	}
-> >  	/*
-> >  	 * TODO: Get additional info (where applicable)
-> >  	 *       e.g. Size of L2 cache.
-> > @@ -319,6 +321,7 @@ void __init omap3_cpuinfo(void)
-> >  	OMAP3_SHOW_FEATURE(neon);
-> >  	OMAP3_SHOW_FEATURE(isp);
-> >  	OMAP3_SHOW_FEATURE(jtype_dpll4);
-> > +	OMAP3_SHOW_FEATURE(192mhz_clk);
-> >  	printk(")\n");
-> >  }
-> >
-> > diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
-> omap/include/plat/cpu.h
-> > index 65c08d5..1dffe25 100644
-> > --- a/arch/arm/plat-omap/include/plat/cpu.h
-> > +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> > @@ -498,6 +498,7 @@ extern u32 omap3_features;
-> >  #define OMAP3_HAS_NEON			BIT(3)
-> >  #define OMAP3_HAS_ISP			BIT(4)
-> >  #define OMAP3_HAS_JTYPE_DPLL4		BIT(5)
-> > +#define OMAP3_HAS_192MHZ_CLK		BIT(6)
-> >
-> >  #define OMAP3_HAS_FEATURE(feat,flag)			\
-> >  static inline unsigned int omap3_has_ ##feat(void)	\
-> > @@ -511,4 +512,6 @@ OMAP3_HAS_FEATURE(iva, IVA)
-> >  OMAP3_HAS_FEATURE(neon, NEON)
-> >  OMAP3_HAS_FEATURE(isp, ISP)
-> >  OMAP3_HAS_FEATURE(jtype_dpll4, JTYPE_DPLL4)
-> > +OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-> > +
-> EOL
-> >  #endif
-> 
+> Regards,
+> Kishore Y
+> Ph:- +918039813085
 > 
 > --
-> Regards,
-> Nishanth Menon
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
