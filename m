@@ -1,45 +1,42 @@
-From: Ladislav Michl <Ladislav.Michl@seznam.cz>
-Subject: Re: [PATCH v4] mmc-omap: Add support for 16-bit and 32-bit
-	registers
-Date: Mon, 23 Nov 2009 20:12:24 +0100
-Message-ID: <20091123191224.GA2076@localhost.localdomain>
-References: <1258993439-4787-1-git-send-email-darkstar6262@gmail.com>
-Reply-To: Ladislav Michl <ladis@linux-mips.org>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] USB: twl4030: Enable USB regulators before enabling USB
+ charging
+Date: Mon, 23 Nov 2009 23:51:40 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309C86348@dbde02.ent.ti.com>
+References: <23D0CDE7C386D144A4F26EB0F427F8C074CF85B0@dlee04.ent.ti.com>,<20091123175948.GF22923@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:38941 "EHLO smtp.seznam.cz"
+Received: from comal.ext.ti.com ([198.47.26.152]:34129 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754332AbZKWSMX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Nov 2009 13:12:23 -0500
-Content-Disposition: inline
-In-Reply-To: <1258993439-4787-1-git-send-email-darkstar6262@gmail.com>
+	id S1752446AbZKWSWk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 13:22:40 -0500
+In-Reply-To: <20091123175948.GF22923@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Marek Belisko <marek.belisko@open-nandra.com>
+To: Tony Lindgren <tony@atomide.com>, "Aguilar Pena, Leed" <leed.aguilar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Nov 23, 2009 at 08:23:59AM -0800, Cory Maccarrone wrote:
-> The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
-> a modification of the register addresses in the mmc-omap driver.  To resolve
-> this, a bit shift is performed on base register addresses, either by 1 or 2
-> bits depending on the CPU in use.  This yields the correct registers for
-> each CPU.
-[...]
-> @@ -167,6 +168,8 @@ struct mmc_omap_host {
->  	spinlock_t		clk_lock;     /* for changing enabled state */
->  	unsigned int            fclk_enabled:1;
->  
-> +	unsigned		reg_shift:2;
-Ah, there is no valid reason to make it bitfield, right? Whole struct is
-not well layed wtr alignment, but please do not make it any worse. That is
-my last complain, I swear ;-). Thank you for your patience.
+Tony Lindgren wrote:
+> * Aguilar Pena, Leed <leed.aguilar@ti.com> [091119 10:34]:
+> > For TWL family of power management ICs, USB charging works only
+> > when USB regulators are in enabled state: 3v1, 1v5, 1v8
+> >
+> > On a USB cable attach, twl4030_phy_resume(twl) function enables
+> > the regulators. Enable USB charging, only after all regulators
+> > are enabled.
+> >
+> > Its observed that enabling USB charging before regulators are
+> > enabled, causes USB charging to fail.
+> >
+> > Tested on: Zoom2: omap3430: ES3.1 + TWL5030
+> > Needs T2-MADC and T2-BCI drivers which are still not upstreamed.
+> 
+> This should go to linux-usb list with linux-omap list Cc'd.
+> 
 
-Other than that, tested on OMAP5910 and it works now (though it needs
-additional patch, see here:
-http://thread.gmane.org/gmane.linux.kernel.mmc/649).
+It's already in greg's queue.
 
-Tested-by: Ladislav Michl <ladis@linux-mips.org>
-
-Best regards,
-	ladis
+- Anand
