@@ -1,165 +1,652 @@
-From: Chris Banker <cbanker@gmail.com>
-Subject: Re: NULL pointer dereference with 2.6.31 on OMAP243
-Date: Mon, 23 Nov 2009 12:07:45 -0800
-Message-ID: <65dfecfd0911231207kc07ede4i17b64c728f6d854e@mail.gmail.com>
-References: <65dfecfd0911191234s585182c3sf88aaebcbd1ccd56@mail.gmail.com>
-	<20091122175523.GA4860@atomide.com>
+From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: [PATCH] DSPBRIDGE: Interface tightening to check for invalid
+Date: Mon, 23 Nov 2009 14:12:08 -0600
+Message-ID: <B852767254C5C94EBB1040EE0EFA060084FBDD1D@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756785AbZKWUIC@vger.kernel.org>
-In-Reply-To: <20091122175523.GA4860@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57932 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751788AbZKWUMG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 15:12:06 -0500
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>
 
-Thank you very much for the assistance, that seemed to fix the problem.
+>From f28ec22e48a9b61ac00b7711e035e117bdc71aeb Mon Sep 17 00:00:00 2001
+From: Ernesto Ramos <ernesto@ti.com>
+Date: Mon, 23 Nov 2009 12:16:45 -0600
+Subject: [PATCH] DSPBRIDGE: Interface tightening to check for invalid inputs.
 
-~Chris
+Move the error checking to kernel to address usecases
+accessing kernel API directly.
 
+Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/dbdefs.h |    3 +-
+ drivers/dsp/bridge/pmgr/wcd.c                 |  263 +++++++++++++++++++++++--
+ drivers/dsp/bridge/rmgr/proc.c                |   42 ----
+ 3 files changed, 249 insertions(+), 59 deletions(-)
 
-On Sun, Nov 22, 2009 at 9:55 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> Hi,
->
-> Added linux-omap list and Paul to Cc.
->
-> * Chris Banker <cbanker@gmail.com> [091119 12:34]:
->> I'm having trouble with the 2.6.31 kernel running on an OMAP2430
->> board.=A0 I was able to get the board to boot using 2.6.31rc1, but a=
-m
->> having some issue with 2.6.31.
->>
->> With low-level debugging enabled, I get the output below.=A0 It appe=
-ars
->> to be an issue with the new hwmod system, which didn't exist in
->> 2.6.31rc1.=A0 It seems to die during the initialization of mpu_hwmod=
-=2E
->>
->> Anyone have any suggestions as to how to fix this or what to try?
->
-> Good to hear somebody is playing with a 2430 :) What's the board
-> you're using? I guess it is not an SDP based on the crystal rate at
-> 19.2MHz?
->
-> We had a similar issue with 2420, that got fixed by
-> a7f20b2695eb6a00a5464089bacf75b8ed64725e.
->
-> Maybe give it a try and see if it helps? I've attached Paul's patch
-> too for reference.
->
-> Regards,
->
-> Tony
->
->
->> Thanks,
->> Chris
->>
->> --------------------------------------------------------------------=
------------------------------------------------------------------------=
------------
->>
->> Starting kernel ...
->>
->> Uncompressing Linux.................................................=
-=2E....................................................................=
-=2E....................................................................=
-=2E....................................................................=
-=2E....................................................................=
-=2E....................................................................=
-=2E....................................................................=
-=2E.....................
->> done, booting the kernel.
->> <5>Linux version 2.6.31-omap1 (cbanker@vcaeng05) (gcc version 4.3.3
->> (GCC) ) #27 Wed Nov 18 17:23:18 PST 2009
->> CPU: ARMv6-compatible processor [4107b366] revision 6 (ARMv6TEJ), cr=
-=3D00c5387f
->> CPU: VIPT aliasing data cache, VIPT aliasing instruction cache
->> Machine: BFT Digital Modem
->> Memory policy: ECC disabled, Data cache writeback
->> <7>On node 0 totalpages: 32768
->> <7>free_area_init_node: node 0, pgdat c0f10848, node_mem_map c0f3500=
-0
->> <7>=A0 Normal zone: 256 pages used for memmap
->> <7>=A0 Normal zone: 0 pages reserved
->> <7>=A0 Normal zone: 32512 pages, LIFO batch:7
->> <6>OMAP2430<6>
->> <6>SRAM: Mapped pa 0x40200000 to va 0xe3000000 size: 0x100000
->> Built 1 zonelists in Zone order, mobility grouping on.=A0 Total page=
-s: 32512
->> <5>Kernel command line: root=3D/dev/ram0 rw console=3Dttys2,115200n8
->> PID hash table entries: 512 (order: 9, 2048 bytes)
->> <6>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
->> <6>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
->> <6>Memory: 128MB =3D 128MB total
->> <5>Memory: 114232KB available (3084K code, 327K data, 12124K init, 0=
-K highmem)
->> <6>NR_IRQS:384
->> <6>Clocking rate (Crystal/DPLL/MPU): 19.2/660/330 MHz
->> <1>Unable to handle kernel NULL pointer dereference at virtual addre=
-ss 00000004
->> <1>pgd =3D c0004000
->> <1>[00000004] *pgd=3D00000000
->> Internal error: Oops: 5 [#1]
->> <d>Modules linked in:
->> CPU: 0=A0=A0=A0 Not tainted=A0 (2.6.31-omap1 #27)
->> PC is at _enable+0x78/0x208
->> LR is at release_console_sem+0x1a8/0x204
->> pc : [<c0be9098>]=A0=A0=A0 lr : [<c0bff998>]=A0=A0=A0 psr: a00001d3
->> sp : c0ee3f38=A0 ip : c0ee3e80=A0 fp : c0ee3f4c
->> r10: 80022140=A0 r9 : 4107b366=A0 r8 : 80022174
->> r7 : c0ee86b4=A0 r6 : c0be95cc=A0 r5 : c0ee6154=A0 r4 : c0ee6154
->> r3 : 00000000=A0 r2 : 00000000=A0 r1 : 000005b2=A0 r0 : 0000001f
->> Flags: NzCv=A0 IRQs off=A0 FIQs off=A0 Mode SVC_32=A0 ISA ARM=A0 Seg=
-ment kernel
->> Control: 00c5387f=A0 Table: 80004000=A0 DAC: 00000017
->> Process swapper (pid: 0, stack limit =3D 0xc0ee2260)
->> Stack: (0xc0ee3f38 to 0xc0ee4000)
->> 3f20:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 c0ee6634 c0ee6154
->> 3f40: c0ee3f68 c0ee3f50 c0be9648 c0be902c 00000000 c0ee6154 c0be95cc=
- c0ee3f88
->> 3f60: c0ee3f6c c0be8a6c c0be95d8 c0eece48 c0eece48 c0bdbe08 c0ee5b34=
- c0ee3f98
->> 3f80: c0ee3f8c c0be98f4 c0be8a44 c0ee3fb0 c0ee3f9c c000dfc4 c0be98a0=
- c0f11190
->> 3fa0: c0f11184 c0ee3fc0 c0ee3fb4 c000ef0c c000df50 c0ee3fd0 c0ee3fc4=
- c000b878
->> 3fc0: c000eee8 c0ee3ff4 c0ee3fd4 c0008a2c c000b84c c0008658 c0bdbe08=
- 00c5387d
->> 3fe0: c0f11440 c0bdc20c 00000000 c0ee3ff8 80008034 c00088fc 00000000=
- 00000000
->> Backtrace:
->> [<c0be9020>] (_enable+0x0/0x208) from [<c0be9648>] (_setup+0x7c/0xb0=
-)
->> =A0r4:c0ee6154
->> [<c0be95cc>] (_setup+0x0/0xb0) from [<c0be8a6c>] (omap_hwmod_for_eac=
-h+0x34/0x78)
->> =A0r6:c0be95cc r5:c0ee6154 r4:00000000
->> [<c0be8a38>] (omap_hwmod_for_each+0x0/0x78) from [<c0be98f4>]
->> (omap_hwmod_late_init+0x60/0x8c)
->> =A0r7:c0ee5b34 r6:c0bdbe08 r5:c0eece48 r4:c0eece48
->> [<c0be9894>] (omap_hwmod_late_init+0x0/0x8c) from [<c000dfc4>]
->> (omap2_init_common_hw+0x80/0xbc)
->> [<c000df44>] (omap2_init_common_hw+0x0/0xbc) from [<c000ef0c>]
->> (omap2430bft_init_irq+0x30/0x1c4)
->> =A0r5:c0f11184 r4:c0f11190
->> [<c000eedc>] (omap2430bft_init_irq+0x0/0x1c4) from [<c000b878>]
->> (init_IRQ+0x38/0x44)
->> [<c000b840>] (init_IRQ+0x0/0x44) from [<c0008a2c>] (start_kernel+0x1=
-3c/0x2ac)
->> [<c00088f0>] (start_kernel+0x0/0x2ac) from [<80008034>] (0x80008034)
->> =A0r6:c0bdc20c r5:c0f11440 r4:00c5387d
->> Code: 0a000005 e5933020 e592205c e593305c (e5920004)
->> <4>---[ end trace 1b75b31a2719ed1c ]---
->> <0>Kernel panic - not syncing: Attempted to kill the idle task!
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kern=
-el" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at =A0http://www.tux.org/lkml/
->
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbdefs.h b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
+index 3570171..2de5ab6 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbdefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
+@@ -217,7 +217,8 @@
+                DSP_DCDLIBRARYTYPE,
+                DSP_DCDCREATELIBTYPE,
+                DSP_DCDEXECUTELIBTYPE,
+-               DSP_DCDDELETELIBTYPE
++               DSP_DCDDELETELIBTYPE,
++               DSP_MAXOBJTYPE = DSP_DCDDELETELIBTYPE
+        } ;
+
+ /* Processor states */
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index 306164f..30cae21 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -268,6 +268,41 @@ static inline void __cp_to_usr(void __user *to, const void *from,
+        }
+ }
+
++/* Check if the given area blongs to process virtul memory address space */
++static int memory_check_vma(void *start_addr, u32 len)
++{
++       int err = 0;
++       u32 end;
++       u32 start = (u32)start_addr;
++       struct vm_area_struct *vma;
++
++       end = start + len;
++       if (end <= start)
++               return -EINVAL;
++
++       down_read(&current->mm->mmap_sem);
++
++       while ((vma = find_vma(current->mm, start)) != NULL) {
++
++               if (vma->vm_start > start) {
++                       err = -EINVAL;
++                       break;
++               }
++
++               if (end <= vma->vm_end)
++                       break;
++
++               start = vma->vm_end;
++       }
++
++       if (!vma)
++               err = -EINVAL;
++
++       up_read(&current->mm->mmap_sem);
++
++       return err;
++}
++
+ /*
+  *  ======== WCD_CallDevIOCtl ========
+  *  Purpose:
+@@ -470,7 +505,7 @@ u32 MGRWRAP_EnumNode_Info(union Trapped_Args *args, void *pr_ctxt)
+        u8 *pNDBProps;
+        u32 uNumNodes;
+        DSP_STATUS status = DSP_SOK;
+-       u32 size = args->ARGS_MGR_ENUMNODE_INFO.uNDBPropsSize;
++       u32 size;
+
+        GT_4trace(WCD_debugMask, GT_ENTER,
+                 "MGR_EnumNodeInfo: entered args:\n0x%x"
+@@ -479,6 +514,20 @@ u32 MGRWRAP_EnumNode_Info(union Trapped_Args *args, void *pr_ctxt)
+                 args->ARGS_MGR_ENUMNODE_INFO.pNDBProps,
+                 args->ARGS_MGR_ENUMNODE_INFO.uNDBPropsSize,
+                 args->ARGS_MGR_ENUMNODE_INFO.puNumNodes);
++
++       if (memory_check_vma(args->ARGS_MGR_ENUMNODE_INFO.pNDBProps,
++               sizeof(struct DSP_NDBPROPS)))
++               return DSP_EPOINTER;
++
++       if (memory_check_vma(args->ARGS_MGR_ENUMNODE_INFO.puNumNodes,
++               sizeof(u32)))
++               return DSP_EPOINTER;
++
++       size = args->ARGS_MGR_ENUMNODE_INFO.uNDBPropsSize;
++
++       if (size < sizeof(struct DSP_NDBPROPS))
++               return DSP_ESIZE;
++
+        pNDBProps = MEM_Alloc(size, MEM_NONPAGED);
+        if (pNDBProps == NULL)
+                status = DSP_EMEMORY;
+@@ -506,7 +555,7 @@ u32 MGRWRAP_EnumProc_Info(union Trapped_Args *args, void *pr_ctxt)
+        u8 *pProcessorInfo;
+        u32 uNumProcs;
+        DSP_STATUS status = DSP_SOK;
+-       u32 size = args->ARGS_MGR_ENUMPROC_INFO.uProcessorInfoSize;
++       u32 size;
+
+        GT_4trace(WCD_debugMask, GT_ENTER,
+                 "MGRWRAP_EnumProc_Info: entered args:\n"
+@@ -516,6 +565,20 @@ u32 MGRWRAP_EnumProc_Info(union Trapped_Args *args, void *pr_ctxt)
+                 args->ARGS_MGR_ENUMPROC_INFO.pProcessorInfo,
+                 args->ARGS_MGR_ENUMPROC_INFO.uProcessorInfoSize,
+                 args->ARGS_MGR_ENUMPROC_INFO.puNumProcs);
++
++       if (memory_check_vma(args->ARGS_MGR_ENUMPROC_INFO.pProcessorInfo,
++               sizeof(struct DSP_PROCESSORINFO)))
++               return DSP_EPOINTER;
++
++       if (memory_check_vma(args->ARGS_MGR_ENUMPROC_INFO.puNumProcs,
++               sizeof(u32)))
++               return DSP_EPOINTER;
++
++       size = args->ARGS_MGR_ENUMPROC_INFO.uProcessorInfoSize;
++
++       if (size < sizeof(struct DSP_PROCESSORINFO))
++               return DSP_ESIZE;
++
+        pProcessorInfo = MEM_Alloc(size, MEM_NONPAGED);
+        if (pProcessorInfo == NULL)
+                status = DSP_EMEMORY;
+@@ -548,6 +611,11 @@ u32 MGRWRAP_RegisterObject(union Trapped_Args *args, void *pr_ctxt)
+        char *pszPathName = NULL;
+        DSP_STATUS status = DSP_SOK;
+
++
++       GT_1trace(WCD_debugMask, GT_ENTER,
++                "MGRWRAP_RegisterObject: entered "
++                "0x%x\n", args->ARGS_MGR_REGISTEROBJECT.pUuid);
++
+        cp_fm_usr(&pUuid, args->ARGS_MGR_REGISTEROBJECT.pUuid, status, 1);
+        if (DSP_FAILED(status))
+                goto func_end;
+@@ -565,9 +633,9 @@ u32 MGRWRAP_RegisterObject(union Trapped_Args *args, void *pr_ctxt)
+                goto func_end;
+        }
+
+-       GT_1trace(WCD_debugMask, GT_ENTER,
+-                "MGRWRAP_RegisterObject: entered pg2hMsg "
+-                "0x%x\n", args->ARGS_MGR_REGISTEROBJECT.pUuid);
++       if (args->ARGS_MGR_REGISTEROBJECT.objType > DSP_MAXOBJTYPE)
++               return DSP_EINVALIDARG;
++
+        status = DCD_RegisterObject(&pUuid,
+                                args->ARGS_MGR_REGISTEROBJECT.objType,
+                                (char *)pszPathName);
+@@ -604,6 +672,9 @@ u32 MGRWRAP_WaitForBridgeEvents(union Trapped_Args *args, void *pr_ctxt)
+        if (uCount > MAX_EVENTS)
+                status = DSP_EINVALIDARG;
+
++       if (memory_check_vma(args->ARGS_MGR_WAIT.puIndex, sizeof(u32)))
++               return DSP_EPOINTER;
++
+        /* get the array of pointers to user structures */
+        cp_fm_usr(aNotifications, args->ARGS_MGR_WAIT.aNotifications,
+         status, uCount);
+@@ -662,6 +733,11 @@ u32 PROCWRAP_Attach(union Trapped_Args *args, void *pr_ctxt)
+                 args->ARGS_PROC_ATTACH.uProcessor,
+                 args->ARGS_PROC_ATTACH.pAttrIn,
+                 args->ARGS_PROC_ATTACH.phProcessor);
++
++       if (memory_check_vma(args->ARGS_PROC_ATTACH.phProcessor,
++               sizeof(DSP_HPROCESSOR)))
++               return DSP_EHANDLE;
++
+        /* Optional argument */
+        if (args->ARGS_PROC_ATTACH.pAttrIn) {
+                cp_fm_usr(&attrIn, args->ARGS_PROC_ATTACH.pAttrIn, status, 1);
+@@ -756,11 +832,27 @@ u32 PROCWRAP_EnumNode_Info(union Trapped_Args *args, void *pr_ctxt)
+                 args->ARGS_PROC_ENUMNODE_INFO.uNodeTabSize,
+                 args->ARGS_PROC_ENUMNODE_INFO.puNumNodes,
+                 args->ARGS_PROC_ENUMNODE_INFO.puAllocated);
+-       DBC_Require(args->ARGS_PROC_ENUMNODE_INFO.uNodeTabSize <= MAX_NODES);
++
++       if (memory_check_vma(args->ARGS_PROC_ENUMNODE_INFO.puNumNodes,
++               sizeof(u32)))
++               return DSP_EPOINTER;
++
++       if (memory_check_vma(args->ARGS_PROC_ENUMNODE_INFO.puAllocated,
++               sizeof(u32)))
++               return DSP_EPOINTER;
++
++       if (!args->ARGS_PROC_ENUMNODE_INFO.uNodeTabSize)
++               return DSP_ESIZE;
++
+        status = PROC_EnumNodes(args->ARGS_PROC_ENUMNODE_INFO.hProcessor,
+                                aNodeTab,
+                                args->ARGS_PROC_ENUMNODE_INFO.uNodeTabSize,
+                                &uNumNodes, &uAllocated);
++
++       if (memory_check_vma(args->ARGS_PROC_ENUMNODE_INFO.aNodeTab,
++               sizeof(DSP_HNODE) * uNumNodes))
++               return DSP_EHANDLE;
++
+        cp_to_usr(args->ARGS_PROC_ENUMNODE_INFO.aNodeTab, aNodeTab, status,
+                 uNumNodes);
+        cp_to_usr(args->ARGS_PROC_ENUMNODE_INFO.puNumNodes, &uNumNodes,
+@@ -779,6 +871,13 @@ u32 PROCWRAP_FlushMemory(union Trapped_Args *args, void *pr_ctxt)
+
+        GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_FlushMemory: entered\n");
+
++       if (memory_check_vma(args->ARGS_PROC_FLUSHMEMORY.pMpuAddr,
++               args->ARGS_PROC_FLUSHMEMORY.ulSize))
++               return DSP_EPOINTER;
++
++       if (args->ARGS_PROC_FLUSHMEMORY.ulFlags > PROC_WRBK_INV_ALL)
++               return DSP_EINVALIDARG;
++
+        status = PROC_FlushMemory(args->ARGS_PROC_FLUSHMEMORY.hProcessor,
+                                 args->ARGS_PROC_FLUSHMEMORY.pMpuAddr,
+                                 args->ARGS_PROC_FLUSHMEMORY.ulSize,
+@@ -797,6 +896,10 @@ u32 PROCWRAP_InvalidateMemory(union Trapped_Args *args, void *pr_ctxt)
+        GT_0trace(WCD_debugMask, GT_ENTER,
+                 "PROCWRAP_InvalidateMemory:entered\n");
+
++       if (memory_check_vma(args->ARGS_PROC_INVALIDATEMEMORY.pMpuAddr,
++               args->ARGS_PROC_INVALIDATEMEMORY.ulSize))
++               return DSP_EPOINTER;
++
+        status = PROC_InvalidateMemory(
+                                  args->ARGS_PROC_INVALIDATEMEMORY.hProcessor,
+                                  args->ARGS_PROC_INVALIDATEMEMORY.pMpuAddr,
+@@ -813,9 +916,6 @@ u32 PROCWRAP_EnumResources(union Trapped_Args *args, void *pr_ctxt)
+        DSP_STATUS status = DSP_SOK;
+        struct DSP_RESOURCEINFO pResourceInfo;
+
+-       if (DSP_FAILED(status))
+-               goto func_end;
+-
+        GT_4trace(WCD_debugMask, GT_ENTER,
+                 "PROCWRAP_EnumResources: entered args:\n"
+                 "0x%x hProcessor: 0x%x\tuResourceMask: 0x%x\tpResourceInfo"
+@@ -824,6 +924,15 @@ u32 PROCWRAP_EnumResources(union Trapped_Args *args, void *pr_ctxt)
+                 args->ARGS_PROC_ENUMRESOURCES.uResourceType,
+                 args->ARGS_PROC_ENUMRESOURCES.pResourceInfo,
+                 args->ARGS_PROC_ENUMRESOURCES.uResourceInfoSize);
++
++       if (memory_check_vma(args->ARGS_PROC_ENUMRESOURCES.pResourceInfo,
++               sizeof(struct DSP_RESOURCEINFO)))
++               return DSP_EPOINTER;
++
++       if (args->ARGS_PROC_ENUMRESOURCES.uResourceInfoSize <
++               sizeof(struct DSP_RESOURCEINFO))
++               return DSP_ESIZE;
++
+        status = PROC_GetResourceInfo(args->ARGS_PROC_ENUMRESOURCES.hProcessor,
+                        args->ARGS_PROC_ENUMRESOURCES.uResourceType,
+                        &pResourceInfo,
+@@ -845,6 +954,15 @@ u32 PROCWRAP_GetState(union Trapped_Args *args, void *pr_ctxt)
+        DSP_STATUS status;
+        struct DSP_PROCESSORSTATE procStatus;
+        GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_GetState: entered\n");
++
++       if (memory_check_vma(args->ARGS_PROC_GETSTATE.pProcStatus,
++               sizeof(struct DSP_PROCESSORSTATE)))
++               return DSP_EPOINTER;
++
++       if (args->ARGS_PROC_GETSTATE.uStateInfoSize <
++               sizeof(struct DSP_PROCESSORSTATE))
++               return DSP_ESIZE;
++
+        status = PROC_GetState(args->ARGS_PROC_GETSTATE.hProcessor, &procStatus,
+                              args->ARGS_PROC_GETSTATE.uStateInfoSize);
+        cp_to_usr(args->ARGS_PROC_GETSTATE.pProcStatus, &procStatus, status, 1);
+@@ -862,7 +980,12 @@ u32 PROCWRAP_GetTrace(union Trapped_Args *args, void *pr_ctxt)
+
+        GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_GetTrace: entered\n");
+
+-       DBC_Require(args->ARGS_PROC_GETTRACE.uMaxSize <= MAX_TRACEBUFLEN);
++       if (args->ARGS_PROC_GETTRACE.uMaxSize > MAX_TRACEBUFLEN)
++               return DSP_ESIZE;
++
++       if (memory_check_vma(args->ARGS_PROC_GETTRACE.pBuf,
++               args->ARGS_PROC_GETTRACE.uMaxSize))
++               return DSP_EPOINTER;
+
+        pBuf = MEM_Calloc(args->ARGS_PROC_GETTRACE.uMaxSize, MEM_NONPAGED);
+        if (pBuf != NULL) {
+@@ -890,8 +1013,8 @@ u32 PROCWRAP_Load(union Trapped_Args *args, void *pr_ctxt)
+        s32 count = args->ARGS_PROC_LOAD.iArgc;
+        u8 **argv, **envp = NULL;
+
+-       DBC_Require(count > 0);
+-       DBC_Require(count <= MAX_LOADARGS);
++       if (count <= 0 || count > MAX_LOADARGS)
++               return DSP_EINVALIDARG;
+
+        argv = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
+        if (!argv) {
+@@ -1007,6 +1130,18 @@ u32 PROCWRAP_Map(union Trapped_Args *args, void *pr_ctxt)
+        void *pMapAddr;
+
+        GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_Map: entered\n");
++
++       if (!args->ARGS_PROC_MAPMEM.ulSize)
++               return DSP_ESIZE;
++
++       if (memory_check_vma(args->ARGS_PROC_MAPMEM.pMpuAddr,
++               args->ARGS_PROC_MAPMEM.ulSize))
++               return DSP_EPOINTER;
++
++       if (memory_check_vma(args->ARGS_PROC_MAPMEM.ppMapAddr,
++               sizeof(u32)))
++               return DSP_EPOINTER;
++
+        status = PROC_Map(args->ARGS_PROC_MAPMEM.hProcessor,
+                         args->ARGS_PROC_MAPMEM.pMpuAddr,
+                         args->ARGS_PROC_MAPMEM.ulSize,
+@@ -1031,6 +1166,10 @@ u32 PROCWRAP_RegisterNotify(union Trapped_Args *args, void *pr_ctxt)
+        GT_0trace(WCD_debugMask, GT_ENTER,
+                 "PROCWRAP_RegisterNotify: entered\n");
+
++       if (memory_check_vma(args->ARGS_PROC_REGISTER_NOTIFY.hNotification,
++               sizeof(struct DSP_NOTIFICATION)))
++               return DSP_EHANDLE;
++
+        /* Initialize the notification data structure  */
+        notification.psName = NULL;
+        notification.handle = NULL;
+@@ -1052,6 +1191,13 @@ u32 PROCWRAP_ReserveMemory(union Trapped_Args *args, void *pr_ctxt)
+        DSP_STATUS status;
+        void *pRsvAddr;
+
++       if (memory_check_vma(args->ARGS_PROC_RSVMEM.ppRsvAddr, sizeof(void *)))
++               return DSP_EPOINTER;
++
++       if ((args->ARGS_PROC_RSVMEM.ulSize <= 0) ||
++               (args->ARGS_PROC_RSVMEM.ulSize & (PG_SIZE_4K - 1)) != 0)
++               return DSP_ESIZE;
++
+        GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_ReserveMemory: entered\n");
+        status = PROC_ReserveMemory(args->ARGS_PROC_RSVMEM.hProcessor,
+                                   args->ARGS_PROC_RSVMEM.ulSize, &pRsvAddr);
+@@ -1128,6 +1274,10 @@ u32 NODEWRAP_Allocate(union Trapped_Args *args, void *pr_ctxt)
+
+        GT_0trace(WCD_debugMask, GT_ENTER, "NODEWRAP_Allocate: entered\n");
+
++       if (memory_check_vma(args->ARGS_NODE_ALLOCATE.phNode,
++               sizeof(DSP_HNODE)))
++               return DSP_EPOINTER;
++
+        /* Optional argument */
+        if (pSize) {
+                if (get_user(cbDataSize, pSize))
+@@ -1178,6 +1328,13 @@ u32 NODEWRAP_AllocMsgBuf(union Trapped_Args *args, void *pr_ctxt)
+        struct DSP_BUFFERATTR attr;
+        u8 *pBuffer = NULL;
+
++       if (!args->ARGS_NODE_ALLOCMSGBUF.uSize)
++               return DSP_ESIZE;
++
++       if (memory_check_vma(args->ARGS_NODE_ALLOCMSGBUF.pBuffer,
++               sizeof(u8 *)))
++               return DSP_EPOINTER;
++
+        if (args->ARGS_NODE_ALLOCMSGBUF.pAttr) {        /* Optional argument */
+                cp_fm_usr(&attr, args->ARGS_NODE_ALLOCMSGBUF.pAttr, status, 1);
+                if (DSP_SUCCEEDED(status))
+@@ -1303,6 +1460,10 @@ u32 NODEWRAP_FreeMsgBuf(union Trapped_Args *args, void *pr_ctxt)
+                        pAttr = &attr;
+
+        }
++
++       if (!args->ARGS_NODE_FREEMSGBUF.pBuffer)
++               return DSP_EPOINTER;
++
+        if (DSP_SUCCEEDED(status)) {
+                status = NODE_FreeMsgBuf(args->ARGS_NODE_FREEMSGBUF.hNode,
+                                        args->ARGS_NODE_FREEMSGBUF.pBuffer,
+@@ -1322,6 +1483,10 @@ u32 NODEWRAP_GetAttr(union Trapped_Args *args, void *pr_ctxt)
+
+        GT_0trace(WCD_debugMask, GT_ENTER, "NODEWRAP_GetAttr: entered\n");
+
++       if (memory_check_vma(args->ARGS_NODE_GETATTR.pAttr,
++               sizeof(struct DSP_NODEATTR)))
++               return DSP_EPOINTER;
++
+        status = NODE_GetAttr(args->ARGS_NODE_GETATTR.hNode, &attr,
+                             args->ARGS_NODE_GETATTR.uAttrSize);
+        cp_to_usr(args->ARGS_NODE_GETATTR.pAttr, &attr, status, 1);
+@@ -1339,6 +1504,10 @@ u32 NODEWRAP_GetMessage(union Trapped_Args *args, void *pr_ctxt)
+
+        GT_0trace(WCD_debugMask, GT_ENTER, "NODEWRAP_GetMessage: entered\n");
+
++       if (memory_check_vma(args->ARGS_NODE_GETMESSAGE.pMessage,
++               sizeof(struct DSP_MSG)))
++               return DSP_EPOINTER;
++
+        status = NODE_GetMessage(args->ARGS_NODE_GETMESSAGE.hNode, &msg,
+                                args->ARGS_NODE_GETMESSAGE.uTimeout);
+
+@@ -1391,6 +1560,10 @@ u32 NODEWRAP_RegisterNotify(union Trapped_Args *args, void *pr_ctxt)
+        GT_0trace(WCD_debugMask, GT_ENTER,
+                 "NODEWRAP_RegisterNotify: entered\n");
+
++       if (memory_check_vma(args->ARGS_NODE_REGISTERNOTIFY.hNotification,
++               sizeof(struct DSP_NOTIFICATION)))
++               return DSP_EHANDLE;
++
+        /* Initialize the notification data structure  */
+        notification.psName = NULL;
+        notification.handle = NULL;
+@@ -1432,6 +1605,10 @@ u32 NODEWRAP_Terminate(union Trapped_Args *args, void *pr_ctxt)
+
+        GT_0trace(WCD_debugMask, GT_ENTER, "NODEWRAP_Terminate: entered\n");
+
++       if (memory_check_vma(args->ARGS_NODE_TERMINATE.pStatus,
++               sizeof(DSP_STATUS)))
++               return DSP_EPOINTER;
++
+        status = NODE_Terminate(args->ARGS_NODE_TERMINATE.hNode, &tempstatus);
+
+        cp_to_usr(args->ARGS_NODE_TERMINATE.pStatus, &tempstatus, status, 1);
+@@ -1452,6 +1629,9 @@ u32 NODEWRAP_GetUUIDProps(union Trapped_Args *args, void *pr_ctxt)
+        GT_0trace(WCD_debugMask, GT_ENTER,
+                 "NODEWRAP_GetUUIDPropste: entered\n");
+
++       if (memory_check_vma(args->ARGS_NODE_GETUUIDPROPS.pNodeProps,
++               sizeof(struct DSP_NDBPROPS)))
++               return DSP_EPOINTER;
+
+        cp_fm_usr(&nodeId, args->ARGS_NODE_GETUUIDPROPS.pNodeID, status, 1);
+        if (DSP_FAILED(status))
+@@ -1480,7 +1660,11 @@ u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args, void *pr_ctxt)
+        u8 **apBuffer = NULL;
+        u32 uNumBufs = args->ARGS_STRM_ALLOCATEBUFFER.uNumBufs;
+
+-       DBC_Require(uNumBufs <= MAX_BUFS);
++       if (uNumBufs > MAX_BUFS)
++               return DSP_EINVALIDARG;
++
++       if (memory_check_vma(args->ARGS_STRM_ALLOCATEBUFFER.apBuffer, uNumBufs))
++               return DSP_EPOINTER;
+
+        apBuffer = MEM_Alloc((uNumBufs * sizeof(u8 *)), MEM_NONPAGED);
+
+@@ -1512,7 +1696,11 @@ u32 STRMWRAP_FreeBuffer(union Trapped_Args *args, void *pr_ctxt)
+        u8 **apBuffer = NULL;
+        u32 uNumBufs = args->ARGS_STRM_FREEBUFFER.uNumBufs;
+
+-       DBC_Require(uNumBufs <= MAX_BUFS);
++       if (uNumBufs > MAX_BUFS)
++               return DSP_EINVALIDARG;
++
++       if (memory_check_vma(args->ARGS_STRM_FREEBUFFER.apBuffer, uNumBufs))
++               return DSP_EPOINTER;
+
+        apBuffer = MEM_Alloc((uNumBufs * sizeof(u8 *)), MEM_NONPAGED);
+
+@@ -1550,6 +1738,10 @@ u32 STRMWRAP_GetInfo(union Trapped_Args *args, void *pr_ctxt)
+        struct DSP_STREAMINFO *temp;
+
+        cp_fm_usr(&strmInfo, args->ARGS_STRM_GETINFO.pStreamInfo, status, 1);
++
++       if (memory_check_vma(strmInfo.pUser, sizeof(struct DSP_STREAMINFO)))
++               return DSP_EPOINTER;
++
+        temp = strmInfo.pUser;
+
+        strmInfo.pUser = &user;
+@@ -1583,6 +1775,10 @@ u32 STRMWRAP_Idle(union Trapped_Args *args, void *pr_ctxt)
+ u32 STRMWRAP_Issue(union Trapped_Args *args, void *pr_ctxt)
+ {
+        DSP_STATUS status = DSP_SOK;
++
++       if (!args->ARGS_STRM_ISSUE.pBuffer)
++               return DSP_EPOINTER;
++
+        /* No need of doing cp_fm_usr for the user buffer (pBuffer)
+        as this is done in Bridge internal function WMD_CHNL_AddIOReq
+        in chnl_sm.c */
+@@ -1605,12 +1801,19 @@ u32 STRMWRAP_Open(union Trapped_Args *args, void *pr_ctxt)
+        struct STRM_OBJECT *pStrm;
+        struct DSP_STREAMATTRIN strmAttrIn;
+
++       if (memory_check_vma(args->ARGS_STRM_OPEN.phStream,
++               sizeof(DSP_HSTREAM)))
++               return DSP_EPOINTER;
++
+        cp_fm_usr(&attr, args->ARGS_STRM_OPEN.pAttrIn, status, 1);
+
+        if (attr.pStreamAttrIn != NULL) {       /* Optional argument */
+                cp_fm_usr(&strmAttrIn, attr.pStreamAttrIn, status, 1);
+-               if (DSP_SUCCEEDED(status))
++               if (DSP_SUCCEEDED(status)) {
+                        attr.pStreamAttrIn = &strmAttrIn;
++                       if (attr.pStreamAttrIn->lMode == STRMMODE_LDMA)
++                               return DSP_ENOTIMPL;
++               }
+
+        }
+        status = STRM_Open(args->ARGS_STRM_OPEN.hNode,
+@@ -1632,6 +1835,18 @@ u32 STRMWRAP_Reclaim(union Trapped_Args *args, void *pr_ctxt)
+        u32 dwArg;
+        u32 ulBufSize;
+
++       if (memory_check_vma(args->ARGS_STRM_RECLAIM.pBufPtr,
++               sizeof(args->ARGS_STRM_RECLAIM.pBufPtr)))
++               return DSP_EPOINTER;
++       if (memory_check_vma(args->ARGS_STRM_RECLAIM.pBytes, sizeof(u32 *)))
++               return DSP_EPOINTER;
++       if (memory_check_vma(args->ARGS_STRM_RECLAIM.pdwArg, sizeof(u32 *)))
++               return DSP_EPOINTER;
++       if (args->ARGS_STRM_RECLAIM.pBufSize != NULL)
++               if (memory_check_vma(args->ARGS_STRM_RECLAIM.pBufSize,
++                       sizeof(u32 *)))
++                       return DSP_EPOINTER;
++
+        status = STRM_Reclaim(args->ARGS_STRM_RECLAIM.hStream, &pBufPtr,
+                             &ulBytes, &ulBufSize, &dwArg);
+        cp_to_usr(args->ARGS_STRM_RECLAIM.pBufPtr, &pBufPtr, status, 1);
+@@ -1657,6 +1872,10 @@ u32 STRMWRAP_RegisterNotify(union Trapped_Args *args, void *pr_ctxt)
+        GT_0trace(WCD_debugMask, GT_ENTER,
+                 "NODEWRAP_RegisterNotify: entered\n");
+
++       if (memory_check_vma(args->ARGS_STRM_REGISTERNOTIFY.hNotification,
++               sizeof(struct DSP_NOTIFICATION)))
++               return DSP_EHANDLE;
++
+        /* Initialize the notification data structure  */
+        notification.psName = NULL;
+        notification.handle = NULL;
+@@ -1680,7 +1899,11 @@ u32 STRMWRAP_Select(union Trapped_Args *args, void *pr_ctxt)
+        struct STRM_OBJECT *aStrmTab[MAX_STREAMS];
+        DSP_STATUS status = DSP_SOK;
+
+-       DBC_Require(args->ARGS_STRM_SELECT.nStreams <= MAX_STREAMS);
++       if (args->ARGS_STRM_SELECT.nStreams > MAX_STREAMS)
++               return DSP_EINVALIDARG;
++
++       if (memory_check_vma(args->ARGS_STRM_SELECT.pMask, sizeof(u32)))
++               return DSP_EPOINTER;
+
+        cp_fm_usr(aStrmTab, args->ARGS_STRM_SELECT.aStreamTab, status,
+                 args->ARGS_STRM_SELECT.nStreams);
+@@ -1720,6 +1943,10 @@ u32 CMMWRAP_GetHandle(union Trapped_Args *args, void *pr_ctxt)
+        DSP_STATUS status = DSP_SOK;
+        struct CMM_OBJECT *hCmmMgr;
+
++       if (memory_check_vma(args->ARGS_CMM_GETHANDLE.phCmmMgr,
++               sizeof(args->ARGS_CMM_GETHANDLE.phCmmMgr)))
++               return DSP_EPOINTER;
++
+        status = CMM_GetHandle(args->ARGS_CMM_GETHANDLE.hProcessor, &hCmmMgr);
+
+        cp_to_usr(args->ARGS_CMM_GETHANDLE.phCmmMgr, &hCmmMgr, status, 1);
+@@ -1735,6 +1962,10 @@ u32 CMMWRAP_GetInfo(union Trapped_Args *args, void *pr_ctxt)
+        DSP_STATUS status = DSP_SOK;
+        struct CMM_INFO cmmInfo;
+
++       if (memory_check_vma(args->ARGS_CMM_GETINFO.pCmmInfo,
++               sizeof(struct CMM_INFO)))
++               return DSP_EPOINTER;
++
+        status = CMM_GetInfo(args->ARGS_CMM_GETINFO.hCmmMgr, &cmmInfo);
+
+        cp_to_usr(args->ARGS_CMM_GETINFO.pCmmInfo, &cmmInfo, status, 1);
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index bf89ad0..f2330df 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -662,40 +662,6 @@ DSP_STATUS PROC_EnumNodes(DSP_HPROCESSOR hProcessor, OUT DSP_HNODE *aNodeTab,
+        return status;
+ }
+
+-/* Check if the given area blongs to process virtul memory address space */
+-static int memory_check_vma(unsigned long start, u32 len)
+-{
+-       int err = 0;
+-       unsigned long end;
+-       struct vm_area_struct *vma;
+-
+-       end = start + len;
+-       if (end <= start)
+-               return -EINVAL;
+-
+-       down_read(&current->mm->mmap_sem);
+-
+-       while ((vma = find_vma(current->mm, start)) != NULL) {
+-
+-               if (vma->vm_start > start) {
+-                       err = -EINVAL;
+-                       break;
+-               }
+-
+-               if (end <= vma->vm_end)
+-                       break;
+-
+-               start = vma->vm_end;
+-       }
+-
+-       if (!vma)
+-               err = -EINVAL;
+-
+-       up_read(&current->mm->mmap_sem);
+-
+-       return err;
+-}
+-
+ static DSP_STATUS proc_memory_sync(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
+                                   u32 ulSize, u32 ulFlags)
+ {
+@@ -725,14 +691,6 @@ static DSP_STATUS proc_memory_sync(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
+                goto err_out;
+        }
+
+-       if (memory_check_vma((u32)pMpuAddr, ulSize)) {
+-               GT_3trace(PROC_DebugMask, GT_7CLASS,
+-                         "%s: InValid address parameters\n",
+-                         __func__, pMpuAddr, ulSize);
+-               status = DSP_EHANDLE;
+-               goto err_out;
+-       }
+-
+        (void)SYNC_EnterCS(hProcLock);
+        MEM_FlushCache(pMpuAddr, ulSize, ulFlags);
+        (void)SYNC_LeaveCS(hProcLock);
+--
+1.5.4.5
+
