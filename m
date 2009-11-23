@@ -1,64 +1,138 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 3/3] OMAP: omap_device: optionally auto-adjust device
- activate/deactivate latencies
-Date: Mon, 23 Nov 2009 10:35:47 -0800
-Message-ID: <4B0AD603.3050609@deeprootsystems.com>
-References: <1258997622-13923-1-git-send-email-khilman@deeprootsystems.com> <1258997622-13923-2-git-send-email-khilman@deeprootsystems.com> <1258997622-13923-3-git-send-email-khilman@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: [PATCH v5] mmc-omap: Add support for 16-bit and 32-bit registers
+Date: Mon, 23 Nov 2009 10:37:28 -0800
+Message-ID: <1259001448-9574-1-git-send-email-darkstar6262@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:47125 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754188AbZKWSfn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 13:35:43 -0500
-Received: by pzk1 with SMTP id 1so4142979pzk.33
-        for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 10:35:49 -0800 (PST)
-In-Reply-To: <1258997622-13923-3-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:39106 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754707AbZKWSh1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 13:37:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: Cory Maccarrone <darkstar6262@gmail.com>, Marek Belisko <marek.belisko@open-nandra.com>
 
-Kevin Hilman wrote:
-> First, this patch adds new worst-case latency values to the
-> omap_device_pm_latency struct.  Here the worst-case measured latencies
-> for the activate and deactivate hooks are stored.
-> 
-> In addition, add an option to auto-adjust the latency values used for
-> device activate/deactivate.
-> 
-> By setting a new 'OMAP_DEVICE_LATENCY_AUTO_ADJUST' flag in the
-> omap_device_pm_latency struct, the omap_device layer automatically
-> adjusts the activate/deactivate latencies to the worst-case measured
-> values.
-> 
-> Anytime a new worst-case value is found, it is printed to the console.
-> Here is an example log during boot using UART2 s an example.  After
-> boot, the OPP is manually changed to the 125MHz OPP:
-> 
-> [...]
-> Freeing init memory: 128K
-> omap_device: serial8250.2: new worst case deactivate latency 0: 30517
-> omap_device: serial8250.2: new worst case activate latency 0: 30517
-> omap_device: serial8250.2: new worst case activate latency 0: 218139648
-> omap_device: serial8250.2: new worst case deactivate latency 0: 61035
-> omap_device: serial8250.2: new worst case activate latency 0: 278076171
-> omap_device: serial8250.2: new worst case activate latency 0: 298614501
-> omap_device: serial8250.2: new worst case activate latency 0: 327331542
-> 
-> / # echo 125000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
-> 
-> omap_device: serial8250.2: new worst case deactivate latency 0: 91552
-> 
-> Motivation: this can be used as a technique to automatically determine
-> the worst case latency values.  The current method of printing a
-> warning on every violation is too noisy to actually interact the
-> console in order to set low OPP to discover latencies.
+The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
+a modification of the register addresses in the mmc-omap driver.  To resolve
+this, a bit shift is performed on base register addresses, either by 1 or 2
+bits depending on the CPU in use.  This yields the correct registers for
+each CPU.
 
-Another motivation for this patch is that the activate/deactivate 
-latenices can vary depending on the idlemode of the device.  While 
-working on the UART I noticed that when using no-idle, the activate 
-latencies were as high as several hundred msecs as shown above.  When 
-the UARTs are in smart-idle, the max latency is well under 100 usecs.
+Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+---
+ drivers/mmc/host/omap.c |   62 +++++++++++++++++++++++++----------------------
+ 1 files changed, 33 insertions(+), 29 deletions(-)
 
-Kevin
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 5f970e2..f10339a 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -38,30 +38,30 @@
+ #include <plat/fpga.h>
+ 
+ #define	OMAP_MMC_REG_CMD	0x00
+-#define	OMAP_MMC_REG_ARGL	0x04
+-#define	OMAP_MMC_REG_ARGH	0x08
+-#define	OMAP_MMC_REG_CON	0x0c
+-#define	OMAP_MMC_REG_STAT	0x10
+-#define	OMAP_MMC_REG_IE		0x14
+-#define	OMAP_MMC_REG_CTO	0x18
+-#define	OMAP_MMC_REG_DTO	0x1c
+-#define	OMAP_MMC_REG_DATA	0x20
+-#define	OMAP_MMC_REG_BLEN	0x24
+-#define	OMAP_MMC_REG_NBLK	0x28
+-#define	OMAP_MMC_REG_BUF	0x2c
+-#define OMAP_MMC_REG_SDIO	0x34
+-#define	OMAP_MMC_REG_REV	0x3c
+-#define	OMAP_MMC_REG_RSP0	0x40
+-#define	OMAP_MMC_REG_RSP1	0x44
+-#define	OMAP_MMC_REG_RSP2	0x48
+-#define	OMAP_MMC_REG_RSP3	0x4c
+-#define	OMAP_MMC_REG_RSP4	0x50
+-#define	OMAP_MMC_REG_RSP5	0x54
+-#define	OMAP_MMC_REG_RSP6	0x58
+-#define	OMAP_MMC_REG_RSP7	0x5c
+-#define	OMAP_MMC_REG_IOSR	0x60
+-#define	OMAP_MMC_REG_SYSC	0x64
+-#define	OMAP_MMC_REG_SYSS	0x68
++#define	OMAP_MMC_REG_ARGL	0x01
++#define	OMAP_MMC_REG_ARGH	0x02
++#define	OMAP_MMC_REG_CON	0x03
++#define	OMAP_MMC_REG_STAT	0x04
++#define	OMAP_MMC_REG_IE		0x05
++#define	OMAP_MMC_REG_CTO	0x06
++#define	OMAP_MMC_REG_DTO	0x07
++#define	OMAP_MMC_REG_DATA	0x08
++#define	OMAP_MMC_REG_BLEN	0x09
++#define	OMAP_MMC_REG_NBLK	0x0a
++#define	OMAP_MMC_REG_BUF	0x0b
++#define	OMAP_MMC_REG_SDIO	0x0d
++#define	OMAP_MMC_REG_REV	0x0f
++#define	OMAP_MMC_REG_RSP0	0x10
++#define	OMAP_MMC_REG_RSP1	0x11
++#define	OMAP_MMC_REG_RSP2	0x12
++#define	OMAP_MMC_REG_RSP3	0x13
++#define	OMAP_MMC_REG_RSP4	0x14
++#define	OMAP_MMC_REG_RSP5	0x15
++#define	OMAP_MMC_REG_RSP6	0x16
++#define	OMAP_MMC_REG_RSP7	0x17
++#define	OMAP_MMC_REG_IOSR	0x18
++#define	OMAP_MMC_REG_SYSC	0x19
++#define	OMAP_MMC_REG_SYSS	0x1a
+ 
+ #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
+ #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
+@@ -77,8 +77,9 @@
+ #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
+ #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
+ 
+-#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
+-#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
++#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
++#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
++#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
+ 
+ /*
+  * Command types
+@@ -132,6 +133,7 @@ struct mmc_omap_host {
+ 	int			irq;
+ 	unsigned char		bus_mode;
+ 	unsigned char		hw_bus_mode;
++	unsigned int		reg_shift;
+ 
+ 	struct work_struct	cmd_abort_work;
+ 	unsigned		abort:1;
+@@ -679,9 +681,9 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
+ 	host->data->bytes_xfered += n;
+ 
+ 	if (write) {
+-		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
++		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
+ 	} else {
+-		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
++		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
+ 	}
+ }
+ 
+@@ -899,7 +901,7 @@ mmc_omap_prepare_dma(struct mmc_omap_host *host, struct mmc_data *data)
+ 	int dst_port = 0;
+ 	int sync_dev = 0;
+ 
+-	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
++	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
+ 	frame = data->blksz;
+ 	count = sg_dma_len(sg);
+ 
+@@ -1490,6 +1492,8 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
++
+ 	return 0;
+ 
+ err_plat_cleanup:
+-- 
+1.6.0.4
+
