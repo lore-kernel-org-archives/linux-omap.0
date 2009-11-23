@@ -1,39 +1,31 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS2 panel question
-Date: Mon, 23 Nov 2009 13:04:47 +0200
-Message-ID: <1258974287.2438.76.camel@tubuntu.research.nokia.com>
-References: <6ed0b2680911210716l529e02ck23e188417fecd4f1@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] [PATCH 6/8] AI TB: Audio driver of Always
+	Innovating OMAP3-based Touch Book
+Date: Mon, 23 Nov 2009 11:33:21 +0000
+Message-ID: <20091123113321.GA3987@sirena.org.uk>
+References: <1258228079.16065.17.camel@runt> <1258345850.9089.21.camel@gregoire-laptop> <1258599479.8001.37.camel@gregoire-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45376 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757189AbZKWLFJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 06:05:09 -0500
-In-Reply-To: <6ed0b2680911210716l529e02ck23e188417fecd4f1@mail.gmail.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:40988 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756585AbZKWLdT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 06:33:19 -0500
+Content-Disposition: inline
+In-Reply-To: <1258599479.8001.37.camel@gregoire-laptop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Gregoire Gentil <gregoire@gentil.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, Tim Yamin <plasmaroo@gmail.com>
 
-On Sat, 2009-11-21 at 16:16 +0100, ext Grazvydas Ignotas wrote:
-> Hello,
-> 
-> I've been updating Pandora's panel for upstream-going DSS2, which now
-> uses device/device_driver model for panels. The thing is that the
-> panel we use is SPI controlled, so it needs to be set up as
-> spi_driver. From SPI probe function I can do
-> omap_dss_register_driver(), but how do I pass SPI data to
-> omap_dss_device cleanly? Surely some globals would help, but this is
-> not a "clean" way I guess. There used to be panel-n800.c with similar
-> requirements, but it's not yet converted, right? Do you have any ideas
-> how this can be done?
+On Wed, Nov 18, 2009 at 06:57:59PM -0800, Gregoire Gentil wrote:
+> Signed-off-by: Gregoire Gentil <gregoire@gentil.com>
+> ---
+> sound/soc/omap/Kconfig          |    8 ++
+> sound/soc/omap/Makefile         |    2 +
+> sound/soc/omap/omap3touchbook.c |  211
+> +++++++++++++++++++++++++++++++++++++++
 
-I don't have any good answer for this. For N900's panel there was a
-static global variable, if I remember right. Not very clean, as you
-said.
-
- Tomi
-
-
+Your MUA has word wrapped this patch so it can't be applied.  It's also
+removed all the indentation so I skipped reviewing it due to the
+resulting legibility issues.
