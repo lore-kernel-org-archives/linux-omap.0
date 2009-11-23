@@ -1,35 +1,64 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: [PATCH v4] mmc-omap: Add support for 16-bit and 32-bit registers
-Date: Mon, 23 Nov 2009 10:35:51 -0800
-Message-ID: <6cb013310911231035p2f701b10u2d16c6b39d560353@mail.gmail.com>
-References: <1258993439-4787-1-git-send-email-darkstar6262@gmail.com>
-	<20091123191224.GA2076@localhost.localdomain>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 3/3] OMAP: omap_device: optionally auto-adjust device
+ activate/deactivate latencies
+Date: Mon, 23 Nov 2009 10:35:47 -0800
+Message-ID: <4B0AD603.3050609@deeprootsystems.com>
+References: <1258997622-13923-1-git-send-email-khilman@deeprootsystems.com> <1258997622-13923-2-git-send-email-khilman@deeprootsystems.com> <1258997622-13923-3-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20091123191224.GA2076@localhost.localdomain>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Marek Belisko <marek.belisko@open-nandra.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:47125 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754188AbZKWSfn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 13:35:43 -0500
+Received: by pzk1 with SMTP id 1so4142979pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 10:35:49 -0800 (PST)
+In-Reply-To: <1258997622-13923-3-git-send-email-khilman@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Mon, Nov 23, 2009 at 11:12 AM, Ladislav Michl
-<Ladislav.Michl@seznam.cz> wrote:
-> Ah, there is no valid reason to make it bitfield, right? Whole struct is
-> not well layed wtr alignment, but please do not make it any worse. That is
-> my last complain, I swear ;-). Thank you for your patience.
->
-> Other than that, tested on OMAP5910 and it works now (though it needs
-> additional patch, see here:
-> http://thread.gmane.org/gmane.linux.kernel.mmc/649).
->
-> Tested-by: Ladislav Michl <ladis@linux-mips.org>
+Kevin Hilman wrote:
+> First, this patch adds new worst-case latency values to the
+> omap_device_pm_latency struct.  Here the worst-case measured latencies
+> for the activate and deactivate hooks are stored.
+> 
+> In addition, add an option to auto-adjust the latency values used for
+> device activate/deactivate.
+> 
+> By setting a new 'OMAP_DEVICE_LATENCY_AUTO_ADJUST' flag in the
+> omap_device_pm_latency struct, the omap_device layer automatically
+> adjusts the activate/deactivate latencies to the worst-case measured
+> values.
+> 
+> Anytime a new worst-case value is found, it is printed to the console.
+> Here is an example log during boot using UART2 s an example.  After
+> boot, the OPP is manually changed to the 125MHz OPP:
+> 
+> [...]
+> Freeing init memory: 128K
+> omap_device: serial8250.2: new worst case deactivate latency 0: 30517
+> omap_device: serial8250.2: new worst case activate latency 0: 30517
+> omap_device: serial8250.2: new worst case activate latency 0: 218139648
+> omap_device: serial8250.2: new worst case deactivate latency 0: 61035
+> omap_device: serial8250.2: new worst case activate latency 0: 278076171
+> omap_device: serial8250.2: new worst case activate latency 0: 298614501
+> omap_device: serial8250.2: new worst case activate latency 0: 327331542
+> 
+> / # echo 125000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
+> 
+> omap_device: serial8250.2: new worst case deactivate latency 0: 91552
+> 
+> Motivation: this can be used as a technique to automatically determine
+> the worst case latency values.  The current method of printing a
+> warning on every violation is too noisy to actually interact the
+> console in order to set low OPP to discover latencies.
 
-Heh, fair enough :)  Thanks for your patience too -- I'll convert it
-to an unsigned int and resubmit.  Hopefully 5th time's the charm. :)
+Another motivation for this patch is that the activate/deactivate 
+latenices can vary depending on the idlemode of the device.  While 
+working on the UART I noticed that when using no-idle, the activate 
+latencies were as high as several hundred msecs as shown above.  When 
+the UARTs are in smart-idle, the max latency is well under 100 usecs.
 
-Glad to hear it's working with that patch too, that adds some
-confidence to my changes.
-
-Thanks
-- Cory
+Kevin
