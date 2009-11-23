@@ -1,59 +1,155 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCHv3 1/3] OMAP UART: Add omap-serial driver support.
-Date: Mon, 23 Nov 2009 19:11:59 +0200
-Message-ID: <1258996319.18407.49.camel@localhost>
-References: <35817.192.168.10.88.1256713980.squirrel@dbdmail.itg.ti.com>
-	 <45113.192.168.10.88.1258095234.squirrel@dbdmail.itg.ti.com>
-Reply-To: dedekind1@gmail.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4] mmc-omap: Add support for 16-bit and 32-bit
+ registers
+Date: Mon, 23 Nov 2009 09:18:52 -0800
+Message-ID: <20091123171851.GF15580@atomide.com>
+References: <1258993439-4787-1-git-send-email-darkstar6262@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:26080 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280AbZKWRML (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 12:12:11 -0500
-In-Reply-To: <45113.192.168.10.88.1258095234.squirrel@dbdmail.itg.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56266 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752746AbZKWRSw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 12:18:52 -0500
+Content-Disposition: inline
+In-Reply-To: <1258993439-4787-1-git-send-email-darkstar6262@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Marek Belisko <marek.belisko@open-nandra.com>
 
-On Fri, 2009-11-13 at 12:23 +0530, Govindraj.R wrote:
-> From 4756e3743c7acd2de1030b2bd432c1b19f0b9ff5 Mon Sep 17 00:00:00 200=
-1
-> From: Govindraj R <govindraj.raja@ti.com>
-> Date: Fri, 13 Nov 2009 12:01:54 +0530
-> Subject: [PATCH] OMAP UART: Add omap-serial driver support.
->=20
-> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
->=20
-> It adds support for the following features:
-> 1. It supports Interrupt mode and DMA mode of operation.
-> 2. Supports Hardware flow control and sofware flow control.
-> 3. Debug Console support on all UARTs.
->=20
-> Signed-off-by: Govindraj R <govindraj.raja@ti.com>
+* Cory Maccarrone <darkstar6262@gmail.com> [091123 08:23]:
+> The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
+> a modification of the register addresses in the mmc-omap driver.  To resolve
+> this, a bit shift is performed on base register addresses, either by 1 or 2
+> bits depending on the CPU in use.  This yields the correct registers for
+> each CPU.
+> 
+> Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
+> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+
+Looks good to me.
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
 > ---
->  arch/arm/plat-omap/include/plat/omap-serial.h |  115 +++
->  drivers/serial/Kconfig                        |   23 +
->  drivers/serial/Makefile                       |    1 +
->  drivers/serial/omap-serial.c                  | 1330 +++++++++++++++=
-++++++++++
->  include/linux/serial_core.h                   |    3 +
->  5 files changed, 1472 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/plat-omap/include/plat/omap-serial.h
->  create mode 100644 drivers/serial/omap-serial.c
-
-Did you address the irq storm problems pointed by Mika Westerberg?
-
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  drivers/mmc/host/omap.c |   63 +++++++++++++++++++++++++---------------------
+>  1 files changed, 34 insertions(+), 29 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index 5f970e2..ca63e94 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -38,30 +38,30 @@
+>  #include <plat/fpga.h>
+>  
+>  #define	OMAP_MMC_REG_CMD	0x00
+> -#define	OMAP_MMC_REG_ARGL	0x04
+> -#define	OMAP_MMC_REG_ARGH	0x08
+> -#define	OMAP_MMC_REG_CON	0x0c
+> -#define	OMAP_MMC_REG_STAT	0x10
+> -#define	OMAP_MMC_REG_IE		0x14
+> -#define	OMAP_MMC_REG_CTO	0x18
+> -#define	OMAP_MMC_REG_DTO	0x1c
+> -#define	OMAP_MMC_REG_DATA	0x20
+> -#define	OMAP_MMC_REG_BLEN	0x24
+> -#define	OMAP_MMC_REG_NBLK	0x28
+> -#define	OMAP_MMC_REG_BUF	0x2c
+> -#define OMAP_MMC_REG_SDIO	0x34
+> -#define	OMAP_MMC_REG_REV	0x3c
+> -#define	OMAP_MMC_REG_RSP0	0x40
+> -#define	OMAP_MMC_REG_RSP1	0x44
+> -#define	OMAP_MMC_REG_RSP2	0x48
+> -#define	OMAP_MMC_REG_RSP3	0x4c
+> -#define	OMAP_MMC_REG_RSP4	0x50
+> -#define	OMAP_MMC_REG_RSP5	0x54
+> -#define	OMAP_MMC_REG_RSP6	0x58
+> -#define	OMAP_MMC_REG_RSP7	0x5c
+> -#define	OMAP_MMC_REG_IOSR	0x60
+> -#define	OMAP_MMC_REG_SYSC	0x64
+> -#define	OMAP_MMC_REG_SYSS	0x68
+> +#define	OMAP_MMC_REG_ARGL	0x01
+> +#define	OMAP_MMC_REG_ARGH	0x02
+> +#define	OMAP_MMC_REG_CON	0x03
+> +#define	OMAP_MMC_REG_STAT	0x04
+> +#define	OMAP_MMC_REG_IE		0x05
+> +#define	OMAP_MMC_REG_CTO	0x06
+> +#define	OMAP_MMC_REG_DTO	0x07
+> +#define	OMAP_MMC_REG_DATA	0x08
+> +#define	OMAP_MMC_REG_BLEN	0x09
+> +#define	OMAP_MMC_REG_NBLK	0x0a
+> +#define	OMAP_MMC_REG_BUF	0x0b
+> +#define	OMAP_MMC_REG_SDIO	0x0d
+> +#define	OMAP_MMC_REG_REV	0x0f
+> +#define	OMAP_MMC_REG_RSP0	0x10
+> +#define	OMAP_MMC_REG_RSP1	0x11
+> +#define	OMAP_MMC_REG_RSP2	0x12
+> +#define	OMAP_MMC_REG_RSP3	0x13
+> +#define	OMAP_MMC_REG_RSP4	0x14
+> +#define	OMAP_MMC_REG_RSP5	0x15
+> +#define	OMAP_MMC_REG_RSP6	0x16
+> +#define	OMAP_MMC_REG_RSP7	0x17
+> +#define	OMAP_MMC_REG_IOSR	0x18
+> +#define	OMAP_MMC_REG_SYSC	0x19
+> +#define	OMAP_MMC_REG_SYSS	0x1a
+>  
+>  #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
+>  #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
+> @@ -77,8 +77,9 @@
+>  #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
+>  #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
+>  
+> -#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
+> -#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
+> +#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
+> +#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
+> +#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
+>  
+>  /*
+>   * Command types
+> @@ -167,6 +168,8 @@ struct mmc_omap_host {
+>  	spinlock_t		clk_lock;     /* for changing enabled state */
+>  	unsigned int            fclk_enabled:1;
+>  
+> +	unsigned		reg_shift:2;
+> +
+>  	struct omap_mmc_platform_data *pdata;
+>  };
+>  
+> @@ -679,9 +682,9 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
+>  	host->data->bytes_xfered += n;
+>  
+>  	if (write) {
+> -		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
+> +		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
+>  	} else {
+> -		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
+> +		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
+>  	}
+>  }
+>  
+> @@ -899,7 +902,7 @@ mmc_omap_prepare_dma(struct mmc_omap_host *host, struct mmc_data *data)
+>  	int dst_port = 0;
+>  	int sync_dev = 0;
+>  
+> -	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
+> +	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
+>  	frame = data->blksz;
+>  	count = sg_dma_len(sg);
+>  
+> @@ -1490,6 +1493,8 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
+>  		}
+>  	}
+>  
+> +	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
+> +
+>  	return 0;
+>  
+>  err_plat_cleanup:
+> -- 
+> 1.6.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
