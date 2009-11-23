@@ -1,37 +1,117 @@
-From: Sriram V <vshrirama@gmail.com>
-Subject: missing keypad interrupts
-Date: Mon, 23 Nov 2009 19:05:32 +0530
-Message-ID: <8bf247760911230535p75e60e23x844bb18dc2555e09@mail.gmail.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: VDD1 voltage after resume from idle
+Date: Mon, 23 Nov 2009 19:07:57 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE6A6BB1@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
+ <20091120162933.GC2354@mvista.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE60C@dbde02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE61E@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f204.google.com ([209.85.216.204]:59823 "EHLO
-	mail-px0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738AbZKWNf1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 08:35:27 -0500
-Received: by pxi42 with SMTP id 42so3295513pxi.5
-        for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 05:35:33 -0800 (PST)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44497 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751422AbZKWNiG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 08:38:06 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE61E@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: "Premi, Sanjeev" <premi@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>, Maxime Petazzoni <mpetazzoni@mvista.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-   I use 2.6.29 kernel (omap zoom kernel) and am facing a strange problem.
-  When i go to suspend, I am unable to wakeup using the keypad.
-Sometimes this works.
-  I find that when the system is alive keypad works fine. The sysnirq
-mux is okay.
-  I am not sure, why i am unable to wakeup when the system is suspended.
-  I am missing keypad interrupts. I set an led on and off every time i
-press the keypad in the isr.
-  After sometime, it does not glow, when i press the keypad.
+> -----Original Message-----
+> From: Premi, Sanjeev 
+> Sent: Saturday, November 21, 2009 1:04 AM
+> To: Premi, Sanjeev; Maxime Petazzoni
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: VDD1 voltage after resume from idle
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Premi, Sanjeev
+> > Sent: Friday, November 20, 2009 11:46 PM
+> > To: Maxime Petazzoni
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: RE: VDD1 voltage after resume from idle
+> > 
+> > > -----Original Message-----
+> > > From: Maxime Petazzoni [mailto:mpetazzoni@mvista.com] 
+> > > Sent: Friday, November 20, 2009 10:00 PM
+> > > To: Premi, Sanjeev
+> > > Cc: linux-omap@vger.kernel.org
+> > > Subject: Re: VDD1 voltage after resume from idle
+> > > 
+> 
+> [snip]--[snip]--[snip]
+> 
+> > 
+> > I guess the root cause could be same. I have not been able to 
+> > ascertain
+> > the reason for the voltage changing during the idle/wakeup sequence.
+> > Also tried to eliminate the enable_smartreflex() calls on 
+> wakeup path.
+> > Sill I see voltage ramp-up.
+> > 
+> > I am trying to find the cause of voltage ramping to 1.2V in 
+> hope that
+> > the reason for ramp down will be just inverted reflection.
+> > 
+> > With smartreflex disabled, there is no change in the voltage during
+> > suspend; so the problem area seems to be smartreflex.
+> > 
+> > Best regards,
+> > Sanjeev
+> 
+> Found the problem!
+> 
+> In sr_configure_vp() the vsel is picked up from the OPP table 
+> and used,
+> setting the voltage as expected (1.35V in my case).
+> 
+> A printk confirms PRM_VC_CMD_VAL_0 is 0x3C201E00. 
+> 
+> By the time, kernel boots up, the value has changed to 0x30201E00.
+> (0x30 corresponds to 1.2V)
+> 
+> [root@OMAP3EVM /]# devmem 0x4830722c 32
+> 0x30201E00
+> 
+> Now, when I update the init voltage back to 3C (via devmem) 
+> the voltage
+> after resume/idle-wakeup is right (as expected).
+> 
+> [root@OMAP3EVM /]# devmem 0x4830722c 32 0x3c201e00
+> [root@OMAP3EVM /]#
+> 
+> So, I just need to find exact location where the 
+> configuration is being
+> overwritten.
 
-  However, i am able to wakeup on serial input.
+Correction. Though I expected/assumed VSEL to be written to this
+Location. It wasn't the case. VSEL is used to update the ON voltage
+Field in PRM_VP1_CONFIG; but not the PRM_VC_CMD_VAL_0.
 
+Haven't tried (too hard) to find initiator programming this reg in
+kernel - so, it might be retaining values from u-boot.
 
- Please advise.
+After ensuring that PRM_VC_CMD_VAL_0,1 are updated based on the
+VSEL values in current opp tables, the problem seems to be fixed.
 
+Patch from my working tree following soon for review. Will refresh
+it against /pm, if needed, there are no comments.
 
-Regards,
-sriram
+Best regards,
+Sanjeev
+
+> 
+> It is well past midnight now. So the patch will have to wait until
+> tomorrow.
+> 
+> Best regards,
+> Sanjeev
+> 
+> [snip]--[snip]--[snip]
+> 
