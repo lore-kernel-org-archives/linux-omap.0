@@ -1,138 +1,165 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH v5] mmc-omap: Add support for 16-bit and 32-bit registers
-Date: Mon, 23 Nov 2009 10:37:28 -0800
-Message-ID: <1259001448-9574-1-git-send-email-darkstar6262@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:39106 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754707AbZKWSh1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 13:37:27 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Chris Banker <cbanker@gmail.com>
+Subject: Re: NULL pointer dereference with 2.6.31 on OMAP243
+Date: Mon, 23 Nov 2009 12:07:45 -0800
+Message-ID: <65dfecfd0911231207kc07ede4i17b64c728f6d854e@mail.gmail.com>
+References: <65dfecfd0911191234s585182c3sf88aaebcbd1ccd56@mail.gmail.com>
+	<20091122175523.GA4860@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756785AbZKWUIC@vger.kernel.org>
+In-Reply-To: <20091122175523.GA4860@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
-Cc: Cory Maccarrone <darkstar6262@gmail.com>, Marek Belisko <marek.belisko@open-nandra.com>
 
-The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
-a modification of the register addresses in the mmc-omap driver.  To resolve
-this, a bit shift is performed on base register addresses, either by 1 or 2
-bits depending on the CPU in use.  This yields the correct registers for
-each CPU.
+Thank you very much for the assistance, that seemed to fix the problem.
 
-Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- drivers/mmc/host/omap.c |   62 +++++++++++++++++++++++++----------------------
- 1 files changed, 33 insertions(+), 29 deletions(-)
+~Chris
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 5f970e2..f10339a 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -38,30 +38,30 @@
- #include <plat/fpga.h>
- 
- #define	OMAP_MMC_REG_CMD	0x00
--#define	OMAP_MMC_REG_ARGL	0x04
--#define	OMAP_MMC_REG_ARGH	0x08
--#define	OMAP_MMC_REG_CON	0x0c
--#define	OMAP_MMC_REG_STAT	0x10
--#define	OMAP_MMC_REG_IE		0x14
--#define	OMAP_MMC_REG_CTO	0x18
--#define	OMAP_MMC_REG_DTO	0x1c
--#define	OMAP_MMC_REG_DATA	0x20
--#define	OMAP_MMC_REG_BLEN	0x24
--#define	OMAP_MMC_REG_NBLK	0x28
--#define	OMAP_MMC_REG_BUF	0x2c
--#define OMAP_MMC_REG_SDIO	0x34
--#define	OMAP_MMC_REG_REV	0x3c
--#define	OMAP_MMC_REG_RSP0	0x40
--#define	OMAP_MMC_REG_RSP1	0x44
--#define	OMAP_MMC_REG_RSP2	0x48
--#define	OMAP_MMC_REG_RSP3	0x4c
--#define	OMAP_MMC_REG_RSP4	0x50
--#define	OMAP_MMC_REG_RSP5	0x54
--#define	OMAP_MMC_REG_RSP6	0x58
--#define	OMAP_MMC_REG_RSP7	0x5c
--#define	OMAP_MMC_REG_IOSR	0x60
--#define	OMAP_MMC_REG_SYSC	0x64
--#define	OMAP_MMC_REG_SYSS	0x68
-+#define	OMAP_MMC_REG_ARGL	0x01
-+#define	OMAP_MMC_REG_ARGH	0x02
-+#define	OMAP_MMC_REG_CON	0x03
-+#define	OMAP_MMC_REG_STAT	0x04
-+#define	OMAP_MMC_REG_IE		0x05
-+#define	OMAP_MMC_REG_CTO	0x06
-+#define	OMAP_MMC_REG_DTO	0x07
-+#define	OMAP_MMC_REG_DATA	0x08
-+#define	OMAP_MMC_REG_BLEN	0x09
-+#define	OMAP_MMC_REG_NBLK	0x0a
-+#define	OMAP_MMC_REG_BUF	0x0b
-+#define	OMAP_MMC_REG_SDIO	0x0d
-+#define	OMAP_MMC_REG_REV	0x0f
-+#define	OMAP_MMC_REG_RSP0	0x10
-+#define	OMAP_MMC_REG_RSP1	0x11
-+#define	OMAP_MMC_REG_RSP2	0x12
-+#define	OMAP_MMC_REG_RSP3	0x13
-+#define	OMAP_MMC_REG_RSP4	0x14
-+#define	OMAP_MMC_REG_RSP5	0x15
-+#define	OMAP_MMC_REG_RSP6	0x16
-+#define	OMAP_MMC_REG_RSP7	0x17
-+#define	OMAP_MMC_REG_IOSR	0x18
-+#define	OMAP_MMC_REG_SYSC	0x19
-+#define	OMAP_MMC_REG_SYSS	0x1a
- 
- #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
- #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
-@@ -77,8 +77,9 @@
- #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
- #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
- 
--#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
--#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
-+#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
-+#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
-+#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
- 
- /*
-  * Command types
-@@ -132,6 +133,7 @@ struct mmc_omap_host {
- 	int			irq;
- 	unsigned char		bus_mode;
- 	unsigned char		hw_bus_mode;
-+	unsigned int		reg_shift;
- 
- 	struct work_struct	cmd_abort_work;
- 	unsigned		abort:1;
-@@ -679,9 +681,9 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
- 	host->data->bytes_xfered += n;
- 
- 	if (write) {
--		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-+		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
- 	} else {
--		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-+		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
- 	}
- }
- 
-@@ -899,7 +901,7 @@ mmc_omap_prepare_dma(struct mmc_omap_host *host, struct mmc_data *data)
- 	int dst_port = 0;
- 	int sync_dev = 0;
- 
--	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
-+	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
- 	frame = data->blksz;
- 	count = sg_dma_len(sg);
- 
-@@ -1490,6 +1492,8 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
-+
- 	return 0;
- 
- err_plat_cleanup:
--- 
-1.6.0.4
 
+On Sun, Nov 22, 2009 at 9:55 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> Hi,
+>
+> Added linux-omap list and Paul to Cc.
+>
+> * Chris Banker <cbanker@gmail.com> [091119 12:34]:
+>> I'm having trouble with the 2.6.31 kernel running on an OMAP2430
+>> board.=A0 I was able to get the board to boot using 2.6.31rc1, but a=
+m
+>> having some issue with 2.6.31.
+>>
+>> With low-level debugging enabled, I get the output below.=A0 It appe=
+ars
+>> to be an issue with the new hwmod system, which didn't exist in
+>> 2.6.31rc1.=A0 It seems to die during the initialization of mpu_hwmod=
+=2E
+>>
+>> Anyone have any suggestions as to how to fix this or what to try?
+>
+> Good to hear somebody is playing with a 2430 :) What's the board
+> you're using? I guess it is not an SDP based on the crystal rate at
+> 19.2MHz?
+>
+> We had a similar issue with 2420, that got fixed by
+> a7f20b2695eb6a00a5464089bacf75b8ed64725e.
+>
+> Maybe give it a try and see if it helps? I've attached Paul's patch
+> too for reference.
+>
+> Regards,
+>
+> Tony
+>
+>
+>> Thanks,
+>> Chris
+>>
+>> --------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-----------
+>>
+>> Starting kernel ...
+>>
+>> Uncompressing Linux.................................................=
+=2E....................................................................=
+=2E....................................................................=
+=2E....................................................................=
+=2E....................................................................=
+=2E....................................................................=
+=2E....................................................................=
+=2E.....................
+>> done, booting the kernel.
+>> <5>Linux version 2.6.31-omap1 (cbanker@vcaeng05) (gcc version 4.3.3
+>> (GCC) ) #27 Wed Nov 18 17:23:18 PST 2009
+>> CPU: ARMv6-compatible processor [4107b366] revision 6 (ARMv6TEJ), cr=
+=3D00c5387f
+>> CPU: VIPT aliasing data cache, VIPT aliasing instruction cache
+>> Machine: BFT Digital Modem
+>> Memory policy: ECC disabled, Data cache writeback
+>> <7>On node 0 totalpages: 32768
+>> <7>free_area_init_node: node 0, pgdat c0f10848, node_mem_map c0f3500=
+0
+>> <7>=A0 Normal zone: 256 pages used for memmap
+>> <7>=A0 Normal zone: 0 pages reserved
+>> <7>=A0 Normal zone: 32512 pages, LIFO batch:7
+>> <6>OMAP2430<6>
+>> <6>SRAM: Mapped pa 0x40200000 to va 0xe3000000 size: 0x100000
+>> Built 1 zonelists in Zone order, mobility grouping on.=A0 Total page=
+s: 32512
+>> <5>Kernel command line: root=3D/dev/ram0 rw console=3Dttys2,115200n8
+>> PID hash table entries: 512 (order: 9, 2048 bytes)
+>> <6>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+>> <6>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+>> <6>Memory: 128MB =3D 128MB total
+>> <5>Memory: 114232KB available (3084K code, 327K data, 12124K init, 0=
+K highmem)
+>> <6>NR_IRQS:384
+>> <6>Clocking rate (Crystal/DPLL/MPU): 19.2/660/330 MHz
+>> <1>Unable to handle kernel NULL pointer dereference at virtual addre=
+ss 00000004
+>> <1>pgd =3D c0004000
+>> <1>[00000004] *pgd=3D00000000
+>> Internal error: Oops: 5 [#1]
+>> <d>Modules linked in:
+>> CPU: 0=A0=A0=A0 Not tainted=A0 (2.6.31-omap1 #27)
+>> PC is at _enable+0x78/0x208
+>> LR is at release_console_sem+0x1a8/0x204
+>> pc : [<c0be9098>]=A0=A0=A0 lr : [<c0bff998>]=A0=A0=A0 psr: a00001d3
+>> sp : c0ee3f38=A0 ip : c0ee3e80=A0 fp : c0ee3f4c
+>> r10: 80022140=A0 r9 : 4107b366=A0 r8 : 80022174
+>> r7 : c0ee86b4=A0 r6 : c0be95cc=A0 r5 : c0ee6154=A0 r4 : c0ee6154
+>> r3 : 00000000=A0 r2 : 00000000=A0 r1 : 000005b2=A0 r0 : 0000001f
+>> Flags: NzCv=A0 IRQs off=A0 FIQs off=A0 Mode SVC_32=A0 ISA ARM=A0 Seg=
+ment kernel
+>> Control: 00c5387f=A0 Table: 80004000=A0 DAC: 00000017
+>> Process swapper (pid: 0, stack limit =3D 0xc0ee2260)
+>> Stack: (0xc0ee3f38 to 0xc0ee4000)
+>> 3f20:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0 c0ee6634 c0ee6154
+>> 3f40: c0ee3f68 c0ee3f50 c0be9648 c0be902c 00000000 c0ee6154 c0be95cc=
+ c0ee3f88
+>> 3f60: c0ee3f6c c0be8a6c c0be95d8 c0eece48 c0eece48 c0bdbe08 c0ee5b34=
+ c0ee3f98
+>> 3f80: c0ee3f8c c0be98f4 c0be8a44 c0ee3fb0 c0ee3f9c c000dfc4 c0be98a0=
+ c0f11190
+>> 3fa0: c0f11184 c0ee3fc0 c0ee3fb4 c000ef0c c000df50 c0ee3fd0 c0ee3fc4=
+ c000b878
+>> 3fc0: c000eee8 c0ee3ff4 c0ee3fd4 c0008a2c c000b84c c0008658 c0bdbe08=
+ 00c5387d
+>> 3fe0: c0f11440 c0bdc20c 00000000 c0ee3ff8 80008034 c00088fc 00000000=
+ 00000000
+>> Backtrace:
+>> [<c0be9020>] (_enable+0x0/0x208) from [<c0be9648>] (_setup+0x7c/0xb0=
+)
+>> =A0r4:c0ee6154
+>> [<c0be95cc>] (_setup+0x0/0xb0) from [<c0be8a6c>] (omap_hwmod_for_eac=
+h+0x34/0x78)
+>> =A0r6:c0be95cc r5:c0ee6154 r4:00000000
+>> [<c0be8a38>] (omap_hwmod_for_each+0x0/0x78) from [<c0be98f4>]
+>> (omap_hwmod_late_init+0x60/0x8c)
+>> =A0r7:c0ee5b34 r6:c0bdbe08 r5:c0eece48 r4:c0eece48
+>> [<c0be9894>] (omap_hwmod_late_init+0x0/0x8c) from [<c000dfc4>]
+>> (omap2_init_common_hw+0x80/0xbc)
+>> [<c000df44>] (omap2_init_common_hw+0x0/0xbc) from [<c000ef0c>]
+>> (omap2430bft_init_irq+0x30/0x1c4)
+>> =A0r5:c0f11184 r4:c0f11190
+>> [<c000eedc>] (omap2430bft_init_irq+0x0/0x1c4) from [<c000b878>]
+>> (init_IRQ+0x38/0x44)
+>> [<c000b840>] (init_IRQ+0x0/0x44) from [<c0008a2c>] (start_kernel+0x1=
+3c/0x2ac)
+>> [<c00088f0>] (start_kernel+0x0/0x2ac) from [<80008034>] (0x80008034)
+>> =A0r6:c0bdc20c r5:c0f11440 r4:00c5387d
+>> Code: 0a000005 e5933020 e592205c e593305c (e5920004)
+>> <4>---[ end trace 1b75b31a2719ed1c ]---
+>> <0>Kernel panic - not syncing: Attempted to kill the idle task!
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kern=
+el" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at =A0http://www.tux.org/lkml/
+>
