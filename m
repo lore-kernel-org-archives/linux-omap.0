@@ -1,134 +1,71 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH 3/3] [OMAP] HTCHERALD: Add USB configuration to HTC Herald
-Date: Sun, 22 Nov 2009 13:28:44 -0800
-Message-ID: <1258925324.11242.6.camel@runt>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/1] DSPBRIDGE: cache operation against kernel address
+ instead of user's
+Date: Mon, 23 Nov 2009 09:30:40 +0200 (EET)
+Message-ID: <20091123.093040.226795873.Hiroshi.DOYU@nokia.com>
+References: <20091113.121212.189727725.Hiroshi.DOYU@nokia.com>
+	<20091117.084108.193702761.Hiroshi.DOYU@nokia.com>
+	<20091121191724.GA29167@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:50176 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755614AbZKVV2k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Nov 2009 16:28:40 -0500
-Received: by pwi3 with SMTP id 3so3058423pwi.21
-        for <linux-omap@vger.kernel.org>; Sun, 22 Nov 2009 13:28:46 -0800 (PST)
+Received: from smtp.nokia.com ([192.100.122.230]:59993 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752544AbZKWHav (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 02:30:51 -0500
+In-Reply-To: <20091121191724.GA29167@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, omar.ramirez@ti.com, ameya.palande@nokia.com, h-kanigeri2@ti.com, x0095840@ti.com, nm@ti.com, Miguel.Verdu@nokia.com, bshah@ti.com, imre.deak@nokia.com
 
-This change implements USB client side support into the HTC
-Herald board configuration.  It uses a similar, but updated
-algorithm to initialize the USB as is used in the linwizard
-project.
+Hi Russell,
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- arch/arm/mach-omap1/board-htcherald.c |   70 +++++++++++++++++++++++++++++++++
- 1 files changed, 70 insertions(+), 0 deletions(-)
+From: ext Russell King <rmk@arm.linux.org.uk>
+Subject: Re: [PATCH 1/1] DSPBRIDGE: cache operation against kernel address instead of user's
+Date: Sat, 21 Nov 2009 20:17:25 +0100
 
-diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
-index 5f28a5c..8949570 100644
---- a/arch/arm/mach-omap1/board-htcherald.c
-+++ b/arch/arm/mach-omap1/board-htcherald.c
-@@ -39,6 +39,7 @@
- #include <plat/common.h>
- #include <plat/board.h>
- #include <plat/keypad.h>
-+#include <plat/usb.h>
- 
- #include <mach/irqs.h>
- 
-@@ -140,6 +141,15 @@ static struct platform_device kp_device = {
- 	.resource	= kp_resources,
- };
- 
-+/* USB Device */
-+static struct omap_usb_config htcherald_usb_config __initdata = {
-+	.otg = 0,
-+	.register_host = 0,
-+	.register_dev  = 1,
-+	.hmc_mode = 4,
-+	.pins[0] = 2,
-+};
-+
- /* LCD Device resources */
- static struct platform_device lcd_device = {
- 	.name           = "lcd_htcherald",
-@@ -214,6 +224,63 @@ static void __init htcherald_disable_watchdog(void)
- 	}
- }
- 
-+#define HTCHERALD_GPIO_USB_EN1 33
-+#define HTCHERALD_GPIO_USB_EN2 73
-+#define HTCHERALD_GPIO_USB_DM  35
-+#define HTCHERALD_GPIO_USB_DP  36
-+
-+static void __init htcherald_usb_enable(void)
-+{
-+	unsigned int tries = 20;
-+	unsigned int value = 0;
-+
-+	/* Request the GPIOs we need to control here */
-+	if (gpio_request(HTCHERALD_GPIO_USB_EN1, "herald_usb") < 0) {
-+		printk(KERN_WARNING "Unable to request HTCHERALD_GPIO_USB_EN1, USB will be unavailable\n");
-+		goto done;
-+	}
-+
-+	if (gpio_request(HTCHERALD_GPIO_USB_EN2, "herald_usb") < 0) {
-+		printk(KERN_WARNING "Unable to request HTCHERALD_GPIO_USB_EN2, USB will be unavailable\n");
-+		goto err1;
-+	}
-+
-+	if (gpio_request(HTCHERALD_GPIO_USB_DM, "herald_usb") < 0) {
-+		printk(KERN_WARNING "Unable to request HTCHERALD_GPIO_USB_DM, USB will be unavailable\n");
-+		goto err2;
-+	}
-+
-+	if (gpio_request(HTCHERALD_GPIO_USB_DP, "herald_usb") < 0) {
-+		printk(KERN_WARNING "Unable to request HTCHERALD_GPIO_USB_DP, USB will be unavailable\n");
-+		goto err3;
-+	}
-+
-+	/* force USB_EN GPIO to 0 */
-+	do {
-+		gpio_direction_output(HTCHERALD_GPIO_USB_EN1, 0); /* output low */
-+	} while((value = gpio_get_value(HTCHERALD_GPIO_USB_EN1)) == 1 && --tries);
-+
-+	if (value == 1) {
-+		printk(KERN_WARNING "unable to reset USB_EN GPIO after 20 tries.\n");
-+		printk(KERN_WARNING "I will try to continue anyway: USB may not be available.\n");
-+	}
-+
-+	gpio_direction_output(HTCHERALD_GPIO_USB_EN2, 0); /* output low */
-+	gpio_direction_input(HTCHERALD_GPIO_USB_DM); /* input */
-+	gpio_direction_input(HTCHERALD_GPIO_USB_DP); /* input */
-+
-+	goto done;
-+
-+err3:
-+	gpio_free(HTCHERALD_GPIO_USB_DM);
-+err2:
-+	gpio_free(HTCHERALD_GPIO_USB_EN2);
-+err1:
-+	gpio_free(HTCHERALD_GPIO_USB_EN1);
-+done:
-+	printk(KERN_INFO "USB setup complete.\n");
-+}
-+
- static void __init htcherald_init(void)
- {
- 	printk(KERN_INFO "HTC Herald init.\n");
-@@ -225,6 +292,9 @@ static void __init htcherald_init(void)
- 	platform_add_devices(devices, ARRAY_SIZE(devices));
- 
- 	htcherald_disable_watchdog();
-+
-+	htcherald_usb_enable();
-+	omap_usb_init(&htcherald_usb_config);
- }
- 
- static void __init htcherald_init_irq(void)
--- 
-1.6.3.3
+> On Tue, Nov 17, 2009 at 08:41:08AM +0200, Hiroshi DOYU wrote:
+> > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > Subject: Re: [PATCH 1/1] DSPBRIDGE: cache operation against kernel address instead of user's
+> > Date: Fri, 13 Nov 2009 12:12:12 +0200 (EET)
+> > 
+> > > From: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+> > > Subject: [PATCH 1/1] DSPBRIDGE: cache operation against kernel address instead of user's
+> > > Date: Fri, 6 Nov 2009 13:34:21 +0100
+> > > 
+> > > > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > > > 
+> > > > Based on the discussion:
+> > > >   http://www.spinics.net/lists/arm-kernel/msg72810.html
+> > > > 
+> > > > HACK: export "follow_page()" for dspbridge cache operation
+> > > > 
+> > > > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > > > ---
+> > 
+> > Now there's no need for homebrewed cache function because we use
+> > kernel address and can pass "virt_addr_valid()" check in
+> > "dma_cache_maint()".
+> 
+> Note that with the advent of ARMv7/Cortex A9, dma_cache_maint() is going
+> away - and probably will be gone during the next merge window.  There is
+> no directly equivalent replacement for it - it is being replaced by two
+> sets of functions, one to be called prior to DMA and another to be called
+> after DMA has completed.
+> 
+> In the longer run, it is likely that the 'dmac_*_range' and 'outer_*_range'
+> will probably also be going away, to be replaced by two new per-cpu methods
+> along the lines of the above.
+> 
+> I think this may throw a spanner in the works for this patch, but it's
+> necessary to make Cortex A9 work.
 
+Thank you for updating the status of cache operations.
 
+I don't think that none of my patch in this thread can be a generic
+solution at all, but they are just a hack for VIPT non-aliasing until
+a generic solution comes. We need to fix some kernel crash at
+v7_dma_*_range() just right now. Anyway, I am looking forward to your
+new DMA APIs.
