@@ -1,154 +1,395 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4] mmc-omap: Add support for 16-bit and 32-bit
- registers
-Date: Mon, 23 Nov 2009 09:18:52 -0800
-Message-ID: <20091123171851.GF15580@atomide.com>
-References: <1258993439-4787-1-git-send-email-darkstar6262@gmail.com>
+Subject: Re: [PATCH] [OMAP1] use gen_nand
+Date: Mon, 23 Nov 2009 09:24:16 -0800
+Message-ID: <20091123172416.GG15580@atomide.com>
+References: <20091123124545.GA31420@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56266 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65185 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752746AbZKWRSw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 12:18:52 -0500
+	with ESMTP id S1751413AbZKWRYO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 12:24:14 -0500
 Content-Disposition: inline
-In-Reply-To: <1258993439-4787-1-git-send-email-darkstar6262@gmail.com>
+In-Reply-To: <20091123124545.GA31420@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Marek Belisko <marek.belisko@open-nandra.com>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-omap@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Brian Swetland <swetland@google.com>, Kevin Hilman <kjh@hilman.org>
 
-* Cory Maccarrone <darkstar6262@gmail.com> [091123 08:23]:
-> The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
-> a modification of the register addresses in the mmc-omap driver.  To resolve
-> this, a bit shift is performed on base register addresses, either by 1 or 2
-> bits depending on the CPU in use.  This yields the correct registers for
-> each CPU.
+* Ladislav Michl <Ladislav.Michl@seznam.cz> [091123 03:45]:
+> Since omapnand driver never find its way into mainline, switch to gen_nand instead.
+> Following patch is compile tested only, but it is based on code I wrote for
+> NetStar board and runtime tested it there.
+
+Nice patch, and totally the way to go!
+
+Regards,
+
+Tony
+ 
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> Cc: Imre Deak <imre.deak@nokia.com>
+> Cc: Brian Swetland <swetland@google.com>
+> Cc: Kevin Hilman <kjh@hilman.org>
 > 
-> Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
-> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
-
-Looks good to me.
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
->  drivers/mmc/host/omap.c |   63 +++++++++++++++++++++++++---------------------
->  1 files changed, 34 insertions(+), 29 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index 5f970e2..ca63e94 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -38,30 +38,30 @@
+> diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+> index f4b72c1..8da8c64 100644
+> --- a/arch/arm/mach-omap1/board-fsample.c
+> +++ b/arch/arm/mach-omap1/board-fsample.c
+> @@ -30,7 +30,6 @@
+>  #include <mach/gpio.h>
+>  #include <plat/mux.h>
 >  #include <plat/fpga.h>
->  
->  #define	OMAP_MMC_REG_CMD	0x00
-> -#define	OMAP_MMC_REG_ARGL	0x04
-> -#define	OMAP_MMC_REG_ARGH	0x08
-> -#define	OMAP_MMC_REG_CON	0x0c
-> -#define	OMAP_MMC_REG_STAT	0x10
-> -#define	OMAP_MMC_REG_IE		0x14
-> -#define	OMAP_MMC_REG_CTO	0x18
-> -#define	OMAP_MMC_REG_DTO	0x1c
-> -#define	OMAP_MMC_REG_DATA	0x20
-> -#define	OMAP_MMC_REG_BLEN	0x24
-> -#define	OMAP_MMC_REG_NBLK	0x28
-> -#define	OMAP_MMC_REG_BUF	0x2c
-> -#define OMAP_MMC_REG_SDIO	0x34
-> -#define	OMAP_MMC_REG_REV	0x3c
-> -#define	OMAP_MMC_REG_RSP0	0x40
-> -#define	OMAP_MMC_REG_RSP1	0x44
-> -#define	OMAP_MMC_REG_RSP2	0x48
-> -#define	OMAP_MMC_REG_RSP3	0x4c
-> -#define	OMAP_MMC_REG_RSP4	0x50
-> -#define	OMAP_MMC_REG_RSP5	0x54
-> -#define	OMAP_MMC_REG_RSP6	0x58
-> -#define	OMAP_MMC_REG_RSP7	0x5c
-> -#define	OMAP_MMC_REG_IOSR	0x60
-> -#define	OMAP_MMC_REG_SYSC	0x64
-> -#define	OMAP_MMC_REG_SYSS	0x68
-> +#define	OMAP_MMC_REG_ARGL	0x01
-> +#define	OMAP_MMC_REG_ARGH	0x02
-> +#define	OMAP_MMC_REG_CON	0x03
-> +#define	OMAP_MMC_REG_STAT	0x04
-> +#define	OMAP_MMC_REG_IE		0x05
-> +#define	OMAP_MMC_REG_CTO	0x06
-> +#define	OMAP_MMC_REG_DTO	0x07
-> +#define	OMAP_MMC_REG_DATA	0x08
-> +#define	OMAP_MMC_REG_BLEN	0x09
-> +#define	OMAP_MMC_REG_NBLK	0x0a
-> +#define	OMAP_MMC_REG_BUF	0x0b
-> +#define	OMAP_MMC_REG_SDIO	0x0d
-> +#define	OMAP_MMC_REG_REV	0x0f
-> +#define	OMAP_MMC_REG_RSP0	0x10
-> +#define	OMAP_MMC_REG_RSP1	0x11
-> +#define	OMAP_MMC_REG_RSP2	0x12
-> +#define	OMAP_MMC_REG_RSP3	0x13
-> +#define	OMAP_MMC_REG_RSP4	0x14
-> +#define	OMAP_MMC_REG_RSP5	0x15
-> +#define	OMAP_MMC_REG_RSP6	0x16
-> +#define	OMAP_MMC_REG_RSP7	0x17
-> +#define	OMAP_MMC_REG_IOSR	0x18
-> +#define	OMAP_MMC_REG_SYSC	0x19
-> +#define	OMAP_MMC_REG_SYSS	0x1a
->  
->  #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
->  #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
-> @@ -77,8 +77,9 @@
->  #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
->  #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
->  
-> -#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
-> -#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
-> +#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
-> +#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
-> +#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
->  
->  /*
->   * Command types
-> @@ -167,6 +168,8 @@ struct mmc_omap_host {
->  	spinlock_t		clk_lock;     /* for changing enabled state */
->  	unsigned int            fclk_enabled:1;
->  
-> +	unsigned		reg_shift:2;
-> +
->  	struct omap_mmc_platform_data *pdata;
+> -#include <plat/nand.h>
+>  #include <plat/keypad.h>
+>  #include <plat/common.h>
+>  #include <plat/board.h>
+> @@ -167,8 +166,40 @@ static struct platform_device nor_device = {
+>  	.resource	= &nor_resource,
 >  };
 >  
-> @@ -679,9 +682,9 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
->  	host->data->bytes_xfered += n;
->  
->  	if (write) {
-> -		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-> +		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
->  	} else {
-> -		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-> +		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
->  	}
->  }
->  
-> @@ -899,7 +902,7 @@ mmc_omap_prepare_dma(struct mmc_omap_host *host, struct mmc_data *data)
->  	int dst_port = 0;
->  	int sync_dev = 0;
->  
-> -	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
-> +	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
->  	frame = data->blksz;
->  	count = sg_dma_len(sg);
->  
-> @@ -1490,6 +1493,8 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
->  		}
->  	}
->  
-> +	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
+> -static struct omap_nand_platform_data nand_data = {
+> -	.options	= NAND_SAMSUNG_LP_OPTIONS,
+> +static void nand_cmd_ctl(struct mtd_info *mtd, int cmd,	unsigned int ctrl)
+> +{
+> +	struct nand_chip *this = mtd->priv;
+> +	unsigned long mask;
 > +
->  	return 0;
+> +	if (cmd == NAND_CMD_NONE)
+> +		return;
+> +
+> +	mask = (ctrl & NAND_CLE) ? 0x02 : 0;
+> +	if (ctrl & NAND_ALE)
+> +		mask |= 0x04;
+> +	writeb(cmd, (unsigned long)this->IO_ADDR_W | mask);
+> +}
+> +
+> +#define FSAMPLE_NAND_RB_GPIO_PIN	62
+> +
+> +static int nand_dev_ready(struct mtd_info *mtd)
+> +{
+> +	return gpio_get_value(FSAMPLE_NAND_RB_GPIO_PIN);
+> +}
+> +
+> +static const char *part_probes[] = { "cmdlinepart", NULL };
+> +
+> +static struct platform_nand_data nand_data = {
+> +	.chip	= {
+> +		.nr_chips		= 1,
+> +		.chip_offset		= 0,
+> +		.options		= NAND_SAMSUNG_LP_OPTIONS,
+> +		.part_probe_types	= part_probes,
+> +	},
+> +	.ctrl	= {
+> +		.cmd_ctrl	= nand_cmd_ctl,
+> +		.dev_ready	= nand_dev_ready,
+> +	},
+>  };
 >  
->  err_plat_cleanup:
-> -- 
-> 1.6.0.4
-> 
+>  static struct resource nand_resource = {
+> @@ -178,7 +209,7 @@ static struct resource nand_resource = {
+>  };
+>  
+>  static struct platform_device nand_device = {
+> -	.name		= "omapnand",
+> +	.name		= "gen_nand",
+>  	.id		= 0,
+>  	.dev		= {
+>  		.platform_data	= &nand_data,
+> @@ -233,13 +264,6 @@ static struct platform_device *devices[] __initdata = {
+>  	&lcd_device,
+>  };
+>  
+> -#define P2_NAND_RB_GPIO_PIN	62
+> -
+> -static int nand_dev_ready(struct omap_nand_platform_data *data)
+> -{
+> -	return gpio_get_value(P2_NAND_RB_GPIO_PIN);
+> -}
+> -
+>  static struct omap_lcd_config fsample_lcd_config __initdata = {
+>  	.ctrl_name	= "internal",
+>  };
+> @@ -250,9 +274,9 @@ static struct omap_board_config_kernel fsample_config[] = {
+>  
+>  static void __init omap_fsample_init(void)
+>  {
+> -	if (gpio_request(P2_NAND_RB_GPIO_PIN, "NAND ready") < 0)
+> +	if (gpio_request(FSAMPLE_NAND_RB_GPIO_PIN, "NAND ready") < 0)
+>  		BUG();
+> -	nand_data.dev_ready = nand_dev_ready;
+> +	gpio_direction_input(FSAMPLE_NAND_RB_GPIO_PIN);
+>  
+>  	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
+>  	omap_cfg_reg(M8_1610_FLASH_CS2B_WE);
+> diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+> index 89ba8ec..283a6f2 100644
+> --- a/arch/arm/mach-omap1/board-h2.c
+> +++ b/arch/arm/mach-omap1/board-h2.c
+> @@ -40,7 +40,6 @@
+>  #include <plat/mux.h>
+>  #include <plat/dma.h>
+>  #include <plat/tc.h>
+> -#include <plat/nand.h>
+>  #include <plat/irda.h>
+>  #include <plat/usb.h>
+>  #include <plat/keypad.h>
+> @@ -179,11 +178,43 @@ static struct mtd_partition h2_nand_partitions[] = {
+>  	},
+>  };
+>  
+> -/* dip switches control NAND chip access:  8 bit, 16 bit, or neither */
+> -static struct omap_nand_platform_data h2_nand_data = {
+> -	.options	= NAND_SAMSUNG_LP_OPTIONS,
+> -	.parts		= h2_nand_partitions,
+> -	.nr_parts	= ARRAY_SIZE(h2_nand_partitions),
+> +static void h2_nand_cmd_ctl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+> +{
+> +	struct nand_chip *this = mtd->priv;
+> +	unsigned long mask;
+> +
+> +	if (cmd == NAND_CMD_NONE)
+> +		return;
+> +
+> +	mask = (ctrl & NAND_CLE) ? 0x02 : 0;
+> +	if (ctrl & NAND_ALE)
+> +		mask |= 0x04;
+> +	writeb(cmd, (unsigned long)this->IO_ADDR_W | mask);
+> +}
+> +
+> +#define H2_NAND_RB_GPIO_PIN	62
+> +
+> +static int h2_nand_dev_ready(struct mtd_info *mtd)
+> +{
+> +	return gpio_get_value(H2_NAND_RB_GPIO_PIN);
+> +}
+> +
+> +static const char *h2_part_probes[] = { "cmdlinepart", NULL };
+> +
+> +struct platform_nand_data h2_nand_platdata = {
+> +	.chip	= {
+> +		.nr_chips		= 1,
+> +		.chip_offset		= 0,
+> +		.nr_partitions		= ARRAY_SIZE(h2_nand_partitions),
+> +		.partitions		= h2_nand_partitions,
+> +		.options		= NAND_SAMSUNG_LP_OPTIONS,
+> +		.part_probe_types	= h2_part_probes,
+> +	},
+> +	.ctrl	= {
+> +		.cmd_ctrl	= h2_nand_cmd_ctl,
+> +		.dev_ready	= h2_nand_dev_ready,
+> +
+> +	},
+>  };
+>  
+>  static struct resource h2_nand_resource = {
+> @@ -191,10 +222,10 @@ static struct resource h2_nand_resource = {
+>  };
+>  
+>  static struct platform_device h2_nand_device = {
+> -	.name		= "omapnand",
+> +	.name		= "gen_nand",
+>  	.id		= 0,
+>  	.dev		= {
+> -		.platform_data	= &h2_nand_data,
+> +		.platform_data	= &h2_nand_platdata,
+>  	},
+>  	.num_resources	= 1,
+>  	.resource	= &h2_nand_resource,
+> @@ -368,8 +399,6 @@ static struct omap_board_config_kernel h2_config[] __initdata = {
+>  	{ OMAP_TAG_LCD,		&h2_lcd_config },
+>  };
+>  
+> -#define H2_NAND_RB_GPIO_PIN	62
+> -
+>  static void __init h2_init(void)
+>  {
+>  	/* Here we assume the NOR boot config:  NOR on CS3 (possibly swapped
+> diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
+> index f5cc0a7..f96cd1e 100644
+> --- a/arch/arm/mach-omap1/board-h3.c
+> +++ b/arch/arm/mach-omap1/board-h3.c
+> @@ -42,7 +42,6 @@
+>  #include <mach/irqs.h>
+>  #include <plat/mux.h>
+>  #include <plat/tc.h>
+> -#include <plat/nand.h>
+>  #include <plat/usb.h>
+>  #include <plat/keypad.h>
+>  #include <plat/dma.h>
+> @@ -181,11 +180,43 @@ static struct mtd_partition nand_partitions[] = {
+>  	},
+>  };
+>  
+> -/* dip switches control NAND chip access:  8 bit, 16 bit, or neither */
+> -static struct omap_nand_platform_data nand_data = {
+> -	.options	= NAND_SAMSUNG_LP_OPTIONS,
+> -	.parts		= nand_partitions,
+> -	.nr_parts	= ARRAY_SIZE(nand_partitions),
+> +static void nand_cmd_ctl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+> +{
+> +	struct nand_chip *this = mtd->priv;
+> +	unsigned long mask;
+> +
+> +	if (cmd == NAND_CMD_NONE)
+> +		return;
+> +
+> +	mask = (ctrl & NAND_CLE) ? 0x02 : 0;
+> +	if (ctrl & NAND_ALE)
+> +		mask |= 0x04;
+> +	writeb(cmd, (unsigned long)this->IO_ADDR_W | mask);
+> +}
+> +
+> +#define H3_NAND_RB_GPIO_PIN	10
+> +
+> +static int nand_dev_ready(struct mtd_info *mtd)
+> +{
+> +	return gpio_get_value(H3_NAND_RB_GPIO_PIN);
+> +}
+> +
+> +static const char *part_probes[] = { "cmdlinepart", NULL };
+> +
+> +struct platform_nand_data nand_platdata = {
+> +	.chip	= {
+> +		.nr_chips		= 1,
+> +		.chip_offset		= 0,
+> +		.nr_partitions		= ARRAY_SIZE(nand_partitions),
+> +		.partitions		= nand_partitions,
+> +		.options		= NAND_SAMSUNG_LP_OPTIONS,
+> +		.part_probe_types	= part_probes,
+> +	},
+> +	.ctrl	= {
+> +		.cmd_ctrl	= nand_cmd_ctl,
+> +		.dev_ready	= nand_dev_ready,
+> +
+> +	},
+>  };
+>  
+>  static struct resource nand_resource = {
+> @@ -193,10 +224,10 @@ static struct resource nand_resource = {
+>  };
+>  
+>  static struct platform_device nand_device = {
+> -	.name		= "omapnand",
+> +	.name		= "gen_nand",
+>  	.id		= 0,
+>  	.dev		= {
+> -		.platform_data	= &nand_data,
+> +		.platform_data	= &nand_platdata,
+>  	},
+>  	.num_resources	= 1,
+>  	.resource	= &nand_resource,
+> @@ -332,13 +363,6 @@ static struct i2c_board_info __initdata h3_i2c_board_info[] = {
+>  	},
+>  };
+>  
+> -#define H3_NAND_RB_GPIO_PIN	10
+> -
+> -static int nand_dev_ready(struct omap_nand_platform_data *data)
+> -{
+> -	return gpio_get_value(H3_NAND_RB_GPIO_PIN);
+> -}
+> -
+>  static void __init h3_init(void)
+>  {
+>  	/* Here we assume the NOR boot config:  NOR on CS3 (possibly swapped
+> @@ -356,7 +380,7 @@ static void __init h3_init(void)
+>  	nand_resource.end += SZ_4K - 1;
+>  	if (gpio_request(H3_NAND_RB_GPIO_PIN, "NAND ready") < 0)
+>  		BUG();
+> -	nand_data.dev_ready = nand_dev_ready;
+> +	gpio_direction_input(H3_NAND_RB_GPIO_PIN);
+>  
+>  	/* GPIO10 Func_MUX_CTRL reg bit 29:27, Configure V2 to mode1 as GPIO */
+>  	/* GPIO10 pullup/down register, Enable pullup on GPIO10 */
+> diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
+> index ca7df1e..dba0f7b 100644
+> --- a/arch/arm/mach-omap1/board-perseus2.c
+> +++ b/arch/arm/mach-omap1/board-perseus2.c
+> @@ -30,7 +30,6 @@
+>  #include <mach/gpio.h>
+>  #include <plat/mux.h>
+>  #include <plat/fpga.h>
+> -#include <plat/nand.h>
+>  #include <plat/keypad.h>
+>  #include <plat/common.h>
+>  #include <plat/board.h>
+> @@ -134,8 +133,40 @@ static struct platform_device nor_device = {
+>  	.resource	= &nor_resource,
+>  };
+>  
+> -static struct omap_nand_platform_data nand_data = {
+> -	.options	= NAND_SAMSUNG_LP_OPTIONS,
+> +static void nand_cmd_ctl(struct mtd_info *mtd, int cmd,	unsigned int ctrl)
+> +{
+> +	struct nand_chip *this = mtd->priv;
+> +	unsigned long mask;
+> +
+> +	if (cmd == NAND_CMD_NONE)
+> +		return;
+> +
+> +	mask = (ctrl & NAND_CLE) ? 0x02 : 0;
+> +	if (ctrl & NAND_ALE)
+> +		mask |= 0x04;
+> +	writeb(cmd, (unsigned long)this->IO_ADDR_W | mask);
+> +}
+> +
+> +#define P2_NAND_RB_GPIO_PIN	62
+> +
+> +static int nand_dev_ready(struct mtd_info *mtd)
+> +{
+> +	return gpio_get_value(P2_NAND_RB_GPIO_PIN);
+> +}
+> +
+> +static const char *part_probes[] = { "cmdlinepart", NULL };
+> +
+> +static struct platform_nand_data nand_data = {
+> +	.chip	= {
+> +		.nr_chips		= 1,
+> +		.chip_offset		= 0,
+> +		.options		= NAND_SAMSUNG_LP_OPTIONS,
+> +		.part_probe_types	= part_probes,
+> +	},
+> +	.ctrl	= {
+> +		.cmd_ctrl	= nand_cmd_ctl,
+> +		.dev_ready	= nand_dev_ready,
+> +	},
+>  };
+>  
+>  static struct resource nand_resource = {
+> @@ -145,7 +176,7 @@ static struct resource nand_resource = {
+>  };
+>  
+>  static struct platform_device nand_device = {
+> -	.name		= "omapnand",
+> +	.name		= "gen_nand",
+>  	.id		= 0,
+>  	.dev		= {
+>  		.platform_data	= &nand_data,
+> @@ -201,13 +232,6 @@ static struct platform_device *devices[] __initdata = {
+>  	&lcd_device,
+>  };
+>  
+> -#define P2_NAND_RB_GPIO_PIN	62
+> -
+> -static int nand_dev_ready(struct omap_nand_platform_data *data)
+> -{
+> -	return gpio_get_value(P2_NAND_RB_GPIO_PIN);
+> -}
+> -
+>  static struct omap_lcd_config perseus2_lcd_config __initdata = {
+>  	.ctrl_name	= "internal",
+>  };
+> @@ -220,7 +244,7 @@ static void __init omap_perseus2_init(void)
+>  {
+>  	if (gpio_request(P2_NAND_RB_GPIO_PIN, "NAND ready") < 0)
+>  		BUG();
+> -	nand_data.dev_ready = nand_dev_ready;
+> +	gpio_direction_input(P2_NAND_RB_GPIO_PIN);
+>  
+>  	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
+>  	omap_cfg_reg(M8_1610_FLASH_CS2B_WE);
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
