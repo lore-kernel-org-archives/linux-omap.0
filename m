@@ -1,135 +1,168 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH v4] mmc-omap: Add support for 16-bit and 32-bit registers
-Date: Mon, 23 Nov 2009 08:23:59 -0800
-Message-ID: <1258993439-4787-1-git-send-email-darkstar6262@gmail.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
-Cc: Cory Maccarrone <darkstar6262@gmail.com>, Marek Belisko <marek.belisko@open-nandra.com>
+From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: [PATCH] I2C: OMAP3: PM: (re)init for every transfer to support off-mode
+Date: Mon, 23 Nov 2009 08:59:18 -0800
+Message-ID: <1258995558-18048-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Jouni Hogander <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>, Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, Hu Tao <taohu-3WKxDLwmzFNWk0Htik3J/w@public.gmane.org>, Xiaolong Chen <A21785-3WKxDLwmzFNWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
-a modification of the register addresses in the mmc-omap driver.  To resolve
-this, a bit shift is performed on base register addresses, either by 1 or 2
-bits depending on the CPU in use.  This yields the correct registers for
-each CPU.
+From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
 
-Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+Because of OMAP off-mode, powerdomain can go off when I2C is idle.
+Save enough state, and do a re-init for each transfer.
+
+Additional save/restore state added by Jagadeesh Bhaskar Pakaravoor
+(SYSC_REG) and Aaro Koskinen (wakeup sources.)
+
+Also, The OMAP3430 TRM states:
+
+"During active mode (I2Ci.I2C_CON[15] I2C_EN bit is set to 1), make no
+changes to the I2Ci.I2C_SCLL and I2Ci.I2C_SCLH registers.  Changes may
+result in unpredictable behavior."
+
+Hence, the I2C_EN bit should be clearer when modifying these
+registers. Please note that clearing the entire I2C_CON register to
+disable the I2C module is safe, because the I2C_CON register is
+re-configured for each transfer.
+
+Signed-off-by: Jouni Hogander <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>
+Cc: Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Cc: Hu Tao <taohu-3WKxDLwmzFNWk0Htik3J/w@public.gmane.org>
+Cc: Xiaolong Chen <A21785-3WKxDLwmzFNWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 ---
- drivers/mmc/host/omap.c |   63 +++++++++++++++++++++++++---------------------
- 1 files changed, 34 insertions(+), 29 deletions(-)
+Originally posted on 21-july-2009 for the 2.6.32 merge window:
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 5f970e2..ca63e94 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -38,30 +38,30 @@
- #include <plat/fpga.h>
- 
- #define	OMAP_MMC_REG_CMD	0x00
--#define	OMAP_MMC_REG_ARGL	0x04
--#define	OMAP_MMC_REG_ARGH	0x08
--#define	OMAP_MMC_REG_CON	0x0c
--#define	OMAP_MMC_REG_STAT	0x10
--#define	OMAP_MMC_REG_IE		0x14
--#define	OMAP_MMC_REG_CTO	0x18
--#define	OMAP_MMC_REG_DTO	0x1c
--#define	OMAP_MMC_REG_DATA	0x20
--#define	OMAP_MMC_REG_BLEN	0x24
--#define	OMAP_MMC_REG_NBLK	0x28
--#define	OMAP_MMC_REG_BUF	0x2c
--#define OMAP_MMC_REG_SDIO	0x34
--#define	OMAP_MMC_REG_REV	0x3c
--#define	OMAP_MMC_REG_RSP0	0x40
--#define	OMAP_MMC_REG_RSP1	0x44
--#define	OMAP_MMC_REG_RSP2	0x48
--#define	OMAP_MMC_REG_RSP3	0x4c
--#define	OMAP_MMC_REG_RSP4	0x50
--#define	OMAP_MMC_REG_RSP5	0x54
--#define	OMAP_MMC_REG_RSP6	0x58
--#define	OMAP_MMC_REG_RSP7	0x5c
--#define	OMAP_MMC_REG_IOSR	0x60
--#define	OMAP_MMC_REG_SYSC	0x64
--#define	OMAP_MMC_REG_SYSS	0x68
-+#define	OMAP_MMC_REG_ARGL	0x01
-+#define	OMAP_MMC_REG_ARGH	0x02
-+#define	OMAP_MMC_REG_CON	0x03
-+#define	OMAP_MMC_REG_STAT	0x04
-+#define	OMAP_MMC_REG_IE		0x05
-+#define	OMAP_MMC_REG_CTO	0x06
-+#define	OMAP_MMC_REG_DTO	0x07
-+#define	OMAP_MMC_REG_DATA	0x08
-+#define	OMAP_MMC_REG_BLEN	0x09
-+#define	OMAP_MMC_REG_NBLK	0x0a
-+#define	OMAP_MMC_REG_BUF	0x0b
-+#define	OMAP_MMC_REG_SDIO	0x0d
-+#define	OMAP_MMC_REG_REV	0x0f
-+#define	OMAP_MMC_REG_RSP0	0x10
-+#define	OMAP_MMC_REG_RSP1	0x11
-+#define	OMAP_MMC_REG_RSP2	0x12
-+#define	OMAP_MMC_REG_RSP3	0x13
-+#define	OMAP_MMC_REG_RSP4	0x14
-+#define	OMAP_MMC_REG_RSP5	0x15
-+#define	OMAP_MMC_REG_RSP6	0x16
-+#define	OMAP_MMC_REG_RSP7	0x17
-+#define	OMAP_MMC_REG_IOSR	0x18
-+#define	OMAP_MMC_REG_SYSC	0x19
-+#define	OMAP_MMC_REG_SYSS	0x1a
- 
- #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
- #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
-@@ -77,8 +77,9 @@
- #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
- #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
- 
--#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
--#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
-+#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
-+#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
-+#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
- 
- /*
-  * Command types
-@@ -167,6 +168,8 @@ struct mmc_omap_host {
- 	spinlock_t		clk_lock;     /* for changing enabled state */
- 	unsigned int            fclk_enabled:1;
- 
-+	unsigned		reg_shift:2;
-+
- 	struct omap_mmc_platform_data *pdata;
+  http://marc.info/?l=linux-i2c&m=124821776627177&w=2
+
+Please queue for 2.6.32-rc if still possible, or at least for 2.6.33.
+
+ drivers/i2c/busses/i2c-omap.c |   64 ++++++++++++++++++++++++++--------------
+ 1 files changed, 41 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 827da08..75bf3ad 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -178,6 +178,12 @@ struct omap_i2c_dev {
+ 	unsigned		b_hw:1;		/* bad h/w fixes */
+ 	unsigned		idle:1;
+ 	u16			iestate;	/* Saved interrupt register */
++	u16			pscstate;
++	u16			scllstate;
++	u16			sclhstate;
++	u16			bufstate;
++	u16			syscstate;
++	u16			westate;
  };
  
-@@ -679,9 +682,9 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
- 	host->data->bytes_xfered += n;
+ static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+@@ -230,9 +236,18 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
  
- 	if (write) {
--		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-+		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
- 	} else {
--		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-+		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
- 	}
+ 	clk_enable(dev->iclk);
+ 	clk_enable(dev->fclk);
++	if (cpu_is_omap34xx()) {
++		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
++		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
++		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
++	}
+ 	dev->idle = 0;
+-	if (dev->iestate)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
  }
  
-@@ -899,7 +902,7 @@ mmc_omap_prepare_dma(struct mmc_omap_host *host, struct mmc_data *data)
- 	int dst_port = 0;
- 	int sync_dev = 0;
+ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+@@ -258,7 +273,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
  
--	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
-+	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
- 	frame = data->blksz;
- 	count = sg_dma_len(sg);
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+-	u16 psc = 0, scll = 0, sclh = 0;
++	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+ 	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
+ 	unsigned long fclk_rate = 12000000;
+ 	unsigned long timeout;
+@@ -287,24 +302,22 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 					   SYSC_AUTOIDLE_MASK);
  
-@@ -1490,6 +1493,8 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
+ 		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
+-			u32 v;
+-
+-			v = SYSC_AUTOIDLE_MASK;
+-			v |= SYSC_ENAWAKEUP_MASK;
+-			v |= (SYSC_IDLEMODE_SMART <<
++			dev->syscstate = SYSC_AUTOIDLE_MASK;
++			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
++			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
+ 			      __ffs(SYSC_SIDLEMODE_MASK));
+-			v |= (SYSC_CLOCKACTIVITY_FCLK <<
++			dev->syscstate |= (SYSC_CLOCKACTIVITY_FCLK <<
+ 			      __ffs(SYSC_CLOCKACTIVITY_MASK));
+ 
+-			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, v);
++			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
++							dev->syscstate);
+ 			/*
+ 			 * Enabling all wakup sources to stop I2C freezing on
+ 			 * WFI instruction.
+ 			 * REVISIT: Some wkup sources might not be needed.
+ 			 */
+-			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+-							OMAP_I2C_WE_ALL);
+-
++			dev->westate = OMAP_I2C_WE_ALL;
++			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
  		}
  	}
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+@@ -394,23 +407,28 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
  
-+	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
-+
+-	if (dev->fifo_size)
+-		/* Note: setup required fifo size - 1 */
+-		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
+-					(dev->fifo_size - 1) << 8 | /* RTRSH */
+-					OMAP_I2C_BUF_RXFIF_CLR |
+-					(dev->fifo_size - 1) | /* XTRSH */
+-					OMAP_I2C_BUF_TXFIF_CLR);
++	if (dev->fifo_size) {
++		/* Note: setup required fifo size - 1. RTRSH and XTRSH */
++		buf = (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_CLR |
++			(dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
++		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
++	}
+ 
+ 	/* Take the I2C module out of reset: */
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 
+ 	/* Enable interrupts */
+-	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
+-			(OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
++	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+ 			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
+ 			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
+-				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0));
++				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
++	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++	if (cpu_is_omap34xx()) {
++		dev->pscstate = psc;
++		dev->scllstate = scll;
++		dev->sclhstate = sclh;
++		dev->bufstate = buf;
++	}
  	return 0;
+ }
  
- err_plat_cleanup:
 -- 
-1.6.0.4
-
+1.6.5.1
