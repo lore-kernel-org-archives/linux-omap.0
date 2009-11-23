@@ -1,36 +1,46 @@
 From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 0/4] AM3517: MMC: Add support for HSMMC
-Date: Mon, 23 Nov 2009 23:54:57 +0530
-Message-ID: <1259000697-32175-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [PATCH 3/4] AM3517: MMC: Modifying Makefile to enable MMC init
+Date: Mon, 23 Nov 2009 23:55:21 +0530
+Message-ID: <1259000722-32222-3-git-send-email-anuj.aggarwal@ti.com>
+References: <1259000722-32222-1-git-send-email-anuj.aggarwal@ti.com>
+ <1259000722-32222-2-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52120 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752241AbZKWSY4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 13:24:56 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:34263 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753027AbZKWSZT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Nov 2009 13:25:19 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nANIP0E3012986
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nANIPNLt025950
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 12:25:02 -0600
+	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 12:25:25 -0600
+In-Reply-To: <1259000722-32222-2-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-This patch series adds support for HSMMC for AM3517 platform.
-It also enables the HSMMC driver in the AM3517 defconfig.
+Modifying Makefile to build mmc-am3517.c for AM3517 platform, this
+file has the mmc_init function for 3517 EVM.
 
-Anuj Aggarwal (4):
-  AM3517: MMC: Add low-level init code for HSMMC controller
-  AM3517: MMC: Modifying board-evm file to add mmc_init
-  AM3517: MMC: Modifying Makefile to enable MMC init
-  AM3517: MMC: Make HSMMC driver built-in
+Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+---
+ arch/arm/mach-omap2/Makefile |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
- arch/arm/configs/am3517_evm_defconfig |   21 +++-
- arch/arm/mach-omap2/Makefile          |    3 +-
- arch/arm/mach-omap2/board-am3517evm.c |   22 +++
- arch/arm/mach-omap2/mmc-am3517evm.c   |  267 +++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/mmc-am3517evm.h   |   22 +++
- 5 files changed, 333 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/mach-omap2/mmc-am3517evm.c
- create mode 100644 arch/arm/mach-omap2/mmc-am3517evm.h
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 59b0ccc..77ec48b 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -93,7 +93,8 @@ obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
+ 
+ obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
+ 
+-obj-$(CONFIG_MACH_OMAP3517EVM)     += board-am3517evm.o
++obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
++					   mmc-am3517evm.o
+ 
+ # Platform specific device init code
+ obj-y					+= usb-musb.o
+-- 
+1.6.2.4
 
