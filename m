@@ -1,117 +1,79 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: VDD1 voltage after resume from idle
-Date: Mon, 23 Nov 2009 19:07:57 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE6A6BB1@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
- <20091120162933.GC2354@mvista.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE60C@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE61E@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] omap3: sr: Update ON voltage levels based on VSEL
+Date: Mon, 23 Nov 2009 19:08:37 +0530
+Message-ID: <1258983517-16169-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44497 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42552 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751422AbZKWNiG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 08:38:06 -0500
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE61E@dbde02.ent.ti.com>
-Content-Language: en-US
+	id S1750789AbZKWNig (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Nov 2009 08:38:36 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nANDcd6W023930
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 07:38:42 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, Maxime Petazzoni <mpetazzoni@mvista.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-> -----Original Message-----
-> From: Premi, Sanjeev 
-> Sent: Saturday, November 21, 2009 1:04 AM
-> To: Premi, Sanjeev; Maxime Petazzoni
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: VDD1 voltage after resume from idle
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org 
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Premi, Sanjeev
-> > Sent: Friday, November 20, 2009 11:46 PM
-> > To: Maxime Petazzoni
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: RE: VDD1 voltage after resume from idle
-> > 
-> > > -----Original Message-----
-> > > From: Maxime Petazzoni [mailto:mpetazzoni@mvista.com] 
-> > > Sent: Friday, November 20, 2009 10:00 PM
-> > > To: Premi, Sanjeev
-> > > Cc: linux-omap@vger.kernel.org
-> > > Subject: Re: VDD1 voltage after resume from idle
-> > > 
-> 
-> [snip]--[snip]--[snip]
-> 
-> > 
-> > I guess the root cause could be same. I have not been able to 
-> > ascertain
-> > the reason for the voltage changing during the idle/wakeup sequence.
-> > Also tried to eliminate the enable_smartreflex() calls on 
-> wakeup path.
-> > Sill I see voltage ramp-up.
-> > 
-> > I am trying to find the cause of voltage ramping to 1.2V in 
-> hope that
-> > the reason for ramp down will be just inverted reflection.
-> > 
-> > With smartreflex disabled, there is no change in the voltage during
-> > suspend; so the problem area seems to be smartreflex.
-> > 
-> > Best regards,
-> > Sanjeev
-> 
-> Found the problem!
-> 
-> In sr_configure_vp() the vsel is picked up from the OPP table 
-> and used,
-> setting the voltage as expected (1.35V in my case).
-> 
-> A printk confirms PRM_VC_CMD_VAL_0 is 0x3C201E00. 
-> 
-> By the time, kernel boots up, the value has changed to 0x30201E00.
-> (0x30 corresponds to 1.2V)
-> 
-> [root@OMAP3EVM /]# devmem 0x4830722c 32
-> 0x30201E00
-> 
-> Now, when I update the init voltage back to 3C (via devmem) 
-> the voltage
-> after resume/idle-wakeup is right (as expected).
-> 
-> [root@OMAP3EVM /]# devmem 0x4830722c 32 0x3c201e00
-> [root@OMAP3EVM /]#
-> 
-> So, I just need to find exact location where the 
-> configuration is being
-> overwritten.
+The settings for ON voltage level in the registers
+PRM_VC_CMD_VAL_0,1 was not updated based on OPP
+table.
 
-Correction. Though I expected/assumed VSEL to be written to this
-Location. It wasn't the case. VSEL is used to update the ON voltage
-Field in PRM_VP1_CONFIG; but not the PRM_VC_CMD_VAL_0.
+Once the MPU resumes from OFF mode (during idle OR
+suspend) the VDD1 voltage always returns to 1.2V.
 
-Haven't tried (too hard) to find initiator programming this reg in
-kernel - so, it might be retaining values from u-boot.
+This patch programs the value based on current OPP.
 
-After ensuring that PRM_VC_CMD_VAL_0,1 are updated based on the
-VSEL values in current opp tables, the problem seems to be fixed.
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |   19 ++++++++++++++++++-
+ 1 files changed, 18 insertions(+), 1 deletions(-)
 
-Patch from my working tree following soon for review. Will refresh
-it against /pm, if needed, there are no comments.
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index be3a1da..4cbbd6f 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -313,6 +313,15 @@ static void sr_configure_vp(int srid)
+ 			PRM_VP1_CONFIG_TIMEOUTEN |
+ 			vsel << OMAP3430_INITVOLTAGE_SHIFT;
+ 
++		/*
++		 * Update the 'ON' voltage levels based on the VSEL.
++		 * (See spruf8c.pdf sec 1.5.3.1)
++		 */
++		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
++				(vsel << OMAP3430_VC_CMD_ON_SHIFT),
++				OMAP3430_GR_MOD,
++				OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
++
+ 		prm_write_mod_reg(vpconfig, OMAP3430_GR_MOD,
+ 					OMAP3_PRM_VP1_CONFIG_OFFSET);
+ 		prm_write_mod_reg(PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN |
+@@ -354,6 +363,15 @@ static void sr_configure_vp(int srid)
+ 		else
+ 			vsel = l3_opps[target_opp_no].vsel;
+ 
++		/*
++		 * Update the 'ON' voltage levels based on the VSEL.
++		 * (See spruf8c.pdf sec 1.5.3.1)
++		 */
++		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
++				(vsel << OMAP3430_VC_CMD_ON_SHIFT),
++				OMAP3430_GR_MOD,
++				OMAP3_PRM_VC_CMD_VAL_1_OFFSET);
++
+ 		vpconfig = PRM_VP2_CONFIG_ERROROFFSET |
+ 			PRM_VP2_CONFIG_ERRORGAIN |
+ 			PRM_VP2_CONFIG_TIMEOUTEN |
+@@ -391,7 +409,6 @@ static void sr_configure_vp(int srid)
+ 		/* Clear force bit */
+ 		prm_clear_mod_reg_bits(OMAP3430_FORCEUPDATE, OMAP3430_GR_MOD,
+ 				       OMAP3_PRM_VP2_CONFIG_OFFSET);
+-
+ 	}
+ }
+ 
+-- 
+1.6.2.2
 
-Best regards,
-Sanjeev
-
-> 
-> It is well past midnight now. So the patch will have to wait until
-> tomorrow.
-> 
-> Best regards,
-> Sanjeev
-> 
-> [snip]--[snip]--[snip]
-> 
