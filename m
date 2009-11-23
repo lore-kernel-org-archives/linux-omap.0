@@ -1,353 +1,254 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/5] ZOOM: DSS2: changes in zoom board file for display
- support
-Date: Mon, 23 Nov 2009 15:00:40 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404370D7363@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E940254331084@dbde02.ent.ti.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCHV2 4/4] OMAP3: add support for 192Mhz sgx clock
+Date: Mon, 23 Nov 2009 15:00:48 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA751E44@dbde02.ent.ti.com>
+References: <1258730937-1962-1-git-send-email-vishwanath.bs@ti.com>
+ <1258730937-1962-2-git-send-email-vishwanath.bs@ti.com>
+ <1258730937-1962-3-git-send-email-vishwanath.bs@ti.com>
+ <1258730937-1962-4-git-send-email-vishwanath.bs@ti.com>
+ <1258730937-1962-5-git-send-email-vishwanath.bs@ti.com>
+ <4B06C182.4090009@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33115 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752544AbZKWJaj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 04:30:39 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:49252 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755792AbZKWJar convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 04:30:47 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAN9UdLX006080
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAN9UonW023436
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 03:30:45 -0600
+	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 03:30:53 -0600
 Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAN9Udna000251
-	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 15:00:39 +0530 (IST)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940254331084@dbde02.ent.ti.com>
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAN9UoQs000363
+	for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 15:00:50 +0530 (IST)
+In-Reply-To: <4B06C182.4090009@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Y, Kishore" <kishore.y@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
 
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Y, Kishore
-> Sent: Friday, November 20, 2009 7:57 PM
-> To: linux-omap@vger.kernel.org
-> Subject: [PATCH 1/5] ZOOM: DSS2: changes in zoom board file for
-> display support
+> From: Menon, Nishanth
+> Sent: Friday, November 20, 2009 9:49 PM
+> To: Sripathy, Vishwanath
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCHV2 4/4] OMAP3: add support for 192Mhz sgx clock
 > 
-> From e9394adabaa4418db50147cb464f314f396e0ec5 Mon Sep 17 00:00:00
-> 2001
-> From: Mukund Mittal <mmittal@ti.com>
-> Date: Fri, 20 Nov 2009 18:14:30 +0530
-> Subject: [PATCH] ZOOM: DSS2: changes in zoom board file for display
-> support
-> 
-> board-zoom-peripherals.c is common file for zoom boards to support
-> peripherals. Display support has been added here to enable display
-> in
-> zoom2 and zoom3
-> 
-> Signed-off-by: Kishore Y <kishore.y@ti.com>
-> ---
->  arch/arm/mach-omap2/board-zoom-peripherals.c |  212
-> +++++++++++++++++++++++++-
->  1 files changed, 209 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> index 32adfea..a8628db 100644
-> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> @@ -27,10 +27,166 @@
->  #include <plat/usb.h>
->  #include <plat/mux.h>
-> 
-> +#include <plat/mcspi.h>
-> +#include <linux/spi/spi.h>
-> +#include <plat/display.h>
->  #include "mmc-twl4030.h"
-> 
->  #define OMAP_SYNAPTICS_GPIO		163
-> 
-> +#define LCD_PANEL_BACKLIGHT_GPIO        (15 + OMAP_MAX_GPIO_LINES)
-> +#define LCD_PANEL_ENABLE_GPIO           (7 + OMAP_MAX_GPIO_LINES)
-> +
-> +#define LCD_PANEL_RESET_GPIO            55
-> +#define LCD_PANEL_QVGA_GPIO             56
-> +
-> +#define TV_PANEL_ENABLE_GPIO            95
-> +
-> +
-> +#define ENABLE_VAUX2_DEDICATED          0x09
-> +#define ENABLE_VAUX2_DEV_GRP            0x20
-> +#define ENABLE_VAUX3_DEDICATED          0x03
-> +#define ENABLE_VAUX3_DEV_GRP            0x20
-> +
-> +#define ENABLE_VPLL2_DEDICATED          0x05
-> +#define ENABLE_VPLL2_DEV_GRP            0xE0
-> +#define TWL4030_VPLL2_DEV_GRP           0x33
-> +#define TWL4030_VPLL2_DEDICATED         0x36
-> +
-> +/*#define SIL9022_RESET_GPIO              97*/
-> +
-> +
-> +static void zoom_lcd_tv_panel_init(void)
-> +{
-> +	unsigned char lcd_panel_reset_gpio;
-> +
-> +	if (omap_rev() > OMAP3430_REV_ES3_0) {
-> +		/* Production Zoom Board:
-> + * 		 * GPIO-96 is the LCD_RESET_GPIO
-> + * 		 		 */
-> +		lcd_panel_reset_gpio = 96;
-> +	} else {
-> +	/* Pilot Zoom board
-> + * 	 * GPIO-55 is the LCD_RESET_GPIO
-> + * 	 		 */
-> +		lcd_panel_reset_gpio = 55;
-> +	}
-> +
-> +	gpio_request(lcd_panel_reset_gpio, "lcd reset");
-> +	gpio_request(LCD_PANEL_QVGA_GPIO, "lcd qvga");
-> +	gpio_request(LCD_PANEL_ENABLE_GPIO, "lcd panel");
-> +	gpio_request(LCD_PANEL_BACKLIGHT_GPIO, "lcd backlight");
-> +
-> +	gpio_request(TV_PANEL_ENABLE_GPIO, "tv panel");
-[Hiremath, Vaibhav] Better to check return value of gpio_request function here for all?
+> unrelated to this patch comment: we might want to consider thinking in
+> terms of optimizing the memory as OMAP4 also kicks in.. some sort of
+> dynamic clock tree traversal and __initdata method perhaps??
 
-> +
-> +	gpio_direction_output(LCD_PANEL_QVGA_GPIO, 0);
-> +	gpio_direction_output(lcd_panel_reset_gpio, 0);
-> +	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
-> +	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
-> +	gpio_direction_output(TV_PANEL_ENABLE_GPIO, 0);
-> +
-> +	gpio_direction_output(LCD_PANEL_QVGA_GPIO, 1);
-> +	gpio_direction_output(lcd_panel_reset_gpio, 1);
-> +}
-> +
-> +static int zoom_panel_power_enable(int enable)
-> +{
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +				(enable) ? ENABLE_VPLL2_DEDICATED : 0,
-> +				TWL4030_VPLL2_DEDICATED);
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +				(enable) ? ENABLE_VPLL2_DEV_GRP : 0,
-> +				TWL4030_VPLL2_DEV_GRP);
-> +	return 0;
-> +}
-> +
-> +static int zoom_panel_enable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +	zoom_panel_power_enable(1);
-> +
-> +	gpio_request(LCD_PANEL_ENABLE_GPIO, "lcd panel");
-[Hiremath, Vaibhav] Why do you need to request everytime?????
-You can directly callgpio_set_value()
 
-It applies to everywhere in this patch
+> 
+> Hi Vishwa,
+> Thanks for the patch, few minor comments follow:
+> 
+> Sripathy, Vishwanath had written, on 11/20/2009 09:28 AM, the following:
+> > SGX can run at 192MHz on 3630 and this patch has changes to support this
+> > feature. Basically DPLL4 M2 will be 192Mhz which will be used as SGX
+> > Clock. 192Mhz clock is divided by 2 (using CM_CLKSEL_CORE) to generate
+> > 96Mh clock
+>    ^^^^ <- you probably intended 96Mhz
 
-> +	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
-> +	gpio_request(LCD_PANEL_BACKLIGHT_GPIO, "lcd backlight");
-> +	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 1);
-> +
-> +	return 0;
-> +}
-> +
-> +static void zoom_panel_disable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +	zoom_panel_power_enable(0);
-> +
-> +	gpio_request(LCD_PANEL_ENABLE_GPIO, "lcd panel");
-> +	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
-> +	gpio_request(LCD_PANEL_BACKLIGHT_GPIO, "lcd backlight");
-> +	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
-> +
-> +}
-> +
-> +static struct omap_dss_device zoom_lcd_device = {
-> +	.name = "lcd",
-> +	.driver_name = "NEC_panel",
-> +	.type = OMAP_DISPLAY_TYPE_DPI,
-> +	.phy.dpi.data_lines = 24,
-> +	.platform_enable = zoom_panel_enable_lcd,
-> +	.platform_disable = zoom_panel_disable_lcd,
-> + };
-> +
-> +static struct omap_dss_device *zoom_dss_devices[] = {
-> +	&zoom_lcd_device,
-> +/*        &zoom_tv_device,
-> + *        #ifdef CONFIG_SIL9022
-> + *        	&zoom_hdmi_device,
-> + *        	#endif
-> + *        	*/
-> +};
-> +
-> +
-> +
-> +static struct omap_dss_board_info zoom_dss_data = {
-> +	.num_devices = ARRAY_SIZE(zoom_dss_devices),
-> +	.devices = zoom_dss_devices,
-> +	.default_device = &zoom_lcd_device,
-> +};
-> +
-> +static struct platform_device zoom_dss_device = {
-> +	.name          = "omapdss",
-> +	.id            = -1,
-> +	.dev            = {
-> +		.platform_data = &zoom_dss_data,
-> +	},
-> +};
-> +
-> +static struct regulator_consumer_supply zoom_vdda_dac_supply = {
-> +	.supply         = "vdda_dac",
-> +	.dev            = &zoom_dss_device.dev,
-> +};
-> +
-> +
-> +#ifdef CONFIG_FB_OMAP2
-> +static struct resource zoom_vout_resource[3 -
-> CONFIG_FB_OMAP2_NUM_FBS] = {
-> +};
-> +#else
-> +static struct resource zoom_vout_resource[2] = {
-> +};
-> +#endif
-[Hiremath, Vaibhav] Do we really required to handle this here? I fI understand correctly, this is being handled in device.c file which should be common for all omap3 devices/boards.
+Yes, is should be 96Mhz.
+> >
+> > Signed-off-by: Vishwanath BS <Vishwanath.bs@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/clock34xx.c       |   16 +++++++++++++++-
+> >  arch/arm/mach-omap2/clock34xx.h       |   33
+> +++++++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
+> >  arch/arm/mach-omap2/id.c              |    7 +++++--
+> >  arch/arm/plat-omap/include/plat/cpu.h |    3 +++
+> >  5 files changed, 58 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-
+> omap2/clock34xx.c
+> > index 1e35f9a..bce7e46 100755
+> > --- a/arch/arm/mach-omap2/clock34xx.c
+> > +++ b/arch/arm/mach-omap2/clock34xx.c
+> > @@ -128,6 +128,7 @@ static struct omap_clk omap34xx_clks[] = {
+> >  	CLK(NULL,	"emu_core_alwon_ck", &emu_core_alwon_ck, CK_3XXX),
+> >  	CLK(NULL,	"dpll4_ck",	&dpll4_ck,	CK_3XXX),
+> >  	CLK(NULL,	"dpll4_x2_ck",	&dpll4_x2_ck,	CK_3XXX),
+> > +       CLK(NULL,       "omap_192m_alwon_ck", &omap_192m_alwon_ck,
+> CK_363X),
+> >  	CLK(NULL,	"omap_96m_alwon_fck", &omap_96m_alwon_fck, CK_3XXX),
+> >  	CLK(NULL,	"omap_96m_fck",	&omap_96m_fck,	CK_3XXX),
+> >  	CLK(NULL,	"cm_96m_fck",	&cm_96m_fck,	CK_3XXX),
+> > @@ -1226,7 +1227,20 @@ int __init omap2_clk_init(void)
+> >  				OMAP3630_PERIPH_DPLL_SD_DIV_MASK;
+> >  			dpll4_dd.mult_mask = OMAP3630_PERIPH_DPLL_MULT_MASK;
+> >  			cpu_mask |= RATE_IN_363X;
+> > -			}
+> > +			cpu_clkflg |= CK_363X;
+> 
+> I think introduce CK_36XX should be done seperately.
 
-Please check.
+Ack. It should have been part of patch3.
+> 
+> > +		}
+> > +
+> > +		if (omap3_has_192mhz_clk()) {
+> > +			omap_96m_alwon_fck.parent = &omap_192m_alwon_ck;
+> > +			omap_96m_alwon_fck.init = &omap2_init_clksel_parent;
+> > +			omap_96m_alwon_fck.clksel_reg =
+> > +					OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+> > +			omap_96m_alwon_fck.clksel_mask =
+> > +						OMAP3630_CLKSEL_96M_MASK;
+> > +			omap_96m_alwon_fck.clksel = omap_96m_alwon_fck_clksel;
+> > +			omap_96m_alwon_fck.recalc = &omap2_clksel_recalc;
+> > +		}
+> > +
+> >  	}
+> >
+> >  	clk_init(&omap2_clk_functions);
+> > diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-
+> omap2/clock34xx.h
+> > index 93c92e5..6fe89df 100644
+> > --- a/arch/arm/mach-omap2/clock34xx.h
+> > +++ b/arch/arm/mach-omap2/clock34xx.h
+> > @@ -654,12 +654,31 @@ static struct clk dpll4_m2x2_ck = {
+> >  	.recalc		= &omap3_clkoutx2_recalc,
+> >  };
+> >
+> > +/* Adding 192MHz Clock node needed by SGX */
+> > +static struct clk omap_192m_alwon_ck = {
+> > +	.name           = "omap_192m_alwon_ck",
+> > +	.ops            = &clkops_null,
+> > +	.parent         = &dpll4_m2x2_ck,
+> > +	.recalc         = &followparent_recalc,
+> > +};
+> > +
+> >  /*
+> >   * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
+> >   * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
+> >   * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
+> >   * CM_96K_(F)CLK.
+> >   */
+> > +static const struct clksel_rate omap_96m_alwon_fck_rates[] = {
+> > +	{ .div = 1, .val = 1, .flags = RATE_IN_363X },
+> > +	{ .div = 2, .val = 2, .flags = RATE_IN_363X | DEFAULT_RATE },
+> > +	{ .div = 0 }
+> > +};
+> > +
+> > +static const struct clksel omap_96m_alwon_fck_clksel[] = {
+> > +	{ .parent = &omap_192m_alwon_ck, .rates = omap_96m_alwon_fck_rates },
+> > +	{ .parent = NULL }
+> > +};
+> > +
+> >  static struct clk omap_96m_alwon_fck = {
+> >  	.name		= "omap_96m_alwon_fck",
+> >  	.ops		= &clkops_null,
+> > @@ -1223,6 +1242,18 @@ static const struct clksel_rate sgx_core_rates[] = {
+> >  	{ .div = 3, .val = 0, .flags = RATE_IN_3XXX | DEFAULT_RATE },
+> >  	{ .div = 4, .val = 1, .flags = RATE_IN_3XXX },
+> >  	{ .div = 6, .val = 2, .flags = RATE_IN_3XXX },
+> > +	{ .div = 2, .val = 5, .flags = RATE_IN_363X },
+> dont we have more options here? thinking: does this mean that all 3XXX
+> and 36XX defines are valid ones for SGX?
 
-Thanks,
-Vaibhav
+>From PRCM point of view all 3XXX configurations are valid for 3430. All 3XXX and 363X are valid for 3630. May be SGX driver not use all these configurations, however Clock node should support all. 
 
-> +
-> +
-> +static struct omap2_mcspi_device_config dss_lcd_mcspi_config = {
-> +	.turbo_mode             = 0,
-> +	.single_channel         = 1,  /* 0: slave, 1: master */
-> +};
-> +
-> +static struct spi_board_info dss_spi_board_info[] __initdata = {
-> +	[0] = {
-> +		.modalias               = "disp_spi",
-> +		.bus_num                = 1,
-> +		.chip_select            = 2,
-> +		.max_speed_hz           = 375000,
-> +		.controller_data        = &dss_lcd_mcspi_config,
-> +	},
-> +};
-> +
->  /* Zoom2 has Qwerty keyboard*/
->  static int board_keymap[] = {
->  	KEY(0, 0, KEY_E),
-> @@ -184,6 +340,19 @@ static struct regulator_init_data zoom_vsim = {
->  	.consumer_supplies      = &zoom_vsim_supply,
->  };
 > 
-> +static struct regulator_init_data zoom_vdac = {
-> +	.constraints = {
-> +		.min_uV                 = 1800000,
-> +		.max_uV                 = 1800000,
-> +		.valid_modes_mask       = REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask         = REGULATOR_CHANGE_MODE
-> +					| REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies  = 1,
-> +	.consumer_supplies      = &zoom_vdda_dac_supply,
-> +};
-> +
->  static int zoom_twl_gpio_setup(struct device *dev,
->  		unsigned gpio, unsigned ngpio)
->  {
-> @@ -342,7 +511,7 @@ static struct twl4030_platform_data zoom_twldata
-> = {
->  	/* .vaux2		= &zoom_vaux2,*/
->  	/* .vaux4		= &zoom_vaux4,*/
->  	.vsim           = &zoom_vsim,
-> -	/* .vdac		= &zoom_vdac,*/
-> +	.vdac		= &zoom_vdac,
->  };
+> > +	{ .div = 0 },
+> > +};
+> > +
+> > +static const struct clksel_rate sgx_192m_rates[] = {
+> > +	{ .div = 1,  .val = 4, .flags = RATE_IN_363X | DEFAULT_RATE },
+> > +	{ .div = 0 },
+> > +};
+> > +
+> > +static const struct clksel_rate sgx_corex2_rates[] = {
+> > +	{ .div = 3, .val = 6, .flags = RATE_IN_363X | DEFAULT_RATE },
+> > +	{ .div = 5, .val = 7, .flags = RATE_IN_363X },
+> >  	{ .div = 0 },
+> >  };
+> >
+> > @@ -1234,6 +1265,8 @@ static const struct clksel_rate sgx_96m_rates[] = {
+> >  static const struct clksel sgx_clksel[] = {
+> >  	{ .parent = &core_ck,	 .rates = sgx_core_rates },
+> >  	{ .parent = &cm_96m_fck, .rates = sgx_96m_rates },
+> > +	{ .parent = &omap_192m_alwon_ck, .rates = sgx_192m_rates },
+> > +	{ .parent = &corex2_fck, .rates = sgx_corex2_rates },
+> >  	{ .parent = NULL },
+> >  };
+> >
+> > diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-
+> regbits-34xx.h
+> > index a6383f9..39b3399 100644
+> > --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
+> > +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> > @@ -336,6 +336,8 @@
+> >  #define OMAP3430_CLKSEL_L4_MASK				(0x3 << 2)
+> >  #define OMAP3430_CLKSEL_L3_SHIFT			0
+> >  #define OMAP3430_CLKSEL_L3_MASK				(0x3 << 0)
+> > +#define OMAP3630_CLKSEL_96M_SHIFT                      12
+> > +#define OMAP3630_CLKSEL_96M_MASK                       (0x3 << 12)
+> >
+> >  /* CM_CLKSTCTRL_CORE */
+> >  #define OMAP3430ES1_CLKTRCTRL_D2D_SHIFT			4
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 3c1194c..b1bc79d 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -176,8 +176,10 @@ void __init omap3_check_features(void)
+> >  	OMAP3_CHECK_FEATURE(status, NEON);
+> >  	OMAP3_CHECK_FEATURE(status, ISP);
+> >
+> > -	if (cpu_is_omap3630())
+> > -		omap3_features |= OMAP3_HAS_JTYPE_DPLL4;
+> > +	if (cpu_is_omap3630()) {
+> > +		omap3_features |= OMAP3_HAS_JTYPE_DPLL4 |
+> > +							OMAP3_HAS_192MHZ_CLK;
+> might be better to do this as a next entry -> you may want other chips
+> having 192Mhz to also use it..
 > 
->  static struct i2c_board_info __initdata zoom_i2c_boardinfo[] = {
-> @@ -383,7 +552,7 @@ static struct synaptics_i2c_rmi_platform_data
-> synaptics_platform_data[] = {
->  	}
->  };
+> Please Ref: http://patchwork.kernel.org/patch/61671/ to see how it is
+> done clean.
+
+Ack. Will do it as part of V3
 > 
-> -static struct i2c_board_info __initdata zoom2_i2c_boardinfo2[] = {
-> +static struct i2c_board_info __initdata zoom_i2c_boardinfo2[] = {
->  	{
->  		I2C_BOARD_INFO(SYNAPTICS_I2C_RMI_NAME,  0x20),
->  		.platform_data = &synaptics_platform_data,
-> @@ -396,7 +565,7 @@ static int __init zoom_i2c_init(void)
->  	omap_register_i2c_bus(1, 2200, zoom_i2c_boardinfo,
->  			ARRAY_SIZE(zoom_i2c_boardinfo));
+> > +	}
+> >  	/*
+> >  	 * TODO: Get additional info (where applicable)
+> >  	 *       e.g. Size of L2 cache.
+> > @@ -319,6 +321,7 @@ void __init omap3_cpuinfo(void)
+> >  	OMAP3_SHOW_FEATURE(neon);
+> >  	OMAP3_SHOW_FEATURE(isp);
+> >  	OMAP3_SHOW_FEATURE(jtype_dpll4);
+> > +	OMAP3_SHOW_FEATURE(192mhz_clk);
+> >  	printk(")\n");
+> >  }
+> >
+> > diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
+> omap/include/plat/cpu.h
+> > index 65c08d5..1dffe25 100644
+> > --- a/arch/arm/plat-omap/include/plat/cpu.h
+> > +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> > @@ -498,6 +498,7 @@ extern u32 omap3_features;
+> >  #define OMAP3_HAS_NEON			BIT(3)
+> >  #define OMAP3_HAS_ISP			BIT(4)
+> >  #define OMAP3_HAS_JTYPE_DPLL4		BIT(5)
+> > +#define OMAP3_HAS_192MHZ_CLK		BIT(6)
+> >
+> >  #define OMAP3_HAS_FEATURE(feat,flag)			\
+> >  static inline unsigned int omap3_has_ ##feat(void)	\
+> > @@ -511,4 +512,6 @@ OMAP3_HAS_FEATURE(iva, IVA)
+> >  OMAP3_HAS_FEATURE(neon, NEON)
+> >  OMAP3_HAS_FEATURE(isp, ISP)
+> >  OMAP3_HAS_FEATURE(jtype_dpll4, JTYPE_DPLL4)
+> > +OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+> > +
+> EOL
+> >  #endif
 > 
-> -	/* TODO: I2C2 on zoom2/3:
-> +	/* TODO: I2C2 on zoom/3:
->  	 * Add Synaptic RMI controller
->  	 * Add Camera sensor IMX046
->  	 * Add Camera sensor LV8093
-> @@ -410,11 +579,48 @@ static int __init zoom_i2c_init(void)
->  	return 0;
->  }
 > 
-> +/*
-> +#ifdef CONFIG_PM
-> +struct vout_platform_data zoom_vout_data = {
-> +	.set_min_bus_tput = omap_pm_set_min_bus_tput,
-> +	.set_max_mpu_wakeup_lat =  omap_pm_set_max_mpu_wakeup_lat,
-> +	.set_cpu_freq = omap_pm_cpu_set_freq,
-> +};
-> +#endif
-> +*/
-> +
-> +static struct platform_device zoom_vout_device = {
-> +	.name           = "omap_vout",
-> +	.num_resources  = ARRAY_SIZE(zoom_vout_resource),
-> +	.resource       = &zoom_vout_resource[0],
-> +	.id             = -1,
-> +/*
-> +#ifdef CONFIG_PM
-> +	.dev            = {
-> +		.platform_data = &zoom_vout_data,
-> +	}
-> +#else
-> +*/
-> +	.dev            = {
-> +		.platform_data = NULL,
-> +	}
-> +/*#endif*/
-> +};
-> +
-> +
-> + static struct platform_device *zoom_devices[] __initdata = {
-> +	&zoom_dss_device,
-> +	/*&zoom_vout_device,*/
-> + };
-> 
->  void __init zoom_peripherals_init(void)
->  {
->  	zoom_i2c_init();
-> +	platform_add_devices(zoom_devices, ARRAY_SIZE(zoom_devices));
->  	synaptics_dev_init();
-> +	spi_register_board_info(dss_spi_board_info,
-> +				ARRAY_SIZE(dss_spi_board_info));
->  	omap_serial_init();
->  	usb_musb_init();
-> +	zoom_lcd_tv_panel_init();
->  }
 > --
-> 1.5.4.3
-> 
-> 
 > Regards,
-> Kishore Y
-> Ph:- +918039813085
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> Nishanth Menon
