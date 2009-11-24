@@ -1,82 +1,118 @@
-From: Sergey Lapin <slapinid@gmail.com>
-Subject: OMAP3: enabling CPU idle leads to panic
-Date: Tue, 24 Nov 2009 18:13:13 +0300
-Message-ID: <48239d390911240713v50bcae9ek855fb1e07c081486@mail.gmail.com>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency constraint	in
+ i2c
+Date: Tue, 24 Nov 2009 16:19:00 +0100
+Message-ID: <E839BB5467CE1640B3CC2F90F647A52C274A095246@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <> <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
+	 <1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
+	 <1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
+	 <1256125881-12441-4-git-send-email-kalle.jokiniemi@digia.com>
+	 <CD8CC2B65FEE304DA95744A5472698F2029E427B04@dlee06.ent.ti.com>
+ <1256644921.6751.61.camel@ubuntu>
+ <CD8CC2B65FEE304DA95744A5472698F2029E75531B@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f215.google.com ([209.85.219.215]:36472 "EHLO
-	mail-ew0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933169AbZKXPNQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 10:13:16 -0500
-Received: by ewy7 with SMTP id 7so56956ewy.28
-        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 07:13:19 -0800 (PST)
+Received: from smtp.nokia.com ([192.100.122.230]:52424 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756848AbZKXPTe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 10:19:34 -0500
+In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F2029E75531B@dlee06.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-
-Hi, all!
-
-I use PM branch merged with linux-omap branch. A board is custom, so I
-can't bisect this problem
-(and I don't know latest working revision). It seems that's because
-missing clock domain somewhere,
+To: m-sonasath@ti.com, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, jhnikula@gmail.com, paul@pwsan.com, nm@ti.com, vikram.pandita@ti.com, jouni.hogander@nokia.com
 
 
-[16515.695617] Unable to handle kernel NULL pointer dereference at
-virtual address 00000020
-[16515.703735] pgd = c0004000
-[16515.706481] [00000020] *pgd=00000000
-[16515.710083] Internal error: Oops: 5 [#1] PREEMPT
-[16515.714721] last sysfs file:
-[16515.717712] Modules linked in:
-[16515.720794] CPU: 0    Not tainted  (2.6.32-rc8-07113-g318afc6 #110)
-[16515.727111] PC is at pwrdm_for_each_clkdm+0x34/0x88
-[16515.731994] LR is at pwrdm_for_each_clkdm+0x24/0x88
-[16515.736907] pc : [<c003b5c0>]    lr : [<c003b5b0>]    psr: 600000d3
-[16515.736938] sp : c03f3f68  ip : fa004800  fp : 00000000
-[16515.748474] r10: c003e81c  r9 : 411fc082  r8 : 00000000
-[16515.753723] r7 : a00000d3  r6 : 00000000  r5 : 00000004  r4 : 00000001
-[16515.760284] r3 : 00000002  r2 : c03f2000  r1 : 00000001  r0 : 00000000
-[16515.766845] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM
-Segment kernel
-[16515.774383] Control: 10c5387d  Table: 80004019  DAC: 00000017
-[16515.780151] Process swapper (pid: 0, stack limit = 0xc03f22e8)
-[16515.786010] Stack: (0xc03f3f68 to 0xc03f4000)
-[16515.790405] 3f60:                   c042e4bc 00000003 00000003
-c042e4bc 80026398 411fc082
-[16515.798645] 3f80: 0000001f c003e76c 00000000 c022f284 00271d5a
-00000000 00000005 0ec00c5c
-[16515.806854] 3fa0: c03f8640 c03f8710 c042dadc c03f8640 c0474d0c
-c022dee8 c03f2000 c042dadc
-[16515.815093] 3fc0: c0027e14 c03f5bd0 80026398 c002f49c c0459fa4
-c0008914 c0008478 00000000
-[16515.823333] 3fe0: 00000000 c0027e18 00000000 10c53c7d c042dbf0
-80008034 00000000 00000000
-[16515.831573] [<c003b5c0>] (pwrdm_for_each_clkdm+0x34/0x88) from
-[<c003e76c>] (omap3_enter_idle+0xc0/0x15c)
-[16515.841217] [<c003e76c>] (omap3_enter_idle+0xc0/0x15c) from
-[<c022dee8>] (cpuidle_idle_call+0xa4/0x180)
-[16515.850677] [<c022dee8>] (cpuidle_idle_call+0xa4/0x180) from
-[<c002f49c>] (cpu_idle+0x48/0x98)
-[16515.859344] [<c002f49c>] (cpu_idle+0x48/0x98) from [<c0008914>]
-(start_kernel+0x250/0x2a8)
-[16515.867675] [<c0008914>] (start_kernel+0x250/0x2a8) from
-[<80008034>] (0x80008034)
-[16515.875274] Code: e3a06000 e1a05008 e1a04006 ea000002 (e595101c)
-[16515.881530] ---[ end trace f0a89c74ea639f01 ]---
-[16515.886230] Kernel panic - not syncing: Attempted to kill the idle task!
+Hi,
 
 
-addr2line -e vmlinux c003b5c0
-/home/slapin/linux-omap-my-2.6.git/arch/arm/mach-omap2/powerdomain.c:452
-It is in function
-int pwrdm_for_each_clkdm(), where pwrdm is NULL.
-farther investigations found that "core_pwrdm" is defined only for 24xx,
-but I use 3525, and it is being searched.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
+> Sonasath, Moiz
+> Sent: 23. marraskuuta 2009 18:10
+> To: Kalle Jokiniemi
+> Cc: khilman@deeprootsystems.com; linux-omap@vger.kernel.org; 
+> Jarkko Nikula; Paul Walmsley; Menon, Nishanth; Pandita, 
+> Vikram; Hogander Jouni (Nokia-D/Tampere)
+> Subject: RE: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up 
+> latency constraint in i2c
+> 
 
-This is where variable allocated. If I add BUG_ON(!core_pd), it crashes here.
-arch/arm/mach-omap2/cpuidle34xx.c:348:	core_pd = pwrdm_lookup("core_pwrdm");
-Otherwise it crashes the above way. Any ideas on how to fix this?
+<<snip-snip>>
 
-S.
+> > 
+> > Well, I don't completely agree with the necessity of preparing for 
+> > different rx/tx thresholds. For this to make sense, the i2c-omap 
+> > driver should first separate in it's code the use of rx and tx 
+> > thresholds. If someone is planning to do that, he/she should anyway 
+> > update the usage of fifo_size throughout the code, 
+> including the wake up latency setting.
+> > 
+> > Anyways, attached a patch that separates the mpu wake up 
+> latencies for 
+> > rx and tx. In case that is needed. Though I'm not for it, since it 
+> > adds unneeded complexity.
+> > 
+> 
+> Yes Kalle, you are right! Not having different RX/TX wake-up 
+> latencies will absolutely work fine with the in-place code as 
+> we have both the RX/TX thresholds same.
+
+Great :)
+
+> But, I think in 
+> future we might have to play around with different RX/TX 
+> thresholds and so from a conceptually right and generic point 
+> of view it makes sense to incur the cost of the added complexity.
+
+I agree. Once someone differentiates the thresholds in the driver, it very much makes sense to also calculate different mpu wake up latencies for RX and TX.
+
+> 
+> The patch V4 looks perfect to me :)
+
+Great :)
+
+So, where do we push it?
+
+- Kalle
+
+
+> 
+> - Moiz
+>  
+> > - Kalle
+> > 
+> > >
+> > > >
+> > > >  	/* reset ASAP, clearing any IRQs */ diff --git 
+> > > > a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h new file 
+> > > > mode 100644 index 0000000..1362fba
+> > > > --- /dev/null
+> > > > +++ b/include/linux/i2c-omap.h
+> > > > @@ -0,0 +1,9 @@
+> > > > +#ifndef __I2C_OMAP_H__
+> > > > +#define __I2C_OMAP_H__
+> > > > +
+> > > > +struct omap_i2c_bus_platform_data {
+> > > > +	u32		clkrate;
+> > > > +	void		(*set_mpu_wkup_lat)(struct 
+> device *dev, int set);
+> > > > +};
+> > > > +
+> > > > +#endif
+> > > > --
+> > > > 1.5.4.3
+> > >
+> > > Regards
+> > > Moiz Sonasath
+> > >
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
