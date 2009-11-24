@@ -1,75 +1,61 @@
-From: Kovacs Peter Tamas <p.kovacs@holografika.com>
-Subject: Enabling HSUSB1 port on OMAP3430 labrador
-Date: Tue, 24 Nov 2009 15:33:56 +0100
-Message-ID: <4B0BEED4.1060005@holografika.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH-v6 0/4] OMAP: Adding flash support to SDP, ZOOM2 and
+ LDP boards
+Date: Tue, 24 Nov 2009 17:06:13 +0200
+Message-ID: <1259075173.29118.20.camel@localhost>
+References: <63751.192.168.10.88.1252582264.squirrel@dbdmail.itg.ti.com>
+	 <ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
+	 <ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
+	 <ce9ab5790911040328p215dede2v37db38a966a5bbd5@mail.gmail.com>
+	 <20091109205250.GB23952@atomide.com>
+	 <ce9ab5790911100201j6b1ef5e1g43a992b00e69ade4@mail.gmail.com>
+	 <ce9ab5790911190608r5b7e8226j3546714957ce70e6@mail.gmail.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:57620 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932574AbZKXOlu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 09:41:50 -0500
-Received: from holoiroda.com (holoiroda.com [81.182.243.140])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail02d.mail.t-online.hu (Postfix) with ESMTPSA id E1201758B81
-	for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 15:33:15 +0100 (CET)
-Received: from adsl-2052.externet.hu ([212.40.118.18]:58231 helo=[192.168.10.121])
-	by holoiroda.com with esmtpsa (Exim 4.69-NetSys #4)
-	id 1NCwSm-0005eK-1T
-	for linux-omap@vger.kernel.org; Tue, 24 Nov 2009 15:33:52 +0100
+Received: from smtp.nokia.com ([192.100.122.233]:62882 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932790AbZKXPGV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 10:06:21 -0500
+In-Reply-To: <ce9ab5790911190608r5b7e8226j3546714957ce70e6@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, vimal singh <vimalsingh@ti.com>
 
-Dear All,
+On Thu, 2009-11-19 at 19:38 +0530, Vimal Singh wrote:
+> Here is the v6 of this patch series. I am cc'ing mtd list too this ti=
+me.
+>=20
+>=20
+> From 8bc97108cf9c78216f1ea5407ccbd900e6b63dc2 Mon Sep 17 00:00:00 200=
+1
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Thu, 19 Nov 2009 19:28:11 +0530
+>=20
+> This patch series adds flash support for NAND (in sdp, zoom and ldp),
+> OneNAND and NOR (in sdp)
+>=20
+> Tested on Zoom2 and 3430SDP
+>=20
+> Vimal Singh (4):
+> [PATCH-v6 1/4] OMAP2/3: Add support for flash on SDP boards
+> [PATCH-v6 2/4] OMAP3: Add support for NAND on ZOOM/LDP boards
+> [PATCH-v6 3/4] OMAP: Zoom2: Enable NAND and JFFS2 support in defconfi=
+g
+> [PATCH-v6 4/4] OMAP: 3430SDP: Enable NAND in defconfig
 
-We are trying to make the HSUSB1 port on the OMAP3430 work as an USB host.
-To do that, an ISP1507A ULPI HighSpeed USB transceiver is connected to 
-the HSUSB1pins (HSUSB1_STP, CLK, D-0..D7, DIR, NXT).
+Is it possible to separate the MTD and OMAP parts?
 
-I have all these USB related kernel config options enabled:
-USB_EHCI_HCD
-USB_OHCI_HCD
-USB_MUSB_HDRC
-TWL4030_USB
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
-My guess was that either EHCI or the Inventra should be the one enabling 
-that USB port on the OMAP, but no luck.
-The external USB port on the MDK works fine with this configuration.
-
-The pin multiplexing configuration in the board file omap3430-labrador.c 
-in u-boot also seems to be correct (although the config of USB1_STP 
-seems to be strange, but changing that didn't work either).
-
-My assumption is that the ISP1507A does not need support from the 
-kernel, as it acts as an ULPI transceiver only, but please correct me on 
-this point if wrong.
-
-What happens is that after connecting an USB mouse is that the LED is on 
-for a sec, but nothing is written in the kernel log.
-We can see that the transceiver is generating a clock signal, but for 
-some reason, the STP is constantly high.
-
-I've also tried setting the port to PHY or TLL, but didn't help. I guess 
-PHY is the correct setting in this situation, right? 
-
-Note, the ISP1507A is connected to the following pins of the BGA:
-HSUSB1_STP (AF10)
-HSUSB1_CLK (AE10)
-HSUSB1_DIR (AF9)
-HSUSB1_NXP (AG9)
-HSUSB1_D0 (AF11)
-HSUSB1_D1 (AG12)
-HSUSB1_D2 (AH12)
-HSUSB1_D3 (AH14)
-HSUSB1_D4 (AE11)
-HSUSB1_D5 (AH9)
-HSUSB1_D6 (AF13)
-HSUSB1_D7 (AE13)
-
-Any suggestion on making this work is greatly appreciated.
-
-Thanks for your help,
-Peter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
