@@ -1,55 +1,60 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH-v6 0/4] OMAP: Adding flash support to SDP, ZOOM2 and LDP
-	boards
-Date: Tue, 24 Nov 2009 20:55:08 +0530
-Message-ID: <ce9ab5790911240725x29b8bd6eq9f9c7a8b21c6786e@mail.gmail.com>
-References: <63751.192.168.10.88.1252582264.squirrel@dbdmail.itg.ti.com>
-	<ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
-	<ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
-	<ce9ab5790911040328p215dede2v37db38a966a5bbd5@mail.gmail.com>
-	<20091109205250.GB23952@atomide.com> <ce9ab5790911100201j6b1ef5e1g43a992b00e69ade4@mail.gmail.com>
-	<ce9ab5790911190608r5b7e8226j3546714957ce70e6@mail.gmail.com>
-	<1259075173.29118.20.camel@localhost>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency constraint	in i2c
+Date: Tue, 24 Nov 2009 07:54:22 -0800
+Message-ID: <87pr77x6j5.fsf@deeprootsystems.com>
+References: <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
+	<1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
+	<1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
+	<1256125881-12441-4-git-send-email-kalle.jokiniemi@digia.com>
+	<CD8CC2B65FEE304DA95744A5472698F2029E427B04@dlee06.ent.ti.com>
+	<1256644921.6751.61.camel@ubuntu>
+	<CD8CC2B65FEE304DA95744A5472698F2029E75531B@dlee06.ent.ti.com>
+	<E839BB5467CE1640B3CC2F90F647A52C274A095246@NOK-EUMSG-02.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:56629 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758088AbZKXPZX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 10:25:23 -0500
-Received: by bwz27 with SMTP id 27so6074396bwz.21
-        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 07:25:28 -0800 (PST)
-In-Reply-To: <1259075173.29118.20.camel@localhost>
+Received: from mail-px0-f180.google.com ([209.85.216.180]:34943 "EHLO
+	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758101AbZKXPyT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 10:54:19 -0500
+Received: by pxi10 with SMTP id 10so5015153pxi.33
+        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 07:54:25 -0800 (PST)
+In-Reply-To: <E839BB5467CE1640B3CC2F90F647A52C274A095246@NOK-EUMSG-02.mgdnok.nokia.com> (kalle jokiniemi's message of "Tue\, 24 Nov 2009 16\:19\:00 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, vimal singh <vimalsingh@ti.com>
+To: kalle.jokiniemi@nokia.com
+Cc: m-sonasath@ti.com, linux-omap@vger.kernel.org, jhnikula@gmail.com, paul@pwsan.com, nm@ti.com, vikram.pandita@ti.com, jouni.hogander@nokia.com
 
-On Tue, Nov 24, 2009 at 8:36 PM, Artem Bityutskiy <dedekind1@gmail.com> wrote:
-> On Thu, 2009-11-19 at 19:38 +0530, Vimal Singh wrote:
->> Here is the v6 of this patch series. I am cc'ing mtd list too this time.
->>
->>
->> From 8bc97108cf9c78216f1ea5407ccbd900e6b63dc2 Mon Sep 17 00:00:00 2001
->> From: Vimal Singh <vimalsingh@ti.com>
->> Date: Thu, 19 Nov 2009 19:28:11 +0530
->>
->> This patch series adds flash support for NAND (in sdp, zoom and ldp),
->> OneNAND and NOR (in sdp)
->>
->> Tested on Zoom2 and 3430SDP
->>
->> Vimal Singh (4):
->> [PATCH-v6 1/4] OMAP2/3: Add support for flash on SDP boards
->> [PATCH-v6 2/4] OMAP3: Add support for NAND on ZOOM/LDP boards
->> [PATCH-v6 3/4] OMAP: Zoom2: Enable NAND and JFFS2 support in defconfig
->> [PATCH-v6 4/4] OMAP: 3430SDP: Enable NAND in defconfig
+<kalle.jokiniemi@nokia.com> writes:
+
+>> The patch V4 looks perfect to me :)
 >
-> Is it possible to separate the MTD and OMAP parts?
+> Great :)
+>
+> So, where do we push it?
 
-1st patch does migration of gpmc low level calls from omap2.c to gpmc-nand.c.
-I am not sure how we can have separate patches for this.
+I suggest to Ben Dooks (i2c maintainer for embedded platforms) and to linux-i2c list.
+Also Cc linux-omap.  
 
--- 
-Regards,
-Vimal Singh
+
+>From MAINTAINERS:
+
+I2C SUBSYSTEM
+M:	"Jean Delvare (PC drivers, core)" <khali@linux-fr.org>
+M:	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>
+L:	linux-i2c@vger.kernel.org
+W:	http://i2c.wiki.kernel.org/
+T:	quilt kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-i2c/
+S:	Maintained
+F:	Documentation/i2c/
+F:	drivers/i2c/
+F:	include/linux/i2c.h
+F:	include/linux/i2c-dev.h
+F:	include/linux/i2c-id.h
+
+
+Also, FYI... in recent kernels there is a scripts/get_maintainer.pl
+script.  If you run a patch through that script, it will spit out a
+list of folks to send the patch to.
+
+Kevin
