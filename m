@@ -1,208 +1,409 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 0/9] dspbridge cleanup patches
-Date: Mon, 23 Nov 2009 18:50:21 -0600
-Message-ID: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 9/9] DSPBRIDGE: Remove DPC object structure
+Date: Mon, 23 Nov 2009 18:50:30 -0600
+Message-ID: <1259023830-7557-10-git-send-email-omar.ramirez@ti.com>
+References: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-2-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-3-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-4-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-5-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-6-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-7-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-8-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-9-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56907 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51704 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757320AbZKXApI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Nov 2009 19:45:08 -0500
+	id S1757216AbZKXApH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Nov 2009 19:45:07 -0500
+In-Reply-To: <1259023830-7557-9-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Artem Bityutskiy <dedekind1@gmail.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Following patches are cleanups, removing history of files,
-tab spacing and also remove DPC layer.
+Remove DPC object structure and declare required members
+for each tasklet inside their correspondent modules.
 
-Omar Ramirez Luna (8):
-  DSPBRIDGE: trivial checkpatch fixes
-  DSPBRIDGE: Fix multiline macros to use do while
-  DSPBRIDGE: Use _IOxx macro to define ioctls
-  DSPBRIDGE: trivial cleanup and indentation for io_sm
-  DSPBRIDGE: Remove DPC, create, destroy and schedule wrappers
-  DSPBRIDGE: Remove main DPC wrapper for IO and MMUfault
-  DSPBRIDGE: Remove DPC module from SERVICES layer
-  DSPBRIDGE: Remove DPC object structure
-  DSPBRIDGE: trivial file history cleanup
+Remove dpc header file.
 
- arch/arm/plat-omap/include/dspbridge/_chnl_sm.h    |   47 +-
- arch/arm/plat-omap/include/dspbridge/_dcd.h        |   40 +-
- arch/arm/plat-omap/include/dspbridge/brddefs.h     |   20 +-
- arch/arm/plat-omap/include/dspbridge/cfg.h         |   50 +-
- arch/arm/plat-omap/include/dspbridge/cfgdefs.h     |   27 +-
- arch/arm/plat-omap/include/dspbridge/chnl.h        |   45 +-
- arch/arm/plat-omap/include/dspbridge/chnl_sm.h     |   30 +-
- arch/arm/plat-omap/include/dspbridge/chnldefs.h    |   26 +-
- arch/arm/plat-omap/include/dspbridge/chnlpriv.h    |   33 +-
- arch/arm/plat-omap/include/dspbridge/clk.h         |   11 +-
- arch/arm/plat-omap/include/dspbridge/cmm.h         |   66 +-
- arch/arm/plat-omap/include/dspbridge/cmmdefs.h     |   20 +-
- arch/arm/plat-omap/include/dspbridge/cod.h         |   58 +-
- arch/arm/plat-omap/include/dspbridge/dbc.h         |   40 +-
- arch/arm/plat-omap/include/dspbridge/dbdcd.h       |   26 +-
- arch/arm/plat-omap/include/dspbridge/dbdcddef.h    |   27 +-
- arch/arm/plat-omap/include/dspbridge/dbdefs.h      |   61 +-
- arch/arm/plat-omap/include/dspbridge/dbg.h         |   25 +-
- arch/arm/plat-omap/include/dspbridge/dbl.h         |   14 -
- arch/arm/plat-omap/include/dspbridge/dbldefs.h     |   12 -
- arch/arm/plat-omap/include/dspbridge/dbll.h        |   15 +-
- arch/arm/plat-omap/include/dspbridge/dblldefs.h    |   11 -
- arch/arm/plat-omap/include/dspbridge/dbtype.h      |   21 +-
- arch/arm/plat-omap/include/dspbridge/dehdefs.h     |   14 +-
- arch/arm/plat-omap/include/dspbridge/dev.h         |   64 +-
- arch/arm/plat-omap/include/dspbridge/devdefs.h     |   15 +-
- arch/arm/plat-omap/include/dspbridge/disp.h        |   31 +-
- arch/arm/plat-omap/include/dspbridge/dispdefs.h    |   14 +-
- arch/arm/plat-omap/include/dspbridge/dmm.h         |   18 +-
- arch/arm/plat-omap/include/dspbridge/dpc.h         |  167 ---
- arch/arm/plat-omap/include/dspbridge/drv.h         |   48 +-
- arch/arm/plat-omap/include/dspbridge/drvdefs.h     |   13 +-
- arch/arm/plat-omap/include/dspbridge/dspdrv.h      |   33 +-
- .../plat-omap/include/dspbridge/dynamic_loader.h   |    2 -
- arch/arm/plat-omap/include/dspbridge/errbase.h     |   37 +-
- arch/arm/plat-omap/include/dspbridge/gb.h          |   10 +-
- arch/arm/plat-omap/include/dspbridge/getsection.h  |   21 +-
- arch/arm/plat-omap/include/dspbridge/gh.h          |    8 -
- arch/arm/plat-omap/include/dspbridge/gs.h          |   15 +-
- arch/arm/plat-omap/include/dspbridge/gt.h          |   30 +-
- arch/arm/plat-omap/include/dspbridge/host_os.h     |   10 -
- arch/arm/plat-omap/include/dspbridge/io.h          |   21 +-
- arch/arm/plat-omap/include/dspbridge/io_sm.h       |   46 +-
- arch/arm/plat-omap/include/dspbridge/iodefs.h      |   13 +-
- arch/arm/plat-omap/include/dspbridge/ldr.h         |   34 +-
- arch/arm/plat-omap/include/dspbridge/list.h        |   36 +-
- arch/arm/plat-omap/include/dspbridge/mbx_sh.h      |   25 +-
- arch/arm/plat-omap/include/dspbridge/mem.h         |   78 +-
- arch/arm/plat-omap/include/dspbridge/memdefs.h     |   16 +-
- arch/arm/plat-omap/include/dspbridge/mgr.h         |   32 +-
- arch/arm/plat-omap/include/dspbridge/mgrpriv.h     |   14 +-
- arch/arm/plat-omap/include/dspbridge/msg.h         |   24 +-
- arch/arm/plat-omap/include/dspbridge/msgdefs.h     |   15 +-
- arch/arm/plat-omap/include/dspbridge/nldr.h        |   29 +-
- arch/arm/plat-omap/include/dspbridge/nldrdefs.h    |   14 +-
- arch/arm/plat-omap/include/dspbridge/node.h        |   48 +-
- arch/arm/plat-omap/include/dspbridge/nodedefs.h    |   16 +-
- arch/arm/plat-omap/include/dspbridge/nodepriv.h    |   23 +-
- arch/arm/plat-omap/include/dspbridge/ntfy.h        |   22 +-
- arch/arm/plat-omap/include/dspbridge/proc.h        |   47 +-
- arch/arm/plat-omap/include/dspbridge/procpriv.h    |   13 +-
- arch/arm/plat-omap/include/dspbridge/pwr.h         |   19 -
- arch/arm/plat-omap/include/dspbridge/pwr_sh.h      |   12 +-
- arch/arm/plat-omap/include/dspbridge/reg.h         |   35 +-
- arch/arm/plat-omap/include/dspbridge/rmm.h         |   26 +-
- arch/arm/plat-omap/include/dspbridge/rms_sh.h      |   34 +-
- arch/arm/plat-omap/include/dspbridge/rmstypes.h    |   15 +-
- arch/arm/plat-omap/include/dspbridge/services.h    |   17 +-
- arch/arm/plat-omap/include/dspbridge/std.h         |   48 -
- arch/arm/plat-omap/include/dspbridge/strm.h        |   41 +-
- arch/arm/plat-omap/include/dspbridge/strmdefs.h    |   14 +-
- arch/arm/plat-omap/include/dspbridge/sync.h        |   40 +-
- arch/arm/plat-omap/include/dspbridge/utildefs.h    |   16 +-
- arch/arm/plat-omap/include/dspbridge/uuidutil.h    |   16 +-
- arch/arm/plat-omap/include/dspbridge/wcd.h         |   49 +-
- arch/arm/plat-omap/include/dspbridge/wcdioctl.h    |  198 ++---
- arch/arm/plat-omap/include/dspbridge/wmd.h         |   57 +-
- arch/arm/plat-omap/include/dspbridge/wmdchnl.h     |   29 +-
- arch/arm/plat-omap/include/dspbridge/wmddeh.h      |   30 +-
- arch/arm/plat-omap/include/dspbridge/wmdio.h       |   24 +-
- arch/arm/plat-omap/include/dspbridge/wmdioctl.h    |   26 +-
- arch/arm/plat-omap/include/dspbridge/wmdmsg.h      |   27 +-
- drivers/dsp/bridge/Makefile                        |    3 +-
- drivers/dsp/bridge/dynload/cload.c                 |   17 +-
- drivers/dsp/bridge/dynload/dlclasses_hdr.h         |    2 -
- drivers/dsp/bridge/dynload/dload_internal.h        |   46 +-
- drivers/dsp/bridge/dynload/doff.h                  |   75 +-
- drivers/dsp/bridge/dynload/getsection.c            |    2 -
- drivers/dsp/bridge/dynload/header.h                |   20 +-
- drivers/dsp/bridge/dynload/module_list.h           |   98 +-
- drivers/dsp/bridge/dynload/params.h                |  205 ++--
- drivers/dsp/bridge/dynload/reloc.c                 |   43 +-
- drivers/dsp/bridge/dynload/reloc_table.h           |   55 +-
- drivers/dsp/bridge/dynload/reloc_table_c6000.c     |    7 +-
- drivers/dsp/bridge/dynload/tramp.c                 |   18 +-
- drivers/dsp/bridge/dynload/tramp_table_c6000.c     |   24 +-
- drivers/dsp/bridge/gen/_gt_para.c                  |   24 +-
- drivers/dsp/bridge/gen/gb.c                        |   17 +-
- drivers/dsp/bridge/gen/gh.c                        |    5 -
- drivers/dsp/bridge/gen/gs.c                        |   20 +-
- drivers/dsp/bridge/gen/gt.c                        |   16 +-
- drivers/dsp/bridge/gen/uuidutil.c                  |   20 +-
- drivers/dsp/bridge/hw/EasiGlobal.h                 |    8 +-
- drivers/dsp/bridge/hw/GlobalTypes.h                |  157 ++--
- drivers/dsp/bridge/hw/IPIAccInt.h                  |    7 +-
- drivers/dsp/bridge/hw/IVA2RegAcM.h                 |    6 +-
- drivers/dsp/bridge/hw/MLBAccInt.h                  |  118 +-
- drivers/dsp/bridge/hw/MLBRegAcM.h                  |  319 +++---
- drivers/dsp/bridge/hw/MMUAccInt.h                  |  100 +-
- drivers/dsp/bridge/hw/MMURegAcM.h                  |  416 ++++----
- drivers/dsp/bridge/hw/PRCMAccInt.h                 |  201 ++--
- drivers/dsp/bridge/hw/PRCMRegAcM.h                 | 1197 +++++++++-----------
- drivers/dsp/bridge/hw/hw_defs.h                    |   21 +-
- drivers/dsp/bridge/hw/hw_dspssC64P.c               |   13 +-
- drivers/dsp/bridge/hw/hw_dspssC64P.h               |   15 +-
- drivers/dsp/bridge/hw/hw_mbox.c                    |   15 +-
- drivers/dsp/bridge/hw/hw_mbox.h                    |   63 +-
- drivers/dsp/bridge/hw/hw_mmu.c                     |   37 +-
- drivers/dsp/bridge/hw/hw_mmu.h                     |   21 +-
- drivers/dsp/bridge/hw/hw_prcm.c                    |   12 +-
- drivers/dsp/bridge/hw/hw_prcm.h                    |   12 +-
- drivers/dsp/bridge/pmgr/chnl.c                     |   52 +-
- drivers/dsp/bridge/pmgr/chnlobj.h                  |   25 +-
- drivers/dsp/bridge/pmgr/cmm.c                      |  118 +--
- drivers/dsp/bridge/pmgr/cod.c                      |   51 +-
- drivers/dsp/bridge/pmgr/dbll.c                     |   65 +-
- drivers/dsp/bridge/pmgr/dev.c                      |  106 +--
- drivers/dsp/bridge/pmgr/dmm.c                      |   47 +-
- drivers/dsp/bridge/pmgr/io.c                       |   25 +-
- drivers/dsp/bridge/pmgr/ioobj.h                    |   19 +-
- drivers/dsp/bridge/pmgr/msg.c                      |   23 +-
- drivers/dsp/bridge/pmgr/msgobj.h                   |   19 +-
- drivers/dsp/bridge/pmgr/wcd.c                      |  196 +---
- drivers/dsp/bridge/rmgr/dbdcd.c                    |   56 +-
- drivers/dsp/bridge/rmgr/disp.c                     |   39 +-
- drivers/dsp/bridge/rmgr/drv.c                      |  102 +--
- drivers/dsp/bridge/rmgr/drv_interface.c            |   44 +-
- drivers/dsp/bridge/rmgr/drv_interface.h            |   12 -
- drivers/dsp/bridge/rmgr/dspdrv.c                   |   79 +--
- drivers/dsp/bridge/rmgr/mgr.c                      |   30 +-
- drivers/dsp/bridge/rmgr/nldr.c                     |  108 +--
- drivers/dsp/bridge/rmgr/node.c                     |  289 ++---
- drivers/dsp/bridge/rmgr/proc.c                     |  119 +--
- drivers/dsp/bridge/rmgr/pwr.c                      |   19 +-
- drivers/dsp/bridge/rmgr/rmm.c                      |   14 -
- drivers/dsp/bridge/rmgr/strm.c                     |   49 +-
- drivers/dsp/bridge/services/cfg.c                  |   78 +--
- drivers/dsp/bridge/services/clk.c                  |   25 +-
- drivers/dsp/bridge/services/dbg.c                  |   35 +-
- drivers/dsp/bridge/services/dpc.c                  |  274 -----
- drivers/dsp/bridge/services/list.c                 |   33 -
- drivers/dsp/bridge/services/mem.c                  |   40 +-
- drivers/dsp/bridge/services/ntfy.c                 |   27 +-
- drivers/dsp/bridge/services/reg.c                  |   21 +-
- drivers/dsp/bridge/services/regsup.c               |   30 +-
- drivers/dsp/bridge/services/regsup.h               |    8 -
- drivers/dsp/bridge/services/services.c             |   30 +-
- drivers/dsp/bridge/services/sync.c                 |   35 +-
- drivers/dsp/bridge/wmd/_cmm.h                      |   22 +-
- drivers/dsp/bridge/wmd/_deh.h                      |   18 +-
- drivers/dsp/bridge/wmd/_msg_sm.h                   |   21 +-
- drivers/dsp/bridge/wmd/_tiomap.h                   |  251 ++---
- drivers/dsp/bridge/wmd/_tiomap_mmu.h               |   16 +-
- drivers/dsp/bridge/wmd/_tiomap_pwr.h               |   13 +-
- drivers/dsp/bridge/wmd/_tiomap_util.h              |   13 +-
- drivers/dsp/bridge/wmd/chnl_sm.c                   |   77 +--
- drivers/dsp/bridge/wmd/io_sm.c                     |  608 +++++-----
- drivers/dsp/bridge/wmd/mmu_fault.c                 |   34 +-
- drivers/dsp/bridge/wmd/mmu_fault.h                 |   16 +-
- drivers/dsp/bridge/wmd/msg_sm.c                    |  107 +--
- drivers/dsp/bridge/wmd/tiomap3430.c                |   37 +-
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c            |   41 +-
- drivers/dsp/bridge/wmd/tiomap_io.c                 |   17 +-
- drivers/dsp/bridge/wmd/tiomap_io.h                 |   14 +-
- drivers/dsp/bridge/wmd/tiomap_sm.c                 |   11 +-
- drivers/dsp/bridge/wmd/ue_deh.c                    |   61 +-
- 176 files changed, 2895 insertions(+), 6893 deletions(-)
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/_chnl_sm.h |    1 -
+ arch/arm/plat-omap/include/dspbridge/dpc.h      |   38 -----------
+ drivers/dsp/bridge/pmgr/chnl.c                  |    1 -
+ drivers/dsp/bridge/services/services.c          |    1 -
+ drivers/dsp/bridge/wmd/_deh.h                   |    5 +-
+ drivers/dsp/bridge/wmd/io_sm.c                  |   80 ++++++++---------------
+ drivers/dsp/bridge/wmd/mmu_fault.c              |   24 +------
+ drivers/dsp/bridge/wmd/ue_deh.c                 |   25 +------
+ 8 files changed, 35 insertions(+), 140 deletions(-)
  delete mode 100644 arch/arm/plat-omap/include/dspbridge/dpc.h
- delete mode 100644 drivers/dsp/bridge/services/dpc.c
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
+index f22b2cb..eb5adc2 100644
+--- a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
++++ b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
+@@ -25,7 +25,6 @@
+ 
+ #include <dspbridge/wcd.h>
+ #include <dspbridge/wmd.h>
+-#include <dspbridge/dpc.h>
+ 
+ #include <dspbridge/list.h>
+ #include <dspbridge/ntfy.h>
+diff --git a/arch/arm/plat-omap/include/dspbridge/dpc.h b/arch/arm/plat-omap/include/dspbridge/dpc.h
+deleted file mode 100644
+index aee910d..0000000
+--- a/arch/arm/plat-omap/include/dspbridge/dpc.h
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/*
+- * dpc.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Deferred Procedure Call(DPC) Services.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef DPC_
+-#define DPC_
+-
+-/* The DPC object, passed to our priority event callback routine: */
+-struct DPC_OBJECT {
+-	u32 dwSignature;	/* Used for object validation.   */
+-	void *pRefData;		/* Argument for client's DPC.    */
+-	u32 numRequested;	/* Number of requested DPC's.      */
+-	u32 numScheduled;	/* Number of executed DPC's.      */
+-	struct tasklet_struct dpc_tasklet;
+-
+-#ifdef DEBUG
+-	u32 cEntryCount;	/* Number of times DPC reentered. */
+-	u32 numRequestedMax;	/* Keep track of max pending DPC's. */
+-#endif
+-
+-	spinlock_t dpc_lock;
+-};
+-
+-#endif				/* DPC_ */
+diff --git a/drivers/dsp/bridge/pmgr/chnl.c b/drivers/dsp/bridge/pmgr/chnl.c
+index f4d0fc1..fd487f0 100644
+--- a/drivers/dsp/bridge/pmgr/chnl.c
++++ b/drivers/dsp/bridge/pmgr/chnl.c
+@@ -31,7 +31,6 @@
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/cfg.h>
+-#include <dspbridge/dpc.h>
+ #include <dspbridge/list.h>
+ #include <dspbridge/mem.h>
+ #include <dspbridge/sync.h>
+diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
+index 0b7d623..5590634 100644
+--- a/drivers/dsp/bridge/services/services.c
++++ b/drivers/dsp/bridge/services/services.c
+@@ -29,7 +29,6 @@
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/cfg.h>
+ #include <dspbridge/dbg.h>
+-#include <dspbridge/dpc.h>
+ #include <dspbridge/list.h>
+ #include <dspbridge/mem.h>
+ #include <dspbridge/ntfy.h>
+diff --git a/drivers/dsp/bridge/wmd/_deh.h b/drivers/dsp/bridge/wmd/_deh.h
+index 2b364b5..aadb9fa 100644
+--- a/drivers/dsp/bridge/wmd/_deh.h
++++ b/drivers/dsp/bridge/wmd/_deh.h
+@@ -19,7 +19,6 @@
+ #ifndef _DEH_
+ #define _DEH_
+ 
+-#include <dspbridge/dpc.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/wmd.h>
+ 
+@@ -30,8 +29,10 @@ struct DEH_MGR {
+ 	u32 dwSignature;	/* Used for object validation.  */
+ 	struct WMD_DEV_CONTEXT *hWmdContext;	/* WMD device context. */
+ 	struct NTFY_OBJECT *hNtfy;	/* NTFY object                  */
+-	struct DPC_OBJECT *hMmuFaultDpc;	/* DPC object handle.  */
+ 	struct DSP_ERRORINFO errInfo;	/* DSP exception info.          */
++
++	/* MMU Fault DPC */
++	struct tasklet_struct dpc_tasklet;
+ } ;
+ 
+ #endif				/* _DEH_ */
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index 1e855ce..a15e077 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -43,7 +43,6 @@
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/cfg.h>
+-#include <dspbridge/dpc.h>
+ #include <dspbridge/mem.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/sync.h>
+@@ -108,7 +107,6 @@ struct IO_MGR {
+ 	u8 *pMsgOutput; 	/* Address of output messages   */
+ 	u32 uSMBufSize; 	/* Size of a shared memory I/O channel */
+ 	bool fSharedIRQ; 	/* Is this IRQ shared?	  */
+-	struct DPC_OBJECT *hDPC; 	/* DPC object handle	    */
+ 	struct SYNC_CSOBJECT *hCSObj; 	/* Critical section object handle */
+ 	u32 uWordSize; 	/* Size in bytes of DSP word    */
+ 	u16 wIntrVal; 		/* interrupt value	      */
+@@ -128,6 +126,12 @@ struct IO_MGR {
+ 	u32 ulGppVa;
+ 	u32 ulDspVa;
+ #endif
++	/* IO Dpc */
++	u32 dpc_req;				/* Number of requested DPC's. */
++	u32 dpc_sched;				/* Number of executed DPC's. */
++	struct tasklet_struct dpc_tasklet;
++	spinlock_t dpc_lock;
++
+ } ;
+ 
+ /*  ----------------------------------- Function Prototypes */
+@@ -250,24 +254,14 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+ 		status = SYNC_InitializeCS(&pIOMgr->hCSObj);
+ 
+ 	if (devType == DSP_UNIT) {
+-		/* Create a DPC object: */
+-		MEM_AllocObject(pIOMgr->hDPC, struct DPC_OBJECT,
+-				IO_MGRSIGNATURE);
+-		if (pIOMgr->hDPC) {
+-			tasklet_init(&pIOMgr->hDPC->dpc_tasklet,
+-				IO_DPC, (u32)pIOMgr);
+-			/* Fill out our DPC Object: */
+-			pIOMgr->hDPC->numRequested = 0;
+-			pIOMgr->hDPC->numScheduled = 0;
+-#ifdef DEBUG
+-			pIOMgr->hDPC->numRequestedMax = 0;
+-			pIOMgr->hDPC->cEntryCount = 0;
+-#endif
+-			spin_lock_init(&pIOMgr->hDPC->dpc_lock);
+-		} else {
+-			DBG_Trace(GT_6CLASS, "IO DPC Create: DSP_EMEMORY\n");
+-			status = DSP_EMEMORY;
+-		}
++		/* Create an IO DPC */
++		tasklet_init(&pIOMgr->dpc_tasklet, IO_DPC, (u32)pIOMgr);
++
++		/* Initialize DPC counters */
++		pIOMgr->dpc_req = 0;
++		pIOMgr->dpc_sched = 0;
++
++		spin_lock_init(&pIOMgr->dpc_lock);
+ 
+ 		if (DSP_SUCCEEDED(status))
+ 			status = DEV_GetDevNode(hDevObject, &hDevNode);
+@@ -330,10 +324,8 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
+ 		/* Linux function to uninstall ISR */
+ 		free_irq(INT_MAIL_MPU_IRQ, (void *)hIOMgr);
+ 
+-		/* Free DPC object */
+-		tasklet_kill(&hIOMgr->hDPC->dpc_tasklet);
+-		MEM_FreeObject(hIOMgr->hDPC);
+-		hIOMgr->hDPC = NULL;
++		/* Free IO DPC object */
++		tasklet_kill(&hIOMgr->dpc_tasklet);
+ 		DBG_Trace(GT_2CLASS, "DPC_Destroy: SUCCESS\n");
+ 
+ #ifndef DSP_TRACEBUF_DISABLED
+@@ -1002,8 +994,8 @@ void IO_DPC(IN OUT unsigned long pRefData)
+ 		goto func_end;
+ 	DBG_Trace(DBG_LEVEL7, "Entering IO_DPC(0x%x)\n", pRefData);
+ 
+-	requested = pIOMgr->hDPC->numRequested;
+-	serviced = pIOMgr->hDPC->numScheduled;
++	requested = pIOMgr->dpc_req;
++	serviced = pIOMgr->dpc_sched;
+ 
+ 	if (serviced == requested)
+ 		goto func_end;
+@@ -1032,7 +1024,7 @@ void IO_DPC(IN OUT unsigned long pRefData)
+ #endif
+ 		serviced++;
+ 	} while (serviced != requested);
+-	pIOMgr->hDPC->numScheduled = requested;
++	pIOMgr->dpc_sched = requested;
+ func_end:
+ 	return;
+ }
+@@ -1074,22 +1066,12 @@ irqreturn_t IO_ISR(int irq, IN void *pRefData)
+ 			 * PROC-COPY defer i/o.
+ 			 * Increment count of DPC's pending.
+ 			 */
+-			spin_lock_irqsave(&hIOMgr->hDPC->dpc_lock, flags);
+-			hIOMgr->hDPC->numRequested++;
+-			spin_unlock_irqrestore(&hIOMgr->hDPC->dpc_lock, flags);
++			spin_lock_irqsave(&hIOMgr->dpc_lock, flags);
++			hIOMgr->dpc_req++;
++			spin_unlock_irqrestore(&hIOMgr->dpc_lock, flags);
+ 
+ 			/* Schedule DPC */
+-			tasklet_schedule(&hIOMgr->hDPC->dpc_tasklet);
+-#ifdef DEBUG
+-			if (hIOMgr->hDPC->numRequested >
+-			   hIOMgr->hDPC->numScheduled +
+-			   hIOMgr->hDPC->numRequestedMax) {
+-				hIOMgr->hDPC->numRequestedMax =
+-					hIOMgr->hDPC->numRequested -
+-					hIOMgr->hDPC->numScheduled;
+-			}
+-#endif
+-
++			tasklet_schedule(&hIOMgr->dpc_tasklet);
+ 		}
+ 	} else
+ 		/* Ensure that, if WMD didn't claim it, the IRQ is shared. */
+@@ -1151,20 +1133,12 @@ void IO_Schedule(struct IO_MGR *pIOMgr)
+ 	tiomap3430_bump_dsp_opp_level();
+ 
+ 	/* Increment count of DPC's pending. */
+-	spin_lock_irqsave(&pIOMgr->hDPC->dpc_lock, flags);
+-	pIOMgr->hDPC->numRequested++;
+-	spin_unlock_irqrestore(&pIOMgr->hDPC->dpc_lock, flags);
++	spin_lock_irqsave(&pIOMgr->dpc_lock, flags);
++	pIOMgr->dpc_req++;
++	spin_unlock_irqrestore(&pIOMgr->dpc_lock, flags);
+ 
+ 	/* Schedule DPC */
+-	tasklet_schedule(&pIOMgr->hDPC->dpc_tasklet);
+-#ifdef DEBUG
+-	if (pIOMgr->hDPC->numRequested > pIOMgr->hDPC->numScheduled +
+-	   pIOMgr->hDPC->numRequestedMax) {
+-		pIOMgr->hDPC->numRequestedMax =	pIOMgr->hDPC->numRequested -
+-				pIOMgr->hDPC->numScheduled;
+-	}
+-#endif
+-
++	tasklet_schedule(&pIOMgr->dpc_tasklet);
+ }
+ 
+ /*
+diff --git a/drivers/dsp/bridge/wmd/mmu_fault.c b/drivers/dsp/bridge/wmd/mmu_fault.c
+index b3f0719..b184250 100644
+--- a/drivers/dsp/bridge/wmd/mmu_fault.c
++++ b/drivers/dsp/bridge/wmd/mmu_fault.c
+@@ -27,7 +27,6 @@
+ #include <dspbridge/dbg.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/dpc.h>
+ #include <dspbridge/mem.h>
+ #include <dspbridge/drv.h>
+ 
+@@ -57,11 +56,10 @@ static bool MMU_CheckIfFault(struct WMD_DEV_CONTEXT *pDevContext);
+ void MMU_FaultDpc(IN unsigned long pRefData)
+ {
+ 	struct DEH_MGR *hDehMgr = (struct DEH_MGR *)pRefData;
+-	struct DEH_MGR *pDehMgr = (struct DEH_MGR *)hDehMgr;
+ 
+ 	DBG_Trace(DBG_LEVEL1, "MMU_FaultDpc Enter: 0x%x\n", pRefData);
+ 
+-	if (pDehMgr)
++	if (hDehMgr)
+ 		WMD_DEH_Notify(hDehMgr, DSP_MMUFAULT, 0L);
+ 
+ 	DBG_Trace(DBG_LEVEL1, "MMU_FaultDpc Exit: 0x%x\n", pRefData);
+@@ -76,7 +74,6 @@ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
+ 	struct DEH_MGR *pDehMgr = (struct DEH_MGR *)pRefData;
+ 	struct WMD_DEV_CONTEXT *pDevContext;
+ 	DSP_STATUS status = DSP_SOK;
+-	unsigned long flags;
+ 
+ 	DBG_Trace(DBG_LEVEL1, "Entering DEH_DspMmuIsr: 0x%x\n", pRefData);
+        DBC_Require(irq == INT_DSP_MMU_IRQ);
+@@ -99,24 +96,7 @@ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
+ 			 * necessary to check if DSP MMU fault is intended for
+ 			 * Bridge.
+ 			 */
+-			/* Increment count of DPC's pending. */
+-			spin_lock_irqsave(&pDehMgr->hMmuFaultDpc->dpc_lock,
+-						flags);
+-			pDehMgr->hMmuFaultDpc->numRequested++;
+-			spin_unlock_irqrestore(&pDehMgr->hMmuFaultDpc->dpc_lock,
+-						flags);
+-
+-			/* Schedule DPC */
+-			tasklet_schedule(&pDehMgr->hMmuFaultDpc->dpc_tasklet);
+-#ifdef DEBUG
+-			if (pDehMgr->hMmuFaultDpc->numRequested >
+-			   pDehMgr->hMmuFaultDpc->numScheduled +
+-			   pDehMgr->hMmuFaultDpc->numRequestedMax) {
+-				pDehMgr->hMmuFaultDpc->numRequestedMax =
+-					pDehMgr->hMmuFaultDpc->numRequested -
+-					pDehMgr->hMmuFaultDpc->numScheduled;
+-			}
+-#endif
++			tasklet_schedule(&pDehMgr->dpc_tasklet);
+ 
+ 			/* Reset errInfo structure before use. */
+ 			pDehMgr->errInfo.dwErrMask = DSP_MMUFAULT;
+diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
+index 4d0bcf2..6a1314f 100644
+--- a/drivers/dsp/bridge/wmd/ue_deh.c
++++ b/drivers/dsp/bridge/wmd/ue_deh.c
+@@ -30,7 +30,6 @@
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/cfg.h>
+-#include <dspbridge/dpc.h>
+ #include <dspbridge/mem.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/drv.h>
+@@ -90,24 +89,8 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
+ 		if (DSP_SUCCEEDED(status))
+ 			status = NTFY_Create(&pDehMgr->hNtfy);
+ 
+-		/* Create a DPC object. */
+-		MEM_AllocObject(pDehMgr->hMmuFaultDpc, struct DPC_OBJECT,
+-				SIGNATURE);
+-		if (pDehMgr->hMmuFaultDpc) {
+-			tasklet_init(&pDehMgr->hMmuFaultDpc->dpc_tasklet,
+-				MMU_FaultDpc, (u32)pDehMgr);
+-			/* Fill out DPC Object */
+-			pDehMgr->hMmuFaultDpc->numRequested = 0;
+-			pDehMgr->hMmuFaultDpc->numScheduled = 0;
+-#ifdef DEBUG
+-			pDehMgr->hMmuFaultDpc->numRequestedMax = 0;
+-			pDehMgr->hMmuFaultDpc->cEntryCount = 0;
+-#endif
+-			spin_lock_init(&pDehMgr->hMmuFaultDpc->dpc_lock);
+-		} else {
+-			DBG_Trace(GT_6CLASS, "DEH DPC Create: DSP_EMEMORY\n");
+-			status = DSP_EMEMORY;
+-		}
++		/* Create a MMUfault DPC */
++		tasklet_init(&pDehMgr->dpc_tasklet, MMU_FaultDpc, (u32)pDehMgr);
+ 
+ 		if (DSP_SUCCEEDED(status))
+ 			status = DEV_GetDevNode(hDevObject, &hDevNode);
+@@ -162,9 +145,7 @@ DSP_STATUS WMD_DEH_Destroy(struct DEH_MGR *hDehMgr)
+ 		free_irq(INT_DSP_MMU_IRQ, pDehMgr);
+ 
+ 		/* Free DPC object */
+-		tasklet_kill(&pDehMgr->hMmuFaultDpc->dpc_tasklet);
+-		MEM_FreeObject(pDehMgr->hMmuFaultDpc);
+-		pDehMgr->hMmuFaultDpc = NULL;
++		tasklet_kill(&pDehMgr->dpc_tasklet);
+ 		DBG_Trace(GT_2CLASS, "DPC_Destroy: SUCCESS\n");
+ 
+ 		/* Deallocate the DEH manager object */
+-- 
+1.6.2.4
 
