@@ -1,108 +1,73 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv3 1/3] OMAP UART: Add omap-serial driver support.
-Date: Tue, 24 Nov 2009 11:58:58 -0800
-Message-ID: <87aaybu22l.fsf@deeprootsystems.com>
-References: <35817.192.168.10.88.1256713980.squirrel@dbdmail.itg.ti.com>
-	<45113.192.168.10.88.1258095234.squirrel@dbdmail.itg.ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: OMAP3: enabling CPU idle leads to panic
+Date: Wed, 25 Nov 2009 01:51:24 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD5AA0DC@dbde02.ent.ti.com>
+References: <48239d390911240713v50bcae9ek855fb1e07c081486@mail.gmail.com>,<873a43wzfm.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:59001 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932789AbZKXT6y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 14:58:54 -0500
-Received: by pwi3 with SMTP id 3so4379144pwi.21
-        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 11:59:00 -0800 (PST)
-In-Reply-To: <45113.192.168.10.88.1258095234.squirrel@dbdmail.itg.ti.com> (Govindraj R.'s message of "Fri\, 13 Nov 2009 12\:23\:54 +0530 \(IST\)")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40695 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932678AbZKXUVZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 15:21:25 -0500
+In-Reply-To: <873a43wzfm.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>, Sergey Lapin <slapinid@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+From: Kevin Hilman [khilman@deeprootsystems.com]
+Sent: Tuesday, November 24, 2009 11:57 PM
+To: Sergey Lapin; Premi, Sanjeev
 Cc: linux-omap@vger.kernel.org
+Subject: Re: OMAP3: enabling CPU idle leads to panic
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+Sergey Lapin <slapinid@gmail.com> writes:
 
-> From 4756e3743c7acd2de1030b2bd432c1b19f0b9ff5 Mon Sep 17 00:00:00 2001
-> From: Govindraj R <govindraj.raja@ti.com>
-> Date: Fri, 13 Nov 2009 12:01:54 +0530
-> Subject: [PATCH] OMAP UART: Add omap-serial driver support.
+> I use PM branch merged with linux-omap branch.
+
+Not sure what this means.  PM branch is already based at linux-omap
+master branch.  You'll need to be more specific, ideally with commit
+IDs.
+
+[sp] I will also need the last commit from pm branch - if not the id; the
+commit header to start.
+
+[snip]--[snip]
+
 >
-> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
+> addr2line -e vmlinux c003b5c0
+> /home/slapin/linux-omap-my-2.6.git/arch/arm/mach-omap2/powerdomain.c:452
+> It is in function
+> int pwrdm_for_each_clkdm(), where pwrdm is NULL.
+> farther investigations found that "core_pwrdm" is defined only for 24xx,
+> but I use 3525, and it is being searched.
+
+[sp] I am a little confused here. core_pwrdm is defined for 34xx as well.
+Other than sgx, there isn't any difference between 3530 and 3525.
+See the definition at:
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/powerdomains34xx.h;hb=867d320b6c30d2478358eafeca0e1a6c60cf06c3#l203
+
 >
-> It adds support for the following features:
-> 1. It supports Interrupt mode and DMA mode of operation.
-> 2. Supports Hardware flow control and sofware flow control.
-> 3. Debug Console support on all UARTs.
->
-> Signed-off-by: Govindraj R <govindraj.raja@ti.com>
+> This is where variable allocated. If I add BUG_ON(!core_pd), it crashes here.
+> arch/arm/mach-omap2/cpuidle34xx.c:348:        core_pd = pwrdm_lookup("core_pwrdm");
+> Otherwise it crashes the above way. Any ideas on how to fix this?
 
-Govindraj,
+[sp] Have you hand-picked the commits from pm branch and applied against
+ master?
 
-FYI... to use this version of the driver with the UART omap_device
-conversion I just posted, I used this additional patch on top of your
-driver.
+Best regards,
+Sanjeev
 
-These are various issues I pointed out in the review as well, but
-wanted to share this with V3 + this patch, I was able to use it
-with the omap_device conversion.
+PS: responding thru a web client. It doesn't seem to support quoting the original message.
+
+
+I think there is still ongoing work on support for the 3525.  I'm
+guessing the clock/pwrdm init still needs work for that SoC.
+
+I have no 3525 hardware, but maybe Sanjeev has more details.
 
 Kevin
 
-commit 79285bfc6c8711f580895256a82e7dc127156824
-Author: Kevin Hilman <khilman@deeprootsystems.com>
-Date:   Mon Nov 23 15:10:13 2009 -0800
-
-    OMAP: HS-UART: misc. fixes
-
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 4341fae..86bec82 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -28,7 +28,7 @@
-  * in bootargs we specify as console=ttyO0 if uart1
-  * is used as console uart.
-  */
--#define DEVICE_NAME	"ttyO"
-+#define DEVICE_NAME	"ttyS"
- 
- /* *
-  * We default to IRQ0 for the "no irq" hack.   Some
-diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-serial.c
-index 6dd8bb4..65d05f8 100644
---- a/drivers/serial/omap-serial.c
-+++ b/drivers/serial/omap-serial.c
-@@ -993,7 +993,7 @@ static struct console serial_omap_console = {
- 
- static void serial_omap_add_console_port(struct uart_omap_port *up)
- {
--	serial_omap_console_ports[up->pdev->id - 1] = up;
-+	serial_omap_console_ports[up->pdev->id] = up;
- }
- 
- #define OMAP_CONSOLE	(&serial_omap_console)
-@@ -1237,7 +1237,7 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	up->port.regshift = 2;
- 	up->port.fifosize = 64;
- 	up->port.ops = &serial_omap_pops;
--	up->port.line = pdev->id - 1;
-+	up->port.line = pdev->id;
- 	up->port.membase = ioremap_nocache(up->port.mapbase,
- 					0x16 << up->port.regshift);
- 	up->port.flags = UPF_BOOT_AUTOCONF;
-@@ -1263,7 +1263,7 @@ static int serial_omap_probe(struct platform_device *pdev)
- 		pr_err("\n %s: UART Driver Init Failed!\n", __func__);
- 		return -EPERM;
- 	}
--	ui[pdev->id - 1] = up;
-+	ui[pdev->id] = up;
- 	serial_omap_add_console_port(up);
- 
- 	ret = uart_add_one_port(&serial_omap_reg, &up->port);
-@@ -1298,7 +1298,7 @@ static struct platform_driver serial_omap_driver = {
- 	.suspend	= serial_omap_suspend,
- 	.resume		= serial_omap_resume,
- 	.driver		= {
--		.name	= "omap-uart",
-+		.name	= DRIVER_NAME,
- 	},
- };
- 
