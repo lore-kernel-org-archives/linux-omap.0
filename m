@@ -1,452 +1,207 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][PATCH] ARM: OMAP: McBSP: Use register cache
-Date: Mon, 23 Nov 2009 15:53:55 -0800
-Message-ID: <20091123235355.GJ22923@atomide.com>
-References: <200908121239.26346.jkrzyszt@tis.icnet.pl>
- <200911140306.44784.jkrzyszt@tis.icnet.pl>
- <200911232142.50234.jkrzyszt@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH 8/9] DSPBRIDGE: Remove DPC module from SERVICES layer
+Date: Mon, 23 Nov 2009 18:50:29 -0600
+Message-ID: <1259023830-7557-9-git-send-email-omar.ramirez@ti.com>
+References: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-2-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-3-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-4-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-5-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-6-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-7-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-8-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50084 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757002AbZKWXx4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Nov 2009 18:53:56 -0500
-Content-Disposition: inline
-In-Reply-To: <200911232142.50234.jkrzyszt@tis.icnet.pl>
+Received: from comal.ext.ti.com ([198.47.26.152]:51703 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756463AbZKXApH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Nov 2009 19:45:07 -0500
+In-Reply-To: <1259023830-7557-8-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091123 12:42]:
-> (drop all except Tony, Jarkko and linux-omap)
->=20
-> Saturday 14 November 2009 03:06:39 Janusz Krzysztofik napisa=C5=82(a)=
-:
-> > Hi,
-> >
-> > This patch got outdated and does not apply any more, but the idea s=
-till
-> > hangs in my queue. I am not sure why the patch has never been ackno=
-wledged
-> > nor rejected. Maybe it just got missed?
->=20
-> Tony,
->=20
-> I have just found this patch, initially submitted on 2009-08-12, arch=
-ived in=20
-> linux-omap patchwork with State: Awaiting Upstream. What does it mean=
-? Am I=20
-> supposed to do something about it? After that many weeks of no negati=
-ve=20
-> comments nor requests for changes, and taking into account what Jarkk=
-o said=20
-> lately in a different thread[*] about the McBSP register cache concep=
-t, can I=20
-> assume that it has been generally accepted? Is it worth of refreshing=
- against=20
-> current linux-omap?
+This patch removes init and exit functions for DPC module.
+It also deletes dpc source file and takes out the module from
+Makefile.
 
-I'll just mark patches "Awaiting upstream" if I feel like somebody else
-should ack or merge it. If there are obvious changes needed, I'll mark
-it "Changes requested".
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/dpc.h |   26 -----------
+ drivers/dsp/bridge/Makefile                |    3 +-
+ drivers/dsp/bridge/services/dpc.c          |   68 ----------------------------
+ drivers/dsp/bridge/services/services.c     |    9 +---
+ 4 files changed, 3 insertions(+), 103 deletions(-)
+ delete mode 100644 drivers/dsp/bridge/services/dpc.c
 
-So for the patch, please refresh. Then let's apply it assuming Jarkko
-acks it.
+diff --git a/arch/arm/plat-omap/include/dspbridge/dpc.h b/arch/arm/plat-omap/include/dspbridge/dpc.h
+index b22140f..aee910d 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dpc.h
++++ b/arch/arm/plat-omap/include/dspbridge/dpc.h
+@@ -35,30 +35,4 @@ struct DPC_OBJECT {
+ 	spinlock_t dpc_lock;
+ };
+ 
+-/*
+- *  ======== DPC_Exit ========
+- *  Purpose:
+- *      Discontinue usage of the DPC module.
+- *  Parameters:
+- *  Returns:
+- *  Requires:
+- *      DPC_Init(void) was previously called.
+- *  Ensures:
+- *      Resources acquired in DPC_Init(void) are freed.
+- */
+-       extern void DPC_Exit(void);
+-
+-/*
+- *  ======== DPC_Init ========
+- *  Purpose:
+- *      Initialize the DPC module's private state.
+- *  Parameters:
+- *  Returns:
+- *      TRUE if initialized; FALSE if error occured.
+- *  Requires:
+- *  Ensures:
+- *      A requirement for each of the other public DPC functions.
+- */
+-       extern bool DPC_Init(void);
+-
+ #endif				/* DPC_ */
+diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
+index cb6d1ce..df870c9 100644
+--- a/drivers/dsp/bridge/Makefile
++++ b/drivers/dsp/bridge/Makefile
+@@ -1,8 +1,7 @@
+ obj-$(CONFIG_MPU_BRIDGE)	+= bridgedriver.o
+ 
+ libgen = gen/gb.o gen/gt.o gen/gs.o gen/gh.o gen/_gt_para.o gen/uuidutil.o
+-libservices = services/mem.o services/list.o services/dpc.o \
+-		services/sync.o \
++libservices = services/mem.o services/list.o services/sync.o \
+ 		services/clk.o services/cfg.o services/reg.o \
+                services/regsup.o services/ntfy.o \
+ 		services/dbg.o services/services.o
+diff --git a/drivers/dsp/bridge/services/dpc.c b/drivers/dsp/bridge/services/dpc.c
+deleted file mode 100644
+index bbb2d47..0000000
+--- a/drivers/dsp/bridge/services/dpc.c
++++ /dev/null
+@@ -1,68 +0,0 @@
+-/*
+- * dpc.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Deferred Procedure Call(DPC) Services.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-/*  ----------------------------------- Host OS */
+-#include <dspbridge/host_os.h>
+-
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dspbridge/std.h>
+-#include <dspbridge/dbdefs.h>
+-#include <dspbridge/errbase.h>
+-
+-/*  ----------------------------------- Trace & Debug */
+-#include <dspbridge/dbc.h>
+-#include <dspbridge/gt.h>
+-
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/mem.h>
+-
+-/*  ----------------------------------- This */
+-#include <dspbridge/dpc.h>
+-
+-/*  ----------------------------------- Defines, Data Structures, Typedefs */
+-#define SIGNATURE       0x5f435044	/* "DPC_" (in reverse). */
+-
+-/*  ----------------------------------- Globals */
+-#if GT_TRACE
+-static struct GT_Mask DPC_DebugMask = { NULL, NULL };	/* DPC Debug Mask */
+-#endif
+-
+-/*
+- *  ======== DPC_Exit ========
+- *  Purpose:
+- *      Discontinue usage of the DPC module.
+- */
+-void DPC_Exit(void)
+-{
+-	GT_0trace(DPC_DebugMask, GT_5CLASS, "Entered DPC_Exit\n");
+-}
+-
+-/*
+- *  ======== DPC_Init ========
+- *  Purpose:
+- *      Initialize the DPC module's private state.
+- */
+-bool DPC_Init(void)
+-{
+-	GT_create(&DPC_DebugMask, "DP");
+-
+-	GT_0trace(DPC_DebugMask, GT_5CLASS, "Entered DPC_Init\n");
+-
+-	return true;
+-}
+-
+diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
+index dc9bfad..0b7d623 100644
+--- a/drivers/dsp/bridge/services/services.c
++++ b/drivers/dsp/bridge/services/services.c
+@@ -68,7 +68,6 @@ void SERVICES_Exit(void)
+ 		CLK_Exit();
+ 		REG_Exit();
+ 		LST_Exit();
+-		DPC_Exit();
+ 		DBG_Exit();
+ 		CFG_Exit();
+ 		MEM_Exit();
+@@ -87,7 +86,7 @@ void SERVICES_Exit(void)
+ bool SERVICES_Init(void)
+ {
+ 	bool fInit = true;
+-	bool fCFG, fDBG, fDPC, fLST, fMEM;
++	bool fCFG, fDBG, fLST, fMEM;
+ 	bool fREG, fSYNC, fCLK, fNTFY;
+ 
+ 	DBC_Require(cRefs >= 0);
+@@ -106,12 +105,11 @@ bool SERVICES_Init(void)
+ 		fREG = REG_Init();
+ 		fCFG = CFG_Init();
+ 		fDBG = DBG_Init();
+-		fDPC = DPC_Init();
+ 		fLST = LST_Init();
+ 		fCLK  = CLK_Init();
+ 		fNTFY = NTFY_Init();
+ 
+-		fInit = fCFG && fDBG && fDPC &&
++		fInit = fCFG && fDBG &&
+ 			fLST && fMEM && fREG && fSYNC && fCLK;
+ 
+ 		if (!fInit) {
+@@ -130,9 +128,6 @@ bool SERVICES_Init(void)
+ 			if (fLST)
+ 				LST_Exit();
+ 
+-			if (fDPC)
+-				DPC_Exit();
+-
+ 			if (fDBG)
+ 				DBG_Exit();
+ 
+-- 
+1.6.2.4
 
-Regards,
-
-Tony
-=20
-> Thanks,
-> Janusz
->=20
-> > Could you please take a position on this idea?
-> >
-> > Thanks,
-> > Janusz
-> >
-> > http://www.spinics.net/lists/linux-omap/msg16720.html
->=20
-> [*] http://www.spinics.net/lists/linux-omap/msg20597.html
->=20
-> > Wednesday 12 August 2009 12:39:25 Janusz Krzysztofik wrote:
-> > > Change the way McBSP registers are updated: use cached values ins=
-tead of
-> > > relying upon those read back from the device.
-> > >
-> > > With this patch, I have finally managed to get rid of all random
-> > > playback/recording hangups on my OMAP1510 based Amstrad Delta (bu=
-ggy?)
-> > > hardware. Before that, I could suspect that values read back from=
- McBSP
-> > > registers before updating them happened to be errornous.
-> > >
-> > > I think there is one important point that makes this patch worth =
-of
-> > > applying, apart from my hardware quality. With the current code, =
-if it
-> > > ever happens to any machine, no matter if OMAP1510 or newer, to r=
-ead
-> > > incorrect value from a McBSP register, this wrong value will get =
-written
-> > > back without any checking. That can lead to hardware damage if, f=
-or
-> > > example, an input pin is turned into output as a result.
-> > >
-> > > Created against linux-2.6.31-rc5
-> > >
-> > > Tested on Amstrad Delta
-> > >
-> > > Signed-off-by: Janusz Krzysztofik
-> > >
-> > > ---
-> > > ---
-> > > linux-2.6.31-rc5/arch/arm/plat-omap/include/mach/mcbsp.h.orig	200=
-9-08-11
-> > > 23:43:25.000000000 +0200 +++
-> > > linux-2.6.31-rc5/arch/arm/plat-omap/include/mach/mcbsp.h	2009-08-=
-11
-> > > 23:45:46.000000000 +0200 @@ -377,6 +377,8 @@ struct omap_mcbsp {
-> > >  	struct omap_mcbsp_platform_data *pdata;
-> > >  	struct clk *iclk;
-> > >  	struct clk *fclk;
-> > > +
-> > > +	struct omap_mcbsp_reg_cfg reg_cache;
-> > >  };
-> > >  extern struct omap_mcbsp **mcbsp_ptr;
-> > >  extern int omap_mcbsp_count;
-> > > --- linux-2.6.31-rc5/arch/arm/plat-omap/mcbsp.c.orig	2009-08-11
-> > > 23:43:25.000000000 +0200 +++
-> > > linux-2.6.31-rc5/arch/arm/plat-omap/mcbsp.c	2009-08-11 23:45:35.0=
-00000000
-> > > +0200 @@ -91,6 +91,7 @@ static void omap_mcbsp_dump_reg(u8 id)
-> > >  static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_=
-id)
-> > >  {
-> > >  	struct omap_mcbsp *mcbsp_tx =3D dev_id;
-> > > +	struct omap_mcbsp_reg_cfg *reg_cache =3D &mcbsp_tx->reg_cache;
-> > >  	u16 irqst_spcr2;
-> > >
-> > >  	irqst_spcr2 =3D OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2);
-> > > @@ -101,7 +102,7 @@ static irqreturn_t omap_mcbsp_tx_irq_han
-> > >  			irqst_spcr2);
-> > >  		/* Writing zero to XSYNC_ERR clears the IRQ */
-> > >  		OMAP_MCBSP_WRITE(mcbsp_tx->io_base, SPCR2,
-> > > -			irqst_spcr2 & ~(XSYNC_ERR));
-> > > +			reg_cache->spcr2 &=3D ~(XSYNC_ERR));
-> > >  	} else {
-> > >  		complete(&mcbsp_tx->tx_irq_completion);
-> > >  	}
-> > > @@ -112,6 +113,7 @@ static irqreturn_t omap_mcbsp_tx_irq_han
-> > >  static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_=
-id)
-> > >  {
-> > >  	struct omap_mcbsp *mcbsp_rx =3D dev_id;
-> > > +	struct omap_mcbsp_reg_cfg *reg_cache =3D &mcbsp_rx->reg_cache;
-> > >  	u16 irqst_spcr1;
-> > >
-> > >  	irqst_spcr1 =3D OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR1);
-> > > @@ -122,7 +124,7 @@ static irqreturn_t omap_mcbsp_rx_irq_han
-> > >  			irqst_spcr1);
-> > >  		/* Writing zero to RSYNC_ERR clears the IRQ */
-> > >  		OMAP_MCBSP_WRITE(mcbsp_rx->io_base, SPCR1,
-> > > -			irqst_spcr1 & ~(RSYNC_ERR));
-> > > +			reg_cache->spcr1 &=3D ~(RSYNC_ERR));
-> > >  	} else {
-> > >  		complete(&mcbsp_rx->tx_irq_completion);
-> > >  	}
-> > > @@ -167,6 +169,7 @@ static void omap_mcbsp_rx_dma_callback(i
-> > >  void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_=
-reg_cfg
-> > > *config) {
-> > >  	struct omap_mcbsp *mcbsp;
-> > > +	struct omap_mcbsp_reg_cfg *reg_cache;
-> > >  	void __iomem *io_base;
-> > >
-> > >  	if (!omap_mcbsp_check_valid_id(id)) {
-> > > @@ -174,26 +177,27 @@ void omap_mcbsp_config(unsigned int id,
-> > >  		return;
-> > >  	}
-> > >  	mcbsp =3D id_to_mcbsp_ptr(id);
-> > > +	reg_cache =3D &mcbsp->reg_cache;
-> > >
-> > >  	io_base =3D mcbsp->io_base;
-> > >  	dev_dbg(mcbsp->dev, "Configuring McBSP%d  phys_base: 0x%08lx\n"=
-,
-> > >  			mcbsp->id, mcbsp->phys_base);
-> > >
-> > >  	/* We write the given config */
-> > > -	OMAP_MCBSP_WRITE(io_base, SPCR2, config->spcr2);
-> > > -	OMAP_MCBSP_WRITE(io_base, SPCR1, config->spcr1);
-> > > -	OMAP_MCBSP_WRITE(io_base, RCR2, config->rcr2);
-> > > -	OMAP_MCBSP_WRITE(io_base, RCR1, config->rcr1);
-> > > -	OMAP_MCBSP_WRITE(io_base, XCR2, config->xcr2);
-> > > -	OMAP_MCBSP_WRITE(io_base, XCR1, config->xcr1);
-> > > -	OMAP_MCBSP_WRITE(io_base, SRGR2, config->srgr2);
-> > > -	OMAP_MCBSP_WRITE(io_base, SRGR1, config->srgr1);
-> > > -	OMAP_MCBSP_WRITE(io_base, MCR2, config->mcr2);
-> > > -	OMAP_MCBSP_WRITE(io_base, MCR1, config->mcr1);
-> > > -	OMAP_MCBSP_WRITE(io_base, PCR0, config->pcr0);
-> > > +	OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 =3D config->s=
-pcr2);
-> > > +	OMAP_MCBSP_WRITE(io_base, SPCR1, reg_cache->spcr1 =3D config->s=
-pcr1);
-> > > +	OMAP_MCBSP_WRITE(io_base, RCR2, reg_cache->rcr2 =3D config->rcr=
-2);
-> > > +	OMAP_MCBSP_WRITE(io_base, RCR1, reg_cache->rcr1 =3D config->rcr=
-1);
-> > > +	OMAP_MCBSP_WRITE(io_base, XCR2, reg_cache->xcr2 =3D config->xcr=
-2);
-> > > +	OMAP_MCBSP_WRITE(io_base, XCR1, reg_cache->xcr1 =3D config->xcr=
-1);
-> > > +	OMAP_MCBSP_WRITE(io_base, SRGR2, reg_cache->srgr2 =3D config->s=
-rgr2);
-> > > +	OMAP_MCBSP_WRITE(io_base, SRGR1, reg_cache->srgr1 =3D config->s=
-rgr1);
-> > > +	OMAP_MCBSP_WRITE(io_base, MCR2, reg_cache->mcr2 =3D config->mcr=
-2);
-> > > +	OMAP_MCBSP_WRITE(io_base, MCR1, reg_cache->mcr1 =3D config->mcr=
-1);
-> > > +	OMAP_MCBSP_WRITE(io_base, PCR0, reg_cache->pcr0 =3D config->pcr=
-0);
-> > >  	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> > > -		OMAP_MCBSP_WRITE(io_base, XCCR, config->xccr);
-> > > -		OMAP_MCBSP_WRITE(io_base, RCCR, config->rccr);
-> > > +		OMAP_MCBSP_WRITE(io_base, XCCR, reg_cache->xccr =3D config->xc=
-cr);
-> > > +		OMAP_MCBSP_WRITE(io_base, RCCR, reg_cache->rccr =3D config->rc=
-cr);
-> > >  	}
-> > >  }
-> > >  EXPORT_SYMBOL(omap_mcbsp_config);
-> > > @@ -232,6 +236,7 @@ EXPORT_SYMBOL(omap_mcbsp_set_io_type);
-> > >  int omap_mcbsp_request(unsigned int id)
-> > >  {
-> > >  	struct omap_mcbsp *mcbsp;
-> > > +	struct omap_mcbsp_reg_cfg *reg_cache;
-> > >  	int err;
-> > >
-> > >  	if (!omap_mcbsp_check_valid_id(id)) {
-> > > @@ -239,6 +244,7 @@ int omap_mcbsp_request(unsigned int id)
-> > >  		return -ENODEV;
-> > >  	}
-> > >  	mcbsp =3D id_to_mcbsp_ptr(id);
-> > > +	reg_cache =3D &mcbsp->reg_cache;
-> > >
-> > >  	spin_lock(&mcbsp->lock);
-> > >  	if (!mcbsp->free) {
-> > > @@ -261,8 +267,8 @@ int omap_mcbsp_request(unsigned int id)
-> > >  	 * Make sure that transmitter, receiver and sample-rate generat=
-or are
-> > >  	 * not running before activating IRQs.
-> > >  	 */
-> > > -	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR1, 0);
-> > > -	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR2, 0);
-> > > +	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR1, reg_cache->spcr1 =3D 0)=
-;
-> > > +	OMAP_MCBSP_WRITE(mcbsp->io_base, SPCR2, reg_cache->spcr2 =3D 0)=
-;
-> > >
-> > >  	if (mcbsp->io_type =3D=3D OMAP_MCBSP_IRQ_IO) {
-> > >  		/* We need to get IRQs here */
-> > > @@ -335,42 +341,38 @@ EXPORT_SYMBOL(omap_mcbsp_free);
-> > >  void omap_mcbsp_start(unsigned int id, int tx, int rx)
-> > >  {
-> > >  	struct omap_mcbsp *mcbsp;
-> > > +	struct omap_mcbsp_reg_cfg *reg_cache;
-> > >  	void __iomem *io_base;
-> > >  	int idle;
-> > > -	u16 w;
-> > >
-> > >  	if (!omap_mcbsp_check_valid_id(id)) {
-> > >  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-> > >  		return;
-> > >  	}
-> > >  	mcbsp =3D id_to_mcbsp_ptr(id);
-> > > +	reg_cache =3D &mcbsp->reg_cache;
-> > >  	io_base =3D mcbsp->io_base;
-> > >
-> > > -	mcbsp->rx_word_length =3D (OMAP_MCBSP_READ(io_base, RCR1) >> 5)=
- & 0x7;
-> > > -	mcbsp->tx_word_length =3D (OMAP_MCBSP_READ(io_base, XCR1) >> 5)=
- & 0x7;
-> > > +	mcbsp->rx_word_length =3D (reg_cache->rcr1 >> 5) & 0x7;
-> > > +	mcbsp->tx_word_length =3D (reg_cache->xcr1 >> 5) & 0x7;
-> > >
-> > > -	idle =3D !((OMAP_MCBSP_READ(io_base, SPCR2) |
-> > > -		OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
-> > > +	idle =3D !((reg_cache->spcr2 | reg_cache->spcr1) & 1);
-> > >
-> > >  	if (idle) {
-> > >  		/* Start the sample generator */
-> > > -		w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> > > -		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 6));
-> > > +		OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 |=3D (1 << 6=
-));
-> > >  	}
-> > >
-> > >  	/* Enable transmitter and receiver */
-> > > -	w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> > > -	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (tx & 1));
-> > > +	OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 |=3D (tx & 1)=
-);
-> > >
-> > > -	w =3D OMAP_MCBSP_READ(io_base, SPCR1);
-> > > -	OMAP_MCBSP_WRITE(io_base, SPCR1, w | (rx & 1));
-> > > +	OMAP_MCBSP_WRITE(io_base, SPCR1, reg_cache->spcr1 |=3D (rx & 1)=
-);
-> > >
-> > >  	udelay(100);
-> > >
-> > >  	if (idle) {
-> > >  		/* Start frame sync */
-> > > -		w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> > > -		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 7));
-> > > +		OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 |=3D (1 << 7=
-));
-> > >  	}
-> > >
-> > >  	/* Dump McBSP Regs */
-> > > @@ -381,9 +383,9 @@ EXPORT_SYMBOL(omap_mcbsp_start);
-> > >  void omap_mcbsp_stop(unsigned int id, int tx, int rx)
-> > >  {
-> > >  	struct omap_mcbsp *mcbsp;
-> > > +	struct omap_mcbsp_reg_cfg *reg_cache;
-> > >  	void __iomem *io_base;
-> > >  	int idle;
-> > > -	u16 w;
-> > >
-> > >  	if (!omap_mcbsp_check_valid_id(id)) {
-> > >  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-> > > @@ -391,23 +393,20 @@ void omap_mcbsp_stop(unsigned int id, in
-> > >  	}
-> > >
-> > >  	mcbsp =3D id_to_mcbsp_ptr(id);
-> > > +	reg_cache =3D &mcbsp->reg_cache;
-> > >  	io_base =3D mcbsp->io_base;
-> > >
-> > >  	/* Reset transmitter */
-> > > -	w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> > > -	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(tx & 1));
-> > > +	OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 &=3D ~(tx & 1=
-));
-> > >
-> > >  	/* Reset receiver */
-> > > -	w =3D OMAP_MCBSP_READ(io_base, SPCR1);
-> > > -	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(rx & 1));
-> > > +	OMAP_MCBSP_WRITE(io_base, SPCR1, reg_cache->spcr1 &=3D ~(rx & 1=
-));
-> > >
-> > > -	idle =3D !((OMAP_MCBSP_READ(io_base, SPCR2) |
-> > > -		OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
-> > > +	idle =3D !((reg_cache->spcr2 | reg_cache->spcr1) & 1);
-> > >
-> > >  	if (idle) {
-> > >  		/* Reset the sample rate generator */
-> > > -		w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> > > -		OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
-> > > +		OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 &=3D ~(1 << =
-6));
-> > >  	}
-> > >  }
-> > >  EXPORT_SYMBOL(omap_mcbsp_stop);
-> > > @@ -557,6 +556,7 @@ EXPORT_SYMBOL(omap_mcbsp_recv_word);
-> > >  int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 wo=
-rd)
-> > >  {
-> > >  	struct omap_mcbsp *mcbsp;
-> > > +	struct omap_mcbsp_reg_cfg *reg_cache;
-> > >  	void __iomem *io_base;
-> > >  	omap_mcbsp_word_length tx_word_length;
-> > >  	omap_mcbsp_word_length rx_word_length;
-> > > @@ -567,6 +567,7 @@ int omap_mcbsp_spi_master_xmit_word_poll
-> > >  		return -ENODEV;
-> > >  	}
-> > >  	mcbsp =3D id_to_mcbsp_ptr(id);
-> > > +	reg_cache =3D &mcbsp->reg_cache;
-> > >  	io_base =3D mcbsp->io_base;
-> > >  	tx_word_length =3D mcbsp->tx_word_length;
-> > >  	rx_word_length =3D mcbsp->rx_word_length;
-> > > @@ -580,9 +581,11 @@ int omap_mcbsp_spi_master_xmit_word_poll
-> > >  		spcr2 =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> > >  		if (attempts++ > 1000) {
-> > >  			/* We must reset the transmitter */
-> > > -			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 & (~XRST));
-> > > +			OMAP_MCBSP_WRITE(io_base, SPCR2,
-> > > +					reg_cache->spcr2 &=3D (~XRST));
-> > >  			udelay(10);
-> > > -			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
-> > > +			OMAP_MCBSP_WRITE(io_base, SPCR2,
-> > > +					reg_cache->spcr2 |=3D XRST);
-> > >  			udelay(10);
-> > >  			dev_err(mcbsp->dev, "McBSP%d transmitter not "
-> > >  				"ready\n", mcbsp->id);
-> > > @@ -601,9 +604,11 @@ int omap_mcbsp_spi_master_xmit_word_poll
-> > >  		spcr1 =3D OMAP_MCBSP_READ(io_base, SPCR1);
-> > >  		if (attempts++ > 1000) {
-> > >  			/* We must reset the receiver */
-> > > -			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 & (~RRST));
-> > > +			OMAP_MCBSP_WRITE(io_base, SPCR1,
-> > > +					reg_cache->spcr1 &=3D (~RRST));
-> > >  			udelay(10);
-> > > -			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
-> > > +			OMAP_MCBSP_WRITE(io_base, SPCR1,
-> > > +					reg_cache->spcr1 |=3D RRST);
-> > >  			udelay(10);
-> > >  			dev_err(mcbsp->dev, "McBSP%d receiver not "
-> > >  				"ready\n", mcbsp->id);
-> > > @@ -623,6 +628,7 @@ EXPORT_SYMBOL(omap_mcbsp_spi_master_xmit
-> > >  int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *w=
-ord)
-> > >  {
-> > >  	struct omap_mcbsp *mcbsp;
-> > > +	struct omap_mcbsp_reg_cfg *reg_cache;
-> > >  	u32 clock_word =3D 0;
-> > >  	void __iomem *io_base;
-> > >  	omap_mcbsp_word_length tx_word_length;
-> > > @@ -635,6 +641,7 @@ int omap_mcbsp_spi_master_recv_word_poll
-> > >  	}
-> > >
-> > >  	mcbsp =3D id_to_mcbsp_ptr(id);
-> > > +	reg_cache =3D &mcbsp->reg_cache;
-> > >  	io_base =3D mcbsp->io_base;
-> > >
-> > >  	tx_word_length =3D mcbsp->tx_word_length;
-> > > @@ -649,9 +656,11 @@ int omap_mcbsp_spi_master_recv_word_poll
-> > >  		spcr2 =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> > >  		if (attempts++ > 1000) {
-> > >  			/* We must reset the transmitter */
-> > > -			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 & (~XRST));
-> > > +			OMAP_MCBSP_WRITE(io_base, SPCR2,
-> > > +					reg_cache->spcr2 &=3D (~XRST));
-> > >  			udelay(10);
-> > > -			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
-> > > +			OMAP_MCBSP_WRITE(io_base, SPCR2,
-> > > +					reg_cache->spcr2 |=3D XRST);
-> > >  			udelay(10);
-> > >  			dev_err(mcbsp->dev, "McBSP%d transmitter not "
-> > >  				"ready\n", mcbsp->id);
-> > > @@ -670,9 +679,11 @@ int omap_mcbsp_spi_master_recv_word_poll
-> > >  		spcr1 =3D OMAP_MCBSP_READ(io_base, SPCR1);
-> > >  		if (attempts++ > 1000) {
-> > >  			/* We must reset the receiver */
-> > > -			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 & (~RRST));
-> > > +			OMAP_MCBSP_WRITE(io_base, SPCR1,
-> > > +					reg_cache->spcr1 &=3D (~RRST));
-> > >  			udelay(10);
-> > > -			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
-> > > +			OMAP_MCBSP_WRITE(io_base, SPCR1,
-> > > +					reg_cache->spcr1 |=3D RRST);
-> > >  			udelay(10);
-> > >  			dev_err(mcbsp->dev, "McBSP%d receiver not "
-> > >  				"ready\n", mcbsp->id);
->=20
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
