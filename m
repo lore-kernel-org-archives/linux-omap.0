@@ -1,67 +1,60 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 1/2] OMAP: hwmod: add read/write API for SYSCONFIG
-Date: Tue, 24 Nov 2009 10:10:40 -0800
-Message-ID: <1259086241-14088-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 2/2] OMAP: hwmod: allow idle after HWMOD_INIT_NO_IDLE
+Date: Tue, 24 Nov 2009 10:10:41 -0800
+Message-ID: <1259086241-14088-2-git-send-email-khilman@deeprootsystems.com>
+References: <1259086241-14088-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:65231 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754359AbZKXSKl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 13:10:41 -0500
-Received: by fxm5 with SMTP id 5so6115990fxm.28
-        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 10:10:46 -0800 (PST)
+Received: from mail-ew0-f215.google.com ([209.85.219.215]:40077 "EHLO
+	mail-ew0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933737AbZKXSKw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 13:10:52 -0500
+Received: by ewy7 with SMTP id 7so5714ewy.28
+        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 10:10:56 -0800 (PST)
+In-Reply-To: <1259086241-14088-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Some HW blocks have errata which requires selective enabling/disabling
-of SYSCONFIG bits.  In particular, some blocks have known issues with
-smart-idle so smart-idle has to be disabled under certain conditions.
+If an omap_hwmod is setup using HWMOD_INIT_NO_IDLE flag, there is
+currently way to idle it since omap_hwmod_idle() requires the hwmod to
+be in the enabled state.
 
-Add API to read/write a modules SYSCONFIG register which takes
-advantage of the built-in caching of omap_hwmod.  Any manual
-reading/writing of SYSCONFIG registers outside of hwmod will cause
-potential problems in omap_hwmod due to the caching.
+This patch adds a check to omap_hwmod_idle() so if the hwmod was has
+the INIT_NO_IDLE flag, calling omap_hwmod_idle() will still succeed.
 
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |   10 ++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 +++
- 2 files changed, 13 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index eedcc5f..c5c4ddc 100644
+index c5c4ddc..0cdcbdc 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -993,6 +993,16 @@ void omap_hwmod_writel(u32 v, struct omap_hwmod *oh, u16 reg_offs)
- 	__raw_writel(v, oh->_rt_va + reg_offs);
+@@ -869,7 +869,13 @@ static int _enable(struct omap_hwmod *oh)
+  */
+ static int _idle(struct omap_hwmod *oh)
+ {
+-	if (oh->_state != _HWMOD_STATE_ENABLED) {
++	/* 
++	 * To idle, hwmod must be enabled, EXCEPT if hwmod was
++	 * initialized using the INIT_NO_IDLE flag.  In this case it
++	 * will not yet be enabled so we have to allow it to be idled.
++	 */
++	if ((oh->_state != _HWMOD_STATE_ENABLED) &&
++	    !(oh->flags & HWMOD_INIT_NO_IDLE)) {
+ 		WARN(1, "omap_hwmod: %s: idle state can only be entered from "
+ 		     "enabled state\n", oh->name);
+ 		return -EINVAL;
+@@ -884,6 +890,9 @@ static int _idle(struct omap_hwmod *oh)
+ 
+ 	oh->_state = _HWMOD_STATE_IDLE;
+ 
++	/* Clear init flag which should only affect first call to idle */
++	oh->flags &= ~HWMOD_INIT_NO_IDLE;
++
+ 	return 0;
  }
- 
-+u32 omap_hwmod_read_sysc(struct omap_hwmod *oh)
-+{
-+	return oh->_sysc_cache;
-+}
-+
-+void omap_hwmod_write_sysc(u32 v, struct omap_hwmod *oh)
-+{
-+	_write_sysconfig(v, oh);
-+}
-+
- /**
-  * omap_hwmod_register - register a struct omap_hwmod
-  * @oh: struct omap_hwmod *
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 007935a..db1e6ef 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -446,6 +446,9 @@ void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
- void omap_hwmod_writel(u32 v, struct omap_hwmod *oh, u16 reg_offs);
- u32 omap_hwmod_readl(struct omap_hwmod *oh, u16 reg_offs);
- 
-+void omap_hwmod_write_sysc(u32 v, struct omap_hwmod *oh);
-+u32 omap_hwmod_read_sysc(struct omap_hwmod *oh);
-+
- int omap_hwmod_count_resources(struct omap_hwmod *oh);
- int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res);
  
 -- 
 1.6.5.1
