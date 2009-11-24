@@ -1,61 +1,63 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 2/2] OMAP: hwmod: allow idle after HWMOD_INIT_NO_IDLE
-Date: Tue, 24 Nov 2009 10:10:41 -0800
-Message-ID: <1259086241-14088-2-git-send-email-khilman@deeprootsystems.com>
-References: <1259086241-14088-1-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH 5/8] OMAP: omap_device: add usecounting
+Date: Tue, 24 Nov 2009 10:13:03 -0800
+Message-ID: <636c5030911241013s635437d4vc31b71f462d44b70@mail.gmail.com>
+References: <1258506313-17115-1-git-send-email-khilman@deeprootsystems.com>
+	 <1258506313-17115-2-git-send-email-khilman@deeprootsystems.com>
+	 <1258506313-17115-3-git-send-email-khilman@deeprootsystems.com>
+	 <1258506313-17115-4-git-send-email-khilman@deeprootsystems.com>
+	 <1258506313-17115-5-git-send-email-khilman@deeprootsystems.com>
+	 <1258506313-17115-6-git-send-email-khilman@deeprootsystems.com>
+	 <alpine.DEB.2.00.0911180349590.25515@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f215.google.com ([209.85.219.215]:40077 "EHLO
-	mail-ew0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933737AbZKXSKw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 13:10:52 -0500
-Received: by ewy7 with SMTP id 7so5714ewy.28
-        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 10:10:56 -0800 (PST)
-In-Reply-To: <1259086241-14088-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:47967 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932541AbZKXSM4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 13:12:56 -0500
+Received: by pzk1 with SMTP id 1so4975192pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 10:13:03 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.0911180349590.25515@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-If an omap_hwmod is setup using HWMOD_INIT_NO_IDLE flag, there is
-currently way to idle it since omap_hwmod_idle() requires the hwmod to
-be in the enabled state.
+On Wed, Nov 18, 2009 at 2:51 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hello Kevin,
+>
+> On Tue, 17 Nov 2009, Kevin Hilman wrote:
+>
+>> Add use counters to omap_device to enable multiple potential users o=
+f
+>> an omap_device. =A0This is needed if ever there are multiple users o=
+r
+>> multiple instances of a driver with a single omap_device.
+>>
+>> Without usecounting, with multiple users, the first one to call idle
+>> may forcibly idle the device while other users are still active.
+>
+> Could you please send along an example of the use case for this? =A0I=
+ would
+> prefer not to add usecounting at this layer unless it is absolutely
+> necessary, since only one driver should be bound to a device at a tim=
+e.
 
-This patch adds a check to omap_hwmod_idle() so if the hwmod was has
-the INIT_NO_IDLE flag, calling omap_hwmod_idle() will still succeed.
+OK, after some more wrangling with the UART layer, I don't think I
+will need this patch.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+If an omap_device is bound to a single driver, the driver itself can
+do the usecounting and will be more effecient when doing so.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index c5c4ddc..0cdcbdc 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -869,7 +869,13 @@ static int _enable(struct omap_hwmod *oh)
-  */
- static int _idle(struct omap_hwmod *oh)
- {
--	if (oh->_state != _HWMOD_STATE_ENABLED) {
-+	/* 
-+	 * To idle, hwmod must be enabled, EXCEPT if hwmod was
-+	 * initialized using the INIT_NO_IDLE flag.  In this case it
-+	 * will not yet be enabled so we have to allow it to be idled.
-+	 */
-+	if ((oh->_state != _HWMOD_STATE_ENABLED) &&
-+	    !(oh->flags & HWMOD_INIT_NO_IDLE)) {
- 		WARN(1, "omap_hwmod: %s: idle state can only be entered from "
- 		     "enabled state\n", oh->name);
- 		return -EINVAL;
-@@ -884,6 +890,9 @@ static int _idle(struct omap_hwmod *oh)
- 
- 	oh->_state = _HWMOD_STATE_IDLE;
- 
-+	/* Clear init flag which should only affect first call to idle */
-+	oh->flags &= ~HWMOD_INIT_NO_IDLE;
-+
- 	return 0;
- }
- 
--- 
-1.6.5.1
+Note however that this will prevent any direct replacement of
+clk_enable/disable with omap_device_enable/disable since some drivers
+are built on the assumption that the clk API does usecounting.
 
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
