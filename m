@@ -1,63 +1,97 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 5/8] OMAP: omap_device: add usecounting
-Date: Tue, 24 Nov 2009 10:13:03 -0800
-Message-ID: <636c5030911241013s635437d4vc31b71f462d44b70@mail.gmail.com>
-References: <1258506313-17115-1-git-send-email-khilman@deeprootsystems.com>
-	 <1258506313-17115-2-git-send-email-khilman@deeprootsystems.com>
-	 <1258506313-17115-3-git-send-email-khilman@deeprootsystems.com>
-	 <1258506313-17115-4-git-send-email-khilman@deeprootsystems.com>
-	 <1258506313-17115-5-git-send-email-khilman@deeprootsystems.com>
-	 <1258506313-17115-6-git-send-email-khilman@deeprootsystems.com>
-	 <alpine.DEB.2.00.0911180349590.25515@utopia.booyaka.com>
+Subject: Re: OMAP3: enabling CPU idle leads to panic
+Date: Tue, 24 Nov 2009 10:27:41 -0800
+Message-ID: <873a43wzfm.fsf@deeprootsystems.com>
+References: <48239d390911240713v50bcae9ek855fb1e07c081486@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:47967 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932541AbZKXSM4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 13:12:56 -0500
-Received: by pzk1 with SMTP id 1so4975192pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 10:13:03 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.0911180349590.25515@utopia.booyaka.com>
+Received: from mail-ew0-f215.google.com ([209.85.219.215]:63604 "EHLO
+	mail-ew0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933754AbZKXS1l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 13:27:41 -0500
+Received: by ewy7 with SMTP id 7so26664ewy.28
+        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 10:27:46 -0800 (PST)
+In-Reply-To: <48239d390911240713v50bcae9ek855fb1e07c081486@mail.gmail.com> (Sergey Lapin's message of "Tue\, 24 Nov 2009 18\:13\:13 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: Sergey Lapin <slapinid@gmail.com>, Sanjeev Premi <premi@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-On Wed, Nov 18, 2009 at 2:51 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hello Kevin,
->
-> On Tue, 17 Nov 2009, Kevin Hilman wrote:
->
->> Add use counters to omap_device to enable multiple potential users o=
-f
->> an omap_device. =A0This is needed if ever there are multiple users o=
-r
->> multiple instances of a driver with a single omap_device.
->>
->> Without usecounting, with multiple users, the first one to call idle
->> may forcibly idle the device while other users are still active.
->
-> Could you please send along an example of the use case for this? =A0I=
- would
-> prefer not to add usecounting at this layer unless it is absolutely
-> necessary, since only one driver should be bound to a device at a tim=
-e.
+Sergey Lapin <slapinid@gmail.com> writes:
 
-OK, after some more wrangling with the UART layer, I don't think I
-will need this patch.
+> I use PM branch merged with linux-omap branch. 
 
-If an omap_device is bound to a single driver, the driver itself can
-do the usecounting and will be more effecient when doing so.
+Not sure what this means.  PM branch is already based at linux-omap
+master branch.  You'll need to be more specific, ideally with commit
+IDs.
 
-Note however that this will prevent any direct replacement of
-clk_enable/disable with omap_device_enable/disable since some drivers
-are built on the assumption that the clk API does usecounting.
+> A board is custom, so I can't bisect this problem (and I don't know
+> latest working revision).
+>
+> It seems that's because missing clock domain somewhere,
+>
+>
+> [16515.695617] Unable to handle kernel NULL pointer dereference at
+> virtual address 00000020
+> [16515.703735] pgd = c0004000
+> [16515.706481] [00000020] *pgd=00000000
+> [16515.710083] Internal error: Oops: 5 [#1] PREEMPT
+> [16515.714721] last sysfs file:
+> [16515.717712] Modules linked in:
+> [16515.720794] CPU: 0    Not tainted  (2.6.32-rc8-07113-g318afc6 #110)
+> [16515.727111] PC is at pwrdm_for_each_clkdm+0x34/0x88
+> [16515.731994] LR is at pwrdm_for_each_clkdm+0x24/0x88
+> [16515.736907] pc : [<c003b5c0>]    lr : [<c003b5b0>]    psr: 600000d3
+> [16515.736938] sp : c03f3f68  ip : fa004800  fp : 00000000
+> [16515.748474] r10: c003e81c  r9 : 411fc082  r8 : 00000000
+> [16515.753723] r7 : a00000d3  r6 : 00000000  r5 : 00000004  r4 : 00000001
+> [16515.760284] r3 : 00000002  r2 : c03f2000  r1 : 00000001  r0 : 00000000
+> [16515.766845] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM
+> Segment kernel
+> [16515.774383] Control: 10c5387d  Table: 80004019  DAC: 00000017
+> [16515.780151] Process swapper (pid: 0, stack limit = 0xc03f22e8)
+> [16515.786010] Stack: (0xc03f3f68 to 0xc03f4000)
+> [16515.790405] 3f60:                   c042e4bc 00000003 00000003
+> c042e4bc 80026398 411fc082
+> [16515.798645] 3f80: 0000001f c003e76c 00000000 c022f284 00271d5a
+> 00000000 00000005 0ec00c5c
+> [16515.806854] 3fa0: c03f8640 c03f8710 c042dadc c03f8640 c0474d0c
+> c022dee8 c03f2000 c042dadc
+> [16515.815093] 3fc0: c0027e14 c03f5bd0 80026398 c002f49c c0459fa4
+> c0008914 c0008478 00000000
+> [16515.823333] 3fe0: 00000000 c0027e18 00000000 10c53c7d c042dbf0
+> 80008034 00000000 00000000
+> [16515.831573] [<c003b5c0>] (pwrdm_for_each_clkdm+0x34/0x88) from
+> [<c003e76c>] (omap3_enter_idle+0xc0/0x15c)
+> [16515.841217] [<c003e76c>] (omap3_enter_idle+0xc0/0x15c) from
+> [<c022dee8>] (cpuidle_idle_call+0xa4/0x180)
+> [16515.850677] [<c022dee8>] (cpuidle_idle_call+0xa4/0x180) from
+> [<c002f49c>] (cpu_idle+0x48/0x98)
+> [16515.859344] [<c002f49c>] (cpu_idle+0x48/0x98) from [<c0008914>]
+> (start_kernel+0x250/0x2a8)
+> [16515.867675] [<c0008914>] (start_kernel+0x250/0x2a8) from
+> [<80008034>] (0x80008034)
+> [16515.875274] Code: e3a06000 e1a05008 e1a04006 ea000002 (e595101c)
+> [16515.881530] ---[ end trace f0a89c74ea639f01 ]---
+> [16515.886230] Kernel panic - not syncing: Attempted to kill the idle task!
+>
+>
+> addr2line -e vmlinux c003b5c0
+> /home/slapin/linux-omap-my-2.6.git/arch/arm/mach-omap2/powerdomain.c:452
+> It is in function
+> int pwrdm_for_each_clkdm(), where pwrdm is NULL.
+> farther investigations found that "core_pwrdm" is defined only for 24xx,
+> but I use 3525, and it is being searched.
+>
+> This is where variable allocated. If I add BUG_ON(!core_pd), it crashes here.
+> arch/arm/mach-omap2/cpuidle34xx.c:348:	core_pd = pwrdm_lookup("core_pwrdm");
+> Otherwise it crashes the above way. Any ideas on how to fix this?
+
+I think there is still ongoing work on support for the 3525.  I'm
+guessing the clock/pwrdm init still needs work for that SoC.
+
+I have no 3525 hardware, but maybe Sanjeev has more details.
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
