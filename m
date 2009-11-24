@@ -1,61 +1,68 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC][PATCH] ARM: OMAP: McBSP: Use register cache
-Date: Tue, 24 Nov 2009 09:59:23 +0200
-Message-ID: <20091124095923.4f60044c.jhnikula@gmail.com>
-References: <200908121239.26346.jkrzyszt@tis.icnet.pl>
-	<200911140306.44784.jkrzyszt@tis.icnet.pl>
-	<200911232142.50234.jkrzyszt@tis.icnet.pl>
-	<20091123235355.GJ22923@atomide.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH] DSPBRIDGE: Interface tightening to check for invalid
+Date: Tue, 24 Nov 2009 10:50:47 +0200 (EET)
+Message-ID: <20091124.105047.226798314.Hiroshi.DOYU@nokia.com>
+References: <B852767254C5C94EBB1040EE0EFA060084FBDD1D@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f223.google.com ([209.85.218.223]:43232 "EHLO
-	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757827AbZKXH6S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 02:58:18 -0500
-Received: by bwz23 with SMTP id 23so6043625bwz.29
-        for <linux-omap@vger.kernel.org>; Mon, 23 Nov 2009 23:58:23 -0800 (PST)
-In-Reply-To: <20091123235355.GJ22923@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:53415 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932214AbZKXIuy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 03:50:54 -0500
+In-Reply-To: <B852767254C5C94EBB1040EE0EFA060084FBDD1D@dlee01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ernesto@ti.com
+Cc: linux-omap@vger.kernel.org, omar.ramirez@ti.com, imre.deak@nokia.com, bshah@ti.com
 
-On Mon, 23 Nov 2009 15:53:55 -0800
-Tony Lindgren <tony@atomide.com> wrote:
+Hi Ernesto,
 
-> > I have just found this patch, initially submitted on 2009-08-12, archived in 
-> > linux-omap patchwork with State: Awaiting Upstream. What does it mean? Am I 
-> > supposed to do something about it? After that many weeks of no negative 
-> > comments nor requests for changes, and taking into account what Jarkko said 
-> > lately in a different thread[*] about the McBSP register cache concept, can I 
-> > assume that it has been generally accepted? Is it worth of refreshing against 
-> > current linux-omap?
+From: "ext Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: [PATCH] DSPBRIDGE: Interface tightening to check for invalid
+Date: Mon, 23 Nov 2009 21:12:08 +0100
+
+> From f28ec22e48a9b61ac00b7711e035e117bdc71aeb Mon Sep 17 00:00:00 2001
+> From: Ernesto Ramos <ernesto@ti.com>
+> Date: Mon, 23 Nov 2009 12:16:45 -0600
+> Subject: [PATCH] DSPBRIDGE: Interface tightening to check for invalid inputs.
 > 
-> I'll just mark patches "Awaiting upstream" if I feel like somebody else
-> should ack or merge it. If there are obvious changes needed, I'll mark
-> it "Changes requested".
-> 
-> So for the patch, please refresh. Then let's apply it assuming Jarkko
-> acks it.
-> 
-Yep, I was aware of this Janusz's patch and was thinking that it could
-help also for developing the McBSP context save/restore features.
+> Move the error checking to kernel to address usecases
+> accessing kernel API directly.
 
-> > > > +	OMAP_MCBSP_WRITE(io_base, SPCR2, reg_cache->spcr2 = config->spcr2);
-> > > > +	OMAP_MCBSP_WRITE(io_base, SPCR1, reg_cache->spcr1 = config->spcr1);
-...
-> > > > -	mcbsp->rx_word_length = (OMAP_MCBSP_READ(io_base, RCR1) >> 5) & 0x7;
-> > > > -	mcbsp->tx_word_length = (OMAP_MCBSP_READ(io_base, XCR1) >> 5) & 0x7;
-> > > > +	mcbsp->rx_word_length = (reg_cache->rcr1 >> 5) & 0x7;
-> > > > +	mcbsp->tx_word_length = (reg_cache->xcr1 >> 5) & 0x7;
+"memory_check_vma()" wasn't implemented for normal ioctl parameter
+checking, but one for bridge cache operations with kernel crash risk,
+especially with the following patch:
 
-IMO these would be cleaner if you embed cache handling into read and
-write functions only. Probably reading could have explicit _read and
-read_cache functions when code is dealing with the status bits and when
-just updating some cached bits.
+  http://marc.info/?l=linux-omap&m=125810716419520&w=2
 
+This is because these memory area is expected that:
 
--- 
-Jarkko
+  - its pages have been already populated.
+  - its pages shouldn't be swapped out.
+
+Otherwise there's risk of kernel crash at these cache operation,
+although "find_vma()" and "follow_page()" may be a bit heavier
+operation.
+
+For most of the normal cases, which just checks ioctl parameters,
+normal "access_ok()" would be enough. If it tries to access kernel
+address, just it returns error to userland. If it tries to access
+invalid address in user address space, the process dies with
+SIGSEGV. I think that normally it's ok that a process dies because of
+invalid address access rather than performance degrade.
+
+So I think that "memory_check_vma()" doesn't fit for normal ioctl
+parameter checking("copy_from_user"/"copy_to_user"), but "access_ok()"
+would work in most of normal cases.
+
+In macros, __cp_fm_usr()/__cp_to_usr(), adding "access_ok()" checking
+for pointers may work fine, I guess.
+
+> Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+> ---
+>  arch/arm/plat-omap/include/dspbridge/dbdefs.h |    3 +-
+>  drivers/dsp/bridge/pmgr/wcd.c                 |  263 +++++++++++++++++++++++--
+>  drivers/dsp/bridge/rmgr/proc.c                |   42 ----
+>  3 files changed, 249 insertions(+), 59 deletions(-)
