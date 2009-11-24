@@ -1,55 +1,35 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCHv3 0/3] OMAP UART: Adding support for omap-serial driver.
-Date: Tue, 24 Nov 2009 11:21:40 -0600
-Message-ID: <20091124172139.GA22967@lixom.net>
-References: <35552.192.168.10.88.1256713953.squirrel@dbdmail.itg.ti.com> <44977.192.168.10.88.1258095220.squirrel@dbdmail.itg.ti.com> <d6a0f7aa0911200151xb948a28kf4f22d79e61b993e@mail.gmail.com> <20091123170544.GA10313@lixom.net> <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7A46@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCHv2 0/1] omap3: cpuidle: Update statistics for correct state
+Date: Tue, 24 Nov 2009 23:20:27 +0530
+Message-ID: <1259085027-13269-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lixom.net ([66.141.50.11]:44366 "EHLO mail.lixom.net"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34004 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932504AbZKXRUj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Nov 2009 12:20:39 -0500
-Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7A46@dbde02.ent.ti.com>
+	id S933576AbZKXRu0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Nov 2009 12:50:26 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAOHoUxk032387
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 11:50:32 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Govindraj <govindraj.ti@gmail.com>, "g@lixom.net" <g@lixom.net>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On Tue, Nov 24, 2009 at 03:04:09PM +0530, G, Manjunath Kondaiah wrote:
-> 
-> 
-> > -----Original Message-----
-> > From: Olof Johansson [mailto:olof@lixom.net] 
-> > Sent: Monday, November 23, 2009 10:36 PM
-> > To: Govindraj; g@lixom.net
-> > Cc: Tony Lindgren; linux-omap@vger.kernel.org; Pandita, 
-> > Vikram; Raja, Govindraj; G, Manjunath Kondaiah
-> > Subject: Re: [PATCHv3 0/3] OMAP UART: Adding support for 
-> > omap-serial driver.
-> > 
-> > On Fri, Nov 20, 2009 at 03:21:26PM +0530, Govindraj wrote:
-> > > I have not seen any comments on this patch series yet.
-> > > 
-> > > Tony,
-> > > Is there something I need to modify?
-> > 
-> > Govindaj,
-> > 
-> > I'm having problems with these patches on Zoom2 with debug 
-> > board, since
-> > they don't seem to coexist very well together with 8250. Enabling both
-> > options will result in build errors.
-> 
-> Why do we need to enable both 8250 and omap-serial for console. The console
-> UART can be either external UART or any one of the omap UART right?
+This is a fresh look at the problem [1] discussed earlier.
 
-You should allow both of them to be enabled at the same time, so the same
-kernel can for example be booted on a ZOOM2 with debug board attached
-(8250 on GPMC), or on a beagle/overo board.
+Generic approach here is same; but the 'valid' flag for the
+target state is verified in omap3_enter_idle_bm(). If the
+valid flag == 0, we look for next (lower) state with valid
+flag == 1.
 
-Making them exclusive would be a step backwards.
+Have tried to optimize the look-up without loosing readability.
 
+Sanjeev Premi (1):
+  omap3: cpuidle: Update statistics for correct state
 
--Olof
+ arch/arm/mach-omap2/cpuidle34xx.c |   98 ++++++++++++++++++++++++++++++++++---
+ arch/arm/mach-omap2/pm.h          |    1 +
+ arch/arm/mach-omap2/pm34xx.c      |    4 ++
+ 3 files changed, 95 insertions(+), 8 deletions(-)
+
