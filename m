@@ -1,81 +1,75 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH] OMAP3: DVFS: No sdrc AC timing changes during core dvfs
-Date: Tue, 24 Nov 2009 15:35:05 +0100
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A2236DA1C1F3@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1254835224-19500-1-git-send-email-rnayak@ti.com>
- <alpine.DEB.2.00.0910201918230.22645@utopia.booyaka.com>
- <13B9B4C6EF24D648824FF11BE8967162039B3CF012@dlee02.ent.ti.com>
- <74583B8642AB8841B30447520659FCA9DDD9D7E9@dnce01.ent.ti.com>
- <13B9B4C6EF24D648824FF11BE8967162039B459718@dlee02.ent.ti.com>
+From: Kovacs Peter Tamas <p.kovacs@holografika.com>
+Subject: Enabling HSUSB1 port on OMAP3430 labrador
+Date: Tue, 24 Nov 2009 15:33:56 +0100
+Message-ID: <4B0BEED4.1060005@holografika.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23806 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933083AbZKXOfv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 09:35:51 -0500
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B459718@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:57620 "EHLO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932574AbZKXOlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 09:41:50 -0500
+Received: from holoiroda.com (holoiroda.com [81.182.243.140])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail02d.mail.t-online.hu (Postfix) with ESMTPSA id E1201758B81
+	for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 15:33:15 +0100 (CET)
+Received: from adsl-2052.externet.hu ([212.40.118.18]:58231 helo=[192.168.10.121])
+	by holoiroda.com with esmtpsa (Exim 4.69-NetSys #4)
+	id 1NCwSm-0005eK-1T
+	for linux-omap@vger.kernel.org; Tue, 24 Nov 2009 15:33:52 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: r-woodruff2@ti.com, b-cousson@ti.com, paul@pwsan.com, rnayak@ti.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
+Dear All,
 
-Is there any update on this chain seeing this has been pending for a month now?
+We are trying to make the HSUSB1 port on the OMAP3430 work as an USB host.
+To do that, an ISP1507A ULPI HighSpeed USB transceiver is connected to 
+the HSUSB1pins (HSUSB1_STP, CLK, D-0..D7, DIR, NXT).
 
--Tero 
+I have all these USB related kernel config options enabled:
+USB_EHCI_HCD
+USB_OHCI_HCD
+USB_MUSB_HDRC
+TWL4030_USB
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org 
->[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
->Woodruff, Richard
->Sent: 22 October, 2009 15:20
->To: Cousson, Benoit; Paul Walmsley; Nayak, Rajendra
->Cc: linux-omap@vger.kernel.org
->Subject: RE: [PATCH] OMAP3: DVFS: No sdrc AC timing changes 
->during core dvfs
->
->Hi Beonit,
->
->> From: Cousson, Benoit
->> Sent: Thursday, October 22, 2009 3:59 AM
->> To: Woodruff, Richard; Paul Walmsley; Nayak, Rajendra
->
->> >It is not guaranteed safe to write actim registers on the 
->fly to an active
->> >part.  It is safe to do RFR as it is buffered and sent out 
->at a safe time.
->>
->> I think that what Paul is suggesting is to change the ACTIM 
->after ensuring
->> that the DDR is in self-refresh. In that case it is 
->perfectly valid; it is
->> just tricky to ensure that all initiators are in mute before 
->doing that.
->
->Yes that is true, however, ...
->
->That is not the way the code is setup and it's a long way from 
->that.  Run time pause of drivers is a minefield.
->
->With out a broad notifier they best you would hope for is some 
->opportunistic change time (against full system).  You wouldn't 
->have a guaranteed way to speed them up again where you need 
->them most at high opp.
->
->Some minimal kernel not using dma and the like could do it but 
->that is probably more misleading to put in the tree than 
->something useful for most.
->
->Regards,
->Richard W.
->
->--
->To unsubscribe from this list: send the line "unsubscribe 
->linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+My guess was that either EHCI or the Inventra should be the one enabling 
+that USB port on the OMAP, but no luck.
+The external USB port on the MDK works fine with this configuration.
+
+The pin multiplexing configuration in the board file omap3430-labrador.c 
+in u-boot also seems to be correct (although the config of USB1_STP 
+seems to be strange, but changing that didn't work either).
+
+My assumption is that the ISP1507A does not need support from the 
+kernel, as it acts as an ULPI transceiver only, but please correct me on 
+this point if wrong.
+
+What happens is that after connecting an USB mouse is that the LED is on 
+for a sec, but nothing is written in the kernel log.
+We can see that the transceiver is generating a clock signal, but for 
+some reason, the STP is constantly high.
+
+I've also tried setting the port to PHY or TLL, but didn't help. I guess 
+PHY is the correct setting in this situation, right? 
+
+Note, the ISP1507A is connected to the following pins of the BGA:
+HSUSB1_STP (AF10)
+HSUSB1_CLK (AE10)
+HSUSB1_DIR (AF9)
+HSUSB1_NXP (AG9)
+HSUSB1_D0 (AF11)
+HSUSB1_D1 (AG12)
+HSUSB1_D2 (AH12)
+HSUSB1_D3 (AH14)
+HSUSB1_D4 (AE11)
+HSUSB1_D5 (AH9)
+HSUSB1_D6 (AF13)
+HSUSB1_D7 (AE13)
+
+Any suggestion on making this work is greatly appreciated.
+
+Thanks for your help,
+Peter
