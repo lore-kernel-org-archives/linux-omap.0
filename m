@@ -1,119 +1,55 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Enabling HSUSB1 port on OMAP3430 labrador
-Date: Tue, 24 Nov 2009 22:05:22 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309DAC237@dbde02.ent.ti.com>
-References: <4B0BEED4.1060005@holografika.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCHv3 0/3] OMAP UART: Adding support for omap-serial driver.
+Date: Tue, 24 Nov 2009 11:21:40 -0600
+Message-ID: <20091124172139.GA22967@lixom.net>
+References: <35552.192.168.10.88.1256713953.squirrel@dbdmail.itg.ti.com> <44977.192.168.10.88.1258095220.squirrel@dbdmail.itg.ti.com> <d6a0f7aa0911200151xb948a28kf4f22d79e61b993e@mail.gmail.com> <20091123170544.GA10313@lixom.net> <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7A46@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53565 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758123AbZKXQfq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 11:35:46 -0500
-In-Reply-To: <4B0BEED4.1060005@holografika.com>
-Content-Language: en-US
+Received: from lixom.net ([66.141.50.11]:44366 "EHLO mail.lixom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932504AbZKXRUj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Nov 2009 12:20:39 -0500
+Content-Disposition: inline
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7A46@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kovacs Peter Tamas <p.kovacs@holografika.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, "g@lixom.net" <g@lixom.net>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
-Kovacs Peter Tamas wrote:
-> Sent: Tuesday, November 24, 2009 8:04 PM
-> To: linux-omap@vger.kernel.org
-> Subject: Enabling HSUSB1 port on OMAP3430 labrador
+On Tue, Nov 24, 2009 at 03:04:09PM +0530, G, Manjunath Kondaiah wrote:
 > 
-> Dear All,
 > 
-> We are trying to make the HSUSB1 port on the OMAP3430 work as an USB host.
-> To do that, an ISP1507A ULPI HighSpeed USB transceiver is connected to 
-> the HSUSB1pins (HSUSB1_STP, CLK, D-0..D7, DIR, NXT).
+> > -----Original Message-----
+> > From: Olof Johansson [mailto:olof@lixom.net] 
+> > Sent: Monday, November 23, 2009 10:36 PM
+> > To: Govindraj; g@lixom.net
+> > Cc: Tony Lindgren; linux-omap@vger.kernel.org; Pandita, 
+> > Vikram; Raja, Govindraj; G, Manjunath Kondaiah
+> > Subject: Re: [PATCHv3 0/3] OMAP UART: Adding support for 
+> > omap-serial driver.
+> > 
+> > On Fri, Nov 20, 2009 at 03:21:26PM +0530, Govindraj wrote:
+> > > I have not seen any comments on this patch series yet.
+> > > 
+> > > Tony,
+> > > Is there something I need to modify?
+> > 
+> > Govindaj,
+> > 
+> > I'm having problems with these patches on Zoom2 with debug 
+> > board, since
+> > they don't seem to coexist very well together with 8250. Enabling both
+> > options will result in build errors.
 > 
-> I have all these USB related kernel config options enabled:
-> USB_EHCI_HCD
-> USB_OHCI_HCD
-> USB_MUSB_HDRC
-> TWL4030_USB
-> 
-> My guess was that either EHCI or the Inventra should be the one enabling 
-> that USB port on the OMAP, but no luck.
-> The external USB port on the MDK works fine with this configuration.
-> 
-> The pin multiplexing configuration in the board file omap3430-labrador.c 
-> in u-boot also seems to be correct (although the config of USB1_STP 
-> seems to be strange, but changing that didn't work either).
-> 
+> Why do we need to enable both 8250 and omap-serial for console. The console
+> UART can be either external UART or any one of the omap UART right?
 
-HSUSB1 is not supposed to be used with the labrador (do you have a link
-to the board schematics with the mods?). HSUSB1 is the EHCI port.
+You should allow both of them to be enabled at the same time, so the same
+kernel can for example be booted on a ZOOM2 with debug board attached
+(8250 on GPMC), or on a beagle/overo board.
 
-Not sure why the pad conf is done in u-boot for this board, but maybe
-it was a copy-paste thing. That being said, if you've got the part
-installed correctly, it ought to work.
-
-> My assumption is that the ISP1507A does not need support from the 
-> kernel, as it acts as an ULPI transceiver only, but please correct me on 
-> this point if wrong.
-
-No support is needed for this part - it's supposed to work transparently.
-However there is an errata for this part for use with the input clocking
-mode - you need to delay the STP signal a little (to avoid CRC errors).
-See the errata doc from NXP.
-
-> 
-> What happens is that after connecting an USB mouse is that the LED is on 
-> for a sec, but nothing is written in the kernel log.
-
-If it's EHCI, you won't be able to use a USB mouse (it's a low-speed device).
-EHCI on OMAP3 supports high-speed only. You'll need to plug in a high-speed
-device, or a hub with a built-in transaction translator.
-
-> We can see that the transceiver is generating a clock signal, but for 
-> some reason, the STP is constantly high.
-> 
-> I've also tried setting the port to PHY or TLL, but didn't help. I guess 
-> PHY is the correct setting in this situation, right? 
-
-PHY mode is the correct setting for this, yes.
-
-> 
-> Note, the ISP1507A is connected to the following pins of the BGA:
-> HSUSB1_STP (AF10)
-> HSUSB1_CLK (AE10)
-> HSUSB1_DIR (AF9)
-> HSUSB1_NXP (AG9)
-> HSUSB1_D0 (AF11)
-> HSUSB1_D1 (AG12)
-> HSUSB1_D2 (AH12)
-> HSUSB1_D3 (AH14)
-> HSUSB1_D4 (AE11)
-> HSUSB1_D5 (AH9)
-> HSUSB1_D6 (AF13)
-> HSUSB1_D7 (AE13)
-
-These are the pads for EHCI. So I suppose that's what you're trying to use.
-
-Note that EHCI on the OMAP3 supports only the input clocking mode. This
-might mean you need to check if you've configured the PHY correctly for
-this mode. (No XTAL required, OMAP provides the clock to the PHY).
-NXP seems to have removed all mention of this mode from their
-data sheets, so you might want to check with them.
-
-Also, do you see a 60MHz clock when you probe the HSUSB1_CLK line?
+Making them exclusive would be a step backwards.
 
 
-On the 3430 SDP, we use the ISP1504C PHY (same family - very similar
-behavior as the 1507). To make it work, we need to hold the PHY in
-reset until after the EHCI controller was configured. This could be
-done by using the PHY's reset line (early boards had this) or by
-using the CHIP_SEL_n line (newer boards).
-
-
-
-> 
-> Any suggestion on making this work is greatly appreciated.
-> 
-> Thanks for your help,
-> Peter
-
-Regards,
-Anand
+-Olof
