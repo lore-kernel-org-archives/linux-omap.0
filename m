@@ -1,63 +1,40 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: hwmod and PER going idle before WFI
-Date: Tue, 24 Nov 2009 11:44:09 -0800
-Message-ID: <87iqczu2ra.fsf@deeprootsystems.com>
-References: <87fx83vj7o.fsf@deeprootsystems.com>
-	<74583B8642AB8841B30447520659FCA9DE273C2F@dnce01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 0/3] UART conversion to omap_device layer
+Date: Tue, 24 Nov 2009 11:56:06 -0800
+Message-ID: <1259092569-22352-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:36004 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758067AbZKXToG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 14:44:06 -0500
-Received: by pwi3 with SMTP id 3so4370915pwi.21
-        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 11:44:11 -0800 (PST)
-In-Reply-To: <74583B8642AB8841B30447520659FCA9DE273C2F@dnce01.ent.ti.com> (Benoit Cousson's message of "Tue\, 24 Nov 2009 20\:33\:39 +0100")
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:56361 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757216AbZKXT4G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 14:56:06 -0500
+Received: by pzk1 with SMTP id 1so5042409pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 11:56:11 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+This series converts the UART core and PM code to use the omap_device
+layer based on the omap_hwmod layer.
 
-> Hi Kevin,
->
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>owner@vger.kernel.org] On Behalf Of Kevin Hilman
->>
->>Hi Paul,
->>
->>In working with the UART conversion to hwmod, I noticed something I
->>don't see when not using hwmod for managing the UARTs.
->>
->>Namely, in the idle path for PER we do disable the PER UART (via
->>omap_uart_prepare_for_idle(2)) and then the GPIO context is saved via
->>omap3_per_save_context();
->>
->>When switching to use omap_hwmod, I noticed via crashes and then via
->>lauterbach that as soon as UART3 clocks are disabled, PER goes idle.
->>This causes the subsequent GPIO context save to fault since PER has
->>gone idle.
->>
->>I seem to remember having a similar problem before when the problem
->>was in the management of autodeps cause by a mis-merge.
->>
->>The patch below is a hack/workaround that just moves the UART idle after
->>the GPIO context save because I haven't found the root cause yet.
->>
->>Any ideas what might be happening here?
->
-> This is probably due to the PER HW supervised mode and the fact that there is no sleep dependency by default between MPU and PER or between CORE and PER.
-> As soon as the latest peripherals inside the PER power domain is going to idle, the clock domain and thus the power domain can transition to the next power state, even if the CPU is running.
-> It can by avoided by enabling the dependency but then you will prevent the PER to go to OFF mode even if not used.
->
-> What was changed to trigger that behavior now?
->
+This depends on the various omap_hwmod and omap_device updates from
+Paul as well as omap_hwmod and omap_device patches I've sent to the
+list.  The 'pm-wip/omap_device' branch in my linux-omap-pm git tree
+has a collection of all these hwmod/omap_device changes.  This UART
+series applies on top of the pm-wip/omap_device branch.
 
-The primary change is using the omap_device API for managing UART PM
-in mach-omap2/serial.c instead of directly using clock API.
+This series is also available in my git tree as branch 'pm-wip/uart'
 
-I'll be posting the UART patches shortly.
+Tested on 3430SDP only using 8250 driver and latest version of
+omap-serial driver from Govindraj.
 
-Kevin
+Govindraj R (1):
+  OMAP: UART: remove 8520 assumptions from UART core
+
+Kevin Hilman (2):
+  OMAP3: add omap_hwmods for UART1,2,3
+  OMAP: UART: convert to use omap_device layer
+
+ arch/arm/mach-omap2/omap_hwmod_34xx.h |  188 +++++++++++++++
+ arch/arm/mach-omap2/serial.c          |  418 ++++++++++++++++-----------------
+ 2 files changed, 389 insertions(+), 217 deletions(-)
+
