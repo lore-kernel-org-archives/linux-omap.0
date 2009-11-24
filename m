@@ -1,39 +1,55 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/2] ARM: Implemented support for VFP PM context saving
-Date: Tue, 24 Nov 2009 15:19:18 +0000
-Message-ID: <20091124151918.GB14462@n2100.arm.linux.org.uk>
-References: <1259059024-23719-1-git-send-email-tero.kristo@nokia.com> <1259059024-23719-2-git-send-email-tero.kristo@nokia.com> <20091124114836.GA10510@n2100.arm.linux.org.uk> <1259068826.13956.22.camel@pc1117.cambridge.arm.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH-v6 0/4] OMAP: Adding flash support to SDP, ZOOM2 and LDP
+	boards
+Date: Tue, 24 Nov 2009 20:55:08 +0530
+Message-ID: <ce9ab5790911240725x29b8bd6eq9f9c7a8b21c6786e@mail.gmail.com>
+References: <63751.192.168.10.88.1252582264.squirrel@dbdmail.itg.ti.com>
+	<ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
+	<ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
+	<ce9ab5790911040328p215dede2v37db38a966a5bbd5@mail.gmail.com>
+	<20091109205250.GB23952@atomide.com> <ce9ab5790911100201j6b1ef5e1g43a992b00e69ade4@mail.gmail.com>
+	<ce9ab5790911190608r5b7e8226j3546714957ce70e6@mail.gmail.com>
+	<1259075173.29118.20.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33945 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757320AbZKXPTu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 10:19:50 -0500
-Content-Disposition: inline
-In-Reply-To: <1259068826.13956.22.camel@pc1117.cambridge.arm.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:56629 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758088AbZKXPZX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Nov 2009 10:25:23 -0500
+Received: by bwz27 with SMTP id 27so6074396bwz.21
+        for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 07:25:28 -0800 (PST)
+In-Reply-To: <1259075173.29118.20.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Dave Estes <cestes@quicinc.com>
+To: dedekind1@gmail.com
+Cc: linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, vimal singh <vimalsingh@ti.com>
 
-On Tue, Nov 24, 2009 at 01:20:26PM +0000, Catalin Marinas wrote:
-> BTW, the two patches below were mentioned to me some time ago but I
-> haven't got the time to look at them:
-> 
-> [ARM] vfp: Fix bug in vfp_pm_suspend
-> https://www.codeaurora.org/gitweb/quic/le/?p=kernel/msm.git;a=commit;h=88984c9b2d69c222ee1e2afc948ca73f597d40ff
+On Tue, Nov 24, 2009 at 8:36 PM, Artem Bityutskiy <dedekind1@gmail.com> wrote:
+> On Thu, 2009-11-19 at 19:38 +0530, Vimal Singh wrote:
+>> Here is the v6 of this patch series. I am cc'ing mtd list too this time.
+>>
+>>
+>> From 8bc97108cf9c78216f1ea5407ccbd900e6b63dc2 Mon Sep 17 00:00:00 2001
+>> From: Vimal Singh <vimalsingh@ti.com>
+>> Date: Thu, 19 Nov 2009 19:28:11 +0530
+>>
+>> This patch series adds flash support for NAND (in sdp, zoom and ldp),
+>> OneNAND and NOR (in sdp)
+>>
+>> Tested on Zoom2 and 3430SDP
+>>
+>> Vimal Singh (4):
+>> [PATCH-v6 1/4] OMAP2/3: Add support for flash on SDP boards
+>> [PATCH-v6 2/4] OMAP3: Add support for NAND on ZOOM/LDP boards
+>> [PATCH-v6 3/4] OMAP: Zoom2: Enable NAND and JFFS2 support in defconfig
+>> [PATCH-v6 4/4] OMAP: 3430SDP: Enable NAND in defconfig
+>
+> Is it possible to separate the MTD and OMAP parts?
 
-This one is bad - it gets the current CPU by directly referencing ti->cpu.
-Too bad if you have kernel preemption enabled; the value obtained that
-way is effectively meaningless.  The only way to get a meaningful value
-is via 'get_cpu()' and after you've done with using it, 'put_cpu()'.
-That ensures you can't be preempted onto a different CPU mid-operation.
+1st patch does migration of gpmc low level calls from omap2.c to gpmc-nand.c.
+I am not sure how we can have separate patches for this.
 
-It's safe in vfp_notifier because we're called in an already atomic context.
-
-> [ARM] vfp: Add additional vfp interfaces
-> https://www.codeaurora.org/gitweb/quic/le/?p=kernel/msm.git;a=commit;h=393e4bfaaf79377d29cd6bb2228f87601aeca668
-
-I don't like what's in this one.  Lack of explaination in the commit log
-doesn't help.
+-- 
+Regards,
+Vimal Singh
