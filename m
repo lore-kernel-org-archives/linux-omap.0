@@ -1,46 +1,67 @@
-From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Subject: Re: [PATCH] usb: ehci-omap: Update platform header file path
-Date: Wed, 25 Nov 2009 03:14:56 -0600
-Message-ID: <20091125091456.GA30595@lixom.net>
-References: <20091125090259.GB30331@lixom.net> <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2D5A@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [ANNOUNCE] PM branch updated to v2.6.32-rc8
+Date: Wed, 25 Nov 2009 15:04:19 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7FBE@dbde02.ent.ti.com>
+References: <87638zvj24.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2D5A-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "gregkh-l3A5Bk7waGM@public.gmane.org" <gregkh-l3A5Bk7waGM@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42217 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758348AbZKYJeT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 04:34:19 -0500
+In-Reply-To: <87638zvj24.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Nov 25, 2009 at 02:35:56PM +0530, Gadiyar, Anand wrote:
-> Olof Johansson wrote:
-> > 
-> > The OMAP usb header file has moved, update the driver so it 
-> > will build.
-> > 
-> > Signed-off-by: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-> > 
-> > ---
-> > 
-> > Greg, any chance you can just ack this so Tony can merge it through his
-> > tree for .33? The header files changes in question are going in through
-> > that tree.
-> > 
+Hi Kevin,
+I see multiple commits for some of the patches with 2.6.32-rc8 latest code.
+Ex:
+#>gl | grep -i "Introduce zoom3 board support"
+5f35fbe  omap3: zoom: Introduce zoom3 board support (3 days ago)
+163cde1  omap3: zoom: Introduce zoom3 board support (7 days ago)
+084bb37  omap: zoom3: introduce zoom3 board support (11 days ago)
+3af1083  omap: zoom3: introduce zoom3 board support (11 days ago)
+13ac7e7  omap: zoom3: introduce zoom3 board support (12 days ago)
+9de2968  omap: zoom3: introduce zoom3 board support (13 days ago)
+#>
+
+There are some more patches like above.
+
+Is there any specific reason for having multiple commits?
+
+-Manjunath 
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Wednesday, November 25, 2009 12:37 AM
+> To: linux-omap@vger.kernel.org
+> Subject: [ANNOUNCE] PM branch updated to v2.6.32-rc8
 > 
-> I believe it has already been taken care of in Tony's for-next?
-
-Oh, weird. Looking at the history of the file on git.kernel.org:
-
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=history;f=drivers/usb/host/ehci-omap.c;hb=HEAD
-
-It shows Tony making the change on Oct 30, and then 4 fresh merges of
-the driver? That's odd.
-
-
--Olof
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> FYI...
+> 
+> PM branch was rebased to today's linux-omap master branch (currently
+> v2.6.32-rc8)
+> 
+> As usual, the PM wiki[1] has all the details on using the PM 
+> branch as well
+> as some known issues.
+> 
+> Also note that starting with the official v2.6.32 release, I 
+> will be moving
+> from a continual rebase model to a "re-branch & rebuild" model similar
+> to how Tony is now managing l-o master.
+> 
+> Kevin
+> 
+> [1] http://elinux.org/OMAP_Power_Management
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
