@@ -1,58 +1,99 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 0/3] OMAP UART: Adding support for omap-serial driver.
-Date: Wed, 25 Nov 2009 09:40:45 -0800
-Message-ID: <20091125174044.GD4348@atomide.com>
-References: <35552.192.168.10.88.1256713953.squirrel@dbdmail.itg.ti.com>
- <44977.192.168.10.88.1258095220.squirrel@dbdmail.itg.ti.com>
- <d6a0f7aa0911200151xb948a28kf4f22d79e61b993e@mail.gmail.com>
- <20091123170544.GA10313@lixom.net>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7A46@dbde02.ent.ti.com>
- <20091124172139.GA22967@lixom.net>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BBDC7CAD@dbde02.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7ED2@dbde02.ent.ti.com>
- <4B0CD762.70707@lixom.net>
+From: TAO HU <tghk48@motorola.com>
+Subject: Re: DSS2 panel question
+Date: Thu, 26 Nov 2009 01:44:31 +0800
+Message-ID: <5f4a33680911250944t66ee6045wcf7f912d9f48f267@mail.gmail.com>
+References: <6ed0b2680911210716l529e02ck23e188417fecd4f1@mail.gmail.com>
+	 <1258974287.2438.76.camel@tubuntu.research.nokia.com>
+	 <5f4a33680911230941l468730f1k51cc26e2d6431b0c@mail.gmail.com>
+	 <6ed0b2680911250253h6a07fd41xeee6ca8fcb29f577@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50462 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759474AbZKYRkq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 12:40:46 -0500
-Content-Disposition: inline
-In-Reply-To: <4B0CD762.70707@lixom.net>
+Received: from exprod5og111.obsmtp.com ([64.18.0.22]:60736 "EHLO
+	exprod5og111.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759397AbZKYRo1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 12:44:27 -0500
+Received: from il06vts01.mot.com (il06vts01.mot.com [129.188.137.141])
+	by mdgate1.mot.com (8.14.3/8.14.3) with SMTP id nAPHis2w005330
+	for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 10:44:54 -0700 (MST)
+Received: from mail-px0-f189.google.com (mail-px0-f189.google.com [209.85.216.189])
+	by mdgate1.mot.com (8.14.3/8.14.3) with ESMTP id nAPHdgjs004346
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=OK)
+	for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 10:44:54 -0700 (MST)
+Received: by mail-px0-f189.google.com with SMTP id 27so5620561pxi.25
+        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 09:44:31 -0800 (PST)
+In-Reply-To: <6ed0b2680911250253h6a07fd41xeee6ca8fcb29f577@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Govindraj <govindraj.ti@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org, TAO HU <taohu@motorola.com>
 
-* Olof Johansson <olof@lixom.net> [091124 23:05]:
-> G, Manjunath Kondaiah wrote:
-> >>>You should allow both of them to be enabled at the same time, so the
-> >>>same
-> >>>kernel can for example be booted on a ZOOM2 with debug board
-> >>>attached
-> >>>(8250 on GPMC), or on a beagle/overo board.
-> >>>
-> >>>Making them exclusive would be a step backwards.
-> >>More so, selecting both config option really shouldn't break the
-> >>build. If one expect a build break because only one of the
-> >>options can be enabled then clearly the dependency should be
-> >>used so that user can select only one option at a time.
-> >
-> >Ack. There should be dependency in Kconfig so that user can select
-> >either 8250 console(through Quad-uart for zoom2/zoom3) or OMAP-serial
-> >Console(through OMAP UART's).
-> 
-> No. The drivers MUST handle co-existing. You can have a bunch of
-> drivers configured to be _potential_ consoles, which one will end up
-> being used depends on, among other things, the bootargs. But it
-> should be allowed to configure both 8250 and omap-serial at the same
-> time.
+Hi, Grazvydas Ignotas
 
-Exactly. Even the same board must be capable of using 8250 and
-omap-serial. That's why it must be called ttyO instead of ttyS.
-The 8250 drivers are often needed for hotpluggable buses.
+What did you mean "Hm, omap_dss_register_device() takes omap_dss_driver=
+"?
 
-Regards,
+Below is what I saw from the code
+ int omap_dss_register_device(struct omap_dss_device *dssdev)
 
-Tony
+I assume the code I have is for DSS. Does DSS2 change the API?
+BTW, what's the location for DSS2 code in linux-omap tree? Seems not
+see it anywhere
+
+
+- Hu Tao
+
+
+On Wed, Nov 25, 2009 at 6:53 PM, Grazvydas Ignotas <notasas@gmail.com> =
+wrote:
+> On Mon, Nov 23, 2009 at 7:41 PM, TAO HU <tghk48@motorola.com> wrote:
+>> Hi,
+>>
+>> One idea as below
+>>
+>> struct spi_dss_device {
+>> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 struct omap_dss_device dss_dev;
+>> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 struct spi_dss_dev_priv=A0 * sp=
+i_data;
+>> } spi_dss_dev;
+>
+> Hm, omap_dss_register_device() takes omap_dss_driver, not
+> omap_dss_device. Anyway that wouldn't work if there were 2 instances
+> of same panel in one system I guess, as 2 different spi_data instance=
+s
+> would probe, when there is only one omap_dss_driver.
+>
+> Instead I'm thinking to link omap_dss_device with spi in board file
+> itself by (ab)using platform_data:
+>
+> static struct omap_dss_device pandora_lcd_device =3D {
+> ...
+> };
+>
+> struct spi_board_info pandora_spi_board_info =3D {
+> =A0.bus_num =3D 1,
+> =A0...
+> =A0.platform_data =3D pandora_lcd_device,
+> };
+>
+> Then in panel driver:
+>
+> int spi_probe(struct spi_device *spi)
+> {
+> =A0struct omap_dss_device *dssdev =3D spi->dev.platform_data;
+> =A0dev_set_drvdata(&dssdev->dev, spi);
+> }
+>
+> static int lcd_probe(struct omap_dss_device *dssdev)
+> {
+> =A0struct spi_device *spi =3D dev_get_drvdata(&dssdev->dev);
+> }
+>
+> Tomi, does that look reasonable to you?
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
