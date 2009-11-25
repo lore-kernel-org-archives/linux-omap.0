@@ -1,94 +1,66 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume hang
-Date: Wed, 25 Nov 2009 19:39:34 +0000
-Message-ID: <20091125193934.GA9263@rakim.wolfsonmicro.main>
-References: <1259154631-15251-1-git-send-email-anuj.aggarwal@ti.com>
- <20091125133340.GB3737@sirena.org.uk>
- <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2F77@dbde02.ent.ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 6/9] DSPBRIDGE: Remove DPC, create, destroy and schedule
+ wrappers
+Date: Wed, 25 Nov 2009 13:44:14 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A530426F26773@dlee03.ent.ti.com>
+References: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-2-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-3-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-4-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-5-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-6-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-7-git-send-email-omar.ramirez@ti.com>
+ <20091125191726.GB28486@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:39143 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1759608AbZKYTja (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Nov 2009 14:39:30 -0500
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2F77@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39782 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758911AbZKYToO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 14:44:14 -0500
+In-Reply-To: <20091125191726.GB28486@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
 
-On Thu, Nov 26, 2009 at 12:49:11AM +0530, Aggarwal, Anuj wrote:
+>From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+>Subject: Re: [PATCH 6/9] DSPBRIDGE: Remove DPC, create, destroy and schedule wrappers
+>
+>Hi,
+>
+>On Tue, Nov 24, 2009 at 01:50:27AM +0100, ext Omar Ramirez Luna wrote:
+>>+/* The DPC object, passed to our priority event callback routine: */
+>>+struct DPC_OBJECT {
+>>+       u32 dwSignature;        /* Used for object validation.   */
+>>+       void *pRefData;         /* Argument for client's DPC.    */
+>>+       DPC_PROC pfnDPC;        /* Client's DPC.                 */
+>>+       u32 numRequested;       /* Number of requested DPC's.      */
+>>+       u32 numScheduled;       /* Number of executed DPC's.      */
+>>+       struct tasklet_struct dpc_tasklet;
+>
+>as a suggestion for upcoming patches... how about removing the variable
+>types from its name and get rid of CaMeLcAsE ?
+>
+>I mean:
+>
+>-	u32 dwSignature;
+>+	u32 signature;
 
-> <snip>
->         int i;
->         u16 reg;
-> 
->         /* Sync reg_cache with the hardware */
->         for (reg = 0; reg < ARRAY_SIZE(tlv320aic23_reg); i++) {
->                 u16 val = tlv320aic23_read_reg_cache(codec, reg);
->                 tlv320aic23_write(codec, reg, val);
->         }
-> </snip>
+Done for patch DSPBRIDGE: Remove DPC object structure, I removed the structure because it was used only for IO and MMUfault (in future for WDT too), besides not every field were used anyway.
 
-> I can see 'i' getting incremented, instead of 'reg'. Isn't this an
-> infinite loop?
+@@ -128,6 +126,12 @@ struct IO_MGR {
+ 	u32 ulGppVa;
+ 	u32 ulDspVa;
+ #endif
++	/* IO Dpc */
++	u32 dpc_req;				/* Number of requested DPC's. */
++	u32 dpc_sched;				/* Number of executed DPC's. */
++	struct tasklet_struct dpc_tasklet;
++	spinlock_t dpc_lock;
++
+ } ;
 
-Yes, that does look entirely buggy - it seems fairly clear that suspend
-and resume have never worked with this driver.  The fact that you were
-removing the loop entirely meant I didn't read the actual code for bugs.
-
-> > > This patch fixes the problem by correcting the resume path and
-> > > properly activating/deactivating the digital interface while
-> > > doing the suspend / off transitions.
-
-> > What do you mean by "properly activating/deactivating the digital
-> > interface"?
-
-> [Aggarwal, Anuj] The driver was only deactivating the digital
-> interface and not activating it. Hence added that part. 
-
-So this is a separate issue, and should ideally be a separate patch - it
-looks like you've got three different changes here, one to fix the buggy
-register cache restore, one to manage the PWR bit on suspend and another
-to possibly fix the bias configuration.  You certainly need to identify
-all three changes in the changelog, especially for things like this
-which look like they should go in as bug fixes (and bearing in mind that
-it's the end of the release cycle).
-
-Glancing at the code there's much more management required here -
-there's other places where it's managed and the code needs to be joined
-up with them.  The setting should only be restored if the device was
-active when suspended, not unconditionally.
-
-> > >  	case SND_SOC_BIAS_STANDBY:
-> > > -		/* everything off except vref/vmid, */
-> > > -		tlv320aic23_write(codec, TLV320AIC23_PWR, reg | 0x0040);
-> > > +		/* Activate the digital interface */
-> > > +		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x1);
-> > >  		break;
-> > >  	case SND_SOC_BIAS_OFF:
-> > > -		/* everything off, dac mute, inactive */
-> > > +		/* Deactivate the digital interface */
-> > >  		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0);
-> > > -		tlv320aic23_write(codec, TLV320AIC23_PWR, 0xffff);
-> > >  		break;
-> > 
-> > This looks wrong - the driver is now no longer managing bias levels at
-> > all.
-> [Aggarwal, Anuj] The bias levels were wrongly managed earlier. While doing 
-> a suspend, it was powering off all the interfaces and while coming up, it
-> was not switching on the required interfaces. Hence no sound was coming
-> out if audio was played back. 
-
-Note that this CODEC driver impelements DAPM and so all the bits in the
-power register which are controlled by DAPM will be managed by the ASoC
-core without any action by the driver.
-
-> On each bias level, which are the interfaces which need to be switched
-> on / off?
-
-The biases and any other device-wide settings, everything else should be
-managed via DAPM if it's in use.
+- omar
