@@ -1,114 +1,84 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH] OMAP: DMA: move LCD DMA related code from plat-omap to mach-omap1 (Re: [PATCH] OMAP1: PM: Fix omapfb/lcd on Amstrad Delta broken when PM set)
-Date: Wed, 25 Nov 2009 14:54:47 +0100
-Message-ID: <200911251454.49078.jkrzyszt@tis.icnet.pl>
-References: <200910292339.48610.jkrzyszt@tis.icnet.pl> <200911211658.31404.jkrzyszt@tis.icnet.pl> <alpine.DEB.2.00.0911230154230.26334@utopia.booyaka.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [ANNOUNCE] PM branch updated to v2.6.32-rc8
+Date: Wed, 25 Nov 2009 06:20:36 -0800
+Message-ID: <87pr76n0sr.fsf@deeprootsystems.com>
+References: <87638zvj24.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402543D7FBE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:53262 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933562AbZKYNyx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 08:54:53 -0500
-In-Reply-To: <alpine.DEB.2.00.0911230154230.26334@utopia.booyaka.com>
-Content-Disposition: inline
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:47350 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934665AbZKYOUb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 09:20:31 -0500
+Received: by pwi3 with SMTP id 3so4898449pwi.21
+        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 06:20:38 -0800 (PST)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7FBE@dbde02.ent.ti.com> (Manjunath Kondaiah G.'s message of "Wed\, 25 Nov 2009 15\:04\:19 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Wednesday 25 November 2009 10:02:52 Paul Walmsley napisa=C5=82(a):
-> Hello Janusz,
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+
+> Hi Kevin,
+> I see multiple commits for some of the patches with 2.6.32-rc8 latest code.
 >
-> On Sat, 21 Nov 2009, Janusz Krzysztofik wrote:
-> > (probably less interested persons and lists dropped)
-> >
-> > Tuesday 10 November 2009 11:50:52 Paul Walmsley wrote:
-> > > ...  All of the LCD DMA code in plat-omap/dma.c appears to be
-> > > OMAP1-only (and apparently only is available on a subset of OMAP1
-> > > chips). It would be great if this code could be moved to
-> > > mach-omap1/lcd_dma.c or a similar place.
-> >
-> > The patch just tries to implement this idea.
-> >
-> > Created against linux-omap for-next,
-> > commit 2963c21fab52bfa8227da7f22864db393ebbc858
-> >
-> > Tested on OMAP1510 Amstrad Delta.
-> > Compile tested using omap_generic_2420_defconfig.
-> >
-> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> >
-> > ---
-> > Hi Paul,
-> >
-> > I hope the patch meets your suggestion closely enough.
+> Ex:
+> #>gl | grep -i "Introduce zoom3 board support"
+> 5f35fbe  omap3: zoom: Introduce zoom3 board support (3 days ago)
+> 163cde1  omap3: zoom: Introduce zoom3 board support (7 days ago)
+> 084bb37  omap: zoom3: introduce zoom3 board support (11 days ago)
+> 3af1083  omap: zoom3: introduce zoom3 board support (11 days ago)
+> 13ac7e7  omap: zoom3: introduce zoom3 board support (12 days ago)
+> 9de2968  omap: zoom3: introduce zoom3 board support (13 days ago)
+> #>
 >
-> Thanks, just scanned it quickly and it looks carefully done.  Two
-> suggestions below, both minor:
-
-Paul,
-Thanks for your review time.
-
-Since I started with just duplicating files and then removing unnecessa=
-ry
-sections, I wondered how I could split that work into several subsequen=
-t
-patches so it is more easy to verify how those chunks put into a new fi=
-le
-differ from those extracted from the old one, but didn't find a good so=
-lution
-yet.=20
-
-> > diff -uprN git.orig/arch/arm/mach-omap1/Makefile git/arch/arm/mach-=
-omap1/Makefile
-> > --- git.orig/arch/arm/mach-omap1/Makefile	2009-11-21 00:38:45.00000=
-0000 +0100
-> > +++ git/arch/arm/mach-omap1/Makefile	2009-11-21 01:27:12.000000000 =
-+0100
-> > @@ -3,7 +3,7 @@
-> >  #
-> >
-> >  # Common support
-> > -obj-y :=3D io.o id.o sram.o clock.o irq.o mux.o serial.o devices.o
-> > +obj-y :=3D io.o id.o sram.o clock.o irq.o lcd_dma.o mux.o serial.o=
- devices.o
+> There are some more patches like above.
 >
-> It seems that this LCD DMA controller is not present on OMAPs prior t=
-o the
-> 1510, given all the references in the LCD DMA code to 1510 and 1610, =
-etc.
-> It might be good to add a Kconfig option so OMAP730/850 users can ski=
-p
-> compiling it and save some memory.  The drivers that use these routin=
-es
-> can then include Kconfig dependencies on that option so it is
-> automatically included when those drivers are built.
+> Is there any specific reason for having multiple commits?
 
-OK, will prepare that for next iteration.
+First, these commits are not from the PM branch, but from l-o master
+branch.
 
-> > diff -uprN git.orig/arch/arm/mach-omap1/include/mach/lcd_dma.h git/=
-arch/arm/mach-omap1/include/mach/lcd_dma.h
-> > --- git.orig/arch/arm/mach-omap1/include/mach/lcd_dma.h	1970-01-01 =
-01:00:00.000000000 +0100
-> > +++ git/arch/arm/mach-omap1/include/mach/lcd_dma.h	2009-11-21 03:22=
-:25.000000000 +0100
-> > @@ -0,0 +1,78 @@=20
-[snip]
-> > +#ifndef __MACH_LCD_DMA_H__
+That being said, the reason for the multiple commits is because of the
+new way Tony (re)builds the master branch from is various queues.
+
+I suggest you look at l-o master using a tool like gitk so you can see
+the various merge points.
+
+Kevin
+
 >
-> Consider adding _OMAP1_ in this macro name.  I doubt that name collis=
-ions
-> here will be a serious issue, but adding a few extra bytes here might
-> avoid some bug-hunting frustration in the long run...
-
-OK, will do that too.
-
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -Manjunath 
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>> Sent: Wednesday, November 25, 2009 12:37 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: [ANNOUNCE] PM branch updated to v2.6.32-rc8
+>> 
+>> FYI...
+>> 
+>> PM branch was rebased to today's linux-omap master branch (currently
+>> v2.6.32-rc8)
+>> 
+>> As usual, the PM wiki[1] has all the details on using the PM 
+>> branch as well
+>> as some known issues.
+>> 
+>> Also note that starting with the official v2.6.32 release, I 
+>> will be moving
+>> from a continual rebase model to a "re-branch & rebuild" model similar
+>> to how Tony is now managing l-o master.
+>> 
+>> Kevin
+>> 
+>> [1] http://elinux.org/OMAP_Power_Management
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
