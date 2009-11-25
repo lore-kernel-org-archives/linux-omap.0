@@ -1,57 +1,63 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] usb: ehci-omap: Update platform header file path
-Date: Wed, 25 Nov 2009 14:35:56 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2D5A@dbde02.ent.ti.com>
-References: <20091125090259.GB30331@lixom.net>
+From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/2] usb: ehci: Allow EHCI to be built on OMAP3
+Date: Wed, 25 Nov 2009 14:36:49 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2D5B@dbde02.ent.ti.com>
+References: <1257536793-15291-1-git-send-email-gadiyar@ti.com>
+ <20091125085648.GA30331@lixom.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49574 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934540AbZKYJGI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 04:06:08 -0500
-In-Reply-To: <20091125090259.GB30331@lixom.net>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091125085648.GA30331-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>, "tony@atomide.com" <tony@atomide.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, "gregkh@suse.de" <gregkh@suse.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
-Olaf Johansson wrote:
+Olof Johansson wrote:
 > 
-> The OMAP usb header file has moved, update the driver so it 
-> will build.
+> OMAP34XX has EHCI, so select USB_ARCH_HAS_EHCI.
 > 
-> Signed-off-by: Olof Johansson <olof@lixom.net>
+> Signed-off-by: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+
+Acked-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+
 > 
 > ---
 > 
-> Greg, any chance you can just ack this so Tony can merge it through his
-> tree for .33? The header files changes in question are going in through
-> that tree.
+> On Sat, Nov 07, 2009 at 01:16:32AM +0530, Anand Gadiyar wrote:
+> > usb: ehci: Allow EHCI to be built on OMAP3
+> > 
+> > OMAP3 chips have a built-in EHCI controller.
+> > The recently introduced omap ehci-hcd driver missed
+> > out on selecting USB_ARCH_HAS_EHCI in Kconfig.
+> > 
+> > Without this, the driver cannot be built.
+> 
+> This is a losing battle. It scales much better to select the option
+> from OMAP34XX, instead of starting to enumerate the various platforms
+> in drivers/usb.
 > 
 
-I believe it has already been taken care of in Tony's for-next?
+Yes, I agree. Okay with me to drop my patch and use this one instead.
 
 - Anand
 
 > 
-> Thanks,
-> 
-> -Olof
-> 
-> diff --git a/drivers/usb/host/ehci-omap.c 
-> b/drivers/usb/host/ehci-omap.c
-> index 7ba8df3..5cfed78 100644
-> --- a/drivers/usb/host/ehci-omap.c
-> +++ b/drivers/usb/host/ehci-omap.c
-> @@ -37,7 +37,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/clk.h>
->  #include <linux/gpio.h>
-> -#include <mach/usb.h>
-> +#include <plat/usb.h>
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 034d990..a913b05 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -18,6 +18,7 @@ config ARCH_OMAP2430
+>  config ARCH_OMAP34XX
+>  	bool "OMAP34xx Based System"
+>  	depends on ARCH_OMAP3
+> +	select USB_ARCH_HAS_EHCI
 >  
->  /*
->   * OMAP USBHOST Register addresses: VIRTUAL ADDRESSES
+>  config ARCH_OMAP3430
+>  	bool "OMAP3430 support"
+> --
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
