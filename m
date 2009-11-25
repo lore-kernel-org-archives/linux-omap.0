@@ -1,91 +1,90 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH 5/9] DSPBRIDGE: trivial cleanup and indentation for io_sm
-Date: Wed, 25 Nov 2009 13:47:00 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A530426F2677B@dlee03.ent.ti.com>
-References: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-2-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-3-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-4-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-5-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-6-git-send-email-omar.ramirez@ti.com>
- <20091125191509.GA28486@nokia.com>
+From: Troy Kisky <troy.kisky@boundarydevices.com>
+Subject: Re: [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume hang
+Date: Wed, 25 Nov 2009 13:22:42 -0700
+Message-ID: <4B0D9212.1060805@boundarydevices.com>
+References: <1259154631-15251-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54274 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753574AbZKYTrA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 14:47:00 -0500
-In-Reply-To: <20091125191509.GA28486@nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1259154631-15251-1-git-send-email-anuj.aggarwal@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Arun KS <arunks@mistralsolutions.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
 
->From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
->Subject: Re: [PATCH 5/9] DSPBRIDGE: trivial cleanup and indentation for io_sm
->
->On Tue, Nov 24, 2009 at 01:50:26AM +0100, ext Omar Ramirez Luna wrote:
->>Remove duplicate set of braces from if statement and reduce
->>indentation.
->>
->>Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
->>---
->> drivers/dsp/bridge/wmd/io_sm.c |   96 +++++++++++++++++-----------------------
->> 1 files changed, 40 insertions(+), 56 deletions(-)
->>
->>diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
->>index af31831..96a5aa6 100644
->>--- a/drivers/dsp/bridge/wmd/io_sm.c
->>+++ b/drivers/dsp/bridge/wmd/io_sm.c
->>@@ -115,7 +115,7 @@ struct IO_MGR {
->> 	/* private extnd proc info; mmu setup */
->> 	struct MGR_PROCESSOREXTINFO extProcInfo;
->> 	struct CMM_OBJECT *hCmmMgr; 	/* Shared Mem Mngr	      */
->>-       struct work_struct io_workq;     /*workqueue */
->>+	struct work_struct io_workq;     /*workqueue */
->
->while at that: /* workqueue */
->
->add the missing space.
+Anuj Aggarwal wrote:
+> System hang is observed While trying to do suspend. It was because
+> of an infinite loop in the AIC23 resume path which was trying to
+> restore AIC23 register values from the register cache.
+> 
+> This patch fixes the problem by correcting the resume path and
+> properly activating/deactivating the digital interface while
+> doing the suspend / off transitions.
+> 
+> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> ---
+>  sound/soc/codecs/tlv320aic23.c |   16 +++-------------
+>  1 files changed, 3 insertions(+), 13 deletions(-)
+> 
+> diff --git a/sound/soc/codecs/tlv320aic23.c b/sound/soc/codecs/tlv320aic23.c
+> index 6b24d8b..cabe60c 100644
+> --- a/sound/soc/codecs/tlv320aic23.c
+> +++ b/sound/soc/codecs/tlv320aic23.c
+> @@ -565,13 +565,12 @@ static int tlv320aic23_set_bias_level(struct snd_soc_codec *codec,
+>  	case SND_SOC_BIAS_PREPARE:
+>  		break;
+>  	case SND_SOC_BIAS_STANDBY:
+> -		/* everything off except vref/vmid, */
+> -		tlv320aic23_write(codec, TLV320AIC23_PWR, reg | 0x0040);
+> +		/* Activate the digital interface */
+> +		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x1);
+>  		break;
+>  	case SND_SOC_BIAS_OFF:
+> -		/* everything off, dac mute, inactive */
+> +		/* Deactivate the digital interface */
+>  		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0);
+> -		tlv320aic23_write(codec, TLV320AIC23_PWR, 0xffff);
+>  		break;
+>  	}
+>  	codec->bias_level = level;
+> @@ -615,7 +614,6 @@ static int tlv320aic23_suspend(struct platform_device *pdev,
+>  	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
+>  	struct snd_soc_codec *codec = socdev->card->codec;
+>  
+> -	tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0);
+>  	tlv320aic23_set_bias_level(codec, SND_SOC_BIAS_OFF);
+>  
+>  	return 0;
+> @@ -625,14 +623,6 @@ static int tlv320aic23_resume(struct platform_device *pdev)
+>  {
+>  	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
+>  	struct snd_soc_codec *codec = socdev->card->codec;
+> -	int i;
+> -	u16 reg;
+> -
+> -	/* Sync reg_cache with the hardware */
+> -	for (reg = 0; reg < ARRAY_SIZE(tlv320aic23_reg); i++) {
+> -		u16 val = tlv320aic23_read_reg_cache(codec, reg);
+> -		tlv320aic23_write(codec, reg, val);
+> -	}
 
-Agree.
+Changing to
+	for (reg = 0; reg < ARRAY_SIZE(tlv320aic23_reg); reg++) {
 
->
->> 	u32 dQuePowerMbxVal[MAX_PM_REQS];
->> 	u32 iQuePowerHead;
->> 	u32 iQuePowerTail;
->>@@ -185,7 +185,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
->> 	struct CFG_HOSTRES hostRes;
->> 	struct CFG_DEVNODE *hDevNode;
->> 	struct CHNL_MGR *hChnlMgr;
->>-       static int ref_count;
->>+	static int ref_count;
->> 	u32 devType;
->> 	/* Check requirements:  */
->> 	if (!phIOMgr || !pMgrAttrs || pMgrAttrs->uWordSize == 0) {
->>@@ -197,9 +197,10 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
->> 		status = DSP_EHANDLE;
->> 		goto func_end;
->> 	}
->>-	 /*  Message manager will be created when a file is loaded, since
->>+	/*  Message manager will be created when a file is loaded, since
->> 	 *  size of message buffer in shared memory is configurable in
->>-	 *  the base image.  */
->>+	 *  the base image.
->>+	 */
->
->same here... it should be:
->
->/* multi-line comment start here and has only one
->  * space after the * character.
->  * If you could remove the extra space above would
->  * be nice.
->  */
->
+should be enough to fix the infinite loop.
+Could you try this without the rest of the patch?
 
-Agree.
+>  
+>  	tlv320aic23_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
+>  	tlv320aic23_set_bias_level(codec, codec->suspend_bias_level);
 
-- omar
+Adding Arun to cc list
