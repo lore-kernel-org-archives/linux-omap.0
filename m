@@ -1,189 +1,344 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH v5] OMAP1: LCD_DMA: Use some define rather than a hexadecimal constant for LCD register
-Date: Tue, 24 Nov 2009 22:34:10 +0100
-Message-ID: <200911242234.11705.jkrzyszt@tis.icnet.pl>
-References: <20091116222517.GT3684@atomide.com> <200911171145.55658.jkrzyszt@tis.icnet.pl> <20091117161058.GA29266@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 03/10 V3] omap3: pm: use opp accessor functions for omap34xx
+Date: Tue, 24 Nov 2009 22:09:12 -0600
+Message-ID: <1259122159-1583-4-git-send-email-nm@ti.com>
+References: <1259122159-1583-1-git-send-email-nm@ti.com>
+ <1259122159-1583-2-git-send-email-nm@ti.com>
+ <1259122159-1583-3-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:40190 "EHLO d1.icnet.pl"
+Received: from comal.ext.ti.com ([198.47.26.152]:39442 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934178AbZKXVeX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Nov 2009 16:34:23 -0500
-In-Reply-To: <20091117161058.GA29266@atomide.com>
-Content-Disposition: inline
+	id S934343AbZKYEJT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Nov 2009 23:09:19 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAP49P3x007494
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 24 Nov 2009 22:09:25 -0600
+In-Reply-To: <1259122159-1583-3-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>
 
-The patch corrects the issue introduced with one of my earlier patches:
-	OMAP: DMA: Fix omapfb/lcdc on OMAP1510 broken when PM set[1]
-as pointed out by OMAP subsystem maintainer.
+Move the definitions from omap3-opp.h to pm34xx.c. The definitions
+are now based on omap_opp_def instead of omap_opp itself.
+Since the opp.h has the omap_opp definition, omap-pm.h conflicts and
+has been removed in favor of opp.h.
 
-Applies on top of my prevoius patch:
-  OMAP: DMA: move LCD DMA related code from plat-omap to mach-omap1[2]
+omap3_pm_init_opp_table is used to initialize the OPP table and
+relevant board files which have omap2_init_common_hw called with opp
+arrays have been updated with omap3_pm_init_opp_table.
 
-Tested on Amstrad Delta
-Compile tested with omap_generic_2420_defconfig
+This change now allows us to dynamically register OPPs to the system
+based on silicon type we detect.
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+NOTE: This introduces the following warnings highlighting areas we
+need to cleanup:
+arch/arm/mach-omap2/smartreflex.c: In function 'get_opp':
+arch/arm/mach-omap2/smartreflex.c:161: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+arch/arm/mach-omap2/smartreflex.c:164: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+arch/arm/mach-omap2/smartreflex.c:166: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+arch/arm/mach-omap2/smartreflex.c:168: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+arch/arm/mach-omap2/resource34xx.c: In function 'get_opp':
+arch/arm/mach-omap2/resource34xx.c:165: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+arch/arm/mach-omap2/resource34xx.c:168: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+arch/arm/mach-omap2/resource34xx.c:170: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+arch/arm/mach-omap2/resource34xx.c:172: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+arch/arm/mach-omap2/resource34xx.c: In function 'program_opp':
+arch/arm/mach-omap2/resource34xx.c:284: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+arch/arm/mach-omap2/resource34xx.c:285: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
 
-[1] http://patchwork.kernel.org/patch/57922/
-[2] http://patchwork.kernel.org/patch/61952/
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
-Tuesday 17 November 2009 17:10:58 Tony Lindgren wrote:
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091117 02:45]:
-> >
-> > 1. While keeping those hex constants as they are for now, solve the issue
-> > during refactoring arch/arm/plat-omap/dma.c for a separate
-> > arch/arm/mach-omap1/lcd_dma.c, as Paul suggested (may take some time).
-> > Since the register test would be put there, some headers will have to be
-> > moved out of drivers/video/omap/lcdc.c anyway.
->
-> This sounds like the best way to go to me.
+ arch/arm/mach-omap2/board-3430sdp.c       |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c   |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c      |    1 +
+ arch/arm/mach-omap2/board-rx51.c          |    1 +
+ arch/arm/mach-omap2/board-zoom2.c         |    2 +
+ arch/arm/mach-omap2/omap3-opp.h           |   58 +-----------------------
+ arch/arm/mach-omap2/pm.h                  |    6 +++
+ arch/arm/mach-omap2/pm34xx.c              |   68 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap-pm.h |   17 +-------
+ 9 files changed, 84 insertions(+), 71 deletions(-)
 
-Tony,
-
-At your service :-).
-
-Since it's very similiar to reverted v3[*], I hope you have no problems with this one.
-
-Thanks,
-Janusz
-
-[*] http://patchwork.kernel.org/patch/60478/
-
-diff -uprN git.orig/arch/arm/mach-omap1/include/mach/lcdc.h git/arch/arm/mach-omap1/include/mach/lcdc.h
---- git.orig/arch/arm/mach-omap1/include/mach/lcdc.h	1970-01-01 01:00:00.000000000 +0100
-+++ git/arch/arm/mach-omap1/include/mach/lcdc.h	2009-11-21 03:26:32.000000000 +0100
-@@ -0,0 +1,57 @@
-+/*
-+ * arch/arm/mach-omap1/include/mach/lcdc.h
-+ *
-+ * Extracted from drivers/video/omap/lcdc.c
-+ * Copyright (C) 2004 Nokia Corporation
-+ * Author: Imre Deak <imre.deak@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index eac529f..0ec8327 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -220,6 +220,7 @@ static void __init omap_3430sdp_init_irq(void)
+ {
+ 	omap_board_config = sdp3430_config;
+ 	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
++	omap3_pm_init_opp_table();
+ 	omap3_pm_init_vc(&omap3_setuptime_table);
+ 	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
+ 	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL, omap3_mpu_rate_table,
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 2ec3520..a937238 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -361,6 +361,7 @@ static void __init omap3_beagle_init_irq(void)
+ {
+ 	omap_board_config = omap3_beagle_config;
+ 	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
++	omap3_pm_init_opp_table();
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+ 			     mt46h32m32lf6_sdrc_params, omap3_mpu_rate_table,
+ 			     omap3_dsp_rate_table, omap3_l3_rate_table);
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 8130eca..44a5861 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -404,6 +404,7 @@ static void __init omap3_evm_init_irq(void)
+ {
+ 	omap_board_config = omap3_evm_config;
+ 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
++	omap3_pm_init_opp_table();
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL, omap3_mpu_rate_table,
+ 	                     omap3_dsp_rate_table, omap3_l3_rate_table);
+ 	omap_init_irq();
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 2f1c2be..997fd1c 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -103,6 +103,7 @@ static void __init rx51_init_irq(void)
+ 
+ 	omap_board_config = rx51_config;
+ 	omap_board_config_size = ARRAY_SIZE(rx51_config);
++	omap3_pm_init_opp_table();
+ 	omap3_pm_init_cpuidle(rx51_cpuidle_params);
+ 	sdrc_params = rx51_get_sdram_timings();
+ 	omap2_init_common_hw(sdrc_params, sdrc_params,
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index dcc5fb8..9d5b078 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -24,10 +24,12 @@
+ #include <mach/board-zoom.h>
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
++#include "pm.h"
+ #include "omap3-opp.h"
+ 
+ static void __init omap_zoom2_init_irq(void)
+ {
++	omap3_pm_init_opp_table();
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+ 				 mt46h32m32lf6_sdrc_params, omap3_mpu_rate_table,
+ 				 omap3_dsp_rate_table, omap3_l3_rate_table);
+diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
+index 42557e1..994d8d4 100644
+--- a/arch/arm/mach-omap2/omap3-opp.h
++++ b/arch/arm/mach-omap2/omap3-opp.h
+@@ -3,60 +3,8 @@
+ 
+ #include <plat/omap-pm.h>
+ 
+-/* MPU speeds */
+-#define S600M   600000000
+-#define S550M   550000000
+-#define S500M   500000000
+-#define S250M   250000000
+-#define S125M   125000000
+-
+-/* DSP speeds */
+-#define S430M   430000000
+-#define S400M   400000000
+-#define S360M   360000000
+-#define S180M   180000000
+-#define S90M    90000000
+-
+-/* L3 speeds */
+-#define S83M    83000000
+-#define S166M   166000000
+-
+-static struct omap_opp omap3_mpu_rate_table[] = {
+-	{0, 0, 0, 0},
+-	/*OPP1*/
+-	{true, S125M, VDD1_OPP1, 0x1E},
+-	/*OPP2*/
+-	{true, S250M, VDD1_OPP2, 0x26},
+-	/*OPP3*/
+-	{true, S500M, VDD1_OPP3, 0x30},
+-	/*OPP4*/
+-	{true, S550M, VDD1_OPP4, 0x36},
+-	/*OPP5*/
+-	{true, S600M, VDD1_OPP5, 0x3C},
+-};
+-
+-static struct omap_opp omap3_l3_rate_table[] = {
+-	{0, 0, 0, 0},
+-	/*OPP1*/
+-	{false, 0, VDD2_OPP1, 0x1E},
+-	/*OPP2*/
+-	{true, S83M, VDD2_OPP2, 0x24},
+-	/*OPP3*/
+-	{true, S166M, VDD2_OPP3, 0x2C},
+-};
+-
+-static struct omap_opp omap3_dsp_rate_table[] = {
+-	{0, 0, 0, 0},
+-	/*OPP1*/
+-	{true, S90M, VDD1_OPP1, 0x1E},
+-	/*OPP2*/
+-	{true, S180M, VDD1_OPP2, 0x26},
+-	/*OPP3*/
+-	{true, S360M, VDD1_OPP3, 0x30},
+-	/*OPP4*/
+-	{true, S400M, VDD1_OPP4, 0x36},
+-	/*OPP5*/
+-	{true, S430M, VDD1_OPP5, 0x3C},
+-};
++extern struct omap_opp *omap3_mpu_rate_table;
++extern struct omap_opp *omap3_dsp_rate_table;
++extern struct omap_opp *omap3_l3_rate_table;
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 7bc86b6..80a1c1d 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -58,6 +58,12 @@ static inline void omap3_pm_init_cpuidle(
+ {
+ }
+ #endif
++/**
++ * omap3_pm_init_opp_table - OMAP opp table lookup called after cpu is detected.
++ * Initialize the basic opp table here, board files could choose to modify opp
++ * table after the basic initialization
 + */
-+#ifndef __MACH_LCDC_H__
-+#define __MACH_LCDC_H__
++extern void omap3_pm_init_opp_table(void);
+ 
+ extern int resource_set_opp_level(int res, u32 target_level, int flags);
+ extern int resource_access_opp_lock(int res, int delta);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 627a509..ad21f5f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -40,6 +40,7 @@
+ #include <plat/dmtimer.h>
+ #include <plat/usb.h>
+ 
++#include <plat/opp.h>
+ #include <plat/resource.h>
+ 
+ #include <asm/tlbflush.h>
+@@ -52,6 +53,7 @@
+ #include "prm.h"
+ #include "pm.h"
+ #include "sdrc.h"
++#include "omap3-opp.h"
+ 
+ static int regset_save_on_suspend;
+ 
+@@ -100,6 +102,52 @@ static struct prm_setup_vc prm_setup = {
+ 	.vdd1_off = 0x00,	/* 0.6v */
+ };
+ 
++static struct omap_opp_def __initdata omap34xx_mpu_rate_table[] = {
++	/*OPP1 975mV */
++	{.enabled = true, .freq = 125000000, .u_volt = 975000},
++	/*OPP2 1.075V */
++	{.enabled = true, .freq = 250000000, .u_volt = 1075000},
++	/*OPP3 1.2V */
++	{.enabled = true, .freq = 500000000, .u_volt = 1200000},
++	/*OPP4 1.270V */
++	{.enabled = true, .freq = 550000000, .u_volt = 1270000},
++	/*OPP5 1.35V */
++	{.enabled = true, .freq = 600000000, .u_volt = 1350000},
++	/* Terminator */
++	{.enabled = 0, .freq = 0, .u_volt = 0}
++};
 +
-+#define OMAP_LCDC_BASE			0xfffec000
-+#define OMAP_LCDC_SIZE			256
-+#define OMAP_LCDC_IRQ			INT_LCD_CTRL
++static struct omap_opp_def __initdata omap34xx_l3_rate_table[] = {
++	/*OPP1 - 975mV */
++	{.enabled = false, .freq = 0, .u_volt = 975000},
++	/*OPP2 1.05V */
++	{.enabled = true, .freq = 83000000, .u_volt = 1050000},
++	/*OPP3 1.15V*/
++	{.enabled = true, .freq = 166000000, .u_volt = 1150000},
++	/* Terminator */
++	{.enabled = 0, .freq = 0, .u_volt = 0}
++};
 +
-+#define OMAP_LCDC_CONTROL		(OMAP_LCDC_BASE + 0x00)
-+#define OMAP_LCDC_TIMING0		(OMAP_LCDC_BASE + 0x04)
-+#define OMAP_LCDC_TIMING1		(OMAP_LCDC_BASE + 0x08)
-+#define OMAP_LCDC_TIMING2		(OMAP_LCDC_BASE + 0x0c)
-+#define OMAP_LCDC_STATUS		(OMAP_LCDC_BASE + 0x10)
-+#define OMAP_LCDC_SUBPANEL		(OMAP_LCDC_BASE + 0x14)
-+#define OMAP_LCDC_LINE_INT		(OMAP_LCDC_BASE + 0x18)
-+#define OMAP_LCDC_DISPLAY_STATUS	(OMAP_LCDC_BASE + 0x1c)
++static struct omap_opp_def __initdata omap34xx_dsp_rate_table[] = {
++	/*OPP1*/
++	{.enabled = true, .freq = 90000000, .u_volt = 975000},
++	/*OPP2*/
++	{.enabled = true, .freq = 180000000, .u_volt = 1075000},
++	/*OPP3*/
++	{.enabled = true, .freq = 360000000, .u_volt = 1200000},
++	/*OPP4*/
++	{.enabled = true, .freq = 400000000, .u_volt = 1270000},
++	/*OPP5*/
++	{.enabled = true, .freq = 430000000, .u_volt = 1350000},
++	/* Terminator */
++	{.enabled = 0, .freq = 0, .u_volt = 0}
++};
 +
-+#define OMAP_LCDC_STAT_DONE		(1 << 0)
-+#define OMAP_LCDC_STAT_VSYNC		(1 << 1)
-+#define OMAP_LCDC_STAT_SYNC_LOST	(1 << 2)
-+#define OMAP_LCDC_STAT_ABC		(1 << 3)
-+#define OMAP_LCDC_STAT_LINE_INT		(1 << 4)
-+#define OMAP_LCDC_STAT_FUF		(1 << 5)
-+#define OMAP_LCDC_STAT_LOADED_PALETTE	(1 << 6)
++struct omap_opp *omap3_mpu_rate_table;
++struct omap_opp *omap3_dsp_rate_table;
++struct omap_opp *omap3_l3_rate_table;
 +
-+#define OMAP_LCDC_CTRL_LCD_EN		(1 << 0)
-+#define OMAP_LCDC_CTRL_LCD_TFT		(1 << 7)
-+#define OMAP_LCDC_CTRL_LINE_IRQ_CLR_SEL	(1 << 10)
 +
-+#define OMAP_LCDC_IRQ_VSYNC		(1 << 2)
-+#define OMAP_LCDC_IRQ_DONE		(1 << 3)
-+#define OMAP_LCDC_IRQ_LOADED_PALETTE	(1 << 4)
-+#define OMAP_LCDC_IRQ_LINE_NIRQ		(1 << 5)
-+#define OMAP_LCDC_IRQ_LINE		(1 << 6)
-+#define OMAP_LCDC_IRQ_MASK		(((1 << 5) - 1) << 2)
+ static inline void omap3_per_save_context(void)
+ {
+ 	omap_gpio_save_context();
+@@ -1248,6 +1296,26 @@ static void __init configure_vc(void)
+ 	pm_dbg_regset_init(2);
+ }
+ 
++void __init omap3_pm_init_opp_table(void)
++{
++	int ret, i;
++	struct omap_opp_def *omap34xx_opp_def_list[] = {
++		omap34xx_mpu_rate_table,
++		omap34xx_l3_rate_table,
++		omap34xx_dsp_rate_table
++	};
++	struct omap_opp **omap3_rate_tables[] = {
++		&omap3_mpu_rate_table,
++		&omap3_l3_rate_table,
++		&omap3_dsp_rate_table
++	};
++	for (i = 0; i < ARRAY_SIZE(omap34xx_opp_def_list); i++) {
++		ret = opp_init(omap3_rate_tables[i], omap34xx_opp_def_list[i]);
++		/* We dont want half configured system at the moment */
++		BUG_ON(ret);
++	}
++}
 +
-+#endif /* __MACH_LCDC_H__ */
-diff -uprN git.orig/arch/arm/mach-omap1/lcd_dma.c git/arch/arm/mach-omap1/lcd_dma.c
---- git/arch/arm/mach-omap1/lcd_dma.c	2009-11-21 14:36:59.000000000 +0100
-+++ git.orig/arch/arm/mach-omap1/lcd_dma.c	2009-11-21 03:42:25.000000000 +0100
-@@ -28,6 +28,7 @@
- #include <linux/io.h>
+ static int __init omap3_pm_early_init(void)
+ {
+ 	prm_clear_mod_reg_bits(OMAP3430_OFFMODE_POL, OMAP3430_GR_MOD,
+diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+index 5dc2048..aa36339 100644
+--- a/arch/arm/plat-omap/include/plat/omap-pm.h
++++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+@@ -18,22 +18,7 @@
+ #include <linux/cpufreq.h>
  
- #include <mach/hardware.h>
-+#include <mach/lcdc.h>
- #include <plat/dma.h>
- 
- int omap_lcd_dma_running(void)
-@@ -37,7 +38,7 @@ int omap_lcd_dma_running(void)
- 	 * when it gets enabled, so assume DMA running if LCD enabled.
- 	 */
- 	if (cpu_is_omap1510())
--		if (omap_readw(0xfffec000 + 0x00) & (1 << 0))
-+		if (omap_readw(OMAP_LCDC_CONTROL) & OMAP_LCDC_CTRL_LCD_EN)
- 			return 1;
- 
- 	/* Check if LCD DMA is running */
-diff -uprN git.orig/drivers/video/omap/lcdc.c git/drivers/video/omap/lcdc.c
---- git.orig/drivers/video/omap/lcdc.c	2009-11-21 14:33:16.000000000 +0100
-+++ git/drivers/video/omap/lcdc.c	2009-11-21 02:17:17.000000000 +0100
-@@ -29,6 +29,7 @@
- #include <linux/vmalloc.h>
- #include <linux/clk.h>
- 
-+#include <mach/lcdc.h>
- #include <plat/dma.h>
- #include <plat/omapfb.h>
- 
-@@ -38,38 +39,6 @@
- 
- #define MODULE_NAME			"lcdc"
- 
--#define OMAP_LCDC_BASE			0xfffec000
--#define OMAP_LCDC_SIZE			256
--#define OMAP_LCDC_IRQ			INT_LCD_CTRL
+ #include "powerdomain.h"
 -
--#define OMAP_LCDC_CONTROL		(OMAP_LCDC_BASE + 0x00)
--#define OMAP_LCDC_TIMING0		(OMAP_LCDC_BASE + 0x04)
--#define OMAP_LCDC_TIMING1		(OMAP_LCDC_BASE + 0x08)
--#define OMAP_LCDC_TIMING2		(OMAP_LCDC_BASE + 0x0c)
--#define OMAP_LCDC_STATUS		(OMAP_LCDC_BASE + 0x10)
--#define OMAP_LCDC_SUBPANEL		(OMAP_LCDC_BASE + 0x14)
--#define OMAP_LCDC_LINE_INT		(OMAP_LCDC_BASE + 0x18)
--#define OMAP_LCDC_DISPLAY_STATUS	(OMAP_LCDC_BASE + 0x1c)
--
--#define OMAP_LCDC_STAT_DONE		(1 << 0)
--#define OMAP_LCDC_STAT_VSYNC		(1 << 1)
--#define OMAP_LCDC_STAT_SYNC_LOST	(1 << 2)
--#define OMAP_LCDC_STAT_ABC		(1 << 3)
--#define OMAP_LCDC_STAT_LINE_INT		(1 << 4)
--#define OMAP_LCDC_STAT_FUF		(1 << 5)
--#define OMAP_LCDC_STAT_LOADED_PALETTE	(1 << 6)
--
--#define OMAP_LCDC_CTRL_LCD_EN		(1 << 0)
--#define OMAP_LCDC_CTRL_LCD_TFT		(1 << 7)
--#define OMAP_LCDC_CTRL_LINE_IRQ_CLR_SEL	(1 << 10)
--
--#define OMAP_LCDC_IRQ_VSYNC		(1 << 2)
--#define OMAP_LCDC_IRQ_DONE		(1 << 3)
--#define OMAP_LCDC_IRQ_LOADED_PALETTE	(1 << 4)
--#define OMAP_LCDC_IRQ_LINE_NIRQ		(1 << 5)
--#define OMAP_LCDC_IRQ_LINE		(1 << 6)
--#define OMAP_LCDC_IRQ_MASK		(((1 << 5) - 1) << 2)
--
- #define MAX_PALETTE_SIZE		PAGE_SIZE
+-/**
+- * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
+- * @enabled: enabled if true, disabled if false
+- * @rate: target clock rate
+- * @opp_id: OPP ID
+- * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
+- *
+- * Operating performance point data.  Can vary by OMAP chip and board.
+- */
+-struct omap_opp {
+-	bool enabled;
+-	unsigned long rate;
+-	u8 opp_id;
+-	u16 vsel;
+-};
++#include <plat/opp.h>
  
- enum lcdc_load_mode {
+ extern struct omap_opp *mpu_opps;
+ extern struct omap_opp *dsp_opps;
+-- 
+1.6.3.3
+
