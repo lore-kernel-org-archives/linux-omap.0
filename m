@@ -1,46 +1,58 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/9] dspbridge cleanup patches
-Date: Wed, 25 Nov 2009 19:32:52 +0200
-Message-ID: <94a0d4530911250932h76dd73d1mbbde9c568aa3488f@mail.gmail.com>
-References: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
-	 <1259045675.18407.53.camel@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 0/3] OMAP UART: Adding support for omap-serial driver.
+Date: Wed, 25 Nov 2009 09:40:45 -0800
+Message-ID: <20091125174044.GD4348@atomide.com>
+References: <35552.192.168.10.88.1256713953.squirrel@dbdmail.itg.ti.com>
+ <44977.192.168.10.88.1258095220.squirrel@dbdmail.itg.ti.com>
+ <d6a0f7aa0911200151xb948a28kf4f22d79e61b993e@mail.gmail.com>
+ <20091123170544.GA10313@lixom.net>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7A46@dbde02.ent.ti.com>
+ <20091124172139.GA22967@lixom.net>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BBDC7CAD@dbde02.ent.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7ED2@dbde02.ent.ti.com>
+ <4B0CD762.70707@lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:53159 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758871AbZKYRcr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 12:32:47 -0500
-Received: by bwz27 with SMTP id 27so7138992bwz.21
-        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 09:32:53 -0800 (PST)
-In-Reply-To: <1259045675.18407.53.camel@localhost>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50462 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759474AbZKYRkq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 12:40:46 -0500
+Content-Disposition: inline
+In-Reply-To: <4B0CD762.70707@lixom.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Olof Johansson <olof@lixom.net>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Govindraj <govindraj.ti@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
-On Tue, Nov 24, 2009 at 8:54 AM, Artem Bityutskiy <dedekind1@gmail.com>=
- wrote:
-> On Mon, 2009-11-23 at 18:50 -0600, Omar Ramirez Luna wrote:
->> =C2=A0 DSPBRIDGE: trivial file history cleanup
+* Olof Johansson <olof@lixom.net> [091124 23:05]:
+> G, Manjunath Kondaiah wrote:
+> >>>You should allow both of them to be enabled at the same time, so the
+> >>>same
+> >>>kernel can for example be booted on a ZOOM2 with debug board
+> >>>attached
+> >>>(8250 on GPMC), or on a beagle/overo board.
+> >>>
+> >>>Making them exclusive would be a step backwards.
+> >>More so, selecting both config option really shouldn't break the
+> >>build. If one expect a build break because only one of the
+> >>options can be enabled then clearly the dependency should be
+> >>used so that user can select only one option at a time.
+> >
+> >Ack. There should be dependency in Kconfig so that user can select
+> >either 8250 console(through Quad-uart for zoom2/zoom3) or OMAP-serial
+> >Console(through OMAP UART's).
+> 
+> No. The drivers MUST handle co-existing. You can have a bunch of
+> drivers configured to be _potential_ consoles, which one will end up
+> being used depends on, among other things, the bootargs. But it
+> should be allowed to configure both 8250 and omap-serial at the same
+> time.
 
-It seems this patch (1/9) didn't reach linux-omap. But looks like it
-was about time for it :)
+Exactly. Even the same board must be capable of using 8250 and
+omap-serial. That's why it must be called ttyO instead of ttyS.
+The 8250 drivers are often needed for hotpluggable buses.
 
-> Look like good clean-ups to me! Although I did not look at the patche=
-s
-> very carefully, just briefly walked through.
->
-> I think if you keep doing this, we could add dspbrige to -staging eve=
-n!
+Regards,
 
-Yay!
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
