@@ -1,69 +1,114 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume hang
-Date: Wed, 25 Nov 2009 13:33:40 +0000
-Message-ID: <20091125133340.GB3737@sirena.org.uk>
-References: <1259154631-15251-1-git-send-email-anuj.aggarwal@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC] [PATCH] OMAP: DMA: move LCD DMA related code from plat-omap to mach-omap1 (Re: [PATCH] OMAP1: PM: Fix omapfb/lcd on Amstrad Delta broken when PM set)
+Date: Wed, 25 Nov 2009 14:54:47 +0100
+Message-ID: <200911251454.49078.jkrzyszt@tis.icnet.pl>
+References: <200910292339.48610.jkrzyszt@tis.icnet.pl> <200911211658.31404.jkrzyszt@tis.icnet.pl> <alpine.DEB.2.00.0911230154230.26334@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:53262 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933562AbZKYNyx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 08:54:53 -0500
+In-Reply-To: <alpine.DEB.2.00.0911230154230.26334@utopia.booyaka.com>
 Content-Disposition: inline
-In-Reply-To: <1259154631-15251-1-git-send-email-anuj.aggarwal@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Nov 25, 2009 at 06:40:31PM +0530, Anuj Aggarwal wrote:
+Wednesday 25 November 2009 10:02:52 Paul Walmsley napisa=C5=82(a):
+> Hello Janusz,
+>
+> On Sat, 21 Nov 2009, Janusz Krzysztofik wrote:
+> > (probably less interested persons and lists dropped)
+> >
+> > Tuesday 10 November 2009 11:50:52 Paul Walmsley wrote:
+> > > ...  All of the LCD DMA code in plat-omap/dma.c appears to be
+> > > OMAP1-only (and apparently only is available on a subset of OMAP1
+> > > chips). It would be great if this code could be moved to
+> > > mach-omap1/lcd_dma.c or a similar place.
+> >
+> > The patch just tries to implement this idea.
+> >
+> > Created against linux-omap for-next,
+> > commit 2963c21fab52bfa8227da7f22864db393ebbc858
+> >
+> > Tested on OMAP1510 Amstrad Delta.
+> > Compile tested using omap_generic_2420_defconfig.
+> >
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> >
+> > ---
+> > Hi Paul,
+> >
+> > I hope the patch meets your suggestion closely enough.
+>
+> Thanks, just scanned it quickly and it looks carefully done.  Two
+> suggestions below, both minor:
 
-> System hang is observed While trying to do suspend. It was because
-> of an infinite loop in the AIC23 resume path which was trying to
-> restore AIC23 register values from the register cache.
+Paul,
+Thanks for your review time.
 
-This doesn't appear to tie in with the actual patch - where's the
-infinite loop?  The register cache restore loop has a constant bound and
-I can't see anything that would make it spin infinitely.
+Since I started with just duplicating files and then removing unnecessa=
+ry
+sections, I wondered how I could split that work into several subsequen=
+t
+patches so it is more easy to verify how those chunks put into a new fi=
+le
+differ from those extracted from the old one, but didn't find a good so=
+lution
+yet.=20
 
-> This patch fixes the problem by correcting the resume path and
-> properly activating/deactivating the digital interface while
-> doing the suspend / off transitions.
+> > diff -uprN git.orig/arch/arm/mach-omap1/Makefile git/arch/arm/mach-=
+omap1/Makefile
+> > --- git.orig/arch/arm/mach-omap1/Makefile	2009-11-21 00:38:45.00000=
+0000 +0100
+> > +++ git/arch/arm/mach-omap1/Makefile	2009-11-21 01:27:12.000000000 =
++0100
+> > @@ -3,7 +3,7 @@
+> >  #
+> >
+> >  # Common support
+> > -obj-y :=3D io.o id.o sram.o clock.o irq.o mux.o serial.o devices.o
+> > +obj-y :=3D io.o id.o sram.o clock.o irq.o lcd_dma.o mux.o serial.o=
+ devices.o
+>
+> It seems that this LCD DMA controller is not present on OMAPs prior t=
+o the
+> 1510, given all the references in the LCD DMA code to 1510 and 1610, =
+etc.
+> It might be good to add a Kconfig option so OMAP730/850 users can ski=
+p
+> compiling it and save some memory.  The drivers that use these routin=
+es
+> can then include Kconfig dependencies on that option so it is
+> automatically included when those drivers are built.
 
-What do you mean by "properly activating/deactivating the digital
-interface"?
+OK, will prepare that for next iteration.
 
->  	case SND_SOC_BIAS_STANDBY:
-> -		/* everything off except vref/vmid, */
-> -		tlv320aic23_write(codec, TLV320AIC23_PWR, reg | 0x0040);
-> +		/* Activate the digital interface */
-> +		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x1);
->  		break;
->  	case SND_SOC_BIAS_OFF:
-> -		/* everything off, dac mute, inactive */
-> +		/* Deactivate the digital interface */
->  		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0);
-> -		tlv320aic23_write(codec, TLV320AIC23_PWR, 0xffff);
->  		break;
+> > diff -uprN git.orig/arch/arm/mach-omap1/include/mach/lcd_dma.h git/=
+arch/arm/mach-omap1/include/mach/lcd_dma.h
+> > --- git.orig/arch/arm/mach-omap1/include/mach/lcd_dma.h	1970-01-01 =
+01:00:00.000000000 +0100
+> > +++ git/arch/arm/mach-omap1/include/mach/lcd_dma.h	2009-11-21 03:22=
+:25.000000000 +0100
+> > @@ -0,0 +1,78 @@=20
+[snip]
+> > +#ifndef __MACH_LCD_DMA_H__
+>
+> Consider adding _OMAP1_ in this macro name.  I doubt that name collis=
+ions
+> here will be a serious issue, but adding a few extra bytes here might
+> avoid some bug-hunting frustration in the long run...
 
-This looks wrong - the driver is now no longer managing bias levels at
-all.
+OK, will do that too.
 
-> -	u16 reg;
-> -
-> -	/* Sync reg_cache with the hardware */
-> -	for (reg = 0; reg < ARRAY_SIZE(tlv320aic23_reg); i++) {
-> -		u16 val = tlv320aic23_read_reg_cache(codec, reg);
-> -		tlv320aic23_write(codec, reg, val);
-> -	}
-
-This also looks wrong, the register cache restore has been completely
-removed so if the power to the device is cut during suspend then the
-device will go back to register defaults and no longer function
-correctly after resume.
+Thanks,
+Janusz
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
