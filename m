@@ -1,7 +1,7 @@
 From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
 Subject: Re: [PATCH] usb: ehci-omap: Update platform header file path
-Date: Wed, 25 Nov 2009 03:08:41 -0600
-Message-ID: <20091125090841.GA30523@lixom.net>
+Date: Wed, 25 Nov 2009 03:14:56 -0600
+Message-ID: <20091125091456.GA30595@lixom.net>
 References: <20091125090259.GB30331@lixom.net> <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2D5A@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -14,7 +14,7 @@ Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@
 List-Id: linux-omap@vger.kernel.org
 
 On Wed, Nov 25, 2009 at 02:35:56PM +0530, Gadiyar, Anand wrote:
-> Olaf Johansson wrote:
+> Olof Johansson wrote:
 > > 
 > > The OMAP usb header file has moved, update the driver so it 
 > > will build.
@@ -29,11 +29,13 @@ On Wed, Nov 25, 2009 at 02:35:56PM +0530, Gadiyar, Anand wrote:
 > > 
 > 
 > I believe it has already been taken care of in Tony's for-next?
-> 
-> - Anand
 
-Tony's master branch does not build due to this for me. Maybe it doesn't
-include for-next?!
+Oh, weird. Looking at the history of the file on git.kernel.org:
+
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=history;f=drivers/usb/host/ehci-omap.c;hb=HEAD
+
+It shows Tony making the change on Oct 30, and then 4 fresh merges of
+the driver? That's odd.
 
 
 -Olof
