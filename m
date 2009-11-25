@@ -1,84 +1,59 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [ANNOUNCE] PM branch updated to v2.6.32-rc8
-Date: Wed, 25 Nov 2009 06:20:36 -0800
-Message-ID: <87pr76n0sr.fsf@deeprootsystems.com>
-References: <87638zvj24.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402543D7FBE@dbde02.ent.ti.com>
+Subject: Re: [PATCH 00/10 v3] omap3: pm: introduce support for 3630 OPPs
+Date: Wed, 25 Nov 2009 07:24:15 -0800
+Message-ID: <877htemxuo.fsf@deeprootsystems.com>
+References: <1259122159-1583-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:47350 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934665AbZKYOUb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 09:20:31 -0500
-Received: by pwi3 with SMTP id 3so4898449pwi.21
-        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 06:20:38 -0800 (PST)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402543D7FBE@dbde02.ent.ti.com> (Manjunath Kondaiah G.'s message of "Wed\, 25 Nov 2009 15\:04\:19 +0530")
+Received: from mail-px0-f180.google.com ([209.85.216.180]:58959 "EHLO
+	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753306AbZKYPYL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 10:24:11 -0500
+Received: by pxi10 with SMTP id 10so5823326pxi.33
+        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 07:24:17 -0800 (PST)
+In-Reply-To: <1259122159-1583-1-git-send-email-nm@ti.com> (Nishanth Menon's message of "Tue\, 24 Nov 2009 22\:09\:09 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> Hi Kevin,
-> I see multiple commits for some of the patches with 2.6.32-rc8 latest code.
+> Hi,
+> Here is V3 of the patch series.  What changed in V3:
+> * Major rewrite of OPP APIs. This includes changes from offline
+>   discussions with lots of folks and taking in l-o comments - all
+>   patches have changed as a result.
+> * rebased to latest lo-pm
 >
-> Ex:
-> #>gl | grep -i "Introduce zoom3 board support"
-> 5f35fbe  omap3: zoom: Introduce zoom3 board support (3 days ago)
-> 163cde1  omap3: zoom: Introduce zoom3 board support (7 days ago)
-> 084bb37  omap: zoom3: introduce zoom3 board support (11 days ago)
-> 3af1083  omap: zoom3: introduce zoom3 board support (11 days ago)
-> 13ac7e7  omap: zoom3: introduce zoom3 board support (12 days ago)
-> 9de2968  omap: zoom3: introduce zoom3 board support (13 days ago)
-> #>
+> V2: http://marc.info/?l=linux-omap&m=125809232732700&w=2
+> V1: http://marc.info/?l=linux-omap&m=125800488923479&w=2
 >
-> There are some more patches like above.
+> NOTE: After a bunch of frustrating efforts, current OPP accessor
+> implementation is constrained by two files:
+> smartreflex.c and resource34xx.c. I agree that the current opp
+> accessor implementation leaves lot to be desired, but the nature of
+> struct omap_opp cannot change unless we essentially rewrite the
+> implementation of the mentioned files.
 >
-> Is there any specific reason for having multiple commits?
+> Ref: http://elinux.org/OMAP_Power_Management#Future_directions
+>
+> I propose we could take this in in three stages:
+> Stage 1: Introduce this series in as starters if there are no major
+>  issues
+> Stage 2: We cleanup/replace resource34xx and smartreflex.c
+> Stage 3: Go through a second round of optimization/cleanup of opp
+>  accessors implementation (this time for good hopefully)
 
-First, these commits are not from the PM branch, but from l-o master
-branch.
+I'm open to this 3-step approach assuming that stage 2 and 3 remain a
+priority.  This "stage 1" series will not go upstream.  I will only
+push upstream after getting to stage 3. 
 
-That being said, the reason for the multiple commits is because of the
-new way Tony (re)builds the master branch from is various queues.
+After some review and discussion, I can pull Stage 1 into the PM
+branch for broader testing and as a base for more people to help on
+stage 2 and stage 3.
 
-I suggest you look at l-o master using a tool like gitk so you can see
-the various merge points.
+Review comments on individual patches to follow.
 
 Kevin
-
->
-> -Manjunath 
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org 
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
->> Sent: Wednesday, November 25, 2009 12:37 AM
->> To: linux-omap@vger.kernel.org
->> Subject: [ANNOUNCE] PM branch updated to v2.6.32-rc8
->> 
->> FYI...
->> 
->> PM branch was rebased to today's linux-omap master branch (currently
->> v2.6.32-rc8)
->> 
->> As usual, the PM wiki[1] has all the details on using the PM 
->> branch as well
->> as some known issues.
->> 
->> Also note that starting with the official v2.6.32 release, I 
->> will be moving
->> from a continual rebase model to a "re-branch & rebuild" model similar
->> to how Tony is now managing l-o master.
->> 
->> Kevin
->> 
->> [1] http://elinux.org/OMAP_Power_Management
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
