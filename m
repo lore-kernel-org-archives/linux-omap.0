@@ -1,58 +1,46 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP3: enabling CPU idle leads to panic
-Date: Wed, 25 Nov 2009 09:31:18 -0800
-Message-ID: <87iqcyh5p5.fsf@deeprootsystems.com>
-References: <48239d390911240713v50bcae9ek855fb1e07c081486@mail.gmail.com>
-	<873a43wzfm.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301DD5AA0DC@dbde02.ent.ti.com>
-	<48239d390911250737q35fc602fu9bce0b0f96f6970d@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 0/9] dspbridge cleanup patches
+Date: Wed, 25 Nov 2009 19:32:52 +0200
+Message-ID: <94a0d4530911250932h76dd73d1mbbde9c568aa3488f@mail.gmail.com>
+References: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
+	 <1259045675.18407.53.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:44171 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758142AbZKYRbO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 12:31:14 -0500
-Received: by pzk1 with SMTP id 1so5773331pzk.33
-        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 09:31:20 -0800 (PST)
-In-Reply-To: <48239d390911250737q35fc602fu9bce0b0f96f6970d@mail.gmail.com> (Sergey Lapin's message of "Wed\, 25 Nov 2009 18\:37\:52 +0300")
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:53159 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758871AbZKYRcr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 12:32:47 -0500
+Received: by bwz27 with SMTP id 27so7138992bwz.21
+        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 09:32:53 -0800 (PST)
+In-Reply-To: <1259045675.18407.53.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergey Lapin <slapinid@gmail.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: dedekind1@gmail.com
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-Sergey Lapin <slapinid@gmail.com> writes:
+On Tue, Nov 24, 2009 at 8:54 AM, Artem Bityutskiy <dedekind1@gmail.com>=
+ wrote:
+> On Mon, 2009-11-23 at 18:50 -0600, Omar Ramirez Luna wrote:
+>> =C2=A0 DSPBRIDGE: trivial file history cleanup
 
-> On Tue, Nov 24, 2009 at 11:21 PM, Premi, Sanjeev <premi@ti.com> wrote:
->> From: Kevin Hilman [khilman@deeprootsystems.com]
->> Sent: Tuesday, November 24, 2009 11:57 PM
->> To: Sergey Lapin; Premi, Sanjeev
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: OMAP3: enabling CPU idle leads to panic
->>
->> Sergey Lapin <slapinid@gmail.com> writes:
->>
->>> I use PM branch merged with linux-omap branch.
->>
->> Not sure what this means.  PM branch is already based at linux-omap
->> master branch.  You'll need to be more specific, ideally with commit
->> IDs.
+It seems this patch (1/9) didn't reach linux-omap. But looks like it
+was about time for it :)
+
+> Look like good clean-ups to me! Although I did not look at the patche=
+s
+> very carefully, just briefly walked through.
 >
-> I do git branch tmp origin/master
-> git checkout -f tmp
-> git merge origin/pm
+> I think if you keep doing this, we could add dspbrige to -staging eve=
+n!
 
-The pm branch is already based on l-o master, but perhaps not the very
-latest.  Instead of the above can you just do
+Yay!
 
-git branch tmp origin/pm
-git checkout -f tmp
-
-> git merge origin/mybranch
-
-It might if you base your 'mybranch' at the same merge point that the
-pm branch is based at.  You can find the merge point using:
-
-git merge-base origin/master origin/pm
-
-Kevin
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
