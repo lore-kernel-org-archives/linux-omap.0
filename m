@@ -1,59 +1,98 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/10 v3] omap3: pm: introduce support for 3630 OPPs
-Date: Wed, 25 Nov 2009 07:24:15 -0800
-Message-ID: <877htemxuo.fsf@deeprootsystems.com>
-References: <1259122159-1583-1-git-send-email-nm@ti.com>
+From: Sergey Lapin <slapinid@gmail.com>
+Subject: Re: OMAP3: enabling CPU idle leads to panic
+Date: Wed, 25 Nov 2009 18:37:52 +0300
+Message-ID: <48239d390911250737q35fc602fu9bce0b0f96f6970d@mail.gmail.com>
+References: <48239d390911240713v50bcae9ek855fb1e07c081486@mail.gmail.com>
+	 <873a43wzfm.fsf@deeprootsystems.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301DD5AA0DC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f180.google.com ([209.85.216.180]:58959 "EHLO
-	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753306AbZKYPYL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 10:24:11 -0500
-Received: by pxi10 with SMTP id 10so5823326pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 07:24:17 -0800 (PST)
-In-Reply-To: <1259122159-1583-1-git-send-email-nm@ti.com> (Nishanth Menon's message of "Tue\, 24 Nov 2009 22\:09\:09 -0600")
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:45805 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758074AbZKYPhs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 10:37:48 -0500
+Received: by ewy19 with SMTP id 19so508908ewy.21
+        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 07:37:53 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD5AA0DC@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Nishanth Menon <nm@ti.com> writes:
-
-> Hi,
-> Here is V3 of the patch series.  What changed in V3:
-> * Major rewrite of OPP APIs. This includes changes from offline
->   discussions with lots of folks and taking in l-o comments - all
->   patches have changed as a result.
-> * rebased to latest lo-pm
+On Tue, Nov 24, 2009 at 11:21 PM, Premi, Sanjeev <premi@ti.com> wrote:
+> From: Kevin Hilman [khilman@deeprootsystems.com]
+> Sent: Tuesday, November 24, 2009 11:57 PM
+> To: Sergey Lapin; Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: OMAP3: enabling CPU idle leads to panic
 >
-> V2: http://marc.info/?l=linux-omap&m=125809232732700&w=2
-> V1: http://marc.info/?l=linux-omap&m=125800488923479&w=2
+> Sergey Lapin <slapinid@gmail.com> writes:
 >
-> NOTE: After a bunch of frustrating efforts, current OPP accessor
-> implementation is constrained by two files:
-> smartreflex.c and resource34xx.c. I agree that the current opp
-> accessor implementation leaves lot to be desired, but the nature of
-> struct omap_opp cannot change unless we essentially rewrite the
-> implementation of the mentioned files.
+>> I use PM branch merged with linux-omap branch.
 >
-> Ref: http://elinux.org/OMAP_Power_Management#Future_directions
+> Not sure what this means.  PM branch is already based at linux-omap
+> master branch.  You'll need to be more specific, ideally with commit
+> IDs.
+
+I do git branch tmp origin/master
+git checkout -f tmp
+git merge origin/pm
+git merge origin/mybranch
+
+git log origin/pm^..origin/pm
+commit 596f2d2c8153fe24de5c3b6ad78658ce9fff7f28
+Author: Kevin Hilman <khilman@deeprootsystems.com>
+Date:   Wed Jun 17 14:42:22 2009 -0700
+
+    OMAP3: PM: default defconfig for PM kernel testing
+
+    Supports 3430SDP, OMAP3EVM and 3630SDP by default.
+
+    Also supports, Beagle, Overo, Zoom[23] and RX51 simply by changing
+
+     System Type-->TI OMAP implementations-->Low-level debug console UART
+
+    from UART1 to UART3.
+
+    Signed-off-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
+
+
 >
-> I propose we could take this in in three stages:
-> Stage 1: Introduce this series in as starters if there are no major
->  issues
-> Stage 2: We cleanup/replace resource34xx and smartreflex.c
-> Stage 3: Go through a second round of optimization/cleanup of opp
->  accessors implementation (this time for good hopefully)
+> [sp] I will also need the last commit from pm branch - if not the id; the
+> commit header to start.
+See above
 
-I'm open to this 3-step approach assuming that stage 2 and 3 remain a
-priority.  This "stage 1" series will not go upstream.  I will only
-push upstream after getting to stage 3. 
+>
+> [snip]--[snip]
+>
+>>
+>> addr2line -e vmlinux c003b5c0
+>> /home/slapin/linux-omap-my-2.6.git/arch/arm/mach-omap2/powerdomain.c:452
+>> It is in function
+>> int pwrdm_for_each_clkdm(), where pwrdm is NULL.
+>> farther investigations found that "core_pwrdm" is defined only for 24xx,
+>> but I use 3525, and it is being searched.
+>
+> [sp] I am a little confused here. core_pwrdm is defined for 34xx as well.
+> Other than sgx, there isn't any difference between 3530 and 3525.
+Yes, I see that in source, but that function returns NULL for unknown reason.
+How could I debug it farther?
 
-After some review and discussion, I can pull Stage 1 into the PM
-branch for broader testing and as a base for more people to help on
-stage 2 and stage 3.
 
-Review comments on individual patches to follow.
+> See the definition at:
+> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/powerdomains34xx.h;hb=867d320b6c30d2478358eafeca0e1a6c60cf06c3#l203
+>
+Yes, there is.
 
-Kevin
+>>
+>> This is where variable allocated. If I add BUG_ON(!core_pd), it crashes here.
+>> arch/arm/mach-omap2/cpuidle34xx.c:348:        core_pd = pwrdm_lookup("core_pwrdm");
+>> Otherwise it crashes the above way. Any ideas on how to fix this?
+>
+> [sp] Have you hand-picked the commits from pm branch and applied against
+>  master?
+See above. I use git merge on fresh branch based on linux-omap master.
+
+Thanks a lot,
+S.
