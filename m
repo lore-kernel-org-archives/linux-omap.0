@@ -1,83 +1,101 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 5/9] DSPBRIDGE: trivial cleanup and indentation for
- io_sm
-Date: Wed, 25 Nov 2009 21:15:09 +0200
-Message-ID: <20091125191509.GA28486@nokia.com>
-References: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-2-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-3-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-4-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-5-git-send-email-omar.ramirez@ti.com>
- <1259023830-7557-6-git-send-email-omar.ramirez@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: RE: [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume hang
+Date: Thu, 26 Nov 2009 00:49:11 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2F77@dbde02.ent.ti.com>
+References: <1259154631-15251-1-git-send-email-anuj.aggarwal@ti.com>
+ <20091125133340.GB3737@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57230 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753574AbZKYTRu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 14:17:50 -0500
-Content-Disposition: inline
-In-Reply-To: <1259023830-7557-6-git-send-email-omar.ramirez@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47522 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759001AbZKYTTP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 14:19:15 -0500
+In-Reply-To: <20091125133340.GB3737@sirena.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+To: 'Mark Brown' <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
 
-On Tue, Nov 24, 2009 at 01:50:26AM +0100, ext Omar Ramirez Luna wrote:
->Remove duplicate set of braces from if statement and reduce
->indentation.
->
->Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
->---
-> drivers/dsp/bridge/wmd/io_sm.c |   96 +++++++++++++++++-----------------------
-> 1 files changed, 40 insertions(+), 56 deletions(-)
->
->diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
->index af31831..96a5aa6 100644
->--- a/drivers/dsp/bridge/wmd/io_sm.c
->+++ b/drivers/dsp/bridge/wmd/io_sm.c
->@@ -115,7 +115,7 @@ struct IO_MGR {
-> 	/* private extnd proc info; mmu setup */
-> 	struct MGR_PROCESSOREXTINFO extProcInfo;
-> 	struct CMM_OBJECT *hCmmMgr; 	/* Shared Mem Mngr	      */
->-       struct work_struct io_workq;     /*workqueue */
->+	struct work_struct io_workq;     /*workqueue */
+> -----Original Message-----
+> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
+> Sent: Wednesday, November 25, 2009 7:04 PM
+> To: Aggarwal, Anuj
+> Cc: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume hang
+> 
+> On Wed, Nov 25, 2009 at 06:40:31PM +0530, Anuj Aggarwal wrote:
+> 
+> > System hang is observed While trying to do suspend. It was because
+> > of an infinite loop in the AIC23 resume path which was trying to
+> > restore AIC23 register values from the register cache.
+> 
+> This doesn't appear to tie in with the actual patch - where's the
+> infinite loop?  The register cache restore loop has a constant bound and
+> I can't see anything that would make it spin infinitely.
+[Aggarwal, Anuj] Here is the original code:
 
-while at that: /* workqueue */
+<snip>
+        int i;
+        u16 reg;
 
-add the missing space.
+        /* Sync reg_cache with the hardware */
+        for (reg = 0; reg < ARRAY_SIZE(tlv320aic23_reg); i++) {
+                u16 val = tlv320aic23_read_reg_cache(codec, reg);
+                tlv320aic23_write(codec, reg, val);
+        }
+</snip>
 
-> 	u32 dQuePowerMbxVal[MAX_PM_REQS];
-> 	u32 iQuePowerHead;
-> 	u32 iQuePowerTail;
->@@ -185,7 +185,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
-> 	struct CFG_HOSTRES hostRes;
-> 	struct CFG_DEVNODE *hDevNode;
-> 	struct CHNL_MGR *hChnlMgr;
->-       static int ref_count;
->+	static int ref_count;
-> 	u32 devType;
-> 	/* Check requirements:  */
-> 	if (!phIOMgr || !pMgrAttrs || pMgrAttrs->uWordSize == 0) {
->@@ -197,9 +197,10 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
-> 		status = DSP_EHANDLE;
-> 		goto func_end;
-> 	}
->-	 /*  Message manager will be created when a file is loaded, since
->+	/*  Message manager will be created when a file is loaded, since
-> 	 *  size of message buffer in shared memory is configurable in
->-	 *  the base image.  */
->+	 *  the base image.
->+	 */
-
-same here... it should be:
-
-/* multi-line comment start here and has only one
-  * space after the * character.
-  * If you could remove the extra space above would
-  * be nice.
-  */
-
--- 
-balbi
+I can see 'i' getting incremented, instead of 'reg'. Isn't this an
+infinite loop?
+> 
+> > This patch fixes the problem by correcting the resume path and
+> > properly activating/deactivating the digital interface while
+> > doing the suspend / off transitions.
+> 
+> What do you mean by "properly activating/deactivating the digital
+> interface"?
+[Aggarwal, Anuj] The driver was only deactivating the digital
+interface and not activating it. Hence added that part. 
+> 
+> >  	case SND_SOC_BIAS_STANDBY:
+> > -		/* everything off except vref/vmid, */
+> > -		tlv320aic23_write(codec, TLV320AIC23_PWR, reg | 0x0040);
+> > +		/* Activate the digital interface */
+> > +		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x1);
+> >  		break;
+> >  	case SND_SOC_BIAS_OFF:
+> > -		/* everything off, dac mute, inactive */
+> > +		/* Deactivate the digital interface */
+> >  		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0);
+> > -		tlv320aic23_write(codec, TLV320AIC23_PWR, 0xffff);
+> >  		break;
+> 
+> This looks wrong - the driver is now no longer managing bias levels at
+> all.
+[Aggarwal, Anuj] The bias levels were wrongly managed earlier. While doing 
+a suspend, it was powering off all the interfaces and while coming up, it
+was not switching on the required interfaces. Hence no sound was coming
+out if audio was played back. 
+Moreover, I referred twl4030 codec and there also the driver was only
+handling the codec power control bit in _STANDBY. So based my patch
+on that. 
+On each bias level, which are the interfaces which need to be switched
+on / off?
+> 
+> > -	u16 reg;
+> > -
+> > -	/* Sync reg_cache with the hardware */
+> > -	for (reg = 0; reg < ARRAY_SIZE(tlv320aic23_reg); i++) {
+> > -		u16 val = tlv320aic23_read_reg_cache(codec, reg);
+> > -		tlv320aic23_write(codec, reg, val);
+> > -	}
+> 
+> This also looks wrong, the register cache restore has been completely
+> removed so if the power to the device is cut during suspend then the
+> device will go back to register defaults and no longer function
+> correctly after resume.
+[Aggarwal, Anuj] I can add that register cache restore again with the
+necessary checks.
