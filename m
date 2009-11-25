@@ -1,83 +1,149 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH] OMAP: DMA: move LCD DMA related code from plat-omap to mach-omap1 (Re: [PATCH] OMAP1: PM: Fix omapfb/lcd on Amstrad Delta broken when PM set)
-Date: Wed, 25 Nov 2009 23:57:08 +0100
-Message-ID: <200911252357.10812.jkrzyszt@tis.icnet.pl>
-References: <200910292339.48610.jkrzyszt@tis.icnet.pl> <alpine.DEB.2.00.0911230154230.26334@utopia.booyaka.com> <200911251454.49078.jkrzyszt@tis.icnet.pl>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 6/9] DSPBRIDGE: Remove DPC, create, destroy and schedule
+ wrappers
+Date: Wed, 25 Nov 2009 17:05:03 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A530426F26882@dlee03.ent.ti.com>
+References: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-2-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-3-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-4-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-5-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-6-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-7-git-send-email-omar.ramirez@ti.com>
+ <4B0DB0F1.7010506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:36806 "EHLO d1.icnet.pl"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46339 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754184AbZKYW5b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 17:57:31 -0500
-In-Reply-To: <200911251454.49078.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
+	id S1759893AbZKYXFB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 18:05:01 -0500
+In-Reply-To: <4B0DB0F1.7010506@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-Wednesday 25 November 2009 14:54:47 Janusz Krzysztofik napisa=C5=82(a):
-> Wednesday 25 November 2009 10:02:52 Paul Walmsley napisa=C5=82(a):
-> > On Sat, 21 Nov 2009, Janusz Krzysztofik wrote:
-> > >
-> > > diff -uprN git.orig/arch/arm/mach-omap1/Makefile git/arch/arm/mac=
-h-omap1/Makefile
-> > > --- git.orig/arch/arm/mach-omap1/Makefile	2009-11-21 00:38:45.000=
-000000 +0100
-> > > +++ git/arch/arm/mach-omap1/Makefile	2009-11-21 01:27:12.00000000=
-0 +0100
-> > > @@ -3,7 +3,7 @@=20
-> > >  #
-> > >
-> > >  # Common support
-> > > -obj-y :=3D io.o id.o sram.o clock.o irq.o mux.o serial.o devices=
-=2Eo
-> > > +obj-y :=3D io.o id.o sram.o clock.o irq.o lcd_dma.o mux.o serial=
-=2Eo devices.o
-> >
-> > It seems that this LCD DMA controller is not present on OMAPs prior=
- to
-> > the 1510, given all the references in the LCD DMA code to 1510 and =
-1610,
-> > etc. It might be good to add a Kconfig option so OMAP730/850 users =
-can
-> > skip compiling it and save some memory.  The drivers that use these
-> > routines can then include Kconfig dependencies on that option so it=
- is
-> > automatically included when those drivers are built.
+>From: Menon, Nishanth
 >
-> OK, will prepare that for next iteration.
+>> +/* The DPC object, passed to our priority event callback routine: */
+>You may want to follow linux coding style. and not loose info from the
+>comments.
+>
+>Documentation/kernel-doc-nano-HOWTO.txt
 
-Paul,
+This file is removed anyway, I can keep that for later comment cleanups though.
 
-It turned out not that simple. Since arch/arm/mach-omap1/lcd_dma.c expo=
-rts
-several functions that are called unconditionaly from
-drivers/video/omap/lcdc.c AND the latter is linked into the omapfb driv=
-er
-based on CONFIG_ARCH_OMAP1=3Dy, linking in the former can't be limited =
-to
-selected OMAP1 subarchs unless at least drivers/video/omap/{Kconfig,Mak=
-efile},
-if not drivers/video/omap/lcdc.c itself either, are modified for that a=
-s well.
-Am I missing something?
+>
+>
+>> +struct DPC_OBJECT {
+>> +       u32 dwSignature;        /* Used for object validation.   */
+>> +       void *pRefData;         /* Argument for client's DPC.    */
+>> +       DPC_PROC pfnDPC;        /* Client's DPC.                 */
+>> +       u32 numRequested;       /* Number of requested DPC's.      */
+>> +       u32 numScheduled;       /* Number of executed DPC's.      */
+>> +       struct tasklet_struct dpc_tasklet;
+>[...]
 
-If not, I can see two options:
-1. Keep arch/arm/mach-omap1/lcd_dma.c linked in for any OMAP1 subarch u=
-nless
-CONFIG_FB_OMAP is not set. That can be cleaned up further after the=20
-drivers/video/omap/* stuff is ever modified.
-2. Include drivers/video/omap/* modifications into this series.
+Removed
+>> diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+>> index 96a5aa6..60dbc62 100644
+>> --- a/drivers/dsp/bridge/wmd/io_sm.c
+>> +++ b/drivers/dsp/bridge/wmd/io_sm.c
+>> @@ -251,7 +251,26 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+>>
+>>         if (devType == DSP_UNIT) {
+>>                 /* Create a DPC object: */
+>> -               status = DPC_Create(&pIOMgr->hDPC, IO_DPC, (void *)pIOMgr);
+>> +               MEM_AllocObject(pIOMgr->hDPC, struct DPC_OBJECT,
+>> +                               IO_MGRSIGNATURE);
+>> +               if (pIOMgr->hDPC) {
+>> +                       tasklet_init(&pIOMgr->hDPC->dpc_tasklet,
+>> +                               DPC_DeferredProcedure, (u32)pIOMgr->hDPC);
+>> +                       /* Fill out our DPC Object: */
+>> +                       pIOMgr->hDPC->pRefData = (void *)pIOMgr;
+>> +                       pIOMgr->hDPC->pfnDPC = IO_DPC;
+>> +                       pIOMgr->hDPC->numRequested = 0;
+>> +                       pIOMgr->hDPC->numScheduled = 0;
+>> +#ifdef DEBUG
+>> +                       pIOMgr->hDPC->numRequestedMax = 0;
+>> +                       pIOMgr->hDPC->cEntryCount = 0;
+>> +#endif
+>
+>Do you want to do a memset with 0 instead and fill up the deltas?
 
-What do you suggest?
+This was an intermediate step before removing the dpc thing, in the last patch this looks like 
+[snip]
++		/* Create an IO DPC */
++		tasklet_init(&pIOMgr->dpc_tasklet, IO_DPC, (u32)pIOMgr);
++
++		/* Initialize DPC counters */
++		pIOMgr->dpc_req = 0;
++		pIOMgr->dpc_sched = 0;
++
++		spin_lock_init(&pIOMgr->dpc_lock);
+[snip]
+>> +#ifdef DEBUG
+>> +                       if (hIOMgr->hDPC->numRequested >
+>> +                          hIOMgr->hDPC->numScheduled +
+>> +                          hIOMgr->hDPC->numRequestedMax) {
+>> +                               hIOMgr->hDPC->numRequestedMax =
+>> +                                       hIOMgr->hDPC->numRequested -
+>> +                                       hIOMgr->hDPC->numScheduled;
+>a) is this safe?
+>b) {} for a one liner ? mebbe the level of indentation is too much?
 
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This was removed.
+
+>
+>> +                       }
+>> +#endif
+>[...]
+>
+>> --- a/drivers/dsp/bridge/wmd/ue_deh.c
+>> +++ b/drivers/dsp/bridge/wmd/ue_deh.c
+>> @@ -91,8 +91,27 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
+>>                         status = NTFY_Create(&pDehMgr->hNtfy);
+>>
+>>                 /* Create a DPC object. */
+>> -               status = DPC_Create(&pDehMgr->hMmuFaultDpc, MMU_FaultDpc,
+>> -                                  (void *)pDehMgr);
+>> +               MEM_AllocObject(pDehMgr->hMmuFaultDpc, struct DPC_OBJECT,
+>> +                               SIGNATURE);
+>> +               if (pDehMgr->hMmuFaultDpc) {
+>> +                       tasklet_init(&pDehMgr->hMmuFaultDpc->dpc_tasklet,
+>> +                               DPC_DeferredProcedure,
+>> +                               (u32)pDehMgr->hMmuFaultDpc);
+>> +                       /* Fill out DPC Object */
+>> +                       pDehMgr->hMmuFaultDpc->pRefData = (void *)pDehMgr;
+>> +                       pDehMgr->hMmuFaultDpc->pfnDPC = MMU_FaultDpc;
+>> +                       pDehMgr->hMmuFaultDpc->numRequested = 0;
+>> +                       pDehMgr->hMmuFaultDpc->numScheduled = 0;
+>> +#ifdef DEBUG
+>> +                       pDehMgr->hMmuFaultDpc->numRequestedMax = 0;
+>> +                       pDehMgr->hMmuFaultDpc->cEntryCount = 0;
+>> +#endif
+>> +                       spin_lock_init(&pDehMgr->hMmuFaultDpc->dpc_lock);
+>> +               } else {
+>> +                       DBG_Trace(GT_6CLASS, "DEH DPC Create: DSP_EMEMORY\n");
+>> +                       status = DSP_EMEMORY;
+>I think you give up at this point right? why continue the code? wont it
+>be easier if your code did:
+>if (!pDehMgr->hMmuFaultDpc) {
+>	DBG_Trace(GT_6CLASS, "DEH DPC Create: DSP_EMEMORY\n");
+>	return DSP_EMEMORY;
+>}
+>  do rest of code..
+>
+
+In the end (patch 9) this looks like:
++		/* Create a MMUfault DPC */
++		tasklet_init(&pDehMgr->dpc_tasklet, MMU_FaultDpc, (u32)pDehMgr);
+
+I tried to split the changes to be cut and paste versions, and then cleaning up from there... like removing DeferredProcedure and replacing it for the actual DPC (IO_DPC or MMUfault), then removing DPC structure to avoid x->y->z things, I was trying to avoid a big patch with all the changes.
+
+Thanks for the comments.
+
+- omar
