@@ -1,41 +1,83 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC] [PATCH] OMAP: DMA: move LCD DMA related code from plat-omap
- to mach-omap1 (Re: [PATCH] OMAP1: PM: Fix omapfb/lcd on Amstrad Delta broken
- when PM set)
-Date: Wed, 25 Nov 2009 11:57:58 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0911251152160.17998@utopia.booyaka.com>
-References: <200910292339.48610.jkrzyszt@tis.icnet.pl> <200911211658.31404.jkrzyszt@tis.icnet.pl> <alpine.DEB.2.00.0911230154230.26334@utopia.booyaka.com> <200911251454.49078.jkrzyszt@tis.icnet.pl>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 5/9] DSPBRIDGE: trivial cleanup and indentation for
+ io_sm
+Date: Wed, 25 Nov 2009 21:15:09 +0200
+Message-ID: <20091125191509.GA28486@nokia.com>
+References: <1259023830-7557-1-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-2-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-3-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-4-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-5-git-send-email-omar.ramirez@ti.com>
+ <1259023830-7557-6-git-send-email-omar.ramirez@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33099 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759100AbZKYS5w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 13:57:52 -0500
-In-Reply-To: <200911251454.49078.jkrzyszt@tis.icnet.pl>
+Received: from smtp.nokia.com ([192.100.122.233]:57230 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753574AbZKYTRu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 14:17:50 -0500
+Content-Disposition: inline
+In-Reply-To: <1259023830-7557-6-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
 
-On Wed, 25 Nov 2009, Janusz Krzysztofik wrote:
+On Tue, Nov 24, 2009 at 01:50:26AM +0100, ext Omar Ramirez Luna wrote:
+>Remove duplicate set of braces from if statement and reduce
+>indentation.
+>
+>Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+>---
+> drivers/dsp/bridge/wmd/io_sm.c |   96 +++++++++++++++++-----------------------
+> 1 files changed, 40 insertions(+), 56 deletions(-)
+>
+>diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+>index af31831..96a5aa6 100644
+>--- a/drivers/dsp/bridge/wmd/io_sm.c
+>+++ b/drivers/dsp/bridge/wmd/io_sm.c
+>@@ -115,7 +115,7 @@ struct IO_MGR {
+> 	/* private extnd proc info; mmu setup */
+> 	struct MGR_PROCESSOREXTINFO extProcInfo;
+> 	struct CMM_OBJECT *hCmmMgr; 	/* Shared Mem Mngr	      */
+>-       struct work_struct io_workq;     /*workqueue */
+>+	struct work_struct io_workq;     /*workqueue */
 
-> Thanks for your review time.
+while at that: /* workqueue */
 
-Thank you for doing this work :-)
+add the missing space.
 
-> Since I started with just duplicating files and then removing unnecessary
-> sections, I wondered how I could split that work into several subsequent
-> patches so it is more easy to verify how those chunks put into a new file
-> differ from those extracted from the old one, but didn't find a good solution
-> yet. 
+> 	u32 dQuePowerMbxVal[MAX_PM_REQS];
+> 	u32 iQuePowerHead;
+> 	u32 iQuePowerTail;
+>@@ -185,7 +185,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+> 	struct CFG_HOSTRES hostRes;
+> 	struct CFG_DEVNODE *hDevNode;
+> 	struct CHNL_MGR *hChnlMgr;
+>-       static int ref_count;
+>+	static int ref_count;
+> 	u32 devType;
+> 	/* Check requirements:  */
+> 	if (!phIOMgr || !pMgrAttrs || pMgrAttrs->uWordSize == 0) {
+>@@ -197,9 +197,10 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+> 		status = DSP_EHANDLE;
+> 		goto func_end;
+> 	}
+>-	 /*  Message manager will be created when a file is loaded, since
+>+	/*  Message manager will be created when a file is loaded, since
+> 	 *  size of message buffer in shared memory is configurable in
+>-	 *  the base image.  */
+>+	 *  the base image.
+>+	 */
 
-Looking through the code, you've cleaned up several things that indicate 
-that you've put some thought and care into doing it (e.g., all the 
-cpu_class_is_omap1(), for example).  Plus, you mention that you've tested 
-the code on OMAP1 and compile-tested on OMAP2.  So it seems fine to me 
-after those two minor changes are made that I mentioned in the last 
-E-mail.
+same here... it should be:
 
+/* multi-line comment start here and has only one
+  * space after the * character.
+  * If you could remove the extra space above would
+  * be nice.
+  */
 
-- Paul
+-- 
+balbi
