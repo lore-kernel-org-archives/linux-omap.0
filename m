@@ -1,62 +1,78 @@
-From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Subject: RE: [alsa-devel] [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume hang
-Date: Thu, 26 Nov 2009 20:26:44 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC3291@dbde02.ent.ti.com>
-References: <1259154631-15251-1-git-send-email-anuj.aggarwal@ti.com>
- <4B0D9212.1060805@boundarydevices.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2F86@dbde02.ent.ti.com>
- <20091126102230.GB27562@rakim.wolfsonmicro.main>
+From: Kovacs Peter Tamas <p.kovacs@holografika.com>
+Subject: Re: Enabling HSUSB1 port on OMAP3430 labrador
+Date: Thu, 26 Nov 2009 15:57:21 +0100
+Message-ID: <4B0E9751.9090207@holografika.com>
+References: <4B0BEED4.1060005@holografika.com> <5A47E75E594F054BAF48C5E4FC4B92AB0309DAC237@dbde02.ent.ti.com> <4B0E5E81.6030706@holografika.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51648 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754520AbZKZO4x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Nov 2009 09:56:53 -0500
-In-Reply-To: <20091126102230.GB27562@rakim.wolfsonmicro.main>
-Content-Language: en-US
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:54929 "EHLO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752690AbZKZO5U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Nov 2009 09:57:20 -0500
+Received: from holoiroda.com (holoiroda.com [81.182.243.140])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail02d.mail.t-online.hu (Postfix) with ESMTPSA id 87D90758D7B
+	for <linux-omap@vger.kernel.org>; Thu, 26 Nov 2009 15:56:26 +0100 (CET)
+In-Reply-To: <4B0E5E81.6030706@holografika.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Mark Brown' <broonie@opensource.wolfsonmicro.com>
-Cc: 'Troy Kisky' <troy.kisky@boundarydevices.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arun KS <arunks@mistralsolutions.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
-> Sent: Thursday, November 26, 2009 3:53 PM
-> To: Aggarwal, Anuj
-> Cc: 'Troy Kisky'; alsa-devel@alsa-project.org; linux-omap@vger.kernel.org;
-> Arun KS
-> Subject: Re: [alsa-devel] [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume
-> hang
-> 
-> On Thu, Nov 26, 2009 at 08:31:11AM +0530, Aggarwal, Anuj wrote:
-> 
-> > I have already tried that but it doesn't fix the problem entirely.
-> > Still, I was not able to playback properly because the bias settings
-> > were not handled correctly and as you can see, it writes to some
-> > invalid registers too (all registers don't exist between 0 and
-> ARRAY_SIZE).
-> 
-> Please also note the following patch which is queued for 2.6.32:
-> 
-> commit 50b6bce59d154b5db137907a5c0ed45a4e7a3829
-> Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Date:   Mon Nov 23 13:11:53 2009 +0000
-> 
->     ASoC: Fix suspend with active audio streams
-> 
-[Aggarwal, Anuj] I am also seeing one more problem with the original 
-driver, although I am not sure if the problem is in the audio driver. 
-When tried to capture, using NFS as storage, it gives overrun error and comes out with:
-arecord: pcm_read:1617: read error: Input/output error
+Dear Anand, All,
 
-It happen always after ~20 sec, file size ~5MB. Tried with multiple
-configurations in arecord but no use.
-When tried: arecord -f cd /dev/null, it works fine. Same issue doesn't 
-come too when I try to store the captured audio file on a MMC card.
+>>> We are trying to make the HSUSB1 port on the OMAP3430 work as an USB 
+>>> host.
+>>> To do that, an ISP1507A ULPI HighSpeed USB transceiver is connected 
+>>> to the HSUSB1pins (HSUSB1_STP, CLK, D-0..D7, DIR, NXT).
+>>>
+>>> I have all these USB related kernel config options enabled:
+>>> USB_EHCI_HCD
+>>> USB_OHCI_HCD
+>>> USB_MUSB_HDRC
+>>> TWL4030_USB
+>>>
+>>> My guess was that either EHCI or the Inventra should be the one 
+>>> enabling that USB port on the OMAP, but no luck.
+>>> The external USB port on the MDK works fine with this configuration.
+>>>
+>>> The pin multiplexing configuration in the board file 
+>>> omap3430-labrador.c in u-boot also seems to be correct (although the 
+>>> config of USB1_STP seems to be strange, but changing that didn't 
+>>> work either).  
+>> Not sure why the pad conf is done in u-boot for this board, but maybe
+>> it was a copy-paste thing. That being said, if you've got the part
+>> installed correctly, it ought to work.
+>>   
+> Yes, I can also see these pin multiplexing configs in 
+> arch/arm/mach-omap2/usb-ehci.c.
+> I have defined CONFIG_OMAP_EHCI_PHY_MODE there to make sure they are 
+> PHY (couldn't find it in menuconfig, but this macro seems to be used 
+> in this single file).
+> Still, the clock goes high when powering the board on, and it remains 
+> there forever.
+>
+> I recall seeing a TI-specific kernel source in another git repository, 
+> which had menuconfig options for setting PHY/TLL, maybe the USB code 
+> is different too?
+After having no clock signal on the HSUSB1_CLK with the kernel pulled 
+from from git.kernel.org/linux/kernel/linux-omap-2.6.git, I've tried 
+some older ti-2.6.xx kernel branches from 
+git.omapzoom.org/repo/omapkernel.git
 
-Any idea what could be the problem? Why arecord goes for a toss after a 
-single overrun error and why it is happening always after ~20 sec? Is
-there something which can be tried to narrow down the problem?
+branch ti-2.6.27-omap3 didn't compile.
+branch ti-2.6.26-omap3 kind of works, but the HSUSB1_CLK is still dead.
+branch ti-2.6.24-omap3 works, and during booting I can see a clock 
+signal on HSUSB1_CLK, and also the STP signal seems to go high and back 
+low as expected!
+
+Is it possible that this feature is broken some months ago? I'll go and 
+compare the relevant files, but your suggestions on how to make this 
+work again in newer kernels are welcome.
+
+Thanks,
+Peter
 
