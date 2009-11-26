@@ -1,420 +1,159 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 1/2 v2] musb: Add context save and restore support
-Date: Thu, 26 Nov 2009 12:09:59 +0530
-Message-ID: <1259217599-17793-1-git-send-email-ajay.gupta@ti.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [PATCH 0/8] Series short description
+Date: Thu, 26 Nov 2009 12:14:51 +0530
+Message-ID: <0d7101ca6e63$f5b88a10$LocalHost@wipultra793>
+References: <20091126001646.1546.34352.stgit@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	format=flowed;
+	charset="utf-8";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33732 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755426AbZKZGkD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Nov 2009 01:40:03 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:49026 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758516AbZKZGo6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Nov 2009 01:44:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>, Anand Gadiyar <gadiyar@ti.com>
+To: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Adding support for MUSB register save and restore during system
-suspend and resume.
+----- Original Message ----- 
+From: "Tony Lindgren" <tony@atomide.com>
+To: <linux-arm-kernel@lists.infradead.org>
+Cc: <linux-omap@vger.kernel.org>
+Sent: Thursday, November 26, 2009 5:48 AM
+Subject: [PATCH 0/8] Series short description
 
-Changes:
-        - Added musb_save/restore_context() functions
-        - Added platform specific musb_platform_save/restore_context()
-          to handle platform specific jobs.
-        - Maintaining BlackFin compatibility by adding read/write
-          functions for registers which are not available in BlackFin
 
-Tested system suspend and resume on OMAP3EVM board.
+> Hi all,
+>
+> Here are some omap mux updates for review. These
+> are intended for the v2.6.33 merge window.
+>
+> Initially this series changes the omap34xx mux
+> code, I'm planning on adding 3630, 2420, and 2430
+> code later on.
+>
+> There are several reasons why we need better mux
+> code:
+>
+> - We want to make the mux code more generic and this
+>  will allow us to use the internal signal names and
+>  gpio numbers instead of mux register offsets. The
+>  internal signal names stay the same across omap
+>  generations for some devices.
+>
+> - We need to map mux registers to GPIO registers for
+>  dynamic muxing of the GPIO pins during off-idle.
+>
+> - We want to be able to override the bootloader mux
+>  values for the modded boards, such as the Beagle.
+>
+> - We want to have the mux signals and balls available
+>  under debugfs for debugging new drivers.
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
-Changes from previous version:
-	- Cleanups as Felipe suggested
-	- Removed save/restore of interrupt status registers
-	  intr[r/t]x and intrusb
- drivers/usb/musb/musb_core.c |  148 +++++++++++++++++++++++++++++++++++++++++-
- drivers/usb/musb/musb_core.h |   39 +++++++++++
- drivers/usb/musb/musb_regs.h |   90 +++++++++++++++++++++++++
- drivers/usb/musb/omap2430.c  |   16 +++++
- 4 files changed, 291 insertions(+), 2 deletions(-)
+Does it also detect conflicts when two drivers try
+to step on each other and overwrite the mux settings of
+other. SPI and EHCI was one of the problems I faced.
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 3a61ddb..0fd4105 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2167,21 +2167,163 @@ static int __devexit musb_remove(struct platform_device *pdev)
- 
- #ifdef	CONFIG_PM
- 
-+static struct musb_context_registers musb_context;
-+
-+void musb_save_context(void __iomem *musb_base)
-+{
-+	int i;
-+
-+	musb_context.faddr = musb_readb(musb_base, MUSB_FADDR);
-+	musb_context.power = musb_readb(musb_base, MUSB_POWER);
-+	musb_context.intrtxe = musb_readw(musb_base, MUSB_INTRTXE);
-+	musb_context.intrrxe = musb_readw(musb_base, MUSB_INTRRXE);
-+	musb_context.intrusbe = musb_readb(musb_base, MUSB_INTRUSBE);
-+	musb_context.frame = musb_readw(musb_base, MUSB_FRAME);
-+	musb_context.index = musb_readb(musb_base, MUSB_INDEX);
-+	musb_context.testmode = musb_readb(musb_base, MUSB_TESTMODE);
-+	musb_context.devctl = musb_readb(musb_base, MUSB_DEVCTL);
-+
-+	for (i = 0; i < MUSB_C_NUM_EPS; ++i) {
-+		musb_writeb(musb_base, MUSB_INDEX, i);
-+		musb_context.index_regs[i].txmaxp =
-+			musb_readw(musb_base, 0x10 + MUSB_TXMAXP);
-+		musb_context.index_regs[i].txcsr =
-+			musb_readw(musb_base, 0x10 + MUSB_TXCSR);
-+		musb_context.index_regs[i].rxmaxp =
-+			musb_readw(musb_base, 0x10 + MUSB_RXMAXP);
-+		musb_context.index_regs[i].rxcsr =
-+			musb_readw(musb_base, 0x10 + MUSB_RXCSR);
-+		musb_context.index_regs[i].rxcount =
-+			musb_readw(musb_base, 0x10 + MUSB_RXCOUNT);
-+		musb_context.index_regs[i].txtype =
-+			musb_readb(musb_base, 0x10 + MUSB_TXTYPE);
-+		musb_context.index_regs[i].txinterval =
-+			musb_readb(musb_base, 0x10 + MUSB_TXINTERVAL);
-+		musb_context.index_regs[i].rxtype =
-+			musb_readb(musb_base, 0x10 + MUSB_RXTYPE);
-+		musb_context.index_regs[i].rxinterval =
-+			musb_readb(musb_base, 0x10 + MUSB_RXINTERVAL);
-+
-+		musb_context.index_regs[i].txfifoadd =
-+				musb_read_txfifoadd(musb_base);
-+		musb_context.index_regs[i].rxfifoadd =
-+				musb_read_rxfifoadd(musb_base);
-+		musb_context.index_regs[i].txfifosz =
-+				musb_read_txfifosz(musb_base);
-+		musb_context.index_regs[i].rxfifosz =
-+				musb_read_rxfifosz(musb_base);
-+
-+		musb_context.index_regs[i].txfunaddr =
-+			musb_read_txfunaddr(musb_base, i);
-+		musb_context.index_regs[i].txhubaddr =
-+			musb_read_txhubaddr(musb_base, i);
-+		musb_context.index_regs[i].txhubport =
-+			musb_read_txhubport(musb_base, i);
-+
-+		musb_context.index_regs[i].rxfunaddr =
-+			musb_read_rxfunaddr(musb_base, i);
-+		musb_context.index_regs[i].rxhubaddr =
-+			musb_read_rxhubaddr(musb_base, i);
-+		musb_context.index_regs[i].rxhubport =
-+			musb_read_rxhubport(musb_base, i);
-+	}
-+
-+	musb_writeb(musb_base, MUSB_INDEX, musb_context.index);
-+
-+	musb_platform_save_context(&musb_context);
-+}
-+
-+void musb_restore_context(void __iomem *musb_base)
-+{
-+	int i;
-+	void __iomem *ep_target_regs;
-+
-+	musb_platform_restore_context(&musb_context);
-+
-+	musb_writeb(musb_base, MUSB_FADDR, musb_context.faddr);
-+	musb_writeb(musb_base, MUSB_POWER, musb_context.power);
-+	musb_writew(musb_base, MUSB_INTRTXE, musb_context.intrtxe);
-+	musb_writew(musb_base, MUSB_INTRRXE, musb_context.intrrxe);
-+	musb_writeb(musb_base, MUSB_INTRUSBE, musb_context.intrusbe);
-+	musb_writew(musb_base, MUSB_FRAME, musb_context.frame);
-+	musb_writeb(musb_base, MUSB_TESTMODE, musb_context.testmode);
-+	musb_writeb(musb_base, MUSB_DEVCTL, musb_context.devctl);
-+
-+	for (i = 0; i < MUSB_C_NUM_EPS; ++i) {
-+		musb_writeb(musb_base, MUSB_INDEX, i);
-+		musb_writew(musb_base, 0x10 + MUSB_TXMAXP,
-+			musb_context.index_regs[i].txmaxp);
-+		musb_writew(musb_base, 0x10 + MUSB_TXCSR,
-+			musb_context.index_regs[i].txcsr);
-+		musb_writew(musb_base, 0x10 + MUSB_RXMAXP,
-+			musb_context.index_regs[i].rxmaxp);
-+		musb_writew(musb_base, 0x10 + MUSB_RXCSR,
-+			musb_context.index_regs[i].rxcsr);
-+		musb_writew(musb_base, 0x10 + MUSB_RXCOUNT,
-+			musb_context.index_regs[i].rxcount);
-+		musb_writeb(musb_base, 0x10 + MUSB_TXTYPE,
-+			musb_context.index_regs[i].txtype);
-+		musb_writeb(musb_base, 0x10 + MUSB_TXINTERVAL,
-+			musb_context.index_regs[i].txinterval);
-+		musb_writeb(musb_base, 0x10 + MUSB_RXTYPE,
-+			musb_context.index_regs[i].rxtype);
-+		musb_writeb(musb_base, 0x10 + MUSB_RXINTERVAL,
-+			musb_context.index_regs[i].rxinterval);
-+
-+		musb_write_txfifosz(musb_base,
-+			musb_context.index_regs[i].txfifosz);
-+		musb_write_rxfifosz(musb_base,
-+			musb_context.index_regs[i].rxfifosz);
-+		musb_write_txfifoadd(musb_base,
-+			musb_context.index_regs[i].txfifoadd);
-+		musb_write_rxfifoadd(musb_base,
-+			musb_context.index_regs[i].rxfifoadd);
-+
-+		musb_write_txfunaddr(musb_base, i,
-+			musb_context.index_regs[i].txfunaddr);
-+		musb_write_txhubaddr(musb_base, i,
-+			musb_context.index_regs[i].txhubaddr);
-+		musb_write_txhubport(musb_base, i,
-+			musb_context.index_regs[i].txhubport);
-+
-+		ep_target_regs = musb_read_target_reg_base(i, musb_base);
-+
-+		musb_write_rxfunaddr(ep_target_regs,
-+			musb_context.index_regs[i].rxfunaddr);
-+		musb_write_rxhubaddr(ep_target_regs,
-+			musb_context.index_regs[i].rxhubaddr);
-+		musb_write_rxhubport(ep_target_regs,
-+			musb_context.index_regs[i].rxhubport);
-+	}
-+
-+	musb_writeb(musb_base, MUSB_INDEX, musb_context.index);
-+}
-+
- static int musb_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	unsigned long	flags;
- 	struct musb	*musb = dev_to_musb(&pdev->dev);
-+	u8 reg;
- 
- 	if (!musb->clock)
- 		return 0;
- 
- 	spin_lock_irqsave(&musb->lock, flags);
- 
-+	musb_save_context(musb->mregs);
-+
- 	if (is_peripheral_active(musb)) {
--		/* FIXME force disconnect unless we know USB will wake
--		 * the system up quickly enough to respond ...
-+		/* System is entering into suspend where gadget would not be
-+		 * able to respond to host and thus it will be in an unknown
-+		 * state for host.Re-enumemation of gadget is required after
-+		 * resume to make the gadget functional thus doing a force
-+		 * disconnect.
- 		 */
-+		reg = musb_readb(musb->mregs, MUSB_POWER);
-+		reg &= ~MUSB_POWER_SOFTCONN;
-+		musb_writeb(musb->mregs, MUSB_POWER, reg);
-+
- 	} else if (is_host_active(musb)) {
- 		/* we know all the children are suspended; sometimes
- 		 * they will even be wakeup-enabled.
-@@ -2209,6 +2351,8 @@ static int musb_resume_noirq(struct device *dev)
- 	else
- 		clk_enable(musb->clock);
- 
-+	musb_restore_context(musb->mregs);
-+
- 	/* for static cmos like DaVinci, register values were preserved
- 	 * unless for some reason the whole soc powered down or the USB
- 	 * module got reset through the PSC (vs just being disabled).
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 6aa5f22..0821d5a 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -453,6 +453,45 @@ struct musb {
- #endif
- };
- 
-+#ifdef CONFIG_PM
-+struct musb_csr_regs {
-+	/* FIFO registers */
-+	u16 txmaxp, txcsr, rxmaxp, rxcsr, rxcount;
-+	u16 rxfifoadd, txfifoadd;
-+	u8 txtype, txinterval, rxtype, rxinterval;
-+	u8 rxfifosz, txfifosz;
-+	u8 txfunaddr, txhubaddr, txhubport;
-+	u8 rxfunaddr, rxhubaddr, rxhubport;
-+};
-+
-+struct musb_context_registers {
-+
-+#if defined(CONFIG_ARCH_OMAP34XX)
-+	u32 otg_sysconfig, otg_forcestandby;
-+#endif
-+	u8 faddr, power;
-+	u16 intrtxe, intrrxe;
-+	u8 intrusbe;
-+	u16 frame;
-+	u8 index, testmode;
-+
-+	u8 devctl, misc;
-+
-+	struct musb_csr_regs index_regs[MUSB_C_NUM_EPS];
-+};
-+
-+#if defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP2430)
-+extern void musb_platform_save_context(struct musb_context_registers
-+		*musb_context);
-+extern void musb_platform_restore_context(struct musb_context_registers
-+		*musb_context);
-+#else
-+#define musb_platform_save_context(x)		do {} while (0)
-+#define musb_platform_restore_context(x)	do {} while (0)
-+#endif
-+
-+#endif
-+
- static inline void musb_set_vbus(struct musb *musb, int is_on)
- {
- 	musb->board_set_vbus(musb, is_on);
-diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
-index cc1d71b..d4849d8 100644
---- a/drivers/usb/musb/musb_regs.h
-+++ b/drivers/usb/musb/musb_regs.h
-@@ -321,6 +321,26 @@ static inline void  musb_write_rxfifoadd(void __iomem *mbase, u16 c_off)
- 	musb_writew(mbase, MUSB_RXFIFOADD, c_off);
- }
- 
-+static inline u8 musb_read_txfifosz(void __iomem *mbase)
-+{
-+	return musb_readb(mbase, MUSB_TXFIFOSZ);
-+}
-+
-+static inline u16 musb_read_txfifoadd(void __iomem *mbase)
-+{
-+	return musb_readw(mbase, MUSB_TXFIFOADD);
-+}
-+
-+static inline u8 musb_read_rxfifosz(void __iomem *mbase)
-+{
-+	return musb_readb(mbase, MUSB_RXFIFOSZ);
-+}
-+
-+static inline u16  musb_read_rxfifoadd(void __iomem *mbase)
-+{
-+	return musb_readw(mbase, MUSB_RXFIFOADD);
-+}
-+
- static inline u8 musb_read_configdata(void __iomem *mbase)
- {
- 	musb_writeb(mbase, MUSB_INDEX, 0);
-@@ -376,6 +396,36 @@ static inline void  musb_write_txhubport(void __iomem *mbase, u8 epnum,
- 			qh_h_port_reg);
- }
- 
-+static inline u8 musb_read_rxfunaddr(void __iomem *mbase, u8 epnum)
-+{
-+	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_RXFUNCADDR));
-+}
-+
-+static inline u8 musb_read_rxhubaddr(void __iomem *mbase, u8 epnum)
-+{
-+	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_RXHUBADDR));
-+}
-+
-+static inline u8 musb_read_rxhubport(void __iomem *mbase, u8 epnum)
-+{
-+	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_RXHUBPORT));
-+}
-+
-+static inline u8  musb_read_txfunaddr(void __iomem *mbase, u8 epnum)
-+{
-+	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_TXFUNCADDR));
-+}
-+
-+static inline u8  musb_read_txhubaddr(void __iomem *mbase, u8 epnum)
-+{
-+	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_TXHUBADDR));
-+}
-+
-+static inline u8  musb_read_txhubport(void __iomem *mbase, u8 epnum)
-+{
-+	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_TXHUBPORT));
-+}
-+
- #else /* CONFIG_BLACKFIN */
- 
- #define USB_BASE		USB_FADDR
-@@ -455,6 +505,22 @@ static inline void  musb_write_rxfifoadd(void __iomem *mbase, u16 c_off)
- {
- }
- 
-+static inline u8 musb_read_txfifosz(void __iomem *mbase)
-+{
-+}
-+
-+static inline u16 musb_read_txfifoadd(void __iomem *mbase)
-+{
-+}
-+
-+static inline u8 musb_read_rxfifosz(void __iomem *mbase)
-+{
-+}
-+
-+static inline u16  musb_read_rxfifoadd(void __iomem *mbase)
-+{
-+}
-+
- static inline u8 musb_read_configdata(void __iomem *mbase)
- {
- 	return 0;
-@@ -500,6 +566,30 @@ static inline void  musb_write_txhubport(void __iomem *mbase, u8 epnum,
- {
- }
- 
-+static inline u8 musb_read_rxfunaddr(void __iomem *mbase, u8 epnum)
-+{
-+}
-+
-+static inline u8 musb_read_rxhubaddr(void __iomem *mbase, u8 epnum)
-+{
-+}
-+
-+static inline u8 musb_read_rxhubport(void __iomem *mbase, u8 epnum)
-+{
-+}
-+
-+static inline u8  musb_read_txfunaddr(void __iomem *mbase, u8 epnum)
-+{
-+}
-+
-+static inline u8  musb_read_txhubaddr(void __iomem *mbase, u8 epnum)
-+{
-+}
-+
-+static inline void  musb_read_txhubport(void __iomem *mbase, u8 epnum)
-+{
-+}
-+
- #endif /* CONFIG_BLACKFIN */
- 
- #endif	/* __MUSB_REGS_H__ */
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 3487520..84af3b3 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -255,6 +255,22 @@ int __init musb_platform_init(struct musb *musb)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM
-+void musb_platform_save_context(struct musb_context_registers
-+		*musb_context)
-+{
-+	musb_context->otg_sysconfig = omap_readl(OTG_SYSCONFIG);
-+	musb_context->otg_forcestandby = omap_readl(OTG_FORCESTDBY);
-+}
-+
-+void musb_platform_restore_context(struct musb_context_registers
-+		*musb_context)
-+{
-+	omap_writel(musb_context->otg_sysconfig, OTG_SYSCONFIG);
-+	omap_writel(musb_context->otg_forcestandby, OTG_FORCESTDBY);
-+}
-+#endif
-+
- int musb_platform_suspend(struct musb *musb)
- {
- 	u32 l;
--- 
-1.6.2.4
+
+>
+> Some of these might eventually work for other archs
+> too, so let me know if you have any comments on that.
+>
+> Regards,
+>
+> Tony
+>
+> Here are some instructions on how to use:
+>
+> To see what got muxed during init, edit the kernel
+> CMDLINE to have debug in it:
+>
+> # dmesg | grep mux
+> mux: Setting signal i2c2_scl.i2c2_scl 0x0100 -> 0x0100
+> mux: Setting signal i2c2_sda.i2c2_sda 0x0100 -> 0x0100
+> mux: Setting signal i2c3_scl.i2c3_scl 0x0100 -> 0x0100
+> mux: Setting signal i2c3_sda.i2c3_sda 0x0100 -> 0x0100
+> mux: Setting signal gpmc_ncs3.gpio54 0x410c -> 0x010c
+> ...
+>
+> Looks like the gpmc_ncs3.gpio54 muxing in the kernel
+> has a bug where we should have OMAP_WAKEUP_EN set for
+> board_smc91x_init for board-rx51? :)
+>
+> To override bootloader mux settings, edit the kernel CMDLINE:
+>
+> omap_mux=i2c2_scl.i2c2_scl=0x100,i2c2_sda.i2c2_sda=0x100
+>
+> Note that this only changes the bootloader settings, not
+> what might be muxed from the board-*.c files.
+>
+> With CONFIG_DEBUG_FS set:
+>
+> # mount -t sysfs sys /sys
+> # mount -t debugfs debug /sys/kernel/debug
+>
+> # ls /sys/kernel/debug/omap_mux/i2c
+> i2c2_scl  i2c2_sda  i2c3_scl  i2c3_sda  i2c4_scl  i2c4_sda
+>
+> # cat /sys/kernel/debug/omap_mux/i2c2_scl
+> name: i2c2_scl.i2c2_scl (0x480021be/0x18e = 0x0100), b af15, t NA
+> mode: OMAP_PIN_INPUT | OMAP_MUX_MODE0
+> signals: i2c2_scl | NA | NA | NA | gpio_168 | NA | NA | safe_mode
+>
+> ---
+>
+> Mike Rapoport (1):
+>      omap2: mux: intoduce omap_mux_{read,write}
+>
+> Tony Lindgren (7):
+>      omap: mux: Add new style pin multiplexing code for omap3
+>      omap: mux: Add new style pin multiplexing data for 34xx
+>      omap: mux: Add new style init functions to omap3 board-*.c files
+>      omap: mux: Add debugfs support for new mux code
+>      omap: Split i2c platform init for mach-omap1 and mach-omap2
+>      omap: mux: Replace omap_cfg_reg() with new style signal or gpio 
+> functions
+>      omap: mux: Remove old mux code for 34xx
+>
+>
+> arch/arm/mach-omap2/Makefile                 |    4
+> arch/arm/mach-omap2/board-3430sdp.c          |   13
+> arch/arm/mach-omap2/board-3630sdp.c          |    3
+> arch/arm/mach-omap2/board-am3517evm.c        |   11
+> arch/arm/mach-omap2/board-cm-t35.c           |   13
+> arch/arm/mach-omap2/board-igep0020.c         |   11
+> arch/arm/mach-omap2/board-ldp.c              |   10
+> arch/arm/mach-omap2/board-omap3beagle.c      |   21
+> arch/arm/mach-omap2/board-omap3evm.c         |   21
+> arch/arm/mach-omap2/board-omap3pandora.c     |   15
+> arch/arm/mach-omap2/board-overo.c            |   14
+> arch/arm/mach-omap2/board-rx51-peripherals.c |    7
+> arch/arm/mach-omap2/board-rx51.c             |   16
+> arch/arm/mach-omap2/board-zoom2.c            |   11
+> arch/arm/mach-omap2/devices.c                |   62 +
+> arch/arm/mach-omap2/mux.c                    |  961 ++++++++++------
+> arch/arm/mach-omap2/mux.h                    |  150 +++
+> arch/arm/mach-omap2/mux34xx.c                | 1558 
+> ++++++++++++++++++++++++++
+> arch/arm/mach-omap2/mux34xx.h                |  351 ++++++
+> arch/arm/mach-omap2/usb-ehci.c               |  122 +-
+> arch/arm/plat-omap/i2c.c                     |   24
+> arch/arm/plat-omap/include/plat/common.h     |    1
+> arch/arm/plat-omap/include/plat/mux.h        |  222 ----
+> arch/arm/plat-omap/mux.c                     |    8
+> 24 files changed, 2932 insertions(+), 697 deletions(-)
+> create mode 100644 arch/arm/mach-omap2/mux.h
+> create mode 100644 arch/arm/mach-omap2/mux34xx.c
+> create mode 100644 arch/arm/mach-omap2/mux34xx.h
+>
+> -- 
+> Signature
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
