@@ -1,72 +1,92 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/8] Omap mux changes for v2.6.33 merge window (Series
- short description)
-Date: Thu, 26 Nov 2009 10:15:50 -0800
-Message-ID: <20091126181550.GJ4348@atomide.com>
-References: <20091126001646.1546.34352.stgit@localhost>
- <20091126002038.GH4348@atomide.com>
- <4B0E6479.50608@compulab.co.il>
+From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: RE: [PATCH] DSPBRIDGE: Interface tightening to check for invalid
+Date: Thu, 26 Nov 2009 14:44:38 -0600
+Message-ID: <B852767254C5C94EBB1040EE0EFA06008504837F@dlee01.ent.ti.com>
+References: <B852767254C5C94EBB1040EE0EFA060084FBDD1D@dlee01.ent.ti.com>
+ <20091124.105047.226798314.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52114 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750930AbZKZSPw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Nov 2009 13:15:52 -0500
-Content-Disposition: inline
-In-Reply-To: <4B0E6479.50608@compulab.co.il>
+Received: from comal.ext.ti.com ([198.47.26.152]:40495 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752811AbZKZUof convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Nov 2009 15:44:35 -0500
+In-Reply-To: <20091124.105047.226798314.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "imre.deak@nokia.com" <imre.deak@nokia.com>, "Shah, Bhavin" <bshah@ti.com>
 
-* Mike Rapoport <mike@compulab.co.il> [091126 03:19]:
-> Tony,
-> 
-> Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [091125 16:17]:
-> >> Hi all,
-> >>
-> >> Here are some omap mux updates for review. These
-> >> are intended for the v2.6.33 merge window.
-> > 
-> > Forgot to edit the subject :)
-> > 
-> > Also, these patches are available in the mux branch
-> > of the linux-omap tree for easy testing.
-> 
-> After all the discussions we had, what would be preferable way to define the
-> board mux configuration? The omap_board_mux array or a calls for
-> omap_mux_init_signal?
+Hi,
 
-You should be able to just boot with CONFIG_DEBUG_FS,
-check how the pins are set, and adjust as needed via sysfs.
-Then when happy with the settings, just do:
+>-----Original Message-----
+>From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+>Sent: Tuesday, November 24, 2009 2:51 AM
+>To: Ramos Falcon, Ernesto
+>Cc: linux-omap@vger.kernel.org; Ramirez Luna, Omar; imre.deak@nokia.com;
+>Shah, Bhavin
+>Subject: Re: [PATCH] DSPBRIDGE: Interface tightening to check for invalid
+>
+>Hi Ernesto,
+>
+>From: "ext Ramos Falcon, Ernesto" <ernesto@ti.com>
+>Subject: [PATCH] DSPBRIDGE: Interface tightening to check for invalid
+>Date: Mon, 23 Nov 2009 21:12:08 +0100
+>
+>> From f28ec22e48a9b61ac00b7711e035e117bdc71aeb Mon Sep 17 00:00:00 2001
+>> From: Ernesto Ramos <ernesto@ti.com>
+>> Date: Mon, 23 Nov 2009 12:16:45 -0600
+>> Subject: [PATCH] DSPBRIDGE: Interface tightening to check for invalid
+>inputs.
+>>
+>> Move the error checking to kernel to address usecases
+>> accessing kernel API directly.
+>
+>"memory_check_vma()" wasn't implemented for normal ioctl parameter
+>checking, but one for bridge cache operations with kernel crash risk,
+>especially with the following patch:
+>
+>  http://marc.info/?l=linux-omap&m=125810716419520&w=2
+>
+>This is because these memory area is expected that:
+>
+>  - its pages have been already populated.
+>  - its pages shouldn't be swapped out.
+>
+>Otherwise there's risk of kernel crash at these cache operation,
+>although "find_vma()" and "follow_page()" may be a bit heavier
+>operation.
+>
 
-# cat /sys/kernel/debug/omap_mux/board                    
-OMAP3_MUX(CAM_D0, OMAP_PIN_INPUT | OMAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4),
-OMAP3_MUX(CAM_D10, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7), 
-OMAP3_MUX(CAM_D11, OMAP_PIN_INPUT | OMAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4),
-OMAP3_MUX(CAM_D1, OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4),
-OMAP3_MUX(CAM_D2, OMAP_PIN_INPUT | OMAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4), 
-OMAP3_MUX(CAM_D3, OMAP_PIN_OUTPUT | OMAP_MUX_MODE4),
-OMAP3_MUX(CAM_D4, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7),
-OMAP3_MUX(CAM_D5, OMAP_PIN_OUTPUT | OMAP_MUX_MODE4),
-OMAP3_MUX(CAM_D6, OMAP_PIN_INPUT | OMAP_MUX_MODE0),
-OMAP3_MUX(CAM_D7, OMAP_PIN_INPUT | OMAP_MUX_MODE0),
-OMAP3_MUX(CAM_D8, OMAP_PIN_INPUT | OMAP_MUX_MODE0),
-OMAP3_MUX(CAM_D9, OMAP_PIN_INPUT | OMAP_MUX_MODE0),
-...
+The intention with this patch is to further strengthen the dsp bridge driver.
+I already executed some test cases to measure performance and the impact seems to be ~ 0.3% for a big amount of memory maps and flush memory commands, the latency impact is not even noticeable.
 
-And then use the output for the struct omap_board_mux board_mux[]
-in your board-*.c files.
+>For most of the normal cases, which just checks ioctl parameters,
+>normal "access_ok()" would be enough. If it tries to access kernel
+>address, just it returns error to userland. If it tries to access
+>invalid address in user address space, the process dies with
+>SIGSEGV. I think that normally it's ok that a process dies because of
+>invalid address access rather than performance degrade.
+>
 
-For the common device init functions and omap_hwmod, we probably
-want to use the signal names. That allows more generic initialization
-of the internal devices, but some pins for sure still need to
-be muxed in a board specific way.
+I intended to use access_ok() for the purpose to check ioctl parameters, however, access_ok() seems not to work, I was able to send any invalid address to the bridge driver and no errors where reported. It seems that access_ok is rejecting only addresses that belong to the kernel space but the user would be able to send invalid address anyway.
 
-Regards,
+>So I think that "memory_check_vma()" doesn't fit for normal ioctl
+>parameter checking("copy_from_user"/"copy_to_user"), but "access_ok()"
+>would work in most of normal cases.
+>
+>In macros, __cp_fm_usr()/__cp_to_usr(), adding "access_ok()" checking
+>for pointers may work fine, I guess.
+>
 
-Tony
+access_ok() is already called within copy_to_user() but the verification is being done after most of the processing is done, the intentions is to add these checks before any processing happens, and as I mentioned before access_ok does not work for all cases.
 
+>> Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+>> ---
+>>  arch/arm/plat-omap/include/dspbridge/dbdefs.h |    3 +-
+>>  drivers/dsp/bridge/pmgr/wcd.c                 |  263
+>+++++++++++++++++++++++--
+>>  drivers/dsp/bridge/rmgr/proc.c                |   42 ----
+>>  3 files changed, 249 insertions(+), 59 deletions(-)
