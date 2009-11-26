@@ -1,82 +1,41 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCHv3 1/3] OMAP UART: Add omap-serial driver support.
-Date: Thu, 26 Nov 2009 10:25:04 +0530
-Message-ID: <d6a0f7aa0911252055u65cb6d10wdc956ff1e363d213@mail.gmail.com>
-References: <35817.192.168.10.88.1256713980.squirrel@dbdmail.itg.ti.com>
-	 <45113.192.168.10.88.1258095234.squirrel@dbdmail.itg.ti.com>
-	 <1258996319.18407.49.camel@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCHV2 0/4] OMAP3: Clock changes for OMAP3630
+Date: Thu, 26 Nov 2009 10:28:33 +0530
+Message-ID: <1259211517-12713-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:47768 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752398AbZKZEy7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 23:54:59 -0500
-Received: by qyk30 with SMTP id 30so196851qyk.33
-        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 20:55:04 -0800 (PST)
-In-Reply-To: <1258996319.18407.49.camel@localhost>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57445 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932329AbZKZE5U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Nov 2009 23:57:20 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAQ4vOJq028270
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2009 22:57:26 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath BS <vishwanath.bs@ti.com>
 
-On Mon, Nov 23, 2009 at 10:41 PM, Artem Bityutskiy <dedekind1@gmail.com=
-> wrote:
-> On Fri, 2009-11-13 at 12:23 +0530, Govindraj.R wrote:
->> From 4756e3743c7acd2de1030b2bd432c1b19f0b9ff5 Mon Sep 17 00:00:00 20=
-01
->> From: Govindraj R <govindraj.raja@ti.com>
->> Date: Fri, 13 Nov 2009 12:01:54 +0530
->> Subject: [PATCH] OMAP UART: Add omap-serial driver support.
->>
->> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
->>
->> It adds support for the following features:
->> 1. It supports Interrupt mode and DMA mode of operation.
->> 2. Supports Hardware flow control and sofware flow control.
->> 3. Debug Console support on all UARTs.
->>
->> Signed-off-by: Govindraj R <govindraj.raja@ti.com>
->> ---
->> =C2=A0arch/arm/plat-omap/include/plat/omap-serial.h | =C2=A0115 +++
->> =C2=A0drivers/serial/Kconfig =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0| =C2=A0 23 +
->> =C2=A0drivers/serial/Makefile =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0 =C2=A01 +
->> =C2=A0drivers/serial/omap-serial.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0| 1330 +++++++++++++++++++++++++
->> =C2=A0include/linux/serial_core.h =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0 =C2=A03 +
->> =C2=A05 files changed, 1472 insertions(+), 0 deletions(-)
->> =C2=A0create mode 100644 arch/arm/plat-omap/include/plat/omap-serial=
-=2Eh
->> =C2=A0create mode 100644 drivers/serial/omap-serial.c
->
-> Did you address the irq storm problems pointed by Mika Westerberg?
+This patch set introduces clock changes for OMAP3630. Major changes in OMAP3630 w.r.t clock are 1. Introduction of j type dpll4 2. CLKSEL filed width is increased by 1 bit for DPLL4M3, M4, M5 and M6 3. SGX can be run at 192Mhz
 
-that issue has been resolved with this current patch series.
+Patch set has been created for linux-omap-pm tree
+V1: Initital Patch Series
+V2: Fixed Line wrap issue and incorporated comments for adding 192MHz Feature
 
----
-Regards,
-Govindraj.R
+Richard Woodruff (1):
+  OMAP3: introduce DPLL4 Jtype
 
+Vishwanath BS (3):
+  OMAP3: Clock Type change for OMAP3 Clocks
+  OMAP3: Correct width for CLKSEL Fields
+  OMAP3: add support for 192Mhz sgx clock
 
->
-> --
-> Best Regards,
-> Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=
-=8E=D1=86=D0=BA=D0=B8=D0=B9)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap2/clock.h             |   15 +-
+ arch/arm/mach-omap2/clock34xx.c         |  445 ++++++++++++++++++-------------
+ arch/arm/mach-omap2/clock34xx.h         |  244 +++++++++++------
+ arch/arm/mach-omap2/cm-regbits-34xx.h   |   11 +
+ arch/arm/mach-omap2/id.c                |    7 +-
+ arch/arm/plat-omap/include/plat/clock.h |    9 +-
+ arch/arm/plat-omap/include/plat/cpu.h   |    4 +
+ 7 files changed, 456 insertions(+), 279 deletions(-)
+
