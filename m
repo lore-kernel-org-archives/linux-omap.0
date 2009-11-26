@@ -1,45 +1,72 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: omap3evm: touchscreen delays on pm branch
-Date: Thu, 26 Nov 2009 22:32:15 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE72D63F@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/8] Omap mux changes for v2.6.33 merge window (Series
+ short description)
+Date: Thu, 26 Nov 2009 10:15:50 -0800
+Message-ID: <20091126181550.GJ4348@atomide.com>
+References: <20091126001646.1546.34352.stgit@localhost>
+ <20091126002038.GH4348@atomide.com>
+ <4B0E6479.50608@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34962 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760840AbZKZRCP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Nov 2009 12:02:15 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAQH2IKE008841
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 26 Nov 2009 11:02:21 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAQH2Hod027971
-	for <linux-omap@vger.kernel.org>; Thu, 26 Nov 2009 22:32:18 +0530 (IST)
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52114 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930AbZKZSPw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Nov 2009 13:15:52 -0500
+Content-Disposition: inline
+In-Reply-To: <4B0E6479.50608@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
+* Mike Rapoport <mike@compulab.co.il> [091126 03:19]:
+> Tony,
+> 
+> Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [091125 16:17]:
+> >> Hi all,
+> >>
+> >> Here are some omap mux updates for review. These
+> >> are intended for the v2.6.33 merge window.
+> > 
+> > Forgot to edit the subject :)
+> > 
+> > Also, these patches are available in the mux branch
+> > of the linux-omap tree for easy testing.
+> 
+> After all the discussions we had, what would be preferable way to define the
+> board mux configuration? The omap_board_mux array or a calls for
+> omap_mux_init_signal?
 
-I am finding the response of touchscreen on the omap3evm very slow.
+You should be able to just boot with CONFIG_DEBUG_FS,
+check how the pins are set, and adjust as needed via sysfs.
+Then when happy with the settings, just do:
 
-Here is my test:
-On console, I run : watch -n2 "cat /proc/interrupts"
-Then, I tap the touchscreen approximately once per second. However,
-(usually) no interrupts are registered. As I increase the frequency
-of 'taps' more and more interrupts are registered. But still not
-matching exact taps.
+# cat /sys/kernel/debug/omap_mux/board                    
+OMAP3_MUX(CAM_D0, OMAP_PIN_INPUT | OMAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4),
+OMAP3_MUX(CAM_D10, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7), 
+OMAP3_MUX(CAM_D11, OMAP_PIN_INPUT | OMAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4),
+OMAP3_MUX(CAM_D1, OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4),
+OMAP3_MUX(CAM_D2, OMAP_PIN_INPUT | OMAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4), 
+OMAP3_MUX(CAM_D3, OMAP_PIN_OUTPUT | OMAP_MUX_MODE4),
+OMAP3_MUX(CAM_D4, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7),
+OMAP3_MUX(CAM_D5, OMAP_PIN_OUTPUT | OMAP_MUX_MODE4),
+OMAP3_MUX(CAM_D6, OMAP_PIN_INPUT | OMAP_MUX_MODE0),
+OMAP3_MUX(CAM_D7, OMAP_PIN_INPUT | OMAP_MUX_MODE0),
+OMAP3_MUX(CAM_D8, OMAP_PIN_INPUT | OMAP_MUX_MODE0),
+OMAP3_MUX(CAM_D9, OMAP_PIN_INPUT | OMAP_MUX_MODE0),
+...
 
-However, when I keep the cpu busy with "cat /dev/zero > /dev/null &"
-each tap is recognized.
+And then use the output for the struct omap_board_mux board_mux[]
+in your board-*.c files.
 
-EVM uses GPIO175 for touchscreen. I notice that Zoom2 uses GPIO102.
-Both are not on BANK0.
+For the common device init functions and omap_hwmod, we probably
+want to use the signal names. That allows more generic initialization
+of the internal devices, but some pins for sure still need to
+be muxed in a board specific way.
 
-Is the behavior same on ZOOM2 as well?
+Regards,
 
-Best regards,
-Sanjeev
+Tony
+
