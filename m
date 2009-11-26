@@ -1,197 +1,256 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCHV2 1/4] OMAP3: introduce DPLL4 Jtype
-Date: Thu, 26 Nov 2009 10:28:34 +0530
-Message-ID: <1259211517-12713-2-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCHV3 3/4] OMAP3: Correct width for CLKSEL Fields
+Date: Thu, 26 Nov 2009 10:28:36 +0530
+Message-ID: <1259211517-12713-4-git-send-email-vishwanath.bs@ti.com>
 References: <1259211517-12713-1-git-send-email-vishwanath.bs@ti.com>
+ <1259211517-12713-2-git-send-email-vishwanath.bs@ti.com>
+ <1259211517-12713-3-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44884 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57449 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932749AbZKZE51 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Nov 2009 23:57:27 -0500
-In-Reply-To: <1259211517-12713-1-git-send-email-vishwanath.bs@ti.com>
+	id S932331AbZKZE5X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Nov 2009 23:57:23 -0500
+In-Reply-To: <1259211517-12713-3-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Richard Woodruff <r-woodruff2@ti.com>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, Vishwanath BS <Vishwanath.bs@ti.com>
+Cc: Vishwanath BS <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-From: Richard Woodruff <r-woodruff2@ti.com>
-
-DPLL4 for 3630 introduces a changed block requiring special divisor bits and
-additional reg fields. To allow for silicons to use this, this is introduced 
-as a omap3_has_jtype_dpll4() and is enabled for 3630 silicon
-
-Tested with 3630 ZOOM3
+DPLL4 M, M3, M4, M5 and M6 field width has been increased by 1 bit in
+3630.This patch has changes to accommodate this in CM dynamically based
+on chip version. Primary changes are
+1. Added clksel_mask_3630 to take care clksel width changes
+2. CLock nodes which are newly added for 3630 are marked under CK_363X
+3. Clock nodes which have changes for 3630 are marked as CK_3XXX | CK_363X
+4. Clock nodes which are unchanged for 3630 are retained as CK_3XXX
+5. 3630 specific Clock rates are marked as RATE_IN_363X
 
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Vishwanath BS <Vishwanath.bs@ti.com>
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap2/clock34xx.c         |   51 ++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/cm-regbits-34xx.h   |    6 +++-
- arch/arm/mach-omap2/id.c                |    4 ++-
- arch/arm/plat-omap/include/plat/clock.h |    3 ++
- arch/arm/plat-omap/include/plat/cpu.h   |    3 +-
- 5 files changed, 63 insertions(+), 4 deletions(-)
-
 diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index da5bc1f..832ed0b 100644
+index 167f075..c304da5
 --- a/arch/arm/mach-omap2/clock34xx.c
 +++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -679,6 +679,41 @@ static void omap3_noncore_dpll_disable(struct clk *clk)
- 	_omap3_noncore_dpll_stop(clk);
- }
+@@ -43,6 +43,7 @@
+ #include "prm-regbits-34xx.h"
+ #include "cm.h"
+ #include "cm-regbits-34xx.h"
++#include <plat/cpu.h>
  
-+/**
-+ * lookup_dco_sddiv -  Set j-type DPLL4 compensation variables
-+ * @clk: pointer to a DPLL struct clk
-+ * @dco: digital control oscillator selector
-+ * @sd_div: target sigma-delta divider
-+ * @m: DPLL multiplier to set
-+ * @n: DPLL divider to set
-+ */
-+static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16
-+								m, u8 n)
-+	{
-+	unsigned long fint, clkinp, sd; /* watch out for overflow */
-+	int mod1, mod2;
-+
-+	clkinp = clk->parent->rate;
-+	fint = (clkinp / n) * m;
-+
-+	if (fint < 1000000000)
-+		*dco = 2;
-+	else
-+		*dco = 4;
-+	/*
-+	 * target sigma-delta to near 250MHz
-+	 * sd = ceil[(m/(n+1)) * (clkinp_MHz / 250)]
-+	 */
-+	clkinp /= 100000; /* shift from MHz to 10*Hz for 38.4 and 19.2*/
-+	mod1 = (clkinp * m) % (250 * n);
-+	sd = (clkinp * m) / (250 * n);
-+	mod2 = sd % 10;
-+	sd /= 10;
-+
-+	if (mod1 + mod2)
-+		sd++;
-+	*sd_div = sd;
-+}
+ static const struct clkops clkops_noncore_dpll_ops;
  
- /* Non-CORE DPLL rate set code */
+@@ -97,6 +98,7 @@ struct omap_clk {
+ #define CK_3XXX		(1 << 0)
+ #define CK_3430ES1	(1 << 1)
+ #define CK_3430ES2	(1 << 2)
++#define CK_363X		(1 << 3)
  
-@@ -711,6 +746,13 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
- 	v &= ~(dd->mult_mask | dd->div1_mask);
- 	v |= m << __ffs(dd->mult_mask);
- 	v |= (n - 1) << __ffs(dd->div1_mask);
-+	if (dd->jtype) {
-+		u8 dco, sd_div;
-+		lookup_dco_sddiv(clk, &dco, &sd_div, m, n);
-+		v &= ~(dd->dco_sel_mask | dd->sd_div_mask);
-+		v |=  dco << __ffs(dd->dco_sel_mask);
-+		v |=  sd_div << __ffs(dd->sd_div_mask);
-+	}
- 	__raw_writel(v, dd->mult_div1_reg);
- 
- 	/* We let the clock framework set the other output dividers later */
-@@ -1026,7 +1068,7 @@ static unsigned long omap3_clkoutx2_recalc(struct clk *clk)
- 
- 	v = __raw_readl(dd->control_reg) & dd->enable_mask;
- 	v >>= __ffs(dd->enable_mask);
--	if (v != OMAP3XXX_EN_DPLL_LOCKED)
-+	if (v != OMAP3XXX_EN_DPLL_LOCKED && (!dd->jtype))
- 		rate = clk->parent->rate;
- 	else
- 		rate = clk->parent->rate * 2;
-@@ -1174,6 +1216,13 @@ int __init omap2_clk_init(void)
- 			cpu_mask |= RATE_IN_3430ES2;
- 			cpu_clkflg |= CK_3430ES2;
- 		}
-+		if (omap3_has_jtype_dpll4()) {
-+			dpll4_ck.dpll_data->jtype = 1;
-+			dpll4_ck.dpll_data->dco_sel_mask =
-+				OMAP3630_PERIPH_DPLL_DCO_SEL_MASK;
-+			dpll4_ck.dpll_data->sd_div_mask =
-+				OMAP3630_PERIPH_DPLL_SD_DIV_MASK;
-+			}
+ static struct omap_clk omap34xx_clks[] = {
+ 	CLK(NULL,	"omap_32k_fck",	&omap_32k_fck,	CK_3XXX),
+@@ -134,13 +136,13 @@ static struct omap_clk omap34xx_clks[] = {
+ 	CLK(NULL,	"omap_12m_fck",	&omap_12m_fck,	CK_3XXX),
+ 	CLK(NULL,	"dpll4_m2_ck",	&dpll4_m2_ck,	CK_3XXX),
+ 	CLK(NULL,	"dpll4_m2x2_ck", &dpll4_m2x2_ck, CK_3XXX),
+-	CLK(NULL,	"dpll4_m3_ck",	&dpll4_m3_ck,	CK_3XXX),
++	CLK(NULL,	"dpll4_m3_ck",	&dpll4_m3_ck,	CK_3XXX | CK_363X),
+ 	CLK(NULL,	"dpll4_m3x2_ck", &dpll4_m3x2_ck, CK_3XXX),
+-	CLK(NULL,	"dpll4_m4_ck",	&dpll4_m4_ck,	CK_3XXX),
++	CLK(NULL,	"dpll4_m4_ck",	&dpll4_m4_ck,	CK_3XXX | CK_363X),
+ 	CLK(NULL,	"dpll4_m4x2_ck", &dpll4_m4x2_ck, CK_3XXX),
+-	CLK(NULL,	"dpll4_m5_ck",	&dpll4_m5_ck,	CK_3XXX),
++	CLK(NULL,	"dpll4_m5_ck",	&dpll4_m5_ck,	CK_3XXX | CK_363X),
+ 	CLK(NULL,	"dpll4_m5x2_ck", &dpll4_m5x2_ck, CK_3XXX),
+-	CLK(NULL,	"dpll4_m6_ck",	&dpll4_m6_ck,	CK_3XXX),
++	CLK(NULL,	"dpll4_m6_ck",	&dpll4_m6_ck,	CK_3XXX | CK_363X),
+ 	CLK(NULL,	"dpll4_m6x2_ck", &dpll4_m6x2_ck, CK_3XXX),
+ 	CLK(NULL,	"emu_per_alwon_ck", &emu_per_alwon_ck, CK_3XXX),
+ 	CLK(NULL,	"dpll5_ck",	&dpll5_ck,	CK_3430ES2),
+@@ -1222,7 +1224,11 @@ int __init omap2_clk_init(void)
+ 				OMAP3630_PERIPH_DPLL_DCO_SEL_MASK;
+ 			dpll4_ck.dpll_data->sd_div_mask =
+ 				OMAP3630_PERIPH_DPLL_SD_DIV_MASK;
++			dpll4_dd.mult_mask = OMAP3630_PERIPH_DPLL_MULT_MASK;
++			cpu_mask |= RATE_IN_363X;
+ 			}
++		if (cpu_is_omap3630())
++			cpu_clkflg |= CK_363X;
  	}
  
  	clk_init(&omap2_clk_functions);
+@@ -1232,6 +1238,12 @@ int __init omap2_clk_init(void)
+ 
+ 	for (c = omap34xx_clks; c < omap34xx_clks + ARRAY_SIZE(omap34xx_clks); c++)
+ 		if (c->cpu & cpu_clkflg) {
++			/* for 3630, change the mask value for clocks which are
++				marked as CK_363X*/
++			if (cpu_is_omap3630() && (c->cpu & CK_363X)) {
++				c->lk.clk->clksel_mask =
++						c->lk.clk->clksel_mask_3630;
++			}
+ 			clkdev_add(&c->lk);
+ 			clk_register(c->lk.clk);
+ 			omap2_init_clk_clkdm(c->lk.clk);
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 813a83e..93c92e5 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -243,6 +243,42 @@ static const struct clksel_rate div16_dpll_rates[] = {
+ 	{ .div = 0 }
+ };
+ 
++static const struct clksel_rate div32_dpll_rates[] = {
++	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX | DEFAULT_RATE },
++	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
++	{ .div = 3, .val = 3, .flags = RATE_IN_3XXX },
++	{ .div = 4, .val = 4, .flags = RATE_IN_3XXX },
++	{ .div = 5, .val = 5, .flags = RATE_IN_3XXX },
++	{ .div = 6, .val = 6, .flags = RATE_IN_3XXX },
++	{ .div = 7, .val = 7, .flags = RATE_IN_3XXX },
++	{ .div = 8, .val = 8, .flags = RATE_IN_3XXX },
++	{ .div = 9, .val = 9, .flags = RATE_IN_3XXX },
++	{ .div = 10, .val = 10, .flags = RATE_IN_3XXX },
++	{ .div = 11, .val = 11, .flags = RATE_IN_3XXX },
++	{ .div = 12, .val = 12, .flags = RATE_IN_3XXX },
++	{ .div = 13, .val = 13, .flags = RATE_IN_3XXX },
++	{ .div = 14, .val = 14, .flags = RATE_IN_3XXX },
++	{ .div = 15, .val = 15, .flags = RATE_IN_3XXX },
++	{ .div = 16, .val = 16, .flags = RATE_IN_3XXX },
++	{ .div = 17, .val = 17, .flags = RATE_IN_363X },
++	{ .div = 18, .val = 18, .flags = RATE_IN_363X },
++	{ .div = 19, .val = 19, .flags = RATE_IN_363X },
++	{ .div = 20, .val = 20, .flags = RATE_IN_363X },
++	{ .div = 21, .val = 21, .flags = RATE_IN_363X },
++	{ .div = 22, .val = 22, .flags = RATE_IN_363X },
++	{ .div = 23, .val = 23, .flags = RATE_IN_363X },
++	{ .div = 24, .val = 24, .flags = RATE_IN_363X },
++	{ .div = 25, .val = 25, .flags = RATE_IN_363X },
++	{ .div = 26, .val = 26, .flags = RATE_IN_363X },
++	{ .div = 27, .val = 27, .flags = RATE_IN_363X },
++	{ .div = 28, .val = 28, .flags = RATE_IN_363X },
++	{ .div = 29, .val = 29, .flags = RATE_IN_363X },
++	{ .div = 30, .val = 30, .flags = RATE_IN_363X },
++	{ .div = 31, .val = 31, .flags = RATE_IN_363X },
++	{ .div = 32, .val = 32, .flags = RATE_IN_363X },
++	{ .div = 0 }
++};
++
+ /* DPLL1 */
+ /* MPU clock source */
+ /* Type: DPLL */
+@@ -588,6 +624,11 @@ static const struct clksel div16_dpll4_clksel[] = {
+ 	{ .parent = NULL }
+ };
+ 
++static const struct clksel div32_dpll4_clksel[] = {
++	{ .parent = &dpll4_ck, .rates = div32_dpll_rates },
++	{ .parent = NULL }
++};
++
+ /* This virtual clock is the source for dpll4_m2x2_ck */
+ static struct clk dpll4_m2_ck = {
+ 	.name		= "dpll4_m2_ck",
+@@ -668,7 +709,8 @@ static struct clk dpll4_m3_ck = {
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
+ 	.clksel_mask	= OMAP3430_CLKSEL_TV_MASK,
+-	.clksel		= div16_dpll4_clksel,
++	.clksel_mask_3630 = OMAP3630_CLKSEL_TV_MASK,
++	.clksel		= div32_dpll4_clksel,
+ 	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+@@ -754,7 +796,8 @@ static struct clk dpll4_m4_ck = {
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
+ 	.clksel_mask	= OMAP3430_CLKSEL_DSS1_MASK,
+-	.clksel		= div16_dpll4_clksel,
++	.clksel_mask_3630 = OMAP3630_CLKSEL_DSS1_MASK,
++	.clksel		= div32_dpll4_clksel,
+ 	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ 	.set_rate	= &omap2_clksel_set_rate,
+@@ -781,7 +824,8 @@ static struct clk dpll4_m5_ck = {
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_CLKSEL),
+ 	.clksel_mask	= OMAP3430_CLKSEL_CAM_MASK,
+-	.clksel		= div16_dpll4_clksel,
++	.clksel_mask_3630 = OMAP3630_CLKSEL_CAM_MASK,
++	.clksel		= div32_dpll4_clksel,
+ 	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+@@ -806,7 +850,8 @@ static struct clk dpll4_m6_ck = {
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+ 	.clksel_mask	= OMAP3430_DIV_DPLL4_MASK,
+-	.clksel		= div16_dpll4_clksel,
++	.clksel_mask_3630 = OMAP3630_DIV_DPLL4_MASK,
++	.clksel		= div32_dpll4_clksel,
+ 	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
 diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index 6923deb..6f2802b 100644
+index 6f2802b..a6383f9 100644
 --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
 +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -516,9 +516,13 @@
+@@ -516,7 +516,8 @@
  
  /* CM_CLKSEL2_PLL */
  #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
--#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0x7ff << 8)
-+#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0xfff << 8)
+-#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0xfff << 8)
++#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0x7ff << 8)
++#define OMAP3630_PERIPH_DPLL_MULT_MASK			(0xfff << 8)
  #define OMAP3430_PERIPH_DPLL_DIV_SHIFT			0
  #define OMAP3430_PERIPH_DPLL_DIV_MASK			(0x7f << 0)
-+#define OMAP3630_PERIPH_DPLL_DCO_SEL_SHIFT		21
-+#define OMAP3630_PERIPH_DPLL_DCO_SEL_MASK		(0x7 << 21)
-+#define OMAP3630_PERIPH_DPLL_SD_DIV_SHIFT		24
-+#define OMAP3630_PERIPH_DPLL_SD_DIV_MASK		(0xff << 24)
+ #define OMAP3630_PERIPH_DPLL_DCO_SEL_SHIFT		21
+@@ -573,8 +574,10 @@
+ /* CM_CLKSEL_DSS */
+ #define OMAP3430_CLKSEL_TV_SHIFT			8
+ #define OMAP3430_CLKSEL_TV_MASK				(0x1f << 8)
++#define OMAP3630_CLKSEL_TV_MASK				(0x3f << 8)
+ #define OMAP3430_CLKSEL_DSS1_SHIFT			0
+ #define OMAP3430_CLKSEL_DSS1_MASK			(0x1f << 0)
++#define OMAP3630_CLKSEL_DSS1_MASK			(0x3f << 0)
  
- /* CM_CLKSEL3_PLL */
- #define OMAP3430_DIV_96M_SHIFT				0
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index f48a4b2..3c1194c 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -176,6 +176,8 @@ void __init omap3_check_features(void)
- 	OMAP3_CHECK_FEATURE(status, NEON);
- 	OMAP3_CHECK_FEATURE(status, ISP);
+ /* CM_SLEEPDEP_DSS specific bits */
  
-+	if (cpu_is_omap3630())
-+		omap3_features |= OMAP3_HAS_JTYPE_DPLL4;
- 	/*
- 	 * TODO: Get additional info (where applicable)
- 	 *       e.g. Size of L2 cache.
-@@ -316,7 +318,7 @@ void __init omap3_cpuinfo(void)
- 	OMAP3_SHOW_FEATURE(sgx);
- 	OMAP3_SHOW_FEATURE(neon);
- 	OMAP3_SHOW_FEATURE(isp);
--
-+	OMAP3_SHOW_FEATURE(jtype_dpll4);
- 	printk(")\n");
- }
+@@ -602,6 +605,7 @@
+ /* CM_CLKSEL_CAM */
+ #define OMAP3430_CLKSEL_CAM_SHIFT			0
+ #define OMAP3430_CLKSEL_CAM_MASK			(0x1f << 0)
++#define OMAP3630_CLKSEL_CAM_MASK			(0x3f << 0)
  
+ /* CM_SLEEPDEP_CAM specific bits */
+ 
+@@ -697,6 +701,7 @@
+ /* CM_CLKSEL1_EMU */
+ #define OMAP3430_DIV_DPLL4_SHIFT			24
+ #define OMAP3430_DIV_DPLL4_MASK				(0x1f << 24)
++#define OMAP3630_DIV_DPLL4_MASK				(0x3f << 24)
+ #define OMAP3430_DIV_DPLL3_SHIFT			16
+ #define OMAP3430_DIV_DPLL3_MASK				(0x1f << 16)
+ #define OMAP3430_CLKSEL_TRACECLK_SHIFT			11
 diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 4b8b0d6..66648d4 100644
+index 359ccb4..0e0a5cc 100644
 --- a/arch/arm/plat-omap/include/plat/clock.h
 +++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -60,6 +60,9 @@ struct dpll_data {
- 	void __iomem		*idlest_reg;
- 	u32			autoidle_mask;
- 	u32			freqsel_mask;
-+	u32			dco_sel_mask;
-+	u32			sd_div_mask;
-+	u8			jtype;
- 	u32			idlest_mask;
- 	u8			auto_recal_bit;
- 	u8			recal_en_bit;
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 2e17890..65c08d5 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -497,6 +497,7 @@ extern u32 omap3_features;
- #define OMAP3_HAS_SGX			BIT(2)
- #define OMAP3_HAS_NEON			BIT(3)
- #define OMAP3_HAS_ISP			BIT(4)
-+#define OMAP3_HAS_JTYPE_DPLL4		BIT(5)
- 
- #define OMAP3_HAS_FEATURE(feat,flag)			\
- static inline unsigned int omap3_has_ ##feat(void)	\
-@@ -509,5 +510,5 @@ OMAP3_HAS_FEATURE(sgx, SGX)
- OMAP3_HAS_FEATURE(iva, IVA)
- OMAP3_HAS_FEATURE(neon, NEON)
- OMAP3_HAS_FEATURE(isp, ISP)
+@@ -93,7 +93,7 @@ struct clk {
+ 		defined(CONFIG_ARCH_OMAP4)
+ 	u8			fixed_div;
+ 	void __iomem		*clksel_reg;
+-	u32			clksel_mask;
++	u32			clksel_mask, clksel_mask_3630;
+ 	const struct clksel	*clksel;
+ 	struct dpll_data	*dpll_data;
+ 	const char		*clkdm_name;
+@@ -159,7 +159,7 @@ extern const struct clkops clkops_null;
+ #define RATE_IN_243X		(1 << 2)
+ #define RATE_IN_3XXX		(1 << 3)	/* rates common to all 343X */
+ #define RATE_IN_3430ES2		(1 << 4)	/* 3430ES2 rates only */
 -
-+OMAP3_HAS_FEATURE(jtype_dpll4, JTYPE_DPLL4)
- #endif
--- 
-1.5.6.3
-
++#define RATE_IN_363X		(1 << 5)        /* rates common to all 363X */
+ #define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
+ 
+ 
