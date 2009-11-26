@@ -1,290 +1,138 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/8] omap: mux: Add debugfs support for new mux code
-Date: Wed, 25 Nov 2009 16:19:40 -0800
-Message-ID: <20091126001940.1546.6834.stgit@localhost>
+Subject: [PATCH 6/8] omap: Split i2c platform init for mach-omap1 and
+	mach-omap2
+Date: Wed, 25 Nov 2009 16:19:52 -0800
+Message-ID: <20091126001952.1546.21444.stgit@localhost>
 References: <20091126001646.1546.34352.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62149 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62268 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759668AbZKZATg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 19:19:36 -0500
+	with ESMTP id S1759988AbZKZATq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Nov 2009 19:19:46 -0500
 In-Reply-To: <20091126001646.1546.34352.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Add debugfs support for new mux code
+Otherwise we cannot limit new mux code to mach-omap2.
+The same signal names should eventually work for other
+omaps under mach-omap2.
+
+Note that these pins don't need to be OMAP_PIN_INPUT_PULLUP,
+just OMAP_PIN_INPUT is enough.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mux.c |  224 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 224 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c            |   20 ++++++++++++++++++++
+ arch/arm/plat-omap/i2c.c                 |   24 +++++++++---------------
+ arch/arm/plat-omap/include/plat/common.h |    1 +
+ 3 files changed, 30 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 9091029..85e633d 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -28,6 +28,10 @@
- #include <linux/io.h>
- #include <linux/spinlock.h>
- #include <linux/list.h>
-+#include <linux/ctype.h>
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+#include <linux/uaccess.h>
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 733d3dc..000f304 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -743,6 +743,26 @@ static inline void omap_hdq_init(void) {}
  
- #include <asm/system.h>
+ /*-------------------------------------------------------------------------*/
  
-@@ -47,6 +51,7 @@ struct omap_mux_entry {
- };
- 
- static struct omap_mux_cfg arch_mux_cfg;
-+static unsigned long mux_phys;
- static void __iomem *mux_base;
- 
- static inline u16 omap_mux_read(u16 reg)
-@@ -772,6 +777,222 @@ int __init omap_mux_init_signal(char *muxname, int val)
- 	return -ENODEV;
- }
- 
-+#ifdef CONFIG_DEBUG_FS
++#if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
 +
-+#define OMAP_MUX_MAX_NR_FLAGS	10
-+#define OMAP_MUX_TEST_FLAG(val, mask)				\
-+	if (((val) & (mask)) == (mask)) {			\
-+		i++;						\
-+		flags[i] =  #mask;				\
-+	}
-+
-+/* REVISIT: Add checking for non-optimal mux settings */
-+static inline void omap_mux_decode(struct seq_file *s, u16 val)
++/* Called from omap_i2c_mux_pins. The first i2c bus is non-muxable */
++void omap_i2c_mach_mux(int bus_id)
 +{
-+	char *flags[OMAP_MUX_MAX_NR_FLAGS];
-+	char mode[14];
-+	int i = -1;
++	char mux_name[sizeof("i2c2_scl.i2c2_scl")];
 +
-+	sprintf(mode, "OMAP_MUX_MODE%d", val & 0x7);
-+	i++;
-+	flags[i] = mode;
-+
-+	OMAP_MUX_TEST_FLAG(val, OMAP_PIN_OFF_WAKEUPENABLE);
-+	if (val & OMAP_OFF_EN) {
-+		if (!(val & OMAP_OFFOUT_EN)) {
-+			if (!(val & OMAP_OFF_PULL_UP)) {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_OFF_INPUT_PULLDOWN);
-+			} else {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_OFF_INPUT_PULLUP);
-+			}
-+		} else {
-+			if (!(val & OMAP_OFFOUT_VAL)) {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_OFF_OUTPUT_LOW);
-+			} else {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_OFF_OUTPUT_HIGH);
-+			}
-+		}
-+	}
-+
-+	if (val & OMAP_INPUT_EN) {
-+		if (val & OMAP_PULL_ENA) {
-+			if (!(val & OMAP_PULL_UP)) {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_INPUT_PULLDOWN);
-+			} else {
-+				OMAP_MUX_TEST_FLAG(val, OMAP_PIN_INPUT_PULLUP);
-+			}
-+		} else {
-+			OMAP_MUX_TEST_FLAG(val, OMAP_PIN_INPUT);
-+		}
-+	} else {
-+		i++;
-+		flags[i] = "OMAP_PIN_OUTPUT";
-+	}
-+
-+	do {
-+		seq_printf(s, "%s", flags[i]);
-+		if (i > 0)
-+			seq_printf(s, " | ");
-+	} while (i-- > 0);
-+}
-+
-+#define OMAP_MUX_DEFNAME_LEN	16
-+
-+static int omap_mux_dbg_board_show(struct seq_file *s, void *unused)
-+{
-+	struct omap_mux_entry *e;
-+
-+	list_for_each_entry(e, &muxmodes, node) {
-+		struct omap_mux *m = &e->mux;
-+		char m0_def[OMAP_MUX_DEFNAME_LEN];
-+		char *m0_name = m->muxnames[0];
-+		u16 val;
-+		int i, mode;
-+
-+		if (!m0_name)
-+			continue;
-+
-+		for (i = 0; i < OMAP_MUX_DEFNAME_LEN; i++) {
-+			if (m0_name[i] == '\0') {
-+				m0_def[i] = m0_name[i];
-+				break;
-+			}
-+			m0_def[i] = toupper(m0_name[i]);
-+		}
-+		val = omap_mux_read(m->reg_offset);
-+		mode = val & OMAP_MUX_MODE7;
-+
-+		seq_printf(s, "OMAP%i_MUX(%s, ",
-+					cpu_is_omap34xx() ? 3 : 0, m0_def);
-+		omap_mux_decode(s, val);
-+		seq_printf(s, "),\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int omap_mux_dbg_board_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, omap_mux_dbg_board_show, &inode->i_private);
-+}
-+
-+static const struct file_operations omap_mux_dbg_board_fops = {
-+	.open		= omap_mux_dbg_board_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static int omap_mux_dbg_signal_show(struct seq_file *s, void *unused)
-+{
-+	struct omap_mux *m = s->private;
-+	const char *none = "NA";
-+	u16 val;
-+	int mode;
-+
-+	val = omap_mux_read(m->reg_offset);
-+	mode = val & OMAP_MUX_MODE7;
-+
-+	seq_printf(s, "name: %s.%s (0x%08lx/0x%03x = 0x%04x), b %s, t %s\n",
-+			m->muxnames[0], m->muxnames[mode],
-+			mux_phys + m->reg_offset, m->reg_offset, val,
-+			m->balls[0] ? m->balls[0] : none,
-+			m->balls[1] ? m->balls[1] : none);
-+	seq_printf(s, "mode: ");
-+	omap_mux_decode(s, val);
-+	seq_printf(s, "\n");
-+	seq_printf(s, "signals: %s | %s | %s | %s | %s | %s | %s | %s\n",
-+			m->muxnames[0] ? m->muxnames[0] : none,
-+			m->muxnames[1] ? m->muxnames[1] : none,
-+			m->muxnames[2] ? m->muxnames[2] : none,
-+			m->muxnames[3] ? m->muxnames[3] : none,
-+			m->muxnames[4] ? m->muxnames[4] : none,
-+			m->muxnames[5] ? m->muxnames[5] : none,
-+			m->muxnames[6] ? m->muxnames[6] : none,
-+			m->muxnames[7] ? m->muxnames[7] : none);
-+
-+	return 0;
-+}
-+
-+#define OMAP_MUX_MAX_ARG_CHAR  7
-+
-+static ssize_t omap_mux_dbg_signal_write(struct file *file,
-+						const char __user *user_buf,
-+						size_t count, loff_t *ppos)
-+{
-+	char buf[OMAP_MUX_MAX_ARG_CHAR];
-+	struct seq_file *seqf;
-+	struct omap_mux *m;
-+	unsigned long val;
-+	int buf_size;
-+
-+	if (count > OMAP_MUX_MAX_ARG_CHAR)
-+		return -EINVAL;
-+
-+	memset(buf, 0, sizeof(buf));
-+	buf_size = min(count, sizeof(buf) - 1);
-+
-+	if (copy_from_user(buf, user_buf, buf_size))
-+		return -EFAULT;
-+
-+	val = simple_strtoul(buf, NULL, 0x10);
-+	if (val > 0xffff)
-+		return -EINVAL;
-+
-+	seqf = file->private_data;
-+	m = seqf->private;
-+
-+	omap_mux_write((u16)val, m->reg_offset);
-+	*ppos += count;
-+
-+	return count;
-+}
-+
-+static int omap_mux_dbg_signal_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, omap_mux_dbg_signal_show, inode->i_private);
-+}
-+
-+static const struct file_operations omap_mux_dbg_signal_fops = {
-+	.open		= omap_mux_dbg_signal_open,
-+	.read		= seq_read,
-+	.write		= omap_mux_dbg_signal_write,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static struct dentry *mux_dbg_dir;
-+
-+static void __init omap_mux_dbg_init(void)
-+{
-+	struct omap_mux_entry *e;
-+
-+	mux_dbg_dir = debugfs_create_dir("omap_mux", NULL);
-+	if (!mux_dbg_dir)
++	if (cpu_is_omap34xx() && bus_id == 1)
 +		return;
 +
-+	(void)debugfs_create_file("board", S_IRUGO, mux_dbg_dir,
-+					NULL, &omap_mux_dbg_board_fops);
-+
-+	list_for_each_entry(e, &muxmodes, node) {
-+		struct omap_mux *m = &e->mux;
-+
-+		(void)debugfs_create_file(m->muxnames[0], S_IWUGO, mux_dbg_dir,
-+					m, &omap_mux_dbg_signal_fops);
-+	}
++	sprintf(mux_name, "i2c%i_scl.i2c%i_scl", bus_id, bus_id);
++	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
++	sprintf(mux_name, "i2c%i_sda.i2c%i_sda", bus_id, bus_id);
++	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
 +}
 +
-+#else
-+static inline void omap_mux_dbg_init(void)
-+{
-+}
-+#endif	/* CONFIG_DEBUG_FS */
++#endif
 +
- static void __init omap_mux_free_names(struct omap_mux *m)
++/*-------------------------------------------------------------------------*/
++
+ static int __init omap2_init_devices(void)
  {
- 	int i;
-@@ -807,6 +1028,8 @@ static int __init omap_mux_late_init(void)
+ 	/* please keep these calls, and their implementations above,
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index c08362d..ba2306a 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -27,6 +27,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
+ #include <mach/irqs.h>
++#include <plat/common.h>
+ #include <plat/mux.h>
  
+ #define OMAP_I2C_SIZE		0x3f
+@@ -88,15 +89,6 @@ static const int omap24xx_pins[][2] = {
+ #else
+ static const int omap24xx_pins[][2] = {};
+ #endif
+-#if defined(CONFIG_ARCH_OMAP34XX)
+-static const int omap34xx_pins[][2] = {
+-	{ K21_34XX_I2C1_SCL, J21_34XX_I2C1_SDA},
+-	{ AF15_34XX_I2C2_SCL, AE15_34XX_I2C2_SDA},
+-	{ AF14_34XX_I2C3_SCL, AG14_34XX_I2C3_SDA},
+-};
+-#else
+-static const int omap34xx_pins[][2] = {};
+-#endif
+ 
+ #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
+ 
+@@ -104,15 +96,17 @@ static void __init omap_i2c_mux_pins(int bus)
+ {
+ 	int scl, sda;
+ 
++	if (cpu_is_omap34xx()) {
++		omap_i2c_mach_mux(bus);
++		return;
++	}
++
+ 	if (cpu_class_is_omap1()) {
+ 		scl = I2C_SCL;
+ 		sda = I2C_SDA;
+ 	} else if (cpu_is_omap24xx()) {
+-		scl = omap24xx_pins[bus][0];
+-		sda = omap24xx_pins[bus][1];
+-	} else if (cpu_is_omap34xx()) {
+-		scl = omap34xx_pins[bus][0];
+-		sda = omap34xx_pins[bus][1];
++		scl = omap24xx_pins[bus - 1][0];
++		sda = omap24xx_pins[bus - 1][1];
+ 	} else {
+ 		return;
+ 	}
+@@ -156,7 +150,7 @@ static int __init omap_i2c_add_bus(int bus_id)
+ 		res[1].start = irq;
  	}
  
-+	omap_mux_dbg_init();
-+
- 	return 0;
+-	omap_i2c_mux_pins(bus_id - 1);
++	omap_i2c_mux_pins(bus_id);
+ 	return platform_device_register(pdev);
  }
- late_initcall(omap_mux_late_init);
-@@ -995,6 +1218,7 @@ int __init omap_mux_init(u32 mux_pbase, u32 mux_size,
- 	if (mux_base)
- 		return -EBUSY;
  
-+	mux_phys = mux_pbase;
- 	mux_base = ioremap(mux_pbase, mux_size);
- 	if (!mux_base) {
- 		printk(KERN_ERR "mux: Could not ioremap\n");
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index 064f173..e46aefe 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -40,6 +40,7 @@ extern struct sys_timer omap_timer;
+ extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 				 struct i2c_board_info const *info,
+ 				 unsigned len);
++extern void omap_i2c_mach_mux(int bus_id);
+ #else
+ static inline int omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 				 struct i2c_board_info const *info,
 
