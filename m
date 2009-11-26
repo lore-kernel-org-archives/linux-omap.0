@@ -1,120 +1,145 @@
-From: hvaibhav@ti.com
-Subject: [PATCH V2] AM3517: Add support for TSC2004 driver
-Date: Thu, 26 Nov 2009 10:41:01 +0530
-Message-ID: <1259212261-32528-1-git-send-email-hvaibhav@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH V2] AM3517: Add support for TSC2004 driver
+Date: Thu, 26 Nov 2009 10:44:24 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404370D7AEB@dbde02.ent.ti.com>
 References: <hvaibhav@ti.com>
+ <1259212261-32528-1-git-send-email-hvaibhav@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58066 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39250 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750833AbZKZFLA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Nov 2009 00:11:00 -0500
-In-Reply-To: <hvaibhav@ti.com>
+	id S1750850AbZKZFOX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Nov 2009 00:14:23 -0500
+In-Reply-To: <1259212261-32528-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Changes:
-	- Removed omap_cfg_reg()
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Thursday, November 26, 2009 10:41 AM
+> To: linux-omap@vger.kernel.org
+> Cc: tony@atomide.com; Hiremath, Vaibhav
+> Subject: [PATCH V2] AM3517: Add support for TSC2004 driver
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Changes:
+> 	- Removed omap_cfg_reg()
+> 
+> Reviewed-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-am3517evm.c |   61
+> +++++++++++++++++++++++++++++++++
+>  1 files changed, 61 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
+> omap2/board-am3517evm.c
+> index 415a13d..b183d93 100644
+> --- a/arch/arm/mach-omap2/board-am3517evm.c
+> +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> @@ -20,6 +20,8 @@
+>  #include <linux/init.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/gpio.h>
+> +#include <linux/irq.h>
+> +#include <linux/i2c/tsc2004.h>
+> 
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -27,10 +29,64 @@
+>  #include <asm/mach/map.h>
+> 
+>  #include <plat/board.h>
+> +#include <plat/mux.h>
+>  #include <plat/common.h>
+>  #include <plat/usb.h>
+> 
+>  /*
+> + * TSC 2004 Support
+> + */
+> +#define	GPIO_TSC2004_IRQ	65
+> +
+> +static int tsc2004_init_irq(void)
+> +{
+> +	int ret = 0;
+> +
+> +	ret = gpio_request(GPIO_TSC2004_IRQ, "tsc2004-irq");
+> +	if (ret < 0) {
+> +		printk(KERN_WARNING "failed to request GPIO#%d: %d\n",
+> +				GPIO_TSC2004_IRQ, ret);
+> +		return ret;
+> +	}
+> +
+> +	if (gpio_direction_input(GPIO_TSC2004_IRQ)) {
+> +		printk(KERN_WARNING "GPIO#%d cannot be configured as "
+> +				"input\n", GPIO_TSC2004_IRQ);
+> +		return -ENXIO;
+> +	}
+> +
+> +	omap_set_gpio_debounce(GPIO_TSC2004_IRQ, 1);
+> +	omap_set_gpio_debounce_time(GPIO_TSC2004_IRQ, 0xa);
+> +	return ret;
+> +}
+> +
+> +static void tsc2004_exit_irq(void)
+> +{
+> +	gpio_free(GPIO_TSC2004_IRQ);
+> +}
+> +
+> +static int tsc2004_get_irq_level(void)
+> +{
+> +	return gpio_get_value(GPIO_TSC2004_IRQ) ? 0 : 1;
+> +}
+> +
+> +struct tsc2004_platform_data am3517evm_tsc2004data = {
+> +	.model = 2004,
+> +	.x_plate_ohms = 180,
+> +	.get_pendown_state = tsc2004_get_irq_level,
+> +	.init_platform_hw = tsc2004_init_irq,
+> +	.exit_platform_hw = tsc2004_exit_irq,
+> +};
+> +
+> +static struct i2c_board_info __initdata
+> am3517evm_tsc_i2c_boardinfo[] = {
+> +	{
+> +		I2C_BOARD_INFO("tsc2004", 0x4B),
+> +		.type		= "tsc2004",
+> +		.platform_data	= &am3517evm_tsc2004data,
+> +	},
+> +};
+> +
+> +/*
+>   * Board initialization
+>   */
+>  static struct omap_board_config_kernel am3517_evm_config[]
+> __initdata = {
+> @@ -67,6 +123,11 @@ static void __init am3517_evm_init(void)
+> 
+>  	omap_serial_init();
+>  	usb_ehci_init(&ehci_pdata);
+> +
+> +	/* TSC 2004 */
+> +	am3517evm_tsc_i2c_boardinfo[0].irq =
+> gpio_to_irq(GPIO_TSC2004_IRQ);
+> +	i2c_register_board_info(1, am3517evm_tsc_i2c_boardinfo,
+> +				ARRAY_SIZE(am3517evm_tsc_i2c_boardinfo));
+>  }
+> 
+>  static void __init am3517_evm_map_io(void)
+[Hiremath, Vaibhav] Hi Tony,
 
-Reviewed-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/mach-omap2/board-am3517evm.c |   61 +++++++++++++++++++++++++++++++++
- 1 files changed, 61 insertions(+), 0 deletions(-)
+Since I haven't received any comments on driver code it should get merged. But I am not sure what the procedure is for input subsystem drivers? Is it happens through linux-omap or linux-input?
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 415a13d..b183d93 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -20,6 +20,8 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
-+#include <linux/irq.h>
-+#include <linux/i2c/tsc2004.h>
+Thanks,
+Vaibhav
 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -27,10 +29,64 @@
- #include <asm/mach/map.h>
-
- #include <plat/board.h>
-+#include <plat/mux.h>
- #include <plat/common.h>
- #include <plat/usb.h>
-
- /*
-+ * TSC 2004 Support
-+ */
-+#define	GPIO_TSC2004_IRQ	65
-+
-+static int tsc2004_init_irq(void)
-+{
-+	int ret = 0;
-+
-+	ret = gpio_request(GPIO_TSC2004_IRQ, "tsc2004-irq");
-+	if (ret < 0) {
-+		printk(KERN_WARNING "failed to request GPIO#%d: %d\n",
-+				GPIO_TSC2004_IRQ, ret);
-+		return ret;
-+	}
-+
-+	if (gpio_direction_input(GPIO_TSC2004_IRQ)) {
-+		printk(KERN_WARNING "GPIO#%d cannot be configured as "
-+				"input\n", GPIO_TSC2004_IRQ);
-+		return -ENXIO;
-+	}
-+
-+	omap_set_gpio_debounce(GPIO_TSC2004_IRQ, 1);
-+	omap_set_gpio_debounce_time(GPIO_TSC2004_IRQ, 0xa);
-+	return ret;
-+}
-+
-+static void tsc2004_exit_irq(void)
-+{
-+	gpio_free(GPIO_TSC2004_IRQ);
-+}
-+
-+static int tsc2004_get_irq_level(void)
-+{
-+	return gpio_get_value(GPIO_TSC2004_IRQ) ? 0 : 1;
-+}
-+
-+struct tsc2004_platform_data am3517evm_tsc2004data = {
-+	.model = 2004,
-+	.x_plate_ohms = 180,
-+	.get_pendown_state = tsc2004_get_irq_level,
-+	.init_platform_hw = tsc2004_init_irq,
-+	.exit_platform_hw = tsc2004_exit_irq,
-+};
-+
-+static struct i2c_board_info __initdata am3517evm_tsc_i2c_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("tsc2004", 0x4B),
-+		.type		= "tsc2004",
-+		.platform_data	= &am3517evm_tsc2004data,
-+	},
-+};
-+
-+/*
-  * Board initialization
-  */
- static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
-@@ -67,6 +123,11 @@ static void __init am3517_evm_init(void)
-
- 	omap_serial_init();
- 	usb_ehci_init(&ehci_pdata);
-+
-+	/* TSC 2004 */
-+	am3517evm_tsc_i2c_boardinfo[0].irq = gpio_to_irq(GPIO_TSC2004_IRQ);
-+	i2c_register_board_info(1, am3517evm_tsc_i2c_boardinfo,
-+				ARRAY_SIZE(am3517evm_tsc_i2c_boardinfo));
- }
-
- static void __init am3517_evm_map_io(void)
---
-1.6.2.4
+> --
+> 1.6.2.4
 
