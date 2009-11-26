@@ -1,90 +1,46 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume
- hang
-Date: Thu, 26 Nov 2009 10:22:31 +0000
-Message-ID: <20091126102230.GB27562@rakim.wolfsonmicro.main>
-References: <1259154631-15251-1-git-send-email-anuj.aggarwal@ti.com>
- <4B0D9212.1060805@boundarydevices.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2F86@dbde02.ent.ti.com>
+From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 1/2 v2] musb: Add context save and restore support
+Date: Thu, 26 Nov 2009 15:57:15 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC31C0@dbde02.ent.ti.com>
+References: <1259217599-17793-1-git-send-email-ajay.gupta@ti.com>
+ <4B0E4449.8030701@ti.com>
+ <19F8576C6E063C45BE387C64729E739404370D7BF1@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:57529 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754569AbZKZKWZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Nov 2009 05:22:25 -0500
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC2F86@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404370D7BF1-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "Dasgupta, Romit" <romit-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Cc: 'Troy Kisky' <troy.kisky@boundarydevices.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arun KS <arunks@mistralsolutions.com>
 
-On Thu, Nov 26, 2009 at 08:31:11AM +0530, Aggarwal, Anuj wrote:
+> <snip.>
+> 
+> > >                  */
+> > > +               reg = musb_readb(musb->mregs, MUSB_POWER);
+> > > +               reg &= ~MUSB_POWER_SOFTCONN;
+> > > +               musb_writeb(musb->mregs, MUSB_POWER, reg);
+> > After this softdisconnect when we subsequently get reconnected followed by
+> > a reset we could have changed our speed (LS,FS, HS).
+> 
+> I didn't get it completely. I think as a peripheral USB speed will remain
+> same after resume for the gadget driver it was before suspend?
+> 
+> If we intend to change the gadget driver then we may have support for a
+> different speed but it would anyways happen after resume is completed.
+> 
 
-> I have already tried that but it doesn't fix the problem entirely.
-> Still, I was not able to playback properly because the bias settings
-> were not handled correctly and as you can see, it writes to some 
-> invalid registers too (all registers don't exist between 0 and ARRAY_SIZE).
+The host side might change, but that shouldn't affect us. This bit is
+used to tell MUSB (acting as a peripheral) if it should attempt
+to enumerate at HS or not - it will always fall back to FS if the host
+does not support it.
 
-Please also note the following patch which is queued for 2.6.32:
+So Ajay is correct in restoring this register.
 
-commit 50b6bce59d154b5db137907a5c0ed45a4e7a3829
-Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date:   Mon Nov 23 13:11:53 2009 +0000
-
-    ASoC: Fix suspend with active audio streams
-    
-    When we get a stream suspend event force the power down since otherwise
-    the stream would remain marked as active.  In future we'll probably want
-    to make this stream-specific and add an interface to make the power down
-    of other widgets optional in order to support leaving bypass paths
-    active while suspending the processor.
-    
-    Cc: stable@kernel.org
-    Reported-by: Joonyoung Shim <jy0922.shim@samsung.com>
-    Tested-by: Joonyoung Shim <jy0922.shim@samsung.com>
-    Acked-by: Liam Girdwood <lrg@slimlogic.co.uk>
-    Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-
-diff --git a/sound/soc/soc-dapm.c b/sound/soc/soc-dapm.c
-index d89f6dc..66d4c16 100644
---- a/sound/soc/soc-dapm.c
-+++ b/sound/soc/soc-dapm.c
-@@ -973,9 +973,19 @@ static int dapm_power_widgets(struct snd_soc_codec *codec, int event)
- 			if (!w->power_check)
- 				continue;
- 
--			power = w->power_check(w);
--			if (power)
--				sys_power = 1;
-+			/* If we're suspending then pull down all the 
-+			 * power. */
-+			switch (event) {
-+			case SND_SOC_DAPM_STREAM_SUSPEND:
-+				power = 0;
-+				break;
-+
-+			default:
-+				power = w->power_check(w);
-+				if (power)
-+					sys_power = 1;
-+				break;
-+			}
- 
- 			if (w->power == power)
- 				continue;
-@@ -999,8 +1009,12 @@ static int dapm_power_widgets(struct snd_soc_codec *codec, int event)
- 		case SND_SOC_DAPM_STREAM_RESUME:
- 			sys_power = 1;
- 			break;
-+		case SND_SOC_DAPM_STREAM_SUSPEND:
-+			sys_power = 0;
-+			break;
- 		case SND_SOC_DAPM_STREAM_NOP:
- 			sys_power = codec->bias_level != SND_SOC_BIAS_STANDBY;
-+			break;
- 		default:
- 			break;
- 		}
+- Anand
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
