@@ -1,676 +1,1522 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] mfd: twl4030: Driver for twl4030 madc module
-Date: Fri, 27 Nov 2009 20:36:38 +0100
-Message-ID: <20091127193636.GA16866@sortiz.org>
-References: <1259146071-2372-1-git-send-email-amit.kucheria@verdurent.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: [PATCH v2] OMAP: DMA: move LCD related code from plat-omap to
+	mach-omap1
+Date: Fri, 27 Nov 2009 20:39:18 +0100
+Message-ID: <e7c6a05e0911271139n1f59b605n4d4e16880af6c8f5@mail.gmail.com>
+References: <200911271325.57355.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:56714 "EHLO
-	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751176AbZK0Tey (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Nov 2009 14:34:54 -0500
-Content-Disposition: inline
-In-Reply-To: <1259146071-2372-1-git-send-email-amit.kucheria@verdurent.com>
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:64714 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176AbZK0TjN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Nov 2009 14:39:13 -0500
+Received: by iwn1 with SMTP id 1so1103585iwn.33
+        for <linux-omap@vger.kernel.org>; Fri, 27 Nov 2009 11:39:18 -0800 (PST)
+In-Reply-To: <200911271325.57355.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@verdurent.com>
-Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Mikko Ylinen <mikko.k.ylinen@nokia.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Amit,
+Hi,
 
-On Wed, Nov 25, 2009 at 12:47:51PM +0200, Amit Kucheria wrote:
-> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-> index af0fc90..df1897b 100644
-> --- a/drivers/mfd/Makefile
-> +++ b/drivers/mfd/Makefile
-> @@ -25,8 +25,9 @@ obj-$(CONFIG_TPS65010)		+= tps65010.o
->  obj-$(CONFIG_MENELAUS)		+= menelaus.o
->  
->  obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o twl4030-irq.o
-> -obj-$(CONFIG_TWL4030_POWER)    += twl4030-power.o
-> +obj-$(CONFIG_TWL4030_POWER)	+= twl4030-power.o
->  obj-$(CONFIG_TWL4030_CODEC)	+= twl4030-codec.o
-> +obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
->  
->  obj-$(CONFIG_MFD_MC13783)	+= mc13783-core.o
->  
-> diff --git a/drivers/mfd/twl4030-madc.c b/drivers/mfd/twl4030-madc.c
-> new file mode 100644
-> index 0000000..90ce99a
-> --- /dev/null
-> +++ b/drivers/mfd/twl4030-madc.c
-> @@ -0,0 +1,548 @@
+On Fri, Nov 27, 2009 at 1:25 PM, Janusz Krzysztofik
+<jkrzyszt@tis.icnet.pl> wrote:
+> All of the LCD DMA code in plat-omap/dma.c appears to be OMAP1-only (=
+and
+> apparently only is available on a subset of OMAP1 chips).
+>
+> Move this code to mach-omap1/lcd_dma.c.
+>
+> Created against linux-omap for-next,
+> commit 4421752e331cfb1d942b47ffdb26e451a8da58a0
+>
+> Tested on OMAP1510 Amstrad Delta.
+> Compile-tested with omap_generic_2420_defconfig.
+Teste on HTC Wizard ( omap850 ) htcherald_defconfig.
+Display seems to work ;) good job.
+>
+> Reported-by: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>
+> ---
+> Issues addressed since v1:
+>
+> Thursday 26 November 2009 03:08:30 Paul Walmsley wrote:
+>> On Wed, 25 Nov 2009, Janusz Krzysztofik wrote:
+>> > Wednesday 25 November 2009 10:02:52 Paul Walmsley wrote:
+>> > > On Sat, 21 Nov 2009, Janusz Krzysztofik wrote:
+> [snip]
+>> > > > -obj-y :=3D io.o id.o sram.o clock.o irq.o mux.o serial.o devi=
+ces.o
+>> > > > +obj-y :=3D io.o id.o sram.o clock.o irq.o lcd_dma.o mux.o ser=
+ial.o devices.o
+>> > >
+>> > > ... It might be good to add a Kconfig option so OMAP730/850
+>> > > users can skip compiling it and save some memory.
+>> >
+>> > ... arch/arm/mach-omap1/lcd_dma.c
+>> > exports several functions that are called unconditionaly from
+>> > drivers/video/omap/lcdc.c AND the latter is linked into the omapfb
+>> > driver based on CONFIG_ARCH_OMAP1=3Dy...
+>> > ... I can see two options:
+>> > 1. Keep arch/arm/mach-omap1/lcd_dma.c linked in for any OMAP1 suba=
+rch
+>> > unless CONFIG_FB_OMAP is not set...
+>>
+>> Let's take option 1 for right now.
+>>
+> [snip]
+>> > > > +#ifndef __MACH_LCD_DMA_H__
+>> > >
+>> > > Consider adding _OMAP1_ in this macro name...
+>> >
+>> > OK, will do that too.
+>
+> diff -uprN git.orig/arch/arm/mach-omap1/Makefile git/arch/arm/mach-om=
+ap1/Makefile
+> --- git.orig/arch/arm/mach-omap1/Makefile =C2=A0 =C2=A0 =C2=A0 2009-1=
+1-27 11:53:32.000000000 +0100
+> +++ git/arch/arm/mach-omap1/Makefile =C2=A0 =C2=A02009-11-27 12:26:50=
+=2E000000000 +0100
+> @@ -48,3 +48,7 @@ led-$(CONFIG_MACH_OMAP_INNOVATOR) =C2=A0 =C2=A0 +=3D=
+ led
+> =C2=A0led-$(CONFIG_MACH_OMAP_PERSEUS2) =C2=A0 =C2=A0 =C2=A0 +=3D leds=
+-h2p2-debug.o
+> =C2=A0led-$(CONFIG_MACH_OMAP_OSK) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0+=3D leds-osk.o
+> =C2=A0obj-$(CONFIG_LEDS) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 +=3D $(led-y)
+> +
+> +ifneq ($(CONFIG_FB_OMAP),)
+> +obj-y +=3D lcd_dma.o
+> +endif
+> diff -uprN git.orig/arch/arm/mach-omap1/include/mach/lcd_dma.h git/ar=
+ch/arm/mach-omap1/include/mach/lcd_dma.h
+> --- git.orig/arch/arm/mach-omap1/include/mach/lcd_dma.h 1970-01-01 01=
+:00:00.000000000 +0100
+> +++ git/arch/arm/mach-omap1/include/mach/lcd_dma.h =C2=A0 =C2=A0 =C2=A0=
+2009-11-27 12:29:34.000000000 +0100
+> @@ -0,0 +1,78 @@
 > +/*
-> + * drivers/i2c/chips/twl4030-madc.c
-drivers/mfd/twl4030-madc.c
-By the way, have you considered moving this one to drivers/hwmon ?
-
-
-> + * TWL4030 MADC module driver
+> + * =C2=A0arch/arm/mach-omap1/include/mach/lcd_dma.h
 > + *
-> + * Copyright (C) 2008 Nokia Corporation
-> + * Mikko Ylinen <mikko.k.ylinen@nokia.com>
+> + * Extracted from arch/arm/plat-omap/include/plat/dma.h
+> + * =C2=A0Copyright (C) 2003 Nokia Corporation
+> + * =C2=A0Author: Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@nokia.com>
 > + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License as published=
+ by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
 > + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> + * GNU General Public License for more details.
 > + *
 > + * You should have received a copy of the GNU General Public License
 > + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-13=
+07 USA
+> + */
+> +#ifndef __MACH_OMAP1_LCD_DMA_H__
+> +#define __MACH_OMAP1_LCD_DMA_H__
+> +
+> +/* Hardware registers for LCD DMA */
+> +#define OMAP1510_DMA_LCD_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(0xf=
+ffedb00)
+> +#define OMAP1510_DMA_LCD_CTRL =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(OMA=
+P1510_DMA_LCD_BASE + 0x00)
+> +#define OMAP1510_DMA_LCD_TOP_F1_L =C2=A0 =C2=A0 =C2=A0(OMAP1510_DMA_=
+LCD_BASE + 0x02)
+> +#define OMAP1510_DMA_LCD_TOP_F1_U =C2=A0 =C2=A0 =C2=A0(OMAP1510_DMA_=
+LCD_BASE + 0x04)
+> +#define OMAP1510_DMA_LCD_BOT_F1_L =C2=A0 =C2=A0 =C2=A0(OMAP1510_DMA_=
+LCD_BASE + 0x06)
+> +#define OMAP1510_DMA_LCD_BOT_F1_U =C2=A0 =C2=A0 =C2=A0(OMAP1510_DMA_=
+LCD_BASE + 0x08)
+> +
+> +#define OMAP1610_DMA_LCD_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(0xf=
+ffee300)
+> +#define OMAP1610_DMA_LCD_CSDP =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(OMA=
+P1610_DMA_LCD_BASE + 0xc0)
+> +#define OMAP1610_DMA_LCD_CCR =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (OMA=
+P1610_DMA_LCD_BASE + 0xc2)
+> +#define OMAP1610_DMA_LCD_CTRL =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(OMA=
+P1610_DMA_LCD_BASE + 0xc4)
+> +#define OMAP1610_DMA_LCD_TOP_B1_L =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xc8)
+> +#define OMAP1610_DMA_LCD_TOP_B1_U =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xca)
+> +#define OMAP1610_DMA_LCD_BOT_B1_L =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xcc)
+> +#define OMAP1610_DMA_LCD_BOT_B1_U =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xce)
+> +#define OMAP1610_DMA_LCD_TOP_B2_L =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xd0)
+> +#define OMAP1610_DMA_LCD_TOP_B2_U =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xd2)
+> +#define OMAP1610_DMA_LCD_BOT_B2_L =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xd4)
+> +#define OMAP1610_DMA_LCD_BOT_B2_U =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xd6)
+> +#define OMAP1610_DMA_LCD_SRC_EI_B1 =C2=A0 =C2=A0 (OMAP1610_DMA_LCD_B=
+ASE + 0xd8)
+> +#define OMAP1610_DMA_LCD_SRC_FI_B1_L =C2=A0 (OMAP1610_DMA_LCD_BASE +=
+ 0xda)
+> +#define OMAP1610_DMA_LCD_SRC_EN_B1 =C2=A0 =C2=A0 (OMAP1610_DMA_LCD_B=
+ASE + 0xe0)
+> +#define OMAP1610_DMA_LCD_SRC_FN_B1 =C2=A0 =C2=A0 (OMAP1610_DMA_LCD_B=
+ASE + 0xe4)
+> +#define OMAP1610_DMA_LCD_LCH_CTRL =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xea)
+> +#define OMAP1610_DMA_LCD_SRC_FI_B1_U =C2=A0 (OMAP1610_DMA_LCD_BASE +=
+ 0xf4)
+> +
+> +/* LCD DMA block numbers */
+> +enum {
+> + =C2=A0 =C2=A0 =C2=A0 OMAP_LCD_DMA_B1_TOP,
+> + =C2=A0 =C2=A0 =C2=A0 OMAP_LCD_DMA_B1_BOTTOM,
+> + =C2=A0 =C2=A0 =C2=A0 OMAP_LCD_DMA_B2_TOP,
+> + =C2=A0 =C2=A0 =C2=A0 OMAP_LCD_DMA_B2_BOTTOM
+> +};
+> +
+> +/* LCD DMA functions */
+> +extern int omap_request_lcd_dma(void (*callback)(u16 status, void *d=
+ata),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 void *data);
+> +extern void omap_free_lcd_dma(void);
+> +extern void omap_setup_lcd_dma(void);
+> +extern void omap_enable_lcd_dma(void);
+> +extern void omap_stop_lcd_dma(void);
+> +extern void omap_set_lcd_dma_ext_controller(int external);
+> +extern void omap_set_lcd_dma_single_transfer(int single);
+> +extern void omap_set_lcd_dma_b1(unsigned long addr, u16 fb_xres, u16=
+ fb_yres,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 int data_type);
+> +extern void omap_set_lcd_dma_b1_rotation(int rotate);
+> +extern void omap_set_lcd_dma_b1_vxres(unsigned long vxres);
+> +extern void omap_set_lcd_dma_b1_mirror(int mirror);
+> +extern void omap_set_lcd_dma_b1_scale(unsigned int xscale, unsigned =
+int yscale);
+> +
+> +extern int omap_lcd_dma_running(void);
+> +
+> +#endif /* __MACH_OMAP1_LCD_DMA_H__ */
+> diff -uprN git.orig/arch/arm/mach-omap1/lcd_dma.c git/arch/arm/mach-o=
+map1/lcd_dma.c
+> --- git.orig/arch/arm/mach-omap1/lcd_dma.c =C2=A0 =C2=A0 =C2=A01970-0=
+1-01 01:00:00.000000000 +0100
+> +++ git/arch/arm/mach-omap1/lcd_dma.c =C2=A0 2009-11-27 12:21:49.0000=
+00000 +0100
+> @@ -0,0 +1,447 @@
+> +/*
+> + * linux/arch/arm/mach-omap1/lcd_dma.c
+> + *
+> + * Extracted from arch/arm/plat-omap/dma.c
+> + * Copyright (C) 2003 - 2008 Nokia Corporation
+> + * Author: Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@nokia.com>
+> + * DMA channel linking for 1610 by Samuel Ortiz <samuel.ortiz@nokia.=
+com>
+> + * Graphics DMA and LCD DMA graphics tranformations
+> + * by Imre Deak <imre.deak@nokia.com>
+> + * OMAP2/3 support Copyright (C) 2004-2007 Texas Instruments, Inc.
+> + * Merged to support both OMAP1 and OMAP2 by Tony Lindgren <tony@ato=
+mide.com>
+> + * Some functions based on earlier dma-omap.c Copyright (C) 2001 Rid=
+geRun, Inc.
+> + *
+> + * Copyright (C) 2009 Texas Instruments
+> + * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com=
+>
+> + *
+> + * Support functions for the OMAP internal DMA channels.
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
 > + *
 > + */
 > +
-> +#include <linux/init.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/kernel.h>
-> +#include <linux/types.h>
 > +#include <linux/module.h>
-> +#include <linux/delay.h>
-> +#include <linux/fs.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/miscdevice.h>
-> +#include <linux/i2c/twl4030.h>
-> +#include <linux/i2c/twl4030-madc.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/io.h>
 > +
-> +#include <asm/uaccess.h>
+> +#include <mach/hardware.h>
+> +#include <plat/dma.h>
 > +
-> +#define TWL4030_MADC_PFX	"twl4030-madc: "
-> +
-> +struct twl4030_madc_data {
-> +	struct device		*dev;
-> +	struct mutex		lock;
-> +	struct work_struct	ws;
-> +	struct twl4030_madc_request	requests[TWL4030_MADC_NUM_METHODS];
-Typically, I'd expect to have a list (limited in length) of requests here, but
-I guess you're happy with that array .
-
-
-
-> +	int imr;
-> +	int isr;
-> +};
-> +
-> +static struct twl4030_madc_data *the_madc;
-I dont particularly enjoy that. All of the twl4030 drivers have this bad habit
-of assuming they will be alone on a platform. Although it's certainly very
-likely, I still think having this kind of design is not so nice.
-
-
-> +static int twl4030_madc_set_current_generator(struct twl4030_madc_data *madc, int chan, int on);
-> +
-> +static
-> +const struct twl4030_madc_conversion_method twl4030_conversion_methods[] = {
-> +	[TWL4030_MADC_RT] = {
-> +		.sel	= TWL4030_MADC_RTSELECT_LSB,
-> +		.avg	= TWL4030_MADC_RTAVERAGE_LSB,
-> +		.rbase	= TWL4030_MADC_RTCH0_LSB,
-> +	},
-> +	[TWL4030_MADC_SW1] = {
-> +		.sel	= TWL4030_MADC_SW1SELECT_LSB,
-> +		.avg	= TWL4030_MADC_SW1AVERAGE_LSB,
-> +		.rbase	= TWL4030_MADC_GPCH0_LSB,
-> +		.ctrl	= TWL4030_MADC_CTRL_SW1,
-> +	},
-> +	[TWL4030_MADC_SW2] = {
-> +		.sel	= TWL4030_MADC_SW2SELECT_LSB,
-> +		.avg	= TWL4030_MADC_SW2AVERAGE_LSB,
-> +		.rbase	= TWL4030_MADC_GPCH0_LSB,
-> +		.ctrl	= TWL4030_MADC_CTRL_SW2,
-> +	},
-> +};
-> +
-> +static int twl4030_madc_read(struct twl4030_madc_data *madc, u8 reg)
+> +int omap_lcd_dma_running(void)
 > +{
-> +	int ret;
-> +	u8 val;
+> + =C2=A0 =C2=A0 =C2=A0 /*
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0* On OMAP1510, internal LCD controller w=
+ill start the transfer
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0* when it gets enabled, so assume DMA ru=
+nning if LCD enabled.
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap1510())
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (omap_readw(0xf=
+ffec000 + 0x00) & (1 << 0))
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 return 1;
 > +
-> +	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MADC, &val, reg);
-> +	if (ret) {
-> +		dev_dbg(madc->dev, "unable to read register 0x%X\n", reg);
-> +		return ret;
-> +	}
+> + =C2=A0 =C2=A0 =C2=A0 /* Check if LCD DMA is running */
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap16xx())
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (omap_readw(OMA=
+P1610_DMA_LCD_CCR) & OMAP_DMA_CCR_EN)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 return 1;
 > +
-> +	return val;
-> +}
-FWIW, you're not checking the return value on any of the madc_read calls
-below.
-
-
-> +static void twl4030_madc_write(struct twl4030_madc_data *madc, u8 reg, u8 val)
-> +{
-> +	int ret;
-> +
-> +	ret = twl4030_i2c_write_u8(TWL4030_MODULE_MADC, val, reg);
-> +	if (ret)
-> +		dev_err(madc->dev, "unable to write register 0x%X\n", reg);
+> + =C2=A0 =C2=A0 =C2=A0 return 0;
 > +}
 > +
-> +static int twl4030_madc_channel_raw_read(struct twl4030_madc_data *madc, u8 reg)
+> +static struct lcd_dma_info {
+> + =C2=A0 =C2=A0 =C2=A0 spinlock_t lock;
+> + =C2=A0 =C2=A0 =C2=A0 int reserved;
+> + =C2=A0 =C2=A0 =C2=A0 void (*callback)(u16 status, void *data);
+> + =C2=A0 =C2=A0 =C2=A0 void *cb_data;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 int active;
+> + =C2=A0 =C2=A0 =C2=A0 unsigned long addr, size;
+> + =C2=A0 =C2=A0 =C2=A0 int rotate, data_type, xres, yres;
+> + =C2=A0 =C2=A0 =C2=A0 int vxres;
+> + =C2=A0 =C2=A0 =C2=A0 int mirror;
+> + =C2=A0 =C2=A0 =C2=A0 int xscale, yscale;
+> + =C2=A0 =C2=A0 =C2=A0 int ext_ctrl;
+> + =C2=A0 =C2=A0 =C2=A0 int src_port;
+> + =C2=A0 =C2=A0 =C2=A0 int single_transfer;
+> +} lcd_dma;
+> +
+> +void omap_set_lcd_dma_b1(unsigned long addr, u16 fb_xres, u16 fb_yre=
+s,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0int data_type)
 > +{
-> +	u8 msb, lsb;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.addr =3D addr;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.data_type =3D data_type;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.xres =3D fb_xres;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.yres =3D fb_yres;
+> +}
+> +EXPORT_SYMBOL(omap_set_lcd_dma_b1);
 > +
-> +	/* For each ADC channel, we have MSB and LSB register pair. MSB address
-> +	 * is always LSB address+1. reg parameter is the addr of LSB register */
-> +	msb = twl4030_madc_read(madc, reg + 1);
-> +	lsb = twl4030_madc_read(madc, reg);
-> +
-> +	return (int)(((msb << 8) | lsb) >> 6);
+> +void omap_set_lcd_dma_src_port(int port)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.src_port =3D port;
 > +}
 > +
-> +static int twl4030_madc_read_channels(struct twl4030_madc_data *madc,
-> +		u8 reg_base, u16 channels, int *buf)
+> +void omap_set_lcd_dma_ext_controller(int external)
 > +{
-> +	int count = 0;
-> +	u8 reg, i;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.ext_ctrl =3D external;
+> +}
+> +EXPORT_SYMBOL(omap_set_lcd_dma_ext_controller);
 > +
-> +	if (unlikely(!buf))
-> +		return 0;
+> +void omap_set_lcd_dma_single_transfer(int single)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.single_transfer =3D single;
+> +}
+> +EXPORT_SYMBOL(omap_set_lcd_dma_single_transfer);
 > +
-> +	for (i = 0; i < TWL4030_MADC_MAX_CHANNELS; i++) {
-> +		if (channels & (1<<i)) {
-> +			reg = reg_base + 2*i;
-> +			buf[i] = twl4030_madc_channel_raw_read(madc, reg);
-> +			count++;
-> +		}
-> +	}
-> +	return count;
+> +void omap_set_lcd_dma_b1_rotation(int rotate)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap1510()) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "D=
+MA rotation is not supported in 1510 mode\n");
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.rotate =3D rotate;
+> +}
+> +EXPORT_SYMBOL(omap_set_lcd_dma_b1_rotation);
+> +
+> +void omap_set_lcd_dma_b1_mirror(int mirror)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap1510()) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "D=
+MA mirror is not supported in 1510 mode\n");
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.mirror =3D mirror;
+> +}
+> +EXPORT_SYMBOL(omap_set_lcd_dma_b1_mirror);
+> +
+> +void omap_set_lcd_dma_b1_vxres(unsigned long vxres)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap1510()) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "D=
+MA virtual resulotion is not supported "
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "in 1510 mode\n");
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.vxres =3D vxres;
+> +}
+> +EXPORT_SYMBOL(omap_set_lcd_dma_b1_vxres);
+> +
+> +void omap_set_lcd_dma_b1_scale(unsigned int xscale, unsigned int ysc=
+ale)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap1510()) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "D=
+MA scale is not supported in 1510 mode\n");
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.xscale =3D xscale;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.yscale =3D yscale;
+> +}
+> +EXPORT_SYMBOL(omap_set_lcd_dma_b1_scale);
+> +
+> +static void set_b1_regs(void)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 unsigned long top, bottom;
+> + =C2=A0 =C2=A0 =C2=A0 int es;
+> + =C2=A0 =C2=A0 =C2=A0 u16 w;
+> + =C2=A0 =C2=A0 =C2=A0 unsigned long en, fn;
+> + =C2=A0 =C2=A0 =C2=A0 long ei, fi;
+> + =C2=A0 =C2=A0 =C2=A0 unsigned long vxres;
+> + =C2=A0 =C2=A0 =C2=A0 unsigned int xscale, yscale;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 switch (lcd_dma.data_type) {
+> + =C2=A0 =C2=A0 =C2=A0 case OMAP_DMA_DATA_TYPE_S8:
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 es =3D 1;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> + =C2=A0 =C2=A0 =C2=A0 case OMAP_DMA_DATA_TYPE_S16:
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 es =3D 2;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> + =C2=A0 =C2=A0 =C2=A0 case OMAP_DMA_DATA_TYPE_S32:
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 es =3D 4;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> + =C2=A0 =C2=A0 =C2=A0 default:
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> + =C2=A0 =C2=A0 =C2=A0 }
+> +
+> + =C2=A0 =C2=A0 =C2=A0 vxres =3D lcd_dma.vxres ? lcd_dma.vxres : lcd_=
+dma.xres;
+> + =C2=A0 =C2=A0 =C2=A0 xscale =3D lcd_dma.xscale ? lcd_dma.xscale : 1=
+;
+> + =C2=A0 =C2=A0 =C2=A0 yscale =3D lcd_dma.yscale ? lcd_dma.yscale : 1=
+;
+> + =C2=A0 =C2=A0 =C2=A0 BUG_ON(vxres < lcd_dma.xres);
+> +
+> +#define PIXADDR(x, y) (lcd_dma.addr + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0\
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ((y) * vxres * ysc=
+ale + (x) * xscale) * es)
+> +#define PIXSTEP(sx, sy, dx, dy) (PIXADDR(dx, dy) - PIXADDR(sx, sy) -=
+ es + 1)
+> +
+> + =C2=A0 =C2=A0 =C2=A0 switch (lcd_dma.rotate) {
+> + =C2=A0 =C2=A0 =C2=A0 case 0:
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.mirro=
+r) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(lcd_dma.xres - 1, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 /* 1510 DMA requires the bottom address to be 2 more
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0* than the actual last memory access location. */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 if (cpu_is_omap1510() &&
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 lcd_dma.data_type =3D=3D OMAP_DMA_D=
+ATA_TYPE_S32)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bottom =
++=3D 2;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 0, 1, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(lcd_dma.xres - 1, 0, 0, 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(lcd_dma.xres - 1, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(0, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(1, 0, 0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(0, 0, lcd_dma.xres - 1, 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 en =3D lcd_dma.xre=
+s;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fn =3D lcd_dma.yre=
+s;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> + =C2=A0 =C2=A0 =C2=A0 case 90:
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.mirro=
+r) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(0, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(lcd_dma.xres - 1, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 1, 0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(0, 0, 1, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(lcd_dma.xres - 1, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 1, 0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(1, 0, 0, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 en =3D lcd_dma.yre=
+s;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fn =3D lcd_dma.xre=
+s;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> + =C2=A0 =C2=A0 =C2=A0 case 180:
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.mirro=
+r) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(lcd_dma.xres - 1, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(1, 0, 0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(0, 1, lcd_dma.xres - 1, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(0, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(lcd_dma.xres - 1, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 0, 1, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(lcd_dma.xres - 1, 1, 0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 en =3D lcd_dma.xre=
+s;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fn =3D lcd_dma.yre=
+s;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> + =C2=A0 =C2=A0 =C2=A0 case 270:
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.mirro=
+r) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(lcd_dma.xres - 1, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(0, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 0, 0, 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(1, lcd_dma.yres - 1, 0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(0, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(lcd_dma.xres - 1, lcd_dma.yres - 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 0, 0, 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(0, lcd_dma.yres - 1, 1, 0);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 en =3D lcd_dma.yre=
+s;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fn =3D lcd_dma.xre=
+s;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> + =C2=A0 =C2=A0 =C2=A0 default:
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return; /* Suppres=
+s warning about uninitialized vars */
+> + =C2=A0 =C2=A0 =C2=A0 }
+> +
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap1510()) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(top >>=
+ 16, OMAP1510_DMA_LCD_TOP_F1_U);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(top, O=
+MAP1510_DMA_LCD_TOP_F1_L);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(bottom=
+ >> 16, OMAP1510_DMA_LCD_BOT_F1_U);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(bottom=
+, OMAP1510_DMA_LCD_BOT_F1_L);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> + =C2=A0 =C2=A0 =C2=A0 }
+> +
+> + =C2=A0 =C2=A0 =C2=A0 /* 1610 regs */
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(top >> 16, OMAP1610_DMA_LCD_TOP_B1=
+_U);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(top, OMAP1610_DMA_LCD_TOP_B1_L);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(bottom >> 16, OMAP1610_DMA_LCD_BOT=
+_B1_U);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(bottom, OMAP1610_DMA_LCD_BOT_B1_L)=
+;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(en, OMAP1610_DMA_LCD_SRC_EN_B1);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(fn, OMAP1610_DMA_LCD_SRC_FN_B1);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CSDP);
+> + =C2=A0 =C2=A0 =C2=A0 w &=3D ~0x03;
+> + =C2=A0 =C2=A0 =C2=A0 w |=3D lcd_dma.data_type;
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CSDP);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CTRL);
+> + =C2=A0 =C2=A0 =C2=A0 /* Always set the source port as SDRAM for now=
+*/
+> + =C2=A0 =C2=A0 =C2=A0 w &=3D ~(0x03 << 6);
+> + =C2=A0 =C2=A0 =C2=A0 if (lcd_dma.callback !=3D NULL)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w |=3D 1 << 1; =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Block interrupt enable */
+> + =C2=A0 =C2=A0 =C2=A0 else
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w &=3D ~(1 << 1);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 if (!(lcd_dma.rotate || lcd_dma.mirror ||
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 lcd_dma.vxres || lcd_dma.=
+xscale || lcd_dma.yscale))
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CCR);
+> + =C2=A0 =C2=A0 =C2=A0 /* Set the double-indexed addressing mode */
+> + =C2=A0 =C2=A0 =C2=A0 w |=3D (0x03 << 12);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CCR);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(ei, OMAP1610_DMA_LCD_SRC_EI_B1);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(fi >> 16, OMAP1610_DMA_LCD_SRC_FI_=
+B1_U);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(fi, OMAP1610_DMA_LCD_SRC_FI_B1_L);
 > +}
 > +
-> +static void twl4030_madc_enable_irq(struct twl4030_madc_data *madc, int id)
+> +static irqreturn_t lcd_dma_irq_handler(int irq, void *dev_id)
 > +{
-> +	u8 val;
+> + =C2=A0 =C2=A0 =C2=A0 u16 w;
 > +
-> +	val = twl4030_madc_read(madc, madc->imr);
-> +	val &= ~(1 << id);
-> +	twl4030_madc_write(madc, madc->imr, val);
+> + =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CTRL);
+> + =C2=A0 =C2=A0 =C2=A0 if (unlikely(!(w & (1 << 3)))) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_WARNIN=
+G "Spurious LCD DMA IRQ\n");
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return IRQ_NONE;
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 /* Ack the IRQ */
+> + =C2=A0 =C2=A0 =C2=A0 w |=3D (1 << 3);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.active =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 if (lcd_dma.callback !=3D NULL)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 lcd_dma.callback(w=
+, lcd_dma.cb_data);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 return IRQ_HANDLED;
 > +}
 > +
-> +static void twl4030_madc_disable_irq(struct twl4030_madc_data *madc, int id)
+> +int omap_request_lcd_dma(void (*callback)(u16 status, void *data),
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0void *data)
 > +{
-> +	u8 val;
+> + =C2=A0 =C2=A0 =C2=A0 spin_lock_irq(&lcd_dma.lock);
+> + =C2=A0 =C2=A0 =C2=A0 if (lcd_dma.reserved) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(&l=
+cd_dma.lock);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "L=
+CD DMA channel already reserved\n");
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -EBUSY;
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.reserved =3D 1;
+> + =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(&lcd_dma.lock);
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.callback =3D callback;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.cb_data =3D data;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.active =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.single_transfer =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.rotate =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.vxres =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.mirror =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.xscale =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.yscale =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.ext_ctrl =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.src_port =3D 0;
 > +
-> +	val = twl4030_madc_read(madc, madc->imr);
-> +	val |= (1 << id);
-> +	twl4030_madc_write(madc, madc->imr, val);
+> + =C2=A0 =C2=A0 =C2=A0 return 0;
+> +}
+> +EXPORT_SYMBOL(omap_request_lcd_dma);
+> +
+> +void omap_free_lcd_dma(void)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 spin_lock(&lcd_dma.lock);
+> + =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.reserved) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock(&lcd_d=
+ma.lock);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "L=
+CD DMA is not reserved\n");
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 if (!cpu_is_omap1510())
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(omap_r=
+eadw(OMAP1610_DMA_LCD_CCR) & ~1,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 OMAP1610_DMA_LCD_CCR);
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.reserved =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 spin_unlock(&lcd_dma.lock);
+> +}
+> +EXPORT_SYMBOL(omap_free_lcd_dma);
+> +
+> +void omap_enable_lcd_dma(void)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 u16 w;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 /*
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0* Set the Enable bit only if an external=
+ controller is
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0* connected. Otherwise the OMAP internal=
+ controller will
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0* start the transfer when it gets enable=
+d.
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap1510() || !lcd_dma.ext_ctrl)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CTRL);
+> + =C2=A0 =C2=A0 =C2=A0 w |=3D 1 << 8;
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.active =3D 1;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CCR);
+> + =C2=A0 =C2=A0 =C2=A0 w |=3D 1 << 7;
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CCR);
+> +}
+> +EXPORT_SYMBOL(omap_enable_lcd_dma);
+> +
+> +void omap_setup_lcd_dma(void)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 BUG_ON(lcd_dma.active);
+> + =C2=A0 =C2=A0 =C2=A0 if (!cpu_is_omap1510()) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Set some reason=
+able defaults */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(0x5440=
+, OMAP1610_DMA_LCD_CCR);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(0x9102=
+, OMAP1610_DMA_LCD_CSDP);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(0x0004=
+, OMAP1610_DMA_LCD_LCH_CTRL);
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 set_b1_regs();
+> + =C2=A0 =C2=A0 =C2=A0 if (!cpu_is_omap1510()) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 u16 w;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(O=
+MAP1610_DMA_LCD_CCR);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /*
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* If DMA was=
+ already active set the end_prog bit to have
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* the progra=
+mmed register set loaded into the active
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* register s=
+et.
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w |=3D 1 << 11; =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* End_prog */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.singl=
+e_transfer)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 w |=3D (3 << 8); =C2=A0/* Auto_init, repeat */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMA=
+P1610_DMA_LCD_CCR);
+> + =C2=A0 =C2=A0 =C2=A0 }
+> +}
+> +EXPORT_SYMBOL(omap_setup_lcd_dma);
+> +
+> +void omap_stop_lcd_dma(void)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 u16 w;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 lcd_dma.active =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap1510() || !lcd_dma.ext_ctrl)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CCR);
+> + =C2=A0 =C2=A0 =C2=A0 w &=3D ~(1 << 7);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CCR);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CTRL);
+> + =C2=A0 =C2=A0 =C2=A0 w &=3D ~(1 << 8);
+> + =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+> +}
+> +EXPORT_SYMBOL(omap_stop_lcd_dma);
+> +
+> +static int __init omap_init_lcd_dma(void)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 int r;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap16xx()) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 u16 w;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* this would prev=
+ent OMAP sleep */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(O=
+MAP1610_DMA_LCD_CTRL);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w &=3D ~(1 << 8);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMA=
+P1610_DMA_LCD_CTRL);
+> + =C2=A0 =C2=A0 =C2=A0 }
+> +
+> + =C2=A0 =C2=A0 =C2=A0 spin_lock_init(&lcd_dma.lock);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 r =3D request_irq(INT_DMA_LCD, lcd_dma_irq_han=
+dler, 0,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 "LCD DMA", NULL);
+> + =C2=A0 =C2=A0 =C2=A0 if (r !=3D 0)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "u=
+nable to request IRQ for LCD DMA "
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0"(error %d)\n", r);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 return r;
 > +}
 > +
-> +static irqreturn_t twl4030_madc_irq_handler(int irq, void *_madc)
-> +{
-> +	struct twl4030_madc_data *madc = _madc;
-> +	u8 isr_val, imr_val;
-> +	int i;
+> +arch_initcall(omap_init_lcd_dma);
 > +
-> +#ifdef CONFIG_LOCKDEP
-> +	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
-> +	 * we don't want and can't tolerate.  Although it might be
-> +	 * friendlier not to borrow this thread context...
-> +	 */
-> +	local_irq_enable();
+> diff -uprN git.orig/arch/arm/plat-omap/dma.c git/arch/arm/plat-omap/d=
+ma.c
+> --- git.orig/arch/arm/plat-omap/dma.c =C2=A0 2009-11-27 11:53:45.0000=
+00000 +0100
+> +++ git/arch/arm/plat-omap/dma.c =C2=A0 =C2=A0 =C2=A0 =C2=A02009-11-2=
+7 12:21:49.000000000 +0100
+> @@ -47,7 +47,6 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTS
+> =C2=A0#endif
+>
+> =C2=A0#define OMAP_DMA_ACTIVE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A00x01
+> -#define OMAP_DMA_CCR_EN =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(1 << 7)
+> =C2=A0#define OMAP2_DMA_CSR_CLEAR_MASK =C2=A0 =C2=A0 =C2=A0 0xffe
+>
+> =C2=A0#define OMAP_FUNC_MUX_ARM_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 (0xf=
+ffe1000 + 0xec)
+> @@ -1120,17 +1119,8 @@ int omap_dma_running(void)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0int lch;
+>
+> - =C2=A0 =C2=A0 =C2=A0 /*
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0* On OMAP1510, internal LCD controller w=
+ill start the transfer
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0* when it gets enabled, so assume DMA ru=
+nning if LCD enabled.
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> - =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap1510())
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (omap_readw(0xf=
+ffec000 + 0x00) & (1 << 0))
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 return 1;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 /* Check if LCD DMA is running */
+> - =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap16xx())
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (omap_readw(OMA=
+P1610_DMA_LCD_CCR) & OMAP_DMA_CCR_EN)
+> + =C2=A0 =C2=A0 =C2=A0 if (cpu_class_is_omap1())
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (omap_lcd_dma_r=
+unning())
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0return 1;
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (lch =3D 0; lch < dma_chan_count; lch+=
++)
+> @@ -1990,377 +1980,6 @@ static struct irqaction omap24xx_dma_irq
+>
+> =C2=A0/*-------------------------------------------------------------=
+---------------*/
+>
+> -static struct lcd_dma_info {
+> - =C2=A0 =C2=A0 =C2=A0 spinlock_t lock;
+> - =C2=A0 =C2=A0 =C2=A0 int reserved;
+> - =C2=A0 =C2=A0 =C2=A0 void (*callback)(u16 status, void *data);
+> - =C2=A0 =C2=A0 =C2=A0 void *cb_data;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 int active;
+> - =C2=A0 =C2=A0 =C2=A0 unsigned long addr, size;
+> - =C2=A0 =C2=A0 =C2=A0 int rotate, data_type, xres, yres;
+> - =C2=A0 =C2=A0 =C2=A0 int vxres;
+> - =C2=A0 =C2=A0 =C2=A0 int mirror;
+> - =C2=A0 =C2=A0 =C2=A0 int xscale, yscale;
+> - =C2=A0 =C2=A0 =C2=A0 int ext_ctrl;
+> - =C2=A0 =C2=A0 =C2=A0 int src_port;
+> - =C2=A0 =C2=A0 =C2=A0 int single_transfer;
+> -} lcd_dma;
+> -
+> -void omap_set_lcd_dma_b1(unsigned long addr, u16 fb_xres, u16 fb_yre=
+s,
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0int data_type)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.addr =3D addr;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.data_type =3D data_type;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.xres =3D fb_xres;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.yres =3D fb_yres;
+> -}
+> -EXPORT_SYMBOL(omap_set_lcd_dma_b1);
+> -
+> -void omap_set_lcd_dma_src_port(int port)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.src_port =3D port;
+> -}
+> -
+> -void omap_set_lcd_dma_ext_controller(int external)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.ext_ctrl =3D external;
+> -}
+> -EXPORT_SYMBOL(omap_set_lcd_dma_ext_controller);
+> -
+> -void omap_set_lcd_dma_single_transfer(int single)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.single_transfer =3D single;
+> -}
+> -EXPORT_SYMBOL(omap_set_lcd_dma_single_transfer);
+> -
+> -void omap_set_lcd_dma_b1_rotation(int rotate)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 if (omap_dma_in_1510_mode()) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "D=
+MA rotation is not supported in 1510 mode\n");
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> - =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.rotate =3D rotate;
+> -}
+> -EXPORT_SYMBOL(omap_set_lcd_dma_b1_rotation);
+> -
+> -void omap_set_lcd_dma_b1_mirror(int mirror)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 if (omap_dma_in_1510_mode()) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "D=
+MA mirror is not supported in 1510 mode\n");
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> - =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.mirror =3D mirror;
+> -}
+> -EXPORT_SYMBOL(omap_set_lcd_dma_b1_mirror);
+> -
+> -void omap_set_lcd_dma_b1_vxres(unsigned long vxres)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 if (omap_dma_in_1510_mode()) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "D=
+MA virtual resulotion is not supported "
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "in 1510 mode\n");
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> - =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.vxres =3D vxres;
+> -}
+> -EXPORT_SYMBOL(omap_set_lcd_dma_b1_vxres);
+> -
+> -void omap_set_lcd_dma_b1_scale(unsigned int xscale, unsigned int ysc=
+ale)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 if (omap_dma_in_1510_mode()) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "D=
+MA scale is not supported in 1510 mode\n");
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> - =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.xscale =3D xscale;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.yscale =3D yscale;
+> -}
+> -EXPORT_SYMBOL(omap_set_lcd_dma_b1_scale);
+> -
+> -static void set_b1_regs(void)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 unsigned long top, bottom;
+> - =C2=A0 =C2=A0 =C2=A0 int es;
+> - =C2=A0 =C2=A0 =C2=A0 u16 w;
+> - =C2=A0 =C2=A0 =C2=A0 unsigned long en, fn;
+> - =C2=A0 =C2=A0 =C2=A0 long ei, fi;
+> - =C2=A0 =C2=A0 =C2=A0 unsigned long vxres;
+> - =C2=A0 =C2=A0 =C2=A0 unsigned int xscale, yscale;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 switch (lcd_dma.data_type) {
+> - =C2=A0 =C2=A0 =C2=A0 case OMAP_DMA_DATA_TYPE_S8:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 es =3D 1;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> - =C2=A0 =C2=A0 =C2=A0 case OMAP_DMA_DATA_TYPE_S16:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 es =3D 2;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> - =C2=A0 =C2=A0 =C2=A0 case OMAP_DMA_DATA_TYPE_S32:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 es =3D 4;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> - =C2=A0 =C2=A0 =C2=A0 default:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> - =C2=A0 =C2=A0 =C2=A0 }
+> -
+> - =C2=A0 =C2=A0 =C2=A0 vxres =3D lcd_dma.vxres ? lcd_dma.vxres : lcd_=
+dma.xres;
+> - =C2=A0 =C2=A0 =C2=A0 xscale =3D lcd_dma.xscale ? lcd_dma.xscale : 1=
+;
+> - =C2=A0 =C2=A0 =C2=A0 yscale =3D lcd_dma.yscale ? lcd_dma.yscale : 1=
+;
+> - =C2=A0 =C2=A0 =C2=A0 BUG_ON(vxres < lcd_dma.xres);
+> -
+> -#define PIXADDR(x, y) (lcd_dma.addr + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0\
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ((y) * vxres * ysc=
+ale + (x) * xscale) * es)
+> -#define PIXSTEP(sx, sy, dx, dy) (PIXADDR(dx, dy) - PIXADDR(sx, sy) -=
+ es + 1)
+> -
+> - =C2=A0 =C2=A0 =C2=A0 switch (lcd_dma.rotate) {
+> - =C2=A0 =C2=A0 =C2=A0 case 0:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.mirro=
+r) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(lcd_dma.xres - 1, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 /* 1510 DMA requires the bottom address to be 2 more
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0* than the actual last memory access location. */
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 if (omap_dma_in_1510_mode() &&
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 lcd_dma.data_type =3D=3D OMAP_DMA_D=
+ATA_TYPE_S32)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bottom =
++=3D 2;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 0, 1, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(lcd_dma.xres - 1, 0, 0, 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(lcd_dma.xres - 1, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(0, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(1, 0, 0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(0, 0, lcd_dma.xres - 1, 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 en =3D lcd_dma.xre=
+s;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fn =3D lcd_dma.yre=
+s;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> - =C2=A0 =C2=A0 =C2=A0 case 90:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.mirro=
+r) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(0, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(lcd_dma.xres - 1, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 1, 0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(0, 0, 1, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(lcd_dma.xres - 1, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 1, 0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(1, 0, 0, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 en =3D lcd_dma.yre=
+s;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fn =3D lcd_dma.xre=
+s;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> - =C2=A0 =C2=A0 =C2=A0 case 180:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.mirro=
+r) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(lcd_dma.xres - 1, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(1, 0, 0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(0, 1, lcd_dma.xres - 1, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(0, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(lcd_dma.xres - 1, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 0, 1, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(lcd_dma.xres - 1, 1, 0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 en =3D lcd_dma.xre=
+s;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fn =3D lcd_dma.yre=
+s;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> - =C2=A0 =C2=A0 =C2=A0 case 270:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.mirro=
+r) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(lcd_dma.xres - 1, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(0, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 0, 0, 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(1, lcd_dma.yres - 1, 0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 top =3D PIXADDR(0, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bottom =3D PIXADDR(lcd_dma.xres - 1, lcd_dma.yres - 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 ei =3D PIXSTEP(0, 0, 0, 1);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 fi =3D PIXSTEP(0, lcd_dma.yres - 1, 1, 0);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 en =3D lcd_dma.yre=
+s;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fn =3D lcd_dma.xre=
+s;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> - =C2=A0 =C2=A0 =C2=A0 default:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return; /* Suppres=
+s warning about uninitialized vars */
+> - =C2=A0 =C2=A0 =C2=A0 }
+> -
+> - =C2=A0 =C2=A0 =C2=A0 if (omap_dma_in_1510_mode()) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(top >>=
+ 16, OMAP1510_DMA_LCD_TOP_F1_U);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(top, O=
+MAP1510_DMA_LCD_TOP_F1_L);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(bottom=
+ >> 16, OMAP1510_DMA_LCD_BOT_F1_U);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(bottom=
+, OMAP1510_DMA_LCD_BOT_F1_L);
+> -
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> - =C2=A0 =C2=A0 =C2=A0 }
+> -
+> - =C2=A0 =C2=A0 =C2=A0 /* 1610 regs */
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(top >> 16, OMAP1610_DMA_LCD_TOP_B1=
+_U);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(top, OMAP1610_DMA_LCD_TOP_B1_L);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(bottom >> 16, OMAP1610_DMA_LCD_BOT=
+_B1_U);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(bottom, OMAP1610_DMA_LCD_BOT_B1_L)=
+;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(en, OMAP1610_DMA_LCD_SRC_EN_B1);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(fn, OMAP1610_DMA_LCD_SRC_FN_B1);
+> -
+> - =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CSDP);
+> - =C2=A0 =C2=A0 =C2=A0 w &=3D ~0x03;
+> - =C2=A0 =C2=A0 =C2=A0 w |=3D lcd_dma.data_type;
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CSDP);
+> -
+> - =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CTRL);
+> - =C2=A0 =C2=A0 =C2=A0 /* Always set the source port as SDRAM for now=
+*/
+> - =C2=A0 =C2=A0 =C2=A0 w &=3D ~(0x03 << 6);
+> - =C2=A0 =C2=A0 =C2=A0 if (lcd_dma.callback !=3D NULL)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w |=3D 1 << 1; =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Block interrupt enable */
+> - =C2=A0 =C2=A0 =C2=A0 else
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w &=3D ~(1 << 1);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+> -
+> - =C2=A0 =C2=A0 =C2=A0 if (!(lcd_dma.rotate || lcd_dma.mirror ||
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 lcd_dma.vxres || lcd_dma.=
+xscale || lcd_dma.yscale))
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CCR);
+> - =C2=A0 =C2=A0 =C2=A0 /* Set the double-indexed addressing mode */
+> - =C2=A0 =C2=A0 =C2=A0 w |=3D (0x03 << 12);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CCR);
+> -
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(ei, OMAP1610_DMA_LCD_SRC_EI_B1);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(fi >> 16, OMAP1610_DMA_LCD_SRC_FI_=
+B1_U);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(fi, OMAP1610_DMA_LCD_SRC_FI_B1_L);
+> -}
+> -
+> -static irqreturn_t lcd_dma_irq_handler(int irq, void *dev_id)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 u16 w;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CTRL);
+> - =C2=A0 =C2=A0 =C2=A0 if (unlikely(!(w & (1 << 3)))) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_WARNIN=
+G "Spurious LCD DMA IRQ\n");
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return IRQ_NONE;
+> - =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 /* Ack the IRQ */
+> - =C2=A0 =C2=A0 =C2=A0 w |=3D (1 << 3);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.active =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 if (lcd_dma.callback !=3D NULL)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 lcd_dma.callback(w=
+, lcd_dma.cb_data);
+> -
+> - =C2=A0 =C2=A0 =C2=A0 return IRQ_HANDLED;
+> -}
+> -
+> -int omap_request_lcd_dma(void (*callback)(u16 status, void *data),
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0void *data)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 spin_lock_irq(&lcd_dma.lock);
+> - =C2=A0 =C2=A0 =C2=A0 if (lcd_dma.reserved) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(&l=
+cd_dma.lock);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "L=
+CD DMA channel already reserved\n");
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -EBUSY;
+> - =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.reserved =3D 1;
+> - =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(&lcd_dma.lock);
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.callback =3D callback;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.cb_data =3D data;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.active =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.single_transfer =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.rotate =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.vxres =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.mirror =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.xscale =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.yscale =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.ext_ctrl =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.src_port =3D 0;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 return 0;
+> -}
+> -EXPORT_SYMBOL(omap_request_lcd_dma);
+> -
+> -void omap_free_lcd_dma(void)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 spin_lock(&lcd_dma.lock);
+> - =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.reserved) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock(&lcd_d=
+ma.lock);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_ERR "L=
+CD DMA is not reserved\n");
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> - =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 if (!enable_1510_mode)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(omap_r=
+eadw(OMAP1610_DMA_LCD_CCR) & ~1,
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 OMAP1610_DMA_LCD_CCR);
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.reserved =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 spin_unlock(&lcd_dma.lock);
+> -}
+> -EXPORT_SYMBOL(omap_free_lcd_dma);
+> -
+> -void omap_enable_lcd_dma(void)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 u16 w;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 /*
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0* Set the Enable bit only if an external=
+ controller is
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0* connected. Otherwise the OMAP internal=
+ controller will
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0* start the transfer when it gets enable=
+d.
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> - =C2=A0 =C2=A0 =C2=A0 if (enable_1510_mode || !lcd_dma.ext_ctrl)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CTRL);
+> - =C2=A0 =C2=A0 =C2=A0 w |=3D 1 << 8;
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+> -
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.active =3D 1;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CCR);
+> - =C2=A0 =C2=A0 =C2=A0 w |=3D 1 << 7;
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CCR);
+> -}
+> -EXPORT_SYMBOL(omap_enable_lcd_dma);
+> -
+> -void omap_setup_lcd_dma(void)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 BUG_ON(lcd_dma.active);
+> - =C2=A0 =C2=A0 =C2=A0 if (!enable_1510_mode) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Set some reason=
+able defaults */
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(0x5440=
+, OMAP1610_DMA_LCD_CCR);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(0x9102=
+, OMAP1610_DMA_LCD_CSDP);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(0x0004=
+, OMAP1610_DMA_LCD_LCH_CTRL);
+> - =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 set_b1_regs();
+> - =C2=A0 =C2=A0 =C2=A0 if (!enable_1510_mode) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 u16 w;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(O=
+MAP1610_DMA_LCD_CCR);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /*
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* If DMA was=
+ already active set the end_prog bit to have
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* the progra=
+mmed register set loaded into the active
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* register s=
+et.
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 w |=3D 1 << 11; =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* End_prog */
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!lcd_dma.singl=
+e_transfer)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 w |=3D (3 << 8); =C2=A0/* Auto_init, repeat */
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMA=
+P1610_DMA_LCD_CCR);
+> - =C2=A0 =C2=A0 =C2=A0 }
+> -}
+> -EXPORT_SYMBOL(omap_setup_lcd_dma);
+> -
+> -void omap_stop_lcd_dma(void)
+> -{
+> - =C2=A0 =C2=A0 =C2=A0 u16 w;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 lcd_dma.active =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 if (enable_1510_mode || !lcd_dma.ext_ctrl)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CCR);
+> - =C2=A0 =C2=A0 =C2=A0 w &=3D ~(1 << 7);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CCR);
+> -
+> - =C2=A0 =C2=A0 =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CTRL);
+> - =C2=A0 =C2=A0 =C2=A0 w &=3D ~(1 << 8);
+> - =C2=A0 =C2=A0 =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+> -}
+> -EXPORT_SYMBOL(omap_stop_lcd_dma);
+> -
+> =C2=A0void omap_dma_global_context_save(void)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_dma_global_context.dma_irqenable_l0 =3D
+> @@ -2465,14 +2084,6 @@ static int __init omap_init_dma(void)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0dma_chan_count =3D 16;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0} else
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0dma_chan_count =3D 9;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap16x=
+x()) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 u16 w;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 /* this would prevent OMAP sleep */
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 w =3D omap_readw(OMAP1610_DMA_LCD_CTRL);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 w &=3D ~(1 << 8);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else if (cpu_class_is_omap2()) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0u8 revision =3D=
+ dma_read(REVISION) & 0xff;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0printk(KERN_IN=
+=46O "OMAP DMA hardware revision %d.%d\n",
+> @@ -2483,7 +2094,6 @@ static int __init omap_init_dma(void)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> - =C2=A0 =C2=A0 =C2=A0 spin_lock_init(&lcd_dma.lock);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0spin_lock_init(&dma_chan_lock);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (ch =3D 0; ch < dma_chan_count; ch++) =
+{
+> @@ -2548,22 +2158,6 @@ static int __init omap_init_dma(void)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> -
+> - =C2=A0 =C2=A0 =C2=A0 /* FIXME: Update LCD DMA to work on 24xx */
+> - =C2=A0 =C2=A0 =C2=A0 if (cpu_class_is_omap1()) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 r =3D request_irq(=
+INT_DMA_LCD, lcd_dma_irq_handler, 0,
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "LCD DMA", NULL);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (r !=3D 0) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 int i;
+> -
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 printk(KERN_ERR "unable to request IRQ for LCD DMA "
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0"(error %d)\n", r);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 for (i =3D 0; i < dma_chan_count; i++)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 free_irq(omap1_dma_irq[i], (void *)=
+ (i + 1));
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 goto out_free;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> - =C2=A0 =C2=A0 =C2=A0 }
+> -
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
+>
+> =C2=A0out_free:
+> diff -uprN git.orig/arch/arm/plat-omap/include/plat/dma.h git/arch/ar=
+m/plat-omap/include/plat/dma.h
+> --- git.orig/arch/arm/plat-omap/include/plat/dma.h =C2=A0 =C2=A0 =C2=A0=
+2009-11-27 11:53:45.000000000 +0100
+> +++ git/arch/arm/plat-omap/include/plat/dma.h =C2=A0 2009-11-27 12:28=
+:22.000000000 +0100
+> @@ -401,33 +401,6 @@
+>
+> =C2=A0/*-------------------------------------------------------------=
+---------------*/
+>
+> -/* Hardware registers for LCD DMA */
+> -#define OMAP1510_DMA_LCD_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(0xf=
+ffedb00)
+> -#define OMAP1510_DMA_LCD_CTRL =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(OMA=
+P1510_DMA_LCD_BASE + 0x00)
+> -#define OMAP1510_DMA_LCD_TOP_F1_L =C2=A0 =C2=A0 =C2=A0(OMAP1510_DMA_=
+LCD_BASE + 0x02)
+> -#define OMAP1510_DMA_LCD_TOP_F1_U =C2=A0 =C2=A0 =C2=A0(OMAP1510_DMA_=
+LCD_BASE + 0x04)
+> -#define OMAP1510_DMA_LCD_BOT_F1_L =C2=A0 =C2=A0 =C2=A0(OMAP1510_DMA_=
+LCD_BASE + 0x06)
+> -#define OMAP1510_DMA_LCD_BOT_F1_U =C2=A0 =C2=A0 =C2=A0(OMAP1510_DMA_=
+LCD_BASE + 0x08)
+> -
+> -#define OMAP1610_DMA_LCD_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(0xf=
+ffee300)
+> -#define OMAP1610_DMA_LCD_CSDP =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(OMA=
+P1610_DMA_LCD_BASE + 0xc0)
+> -#define OMAP1610_DMA_LCD_CCR =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (OMA=
+P1610_DMA_LCD_BASE + 0xc2)
+> -#define OMAP1610_DMA_LCD_CTRL =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(OMA=
+P1610_DMA_LCD_BASE + 0xc4)
+> -#define OMAP1610_DMA_LCD_TOP_B1_L =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xc8)
+> -#define OMAP1610_DMA_LCD_TOP_B1_U =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xca)
+> -#define OMAP1610_DMA_LCD_BOT_B1_L =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xcc)
+> -#define OMAP1610_DMA_LCD_BOT_B1_U =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xce)
+> -#define OMAP1610_DMA_LCD_TOP_B2_L =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xd0)
+> -#define OMAP1610_DMA_LCD_TOP_B2_U =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xd2)
+> -#define OMAP1610_DMA_LCD_BOT_B2_L =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xd4)
+> -#define OMAP1610_DMA_LCD_BOT_B2_U =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xd6)
+> -#define OMAP1610_DMA_LCD_SRC_EI_B1 =C2=A0 =C2=A0 (OMAP1610_DMA_LCD_B=
+ASE + 0xd8)
+> -#define OMAP1610_DMA_LCD_SRC_FI_B1_L =C2=A0 (OMAP1610_DMA_LCD_BASE +=
+ 0xda)
+> -#define OMAP1610_DMA_LCD_SRC_EN_B1 =C2=A0 =C2=A0 (OMAP1610_DMA_LCD_B=
+ASE + 0xe0)
+> -#define OMAP1610_DMA_LCD_SRC_FN_B1 =C2=A0 =C2=A0 (OMAP1610_DMA_LCD_B=
+ASE + 0xe4)
+> -#define OMAP1610_DMA_LCD_LCH_CTRL =C2=A0 =C2=A0 =C2=A0(OMAP1610_DMA_=
+LCD_BASE + 0xea)
+> -#define OMAP1610_DMA_LCD_SRC_FI_B1_U =C2=A0 (OMAP1610_DMA_LCD_BASE +=
+ 0xf4)
+> -
+> =C2=A0#define OMAP1_DMA_TOUT_IRQ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 (1 << 0)
+> =C2=A0#define OMAP_DMA_DROP_IRQ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0(1 << 1)
+> =C2=A0#define OMAP_DMA_HALF_IRQ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0(1 << 2)
+> @@ -441,6 +414,8 @@
+> =C2=A0#define OMAP2_DMA_SUPERVISOR_ERR_IRQ =C2=A0 (1 << 10)
+> =C2=A0#define OMAP2_DMA_MISALIGNED_ERR_IRQ =C2=A0 (1 << 11)
+>
+> +#define OMAP_DMA_CCR_EN =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(1 << 7)
+> +
+> =C2=A0#define OMAP_DMA_DATA_TYPE_S8 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+0x00
+> =C2=A0#define OMAP_DMA_DATA_TYPE_S16 =C2=A0 =C2=A0 =C2=A0 =C2=A0 0x01
+> =C2=A0#define OMAP_DMA_DATA_TYPE_S32 =C2=A0 =C2=A0 =C2=A0 =C2=A0 0x02
+> @@ -503,14 +478,6 @@
+> =C2=A0#define DMA_CH_PRIO_HIGH =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 0x1
+> =C2=A0#define DMA_CH_PRIO_LOW =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A00x0 /* Def */
+>
+> -/* LCD DMA block numbers */
+> -enum {
+> - =C2=A0 =C2=A0 =C2=A0 OMAP_LCD_DMA_B1_TOP,
+> - =C2=A0 =C2=A0 =C2=A0 OMAP_LCD_DMA_B1_BOTTOM,
+> - =C2=A0 =C2=A0 =C2=A0 OMAP_LCD_DMA_B2_TOP,
+> - =C2=A0 =C2=A0 =C2=A0 OMAP_LCD_DMA_B2_BOTTOM
+> -};
+> -
+> =C2=A0enum omap_dma_burst_mode {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP_DMA_DATA_BURST_DIS =3D 0,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP_DMA_DATA_BURST_4,
+> @@ -661,20 +628,13 @@ extern int omap_modify_dma_chain_params(
+> =C2=A0extern int omap_dma_chain_status(int chain_id);
+> =C2=A0#endif
+>
+> -/* LCD DMA functions */
+> -extern int omap_request_lcd_dma(void (*callback)(u16 status, void *d=
+ata),
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 void *data);
+> -extern void omap_free_lcd_dma(void);
+> -extern void omap_setup_lcd_dma(void);
+> -extern void omap_enable_lcd_dma(void);
+> -extern void omap_stop_lcd_dma(void);
+> -extern void omap_set_lcd_dma_ext_controller(int external);
+> -extern void omap_set_lcd_dma_single_transfer(int single);
+> -extern void omap_set_lcd_dma_b1(unsigned long addr, u16 fb_xres, u16=
+ fb_yres,
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 int data_type);
+> -extern void omap_set_lcd_dma_b1_rotation(int rotate);
+> -extern void omap_set_lcd_dma_b1_vxres(unsigned long vxres);
+> -extern void omap_set_lcd_dma_b1_mirror(int mirror);
+> -extern void omap_set_lcd_dma_b1_scale(unsigned int xscale, unsigned =
+int yscale);
+> +#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_FB_OMAP)
+> +#include <mach/lcd_dma.h>
+> +#else
+> +static inline int omap_lcd_dma_running(void)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 return 0;
+> +}
 > +#endif
-I'm curious, what's special about madc so that it can't tolerate that ?
+>
+> =C2=A0#endif /* __ASM_ARCH_DMA_H */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 
-
-> +	/* Use COR to ack interrupts since we have no shared IRQs in ISRx */
-> +	isr_val = twl4030_madc_read(madc, madc->isr);
-> +	imr_val = twl4030_madc_read(madc, madc->imr);
-> +
-> +	isr_val &= ~imr_val;
-> +
-> +	for (i = 0; i < TWL4030_MADC_NUM_METHODS; i++) {
-> +
-> +		if (!(isr_val & (1<<i)))
-> +			continue;
-> +
-> +		twl4030_madc_disable_irq(madc, i);
-> +		madc->requests[i].result_pending = 1;
-> +	}
-> +
-> +	schedule_work(&madc->ws);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static void twl4030_madc_work(struct work_struct *ws)
-> +{
-> +	const struct twl4030_madc_conversion_method *method;
-> +	struct twl4030_madc_data *madc;
-> +	struct twl4030_madc_request *r;
-> +	int len, i;
-> +
-> +	madc = container_of(ws, struct twl4030_madc_data, ws);
-> +	mutex_lock(&madc->lock);
-> +
-> +	for (i = 0; i < TWL4030_MADC_NUM_METHODS; i++) {
-> +
-> +		r = &madc->requests[i];
-> +
-> +		/* No pending results for this method, move to next one */
-> +		if (!r->result_pending)
-> +			continue;
-> +
-> +		method = &twl4030_conversion_methods[r->method];
-> +
-> +		/* Read results */
-> +		len = twl4030_madc_read_channels(madc, method->rbase,
-> +						 r->channels, r->rbuf);
-> +
-> +		/* Return results to caller */
-> +		if (r->func_cb != NULL) {
-> +			r->func_cb(len, r->channels, r->rbuf);
-> +			r->func_cb = NULL;
-> +		}
-> +
-> +		/* Free request */
-> +		r->result_pending = 0;
-> +		r->active	  = 0;
-> +	}
-> +
-> +	mutex_unlock(&madc->lock);
-> +}
-I think you may want to consider using a threaded irq here, see
-request_threaded_irq().
-
-
-> +static int twl4030_madc_set_irq(struct twl4030_madc_data *madc,
-> +		struct twl4030_madc_request *req)
-> +{
-> +	struct twl4030_madc_request *p;
-> +
-> +	p = &madc->requests[req->method];
-> +
-> +	memcpy(p, req, sizeof *req);
-> +
-> +	twl4030_madc_enable_irq(madc, req->method);
-> +
-> +	return 0;
-> +}
-> +
-> +static inline void twl4030_madc_start_conversion(struct twl4030_madc_data *madc,
-> +		int conv_method)
-> +{
-> +	const struct twl4030_madc_conversion_method *method;
-> +
-> +	method = &twl4030_conversion_methods[conv_method];
-> +
-> +	switch (conv_method) {
-> +	case TWL4030_MADC_SW1:
-> +	case TWL4030_MADC_SW2:
-> +		twl4030_madc_write(madc, method->ctrl, TWL4030_MADC_SW_START);
-> +		break;
-> +	case TWL4030_MADC_RT:
-> +	default:
-> +		break;
-> +	}
-> +}
-> +
-> +static int twl4030_madc_wait_conversion_ready(
-> +		struct twl4030_madc_data *madc,
-> +		unsigned int timeout_ms, u8 status_reg)
-> +{
-> +	unsigned long timeout;
-> +
-> +	timeout = jiffies + msecs_to_jiffies(timeout_ms);
-> +	do {
-> +		int reg;
-> +
-> +		reg = twl4030_madc_read(madc, status_reg);
-> +		if (unlikely(reg < 0))
-> +			return reg;
-> +		if (!(reg & TWL4030_MADC_BUSY) && (reg & TWL4030_MADC_EOC_SW))
-> +			return 0;
-> +	} while (!time_after(jiffies, timeout));
-> +
-> +	return -EAGAIN;
-> +}
-> +
-> +static int twl4030_madc_set_power(struct twl4030_madc_data *madc, int on);
-> +int twl4030_madc_conversion(struct twl4030_madc_request *req)
-> +{
-> +	const struct twl4030_madc_conversion_method *method;
-> +	u8 ch_msb, ch_lsb;
-> +	int ret;
-> +
-> +	if (unlikely(!req))
-> +		return -EINVAL;
-> +
-> +	mutex_lock(&the_madc->lock);
-> +
-> +	twl4030_madc_set_power(the_madc, 1);
-> +
-> +	/* Do we have a conversion request ongoing */
-> +	if (the_madc->requests[req->method].active) {
-> +		ret = -EBUSY;
-> +		goto out;
-> +	}
-> +
-> +	ch_msb = (req->channels >> 8) & 0xff;
-> +	ch_lsb = req->channels & 0xff;
-> +
-> +	method = &twl4030_conversion_methods[req->method];
-> +
-> +	/* Select channels to be converted */
-> +	twl4030_madc_write(the_madc, method->sel + 1, ch_msb);
-> +	twl4030_madc_write(the_madc, method->sel, ch_lsb);
-> +
-> +	/* Select averaging for all channels if do_avg is set */
-> +	if (req->do_avg) {
-> +		twl4030_madc_write(the_madc, method->avg + 1, ch_msb);
-> +		twl4030_madc_write(the_madc, method->avg, ch_lsb);
-> +	}
-> +
-> +	if ((req->type == TWL4030_MADC_IRQ_ONESHOT) && (req->func_cb != NULL)) {
-> +		twl4030_madc_set_irq(the_madc, req);
-> +		twl4030_madc_start_conversion(the_madc, req->method);
-> +		the_madc->requests[req->method].active = 1;
-> +		ret = 0;
-> +		goto out;
-> +	}
-> +
-> +	/* With RT method we should not be here anymore */
-> +	if (req->method == TWL4030_MADC_RT) {
-> +		ret = -EINVAL;
-> +		goto out;
-> +	}
-> +
-> +	twl4030_madc_start_conversion(the_madc, req->method);
-> +	the_madc->requests[req->method].active = 1;
-> +
-> +	/* Wait until conversion is ready (ctrl register returns EOC) */
-> +	ret = twl4030_madc_wait_conversion_ready(the_madc, 5, method->ctrl);
-So, you're busy looping with all conversions ? I have no idea how often this
-is called, but putting the caller to sleep on e.g. a waitqueue would be more
-elegant.
-
-
-> +	if (ret) {
-> +		dev_dbg(the_madc->dev, "conversion timeout!\n");
-> +		the_madc->requests[req->method].active = 0;
-> +		goto out;
-> +	}
-> +
-> +	ret = twl4030_madc_read_channels(the_madc, method->rbase, req->channels,
-> +					 req->rbuf);
-> +
-> +	the_madc->requests[req->method].active = 0;
-> +
-> +	twl4030_madc_set_power(the_madc, 0);
-> +
-> +out:
-> +	mutex_unlock(&the_madc->lock);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL(twl4030_madc_conversion);
-Who's supposed to use this one ?
-
-
-> +static int twl4030_madc_set_current_generator(struct twl4030_madc_data *madc,
-> +		int chan, int on)
-> +{
-> +	int ret;
-> +	u8 regval;
-> +
-> +	/* Current generator is only available for ADCIN0 and ADCIN1. NB:
-> +	 * ADCIN1 current generator only works when AC or VBUS is present */
-> +	if (chan > 1)
-> +		return EINVAL;
-> +
-> +	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
-> +				  &regval, TWL4030_BCI_BCICTL1);
-> +	if (ret) {
-> +		dev_dbg(madc->dev, "unable to read register 0x%X\n", TWL4030_BCI_BCICTL1);
-> +		return ret;
-> +	}
-> +
-> +	if (on) {
-> +		regval |= (chan) ? TWL4030_BCI_ITHEN : TWL4030_BCI_TYPEN;
-> +		regval |= TWL4030_BCI_MESBAT;
-> +	}
-> +	else {
-> +		regval &= (chan) ? ~TWL4030_BCI_ITHEN : ~TWL4030_BCI_TYPEN;
-> +		regval &= ~TWL4030_BCI_MESBAT;
-> +	}
-> +
-> +	ret = twl4030_i2c_write_u8(TWL4030_MODULE_MAIN_CHARGE,
-> +				   regval, TWL4030_BCI_BCICTL1);
-> +	if (ret) {
-> +		dev_dbg(madc->dev, "unable to write register 0x%X\n", TWL4030_BCI_BCICTL1);
-> +	}
-> +	return ret;
-> +}
-> +
-> +static int twl4030_madc_set_power(struct twl4030_madc_data *madc, int on)
-> +{
-> +	int ret = 0;
-> +	u8 regval;
-> +
-> +	if (on) {
-> +		regval = twl4030_madc_read(madc, TWL4030_MADC_CTRL1);
-> +		regval |= TWL4030_MADC_MADCON;
-> +		twl4030_madc_write(madc, TWL4030_MADC_CTRL1, regval);
-> +
-> +		ret |= twl4030_madc_set_current_generator(madc, 0, 1);
-> +
-> +	} else {
-> +		ret |= twl4030_madc_set_current_generator(madc, 0, 0);
-> +
-> +		regval = twl4030_madc_read(madc, TWL4030_MADC_CTRL1);
-> +		regval &= ~TWL4030_MADC_MADCON;
-> +		twl4030_madc_write(madc, TWL4030_MADC_CTRL1, regval);
-> +	}
-> +	return ret;
-> +}
-> +
-> +static long twl4030_madc_ioctl(struct file *filp, unsigned int cmd,
-> +			       unsigned long arg)
-> +{
-> +	struct twl4030_madc_user_parms par;
-> +	int val, ret;
-> +
-> +	ret = copy_from_user(&par, (void __user *) arg, sizeof(par));
-> +	if (ret) {
-> +		dev_dbg(the_madc->dev, "copy_from_user: %d\n", ret);
-> +		return -EACCES;
-> +	}
-> +
-> +	switch (cmd) {
-> +	case TWL4030_MADC_IOCX_ADC_RAW_READ: {
-> +		struct twl4030_madc_request req;
-> +		if (par.channel >= TWL4030_MADC_MAX_CHANNELS)
-> +			return -EINVAL;
-> +
-> +		req.channels = (1 << par.channel);
-> +		req.do_avg	= par.average;
-> +		req.method	= TWL4030_MADC_SW1;
-> +		req.func_cb	= NULL;
-> +		req.type	= TWL4030_MADC_WAIT;
-> +
-> +		val = twl4030_madc_conversion(&req);
-> +		if (likely(val > 0)) {
-> +			par.status = 0;
-> +			par.result = (u16)req.rbuf[par.channel];
-> +		} else if (val == 0) {
-> +			par.status = -ENODATA;
-> +		} else {
-> +			par.status = val;
-> +		}
-> +		break;
-> +					     }
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = copy_to_user((void __user *) arg, &par, sizeof(par));
-> +	if (ret) {
-> +		dev_dbg(the_madc->dev, "copy_to_user: %d\n", ret);
-> +		return -EACCES;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static struct file_operations twl4030_madc_fileops = {
-> +	.owner = THIS_MODULE,
-> +	.unlocked_ioctl = twl4030_madc_ioctl
-> +};
-> +
-> +static struct miscdevice twl4030_madc_device = {
-> +	.minor = MISC_DYNAMIC_MINOR,
-> +	.name = "twl4030-adc",
-> +	.fops = &twl4030_madc_fileops
-> +};
-> +
-> +static int __init twl4030_madc_probe(struct platform_device *pdev)
-> +{
-> +	struct twl4030_madc_data *madc;
-> +	struct twl4030_madc_platform_data *pdata = pdev->dev.platform_data;
-> +
-> +	int ret;
-> +	u8 regval;
-> +
-> +	madc = kzalloc(sizeof *madc, GFP_KERNEL);
-> +	if (!madc)
-> +		return -ENOMEM;
-> +
-> +	if (!pdata) {
-> +		dev_dbg(&pdev->dev, "platform_data not available\n");
-> +		ret = -EINVAL;
-> +		goto err_pdata;
-> +	}
-> +
-> +	madc->imr = (pdata->irq_line == 1) ? TWL4030_MADC_IMR1 : TWL4030_MADC_IMR2;
-> +	madc->isr = (pdata->irq_line == 1) ? TWL4030_MADC_ISR1 : TWL4030_MADC_ISR2;
-> +
-> +	ret = misc_register(&twl4030_madc_device);
-> +	if (ret) {
-> +		dev_dbg(&pdev->dev, "could not register misc_device\n");
-> +		goto err_misc;
-> +	}
-> +
-> +	ret = request_irq(platform_get_irq(pdev, 0), twl4030_madc_irq_handler,
-> +			  0, "twl4030_madc", madc);
-> +	if (ret) {
-> +		dev_dbg(&pdev->dev, "could not request irq\n");
-> +		goto err_irq;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, madc);
-> +	mutex_init(&madc->lock);
-> +	INIT_WORK(&madc->ws, twl4030_madc_work);
-> +
-> +	the_madc = madc;
-> +
-> +	return 0;
-> +
-> +err_irq:
-> +	misc_deregister(&twl4030_madc_device);
-> +
-> +err_misc:
-> +err_pdata:
-> +	kfree(madc);
-> +
-> +	return ret;
-> +}
-> +
-> +static int __exit twl4030_madc_remove(struct platform_device *pdev)
-> +{
-> +	struct twl4030_madc_data *madc = platform_get_drvdata(pdev);
-> +
-> +	free_irq(platform_get_irq(pdev, 0), madc);
-> +	cancel_work_sync(&madc->ws);
-> +	misc_deregister(&twl4030_madc_device);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver twl4030_madc_driver = {
-> +	.probe		= twl4030_madc_probe,
-> +	.remove		= __exit_p(twl4030_madc_remove),
-> +	.driver		= {
-> +		.name	= "twl4030_madc",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +};
-> +
-> +static int __init twl4030_madc_init(void)
-> +{
-> +	return platform_driver_register(&twl4030_madc_driver);
-> +}
-> +module_init(twl4030_madc_init);
-> +
-> +static void __exit twl4030_madc_exit(void)
-> +{
-> +	platform_driver_unregister(&twl4030_madc_driver);
-> +}
-> +module_exit(twl4030_madc_exit);
-> +
-> +MODULE_ALIAS("platform:twl4030-madc");
-> +MODULE_AUTHOR("Nokia Corporation");
-> +MODULE_DESCRIPTION("twl4030 ADC driver");
-> +MODULE_LICENSE("GPL");
-> +
-> diff --git a/include/linux/i2c/twl4030-madc.h b/include/linux/i2c/twl4030-madc.h
-> new file mode 100644
-> index 0000000..24523b5
-> --- /dev/null
-> +++ b/include/linux/i2c/twl4030-madc.h
-> @@ -0,0 +1,126 @@
-> +/*
-> + * include/linux/i2c/twl4030-madc.h
-> + *
-> + * TWL4030 MADC module driver header
-> + *
-> + * Copyright (C) 2008 Nokia Corporation
-> + * Mikko Ylinen <mikko.k.ylinen@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#ifndef _TWL4030_MADC_H
-> +#define _TWL4030_MADC_H
-> +
-> +struct twl4030_madc_conversion_method {
-> +	u8 sel;
-> +	u8 avg;
-> +	u8 rbase;
-> +	u8 ctrl;
-> +};
-> +
-> +#define TWL4030_MADC_MAX_CHANNELS 16
-> +
-> +struct twl4030_madc_request {
-> +	u16 channels;
-> +	u16 do_avg;
-> +	u16 method;
-> +	u16 type;
-> +	int active;
-> +	int result_pending;
-active and result_pending can be bool.
-
-Cheers,
-Samuel. 
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Marek
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
