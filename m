@@ -1,74 +1,73 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH-v6 0/4] OMAP: Adding flash support to SDP, ZOOM2 and
- LDP boards
-Date: Fri, 27 Nov 2009 09:37:21 +0200
-Message-ID: <1259307441.7518.6.camel@localhost>
-References: <63751.192.168.10.88.1252582264.squirrel@dbdmail.itg.ti.com>
-	 <ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
-	 <ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
-	 <ce9ab5790911040328p215dede2v37db38a966a5bbd5@mail.gmail.com>
-	 <20091109205250.GB23952@atomide.com>
-	 <ce9ab5790911100201j6b1ef5e1g43a992b00e69ade4@mail.gmail.com>
-	 <ce9ab5790911190608r5b7e8226j3546714957ce70e6@mail.gmail.com>
-	 <1259075173.29118.20.camel@localhost>
-	 <ce9ab5790911240725x29b8bd6eq9f9c7a8b21c6786e@mail.gmail.com>
-Reply-To: dedekind1@gmail.com
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: Re: [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume hang
+Date: Fri, 27 Nov 2009 13:37:54 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC33B6@dbde02.ent.ti.com>
+References: <1259154631-15251-1-git-send-email-anuj.aggarwal@ti.com>
+	<4B0D9212.1060805@boundarydevices.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030AAC2F86@dbde02.ent.ti.com>
+	<20091126102230.GB27562@rakim.wolfsonmicro.main>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030AAC3291@dbde02.ent.ti.com>
+	<20091126151121.GC9351@rakim.wolfsonmicro.main>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030AAC329C@dbde02.ent.ti.com>
+	<20091126152933.GD9351@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:62628 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739AbZK0Hhd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Nov 2009 02:37:33 -0500
-In-Reply-To: <ce9ab5790911240725x29b8bd6eq9f9c7a8b21c6786e@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091126152933.GD9351@rakim.wolfsonmicro.main>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arun KS <arunks@mistralsolutions.com>, 'Troy Kisky' <troy.kisky@boundarydevices.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, vimal singh <vimalsingh@ti.com>
 
-On Tue, 2009-11-24 at 20:55 +0530, Vimal Singh wrote:
-> On Tue, Nov 24, 2009 at 8:36 PM, Artem Bityutskiy <dedekind1@gmail.co=
-m> wrote:
-> > On Thu, 2009-11-19 at 19:38 +0530, Vimal Singh wrote:
-> >> Here is the v6 of this patch series. I am cc'ing mtd list too this=
- time.
-> >>
-> >>
-> >> From 8bc97108cf9c78216f1ea5407ccbd900e6b63dc2 Mon Sep 17 00:00:00 =
-2001
-> >> From: Vimal Singh <vimalsingh@ti.com>
-> >> Date: Thu, 19 Nov 2009 19:28:11 +0530
-> >>
-> >> This patch series adds flash support for NAND (in sdp, zoom and ld=
-p),
-> >> OneNAND and NOR (in sdp)
-> >>
-> >> Tested on Zoom2 and 3430SDP
-> >>
-> >> Vimal Singh (4):
-> >> [PATCH-v6 1/4] OMAP2/3: Add support for flash on SDP boards
-> >> [PATCH-v6 2/4] OMAP3: Add support for NAND on ZOOM/LDP boards
-> >> [PATCH-v6 3/4] OMAP: Zoom2: Enable NAND and JFFS2 support in defco=
-nfig
-> >> [PATCH-v6 4/4] OMAP: 3430SDP: Enable NAND in defconfig
-> >
-> > Is it possible to separate the MTD and OMAP parts?
->=20
-> 1st patch does migration of gpmc low level calls from omap2.c to gpmc=
--nand.c.
-> I am not sure how we can have separate patches for this.
-
-Ok. It looks like you intend to merge this stuff via linux-omap, which
-seems right.
-
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
+> Sent: Thursday, November 26, 2009 9:00 PM
+> To: Aggarwal, Anuj
+> Cc: 'Troy Kisky'; alsa-devel@alsa-project.org; linux-omap@vger.kernel.org;
+> Arun KS
+> Subject: Re: [alsa-devel] [PATCH] ASoC: AM3517: Fix AIC23 suspend/resume
+> hang
+> 
+> On Thu, Nov 26, 2009 at 08:52:08PM +0530, Aggarwal, Anuj wrote:
+> 
+> > [Aggarwal, Anuj] I am still surprised how this could be a NFS writeout
+> issue
+> > as we are seeing a consistent read/write rate of 2Mbps over tftp. When
+> dd
+> > command is used for read/write to further check NFS performance, 2Mbps
+> for write and 4Mbps for read is observed.
+> > Does that still mean nfs is the culprit? What could be tweaked in
+> audio/network driver to avoid this problem, any suggestions?
+> 
+> There can also be issues with the way the data gets pushed into NFS
+> interacting poorly - it's not just the raw data rate that's in play
+> here, it's also things like how often the writes are done and how big
+> they are.  Possibly also overhead from interacting with the ethernet
+> chip but that's not normally an issue for anything modern.
+> 
+> The fact that this only happens when NFS is in use seems a fairly clear
+> pointer to an interacton there.
+[Aggarwal, Anuj] We were able to fine tune NFS and use arecord to capture
+large files. But some more problems cropped up when tried to suspend /
+resume. Basic playback is working fine wrt suspend/resume. But capture,
+either tried independently or with playback, is creating a system wide
+hang. I fixed that infinite-loop in resume path but I believe something
+else needs cleanup too.
+Any pointers? 
+> 
+> > [Aggarwal, Anuj] Any other utility to try capture which does error
+> > recovering too?
+> 
+> Not for the console off the top of my head, and TBH I don't really know
+> how good the error handling is in the various apps.  You could also try
+> playing with the buffer size options in arecord.
