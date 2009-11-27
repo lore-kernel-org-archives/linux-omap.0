@@ -1,66 +1,74 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC] [PATCH] OMAP: DMA: move LCD DMA related code from plat-omap
- to mach-omap1 (Re: [PATCH] OMAP1: PM: Fix omapfb/lcd on Amstrad Delta broken
- when PM set)
-Date: Fri, 27 Nov 2009 00:01:24 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0911270000020.984@utopia.booyaka.com>
-References: <200910292339.48610.jkrzyszt@tis.icnet.pl> <200911252357.10812.jkrzyszt@tis.icnet.pl> <alpine.DEB.2.00.0911251905590.19371@utopia.booyaka.com> <200911261530.45612.jkrzyszt@tis.icnet.pl>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH-v6 0/4] OMAP: Adding flash support to SDP, ZOOM2 and
+ LDP boards
+Date: Fri, 27 Nov 2009 09:37:21 +0200
+Message-ID: <1259307441.7518.6.camel@localhost>
+References: <63751.192.168.10.88.1252582264.squirrel@dbdmail.itg.ti.com>
+	 <ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
+	 <ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
+	 <ce9ab5790911040328p215dede2v37db38a966a5bbd5@mail.gmail.com>
+	 <20091109205250.GB23952@atomide.com>
+	 <ce9ab5790911100201j6b1ef5e1g43a992b00e69ade4@mail.gmail.com>
+	 <ce9ab5790911190608r5b7e8226j3546714957ce70e6@mail.gmail.com>
+	 <1259075173.29118.20.camel@localhost>
+	 <ce9ab5790911240725x29b8bd6eq9f9c7a8b21c6786e@mail.gmail.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1017755281-1259305284=:984"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56263 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798AbZK0HBT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Nov 2009 02:01:19 -0500
-In-Reply-To: <200911261530.45612.jkrzyszt@tis.icnet.pl>
+Received: from smtp.nokia.com ([192.100.122.233]:62628 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739AbZK0Hhd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Nov 2009 02:37:33 -0500
+In-Reply-To: <ce9ab5790911240725x29b8bd6eq9f9c7a8b21c6786e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, vimal singh <vimalsingh@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---155748971-1017755281-1259305284=:984
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-On Thu, 26 Nov 2009, Janusz Krzysztofik wrote:
-
-> Thursday 26 November 2009 03:08:30 Paul Walmsley napisa=C5=82(a):
-> > On Wed, 25 Nov 2009, Janusz Krzysztofik wrote:
-> > > It turned out not that simple. Since arch/arm/mach-omap1/lcd_dma.c
-> > > exports several functions that are called unconditionaly from
-> > > drivers/video/omap/lcdc.c AND the latter is linked into the omapfb
-> > > driver based on CONFIG_ARCH_OMAP1=3Dy, linking in the former can't be
-> > > limited to selected OMAP1 subarchs unless at least
-> > > drivers/video/omap/{Kconfig,Makefile}, if not drivers/video/omap/lcdc=
-=2Ec
-> > > itself either, are modified for that as well. Am I missing something?
-> > >
-> > > If not, I can see two options:
-> > > 1. Keep arch/arm/mach-omap1/lcd_dma.c linked in for any OMAP1 subarch
-> > > unless CONFIG_FB_OMAP is not set. That can be cleaned up further afte=
-r
-> > > the drivers/video/omap/* stuff is ever modified.
-> > > 2. Include drivers/video/omap/* modifications into this series.
-> > >
-> > > What do you suggest?
+On Tue, 2009-11-24 at 20:55 +0530, Vimal Singh wrote:
+> On Tue, Nov 24, 2009 at 8:36 PM, Artem Bityutskiy <dedekind1@gmail.co=
+m> wrote:
+> > On Thu, 2009-11-19 at 19:38 +0530, Vimal Singh wrote:
+> >> Here is the v6 of this patch series. I am cc'ing mtd list too this=
+ time.
+> >>
+> >>
+> >> From 8bc97108cf9c78216f1ea5407ccbd900e6b63dc2 Mon Sep 17 00:00:00 =
+2001
+> >> From: Vimal Singh <vimalsingh@ti.com>
+> >> Date: Thu, 19 Nov 2009 19:28:11 +0530
+> >>
+> >> This patch series adds flash support for NAND (in sdp, zoom and ld=
+p),
+> >> OneNAND and NOR (in sdp)
+> >>
+> >> Tested on Zoom2 and 3430SDP
+> >>
+> >> Vimal Singh (4):
+> >> [PATCH-v6 1/4] OMAP2/3: Add support for flash on SDP boards
+> >> [PATCH-v6 2/4] OMAP3: Add support for NAND on ZOOM/LDP boards
+> >> [PATCH-v6 3/4] OMAP: Zoom2: Enable NAND and JFFS2 support in defco=
+nfig
+> >> [PATCH-v6 4/4] OMAP: 3430SDP: Enable NAND in defconfig
 > >
-> > Let's take option 1 for right now.  Maybe one of the htcwizard people
-> > might take that project up after the LCD DMA split is merged.
+> > Is it possible to separate the MTD and OMAP parts?
 >=20
-> I probably missed a third option: conditionally replacing declarations of=
-=20
-> those functions required by lcdc.c with coresponding fake static inline=
-=20
-> definitions inside an #ifdef block in lcd_dma.h. What do you think?
+> 1st patch does migration of gpmc low level calls from omap2.c to gpmc=
+-nand.c.
+> I am not sure how we can have separate patches for this.
 
-Just took a quick look at that lcdc.c file; I think we'd better leave=20
-those functions in, since they are so tightly integrated to the code.=20
-Hopefully one of the OMAP730/750/850 people can tease them out, since=20
-they've got a platform to test on.  Sound reasonable?  Less work for us,=20
-anyway :-)
+Ok. It looks like you intend to merge this stuff via linux-omap, which
+seems right.
 
-- Paul
---155748971-1017755281-1259305284=:984--
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
