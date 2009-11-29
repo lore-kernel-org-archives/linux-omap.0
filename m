@@ -1,160 +1,64 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: [PATCH] omap3: cm-t35: add mux initialization
-Date: Sun, 29 Nov 2009 10:07:11 +0200
-Message-ID: <b732a817f8c65b9655c82b0c63a5074bfa459cc5.1259481545.git.mike@compulab.co.il>
-References: <cover.1259481545.git.mike@compulab.co.il>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 0/8] Series short description
+Date: Sun, 29 Nov 2009 15:33:19 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BBE6475D@dbde02.ent.ti.com>
+References: <20091126001646.1546.34352.stgit@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:58295 "EHLO compulab.co.il"
+Received: from comal.ext.ti.com ([198.47.26.152]:35266 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751964AbZK2ILW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 29 Nov 2009 03:11:22 -0500
-In-Reply-To: <cover.1259481545.git.mike@compulab.co.il>
+	id S1753316AbZK2KD3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Nov 2009 05:03:29 -0500
+In-Reply-To: <20091126001646.1546.34352.stgit@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
+To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-CM-T35 can be assembled with different set of peripherals thus making
-certain interfaces available to user as GPIOs or dedicated pins. Because
-of it CM-T35 bootloader sets up mux configuration only for pins
-necessary to boot the system and the rest of the mux configuration is
-done by the kernel. Besides, having mux configuration in the kernel
-allows to minimize dependancy on bootloader.
+Tony,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Thursday, November 26, 2009 5:49 AM
+> To: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH 0/8] Series short description
+> 
+> Hi all,
+> 
+> Here are some omap mux updates for review. These
+> are intended for the v2.6.33 merge window.
+> 
+> Initially this series changes the omap34xx mux
+> code, I'm planning on adding 3630, 2420, and 2430
+> code later on.
+> 
+> There are several reasons why we need better mux
+> code:
+> 
+> - We want to make the mux code more generic and this
+>   will allow us to use the internal signal names and
+>   gpio numbers instead of mux register offsets. The
+>   internal signal names stay the same across omap
+>   generations for some devices.
+> 
+> - We need to map mux registers to GPIO registers for
+>   dynamic muxing of the GPIO pins during off-idle.
+> 
+> - We want to be able to override the bootloader mux
+>   values for the modded boards, such as the Beagle.
+> 
+> - We want to have the mux signals and balls available
+>   under debugfs for debugging new drivers.
+> 
+> Some of these might eventually work for other archs
+> too, so let me know if you have any comments on that.
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
----
- arch/arm/mach-omap2/Kconfig        |    1 +
- arch/arm/mach-omap2/board-cm-t35.c |   95 +++++++++++++++++++++++++++++++++--
- 2 files changed, 90 insertions(+), 6 deletions(-)
+Thanks for the series. Managing mux is always an issue and most time consuming one. This series will improve mux code greatly.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 034d990..96e7e3f 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -108,6 +108,7 @@ config MACH_OMAP_ZOOM3
- config MACH_CM_T35
- 	bool "CompuLab CM-T35 module"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_MUX
+Regards,
+Santosh
  
- config MACH_IGEP0020
- 	bool "IGEP0020"
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index e5f3039..12c85a1 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -482,13 +482,98 @@ static void __init cm_t35_map_io(void)
- 	omap2_map_common_io();
- }
- 
--#ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
-+	/* nCS and IRQ for CM-T35 ethernet */
-+	OMAP3_MUX(GPMC_NCS5, OMAP_MUX_MODE0),
-+	OMAP3_MUX(UART3_CTS_RCTX, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
-+
-+	/* nCS and IRQ for SB-T35 ethernet */
-+	OMAP3_MUX(GPMC_NCS4, OMAP_MUX_MODE0),
-+	OMAP3_MUX(GPMC_WAIT3, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
-+
-+	/* PENDOWN GPIO */
-+	OMAP3_MUX(GPMC_NCS6, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
-+
-+	/* mUSB */
-+	OMAP3_MUX(HSUSB0_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_STP, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT_PULLUP),
-+	OMAP3_MUX(HSUSB0_DIR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_NXT, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+
-+	/* MMC 2 */
-+	OMAP3_MUX(MMC2_DAT4, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(MMC2_DAT5, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(MMC2_DAT6, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(MMC2_DAT7, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+
-+	/* McSPI 1 */
-+	OMAP3_MUX(MCSPI1_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCSPI1_SIMO, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCSPI1_SOMI, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCSPI1_CS0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
-+
-+	/* McSPI 4 */
-+	OMAP3_MUX(MCBSP1_CLKR, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
-+
-+	/* McBSP 2 */
-+	OMAP3_MUX(MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+
-+	/* serial ports */
-+	OMAP3_MUX(MCBSP3_CLKX, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(MCBSP3_FSX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(UART1_TX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(UART1_RX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+
-+	/* DSS */
-+	OMAP3_MUX(DSS_PCLK, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_HSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_VSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_ACBIAS, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA8, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA9, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA10, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA11, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA12, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA13, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA14, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA15, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA16, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA17, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA20, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+
-+	/* TPS IRQ */
-+	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_WAKEUP_EN | \
-+		  OMAP_PIN_INPUT_PULLUP),
-+
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
--#else
--#define board_mux	NULL
--#endif
- 
- static void __init cm_t35_init(void)
- {
-@@ -501,8 +586,6 @@ static void __init cm_t35_init(void)
- 	cm_t35_init_led();
- 
- 	usb_musb_init();
--
--	omap_mux_init_signal("sys_nirq", OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
- }
- 
- MACHINE_START(CM_T35, "Compulab CM-T35")
--- 
-1.6.4.4
-
