@@ -1,93 +1,149 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3: mux: add shorthands for OUTPUT_PULL{UP,DOWN}
-Date: Mon, 30 Nov 2009 15:10:56 -0800
-Message-ID: <20091130231056.GB4348@atomide.com>
-References: <cover.1259481545.git.mike@compulab.co.il>
- <1b6ff0b31e4c22532659749282e0dcf4dccdf5e4.1259481545.git.mike@compulab.co.il>
- <20091130211255.GZ4348@atomide.com>
- <f870da180911301358t239b1820ia7cdecf932d579d1@mail.gmail.com>
+From: Eino-Ville Talvala <talvala@stanford.edu>
+Subject: Re: Problems using DSS2 on OMAP3 EVM / Angstrom with rotation
+Date: Mon, 30 Nov 2009 15:25:01 -0800
+Message-ID: <4B14544D.5040204@stanford.edu>
+References: <4B0C76E2.1070804@stanford.edu> <1259245214.2438.460.camel@tubuntu.research.nokia.com> <19F8576C6E063C45BE387C64729E7394043716A90F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61864 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753027AbZK3XKx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 18:10:53 -0500
-Content-Disposition: inline
-In-Reply-To: <f870da180911301358t239b1820ia7cdecf932d579d1@mail.gmail.com>
+Received: from smtp1.Stanford.EDU ([171.67.219.81]:48322 "EHLO
+	smtp.stanford.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752628AbZK3XfY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 18:35:24 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394043716A90F@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike.rapoport@gmail.com>
-Cc: Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Mike Rapoport <mike.rapoport@gmail.com> [091130 13:57]:
-> On Mon, Nov 30, 2009 at 11:12 PM, Tony Lindgren <tony@atomide.com> wr=
-ote:
-> > * Mike Rapoport <mike@compulab.co.il> [091129 00:10]:
-> >> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> >> ---
-> >> =A0arch/arm/mach-omap2/mux.h | =A0 =A02 ++
-> >> =A01 files changed, 2 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-> >> index e09c5d2..02a1b53 100644
-> >> --- a/arch/arm/mach-omap2/mux.h
-> >> +++ b/arch/arm/mach-omap2/mux.h
-> >> @@ -37,6 +37,8 @@
-> >>
-> >> =A0/* Active pin states */
-> >> =A0#define OMAP_PIN_OUTPUT =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A00
-> >> +#define OMAP_PIN_OUTPUT_PULLUP =A0 =A0 =A0 =A0 =A0 =A0 =A0 (OMAP_=
-PULL_ENA | OMAP_PULL_UP)
-> >> +#define OMAP_PIN_OUTPUT_PULLDOWN =A0 =A0 OMAP_PULL_ENA
-> >> =A0#define OMAP_PIN_INPUT =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 OMAP_INPUT_EN
-> >> =A0#define OMAP_PIN_INPUT_PULLUP =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(O=
-MAP_PULL_ENA | OMAP_INPUT_EN \
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 | OMAP_PULL_UP)
-> >
-> > Hmm, isn't this same as configuring as GPIO with up or
-> > down value?
-> >
-> > Or is there's some need doing it with mux only? Like
-> > power savings?
->=20
-> This is intended for dedicated pins rather than GPIO. Actually, I've
-> met only one till now, the HSUSB0_STP.
+On 11/29/2009 9:47 PM, Hiremath, Vaibhav wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Tomi Valkeinen
+>> Sent: Thursday, November 26, 2009 7:50 PM
+>> To: ext Eino-Ville Talvala
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: Problems using DSS2 on OMAP3 EVM / Angstrom with
+>> rotation
+>>
+>> Hi,
+>>
+>> On Wed, 2009-11-25 at 01:14 +0100, ext Eino-Ville Talvala wrote:
+>>     
+>>> Hi,
+>>>
+>>> I'm trying to get Xorg running on an Angstrom distro image on the
+>>>       
+>> OMAP3
+>>     
+>>> EVM, with a rotated framebuffer.  The default screen orientation
+>>>       
+>> on the
+>>     
+>>> EVM is portrait, and I'm trying to change this to landscape.
+>>>       
+>> Without
+>>     
+>>> any tweaking, using a kernel with your latest v5 DSS patches added
+>>>       
+>> on
+>>     
+>>> top (and Vaibhav's OMAP3 EVM DSS patches), DSS works and Angstrom
+>>> happily displays both its initial bootup screen, and then the X
+>>>       
+>> server
+>>     
+>>> starts successfully.
+>>>
+>>> Using the omapfb.rotate=1 kernel command-line option, the initial
+>>>       
+>> bootup
+>>     
+>>> screen still works, but as soon as the X server tries to start up,
+>>>       
+>> I get
+>>     
+>>> the following error on the console:
+>>>
+>>> Starting GPE display manager: gpe-dm
+>>> omapdss MANAGER error: dispc_setup_plane failed for ovl 0
+>>> omapdss MANAGER error: configure_overlay 0 failed
+>>>       
+>> It sounds to me that gpe-dm (or something running after that) is
+>> trying
+>> to configure the overlay to 480x640 mode, and failing. If the
+>> initial
+>>     
+> [Hiremath, Vaibhav] I think this is the issue, I have seen many peoples doing same mistakes, and it ends up to the application, which doesn't care about rotation and tries to set 480x640 in all rotation angles.
+>
+>   
 
-Hmm, are you sure you need the OMAP_PIN_OUTPUT_PULLUP for HSUSB0_STP?
+The xorg boot log appears reasonably sane until a crash - 640x480 is
+what the xf86 omapfb driver picks up, so I assume something else is the
+problem.  I'll try to poke at the omapfb source some to see if something
+is being passed around wrong - I'd appreciate any suggestions on where
+to look.
 
-AFAIK, it's not needed for other boards. I believe the STP should be
-down until the MUSB signals STP and pulls it up briefly. Might be
-worth checking.
+===
+...
+(II) LoadModule: "omapfb"
+(II) Loading /usr/lib/xorg/modules/drivers//omapfb_drv.so
+(II) Module omapfb: vendor="X.Org Foundation"
+        compiled for 1.6.1, module version = 0.1.1
+        ABI class: X.Org Video Driver, version 5.0
+(II) omapfb: Driver for OMAP framebuffer (omapfb) and external LCD
+controllers:
+        omap1/2/3, S1D13745, HWA742
+(WW) Falling back to old probe method for OMAPFB
+(II) Running in FRAMEBUFFER Mode
+(WW) Error opening /sys/devices/platform/omapfb/ctrl/name: No such file
+or direc
+tory
+(WW) Can't autodetect LCD controller, assuming internal
+(II) LCD controller: internal
+(II) omapfb(0): VideoRAM: 1920KiB (SDRAM)
+(--) omapfb(0): Depth 16, (==) framebuffer bpp 16
+(==) omapfb(0): RGB weight 565
+(==) omapfb(0): Default visual is TrueColor
+(--) omapfb(0): Virtual size is 640x480 (pitch 640)
+(**) omapfb(0):  Built-in mode "current"
+(==) omapfb(0): DPI set to (96, 96)
+(II) Loading sub module "fb"
+(II) LoadModule: "fb"
+(II) Loading /usr/lib/xorg/modules//libfb.so
+(II) Module fb: vendor="X.Org Foundation"
+        compiled for 1.6.1, module version = 1.0.0
+        ABI class: X.Org ANSI C Emulation, version 0.4
+(II) omapfb(0): DPMS enabled
+(II) omapfb(0): Video plane capabilities:
+(II) omapfb(0): Video plane supports the following image formats:
+(II) omapfb(0): XVideo extension initialized
+(==) RandR enabled
+(II) Initializing built-in extension Generic Event Extension
+(II) Initializing built-in extension SHAPE
+(II) Initializing built-in extension MIT-SHM
+(II) Initializing built-in extension XInputExtension
+(II) Initializing built-in extension XTEST
+(II) Initializing built-in extension BIG-REQUESTS
+(II) Initializing built-in extension SYNC
+(II) Initializing built-in extension XKEYBOARD
+(II) Initializing built-in extension XC-MISC
+(II) Initializing built-in extension XINERAMA
+(II) Initializing built-in extension XFIXES
+(II) Initializing built-in extension RENDER
+(II) Initializing built-in extension RANDR
+(II) Initializing built-in extension COMPOSITE
+(II) Initializing built-in extension DAMAGE
 
-> If you define most of the mux configuration in the kernel you
-> eventually run into very long lines in the omap_board_mux array. So,
-> shortening at least some of them seems good idea to me.
+Backtrace:
+0: Xorg(xorg_backtrace+0x28) [0xd2540]
 
-Yeah nothing wrong with that, I'm just thinking back to when we added
-these mux defines originally. It seemed like the the combination of
-out and pull should be needed, and pull would only be needed for inputs=
-=2E
+Fatal server error:
+Caught signal 11.  Server aborting
+===
 
-> Take a look at my second patch ([1]) for example of what I mean :)
->=20
-> [1] http://en.wikipedia.org/wiki/Wikipedia:Tools/Editing_tools
+Thanks,
 
-I guess this is a wrong link here to the editing tool. Our mux
-code is bloated, but should not be _that_ bloated! :)
-
-Eh, let's hope we don't need to implement kernel based wiki and
-editing tools for the muxing :)
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Eino-Ville Talvala
+Stanford University
