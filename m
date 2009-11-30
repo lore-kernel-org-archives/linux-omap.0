@@ -1,70 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHV3 3/4] OMAP3: Correct width for CLKSEL Fields
-Date: Mon, 30 Nov 2009 03:15:06 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0911300310310.17083@utopia.booyaka.com>
-References: <1259211517-12713-1-git-send-email-vishwanath.bs@ti.com> <1259211517-12713-2-git-send-email-vishwanath.bs@ti.com> <1259211517-12713-3-git-send-email-vishwanath.bs@ti.com> <1259211517-12713-4-git-send-email-vishwanath.bs@ti.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: RE: [alsa-devel] [PATCH 1/2] OMAP3: MCBSP: Suspend/resume failure
+ fix
+Date: Mon, 30 Nov 2009 17:20:45 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ABC19DB@dbde02.ent.ti.com>
+References: <1258133987-20488-1-git-send-email-jwang@ti.com>
+ 	<bd7b27490911182334r7b9b4682o29a094e8ee521bc5@mail.gmail.com>
+ 	<2ee9e08d0911191148x9da6112s960a283a7cffea7b@mail.gmail.com>
+ 	<200911200951.13181.peter.ujfalusi@nokia.com>
+ <20091120155343.baf0b9d3.jhnikula@gmail.com>
+ 	<1258726156.6157.11.camel@eenurkka-desktop>
+ <2ee9e08d0911200647o33a57e45j1bb4de6d9604d29a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56947 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956AbZK3KPA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 05:15:00 -0500
-In-Reply-To: <1259211517-12713-4-git-send-email-vishwanath.bs@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:50217 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750828AbZK3Luv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 06:50:51 -0500
+In-Reply-To: <2ee9e08d0911200647o33a57e45j1bb4de6d9604d29a@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "ext-eero.nurkkala@nokia.com" <ext-eero.nurkkala@nokia.com>
+Cc: ext Jarkko Nikula <jhnikula@gmail.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Wang, Jane" <jwang@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Vishwanath,
+> > Looking at the very original patch, I don't know how things could get
+> > into deep sleep by disabling the fclk only... need to disable the iclk
+> > also. In threshold mode, HW autogates the iclk, so you may be just
+> > "lucky".
+> [Anuj] No, I am not :(. I had to modify the original patch to include
+> the disable part for the ICLK too. Without that, I was not able to hit
+> retention.
+> I will try to do some further regression on OMAP3 EVM and post my
+> findings. As of now, audio is working fine with these patches + ICLK
+> modification.
+[Aggarwal, Anuj] After further testing, I found that there is some
+problem in the capture path. While capturing in background, if I tried 
+to do suspend, capture fails after a few seconds giving;
+arecord: pcm_read:1617: read error: Input/output error
+This I was discussing in another thread (*) for AIC23/AM3517 on NFS but now
+I realized after finishing my tests that this behavior is common for 
+both omap3530/twl4030 and am3517/aic23. Moreover, the problem doesn't 
+depend on the underlying file system - both NFS and ramdisk produce the
+same error. 
+To make matter worse, if suspend/resume is tried while audio
+loopback is running, system just hangs. Even telnet to the evm doesn't work.
+So the audio capture path, from suspend/resume point of view, definitely
+needs some more time.
+I will continue debugging at my end. But pointers are always welcome.
 
-On Thu, 26 Nov 2009, Vishwanath BS wrote:
-
-> DPLL4 M, M3, M4, M5 and M6 field width has been increased by 1 bit in
-> 3630.This patch has changes to accommodate this in CM dynamically based
-> on chip version. Primary changes are
-> 1. Added clksel_mask_3630 to take care clksel width changes
-> 2. CLock nodes which are newly added for 3630 are marked under CK_363X
-> 3. Clock nodes which have changes for 3630 are marked as CK_3XXX | CK_363X
-> 4. Clock nodes which are unchanged for 3630 are retained as CK_3XXX
-> 5. 3630 specific Clock rates are marked as RATE_IN_363X
-
-...
-
-> @@ -1232,6 +1238,12 @@ int __init omap2_clk_init(void)
->  
->  	for (c = omap34xx_clks; c < omap34xx_clks + ARRAY_SIZE(omap34xx_clks); c++)
->  		if (c->cpu & cpu_clkflg) {
-> +			/* for 3630, change the mask value for clocks which are
-> +				marked as CK_363X*/
-
-Please follow the comment style in Documentation/CodingStyle.
-
-> +			if (cpu_is_omap3630() && (c->cpu & CK_363X)) {
-> +				c->lk.clk->clksel_mask =
-> +						c->lk.clk->clksel_mask_3630;
-> +			}
-
-Again, let's avoid dynamic rewriting of the clock tree.
-
-...
-
-> @@ -754,7 +796,8 @@ static struct clk dpll4_m4_ck = {
->  	.init		= &omap2_init_clksel_parent,
->  	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
->  	.clksel_mask	= OMAP3430_CLKSEL_DSS1_MASK,
-> -	.clksel		= div16_dpll4_clksel,
-> +	.clksel_mask_3630 = OMAP3630_CLKSEL_DSS1_MASK,
-> +	.clksel		= div32_dpll4_clksel,
->  	.clkdm_name	= "dpll4_clkdm",
->  	.recalc		= &omap2_clksel_recalc,
->  	.set_rate	= &omap2_clksel_set_rate,
-
-Okay, now I am convinced.  We need to explore converting the struct clk 
-parent pointer into a const char * and a struct clk *, the latter resolved 
-at clock code init.  That should let us split some of these struct clks
-that vary between OMAP34xx and OMAP36xx without needing to split other 
-unrelated sections of the clock tree.
-
-
-- Paul
+*) http://www.mail-archive.com/linux-omap@vger.kernel.org/msg19845.html
+> >
+> > One may want to be aware of this also:
+> >
+> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-
+> 2.6.git;a=commitdiff;h=72cc6d715d5b018e2cff4adb68966855850d4e77
+> >
+> > I think it's an undocumented feature.
+> >
