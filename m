@@ -1,31 +1,46 @@
-From: Ashwin Bihari <abihari@gmail.com>
-Subject: DSS2 Switch between multiple displays
-Date: Mon, 30 Nov 2009 14:26:47 -0500
-Message-ID: <1f11a5490911301126p1444f93dga1821a67479d0c7e@mail.gmail.com>
+From: Brian Swetland <swetland@google.com>
+Subject: Re: [PATCH] [OMAP1] use gen_nand
+Date: Mon, 30 Nov 2009 11:38:47 -0800
+Message-ID: <a55d774e0911301138l7a80de4dx911d73c33962559e@mail.gmail.com>
+References: <20091123124545.GA31420@localhost.localdomain>
+	 <20091123172416.GG15580@atomide.com>
+	 <20091130202258.GA18203@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:37720 "EHLO
-	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752150AbZK3T0l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 14:26:41 -0500
-Received: by gxk26 with SMTP id 26so1234840gxk.1
-        for <linux-omap@vger.kernel.org>; Mon, 30 Nov 2009 11:26:48 -0800 (PST)
+Received: from smtp-out.google.com ([216.239.33.17]:5185 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752722AbZK3Tis (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 14:38:48 -0500
+Received: from wpaz29.hot.corp.google.com (wpaz29.hot.corp.google.com [172.24.198.93])
+	by smtp-out.google.com with ESMTP id nAUJcq5g021821
+	for <linux-omap@vger.kernel.org>; Mon, 30 Nov 2009 19:38:53 GMT
+Received: from pxi17 (pxi17.prod.google.com [10.243.27.17])
+	by wpaz29.hot.corp.google.com with ESMTP id nAUJcmiw012219
+	for <linux-omap@vger.kernel.org>; Mon, 30 Nov 2009 11:38:48 -0800
+Received: by pxi17 with SMTP id 17so4704461pxi.30
+        for <linux-omap@vger.kernel.org>; Mon, 30 Nov 2009 11:38:48 -0800 (PST)
+In-Reply-To: <20091130202258.GA18203@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Kevin Hilman <kjh@hilman.org>
 
-My system is going to have to support multiple display panels and
-switch between them using runtime checks. I've got two displays
-currently registered and confirmed with:
+On Mon, Nov 30, 2009 at 12:23 PM, Ladislav Michl
+<Ladislav.Michl@seznam.cz> wrote:
+> On Mon, Nov 23, 2009 at 09:24:16AM -0800, Tony Lindgren wrote:
+>> * Ladislav Michl <Ladislav.Michl@seznam.cz> [091123 03:45]:
+>> > Since omapnand driver never find its way into mainline, switch to gen_nand instead.
+>> > Following patch is compile tested only, but it is based on code I wrote for
+>> > NetStar board and runtime tested it there.
+>>
+>> Nice patch, and totally the way to go!
+>
+> Well, after one week of silence... Anything else I could do to get it merged?
+> Btw, these boards could probably use physmap-flash, so we could get rid of
+> omap_nor as well.
 
-# cat displays
-lcd e:1 u:1 t:0 h:480/2/2/41 v:272/2/6/10 p:10000 r:0 i:0
-lcd e:0 u:1 t:0 h:480/2/2/41 v:800/2/6/10 p:10000 r:0 i:0
+No objections here.  We haven't used f-sample boards since 2005, so
+there's no side-effects to cleanup that I'm worried about.
 
-Short of adding a new module parameter for me to key off the
-panel_name to make the choice, is there some other way already
-implemented for me to indicate which display the DSS2 system should
-use as the default display panel?
-
--- Ashwin
+Brian
