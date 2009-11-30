@@ -1,110 +1,101 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: Problems using DSS2 on OMAP3 EVM / Angstrom with rotation
-Date: Mon, 30 Nov 2009 11:17:20 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394043716A90F@dbde02.ent.ti.com>
-References: <4B0C76E2.1070804@stanford.edu>
- <1259245214.2438.460.camel@tubuntu.research.nokia.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] Add omap3_defconfig
+Date: Mon, 30 Nov 2009 11:17:47 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030AAC3630@dbde02.ent.ti.com>
+References: <20091130033434.GA8762@lixom.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60428 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60443 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750799AbZK3FrV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 00:47:21 -0500
-In-Reply-To: <1259245214.2438.460.camel@tubuntu.research.nokia.com>
+	id S1751064AbZK3Frs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 00:47:48 -0500
+In-Reply-To: <20091130033434.GA8762@lixom.net>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, ext Eino-Ville Talvala <talvala@stanford.edu>
+To: Olof Johansson <olof@lixom.net>, "tony@atomide.com" <tony@atomide.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tomi Valkeinen
-> Sent: Thursday, November 26, 2009 7:50 PM
-> To: ext Eino-Ville Talvala
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: Problems using DSS2 on OMAP3 EVM / Angstrom with
-> rotation
-> 
-> Hi,
-> 
-> On Wed, 2009-11-25 at 01:14 +0100, ext Eino-Ville Talvala wrote:
-> > Hi,
-> >
-> > I'm trying to get Xorg running on an Angstrom distro image on the
-> OMAP3
-> > EVM, with a rotated framebuffer.  The default screen orientation
-> on the
-> > EVM is portrait, and I'm trying to change this to landscape.
-> Without
-> > any tweaking, using a kernel with your latest v5 DSS patches added
-> on
-> > top (and Vaibhav's OMAP3 EVM DSS patches), DSS works and Angstrom
-> > happily displays both its initial bootup screen, and then the X
-> server
-> > starts successfully.
-> >
-> > Using the omapfb.rotate=1 kernel command-line option, the initial
-> bootup
-> > screen still works, but as soon as the X server tries to start up,
-> I get
-> > the following error on the console:
-> >
-> > Starting GPE display manager: gpe-dm
-> > omapdss MANAGER error: dispc_setup_plane failed for ovl 0
-> > omapdss MANAGER error: configure_overlay 0 failed
-> 
-> It sounds to me that gpe-dm (or something running after that) is
-> trying
-> to configure the overlay to 480x640 mode, and failing. If the
-> initial
-[Hiremath, Vaibhav] I think this is the issue, I have seen many peoples doing same mistakes, and it ends up to the application, which doesn't care about rotation and tries to set 480x640 in all rotation angles.
+Olof Johansson wrote:
 
-> bootup screen (I believe this is drawn from the linux side, not boot
-> loader?) is fine, it hints that the problem is in the X server or
-> some
-> other user space component.
+> Having one combined defconfig that is the superset of the individual
+> defconfigs for OMAP3 platforms is useful for easily finding build
+> errors. Not to mention convenient as a base if you want to boot several
+> platforms with a single kernel image.
 > 
-> > My kernel bootargs are:
-> > mem=128M console=ttyS0,115200n8 noinitrd rw root=/dev/mmcblk0p2
-> > rootfstype=ext2 rootdelay=1 nohz=off omapfb.rotate=1 omapfb.vrfb=y
-> > omapfb.debug=y omapdss.debug=y
-> >
-> > Without vrfb=y, the initial boot screen won't show up, with a
-> console
-> > message of 'omapdss DISPC error: GFX_FIFO_UNDERFLOW, disabling
-> GFX', and
-> > the same error for Xorg.
+> Signed-off-by: Olof Johansson <olof@lixom.net>
 > 
-> In practice you always have to use VRFB rotation on OMAP3, so no
-> point
-> in trying without.
 > 
-> > I'd appreciate any advice you could give me - doing this (in
-> theory
-> > simple) screen orientation change is really stumping me.
+> ---
 > 
-> It sounds to me that the DSS and omapfb is working fine. I also
-> tried
-> booting SDP board with similar boot arguments, and it's working fine
-> (although I'm not running X).
-[Hiremath, Vaibhav] Just to add, same bootargs has been tested thoroughly on OMAP3EVM and it is working fine for me.
+> Tony, I noticed linux-next doesn't build many of the OMAP defconfigs,
+> and a handful of them won't build to date. I suggest adding this config,
+> and I'll as Stephen Rothwell to add it as one of the configs that are
+> tested (and build errors reported) for every release.
+> 
+> He's reluctant to add too many individual configs since it adds time to
+> each cycle, but one more can surely be acceptable.
+> 
 
-Thanks,
-Vaibhav
+Good idea. Kevin does something similar with the pm branch. There's
+an omap3_pm_defconfig.
+
+A few minor comments below.
 
 > 
-> Perhaps there's some application that checks the display dimensions,
-> which are 480x640, and tries to use those regardless of the
-> rotation.
+> -Olof
 > 
->  Tomi
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+<snip>
+
+> +CONFIG_USER_SCHED=y
+> +# CONFIG_CGROUP_SCHED is not set
+> +# CONFIG_CGROUPS is not set
+> +CONFIG_SYSFS_DEPRECATED=y
+> +CONFIG_SYSFS_DEPRECATED_V2=y
+
+Would you consider getting rid of these two?
+There was a patch recently to remove these from the
+other omap defconfigs, so this would be one inconsistency
+between them.
+
+
+
+<snip>
+
+> +# Miscellaneous USB options
+> +#
+> +CONFIG_USB_DEVICEFS=y
+> +CONFIG_USB_DEVICE_CLASS=y
+> +# CONFIG_USB_DYNAMIC_MINORS is not set
+> +CONFIG_USB_SUSPEND=y
+> +CONFIG_USB_OTG=y
+> +CONFIG_USB_OTG_WHITELIST=y
+> +CONFIG_USB_OTG_BLACKLIST_HUB=y
+
+This removes the ability to connect all devices to MUSB
+in host mode. (Most flash drives would not be on the
+whitelist). Also, blacklisting hubs means you can't use
+an external hub either - which is commonly used with
+beagle and other similar boards.
+
+
+<snip>
+
+> +# OMAP 343x high speed USB support
+> +#
+> +# CONFIG_USB_MUSB_HOST is not set
+> +# CONFIG_USB_MUSB_PERIPHERAL is not set
+> +CONFIG_USB_MUSB_OTG=y
+> +CONFIG_USB_GADGET_MUSB_HDRC=y
+> +CONFIG_USB_MUSB_HDRC_HCD=y
+> +CONFIG_MUSB_PIO_ONLY=y
+
+And this would remove the MUSB DMA support on these boards.
+I think you should make this n. It's always possible to
+disable dma by adding a parameter "musb_hdrc.use_dma=n" to
+the kernel command line
+
+
+- Anand
