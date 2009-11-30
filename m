@@ -1,61 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: DSS2 panel question
-Date: Mon, 30 Nov 2009 11:17:05 -0800
-Message-ID: <20091130191705.GU4348@atomide.com>
-References: <6ed0b2680911210716l529e02ck23e188417fecd4f1@mail.gmail.com>
- <1258974287.2438.76.camel@tubuntu.research.nokia.com>
- <5f4a33680911230941l468730f1k51cc26e2d6431b0c@mail.gmail.com>
- <6ed0b2680911250253h6a07fd41xeee6ca8fcb29f577@mail.gmail.com>
- <5f4a33680911250944t66ee6045wcf7f912d9f48f267@mail.gmail.com>
- <6ed0b2680911251224tb7bef3h6957106543aec283@mail.gmail.com>
+From: Ladislav Michl <Ladislav.Michl@seznam.cz>
+Subject: Re: [PATCH] [OMAP1] use gen_nand
+Date: Mon, 30 Nov 2009 21:23:00 +0100
+Message-ID: <20091130202258.GA18203@localhost.localdomain>
+References: <20091123124545.GA31420@localhost.localdomain> <20091123172416.GG15580@atomide.com>
+Reply-To: Ladislav Michl <ladis@linux-mips.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63871 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015AbZK3TRF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 14:17:05 -0500
+Received: from smtp.seznam.cz ([77.75.72.43]:49726 "EHLO smtp.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753100AbZK3TXA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Nov 2009 14:23:00 -0500
 Content-Disposition: inline
-In-Reply-To: <6ed0b2680911251224tb7bef3h6957106543aec283@mail.gmail.com>
+In-Reply-To: <20091123172416.GG15580@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: TAO HU <tghk48@motorola.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org, TAO HU <taohu@motorola.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Brian Swetland <swetland@google.com>, Kevin Hilman <kjh@hilman.org>
 
-* Grazvydas Ignotas <notasas@gmail.com> [091125 12:23]:
-> On Wed, Nov 25, 2009 at 7:44 PM, TAO HU <tghk48@motorola.com> wrote:
-> > Hi, Grazvydas Ignotas
-> >
-> > What did you mean "Hm, omap_dss_register_device() takes omap_dss_dr=
-iver"?
->=20
-> Whoops, I meant omap_dss_register_driver()
->=20
-> > Below is what I saw from the code
-> > =A0int omap_dss_register_device(struct omap_dss_device *dssdev)
-> >
-> > I assume the code I have is for DSS. Does DSS2 change the API?
->=20
-> I was referring to version that is being submitted to mainline, and
-> panel drivers in particular, like:
-> http://git.kernel.org/?p=3Dlinux/kernel/git/next/linux-next.git;a=3Db=
-lob;f=3Ddrivers/video/omap2/displays/panel-generic.c;h=3Deb48d1afd80084=
-37458bb3fe87e351b5ce785c42;hb=3DHEAD
->=20
-> > BTW, what's the location for DSS2 code in linux-omap tree? Seems no=
-t
-> > see it anywhere
->=20
-> Tony is probably waiting for it to reach mainline and fall from there=
-=2E
+On Mon, Nov 23, 2009 at 09:24:16AM -0800, Tony Lindgren wrote:
+> * Ladislav Michl <Ladislav.Michl@seznam.cz> [091123 03:45]:
+> > Since omapnand driver never find its way into mainline, switch to gen_nand instead.
+> > Following patch is compile tested only, but it is based on code I wrote for
+> > NetStar board and runtime tested it there.
+> 
+> Nice patch, and totally the way to go!
 
-Pulled Tomi's for-next now into linux-omap master branch for some last
-testing before the merge window starts :)
+Well, after one week of silence... Anything else I could do to get it merged?
+Btw, these boards could probably use physmap-flash, so we could get rid of
+omap_nor as well.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+	ladis
