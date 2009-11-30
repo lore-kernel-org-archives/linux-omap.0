@@ -1,34 +1,31 @@
-From: Ladislav Michl <Ladislav.Michl@seznam.cz>
-Subject: Re: [PATCH] [OMAP1] use gen_nand
-Date: Mon, 30 Nov 2009 21:23:00 +0100
-Message-ID: <20091130202258.GA18203@localhost.localdomain>
-References: <20091123124545.GA31420@localhost.localdomain> <20091123172416.GG15580@atomide.com>
-Reply-To: Ladislav Michl <ladis@linux-mips.org>
+From: Ashwin Bihari <abihari@gmail.com>
+Subject: DSS2 Switch between multiple displays
+Date: Mon, 30 Nov 2009 14:26:47 -0500
+Message-ID: <1f11a5490911301126p1444f93dga1821a67479d0c7e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:49726 "EHLO smtp.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753100AbZK3TXA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Nov 2009 14:23:00 -0500
-Content-Disposition: inline
-In-Reply-To: <20091123172416.GG15580@atomide.com>
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:37720 "EHLO
+	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752150AbZK3T0l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 14:26:41 -0500
+Received: by gxk26 with SMTP id 26so1234840gxk.1
+        for <linux-omap@vger.kernel.org>; Mon, 30 Nov 2009 11:26:48 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Brian Swetland <swetland@google.com>, Kevin Hilman <kjh@hilman.org>
+To: linux-omap@vger.kernel.org
 
-On Mon, Nov 23, 2009 at 09:24:16AM -0800, Tony Lindgren wrote:
-> * Ladislav Michl <Ladislav.Michl@seznam.cz> [091123 03:45]:
-> > Since omapnand driver never find its way into mainline, switch to gen_nand instead.
-> > Following patch is compile tested only, but it is based on code I wrote for
-> > NetStar board and runtime tested it there.
-> 
-> Nice patch, and totally the way to go!
+My system is going to have to support multiple display panels and
+switch between them using runtime checks. I've got two displays
+currently registered and confirmed with:
 
-Well, after one week of silence... Anything else I could do to get it merged?
-Btw, these boards could probably use physmap-flash, so we could get rid of
-omap_nor as well.
+# cat displays
+lcd e:1 u:1 t:0 h:480/2/2/41 v:272/2/6/10 p:10000 r:0 i:0
+lcd e:0 u:1 t:0 h:480/2/2/41 v:800/2/6/10 p:10000 r:0 i:0
 
-Best regards,
-	ladis
+Short of adding a new module parameter for me to key off the
+panel_name to make the choice, is there some other way already
+implemented for me to indicate which display the DSS2 system should
+use as the default display panel?
+
+-- Ashwin
