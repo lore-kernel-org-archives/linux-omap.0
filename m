@@ -1,92 +1,93 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: VDD1 voltage after resume from idle
-Date: Fri, 20 Nov 2009 21:38:44 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5CA@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5BC@dbde02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012B438C7E@dlee02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE5EE5C0@dbde02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012B438CA1@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap3: mux: add shorthands for OUTPUT_PULL{UP,DOWN}
+Date: Mon, 30 Nov 2009 15:10:56 -0800
+Message-ID: <20091130231056.GB4348@atomide.com>
+References: <cover.1259481545.git.mike@compulab.co.il>
+ <1b6ff0b31e4c22532659749282e0dcf4dccdf5e4.1259481545.git.mike@compulab.co.il>
+ <20091130211255.GZ4348@atomide.com>
+ <f870da180911301358t239b1820ia7cdecf932d579d1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39082 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753811AbZKTQIn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Nov 2009 11:08:43 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAKG8kHa008767
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 10:08:49 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAKG8krK004512
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2009 21:38:46 +0530 (IST)
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C012B438CA1@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61864 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753027AbZK3XKx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 18:10:53 -0500
+Content-Disposition: inline
+In-Reply-To: <f870da180911301358t239b1820ia7cdecf932d579d1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mike Rapoport <mike.rapoport@gmail.com>
+Cc: Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Menon, Nishanth 
-> Sent: Friday, November 20, 2009 9:29 PM
-> To: Premi, Sanjeev; linux-omap@vger.kernel.org
-> Subject: RE: VDD1 voltage after resume from idle
-> 
-> > From: Premi, Sanjeev
-> > Sent: Friday, November 20, 2009 9:54 AM
-> > > >
-> > > > Hi,
-> > > >
-> > > > I am facing a strange problem on OMAP3EVM after 
-> resuming from idle.
-> > > > When using OPP5, the VDD1 voltage ramps to 1.35V.
-> > > >
-> > > > However, when i go thru the idle/wakeup cycle, the voltage never
-> > > > ramps back to 1.35V but stays at 1.20V.
-> > > >
-> > > > I don't notice many changes in smartreflex.c since 
-> 2.6.31-rc7 but
-> > > > this problem is not observed there. Actually, here the voltage
-> > > > did not drop during suspend at all.
-> > > >
-> > > > While I continue to debug, any suggestions?
-> > >
-> > > Look for retention voltage setup (they should be OPP dependent)..
-> > > this was one of my plans of cleanups anyways..
-> > 
-> > So far the problem seems to be optimizations in the 
-> enable_smartreflex and
-> > disable_smartreflex.
-> > 
-> > On resume path, enable_smartreflex() is called, but doesn't 
-> do anything
-> > unless autocomp flag is on. This is different from the 
-> boot-time where
-> > the current freq is looked at and appropriate voltage is set.
-> > 
-> > I am currently trying to get rid of optimizations and see 
-> the result.
-> > We do need the optimizations; but may be different ones.
-> What specific optimization are you talking about?
-> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-p
-> m.git;a=blob;f=arch/arm/mach-omap2/resource34xx.c;h=04be4d2694
-> 5beccf81cad08a8cdfc6086d6ce70a;hb=refs/heads/pm#l277 ?
+* Mike Rapoport <mike.rapoport@gmail.com> [091130 13:57]:
+> On Mon, Nov 30, 2009 at 11:12 PM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+> > * Mike Rapoport <mike@compulab.co.il> [091129 00:10]:
+> >> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+> >> ---
+> >> =A0arch/arm/mach-omap2/mux.h | =A0 =A02 ++
+> >> =A01 files changed, 2 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+> >> index e09c5d2..02a1b53 100644
+> >> --- a/arch/arm/mach-omap2/mux.h
+> >> +++ b/arch/arm/mach-omap2/mux.h
+> >> @@ -37,6 +37,8 @@
+> >>
+> >> =A0/* Active pin states */
+> >> =A0#define OMAP_PIN_OUTPUT =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A00
+> >> +#define OMAP_PIN_OUTPUT_PULLUP =A0 =A0 =A0 =A0 =A0 =A0 =A0 (OMAP_=
+PULL_ENA | OMAP_PULL_UP)
+> >> +#define OMAP_PIN_OUTPUT_PULLDOWN =A0 =A0 OMAP_PULL_ENA
+> >> =A0#define OMAP_PIN_INPUT =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 OMAP_INPUT_EN
+> >> =A0#define OMAP_PIN_INPUT_PULLUP =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(O=
+MAP_PULL_ENA | OMAP_INPUT_EN \
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 | OMAP_PULL_UP)
+> >
+> > Hmm, isn't this same as configuring as GPIO with up or
+> > down value?
+> >
+> > Or is there's some need doing it with mux only? Like
+> > power savings?
+>=20
+> This is intended for dedicated pins rather than GPIO. Actually, I've
+> met only one till now, the HSUSB0_STP.
 
-I not using SRF - vanilla no-op layer.
+Hmm, are you sure you need the OMAP_PIN_OUTPUT_PULLUP for HSUSB0_STP?
 
-The optimization is check for is_autocomp_active and is_sr_reset flags.
-unless both are set, there is no real processing in the both the functions.
+AFAIK, it's not needed for other boards. I believe the STP should be
+down until the MUSB signals STP and pulls it up briefly. Might be
+worth checking.
 
-However, I it is possible that voltage processor has lost the configuration
-set earlier via sr_configure_vp(). Only thing still puzzling me is that
-same behavior occurs even when enable_off_mode=0 (Only sleep_while_idle=1).
+> If you define most of the mux configuration in the kernel you
+> eventually run into very long lines in the omap_board_mux array. So,
+> shortening at least some of them seems good idea to me.
 
-Or, it may just be something missing at init...
+Yeah nothing wrong with that, I'm just thinking back to when we added
+these mux defines originally. It seemed like the the combination of
+out and pull should be needed, and pull would only be needed for inputs=
+=2E
 
-Best regards,
-Sanjeev
+> Take a look at my second patch ([1]) for example of what I mean :)
+>=20
+> [1] http://en.wikipedia.org/wiki/Wikipedia:Tools/Editing_tools
 
-> Regards,
-> Nishanth Menon
-> 
+I guess this is a wrong link here to the editing tool. Our mux
+code is bloated, but should not be _that_ bloated! :)
+
+Eh, let's hope we don't need to implement kernel based wiki and
+editing tools for the muxing :)
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
