@@ -1,94 +1,91 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI charger
-Date: Mon, 30 Nov 2009 23:33:00 +0200
-Message-ID: <6ed0b2680911301333p19b14d5dxac81f976d0c35c61@mail.gmail.com>
-References: <1259333060-24277-1-git-send-email-notasas@gmail.com>
-	 <012301ca71ed$449cb930$544ff780@am.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753470AbZK3Vc5@vger.kernel.org>
-In-Reply-To: <012301ca71ed$449cb930$544ff780@am.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: linux-kernel@vger.kernel.org, Anton Vorontsov <avorontsov@ru.mvista.com>, linux-omap@vger.kernel.org
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH v2 02/20] DSPBRIDGE: trivial license fix in tramp and tramp_table_c6000
+Date: Mon, 30 Nov 2009 15:54:43 -0600
+Message-ID: <1259618101-8972-3-git-send-email-omar.ramirez@ti.com>
+References: <1259618101-8972-1-git-send-email-omar.ramirez@ti.com>
+ <1259618101-8972-2-git-send-email-omar.ramirez@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47748 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751347AbZK3Vs6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Nov 2009 16:48:58 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAULn4iq028728
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 30 Nov 2009 15:49:04 -0600
+In-Reply-To: <1259618101-8972-2-git-send-email-omar.ramirez@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-On Mon, Nov 30, 2009 at 8:45 PM, Madhusudhan <madhu.cr@ti.com> wrote:
->
->
->> -----Original Message-----
->> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
->> Sent: Friday, November 27, 2009 8:44 AM
->> To: linux-kernel@vger.kernel.org
->> Cc: Anton Vorontsov; Madhusudhan Chikkature; linux-omap@vger.kernel.org;
->> Grazvydas Ignotas
->> Subject: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI charger
->>
->> TWL4030/TPS65950 is a multi-function device with integrated charger,
->> which allows charging from AC or USB. This driver enables the
->> charger and provides several monitoring functions.
->>
->> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
->> ---
->> For this driver to work, TWL4030-core needs to be patched to use
->> correct macros so that it registers twl4030_bci platform_device.
->> I'll send patches for this later.
->>
->>  drivers/power/Kconfig           |    7 +
->>  drivers/power/Makefile          |    1 +
->>  drivers/power/twl4030_charger.c |  499
->
-> Is the file name changed from twl4030_bci_battery.c to twl4030_charger.c because it mainly supports voltage monitoring only while charging? If yes, potentially we can add support for monitoring also in discharge state. Do we intend to change the file name then?
+Seems that these files had a licensing mismatch, changing to
+GPL2.
 
-Does the hardware support any monitoring in discharge state? I'm
-unable to get any readings, only frozen values (that never update)
-from what it had when it was charging. Here is TI confirmation that at
-least temperature monitoring won't work while discharging:
-http://e2e.ti.com/forums/p/8202/31818.aspx#31818
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ drivers/dsp/bridge/dynload/tramp.c             |   18 +++++++++++++-----
+ drivers/dsp/bridge/dynload/tramp_table_c6000.c |   18 +++++++++++++-----
+ 2 files changed, 26 insertions(+), 10 deletions(-)
 
-For this reason I consider BCI a charger.
+diff --git a/drivers/dsp/bridge/dynload/tramp.c b/drivers/dsp/bridge/dynload/tramp.c
+index 8c725c7..c2fe02d 100644
+--- a/drivers/dsp/bridge/dynload/tramp.c
++++ b/drivers/dsp/bridge/dynload/tramp.c
+@@ -1,11 +1,19 @@
+ /*
+- *  Copyright 2009 by Texas Instruments Incorporated.
+- *  All rights reserved. Property of Texas Instruments Incorporated.
+- *  Restricted rights to use, duplicate or disclose this code are
+- *  granted through contract.
++ * tramp.c
+  *
+- *  @(#) DSP/BIOS Bridge
++ * DSP-BIOS Bridge driver support functions for TI OMAP processors.
++ *
++ * Copyright (C) 2009 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
++
+ #include "header.h"
+ 
+ #if TMS32060
+diff --git a/drivers/dsp/bridge/dynload/tramp_table_c6000.c b/drivers/dsp/bridge/dynload/tramp_table_c6000.c
+index 1a7d974..acda513 100644
+--- a/drivers/dsp/bridge/dynload/tramp_table_c6000.c
++++ b/drivers/dsp/bridge/dynload/tramp_table_c6000.c
+@@ -1,11 +1,19 @@
+ /*
+- *  Copyright 2009 by Texas Instruments Incorporated.
+- *  All rights reserved. Property of Texas Instruments Incorporated.
+- *  Restricted rights to use, duplicate or disclose this code are
+- *  granted through contract.
++ * tramp_table_c6000.c
+  *
+- *  @(#) DSP/BIOS Bridge
++ * DSP-BIOS Bridge driver support functions for TI OMAP processors.
++ *
++ * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
++
+ #include "dload_internal.h"
+ 
+ /*  These are defined in coff.h, but may not be available on all platforms
+-- 
+1.6.2.4
 
-> Also adding the tested-on info could be helpful here.
-
-ok
-
-<snip>
-
->> +     case POWER_SUPPLY_PROP_VOLTAGE_NOW:
->> +             /* charging must be active for meaningful result */
->> +             if (!is_charging) {
->
-> How about putting a kern_info here?
-
-That would potentially flood dmesg, will just return -EINVAL like
-Anton suggests.
-
->> +                     val->intval = 0;
->> +                     break;
->> +             }
->> +             ret = twl4030_get_voltage(voltage_reg);
->> +             if (ret < 0)
->> +                     return ret;
->> +             val->intval = ret;
->> +             break;
->> +     case POWER_SUPPLY_PROP_CURRENT_NOW:
->> +             if (!is_charging) {
->> +                     val->intval = 0;
-> Ditto
->> +                     break;
->> +             }
->> +             /* current measurement is shared between AC and USB */
->> +             ret = twl4030_charger_get_current();
->> +             if (ret < 0)
->> +                     return ret;
->> +             val->intval = ret;
->> +             break;
->> +     case POWER_SUPPLY_PROP_ONLINE:
-> Does this indicate the source of charging like USB or AC??
-
-There are 2 charging devices registered now, AC and USB, each returns
-it's state. This is what most other drivers do.
-
-I'll send v2 later, it will also have more accurate voltage formulas I
-got from TI.
