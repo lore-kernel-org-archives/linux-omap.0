@@ -1,1042 +1,230 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2 16/20] DSPBRIDGE: trivial fix for multiline comments on io_sm
-Date: Mon, 30 Nov 2009 15:54:57 -0600
-Message-ID: <1259618101-8972-17-git-send-email-omar.ramirez@ti.com>
-References: <1259618101-8972-1-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-2-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-3-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-4-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-5-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-6-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-7-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-8-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-9-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-10-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-11-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-12-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-13-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-14-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-15-git-send-email-omar.ramirez@ti.com>
- <1259618101-8972-16-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v2 00/20] dspbridge cleanups
+Date: Mon, 30 Nov 2009 15:54:41 -0600
+Message-ID: <1259618101-8972-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47766 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56297 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752280AbZK3VtG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752294AbZK3VtG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 30 Nov 2009 16:49:06 -0500
-In-Reply-To: <1259618101-8972-16-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Artem Bityutskiy <dedekind1@gmail.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Artem Bityutskiy <dedekind1@gmail.com>, Felipe Balbi <felipe.balbi@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Nishant Menon <nm@ti.com>
 
-This patch corrects current style for comments on io_sm.c
+These are the split versions of the v1 patches for cleanup.
 
-- Fix multiline comments according to Documentation/CodingStyle
+Added driver version, a tag is going to be created (dspbridge-v0.1)
+to match this patch.
 
-Functions comments will be addressed in a different patch.
+Comments for functions will be cleaned in a different patch series,
+along with regular multiline comment fixes.
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+Ioctls, deprecated and not implemented, will be clenaed when the big
+ioctl switch replaces the WCD function table.
+
 CC: Artem Bityutskiy <dedekind1@gmail.com>
 CC: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/dsp/bridge/wmd/io_sm.c |  409 +++++++++++++++++++++++-----------------
- 1 files changed, 237 insertions(+), 172 deletions(-)
+CC: Felipe Contreras <felipe.contreras@gmail.com>
+CC: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+CC: Nishant Menon <nm@ti.com>
 
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 96a5aa6..8fcf150 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -17,14 +17,14 @@
-  */
- 
- /*
-- *  Channel Invariant:
-- *      There is an important invariant condition which must be maintained per
-- *      channel outside of WMD_CHNL_GetIOC() and IO_Dispatch(), violation of
-- *      which may cause timeouts and/or failure of the SYNC_WaitOnEvent
-- *      function.
-+ * Channel Invariant:
-+ * There is an important invariant condition which must be maintained per
-+ * channel outside of WMD_CHNL_GetIOC() and IO_Dispatch(), violation of
-+ * which may cause timeouts and/or failure of the SYNC_WaitOnEvent
-+ * function.
-  */
- 
--/*  ----------------------------------- Host OS */
-+/* Host OS */
- #include <dspbridge/host_os.h>
- #include <linux/workqueue.h>
- 
-@@ -32,16 +32,16 @@
- #include <mach/omap-pm.h>
- #endif
- 
--/*  ----------------------------------- DSP/BIOS Bridge */
-+/* DSP/BIOS Bridge */
- #include <dspbridge/std.h>
- #include <dspbridge/dbdefs.h>
- #include <dspbridge/errbase.h>
- 
--/*  ----------------------------------- Trace & Debug */
-+/* Trace & Debug */
- #include <dspbridge/dbc.h>
- #include <dspbridge/dbg.h>
- 
--/*  ----------------------------------- OS Adaptation Layer */
-+/* Services Layer */
- #include <dspbridge/cfg.h>
- #include <dspbridge/dpc.h>
- #include <dspbridge/mem.h>
-@@ -49,11 +49,11 @@
- #include <dspbridge/sync.h>
- #include <dspbridge/reg.h>
- 
--/* ------------------------------------ Hardware Abstraction Layer */
-+/* Hardware Abstraction Layer */
- #include <hw_defs.h>
- #include <hw_mmu.h>
- 
--/*  ----------------------------------- Mini Driver */
-+/* Mini Driver */
- #include <dspbridge/wmddeh.h>
- #include <dspbridge/wmdio.h>
- #include <dspbridge/wmdioctl.h>
-@@ -61,25 +61,25 @@
- #include <tiomap_io.h>
- #include <_tiomap_pwr.h>
- 
--/*  ----------------------------------- Platform Manager */
-+/* Platform Manager */
- #include <dspbridge/cod.h>
- #include <dspbridge/dev.h>
- #include <dspbridge/chnl_sm.h>
- 
--/*  ----------------------------------- Others */
-+/* Others */
- #include <dspbridge/rms_sh.h>
- #include <dspbridge/mgr.h>
- #include <dspbridge/drv.h>
- #include "_cmm.h"
- 
--/*  ----------------------------------- This */
-+/* This */
- #include <dspbridge/io_sm.h>
- #include "_msg_sm.h"
- #include <dspbridge/gt.h>
- 
--/*  ----------------------------------- Defines, Data Structures, Typedefs */
-+/* Defines, Data Structures, Typedefs */
- #define OUTPUTNOTREADY  0xffff
--#define NOTENABLED      0xffff	/* channel(s) not enabled */
-+#define NOTENABLED      0xffff	/* Channel(s) not enabled */
- 
- #define EXTEND      "_EXT_END"
- 
-@@ -88,34 +88,34 @@
- 
- #define MAX_PM_REQS 32
- 
--/* IO Manager: only one created per board: */
-+/* IO Manager: only one created per board */
- struct IO_MGR {
--	/* These four fields must be the first fields in a IO_MGR_ struct: */
--	u32 dwSignature; 	/* Used for object validation   */
--	struct WMD_DEV_CONTEXT *hWmdContext; 	/* WMD device context  */
-+	/* These four fields must be the first fields in a IO_MGR_ struct */
-+	u32 dwSignature; 	/* Used for object validation */
-+	struct WMD_DEV_CONTEXT *hWmdContext; 	/* WMD device context */
- 	struct WMD_DRV_INTERFACE *pIntfFxns; 	/* Function interface to WMD */
- 	struct DEV_OBJECT *hDevObject; 	/* Device this board represents */
- 
--	/* These fields initialized in WMD_IO_Create():    */
-+	/* These fields initialized in WMD_IO_Create() */
- 	struct CHNL_MGR *hChnlMgr;
--	struct SHM *pSharedMem; 	/* Shared Memory control	*/
--	u8 *pInput; 		/* Address of input channel     */
--	u8 *pOutput; 		/* Address of output channel    */
-+	struct SHM *pSharedMem; 	/* Shared Memory control */
-+	u8 *pInput; 		/* Address of input channel */
-+	u8 *pOutput; 		/* Address of output channel */
- 	struct MSG_MGR *hMsgMgr; 	/* Message manager */
- 	struct MSG *pMsgInputCtrl; 	/* Msg control for from DSP messages */
- 	struct MSG *pMsgOutputCtrl; 	/* Msg control for to DSP messages */
--	u8 *pMsgInput; 	/* Address of input messages    */
--	u8 *pMsgOutput; 	/* Address of output messages   */
-+	u8 *pMsgInput; 	/* Address of input messages */
-+	u8 *pMsgOutput; 	/* Address of output messages */
- 	u32 uSMBufSize; 	/* Size of a shared memory I/O channel */
--	bool fSharedIRQ; 	/* Is this IRQ shared?	  */
--	struct DPC_OBJECT *hDPC; 	/* DPC object handle	    */
-+	bool fSharedIRQ; 	/* Is this IRQ shared? */
-+	struct DPC_OBJECT *hDPC; 	/* DPC object handle */
- 	struct SYNC_CSOBJECT *hCSObj; 	/* Critical section object handle */
--	u32 uWordSize; 	/* Size in bytes of DSP word    */
--	u16 wIntrVal; 		/* interrupt value	      */
--	/* private extnd proc info; mmu setup */
-+	u32 uWordSize; 	/* Size in bytes of DSP word */
-+	u16 wIntrVal; 		/* Interrupt value */
-+	/* Private extnd proc info; mmu setup */
- 	struct MGR_PROCESSOREXTINFO extProcInfo;
--	struct CMM_OBJECT *hCmmMgr; 	/* Shared Mem Mngr	      */
--	struct work_struct io_workq;     /*workqueue */
-+	struct CMM_OBJECT *hCmmMgr; 	/* Shared Mem Mngr */
-+	struct work_struct io_workq;     /* workqueue */
- 	u32 dQuePowerMbxVal[MAX_PM_REQS];
- 	u32 iQuePowerHead;
- 	u32 iQuePowerTail;
-@@ -130,7 +130,7 @@ struct IO_MGR {
- #endif
- } ;
- 
--/*  ----------------------------------- Function Prototypes */
-+/* Function Prototypes */
- static void IO_DispatchChnl(IN struct IO_MGR *pIOMgr,
- 			   IN OUT struct CHNL_OBJECT *pChnl, u32 iMode);
- static void IO_DispatchMsg(IN struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr);
-@@ -154,7 +154,7 @@ static struct workqueue_struct *bridge_workqueue;
- void PrintDSPDebugTrace(struct IO_MGR *hIOMgr);
- #endif
- 
--/* Bus Addr (cached kernel)*/
-+/* Bus Addr (cached kernel) */
- static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 				  struct COD_MANAGER *hCodMan,
- 				  u32 dwGPPBasePA);
-@@ -187,7 +187,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 	struct CHNL_MGR *hChnlMgr;
- 	static int ref_count;
- 	u32 devType;
--	/* Check requirements:  */
-+	/* Check requirements */
- 	if (!phIOMgr || !pMgrAttrs || pMgrAttrs->uWordSize == 0) {
- 		status = DSP_EHANDLE;
- 		goto func_end;
-@@ -197,9 +197,10 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		status = DSP_EHANDLE;
- 		goto func_end;
- 	}
--	/*  Message manager will be created when a file is loaded, since
--	 *  size of message buffer in shared memory is configurable in
--	 *  the base image.
-+	/*
-+	 * Message manager will be created when a file is loaded, since
-+	 * size of message buffer in shared memory is configurable in
-+	 * the base image.
- 	 */
- 	DEV_GetWMDContext(hDevObject, &hWmdContext);
- 	if (!hWmdContext) {
-@@ -207,18 +208,17 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		goto func_end;
- 	}
- 	DEV_GetDevType(hDevObject, &devType);
--	/*  DSP shared memory area will get set properly when
--	 *  a program is loaded. They are unknown until a COFF file is
--	 *  loaded. I chose the value -1 because it was less likely to be
--	 *  a valid address than 0.
-+	/*
-+	 * DSP shared memory area will get set properly when
-+	 * a program is loaded. They are unknown until a COFF file is
-+	 * loaded. I chose the value -1 because it was less likely to be
-+	 * a valid address than 0.
- 	 */
- 	pSharedMem = (struct SHM *) -1;
- 	if (DSP_FAILED(status))
- 		goto func_cont;
- 
--	/*
--	 * Create a Single Threaded Work Queue
--	 */
-+	/* Create a Single Threaded Work Queue */
- 	if (ref_count == 0)
- 		bridge_workqueue = create_workqueue("bridge_work-queue");
- 
-@@ -226,7 +226,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		DBG_Trace(DBG_LEVEL1, "Workque Create failed 0x%d \n",
- 						bridge_workqueue);
- 
--	/* Allocate IO manager object: */
-+	/* Allocate IO manager object */
- 	MEM_AllocObject(pIOMgr, struct IO_MGR, IO_MGRSIGNATURE);
- 	if (pIOMgr == NULL) {
- 		status = DSP_EMEMORY;
-@@ -239,7 +239,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 	} else
- 		PREPARE_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
- 
--	/* Initialize CHNL_MGR object:    */
-+	/* Initialize CHNL_MGR object */
- #ifndef DSP_TRACEBUF_DISABLED
- 	pIOMgr->pMsg = NULL;
- #endif
-@@ -250,7 +250,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		status = SYNC_InitializeCS(&pIOMgr->hCSObj);
- 
- 	if (devType == DSP_UNIT) {
--		/* Create a DPC object: */
-+		/* Create a DPC object */
- 		status = DPC_Create(&pIOMgr->hDPC, IO_DPC, (void *)pIOMgr);
- 		if (DSP_SUCCEEDED(status))
- 			status = DEV_GetDevNode(hDevObject, &hDevNode);
-@@ -281,7 +281,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		status = CHNL_E_ISR;
- func_cont:
- 	if (DSP_FAILED(status)) {
--		/* Cleanup: */
-+		/* Cleanup */
- 		WMD_IO_Destroy(pIOMgr);
- 		*phIOMgr = NULL;
- 	} else {
-@@ -303,8 +303,8 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
- 	DSP_STATUS status = DSP_SOK;
- 	struct WMD_DEV_CONTEXT *hWmdContext;
- 	if (MEM_IsValidHandle(hIOMgr, IO_MGRSIGNATURE)) {
--		/* Unplug IRQ:    */
--		/* Disable interrupts from the board:  */
-+		/* Unplug IRQ */
-+		/* Disable interrupts from the board */
- 		status = DEV_GetWMDContext(hIOMgr->hDevObject, &hWmdContext);
- 		if (DSP_SUCCEEDED(status))
- 			(void)CHNLSM_DisableInterrupt(hWmdContext);
-@@ -319,7 +319,7 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
- 			MEM_Free(hIOMgr->pMsg);
- #endif
- 		SYNC_DeleteCS(hIOMgr->hCSObj); 	/* Leak Fix. */
--		/* Free this IO manager object: */
-+		/* Free this IO manager object */
- 		MEM_FreeObject(hIOMgr);
- 	} else
- 		status = DSP_EHANDLE;
-@@ -376,7 +376,7 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
- 	if (DSP_FAILED(status))
- 		goto func_end;
- 	hChnlMgr = hIOMgr->hChnlMgr;
--	 /*  The message manager is destroyed when the board is stopped.  */
-+	/* The message manager is destroyed when the board is stopped. */
- 	DEV_GetMsgMgr(hIOMgr->hDevObject, &hIOMgr->hMsgMgr);
- 	hMsgMgr = hIOMgr->hMsgMgr;
- 	if (!MEM_IsValidHandle(hChnlMgr, CHNL_MGRSIGNATURE) ||
-@@ -403,7 +403,7 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
- 	if (ulShmLimit <= ulShmBase) {
- 		status = CHNL_E_INVALIDMEMBASE;
- 	} else {
--		/* get total length in bytes */
-+		/* Get total length in bytes */
- 		ulShmLength = (ulShmLimit - ulShmBase + 1) * hIOMgr->uWordSize;
- 		/* Calculate size of a PROCCOPY shared memory region */
- 		DBG_Trace(DBG_LEVEL7,
-@@ -423,12 +423,16 @@ func_cont1:
- 			if (ulMsgLimit <= ulMsgBase) {
- 				status = CHNL_E_INVALIDMEMBASE;
- 			} else {
--				/* Length (bytes) of messaging part of shared
--				 * memory */
-+				/*
-+				 * Length (bytes) of messaging part of shared
-+				 * memory.
-+				 */
- 				ulMsgLength = (ulMsgLimit - ulMsgBase + 1) *
- 					      hIOMgr->uWordSize;
--				/* Total length (bytes) of shared memory:
--				 * chnl + msg */
-+				/*
-+				 * Total length (bytes) of shared memory:
-+				 * chnl + msg.
-+				 */
- 				ulMemLength = ulShmLength + ulMsgLength;
- 			}
- 		} else {
-@@ -470,7 +474,7 @@ func_cont1:
- 		ndx = 0;
- 		ulGppPa = hostRes.dwMemPhys[1];
- 		ulGppVa = hostRes.dwMemBase[1];
--		/* THIS IS THE VIRTUAL UNCACHED IOREMAPPED ADDRESS !!! */
-+		/* This is the virtual uncached ioremapped address!!! */
- 		/* Why can't we directly take the DSPVA from the symbols? */
- 		ulDspVa = hIOMgr->extProcInfo.tyTlb[0].ulDspVirt;
- 		ulSegSize = (ulShm0End - ulDspVa) * hIOMgr->uWordSize;
-@@ -522,8 +526,10 @@ func_cont1:
- 	mapAttrs |= DSP_MAPDONOTLOCK;
- 
- 	while (numBytes && DSP_SUCCEEDED(status)) {
--		/* To find the max. page size with which both PA & VA are
--		 * aligned */
-+		/*
-+		 * To find the max. page size with which both PA & VA are
-+		 * aligned.
-+		 */
- 		allBits = paCurr | vaCurr;
- 		DBG_Trace(DBG_LEVEL1, "allBits %x, paCurr %x, vaCurr %x, "
- 			 "numBytes %x\n", allBits, paCurr, vaCurr, numBytes);
-@@ -539,9 +545,11 @@ func_cont1:
- 				vaCurr += pgSize[i];
- 				gppVaCurr += pgSize[i];
- 				numBytes -= pgSize[i];
--				/* Don't try smaller sizes. Hopefully we have
-+				/*
-+				 * Don't try smaller sizes. Hopefully we have
- 				 * reached an address aligned to a bigger page
--				 * size*/
-+				 * size.
-+				 */
- 				break;
- 			}
- 		}
-@@ -550,13 +558,15 @@ func_cont1:
- 	vaCurr += ulPadSize;
- 	gppVaCurr += ulPadSize;
- 
--	/* configure the TLB entries for the next cacheable segment */
-+	/* Configure the TLB entries for the next cacheable segment */
- 	numBytes = ulSegSize;
- 	vaCurr = ulDspVa * hIOMgr->uWordSize;
- 	allBits = 0x0;
- 	while (numBytes && DSP_SUCCEEDED(status)) {
--		/* To find the max. page size with which both PA & VA are
--		 * aligned*/
-+		/*
-+		 * To find the max. page size with which both PA & VA are
-+		 * aligned.
-+		 */
- 		allBits = paCurr | vaCurr;
- 		DBG_Trace(DBG_LEVEL1, "allBits for Seg1 %x, paCurr %x, "
- 			 "vaCurr %x, numBytes %x\n", allBits, paCurr, vaCurr,
-@@ -566,11 +576,15 @@ func_cont1:
- 			   !((allBits & (pgSize[i]-1)) == 0))
- 				continue;
- 			if (ndx < MAX_LOCK_TLB_ENTRIES) {
--				/* This is the physical address written to
--				 * DSP MMU */
-+				/*
-+				 * This is the physical address written to
-+				 * DSP MMU.
-+				 */
- 				aEProc[ndx].ulGppPa = paCurr;
--				/* THIS IS THE VIRTUAL UNCACHED IOREMAPPED
--				 * ADDRESS!!! */
-+				/*
-+				 * This is the virtual uncached ioremapped
-+				 * address!!!
-+				 */
- 				aEProc[ndx].ulGppVa = gppVaCurr;
- 				aEProc[ndx].ulDspVa = vaCurr / hIOMgr->
- 						      uWordSize;
-@@ -602,14 +616,18 @@ func_cont1:
- 			vaCurr += pgSize[i];
- 			gppVaCurr += pgSize[i];
- 			numBytes -= pgSize[i];
--			/* Don't try smaller sizes. Hopefully we have reached
--			 an address aligned to a bigger page size*/
-+			/*
-+			 * Don't try smaller sizes. Hopefully we have reached
-+			 * an address aligned to a bigger page size.
-+			 */
- 			break;
- 		}
- 	}
- 
--	/* Copy remaining entries from CDB. All entries are 1 MB and should not
--	 * conflict with SHM entries on MPU or DSP side */
-+	/*
-+	 * Copy remaining entries from CDB. All entries are 1 MB and
-+	 * should not conflict with SHM entries on MPU or DSP side.
-+	 */
- 	for (i = 3; i < 7 && ndx < WMDIOCTL_NUMOFMMUTLB &&
- 	    DSP_SUCCEEDED(status); i++) {
- 		if (hIOMgr->extProcInfo.tyTlb[i].ulGppPhys == 0)
-@@ -636,8 +654,8 @@ func_cont1:
- 				aEProc[ndx].ulGppPa = hIOMgr->extProcInfo.
- 					tyTlb[i].ulGppPhys;
- 				aEProc[ndx].ulGppVa = 0;
--				/* Can't convert, so set to zero*/
--				aEProc[ndx].ulSize = 0x100000; 	/* 1 MB*/
-+				/* Can't convert, so set to zero */
-+				aEProc[ndx].ulSize = 0x100000; 	/* 1 MB */
- 				DBG_Trace(DBG_LEVEL1, "SHM MMU entry PA %x "
- 					 "DSP_VA 0x%x\n", aEProc[ndx].ulGppPa,
- 					aEProc[ndx].ulDspVa);
-@@ -652,7 +670,7 @@ func_cont1:
- 		}
- 	}
- 	if (i < 7 && DSP_SUCCEEDED(status)) {
--		/* All CDB entries could not be made*/
-+		/* All CDB entries could not be made */
- 		status = DSP_EFAIL;
- 	}
- func_cont:
-@@ -681,15 +699,19 @@ func_cont:
- 			aEProc[i].ulGppVa = 0;
- 			aEProc[i].ulSize = 0;
- 		}
--		/* Set the SHM physical address entry (grayed out in CDB file)
-+		/*
-+		 * Set the SHM physical address entry (grayed out in CDB file)
- 		 * to the virtual uncached ioremapped address of SHM reserved
--		 * on MPU */
-+		 * on MPU.
-+		 */
- 		hIOMgr->extProcInfo.tyTlb[0].ulGppPhys = (ulGppVa + ulSeg1Size +
- 							 ulPadSize);
- 		DBG_Trace(DBG_LEVEL1, "*********extProcInfo *********%x \n",
- 			  hIOMgr->extProcInfo.tyTlb[0].ulGppPhys);
--		/* Need SHM Phys addr. IO supports only one DSP for now:
--		 * uNumProcs=1 */
-+		/*
-+		 * Need SHM Phys addr. IO supports only one DSP for now:
-+		 * uNumProcs=1.
-+		 */
- 		if ((hIOMgr->extProcInfo.tyTlb[0].ulGppPhys == 0) ||
- 		   (uNumProcs != 1)) {
- 			status = CHNL_E_NOMEMMAP;
-@@ -702,10 +724,12 @@ func_cont:
- 			/* ulShmBase may not be at ulDspVa address */
- 			ulShmBaseOffset = (ulShmBase - aEProc[0].ulDspVa) *
- 			    hIOMgr->uWordSize;
--			 /* WMD_BRD_Ctrl() will set dev context dsp-mmu info. In
--			 *   _BRD_Start() the MMU will be re-programed with MMU
--			 *   DSPVa-GPPPa pair info while DSP is in a known
--			 *   (reset) state.  */
-+			/*
-+			 * WMD_BRD_Ctrl() will set dev context dsp-mmu info. In
-+			 * _BRD_Start() the MMU will be re-programed with MMU
-+			 * DSPVa-GPPPa pair info while DSP is in a known
-+			 * (reset) state.
-+			 */
- 			if (!hIOMgr->pIntfFxns || !hIOMgr->hWmdContext)	{
- 				status = DSP_EHANDLE;
- 				goto func_end;
-@@ -745,7 +769,7 @@ func_cont:
- 			 "pSharedMem %p uSMBufSize %x sizeof(SHM) %x\n",
- 			 hIOMgr->pSharedMem, hIOMgr->uSMBufSize,
- 			 sizeof(struct SHM));
--		 /*  Set up Shared memory addresses for messaging. */
-+		/* Set up Shared memory addresses for messaging. */
- 		hIOMgr->pMsgInputCtrl = (struct MSG *)((u8 *)
- 					hIOMgr->pSharedMem +
- 					ulShmLength);
-@@ -847,7 +871,7 @@ void IO_CancelChnl(struct IO_MGR *hIOMgr, u32 ulChnl)
- 		goto func_end;
- 	sm = hIOMgr->pSharedMem;
- 
--	/* Inform DSP that we have no more buffers on this channel:  */
-+	/* Inform DSP that we have no more buffers on this channel */
- 	IO_AndValue(pIOMgr->hWmdContext, struct SHM, sm, hostFreeMask,
- 		   (~(1 << ulChnl)));
- 
-@@ -868,11 +892,11 @@ static void IO_DispatchChnl(IN struct IO_MGR *pIOMgr,
- 
- 	DBG_Trace(DBG_LEVEL3, "Entering IO_DispatchChnl \n");
- 
--	/* See if there is any data available for transfer: */
-+	/* See if there is any data available for transfer */
- 	if (iMode != IO_SERVICE)
- 		goto func_end;
- 
--	/* Any channel will do for this mode: */
-+	/* Any channel will do for this mode */
- 	InputChnl(pIOMgr, pChnl, iMode);
- 	OutputChnl(pIOMgr, pChnl, iMode);
- func_end:
-@@ -890,7 +914,7 @@ static void IO_DispatchMsg(IN struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 
- 	DBG_Trace(DBG_LEVEL3, "Entering IO_DispatchMsg \n");
- 
--	/*  We are performing both input and output processing. */
-+	/* We are performing both input and output processing. */
- 	InputMsg(pIOMgr, hMsgMgr);
- 	OutputMsg(pIOMgr, hMsgMgr);
- func_end:
-@@ -949,7 +973,7 @@ static void IO_DispatchPM(struct work_struct *work)
- 					 *pArg);
- 			}
- 		}
--		/* increment the tail count here */
-+		/* Increment the tail count here */
- 		pIOMgr->iQuePowerTail++;
- 		if (pIOMgr->iQuePowerTail >= MAX_PM_REQS)
- 			pIOMgr->iQuePowerTail = 0;
-@@ -979,7 +1003,7 @@ void IO_DPC(IN OUT void *pRefData)
- 	DBG_Trace(DBG_LEVEL7, "Entering IO_DPC(0x%x)\n", pRefData);
- 	/* Check value of interrupt register to ensure it is a valid error */
- 	if ((pIOMgr->wIntrVal > DEH_BASE) && (pIOMgr->wIntrVal < DEH_LIMIT)) {
--		/* notify DSP/BIOS exception */
-+		/* Notify DSP/BIOS exception */
- 		if (hDehMgr)
- 			WMD_DEH_Notify(hDehMgr, DSP_SYSERROR, pIOMgr->wIntrVal);
- 	}
-@@ -990,7 +1014,7 @@ void IO_DPC(IN OUT void *pRefData)
- #endif
- #ifndef DSP_TRACEBUF_DISABLED
- 	if (pIOMgr->wIntrVal & MBX_DBG_CLASS) {
--		/* notify DSP Trace message */
-+		/* Notify DSP Trace message */
- 		if (pIOMgr->wIntrVal & MBX_DBG_SYSPRINTF)
- 			PrintDSPDebugTrace(pIOMgr);
- 	}
-@@ -1030,7 +1054,7 @@ irqreturn_t IO_ISR(int irq, IN void *pRefData)
- 			DBG_Trace(DBG_LEVEL6, "*** DSP RESET ***\n");
- 			hIOMgr->wIntrVal = 0;
- 		} else if (fSchedDPC) {
--			/* PROC-COPY defer i/o  */
-+			/* PROC-COPY defer i/o */
- 			DPC_Schedule(hIOMgr->hDPC);
- 		}
- 	} else
-@@ -1057,21 +1081,27 @@ void IO_RequestChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 	pChnlMgr = pIOMgr->hChnlMgr;
- 	sm = pIOMgr->pSharedMem;
- 	if (iMode == IO_INPUT) {
--		/*  Assertion fires if CHNL_AddIOReq() called on a stream
--		 * which was cancelled, or attached to a dead board: */
-+		/*
-+		 * Assertion fires if CHNL_AddIOReq() called on a stream
-+		 * which was cancelled, or attached to a dead board.
-+		 */
- 		DBC_Assert((pChnl->dwState == CHNL_STATEREADY) ||
- 			  (pChnl->dwState == CHNL_STATEEOS));
--		/* Indicate to the DSP we have a buffer available for input: */
-+		/* Indicate to the DSP we have a buffer available for input */
- 		IO_OrValue(pIOMgr->hWmdContext, struct SHM, sm, hostFreeMask,
- 			  (1 << pChnl->uId));
- 		*pwMbVal = MBX_PCPY_CLASS;
- 	} else if (iMode == IO_OUTPUT) {
--		/*  This assertion fails if CHNL_AddIOReq() was called on a
--		 * stream which was cancelled, or attached to a dead board: */
-+		/*
-+		 * This assertion fails if CHNL_AddIOReq() was called on a
-+		 * stream which was cancelled, or attached to a dead board.
-+		 */
- 		DBC_Assert((pChnl->dwState & ~CHNL_STATEEOS) ==
- 			  CHNL_STATEREADY);
--		/* Record the fact that we have a buffer available for
--		 * output: */
-+		/*
-+		 * Record the fact that we have a buffer available for
-+		 * output.
-+		 */
- 		pChnlMgr->dwOutputMask |= (1 << pChnl->uId);
- 	} else {
- 		DBC_Assert(iMode); 	/* Shouldn't get here. */
-@@ -1150,7 +1180,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 
- 	DBG_Trace(DBG_LEVEL3, "> InputChnl\n");
- 
--	/* Attempt to perform input.... */
-+	/* Attempt to perform input */
- 	if (!IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputFull))
- 		goto func_end;
- 
-@@ -1168,17 +1198,19 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 		if ((pChnl->dwState & ~CHNL_STATEEOS) == CHNL_STATEREADY) {
- 			if (!pChnl->pIORequests)
- 				goto func_end;
--			/* Get the I/O request, and attempt a transfer:  */
-+			/* Get the I/O request, and attempt a transfer */
- 			pChirp = (struct CHNL_IRP *)LST_GetHead(pChnl->
- 				 pIORequests);
- 			if (pChirp) {
- 				pChnl->cIOReqs--;
- 				if (pChnl->cIOReqs < 0)
- 					goto func_end;
--				/* Ensure we don't overflow the client's
--				 * buffer: */
-+				/*
-+				 * Ensure we don't overflow the client's
-+				 * buffer.
-+				 */
- 				uBytes = min(uBytes, pChirp->cBytes);
--				/* Transfer buffer from DSP side: */
-+				/* Transfer buffer from DSP side */
- 				uBytes = ReadData(pIOMgr->hWmdContext,
- 						pChirp->pHostSysBuf,
- 						pIOMgr->pInput, uBytes);
-@@ -1190,24 +1222,30 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 					 "\n", *((RMS_WORD *)(pChirp->
- 					 pHostSysBuf)));
- 				if (uBytes == 0) {
--					/* This assertion fails if the DSP
-+					/*
-+					 * This assertion fails if the DSP
- 					 * sends EOS more than once on this
--					 * channel: */
-+					 * channel.
-+					 */
- 					if (pChnl->dwState & CHNL_STATEEOS)
- 						goto func_end;
--					 /* Zero bytes indicates EOS. Update
--					  * IOC status for this chirp, and also
--					  * the channel state: */
-+					/*
-+					 * Zero bytes indicates EOS. Update
-+					 * IOC status for this chirp, and also
-+					 * the channel state.
-+					 */
- 					pChirp->status |= CHNL_IOCSTATEOS;
- 					pChnl->dwState |= CHNL_STATEEOS;
--					/* Notify that end of stream has
--					 * occurred */
-+					/*
-+					 * Notify that end of stream has
-+					 * occurred.
-+					 */
- 					NTFY_Notify(pChnl->hNtfy,
- 						   DSP_STREAMDONE);
- 					DBG_Trace(DBG_LEVEL7, "Input Chnl NTFY "
- 						 "chnl = 0x%x\n", pChnl);
- 				}
--				/* Tell DSP if no more I/O buffers available: */
-+				/* Tell DSP if no more I/O buffers available */
- 				if (!pChnl->pIORequests)
- 					goto func_end;
- 				if (LST_IsEmpty(pChnl->pIORequests)) {
-@@ -1218,27 +1256,29 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 				fClearChnl = true;
- 				fNotifyClient = true;
- 			} else {
--				/* Input full for this channel, but we have no
-+				/*
-+				 * Input full for this channel, but we have no
- 				 * buffers available.  The channel must be
- 				 * "idling". Clear out the physical input
--				 * channel.  */
-+				 * channel.
-+				 */
- 				fClearChnl = true;
- 			}
- 		} else {
--			/* Input channel cancelled:  clear input channel.  */
-+			/* Input channel cancelled: clear input channel */
- 			fClearChnl = true;
- 		}
- 	} else {
--		/* DPC fired after host closed channel: clear input channel. */
-+		/* DPC fired after host closed channel: clear input channel */
- 		fClearChnl = true;
- 	}
- 	if (fClearChnl) {
--		/* Indicate to the DSP we have read the input: */
-+		/* Indicate to the DSP we have read the input */
- 		IO_SetValue(pIOMgr->hWmdContext, struct SHM, sm, inputFull, 0);
- 		CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
- 	}
- 	if (fNotifyClient) {
--		/* Notify client with IO completion record:  */
-+		/* Notify client with IO completion record */
- 		NotifyChnlComplete(pChnl, pChirp);
- 	}
- func_end:
-@@ -1262,7 +1302,7 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 	u32 addr;
- 
- 	pCtrl = pIOMgr->pMsgInputCtrl;
--	/* Get the number of input messages to be read. */
-+	/* Get the number of input messages to be read */
- 	fInputEmpty = IO_GetValue(pIOMgr->hWmdContext, struct MSG, pCtrl,
- 				 bufEmpty);
- 	uMsgs = IO_GetValue(pIOMgr->hWmdContext, struct MSG, pCtrl, size);
-@@ -1289,9 +1329,11 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 		DBG_Trace(DBG_LEVEL7, "InputMsg RECVD: dwCmd=0x%x dwArg1=0x%x "
- 			 "dwArg2=0x%x dwId=0x%x \n", msg.msg.dwCmd,
- 			 msg.msg.dwArg1, msg.msg.dwArg2, msg.dwId);
--		/*  Interrupt may occur before shared memory and message
--		 *  input locations have been set up. If all nodes were
--		 *  cleaned up, hMsgMgr->uMaxMsgs should be 0.  */
-+		/*
-+		 * Interrupt may occur before shared memory and message
-+		 * input locations have been set up. If all nodes were
-+		 * cleaned up, hMsgMgr->uMaxMsgs should be 0.
-+		 */
- 		if (hMsgQueue && uMsgs > hMsgMgr->uMaxMsgs)
- 			goto func_end;
- 
-@@ -1299,15 +1341,18 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 			if (msg.dwId == hMsgQueue->dwId) {
- 				/* Found it */
- 				if (msg.msg.dwCmd == RMS_EXITACK) {
--					/* The exit message does not get
--					 * queued */
--					/* Call the node exit notification */
--					/* Node handle */ /* status */
-+					/*
-+					 * Call the node exit notification.
-+					 * The exit message does not get
-+					 * queued.
-+					 */
- 					(*hMsgMgr->onExit)((HANDLE)hMsgQueue->
- 						hArg, msg.msg.dwArg1);
- 				} else {
--					/* Not an exit acknowledgement, queue
--					 * the message */
-+					/*
-+					 * Not an exit acknowledgement, queue
-+					 * the message.
-+					 */
- 					if (!hMsgQueue->msgFreeList)
- 						goto func_end;
- 					pMsg = (struct MSG_FRAME *)LST_GetHead
-@@ -1322,8 +1367,10 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 						SYNC_SetEvent(hMsgQueue->
- 							hSyncEvent);
- 					} else {
--						/* No free frame to copy the
--						 * message into */
-+						/*
-+						 * No free frame to copy the
-+						 * message into.
-+						 */
- 						DBG_Trace(DBG_LEVEL7, "NO FREE "
- 							"MSG FRAMES, DISCARDING"
- 							" MESSAGE\n");
-@@ -1365,18 +1412,20 @@ static void NotifyChnlComplete(struct CHNL_OBJECT *pChnl,
- 	   !pChnl->pIOCompletions || !pChirp)
- 		goto func_end;
- 
--	/*  Note: we signal the channel event only if the queue of IO
--	 *  completions is empty.  If it is not empty, the event is sure to be
--	 *  signalled by the only IO completion list consumer:
--	 *  WMD_CHNL_GetIOC().  */
-+	/*
-+	 * Note: we signal the channel event only if the queue of IO
-+	 * completions is empty.  If it is not empty, the event is sure to be
-+	 * signalled by the only IO completion list consumer:
-+	 * WMD_CHNL_GetIOC().
-+	 */
- 	fSignalEvent = LST_IsEmpty(pChnl->pIOCompletions);
--	/* Enqueue the IO completion info for the client: */
-+	/* Enqueue the IO completion info for the client */
- 	LST_PutTail(pChnl->pIOCompletions, (struct LST_ELEM *) pChirp);
- 	pChnl->cIOCs++;
- 
- 	if (pChnl->cIOCs > pChnl->cChirps)
- 		goto func_end;
--	/* Signal the channel event (if not already set) that IO is complete: */
-+	/* Signal the channel event (if not already set) that IO is complete */
- 	if (fSignalEvent)
- 		SYNC_SetEvent(pChnl->hSyncEvent);
- 
-@@ -1403,14 +1452,14 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 	pChnlMgr = pIOMgr->hChnlMgr;
- 	sm = pIOMgr->pSharedMem;
- 	DBG_Trace(DBG_LEVEL3, "> OutputChnl\n");
--	/* Attempt to perform output: */
-+	/* Attempt to perform output */
- 	if (IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, outputFull))
- 		goto func_end;
- 
- 	if (pChnl && !((pChnl->dwState & ~CHNL_STATEEOS) == CHNL_STATEREADY))
- 		goto func_end;
- 
--	/* Look to see if both a PC and DSP output channel are ready: */
-+	/* Look to see if both a PC and DSP output channel are ready */
- 	dwDspFMask = IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm,
- 				 dspFreeMask);
- 	chnlId = FindReadyOutput(pChnlMgr, pChnl, (pChnlMgr->dwOutputMask &
-@@ -1420,10 +1469,10 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 
- 	pChnl = pChnlMgr->apChannel[chnlId];
- 	if (!pChnl || !pChnl->pIORequests) {
--		/* Shouldn't get here: */
-+		/* Shouldn't get here */
- 		goto func_end;
- 	}
--	/* Get the I/O request, and attempt a transfer:  */
-+	/* Get the I/O request, and attempt a transfer */
- 	pChirp = (struct CHNL_IRP *)LST_GetHead(pChnl->pIORequests);
- 	if (!pChirp)
- 		goto func_end;
-@@ -1432,11 +1481,11 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 	if (pChnl->cIOReqs < 0 || !pChnl->pIORequests)
- 		goto func_end;
- 
--	/* Record fact that no more I/O buffers available:  */
-+	/* Record fact that no more I/O buffers available */
- 	if (LST_IsEmpty(pChnl->pIORequests))
- 		pChnlMgr->dwOutputMask &= ~(1 << chnlId);
- 
--	/* Transfer buffer to DSP side: */
-+	/* Transfer buffer to DSP side */
- 	pChirp->cBytes = WriteData(pIOMgr->hWmdContext, pIOMgr->pOutput,
- 			pChirp->pHostSysBuf, min(pIOMgr->uSMBufSize, pChirp->
- 			cBytes));
-@@ -1456,7 +1505,7 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 		   uWordSize);
- #endif
- 	IO_SetValue(pIOMgr->hWmdContext, struct SHM, sm, outputFull, 1);
--	/* Indicate to the DSP we have written the output: */
-+	/* Indicate to the DSP we have written the output */
- 	CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
- 	/* Notify client with IO completion record (keep EOS) */
- 	pChirp->status &= CHNL_IOCSTATEOS;
-@@ -1577,8 +1626,10 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 	u32 ulShmSegId0 = 0;
- 	u32 dwOffset, dwGPPBaseVA, ulDSPSize;
- 
--	/* Read address and size info for first SM region.*/
--	/* Get start of 1st SM Heap region */
-+	/*
-+	 * Read address and size info for first SM region.
-+	 * Get start of 1st SM Heap region.
-+	 */
- 	status = COD_GetSymValue(hCodMan, SHM0_SHARED_BASE_SYM, &ulShm0_Base);
- 	if (ulShm0_Base == 0) {
- 		status = DSP_EFAIL;
-@@ -1594,7 +1645,7 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 			goto func_end;
- 		}
- 	}
--	/* start of Gpp reserved region */
-+	/* Start of Gpp reserved region */
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Get start and length of message part of shared memory */
- 		status = COD_GetSymValue(hCodMan, SHM0_SHARED_RESERVED_BASE_SYM,
-@@ -1623,27 +1674,29 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 	}
- 	/* Register new SM region(s) */
- 	if (DSP_SUCCEEDED(status) && (ulShm0_End - ulShm0_Base) > 0) {
--		/* calc size (bytes) of SM the GPP can alloc from */
-+		/* Calc size (bytes) of SM the GPP can alloc from */
- 		ulRsrvdSize = (ulShm0_End - ulShm0_RsrvdStart + 1) * hIOMgr->
- 			      uWordSize;
- 		if (ulRsrvdSize <= 0) {
- 			status = DSP_EFAIL;
- 			goto func_end;
- 		}
--		/* calc size of SM DSP can alloc from */
-+		/* Calc size of SM DSP can alloc from */
- 		ulDSPSize = (ulShm0_RsrvdStart - ulShm0_Base) * hIOMgr->
- 			uWordSize;
- 		if (ulDSPSize <= 0) {
- 			status = DSP_EFAIL;
- 			goto func_end;
- 		}
--		/*  First TLB entry reserved for Bridge SM use.*/
-+		/* First TLB entry reserved for Bridge SM use.*/
- 		ulGppPhys = hIOMgr->extProcInfo.tyTlb[0].ulGppPhys;
--		/* get size in bytes */
-+		/* Get size in bytes */
- 		ulDspVirt = hIOMgr->extProcInfo.tyTlb[0].ulDspVirt * hIOMgr->
- 			uWordSize;
--		 /* Calc byte offset used to convert GPP phys <-> DSP byte
--		  * address.*/
-+		/*
-+		 * Calc byte offset used to convert GPP phys <-> DSP byte
-+		 * address.
-+		 */
- 		if (dwGPPBasePA > ulDspVirt)
- 			dwOffset = dwGPPBasePA - ulDspVirt;
- 		else
-@@ -1653,15 +1706,19 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 			status = DSP_EFAIL;
- 			goto func_end;
- 		}
--		/* calc Gpp phys base of SM region */
--		/* Linux - this is actually uncached kernel virtual address*/
-+		/*
-+		 * Calc Gpp phys base of SM region.
-+		 * This is actually uncached kernel virtual address.
-+		 */
- 		dwGPPBaseVA = ulGppPhys + ulShm0_RsrvdStart * hIOMgr->uWordSize
- 				- ulDspVirt;
--		/* calc Gpp phys base of SM region */
--		/* Linux - this is the physical address*/
-+		/*
-+		 * Calc Gpp phys base of SM region.
-+		 * This is the physical address.
-+		 */
- 		dwGPPBasePA = dwGPPBasePA + ulShm0_RsrvdStart * hIOMgr->
- 			      uWordSize - ulDspVirt;
--		 /* Register SM Segment 0.*/
-+		/* Register SM Segment 0.*/
- 		status = CMM_RegisterGPPSMSeg(hIOMgr->hCmmMgr, dwGPPBasePA,
- 			 ulRsrvdSize, dwOffset, (dwGPPBasePA > ulDspVirt) ?
- 			 CMM_ADDTODSPPA : CMM_SUBFROMDSPPA,
-@@ -1671,7 +1728,7 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 			DBG_Trace(DBG_LEVEL7, "ERROR - Failed to register SM "
- 				 "Seg 0 \n");
- 		}
--		/* first SM region is segId = 1 */
-+		/* First SM region is segId = 1 */
- 		if (ulShmSegId0 != 1)
- 			status = DSP_EFAIL;
- 	}
-@@ -1729,8 +1786,10 @@ DSP_STATUS IO_SHMsetting(IN struct IO_MGR *hIOMgr, IN enum SHM_DESCTYPE desc,
- 			return DSP_EFAIL;
- 		break;
- 	case SHM_OPPINFO:
--		/* Update the shared memory with the voltage, frequency,
--				   min and max frequency values for an OPP */
-+		/*
-+		 * Update the shared memory with the voltage, frequency,
-+		 * min and max frequency values for an OPP.
-+		 */
- 		for (i = 0; i <= dsp_max_opps; i++) {
- 			hIOMgr->pSharedMem->oppTableStruct.oppPoint[i].voltage =
- 				vdd1_dsp_freq[i][0];
-@@ -1818,8 +1877,10 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
- 			memcpy(hIOMgr->pMsg, (char *)hIOMgr->ulGPPReadPointer,
- 				ulNewMessageLength);
- 			hIOMgr->pMsg[ulNewMessageLength] = '\0';
--			/* Advance the GPP trace pointer to DSP current
--			 * pointer */
-+			/*
-+			 * Advance the GPP trace pointer to DSP current
-+			 * pointer.
-+			 */
- 			hIOMgr->ulGPPReadPointer += ulNewMessageLength;
- 			/* Print the trace messages */
- 			GT_0trace(dsp_trace_mask, GT_1CLASS, hIOMgr->pMsg);
-@@ -1838,8 +1899,10 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
- 			hIOMgr->pMsg[hIOMgr->ulTraceBufferEnd -
- 				hIOMgr->ulGPPReadPointer +
- 				ulNewMessageLength] = '\0';
--			/* Advance the GPP trace pointer to DSP current
--			 * pointer */
-+			/*
-+			 * Advance the GPP trace pointer to DSP current
-+			 * pointer.
-+			 */
- 			hIOMgr->ulGPPReadPointer = hIOMgr->ulTraceBufferBegin +
- 						   ulNewMessageLength;
- 			/* Print the trace messages */
-@@ -1878,7 +1941,7 @@ static DSP_STATUS PackTraceBuffer(char *lpBuf, u32 nBytes, u32 ulNumWords)
- 	u32 nCnt;
- 	char thisChar;
- 
--	/* tmp workspace, 1 KB longer than input buf */
-+	/* Tmp workspace, 1 KB longer than input buf */
- 	lpTmpBuf = MEM_Calloc((nBytes + ulNumWords), MEM_PAGED);
- 	if (lpTmpBuf == NULL) {
- 		DBG_Trace(DBG_LEVEL7, "PackTrace buffer:OutofMemory \n");
-@@ -1894,8 +1957,10 @@ static DSP_STATUS PackTraceBuffer(char *lpBuf, u32 nBytes, u32 ulNumWords)
- 			case '\0':      /* Skip null bytes */
- 				break;
- 			case '\n':      /* Convert \n to \r\n */
--				/* NOTE: do not reverse order; Some OS */
--				/* editors control doesn't understand "\n\r" */
-+				/*
-+				 * NOTE: do not reverse order; Some OS
-+				 * editors control doesn't understand "\n\r"
-+				 */
- 				*lpTmpBuf++ = '\r';
- 				*lpTmpBuf++ = '\n';
- 				break;
-@@ -1907,7 +1972,7 @@ static DSP_STATUS PackTraceBuffer(char *lpBuf, u32 nBytes, u32 ulNumWords)
- 		*lpTmpBuf = '\0';    /* Make sure tmp buf is null terminated */
- 		/* Cut output down to input buf size */
- 		strncpy(lpBufStart, lpTmpStart, nBytes);
--		/*Make sure output is null terminated */
-+		/* Make sure output is null terminated */
- 		lpBufStart[nBytes - 1] = '\0';
- 		MEM_Free(lpTmpStart);
- 	}
-@@ -1955,7 +2020,7 @@ DSP_STATUS PrintDspTraceBuffer(struct WMD_DEV_CONTEXT *hWmdContext)
- 			"PrintDspTraceBuffer: Failed on DEV_GetCodMgr.\n");
- 
- 	if (DSP_SUCCEEDED(status)) {
--		/* Look for SYS_PUTCBEG/SYS_PUTCEND: */
-+		/* Look for SYS_PUTCBEG/SYS_PUTCEND */
- 		status = COD_GetSymValue(hCodMgr, COD_TRACEBEG, &ulTraceBegin);
- 		GT_1trace(dsp_trace_mask, GT_2CLASS,
- 			"PrintDspTraceBuffer: ulTraceBegin Value 0x%x\n",
--- 
-1.6.2.4
+Omar Ramirez Luna (20):
+  DSPBRIDGE: driver version 0.1
+  DSPBRIDGE: trivial license fix in tramp and tramp_table_c6000
+  DSPBRIDGE: trivial file history cleanup for headers
+  DSPBRIDGE: trivial file history cleanup for driver sources
+  DSPBRIDGE: checkpatch - space required after comma
+  DSPBRIDGE: checkpatch - space required before open parenthesis
+  DSPBRIDGE: checkpatch spacing and indentation
+  DSPBRIDGE: Checkpatch - line over 80 characters
+  DSPBRIDGE: checkpatch - printk() should include KERN_ facility level
+  DSPBRIDGE: checkpatch - braces not necessary for single statement
+    blocks
+  DSPBRIDGE: checkpatch - struct file_operations should normally be
+    const
+  DSPBRIDGE: checkpatch foo-should-be for pointers
+  DSPBRIDGE: Fix multiline macros to use do while
+  DSPBRIDGE: Use _IOxx macro to define ioctls
+  DSPBRIDGE: trivial cleanup and indentation for io_sm
+  DSPBRIDGE: trivial fix for multiline comments on io_sm
+  DSPBRIDGE: Remove DPC, create, destroy and schedule wrappers
+  DSPBRIDGE: Remove main DPC wrapper for IO and MMUfault
+  DSPBRIDGE: Remove DPC module from SERVICES layer
+  DSPBRIDGE: Remove DPC object structure
+
+ arch/arm/plat-omap/include/dspbridge/_chnl_sm.h    |   47 +-
+ arch/arm/plat-omap/include/dspbridge/_dcd.h        |   40 +-
+ arch/arm/plat-omap/include/dspbridge/brddefs.h     |   18 +-
+ arch/arm/plat-omap/include/dspbridge/cfg.h         |   50 +-
+ arch/arm/plat-omap/include/dspbridge/cfgdefs.h     |   27 +-
+ arch/arm/plat-omap/include/dspbridge/chnl.h        |   45 +-
+ arch/arm/plat-omap/include/dspbridge/chnl_sm.h     |   30 +-
+ arch/arm/plat-omap/include/dspbridge/chnldefs.h    |   26 +-
+ arch/arm/plat-omap/include/dspbridge/chnlpriv.h    |   33 +-
+ arch/arm/plat-omap/include/dspbridge/clk.h         |   11 +-
+ arch/arm/plat-omap/include/dspbridge/cmm.h         |   66 +-
+ arch/arm/plat-omap/include/dspbridge/cmmdefs.h     |   20 +-
+ arch/arm/plat-omap/include/dspbridge/cod.h         |   58 +-
+ arch/arm/plat-omap/include/dspbridge/dbc.h         |   40 +-
+ arch/arm/plat-omap/include/dspbridge/dbdcd.h       |   26 +-
+ arch/arm/plat-omap/include/dspbridge/dbdcddef.h    |   27 +-
+ arch/arm/plat-omap/include/dspbridge/dbdefs.h      |   61 +-
+ arch/arm/plat-omap/include/dspbridge/dbg.h         |   25 +-
+ arch/arm/plat-omap/include/dspbridge/dbl.h         |   14 -
+ arch/arm/plat-omap/include/dspbridge/dbldefs.h     |   12 -
+ arch/arm/plat-omap/include/dspbridge/dbll.h        |   15 +-
+ arch/arm/plat-omap/include/dspbridge/dblldefs.h    |   11 -
+ arch/arm/plat-omap/include/dspbridge/dbtype.h      |   21 +-
+ arch/arm/plat-omap/include/dspbridge/dehdefs.h     |   14 +-
+ arch/arm/plat-omap/include/dspbridge/dev.h         |   64 +-
+ arch/arm/plat-omap/include/dspbridge/devdefs.h     |   15 +-
+ arch/arm/plat-omap/include/dspbridge/disp.h        |   31 +-
+ arch/arm/plat-omap/include/dspbridge/dispdefs.h    |   14 +-
+ arch/arm/plat-omap/include/dspbridge/dmm.h         |   18 +-
+ arch/arm/plat-omap/include/dspbridge/dpc.h         |  167 ---
+ arch/arm/plat-omap/include/dspbridge/drv.h         |   48 +-
+ arch/arm/plat-omap/include/dspbridge/drvdefs.h     |   13 +-
+ arch/arm/plat-omap/include/dspbridge/dspdrv.h      |   33 +-
+ .../plat-omap/include/dspbridge/dynamic_loader.h   |    2 -
+ arch/arm/plat-omap/include/dspbridge/errbase.h     |   37 +-
+ arch/arm/plat-omap/include/dspbridge/gb.h          |   10 +-
+ arch/arm/plat-omap/include/dspbridge/getsection.h  |   21 +-
+ arch/arm/plat-omap/include/dspbridge/gh.h          |    8 -
+ arch/arm/plat-omap/include/dspbridge/gs.h          |   15 +-
+ arch/arm/plat-omap/include/dspbridge/gt.h          |   27 +-
+ arch/arm/plat-omap/include/dspbridge/host_os.h     |   10 -
+ arch/arm/plat-omap/include/dspbridge/io.h          |   21 +-
+ arch/arm/plat-omap/include/dspbridge/io_sm.h       |   46 +-
+ arch/arm/plat-omap/include/dspbridge/iodefs.h      |   13 +-
+ arch/arm/plat-omap/include/dspbridge/ldr.h         |   34 +-
+ arch/arm/plat-omap/include/dspbridge/list.h        |   36 +-
+ arch/arm/plat-omap/include/dspbridge/mbx_sh.h      |   25 +-
+ arch/arm/plat-omap/include/dspbridge/mem.h         |   78 +-
+ arch/arm/plat-omap/include/dspbridge/memdefs.h     |   16 +-
+ arch/arm/plat-omap/include/dspbridge/mgr.h         |   32 +-
+ arch/arm/plat-omap/include/dspbridge/mgrpriv.h     |   14 +-
+ arch/arm/plat-omap/include/dspbridge/msg.h         |   24 +-
+ arch/arm/plat-omap/include/dspbridge/msgdefs.h     |   15 +-
+ arch/arm/plat-omap/include/dspbridge/nldr.h        |   29 +-
+ arch/arm/plat-omap/include/dspbridge/nldrdefs.h    |   14 +-
+ arch/arm/plat-omap/include/dspbridge/node.h        |   48 +-
+ arch/arm/plat-omap/include/dspbridge/nodedefs.h    |   16 +-
+ arch/arm/plat-omap/include/dspbridge/nodepriv.h    |   23 +-
+ arch/arm/plat-omap/include/dspbridge/ntfy.h        |   22 +-
+ arch/arm/plat-omap/include/dspbridge/proc.h        |   47 +-
+ arch/arm/plat-omap/include/dspbridge/procpriv.h    |   13 +-
+ arch/arm/plat-omap/include/dspbridge/pwr.h         |   19 -
+ arch/arm/plat-omap/include/dspbridge/pwr_sh.h      |   12 +-
+ arch/arm/plat-omap/include/dspbridge/reg.h         |   35 +-
+ arch/arm/plat-omap/include/dspbridge/rmm.h         |   26 +-
+ arch/arm/plat-omap/include/dspbridge/rms_sh.h      |   34 +-
+ arch/arm/plat-omap/include/dspbridge/rmstypes.h    |   15 +-
+ arch/arm/plat-omap/include/dspbridge/services.h    |   17 +-
+ arch/arm/plat-omap/include/dspbridge/std.h         |   48 -
+ arch/arm/plat-omap/include/dspbridge/strm.h        |   41 +-
+ arch/arm/plat-omap/include/dspbridge/strmdefs.h    |   14 +-
+ arch/arm/plat-omap/include/dspbridge/sync.h        |   40 +-
+ arch/arm/plat-omap/include/dspbridge/utildefs.h    |   16 +-
+ arch/arm/plat-omap/include/dspbridge/uuidutil.h    |   16 +-
+ arch/arm/plat-omap/include/dspbridge/wcd.h         |   49 +-
+ arch/arm/plat-omap/include/dspbridge/wcdioctl.h    |  200 ++---
+ arch/arm/plat-omap/include/dspbridge/wmd.h         |   57 +-
+ arch/arm/plat-omap/include/dspbridge/wmdchnl.h     |   29 +-
+ arch/arm/plat-omap/include/dspbridge/wmddeh.h      |   30 +-
+ arch/arm/plat-omap/include/dspbridge/wmdio.h       |   24 +-
+ arch/arm/plat-omap/include/dspbridge/wmdioctl.h    |   26 +-
+ arch/arm/plat-omap/include/dspbridge/wmdmsg.h      |   27 +-
+ drivers/dsp/bridge/Makefile                        |    3 +-
+ drivers/dsp/bridge/dynload/dlclasses_hdr.h         |    2 -
+ drivers/dsp/bridge/dynload/dload_internal.h        |    2 -
+ drivers/dsp/bridge/dynload/doff.h                  |   17 +-
+ drivers/dsp/bridge/dynload/getsection.c            |    2 -
+ drivers/dsp/bridge/dynload/header.h                |    2 -
+ drivers/dsp/bridge/dynload/module_list.h           |   82 +-
+ drivers/dsp/bridge/dynload/params.h                |   43 +-
+ drivers/dsp/bridge/dynload/reloc.c                 |   29 +-
+ drivers/dsp/bridge/dynload/reloc_table.h           |    2 -
+ drivers/dsp/bridge/dynload/reloc_table_c6000.c     |    1 -
+ drivers/dsp/bridge/dynload/tramp.c                 |   18 +-
+ drivers/dsp/bridge/dynload/tramp_table_c6000.c     |   18 +-
+ drivers/dsp/bridge/gen/_gt_para.c                  |   24 +-
+ drivers/dsp/bridge/gen/gb.c                        |   17 +-
+ drivers/dsp/bridge/gen/gh.c                        |    5 -
+ drivers/dsp/bridge/gen/gs.c                        |   20 +-
+ drivers/dsp/bridge/gen/gt.c                        |   16 +-
+ drivers/dsp/bridge/gen/uuidutil.c                  |   20 +-
+ drivers/dsp/bridge/hw/GlobalTypes.h                |   16 +-
+ drivers/dsp/bridge/hw/IVA2RegAcM.h                 |    2 -
+ drivers/dsp/bridge/hw/MLBAccInt.h                  |    1 -
+ drivers/dsp/bridge/hw/MLBRegAcM.h                  |  319 +++---
+ drivers/dsp/bridge/hw/MMURegAcM.h                  |  416 ++++----
+ drivers/dsp/bridge/hw/PRCMRegAcM.h                 | 1197 +++++++++-----------
+ drivers/dsp/bridge/hw/hw_defs.h                    |   13 +-
+ drivers/dsp/bridge/hw/hw_dspssC64P.c               |   13 +-
+ drivers/dsp/bridge/hw/hw_dspssC64P.h               |   15 +-
+ drivers/dsp/bridge/hw/hw_mbox.c                    |   13 +-
+ drivers/dsp/bridge/hw/hw_mbox.h                    |   55 +-
+ drivers/dsp/bridge/hw/hw_mmu.c                     |   17 +-
+ drivers/dsp/bridge/hw/hw_mmu.h                     |   15 +-
+ drivers/dsp/bridge/hw/hw_prcm.c                    |   12 +-
+ drivers/dsp/bridge/hw/hw_prcm.h                    |   12 +-
+ drivers/dsp/bridge/pmgr/chnl.c                     |   52 +-
+ drivers/dsp/bridge/pmgr/chnlobj.h                  |   21 +-
+ drivers/dsp/bridge/pmgr/cmm.c                      |  106 +--
+ drivers/dsp/bridge/pmgr/cod.c                      |   51 +-
+ drivers/dsp/bridge/pmgr/dbll.c                     |   65 +-
+ drivers/dsp/bridge/pmgr/dev.c                      |  102 +--
+ drivers/dsp/bridge/pmgr/dmm.c                      |   47 +-
+ drivers/dsp/bridge/pmgr/io.c                       |   25 +-
+ drivers/dsp/bridge/pmgr/ioobj.h                    |   19 +-
+ drivers/dsp/bridge/pmgr/msg.c                      |   23 +-
+ drivers/dsp/bridge/pmgr/msgobj.h                   |   19 +-
+ drivers/dsp/bridge/pmgr/wcd.c                      |  211 ++---
+ drivers/dsp/bridge/rmgr/dbdcd.c                    |   56 +-
+ drivers/dsp/bridge/rmgr/disp.c                     |   39 +-
+ drivers/dsp/bridge/rmgr/drv.c                      |  102 +--
+ drivers/dsp/bridge/rmgr/drv_interface.c            |   50 +-
+ drivers/dsp/bridge/rmgr/drv_interface.h            |   12 -
+ drivers/dsp/bridge/rmgr/dspdrv.c                   |   79 +--
+ drivers/dsp/bridge/rmgr/mgr.c                      |   30 +-
+ drivers/dsp/bridge/rmgr/nldr.c                     |   66 +-
+ drivers/dsp/bridge/rmgr/node.c                     |  289 ++---
+ drivers/dsp/bridge/rmgr/proc.c                     |  102 +--
+ drivers/dsp/bridge/rmgr/pwr.c                      |   19 +-
+ drivers/dsp/bridge/rmgr/rmm.c                      |   14 -
+ drivers/dsp/bridge/rmgr/strm.c                     |   49 +-
+ drivers/dsp/bridge/services/cfg.c                  |   78 +--
+ drivers/dsp/bridge/services/clk.c                  |   25 +-
+ drivers/dsp/bridge/services/dbg.c                  |   35 +-
+ drivers/dsp/bridge/services/dpc.c                  |  274 -----
+ drivers/dsp/bridge/services/list.c                 |   33 -
+ drivers/dsp/bridge/services/mem.c                  |   40 +-
+ drivers/dsp/bridge/services/ntfy.c                 |   27 +-
+ drivers/dsp/bridge/services/reg.c                  |   21 +-
+ drivers/dsp/bridge/services/regsup.c               |   30 +-
+ drivers/dsp/bridge/services/regsup.h               |    8 -
+ drivers/dsp/bridge/services/services.c             |   30 +-
+ drivers/dsp/bridge/services/sync.c                 |   35 +-
+ drivers/dsp/bridge/wmd/_cmm.h                      |   22 +-
+ drivers/dsp/bridge/wmd/_deh.h                      |   18 +-
+ drivers/dsp/bridge/wmd/_msg_sm.h                   |   21 +-
+ drivers/dsp/bridge/wmd/_tiomap.h                   |   63 +-
+ drivers/dsp/bridge/wmd/_tiomap_mmu.h               |   16 +-
+ drivers/dsp/bridge/wmd/_tiomap_pwr.h               |   13 +-
+ drivers/dsp/bridge/wmd/_tiomap_util.h              |   13 +-
+ drivers/dsp/bridge/wmd/chnl_sm.c                   |   77 +--
+ drivers/dsp/bridge/wmd/io_sm.c                     |  978 +++++++++--------
+ drivers/dsp/bridge/wmd/mmu_fault.c                 |   34 +-
+ drivers/dsp/bridge/wmd/mmu_fault.h                 |   16 +-
+ drivers/dsp/bridge/wmd/msg_sm.c                    |  107 +--
+ drivers/dsp/bridge/wmd/tiomap3430.c                |   37 +-
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c            |   41 +-
+ drivers/dsp/bridge/wmd/tiomap_io.c                 |   17 +-
+ drivers/dsp/bridge/wmd/tiomap_io.h                 |   14 +-
+ drivers/dsp/bridge/wmd/tiomap_sm.c                 |   11 +-
+ drivers/dsp/bridge/wmd/ue_deh.c                    |   61 +-
+ 171 files changed, 2490 insertions(+), 6403 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/dspbridge/dpc.h
+ delete mode 100644 drivers/dsp/bridge/services/dpc.c
 
