@@ -1,7 +1,7 @@
 From: Vimal Singh <vimal.newwork@gmail.com>
 Subject: Re: [PATCH-v5 2/4] OMAP3: Add support for NAND on ZOOM2/LDP boards
-Date: Mon, 30 Nov 2009 11:38:20 +0530
-Message-ID: <ce9ab5790911292208n155915d8mdff6c04a3d814357@mail.gmail.com>
+Date: Mon, 30 Nov 2009 11:42:10 +0530
+Message-ID: <ce9ab5790911292212u12872f8esb296c813622c0003@mail.gmail.com>
 References: <ce9ab5790911100208g42c886b3g13261ea8a1d79a04@mail.gmail.com>
 	<20091112204428.GC24837@atomide.com> <ce9ab5790911180638x70da2e61n964f94d61d403adc@mail.gmail.com>
 	<20091118170745.GL29266@atomide.com> <ce9ab5790911190052m4a03c135xda330fe026366084@mail.gmail.com>
@@ -10,12 +10,12 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:34739 "EHLO
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:61538 "EHLO
 	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434AbZK3GIf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 01:08:35 -0500
-Received: by bwz27 with SMTP id 27so2249449bwz.21
-        for <linux-omap@vger.kernel.org>; Sun, 29 Nov 2009 22:08:40 -0800 (PST)
+	with ESMTP id S1752082AbZK3GMZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Nov 2009 01:12:25 -0500
+Received: by bwz27 with SMTP id 27so2250415bwz.21
+        for <linux-omap@vger.kernel.org>; Sun, 29 Nov 2009 22:12:30 -0800 (PST)
 In-Reply-To: <20091123174543.GC22923@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -290,117 +290,14 @@ e
 > Why don't you just set ldp_nand_paritions[X].size =3D something durin=
 g init
 > based on the machine_is_XXX()?
->
->> >
->> >>
->> >> >
->> >> >
->> >> >> +};
->> >> >> +
->> >> >> +/* NAND chip access: 16 bit */
->> >> >> +static struct omap_nand_platform_data ldp_nand_data =3D {
->> >> >> + =A0 =A0 .parts =A0 =A0 =A0 =A0 =A0=3D ldp_nand_partitions,
->> >> >> + =A0 =A0 .nr_parts =A0 =A0 =A0 =3D ARRAY_SIZE(ldp_nand_partit=
-ions),
->> >> >> + =A0 =A0 .nand_setup =A0 =A0 =3D NULL,
->> >> >> + =A0 =A0 .dma_channel =A0 =A0=3D -1, =A0 =A0 =A0 =A0 =A0 /* d=
-isable DMA in OMAP NAND driver */
->> >> >> + =A0 =A0 .dev_ready =A0 =A0 =A0=3D NULL,
->> >> >> + =A0 =A0 .unlock =A0 =A0 =A0 =A0 =3D omap_ldp_nand_unlock,
->> >> >> +};
->> >> >> +
->> >> >> +static struct resource ldp_nand_resource =3D {
->> >> >> + =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D IORESOURCE_MEM,
->> >> >> +};
->> >> >> +
->> >> >> +static struct platform_device ldp_nand_device =3D {
->> >> >> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "omap2-nand",
->> >> >> + =A0 =A0 .id =A0 =A0 =A0 =A0 =A0 =A0 =3D 0,
->> >> >> + =A0 =A0 .dev =A0 =A0 =A0 =A0 =A0 =A0=3D {
->> >> >> + =A0 =A0 .platform_data =A0=3D &ldp_nand_data,
->> >> >> + =A0 =A0 },
->> >> >> + =A0 =A0 .num_resources =A0=3D 1,
->> >> >> + =A0 =A0 .resource =A0 =A0 =A0 =3D &ldp_nand_resource,
->> >> >> +};
->> >> >> +
->> >> >> +/**
->> >> >> + * ldp430_flash_init - Identify devices connected to GPMC and=
- register.
->> >> >> + *
->> >> >> + * @return - void.
->> >> >> + */
->> >> >> +void __init zoom_flash_init(void)
->> >> >> +{
->> >> >> + =A0 =A0 u8 nandcs =3D GPMC_CS_NUM + 1;
->> >> >> + =A0 =A0 u32 gpmc_base_add =3D OMAP34XX_GPMC_VIRT;
->> >> >> +
->> >> >> + =A0 =A0 /* pop nand part */
->> >> >> + =A0 =A0 nandcs =3D LDP3430_NAND_CS;
->> >> >> +
->> >> >> + =A0 =A0 ldp_nand_data.cs =3D nandcs;
->> >> >> + =A0 =A0 ldp_nand_data.gpmc_cs_baseaddr =3D (void *)(gpmc_bas=
-e_add +
->> >> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
->> >> >> + =A0 =A0 ldp_nand_data.gpmc_baseaddr =3D (void *) (gpmc_base_=
-add);
->> >> >> +
->> >> >> + =A0 =A0 if (platform_device_register(&ldp_nand_device) < 0)
->> >> >> + =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "Unable to register =
-NAND device\n");
->> >> >> +}
->> >> >
->> >> > This too should use gpmc_cs_request().
->> >>
->> >> This is just platform data, needed by nand driver (nand/omap2.c).
->> >> 'gpmc_cs_request' is separately done in mentioned driver. And IMO=
- that
->> >> is the correct place to do this, as every time (when driver is
->> >> compiled as module) inserting and de-inserting driver, will need =
-this.
->> >
->> > Without gpmc_cs_request the GPMC can be in uninitialized state.
->> > You're basically relying on some hardcoded values from the bootloa=
-der,
->> > which can be at whatever version and whatever bootloader. Not good=
-=2E
->>
->> As I said, 'gpmc_cs_request' is done in the mentioned driver itself.
->> So, GPMC (cs) gets initialized at that point. And this is exactly wh=
-y
->> I said "calling 'gpmc_cs_request' from driver is fine. Because every
->> time you remove driver module (rmmod), you expect 'cs' for that driv=
-er
->> gets disable (done in gpmc_cs_free) and if insert the driver again i=
-t
->> gets enabled again (done in gpmc_cs_request).
->
-> Well you should be able to use totally standard MTD drivers
-> by doing only the omap specific initialization under mach-omap2.
->
-> For any new drivers, calling gpmc from the driver itself just seems
-> wrong. That's something we want to stop doing, not add more of it.
->
 
-I still think 'gpmc_cs_request' should be done from driver itself, why
-to get a resource allocated if driver itself is not present (in case
-driver is compile as a module and yet not inserted). As it is already
-done in 'onenand/omap2.c' and 'nand/omap2.c'.
-
-Though, for NOR we can do 'gpmc_cs_request' in 'board-*-flash.c'
-itself. As I did in my patch series V6.
+Rather I am thinking of moving partition definitions to core board
+file, and pass a pointer to 'board-*-flash.c'. How about this?
+This way any board can have its own partition information specified.
 
 --=20
 Regards,
 Vimal Singh
-
-> How about instead just set up a generic mach-omap2/gpmc-nor.c
-> and use some standard MTD driver?
->
-> Regards,
->
-> Tony
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
