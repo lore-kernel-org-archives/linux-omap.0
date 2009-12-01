@@ -1,53 +1,66 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: Re: [PATCH v3 1/2] arm: a driver for on-chip ETM and ETB
-Date: Tue, 1 Dec 2009 15:07:00 +0200
-Message-ID: <20091201130700.GA27669@shisha.kicks-ass.net>
-References: <1256230315-22340-1-git-send-email-virtuoso@slind.org>
- <20091030121024.GB15200@shisha.kicks-ass.net>
- <1257767290.21596.307.camel@localhost>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [rfc/rft/patch 3/9] arm: omap: zoom: use vmmc1 regulator supply
+Date: Tue, 1 Dec 2009 18:38:26 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ABC1E20@dbde02.ent.ti.com>
+References: <1259672635-12306-1-git-send-email-felipe.balbi@nokia.com>
+ <1259672635-12306-4-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp6.welho.com ([213.243.153.40]:53116 "EHLO smtp6.welho.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58915 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753676AbZLANH2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Dec 2009 08:07:28 -0500
-Content-Disposition: inline
-In-Reply-To: <1257767290.21596.307.camel@localhost>
+	id S1752426AbZLANI7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Dec 2009 08:08:59 -0500
+In-Reply-To: <1259672635-12306-4-git-send-email-felipe.balbi@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Kalle Valo <kalle.valo@iki.fi>, Jean Pihet <jpihet@mvista.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>
 
-On Mon, Nov 09, 2009 at 01:48:10 +0200, Artem Bityutskiy wrote:
-> On Fri, 2009-10-30 at 14:10 +0200, Alexander Shishkin wrote:
-> > On Thu, Oct 22, 2009 at 07:51:54PM +0300, Alexander Shishkin wrote:
-> > > Changes:
-> > > v3 -- major update:
-> > >       * switched from platform device to AMBA device
-> > >       * started using clk API in a more proper way
-> > >       * changed omap3 Kconfig part to select the driver instead of depending
-> > >         on it
-> > 
-> > Russell, I believe this one addresses your concerns about my previous patches.
-> > Shall I wait for more comments from you or do you want me to upload them to
-> > your patch tracker?
-> 
-> Alex, I suggest you to:
-> 
-> 1. Double check that you really addressed _everything_ Russel and others
-> pointed - may be this is the reason why your patch is stuck.
-> 
-> 2. If you have addressed everything, upload the patch to the patch
-> system. My (very limited) experience was that I re-sent a patch several
-> times, got no response for long time, but then Russel simply asked me to
-> upload it, and it was merged. Thus, the silence may simply mean "upload
-> to the patch system".
+ 
 
-Thanks for the hint. I've double checked the patches and I'm fairly sure I
-have addressed all of the concerns expressed to the best of my ability. So
-I did as you said: uploaded the patches to the patch tracker.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Balbi
+> Sent: Tuesday, December 01, 2009 6:34 PM
+> To: Tony Lindgren
+> Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh; Kevin 
+> Hilman; Kalle Valo; Jean Pihet; Pandita, Vikram; Paul 
+> Walmsley; Hiroshi DOYU; David Brownell; Felipe Balbi
+> Subject: [rfc/rft/patch 3/9] arm: omap: zoom: use vmmc1 
+> regulator supply
+> 
+> the structure was there but it was used by the
+> twl4030 pdata. Just adding the missing field.
+> 
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-Regards,
---
-Alex
+I had already posted this patch.
+
+- Anand
+
+http://marc.info/?l=linux-omap&m=125855155611214&w=2
+
+> ---
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c 
+> b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> index f14baa3..221a8e3 100755
+> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> @@ -236,6 +236,7 @@ static struct twl4030_platform_data 
+> zoom_twldata = {
+>  	.gpio		= &zoom_gpio_data,
+>  	.keypad		= &zoom_kp_twl4030_data,
+>  	.codec		= &zoom_codec_data,
+> +	.vmmc1          = &zoom_vmmc1,
+>  	.vmmc2          = &zoom_vmmc2,
+>  	.vsim           = &zoom_vsim,
+>  
+> -- 
+> 1.6.6.rc0
+> 
