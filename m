@@ -1,49 +1,61 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [rfc/rft/patch 3/9] arm: omap: zoom: use vmmc1 regulator supply
-Date: Tue, 1 Dec 2009 15:10:40 +0200
-Message-ID: <20091201131039.GA12437@nokia.com>
-References: <1259672635-12306-1-git-send-email-felipe.balbi@nokia.com>
- <1259672635-12306-4-git-send-email-felipe.balbi@nokia.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030ABC1E20@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: Re: ACPI notifier chain?
+Date: Tue, 01 Dec 2009 15:18:39 +0200
+Message-ID: <1259673519.1969.50.camel@sanganak>
+References: <82cfbe860912010053s54ab1c51wfa3400fb9d0d7c89@mail.gmail.com>
+	 <1259661503.1969.1.camel@sanganak>
+	 <82cfbe860912010342y3842340dk634427d26c341eaf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58596 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753933AbZLANLc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Dec 2009 08:11:32 -0500
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030ABC1E20@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:21926 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752885AbZLANSz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Dec 2009 08:18:55 -0500
+In-Reply-To: <82cfbe860912010342y3842340dk634427d26c341eaf@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Kalle Valo <kalle.valo@iki.fi>, Jean Pihet <jpihet@mvista.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>
+To: ext tarek attia <tarek.m.attia@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Tarek,
 
-On Tue, Dec 01, 2009 at 02:08:26PM +0100, ext Gadiyar, Anand wrote:
->
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Balbi
->> Sent: Tuesday, December 01, 2009 6:34 PM
->> To: Tony Lindgren
->> Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh; Kevin
->> Hilman; Kalle Valo; Jean Pihet; Pandita, Vikram; Paul
->> Walmsley; Hiroshi DOYU; David Brownell; Felipe Balbi
->> Subject: [rfc/rft/patch 3/9] arm: omap: zoom: use vmmc1
->> regulator supply
->>
->> the structure was there but it was used by the
->> twl4030 pdata. Just adding the missing field.
->>
->> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
->
->I had already posted this patch.
+On Tue, 2009-12-01 at 12:42 +0100, ext tarek attia wrote:
+> Hi Ameya,
+> 
+> I believe ACPI is a standard that doesn't matter it's X86 or ARM ,and
+> it's responsible for power states (S,C,D and P states) ,,and Linux
+> kernel implemented this standard .
+> 
+> Am I right ??
 
-sorry for that... let's drop this one then
+You are absolutely right :) It is a specification which can be
+implemented by a hardware. I think the hardware which supports ACPI is
+mostly i386, x86_64, and ia64.
 
--- 
-balbi
+Also you can see that from drivers/acpi/Kconfig that linux acpi depends
+on above mentioned hardware.
+
+#
+# ACPI Configuration
+#
+
+menuconfig ACPI
+        bool "ACPI (Advanced Configuration and Power Interface) Support"
+        depends on !IA64_HP_SIM
+        depends on IA64 || X86
+        depends on PCI
+        depends on PM
+
+> BTW :- if it's not like so,,How can I monitor the power changes on the
+> peripherals like LCD connected to my beagleboard ??
+> 
+> How can I make the power management  for the peripherals ??
+
+I am not an expert in PM area. But may be this will be helpful:
+http://elinux.org/OMAP_Power_Management
+
+Cheers,
+Ameya.
+
