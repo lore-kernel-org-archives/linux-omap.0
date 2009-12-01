@@ -1,61 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCHV3 2/4] OMAP3: Clock Type change for OMAP3 Clocks
-Date: Tue, 1 Dec 2009 06:06:57 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912010600050.13408@utopia.booyaka.com>
-References: <1259211517-12713-1-git-send-email-vishwanath.bs@ti.com> <1259211517-12713-2-git-send-email-vishwanath.bs@ti.com> <1259211517-12713-3-git-send-email-vishwanath.bs@ti.com> <alpine.DEB.2.00.0911300114370.17083@utopia.booyaka.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA902493@dbde02.ent.ti.com>
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: Re: [PATCH v3 1/2] arm: a driver for on-chip ETM and ETB
+Date: Tue, 1 Dec 2009 15:07:00 +0200
+Message-ID: <20091201130700.GA27669@shisha.kicks-ass.net>
+References: <1256230315-22340-1-git-send-email-virtuoso@slind.org>
+ <20091030121024.GB15200@shisha.kicks-ass.net>
+ <1257767290.21596.307.camel@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46446 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753244AbZLANGv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Dec 2009 08:06:51 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA902493@dbde02.ent.ti.com>
+Received: from smtp6.welho.com ([213.243.153.40]:53116 "EHLO smtp6.welho.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753676AbZLANH2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Dec 2009 08:07:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1257767290.21596.307.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello Vishwanath,
+On Mon, Nov 09, 2009 at 01:48:10 +0200, Artem Bityutskiy wrote:
+> On Fri, 2009-10-30 at 14:10 +0200, Alexander Shishkin wrote:
+> > On Thu, Oct 22, 2009 at 07:51:54PM +0300, Alexander Shishkin wrote:
+> > > Changes:
+> > > v3 -- major update:
+> > >       * switched from platform device to AMBA device
+> > >       * started using clk API in a more proper way
+> > >       * changed omap3 Kconfig part to select the driver instead of depending
+> > >         on it
+> > 
+> > Russell, I believe this one addresses your concerns about my previous patches.
+> > Shall I wait for more comments from you or do you want me to upload them to
+> > your patch tracker?
+> 
+> Alex, I suggest you to:
+> 
+> 1. Double check that you really addressed _everything_ Russel and others
+> pointed - may be this is the reason why your patch is stuck.
+> 
+> 2. If you have addressed everything, upload the patch to the patch
+> system. My (very limited) experience was that I re-sent a patch several
+> times, got no response for long time, but then Russel simply asked me to
+> upload it, and it was merged. Thus, the silence may simply mean "upload
+> to the patch system".
 
-On Tue, 1 Dec 2009, Sripathy, Vishwanath wrote:
+Thanks for the hint. I've double checked the patches and I'm fairly sure I
+have addressed all of the concerns expressed to the best of my ability. So
+I did as you said: uploaded the patches to the patch tracker.
 
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Monday, November 30, 2009 1:57 PM
-> > To: Sripathy, Vishwanath
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCHV3 2/4] OMAP3: Clock Type change for OMAP3 Clocks
-> >
-> > Hi Vishwanath,
-> >
-> > On Thu, 26 Nov 2009, Vishwanath BS wrote:
-> >
-> > > In omap34xx_clks, CK_343X type is used by all OMAP3 family of
-> > > processors. It makes more sense to name clock type as CK_3XXX since it
-> > > is common to all OMAP3 processors.
-> >
-> > Hmmm.  Do all of the CK_3XXX clocks apply to AM3503/3517?
-> >
-> Currently all OMAP3 chip families are using CK_343X as the common clock 
-> and this clock has been renamed to CK_3XXX. So CK_3XXX should be 
-> applicable for all.
-
-Just based on a quick spot-check, there are several clocks that this patch 
-marks as CK_3XXX that are really only applicable to the 34xx and 36xx 
-families.  For example:
-
-> > > -   CLK(NULL,       "sdrc_ick",     &sdrc_ick,      CK_343X), 
-> > > +   CLK(NULL,       "sdrc_ick",     &sdrc_ick,      CK_3XXX), 
-  
-> > > -   CLK(NULL,       "iva2_ck",      &iva2_ck,       CK_343X),
-> > > +   CLK(NULL,       "iva2_ck",      &iva2_ck,       CK_3XXX),
-
-We should not mark clocks that are not present on 3503/3517 as being 
-present on 3XXX, otherwise this chip numbering scheme will become even 
-more perplexing than it currently is.  How about adding RATE_IN_36XX or 
-CK_36XX as appropriate?
-
-
-- Paul
+Regards,
+--
+Alex
