@@ -1,164 +1,59 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: [PATCH 3/3] omap3: cm-t35: update defconfig for DSS2
-Date: Tue,  1 Dec 2009 13:22:12 +0200
-Message-ID: <8d227fc7ad681712e77f96e110a0715ff8e69ad8.1259666203.git.mike@compulab.co.il>
-References: <cover.1259666203.git.mike@compulab.co.il>
+From: tarek attia <tarek.m.attia@gmail.com>
+Subject: Re: ACPI notifier chain?
+Date: Tue, 1 Dec 2009 13:42:57 +0200
+Message-ID: <82cfbe860912010342y3842340dk634427d26c341eaf@mail.gmail.com>
+References: <82cfbe860912010053s54ab1c51wfa3400fb9d0d7c89@mail.gmail.com>
+	 <1259661503.1969.1.camel@sanganak>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:47783 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753291AbZLAL0g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Dec 2009 06:26:36 -0500
-Received: from mail.linux-boards.com ([192.114.83.142] helo=zimbra-mta.compulab.co.il)
-	by compulab.site5.com with esmtp (Exim 4.69)
-	(envelope-from <mike@compulab.co.il>)
-	id 1NFQsV-000880-32
-	for linux-omap@vger.kernel.org; Tue, 01 Dec 2009 05:26:43 -0600
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id 4B2069A0365
-	for <linux-omap@vger.kernel.org>; Tue,  1 Dec 2009 13:26:42 +0200 (IST)
-In-Reply-To: <cover.1259666203.git.mike@compulab.co.il>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:64672 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752201AbZLALmw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Dec 2009 06:42:52 -0500
+Received: by ewy19 with SMTP id 19so4817700ewy.21
+        for <linux-omap@vger.kernel.org>; Tue, 01 Dec 2009 03:42:57 -0800 (PST)
+In-Reply-To: <1259661503.1969.1.camel@sanganak>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Mike Rapoport <mike@compulab.co.il>
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
----
- arch/arm/configs/cm_t35_defconfig |   82 +++++++++++++++++++++++++++++++++++--
- 1 files changed, 78 insertions(+), 4 deletions(-)
+Hi Ameya,
 
-diff --git a/arch/arm/configs/cm_t35_defconfig b/arch/arm/configs/cm_t35_defconfig
-index e42c5c8..bd6f882 100644
---- a/arch/arm/configs/cm_t35_defconfig
-+++ b/arch/arm/configs/cm_t35_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.32-rc4
--# Tue Oct 13 17:10:40 2009
-+# Linux kernel version: 2.6.32-rc8
-+# Tue Dec  1 12:08:44 2009
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -215,6 +215,7 @@ CONFIG_OMAP_DM_TIMER=y
- # CONFIG_OMAP_LL_DEBUG_UART1 is not set
- # CONFIG_OMAP_LL_DEBUG_UART2 is not set
- CONFIG_OMAP_LL_DEBUG_UART3=y
-+# CONFIG_OMAP_LL_DEBUG_NONE is not set
- # CONFIG_OMAP_PM_NONE is not set
- CONFIG_OMAP_PM_NOOP=y
- CONFIG_ARCH_OMAP34XX=y
-@@ -227,11 +228,15 @@ CONFIG_ARCH_OMAP3430=y
- # CONFIG_MACH_OMAP_LDP is not set
- # CONFIG_MACH_OVERO is not set
- # CONFIG_MACH_OMAP3EVM is not set
-+# CONFIG_MACH_OMAP3517EVM is not set
- # CONFIG_MACH_OMAP3_PANDORA is not set
- # CONFIG_MACH_OMAP_3430SDP is not set
- # CONFIG_MACH_NOKIA_RX51 is not set
- # CONFIG_MACH_OMAP_ZOOM2 is not set
-+# CONFIG_MACH_OMAP_ZOOM3 is not set
- CONFIG_MACH_CM_T35=y
-+# CONFIG_MACH_IGEP0020 is not set
-+# CONFIG_MACH_OMAP_3630SDP is not set
- 
- #
- # Processor Type
-@@ -963,6 +968,7 @@ CONFIG_SSB_POSSIBLE=y
- # CONFIG_TPS65010 is not set
- CONFIG_TWL4030_CORE=y
- # CONFIG_TWL4030_POWER is not set
-+# CONFIG_TWL4030_CODEC is not set
- # CONFIG_MFD_TMIO is not set
- # CONFIG_MFD_T7L66XB is not set
- # CONFIG_MFD_TC6387XB is not set
-@@ -993,8 +999,66 @@ CONFIG_REGULATOR_TWL4030=y
- #
- # CONFIG_VGASTATE is not set
- # CONFIG_VIDEO_OUTPUT_CONTROL is not set
--# CONFIG_FB is not set
--# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-+CONFIG_FB=y
-+# CONFIG_FIRMWARE_EDID is not set
-+# CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-+CONFIG_FB_CFB_FILLRECT=y
-+CONFIG_FB_CFB_COPYAREA=y
-+CONFIG_FB_CFB_IMAGEBLIT=y
-+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-+# CONFIG_FB_SYS_FILLRECT is not set
-+# CONFIG_FB_SYS_COPYAREA is not set
-+# CONFIG_FB_SYS_IMAGEBLIT is not set
-+# CONFIG_FB_FOREIGN_ENDIAN is not set
-+# CONFIG_FB_SYS_FOPS is not set
-+# CONFIG_FB_SVGALIB is not set
-+# CONFIG_FB_MACMODES is not set
-+# CONFIG_FB_BACKLIGHT is not set
-+# CONFIG_FB_MODE_HELPERS is not set
-+# CONFIG_FB_TILEBLITTING is not set
-+
-+#
-+# Frame buffer hardware drivers
-+#
-+# CONFIG_FB_S1D13XXX is not set
-+# CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
-+# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-+CONFIG_OMAP2_VRAM=y
-+CONFIG_OMAP2_VRFB=y
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=4
-+CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
-+CONFIG_FB_OMAP2=y
-+CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=3
-+
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+CONFIG_PANEL_GENERIC=y
-+# CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
-+# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-+CONFIG_PANEL_TOPPOLY_TDO35S=y
-+CONFIG_BACKLIGHT_LCD_SUPPORT=y
-+CONFIG_LCD_CLASS_DEVICE=y
-+# CONFIG_LCD_LMS283GF05 is not set
-+# CONFIG_LCD_LTV350QV is not set
-+# CONFIG_LCD_ILI9320 is not set
-+CONFIG_LCD_TDO24M=y
-+# CONFIG_LCD_VGG2432A4 is not set
-+# CONFIG_LCD_PLATFORM is not set
-+# CONFIG_BACKLIGHT_CLASS_DEVICE is not set
- 
- #
- # Display device support
-@@ -1006,6 +1070,16 @@ CONFIG_REGULATOR_TWL4030=y
- #
- # CONFIG_VGA_CONSOLE is not set
- CONFIG_DUMMY_CONSOLE=y
-+CONFIG_FRAMEBUFFER_CONSOLE=y
-+# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
-+# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
-+# CONFIG_FONTS is not set
-+CONFIG_FONT_8x8=y
-+CONFIG_FONT_8x16=y
-+CONFIG_LOGO=y
-+CONFIG_LOGO_LINUX_MONO=y
-+CONFIG_LOGO_LINUX_VGA16=y
-+CONFIG_LOGO_LINUX_CLUT224=y
- # CONFIG_SOUND is not set
- CONFIG_HID_SUPPORT=y
- CONFIG_HID=y
--- 
-1.6.4.4
+I believe ACPI is a standard that doesn't matter it's X86 or ARM ,and
+it's responsible for power states (S,C,D and P states) ,,and Linux
+kernel implemented this standard .
 
+Am I right ??
+
+BTW :- if it's not like so,,How can I monitor the power changes on the
+peripherals like LCD connected to my beagleboard ??
+
+How can I make the power management  for the peripherals ??
+
+On Tue, Dec 1, 2009 at 11:58 AM, Ameya Palande <ameya.palande@nokia.com> wrote:
+> Hi Tarek,
+>
+> On Tue, 2009-12-01 at 09:53 +0100, ext tarek attia wrote:
+>> Hi all,
+>>
+>> Can I use the ACPI notifier chain to get noticed when any change for
+>> any peripheral has been occurred ?
+>>
+>> Like the Video dimming ,can I make a Linux driver module to get
+>> informed once any change has been occurred to it??
+>>
+>>
+>>
+>> Regards,
+>>
+>> tarek
+>
+> I believe ACPI is x86 architecture specific thing. I don't think it has
+> anything to do with ARM / OMAP.
+>
+> Cheers,
+> Ameya.
+>
+>
