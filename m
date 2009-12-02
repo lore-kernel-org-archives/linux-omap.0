@@ -1,46 +1,60 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [RFT/RFC/PATCH 08/10] cbus: separate into several MODULE_AUTHOR entries
-Date: Thu,  3 Dec 2009 00:35:50 +0200
-Message-ID: <1259793352-29864-9-git-send-email-felipe.balbi@nokia.com>
-References: <1259793352-29864-1-git-send-email-felipe.balbi@nokia.com>
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
+ charger
+Date: Thu, 3 Dec 2009 01:59:22 +0300
+Message-ID: <20091202225922.GA15568@oksana.dev.rtsoft.ru>
+References: <1259333060-24277-1-git-send-email-notasas@gmail.com>
+ <20091202173321.GA23738@nokia.com>
+ <6ed0b2680912021234x6b5e6058p6d50d5cd20ecf019@mail.gmail.com>
+ <20091202204946.GB25682@nokia.com>
+ <6ed0b2680912021329g372bd0a4vb5b4a80244960f95@mail.gmail.com>
+ <20091202215442.GA30658@oksana.dev.rtsoft.ru>
+ <20091202223156.GA14921@nokia.com>
+Reply-To: avorontsov@ru.mvista.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:51059 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755907AbZLBWgY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 17:36:24 -0500
-In-Reply-To: <1259793352-29864-1-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755022AbZLBW7S@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20091202223156.GA14921@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-will look cleaner on modinfo.
+On Thu, Dec 03, 2009 at 12:31:56AM +0200, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Dec 02, 2009 at 10:54:42PM +0100, ext Anton Vorontsov wrote:
+> >As for the default USB VBUS current value, it could be Kconfig
+> >option (something alike to USB_GADGET_VBUS_DRAW) and/or module
+> >parameter, or hw default, or hardcoded for now. Either will
+> >work.
+> 
+> cannot be Kconfig, it's mandated by usb battery charging spec 1.x to
+> be 100mA for 100ms, then if you don't enumerate, you have to cut
+> charging.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/cbus/cbus.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+Oh, I thought TWL4030 does the USB stuff somewhat transparently
+so the checks in twl4030_charger_check_vbus() would be enough.
+Is there any TWL4030 reference manual available?
 
-diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
-index d73d0c9..145e760 100644
---- a/drivers/cbus/cbus.c
-+++ b/drivers/cbus/cbus.c
-@@ -291,4 +291,6 @@ subsys_initcall(cbus_bus_init);
-=20
- MODULE_DESCRIPTION("CBUS serial protocol");
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Juha Yrj=F6l=E4, David Weinehall, and Mikko Ylinen");
-+MODULE_AUTHOR("Juha Yrj=F6l=E4");
-+MODULE_AUTHOR("David Weinehall");
-+MODULE_AUTHOR("Mikko Ylinen");
---=20
-1.6.6.rc0
+If TWL4030 just draws the VBUS directly, then it might be a good
+idea to integrate the driver with OTG framework, as an example
+see
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+commit 5bf2b994bfe11bfe86231050897b2d881ca544d9
+Author: Philipp Zabel <philipp.zabel@gmail.com>
+Date:   Sun Jan 18 17:40:27 2009 +0100
+
+    pda_power: Add optional OTG transceiver and voltage regulator support
+
+Though, instead of just a boolean is_usb_online() stuff, you'll
+have to get the allowed current draw value and configure the
+charger appropriately.
+
+Will this work?
+
+-- 
+Anton Vorontsov
+email: cbouatmailru@gmail.com
+irc://irc.freenode.net/bd2
