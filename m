@@ -1,74 +1,52 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: [PATCHv2] mfd: twl4030: clarify the return value for read and write
-Date: Wed,  2 Dec 2009 16:00:50 +0200
-Message-ID: <1259762450-7385-1-git-send-email-amit.kucheria@verdurent.com>
-References: <1259760678-18707-1-git-send-email-amit.kucheria@verdurent.com>
+From: Sergey Lapin <slapinid@gmail.com>
+Subject: Re: SR1: VDD autocomp is not active
+Date: Wed, 2 Dec 2009 17:06:37 +0300
+Message-ID: <48239d390912020606u7dd359d1k80dc92bf38be198d@mail.gmail.com>
+References: <48239d390912010353l44f8e6d9w7ff963c7fb41ecf3@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301DE879FB1@dbde02.ent.ti.com>
+	 <48239d390912010904r25b7246bx529b5132c65ef46a@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301DD5AA0DF@dbde02.ent.ti.com>
+	 <48239d390912011223yf2ffa2bhe43a6b699b9f6655@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301DE87A5E9@dbde02.ent.ti.com>
+	 <48239d390912020404w1c333178o2315119d7e53a2dc@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301DE87A635@dbde02.ent.ti.com>
+	 <48239d390912020513y57f9b863r750b521180ab85b7@mail.gmail.com>
+	 <48239d390912020533u10128a0akdb6d5ae35221a1ba@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43033 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753663AbZLBOBI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 09:01:08 -0500
-In-Reply-To: <1259760678-18707-1-git-send-email-amit.kucheria@verdurent.com>
+Received: from ey-out-2122.google.com ([74.125.78.27]:34181 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751312AbZLBOGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 09:06:32 -0500
+Received: by ey-out-2122.google.com with SMTP id d26so69023eyd.19
+        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 06:06:38 -0800 (PST)
+In-Reply-To: <48239d390912020533u10128a0akdb6d5ae35221a1ba@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: List Linux Kernel <linux-kernel@vger.kernel.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, List Linux Omap <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Infact, we can just return -1 so that caller knows for sure that all messages
-were not tranferred. Please consider fixed patch instead.
+On Wed, Dec 2, 2009 at 4:33 PM, Sergey Lapin <slapinid@gmail.com> wrote:
+>>>
+>>> [sp] The code will allow you to do so; but without right values
+>>>     kernel execution can go haywire.
+>>
+>> Is it possible somehow to identify right silicon revision before ordering?
+>> I mean by part number or something?
+> Sorry for my ignorance, I've found answer on first question (answer is
+> to read errata properly).
+>
+>>
+>> Also, is there some safe numbers somebody knows about, or is there
+>> some way of generating them?
+> I still persist with this question, though.
+>
+Resume: kernel seems to hang wit SRF disabled and PM enabled.
+As I have advantage of saving lots of power with PM.
+disabling SRF seems not to be an option. So
+it either have to be left as is or numbers should be provided
+(possibly for even better tasty power saving!)
 
-We should be checking if all the messages were tranferred or not. And return
--1 for failure. Currently we return success (0) even if none of messages were
-transferred successfully.
-
-Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
----
- drivers/mfd/twl4030-core.c |   25 +++++++++++++++++--------
- 1 files changed, 17 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
-index 56f1de5..8f9ba79 100644
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -292,10 +292,14 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- 	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
- 	mutex_unlock(&twl->xfer_lock);
- 
--	/* i2cTransfer returns num messages.translate it pls.. */
--	if (ret >= 0)
--		ret = 0;
--	return ret;
-+	/* i2c_transfer returns number of messages transferred */
-+	if (ret != 1) {
-+		pr_err("%s: i2c_write failed to transfer all messages\n",
-+			DRIVER_NAME);
-+		return -1;
-+	} else {
-+		return 0;
-+	}
- }
- EXPORT_SYMBOL(twl4030_i2c_write);
- 
-@@ -344,10 +348,15 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- 	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
- 	mutex_unlock(&twl->xfer_lock);
- 
--	/* i2cTransfer returns num messages.translate it pls.. */
--	if (ret >= 0)
--		ret = 0;
--	return ret;
-+	/* i2c_transfer returns number of messages transferred */
-+	if (ret != 2) {
-+		pr_err("%s: i2c_read failed to transfer all messages\n",
-+			DRIVER_NAME);
-+		return -1;
-+	}
-+	else {
-+		return 0;
-+	}
- }
- EXPORT_SYMBOL(twl4030_i2c_read);
- 
--- 
-1.6.3.3
-
+Thanks a lot for your help,
+S.
