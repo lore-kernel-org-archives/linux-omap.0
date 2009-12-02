@@ -1,45 +1,44 @@
-From: tarek attia <tarek.m.attia@gmail.com>
-Subject: Re: Peripheral Power Management
-Date: Wed, 2 Dec 2009 11:32:20 +0200
-Message-ID: <82cfbe860912020132n5e0c01adn64a3c1bd85f96df6@mail.gmail.com>
-References: <82cfbe860912020129l63da6721ubeac01c9e131853e@mail.gmail.com>
+From: Romit Dasgupta <romit@ti.com>
+Subject: [PATCH] PM: Prevent direct cpufreq scaling during initialization
+Date: Wed, 02 Dec 2009 15:42:39 +0530
+Message-ID: <1259748759.21203.11.camel@boson>
+Reply-To: romit@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:44549 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbZLBJcP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 04:32:15 -0500
-Received: by bwz27 with SMTP id 27so3137bwz.21
-        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 01:32:20 -0800 (PST)
-In-Reply-To: <82cfbe860912020129l63da6721ubeac01c9e131853e@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36787 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751728AbZLBKMk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Dec 2009 05:12:40 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org
 
-I'm not talking about full chip off in suspend ,,but I'm talking about
-tern off some modules while they aren't in use however the cpu is
-running in normal mode not in idle
 
-On Wed, Dec 2, 2009 at 11:29 AM, tarek attia <tarek.m.attia@gmail.com> =
-wrote:
-> Hi All,
->
-> I know that CPU have power management through CPUFREQ,,but what about
-> the peripherals like =A0(DVI-D) does it have a power management for i=
-t
-> as well??,,and the rest of peripherals also ?
->
->
->
-> Appreciate your response,
->
-> Best Regards,
-> tarek
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It is seen that the OMAP specific cpufreq initialization code tries to
+scale the MPU frequency to the highest possible without taking care of
+the voltage level. On power on reset the power IC does not provide the
+necessary voltage for the highest available MPU frequency (that would
+satisfy all Si families). This potentially is an window of opportunity
+for things to go wrong.
+
+
+Signed-off-by: Romit Dasgupta <romit@ti.com>
+---
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index 449b6b6..f94df20 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -149,8 +149,6 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
+ 							VERY_HI_RATE) / 1000;
+ 	}
+ 
+-	clk_set_rate(mpu_clk, policy->cpuinfo.max_freq * 1000);
+-
+ 	policy->min = policy->cpuinfo.min_freq;
+ 	policy->max = policy->cpuinfo.max_freq;
+ 	policy->cur = omap_getspeed(0);
+
+
