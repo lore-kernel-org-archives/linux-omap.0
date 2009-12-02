@@ -1,41 +1,73 @@
-From: Sergey Lapin <slapinid@gmail.com>
-Subject: Re: SR1: VDD autocomp is not active
-Date: Wed, 2 Dec 2009 16:33:39 +0300
-Message-ID: <48239d390912020533u10128a0akdb6d5ae35221a1ba@mail.gmail.com>
-References: <48239d390912010353l44f8e6d9w7ff963c7fb41ecf3@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301DE879FB1@dbde02.ent.ti.com>
-	 <48239d390912010904r25b7246bx529b5132c65ef46a@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301DD5AA0DF@dbde02.ent.ti.com>
-	 <48239d390912011223yf2ffa2bhe43a6b699b9f6655@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301DE87A5E9@dbde02.ent.ti.com>
-	 <48239d390912020404w1c333178o2315119d7e53a2dc@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301DE87A635@dbde02.ent.ti.com>
-	 <48239d390912020513y57f9b863r750b521180ab85b7@mail.gmail.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] mfd: twl4030: clarify the return value for read and
+ write
+Date: Wed, 2 Dec 2009 15:41:44 +0200
+Message-ID: <20091202134144.GL1361@nokia.com>
+References: <1259760678-18707-1-git-send-email-amit.kucheria@verdurent.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:64413 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753619AbZLBNdd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 08:33:33 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so1172075eya.5
-        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 05:33:39 -0800 (PST)
-In-Reply-To: <48239d390912020513y57f9b863r750b521180ab85b7@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:35059 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751429AbZLBNmC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 08:42:02 -0500
+Content-Disposition: inline
+In-Reply-To: <1259760678-18707-1-git-send-email-amit.kucheria@verdurent.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Amit Kucheria <amit.kucheria@verdurent.com>
+Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, List Linux Omap <linux-omap@vger.kernel.org>
 
->>
->> [sp] The code will allow you to do so; but without right values
->>     kernel execution can go haywire.
->
-> Is it possible somehow to identify right silicon revision before ordering?
-> I mean by part number or something?
-Sorry for my ignorance, I've found answer on first question (answer is
-to read errata properly).
+Hi,
 
+On Wed, Dec 02, 2009 at 02:31:18PM +0100, ext Amit Kucheria wrote:
+>@@ -298,10 +298,12 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+> 	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
+> 	mutex_unlock(&twl->xfer_lock);
 >
-> Also, is there some safe numbers somebody knows about, or is there
-> some way of generating them?
-I still persist with this question, though.
+>-	/* i2cTransfer returns num messages.translate it pls.. */
+>-	if (ret >= 0)
+>-		ret = 0;
+>-	return ret;
+>+	/* i2c_transfer returns number of messages transferred */
+>+	if (ret != 1) {
+>+		pr_err("%s: twl4030_i2c_write failed to transfer all messages\n", DRIVER_NAME);
+
+this line is over 80-chars
+
+>+		return ret;
+>+	} else
+
+you should have {} here as well.
+
+>+		return 0;
+> }
+> EXPORT_SYMBOL(twl4030_i2c_write);
+>
+>@@ -350,10 +352,13 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+> 	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
+> 	mutex_unlock(&twl->xfer_lock);
+>
+>-	/* i2cTransfer returns num messages.translate it pls.. */
+>-	if (ret >= 0)
+>-		ret = 0;
+>-	return ret;
+>+	/* i2c_transfer returns number of messages transferred */
+>+	if (ret != 2) {
+>+		pr_err("%s: twl4030_i2c_read failed to transfer all messages\n", DRIVER_NAME);
+
+over 80-chars
+
+>+		return ret;
+>+	}
+>+	else
+
+} else {
+
+>+		return 0;
+
+}
+
+-- 
+balbi
