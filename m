@@ -1,48 +1,130 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3: SDRC: Comment out SDRC AC timing and MR changes
- in CORE DVFS SRAM code
-Date: Wed, 2 Dec 2009 09:22:54 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912020916431.13408@utopia.booyaka.com>
-References: <1254835224-19500-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.0910201918230.22645@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162039B3CF012@dlee02.ent.ti.com> <74583B8642AB8841B30447520659FCA9DDD9D7E9@dnce01.ent.ti.com>
- <13B9B4C6EF24D648824FF11BE8967162039B459718@dlee02.ent.ti.com> <1F18D6510CF0474A8C9500565A7E41A2236DA1C1F3@NOK-EUMSG-02.mgdnok.nokia.com> <alpine.DEB.2.00.0912011832290.13408@utopia.booyaka.com> <4B160552.6050108@ti.com> <20091202155614.GA3699@lixom.net>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI charger
+Date: Wed, 2 Dec 2009 10:59:35 -0600
+Message-ID: <004201ca7370$d3c9ce70$544ff780@am.dhcp.ti.com>
+References: <1259333060-24277-1-git-send-email-notasas@gmail.com> <012301ca71ed$449cb930$544ff780@am.dhcp.ti.com> <6ed0b2680911301333p19b14d5dxac81f976d0c35c61@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52895 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753663AbZLBQWs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 11:22:48 -0500
-In-Reply-To: <20091202155614.GA3699@lixom.net>
+Received: from devils.ext.ti.com ([198.47.26.153]:43772 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752866AbZLBQ7p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 11:59:45 -0500
+In-Reply-To: <6ed0b2680911301333p19b14d5dxac81f976d0c35c61@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap@vger.kernel.org, Tero.Kristo@nokia.com, r-woodruff2@ti.com, b-cousson@ti.com, rnayak@ti.com, c-sucur@ti.com
+To: 'Grazvydas Ignotas' <notasas@gmail.com>
+Cc: linux-kernel@vger.kernel.org, 'Anton Vorontsov' <avorontsov@ru.mvista.com>, linux-omap@vger.kernel.org
 
-Hello Olof, Nishanth,
 
-thanks for the comments,
 
-On Wed, 2 Dec 2009, Olof Johansson wrote:
-
-> On Wed, Dec 02, 2009 at 08:12:34AM +0200, Menon, Nishanth wrote:
+> -----Original Message-----
+> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
+> Sent: Monday, November 30, 2009 3:33 PM
+> To: Madhusudhan
+> Cc: linux-kernel@vger.kernel.org; Anton Vorontsov; linux-
+> omap@vger.kernel.org
+> Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
+> charger
 > 
-> > why not make this a #ifdef instead if we need it some other time, a #if
-> > 0 and it's intention might not be readable without doing a git annotate
-> > in a few months time..
+> On Mon, Nov 30, 2009 at 8:45 PM, Madhusudhan <madhu.cr@ti.com> wrote:
+> >
+> >
+> >> -----Original Message-----
+> >> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
+> >> Sent: Friday, November 27, 2009 8:44 AM
+> >> To: linux-kernel@vger.kernel.org
+> >> Cc: Anton Vorontsov; Madhusudhan Chikkature; linux-
+> omap@vger.kernel.org;
+> >> Grazvydas Ignotas
+> >> Subject: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
+> charger
+> >>
+> >> TWL4030/TPS65950 is a multi-function device with integrated charger,
+> >> which allows charging from AC or USB. This driver enables the
+> >> charger and provides several monitoring functions.
+> >>
+> >> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> >> ---
+> >> For this driver to work, TWL4030-core needs to be patched to use
+> >> correct macros so that it registers twl4030_bci platform_device.
+> >> I'll send patches for this later.
+> >>
+> >>  drivers/power/Kconfig           |    7 +
+> >>  drivers/power/Makefile          |    1 +
+> >>  drivers/power/twl4030_charger.c |  499
+> >
+> > Is the file name changed from twl4030_bci_battery.c to twl4030_charger.c
+> because it mainly supports voltage monitoring only while charging? If yes,
+> potentially we can add support for monitoring also in discharge state. Do
+> we intend to change the file name then?
 > 
-> Just remove the code. The old implementation is still there in git and
-> can be brought back if need be. It's the purpose of having revision
-> control in the first place.
+> Does the hardware support any monitoring in discharge state? I'm
+> unable to get any readings, only frozen values (that never update)
+> from what it had when it was charging. Here is TI confirmation that at
+> least temperature monitoring won't work while discharging:
+> http://e2e.ti.com/forums/p/8202/31818.aspx#31818
+> 
+> For this reason I consider BCI a charger.
+> 
+In the discharge path BCI might not update the registers. It is worth
+experiment to try and use MADC conversion to get the values. A driver for
+madc is being currently discussed. See the patch:
 
-I'm leaning towards Nishanth's suggestion and making it a Kconfig option. 
-That way, users who know that other system initiators will be inactive at 
-CORE DVFS time will be able to use optimal SDRC timings in CORE DVFS.
+http://patchwork.kernel.org/patch/62746/
 
-The other issue with removing it completely is that I'm holding out the 
-(admittedly slim) hope that someone else will be enticed into helping out 
-with this issue, and so I'd reason that since very few people will look at 
-older revisions, removing it will drastically reduce the chances that 
-others will help.
+We can try this once the madc driver is accepted in mainline and submit an
+update patch to the BCI driver. As a first step I agree that the current BCI
+patch should go upstream.
 
+Reviewed-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-- Paul
+Thanks,
+Madhu
+
+> > Also adding the tested-on info could be helpful here.
+> 
+> ok
+> 
+> <snip>
+> 
+> >> +     case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+> >> +             /* charging must be active for meaningful result */
+> >> +             if (!is_charging) {
+> >
+> > How about putting a kern_info here?
+> 
+> That would potentially flood dmesg, will just return -EINVAL like
+> Anton suggests.
+> 
+> >> +                     val->intval = 0;
+> >> +                     break;
+> >> +             }
+> >> +             ret = twl4030_get_voltage(voltage_reg);
+> >> +             if (ret < 0)
+> >> +                     return ret;
+> >> +             val->intval = ret;
+> >> +             break;
+> >> +     case POWER_SUPPLY_PROP_CURRENT_NOW:
+> >> +             if (!is_charging) {
+> >> +                     val->intval = 0;
+> > Ditto
+> >> +                     break;
+> >> +             }
+> >> +             /* current measurement is shared between AC and USB */
+> >> +             ret = twl4030_charger_get_current();
+> >> +             if (ret < 0)
+> >> +                     return ret;
+> >> +             val->intval = ret;
+> >> +             break;
+> >> +     case POWER_SUPPLY_PROP_ONLINE:
+> > Does this indicate the source of charging like USB or AC??
+> 
+> There are 2 charging devices registered now, AC and USB, each returns
+> it's state. This is what most other drivers do.
+> 
+> I'll send v2 later, it will also have more accurate voltage formulas I
+> got from TI.
+
