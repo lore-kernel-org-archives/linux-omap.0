@@ -1,57 +1,82 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: SR1: VDD autocomp is not active
-Date: Wed, 2 Dec 2009 19:53:28 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE87A6EE@dbde02.ent.ti.com>
-References: <48239d390912010353l44f8e6d9w7ff963c7fb41ecf3@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301DE879FB1@dbde02.ent.ti.com>
-	 <48239d390912010904r25b7246bx529b5132c65ef46a@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301DD5AA0DF@dbde02.ent.ti.com>
-	 <48239d390912011223yf2ffa2bhe43a6b699b9f6655@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301DE87A5E9@dbde02.ent.ti.com>
-	 <48239d390912020404w1c333178o2315119d7e53a2dc@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301DE87A635@dbde02.ent.ti.com>
-	 <48239d390912020513y57f9b863r750b521180ab85b7@mail.gmail.com>
- <48239d390912020533u10128a0akdb6d5ae35221a1ba@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCHv2] mfd: twl4030: clarify the return value for read and
+ write
+Date: Wed, 2 Dec 2009 20:35:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309DAC23C@dbde02.ent.ti.com>
+References: <1259760678-18707-1-git-send-email-amit.kucheria@verdurent.com>
+ <1259762450-7385-1-git-send-email-amit.kucheria@verdurent.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34221 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752929AbZLBOX1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 09:23:27 -0500
-In-Reply-To: <48239d390912020533u10128a0akdb6d5ae35221a1ba@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39280 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753699AbZLBPGD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 10:06:03 -0500
+In-Reply-To: <1259762450-7385-1-git-send-email-amit.kucheria@verdurent.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergey Lapin <slapinid@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Amit Kucheria <amit.kucheria@verdurent.com>, List Linux Kernel <linux-kernel@vger.kernel.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, List Linux Omap <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Sergey Lapin [mailto:slapinid@gmail.com] 
-> Sent: Wednesday, December 02, 2009 7:04 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: SR1: VDD autocomp is not active
+Amit Kucheria wrote:
+> Infact, we can just return -1 so that caller knows for sure that all messages
+> were not tranferred. Please consider fixed patch instead.
 > 
-> >>
-> >> [sp] The code will allow you to do so; but without right values
-> >>     kernel execution can go haywire.
-> >
-> > Is it possible somehow to identify right silicon revision 
-> before ordering?
-> > I mean by part number or something?
-> Sorry for my ignorance, I've found answer on first question (answer is
-> to read errata properly).
+> We should be checking if all the messages were tranferred or not. And return
+> -1 for failure. Currently we return success (0) even if none of messages were
+> transferred successfully.
 > 
-> >
-> > Also, is there some safe numbers somebody knows about, or is there
-> > some way of generating them?
-> I still persist with this question, though.
+> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+> ---
+>  drivers/mfd/twl4030-core.c |   25 +++++++++++++++++--------
+>  1 files changed, 17 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> index 56f1de5..8f9ba79 100644
+> --- a/drivers/mfd/twl4030-core.c
+> +++ b/drivers/mfd/twl4030-core.c
+> @@ -292,10 +292,14 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
+>  	mutex_unlock(&twl->xfer_lock);
+>  
+> -	/* i2cTransfer returns num messages.translate it pls.. */
+> -	if (ret >= 0)
+> -		ret = 0;
+> -	return ret;
+> +	/* i2c_transfer returns number of messages transferred */
+> +	if (ret != 1) {
+> +		pr_err("%s: i2c_write failed to transfer all messages\n",
+> +			DRIVER_NAME);
+> +		return -1;
+> +	} else {
+> +		return 0;
+> +	}
+>  }
+>  EXPORT_SYMBOL(twl4030_i2c_write);
+>  
+> @@ -344,10 +348,15 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
+>  	mutex_unlock(&twl->xfer_lock);
+>  
+> -	/* i2cTransfer returns num messages.translate it pls.. */
+> -	if (ret >= 0)
+> -		ret = 0;
+> -	return ret;
+> +	/* i2c_transfer returns number of messages transferred */
+> +	if (ret != 2) {
+> +		pr_err("%s: i2c_read failed to transfer all messages\n",
+> +			DRIVER_NAME);
+> +		return -1;
+> +	}
+> +	else {
+> +		return 0;
+> +	}
 
-[sp] These numbers are based on silicon characterization process.
-     There is no other way to generate them. The numbers can change
-     between silicon lots.
+The else clause should be on the same line as the brace closing the if clause.
+like you did above
 
-Best regards,
-Sanjeev
+So says Documentation/CodingStyle.
+
+- Anand
