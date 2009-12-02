@@ -1,48 +1,39 @@
-From: Sergey Lapin <slapinid@gmail.com>
-Subject: Re: [PATCH] PM: Prevent direct cpufreq scaling during initialization
-Date: Wed, 2 Dec 2009 18:33:38 +0300
-Message-ID: <48239d390912020733w2981917ap6312eee193f14263@mail.gmail.com>
-References: <1259748759.21203.11.camel@boson>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: Preventing OMAP3 serial driver to take control of all UARTs
+Date: Wed, 2 Dec 2009 09:53:19 -0600
+Message-ID: <20091202155319.GA3628@lixom.net>
+References: <20091130084651.GA17675@esdhcp04058.research.nokia.com> <1259599010.4649.51.camel@thunk> <fa686aa40911300901nd47259ar2e1beae7be447937@mail.gmail.com> <20091130194031.GV4348@atomide.com> <fa686aa40912020707p70eb693dp6fcd03facabb5892@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:19253 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312AbZLBPdc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 10:33:32 -0500
-Received: by ey-out-2122.google.com with SMTP id d26so90692eyd.19
-        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 07:33:38 -0800 (PST)
-In-Reply-To: <1259748759.21203.11.camel@boson>
+Received: from lixom.net ([66.141.50.11]:41332 "EHLO mail.lixom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754322AbZLBPvN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Dec 2009 10:51:13 -0500
+Content-Disposition: inline
+In-Reply-To: <fa686aa40912020707p70eb693dp6fcd03facabb5892@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: romit@ti.com
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Barada <peterb@logicpd.com>, Mika Westerberg <ext-mika.1.westerberg@nokia.com>, linux-omap@vger.kernel.org
 
-On Wed, Dec 2, 2009 at 1:12 PM, Romit Dasgupta <romit@ti.com> wrote:
->
-> It is seen that the OMAP specific cpufreq initialization code tries to
-> scale the MPU frequency to the highest possible without taking care of
-> the voltage level. On power on reset the power IC does not provide the
-> necessary voltage for the highest available MPU frequency (that would
-> satisfy all Si families). This potentially is an window of opportunity
-> for things to go wrong.
->
->
-> Signed-off-by: Romit Dasgupta <romit@ti.com>
-> ---
-> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-> index 449b6b6..f94df20 100644
-> --- a/arch/arm/plat-omap/cpu-omap.c
-> +++ b/arch/arm/plat-omap/cpu-omap.c
-> @@ -149,8 +149,6 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
->                                                        VERY_HI_RATE) / 1000;
->        }
->
-> -       clk_set_rate(mpu_clk, policy->cpuinfo.max_freq * 1000);
-> -
->        policy->min = policy->cpuinfo.min_freq;
->        policy->max = policy->cpuinfo.max_freq;
->        policy->cur = omap_getspeed(0);
+On Wed, Dec 02, 2009 at 08:07:21AM -0700, Grant Likely wrote:
 
-This patch leads to hang with current PM branch, SRF and CPU IDLE enabled
-on OMAP3525 rev C.
+> Oh, and speaking of GPIOs, there is a binding for describing GPIO pin
+> connections in the device tree:
+> Documentation/powerpc/dts-bindings/gpio/gpio.txt
+
+That binding is more about documenting a bank of GPIO pins, while
+chips like OMAP will need something a bit more flexible.
+
+Given the flexibility and complexity of configuring the pins on
+mobile-oriented SoCs where each function can come out a variety of
+different pins, and many pins can 3 or 4 functions associated with them
+(selected by software config), it will definitely bring a new level of
+complexity to the device tree descriptions.
+
+I'm definitely not saying that it is impossible, but it might take a
+little work to hash out a binding that everyone will be happy with.
+
+
+-Olof
