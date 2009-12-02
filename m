@@ -1,31 +1,74 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 01/20] DSPBRIDGE: driver version 0.1
-Date: Wed, 2 Dec 2009 12:57:30 +0200
-Message-ID: <94a0d4530912020257h3ab5a2d8ya6a878189a92ddb3@mail.gmail.com>
-References: <1259618101-8972-1-git-send-email-omar.ramirez@ti.com>
-	 <1259618101-8972-2-git-send-email-omar.ramirez@ti.com>
+From: Sergey Lapin <slapinid@gmail.com>
+Subject: Re: SR1: VDD autocomp is not active
+Date: Wed, 2 Dec 2009 15:04:38 +0300
+Message-ID: <48239d390912020404w1c333178o2315119d7e53a2dc@mail.gmail.com>
+References: <48239d390912010353l44f8e6d9w7ff963c7fb41ecf3@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301DE879FB1@dbde02.ent.ti.com>
+	 <48239d390912010904r25b7246bx529b5132c65ef46a@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301DD5AA0DF@dbde02.ent.ti.com>
+	 <48239d390912011223yf2ffa2bhe43a6b699b9f6655@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301DE87A5E9@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f171.google.com ([209.85.223.171]:42357 "EHLO
-	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773AbZLBK5Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 05:57:24 -0500
-Received: by iwn1 with SMTP id 1so31937iwn.33
-        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 02:57:30 -0800 (PST)
-In-Reply-To: <1259618101-8972-2-git-send-email-omar.ramirez@ti.com>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:42596 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752001AbZLBMEd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 07:04:33 -0500
+Received: by ewy19 with SMTP id 19so139456ewy.21
+        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 04:04:38 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE87A5E9@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Nov 30, 2009 at 11:54 PM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
-> Prior to any further modification set the driver version to be 0.1
+Hi, all! It seems discussion went off-list somehow, so I won't delete
+some quoting.
 
-It should be the other way around; *after* the modifications have been
-merged, the version 0.1 would be released. Moreover, it would be nice
-to get some acknowledgement from Nokia developers that the branch is
-indeed correct.
+On Wed, Dec 2, 2009 at 2:38 PM, Premi, Sanjeev <premi@ti.com> wrote:
+>> -----Original Message-----
+>> From: Sergey Lapin [mailto:slapinid@gmail.com]
+>> Sent: Wednesday, December 02, 2009 1:54 AM
+>> To: Premi, Sanjeev
+>> Subject: Re: SR1: VDD autocomp is not active
+>>
+>> > I did notice an earlier mail where you mentioned about
+>> using an older
+>> > kernel version. have to back-ported patches specific to silicon
+>> > identification on this kernel/
+>> I use PM branch of linux-omap git.
+>> I just need to make my patches less disgusting by properly
+>> porting these.
+>> Actually now I think I could do this work even without
+>> appropriate tree, since
+>> amount of patches is not that big and API is not too different.  These
+>> patches are
+>> not required to make board basically run.
+>>
+>> >
+>> > It appears that efuse data required for SmartReflex to work may not
+>> > be available on this silicon... leading to these messages.
+>> >
+>> > Right now, I am away from source code, will be able to verify in the
+>> > morning.
+>> Thanks, looking forward for your reply.
+>
+> You should try this with an ES3.1 silicon. If sr_enable() fails, we might
+> see this issue.
+It seems I only have ES2.1 silicon, so what should I do
+- disable SR functionality at all
+- somehow set values the other way?
+It seems SR is possible on this silicon, only efuse data are absent,
+so is there a way I could somehow fake these (with some known working values),
+so the stuff works?
 
--- 
-Felipe Contreras
+Thanks a lot,
+S.
+
+
+
+>
+>>
+>> S.
+>>
