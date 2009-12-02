@@ -1,82 +1,70 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCHv2] mfd: twl4030: clarify the return value for read and
- write
-Date: Wed, 2 Dec 2009 20:35:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309DAC23C@dbde02.ent.ti.com>
-References: <1259760678-18707-1-git-send-email-amit.kucheria@verdurent.com>
- <1259762450-7385-1-git-send-email-amit.kucheria@verdurent.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: Preventing OMAP3 serial driver to take control of all UARTs
+Date: Wed, 2 Dec 2009 08:07:21 -0700
+Message-ID: <fa686aa40912020707p70eb693dp6fcd03facabb5892@mail.gmail.com>
+References: <20091130084651.GA17675@esdhcp04058.research.nokia.com>
+	<1259599010.4649.51.camel@thunk> <fa686aa40911300901nd47259ar2e1beae7be447937@mail.gmail.com>
+	<20091130194031.GV4348@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39280 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753699AbZLBPGD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 10:06:03 -0500
-In-Reply-To: <1259762450-7385-1-git-send-email-amit.kucheria@verdurent.com>
-Content-Language: en-US
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:45611 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752913AbZLBPHe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 10:07:34 -0500
+Received: by yxe17 with SMTP id 17so205161yxe.33
+        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 07:07:41 -0800 (PST)
+In-Reply-To: <20091130194031.GV4348@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@verdurent.com>, List Linux Kernel <linux-kernel@vger.kernel.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, List Linux Omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Peter Barada <peterb@logicpd.com>, Mika Westerberg <ext-mika.1.westerberg@nokia.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-Amit Kucheria wrote:
-> Infact, we can just return -1 so that caller knows for sure that all messages
-> were not tranferred. Please consider fixed patch instead.
-> 
-> We should be checking if all the messages were tranferred or not. And return
-> -1 for failure. Currently we return success (0) even if none of messages were
-> transferred successfully.
-> 
-> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-> ---
->  drivers/mfd/twl4030-core.c |   25 +++++++++++++++++--------
->  1 files changed, 17 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
-> index 56f1de5..8f9ba79 100644
-> --- a/drivers/mfd/twl4030-core.c
-> +++ b/drivers/mfd/twl4030-core.c
-> @@ -292,10 +292,14 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
->  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
->  	mutex_unlock(&twl->xfer_lock);
->  
-> -	/* i2cTransfer returns num messages.translate it pls.. */
-> -	if (ret >= 0)
-> -		ret = 0;
-> -	return ret;
-> +	/* i2c_transfer returns number of messages transferred */
-> +	if (ret != 1) {
-> +		pr_err("%s: i2c_write failed to transfer all messages\n",
-> +			DRIVER_NAME);
-> +		return -1;
-> +	} else {
-> +		return 0;
-> +	}
->  }
->  EXPORT_SYMBOL(twl4030_i2c_write);
->  
-> @@ -344,10 +348,15 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
->  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
->  	mutex_unlock(&twl->xfer_lock);
->  
-> -	/* i2cTransfer returns num messages.translate it pls.. */
-> -	if (ret >= 0)
-> -		ret = 0;
-> -	return ret;
-> +	/* i2c_transfer returns number of messages transferred */
-> +	if (ret != 2) {
-> +		pr_err("%s: i2c_read failed to transfer all messages\n",
-> +			DRIVER_NAME);
-> +		return -1;
-> +	}
-> +	else {
-> +		return 0;
-> +	}
+On Mon, Nov 30, 2009 at 12:40 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Grant Likely <grant.likely@secretlab.ca> [091130 09:01]:
+>> http://www.elinux.org/Device_Trees
+>>
+>> I expect to have my prototype ready for review mid-January, and most
+>> of the common code should be either merged or queued up in linux-next
+>> by that time.
+>
+> While device tree is a nice solution to some of the problems, it still
+> leaves all the issues we already have with buggy and and outdated
+> bootloaders. So we still need to properly initialize the devices in
+> the kernel.
 
-The else clause should be on the same line as the brace closing the if clause.
-like you did above
+Yes, buggy firmware is still a problem.  However, if the required
+configuration is described in the device tree data, then for some
+things the driver can handle setting up the device and the amount of
+board-specific code can be reduced.
 
-So says Documentation/CodingStyle.
+> Just for reference, most of the omap bootloader bugs seem to be
+> related to not muxing the pins right or using wrong timings for GPMC.
+>
+> And then things that mostly change during the board development are
+> the GPIO pins, but those can be easily rewritten in the board-*.c
+> files based on the omap_rev.
+>
+> But at least the device tree is a standard model, while the earlier
+> omap tag approach was non-standard.
+>
+> Peter, maybe you've already thought through all this.. But would it be
+> possible to do lightweight device tree that we just use to populate
+> the platform data?
 
-- Anand
+This is completely possible.  Just having the device tree available
+doesn't force the kernel to use it for everything.  I've found it
+useful to start small and add things as I need them.  Most important
+thing to remember is to follow the documented & established device
+tree conventions so that common code can understand it.
+
+Oh, and speaking of GPIOs, there is a binding for describing GPIO pin
+connections in the device tree:
+Documentation/powerpc/dts-bindings/gpio/gpio.txt
+
+Cheers,
+g.
+
+-- 
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
