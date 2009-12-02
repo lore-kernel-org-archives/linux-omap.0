@@ -1,46 +1,58 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH v2 01/20] DSPBRIDGE: driver version 0.1
-Date: Wed, 2 Dec 2009 10:01:26 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A530426FE31AE@dlee03.ent.ti.com>
-References: <1259618101-8972-1-git-send-email-omar.ramirez@ti.com>
-	 <1259618101-8972-2-git-send-email-omar.ramirez@ti.com>
- <94a0d4530912020257h3ab5a2d8ya6a878189a92ddb3@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: Preventing OMAP3 serial driver to take control of all UARTs
+Date: Wed, 2 Dec 2009 09:04:49 -0700
+Message-ID: <fa686aa40912020804g34e1258k626349d711cfadd4@mail.gmail.com>
+References: <20091130084651.GA17675@esdhcp04058.research.nokia.com>
+	<1259599010.4649.51.camel@thunk> <fa686aa40911300901nd47259ar2e1beae7be447937@mail.gmail.com>
+	<20091130194031.GV4348@atomide.com> <fa686aa40912020707p70eb693dp6fcd03facabb5892@mail.gmail.com>
+	<20091202155319.GA3628@lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42407 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750815AbZLBQBX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 11:01:23 -0500
-In-Reply-To: <94a0d4530912020257h3ab5a2d8ya6a878189a92ddb3@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:34406 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753822AbZLBQFD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 11:05:03 -0500
+Received: by iwn1 with SMTP id 1so208786iwn.33
+        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 08:05:09 -0800 (PST)
+In-Reply-To: <20091202155319.GA3628@lixom.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Olof Johansson <olof@lixom.net>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Barada <peterb@logicpd.com>, Mika Westerberg <ext-mika.1.westerberg@nokia.com>, linux-omap@vger.kernel.org
 
-
->From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+On Wed, Dec 2, 2009 at 8:53 AM, Olof Johansson <olof@lixom.net> wrote:
+> On Wed, Dec 02, 2009 at 08:07:21AM -0700, Grant Likely wrote:
 >
->On Mon, Nov 30, 2009 at 11:54 PM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
->> Prior to any further modification set the driver version to be 0.1
+>> Oh, and speaking of GPIOs, there is a binding for describing GPIO pin
+>> connections in the device tree:
+>> Documentation/powerpc/dts-bindings/gpio/gpio.txt
 >
->It should be the other way around; *after* the modifications have been
->merged,the version 0.1 would be released.
-
-Nope, version 0.2 will be once modifications are merged and branch is rebased to 2.6.32rc7
-
-> Moreover, it would be nice
->to get some acknowledgement from Nokia developers that the branch is
->indeed correct.
+> That binding is more about documenting a bank of GPIO pins, while
+> chips like OMAP will need something a bit more flexible.
 >
+> Given the flexibility and complexity of configuring the pins on
+> mobile-oriented SoCs where each function can come out a variety of
+> different pins, and many pins can 3 or 4 functions associated with them
+> (selected by software config), it will definitely bring a new level of
+> complexity to the device tree descriptions.
 
-It would be nice to get them but they are not needed. As always any bug reports are welcomed.
+Ah, you're talking about pin muxing configuration, right?  Yes, that
+GPIO binding deals with controllers, not pin mux.  Pin mux is very
+much an SoC specific thing that isn't mapped easily to a generic
+binding.
 
->--
->Felipe Contreras
+On the 5200, I haven't attempted to describe pin-mux in the device
+tree at all, and have either expected firmware to set it up correctly,
+or fixed it up in the platform code.
 
-Regards,
+> I'm definitely not saying that it is impossible, but it might take a
+> little work to hash out a binding that everyone will be happy with.
 
-Omar
+Right.
+
+g.
+
+-- 
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
