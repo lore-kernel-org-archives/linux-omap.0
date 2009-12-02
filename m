@@ -1,46 +1,45 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [RFT/RFC/PATCH 02/10] arm: omap: n770: make it build again
-Date: Thu,  3 Dec 2009 00:35:44 +0200
-Message-ID: <1259793352-29864-3-git-send-email-felipe.balbi@nokia.com>
+Subject: [RFT/RFC/PATCH 06/10] cbus: switch to kzalloc
+Date: Thu,  3 Dec 2009 00:35:48 +0200
+Message-ID: <1259793352-29864-7-git-send-email-felipe.balbi@nokia.com>
 References: <1259793352-29864-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:60599 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:60611 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755893AbZLBWgH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 17:36:07 -0500
+	with ESMTP id S1755904AbZLBWgP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 17:36:15 -0500
 In-Reply-To: <1259793352-29864-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-there's no <plat/omapfb.h> it's now under <linux/omapfb.h>
+change kmalloc() + memset() to kzalloc(), no functional
+changes.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap1/board-nokia770.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/cbus/cbus.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index af4d719..db9a1de 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -20,6 +20,7 @@
- #include <linux/spi/ads7846.h>
- #include <linux/workqueue.h>
- #include <linux/delay.h>
-+#include <linux/omapfb.h>
+diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
+index c80cede..0bcc211 100644
+--- a/drivers/cbus/cbus.c
++++ b/drivers/cbus/cbus.c
+@@ -224,12 +224,10 @@ int __init cbus_bus_init(void)
+ 	struct cbus_host *chost;
+ 	int ret;
  
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -33,7 +34,6 @@
- #include <plat/keypad.h>
- #include <plat/common.h>
- #include <plat/dsp_common.h>
--#include <plat/omapfb.h>
- #include <plat/hwa742.h>
- #include <plat/lcd_mipid.h>
- #include <plat/mmc.h>
+-	chost = kmalloc(sizeof (*chost), GFP_KERNEL);
++	chost = kzalloc(sizeof (*chost), GFP_KERNEL);
+ 	if (chost == NULL)
+ 		return -ENOMEM;
+ 
+-	memset(chost, 0, sizeof (*chost));
+-
+ 	spin_lock_init(&chost->lock);
+ 
+ 	/* REVISIT: Pass these from board-*.c files in platform_data */
 -- 
 1.6.6.rc0
 
