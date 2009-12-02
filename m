@@ -1,130 +1,74 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI charger
-Date: Wed, 2 Dec 2009 10:59:35 -0600
-Message-ID: <004201ca7370$d3c9ce70$544ff780@am.dhcp.ti.com>
-References: <1259333060-24277-1-git-send-email-notasas@gmail.com> <012301ca71ed$449cb930$544ff780@am.dhcp.ti.com> <6ed0b2680911301333p19b14d5dxac81f976d0c35c61@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: Preventing OMAP3 serial driver to take control of all UARTs
+Date: Wed, 2 Dec 2009 10:24:47 -0700
+Message-ID: <fa686aa40912020924i6079275n5ad31fa91e52b8a@mail.gmail.com>
+References: <20091130084651.GA17675@esdhcp04058.research.nokia.com>
+	<1259599010.4649.51.camel@thunk> <fa686aa40911300901nd47259ar2e1beae7be447937@mail.gmail.com>
+	<20091130194031.GV4348@atomide.com> <fa686aa40912020707p70eb693dp6fcd03facabb5892@mail.gmail.com>
+	<20091202155319.GA3628@lixom.net> <fa686aa40912020804g34e1258k626349d711cfadd4@mail.gmail.com>
+	<20091202161657.GA3903@lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43772 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752866AbZLBQ7p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 11:59:45 -0500
-In-Reply-To: <6ed0b2680911301333p19b14d5dxac81f976d0c35c61@mail.gmail.com>
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:40282 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755281AbZLBRZB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 12:25:01 -0500
+Received: by iwn1 with SMTP id 1so269115iwn.33
+        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 09:25:07 -0800 (PST)
+In-Reply-To: <20091202161657.GA3903@lixom.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Grazvydas Ignotas' <notasas@gmail.com>
-Cc: linux-kernel@vger.kernel.org, 'Anton Vorontsov' <avorontsov@ru.mvista.com>, linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Barada <peterb@logicpd.com>, Mika Westerberg <ext-mika.1.westerberg@nokia.com>, linux-omap@vger.kernel.org
+
+On Wed, Dec 2, 2009 at 9:16 AM, Olof Johansson <olof@lixom.net> wrote:
+> On Wed, Dec 02, 2009 at 09:04:49AM -0700, Grant Likely wrote:
+>
+>> Ah, you're talking about pin muxing configuration, right? =A0Yes, th=
+at
+>> GPIO binding deals with controllers, not pin mux. =A0Pin mux is very
+>> much an SoC specific thing that isn't mapped easily to a generic
+>> binding.
+>
+> Yep.
+>
+>> On the 5200, I haven't attempted to describe pin-mux in the device
+>> tree at all, and have either expected firmware to set it up correctl=
+y,
+>> or fixed it up in the platform code.
+>
+> Yeah. And it's one of the things Tony commented on that firmware tend=
+s
+> to get wrong, seems like people aren't doing complete mux configs in
+> u-boot, etc.
+>
+> So, if it needs to be fixed up in platform code, there will (likely) =
+be
+> need for board-specific code there anyway. A bummer, since the device
+> tree would otherwise make it real easy to bring up new boards without
+> kernel code changes.
+
+I didn't create a binding on the 5200 because I actually see very
+little buggy firmware in that regard (partially because I kept telling
+people to go fix their firmware).  :-)  If it ends up being the norm
+that the kernel has to fix it for a given SoC, then I would create an
+SoC-specific binding for pin mux configuration in the device tree so
+that some degree of common code can still fix it up.
+
+It should be feasible for board-specific code to be the exception, not =
+the rule.
+
+Cheers,
+g.
 
 
-
-> -----Original Message-----
-> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
-> Sent: Monday, November 30, 2009 3:33 PM
-> To: Madhusudhan
-> Cc: linux-kernel@vger.kernel.org; Anton Vorontsov; linux-
-> omap@vger.kernel.org
-> Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
-> charger
-> 
-> On Mon, Nov 30, 2009 at 8:45 PM, Madhusudhan <madhu.cr@ti.com> wrote:
-> >
-> >
-> >> -----Original Message-----
-> >> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
-> >> Sent: Friday, November 27, 2009 8:44 AM
-> >> To: linux-kernel@vger.kernel.org
-> >> Cc: Anton Vorontsov; Madhusudhan Chikkature; linux-
-> omap@vger.kernel.org;
-> >> Grazvydas Ignotas
-> >> Subject: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
-> charger
-> >>
-> >> TWL4030/TPS65950 is a multi-function device with integrated charger,
-> >> which allows charging from AC or USB. This driver enables the
-> >> charger and provides several monitoring functions.
-> >>
-> >> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> >> ---
-> >> For this driver to work, TWL4030-core needs to be patched to use
-> >> correct macros so that it registers twl4030_bci platform_device.
-> >> I'll send patches for this later.
-> >>
-> >>  drivers/power/Kconfig           |    7 +
-> >>  drivers/power/Makefile          |    1 +
-> >>  drivers/power/twl4030_charger.c |  499
-> >
-> > Is the file name changed from twl4030_bci_battery.c to twl4030_charger.c
-> because it mainly supports voltage monitoring only while charging? If yes,
-> potentially we can add support for monitoring also in discharge state. Do
-> we intend to change the file name then?
-> 
-> Does the hardware support any monitoring in discharge state? I'm
-> unable to get any readings, only frozen values (that never update)
-> from what it had when it was charging. Here is TI confirmation that at
-> least temperature monitoring won't work while discharging:
-> http://e2e.ti.com/forums/p/8202/31818.aspx#31818
-> 
-> For this reason I consider BCI a charger.
-> 
-In the discharge path BCI might not update the registers. It is worth
-experiment to try and use MADC conversion to get the values. A driver for
-madc is being currently discussed. See the patch:
-
-http://patchwork.kernel.org/patch/62746/
-
-We can try this once the madc driver is accepted in mainline and submit an
-update patch to the BCI driver. As a first step I agree that the current BCI
-patch should go upstream.
-
-Reviewed-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-
-Thanks,
-Madhu
-
-> > Also adding the tested-on info could be helpful here.
-> 
-> ok
-> 
-> <snip>
-> 
-> >> +     case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-> >> +             /* charging must be active for meaningful result */
-> >> +             if (!is_charging) {
-> >
-> > How about putting a kern_info here?
-> 
-> That would potentially flood dmesg, will just return -EINVAL like
-> Anton suggests.
-> 
-> >> +                     val->intval = 0;
-> >> +                     break;
-> >> +             }
-> >> +             ret = twl4030_get_voltage(voltage_reg);
-> >> +             if (ret < 0)
-> >> +                     return ret;
-> >> +             val->intval = ret;
-> >> +             break;
-> >> +     case POWER_SUPPLY_PROP_CURRENT_NOW:
-> >> +             if (!is_charging) {
-> >> +                     val->intval = 0;
-> > Ditto
-> >> +                     break;
-> >> +             }
-> >> +             /* current measurement is shared between AC and USB */
-> >> +             ret = twl4030_charger_get_current();
-> >> +             if (ret < 0)
-> >> +                     return ret;
-> >> +             val->intval = ret;
-> >> +             break;
-> >> +     case POWER_SUPPLY_PROP_ONLINE:
-> > Does this indicate the source of charging like USB or AC??
-> 
-> There are 2 charging devices registered now, AC and USB, each returns
-> it's state. This is what most other drivers do.
-> 
-> I'll send v2 later, it will also have more accurate voltage formulas I
-> got from TI.
-
+--=20
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
