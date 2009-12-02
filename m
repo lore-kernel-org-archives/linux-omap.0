@@ -1,51 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] arm: omap: Add omap3_defconfig
-Date: Tue, 1 Dec 2009 16:08:19 -0800
-Message-ID: <20091202000819.GF4348@atomide.com>
-References: <20091130033434.GA8762@lixom.net>
- <20091201031932.GA19917@lixom.net>
- <20091201200925.GA27331@lixom.net>
+Subject: Re: [PATCH 7/9] arm: omap: innovator: kill compile warning on
+ board-innovator.c
+Date: Tue, 1 Dec 2009 16:09:34 -0800
+Message-ID: <20091202000934.GG4348@atomide.com>
+References: <1259692132-17445-1-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61358 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753329AbZLBAIW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Dec 2009 19:08:22 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53010 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753329AbZLBAJb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Dec 2009 19:09:31 -0500
 Content-Disposition: inline
-In-Reply-To: <20091201200925.GA27331@lixom.net>
+In-Reply-To: <1259692132-17445-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, "Gadiyar, Anand" <gadiyar@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
-
-* Olof Johansson <olof@lixom.net> [091201 12:06]:
-> Having one combined defconfig that is the superset of the individual
-> defconfigs for OMAP3 platforms is useful for easily finding build
-> errors. Not to mention convenient as a base if you want to boot several
-> platforms with a single kernel image.
-
-Good idea, that's what many people are already doing.
-
-<snip> 
- 
-> Tony, I noticed linux-next doesn't build many of the OMAP defconfigs,
-> and a handful of them won't build to date. I suggest adding this config,
-> and I'll as Stephen Rothwell to add it as one of the configs that are
-> tested (and build errors reported) for every release.
+* Felipe Balbi <felipe.balbi@nokia.com> [091201 10:28]:
+> that address is used by struct map_desc, which expects
+> an unsigned long instead of a void __iomem *. Fix it.
 > 
-> He's reluctant to add too many individual configs since it adds time to
-> each cycle, but one more can surely be acceptable.
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> ---
+> Is this what you mean ??
 
-I've built tested the for-next patches, they compile just fine
-except for the omap36xx patches which depend on an update to the
-mach-types.
-
-If you find some other omap related compile errors in for-next,
-can you please post the errors to this list?
-
-Regards,
+Yeah, thanks!
 
 Tony
+ 
+>  arch/arm/plat-omap/include/plat/fpga.h |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/fpga.h b/arch/arm/plat-omap/include/plat/fpga.h
+> index f1864a6..db2af50 100644
+> --- a/arch/arm/plat-omap/include/plat/fpga.h
+> +++ b/arch/arm/plat-omap/include/plat/fpga.h
+> @@ -85,9 +85,9 @@ struct h2p2_dbg_fpga {
+>   *  OMAP-1510 FPGA
+>   * ---------------------------------------------------------------------------
+>   */
+> -#define OMAP1510_FPGA_BASE		IOMEM(0xE8000000)	/* VA */
+> +#define OMAP1510_FPGA_BASE		0xE8000000		/* VA */
+>  #define OMAP1510_FPGA_SIZE		SZ_4K
+> -#define OMAP1510_FPGA_START		0x08000000		/* PA */
+> +#define OMAP1510_FPGA_START		IOMEM(0x08000000)	/* PA */
+>  
+>  /* Revision */
+>  #define OMAP1510_FPGA_REV_LOW			(OMAP1510_FPGA_BASE + 0x0)
+> -- 
+> 1.6.6.rc0
+> 
