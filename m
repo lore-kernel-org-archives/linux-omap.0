@@ -1,33 +1,46 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH] OMAP3: SDRC: Comment out SDRC AC timing and MR changes
-	in CORE DVFS SRAM code
-Date: Wed, 2 Dec 2009 09:56:14 -0600
-Message-ID: <20091202155614.GA3699@lixom.net>
-References: <1254835224-19500-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.0910201918230.22645@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162039B3CF012@dlee02.ent.ti.com> <74583B8642AB8841B30447520659FCA9DDD9D7E9@dnce01.ent.ti.com> <13B9B4C6EF24D648824FF11BE8967162039B459718@dlee02.ent.ti.com> <1F18D6510CF0474A8C9500565A7E41A2236DA1C1F3@NOK-EUMSG-02.mgdnok.nokia.com> <alpine.DEB.2.00.0912011832290.13408@utopia.booyaka.com> <4B160552.6050108@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH v2 01/20] DSPBRIDGE: driver version 0.1
+Date: Wed, 2 Dec 2009 10:01:26 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A530426FE31AE@dlee03.ent.ti.com>
+References: <1259618101-8972-1-git-send-email-omar.ramirez@ti.com>
+	 <1259618101-8972-2-git-send-email-omar.ramirez@ti.com>
+ <94a0d4530912020257h3ab5a2d8ya6a878189a92ddb3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lixom.net ([66.141.50.11]:41363 "EHLO mail.lixom.net"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42407 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752913AbZLBPyI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Dec 2009 10:54:08 -0500
-Content-Disposition: inline
-In-Reply-To: <4B160552.6050108@ti.com>
+	id S1750815AbZLBQBX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 11:01:23 -0500
+In-Reply-To: <94a0d4530912020257h3ab5a2d8ya6a878189a92ddb3@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Tero.Kristo@nokia.com, r-woodruff2@ti.com, b-cousson@ti.com, rnayak@ti.com, c-sucur@ti.com
-
-On Wed, Dec 02, 2009 at 08:12:34AM +0200, Menon, Nishanth wrote:
-
-> why not make this a #ifdef instead if we need it some other time, a #if
-> 0 and it's intention might not be readable without doing a git annotate
-> in a few months time..
-
-Just remove the code. The old implementation is still there in git and
-can be brought back if need be. It's the purpose of having revision
-control in the first place.
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
 
--Olof
+>From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+>
+>On Mon, Nov 30, 2009 at 11:54 PM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
+>> Prior to any further modification set the driver version to be 0.1
+>
+>It should be the other way around; *after* the modifications have been
+>merged,the version 0.1 would be released.
 
+Nope, version 0.2 will be once modifications are merged and branch is rebased to 2.6.32rc7
+
+> Moreover, it would be nice
+>to get some acknowledgement from Nokia developers that the branch is
+>indeed correct.
+>
+
+It would be nice to get them but they are not needed. As always any bug reports are welcomed.
+
+>--
+>Felipe Contreras
+
+Regards,
+
+Omar
