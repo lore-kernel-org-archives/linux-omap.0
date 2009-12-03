@@ -1,19 +1,23 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 5/8] OMAP3 clock: convert clock34xx.h to
+Subject: [PATCH v3 5/8] OMAP3 clock: convert clock34xx.h to
  clock34xx_data.c
-Date: Thu, 3 Dec 2009 04:22:25 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912030421130.13408@utopia.booyaka.com>
+Date: Thu, 3 Dec 2009 09:18:34 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0912030917280.13408@utopia.booyaka.com>
 References: <20091203095830.1203.76290.stgit@localhost.localdomain>
 	<20091203100707.1203.98247.stgit@localhost.localdomain>
 	<20091203102700.GA30423@flint.arm.linux.org.uk>
 	<alpine.DEB.2.00.0912030331360.13408@utopia.booyaka.com>
 	<20091203104354.GB20379@n2100.arm.linux.org.uk>
 	<alpine.DEB.2.00.0912030355050.13408@utopia.booyaka.com>
+	<alpine.DEB.2.00.0912030424050.13408@utopia.booyaka.com>
+	<20091203121157.GC20379@n2100.arm.linux.org.uk>
+	<alpine.DEB.2.00.0912030520360.13408@utopia.booyaka.com>
+	<20091203150300.GB26651@n2100.arm.linux.org.uk>
+	<alpine.DEB.2.00.0912030822060.13408@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="155748971-1049537582-1259839345=:13408"
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-245083782-1259857114=:13408"
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.0912030355050.13408@utopia.booyaka.com>
+In-Reply-To: <alpine.DEB.2.00.0912030822060.13408@utopia.booyaka.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,13 +28,13 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Nishanth Menon <nm@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---155748971-1049537582-1259839345=:13408
+--155748971-245083782-1259857114=:13408
 Content-Type: TEXT/PLAIN; charset=ISO-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 
@@ -45,16 +49,16 @@ Russell King <linux@arm.linux.org.uk> proposed this new arrangement:
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Russell King <linux@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/Makefile                  |    2 +-
- arch/arm/mach-omap2/clock.h                   |    2 +
- arch/arm/mach-omap2/clock24xx.c               |   21 +-
- arch/arm/mach-omap2/clock34xx.c               |  437 +---
- arch/arm/mach-omap2/clock34xx.h               | 3000 +--------------------=
+ arch/arm/mach-omap2/Makefile                  |    2=20
+ arch/arm/mach-omap2/clock.h                   |    2=20
+ arch/arm/mach-omap2/clock24xx.c               |   21=20
+ arch/arm/mach-omap2/clock34xx.c               |  453 +--
+ arch/arm/mach-omap2/clock34xx.h               | 3000 ---------------------=
 --
  arch/arm/mach-omap2/clock34xx_data.c          | 3289 +++++++++++++++++++++=
 ++++
- arch/arm/plat-omap/include/plat/clkdev_omap.h |   37 +
- 7 files changed, 3416 insertions(+), 3372 deletions(-)
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |   37=20
+ 7 files changed, 3418 insertions(+), 3386 deletions(-)
  create mode 100644 arch/arm/mach-omap2/clock34xx_data.c
  create mode 100644 arch/arm/plat-omap/include/plat/clkdev_omap.h
 
@@ -136,7 +140,7 @@ ncy_table **table)
  =09.clk_round_rate=09=09=3D omap2_clk_round_rate,
 diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34x=
 x.c
-index 3929544..fa114fe 100644
+index 3929544..7dffbfc 100644
 --- a/arch/arm/mach-omap2/clock34xx.c
 +++ b/arch/arm/mach-omap2/clock34xx.c
 @@ -30,292 +30,18 @@
@@ -445,8 +449,53 @@ index 3929544..fa114fe 100644
  /**
   * omap3430es2_clk_ssi_find_idlest - return CM_IDLEST info for SSI
   * @clk: struct clk * being enabled
-@@ -404,7 +133,7 @@ static void omap3430es2_clk_hsotgusb_find_idlest(struct=
- clk *clk,
+@@ -352,6 +81,13 @@ static void omap3430es2_clk_ssi_find_idlest(struct clk =
+*clk,
+ =09*idlest_bit =3D OMAP3430ES2_ST_SSI_IDLE_SHIFT;
+ }
+=20
++const struct clkops clkops_omap3430es2_ssi_wait =3D {
++=09.enable=09=09=3D omap2_dflt_clk_enable,
++=09.disable=09=3D omap2_dflt_clk_disable,
++=09.find_idlest=09=3D omap3430es2_clk_ssi_find_idlest,
++=09.find_companion =3D omap2_clk_dflt_find_companion,
++};
++
+ /**
+  * omap3430es2_clk_dss_usbhost_find_idlest - CM_IDLEST info for DSS, USBHO=
+ST
+  * @clk: struct clk * being enabled
+@@ -377,6 +113,13 @@ static void omap3430es2_clk_dss_usbhost_find_idlest(st=
+ruct clk *clk,
+ =09*idlest_bit =3D OMAP3430ES2_ST_DSS_IDLE_SHIFT;
+ }
+=20
++const struct clkops clkops_omap3430es2_dss_usbhost_wait =3D {
++=09.enable=09=09=3D omap2_dflt_clk_enable,
++=09.disable=09=3D omap2_dflt_clk_disable,
++=09.find_idlest=09=3D omap3430es2_clk_dss_usbhost_find_idlest,
++=09.find_companion =3D omap2_clk_dflt_find_companion,
++};
++
+ /**
+  * omap3430es2_clk_hsotgusb_find_idlest - return CM_IDLEST info for HSOTGU=
+SB
+  * @clk: struct clk * being enabled
+@@ -398,13 +141,20 @@ static void omap3430es2_clk_hsotgusb_find_idlest(stru=
+ct clk *clk,
+ =09*idlest_bit =3D OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT;
+ }
+=20
++const struct clkops clkops_omap3430es2_hsotgusb_wait =3D {
++=09.enable=09=09=3D omap2_dflt_clk_enable,
++=09.disable=09=3D omap2_dflt_clk_disable,
++=09.find_idlest=09=3D omap3430es2_clk_hsotgusb_find_idlest,
++=09.find_companion =3D omap2_clk_dflt_find_companion,
++};
++
+ /**
+  * omap3_dpll_recalc - recalculate DPLL rate
+  * @clk: DPLL struct clk
   *
   * Recalculate and propagate the DPLL rate.
   */
@@ -455,7 +504,40 @@ index 3929544..fa114fe 100644
  {
  =09return omap2_get_dpll_rate(clk);
  }
-@@ -700,7 +429,7 @@ static int omap3_noncore_dpll_program(struct clk *clk, =
+@@ -628,24 +378,21 @@ static int omap3_noncore_dpll_enable(struct clk *clk)
+ }
+=20
+ /**
+- * omap3_noncore_dpll_enable - instruct a DPLL to enter bypass or lock mod=
+e
++ * omap3_noncore_dpll_disable - instruct a DPLL to enter low-power stop
+  * @clk: pointer to a DPLL struct clk
+  *
+- * Instructs a non-CORE DPLL to enable, e.g., to enter bypass or lock.
+- * The choice of modes depends on the DPLL's programmed rate: if it is
+- * the same as the DPLL's parent clock, it will enter bypass;
+- * otherwise, it will enter lock.  This code will wait for the DPLL to
+- * indicate readiness before returning, unless the DPLL takes too long
+- * to enter the target state.  Intended to be used as the struct clk's
+- * enable function.  If DPLL3 was passed in, or the DPLL does not
+- * support low-power stop, or if the DPLL took too long to enter
+- * bypass or lock, return -EINVAL; otherwise, return 0.
++ * Instructs a non-CORE DPLL to enter low-power stop.  This function is
++ * intended for use in struct clkops.  No return value.
+  */
+ static void omap3_noncore_dpll_disable(struct clk *clk)
+ {
+ =09_omap3_noncore_dpll_stop(clk);
+ }
+=20
++const struct clkops clkops_noncore_dpll_ops =3D {
++=09.enable=09=09=3D omap3_noncore_dpll_enable,
++=09.disable=09=3D omap3_noncore_dpll_disable,
++};
+=20
+ /* Non-CORE DPLL rate set code */
+=20
+@@ -700,7 +447,7 @@ static int omap3_noncore_dpll_program(struct clk *clk, =
 u16 m, u8 n, u16 freqsel)
   * target rate if it hasn't been done already, then program and lock
   * the DPLL.  Returns -EINVAL upon error, or 0 upon success.
@@ -466,7 +548,7 @@ u16 m, u8 n, u16 freqsel)
  {
  =09struct clk *new_parent =3D NULL;
  =09u16 freqsel;
-@@ -771,7 +500,7 @@ static int omap3_noncore_dpll_set_rate(struct clk *clk,=
+@@ -771,7 +518,7 @@ static int omap3_noncore_dpll_set_rate(struct clk *clk,=
  unsigned long rate)
  =09return 0;
  }
@@ -476,7 +558,7 @@ u16 m, u8 n, u16 freqsel)
  {
  =09/*
  =09 * According to the 12-5 CDP code from TI, "Limitation 2.5"
-@@ -802,12 +531,12 @@ static int omap3_dpll4_set_rate(struct clk *clk, unsi=
+@@ -802,12 +549,12 @@ static int omap3_dpll4_set_rate(struct clk *clk, unsi=
 gned long rate)
   * Program the DPLL M2 divider with the rounded target rate.  Returns
   * -EINVAL upon error, or 0 upon success.
@@ -493,7 +575,7 @@ gned long rate)
  =09struct omap_sdrc_params *sdrc_cs0;
  =09struct omap_sdrc_params *sdrc_cs1;
  =09int ret;
-@@ -819,7 +548,7 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk,=
+@@ -819,7 +566,7 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk,=
  unsigned long rate)
  =09if (validrate !=3D rate)
  =09=09return -EINVAL;
@@ -503,7 +585,7 @@ gned long rate)
  =09if (rate > clk->rate)
  =09=09sdrcrate <<=3D ((rate / clk->rate) >> 1);
  =09else
-@@ -837,8 +566,8 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk,=
+@@ -837,8 +584,8 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk,=
  unsigned long rate)
  =09/*
  =09 * XXX This only needs to be done when the CPU frequency changes
@@ -515,7 +597,7 @@ gned long rate)
  =09c +=3D 1;  /* for safety */
  =09c *=3D SDRC_MPURATE_LOOPS;
  =09c >>=3D SDRC_MPURATE_SCALE;
-@@ -875,11 +604,6 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk=
+@@ -875,11 +622,6 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk=
 , unsigned long rate)
  }
 =20
@@ -528,7 +610,7 @@ gned long rate)
  /* DPLL autoidle read/set code */
 =20
 =20
-@@ -891,7 +615,7 @@ static const struct clkops clkops_noncore_dpll_ops =3D =
+@@ -891,7 +633,7 @@ static const struct clkops clkops_noncore_dpll_ops =3D =
 {
   * -EINVAL if passed a null pointer or if the struct clk does not
   * appear to refer to a DPLL.
@@ -538,7 +620,7 @@ gned long rate)
  {
  =09const struct dpll_data *dd;
  =09u32 v;
-@@ -917,7 +641,7 @@ static u32 omap3_dpll_autoidle_read(struct clk *clk)
+@@ -917,7 +659,7 @@ static u32 omap3_dpll_autoidle_read(struct clk *clk)
   * OMAP3430.  The DPLL will enter low-power stop when its downstream
   * clocks are gated.  No return value.
   */
@@ -547,7 +629,7 @@ gned long rate)
  {
  =09const struct dpll_data *dd;
  =09u32 v;
-@@ -944,7 +668,7 @@ static void omap3_dpll_allow_idle(struct clk *clk)
+@@ -944,7 +686,7 @@ static void omap3_dpll_allow_idle(struct clk *clk)
   *
   * Disable DPLL automatic idle control.  No return value.
   */
@@ -556,7 +638,7 @@ gned long rate)
  {
  =09const struct dpll_data *dd;
  =09u32 v;
-@@ -969,7 +693,7 @@ static void omap3_dpll_deny_idle(struct clk *clk)
+@@ -969,7 +711,7 @@ static void omap3_dpll_deny_idle(struct clk *clk)
   * Using parent clock DPLL data, look up DPLL state.  If locked, set our
   * rate to the dpll_clk * 2; otherwise, just use dpll_clk.
   */
@@ -565,7 +647,7 @@ gned long rate)
  {
  =09const struct dpll_data *dd;
  =09unsigned long rate;
-@@ -1005,7 +729,7 @@ static unsigned long omap3_clkoutx2_recalc(struct clk =
+@@ -1005,7 +747,7 @@ static unsigned long omap3_clkoutx2_recalc(struct clk =
 *clk)
   */
  #if defined(CONFIG_ARCH_OMAP3)
@@ -575,7 +657,7 @@ gned long rate)
  =09.clk_enable=09=09=3D omap2_clk_enable,
  =09.clk_disable=09=09=3D omap2_clk_disable,
  =09.clk_round_rate=09=09=3D omap2_clk_round_rate,
-@@ -1031,7 +755,7 @@ void omap2_clk_prepare_for_reboot(void)
+@@ -1031,7 +773,7 @@ void omap2_clk_prepare_for_reboot(void)
  #endif
  }
 =20
@@ -584,7 +666,7 @@ gned long rate)
  {
  =09struct clk *dpll5_clk;
  =09struct clk *dpll5_m2_clk;
-@@ -1061,19 +785,32 @@ static void omap3_clk_lock_dpll5(void)
+@@ -1061,19 +803,32 @@ static void omap3_clk_lock_dpll5(void)
   */
  static int __init omap2_clk_arch_init(void)
  {
@@ -622,7 +704,7 @@ gned long rate)
 =20
  =09calibrate_delay();
 =20
-@@ -1081,83 +818,37 @@ static int __init omap2_clk_arch_init(void)
+@@ -1081,83 +836,7 @@ static int __init omap2_clk_arch_init(void)
  }
  arch_initcall(omap2_clk_arch_init);
 =20
@@ -649,7 +731,7 @@ gned long rate)
 -=09=09=09cpu_clkflg |=3D CK_3430ES2;
 -=09=09}
 -=09}
--
+=20
 -=09clk_init(&omap2_clk_functions);
 -
 -=09for (c =3D omap34xx_clks; c < omap34xx_clks + ARRAY_SIZE(omap34xx_clks)=
@@ -663,7 +745,7 @@ gned long rate)
 -=09=09=09clk_register(c->lk.clk);
 -=09=09=09omap2_init_clk_clkdm(c->lk.clk);
 -=09=09}
-=20
+-
 -=09/* REVISIT: Not yet ready for OMAP3 */
 -#if 0
 -=09/* Check the MPU rate set by bootloader */
@@ -680,39 +762,24 @@ gned long rate)
  #endif
 =20
 -=09recalculate_root_clocks();
-=20
+-
 -=09printk(KERN_INFO "Clocking rate (Crystal/Core/MPU): "
 -=09       "%ld.%01ld/%ld/%ld MHz\n",
 -=09       (osc_sys_ck.rate / 1000000), (osc_sys_ck.rate / 100000) % 10,
 -=09       (core_ck.rate / 1000000), (arm_fck.rate / 1000000));
-+/*
-+ * clkops
-+ */
 =20
 -=09/*
 -=09 * Only enable those clocks we will need, let the drivers
 -=09 * enable other clocks as necessary
 -=09 */
 -=09clk_enable_init_clocks();
-+const struct clkops clkops_omap3430es2_ssi_wait =3D {
-+=09.enable=09=09=3D omap2_dflt_clk_enable,
-+=09.disable=09=3D omap2_dflt_clk_disable,
-+=09.find_idlest=09=3D omap3430es2_clk_ssi_find_idlest,
-+=09.find_companion =3D omap2_clk_dflt_find_companion,
-+};
-=20
+-
 -=09/*
 -=09 * Lock DPLL5 and put it in autoidle.
 -=09 */
 -=09if (omap_rev() >=3D OMAP3430_REV_ES2_0)
 -=09=09omap3_clk_lock_dpll5();
-+const struct clkops clkops_omap3430es2_hsotgusb_wait =3D {
-+=09.enable=09=09=3D omap2_dflt_clk_enable,
-+=09.disable=09=3D omap2_dflt_clk_disable,
-+=09.find_idlest=09=3D omap3430es2_clk_hsotgusb_find_idlest,
-+=09.find_companion =3D omap2_clk_dflt_find_companion,
-+};
-=20
+-
 -=09/* Avoid sleeping during omap2_clk_prepare_for_reboot() */
 -=09/* REVISIT: not yet ready for 343x */
 -#if 0
@@ -721,18 +788,7 @@ gned long rate)
 -#endif
 -=09return 0;
 -}
-+const struct clkops clkops_omap3430es2_dss_usbhost_wait =3D {
-+=09.enable=09=09=3D omap2_dflt_clk_enable,
-+=09.disable=09=3D omap2_dflt_clk_disable,
-+=09.find_idlest=09=3D omap3430es2_clk_dss_usbhost_find_idlest,
-+=09.find_companion =3D omap2_clk_dflt_find_companion,
-+};
-+
-+const struct clkops clkops_noncore_dpll_ops =3D {
-+=09.enable=09=09=3D omap3_noncore_dpll_enable,
-+=09.disable=09=3D omap3_noncore_dpll_disable,
-+};
-=20
+-
 -#endif
 diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34x=
 x.h
@@ -7128,10 +7184,7 @@ index 0000000..97b8c12
 +
 +#endif
 +
---=20
-1.6.5.GIT
-
---155748971-1049537582-1259839345=:13408
+--155748971-245083782-1259857114=:13408
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -7142,4 +7195,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---155748971-1049537582-1259839345=:13408--
+--155748971-245083782-1259857114=:13408--
