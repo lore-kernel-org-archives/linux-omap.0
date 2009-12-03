@@ -1,127 +1,111 @@
 From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: [PATCH 1/4]: OMAP: ZOOM: Introducing 'board-zoom-flash.c' for NAND
-	init in ZOOM boards
-Date: Thu, 3 Dec 2009 19:45:57 +0530
-Message-ID: <ce9ab5790912030615m37535ec2sdcc4ec9723f0f2f2@mail.gmail.com>
+Subject: [PATCH 4/4]: OMAP3: Add support for NAND on LDP board
+Date: Thu, 3 Dec 2009 19:48:44 +0530
+Message-ID: <ce9ab5790912030618i72fbcicddd08fd6cccc00d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:44226 "EHLO
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:45893 "EHLO
 	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751459AbZLCOQM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 09:16:12 -0500
-Received: by bwz27 with SMTP id 27so1112333bwz.21
-        for <linux-omap@vger.kernel.org>; Thu, 03 Dec 2009 06:16:17 -0800 (PST)
+	with ESMTP id S1751459AbZLCOTD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 09:19:03 -0500
+Received: by bwz27 with SMTP id 27so1115018bwz.21
+        for <linux-omap@vger.kernel.org>; Thu, 03 Dec 2009 06:19:08 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>
 
->From 948584f4157a9eb99ba085968d23add28cbfd160 Mon Sep 17 00:00:00 2001
+>From 1786a05d3331850ff5c49e4edafe68a411597173 Mon Sep 17 00:00:00 2001
 From: Vimal Singh <vimalsingh@ti.com>
-Date: Tue, 1 Dec 2009 11:36:56 +0530
-Subject: [PATCH] OMAP: ZOOM: Introducing 'board-zoom-flash.c'
+Date: Thu, 3 Dec 2009 18:26:45 +0530
+Subject: [PATCH] OMAP3: Add support for NAND on LDP board
 
-This patch adds 'board-zoom-flash.c', which could be utilized
-by boards similar to ZOOM2. (For ex: LDP, ZOOM2, ZOOM3).
-
-This does initialization for NAND device based on the 'cs' number
-and partition information passed from board file (ex: board-zoom2.c).
+This patch adds NAND support to LDP board.
 
 Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 ---
- arch/arm/mach-omap2/board-zoom-flash.c        |   59 +++++++++++++++++++++++++
- arch/arm/mach-omap2/include/mach/board-zoom.h |   11 +++++
- 2 files changed, 70 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-zoom-flash.c
+ arch/arm/mach-omap2/Makefile    |    1 +
+ arch/arm/mach-omap2/board-ldp.c |   41 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-zoom-flash.c
-b/arch/arm/mach-omap2/board-zoom-flash.c
-new file mode 100644
-index 0000000..b3e66ca
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-zoom-flash.c
-@@ -0,0 +1,59 @@
-+/*
-+ * board-zoom-flash.c
-+ *
-+ * Copyright (C) 2009 Texas Instruments Inc.
-+ * Vimal Singh <vimalsingh@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/mtd/nand.h>
-+#include <linux/types.h>
-+#include <linux/io.h>
-+
-+#include <asm/mach/flash.h>
-+#include <plat/board.h>
-+#include <plat/gpmc.h>
-+#include <plat/nand.h>
-+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 4848ab0..f730ddc 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -61,6 +61,7 @@ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
++ 					   board-zoom-flash.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   mmc-twl4030.o
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index c062238..25bbb4f 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -38,6 +38,7 @@
+ #include <plat/board.h>
+ #include <plat/common.h>
+ #include <plat/gpmc.h>
 +#include <mach/board-zoom.h>
+
+ #include <asm/delay.h>
+ #include <plat/control.h>
+@@ -374,6 +375,45 @@ static struct platform_device *ldp_devices[] __initdata = {
+ 	&ldp_gpio_keys_device,
+ };
+
++static struct mtd_partition zoom_nand_partitions[] = {
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "X-Loader-NAND",
++		.offset		= 0,
++		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot-NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
++		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "Boot Env-NAND",
++		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
++		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
++	},
++	{
++		.name		= "Kernel-NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
++		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
++	},
++	{
++		.name		= "File System - NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
++		.size		= MTDPART_SIZ_FULL,	/* 96MB, 0x6000000 */
++	},
 +
-+#if defined(CONFIG_MTD_NAND_OMAP2) || \
-+		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
-+/* NAND chip access: 16 bit */
-+static struct omap_nand_platform_data zoom_nand_data = {
-+	.nand_setup	= NULL,
-+	.dma_channel	= -1,	/* disable DMA in OMAP NAND driver */
-+	.dev_ready	= NULL,
-+	.devsize	= 1,	/* '0' for 8-bit, '1' for 16-bit device */
 +};
 +
-+/**
-+ * zoom_flash_init - Identify devices connected to GPMC and register.
-+ *
-+ * @return - void.
-+ */
-+void __init zoom_flash_init(struct flash_partitions zoom_nand_parts[], int cs)
-+{
-+	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
-+
-+	zoom_nand_data.cs		= cs;
-+	zoom_nand_data.parts		= zoom_nand_parts[0].parts;
-+	zoom_nand_data.nr_parts		= zoom_nand_parts[0].nr_parts;
-+	zoom_nand_data.gpmc_baseaddr	= (void *)(gpmc_base_add);
-+	zoom_nand_data.gpmc_cs_baseaddr	= (void *)(gpmc_base_add +
-+						GPMC_CS0_BASE +
-+						cs * GPMC_CS_SIZE);
-+	gpmc_nand_init(&zoom_nand_data);
-+}
-+#else
-+void __init zoom_flash_init(struct flash_partitions zoom_nand_parts[], int cs)
-+{
-+}
-+#endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
-+
-diff --git a/arch/arm/mach-omap2/include/mach/board-zoom.h
-b/arch/arm/mach-omap2/include/mach/board-zoom.h
-index c93b29e..f4469d3 100644
---- a/arch/arm/mach-omap2/include/mach/board-zoom.h
-+++ b/arch/arm/mach-omap2/include/mach/board-zoom.h
-@@ -1,5 +1,16 @@
- /*
-  * Defines for zoom boards
-  */
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/partitions.h>
-+
-+struct flash_partitions {
-+	struct mtd_partition *parts;
-+	int nr_parts;
++static struct flash_partitions zoom_flash_partitions[] = {
++	{
++		.parts = zoom_nand_partitions,
++		.nr_parts = ARRAY_SIZE(zoom_nand_partitions),
++	},
 +};
 +
-+#define ZOOM_NAND_CS	0
-+
-+extern void __init zoom_flash_init(struct flash_partitions [], int);
- extern int __init zoom_debugboard_init(void);
- extern void __init zoom_peripherals_init(void);
+ static void __init omap_ldp_init(void)
+ {
+ 	omap_i2c_init();
+@@ -385,6 +425,7 @@ static void __init omap_ldp_init(void)
+ 	ads7846_dev_init();
+ 	omap_serial_init();
+ 	usb_musb_init();
++	zoom_flash_init(zoom_flash_partitions, ZOOM_NAND_CS);
+
+ 	twl4030_mmc_init(mmc);
+ 	/* link regulators to MMC adapters */
 -- 
 1.5.5
