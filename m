@@ -1,117 +1,76 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4 v4] OMAP: McBSP: Introduce caching in register
- write operations
-Date: Thu, 3 Dec 2009 12:03:02 -0800
-Message-ID: <20091203200301.GB4348@atomide.com>
-References: <200912010410.10129.jkrzyszt@tis.icnet.pl>
- <200912010415.52570.jkrzyszt@tis.icnet.pl>
- <20091203094921.1106827a.jhnikula@gmail.com>
- <200912031330.43464.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH-v6 0/4] OMAP: Adding flash support to SDP, ZOOM2 and
+ LDP boards
+Date: Thu, 3 Dec 2009 12:19:11 -0800
+Message-ID: <20091203201911.GC4348@atomide.com>
+References: <ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
+ <ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
+ <ce9ab5790911040328p215dede2v37db38a966a5bbd5@mail.gmail.com>
+ <20091109205250.GB23952@atomide.com>
+ <ce9ab5790911100201j6b1ef5e1g43a992b00e69ade4@mail.gmail.com>
+ <ce9ab5790911190608r5b7e8226j3546714957ce70e6@mail.gmail.com>
+ <1259075173.29118.20.camel@localhost>
+ <ce9ab5790911240725x29b8bd6eq9f9c7a8b21c6786e@mail.gmail.com>
+ <1259307441.7518.6.camel@localhost>
+ <ce9ab5790912020609i8af0444l54e695f85ea89ba2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62335 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838AbZLCUDF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 15:03:05 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64608 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752733AbZLCUTI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 15:19:08 -0500
 Content-Disposition: inline
-In-Reply-To: <200912031330.43464.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <ce9ab5790912020609i8af0444l54e695f85ea89ba2@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: dedekind1@gmail.com, linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, vimal singh <vimalsingh@ti.com>
 
-Hi,
+* Vimal Singh <vimal.newwork@gmail.com> [091202 06:09]:
+> >> >> From 8bc97108cf9c78216f1ea5407ccbd900e6b63dc2 Mon Sep 17 00:00:00 2001
+> >> >> From: Vimal Singh <vimalsingh@ti.com>
+> >> >> Date: Thu, 19 Nov 2009 19:28:11 +0530
+> >> >>
+> >> >> This patch series adds flash support for NAND (in sdp, zoom and ldp),
+> >> >> OneNAND and NOR (in sdp)
+> >> >>
+> >> >> Tested on Zoom2 and 3430SDP
+> >> >>
+> >> >> Vimal Singh (4):
+> >> >> [PATCH-v6 1/4] OMAP2/3: Add support for flash on SDP boards
+> >> >> [PATCH-v6 2/4] OMAP3: Add support for NAND on ZOOM/LDP boards
+> >> >> [PATCH-v6 3/4] OMAP: Zoom2: Enable NAND and JFFS2 support in defconfig
+> >> >> [PATCH-v6 4/4] OMAP: 3430SDP: Enable NAND in defconfig
+> >> >
+> 
+> I am going to re-post this patch series again and this time I have
+> divided this into 3 (for more convenience in reviewing) . Something
+> like this:
+> 
+> 1st series:
+> This patch series will introduce generic gpmc-nand.c for nand device
+> related gpmc init.
+> 
+> 2nd series:
+> This patch series will introduce 'board-sdp-flash.c', for flash
+> devices init on SDP
+> boards. And will give an example of using 'gpmc-nand.c' and
+> 'board-sdp-flash.c' by
+> adding flash support to 3430SDP board.
+> 
+> 3rd:
+> This series introduces 'board-zoom-flash.c' for NAND init in ZOOM boards.
+> Other patches will add NAND support for ZOOM2, ZOOM3 and LDP.
+> 
+> Tony,
+> Is it ok with you?
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091203 04:29]:
-> Reserve space inside omap_mcbsp structure for storing cached copies of McBSP
-> register values.
-> Modify the MCBSP_WRITE() macro to update the cache with every register write
-> operation.
-> Introduce a new macro that reads from the cache instead of hardware.
-> 
-> Applies on top of patch 2 from this series:
-> [PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API for caching
-> 
-> Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
-> commit 4421752e331cfb1d942b47ffdb26e451a8da58a0.
-> Compile-tested with omap_3430sdp_defconfig.
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> 
-> ---
-> Thursday 03 December 2009 08:49:21 Jarkko Nikula wrote:
-> > On Tue, 1 Dec 2009 04:15:50 +0100
-> > Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
-> > >  #define MCBSP_WRITE(mcbsp, reg, val) \
-> > > -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
-> > > +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
-> > > +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1] \
-> > > +			= val)
-> > > +#define MCBSP_READ_CACHE(mcbsp, reg) \
-> > > +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1])
-> >
-> > These divisions by DDR1 are confusing. Use rather sizeof:
-> >
-> > reg_cache[OMAP_MCBSP_REG_##reg / sizeof(*mcbsp->reg_cache)]
-> 
-> Done.
-> 
-> Jarkko, many thanks for your cooperation :).
-> 
-> Janusz
-> 
->  arch/arm/plat-omap/include/plat/mcbsp.h |    5 +++++
->  arch/arm/plat-omap/mcbsp.c              |    7 ++++++-
->  2 files changed, 11 insertions(+), 1 deletion(-)
-> 
-> --- git/arch/arm/plat-omap/include/plat/mcbsp.h.orig	2009-11-27 11:53:45.000000000 +0100
-> +++ git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-01 03:37:21.000000000 +0100
-> @@ -415,6 +415,11 @@ struct omap_mcbsp {
->  	u16 max_tx_thres;
->  	u16 max_rx_thres;
->  #endif
-> +#ifdef CONFIG_ARCH_OMAP1
-> +	u16 reg_cache[OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1];
-> +#else
-> +	u32 reg_cache[OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
-> +#endif
->  };
->  extern struct omap_mcbsp **mcbsp_ptr;
->  extern int omap_mcbsp_count;
-
-How about rather set:
-
-static u16 omap1_reg_cache[];
-
-and
-
-static u32 omap2_reg_cache[];
-
-
-> --- git/arch/arm/plat-omap/mcbsp.c.orig	2009-12-01 03:19:56.000000000 +0100
-> +++ git/arch/arm/plat-omap/mcbsp.c	2009-12-03 11:37:21.000000000 +0100
-> @@ -49,7 +49,12 @@ int omap_mcbsp_read(void __iomem *io_bas
->  #define MCBSP_READ(mcbsp, reg) \
->  		omap_mcbsp_read(mcbsp->io_base, OMAP_MCBSP_REG_##reg)
->  #define MCBSP_WRITE(mcbsp, reg, val) \
-> -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
-> +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
-> +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
-> +				 sizeof(*mcbsp->reg_cache)] = val)
-> +#define MCBSP_READ_CACHE(mcbsp, reg) \
-> +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
-> +				  sizeof(*mcbsp->reg_cache)])
->  
->  #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
->  #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
-
-Then rather than doing this cache manipulation in the macro, just
-do it in the omap_mcbsp_read/write functions based on the
-cpu_class_is_omap1() accessing omap1_reg_cache or omap2_reg_cache.
-This way you can get rid of the ifdef else.
+Sounds pretty good to me. Also the patches you just posted look
+nice to me, will take a closer look. Thanks for doing the generic
+gpmc-nand.c, that should make it a lot easier to bring up new
+omap boards.
 
 Regards,
 
 Tony
-
