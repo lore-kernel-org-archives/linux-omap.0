@@ -1,60 +1,114 @@
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
-Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
- charger
-Date: Thu, 3 Dec 2009 01:59:22 +0300
-Message-ID: <20091202225922.GA15568@oksana.dev.rtsoft.ru>
-References: <1259333060-24277-1-git-send-email-notasas@gmail.com>
- <20091202173321.GA23738@nokia.com>
- <6ed0b2680912021234x6b5e6058p6d50d5cd20ecf019@mail.gmail.com>
- <20091202204946.GB25682@nokia.com>
- <6ed0b2680912021329g372bd0a4vb5b4a80244960f95@mail.gmail.com>
- <20091202215442.GA30658@oksana.dev.rtsoft.ru>
- <20091202223156.GA14921@nokia.com>
-Reply-To: avorontsov@ru.mvista.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/9] omap2: mux: intoduce omap_mux_{read,write}
+Date: Wed, 02 Dec 2009 16:21:22 -0800
+Message-ID: <20091203002122.2769.78843.stgit@localhost>
+References: <20091203001601.2769.20621.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755022AbZLBW7S@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20091202223156.GA14921@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58303 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755773AbZLCAVR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 19:21:17 -0500
+In-Reply-To: <20091203001601.2769.20621.stgit@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
 
-On Thu, Dec 03, 2009 at 12:31:56AM +0200, Felipe Balbi wrote:
-> Hi,
-> 
-> On Wed, Dec 02, 2009 at 10:54:42PM +0100, ext Anton Vorontsov wrote:
-> >As for the default USB VBUS current value, it could be Kconfig
-> >option (something alike to USB_GADGET_VBUS_DRAW) and/or module
-> >parameter, or hw default, or hardcoded for now. Either will
-> >work.
-> 
-> cannot be Kconfig, it's mandated by usb battery charging spec 1.x to
-> be 100mA for 100ms, then if you don't enumerate, you have to cut
-> charging.
+From: Mike Rapoport <mike@compulab.co.il>
 
-Oh, I thought TWL4030 does the USB stuff somewhat transparently
-so the checks in twl4030_charger_check_vbus() would be enough.
-Is there any TWL4030 reference manual available?
+intoduce omap_mux_{read,write}
 
-If TWL4030 just draws the VBUS directly, then it might be a good
-idea to integrate the driver with OTG framework, as an example
-see
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/mux.c |   44 ++++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 38 insertions(+), 6 deletions(-)
 
-commit 5bf2b994bfe11bfe86231050897b2d881ca544d9
-Author: Philipp Zabel <philipp.zabel@gmail.com>
-Date:   Sun Jan 18 17:40:27 2009 +0100
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index c18a94e..64250c5 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -35,7 +35,27 @@
+ 
+ #ifdef CONFIG_OMAP_MUX
+ 
++#define OMAP_MUX_BASE_OFFSET		0x30	/* Offset from CTRL_BASE */
++#define OMAP_MUX_BASE_SZ		0x5ca
++
+ static struct omap_mux_cfg arch_mux_cfg;
++static void __iomem *mux_base;
++
++static inline u16 omap_mux_read(u16 reg)
++{
++	if (cpu_is_omap24xx())
++		return __raw_readb(mux_base + reg);
++	else
++		return __raw_readw(mux_base + reg);
++}
++
++static inline void omap_mux_write(u16 val, u16 reg)
++{
++	if (cpu_is_omap24xx())
++		__raw_writeb(val, mux_base + reg);
++	else
++		__raw_writew(val, mux_base + reg);
++}
+ 
+ /* NOTE: See mux.h for the enumeration */
+ 
+@@ -581,10 +601,7 @@ static void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u16 r
+ 	u16 orig;
+ 	u8 warn = 0, debug = 0;
+ 
+-	if (cpu_is_omap24xx())
+-		orig = omap_ctrl_readb(cfg->mux_reg);
+-	else
+-		orig = omap_ctrl_readw(cfg->mux_reg);
++	orig = omap_mux_read(cfg->mux_reg - OMAP_MUX_BASE_OFFSET);
+ 
+ #ifdef	CONFIG_OMAP_MUX_DEBUG
+ 	debug = cfg->debug;
+@@ -614,7 +631,7 @@ static int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
+ 	if (cfg->pu_pd_val)
+ 		reg |= OMAP2_PULL_UP;
+ 	omap2_cfg_debug(cfg, reg);
+-	omap_ctrl_writeb(reg, cfg->mux_reg);
++	omap_mux_write(reg, cfg->mux_reg - OMAP_MUX_BASE_OFFSET);
+ 	spin_unlock_irqrestore(&mux_spin_lock, flags);
+ 
+ 	return 0;
+@@ -633,7 +650,7 @@ static int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
+ 	spin_lock_irqsave(&mux_spin_lock, flags);
+ 	reg |= cfg->mux_val;
+ 	omap2_cfg_debug(cfg, reg);
+-	omap_ctrl_writew(reg, cfg->mux_reg);
++	omap_mux_write(reg, cfg->mux_reg - OMAP_MUX_BASE_OFFSET);
+ 	spin_unlock_irqrestore(&mux_spin_lock, flags);
+ 
+ 	return 0;
+@@ -644,6 +661,21 @@ static int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
+ 
+ int __init omap2_mux_init(void)
+ {
++	u32 mux_pbase;
++
++	if (cpu_is_omap2420())
++		mux_pbase = OMAP2420_CTRL_BASE + OMAP_MUX_BASE_OFFSET;
++	else if (cpu_is_omap2430())
++		mux_pbase = OMAP243X_CTRL_BASE + OMAP_MUX_BASE_OFFSET;
++	else if (cpu_is_omap34xx())
++		mux_pbase = OMAP343X_CTRL_BASE + OMAP_MUX_BASE_OFFSET;
++
++	mux_base = ioremap(mux_pbase, OMAP_MUX_BASE_SZ);
++	if (!mux_base) {
++		printk(KERN_ERR "mux: Could not ioremap\n");
++		return -ENODEV;
++	}
++
+ 	if (cpu_is_omap24xx()) {
+ 		arch_mux_cfg.pins	= omap24xx_pins;
+ 		arch_mux_cfg.size	= OMAP24XX_PINS_SZ;
 
-    pda_power: Add optional OTG transceiver and voltage regulator support
-
-Though, instead of just a boolean is_usb_online() stuff, you'll
-have to get the allowed current draw value and configure the
-charger appropriately.
-
-Will this work?
-
--- 
-Anton Vorontsov
-email: cbouatmailru@gmail.com
-irc://irc.freenode.net/bd2
