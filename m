@@ -1,14 +1,19 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 6/8] OMAP2 clock: convert clock24xx.h to clock2xxx_data.c,
+Subject: [PATCH v2 6/8] OMAP2 clock: convert clock24xx.h to clock2xxx_data.c,
 	opp2xxx*
-Date: Thu, 03 Dec 2009 03:07:06 -0700
-Message-ID: <20091203100705.1203.39336.stgit@localhost.localdomain>
+Date: Thu, 3 Dec 2009 04:23:42 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0912030422380.13408@utopia.booyaka.com>
 References: <20091203095830.1203.76290.stgit@localhost.localdomain>
+	<20091203100707.1203.98247.stgit@localhost.localdomain>
+	<20091203102700.GA30423@flint.arm.linux.org.uk>
+	<alpine.DEB.2.00.0912030331360.13408@utopia.booyaka.com>
+	<20091203104354.GB20379@n2100.arm.linux.org.uk>
+	<alpine.DEB.2.00.0912030355050.13408@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20091203095830.1203.76290.stgit@localhost.localdomain>
+In-Reply-To: <alpine.DEB.2.00.0912030355050.13408@utopia.booyaka.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,14 +23,15 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Nishanth Menon <nm@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Richard Woodruff <r-woodruff2@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
+
 
 The OMAP2 clock code currently #includes a large .h file full of static
 data structures.  Instead, define the data in a .c file.
 
-Russell King <rmk+kernel@arm.linux.org.uk> proposed this new arrangement:
+Russell King <linux@arm.linux.org.uk> proposed this new arrangement:
 
     http://marc.info/?l=linux-omap&m=125967425908895&w=2
 
@@ -37,23 +43,23 @@ for the target device.  This should save some memory.  In the long run,
 these prcm_config tables should be replaced with OPP code.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Richard Woodruff <r-woodruff2@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/Makefile            |    6 
- arch/arm/mach-omap2/clock.h             |   30 -
- arch/arm/mach-omap2/clock24xx.c         |  796 -----------------------------
- arch/arm/mach-omap2/clock2xxx.c         |  564 +++++++++++++++++++++
- arch/arm/mach-omap2/clock2xxx.h         |   44 ++
- arch/arm/mach-omap2/clock2xxx_data.c    |  840 ++++++++++---------------------
- arch/arm/mach-omap2/clock_common_data.c |   39 +
- arch/arm/mach-omap2/opp2420_data.c      |  126 +++++
- arch/arm/mach-omap2/opp2430_data.c      |  133 +++++
- arch/arm/mach-omap2/opp2xxx.h           |  424 ++++++++++++++++
- arch/arm/mach-omap2/sdrc.h              |    3 
- arch/arm/plat-omap/include/plat/clock.h |    2 
- 12 files changed, 1610 insertions(+), 1397 deletions(-)
+ arch/arm/mach-omap2/Makefile                       |    6 +-
+ arch/arm/mach-omap2/clock.h                        |   30 +-
+ arch/arm/mach-omap2/clock24xx.c                    |  796 -------------------
+ arch/arm/mach-omap2/clock2xxx.c                    |  591 ++++++++++++++
+ arch/arm/mach-omap2/clock2xxx.h                    |   41 +
+ .../mach-omap2/{clock24xx.h => clock2xxx_data.c}   |  832 ++++++--------------
+ arch/arm/mach-omap2/clock_common_data.c            |   39 +
+ arch/arm/mach-omap2/opp2420_data.c                 |  126 +++
+ arch/arm/mach-omap2/opp2430_data.c                 |  133 ++++
+ arch/arm/mach-omap2/opp2xxx.h                      |  424 ++++++++++
+ arch/arm/mach-omap2/sdrc.h                         |    3 +
+ arch/arm/plat-omap/include/plat/clock.h            |    2 +
+ 12 files changed, 1613 insertions(+), 1410 deletions(-)
  delete mode 100644 arch/arm/mach-omap2/clock24xx.c
  create mode 100644 arch/arm/mach-omap2/clock2xxx.c
  create mode 100644 arch/arm/mach-omap2/clock2xxx.h
@@ -945,10 +951,10 @@ index a422174..0000000
 -}
 diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
 new file mode 100644
-index 0000000..742e0da
+index 0000000..2fe2223
 --- /dev/null
 +++ b/arch/arm/mach-omap2/clock2xxx.c
-@@ -0,0 +1,564 @@
+@@ -0,0 +1,591 @@
 +/*
 + *  linux/arch/arm/mach-omap2/clock.c
 + *
@@ -1029,9 +1035,9 @@ index 0000000..742e0da
 + * passes back the correct CM_IDLEST register address for I2CHS
 + * modules.  No return value.
 + */
-+void omap2430_clk_i2chs_find_idlest(struct clk *clk,
-+				    void __iomem **idlest_reg,
-+				    u8 *idlest_bit)
++static void omap2430_clk_i2chs_find_idlest(struct clk *clk,
++					   void __iomem **idlest_reg,
++					   u8 *idlest_bit)
 +{
 +	*idlest_reg = OMAP_CM_REGADDR(CORE_MOD, CM_IDLEST);
 +	*idlest_bit = clk->enable_bit;
@@ -1066,7 +1072,7 @@ index 0000000..742e0da
 +	return core_clk;
 +}
 +
-+int omap2_enable_osc_ck(struct clk *clk)
++static int omap2_enable_osc_ck(struct clk *clk)
 +{
 +	u32 pcc;
 +
@@ -1077,7 +1083,7 @@ index 0000000..742e0da
 +	return 0;
 +}
 +
-+void omap2_disable_osc_ck(struct clk *clk)
++static void omap2_disable_osc_ck(struct clk *clk)
 +{
 +	u32 pcc;
 +
@@ -1124,18 +1130,18 @@ index 0000000..742e0da
 +	return 0;
 +}
 +
-+int omap2_clk_apll96_enable(struct clk *clk)
++static int omap2_clk_apll96_enable(struct clk *clk)
 +{
 +	return omap2_clk_apll_enable(clk, OMAP24XX_ST_96M_APLL);
 +}
 +
-+int omap2_clk_apll54_enable(struct clk *clk)
++static int omap2_clk_apll54_enable(struct clk *clk)
 +{
 +	return omap2_clk_apll_enable(clk, OMAP24XX_ST_54M_APLL);
 +}
 +
 +/* Stop APLL */
-+void omap2_clk_apll_disable(struct clk *clk)
++static void omap2_clk_apll_disable(struct clk *clk)
 +{
 +	u32 cval;
 +
@@ -1513,12 +1519,39 @@ index 0000000..742e0da
 +}
 +arch_initcall(omap2_clk_arch_init);
 +
++/*
++ * clkops
++ */
++
++/* 2430 I2CHS has non-standard IDLEST register */
++const struct clkops clkops_omap2430_i2chs_wait = {
++	.enable		= omap2_dflt_clk_enable,
++	.disable	= omap2_dflt_clk_disable,
++	.find_idlest	= omap2430_clk_i2chs_find_idlest,
++	.find_companion = omap2_clk_dflt_find_companion,
++};
++
++const struct clkops clkops_oscck = {
++	.enable		= omap2_enable_osc_ck,
++	.disable	= omap2_disable_osc_ck,
++};
++
++const struct clkops clkops_apll96 = {
++	.enable		= omap2_clk_apll96_enable,
++	.disable	= omap2_clk_apll_disable,
++};
++
++const struct clkops clkops_apll54 = {
++	.enable		= omap2_clk_apll54_enable,
++	.disable	= omap2_clk_apll_disable,
++};
++
 diff --git a/arch/arm/mach-omap2/clock2xxx.h b/arch/arm/mach-omap2/clock2xxx.h
 new file mode 100644
-index 0000000..c9e244c
+index 0000000..e35efde
 --- /dev/null
 +++ b/arch/arm/mach-omap2/clock2xxx.h
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,41 @@
 +/*
 + * OMAP2 clock function prototypes and macros
 + *
@@ -1537,14 +1570,6 @@ index 0000000..c9e244c
 +unsigned long omap2_sys_clk_recalc(struct clk *clk);
 +unsigned long omap2_dpllcore_recalc(struct clk *clk);
 +int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate);
-+void omap2430_clk_i2chs_find_idlest(struct clk *clk,
-+				    void __iomem **idlest_reg,
-+				    u8 *idlest_bit);
-+int omap2_enable_osc_ck(struct clk *clk);
-+void omap2_disable_osc_ck(struct clk *clk);
-+int omap2_clk_apll96_enable(struct clk *clk);
-+int omap2_clk_apll54_enable(struct clk *clk);
-+void omap2_clk_apll_disable(struct clk *clk);
 +unsigned long omap2xxx_clk_get_core_rate(struct clk *clk);
 +
 +/* REVISIT: These should be set dynamically for CONFIG_MULTI_OMAP2 */
@@ -1562,12 +1587,17 @@ index 0000000..c9e244c
 +
 +extern struct clk *dclk;
 +
++extern const struct clkops clkops_omap2430_i2chs_wait;
++extern const struct clkops clkops_oscck;
++extern const struct clkops clkops_apll96;
++extern const struct clkops clkops_apll54;
++
 +#endif
 diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock2xxx_data.c
 similarity index 73%
 rename from arch/arm/mach-omap2/clock24xx.h
 rename to arch/arm/mach-omap2/clock2xxx_data.c
-index 21238d1..95ff77d 100644
+index 21238d1..97dc7cf 100644
 --- a/arch/arm/mach-omap2/clock24xx.h
 +++ b/arch/arm/mach-omap2/clock2xxx_data.c
 @@ -1,8 +1,8 @@
@@ -1582,7 +1612,7 @@ index 21238d1..95ff77d 100644
   *
   *  Contacts:
   *  Richard Woodruff <r-woodruff2@ti.com>
-@@ -13,599 +13,54 @@
+@@ -13,600 +13,21 @@
   * published by the Free Software Foundation.
   */
  
@@ -1643,7 +1673,7 @@ index 21238d1..95ff77d 100644
 -	unsigned char flags;
 -};
 -
- /*
+-/*
 - * The OMAP2 processor can be run at several discrete 'PRCM configurations'.
 - * These configurations are characterized by voltage and speed for clocks.
 - * The device is only validated for certain combinations. One way to express
@@ -1655,9 +1685,8 @@ index 21238d1..95ff77d 100644
 - * 2430 differs from 2420 in that there are no more phase synchronizers used.
 - * They both have a slightly different clock domain setup. 2420(iva1,dsp) vs
 - * 2430 (iva2.1, NOdsp, mdm)
-+ * clkops
-  */
- 
+- */
+-
 -/* Core fields for cm_clksel, not ratio governed */
 -#define RX_CLKSEL_DSS1			(0x10 << 8)
 -#define RX_CLKSEL_DSS2			(0x0 << 13)
@@ -1824,14 +1853,7 @@ index 21238d1..95ff77d 100644
 -#define MX_APLLS_CLIKIN_12		(3 << 23)
 -#define MX_APLLS_CLIKIN_13		(2 << 23)
 -#define MX_APLLS_CLIKIN_19_2		(0 << 23)
-+/* 2430 I2CHS has non-standard IDLEST register */
-+static const struct clkops clkops_omap2430_i2chs_wait = {
-+	.enable		= omap2_dflt_clk_enable,
-+	.disable	= omap2_dflt_clk_disable,
-+	.find_idlest	= omap2430_clk_i2chs_find_idlest,
-+	.find_companion = omap2_clk_dflt_find_companion,
-+};
- 
+-
 -/*
 - * 2430 - standalone, 2*ref*M/(n+1), M/N is for exactness not relock speed
 - * #5a	(ratio1) baseport-target, target DPLL = 266*2 = 532MHz
@@ -1888,11 +1910,7 @@ index 21238d1..95ff77d 100644
 -#define M4_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
 -					M4_DPLL_DIV_19 | M4_DPLL_MULT_19 | \
 -					MX_APLLS_CLIKIN_19_2
-+static const struct clkops clkops_oscck = {
-+	.enable		= &omap2_enable_osc_ck,
-+	.disable	= &omap2_disable_osc_ck,
-+};
- 
+-
 -/*
 - * #3	(ratio2) baseport-target, target DPLL = 330*2 = 660MHz
 - */
@@ -1911,11 +1929,7 @@ index 21238d1..95ff77d 100644
 -#define M3_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | \
 -					M3_DPLL_DIV_19 | M3_DPLL_MULT_19 | \
 -					MX_APLLS_CLIKIN_19_2
-+static const struct clkops clkops_apll96 = {
-+	.enable		= &omap2_clk_apll96_enable,
-+	.disable	= &omap2_clk_apll_disable,
-+};
- 
+-
 -/*
 - * #2   (ratio1) DPLL = 330*2 = 660MHz, L3=165MHz
 - */
@@ -1951,11 +1965,7 @@ index 21238d1..95ff77d 100644
 -
 -#define MB_CM_CLKSEL1_PLL_19_VAL	MX_48M_SRC | MX_54M_SRC | MB_DPLL_DIV |\
 -					MB_DPLL_MULT | MX_APLLS_CLIKIN_19
-+static const struct clkops clkops_apll54 = {
-+	.enable		= &omap2_clk_apll54_enable,
-+	.disable	= &omap2_clk_apll_disable,
-+};
- 
+-
 -/*
 - * 2430 - chassis (sedna)
 - * 165 (ratio1) same as above #2
@@ -1965,19 +1975,18 @@ index 21238d1..95ff77d 100644
 - * 104 (ratio2)
 - * boot (boot)
 - */
- 
+-
 -/* PRCM I target DPLL = 2*330MHz = 660MHz */
 -#define MI_DPLL_MULT_12			(55 << 12)
 -#define MI_DPLL_DIV_12			(1 << 8)
 -#define MI_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
 -					MI_DPLL_DIV_12 | MI_DPLL_MULT_12 | \
 -					MX_APLLS_CLIKIN_12
- 
- /*
+-
+-/*
 - * 2420 Equivalent - mode registers
 - * PRCM II , target DPLL = 2*300MHz = 600MHz
-+ * clocks
-  */
+- */
 -#define MII_DPLL_MULT_12		(50 << 12)
 -#define MII_DPLL_DIV_12			(1 << 8)
 -#define MII_CM_CLKSEL1_PLL_12_VAL	MX_48M_SRC | MX_54M_SRC | \
@@ -2032,7 +2041,7 @@ index 21238d1..95ff77d 100644
 -#define S658M	658000000
 -#define S660M	660000000
 -#define S798M	798000000
- 
+-
 -/*-------------------------------------------------------------------------
 - * Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
 - * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,
@@ -2207,10 +2216,11 @@ index 21238d1..95ff77d 100644
 -
 -	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 -};
- 
+-
  /*-------------------------------------------------------------------------
   * 24xx clock tree.
-@@ -2653,5 +2108,236 @@ static struct clk virt_prcm_set = {
+  *
+@@ -2653,5 +2074,236 @@ static struct clk virt_prcm_set = {
  	.round_rate	= &omap2_round_to_table_rate,
  };
  
@@ -3221,3 +3231,5 @@ index 4b8b0d6..00310f2 100644
  struct module;
  struct clk;
  struct clockdomain;
+-- 
+1.6.5.GIT
