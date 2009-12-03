@@ -1,76 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-v6 0/4] OMAP: Adding flash support to SDP, ZOOM2 and
- LDP boards
-Date: Thu, 3 Dec 2009 12:19:11 -0800
-Message-ID: <20091203201911.GC4348@atomide.com>
-References: <ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
- <ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
- <ce9ab5790911040328p215dede2v37db38a966a5bbd5@mail.gmail.com>
- <20091109205250.GB23952@atomide.com>
- <ce9ab5790911100201j6b1ef5e1g43a992b00e69ade4@mail.gmail.com>
- <ce9ab5790911190608r5b7e8226j3546714957ce70e6@mail.gmail.com>
- <1259075173.29118.20.camel@localhost>
- <ce9ab5790911240725x29b8bd6eq9f9c7a8b21c6786e@mail.gmail.com>
- <1259307441.7518.6.camel@localhost>
- <ce9ab5790912020609i8af0444l54e695f85ea89ba2@mail.gmail.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH 2/2] MUSB DMA_INTR register may sometimes read zero when
+ infact there
+Date: Fri, 4 Dec 2009 02:27:10 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FAA0C569@dbde02.ent.ti.com>
+References: <1259871921-19346-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64608 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752733AbZLCUTI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 15:19:08 -0500
-Content-Disposition: inline
-In-Reply-To: <ce9ab5790912020609i8af0444l54e695f85ea89ba2@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42666 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753080AbZLCU5J convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 15:57:09 -0500
+In-Reply-To: <1259871921-19346-1-git-send-email-vikram.pandita@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: dedekind1@gmail.com, linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, vimal singh <vimalsingh@ti.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Vimal Singh <vimal.newwork@gmail.com> [091202 06:09]:
-> >> >> From 8bc97108cf9c78216f1ea5407ccbd900e6b63dc2 Mon Sep 17 00:00:00 2001
-> >> >> From: Vimal Singh <vimalsingh@ti.com>
-> >> >> Date: Thu, 19 Nov 2009 19:28:11 +0530
-> >> >>
-> >> >> This patch series adds flash support for NAND (in sdp, zoom and ldp),
-> >> >> OneNAND and NOR (in sdp)
-> >> >>
-> >> >> Tested on Zoom2 and 3430SDP
-> >> >>
-> >> >> Vimal Singh (4):
-> >> >> [PATCH-v6 1/4] OMAP2/3: Add support for flash on SDP boards
-> >> >> [PATCH-v6 2/4] OMAP3: Add support for NAND on ZOOM/LDP boards
-> >> >> [PATCH-v6 3/4] OMAP: Zoom2: Enable NAND and JFFS2 support in defconfig
-> >> >> [PATCH-v6 4/4] OMAP: 3430SDP: Enable NAND in defconfig
-> >> >
-> 
-> I am going to re-post this patch series again and this time I have
-> divided this into 3 (for more convenience in reviewing) . Something
-> like this:
-> 
-> 1st series:
-> This patch series will introduce generic gpmc-nand.c for nand device
-> related gpmc init.
-> 
-> 2nd series:
-> This patch series will introduce 'board-sdp-flash.c', for flash
-> devices init on SDP
-> boards. And will give an example of using 'gpmc-nand.c' and
-> 'board-sdp-flash.c' by
-> adding flash support to 3430SDP board.
-> 
-> 3rd:
-> This series introduces 'board-zoom-flash.c' for NAND init in ZOOM boards.
-> Other patches will add NAND support for ZOOM2, ZOOM3 and LDP.
-> 
-> Tony,
-> Is it ok with you?
+Anand
 
-Sounds pretty good to me. Also the patches you just posted look
-nice to me, will take a closer look. Thanks for doing the generic
-gpmc-nand.c, that should make it a lot easier to bring up new
-omap boards.
+>From: Anand Gadiyar <vikram.pandita@ti.com>
+>
+>MUSB DMA_INTR register may sometimes read zero when infact there
+>
+>was a pending interrupt. Workaround this by reading the DMA_COUNT
+>values for all enabled channels when this condition occurs.
+>Flag these channels as the ones needing to be serviced.
+>
+>Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+>Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>
+>Cc: Felipe Balbi <felipe.balbi@nokia.com>
+>Cc: David Brownell <dbrownell@users.sourceforge.net>
+>Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com> 
+>---
+>This issue exists on versions of the controller newer than 1.8.
+>The first version of this patch checked for this version
+>before acting. However to keep the code clean, I felt that
+>it is acceptable to do this unconditionally on all versions.
+>
+>Also, the absence of the debug print meant that we would
+>never catch a spurious DMA interrupt on the older versions,
+>so adding the prints helps there.
+>
+> drivers/usb/musb/musbhsdma.c |   24 ++++++++++++++++++++++--
+> 1 files changed, 22 insertions(+), 2 deletions(-)
+>
+>Index: linux-omap-2.6/drivers/usb/musb/musbhsdma.c
+>===================================================================
+>--- linux-omap-2.6.orig/drivers/usb/musb/musbhsdma.c
+>+++ linux-omap-2.6/drivers/usb/musb/musbhsdma.c
+>@@ -256,14 +256,34 @@ static irqreturn_t dma_controller_irq(in
+> 	spin_lock_irqsave(&musb->lock, flags);
+>
+> 	int_hsdma = musb_readb(mbase, MUSB_HSDMA_INTR);
+>-	if (!int_hsdma)
+>-		goto done;
+>
+> #ifdef CONFIG_BLACKFIN
+> 	/* Clear DMA interrupt flags */
+> 	musb_writeb(mbase, MUSB_HSDMA_INTR, int_hsdma);
+> #endif
+>
+>+	if (!int_hsdma) {
+>+		DBG(2, "spurious DMA irq\n");
+>+
+>+		for (bchannel = 0; bchannel < MUSB_HSDMA_CHANNELS; bchannel++) {
+>+			musb_channel = (struct musb_dma_channel *)
+>+					&(controller->channel[bchannel]);
+>+			channel = &musb_channel->channel;
+>+			if (channel->status == MUSB_DMA_STATUS_BUSY) {
+>+				csr = musb_readw(mbase,
+>+					MUSB_HSDMA_CHANNEL_OFFSET(bchannel,
+>+							MUSB_HSDMA_COUNT));
 
-Regards,
+	csr is a misnomer. It should be called count.
+	Also I recommend to add a function:
+	musb_read_hsdma_count() in "musbhsdma.h" just like the write counterpart and use here.
+	
+>+				if (csr == 0)
+	Should this not be if (csr != 0) only then you mark that dma channel as generated the interrupt?
 
-Tony
+>+					int_hsdma |= (1 << bchannel);
+>+			}
+>+		}
+>+
+>+		DBG(2, "int_hsdma = 0x%x\n", int_hsdma);
+>+
+>+		if (!int_hsdma)
+>+			goto done;
+>+	}
+>+
+> 	for (bchannel = 0; bchannel < MUSB_HSDMA_CHANNELS; bchannel++) {
+> 		if (int_hsdma & (1 << bchannel)) {
+> 			musb_channel = (struct musb_dma_channel *)
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
