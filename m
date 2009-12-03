@@ -1,56 +1,44 @@
 From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: I2C broken on OMAP 2430SDP?
-Date: Thu, 3 Dec 2009 23:39:15 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FAA0C54C@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.0912010857070.13408@utopia.booyaka.com>
- <CD8CC2B65FEE304DA95744A5472698F2029E755F76@dlee06.ent.ti.com>
- <alpine.DEB.2.00.0912030559500.13408@utopia.booyaka.com>
+Subject: RE: Merge plans for 2.6.33 merge window
+Date: Thu, 3 Dec 2009 23:58:33 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FAA0C54F@dbde02.ent.ti.com>
+References: <20091203173559.GR4348@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44885 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35609 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752001AbZLCSJR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 13:09:17 -0500
-In-Reply-To: <alpine.DEB.2.00.0912030559500.13408@utopia.booyaka.com>
+	id S1755606AbZLCS2g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 13:28:36 -0500
+In-Reply-To: <20091203173559.GR4348@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Sonasath, Moiz" <m-sonasath@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "G, Manjunath Kondaiah" <manjugk@ti.com>
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Tony
 
 >-----Original Message-----
->From: Paul Walmsley [mailto:paul@pwsan.com]
->Sent: Thursday, December 03, 2009 7:01 AM
->To: Sonasath, Moiz
->Cc: linux-omap@vger.kernel.org; Pandita, Vikram; G, Manjunath Kondaiah
->Subject: RE: I2C broken on OMAP 2430SDP?
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
+>Lindgren
+>Sent: Thursday, December 03, 2009 11:36 AM
+>To: linux-omap@vger.kernel.org
+>Subject: Merge plans for 2.6.33 merge window
 >
->Hello Moiz,
->
->On Wed, 2 Dec 2009, Sonasath, Moiz wrote:
->
->> Hello Paul!
+>Hi all,
 <snip>
->bio: create slab <bio-0> at 0
-><6>i2c_omap i2c_omap.1: bus 1 rev3.6 at 400 kHz
-><6>i2c_omap i2c_omap.2: bus 2 rev3.6 at 2600 kHz
+>Then there are some new board files, like
+>touchbook and various fixes.
 
-By any chance is this related to running i2c at slower clock speed? 
-commit 6b61a83b31744d143b0e7bc92f463d831319eabc
-    The maximum I2C speed depends on the system clock for GAIA:
-    2.2 MHz (sys-clk = 19.2 MHz)
-    2.4 MHz (sys-clk = 26 MHz)
-    2.9 MHz (sys-clk = 38.4 MHz)
+3630 board support (zoom3/sdp3630) is already integrated in for-next.
+However the only pending patches missing for 3630 boards to boot are these serial patches:
+	http://patchwork.kernel.org/patch/61671/
+	http://patchwork.kernel.org/patch/61672/
 
+Now there has been much discussion on the approach (errata vs feature).
+As a moderator, how would you like us to proceed on this?
 
-><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
-><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
-><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
-><3>twl4030: clock init err [-110]
-><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
-><3>twl4030: err -110 initializing gpio IMR
-><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
-><3>twl4030: err -110 initializing gpio SIH_CTRL
+Regards,
+Vikram
+
