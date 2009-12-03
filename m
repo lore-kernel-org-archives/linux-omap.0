@@ -1,88 +1,47 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 8/9] OMAP3: PM: Fix for MPU power domain MEM BANK position
-Date: Thu, 03 Dec 2009 06:45:44 -0700
-Message-ID: <20091203134543.16229.85418.stgit@localhost.localdomain>
-References: <20091203134321.16229.87539.stgit@localhost.localdomain>
+Subject: [PATCH 00/10] OMAP: omap_hwmod/omap_device patches for 2.6.33
+Date: Thu, 03 Dec 2009 06:49:40 -0700
+Message-ID: <20091203134852.17146.81997.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48973 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49038 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756088AbZLCNwY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 08:52:24 -0500
-In-Reply-To: <20091203134321.16229.87539.stgit@localhost.localdomain>
+	with ESMTP id S1756137AbZLCNyg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 08:54:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
 
-From: Thara Gopinath <thara@ti.com>
+Hello,
 
-MPU power domain bank 0 bits are displayed in position of bank 1
-in PWRSTS and PREPWRSTS registers. So read them from correct
-position
+This series contains some updates and bugfixes for the omap_hwmod/omap_device
+code, intended for the 2.6.33 merge window.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+- Paul
+
 ---
- arch/arm/mach-omap2/powerdomain.c             |    6 ++++++
- arch/arm/mach-omap2/powerdomains34xx.h        |    1 +
- arch/arm/plat-omap/include/plat/powerdomain.h |    5 ++++-
- 3 files changed, 11 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 47d5768..26b3f3e 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -983,6 +983,9 @@ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- 	if (pwrdm->banks < (bank + 1))
- 		return -EEXIST;
- 
-+	if (pwrdm->flags & PWRDM_HAS_MPU_QUIRK)
-+		bank = 1;
-+
- 	/*
- 	 * The register bit names below may not correspond to the
- 	 * actual names of the bits in each powerdomain's register,
-@@ -1030,6 +1033,9 @@ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- 	if (pwrdm->banks < (bank + 1))
- 		return -EEXIST;
- 
-+	if (pwrdm->flags & PWRDM_HAS_MPU_QUIRK)
-+		bank = 1;
-+
- 	/*
- 	 * The register bit names below may not correspond to the
- 	 * actual names of the bits in each powerdomain's register,
-diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
-index fd09b08..588f7e0 100644
---- a/arch/arm/mach-omap2/powerdomains34xx.h
-+++ b/arch/arm/mach-omap2/powerdomains34xx.h
-@@ -190,6 +190,7 @@ static struct powerdomain mpu_34xx_pwrdm = {
- 	.wkdep_srcs	  = mpu_34xx_wkdeps,
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
-+	.flags		  = PWRDM_HAS_MPU_QUIRK,
- 	.banks		  = 1,
- 	.pwrsts_mem_ret	  = {
- 		[0] = PWRSTS_OFF_RET,
-diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
-index 56bb1b9..0b96005 100644
---- a/arch/arm/plat-omap/include/plat/powerdomain.h
-+++ b/arch/arm/plat-omap/include/plat/powerdomain.h
-@@ -42,7 +42,10 @@
- 
- /* Powerdomain flags */
- #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
--
-+#define PWRDM_HAS_MPU_QUIRK	(1 << 1) /* MPU pwr domain has MEM bank 0 bits
-+					  * in MEM bank 1 position. This is
-+					  * true for OMAP3430
-+					  */
- 
- /*
-  * Number of memory banks that are power-controllable.	On OMAP3430, the
+Kevin Hilman (6):
+      OMAP: omap_device: add to_omap_device() macro
+      OMAP: omap_device: use UINT_MAX for default wakeup latency limit
+      OMAP: omap_device: use read_persistent_clock() instead of getnstimeofday()
+      OMAP: hwmod: warn on missing clockdomain
+      OMAP: omap_device: fix nsec/usec conversion in latency calculations
+      OMAP: omap_device: track latency in nanoseconds
 
+Paul Walmsley (4):
+      OMAP3 hwmod: reprogram OCP_SYSCONFIG register after setting SOFTRESET
+      OMAP3 hwmod: Add automatic OCP_SYSCONFIG AUTOIDLE handling
+      OMAP hwmod: add names to module MPU IRQ lines
+      OMAP3 hwmod: drop most of the OCP_SYSCONFIG.CLOCKACTIVITY code
+
+
+ arch/arm/mach-omap2/omap_hwmod.c              |  151 ++++++++++---------------
+ arch/arm/plat-omap/include/plat/omap_device.h |    8 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |   26 ++++
+ arch/arm/plat-omap/omap_device.c              |   18 +--
+ 4 files changed, 96 insertions(+), 107 deletions(-)
 
