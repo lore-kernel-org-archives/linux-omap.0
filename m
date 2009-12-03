@@ -1,441 +1,327 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/9] omap: mux: Add new style init functions to omap3
-	board-*.c files
-Date: Wed, 02 Dec 2009 16:22:00 -0800
-Message-ID: <20091203002200.2769.87237.stgit@localhost>
+Subject: [PATCH 6/9] omap: Split i2c platform init for mach-omap1 and
+	mach-omap2
+Date: Wed, 02 Dec 2009 16:22:23 -0800
+Message-ID: <20091203002223.2769.36853.stgit@localhost>
 References: <20091203001601.2769.20621.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54658 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55212 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754461AbZLCAVz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 19:21:55 -0500
+	with ESMTP id S1752668AbZLCAWS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 19:22:18 -0500
 In-Reply-To: <20091203001601.2769.20621.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org
 
-Add new style mux init functions to omap3 board-*.c files
+Otherwise we cannot limit new mux code to mach-omap2.
+The same signal names should eventually work for other
+omaps under mach-omap2.
 
-So far Beagle has been confirmed to be a CBB package,
-and CM-T35 a CUS package.
+Note that these pins don't need to be OMAP_PIN_INPUT_PULLUP,
+just OMAP_PIN_INPUT is enough.
 
+Cc: Jarkko Nikula <jhnikula@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Kconfig              |   10 ++++++++++
- arch/arm/mach-omap2/board-3430sdp.c      |   10 ++++++++++
- arch/arm/mach-omap2/board-am3517evm.c    |   11 +++++++++++
- arch/arm/mach-omap2/board-cm-t35.c       |   10 ++++++++++
- arch/arm/mach-omap2/board-igep0020.c     |   10 ++++++++++
- arch/arm/mach-omap2/board-ldp.c          |   10 ++++++++++
- arch/arm/mach-omap2/board-omap3beagle.c  |   10 ++++++++++
- arch/arm/mach-omap2/board-omap3evm.c     |   10 ++++++++++
- arch/arm/mach-omap2/board-omap3pandora.c |   10 ++++++++++
- arch/arm/mach-omap2/board-overo.c        |    9 +++++++++
- arch/arm/mach-omap2/board-rx51.c         |   11 +++++++++++
- arch/arm/mach-omap2/board-zoom2.c        |   10 ++++++++++
- 12 files changed, 121 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap1/Makefile             |    3 ++
+ arch/arm/mach-omap1/i2c.c                |   33 ++++++++++++++++++
+ arch/arm/mach-omap2/Makefile             |    3 ++
+ arch/arm/mach-omap2/i2c.c                |   56 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/i2c.c                 |   44 +-----------------------
+ arch/arm/plat-omap/include/plat/common.h |   14 +-------
+ arch/arm/plat-omap/include/plat/i2c.h    |   39 +++++++++++++++++++++
+ 7 files changed, 137 insertions(+), 55 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/i2c.c
+ create mode 100644 arch/arm/mach-omap2/i2c.c
+ create mode 100644 arch/arm/plat-omap/include/plat/i2c.h
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index c324d52..c10789c 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -61,14 +61,17 @@ config MACH_OMAP_2430SDP
- config MACH_OMAP3_BEAGLE
- 	bool "OMAP3 BEAGLE board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CBB
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index 87e539a..51bc195 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -17,6 +17,9 @@ obj-$(CONFIG_PM) += pm.o sleep.o
+ obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
+ mailbox_mach-objs		:= mailbox.o
  
- config MACH_OMAP_LDP
- 	bool "OMAP3 LDP board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CBB
- 
- config MACH_OVERO
- 	bool "Gumstix Overo board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CBB
- 
- config MACH_OMAP3EVM
- 	bool "OMAP 3530 EVM board"
-@@ -77,14 +80,17 @@ config MACH_OMAP3EVM
- config MACH_OMAP3517EVM
- 	bool "OMAP3517/ AM3517 EVM board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CBB
- 
- config MACH_OMAP3_PANDORA
- 	bool "OMAP3 Pandora"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CBB
- 
- config MACH_OMAP_3430SDP
- 	bool "OMAP 3430 SDP board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CBB
- 
- config MACH_NOKIA_N800
-        bool
-@@ -105,10 +111,12 @@ config MACH_NOKIA_N8X0
- config MACH_NOKIA_RX51
- 	bool "Nokia RX-51 board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CBB
- 
- config MACH_OMAP_ZOOM2
- 	bool "OMAP3 Zoom2 board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CBB
- 
- config MACH_OMAP_ZOOM3
- 	bool "OMAP3630 Zoom3 board"
-@@ -117,10 +125,12 @@ config MACH_OMAP_ZOOM3
- config MACH_CM_T35
- 	bool "CompuLab CM-T35 module"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CUS
- 
- config MACH_IGEP0020
- 	bool "IGEP0020"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select OMAP_PACKAGE_CBB
- 
- config MACH_OMAP_3630SDP
- 	bool "OMAP3630 SDP board"
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 5bda9fd..e5d9118 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -42,6 +42,7 @@
- #include <plat/control.h>
- #include <plat/gpmc-smc91x.h>
- 
-+#include "mux.h"
- #include "sdram-qimonda-hyb18m512160af-6.h"
- #include "mmc-twl4030.h"
- 
-@@ -640,8 +641,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
++i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
++obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
 +
- static void __init omap_3430sdp_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap3430_i2c_init();
- 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
- 	if (omap_rev() > OMAP3430_REV_ES1_0)
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 415a13d..b4e6eca 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -30,6 +30,8 @@
- #include <plat/common.h>
- #include <plat/usb.h>
+ led-y := leds.o
  
+ # Specific board support
+diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
+new file mode 100644
+index 0000000..bc9d12b
+--- /dev/null
++++ b/arch/arm/mach-omap1/i2c.c
+@@ -0,0 +1,33 @@
++/*
++ * Helper module for board specific I2C bus registration
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <plat/i2c.h>
++#include <plat/mux.h>
++
++int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
++			  struct i2c_board_info const *info,
++			  unsigned len)
++{
++	omap_cfg_reg(I2C_SDA);
++	omap_cfg_reg(I2C_SCL);
++
++	return omap_plat_register_i2c_bus(bus_id, clkrate, info, len);
++}
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 3d0c35f..52ceeef 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -55,6 +55,9 @@ iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
+ 
+ obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
+ 
++i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
++obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
++
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+new file mode 100644
+index 0000000..789ca8c
+--- /dev/null
++++ b/arch/arm/mach-omap2/i2c.c
+@@ -0,0 +1,56 @@
++/*
++ * Helper module for board specific I2C bus registration
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <plat/cpu.h>
++#include <plat/i2c.h>
++#include <plat/mux.h>
++
 +#include "mux.h"
 +
- /*
-  * Board initialization
-  */
-@@ -60,8 +62,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
++int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
++			  struct i2c_board_info const *info,
++			  unsigned len)
++{
++	if (cpu_is_omap24xx()) {
++		const int omap24xx_pins[][2] = {
++			{ M19_24XX_I2C1_SCL, L15_24XX_I2C1_SDA },
++			{ J15_24XX_I2C2_SCL, H19_24XX_I2C2_SDA },
++		};
++		int scl, sda;
 +
- static void __init am3517_evm_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	platform_add_devices(am3517_evm_devices,
- 				ARRAY_SIZE(am3517_evm_devices));
- 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 22c4529..84321f6 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -45,6 +45,7 @@
- 
- #include <mach/hardware.h>
- 
-+#include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "mmc-twl4030.h"
- 
-@@ -482,8 +483,17 @@ static void __init cm_t35_map_io(void)
- 	omap2_map_common_io();
- }
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
++		scl = omap24xx_pins[bus_id - 1][0];
++		sda = omap24xx_pins[bus_id - 1][1];
++		omap_cfg_reg(sda);
++		omap_cfg_reg(scl);
++	}
 +
- static void __init cm_t35_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
- 	omap_serial_init();
- 	cm_t35_init_i2c();
- 	cm_t35_init_nand();
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index fa62e80..7e3217a 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -30,6 +30,7 @@
- #include <plat/mux.h>
- #include <plat/usb.h>
- 
-+#include "mux.h"
- #include "mmc-twl4030.h"
- 
- #define IGEP2_SMSC911X_CS       5
-@@ -203,8 +204,17 @@ static int __init igep2_i2c_init(void)
- 	return 0;
- }
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
++	/* First I2C bus is not muxable */
++	if (cpu_is_omap34xx() && bus_id > 1) {
++		char mux_name[sizeof("i2c2_scl.i2c2_scl")];
 +
- static void __init igep2_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	igep2_i2c_init();
- 	omap_serial_init();
- 	usb_musb_init();
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index c062238..3743173 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -43,6 +43,7 @@
- #include <plat/control.h>
- #include <plat/usb.h>
- 
-+#include "mux.h"
- #include "mmc-twl4030.h"
- 
- #define LDP_SMSC911X_CS		1
-@@ -374,8 +375,17 @@ static struct platform_device *ldp_devices[] __initdata = {
- 	&ldp_gpio_keys_device,
- };
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
++		sprintf(mux_name, "i2c%i_scl.i2c%i_scl", bus_id, bus_id);
++		omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
++		sprintf(mux_name, "i2c%i_sda.i2c%i_sda", bus_id, bus_id);
++		omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
++	}
 +
- static void __init omap_ldp_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_i2c_init();
- 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
- 	ts_gpio = 54;
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 41480bd..e669dbb 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -45,6 +45,7 @@
- #include <plat/usb.h>
- #include <plat/timer-gp.h>
- 
-+#include "mux.h"
- #include "mmc-twl4030.h"
- 
- #define GPMC_CS0_BASE  0x60
-@@ -422,8 +423,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
-+
- static void __init omap3_beagle_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap3_beagle_i2c_init();
- 	platform_add_devices(omap3_beagle_devices,
- 			ARRAY_SIZE(omap3_beagle_devices));
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 5efc2e9..ad174ae 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -43,6 +43,7 @@
- #include <plat/common.h>
- #include <plat/mcspi.h>
- 
-+#include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "mmc-twl4030.h"
- 
-@@ -422,9 +423,18 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
-+
- static void __init omap3_evm_init(void)
- {
- 	omap3_evm_get_revision();
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 
- 	omap3_evm_i2c_init();
- 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 2db5ba5..9f59c03 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -42,6 +42,7 @@
- #include <plat/usb.h>
- #include <plat/mux.h>
- 
-+#include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "mmc-twl4030.h"
- 
-@@ -409,8 +410,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
-+
- static void __init omap3pandora_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap3pandora_i2c_init();
- 	platform_add_devices(omap3pandora_devices,
- 			ARRAY_SIZE(omap3pandora_devices));
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 52dfd51..40f3c85 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -47,6 +47,7 @@
- #include <plat/mux.h>
- #include <plat/usb.h>
- 
-+#include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "mmc-twl4030.h"
- 
-@@ -405,9 +406,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
- 
- static void __init overo_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	overo_i2c_init();
- 	platform_add_devices(overo_devices, ARRAY_SIZE(overo_devices));
- 	omap_serial_init();
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index 1bb1de2..c0c99ad 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -30,6 +30,8 @@
- #include <plat/gpmc.h>
- #include <plat/usb.h>
- 
-+#include "mux.h"
-+
- struct omap_sdrc_params *rx51_get_sdram_timings(void);
- 
- static struct omap_lcd_config rx51_lcd_config = {
-@@ -69,8 +71,17 @@ static void __init rx51_init_irq(void)
- 
- extern void __init rx51_peripherals_init(void);
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
-+
- static void __init rx51_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
- 	usb_musb_init();
- 	rx51_peripherals_init();
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 2f980e3..1e615e2 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -23,6 +23,7 @@
- 
- #include <mach/board-zoom.h>
- 
-+#include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
- 
- static void __init omap_zoom2_init_irq(void)
-@@ -58,8 +59,17 @@ static struct twl4030_platform_data zoom2_twldata = {
- 
++	return omap_plat_register_i2c_bus(bus_id, clkrate, info, len);
++}
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index c08362d..33fff4e 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -80,47 +80,8 @@ static struct platform_device omap_i2c_devices[] = {
  #endif
+ };
  
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
+-#if defined(CONFIG_ARCH_OMAP24XX)
+-static const int omap24xx_pins[][2] = {
+-	{ M19_24XX_I2C1_SCL, L15_24XX_I2C1_SDA },
+-	{ J15_24XX_I2C2_SCL, H19_24XX_I2C2_SDA },
+-};
+-#else
+-static const int omap24xx_pins[][2] = {};
+-#endif
+-#if defined(CONFIG_ARCH_OMAP34XX)
+-static const int omap34xx_pins[][2] = {
+-	{ K21_34XX_I2C1_SCL, J21_34XX_I2C1_SDA},
+-	{ AF15_34XX_I2C2_SCL, AE15_34XX_I2C2_SDA},
+-	{ AF14_34XX_I2C3_SCL, AG14_34XX_I2C3_SDA},
+-};
+-#else
+-static const int omap34xx_pins[][2] = {};
+-#endif
+-
+ #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
+ 
+-static void __init omap_i2c_mux_pins(int bus)
+-{
+-	int scl, sda;
+-
+-	if (cpu_class_is_omap1()) {
+-		scl = I2C_SCL;
+-		sda = I2C_SDA;
+-	} else if (cpu_is_omap24xx()) {
+-		scl = omap24xx_pins[bus][0];
+-		sda = omap24xx_pins[bus][1];
+-	} else if (cpu_is_omap34xx()) {
+-		scl = omap34xx_pins[bus][0];
+-		sda = omap34xx_pins[bus][1];
+-	} else {
+-		return;
+-	}
+-
+-	omap_cfg_reg(sda);
+-	omap_cfg_reg(scl);
+-}
+-
+ static int __init omap_i2c_nr_ports(void)
+ {
+ 	int ports = 0;
+@@ -156,7 +117,6 @@ static int __init omap_i2c_add_bus(int bus_id)
+ 		res[1].start = irq;
+ 	}
+ 
+-	omap_i2c_mux_pins(bus_id - 1);
+ 	return platform_device_register(pdev);
+ }
+ 
+@@ -209,7 +169,7 @@ out:
+ subsys_initcall(omap_register_i2c_bus_cmdline);
+ 
+ /**
+- * omap_register_i2c_bus - register I2C bus with device descriptors
++ * omap_plat_register_i2c_bus - register I2C bus with device descriptors
+  * @bus_id: bus id counting from number 1
+  * @clkrate: clock rate of the bus in kHz
+  * @info: pointer into I2C device descriptor table or NULL
+@@ -217,7 +177,7 @@ subsys_initcall(omap_register_i2c_bus_cmdline);
+  *
+  * Returns 0 on success or an error code.
+  */
+-int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
++int __init omap_plat_register_i2c_bus(int bus_id, u32 clkrate,
+ 			  struct i2c_board_info const *info,
+ 			  unsigned len)
+ {
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index 064f173..754fbc8 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -27,7 +27,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP_COMMON_H
+ #define __ARCH_ARM_MACH_OMAP_COMMON_H
+ 
+-#include <linux/i2c.h>
++#include <plat/i2c.h>
+ 
+ struct sys_timer;
+ 
+@@ -36,18 +36,6 @@ extern void __iomem *gic_cpu_base_addr;
+ 
+ extern void omap_map_common_io(void);
+ extern struct sys_timer omap_timer;
+-#if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
+-extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
+-				 struct i2c_board_info const *info,
+-				 unsigned len);
+-#else
+-static inline int omap_register_i2c_bus(int bus_id, u32 clkrate,
+-				 struct i2c_board_info const *info,
+-				 unsigned len)
+-{
+-	return 0;
+-}
+-#endif
+ 
+ /* IO bases for various OMAP processors */
+ struct omap_globals {
+diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/plat-omap/include/plat/i2c.h
+new file mode 100644
+index 0000000..585d9ca
+--- /dev/null
++++ b/arch/arm/plat-omap/include/plat/i2c.h
+@@ -0,0 +1,39 @@
++/*
++ * Helper module for board specific I2C bus registration
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/i2c.h>
++
++#if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
++extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
++				 struct i2c_board_info const *info,
++				 unsigned len);
 +#else
-+#define board_mux	NULL
++static inline int omap_register_i2c_bus(int bus_id, u32 clkrate,
++				 struct i2c_board_info const *info,
++				 unsigned len)
++{
++	return 0;
++}
 +#endif
 +
- static void __init omap_zoom2_init(void)
- {
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	zoom_peripherals_init();
- 	zoom_debugboard_init();
- }
++int omap_plat_register_i2c_bus(int bus_id, u32 clkrate,
++				 struct i2c_board_info const *info,
++				 unsigned len);
 
