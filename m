@@ -1,70 +1,117 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: Merge plans for 2.6.33 merge window
-Date: Fri, 4 Dec 2009 01:28:14 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FAA0C55D@dbde02.ent.ti.com>
-References: <20091203173559.GR4348@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FAA0C54F@dbde02.ent.ti.com>
- <20091203184454.GS4348@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4 v4] OMAP: McBSP: Introduce caching in register
+ write operations
+Date: Thu, 3 Dec 2009 12:03:02 -0800
+Message-ID: <20091203200301.GB4348@atomide.com>
+References: <200912010410.10129.jkrzyszt@tis.icnet.pl>
+ <200912010415.52570.jkrzyszt@tis.icnet.pl>
+ <20091203094921.1106827a.jhnikula@gmail.com>
+ <200912031330.43464.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34762 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751412AbZLCT6Q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 14:58:16 -0500
-In-Reply-To: <20091203184454.GS4348@atomide.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62335 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752838AbZLCUDF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 15:03:05 -0500
+Content-Disposition: inline
+In-Reply-To: <200912031330.43464.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org
+
+Hi,
+
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091203 04:29]:
+> Reserve space inside omap_mcbsp structure for storing cached copies of McBSP
+> register values.
+> Modify the MCBSP_WRITE() macro to update the cache with every register write
+> operation.
+> Introduce a new macro that reads from the cache instead of hardware.
+> 
+> Applies on top of patch 2 from this series:
+> [PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API for caching
+> 
+> Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
+> commit 4421752e331cfb1d942b47ffdb26e451a8da58a0.
+> Compile-tested with omap_3430sdp_defconfig.
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> 
+> ---
+> Thursday 03 December 2009 08:49:21 Jarkko Nikula wrote:
+> > On Tue, 1 Dec 2009 04:15:50 +0100
+> > Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+> > >  #define MCBSP_WRITE(mcbsp, reg, val) \
+> > > -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
+> > > +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
+> > > +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1] \
+> > > +			= val)
+> > > +#define MCBSP_READ_CACHE(mcbsp, reg) \
+> > > +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1])
+> >
+> > These divisions by DDR1 are confusing. Use rather sizeof:
+> >
+> > reg_cache[OMAP_MCBSP_REG_##reg / sizeof(*mcbsp->reg_cache)]
+> 
+> Done.
+> 
+> Jarkko, many thanks for your cooperation :).
+> 
+> Janusz
+> 
+>  arch/arm/plat-omap/include/plat/mcbsp.h |    5 +++++
+>  arch/arm/plat-omap/mcbsp.c              |    7 ++++++-
+>  2 files changed, 11 insertions(+), 1 deletion(-)
+> 
+> --- git/arch/arm/plat-omap/include/plat/mcbsp.h.orig	2009-11-27 11:53:45.000000000 +0100
+> +++ git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-01 03:37:21.000000000 +0100
+> @@ -415,6 +415,11 @@ struct omap_mcbsp {
+>  	u16 max_tx_thres;
+>  	u16 max_rx_thres;
+>  #endif
+> +#ifdef CONFIG_ARCH_OMAP1
+> +	u16 reg_cache[OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1];
+> +#else
+> +	u32 reg_cache[OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
+> +#endif
+>  };
+>  extern struct omap_mcbsp **mcbsp_ptr;
+>  extern int omap_mcbsp_count;
+
+How about rather set:
+
+static u16 omap1_reg_cache[];
+
+and
+
+static u32 omap2_reg_cache[];
 
 
+> --- git/arch/arm/plat-omap/mcbsp.c.orig	2009-12-01 03:19:56.000000000 +0100
+> +++ git/arch/arm/plat-omap/mcbsp.c	2009-12-03 11:37:21.000000000 +0100
+> @@ -49,7 +49,12 @@ int omap_mcbsp_read(void __iomem *io_bas
+>  #define MCBSP_READ(mcbsp, reg) \
+>  		omap_mcbsp_read(mcbsp->io_base, OMAP_MCBSP_REG_##reg)
+>  #define MCBSP_WRITE(mcbsp, reg, val) \
+> -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
+> +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
+> +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
+> +				 sizeof(*mcbsp->reg_cache)] = val)
+> +#define MCBSP_READ_CACHE(mcbsp, reg) \
+> +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
+> +				  sizeof(*mcbsp->reg_cache)])
+>  
+>  #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
+>  #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
 
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Thursday, December 03, 2009 12:45 PM
->To: Pandita, Vikram
->Cc: linux-omap@vger.kernel.org
->Subject: Re: Merge plans for 2.6.33 merge window
->
->* Pandita, Vikram <vikram.pandita@ti.com> [091203 10:27]:
->> Tony
->>
->> >-----Original Message-----
->> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
->> >Lindgren
->> >Sent: Thursday, December 03, 2009 11:36 AM
->> >To: linux-omap@vger.kernel.org
->> >Subject: Merge plans for 2.6.33 merge window
->> >
->> >Hi all,
->> <snip>
->> >Then there are some new board files, like
->> >touchbook and various fixes.
->>
->> 3630 board support (zoom3/sdp3630) is already integrated in for-next.
->> However the only pending patches missing for 3630 boards to boot are these serial patches:
->> 	http://patchwork.kernel.org/patch/61671/
->> 	http://patchwork.kernel.org/patch/61672/
->>
->> Now there has been much discussion on the approach (errata vs feature).
->> As a moderator, how would you like us to proceed on this?
->
->The best solution way would be to check the revision register for the
->serial module if available and then initialize the serial port
->accordinly.
->
->If this feature cannot be checked in the serial module, and is only
->needed during the serial init, you might as well implement the test
->in arch/arm/mach-omap2/serial.c. So probably no need to add that to
->id.c.
+Then rather than doing this cache manipulation in the macro, just
+do it in the omap_mcbsp_read/write functions based on the
+cpu_class_is_omap1() accessing omap1_reg_cache or omap2_reg_cache.
+This way you can get rid of the ifdef else.
 
-Looking into this aspect to override the serial_in() function based on IP version check in mach-omap2/serial.c file.
+Regards,
 
+Tony
 
->
->Regards,
->
->Tony
