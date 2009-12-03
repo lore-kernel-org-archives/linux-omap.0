@@ -1,71 +1,92 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 8/8] OMAP1 clock: convert mach-omap1/clock.h to
-	mach-omap1/clock_data.c
-Date: Thu, 3 Dec 2009 12:11:57 +0000
-Message-ID: <20091203121157.GC20379@n2100.arm.linux.org.uk>
-References: <20091203095830.1203.76290.stgit@localhost.localdomain> <20091203100707.1203.98247.stgit@localhost.localdomain> <20091203102700.GA30423@flint.arm.linux.org.uk> <alpine.DEB.2.00.0912030331360.13408@utopia.booyaka.com> <20091203104354.GB20379@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0912030355050.13408@utopia.booyaka.com> <alpine.DEB.2.00.0912030424050.13408@utopia.booyaka.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH 3/4 v4] OMAP: McBSP: Introduce caching in register write operations
+Date: Thu, 3 Dec 2009 13:30:42 +0100
+Message-ID: <200912031330.43464.jkrzyszt@tis.icnet.pl>
+References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <200912010415.52570.jkrzyszt@tis.icnet.pl> <20091203094921.1106827a.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50335 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753908AbZLCMMF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 07:12:05 -0500
+Received: from d1.icnet.pl ([212.160.220.21]:41030 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751278AbZLCMan (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Dec 2009 07:30:43 -0500
+In-Reply-To: <20091203094921.1106827a.jhnikula@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0912030424050.13408@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Thu, Dec 03, 2009 at 04:24:35AM -0700, Paul Walmsley wrote:
-> @@ -42,134 +47,19 @@ static void clk_omap1_dummy_disable(struct clk *clk)
->  {
->  }
->  
-> -static const struct clkops clkops_dummy = {
-> -	.enable = clk_omap1_dummy_enable,
-> -	.disable = clk_omap1_dummy_disable,
-> -};
-...
-> +/*
-> + * clkops
-> + */
->  
-> -	/* Turn off DSP and ARM_TIMXO. Make sure ARM_INTHCK is not divided */
-> -	/* (on 730, bit 13 must not be cleared) */
-> -	if (cpu_is_omap7xx())
-> -		omap_writew(omap_readw(ARM_CKCTL) & 0x2fff, ARM_CKCTL);
-> -	else
-> -		omap_writew(omap_readw(ARM_CKCTL) & 0x0fff, ARM_CKCTL);
-> +const struct clkops clkops_dspck = {
-> +	.enable		= omap1_clk_enable_dsp_domain,
-> +	.disable	= omap1_clk_disable_dsp_domain,
-> +};
->  
-> -	/* Put DSP/MPUI into reset until needed */
-> -	omap_writew(0, ARM_RSTCT1);
-> -	omap_writew(1, ARM_RSTCT2);
-> -	omap_writew(0x400, ARM_IDLECT1);
-> +const struct clkops clkops_dummy = {
-> +	.enable		= clk_omap1_dummy_enable,
-> +	.disable	= clk_omap1_dummy_disable,
-> +};
->  
-> -	/*
-> -	 * According to OMAP5910 Erratum SYS_DMA_1, bit DMACK_REQ (bit 8)
-> -	 * of the ARM_IDLECT2 register must be set to zero. The power-on
-> -	 * default value of this bit is one.
-> -	 */
-> -	omap_writew(0x0000, ARM_IDLECT2);	/* Turn LCD clock off also */
-> +const struct clkops clkops_uart = {
-> +	.enable		= omap1_clk_enable_uart_functional,
-> +	.disable	= omap1_clk_disable_uart_functional,
-> +};
+Reserve space inside omap_mcbsp structure for storing cached copies of McBSP
+register values.
+Modify the MCBSP_WRITE() macro to update the cache with every register write
+operation.
+Introduce a new macro that reads from the cache instead of hardware.
 
-What is the reasoning for moving all clkops away from their associated
-enable/disable functions right to the end of the file?
+Applies on top of patch 2 from this series:
+[PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API for caching
 
-Isn't it better to have like stuff together, in much the same way that
-it's preferred to have EXPORT_SYMBOL next to their function/data that
-it's exporting?
+Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
+commit 4421752e331cfb1d942b47ffdb26e451a8da58a0.
+Compile-tested with omap_3430sdp_defconfig.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+
+---
+Thursday 03 December 2009 08:49:21 Jarkko Nikula wrote:
+> On Tue, 1 Dec 2009 04:15:50 +0100
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+> >  #define MCBSP_WRITE(mcbsp, reg, val) \
+> > -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
+> > +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
+> > +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1] \
+> > +			= val)
+> > +#define MCBSP_READ_CACHE(mcbsp, reg) \
+> > +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1])
+>
+> These divisions by DDR1 are confusing. Use rather sizeof:
+>
+> reg_cache[OMAP_MCBSP_REG_##reg / sizeof(*mcbsp->reg_cache)]
+
+Done.
+
+Jarkko, many thanks for your cooperation :).
+
+Janusz
+
+ arch/arm/plat-omap/include/plat/mcbsp.h |    5 +++++
+ arch/arm/plat-omap/mcbsp.c              |    7 ++++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+--- git/arch/arm/plat-omap/include/plat/mcbsp.h.orig	2009-11-27 11:53:45.000000000 +0100
++++ git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-01 03:37:21.000000000 +0100
+@@ -415,6 +415,11 @@ struct omap_mcbsp {
+ 	u16 max_tx_thres;
+ 	u16 max_rx_thres;
+ #endif
++#ifdef CONFIG_ARCH_OMAP1
++	u16 reg_cache[OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1];
++#else
++	u32 reg_cache[OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
++#endif
+ };
+ extern struct omap_mcbsp **mcbsp_ptr;
+ extern int omap_mcbsp_count;
+--- git/arch/arm/plat-omap/mcbsp.c.orig	2009-12-01 03:19:56.000000000 +0100
++++ git/arch/arm/plat-omap/mcbsp.c	2009-12-03 11:37:21.000000000 +0100
+@@ -49,7 +49,12 @@ int omap_mcbsp_read(void __iomem *io_bas
+ #define MCBSP_READ(mcbsp, reg) \
+ 		omap_mcbsp_read(mcbsp->io_base, OMAP_MCBSP_REG_##reg)
+ #define MCBSP_WRITE(mcbsp, reg, val) \
+-		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
++		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
++		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
++				 sizeof(*mcbsp->reg_cache)] = val)
++#define MCBSP_READ_CACHE(mcbsp, reg) \
++		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
++				  sizeof(*mcbsp->reg_cache)])
+ 
+ #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
+ #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
