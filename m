@@ -1,173 +1,78 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 04/10] OMAP3 hwmod: drop most of the
-	OCP_SYSCONFIG.CLOCKACTIVITY code
-Date: Thu, 03 Dec 2009 06:49:49 -0700
-Message-ID: <20091203134948.17146.69091.stgit@localhost.localdomain>
+Subject: [PATCH 10/10] OMAP: omap_device: track latency in nanoseconds
+Date: Thu, 03 Dec 2009 06:49:59 -0700
+Message-ID: <20091203134957.17146.62589.stgit@localhost.localdomain>
 References: <20091203134852.17146.81997.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49050 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49070 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756163AbZLCNyg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 08:54:36 -0500
+	with ESMTP id S1756179AbZLCNyi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 08:54:38 -0500
 In-Reply-To: <20091203134852.17146.81997.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Rajendra Nayak <rnayak@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Sebastien Sabatier <s-sabatier1@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Earlier, the hwmod code had considered the OCP_SYSCONFIG.CLOCKACTIVITY
-bits to be incremental power saving bits, controlling internal IP
-block clock gates.  This was a misapprehension.  The CLOCKACTIVITY
-bits are used to indicate, in advance, which clocks will be cut when
-the module acknowledges an idle request.  This enables the IP block to
-take whatever action is necessary to complete any in-progress work
-before asserting its IdleAck.
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-In the current Linux-OMAP code, this implies that the clock framework
-should be changing module CLOCKACTIVITY bits as module clocks are enabl=
-ed
-and disabled.  We don't do that yet, but in the future, we should.
-This must wait until the clock tree is annotated with omap_hwmod pointe=
-rs
-(or vice-versa).  In the meantime, drop most of the hwmod code that
-controls CLOCKACTIVITY bits to avoid confusion.
+Rather than having to do a usecs = nsecs / NSECS_PER_USEC to
+track latency in usecs, just track it in nanoseconds.
 
-This patch has benefited from many illuminating discussions with (in
-alphabetical order) Beno=C3=AEt Cousson <b-cousson@ti.com>, Rajendra Na=
-yak
-<rnayak@ti.com>, and Sebastien Sabatier <s-sabatier1@ti.com>.
-
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Sebastien Sabatier <s-sabatier1@ti.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   88 ++----------------------------=
---------
- 1 files changed, 5 insertions(+), 83 deletions(-)
+ arch/arm/plat-omap/include/plat/omap_device.h |    4 ++--
+ arch/arm/plat-omap/omap_device.c              |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-index 234567b..cb5bf34 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -591,6 +591,11 @@ static void _sysc_enable(struct omap_hwmod *oh)
-=20
- 	/* XXX OCP ENAWAKEUP bit? */
-=20
-+	/*
-+	 * XXX The clock framework should handle this, by
-+	 * calling into this code.  But this must wait until the
-+	 * clock structures are tagged with omap_hwmod entries
-+	 */
- 	if (oh->flags & HWMOD_SET_DEFAULT_CLOCKACT &&
- 	    oh->sysconfig->sysc_flags & SYSC_HAS_CLOCKACTIVITY)
- 		_set_clockactivity(oh, oh->sysconfig->clockact, &v);
-@@ -917,33 +922,6 @@ static int _shutdown(struct omap_hwmod *oh)
- }
-=20
- /**
-- * _write_clockact_lock - set the module's clockactivity bits
-- * @oh: struct omap_hwmod *
-- * @clockact: CLOCKACTIVITY field bits
-- *
-- * Writes the CLOCKACTIVITY bits @clockact to the hwmod @oh
-- * OCP_SYSCONFIG register.  Returns -EINVAL if the hwmod is in the
-- * wrong state or returns 0.
-- */
--static int _write_clockact_lock(struct omap_hwmod *oh, u8 clockact)
--{
--	u32 v;
--
--	if (!oh->sysconfig ||
--	    !(oh->sysconfig->sysc_flags & SYSC_HAS_CLOCKACTIVITY))
--		return -EINVAL;
--
--	mutex_lock(&omap_hwmod_mutex);
--	v =3D oh->_sysc_cache;
--	_set_clockactivity(oh, clockact, &v);
--	_write_sysconfig(v, oh);
--	mutex_unlock(&omap_hwmod_mutex);
--
--	return 0;
--}
--
--
--/**
-  * _setup - do initial configuration of omap_hwmod
-  * @oh: struct omap_hwmod *
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index d939246..dc1fac1 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -50,8 +50,8 @@
+  * @pm_lats: ptr to an omap_device_pm_latency table
+  * @pm_lats_cnt: ARRAY_SIZE() of what is passed to @pm_lats
+  * @pm_lat_level: array index of the last odpl entry executed - -1 if never
+- * @dev_wakeup_lat: dev wakeup latency in microseconds
+- * @_dev_wakeup_lat_limit: dev wakeup latency limit in usec - set by OMAP PM
++ * @dev_wakeup_lat: dev wakeup latency in nanoseconds
++ * @_dev_wakeup_lat_limit: dev wakeup latency limit in nsec - set by OMAP PM
+  * @_state: one of OMAP_DEVICE_STATE_* (see above)
+  * @flags: device flags
   *
-@@ -1496,62 +1474,6 @@ int omap_hwmod_del_initiator_dep(struct omap_hwm=
-od *oh,
- }
-=20
- /**
-- * omap_hwmod_set_clockact_none - set clockactivity test to BOTH
-- * @oh: struct omap_hwmod *
-- *
-- * On some modules, this function can affect the wakeup latency vs.
-- * power consumption balance.  Intended to be called by the
-- * omap_device layer.  Passes along the return value from
-- * _write_clockact_lock().
-- */
--int omap_hwmod_set_clockact_both(struct omap_hwmod *oh)
--{
--	return _write_clockact_lock(oh, CLOCKACT_TEST_BOTH);
--}
--
--/**
-- * omap_hwmod_set_clockact_none - set clockactivity test to MAIN
-- * @oh: struct omap_hwmod *
-- *
-- * On some modules, this function can affect the wakeup latency vs.
-- * power consumption balance.  Intended to be called by the
-- * omap_device layer.  Passes along the return value from
-- * _write_clockact_lock().
-- */
--int omap_hwmod_set_clockact_main(struct omap_hwmod *oh)
--{
--	return _write_clockact_lock(oh, CLOCKACT_TEST_MAIN);
--}
--
--/**
-- * omap_hwmod_set_clockact_none - set clockactivity test to ICLK
-- * @oh: struct omap_hwmod *
-- *
-- * On some modules, this function can affect the wakeup latency vs.
-- * power consumption balance.  Intended to be called by the
-- * omap_device layer.  Passes along the return value from
-- * _write_clockact_lock().
-- */
--int omap_hwmod_set_clockact_iclk(struct omap_hwmod *oh)
--{
--	return _write_clockact_lock(oh, CLOCKACT_TEST_ICLK);
--}
--
--/**
-- * omap_hwmod_set_clockact_none - set clockactivity test to NONE
-- * @oh: struct omap_hwmod *
-- *
-- * On some modules, this function can affect the wakeup latency vs.
-- * power consumption balance.  Intended to be called by the
-- * omap_device layer.  Passes along the return value from
-- * _write_clockact_lock().
-- */
--int omap_hwmod_set_clockact_none(struct omap_hwmod *oh)
--{
--	return _write_clockact_lock(oh, CLOCKACT_TEST_NONE);
--}
--
--/**
-  * omap_hwmod_enable_wakeup - allow device to wake up the system
-  * @oh: struct omap_hwmod *
-  *
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 51c9d56..1e5648d 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -142,10 +142,10 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+ 		read_persistent_clock(&b);
+ 
+ 		c = timespec_sub(b, a);
+-		act_lat = timespec_to_ns(&c) / NSEC_PER_USEC;
++		act_lat = timespec_to_ns(&c);
+ 
+ 		pr_debug("omap_device: %s: pm_lat %d: activate: elapsed time "
+-			 "%llu usec\n", od->pdev.name, od->pm_lat_level,
++			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
+ 			 act_lat);
+ 
+ 		WARN(act_lat > odpl->activate_lat, "omap_device: %s.%d: "
+@@ -198,10 +198,10 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+ 		read_persistent_clock(&b);
+ 
+ 		c = timespec_sub(b, a);
+-		deact_lat = timespec_to_ns(&c) / NSEC_PER_USEC;
++		deact_lat = timespec_to_ns(&c);
+ 
+ 		pr_debug("omap_device: %s: pm_lat %d: deactivate: elapsed time "
+-			 "%llu usec\n", od->pdev.name, od->pm_lat_level,
++			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
+ 			 deact_lat);
+ 
+ 		WARN(deact_lat > odpl->deactivate_lat, "omap_device: %s.%d: "
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
