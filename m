@@ -1,98 +1,144 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv2 1/2] ARM: VFP: Fixed suspend and added context save support
-Date: Thu,  3 Dec 2009 15:35:52 +0200
-Message-ID: <1259847353-22725-2-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1259847353-22725-1-git-send-email-tero.kristo@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH v2] OMAP3: SDRC: Comment out SDRC AC timing and MR changes
+ in CORE DVFS SRAM code
+Date: Thu, 3 Dec 2009 06:41:50 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0912030641150.13408@utopia.booyaka.com>
+References: <1254835224-19500-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.0910201918230.22645@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162039B3CF012@dlee02.ent.ti.com> <74583B8642AB8841B30447520659FCA9DDD9D7E9@dnce01.ent.ti.com>
+ <13B9B4C6EF24D648824FF11BE8967162039B459718@dlee02.ent.ti.com> <1F18D6510CF0474A8C9500565A7E41A2236DA1C1F3@NOK-EUMSG-02.mgdnok.nokia.com> <alpine.DEB.2.00.0912011832290.13408@utopia.booyaka.com> <4B160552.6050108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1259847353-22725-1-git-send-email-tero.kristo@nokia.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-511909081-1259847710=:13408"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:45384 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754686AbZLCNlo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 08:41:44 -0500
+In-Reply-To: <4B160552.6050108@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, Tero.Kristo@nokia.com, r-woodruff2@ti.com, b-cousson@ti.com, rnayak@ti.com, c-sucur@ti.com
 
-From: Tero Kristo <tero.kristo@nokia.com>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-In some ARM architectures, like OMAP3, the VFP context can be lost during
-dynamic sleep cycle. For this purpose, there is now a function
-vfp_pm_save_context() that should be called before the VFP is assumed to
-lose context. Next VFP trap will then restore context automatically.
+--155748971-511909081-1259847710=:13408
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-We need to have the last_VFP_context[cpu] cleared after the save in idle,
-else the restore would fail to restore when it sees that the last_VFP_context
-is same as the current threads vfp_state. This happens when the same
-process/thread traps an exception post idle.
 
-This patch also fixes a potential problem with vfp_pm_suspend(), where
-VFP context can be lost if the current process does not have VFP enabled.
-Fixed by calling vfp_pm_save_context().
+The code that reprograms the SDRC memory controller during CORE DVFS,
+mach-omap2/sram34xx.S:omap3_sram_configure_core_dpll(), does not
+ensure that all L3 initiators are prevented from accessing the SDRAM
+before modifying the SDRC AC timing and MR registers.  This can cause
+memory to be corrupted or cause the SDRC to enter an unpredictable
+state.  This patch places that code behind a Kconfig option,
+CONFIG_OMAP3_SDRC_AC_TIMING for now, and adds a note explaining what
+is going on.  Ideally the code can be added back in once supporting
+code is present to ensure that other initiators aren't touching the
+SDRAM.  At the very least, these registers should be reprogrammable
+during kernel init to deal with buggy bootloaders.  Users who know
+that all other system initiators will not be touching the SDRAM can
+also re-enable this Kconfig option.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+This is a modification of a patch originally written by Rajendra Nayak
+<rnayak@ti.com> (the original is at http://patchwork.kernel.org/patch/51927=
+/).
+Rather than removing the code completely, this patch just comments it out.
+
+Thanks to Beno=EEt Cousson <b-cousson@ti.com> and Christophe Sucur
+<c-sucur@ti.com> for explaining the technical basis for this and for
+explaining what can be done to make this path work in future code.
+Thanks to Richard Woodruff <r-woodruff2@ti.com> and Nishanth Menon
+<nm@ti.com> for their comments.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Christophe Sucur <c-sucur@ti.com>
+Cc: Beno=EEt Cousson <b-cousson@ti.com>
 Cc: Richard Woodruff <r-woodruff2@ti.com>
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/vfp/vfpmodule.c |   28 ++++++++++++++++++++--------
- 1 files changed, 20 insertions(+), 8 deletions(-)
+Cc: Nishanth Menon <nm@ti.com>
 
-diff --git a/arch/arm/vfp/vfpmodule.c b/arch/arm/vfp/vfpmodule.c
-index 2d7423a..920a33b 100644
---- a/arch/arm/vfp/vfpmodule.c
-+++ b/arch/arm/vfp/vfpmodule.c
-@@ -329,22 +329,34 @@ static void vfp_enable(void *unused)
- #ifdef CONFIG_PM
- #include <linux/sysdev.h>
- 
--static int vfp_pm_suspend(struct sys_device *dev, pm_message_t state)
-+void vfp_pm_save_context(void)
- {
--	struct thread_info *ti = current_thread_info();
- 	u32 fpexc = fmrx(FPEXC);
-+	unsigned int cpu = get_cpu();
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index aad194f..a8d2610 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -100,3 +100,16 @@ config MACH_OMAP_ZOOM2
+ config MACH_OMAP_4430SDP
+ =09bool "OMAP 4430 SDP board"
+ =09depends on ARCH_OMAP4
 +
-+	/* Save last_VFP_context if needed */
-+	if (last_VFP_context[cpu]) {
-+		/* Enable vfp to save context */
-+		if (!(fpexc & FPEXC_EN)) {
-+			vfp_enable(NULL);
-+			fmxr(FPEXC, fpexc | FPEXC_EN);
-+		}
- 
--	/* if vfp is on, then save state for resumption */
--	if (fpexc & FPEXC_EN) {
- 		printk(KERN_DEBUG "%s: saving vfp state\n", __func__);
--		vfp_save_state(&ti->vfpstate, fpexc);
-+		vfp_save_state(last_VFP_context[cpu], fpexc);
- 
- 		/* disable, just in case */
--		fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
-+		fmxr(FPEXC, fpexc & ~FPEXC_EN);
++config OMAP3_SDRC_AC_TIMING
++=09bool "Enable SDRC AC timing register changes"
++=09depends on ARCH_OMAP3 && ARCH_OMAP34XX
++=09default n
++=09help
++=09  If you know that none of your system initiators will attempt to
++=09  access SDRAM during CORE DVFS, select Y here.  This should boost
++=09  SDRAM performance at lower CORE OPPs.  There are relatively few
++=09  users who will wish to say yes at this point - almost everyone will
++=09  wish to say no.  Selecting yes without understanding what is
++=09  going on could result in system crashes;
 +
-+		last_VFP_context[cpu] = NULL;
- 	}
- 
--	/* clear any information we had about last context state */
--	memset(last_VFP_context, 0, sizeof(last_VFP_context));
-+	put_cpu();
-+}
-+
-+static int vfp_pm_suspend(struct sys_device *dev, pm_message_t state)
-+{
-+	vfp_pm_save_context();
- 
- 	return 0;
- }
--- 
-1.5.4.3
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.=
+S
+index 82aa4a3..de99ba2 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -91,8 +91,19 @@
+  *  new SDRC_ACTIM_CTRL_B_1 register contents
+  *  new SDRC_MR_1 register value
+  *
+- * If the param SDRC_RFR_CTRL_1 is 0, the parameters
+- *  are not programmed into the SDRC CS1 registers
++ * If the param SDRC_RFR_CTRL_1 is 0, the parameters are not programmed in=
+to
++ * the SDRC CS1 registers
++ *
++ * NOTE: This code no longer attempts to program the SDRC AC timing and MR
++ * registers.  This is because the code currently cannot ensure that all
++ * L3 initiators (e.g., sDMA, IVA, DSS DISPC, etc.) are not accessing the
++ * SDRAM when the registers are written.  If the registers are changed whi=
+le
++ * an initiator is accessing SDRAM, memory can be corrupted and/or the SDR=
+C
++ * may enter an unpredictable state.  In the future, the intent is to
++ * re-enable this code in cases where we can ensure that no initiators are
++ * touching the SDRAM.  Until that time, users who know that their use cas=
+e
++ * can satisfy the above requirement can enable the CONFIG_OMAP3_SDRC_AC_T=
+IMING
++ * option.
+  */
+ ENTRY(omap3_sram_configure_core_dpll)
+ =09stmfd=09sp!, {r1-r12, lr}=09@ store regs to stack
+@@ -219,6 +230,7 @@ configure_sdrc:
+ =09ldr=09r12, omap_sdrc_rfr_ctrl_0_val=09@ fetch value from SRAM
+ =09ldr=09r11, omap3_sdrc_rfr_ctrl_0=09@ fetch addr from SRAM
+ =09str=09r12, [r11]=09=09=09@ store
++#ifdef CONFIG_OMAP3_SDRC_AC_TIMING
+ =09ldr=09r12, omap_sdrc_actim_ctrl_a_0_val
+ =09ldr=09r11, omap3_sdrc_actim_ctrl_a_0
+ =09str=09r12, [r11]
+@@ -228,11 +240,13 @@ configure_sdrc:
+ =09ldr=09r12, omap_sdrc_mr_0_val
+ =09ldr=09r11, omap3_sdrc_mr_0
+ =09str=09r12, [r11]
++#endif
+ =09ldr=09r12, omap_sdrc_rfr_ctrl_1_val
+ =09cmp=09r12, #0=09=09=09@ if SDRC_RFR_CTRL_1 is 0,
+ =09beq=09skip_cs1_prog=09=09@  do not program cs1 params
+ =09ldr=09r11, omap3_sdrc_rfr_ctrl_1
+ =09str=09r12, [r11]
++#ifdef CONFIG_OMAP3_SDRC_AC_TIMING
+ =09ldr=09r12, omap_sdrc_actim_ctrl_a_1_val
+ =09ldr=09r11, omap3_sdrc_actim_ctrl_a_1
+ =09str=09r12, [r11]
+@@ -242,6 +256,7 @@ configure_sdrc:
+ =09ldr=09r12, omap_sdrc_mr_1_val
+ =09ldr=09r11, omap3_sdrc_mr_1
+ =09str=09r12, [r11]
++#endif
+ skip_cs1_prog:
+ =09ldr=09r12, [r11]=09=09@ posted-write barrier for SDRC
+ =09bx=09lr
+--155748971-511909081-1259847710=:13408--
