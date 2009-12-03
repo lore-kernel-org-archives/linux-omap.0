@@ -1,58 +1,56 @@
-From: Peter Barada <peterb@logicpd.com>
-Subject: linux-2.6.28-rc8 wedges in twl_mmc_set_voltage()...
-Date: Thu, 03 Dec 2009 12:57:47 -0500
-Message-ID: <1259863067.2066.38.camel@thunk>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: I2C broken on OMAP 2430SDP?
+Date: Thu, 3 Dec 2009 23:39:15 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FAA0C54C@dbde02.ent.ti.com>
+References: <alpine.DEB.2.00.0912010857070.13408@utopia.booyaka.com>
+ <CD8CC2B65FEE304DA95744A5472698F2029E755F76@dlee06.ent.ti.com>
+ <alpine.DEB.2.00.0912030559500.13408@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:4848 "EHLO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753061AbZLCR5n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 12:57:43 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:44885 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752001AbZLCSJR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 13:09:17 -0500
+In-Reply-To: <alpine.DEB.2.00.0912030559500.13408@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-
-I've run across a semi-consistent (~15%) hang on Logic's omap3530 LV SOM
-running a 2.6.28-rc8 omap kernel where it dies in twl_mmc_set_voltage().
-Adding in printk's perturbs the frequency of failure, but it
-consistently dies on the same call. I've added the following
-printk's(and others) in twl_mmc_set_voltage() to straddle the failure:
-
- 	printk("%s: dev_grp_val 0x%x vmmc_dev_grp 0x%x\n", __FUNCTION__, dev_grp_val, c->twl_vmmc_dev_grp);
-
-	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-					dev_grp_val, c->twl_vmmc_dev_grp);
-	printk("%s:%d ret %d\n", __FUNCTION__, __LINE__, ret);
-	if (ret)
-		return ret;
-
-When it dies, I consistently see the first printk, but not the 2nd after
-returning from twl4030_i2c_write_u8().  The log (when it dies) looks
-like:
-
-cpuidle: using governor ladder                                                  
-cpuidle: using governor menu                                                    
-mmci-omap-hs mmci-omap-hs.0: mmc_fclk: enabled                                  
-mmci-omap-hs mmci-omap-hs.0: Failed to get debounce clock                       
-omap_mmc_probe:1180                                                             
-twl_mmc1_set_power: slot 0 power_on 0 vdd 0                                     
-twl_mmc1_set_power:294                                                          
-twl_mmc_set_voltage: vdd 0                                                      
-twl_mmc_set_voltage: dev_grp_val 0x0 vmmc_dev_grp 0x27                          
+To: Paul Walmsley <paul@pwsan.com>, "Sonasath, Moiz" <m-sonasath@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
 
-What's really weird is that Sysrq won't tell me anything after its died.
-As a result I'm really stumped on trying to figure out what's gone
-wrong.
+>-----Original Message-----
+>From: Paul Walmsley [mailto:paul@pwsan.com]
+>Sent: Thursday, December 03, 2009 7:01 AM
+>To: Sonasath, Moiz
+>Cc: linux-omap@vger.kernel.org; Pandita, Vikram; G, Manjunath Kondaiah
+>Subject: RE: I2C broken on OMAP 2430SDP?
+>
+>Hello Moiz,
+>
+>On Wed, 2 Dec 2009, Sonasath, Moiz wrote:
+>
+>> Hello Paul!
+<snip>
+>bio: create slab <bio-0> at 0
+><6>i2c_omap i2c_omap.1: bus 1 rev3.6 at 400 kHz
+><6>i2c_omap i2c_omap.2: bus 2 rev3.6 at 2600 kHz
 
-Has anyone stumbled across this before or have any ideas on how I can
-debug this further?  I'm currently using the CodeSourcery 2009q1-203
-compiler.
+By any chance is this related to running i2c at slower clock speed? 
+commit 6b61a83b31744d143b0e7bc92f463d831319eabc
+    The maximum I2C speed depends on the system clock for GAIA:
+    2.2 MHz (sys-clk = 19.2 MHz)
+    2.4 MHz (sys-clk = 26 MHz)
+    2.9 MHz (sys-clk = 38.4 MHz)
 
-Thanks in advance!
 
--- 
-Peter Barada <peterb@logicpd.com>
-Logic Product Development, Inc.
+><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
+><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
+><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
+><3>twl4030: clock init err [-110]
+><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
+><3>twl4030: err -110 initializing gpio IMR
+><4>i2c_omap i2c_omap.2: timeout waiting for bus ready
+><3>twl4030: err -110 initializing gpio SIH_CTRL
