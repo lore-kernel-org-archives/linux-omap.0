@@ -1,83 +1,91 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v3 0/4] OMAP: McBSP: Use register cache
-Date: Thu, 3 Dec 2009 13:31:20 +0100
-Message-ID: <200912031331.21446.jkrzyszt@tis.icnet.pl>
-References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <20091203094905.4c4fec7b.jhnikula@gmail.com> <200912031135.37985.peter.ujfalusi@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 8/8] OMAP1 clock: convert mach-omap1/clock.h to
+ mach-omap1/clock_data.c
+Date: Thu, 3 Dec 2009 05:33:44 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0912030520360.13408@utopia.booyaka.com>
+References: <20091203095830.1203.76290.stgit@localhost.localdomain> <20091203100707.1203.98247.stgit@localhost.localdomain> <20091203102700.GA30423@flint.arm.linux.org.uk> <alpine.DEB.2.00.0912030331360.13408@utopia.booyaka.com> <20091203104354.GB20379@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.0912030355050.13408@utopia.booyaka.com> <alpine.DEB.2.00.0912030424050.13408@utopia.booyaka.com> <20091203121157.GC20379@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:41236 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754084AbZLCMbR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 07:31:17 -0500
-In-Reply-To: <200912031135.37985.peter.ujfalusi@nokia.com>
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:50798 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754170AbZLCMdi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 07:33:38 -0500
+In-Reply-To: <20091203121157.GC20379@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: ext Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-Thursday 03 December 2009 10:35:37 Peter Ujfalusi napisa=C5=82(a):
-> Hello,
+Hello Russell,
+
+On Thu, 3 Dec 2009, Russell King - ARM Linux wrote:
+
+> On Thu, Dec 03, 2009 at 04:24:35AM -0700, Paul Walmsley wrote:
+> > @@ -42,134 +47,19 @@ static void clk_omap1_dummy_disable(struct clk *clk)
+> >  {
+> >  }
+> >  
+> > -static const struct clkops clkops_dummy = {
+> > -	.enable = clk_omap1_dummy_enable,
+> > -	.disable = clk_omap1_dummy_disable,
+> > -};
+> ...
+> > +/*
+> > + * clkops
+> > + */
+> >  
+> > -	/* Turn off DSP and ARM_TIMXO. Make sure ARM_INTHCK is not divided */
+> > -	/* (on 730, bit 13 must not be cleared) */
+> > -	if (cpu_is_omap7xx())
+> > -		omap_writew(omap_readw(ARM_CKCTL) & 0x2fff, ARM_CKCTL);
+> > -	else
+> > -		omap_writew(omap_readw(ARM_CKCTL) & 0x0fff, ARM_CKCTL);
+> > +const struct clkops clkops_dspck = {
+> > +	.enable		= omap1_clk_enable_dsp_domain,
+> > +	.disable	= omap1_clk_disable_dsp_domain,
+> > +};
+> >  
+> > -	/* Put DSP/MPUI into reset until needed */
+> > -	omap_writew(0, ARM_RSTCT1);
+> > -	omap_writew(1, ARM_RSTCT2);
+> > -	omap_writew(0x400, ARM_IDLECT1);
+> > +const struct clkops clkops_dummy = {
+> > +	.enable		= clk_omap1_dummy_enable,
+> > +	.disable	= clk_omap1_dummy_disable,
+> > +};
+> >  
+> > -	/*
+> > -	 * According to OMAP5910 Erratum SYS_DMA_1, bit DMACK_REQ (bit 8)
+> > -	 * of the ARM_IDLECT2 register must be set to zero. The power-on
+> > -	 * default value of this bit is one.
+> > -	 */
+> > -	omap_writew(0x0000, ARM_IDLECT2);	/* Turn LCD clock off also */
+> > +const struct clkops clkops_uart = {
+> > +	.enable		= omap1_clk_enable_uart_functional,
+> > +	.disable	= omap1_clk_disable_uart_functional,
+> > +};
+> 
+> What is the reasoning for moving all clkops away from their associated
+> enable/disable functions right to the end of the file?
 >
-> On Thursday 03 December 2009 09:49:05 ext Jarkko Nikula wrote:
-> > On Tue, 1 Dec 2009 04:10:07 +0100
-> >
-> > Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
-> > > Change the way McBSP registers are maintained: store values writt=
-en to
-> > > the device in a cache in order to  make use of those cached value=
-s when
-> > > convenient.
-> > >
-> > > This could help for developing the McBSP context save/restore fea=
-tures,
-> > > as well as solve the problem of possible register corruption
-> > > experienced on OMAP1510 based Amstrad Delta board, at least.
-> > >
-> > > Janusz Krzysztofik (4):
-> > > 	OMAP: McBSP: Use macros for all register read/write operations
-> > > 	OMAP: McBSP: Prepare register read/write macros API for caching
-> > > 	OMAP: McBSP: Introduce caching in register write operations
-> > > 	OMAP: McBSP: Use cache when modifying individual register bits
-> > >
-> > >  arch/arm/plat-omap/include/plat/mcbsp.h |    5
-> > >  arch/arm/plat-omap/mcbsp.c              |  397
-> > > ++++++++++++++++++++++++--------------------------- 2 files chang=
-ed,
-> > > 198 insertions(+), 204 deletions(-)
-> >
-> > Looks good to me and audio works fine with the Beagle. One minor
-> > comment to the patch 3.
->
-> Sorry, but I have totally missed the discussion about this in l-o..
-> It looks good for me as well, the only comment I have is the same as =
-Jarkko
-> for patch 3.
-> I was about to give it a try, but since Jarkko already tested it on B=
-eagle,
-> I'm OK with this series (with the comment for patch 3).
+> Isn't it better to have like stuff together, in much the same way that
+> it's preferred to have EXPORT_SYMBOL next to their function/data that
+> it's exporting?
 
-Hi Peter,
+My preference was to keep data separated from code in the source files; I 
+think it is slightly more readable.
 
-That's probably my fault, I've dropped you from CC: at some point, sorr=
-y.
+The other consideration is that there are some patches in the works here 
+to move all of the struct clk function pointers into the struct clkops.  
+When this happens, many function pointers are shared between struct 
+clkops, and so it becomes somewhat arbitrary as to which set of functions 
+the struct clkops is placed near.
 
-I'm still learning whom I should CC: and whom I shouldn't in order to r=
-ise my=20
-chances on patches being commented, acknowledged and applied in a reaso=
-nable=20
-time ;). Initial version of this one was waiting since August, that's w=
-hy I=20
-tried to narrow the audience in hope it could help getting it rejected =
-or=20
-accepted finally.
+But as for the current set of patches, there's no major attachment to the 
+the placement of the struct clkops.  I'd be happy to move them back, close 
+to the enable/disable code if you prefer.  Would you like me to do so?
 
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+- Paul
