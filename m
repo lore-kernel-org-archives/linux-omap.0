@@ -1,60 +1,37 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 09/10] OMAP: omap_device: fix nsec/usec conversion in latency
-	calculations
-Date: Thu, 03 Dec 2009 06:49:57 -0700
-Message-ID: <20091203134955.17146.60626.stgit@localhost.localdomain>
-References: <20091203134852.17146.81997.stgit@localhost.localdomain>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: [PATCH 0/2]OMAP: Introducing gpmc-nand.c
+Date: Thu, 3 Dec 2009 19:33:56 +0530
+Message-ID: <ce9ab5790912030603x4fb51ec1la3ea19ab9b06934@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49067 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756178AbZLCNyi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 08:54:38 -0500
-In-Reply-To: <20091203134852.17146.81997.stgit@localhost.localdomain>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:47192 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753595AbZLCOEK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 09:04:10 -0500
+Received: by bwz27 with SMTP id 27so1101557bwz.21
+        for <linux-omap@vger.kernel.org>; Thu, 03 Dec 2009 06:04:16 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Linux MTD <linux-mtd@lists.infradead.org>
 
-From: Kevin Hilman <khilman@deeprootsystems.com>
+>From fadc45cca4026d26d00a759efdc681303b0d3097 Mon Sep 17 00:00:00 2001
+From: Vimal Singh <vimalsingh@ti.com>
+Date: Thu, 3 Dec 2009 18:35:23 +0530
+Subject: [PATCH] OMAP: Introducing gpmc-nand.c
 
-Use
+This patch series introduces generic gpmc-nand.c for nand device
+related gpmc init.
 
-   usecs = nsecs / NSEC_PER_USEC;
+Vimal Singh (2):
+  Correcting GPMC_CONFIG1_DEVICETYPE_NAND
+  Introducing 'gpmc-nand.c' for GPMC specific NAND init
 
-instead of
-
-   usecs = nsecs * NSEC_PER_USEC;
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/plat-omap/omap_device.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 9a502af..51c9d56 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -142,7 +142,7 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
- 		read_persistent_clock(&b);
- 
- 		c = timespec_sub(b, a);
--		act_lat = timespec_to_ns(&c) * NSEC_PER_USEC;
-+		act_lat = timespec_to_ns(&c) / NSEC_PER_USEC;
- 
- 		pr_debug("omap_device: %s: pm_lat %d: activate: elapsed time "
- 			 "%llu usec\n", od->pdev.name, od->pm_lat_level,
-@@ -198,7 +198,7 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
- 		read_persistent_clock(&b);
- 
- 		c = timespec_sub(b, a);
--		deact_lat = timespec_to_ns(&c) * NSEC_PER_USEC;
-+		deact_lat = timespec_to_ns(&c) / NSEC_PER_USEC;
- 
- 		pr_debug("omap_device: %s: pm_lat %d: deactivate: elapsed time "
- 			 "%llu usec\n", od->pdev.name, od->pm_lat_level,
-
-
+ arch/arm/mach-omap2/Makefile           |    3 +
+ arch/arm/mach-omap2/gpmc-nand.c        |  141 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/gpmc.h |    2 +-
+ arch/arm/plat-omap/include/plat/nand.h |    6 ++
+ drivers/mtd/nand/omap2.c               |   26 +-----
+ 5 files changed, 154 insertions(+), 24 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
