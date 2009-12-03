@@ -1,71 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Preventing OMAP3 serial driver to take control of all UARTs
-Date: Thu, 3 Dec 2009 11:52:44 -0800
-Message-ID: <20091203195243.GA4348@atomide.com>
-References: <20091130084651.GA17675@esdhcp04058.research.nokia.com>
- <1259599010.4649.51.camel@thunk>
- <fa686aa40911300901nd47259ar2e1beae7be447937@mail.gmail.com>
- <20091130194031.GV4348@atomide.com>
- <fa686aa40912020707p70eb693dp6fcd03facabb5892@mail.gmail.com>
- <20091203010051.GP4348@atomide.com>
- <20091203065651.GH17675@esdhcp04058.research.nokia.com>
- <1259830011.10805.60.camel@localhost>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: Merge plans for 2.6.33 merge window
+Date: Fri, 4 Dec 2009 01:28:14 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FAA0C55D@dbde02.ent.ti.com>
+References: <20091203173559.GR4348@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FAA0C54F@dbde02.ent.ti.com>
+ <20091203184454.GS4348@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49236 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754938AbZLCTwt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 14:52:49 -0500
-Content-Disposition: inline
-In-Reply-To: <1259830011.10805.60.camel@localhost>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34762 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751412AbZLCT6Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 14:58:16 -0500
+In-Reply-To: <20091203184454.GS4348@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Mika Westerberg <ext-mika.1.westerberg@nokia.com>, Grant Likely <grant.likely@secretlab.ca>, Peter Barada <peterb@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Artem Bityutskiy <dedekind1@gmail.com> [091203 00:46]:
-> On Thu, 2009-12-03 at 08:56 +0200, Mika Westerberg wrote:
-> > On Thu, Dec 03, 2009 at 02:00:52AM +0100, ext Tony Lindgren wrote:
-> > > * Grant Likely <grant.likely@secretlab.ca> [091202 07:06]:
-> > > > On Mon, Nov 30, 2009 at 12:40 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > > > > * Grant Likely <grant.likely@secretlab.ca> [091130 09:01]:
-> > > 
-> > > <snip>
-> > > 
-> > > > >
-> > > > > maybe you've already thought through all this.. But would it be
-> > > > > possible to do lightweight device tree that we just use to populate
-> > > > > the platform data?
-> > > > 
-> > > > This is completely possible.  Just having the device tree available
-> > > > doesn't force the kernel to use it for everything.  I've found it
-> > > > useful to start small and add things as I need them.  Most important
-> > > > thing to remember is to follow the documented & established device
-> > > > tree conventions so that common code can understand it.
-> > > 
-> > > OK, sounds good to me.
-> > 
-> > Hi,
-> > 
-> > This device tree stuff sounds like very cool way of doing things. Hope
-> > it is ready soon :)
-> > 
-> > Meanwhile, would it be OK to implement something to get the serial driver
-> > taking control of the all the UARTs? Any comments on adding new function
-> > to mach-omap2/serial.c: omap_serial_init_port(int port) that could be
-> > used from board files instead of omap_serial_init()?
-> 
-> Device tree is really promising, but we do need an alternative method
-> anyway, because not everyone will use the device tree. IOW, device tree
-> does not exist yet, and will not be mandatory, so an alternative is
-> required.
 
-Right, it sounds like the device tree won't solve all the issues.
 
-But before we change anything with the mach-omap2/serial.c, let's wait
-until we hear comments from Kevin.
+>-----Original Message-----
+>From: Tony Lindgren [mailto:tony@atomide.com]
+>Sent: Thursday, December 03, 2009 12:45 PM
+>To: Pandita, Vikram
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: Merge plans for 2.6.33 merge window
+>
+>* Pandita, Vikram <vikram.pandita@ti.com> [091203 10:27]:
+>> Tony
+>>
+>> >-----Original Message-----
+>> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
+>> >Lindgren
+>> >Sent: Thursday, December 03, 2009 11:36 AM
+>> >To: linux-omap@vger.kernel.org
+>> >Subject: Merge plans for 2.6.33 merge window
+>> >
+>> >Hi all,
+>> <snip>
+>> >Then there are some new board files, like
+>> >touchbook and various fixes.
+>>
+>> 3630 board support (zoom3/sdp3630) is already integrated in for-next.
+>> However the only pending patches missing for 3630 boards to boot are these serial patches:
+>> 	http://patchwork.kernel.org/patch/61671/
+>> 	http://patchwork.kernel.org/patch/61672/
+>>
+>> Now there has been much discussion on the approach (errata vs feature).
+>> As a moderator, how would you like us to proceed on this?
+>
+>The best solution way would be to check the revision register for the
+>serial module if available and then initialize the serial port
+>accordinly.
+>
+>If this feature cannot be checked in the serial module, and is only
+>needed during the serial init, you might as well implement the test
+>in arch/arm/mach-omap2/serial.c. So probably no need to add that to
+>id.c.
 
-Regards,
+Looking into this aspect to override the serial_in() function based on IP version check in mach-omap2/serial.c file.
 
-Tony
+
+>
+>Regards,
+>
+>Tony
