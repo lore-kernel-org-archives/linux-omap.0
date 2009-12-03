@@ -1,833 +1,744 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 8/9] omap: mux: Remove old mux code for 34xx
-Date: Wed, 02 Dec 2009 16:22:46 -0800
-Message-ID: <20091203002246.2769.11977.stgit@localhost>
+Subject: [PATCH 9/9] omap: mux: Add 36xx CBP package support
+Date: Wed, 02 Dec 2009 16:22:58 -0800
+Message-ID: <20091203002258.2769.60497.stgit@localhost>
 References: <20091203001601.2769.20621.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55707 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728AbZLCAWl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 19:22:41 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60201 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752034AbZLCAWx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 19:22:53 -0500
 In-Reply-To: <20091203001601.2769.20621.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-Remove old mux code for 34xx
+Add 36xx CBP package support
 
+Cc: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c      |    1 
- arch/arm/mach-omap2/board-cm-t35.c       |    1 
- arch/arm/mach-omap2/board-igep0020.c     |    1 
- arch/arm/mach-omap2/board-omap3beagle.c  |    1 
- arch/arm/mach-omap2/board-omap3evm.c     |    1 
- arch/arm/mach-omap2/board-omap3pandora.c |    1 
- arch/arm/mach-omap2/board-overo.c        |    1 
- arch/arm/mach-omap2/board-rx51.c         |    1 
- arch/arm/mach-omap2/io.c                 |    1 
- arch/arm/mach-omap2/mux.c                |  368 +-----------------------------
- arch/arm/plat-omap/include/plat/mux.h    |  226 ------------------
- 11 files changed, 14 insertions(+), 589 deletions(-)
+ arch/arm/mach-omap2/Kconfig         |    5 
+ arch/arm/mach-omap2/board-3630sdp.c |    9 +
+ arch/arm/mach-omap2/board-zoom3.c   |   10 +
+ arch/arm/mach-omap2/mux.h           |    1 
+ arch/arm/mach-omap2/mux34xx.c       |  520 +++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/mux34xx.h       |   42 +++
+ 6 files changed, 587 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index ded3e87..4cfb7b6 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -31,7 +31,6 @@
- #include <asm/mach/map.h>
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index c10789c..5a61b74 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -33,6 +33,9 @@ config OMAP_PACKAGE_CBB
+ config OMAP_PACKAGE_CUS
+        bool
  
- #include <plat/mcspi.h>
--#include <plat/mux.h>
- #include <plat/board.h>
- #include <plat/usb.h>
- #include <plat/common.h>
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 10a5955..507c922 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -38,7 +38,6 @@
- 
- #include <plat/board.h>
- #include <plat/common.h>
--#include <plat/mux.h>
- #include <plat/nand.h>
- #include <plat/gpmc.h>
- #include <plat/usb.h>
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 7e3217a..44239e3 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -27,7 +27,6 @@
- #include <plat/board.h>
- #include <plat/common.h>
- #include <plat/gpmc.h>
--#include <plat/mux.h>
- #include <plat/usb.h>
- 
- #include "mux.h"
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 9e606b1..6ada802 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -41,7 +41,6 @@
- #include <plat/common.h>
- #include <plat/gpmc.h>
- #include <plat/nand.h>
--#include <plat/mux.h>
- #include <plat/usb.h>
- #include <plat/timer-gp.h>
- 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 0457f61..18913e9 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -38,7 +38,6 @@
- #include <asm/mach/map.h>
- 
- #include <plat/board.h>
--#include <plat/mux.h>
- #include <plat/usb.h>
- #include <plat/common.h>
- #include <plat/mcspi.h>
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index bca5ad9..c1cc99c 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -40,7 +40,6 @@
- #include <mach/hardware.h>
- #include <plat/mcspi.h>
- #include <plat/usb.h>
--#include <plat/mux.h>
- 
- #include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 1ebde4c..5b78a87 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -44,7 +44,6 @@
- #include <plat/gpmc.h>
- #include <mach/hardware.h>
- #include <plat/nand.h>
--#include <plat/mux.h>
- #include <plat/usb.h>
- 
- #include "mux.h"
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index fd71c00..67bb347 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -23,7 +23,6 @@
- #include <asm/mach/map.h>
- 
- #include <plat/mcspi.h>
--#include <plat/mux.h>
- #include <plat/board.h>
- #include <plat/common.h>
- #include <plat/dma.h>
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 6a4d8e4..b632ea0 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -34,6 +34,7 @@
- #include <plat/gpmc.h>
- #include <plat/serial.h>
- #include <plat/vram.h>
-+#include <plat/mux.h>
- 
- #ifndef CONFIG_ARCH_OMAP4	/* FIXME: Remove this once clkdev is ready */
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index d968433..e071b3f 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -67,13 +67,12 @@ static inline void omap_mux_write(u16 val, u16 reg)
- 		__raw_writew(val, mux_base + reg);
- }
- 
--#ifdef CONFIG_OMAP_MUX
-+#if defined(CONFIG_ARCH_OMAP24XX) && defined(CONFIG_OMAP_MUX)
- 
- static struct omap_mux_cfg arch_mux_cfg;
- 
- /* NOTE: See mux.h for the enumeration */
- 
--#ifdef CONFIG_ARCH_OMAP24XX
- static struct pin_config __initdata_or_module omap24xx_pins[] = {
- /*
-  *	description			mux	mux	pull	pull	debug
-@@ -283,333 +282,8 @@ MUX_CFG_24XX("AF19_2430_GPIO_85",	0x0113,	3,	0,	0,	1)
- 
- #define OMAP24XX_PINS_SZ	ARRAY_SIZE(omap24xx_pins)
- 
--#else
--#define omap24xx_pins		NULL
--#define OMAP24XX_PINS_SZ	0
--#endif	/* CONFIG_ARCH_OMAP24XX */
--
--#ifdef CONFIG_ARCH_OMAP34XX
--static struct pin_config __initdata_or_module omap34xx_pins[] = {
--/*
-- *		Name, reg-offset,
-- *		mux-mode | [active-mode | off-mode]
-- */
--
--/* 34xx I2C */
--MUX_CFG_34XX("K21_34XX_I2C1_SCL", 0x1ba,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("J21_34XX_I2C1_SDA", 0x1bc,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AF15_34XX_I2C2_SCL", 0x1be,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AE15_34XX_I2C2_SDA", 0x1c0,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AF14_34XX_I2C3_SCL", 0x1c2,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AG14_34XX_I2C3_SDA", 0x1c4,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AD26_34XX_I2C4_SCL", 0xa00,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AE26_34XX_I2C4_SDA", 0xa02,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--
--/* PHY - HSUSB: 12-pin ULPI PHY: Port 1*/
--MUX_CFG_34XX("Y8_3430_USB1HS_PHY_CLK", 0x5da,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("Y9_3430_USB1HS_PHY_STP", 0x5d8,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("AA14_3430_USB1HS_PHY_DIR", 0x5ec,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AA11_3430_USB1HS_PHY_NXT", 0x5ee,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W13_3430_USB1HS_PHY_D0", 0x5dc,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W12_3430_USB1HS_PHY_D1", 0x5de,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W11_3430_USB1HS_PHY_D2", 0x5e0,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y11_3430_USB1HS_PHY_D3", 0x5ea,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W9_3430_USB1HS_PHY_D4", 0x5e4,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y12_3430_USB1HS_PHY_D5", 0x5e6,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W8_3430_USB1HS_PHY_D6", 0x5e8,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y13_3430_USB1HS_PHY_D7", 0x5e2,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--
--/* PHY - HSUSB: 12-pin ULPI PHY: Port 2*/
--MUX_CFG_34XX("AA8_3430_USB2HS_PHY_CLK", 0x5f0,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("AA10_3430_USB2HS_PHY_STP", 0x5f2,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("AA9_3430_USB2HS_PHY_DIR", 0x5f4,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB11_3430_USB2HS_PHY_NXT", 0x5f6,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB10_3430_USB2HS_PHY_D0", 0x5f8,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB9_3430_USB2HS_PHY_D1", 0x5fa,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W3_3430_USB2HS_PHY_D2", 0x1d4,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("T4_3430_USB2HS_PHY_D3", 0x1de,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("T3_3430_USB2HS_PHY_D4", 0x1d8,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("R3_3430_USB2HS_PHY_D5", 0x1da,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("R4_3430_USB2HS_PHY_D6", 0x1dc,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("T2_3430_USB2HS_PHY_D7", 0x1d6,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
--
--/* TLL - HSUSB: 12-pin TLL Port 1*/
--MUX_CFG_34XX("Y8_3430_USB1HS_TLL_CLK", 0x5da,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AA14_3430_USB1HS_TLL_DIR", 0x5ec,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AA11_3430_USB1HS_TLL_NXT", 0x5ee,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W13_3430_USB1HS_TLL_D0", 0x5dc,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W12_3430_USB1HS_TLL_D1", 0x5de,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W11_3430_USB1HS_TLL_D2", 0x5e0,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y11_3430_USB1HS_TLL_D3", 0x5ea,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W9_3430_USB1HS_TLL_D4", 0x5e4,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y12_3430_USB1HS_TLL_D5", 0x5e6,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W8_3430_USB1HS_TLL_D6", 0x5e8,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y13_3430_USB1HS_TLL_D7", 0x5e2,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--
--/* TLL - HSUSB: 12-pin TLL Port 2*/
--MUX_CFG_34XX("AA8_3430_USB2HS_TLL_CLK", 0x5f0,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AA9_3430_USB2HS_TLL_DIR", 0x5f4,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB11_3430_USB2HS_TLL_NXT", 0x5f6,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB10_3430_USB2HS_TLL_D0", 0x5f8,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB9_3430_USB2HS_TLL_D1", 0x5fa,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W3_3430_USB2HS_TLL_D2", 0x1d4,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("T4_3430_USB2HS_TLL_D3", 0x1de,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("T3_3430_USB2HS_TLL_D4", 0x1d8,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("R3_3430_USB2HS_TLL_D5", 0x1da,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("R4_3430_USB2HS_TLL_D6", 0x1dc,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("T2_3430_USB2HS_TLL_D7", 0x1d6,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
--
--/* TLL - HSUSB: 12-pin TLL Port 3*/
--MUX_CFG_34XX("AA6_3430_USB3HS_TLL_CLK", 0x180,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AA3_3430_USB3HS_TLL_DIR", 0x168,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y3_3430_USB3HS_TLL_NXT", 0x16a,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AA5_3430_USB3HS_TLL_D0", 0x186,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y4_3430_USB3HS_TLL_D1", 0x184,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y5_3430_USB3HS_TLL_D2", 0x188,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W5_3430_USB3HS_TLL_D3", 0x18a,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB12_3430_USB3HS_TLL_D4", 0x16c,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB13_3430_USB3HS_TLL_D5", 0x16e,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AA13_3430_USB3HS_TLL_D6", 0x170,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AA12_3430_USB3HS_TLL_D7", 0x172,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--
--/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
--MUX_CFG_34XX("AF10_3430_USB1FS_PHY_MM1_RXDP", 0x5d8,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AG9_3430_USB1FS_PHY_MM1_RXDM", 0x5ee,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W13_3430_USB1FS_PHY_MM1_RXRCV", 0x5dc,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W12_3430_USB1FS_PHY_MM1_TXSE0", 0x5de,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W11_3430_USB1FS_PHY_MM1_TXDAT", 0x5e0,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("Y11_3430_USB1FS_PHY_MM1_TXEN_N", 0x5ea,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
--
--/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
--MUX_CFG_34XX("AF7_3430_USB2FS_PHY_MM2_RXDP", 0x5f2,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AH7_3430_USB2FS_PHY_MM2_RXDM", 0x5f6,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB10_3430_USB2FS_PHY_MM2_RXRCV", 0x5f8,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AB9_3430_USB2FS_PHY_MM2_TXSE0", 0x5fa,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("W3_3430_USB2FS_PHY_MM2_TXDAT", 0x1d4,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("T4_3430_USB2FS_PHY_MM2_TXEN_N", 0x1de,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
--
--/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
--MUX_CFG_34XX("AH3_3430_USB3FS_PHY_MM3_RXDP", 0x166,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AE3_3430_USB3FS_PHY_MM3_RXDM", 0x16a,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AD1_3430_USB3FS_PHY_MM3_RXRCV", 0x186,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AE1_3430_USB3FS_PHY_MM3_TXSE0", 0x184,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AD2_3430_USB3FS_PHY_MM3_TXDAT", 0x188,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TXEN_N", 0x18a,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
--
--
--/* 34XX GPIO - bidirectional, unless the name has an "_OUT" suffix.
-- * (Always specify PIN_INPUT, except for names suffixed by "_OUT".)
-- * No internal pullup/pulldown without "_UP" or "_DOWN" suffix.
-- */
--MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
--MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
--MUX_CFG_34XX("AG9_34XX_GPIO23", 0x5ee,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
--MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
--MUX_CFG_34XX("U8_34XX_GPIO54_OUT", 0x0b4,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("U8_34XX_GPIO54_DOWN", 0x0b4,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLDOWN)
--MUX_CFG_34XX("L8_34XX_GPIO63", 0x0ce,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
--MUX_CFG_34XX("G25_34XX_GPIO86_OUT", 0x0fc,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("AG4_34XX_GPIO134_OUT", 0x160,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("AF4_34XX_GPIO135_OUT", 0x162,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("AE4_34XX_GPIO136_OUT", 0x164,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
--MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
--MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
--MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
--
--/* OMAP3 SDRC CKE signals to SDR/DDR ram chips */
--MUX_CFG_34XX("H16_34XX_SDRC_CKE0", 0x262,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("H17_34XX_SDRC_CKE1", 0x264,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_OUTPUT)
--
--/* MMC1 */
--MUX_CFG_34XX("N28_3430_MMC1_CLK", 0x144,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("M27_3430_MMC1_CMD", 0x146,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("N27_3430_MMC1_DAT0", 0x148,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("N26_3430_MMC1_DAT1", 0x14a,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("N25_3430_MMC1_DAT2", 0x14c,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("P28_3430_MMC1_DAT3", 0x14e,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("P27_3430_MMC1_DAT4", 0x150,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("P26_3430_MMC1_DAT5", 0x152,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("R27_3430_MMC1_DAT6", 0x154,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("R25_3430_MMC1_DAT7", 0x156,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--
--/* MMC2 */
--MUX_CFG_34XX("AE2_3430_MMC2_CLK", 0x158,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AG5_3430_MMC2_CMD", 0x15A,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AH5_3430_MMC2_DAT0", 0x15c,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AH4_3430_MMC2_DAT1", 0x15e,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AG4_3430_MMC2_DAT2", 0x160,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AF4_3430_MMC2_DAT3", 0x162,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AE4_3430_MMC2_DAT4", 0x164,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AH3_3430_MMC2_DAT5", 0x166,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AF3_3430_MMC2_DAT6", 0x168,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AE3_3430_MMC2_DAT7", 0x16A,
--		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
--
--/* MMC3 */
--MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AC3_3430_MMC3_CMD", 0x1d0,
--		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AE11_3430_MMC3_DAT0", 0x5e4,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AH9_3430_MMC3_DAT1", 0x5e6,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AF13_3430_MMC3_DAT2", 0x5e8,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
--		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
--
--/* SYS_NIRQ T2 INT1 */
--MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
--		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
--		OMAP34XX_MUX_MODE0)
--/* EHCI GPIO's on OMAP3EVM (Rev >= E) */
--MUX_CFG_34XX("AH14_34XX_GPIO21", 0x5ea,
--	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("AF9_34XX_GPIO22", 0x5ec,
--	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
--MUX_CFG_34XX("U3_34XX_GPIO61", 0x0c8,
--	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
--};
--
--#define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
--
--#else
--#define omap34xx_pins		NULL
--#define OMAP34XX_PINS_SZ	0
--#endif	/* CONFIG_ARCH_OMAP34XX */
--
- #if defined(CONFIG_OMAP_MUX_DEBUG) || defined(CONFIG_OMAP_MUX_WARNINGS)
++config OMAP_PACKAGE_CBP
++       bool
 +
- static void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u16 reg)
- {
- 	u16 orig;
-@@ -631,7 +305,6 @@ static void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u16 r
- #define omap2_cfg_debug(x, y)	do {} while (0)
- #endif
+ comment "OMAP Board Type"
+ 	depends on ARCH_OMAP2 || ARCH_OMAP3 || ARCH_OMAP4
  
--#ifdef CONFIG_ARCH_OMAP24XX
- static int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
- {
- 	static DEFINE_SPINLOCK(mux_spin_lock);
-@@ -650,28 +323,6 @@ static int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
+@@ -121,6 +124,7 @@ config MACH_OMAP_ZOOM2
+ config MACH_OMAP_ZOOM3
+ 	bool "OMAP3630 Zoom3 board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBP
  
- 	return 0;
- }
--#else
--#define omap24xx_cfg_reg	NULL
--#endif
--
--#ifdef CONFIG_ARCH_OMAP34XX
--static int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
--{
--	static DEFINE_SPINLOCK(mux_spin_lock);
--	unsigned long flags;
--	u16 reg = 0;
--
--	spin_lock_irqsave(&mux_spin_lock, flags);
--	reg |= cfg->mux_val;
--	omap2_cfg_debug(cfg, reg);
--	omap_mux_write(reg, cfg->mux_reg - OMAP_MUX_BASE_OFFSET);
--	spin_unlock_irqrestore(&mux_spin_lock, flags);
--
--	return 0;
--}
--#else
--#define omap34xx_cfg_reg	NULL
--#endif
+ config MACH_CM_T35
+ 	bool "CompuLab CM-T35 module"
+@@ -135,6 +139,7 @@ config MACH_IGEP0020
+ config MACH_OMAP_3630SDP
+ 	bool "OMAP3630 SDP board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBP
  
- int __init omap2_mux_init(void)
- {
-@@ -694,21 +345,23 @@ int __init omap2_mux_init(void)
- 		arch_mux_cfg.pins	= omap24xx_pins;
- 		arch_mux_cfg.size	= OMAP24XX_PINS_SZ;
- 		arch_mux_cfg.cfg_reg	= omap24xx_cfg_reg;
--	} else if (cpu_is_omap34xx()) {
--		arch_mux_cfg.pins	= omap34xx_pins;
--		arch_mux_cfg.size	= OMAP34XX_PINS_SZ;
--		arch_mux_cfg.cfg_reg	= omap34xx_cfg_reg;
-+
-+		return omap_mux_register(&arch_mux_cfg);
- 	}
- 
--	return omap_mux_register(&arch_mux_cfg);
-+	return 0;
+ config MACH_OMAP_4430SDP
+ 	bool "OMAP 4430 SDP board"
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index e6cbc27..7390596 100755
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -85,8 +85,17 @@ static void __init omap_sdp_init_irq(void)
+ 	omap_gpio_init();
  }
  
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
 +#else
-+int __init omap2_mux_init(void)
-+{
-+	return 0;
-+}
- #endif	/* CONFIG_OMAP_MUX */
++#define board_mux	NULL
++#endif
++
+ static void __init omap_sdp_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 	zoom_peripherals_init();
+ 	board_smc91x_init();
+ 	enable_board_wakeup_source();
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index 8d965a6..a9fe918 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -21,6 +21,7 @@
+ #include <plat/common.h>
+ #include <plat/board.h>
  
- /*----------------------------------------------------------------------------*/
++#include "mux.h"
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
  
- #ifdef CONFIG_ARCH_OMAP34XX
--
- static LIST_HEAD(muxmodes);
- static DEFINE_MUTEX(muxmode_mutex);
- 
-@@ -1353,3 +1006,4 @@ int __init omap_mux_init(u32 mux_pbase, u32 mux_size,
+ static void __init omap_zoom_map_io(void)
+@@ -42,8 +43,17 @@ static void __init omap_zoom_init_irq(void)
+ 	omap_gpio_init();
  }
  
- #endif	/* CONFIG_ARCH_OMAP34XX */
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
 +
-diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
-index ba77de6..6067cf7 100644
---- a/arch/arm/plat-omap/include/plat/mux.h
-+++ b/arch/arm/plat-omap/include/plat/mux.h
-@@ -130,58 +130,11 @@
- #define OMAP2_PULL_UP		(1 << 4)
- #define OMAP2_ALTELECTRICALSEL	(1 << 5)
+ static void __init omap_zoom_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 	zoom_peripherals_init();
+ 	zoom_debugboard_init();
+ }
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index a6bd58f..d8b4d5a 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -56,6 +56,7 @@
  
--/* 34xx specific mux bit defines */
--#define OMAP3_INPUT_EN		(1 << 8)
--#define OMAP3_OFF_EN		(1 << 9)
--#define OMAP3_OFFOUT_EN		(1 << 10)
--#define OMAP3_OFFOUT_VAL	(1 << 11)
--#define OMAP3_OFF_PULL_EN	(1 << 12)
--#define OMAP3_OFF_PULL_UP	(1 << 13)
--#define OMAP3_WAKEUP_EN		(1 << 14)
--
--/* 34xx mux mode options for each pin. See TRM for options */
--#define	OMAP34XX_MUX_MODE0	0
--#define	OMAP34XX_MUX_MODE1	1
--#define	OMAP34XX_MUX_MODE2	2
--#define	OMAP34XX_MUX_MODE3	3
--#define	OMAP34XX_MUX_MODE4	4
--#define	OMAP34XX_MUX_MODE5	5
--#define	OMAP34XX_MUX_MODE6	6
--#define	OMAP34XX_MUX_MODE7	7
--
--/* 34xx active pin states */
--#define OMAP34XX_PIN_OUTPUT		0
--#define OMAP34XX_PIN_INPUT		OMAP3_INPUT_EN
--#define OMAP34XX_PIN_INPUT_PULLUP	(OMAP2_PULL_ENA | OMAP3_INPUT_EN \
--						| OMAP2_PULL_UP)
--#define OMAP34XX_PIN_INPUT_PULLDOWN	(OMAP2_PULL_ENA | OMAP3_INPUT_EN)
--
--/* 34xx off mode states */
--#define OMAP34XX_PIN_OFF_NONE           0
--#define OMAP34XX_PIN_OFF_OUTPUT_HIGH	(OMAP3_OFF_EN | OMAP3_OFFOUT_EN \
--						| OMAP3_OFFOUT_VAL)
--#define OMAP34XX_PIN_OFF_OUTPUT_LOW	(OMAP3_OFF_EN | OMAP3_OFFOUT_EN)
--#define OMAP34XX_PIN_OFF_INPUT_PULLUP	(OMAP3_OFF_EN | OMAP3_OFF_PULL_EN \
--						| OMAP3_OFF_PULL_UP)
--#define OMAP34XX_PIN_OFF_INPUT_PULLDOWN	(OMAP3_OFF_EN | OMAP3_OFF_PULL_EN)
--#define OMAP34XX_PIN_OFF_WAKEUPENABLE	OMAP3_WAKEUP_EN
--
--#define MUX_CFG_34XX(desc, reg_offset, mux_value) {		\
--	.name		= desc,					\
--	.debug		= 0,					\
--	.mux_reg	= reg_offset,				\
--	.mux_val	= mux_value				\
--},
--
- struct pin_config {
- 	char 			*name;
- 	const unsigned int 	mux_reg;
- 	unsigned char		debug;
- 
--#if	defined(CONFIG_ARCH_OMAP34XX)
--	u16			mux_val; /* Wake-up, off mode, pull, mux mode */
--#endif
--
- #if	defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP24XX)
- 	const unsigned char mask_offset;
- 	const unsigned char mask;
-@@ -681,181 +634,6 @@ enum omap24xx_index {
- 
- };
- 
--enum omap34xx_index {
--	/* 34xx I2C */
--	K21_34XX_I2C1_SCL,
--	J21_34XX_I2C1_SDA,
--	AF15_34XX_I2C2_SCL,
--	AE15_34XX_I2C2_SDA,
--	AF14_34XX_I2C3_SCL,
--	AG14_34XX_I2C3_SDA,
--	AD26_34XX_I2C4_SCL,
--	AE26_34XX_I2C4_SDA,
--
--	/* PHY - HSUSB: 12-pin ULPI PHY: Port 1*/
--	Y8_3430_USB1HS_PHY_CLK,
--	Y9_3430_USB1HS_PHY_STP,
--	AA14_3430_USB1HS_PHY_DIR,
--	AA11_3430_USB1HS_PHY_NXT,
--	W13_3430_USB1HS_PHY_DATA0,
--	W12_3430_USB1HS_PHY_DATA1,
--	W11_3430_USB1HS_PHY_DATA2,
--	Y11_3430_USB1HS_PHY_DATA3,
--	W9_3430_USB1HS_PHY_DATA4,
--	Y12_3430_USB1HS_PHY_DATA5,
--	W8_3430_USB1HS_PHY_DATA6,
--	Y13_3430_USB1HS_PHY_DATA7,
--
--	/* PHY - HSUSB: 12-pin ULPI PHY: Port 2*/
--	AA8_3430_USB2HS_PHY_CLK,
--	AA10_3430_USB2HS_PHY_STP,
--	AA9_3430_USB2HS_PHY_DIR,
--	AB11_3430_USB2HS_PHY_NXT,
--	AB10_3430_USB2HS_PHY_DATA0,
--	AB9_3430_USB2HS_PHY_DATA1,
--	W3_3430_USB2HS_PHY_DATA2,
--	T4_3430_USB2HS_PHY_DATA3,
--	T3_3430_USB2HS_PHY_DATA4,
--	R3_3430_USB2HS_PHY_DATA5,
--	R4_3430_USB2HS_PHY_DATA6,
--	T2_3430_USB2HS_PHY_DATA7,
--
--
--	/* TLL - HSUSB: 12-pin TLL Port 1*/
--	Y8_3430_USB1HS_TLL_CLK,
--	Y9_3430_USB1HS_TLL_STP,
--	AA14_3430_USB1HS_TLL_DIR,
--	AA11_3430_USB1HS_TLL_NXT,
--	W13_3430_USB1HS_TLL_DATA0,
--	W12_3430_USB1HS_TLL_DATA1,
--	W11_3430_USB1HS_TLL_DATA2,
--	Y11_3430_USB1HS_TLL_DATA3,
--	W9_3430_USB1HS_TLL_DATA4,
--	Y12_3430_USB1HS_TLL_DATA5,
--	W8_3430_USB1HS_TLL_DATA6,
--	Y13_3430_USB1HS_TLL_DATA7,
--
--	/* TLL - HSUSB: 12-pin TLL Port 2*/
--	AA8_3430_USB2HS_TLL_CLK,
--	AA10_3430_USB2HS_TLL_STP,
--	AA9_3430_USB2HS_TLL_DIR,
--	AB11_3430_USB2HS_TLL_NXT,
--	AB10_3430_USB2HS_TLL_DATA0,
--	AB9_3430_USB2HS_TLL_DATA1,
--	W3_3430_USB2HS_TLL_DATA2,
--	T4_3430_USB2HS_TLL_DATA3,
--	T3_3430_USB2HS_TLL_DATA4,
--	R3_3430_USB2HS_TLL_DATA5,
--	R4_3430_USB2HS_TLL_DATA6,
--	T2_3430_USB2HS_TLL_DATA7,
--
--	/* TLL - HSUSB: 12-pin TLL Port 3*/
--	AA6_3430_USB3HS_TLL_CLK,
--	AB3_3430_USB3HS_TLL_STP,
--	AA3_3430_USB3HS_TLL_DIR,
--	Y3_3430_USB3HS_TLL_NXT,
--	AA5_3430_USB3HS_TLL_DATA0,
--	Y4_3430_USB3HS_TLL_DATA1,
--	Y5_3430_USB3HS_TLL_DATA2,
--	W5_3430_USB3HS_TLL_DATA3,
--	AB12_3430_USB3HS_TLL_DATA4,
--	AB13_3430_USB3HS_TLL_DATA5,
--	AA13_3430_USB3HS_TLL_DATA6,
--	AA12_3430_USB3HS_TLL_DATA7,
--
--	/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
--	AF10_3430_USB1FS_PHY_MM1_RXDP,
--	AG9_3430_USB1FS_PHY_MM1_RXDM,
--	W13_3430_USB1FS_PHY_MM1_RXRCV,
--	W12_3430_USB1FS_PHY_MM1_TXSE0,
--	W11_3430_USB1FS_PHY_MM1_TXDAT,
--	Y11_3430_USB1FS_PHY_MM1_TXEN_N,
--
--	/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
--	AF7_3430_USB2FS_PHY_MM2_RXDP,
--	AH7_3430_USB2FS_PHY_MM2_RXDM,
--	AB10_3430_USB2FS_PHY_MM2_RXRCV,
--	AB9_3430_USB2FS_PHY_MM2_TXSE0,
--	W3_3430_USB2FS_PHY_MM2_TXDAT,
--	T4_3430_USB2FS_PHY_MM2_TXEN_N,
--
--	/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
--	AH3_3430_USB3FS_PHY_MM3_RXDP,
--	AE3_3430_USB3FS_PHY_MM3_RXDM,
--	AD1_3430_USB3FS_PHY_MM3_RXRCV,
--	AE1_3430_USB3FS_PHY_MM3_TXSE0,
--	AD2_3430_USB3FS_PHY_MM3_TXDAT,
--	AC1_3430_USB3FS_PHY_MM3_TXEN_N,
--
--	/* 34xx GPIO
--	 *  - normally these are bidirectional, no internal pullup/pulldown
--	 *  - "_UP" suffix (GPIO3_UP) if internal pullup is configured
--	 *  - "_DOWN" suffix (GPIO3_DOWN) with internal pulldown
--	 *  - "_OUT" suffix (GPIO3_OUT) for output-only pins (unlike 24xx)
--	 */
--	AF26_34XX_GPIO0,
--	AF22_34XX_GPIO9,
--	AG9_34XX_GPIO23,
--	AH8_34XX_GPIO29,
--	U8_34XX_GPIO54_OUT,
--	U8_34XX_GPIO54_DOWN,
--	L8_34XX_GPIO63,
--	G25_34XX_GPIO86_OUT,
--	AG4_34XX_GPIO134_OUT,
--	AF4_34XX_GPIO135_OUT,
--	AE4_34XX_GPIO136_OUT,
--	AF6_34XX_GPIO140_UP,
--	AE6_34XX_GPIO141,
--	AF5_34XX_GPIO142,
--	AE5_34XX_GPIO143,
--	H19_34XX_GPIO164_OUT,
--	J25_34XX_GPIO170,
--
--	/* OMAP3 SDRC CKE signals to SDR/DDR ram chips */
--	H16_34XX_SDRC_CKE0,
--	H17_34XX_SDRC_CKE1,
--
--	/* MMC1 */
--	N28_3430_MMC1_CLK,
--	M27_3430_MMC1_CMD,
--	N27_3430_MMC1_DAT0,
--	N26_3430_MMC1_DAT1,
--	N25_3430_MMC1_DAT2,
--	P28_3430_MMC1_DAT3,
--	P27_3430_MMC1_DAT4,
--	P26_3430_MMC1_DAT5,
--	R27_3430_MMC1_DAT6,
--	R25_3430_MMC1_DAT7,
--
--	/* MMC2 */
--	AE2_3430_MMC2_CLK,
--	AG5_3430_MMC2_CMD,
--	AH5_3430_MMC2_DAT0,
--	AH4_3430_MMC2_DAT1,
--	AG4_3430_MMC2_DAT2,
--	AF4_3430_MMC2_DAT3,
--	AE4_3430_MMC2_DAT4,
--	AH3_3430_MMC2_DAT5,
--	AF3_3430_MMC2_DAT6,
--	AE3_3430_MMC2_DAT7,
--
--	/* MMC3 */
--	AF10_3430_MMC3_CLK,
--	AC3_3430_MMC3_CMD,
--	AE11_3430_MMC3_DAT0,
--	AH9_3430_MMC3_DAT1,
--	AF13_3430_MMC3_DAT2,
--	AF13_3430_MMC3_DAT3,
--
--	/* SYS_NIRQ T2 INT1 */
--	AF26_34XX_SYS_NIRQ,
--
--	/* EHCI GPIO's for OMAP3EVM (Rev >= E) */
--	AH14_34XX_GPIO21,
--	AF9_34XX_GPIO22,
--	U3_34XX_GPIO61,
--};
--
- struct omap_mux_cfg {
- 	struct pin_config	*pins;
- 	unsigned long		size;
-@@ -865,14 +643,14 @@ struct omap_mux_cfg {
- #ifdef	CONFIG_OMAP_MUX
- /* setup pin muxing in Linux */
- extern int omap1_mux_init(void);
--extern int omap2_mux_init(void);
- extern int omap_mux_register(struct omap_mux_cfg *);
- extern int omap_cfg_reg(unsigned long reg_cfg);
- #else
- /* boot loader does it all (no warnings from CONFIG_OMAP_MUX_WARNINGS) */
- static inline int omap1_mux_init(void) { return 0; }
--static inline int omap2_mux_init(void) { return 0; }
- static inline int omap_cfg_reg(unsigned long reg_cfg) { return 0; }
+ /* Flags for omap_mux_init */
+ #define OMAP_PACKAGE_MASK		0xffff
++#define OMAP_PACKAGE_CBP		4		/* 515-pin 0.40 0.50 */
+ #define OMAP_PACKAGE_CUS		3		/* 423-pin 0.65 */
+ #define OMAP_PACKAGE_CBB		2		/* 515-pin 0.40 0.50 */
+ #define OMAP_PACKAGE_CBC		1		/* 515-pin 0.50 0.65 */
+diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
+index 116d5b2..68e0a59 100644
+--- a/arch/arm/mach-omap2/mux34xx.c
++++ b/arch/arm/mach-omap2/mux34xx.c
+@@ -1549,6 +1549,522 @@ struct omap_ball __initdata omap3_cbb_ball[] = {
+ #define omap3_cbb_ball	 NULL
  #endif
  
-+extern int omap2_mux_init(void);
++/*
++ * Signals different on 36XX CBP package comapared to 34XX CBC package
++ */
++#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_OMAP_PACKAGE_CBP)
++struct omap_mux __initdata omap36xx_cbp_subset[] = {
++	_OMAP3_MUXENTRY(CAM_D0, 99,
++		"cam_d0", NULL, "csi2_dx2", NULL,
++		"gpio_99", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(CAM_D1, 100,
++		"cam_d1", NULL, "csi2_dy2", NULL,
++		"gpio_100", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(CAM_D10, 109,
++		"cam_d10", "ssi2_wake", NULL, NULL,
++		"gpio_109", "hw_dbg8", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(CAM_D2, 101,
++		"cam_d2", "ssi2_rdy_tx", NULL, NULL,
++		"gpio_101", "hw_dbg4", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(CAM_D3, 102,
++		"cam_d3", "ssi2_dat_rx", NULL, NULL,
++		"gpio_102", "hw_dbg5", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(CAM_D4, 103,
++		"cam_d4", "ssi2_flag_rx", NULL, NULL,
++		"gpio_103", "hw_dbg6", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(CAM_D5, 104,
++		"cam_d5", "ssi2_rdy_rx", NULL, NULL,
++		"gpio_104", "hw_dbg7", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(CAM_HS, 94,
++		"cam_hs", "ssi2_dat_tx", NULL, NULL,
++		"gpio_94", "hw_dbg0", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(CAM_VS, 95,
++		"cam_vs", "ssi2_flag_tx", NULL, NULL,
++		"gpio_95", "hw_dbg1", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA0, 70,
++		"dss_data0", "dsi_dx0", "uart1_cts", NULL,
++		"gpio_70", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA1, 71,
++		"dss_data1", "dsi_dy0", "uart1_rts", NULL,
++		"gpio_71", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA2, 72,
++		"dss_data2", "dsi_dx1", NULL, NULL,
++		"gpio_72", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA3, 73,
++		"dss_data3", "dsi_dy1", NULL, NULL,
++		"gpio_73", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA4, 74,
++		"dss_data4", "dsi_dx2", "uart3_rx_irrx", NULL,
++		"gpio_74", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA5, 75,
++		"dss_data5", "dsi_dy2", "uart3_tx_irtx", NULL,
++		"gpio_75", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA6, 76,
++		"dss_data6", NULL, "uart1_tx", "dssvenc656_data6",
++		"gpio_76", "hw_dbg14", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA7, 77,
++		"dss_data7", NULL, "uart1_rx", "dssvenc656_data7",
++		"gpio_77", "hw_dbg15", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA8, 78,
++		"dss_data8", NULL, "uart3_rx_irrx", NULL,
++		"gpio_78", "hw_dbg16", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(DSS_DATA9, 79,
++		"dss_data9", NULL, "uart3_tx_irtx", NULL,
++		"gpio_79", "hw_dbg17", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(ETK_D12, 26,
++		"etk_d12", "sys_drm_msecure", NULL, "hsusb2_dir",
++		"gpio_26", NULL, "hsusb2_tll_dir", "hw_dbg14"),
++	_OMAP3_MUXENTRY(GPMC_A11, 0,
++		"gpmc_a11", NULL, NULL, NULL,
++		NULL, NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(GPMC_WAIT2, 64,
++		"gpmc_wait2", NULL, "uart4_tx", NULL,
++		"gpio_64", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(GPMC_WAIT3, 65,
++		"gpmc_wait3", "sys_ndmareq1", "uart4_rx", NULL,
++		"gpio_65", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(HSUSB0_DATA0, 125,
++		"hsusb0_data0", NULL, "uart3_tx_irtx", NULL,
++		"gpio_125", "uart2_tx", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(HSUSB0_DATA1, 130,
++		"hsusb0_data1", NULL, "uart3_rx_irrx", NULL,
++		"gpio_130", "uart2_rx", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(HSUSB0_DATA2, 131,
++		"hsusb0_data2", NULL, "uart3_rts_sd", NULL,
++		"gpio_131", "uart2_rts", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(HSUSB0_DATA3, 169,
++		"hsusb0_data3", NULL, "uart3_cts_rctx", NULL,
++		"gpio_169", "uart2_cts", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(MCBSP1_CLKR, 156,
++		"mcbsp1_clkr", "mcspi4_clk", "sim_cd", NULL,
++		"gpio_156", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(MCBSP1_FSR, 157,
++		"mcbsp1_fsr", "adpllv2d_dithering_en1",
++		"cam_global_reset", NULL,
++		"gpio_157", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(MCBSP4_CLKX, 152,
++		"mcbsp4_clkx", "ssi1_dat_rx", NULL, NULL,
++		"gpio_152", "hsusb3_tll_data1", "mm3_txse0", "safe_mode"),
++	_OMAP3_MUXENTRY(MCBSP4_DR, 153,
++		"mcbsp4_dr", "ssi1_flag_rx", NULL, NULL,
++		"gpio_153", "hsusb3_tll_data0", "mm3_rxrcv", "safe_mode"),
++	_OMAP3_MUXENTRY(MCBSP4_DX, 154,
++		"mcbsp4_dx", "ssi1_rdy_rx", NULL, NULL,
++		"gpio_154", "hsusb3_tll_data2", "mm3_txdat", "safe_mode"),
++	_OMAP3_MUXENTRY(MCBSP4_FSX, 155,
++		"mcbsp4_fsx", "ssi1_wake", NULL, NULL,
++		"gpio_155", "hsusb3_tll_data3", "mm3_txen_n", "safe_mode"),
++	_OMAP3_MUXENTRY(MCSPI1_CS1, 175,
++		"mcspi1_cs1", "adpllv2d_dithering_en2", NULL, "sdmmc3_cmd",
++		"gpio_175", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SAD2D_MBUSFLAG, 0,
++		"sad2d_mbusflag", "mad2d_sbusflag", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_MCAD28, 0,
++		"sad2d_mcad28", "mad2d_mcad28", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_MCAD29, 0,
++		"sad2d_mcad29", "mad2d_mcad29", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_MCAD32, 0,
++		"sad2d_mcad32", "mad2d_mcad32", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_MCAD33, 0,
++		"sad2d_mcad33", "mad2d_mcad33", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_MCAD34, 0,
++		"sad2d_mcad34", "mad2d_mcad34", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_MCAD35, 0,
++		"sad2d_mcad35", "mad2d_mcad35", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_MCAD36, 0,
++		"sad2d_mcad36", "mad2d_mcad36", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_MREAD, 0,
++		"sad2d_mread", "mad2d_sread", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_MWRITE, 0,
++		"sad2d_mwrite", "mad2d_swrite", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_SBUSFLAG, 0,
++		"sad2d_sbusflag", "mad2d_mbusflag", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_SREAD, 0,
++		"sad2d_sread", "mad2d_mread", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SAD2D_SWRITE, 0,
++		"sad2d_swrite", "mad2d_mwrite", NULL, NULL,
++		NULL, NULL, NULL, NULL),
++	_OMAP3_MUXENTRY(SDMMC1_CLK, 120,
++		"sdmmc1_clk", "ms_clk", NULL, NULL,
++		"gpio_120", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SDMMC1_CMD, 121,
++		"sdmmc1_cmd", "ms_bs", NULL, NULL,
++		"gpio_121", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SDMMC1_DAT0, 122,
++		"sdmmc1_dat0", "ms_dat0", NULL, NULL,
++		"gpio_122", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SDMMC1_DAT1, 123,
++		"sdmmc1_dat1", "ms_dat1", NULL, NULL,
++		"gpio_123", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SDMMC1_DAT2, 124,
++		"sdmmc1_dat2", "ms_dat2", NULL, NULL,
++		"gpio_124", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SDMMC1_DAT3, 125,
++		"sdmmc1_dat3", "ms_dat3", NULL, NULL,
++		"gpio_125", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SDRC_CKE0, 0,
++		"sdrc_cke0", NULL, NULL, NULL,
++		NULL, NULL, NULL, "safe_mode_out1"),
++	_OMAP3_MUXENTRY(SDRC_CKE1, 0,
++		"sdrc_cke1", NULL, NULL, NULL,
++		NULL, NULL, NULL, "safe_mode_out1"),
++	_OMAP3_MUXENTRY(SIM_IO, 126,
++		"sim_io", "sim_io_low_impedance", NULL, NULL,
++		"gpio_126", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SIM_CLK, 127,
++		"sim_clk", NULL, NULL, NULL,
++		"gpio_127", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SIM_PWRCTRL, 128,
++		"sim_pwrctrl", NULL, NULL, NULL,
++		"gpio_128", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SIM_RST, 129,
++		"sim_rst", NULL, NULL, NULL,
++		"gpio_129", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SYS_BOOT0, 2,
++		"sys_boot0", NULL, NULL, "dss_data18",
++		"gpio_2", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SYS_BOOT1, 3,
++		"sys_boot1", NULL, NULL, "dss_data19",
++		"gpio_3", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SYS_BOOT3, 5,
++		"sys_boot3", NULL, NULL, "dss_data20",
++		"gpio_5", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SYS_BOOT4, 6,
++		"sys_boot4", "sdmmc2_dir_dat2", NULL, "dss_data21",
++		"gpio_6", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SYS_BOOT5, 7,
++		"sys_boot5", "sdmmc2_dir_dat3", NULL, "dss_data22",
++		"gpio_7", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(SYS_BOOT6, 8,
++		"sys_boot6", NULL, NULL, "dss_data23",
++		"gpio_8", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(UART1_CTS, 150,
++		"uart1_cts", "ssi1_rdy_tx", NULL, NULL,
++		"gpio_150", "hsusb3_tll_clk", NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(UART1_RTS, 149,
++		"uart1_rts", "ssi1_flag_tx", NULL, NULL,
++		"gpio_149", NULL, NULL, "safe_mode"),
++	_OMAP3_MUXENTRY(UART1_TX, 148,
++		"uart1_tx", "ssi1_dat_tx", NULL, NULL,
++		"gpio_148", NULL, NULL, "safe_mode"),
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define omap36xx_cbp_subset	NULL
++#endif
 +
- #endif
++/*
++ * Balls for 36XX CBP package
++ * 515-pin s-PBGA Package, 0.50mm Ball Pitch (Top), 0.40mm Ball Pitch (Bottom)
++ */
++#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)		\
++		&& defined (CONFIG_OMAP_PACKAGE_CBP)
++struct omap_ball __initdata omap36xx_cbp_ball[] = {
++	_OMAP3_BALLENTRY(CAM_D0, "ag17", NULL),
++	_OMAP3_BALLENTRY(CAM_D1, "ah17", NULL),
++	_OMAP3_BALLENTRY(CAM_D10, "b25", NULL),
++	_OMAP3_BALLENTRY(CAM_D11, "c26", NULL),
++	_OMAP3_BALLENTRY(CAM_D2, "b24", NULL),
++	_OMAP3_BALLENTRY(CAM_D3, "c24", NULL),
++	_OMAP3_BALLENTRY(CAM_D4, "d24", NULL),
++	_OMAP3_BALLENTRY(CAM_D5, "a25", NULL),
++	_OMAP3_BALLENTRY(CAM_D6, "k28", NULL),
++	_OMAP3_BALLENTRY(CAM_D7, "l28", NULL),
++	_OMAP3_BALLENTRY(CAM_D8, "k27", NULL),
++	_OMAP3_BALLENTRY(CAM_D9, "l27", NULL),
++	_OMAP3_BALLENTRY(CAM_FLD, "c23", NULL),
++	_OMAP3_BALLENTRY(CAM_HS, "a24", NULL),
++	_OMAP3_BALLENTRY(CAM_PCLK, "c27", NULL),
++	_OMAP3_BALLENTRY(CAM_STROBE, "d25", NULL),
++	_OMAP3_BALLENTRY(CAM_VS, "a23", NULL),
++	_OMAP3_BALLENTRY(CAM_WEN, "b23", NULL),
++	_OMAP3_BALLENTRY(CAM_XCLKA, "c25", NULL),
++	_OMAP3_BALLENTRY(CAM_XCLKB, "b26", NULL),
++	_OMAP3_BALLENTRY(CSI2_DX0, "ag19", NULL),
++	_OMAP3_BALLENTRY(CSI2_DX1, "ag18", NULL),
++	_OMAP3_BALLENTRY(CSI2_DY0, "ah19", NULL),
++	_OMAP3_BALLENTRY(CSI2_DY1, "ah18", NULL),
++	_OMAP3_BALLENTRY(DSS_ACBIAS, "e27", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA0, "ag22", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA1, "ah22", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA10, "ad28", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA11, "ad27", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA12, "ab28", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA13, "ab27", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA14, "aa28", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA15, "aa27", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA16, "g25", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA17, "h27", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA18, "h26", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA19, "h25", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA2, "ag23", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA20, "e28", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA21, "j26", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA22, "ac27", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA23, "ac28", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA3, "ah23", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA4, "ag24", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA5, "ah24", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA6, "e26", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA7, "f28", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA8, "f27", NULL),
++	_OMAP3_BALLENTRY(DSS_DATA9, "g26", NULL),
++	_OMAP3_BALLENTRY(DSS_HSYNC, "d26", NULL),
++	_OMAP3_BALLENTRY(DSS_PCLK, "d28", NULL),
++	_OMAP3_BALLENTRY(DSS_VSYNC, "d27", NULL),
++	_OMAP3_BALLENTRY(ETK_CLK, "af10", NULL),
++	_OMAP3_BALLENTRY(ETK_CTL, "ae10", NULL),
++	_OMAP3_BALLENTRY(ETK_D0, "af11", NULL),
++	_OMAP3_BALLENTRY(ETK_D1, "ag12", NULL),
++	_OMAP3_BALLENTRY(ETK_D10, "ae7", NULL),
++	_OMAP3_BALLENTRY(ETK_D11, "af7", NULL),
++	_OMAP3_BALLENTRY(ETK_D12, "ag7", NULL),
++	_OMAP3_BALLENTRY(ETK_D13, "ah7", NULL),
++	_OMAP3_BALLENTRY(ETK_D14, "ag8", NULL),
++	_OMAP3_BALLENTRY(ETK_D15, "ah8", NULL),
++	_OMAP3_BALLENTRY(ETK_D2, "ah12", NULL),
++	_OMAP3_BALLENTRY(ETK_D3, "ae13", NULL),
++	_OMAP3_BALLENTRY(ETK_D4, "ae11", NULL),
++	_OMAP3_BALLENTRY(ETK_D5, "ah9", NULL),
++	_OMAP3_BALLENTRY(ETK_D6, "af13", NULL),
++	_OMAP3_BALLENTRY(ETK_D7, "ah14", NULL),
++	_OMAP3_BALLENTRY(ETK_D8, "af9", NULL),
++	_OMAP3_BALLENTRY(ETK_D9, "ag9", NULL),
++	_OMAP3_BALLENTRY(GPMC_A1, "n4", "ac15"),
++	_OMAP3_BALLENTRY(GPMC_A10, "k3", "ab19"),
++	_OMAP3_BALLENTRY(GPMC_A11, NULL, "ac20"),
++	_OMAP3_BALLENTRY(GPMC_A2, "m4", "ab15"),
++	_OMAP3_BALLENTRY(GPMC_A3, "l4", "ac16"),
++	_OMAP3_BALLENTRY(GPMC_A4, "k4", "ab16"),
++	_OMAP3_BALLENTRY(GPMC_A5, "t3", "ac17"),
++	_OMAP3_BALLENTRY(GPMC_A6, "r3", "ab17"),
++	_OMAP3_BALLENTRY(GPMC_A7, "n3", "ac18"),
++	_OMAP3_BALLENTRY(GPMC_A8, "m3", "ab18"),
++	_OMAP3_BALLENTRY(GPMC_A9, "l3", "ac19"),
++	_OMAP3_BALLENTRY(GPMC_CLK, "t4", "w2"),
++	_OMAP3_BALLENTRY(GPMC_D0, "k1", "m2"),
++	_OMAP3_BALLENTRY(GPMC_D1, "l1", "m1"),
++	_OMAP3_BALLENTRY(GPMC_D10, "p1", "ab4"),
++	_OMAP3_BALLENTRY(GPMC_D11, "r1", "ac4"),
++	_OMAP3_BALLENTRY(GPMC_D12, "r2", "ab6"),
++	_OMAP3_BALLENTRY(GPMC_D13, "t2", "ac6"),
++	_OMAP3_BALLENTRY(GPMC_D14, "w1", "ab7"),
++	_OMAP3_BALLENTRY(GPMC_D15, "y1", "ac7"),
++	_OMAP3_BALLENTRY(GPMC_D2, "l2", "n2"),
++	_OMAP3_BALLENTRY(GPMC_D3, "p2", "n1"),
++	_OMAP3_BALLENTRY(GPMC_D4, "t1", "r2"),
++	_OMAP3_BALLENTRY(GPMC_D5, "v1", "r1"),
++	_OMAP3_BALLENTRY(GPMC_D6, "v2", "t2"),
++	_OMAP3_BALLENTRY(GPMC_D7, "w2", "t1"),
++	_OMAP3_BALLENTRY(GPMC_D8, "h2", "ab3"),
++	_OMAP3_BALLENTRY(GPMC_D9, "k2", "ac3"),
++	_OMAP3_BALLENTRY(GPMC_NADV_ALE, "f3", "w1"),
++	_OMAP3_BALLENTRY(GPMC_NBE0_CLE, "g3", "ac12"),
++	_OMAP3_BALLENTRY(GPMC_NBE1, "u3", NULL),
++	_OMAP3_BALLENTRY(GPMC_NCS0, "g4", "y2"),
++	_OMAP3_BALLENTRY(GPMC_NCS1, "h3", "y1"),
++	_OMAP3_BALLENTRY(GPMC_NCS2, "v8", NULL),
++	_OMAP3_BALLENTRY(GPMC_NCS3, "u8", NULL),
++	_OMAP3_BALLENTRY(GPMC_NCS4, "t8", NULL),
++	_OMAP3_BALLENTRY(GPMC_NCS5, "r8", NULL),
++	_OMAP3_BALLENTRY(GPMC_NCS6, "p8", NULL),
++	_OMAP3_BALLENTRY(GPMC_NCS7, "n8", NULL),
++	_OMAP3_BALLENTRY(GPMC_NOE, "g2", "v2"),
++	_OMAP3_BALLENTRY(GPMC_NWE, "f4", "v1"),
++	_OMAP3_BALLENTRY(GPMC_NWP, "h1", "ab10"),
++	_OMAP3_BALLENTRY(GPMC_WAIT0, "m8", "ab12"),
++	_OMAP3_BALLENTRY(GPMC_WAIT1, "l8", "ac10"),
++	_OMAP3_BALLENTRY(GPMC_WAIT2, "k8", NULL),
++	_OMAP3_BALLENTRY(GPMC_WAIT3, "j8", NULL),
++	_OMAP3_BALLENTRY(HDQ_SIO, "j25", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_CLK, "t28", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_DATA0, "t27", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_DATA1, "u28", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_DATA2, "u27", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_DATA3, "u26", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_DATA4, "u25", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_DATA5, "v28", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_DATA6, "v27", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_DATA7, "v26", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_DIR, "r28", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_NXT, "t26", NULL),
++	_OMAP3_BALLENTRY(HSUSB0_STP, "t25", NULL),
++	_OMAP3_BALLENTRY(I2C1_SCL, "k21", NULL),
++	_OMAP3_BALLENTRY(I2C1_SDA, "j21", NULL),
++	_OMAP3_BALLENTRY(I2C2_SCL, "af15", NULL),
++	_OMAP3_BALLENTRY(I2C2_SDA, "ae15", NULL),
++	_OMAP3_BALLENTRY(I2C3_SCL, "af14", NULL),
++	_OMAP3_BALLENTRY(I2C3_SDA, "ag14", NULL),
++	_OMAP3_BALLENTRY(I2C4_SCL, "ad26", NULL),
++	_OMAP3_BALLENTRY(I2C4_SDA, "ae26", NULL),
++	_OMAP3_BALLENTRY(JTAG_EMU0, "aa11", NULL),
++	_OMAP3_BALLENTRY(JTAG_EMU1, "aa10", NULL),
++	_OMAP3_BALLENTRY(JTAG_RTCK, "aa12", NULL),
++	_OMAP3_BALLENTRY(JTAG_TCK, "aa13", NULL),
++	_OMAP3_BALLENTRY(JTAG_TDI, "aa20", NULL),
++	_OMAP3_BALLENTRY(JTAG_TDO, "aa19", NULL),
++	_OMAP3_BALLENTRY(JTAG_TMS_TMSC, "aa18", NULL),
++	_OMAP3_BALLENTRY(MCBSP1_CLKR, "y21", NULL),
++	_OMAP3_BALLENTRY(MCBSP1_CLKX, "w21", NULL),
++	_OMAP3_BALLENTRY(MCBSP1_DR, "u21", NULL),
++	_OMAP3_BALLENTRY(MCBSP1_DX, "v21", NULL),
++	_OMAP3_BALLENTRY(MCBSP1_FSR, "aa21", NULL),
++	_OMAP3_BALLENTRY(MCBSP1_FSX, "k26", NULL),
++	_OMAP3_BALLENTRY(MCBSP2_CLKX, "n21", NULL),
++	_OMAP3_BALLENTRY(MCBSP2_DR, "r21", NULL),
++	_OMAP3_BALLENTRY(MCBSP2_DX, "m21", NULL),
++	_OMAP3_BALLENTRY(MCBSP2_FSX, "p21", NULL),
++	_OMAP3_BALLENTRY(MCBSP3_CLKX, "af5", NULL),
++	_OMAP3_BALLENTRY(MCBSP3_DR, "ae6", NULL),
++	_OMAP3_BALLENTRY(MCBSP3_DX, "af6", NULL),
++	_OMAP3_BALLENTRY(MCBSP3_FSX, "ae5", NULL),
++	_OMAP3_BALLENTRY(MCBSP4_CLKX, "ae1", NULL),
++	_OMAP3_BALLENTRY(MCBSP4_DR, "ad1", NULL),
++	_OMAP3_BALLENTRY(MCBSP4_DX, "ad2", NULL),
++	_OMAP3_BALLENTRY(MCBSP4_FSX, "ac1", NULL),
++	_OMAP3_BALLENTRY(MCBSP_CLKS, "t21", NULL),
++	_OMAP3_BALLENTRY(MCSPI1_CLK, "ab3", NULL),
++	_OMAP3_BALLENTRY(MCSPI1_CS0, "ac2", NULL),
++	_OMAP3_BALLENTRY(MCSPI1_CS1, "ac3", NULL),
++	_OMAP3_BALLENTRY(MCSPI1_CS2, "ab1", NULL),
++	_OMAP3_BALLENTRY(MCSPI1_CS3, "ab2", NULL),
++	_OMAP3_BALLENTRY(MCSPI1_SIMO, "ab4", NULL),
++	_OMAP3_BALLENTRY(MCSPI1_SOMI, "aa4", NULL),
++	_OMAP3_BALLENTRY(MCSPI2_CLK, "aa3", NULL),
++	_OMAP3_BALLENTRY(MCSPI2_CS0, "y4", NULL),
++	_OMAP3_BALLENTRY(MCSPI2_CS1, "v3", NULL),
++	_OMAP3_BALLENTRY(MCSPI2_SIMO, "y2", NULL),
++	_OMAP3_BALLENTRY(MCSPI2_SOMI, "y3", NULL),
++	_OMAP3_BALLENTRY(SDMMC1_CLK, "n28", NULL),
++	_OMAP3_BALLENTRY(SDMMC1_CMD, "m27", NULL),
++	_OMAP3_BALLENTRY(SDMMC1_DAT0, "n27", NULL),
++	_OMAP3_BALLENTRY(SDMMC1_DAT1, "n26", NULL),
++	_OMAP3_BALLENTRY(SDMMC1_DAT2, "n25", NULL),
++	_OMAP3_BALLENTRY(SDMMC1_DAT3, "p28", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_CLK, "ae2", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_CMD, "ag5", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_DAT0, "ah5", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_DAT1, "ah4", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_DAT2, "ag4", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_DAT3, "af4", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_DAT4, "ae4", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_DAT5, "ah3", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_DAT6, "af3", NULL),
++	_OMAP3_BALLENTRY(SDMMC2_DAT7, "ae3", NULL),
++	_OMAP3_BALLENTRY(SDRC_A0, NULL, "n22"),
++	_OMAP3_BALLENTRY(SDRC_A1, NULL, "n23"),
++	_OMAP3_BALLENTRY(SDRC_A10, NULL, "v22"),
++	_OMAP3_BALLENTRY(SDRC_A11, NULL, "v23"),
++	_OMAP3_BALLENTRY(SDRC_A12, NULL, "w22"),
++	_OMAP3_BALLENTRY(SDRC_A13, NULL, "w23"),
++	_OMAP3_BALLENTRY(SDRC_A14, NULL, "y22"),
++	_OMAP3_BALLENTRY(SDRC_A2, NULL, "p22"),
++	_OMAP3_BALLENTRY(SDRC_A3, NULL, "p23"),
++	_OMAP3_BALLENTRY(SDRC_A4, NULL, "r22"),
++	_OMAP3_BALLENTRY(SDRC_A5, NULL, "r23"),
++	_OMAP3_BALLENTRY(SDRC_A6, NULL, "t22"),
++	_OMAP3_BALLENTRY(SDRC_A7, NULL, "t23"),
++	_OMAP3_BALLENTRY(SDRC_A8, NULL, "u22"),
++	_OMAP3_BALLENTRY(SDRC_A9, NULL, "u23"),
++	_OMAP3_BALLENTRY(SDRC_BA0, "h9", "ab21"),
++	_OMAP3_BALLENTRY(SDRC_BA1, "h10", "ac21"),
++	_OMAP3_BALLENTRY(SDRC_CKE0, "h16", "j22"),
++	_OMAP3_BALLENTRY(SDRC_CKE1, "h17", "j23"),
++	_OMAP3_BALLENTRY(SDRC_CLK, "a13", "a11"),
++	_OMAP3_BALLENTRY(SDRC_D0, NULL, "j2"),
++	_OMAP3_BALLENTRY(SDRC_D1, NULL, "j1"),
++	_OMAP3_BALLENTRY(SDRC_D10, "c15", "b14"),
++	_OMAP3_BALLENTRY(SDRC_D11, "b16", "a14"),
++	_OMAP3_BALLENTRY(SDRC_D12, "d17", "b16"),
++	_OMAP3_BALLENTRY(SDRC_D13, "c17", "a16"),
++	_OMAP3_BALLENTRY(SDRC_D14, "b17", "b19"),
++	_OMAP3_BALLENTRY(SDRC_D15, "d18", "a19"),
++	_OMAP3_BALLENTRY(SDRC_D16, NULL, "b3"),
++	_OMAP3_BALLENTRY(SDRC_D17, NULL, "a3"),
++	_OMAP3_BALLENTRY(SDRC_D18, NULL, "b5"),
++	_OMAP3_BALLENTRY(SDRC_D19, NULL, "a5"),
++	_OMAP3_BALLENTRY(SDRC_D2, NULL, "g2"),
++	_OMAP3_BALLENTRY(SDRC_D20, NULL, "b8"),
++	_OMAP3_BALLENTRY(SDRC_D21, NULL, "a8"),
++	_OMAP3_BALLENTRY(SDRC_D22, NULL, "b9"),
++	_OMAP3_BALLENTRY(SDRC_D23, NULL, "a9"),
++	_OMAP3_BALLENTRY(SDRC_D24, NULL, "b21"),
++	_OMAP3_BALLENTRY(SDRC_D25, NULL, "a21"),
++	_OMAP3_BALLENTRY(SDRC_D26, NULL, "d22"),
++	_OMAP3_BALLENTRY(SDRC_D27, NULL, "d23"),
++	_OMAP3_BALLENTRY(SDRC_D28, NULL, "e22"),
++	_OMAP3_BALLENTRY(SDRC_D29, NULL, "e23"),
++	_OMAP3_BALLENTRY(SDRC_D3, NULL, "g1"),
++	_OMAP3_BALLENTRY(SDRC_D30, NULL, "g22"),
++	_OMAP3_BALLENTRY(SDRC_D31, NULL, "g23"),
++	_OMAP3_BALLENTRY(SDRC_D4, NULL, "f2"),
++	_OMAP3_BALLENTRY(SDRC_D5, NULL, "f1"),
++	_OMAP3_BALLENTRY(SDRC_D6, NULL, "d2"),
++	_OMAP3_BALLENTRY(SDRC_D7, NULL, "d1"),
++	_OMAP3_BALLENTRY(SDRC_D8, "c14", "b13"),
++	_OMAP3_BALLENTRY(SDRC_D9, "b14", "a13"),
++	_OMAP3_BALLENTRY(SDRC_DM0, NULL, "c1"),
++	_OMAP3_BALLENTRY(SDRC_DM1, "a16", "a17"),
++	_OMAP3_BALLENTRY(SDRC_DM2, NULL, "a6"),
++	_OMAP3_BALLENTRY(SDRC_DM3, NULL, "a20"),
++	_OMAP3_BALLENTRY(SDRC_DQS0, NULL, "c2"),
++	_OMAP3_BALLENTRY(SDRC_DQS1, "a17", "b17"),
++	_OMAP3_BALLENTRY(SDRC_DQS2, NULL, "b6"),
++	_OMAP3_BALLENTRY(SDRC_DQS3, NULL, "b20"),
++	_OMAP3_BALLENTRY(SDRC_NCAS, "h13", "l22"),
++	_OMAP3_BALLENTRY(SDRC_NCLK, "a14", "b11"),
++	_OMAP3_BALLENTRY(SDRC_NCS0, "h11", "m22"),
++	_OMAP3_BALLENTRY(SDRC_NCS1, "h12", "m23"),
++	_OMAP3_BALLENTRY(SDRC_NRAS, "h14", "l23"),
++	_OMAP3_BALLENTRY(SDRC_NWE, "h15", "k23"),
++	_OMAP3_BALLENTRY(SIM_CLK, "p26", NULL),
++	_OMAP3_BALLENTRY(SIM_IO, "p27", NULL),
++	_OMAP3_BALLENTRY(SIM_PWRCTRL, "r27", NULL),
++	_OMAP3_BALLENTRY(SIM_RST, "r25", NULL),
++	_OMAP3_BALLENTRY(SYS_32K, "ae25", NULL),
++	_OMAP3_BALLENTRY(SYS_BOOT0, "ah26", NULL),
++	_OMAP3_BALLENTRY(SYS_BOOT1, "ag26", NULL),
++	_OMAP3_BALLENTRY(SYS_BOOT2, "ae14", NULL),
++	_OMAP3_BALLENTRY(SYS_BOOT3, "af18", NULL),
++	_OMAP3_BALLENTRY(SYS_BOOT4, "af19", NULL),
++	_OMAP3_BALLENTRY(SYS_BOOT5, "ae21", NULL),
++	_OMAP3_BALLENTRY(SYS_BOOT6, "af21", NULL),
++	_OMAP3_BALLENTRY(SYS_CLKOUT1, "ag25", NULL),
++	_OMAP3_BALLENTRY(SYS_CLKOUT2, "ae22", NULL),
++	_OMAP3_BALLENTRY(SYS_CLKREQ, "af25", NULL),
++	_OMAP3_BALLENTRY(SYS_NIRQ, "af26", NULL),
++	_OMAP3_BALLENTRY(SYS_NRESWARM, "af24", NULL),
++	_OMAP3_BALLENTRY(SYS_OFF_MODE, "af22", NULL),
++	_OMAP3_BALLENTRY(UART1_CTS, "w8", NULL),
++	_OMAP3_BALLENTRY(UART1_RTS, "aa9", NULL),
++	_OMAP3_BALLENTRY(UART1_RX, "y8", NULL),
++	_OMAP3_BALLENTRY(UART1_TX, "aa8", NULL),
++	_OMAP3_BALLENTRY(UART2_CTS, "ab26", NULL),
++	_OMAP3_BALLENTRY(UART2_RTS, "ab25", NULL),
++	_OMAP3_BALLENTRY(UART2_RX, "ad25", NULL),
++	_OMAP3_BALLENTRY(UART2_TX, "aa25", NULL),
++	_OMAP3_BALLENTRY(UART3_CTS_RCTX, "h18", NULL),
++	_OMAP3_BALLENTRY(UART3_RTS_SD, "h19", NULL),
++	_OMAP3_BALLENTRY(UART3_RX_IRRX, "h20", NULL),
++	_OMAP3_BALLENTRY(UART3_TX_IRTX, "h21", NULL),
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define omap36xx_cbp_ball	 NULL
++#endif
++
+ int __init omap3_mux_init(struct omap_board_mux *board_subset, int flags)
+ {
+ 	struct omap_mux *package_subset;
+@@ -1567,6 +2083,10 @@ int __init omap3_mux_init(struct omap_board_mux *board_subset, int flags)
+ 		package_subset = omap3_cus_subset;
+ 		package_balls = omap3_cus_ball;
+ 		break;
++	case (OMAP_PACKAGE_CBP):
++		package_subset = omap36xx_cbp_subset;
++		package_balls = omap36xx_cbp_ball;
++		break;
+ 	default:
+ 		printk(KERN_ERR "mux: Unknown omap package, mux disabled\n");
+ 		return -EINVAL;
+diff --git a/arch/arm/mach-omap2/mux34xx.h b/arch/arm/mach-omap2/mux34xx.h
+index a7cc871..6543ebf 100644
+--- a/arch/arm/mach-omap2/mux34xx.h
++++ b/arch/arm/mach-omap2/mux34xx.h
+@@ -170,10 +170,13 @@
+ #define OMAP3_CONTROL_PADCONF_SDMMC1_DAT1_OFFSET		0x11a
+ #define OMAP3_CONTROL_PADCONF_SDMMC1_DAT2_OFFSET		0x11c
+ #define OMAP3_CONTROL_PADCONF_SDMMC1_DAT3_OFFSET		0x11e
++
++/* SDMMC1_DAT4 - DAT7 are SIM_IO SIM_CLK SIM_PWRCTRL and SIM_RST on 36xx */
+ #define OMAP3_CONTROL_PADCONF_SDMMC1_DAT4_OFFSET		0x120
+ #define OMAP3_CONTROL_PADCONF_SDMMC1_DAT5_OFFSET		0x122
+ #define OMAP3_CONTROL_PADCONF_SDMMC1_DAT6_OFFSET		0x124
+ #define OMAP3_CONTROL_PADCONF_SDMMC1_DAT7_OFFSET		0x126
++
+ #define OMAP3_CONTROL_PADCONF_SDMMC2_CLK_OFFSET			0x128
+ #define OMAP3_CONTROL_PADCONF_SDMMC2_CMD_OFFSET			0x12a
+ #define OMAP3_CONTROL_PADCONF_SDMMC2_DAT0_OFFSET		0x12c
+@@ -281,6 +284,7 @@
+ #define OMAP3_CONTROL_PADCONF_SAD2D_MCAD34_OFFSET		0x1f8
+ #define OMAP3_CONTROL_PADCONF_SAD2D_MCAD35_OFFSET		0x1fa
+ #define OMAP3_CONTROL_PADCONF_SAD2D_MCAD36_OFFSET		0x1fc
++
+ /* Note that 34xx TRM has SAD2D instead of CHASSIS for these */
+ #define OMAP3_CONTROL_PADCONF_CHASSIS_CLK26MI_OFFSET		0x1fe
+ #define OMAP3_CONTROL_PADCONF_CHASSIS_NRESPWRON_OFFSET		0x200
+@@ -302,6 +306,7 @@
+ #define OMAP3_CONTROL_PADCONF_CHASSIS_MSTDBY_OFFSET		0x220
+ #define OMAP3_CONTROL_PADCONF_CHASSIS_IDLEREQ_OFFSET		0x222
+ #define OMAP3_CONTROL_PADCONF_CHASSIS_IDLEACK_OFFSET		0x224
++
+ #define OMAP3_CONTROL_PADCONF_SAD2D_MWRITE_OFFSET		0x226
+ #define OMAP3_CONTROL_PADCONF_SAD2D_SWRITE_OFFSET		0x228
+ #define OMAP3_CONTROL_PADCONF_SAD2D_MREAD_OFFSET		0x22a
+@@ -310,6 +315,43 @@
+ #define OMAP3_CONTROL_PADCONF_SAD2D_SBUSFLAG_OFFSET		0x230
+ #define OMAP3_CONTROL_PADCONF_SDRC_CKE0_OFFSET			0x232
+ #define OMAP3_CONTROL_PADCONF_SDRC_CKE1_OFFSET			0x234
++
++/* 36xx only */
++#define OMAP3_CONTROL_PADCONF_GPMC_A11_OFFSET			0x236
++#define OMAP3_CONTROL_PADCONF_SDRC_BA0_OFFSET			0x570
++#define OMAP3_CONTROL_PADCONF_SDRC_BA1_OFFSET			0x572
++#define OMAP3_CONTROL_PADCONF_SDRC_A0_OFFSET			0x574
++#define OMAP3_CONTROL_PADCONF_SDRC_A1_OFFSET			0x576
++#define OMAP3_CONTROL_PADCONF_SDRC_A2_OFFSET			0x578
++#define OMAP3_CONTROL_PADCONF_SDRC_A3_OFFSET			0x57a
++#define OMAP3_CONTROL_PADCONF_SDRC_A4_OFFSET			0x57c
++#define OMAP3_CONTROL_PADCONF_SDRC_A5_OFFSET			0x57e
++#define OMAP3_CONTROL_PADCONF_SDRC_A6_OFFSET			0x580
++#define OMAP3_CONTROL_PADCONF_SDRC_A7_OFFSET			0x582
++#define OMAP3_CONTROL_PADCONF_SDRC_A8_OFFSET			0x584
++#define OMAP3_CONTROL_PADCONF_SDRC_A9_OFFSET			0x586
++#define OMAP3_CONTROL_PADCONF_SDRC_A10_OFFSET			0x588
++#define OMAP3_CONTROL_PADCONF_SDRC_A11_OFFSET			0x58a
++#define OMAP3_CONTROL_PADCONF_SDRC_A12_OFFSET			0x58c
++#define OMAP3_CONTROL_PADCONF_SDRC_A13_OFFSET			0x58e
++#define OMAP3_CONTROL_PADCONF_SDRC_A14_OFFSET			0x590
++#define OMAP3_CONTROL_PADCONF_SDRC_NCS0_OFFSET			0x592
++#define OMAP3_CONTROL_PADCONF_SDRC_NCS1_OFFSET			0x594
++#define OMAP3_CONTROL_PADCONF_SDRC_NCLK_OFFSET			0x596
++#define OMAP3_CONTROL_PADCONF_SDRC_NRAS_OFFSET			0x598
++#define OMAP3_CONTROL_PADCONF_SDRC_NCAS_OFFSET			0x59a
++#define OMAP3_CONTROL_PADCONF_SDRC_NWE_OFFSET			0x59c
++#define OMAP3_CONTROL_PADCONF_SDRC_DM0_OFFSET			0x59e
++#define OMAP3_CONTROL_PADCONF_SDRC_DM1_OFFSET			0x5a0
++#define OMAP3_CONTROL_PADCONF_SDRC_DM2_OFFSET			0x5a2
++#define OMAP3_CONTROL_PADCONF_SDRC_DM3_OFFSET			0x5a4
++
++/* 36xx only, these are SDMMC1_DAT4 - DAT7 on 34xx */
++#define OMAP3_CONTROL_PADCONF_SIM_IO_OFFSET			0x120
++#define OMAP3_CONTROL_PADCONF_SIM_CLK_OFFSET			0x122
++#define OMAP3_CONTROL_PADCONF_SIM_PWRCTRL_OFFSET		0x124
++#define OMAP3_CONTROL_PADCONF_SIM_RST_OFFSET			0x126
++
+ #define OMAP3_CONTROL_PADCONF_ETK_CLK_OFFSET			0x5a8
+ #define OMAP3_CONTROL_PADCONF_ETK_CTL_OFFSET			0x5aa
+ #define OMAP3_CONTROL_PADCONF_ETK_D0_OFFSET			0x5ac
 
