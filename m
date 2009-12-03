@@ -1,55 +1,54 @@
 From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: [PATCH 2/4]: OMAP3: Add support for NAND on ZOOM2 board
-Date: Thu, 3 Dec 2009 19:47:23 +0530
-Message-ID: <ce9ab5790912030617t70332034k5c4c15752476943d@mail.gmail.com>
+Subject: [PATCH 3/4]: OMAP3: Add support for NAND on ZOOM3 board
+Date: Thu, 3 Dec 2009 19:48:03 +0530
+Message-ID: <ce9ab5790912030618j531cf9feidca4078d45386557@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:36634 "EHLO
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:61788 "EHLO
 	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751459AbZLCORh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 09:17:37 -0500
-Received: by bwz27 with SMTP id 27so1113569bwz.21
-        for <linux-omap@vger.kernel.org>; Thu, 03 Dec 2009 06:17:43 -0800 (PST)
+	with ESMTP id S1756094AbZLCOSR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 09:18:17 -0500
+Received: by bwz27 with SMTP id 27so1114166bwz.21
+        for <linux-omap@vger.kernel.org>; Thu, 03 Dec 2009 06:18:23 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>
 
->From 06890a29ed85068787d2bc3af3c38d29b4e0e421 Mon Sep 17 00:00:00 2001
+>From 4259c6ae2e6d9b5e316fa8289a9fca729fc6bc83 Mon Sep 17 00:00:00 2001
 From: Vimal Singh <vimalsingh@ti.com>
-Date: Thu, 3 Dec 2009 18:21:44 +0530
-Subject: [PATCH] OMAP3: Add support for NAND on ZOOM2 board
+Date: Thu, 3 Dec 2009 18:23:37 +0530
+Subject: [PATCH] OMAP3: Add support for NAND on ZOOM3 board
 
-This patch adds NAND support to ZOOM2 board.
-This uses 'board-zoom-flash.c' for NAND initialization.
+This patch adds NAND support to ZOOM3 board.
 
 Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 ---
  arch/arm/mach-omap2/Makefile      |    1 +
- arch/arm/mach-omap2/board-zoom2.c |   49 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom3.c |   49 +++++++++++++++++++++++++++++++++++++
  2 files changed, 50 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f1d8544..a277d38 100644
+index a277d38..4848ab0 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -77,6 +77,7 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-peripherals.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+@@ -82,6 +82,7 @@ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+ 					   mmc-twl4030.o \
+ 					   board-zoom-debugboard.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
 + 					   board-zoom-flash.o \
  					   board-zoom-peripherals.o \
  					   mmc-twl4030.o \
  					   board-zoom-debugboard.o
-diff --git a/arch/arm/mach-omap2/board-zoom2.c
-b/arch/arm/mach-omap2/board-zoom2.c
-index 2f980e3..2c7f833 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -58,9 +58,58 @@ static struct twl4030_platform_data zoom2_twldata = {
-
- #endif
+diff --git a/arch/arm/mach-omap2/board-zoom3.c
+b/arch/arm/mach-omap2/board-zoom3.c
+index 8d965a6..49090da 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -42,9 +42,58 @@ static void __init omap_zoom_init_irq(void)
+ 	omap_gpio_init();
+ }
 
 +static struct mtd_partition zoom_nand_partitions[] = {
 +	/* All the partition sizes are listed in terms of NAND block size */
@@ -99,7 +98,7 @@ index 2f980e3..2c7f833 100644
 +	},
 +};
 +
- static void __init omap_zoom2_init(void)
+ static void __init omap_zoom_init(void)
  {
  	zoom_peripherals_init();
 +	zoom_flash_init(zoom_flash_partitions, ZOOM_NAND_CS);
