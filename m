@@ -1,67 +1,79 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/2] OMAP2420 IO mapping: move IVA mapping virtual address out
-	of vmalloc space
-Date: Thu, 03 Dec 2009 01:15:59 -0700
-Message-ID: <20091203081558.1004.57172.stgit@localhost.localdomain>
-References: <20091203081337.1004.51309.stgit@localhost.localdomain>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
+ charger
+Date: Thu, 3 Dec 2009 10:39:58 +0200
+Message-ID: <20091203083958.GB31110@nokia.com>
+References: <1259333060-24277-1-git-send-email-notasas@gmail.com>
+ <20091202173321.GA23738@nokia.com>
+ <6ed0b2680912021234x6b5e6058p6d50d5cd20ecf019@mail.gmail.com>
+ <20091202204946.GB25682@nokia.com>
+ <6ed0b2680912021329g372bd0a4vb5b4a80244960f95@mail.gmail.com>
+ <20091202215442.GA30658@oksana.dev.rtsoft.ru>
+ <20091202223156.GA14921@nokia.com>
+ <20091202225922.GA15568@oksana.dev.rtsoft.ru>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60923 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751471AbZLCIQt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 03:16:49 -0500
-In-Reply-To: <20091203081337.1004.51309.stgit@localhost.localdomain>
+Received: from smtp.nokia.com ([192.100.122.233]:57240 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751341AbZLCIkj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 03:40:39 -0500
+Content-Disposition: inline
+In-Reply-To: <20091202225922.GA15568@oksana.dev.rtsoft.ru>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: ext Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Commit 10db25fea4c11661070b97832b8cc3d2af495092 causes the following
-kernel messages during N800 boot (and presumably all other 2420
-boards):
+Hi,
 
-[    0.000000] BUG: mapping for 0x58000000 at 0xe0000000 overlaps vmalloc space
-[    0.000000] BUG: mapping for 0x59000000 at 0xe1000000 overlaps vmalloc space
-[    0.000000] BUG: mapping for 0x5a000000 at 0xe2000000 overlaps vmalloc space
+On Wed, Dec 02, 2009 at 11:59:22PM +0100, ext Anton Vorontsov wrote:
+>On Thu, Dec 03, 2009 at 12:31:56AM +0200, Felipe Balbi wrote:
+>> Hi,
+>>
+>> On Wed, Dec 02, 2009 at 10:54:42PM +0100, ext Anton Vorontsov wrote:
+>> >As for the default USB VBUS current value, it could be Kconfig
+>> >option (something alike to USB_GADGET_VBUS_DRAW) and/or module
+>> >parameter, or hw default, or hardcoded for now. Either will
+>> >work.
+>>
+>> cannot be Kconfig, it's mandated by usb battery charging spec 1.x to
+>> be 100mA for 100ms, then if you don't enumerate, you have to cut
+>> charging.
+>
+>Oh, I thought TWL4030 does the USB stuff somewhat transparently
+>so the checks in twl4030_charger_check_vbus() would be enough.
+>Is there any TWL4030 reference manual available?
 
-Fix by remapping the IVA memory areas somewhere outside vmalloc space.
+there should be some tpsxxxxx manual available, someone from TI should 
+be able to tell us ??
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/include/plat/io.h |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+>If TWL4030 just draws the VBUS directly, then it might be a good
+>idea to integrate the driver with OTG framework, as an example
+>see
 
-diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
-index 7d6f45f..a3e7b47 100644
---- a/arch/arm/plat-omap/include/plat/io.h
-+++ b/arch/arm/plat-omap/include/plat/io.h
-@@ -123,14 +123,17 @@
- #define OMAP243X_SMS_SIZE	SZ_1M
- 
- /* 2420 IVA */
--#define DSP_MEM_2420_PHYS	OMAP2420_DSP_MEM_BASE	/* 0x58000000 */
--#define DSP_MEM_2420_VIRT	0xe0000000
-+#define DSP_MEM_2420_PHYS	OMAP2420_DSP_MEM_BASE
-+						/* 0x58000000 --> 0xfc100000 */
-+#define DSP_MEM_2420_VIRT	0xfc100000
- #define DSP_MEM_2420_SIZE	0x28000
--#define DSP_IPI_2420_PHYS	OMAP2420_DSP_IPI_BASE	/* 0x59000000 */
--#define DSP_IPI_2420_VIRT	0xe1000000
-+#define DSP_IPI_2420_PHYS	OMAP2420_DSP_IPI_BASE
-+						/* 0x59000000 --> 0xfc128000 */
-+#define DSP_IPI_2420_VIRT	0xfc128000
- #define DSP_IPI_2420_SIZE	SZ_4K
--#define DSP_MMU_2420_PHYS	OMAP2420_DSP_MMU_BASE	/* 0x5a000000 */
--#define DSP_MMU_2420_VIRT	0xe2000000
-+#define DSP_MMU_2420_PHYS	OMAP2420_DSP_MMU_BASE
-+						/* 0x5a000000 --> 0xfc129000 */
-+#define DSP_MMU_2420_VIRT	0xfc129000
- #define DSP_MMU_2420_SIZE	SZ_4K
- 
- /* 2430 IVA2.1 - currently unmapped */
+thing is that we already have the transceiver driver done... so we have 
+to think how to do this properly.
 
+>commit 5bf2b994bfe11bfe86231050897b2d881ca544d9
+>Author: Philipp Zabel <philipp.zabel@gmail.com>
+>Date:   Sun Jan 18 17:40:27 2009 +0100
+>
+>    pda_power: Add optional OTG transceiver and voltage regulator support
+>
+>Though, instead of just a boolean is_usb_online() stuff, you'll
+>have to get the allowed current draw value and configure the
+>charger appropriately.
+>
+>Will this work?
 
+yes, that'll work. But how about start charging always with 100mA and if 
+userland sees that we were enumerated it reconfigures charging as 
+necessary. But this would mean that we have the EM daemon started up 
+just after the driver itself is loaded to avoid the problem with 100ms 
+no enumeration. How does that sound ? Do we start making some writeable 
+power_supply sysfs ???
+
+-- 
+balbi
