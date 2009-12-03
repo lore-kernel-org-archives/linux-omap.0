@@ -1,90 +1,165 @@
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-Subject: Re: EHCI support on beagleboard missing
-Date: Fri, 04 Dec 2009 01:51:25 +0000
-Message-ID: <4B186B1D.3080903@blueyonder.co.uk>
-References: <20091201174333.GA31972@kroah.com> <1259690320-12415-1-git-send-email-gregkh@suse.de>,<4B169D4E.7050100@blueyonder.co.uk> <5A47E75E594F054BAF48C5E4FC4B92AB0309C8638F@dbde02.ent.ti.com> <4B16A18C.20108@blueyonder.co.uk>
-Reply-To: sboyce@blueyonder.co.uk
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 3/4 v4] OMAP: McBSP: Introduce caching in register write operations
+Date: Fri, 4 Dec 2009 00:18:00 +0100
+Message-ID: <200912040018.02309.jkrzyszt@tis.icnet.pl>
+References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <200912031330.43464.jkrzyszt@tis.icnet.pl> <20091203200301.GB4348@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:41274 "EHLO
-	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754742AbZLDBvW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 20:51:22 -0500
-Received: from [172.23.170.137] (helo=anti-virus01-08)
-	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1NGNKR-0005a5-Nt
-	for linux-omap@vger.kernel.org; Fri, 04 Dec 2009 01:51:27 +0000
-Received: from [94.171.130.58] (helo=[192.168.10.2])
-	by asmtp-out6.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1NGNKQ-0008G2-Bt
-	for linux-omap@vger.kernel.org; Fri, 04 Dec 2009 01:51:26 +0000
-In-Reply-To: <4B16A18C.20108@blueyonder.co.uk>
+Received: from d1.icnet.pl ([212.160.220.21]:33107 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755086AbZLDB5f convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 20:57:35 -0500
+In-Reply-To: <20091203200301.GB4348@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org
 
-On 02/12/09 17:19, Sid Boyce wrote:
-> On 02/12/09 17:04, Gadiyar, Anand wrote:
->> Sid Boyce wrote:
->>> Greg,
->>> I've been told you have had the patch on your queue for quite some time.
->>> I don't have the patch details to hand, but drivers/usb/Kconfig and may
->>> be 2 other files affected. I have to search for the patch later.
->>> linux-omap-2.6 # ARCH=arm make
->>> CROSS_COMPILE=/opt/arm-2009q3/bin/arm-none-eabi- defconfig
->>>   HOSTCC  scripts/basic/fixdep
->>>   HOSTCC  scripts/basic/docproc
->>>   HOSTCC  scripts/basic/hash
->>>   HOSTCC  scripts/kconfig/conf.o
->>>   HOSTCC  scripts/kconfig/kxgettext.o
->>>   SHIPPED scripts/kconfig/zconf.tab.c
->>>   SHIPPED scripts/kconfig/lex.zconf.c
->>>   SHIPPED scripts/kconfig/zconf.hash.c
->>>   HOSTCC  scripts/kconfig/zconf.tab.o
->>>   HOSTLD  scripts/kconfig/conf
->>> *** Default configuration is based on 'versatile_defconfig'
->>> #
->>> # configuration written to .config
->>> #
->>
->>
->> Looks incorrect to me. Shouldn't you be doing omap3_beagle_config?
->>
->>> slipstream:/home/lancelot/OE/openembedded/linux-omap-2.6 # grep EHCI .config
->>> # CONFIG_USB_ARCH_HAS_EHCI is not set
->>>
->>
->> And this seems to be the linux-omap kernel. So the patch should be there,
->> and if it isn't then the correct list to ping would probably be linux-omap.
->>
->>
->> There's a patch in Greg's queue to set this with OMAP3 [1].
->> And there was a newer version that was sent by Olaf recently [2], not
->> sure if it was picked up. Either of these should get you going.
->>
->> - Anand
->>
->> [1] <http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/usb/usb-ehci-allow-ehci-to-be-built-on-omap3.patch>
->> [2] <http://marc.info/?l=linux-usb&m=125913935405310&w=2>
->>
-> 
-> That's the one.
-> Thanks and Regards
-> Sid.
-> 
+Thursday 03 December 2009 21:03:02 Tony Lindgren napisa=C5=82(a):
+> Hi,
+>
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091203 04:29]:
+> > Reserve space inside omap_mcbsp structure for storing cached copies=
+ of
+> > McBSP register values.
+> > Modify the MCBSP_WRITE() macro to update the cache with every regis=
+ter
+> > write operation.
+> > Introduce a new macro that reads from the cache instead of hardware=
+=2E
+> >
+> > Applies on top of patch 2 from this series:
+> > [PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API =
+for
+> > caching
+> >
+> > Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
+> > commit 4421752e331cfb1d942b47ffdb26e451a8da58a0.
+> > Compile-tested with omap_3430sdp_defconfig.
+> >
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> >
+> > ---
+> >
+> > Thursday 03 December 2009 08:49:21 Jarkko Nikula wrote:
+> > > On Tue, 1 Dec 2009 04:15:50 +0100
+> > >
+> > > Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+> > > >  #define MCBSP_WRITE(mcbsp, reg, val) \
+> > > > -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
+> > > > +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
+> > > > +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1]=
+ \
+> > > > +			=3D val)
+> > > > +#define MCBSP_READ_CACHE(mcbsp, reg) \
+> > > > +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1=
+])
+> > >
+> > > These divisions by DDR1 are confusing. Use rather sizeof:
+> > >
+> > > reg_cache[OMAP_MCBSP_REG_##reg / sizeof(*mcbsp->reg_cache)]
+> >
+> > Done.
+> >
+> > Jarkko, many thanks for your cooperation :).
+> >
+> > Janusz
+> >
+> >  arch/arm/plat-omap/include/plat/mcbsp.h |    5 +++++
+> >  arch/arm/plat-omap/mcbsp.c              |    7 ++++++-
+> >  2 files changed, 11 insertions(+), 1 deletion(-)
+> >
+> > --- git/arch/arm/plat-omap/include/plat/mcbsp.h.orig	2009-11-27
+> > 11:53:45.000000000 +0100 +++
+> > git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-01 03:37:21.000=
+000000
+> > +0100 @@ -415,6 +415,11 @@ struct omap_mcbsp {
+> >  	u16 max_tx_thres;
+> >  	u16 max_rx_thres;
+> >  #endif
+> > +#ifdef CONFIG_ARCH_OMAP1
+> > +	u16 reg_cache[OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1];
+> > +#else
+> > +	u32 reg_cache[OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
+> > +#endif
+> >  };
+> >  extern struct omap_mcbsp **mcbsp_ptr;
+> >  extern int omap_mcbsp_count;
+>
+> How about rather set:
+>
+> static u16 omap1_reg_cache[];
+>
+> and
+>
+> static u32 omap2_reg_cache[];
 
-The patch is not on Greg's queue and he knows nothing about it.
-When "default y if ARCH_OMAP34XX" is added to drivers/usb/Kconfig, it
-still missing the glue patch which via google I can't find a recent patch.
-It's somehow fallen down the plug hole and needs resubmitting as it's an
-ever present problem in all but the launchpad 2.6.31 kernel.
-Regards
-Sid.
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Hi Tony,
 
+Let me understand more precisely what you mean before I submit next ver=
+sion.
+
+Did you mean something like:
+
+static u16 omap1_reg_cache[3][OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1];
+static u32 omap2_reg_cache[5][OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
+
+both put in arch/arm/plat-omap/mcbsp.c without any ifdefs?
+
+> > --- git/arch/arm/plat-omap/mcbsp.c.orig	2009-12-01 03:19:56.0000000=
+00
+> > +0100 +++ git/arch/arm/plat-omap/mcbsp.c	2009-12-03 11:37:21.000000=
+000
+> > +0100 @@ -49,7 +49,12 @@ int omap_mcbsp_read(void __iomem *io_bas
+> >  #define MCBSP_READ(mcbsp, reg) \
+> >  		omap_mcbsp_read(mcbsp->io_base, OMAP_MCBSP_REG_##reg)
+> >  #define MCBSP_WRITE(mcbsp, reg, val) \
+> > -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
+> > +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
+> > +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
+> > +				 sizeof(*mcbsp->reg_cache)] =3D val)
+> > +#define MCBSP_READ_CACHE(mcbsp, reg) \
+> > +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
+> > +				  sizeof(*mcbsp->reg_cache)])
+> >
+> >  #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
+> >  #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
+>
+> Then rather than doing this cache manipulation in the macro, just
+> do it in the omap_mcbsp_read/write functions based on the
+> cpu_class_is_omap1() accessing omap1_reg_cache or omap2_reg_cache.
+
+omap_mcbsp_wrtie() case seems clear to me, but:
+
+Did you mean defining a new omap_mcbsp_read_cache() function, similiar =
+to=20
+omap_mcbsp_read(), but reading from cache instead of hardware?
+
+Or do you prefere if I modify omap_mcbsp_read() to be able to read from=
+ both=20
+hardware and cache, dependig on an additional argument, for example?
+
+Thanks,
+Janusz
+
+> This way you can get rid of the ifdef else.
+>
+> Regards,
+>
+> Tony
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
