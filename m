@@ -1,161 +1,94 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 9/9] OMAP clock/hwmod: fix off-by-one errors
-Date: Thu, 03 Dec 2009 06:45:46 -0700
-Message-ID: <20091203134544.16229.26195.stgit@localhost.localdomain>
+Subject: [PATCH 4/9] OMAP powerdomain/PM: use symbolic constants for the max
+	number of power states
+Date: Thu, 03 Dec 2009 06:45:36 -0700
+Message-ID: <20091203134535.16229.31415.stgit@localhost.localdomain>
 References: <20091203134321.16229.87539.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48977 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:48958 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756117AbZLCNwY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 08:52:24 -0500
+	with ESMTP id S1756078AbZLCNwX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 08:52:23 -0500
 In-Reply-To: <20091203134321.16229.87539.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Juha =?utf-8?b?TGVwcMOkbmVu?= <juha_motorsportcom@luukku.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-=46ix loop bailout off-by-one bugs reported by Juha Lepp=C3=A4nen
-<juha_motorsportcom@luukku.com>.
-
-This second version incorporates comments from Russell King
-<linux@arm.linux.org.uk>.  A new macro, 'omap_test_timeout', has
-been created, with cleaner code, and existing code has been converted
-to use it.
+Replace some bare constants with power states.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Juha Lepp=C3=A4nen <juha_motorsportcom@luukku.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/cm.c                 |    7 ++++---
- arch/arm/mach-omap2/omap_hwmod.c         |   13 +++++--------
- arch/arm/mach-omap2/prcm.c               |    5 ++---
- arch/arm/plat-omap/include/plat/common.h |   20 ++++++++++++++++++++
- 4 files changed, 31 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c                |    4 ++--
+ arch/arm/mach-omap2/powerdomain.c             |    2 +-
+ arch/arm/plat-omap/include/plat/powerdomain.h |    6 ++++--
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm.c b/arch/arm/mach-omap2/cm.c
-index 8eb2dab..58e4a1c 100644
---- a/arch/arm/mach-omap2/cm.c
-+++ b/arch/arm/mach-omap2/cm.c
-@@ -21,6 +21,8 @@
-=20
- #include <asm/atomic.h>
-=20
-+#include <plat/common.h>
-+
- #include "cm.h"
- #include "cm-regbits-24xx.h"
- #include "cm-regbits-34xx.h"
-@@ -61,9 +63,8 @@ int omap2_cm_wait_module_ready(s16 prcm_mod, u8 idles=
-t_id, u8 idlest_shift)
- 	mask =3D 1 << idlest_shift;
-=20
- 	/* XXX should be OMAP2 CM */
--	while (((cm_read_mod_reg(prcm_mod, cm_idlest_reg) & mask) !=3D ena) &=
-&
--	       (i++ < MAX_MODULE_READY_TIME))
--		udelay(1);
-+	omap_test_timeout(((cm_read_mod_reg(prcm_mod, cm_idlest_reg) & mask) =
-=3D=3D ena),
-+			  MAX_MODULE_READY_TIME, i);
-=20
- 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 8baa30d..860b755 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -326,7 +326,7 @@ int pm_dbg_regset_save(int reg_set)
+ 	return 0;
  }
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-index 633b216..7aaf5f1 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -45,6 +45,7 @@
- #include <linux/mutex.h>
- #include <linux/bootmem.h>
-=20
-+#include <plat/common.h>
- #include <plat/cpu.h>
- #include <plat/clockdomain.h>
- #include <plat/powerdomain.h>
-@@ -736,7 +737,7 @@ static int _wait_target_ready(struct omap_hwmod *oh=
-)
- static int _reset(struct omap_hwmod *oh)
+ 
+-static const char pwrdm_state_names[][4] = {
++static const char pwrdm_state_names[][PWRDM_MAX_PWRSTS] = {
+ 	"OFF",
+ 	"RET",
+ 	"INA",
+@@ -381,7 +381,7 @@ static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
+ 
+ 	seq_printf(s, "%s (%s)", pwrdm->name,
+ 			pwrdm_state_names[pwrdm->state]);
+-	for (i = 0; i < 4; i++)
++	for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
+ 		seq_printf(s, ",%s:%d", pwrdm_state_names[i],
+ 			pwrdm->state_counter[i]);
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 4147267..1dd1a38 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -158,7 +158,7 @@ static __init void _pwrdm_setup(struct powerdomain *pwrdm)
  {
- 	u32 r, v;
--	int c;
-+	int c =3D 0;
-=20
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_SOFTRESET) ||
-@@ -758,13 +759,9 @@ static int _reset(struct omap_hwmod *oh)
- 		return r;
- 	_write_sysconfig(v, oh);
-=20
--	c =3D 0;
--	while (c < MAX_MODULE_RESET_WAIT &&
--	       !(omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
--		 SYSS_RESETDONE_MASK)) {
--		udelay(1);
--		c++;
--	}
-+	omap_test_timeout((omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
-+			   SYSS_RESETDONE_MASK),
-+			  MAX_MODULE_RESET_WAIT, c);
-=20
- 	if (c =3D=3D MAX_MODULE_RESET_WAIT)
- 		WARN(1, "omap_hwmod: %s: failed to reset in %d usec\n",
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 9208b6e..79637c2 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -241,9 +241,8 @@ int omap2_cm_wait_idlest(void __iomem *reg, u32 mas=
-k, const char *name)
- 		BUG();
-=20
- 	/* Wait for lock */
--	while (((__raw_readl(reg) & mask) !=3D ena) &&
--	       (i++ < MAX_MODULE_ENABLE_WAIT))
--		udelay(1);
-+	omap_test_timeout(((__raw_readl(reg) & mask) =3D=3D ena),
-+			  MAX_MODULE_ENABLE_WAIT, i);
-=20
- 	if (i < MAX_MODULE_ENABLE_WAIT)
- 		pr_debug("cm: Module associated with clock %s ready after %d "
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-o=
-map/include/plat/common.h
-index 064f173..e977967 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -71,4 +71,24 @@ void omap2_set_globals_sdrc(struct omap_globals *);
- void omap2_set_globals_control(struct omap_globals *);
- void omap2_set_globals_prcm(struct omap_globals *);
-=20
-+/**
-+ * omap_test_timeout - busy-loop, testing a condition
-+ * @cond: condition to test until it evaluates to true
-+ * @timeout: maximum number of microseconds in the timeout
-+ * @index: loop index (integer)
-+ *
-+ * Loop waiting for @cond to become true or until at least @timeout
-+ * microseconds have passed.  To use, define some integer @index in th=
-e
-+ * calling code.  After running, if @index =3D=3D @timeout, then the l=
-oop has
-+ * timed out.
-+ */
-+#define omap_test_timeout(cond, timeout, index)			\
-+({								\
-+	for (index =3D 0; index < timeout; index++) {		\
-+		if (cond)					\
-+			break;					\
-+		udelay(1);					\
-+	}							\
-+})
+ 	int i;
+ 
+-	for (i = 0; i < 4; i++)
++	for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
+ 		pwrdm->state_counter[i] = 0;
+ 
+ 	pwrdm_wait_transition(pwrdm);
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+index 3d45ee1..5a80ddb 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -28,6 +28,8 @@
+ #define PWRDM_POWER_INACTIVE	0x2
+ #define PWRDM_POWER_ON		0x3
+ 
++#define PWRDM_MAX_PWRSTS	4
 +
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+ /* Powerdomain allowable state bitfields */
+ #define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | \
+ 				 (1 << PWRDM_POWER_ON))
+@@ -118,11 +120,11 @@ struct powerdomain {
+ 	struct list_head node;
+ 
+ 	int state;
+-	unsigned state_counter[4];
++	unsigned state_counter[PWRDM_MAX_PWRSTS];
+ 
+ #ifdef CONFIG_PM_DEBUG
+ 	s64 timer;
+-	s64 state_timer[4];
++	s64 state_timer[PWRDM_MAX_PWRSTS];
+ #endif
+ };
+ 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
