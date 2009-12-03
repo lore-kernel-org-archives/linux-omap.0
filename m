@@ -1,45 +1,51 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: [PATCH] PM: Prevent direct cpufreq scaling during initialization
-Date: Thu, 3 Dec 2009 11:59:16 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE87AAD1@dbde02.ent.ti.com>
-References: <1259748759.21203.11.camel@boson>
- <48239d390912020733w2981917ap6312eee193f14263@mail.gmail.com>
+From: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
+Subject: Re: Preventing OMAP3 serial driver to take control of all UARTs
+Date: Thu, 3 Dec 2009 08:56:51 +0200
+Message-ID: <20091203065651.GH17675@esdhcp04058.research.nokia.com>
+References: <20091130084651.GA17675@esdhcp04058.research.nokia.com> <1259599010.4649.51.camel@thunk> <fa686aa40911300901nd47259ar2e1beae7be447937@mail.gmail.com> <20091130194031.GV4348@atomide.com> <fa686aa40912020707p70eb693dp6fcd03facabb5892@mail.gmail.com> <20091203010051.GP4348@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36829 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751156AbZLCG3Q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 01:29:16 -0500
-In-Reply-To: <48239d390912020733w2981917ap6312eee193f14263@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:46753 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142AbZLCGzc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 01:55:32 -0500
+Content-Disposition: inline
+In-Reply-To: <20091203010051.GP4348@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergey Lapin <slapinid@gmail.com>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Peter Barada <peterb@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 
-
-
-> > Signed-off-by: Romit Dasgupta <romit@ti.com>
-> > ---
-> > diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-
-> omap.c
-> > index 449b6b6..f94df20 100644
-> > --- a/arch/arm/plat-omap/cpu-omap.c
-> > +++ b/arch/arm/plat-omap/cpu-omap.c
-> > @@ -149,8 +149,6 @@ static int __init omap_cpu_init(struct
-> cpufreq_policy *policy)
-> >                                                        VERY_HI_RATE) /
-> 1000;
-> >        }
-> >
-> > -       clk_set_rate(mpu_clk, policy->cpuinfo.max_freq * 1000);
-> > -
-> >        policy->min = policy->cpuinfo.min_freq;
-> >        policy->max = policy->cpuinfo.max_freq;
-> >        policy->cur = omap_getspeed(0);
+On Thu, Dec 03, 2009 at 02:00:52AM +0100, ext Tony Lindgren wrote:
+> * Grant Likely <grant.likely@secretlab.ca> [091202 07:06]:
+> > On Mon, Nov 30, 2009 at 12:40 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > > * Grant Likely <grant.likely@secretlab.ca> [091130 09:01]:
 > 
-> This patch leads to hang with current PM branch, SRF and CPU IDLE enabled
-> on OMAP3525 rev C.
-Verified this to work on Zoom2 + SRF + CPUidle. Can you give some debug info if possible?
+> <snip>
+> 
+> > >
+> > > maybe you've already thought through all this.. But would it be
+> > > possible to do lightweight device tree that we just use to populate
+> > > the platform data?
+> > 
+> > This is completely possible.  Just having the device tree available
+> > doesn't force the kernel to use it for everything.  I've found it
+> > useful to start small and add things as I need them.  Most important
+> > thing to remember is to follow the documented & established device
+> > tree conventions so that common code can understand it.
+> 
+> OK, sounds good to me.
+
+Hi,
+
+This device tree stuff sounds like very cool way of doing things. Hope
+it is ready soon :)
+
+Meanwhile, would it be OK to implement something to get the serial driver
+taking control of the all the UARTs? Any comments on adding new function
+to mach-omap2/serial.c: omap_serial_init_port(int port) that could be
+used from board files instead of omap_serial_init()?
+
+Thanks,
+MW
