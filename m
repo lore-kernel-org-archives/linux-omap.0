@@ -1,78 +1,65 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: Preventing OMAP3 serial driver to take control of all UARTs
-Date: Thu, 03 Dec 2009 10:46:51 +0200
-Message-ID: <1259830011.10805.60.camel@localhost>
-References: <20091130084651.GA17675@esdhcp04058.research.nokia.com>
-	 <1259599010.4649.51.camel@thunk>
-	 <fa686aa40911300901nd47259ar2e1beae7be447937@mail.gmail.com>
-	 <20091130194031.GV4348@atomide.com>
-	 <fa686aa40912020707p70eb693dp6fcd03facabb5892@mail.gmail.com>
-	 <20091203010051.GP4348@atomide.com>
-	 <20091203065651.GH17675@esdhcp04058.research.nokia.com>
-Reply-To: dedekind1@gmail.com
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH v3 0/4] OMAP: McBSP: Use register cache
+Date: Thu, 3 Dec 2009 11:35:37 +0200
+Message-ID: <200912031135.37985.peter.ujfalusi@nokia.com>
+References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <20091203094905.4c4fec7b.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58558 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751156AbZLCIrF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 03:47:05 -0500
-In-Reply-To: <20091203065651.GH17675@esdhcp04058.research.nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:23133 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753725AbZLCJgh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 04:36:37 -0500
+In-Reply-To: <20091203094905.4c4fec7b.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Peter Barada <peterb@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 2009-12-03 at 08:56 +0200, Mika Westerberg wrote:
-> On Thu, Dec 03, 2009 at 02:00:52AM +0100, ext Tony Lindgren wrote:
-> > * Grant Likely <grant.likely@secretlab.ca> [091202 07:06]:
-> > > On Mon, Nov 30, 2009 at 12:40 PM, Tony Lindgren <tony@atomide.com=
-> wrote:
-> > > > * Grant Likely <grant.likely@secretlab.ca> [091130 09:01]:
-> >=20
-> > <snip>
-> >=20
-> > > >
-> > > > maybe you've already thought through all this.. But would it be
-> > > > possible to do lightweight device tree that we just use to popu=
-late
-> > > > the platform data?
-> > >=20
-> > > This is completely possible.  Just having the device tree availab=
-le
-> > > doesn't force the kernel to use it for everything.  I've found it
-> > > useful to start small and add things as I need them.  Most import=
-ant
-> > > thing to remember is to follow the documented & established devic=
-e
-> > > tree conventions so that common code can understand it.
-> >=20
-> > OK, sounds good to me.
->=20
-> Hi,
->=20
-> This device tree stuff sounds like very cool way of doing things. Hop=
-e
-> it is ready soon :)
->=20
-> Meanwhile, would it be OK to implement something to get the serial dr=
-iver
-> taking control of the all the UARTs? Any comments on adding new funct=
-ion
-> to mach-omap2/serial.c: omap_serial_init_port(int port) that could be
-> used from board files instead of omap_serial_init()?
+Hello,
 
-Device tree is really promising, but we do need an alternative method
-anyway, because not everyone will use the device tree. IOW, device tree
-does not exist yet, and will not be mandatory, so an alternative is
-required.
+On Thursday 03 December 2009 09:49:05 ext Jarkko Nikula wrote:
+> On Tue, 1 Dec 2009 04:10:07 +0100
+>=20
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+> > Change the way McBSP registers are maintained: store values written=
+ to
+> > the device in a cache in order to  make use of those cached values =
+when
+> > convenient.
+> >
+> > This could help for developing the McBSP context save/restore featu=
+res,
+> > as well as solve the problem of possible register corruption experi=
+enced
+> > on OMAP1510 based Amstrad Delta board, at least.
+> >
+> > Janusz Krzysztofik (4):
+> > 	OMAP: McBSP: Use macros for all register read/write operations
+> > 	OMAP: McBSP: Prepare register read/write macros API for caching
+> > 	OMAP: McBSP: Introduce caching in register write operations
+> > 	OMAP: McBSP: Use cache when modifying individual register bits
+> >
+> >  arch/arm/plat-omap/include/plat/mcbsp.h |    5
+> >  arch/arm/plat-omap/mcbsp.c              |  397
+> > ++++++++++++++++++++++++--------------------------- 2 files changed=
+, 198
+> > insertions(+), 204 deletions(-)
+>=20
+> Looks good to me and audio works fine with the Beagle. One minor
+> comment to the patch 3.
+
+Sorry, but I have totally missed the discussion about this in l-o..
+It looks good for me as well, the only comment I have is the same as Ja=
+rkko for=20
+patch 3.
+I was about to give it a try, but since Jarkko already tested it on Bea=
+gle, I'm=20
+OK with this series (with the comment for patch 3).
 
 --=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
-
+P=E9ter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
