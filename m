@@ -1,293 +1,441 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/9] omap: mux: Add debugfs support for new mux code
-Date: Wed, 02 Dec 2009 16:22:12 -0800
-Message-ID: <20091203002212.2769.29650.stgit@localhost>
+Subject: [PATCH 4/9] omap: mux: Add new style init functions to omap3
+	board-*.c files
+Date: Wed, 02 Dec 2009 16:22:00 -0800
+Message-ID: <20091203002200.2769.87237.stgit@localhost>
 References: <20091203001601.2769.20621.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59208 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323AbZLCAWG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 19:22:06 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54658 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754461AbZLCAVz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Dec 2009 19:21:55 -0500
 In-Reply-To: <20091203001601.2769.20621.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Add debugfs support for new mux code
+Add new style mux init functions to omap3 board-*.c files
+
+So far Beagle has been confirmed to be a CBB package,
+and CM-T35 a CUS package.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mux.c |  227 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 227 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Kconfig              |   10 ++++++++++
+ arch/arm/mach-omap2/board-3430sdp.c      |   10 ++++++++++
+ arch/arm/mach-omap2/board-am3517evm.c    |   11 +++++++++++
+ arch/arm/mach-omap2/board-cm-t35.c       |   10 ++++++++++
+ arch/arm/mach-omap2/board-igep0020.c     |   10 ++++++++++
+ arch/arm/mach-omap2/board-ldp.c          |   10 ++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c  |   10 ++++++++++
+ arch/arm/mach-omap2/board-omap3evm.c     |   10 ++++++++++
+ arch/arm/mach-omap2/board-omap3pandora.c |   10 ++++++++++
+ arch/arm/mach-omap2/board-overo.c        |    9 +++++++++
+ arch/arm/mach-omap2/board-rx51.c         |   11 +++++++++++
+ arch/arm/mach-omap2/board-zoom2.c        |   10 ++++++++++
+ 12 files changed, 121 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index b082b50..d968433 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -28,6 +28,10 @@
- #include <linux/io.h>
- #include <linux/spinlock.h>
- #include <linux/list.h>
-+#include <linux/ctype.h>
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+#include <linux/uaccess.h>
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index c324d52..c10789c 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -61,14 +61,17 @@ config MACH_OMAP_2430SDP
+ config MACH_OMAP3_BEAGLE
+ 	bool "OMAP3 BEAGLE board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
  
- #include <asm/system.h>
+ config MACH_OMAP_LDP
+ 	bool "OMAP3 LDP board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
  
-@@ -44,6 +48,7 @@ struct omap_mux_entry {
- 	struct list_head	node;
+ config MACH_OVERO
+ 	bool "Gumstix Overo board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+@@ -77,14 +80,17 @@ config MACH_OMAP3EVM
+ config MACH_OMAP3517EVM
+ 	bool "OMAP3517/ AM3517 EVM board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP3_PANDORA
+ 	bool "OMAP3 Pandora"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP_3430SDP
+ 	bool "OMAP 3430 SDP board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
+ 
+ config MACH_NOKIA_N800
+        bool
+@@ -105,10 +111,12 @@ config MACH_NOKIA_N8X0
+ config MACH_NOKIA_RX51
+ 	bool "Nokia RX-51 board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP_ZOOM2
+ 	bool "OMAP3 Zoom2 board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP_ZOOM3
+ 	bool "OMAP3630 Zoom3 board"
+@@ -117,10 +125,12 @@ config MACH_OMAP_ZOOM3
+ config MACH_CM_T35
+ 	bool "CompuLab CM-T35 module"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CUS
+ 
+ config MACH_IGEP0020
+ 	bool "IGEP0020"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
+ 
+ config MACH_OMAP_3630SDP
+ 	bool "OMAP3630 SDP board"
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 5bda9fd..e5d9118 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -42,6 +42,7 @@
+ #include <plat/control.h>
+ #include <plat/gpmc-smc91x.h>
+ 
++#include "mux.h"
+ #include "sdram-qimonda-hyb18m512160af-6.h"
+ #include "mmc-twl4030.h"
+ 
+@@ -640,8 +641,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.reset_gpio_port[2]  = -EINVAL
  };
  
-+static unsigned long mux_phys;
- static void __iomem *mux_base;
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
+ static void __init omap_3430sdp_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3430_i2c_init();
+ 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+ 	if (omap_rev() > OMAP3430_REV_ES1_0)
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 415a13d..b4e6eca 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -30,6 +30,8 @@
+ #include <plat/common.h>
+ #include <plat/usb.h>
  
- static inline u16 omap_mux_read(u16 reg)
-@@ -807,6 +812,225 @@ int __init omap_mux_init_signal(char *muxname, int val)
- 	return -ENODEV;
++#include "mux.h"
++
+ /*
+  * Board initialization
+  */
+@@ -60,8 +62,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
+ static void __init am3517_evm_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	platform_add_devices(am3517_evm_devices,
+ 				ARRAY_SIZE(am3517_evm_devices));
+ 
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 22c4529..84321f6 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -45,6 +45,7 @@
+ 
+ #include <mach/hardware.h>
+ 
++#include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "mmc-twl4030.h"
+ 
+@@ -482,8 +483,17 @@ static void __init cm_t35_map_io(void)
+ 	omap2_map_common_io();
  }
  
-+#ifdef CONFIG_DEBUG_FS
-+
-+#define OMAP_MUX_MAX_NR_FLAGS	10
-+#define OMAP_MUX_TEST_FLAG(val, mask)				\
-+	if (((val) & (mask)) == (mask)) {			\
-+		i++;						\
-+		flags[i] =  #mask;				\
-+	}
-+
-+/* REVISIT: Add checking for non-optimal mux settings */
-+static inline void omap_mux_decode(struct seq_file *s, u16 val)
-+{
-+	char *flags[OMAP_MUX_MAX_NR_FLAGS];
-+	char mode[14];
-+	int i = -1;
-+
-+	sprintf(mode, "OMAP_MUX_MODE%d", val & 0x7);
-+	i++;
-+	flags[i] = mode;
-+
-+	OMAP_MUX_TEST_FLAG(val, OMAP_PIN_OFF_WAKEUPENABLE);
-+	if (val & OMAP_OFF_EN) {
-+		if (!(val & OMAP_OFFOUT_EN)) {
-+			if (!(val & OMAP_OFF_PULL_UP)) {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_OFF_INPUT_PULLDOWN);
-+			} else {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_OFF_INPUT_PULLUP);
-+			}
-+		} else {
-+			if (!(val & OMAP_OFFOUT_VAL)) {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_OFF_OUTPUT_LOW);
-+			} else {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_OFF_OUTPUT_HIGH);
-+			}
-+		}
-+	}
-+
-+	if (val & OMAP_INPUT_EN) {
-+		if (val & OMAP_PULL_ENA) {
-+			if (!(val & OMAP_PULL_UP)) {
-+				OMAP_MUX_TEST_FLAG(val,
-+					OMAP_PIN_INPUT_PULLDOWN);
-+			} else {
-+				OMAP_MUX_TEST_FLAG(val, OMAP_PIN_INPUT_PULLUP);
-+			}
-+		} else {
-+			OMAP_MUX_TEST_FLAG(val, OMAP_PIN_INPUT);
-+		}
-+	} else {
-+		i++;
-+		flags[i] = "OMAP_PIN_OUTPUT";
-+	}
-+
-+	do {
-+		seq_printf(s, "%s", flags[i]);
-+		if (i > 0)
-+			seq_printf(s, " | ");
-+	} while (i-- > 0);
-+}
-+
-+#define OMAP_MUX_DEFNAME_LEN	16
-+
-+static int omap_mux_dbg_board_show(struct seq_file *s, void *unused)
-+{
-+	struct omap_mux_entry *e;
-+
-+	list_for_each_entry(e, &muxmodes, node) {
-+		struct omap_mux *m = &e->mux;
-+		char m0_def[OMAP_MUX_DEFNAME_LEN];
-+		char *m0_name = m->muxnames[0];
-+		u16 val;
-+		int i, mode;
-+
-+		if (!m0_name)
-+			continue;
-+
-+		for (i = 0; i < OMAP_MUX_DEFNAME_LEN; i++) {
-+			if (m0_name[i] == '\0') {
-+				m0_def[i] = m0_name[i];
-+				break;
-+			}
-+			m0_def[i] = toupper(m0_name[i]);
-+		}
-+		val = omap_mux_read(m->reg_offset);
-+		mode = val & OMAP_MUX_MODE7;
-+
-+		seq_printf(s, "OMAP%i_MUX(%s, ",
-+					cpu_is_omap34xx() ? 3 : 0, m0_def);
-+		omap_mux_decode(s, val);
-+		seq_printf(s, "),\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int omap_mux_dbg_board_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, omap_mux_dbg_board_show, &inode->i_private);
-+}
-+
-+static const struct file_operations omap_mux_dbg_board_fops = {
-+	.open		= omap_mux_dbg_board_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
 +};
-+
-+static int omap_mux_dbg_signal_show(struct seq_file *s, void *unused)
-+{
-+	struct omap_mux *m = s->private;
-+	const char *none = "NA";
-+	u16 val;
-+	int mode;
-+
-+	val = omap_mux_read(m->reg_offset);
-+	mode = val & OMAP_MUX_MODE7;
-+
-+	seq_printf(s, "name: %s.%s (0x%08lx/0x%03x = 0x%04x), b %s, t %s\n",
-+			m->muxnames[0], m->muxnames[mode],
-+			mux_phys + m->reg_offset, m->reg_offset, val,
-+			m->balls[0] ? m->balls[0] : none,
-+			m->balls[1] ? m->balls[1] : none);
-+	seq_printf(s, "mode: ");
-+	omap_mux_decode(s, val);
-+	seq_printf(s, "\n");
-+	seq_printf(s, "signals: %s | %s | %s | %s | %s | %s | %s | %s\n",
-+			m->muxnames[0] ? m->muxnames[0] : none,
-+			m->muxnames[1] ? m->muxnames[1] : none,
-+			m->muxnames[2] ? m->muxnames[2] : none,
-+			m->muxnames[3] ? m->muxnames[3] : none,
-+			m->muxnames[4] ? m->muxnames[4] : none,
-+			m->muxnames[5] ? m->muxnames[5] : none,
-+			m->muxnames[6] ? m->muxnames[6] : none,
-+			m->muxnames[7] ? m->muxnames[7] : none);
-+
-+	return 0;
-+}
-+
-+#define OMAP_MUX_MAX_ARG_CHAR  7
-+
-+static ssize_t omap_mux_dbg_signal_write(struct file *file,
-+						const char __user *user_buf,
-+						size_t count, loff_t *ppos)
-+{
-+	char buf[OMAP_MUX_MAX_ARG_CHAR];
-+	struct seq_file *seqf;
-+	struct omap_mux *m;
-+	unsigned long val;
-+	int buf_size, ret;
-+
-+	if (count > OMAP_MUX_MAX_ARG_CHAR)
-+		return -EINVAL;
-+
-+	memset(buf, 0, sizeof(buf));
-+	buf_size = min(count, sizeof(buf) - 1);
-+
-+	if (copy_from_user(buf, user_buf, buf_size))
-+		return -EFAULT;
-+
-+	ret = strict_strtoul(buf, 0x10, &val);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (val > 0xffff)
-+		return -EINVAL;
-+
-+	seqf = file->private_data;
-+	m = seqf->private;
-+
-+	omap_mux_write((u16)val, m->reg_offset);
-+	*ppos += count;
-+
-+	return count;
-+}
-+
-+static int omap_mux_dbg_signal_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, omap_mux_dbg_signal_show, inode->i_private);
-+}
-+
-+static const struct file_operations omap_mux_dbg_signal_fops = {
-+	.open		= omap_mux_dbg_signal_open,
-+	.read		= seq_read,
-+	.write		= omap_mux_dbg_signal_write,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static struct dentry *mux_dbg_dir;
-+
-+static void __init omap_mux_dbg_init(void)
-+{
-+	struct omap_mux_entry *e;
-+
-+	mux_dbg_dir = debugfs_create_dir("omap_mux", NULL);
-+	if (!mux_dbg_dir)
-+		return;
-+
-+	(void)debugfs_create_file("board", S_IRUGO, mux_dbg_dir,
-+					NULL, &omap_mux_dbg_board_fops);
-+
-+	list_for_each_entry(e, &muxmodes, node) {
-+		struct omap_mux *m = &e->mux;
-+
-+		(void)debugfs_create_file(m->muxnames[0], S_IWUGO, mux_dbg_dir,
-+					m, &omap_mux_dbg_signal_fops);
-+	}
-+}
-+
 +#else
-+static inline void omap_mux_dbg_init(void)
-+{
-+}
-+#endif	/* CONFIG_DEBUG_FS */
++#define board_mux	NULL
++#endif
 +
- static void __init omap_mux_free_names(struct omap_mux *m)
+ static void __init cm_t35_init(void)
  {
- 	int i;
-@@ -843,6 +1067,8 @@ static int __init omap_mux_late_init(void)
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
+ 	omap_serial_init();
+ 	cm_t35_init_i2c();
+ 	cm_t35_init_nand();
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index fa62e80..7e3217a 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -30,6 +30,7 @@
+ #include <plat/mux.h>
+ #include <plat/usb.h>
  
- 	}
++#include "mux.h"
+ #include "mmc-twl4030.h"
  
-+	omap_mux_dbg_init();
-+
+ #define IGEP2_SMSC911X_CS       5
+@@ -203,8 +204,17 @@ static int __init igep2_i2c_init(void)
  	return 0;
  }
- late_initcall(omap_mux_late_init);
-@@ -1107,6 +1333,7 @@ int __init omap_mux_init(u32 mux_pbase, u32 mux_size,
- 	if (mux_base)
- 		return -EBUSY;
  
-+	mux_phys = mux_pbase;
- 	mux_base = ioremap(mux_pbase, mux_size);
- 	if (!mux_base) {
- 		printk(KERN_ERR "mux: Could not ioremap\n");
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
+ static void __init igep2_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	igep2_i2c_init();
+ 	omap_serial_init();
+ 	usb_musb_init();
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index c062238..3743173 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -43,6 +43,7 @@
+ #include <plat/control.h>
+ #include <plat/usb.h>
+ 
++#include "mux.h"
+ #include "mmc-twl4030.h"
+ 
+ #define LDP_SMSC911X_CS		1
+@@ -374,8 +375,17 @@ static struct platform_device *ldp_devices[] __initdata = {
+ 	&ldp_gpio_keys_device,
+ };
+ 
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
+ static void __init omap_ldp_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap_i2c_init();
+ 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
+ 	ts_gpio = 54;
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 41480bd..e669dbb 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -45,6 +45,7 @@
+ #include <plat/usb.h>
+ #include <plat/timer-gp.h>
+ 
++#include "mux.h"
+ #include "mmc-twl4030.h"
+ 
+ #define GPMC_CS0_BASE  0x60
+@@ -422,8 +423,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
+ static void __init omap3_beagle_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3_beagle_i2c_init();
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 5efc2e9..ad174ae 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -43,6 +43,7 @@
+ #include <plat/common.h>
+ #include <plat/mcspi.h>
+ 
++#include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "mmc-twl4030.h"
+ 
+@@ -422,9 +423,18 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
+ static void __init omap3_evm_init(void)
+ {
+ 	omap3_evm_get_revision();
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 
+ 	omap3_evm_i2c_init();
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 2db5ba5..9f59c03 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -42,6 +42,7 @@
+ #include <plat/usb.h>
+ #include <plat/mux.h>
+ 
++#include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "mmc-twl4030.h"
+ 
+@@ -409,8 +410,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
+ static void __init omap3pandora_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3pandora_i2c_init();
+ 	platform_add_devices(omap3pandora_devices,
+ 			ARRAY_SIZE(omap3pandora_devices));
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 52dfd51..40f3c85 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -47,6 +47,7 @@
+ #include <plat/mux.h>
+ #include <plat/usb.h>
+ 
++#include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "mmc-twl4030.h"
+ 
+@@ -405,9 +406,17 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
+ 
+ static void __init overo_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	overo_i2c_init();
+ 	platform_add_devices(overo_devices, ARRAY_SIZE(overo_devices));
+ 	omap_serial_init();
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 1bb1de2..c0c99ad 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -30,6 +30,8 @@
+ #include <plat/gpmc.h>
+ #include <plat/usb.h>
+ 
++#include "mux.h"
++
+ struct omap_sdrc_params *rx51_get_sdram_timings(void);
+ 
+ static struct omap_lcd_config rx51_lcd_config = {
+@@ -69,8 +71,17 @@ static void __init rx51_init_irq(void)
+ 
+ extern void __init rx51_peripherals_init(void);
+ 
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
+ static void __init rx51_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap_serial_init();
+ 	usb_musb_init();
+ 	rx51_peripherals_init();
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 2f980e3..1e615e2 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -23,6 +23,7 @@
+ 
+ #include <mach/board-zoom.h>
+ 
++#include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ 
+ static void __init omap_zoom2_init_irq(void)
+@@ -58,8 +59,17 @@ static struct twl4030_platform_data zoom2_twldata = {
+ 
+ #endif
+ 
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
+ static void __init omap_zoom2_init(void)
+ {
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	zoom_peripherals_init();
+ 	zoom_debugboard_init();
+ }
 
