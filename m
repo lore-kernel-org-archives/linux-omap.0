@@ -1,41 +1,41 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH v3 3/4] OMAP: McBSP: Introduce caching in register write
- operations
-Date: Thu, 3 Dec 2009 09:49:21 +0200
-Message-ID: <20091203094921.1106827a.jhnikula@gmail.com>
-References: <200912010410.10129.jkrzyszt@tis.icnet.pl>
-	<200912010415.52570.jkrzyszt@tis.icnet.pl>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/2] OMAP2420 IO map: fix IVA map
+Date: Thu, 03 Dec 2009 01:15:55 -0700
+Message-ID: <20091203081337.1004.51309.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:40818 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754009AbZLCHsK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 02:48:10 -0500
-Received: by mail-bw0-f227.google.com with SMTP id 27so858355bwz.21
-        for <linux-omap@vger.kernel.org>; Wed, 02 Dec 2009 23:48:16 -0800 (PST)
-In-Reply-To: <200912010415.52570.jkrzyszt@tis.icnet.pl>
+Received: from utopia.booyaka.com ([72.9.107.138]:60921 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142AbZLCIQt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 03:16:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Tue, 1 Dec 2009 04:15:50 +0100
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+2420 boots currently complain:
 
->  #define MCBSP_WRITE(mcbsp, reg, val) \
-> -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
-> +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
-> +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1] \
-> +			= val)
-> +#define MCBSP_READ_CACHE(mcbsp, reg) \
-> +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1])
->  
-These divisions by DDR1 are confusing. Use rather sizeof:
+[    0.000000] BUG: mapping for 0x58000000 at 0xe0000000 overlaps vmalloc space
+[    0.000000] BUG: mapping for 0x59000000 at 0xe1000000 overlaps vmalloc space
+[    0.000000] BUG: mapping for 0x5a000000 at 0xe2000000 overlaps vmalloc space
 
-reg_cache[OMAP_MCBSP_REG_##reg / sizeof(*mcbsp->reg_cache)]
+This short series clarifies that the current IVA address macros are 2420-only,
+and moves the mapping out of vmalloc space.
+
+Boot-tested on N800.
+
+- Paul
+
+---
+
+Paul Walmsley (2):
+      OMAP2xxx IO mapping: mark DSP mappings as being 2420-only
+      OMAP2420 IO mapping: move IVA mapping virtual address out of vmalloc space
 
 
--- 
-Jarkko
+ arch/arm/mach-omap2/io.c             |   18 +++++++++--------
+ arch/arm/plat-omap/include/plat/io.h |   36 +++++++++++++++-------------------
+ arch/arm/plat-omap/io.c              |   12 ++++++-----
+ 3 files changed, 31 insertions(+), 35 deletions(-)
+
