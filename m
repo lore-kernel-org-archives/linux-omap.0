@@ -1,94 +1,79 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv2 2/2] OMAP3: Implemented VFP restore/save context
-Date: Thu,  3 Dec 2009 15:35:53 +0200
-Message-ID: <1259847353-22725-3-git-send-email-tero.kristo@nokia.com>
-References: <> <1259847353-22725-1-git-send-email-tero.kristo@nokia.com>
-	<1259847353-22725-2-git-send-email-tero.kristo@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 1/9] OMAP2/3 PRCM: don't export prm_*(), cm_*() functions
+Date: Thu, 03 Dec 2009 06:45:32 -0700
+Message-ID: <20091203134530.16229.16918.stgit@localhost.localdomain>
+References: <20091203134321.16229.87539.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1259847353-22725-2-git-send-email-tero.kristo@nokia.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:48951 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756088AbZLCNwW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 08:52:22 -0500
+In-Reply-To: <20091203134321.16229.87539.stgit@localhost.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Tero Kristo <tero.kristo@nokia.com>
+Device drivers and loadable modules should not be calling these
+prm_* and cm_* functions, so stop exporting them.  Only core code
+and device driver integration code (in arch/arm/*omap*) should
+call these functions.
 
-VFP save context is called before MPU/NEON off. Restore is not needed as
-the next VFP trap will restore context automatically. Uses the support
-routine implemented in arch/arm/vfp/vfpmodule.c.
-
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/pm.h     |    1 +
- arch/arm/mach-omap2/pm34xx.c |   14 +++++++++++++-
- 2 files changed, 14 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/prcm.c |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index e0c94ea..bf9b7f9 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -23,6 +23,7 @@ extern void omap_sram_idle(void);
- extern int omap3_can_sleep(void);
- extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- extern int omap3_idle_init(void);
-+extern void vfp_pm_save_context(void);
- 
- struct prm_setup_times_vc {
- 	u16 clksetup;
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 009bc55..624a7af 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -321,6 +321,13 @@ static void restore_control_register(u32 val)
- 	__asm__ __volatile__ ("mcr p15, 0, %0, c1, c0, 0" : : "r" (val));
- }
- 
-+static inline void omap3_save_neon_context(void)
-+{
-+#ifdef CONFIG_VFP
-+	vfp_pm_save_context();
-+#endif
-+}
-+
- /* Function to restore the table entry that was modified for enabling MMU */
- static void restore_table_entry(void)
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 029d376..9208b6e 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -170,14 +170,12 @@ u32 prm_read_mod_reg(s16 module, u16 idx)
  {
-@@ -365,6 +372,7 @@ void omap_sram_idle(void)
- 	/* save_state = 3 => L1, L2 and logic lost */
- 	int save_state = 0;
- 	int mpu_next_state = PWRDM_POWER_ON;
-+	int neon_next_state = PWRDM_POWER_ON;
- 	int per_next_state = PWRDM_POWER_ON;
- 	int core_next_state = PWRDM_POWER_ON;
- 	int core_prev_state, per_prev_state;
-@@ -398,8 +406,12 @@ void omap_sram_idle(void)
- 	pwrdm_pre_transition();
+ 	return __omap_prcm_read(prm_base, module, idx);
+ }
+-EXPORT_SYMBOL(prm_read_mod_reg);
  
- 	/* NEON control */
--	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
-+	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON) {
- 		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
-+		neon_next_state = mpu_next_state;
-+		if (neon_next_state == PWRDM_POWER_OFF)
-+			omap3_save_neon_context();
-+	}
+ /* Write into a register in a PRM module */
+ void prm_write_mod_reg(u32 val, s16 module, u16 idx)
+ {
+ 	__omap_prcm_write(val, prm_base, module, idx);
+ }
+-EXPORT_SYMBOL(prm_write_mod_reg);
  
- 	/* PER */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
--- 
-1.5.4.3
+ /* Read-modify-write a register in a PRM module. Caller must lock */
+ u32 prm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx)
+@@ -191,21 +189,18 @@ u32 prm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx)
+ 
+ 	return v;
+ }
+-EXPORT_SYMBOL(prm_rmw_mod_reg_bits);
+ 
+ /* Read a register in a CM module */
+ u32 cm_read_mod_reg(s16 module, u16 idx)
+ {
+ 	return __omap_prcm_read(cm_base, module, idx);
+ }
+-EXPORT_SYMBOL(cm_read_mod_reg);
+ 
+ /* Write into a register in a CM module */
+ void cm_write_mod_reg(u32 val, s16 module, u16 idx)
+ {
+ 	__omap_prcm_write(val, cm_base, module, idx);
+ }
+-EXPORT_SYMBOL(cm_write_mod_reg);
+ 
+ /* Read-modify-write a register in a CM module. Caller must lock */
+ u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx)
+@@ -219,7 +214,6 @@ u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx)
+ 
+ 	return v;
+ }
+-EXPORT_SYMBOL(cm_rmw_mod_reg_bits);
+ 
+ /**
+  * omap2_cm_wait_idlest - wait for IDLEST bit to indicate module readiness
+
+
