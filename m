@@ -1,71 +1,70 @@
-From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Subject: [PATCH] usb: ehci-omap: Update platform header file path
-Date: Thu, 3 Dec 2009 20:23:57 -0600
-Message-ID: <20091204022357.GA19315@lixom.net>
-References: <20091125090259.GB30331@lixom.net> <20091125125326.GA18175@suse.de> <20091125175739.GE4348@atomide.com>
+From: TAO HU <tghk48@motorola.com>
+Subject: Re: Peripheral Power Management
+Date: Fri, 4 Dec 2009 13:19:19 +0800
+Message-ID: <5f4a33680912032119p24fae84drbef5331d26ba91ad@mail.gmail.com>
+References: <82cfbe860912020129l63da6721ubeac01c9e131853e@mail.gmail.com>
+	 <82cfbe860912020132n5e0c01adn64a3c1bd85f96df6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091125175739.GE4348-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-l3A5Bk7waGM@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from exprod5og110.obsmtp.com ([64.18.0.20]:42908 "EHLO
+	exprod5og110.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751046AbZLDFTN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 00:19:13 -0500
+Received: from il27vts03 (il27vts03.cig.mot.com [10.17.196.87])
+	by mdgate2.corp.mot.com (8.14.3/8.14.3) with SMTP id nB45JlMk004904
+	for <linux-omap@vger.kernel.org>; Thu, 3 Dec 2009 22:19:47 -0700 (MST)
+Received: from mail-pw0-f52.google.com (mail-pw0-f52.google.com [209.85.160.52])
+	by mdgate2.corp.mot.com (8.14.3/8.14.3) with ESMTP id nB45InOn004798
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=OK)
+	for <linux-omap@vger.kernel.org>; Thu, 3 Dec 2009 22:19:47 -0700 (MST)
+Received: by mail-pw0-f52.google.com with SMTP id 8so1442977pwi.31
+        for <linux-omap@vger.kernel.org>; Thu, 03 Dec 2009 21:19:19 -0800 (PST)
+In-Reply-To: <82cfbe860912020132n5e0c01adn64a3c1bd85f96df6@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tarek attia <tarek.m.attia@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-The OMAP usb header file will move in the same merge window as this
-driver is getting introduced in, so update the driver now instead of
-making a merge-order-dependent patch later on through linux-omap.
+You can use so called "auto idle".
+I.e. Disable clocks (iclk, fclk) when there is no activities for
+certain period of time
 
-Signed-off-by: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+- Hu Tao
 
-
----
-
-Greg, see below for history (you were Cc:d at the time). Should have
-gone to you in the first place. Sorry for the confusion. Either combine
-with the ehci-omap patch, or merge separate.   Thanks!
-
--Olof
-
-
-On Wed, Nov 25, 2009 at 09:57:39AM -0800, Tony Lindgren wrote:
-
-> The ehci-omap.c driver should be in Greg's queue. I only have the
-> the related platform init code and header changes in my for-next
-> because of the omap header move from mach to plat.
-> 
-> IMHO, this fix would be best added to Greg's queue as the ehci-omap.c
-> driver is there [1]. Or just merged into the exisiting patch
-> to keep git bisect working:
-> 
-> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> 
-> Meanwhile, I'll also add this fix to omap-testing and master branches
-> so people can use it until it gets merged.
-> 
-> Regards,
-> 
-> Tony
-> 
-> [1] http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/usb/usb-host-ehci-introduce-omap-ehci-hcd-driver.patch
-
-
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 7ba8df3..5cfed78 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -37,7 +37,7 @@
- #include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/gpio.h>
--#include <mach/usb.h>
-+#include <plat/usb.h>
- 
- /*
-  * OMAP USBHOST Register addresses: VIRTUAL ADDRESSES
+On Wed, Dec 2, 2009 at 5:32 PM, tarek attia <tarek.m.attia@gmail.com> w=
+rote:
+>
+> I'm not talking about full chip off in suspend ,,but I'm talking abou=
+t
+> tern off some modules while they aren't in use however the cpu is
+> running in normal mode not in idle
+>
+> On Wed, Dec 2, 2009 at 11:29 AM, tarek attia <tarek.m.attia@gmail.com=
+> wrote:
+> > Hi All,
+> >
+> > I know that CPU have power management through CPUFREQ,,but what abo=
+ut
+> > the peripherals like =A0(DVI-D) does it have a power management for=
+ it
+> > as well??,,and the rest of peripherals also ?
+> >
+> >
+> >
+> > Appreciate your response,
+> >
+> > Best Regards,
+> > tarek
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
