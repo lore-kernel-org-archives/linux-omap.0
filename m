@@ -1,204 +1,66 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH]OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under DVFS+SR
- operation
-Date: Fri, 4 Dec 2009 15:58:43 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FAA0C845@dbde02.ent.ti.com>
-References: <1259918576-31870-1-git-send-email-vishwanath.bs@ti.com>
- <74583B8642AB8841B30447520659FCA9DE3E8952@dnce01.ent.ti.com>
+From: Romit Dasgupta <romit@ti.com>
+Subject: Re: [PATCH] PM: Prevent direct cpufreq scaling during initialization
+Date: Fri, 04 Dec 2009 16:17:35 +0530
+Message-ID: <4B18E8C7.9020707@ti.com>
+References: <1259748759.21203.11.camel@boson>	 <48239d390912020733w2981917ap6312eee193f14263@mail.gmail.com>	 <B85A65D85D7EB246BE421B3FB0FBB59301DE87AAD1@dbde02.ent.ti.com> <48239d390912030209n37f042fic8f3eb609e6371e7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49728 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39469 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752099AbZLDK2l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 05:28:41 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nB4ASjIW015393
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 04:28:47 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nB4ASigL003827
-	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 15:58:44 +0530 (IST)
-In-Reply-To: <74583B8642AB8841B30447520659FCA9DE3E8952@dnce01.ent.ti.com>
-Content-Language: en-US
+	id S1752445AbZLDKrf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Dec 2009 05:47:35 -0500
+In-Reply-To: <48239d390912030209n37f042fic8f3eb609e6371e7@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Sergey Lapin <slapinid@gmail.com>
+Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Benoit
+Sergey Lapin wrote:
+> On Thu, Dec 3, 2009 at 9:29 AM, Dasgupta, Romit <romit@ti.com> wrote:
+>>
+>>>> Signed-off-by: Romit Dasgupta <romit@ti.com>
+>>>> ---
+>>>> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-
+>>> omap.c
+>>>> index 449b6b6..f94df20 100644
+>>>> --- a/arch/arm/plat-omap/cpu-omap.c
+>>>> +++ b/arch/arm/plat-omap/cpu-omap.c
+>>>> @@ -149,8 +149,6 @@ static int __init omap_cpu_init(struct
+>>> cpufreq_policy *policy)
+>>>>                                                        VERY_HI_RATE) /
+>>> 1000;
+>>>>        }
+>>>>
+>>>> -       clk_set_rate(mpu_clk, policy->cpuinfo.max_freq * 1000);
+>>>> -
+>>>>        policy->min = policy->cpuinfo.min_freq;
+>>>>        policy->max = policy->cpuinfo.max_freq;
+>>>>        policy->cur = omap_getspeed(0);
+>>> This patch leads to hang with current PM branch, SRF and CPU IDLE enabled
+>>> on OMAP3525 rev C.
+>> Verified this to work on Zoom2 + SRF + CPUidle. Can you give some debug info if possible?
+>>
+> Well, that looks like false alarm - I tried clean tree without local
+> patches, and it seems to work.
+> 
+> However, without this line removed, my system boots faster. Is it possible to
+> limit initial speed for unstable setups, but to boot as fast as possible?
+> 
+> Thanks a lot,
+> S.
+omap_cpufreq_init is a lateinitcall. So quite some part of the kernel startup
+happens with whatever speed the bootloader passes control to kernel
+initialization code. Only after we invoke omap_cpufreq_init will the cpufreq
+framework try to call the offending code 'clk_set_rate'. Quite soon after this
+the cpufreq default governor (whatever it is for your system, performance,
+ondemand etc) is initialized. If you choose performance governor it will
+immediately scale the frequency to the highest available for the system. So the
+way to boot fast would be
 
-> -----Original Message-----
-> From: Cousson, Benoit
-> Sent: Friday, December 04, 2009 3:46 PM
-> To: Sripathy, Vishwanath; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH]OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under DVFS+SR
-> operation
-> 
-> Hi Vishwanath,
-> 
-> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >owner@vger.kernel.org] On Behalf Of Sripathy, Vishwanath
-> >
-> >From: Shweta Gulati <shweta.gulati@ti.com>
-> >
-> >DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM UCs
-> >running DSP codec was earlier restricted as DSP crashed.
-> >The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and OPP2.
-> >The workaround is:
-> >	For DPLL2 (DSP) select CORECLK/4 as DPLL2 bypass clock for 3430.
-> >	Select CORECLK/2 as DPLL2 bypass clock for 3630.
-> >During DPLL2 relock phase, DSP clock will be 83MHz/200MHz which is always
-> >OK
-> >irrespective of Vdd1 voltage.
-> >
-> >For DPLL1 (MPU), prior to any DVFS transition to OPP1, select CORECLK/4
-> >	(CORECLK/2 for 3630) as DPLL1 bypass clock.
-> >	For other OPPs select CORECLK/2 (CORECLK/1 for 3630) as DPLL1 bypass
-> >	clock.
-> 
-> I think that you should not rely on the OMAP version to select the correct
-> bypass freq. Both 3430 and 3630 can support CORECLK/2 at OPP50. CORECLK/4
-> should be used only if OPP25 is selected. The fact that OPP25 will not be
-> used on 3630 should not be captured here.
-> The divider selection should be only based on the OPP. It will work the same
-> way for all OMAP3 variants.
->
+a) make your bootcode scale the voltage + freq to support the highest cpu freq.
+and/or
+b) make performance governor the default.
 
-The problem is in 3430, OPP1 is OPP25 where as in 3630 OPP1 is OPP50 (as OPP25 is removed). So in the code, we still have to distinguish between 3430 and 3630.
-
-> Regards,
-> Benoit
-> 
-> >These configurations are typically set in bootloader. However bootloaders
-> >may
-> >mess up configuration and kernel with this chang ensures that system is in
-> >a
-> >known state.
-> >
-> >Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> >---
-> > arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++--
-> > arch/arm/mach-omap2/pm34xx.c          |   19 +++++++++++++++++++
-> > arch/arm/mach-omap2/resource34xx.c    |   20 ++++++++++++++++++++
-> > 3 files changed, 41 insertions(+), 2 deletions(-)
-> > mode change 100644 => 100755 arch/arm/mach-omap2/cm-regbits-34xx.h
-> > mode change 100644 => 100755 arch/arm/mach-omap2/pm34xx.c
-> > mode change 100644 => 100755 arch/arm/mach-omap2/resource34xx.c
-> >
-> >diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-
-> >omap2/cm-regbits-34xx.h
-> >index 6f2802b..0cf9a5d
-> >--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-> >+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> >@@ -81,7 +81,7 @@
-> >
-> > /* CM_CLKSEL1_PLL_IVA2 */
-> > #define OMAP3430_IVA2_CLK_SRC_SHIFT			19
-> >-#define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
-> >+#define OMAP3430_IVA2_CLK_SRC_MASK			(0x7 << 19)
-> > #define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
-> > #define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff << 8)
-> > #define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
-> >@@ -126,7 +126,7 @@
-> >
-> > /* CM_CLKSEL1_PLL_MPU */
-> > #define OMAP3430_MPU_CLK_SRC_SHIFT			19
-> >-#define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
-> >+#define OMAP3430_MPU_CLK_SRC_MASK			(0x7 << 19)
-> > #define OMAP3430_MPU_DPLL_MULT_SHIFT			8
-> > #define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff << 8)
-> > #define OMAP3430_MPU_DPLL_DIV_SHIFT			0
-> >diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> >index c328164..f260072
-> >--- a/arch/arm/mach-omap2/pm34xx.c
-> >+++ b/arch/arm/mach-omap2/pm34xx.c
-> >@@ -802,6 +802,25 @@ static void __init omap3_d2d_idle(void)
-> >
-> > static void __init prcm_setup_regs(void)
-> > {
-> >+	u32 cm_clksel1_mpu, cm_clksel1_iva2;
-> >+
-> >+	/*set Bypass clock dividers for MPU and IVA */
-> >+	cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD, CM_CLKSEL1);
-> >+	cm_clksel1_iva2 = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSEL1);
-> >+	if (cpu_is_omap3630()) {
-> >+		cm_clksel1_iva2 = (cm_clksel1_iva2 &
-> >~(OMAP3430_IVA2_CLK_SRC_MASK)) |
-> >+					(0x2 << OMAP3430_IVA2_CLK_SRC_SHIFT);
-> >+		cm_clksel1_mpu = (cm_clksel1_mpu &
-> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
-> >+					(0x1 << OMAP3430_MPU_CLK_SRC_SHIFT);
-> >+	} else if (cpu_is_omap34xx()) {
-> >+		cm_clksel1_iva2 = (cm_clksel1_iva2 &
-> >~(OMAP3430_IVA2_CLK_SRC_MASK)) |
-> >+					(0x4 << OMAP3430_IVA2_CLK_SRC_SHIFT);
-> >+		cm_clksel1_mpu = (cm_clksel1_mpu &
-> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
-> >+					(0x2 << OMAP3430_MPU_CLK_SRC_SHIFT);
-> >+		}
-> >+	cm_write_mod_reg(cm_clksel1_iva2, OMAP3430_IVA2_MOD, CM_CLKSEL1);
-> >+	cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
-> >+
-> > 	/* XXX Reset all wkdeps. This should be done when initializing
-> > 	 * powerdomains */
-> > 	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
-> >diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-
-> >omap2/resource34xx.c
-> >index 04be4d2..8c3f2b3
-> >--- a/arch/arm/mach-omap2/resource34xx.c
-> >+++ b/arch/arm/mach-omap2/resource34xx.c
-> >@@ -242,9 +242,29 @@ static int program_opp_freq(int res, int target_level,
-> >int current_level)
-> > {
-> > 	int ret = 0, l3_div;
-> > 	int *curr_opp;
-> >+	u32 cm_clksel1_mpu;
-> >
-> > 	lock_scratchpad_sem();
-> > 	if (res == VDD1_OPP) {
-> >+		if (target_level == VDD1_OPP1) {
-> >+			cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD,
-> CM_CLKSEL1);
-> >+			if (cpu_is_omap3630())
-> >+				cm_clksel1_mpu = (cm_clksel1_mpu &
-> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
-> >+							(0x2 <<
-> >OMAP3430_MPU_CLK_SRC_SHIFT);
-> >+			else if (cpu_is_omap34xx())
-> >+				cm_clksel1_mpu = (cm_clksel1_mpu &
-> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
-> >+							(0x4 <<
-> >OMAP3430_MPU_CLK_SRC_SHIFT);
-> >+			cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
-> >+		} else if ((current_level == VDD1_OPP1) && (target_level !=
-> >VDD1_OPP1)) {
-> >+			cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD,
-> CM_CLKSEL1);
-> >+			if (cpu_is_omap3630())
-> >+				cm_clksel1_mpu = (cm_clksel1_mpu &
-> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
-> >+							(0x1 <<
-> >OMAP3430_MPU_CLK_SRC_SHIFT);
-> >+			else if (cpu_is_omap34xx())
-> >+				cm_clksel1_mpu = (cm_clksel1_mpu &
-> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
-> >+							(0x2 <<
-> >OMAP3430_MPU_CLK_SRC_SHIFT);
-> >+			cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
-> >+		}
-> > 		curr_opp = &curr_vdd1_opp;
-> > 		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
-> > 		clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
-> >--
-> >1.5.6.3
-> >
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036
-> 420 040 R.C.S Antibes. Capital de EUR 753.920
-> 
 
