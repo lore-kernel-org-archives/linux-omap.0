@@ -1,137 +1,101 @@
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH]OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under DVFS+SR operation
-Date: Fri,  4 Dec 2009 14:52:56 +0530
-Message-ID: <1259918576-31870-1-git-send-email-vishwanath.bs@ti.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 0/8] OMAP clock: convert static definitions in header
+ files to	C files
+Date: Fri, 4 Dec 2009 15:35:21 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ABC2908@dbde02.ent.ti.com>
+References: <20091203095830.1203.76290.stgit@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36500 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48818 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755314AbZLDJVM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Dec 2009 04:21:12 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nB49LFmJ010703
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 03:21:18 -0600
-Received: from localhost.localdomain (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id nB49LETD003793
-	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 14:51:15 +0530 (IST)
+	id S1751134AbZLDKF2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Dec 2009 05:05:28 -0500
+In-Reply-To: <20091203095830.1203.76290.stgit@localhost.localdomain>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Shweta Gulati <shweta.gulati@ti.com>
-
-DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM UCs
-running DSP codec was earlier restricted as DSP crashed.
-The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and OPP2. 
-The workaround is:
-	For DPLL2 (DSP) select CORECLK/4 as DPLL2 bypass clock for 3430.
-	Select CORECLK/2 as DPLL2 bypass clock for 3630.
-During DPLL2 relock phase, DSP clock will be 83MHz/200MHz which is always OK
-irrespective of Vdd1 voltage.
-For DPLL1 (MPU), prior to any DVFS transition to OPP1, select CORECLK/4
-	(CORECLK/2 for 3630) as DPLL1 bypass clock.
-	For other OPPs select CORECLK/2 (CORECLK/1 for 3630) as DPLL1 bypass
-	clock.
-These configurations are typically set in bootloader. However bootloaders may 
-mess up configuration and kernel with this chang ensures that system is in a 
-known state.
-
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
----
- arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++--
- arch/arm/mach-omap2/pm34xx.c          |   19 +++++++++++++++++++
- arch/arm/mach-omap2/resource34xx.c    |   20 ++++++++++++++++++++
- 3 files changed, 41 insertions(+), 2 deletions(-)
- mode change 100644 => 100755 arch/arm/mach-omap2/cm-regbits-34xx.h
- mode change 100644 => 100755 arch/arm/mach-omap2/pm34xx.c
- mode change 100644 => 100755 arch/arm/mach-omap2/resource34xx.c
-
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index 6f2802b..0cf9a5d
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -81,7 +81,7 @@
- 
- /* CM_CLKSEL1_PLL_IVA2 */
- #define OMAP3430_IVA2_CLK_SRC_SHIFT			19
--#define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
-+#define OMAP3430_IVA2_CLK_SRC_MASK			(0x7 << 19)
- #define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
- #define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff << 8)
- #define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
-@@ -126,7 +126,7 @@
- 
- /* CM_CLKSEL1_PLL_MPU */
- #define OMAP3430_MPU_CLK_SRC_SHIFT			19
--#define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
-+#define OMAP3430_MPU_CLK_SRC_MASK			(0x7 << 19)
- #define OMAP3430_MPU_DPLL_MULT_SHIFT			8
- #define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff << 8)
- #define OMAP3430_MPU_DPLL_DIV_SHIFT			0
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c328164..f260072
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -802,6 +802,25 @@ static void __init omap3_d2d_idle(void)
- 
- static void __init prcm_setup_regs(void)
- {
-+	u32 cm_clksel1_mpu, cm_clksel1_iva2;
-+
-+	/*set Bypass clock dividers for MPU and IVA */
-+	cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD, CM_CLKSEL1);
-+	cm_clksel1_iva2 = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSEL1);
-+	if (cpu_is_omap3630()) {
-+		cm_clksel1_iva2 = (cm_clksel1_iva2 & ~(OMAP3430_IVA2_CLK_SRC_MASK)) |
-+					(0x2 << OMAP3430_IVA2_CLK_SRC_SHIFT);
-+		cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
-+					(0x1 << OMAP3430_MPU_CLK_SRC_SHIFT);
-+	} else if (cpu_is_omap34xx()) {
-+		cm_clksel1_iva2 = (cm_clksel1_iva2 & ~(OMAP3430_IVA2_CLK_SRC_MASK)) |
-+					(0x4 << OMAP3430_IVA2_CLK_SRC_SHIFT);
-+		cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
-+					(0x2 << OMAP3430_MPU_CLK_SRC_SHIFT);
-+		}
-+	cm_write_mod_reg(cm_clksel1_iva2, OMAP3430_IVA2_MOD, CM_CLKSEL1);
-+	cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
-+
- 	/* XXX Reset all wkdeps. This should be done when initializing
- 	 * powerdomains */
- 	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index 04be4d2..8c3f2b3
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -242,9 +242,29 @@ static int program_opp_freq(int res, int target_level, int current_level)
- {
- 	int ret = 0, l3_div;
- 	int *curr_opp;
-+	u32 cm_clksel1_mpu;
- 
- 	lock_scratchpad_sem();
- 	if (res == VDD1_OPP) {
-+		if (target_level == VDD1_OPP1) {
-+			cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD, CM_CLKSEL1);
-+			if (cpu_is_omap3630())
-+				cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
-+							(0x2 << OMAP3430_MPU_CLK_SRC_SHIFT);
-+			else if (cpu_is_omap34xx())
-+				cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
-+							(0x4 << OMAP3430_MPU_CLK_SRC_SHIFT);
-+			cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
-+		} else if ((current_level == VDD1_OPP1) && (target_level != VDD1_OPP1)) {
-+			cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD, CM_CLKSEL1);
-+			if (cpu_is_omap3630())
-+				cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
-+							(0x1 << OMAP3430_MPU_CLK_SRC_SHIFT);
-+			else if (cpu_is_omap34xx())
-+				cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
-+							(0x2 << OMAP3430_MPU_CLK_SRC_SHIFT);
-+			cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
-+		}
- 		curr_opp = &curr_vdd1_opp;
- 		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
- 		clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
--- 
-1.5.6.3
-
+SGkgUGF1bCwNCg0KU29tZSBwYXRjaGVzIGluIHRoaXMgc2VyaWVzIHNlZW0gdG8gYmUgbWlzc2lu
+Zywgc3BlY2lmaWNhbGx5IDUvOCBhbmQgNi84Lg0KQ2FuIHlvdSBwbGVhc2UgcmUtcG9zdD8NCg0K
+cmVnYXJkcywNClJhamVuZHJhIA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9t
+OiBsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVsLm9yZyANCj5bbWFpbHRvOmxpbnV4LW9tYXAt
+b3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgUGF1bCBXYWxtc2xleQ0KPlNlbnQ6
+IFRodXJzZGF5LCBEZWNlbWJlciAwMywgMjAwOSAzOjM3IFBNDQo+VG86IGxpbnV4LW9tYXBAdmdl
+ci5rZXJuZWwub3JnOyBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcNCj5TdWJq
+ZWN0OiBbUEFUQ0ggMC84XSBPTUFQIGNsb2NrOiBjb252ZXJ0IHN0YXRpYyBkZWZpbml0aW9ucyBp
+biANCj5oZWFkZXIgZmlsZXMgdG8gQyBmaWxlcw0KPg0KPlRoZSBPTUFQIGNsb2NrIGNvZGUgaGFz
+IHRyYWRpdGlvbmFsbHkgZGVmaW5lZCBpdHMgY2xvY2sgbm9kZXMNCj5zdGF0aWNhbGx5IGluIGhl
+YWRlciBmaWxlcyAoZS5nLiwgbWFjaC1vbWFwMS9jbG9jay5oKS4gIFRoaXMgdmlvbGF0ZXMNCj50
+aGUgZ2VuZXJhbCBndWlkZWxpbmUgdGhhdCBpbmNsdWRpbmcgYSBoZWFkZXIgZmlsZSBzaG91bGQg
+YmUNCj5zaWRlLWVmZmVjdCBmcmVlLCBvciBhdCBsZWFzdCBhcyBzaWRlLWVmZmVjdCBmcmVlIGFz
+IHBvc3NpYmxlLiAgVGhpcw0KPnNlcmllcyBtb3ZlcyBhbGwgb2YgdGhlIHN0YXRpY2FsbHktYWxs
+b2NhdGVkIGRhdGEgZnJvbSBoZWFkZXIgZmlsZXMNCj5pbnRvIEMgZmlsZXMgdGhhdCBhcmUgbGlu
+a2VkIGludG8ga2VybmVscy4gIEl0IG1vdmVzIE9QUCBkYXRhIChvciBhdA0KPmxlYXN0IHRoZSBw
+cm90by1PUFAgZGF0YSBpbiBPTUFQMSBhbmQgT01BUDJ4eHgpIGludG8gc2VwYXJhdGUgZmlsZXMu
+DQo+SXQgYWxzbyByZXNvbHZlcyBhbGwgb2YgdGhlIGNoZWNrcGF0Y2ggZXJyb3JzIHRoYXQgYXBw
+ZWFyIGFzIGEgcmVzdWx0DQo+b2YgdGhlIG1vdmUuDQo+DQo+VGhpcyBzZXJpZXMgaGFzIGJlZW4g
+Ym9vdC10ZXN0ZWQgb24gT01BUDEgKG9uIGEgNTkxMiBPU0spLCANCj5PTUFQMiAob24gTjgwMCBh
+bmQNCj4yNDMwIFNEUCksIGFuZCBPTUFQMyAoQmVhZ2xlQm9hcmQpLiAgDQo+DQo+VGhpcyBzZXJp
+ZXMgd2FzIHByb21wdGVkIGJ5IGEgY29tbWVudCBmcm9tIFJ1c3NlbGwgS2luZw0KPjxybWsra2Vy
+bmVsQGFybS5saW51eC5vcmcudWs+LCB3aG8gc3VnZ2VzdGVkIHRoZSBiYXNpYyBsYXlvdXQgDQo+
+dGhhdCB0aGVzZQ0KPnBhdGNoZXMgaW1wbGVtZW50Lg0KPg0KPg0KPi0gUGF1bA0KPg0KPi0tLQ0K
+Pg0KPnNpemU6DQo+ICAgdGV4dAkgICBkYXRhCSAgICBic3MJICAgIGRlYwkgICAgaGV4CWZpbGVu
+YW1lDQo+MzU4Mjk1OQkgMTk5MjY0CSAxMDcxNzYJMzg4OTM5OQkgM2I1OGY3CXZtbGludXguYmVh
+Z2xlLm9yaWcNCj4zNTgzMDYzCSAxOTkyNjQJIDEwNzE3NgkzODg5NTAzCSAzYjU5NWYJdm1saW51
+eC5iZWFnbGUNCj4NCj5QYXVsIFdhbG1zbGV5ICg4KToNCj4gICAgICBPTUFQMS8yLzMgY2xvY2s6
+IHJlbW92ZSBwYXJhbm9pZCBjaGVja3MgaW4gcHJlcGFyYXRpb24gDQo+Zm9yIGNsb2NreywyeHh4
+LDN4eHh9X2RhdGEuYw0KPiAgICAgIE9NQVAyIGNsb2NrOiBBUExMIGNvZGUgc2hvdWxkbid0IHJl
+bHkgb24gc3RhdGljIGNsb2NrcyANCj5pbiBpdHMgbG9jYWwgbmFtZXNwYWNlDQo+ICAgICAgT01B
+UDIvMzogbW92ZSBTRFJDIG1hY3JvcyB0byBtYWNoLW9tYXAyL3NkcmMuaA0KPiAgICAgIE9NQVAy
+eHh4IGNsb2NrOiByZW1vdmUgaW1wbGljaXQgZGVwZW5kZW5jeSBiZXR3ZWVuIHJhdGUgDQo+Q1BV
+IGZsYWcgYW5kIGNsa2Rldl9vbWFwIENQVSBmbGFnDQo+ICAgICAgT01BUDMgY2xvY2s6IGNvbnZl
+cnQgY2xvY2szNHh4LmggdG8gY2xvY2szNHh4X2RhdGEuYw0KPiAgICAgIE9NQVAyIGNsb2NrOiBj
+b252ZXJ0IGNsb2NrMjR4eC5oIHRvIGNsb2NrMnh4eF9kYXRhLmMsIG9wcDJ4eHgqDQo+ICAgICAg
+T01BUDEgY2xvY2s6IGNvbnZlcnQgdGVzdCBpbiBkaXNhYmxlX3VudXNlZCgpIHRvIHVzZSANCj5F
+TkFCTEVfT05fSU5JVA0KPiAgICAgIE9NQVAxIGNsb2NrOiBjb252ZXJ0IG1hY2gtb21hcDEvY2xv
+Y2suaCB0byANCj5tYWNoLW9tYXAxL2Nsb2NrX2RhdGEuYw0KPg0KPg0KPiBhcmNoL2FybS9tYWNo
+LW9tYXAxL01ha2VmaWxlICAgICAgICAgICAgICAgICAgfCAgICAzIA0KPiBhcmNoL2FybS9tYWNo
+LW9tYXAxL2Nsb2NrLmMgICAgICAgICAgICAgICAgICAgfCAgNDE1IC0tLQ0KPiBhcmNoL2FybS9t
+YWNoLW9tYXAxL2Nsb2NrLmggICAgICAgICAgICAgICAgICAgfCAgNjUyIC0tLS0tDQo+IGFyY2gv
+YXJtL21hY2gtb21hcDEvY2xvY2tfZGF0YS5jICAgICAgICAgICAgICB8ICA0NDMgKysrLQ0KPiBh
+cmNoL2FybS9tYWNoLW9tYXAxL2lvLmMgICAgICAgICAgICAgICAgICAgICAgfCAgICAzIA0KPiBh
+cmNoL2FybS9tYWNoLW9tYXAxL29wcC5oICAgICAgICAgICAgICAgICAgICAgfCAgIDI4IA0KPiBh
+cmNoL2FybS9tYWNoLW9tYXAxL29wcF9kYXRhLmMgICAgICAgICAgICAgICAgfCAgIDU5IA0KPiBh
+cmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlICAgICAgICAgICAgICAgICAgfCAgICA4IA0KPiBh
+cmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrLmggICAgICAgICAgICAgICAgICAgfCAgIDMwIA0KPiBh
+cmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMjR4eC5jICAgICAgICAgICAgICAgfCAgODA1IC0tLS0t
+LS0NCj4gYXJjaC9hcm0vbWFjaC1vbWFwMi9jbG9jazJ4eHguYyAgICAgICAgICAgICAgIHwgIDU2
+NCArKysrKw0KPiBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMnh4eC5oICAgICAgICAgICAgICAg
+fCAgIDQ0IA0KPiBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMnh4eF9kYXRhLmMgICAgICAgICAg
+fCAgODQ0ICsrLS0tLS0NCj4gYXJjaC9hcm0vbWFjaC1vbWFwMi9jbG9jazM0eHguYyAgICAgICAg
+ICAgICAgIHwgIDQ3MSAtLS0tDQo+IGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2szNHh4LmggICAg
+ICAgICAgICAgICB8IDMwMTMgDQo+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiBhcmNoL2Fy
+bS9tYWNoLW9tYXAyL2Nsb2NrMzR4eF9kYXRhLmMgICAgICAgICAgfCAgMzY0ICsrKw0KPiBhcmNo
+L2FybS9tYWNoLW9tYXAyL2Nsb2NrX2NvbW1vbl9kYXRhLmMgICAgICAgfCAgIDM5IA0KPiBhcmNo
+L2FybS9tYWNoLW9tYXAyL29wcDI0MjBfZGF0YS5jICAgICAgICAgICAgfCAgMTI2ICsNCj4gYXJj
+aC9hcm0vbWFjaC1vbWFwMi9vcHAyNDMwX2RhdGEuYyAgICAgICAgICAgIHwgIDEzMyArDQo+IGFy
+Y2gvYXJtL21hY2gtb21hcDIvb3BwMnh4eC5oICAgICAgICAgICAgICAgICB8ICA0MjQgKysrKw0K
+PiBhcmNoL2FybS9tYWNoLW9tYXAyL3NkcmMuaCAgICAgICAgICAgICAgICAgICAgfCAgIDE5IA0K
+PiBhcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2Nsa2Rldl9vbWFwLmggfCAgIDQxIA0K
+PiBhcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2Nsb2NrLmggICAgICAgfCAgICAyIA0K
+PiAyMyBmaWxlcyBjaGFuZ2VkLCAyNTkyIGluc2VydGlvbnMoKyksIDU5MzggZGVsZXRpb25zKC0p
+DQo+IGNvcHkgYXJjaC9hcm0vbWFjaC1vbWFwMS97Y2xvY2suaCA9PiBjbG9ja19kYXRhLmN9ICg1
+OCUpDQo+IGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9tYWNoLW9tYXAxL29wcC5oDQo+IGNy
+ZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9tYWNoLW9tYXAxL29wcF9kYXRhLmMNCj4gZGVsZXRl
+IG1vZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2syNHh4LmMNCj4gY3JlYXRlIG1v
+ZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2syeHh4LmMNCj4gY3JlYXRlIG1vZGUg
+MTAwNjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2syeHh4LmgNCj4gcmVuYW1lIGFyY2gvYXJt
+L21hY2gtb21hcDIve2Nsb2NrMjR4eC5oID0+IGNsb2NrMnh4eF9kYXRhLmN9ICg3MyUpDQo+IGNv
+cHkgYXJjaC9hcm0vbWFjaC1vbWFwMi97Y2xvY2szNHh4LmggPT4gY2xvY2szNHh4X2RhdGEuY30g
+KDg2JSkNCj4gY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2tfY29t
+bW9uX2RhdGEuYw0KPiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vbWFjaC1vbWFwMi9vcHAy
+NDIwX2RhdGEuYw0KPiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vbWFjaC1vbWFwMi9vcHAy
+NDMwX2RhdGEuYw0KPiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vbWFjaC1vbWFwMi9vcHAy
+eHh4LmgNCj4gY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3Bs
+YXQvY2xrZGV2X29tYXAuaA0KPg0KPi0tDQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
+IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIA0KPmxpbnV4LW9tYXAiIGluDQo+dGhlIGJvZHkg
+b2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj5Nb3JlIG1ham9yZG9t
+byBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4=
