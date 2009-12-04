@@ -1,309 +1,192 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: [PATCH]OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under DVFS+SR
- operation
-Date: Fri, 4 Dec 2009 12:46:20 +0100
-Message-ID: <74583B8642AB8841B30447520659FCA9DE3E89E9@dnce01.ent.ti.com>
-References: <1259918576-31870-1-git-send-email-vishwanath.bs@ti.com>
- <74583B8642AB8841B30447520659FCA9DE3E8952@dnce01.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FAA0C845@dbde02.ent.ti.com>
- <74583B8642AB8841B30447520659FCA9DE3E89B9@dnce01.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FAA0C8C1@dbde02.ent.ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 3/4 v4] OMAP: McBSP: Introduce caching in register write
+ operations
+Date: Fri, 04 Dec 2009 13:57:47 +0100
+Message-ID: <4B19074B.1000606@tis.icnet.pl>
+References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <200912031330.43464.jkrzyszt@tis.icnet.pl> <20091203200301.GB4348@atomide.com> <200912040018.02309.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51125 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301AbZLDLqQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 06:46:16 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nB4BkMqK027482
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 05:46:22 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id nB4BkMq5015058
-	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 05:46:22 -0600 (CST)
-Received: from DNCE73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nB4BkLZR025584
-	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 05:46:21 -0600 (CST)
-Content-Class: urn:content-classes:message
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FAA0C8C1@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from d1.icnet.pl ([212.160.220.21]:34210 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756291AbZLDM5r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Dec 2009 07:57:47 -0500
+In-Reply-To: <200912040018.02309.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
->
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
-
------Original Message-----
-
->From: Sripathy, Vishwanath
->
->> -----Original Message-----
->> From: Cousson, Benoit
->> Sent: Friday, December 04, 2009 4:27 PM
->> To: Sripathy, Vishwanath; linux-omap@vger.kernel.org
->> Subject: RE: [PATCH]OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under
->DVFS+SR
->> operation
+Janusz Krzysztofik napisa=C5=82(a):
+> Thursday 03 December 2009 21:03:02 Tony Lindgren napisa=C5=82(a):
+>> Hi,
 >>
+>> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091203 04:29]:
+>>> Reserve space inside omap_mcbsp structure for storing cached copies=
+ of
+>>> McBSP register values.
+>>> Modify the MCBSP_WRITE() macro to update the cache with every regis=
+ter
+>>> write operation.
+>>> Introduce a new macro that reads from the cache instead of hardware=
+=2E
+>>>
+>>> Applies on top of patch 2 from this series:
+>>> [PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API =
+for
+>>> caching
+>>>
+>>> Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
+>>> commit 4421752e331cfb1d942b47ffdb26e451a8da58a0.
+>>> Compile-tested with omap_3430sdp_defconfig.
+>>>
+>>> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>>>
+>>> ---
+>>>
+>>> Thursday 03 December 2009 08:49:21 Jarkko Nikula wrote:
+>>>> On Tue, 1 Dec 2009 04:15:50 +0100
+>>>>
+>>>> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+>>>>>  #define MCBSP_WRITE(mcbsp, reg, val) \
+>>>>> -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
+>>>>> +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
+>>>>> +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1] \
+>>>>> +			=3D val)
+>>>>> +#define MCBSP_READ_CACHE(mcbsp, reg) \
+>>>>> +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1])
+>>>> These divisions by DDR1 are confusing. Use rather sizeof:
+>>>>
+>>>> reg_cache[OMAP_MCBSP_REG_##reg / sizeof(*mcbsp->reg_cache)]
+>>> Done.
+>>>
+>>> Jarkko, many thanks for your cooperation :).
+>>>
+>>> Janusz
+>>>
+>>>  arch/arm/plat-omap/include/plat/mcbsp.h |    5 +++++
+>>>  arch/arm/plat-omap/mcbsp.c              |    7 ++++++-
+>>>  2 files changed, 11 insertions(+), 1 deletion(-)
+>>>
+>>> --- git/arch/arm/plat-omap/include/plat/mcbsp.h.orig	2009-11-27
+>>> 11:53:45.000000000 +0100 +++
+>>> git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-01 03:37:21.000=
+000000
+>>> +0100 @@ -415,6 +415,11 @@ struct omap_mcbsp {
+>>>  	u16 max_tx_thres;
+>>>  	u16 max_rx_thres;
+>>>  #endif
+>>> +#ifdef CONFIG_ARCH_OMAP1
+>>> +	u16 reg_cache[OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1];
+>>> +#else
+>>> +	u32 reg_cache[OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
+>>> +#endif
+>>>  };
+>>>  extern struct omap_mcbsp **mcbsp_ptr;
+>>>  extern int omap_mcbsp_count;
+>> How about rather set:
 >>
->> >From: Sripathy, Vishwanath
->> >
->> >Benoit
->> >
->> >>
->> Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve
->Loubet. 036
->> 420 040 R.C.S Antibes. Capital de EUR 753.920
+>> static u16 omap1_reg_cache[];
 >>
->> -----Original Message-----
+>> and
 >>
->> >> From: Cousson, Benoit
->> >> Sent: Friday, December 04, 2009 3:46 PM
->> >> To: Sripathy, Vishwanath; linux-omap@vger.kernel.org
->> >> Subject: RE: [PATCH]OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under
->> >DVFS+SR
->> >> operation
->> >>
->> >> Hi Vishwanath,
->> >>
->> >> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> >> >owner@vger.kernel.org] On Behalf Of Sripathy, Vishwanath
->> >> >
->> >> >From: Shweta Gulati <shweta.gulati@ti.com>
->> >> >
->> >> >DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM
->UCs
->> >> >running DSP codec was earlier restricted as DSP crashed.
->> >> >The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and
->OPP2.
->> >> >The workaround is:
->> >> > For DPLL2 (DSP) select CORECLK/4 as DPLL2 bypass clock for 3430.
->> >> > Select CORECLK/2 as DPLL2 bypass clock for 3630.
->> >> >During DPLL2 relock phase, DSP clock will be 83MHz/200MHz which is
->> >always
->> >> >OK
->> >> >irrespective of Vdd1 voltage.
->> >> >
->> >> >For DPLL1 (MPU), prior to any DVFS transition to OPP1, select
->CORECLK/4
->> >> > (CORECLK/2 for 3630) as DPLL1 bypass clock.
->> >> > For other OPPs select CORECLK/2 (CORECLK/1 for 3630) as DPLL1
->bypass
->> >> > clock.
->> >>
->> >> I think that you should not rely on the OMAP version to select the
->> >correct
->> >> bypass freq. Both 3430 and 3630 can support CORECLK/2 at OPP50.
->CORECLK/4
->> >> should be used only if OPP25 is selected. The fact that OPP25 will not
->be
->> >> used on 3630 should not be captured here.
->> >> The divider selection should be only based on the OPP. It will work
->the
->> >same
->> >> way for all OMAP3 variants.
->> >>
->> >
->> >The problem is in 3430, OPP1 is OPP25 where as in 3630 OPP1 is OPP50 (as
->> >OPP25 is removed). So in the code, we still have to distinguish between
->> >3430 and 3630.
->>
->> Yes, but you do not have to care about the OMAP version at that level. In
->case of
->> 3630, the OPP25 will be removed from the OPP table, so you'll just have
->to care about
->> the OPP level. The fact that the OPP25 is there or not should not be
->handled here. For
->> the moment, you can just check the target level.
->> If VDD1_OPP1 is selected then you divide the CORE by 4 otherwise you
->divide the
->> CORE by 2.
+>> static u32 omap2_reg_cache[];
+>=20
+> Hi Tony,
+>=20
+> Let me understand more precisely what you mean before I submit next v=
+ersion.
+>=20
+> Did you mean something like:
+>=20
+> static u16 omap1_reg_cache[3][OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1]=
+;
+> static u32 omap2_reg_cache[5][OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
+>=20
+> both put in arch/arm/plat-omap/mcbsp.c without any ifdefs?
 
-Forget about using the OPP, the current code is too broken to allow that, except if you keep OPP25 in the 3630 table and prevent it at CPUFreq policy level. I'm not even sure it will be enough.
-You'd better wait for the new OPP layer before doing that.
+Tony,
 
->For 3630 I feel keeping Bypass divider at 4 @ OPP1 and 2 for others is
->suboptimal given that MPU can run at CORECLK/2@OPP1 and CORECLK for other
->OPPs.
->When we can get better performance with a additional cost of couple of
->comparisons, I feel that's better (Note that MPU enters and comes out of
->standby very frequently in the system which means number of times MPU is
->fed with DPLL bypass clock is high compared to IVA. So it's better MPU is
->fed with higher bypass clock frequency.
+I think I've already found one part of the answer myself: you probably=20
+mean putting each table definition in a corresponding=20
+arch/arm/mach-omap[12]/mcbsp.c source file, don't you?
 
-You're right for the MPU; I was just giving an example for the DSP. In anycase you should provide the higher bypass clock available for each processor.
+What remains unclear for me is if you really intend to reserve static=20
+cache space for all McBSP ports supported by a machine, even if not=20
+supported by a particular cpu or not used on a particular board.
 
-Note that the bypass frequency of the processor in idle is not really relevant considering that the processor is not running, and potentially the DPLL will be stopped. It is just useful during DVFS sequence. In that case the DPLL will go to bypass automatically while the processor is running.
+>>> --- git/arch/arm/plat-omap/mcbsp.c.orig	2009-12-01 03:19:56.0000000=
+00
+>>> +0100 +++ git/arch/arm/plat-omap/mcbsp.c	2009-12-03 11:37:21.000000=
+000
+>>> +0100 @@ -49,7 +49,12 @@ int omap_mcbsp_read(void __iomem *io_bas
+>>>  #define MCBSP_READ(mcbsp, reg) \
+>>>  		omap_mcbsp_read(mcbsp->io_base, OMAP_MCBSP_REG_##reg)
+>>>  #define MCBSP_WRITE(mcbsp, reg, val) \
+>>> -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
+>>> +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
+>>> +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
+>>> +				 sizeof(*mcbsp->reg_cache)] =3D val)
+>>> +#define MCBSP_READ_CACHE(mcbsp, reg) \
+>>> +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
+>>> +				  sizeof(*mcbsp->reg_cache)])
+>>>
+>>>  #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
+>>>  #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
+>> Then rather than doing this cache manipulation in the macro, just
+>> do it in the omap_mcbsp_read/write functions based on the
+>> cpu_class_is_omap1() accessing omap1_reg_cache or omap2_reg_cache.
+>=20
+> omap_mcbsp_wrtie() case seems clear to me, but:
+>=20
+> Did you mean defining a new omap_mcbsp_read_cache() function, similia=
+r to=20
+> omap_mcbsp_read(), but reading from cache instead of hardware?
+>=20
+> Or do you prefere if I modify omap_mcbsp_read() to be able to read fr=
+om both=20
+> hardware and cache, dependig on an additional argument, for example?
+>=20
+> Thanks,
+> Janusz
+>=20
+>> This way you can get rid of the ifdef else.
 
-Regards,
-Benoit
+But shouldn't declarations for both tables be placed in=20
+arch/arm/plat-omap/include/plat/mcbsp.h withing an ifdef else block? If=
+=20
+yes, one ifdef else block would be replaced with another. Or did you=20
+mean placing those declarations inside existing ifdef block with define=
+s=20
+for register offsets?
 
->> Ideally you should not even rely on the OPP, but on the frequency.
->>
->
->> Keep in mind, that since the OPP layer is being completely rewritten by
->Nishanth and
->> Kevin, it will have to change at that time to adapt that to the new API,
->and to a
->> frequency based selection.
+Thanks,
+Janusz
+
+
 >>
 >> Regards,
->> Benoit
 >>
+>> Tony
 >>
->> >> Regards,
->> >> Benoit
->> >>
->> >> >These configurations are typically set in bootloader. However
->> >bootloaders
->> >> >may
->> >> >mess up configuration and kernel with this chang ensures that system
->is
->> >in
->> >> >a
->> >> >known state.
->> >> >
->> >> >Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
->> >> >---
->> >> > arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++--
->> >> > arch/arm/mach-omap2/pm34xx.c          |   19 +++++++++++++++++++
->> >> > arch/arm/mach-omap2/resource34xx.c    |   20
->> ++++++++++++++++++++
->> >> > 3 files changed, 41 insertions(+), 2 deletions(-)
->> >> > mode change 100644 => 100755 arch/arm/mach-omap2/cm-regbits-34xx.h
->> >> > mode change 100644 => 100755 arch/arm/mach-omap2/pm34xx.c
->> >> > mode change 100644 => 100755 arch/arm/mach-omap2/resource34xx.c
->> >> >
->> >> >diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-
->> >> >omap2/cm-regbits-34xx.h
->> >> >index 6f2802b..0cf9a5d
->> >> >--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
->> >> >+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
->> >> >@@ -81,7 +81,7 @@
->> >> >
->> >> > /* CM_CLKSEL1_PLL_IVA2 */
->> >> > #define OMAP3430_IVA2_CLK_SRC_SHIFT                     19
->> >> >-#define OMAP3430_IVA2_CLK_SRC_MASK                      (0x3 << 19)
->> >> >+#define OMAP3430_IVA2_CLK_SRC_MASK                      (0x7 << 19)
->> >> > #define OMAP3430_IVA2_DPLL_MULT_SHIFT                   8
->> >> > #define OMAP3430_IVA2_DPLL_MULT_MASK                    (0x7ff << 8)
->> >> > #define OMAP3430_IVA2_DPLL_DIV_SHIFT                    0
->> >> >@@ -126,7 +126,7 @@
->> >> >
->> >> > /* CM_CLKSEL1_PLL_MPU */
->> >> > #define OMAP3430_MPU_CLK_SRC_SHIFT                      19
->> >> >-#define OMAP3430_MPU_CLK_SRC_MASK                       (0x3 << 19)
->> >> >+#define OMAP3430_MPU_CLK_SRC_MASK                       (0x7 << 19)
->> >> > #define OMAP3430_MPU_DPLL_MULT_SHIFT                    8
->> >> > #define OMAP3430_MPU_DPLL_MULT_MASK                     (0x7ff << 8)
->> >> > #define OMAP3430_MPU_DPLL_DIV_SHIFT                     0
->> >> >diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
->> omap2/pm34xx.c
->> >> >index c328164..f260072
->> >> >--- a/arch/arm/mach-omap2/pm34xx.c
->> >> >+++ b/arch/arm/mach-omap2/pm34xx.c
->> >> >@@ -802,6 +802,25 @@ static void __init omap3_d2d_idle(void)
->> >> >
->> >> > static void __init prcm_setup_regs(void)
->> >> > {
->> >> >+        u32 cm_clksel1_mpu, cm_clksel1_iva2;
->> >> >+
->> >> >+        /*set Bypass clock dividers for MPU and IVA */
->> >> >+        cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD, CM_CLKSEL1);
->> >> >+        cm_clksel1_iva2 = cm_read_mod_reg(OMAP3430_IVA2_MOD,
->> CM_CLKSEL1);
->> >> >+        if (cpu_is_omap3630()) {
->> >> >+                cm_clksel1_iva2 = (cm_clksel1_iva2 &
->> >> >~(OMAP3430_IVA2_CLK_SRC_MASK)) |
->> >> >+                                        (0x2 <<
->> OMAP3430_IVA2_CLK_SRC_SHIFT);
->> >> >+                cm_clksel1_mpu = (cm_clksel1_mpu &
->> >> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
->> >> >+                                        (0x1 <<
->> OMAP3430_MPU_CLK_SRC_SHIFT);
->> >> >+        } else if (cpu_is_omap34xx()) {
->> >> >+                cm_clksel1_iva2 = (cm_clksel1_iva2 &
->> >> >~(OMAP3430_IVA2_CLK_SRC_MASK)) |
->> >> >+                                        (0x4 <<
->> OMAP3430_IVA2_CLK_SRC_SHIFT);
->> >> >+                cm_clksel1_mpu = (cm_clksel1_mpu &
->> >> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
->> >> >+                                        (0x2 <<
->> OMAP3430_MPU_CLK_SRC_SHIFT);
->> >> >+                }
->> >> >+        cm_write_mod_reg(cm_clksel1_iva2, OMAP3430_IVA2_MOD,
->> CM_CLKSEL1);
->> >> >+        cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
->> >> >+
->> >> >         /* XXX Reset all wkdeps. This should be done when initializing
->> >> >          * powerdomains */
->> >> >         prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
->> >> >diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-
->> >> >omap2/resource34xx.c
->> >> >index 04be4d2..8c3f2b3
->> >> >--- a/arch/arm/mach-omap2/resource34xx.c
->> >> >+++ b/arch/arm/mach-omap2/resource34xx.c
->> >> >@@ -242,9 +242,29 @@ static int program_opp_freq(int res, int
->> >target_level,
->> >> >int current_level)
->> >> > {
->> >> >         int ret = 0, l3_div;
->> >> >         int *curr_opp;
->> >> >+        u32 cm_clksel1_mpu;
->> >> >
->> >> >         lock_scratchpad_sem();
->> >> >         if (res == VDD1_OPP) {
->> >> >+                if (target_level == VDD1_OPP1) {
->> >> >+                        cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD,
->> >> CM_CLKSEL1);
->> >> >+                        if (cpu_is_omap3630())
->> >> >+                                cm_clksel1_mpu = (cm_clksel1_mpu &
->> >> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
->> >> >+                                                        (0x2 <<
->> >> >OMAP3430_MPU_CLK_SRC_SHIFT);
->> >> >+                        else if (cpu_is_omap34xx())
->> >> >+                                cm_clksel1_mpu = (cm_clksel1_mpu &
->> >> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
->> >> >+                                                        (0x4 <<
->> >> >OMAP3430_MPU_CLK_SRC_SHIFT);
->> >> >+                        cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD,
->> CM_CLKSEL1);
->> >> >+                } else if ((current_level == VDD1_OPP1) &&
->(target_level !=
->> >> >VDD1_OPP1)) {
->> >> >+                        cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD,
->> >> CM_CLKSEL1);
->> >> >+                        if (cpu_is_omap3630())
->> >> >+                                cm_clksel1_mpu = (cm_clksel1_mpu &
->> >> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
->> >> >+                                                        (0x1 <<
->> >> >OMAP3430_MPU_CLK_SRC_SHIFT);
->> >> >+                        else if (cpu_is_omap34xx())
->> >> >+                                cm_clksel1_mpu = (cm_clksel1_mpu &
->> >> >~(OMAP3430_MPU_CLK_SRC_MASK)) |
->> >> >+                                                        (0x2 <<
->> >> >OMAP3430_MPU_CLK_SRC_SHIFT);
->> >> >+                        cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD,
->> CM_CLKSEL1);
->> >> >+                }
->> >> >                 curr_opp = &curr_vdd1_opp;
->> >> >                 clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
->> >> >                 clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
->> >> >--
->> >> >1.5.6.3
->> >> >
->> >> >--
->> >> >To unsubscribe from this list: send the line "unsubscribe linux-omap"
->in
->> >> >the body of a message to majordomo@vger.kernel.org
->> >> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >>
->> >> Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve
->> >Loubet. 036
->> >> 420 040 R.C.S Antibes. Capital de EUR 753.920
->> >>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
