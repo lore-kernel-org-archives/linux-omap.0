@@ -1,68 +1,62 @@
-From: TAO HU <tghk48@motorola.com>
-Subject: Re: Peripheral Power Management
-Date: Fri, 4 Dec 2009 13:19:19 +0800
-Message-ID: <5f4a33680912032119p24fae84drbef5331d26ba91ad@mail.gmail.com>
-References: <82cfbe860912020129l63da6721ubeac01c9e131853e@mail.gmail.com>
-	 <82cfbe860912020132n5e0c01adn64a3c1bd85f96df6@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH v3 0/4] OMAP: McBSP: Use register cache
+Date: Fri, 4 Dec 2009 08:58:58 +0200
+Message-ID: <200912040858.58569.peter.ujfalusi@nokia.com>
+References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <200912031135.37985.peter.ujfalusi@nokia.com> <200912031331.21446.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exprod5og110.obsmtp.com ([64.18.0.20]:42908 "EHLO
-	exprod5og110.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046AbZLDFTN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 00:19:13 -0500
-Received: from il27vts03 (il27vts03.cig.mot.com [10.17.196.87])
-	by mdgate2.corp.mot.com (8.14.3/8.14.3) with SMTP id nB45JlMk004904
-	for <linux-omap@vger.kernel.org>; Thu, 3 Dec 2009 22:19:47 -0700 (MST)
-Received: from mail-pw0-f52.google.com (mail-pw0-f52.google.com [209.85.160.52])
-	by mdgate2.corp.mot.com (8.14.3/8.14.3) with ESMTP id nB45InOn004798
-	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=OK)
-	for <linux-omap@vger.kernel.org>; Thu, 3 Dec 2009 22:19:47 -0700 (MST)
-Received: by mail-pw0-f52.google.com with SMTP id 8so1442977pwi.31
-        for <linux-omap@vger.kernel.org>; Thu, 03 Dec 2009 21:19:19 -0800 (PST)
-In-Reply-To: <82cfbe860912020132n5e0c01adn64a3c1bd85f96df6@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:22312 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752355AbZLDG7y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 01:59:54 -0500
+In-Reply-To: <200912031331.21446.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tarek attia <tarek.m.attia@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: ext Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-You can use so called "auto idle".
-I.e. Disable clocks (iclk, fclk) when there is no activities for
-certain period of time
+Hello Janusz,
 
-- Hu Tao
+On Thursday 03 December 2009 14:31:20 ext Janusz Krzysztofik wrote:
+> > Sorry, but I have totally missed the discussion about this in l-o..
+> > It looks good for me as well, the only comment I have is the same a=
+s
+> > Jarkko for patch 3.
+> > I was about to give it a try, but since Jarkko already tested it on
+> > Beagle, I'm OK with this series (with the comment for patch 3).
+>=20
+> Hi Peter,
+>=20
+> That's probably my fault, I've dropped you from CC: at some point, so=
+rry.
 
-On Wed, Dec 2, 2009 at 5:32 PM, tarek attia <tarek.m.attia@gmail.com> w=
-rote:
->
-> I'm not talking about full chip off in suspend ,,but I'm talking abou=
-t
-> tern off some modules while they aren't in use however the cpu is
-> running in normal mode not in idle
->
-> On Wed, Dec 2, 2009 at 11:29 AM, tarek attia <tarek.m.attia@gmail.com=
-> wrote:
-> > Hi All,
-> >
-> > I know that CPU have power management through CPUFREQ,,but what abo=
-ut
-> > the peripherals like =A0(DVI-D) does it have a power management for=
- it
-> > as well??,,and the rest of peripherals also ?
-> >
-> >
-> >
-> > Appreciate your response,
-> >
-> > Best Regards,
-> > tarek
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+Well, it is mostly my fault. I need to follow the l-o list more closely=
+, than I=20
+did.. I have a faint recollection of some earlier patches, but for some=
+ reason I=20
+have not reacted to them (can't really recall why).
+
+Anyways, I'll try to be more active on McBSP issues. My name is in the =
+files=20
+thanks to Jarkko, which comes with some responsibility as well ;)
+=20
+> I'm still learning whom I should CC: and whom I shouldn't in order to=
+ rise
+>  my chances on patches being commented, acknowledged and applied in a
+>  reasonable time ;). Initial version of this one was waiting since Au=
+gust,
+>  that's why I tried to narrow the audience in hope it could help gett=
+ing it
+>  rejected or accepted finally.
+>=20
+> Thanks,
+> Janusz
+>=20
+
+Thanks,
+P=C3=A9ter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
