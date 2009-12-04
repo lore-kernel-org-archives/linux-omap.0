@@ -1,119 +1,90 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v2] omap: serial: fix non-empty uart fifo read abort
-Date: Thu,  3 Dec 2009 17:29:46 -0600
-Message-ID: <1259882986-11009-1-git-send-email-vikram.pandita@ti.com>
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: Re: EHCI support on beagleboard missing
+Date: Fri, 04 Dec 2009 01:51:25 +0000
+Message-ID: <4B186B1D.3080903@blueyonder.co.uk>
+References: <20091201174333.GA31972@kroah.com> <1259690320-12415-1-git-send-email-gregkh@suse.de>,<4B169D4E.7050100@blueyonder.co.uk> <5A47E75E594F054BAF48C5E4FC4B92AB0309C8638F@dbde02.ent.ti.com> <4B16A18C.20108@blueyonder.co.uk>
+Reply-To: sboyce@blueyonder.co.uk
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34173 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751304AbZLCX2r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Dec 2009 18:28:47 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nB3NSsnS017661
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 3 Dec 2009 17:28:54 -0600
+Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:41274 "EHLO
+	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754742AbZLDBvW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 20:51:22 -0500
+Received: from [172.23.170.137] (helo=anti-virus01-08)
+	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1NGNKR-0005a5-Nt
+	for linux-omap@vger.kernel.org; Fri, 04 Dec 2009 01:51:27 +0000
+Received: from [94.171.130.58] (helo=[192.168.10.2])
+	by asmtp-out6.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1NGNKQ-0008G2-Bt
+	for linux-omap@vger.kernel.org; Fri, 04 Dec 2009 01:51:26 +0000
+In-Reply-To: <4B16A18C.20108@blueyonder.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-OMAP3xxx and OMAP4430 UART IP blocks have a restriction wrt RX FIFO.
-Empty RX fifo read causes an abort.
+On 02/12/09 17:19, Sid Boyce wrote:
+> On 02/12/09 17:04, Gadiyar, Anand wrote:
+>> Sid Boyce wrote:
+>>> Greg,
+>>> I've been told you have had the patch on your queue for quite some time.
+>>> I don't have the patch details to hand, but drivers/usb/Kconfig and may
+>>> be 2 other files affected. I have to search for the patch later.
+>>> linux-omap-2.6 # ARCH=arm make
+>>> CROSS_COMPILE=/opt/arm-2009q3/bin/arm-none-eabi- defconfig
+>>>   HOSTCC  scripts/basic/fixdep
+>>>   HOSTCC  scripts/basic/docproc
+>>>   HOSTCC  scripts/basic/hash
+>>>   HOSTCC  scripts/kconfig/conf.o
+>>>   HOSTCC  scripts/kconfig/kxgettext.o
+>>>   SHIPPED scripts/kconfig/zconf.tab.c
+>>>   SHIPPED scripts/kconfig/lex.zconf.c
+>>>   SHIPPED scripts/kconfig/zconf.hash.c
+>>>   HOSTCC  scripts/kconfig/zconf.tab.o
+>>>   HOSTLD  scripts/kconfig/conf
+>>> *** Default configuration is based on 'versatile_defconfig'
+>>> #
+>>> # configuration written to .config
+>>> #
+>>
+>>
+>> Looks incorrect to me. Shouldn't you be doing omap3_beagle_config?
+>>
+>>> slipstream:/home/lancelot/OE/openembedded/linux-omap-2.6 # grep EHCI .config
+>>> # CONFIG_USB_ARCH_HAS_EHCI is not set
+>>>
+>>
+>> And this seems to be the linux-omap kernel. So the patch should be there,
+>> and if it isn't then the correct list to ping would probably be linux-omap.
+>>
+>>
+>> There's a patch in Greg's queue to set this with OMAP3 [1].
+>> And there was a newer version that was sent by Olaf recently [2], not
+>> sure if it was picked up. Either of these should get you going.
+>>
+>> - Anand
+>>
+>> [1] <http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/usb/usb-ehci-allow-ehci-to-be-built-on-omap3.patch>
+>> [2] <http://marc.info/?l=linux-usb&m=125913935405310&w=2>
+>>
+> 
+> That's the one.
+> Thanks and Regards
+> Sid.
+> 
 
-OMAP3xxx:
-	UART IP revision >= 0x52 have this issue
-	MVR register format is:
-	Bits  Field Name  Description  				Type  Reset
-	31:8   RESERVED 					RO  	0x0
-	7:4    MAJOR  	Major revision number of the module.  	RO  	0x--  
-	3:0    MINOR  	Minor revision number of the module.  	RO  	0x--
-
-OMAP4xxx: 
-	All revisions have this issue
-	Revision id check is not used as the format of MVR resigster has changed
-	For omap4 MVR register reads as: 0x50410602 => Revision id = 0x0602
-	Format of MVR register on omap4 is: (Courtesy: Cousson, Benoit)
-	Bits  Field Name  Description  				Type  Reset
-	31:30 SCHEME  	Scheme revision number of module  	RO  	0x1
-	29:28 RESERVED   					RO  	0x1  
-	27:16 FUNC  	Function revision number of module  	RO  	0x041  
-	15:11 RTL  		Rtl revision number of module  	RO  	0x00  
-	10:8  MAJOR 	Major revision number of the module.  	RO  	0x6  
-	7:6   CUSTOM  	Custom revision number of the module.  	RO  	0x0  
-	5:0   MINOR  	Minor revision number of the module.  	RO  	0x02
-
-Override the default 8250 read handler: mem_serial_in()
-by a custom handler: serial_in_8250()
-which makes sure that RX fifo is not read when empty
-
-tested on zoom3(3630) board
-
-Cc: Cousson, Benoit <b-cousson@ti.com>
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
-History of Patch:
-V1:
-	http://patchwork.kernel.org/patch/61671/
-	http://patchwork.kernel.org/patch/61672/
-
-V2: Incorporate approach suggested by Tony L
-	Introduce IP version check in mach-omap2/serial.c file	
-
- arch/arm/mach-omap2/serial.c |   29 +++++++++++++++++++++++++++++
- 1 files changed, 29 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 2e17b57..bd646a2 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -33,6 +33,7 @@
- #include "pm.h"
- #include "prm-regbits-34xx.h"
- 
-+#define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
- #define UART_OMAP_WER		0x17	/* Wake-up enable register */
- 
- #define DEFAULT_TIMEOUT (5 * HZ)
-@@ -572,6 +573,23 @@ static struct omap_uart_state omap_uart[] = {
- #endif
- };
- 
-+/*
-+ * Override the default 8250 read handler: mem_serial_in()
-+ * Empty RX fifo read causes an abort on omap3630 and omap4
-+ * This function makes sure that an empty rx fifo is not read on these silicons
-+ * (OMAP1/2/3 are not affected)
-+ */
-+static unsigned int serial_in_override(struct uart_port *up, int offset)
-+{
-+	if (UART_RX == offset) {
-+		unsigned int lsr;
-+		lsr = serial_read_reg(omap_uart[up->line].p, UART_LSR);
-+		if (!(lsr & UART_LSR_DR))
-+			return -EPERM;
-+	}
-+	return serial_read_reg(omap_uart[up->line].p, offset);
-+}
-+
- void __init omap_serial_early_init(void)
- {
- 	int i;
-@@ -650,5 +668,16 @@ void __init omap_serial_init(void)
- 			device_init_wakeup(dev, true);
- 			DEV_CREATE_FILE(dev, &dev_attr_sleep_timeout);
- 		}
-+
-+#ifdef CONFIG_ARCH_OMAP4
-+		/* Never read empty UART fifo on omap4 */
-+		p->serial_in = serial_in_override;
-+#else
-+		/* OMAP2/3 */
-+		/* Never read empty UART fifo on UARTs with IP rev >=0x52 */
-+		if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
-+				>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
-+			uart->p->serial_in = serial_in_override;
-+#endif
- 	}
- }
+The patch is not on Greg's queue and he knows nothing about it.
+When "default y if ARCH_OMAP34XX" is added to drivers/usb/Kconfig, it
+still missing the glue patch which via google I can't find a recent patch.
+It's somehow fallen down the plug hole and needs resubmitting as it's an
+ever present problem in all but the launchpad 2.6.31 kernel.
+Regards
+Sid.
 -- 
-1.6.6.rc0.66.ge160d
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
