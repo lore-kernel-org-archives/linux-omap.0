@@ -1,51 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Fix include problem. Signed-off-by: Marek Belisko
- <marek.belisko@gmail.com>
-Date: Fri, 4 Dec 2009 15:00:12 -0800
-Message-ID: <20091204230012.GN24013@atomide.com>
-References: <e7c6a05e0912030528k1f9c9493y11d55812a054b030@mail.gmail.com>
- <6cb013310912030729k2b42e2edqfe7a63f9c046bb89@mail.gmail.com>
+Subject: [APPLIED] [PATCH] omap3: rx51: Use wl1251 in SPI mode 3
+Date: Fri, 4 Dec 2009 18:11:31 -0500
+Message-ID: <notify-1259968296@atomide.com>
+References: <20091125213133.28326.91119.stgit@tikku>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60074 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757378AbZLDXAJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 18:00:09 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53825 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753979AbZLDXLb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 18:11:31 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NGhJJ-0005Ow-CY
+	for linux-omap@vger.kernel.org; Fri, 04 Dec 2009 23:11:37 +0000
+In-Reply-To: <20091125213133.28326.91119.stgit@tikku>
 Content-Disposition: inline
-In-Reply-To: <6cb013310912030729k2b42e2edqfe7a63f9c046bb89@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Belisko Marek <marek.belisko@gmail.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Cory Maccarrone <darkstar6262@gmail.com> [091203 07:28]:
-> On Thu, Dec 3, 2009 at 5:28 AM, Belisko Marek <marek.belisko@gmail.com> wrote:
-> >
-> > Hi,
-> >
-> > when make htcherald_defconfig on current linux-omap tree
-> > (82f1d8f22f2c65e70206e40a6f17688bf64a892c) compilation fails
-> > in drivers/video/omap/lcd_htcherald.c.
-> >
-> > Following patch fixed this problem.
-> 
-> Marek and I talked on IRC about this, and it turns out this is true on
-> the linux-omap master branch, but for-next compiles without issue,
-> possibly due to the header changes not having been done on the master
-> branch yet.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Looks like Tomi's DSS2 moved this around. The DSS2 code is merged
-into linux-omap master branch, but is not in omap for-next branch.
+Branch in linux-omap: for-next-vol2
 
-I've applied this to linux-omap master branch for now. 
+Initial commit ID (Likely to change): d7af6dcd71cfbddfbca7e370c2fc888cb1c938ba
 
-Tomi, can you please add this to your fixes queue?
+PatchWorks
+http://patchwork.kernel.org/patch/63001/
 
-The patch in question is at:
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=d7af6dcd71cfbddfbca7e370c2fc888cb1c938ba
 
-http://patchwork.kernel.org/patch/64520/
 
-Regards,
-
-Tony
