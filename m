@@ -1,52 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH]OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under
- DVFS+SR operation
-Date: Fri, 4 Dec 2009 11:06:11 -0800
-Message-ID: <20091204190611.GG24013@atomide.com>
-References: <1259918576-31870-1-git-send-email-vishwanath.bs@ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH v2] omap: serial: fix non-empty uart fifo read abort
+Date: Sat, 5 Dec 2009 00:45:06 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FAA0C9FC@dbde02.ent.ti.com>
+References: <1259882986-11009-1-git-send-email-vikram.pandita@ti.com>
+ <20091204190400.GF24013@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60476 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755616AbZLDTGG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 14:06:06 -0500
-Content-Disposition: inline
-In-Reply-To: <1259918576-31870-1-git-send-email-vishwanath.bs@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46371 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753614AbZLDTPH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 14:15:07 -0500
+In-Reply-To: <20091204190400.GF24013@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
 
-* Vishwanath BS <vishwanath.bs@ti.com> [091204 01:20]:
-> From: Shweta Gulati <shweta.gulati@ti.com>
-> 
-> DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM UCs
-> running DSP codec was earlier restricted as DSP crashed.
-> The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and OPP2. 
-> The workaround is:
-> 	For DPLL2 (DSP) select CORECLK/4 as DPLL2 bypass clock for 3430.
-> 	Select CORECLK/2 as DPLL2 bypass clock for 3630.
-> During DPLL2 relock phase, DSP clock will be 83MHz/200MHz which is always OK
-> irrespective of Vdd1 voltage.
-> For DPLL1 (MPU), prior to any DVFS transition to OPP1, select CORECLK/4
-> 	(CORECLK/2 for 3630) as DPLL1 bypass clock.
-> 	For other OPPs select CORECLK/2 (CORECLK/1 for 3630) as DPLL1 bypass
-> 	clock.
-> These configurations are typically set in bootloader. However bootloaders may 
-> mess up configuration and kernel with this chang ensures that system is in a 
-> known state.
-> 
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> ---
->  arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++--
->  arch/arm/mach-omap2/pm34xx.c          |   19 +++++++++++++++++++
->  arch/arm/mach-omap2/resource34xx.c    |   20 ++++++++++++++++++++
->  3 files changed, 41 insertions(+), 2 deletions(-)
->  mode change 100644 => 100755 arch/arm/mach-omap2/cm-regbits-34xx.h
->  mode change 100644 => 100755 arch/arm/mach-omap2/pm34xx.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/resource34xx.c
 
-This mode change stuff does not look right.
 
-Tony
+>-----Original Message-----
+>From: Tony Lindgren [mailto:tony@atomide.com]
+>Sent: Friday, December 04, 2009 1:04 PM
+>To: Pandita, Vikram
+>Cc: linux-omap@vger.kernel.org; Cousson, Benoit
+>Subject: Re: [PATCH v2] omap: serial: fix non-empty uart fifo read abort
+>
+<snip>
+>> +
+>> +#ifdef CONFIG_ARCH_OMAP4
+>> +		/* Never read empty UART fifo on omap4 */
+>> +		p->serial_in = serial_in_override;
+>> +#else
+>> +		/* OMAP2/3 */
+>> +		/* Never read empty UART fifo on UARTs with IP rev >=0x52 */
+>> +		if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
+>> +				>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
+>> +			uart->p->serial_in = serial_in_override;
+>> +#endif
+>>  	}
+>>  }
+>
+>We need to avoid ifdef else stuff, that just causes problems compiling
+>in support for many omaps. In theory, we should be able to compile in
+>support for all omaps starting with 16xx with v5 options..
+>
+>Using cpu_is_omapxxxx() should do the trick here.
+
+The intent was to have check entirely based of UART IP revision.
+That worked fine for omap3xxx. But omap4 has totally different IP revision register (as per commit message)
+
+But I can see the point, and v3 of patch I can replace:
+#ifdef CONFIG_ARCH_OMAP4 by cpu_is_omap44xx()
+
+I tried following what was done in current serial.c file of many #ifdef CONFIG_ARCH_OMAP4
+
+
+>
+>Tony
