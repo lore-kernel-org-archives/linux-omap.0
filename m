@@ -1,165 +1,71 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH 3/4 v4] OMAP: McBSP: Introduce caching in register write operations
-Date: Fri, 4 Dec 2009 00:18:00 +0100
-Message-ID: <200912040018.02309.jkrzyszt@tis.icnet.pl>
-References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <200912031330.43464.jkrzyszt@tis.icnet.pl> <20091203200301.GB4348@atomide.com>
+From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Subject: [PATCH] usb: ehci-omap: Update platform header file path
+Date: Thu, 3 Dec 2009 20:23:57 -0600
+Message-ID: <20091204022357.GA19315@lixom.net>
+References: <20091125090259.GB30331@lixom.net> <20091125125326.GA18175@suse.de> <20091125175739.GE4348@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:33107 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755086AbZLDB5f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Dec 2009 20:57:35 -0500
-In-Reply-To: <20091203200301.GB4348@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20091125175739.GE4348-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-l3A5Bk7waGM@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org
 
-Thursday 03 December 2009 21:03:02 Tony Lindgren napisa=C5=82(a):
-> Hi,
->
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091203 04:29]:
-> > Reserve space inside omap_mcbsp structure for storing cached copies=
- of
-> > McBSP register values.
-> > Modify the MCBSP_WRITE() macro to update the cache with every regis=
-ter
-> > write operation.
-> > Introduce a new macro that reads from the cache instead of hardware=
-=2E
-> >
-> > Applies on top of patch 2 from this series:
-> > [PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API =
-for
-> > caching
-> >
-> > Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
-> > commit 4421752e331cfb1d942b47ffdb26e451a8da58a0.
-> > Compile-tested with omap_3430sdp_defconfig.
-> >
-> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> >
-> > ---
-> >
-> > Thursday 03 December 2009 08:49:21 Jarkko Nikula wrote:
-> > > On Tue, 1 Dec 2009 04:15:50 +0100
-> > >
-> > > Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
-> > > >  #define MCBSP_WRITE(mcbsp, reg, val) \
-> > > > -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
-> > > > +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
-> > > > +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1]=
- \
-> > > > +			=3D val)
-> > > > +#define MCBSP_READ_CACHE(mcbsp, reg) \
-> > > > +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / OMAP_MCBSP_REG_DRR1=
-])
-> > >
-> > > These divisions by DDR1 are confusing. Use rather sizeof:
-> > >
-> > > reg_cache[OMAP_MCBSP_REG_##reg / sizeof(*mcbsp->reg_cache)]
-> >
-> > Done.
-> >
-> > Jarkko, many thanks for your cooperation :).
-> >
-> > Janusz
-> >
-> >  arch/arm/plat-omap/include/plat/mcbsp.h |    5 +++++
-> >  arch/arm/plat-omap/mcbsp.c              |    7 ++++++-
-> >  2 files changed, 11 insertions(+), 1 deletion(-)
-> >
-> > --- git/arch/arm/plat-omap/include/plat/mcbsp.h.orig	2009-11-27
-> > 11:53:45.000000000 +0100 +++
-> > git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-01 03:37:21.000=
-000000
-> > +0100 @@ -415,6 +415,11 @@ struct omap_mcbsp {
-> >  	u16 max_tx_thres;
-> >  	u16 max_rx_thres;
-> >  #endif
-> > +#ifdef CONFIG_ARCH_OMAP1
-> > +	u16 reg_cache[OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1];
-> > +#else
-> > +	u32 reg_cache[OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
-> > +#endif
-> >  };
-> >  extern struct omap_mcbsp **mcbsp_ptr;
-> >  extern int omap_mcbsp_count;
->
-> How about rather set:
->
-> static u16 omap1_reg_cache[];
->
-> and
->
-> static u32 omap2_reg_cache[];
+The OMAP usb header file will move in the same merge window as this
+driver is getting introduced in, so update the driver now instead of
+making a merge-order-dependent patch later on through linux-omap.
 
-Hi Tony,
+Signed-off-by: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Let me understand more precisely what you mean before I submit next ver=
-sion.
 
-Did you mean something like:
+---
 
-static u16 omap1_reg_cache[3][OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1];
-static u32 omap2_reg_cache[5][OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
+Greg, see below for history (you were Cc:d at the time). Should have
+gone to you in the first place. Sorry for the confusion. Either combine
+with the ehci-omap patch, or merge separate.   Thanks!
 
-both put in arch/arm/plat-omap/mcbsp.c without any ifdefs?
+-Olof
 
-> > --- git/arch/arm/plat-omap/mcbsp.c.orig	2009-12-01 03:19:56.0000000=
-00
-> > +0100 +++ git/arch/arm/plat-omap/mcbsp.c	2009-12-03 11:37:21.000000=
-000
-> > +0100 @@ -49,7 +49,12 @@ int omap_mcbsp_read(void __iomem *io_bas
-> >  #define MCBSP_READ(mcbsp, reg) \
-> >  		omap_mcbsp_read(mcbsp->io_base, OMAP_MCBSP_REG_##reg)
-> >  #define MCBSP_WRITE(mcbsp, reg, val) \
-> > -		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
-> > +		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
-> > +		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
-> > +				 sizeof(*mcbsp->reg_cache)] =3D val)
-> > +#define MCBSP_READ_CACHE(mcbsp, reg) \
-> > +		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
-> > +				  sizeof(*mcbsp->reg_cache)])
-> >
-> >  #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
-> >  #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
->
-> Then rather than doing this cache manipulation in the macro, just
-> do it in the omap_mcbsp_read/write functions based on the
-> cpu_class_is_omap1() accessing omap1_reg_cache or omap2_reg_cache.
 
-omap_mcbsp_wrtie() case seems clear to me, but:
+On Wed, Nov 25, 2009 at 09:57:39AM -0800, Tony Lindgren wrote:
 
-Did you mean defining a new omap_mcbsp_read_cache() function, similiar =
-to=20
-omap_mcbsp_read(), but reading from cache instead of hardware?
-
-Or do you prefere if I modify omap_mcbsp_read() to be able to read from=
- both=20
-hardware and cache, dependig on an additional argument, for example?
-
-Thanks,
-Janusz
-
-> This way you can get rid of the ifdef else.
->
+> The ehci-omap.c driver should be in Greg's queue. I only have the
+> the related platform init code and header changes in my for-next
+> because of the omap header move from mach to plat.
+> 
+> IMHO, this fix would be best added to Greg's queue as the ehci-omap.c
+> driver is there [1]. Or just merged into the exisiting patch
+> to keep git bisect working:
+> 
+> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> 
+> Meanwhile, I'll also add this fix to omap-testing and master branches
+> so people can use it until it gets merged.
+> 
 > Regards,
->
+> 
 > Tony
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> [1] http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/usb/usb-host-ehci-introduce-omap-ehci-hcd-driver.patch
 
 
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 7ba8df3..5cfed78 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -37,7 +37,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+ #include <linux/gpio.h>
+-#include <mach/usb.h>
++#include <plat/usb.h>
+ 
+ /*
+  * OMAP USBHOST Register addresses: VIRTUAL ADDRESSES
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
