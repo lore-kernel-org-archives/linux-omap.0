@@ -1,64 +1,93 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH v3 0/4] OMAP: McBSP: Use register cache
-Date: Fri, 4 Dec 2009 08:58:58 +0200
-Message-ID: <200912040858.58569.peter.ujfalusi@nokia.com>
-References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <200912031135.37985.peter.ujfalusi@nokia.com> <200912031331.21446.jkrzyszt@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCHv2 2/6] OMAP3: PM: Added support for INACTIVE and ON states for powerdomains
+Date: Fri,  4 Dec 2009 10:52:57 +0200
+Message-ID: <1259916781-2741-3-git-send-email-tero.kristo@nokia.com>
+References: <>
+ <1259916781-2741-1-git-send-email-tero.kristo@nokia.com>
+ <1259916781-2741-2-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:22312 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752355AbZLDG7y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 01:59:54 -0500
-In-Reply-To: <200912031331.21446.jkrzyszt@tis.icnet.pl>
+Received: from smtp.nokia.com ([192.100.122.230]:27247 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754382AbZLDIzu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 03:55:50 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nB48tbjZ001125
+	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 10:55:54 +0200
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nB48tm69013537
+	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 10:55:51 +0200
+In-Reply-To: <1259916781-2741-2-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: ext Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hello Janusz,
+From: Tero Kristo <tero.kristo@nokia.com>
 
-On Thursday 03 December 2009 14:31:20 ext Janusz Krzysztofik wrote:
-> > Sorry, but I have totally missed the discussion about this in l-o..
-> > It looks good for me as well, the only comment I have is the same a=
-s
-> > Jarkko for patch 3.
-> > I was about to give it a try, but since Jarkko already tested it on
-> > Beagle, I'm OK with this series (with the comment for patch 3).
->=20
-> Hi Peter,
->=20
-> That's probably my fault, I've dropped you from CC: at some point, so=
-rry.
+Previously omap_sram_idle() did not know about the difference between ON and
+INACTIVE states, which complicated the state handling in these cases. Now,
+the following changes are done in the idle logic:
 
-Well, it is mostly my fault. I need to follow the l-o list more closely=
-, than I=20
-did.. I have a faint recollection of some earlier patches, but for some=
- reason I=20
-have not reacted to them (can't really recall why).
+- Check for IO-chain arming is changed to reflect desired state (RET)
+- UART clocks will be disabled if we attempt to enter INACTIVE (this allows
+  the state change to actually happen)
 
-Anyways, I'll try to be more active on McBSP issues. My name is in the =
-files=20
-thanks to Jarkko, which comes with some responsibility as well ;)
-=20
-> I'm still learning whom I should CC: and whom I shouldn't in order to=
- rise
->  my chances on patches being commented, acknowledged and applied in a
->  reasonable time ;). Initial version of this one was waiting since Au=
-gust,
->  that's why I tried to narrow the audience in hope it could help gett=
-ing it
->  rejected or accepted finally.
->=20
-> Thanks,
-> Janusz
->=20
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-Thanks,
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 3b62c96..574492e 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -391,6 +391,7 @@ void omap_sram_idle(void)
+ 	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+ 	switch (mpu_next_state) {
+ 	case PWRDM_POWER_ON:
++	case PWRDM_POWER_INACTIVE:
+ 	case PWRDM_POWER_RET:
+ 		/* No need to save context */
+ 		save_state = 0;
+@@ -460,9 +461,11 @@ void omap_sram_idle(void)
+ 						OMAP3430_GR_MOD,
+ 						OMAP3_PRM_VOLTCTRL_OFFSET);
+ 		}
+-		/* Enable IO-PAD and IO-CHAIN wakeups */
+-		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
+-		omap3_enable_io_chain();
++		if (core_next_state <= PWRDM_POWER_RET) {
++			/* Enable IO-PAD and IO-CHAIN wakeups */
++			prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
++			omap3_enable_io_chain();
++		}
+ 	}
+ 	omap3_intc_prepare_idle();
+ 
+@@ -561,15 +564,13 @@ void omap_sram_idle(void)
+ 	}
+ 
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+-	if (core_next_state < PWRDM_POWER_ON) {
++	if (core_next_state <= PWRDM_POWER_RET) {
+ 		prm_clear_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
+ 		omap3_disable_io_chain();
+ 	}
+ 
+ 
+ 	pwrdm_post_transition();
+-
+-	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+ }
+ 
+ int omap3_can_sleep(void)
+@@ -617,7 +618,6 @@ int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 	}
+ 
+ 	if (sleep_switch) {
+-		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+ 		pwrdm_wait_transition(pwrdm);
+ 		pwrdm_state_switch(pwrdm);
+ 	}
+-- 
+1.5.4.3
+
