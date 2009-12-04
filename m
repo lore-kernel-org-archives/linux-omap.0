@@ -1,112 +1,137 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv2 3/6] OMAP3: CPUidle: Fixed support for ON / INACTIVE states
-Date: Fri,  4 Dec 2009 10:52:58 +0200
-Message-ID: <1259916781-2741-4-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1259916781-2741-1-git-send-email-tero.kristo@nokia.com>
- <1259916781-2741-2-git-send-email-tero.kristo@nokia.com>
- <1259916781-2741-3-git-send-email-tero.kristo@nokia.com>
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCH]OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under DVFS+SR operation
+Date: Fri,  4 Dec 2009 14:52:56 +0530
+Message-ID: <1259918576-31870-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28573 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755377AbZLDI4U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Dec 2009 03:56:20 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nB48tG6X011582
-	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 10:56:25 +0200
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nB48tm6A013537
-	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 10:55:52 +0200
-In-Reply-To: <1259916781-2741-3-git-send-email-tero.kristo@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36500 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755314AbZLDJVM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Dec 2009 04:21:12 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nB49LFmJ010703
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 03:21:18 -0600
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id nB49LETD003793
+	for <linux-omap@vger.kernel.org>; Fri, 4 Dec 2009 14:51:15 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-From: Tero Kristo <tero.kristo@nokia.com>
+From: Shweta Gulati <shweta.gulati@ti.com>
 
-New powerdomain code support for INACTIVE state removes the need to control
-clockdomains directly from cpuidle. Also, cpuidle state definitions can now
-directly support ON / INACTIVE simplifying the implementation.
+DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM UCs
+running DSP codec was earlier restricted as DSP crashed.
+The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and OPP2. 
+The workaround is:
+	For DPLL2 (DSP) select CORECLK/4 as DPLL2 bypass clock for 3430.
+	Select CORECLK/2 as DPLL2 bypass clock for 3630.
+During DPLL2 relock phase, DSP clock will be 83MHz/200MHz which is always OK
+irrespective of Vdd1 voltage.
+For DPLL1 (MPU), prior to any DVFS transition to OPP1, select CORECLK/4
+	(CORECLK/2 for 3630) as DPLL1 bypass clock.
+	For other OPPs select CORECLK/2 (CORECLK/1 for 3630) as DPLL1 bypass
+	clock.
+These configurations are typically set in bootloader. However bootloaders may 
+mess up configuration and kernel with this chang ensures that system is in a 
+known state.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   32 ++++----------------------------
- 1 files changed, 4 insertions(+), 28 deletions(-)
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++--
+ arch/arm/mach-omap2/pm34xx.c          |   19 +++++++++++++++++++
+ arch/arm/mach-omap2/resource34xx.c    |   20 ++++++++++++++++++++
+ 3 files changed, 41 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 arch/arm/mach-omap2/cm-regbits-34xx.h
+ mode change 100644 => 100755 arch/arm/mach-omap2/pm34xx.c
+ mode change 100644 => 100755 arch/arm/mach-omap2/resource34xx.c
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 1cfa5a6..4a81ef1 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -91,20 +91,6 @@ static int omap3_idle_bm_check(void)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index 6f2802b..0cf9a5d
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -81,7 +81,7 @@
  
--static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
--				struct clockdomain *clkdm)
--{
--	omap2_clkdm_allow_idle(clkdm);
--	return 0;
--}
--
--static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
--				struct clockdomain *clkdm)
--{
--	omap2_clkdm_deny_idle(clkdm);
--	return 0;
--}
--
- /**
-  * omap3_enter_idle - Programs OMAP3 to enter the specified state
-  * @dev: cpuidle device
-@@ -141,19 +127,9 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	if (omap_irq_pending() || need_resched())
- 		goto return_sleep_time;
+ /* CM_CLKSEL1_PLL_IVA2 */
+ #define OMAP3430_IVA2_CLK_SRC_SHIFT			19
+-#define OMAP3430_IVA2_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_IVA2_CLK_SRC_MASK			(0x7 << 19)
+ #define OMAP3430_IVA2_DPLL_MULT_SHIFT			8
+ #define OMAP3430_IVA2_DPLL_MULT_MASK			(0x7ff << 8)
+ #define OMAP3430_IVA2_DPLL_DIV_SHIFT			0
+@@ -126,7 +126,7 @@
  
--	if (cx->type == OMAP3_STATE_C1) {
--		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
--		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
--	}
--
- 	/* Execute ARM wfi */
- 	omap_sram_idle();
+ /* CM_CLKSEL1_PLL_MPU */
+ #define OMAP3430_MPU_CLK_SRC_SHIFT			19
+-#define OMAP3430_MPU_CLK_SRC_MASK			(0x3 << 19)
++#define OMAP3430_MPU_CLK_SRC_MASK			(0x7 << 19)
+ #define OMAP3430_MPU_DPLL_MULT_SHIFT			8
+ #define OMAP3430_MPU_DPLL_MULT_MASK			(0x7ff << 8)
+ #define OMAP3430_MPU_DPLL_DIV_SHIFT			0
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index c328164..f260072
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -802,6 +802,25 @@ static void __init omap3_d2d_idle(void)
  
--	if (cx->type == OMAP3_STATE_C1) {
--		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
--		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
--	}
--
- return_sleep_time:
- 	getnstimeofday(&ts_postidle);
- 	ts_idle = timespec_sub(ts_postidle, ts_preidle);
-@@ -246,8 +222,8 @@ void omap_init_power_states(void)
- 			cpuidle_params_table[OMAP3_STATE_C2].wake_latency;
- 	omap3_power_states[OMAP3_STATE_C2].threshold =
- 			cpuidle_params_table[OMAP3_STATE_C2].threshold;
--	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_ON;
--	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
-+	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_INACTIVE;
-+	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_INACTIVE;
- 	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID;
+ static void __init prcm_setup_regs(void)
+ {
++	u32 cm_clksel1_mpu, cm_clksel1_iva2;
++
++	/*set Bypass clock dividers for MPU and IVA */
++	cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD, CM_CLKSEL1);
++	cm_clksel1_iva2 = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSEL1);
++	if (cpu_is_omap3630()) {
++		cm_clksel1_iva2 = (cm_clksel1_iva2 & ~(OMAP3430_IVA2_CLK_SRC_MASK)) |
++					(0x2 << OMAP3430_IVA2_CLK_SRC_SHIFT);
++		cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
++					(0x1 << OMAP3430_MPU_CLK_SRC_SHIFT);
++	} else if (cpu_is_omap34xx()) {
++		cm_clksel1_iva2 = (cm_clksel1_iva2 & ~(OMAP3430_IVA2_CLK_SRC_MASK)) |
++					(0x4 << OMAP3430_IVA2_CLK_SRC_SHIFT);
++		cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
++					(0x2 << OMAP3430_MPU_CLK_SRC_SHIFT);
++		}
++	cm_write_mod_reg(cm_clksel1_iva2, OMAP3430_IVA2_MOD, CM_CLKSEL1);
++	cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
++
+ 	/* XXX Reset all wkdeps. This should be done when initializing
+ 	 * powerdomains */
+ 	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
+diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+index 04be4d2..8c3f2b3
+--- a/arch/arm/mach-omap2/resource34xx.c
++++ b/arch/arm/mach-omap2/resource34xx.c
+@@ -242,9 +242,29 @@ static int program_opp_freq(int res, int target_level, int current_level)
+ {
+ 	int ret = 0, l3_div;
+ 	int *curr_opp;
++	u32 cm_clksel1_mpu;
  
- 	/* C3 . MPU CSWR + Core inactive */
-@@ -261,7 +237,7 @@ void omap_init_power_states(void)
- 	omap3_power_states[OMAP3_STATE_C3].threshold =
- 			cpuidle_params_table[OMAP3_STATE_C3].threshold;
- 	omap3_power_states[OMAP3_STATE_C3].mpu_state = PWRDM_POWER_RET;
--	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_ON;
-+	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_INACTIVE;
- 	omap3_power_states[OMAP3_STATE_C3].flags = CPUIDLE_FLAG_TIME_VALID |
- 				CPUIDLE_FLAG_CHECK_BM;
- 
-@@ -276,7 +252,7 @@ void omap_init_power_states(void)
- 	omap3_power_states[OMAP3_STATE_C4].threshold =
- 			cpuidle_params_table[OMAP3_STATE_C4].threshold;
- 	omap3_power_states[OMAP3_STATE_C4].mpu_state = PWRDM_POWER_OFF;
--	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_ON;
-+	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_INACTIVE;
- 	omap3_power_states[OMAP3_STATE_C4].flags = CPUIDLE_FLAG_TIME_VALID |
- 				CPUIDLE_FLAG_CHECK_BM;
- 
+ 	lock_scratchpad_sem();
+ 	if (res == VDD1_OPP) {
++		if (target_level == VDD1_OPP1) {
++			cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD, CM_CLKSEL1);
++			if (cpu_is_omap3630())
++				cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
++							(0x2 << OMAP3430_MPU_CLK_SRC_SHIFT);
++			else if (cpu_is_omap34xx())
++				cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
++							(0x4 << OMAP3430_MPU_CLK_SRC_SHIFT);
++			cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
++		} else if ((current_level == VDD1_OPP1) && (target_level != VDD1_OPP1)) {
++			cm_clksel1_mpu = cm_read_mod_reg(MPU_MOD, CM_CLKSEL1);
++			if (cpu_is_omap3630())
++				cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
++							(0x1 << OMAP3430_MPU_CLK_SRC_SHIFT);
++			else if (cpu_is_omap34xx())
++				cm_clksel1_mpu = (cm_clksel1_mpu & ~(OMAP3430_MPU_CLK_SRC_MASK)) |
++							(0x2 << OMAP3430_MPU_CLK_SRC_SHIFT);
++			cm_write_mod_reg(cm_clksel1_mpu, MPU_MOD, CM_CLKSEL1);
++		}
+ 		curr_opp = &curr_vdd1_opp;
+ 		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
+ 		clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
 -- 
-1.5.4.3
+1.5.6.3
 
