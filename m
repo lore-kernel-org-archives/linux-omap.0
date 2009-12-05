@@ -1,92 +1,62 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] omap: pandora: board file updates for .33
-Date: Sat,  5 Dec 2009 20:44:08 +0200
-Message-ID: <1260038648-23069-1-git-send-email-notasas@gmail.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: [PATCH (for-next-vol2)] [OMAP] htcherald: Update defconfig to include mux support
+Date: Sat,  5 Dec 2009 12:51:31 -0800
+Message-ID: <1260046291-14717-1-git-send-email-darkstar6262@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:41830 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932861AbZLESoL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Dec 2009 13:44:11 -0500
-Received: by bwz27 with SMTP id 27so2660444bwz.21
-        for <linux-omap@vger.kernel.org>; Sat, 05 Dec 2009 10:44:16 -0800 (PST)
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:33169 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754191AbZLEUvl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Dec 2009 15:51:41 -0500
+Received: by pwj9 with SMTP id 9so233866pwj.21
+        for <linux-omap@vger.kernel.org>; Sat, 05 Dec 2009 12:51:48 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
+Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-Pandora board file updates:
-- change keycodes of game buttons
-  it was decided not to use ABXY layout by the developers.
-- drop i2c bus 3 speed to 100kHz
-  this is needed for battery monitoring chip to work reliably.
-- drop pandora_lcd platform_device
-  the older DSS driver was never functional on l-o or mainline
-  kernels due to missing panel driver, so remove unneeded
-  pandora_lcd platform_device. This also removes last OMAP_TAG
-  from the board file. LCD support will be added for DSS2 driver.
+The existing htcherald_defconfig did not include mux support, which
+prevented USB and other functionality from working out of the box.
+This change updates the defconfig to add it in.  It also aligns the
+defconfig to the -rc8 kernel config.
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 ---
- I can split this if needed, but I thought single patch might
- be easier to handle.
+ arch/arm/configs/htcherald_defconfig |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
- arch/arm/mach-omap2/board-omap3pandora.c |   21 +++++----------------
- 1 files changed, 5 insertions(+), 16 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 2db5ba5..89a541d 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -98,10 +98,10 @@ static struct gpio_keys_button pandora_gpio_keys[] = {
- 	GPIO_BUTTON_LOW(103,	KEY_DOWN,	"down"),
- 	GPIO_BUTTON_LOW(96,	KEY_LEFT,	"left"),
- 	GPIO_BUTTON_LOW(98,	KEY_RIGHT,	"right"),
--	GPIO_BUTTON_LOW(111,	BTN_A,		"a"),
--	GPIO_BUTTON_LOW(106,	BTN_B,		"b"),
--	GPIO_BUTTON_LOW(109,	BTN_X,		"x"),
--	GPIO_BUTTON_LOW(101,	BTN_Y,		"y"),
-+	GPIO_BUTTON_LOW(109,	KEY_KP1,	"game 1"),
-+	GPIO_BUTTON_LOW(111,	KEY_KP2,	"game 2"),
-+	GPIO_BUTTON_LOW(106,	KEY_KP3,	"game 3"),
-+	GPIO_BUTTON_LOW(101,	KEY_KP4,	"game 4"),
- 	GPIO_BUTTON_LOW(102,	BTN_TL,		"l"),
- 	GPIO_BUTTON_LOW(97,	BTN_TL2,	"l2"),
- 	GPIO_BUTTON_LOW(105,	BTN_TR,		"r"),
-@@ -315,7 +315,7 @@ static int __init omap3pandora_i2c_init(void)
- 	omap_register_i2c_bus(1, 2600, omap3pandora_i2c_boardinfo,
- 			ARRAY_SIZE(omap3pandora_i2c_boardinfo));
- 	/* i2c2 pins are not connected */
--	omap_register_i2c_bus(3, 400, NULL, 0);
-+	omap_register_i2c_bus(3, 100, NULL, 0);
- 	return 0;
- }
+diff --git a/arch/arm/configs/htcherald_defconfig b/arch/arm/configs/htcherald_defconfig
+index 3382676..1b39691 100644
+--- a/arch/arm/configs/htcherald_defconfig
++++ b/arch/arm/configs/htcherald_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.32-rc6
+-# Sat Nov 14 10:56:01 2009
++# Linux kernel version: 2.6.32-rc8
++# Sat Dec  5 12:16:24 2009
+ #
+ CONFIG_ARM=y
+ CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+@@ -198,7 +198,9 @@ CONFIG_ARCH_OMAP1=y
+ # OMAP Feature Selections
+ #
+ # CONFIG_OMAP_RESET_CLOCKS is not set
+-# CONFIG_OMAP_MUX is not set
++CONFIG_OMAP_MUX=y
++# CONFIG_OMAP_MUX_DEBUG is not set
++CONFIG_OMAP_MUX_WARNINGS=y
+ CONFIG_OMAP_MCBSP=y
+ # CONFIG_OMAP_MBOX_FWK is not set
+ CONFIG_OMAP_MPU_TIMER=y
+@@ -207,6 +209,7 @@ CONFIG_OMAP_LL_DEBUG_UART1=y
+ # CONFIG_OMAP_LL_DEBUG_UART2 is not set
+ # CONFIG_OMAP_LL_DEBUG_UART3 is not set
+ # CONFIG_OMAP_LL_DEBUG_NONE is not set
++CONFIG_OMAP_SERIAL_WAKE=y
+ # CONFIG_OMAP_PM_NONE is not set
+ CONFIG_OMAP_PM_NOOP=y
  
-@@ -368,17 +368,7 @@ static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
- 	}
- };
- 
--static struct platform_device omap3pandora_lcd_device = {
--	.name		= "pandora_lcd",
--	.id		= -1,
--};
--
--static struct omap_lcd_config omap3pandora_lcd_config __initdata = {
--	.ctrl_name	= "internal",
--};
--
- static struct omap_board_config_kernel omap3pandora_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&omap3pandora_lcd_config },
- };
- 
- static void __init omap3pandora_init_irq(void)
-@@ -392,7 +382,6 @@ static void __init omap3pandora_init_irq(void)
- }
- 
- static struct platform_device *omap3pandora_devices[] __initdata = {
--	&omap3pandora_lcd_device,
- 	&pandora_leds_gpio,
- 	&pandora_keys_gpio,
- };
 -- 
 1.6.3.3
 
