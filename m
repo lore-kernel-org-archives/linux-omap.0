@@ -1,76 +1,82 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: dspbridge sync proposal for 0.1
-Date: Sat, 5 Dec 2009 15:39:00 +0200
-Message-ID: <20091205133900.GA17280@annwn.felipec.org>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH 3/4 v5a] OMAP: McBSP: Introduce caching in register write operations
+Date: Sat, 5 Dec 2009 14:46:46 +0100
+Message-ID: <200912051446.47828.jkrzyszt@tis.icnet.pl>
+References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <4B19074B.1000606@tis.icnet.pl> <20091204191745.GH24013@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:20364 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752936AbZLENjD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Dec 2009 08:39:03 -0500
+Received: from d1.icnet.pl ([212.160.220.21]:49160 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752936AbZLENqx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 5 Dec 2009 08:46:53 -0500
+In-Reply-To: <20091204191745.GH24013@atomide.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Artem Bityutskiy <artem.bityutskiy@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Bhavin Shah <bshah@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-Hi,
+Reserve space inside omap_mcbsp structure for storing cached copies of McBSP
+register values.
+Modify the MCBSP_WRITE() macro to update the cache with every register write
+operation.
+Introduce a new macro that reads from the cache instead of hardware.
 
-There is a proposal to get the dspbridge branch into a decent state for
-the 0.1 release, so I've been trying to synchronize the internal maemo
-branch with the upstream one.
+Applies on top of patch 2 from this series:
+[PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API for caching
 
-Unfortunately, there are severe issues:
- * TI modified the patches sent by Nokia
- * Many patches have never been sent to l-o for review
+Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
+commit 4421752e331cfb1d942b47ffdb26e451a8da58a0.
+Compile-tested with omap_3430sdp_defconfig.
 
-And more importantly; I couldn't get it to work, neither on the N900,
-nor the beagleboard (I didn't try very hard, though). So I decided to
-compare the branches patch by patch.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-First, I found the last synchronization point is:
-6cc7482 DSPBRIDGE: Buffer size warning fixes
+---
 
-It's not exactly synchronized, as it's missing some patches from Nokia,
-but it's as good as it gets.
+Tony,
 
-Then I marked each patch as "ok" if they are in both branches, "needs
-sync" if it was modified, "!l-m" if it was not in the maemo branch, and
-"unrev" if it was never sent for review.
+Since I was not sure what your primary concern was, I've prepared two
+alternative versions of patch 3/4.
+Please take this one as a base for further discussion if your primary concern
+was potentially dangerous #else clause. I've replaced it with #elif, that
+should be more future proof.
+Otherwise, have a look the other one (v5b).
 
-Next I tried to come up with something that could resemble the current
-maemo branch, but I found no easy way. So, what I did is to pick each
-patch that was somehow present on both branches (I used the Nokia
-version for the patches that came from Nokia), then, pick all the
-patches that were only in the upstream branch, but have been sent for
-review, and finally, apply any other necessary patches. Needless to say;
-this was not straightforward; I had to resolve many conflcts, and drop
-many patches.
+Thanks,
+Janusz
 
-The end result is my proposal for 0.1 which is something that resembles
-the maemo branch, works both on the N900 (based on 2.6.28), and the
-beagleboard (using 2.6.32 without DVFS). There are still many patches
-missing, both from the upstream and maemo branches, but I think those
-should be tackled in 0.2.
-
-The only change needed from 2.6.28 to 2.6.32 seems to be IO_ADDRESS ->
-OMAP2_IO_ADDRESS, but I guess it would be much better to use ioremap
-instead, so the same code works everywhere. Any volunteers? :)
-
-All the branches are in:
-http://gitorious.org/~felipec/linux-omap/felipec
-
- * dspbridge-0.1:: 0.1 proposal
- * dspbridge-0.1-base:: last synchronization point
- * dspbridge-0.1-step1:: first step: patches on both branches
- * dspbridge-0.1-step2:: second step: patches only on upstream
- * dspbridge-0.2-maemo:: maemo patches for 0.2
-
-For more detail in my analysis of the current dspbridge branch check:
-http://people.freedesktop.org/~felipec/dspbridge-0.1-sync.html
-
-Comments?
-
--- 
-Felipe Contreras
+--- git/arch/arm/plat-omap/include/plat/mcbsp.h.orig	2009-11-27 11:53:45.000000000 +0100
++++ git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-05 03:37:21.000000000 +0100
+@@ -415,6 +415,13 @@ struct omap_mcbsp {
+ 	u16 max_tx_thres;
+ 	u16 max_rx_thres;
+ #endif
++#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) || \
++		defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
++	u16 reg_cache[OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1];
++#elif defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
++		defined(CONFIG_ARCH_OMAP4)
++	u32 reg_cache[OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1];
++#endif
+ };
+ extern struct omap_mcbsp **mcbsp_ptr;
+ extern int omap_mcbsp_count;
+--- git/arch/arm/plat-omap/mcbsp.c.orig	2009-12-01 03:19:56.000000000 +0100
++++ git/arch/arm/plat-omap/mcbsp.c	2009-12-01 03:37:21.000000000 +0100
+@@ -49,7 +49,12 @@ int omap_mcbsp_read(void __iomem *io_bas
+ #define MCBSP_READ(mcbsp, reg) \
+ 		omap_mcbsp_read(mcbsp->io_base, OMAP_MCBSP_REG_##reg)
+ #define MCBSP_WRITE(mcbsp, reg, val) \
+-		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
++		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, \
++		mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
++				 sizeof(*mcbsp->reg_cache)] = val)
++#define MCBSP_READ_CACHE(mcbsp, reg) \
++		(mcbsp->reg_cache[OMAP_MCBSP_REG_##reg / \
++				  sizeof(*mcbsp->reg_cache)])
+ 
+ #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
+ #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
