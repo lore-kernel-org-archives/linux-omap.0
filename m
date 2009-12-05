@@ -1,67 +1,56 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH 0/2] [RESEND] Amstrad Delta: add support for LCD contrast
-Date: Sat, 5 Dec 2009 14:54:49 +0100
-Message-ID: <200912051454.52966.jkrzyszt@tis.icnet.pl>
-References: <200911231857.55566.jkrzyszt@tis.icnet.pl>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2 01/20] DSPBRIDGE: driver version 0.1
+Date: Sat, 5 Dec 2009 16:20:23 +0200
+Message-ID: <94a0d4530912050620r1b3fca29jd742d8c98d043bd2@mail.gmail.com>
+References: <1259618101-8972-1-git-send-email-omar.ramirez@ti.com>
+	 <1259618101-8972-2-git-send-email-omar.ramirez@ti.com>
+	 <94a0d4530912020257h3ab5a2d8ya6a878189a92ddb3@mail.gmail.com>
+	 <27F9C60D11D683428E133F85D2BB4A530426FE31AE@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:50354 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754113AbZLENzU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Dec 2009 08:55:20 -0500
-In-Reply-To: <200911231857.55566.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:46145 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755106AbZLEOUR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Dec 2009 09:20:17 -0500
+Received: by iwn1 with SMTP id 1so2185590iwn.33
+        for <linux-omap@vger.kernel.org>; Sat, 05 Dec 2009 06:20:23 -0800 (PST)
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530426FE31AE@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev-devel@lists.sourceforge.net
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-Monday 23 November 2009 18:57:51 Janusz Krzysztofik napisa=C5=82(a):
-> Initialy submitted on 2009-11-16
-> (http://www.spinics.net/lists/linux-omap/msg20629.html).
-> Resendig due to fbdev mailing list address changed.
+On Wed, Dec 2, 2009 at 6:01 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
+>>From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+>>It should be the other way around; *after* the modifications have been
+>>merged,the version 0.1 would be released.
 >
-> The series consists of 2 patches:
+> Nope, version 0.2 will be once modifications are merged and branch is rebased to 2.6.32rc7
+
+There's many problems with the current dspbridge branch, for starters
+it doesn't work on the N900, nor beagleboard. Personally I would like
+0.1 to work on both, and as discussed in an internal meeting I sent a
+proposal for 0.1 with an analysis I did on the current branch.
+
+>> Moreover, it would be nice
+>>to get some acknowledgement from Nokia developers that the branch is
+>>indeed correct.
 >
->  [PATCH 1/2] omapfb: lcd_ams_delta: add support for contrast control
->  [PATCH 2/2] OMAP: ams_delta_defconfig: enable LCD class device suppo=
-rt
->
-> It is intended for 2.6.33, if it's not too late.
+> It would be nice to get them but they are not needed. As always any bug reports are welcomed.
 
-Hi,
+We care about the code quality and stability, and code-reviewing
+ensures that no regressions will sneak in. We reached some level of
+stability on the maemo branch, and have done extensive testing on the
+N900, it would be only sensible to have at least that same level of
+stability on 0.1.
 
-Now that Tony has changed the series status from New to Awaiting Upstre=
-am in=20
-his patchwork queue[1][2], chances of getting it in throungh linux-omap=
- tree,=20
-like a few other omapfb related patches managed to do lately, seem fall=
-ing=20
-down drastically to me if still not answered by anyone involved in omap=
-fb=20
-development.
+Currently there are many patches in the dspbridge branch that have
+never been reviewed by anybody outside TI, nor tested by Nokia, so I
+cannot trust that code, specially since it doesn't even work for me.
 
-Imre,
-Could you please take the patches, or give your ack for Tony to take th=
-em, or=20
-just point me on the right way to the get them integrated or NAKed, if =
-none=20
-of the former is?
+To me the whole purpose of 0.1 is to have something we can all trust
+is "good", so NAK from me.
 
-Tomi,
-I am not sure if you are the right person for bothering here, but maybe=
- you=20
-could give your comments that would help pushing it forward?
-
-Thanks,
-Janusz
-
-[1] http://patchwork.kernel.org/patch/62248/
-[2] http://patchwork.kernel.org/patch/62249/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Felipe Contreras
