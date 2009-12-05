@@ -1,56 +1,92 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 01/20] DSPBRIDGE: driver version 0.1
-Date: Sat, 5 Dec 2009 16:20:23 +0200
-Message-ID: <94a0d4530912050620r1b3fca29jd742d8c98d043bd2@mail.gmail.com>
-References: <1259618101-8972-1-git-send-email-omar.ramirez@ti.com>
-	 <1259618101-8972-2-git-send-email-omar.ramirez@ti.com>
-	 <94a0d4530912020257h3ab5a2d8ya6a878189a92ddb3@mail.gmail.com>
-	 <27F9C60D11D683428E133F85D2BB4A530426FE31AE@dlee03.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] omap: pandora: board file updates for .33
+Date: Sat,  5 Dec 2009 20:44:08 +0200
+Message-ID: <1260038648-23069-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f171.google.com ([209.85.223.171]:46145 "EHLO
-	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755106AbZLEOUR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Dec 2009 09:20:17 -0500
-Received: by iwn1 with SMTP id 1so2185590iwn.33
-        for <linux-omap@vger.kernel.org>; Sat, 05 Dec 2009 06:20:23 -0800 (PST)
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530426FE31AE@dlee03.ent.ti.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:41830 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932861AbZLESoL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Dec 2009 13:44:11 -0500
+Received: by bwz27 with SMTP id 27so2660444bwz.21
+        for <linux-omap@vger.kernel.org>; Sat, 05 Dec 2009 10:44:16 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <dedekind1@gmail.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-On Wed, Dec 2, 2009 at 6:01 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
->>From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
->>It should be the other way around; *after* the modifications have been
->>merged,the version 0.1 would be released.
->
-> Nope, version 0.2 will be once modifications are merged and branch is rebased to 2.6.32rc7
+Pandora board file updates:
+- change keycodes of game buttons
+  it was decided not to use ABXY layout by the developers.
+- drop i2c bus 3 speed to 100kHz
+  this is needed for battery monitoring chip to work reliably.
+- drop pandora_lcd platform_device
+  the older DSS driver was never functional on l-o or mainline
+  kernels due to missing panel driver, so remove unneeded
+  pandora_lcd platform_device. This also removes last OMAP_TAG
+  from the board file. LCD support will be added for DSS2 driver.
 
-There's many problems with the current dspbridge branch, for starters
-it doesn't work on the N900, nor beagleboard. Personally I would like
-0.1 to work on both, and as discussed in an internal meeting I sent a
-proposal for 0.1 with an analysis I did on the current branch.
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+ I can split this if needed, but I thought single patch might
+ be easier to handle.
 
->> Moreover, it would be nice
->>to get some acknowledgement from Nokia developers that the branch is
->>indeed correct.
->
-> It would be nice to get them but they are not needed. As always any bug reports are welcomed.
+ arch/arm/mach-omap2/board-omap3pandora.c |   21 +++++----------------
+ 1 files changed, 5 insertions(+), 16 deletions(-)
 
-We care about the code quality and stability, and code-reviewing
-ensures that no regressions will sneak in. We reached some level of
-stability on the maemo branch, and have done extensive testing on the
-N900, it would be only sensible to have at least that same level of
-stability on 0.1.
-
-Currently there are many patches in the dspbridge branch that have
-never been reviewed by anybody outside TI, nor tested by Nokia, so I
-cannot trust that code, specially since it doesn't even work for me.
-
-To me the whole purpose of 0.1 is to have something we can all trust
-is "good", so NAK from me.
-
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 2db5ba5..89a541d 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -98,10 +98,10 @@ static struct gpio_keys_button pandora_gpio_keys[] = {
+ 	GPIO_BUTTON_LOW(103,	KEY_DOWN,	"down"),
+ 	GPIO_BUTTON_LOW(96,	KEY_LEFT,	"left"),
+ 	GPIO_BUTTON_LOW(98,	KEY_RIGHT,	"right"),
+-	GPIO_BUTTON_LOW(111,	BTN_A,		"a"),
+-	GPIO_BUTTON_LOW(106,	BTN_B,		"b"),
+-	GPIO_BUTTON_LOW(109,	BTN_X,		"x"),
+-	GPIO_BUTTON_LOW(101,	BTN_Y,		"y"),
++	GPIO_BUTTON_LOW(109,	KEY_KP1,	"game 1"),
++	GPIO_BUTTON_LOW(111,	KEY_KP2,	"game 2"),
++	GPIO_BUTTON_LOW(106,	KEY_KP3,	"game 3"),
++	GPIO_BUTTON_LOW(101,	KEY_KP4,	"game 4"),
+ 	GPIO_BUTTON_LOW(102,	BTN_TL,		"l"),
+ 	GPIO_BUTTON_LOW(97,	BTN_TL2,	"l2"),
+ 	GPIO_BUTTON_LOW(105,	BTN_TR,		"r"),
+@@ -315,7 +315,7 @@ static int __init omap3pandora_i2c_init(void)
+ 	omap_register_i2c_bus(1, 2600, omap3pandora_i2c_boardinfo,
+ 			ARRAY_SIZE(omap3pandora_i2c_boardinfo));
+ 	/* i2c2 pins are not connected */
+-	omap_register_i2c_bus(3, 400, NULL, 0);
++	omap_register_i2c_bus(3, 100, NULL, 0);
+ 	return 0;
+ }
+ 
+@@ -368,17 +368,7 @@ static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
+ 	}
+ };
+ 
+-static struct platform_device omap3pandora_lcd_device = {
+-	.name		= "pandora_lcd",
+-	.id		= -1,
+-};
+-
+-static struct omap_lcd_config omap3pandora_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
+-};
+-
+ static struct omap_board_config_kernel omap3pandora_config[] __initdata = {
+-	{ OMAP_TAG_LCD,		&omap3pandora_lcd_config },
+ };
+ 
+ static void __init omap3pandora_init_irq(void)
+@@ -392,7 +382,6 @@ static void __init omap3pandora_init_irq(void)
+ }
+ 
+ static struct platform_device *omap3pandora_devices[] __initdata = {
+-	&omap3pandora_lcd_device,
+ 	&pandora_leds_gpio,
+ 	&pandora_keys_gpio,
+ };
 -- 
-Felipe Contreras
+1.6.3.3
+
