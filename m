@@ -1,190 +1,228 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [RFC][RFT][PATCH 3/4 v5b] OMAP: McBSP: Introduce caching in register write operations
-Date: Sat, 5 Dec 2009 14:47:39 +0100
-Message-ID: <200912051447.41777.jkrzyszt@tis.icnet.pl>
-References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <4B19074B.1000606@tis.icnet.pl> <20091204191745.GH24013@atomide.com>
+Subject: Re: [PATCH v5] OMAP1: LCD_DMA: Use some define rather than a hexadecimal constant for LCD register
+Date: Sat, 5 Dec 2009 14:49:29 +0100
+Message-ID: <200912051449.30525.jkrzyszt@tis.icnet.pl>
+References: <20091116222517.GT3684@atomide.com> <20091117161058.GA29266@atomide.com> <200911242234.11705.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:49279 "EHLO d1.icnet.pl"
+Received: from d1.icnet.pl ([212.160.220.21]:49542 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752936AbZLENrc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 5 Dec 2009 08:47:32 -0500
-In-Reply-To: <20091204191745.GH24013@atomide.com>
+	id S1752936AbZLENtT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Dec 2009 08:49:19 -0500
+In-Reply-To: <200911242234.11705.jkrzyszt@tis.icnet.pl>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Reserve static space for storing cached copies of McBSP register values.
-Split omap_mcbsp_read()/omap_mcbsp_write() into separate functions for OMAP1
-and OMAP2/3/4, move them from plat-omap to mach-omap1 / mach-omap2 to be able
-to access the static cache.
-Modify omap_msbcp_write() to update the cache with every register write
-operation.
-Modify omap_mcbsp_read() to support reading from cache or hardware.
-Update MCBSP_READ/MCBSP_WRITE macros for modified function APIs.
-Introduce a new macro that reads from the cache.
-
-Applies on top of patch 2 from this series:
-[PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API for caching
-
-Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
-commit 82f1d8f22f2c65e70206e40a6f17688bf64a892c.
-Compile-tested with omap_generic_2420_defconfig, omap_3430sdp_defconfig.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-
----
+Tuesday 24 November 2009 22:34:10 Janusz Krzysztofik napisa=C5=82(a):
+> The patch corrects the issue introduced with one of my earlier patche=
+s:
+> 	OMAP: DMA: Fix omapfb/lcdc on OMAP1510 broken when PM set[1]
+> as pointed out by OMAP subsystem maintainer.
 
 Tony,
 
-Since I was not sure what your primary concern was, I've prepared two
-alternative versions of patch 3/4.
-Please take this one as a base for further discussion if your primary concern
-was storage class for the cache.
-Otherwise, have a look at the other one (v5a), since this one has even more
-ifdefs than before.
+I've noticed that you've marked this patch as Superseded in your patchw=
+ork=20
+queue. This is not the case. It is still supposed to correct the issue,=
+ now=20
+sitting in mach-omap1/lcd_dma.c after being moved from plat-omap/dma.c.
 
 Thanks,
 Janusz
 
-diff -upr git.orig/arch/arm/mach-omap1/mcbsp.c git/arch/arm/mach-omap1/mcbsp.c
---- git.orig/arch/arm/mach-omap1/mcbsp.c	2009-12-02 15:48:37.000000000 +0100
-+++ git/arch/arm/mach-omap1/mcbsp.c	2009-12-05 06:42:35.000000000 +0100
-@@ -200,3 +200,26 @@ int __init omap1_mcbsp_init(void)
- }
- 
- arch_initcall(omap1_mcbsp_init);
-+
-+/* if adding more, put larger first */
-+#if defined(CONFIG_ARCH_OMAP16XX)
-+static u16 omap_mcbsp_cache[OMAP16XX_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-+#elif defined(CONFIG_ARCH_OMAP15XX)
-+static u16 omap_mcbsp_cache[OMAP15XX_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-+#elif defined(CONFIG_ARCH_OMAP7XX)
-+static u16 omap_mcbsp_cache[OMAP7XX_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-+#else
-+#define omap_mcbsp_cache	NULL
-+#endif
-+
-+void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
-+{
-+	omap_mcbsp_cache[mcbsp->id][reg / sizeof(u16)] = (u16)val;
-+	__raw_writew((u16)val, mcbsp->io_base + reg);
-+}
-+
-+int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache)
-+{
-+	return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
-+			omap_mcbsp_cache[mcbsp->id][reg / sizeof(u16)];
-+}
-diff -upr git.orig/arch/arm/mach-omap2/mcbsp.c git/arch/arm/mach-omap2/mcbsp.c
---- git.orig/arch/arm/mach-omap2/mcbsp.c	2009-12-02 15:48:38.000000000 +0100
-+++ git/arch/arm/mach-omap2/mcbsp.c	2009-12-05 06:42:35.000000000 +0100
-@@ -241,3 +241,40 @@ static int __init omap2_mcbsp_init(void)
- 	return omap_mcbsp_init();
- }
- arch_initcall(omap2_mcbsp_init);
-+
-+/* if adding more, put larger first */
-+#if defined(CONFIG_ARCH_OMAP34XX)
-+static u32 omap_mcbsp_cache[OMAP34XX_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-+#elif defined(CONFIG_ARCH_OMAP2430)
-+static u32 omap_mcbsp_cache[OMAP2430_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-+#elif defined(CONFIG_ARCH_OMAP44XX)
-+static u32 omap_mcbsp_cache[OMAP44XX_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-+#elif defined(CONFIG_ARCH_OMAP2420)
-+static u16 omap_mcbsp_cache[OMAP2420_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-+#else
-+#define omap_mcbsp_cache	NULL
-+#endif
-+
-+void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
-+{
-+	if (cpu_is_omap2420()) {
-+		omap_mcbsp_cache[mcbsp->id][reg / sizeof(*omap_mcbsp_cache)] \
-+				= (u16)val;
-+		__raw_writew((u16)val, mcbsp->io_base + reg);
-+	} else {
-+		omap_mcbsp_cache[mcbsp->id][reg / sizeof(u32)] = val;
-+		__raw_writel(val, mcbsp->io_base + reg);
-+	}
-+}
-+
-+int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache)
-+{
-+	if (cpu_is_omap2420()) {
-+		return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
-+				(u16)omap_mcbsp_cache[mcbsp->id][reg /
-+					sizeof(*omap_mcbsp_cache)];
-+	} else {
-+		return !from_cache ? __raw_readl(mcbsp->io_base + reg) :
-+			omap_mcbsp_cache[mcbsp->id][reg / sizeof(u32)];
-+	}
-+}
-diff -upr git.orig/arch/arm/plat-omap/include/plat/mcbsp.h git/arch/arm/plat-omap/include/plat/mcbsp.h
---- git.orig/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-02 15:48:51.000000000 +0100
-+++ git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-05 06:42:35.000000000 +0100
-@@ -92,6 +92,8 @@
- #define OMAP_MCBSP_REG_XCERG	0x3A
- #define OMAP_MCBSP_REG_XCERH	0x3C
- 
-+#define OMAP_MCBSP_REG_COUNT	(OMAP_MCBSP_REG_XCERH / OMAP_MCBSP_REG_DRR1 + 1)
-+
- /* Dummy defines, these are not available on omap1 */
- #define OMAP_MCBSP_REG_XCCR	0x00
- #define OMAP_MCBSP_REG_RCCR	0x00
-@@ -148,6 +150,8 @@
- #define OMAP_MCBSP_REG_XCCR	0xAC
- #define OMAP_MCBSP_REG_RCCR	0xB0
- 
-+#define OMAP_MCBSP_REG_COUNT	(OMAP_MCBSP_REG_RCCR / OMAP_MCBSP_REG_DRR1 + 1)
-+
- #define AUDIO_MCBSP_DATAWRITE	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1)
- #define AUDIO_MCBSP_DATAREAD	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1)
- 
-@@ -460,3 +464,6 @@ int omap_mcbsp_pollwrite(unsigned int id
- int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type);
- 
- #endif
-+
-+extern int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache);
-+extern void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val);
-diff -upr git.orig/arch/arm/plat-omap/mcbsp.c git/arch/arm/plat-omap/mcbsp.c
---- git.orig/arch/arm/plat-omap/mcbsp.c	2009-12-05 06:23:39.000000000 +0100
-+++ git/arch/arm/plat-omap/mcbsp.c	2009-12-05 06:42:35.000000000 +0100
-@@ -30,26 +30,12 @@
- struct omap_mcbsp **mcbsp_ptr;
- int omap_mcbsp_count;
- 
--void omap_mcbsp_write(void __iomem *io_base, u16 reg, u32 val)
--{
--	if (cpu_class_is_omap1() || cpu_is_omap2420())
--		__raw_writew((u16)val, io_base + reg);
--	else
--		__raw_writel(val, io_base + reg);
--}
--
--int omap_mcbsp_read(void __iomem *io_base, u16 reg)
--{
--	if (cpu_class_is_omap1() || cpu_is_omap2420())
--		return __raw_readw(io_base + reg);
--	else
--		return __raw_readl(io_base + reg);
--}
--
- #define MCBSP_READ(mcbsp, reg) \
--		omap_mcbsp_read(mcbsp->io_base, OMAP_MCBSP_REG_##reg)
-+		omap_mcbsp_read(mcbsp, OMAP_MCBSP_REG_##reg, 0)
- #define MCBSP_WRITE(mcbsp, reg, val) \
--		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
-+		omap_mcbsp_write(mcbsp, OMAP_MCBSP_REG_##reg, val)
-+#define MCBSP_READ_CACHE(mcbsp, reg) \
-+		omap_mcbsp_read(mcbsp, OMAP_MCBSP_REG_##reg, 1)
- 
- #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
- #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
+> Applies on top of my prevoius patch:
+>   OMAP: DMA: move LCD DMA related code from plat-omap to mach-omap1[2=
+]
+>
+> Tested on Amstrad Delta
+> Compile tested with omap_generic_2420_defconfig
+>
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>
+> [1] http://patchwork.kernel.org/patch/57922/
+> [2] http://patchwork.kernel.org/patch/61952/
+> ---
+>
+> Tuesday 17 November 2009 17:10:58 Tony Lindgren wrote:
+> > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091117 02:45]:
+> > > 1. While keeping those hex constants as they are for now, solve t=
+he
+> > > issue during refactoring arch/arm/plat-omap/dma.c for a separate
+> > > arch/arm/mach-omap1/lcd_dma.c, as Paul suggested (may take some t=
+ime).
+> > > Since the register test would be put there, some headers will hav=
+e to
+> > > be moved out of drivers/video/omap/lcdc.c anyway.
+> >
+> > This sounds like the best way to go to me.
+>
+> Tony,
+>
+> At your service :-).
+>
+> Since it's very similiar to reverted v3[*], I hope you have no proble=
+ms
+> with this one.
+>
+> Thanks,
+> Janusz
+>
+> [*] http://patchwork.kernel.org/patch/60478/
+>
+> diff -uprN git.orig/arch/arm/mach-omap1/include/mach/lcdc.h
+> git/arch/arm/mach-omap1/include/mach/lcdc.h ---
+> git.orig/arch/arm/mach-omap1/include/mach/lcdc.h	1970-01-01
+> 01:00:00.000000000 +0100 +++
+> git/arch/arm/mach-omap1/include/mach/lcdc.h	2009-11-21 03:26:32.00000=
+0000
+> +0100 @@ -0,0 +1,57 @@
+> +/*
+> + * arch/arm/mach-omap1/include/mach/lcdc.h
+> + *
+> + * Extracted from drivers/video/omap/lcdc.c
+> + * Copyright (C) 2004 Nokia Corporation
+> + * Author: Imre Deak <imre.deak@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify it
+> + * under the terms of the GNU General Public License as published by=
+ the
+> + * Free Software Foundation; either version 2 of the License, or (at=
+ your
+> + * option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful, b=
+ut
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License=
+ along
+> + * with this program; if not, write to the Free Software Foundation,=
+ Inc.,
+> + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+> + */
+> +#ifndef __MACH_LCDC_H__
+> +#define __MACH_LCDC_H__
+> +
+> +#define OMAP_LCDC_BASE			0xfffec000
+> +#define OMAP_LCDC_SIZE			256
+> +#define OMAP_LCDC_IRQ			INT_LCD_CTRL
+> +
+> +#define OMAP_LCDC_CONTROL		(OMAP_LCDC_BASE + 0x00)
+> +#define OMAP_LCDC_TIMING0		(OMAP_LCDC_BASE + 0x04)
+> +#define OMAP_LCDC_TIMING1		(OMAP_LCDC_BASE + 0x08)
+> +#define OMAP_LCDC_TIMING2		(OMAP_LCDC_BASE + 0x0c)
+> +#define OMAP_LCDC_STATUS		(OMAP_LCDC_BASE + 0x10)
+> +#define OMAP_LCDC_SUBPANEL		(OMAP_LCDC_BASE + 0x14)
+> +#define OMAP_LCDC_LINE_INT		(OMAP_LCDC_BASE + 0x18)
+> +#define OMAP_LCDC_DISPLAY_STATUS	(OMAP_LCDC_BASE + 0x1c)
+> +
+> +#define OMAP_LCDC_STAT_DONE		(1 << 0)
+> +#define OMAP_LCDC_STAT_VSYNC		(1 << 1)
+> +#define OMAP_LCDC_STAT_SYNC_LOST	(1 << 2)
+> +#define OMAP_LCDC_STAT_ABC		(1 << 3)
+> +#define OMAP_LCDC_STAT_LINE_INT		(1 << 4)
+> +#define OMAP_LCDC_STAT_FUF		(1 << 5)
+> +#define OMAP_LCDC_STAT_LOADED_PALETTE	(1 << 6)
+> +
+> +#define OMAP_LCDC_CTRL_LCD_EN		(1 << 0)
+> +#define OMAP_LCDC_CTRL_LCD_TFT		(1 << 7)
+> +#define OMAP_LCDC_CTRL_LINE_IRQ_CLR_SEL	(1 << 10)
+> +
+> +#define OMAP_LCDC_IRQ_VSYNC		(1 << 2)
+> +#define OMAP_LCDC_IRQ_DONE		(1 << 3)
+> +#define OMAP_LCDC_IRQ_LOADED_PALETTE	(1 << 4)
+> +#define OMAP_LCDC_IRQ_LINE_NIRQ		(1 << 5)
+> +#define OMAP_LCDC_IRQ_LINE		(1 << 6)
+> +#define OMAP_LCDC_IRQ_MASK		(((1 << 5) - 1) << 2)
+> +
+> +#endif /* __MACH_LCDC_H__ */
+> diff -uprN git.orig/arch/arm/mach-omap1/lcd_dma.c
+> git/arch/arm/mach-omap1/lcd_dma.c ---
+> git/arch/arm/mach-omap1/lcd_dma.c	2009-11-21 14:36:59.000000000 +0100=
+ +++
+> git.orig/arch/arm/mach-omap1/lcd_dma.c	2009-11-21 03:42:25.000000000 =
++0100
+> @@ -28,6 +28,7 @@
+>  #include <linux/io.h>
+>
+>  #include <mach/hardware.h>
+> +#include <mach/lcdc.h>
+>  #include <plat/dma.h>
+>
+>  int omap_lcd_dma_running(void)
+> @@ -37,7 +38,7 @@ int omap_lcd_dma_running(void)
+>  	 * when it gets enabled, so assume DMA running if LCD enabled.
+>  	 */
+>  	if (cpu_is_omap1510())
+> -		if (omap_readw(0xfffec000 + 0x00) & (1 << 0))
+> +		if (omap_readw(OMAP_LCDC_CONTROL) & OMAP_LCDC_CTRL_LCD_EN)
+>  			return 1;
+>
+>  	/* Check if LCD DMA is running */
+> diff -uprN git.orig/drivers/video/omap/lcdc.c git/drivers/video/omap/=
+lcdc.c
+> --- git.orig/drivers/video/omap/lcdc.c	2009-11-21 14:33:16.000000000 =
++0100
+> +++ git/drivers/video/omap/lcdc.c	2009-11-21 02:17:17.000000000 +0100
+> @@ -29,6 +29,7 @@
+>  #include <linux/vmalloc.h>
+>  #include <linux/clk.h>
+>
+> +#include <mach/lcdc.h>
+>  #include <plat/dma.h>
+>  #include <plat/omapfb.h>
+>
+> @@ -38,38 +39,6 @@
+>
+>  #define MODULE_NAME			"lcdc"
+>
+> -#define OMAP_LCDC_BASE			0xfffec000
+> -#define OMAP_LCDC_SIZE			256
+> -#define OMAP_LCDC_IRQ			INT_LCD_CTRL
+> -
+> -#define OMAP_LCDC_CONTROL		(OMAP_LCDC_BASE + 0x00)
+> -#define OMAP_LCDC_TIMING0		(OMAP_LCDC_BASE + 0x04)
+> -#define OMAP_LCDC_TIMING1		(OMAP_LCDC_BASE + 0x08)
+> -#define OMAP_LCDC_TIMING2		(OMAP_LCDC_BASE + 0x0c)
+> -#define OMAP_LCDC_STATUS		(OMAP_LCDC_BASE + 0x10)
+> -#define OMAP_LCDC_SUBPANEL		(OMAP_LCDC_BASE + 0x14)
+> -#define OMAP_LCDC_LINE_INT		(OMAP_LCDC_BASE + 0x18)
+> -#define OMAP_LCDC_DISPLAY_STATUS	(OMAP_LCDC_BASE + 0x1c)
+> -
+> -#define OMAP_LCDC_STAT_DONE		(1 << 0)
+> -#define OMAP_LCDC_STAT_VSYNC		(1 << 1)
+> -#define OMAP_LCDC_STAT_SYNC_LOST	(1 << 2)
+> -#define OMAP_LCDC_STAT_ABC		(1 << 3)
+> -#define OMAP_LCDC_STAT_LINE_INT		(1 << 4)
+> -#define OMAP_LCDC_STAT_FUF		(1 << 5)
+> -#define OMAP_LCDC_STAT_LOADED_PALETTE	(1 << 6)
+> -
+> -#define OMAP_LCDC_CTRL_LCD_EN		(1 << 0)
+> -#define OMAP_LCDC_CTRL_LCD_TFT		(1 << 7)
+> -#define OMAP_LCDC_CTRL_LINE_IRQ_CLR_SEL	(1 << 10)
+> -
+> -#define OMAP_LCDC_IRQ_VSYNC		(1 << 2)
+> -#define OMAP_LCDC_IRQ_DONE		(1 << 3)
+> -#define OMAP_LCDC_IRQ_LOADED_PALETTE	(1 << 4)
+> -#define OMAP_LCDC_IRQ_LINE_NIRQ		(1 << 5)
+> -#define OMAP_LCDC_IRQ_LINE		(1 << 6)
+> -#define OMAP_LCDC_IRQ_MASK		(((1 << 5) - 1) << 2)
+> -
+>  #define MAX_PALETTE_SIZE		PAGE_SIZE
+>
+>  enum lcdc_load_mode {
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
