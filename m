@@ -1,61 +1,83 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the sleep dependencies.
-Date: Sun,  6 Dec 2009 16:48:43 +0530
-Message-ID: <1260098323-26183-1-git-send-email-thara@ti.com>
+Subject: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
+Date: Sun,  6 Dec 2009 16:54:34 +0530
+Message-ID: <1260098674-27143-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39526 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933664AbZLFLSp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Dec 2009 06:18:45 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:40608 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933716AbZLFLYd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 6 Dec 2009 06:24:33 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Thara Gopinath <thara@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Some clock nodes like wdt1_fck, sr1_fck, sr2_fck etc do not have a
-clock domain associated . For such nodes accessing the clock domain pointers 
-in _add_initiator_dep and _del_initiator_dep, will lead to null pointer
-defreferencing crash. Adding support in these functions to check for
-existence of clkdm pointer before trying to acess it. Even if tomorrow
-we correct all the clock nodes to have an associated clock domain, checking
-for the existence of the pointer is a good programming practice.
+In the current implementation the sysconfig value is read into
+ _sysc_cache once and an actual update to the sysconfig register
+happens only if the new value paased is differnt from the one in _sysc_cache.
+_sysc_cache is updated only if _HWMOD_SYSCONFIG_LOADED is not set.
+This can lead to the follwing issue if off mode is enabled in modules
+which employs "always-retore" mechanism of context save and restore.
+
+	a. The module sets the sysconfig register through omap_device_enable.
+	   Here _sysc_cache is updated with the value written to the sysconfig
+	   register and left.
+	b. The power domain containig the module enters off mode and the
+	   module context is lost.
+	c. The module in use becomes active and calls omap_device_enable to
+	   enable itself. Here a read of sysconfig register does not happen
+	   as _HWMOD_SYSCONFIG_LOADED flag is set. The value to be written
+	   to the sysconfig register will be same as the one written in step a.
+	   Since _sysc_cache reflects the previous written value an update
+	   of the sysconfig register does not happen.
+This means in modules which employs "always-restore" mechanism
+after off , the sysconfig regsiters will never get updated.
+
+This patch introduces a flag SYSC_NO_CACHE which if set ensures that the
+sysconfig register is always read into _sysc_cache before an update is
+attempted.
+
+This flags need to be set only by modules which does not do a context save
+but re-initializes the registers every time the module is accessed. This
+includes modules like i2c, smartreflex etc.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 ---
-This patch depends on http://patchwork.kernel.org/patch/63383/
+This patch depends on
+		http://patchwork.kernel.org/patch/63383/
+		http://patchwork.kernel.org/patch/65140/
 
- arch/arm/mach-omap2/omap_hwmod.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |    3 ++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 18e6478..3edc387 100644
+index 3edc387..786bf2e 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -314,8 +314,10 @@ static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
- 	if (!oh->_clk)
- 		return -EINVAL;
+@@ -93,7 +93,8 @@ static int _update_sysc_cache(struct omap_hwmod *oh)
  
--	return pwrdm_add_sleepdep(oh->_clk->clkdm->pwrdm.ptr,
-+	if (oh->_clk->clkdm)
-+		return pwrdm_add_sleepdep(oh->_clk->clkdm->pwrdm.ptr,
- 				  init_oh->_clk->clkdm->pwrdm.ptr);
-+	return 0;
+ 	oh->_sysc_cache = omap_hwmod_readl(oh, oh->sysconfig->sysc_offs);
+ 
+-	oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
++	if (!(oh->sysconfig->sysc_flags & SYSC_NO_CACHE))
++		oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
+ 
+ 	return 0;
  }
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 1f83495..a3298ca 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -228,6 +228,7 @@ struct omap_hwmod_ocp_if {
+ #define SYSC_HAS_MIDLEMODE		(1 << 6)
+ #define SYSS_MISSING			(1 << 7)
+ #define SYSC_CHANGE_CLKACT_OFFSET	(1 << 8)
++#define SYSC_NO_CACHE			(1 << 9)
  
- /**
-@@ -335,8 +337,10 @@ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
- 	if (!oh->_clk)
- 		return -EINVAL;
- 
--	return pwrdm_del_sleepdep(oh->_clk->clkdm->pwrdm.ptr,
-+	if (oh->_clk->clkdm)
-+		return pwrdm_del_sleepdep(oh->_clk->clkdm->pwrdm.ptr,
- 				  init_oh->_clk->clkdm->pwrdm.ptr);
-+	return 0;
- }
- 
- /**
+ /* omap_hwmod_sysconfig.clockact flags */
+ #define CLOCKACT_TEST_BOTH	0x0
 -- 
 1.5.4.7
 
