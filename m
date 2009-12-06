@@ -1,83 +1,108 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
-Date: Sun,  6 Dec 2009 16:54:34 +0530
-Message-ID: <1260098674-27143-1-git-send-email-thara@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] omap: pandora: board file updates for .33
+Date: Sun, 6 Dec 2009 15:12:35 +0200
+Message-ID: <6ed0b2680912060512h2545af25jb0a848efa0add1ff@mail.gmail.com>
+References: <1260038648-23069-1-git-send-email-notasas@gmail.com>
+	 <1260054652.27135.2.camel@gandalf>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=00c09ffb4d2e33fd1f047a0f18b6
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40608 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933716AbZLFLYd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 6 Dec 2009 06:24:33 -0500
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:45935 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932392AbZLFNMa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Dec 2009 08:12:30 -0500
+Received: by fxm5 with SMTP id 5so4012310fxm.28
+        for <linux-omap@vger.kernel.org>; Sun, 06 Dec 2009 05:12:36 -0800 (PST)
+In-Reply-To: <1260054652.27135.2.camel@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thara Gopinath <thara@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: me@felipebalbi.com
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-In the current implementation the sysconfig value is read into
- _sysc_cache once and an actual update to the sysconfig register
-happens only if the new value paased is differnt from the one in _sysc_cache.
-_sysc_cache is updated only if _HWMOD_SYSCONFIG_LOADED is not set.
-This can lead to the follwing issue if off mode is enabled in modules
-which employs "always-retore" mechanism of context save and restore.
+--00c09ffb4d2e33fd1f047a0f18b6
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-	a. The module sets the sysconfig register through omap_device_enable.
-	   Here _sysc_cache is updated with the value written to the sysconfig
-	   register and left.
-	b. The power domain containig the module enters off mode and the
-	   module context is lost.
-	c. The module in use becomes active and calls omap_device_enable to
-	   enable itself. Here a read of sysconfig register does not happen
-	   as _HWMOD_SYSCONFIG_LOADED flag is set. The value to be written
-	   to the sysconfig register will be same as the one written in step a.
-	   Since _sysc_cache reflects the previous written value an update
-	   of the sysconfig register does not happen.
-This means in modules which employs "always-restore" mechanism
-after off , the sysconfig regsiters will never get updated.
+On Sun, Dec 6, 2009 at 1:10 AM, Felipe Balbi <me@felipebalbi.com> wrote:
+> Hi,
+>
+> On Sat, 2009-12-05 at 20:44 +0200, Grazvydas Ignotas wrote:
+>> =A0static struct omap_board_config_kernel omap3pandora_config[] __initda=
+ta =3D {
+>> - =A0 =A0 { OMAP_TAG_LCD, =A0 =A0 =A0 =A0 &omap3pandora_lcd_config },
+>> =A0};
+>
+> if you don't have any omap_board_config_kernel, couldn't you remove this
+> structure altogether ?
 
-This patch introduces a flag SYSC_NO_CACHE which if set ensures that the
-sysconfig register is always read into _sysc_cache before an update is
-attempted.
+All boards (except a few) tend to keep it even if it's empty for some
+reason, although that doesn't seem to be required. Updated patch
+attached.
 
-This flags need to be set only by modules which does not do a context save
-but re-initializes the registers every time the module is accessed. This
-includes modules like i2c, smartreflex etc.
+>
+> --
+> balbi
+>
+>
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
-This patch depends on
-		http://patchwork.kernel.org/patch/63383/
-		http://patchwork.kernel.org/patch/65140/
+--00c09ffb4d2e33fd1f047a0f18b6
+Content-Type: text/x-diff; charset=US-ASCII;
+	name="0001-omap-pandora-board-file-updates-for-.33.patch"
+Content-Disposition: attachment;
+	filename="0001-omap-pandora-board-file-updates-for-.33.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g2vu1z870
 
- arch/arm/mach-omap2/omap_hwmod.c             |    3 ++-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 2 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 3edc387..786bf2e 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -93,7 +93,8 @@ static int _update_sysc_cache(struct omap_hwmod *oh)
- 
- 	oh->_sysc_cache = omap_hwmod_readl(oh, oh->sysconfig->sysc_offs);
- 
--	oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
-+	if (!(oh->sysconfig->sysc_flags & SYSC_NO_CACHE))
-+		oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
- 
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 1f83495..a3298ca 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -228,6 +228,7 @@ struct omap_hwmod_ocp_if {
- #define SYSC_HAS_MIDLEMODE		(1 << 6)
- #define SYSS_MISSING			(1 << 7)
- #define SYSC_CHANGE_CLKACT_OFFSET	(1 << 8)
-+#define SYSC_NO_CACHE			(1 << 9)
- 
- /* omap_hwmod_sysconfig.clockact flags */
- #define CLOCKACT_TEST_BOTH	0x0
--- 
-1.5.4.7
-
+RnJvbSBlYjMzZjBmYjQ0MGZiNzM4YjAxYTA3NmVmMTEwMjY2NGVkNDliNmNkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBHcmF6dnlkYXMgSWdub3RhcyA8bm90YXNhc0BnbWFpbC5jb20+
+CkRhdGU6IFNhdCwgNSBEZWMgMjAwOSAyMDoyMjoxNiArMDIwMApTdWJqZWN0OiBbUEFUQ0hdIG9t
+YXA6IHBhbmRvcmE6IGJvYXJkIGZpbGUgdXBkYXRlcyBmb3IgLjMzCgpQYW5kb3JhIGJvYXJkIGZp
+bGUgdXBkYXRlczoKLSBjaGFuZ2Uga2V5Y29kZXMgb2YgZ2FtZSBidXR0b25zCiAgaXQgd2FzIGRl
+Y2lkZWQgbm90IHRvIHVzZSBBQlhZIGxheW91dCBieSB0aGUgZGV2ZWxvcGVycy4KLSBkcm9wIGky
+YyBidXMgMyBzcGVlZCB0byAxMDBrSHoKICB0aGlzIGlzIG5lZWRlZCBmb3IgYmF0dGVyeSBtb25p
+dG9yaW5nIGNoaXAgdG8gd29yayByZWxpYWJseS4KLSBkcm9wIHBhbmRvcmFfbGNkIHBsYXRmb3Jt
+X2RldmljZQogIHRoZSBvbGRlciBEU1MgZHJpdmVyIHdhcyBuZXZlciBmdW5jdGlvbmFsIG9uIGwt
+byBvciBtYWlubGluZQogIGtlcm5lbHMgZHVlIHRvIG1pc3NpbmcgcGFuZWwgZHJpdmVyLCBzbyBy
+ZW1vdmUgdW5uZWVkZWQKICBwYW5kb3JhX2xjZCBwbGF0Zm9ybV9kZXZpY2UuIFRoaXMgYWxzbyBy
+ZW1vdmVzIGxhc3QgT01BUF9UQUcKICBmcm9tIHRoZSBib2FyZCBmaWxlLgoKU2lnbmVkLW9mZi1i
+eTogR3JhenZ5ZGFzIElnbm90YXMgPG5vdGFzYXNAZ21haWwuY29tPgotLS0KIGFyY2gvYXJtL21h
+Y2gtb21hcDIvYm9hcmQtb21hcDNwYW5kb3JhLmMgfCAgIDI2ICsrKysrLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgMjEgZGVsZXRpb25zKC0p
+CgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM3BhbmRvcmEuYyBi
+L2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNwYW5kb3JhLmMKaW5kZXggMmRiNWJhNS4u
+ZjVhZmEwZCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM3BhbmRv
+cmEuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzcGFuZG9yYS5jCkBAIC05
+OCwxMCArOTgsMTAgQEAgc3RhdGljIHN0cnVjdCBncGlvX2tleXNfYnV0dG9uIHBhbmRvcmFfZ3Bp
+b19rZXlzW10gPSB7CiAJR1BJT19CVVRUT05fTE9XKDEwMywJS0VZX0RPV04sCSJkb3duIiksCiAJ
+R1BJT19CVVRUT05fTE9XKDk2LAlLRVlfTEVGVCwJImxlZnQiKSwKIAlHUElPX0JVVFRPTl9MT1co
+OTgsCUtFWV9SSUdIVCwJInJpZ2h0IiksCi0JR1BJT19CVVRUT05fTE9XKDExMSwJQlROX0EsCQki
+YSIpLAotCUdQSU9fQlVUVE9OX0xPVygxMDYsCUJUTl9CLAkJImIiKSwKLQlHUElPX0JVVFRPTl9M
+T1coMTA5LAlCVE5fWCwJCSJ4IiksCi0JR1BJT19CVVRUT05fTE9XKDEwMSwJQlROX1ksCQkieSIp
+LAorCUdQSU9fQlVUVE9OX0xPVygxMDksCUtFWV9LUDEsCSJnYW1lIDEiKSwKKwlHUElPX0JVVFRP
+Tl9MT1coMTExLAlLRVlfS1AyLAkiZ2FtZSAyIiksCisJR1BJT19CVVRUT05fTE9XKDEwNiwJS0VZ
+X0tQMywJImdhbWUgMyIpLAorCUdQSU9fQlVUVE9OX0xPVygxMDEsCUtFWV9LUDQsCSJnYW1lIDQi
+KSwKIAlHUElPX0JVVFRPTl9MT1coMTAyLAlCVE5fVEwsCQkibCIpLAogCUdQSU9fQlVUVE9OX0xP
+Vyg5NywJQlROX1RMMiwJImwyIiksCiAJR1BJT19CVVRUT05fTE9XKDEwNSwJQlROX1RSLAkJInIi
+KSwKQEAgLTMxNSw3ICszMTUsNyBAQCBzdGF0aWMgaW50IF9faW5pdCBvbWFwM3BhbmRvcmFfaTJj
+X2luaXQodm9pZCkKIAlvbWFwX3JlZ2lzdGVyX2kyY19idXMoMSwgMjYwMCwgb21hcDNwYW5kb3Jh
+X2kyY19ib2FyZGluZm8sCiAJCQlBUlJBWV9TSVpFKG9tYXAzcGFuZG9yYV9pMmNfYm9hcmRpbmZv
+KSk7CiAJLyogaTJjMiBwaW5zIGFyZSBub3QgY29ubmVjdGVkICovCi0Jb21hcF9yZWdpc3Rlcl9p
+MmNfYnVzKDMsIDQwMCwgTlVMTCwgMCk7CisJb21hcF9yZWdpc3Rlcl9pMmNfYnVzKDMsIDEwMCwg
+TlVMTCwgMCk7CiAJcmV0dXJuIDA7CiB9CiAKQEAgLTM2OCwyMyArMzY4LDggQEAgc3RhdGljIHN0
+cnVjdCBzcGlfYm9hcmRfaW5mbyBvbWFwM3BhbmRvcmFfc3BpX2JvYXJkX2luZm9bXSBfX2luaXRk
+YXRhID0gewogCX0KIH07CiAKLXN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlIG9tYXAzcGFu
+ZG9yYV9sY2RfZGV2aWNlID0gewotCS5uYW1lCQk9ICJwYW5kb3JhX2xjZCIsCi0JLmlkCQk9IC0x
+LAotfTsKLQotc3RhdGljIHN0cnVjdCBvbWFwX2xjZF9jb25maWcgb21hcDNwYW5kb3JhX2xjZF9j
+b25maWcgX19pbml0ZGF0YSA9IHsKLQkuY3RybF9uYW1lCT0gImludGVybmFsIiwKLX07Ci0KLXN0
+YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9jb25maWdfa2VybmVsIG9tYXAzcGFuZG9yYV9jb25maWdb
+XSBfX2luaXRkYXRhID0gewotCXsgT01BUF9UQUdfTENELAkJJm9tYXAzcGFuZG9yYV9sY2RfY29u
+ZmlnIH0sCi19OwotCiBzdGF0aWMgdm9pZCBfX2luaXQgb21hcDNwYW5kb3JhX2luaXRfaXJxKHZv
+aWQpCiB7Ci0Jb21hcF9ib2FyZF9jb25maWcgPSBvbWFwM3BhbmRvcmFfY29uZmlnOwotCW9tYXBf
+Ym9hcmRfY29uZmlnX3NpemUgPSBBUlJBWV9TSVpFKG9tYXAzcGFuZG9yYV9jb25maWcpOwogCW9t
+YXAyX2luaXRfY29tbW9uX2h3KG10NDZoMzJtMzJsZjZfc2RyY19wYXJhbXMsCiAJCQkgICAgIG10
+NDZoMzJtMzJsZjZfc2RyY19wYXJhbXMpOwogCW9tYXBfaW5pdF9pcnEoKTsKQEAgLTM5Miw3ICsz
+NzcsNiBAQCBzdGF0aWMgdm9pZCBfX2luaXQgb21hcDNwYW5kb3JhX2luaXRfaXJxKHZvaWQpCiB9
+CiAKIHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpvbWFwM3BhbmRvcmFfZGV2aWNlc1td
+IF9faW5pdGRhdGEgPSB7Ci0JJm9tYXAzcGFuZG9yYV9sY2RfZGV2aWNlLAogCSZwYW5kb3JhX2xl
+ZHNfZ3BpbywKIAkmcGFuZG9yYV9rZXlzX2dwaW8sCiB9OwotLSAKMS42LjMuMwoK
+--00c09ffb4d2e33fd1f047a0f18b6--
