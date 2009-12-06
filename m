@@ -1,48 +1,117 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH 0/3] omap3: cm-t35: enable display subsystem
-Date: Sun, 06 Dec 2009 17:33:41 +0200
-Message-ID: <4B1BCED5.7050908@compulab.co.il>
-References: <cover.1259666203.git.mike@compulab.co.il>
+From: Ladislav Michl <Ladislav.Michl@seznam.cz>
+Subject: [PATCH] arch/arm/plat-omap/devices.c - sort alphabetically
+Date: Sun, 6 Dec 2009 19:03:03 +0100
+Message-ID: <20091206180303.GA3057@localhost.localdomain>
+Reply-To: Ladislav Michl <ladis@linux-mips.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:33314 "EHLO compulab.co.il"
+Received: from smtp.seznam.cz ([77.75.72.43]:42634 "EHLO smtp.seznam.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933824AbZLFPdj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 6 Dec 2009 10:33:39 -0500
-In-Reply-To: <cover.1259666203.git.mike@compulab.co.il>
+	id S933887AbZLFRDB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 6 Dec 2009 12:03:01 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mike Rapoport <mike@compulab.co.il>
+To: linux-omap@vger.kernel.org
 
-Tony,
-Any chance this can go to 2.6.33?
+Comment in omap_init_devices asks to keep init calls and their
+implementations in alphabetical order, so let it be that way.
 
-Mike Rapoport wrote:
-> This patchset adds display support for CM-T35 board.
-> 
-> The following changes since commit 82f1d8f22f2c65e70206e40a6f17688bf64a892c:
->   Tony Lindgren (1):
->         Merge branch 'for-next' of git://gitorious.org/linux-omap-dss2/linux
-> 
-> Mike Rapoport (3):
->   OMAP: DSS2: add Toppoly TDO35S panel
->   omap3: cm-t35: add DSS2 display support
->   omap3: cm-t35: update defconfig for DSS2
-> 
->  arch/arm/configs/cm_t35_defconfig                  |   82 +++++++-
->  arch/arm/mach-omap2/board-cm-t35.c                 |  234 +++++++++++++++++++-
->  drivers/video/omap2/displays/Kconfig               |    6 +
->  drivers/video/omap2/displays/Makefile              |    1 +
->  .../video/omap2/displays/panel-toppoly-tdo35s.c    |  112 ++++++++++
->  5 files changed, 430 insertions(+), 5 deletions(-)
->  create mode 100644 drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-> 
-> 
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 
--- 
-Sincerely yours,
-Mike.
-
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index f866178..30b5db7 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -242,6 +242,39 @@ fail:
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++#if defined(CONFIG_HW_RANDOM_OMAP) || defined(CONFIG_HW_RANDOM_OMAP_MODULE)
++
++#ifdef CONFIG_ARCH_OMAP24XX
++#define	OMAP_RNG_BASE		0x480A0000
++#else
++#define	OMAP_RNG_BASE		0xfffe5000
++#endif
++
++static struct resource rng_resources[] = {
++	{
++		.start		= OMAP_RNG_BASE,
++		.end		= OMAP_RNG_BASE + 0x4f,
++		.flags		= IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device omap_rng_device = {
++	.name		= "omap_rng",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(rng_resources),
++	.resource	= rng_resources,
++};
++
++static void omap_init_rng(void)
++{
++	(void) platform_device_register(&omap_rng_device);
++}
++#else
++static inline void omap_init_rng(void) {}
++#endif
++
++/*-------------------------------------------------------------------------*/
++
+ /* Numbering for the SPI-capable controllers when used for SPI:
+  * spi		= 1
+  * uwire	= 2
+@@ -324,39 +357,6 @@ static void omap_init_wdt(void)
+ static inline void omap_init_wdt(void) {}
+ #endif
+ 
+-/*-------------------------------------------------------------------------*/
+-
+-#if defined(CONFIG_HW_RANDOM_OMAP) || defined(CONFIG_HW_RANDOM_OMAP_MODULE)
+-
+-#ifdef CONFIG_ARCH_OMAP24XX
+-#define	OMAP_RNG_BASE		0x480A0000
+-#else
+-#define	OMAP_RNG_BASE		0xfffe5000
+-#endif
+-
+-static struct resource rng_resources[] = {
+-	{
+-		.start		= OMAP_RNG_BASE,
+-		.end		= OMAP_RNG_BASE + 0x4f,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-};
+-
+-static struct platform_device omap_rng_device = {
+-	.name	   = "omap_rng",
+-	.id	     = -1,
+-	.num_resources	= ARRAY_SIZE(rng_resources),
+-	.resource	= rng_resources,
+-};
+-
+-static void omap_init_rng(void)
+-{
+-	(void) platform_device_register(&omap_rng_device);
+-}
+-#else
+-static inline void omap_init_rng(void) {}
+-#endif
+-
+ /*
+  * This gets called after board-specific INIT_MACHINE, and initializes most
+  * on-chip peripherals accessible on this board (except for few like USB):
+@@ -384,9 +384,9 @@ static int __init omap_init_devices(void)
+ 	 */
+ 	omap_init_dsp();
+ 	omap_init_kp();
++	omap_init_rng();
+ 	omap_init_uwire();
+ 	omap_init_wdt();
+-	omap_init_rng();
+ 	return 0;
+ }
+ arch_initcall(omap_init_devices);
