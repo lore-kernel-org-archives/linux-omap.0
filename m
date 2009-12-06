@@ -1,108 +1,51 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] omap: pandora: board file updates for .33
-Date: Sun, 6 Dec 2009 15:12:35 +0200
-Message-ID: <6ed0b2680912060512h2545af25jb0a848efa0add1ff@mail.gmail.com>
-References: <1260038648-23069-1-git-send-email-notasas@gmail.com>
-	 <1260054652.27135.2.camel@gandalf>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH] omap3: cm-t35: add mux initialization
+Date: Sun, 06 Dec 2009 17:31:46 +0200
+Message-ID: <4B1BCE62.1050005@compulab.co.il>
+References: <cover.1259481545.git.mike@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=00c09ffb4d2e33fd1f047a0f18b6
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:45935 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932392AbZLFNMa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Dec 2009 08:12:30 -0500
-Received: by fxm5 with SMTP id 5so4012310fxm.28
-        for <linux-omap@vger.kernel.org>; Sun, 06 Dec 2009 05:12:36 -0800 (PST)
-In-Reply-To: <1260054652.27135.2.camel@gandalf>
+Received: from compulab.co.il ([67.18.134.219]:33308 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933818AbZLFPbl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 6 Dec 2009 10:31:41 -0500
+In-Reply-To: <cover.1259481545.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org
 
---00c09ffb4d2e33fd1f047a0f18b6
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Tony,
+Any chance this can go to 2.6.33?
 
-On Sun, Dec 6, 2009 at 1:10 AM, Felipe Balbi <me@felipebalbi.com> wrote:
-> Hi,
->
-> On Sat, 2009-12-05 at 20:44 +0200, Grazvydas Ignotas wrote:
->> =A0static struct omap_board_config_kernel omap3pandora_config[] __initda=
-ta =3D {
->> - =A0 =A0 { OMAP_TAG_LCD, =A0 =A0 =A0 =A0 &omap3pandora_lcd_config },
->> =A0};
->
-> if you don't have any omap_board_config_kernel, couldn't you remove this
-> structure altogether ?
+Mike Rapoport wrote:
+> Tony,
+> 
+> These patches are follow-ups to your mux rework series.
+> The first one is pretty trivial and adds OUTPUT_PULL{UP,DOWN} to shorten
+> the lines in omap_board_mux arrays. 
+> The second patch adds the mux configuration for CM-T35. This is actually
+> the most compact subset of 'cat /sys/kernel/debug/omap_mux/board' that makes
+> CM-T35 functional :)
+> 
+> The following changes since commit d8bfa71e2e9d794f9c7e5b019f316804f7f50582:
+>   Tony Lindgren (1):
+>           omap: mux: Add data for 2430
+> 
+> Mike Rapoport (2):
+>   omap3: mux: add shorthands for OUTPUT_PULL{UP,DOWN}
+>   omap3: cm-t35: add mux initialization
+> 
+>  arch/arm/mach-omap2/Kconfig        |    1 +
+>  arch/arm/mach-omap2/board-cm-t35.c |   95 +++++++++++++++++++++++++++++++++--
+>  arch/arm/mach-omap2/mux.h          |    2 +
+>  3 files changed, 92 insertions(+), 6 deletions(-)
+> 
+> 
 
-All boards (except a few) tend to keep it even if it's empty for some
-reason, although that doesn't seem to be required. Updated patch
-attached.
+-- 
+Sincerely yours,
+Mike.
 
->
-> --
-> balbi
->
->
-
---00c09ffb4d2e33fd1f047a0f18b6
-Content-Type: text/x-diff; charset=US-ASCII;
-	name="0001-omap-pandora-board-file-updates-for-.33.patch"
-Content-Disposition: attachment;
-	filename="0001-omap-pandora-board-file-updates-for-.33.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g2vu1z870
-
-RnJvbSBlYjMzZjBmYjQ0MGZiNzM4YjAxYTA3NmVmMTEwMjY2NGVkNDliNmNkIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBHcmF6dnlkYXMgSWdub3RhcyA8bm90YXNhc0BnbWFpbC5jb20+
-CkRhdGU6IFNhdCwgNSBEZWMgMjAwOSAyMDoyMjoxNiArMDIwMApTdWJqZWN0OiBbUEFUQ0hdIG9t
-YXA6IHBhbmRvcmE6IGJvYXJkIGZpbGUgdXBkYXRlcyBmb3IgLjMzCgpQYW5kb3JhIGJvYXJkIGZp
-bGUgdXBkYXRlczoKLSBjaGFuZ2Uga2V5Y29kZXMgb2YgZ2FtZSBidXR0b25zCiAgaXQgd2FzIGRl
-Y2lkZWQgbm90IHRvIHVzZSBBQlhZIGxheW91dCBieSB0aGUgZGV2ZWxvcGVycy4KLSBkcm9wIGky
-YyBidXMgMyBzcGVlZCB0byAxMDBrSHoKICB0aGlzIGlzIG5lZWRlZCBmb3IgYmF0dGVyeSBtb25p
-dG9yaW5nIGNoaXAgdG8gd29yayByZWxpYWJseS4KLSBkcm9wIHBhbmRvcmFfbGNkIHBsYXRmb3Jt
-X2RldmljZQogIHRoZSBvbGRlciBEU1MgZHJpdmVyIHdhcyBuZXZlciBmdW5jdGlvbmFsIG9uIGwt
-byBvciBtYWlubGluZQogIGtlcm5lbHMgZHVlIHRvIG1pc3NpbmcgcGFuZWwgZHJpdmVyLCBzbyBy
-ZW1vdmUgdW5uZWVkZWQKICBwYW5kb3JhX2xjZCBwbGF0Zm9ybV9kZXZpY2UuIFRoaXMgYWxzbyBy
-ZW1vdmVzIGxhc3QgT01BUF9UQUcKICBmcm9tIHRoZSBib2FyZCBmaWxlLgoKU2lnbmVkLW9mZi1i
-eTogR3JhenZ5ZGFzIElnbm90YXMgPG5vdGFzYXNAZ21haWwuY29tPgotLS0KIGFyY2gvYXJtL21h
-Y2gtb21hcDIvYm9hcmQtb21hcDNwYW5kb3JhLmMgfCAgIDI2ICsrKysrLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgMjEgZGVsZXRpb25zKC0p
-CgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM3BhbmRvcmEuYyBi
-L2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNwYW5kb3JhLmMKaW5kZXggMmRiNWJhNS4u
-ZjVhZmEwZCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM3BhbmRv
-cmEuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzcGFuZG9yYS5jCkBAIC05
-OCwxMCArOTgsMTAgQEAgc3RhdGljIHN0cnVjdCBncGlvX2tleXNfYnV0dG9uIHBhbmRvcmFfZ3Bp
-b19rZXlzW10gPSB7CiAJR1BJT19CVVRUT05fTE9XKDEwMywJS0VZX0RPV04sCSJkb3duIiksCiAJ
-R1BJT19CVVRUT05fTE9XKDk2LAlLRVlfTEVGVCwJImxlZnQiKSwKIAlHUElPX0JVVFRPTl9MT1co
-OTgsCUtFWV9SSUdIVCwJInJpZ2h0IiksCi0JR1BJT19CVVRUT05fTE9XKDExMSwJQlROX0EsCQki
-YSIpLAotCUdQSU9fQlVUVE9OX0xPVygxMDYsCUJUTl9CLAkJImIiKSwKLQlHUElPX0JVVFRPTl9M
-T1coMTA5LAlCVE5fWCwJCSJ4IiksCi0JR1BJT19CVVRUT05fTE9XKDEwMSwJQlROX1ksCQkieSIp
-LAorCUdQSU9fQlVUVE9OX0xPVygxMDksCUtFWV9LUDEsCSJnYW1lIDEiKSwKKwlHUElPX0JVVFRP
-Tl9MT1coMTExLAlLRVlfS1AyLAkiZ2FtZSAyIiksCisJR1BJT19CVVRUT05fTE9XKDEwNiwJS0VZ
-X0tQMywJImdhbWUgMyIpLAorCUdQSU9fQlVUVE9OX0xPVygxMDEsCUtFWV9LUDQsCSJnYW1lIDQi
-KSwKIAlHUElPX0JVVFRPTl9MT1coMTAyLAlCVE5fVEwsCQkibCIpLAogCUdQSU9fQlVUVE9OX0xP
-Vyg5NywJQlROX1RMMiwJImwyIiksCiAJR1BJT19CVVRUT05fTE9XKDEwNSwJQlROX1RSLAkJInIi
-KSwKQEAgLTMxNSw3ICszMTUsNyBAQCBzdGF0aWMgaW50IF9faW5pdCBvbWFwM3BhbmRvcmFfaTJj
-X2luaXQodm9pZCkKIAlvbWFwX3JlZ2lzdGVyX2kyY19idXMoMSwgMjYwMCwgb21hcDNwYW5kb3Jh
-X2kyY19ib2FyZGluZm8sCiAJCQlBUlJBWV9TSVpFKG9tYXAzcGFuZG9yYV9pMmNfYm9hcmRpbmZv
-KSk7CiAJLyogaTJjMiBwaW5zIGFyZSBub3QgY29ubmVjdGVkICovCi0Jb21hcF9yZWdpc3Rlcl9p
-MmNfYnVzKDMsIDQwMCwgTlVMTCwgMCk7CisJb21hcF9yZWdpc3Rlcl9pMmNfYnVzKDMsIDEwMCwg
-TlVMTCwgMCk7CiAJcmV0dXJuIDA7CiB9CiAKQEAgLTM2OCwyMyArMzY4LDggQEAgc3RhdGljIHN0
-cnVjdCBzcGlfYm9hcmRfaW5mbyBvbWFwM3BhbmRvcmFfc3BpX2JvYXJkX2luZm9bXSBfX2luaXRk
-YXRhID0gewogCX0KIH07CiAKLXN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlIG9tYXAzcGFu
-ZG9yYV9sY2RfZGV2aWNlID0gewotCS5uYW1lCQk9ICJwYW5kb3JhX2xjZCIsCi0JLmlkCQk9IC0x
-LAotfTsKLQotc3RhdGljIHN0cnVjdCBvbWFwX2xjZF9jb25maWcgb21hcDNwYW5kb3JhX2xjZF9j
-b25maWcgX19pbml0ZGF0YSA9IHsKLQkuY3RybF9uYW1lCT0gImludGVybmFsIiwKLX07Ci0KLXN0
-YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9jb25maWdfa2VybmVsIG9tYXAzcGFuZG9yYV9jb25maWdb
-XSBfX2luaXRkYXRhID0gewotCXsgT01BUF9UQUdfTENELAkJJm9tYXAzcGFuZG9yYV9sY2RfY29u
-ZmlnIH0sCi19OwotCiBzdGF0aWMgdm9pZCBfX2luaXQgb21hcDNwYW5kb3JhX2luaXRfaXJxKHZv
-aWQpCiB7Ci0Jb21hcF9ib2FyZF9jb25maWcgPSBvbWFwM3BhbmRvcmFfY29uZmlnOwotCW9tYXBf
-Ym9hcmRfY29uZmlnX3NpemUgPSBBUlJBWV9TSVpFKG9tYXAzcGFuZG9yYV9jb25maWcpOwogCW9t
-YXAyX2luaXRfY29tbW9uX2h3KG10NDZoMzJtMzJsZjZfc2RyY19wYXJhbXMsCiAJCQkgICAgIG10
-NDZoMzJtMzJsZjZfc2RyY19wYXJhbXMpOwogCW9tYXBfaW5pdF9pcnEoKTsKQEAgLTM5Miw3ICsz
-NzcsNiBAQCBzdGF0aWMgdm9pZCBfX2luaXQgb21hcDNwYW5kb3JhX2luaXRfaXJxKHZvaWQpCiB9
-CiAKIHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpvbWFwM3BhbmRvcmFfZGV2aWNlc1td
-IF9faW5pdGRhdGEgPSB7Ci0JJm9tYXAzcGFuZG9yYV9sY2RfZGV2aWNlLAogCSZwYW5kb3JhX2xl
-ZHNfZ3BpbywKIAkmcGFuZG9yYV9rZXlzX2dwaW8sCiB9OwotLSAKMS42LjMuMwoK
---00c09ffb4d2e33fd1f047a0f18b6--
