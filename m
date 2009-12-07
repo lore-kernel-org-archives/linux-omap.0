@@ -1,69 +1,138 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] omap3: cm-t35: add mux initialization
-Date: Mon, 7 Dec 2009 22:05:01 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309C863C8@dbde02.ent.ti.com>
-References: <cover.1259481545.git.mike@compulab.co.il>
- <4B1BCE62.1050005@compulab.co.il>,<20091207162209.GV24013@atomide.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH 07/10 V3] omap3: clk: use pm accessor functions for
+ cpufreq table
+Date: Mon, 7 Dec 2009 17:54:40 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A2236EC92019@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1259122159-1583-1-git-send-email-nm@ti.com>
+ <1259122159-1583-2-git-send-email-nm@ti.com>
+ <1259122159-1583-3-git-send-email-nm@ti.com>
+ <1259122159-1583-4-git-send-email-nm@ti.com>
+ <1259122159-1583-5-git-send-email-nm@ti.com>
+ <1259122159-1583-6-git-send-email-nm@ti.com>
+ <1259122159-1583-7-git-send-email-nm@ti.com>
+ <1259122159-1583-8-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56015 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751377AbZLGQgv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 11:36:51 -0500
-In-Reply-To: <20091207162209.GV24013@atomide.com>
+Received: from smtp.nokia.com ([192.100.105.134]:56591 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935394AbZLGQys convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 11:54:48 -0500
+In-Reply-To: <1259122159-1583-8-git-send-email-nm@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Mike Rapoport <mike@compulab.co.il>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: nm@ti.com, linux-omap@vger.kernel.org
+Cc: b-cousson@ti.com, khilman@deeprootsystems.com, madhu.cr@ti.com, paul@pwsan.com, romit@ti.com, premi@ti.com, santosh.shilimkar@ti.com, saaguirre@ti.com, thara@ti.com, vishwanath.bs@ti.com
 
-Tony Lindgren wrote: 
-> * Mike Rapoport <mike@compulab.co.il> [091206 07:30]:
-> > Tony,
-> > Any chance this can go to 2.6.33?
-> 
-> Sure, I was just waiting to hear back if the OUTPUT_PULLUP is
-> needed for sure? Or is just OUTPUT enough for musb to work?
-> 
-> Tony
-> 
+Hi,
 
-OUTPUT should work too. The ULPI spec recommends a weak pull-up
-on STP line, but we needn't really have that. Plain OUTPUT is sufficient.
+One comment below.
 
-Regards,
-Anand
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org 
+>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
+>Nishanth Menon
+>Sent: 25 November, 2009 06:09
+>To: linux-omap
+>Cc: Nishanth Menon; Benoit Cousson; Kevin Hilman; Madhusudhan 
+>Chikkature Rajashekar; Paul Walmsley; Romit Dasgupta; Sanjeev 
+>Premi; Santosh Shilimkar; Sergio Alberto Aguirre Rodriguez; 
+>Thara Gopinath; Vishwanath Sripathy
+>Subject: [PATCH 07/10 V3] omap3: clk: use pm accessor 
+>functions for cpufreq table
+>
+>omap2_clk_init_cpufreq_table currently directly accesses the opp
+>table, making it unscalable to various OMAPs. Instead use the
+>accessor functions to populate the cpufreq table
+>
+>Cc: Benoit Cousson <b-cousson@ti.com>
+>Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+>Cc: Paul Walmsley <paul@pwsan.com>
+>Cc: Romit Dasgupta <romit@ti.com>
+>Cc: Sanjeev Premi <premi@ti.com>
+>Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+>Cc: Thara Gopinath <thara@ti.com>
+>Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+>
+>Signed-off-by: Nishanth Menon <nm@ti.com>
+>---
+> arch/arm/mach-omap2/clock34xx.c |   32 
+>+++++++++++++++++++-------------
+> 1 files changed, 19 insertions(+), 13 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/clock34xx.c 
+>b/arch/arm/mach-omap2/clock34xx.c
+>index 5150939..d07f1c1 100644
+>--- a/arch/arm/mach-omap2/clock34xx.c
+>+++ b/arch/arm/mach-omap2/clock34xx.c
+>@@ -1042,30 +1042,36 @@ static unsigned long 
+>omap3_clkoutx2_recalc(struct clk *clk)
+> #if defined(CONFIG_ARCH_OMAP3)
+> 
+> #ifdef CONFIG_CPU_FREQ
+>-static struct cpufreq_frequency_table freq_table[MAX_VDD1_OPP+1];
+>+
+>+static struct cpufreq_frequency_table *freq_table;
+> 
+> void omap2_clk_init_cpufreq_table(struct 
+>cpufreq_frequency_table **table)
+> {
+>-	struct omap_opp *prcm;
+> 	int i = 0;
+>+	u8 opp_num;
+>+	struct omap_opp *opp = NULL;
+>+	unsigned long freq = ULONG_MAX;
+> 
+>-	if (!mpu_opps)
+>+	if (!mpu_opps || opp_get_opp_count(&opp_num, mpu_opps)) {
+>+		pr_warning("%s: failed to initialize frequency"
+>+				"table\n", __func__);
+> 		return;
+>-
+>-	prcm = mpu_opps + MAX_VDD1_OPP;
+>-	for (; prcm->rate; prcm--) {
+>-		freq_table[i].index = i;
+>-		freq_table[i].frequency = prcm->rate / 1000;
+>-		i++;
+> 	}
+> 
+>-	if (i == 0) {
+>-		printk(KERN_WARNING "%s: failed to initialize 
+>frequency \
+>-								
+>table\n",
+>-								
+>__func__);
+>+	freq_table = kmalloc(sizeof(struct cpufreq_frequency_table) *
+>+			(opp_num + 1), GFP_KERNEL);
 
+I guess this should be GFP_ATOMIC, we have clockfw spinlock reserved when this is called (gave me a runtime warning.)
+
+>+	if (!freq_table) {
+>+		pr_warning("%s: failed to allocate frequency"
+>+				"table\n", __func__);
+> 		return;
+> 	}
 > 
+>+	while (!opp_get_lower_opp(&opp, &freq, mpu_opps)) {
+>+		freq_table[i].index = i;
+>+		freq_table[i].frequency =  freq / 1000;
+>+		i++;
+>+	}
+>+
+> 	freq_table[i].index = i;
+> 	freq_table[i].frequency = CPUFREQ_TABLE_END;
 > 
-> > Mike Rapoport wrote:
-> > > Tony,
-> > >
-> > > These patches are follow-ups to your mux rework series.
-> > > The first one is pretty trivial and adds OUTPUT_PULL{UP,DOWN} to shorten
-> > > the lines in omap_board_mux arrays.
-> > > The second patch adds the mux configuration for CM-T35. This is actually
-> > > the most compact subset of 'cat /sys/kernel/debug/omap_mux/board' that makes
-> > > CM-T35 functional :)
-> > >
-> > > The following changes since commit d8bfa71e2e9d794f9c7e5b019f316804f7f50582:
-> > >   Tony Lindgren (1):
-> > >           omap: mux: Add data for 2430
-> > >
-> > > Mike Rapoport (2):
-> > >   omap3: mux: add shorthands for OUTPUT_PULL{UP,DOWN}
-> > >   omap3: cm-t35: add mux initialization
-> > >
-> > >  arch/arm/mach-omap2/Kconfig        |    1 +
-> > >  arch/arm/mach-omap2/board-cm-t35.c |   95 +++++++++++++++++++++++++++++++++--
-> > >  arch/arm/mach-omap2/mux.h          |    2 +
-> > >  3 files changed, 92 insertions(+), 6 deletions(-)
-> > >
-> > >
-> >
-> > --
-> > Sincerely yours,
-> > Mike.
-> >
+>-- 
+>1.6.3.3
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe 
+>linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
