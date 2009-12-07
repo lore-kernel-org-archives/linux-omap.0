@@ -1,136 +1,126 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][RFT][PATCH 3/4 v5b] OMAP: McBSP: Introduce caching in
- register write operations
-Date: Mon, 7 Dec 2009 09:55:35 -0800
-Message-ID: <20091207175534.GZ24013@atomide.com>
-References: <200912010410.10129.jkrzyszt@tis.icnet.pl>
- <4B19074B.1000606@tis.icnet.pl>
- <20091204191745.GH24013@atomide.com>
- <200912051447.41777.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 2/2]: Introducing 'gpmc-nand.c' for GPMC specific NAND
+ init
+Date: Mon, 7 Dec 2009 09:56:44 -0800
+Message-ID: <20091207175644.GA24013@atomide.com>
+References: <64662.192.168.10.89.1259933932.squirrel@dbdmail.itg.ti.com>
+ <20091204220138.GJ24013@atomide.com>
+ <ce9ab5790912062229xae89bb3m6965b4f4465f11c3@mail.gmail.com>
+ <ce9ab5790912070529h1143355du691ce6a23f5ddb56@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54389 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758200AbZLGRzf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 12:55:35 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57545 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758208AbZLGR4l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 12:56:41 -0500
 Content-Disposition: inline
-In-Reply-To: <200912051447.41777.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <ce9ab5790912070529h1143355du691ce6a23f5ddb56@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org
 
-Hi,
+* Vimal Singh <vimal.newwork@gmail.com> [091207 05:28]:
+> On Mon, Dec 7, 2009 at 11:59 AM, Vimal Singh <vimal.newwork@gmail.com=
+> wrote:
+> > On Sat, Dec 5, 2009 at 3:31 AM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+> >> Hi,
+> >>
+> >> Looks good, just one comment below.
+> >>
+> >> * Govindraj.R <govindraj.raja@ti.com> [091204 05:37]:
+> >>> From: Vimal Singh <vimalsingh@ti.com>
+> >>> Date: Wed, 25 Nov 2009 18:23:15 +0530
+> >>> Subject: [PATCH] Introducing 'gpmc-nand.c' for GPMC specific NAND=
+ init
+> >>>
+> >>> Introducing 'gpmc-nand.c' for GPMC specific NAND init.
+> >>> For example: GPMC timing parameters and all.
+> >>> This patch also migrates gpmc related calls from 'nand/omap2.c'
+> >>> to 'gpmc-nand.c'.
+> >>>
+> >>> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> >>> ---
+> >>> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 | =A0 =A03 +
+> >>> =A0arch/arm/mach-omap2/gpmc-nand.c =A0 =A0 =A0 =A0| =A0141 ++++++=
+++++++++++++++++++++++++++
+> >>> =A0arch/arm/plat-omap/include/plat/nand.h | =A0 =A06 ++
+> >>> =A0drivers/mtd/nand/omap2.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 26 =
++-----
+> >>> =A04 files changed, 153 insertions(+), 23 deletions(-)
+> >>> =A0create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
+> >>
+> >> <snip>
+> >>
+> >>> --- /dev/null
+> >>> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> >>
+> >> <snip>
+> >>
+> >>> +int __init gpmc_nand_init(struct omap_nand_platform_data *_nand_=
+data)
+> >>> +{
+> >>> + =A0 =A0 unsigned int val;
+> >>> + =A0 =A0 int err =3D 0;
+> >>> + =A0 =A0 struct device *dev =3D &gpmc_nand_device.dev;
+> >>> +
+> >>> + =A0 =A0 gpmc_nand_data =3D _nand_data;
+> >>> + =A0 =A0 gpmc_nand_data->nand_setup =3D gpmc_nand_setup;
+> >>> + =A0 =A0 gpmc_nand_device.dev.platform_data =3D gpmc_nand_data;
+> >>> +
+> >>> + =A0 =A0 err =3D gpmc_nand_setup(gpmc_nand_data->gpmc_cs_baseadd=
+r);
+> >>> + =A0 =A0 if (err < 0) {
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "NAND platform setup faile=
+d: %d\n", err);
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 return err;
+> >>> + =A0 =A0 }
+> >>> +
+> >>> + =A0 =A0 /* Enable RD PIN Monitoring Reg */
+> >>> + =A0 =A0 if (gpmc_nand_data->dev_ready) {
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 val =A0=3D gpmc_cs_read_reg(gpmc_nand_d=
+ata->cs,
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0GPMC_CS_CONFIG1);
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 val |=3D WR_RD_PIN_MONITORING;
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 gpmc_cs_write_reg(gpmc_nand_data->cs,
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 GPMC_CS_CONFIG1, val);
+> >>> + =A0 =A0 }
+> >>
+> >> Above looks OK..
+> >>
+> >>> + =A0 =A0 val =A0=3D gpmc_cs_read_reg(gpmc_nand_data->cs, GPMC_CS=
+_CONFIG7);
+> >>> + =A0 =A0 val &=3D ~(0xf << 8);
+> >>> + =A0 =A0 val |=3D =A0(0xc & 0xf) << 8;
+> >>> + =A0 =A0 gpmc_cs_write_reg(gpmc_nand_data->cs, GPMC_CS_CONFIG7, =
+val);
+> >>
+> >> ..but this looks messy. Maybe use some GPMC defines for the
+> >> 0xf << 8 mask?
+> >>
+> >> Then the 0xc & 0xf part looks a bit redundant, what's the 0xf
+> >> there for?
+> >>
+> >> I know it's all from the old code, but might as well clean it up
+> >> while at it :)
+> >
+> > Ok, I'll drop next version of this patch for this.
+> >
+>=20
+> In fact this peace of code is not required too. This will be taken
+> care in 'gpmc_cs_request'.
+> I will remove it.
 
-This is pretty close :) Few more tweaks are still needed.
-
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091205 05:46]:
-> Reserve static space for storing cached copies of McBSP register values.
-> Split omap_mcbsp_read()/omap_mcbsp_write() into separate functions for OMAP1
-> and OMAP2/3/4, move them from plat-omap to mach-omap1 / mach-omap2 to be able
-> to access the static cache.
-> Modify omap_msbcp_write() to update the cache with every register write
-> operation.
-> Modify omap_mcbsp_read() to support reading from cache or hardware.
-> Update MCBSP_READ/MCBSP_WRITE macros for modified function APIs.
-> Introduce a new macro that reads from the cache.
-> 
-> Applies on top of patch 2 from this series:
-> [PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API for caching
-> 
-> Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
-> commit 82f1d8f22f2c65e70206e40a6f17688bf64a892c.
-> Compile-tested with omap_generic_2420_defconfig, omap_3430sdp_defconfig.
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> 
-> ---
-> 
-> Tony,
-> 
-> Since I was not sure what your primary concern was, I've prepared two
-> alternative versions of patch 3/4.
-> Please take this one as a base for further discussion if your primary concern
-> was storage class for the cache.
-> Otherwise, have a look at the other one (v5a), since this one has even more
-> ifdefs than before.
-> 
-> Thanks,
-> Janusz
-> 
-> diff -upr git.orig/arch/arm/mach-omap1/mcbsp.c git/arch/arm/mach-omap1/mcbsp.c
-> --- git.orig/arch/arm/mach-omap1/mcbsp.c	2009-12-02 15:48:37.000000000 +0100
-> +++ git/arch/arm/mach-omap1/mcbsp.c	2009-12-05 06:42:35.000000000 +0100
-> @@ -200,3 +200,26 @@ int __init omap1_mcbsp_init(void)
->  }
->  
->  arch_initcall(omap1_mcbsp_init);
-> +
-> +/* if adding more, put larger first */
-> +#if defined(CONFIG_ARCH_OMAP16XX)
-> +static u16 omap_mcbsp_cache[OMAP16XX_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-> +#elif defined(CONFIG_ARCH_OMAP15XX)
-> +static u16 omap_mcbsp_cache[OMAP15XX_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-> +#elif defined(CONFIG_ARCH_OMAP7XX)
-> +static u16 omap_mcbsp_cache[OMAP7XX_MCBSP_PDATA_SZ][OMAP_MCBSP_REG_COUNT];
-> +#else
-> +#define omap_mcbsp_cache	NULL
-> +#endif
-
-As 15xx and 16xx can be compiled into the same kernel binary, we need to
-get rid of the ifdef elif else (untested):
-
-#ifdef(CONFIG_ARCH_OMAP7XX)
-static u16 omap7xx_mcbsp_cache[OMAP7XX_MCBSP_PDATA_SZ][OMAP7XX_MCBSP_REG_COUNT];
-#else
-static 16 omap7xx_mcbsp_cache;
-#endif
-
-#if defined(CONFIG_ARCH_OMAP15XX)
-static u16 omap15xx_mcbsp_cache[OMAP15XX_MCBSP_PDATA_SZ][OMAP15XX_MCBSP_REG_COUNT];
-#else
-static 16 omap15xx_mcbsp_cache;
-#endif
-
-#if defined(CONFIG_ARCH_OMAP16XX)
-static u16 omap16xx_mcbsp_cache[OMAP16XX_MCBSP_PDATA_SZ][OMAP_16XXMCBSP_REG_COUNT];
-#else
-static 16 omap16xx_mcbsp_cache;
-#endif
-...
-
-
-> +void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
-> +{
-> +	omap_mcbsp_cache[mcbsp->id][reg / sizeof(u16)] = (u16)val;
-> +	__raw_writew((u16)val, mcbsp->io_base + reg);
-> +}
-> +
-> +int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache)
-> +{
-> +	return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
-> +			omap_mcbsp_cache[mcbsp->id][reg / sizeof(u16)];
-> +}
-
-Then these can become something like this:
-
-void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
-{
-	if (cpu_is_omap7xx())
-		omap7xx_mcbsp_cache[mcbsp->id][reg / sizeof(u16)] = (u16)val;
-	else if (cpu_is_omap15xx())
-		omap15xx_mcbsp_cache[mcbsp->id][reg / sizeof(u16)] = (u16)val;
-	else if (cpu_is_omap16xx())
-		omap16xx_mcbsp_cache[mcbsp->id][reg / sizeof(u16)] = (u16)val;
-
-	__raw_writew((u16)val, mcbsp->io_base + reg);
-}
-...
-
-The code for processors that are not compiled in will get automatically
-optimized out as the cpu_is_xxxx() becomes 0.
-
-Regards,
+OK, cool.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
