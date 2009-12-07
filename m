@@ -1,735 +1,182 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH 1/3] [SPI] [OMAP] Add OMAP spi100k driver
-Date: Sun,  6 Dec 2009 20:48:17 -0800
-Message-ID: <1260161299-17656-2-git-send-email-darkstar6262@gmail.com>
+Subject: [PATCH 2/3] [OMAP] Add spi100k configuration to OMAP1
+Date: Sun,  6 Dec 2009 20:48:18 -0800
+Message-ID: <1260161299-17656-3-git-send-email-darkstar6262@gmail.com>
 References: <1260161299-17656-1-git-send-email-darkstar6262@gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pw0-f42.google.com ([209.85.160.42]:58904 "EHLO
 	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934494AbZLGEtb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Dec 2009 23:49:31 -0500
-Received: by pwj9 with SMTP id 9so690286pwj.21
-        for <linux-omap@vger.kernel.org>; Sun, 06 Dec 2009 20:49:37 -0800 (PST)
+	with ESMTP id S934510AbZLGEth (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Dec 2009 23:49:37 -0500
+Received: by mail-pw0-f42.google.com with SMTP id 9so690286pwj.21
+        for <linux-omap@vger.kernel.org>; Sun, 06 Dec 2009 20:49:44 -0800 (PST)
 In-Reply-To: <1260161299-17656-1-git-send-email-darkstar6262@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
 Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-This change adds the OMAP SPI 100k driver created by
-=46abrice Crohas <fcrohas@gmail.com>.  This SPI bus is found on
-OMAP7xx-series smartphones, and for many, the touchscreen is
-attached to this bus.
+This change implements the clocks, platform driver, and register
+information necessary to use the spi100k bus with OMAP 7xx systems.
 
-The lion's share of the work was done by Fabrice on this driver --
-I am merely porting it from the Linwizard project on his behalf.
+The clocks added are dummy clocks because, although we're pretty
+sure there are clocks used for SPI, all current booting methods result
+in proper operation without the enabling of any other clocks.
 
 Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 ---
- drivers/spi/Kconfig         |    6 +
- drivers/spi/Makefile        |    1 +
- drivers/spi/omap_spi_100k.c |  642 +++++++++++++++++++++++++++++++++++=
-++++++++
- 3 files changed, 649 insertions(+), 0 deletions(-)
- create mode 100644 drivers/spi/omap_spi_100k.c
+ arch/arm/mach-omap1/clock.c               |    4 ++
+ arch/arm/mach-omap1/devices.c             |   70 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap7xx.h |    3 +
+ arch/arm/plat-omap/include/plat/spi100k.h |   15 ++++++
+ 4 files changed, 92 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/spi100k.h
 
-diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
-index 4b6f7cb..7ef9b12 100644
---- a/drivers/spi/Kconfig
-+++ b/drivers/spi/Kconfig
-@@ -164,6 +164,12 @@ config SPI_OMAP24XX
- 	  SPI master controller for OMAP24xx/OMAP34xx Multichannel SPI
- 	  (McSPI) modules.
-=20
-+config SPI_OMAP_100K
-+	tristate "OMAP SPI 100K"
-+	depends on SPI_MASTER && (ARCH_OMAP850 || ARCH_OMAP730)
-+	help
-+	  OMAP SPI 100K master controller for omap7xx boards.
+diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+index dc8ca91..e584c0f 100644
+--- a/arch/arm/mach-omap1/clock.c
++++ b/arch/arm/mach-omap1/clock.c
+@@ -135,6 +135,10 @@ static struct omap_clk omap_clks[] = {
+ 	CLK("i2c_omap.1", "fck",	&i2c_fck,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
+ 	CLK("i2c_omap.1", "ick",	&i2c_ick,	CK_16XX),
+ 	CLK("i2c_omap.1", "ick",	&dummy_ck,	CK_1510 | CK_310 | CK_7XX),
++	CLK("omap1_spi100k.1", "fck",	&dummy_ck,	CK_7XX),
++	CLK("omap1_spi100k.1", "ick",	&dummy_ck,	CK_7XX),
++	CLK("omap1_spi100k.2", "fck",	&dummy_ck,	CK_7XX),
++	CLK("omap1_spi100k.2", "ick",	&dummy_ck,	CK_7XX),
+ 	CLK("omap_uwire", "fck",	&armxor_ck.clk,	CK_16XX | CK_1510 | CK_310),
+ 	CLK("omap-mcbsp.1", "ick",	&dspper_ck,	CK_16XX),
+ 	CLK("omap-mcbsp.1", "ick",	&dummy_ck,	CK_1510 | CK_310),
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index 23ded2d..9f1c1cc 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -24,6 +24,12 @@
+ #include <mach/gpio.h>
+ #include <plat/mmc.h>
+ 
++#if defined(CONFIG_SPI_OMAP_100K)
++#include <plat/omap7xx.h>
++#include <plat/spi100k.h>
++#include <linux/spi/spi.h>
++#endif
 +
- config SPI_ORION
- 	tristate "Orion SPI master (EXPERIMENTAL)"
- 	depends on PLAT_ORION && EXPERIMENTAL
-diff --git a/drivers/spi/Makefile b/drivers/spi/Makefile
-index 21a1182..55f670d 100644
---- a/drivers/spi/Makefile
-+++ b/drivers/spi/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_SPI_LM70_LLP)		+=3D spi_lm70llp.o
- obj-$(CONFIG_SPI_PXA2XX)		+=3D pxa2xx_spi.o
- obj-$(CONFIG_SPI_OMAP_UWIRE)		+=3D omap_uwire.o
- obj-$(CONFIG_SPI_OMAP24XX)		+=3D omap2_mcspi.o
-+obj-$(CONFIG_SPI_OMAP_100K)		+=3D omap_spi_100k.o
- obj-$(CONFIG_SPI_ORION)			+=3D orion_spi.o
- obj-$(CONFIG_SPI_PL022)			+=3D amba-pl022.o
- obj-$(CONFIG_SPI_MPC52xx_PSC)		+=3D mpc52xx_psc_spi.o
-diff --git a/drivers/spi/omap_spi_100k.c b/drivers/spi/omap_spi_100k.c
-new file mode 100644
-index 0000000..d0ebfa8
---- /dev/null
-+++ b/drivers/spi/omap_spi_100k.c
-@@ -0,0 +1,642 @@
-+/*
-+ * OMAP7xx SPI 100k controller driver
-+ * Author: Fabrice Crohas <fcrohas@gmail.com>
-+ * from original omap1_mcspi driver
-+ *
-+ * Copyright (C) 2005, 2006 Nokia Corporation
-+ * Author:      Samuel Ortiz <samuel.ortiz@nokia.com> and
-+ *              Juha Yrj=EF=BF=BDl=EF=BF=BD <juha.yrjola@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License as published b=
-y
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307=
- USA
-+ *
-+ */
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+#include <linux/gpio.h>
+ /*-------------------------------------------------------------------------*/
+ 
+ #if defined(CONFIG_RTC_DRV_OMAP) || defined(CONFIG_RTC_DRV_OMAP_MODULE)
+@@ -196,6 +202,69 @@ void __init omap1_init_mmc(struct omap_mmc_platform_data **mmc_data,
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++/* OMAP7xx SPI support */
++#if defined(CONFIG_SPI_OMAP_100K)
 +
++#include <plat/omap7xx.h>
++#include <plat/spi100k.h>
 +#include <linux/spi/spi.h>
 +
-+#include <plat/clock.h>
-+
-+#define OMAP1_SPI100K_MAX_FREQ          48000000
-+
-+#define ICR_SPITAS      (OMAP7XX_ICR_BASE + 0x12)
-+
-+#define SPI_SETUP1      0x00
-+#define SPI_SETUP2      0x02
-+#define SPI_CTRL        0x04
-+#define SPI_STATUS      0x06
-+#define SPI_TX_LSB      0x08
-+#define SPI_TX_MSB      0x0a
-+#define SPI_RX_LSB      0x0c
-+#define SPI_RX_MSB      0x0e
-+
-+#define SPI_SETUP1_INT_READ_ENABLE      (1UL << 5)
-+#define SPI_SETUP1_INT_WRITE_ENABLE     (1UL << 4)
-+#define SPI_SETUP1_CLOCK_DIVISOR(x)     ((x) << 1)
-+#define SPI_SETUP1_CLOCK_ENABLE         (1UL << 0)
-+
-+#define SPI_SETUP2_ACTIVE_EDGE_FALLING  (0UL << 0)
-+#define SPI_SETUP2_ACTIVE_EDGE_RISING   (1UL << 0)
-+#define SPI_SETUP2_NEGATIVE_LEVEL       (0UL << 5)
-+#define SPI_SETUP2_POSITIVE_LEVEL       (1UL << 5)
-+#define SPI_SETUP2_LEVEL_TRIGGER        (0UL << 10)
-+#define SPI_SETUP2_EDGE_TRIGGER         (1UL << 10)
-+
-+#define SPI_CTRL_SEN(x)                 ((x) << 7)
-+#define SPI_CTRL_WORD_SIZE(x)           (((x) - 1) << 2)
-+#define SPI_CTRL_WR                     (1UL << 1)
-+#define SPI_CTRL_RD                     (1UL << 0)
-+
-+#define SPI_STATUS_WE                   (1UL << 1)
-+#define SPI_STATUS_RD                   (1UL << 0)
-+
-+#define WRITE 0
-+#define READ  1
-+
-+
-+/* use PIO for small transfers, avoiding DMA setup/teardown overhead a=
-nd
-+ * cache operations; better heuristics consider wordsize and bitrate.
-+ */
-+#define DMA_MIN_BYTES                   8
-+
-+struct omap1_spi100k {
-+	struct work_struct      work;
-+	/* lock protects queue and registers */
-+	spinlock_t              lock;
-+	struct list_head        msg_queue;
-+	struct spi_master       *master;
-+	struct clk              *ick;
-+	struct clk              *fck;
-+	/* Virtual base address of the controller */
-+	void __iomem            *base;
-+	unsigned long           base_addr;
++static struct omap_spi100k_platform_config omap_spi1_config = {
++        .num_cs         = 2,
 +};
 +
-+struct omap1_spi100k_cs {
-+	void __iomem            *base;
-+	int                     word_len;
-+};
-+
-+static struct workqueue_struct *omap1_spi100k_wq;
-+
-+#define MOD_REG_BIT(val, mask, set) do { \
-+	if (set) \
-+		val |=3D mask; \
-+	else \
-+		val &=3D ~mask; \
-+} while (0)
-+
-+static void spi100k_enable_clock(struct spi_master *master)
-+{
-+	unsigned int val;
-+	struct omap1_spi100k *spi100k =3D spi_master_get_devdata(master);
-+
-+	/* enable SPI */
-+	val =3D omap_readw(spi100k->base_addr + SPI_SETUP1);
-+	val |=3D SPI_SETUP1_CLOCK_ENABLE;
-+	omap_writew(val, spi100k->base_addr + SPI_SETUP1);
-+}
-+
-+static void spi100k_disable_clock(struct spi_master *master)
-+{
-+	unsigned int val;
-+	struct omap1_spi100k *spi100k =3D spi_master_get_devdata(master);
-+
-+	/* disable SPI */
-+	val =3D omap_readw(spi100k->base_addr + SPI_SETUP1);
-+	val &=3D ~SPI_SETUP1_CLOCK_ENABLE;
-+	omap_writew(val, spi100k->base_addr + SPI_SETUP1);
-+}
-+
-+static void spi100k_write_data(struct spi_master *master, int len, int=
- data)
-+{
-+	struct omap1_spi100k *spi100k =3D spi_master_get_devdata(master);
-+
-+	/* write 16-bit word */
-+	spi100k_enable_clock(master);
-+	omap_writew( data , spi100k->base_addr + SPI_TX_MSB);
-+
-+	omap_writew(SPI_CTRL_SEN(0) |
-+		    SPI_CTRL_WORD_SIZE(len) |
-+		    SPI_CTRL_WR,
-+		    spi100k->base_addr + SPI_CTRL);
-+
-+	/* Wait for bit ack send change */
-+	while((omap_readw(spi100k->base_addr + SPI_STATUS) & SPI_STATUS_WE) !=
-=3D SPI_STATUS_WE);
-+	udelay(1000);
-+
-+	spi100k_disable_clock(master);
-+}
-+
-+static int spi100k_read_data(struct spi_master *master, int len)
-+{
-+	int dataH,dataL;
-+	struct omap1_spi100k *spi100k =3D spi_master_get_devdata(master);
-+
-+	spi100k_enable_clock(master);
-+	omap_writew(SPI_CTRL_SEN(0) |
-+		    SPI_CTRL_WORD_SIZE(len) |
-+		    SPI_CTRL_RD,
-+		    spi100k->base_addr + SPI_CTRL);
-+
-+	while((omap_readw(spi100k->base_addr + SPI_STATUS) & SPI_STATUS_RD) !=
-=3D SPI_STATUS_RD);
-+	udelay(1000);
-+
-+	dataL =3D omap_readw(spi100k->base_addr + SPI_RX_LSB);
-+	dataH =3D omap_readw(spi100k->base_addr + SPI_RX_MSB);
-+	spi100k_disable_clock(master);
-+
-+	return dataL;
-+}
-+
-+static void spi100k_open(struct spi_master *master)
-+{
-+	/* get control of SPI */
-+	struct omap1_spi100k *spi100k =3D spi_master_get_devdata(master);
-+
-+	omap_writew(SPI_SETUP1_INT_READ_ENABLE |
-+		    SPI_SETUP1_INT_WRITE_ENABLE |
-+		    SPI_SETUP1_CLOCK_DIVISOR(0), spi100k->base_addr + SPI_SETUP1);
-+
-+	/* configure clock and interrupts */
-+	omap_writew(SPI_SETUP2_ACTIVE_EDGE_FALLING |
-+		    SPI_SETUP2_NEGATIVE_LEVEL |
-+		    SPI_SETUP2_LEVEL_TRIGGER, spi100k->base_addr + SPI_SETUP2);
-+
-+}
-+
-+static void spi100k_close(struct spi_master *master)
-+{
-+}
-+
-+static void omap1_spi100k_force_cs(struct omap1_spi100k *spi100k, int =
-enable)
-+{
-+	if (enable)
-+		omap_writew(0x05fc, spi100k->base_addr + SPI_CTRL);
-+	else
-+		omap_writew(0x05fd, spi100k->base_addr + SPI_CTRL);
-+}
-+
-+static void omap1_spi100k_set_enable(struct omap1_spi100k *spi100k, in=
-t enable)
-+{
-+}
-+
-+static unsigned
-+omap1_spi100k_txrx_pio(struct spi_device *spi, struct spi_transfer *xf=
-er)
-+{
-+	struct omap1_spi100k    *spi100k;
-+	struct omap1_spi100k_cs *cs =3D spi->controller_state;
-+	unsigned int            count, c;
-+	int                     word_len;
-+
-+	spi100k =3D spi_master_get_devdata(spi->master);
-+	count =3D xfer->len;
-+	c =3D count;
-+	word_len =3D cs->word_len;
-+
-+	/* RX_ONLY mode needs dummy data in TX reg */
-+	if (xfer->tx_buf =3D=3D NULL)
-+		spi100k_write_data(spi->master,word_len, 0);
-+
-+	if (word_len <=3D 8) {
-+		u8              *rx;
-+		const u8        *tx;
-+
-+		rx =3D xfer->rx_buf;
-+		tx =3D xfer->tx_buf;
-+		do {
-+			c-=3D1;
-+			if (xfer->tx_buf !=3D NULL)
-+				spi100k_write_data(spi->master,word_len, *tx);
-+			if (xfer->rx_buf !=3D NULL)
-+				*rx =3D spi100k_read_data(spi->master,word_len);
-+		} while(c);
-+	} else if (word_len <=3D 16) {
-+		u16             *rx;
-+		const u16       *tx;
-+
-+		rx =3D xfer->rx_buf;
-+		tx =3D xfer->tx_buf;
-+		do {
-+			c-=3D2;
-+			if (xfer->tx_buf !=3D NULL)
-+				spi100k_write_data(spi->master,word_len, *tx++);
-+			if (xfer->rx_buf !=3D NULL)
-+				*rx++ =3D spi100k_read_data(spi->master,word_len);
-+		} while(c);
-+	} else if (word_len <=3D 32) {
-+		u32             *rx;
-+		const u32       *tx;
-+
-+		rx =3D xfer->rx_buf;
-+		tx =3D xfer->tx_buf;
-+		do {
-+			c-=3D4;
-+			if (xfer->tx_buf !=3D NULL)
-+				spi100k_write_data(spi->master,word_len, *tx);
-+			if (xfer->rx_buf !=3D NULL)
-+				*rx =3D spi100k_read_data(spi->master,word_len);
-+		} while(c);
-+	}
-+	return count - c;
-+}
-+
-+/* called only when no transfer is active to this device */
-+static int omap1_spi100k_setup_transfer(struct spi_device *spi,
-+		struct spi_transfer *t)
-+{
-+	struct omap1_spi100k *spi100k =3D spi_master_get_devdata(spi->master)=
-;
-+	struct omap1_spi100k_cs *cs =3D spi->controller_state;
-+	u8 word_len =3D spi->bits_per_word;
-+
-+	if (t !=3D NULL && t->bits_per_word)
-+		word_len =3D t->bits_per_word;
-+	if (!word_len)
-+		word_len =3D 8;
-+
-+	if (spi->bits_per_word > 32)
-+		return -EINVAL;
-+	cs->word_len =3D word_len;
-+
-+	/* SPI init before transfer */
-+	omap_writew(0x3e , spi100k->base_addr + SPI_SETUP1);
-+	omap_writew(0x00 , spi100k->base_addr + SPI_STATUS);
-+	omap_writew(0x3e , spi100k->base_addr + SPI_CTRL);
-+
-+	return 0;
-+}
-+
-+/* the spi->mode bits understood by this driver: */
-+#define MODEBITS (SPI_CPOL | SPI_CPHA | SPI_CS_HIGH)
-+
-+static int omap1_spi100k_setup(struct spi_device *spi)
-+{
-+	int                     ret;
-+	struct omap1_spi100k    *spi100k;
-+	struct omap1_spi100k_cs *cs =3D spi->controller_state;
-+
-+	if (spi->bits_per_word < 4 || spi->bits_per_word > 32) {
-+		 dev_dbg(&spi->dev, "setup: unsupported %d bit words\n",
-+			spi->bits_per_word);
-+		 return -EINVAL;
-+	}
-+
-+	spi100k =3D spi_master_get_devdata(spi->master);
-+
-+	if (!cs) {
-+		cs =3D kzalloc(sizeof *cs, GFP_KERNEL);
-+		if (!cs)
-+			return -ENOMEM;
-+		cs->base =3D spi100k->base + spi->chip_select * 0x14;
-+		spi->controller_state =3D cs;
-+	}
-+
-+	spi100k_open(spi->master);
-+
-+	clk_enable(spi100k->ick);
-+	clk_enable(spi100k->fck);
-+
-+	ret =3D omap1_spi100k_setup_transfer(spi, NULL);
-+
-+	clk_disable(spi100k->ick);
-+	clk_disable(spi100k->fck);
-+
-+	return ret;
-+}
-+
-+static void omap1_spi100k_cleanup(struct spi_device *spi)
-+{
-+	spi100k_close(spi->master);
-+}
-+
-+static void omap1_spi100k_work(struct work_struct *work)
-+{
-+	struct omap1_spi100k    *spi100k;
-+	int status =3D 0;
-+
-+	spi100k =3D container_of(work, struct omap1_spi100k, work);
-+	spin_lock_irq(&spi100k->lock);
-+
-+	clk_enable(spi100k->ick);
-+	clk_enable(spi100k->fck);
-+
-+	/* We only enable one channel at a time -- the one whose message is
-+	 * at the head of the queue -- although this controller would gladly
-+	 * arbitrate among multiple channels.  This corresponds to "single
-+	 * channel" master mode.  As a side effect, we need to manage the
-+	 * chipselect with the FORCE bit ... CS !=3D channel enable.
-+	 */
-+	 while (!list_empty(&spi100k->msg_queue)) {
-+		struct spi_message              *m;
-+		struct spi_device               *spi;
-+		struct spi_transfer             *t =3D NULL;
-+		int                             cs_active =3D 0;
-+		struct omap1_spi100k_cs         *cs;
-+		int                             par_override =3D 0;
-+
-+		m =3D container_of(spi100k->msg_queue.next, struct spi_message,
-+				 queue);
-+
-+		list_del_init(&m->queue);
-+		spin_unlock_irq(&spi100k->lock);
-+
-+		spi =3D m->spi;
-+		cs =3D spi->controller_state;
-+
-+		omap1_spi100k_set_enable(spi100k, 1);
-+		list_for_each_entry(t, &m->transfers, transfer_list) {
-+			if (t->tx_buf =3D=3D NULL && t->rx_buf =3D=3D NULL && t->len) {
-+				status =3D -EINVAL;
-+				break;
-+			}
-+			if (par_override || t->speed_hz || t->bits_per_word) {
-+				par_override =3D 1;
-+				status =3D omap1_spi100k_setup_transfer(spi, t);
-+				if (status < 0)
-+					break;
-+				if (!t->speed_hz && !t->bits_per_word)
-+					par_override =3D 0;
-+			}
-+
-+			if (!cs_active) {
-+				omap1_spi100k_force_cs(spi100k, 1);
-+				cs_active =3D 1;
-+			}
-+
-+			if (t->len) {
-+				unsigned count;
-+
-+				/* RX_ONLY mode needs dummy data in TX reg */
-+				if (t->tx_buf =3D=3D NULL)
-+					spi100k_write_data(spi->master, 8, 0);
-+
-+				count =3D omap1_spi100k_txrx_pio(spi, t);
-+				m->actual_length +=3D count;
-+
-+				if (count !=3D t->len) {
-+					status =3D -EIO;
-+					break;
-+				}
-+			}
-+
-+			if (t->delay_usecs)
-+				udelay(t->delay_usecs);
-+
-+			/* ignore the "leave it on after last xfer" hint */
-+
-+			if (t->cs_change) {
-+				omap1_spi100k_force_cs(spi100k, 0);
-+				cs_active =3D 0;
-+			}
-+		}
-+
-+		/* Restore defaults if they were overriden */
-+		if (par_override) {
-+			par_override =3D 0;
-+			status =3D omap1_spi100k_setup_transfer(spi, NULL);
-+		}
-+
-+		if (cs_active)
-+			omap1_spi100k_force_cs(spi100k, 0);
-+
-+		omap1_spi100k_set_enable(spi100k, 0);
-+
-+		m->status =3D status;
-+		m->complete(m->context);
-+
-+		spin_lock_irq(&spi100k->lock);
-+	}
-+
-+	clk_disable(spi100k->ick);
-+	clk_disable(spi100k->fck);
-+	spin_unlock_irq(&spi100k->lock);
-+
-+	if (status < 0) {
-+		printk(KERN_WARNING "spi transfer failed with %d\n", status);
-+	}
-+}
-+
-+static int omap1_spi100k_transfer(struct spi_device *spi, struct spi_m=
-essage *m)
-+{
-+	struct omap1_spi100k    *spi100k;
-+	unsigned long           flags;
-+	struct spi_transfer     *t;
-+
-+	m->actual_length =3D 0;
-+	m->status =3D 0;
-+
-+	/* reject invalid messages and transfers */
-+	if (list_empty(&m->transfers) || !m->complete)
-+		return -EINVAL;
-+
-+	list_for_each_entry(t, &m->transfers, transfer_list) {
-+		const void      *tx_buf =3D t->tx_buf;
-+		void            *rx_buf =3D t->rx_buf;
-+		unsigned        len =3D t->len;
-+
-+		if (t->speed_hz > OMAP1_SPI100K_MAX_FREQ
-+				|| (len && !(rx_buf || tx_buf))
-+				|| (t->bits_per_word &&
-+					(  t->bits_per_word < 4
-+					|| t->bits_per_word > 32))) {
-+			dev_dbg(&spi->dev, "transfer: %d Hz, %d %s%s, %d bpw\n",
-+					t->speed_hz,
-+					len,
-+					tx_buf ? "tx" : "",
-+					rx_buf ? "rx" : "",
-+					t->bits_per_word);
-+			return -EINVAL;
-+		}
-+
-+		if (t->speed_hz && t->speed_hz < OMAP1_SPI100K_MAX_FREQ/(1<<16)) {
-+			dev_dbg(&spi->dev, "%d Hz max exceeds %d\n",
-+					t->speed_hz,
-+					OMAP1_SPI100K_MAX_FREQ/(1<<16));
-+			return -EINVAL;
-+		}
-+
-+	}
-+
-+	spi100k =3D spi_master_get_devdata(spi->master);
-+
-+	spin_lock_irqsave(&spi100k->lock, flags);
-+	list_add_tail(&m->queue, &spi100k->msg_queue);
-+	queue_work(omap1_spi100k_wq, &spi100k->work);
-+	spin_unlock_irqrestore(&spi100k->lock, flags);
-+
-+	return 0;
-+}
-+
-+static int __init omap1_spi100k_reset(struct omap1_spi100k *spi100k)
-+{
-+	return 0;
-+}
-+
-+static int __devinit omap1_spi100k_probe(struct platform_device *pdev)
-+{
-+	struct spi_master       *master;
-+	struct omap1_spi100k    *spi100k;
-+	struct resource         *r;
-+	int                     status =3D 0;
-+
-+	if ( !pdev->id)
-+		return -EINVAL;
-+
-+	master =3D spi_alloc_master(&pdev->dev, sizeof *spi100k);
-+	if (master =3D=3D NULL) {
-+		dev_dbg(&pdev->dev, "master allocation failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	if (pdev->id !=3D -1)
-+	       master->bus_num =3D pdev->id;
-+
-+	master->setup =3D omap1_spi100k_setup;
-+	master->transfer =3D omap1_spi100k_transfer;
-+	master->cleanup =3D omap1_spi100k_cleanup;
-+	master->num_chipselect =3D2;
-+	master->mode_bits =3D MODEBITS;
-+
-+	dev_set_drvdata(&pdev->dev, master);
-+
-+	spi100k =3D spi_master_get_devdata(master);
-+	spi100k->master =3D master;
-+
-+	r =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (r =3D=3D NULL) {
-+		 status =3D -ENODEV;
-+		 goto err1;
-+	}
-+	if (!request_mem_region(r->start, (r->end - r->start) + 1,
-+			pdev->name)) {
-+	       status =3D -EBUSY;
-+	       goto err1;
-+	}
-+
-+	spi100k->base =3D (void __iomem *) OMAP2_L3_IO_ADDRESS(r->start);
-+	spi100k->base_addr =3D (unsigned long)r->start;
-+	INIT_WORK(&spi100k->work, omap1_spi100k_work);
-+
-+	spin_lock_init(&spi100k->lock);
-+	INIT_LIST_HEAD(&spi100k->msg_queue);
-+	spi100k->ick =3D clk_get(&pdev->dev, "ick");
-+	if (IS_ERR(spi100k->ick)) {
-+		dev_dbg(&pdev->dev, "can't get spi100k_ick\n");
-+		status =3D PTR_ERR(spi100k->ick);
-+		goto err1a;
-+	}
-+
-+	spi100k->fck =3D clk_get(&pdev->dev, "fck");
-+	if (IS_ERR(spi100k->fck)) {
-+		dev_dbg(&pdev->dev, "can't get spi100k_fck\n");
-+		status =3D PTR_ERR(spi100k->fck);
-+		goto err2;
-+	}
-+
-+	if (omap1_spi100k_reset(spi100k) < 0)
-+		goto err3;
-+
-+	status =3D spi_register_master(master);
-+	if (status < 0)
-+		goto err3;
-+
-+	printk(KERN_INFO "spi Registered\n");
-+	return status;
-+
-+err3:
-+	clk_put(spi100k->fck);
-+err2:
-+	clk_put(spi100k->ick);
-+err1a:
-+	release_mem_region(r->start, (r->end - r->start) + 1);
-+err1:
-+	spi_master_put(master);
-+	printk(KERN_INFO "Error: spi\n");
-+	return status;
-+}
-+
-+static int __exit omap1_spi100k_remove(struct platform_device *pdev)
-+{
-+	struct spi_master       *master;
-+	struct omap1_spi100k    *spi100k;
-+	struct resource         *r;
-+
-+	master =3D dev_get_drvdata(&pdev->dev);
-+	spi100k =3D spi_master_get_devdata(master);
-+
-+	clk_put(spi100k->fck);
-+	clk_put(spi100k->ick);
-+
-+	r =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	release_mem_region(r->start, (r->end - r->start) + 1);
-+
-+	spi_unregister_master(master);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver omap1_spi100k_driver =3D {
-+	.driver =3D {
-+		.name		=3D "omap1_spi100k",
-+		.owner		=3D THIS_MODULE,
++static struct resource omap_spi1_resources[] = {
++	{
++		.start          = OMAP7XX_SPI1_BASE,
++		.end            = OMAP7XX_SPI1_BASE + 0x7ff,
++		.flags          = IORESOURCE_MEM,
 +	},
-+	.probe		=3D omap1_spi100k_probe,
-+	.remove		=3D __exit_p(omap1_spi100k_remove),
 +};
 +
++struct platform_device omap_spi1 = {
++        .name           = "omap1_spi100k",
++        .id             = 1,
++        .num_resources  = ARRAY_SIZE(omap_spi1_resources),
++        .resource       = omap_spi1_resources,
++        .dev            = {
++                .platform_data = &omap_spi1_config,
++        },
++};
 +
-+static int __init omap1_spi100k_init(void)
++static struct omap_spi100k_platform_config omap_spi2_config = {
++        .num_cs         = 2,
++};
++
++static struct resource omap_spi2_resources[] = {
++        {
++                .start          = OMAP7XX_SPI2_BASE,
++                .end            = OMAP7XX_SPI2_BASE + 0x7ff,
++                .flags          = IORESOURCE_MEM,
++        },
++};
++
++struct platform_device omap_spi2 = {
++        .name           = "omap1_spi100k",
++        .id             = 2,
++        .num_resources  = ARRAY_SIZE(omap_spi2_resources),
++        .resource       = omap_spi2_resources,
++        .dev            = {
++	        .platform_data = &omap_spi2_config,
++	},
++};
++
++static void omap_init_spi100k(void)
 +{
-+	int ret;
-+
-+	printk(KERN_INFO "In spi init\n");
-+	omap1_spi100k_wq =3D create_singlethread_workqueue(
-+			omap1_spi100k_driver.driver.name);
-+
-+	if (omap1_spi100k_wq =3D=3D NULL) {
-+		printk(KERN_INFO "Error: spi init\n");
-+		return -1;
-+	}
-+
-+	ret =3D platform_driver_register(&omap1_spi100k_driver);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
++        platform_device_register(&omap_spi1);
++        platform_device_register(&omap_spi2);
 +}
 +
-+static void __exit omap1_spi100k_exit(void)
-+{
-+	platform_driver_unregister(&omap1_spi100k_driver);
++#else
++static inline void omap_init_spi100k(void) {}
++#endif
 +
-+	destroy_workqueue(omap1_spi100k_wq);
-+}
++/*-------------------------------------------------------------------------*/
 +
-+module_init(omap1_spi100k_init);
-+module_exit(omap1_spi100k_exit);
+ #if defined(CONFIG_OMAP_STI)
+ 
+ #define OMAP1_STI_BASE		0xfffea000
+@@ -263,6 +332,7 @@ static int __init omap1_init_devices(void)
+ 
+ 	omap_init_mbox();
+ 	omap_init_rtc();
++	omap_init_spi100k();
+ 	omap_init_sti();
+ 
+ 	return 0;
+diff --git a/arch/arm/plat-omap/include/plat/omap7xx.h b/arch/arm/plat-omap/include/plat/omap7xx.h
+index 53f5241..48e4757 100644
+--- a/arch/arm/plat-omap/include/plat/omap7xx.h
++++ b/arch/arm/plat-omap/include/plat/omap7xx.h
+@@ -46,6 +46,9 @@
+ #define OMAP7XX_DSPREG_SIZE	SZ_128K
+ #define OMAP7XX_DSPREG_START	0xE1000000
+ 
++#define OMAP7XX_SPI1_BASE	0xfffc0800
++#define OMAP7XX_SPI2_BASE	0xfffc1000
 +
-+MODULE_DESCRIPTION("OMAP7xx SPI 100k controller driver");
-+MODULE_AUTHOR("Fabrice Crohas <fcrohas@gmail.com>");
-+MODULE_LICENSE("GPL");
+ /*
+  * ----------------------------------------------------------------------------
+  * OMAP7XX specific configuration registers
+diff --git a/arch/arm/plat-omap/include/plat/spi100k.h b/arch/arm/plat-omap/include/plat/spi100k.h
+new file mode 100644
+index 0000000..a4e877f
+--- /dev/null
++++ b/arch/arm/plat-omap/include/plat/spi100k.h
+@@ -0,0 +1,15 @@
++#ifndef _SPI100K_H
++#define _SPI100K_H
 +
---=20
++struct omap_spi100k_platform_config {
++	unsigned short	num_cs;
++};
++
++struct omap_spi100k_device_config {
++	unsigned turbo_mode:1;
++
++	/* Do we want one channel enabled at the same time? */
++	unsigned single_channel:1;
++};
++#endif /* _SPI100K_H */
++
+-- 
 1.6.3.3
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
