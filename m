@@ -1,154 +1,192 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2]: OMAP: SDP: Introducing 'board-sdp-flash.c' for
- flash init
-Date: Mon, 7 Dec 2009 10:36:01 -0800
-Message-ID: <20091207183600.GF24013@atomide.com>
-References: <ce9ab5790912030610y5608ed48t4635c8995623750@mail.gmail.com>
- <20091204221712.GL24013@atomide.com>
- <ce9ab5790912062240i1ca4d8eemcc46e6bc19ecb8f6@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC][RFT][PATCH 3/4 v5b] OMAP: McBSP: Introduce caching in register write operations
+Date: Mon, 7 Dec 2009 20:39:32 +0100
+Message-ID: <200912072039.34081.jkrzyszt@tis.icnet.pl>
+References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <200912051447.41777.jkrzyszt@tis.icnet.pl> <20091207175534.GZ24013@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64281 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758556AbZLGSf4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 13:35:56 -0500
+Received: from d1.icnet.pl ([212.160.220.21]:41859 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932244AbZLGTjg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 14:39:36 -0500
+In-Reply-To: <20091207175534.GZ24013@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <ce9ab5790912062240i1ca4d8eemcc46e6bc19ecb8f6@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-* Vimal Singh <vimal.newwork@gmail.com> [091206 22:39]:
-> On Sat, Dec 5, 2009 at 3:47 AM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> > Hi,
+Monday 07 December 2009 18:55:35 Tony Lindgren napisa=C5=82(a):
+> Hi,
+>
+> This is pretty close :) Few more tweaks are still needed.
+>
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091205 05:46]:
+> > Reserve static space for storing cached copies of McBSP register va=
+lues.
+> > Split omap_mcbsp_read()/omap_mcbsp_write() into separate functions =
+for
+> > OMAP1 and OMAP2/3/4, move them from plat-omap to mach-omap1 / mach-=
+omap2
+> > to be able to access the static cache.
+> > Modify omap_msbcp_write() to update the cache with every register w=
+rite
+> > operation.
+> > Modify omap_mcbsp_read() to support reading from cache or hardware.
+> > Update MCBSP_READ/MCBSP_WRITE macros for modified function APIs.
+> > Introduce a new macro that reads from the cache.
 > >
-> > * Vimal Singh <vimal.newwork@gmail.com> [091203 06:09]:
-> >> From 13d52884956a26f93826c443e2b8bd78615f74d6 Mon Sep 17 00:00:00 =
-2001
-> >> From: Vimal Singh <vimalsingh@ti.com>
-> >> Date: Thu, 26 Nov 2009 16:10:24 +0530
-> >> Subject: [PATCH] OMAP: SDP: Introducing 'board-sdp-flash.c' for fl=
-ash init
-> >>
-> >> This patch adds 'board-sdp-flash.c', which could be utilized
-> >> by boards similar to 3430SDP. (For ex: 2430sdp, 36030sdp).
-> >>
-> >> This file does initialization for all three flash devices present
-> >> in SDP boards (NOR, NAND, OneNAND), by finding there 'cs' number
-> >> dynamically using switch setting information (S8: 1-4).
-> >> This also expects partition information from core board files (for
-> >> ex: board-3430sdp.c). Which allows to choose different default
-> >> partitions for different boards.
-> >>
-> >> A new structure is created for this purpose: 'flash_partitions'
-> >> in 'mach/board-sdp.h'. This has two members:
-> >> 1. struct mtd_partition *parts
-> >> 2. int nr_parts
-> >>
-> >> A board file is expected to fill this structure and pass it to
-> >> 'sdp-flsash-init'. Partition information should be passed in
-> >> structure array of 'flash_partitions'. Partition information shoul=
-d
-> >> be passed in below sequence in array:
-> >> NOR
-> >> OneNAND
-> >> NAND
-> >>
-> >> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-> >> ---
-> >> =A0arch/arm/mach-omap2/board-sdp-flash.c =A0 =A0 =A0 =A0| =A0246 +=
-+++++++++++++++++++++++++
-> >> =A0arch/arm/mach-omap2/include/mach/board-sdp.h | =A0 22 +++
-> >> =A0arch/arm/plat-omap/include/plat/gpmc.h =A0 =A0 =A0 | =A0 =A02 +
-> >> =A03 files changed, 270 insertions(+), 0 deletions(-)
-> >> =A0create mode 100644 arch/arm/mach-omap2/board-sdp-flash.c
-> >> =A0create mode 100644 arch/arm/mach-omap2/include/mach/board-sdp.h
-> >>
-> >> diff --git a/arch/arm/mach-omap2/board-sdp-flash.c
-> >> b/arch/arm/mach-omap2/board-sdp-flash.c
-> >> new file mode 100644
-> >> index 0000000..fbbcd0e
-> >> --- /dev/null
-> >> +++ b/arch/arm/mach-omap2/board-sdp-flash.c
+> > Applies on top of patch 2 from this series:
+> > [PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API =
+for
+> > caching
 > >
-> > <snip>
+> > Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
+> > commit 82f1d8f22f2c65e70206e40a6f17688bf64a892c.
+> > Compile-tested with omap_generic_2420_defconfig, omap_3430sdp_defco=
+nfig.
 > >
-> >> +__init board_nand_init(struct flash_partitions sdp_nand_parts, u8=
- cs)
-> >> +{
-> >> + =A0 =A0 sdp_nand_data.cs =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D cs;
-> >> + =A0 =A0 sdp_nand_data.parts =A0 =A0 =A0 =A0 =A0 =A0 =3D sdp_nand=
-_parts.parts;
-> >> + =A0 =A0 sdp_nand_data.nr_parts =A0 =A0 =A0 =A0 =A0=3D sdp_nand_p=
-arts.nr_parts;
-> >> +
-> >> + =A0 =A0 sdp_nand_data.gpmc_cs_baseaddr =A0=3D (void *)(OMAP34XX_=
-GPMC_VIRT +
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 GPMC_CS0_BASE +
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cs * GPMC_CS_SIZE);
-> >> + =A0 =A0 sdp_nand_data.gpmc_baseaddr =A0 =A0 =A0=3D (void *) (OMA=
-P34XX_GPMC_VIRT);
-> >> +
-> >> + =A0 =A0 gpmc_nand_init(&sdp_nand_data);
-> >> +}
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 > >
-> > This does not look right. You're supposed to use gpmc_cs_request()
-> > for allocating the GPMC area based on the chip select and size.
->=20
-> I guess you are getting confuse a bit here:
-> gpmc_baseaddr: is the virtual address for GPMC_REVISION (which is als=
-o
-> base address for GPMC).
-> gpmc_cs_baseaddr : This is offset from above to 'GPMC_CONFIG(cs)' for
-> specified cs number.
->=20
-> These are needed by nand driver.
-
-Right.. Looks like drivers/mtd/nand/omap2.c needs to be fixed so we
-can get rid of this.
-
-And looks like we already are doing it all over the place anyways :(
-=20
-> While 'gpmc_cs_request' gives physical address to the device resource=
-=2E
-> And this is done in 'nand/omap2.c'. This is done in driver itself so
-> that we don't allocate a resource even before driver gets loaded.
-
-Yuk.. The nand driver should be generic.
-
-> >> --- a/arch/arm/plat-omap/include/plat/gpmc.h
-> >> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
-> >> @@ -27,6 +27,8 @@
-> >>
-> >> =A0#define GPMC_CONFIG =A0 =A0 =A0 =A0 =A00x50
-> >> =A0#define GPMC_STATUS =A0 =A0 =A0 =A0 =A00x54
-> >> +#define GPMC_CS0_BASE =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x60
-> >> +#define GPMC_CS_SIZE =A0 =A0 =A0 =A0 0x30
+> > ---
 > >
-> > The GPMC_CS0_BASE and GPMC_CS_SIZE seem to be values specic to
-> > your board, not for the GPMC hardware.
->=20
-> These are offsets and very much specific to GPMC hardware.
->=20
-> GPMC_CS0_BASE: is offset from GPMC base to first cs GPMC_CONFIG1 regi=
-ster.
-> GPMC_CS_SIZE : is offset (gap) between next cs config registers, e.i.
-> size for cs config registers.
+> > Tony,
+> >
+> > Since I was not sure what your primary concern was, I've prepared t=
+wo
+> > alternative versions of patch 3/4.
+> > Please take this one as a base for further discussion if your prima=
+ry
+> > concern was storage class for the cache.
+> > Otherwise, have a look at the other one (v5a), since this one has e=
+ven
+> > more ifdefs than before.
+> >
+> > Thanks,
+> > Janusz
+> >
+> > diff -upr git.orig/arch/arm/mach-omap1/mcbsp.c
+> > git/arch/arm/mach-omap1/mcbsp.c ---
+> > git.orig/arch/arm/mach-omap1/mcbsp.c	2009-12-02 15:48:37.000000000 =
++0100
+> > +++ git/arch/arm/mach-omap1/mcbsp.c	2009-12-05 06:42:35.000000000 +=
+0100
+> > @@ -200,3 +200,26 @@ int __init omap1_mcbsp_init(void)
+> >  }
+> >
+> >  arch_initcall(omap1_mcbsp_init);
+> > +
+> > +/* if adding more, put larger first */
+> > +#if defined(CONFIG_ARCH_OMAP16XX)
+> > +static u16 omap_mcbsp_cache[OMAP16XX_MCBSP_PDATA_SZ][OMAP_MCBSP_RE=
+G_COUNT];
+> > +#elif defined(CONFIG_ARCH_OMAP15XX)
+> > +static u16 omap_mcbsp_cache[OMAP15XX_MCBSP_PDATA_SZ][OMAP_MCBSP_RE=
+G_COUNT];
+> > +#elif defined(CONFIG_ARCH_OMAP7XX)
+> > +static u16 omap_mcbsp_cache[OMAP7XX_MCBSP_PDATA_SZ][OMAP_MCBSP_REG=
+_COUNT];
+> > +#else=20
+> > +#define omap_mcbsp_cache	NULL
+> > +#endif
+>
+> As 15xx and 16xx can be compiled into the same kernel binary, we need=
+ to
+> get rid of the ifdef elif else (untested):
 
-Let's keep it local until drivers/mtd/nand/omap2.c is fixed.
+> #ifdef(CONFIG_ARCH_OMAP7XX)
+> static u16 omap7xx_mcbsp_cache[OMAP7XX_MCBSP_PDATA_SZ][OMAP7XX_MCBSP_=
+REG_COUNT];
+> #else=20
+> static 16 omap7xx_mcbsp_cache;
 
-Care to take a look at using some generic nand driver instead
-if we merge this for now?
+???
 
-Regards,
+static u16 omap7xx_mcbsp_cache; ?
 
-Tony
+#define omap7xx_mcbsp_cache NULL ?
+
+> #endif
+>
+> #if defined(CONFIG_ARCH_OMAP15XX)
+> static u16 omap15xx_mcbsp_cache[OMAP15XX_MCBSP_PDATA_SZ][OMAP15XX_MCB=
+SP_REG_COUNT];
+> #else
+> static 16 omap15xx_mcbsp_cache;
+> #endif
+>
+> #if defined(CONFIG_ARCH_OMAP16XX)
+> static u16 omap16xx_mcbsp_cache[OMAP16XX_MCBSP_PDATA_SZ][OMAP_16XXMCB=
+SP_REG_COUNT];
+> #else
+> static 16 omap16xx_mcbsp_cache;
+> #endif
+> ...
+>
+> > +void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
+> > +{
+> > +	omap_mcbsp_cache[mcbsp->id][reg / sizeof(u16)] =3D (u16)val;
+> > +	__raw_writew((u16)val, mcbsp->io_base + reg);
+> > +}
+> > +
+> > +int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_c=
+ache)
+> > +{
+> > +	return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
+> > +			omap_mcbsp_cache[mcbsp->id][reg / sizeof(u16)];
+> > +}
+>
+> Then these can become something like this:
+>
+> void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
+> {
+> 	if (cpu_is_omap7xx())
+> 		omap7xx_mcbsp_cache[mcbsp->id][reg / sizeof(u16)] =3D (u16)val;
+> 	else if (cpu_is_omap15xx())
+> 		omap15xx_mcbsp_cache[mcbsp->id][reg / sizeof(u16)] =3D (u16)val;
+> 	else if (cpu_is_omap16xx())
+> 		omap16xx_mcbsp_cache[mcbsp->id][reg / sizeof(u16)] =3D (u16)val;
+>
+> 	__raw_writew((u16)val, mcbsp->io_base + reg);
+> }
+> ...
+>
+> The code for processors that are not compiled in will get automatical=
+ly
+> optimized out as the cpu_is_xxxx() becomes 0.
+
+Tony,
+
+=46or me, the fact that more than one processor type can be configured =
+side by=20
+side it not enough reason here. With your code, if more then one proces=
+sor=20
+type is configured, twice or tripple as much memory space will be devot=
+ed to =20
+two or three cache tables instead of one that can be reused easily, as =
+it is=20
+with mine. Since you cannot run the same instance of the kernel on seve=
+ral=20
+machines simultaneously, only one of those two or three tables is requi=
+red at=20
+runtime for storing data, so this looks like a waste of expensive memor=
+y=20
+unless some kind of runtime optimization that I am not familiar with ca=
+n
+happen here. I was even affraid before that one of objections against m=
+y idea=20
+of using the cache could be unnecessary waste of memory space.
+
+Nevertheless, I'll do it your way. Maybe there are still some other rea=
+sons
+not explicitly expressed yet.
+
+I guess that omap2 part should follow the same pattern, shouldn't it?
+
+Thanks,
+Janusz
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
