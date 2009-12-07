@@ -1,57 +1,82 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] Fix include problem. Signed-off-by: Marek Belisko
- <marek.belisko@gmail.com>
-Date: Mon, 07 Dec 2009 11:11:21 +0200
-Message-ID: <1260177081.2342.57.camel@tubuntu.research.nokia.com>
-References: <e7c6a05e0912030528k1f9c9493y11d55812a054b030@mail.gmail.com>
-	 <6cb013310912030729k2b42e2edqfe7a63f9c046bb89@mail.gmail.com>
-	 <20091204230012.GN24013@atomide.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: DSS2 and power supplies
+Date: Mon, 7 Dec 2009 12:27:24 +0200
+Message-ID: <6ed0b2680912070227x3bcb9613x88ebdb0b0a7f3f18@mail.gmail.com>
+References: <6ed0b2680912040253m3b25950fuf49e6ec75ad13067@mail.gmail.com>
+	 <1260175482.2342.49.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:57589 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759144AbZLGJLU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 04:11:20 -0500
-In-Reply-To: <20091204230012.GN24013@atomide.com>
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:41050 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934864AbZLGK1S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 05:27:18 -0500
+Received: by fxm5 with SMTP id 5so4755021fxm.28
+        for <linux-omap@vger.kernel.org>; Mon, 07 Dec 2009 02:27:24 -0800 (PST)
+In-Reply-To: <1260175482.2342.49.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Cory Maccarrone <darkstar6262@gmail.com>, Belisko Marek <marek.belisko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, 2009-12-05 at 00:00 +0100, ext Tony Lindgren wrote:
-> * Cory Maccarrone <darkstar6262@gmail.com> [091203 07:28]:
-> > On Thu, Dec 3, 2009 at 5:28 AM, Belisko Marek <marek.belisko@gmail.com> wrote:
-> > >
-> > > Hi,
-> > >
-> > > when make htcherald_defconfig on current linux-omap tree
-> > > (82f1d8f22f2c65e70206e40a6f17688bf64a892c) compilation fails
-> > > in drivers/video/omap/lcd_htcherald.c.
-> > >
-> > > Following patch fixed this problem.
-> > 
-> > Marek and I talked on IRC about this, and it turns out this is true on
-> > the linux-omap master branch, but for-next compiles without issue,
-> > possibly due to the header changes not having been done on the master
-> > branch yet.
-> 
-> Looks like Tomi's DSS2 moved this around. The DSS2 code is merged
-> into linux-omap master branch, but is not in omap for-next branch.
-> 
-> I've applied this to linux-omap master branch for now. 
-> 
-> Tomi, can you please add this to your fixes queue?
-> 
-> The patch in question is at:
-> 
-> http://patchwork.kernel.org/patch/64520/
+On Mon, Dec 7, 2009 at 10:44 AM, Tomi Valkeinen
+<tomi.valkeinen@nokia.com> wrote:
+> Hi,
+>
+> On Fri, 2009-12-04 at 11:53 +0100, ext Grazvydas Ignotas wrote:
+>> hi,
+>>
+>> it seems DSS block in OMAP needs SDI/DSI supplies to operate properl=
+y
+>> even with parallel displays, or else it doesn't drive some data line=
+s
+>> resulting in missing/wrong colors. Take a look at figure 15-1 on OMA=
+P3
+>> TRM (page 2119 on spruf98d), some dss_data lines are going out of
+>> SDI/DSI blocks, which are fed by vdds_sdi and vdds_dsi supplies
+>> (vdss_sdi in fig 15-1 seems to be a typo). Those 2 are typically
+>> connected to VPLL2 on TWL4030/TPS65950 (see fig. 25-2 on p3482), so
+>> that regulator needs to be activated for proper operation (if you ha=
+ve
+>> a parallel display and a board with TWL4030 you can reproduce this b=
+y
+>> not enabling VPLL2 in bootloader and kernel; mainline u-boot enables
+>> it).
+>
+> Hmm, this would explain the color errors. Have you seen this on some
+> other board than TI's SDP?
+>
+> To me the fig 15-1 does not tell that the powers are needed. The
+> DSS_DATA[] pins do not come from SDI/DSI blocks, but from the main DS=
+S
+> block. And the pin muxing component is outside also. This of course
+> doesn't really prove anything. =3D)
 
-Yes, I'll take it. And I actually anyway need to re-check before sending
-pull request that all includes are correct, as there may have been new
-LCDs/board files.
+True, but apparently vdds_dsi and/or vdds_sdi are also used to drive
+some data lines then (not supplying them produces blue-ish display
+with some parts missing). I'm working with pandora board, and I'm sure
+VPLL2 is not connected to anything else.
 
- Tomi
+>
+>> Right now DSS2 requests vdds_dsi in DSI driver only, any plans to
+>> request vdds_dsi/vdds_sdi for parallel displays too?
+>
+> I didn't have any plans, but if what you said is true, it sure needs =
+to
+> be added.
 
+Yeah that would be nice.
 
+>
+> =A0Tomi
+>
+> Ps. Adding l-o, as others may be interested also.
+>
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
