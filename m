@@ -1,82 +1,70 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: DSS2 and power supplies
-Date: Mon, 7 Dec 2009 12:27:24 +0200
-Message-ID: <6ed0b2680912070227x3bcb9613x88ebdb0b0a7f3f18@mail.gmail.com>
-References: <6ed0b2680912040253m3b25950fuf49e6ec75ad13067@mail.gmail.com>
-	 <1260175482.2342.49.camel@tubuntu.research.nokia.com>
+From: Mika Westerberg <mika.westerberg@iki.fi>
+Subject: Re: Preventing OMAP3 serial driver to take control of all UARTs
+Date: Mon, 7 Dec 2009 12:44:04 +0200
+Message-ID: <20091207104404.GG5626@gw.healthdatacare.com>
+References: <20091130084651.GA17675@esdhcp04058.research.nokia.com> <1259599010.4649.51.camel@thunk> <fa686aa40911300901nd47259ar2e1beae7be447937@mail.gmail.com> <20091130194031.GV4348@atomide.com> <fa686aa40912020707p70eb693dp6fcd03facabb5892@mail.gmail.com> <20091203010051.GP4348@atomide.com> <20091203065651.GH17675@esdhcp04058.research.nokia.com> <1259830011.10805.60.camel@localhost> <20091203195243.GA4348@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:41050 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934864AbZLGK1S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 05:27:18 -0500
-Received: by fxm5 with SMTP id 5so4755021fxm.28
-        for <linux-omap@vger.kernel.org>; Mon, 07 Dec 2009 02:27:24 -0800 (PST)
-In-Reply-To: <1260175482.2342.49.camel@tubuntu.research.nokia.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:43471 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752706AbZLGKoE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 05:44:04 -0500
+Received: by bwz27 with SMTP id 27so3355230bwz.21
+        for <linux-omap@vger.kernel.org>; Mon, 07 Dec 2009 02:44:08 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20091203195243.GA4348@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, Mika Westerberg <ext-mika.1.westerberg@nokia.com>, Grant Likely <grant.likely@secretlab.ca>, Peter Barada <peterb@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Mon, Dec 7, 2009 at 10:44 AM, Tomi Valkeinen
-<tomi.valkeinen@nokia.com> wrote:
-> Hi,
->
-> On Fri, 2009-12-04 at 11:53 +0100, ext Grazvydas Ignotas wrote:
->> hi,
->>
->> it seems DSS block in OMAP needs SDI/DSI supplies to operate properl=
-y
->> even with parallel displays, or else it doesn't drive some data line=
-s
->> resulting in missing/wrong colors. Take a look at figure 15-1 on OMA=
-P3
->> TRM (page 2119 on spruf98d), some dss_data lines are going out of
->> SDI/DSI blocks, which are fed by vdds_sdi and vdds_dsi supplies
->> (vdss_sdi in fig 15-1 seems to be a typo). Those 2 are typically
->> connected to VPLL2 on TWL4030/TPS65950 (see fig. 25-2 on p3482), so
->> that regulator needs to be activated for proper operation (if you ha=
-ve
->> a parallel display and a board with TWL4030 you can reproduce this b=
-y
->> not enabling VPLL2 in bootloader and kernel; mainline u-boot enables
->> it).
->
-> Hmm, this would explain the color errors. Have you seen this on some
-> other board than TI's SDP?
->
-> To me the fig 15-1 does not tell that the powers are needed. The
-> DSS_DATA[] pins do not come from SDI/DSI blocks, but from the main DS=
-S
-> block. And the pin muxing component is outside also. This of course
-> doesn't really prove anything. =3D)
+On Thu, Dec 03, 2009 at 11:52:44AM -0800, Tony Lindgren wrote:
+> * Artem Bityutskiy <dedekind1@gmail.com> [091203 00:46]:
+> > On Thu, 2009-12-03 at 08:56 +0200, Mika Westerberg wrote:
+> > > On Thu, Dec 03, 2009 at 02:00:52AM +0100, ext Tony Lindgren wrote:
+> > > > * Grant Likely <grant.likely@secretlab.ca> [091202 07:06]:
+> > > > > On Mon, Nov 30, 2009 at 12:40 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > > > > > * Grant Likely <grant.likely@secretlab.ca> [091130 09:01]:
+> > > > 
+> > > > <snip>
+> > > > 
+> > > > > >
+> > > > > > maybe you've already thought through all this.. But would it be
+> > > > > > possible to do lightweight device tree that we just use to populate
+> > > > > > the platform data?
+> > > > > 
+> > > > > This is completely possible.  Just having the device tree available
+> > > > > doesn't force the kernel to use it for everything.  I've found it
+> > > > > useful to start small and add things as I need them.  Most important
+> > > > > thing to remember is to follow the documented & established device
+> > > > > tree conventions so that common code can understand it.
+> > > > 
+> > > > OK, sounds good to me.
+> > > 
+> > > Hi,
+> > > 
+> > > This device tree stuff sounds like very cool way of doing things. Hope
+> > > it is ready soon :)
+> > > 
+> > > Meanwhile, would it be OK to implement something to get the serial driver
+> > > taking control of the all the UARTs? Any comments on adding new function
+> > > to mach-omap2/serial.c: omap_serial_init_port(int port) that could be
+> > > used from board files instead of omap_serial_init()?
+> > 
+> > Device tree is really promising, but we do need an alternative method
+> > anyway, because not everyone will use the device tree. IOW, device tree
+> > does not exist yet, and will not be mandatory, so an alternative is
+> > required.
+> 
+> Right, it sounds like the device tree won't solve all the issues.
+> 
+> But before we change anything with the mach-omap2/serial.c, let's wait
+> until we hear comments from Kevin.
 
-True, but apparently vdds_dsi and/or vdds_sdi are also used to drive
-some data lines then (not supplying them produces blue-ish display
-with some parts missing). I'm working with pandora board, and I'm sure
-VPLL2 is not connected to anything else.
+Tony, Kevin,
 
->
->> Right now DSS2 requests vdds_dsi in DSI driver only, any plans to
->> request vdds_dsi/vdds_sdi for parallel displays too?
->
-> I didn't have any plans, but if what you said is true, it sure needs =
-to
-> be added.
+Any comments on this?
 
-Yeah that would be nice.
-
->
-> =A0Tomi
->
-> Ps. Adding l-o, as others may be interested also.
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+MW
