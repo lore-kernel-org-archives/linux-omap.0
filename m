@@ -1,78 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] [RESEND] Amstrad Delta: add support for LCD
- contrast
-Date: Mon, 7 Dec 2009 13:32:50 -0800
-Message-ID: <20091207213250.GI24013@atomide.com>
-References: <200911231857.55566.jkrzyszt@tis.icnet.pl>
- <200912051454.52966.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH] OMAP3: PM: Enable wake-up from McBSP2, 3 and 4 modules
+Date: Mon, 7 Dec 2009 13:34:11 -0800
+Message-ID: <20091207213411.GJ24013@atomide.com>
+References: <1259241530-26109-1-git-send-email-peter.ujfalusi@nokia.com>
+ <200912071538.06968.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62837 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64310 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935561AbZLGVdI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 16:33:08 -0500
+	with ESMTP id S935594AbZLGVeG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 16:34:06 -0500
 Content-Disposition: inline
-In-Reply-To: <200912051454.52966.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <200912071538.06968.peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev-devel@lists.sourceforge.net, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091205 05:54]:
-> Monday 23 November 2009 18:57:51 Janusz Krzysztofik napisa=C5=82(a):
-> > Initialy submitted on 2009-11-16
-> > (http://www.spinics.net/lists/linux-omap/msg20629.html).
-> > Resendig due to fbdev mailing list address changed.
-> >
-> > The series consists of 2 patches:
-> >
-> >  [PATCH 1/2] omapfb: lcd_ams_delta: add support for contrast contro=
-l
-> >  [PATCH 2/2] OMAP: ams_delta_defconfig: enable LCD class device sup=
-port
-> >
-> > It is intended for 2.6.33, if it's not too late.
->=20
-> Hi,
->=20
-> Now that Tony has changed the series status from New to Awaiting Upst=
-ream in=20
-> his patchwork queue[1][2], chances of getting it in throungh linux-om=
-ap tree,=20
-> like a few other omapfb related patches managed to do lately, seem fa=
-lling=20
-> down drastically to me if still not answered by anyone involved in om=
-apfb=20
-> development.
->=20
-> Imre,
-> Could you please take the patches, or give your ack for Tony to take =
-them, or=20
-> just point me on the right way to the get them integrated or NAKed, i=
-f none=20
-> of the former is?
->=20
-> Tomi,
-> I am not sure if you are the right person for bothering here, but may=
-be you=20
-> could give your comments that would help pushing it forward?
+* Peter Ujfalusi <peter.ujfalusi@nokia.com> [091207 05:37]:
+> Hello Tony, Kevin,
+> 
+> On Thursday 26 November 2009 15:18:50 Ujfalusi Peter (Nokia-D/Tampere) wrote:
+> > Wake-up from McBSP ports are needed, especially when the THRESHOLD
+> > dma mode is in use for audio playback.
+> > 
+> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+> > ---
+> >  arch/arm/mach-omap2/pm34xx.c |    8 ++++++--
+> >  1 files changed, 6 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> > index 81ed252..6b17647 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -878,12 +878,16 @@ static void __init prcm_setup_regs(void)
+> >  	/* Enable wakeups in PER */
+> >  	prm_write_mod_reg(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
+> >  			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
+> > -			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3,
+> > +			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3 |
+> > +			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
+> > +			  OMAP3430_EN_MCBSP4,
+> >  			  OMAP3430_PER_MOD, PM_WKEN);
+> >  	/* and allow them to wake up MPU */
+> >  	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
+> >  			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
+> > -			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3,
+> > +			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3 |
+> > +			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
+> > +			  OMAP3430_EN_MCBSP4,
+> >  			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
+> > 
+> >  	/* Don't attach IVA interrupts */
+> > 
+> 
+> Have you had time to take a look at this patch?
 
-I'd prefer Tomi to merge all the drivers/video/omap code rather
-than merge it via linux-omap tree. Ideally with an ack from
-Imre where possible.
+Makes sense to me, let's let Kevin queue it up.
 
 Tony
-
-=20
-> Thanks,
-> Janusz
->=20
-> [1] http://patchwork.kernel.org/patch/62248/
-> [2] http://patchwork.kernel.org/patch/62249/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
