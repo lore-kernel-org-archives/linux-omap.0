@@ -1,66 +1,97 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH] OMAP3: PM: Enable wake-up from McBSP2, 3 and 4 modules
-Date: Mon, 7 Dec 2009 15:38:06 +0200
-Message-ID: <200912071538.06968.peter.ujfalusi@nokia.com>
-References: <1259241530-26109-1-git-send-email-peter.ujfalusi@nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 1/1] mfd: twl4030: clarify the return value for read
+ and write
+Date: Mon, 7 Dec 2009 15:53:09 +0200
+Message-ID: <20091207135309.GA23829@esdhcp037198.research.nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0309DAC23C@dbde02.ent.ti.com>
+ <449d505b874c236e4d0df0c1f765918386a4d58b.1260187781.git.amit.kucheria@verdurent.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37513 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934520AbZLGNiH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 08:38:07 -0500
-In-Reply-To: <1259241530-26109-1-git-send-email-peter.ujfalusi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:29321 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935048AbZLGNxX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 08:53:23 -0500
+Content-Disposition: inline
+In-Reply-To: <449d505b874c236e4d0df0c1f765918386a4d58b.1260187781.git.amit.kucheria@verdurent.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>
+To: ext Amit Kucheria <amit.kucheria@verdurent.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, "gadiyar@ti.com" <gadiyar@ti.com>, List Linux Kernel <linux-kernel@vger.kernel.org>, List Linux Omap <linux-omap@vger.kernel.org>
 
-Hello Tony, Kevin,
-
-On Thursday 26 November 2009 15:18:50 Ujfalusi Peter (Nokia-D/Tampere) =
-wrote:
-> Wake-up from McBSP ports are needed, especially when the THRESHOLD
-> dma mode is in use for audio playback.
->=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+On Mon, Dec 07, 2009 at 01:17:29PM +0100, ext Amit Kucheria wrote:
+> Infact, we can just return -EIO so that caller knows for sure that all
+> messages were not tranferred. Please consider fixed patch instead.
+> 
+> We should be checking if all the messages were tranferred or not. And return
+> -1 for failure. Currently we return success (0) even if none of messages were
+> transferred successfully.
+> 
+> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
 > ---
->  arch/arm/mach-omap2/pm34xx.c |    8 ++++++--
->  1 files changed, 6 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
-x.c
-> index 81ed252..6b17647 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -878,12 +878,16 @@ static void __init prcm_setup_regs(void)
->  	/* Enable wakeups in PER */
->  	prm_write_mod_reg(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
->  			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
-> -			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3,
-> +			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3 |
-> +			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
-> +			  OMAP3430_EN_MCBSP4,
->  			  OMAP3430_PER_MOD, PM_WKEN);
->  	/* and allow them to wake up MPU */
->  	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
->  			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
-> -			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3,
-> +			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3 |
-> +			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
-> +			  OMAP3430_EN_MCBSP4,
->  			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
->=20
->  	/* Don't attach IVA interrupts */
->=20
+>  drivers/mfd/twl4030-core.c |   24 ++++++++++++++++--------
+>  1 files changed, 16 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> index 56f1de5..3d2c413 100644
+> --- a/drivers/mfd/twl4030-core.c
+> +++ b/drivers/mfd/twl4030-core.c
+> @@ -292,10 +292,14 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
+>  	mutex_unlock(&twl->xfer_lock);
+>  
+> -	/* i2cTransfer returns num messages.translate it pls.. */
+> -	if (ret >= 0)
+> -		ret = 0;
+> -	return ret;
+> +	/* i2c_transfer returns number of messages transferred */
+> +	if (ret != 1) {
+> +		pr_err("%s: i2c_write failed to transfer all messages\n",
+> +			DRIVER_NAME);
+> +		return -EIO;
 
-Have you had time to take a look at this patch?
+How about reporting the actual error that has occurred and reported by i2c_transfer?
+Instead of just masking it as EIO? If i2c_transfer returns something > 0 then EIO should be right.
+But if returns and error code, then that error code must be reported to upper layers.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	} else {
+> +		return 0;
+> +	}
+>  }
+>  EXPORT_SYMBOL(twl4030_i2c_write);
+>  
+> @@ -344,10 +348,14 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
+>  	mutex_unlock(&twl->xfer_lock);
+>  
+> -	/* i2cTransfer returns num messages.translate it pls.. */
+> -	if (ret >= 0)
+> -		ret = 0;
+> -	return ret;
+> +	/* i2c_transfer returns number of messages transferred */
+> +	if (ret != 2) {
+> +		pr_err("%s: i2c_read failed to transfer all messages\n",
+> +			DRIVER_NAME);
+> +		return -EIO;
+
+
+dito.
+
+> +	} else {
+> +		return 0;
+> +	}
+>  }
+>  EXPORT_SYMBOL(twl4030_i2c_read);
+>  
+> -- 
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+-- 
+Eduardo Valentin
