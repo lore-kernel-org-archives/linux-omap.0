@@ -1,572 +1,430 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 04/10 V3] omap3: pm: srf: use opp accessor functions
-Date: Mon, 7 Dec 2009 17:59:23 +0100
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A2236EC9201C@NOK-EUMSG-02.mgdnok.nokia.com>
+From: <Tero.Kristo@Nokia.com>
+Subject: RE: [PATCH 03/10 V3] omap3: pm: use opp accessor functions for
+ omap34xx
+Date: Mon, 7 Dec 2009 18:02:38 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A2236EC9201F@NOK-EUMSG-02.mgdnok.nokia.com>
 References: <1259122159-1583-1-git-send-email-nm@ti.com>
- <1259122159-1583-2-git-send-email-nm@ti.com>
- <1259122159-1583-3-git-send-email-nm@ti.com>
- <1259122159-1583-4-git-send-email-nm@ti.com>
- <1259122159-1583-5-git-send-email-nm@ti.com>
+	<1259122159-1583-2-git-send-email-nm@ti.com>
+	<1259122159-1583-3-git-send-email-nm@ti.com>
+	<1259122159-1583-4-git-send-email-nm@ti.com>
+ <87tywih64f.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:26834 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:27674 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935407AbZLGQ7e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 11:59:34 -0500
-In-Reply-To: <1259122159-1583-5-git-send-email-nm@ti.com>
+	with ESMTP id S932690AbZLGRCj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 12:02:39 -0500
+In-Reply-To: <87tywih64f.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: nm@ti.com, linux-omap@vger.kernel.org
-Cc: b-cousson@ti.com, khilman@deeprootsystems.com, madhu.cr@ti.com, paul@pwsan.com, romit@ti.com, premi@ti.com, santosh.shilimkar@ti.com, saaguirre@ti.com, thara@ti.com, vishwanath.bs@ti.com
+To: khilman@deeprootsystems.com, nm@ti.com
+Cc: linux-omap@vger.kernel.org
 
-Hi,
-
-Couple of comments below.
+One additional comment to this patch, compilation of board-rx51.c fails unless #include "pm.h" is added to it. This might be true for other boards also seeing it has been added to zoom2 at least.
 
 >-----Original Message-----
 >From: linux-omap-owner@vger.kernel.org
->[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext
->Nishanth Menon
->Sent: 25 November, 2009 06:09
->To: linux-omap
->Cc: Nishanth Menon; Benoit Cousson; Kevin Hilman; Madhusudhan
->Chikkature Rajashekar; Paul Walmsley; Romit Dasgupta; Sanjeev
->Premi; Santosh Shilimkar; Sergio Alberto Aguirre Rodriguez;
->Thara Gopinath; Vishwanath Sripathy
->Subject: [PATCH 04/10 V3] omap3: pm: srf: use opp accessor functions
+>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext Kevin Hilman
+>Sent: 25 November, 2009 19:22
+>To: Nishanth Menon
+>Cc: linux-omap
+>Subject: Re: [PATCH 03/10 V3] omap3: pm: use opp accessor
+>functions for omap34xx
 >
->With the accessor functions, many of the direct accesses are
->redundant. However we do not want to rewrite SRF at this point of time
->We do the following here:
->Remove get_opp and introduce three SRF specific accessor functions:
->       opp_to_freq, freq_to_opp - need this coz of usage of opp IDs
->       NOTE: These functions should be removed at a later point
->       of time.
->get_opp is removed because, with the above functions, it is
->redundant.
+>Nishanth Menon <nm@ti.com> writes:
 >
->NOTE: this implementation is just a start and leaves scope for
->further cleanups which can be added on top.
+>> Move the definitions from omap3-opp.h to pm34xx.c. The definitions
+>> are now based on omap_opp_def instead of omap_opp itself.
+>> Since the opp.h has the omap_opp definition, omap-pm.h conflicts and
+>> has been removed in favor of opp.h.
 >
->NOTE: this increases the number of warnings to:
+>ok
 >
->arch/arm/mach-omap2/resource34xx.c: In function 'opp_to_freq':
->arch/arm/mach-omap2/resource34xx.c:182: warning: 'opp_id' is
+>> omap3_pm_init_opp_table is used to initialize the OPP table and
+>> relevant board files which have omap2_init_common_hw called with opp
+>> arrays have been updated with omap3_pm_init_opp_table.
+>>
+>> This change now allows us to dynamically register OPPs to the system
+>> based on silicon type we detect.
+>
+>Nice.
+>
+>With this patch, I would suggest a couple more cleanups in how
+>we are handling
+>the master OPP lists for MPU, DSP and L3.
+>
+>Namely, It's time we could remove the rate_table passing from the OMAP
+>PM layer all together and just keep them as pointers in opp.h.
+>
+>The longer term goal is to remove OPP handling from OMAP PM
+>all together,
+>so this will be a step in that direction.
+>
+>I've attached a patch that applies on top of your series that drops
+>the OPPs from OMAP PM layer.  After doing this, we now have some
+>duplicate global pointers to the various rate tables that could be
+>cleaned up.  In addition, all the rate tables could be dropped from
+>init_common_hw.
+>
+>If you follow my proposal for using opp_add() instead of opp_init()
+>the board files that want to just use default OPPs do not have to do
+>anyting with the rate tables.  Only board files wanting to add OPPs
+>would have to include opp.h and use opp_add().
+>
+>Also, dropping the rate tables from init_common_hw would mean you
+>shouldn't have init sequence issues anymore and you can do the OPP
+>init inside existing PM init.
+>
+>Kevin
+>
+>> NOTE: This introduces the following warnings highlighting areas we
+>> need to cleanup:
+>> arch/arm/mach-omap2/smartreflex.c: In function 'get_opp':
+>> arch/arm/mach-omap2/smartreflex.c:161: warning: 'opp_id' is
 >deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
->arch/arm/mach-omap2/resource34xx.c: In function 'freq_to_opp':
->arch/arm/mach-omap2/resource34xx.c:213: warning: 'opp_id' is
+>> arch/arm/mach-omap2/smartreflex.c:164: warning: 'opp_id' is
 >deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
->arch/arm/mach-omap2/resource34xx.c: In function 'init_opp':
->arch/arm/mach-omap2/resource34xx.c:242: warning: 'freq_to_opp'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:205)
->arch/arm/mach-omap2/resource34xx.c:249: warning: 'freq_to_opp'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:205)
->arch/arm/mach-omap2/resource34xx.c: In function 'program_opp_freq':
->arch/arm/mach-omap2/resource34xx.c:302: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c:303: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c:308: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c: In function 'program_opp':
->arch/arm/mach-omap2/resource34xx.c:351: warning: 'opp_id' is
+>> arch/arm/mach-omap2/smartreflex.c:166: warning: 'opp_id' is
 >deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
->arch/arm/mach-omap2/resource34xx.c:352: warning: 'opp_id' is
+>> arch/arm/mach-omap2/smartreflex.c:168: warning: 'opp_id' is
 >deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
->arch/arm/mach-omap2/resource34xx.c:356: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c:380: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c: In function
->'resource_set_opp_level':
->arch/arm/mach-omap2/resource34xx.c:417: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c:418: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c:420: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c: In function 'set_opp':
->arch/arm/mach-omap2/resource34xx.c:497: warning: 'freq_to_opp'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:205)
->arch/arm/mach-omap2/resource34xx.c: In function 'validate_opp':
->arch/arm/mach-omap2/resource34xx.c:516: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c:518: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c: In function 'init_freq':
->arch/arm/mach-omap2/resource34xx.c:541: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c:544: warning: 'opp_to_freq'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:175)
->arch/arm/mach-omap2/resource34xx.c: In function 'set_freq':
->arch/arm/mach-omap2/resource34xx.c:560: warning: 'freq_to_opp'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:205)
->arch/arm/mach-omap2/resource34xx.c:565: warning: 'freq_to_opp'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:205)
->arch/arm/mach-omap2/resource34xx.c: In function 'validate_freq':
->arch/arm/mach-omap2/resource34xx.c:579: warning: 'freq_to_opp'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:205)
->arch/arm/mach-omap2/resource34xx.c:581: warning: 'freq_to_opp'
->is deprecated (declared at arch/arm/mach-omap2/resource34xx.c:205)
->
->Cc: Benoit Cousson <b-cousson@ti.com>
->Cc: Kevin Hilman <khilman@deeprootsystems.com>
->Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
->Cc: Paul Walmsley <paul@pwsan.com>
->Cc: Romit Dasgupta <romit@ti.com>
->Cc: Sanjeev Premi <premi@ti.com>
->Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
->Cc: Thara Gopinath <thara@ti.com>
->Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
->
->Signed-off-by: Nishanth Menon <nm@ti.com>
->---
-> arch/arm/mach-omap2/resource34xx.c |  244
->++++++++++++++++++++++++++----------
-> 1 files changed, 180 insertions(+), 64 deletions(-)
->
->diff --git a/arch/arm/mach-omap2/resource34xx.c
->b/arch/arm/mach-omap2/resource34xx.c
->index af6b3c1..349f54e 100644
->--- a/arch/arm/mach-omap2/resource34xx.c
->+++ b/arch/arm/mach-omap2/resource34xx.c
->@@ -155,21 +155,68 @@ static int curr_vdd1_opp;
-> static int curr_vdd2_opp;
-> static DEFINE_MUTEX(dvfs_mutex);
->
->-static unsigned short get_opp(struct omap_opp *opp_freq_table,
->+/* Introducing deprecated function because we got to.. */
->+#define IS_OPP_TERMINATOR(opps, i) (!(opps)[(i)].enabled &&\
->+              ((opps)[(i)].rate == 0) && ((opps)[(i)].vsel == 0))
->+
->+/**
->+ * opp_to_freq - convert OPPID to frequency (DEPRECATED)
->+ * @freq: return frequency back to caller
->+ * @opps: opp list
->+ * @opp_id: OPP ID we are searching for
->+ *
->+ * return 0 and freq is populated if we find the opp_id, else,
->+ * we return error
->+ *
->+ * NOTE: this function is a standin for the timebeing as
->opp_id is deprecated
->+ */
->+static int __deprecated opp_to_freq(unsigned long *freq,
->+              const struct omap_opp *opps, u8 opp_id)
->+{
->+      int i = 1;
->+
->+      BUG_ON(!freq || !opps);
->+
->+      /* The first entry is a dummy one, loop till we hit
->terminator */
->+      while (!IS_OPP_TERMINATOR(opps, i)) {
->+              if (opps[i].enabled && (opps[i].opp_id == opp_id)) {
->+                      *freq = opps[i].rate;
->+                      return 0;
->+              }
->+              i++;
->+      }
->+
->+      return -EINVAL;
->+}
->+
->+/**
->+ * freq_to_opp - convert a frequency back to OPP ID (DEPRECATED)
->+ * @opp_id: opp ID returned back to caller
->+ * @opps: opp list
->+ * @freq: frequency we are searching for
->+ *
->+ * return 0 and opp_id is populated if we find the freq, else,
->+ * we return error
->+ *
->+ * NOTE: this function is a standin for the timebeing as
->opp_id is deprecated
->+ */
->+static int __deprecated freq_to_opp(u8 *opp_id, const struct
->omap_opp *opps,
->               unsigned long freq)
-> {
->-      struct omap_opp *prcm_config;
->-      prcm_config = opp_freq_table;
->-
->-      if (prcm_config->rate <= freq)
->-              return prcm_config->opp_id; /* Return the Highest OPP */
->-      for (; prcm_config->rate; prcm_config--)
->-              if (prcm_config->rate < freq)
->-                      return (prcm_config+1)->opp_id;
->-              else if (prcm_config->rate == freq)
->-                      return prcm_config->opp_id;
->-      /* Return the least OPP */
->-      return (prcm_config+1)->opp_id;
->+      int i = 1;
->+
->+      BUG_ON(!opp_id || !opps);
->+
->+      /* The first entry is a dummy one, loop till we hit
->terminator */
->+      while (!IS_OPP_TERMINATOR(opps, i)) {
->+              if (opps[i].enabled && (opps[i].rate == freq)) {
-
-Here we should check for opps[i].rate >= freq, otherwise resource_refresh() calls will fail with no active users for resources like dsp_freq. This can be tested with:
-
-echo 5 > /sys/power/vdd1_lock
-echo 0 > /sys/power/vdd1_lock
-
->+                      *opp_id = opps[i].opp_id;
->+                      return 0;
->+              }
->+              i++;
->+      }
->+
->+      return -EINVAL;
-> }
->
-> /**
->@@ -178,6 +225,8 @@ static unsigned short get_opp(struct
->omap_opp *opp_freq_table,
-> void init_opp(struct shared_resource *resp)
-> {
->       struct clk *l3_clk;
->+      int ret;
->+      u8 opp_id;
->       resp->no_of_users = 0;
->
->       if (!mpu_opps || !dsp_opps || !l3_opps)
->@@ -190,17 +239,18 @@ void init_opp(struct shared_resource *resp)
->               vdd1_resp = resp;
->               dpll1_clk = clk_get(NULL, "dpll1_ck");
->               dpll2_clk = clk_get(NULL, "dpll2_ck");
->-              resp->curr_level = get_opp(mpu_opps + MAX_VDD1_OPP,
->-                              dpll1_clk->rate);
->-              curr_vdd1_opp = resp->curr_level;
->+              ret = freq_to_opp(&opp_id, mpu_opps, dpll1_clk->rate);
->+              BUG_ON(ret); /* TBD Cleanup handling */
->+              curr_vdd1_opp = opp_id;
->       } else if (strcmp(resp->name, "vdd2_opp") == 0) {
->               vdd2_resp = resp;
->               dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
->               l3_clk = clk_get(NULL, "l3_ick");
->-              resp->curr_level = get_opp(l3_opps + MAX_VDD2_OPP,
->-                              l3_clk->rate);
->-              curr_vdd2_opp = resp->curr_level;
->+              ret = freq_to_opp(&opp_id, l3_opps, l3_clk->rate);
->+              BUG_ON(ret); /* TBD Cleanup handling */
->+              curr_vdd2_opp = opp_id;
->       }
->+      resp->curr_level = opp_id;
->       return;
-> }
->
->@@ -242,24 +292,40 @@ static int program_opp_freq(int res, int
->target_level, int current_level)
-> {
->       int ret = 0, l3_div;
->       int *curr_opp;
->+      unsigned long mpu_freq, dsp_freq, l3_freq;
->+#ifndef CONFIG_CPU_FREQ
->+      unsigned long mpu_cur_freq
-
-Missing semicolon.
-
->+#endif
->+
->+      /* Check if I can actually switch or not */
->+      if (res == VDD1_OPP) {
->+              ret = opp_to_freq(&mpu_freq, mpu_opps, target_level);
->+              ret |= opp_to_freq(&dsp_freq, dsp_opps, target_level);
->+#ifndef CONFIG_CPU_FREQ
->+              ret |= opp_to_freq(&mpu_cur_freq, mpu_opps,
->current_level);
->+#endif
->+      } else {
->+              ret = opp_to_freq(&l3_freq, l3_opps, target_level);
->+      }
->+      /* we would have caught all bad levels earlier.. */
->+      if (unlikely(ret))
->+              return ret;
->
->       lock_scratchpad_sem();
->       if (res == VDD1_OPP) {
->               curr_opp = &curr_vdd1_opp;
->-              clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
->-              clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
->+              clk_set_rate(dpll1_clk, mpu_freq);
->+              clk_set_rate(dpll2_clk, dsp_freq);
-> #ifndef CONFIG_CPU_FREQ
->               /*Update loops_per_jiffy if processor speed is
->being changed*/
->               loops_per_jiffy = compute_lpj(loops_per_jiffy,
->-                      mpu_opps[current_level].rate/1000,
->-                      mpu_opps[target_level].rate/1000);
->+                      mpu_cur_freq / 1000, mpu_freq / 1000);
-> #endif
->       } else {
->               curr_opp = &curr_vdd2_opp;
->               l3_div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
->                       OMAP3430_CLKSEL_L3_MASK;
->-              ret = clk_set_rate(dpll3_clk,
->-                              l3_opps[target_level].rate * l3_div);
->+              ret = clk_set_rate(dpll3_clk, l3_freq * l3_div);
->       }
->       if (ret) {
->               unlock_scratchpad_sem();
->@@ -278,6 +344,7 @@ static int program_opp(int res, struct
->omap_opp *opp, int target_level,
->               int current_level)
-> {
->       int i, ret = 0, raise;
->+      unsigned long freq;
-> #ifdef CONFIG_OMAP_SMARTREFLEX
->       unsigned long t_opp, c_opp;
->
->@@ -285,13 +352,10 @@ static int program_opp(int res, struct
->omap_opp *opp, int target_level,
->       c_opp = ID_VDD(res) | ID_OPP_NO(opp[current_level].opp_id);
-> #endif
->
->-      /* Only allow enabled OPPs */
->-      if (!opp[target_level].enabled)
->-              return -EINVAL;
->-
->-      /* Sanity check of the OPP params before attempting to set */
->-      if (!opp[target_level].rate || !opp[target_level].vsel)
->-              return -EINVAL;
->+      /* See if have a freq associated, if not, invalid opp */
->+      ret = opp_to_freq(&freq, opp, target_level);
->+      if (unlikely(ret))
->+              return ret;
->
->       if (target_level > current_level)
->               raise = 1;
->@@ -303,10 +367,23 @@ static int program_opp(int res, struct
->omap_opp *opp, int target_level,
->                       ret = program_opp_freq(res, target_level,
->                                       current_level);
-> #ifdef CONFIG_OMAP_SMARTREFLEX
->-              else
->-                      sr_voltagescale_vcbypass(t_opp, c_opp,
->-                              opp[target_level].vsel,
->-                              opp[current_level].vsel);
->+              else {
->+                      u8 vc, vt;
->+                      struct omap_opp *oppx;
->+                      /*
->+                       * transitioning from good to good OPP
->+                       * none of the following should fail..
->+                       */
->+                      BUG_ON(opp_is_valid(&oppx, opp, freq));
->+                      vt = oppx->vsel;
->+
->+                      BUG_ON(opp_to_freq(&freq, opp, current_level));
->+                      BUG_ON(opp_is_valid(&oppx, opp, freq));
->+                      vc = oppx->vsel;
->+
->+                      /* ok to scale.. */
->+                      sr_voltagescale_vcbypass(t_opp, c_opp, vt, vc);
->+              }
-> #endif
->       }
->
->@@ -315,7 +392,8 @@ static int program_opp(int res, struct
->omap_opp *opp, int target_level,
->
-> int resource_set_opp_level(int res, u32 target_level, int flags)
-> {
->-      unsigned long mpu_freq, mpu_old_freq;
->+      unsigned long mpu_freq, mpu_old_freq, l3_freq;
->+      int ret;
-> #ifdef CONFIG_CPU_FREQ
->       struct cpufreq_freqs freqs_notify;
-> #endif
->@@ -334,6 +412,16 @@ int resource_set_opp_level(int res, u32
->target_level, int flags)
->       if (!mpu_opps || !dsp_opps || !l3_opps)
->               return 0;
->
->+      /* Check if I can actually switch or not */
->+      if (res == VDD1_OPP) {
->+              ret = opp_to_freq(&mpu_freq, mpu_opps, target_level);
->+              ret |= opp_to_freq(&mpu_old_freq, mpu_opps,
->resp->curr_level);
->+      } else {
->+              ret = opp_to_freq(&l3_freq, l3_opps, target_level);
->+      }
->+      if (ret)
->+              return ret;
->+
->       mutex_lock(&dvfs_mutex);
->
->       if (res == VDD1_OPP) {
->@@ -341,9 +429,6 @@ int resource_set_opp_level(int res, u32
->target_level, int flags)
->                       mutex_unlock(&dvfs_mutex);
->                       return 0;
->               }
->-              mpu_old_freq = mpu_opps[resp->curr_level].rate;
->-              mpu_freq = mpu_opps[target_level].rate;
->-
-> #ifdef CONFIG_CPU_FREQ
->               freqs_notify.old = mpu_old_freq/1000;
->               freqs_notify.new = mpu_freq/1000;
->@@ -371,15 +456,13 @@ int resource_set_opp_level(int res, u32
->target_level, int flags)
->
-> int set_opp(struct shared_resource *resp, u32 target_level)
-> {
->-      unsigned long tput;
->-      unsigned long req_l3_freq;
->-      int ind;
->+      int ret = -EINVAL;
->
->       if (resp == vdd1_resp) {
->               if (target_level < 3)
->                       resource_release("vdd2_opp", &vdd2_dev);
->
->-              resource_set_opp_level(VDD1_OPP, target_level, 0);
->+              ret = resource_set_opp_level(VDD1_OPP, target_level, 0);
->               /*
->                * For VDD1 OPP3 and above, make sure the interconnect
->                * is at 100Mhz or above.
->@@ -389,21 +472,33 @@ int set_opp(struct shared_resource
->*resp, u32 target_level)
->                       resource_request("vdd2_opp", &vdd2_dev, 400000);
->
->       } else if (resp == vdd2_resp) {
->-              tput = target_level;
->+              unsigned long req_l3_freq;
->+              struct omap_opp *oppx = NULL;
->
->               /* Convert the tput in KiB/s to Bus frequency in MHz */
->-              req_l3_freq = (tput * 1000)/4;
->-
->-              for (ind = 2; ind <= MAX_VDD2_OPP; ind++)
->-                      if ((l3_opps + ind)->rate >= req_l3_freq) {
->-                              target_level = ind;
->-                              break;
->+              req_l3_freq = (target_level * 1000)/4;
->+
->+              /* Do I have an exact match */
->+              ret = opp_is_valid(&oppx, l3_opps, req_l3_freq);
->+              if (ret) {
->+                      /* Do I have a next best match */
->+                      ret = opp_get_higher_opp(&oppx,
->&req_l3_freq, l3_opps);
->+                      if (ret) {
->+                              /* Give me the best we got */
->+                              req_l3_freq = ULONG_MAX;
->+                              ret = opp_get_lower_opp(&oppx,
->&req_l3_freq,
->+                                              l3_opps);
->                       }
->+              }
->
->-              /* Set the highest OPP possible */
->-              if (ind > MAX_VDD2_OPP)
->-                      target_level = ind-1;
->-              resource_set_opp_level(VDD2_OPP, target_level, 0);
->+              /* uh uh.. no OPPs?? */
->+              BUG_ON(ret);
->+
->+              ret = freq_to_opp((u8 *)&target_level, l3_opps,
->req_l3_freq);
->+              /* we dont expect this to fail */
->+              BUG_ON(ret);
->+
->+              ret = resource_set_opp_level(VDD2_OPP, target_level, 0);
->       }
->       return 0;
-> }
->@@ -416,6 +511,11 @@ int set_opp(struct shared_resource *resp,
->u32 target_level)
->  */
-> int validate_opp(struct shared_resource *resp, u32 target_level)
-> {
->+      unsigned long x;
->+      if (strcmp(resp->name, "mpu_freq") == 0)
->+              return opp_to_freq(&x, mpu_opps, target_level);
->+      else if (strcmp(resp->name, "dsp_freq") == 0)
->+              return opp_to_freq(&x, dsp_opps, target_level);
->       return 0;
-> }
->
->@@ -425,6 +525,8 @@ int validate_opp(struct shared_resource
->*resp, u32 target_level)
-> void init_freq(struct shared_resource *resp)
-> {
->       char *linked_res_name;
->+      int ret = -EINVAL;
->+      unsigned long freq;
->       resp->no_of_users = 0;
->
->       if (!mpu_opps || !dsp_opps)
->@@ -436,32 +538,46 @@ void init_freq(struct shared_resource *resp)
->       */
->       if (strcmp(resp->name, "mpu_freq") == 0)
->               /* MPU freq in Mhz */
->-              resp->curr_level = mpu_opps[curr_vdd1_opp].rate;
->+              ret = opp_to_freq(&freq, mpu_opps, curr_vdd1_opp);
->       else if (strcmp(resp->name, "dsp_freq") == 0)
->               /* DSP freq in Mhz */
->-              resp->curr_level = dsp_opps[curr_vdd1_opp].rate;
->+              ret = opp_to_freq(&freq, dsp_opps, curr_vdd1_opp);
->+      BUG_ON(ret);
->+
->+      resp->curr_level = freq;
->       return;
-> }
->
-> int set_freq(struct shared_resource *resp, u32 target_level)
-> {
->-      unsigned int vdd1_opp;
->+      u8 vdd1_opp;
->+      int ret = -EINVAL;
->
->       if (!mpu_opps || !dsp_opps)
->               return 0;
->
->       if (strcmp(resp->name, "mpu_freq") == 0) {
->-              vdd1_opp = get_opp(mpu_opps + MAX_VDD1_OPP,
->target_level);
->-              resource_request("vdd1_opp", &dummy_mpu_dev, vdd1_opp);
->+              ret = freq_to_opp(&vdd1_opp, mpu_opps, target_level);
->+              if (!ret)
->+                      ret = resource_request("vdd1_opp",
->&dummy_mpu_dev,
->+                                      vdd1_opp);
->       } else if (strcmp(resp->name, "dsp_freq") == 0) {
->-              vdd1_opp = get_opp(dsp_opps + MAX_VDD1_OPP,
->target_level);
->-              resource_request("vdd1_opp", &dummy_dsp_dev, vdd1_opp);
->+              ret = freq_to_opp(&vdd1_opp, dsp_opps, target_level);
->+              if (!ret)
->+                      ret = resource_request("vdd1_opp",
->&dummy_dsp_dev,
->+                                      vdd1_opp);
->       }
->-      resp->curr_level = target_level;
->-      return 0;
->+      if (!ret)
->+              resp->curr_level = target_level;
->+      return ret;
-> }
->
-> int validate_freq(struct shared_resource *resp, u32 target_level)
-> {
->+      u8 x;
->+      if (strcmp(resp->name, "mpu_freq") == 0)
->+              return freq_to_opp(&x, mpu_opps, target_level);
->+      else if (strcmp(resp->name, "dsp_freq") == 0)
->+              return freq_to_opp(&x, dsp_opps, target_level);
->       return 0;
-> }
->--
->1.6.3.3
->
+>> arch/arm/mach-omap2/resource34xx.c: In function 'get_opp':
+>> arch/arm/mach-omap2/resource34xx.c:165: warning: 'opp_id' is
+>deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+>> arch/arm/mach-omap2/resource34xx.c:168: warning: 'opp_id' is
+>deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+>> arch/arm/mach-omap2/resource34xx.c:170: warning: 'opp_id' is
+>deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+>> arch/arm/mach-omap2/resource34xx.c:172: warning: 'opp_id' is
+>deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+>> arch/arm/mach-omap2/resource34xx.c: In function 'program_opp':
+>> arch/arm/mach-omap2/resource34xx.c:284: warning: 'opp_id' is
+>deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+>> arch/arm/mach-omap2/resource34xx.c:285: warning: 'opp_id' is
+>deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+>>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/board-3430sdp.c       |    1 +
+>>  arch/arm/mach-omap2/board-omap3beagle.c   |    1 +
+>>  arch/arm/mach-omap2/board-omap3evm.c      |    1 +
+>>  arch/arm/mach-omap2/board-rx51.c          |    1 +
+>>  arch/arm/mach-omap2/board-zoom2.c         |    2 +
+>>  arch/arm/mach-omap2/omap3-opp.h           |   58
+>+-----------------------
+>>  arch/arm/mach-omap2/pm.h                  |    6 +++
+>>  arch/arm/mach-omap2/pm34xx.c              |   68
+>+++++++++++++++++++++++++++++
+>>  arch/arm/plat-omap/include/plat/omap-pm.h |   17 +-------
+>>  9 files changed, 84 insertions(+), 71 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-3430sdp.c
+>b/arch/arm/mach-omap2/board-3430sdp.c
+>> index eac529f..0ec8327 100644
+>> --- a/arch/arm/mach-omap2/board-3430sdp.c
+>> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+>> @@ -220,6 +220,7 @@ static void __init omap_3430sdp_init_irq(void)
+>>  {
+>>      omap_board_config = sdp3430_config;
+>>      omap_board_config_size = ARRAY_SIZE(sdp3430_config);
+>> +    omap3_pm_init_opp_table();
+>>      omap3_pm_init_vc(&omap3_setuptime_table);
+>>      omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
+>>      omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL,
+>omap3_mpu_rate_table,
+>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
+>b/arch/arm/mach-omap2/board-omap3beagle.c
+>> index 2ec3520..a937238 100644
+>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>> @@ -361,6 +361,7 @@ static void __init omap3_beagle_init_irq(void)
+>>  {
+>>      omap_board_config = omap3_beagle_config;
+>>      omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+>> +    omap3_pm_init_opp_table();
+>>      omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+>>                           mt46h32m32lf6_sdrc_params,
+>omap3_mpu_rate_table,
+>>                           omap3_dsp_rate_table, omap3_l3_rate_table);
+>> diff --git a/arch/arm/mach-omap2/board-omap3evm.c
+>b/arch/arm/mach-omap2/board-omap3evm.c
+>> index 8130eca..44a5861 100644
+>> --- a/arch/arm/mach-omap2/board-omap3evm.c
+>> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+>> @@ -404,6 +404,7 @@ static void __init omap3_evm_init_irq(void)
+>>  {
+>>      omap_board_config = omap3_evm_config;
+>>      omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
+>> +    omap3_pm_init_opp_table();
+>>      omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL,
+>omap3_mpu_rate_table,
+>>                           omap3_dsp_rate_table, omap3_l3_rate_table);
+>>      omap_init_irq();
+>> diff --git a/arch/arm/mach-omap2/board-rx51.c
+>b/arch/arm/mach-omap2/board-rx51.c
+>> index 2f1c2be..997fd1c 100644
+>> --- a/arch/arm/mach-omap2/board-rx51.c
+>> +++ b/arch/arm/mach-omap2/board-rx51.c
+>> @@ -103,6 +103,7 @@ static void __init rx51_init_irq(void)
+>>
+>>      omap_board_config = rx51_config;
+>>      omap_board_config_size = ARRAY_SIZE(rx51_config);
+>> +    omap3_pm_init_opp_table();
+>>      omap3_pm_init_cpuidle(rx51_cpuidle_params);
+>>      sdrc_params = rx51_get_sdram_timings();
+>>      omap2_init_common_hw(sdrc_params, sdrc_params,
+>> diff --git a/arch/arm/mach-omap2/board-zoom2.c
+>b/arch/arm/mach-omap2/board-zoom2.c
+>> index dcc5fb8..9d5b078 100644
+>> --- a/arch/arm/mach-omap2/board-zoom2.c
+>> +++ b/arch/arm/mach-omap2/board-zoom2.c
+>> @@ -24,10 +24,12 @@
+>>  #include <mach/board-zoom.h>
+>>
+>>  #include "sdram-micron-mt46h32m32lf-6.h"
+>> +#include "pm.h"
+>>  #include "omap3-opp.h"
+>>
+>>  static void __init omap_zoom2_init_irq(void)
+>>  {
+>> +    omap3_pm_init_opp_table();
+>>      omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+>>                               mt46h32m32lf6_sdrc_params,
+>omap3_mpu_rate_table,
+>>                               omap3_dsp_rate_table,
+>omap3_l3_rate_table);
+>> diff --git a/arch/arm/mach-omap2/omap3-opp.h
+>b/arch/arm/mach-omap2/omap3-opp.h
+>> index 42557e1..994d8d4 100644
+>> --- a/arch/arm/mach-omap2/omap3-opp.h
+>> +++ b/arch/arm/mach-omap2/omap3-opp.h
+>> @@ -3,60 +3,8 @@
+>>
+>>  #include <plat/omap-pm.h>
+>>
+>> -/* MPU speeds */
+>> -#define S600M   600000000
+>> -#define S550M   550000000
+>> -#define S500M   500000000
+>> -#define S250M   250000000
+>> -#define S125M   125000000
+>> -
+>> -/* DSP speeds */
+>> -#define S430M   430000000
+>> -#define S400M   400000000
+>> -#define S360M   360000000
+>> -#define S180M   180000000
+>> -#define S90M    90000000
+>> -
+>> -/* L3 speeds */
+>> -#define S83M    83000000
+>> -#define S166M   166000000
+>> -
+>> -static struct omap_opp omap3_mpu_rate_table[] = {
+>> -    {0, 0, 0, 0},
+>> -    /*OPP1*/
+>> -    {true, S125M, VDD1_OPP1, 0x1E},
+>> -    /*OPP2*/
+>> -    {true, S250M, VDD1_OPP2, 0x26},
+>> -    /*OPP3*/
+>> -    {true, S500M, VDD1_OPP3, 0x30},
+>> -    /*OPP4*/
+>> -    {true, S550M, VDD1_OPP4, 0x36},
+>> -    /*OPP5*/
+>> -    {true, S600M, VDD1_OPP5, 0x3C},
+>> -};
+>> -
+>> -static struct omap_opp omap3_l3_rate_table[] = {
+>> -    {0, 0, 0, 0},
+>> -    /*OPP1*/
+>> -    {false, 0, VDD2_OPP1, 0x1E},
+>> -    /*OPP2*/
+>> -    {true, S83M, VDD2_OPP2, 0x24},
+>> -    /*OPP3*/
+>> -    {true, S166M, VDD2_OPP3, 0x2C},
+>> -};
+>> -
+>> -static struct omap_opp omap3_dsp_rate_table[] = {
+>> -    {0, 0, 0, 0},
+>> -    /*OPP1*/
+>> -    {true, S90M, VDD1_OPP1, 0x1E},
+>> -    /*OPP2*/
+>> -    {true, S180M, VDD1_OPP2, 0x26},
+>> -    /*OPP3*/
+>> -    {true, S360M, VDD1_OPP3, 0x30},
+>> -    /*OPP4*/
+>> -    {true, S400M, VDD1_OPP4, 0x36},
+>> -    /*OPP5*/
+>> -    {true, S430M, VDD1_OPP5, 0x3C},
+>> -};
+>> +extern struct omap_opp *omap3_mpu_rate_table;
+>> +extern struct omap_opp *omap3_dsp_rate_table;
+>> +extern struct omap_opp *omap3_l3_rate_table;
+>>
+>>  #endif
+>> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+>> index 7bc86b6..80a1c1d 100644
+>> --- a/arch/arm/mach-omap2/pm.h
+>> +++ b/arch/arm/mach-omap2/pm.h
+>> @@ -58,6 +58,12 @@ static inline void omap3_pm_init_cpuidle(
+>>  {
+>>  }
+>>  #endif
+>> +/**
+>> + * omap3_pm_init_opp_table - OMAP opp table lookup called
+>after cpu is detected.
+>> + * Initialize the basic opp table here, board files could
+>choose to modify opp
+>> + * table after the basic initialization
+>> + */
+>> +extern void omap3_pm_init_opp_table(void);
+>>
+>>  extern int resource_set_opp_level(int res, u32
+>target_level, int flags);
+>>  extern int resource_access_opp_lock(int res, int delta);
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c
+>b/arch/arm/mach-omap2/pm34xx.c
+>> index 627a509..ad21f5f 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -40,6 +40,7 @@
+>>  #include <plat/dmtimer.h>
+>>  #include <plat/usb.h>
+>>
+>> +#include <plat/opp.h>
+>>  #include <plat/resource.h>
+>>
+>>  #include <asm/tlbflush.h>
+>> @@ -52,6 +53,7 @@
+>>  #include "prm.h"
+>>  #include "pm.h"
+>>  #include "sdrc.h"
+>> +#include "omap3-opp.h"
+>>
+>>  static int regset_save_on_suspend;
+>>
+>> @@ -100,6 +102,52 @@ static struct prm_setup_vc prm_setup = {
+>>      .vdd1_off = 0x00,       /* 0.6v */
+>>  };
+>>
+>> +static struct omap_opp_def __initdata omap34xx_mpu_rate_table[] = {
+>> +    /*OPP1 975mV */
+>> +    {.enabled = true, .freq = 125000000, .u_volt = 975000},
+>> +    /*OPP2 1.075V */
+>> +    {.enabled = true, .freq = 250000000, .u_volt = 1075000},
+>> +    /*OPP3 1.2V */
+>> +    {.enabled = true, .freq = 500000000, .u_volt = 1200000},
+>> +    /*OPP4 1.270V */
+>> +    {.enabled = true, .freq = 550000000, .u_volt = 1270000},
+>> +    /*OPP5 1.35V */
+>> +    {.enabled = true, .freq = 600000000, .u_volt = 1350000},
+>> +    /* Terminator */
+>> +    {.enabled = 0, .freq = 0, .u_volt = 0}
+>> +};
+>> +
+>> +static struct omap_opp_def __initdata omap34xx_l3_rate_table[] = {
+>> +    /*OPP1 - 975mV */
+>> +    {.enabled = false, .freq = 0, .u_volt = 975000},
+>> +    /*OPP2 1.05V */
+>> +    {.enabled = true, .freq = 83000000, .u_volt = 1050000},
+>> +    /*OPP3 1.15V*/
+>> +    {.enabled = true, .freq = 166000000, .u_volt = 1150000},
+>> +    /* Terminator */
+>> +    {.enabled = 0, .freq = 0, .u_volt = 0}
+>> +};
+>> +
+>> +static struct omap_opp_def __initdata omap34xx_dsp_rate_table[] = {
+>> +    /*OPP1*/
+>> +    {.enabled = true, .freq = 90000000, .u_volt = 975000},
+>> +    /*OPP2*/
+>> +    {.enabled = true, .freq = 180000000, .u_volt = 1075000},
+>> +    /*OPP3*/
+>> +    {.enabled = true, .freq = 360000000, .u_volt = 1200000},
+>> +    /*OPP4*/
+>> +    {.enabled = true, .freq = 400000000, .u_volt = 1270000},
+>> +    /*OPP5*/
+>> +    {.enabled = true, .freq = 430000000, .u_volt = 1350000},
+>> +    /* Terminator */
+>> +    {.enabled = 0, .freq = 0, .u_volt = 0}
+>> +};
+>> +
+>> +struct omap_opp *omap3_mpu_rate_table;
+>> +struct omap_opp *omap3_dsp_rate_table;
+>> +struct omap_opp *omap3_l3_rate_table;
+>> +
+>> +
+>>  static inline void omap3_per_save_context(void)
+>>  {
+>>      omap_gpio_save_context();
+>> @@ -1248,6 +1296,26 @@ static void __init configure_vc(void)
+>>      pm_dbg_regset_init(2);
+>>  }
+>>
+>> +void __init omap3_pm_init_opp_table(void)
+>> +{
+>> +    int ret, i;
+>> +    struct omap_opp_def *omap34xx_opp_def_list[] = {
+>> +            omap34xx_mpu_rate_table,
+>> +            omap34xx_l3_rate_table,
+>> +            omap34xx_dsp_rate_table
+>> +    };
+>> +    struct omap_opp **omap3_rate_tables[] = {
+>> +            &omap3_mpu_rate_table,
+>> +            &omap3_l3_rate_table,
+>> +            &omap3_dsp_rate_table
+>> +    };
+>> +    for (i = 0; i < ARRAY_SIZE(omap34xx_opp_def_list); i++) {
+>> +            ret = opp_init(omap3_rate_tables[i],
+>omap34xx_opp_def_list[i]);
+>> +            /* We dont want half configured system at the moment */
+>> +            BUG_ON(ret);
+>> +    }
+>> +}
+>> +
+>>  static int __init omap3_pm_early_init(void)
+>>  {
+>>      prm_clear_mod_reg_bits(OMAP3430_OFFMODE_POL, OMAP3430_GR_MOD,
+>> diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h
+>b/arch/arm/plat-omap/include/plat/omap-pm.h
+>> index 5dc2048..aa36339 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap-pm.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+>> @@ -18,22 +18,7 @@
+>>  #include <linux/cpufreq.h>
+>>
+>>  #include "powerdomain.h"
+>> -
+>> -/**
+>> - * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
+>> - * @enabled: enabled if true, disabled if false
+>> - * @rate: target clock rate
+>> - * @opp_id: OPP ID
+>> - * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
+>> - *
+>> - * Operating performance point data.  Can vary by OMAP chip
+>and board.
+>> - */
+>> -struct omap_opp {
+>> -    bool enabled;
+>> -    unsigned long rate;
+>> -    u8 opp_id;
+>> -    u16 vsel;
+>> -};
+>> +#include <plat/opp.h>
+>>
+>>  extern struct omap_opp *mpu_opps;
+>>  extern struct omap_opp *dsp_opps;
+>> --
+>> 1.6.3.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >--
 >To unsubscribe from this list: send the line "unsubscribe
 >linux-omap" in
