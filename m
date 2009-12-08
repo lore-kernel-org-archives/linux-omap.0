@@ -1,70 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][RFT][PATCH 3/4 v6] OMAP: McBSP: Introduce caching in
- register write operations
-Date: Tue, 8 Dec 2009 15:39:16 -0800
-Message-ID: <20091208233915.GY24013@atomide.com>
-References: <200912010410.10129.jkrzyszt@tis.icnet.pl>
- <20091208164028.GQ24013@atomide.com>
- <20091208165931.GR24013@atomide.com>
- <200912082046.28642.jkrzyszt@tis.icnet.pl>
- <20091208233247.GX24013@atomide.com>
+Subject: Re: [PATCH] USB ehci: replace mach header with plat
+Date: Tue, 8 Dec 2009 15:43:07 -0800
+Message-ID: <20091208234306.GZ24013@atomide.com>
+References: <1260274506-8805-1-git-send-email-weber@corscience.de>
+ <20091208134750.GE24510@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62061 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966427AbZLHXjP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 18:39:15 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62779 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966899AbZLHXnH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 18:43:07 -0500
 Content-Disposition: inline
-In-Reply-To: <20091208233247.GX24013@atomide.com>
+In-Reply-To: <20091208134750.GE24510@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext Thomas Weber <weber@corscience.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [091208 15:32]:
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091208 11:45]:
-> > Tuesday 08 December 2009 17:59:31 Tony Lindgren napisa=C5=82(a):
-> > > * Tony Lindgren <tony@atomide.com> [091208 08:39]:
-> > > >
-> > > > How about just set the cache size above based on the processor,
-> > > > then do kzalloc here:
-> > > >
-> > > > mcbsp->reg_cache =3D kzalloc(size, GFP_KERNEL);
-> > > >
-> > > > > +	if (!mcbsp->reg_cache)
-> > > > > +		return -ENOMEM;
-> > > > > +
-> > > >
-> > > > That way the kzalloc and error checking are in the same place.
-> > >
-> > > Actually since we already have mach-omap1/mcbsp.c and mach-omap2/=
-mcbsp.c,
-> > > it would be best to pass the cache size from omap1_mcbsp_init and
-> > > omap2_mcbsp_init. That leaves some of the if cpu_is_omapxxxx() el=
-se
-> > > stuff.
-> >=20
-> > Tony,
-> > Almost ready with it, one more question: what do you think about sp=
-litting and=20
-> > moving omap_mcbsp_read()/_write() there as well? If you agree, shou=
-ld I=20
-> > submit 2 patches, one with this cleanup, the other one actually int=
-roducing=20
-> > cache support, or is one combined OK?
->=20
-> Sounds good to me!
+* Felipe Balbi <felipe.balbi@nokia.com> [091208 05:49]:
+> On Tue, Dec 08, 2009 at 01:15:06PM +0100, ext Thomas Weber wrote:
+> >Replace the mach/usb.h with plat/usb.h
+> >
+> >Patch was already done in commit:
+> >801db9180010676f97bb3fbd7074291128b7b5fc , but overwritten.
+> >
+> >Signed-off-by: Thomas Weber <weber@corscience.de>
+> 
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+> Tony, this should probably go into for-next or for-next-vol2.
 
-Oh sorry forgot to reply to your question. If a single patch looks unre=
-adable,
-then split it into two where the first patch splits omap_mcbsp_read/wri=
-te.
+I'll add this into omap-testing for now as the ehci-omap.c is
+still not merged into mainline from Greg's queue.
+
+I'll move it into omap-fixes once the ehci-omap.c hits the
+mainline.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
