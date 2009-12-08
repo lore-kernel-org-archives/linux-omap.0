@@ -1,137 +1,389 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2]: Introducing 'gpmc-nand.c' for GPMC specific NAND
- init
-Date: Tue, 8 Dec 2009 15:57:25 -0800
-Message-ID: <20091208235725.GA24013@atomide.com>
-References: <64662.192.168.10.89.1259933932.squirrel@dbdmail.itg.ti.com>
- <20091204220138.GJ24013@atomide.com>
- <ce9ab5790912062229xae89bb3m6965b4f4465f11c3@mail.gmail.com>
- <ce9ab5790912070529h1143355du691ce6a23f5ddb56@mail.gmail.com>
- <20091207175644.GA24013@atomide.com>
+Subject: Re: [PATCH 1/2] OMAP: use smc91x_platdata to setup smc91x
+Date: Tue, 8 Dec 2009 15:58:31 -0800
+Message-ID: <20091208235830.GB24013@atomide.com>
+References: <20091208170038.GA19338@localhost.localdomain>
+ <20091208170507.GB19338@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50506 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966728AbZLHX5V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 18:57:21 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50046 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936981AbZLHX62 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 18:58:28 -0500
 Content-Disposition: inline
-In-Reply-To: <20091207175644.GA24013@atomide.com>
+In-Reply-To: <20091208170507.GB19338@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-omap@vger.kernel.org, linux-netdev@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [091207 09:56]:
-> * Vimal Singh <vimal.newwork@gmail.com> [091207 05:28]:
-> > On Mon, Dec 7, 2009 at 11:59 AM, Vimal Singh <vimal.newwork@gmail.c=
-om> wrote:
-> > > On Sat, Dec 5, 2009 at 3:31 AM, Tony Lindgren <tony@atomide.com> =
-wrote:
-> > >> Hi,
-> > >>
-> > >> Looks good, just one comment below.
-> > >>
-> > >> * Govindraj.R <govindraj.raja@ti.com> [091204 05:37]:
-> > >>> From: Vimal Singh <vimalsingh@ti.com>
-> > >>> Date: Wed, 25 Nov 2009 18:23:15 +0530
-> > >>> Subject: [PATCH] Introducing 'gpmc-nand.c' for GPMC specific NA=
-ND init
-> > >>>
-> > >>> Introducing 'gpmc-nand.c' for GPMC specific NAND init.
-> > >>> For example: GPMC timing parameters and all.
-> > >>> This patch also migrates gpmc related calls from 'nand/omap2.c'
-> > >>> to 'gpmc-nand.c'.
-> > >>>
-> > >>> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-> > >>> ---
-> > >>> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 | =A0 =A03 =
-+
-> > >>> =A0arch/arm/mach-omap2/gpmc-nand.c =A0 =A0 =A0 =A0| =A0141 ++++=
-++++++++++++++++++++++++++++
-> > >>> =A0arch/arm/plat-omap/include/plat/nand.h | =A0 =A06 ++
-> > >>> =A0drivers/mtd/nand/omap2.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 2=
-6 +-----
-> > >>> =A04 files changed, 153 insertions(+), 23 deletions(-)
-> > >>> =A0create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
-> > >>
-> > >> <snip>
-> > >>
-> > >>> --- /dev/null
-> > >>> +++ b/arch/arm/mach-omap2/gpmc-nand.c
-> > >>
-> > >> <snip>
-> > >>
-> > >>> +int __init gpmc_nand_init(struct omap_nand_platform_data *_nan=
-d_data)
-> > >>> +{
-> > >>> + =A0 =A0 unsigned int val;
-> > >>> + =A0 =A0 int err =3D 0;
-> > >>> + =A0 =A0 struct device *dev =3D &gpmc_nand_device.dev;
-> > >>> +
-> > >>> + =A0 =A0 gpmc_nand_data =3D _nand_data;
-> > >>> + =A0 =A0 gpmc_nand_data->nand_setup =3D gpmc_nand_setup;
-> > >>> + =A0 =A0 gpmc_nand_device.dev.platform_data =3D gpmc_nand_data=
-;
-> > >>> +
-> > >>> + =A0 =A0 err =3D gpmc_nand_setup(gpmc_nand_data->gpmc_cs_basea=
-ddr);
-> > >>> + =A0 =A0 if (err < 0) {
-> > >>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "NAND platform setup fai=
-led: %d\n", err);
-> > >>> + =A0 =A0 =A0 =A0 =A0 =A0 return err;
-> > >>> + =A0 =A0 }
-> > >>> +
-> > >>> + =A0 =A0 /* Enable RD PIN Monitoring Reg */
-> > >>> + =A0 =A0 if (gpmc_nand_data->dev_ready) {
-> > >>> + =A0 =A0 =A0 =A0 =A0 =A0 val =A0=3D gpmc_cs_read_reg(gpmc_nand=
-_data->cs,
-> > >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0GPMC_CS_CONFIG1);
-> > >>> + =A0 =A0 =A0 =A0 =A0 =A0 val |=3D WR_RD_PIN_MONITORING;
-> > >>> + =A0 =A0 =A0 =A0 =A0 =A0 gpmc_cs_write_reg(gpmc_nand_data->cs,
-> > >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 GPMC_CS_CONFIG1, val);
-> > >>> + =A0 =A0 }
-> > >>
-> > >> Above looks OK..
-> > >>
-> > >>> + =A0 =A0 val =A0=3D gpmc_cs_read_reg(gpmc_nand_data->cs, GPMC_=
-CS_CONFIG7);
-> > >>> + =A0 =A0 val &=3D ~(0xf << 8);
-> > >>> + =A0 =A0 val |=3D =A0(0xc & 0xf) << 8;
-> > >>> + =A0 =A0 gpmc_cs_write_reg(gpmc_nand_data->cs, GPMC_CS_CONFIG7=
-, val);
-> > >>
-> > >> ..but this looks messy. Maybe use some GPMC defines for the
-> > >> 0xf << 8 mask?
-> > >>
-> > >> Then the 0xc & 0xf part looks a bit redundant, what's the 0xf
-> > >> there for?
-> > >>
-> > >> I know it's all from the old code, but might as well clean it up
-> > >> while at it :)
-> > >
-> > > Ok, I'll drop next version of this patch for this.
-> > >
-> >=20
-> > In fact this peace of code is not required too. This will be taken
-> > care in 'gpmc_cs_request'.
-> > I will remove it.
->=20
-> OK, cool.
+* Ladislav Michl <Ladislav.Michl@seznam.cz> [091208 08:04]:
+> Use smc91x_platdata to setup smc91x, so we can get rid of OMAP specific stuff
+> in smc91x driver
 
-Any news on posting the updated version of this? Would be nice to
-get it in this merge window, so time's running out :)
+Thanks, will merge both via linux-omap tree.
 
-When re-posting, please also cc linux-arm-kernel@lists.infradead.org
-in addition to linux-omap list. That way we can have it quickly
-reviewed there too.
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> 
+> diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+> index f4b72c1..91e7b2f 100644
+> --- a/arch/arm/mach-omap1/board-fsample.c
+> +++ b/arch/arm/mach-omap1/board-fsample.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/mtd/nand.h>
+>  #include <linux/mtd/partitions.h>
+>  #include <linux/input.h>
+> +#include <linux/smc91x.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -100,6 +101,12 @@ static int fsample_keymap[] = {
+>  	0
+>  };
+>  
+> +static struct smc91x_platdata smc91x_info = {
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+> +};
+> +
+>  static struct resource smc91x_resources[] = {
+>  	[0] = {
+>  		.start	= H2P2_DBG_FPGA_ETHR_START,	/* Physical */
+> @@ -190,6 +197,9 @@ static struct platform_device nand_device = {
+>  static struct platform_device smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= 0,
+> +	.dev	= {
+> +		.platform_data	= &smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(smc91x_resources),
+>  	.resource	= smc91x_resources,
+>  };
+> diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+> index 89ba8ec..eeafe6e 100644
+> --- a/arch/arm/mach-omap1/board-h2.c
+> +++ b/arch/arm/mach-omap1/board-h2.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/mtd/partitions.h>
+>  #include <linux/input.h>
+>  #include <linux/i2c/tps65010.h>
+> +#include <linux/smc91x.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/gpio.h>
+> @@ -200,6 +201,12 @@ static struct platform_device h2_nand_device = {
+>  	.resource	= &h2_nand_resource,
+>  };
+>  
+> +static struct smc91x_platdata h2_smc91x_info = {
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+> +};
+> +
+>  static struct resource h2_smc91x_resources[] = {
+>  	[0] = {
+>  		.start	= OMAP1610_ETHR_START,		/* Physical */
+> @@ -216,6 +223,9 @@ static struct resource h2_smc91x_resources[] = {
+>  static struct platform_device h2_smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= 0,
+> +	.dev	= {
+> +		.platform_data	= &h2_smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(h2_smc91x_resources),
+>  	.resource	= h2_smc91x_resources,
+>  };
+> diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
+> index f5cc0a7..e0aee66 100644
+> --- a/arch/arm/mach-omap1/board-h3.c
+> +++ b/arch/arm/mach-omap1/board-h3.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/input.h>
+>  #include <linux/spi/spi.h>
+>  #include <linux/i2c/tps65010.h>
+> +#include <linux/smc91x.h>
+>  
+>  #include <asm/setup.h>
+>  #include <asm/page.h>
+> @@ -202,6 +203,12 @@ static struct platform_device nand_device = {
+>  	.resource	= &nand_resource,
+>  };
+>  
+> +static struct smc91x_platdata smc91x_info = {
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+> +};
+> +
+>  static struct resource smc91x_resources[] = {
+>  	[0] = {
+>  		.start	= OMAP1710_ETHR_START,		/* Physical */
+> @@ -218,6 +225,9 @@ static struct resource smc91x_resources[] = {
+>  static struct platform_device smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= 0,
+> +	.dev	= {
+> +		.platform_data	= &smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(smc91x_resources),
+>  	.resource	= smc91x_resources,
+>  };
+> diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
+> index cf0fdb9..91b3b8e 100644
+> --- a/arch/arm/mach-omap1/board-innovator.c
+> +++ b/arch/arm/mach-omap1/board-innovator.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/mtd/mtd.h>
+>  #include <linux/mtd/partitions.h>
+>  #include <linux/input.h>
+> +#include <linux/smc91x.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -159,6 +160,12 @@ static struct map_desc innovator1510_io_desc[] __initdata = {
+>  	}
+>  };
+>  
+> +static struct smc91x_platdata innovator_smc91x_info = {
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+> +};
+> +
+>  static struct resource innovator1510_smc91x_resources[] = {
+>  	[0] = {
+>  		.start	= OMAP1510_FPGA_ETHR_START,	/* Physical */
+> @@ -175,6 +182,9 @@ static struct resource innovator1510_smc91x_resources[] = {
+>  static struct platform_device innovator1510_smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= 0,
+> +	.dev	= {
+> +		.platform_data	= &innovator_smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(innovator1510_smc91x_resources),
+>  	.resource	= innovator1510_smc91x_resources,
+>  };
+> @@ -241,6 +251,9 @@ static struct resource innovator1610_smc91x_resources[] = {
+>  static struct platform_device innovator1610_smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= 0,
+> +	.dev	= {
+> +		.platform_data	= &innovator_smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(innovator1610_smc91x_resources),
+>  	.resource	= innovator1610_smc91x_resources,
+>  };
+> diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
+> index 50c92c1..ccea4f4 100644
+> --- a/arch/arm/mach-omap1/board-osk.c
+> +++ b/arch/arm/mach-omap1/board-osk.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/irq.h>
+>  #include <linux/i2c.h>
+>  #include <linux/leds.h>
+> +#include <linux/smc91x.h>
+>  
+>  #include <linux/mtd/mtd.h>
+>  #include <linux/mtd/partitions.h>
+> @@ -115,6 +116,12 @@ static struct platform_device osk5912_flash_device = {
+>  	.resource	= &osk_flash_resource,
+>  };
+>  
+> +static struct smc91x_platdata osk5912_smc91x_info = {
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+> +};
+> +
+>  static struct resource osk5912_smc91x_resources[] = {
+>  	[0] = {
+>  		.start	= OMAP_OSK_ETHR_START,		/* Physical */
+> @@ -131,6 +138,9 @@ static struct resource osk5912_smc91x_resources[] = {
+>  static struct platform_device osk5912_smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= -1,
+> +	.dev	= {
+> +		.platform_data	= &osk5912_smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(osk5912_smc91x_resources),
+>  	.resource	= osk5912_smc91x_resources,
+>  };
+> diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
+> index ca7df1e..b9ea312 100644
+> --- a/arch/arm/mach-omap1/board-perseus2.c
+> +++ b/arch/arm/mach-omap1/board-perseus2.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/mtd/nand.h>
+>  #include <linux/mtd/partitions.h>
+>  #include <linux/input.h>
+> +#include <linux/smc91x.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -67,6 +68,12 @@ static int p2_keymap[] = {
+>  	0
+>  };
+>  
+> +static struct smc91x_platdata smc91x_info = {
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+> +};
+> +
+>  static struct resource smc91x_resources[] = {
+>  	[0] = {
+>  		.start	= H2P2_DBG_FPGA_ETHR_START,	/* Physical */
+> @@ -157,6 +164,9 @@ static struct platform_device nand_device = {
+>  static struct platform_device smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= 0,
+> +	.dev	= {
+> +		.platform_data	= &smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(smc91x_resources),
+>  	.resource	= smc91x_resources,
+>  };
+> diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
+> index 35c75c1..1691835 100644
+> --- a/arch/arm/mach-omap1/board-voiceblue.c
+> +++ b/arch/arm/mach-omap1/board-voiceblue.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/reboot.h>
+>  #include <linux/serial_8250.h>
+>  #include <linux/serial_reg.h>
+> +#include <linux/smc91x.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -106,6 +107,12 @@ static struct platform_device voiceblue_flash_device = {
+>  	.resource	= &voiceblue_flash_resource,
+>  };
+>  
+> +static struct smc91x_platdata voiceblue_smc91x_info = {
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+> +};
+> +
+>  static struct resource voiceblue_smc91x_resources[] = {
+>  	[0] = {
+>  		.start	= OMAP_CS2_PHYS + 0x300,
+> @@ -122,6 +129,9 @@ static struct resource voiceblue_smc91x_resources[] = {
+>  static struct platform_device voiceblue_smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= 0,
+> +	.dev	= {
+> +		.platform_data	= &voiceblue_smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(voiceblue_smc91x_resources),
+>  	.resource	= voiceblue_smc91x_resources,
+>  };
+> diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+> index 8a2ce77..fbbd68d 100644
+> --- a/arch/arm/mach-omap2/board-apollon.c
+> +++ b/arch/arm/mach-omap2/board-apollon.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/leds.h>
+>  #include <linux/err.h>
+>  #include <linux/clk.h>
+> +#include <linux/smc91x.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -120,6 +121,12 @@ static void __init apollon_flash_init(void)
+>  	apollon_flash_resource[0].end   = base + SZ_128K - 1;
+>  }
+>  
+> +static struct smc91x_platdata appolon_smc91x_info = {
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+> +};
+> +
+>  static struct resource apollon_smc91x_resources[] = {
+>  	[0] = {
+>  		.flags  = IORESOURCE_MEM,
+> @@ -134,6 +141,9 @@ static struct resource apollon_smc91x_resources[] = {
+>  static struct platform_device apollon_smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= -1,
+> +	.dev	= {
+> +		.platform_data	= &appolon_smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(apollon_smc91x_resources),
+>  	.resource	= apollon_smc91x_resources,
+>  };
+> diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
+> index 6083e21..877c6f5 100644
+> --- a/arch/arm/mach-omap2/gpmc-smc91x.c
+> +++ b/arch/arm/mach-omap2/gpmc-smc91x.c
+> @@ -33,17 +33,19 @@ static struct resource gpmc_smc91x_resources[] = {
+>  };
+>  
+>  static struct smc91x_platdata gpmc_smc91x_info = {
+> -	.flags  = SMC91X_USE_16BIT | SMC91X_NOWAIT | SMC91X_IO_SHIFT_0,
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT | SMC91X_IO_SHIFT_0,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+>  };
+>  
+>  static struct platform_device gpmc_smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= -1,
+> -	.num_resources	= ARRAY_SIZE(gpmc_smc91x_resources),
+> -	.resource	= gpmc_smc91x_resources,
+>  	.dev		= {
+>  		.platform_data = &gpmc_smc91x_info,
+>  	},
+> +	.num_resources	= ARRAY_SIZE(gpmc_smc91x_resources),
+> +	.resource	= gpmc_smc91x_resources,
+>  };
+>  
+>  /*
+> diff --git a/arch/arm/plat-omap/debug-devices.c b/arch/arm/plat-omap/debug-devices.c
+> index 09c1107..923c962 100644
+> --- a/arch/arm/plat-omap/debug-devices.c
+> +++ b/arch/arm/plat-omap/debug-devices.c
+> @@ -13,6 +13,7 @@
+>  #include <linux/init.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/io.h>
+> +#include <linux/smc91x.h>
+>  
+>  #include <mach/hardware.h>
+>  
+> @@ -24,6 +25,12 @@
+>   * platforms include H2, H3, H4, and Perseus2.
+>   */
+>  
+> +static struct smc91x_platdata smc91x_info = {
+> +	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+> +	.leda	= RPC_LED_100_10,
+> +	.ledb	= RPC_LED_TX_RX,
+> +};
+> +
+>  static struct resource smc91x_resources[] = {
+>  	[0] = {
+>  		.flags  = IORESOURCE_MEM,
+> @@ -36,6 +43,9 @@ static struct resource smc91x_resources[] = {
+>  static struct platform_device smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= -1,
+> +	.dev		= {
+> +		.platform_data = &smc91x_info,
+> +	},
+>  	.num_resources	= ARRAY_SIZE(smc91x_resources),
+>  	.resource	= smc91x_resources,
+>  };
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
