@@ -1,83 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 0/2] [RESEND] Amstrad Delta: add support for LCD
- contrast
-Date: Tue, 08 Dec 2009 11:21:36 +0200
-Message-ID: <1260264096.2342.104.camel@tubuntu.research.nokia.com>
-References: <200911231857.55566.jkrzyszt@tis.icnet.pl>
-	 <200912051454.52966.jkrzyszt@tis.icnet.pl>
-	 <20091207213250.GI24013@atomide.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH] omap3: cm-t35: add mux initialization
+Date: Tue, 08 Dec 2009 12:40:08 +0200
+Message-ID: <4B1E2D08.1090805@compulab.co.il>
+References: <cover.1259481545.git.mike@compulab.co.il> <4B1BCE62.1050005@compulab.co.il> <20091207162209.GV24013@atomide.com> <5A47E75E594F054BAF48C5E4FC4B92AB0309C863C8@dbde02.ent.ti.com> <20091207174446.GY24013@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:47366 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187AbZLHJXP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 04:23:15 -0500
-In-Reply-To: <20091207213250.GI24013@atomide.com>
+Received: from compulab.co.il ([67.18.134.219]:48781 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753545AbZLHKkE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Dec 2009 05:40:04 -0500
+In-Reply-To: <20091207174446.GY24013@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>, "Deak Imre (Nokia-D/Helsinki)" <imre.deak@nokia.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-
-On Mon, 2009-12-07 at 22:32 +0100, ext Tony Lindgren wrote:
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091205 05:54]:
-> > Monday 23 November 2009 18:57:51 Janusz Krzysztofik napisa=C5=82(a)=
-:
-> > > Initialy submitted on 2009-11-16
-> > > (http://www.spinics.net/lists/linux-omap/msg20629.html).
-> > > Resendig due to fbdev mailing list address changed.
-> > >
-> > > The series consists of 2 patches:
-> > >
-> > >  [PATCH 1/2] omapfb: lcd_ams_delta: add support for contrast cont=
-rol
-> > >  [PATCH 2/2] OMAP: ams_delta_defconfig: enable LCD class device s=
-upport
-> > >
-> > > It is intended for 2.6.33, if it's not too late.
-> >=20
-> > Hi,
-> >=20
-> > Now that Tony has changed the series status from New to Awaiting Up=
-stream in=20
-> > his patchwork queue[1][2], chances of getting it in throungh linux-=
-omap tree,=20
-> > like a few other omapfb related patches managed to do lately, seem =
-falling=20
-> > down drastically to me if still not answered by anyone involved in =
-omapfb=20
-> > development.
-> >=20
-> > Imre,
-> > Could you please take the patches, or give your ack for Tony to tak=
-e them, or=20
-> > just point me on the right way to the get them integrated or NAKed,=
- if none=20
-> > of the former is?
-> >=20
-> > Tomi,
-> > I am not sure if you are the right person for bothering here, but m=
-aybe you=20
-> > could give your comments that would help pushing it forward?
->=20
-> I'd prefer Tomi to merge all the drivers/video/omap code rather
-> than merge it via linux-omap tree. Ideally with an ack from
-> Imre where possible.
-
-And I, on the other hand, would like to keep away from the old omapfb
-driver =3D).
-
-Imre, do you still want to be the maintainer of the old omapfb, or how
-should we handle it? I didn't have any plans to maintain it, but then
-again, perhaps it wouldn't be too much of a burden to have the
-(hopefully) few patches for old omapfb in the DSS2 tree.
-
- Tomi
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Tony Lindgren wrote:
+> * Gadiyar, Anand <gadiyar@ti.com> [091207 08:35]:
+>> Tony Lindgren wrote: 
+>>> * Mike Rapoport <mike@compulab.co.il> [091206 07:30]:
+>>>> Tony,
+>>>> Any chance this can go to 2.6.33?
+>>> Sure, I was just waiting to hear back if the OUTPUT_PULLUP is
+>>> needed for sure? Or is just OUTPUT enough for musb to work?
+>>>
+>>> Tony
+>>>
+>> OUTPUT should work too. The ULPI spec recommends a weak pull-up
+>> on STP line, but we needn't really have that. Plain OUTPUT is sufficient.
+> 
+> OK, thanks for checking that. Mike, what do you prefer to do?
+
+I'll test without the pull and if it's Ok this way I'll update the mux
+initialization patch and drop the OUTPUT_PULL{UP,DOWN}.
+
+> I guess in some cases the pull may be needed for a pin
+> to change faster if an external pull is not used?
+> 
+> We could add the OUTPUT_PULL defines, but we should probably
+> mark them with comments that they should be rarely needed.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+
+-- 
+Sincerely yours,
+Mike.
+
