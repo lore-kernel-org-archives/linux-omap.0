@@ -1,378 +1,214 @@
-From: Ladislav Michl <Ladislav.Michl@seznam.cz>
-Subject: [PATCH 1/2] OMAP: use smc91x_platdata to setup smc91x
-Date: Tue, 8 Dec 2009 18:05:07 +0100
-Message-ID: <20091208170507.GB19338@localhost.localdomain>
-References: <20091208170038.GA19338@localhost.localdomain>
-Reply-To: Ladislav Michl <ladis@linux-mips.org>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [RFC][RFT][PATCH 3/4 v6] OMAP: McBSP: Introduce caching in register write operations
+Date: Tue, 8 Dec 2009 17:07:38 +0100
+Message-ID: <200912081707.39812.jkrzyszt@tis.icnet.pl>
+References: <200912010410.10129.jkrzyszt@tis.icnet.pl> <20091207210631.GG24013@atomide.com> <20091208093521.3905241c.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:37220 "EHLO smtp.seznam.cz"
+Received: from d1.icnet.pl ([212.160.220.21]:48431 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932260AbZLHQFB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Dec 2009 11:05:01 -0500
+	id S932447AbZLHQHc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Dec 2009 11:07:32 -0500
+In-Reply-To: <20091208093521.3905241c.jhnikula@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20091208170038.GA19338@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-netdev@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-Use smc91x_platdata to setup smc91x, so we can get rid of OMAP specific stuff
-in smc91x driver
+Allocate space for storing cached copies of McBSP register values.
+Modify omap_msbcp_write() to update the cache with every register write
+operation.
+Modify omap_mcbsp_read() to support reading from cache or hardware.
+Update MCBSP_READ/MCBSP_WRITE macros for modified function APIs.
+Introduce a new macro that reads from the cache.
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Applies on top of patch 2 from this series:
+[PATCH v3 2/4] OMAP: McBSP: Prepare register read/write macros API for caching
 
-diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
-index f4b72c1..91e7b2f 100644
---- a/arch/arm/mach-omap1/board-fsample.c
-+++ b/arch/arm/mach-omap1/board-fsample.c
-@@ -19,6 +19,7 @@
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
- #include <linux/input.h>
-+#include <linux/smc91x.h>
+Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
+commit 82f1d8f22f2c65e70206e40a6f17688bf64a892c.
+Compile-tested with omap_generic_2420_defconfig, omap_3430sdp_defconfig.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+
+---
+Monday 07 December 2009 22:06:31 Tony Lindgren wrote:
+>
+> Well if you want to optimize it out further, how about just kzalloc it
+> during init? Then you have just one copy that gets set the right size
+> depending on what you boot.
+
+Tony,
+In v4 of the patch, a single table was actually kzalloced during init as a
+part of struct omap_mcbsp for each McBSP port configured. Since you objected
+it, and the reason was not quite obvious to me, I submitted two alternate
+versions: 5a, with ifdef...else cleanup, maybe still not good enough but
+keeping that dynamic allocation, and 5b, using static storage instead, since I
+could suspect you may like it better. Now it appears not quite true.
+
+Anyway, sorry for all that long discussion, but it's really important for me
+to understand precisely what your concearns, goals and preferences are when
+you request changes before I'm able to implement them correctly, ie. in an way
+acceptable for you. Otherwise, it all turns into a kind of quiz.
+
+Tuesday 08 December 2009 08:35:21 Jarkko Nikula wrote:
+>
+> How about declaring the reg_cache as a void pointer in struct
+> omap_mcbsp and allocate the cache and its size in omap_mcbsp_request
+> according to omap type? Read and write functions would access the
+> *reg_cache either as 16-bit or 32-bit table depending on omap.
+>
+> No ifdefs, no unused cache tables in multi-omap binary and cache tables
+> are allocated only for used ports. I don't think there is need to
+> preserve cache content over omap_mcbsp_free and new omap_mcbsp_request?
+
+Jarkko,
+I think this is the best solution. I had almost already sent a modified
+version last night, with two pointers, u16 *omap1_cache and u32 *omap2_cache,
+inside omap_mcbsp structre, but now I think that if using casts inside
+omap_mcbsp_read()/_write() is not objected by anyone, the version below,
+based on your idea, seems the most clean one.
+
+I was not sure about deferring memory allocation until omap_mcbsp_request(),
+but if you say it should be ok, I'm all in favour of that.
+
+Note: 2420 handling may look weird, but I just tried to follow exactly what I
+was able to learn about it by reading the code: register address spacing
+were 32-bit, register read/write operations - 16-bit, since u16 reg_cache
+elements.
+
+Thanks,
+Janusz
+
+ arch/arm/plat-omap/include/plat/mcbsp.h |    9 ++++++
+ arch/arm/plat-omap/mcbsp.c              |   66 +++++++++++++++++++++++++++++++++++++++++----------
+ 2 files changed, 63 insertions(+), 12 deletions(-)
+
+diff -upr git.orig/arch/arm/plat-omap/include/plat/mcbsp.h git/arch/arm/plat-omap/include/plat/mcbsp.h
+--- git.orig/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-02 15:48:51.000000000 +0100
++++ git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-08 14:26:42.000000000 +0100
+@@ -157,6 +157,14 @@
  
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -100,6 +101,12 @@ static int fsample_keymap[] = {
- 	0
- };
+ #endif
  
-+static struct smc91x_platdata smc91x_info = {
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
-+};
++#define OMAP7XX_MCBSP_REG_NUM	(OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1)
++#define OMAP15XX_MCBSP_REG_NUM	(OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1)
++#define OMAP16XX_MCBSP_REG_NUM	(OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1)
 +
- static struct resource smc91x_resources[] = {
- 	[0] = {
- 		.start	= H2P2_DBG_FPGA_ETHR_START,	/* Physical */
-@@ -190,6 +197,9 @@ static struct platform_device nand_device = {
- static struct platform_device smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= 0,
-+	.dev	= {
-+		.platform_data	= &smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(smc91x_resources),
- 	.resource	= smc91x_resources,
- };
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index 89ba8ec..eeafe6e 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -28,6 +28,7 @@
- #include <linux/mtd/partitions.h>
- #include <linux/input.h>
- #include <linux/i2c/tps65010.h>
-+#include <linux/smc91x.h>
- 
- #include <mach/hardware.h>
- #include <asm/gpio.h>
-@@ -200,6 +201,12 @@ static struct platform_device h2_nand_device = {
- 	.resource	= &h2_nand_resource,
- };
- 
-+static struct smc91x_platdata h2_smc91x_info = {
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
-+};
++#define OMAP24XX_MCBSP_REG_NUM	(OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1)
++#define OMAP34XX_MCBSP_REG_NUM	(OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1)
++#define OMAP44XX_MCBSP_REG_NUM	(OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1)
 +
- static struct resource h2_smc91x_resources[] = {
- 	[0] = {
- 		.start	= OMAP1610_ETHR_START,		/* Physical */
-@@ -216,6 +223,9 @@ static struct resource h2_smc91x_resources[] = {
- static struct platform_device h2_smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= 0,
-+	.dev	= {
-+		.platform_data	= &h2_smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(h2_smc91x_resources),
- 	.resource	= h2_smc91x_resources,
+ /************************** McBSP SPCR1 bit definitions ***********************/
+ #define RRST			0x0001
+ #define RRDY			0x0002
+@@ -415,6 +423,7 @@ struct omap_mcbsp {
+ 	u16 max_tx_thres;
+ 	u16 max_rx_thres;
+ #endif
++	void *reg_cache;
  };
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index f5cc0a7..e0aee66 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -28,6 +28,7 @@
- #include <linux/input.h>
- #include <linux/spi/spi.h>
- #include <linux/i2c/tps65010.h>
-+#include <linux/smc91x.h>
+ extern struct omap_mcbsp **mcbsp_ptr;
+ extern int omap_mcbsp_count;
+diff -upr git.orig/arch/arm/plat-omap/mcbsp.c git/arch/arm/plat-omap/mcbsp.c
+--- git.orig/arch/arm/plat-omap/mcbsp.c	2009-12-07 22:43:56.000000000 +0100
++++ git/arch/arm/plat-omap/mcbsp.c	2009-12-08 14:38:38.000000000 +0100
+@@ -30,26 +30,40 @@
+ struct omap_mcbsp **mcbsp_ptr;
+ int omap_mcbsp_count;
  
- #include <asm/setup.h>
- #include <asm/page.h>
-@@ -202,6 +203,12 @@ static struct platform_device nand_device = {
- 	.resource	= &nand_resource,
- };
- 
-+static struct smc91x_platdata smc91x_info = {
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
-+};
-+
- static struct resource smc91x_resources[] = {
- 	[0] = {
- 		.start	= OMAP1710_ETHR_START,		/* Physical */
-@@ -218,6 +225,9 @@ static struct resource smc91x_resources[] = {
- static struct platform_device smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= 0,
-+	.dev	= {
-+		.platform_data	= &smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(smc91x_resources),
- 	.resource	= smc91x_resources,
- };
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index cf0fdb9..91b3b8e 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -23,6 +23,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
- #include <linux/input.h>
-+#include <linux/smc91x.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -159,6 +160,12 @@ static struct map_desc innovator1510_io_desc[] __initdata = {
- 	}
- };
- 
-+static struct smc91x_platdata innovator_smc91x_info = {
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
-+};
-+
- static struct resource innovator1510_smc91x_resources[] = {
- 	[0] = {
- 		.start	= OMAP1510_FPGA_ETHR_START,	/* Physical */
-@@ -175,6 +182,9 @@ static struct resource innovator1510_smc91x_resources[] = {
- static struct platform_device innovator1510_smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= 0,
-+	.dev	= {
-+		.platform_data	= &innovator_smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(innovator1510_smc91x_resources),
- 	.resource	= innovator1510_smc91x_resources,
- };
-@@ -241,6 +251,9 @@ static struct resource innovator1610_smc91x_resources[] = {
- static struct platform_device innovator1610_smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= 0,
-+	.dev	= {
-+		.platform_data	= &innovator_smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(innovator1610_smc91x_resources),
- 	.resource	= innovator1610_smc91x_resources,
- };
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 50c92c1..ccea4f4 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -33,6 +33,7 @@
- #include <linux/irq.h>
- #include <linux/i2c.h>
- #include <linux/leds.h>
-+#include <linux/smc91x.h>
- 
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-@@ -115,6 +116,12 @@ static struct platform_device osk5912_flash_device = {
- 	.resource	= &osk_flash_resource,
- };
- 
-+static struct smc91x_platdata osk5912_smc91x_info = {
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
-+};
-+
- static struct resource osk5912_smc91x_resources[] = {
- 	[0] = {
- 		.start	= OMAP_OSK_ETHR_START,		/* Physical */
-@@ -131,6 +138,9 @@ static struct resource osk5912_smc91x_resources[] = {
- static struct platform_device osk5912_smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= -1,
-+	.dev	= {
-+		.platform_data	= &osk5912_smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(osk5912_smc91x_resources),
- 	.resource	= osk5912_smc91x_resources,
- };
-diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
-index ca7df1e..b9ea312 100644
---- a/arch/arm/mach-omap1/board-perseus2.c
-+++ b/arch/arm/mach-omap1/board-perseus2.c
-@@ -19,6 +19,7 @@
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
- #include <linux/input.h>
-+#include <linux/smc91x.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -67,6 +68,12 @@ static int p2_keymap[] = {
- 	0
- };
- 
-+static struct smc91x_platdata smc91x_info = {
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
-+};
-+
- static struct resource smc91x_resources[] = {
- 	[0] = {
- 		.start	= H2P2_DBG_FPGA_ETHR_START,	/* Physical */
-@@ -157,6 +164,9 @@ static struct platform_device nand_device = {
- static struct platform_device smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= 0,
-+	.dev	= {
-+		.platform_data	= &smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(smc91x_resources),
- 	.resource	= smc91x_resources,
- };
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index 35c75c1..1691835 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -22,6 +22,7 @@
- #include <linux/reboot.h>
- #include <linux/serial_8250.h>
- #include <linux/serial_reg.h>
-+#include <linux/smc91x.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -106,6 +107,12 @@ static struct platform_device voiceblue_flash_device = {
- 	.resource	= &voiceblue_flash_resource,
- };
- 
-+static struct smc91x_platdata voiceblue_smc91x_info = {
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
-+};
-+
- static struct resource voiceblue_smc91x_resources[] = {
- 	[0] = {
- 		.start	= OMAP_CS2_PHYS + 0x300,
-@@ -122,6 +129,9 @@ static struct resource voiceblue_smc91x_resources[] = {
- static struct platform_device voiceblue_smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= 0,
-+	.dev	= {
-+		.platform_data	= &voiceblue_smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(voiceblue_smc91x_resources),
- 	.resource	= voiceblue_smc91x_resources,
- };
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index 8a2ce77..fbbd68d 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -26,6 +26,7 @@
- #include <linux/leds.h>
- #include <linux/err.h>
- #include <linux/clk.h>
-+#include <linux/smc91x.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -120,6 +121,12 @@ static void __init apollon_flash_init(void)
- 	apollon_flash_resource[0].end   = base + SZ_128K - 1;
+-void omap_mcbsp_write(void __iomem *io_base, u16 reg, u32 val)
++void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
+ {
+-	if (cpu_class_is_omap1() || cpu_is_omap2420())
+-		__raw_writew((u16)val, io_base + reg);
+-	else
+-		__raw_writel(val, io_base + reg);
++	if (cpu_class_is_omap1()) {
++		((u16 *)mcbsp->reg_cache)[reg / sizeof(u16)] = (u16)val;
++		__raw_writew((u16)val, mcbsp->io_base + reg);
++	} else if (cpu_is_omap2420()) {
++		((u16 *)mcbsp->reg_cache)[reg / sizeof(u32)] = (u16)val;
++		__raw_writew((u16)val, mcbsp->io_base + reg);
++	} else {
++		((u32 *)mcbsp->reg_cache)[reg / sizeof(u32)] = val;
++		__raw_writel(val, mcbsp->io_base + reg);
++	}
  }
  
-+static struct smc91x_platdata appolon_smc91x_info = {
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
-+};
+-int omap_mcbsp_read(void __iomem *io_base, u16 reg)
++int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache)
+ {
+-	if (cpu_class_is_omap1() || cpu_is_omap2420())
+-		return __raw_readw(io_base + reg);
+-	else
+-		return __raw_readl(io_base + reg);
++	if (cpu_class_is_omap1()) {
++		return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
++				((u16 *)mcbsp->reg_cache)[reg / sizeof(u16)];
++	} else if (cpu_is_omap2420()) {
++		return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
++				((u16 *)mcbsp->reg_cache)[reg / sizeof(u32)];
++	} else {
++		return !from_cache ? __raw_readl(mcbsp->io_base + reg) :
++				((u32 *)mcbsp->reg_cache)[reg / sizeof(u32)];
++	}
+ }
+ 
+ #define MCBSP_READ(mcbsp, reg) \
+-		omap_mcbsp_read(mcbsp->io_base, OMAP_MCBSP_REG_##reg)
++		omap_mcbsp_read(mcbsp, OMAP_MCBSP_REG_##reg, 0)
+ #define MCBSP_WRITE(mcbsp, reg, val) \
+-		omap_mcbsp_write(mcbsp->io_base, OMAP_MCBSP_REG_##reg, val)
++		omap_mcbsp_write(mcbsp, OMAP_MCBSP_REG_##reg, val)
++#define MCBSP_READ_CACHE(mcbsp, reg) \
++		omap_mcbsp_read(mcbsp, OMAP_MCBSP_REG_##reg, 1)
+ 
+ #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
+ #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
+@@ -391,6 +405,31 @@ int omap_mcbsp_request(unsigned int id)
+ 	}
+ 	mcbsp = id_to_mcbsp_ptr(id);
+ 
++	if (cpu_is_omap7xx()) {
++		mcbsp->reg_cache = kzalloc(sizeof(u16) *
++				OMAP7XX_MCBSP_REG_NUM, GFP_KERNEL);
++	} else if (cpu_is_omap15xx()) {
++		mcbsp->reg_cache = kzalloc(sizeof(u16) *
++				OMAP15XX_MCBSP_REG_NUM, GFP_KERNEL);
++	} else if (cpu_is_omap16xx()) {
++		mcbsp->reg_cache = kzalloc(sizeof(u16) *
++				OMAP16XX_MCBSP_REG_NUM, GFP_KERNEL);
++	} else if (cpu_is_omap2420()) {
++		mcbsp->reg_cache = kzalloc(sizeof(u16) *
++				OMAP24XX_MCBSP_REG_NUM, GFP_KERNEL);
++	} else if (cpu_is_omap2430()) {
++		mcbsp->reg_cache = kzalloc(sizeof(u32) *
++				OMAP24XX_MCBSP_REG_NUM, GFP_KERNEL);
++	} else if (cpu_is_omap34xx()) {
++		mcbsp->reg_cache = kzalloc(sizeof(u32) *
++				OMAP34XX_MCBSP_REG_NUM, GFP_KERNEL);
++	} else if (cpu_is_omap44xx()) {
++		mcbsp->reg_cache = kzalloc(sizeof(u32) *
++				OMAP44XX_MCBSP_REG_NUM, GFP_KERNEL);
++	}
++	if (!mcbsp->reg_cache)
++		return -ENOMEM;
 +
- static struct resource apollon_smc91x_resources[] = {
- 	[0] = {
- 		.flags  = IORESOURCE_MEM,
-@@ -134,6 +141,9 @@ static struct resource apollon_smc91x_resources[] = {
- static struct platform_device apollon_smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= -1,
-+	.dev	= {
-+		.platform_data	= &appolon_smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(apollon_smc91x_resources),
- 	.resource	= apollon_smc91x_resources,
- };
-diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
-index 6083e21..877c6f5 100644
---- a/arch/arm/mach-omap2/gpmc-smc91x.c
-+++ b/arch/arm/mach-omap2/gpmc-smc91x.c
-@@ -33,17 +33,19 @@ static struct resource gpmc_smc91x_resources[] = {
- };
+ 	spin_lock(&mcbsp->lock);
+ 	if (!mcbsp->free) {
+ 		dev_err(mcbsp->dev, "McBSP%d is currently in use\n",
+@@ -481,6 +520,9 @@ void omap_mcbsp_free(unsigned int id)
  
- static struct smc91x_platdata gpmc_smc91x_info = {
--	.flags  = SMC91X_USE_16BIT | SMC91X_NOWAIT | SMC91X_IO_SHIFT_0,
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT | SMC91X_IO_SHIFT_0,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
- };
- 
- static struct platform_device gpmc_smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= -1,
--	.num_resources	= ARRAY_SIZE(gpmc_smc91x_resources),
--	.resource	= gpmc_smc91x_resources,
- 	.dev		= {
- 		.platform_data = &gpmc_smc91x_info,
- 	},
-+	.num_resources	= ARRAY_SIZE(gpmc_smc91x_resources),
-+	.resource	= gpmc_smc91x_resources,
- };
- 
- /*
-diff --git a/arch/arm/plat-omap/debug-devices.c b/arch/arm/plat-omap/debug-devices.c
-index 09c1107..923c962 100644
---- a/arch/arm/plat-omap/debug-devices.c
-+++ b/arch/arm/plat-omap/debug-devices.c
-@@ -13,6 +13,7 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/io.h>
-+#include <linux/smc91x.h>
- 
- #include <mach/hardware.h>
- 
-@@ -24,6 +25,12 @@
-  * platforms include H2, H3, H4, and Perseus2.
-  */
- 
-+static struct smc91x_platdata smc91x_info = {
-+	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
-+	.leda	= RPC_LED_100_10,
-+	.ledb	= RPC_LED_TX_RX,
-+};
+ 	mcbsp->free = 1;
+ 	spin_unlock(&mcbsp->lock);
 +
- static struct resource smc91x_resources[] = {
- 	[0] = {
- 		.flags  = IORESOURCE_MEM,
-@@ -36,6 +43,9 @@ static struct resource smc91x_resources[] = {
- static struct platform_device smc91x_device = {
- 	.name		= "smc91x",
- 	.id		= -1,
-+	.dev		= {
-+		.platform_data = &smc91x_info,
-+	},
- 	.num_resources	= ARRAY_SIZE(smc91x_resources),
- 	.resource	= smc91x_resources,
- };
-
++	kfree(mcbsp->reg_cache);
++	mcbsp->reg_cache = NULL;
+ }
+ EXPORT_SYMBOL(omap_mcbsp_free);
+ 
