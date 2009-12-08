@@ -1,16 +1,16 @@
 From: Ladislav Michl <Ladislav.Michl@seznam.cz>
-Subject: [PATCH 1/2] OMAP: convert boards to use physmap-flash
-Date: Tue, 8 Dec 2009 20:24:21 +0100
-Message-ID: <20091208192421.GB32268@localhost.localdomain>
+Subject: [PATCH 2/2] MTD: remove no longer used OMAP flash map
+Date: Tue, 8 Dec 2009 20:28:06 +0100
+Message-ID: <20091208192806.GC32268@localhost.localdomain>
 References: <20091208192111.GA32268@localhost.localdomain>
 Reply-To: Ladislav Michl <ladis@linux-mips.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:38223 "EHLO smtp.seznam.cz"
+Received: from smtp.seznam.cz ([77.75.72.43]:45214 "EHLO smtp.seznam.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937874AbZLHSYS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Dec 2009 13:24:18 -0500
+	id S1754147AbZLHS2C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Dec 2009 13:28:02 -0500
 Content-Disposition: inline
 In-Reply-To: <20091208192111.GA32268@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,657 +18,230 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-mtd@lists.infradead.org
 
-Convert OMAP based boards to use physmap-flash.
+All OMAP boards are now using physmap-flash.
 
 Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 
---- /dev/null	2009-12-08 14:04:43.543715066 +0100
-+++ linux-omap-2.6/arch/arm/plat-omap/include/plat/flash.h	2009-12-08 18:53:34.000000000 +0100
-@@ -0,0 +1,16 @@
-+/*
-+ * Flash support for OMAP1
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __OMAP_FLASH_H
-+#define __OMAP_FLASH_H
-+
-+#include <linux/mtd/map.h>
-+
-+extern void omap1_set_vpp(struct map_info *map, int enable);
-+
-+#endif
---- /dev/null	2009-12-08 14:04:43.543715066 +0100
-+++ linux-omap-2.6/arch/arm/mach-omap1/flash.c	2009-12-08 18:45:16.000000000 +0100
-@@ -0,0 +1,33 @@
-+/*
-+ * Flash support for OMAP1
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/map.h>
-+
-+#include <plat/io.h>
-+#include <plat/tc.h>
-+
-+void omap1_set_vpp(struct map_info *map, int enable)
-+{
-+	static int count;
-+	u32 l;
-+
-+	if (enable) {
-+		if (count++ == 0) {
-+			l = omap_readl(EMIFS_CONFIG);
-+			l |= OMAP_EMIFS_CONFIG_WP;
-+			omap_writel(l, EMIFS_CONFIG);
-+		}
-+	} else {
-+		if (count && (--count == 0)) {
-+			l = omap_readl(EMIFS_CONFIG);
-+			l &= ~OMAP_EMIFS_CONFIG_WP;
-+			omap_writel(l, EMIFS_CONFIG);
-+		}
-+	}
-+}
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index 87e539a..c5c1360 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -3,7 +3,7 @@
- #
+diff --git a/drivers/mtd/maps/Kconfig b/drivers/mtd/maps/Kconfig
+index 14be075..c165a27 100644
+--- a/drivers/mtd/maps/Kconfig
++++ b/drivers/mtd/maps/Kconfig
+@@ -436,15 +436,6 @@ config MTD_H720X
+ 	  This enables access to the flash chips on the Hynix evaluation boards.
+ 	  If you have such a board, say 'Y'.
  
- # Common support
--obj-y := io.o id.o sram.o clock.o irq.o mux.o serial.o devices.o
-+obj-y := io.o id.o sram.o clock.o irq.o mux.o serial.o flash.o devices.o
- 
- obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
- 
-diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
-index f4b72c1..6b681d1 100644
---- a/arch/arm/mach-omap1/board-fsample.c
-+++ b/arch/arm/mach-omap1/board-fsample.c
-@@ -18,18 +18,19 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/input.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
+-config MTD_OMAP_NOR
+-	tristate "TI OMAP board mappings"
+-	depends on MTD_CFI && ARCH_OMAP
+-	help
+-	  This enables access to the NOR flash chips on TI OMAP-based
+-	  boards defining flash platform devices and flash platform data.
+-	  These boards include the Innovator, H2, H3, OSK, Perseus2, and
+-	  more.  If you have such a board, say 'Y'.
+-
+ # This needs CFI or JEDEC, depending on the cards found.
+ config MTD_PCI
+ 	tristate "PCI MTD driver"
+diff --git a/drivers/mtd/maps/Makefile b/drivers/mtd/maps/Makefile
+index ae2f6db..ef11888 100644
+--- a/drivers/mtd/maps/Makefile
++++ b/drivers/mtd/maps/Makefile
+@@ -55,7 +55,6 @@ obj-$(CONFIG_MTD_IXP2000)	+= ixp2000.o
+ obj-$(CONFIG_MTD_WRSBC8260)	+= wr_sbc82xx_flash.o
+ obj-$(CONFIG_MTD_DMV182)	+= dmv182.o
+ obj-$(CONFIG_MTD_PLATRAM)	+= plat-ram.o
+-obj-$(CONFIG_MTD_OMAP_NOR)	+= omap_nor.o
+ obj-$(CONFIG_MTD_INTEL_VR_NOR)	+= intel_vr_nor.o
+ obj-$(CONFIG_MTD_BFIN_ASYNC)	+= bfin-async-flash.o
+ obj-$(CONFIG_MTD_RBTX4939)	+= rbtx4939-flash.o
+--- a/drivers/mtd/maps/omap_nor.c	2009-10-20 13:04:52.000000000 +0200
++++ b/drivers/mtd/maps/omap_nor.c	2009-12-08 14:04:43.543715066 +0100
+@@ -1,188 +0,0 @@
+-/*
+- * Flash memory support for various TI OMAP boards
+- *
+- * Copyright (C) 2001-2002 MontaVista Software Inc.
+- * Copyright (C) 2003-2004 Texas Instruments
+- * Copyright (C) 2004 Nokia Corporation
+- *
+- *	Assembled using driver code copyright the companies above
+- *	and written by David Brownell, Jian Zhang <jzhang@ti.com>,
+- * 	Tony Lindgren <tony@atomide.com> and others.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the
+- * Free Software Foundation; either version 2 of the License, or (at your
+- * option) any later version.
+- *
+- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- * You should have received a copy of the  GNU General Public License along
+- * with this program; if not, write  to the Free Software Foundation, Inc.,
+- * 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
+-
+-#include <linux/platform_device.h>
+-#include <linux/module.h>
+-#include <linux/types.h>
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/ioport.h>
+-#include <linux/slab.h>
+-
+-#include <linux/mtd/mtd.h>
+-#include <linux/mtd/map.h>
+-#include <linux/mtd/partitions.h>
+-
+-#include <asm/io.h>
+-#include <mach/hardware.h>
 -#include <asm/mach/flash.h>
- #include <asm/mach/map.h>
- 
- #include <plat/tc.h>
- #include <mach/gpio.h>
- #include <plat/mux.h>
- #include <plat/fpga.h>
-+#include <plat/flash.h>
- #include <plat/nand.h>
- #include <plat/keypad.h>
- #include <plat/common.h>
-@@ -144,9 +145,9 @@ static struct mtd_partition nor_partitions[] = {
- 	},
- };
- 
--static struct flash_platform_data nor_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data nor_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= nor_partitions,
- 	.nr_parts	= ARRAY_SIZE(nor_partitions),
- };
-@@ -158,7 +159,7 @@ static struct resource nor_resource = {
- };
- 
- static struct platform_device nor_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &nor_data,
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index 89ba8ec..3e7200e 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -26,6 +26,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/input.h>
- #include <linux/i2c/tps65010.h>
- 
-@@ -34,12 +35,12 @@
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
--#include <asm/mach/flash.h>
- #include <asm/mach/map.h>
- 
- #include <plat/mux.h>
- #include <plat/dma.h>
- #include <plat/tc.h>
-+#include <plat/flash.h>
- #include <plat/nand.h>
- #include <plat/irda.h>
- #include <plat/usb.h>
-@@ -121,9 +122,9 @@ static struct mtd_partition h2_nor_partitions[] = {
- 	}
- };
- 
--static struct flash_platform_data h2_nor_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data h2_nor_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= h2_nor_partitions,
- 	.nr_parts	= ARRAY_SIZE(h2_nor_partitions),
- };
-@@ -134,7 +135,7 @@ static struct resource h2_nor_resource = {
- };
- 
- static struct platform_device h2_nor_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &h2_nor_data,
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index f5cc0a7..8a99a7c 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -25,6 +25,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/input.h>
- #include <linux/spi/spi.h>
- #include <linux/i2c/tps65010.h>
-@@ -36,12 +37,12 @@
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
--#include <asm/mach/flash.h>
- #include <asm/mach/map.h>
- 
- #include <mach/irqs.h>
- #include <plat/mux.h>
- #include <plat/tc.h>
-+#include <plat/flash.h>
- #include <plat/nand.h>
- #include <plat/usb.h>
- #include <plat/keypad.h>
-@@ -126,9 +127,9 @@ static struct mtd_partition nor_partitions[] = {
- 	}
- };
- 
--static struct flash_platform_data nor_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data nor_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= nor_partitions,
- 	.nr_parts	= ARRAY_SIZE(nor_partitions),
- };
-@@ -139,7 +140,7 @@ static struct resource nor_resource = {
- };
- 
- static struct platform_device nor_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &nor_data,
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index cf0fdb9..238ca9d 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -22,15 +22,16 @@
- #include <linux/delay.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/input.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
--#include <asm/mach/flash.h>
- #include <asm/mach/map.h>
- 
- #include <plat/mux.h>
-+#include <plat/flash.h>
- #include <plat/fpga.h>
- #include <mach/gpio.h>
- #include <plat/tc.h>
-@@ -93,9 +94,9 @@ static struct mtd_partition innovator_partitions[] = {
- 	}
- };
- 
--static struct flash_platform_data innovator_flash_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data innovator_flash_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= innovator_partitions,
- 	.nr_parts	= ARRAY_SIZE(innovator_partitions),
- };
-@@ -107,7 +108,7 @@ static struct resource innovator_flash_resource = {
- };
- 
- static struct platform_device innovator_flash_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &innovator_flash_data,
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 50c92c1..d0ad2f4 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -36,6 +36,7 @@
- 
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- 
- #include <linux/i2c/tps65010.h>
- 
-@@ -45,8 +46,8 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
--#include <asm/mach/flash.h>
- 
-+#include <plat/flash.h>
- #include <plat/usb.h>
- #include <plat/mux.h>
- #include <plat/tc.h>
-@@ -93,9 +94,9 @@ static struct mtd_partition osk_partitions[] = {
- 	}
- };
- 
--static struct flash_platform_data osk_flash_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data osk_flash_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= osk_partitions,
- 	.nr_parts	= ARRAY_SIZE(osk_partitions),
- };
-@@ -106,7 +107,7 @@ static struct resource osk_flash_resource = {
- };
- 
- static struct platform_device osk5912_flash_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &osk_flash_data,
-diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index 9fe8872..569b4c9 100644
---- a/arch/arm/mach-omap1/board-palmte.c
-+++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -23,6 +23,7 @@
- #include <linux/platform_device.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/spi/spi.h>
- #include <linux/interrupt.h>
- #include <linux/apm-emulation.h>
-@@ -31,9 +32,9 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
--#include <asm/mach/flash.h>
- 
- #include <mach/gpio.h>
-+#include <plat/flash.h>
- #include <plat/mux.h>
- #include <plat/usb.h>
- #include <plat/tc.h>
-@@ -126,9 +127,9 @@ static struct mtd_partition palmte_rom_partitions[] = {
- 	},
- };
- 
--static struct flash_platform_data palmte_rom_data = {
--	.map_name	= "map_rom",
-+static struct physmap_flash_data palmte_rom_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= palmte_rom_partitions,
- 	.nr_parts	= ARRAY_SIZE(palmte_rom_partitions),
- };
-@@ -140,7 +141,7 @@ static struct resource palmte_rom_resource = {
- };
- 
- static struct platform_device palmte_rom_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= -1,
- 	.dev		= {
- 		.platform_data	= &palmte_rom_data,
-diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
-index af068e3..6ad49a2 100644
---- a/arch/arm/mach-omap1/board-palmtt.c
-+++ b/arch/arm/mach-omap1/board-palmtt.c
-@@ -21,16 +21,17 @@
- #include <linux/interrupt.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/leds.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
--#include <asm/mach/flash.h>
- 
- #include <plat/led.h>
- #include <mach/gpio.h>
-+#include <plat/flash.h>
- #include <plat/mux.h>
- #include <plat/usb.h>
- #include <plat/dma.h>
-@@ -104,9 +105,9 @@ static struct mtd_partition palmtt_partitions[] = {
- 	}
- };
- 
--static struct flash_platform_data palmtt_flash_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data palmtt_flash_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= palmtt_partitions,
- 	.nr_parts	= ARRAY_SIZE(palmtt_partitions),
- };
-@@ -118,7 +119,7 @@ static struct resource palmtt_flash_resource = {
- };
- 
- static struct platform_device palmtt_flash_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &palmtt_flash_data,
-diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index c7a3b6f..6641de9 100644
---- a/arch/arm/mach-omap1/board-palmz71.c
-+++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -25,14 +25,15 @@
- #include <linux/interrupt.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
--#include <asm/mach/flash.h>
- 
- #include <mach/gpio.h>
-+#include <plat/flash.h>
- #include <plat/mux.h>
- #include <plat/usb.h>
- #include <plat/dma.h>
-@@ -126,10 +127,9 @@ static struct mtd_partition palmz71_rom_partitions[] = {
- 	},
- };
- 
--static struct flash_platform_data palmz71_rom_data = {
--	.map_name	= "map_rom",
--	.name		= "onboardrom",
-+static struct physmap_flash_data palmz71_rom_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= palmz71_rom_partitions,
- 	.nr_parts	= ARRAY_SIZE(palmz71_rom_partitions),
- };
-@@ -141,7 +141,7 @@ static struct resource palmz71_rom_resource = {
- };
- 
- static struct platform_device palmz71_rom_device = {
--	.name	= "omapflash",
-+	.name	= "physmap-flash",
- 	.id	= -1,
- 	.dev = {
- 		.platform_data = &palmz71_rom_data,
-diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
-index ca7df1e..dc4402f 100644
---- a/arch/arm/mach-omap1/board-perseus2.c
-+++ b/arch/arm/mach-omap1/board-perseus2.c
-@@ -18,18 +18,19 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/input.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
--#include <asm/mach/flash.h>
- #include <asm/mach/map.h>
- 
- #include <plat/tc.h>
- #include <mach/gpio.h>
- #include <plat/mux.h>
- #include <plat/fpga.h>
-+#include <plat/flash.h>
- #include <plat/nand.h>
- #include <plat/keypad.h>
- #include <plat/common.h>
-@@ -111,9 +112,9 @@ static struct mtd_partition nor_partitions[] = {
- 	},
- };
- 
--static struct flash_platform_data nor_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data nor_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= nor_partitions,
- 	.nr_parts	= ARRAY_SIZE(nor_partitions),
- };
-@@ -125,7 +126,7 @@ static struct resource nor_resource = {
- };
- 
- static struct platform_device nor_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &nor_data,
-diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index 7a97fac..2fb1e5f 100644
---- a/arch/arm/mach-omap1/board-sx1.c
-+++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -22,6 +22,7 @@
- #include <linux/notifier.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/types.h>
- #include <linux/i2c.h>
- #include <linux/errno.h>
-@@ -29,10 +30,10 @@
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
--#include <asm/mach/flash.h>
- #include <asm/mach/map.h>
- 
- #include <mach/gpio.h>
-+#include <plat/flash.h>
- #include <plat/mux.h>
- #include <plat/dma.h>
- #include <plat/irda.h>
-@@ -287,9 +288,9 @@ static struct mtd_partition sx1_partitions[] = {
- 	}
- };
- 
--static struct flash_platform_data sx1_flash_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data sx1_flash_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- 	.parts		= sx1_partitions,
- 	.nr_parts	= ARRAY_SIZE(sx1_partitions),
- };
-@@ -310,7 +311,7 @@ static struct resource sx1_old_flash_resource[] = {
- };
- 
- static struct platform_device sx1_flash_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &sx1_flash_data,
-@@ -327,7 +328,7 @@ static struct resource sx1_new_flash_resource = {
- };
- 
- static struct platform_device sx1_flash_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &sx1_flash_data,
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index 35c75c1..f42ea5c 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -18,6 +18,7 @@
- #include <linux/irq.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <linux/serial_8250.h>
-@@ -26,11 +27,11 @@
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
--#include <asm/mach/flash.h>
- #include <asm/mach/map.h>
- 
- #include <plat/common.h>
- #include <mach/gpio.h>
-+#include <plat/flash.h>
- #include <plat/mux.h>
- #include <plat/tc.h>
- #include <plat/usb.h>
-@@ -85,9 +86,9 @@ static int __init ext_uart_init(void)
- }
- arch_initcall(ext_uart_init);
- 
--static struct flash_platform_data voiceblue_flash_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data voiceblue_flash_data = {
- 	.width		= 2,
-+	.set_vpp	= omap1_set_vpp,
- };
- 
- static struct resource voiceblue_flash_resource = {
-@@ -97,7 +98,7 @@ static struct resource voiceblue_flash_resource = {
- };
- 
- static struct platform_device voiceblue_flash_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &voiceblue_flash_data,
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index db9374b..c04bfe7 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -18,6 +18,7 @@
- #include <linux/platform_device.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/delay.h>
- #include <linux/i2c/twl4030.h>
- #include <linux/err.h>
-@@ -28,7 +29,6 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
--#include <asm/mach/flash.h>
- 
- #include <mach/gpio.h>
- #include <plat/mux.h>
-@@ -74,8 +74,7 @@ static struct mtd_partition sdp2430_partitions[] = {
- 	}
- };
- 
--static struct flash_platform_data sdp2430_flash_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data sdp2430_flash_data = {
- 	.width		= 2,
- 	.parts		= sdp2430_partitions,
- 	.nr_parts	= ARRAY_SIZE(sdp2430_partitions),
-@@ -88,7 +87,7 @@ static struct resource sdp2430_flash_resource = {
- };
- 
- static struct platform_device sdp2430_flash_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev = {
- 		.platform_data	= &sdp2430_flash_data,
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index cfb7f12..ffb0051 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -16,6 +16,7 @@
- #include <linux/platform_device.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mtd/physmap.h>
- #include <linux/delay.h>
- #include <linux/workqueue.h>
- #include <linux/i2c.h>
-@@ -29,7 +30,6 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
--#include <asm/mach/flash.h>
- 
- #include <plat/control.h>
- #include <mach/gpio.h>
-@@ -115,8 +115,7 @@ static struct mtd_partition h4_partitions[] = {
- 	}
- };
- 
--static struct flash_platform_data h4_flash_data = {
--	.map_name	= "cfi_probe",
-+static struct physmap_flash_data h4_flash_data = {
- 	.width		= 2,
- 	.parts		= h4_partitions,
- 	.nr_parts	= ARRAY_SIZE(h4_partitions),
-@@ -127,7 +126,7 @@ static struct resource h4_flash_resource = {
- };
- 
- static struct platform_device h4_flash_device = {
--	.name		= "omapflash",
-+	.name		= "physmap-flash",
- 	.id		= 0,
- 	.dev		= {
- 		.platform_data	= &h4_flash_data,
-
+-#include <plat/tc.h>
+-
+-#ifdef CONFIG_MTD_PARTITIONS
+-static const char *part_probes[] = { /* "RedBoot", */ "cmdlinepart", NULL };
+-#endif
+-
+-struct omapflash_info {
+-	struct mtd_partition	*parts;
+-	struct mtd_info		*mtd;
+-	struct map_info		map;
+-};
+-
+-static void omap_set_vpp(struct map_info *map, int enable)
+-{
+-	static int	count;
+-	u32 l;
+-
+-	if (cpu_class_is_omap1()) {
+-		if (enable) {
+-			if (count++ == 0) {
+-				l = omap_readl(EMIFS_CONFIG);
+-				l |= OMAP_EMIFS_CONFIG_WP;
+-				omap_writel(l, EMIFS_CONFIG);
+-			}
+-		} else {
+-			if (count && (--count == 0)) {
+-				l = omap_readl(EMIFS_CONFIG);
+-				l &= ~OMAP_EMIFS_CONFIG_WP;
+-				omap_writel(l, EMIFS_CONFIG);
+-			}
+-		}
+-	}
+-}
+-
+-static int __init omapflash_probe(struct platform_device *pdev)
+-{
+-	int err;
+-	struct omapflash_info *info;
+-	struct flash_platform_data *pdata = pdev->dev.platform_data;
+-	struct resource *res = pdev->resource;
+-	unsigned long size = res->end - res->start + 1;
+-
+-	info = kzalloc(sizeof(struct omapflash_info), GFP_KERNEL);
+-	if (!info)
+-		return -ENOMEM;
+-
+-	if (!request_mem_region(res->start, size, "flash")) {
+-		err = -EBUSY;
+-		goto out_free_info;
+-	}
+-
+-	info->map.virt		= ioremap(res->start, size);
+-	if (!info->map.virt) {
+-		err = -ENOMEM;
+-		goto out_release_mem_region;
+-	}
+-	info->map.name		= dev_name(&pdev->dev);
+-	info->map.phys		= res->start;
+-	info->map.size		= size;
+-	info->map.bankwidth	= pdata->width;
+-	info->map.set_vpp	= omap_set_vpp;
+-
+-	simple_map_init(&info->map);
+-	info->mtd = do_map_probe(pdata->map_name, &info->map);
+-	if (!info->mtd) {
+-		err = -EIO;
+-		goto out_iounmap;
+-	}
+-	info->mtd->owner = THIS_MODULE;
+-
+-	info->mtd->dev.parent = &pdev->dev;
+-
+-#ifdef CONFIG_MTD_PARTITIONS
+-	err = parse_mtd_partitions(info->mtd, part_probes, &info->parts, 0);
+-	if (err > 0)
+-		add_mtd_partitions(info->mtd, info->parts, err);
+-	else if (err <= 0 && pdata->parts)
+-		add_mtd_partitions(info->mtd, pdata->parts, pdata->nr_parts);
+-	else
+-#endif
+-		add_mtd_device(info->mtd);
+-
+-	platform_set_drvdata(pdev, info);
+-
+-	return 0;
+-
+-out_iounmap:
+-	iounmap(info->map.virt);
+-out_release_mem_region:
+-	release_mem_region(res->start, size);
+-out_free_info:
+-	kfree(info);
+-
+-	return err;
+-}
+-
+-static int __exit omapflash_remove(struct platform_device *pdev)
+-{
+-	struct omapflash_info *info = platform_get_drvdata(pdev);
+-
+-	platform_set_drvdata(pdev, NULL);
+-
+-	if (info) {
+-		if (info->parts) {
+-			del_mtd_partitions(info->mtd);
+-			kfree(info->parts);
+-		} else
+-			del_mtd_device(info->mtd);
+-		map_destroy(info->mtd);
+-		release_mem_region(info->map.phys, info->map.size);
+-		iounmap((void __iomem *) info->map.virt);
+-		kfree(info);
+-	}
+-
+-	return 0;
+-}
+-
+-static struct platform_driver omapflash_driver = {
+-	.remove	= __exit_p(omapflash_remove),
+-	.driver = {
+-		.name	= "omapflash",
+-		.owner	= THIS_MODULE,
+-	},
+-};
+-
+-static int __init omapflash_init(void)
+-{
+-	return platform_driver_probe(&omapflash_driver, omapflash_probe);
+-}
+-
+-static void __exit omapflash_exit(void)
+-{
+-	platform_driver_unregister(&omapflash_driver);
+-}
+-
+-module_init(omapflash_init);
+-module_exit(omapflash_exit);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("MTD NOR map driver for TI OMAP boards");
+-MODULE_ALIAS("platform:omapflash");
