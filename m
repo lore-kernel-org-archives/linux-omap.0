@@ -1,28 +1,40 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: eac and mcbsp for omap850
-Date: Tue, 8 Dec 2009 13:06:05 +0100
-Message-ID: <e7c6a05e0912080406y763b2e99nd0188ff1911ec829@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Thomas Weber <weber@corscience.de>
+Subject: [PATCH] USB ehci: replace mach header with plat
+Date: Tue,  8 Dec 2009 13:15:06 +0100
+Message-ID: <1260274506-8805-1-git-send-email-weber@corscience.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f171.google.com ([209.85.223.171]:63623 "EHLO
-	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753918AbZLHMF6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 07:05:58 -0500
-Received: by iwn1 with SMTP id 1so3698149iwn.33
-        for <linux-omap@vger.kernel.org>; Tue, 08 Dec 2009 04:06:05 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.126.187]:49428 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754257AbZLHMPi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 07:15:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Thomas Weber <weber@corscience.de>
 
-Hi,
+Replace the mach/usb.h with plat/usb.h
 
-I would like to rewrite old eac audio driver for omap730 to current
-ASoc implementation
-but as I can understand new implementation use McBsP to
-transfer data to codec. Could this approach be used in omap850 which
-use EAC like codec and data from memory is transfered via DMA?
+Patch was already done in commit:
+801db9180010676f97bb3fbd7074291128b7b5fc , but overwritten.
 
-Thanks in advance,
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ drivers/usb/host/ehci-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Marek
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 7ba8df3..5cfed78 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -37,7 +37,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+ #include <linux/gpio.h>
+-#include <mach/usb.h>
++#include <plat/usb.h>
+ 
+ /*
+  * OMAP USBHOST Register addresses: VIRTUAL ADDRESSES
+-- 
+1.6.4.4
+
