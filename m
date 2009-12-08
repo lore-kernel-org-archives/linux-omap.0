@@ -1,43 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/8] Board file of Always Innovating OMAP3-based Touch
- Book
-Date: Mon, 7 Dec 2009 15:19:04 -0800
-Message-ID: <20091207231904.GO24013@atomide.com>
-References: <1258651091-31727-1-git-send-email-gregoire@gentil.com>
- <1258651091-31727-2-git-send-email-gregoire@gentil.com>
- <1258651091-31727-3-git-send-email-gregoire@gentil.com>
- <19F8576C6E063C45BE387C64729E739404370D6FAB@dbde02.ent.ti.com>
- <20091207214907.GK24013@atomide.com>
- <792f5f410912071411i5ebfec90n419a38ca4245e694@mail.gmail.com>
+From: "Syed Rafiuddin" <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RESUBMIT][PATCH-v2][RFC] OMAP4: I2C Support for OMAP4430
+Date: Tue, 8 Dec 2009 12:14:18 +0530 (IST)
+Message-ID: <44891.192.168.10.89.1260254658.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59216 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935663AbZLGXTC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Dec 2009 18:19:02 -0500
-Content-Disposition: inline
-In-Reply-To: <792f5f410912071411i5ebfec90n419a38ca4245e694@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-elnMNo+KYs3pIgCt6eIbzw@public.gmane.org>
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tim Yamin <plasmaroo@gmail.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Gregoire Gentil <gregoire@gentil.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tim Yamin <plasmaroo@gmail.com> [091207 14:10]:
-> 2009/12/7 Tony Lindgren <tony@atomide.com>:
-> >> One more thing just came in my mind, have you thought of using standard backlight class driver???
+>
+> Thu, 20 Aug 2009 14:19:04 -0700
+>
+> On Tue, Aug 18, 2009 at 03:35:31PM +0530, Syed Rafiuddin wrote:
+> > Ben,
 > >
-> > I'll add this without the backlight code so we get the basic
-> > support into mainline while using the backlight class driver
-> > issue is being discussed.
-> 
-> But the board file *is* implementing the standard backlight class,
-> i.e. the interface in linux/backlight.h... perhaps I'm
-> misunderstanding the intention here?
+> > > On Fri, Jul 24, 2009 at 04:40:02PM +0530, Syed Rafiuddin wrote:
+> > >> Hi Ben,
+> > >>
+> > >> > This patch adds OMAP4 support to the I2C driver. All I2C register
+> > >> > addresses  are different
+> > >> between
+> > >> > OMAP1/2/3 and OMAP4. In order to not have #ifdef's at  various places in
+> > >> > code, as well as to
+> > >> > support multi-OMAP build, Array's are  created to hold the register
+> > >> > addresses.
+> > >> >
+> > >> > Signed-off-by: Syed Rafiuddin <rafiuddin.s...-l0cyMroinI0@public.gmane.org>
+> > >> > ---
+> > >>
+> > >> No comment received on this patch,
+> > >> Is there anything that I need to resolve?
+> > >> Else can this patch get merged.
+> > >
+> > > sorry, been busy, will look at this in the next few days.
+> >
+> > Seems like no issues with the patch since no comments received from long time.
+> > Did you get a chance to look at the patch.Could you please merge this.
+>
+> I can't currently think of any neater way of doing this, so i'll
+> probably merge this.
 
-Hmm, yeah. Hiremath care to clarify what you had in mind
-with that standard backlight class driver comment?
+I do not see this patch merged. Is there some thing that needs to be resolved in this patch.
+Else can you please merge this patch.
 
 Regards,
-
-Tony
+Syed Rafiuddin
