@@ -1,53 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] OMAP: use physmap-flash
-Date: Tue, 8 Dec 2009 10:33:20 -0800
-Message-ID: <20091208183320.GV24013@atomide.com>
-References: <20091208192111.GA32268@localhost.localdomain>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/2] OMAP3: Enable DSS2 for OMAP3EVM board
+Date: Wed, 9 Dec 2009 00:19:22 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404372105C9@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+	 <1256724210-20581-1-git-send-email-hvaibhav@ti.com>
+	 <19F8576C6E063C45BE387C64729E73940436EEAD77@dbde02.ent.ti.com>
+	 <20091110010905.GR23952@atomide.com>
+	 <19F8576C6E063C45BE387C64729E73940436F94084@dbde02.ent.ti.com>
+ <1257847956.2400.62.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54349 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752397AbZLHSdT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 13:33:19 -0500
-Content-Disposition: inline
-In-Reply-To: <20091208192111.GA32268@localhost.localdomain>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49152 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756119AbZLHStg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 13:49:36 -0500
+In-Reply-To: <1257847956.2400.62.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Ladislav Michl <Ladislav.Michl@seznam.cz> [091208 10:20]:
-> There is nothing special on omapflash driver, so it can be replaced with
-> physmap-flash. First patch in serie does exactly this and second one removes
-> drivers/mtd/maps/omap_nor.c and associated Kconfig option. I'd like to have
-> either ack or merge into mtd git tree by mtd maintainers for that second part.
 
-Nice work! Ack from me to merge all this via the MTD tree.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tomi Valkeinen
+> Sent: Tuesday, November 10, 2009 3:43 PM
+> To: Hiremath, Vaibhav
+> Cc: Tony Lindgren; linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 1/2] OMAP3: Enable DSS2 for OMAP3EVM board
+> 
+> On Tue, 2009-11-10 at 04:42 +0100, ext Hiremath, Vaibhav wrote:
+> 
+> > >
+> > > It's best that we let Tomi queue up all the DSS2 related
+> patches.
+> > [Hiremath, Vaibhav] I am ok with that.
+> > Let me update this patch with the latest kernel + DSS2 and re-
+> submit it again.
+> 
+> Wait until DSS2 patches have been merged. I don't want the extra
+> complexity of board/panel patches, there's enough work with just the
+> half-megabyte DSS patches =).
+> 
+[Hiremath, Vaibhav] Tomi and Tony,
 
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
->  arch/arm/mach-omap1/flash.c                          |   33 ++
->  arch/arm/plat-omap/include/plat/flash.h              |   16 +
->  arch/arm/mach-omap1/Makefile                         |    2 
->  arch/arm/mach-omap1/board-fsample.c                  |    9 
->  arch/arm/mach-omap1/board-h2.c                       |    9 
->  arch/arm/mach-omap1/board-h3.c                       |    9 
->  arch/arm/mach-omap1/board-innovator.c                |    9 
->  arch/arm/mach-omap1/board-osk.c                      |    9 
->  arch/arm/mach-omap1/board-palmte.c                   |    9 
->  arch/arm/mach-omap1/board-palmtt.c                   |    9 
->  arch/arm/mach-omap1/board-palmz71.c                  |   10 
->  arch/arm/mach-omap1/board-perseus2.c                 |    9 
->  arch/arm/mach-omap1/board-sx1.c                      |   11 
->  arch/arm/mach-omap1/board-voiceblue.c                |    9 
->  arch/arm/mach-omap2/board-2430sdp.c                  |    7 
->  arch/arm/mach-omap2/board-h4.c                       |    7 
->  drivers/mtd/maps/Kconfig                             |    9 
->  drivers/mtd/maps/Makefile                            |    1 
->  drivers/mtd/maps/omap_nor.c                          |  188 -----------------
->  19 files changed, 112 insertions(+), 253 deletions(-)
+Now since DSS2 has already merged to linux-omap/master, I think now we can merge all other dependent patches like,
+
+	- OMAP3EVM support
+	- Sharp LQ LCD panel
+	- AM3517EVM support
+	- V4L2 Driver support
+
+Please let me know your opinion on this, so that I can submit it to the list.
+
+Thanks,
+Vaibhav
+
+>  Tomi
+> 
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
