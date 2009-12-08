@@ -1,235 +1,425 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 09/10 V3] omap3: pm: introduce 3630 opps
-Date: Tue, 08 Dec 2009 04:59:49 -0600
-Message-ID: <4B1E31A5.10701@ti.com>
-References: <1259122159-1583-1-git-send-email-nm@ti.com> <1259122159-1583-2-git-send-email-nm@ti.com> <1259122159-1583-3-git-send-email-nm@ti.com> <1259122159-1583-4-git-send-email-nm@ti.com> <1259122159-1583-5-git-send-email-nm@ti.com> <1259122159-1583-6-git-send-email-nm@ti.com> <1259122159-1583-7-git-send-email-nm@ti.com> <1259122159-1583-8-git-send-email-nm@ti.com> <1259122159-1583-9-git-send-email-nm@ti.com> <1259122159-1583-10-git-send-email-nm@ti.com> <20091208074900.GB23829@esdhcp037198.research.nokia.com>
+Subject: Re: [PATCH 02/10 V3] omap3: pm: introduce opp accessor functions
+Date: Tue, 08 Dec 2009 05:01:47 -0600
+Message-ID: <4B1E321B.6040401@ti.com>
+References: <1259122159-1583-1-git-send-email-nm@ti.com> <1259122159-1583-2-git-send-email-nm@ti.com> <1259122159-1583-3-git-send-email-nm@ti.com> <87einmin29.fsf@deeprootsystems.com> <4B0D9432.3040104@ti.com> <878wdukw0n.fsf@deeprootsystems.com> <7A436F7769CA33409C6B44B358BFFF0C012B595348@dlee02.ent.ti.com> <20091208082353.GF23829@esdhcp037198.research.nokia.com>
 Reply-To: nm@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:43035 "EHLO
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:55926 "EHLO
 	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753624AbZLHK7s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 05:59:48 -0500
-Received: by yxe17 with SMTP id 17so4793782yxe.33
-        for <linux-omap@vger.kernel.org>; Tue, 08 Dec 2009 02:59:55 -0800 (PST)
-In-Reply-To: <20091208074900.GB23829@esdhcp037198.research.nokia.com>
+	with ESMTP id S1753794AbZLHLBs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 06:01:48 -0500
+Received: by yxe17 with SMTP id 17so4794744yxe.33
+        for <linux-omap@vger.kernel.org>; Tue, 08 Dec 2009 03:01:55 -0800 (PST)
+In-Reply-To: <20091208082353.GF23829@esdhcp037198.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: eduardo.valentin@nokia.com
-Cc: linux-omap <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, "Dasgupta, Romit" <romit@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Gopinath, Thara" <thara@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Premi, Sanjeev" <premi@ti.com>
 
-Hi,
-thanks for your comments. few thoughts below.
-
-Eduardo Valentin said the following on 12/08/2009 01:49 AM:
-> Hello Nishanth,
+Eduardo Valentin said the following on 12/08/2009 02:23 AM:
+> Hello Nishanth and Kevin,
 >
-> Few comments bellow.
->
-> On Wed, Nov 25, 2009 at 05:09:18AM +0100, ext Nishanth Menon wrote:
+> On Thu, Nov 26, 2009 at 01:22:49AM +0100, ext Nishanth Menon wrote:
 >   
->> Introduce the OMAP3630 OPPs including the defined OPP tuples.
+>> Kevin Hilman had written, on 11/25/2009 05:46 PM, the following:
+>> [...]
+>>     
+>>>>> something like this instead:
+>>>>>
+>>>>> /**
+>>>>>  * opp_find_freq()
+>>>>>  * @oppl:        OPP list
+>>>>>  * @freq:        Frequency to look for in OPP table
+>>>>>  *
+>>>>>  * Look for an enabled OPP with a frequency value matching @freq.
+>>>>>  *
+>>>>>  * Returns pointer to OPP entry if match is found, or NULL if no match
+>>>>>  * found.
+>>>>>  */
+>>>>> struct omap_opp *opp_find_freq(const struct omap_opp *oppl, u32 freq);
+>>>>>           
+>>>> I did think about it(single function doing multiple things), the
+>>>> intention is as follows in reality:
+>>>> opp_is_valid : Search only for enabled frequencies
+>>>> opp_has_freq : Searches for enabled/disabled frequencies
+>>>>
+>>>> This is useful for some logic which wants to enable a frequency which
+>>>> may have been disabled in the table. now, to retain that
+>>>> functionality,
+>>>> A)
+>>>> /**
+>>>>  * opp_find_freq() - Find a opp corresponding to frequency
+>>>>  * @oppl:       opp list to search
+>>>>  * @freq:       frequency to loopup in OPP table
+>>>>  * @enabled:    search only enabled frequencies
+>>>>  *
+>>>>  * return opp handle corresponding to the frequency found, else
+>>>>  * return NULL. Search for enabled frequencies if enabled flag
+>>>>  * is true, else search for disabled frequencies also
+>>>>  */
+>>>> struct omap_opp *opp_find_freq(const struct omap_opp *oppl,
+>>>>                 unsigned long freq, bool enabled);
+>>>>
+>>>> This will handle the functionalities that are supported in rev 3.
+>>>>
+>>>> B) I rename existing functions:
+>>>> opp_has_freq ==> opp_is_disabled()
+>>>> opp_is_valid ==> opp_is_enabled()
+>>>>
+>>>> I would still prefer to go with explicit function search APIs..
+>>>>         
+>>> I like (A) here.
+>>>       
+>> Ack. I can see it useful if we go to a list iterator at a later point of time.
+>> [...]
 >>
->> Further information on OMAP3630 can be found here:
->> http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
+>>     
+>>>>> /**
+>>>>>  * opp_find_freq_rounded()
+>>>>>  * @oppl:        OPP list
+>>>>>  * @freq:        Frequency to look for in OPP table
+>>>>>  * @rounding:    Rounding option: NONE, UP, DOWN
+>>>>>  *
+>>>>>  * Look for an OPP with a frequency value matching @freq.  If
+>>>>>  * @rounding != ROUND_NONE, find closest match using rounding.
+>>>>>  *
+>>>>>  * Can be used to find exact OPP, or match using given rounding:
+>>>>>
+>>>>>  * @rounding == UP:      find next highest frequency
+>>>>>  * @rounding == DOWN:    find next lowest frequency
+>>>>>  * @rounding == CLOSEST: find closest frequency
+>>>>>  *
+>>>>>  * Returns pointer to OPP entry if match is found, or NULL if no match
+>>>>>  * found (only possible when no rounding is used)
+>>>>>  */
+>>>>> struct omap_opp *opp_find_freq_rounded(struct omap_opp *oppl, u32 freq, u32 rounding);
+>>>>>
+>>>>> Looking at the users of the 'higher' and 'lower' OPPs in the current
+>>>>> code, I see that SRF tries to use all three one after the other.
+>>>>> First it checks for exact match, then for higher, then for lower.
+>>>>> This could be replaced simply by doing a 'closest' match.
+>>>>>           
+>>>> hmmm.. I think we are going a full circle here.
+>>>>
+>>>> /* Search exact frequency */
+>>>> #define OPP_ROUND_NONE          (0 << 0)
+>>>> /* Search approx frequency */
+>>>> #define OPP_ROUND_CLOSEST       (1 << 0)
+>>>> /* Search up */
+>>>> #define OPP_ROUND_HIGH      (0 << 1)
+>>>> /* Search down */
+>>>> #define OPP_ROUND_LOW    (1 << 1)
+>>>>
+>>>> struct omap_opp *opp_find_freq_rounded(struct omap_opp *oppl,
+>>>>                 unsigned long freq, u8 rounding_flag);
+>>>>
+>>>> Note: the only difference b/w this and opp_find_freq is that
+>>>> opp_find_freq will also search for enabled/disabled.
+>>>> If I add that here, this is exactly the #1 implementation I did in
+>>>> http://marc.info/?l=linux-omap&m=125800489123496&w=2
+>>>> ok, I used bool instead of a #define and added the complexity of using
+>>>> enabled flag also:
+>>>>
+>>>> bool search_higher, bool search_enabled_only, bool exact_search
+>>>>
+>>>> what you are proposing is that I go back to my implementation #1 and
+>>>> remove my bools instead by adding #defines:
+>>>> /* Search up */
+>>>> #define OPP_ROUND_ENABLED (0 << 2)
+>>>> /* Search down */
+>>>> #define OPP_ROUND_ANY    (1 << 2)
+>>>>
+>>>> would even make the find_freq redundant..
+>>>>
+>>>> Now, in your comment in
+>>>> http://marc.info/?l=linux-omap&m=125816031406704&w=2 quote:"I think
+>>>> all the options to this function make it not terribly
+>>>> readable."
+>>>>
+>>>> Does it become any different now?
+>>>>
+>>>>         
+>>> Yeah, I still think multiple bools to a function is a readability
+>>> problem.  Every time you look at a call, you have to look at the
+>>> prototype to remember what all the options are.  A single bool or flag
+>>> is better IMHO.
+>>>
+>>>       
+>>>> without taking this in, exact searches can be done by specific
+>>>> functions and approximate searches by another function.. we go
+>>>> generic functions or we go specific functions.. generic comments I
+>>>> have been getting is to go specific, hence the v2 and v3 series.
+>>>>         
+>>> OK, you're right.  I am causing us to go around in circles now, but
+>>> we're going around in increasingly smaller circles and hopefully
+>>> converging on the target.  ;)
+>>>       
+>> Yep :)
 >>
->> OMAP36xx family introduces:
->> VDD1 with 4 OPPs, of which OPP3 & 4 are available only on devices yet
->> to be introduced in 36xx family. Meanwhile, VDD2 has 2 opps.
+>>     
+>>> So what I propose is having two functions.  One for exact matches
+>>> (your proposal A above) and one for approximate matches which is
+>>> something like my find_freq_rounded(), but should maybe be renamed
+>>> something like opp_find_freq_approx() or something.
+>>>       
+>> OK - Signed-Off. prototypes again :)
 >>
->> Device Support of OPPs->
->>            |<-3630-600->| (default)
->>            |<-      3630-800    ->| (device: TBD)
->>            |<-      3630-1000            ->| (device: TBD)
->> H/w OPP-> OPP50 OPP100       OPP-Turbo   OPP1G-SB
->> VDD1      OPP1  OPP2         OPP3        OPP4
->> VDD2      OPP1  OPP2         OPP2        OPP2
+>> Dead functions: opp_has_freq, opp_is_valid, opp_find_freq and other searches.
 >>
->> Note:
->> a) TI h/w naming for OPPs are now standardized in terms of OPP50, 100,
->>    Turbo and SB. This maps as shown above to the opp IDs (s/w term).
->> b) For boards which need custom VDD1/2 OPPs, the opp table can be
->>    updated by the board file on a need basis after the
->>    omap3_pm_init_opp_table call. The OPPs introduced here are the
->>    official OPP table at this point in time.
+>> Only two of them remain: (git diff follows)
+>> opp_find_freq_approx
 >>
->> Cc: Benoit Cousson <b-cousson@ti.com>
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->> Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Cc: Romit Dasgupta <romit@ti.com>
->> Cc: Sanjeev Premi <premi@ti.com>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
->> Cc: Thara Gopinath <thara@ti.com>
->> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+>> opp_find_freq_exact
 >>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> ---
->>  arch/arm/mach-omap2/pm34xx.c |   49 ++++++++++++++++++++++++++++++++++++++++-
->>  1 files changed, 47 insertions(+), 2 deletions(-)
 >>
->> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->> index ad21f5f..05ecf02 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -143,6 +143,41 @@ static struct omap_opp_def __initdata omap34xx_dsp_rate_table[] = {
->>  	{.enabled = 0, .freq = 0, .u_volt = 0}
->>  };
->>  
->> +static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
->> +	/*OPP1 - OPP50*/
->> +	{.enabled = true,  .freq = 300000000, .u_volt = 930000},
->> +	/*OPP2 - OPP100*/
->> +	{.enabled = true,  .freq = 600000000, .u_volt = 1100000},
->> +	/*OPP3 - OPP-Turbo*/
->> +	{.enabled = false, .freq = 800000000, .u_volt = 1260000},
->> +	/*OPP4 - OPP-SB*/
->> +	{.enabled = false, .freq = 1000000000, .u_volt = 1310000},
->> +	/* Terminator */
->> +	{.enabled = 0, .freq = 0, .u_volt = 0}
+>> [..]
+>>     
+>>>> int __init opp_add(struct omap_opp **oppl, const struct omap_opp_def
+>>>> *opp_defs);
+>>>>         
+>>> Mostly, but I was thinking of an API for adding a *single* OPP.  The
+>>> init code would iterate over its opp_def table adding OPPs one at a
+>>> time resultingin multiple calls to opp_add().
+>>>
+>>> OK, now I'm going around in circles again, but thinking more about his
+>>> we probably need your original opp_init() which will create an empty
+>>> master list, then repeated calls to opp_add() to add each OPP to the
+>>> master list.
+>>>       
+>> Opp_init will be a subcase of opp_add. Giving opp_add capabiity to take
+>> More than one def is useful for us in the long run:
+>> a) You can add bunch of them without list iterator repeating in each and every adding code.
+>> b) You can still add a single one if you choose to.
+>> c) add to a NULL list == init the list. That does sound implicit to me, but if we want to create a singular function for it alone, then I recommend:
+>>
+>> lets just have opp_init, then see if we need to add opp_add -> none of the systems are mature enough for us to use it..
+>>
+>> I am open either way.
+>>
+>>     
+>>> Also does add need to be __init?  Not sure why we would need to add
+>>> OPPs after boot time if we have the ability to enable/disable them at
+>>> runtime, but just a thought.
+>>>       
+>> Removed.. if in case we would like to do an opp_add at some point.
+>>
+>>     
+>> [...]
+>>
+>>
+>> diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
+>> new file mode 100644
+>> index 0000000..4a00685
+>> --- /dev/null
+>> +++ b/arch/arm/plat-omap/include/plat/opp.h
+>> @@ -0,0 +1,184 @@
+>> +/*
+>> + * OMAP OPP Interface
+>> + *
+>> + * Copyright (C) 2009 Texas Instruments Incorporated.
+>> + *     Nishanth Menon
+>> + * Copyright (C) 2009 Deep Root Systems, LLC.
+>> + *     Kevin Hilman
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +#ifndef __ASM_ARM_OMAP_OPP_H
+>> +#define __ASM_ARM_OMAP_OPP_H
+>> +
+>> +/**
+>> + * struct omap_opp - OMAP OPP description structure
+>> + * @enabled:   true/false - marking this OPP as enabled/disabled
+>> + * @rate:      Frequency in hertz
+>> + * @opp_id:    (DEPRECATED) opp identifier
+>> + * @vsel:      Voltage in volt processor level(this usage is
+>> + *             DEPRECATED to use Voltage in microvolts in future)
+>> + *             uV = ((vsel * 12.5) + 600) * 1000
+>> + *
+>> + * This structure stores the OPP information for a given domain.
+>> + * Due to legacy reasons, this structure is currently exposed and
+>> + * will soon be removed elsewhere and will only be used as a handle
+>> + * from the OPP internal referencing mechanism
+>> + */
+>> +struct omap_opp {
+>> +       bool enabled;
+>> +       unsigned long rate;
+>> +       u8 opp_id __deprecated;
+>> +       u16 vsel;
 >> +};
 >> +
->> +static struct omap_opp_def __initdata omap36xx_l3_rate_table[] = {
->> +	/*OPP1 - OPP50 */
->> +	{.enabled = true, .freq = 100000000, .u_volt = 930000},
->> +	/*OPP2 - OPP100, OPP-Turbo, OPP-SB*/
->> +	{.enabled = true, .freq = 200000000, .u_volt = 1137500},
->> +	/* Terminator */
->> +	{.enabled = 0, .freq = 0, .u_volt = 0}
+>> +/**
+>> + * opp_get_voltage() - Gets the voltage corresponding to an opp
+>> + * @opp:       opp for which voltage has to be returned for
+>> + *
+>> + * Return voltage in micro volt corresponding to the opp, else
+>> + * return 0
+>> + */
+>> +unsigned long opp_get_voltage(const struct omap_opp *opp);
+>> +
+>> +/**
+>> + * opp_get_freq() - Gets the frequency corresponding to an opp
+>> + * @opp:       opp for which frequency has to be returned for
+>> + *
+>> + * Return frequency in hertz corresponding to the opp, else
+>> + * return 0
+>> + */
+>> +unsigned long opp_get_freq(const struct omap_opp *opp);
+>> +
+>> +/**
+>> + * opp_get_opp_count - Get number of opps enabled in the opp list
+>> + * @num:       returns the number of opps
+>> + * @oppl:      opp list
+>> + *
+>> + * This functions returns the number of opps if there are any OPPs enabled,
+>> + * else returns corresponding error value.
+>> + */
+>> +int opp_get_opp_count(const struct omap_opp *oppl);
+>> +
+>> +#define OPP_SEARCH_HIGH                (0 << 1)
+>> +#define OPP_SEARCH_LOW         (1 << 1)
+>> +/**
+>> + * opp_find_freq_approx() - Search for an approximate freq
+>> + * @oppl:      starting list
+>> + * @freq:      start frequency
+>> + * @dir_flags: search direction
+>> + *             OPP_SEARCH_HIGH - search for next highest freq
+>> + *             OPP_SEARCH_LOW - search for next lowest freq
+>> + *
+>> + * Search for the higher/lower *enabled* OPP than a starting freq
+>> + * from a start opp list.
+>> +
+>> + * Returns *opp and *freq is populated with the next match,
+>> + * else returns NULL
+>> + *
+>> + * Example usages:
+>> + *     * print all frequencies in descending order *
+>> + *     unsigned long freq;
+>> + *     struct omap_opp *opp;
+>> + *     for(opp = oppl, freq = ULONG_MAX; opp;
+>> + *             opp = opp_find_freq_approx(opp, &freq, OPP_SEARCH_LOW))
+>> + *             pr_info("%ld ", freq);
+>> + *
+>> + *     * print all frequencies in ascending order *
+>> + *     unsigned long freq = 0;
+>> + *     struct omap_opp *opp;
+>> + *     for(opp = oppl, freq = 0; opp;
+>> + *             opp = opp_find_freq_approx(opp, &freq, OPP_SEARCH_HIGH))
+>> + *             pr_info("%ld ", freq);
+>> + * NOTE: if we set freq as ULONG_MAX, we get the highest enabled frequency
+>> + *
+>> + */
+>> +struct omap_opp *opp_find_freq_approx(struct omap_opp *oppl,
+>> +               unsigned long *freq, u8 dir_flags);
+>> +
+>> +/**
+>> + * opp_find_freq_exact() - search for an exact frequency
+>> + * @oppl:      OPP list
+>> + * @freq:      frequency to search for
+>> + * @enabled:   enabled/disabled OPP to search for
+>> + *
+>> + * searches for the match in the opp list and returns handle to the matching
+>> + * opp if found, else returns NULL.
+>> + *
+>> + * Note enabled is a modifier for the search. if enabled=true, then the match is
+>> + * for exact matching frequency and is enabled. if true, the match is for exact
+>> + * frequency which is disabled.
+>> + */
+>> +struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+>> +               unsigned long freq, bool enabled);
+>> +
+>> +
+>> +/**
+>> + * struct omap_opp_def - OMAP OPP Definition
+>> + * @enabled:   True/false - is this OPP enabled/disabled by default
+>> + * @freq:      Frequency in hertz corresponding to this OPP
+>> + * @u_volt:    Nominal voltage in microvolts corresponding to this OPP
+>> + *
+>> + * OMAP SOCs have a standard set of tuples consisting of frequency and voltage
+>> + * pairs that the device will support per voltage domain. This is called
+>> + * Operating Points or OPP. The actual definitions of OMAP Operating Points
+>> + * varies over silicon within the same family of devices. For a specific
+>> + * domain, you can have a set of {frequency, voltage} pairs and this is denoted
+>> + * by an array of omap_opp_def. As the kernel boots and more information is
+>> + * available, a set of these are activated based on the precise nature of
+>> + * device the kernel boots up on. It is interesting to remember that each IP
+>> + * which belongs to a voltage domain may define their own set of OPPs on top
+>> + * of this - but this is handled by the appropriate driver.
+>> + */
+>> +struct omap_opp_def {
+>> +       bool enabled;
+>> +       unsigned long freq;
+>> +       u32 u_volt;
 >> +};
 >> +
->> +static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
->> +	/*OPP1 - OPP50*/
->> +	{.enabled = true,  .freq = 260000000, .u_volt = 930000},
->> +	/*OPP2 - OPP100*/
->> +	{.enabled = true,  .freq = 520000000, .u_volt = 1100000},
->> +	/*OPP3 - OPP-Turbo*/
->> +	{.enabled = false, .freq = 660000000, .u_volt = 1260000},
->> +	/*OPP4 - OPP-SB*/
->> +	{.enabled = false, .freq = 875000000, .u_volt = 1310000},
->> +	/* Terminator */
->> +	{.enabled = 0, .freq = 0, .u_volt = 0}
->> +};
->> +
+>> +/**
+>> + * opp_add  - Add/initialize an OPP table from a table definitions
+>> + * @oppl:      Returned back to caller as the opp list to reference the OPP
+>> + * @opp_defs:  Array of omap_opp_def to describe the OPP. This list should be
+>> + *             0 terminated.
+>> + *
+>> + * This function adds the opp definition to an internal opp list and returns
+>> + * a handle representing the OPP list. This handle is then used for further
+>> + * validation, search, modification operations on the OPP list.
+>> + *
+>> + * This function returns 0 and the pointer to the allocated list through oppl if
+>> + * success, else corresponding error value. Caller should NOT free the oppl.
+>> + * opps_defs can be freed after use.
+>> + *
+>> + * NOTE: caller should assume that on success, oppl is probably populated with
+>> + * a new handle and the new handle should be used for further referencing
+>> + */
+>> +int opp_add(struct omap_opp **oppl, const struct omap_opp_def *opp_defs);
 >>     
 >
-> Although it is not mandatory, I'd say this way of initializing structure array is more common:
 >
-> static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
-> 	/*OPP1 - OPP50*/
-> 	{
-> 		.enabled	= true,
-> 		.freq		= 260000000,
-> 		.u_volt		= 930000,
-> 	},
-> 	/*OPP2 - OPP100*/
-> 	{
-> 		.enabled	= true,
-> 		.freq		= 520000000,
-> 		.u_volt		= 1100000,
-> 	},
-> 	/*OPP3 - OPP-Turbo*/
-> 	{
-> 		.enabled	= false,
-> 		.freq		= 660000000,
-> 		.u_volt		= 1260000,
-> 	},
-> 	/*OPP4 - OPP-SB*/
-> 	{
-> 		.enabled	= false,
-> 		.freq		= 875000000,
-> 		.u_volt		= 1310000,
-> 	},
-> 	/* Terminator */
-> 	{
-> 		.enabled	= 0,
-> 		.freq		= 0,
-> 		.u_volt		= 0,
-> 	}
-> };
+> I'd prefer to see what has been proposed by Kevin previously. If I understood correctly,
+> you would to split this one into two functions:
 >
-> and if you thing it is line consuming, you can always define a "INIT" macro:
-> #define	OMAP_OPP_DEF(_enabled, _freq, _uv)	\
-> {						\
-> 	.enabled	= _enabled,		\
-> 	.freq		= _freq,		\
-> 	.u_volt		= _uv,			\
-> }
+> opp_add - To add a single opp. At least that is what one would expect from its name.
+> opp_init - iterate over all opps definition that need to be added and call opp_add.
+> I'd name it 'opp_init_table' though, as opp_init sounds like initializing a single opp.
 >
-> and use it to initialize your array:
 >
-> 	/*OPP1 - OPP50*/
-> static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
-> 	OMAP_OPP_DEF(true, 260000000, 930000),
-> 	OMAP_OPP_DEF(true, 520000000, 1100000),
-> 	OMAP_OPP_DEF(false, 660000000, 1260000),
-> 	OMAP_OPP_DEF(false, 875000000, 1310000},
-> 	OMAP_OPP_DEF(0, 0, 0),
-> };
 >   
-Thanks. yep, I agree this looks cleaner. I vote for this. probably will
-use OMAP_OPP_TERM to denote (0,0,0)
+okay.
 
->
-> Beside, although it should not hurt as they are not too big, these tables should
-> be compiled only if omap3630 is the target right?
->
->   
->>  struct omap_opp *omap3_mpu_rate_table;
->>  struct omap_opp *omap3_dsp_rate_table;
->>  struct omap_opp *omap3_l3_rate_table;
->> @@ -1299,18 +1334,28 @@ static void __init configure_vc(void)
->>  void __init omap3_pm_init_opp_table(void)
->>  {
->>  	int ret, i;
->> +	struct omap_opp_def **omap3_opp_def_list;
->>  	struct omap_opp_def *omap34xx_opp_def_list[] = {
->>  		omap34xx_mpu_rate_table,
->>  		omap34xx_l3_rate_table,
->>  		omap34xx_dsp_rate_table
->>  	};
->> +	struct omap_opp_def *omap36xx_opp_def_list[] = {
->> +		omap36xx_mpu_rate_table,
->> +		omap36xx_l3_rate_table,
->> +		omap36xx_dsp_rate_table
->> +	};
->>  	struct omap_opp **omap3_rate_tables[] = {
->>  		&omap3_mpu_rate_table,
->>  		&omap3_l3_rate_table,
->>  		&omap3_dsp_rate_table
->>  	};
->> -	for (i = 0; i < ARRAY_SIZE(omap34xx_opp_def_list); i++) {
->> -		ret = opp_init(omap3_rate_tables[i], omap34xx_opp_def_list[i]);
+let me try and send out a updated proposal later today..
 >> +
->> +	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
->> +				omap34xx_opp_def_list;
->>     
->
-> here you cared for runtime target check, but tables above could be avoid if not omap3630.
->   
-If your concern is memory size: the tables are __initdata, they will get
-freed once kernel boot is complete. the only representation of omap_opp
-will be what the opp layer's definition of the same.
-
-The intention was to be able to have a single uImage booting across
-multiple boards with multiple silicon -> e.g. today same uImage with
-omap_pm_defconfig will equally boot on sdp3430 as it does on sdp3630..
-which is what we all prefer.. so no ways of a compile time inclusion- it
-has to be runtime determined..
-
->   
+>> +/**
+>> + * opp_enable - Enable a specific OPP
+>> + * @opp:       pointer to opp
+>> + *
+>> + * Enables a provided opp. If the operation is valid, this returns 0, else the
+>> + * corresponding error value.
+>> + *
+>> + * OPP used here is from the the opp_is_valid/opp_has_freq or other search
+>> + * functions
+>> + */
+>> +int opp_enable(struct omap_opp *opp);
 >> +
->> +	for (i = 0; i < ARRAY_SIZE(omap3_rate_tables); i++) {
->> +		ret = opp_init(omap3_rate_tables[i], omap3_opp_def_list[i]);
->>  		/* We dont want half configured system at the moment */
->>  		BUG_ON(ret);
->>  	}
->> -- 
->> 1.6.3.3
+>> +/**
+>> + * opp_disable - Disable a specific OPP
+>> + * @opp:       pointer to opp
+>> + *
+>> + * Disables a provided opp. If the operation is valid, this returns 0, else the
+>> + * corresponding error value.
+>> + *
+>> + * OPP used here is from the the opp_is_valid/opp_has_freq or other search
+>> + * functions
+>> + */
+>> +int opp_disable(struct omap_opp *opp);
+>> +
+>> +#endif         /* __ASM_ARM_OMAP_OPP_H *
 >>
+>> --
+>> Regards,
+>> Nishanth Menon
 >> --
 >> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 >> the body of a message to majordomo@vger.kernel.org
