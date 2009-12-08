@@ -1,41 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] USB ehci: replace mach header with plat
-Date: Tue, 8 Dec 2009 15:43:07 -0800
-Message-ID: <20091208234306.GZ24013@atomide.com>
+Subject: [APPLIED] [PATCH] USB ehci: replace mach header with plat
+Date: Tue, 8 Dec 2009 18:46:53 -0500
+Message-ID: <notify-1260316017@atomide.com>
 References: <1260274506-8805-1-git-send-email-weber@corscience.de>
- <20091208134750.GE24510@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62779 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966899AbZLHXnH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 18:43:07 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53799 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966929AbZLHXqx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 18:46:53 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NI9lk-000K5p-1q
+	for linux-omap@vger.kernel.org; Tue, 08 Dec 2009 23:47:00 +0000
+In-Reply-To: <1260274506-8805-1-git-send-email-weber@corscience.de>
 Content-Disposition: inline
-In-Reply-To: <20091208134750.GE24510@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: ext Thomas Weber <weber@corscience.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [091208 05:49]:
-> On Tue, Dec 08, 2009 at 01:15:06PM +0100, ext Thomas Weber wrote:
-> >Replace the mach/usb.h with plat/usb.h
-> >
-> >Patch was already done in commit:
-> >801db9180010676f97bb3fbd7074291128b7b5fc , but overwritten.
-> >
-> >Signed-off-by: Thomas Weber <weber@corscience.de>
-> 
-> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
-> Tony, this should probably go into for-next or for-next-vol2.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-I'll add this into omap-testing for now as the ehci-omap.c is
-still not merged into mainline from Greg's queue.
+Branch in linux-omap: omap-testing
 
-I'll move it into omap-fixes once the ehci-omap.c hits the
-mainline.
+Initial commit ID (Likely to change): 6a7426ea75ca387aa65f8f9215f5b40b1a4460b9
 
-Tony
+PatchWorks
+http://patchwork.kernel.org/patch/65678/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=6a7426ea75ca387aa65f8f9215f5b40b1a4460b9
+
 
