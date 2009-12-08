@@ -1,63 +1,224 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC][RFT][PATCH 3/4 v5b] OMAP: McBSP: Introduce caching in
- register write operations
-Date: Tue, 8 Dec 2009 09:35:21 +0200
-Message-ID: <20091208093521.3905241c.jhnikula@gmail.com>
-References: <200912010410.10129.jkrzyszt@tis.icnet.pl>
-	<200912051447.41777.jkrzyszt@tis.icnet.pl>
-	<20091207175534.GZ24013@atomide.com>
-	<200912072039.34081.jkrzyszt@tis.icnet.pl>
-	<20091207210631.GG24013@atomide.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 09/10 V3] omap3: pm: introduce 3630 opps
+Date: Tue, 8 Dec 2009 09:49:00 +0200
+Message-ID: <20091208074900.GB23829@esdhcp037198.research.nokia.com>
+References: <1259122159-1583-1-git-send-email-nm@ti.com>
+ <1259122159-1583-2-git-send-email-nm@ti.com>
+ <1259122159-1583-3-git-send-email-nm@ti.com>
+ <1259122159-1583-4-git-send-email-nm@ti.com>
+ <1259122159-1583-5-git-send-email-nm@ti.com>
+ <1259122159-1583-6-git-send-email-nm@ti.com>
+ <1259122159-1583-7-git-send-email-nm@ti.com>
+ <1259122159-1583-8-git-send-email-nm@ti.com>
+ <1259122159-1583-9-git-send-email-nm@ti.com>
+ <1259122159-1583-10-git-send-email-nm@ti.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:63520 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055AbZLHHeJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 02:34:09 -0500
-Received: by bwz27 with SMTP id 27so4160517bwz.21
-        for <linux-omap@vger.kernel.org>; Mon, 07 Dec 2009 23:34:15 -0800 (PST)
-In-Reply-To: <20091207210631.GG24013@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:47297 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752373AbZLHHtL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 02:49:11 -0500
+Content-Disposition: inline
+In-Reply-To: <1259122159-1583-10-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+To: ext Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-Hi, sorry not commenting for few days.
+Hello Nishanth,
 
-On Mon, 7 Dec 2009 13:06:31 -0800
-Tony Lindgren <tony@atomide.com> wrote:
+Few comments bellow.
 
-> > For me, the fact that more than one processor type can be configured side by 
-> > side it not enough reason here. With your code, if more then one processor 
-> > type is configured, twice or tripple as much memory space will be devoted to  
-> > two or three cache tables instead of one that can be reused easily, as it is 
-> > with mine. Since you cannot run the same instance of the kernel on several 
-> > machines simultaneously, only one of those two or three tables is required at 
-> > runtime for storing data, so this looks like a waste of expensive memory 
-> > unless some kind of runtime optimization that I am not familiar with can
-> > happen here. I was even affraid before that one of objections against my idea 
-> > of using the cache could be unnecessary waste of memory space.
+On Wed, Nov 25, 2009 at 05:09:18AM +0100, ext Nishanth Menon wrote:
+> Introduce the OMAP3630 OPPs including the defined OPP tuples.
 > 
-> Well if you want to optimize it out further, how about just kzalloc it
-> during init? Then you have just one copy that gets set the right size
-> depending on what you boot.
+> Further information on OMAP3630 can be found here:
+> http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
+> 
+> OMAP36xx family introduces:
+> VDD1 with 4 OPPs, of which OPP3 & 4 are available only on devices yet
+> to be introduced in 36xx family. Meanwhile, VDD2 has 2 opps.
+> 
+> Device Support of OPPs->
+>            |<-3630-600->| (default)
+>            |<-      3630-800    ->| (device: TBD)
+>            |<-      3630-1000            ->| (device: TBD)
+> H/w OPP-> OPP50 OPP100       OPP-Turbo   OPP1G-SB
+> VDD1      OPP1  OPP2         OPP3        OPP4
+> VDD2      OPP1  OPP2         OPP2        OPP2
+> 
+> Note:
+> a) TI h/w naming for OPPs are now standardized in terms of OPP50, 100,
+>    Turbo and SB. This maps as shown above to the opp IDs (s/w term).
+> b) For boards which need custom VDD1/2 OPPs, the opp table can be
+>    updated by the board file on a need basis after the
+>    omap3_pm_init_opp_table call. The OPPs introduced here are the
+>    official OPP table at this point in time.
+> 
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Romit Dasgupta <romit@ti.com>
+> Cc: Sanjeev Premi <premi@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+> Cc: Thara Gopinath <thara@ti.com>
+> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |   49 ++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 47 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index ad21f5f..05ecf02 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -143,6 +143,41 @@ static struct omap_opp_def __initdata omap34xx_dsp_rate_table[] = {
+>  	{.enabled = 0, .freq = 0, .u_volt = 0}
+>  };
 >  
-> > Nevertheless, I'll do it your way. Maybe there are still some other reasons
-> > not explicitly expressed yet.
-> > 
-> > I guess that omap2 part should follow the same pattern, shouldn't it?
+> +static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
+> +	/*OPP1 - OPP50*/
+> +	{.enabled = true,  .freq = 300000000, .u_volt = 930000},
+> +	/*OPP2 - OPP100*/
+> +	{.enabled = true,  .freq = 600000000, .u_volt = 1100000},
+> +	/*OPP3 - OPP-Turbo*/
+> +	{.enabled = false, .freq = 800000000, .u_volt = 1260000},
+> +	/*OPP4 - OPP-SB*/
+> +	{.enabled = false, .freq = 1000000000, .u_volt = 1310000},
+> +	/* Terminator */
+> +	{.enabled = 0, .freq = 0, .u_volt = 0}
+> +};
+> +
+> +static struct omap_opp_def __initdata omap36xx_l3_rate_table[] = {
+> +	/*OPP1 - OPP50 */
+> +	{.enabled = true, .freq = 100000000, .u_volt = 930000},
+> +	/*OPP2 - OPP100, OPP-Turbo, OPP-SB*/
+> +	{.enabled = true, .freq = 200000000, .u_volt = 1137500},
+> +	/* Terminator */
+> +	{.enabled = 0, .freq = 0, .u_volt = 0}
+> +};
+> +
+> +static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
+> +	/*OPP1 - OPP50*/
+> +	{.enabled = true,  .freq = 260000000, .u_volt = 930000},
+> +	/*OPP2 - OPP100*/
+> +	{.enabled = true,  .freq = 520000000, .u_volt = 1100000},
+> +	/*OPP3 - OPP-Turbo*/
+> +	{.enabled = false, .freq = 660000000, .u_volt = 1260000},
+> +	/*OPP4 - OPP-SB*/
+> +	{.enabled = false, .freq = 875000000, .u_volt = 1310000},
+> +	/* Terminator */
+> +	{.enabled = 0, .freq = 0, .u_volt = 0}
+> +};
+> +
+
+Although it is not mandatory, I'd say this way of initializing structure array is more common:
+
+static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
+	/*OPP1 - OPP50*/
+	{
+		.enabled	= true,
+		.freq		= 260000000,
+		.u_volt		= 930000,
+	},
+	/*OPP2 - OPP100*/
+	{
+		.enabled	= true,
+		.freq		= 520000000,
+		.u_volt		= 1100000,
+	},
+	/*OPP3 - OPP-Turbo*/
+	{
+		.enabled	= false,
+		.freq		= 660000000,
+		.u_volt		= 1260000,
+	},
+	/*OPP4 - OPP-SB*/
+	{
+		.enabled	= false,
+		.freq		= 875000000,
+		.u_volt		= 1310000,
+	},
+	/* Terminator */
+	{
+		.enabled	= 0,
+		.freq		= 0,
+		.u_volt		= 0,
+	}
+};
+
+and if you thing it is line consuming, you can always define a "INIT" macro:
+#define	OMAP_OPP_DEF(_enabled, _freq, _uv)	\
+{						\
+	.enabled	= _enabled,		\
+	.freq		= _freq,		\
+	.u_volt		= _uv,			\
+}
+
+and use it to initialize your array:
+
+	/*OPP1 - OPP50*/
+static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
+	OMAP_OPP_DEF(true, 260000000, 930000),
+	OMAP_OPP_DEF(true, 520000000, 1100000),
+	OMAP_OPP_DEF(false, 660000000, 1260000),
+	OMAP_OPP_DEF(false, 875000000, 1310000},
+	OMAP_OPP_DEF(0, 0, 0),
+};
+
+
+Beside, although it should not hurt as they are not too big, these tables should
+be compiled only if omap3630 is the target right?
+
+>  struct omap_opp *omap3_mpu_rate_table;
+>  struct omap_opp *omap3_dsp_rate_table;
+>  struct omap_opp *omap3_l3_rate_table;
+> @@ -1299,18 +1334,28 @@ static void __init configure_vc(void)
+>  void __init omap3_pm_init_opp_table(void)
+>  {
+>  	int ret, i;
+> +	struct omap_opp_def **omap3_opp_def_list;
+>  	struct omap_opp_def *omap34xx_opp_def_list[] = {
+>  		omap34xx_mpu_rate_table,
+>  		omap34xx_l3_rate_table,
+>  		omap34xx_dsp_rate_table
+>  	};
+> +	struct omap_opp_def *omap36xx_opp_def_list[] = {
+> +		omap36xx_mpu_rate_table,
+> +		omap36xx_l3_rate_table,
+> +		omap36xx_dsp_rate_table
+> +	};
+>  	struct omap_opp **omap3_rate_tables[] = {
+>  		&omap3_mpu_rate_table,
+>  		&omap3_l3_rate_table,
+>  		&omap3_dsp_rate_table
+>  	};
+> -	for (i = 0; i < ARRAY_SIZE(omap34xx_opp_def_list); i++) {
+> -		ret = opp_init(omap3_rate_tables[i], omap34xx_opp_def_list[i]);
+> +
+> +	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
+> +				omap34xx_opp_def_list;
+
+here you cared for runtime target check, but tables above could be avoid if not omap3630.
+
+> +
+> +	for (i = 0; i < ARRAY_SIZE(omap3_rate_tables); i++) {
+> +		ret = opp_init(omap3_rate_tables[i], omap3_opp_def_list[i]);
+>  		/* We dont want half configured system at the moment */
+>  		BUG_ON(ret);
+>  	}
+> -- 
+> 1.6.3.3
 > 
-How about declaring the reg_cache as a void pointer in struct
-omap_mcbsp and allocate the cache and its size in omap_mcbsp_request
-according to omap type? Read and write functions would access the
-*reg_cache either as 16-bit or 32-bit table depending on omap.
-
-No ifdefs, no unused cache tables in multi-omap binary and cache tables
-are allocated only for used ports. I don't think there is need to
-preserve cache content over omap_mcbsp_free and new omap_mcbsp_request?
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
-Jarkko
+Eduardo Valentin
