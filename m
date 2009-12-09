@@ -1,64 +1,62 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 2/6] OMAP4: Fix SRAM base and size
-Date: Wed,  9 Dec 2009 23:59:06 +0530
-Message-ID: <1260383350-32681-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 5/6] OMAP4: Remove the secondary wait loop.
+Date: Wed,  9 Dec 2009 23:59:09 +0530
+Message-ID: <1260383350-32681-5-git-send-email-santosh.shilimkar@ti.com>
 References: <1260383350-32681-1-git-send-email-santosh.shilimkar@ti.com>
+ <1260383350-32681-2-git-send-email-santosh.shilimkar@ti.com>
+ <1260383350-32681-3-git-send-email-santosh.shilimkar@ti.com>
+ <1260383350-32681-4-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51617 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:51627 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755934AbZLIS3T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 13:29:19 -0500
-In-Reply-To: <1260383350-32681-1-git-send-email-santosh.shilimkar@ti.com>
+	with ESMTP id S1756474AbZLIS30 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 13:29:26 -0500
+In-Reply-To: <1260383350-32681-4-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch fixes the public sram base address and available
-size on OMAP4430.
+The secondary cores wakes up in time so the wait loop is not
+necessary anymore.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/plat-omap/sram.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/omap-smp.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 3e92366..3044009 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -47,8 +47,10 @@
- #define OMAP3_SRAM_VA           0xfe400000
- #define OMAP3_SRAM_PUB_PA       0x40208000
- #define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
--#define OMAP4_SRAM_PA		0x40200000		/*0x402f0000*/
--#define OMAP4_SRAM_VA		0xfe400000		/*0xfe4f0000*/
-+#define OMAP4_SRAM_PA		0x40300000
-+#define OMAP4_SRAM_VA		0xfe400000
-+#define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
-+#define OMAP4_SRAM_PUB_VA	(OMAP4_SRAM_VA + 0x4000)
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 59e8478..38153e5 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -17,7 +17,6 @@
+  */
+ #include <linux/init.h>
+ #include <linux/device.h>
+-#include <linux/jiffies.h>
+ #include <linux/smp.h>
+ #include <linux/io.h>
  
- #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
- #define SRAM_BOOTLOADER_SZ	0x00
-@@ -139,6 +141,10 @@ void __init omap_detect_sram(void)
- 				} else {
- 					omap_sram_size = 0x8000; /* 32K */
- 				}
-+			} else if (cpu_is_omap44xx()) {
-+				omap_sram_base = OMAP4_SRAM_PUB_VA;
-+				omap_sram_start = OMAP4_SRAM_PUB_PA;
-+				omap_sram_size = 0xa000; /* 40K */
- 			} else {
- 				omap_sram_base = OMAP2_SRAM_PUB_VA;
- 				omap_sram_start = OMAP2_SRAM_PUB_PA;
-@@ -152,7 +158,7 @@ void __init omap_detect_sram(void)
- 			} else if (cpu_is_omap44xx()) {
- 				omap_sram_base = OMAP4_SRAM_VA;
- 				omap_sram_start = OMAP4_SRAM_PA;
--				omap_sram_size = 0x8000; /* 32K */
-+				omap_sram_size = 0xe000; /* 56K */
- 			} else {
- 				omap_sram_base = OMAP2_SRAM_VA;
- 				omap_sram_start = OMAP2_SRAM_PA;
+@@ -62,8 +61,6 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
+ 
+ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+ {
+-	unsigned long timeout;
+-
+ 	/*
+ 	 * Set synchronisation state between this boot processor
+ 	 * and the secondary one
+@@ -80,10 +77,6 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	flush_cache_all();
+ 	smp_wmb();
+ 
+-	timeout = jiffies + (1 * HZ);
+-	while (time_before(jiffies, timeout))
+-		;
+-
+ 	/*
+ 	 * Now the secondary core is starting up let it run its
+ 	 * calibrations, then wait for it to finish
 -- 
 1.6.0.4
 
