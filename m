@@ -1,80 +1,114 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 6/6] OMAP4: Sync up omap4430 defconfig
-Date: Thu, 10 Dec 2009 00:28:12 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309C863E9@dbde02.ent.ti.com>
-References: <1260383350-32681-1-git-send-email-santosh.shilimkar@ti.com>
- <1260383350-32681-2-git-send-email-santosh.shilimkar@ti.com>
- <1260383350-32681-3-git-send-email-santosh.shilimkar@ti.com>
- <1260383350-32681-4-git-send-email-santosh.shilimkar@ti.com>
- <1260383350-32681-5-git-send-email-santosh.shilimkar@ti.com>
- <1260383350-32681-6-git-send-email-santosh.shilimkar@ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FAAFE85C@dbde02.ent.ti.com>,<EAF47CD23C76F840A9E7FCE10091EFAB02BC0A8251@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] ARM: L2 : Errata 588369: Clean & Invalidate do not
+ invalidate clean lines
+Date: Wed, 9 Dec 2009 11:19:09 -0800
+Message-ID: <20091209191909.GS24013@atomide.com>
+References: <1260384233-2278-1-git-send-email-santosh.shilimkar@ti.com>
+ <1260384233-2278-2-git-send-email-santosh.shilimkar@ti.com>
+ <1260384233-2278-3-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54702 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756888AbZLIS6Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 13:58:24 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BC0A8251@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65142 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756930AbZLITTK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 14:19:10 -0500
+Content-Disposition: inline
+In-Reply-To: <1260384233-2278-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Shilimkar, Santosh wrote:
-> > >-----Original Message-----
-> > >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> > >Shilimkar, Santosh
-> > >Sent: Wednesday, December 09, 2009 12:29 PM
-> > >To: tony@atomide.com
-> > >Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org; linux@arm.linux.org.uk;
-> > >Shilimkar, Santosh
-> > >Subject: [PATCH 6/6] OMAP4: Sync up omap4430 defconfig
-> > >
-> > >Enable minimum features to boot omap4430 on es1.0 samples
-> > >
-> > >Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > >---
-> > > arch/arm/configs/omap_4430sdp_defconfig |  146 ++++++++++++++++++-------------
-> > > 1 files changed, 84 insertions(+), 62 deletions(-)
-> > >
-> > >diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
-> > >index a464ca3..49df3ad 100644
-> > >--- a/arch/arm/configs/omap_4430sdp_defconfig
-> > >+++ b/arch/arm/configs/omap_4430sdp_defconfig
-> > >@@ -1,26 +1,29 @@
-> > > #
-> > > # Automatically generated make config: don't edit
-> > >-# Linux kernel version: 2.6.30-rc7
-> > >-# Tue Jun  9 12:36:23 2009
-> > >+# Linux kernel version: 2.6.32
-> > >+# Sun Dec  6 23:37:45 2009
-> > <snip>
-> > >-# CONFIG_SYSFS_DEPRECATED=y is not set
-> > >-# CONFIG_SYSFS_DEPRECATED_V2=y is not set
-> > >+CONFIG_SYSFS_DEPRECATED_V2=y
-> >
-> > This is a deprecated feature and don't introduce it back again.
-> > There haven been patches in recent past to get rid of this.
-> Thanks Vikram. The thing is some of the busy box people are using get confused
-> and stuck without this.
+Hi,
+
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [091209 10:42]:
+> This patch implements the work-around for the errata 588369. The secure API
+> is used to alter L2 debug regsiter because of trust-zone.
+
+This one should be queued via Russell's patch system. It should
+be also acked by Catalin.
+
+Regards,
+
+Tony
+
+ 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/Kconfig         |   13 +++++++++++++
+>  arch/arm/mm/cache-l2x0.c |   32 ++++++++++++++++++++++++++++++++
+>  2 files changed, 45 insertions(+), 0 deletions(-)
 > 
-> Do you have pointers to those patches ?
+> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> index cf8a99f..388d1e3 100644
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -916,6 +916,19 @@ config ARM_ERRATA_460075
+>  	  ACTLR register. Note that setting specific bits in the ACTLR register
+>  	  may not be available in non-secure mode.
+>  
+> +config PL310_ERRATA_588369
+> +	bool "Clean & Invalidate maintenance operations do not invalidate clean lines"
+> +	depends on CACHE_L2X0
+> +	default n
+> +	help
+> +	   The PL310 L2 cache controller implements three types of Clean &
+> +	   Invalidate maintenance operations: by Physical Address
+> +	   (offset 0x7F0), by Index/Way (0x7F8) and by Way (0x7FC).
+> +	   They are architecturally defined to behave as the execution of a
+> +	   clean operation followed immediately by an invalidate operation,
+> +	   both performing to the same memory location. This functionality
+> +	   is not correctly implemented in PL310 as clean lines are not
+> +	   invalidated as a result of these operations
+>  endmenu
+>  
+>  source "arch/arm/common/Kconfig"
+> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+> index 747f9a9..c3905a9 100644
+> --- a/arch/arm/mm/cache-l2x0.c
+> +++ b/arch/arm/mm/cache-l2x0.c
+> @@ -88,8 +88,40 @@ static void l2x0_flush_range(unsigned long start, unsigned long end)
+>  	unsigned long addr;
+>  
+>  	start &= ~(CACHE_LINE_SIZE - 1);
+> +#ifdef CONFIG_PL310_ERRATA_588369
+> +	/*
+> +	 * Disable Write-Back and Cache Linefill (set bits [1:0] of the Debug
+> +	 * Control Register)
+> +	 */
+> +	__asm__ __volatile__(
+> +	"stmfd r13!, {r0-r12, r14}\n"
+> +	"mov r0, #3\n"
+> +	"ldr r12, =0x100\n"
+> +	"dsb\n"
+> +	"smc\n"
+> +	"ldmfd r13!, {r0-r12, r14}");
+> +
+> +	/* Clean by PA followed by Invalidate by PA */
+> +	for (addr = start; addr < end; addr += CACHE_LINE_SIZE) {
+> +		sync_writel(addr, L2X0_CLEAN_LINE_PA, 1);
+> +		sync_writel(addr, L2X0_INV_LINE_PA, 1);
+> +	}
+> +
+> +	/*
+> +	 * Enable Write-Back and Cache Linefill (set bits [1:0] of the Debug
+> +	 * Control Register)
+> +	 */
+> +	__asm__ __volatile__(
+> +	"stmfd r13!, {r0-r12, r14}\n"
+> +	"mov r0, #0\n"
+> +	"ldr r12, =0x100\n"
+> +	"dsb\n"
+> +	"smc\n"
+> +	"ldmfd r13!, {r0-r12, r14}");
+> +#else
+>  	for (addr = start; addr < end; addr += CACHE_LINE_SIZE)
+>  		sync_writel(addr, L2X0_CLEAN_INV_LINE_PA, 1);
+> +#endif
+>  	cache_sync();
+>  }
+>  
+> -- 
+> 1.6.0.4
 > 
-
-Poky, and other open-embedded based distros expect this to
-be disabled to work correctly
-
-The solution is to upgrade busybox, not enable a deprecated
-CONFIG option.
-
-Patches to update the different OMAP defconfig were posted
-to l-o a few months ago.
-
-Here's one.such patch.
-<http://patchwork.kernel.org/patch/40949/>
-
-- Anand
