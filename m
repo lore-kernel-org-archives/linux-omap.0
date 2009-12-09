@@ -1,56 +1,77 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH] omap: header: remove unused data-type
-Date: Wed,  9 Dec 2009 14:55:21 -0600
-Message-ID: <1260392121-16685-1-git-send-email-vikram.pandita@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32900 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757841AbZLIUyB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Dec 2009 15:54:01 -0500
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nB9Ks6BN011524
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 9 Dec 2009 14:54:07 -0600
-Sender: linux-omap-owner@vger.kernel.org
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: [PATCH] Input: gpio-keys: Support for one-directional interrupts
+Date: Wed, 9 Dec 2009 14:03:42 -0800
+Message-ID: <6cb013310912091403i3cb527caqa687487966bb232d@mail.gmail.com>
+References: <1260052694-17223-1-git-send-email-darkstar6262@gmail.com>
+	<87fx7kgz7f.fsf@tac.ki.iif.hu> <6cb013310912090815u396fd84chfab3c7bf4d5f4bc9@mail.gmail.com>
+	<20091209175831.GD4456@core.coreip.homeip.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20091209175831.GD4456@core.coreip.homeip.net>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Ferenc Wagner <wferi@niif.hu>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-Remove unused data type omap_gpio_switch_config
+On Wed, Dec 9, 2009 at 9:58 AM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> On Wed, Dec 09, 2009 at 08:15:26AM -0800, Cory Maccarrone wrote:
+>> On Wed, Dec 9, 2009 at 3:32 AM, Ferenc Wagner <wferi@niif.hu> wrote:
+>>
+>> I'm fairly certain it wouldn't. =C2=A0Each of the interrupts on my h=
+ardware
+>> has a corresponding bit in a control register that determines if it'=
+s
+>> rising or falling-edge triggered -- thus the need for my patch. =C2=A0=
+To
+>> capture both directions, it's necessary to modify the control regist=
+er
+>> when a falling edge is detected, so that the corresponding rising ed=
+ge
+>> can be collected afterward.
+>
+> This kind of ugliness should be hidden in irqchip driver. See
+> mfd/asic3.c for an example.
+>
 
-Thereby also get rid of following sparse warnings:
-arch/arm/plat-omap/include/plat/board.h :121:20:
-	warning: dubious bitfield without explicit `signed' or `unsigned'
-arch/arm/plat-omap/include/plat/board.h :122:19:
-	warning: dubious bitfield without explicit `signed' or `unsigned'
-arch/arm/plat-omap/include/plat/board.h :123:24:
-	warning: dubious bitfield without explicit `signed' or `unsigned'
+I would agree with that -- it should be possible to hide that away as
+part of the functionality of the interrupt driver.  Perhaps a fix to
+the OMAP1 IRQ handling is warranted.  I know there are some interrupts
+that can do both directions out of the box, but that shouldn't be the
+responsibility of each driver to know.
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
- arch/arm/plat-omap/include/plat/board.h |    9 ---------
- 1 files changed, 0 insertions(+), 9 deletions(-)
+>> May I ask why you're thinking of
+>> converting to level-triggering?
+>>
+>> Perhaps it would be better to provide an option in the platform_devi=
+ce
+>> structure to set edge- or level-triggering, similar to the change I'=
+m
+>> proposing for interrupts that can only signal one way at a time.
+>>
+>
+> Yes, we need a way fro platform code to specify desired interrupt fla=
+gs
+> but I don't believe we should be reconfiguring them on the fly.
+>
 
-diff --git a/arch/arm/plat-omap/include/plat/board.h b/arch/arm/plat-omap/include/plat/board.h
-index abb17b6..376ce18 100644
---- a/arch/arm/plat-omap/include/plat/board.h
-+++ b/arch/arm/plat-omap/include/plat/board.h
-@@ -114,15 +114,6 @@ struct omap_pwm_led_platform_data {
- 	void (*set_power)(struct omap_pwm_led_platform_data *self, int on_off);
- };
- 
--/* See arch/arm/plat-omap/include/mach/gpio-switch.h for definitions */
--struct omap_gpio_switch_config {
--	char name[12];
--	u16 gpio;
--	int flags:4;
--	int type:4;
--	int key_code:24; /* Linux key code */
--};
--
- struct omap_uart_config {
- 	/* Bit field of UARTs present; bit 0 --> UART1 */
- 	unsigned int enabled_uarts;
--- 
-1.6.6.rc0.66.ge160d
+If the ability to handle this type of interrupt transparently was
+added to our board IRQ chip driver, this whole thing would be a
+non-issue, as gpio-keys could request edge triggered falling and
+rising at the same time, and the driver would Just Work.
 
+I'll take a look and see how possible that would be to do.  Looking
+through the code for OMAP1's GPIO IRQ handlers, there's a note that
+OMAP1 only supports edge triggering, so if gpio-keys were to move
+exclusively to that, itwould stop working with those boards.  But, it
+may be possible to do the trigger flip in the chip driver, which would
+make this patch unnecessary.
+
+- Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
