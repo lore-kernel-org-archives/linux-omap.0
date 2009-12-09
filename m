@@ -1,60 +1,46 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: eac and mcbsp for omap850
-Date: Wed, 9 Dec 2009 10:06:15 +0200
-Message-ID: <200912091006.15725.peter.ujfalusi@nokia.com>
-References: <e7c6a05e0912080406y763b2e99nd0188ff1911ec829@mail.gmail.com> <20091208150547.a83f0e81.jhnikula@gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [APPLIED] [PATCH v3] omap: serial: fix non-empty uart fifo read
+ abort
+Date: Wed, 9 Dec 2009 14:12:48 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ACBFA1C@dbde02.ent.ti.com>
+References: <1259972404-28784-1-git-send-email-vikram.pandita@ti.com>
+ <notify-1260224602@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:23334 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913AbZLIIGO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 03:06:14 -0500
-In-Reply-To: <20091208150547.a83f0e81.jhnikula@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33595 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751356AbZLIInA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 03:43:00 -0500
+In-Reply-To: <notify-1260224602@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: Belisko Marek <marek.belisko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
+Tony Lindgren wrote:
+> 
+> This patch has been applied to the linux-omap
+> by youw fwiendly patch wobot.
+> 
+> Branch in linux-omap: for-next-vol2
+> 
 
-On Tuesday 08 December 2009 15:05:47 ext Jarkko Nikula wrote:
-> On Tue, 8 Dec 2009 13:06:05 +0100
->=20
-> Belisko Marek <marek.belisko@gmail.com> wrote:
-> > Hi,
-> >
-> > I would like to rewrite old eac audio driver for omap730 to current
-> > ASoc implementation
-> > but as I can understand new implementation use McBsP to
-> > transfer data to codec. Could this approach be used in omap850 whic=
-h
-> > use EAC like codec and data from memory is transfered via DMA?
->=20
-> Basically it should be possible to develop a new ASoC DAI driver usin=
-g
-> EAC. Even currently there is only one McBSP based DAI driver
-> sound/soc/omap/omap-mcbsp.c, there is no restrictions to develop anot=
-her
-> DAI drivers since the sound/soc/omap/omap-pcm.c is not tied to
-> underlying DAI.
+Tony,
 
-As I recall this is one of the reasons that Jarkko wants to keep the DM=
-A and=20
-McBSP related code separately (to have the possibility to add the EAC s=
-upport=20
-with the least code duplication).
-As I recall on OMAP2 the EAC had some bugs, which prevented it's use in=
- certain=20
-situations, thus the McBSP mode was preferred over EAC.
+A query on this for-next-vol2 branch:
+Is this branch going to be pushed in the current merge
+window, or is it for the -rc series?
 
-But yes, adding the EAC dai should be possible for OMAP.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> PatchWorks
+> http://patchwork.kernel.org/patch/65022/
+
+
+With current Linus' tree + this patch, I can boot up on 3630.
+
+Playing with the omap3_defconfig now, to see how many boards
+we can boot up with a single image :)
+
+- Anand
