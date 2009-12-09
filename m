@@ -1,69 +1,57 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v3 0/4] TWL patch series
-Date: Wed, 9 Dec 2009 18:40:36 +0100
-Message-ID: <20091209174035.GB6051@sortiz.org>
-References: <19F8576C6E063C45BE387C64729E73940436CF8BF5@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940437210696@dbde02.ent.ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] Input: gpio-keys: Support for one-directional
+	interrupts
+Date: Wed, 9 Dec 2009 09:58:31 -0800
+Message-ID: <20091209175831.GD4456@core.coreip.homeip.net>
+References: <1260052694-17223-1-git-send-email-darkstar6262@gmail.com> <87fx7kgz7f.fsf@tac.ki.iif.hu> <6cb013310912090815u396fd84chfab3c7bf4d5f4bc9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga12.intel.com ([143.182.124.36]:53175 "EHLO
-	azsmga102.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753617AbZLIRiz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 12:38:55 -0500
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940437210696@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <6cb013310912090815u396fd84chfab3c7bf4d5f4bc9@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: Ferenc Wagner <wferi@niif.hu>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "p_gortmaker@yahoo.com" <p_gortmaker@yahoo.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hi Balaji,
+On Wed, Dec 09, 2009 at 08:15:26AM -0800, Cory Maccarrone wrote:
+> On Wed, Dec 9, 2009 at 3:32 AM, Ferenc Wagner <wferi@niif.hu> wrote:
+> > Cory Maccarrone <darkstar6262@gmail.com> writes:
+> >
+> > Interesting. =A0Btw. I'd like to convert gpio-keys from edge-trigge=
+red to
+> > level-triggered interrupts. =A0Would that work for your hardware?
+>=20
+> I'm fairly certain it wouldn't.  Each of the interrupts on my hardwar=
+e
+> has a corresponding bit in a control register that determines if it's
+> rising or falling-edge triggered -- thus the need for my patch.  To
+> capture both directions, it's necessary to modify the control registe=
+r
+> when a falling edge is detected, so that the corresponding rising edg=
+e
+> can be collected afterward.
 
-On Wed, Dec 09, 2009 at 11:09:33AM +0530, Krishnamoorthy, Balaji T wrote:
-> Hi Samuel,
-> 
-> This patch is not merged. Please let me know if I am missing something
-> so that i can post the patches rebased on the latest 2.6.32.
-I'd appreciate if you could rebase your patches, and also address Amit's
-concern on patch #3.
+This kind of ugliness should be hidden in irqchip driver. See
+mfd/asic3.c for an example.
 
-I'll merge these patches then.
+> May I ask why you're thinking of
+> converting to level-triggering?
+>=20
+> Perhaps it would be better to provide an option in the platform_devic=
+e
+> structure to set edge- or level-triggering, similar to the change I'm
+> proposing for interrupts that can only signal one way at a time.
+>=20
 
-Cheers,
-Samuel.
+Yes, we need a way fro platform code to specify desired interrupt flags
+but I don't believe we should be reconfiguring them on the fly.
 
-
-> Thanks and Regards,
-> Balaji T K
-> 
-> > -----Original Message-----
-> > From: Krishnamoorthy, Balaji T
-> > Sent: Thursday, October 01, 2009 5:35 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: Krishnamoorthy, Balaji T; Shilimkar, Santosh; Nayak, Rajendra;
-> > a.zummo@towertech.it; p_gortmaker@yahoo.com; sameo@linux.intel.com;
-> > tony@atomide.com
-> > Subject: [PATCH v3 0/4] TWL patch series
-> > 
-> > This patch series v3 incorporates comments received earlier[1].
-> > 
-> > The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
-> > for OMAP3. The common modules like RTC, Regulator creates opportunity
-> > to re-use the most of the code from twl4030.
-> > 
-> > 	[PATCH v3 01/04] ARM: OMAP: Rename twl4030* driver files to enable re-
-> > use
-> > 	[PATCH v3 02/04] ARM: OMAP: Rename all twl4030_i2c*.
-> > 	[PATCH v3 03/04] ARM: OMAP: Rename twl4030_ in rtc-twl.c to make it
-> > 				generic rtc
-> > 	[PATCH v3 04/04] ARM: OMAP: Rename twl4030_ to twl_ in twl-regulator.c
-> > to
-> > 				make it generic reg
-> > 
-> > [1] http://marc.info/?l=linux-omap&m=124757921417187&w=2
-> >   [PATCH 0/4] TWL patch series
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+--=20
+Dmitry
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
