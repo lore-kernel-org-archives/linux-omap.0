@@ -1,43 +1,69 @@
-From: Michael Trimarchi <michael@panicking.kicks-ass.org>
-Subject: Re: CPUfreq deosn't change the current frequency
-Date: Wed, 09 Dec 2009 17:16:26 +0100
-Message-ID: <4B1FCD5A.7060706@panicking.kicks-ass.org>
-References: <82cfbe860912090802u6656a842yd81478b2c5f8e887@mail.gmail.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH v3 0/4] TWL patch series
+Date: Wed, 9 Dec 2009 18:40:36 +0100
+Message-ID: <20091209174035.GB6051@sortiz.org>
+References: <19F8576C6E063C45BE387C64729E73940436CF8BF5@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E73940437210696@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from static-88-194-224-77.ipcom.comunitel.net ([77.224.194.88]:51067
-	"EHLO panicking.kicks-ass.org" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753291AbZLIRA5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 12:00:57 -0500
-In-Reply-To: <82cfbe860912090802u6656a842yd81478b2c5f8e887@mail.gmail.com>
+Received: from mga12.intel.com ([143.182.124.36]:53175 "EHLO
+	azsmga102.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753617AbZLIRiz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 12:38:55 -0500
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940437210696@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tarek attia <tarek.m.attia@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "p_gortmaker@yahoo.com" <p_gortmaker@yahoo.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hi tataki
+Hi Balaji,
 
-tarek attia wrote:
-> Hi all,
+On Wed, Dec 09, 2009 at 11:09:33AM +0530, Krishnamoorthy, Balaji T wrote:
+> Hi Samuel,
 > 
-> CPUfreq doesn't work,,I downloaded the PM Linux kernel ,and enabled
-> the CPUFREQ driver before compilation .
-> 
-> However every writting in the scaling_setspeed doesn't get any
-> return,,doesn't change the frequency however without errors .
-> 
-> Any Idea??
-> 
-> --
-> tarek
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-I have a board to test but now I don't have time, I just give the info to debug such
-issue
+> This patch is not merged. Please let me know if I am missing something
+> so that i can post the patches rebased on the latest 2.6.32.
+I'd appreciate if you could rebase your patches, and also address Amit's
+concern on patch #3.
 
-Michael
+I'll merge these patches then.
+
+Cheers,
+Samuel.
+
+
+> Thanks and Regards,
+> Balaji T K
+> 
+> > -----Original Message-----
+> > From: Krishnamoorthy, Balaji T
+> > Sent: Thursday, October 01, 2009 5:35 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: Krishnamoorthy, Balaji T; Shilimkar, Santosh; Nayak, Rajendra;
+> > a.zummo@towertech.it; p_gortmaker@yahoo.com; sameo@linux.intel.com;
+> > tony@atomide.com
+> > Subject: [PATCH v3 0/4] TWL patch series
+> > 
+> > This patch series v3 incorporates comments received earlier[1].
+> > 
+> > The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
+> > for OMAP3. The common modules like RTC, Regulator creates opportunity
+> > to re-use the most of the code from twl4030.
+> > 
+> > 	[PATCH v3 01/04] ARM: OMAP: Rename twl4030* driver files to enable re-
+> > use
+> > 	[PATCH v3 02/04] ARM: OMAP: Rename all twl4030_i2c*.
+> > 	[PATCH v3 03/04] ARM: OMAP: Rename twl4030_ in rtc-twl.c to make it
+> > 				generic rtc
+> > 	[PATCH v3 04/04] ARM: OMAP: Rename twl4030_ to twl_ in twl-regulator.c
+> > to
+> > 				make it generic reg
+> > 
+> > [1] http://marc.info/?l=linux-omap&m=124757921417187&w=2
+> >   [PATCH 0/4] TWL patch series
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
