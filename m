@@ -1,46 +1,35 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [APPLIED] [PATCH v3] omap: serial: fix non-empty uart fifo read
- abort
-Date: Wed, 9 Dec 2009 14:12:48 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ACBFA1C@dbde02.ent.ti.com>
-References: <1259972404-28784-1-git-send-email-vikram.pandita@ti.com>
- <notify-1260224602@atomide.com>
+From: tarek attia <tarek.m.attia@gmail.com>
+Subject: scaling_setspeed doesn't change the frequency on beagleboard
+Date: Wed, 9 Dec 2009 10:55:40 +0200
+Message-ID: <82cfbe860912090055y690bf929p269b4a4c9097a687@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33595 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbZLIInA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 03:43:00 -0500
-In-Reply-To: <notify-1260224602@atomide.com>
-Content-Language: en-US
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:56641 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752144AbZLIIze (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 03:55:34 -0500
+Received: by ewy1 with SMTP id 1so3917153ewy.28
+        for <linux-omap@vger.kernel.org>; Wed, 09 Dec 2009 00:55:40 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Tony Lindgren wrote:
-> 
-> This patch has been applied to the linux-omap
-> by youw fwiendly patch wobot.
-> 
-> Branch in linux-omap: for-next-vol2
-> 
+Hi all,
 
-Tony,
+I'm using the beagleboard ,and android linux kernel obtained from the
+rowboat project .
 
-A query on this for-next-vol2 branch:
-Is this branch going to be pushed in the current merge
-window, or is it for the -rc series?
+The cpufreq files are located and everything works fine except that
+it doesn't change the frequency it works on,I echo'ed the
+scaling_governor to use the userspace .
 
+However it still doesn't change the frequency I'm typing also I'm sure
+that my frequency is in the valid range .
 
-> PatchWorks
-> http://patchwork.kernel.org/patch/65022/
+What may blocks this changes ?
 
+Any Idea will be appreciated  :)
 
-With current Linus' tree + this patch, I can boot up on 3630.
-
-Playing with the omap3_defconfig now, to see how many boards
-we can boot up with a single image :)
-
-- Anand
+-- 
+tarek
