@@ -1,40 +1,29 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [APPLIED] [PATCH v3] omap: serial: fix non-empty uart fifo read
- abort
-Date: Wed, 9 Dec 2009 19:47:14 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ACBFBF7@dbde02.ent.ti.com>
-References: <1259972404-28784-1-git-send-email-vikram.pandita@ti.com>
- <notify-1260224602@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030ACBFA1C@dbde02.ent.ti.com>
+From: tarek attia <tarek.m.attia@gmail.com>
+Subject: CPUfreq deosn't change the current frequency
+Date: Wed, 9 Dec 2009 18:02:06 +0200
+Message-ID: <82cfbe860912090802u6656a842yd81478b2c5f8e887@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35053 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754911AbZLIORO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 09:17:14 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030ACBFA1C@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:37956 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755275AbZLIQCA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 11:02:00 -0500
+Received: by ewy1 with SMTP id 1so4426171ewy.28
+        for <linux-omap@vger.kernel.org>; Wed, 09 Dec 2009 08:02:06 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-<snip>
+Hi all,
 
-> 
-> With current Linus' tree + this patch, I can boot up on 3630.
-> 
-> Playing with the omap3_defconfig now, to see how many boards
-> we can boot up with a single image :)
-> 
+CPUfreq doesn't work,,I downloaded the PM Linux kernel ,and enabled
+the CPUFREQ driver before compilation .
 
-I got a zoom2, zoom3, 3430SDP and 3630 SDP booting with a
-single image.
+However every writting in the scaling_setspeed doesn't get any
+return,,doesn't change the frequency however without errors .
 
-I had to disable Profiling and Sound support to get it to
-build with this config. Will post a patch after -rc1 if this
-is not resolved by then.
+Any Idea??
 
-
-- Anand
+--
+tarek
