@@ -1,77 +1,89 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: [PATCH] Input: gpio-keys: Support for one-directional interrupts
-Date: Wed, 9 Dec 2009 14:03:42 -0800
-Message-ID: <6cb013310912091403i3cb527caqa687487966bb232d@mail.gmail.com>
-References: <1260052694-17223-1-git-send-email-darkstar6262@gmail.com>
-	<87fx7kgz7f.fsf@tac.ki.iif.hu> <6cb013310912090815u396fd84chfab3c7bf4d5f4bc9@mail.gmail.com>
-	<20091209175831.GD4456@core.coreip.homeip.net>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv3 1/3] OMAP UART: Add omap-serial driver support.
+Date: Wed, 09 Dec 2009 14:33:15 -0800
+Message-ID: <87ljhbu6ac.fsf@deeprootsystems.com>
+References: <35817.192.168.10.88.1256713980.squirrel@dbdmail.itg.ti.com>
+	<45113.192.168.10.88.1258095234.squirrel@dbdmail.itg.ti.com>
+	<87ws1fvjwu.fsf@deeprootsystems.com>
+	<d6a0f7aa0912020543s7f8310fdueb0a3a6c52df1326@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20091209175831.GD4456@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Ferenc Wagner <wferi@niif.hu>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:41059 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758312AbZLIWdL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Dec 2009 17:33:11 -0500
+Received: by iwn1 with SMTP id 1so4938439iwn.33
+        for <linux-omap@vger.kernel.org>; Wed, 09 Dec 2009 14:33:18 -0800 (PST)
+In-Reply-To: <d6a0f7aa0912020543s7f8310fdueb0a3a6c52df1326@mail.gmail.com> (Govindraj's message of "Wed\, 2 Dec 2009 19\:13\:25 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org
 
-On Wed, Dec 9, 2009 at 9:58 AM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> On Wed, Dec 09, 2009 at 08:15:26AM -0800, Cory Maccarrone wrote:
->> On Wed, Dec 9, 2009 at 3:32 AM, Ferenc Wagner <wferi@niif.hu> wrote:
+Govindraj <govindraj.ti@gmail.com> writes:
+
+> On Wed, Nov 25, 2009 at 12:18 AM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> "Govindraj.R" <govindraj.raja@ti.com> writes:
 >>
->> I'm fairly certain it wouldn't. =C2=A0Each of the interrupts on my h=
-ardware
->> has a corresponding bit in a control register that determines if it'=
-s
->> rising or falling-edge triggered -- thus the need for my patch. =C2=A0=
-To
->> capture both directions, it's necessary to modify the control regist=
-er
->> when a falling edge is detected, so that the corresponding rising ed=
-ge
->> can be collected afterward.
->
-> This kind of ugliness should be hidden in irqchip driver. See
-> mfd/asic3.c for an example.
->
-
-I would agree with that -- it should be possible to hide that away as
-part of the functionality of the interrupt driver.  Perhaps a fix to
-the OMAP1 IRQ handling is warranted.  I know there are some interrupts
-that can do both directions out of the box, but that shouldn't be the
-responsibility of each driver to know.
-
->> May I ask why you're thinking of
->> converting to level-triggering?
+>>> From 4756e3743c7acd2de1030b2bd432c1b19f0b9ff5 Mon Sep 17 00:00:00 2=
+001
+>>> From: Govindraj R <govindraj.raja@ti.com>
+>>> Date: Fri, 13 Nov 2009 12:01:54 +0530
+>>> Subject: [PATCH] OMAP UART: Add omap-serial driver support.
+>>>
+>>> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
+>>>
+>>> It adds support for the following features:
+>>> 1. It supports Interrupt mode and DMA mode of operation.
+>>> 2. Supports Hardware flow control and sofware flow control.
+>>> 3. Debug Console support on all UARTs.
+>>>
+>>> Signed-off-by: Govindraj R <govindraj.raja@ti.com>
 >>
->> Perhaps it would be better to provide an option in the platform_devi=
-ce
->> structure to set edge- or level-triggering, similar to the change I'=
-m
->> proposing for interrupts that can only signal one way at a time.
+>> Some general comments.
 >>
+>> This should summarize how this is different from the 8250 driver on
+>> which it was based, as it's clear that it was based on 8250 but not
+>> clear at all what the changes are.
+>>
+>> At first glance, you've dropped several features from the 8250 drive=
+r
+>> which we currently use. =A0Namely, the ability for platform code to
+>> override some of the defaults:
+>>
+>> - change irq_flags
+>> - serial_in function
+>> - optional ioremapping (omap_hwmod layer will have done ioremap alre=
+ady)
 >
-> Yes, we need a way fro platform code to specify desired interrupt fla=
-gs
-> but I don't believe we should be reconfiguring them on the fly.
 >
+> Agree. uart_port_info [should be renamed to omap_uart_port_info]
+> should grow with fields like irqflags, membase and mapbase feilds.
+>
+> adding these would need rework on the patch:
+> http://patchwork.kernel.org/patch/62555/
+>
+> Should I work on top of above patch?
 
-If the ability to handle this type of interrupt transparently was
-added to our board IRQ chip driver, this whole thing would be a
-non-issue, as gpio-keys could request edge triggered falling and
-rising at the same time, and the driver would Just Work.
+Yes.
 
-I'll take a look and see how possible that would be to do.  Looking
-through the code for OMAP1's GPIO IRQ handlers, there's a note that
-OMAP1 only supports edge triggering, so if gpio-keys were to move
-exclusively to that, itwould stop working with those boards.  But, it
-may be possible to do the trigger flip in the chip driver, which would
-make this patch unnecessary.
+> Serial in function might not be necessary for omap-serial driver,
+> this function was added to handle RX reading by checking if DR bit se=
+t
+> in LSR reg.
+>
+> This is taken care in omap-serial driver.
 
-- Cory
+OK, I didn't look closely at that but I'd like to be sure that the
+extra checking can be optimized out on the SoCs that don't need it.
+
+Kevin
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
