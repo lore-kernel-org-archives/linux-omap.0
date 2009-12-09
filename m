@@ -1,73 +1,96 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 2/2] smc91x: remove OMAP specific bits
-Date: Tue, 08 Dec 2009 20:19:38 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912082019280.31174@xanadu.home>
-References: <20091208170038.GA19338@localhost.localdomain>
- <20091208170826.GC19338@localhost.localdomain>
- <20091209000016.GC24013@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/9] omap: use smc91x_platdata to setup smc91x
+Date: Tue, 8 Dec 2009 18:13:29 -0800
+Message-ID: <20091209021329.GK24013@atomide.com>
+References: <20091209004630.5944.40334.stgit@localhost>
+ <20091209004958.5944.81769.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/mixed; boundary="ZJcv+A0YCCLh2VIg"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:60930 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967068AbZLIBTi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 20:19:38 -0500
-In-reply-to: <20091209000016.GC24013@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59746 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754261AbZLICN1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Dec 2009 21:13:27 -0500
+Content-Disposition: inline
+In-Reply-To: <20091209004958.5944.81769.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org, linux-netdev@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>
 
-On Tue, 8 Dec 2009, Tony Lindgren wrote:
 
-> * Ladislav Michl <Ladislav.Michl@seznam.cz> [091208 08:07]:
-> > Now that all OMAP boards are using the board resources, we don't need
-> > to keep the arch/board specific crap in the driver header.
-> 
-> Planning to merge this via linux-omap list too with the platform
-> data patch unless somebody at netdev has objections.
-> 
-> Nico, care to ack this?
+--ZJcv+A0YCCLh2VIg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-ACK.
+* Tony Lindgren <tony@atomide.com> [091208 16:48]:
+> From: Ladislav Michl <ladis@linux-mips.org>
+> 
+> Use smc91x_platdata to setup smc91x, so we can get rid of OMAP specific stuff
+> in smc91x driver
+> 
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap1/board-fsample.c   |   10 ++++++++++
+>  arch/arm/mach-omap1/board-h2.c        |   10 ++++++++++
+>  arch/arm/mach-omap1/board-h3.c        |   10 ++++++++++
+>  arch/arm/mach-omap1/board-innovator.c |   13 +++++++++++++
+>  arch/arm/mach-omap1/board-osk.c       |   10 ++++++++++
+>  arch/arm/mach-omap1/board-perseus2.c  |   10 ++++++++++
+>  arch/arm/mach-omap1/board-voiceblue.c |   10 ++++++++++
+>  arch/arm/mach-omap2/board-apollon.c   |   10 ++++++++++
+>  arch/arm/mach-omap2/gpmc-smc91x.c     |    8 +++++---
+>  arch/arm/plat-omap/debug-devices.c    |   10 ++++++++++
+>  10 files changed, 98 insertions(+), 3 deletions(-)
 
-> 
-> Regards,
-> 
-> Tony
-> 
->  
-> > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> > 
-> > diff --git a/drivers/net/smc91x.h b/drivers/net/smc91x.h
-> > index 3911be7..bfc53eb 100644
-> > --- a/drivers/net/smc91x.h
-> > +++ b/drivers/net/smc91x.h
-> > @@ -206,21 +206,6 @@ SMC_outw(u16 val, void __iomem *ioaddr, int reg)
-> >  	}
-> >  }
-> >  
-> > -#elif	defined(CONFIG_ARCH_OMAP)
-> > -
-> > -/* We can only do 16-bit reads and writes in the static memory space. */
-> > -#define SMC_CAN_USE_8BIT	0
-> > -#define SMC_CAN_USE_16BIT	1
-> > -#define SMC_CAN_USE_32BIT	0
-> > -#define SMC_IO_SHIFT		0
-> > -#define SMC_NOWAIT		1
-> > -
-> > -#define SMC_inw(a, r)		readw((a) + (r))
-> > -#define SMC_outw(v, a, r)	writew(v, (a) + (r))
-> > -#define SMC_insw(a, r, p, l)	readsw((a) + (r), p, l)
-> > -#define SMC_outsw(a, r, p, l)	writesw((a) + (r), p, l)
-> > -#define	SMC_IRQ_FLAGS		(-1)	/* from resource */
-> > -
-> >  #elif	defined(CONFIG_SH_SH4202_MICRODEV)
-> >  
-> >  #define SMC_CAN_USE_8BIT	0
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Looks like this needs a minor change to build for innovator 1610.
+Will merge in the following fix as otherwise the smc91x_platdata
+is not defined for 1610.
+
+Tony
+
+--ZJcv+A0YCCLh2VIg
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="smc91x-innovator1610.patch"
+
+>From e23309bc7d76cc06d7df2659120410398f50b039 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 8 Dec 2009 18:11:12 -0800
+Subject: [PATCH] Fix compile on Innovator 1610 for smc91x
+
+Fix compile on Innovator 1610 for smc91x
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
+index 91b3b8e..2133b00 100644
+--- a/arch/arm/mach-omap1/board-innovator.c
++++ b/arch/arm/mach-omap1/board-innovator.c
+@@ -143,6 +143,11 @@ static struct platform_device innovator_kp_device = {
+ 	.resource	= innovator_kp_resources,
+ };
+ 
++static struct smc91x_platdata innovator_smc91x_info = {
++	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
++	.leda	= RPC_LED_100_10,
++	.ledb	= RPC_LED_TX_RX,
++};
+ 
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 
+@@ -160,12 +165,6 @@ static struct map_desc innovator1510_io_desc[] __initdata = {
+ 	}
+ };
+ 
+-static struct smc91x_platdata innovator_smc91x_info = {
+-	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
+-	.leda	= RPC_LED_100_10,
+-	.ledb	= RPC_LED_TX_RX,
+-};
+-
+ static struct resource innovator1510_smc91x_resources[] = {
+ 	[0] = {
+ 		.start	= OMAP1510_FPGA_ETHR_START,	/* Physical */
+
+--ZJcv+A0YCCLh2VIg--
