@@ -1,141 +1,1080 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/6 v2] OMAP4: Fix cpu detection
-Date: Thu, 10 Dec 2009 14:14:46 -0600
-Message-ID: <4B2156B6.8090403@ti.com>
-References: <1260426156-1820-1-git-send-email-santosh.shilimkar@ti.com>
+From: Daniel Toussaint <daniel@dmhome.net>
+Subject: [PATCH] Initial support for OMAP3 Thunder board
+Date: Thu, 10 Dec 2009 21:25:32 +0100
+Message-ID: <4B21593C.9060409@dmhome.net>
+Reply-To: daniel@dmhome.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------010100030201010904010909"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46084 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755712AbZLJUPB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Dec 2009 15:15:01 -0500
-In-Reply-To: <1260426156-1820-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:48548 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755915AbZLJUZa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 15:25:30 -0500
+Received: by ewy19 with SMTP id 19so263076ewy.21
+        for <linux-omap@vger.kernel.org>; Thu, 10 Dec 2009 12:25:35 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Shilimkar, Santosh had written, on 12/10/2009 12:22 AM, the following:
-> This patch fixes the OMAP4430 cpu detection. The IC rev detection is
-> done with hawkeye and rev. Note that rev does not map directly to
-> defined processor revision numbers as ES1.0 uses value 0.It also fixes
-> the SCM base address to read the correct ID_CODE register.
-> 
-> Also the cpu_is_omap44xx() and cpu_is_omap443x() correctly populated
-> instead of always being true
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/id.c              |   27 ++++++++++++++++++++++++++-
->  arch/arm/plat-omap/common.c           |    2 +-
->  arch/arm/plat-omap/include/plat/cpu.h |    9 ++++++---
->  3 files changed, 33 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index f48a4b2..3641ba0 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -246,6 +246,31 @@ void __init omap3_check_revision(void)
->  	}
->  }
->  
-> +void __init omap4_check_revision(void)
-> +{
-> +	u32 idcode;
-> +	u16 hawkeye;
-> +	u8 rev;
-> +	char *rev_name = "ES1.0";
-should'nt you decide this inside the rev check path?
+This is a multi-part message in MIME format.
+--------------010100030201010904010909
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> +
-> +	/*
-> +	 * The IC rev detection is done with hawkeye and rev.
-> +	 * Note that rev does not map directly to defined processor
-> +	 * revision numbers as ES1.0 uses value 0.
-> +	 */
-> +	idcode = read_tap_reg(OMAP_TAP_IDCODE);
-> +	hawkeye = (idcode >> 12) & 0xffff;
-> +	rev = (idcode >> 28) & 0xff;
-> +
-> +	if ((hawkeye == 0xb852) && (rev == 0x0)) {
-> +		omap_revision = OMAP4430_REV_ES1_0;
-> +		pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
-wondering about the >>16 part.
+Dear All,
 
-> +		return;
-> +	}
-> +
-> +	pr_err("Unknown OMAP4 CPU id\n");
-> +}
-> +
->  #define OMAP3_SHOW_FEATURE(feat)		\
->  	if (omap3_has_ ##feat())		\
->  		printk(#feat" ");
-> @@ -336,7 +361,7 @@ void __init omap2_check_revision(void)
->  		omap3_check_features();
->  		omap3_cpuinfo();
->  	} else if (cpu_is_omap44xx()) {
-> -		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
-> +		omap4_check_revision();
->  		return;
->  	} else {
->  		pr_err("OMAP revision unknown, please fix!\n");
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> index cc050b3..3473a80 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -280,7 +280,7 @@ void __init omap2_set_globals_343x(void)
->  #if defined(CONFIG_ARCH_OMAP4)
->  static struct omap_globals omap4_globals = {
->  	.class	= OMAP443X_CLASS,
-> -	.tap	= OMAP2_L4_IO_ADDRESS(0x4830a000),
-> +	.tap	= OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
->  	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP443X_CTRL_BASE),
->  	.prm	= OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE),
->  	.cm	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
-> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-> index 2e17890..9359785 100644
-> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -176,11 +176,13 @@ IS_OMAP_CLASS(15xx, 0x15)
->  IS_OMAP_CLASS(16xx, 0x16)
->  IS_OMAP_CLASS(24xx, 0x24)
->  IS_OMAP_CLASS(34xx, 0x34)
-> +IS_OMAP_CLASS(44xx, 0x44)
->  
->  IS_OMAP_SUBCLASS(242x, 0x242)
->  IS_OMAP_SUBCLASS(243x, 0x243)
->  IS_OMAP_SUBCLASS(343x, 0x343)
->  IS_OMAP_SUBCLASS(363x, 0x363)
-> +IS_OMAP_SUBCLASS(443x, 0x443)
->  
->  #define cpu_is_omap7xx()		0
->  #define cpu_is_omap15xx()		0
-> @@ -408,8 +410,8 @@ IS_OMAP_TYPE(3517, 0x3517)
->  # if defined(CONFIG_ARCH_OMAP4)
->  # undef cpu_is_omap44xx
->  # undef cpu_is_omap443x
-> -# define cpu_is_omap44xx()		1
-> -# define cpu_is_omap443x()		1
-> +# define cpu_is_omap44xx()		is_omap44xx()
-> +# define cpu_is_omap443x()		is_omap443x()
->  # endif
->  
->  /* Macros to detect if we have OMAP1 or OMAP2 */
-> @@ -443,7 +445,8 @@ IS_OMAP_TYPE(3517, 0x3517)
->  #define OMAP3505_REV(v)		(OMAP35XX_CLASS | (0x3505 << 16) | (v << 12))
->  #define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) | (v << 12))
->  
-> -#define OMAP443X_CLASS		0x44300034
-> +#define OMAP443X_CLASS		0x44300044
-> +#define OMAP4430_REV_ES1_0	0x44300044
->  
->  /*
->   * omap_chip bits
-neat.. thanks..
+See attached patch for this board: 
+http://www.technexion.com/index.php/thunder
+The patch contains board file, support for an LCD panel under DSS2 and 
+support for Alsa sound.
 
--- 
-Regards,
-Nishanth Menon
+/Signed-off-by Daniel Toussaint <daniel@dmhome.net>
+
+
+///
+
+--------------010100030201010904010909
+Content-Type: text/x-patch;
+ name="omap3thunder20091210.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="omap3thunder20091210.diff"
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 16c0c13..e5493a5 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -151,6 +151,11 @@ config MACH_OMAP_4430SDP
+ 	bool "OMAP 4430 SDP board"
+ 	depends on ARCH_OMAP4
+ 
++config MACH_OMAP3_THUNDER
++	bool "Thunder OMAP3530 board" 
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX 
++	 select OMAP_PACKAGE_CUS
++
+ config OMAP3_EMU
+ 	bool "OMAP3 debugging peripherals"
+ 	depends on ARCH_OMAP3
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 0c5d886..bd76499 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -105,6 +105,9 @@ obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
+ 
+ obj-$(CONFIG_MACH_OMAP3517EVM)     += board-am3517evm.o
+ 
++obj-$(CONFIG_MACH_OMAP3_THUNDER)         += board-omap3thunder.o \
++	                                           mmc-twl4030.o
++
+ # Platform specific device init code
+ obj-y					+= usb-musb.o
+ obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+diff --git a/arch/arm/mach-omap2/board-omap3thunder.c b/arch/arm/mach-omap2/board-omap3thunder.c
+new file mode 100644
+index 0000000..d6ea9de
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3thunder.c
+@@ -0,0 +1,647 @@
++/*
++ * linux/arch/arm/mach-omap2/board-omap3touchbook.c
++ *
++ * Copyright (C) 2009 Technexion 
++ *
++ * Modified from mach-omap2/board-omap3beagleboard.c
++ *
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++#include <linux/leds.h>
++#include <linux/gpio.h>
++#include <linux/input.h>
++#include <linux/gpio_keys.h>
++
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/nand.h>
++
++#include <linux/regulator/machine.h>
++#include <linux/i2c/twl4030.h>
++
++#include <mach/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++#include <asm/mach/flash.h>
++
++#include <plat/board.h>
++#include <plat/usb.h>
++#include <linux/usb/otg.h>
++#include <plat/common.h>
++#include <plat/gpmc.h>
++#include <plat/nand.h>
++#include <plat/mux.h>
++#include <plat/display.h>
++
++#include "mmc-twl4030.h"
++#include "mux.h"
++
++
++#include <linux/spi/spi.h>
++#include <linux/spi/ads7846.h>
++#include <plat/mcspi.h> 
++
++#include <plat/mmc.h> 
++
++
++#define OMAP3_THUNDER_TS_GPIO	136
++
++#define GPMC_CS0_BASE  0x60
++#define GPMC_CS_SIZE   0x30
++
++#define NAND_BLOCK_SIZE		SZ_128K
++
++#define THUNDER_DVI_PANEL_EN_GPIO 199 /* GPIO 7 on TWL4030 */
++#define THUNDER_LCD_PANEL_ENVDD 138 
++#define THUNDER_LCD_PON 139
++
++#define TWL_INTBR_GPBR1 0x0c
++#define TWL_INTBR_PMBR1 0x0d
++#define TWL_PWM0_ON    0x00
++#define TWL_PWM0_OFF   0x01
++
++static int lcd_enabled;
++static int dvi_enabled;
++
++static void __init thunder_display_init(void)
++{
++	gpio_request(THUNDER_LCD_PANEL_ENVDD, "lcd_panel_envdd");
++	gpio_request(THUNDER_LCD_PON, "lcd_panel_pon");
++	gpio_direction_output(THUNDER_LCD_PON, 1); 
++	gpio_direction_output(THUNDER_LCD_PANEL_ENVDD, 0);
++	return;
++}
++
++static int thunder_enable_lcd(struct omap_dss_device *dssdev)
++{
++	
++	if (dvi_enabled) {
++		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
++		return -EINVAL;
++	}
++
++	gpio_set_value(THUNDER_LCD_PANEL_ENVDD, 0);
++	gpio_set_value(THUNDER_LCD_PON, 1);
++
++	/* This turns on the backlight, move this to backlight code later */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWM0, 0x81, TWL_PWM0_ON);
++        twl4030_i2c_write_u8(TWL4030_MODULE_INTBR, 0x04, TWL_INTBR_PMBR1);
++        twl4030_i2c_write_u8(TWL4030_MODULE_PWM0, 6 + 40 , TWL_PWM0_OFF);
++        twl4030_i2c_write_u8(TWL4030_MODULE_INTBR, 0x05, TWL_INTBR_GPBR1);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWM0, 6 + 50 , TWL_PWM0_OFF);
++	/* End of turning on Backlight */
++
++	lcd_enabled = 1;
++	return 0;
++}
++
++static void thunder_disable_lcd(struct omap_dss_device *dssdev)
++{
++	gpio_set_value(THUNDER_LCD_PANEL_ENVDD, 1);
++	gpio_set_value(THUNDER_LCD_PON, 0);
++	lcd_enabled = 0;
++}
++
++
++static int thunder_set_backlight ( struct omap_dss_device *dssdev, int level) 
++{
++	return 0;
++}
++
++static int thunder_get_backlight ( struct omap_dss_device *dssdev)
++{
++	return 10;
++}
++
++
++static struct omap_dss_device thunder_lcd_device = {
++	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.name			= "lcd",
++	.driver_name		= "panel-lg-lb043wq2",
++	.phy.dpi.data_lines	= 24,
++	.platform_enable	= thunder_enable_lcd,
++	.platform_disable	= thunder_disable_lcd,
++
++	.get_backlight  	= thunder_get_backlight,
++	.set_backlight 		= thunder_set_backlight,
++	.max_backlight_level    = 100,
++};
++
++static int thunder_enable_dvi(struct omap_dss_device *dssdev)
++{
++	if (lcd_enabled) {
++		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
++		return -EINVAL;
++	}
++
++	gpio_set_value(THUNDER_DVI_PANEL_EN_GPIO, 1);
++	dvi_enabled = 1;
++
++	return 0;
++}
++
++static void thunder_disable_dvi(struct omap_dss_device *dssdev)
++{
++	gpio_set_value(THUNDER_DVI_PANEL_EN_GPIO, 0);
++	dvi_enabled = 0;
++}
++
++static struct omap_dss_device thunder_dvi_device = {
++	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.name			= "dvi",
++	.driver_name		= "generic_panel",
++	.phy.dpi.data_lines	= 24,
++	.platform_enable	= thunder_enable_dvi,
++	.platform_disable	= thunder_disable_dvi,
++};
++
++static struct omap_dss_device *thunder_dss_devices[] = {
++	&thunder_lcd_device,
++	&thunder_dvi_device,
++};
++
++static struct omap_dss_board_info thunder_dss_data = {
++	.num_devices	= ARRAY_SIZE(thunder_dss_devices),
++	.devices	= thunder_dss_devices,
++	.default_device = &thunder_lcd_device,
++};
++
++static struct platform_device thunder_dss_device = {
++	.name		= "omapdss",
++	.id		= -1,
++	.dev		= {
++		.platform_data = &thunder_dss_data,
++	},
++};
++
++static struct regulator_consumer_supply thunder_vdds_dsi_supply = {
++        .supply         = "vdds_dsi",
++        .dev            = &thunder_dss_device.dev,
++};
++
++static struct mtd_partition omap3thunder_nand_partitions[] = {
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "X-Loader",
++		.offset		= 0,
++		.size		= 4 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
++		.size		= 15 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot Env",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
++		.size		= 1 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "Kernel",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
++		.size		= 32 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "File System",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
++		.size		= MTDPART_SIZ_FULL,
++	},
++};
++
++static struct omap_nand_platform_data omap3thunder_nand_data = {
++	.options	= NAND_BUSWIDTH_16,
++	.parts		= omap3thunder_nand_partitions,
++	.nr_parts	= ARRAY_SIZE(omap3thunder_nand_partitions),
++	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
++	.nand_setup	= NULL,
++	.dev_ready	= NULL,
++};
++
++static struct resource omap3thunder_nand_resource = {
++	.flags		= IORESOURCE_MEM,
++};
++
++static struct platform_device omap3thunder_nand_device = {
++	.name		= "omap2-nand",
++	.id		= -1,
++	.dev		= {
++		.platform_data	= &omap3thunder_nand_data,
++	},
++	.num_resources	= 1,
++	.resource	= &omap3thunder_nand_resource,
++};
++
++#include "sdram-micron-mt46h32m32lf-6.h"
++
++static struct omap_uart_config omap3_thunder_uart_config __initdata = {
++	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
++};
++
++static struct twl4030_usb_data thunder_usb_data = {
++	.usb_mode	= T2_USB_MODE_ULPI,
++};
++
++static struct twl4030_hsmmc_info mmc[] = {
++	{
++		.mmc		= 1,
++		.wires		= 8,
++		.gpio_cd	= -EINVAL,
++		.gpio_wp	= 29, 
++	},
++	{ 
++		.mmc		= 2, 
++		.wires		= 4, 
++		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL, 
++		
++	}, 
++	{}	/* Terminator */
++};
++
++static struct regulator_consumer_supply thunder_vmmc1_supply = {
++	.supply			= "vmmc",
++};
++
++static struct regulator_consumer_supply thunder_vmmc2_supply = {
++        .supply                 = "vmmc",
++};
++
++
++static struct regulator_consumer_supply thunder_vsim_supply = {
++	.supply			= "vmmc_aux",
++};
++
++static struct gpio_led gpio_leds[] = {
++	{
++		.name			= "thunderboard::usr0",
++		.default_trigger        = "heartbeat",
++		.gpio			= -EINVAL,	/* gets replaced */
++		.active_low		= true,
++	},
++};
++
++static int thunder_twl_gpio_setup(struct device *dev,
++		unsigned gpio, unsigned ngpio)
++{
++	omap_mux_init_gpio(29,OMAP_PIN_INPUT);
++	mmc[0].gpio_cd = gpio + 0;
++	twl4030_mmc_init(mmc);
++
++	/* link regulators to MMC adapters */
++	thunder_vmmc1_supply.dev = mmc[0].dev; 
++	thunder_vmmc2_supply.dev = mmc[1].dev;
++	thunder_vsim_supply.dev = mmc[0].dev;
++	
++	/* the LED marked LED 2 (LEDA) */
++	gpio_leds[0].gpio = gpio + TWL4030_GPIO_MAX + 1;
++
++	/* gpio + 7 == DVI Enable */
++        gpio_request(gpio + 7, "EN_DVI");
++        gpio_direction_output(gpio + 7, 0);
++
++	return 0;
++}
++
++static struct twl4030_gpio_platform_data thunder_gpio_data = {
++	.gpio_base	= OMAP_MAX_GPIO_LINES,
++	.irq_base	= TWL4030_GPIO_IRQ_BASE,
++	.irq_end	= TWL4030_GPIO_IRQ_END,
++	.use_leds	= false,
++	.pullups	= BIT(1),
++	.pulldowns	= BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
++				| BIT(15) | BIT(16) | BIT(17),
++	.setup		= thunder_twl_gpio_setup,
++};
++
++
++/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
++static struct regulator_init_data thunder_vmmc1 = {
++	.constraints = {
++		.min_uV			= 1850000,
++		.max_uV			= 3150000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &thunder_vmmc1_supply,
++};
++
++
++static struct regulator_init_data thunder_vmmc2 = {
++        .constraints = {
++                .min_uV                 = 1850000,
++		.max_uV			= 3150000, 
++                .apply_uV               = true,
++                .valid_modes_mask       = REGULATOR_MODE_NORMAL
++                                        | REGULATOR_MODE_STANDBY,
++                .valid_ops_mask         = REGULATOR_CHANGE_MODE
++                                        | REGULATOR_CHANGE_STATUS,
++        },
++        .num_consumer_supplies  = 1,
++        .consumer_supplies      = &thunder_vmmc2_supply,
++};
++
++/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
++static struct regulator_init_data thunder_vsim = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 3000000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &thunder_vsim_supply,
++};
++
++static struct regulator_consumer_supply thunder_vdda_dac_supply = {
++        .supply         = "vdda_dac",
++        .dev            = &thunder_dss_device.dev,
++};
++
++
++/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
++static struct regulator_init_data thunder_vdac = {
++    .constraints = {
++        .min_uV         = 1800000,
++        .max_uV         = 1800000,
++        .apply_uV       = true,
++        .valid_modes_mask   = REGULATOR_MODE_NORMAL
++                    | REGULATOR_MODE_STANDBY,
++        .valid_ops_mask     = REGULATOR_CHANGE_MODE
++                    | REGULATOR_CHANGE_STATUS,
++    },
++    .num_consumer_supplies  = 1,
++    .consumer_supplies  = &thunder_vdda_dac_supply,
++};
++
++/* VPLL2 for digital video outputs */
++static struct regulator_init_data thunder_vpll2 = {
++    .constraints = {
++        .name           = "VDVI",
++        .min_uV         = 1800000,
++        .max_uV         = 1800000,        
++	.valid_modes_mask   = REGULATOR_MODE_NORMAL
++                    | REGULATOR_MODE_STANDBY,
++        .valid_ops_mask     = REGULATOR_CHANGE_MODE
++                    | REGULATOR_CHANGE_STATUS,
++    },
++    .num_consumer_supplies  = 1,
++    .consumer_supplies  = &thunder_vdds_dsi_supply,
++};
++
++
++
++static struct twl4030_platform_data thunder_twldata = {
++	.irq_base	= TWL4030_IRQ_BASE,
++	.irq_end	= TWL4030_IRQ_END,
++
++	/* platform_data for children goes here */
++	.usb		= &thunder_usb_data,
++	.gpio		= &thunder_gpio_data,
++	.vmmc1		= &thunder_vmmc1, 
++	.vmmc2          = &thunder_vmmc2,
++	.vsim		= &thunder_vsim,
++	.vdac       	= &thunder_vdac,
++	.vpll2          = &thunder_vpll2,
++};
++
++static struct i2c_board_info __initdata thunder_i2c_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("twl4030", 0x48),
++		.flags = I2C_CLIENT_WAKE,
++		.irq = INT_34XX_SYS_NIRQ,
++		.platform_data = &thunder_twldata,
++	},
++};
++
++static int __init omap3_thunder_i2c_init(void)
++{
++	omap_register_i2c_bus(1, 2600, thunder_i2c_boardinfo, ARRAY_SIZE(thunder_i2c_boardinfo));
++	omap_register_i2c_bus(2, 100,NULL, 0);
++	omap_register_i2c_bus(3, 100, NULL, 0);
++	return 0;
++}
++
++static void __init omap3_thunder_init_irq(void)
++{
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, mt46h32m32lf6_sdrc_params);
++	omap_init_irq();
++	omap_gpio_init();
++}
++
++static struct gpio_led_platform_data gpio_led_info = {
++	.leds		= gpio_leds,
++	.num_leds	= ARRAY_SIZE(gpio_leds),
++};
++
++static struct platform_device leds_gpio = {
++	.name	= "leds-gpio",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &gpio_led_info,
++	},
++};
++
++static struct gpio_keys_button gpio_buttons[] = {
++	{
++		.code			= BTN_EXTRA,
++		.gpio			= 7,
++		.desc			= "user",
++		.wakeup			= 1,
++	},
++};
++
++static struct gpio_keys_platform_data gpio_key_info = {
++	.buttons	= gpio_buttons,
++	.nbuttons	= ARRAY_SIZE(gpio_buttons),
++};
++
++static struct platform_device keys_gpio = {
++	.name	= "gpio-keys",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &gpio_key_info,
++	},
++};
++
++static void ads7846_dev_init(void)
++{
++	if (gpio_request(OMAP3_THUNDER_TS_GPIO, "ADS7846 pendown") < 0)
++		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
++
++	gpio_direction_input(OMAP3_THUNDER_TS_GPIO);
++
++	omap_set_gpio_debounce(OMAP3_THUNDER_TS_GPIO, 1);
++	omap_set_gpio_debounce_time(OMAP3_THUNDER_TS_GPIO, 0xa);
++}
++
++static int ads7846_get_pendown_state(void)
++{
++	return !gpio_get_value(OMAP3_THUNDER_TS_GPIO);
++}
++
++struct ads7846_platform_data ads7846_config = {
++	.x_max                  = 0x0fff,
++	.y_max                  = 0x0fff,
++	.x_plate_ohms           = 180,
++	.pressure_max           = 255,
++	.debounce_max           = 10,
++	.debounce_tol           = 3,
++	.debounce_rep           = 1,
++	.get_pendown_state	= ads7846_get_pendown_state,
++	.keep_vref_on		= 1,
++	.settle_delay_usecs     = 150,
++};
++
++
++static struct omap2_mcspi_device_config ads7846_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,  /* 0: slave, 1: master */
++};
++
++
++struct spi_board_info omap3thunder_spi_board_touch[] = {
++	 {
++		.modalias		= "ads7846",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.max_speed_hz		= 1500000,
++		.controller_data	= &ads7846_mcspi_config,
++		.irq			= OMAP_GPIO_IRQ(OMAP3_THUNDER_TS_GPIO),
++		.platform_data		= &ads7846_config,
++	}, 
++};
++
++
++/* G-sensor on SPI bus 4 */
++static struct spi_board_info omap3thunder_spi_board_info[] = {
++	{
++		.modalias = "spidev", 
++		.max_speed_hz   = 1500000, 
++                .bus_num        = 4,
++                .chip_select    = 0,
++                .mode = SPI_MODE_0,
++        },
++};
++
++static struct omap_board_config_kernel omap3_thunder_config[] __initdata = {
++};
++
++static struct platform_device *omap3_thunder_devices[] __initdata = {
++	&thunder_dss_device,
++	&leds_gpio,
++	&keys_gpio,
++};
++
++static void __init omap3thunder_flash_init(void)
++{
++	u8 cs = 0;
++	u8 nandcs = GPMC_CS_NUM + 1;
++
++	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
++
++	/* find out the chip-select on which NAND exists */
++	while (cs < GPMC_CS_NUM) {
++		u32 ret = 0;
++		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++
++		if ((ret & 0xC00) == 0x800) {
++			printk(KERN_INFO "Found NAND on CS%d\n", cs);
++			if (nandcs > GPMC_CS_NUM)
++				nandcs = cs;
++		}
++		cs++;
++	}
++
++	if (nandcs > GPMC_CS_NUM) {
++		printk(KERN_INFO "NAND: Unable to find configuration "
++				 "in GPMC\n ");
++		return;
++	}
++
++	if (nandcs < GPMC_CS_NUM) {
++		omap3thunder_nand_data.cs = nandcs;
++		omap3thunder_nand_data.gpmc_cs_baseaddr = (void *)
++			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
++		omap3thunder_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
++
++		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
++		if (platform_device_register(&omap3thunder_nand_device) < 0)
++			printk(KERN_ERR "Unable to register NAND device\n");
++	}
++}
++
++
++static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
++        .port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++        .port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
++        .port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++
++        .phy_reset  = false,
++        .reset_gpio_port[0]  = -EINVAL,
++        .reset_gpio_port[1]  = 162, 
++        .reset_gpio_port[2]  = -EINVAL
++};
++
++static void __init omap3_thunder_init(void)
++{
++	omap3_thunder_i2c_init();
++	
++	/* Turn on Wireless LAN */
++        gpio_request( 157 , "WIFI ENABLE");
++        gpio_direction_output( 157, 0);	
++
++	platform_add_devices(omap3_thunder_devices,
++			ARRAY_SIZE(omap3_thunder_devices));
++	omap_board_config = omap3_thunder_config;
++	omap_board_config_size = ARRAY_SIZE(omap3_thunder_config);
++	omap_serial_init();
++
++	usb_musb_init();
++	usb_ehci_init(&ehci_pdata);
++	omap3thunder_flash_init();
++
++	ads7846_dev_init();
++	spi_register_board_info(omap3thunder_spi_board_touch, ARRAY_SIZE(omap3thunder_spi_board_touch));
++	spi_register_board_info(omap3thunder_spi_board_info, ARRAY_SIZE(omap3thunder_spi_board_info));	
++
++	thunder_display_init();
++}
++
++static void __init omap3_thunder_map_io(void)
++{
++	omap2_set_globals_343x();
++	omap2_map_common_io();
++}
++
++MACHINE_START(OMAP3_THUNDER, "OMAP3 Thunder Board")
++	/* Maintainer: Daniel Toussaint daniel.toussaint@technexion.com */
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap3_thunder_map_io,
++	.init_irq	= omap3_thunder_init_irq,
++	.init_machine	= omap3_thunder_init,
++	.timer		= &omap_timer,
++MACHINE_END
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index 79d2861..a831fff 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -25,4 +25,11 @@ config PANEL_TAAL
+         help
+           Taal DSI command mode panel from TPO.
+ 
++config PANEL_LG_LB043WQ2
++        tristate "LG LB043WQ2 Panel"
++        depends on OMAP2_DSS
++        help
++                LG LB043WQ2 Panel on Thunder board
++
++
+ endmenu
+diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
+index d44e765..ae0c956 100644
+--- a/drivers/video/omap2/displays/Makefile
++++ b/drivers/video/omap2/displays/Makefile
+@@ -3,3 +3,5 @@ obj-$(CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C) += panel-samsung-lte430wq-f0c.o
+ obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
+ 
+ obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
++obj-$(CONFIG_PANEL_LG_LB043WQ2) += panel-lg-lb043wq2.o
++
+diff --git a/drivers/video/omap2/displays/panel-lg-lb043wq2.c b/drivers/video/omap2/displays/panel-lg-lb043wq2.c
+new file mode 100644
+index 0000000..57a74f6
+--- /dev/null
++++ b/drivers/video/omap2/displays/panel-lg-lb043wq2.c
+@@ -0,0 +1,118 @@
++/*
++ * LCD panel driver for LG LB043WQ2 panel 
++ * 
++ * Daniel Toussaint <daniel.toussaint@technexion.com>
++ *
++ * Modified from Sharp LS037V7DW01 
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++
++
++#include <linux/module.h>
++#include <linux/delay.h>
++
++#include <plat/display.h>
++
++static struct omap_video_timings lg_lb043wq2_timings = {
++	.x_res = 480,
++	.y_res = 272,
++
++	.hsw            = 41,
++        .hfp            = 8,
++        .hbp            = 45-41,
++
++        .vsw            = 10,
++        .vfp            = 4,
++        .vbp            = 12-10,
++
++
++	.pixel_clock	= 8000,
++
++};
++
++static int lg_lb043wq2_panel_probe(struct omap_dss_device *dssdev)
++{
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++		OMAP_DSS_LCD_IHS;
++	dssdev->panel.timings = lg_lb043wq2_timings;
++
++	return 0;
++}
++
++static void lg_lb043wq2_panel_remove(struct omap_dss_device *dssdev)
++{
++}
++
++static int lg_lb043wq2_panel_enable(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	/* wait couple of vsyncs until enabling the LCD */
++	msleep(50);
++
++	if (dssdev->platform_enable)
++		r = dssdev->platform_enable(dssdev);
++
++	return r;
++}
++
++static void lg_lb043wq2_panel_disable(struct omap_dss_device *dssdev)
++{
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	/* wait at least 5 vsyncs after disabling the LCD */
++
++	msleep(100);
++}
++
++static int lg_lb043wq2_panel_suspend(struct omap_dss_device *dssdev)
++{
++	lg_lb043wq2_panel_disable(dssdev);
++	return 0;
++}
++
++static int lg_lb043wq2_panel_resume(struct omap_dss_device *dssdev)
++{
++	return lg_lb043wq2_panel_enable(dssdev);
++}
++
++static struct omap_dss_driver lg_lb043wq2_driver = {
++	.probe		= lg_lb043wq2_panel_probe,
++	.remove		= lg_lb043wq2_panel_remove,
++
++	.enable		= lg_lb043wq2_panel_enable,
++	.disable	= lg_lb043wq2_panel_disable,
++	.suspend	= lg_lb043wq2_panel_suspend,
++	.resume		= lg_lb043wq2_panel_resume,
++
++	.driver         = {
++		.name   = "panel-lg-lb043wq2",
++		.owner  = THIS_MODULE,
++	},
++};
++
++static int __init lg_lb043wq2_panel_drv_init(void)
++{
++	return omap_dss_register_driver(&lg_lb043wq2_driver);
++}
++
++static void __exit lg_lb043wq2_panel_drv_exit(void)
++{
++	omap_dss_unregister_driver(&lg_lb043wq2_driver);
++}
++
++module_init(lg_lb043wq2_panel_drv_init);
++module_exit(lg_lb043wq2_panel_drv_exit);
++MODULE_LICENSE("GPL");
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 61952aa..2f6c6ae 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -116,3 +116,13 @@ config SND_OMAP_SOC_IGEP0020
+ 	select SND_SOC_TWL4030
+ 	help
+ 	  Say Y if you want to add support for Soc audio on IGEP v2 board.
++
++config SND_OMAP_SOC_OMAP3_THUNDER
++        tristate "SoC Audio support for OMAP3 Thunder"
++        depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_THUNDER
++        select SND_OMAP_SOC_MCBSP
++        select SND_SOC_TWL4030
++        help
++          Say Y if you want to add support for SoC audio on the Thunder Board.
++
++
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index d49458a..08c0918 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -18,6 +18,7 @@ snd-soc-omap3pandora-objs := omap3pandora.o
+ snd-soc-omap3beagle-objs := omap3beagle.o
+ snd-soc-zoom2-objs := zoom2.o
+ snd-soc-igep0020-objs := igep0020.o
++snd-soc-omap3thunder-objs := omap3thunder.o
+ 
+ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
+ obj-$(CONFIG_SND_OMAP_SOC_AMS_DELTA) += snd-soc-ams-delta.o
+@@ -31,3 +32,5 @@ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
+ obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
+ obj-$(CONFIG_SND_OMAP_SOC_IGEP0020) += snd-soc-igep0020.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP3_THUNDER) += snd-soc-omap3thunder.o
++
+diff --git a/sound/soc/omap/omap3thunder.c b/sound/soc/omap/omap3thunder.c
+new file mode 100644
+index 0000000..cd91dff
+--- /dev/null
++++ b/sound/soc/omap/omap3thunder.c
+@@ -0,0 +1,160 @@
++/*
++ * omap3 audio support for Technexion Thunder boards. 
++ * Modified from omap3beagle.c 
++ * Daniel Toussaint <daniel.toussaint@technexion.com> 
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++
++#include <linux/clk.h>
++#include <linux/platform_device.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/soc.h>
++#include <sound/soc-dapm.h>
++
++#include <asm/mach-types.h>
++#include <plat/hardware.h>
++#include <plat/gpio.h>
++#include <plat/mcbsp.h>
++
++#include "omap-mcbsp.h"
++#include "omap-pcm.h"
++#include "../codecs/twl4030.h"
++
++static int omap3thunder_hw_params(struct snd_pcm_substream *substream,
++	struct snd_pcm_hw_params *params)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
++	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
++	unsigned int fmt;
++	int ret;
++
++	switch (params_channels(params)) {
++	case 2: /* Stereo I2S mode */
++		fmt =	SND_SOC_DAIFMT_I2S |
++			SND_SOC_DAIFMT_NB_NF |
++			SND_SOC_DAIFMT_CBM_CFM;
++		break;
++	case 4: /* Four channel TDM mode */
++		fmt =	SND_SOC_DAIFMT_DSP_A |
++			SND_SOC_DAIFMT_IB_NF |
++			SND_SOC_DAIFMT_CBM_CFM;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	/* Set codec DAI configuration */
++	ret = snd_soc_dai_set_fmt(codec_dai, fmt);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set codec DAI configuration\n");
++		return ret;
++	}
++
++	/* Set cpu DAI configuration */
++	ret = snd_soc_dai_set_fmt(cpu_dai, fmt);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set cpu DAI configuration\n");
++		return ret;
++	}
++
++	/* Set the codec system clock for DAC and ADC */
++	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
++				     SND_SOC_CLOCK_IN);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set codec system clock\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static struct snd_soc_ops omap3thunder_ops = {
++	.hw_params = omap3thunder_hw_params,
++};
++
++/* Digital audio interface glue - connects codec <--> CPU */
++static struct snd_soc_dai_link omap3thunder_dai = {
++	.name = "TWL4030",
++	.stream_name = "TWL4030",
++	.cpu_dai = &omap_mcbsp_dai[0],
++	.codec_dai = &twl4030_dai[TWL4030_DAI_HIFI],
++	.ops = &omap3thunder_ops,
++};
++
++/* Audio machine driver */
++static struct snd_soc_card snd_soc_omap3thunder = {
++	.name = "omap3thunder",
++	.platform = &omap_soc_platform,
++	.dai_link = &omap3thunder_dai,
++	.num_links = 1,
++};
++
++/* Audio subsystem */
++static struct snd_soc_device omap3thunder_snd_devdata = {
++	.card = &snd_soc_omap3thunder,
++	.codec_dev = &soc_codec_dev_twl4030,
++};
++
++static struct platform_device *omap3thunder_snd_device;
++
++static int __init omap3thunder_soc_init(void)
++{
++	int ret;
++
++	if (!machine_is_omap3_thunder()) {
++		pr_debug("Not OMAP3 thunder!\n");
++		return -ENODEV;
++	}
++	pr_info("OMAP3 thunder SoC init\n");
++
++	omap3thunder_snd_device = platform_device_alloc("soc-audio", -1);
++	if (!omap3thunder_snd_device) {
++		printk(KERN_ERR "Platform device allocation failed\n");
++		return -ENOMEM;
++	}
++
++	platform_set_drvdata(omap3thunder_snd_device, &omap3thunder_snd_devdata);
++	omap3thunder_snd_devdata.dev = &omap3thunder_snd_device->dev;
++	*(unsigned int *)omap3thunder_dai.cpu_dai->private_data = 1; /* McBSP2 */
++
++	ret = platform_device_add(omap3thunder_snd_device);
++	if (ret)
++		goto err1;
++
++	return 0;
++
++err1:
++	printk(KERN_ERR "Unable to add platform device\n");
++	platform_device_put(omap3thunder_snd_device);
++
++	return ret;
++}
++
++static void __exit omap3thunder_soc_exit(void)
++{
++	platform_device_unregister(omap3thunder_snd_device);
++}
++
++module_init(omap3thunder_soc_init);
++module_exit(omap3thunder_soc_exit);
++
++MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
++MODULE_DESCRIPTION("ALSA SoC OMAP3 thunder");
++MODULE_LICENSE("GPL");
+
+--------------010100030201010904010909--
