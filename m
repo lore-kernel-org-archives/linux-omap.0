@@ -1,77 +1,49 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the sleep dependencies.
-Date: Thu, 10 Dec 2009 09:05:40 -0800
-Message-ID: <87hbryrc7v.fsf@deeprootsystems.com>
-References: <1260098323-26183-1-git-send-email-thara@ti.com>
-	<873a3ju4ng.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB030ACBFDFF@dbde02.ent.ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: [PATCH] Fix build of OMAP sound drivers
+Date: Thu, 10 Dec 2009 11:15:55 -0600
+Message-ID: <20091210171555.GB19668@lixom.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:44790 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760982AbZLJRFh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 12:05:37 -0500
-Received: by pzk1 with SMTP id 1so41861pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 10 Dec 2009 09:05:43 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030ACBFDFF@dbde02.ent.ti.com> (Thara Gopinath's message of "Thu\, 10 Dec 2009 12\:04\:30 +0530")
+Received: from lixom.net ([66.141.50.11]:38183 "EHLO mail.lixom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756402AbZLJRMn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Dec 2009 12:12:43 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: broonie@opensource.wolfsonmicro.com
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Arun KS <arunks@mistralsolutions.com>, Anuj Aggarwal <anuj.aggarwal@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-"Gopinath, Thara" <thara@ti.com> writes:
+There are build errors when building for some of the omap2/3 boards without
+enabling sound:
 
->>>-----Original Message-----
->>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>Sent: Thursday, December 10, 2009 4:39 AM
->>>To: Gopinath, Thara
->>>Cc: linux-omap@vger.kernel.org; Paul Walmsley
->>>Subject: Re: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the sleep
->>>dependencies.
->>>
->>>Thara Gopinath <thara@ti.com> writes:
->>>
->>>> Some clock nodes like wdt1_fck, sr1_fck, sr2_fck etc do not have a
->>>> clock domain associated . For such nodes accessing the clock domain pointers
->>>> in _add_initiator_dep and _del_initiator_dep, will lead to null pointer
->>>> defreferencing crash. Adding support in these functions to check for
->>>> existence of clkdm pointer before trying to acess it. Even if tomorrow
->>>> we correct all the clock nodes to have an associated clock domain, checking
->>>> for the existence of the pointer is a good programming practice.
->>>>
->>>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>>> Cc: Paul Walmsley <paul@pwsan.com>
->>>> ---
->>>> This patch depends on http://patchwork.kernel.org/patch/63383/
->>>
->>>I think clocks without associated clockdomains should be handled with
->>>a flag instead of a check for a NULL pointer.
->>>
->>>Your current approach will silently fail if someone forgets to add
->>>a clockdomain to a clock that should have one.
->
-> Are you suggesting adding a flag to the clock node in case it does
-> not have an associated clockdomain?  
+sound/built-in.o:(.data+0x43bc): undefined reference to `soc_codec_dev_tlv320aic23'
+sound/built-in.o:(.data+0x43cc): undefined reference to `tlv320aic23_dai'
 
-Yes, or to the hwmod.
+Confused me quite a bit since the drivers that had references to the
+codec weren't enabled. Turns out the Makefile was using the wrong
+config option to enable them. Patch below.
 
-> I am using your tree origin/pm-wip/omap_device branch. On this I see
-> a commit (e89a95db7095d998991c564a756a33ee0ec722c5) in which a
-> warning is printed in omap2_init_clk_clkdm if there is no
-> clockdomain associated with a clock node. 
 
-This is to check for the case of a missing clkdm when there should be
-one.  You're trying to solve the problem of when there is no
-clockdomain for a given clock.
 
-> My idea was this warning plus the check so as to avoid the system
-> crash would suffice.
+Reported-by: Anand Gadiyar <gadiyar@ti.com>
+Signed-off-by: Olof Johansson <olof@lixom.net>
 
-I still think this should be flagged explicitly in the clock/hwmod,
-then check using the flag instead of of using NULL pointer check.
-
-For readability, it makes it more clear that this is checking for some
-exceptions and not simply doing error checking.
-
-Kevin
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index d49458a..3db8a6c 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -23,9 +23,9 @@ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
+ obj-$(CONFIG_SND_OMAP_SOC_AMS_DELTA) += snd-soc-ams-delta.o
+ obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
+ obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
+-obj-$(CONFIG_MACH_OMAP2EVM) += snd-soc-omap2evm.o
+-obj-$(CONFIG_MACH_OMAP3EVM) += snd-soc-omap3evm.o
+-obj-$(CONFIG_MACH_OMAP3517EVM) += snd-soc-am3517evm.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP2EVM) += snd-soc-omap2evm.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP3EVM) += snd-soc-omap3evm.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP3517EVM) += snd-soc-am3517evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
