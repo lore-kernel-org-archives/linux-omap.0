@@ -1,56 +1,67 @@
 From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: DSS2 and power supplies
-Date: Thu, 10 Dec 2009 16:00:50 +0200
-Message-ID: <6ed0b2680912100600p7584c0a0v60ded6e83c6df85d@mail.gmail.com>
-References: <6ed0b2680912040253m3b25950fuf49e6ec75ad13067@mail.gmail.com>
-	 <1260175482.2342.49.camel@tubuntu.research.nokia.com>
-	 <6ed0b2680912070227x3bcb9613x88ebdb0b0a7f3f18@mail.gmail.com>
-	 <19F8576C6E063C45BE387C64729E73940437210B71@dbde02.ent.ti.com>
+Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI charger
+Date: Thu, 10 Dec 2009 16:09:08 +0200
+Message-ID: <6ed0b2680912100609g11706296qdbcea887dc3a5733@mail.gmail.com>
+References: <1259333060-24277-1-git-send-email-notasas@gmail.com>
+	 <6ed0b2680912021234x6b5e6058p6d50d5cd20ecf019@mail.gmail.com>
+	 <20091202204946.GB25682@nokia.com>
+	 <6ed0b2680912021329g372bd0a4vb5b4a80244960f95@mail.gmail.com>
+	 <20091202215442.GA30658@oksana.dev.rtsoft.ru>
+	 <20091202223156.GA14921@nokia.com>
+	 <20091202225922.GA15568@oksana.dev.rtsoft.ru>
+	 <20091203083958.GB31110@nokia.com>
+	 <6ed0b2680912030255o57d7c46qb5ae1cfcb82e9976@mail.gmail.com>
+	 <20091203110332.GO1361@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:18976 "EHLO
+Received: from fg-out-1718.google.com ([72.14.220.153]:49743 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758967AbZLJOAo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 09:00:44 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so556385fgg.1
-        for <linux-omap@vger.kernel.org>; Thu, 10 Dec 2009 06:00:50 -0800 (PST)
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940437210B71@dbde02.ent.ti.com>
+	with ESMTP id S1759310AbZLJOJD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 09:09:03 -0500
+In-Reply-To: <20091203110332.GO1361@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: felipe.balbi@nokia.com
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Dec 10, 2009 at 3:23 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
-<snip>
-
->> >
->> > To me the fig 15-1 does not tell that the powers are needed. The
->> > DSS_DATA[] pins do not come from SDI/DSI blocks, but from the main
->> DSS
->> > block. And the pin muxing component is outside also. This of
->> course
->> > doesn't really prove anything. =)
+On Thu, Dec 3, 2009 at 1:03 PM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+> Hi,
+>
+> On Thu, Dec 03, 2009 at 11:55:12AM +0100, ext Grazvydas Ignotas wrote:
 >>
->> True, but apparently vdds_dsi and/or vdds_sdi are also used to drive
->> some data lines then (not supplying them produces blue-ish display
->> with some parts missing). I'm working with pandora board, and I'm
->> sure
->> VPLL2 is not connected to anything else.
+>> TPS65950 is catalog part of TWL4030 and has documentation here:
 >>
-> [Hiremath, Vaibhav] No, I think the "vdds_dsi" doesn't drive any data in parallel mode of operation.
-> I have also observed similar issue with OMAP3EVM, when you switch the output to DVI interface, you will get bluish image.
+>> http://focus.ti.com/docs/prod/folders/print/tps65950.html#technicaldocuments
+>>
+>> It says that it is software's responsibility to detect the device and
+>> set the right charge mode/current..
 >
-> The issue came out as VPLL2_DEV_GRP (Bits 7-5) register configuration. When you are working with LCD panel (in my case sharp-ls037v7dw01.c), this file calls regulator_get and regulator_enable functions which configures VPLL2_DEV_GRP to 0x2 [Owns to P1 device group].
-> But when you switch the output to DVI, it doesn't do any regulator_get/enable call so the VPLL2_DEV_GRP register becomes 0 [Owns to no device group] leading to color loss.
+> yes, the BCI (or bq24xxx) will never be able to know which configuration we
+> were enumerated with...
 >
-> I am not regulator framework expert, so could not comment on what is the relation of VPLL2_DEV_GRP with this issue.
+>>> yes, that'll work. But how about start charging always with 100mA and if
+>>> userland sees that we were enumerated it reconfigures charging as
+>>> necessary.
+>>> But this would mean that we have the EM daemon started up just after the
+>>> driver itself is loaded to avoid the problem with 100ms no enumeration.
+>>> How
+>>> does that sound ? Do we start making some writeable power_supply sysfs
+>>> ???
+>>
+>> There are also USB chargers that don't enumerate and have D+ and D-
+>> shorted with a resistor (see "dedicated charger port" in the charging
+>> spec), how do we support those?
 >
-> So what is required here is, panel_generic.c also should enable regulator for "vdvi"
+> dedicated chargers are simple. You kick the charger detection according to
+> USB BC 1.x and if it returns true, you configure high current charging.
+> Host/Hub chargers are also simple, after kicking charger detection, you
+> enable Data pullups (e.g. SOFTCONN bit in musb's power register) and see if
+> the host sends a setup packet...
 >
-> I have a patch (tested on OMAP3EVM) which I submit once DSS2 goes in.
+> the complicated part is passing the information of which configuration you
+> were enumerated with to the charger chip.
 
-I think this regulator is misnamed, does VPLL2 really power DVI on
-OMAP3EVM? Can you check the schematics? At least on pandora it's
-connected to vdds_dsi/vdds_sdi and has nothing to do with the panel.
+Ok since it doesn't look like this will resolve soon, what about
+adding some DEVICE_ATTR for the time being and requiring userspace to
+write charge current here to start actual charging?
