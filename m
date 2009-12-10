@@ -1,138 +1,680 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: [PATCHV2 1/4] OMAP3: introduce DPLL4 Jtype
-Date: Fri, 11 Dec 2009 00:06:25 +0100
-Message-ID: <74583B8642AB8841B30447520659FCA9DE54DA68@dnce01.ent.ti.com>
-References: <1259211517-12713-1-git-send-email-vishwanath.bs@ti.com>
- <1259211517-12713-2-git-send-email-vishwanath.bs@ti.com>
- <alpine.DEB.2.00.0911300141440.17083@utopia.booyaka.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA90250A@dbde02.ent.ti.com>
- <alpine.DEB.2.00.0912010904590.13408@utopia.booyaka.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 02/10 V4] omap3: pm: introduce opp accessor functions
+Date: Thu, 10 Dec 2009 15:25:52 -0800
+Message-ID: <87iqceo1hb.fsf@deeprootsystems.com>
+References: <1260339435-20294-1-git-send-email-nm@ti.com>
+	<1260339435-20294-2-git-send-email-nm@ti.com>
+	<1260339435-20294-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41314 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933090AbZLJXG1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 18:06:27 -0500
-Content-Class: urn:content-classes:message
-In-Reply-To: <alpine.DEB.2.00.0912010904590.13408@utopia.booyaka.com>
-Content-Language: en-US
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:62445 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757023AbZLJXZy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 18:25:54 -0500
+Received: by yxe17 with SMTP id 17so309202yxe.33
+        for <linux-omap@vger.kernel.org>; Thu, 10 Dec 2009 15:25:58 -0800 (PST)
+In-Reply-To: <1260339435-20294-3-git-send-email-nm@ti.com> (Nishanth Menon's message of "Wed\,  9 Dec 2009 00\:17\:07 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "ext-ari.kauppi@nokia.com" <ext-ari.kauppi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "Menon, Nishanth" <nm@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Tero Kristo <Tero.Kristo@nokia.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Sanjeev Premi <premi@ti.com>
 
-Paul,
+Nishanth Menon <nm@ti.com> writes:
 
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Paul Walmsley
->Sent: Thursday, December 10, 2009 10:24 PM
+> Modifies the initial patch From Sanjeev:
+> http://patchwork.kernel.org/patch/50998/
+> Discussions and comments from:
+> http://marc.info/?l=linux-omap&m=125482970102327&w=2
+> http://marc.info/?t=125809247500002&r=1&w=2
+> http://marc.info/?l=linux-omap&m=126025973426007&w=2
+> incorporated.
 >
->Hi Vishwanath,
+> OMAP SOCs have a standard set of tuples consisting of frequency and
+> voltage pairs that the device will support per voltage domain. This
+> is called Operating Points or OPP. The actual definitions of OMAP
+> Operating Points varies over silicon within the same family of
+> devices. For a specific domain, you can have a set of
+> {frequency, voltage} pairs. As the kernel boots and more information
+> is available, a set of these are activated based on the precise
+> nature of device the kernel boots up on. It is interesting to
+> remember that each IP which belongs to a voltage domain may define
+> their own set of OPPs on top of this.
 >
->On Tue, 1 Dec 2009, Sripathy, Vishwanath wrote:
+> This introduces a common handling OPP mechanism accross all OMAPs.
+> As a start this is introduced for OMAP3 and intends to replace
+> current OMAP3 opp handling mechanism.
 >
->> >
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
-
------Original Message-----
-
->> > From: Paul Walmsley [mailto:paul@pwsan.com]
->> > Sent: Monday, November 30, 2009 3:00 PM
->> > To: Sripathy, Vishwanath
->> > Cc: ext-ari.kauppi@nokia.com; linux-omap@vger.kernel.org; Woodruff,
->Richard;
->> > Menon, Nishanth
->> > Subject: Re: [PATCHV2 1/4] OMAP3: introduce DPLL4 Jtype
->> >
->> > Hello Vishwanath,
->> >
->> > a few comments:
->> >
->> > On Thu, 26 Nov 2009, Vishwanath BS wrote:
->> >
->> > > From: Richard Woodruff <r-woodruff2@ti.com>
->> > >
->> > > DPLL4 for 3630 introduces a changed block requiring special divisor
->bits and
->> > > additional reg fields. To allow for silicons to use this, this is
->introduced
->> > > as a omap3_has_jtype_dpll4() and is enabled for 3630 silicon
->> > >
->> > > Tested with 3630 ZOOM3
->> >
->> > Could you please consider Ari Kauppi's suggestions that he posted on
->> > 30 and 31 October?  They look good to me.  Here is a link:
->> >
->> Regarding comments from Ari Kauppi on addition of dco_sel_mask and
->> sd_div_mask, yes I had a look at them. However I feel, it's better to
->> have these masks in the structure variable. Reason being this approach
->> will help us to support when dpll types for other dplls get changed in
->> future. For example, if dpll3 block is changed, then having new mask
->> will help us to support it.
+> Note:
+> fields of struct omap_opp is currently exposed due to the necessity
+> that SRF and SR logic directly indexes the structure array fields.
+> The goal however, is to make the direct usage of omap_opp deprecated
+> and move to using these accessor functions. The usage in SRF and SR
+> indexes based on opp_id and hence opp_id is marked deprecated to
+> generate build warnings at least. Further, this usage necessitates
+> need of terminator entries at the start and end of opp_* tables which
+> are dynamically allocated.
 >
->Is there a product coming out that will add more j-type DPLLs with
->different dco_sel_masks and sd_div_masks?  If not, then let's go with
->Ari's suggested changes, since we don't really know if any more of these
->j-type DPLLs will be used.  We can always add the fields back in when we
->need them.  But if you know for sure that there is a chip variant coming
->out soon that will use more j-type DPLLs, let's talk about it.
-
-
-OMAP4 is using the same J-type for the DPLL_USB. The programming model is
-"almost" the same...
-sd_div is a the same location, but dco_sel is not there anymore because that DPLL will always be locked at 960MHz and thus will not require the mode
-for frequency > 1GHz.
-At the DCO location, we have the bypass_clksel, so the code will have to take care of that.
-
-31:24 DPLL_SD_DIV
-23    DPLL_BYP_CLKSEL
-19:8  DPLL_MULT
-7:0   DPLL_DIV
-
-
-Regards,
-Benoit
-
-
->> > - One thing that is confusing is that the 3630 Rev A TRM (SWPU176A)
->> > conflicts with the 34xx-36xx Delta TRM (SWPU204).  For example, the
->delta
->> > TRM claims that the FREQSEL bits are all removed, but the 3630 TRM
->claims
->> > that they are still present.  Could you find out which one is correct?
->If
->> > no FREQSEL bits are present, then the clock code shouldn't write to
->them.
->> >
->>
->> 3630 TRM (Rev A) shows that FREQSEL is no longer present for Per DPLL
->> (CM_CLKEN_PLL [23:20] is reserved). So we should not write freqsel for
->> PER dpll.
+> The accessor function definitions were collaborated with Kevin, and
+> doing justice here, this implementation could not go with some of
+> the better suggestions from kevin due to constraint imposed by SRF
+> and SR. A better and more optimal implementation is definitely
+> possible once SRF and SR are cleanedup/replaced.
 >
->Okay.  Could you please update the patch to that effect?
+> NOTE: OPP is a concept that can be used in all OMAPs, it is hence
+> introduced under plat-omap
 >
->Also, the other part of the question is that the delta TRM claims that
->none of the other DPLLs have FREQSEL bits either.  If that's true, then
->please update the patch to avoid programming FREQSEL bits for all DPLLs on
->3630.
+> Introduces warning:
+> arch/arm/plat-omap/opp.c: In function 'opp_add':
+> arch/arm/plat-omap/opp.c:191: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+> arch/arm/plat-omap/opp.c:199: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
+> arch/arm/plat-omap/opp.c: In function 'opp_init_list':
+> arch/arm/plat-omap/opp.c:240: warning: 'opp_id' is deprecated (declared at arch/arm/plat-omap/include/plat/opp.h:33)
 >
->> > - Table 3-13 in the delta TRM claims that the DPLL4 multiplier bitfield
->> > can now go to 4096.  [This looks like an off-by-one error in the
->> > documentation, since only 12 bits are available, so the max is (2^12 -
->1)
->> > = 4095.]  But the important point for this patch is that the struct
->> > dpll_data.max_multiplier field for DPLL4 needs to be increased.
->>
->> I confirmed that DPLL4 Multiplier is 12 bits. So max value is 4095.
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+> Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Romit Dasgupta <romit@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+> Cc: Tero Kristo <Tero.Kristo@nokia.com>
+> Cc: Thara Gopinath <thara@ti.com>
+> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
 >
->OK.  I just realized that you put the 12 bit value in a different patch...
->
->
->- Paul
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> Kevin,
+> I have put your Signed-off-by to ack your contribs. pending
+> formal confirmation ofcourse.
 
+ok
+
+>  arch/arm/plat-omap/Makefile           |    3 +
+>  arch/arm/plat-omap/include/plat/opp.h |  230 ++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/opp.c              |  271 +++++++++++++++++++++++++++++++++
+>  3 files changed, 504 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/include/plat/opp.h
+>  create mode 100644 arch/arm/plat-omap/opp.c
+>
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 95f8413..e9cf601 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -12,6 +12,9 @@ obj-  :=
+>  # OCPI interconnect support for 1710, 1610 and 5912
+>  obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+>  
+> +# OPP support in (OMAP3+ only at the moment)
+> +obj-$(CONFIG_ARCH_OMAP3) += opp.o
+> +
+>  # omap_device support (OMAP2+ only at the moment)
+>  obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
+>  obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
+> diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
+> new file mode 100644
+> index 0000000..341c02b
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/plat/opp.h
+> @@ -0,0 +1,230 @@
+> +/*
+> + * OMAP OPP Interface
+> + *
+> + * Copyright (C) 2009 Texas Instruments Incorporated.
+> + *	Nishanth Menon
+> + * Copyright (C) 2009 Deep Root Systems, LLC.
+> + *	Kevin Hilman
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#ifndef __ASM_ARM_OMAP_OPP_H
+> +#define __ASM_ARM_OMAP_OPP_H
+> +
+> +/**
+> + * struct omap_opp - OMAP OPP description structure
+> + * @enabled:	true/false - marking this OPP as enabled/disabled
+> + * @rate:	Frequency in hertz
+> + * @opp_id:	(DEPRECATED) opp identifier
+> + * @vsel:	Voltage in volt processor level(this usage is
+> + *		DEPRECATED to use Voltage in microvolts in future)
+> + *		uV = ((vsel * 12.5) + 600) * 1000
+> + *
+> + * This structure stores the OPP information for a given domain.
+> + * Due to legacy reasons, this structure is currently exposed and
+> + * will soon be removed elsewhere and will only be used as a handle
+> + * from the OPP internal referencing mechanism
+> + */
+> +struct omap_opp {
+> +	bool enabled;
+> +	unsigned long rate;
+> +	u8 opp_id __deprecated;
+> +	u16 vsel;
+
+How about we add 'u32 voltage' here and mark vsel as __deprecated.  Then
+we no longer need both an 'struct omap_opp' and a 'struct omap_opp_def'.
+
+Or even better, with the uv <--> vsel conversion macros you added,
+couldn't we alrady define the OPPs in terms of voltage, and drop the
+vsel already?
+
+> +};
+> +
+> +/**
+> + * opp_get_voltage() - Gets the voltage corresponding to an opp
+> + * @opp:	opp for which voltage has to be returned for
+> + *
+> + * Return voltage in micro volt corresponding to the opp, else
+> + * return 0
+> + */
+> +unsigned long opp_get_voltage(const struct omap_opp *opp);
+
+ack
+
+> +/**
+> + * opp_get_freq() - Gets the frequency corresponding to an opp
+> + * @opp:	opp for which frequency has to be returned for
+> + *
+> + * Return frequency in hertz corresponding to the opp, else
+> + * return 0
+> + */
+> +unsigned long opp_get_freq(const struct omap_opp *opp);
+
+ack
+
+> +/**
+> + * opp_get_opp_count() - Get number of opps enabled in the opp list
+> + * @num:	returns the number of opps
+> + * @oppl:	opp list
+> + *
+> + * This functions returns the number of opps if there are any OPPs enabled,
+> + * else returns corresponding error value.
+> + */
+> +int opp_get_opp_count(const struct omap_opp *oppl);
+
+ack
+
+> +/**
+> + * opp_find_freq_exact() - search for an exact frequency
+> + * @oppl:	OPP list
+> + * @freq:	frequency to search for
+> + * @enabled:	enabled/disabled OPP to search for
+> + *
+> + * searches for the match in the opp list and returns handle to the matching
+> + * opp if found, else returns ERR_PTR in case of error and should be handled
+> + * using IS_ERR.
+> + *
+> + * Note enabled is a modifier for the search. if enabled=true, then the match is
+> + * for exact matching frequency and is enabled. if true, the match is for exact
+> + * frequency which is disabled.
+> + */
+> +struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+> +				     unsigned long freq, bool enabled);
+
+ack
+
+I think we could drop the _exact, and just call it opp_find_freq(), but I'm
+ok either way.
+
+> +#define OPP_SEARCH_HIGH		(0 << 1)
+> +#define OPP_SEARCH_LOW		(1 << 1)
+> +/**
+> + * opp_find_freq_approx() - Search for an rounded freq
+> + * @oppl:	Starting list
+> + * @freq:	Start frequency
+> + * @dir_flag:	Search direction
+> + *		OPP_SEARCH_HIGH - search for next highest freq
+> + *		OPP_SEARCH_LOW - search for next lowest freq
+> + *
+> + * Search for the higher/lower *enabled* OPP from a starting freq
+> + * from a start opp list.
+> + *
+> + * Returns *opp and *freq is populated with the next match,
+> + * else returns NULL
+> + * opp if found, else returns ERR_PTR in case of error.
+> + *
+> + * Example usages:
+> + *	* find match/next highest available frequency
+> + *	freq = 350000;
+> + *	opp = opp_find_freq_approx(oppl, &freq, OPP_SEARCH_HIGH)))
+> + *	if (IS_ERR(opp))
+> + *		pr_err ("unable to find a higher frequency\n");
+> + *	else
+> + *		pr_info("match freq = %ld\n", freq);
+> + *
+> + *	* find match/next lowest available frequency
+> + *	freq = 350000;
+> + *	opp = opp_find_freq_approx(oppl, &freq, OPP_SEARCH_LOW)))
+> + *	if (IS_ERR(opp))
+> + *		pr_err ("unable to find a lower frequency\n");
+> + *	else
+> + *		pr_info("match freq = %ld\n", freq);
+> + *
+> + *	* print all supported frequencies in descending order *
+> + *	opp = oppl;
+> + *	freq = ULONG_MAX;
+> + *	while (!IS_ERR(opp = opp_find_freq_approx(opp, &freq,
+> + *		OPP_SEARCH_LOW))) {
+> + *		pr_info("freq = %ld\n", freq);
+> + *		freq--; * for next lower match *
+> + *	}
+> + *
+> + *	* print all supported frequencies in ascending order *
+> + *	opp = oppl;
+> + *	freq = 0;
+> + *	while (!IS_ERR(opp = opp_find_freq_approx(opp, &freq,
+> + *			OPP_SEARCH_HIGH))) {
+> + *		pr_info("freq = %ld\n", freq);
+> + *		freq++; * for next higher match *
+> + *	}
+> + *
+> + * NOTE: if we set freq as ULONG_MAX and search low, we get the highest enabled
+> + * frequency
+> + */
+> +struct omap_opp *opp_find_freq_approx(struct omap_opp *oppl,
+> +				      unsigned long *freq, u8 dir_flag);
+
+ack
+
+> +/**
+> + * struct omap_opp_def - OMAP OPP Definition
+> + * @enabled:	True/false - is this OPP enabled/disabled by default
+> + * @freq:	Frequency in hertz corresponding to this OPP
+> + * @u_volt:	Nominal voltage in microvolts corresponding to this OPP
+> + *
+> + * OMAP SOCs have a standard set of tuples consisting of frequency and voltage
+> + * pairs that the device will support per voltage domain. This is called
+> + * Operating Points or OPP. The actual definitions of OMAP Operating Points
+> + * varies over silicon within the same family of devices. For a specific
+> + * domain, you can have a set of {frequency, voltage} pairs and this is denoted
+> + * by an array of omap_opp_def. As the kernel boots and more information is
+> + * available, a set of these are activated based on the precise nature of
+> + * device the kernel boots up on. It is interesting to remember that each IP
+> + * which belongs to a voltage domain may define their own set of OPPs on top
+> + * of this - but this is handled by the appropriate driver.
+> + */
+> +struct omap_opp_def {
+> +	bool enabled;
+> +	unsigned long freq;
+> +	u32 u_volt;
+> +};
+
+See above comment on 'struct omap_opp'.  I think these two should be
+combined.
+
+I think the initial intent of having them separated so that the
+internal struct of 'struct omap_opp' could eventually move to the C
+file was the original intent, but I think it aids readability to just
+have a single OPP struct.
+
+> +/* Initialization wrapper */
+> +#define OMAP_OPP_DEF(_enabled, _freq, _uv)	\
+> +{						\
+> +	.enabled	= _enabled,		\
+> +	.freq		= _freq,		\
+> +	.u_volt		= _uv,			\
+> +}
+
+nice
+
+> +/* Terminator for the initialization list */
+> +#define OMAP_OPP_DEF_TERMINATOR OMAP_OPP_DEF(0, 0, 0)
+
+I'd just drop this and use OMAP_OPP_DEF(0, 0, 0) directly in 
+the table.
+
+> +/**
+> + * opp_init_list() - Initialize an opp list from the opp definitions
+> + * @opp_defs:	Initial opp definitions to create the list.
+> + *
+> + * This function creates a list of opp definitions and returns a handle.
+> + * This list can be used to further validation/search/modifications. New
+> + * opp entries can be added to this list by using opp_add().
+> + *
+> + * In the case of error, ERR_PTR is returned to the caller and should be
+> + * appropriately handled with IS_ERR.
+> + */
+> +struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs);
+
+My original suggestion was that opp_init_list() simply creates a new
+but empty list.  Adding OPPs should be done using opp_add().
+
+I guess I'm OK with having the 'bulk add' feature of init_list() but
+would rather see a single way to add OPPs.
+
+> +/**
+> + * opp_add()  - Add an OPP table from a table definitions
+> + * @oppl:	List to add the OPP to
+> + * @opp_def:	omap_opp_def to describe the OPP which we want to add to list.
+> + *
+> + * This function adds an opp definition to the opp list and returns
+> + * a handle representing the new OPP list. This handle is then used for further
+> + * validation, search, modification operations on the OPP list.
+> + *
+> + * This function returns the pointer to the allocated list through oppl if
+> + * success, else corresponding ERR_PTR value. Caller should NOT free the oppl.
+> + * opps_defs can be freed after use.
+> + *
+> + * NOTE: caller should assume that on success, oppl is probably populated with
+> + * a new handle and the new handle should be used for further referencing
+> + */
+> +struct omap_opp *opp_add(struct omap_opp *oppl,
+> +			 const struct omap_opp_def *opp_def);
+
+c.f. proposal to drop omap_opp_def.
+
+otherwise, ack.
+
+> +/**
+> + * opp_enable() - Enable a specific OPP
+> + * @opp:	Pointer to opp
+> + *
+> + * Enables a provided opp. If the operation is valid, this returns 0, else the
+> + * corresponding error value.
+> + *
+> + * OPP used here is from the the opp_is_valid/opp_has_freq or other search
+> + * functions
+> + */
+> +int opp_enable(struct omap_opp *opp);
+
+ack
+
+> +/**
+> + * opp_disable() - Disable a specific OPP
+> + * @opp:	Pointer to opp
+> + *axs
+> + * Disables a provided opp. If the operation is valid, this returns 0, else the
+> + * corresponding error value.
+> + *
+> + * OPP used here is from the the opp_is_valid/opp_has_freq or other search
+> + * functions
+> + */
+> +int opp_disable(struct omap_opp *opp);
+
+ack
+
+Kevin
+
+> +#endif		/* __ASM_ARM_OMAP_OPP_H */
+> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+> new file mode 100644
+> index 0000000..c4dc07b
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/opp.c
+> @@ -0,0 +1,271 @@
+> +/*
+> + * OMAP OPP Interface
+> + *
+> + * Copyright (C) 2009 Texas Instruments Incorporated.
+> + *	Nishanth Menon
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/errno.h>
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +#include <linux/slab.h>
+> +
+> +#include <plat/opp.h>
+> +
+> +/*
+> + * DEPRECATED: Meant to detect end of opp array
+> + * This is meant to help co-exist with current SRF etc
+> + * TODO: REMOVE!
+> + */
+> +#define OPP_TERM(opp) (!(opp)->rate && !(opp)->vsel && !(opp)->enabled)
+> +
+> +/*
+> + * DEPRECATED: Meant to convert vsel value to uVolt
+> + * This is meant to help co-exist with current SRF etc
+> + * TODO: REMOVE!
+> + */
+> +static inline unsigned long vsel_to_uv(const u8 vsel)
+> +{
+> +	return (((vsel * 125) + 6000)) * 100;
+> +}
+> +
+> +/*
+> + * DEPRECATED: Meant to convert uVolt to vsel value
+> + * This is meant to help co-exist with current SRF etc
+> + * TODO: REMOVE!
+> + */
+> +static inline unsigned char uv_to_vsel(unsigned long uV)
+> +{
+> +	return ((uV / 100) - 6000) / 125;
+> +}
+> +
+> +unsigned long opp_get_voltage(const struct omap_opp *opp)
+> +{
+> +	if (unlikely(!opp || IS_ERR(opp)) || !opp->enabled) {
+> +		pr_err("%s: Invalid parameters being passed\n", __func__);
+> +		return 0;
+> +	}
+> +	return vsel_to_uv(opp->vsel);
+> +}
+> +
+> +unsigned long opp_get_freq(const struct omap_opp *opp)
+> +{
+> +	if (unlikely(!opp || IS_ERR(opp)) || !opp->enabled) {
+> +		pr_err("%s: Invalid parameters being passed\n", __func__);
+> +		return 0;
+> +	}
+> +	return opp->rate;
+> +}
+> +
+> +int opp_get_opp_count(const struct omap_opp *oppl)
+> +{
+> +	struct omap_opp *opp;
+> +	u8 n = 0;
+> +
+> +	if (unlikely(!oppl || IS_ERR(oppl))) {
+> +		pr_err("%s: Invalid parameters being passed\n", __func__);
+> +		return -EINVAL;
+> +	}
+> +	opp = (struct omap_opp *)oppl;
+> +	opp++;			/* skip initial terminator */
+> +	while (!OPP_TERM(opp)) {
+> +		if (opp->enabled)
+> +			n++;
+> +		opp++;
+> +	}
+> +	return n;
+> +}
+> +
+> +struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+> +				     unsigned long freq, bool enabled)
+> +{
+> +	struct omap_opp *opp = (struct omap_opp *)oppl;
+> +
+> +	if (unlikely(!oppl || IS_ERR(oppl))) {
+> +		pr_err("%s: Invalid parameters being passed\n", __func__);
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +	/* skip initial terminator */
+> +	if (OPP_TERM(opp))
+> +		opp++;
+> +	while (!OPP_TERM(opp)) {
+> +		if ((opp->rate == freq) && (opp->enabled == enabled))
+> +			break;
+> +		opp++;
+> +	}
+> +
+> +	return OPP_TERM(opp) ? ERR_PTR(-ENOENT) : opp;
+> +}
+> +
+> +struct omap_opp *opp_find_freq_approx(struct omap_opp *oppl,
+> +				      unsigned long *freq, u8 dir_flag)
+> +{
+> +	struct omap_opp *opp = (struct omap_opp *)oppl;
+> +
+> +	if (unlikely(!oppl || IS_ERR(oppl) || !freq || IS_ERR(freq))) {
+> +		pr_err("%s: Invalid parameters being passed\n", __func__);
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +	/* skip initial terminator */
+> +	if (OPP_TERM(opp)) {
+> +		opp++;
+> +		/* If searching init list for a high val, skip to very top */
+> +		if (dir_flag == OPP_SEARCH_LOW)
+> +			while (!OPP_TERM(opp + 1))
+> +				opp++;
+> +	}
+> +	while (!OPP_TERM(opp)) {
+> +		if (opp->enabled &&
+> +		    (((dir_flag == OPP_SEARCH_HIGH) && (opp->rate >= *freq)) ||
+> +		     ((dir_flag == OPP_SEARCH_LOW) && (opp->rate <= *freq))))
+> +			break;
+> +		opp += (dir_flag == OPP_SEARCH_LOW) ? -1 : 1;
+> +	}
+> +
+> +	if (OPP_TERM(opp))
+> +		return ERR_PTR(-ENOENT);
+> +
+> +	*freq = opp->rate;
+> +	return opp;
+> +}
+> +
+> +/* wrapper to reuse converting opp_def to opp struct */
+> +static void omap_opp_populate(struct omap_opp *opp,
+> +			      const struct omap_opp_def *opp_def)
+> +{
+> +	opp->rate = opp_def->freq;
+> +	opp->enabled = opp_def->enabled;
+> +	opp->vsel = uv_to_vsel(opp_def->u_volt);
+> +	/* round off to higher voltage */
+> +	if (opp_def->u_volt > vsel_to_uv(opp->vsel))
+> +		opp->vsel++;
+> +}
+> +
+> +struct omap_opp *opp_add(struct omap_opp *oppl,
+> +			 const struct omap_opp_def *opp_def)
+> +{
+> +	struct omap_opp *opp, *oppt, *oppr;
+> +	u8 n, i, ins;
+> +
+> +	if (unlikely(!oppl || IS_ERR(oppl) || !opp_def || IS_ERR(opp_def))) {
+> +		pr_err("%s: Invalid params being passed\n", __func__);
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +	/* need a start terminator.. */
+> +	if (unlikely(!OPP_TERM(oppl))) {
+> +		pr_err("%s: Expected a start terminator!!\n", __func__);
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +	n = 0;
+> +	opp = oppl;
+> +	opp++;
+> +	while (!OPP_TERM(opp)) {
+> +		n++;
+> +		opp++;
+> +	}
+> +	/* lets now reallocate memory */
+> +	oppr = kmalloc(sizeof(struct omap_opp) * (n + 3), GFP_KERNEL);
+> +	if (!oppr) {
+> +		pr_err("%s: No memory for new opp array\n", __func__);
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	/* Simple insertion sort */
+> +	opp = oppl;
+> +	oppt = oppr;
+> +	ins = 0;
+> +	i = 0;
+> +	do {
+> +		if (ins || opp->rate < opp_def->freq) {
+> +			memcpy(oppt, opp, sizeof(struct omap_opp));
+> +			opp++;
+> +		} else {
+> +			omap_opp_populate(oppt, opp_def);
+> +			ins++;
+> +		}
+> +		oppt->opp_id = i;
+> +		oppt++;
+> +		i++;
+> +	} while (!OPP_TERM(opp));
+> +
+> +	/* If nothing got inserted, this belongs to the end */
+> +	if (!ins) {
+> +		omap_opp_populate(oppt, opp_def);
+> +		oppt->opp_id = i;
+> +		oppt++;
+> +	}
+> +	/* Put the terminator back on */
+> +	memcpy(oppt, opp, sizeof(struct omap_opp));
+> +
+> +	/* Free the old list */
+> +	kfree(oppl);
+> +
+> +	return oppr;
+> +}
+> +
+> +struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs)
+> +{
+> +	struct omap_opp_def *t = (struct omap_opp_def *)opp_defs;
+> +	struct omap_opp *opp, *oppl;
+> +	u8 n = 0, i = 1;
+> +
+> +	if (unlikely(!opp_defs || IS_ERR(opp_defs))) {
+> +		pr_err("%s: Invalid params being passed\n", __func__);
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +	/* Grab a count */
+> +	while (t->enabled || t->freq || t->u_volt) {
+> +		n++;
+> +		t++;
+> +	}
+> +
+> +	oppl = kmalloc(sizeof(struct omap_opp) * (n + 2), GFP_KERNEL);
+> +	if (!oppl) {
+> +		pr_err("%s: No memory for opp array\n", __func__);
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +	opp = oppl;
+> +	/* Setup start terminator - SRF depends on this for indexing :( */
+> +	opp->rate = 0;
+> +	opp->enabled = 0;
+> +	opp->vsel = 0;
+> +	opp++;
+> +	while (n) {
+> +		omap_opp_populate(opp, opp_defs);
+> +		opp->opp_id = i;
+> +		n--;
+> +		opp++;
+> +		opp_defs++;
+> +		i++;
+> +	}
+> +	/* Setup terminator - this is for our search algos */
+> +	opp->rate = 0;
+> +	opp->enabled = 0;
+> +	opp->vsel = 0;
+> +	return oppl;
+> +}
+> +
+> +int opp_enable(struct omap_opp *opp)
+> +{
+> +	if (unlikely(!opp || IS_ERR(opp))) {
+> +		pr_err("%s: Invalid parameters being passed\n", __func__);
+> +		return -EINVAL;
+> +	}
+> +	opp->enabled = true;
+> +	return 0;
+> +}
+> +
+> +int opp_disable(struct omap_opp *opp)
+> +{
+> +	if (unlikely(!opp || IS_ERR(opp))) {
+> +		pr_err("%s: Invalid parameters being passed\n", __func__);
+> +		return -EINVAL;
+> +	}
+> +	opp->enabled = false;
+> +	return 0;
+> +}
+> -- 
+> 1.6.3.3
