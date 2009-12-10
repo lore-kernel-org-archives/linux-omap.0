@@ -1,161 +1,53 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH V2] AM3517: Add support for TSC2004 driver
-Date: Thu, 10 Dec 2009 11:12:42 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940437210986@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1259212261-32528-1-git-send-email-hvaibhav@ti.com>
- <19F8576C6E063C45BE387C64729E739404370D7AEB@dbde02.ent.ti.com>
- <20091130173331.GS4348@atomide.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] OMAP3: Fix omap3_defconfig build
+Date: Thu, 10 Dec 2009 11:31:03 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ACBFD9B@dbde02.ent.ti.com>
+References: <1260424192-29012-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20091130173331.GS4348@atomide.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39366 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932976AbZLJGBE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 01:01:04 -0500
+In-Reply-To: <1260424192-29012-1-git-send-email-gadiyar@ti.com>
 Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "dtor@mail.ru" <dtor@mail.ru>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-kernel@vger.org" <linux-kernel@vger.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Olof Johansson <olof@lixom.net>
 
-
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Monday, November 30, 2009 11:04 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH V2] AM3517: Add support for TSC2004 driver
+Gadiyar, Anand wrote:
+> Select sound codecs to allow this defconfig to build again
 > 
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [091125 21:13]:
-> >
-> > > -----Original Message-----
-> > > From: Hiremath, Vaibhav
-> > > Sent: Thursday, November 26, 2009 10:41 AM
-> > > To: linux-omap@vger.kernel.org
-> > > Cc: tony@atomide.com; Hiremath, Vaibhav
-> > > Subject: [PATCH V2] AM3517: Add support for TSC2004 driver
-> > >
-> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > > Changes:
-> > > 	- Removed omap_cfg_reg()
-> > >
-> > > Reviewed-by: Tony Lindgren <tony@atomide.com>
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > ---
-> > >  arch/arm/mach-omap2/board-am3517evm.c |   61
-> > > +++++++++++++++++++++++++++++++++
-> > >  1 files changed, 61 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/board-am3517evm.c
-> b/arch/arm/mach-
-> > > omap2/board-am3517evm.c
-> > > index 415a13d..b183d93 100644
-> > > --- a/arch/arm/mach-omap2/board-am3517evm.c
-> > > +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> > > @@ -20,6 +20,8 @@
-> > >  #include <linux/init.h>
-> > >  #include <linux/platform_device.h>
-> > >  #include <linux/gpio.h>
-> > > +#include <linux/irq.h>
-> > > +#include <linux/i2c/tsc2004.h>
-> > >
-> > >  #include <mach/hardware.h>
-> > >  #include <asm/mach-types.h>
-> > > @@ -27,10 +29,64 @@
-> > >  #include <asm/mach/map.h>
-> > >
-> > >  #include <plat/board.h>
-> > > +#include <plat/mux.h>
-> > >  #include <plat/common.h>
-> > >  #include <plat/usb.h>
-> > >
-> > >  /*
-> > > + * TSC 2004 Support
-> > > + */
-> > > +#define	GPIO_TSC2004_IRQ	65
-> > > +
-> > > +static int tsc2004_init_irq(void)
-> > > +{
-> > > +	int ret = 0;
-> > > +
-> > > +	ret = gpio_request(GPIO_TSC2004_IRQ, "tsc2004-irq");
-> > > +	if (ret < 0) {
-> > > +		printk(KERN_WARNING "failed to request GPIO#%d: %d\n",
-> > > +				GPIO_TSC2004_IRQ, ret);
-> > > +		return ret;
-> > > +	}
-> > > +
-> > > +	if (gpio_direction_input(GPIO_TSC2004_IRQ)) {
-> > > +		printk(KERN_WARNING "GPIO#%d cannot be configured as "
-> > > +				"input\n", GPIO_TSC2004_IRQ);
-> > > +		return -ENXIO;
-> > > +	}
-> > > +
-> > > +	omap_set_gpio_debounce(GPIO_TSC2004_IRQ, 1);
-> > > +	omap_set_gpio_debounce_time(GPIO_TSC2004_IRQ, 0xa);
-> > > +	return ret;
-> > > +}
-> > > +
-> > > +static void tsc2004_exit_irq(void)
-> > > +{
-> > > +	gpio_free(GPIO_TSC2004_IRQ);
-> > > +}
-> > > +
-> > > +static int tsc2004_get_irq_level(void)
-> > > +{
-> > > +	return gpio_get_value(GPIO_TSC2004_IRQ) ? 0 : 1;
-> > > +}
-> > > +
-> > > +struct tsc2004_platform_data am3517evm_tsc2004data = {
-> > > +	.model = 2004,
-> > > +	.x_plate_ohms = 180,
-> > > +	.get_pendown_state = tsc2004_get_irq_level,
-> > > +	.init_platform_hw = tsc2004_init_irq,
-> > > +	.exit_platform_hw = tsc2004_exit_irq,
-> > > +};
-> > > +
-> > > +static struct i2c_board_info __initdata
-> > > am3517evm_tsc_i2c_boardinfo[] = {
-> > > +	{
-> > > +		I2C_BOARD_INFO("tsc2004", 0x4B),
-> > > +		.type		= "tsc2004",
-> > > +		.platform_data	= &am3517evm_tsc2004data,
-> > > +	},
-> > > +};
-> > > +
-> > > +/*
-> > >   * Board initialization
-> > >   */
-> > >  static struct omap_board_config_kernel am3517_evm_config[]
-> > > __initdata = {
-> > > @@ -67,6 +123,11 @@ static void __init am3517_evm_init(void)
-> > >
-> > >  	omap_serial_init();
-> > >  	usb_ehci_init(&ehci_pdata);
-> > > +
-> > > +	/* TSC 2004 */
-> > > +	am3517evm_tsc_i2c_boardinfo[0].irq =
-> > > gpio_to_irq(GPIO_TSC2004_IRQ);
-> > > +	i2c_register_board_info(1, am3517evm_tsc_i2c_boardinfo,
-> > > +				ARRAY_SIZE(am3517evm_tsc_i2c_boardinfo));
-> > >  }
-> > >
-> > >  static void __init am3517_evm_map_io(void)
-> > [Hiremath, Vaibhav] Hi Tony,
-> >
-> > Since I haven't received any comments on driver code it should get
-> merged. But I am not sure what the procedure is for input subsystem
-> drivers? Is it happens through linux-omap or linux-input?
+> Also, sync up this defconfig with the generated .configs.
 > 
-> I'd rather see it merged via linux-input as that's where most
-> of the code is. The platform init code looks OK to me to merge
-> via linux-input too.
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Olof Johansson <olof@lixom.net>
+> ---
+> In addition to this, I needed this patch:
+> <http://patchwork.kernel.org/patch/65152/>
 > 
-[Hiremath, Vaibhav] Dmitry,
+> With these two patches, I can build and boot on multiple omap3
+> boards.
 
-Can you please merge the TSC2004 driver patch? 
+And additionally, with these sound options enabled,
+I get the following warning on a 3430 SDP:
 
-Thanks,
-Vaibhav 
+[   36.303894] ------------[ cut here ]------------
+[   36.308807] WARNING: at drivers/gpio/gpiolib.c:1288 __gpio_get_value+0x30/0x5c()
+[   36.316467] Modules linked in:
+[   36.319610] [<c003b7e8>] (unwind_backtrace+0x0/0xdc) from [<c0065c64>] (warn_slowpath_common+0x48/0x60)
+[   36.329345] [<c0065c64>] (warn_slowpath_common+0x48/0x60) from [<c0204964>] (__gpio_get_value+0x30/0x5c)
+[   36.339141] [<c0204964>] (__gpio_get_value+0x30/0x5c) from [<c033d968>] (snd_soc_jack_gpio_detect+0x34/0x7c)
+[   36.349334] [<c033d968>] (snd_soc_jack_gpio_detect+0x34/0x7c) from [<c007b2c0>] (worker_thread+0x21c/0x304)
+[   36.359375] [<c007b2c0>] (worker_thread+0x21c/0x304) from [<c007ea8c>] (kthread+0x80/0x88)
+[   36.368011] [<c007ea8c>] (kthread+0x80/0x88) from [<c0036964>] (kernel_thread_exit+0x0/0x8)
+[   36.376647] ---[ end trace 9745011b5c1147df ]---
 
-> Tony
+
+I haven't had a chance to look at this yet. I'll give it a shot
+tomorrow, unless someone beats me to it.
+
+- Anand
