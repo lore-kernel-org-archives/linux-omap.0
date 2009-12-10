@@ -1,69 +1,55 @@
-From: "Varadarajan, Charu Latha" <charu@ti.com>
-Subject: RE: [PATCH v2] OMAP3 : Fix I2C lockup during timeout/error cases
-Date: Thu, 10 Dec 2009 19:58:04 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BC0A88E0@dbde02.ent.ti.com>
-References: <1260451164-9459-1-git-send-email-manjugk@ti.com>
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
+ charger
+Date: Thu, 10 Dec 2009 17:44:11 +0300
+Message-ID: <20091210144411.GA13120@oksana.dev.rtsoft.ru>
+References: <6ed0b2680912021329g372bd0a4vb5b4a80244960f95@mail.gmail.com>
+ <20091202215442.GA30658@oksana.dev.rtsoft.ru>
+ <20091202223156.GA14921@nokia.com>
+ <20091202225922.GA15568@oksana.dev.rtsoft.ru>
+ <20091203083958.GB31110@nokia.com>
+ <6ed0b2680912030255o57d7c46qb5ae1cfcb82e9976@mail.gmail.com>
+ <20091203110332.GO1361@nokia.com>
+ <6ed0b2680912100609g11706296qdbcea887dc3a5733@mail.gmail.com>
+ <20091210141830.GA10687@oksana.dev.rtsoft.ru>
+ <20091210142127.GB12526@nokia.com>
+Reply-To: avorontsov@ru.mvista.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50135 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752294AbZLJO2C convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 09:28:02 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBAES6EQ025729
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 10 Dec 2009 08:28:08 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBAES5rT006486
-	for <linux-omap@vger.kernel.org>; Thu, 10 Dec 2009 19:58:05 +0530 (IST)
-In-Reply-To: <1260451164-9459-1-git-send-email-manjugk@ti.com>
-Content-Language: en-US
+Received: from imap.ru.mvista.com ([213.79.90.228]:53891 "EHLO
+	buildserver.ru.mvista.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752494AbZLJOoF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Dec 2009 09:44:05 -0500
+Content-Disposition: inline
+In-Reply-To: <20091210142127.GB12526@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Menon, Nishanth" <nm@ti.com>, "Sonasath, Moiz" <m-sonasath@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "George, Harith" <harith@ti.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+On Thu, Dec 10, 2009 at 04:21:27PM +0200, Felipe Balbi wrote:
+> Hi,
+> 
+> On Thu, Dec 10, 2009 at 03:18:30PM +0100, ext Anton Vorontsov wrote:
+> >>Ok since it doesn't look like this will resolve soon, what about
+> >>adding some DEVICE_ATTR for the time being and requiring userspace to
+> >>write charge current here to start actual charging?
+> >
+> >Works for me. Let's think of the kernel charging support as an
+> >yet unimplemented feature.
+> 
+> but if you guys are ok with this one for now. It can always be
+> changed later :-)
 
->-----Original Message-----
->From: G, Manjunath Kondaiah 
->Sent: Thursday, December 10, 2009 6:49 PM
->To: linux-omap@vger.kernel.org
->Cc: G, Manjunath Kondaiah; Menon, Nishanth; Sonasath, Moiz; 
->Krishnamoorthy, Balaji T; Varadarajan, Charu Latha; George, Harith
->Subject: [PATCH v2] OMAP3 : Fix I2C lockup during timeout/error cases
->
->Current OMAP3 I2C driver code does not follow the correct 
->sequence for soft
->reset. Due to this, lock up issues are reported during 
->timeout/error cases.
->
->This patch fixes above issue by disabling I2C controller as 
->per OMAP3430 TRM
->for soft reset. As per TRM, I2C controller needs to be 
->disabled as a first
->step during soft reset.
->
->Here is correct soft reset sequence:
->a. Ensure that the module is disabled
->(clear the I2Ci.I2C_CON[15] I2C_EN bit to 0).
->b. Set the I2Ci.I2C_SYSC[1] SRST bit to 1.
->c. Enable the module by setting I2Ci.I2C_CON[15] I2C_EN bit to 1.
->d. Check the I2Ci.I2C_SYSS[0] RDONE bit until it is set to 1 to
->indicate the software reset is complete.
->
->v1 : Initital version
->v2 : Removed delay since time taken for disabling I2C 
->controller is zero
->     jiffies
->
->Tested on Zoom2 and Zoom3 
->
->Signed-off-by: Manjunatha GK <manjugk@ti.com>
->Signed-off-by: George, Harith<harith@ti.com>
+Yep. The only thing I'm afraid of is that once the driver is in,
+then nobody will bother with improving it to do the right thing.
+But an imperfect driver is better than none.
 
-Tested on 3430SDP too.
-Acked-by: Charulatha V <charu@ti.com>
+Thanks,
 
+-- 
+Anton Vorontsov
+email: cbouatmailru@gmail.com
+irc://irc.freenode.net/bd2
