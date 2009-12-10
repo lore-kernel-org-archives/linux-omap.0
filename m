@@ -1,72 +1,77 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
- charger
-Date: Thu, 10 Dec 2009 18:51:06 +0200
-Message-ID: <20091210165106.GA21502@nokia.com>
-References: <20091202215442.GA30658@oksana.dev.rtsoft.ru>
- <20091202223156.GA14921@nokia.com>
- <20091202225922.GA15568@oksana.dev.rtsoft.ru>
- <20091203083958.GB31110@nokia.com>
- <6ed0b2680912030255o57d7c46qb5ae1cfcb82e9976@mail.gmail.com>
- <20091203110332.GO1361@nokia.com>
- <6ed0b2680912100609g11706296qdbcea887dc3a5733@mail.gmail.com>
- <20091210141830.GA10687@oksana.dev.rtsoft.ru>
- <20091210142127.GB12526@nokia.com>
- <20091210144411.GA13120@oksana.dev.rtsoft.ru>
-Reply-To: felipe.balbi@nokia.com
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the sleep dependencies.
+Date: Thu, 10 Dec 2009 09:05:40 -0800
+Message-ID: <87hbryrc7v.fsf@deeprootsystems.com>
+References: <1260098323-26183-1-git-send-email-thara@ti.com>
+	<873a3ju4ng.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030ACBFDFF@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:42711 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450AbZLJQvl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 11:51:41 -0500
-Content-Disposition: inline
-In-Reply-To: <20091210144411.GA13120@oksana.dev.rtsoft.ru>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:44790 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760982AbZLJRFh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 12:05:37 -0500
+Received: by pzk1 with SMTP id 1so41861pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 10 Dec 2009 09:05:43 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030ACBFDFF@dbde02.ent.ti.com> (Thara Gopinath's message of "Thu\, 10 Dec 2009 12\:04\:30 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
+"Gopinath, Thara" <thara@ti.com> writes:
 
-On Thu, Dec 10, 2009 at 03:44:11PM +0100, ext Anton Vorontsov wrote:
->Yep. The only thing I'm afraid of is that once the driver is in,
->then nobody will bother with improving it to do the right thing.
->But an imperfect driver is better than none.
+>>>-----Original Message-----
+>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>Sent: Thursday, December 10, 2009 4:39 AM
+>>>To: Gopinath, Thara
+>>>Cc: linux-omap@vger.kernel.org; Paul Walmsley
+>>>Subject: Re: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the sleep
+>>>dependencies.
+>>>
+>>>Thara Gopinath <thara@ti.com> writes:
+>>>
+>>>> Some clock nodes like wdt1_fck, sr1_fck, sr2_fck etc do not have a
+>>>> clock domain associated . For such nodes accessing the clock domain pointers
+>>>> in _add_initiator_dep and _del_initiator_dep, will lead to null pointer
+>>>> defreferencing crash. Adding support in these functions to check for
+>>>> existence of clkdm pointer before trying to acess it. Even if tomorrow
+>>>> we correct all the clock nodes to have an associated clock domain, checking
+>>>> for the existence of the pointer is a good programming practice.
+>>>>
+>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>>> ---
+>>>> This patch depends on http://patchwork.kernel.org/patch/63383/
+>>>
+>>>I think clocks without associated clockdomains should be handled with
+>>>a flag instead of a check for a NULL pointer.
+>>>
+>>>Your current approach will silently fail if someone forgets to add
+>>>a clockdomain to a clock that should have one.
+>
+> Are you suggesting adding a flag to the clock node in case it does
+> not have an associated clockdomain?  
 
-I'm currently implementing the notifier part in a generic manner that 
-would handle all transceivers (well, they would have to provide a some 
-implementations for function pointers in struct otg_transceiver).
+Yes, or to the hwmod.
 
-Then drivers like twl4030-bci and musb_hdrc could register for 
-notifications from the transceiver. I was thinking of notifying the 
-following events:
+> I am using your tree origin/pm-wip/omap_device branch. On this I see
+> a commit (e89a95db7095d998991c564a756a33ee0ec722c5) in which a
+> warning is printed in omap2_init_clk_clkdm if there is no
+> clockdomain associated with a clock node. 
 
-enum usb_xceiv_events {
-	USB_EVENT_NONE,		/* no events or cable disconnected */
-	USB_EVENT_VBUS,		/* vbus valid event */
-	USB_EVENT_ID,		/* id was grounded */
-	USB_EVENT_CHARGER,	/* usb dedicated charger */
-	USB_EVENT_ENUMERATED,	/* gadget driver enumerated */
-};
+This is to check for the case of a missing clkdm when there should be
+one.  You're trying to solve the problem of when there is no
+clockdomain for a given clock.
 
-for the USB_EVENT_ENUMERATED we could also pass the bMaxPower (in mA) 
-field of the struct usb_configuration, then BCI (or bq24xxx for that 
-matter) can configure that as input current for charging.
+> My idea was this warning plus the check so as to avoid the system
+> crash would suffice.
 
-USB_EVENT_ID is necessary because in most boards (at least the ones I've 
-seen) the charging chip (bq24xxx) also plays the role as charge pump, 
-sourcing vbus on OTG sessions.
+I still think this should be flagged explicitly in the clock/hwmod,
+then check using the flag instead of of using NULL pointer check.
 
-USB_EVENT_VBUS and USB_EVENT_CHARGER aren't necessary on all cases, but 
-boards like RX-51 where it has a different transceiver for charger 
-detection, it's necessary to have those two separated.
+For readability, it makes it more clear that this is checking for some
+exceptions and not simply doing error checking.
 
-If you guys have any comments already, please comment :-)
-
-I'll try to finish a prototype by tomorrow and try to send it as RFC.
-Will be sure to Cc you Anton.
-
--- 
-balbi
+Kevin
