@@ -1,56 +1,151 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 0/2] [RESEND] Amstrad Delta: add support for LCD
- contrast
-Date: Fri, 11 Dec 2009 14:07:39 +0200
-Message-ID: <1260533259.10417.3.camel@tubuntu.research.nokia.com>
-References: <200911231857.55566.jkrzyszt@tis.icnet.pl>
-	 <20091207213250.GI24013@atomide.com>
-	 <1260525223.9700.86.camel@tubuntu.research.nokia.com>
-	 <200912111255.48176.jkrzyszt@tis.icnet.pl>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 1/1] mfd: twl4030: clarify the return value for read
+ and write
+Date: Fri, 11 Dec 2009 13:11:32 +0100
+Message-ID: <20091211121131.GC5863@sortiz.org>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0309DAC23C@dbde02.ent.ti.com>
+ <449d505b874c236e4d0df0c1f765918386a4d58b.1260187781.git.amit.kucheria@verdurent.com>
+ <20091207135309.GA23829@esdhcp037198.research.nokia.com>
+ <20091211103609.GB5863@sortiz.org>
+ <20091211105345.GE8299@esdhcp037198.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:16622 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbZLKMJL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 07:09:11 -0500
-In-Reply-To: <200912111255.48176.jkrzyszt@tis.icnet.pl>
+Received: from mga12.intel.com ([143.182.124.36]:17389 "EHLO
+	azsmga102.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754559AbZLKMJv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 07:09:51 -0500
+Content-Disposition: inline
+In-Reply-To: <20091211105345.GE8299@esdhcp037198.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Amit Kucheria <amit.kucheria@verdurent.com>, "gadiyar@ti.com" <gadiyar@ti.com>, List Linux Kernel <linux-kernel@vger.kernel.org>, List Linux Omap <linux-omap@vger.kernel.org>
 
-On Fri, 2009-12-11 at 12:55 +0100, ext Janusz Krzysztofik wrote:
-> (dropping Imre to not bother him personally any longer)
-> (dropping LKML, no need to spam them since omapfb maintaner problem s=
-olved)
-> (not sure if old fbdev list should be dropped as well - seems closed)
->=20
-> Friday 11 December 2009 10:53:43 Tomi Valkeinen napisa=C5=82(a):
-> >
-> > I talked with Imre, and he's not too keen on maintaining the old om=
-apfb,
-> > so I'll take over it.
->=20
-> Tomi,
->=20
-> That's great, thank you.
->=20
-> > And perhaps it's easier to have all omap display=20
-> > related patches in one place.
->=20
-> Am I supposed to do anything about this series[1]? Resend to you?
+On Fri, Dec 11, 2009 at 12:53:45PM +0200, Eduardo Valentin wrote:
+> On Fri, Dec 11, 2009 at 11:36:10AM +0100, ext Samuel Ortiz wrote:
+> > Hi Amit,
+> > 
+> > On Mon, Dec 07, 2009 at 03:53:09PM +0200, Eduardo Valentin wrote:
+> > > On Mon, Dec 07, 2009 at 01:17:29PM +0100, ext Amit Kucheria wrote:
+> > > > Infact, we can just return -EIO so that caller knows for sure that all
+> > > > messages were not tranferred. Please consider fixed patch instead.
+> > > > 
+> > > > We should be checking if all the messages were tranferred or not. And return
+> > > > -1 for failure. Currently we return success (0) even if none of messages were
+> > > > transferred successfully.
+> > > > 
+> > > > Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+> > > > ---
+> > > >  drivers/mfd/twl4030-core.c |   24 ++++++++++++++++--------
+> > > >  1 files changed, 16 insertions(+), 8 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> > > > index 56f1de5..3d2c413 100644
+> > > > --- a/drivers/mfd/twl4030-core.c
+> > > > +++ b/drivers/mfd/twl4030-core.c
+> > > > @@ -292,10 +292,14 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+> > > >  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
+> > > >  	mutex_unlock(&twl->xfer_lock);
+> > > >  
+> > > > -	/* i2cTransfer returns num messages.translate it pls.. */
+> > > > -	if (ret >= 0)
+> > > > -		ret = 0;
+> > > > -	return ret;
+> > > > +	/* i2c_transfer returns number of messages transferred */
+> > > > +	if (ret != 1) {
+> > > > +		pr_err("%s: i2c_write failed to transfer all messages\n",
+> > > > +			DRIVER_NAME);
+> > > > +		return -EIO;
+> > > 
+> > > How about reporting the actual error that has occurred and reported by i2c_transfer?
+> > > Instead of just masking it as EIO? If i2c_transfer returns something > 0 then EIO should be right.
+> > > But if returns and error code, then that error code must be reported to upper layers.
+> > >
+> > So, I applied a modified version of this patch, see below. If you disagree
+> > with it, please let me know and I wont push it upstream.
+> > 
+> 
+> OK.
+> 
+> > 
+> > commit 8aa7cfd5732dee80aaaf3caa0a1d2f9621126315
+> > Author: Amit Kucheria <amit.kucheria@verdurent.com>
+> > Date:   Fri Dec 11 11:31:11 2009 +0100
+> > 
+> >     mfd: Clarify twl4030 return value for read and write
+> >     
+> >     We should be checking if all the messages were tranferred. If not, then we
+> >     should propagate the i2c core error code.
+> >     Currently we return success (0) even if none of messages were transferred
+> >     successfully.
+> >     
+> >     Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+> >     Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
+> > 
+> > diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> > index e4a5d48..8add16c 100644
+> > --- a/drivers/mfd/twl4030-core.c
+> > +++ b/drivers/mfd/twl4030-core.c
+> > @@ -306,10 +306,14 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+> >  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
+> >  	mutex_unlock(&twl->xfer_lock);
+> >  
+> > -	/* i2cTransfer returns num messages.translate it pls.. */
+> > -	if (ret >= 0)
+> > -		ret = 0;
+> > -	return ret;
+> > +	/* i2c_transfer returns number of messages transferred */
+> > +	if (ret != 1) {
+> > +		pr_err("%s: i2c_write failed to transfer all messages\n",
+> > +			DRIVER_NAME);
+> > +		return ret;
+> 
+> For this case we will be returning success if i2c_transfer fails to transfer the one message.
+> I guess we should return ret only if ret < 0 ? otherwise -EIO.
+Yes, that's correct, fixed now.
 
-Yes, please resend to me. I don't seem to have the patches in my mailbo=
-x
-anymore.
+Cheers,
+Samuel.
 
- Tomi
+ 
+> > +	} else {
+> > +		return 0;
+> > +	}
+> >  }
+> >  EXPORT_SYMBOL(twl4030_i2c_write);
+> >  
+> > @@ -358,10 +362,14 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+> >  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
+> >  	mutex_unlock(&twl->xfer_lock);
+> >  
+> > -	/* i2cTransfer returns num messages.translate it pls.. */
+> > -	if (ret >= 0)
+> > -		ret = 0;
+> > -	return ret;
+> > +	/* i2c_transfer returns number of messages transferred */
+> > +	if (ret != 2) {
+> > +		pr_err("%s: i2c_read failed to transfer all messages\n",
+> > +			DRIVER_NAME);
+> > +		return ret;
+> 
+> Same case here, we will be returning success if i2c_transfer fails to transfer any of those messages.
+> I guess we should return ret only if ret < 0 ? otherwise -EIO.
+> 
+> 
+> > +	} else {
+> > +		return 0;
+> > +	}
+> >  }
+> >  EXPORT_SYMBOL(twl4030_i2c_read);
+> >  
+> > -- 
+> > Intel Open Source Technology Centre
+> > http://oss.intel.com/
+> 
+> -- 
+> Eduardo Valentin
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
