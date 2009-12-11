@@ -1,116 +1,41 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH] [OMAP] gpio: Simultaneously requested rising and falling edge
-Date: Thu, 10 Dec 2009 19:59:54 -0800
-Message-ID: <1260503994-27823-1-git-send-email-darkstar6262@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:36516 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099AbZLKEA1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 23:00:27 -0500
-Received: by pzk1 with SMTP id 1so410623pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 10 Dec 2009 20:00:34 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Subject: Re: [PATCH] Input: gpio-keys: Support for one-directional interrupts
+Date: Thu, 10 Dec 2009 20:03:42 -0800
+Message-ID: <6cb013310912102003le5d960dy9f2c6fc2f3e3dcd1@mail.gmail.com>
+References: <1260052694-17223-1-git-send-email-darkstar6262@gmail.com>
+	<87fx7kgz7f.fsf@tac.ki.iif.hu> <6cb013310912090815u396fd84chfab3c7bf4d5f4bc9@mail.gmail.com>
+	<20091209175831.GD4456@core.coreip.homeip.net> <6cb013310912091403i3cb527caqa687487966bb232d@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <6cb013310912091403i3cb527caqa687487966bb232d@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Ferenc Wagner <wferi@niif.hu>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-Some chips, namely any OMAP1 chips using METHOD_MPUIO,
-OMAP15xx and OMAP7xx, cannot be setup to respond to on-chip GPIO
-interrupts in both rising and falling edge directions -- they can
-only respond to one direction or the other, depending on how the
-ICR is configured.
+On Wed, Dec 9, 2009 at 2:03 PM, Cory Maccarrone <darkstar6262@gmail.com=
+> wrote:
+> I'll take a look and see how possible that would be to do. =C2=A0Look=
+ing
+> through the code for OMAP1's GPIO IRQ handlers, there's a note that
+> OMAP1 only supports edge triggering, so if gpio-keys were to move
+> exclusively to that, itwould stop working with those boards. =C2=A0Bu=
+t, it
+> may be possible to do the trigger flip in the chip driver, which woul=
+d
+> make this patch unnecessary.
 
-This change implements a toggle function that will modify the ICR
-to flip the direction of interrupt for IRQs that are requested with
-both rising and falling flags.  The toggle function is a noop for
-chips and GPIOs it does not apply to.
+I've just submitted a patch to linux-omap for this against the
+gpio/irq handling code. It implements the ICR flip in there
+automatically whenever both RISING and FALLING edge are requested of
+one of these gpios.  With it, the patch I've submitted here is moot.
+We'll see if it gets accepted.
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- arch/arm/plat-omap/gpio.c |   60 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 60 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 055160e..b594398 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -749,6 +749,53 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
- }
- #endif
- 
-+/*
-+ * This only applies to chips that can't do both rising and falling edge
-+ * detection at once.  For all other chips, this function is a noop.
-+ */
-+static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
-+{
-+	void __iomem *reg = bank->base;
-+	u32 l = 0;
-+
-+	switch (bank->method) {
-+#ifdef CONFIG_ARCH_OMAP1
-+	case METHOD_MPUIO:
-+		reg += OMAP_MPUIO_GPIO_INT_EDGE;
-+		l = __raw_readl(reg);
-+		if ((l >> gpio) & 1)
-+			l &= ~(1 << gpio);
-+		else
-+			l |= 1 << gpio;
-+		break;
-+#endif
-+#ifdef CONFIG_ARCH_OMAP15XX
-+	case METHOD_GPIO_1510:
-+		reg += OMAP1510_GPIO_INT_CONTROL;
-+		l = __raw_readl(reg);
-+		if ((l >> gpio) & 1)
-+			l &= ~(1 << gpio);
-+		else
-+			l |= 1 << gpio;
-+		break;
-+#endif
-+#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-+	case METHOD_GPIO_7XX:
-+		reg += OMAP7XX_GPIO_INT_CONTROL;
-+		l = __raw_readl(reg);
-+		if ((l >> gpio) & 1) {
-+			l &= ~(1 << gpio);
-+		} else {
-+			l |= 1 << gpio;
-+		}
-+		break;
-+#endif
-+	default:
-+		return;
-+	}
-+	__raw_writel(l, reg);
-+}
-+
- static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
- {
- 	void __iomem *reg = bank->base;
-@@ -1284,9 +1331,22 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- 
- 		gpio_irq = bank->virtual_irq_start;
- 		for (; isr != 0; isr >>= 1, gpio_irq++) {
-+			struct irq_desc *desc = irq_to_desc(gpio_irq);
- 			if (!(isr & 1))
- 				continue;
- 
-+			/*
-+			 * Some chips can't respond to both rising and falling at the
-+			 * same time.  If this irq was requested with both flags, we
-+			 * need to flip the ICR data for the IRQ to respond to the
-+			 * IRQ for the opposite direction.
-+			 */
-+			if (desc->status & IRQ_TYPE_EDGE_FALLING &&
-+			    desc->status & IRQ_TYPE_EDGE_RISING)
-+				_toggle_gpio_edge_triggering(
-+						get_irq_chip_data(gpio_irq),
-+						get_gpio_index(irq_to_gpio(gpio_irq)));
-+
- 			generic_handle_irq(gpio_irq);
- 		}
- 	}
--- 
-1.6.3.3
-
+- Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
