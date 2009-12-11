@@ -1,57 +1,74 @@
-From: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] OMAP3 : Fix I2C lockup during timeout/error cases
-Date: Fri, 11 Dec 2009 11:09:08 +0530
-Message-ID: <1260509948-12774-1-git-send-email-manjugk@ti.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
-Cc: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "Varadarajan, Charu Latha" <charu-l0cyMroinI0@public.gmane.org>, "George, Harith" <harith-l0cyMroinI0@public.gmane.org>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [GIT PULL]: OMAP2/3 Display Subsystem
+Date: Fri, 11 Dec 2009 07:49:55 +0200
+Message-ID: <1260510595.12346.148.camel@localhost>
+References: <1260377610.9700.49.camel@tubuntu.research.nokia.com>
+Reply-To: dedekind1@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:25866 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756132AbZLKFuo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 00:50:44 -0500
+In-Reply-To: <1260377610.9700.49.camel@tubuntu.research.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, tony@atomide.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Current OMAP3 I2C driver code does not follow the correct sequence for soft
-reset. Due to this, lock up issues are reported during timeout/error cases.
+On Wed, 2009-12-09 at 18:53 +0200, Tomi Valkeinen wrote:
+> Linus,
+>=20
+> Here are the new display subsystem and framebuffer drivers for OMAP2/=
+3.
+>=20
+> The drivers have been reviewed on linux-omap and linux-fbdev-devel, a=
+nd
+> are in use, for example, on N900, Beagle Board and Overo boards.
+>=20
+> The drivers are actively maintained and developed further, and I have
+> already a bunch of patches on top of these patches, but I would like =
+to
+> get the big core driver merged first. After the core drivers are merg=
+ed,
+> other people can send patches to LCD drivers and board files to enabl=
+e
+> the new display subsystem on their boards.
+>=20
+> Please pull the new OMAP2/3 display subsystem drivers from:
+>=20
+>   git://gitorious.org/linux-omap-dss2/linux.git for-linus
+>=20
+>  Tomi
 
-This patch fixes above issue by disabling I2C controller as per OMAP3430 TRM
-for soft reset. As per TRM, I2C controller needs to be disabled as a first
-step during soft reset.
+Hi Linus,
 
-Here is correct soft reset sequence:
-a. Ensure that the module is disabled
-(clear the I2Ci.I2C_CON[15] I2C_EN bit to 0).
-b. Set the I2Ci.I2C_SYSC[1] SRST bit to 1.
-c. Enable the module by setting I2Ci.I2C_CON[15] I2C_EN bit to 1.
-d. Check the I2Ci.I2C_SYSS[0] RDONE bit until it is set to 1 to
-indicate the software reset is complete.
+I'd like to confirm that DSS2 is used in Nokia both internally and in
+production, namely in N900. Other people use it in production as well,
+e.g. Gumstix.
 
+DSS2 is basically de-facto standard display sub-system in the OMAP3
+world. It is mature, well-written and maintained, being around for at
+least 1+ year, and open from almost very beginning.
 
-Tested on Zoom2, Zoom3, 3430SDP and 3630SDP
+ACK and Tested-by from my side. The OMAP maintainer (Tony) gave his Ack
+as well as many other people, e.g., in this thread:
 
-Signed-off-by: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
-Signed-off-by: George, Harith<harith-l0cyMroinI0@public.gmane.org>
-Acked-by: Varadarajan, Charu Latha<charu-l0cyMroinI0@public.gmane.org>
----
-v1 : Initital version
-v2 : Removed delay since time taken for disabling I2C controller is zero
-     jiffies
+http://marc.info/?l=3Dlinux-kernel&m=3D125146241831217&w=3D2
 
- drivers/i2c/busses/i2c-omap.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+DSS2 is in linux-next for some time as well.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 827da08..74620c0 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -265,6 +265,11 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	unsigned long internal_clk = 0;
- 
- 	if (dev->rev >= OMAP_I2C_REV_2) {
-+		/* Disable I2C controller before soft reset */
-+		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
-+			omap_i2c_read_reg(dev, OMAP_I2C_CON_REG) &
-+				~(OMAP_I2C_CON_EN));
-+
- 		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, SYSC_SOFTRESET_MASK);
- 		/* For some reason we need to set the EN bit before the
- 		 * reset done bit gets set. */
--- 
-1.6.0.4
+Thanks.
+
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
