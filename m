@@ -1,112 +1,149 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC/PATCH 3/5] usb: musb: add support for ulpi block
-Date: Fri, 11 Dec 2009 13:31:24 +0200
-Message-ID: <1260531086-23857-4-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [RFC/PATCH 5/5] usb: musb: musb supports otg notifier
+Date: Fri, 11 Dec 2009 13:31:26 +0200
+Message-ID: <1260531086-23857-6-git-send-email-felipe.balbi@nokia.com>
 References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6ed0b2680912101251jeec28e6i216dfc51caab13aa-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:50311 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762371AbZLKLcW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 06:32:22 -0500
+In-Reply-To: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-add register definitions and musb_ulpi_readb/writeb
-support.
+we use the notifier to kick the charger detection.
+Needed on RX-51 board. Later on we will notify
+also the bMaxPower field from usb_configuration.
 
-Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/usb/musb/musb_regs.h |   62 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 62 insertions(+), 0 deletions(-)
+ drivers/usb/musb/musb_core.c |   72 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/musb/musb_core.h |    5 +++
+ 2 files changed, 77 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
-index 473a94e..7e6e68e 100644
---- a/drivers/usb/musb/musb_regs.h
-+++ b/drivers/usb/musb/musb_regs.h
-@@ -72,6 +72,11 @@
- #define MUSB_DEVCTL_HR		0x02
- #define MUSB_DEVCTL_SESSION	0x01
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 55e185a..c7c60df 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -98,6 +98,7 @@
+ #include <linux/kobject.h>
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
++#include <linux/notifier.h>
  
-+/* ULPI_REG_CONTROL */
-+#define ULPI_REG_REQ		(1 << 0)
-+#define ULPI_REG_CMPLT		(1 << 1)
-+#define ULPI_RDN_WR		(1 << 2)
+ #ifdef	CONFIG_ARM
+ #include <mach/hardware.h>
+@@ -144,6 +145,74 @@ MODULE_ALIAS("platform:" MUSB_DRIVER_NAME);
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++#include "isp1704.h"
 +
- /* TESTMODE */
- #define MUSB_TEST_FORCE_HOST	0x80
- #define MUSB_TEST_FIFO_ACCESS	0x40
-@@ -247,6 +252,16 @@
- /* REVISIT: vctrl/vstatus: optional vendor utmi+phy register at 0x68 */
- #define MUSB_HWVERS		0x6C	/* 8 bit */
- 
-+/* ULPI Registers */
-+#define ULPI_VBUS_CONTROL	0x70	/* 8 bit */
-+#define ULPI_CARKIT_CONTROL	0x71	/* 8 bit */
-+#define ULPI_INT_MASK		0x72	/* 8 bit */
-+#define ULPI_INT_SRC		0x73	/* 8 bit */
-+#define ULPI_REG_DATA		0x74	/* 8 bit */
-+#define ULPI_REG_ADDR		0x75	/* 8 bit */
-+#define ULPI_REG_CONTROL	0x76	/* 8 bit */
-+#define ULPI_RAW_DATA		0x77	/* 8 bit */
-+
- #define MUSB_EPINFO		0x78	/* 8 bit */
- #define MUSB_RAMINFO		0x79	/* 8 bit */
- #define MUSB_LINKINFO		0x7a	/* 8 bit */
-@@ -502,4 +517,51 @@ static inline void  musb_write_txhubport(void __iomem *mbase, u8 epnum,
- 
- #endif /* CONFIG_BLACKFIN */
- 
-+/* ULPI read/write support */
-+static inline u8 musb_ulpi_readb(void __iomem *addr, u8 offset)
++static int musb_detect_charger(struct musb *musb)
 +{
-+	int	i = 0;
-+	u8	r;
++	unsigned long		timeout;
++	u8			vdat = 0;
++	u8			power;
++	u8			r;
 +
-+	musb_writeb(addr, ULPI_REG_ADDR, offset);
-+	musb_writeb(addr, ULPI_REG_CONTROL, ULPI_REG_REQ | ULPI_RDN_WR);
++	/* first we disable data pullups */
++	power = musb_readb(musb->mregs, MUSB_POWER);
++	power &= ~MUSB_POWER_SOFTCONN;
++	musb_writeb(musb->mregs, MUSB_POWER, power);
 +
-+	while (!(musb_readb(addr, ULPI_REG_CONTROL) & ULPI_REG_CMPLT)) {
-+		i++;
-+		if (i == 10000) {
-+			DBG(3, "ULPI read timed out\n");
-+			return 0;
-+		}
++	/* now we set SW control bit in PWR_CTRL register */
++	r = musb_ulpi_readb(musb->mregs, ISP1704_PWR_CTRL);
++	r |= ISP1704_PWR_CTRL_SWCTRL;
++	musb_ulpi_writeb(musb->mregs, ISP1704_PWR_CTRL, r);
 +
-+	}
-+	r = musb_readb(addr, ULPI_REG_CONTROL);
-+	r &= ~ULPI_REG_CMPLT;
-+	musb_writeb(addr, ULPI_REG_CONTROL, r);
++	/* and finally enable manual charger detection */
++	r |= ISP1704_PWR_CTRL_DPVSRC_EN;
++	musb_ulpi_writeb(musb->mregs, ISP1704_PWR_CTRL, r);
++	msleep(10);
 +
-+	return musb_readb(addr, ULPI_REG_DATA);
-+}
-+
-+static inline void musb_ulpi_writeb(void __iomem *addr,
-+	u8 offset, u8 data)
-+{
-+	int	i = 0;
-+	u8	r = 0;
-+
-+	musb_writeb(addr, ULPI_REG_ADDR, offset);
-+	musb_writeb(addr, ULPI_REG_DATA, data);
-+	musb_writeb(addr, ULPI_REG_CONTROL, ULPI_REG_REQ);
-+
-+	while(!(musb_readb(addr, ULPI_REG_CONTROL) & ULPI_REG_CMPLT)) {
-+		i++;
-+		if (i == 10000) {
-+			DBG(3, "ULPI write timed out\n");
-+			return;
-+		}
++	timeout = jiffies + msecs_to_jiffies(300);
++	while (!time_after(jiffies, timeout)) {
++		/* Check if there is a charger */
++		vdat = !!(musb_ulpi_readb(musb->mregs, ISP1704_PWR_CTRL)
++				& ISP1704_PWR_CTRL_VDAT_DET);
++		if (vdat)
++			break;
 +	}
 +
-+	r = musb_readb(addr, ULPI_REG_CONTROL);
-+	r &= ~ULPI_REG_CMPLT;
-+	musb_writeb(addr, ULPI_REG_CONTROL, r);
++	/* clear DPVSRC_EN, otherwise usb communication doesn't work */
++	r &= ~ISP1704_PWR_CTRL_DPVSRC_EN;
++	musb_ulpi_writeb(musb->mregs, ISP1704_PWR_CTRL, r);
++
++	if (vdat)
++		blocking_notifier_call_chain(&musb->xceiv->notifier,
++				USB_EVENT_CHARGER, &musb->g);
++
++	/*
++	 * re-enable data pullups, we might have been connected
++	 * to a host/hub charger
++	 */
++	power |= MUSB_POWER_SOFTCONN;
++	musb_writeb(musb->mregs, MUSB_POWER, power);
++
++	return vdat;
 +}
 +
- #endif	/* __MUSB_REGS_H__ */
++static int musb_notifier_call(struct notifier_block *nb, unsigned long event,
++		void *_gadget)
++{
++	struct usb_gadget	*g = _gadget;
++	struct musb		*musb = container_of(g, struct musb, g);
++
++	switch (event) {
++	case USB_EVENT_VBUS:
++		musb->is_charger = musb_detect_charger(musb);
++		break;
++	default:
++		return NOTIFY_DONE;
++	}
++
++	return NOTIFY_OK;
++}
++
+ static inline struct musb *dev_to_musb(struct device *dev)
+ {
+ #ifdef CONFIG_USB_MUSB_HDRC_HCD
+@@ -1961,6 +2030,9 @@ bad_config:
+ 		goto fail2;
+ 	}
+ 
++	musb->nb.notifier_call = musb_notifier_call;
++	otg_register_notifier(musb->xceiv, &musb->nb);
++
+ #ifndef CONFIG_MUSB_PIO_ONLY
+ 	if (use_dma && dev->dma_mask) {
+ 		struct dma_controller	*c;
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 644fcd8..3de6eb8 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -322,6 +322,9 @@ struct musb {
+ 	struct clk		*clock;
+ 	irqreturn_t		(*isr)(int, void *);
+ 	struct work_struct	irq_work;
++
++	struct notifier_block	nb;
++
+ #define MUSB_HWVERS_MAJOR(x)	((x >> 10) & 0x1f)
+ #define MUSB_HWVERS_MINOR(x)	(x & 0x3ff)
+ #define MUSB_HWVERS_RC		0x8000
+@@ -432,6 +435,8 @@ struct musb {
+ 	unsigned		is_self_powered:1;
+ 	unsigned		is_bus_powered:1;
+ 
++	unsigned		is_charger:1;
++
+ 	unsigned		set_address:1;
+ 	unsigned		test_mode:1;
+ 	unsigned		softconnect:1;
 -- 
 1.6.6.rc0
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
