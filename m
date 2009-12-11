@@ -1,93 +1,57 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH] OMAP3: hwmod: check for clkdomain pointer before
- accesing it to change the sleep dependencies.
-Date: Fri, 11 Dec 2009 10:37:26 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD495C@dbde02.ent.ti.com>
-References: <1260098323-26183-1-git-send-email-thara@ti.com>
-	<873a3ju4ng.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB030ACBFDFF@dbde02.ent.ti.com>
- <87hbryrc7v.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50926 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750827AbZLKFH1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 00:07:27 -0500
-In-Reply-To: <87hbryrc7v.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2] OMAP3 : Fix I2C lockup during timeout/error cases
+Date: Fri, 11 Dec 2009 11:09:08 +0530
+Message-ID: <1260509948-12774-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "Varadarajan, Charu Latha" <charu-l0cyMroinI0@public.gmane.org>, "George, Harith" <harith-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+
+Current OMAP3 I2C driver code does not follow the correct sequence for soft
+reset. Due to this, lock up issues are reported during timeout/error cases.
+
+This patch fixes above issue by disabling I2C controller as per OMAP3430 TRM
+for soft reset. As per TRM, I2C controller needs to be disabled as a first
+step during soft reset.
+
+Here is correct soft reset sequence:
+a. Ensure that the module is disabled
+(clear the I2Ci.I2C_CON[15] I2C_EN bit to 0).
+b. Set the I2Ci.I2C_SYSC[1] SRST bit to 1.
+c. Enable the module by setting I2Ci.I2C_CON[15] I2C_EN bit to 1.
+d. Check the I2Ci.I2C_SYSS[0] RDONE bit until it is set to 1 to
+indicate the software reset is complete.
 
 
+Tested on Zoom2, Zoom3, 3430SDP and 3630SDP
 
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Thursday, December 10, 2009 10:36 PM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; Paul Walmsley
->>Subject: Re: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the sleep
->>dependencies.
->>
->>"Gopinath, Thara" <thara@ti.com> writes:
->>
->>>>>-----Original Message-----
->>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>>Sent: Thursday, December 10, 2009 4:39 AM
->>>>>To: Gopinath, Thara
->>>>>Cc: linux-omap@vger.kernel.org; Paul Walmsley
->>>>>Subject: Re: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the
->>sleep
->>>>>dependencies.
->>>>>
->>>>>Thara Gopinath <thara@ti.com> writes:
->>>>>
->>>>>> Some clock nodes like wdt1_fck, sr1_fck, sr2_fck etc do not have a
->>>>>> clock domain associated . For such nodes accessing the clock domain pointers
->>>>>> in _add_initiator_dep and _del_initiator_dep, will lead to null pointer
->>>>>> defreferencing crash. Adding support in these functions to check for
->>>>>> existence of clkdm pointer before trying to acess it. Even if tomorrow
->>>>>> we correct all the clock nodes to have an associated clock domain, checking
->>>>>> for the existence of the pointer is a good programming practice.
->>>>>>
->>>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>>>>> Cc: Paul Walmsley <paul@pwsan.com>
->>>>>> ---
->>>>>> This patch depends on http://patchwork.kernel.org/patch/63383/
->>>>>
->>>>>I think clocks without associated clockdomains should be handled with
->>>>>a flag instead of a check for a NULL pointer.
->>>>>
->>>>>Your current approach will silently fail if someone forgets to add
->>>>>a clockdomain to a clock that should have one.
->>>
->>> Are you suggesting adding a flag to the clock node in case it does
->>> not have an associated clockdomain?
->>
->>Yes, or to the hwmod.
->>
->>> I am using your tree origin/pm-wip/omap_device branch. On this I see
->>> a commit (e89a95db7095d998991c564a756a33ee0ec722c5) in which a
->>> warning is printed in omap2_init_clk_clkdm if there is no
->>> clockdomain associated with a clock node.
->>
->>This is to check for the case of a missing clkdm when there should be
->>one.  You're trying to solve the problem of when there is no
->>clockdomain for a given clock.
->>
->>> My idea was this warning plus the check so as to avoid the system
->>> crash would suffice.
->>
->>I still think this should be flagged explicitly in the clock/hwmod,
->>then check using the flag instead of of using NULL pointer check.
->>
->>For readability, it makes it more clear that this is checking for some
->>exceptions and not simply doing error checking.
+Signed-off-by: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
+Signed-off-by: George, Harith<harith-l0cyMroinI0@public.gmane.org>
+Acked-by: Varadarajan, Charu Latha<charu-l0cyMroinI0@public.gmane.org>
+---
+v1 : Initital version
+v2 : Removed delay since time taken for disabling I2C controller is zero
+     jiffies
 
-Agreed. We could add a flag and base the check on the flag. But still if some clock node does not have a clkdomain and forgets to put this flag, the system will still crash. So have have both the checks ??
+ drivers/i2c/busses/i2c-omap.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
->>
->>Kevin
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 827da08..74620c0 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -265,6 +265,11 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	unsigned long internal_clk = 0;
+ 
+ 	if (dev->rev >= OMAP_I2C_REV_2) {
++		/* Disable I2C controller before soft reset */
++		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
++			omap_i2c_read_reg(dev, OMAP_I2C_CON_REG) &
++				~(OMAP_I2C_CON_EN));
++
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, SYSC_SOFTRESET_MASK);
+ 		/* For some reason we need to set the EN bit before the
+ 		 * reset done bit gets set. */
+-- 
+1.6.0.4
