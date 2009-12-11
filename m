@@ -1,69 +1,308 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/6 v2] OMAP4: Fix cpu detection
-Date: Fri, 11 Dec 2009 10:37:02 -0600
-Message-ID: <782515bb0912110837i732250f2m4f50246594973b67@mail.gmail.com>
-References: <1260426156-1820-1-git-send-email-santosh.shilimkar@ti.com>
-	 <4B2156B6.8090403@ti.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02BC1415B4@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM:  Dynamic calculation of SDRC clock stabilization delay
+Date: Fri, 11 Dec 2009 08:38:19 -0800
+Message-ID: <87skbhjwjo.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4B50@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:44349 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752984AbZLKQg5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 11:36:57 -0500
-Received: by pxi4 with SMTP id 4so299420pxi.33
-        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 08:37:04 -0800 (PST)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BC1415B4@dbde02.ent.ti.com>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:50069 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754874AbZLKQiP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 11:38:15 -0500
+Received: by pzk1 with SMTP id 1so797945pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 08:38:22 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4B50@dbde02.ent.ti.com> (Teerth Reddy's message of "Fri\, 11 Dec 2009 17\:35\:37 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Dec 10, 2009 at 10:43 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
->> >
->> > +void __init omap4_check_revision(void)
->> > +{
->> > + =A0 u32 idcode;
->> > + =A0 u16 hawkeye;
->> > + =A0 u8 rev;
->> > + =A0 char *rev_name =3D "ES1.0";
->> should'nt you decide this inside the rev check path?
+"Reddy, Teerth" <teerth@ti.com> writes:
+
+> Reposting the patch with proper format
 >
-> This is initialized value by default. Since the chip is ES1.0 additio=
-naly I am not doing it.
-> e.g. for ES2.0, it would be done inside. > > +
-ok, no strong opinions about this, but I think it might be nice if
-ES2.0 addition will modify less code.
+> From: Teerth Reddy <teerth@ti.com>
+>
+> This patch sets the dpll3 clock stabilization delay during
+> DVFS. The stabilization delay is calculated dynamically 
+> using the ARM performance counter.
+> Currently 6us of SDRC stabilization value is used to get 
+> the correct delay.
 
->> > + =A0 /*
->> > + =A0 =A0* The IC rev detection is done with hawkeye and rev.
->> > + =A0 =A0* Note that rev does not map directly to defined processo=
-r
->> > + =A0 =A0* revision numbers as ES1.0 uses value 0.
->> > + =A0 =A0*/
->> > + =A0 idcode =3D read_tap_reg(OMAP_TAP_IDCODE);
->> > + =A0 hawkeye =3D (idcode >> 12) & 0xffff;
->> > + =A0 rev =3D (idcode >> 28) & 0xff;
->> > +
->> > + =A0 if ((hawkeye =3D=3D 0xb852) && (rev =3D=3D 0x0)) {
->> > + =A0 =A0 =A0 =A0 =A0 omap_revision =3D OMAP4430_REV_ES1_0;
->> > + =A0 =A0 =A0 =A0 =A0 pr_info("OMAP%04x %s\n", omap_rev() >> 16, r=
-ev_name);
->> wondering about the >>16 part.
-> Why ?
-omap_rev() >>16 means that you are using higher word of this and I
-think we have CLASS() macro for that? if that is not enough, should'nt
-we add adequate macro to do that?
+Needs more thorough changelog describing the problem being solved.
 
-[...]
+First, some general comments/questions:
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PMC code is ARM generic and already largely exists in other places
+(oprofile for one.)  So the use of the PMC will need to be generalized
+as well as be shown not to interfere with other users (as raised
+already by Jean Pihet.)
+
+Couldn't you use a GPtimer for this?
+
+> Signed-off-by: Romit Dasgupta <romit@ti.com>
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
+> ---
+>  mach-omap2/clock34xx.c        |   32 +++++++++++++---------------
+>  mach-omap2/sram34xx.S         |    7 ++++++
+>  plat-omap/Makefile            |    1
+>  plat-omap/include/plat/pmc.h  |    9 ++++++++
+>  plat-omap/include/plat/sram.h |    6 +++++
+>  plat-omap/pmc.c               |   47 ++++++++++++++++++++++++++++++++++++++++++
+>  plat-omap/sram.c              |   23 ++++++++++++++++++++
+>  7 files changed, 108 insertions(+), 17 deletions(-)
+>
+>
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index da5bc1f..dd49938 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -37,6 +37,8 @@
+>  #include <asm/div64.h>
+>  #include <asm/clkdev.h>
+>  
+> +#include <plat/pmc.h>
+> +
+>  #include <plat/sdrc.h>
+>  #include "clock.h"
+>  #include "prm.h"
+> @@ -46,6 +48,8 @@
+>  
+>  static const struct clkops clkops_noncore_dpll_ops;
+>  
+> +unsigned int delay_sram;
+> +
+
+static?  The only users I see are in this file.
+
+>  static void omap3430es2_clk_ssi_find_idlest(struct clk *clk,
+>  					    void __iomem **idlest_reg,
+>  					    u8 *idlest_bit);
+> @@ -333,14 +337,9 @@ static struct omap_clk omap34xx_clks[] = {
+>  /* Scale factor for fixed-point arith in omap3_core_dpll_m2_set_rate() */
+>  #define SDRC_MPURATE_SCALE		8
+>  
+> -/* 2^SDRC_MPURATE_BASE_SHIFT: MPU MHz that SDRC_MPURATE_LOOPS is defined for */
+> -#define SDRC_MPURATE_BASE_SHIFT		9
+> -
+> -/*
+> - * SDRC_MPURATE_LOOPS: Number of MPU loops to execute at
+> - * 2^MPURATE_BASE_SHIFT MHz for SDRC to stabilize
+> - */
+> -#define SDRC_MPURATE_LOOPS		96
+> +/* SDRC_TIME_STABILIZE: Time for SDRC to stabilize in us */
+> +/* hardcoded currently */
+
+hardcoded currently why?  "currently" makes it sound like there are
+some other plans.  Would be useful to comment on what those are.
+
+> +#define	SDRC_TIME_STABILIZE		6
+>  
+>  /*
+>   * DPLL5_FREQ_FOR_USBHOST: USBHOST and USBTLL are the only clocks
+> @@ -870,16 +869,10 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+>  		unlock_dll = 1;
+>  	}
+>  
+> -	/*
+> -	 * XXX This only needs to be done when the CPU frequency changes
+> -	 */
+> +	/* Calculate the number of MPU cycles to wait for SDRC to stabilize */
+> +
+>  	mpurate = arm_fck.rate / CYCLES_PER_MHZ;
+> -	c = (mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
+> -	c += 1;  /* for safety */
+> -	c *= SDRC_MPURATE_LOOPS;
+> -	c >>= SDRC_MPURATE_SCALE;
+> -	if (c == 0)
+> -		c = 1;
+> +	c = ((SDRC_TIME_STABILIZE * mpurate) / (delay_sram * 2));
+>  
+>  	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+>  		 validrate);
+> @@ -1228,6 +1221,11 @@ int __init omap2_clk_init(void)
+>  	vclk = clk_get(NULL, "virt_prcm_set");
+>  	sclk = clk_get(NULL, "sys_ck");
+>  #endif
+> +
+> +	/* Measure sram delay */
+> +	delay_sram = measure_sram_delay(10000)/(10000*2);
+> +	pr_debug("SRAM delay: %d\n", delay_sram);
+> +
+>  	return 0;
+>  }
+>  
+> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+> index 82aa4a3..dc0ac72 100644
+> --- a/arch/arm/mach-omap2/sram34xx.S
+> +++ b/arch/arm/mach-omap2/sram34xx.S
+> @@ -298,3 +298,10 @@ core_m2_mask_val:
+>  ENTRY(omap3_sram_configure_core_dpll_sz)
+>  	.word	. - omap3_sram_configure_core_dpll
+>  
+> +ENTRY(__sram_wait_delay)
+> +	subs 	r0, r0, #1
+> +	bne	__sram_wait_delay
+> +	bx	lr
+> +
+> +ENTRY(__sram_wait_delay_sz)
+> +	.word	. - __sram_wait_delay
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 95f8413..aac43da 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -15,6 +15,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+>  # omap_device support (OMAP2+ only at the moment)
+>  obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
+>  obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
+> +obj-$(CONFIG_ARCH_OMAP3) += pmc.o
+>  
+>  obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+>  obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
+> diff --git a/arch/arm/plat-omap/include/plat/pmc.h b/arch/arm/plat-omap/include/plat/pmc.h
+> new file mode 100644
+> index 0000000..6d73782
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/plat/pmc.h
+> @@ -0,0 +1,9 @@
+> +#ifndef __PMC_H__
+> +#define __PMC_H__
+> +extern void start_perf_counter(void);
+> +extern void start_cycle_counter(void);
+> +extern void stop_cycle_counter(void);
+> +extern void stop_perf_counter(void);
+> +extern unsigned int cycle_count(void);
+> +extern unsigned int delay_sram;
+> +#endif
+> diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
+> index 16a1b45..6019ed8 100644
+> --- a/arch/arm/plat-omap/include/plat/sram.h
+> +++ b/arch/arm/plat-omap/include/plat/sram.h
+> @@ -69,6 +69,12 @@ extern u32 omap3_sram_configure_core_dpll(
+>  			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
+>  extern unsigned long omap3_sram_configure_core_dpll_sz;
+>  
+> +extern unsigned int measure_sram_delay(unsigned int);
+> +
+> +extern u32 __sram_wait_delay(
+> +		unsigned int);
+> +extern unsigned long __sram_wait_delay_sz;
+> +
+>  #ifdef CONFIG_PM
+>  extern void omap_push_sram_idle(void);
+>  #else
+> diff --git a/arch/arm/plat-omap/pmc.c b/arch/arm/plat-omap/pmc.c
+> new file mode 100644
+> index 0000000..11acf42
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/pmc.c
+> @@ -0,0 +1,47 @@
+> +#include <linux/module.h>
+> +
+> +void start_perf_counter(void)
+> +{
+> +	unsigned int r1 = 0;
+
+blank line needed
+
+> +	asm("mrc p15, 0, %0, c9, c12, 0" : "=r" (r1));
+> +	r1 |= 0x1; /* enable counters */
+> +	asm("mcr p15, 0, %0, c9, c12, 0" : : "r" (r1));
+> +	return;
+> +}
+> +EXPORT_SYMBOL(start_perf_counter);
+
+export not needed (on any of these functions)
+
+> +void start_cycle_counter(void)
+> +{
+> +	unsigned int r2 = 0;
+
+blank line needed, assignment not necessary
+
+> +	r2 = 0x80000000; /* enable cycle counter only */
+> +	asm("mcr p15, 0, %0, c9, c12, 1" : : "r" (r2));
+> +	return;
+> +}
+> +EXPORT_SYMBOL(start_cycle_counter);
+> +
+> +unsigned int cycle_count(void)
+> +{
+> +	unsigned int rd = 0;
+
+blank line
+
+> +	asm("mrc p15, 0, %0, c9, c13, 0" : "=r" (rd));
+> +	return rd;
+> +}
+> +EXPORT_SYMBOL(cycle_count);
+> +
+> +
+> +void stop_cycle_counter(void)
+> +{
+> +	unsigned int r3 = 0;
+
+blank line, assignment not needed
+
+> +	r3 = 0x0; /* disable cycle counter */
+> +	asm("mcr p15, 0, %0, c9, c12, 1" : : "r" (r3));
+> +	return;
+> +}
+> +EXPORT_SYMBOL(stop_cycle_counter);
+> +
+> +void stop_perf_counter(void)
+> +{
+> +	unsigned int r1 = 0;
+
+ditto
+
+> +	r1 = 0x0; /* disable counters */
+> +	asm("mcr p15, 0, %0, c9, c12, 0" : : "r" (r1));
+> +	return;
+> +}
+> +EXPORT_SYMBOL(stop_perf_counter);
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index 3e92366..4ed6a48 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -29,6 +29,10 @@
+>  #include <plat/board.h>
+>  #include <plat/cpu.h>
+>  
+> +#ifdef CONFIG_ARCH_OMAP3
+> +#include <plat/pmc.h>
+> +#endif
+> +
+>  #include <plat/control.h>
+>  
+>  #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> @@ -423,6 +427,25 @@ static inline int omap34xx_sram_init(void)
+>  }
+>  #endif
+>  
+> +
+> +#ifdef CONFIG_ARCH_OMAP3
+> +unsigned int measure_sram_delay(unsigned int loop)
+> +{
+> +	unsigned int start = 0, end = 0;
+> +	void (*_omap3_sram_delay)(unsigned long);
+> +	_omap3_sram_delay = omap_sram_push(__sram_wait_delay,
+> +						__sram_wait_delay_sz);
+> +	start_perf_counter();
+> +	start_cycle_counter();
+> +	start = cycle_count();
+> +	_omap3_sram_delay(loop);
+> +	end = cycle_count();
+> +	stop_cycle_counter();
+> +	stop_perf_counter();
+> +	return end - start;
+> +}
+> +#endif
+> +
+>  int __init omap_sram_init(void)
+>  {
+>  	omap_detect_sram();
+> --
+
+Kevin
