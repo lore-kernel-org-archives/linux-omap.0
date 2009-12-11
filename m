@@ -1,47 +1,60 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC/PATCH 0/5] usb transceiver notifier
-Date: Fri, 11 Dec 2009 13:31:21 +0200
-Message-ID: <1260531086-23857-1-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [RFC/PATCH 2/5] usb: otg: twl4030: add support for notifier
+Date: Fri, 11 Dec 2009 13:31:23 +0200
+Message-ID: <1260531086-23857-3-git-send-email-felipe.balbi@nokia.com>
 References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6ed0b2680912101251jeec28e6i216dfc51caab13aa-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:50302 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762323AbZLKLcQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 06:32:16 -0500
+In-Reply-To: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-The following patches are a prototype for supporting
-notification of some usb events to whoever is interested
-in them.
+it's expected that the transceiver driver will
+initialize and call the notifier chain when
+necessary. Implement that for twl4030-usb driver.
 
-This way we can communicate common usb events to several
-interested drivers so they can e.g. kick usb charger detection
-and configure charging with proper input current.
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/usb/otg/twl4030-usb.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-THEY ARE NOT READY AND ARE NOT SUPPOSED TO BE APPLIED TO ANY
-BRANCH.
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 2ffc8eb..c3e498a 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -36,7 +36,7 @@
+ #include <linux/i2c/twl4030.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/err.h>
+-
++#include <linux/notifier.h>
+ 
+ /* Register defines */
+ 
+@@ -628,7 +628,8 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 		else
+ 			twl4030_phy_resume(twl);
+ 
+-		twl4030charger_usb_en(status == USB_LINK_VBUS);
++		blocking_notifier_call_chain(&twl->otg.notifier, status,
++				twl->otg.gadget);
+ 	}
+ 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+ 
+@@ -718,6 +719,8 @@ static int __devinit twl4030_usb_probe(struct platform_device *pdev)
+ 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+ 		dev_warn(&pdev->dev, "could not create sysfs file\n");
+ 
++	BLOCKING_INIT_NOTIFIER_HEAD(&twl->otg.notifier);
++
+ 	/* Our job is to use irqs and status from the power module
+ 	 * to keep the transceiver disabled when nothing's connected.
+ 	 *
+-- 
+1.6.6.rc0
 
-please comment.
-
-ps: patches were compile tested only.
-
-Felipe Balbi (5):
-  usb: otg: add notifier support
-  usb: otg: twl4030: add support for notifier
-  usb: musb: add support for ulpi block
-  usb: musb: isp1704: add registers from isp1704
-  usb: musb: musb supports otg notifier
-
- drivers/usb/musb/isp1704.h    |   81 +++++++++++++++++++++++++++++++++++++++++
- drivers/usb/musb/musb_core.c  |   72 ++++++++++++++++++++++++++++++++++++
- drivers/usb/musb/musb_core.h  |    5 +++
- drivers/usb/musb/musb_regs.h  |   62 +++++++++++++++++++++++++++++++
- drivers/usb/otg/twl4030-usb.c |    7 +++-
- include/linux/usb/otg.h       |   25 +++++++++++++
- 6 files changed, 250 insertions(+), 2 deletions(-)
- create mode 100644 drivers/usb/musb/isp1704.h
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
