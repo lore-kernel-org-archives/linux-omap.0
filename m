@@ -1,70 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/14] omap3: id code detection 3525 vs 3515
-Date: Fri, 11 Dec 2009 15:54:16 -0800
-Message-ID: <20091211235416.3189.72423.stgit@localhost>
+Subject: [PATCH 11/14] omap3 : Enable TWL4030 Keypad for Zoom2 and Zoom3 boards
+Date: Fri, 11 Dec 2009 15:54:28 -0800
+Message-ID: <20091211235428.3189.24306.stgit@localhost>
 References: <20091211234919.3189.95607.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58690 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58811 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934038AbZLKXyN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:54:13 -0500
+	with ESMTP id S934038AbZLKXyW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:54:22 -0500
 In-Reply-To: <20091211234919.3189.95607.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Sergey Lapin <slapin@ossfans.org>, linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>
+Cc: Manjunatha GK <manjugk@ti.com>, linux-omap@vger.kernel.org
 
-From: Sergey Lapin <slapin@ossfans.org>
+From: manjugk manjugk <manjugk@ti.com>
 
-The runtime detection of OMAP3515 and OMAP3525
-was reversed.
+The TWL4030 keypad driver is not enabled by default for zoom2 and zoom3
+boards.
 
-Signed-off-by: Sergey Lapin <slapin@ossfans.org>
-Signed-off-by: Sanjeev Premi <premi@ti.com>
+This patch will enable the same for both zoom2 and zoom3 boards.
+
+Tested on zoom2(3430) and zoom3(3630) boards.
+
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/id.c              |    4 ++--
- arch/arm/plat-omap/include/plat/cpu.h |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/configs/omap_zoom2_defconfig |    3 ++-
+ arch/arm/configs/omap_zoom3_defconfig |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 3641ba0..a091b53 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -302,10 +302,10 @@ void __init omap3_cpuinfo(void)
- 	} else if (omap3_has_iva() && omap3_has_sgx()) {
- 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
- 		strcpy(cpu_name, "OMAP3430/3530");
--	} else if (omap3_has_sgx()) {
-+	} else if (omap3_has_iva()) {
- 		omap_revision = OMAP3525_REV(rev);
- 		strcpy(cpu_name, "OMAP3525");
--	} else if (omap3_has_iva()) {
-+	} else if (omap3_has_sgx()) {
- 		omap_revision = OMAP3515_REV(rev);
- 		strcpy(cpu_name, "OMAP3515");
- 	} else {
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 9359785..0da076d 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -395,11 +395,11 @@ IS_OMAP_TYPE(3517, 0x3517)
- 						(!omap3_has_iva()) &&	\
- 						(!omap3_has_sgx()))
- # define cpu_is_omap3515()		(cpu_is_omap3430() &&		\
--						(omap3_has_iva()) &&	\
--						(!omap3_has_sgx()))
-+						(!omap3_has_iva()) &&	\
-+						(omap3_has_sgx()))
- # define cpu_is_omap3525()		(cpu_is_omap3430() &&		\
--						(omap3_has_sgx()) &&	\
--						(!omap3_has_iva()))
-+						(!omap3_has_sgx()) &&	\
-+						(omap3_has_iva()))
- # define cpu_is_omap3530()		(cpu_is_omap3430())
- # define cpu_is_omap3505()		is_omap3505()
- # define cpu_is_omap3517()		is_omap3517()
+diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
+index eef9362..4b00a43 100644
+--- a/arch/arm/configs/omap_zoom2_defconfig
++++ b/arch/arm/configs/omap_zoom2_defconfig
+@@ -610,7 +610,8 @@ CONFIG_INPUT_EVDEV=y
+ #
+ # Input Device Drivers
+ #
+-# CONFIG_INPUT_KEYBOARD is not set
++CONFIG_INPUT_KEYBOARD=y
++CONFIG_KEYBOARD_TWL4030=y
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TABLET is not set
+diff --git a/arch/arm/configs/omap_zoom3_defconfig b/arch/arm/configs/omap_zoom3_defconfig
+index f0e7d0f..0d7e37a 100644
+--- a/arch/arm/configs/omap_zoom3_defconfig
++++ b/arch/arm/configs/omap_zoom3_defconfig
+@@ -629,7 +629,8 @@ CONFIG_INPUT_EVDEV=y
+ #
+ # Input Device Drivers
+ #
+-# CONFIG_INPUT_KEYBOARD is not set
++CONFIG_INPUT_KEYBOARD=y
++CONFIG_KEYBOARD_TWL4030=y
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TABLET is not set
 
