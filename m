@@ -1,165 +1,132 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/14] omap3: cm-t35: add mux initialization
-Date: Fri, 11 Dec 2009 15:52:28 -0800
-Message-ID: <20091211235228.3189.82115.stgit@localhost>
+Subject: [PATCH 02/14] OMAP3: serial - allow platforms specify which UARTs to
+	initialize
+Date: Fri, 11 Dec 2009 15:52:41 -0800
+Message-ID: <20091211235241.3189.29246.stgit@localhost>
 References: <20091211234919.3189.95607.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57132 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761661AbZLKXwY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:52:24 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60127 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762822AbZLKXwg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:52:36 -0500
 In-Reply-To: <20091211234919.3189.95607.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Mika Westerberg <ext-mika.1.westerberg@nokia.com>
 
-From: Mike Rapoport <mike@compulab.co.il>
+From: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
 
-CM-T35 can be assembled with different set of peripherals thus making
-certain interfaces available to user as GPIOs or dedicated pins. Because
-of it CM-T35 bootloader sets up mux configuration only for pins
-necessary to boot the system and the rest of the mux configuration is
-done by the kernel. Besides, having mux configuration in the kernel
-allows to minimize dependancy on bootloader.
+This patch adds new function: omap_serial_init_port(port) that can be
+used to initialize only selected UARTs as serial ports. Platforms can
+then in their board files call this function instead of omap_serial_init()
+if they don't want to use all UARTs as serial ports.
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Kconfig        |    1 
- arch/arm/mach-omap2/board-cm-t35.c |   96 +++++++++++++++++++++++++++++++++---
- 2 files changed, 90 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/serial.c             |   70 ++++++++++++++++++++++++------
+ arch/arm/plat-omap/include/plat/serial.h |    1 
+ 2 files changed, 56 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 06dc64d..76c11ee 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -135,6 +135,7 @@ config MACH_CM_T35
- 	bool "CompuLab CM-T35 module"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
- 	select OMAP_PACKAGE_CUS
-+	select OMAP_MUX
- 
- config MACH_IGEP0020
- 	bool "IGEP0020"
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 507c922..1591aae 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -482,13 +482,98 @@ static void __init cm_t35_map_io(void)
- 	omap2_map_common_io();
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 2e17b57..6278fe5 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -631,24 +631,64 @@ void __init omap_serial_early_init(void)
+ 	}
  }
  
--#ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
-+	/* nCS and IRQ for CM-T35 ethernet */
-+	OMAP3_MUX(GPMC_NCS5, OMAP_MUX_MODE0),
-+	OMAP3_MUX(UART3_CTS_RCTX, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
-+
-+	/* nCS and IRQ for SB-T35 ethernet */
-+	OMAP3_MUX(GPMC_NCS4, OMAP_MUX_MODE0),
-+	OMAP3_MUX(GPMC_WAIT3, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
-+
-+	/* PENDOWN GPIO */
-+	OMAP3_MUX(GPMC_NCS6, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
-+
-+	/* mUSB */
-+	OMAP3_MUX(HSUSB0_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_STP, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(HSUSB0_DIR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_NXT, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(HSUSB0_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+
-+	/* MMC 2 */
-+	OMAP3_MUX(SDMMC2_DAT4, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(SDMMC2_DAT5, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(SDMMC2_DAT6, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(SDMMC2_DAT7, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+
-+	/* McSPI 1 */
-+	OMAP3_MUX(MCSPI1_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCSPI1_SIMO, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCSPI1_SOMI, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCSPI1_CS0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
-+
-+	/* McSPI 4 */
-+	OMAP3_MUX(MCBSP1_CLKR, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
-+
-+	/* McBSP 2 */
-+	OMAP3_MUX(MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+
-+	/* serial ports */
-+	OMAP3_MUX(MCBSP3_CLKX, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(MCBSP3_FSX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(UART1_TX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(UART1_RX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-+
-+	/* DSS */
-+	OMAP3_MUX(DSS_PCLK, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_HSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_VSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_ACBIAS, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA8, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA9, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA10, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA11, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA12, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA13, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA14, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA15, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA16, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA17, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA20, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+
-+	/* TPS IRQ */
-+	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_WAKEUP_EN | \
-+		  OMAP_PIN_INPUT_PULLUP),
-+
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
--#else
--#define board_mux	NULL
--#endif
- 
- static void __init cm_t35_init(void)
+-void __init omap_serial_init(void)
++/**
++ * omap_serial_init_port() - initialize single serial port
++ * @port: serial port number (0-3)
++ *
++ * This function initialies serial driver for given @port only.
++ * Platforms can call this function instead of omap_serial_init()
++ * if they don't plan to use all available UARTs as serial ports.
++ *
++ * Don't mix calls to omap_serial_init_port() and omap_serial_init(),
++ * use only one of the two.
++ */
++void __init omap_serial_init_port(int port)
  {
-@@ -501,9 +586,6 @@ static void __init cm_t35_init(void)
- 	cm_t35_init_led();
+-	int i;
++	struct omap_uart_state *uart;
++	struct platform_device *pdev;
++	struct device *dev;
  
- 	usb_musb_init();
--
--	omap_mux_init_signal("sys_nirq",
--		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
+-	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+-		struct omap_uart_state *uart = &omap_uart[i];
+-		struct platform_device *pdev = &uart->pdev;
+-		struct device *dev = &pdev->dev;
++	BUG_ON(port < 0);
++	BUG_ON(port >= ARRAY_SIZE(omap_uart));
+ 
+-		omap_uart_reset(uart);
+-		omap_uart_idle_init(uart);
++	uart = &omap_uart[port];
++	pdev = &uart->pdev;
++	dev = &pdev->dev;
+ 
+-		if (WARN_ON(platform_device_register(pdev)))
+-			continue;
+-		if ((cpu_is_omap34xx() && uart->padconf) ||
+-		    (uart->wk_en && uart->wk_mask)) {
+-			device_init_wakeup(dev, true);
+-			DEV_CREATE_FILE(dev, &dev_attr_sleep_timeout);
+-		}
++	omap_uart_reset(uart);
++	omap_uart_idle_init(uart);
++
++	if (WARN_ON(platform_device_register(pdev)))
++		return;
++
++	if ((cpu_is_omap34xx() && uart->padconf) ||
++	    (uart->wk_en && uart->wk_mask)) {
++		device_init_wakeup(dev, true);
++		DEV_CREATE_FILE(dev, &dev_attr_sleep_timeout);
+ 	}
++
++	/* omap44xx: Never read empty UART fifo
++	 * omap3xxx: Never read empty UART fifo on UARTs
++	 * with IP rev >=0x52
++	 */
++	if (cpu_is_omap44xx())
++		uart->p->serial_in = serial_in_override;
++	else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
++			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
++		uart->p->serial_in = serial_in_override;
++}
++
++/**
++ * omap_serial_init() - intialize all supported serial ports
++ *
++ * Initializes all available UARTs as serial ports. Platforms
++ * can call this function when they want to have default behaviour
++ * for serial ports (e.g initialize them all as serial ports).
++ */
++void __init omap_serial_init(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(omap_uart); i++)
++		omap_serial_init_port(i);
  }
- 
- MACHINE_START(CM_T35, "Compulab CM-T35")
+diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+index 9951345..f5a4a92 100644
+--- a/arch/arm/plat-omap/include/plat/serial.h
++++ b/arch/arm/plat-omap/include/plat/serial.h
+@@ -53,6 +53,7 @@
+ #ifndef __ASSEMBLER__
+ extern void __init omap_serial_early_init(void);
+ extern void omap_serial_init(void);
++extern void omap_serial_init_port(int port);
+ extern int omap_uart_can_sleep(void);
+ extern void omap_uart_check_wakeup(void);
+ extern void omap_uart_prepare_suspend(void);
 
