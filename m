@@ -1,154 +1,143 @@
-From: balajitk@ti.com
-Subject: [PATCH v4 08/08] OMAP4: PMIC: Update TWL mfd driver to create twl6030 regulators
-Date: Fri, 11 Dec 2009 21:36:54 +0530
-Message-ID: <1260547614-24308-1-git-send-email-balajitk@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] [OMAP] gpio: Simultaneously requested rising and falling edge
+Date: Fri, 11 Dec 2009 08:07:07 -0800
+Message-ID: <873a3hmr4k.fsf@deeprootsystems.com>
+References: <1260503994-27823-1-git-send-email-darkstar6262@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49111 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933388AbZLKQGz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Dec 2009 11:06:55 -0500
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:57694 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933635AbZLKQHD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 11:07:03 -0500
+Received: by pwj9 with SMTP id 9so661343pwj.21
+        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 08:07:09 -0800 (PST)
+In-Reply-To: <1260503994-27823-1-git-send-email-darkstar6262@gmail.com> (Cory Maccarrone's message of "Thu\, 10 Dec 2009 19\:59\:54 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, sameo@linux.intel.com, tony@atomide.com, Rajendra Nayak <rnayak@ti.com>, Balaji T K <balajitk@ti.com>
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Rajendra Nayak <rnayak@ti.com>
+Cory Maccarrone <darkstar6262@gmail.com> writes:
 
-This version of patch series enables RUN TIME selection of TWL4030 or TWL6030.
+> Some chips, namely any OMAP1 chips using METHOD_MPUIO,
+> OMAP15xx and OMAP7xx, cannot be setup to respond to on-chip GPIO
+> interrupts in both rising and falling edge directions -- they can
+> only respond to one direction or the other, depending on how the
+> ICR is configured.
+>
+> This change implements a toggle function that will modify the ICR
+> to flip the direction of interrupt for IRQs that are requested with
+> both rising and falling flags.  The toggle function is a noop for
+> chips and GPIOs it does not apply to.
 
-This patch adds initial support for creating twl6030 PMIC
-specific voltage regulators in the twl mfd driver.
+I think this needs a little more description.  In particular you
+should describe that this toggle happens on *every* interrupt, and
+why.
 
-Board specific regulator configurations will have to be passed from
-respective board files.
+Also, it's not exactly a noop for non-OMAP1.  More on this below...
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Reviewed-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mfd/twl-core.c  |   50 ++++++++++++++++++++++++++++++++++++++++++++--
- include/linux/i2c/twl.h |   17 +++++++++++----
- 2 files changed, 59 insertions(+), 8 deletions(-)
+> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+> ---
+>  arch/arm/plat-omap/gpio.c |   60 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 60 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index 055160e..b594398 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -749,6 +749,53 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+>  }
+>  #endif
+>  
+> +/*
+> + * This only applies to chips that can't do both rising and falling edge
+> + * detection at once.  For all other chips, this function is a noop.
+> + */
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 3d67321..42af794 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -614,7 +614,7 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_usb() && pdata->usb) {
-+	if (twl_has_usb() && pdata->usb && twl_class_is_4030()) {
- 
- 		static struct regulator_consumer_supply usb1v5 = {
- 			.supply =	"usb1v5",
-@@ -694,7 +694,7 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_regulator()) {
-+	if (twl_has_regulator() && twl_class_is_4030()) {
- 		/*
- 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1);
- 		if (IS_ERR(child))
-@@ -718,7 +718,8 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 	}
- 
- 	/* maybe add LDOs that are omitted on cost-reduced parts */
--	if (twl_has_regulator() && !(features & TPS_SUBSET)) {
-+	if (twl_has_regulator() && !(features & TPS_SUBSET)
-+	  && twl_class_is_4030()) {
- 		child = add_regulator(TWL4030_REG_VPLL2, pdata->vpll2);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
-@@ -744,6 +745,49 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
-+	/* twl6030 regulators */
-+	if (twl_has_regulator() && twl_class_is_6030()) {
-+		child = add_regulator(TWL6030_REG_VMMC, pdata->vmmc);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VPP, pdata->vpp);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VUSIM, pdata->vusim);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VANA, pdata->vana);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VCXIO, pdata->vcxio);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VDAC, pdata->vdac);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VUSB, pdata->vusb);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX1_6030, pdata->vaux1);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX2_6030, pdata->vaux2);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX3_6030, pdata->vaux3);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index dce4c22..d49c1c7 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -516,18 +516,25 @@ struct twl4030_platform_data {
- 	struct twl4030_power_data		*power;
- 	struct twl4030_codec_data		*codec;
- 
--	/* LDO regulators */
-+	/* LDO regulators common to TWL4030/TWL6030 */
- 	struct regulator_init_data		*vdac;
-+	struct regulator_init_data		*vaux1;
-+	struct regulator_init_data		*vaux2;
-+	struct regulator_init_data		*vaux3;
-+	/* TWL4030 LDO regulators */
- 	struct regulator_init_data		*vpll1;
- 	struct regulator_init_data		*vpll2;
- 	struct regulator_init_data		*vmmc1;
- 	struct regulator_init_data		*vmmc2;
- 	struct regulator_init_data		*vsim;
--	struct regulator_init_data		*vaux1;
--	struct regulator_init_data		*vaux2;
--	struct regulator_init_data		*vaux3;
- 	struct regulator_init_data		*vaux4;
--
-+	/* TWL6030 LDO regulators */
-+	struct regulator_init_data              *vmmc;
-+	struct regulator_init_data              *vpp;
-+	struct regulator_init_data              *vusim;
-+	struct regulator_init_data              *vana;
-+	struct regulator_init_data              *vcxio;
-+	struct regulator_init_data              *vusb;
- 	/* REVISIT more to come ... _nothing_ should be hard-wired */
- };
- 
--- 
-1.5.4.7
+Not exactly a noop.  This function is called for non-OMAP1 as well...
 
+> +static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
+> +{
+> +	void __iomem *reg = bank->base;
+> +	u32 l = 0;
+> +
+> +	switch (bank->method) {
+> +#ifdef CONFIG_ARCH_OMAP1
+> +	case METHOD_MPUIO:
+> +		reg += OMAP_MPUIO_GPIO_INT_EDGE;
+> +		l = __raw_readl(reg);
+> +		if ((l >> gpio) & 1)
+> +			l &= ~(1 << gpio);
+> +		else
+> +			l |= 1 << gpio;
+> +		break;
+> +#endif
+> +#ifdef CONFIG_ARCH_OMAP15XX
+> +	case METHOD_GPIO_1510:
+> +		reg += OMAP1510_GPIO_INT_CONTROL;
+> +		l = __raw_readl(reg);
+> +		if ((l >> gpio) & 1)
+> +			l &= ~(1 << gpio);
+> +		else
+> +			l |= 1 << gpio;
+> +		break;
+> +#endif
+> +#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+> +	case METHOD_GPIO_7XX:
+> +		reg += OMAP7XX_GPIO_INT_CONTROL;
+> +		l = __raw_readl(reg);
+> +		if ((l >> gpio) & 1) {
+> +			l &= ~(1 << gpio);
+> +		} else {
+> +			l |= 1 << gpio;
+> +		}
+> +		break;
+> +#endif
+> +	default:
+> +		return;
+> +	}
+> +	__raw_writel(l, reg);
+
+...and will write a zero to offset zero of the GPIO bank regs
+(GPIO_REVISION reg).  While ths is a read-only reg and *should* have
+no effect, the point is that this function should not be called for
+non-OMAP1.
+
+> +}
+> +
+>  static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+>  {
+>  	void __iomem *reg = bank->base;
+> @@ -1284,9 +1331,22 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+>  
+>  		gpio_irq = bank->virtual_irq_start;
+>  		for (; isr != 0; isr >>= 1, gpio_irq++) {
+> +			struct irq_desc *desc = irq_to_desc(gpio_irq);
+>  			if (!(isr & 1))
+>  				continue;
+>  
+> +			/*
+> +			 * Some chips can't respond to both rising and falling at the
+> +			 * same time.  If this irq was requested with both flags, we
+> +			 * need to flip the ICR data for the IRQ to respond to the
+> +			 * IRQ for the opposite direction.
+> +			 */
+> +			if (desc->status & IRQ_TYPE_EDGE_FALLING &&
+> +			    desc->status & IRQ_TYPE_EDGE_RISING)
+> +				_toggle_gpio_edge_triggering(
+> +						get_irq_chip_data(gpio_irq),
+> +						get_gpio_index(irq_to_gpio(gpio_irq)));
+> +
+
+Rather than check the flags on every interrupt, it may be better to
+create a per-bank mask for GPIOs that need this treatment.  
+
+The code that sets that flag could be conditional on OMAP1 and also on
+whether both edges are set.
+
+>  			generic_handle_irq(gpio_irq);
+>  		}
+>  	}
+
+Kevin
