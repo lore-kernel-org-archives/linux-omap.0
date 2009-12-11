@@ -1,52 +1,56 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] OMAP3: PM:  Dynamic calculation of SDRC clock stabilization
- delay
-Date: Fri, 11 Dec 2009 07:42:51 -0600
-Message-ID: <4B224C5B.3080808@ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4B50@dbde02.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0C012B9F49BC@dlee02.ent.ti.com> <4B223BA3.4000402@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v7 3/5] OMAP: McBSP: Introduce caching in register write operations
+Date: Fri, 11 Dec 2009 14:51:27 +0100
+Message-ID: <200912111451.29185.jkrzyszt@tis.icnet.pl>
+References: <200912092124.14430.jkrzyszt@tis.icnet.pl> <200912092131.21517.jkrzyszt@tis.icnet.pl> <20091211151149.c20acce5.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35502 "EHLO comal.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:58344 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757903AbZLKNmp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Dec 2009 08:42:45 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBBDgqTP027901
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 07:42:52 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id nBBDgqg5012118
-	for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 07:42:52 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBBDgq5A005820
-	for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 07:42:52 -0600 (CST)
-In-Reply-To: <4B223BA3.4000402@ti.com>
+	id S1757571AbZLKNv0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 08:51:26 -0500
+In-Reply-To: <20091211151149.c20acce5.jhnikula@gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Dasgupta, Romit" <romit@ti.com>
-Cc: "Reddy, Teerth" <teerth@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org
 
-Dasgupta, Romit had written, on 12/11/2009 06:31 AM, the following:
->> Also Richard indicated that there might be a few tricky things with perf
->> Counters with specific devices - like EMU/HS/GP devices. It might need EMU
->> Domain for the values to pass through and there might be a yet-not-measured increase In power which could impact usage numbers and may need additional 
->> Code to switch off the domain correctly while hitting OFF/RET..
->>
-> 
-> Yes someone with EMU/HS could run and let us know. OTOH there won't be any
-> increase in power as it is done only once during boot time after which the
-> perfcounters are stopped.
-> 
-> By the way can you run this in 3630 and help us find what is the SRAM access
-> delay? I am sure it should be lesser since it has a process improvement over 34xx.
-> 
-> 
-will try on SDP3630 among the boards that I have around. meanwhile, 
-would like an explanation to my previous comments also esp on the black 
-magic "6" ;) - thanks.
+=46riday 11 December 2009 14:11:49 Jarkko Nikula napisa=C5=82(a):
+> On Wed, 9 Dec 2009 21:31:20 +0100
+>
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+> > @@ -391,6 +405,10 @@ int omap_mcbsp_request(unsigned int id)
+> >  	}
+> >  	mcbsp =3D id_to_mcbsp_ptr(id);
+> >
+> > +	mcbsp->reg_cache =3D kzalloc(omap_mcbsp_cache_size, GFP_KERNEL);
+> > +	if (!mcbsp->reg_cache)
+> > +		return -ENOMEM;
+> > +
+> >  	spin_lock(&mcbsp->lock);
+> >  	if (!mcbsp->free) {
+> >  		dev_err(mcbsp->dev, "McBSP%d is currently in use\n",
+>
+> Great work. Could have my ack to patches 1-4 by moving the cache
+> allocation after the mcbsp->free test lines. Memory leak and other
+> badness would happen otherwise in case of multiple call to
+> omap_mcbsp_request.
 
--- 
-Regards,
-Nishanth Menon
+Yes, it's a bug, sorry.
+
+> Just send an update to this mail if there is no comments to another
+> patches.
+
+OK.
+
+Thanks,
+Janusz
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
