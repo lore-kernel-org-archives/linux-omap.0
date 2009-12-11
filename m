@@ -1,46 +1,34 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: DSS2 and old omapfb patches
-Date: Fri, 11 Dec 2009 14:31:31 +0200
-Message-ID: <1260534691.10417.14.camel@tubuntu.research.nokia.com>
+From: "Krogerus Heikki (EXT-Teleca/Helsinki)"
+	<ext-heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC/PATCH 4/5] usb: musb: isp1704: add registers from isp1704
+Date: Fri, 11 Dec 2009 14:35:04 +0200
+Message-ID: <4B223C78.2060908@nokia.com>
+References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com> <1260531086-23857-5-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:18692 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbZLKMbl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 07:31:41 -0500
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nBBCVdMY024022
-	for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 06:31:47 -0600
-Received: from [172.21.40.63] (esdhcp04063.research.nokia.com [172.21.40.63])
-	by mgw-da01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nBBCVVC9007287
-	for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 14:31:32 +0200
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1260531086-23857-5-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Balbi Felipe (Nokia-D/Helsinki) wrote:
+> transceiver used on RX-51 board.
+>
+> NYET-Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> ---
+>   
 
-DSS2 has now been merged to the mainline, and I can finally start to
-collect the board and panel patches. So base the patches on top of the
-mainline kernel, and send the patches to me (cc l-o and/or fbdev).
+There are now many ULPI transceivers in use. Let's add the global ULPI 
+register definitions. isp170x transceivers have only one vendor-specific 
+register. The Power Control.
 
-Remember to run checkpatch and sparse for the patches. Also prepend the
-patch name similarly to the following examples (I'm open to suggestions
-if you have better ideas for prefixes):
+-- 
+heikki
 
-OMAP: DSS: DSI: dsi stuff
-OMAP: DSS: Taal: taal panel driver stuff
-OMAP: OMAPFB: omapfb stuff
-
-I will also maintain the older omapfb driver, as Imre is too busy with
-other stuff. Hopefully there will not be many old omapfb patches =).
-
-My DSS tree is at git://gitorious.org/linux-omap-dss2/linux.git, and I
-will be adding the patches to the master branch. But note that I will
-rebase the branch from time to time.
-
- Tomi
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
