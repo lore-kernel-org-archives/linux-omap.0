@@ -1,457 +1,468 @@
 From: balajitk@ti.com
-Subject: [PATCH v4 03/08] ARM: OMAP: Rename twl4030_ in rtc-twl.c to make it generic rtc
-Date: Fri, 11 Dec 2009 21:35:21 +0530
-Message-ID: <1260547521-23749-1-git-send-email-balajitk@ti.com>
+Subject: [PATCH v4 04/08] ARM: OMAP: Rename twl4030_ to twl_ in twl-regulator.c to make it generic reg
+Date: Fri, 11 Dec 2009 21:35:38 +0530
+Message-ID: <1260547538-23800-1-git-send-email-balajitk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38959 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:38998 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932918AbZLKQF0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 11:05:26 -0500
+	with ESMTP id S933136AbZLKQFl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 11:05:41 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: sameo@linux.intel.com, p_gortmaker@yahoo.com, a.zummo@towertech.it, khilman@deeprootsystems.com, tony@atomide.com, Balaji T K <balajitk@ti.com>, Nayak Rajendra <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@deeprootsystems.com, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, sameo@linux.intel.com, tony@atomide.com, Rajendra Nayak <rnayak@ti.com>, Balaji T K <balajitk@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Balaji T K <balajitk@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
 
- This patch renames all twl4030_ functions to twl_ so that RTC driver can be
- shared between Triton and Phoenix.
+ This patch renames all twl4030_ functions to twl so that regulator driver
+ can be reused by Triton - TWL4030 and Phoenix - TWL6030.
 
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Balaji T K <balajitk@ti.com>
-Signed-off-by: Nayak Rajendra <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- drivers/mfd/twl-core.c |    2 +-
- drivers/rtc/rtc-twl.c  |  136 ++++++++++++++++++++++++------------------------
- 2 files changed, 69 insertions(+), 69 deletions(-)
+ drivers/mfd/twl-core.c            |    2 +-
+ drivers/regulator/twl-regulator.c |  189 +++++++++++++++++++------------------
+ 2 files changed, 98 insertions(+), 93 deletions(-)
 
 diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 36fca95..f1509c8 100644
+index f1509c8..d7f2bbd 100644
 --- a/drivers/mfd/twl-core.c
 +++ b/drivers/mfd/twl-core.c
-@@ -538,7 +538,7 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 		 * Eventually, Linux might become more aware of such
- 		 * HW security concerns, and "least privilege".
- 		 */
--		child = add_child(3, "twl4030_rtc",
-+		child = add_child(3, "twl_rtc",
- 				NULL, 0,
- 				true, pdata->irq_base + RTC_INTR_OFFSET, 0);
- 		if (IS_ERR(child))
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 6119712..7cea920 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
+@@ -474,7 +474,7 @@ add_regulator_linked(int num, struct regulator_init_data *pdata,
+ 	}
+ 
+ 	/* NOTE:  we currently ignore regulator IRQs, e.g. for short circuits */
+-	return add_numbered_child(3, "twl4030_reg", num,
++	return add_numbered_child(3, "twl_reg", num,
+ 		pdata, sizeof(*pdata), false, 0, 0);
+ }
+ 
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 8cc46e9..8e1b68a 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
 @@ -1,5 +1,5 @@
  /*
-- * rtc-twl4030.c -- TWL4030 Real Time Clock interface
-+ * rtc-twl.c -- TWL Real Time Clock interface
+- * twl4030-regulator.c -- support regulators in twl4030 family chips
++ * twl-regulator.c -- support regulators in twl4030/twl6030 family chips
   *
-  * Copyright (C) 2007 MontaVista Software, Inc
-  * Author: Alexandre Rusev <source@mvista.com>
-@@ -86,29 +86,29 @@
- /*----------------------------------------------------------------------*/
- 
- /*
-- * Supports 1 byte read from TWL4030 RTC register.
-+ * Supports 1 byte read from TWL RTC register.
-  */
--static int twl4030_rtc_read_u8(u8 *data, u8 reg)
-+static int twl_rtc_read_u8(u8 *data, u8 reg)
- {
- 	int ret;
- 
--	ret = twl_i2c_read_u8(TWL4030_MODULE_RTC, data, reg);
-+	ret = twl_i2c_read_u8(TWL_MODULE_RTC, data, reg);
- 	if (ret < 0)
--		pr_err("twl4030_rtc: Could not read TWL4030"
-+		pr_err("twl_rtc: Could not read TWL"
- 		       "register %X - error %d\n", reg, ret);
- 	return ret;
- }
- 
- /*
-- * Supports 1 byte write to TWL4030 RTC registers.
-+ * Supports 1 byte write to TWL RTC registers.
-  */
--static int twl4030_rtc_write_u8(u8 data, u8 reg)
-+static int twl_rtc_write_u8(u8 data, u8 reg)
- {
- 	int ret;
- 
--	ret = twl_i2c_write_u8(TWL4030_MODULE_RTC, data, reg);
-+	ret = twl_i2c_write_u8(TWL_MODULE_RTC, data, reg);
- 	if (ret < 0)
--		pr_err("twl4030_rtc: Could not write TWL4030"
-+		pr_err("twl_rtc: Could not write TWL"
- 		       "register %X - error %d\n", reg, ret);
- 	return ret;
- }
-@@ -129,7 +129,7 @@ static int set_rtc_irq_bit(unsigned char bit)
- 
- 	val = rtc_irq_bits | bit;
- 	val &= ~BIT_RTC_INTERRUPTS_REG_EVERY_M;
--	ret = twl4030_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
-+	ret = twl_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
- 	if (ret == 0)
- 		rtc_irq_bits = val;
- 
-@@ -145,14 +145,14 @@ static int mask_rtc_irq_bit(unsigned char bit)
- 	int ret;
- 
- 	val = rtc_irq_bits & ~bit;
--	ret = twl4030_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
-+	ret = twl_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
- 	if (ret == 0)
- 		rtc_irq_bits = val;
- 
- 	return ret;
- }
- 
--static int twl4030_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
-+static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
- {
- 	int ret;
- 
-@@ -164,7 +164,7 @@ static int twl4030_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
- 	return ret;
- }
- 
--static int twl4030_rtc_update_irq_enable(struct device *dev, unsigned enabled)
-+static int twl_rtc_update_irq_enable(struct device *dev, unsigned enabled)
- {
- 	int ret;
- 
-@@ -177,7 +177,7 @@ static int twl4030_rtc_update_irq_enable(struct device *dev, unsigned enabled)
- }
- 
- /*
-- * Gets current TWL4030 RTC time and date parameters.
-+ * Gets current TWL RTC time and date parameters.
+  * Copyright (C) 2008 David Brownell
   *
-  * The RTC's time/alarm representation is not what gmtime(3) requires
-  * Linux to use:
-@@ -185,23 +185,23 @@ static int twl4030_rtc_update_irq_enable(struct device *dev, unsigned enabled)
-  *  - Months are 1..12 vs Linux 0-11
-  *  - Years are 0..99 vs Linux 1900..N (we assume 21st century)
-  */
--static int twl4030_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+static int twl_rtc_read_time(struct device *dev, struct rtc_time *tm)
+@@ -19,7 +19,7 @@
+ 
+ 
+ /*
+- * The TWL4030/TW5030/TPS659x0 family chips include power management, a
++ * The TWL4030/TW5030/TPS659x0/TWL6030 family chips include power management, a
+  * USB OTG transceiver, an RTC, ADC, PWM, and lots more.  Some versions
+  * include an audio codec, battery charger, and more voltage regulators.
+  * These chips are often used in OMAP-based systems.
+@@ -33,7 +33,7 @@ struct twlreg_info {
+ 	/* start of regulator's PM_RECEIVER control register bank */
+ 	u8			base;
+ 
+-	/* twl4030 resource ID, for resource control state machine */
++	/* twl resource ID, for resource control state machine */
+ 	u8			id;
+ 
+ 	/* voltage in mV = table[VSEL]; table_len must be a power-of-two */
+@@ -59,20 +59,20 @@ struct twlreg_info {
+ 
+ 
+ static inline int
+-twl4030reg_read(struct twlreg_info *info, unsigned offset)
++twlreg_read(struct twlreg_info *info, unsigned offset)
  {
- 	unsigned char rtc_data[ALL_TIME_REGS + 1];
- 	int ret;
- 	u8 save_control;
+ 	u8 value;
+ 	int status;
  
--	ret = twl4030_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		return ret;
- 
- 	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
- 
--	ret = twl4030_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = twl_i2c_read(TWL4030_MODULE_RTC, rtc_data,
-+	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
- 			       REG_SECONDS_REG, ALL_TIME_REGS);
- 
- 	if (ret < 0) {
-@@ -219,7 +219,7 @@ static int twl4030_rtc_read_time(struct device *dev, struct rtc_time *tm)
- 	return ret;
+-	status = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER,
++	status = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER,
+ 			&value, info->base + offset);
+ 	return (status < 0) ? status : value;
  }
  
--static int twl4030_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+static int twl_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ static inline int
+-twl4030reg_write(struct twlreg_info *info, unsigned offset, u8 value)
++twlreg_write(struct twlreg_info *info, unsigned offset, u8 value)
  {
- 	unsigned char save_control;
- 	unsigned char rtc_data[ALL_TIME_REGS + 1];
-@@ -233,17 +233,17 @@ static int twl4030_rtc_set_time(struct device *dev, struct rtc_time *tm)
- 	rtc_data[6] = bin2bcd(tm->tm_year - 100);
+-	return twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++	return twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER,
+ 			value, info->base + offset);
+ }
  
- 	/* Stop RTC while updating the TC registers */
--	ret = twl4030_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		goto out;
+@@ -80,9 +80,9 @@ twl4030reg_write(struct twlreg_info *info, unsigned offset, u8 value)
  
- 	save_control &= ~BIT_RTC_CTRL_REG_STOP_RTC_M;
--	twl4030_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+	twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		goto out;
+ /* generic power resource operations, which work on all regulators */
  
- 	/* update all the time registers in one shot */
--	ret = twl_i2c_write(TWL4030_MODULE_RTC, rtc_data,
-+	ret = twl_i2c_write(TWL_MODULE_RTC, rtc_data,
- 			REG_SECONDS_REG, ALL_TIME_REGS);
- 	if (ret < 0) {
- 		dev_err(dev, "rtc_set_time error %d\n", ret);
-@@ -252,21 +252,21 @@ static int twl4030_rtc_set_time(struct device *dev, struct rtc_time *tm)
- 
- 	/* Start back RTC */
- 	save_control |= BIT_RTC_CTRL_REG_STOP_RTC_M;
--	ret = twl4030_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
- 
- out:
- 	return ret;
+-static int twl4030reg_grp(struct regulator_dev *rdev)
++static int twlreg_grp(struct regulator_dev *rdev)
+ {
+-	return twl4030reg_read(rdev_get_drvdata(rdev), VREG_GRP);
++	return twlreg_read(rdev_get_drvdata(rdev), VREG_GRP);
  }
  
  /*
-- * Gets current TWL4030 RTC alarm time.
-+ * Gets current TWL RTC alarm time.
-  */
--static int twl4030_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+static int twl_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
- {
- 	unsigned char rtc_data[ALL_TIME_REGS + 1];
- 	int ret;
+@@ -94,9 +94,9 @@ static int twl4030reg_grp(struct regulator_dev *rdev)
+ #define P2_GRP		BIT(6)		/* secondary processor, modem, etc */
+ #define P1_GRP		BIT(5)		/* CPU/Linux */
  
--	ret = twl_i2c_read(TWL4030_MODULE_RTC, rtc_data,
-+	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
- 			       REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
- 	if (ret < 0) {
- 		dev_err(dev, "rtc_read_alarm error %d\n", ret);
-@@ -288,12 +288,12 @@ static int twl4030_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
- 	return ret;
+-static int twl4030reg_is_enabled(struct regulator_dev *rdev)
++static int twlreg_is_enabled(struct regulator_dev *rdev)
+ {
+-	int	state = twl4030reg_grp(rdev);
++	int	state = twlreg_grp(rdev);
+ 
+ 	if (state < 0)
+ 		return state;
+@@ -104,35 +104,35 @@ static int twl4030reg_is_enabled(struct regulator_dev *rdev)
+ 	return (state & P1_GRP) != 0;
  }
  
--static int twl4030_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+static int twl_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+-static int twl4030reg_enable(struct regulator_dev *rdev)
++static int twlreg_enable(struct regulator_dev *rdev)
  {
- 	unsigned char alarm_data[ALL_TIME_REGS + 1];
- 	int ret;
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 	int			grp;
  
--	ret = twl4030_rtc_alarm_irq_enable(dev, 0);
-+	ret = twl_rtc_alarm_irq_enable(dev, 0);
- 	if (ret)
- 		goto out;
+-	grp = twl4030reg_read(info, VREG_GRP);
++	grp = twlreg_read(info, VREG_GRP);
+ 	if (grp < 0)
+ 		return grp;
  
-@@ -305,7 +305,7 @@ static int twl4030_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
- 	alarm_data[6] = bin2bcd(alm->time.tm_year - 100);
+ 	grp |= P1_GRP;
+-	return twl4030reg_write(info, VREG_GRP, grp);
++	return twlreg_write(info, VREG_GRP, grp);
+ }
  
- 	/* update all the alarm registers in one shot */
--	ret = twl_i2c_write(TWL4030_MODULE_RTC, alarm_data,
-+	ret = twl_i2c_write(TWL_MODULE_RTC, alarm_data,
- 			REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
- 	if (ret) {
- 		dev_err(dev, "rtc_set_alarm error %d\n", ret);
-@@ -313,12 +313,12 @@ static int twl4030_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+-static int twl4030reg_disable(struct regulator_dev *rdev)
++static int twlreg_disable(struct regulator_dev *rdev)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 	int			grp;
+ 
+-	grp = twl4030reg_read(info, VREG_GRP);
++	grp = twlreg_read(info, VREG_GRP);
+ 	if (grp < 0)
+ 		return grp;
+ 
+ 	grp &= ~P1_GRP;
+-	return twl4030reg_write(info, VREG_GRP, grp);
++	return twlreg_write(info, VREG_GRP, grp);
+ }
+ 
+-static int twl4030reg_get_status(struct regulator_dev *rdev)
++static int twlreg_get_status(struct regulator_dev *rdev)
+ {
+-	int	state = twl4030reg_grp(rdev);
++	int	state = twlreg_grp(rdev);
+ 
+ 	if (state < 0)
+ 		return state;
+@@ -146,7 +146,7 @@ static int twl4030reg_get_status(struct regulator_dev *rdev)
+ 		: REGULATOR_STATUS_STANDBY;
+ }
+ 
+-static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
++static int twlreg_set_mode(struct regulator_dev *rdev, unsigned mode)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 	unsigned		message;
+@@ -165,18 +165,18 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
  	}
  
- 	if (alm->enabled)
--		ret = twl4030_rtc_alarm_irq_enable(dev, 1);
-+		ret = twl_rtc_alarm_irq_enable(dev, 1);
- out:
- 	return ret;
+ 	/* Ensure the resource is associated with some group */
+-	status = twl4030reg_grp(rdev);
++	status = twlreg_grp(rdev);
+ 	if (status < 0)
+ 		return status;
+ 	if (!(status & (P3_GRP | P2_GRP | P1_GRP)))
+ 		return -EACCES;
+ 
+-	status = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER,
++	status = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
+ 			message >> 8, 0x15 /* PB_WORD_MSB */ );
+ 	if (status >= 0)
+ 		return status;
+ 
+-	return twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER,
++	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
+ 			message, 0x16 /* PB_WORD_LSB */ );
  }
  
--static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
-+static irqreturn_t twl_rtc_interrupt(int irq, void *rtc)
- {
- 	unsigned long events = 0;
- 	int ret = IRQ_NONE;
-@@ -333,7 +333,7 @@ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
- 	local_irq_enable();
- #endif
+@@ -262,7 +262,7 @@ static const u16 VDAC_VSEL_table[] = {
+ };
  
--	res = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
-+	res = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
- 	if (res)
- 		goto out;
+ 
+-static int twl4030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
++static int twlldo_list_voltage(struct regulator_dev *rdev, unsigned index)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 	int			mV = info->table[index];
+@@ -271,7 +271,7 @@ static int twl4030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
+ }
+ 
+ static int
+-twl4030ldo_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV)
++twlldo_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 	int			vsel;
+@@ -288,16 +288,16 @@ twl4030ldo_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV)
+ 
+ 		/* use the first in-range value */
+ 		if (min_uV <= uV && uV <= max_uV)
+-			return twl4030reg_write(info, VREG_DEDICATED, vsel);
++			return twlreg_write(info, VREG_DEDICATED, vsel);
+ 	}
+ 
+ 	return -EDOM;
+ }
+ 
+-static int twl4030ldo_get_voltage(struct regulator_dev *rdev)
++static int twlldo_get_voltage(struct regulator_dev *rdev)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+-	int			vsel = twl4030reg_read(info, VREG_DEDICATED);
++	int			vsel = twlreg_read(info, VREG_DEDICATED);
+ 
+ 	if (vsel < 0)
+ 		return vsel;
+@@ -306,19 +306,19 @@ static int twl4030ldo_get_voltage(struct regulator_dev *rdev)
+ 	return LDO_MV(info->table[vsel]) * 1000;
+ }
+ 
+-static struct regulator_ops twl4030ldo_ops = {
+-	.list_voltage	= twl4030ldo_list_voltage,
++static struct regulator_ops twlldo_ops = {
++	.list_voltage	= twlldo_list_voltage,
+ 
+-	.set_voltage	= twl4030ldo_set_voltage,
+-	.get_voltage	= twl4030ldo_get_voltage,
++	.set_voltage	= twlldo_set_voltage,
++	.get_voltage	= twlldo_get_voltage,
+ 
+-	.enable		= twl4030reg_enable,
+-	.disable	= twl4030reg_disable,
+-	.is_enabled	= twl4030reg_is_enabled,
++	.enable		= twlreg_enable,
++	.disable	= twlreg_disable,
++	.is_enabled	= twlreg_is_enabled,
+ 
+-	.set_mode	= twl4030reg_set_mode,
++	.set_mode	= twlreg_set_mode,
+ 
+-	.get_status	= twl4030reg_get_status,
++	.get_status	= twlreg_get_status,
+ };
+ 
+ /*----------------------------------------------------------------------*/
+@@ -326,60 +326,65 @@ static struct regulator_ops twl4030ldo_ops = {
+ /*
+  * Fixed voltage LDOs don't have a VSEL field to update.
+  */
+-static int twl4030fixed_list_voltage(struct regulator_dev *rdev, unsigned index)
++static int twlfixed_list_voltage(struct regulator_dev *rdev, unsigned index)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 
+ 	return info->min_mV * 1000;
+ }
+ 
+-static int twl4030fixed_get_voltage(struct regulator_dev *rdev)
++static int twlfixed_get_voltage(struct regulator_dev *rdev)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 
+ 	return info->min_mV * 1000;
+ }
+ 
+-static struct regulator_ops twl4030fixed_ops = {
+-	.list_voltage	= twl4030fixed_list_voltage,
++static struct regulator_ops twlfixed_ops = {
++	.list_voltage	= twlfixed_list_voltage,
+ 
+-	.get_voltage	= twl4030fixed_get_voltage,
++	.get_voltage	= twlfixed_get_voltage,
+ 
+-	.enable		= twl4030reg_enable,
+-	.disable	= twl4030reg_disable,
+-	.is_enabled	= twl4030reg_is_enabled,
++	.enable		= twlreg_enable,
++	.disable	= twlreg_disable,
++	.is_enabled	= twlreg_is_enabled,
+ 
+-	.set_mode	= twl4030reg_set_mode,
++	.set_mode	= twlreg_set_mode,
+ 
+-	.get_status	= twl4030reg_get_status,
++	.get_status	= twlreg_get_status,
+ };
+ 
+ /*----------------------------------------------------------------------*/
+ 
+-#define TWL_ADJUSTABLE_LDO(label, offset, num) { \
++#define TWL4030_ADJUSTABLE_LDO(label, offset, num) \
++		TWL_ADJUSTABLE_LDO(label, offset, num, TWL4030)
++#define TWL4030_FIXED_LDO(label, offset, mVolts, num) \
++		TWL_FIXED_LDO(label, offset, mVolts, num, TWL4030)
++
++#define TWL_ADJUSTABLE_LDO(label, offset, num, family) { \
+ 	.base = offset, \
+ 	.id = num, \
+ 	.table_len = ARRAY_SIZE(label##_VSEL_table), \
+ 	.table = label##_VSEL_table, \
+ 	.desc = { \
+ 		.name = #label, \
+-		.id = TWL4030_REG_##label, \
++		.id = family##_REG_##label, \
+ 		.n_voltages = ARRAY_SIZE(label##_VSEL_table), \
+-		.ops = &twl4030ldo_ops, \
++		.ops = &twlldo_ops, \
+ 		.type = REGULATOR_VOLTAGE, \
+ 		.owner = THIS_MODULE, \
+ 		}, \
+ 	}
+ 
+-#define TWL_FIXED_LDO(label, offset, mVolts, num) { \
++#define TWL_FIXED_LDO(label, offset, mVolts, num, family) { \
+ 	.base = offset, \
+ 	.id = num, \
+ 	.min_mV = mVolts, \
+ 	.desc = { \
+ 		.name = #label, \
+-		.id = TWL4030_REG_##label, \
++		.id = family##_REG_##label, \
+ 		.n_voltages = 1, \
+-		.ops = &twl4030fixed_ops, \
++		.ops = &twlfixed_ops, \
+ 		.type = REGULATOR_VOLTAGE, \
+ 		.owner = THIS_MODULE, \
+ 		}, \
+@@ -389,35 +394,35 @@ static struct regulator_ops twl4030fixed_ops = {
+  * We list regulators here if systems need some level of
+  * software control over them after boot.
+  */
+-static struct twlreg_info twl4030_regs[] = {
+-	TWL_ADJUSTABLE_LDO(VAUX1, 0x17, 1),
+-	TWL_ADJUSTABLE_LDO(VAUX2_4030, 0x1b, 2),
+-	TWL_ADJUSTABLE_LDO(VAUX2, 0x1b, 2),
+-	TWL_ADJUSTABLE_LDO(VAUX3, 0x1f, 3),
+-	TWL_ADJUSTABLE_LDO(VAUX4, 0x23, 4),
+-	TWL_ADJUSTABLE_LDO(VMMC1, 0x27, 5),
+-	TWL_ADJUSTABLE_LDO(VMMC2, 0x2b, 6),
++static struct twlreg_info twl_regs[] = {
++	TWL4030_ADJUSTABLE_LDO(VAUX1, 0x17, 1),
++	TWL4030_ADJUSTABLE_LDO(VAUX2_4030, 0x1b, 2),
++	TWL4030_ADJUSTABLE_LDO(VAUX2, 0x1b, 2),
++	TWL4030_ADJUSTABLE_LDO(VAUX3, 0x1f, 3),
++	TWL4030_ADJUSTABLE_LDO(VAUX4, 0x23, 4),
++	TWL4030_ADJUSTABLE_LDO(VMMC1, 0x27, 5),
++	TWL4030_ADJUSTABLE_LDO(VMMC2, 0x2b, 6),
  	/*
-@@ -347,14 +347,14 @@ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
- 	else
- 		events |= RTC_IRQF | RTC_UF;
- 
--	res = twl4030_rtc_write_u8(rd_reg | BIT_RTC_STATUS_REG_ALARM_M,
-+	res = twl_rtc_write_u8(rd_reg | BIT_RTC_STATUS_REG_ALARM_M,
- 				   REG_RTC_STATUS_REG);
- 	if (res)
- 		goto out;
- 
- 	/* Clear on Read enabled. RTC_IT bit of TWL4030_INT_PWR_ISR1
- 	 * needs 2 reads to clear the interrupt. One read is done in
--	 * do_twl4030_pwrirq(). Doing the second read, to clear
-+	 * do_twl_pwrirq(). Doing the second read, to clear
- 	 * the bit.
- 	 *
- 	 * FIXME the reason PWR_ISR1 needs an extra read is that
-@@ -376,18 +376,18 @@ out:
- 	return ret;
- }
- 
--static struct rtc_class_ops twl4030_rtc_ops = {
--	.read_time	= twl4030_rtc_read_time,
--	.set_time	= twl4030_rtc_set_time,
--	.read_alarm	= twl4030_rtc_read_alarm,
--	.set_alarm	= twl4030_rtc_set_alarm,
--	.alarm_irq_enable = twl4030_rtc_alarm_irq_enable,
--	.update_irq_enable = twl4030_rtc_update_irq_enable,
-+static struct rtc_class_ops twl_rtc_ops = {
-+	.read_time	= twl_rtc_read_time,
-+	.set_time	= twl_rtc_set_time,
-+	.read_alarm	= twl_rtc_read_alarm,
-+	.set_alarm	= twl_rtc_set_alarm,
-+	.alarm_irq_enable = twl_rtc_alarm_irq_enable,
-+	.update_irq_enable = twl_rtc_update_irq_enable,
+-	TWL_ADJUSTABLE_LDO(VPLL1, 0x2f, 7),
++	TWL4030_ADJUSTABLE_LDO(VPLL1, 0x2f, 7),
+ 	*/
+-	TWL_ADJUSTABLE_LDO(VPLL2, 0x33, 8),
+-	TWL_ADJUSTABLE_LDO(VSIM, 0x37, 9),
+-	TWL_ADJUSTABLE_LDO(VDAC, 0x3b, 10),
++	TWL4030_ADJUSTABLE_LDO(VPLL2, 0x33, 8),
++	TWL4030_ADJUSTABLE_LDO(VSIM, 0x37, 9),
++	TWL4030_ADJUSTABLE_LDO(VDAC, 0x3b, 10),
+ 	/*
+-	TWL_ADJUSTABLE_LDO(VINTANA1, 0x3f, 11),
+-	TWL_ADJUSTABLE_LDO(VINTANA2, 0x43, 12),
+-	TWL_ADJUSTABLE_LDO(VINTDIG, 0x47, 13),
+-	TWL_SMPS(VIO, 0x4b, 14),
+-	TWL_SMPS(VDD1, 0x55, 15),
+-	TWL_SMPS(VDD2, 0x63, 16),
++	TWL4030_ADJUSTABLE_LDO(VINTANA1, 0x3f, 11),
++	TWL4030_ADJUSTABLE_LDO(VINTANA2, 0x43, 12),
++	TWL4030_ADJUSTABLE_LDO(VINTDIG, 0x47, 13),
++	TWL4030_SMPS(VIO, 0x4b, 14),
++	TWL4030_SMPS(VDD1, 0x55, 15),
++	TWL4030_SMPS(VDD2, 0x63, 16),
+ 	 */
+-	TWL_FIXED_LDO(VUSB1V5, 0x71, 1500, 17),
+-	TWL_FIXED_LDO(VUSB1V8, 0x74, 1800, 18),
+-	TWL_FIXED_LDO(VUSB3V1, 0x77, 3100, 19),
++	TWL4030_FIXED_LDO(VUSB1V5, 0x71, 1500, 17),
++	TWL4030_FIXED_LDO(VUSB1V8, 0x74, 1800, 18),
++	TWL4030_FIXED_LDO(VUSB3V1, 0x77, 3100, 19),
+ 	/* VUSBCP is managed *only* by the USB subchip */
  };
  
- /*----------------------------------------------------------------------*/
- 
--static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
-+static int __devinit twl_rtc_probe(struct platform_device *pdev)
+-static int twl4030reg_probe(struct platform_device *pdev)
++static int twlreg_probe(struct platform_device *pdev)
  {
- 	struct rtc_device *rtc;
- 	int ret = 0;
-@@ -398,7 +398,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 		return -EINVAL;
+ 	int				i;
+ 	struct twlreg_info		*info;
+@@ -425,10 +430,10 @@ static int twl4030reg_probe(struct platform_device *pdev)
+ 	struct regulation_constraints	*c;
+ 	struct regulator_dev		*rdev;
  
- 	rtc = rtc_device_register(pdev->name,
--				  &pdev->dev, &twl4030_rtc_ops, THIS_MODULE);
-+				  &pdev->dev, &twl_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		ret = PTR_ERR(rtc);
- 		dev_err(&pdev->dev, "can't register RTC device, err %ld\n",
-@@ -409,7 +409,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, rtc);
- 
--	ret = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
-+	ret = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
- 	if (ret < 0)
- 		goto out1;
- 
-@@ -420,11 +420,11 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 		dev_warn(&pdev->dev, "Pending Alarm interrupt detected.\n");
- 
- 	/* Clear RTC Power up reset and pending alarm interrupts */
--	ret = twl4030_rtc_write_u8(rd_reg, REG_RTC_STATUS_REG);
-+	ret = twl_rtc_write_u8(rd_reg, REG_RTC_STATUS_REG);
- 	if (ret < 0)
- 		goto out1;
- 
--	ret = request_irq(irq, twl4030_rtc_interrupt,
-+	ret = request_irq(irq, twl_rtc_interrupt,
- 				IRQF_TRIGGER_RISING,
- 				dev_name(&rtc->dev), rtc);
- 	if (ret < 0) {
-@@ -433,20 +433,20 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
+-	for (i = 0, info = NULL; i < ARRAY_SIZE(twl4030_regs); i++) {
+-		if (twl4030_regs[i].desc.id != pdev->id)
++	for (i = 0, info = NULL; i < ARRAY_SIZE(twl_regs); i++) {
++		if (twl_regs[i].desc.id != pdev->id)
+ 			continue;
+-		info = twl4030_regs + i;
++		info = twl_regs + i;
+ 		break;
  	}
- 
- 	/* Check RTC module status, Enable if it is off */
--	ret = twl4030_rtc_read_u8(&rd_reg, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_read_u8(&rd_reg, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		goto out2;
- 
- 	if (!(rd_reg & BIT_RTC_CTRL_REG_STOP_RTC_M)) {
--		dev_info(&pdev->dev, "Enabling TWL4030-RTC.\n");
-+		dev_info(&pdev->dev, "Enabling TWL-RTC.\n");
- 		rd_reg = BIT_RTC_CTRL_REG_STOP_RTC_M;
--		ret = twl4030_rtc_write_u8(rd_reg, REG_RTC_CTRL_REG);
-+		ret = twl_rtc_write_u8(rd_reg, REG_RTC_CTRL_REG);
- 		if (ret < 0)
- 			goto out2;
- 	}
- 
- 	/* init cached IRQ enable bits */
--	ret = twl4030_rtc_read_u8(&rtc_irq_bits, REG_RTC_INTERRUPTS_REG);
-+	ret = twl_rtc_read_u8(&rtc_irq_bits, REG_RTC_INTERRUPTS_REG);
- 	if (ret < 0)
- 		goto out2;
- 
-@@ -461,10 +461,10 @@ out0:
- }
- 
- /*
-- * Disable all TWL4030 RTC module interrupts.
-+ * Disable all TWL RTC module interrupts.
-  * Sets status flag to free.
-  */
--static int __devexit twl4030_rtc_remove(struct platform_device *pdev)
-+static int __devexit twl_rtc_remove(struct platform_device *pdev)
- {
- 	/* leave rtc running, but disable irqs */
- 	struct rtc_device *rtc = platform_get_drvdata(pdev);
-@@ -480,7 +480,7 @@ static int __devexit twl4030_rtc_remove(struct platform_device *pdev)
+ 	if (!info)
+@@ -466,35 +471,35 @@ static int twl4030reg_probe(struct platform_device *pdev)
  	return 0;
  }
  
--static void twl4030_rtc_shutdown(struct platform_device *pdev)
-+static void twl_rtc_shutdown(struct platform_device *pdev)
+-static int __devexit twl4030reg_remove(struct platform_device *pdev)
++static int __devexit twlreg_remove(struct platform_device *pdev)
  {
- 	/* mask timer interrupts, but leave alarm interrupts on to enable
- 	   power-on when alarm is triggered */
-@@ -491,7 +491,7 @@ static void twl4030_rtc_shutdown(struct platform_device *pdev)
- 
- static unsigned char irqstat;
- 
--static int twl4030_rtc_suspend(struct platform_device *pdev, pm_message_t state)
-+static int twl_rtc_suspend(struct platform_device *pdev, pm_message_t state)
- {
- 	irqstat = rtc_irq_bits;
- 
-@@ -499,42 +499,42 @@ static int twl4030_rtc_suspend(struct platform_device *pdev, pm_message_t state)
+ 	regulator_unregister(platform_get_drvdata(pdev));
  	return 0;
  }
  
--static int twl4030_rtc_resume(struct platform_device *pdev)
-+static int twl_rtc_resume(struct platform_device *pdev)
- {
- 	set_rtc_irq_bit(irqstat);
- 	return 0;
- }
+-MODULE_ALIAS("platform:twl4030_reg");
++MODULE_ALIAS("platform:twl_reg");
  
- #else
--#define twl4030_rtc_suspend NULL
--#define twl4030_rtc_resume  NULL
-+#define twl_rtc_suspend NULL
-+#define twl_rtc_resume  NULL
- #endif
- 
--MODULE_ALIAS("platform:twl4030_rtc");
-+MODULE_ALIAS("platform:twl_rtc");
- 
- static struct platform_driver twl4030rtc_driver = {
--	.probe		= twl4030_rtc_probe,
--	.remove		= __devexit_p(twl4030_rtc_remove),
--	.shutdown	= twl4030_rtc_shutdown,
--	.suspend	= twl4030_rtc_suspend,
--	.resume		= twl4030_rtc_resume,
-+	.probe		= twl_rtc_probe,
-+	.remove		= __devexit_p(twl_rtc_remove),
-+	.shutdown	= twl_rtc_shutdown,
-+	.suspend	= twl_rtc_suspend,
-+	.resume		= twl_rtc_resume,
- 	.driver		= {
- 		.owner	= THIS_MODULE,
--		.name	= "twl4030_rtc",
-+		.name	= "twl_rtc",
- 	},
+-static struct platform_driver twl4030reg_driver = {
+-	.probe		= twl4030reg_probe,
+-	.remove		= __devexit_p(twl4030reg_remove),
++static struct platform_driver twlreg_driver = {
++	.probe		= twlreg_probe,
++	.remove		= __devexit_p(twlreg_remove),
+ 	/* NOTE: short name, to work around driver model truncation of
+-	 * "twl4030_regulator.12" (and friends) to "twl4030_regulator.1".
++	 * "twl_regulator.12" (and friends) to "twl_regulator.1".
+ 	 */
+-	.driver.name	= "twl4030_reg",
++	.driver.name	= "twl_reg",
+ 	.driver.owner	= THIS_MODULE,
  };
  
--static int __init twl4030_rtc_init(void)
-+static int __init twl_rtc_init(void)
+-static int __init twl4030reg_init(void)
++static int __init twlreg_init(void)
  {
- 	return platform_driver_register(&twl4030rtc_driver);
+-	return platform_driver_register(&twl4030reg_driver);
++	return platform_driver_register(&twlreg_driver);
  }
--module_init(twl4030_rtc_init);
-+module_init(twl_rtc_init);
+-subsys_initcall(twl4030reg_init);
++subsys_initcall(twlreg_init);
  
--static void __exit twl4030_rtc_exit(void)
-+static void __exit twl_rtc_exit(void)
+-static void __exit twl4030reg_exit(void)
++static void __exit twlreg_exit(void)
  {
- 	platform_driver_unregister(&twl4030rtc_driver);
+-	platform_driver_unregister(&twl4030reg_driver);
++	platform_driver_unregister(&twlreg_driver);
  }
--module_exit(twl4030_rtc_exit);
-+module_exit(twl_rtc_exit);
+-module_exit(twl4030reg_exit)
++module_exit(twlreg_exit)
  
- MODULE_AUTHOR("Texas Instruments, MontaVista Software");
+-MODULE_DESCRIPTION("TWL4030 regulator driver");
++MODULE_DESCRIPTION("TWL regulator driver");
  MODULE_LICENSE("GPL");
 -- 
 1.5.4.7
