@@ -1,185 +1,67 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] omap3: pandora: add DSS2 support and related regulators
-Date: Fri, 11 Dec 2009 21:32:20 +0200
-Message-ID: <1260559940-25103-1-git-send-email-notasas@gmail.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: [PATCH] [OMAP] gpio: Simultaneously requested rising and falling
+	edge
+Date: Fri, 11 Dec 2009 11:43:33 -0800
+Message-ID: <6cb013310912111143q4825b65eged6afedeb4da23f9@mail.gmail.com>
+References: <1260503994-27823-1-git-send-email-darkstar6262@gmail.com>
+	<873a3hmr4k.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:44553 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761018AbZLKTcU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 14:32:20 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so649722fgg.1
-        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 11:32:26 -0800 (PST)
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:50941 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761133AbZLKTnq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 14:43:46 -0500
+Received: by pwj9 with SMTP id 9so784114pwj.21
+        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 11:43:53 -0800 (PST)
+In-Reply-To: <873a3hmr4k.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch adds configuration data for DSS2 and sets up
-display related regulators.
+On Fri, Dec 11, 2009 at 8:07 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Cory Maccarrone <darkstar6262@gmail.com> writes:
+>
+>
+> I think this needs a little more description. =C2=A0In particular you
+> should describe that this toggle happens on *every* interrupt, and
+> why.
+>
+> Also, it's not exactly a noop for non-OMAP1. =C2=A0More on this below=
+=2E..
+>
+> ...
+>
+> Not exactly a noop. =C2=A0This function is called for non-OMAP1 as we=
+ll...
+>
+>
+> ...and will write a zero to offset zero of the GPIO bank regs
+> (GPIO_REVISION reg). =C2=A0While ths is a read-only reg and *should* =
+have
+> no effect, the point is that this function should not be called for
+> non-OMAP1.
+>
+>
+> Rather than check the flags on every interrupt, it may be better to
+> create a per-bank mask for GPIOs that need this treatment.
+>
+> The code that sets that flag could be conditional on OMAP1 and also o=
+n
+> whether both edges are set.
+>
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
-This patch depends on 'omap3: pandora: board file updates for .33'
-in Tony's queue.
+Thanks for the feedback.  This is the first time I've dealt with this
+code and I wanna make sure I get it right.  I'll take another look at
+it and see what I can do.
 
- arch/arm/mach-omap2/board-omap3pandora.c |  109 ++++++++++++++++++++++++++++++
- 1 files changed, 109 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 89a541d..a02ede6 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -41,6 +41,7 @@
- #include <plat/mcspi.h>
- #include <plat/usb.h>
- #include <plat/mux.h>
-+#include <plat/display.h>
- 
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "mmc-twl4030.h"
-@@ -192,6 +193,61 @@ static struct twl4030_keypad_data pandora_kp_data = {
- 	.rep		= 1,
- };
- 
-+static struct omap_dss_device pandora_lcd_device = {
-+	.name			= "lcd",
-+	.driver_name		= "tpo_td043mtea1_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 24,
-+	.reset_gpio		= 157,
-+};
-+
-+static struct omap_dss_device pandora_tv_device = {
-+	.name			= "tv",
-+	.driver_name		= "venc",
-+	.type			= OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+};
-+
-+static struct omap_dss_device *pandora_dss_devices[] = {
-+	&pandora_lcd_device,
-+	&pandora_tv_device,
-+};
-+
-+static struct omap_dss_board_info pandora_dss_data = {
-+	.num_devices	= ARRAY_SIZE(pandora_dss_devices),
-+	.devices	= pandora_dss_devices,
-+	.default_device	= &pandora_lcd_device,
-+};
-+
-+static struct platform_device pandora_dss_device = {
-+	.name		= "omapdss",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data = &pandora_dss_data,
-+	},
-+};
-+
-+static struct regulator_consumer_supply pandora_vcc_lcd_supply = {
-+	.supply		= "vcc",
-+	.dev		= &pandora_lcd_device.dev,
-+};
-+
-+static struct regulator_consumer_supply pandora_vdda_dac_supply = {
-+	.supply		= "vdda_dac",
-+	.dev		= &pandora_dss_device.dev,
-+};
-+
-+static struct regulator_consumer_supply pandora_vdds_supplies[] = {
-+	{
-+		.supply		= "vdds_sdi",
-+		.dev		= &pandora_dss_device.dev,
-+	},
-+	{
-+		.supply		= "vdds_dsi",
-+		.dev		= &pandora_dss_device.dev,
-+	},
-+};
-+
- static struct twl4030_hsmmc_info omap3pandora_mmc[] = {
- 	{
- 		.mmc		= 1,
-@@ -277,6 +333,49 @@ static struct regulator_init_data pandora_vmmc2 = {
- 	.consumer_supplies	= &pandora_vmmc2_supply,
- };
- 
-+/* VDAC for DSS driving S-Video */
-+static struct regulator_init_data pandora_vdac = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &pandora_vdda_dac_supply,
-+};
-+
-+/* VPLL2 for digital video outputs */
-+static struct regulator_init_data pandora_vpll2 = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(pandora_vdds_supplies),
-+	.consumer_supplies	= pandora_vdds_supplies,
-+};
-+
-+/* VAUX1 for LCD */
-+static struct regulator_init_data pandora_vaux1 = {
-+	.constraints = {
-+		.min_uV			= 3000000,
-+		.max_uV			= 3000000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
-+		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &pandora_vcc_lcd_supply,
-+};
-+
- static struct twl4030_usb_data omap3pandora_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
-@@ -298,6 +397,9 @@ static struct twl4030_platform_data omap3pandora_twldata = {
- 	.codec		= &omap3pandora_codec_data,
- 	.vmmc1		= &pandora_vmmc1,
- 	.vmmc2		= &pandora_vmmc2,
-+	.vdac		= &pandora_vdac,
-+	.vpll2		= &pandora_vpll2,
-+	.vaux1		= &pandora_vaux1,
- 	.keypad		= &pandora_kp_data,
- };
- 
-@@ -365,6 +467,12 @@ static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
- 		.controller_data	= &ads7846_mcspi_config,
- 		.irq			= OMAP_GPIO_IRQ(OMAP3_PANDORA_TS_GPIO),
- 		.platform_data		= &ads7846_config,
-+	}, {
-+		.modalias		= "tpo_td043mtea1_panel_spi",
-+		.bus_num		= 1,
-+		.chip_select		= 1,
-+		.max_speed_hz		= 375000,
-+		.platform_data		= &pandora_lcd_device,
- 	}
- };
- 
-@@ -384,6 +492,7 @@ static void __init omap3pandora_init_irq(void)
- static struct platform_device *omap3pandora_devices[] __initdata = {
- 	&pandora_leds_gpio,
- 	&pandora_keys_gpio,
-+	&pandora_dss_device,
- };
- 
- static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--- 
-1.6.3.3
-
+Thanks
+Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
