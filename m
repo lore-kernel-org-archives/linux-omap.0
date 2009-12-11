@@ -1,143 +1,101 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] [OMAP] gpio: Simultaneously requested rising and falling edge
-Date: Fri, 11 Dec 2009 08:07:07 -0800
-Message-ID: <873a3hmr4k.fsf@deeprootsystems.com>
-References: <1260503994-27823-1-git-send-email-darkstar6262@gmail.com>
+Subject: Re: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the sleep dependencies.
+Date: Fri, 11 Dec 2009 08:12:35 -0800
+Message-ID: <87tyvxlcb0.fsf@deeprootsystems.com>
+References: <1260098323-26183-1-git-send-email-thara@ti.com>
+	<873a3ju4ng.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030ACBFDFF@dbde02.ent.ti.com>
+	<87hbryrc7v.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030ADD495C@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:57694 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933635AbZLKQHD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 11:07:03 -0500
-Received: by pwj9 with SMTP id 9so661343pwj.21
-        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 08:07:09 -0800 (PST)
-In-Reply-To: <1260503994-27823-1-git-send-email-darkstar6262@gmail.com> (Cory Maccarrone's message of "Thu\, 10 Dec 2009 19\:59\:54 -0800")
+Received: from mail-px0-f174.google.com ([209.85.216.174]:53639 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932508AbZLKQMa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 11:12:30 -0500
+Received: by pxi4 with SMTP id 4so283875pxi.33
+        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 08:12:37 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD495C@dbde02.ent.ti.com> (Thara Gopinath's message of "Fri\, 11 Dec 2009 10\:37\:26 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-Cory Maccarrone <darkstar6262@gmail.com> writes:
+"Gopinath, Thara" <thara@ti.com> writes:
 
-> Some chips, namely any OMAP1 chips using METHOD_MPUIO,
-> OMAP15xx and OMAP7xx, cannot be setup to respond to on-chip GPIO
-> interrupts in both rising and falling edge directions -- they can
-> only respond to one direction or the other, depending on how the
-> ICR is configured.
+>>>-----Original Message-----
+>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>Sent: Thursday, December 10, 2009 10:36 PM
+>>>To: Gopinath, Thara
+>>>Cc: linux-omap@vger.kernel.org; Paul Walmsley
+>>>Subject: Re: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the sleep
+>>>dependencies.
+>>>
+>>>"Gopinath, Thara" <thara@ti.com> writes:
+>>>
+>>>>>>-----Original Message-----
+>>>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>>>>Sent: Thursday, December 10, 2009 4:39 AM
+>>>>>>To: Gopinath, Thara
+>>>>>>Cc: linux-omap@vger.kernel.org; Paul Walmsley
+>>>>>>Subject: Re: [PATCH] OMAP3: hwmod: check for clkdomain pointer before accesing it to change the
+>>>sleep
+>>>>>>dependencies.
+>>>>>>
+>>>>>>Thara Gopinath <thara@ti.com> writes:
+>>>>>>
+>>>>>>> Some clock nodes like wdt1_fck, sr1_fck, sr2_fck etc do not have a
+>>>>>>> clock domain associated . For such nodes accessing the clock domain pointers
+>>>>>>> in _add_initiator_dep and _del_initiator_dep, will lead to null pointer
+>>>>>>> defreferencing crash. Adding support in these functions to check for
+>>>>>>> existence of clkdm pointer before trying to acess it. Even if tomorrow
+>>>>>>> we correct all the clock nodes to have an associated clock domain, checking
+>>>>>>> for the existence of the pointer is a good programming practice.
+>>>>>>>
+>>>>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>>>>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>>>>>> ---
+>>>>>>> This patch depends on http://patchwork.kernel.org/patch/63383/
+>>>>>>
+>>>>>>I think clocks without associated clockdomains should be handled with
+>>>>>>a flag instead of a check for a NULL pointer.
+>>>>>>
+>>>>>>Your current approach will silently fail if someone forgets to add
+>>>>>>a clockdomain to a clock that should have one.
+>>>>
+>>>> Are you suggesting adding a flag to the clock node in case it does
+>>>> not have an associated clockdomain?
+>>>
+>>>Yes, or to the hwmod.
+>>>
+>>>> I am using your tree origin/pm-wip/omap_device branch. On this I see
+>>>> a commit (e89a95db7095d998991c564a756a33ee0ec722c5) in which a
+>>>> warning is printed in omap2_init_clk_clkdm if there is no
+>>>> clockdomain associated with a clock node.
+>>>
+>>>This is to check for the case of a missing clkdm when there should be
+>>>one.  You're trying to solve the problem of when there is no
+>>>clockdomain for a given clock.
+>>>
+>>>> My idea was this warning plus the check so as to avoid the system
+>>>> crash would suffice.
+>>>
+>>>I still think this should be flagged explicitly in the clock/hwmod,
+>>>then check using the flag instead of of using NULL pointer check.
+>>>
+>>>For readability, it makes it more clear that this is checking for some
+>>>exceptions and not simply doing error checking.
 >
-> This change implements a toggle function that will modify the ICR
-> to flip the direction of interrupt for IRQs that are requested with
-> both rising and falling flags.  The toggle function is a noop for
-> chips and GPIOs it does not apply to.
+> Agreed. We could add a flag and base the check on the flag. But
+> still if some clock node does not have a clkdomain and forgets to
+> put this flag, the system will still crash. 
 
-I think this needs a little more description.  In particular you
-should describe that this toggle happens on *every* interrupt, and
-why.
+Yes, but with a clear message as to why.
 
-Also, it's not exactly a noop for non-OMAP1.  More on this below...
+> So have have both the checks ??
 
-> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
-> ---
->  arch/arm/plat-omap/gpio.c |   60 +++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 60 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 055160e..b594398 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -749,6 +749,53 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
->  }
->  #endif
->  
-> +/*
-> + * This only applies to chips that can't do both rising and falling edge
-> + * detection at once.  For all other chips, this function is a noop.
-> + */
-
-Not exactly a noop.  This function is called for non-OMAP1 as well...
-
-> +static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
-> +{
-> +	void __iomem *reg = bank->base;
-> +	u32 l = 0;
-> +
-> +	switch (bank->method) {
-> +#ifdef CONFIG_ARCH_OMAP1
-> +	case METHOD_MPUIO:
-> +		reg += OMAP_MPUIO_GPIO_INT_EDGE;
-> +		l = __raw_readl(reg);
-> +		if ((l >> gpio) & 1)
-> +			l &= ~(1 << gpio);
-> +		else
-> +			l |= 1 << gpio;
-> +		break;
-> +#endif
-> +#ifdef CONFIG_ARCH_OMAP15XX
-> +	case METHOD_GPIO_1510:
-> +		reg += OMAP1510_GPIO_INT_CONTROL;
-> +		l = __raw_readl(reg);
-> +		if ((l >> gpio) & 1)
-> +			l &= ~(1 << gpio);
-> +		else
-> +			l |= 1 << gpio;
-> +		break;
-> +#endif
-> +#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-> +	case METHOD_GPIO_7XX:
-> +		reg += OMAP7XX_GPIO_INT_CONTROL;
-> +		l = __raw_readl(reg);
-> +		if ((l >> gpio) & 1) {
-> +			l &= ~(1 << gpio);
-> +		} else {
-> +			l |= 1 << gpio;
-> +		}
-> +		break;
-> +#endif
-> +	default:
-> +		return;
-> +	}
-> +	__raw_writel(l, reg);
-
-...and will write a zero to offset zero of the GPIO bank regs
-(GPIO_REVISION reg).  While ths is a read-only reg and *should* have
-no effect, the point is that this function should not be called for
-non-OMAP1.
-
-> +}
-> +
->  static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
->  {
->  	void __iomem *reg = bank->base;
-> @@ -1284,9 +1331,22 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
->  
->  		gpio_irq = bank->virtual_irq_start;
->  		for (; isr != 0; isr >>= 1, gpio_irq++) {
-> +			struct irq_desc *desc = irq_to_desc(gpio_irq);
->  			if (!(isr & 1))
->  				continue;
->  
-> +			/*
-> +			 * Some chips can't respond to both rising and falling at the
-> +			 * same time.  If this irq was requested with both flags, we
-> +			 * need to flip the ICR data for the IRQ to respond to the
-> +			 * IRQ for the opposite direction.
-> +			 */
-> +			if (desc->status & IRQ_TYPE_EDGE_FALLING &&
-> +			    desc->status & IRQ_TYPE_EDGE_RISING)
-> +				_toggle_gpio_edge_triggering(
-> +						get_irq_chip_data(gpio_irq),
-> +						get_gpio_index(irq_to_gpio(gpio_irq)));
-> +
-
-Rather than check the flags on every interrupt, it may be better to
-create a per-bank mask for GPIOs that need this treatment.  
-
-The code that sets that flag could be conditional on OMAP1 and also on
-whether both edges are set.
-
->  			generic_handle_irq(gpio_irq);
->  		}
->  	}
+I don't think so, because the check you added will allow the system to
+continue in a known non-working state.
 
 Kevin
