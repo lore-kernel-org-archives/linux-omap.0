@@ -1,92 +1,33 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [RFC/PATCH 1/5] usb: otg: add notifier support
-Date: Fri, 11 Dec 2009 13:31:22 +0200
-Message-ID: <1260531086-23857-2-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC/PATCH 5/5] usb: musb: musb supports otg notifier
+Date: Fri, 11 Dec 2009 13:40:15 +0200
+Message-ID: <20091211114015.GC12526@nokia.com>
 References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:50304 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762327AbZLKLcQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 06:32:16 -0500
-In-Reply-To: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+ <1260531086-23857-6-git-send-email-felipe.balbi@nokia.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1260531086-23857-6-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-The notifier will be used to communicate usb events
-to other drivers like the charger chip.
+On Fri, Dec 11, 2009 at 12:31:26PM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
+>we use the notifier to kick the charger detection.
+>Needed on RX-51 board. Later on we will notify
+>also the bMaxPower field from usb_configuration.
+>
+>Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-This can be used as source of information to kick
-usb charger detection as described by the USB
-Battery Charging Specification 1.1 and/or to
-pass bMaxPower field of selected usb_configuration
-to charger chip in order to use that information
-as input current on the charging profile
-setup.
+this is supposed to be:
+NYET-Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- include/linux/usb/otg.h |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
-index 52bb917..6c0b676 100644
---- a/include/linux/usb/otg.h
-+++ b/include/linux/usb/otg.h
-@@ -9,6 +9,8 @@
- #ifndef __LINUX_USB_OTG_H
- #define __LINUX_USB_OTG_H
- 
-+#include <linux/notifier.h>
-+
- /* OTG defines lots of enumeration states before device reset */
- enum usb_otg_state {
- 	OTG_STATE_UNDEFINED = 0,
-@@ -33,6 +35,14 @@ enum usb_otg_state {
- 	OTG_STATE_A_VBUS_ERR,
- };
- 
-+enum usb_xceiv_events {
-+	USB_EVENT_NONE,         /* no events or cable disconnected */
-+	USB_EVENT_VBUS,         /* vbus valid event */
-+	USB_EVENT_ID,           /* id was grounded */
-+	USB_EVENT_CHARGER,      /* usb dedicated charger */
-+	USB_EVENT_ENUMERATED,   /* gadget driver enumerated */
-+};
-+
- #define USB_OTG_PULLUP_ID		(1 << 0)
- #define USB_OTG_PULLDOWN_DP		(1 << 1)
- #define USB_OTG_PULLDOWN_DM		(1 << 2)
-@@ -70,6 +80,9 @@ struct otg_transceiver {
- 	struct otg_io_access_ops	*io_ops;
- 	void __iomem			*io_priv;
- 
-+	/* for notification of usb_xceiv_events */
-+	struct blocking_notifier_head	notifier;
-+
- 	/* to pass extra port status to the root hub */
- 	u16			port_status;
- 	u16			port_change;
-@@ -203,6 +216,18 @@ otg_start_srp(struct otg_transceiver *otg)
- 	return otg->start_srp(otg);
- }
- 
-+/* notifiers */
-+static inline int
-+otg_register_notifier(struct otg_transceiver *otg, struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&otg->notifier, nb);
-+}
-+
-+static inline void
-+otg_unregister_notifier(struct otg_transceiver *otg, struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&otg->notifier, nb);
-+}
- 
- /* for OTG controller drivers (and maybe other stuff) */
- extern int usb_bus_start_enum(struct usb_bus *bus, unsigned port_num);
 -- 
-1.6.6.rc0
-
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
