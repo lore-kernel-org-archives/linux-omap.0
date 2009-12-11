@@ -1,64 +1,54 @@
-From: Juha Leppanen <juha_motorsportcom@luukku.com>
-Subject: OMAP: DSS2: fix timeout
-Date: Fri, 11 Dec 2009 13:46:52 +0200 (EET)
-Message-ID: <1260532012356.juha_motorsportcom.43554.MJrAsHh1bjkDfuhyBubUGg@luukku.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 0/2] [RESEND] Amstrad Delta: add support for LCD
+ contrast
+Date: Fri, 11 Dec 2009 14:07:39 +0200
+Message-ID: <1260533259.10417.3.camel@tubuntu.research.nokia.com>
+References: <200911231857.55566.jkrzyszt@tis.icnet.pl>
+	 <20091207213250.GI24013@atomide.com>
+	 <1260525223.9700.86.camel@tubuntu.research.nokia.com>
+	 <200912111255.48176.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta-out-1.luukku.com ([194.111.136.57]:45902 "EHLO
-	mta-out-1.luukku.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756901AbZLKMIk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 07:08:40 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:16622 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752340AbZLKMJL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 07:09:11 -0500
+In-Reply-To: <200912111255.48176.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org
+To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Fri, 2009-12-11 at 12:55 +0100, ext Janusz Krzysztofik wrote:
+> (dropping Imre to not bother him personally any longer)
+> (dropping LKML, no need to spam them since omapfb maintaner problem s=
+olved)
+> (not sure if old fbdev list should be dropped as well - seems closed)
+>=20
+> Friday 11 December 2009 10:53:43 Tomi Valkeinen napisa=C5=82(a):
+> >
+> > I talked with Imre, and he's not too keen on maintaining the old om=
+apfb,
+> > so I'll take over it.
+>=20
+> Tomi,
+>=20
+> That's great, thank you.
+>=20
+> > And perhaps it's easier to have all omap display=20
+> > related patches in one place.
+>=20
+> Am I supposed to do anything about this series[1]? Resend to you?
 
-checking some patches thru www.kernel.org
+Yes, please resend to me. I don't seem to have the patches in my mailbo=
+x
+anymore.
 
-/drivers/video/omap2/dss/dss.c
-
-I noticed that if timeout happens,
-REG_GET is not checked after last 1000th udelay.
-Why not check it?
-
-static int _omap_dss_wait_reset(void)
-{
--	unsigned timeout =3D 1000;
-+	int timeout =3D 1000;
-
-	while (REG_GET(DSS_SYSSTATUS, 0, 0) =3D=3D 0) {
--		udelay(1);
--		if (!--timeout) {
-+		if (--timeout < 0) {
-			DSSERR("soft reset failed\n");
-			return -ENODEV;
-		}
-+		udelay(1);
-	}
-
-	return 0;
-}
-
-
-Reported-by: "Juha Leppanen" <juha_motorsportcom@luukku.com>
-Signed-off-by: "Juha Leppanen" <juha_motorsportcom@luukku.com>
-
-No reply needed to me,
-my spam filter will probably eat your reply.
-
-Happy hacking,
-
-Mr. Juha Leppanen
-Kuopio, Finland
+ Tomi
 
 
-=2E...................................................................
-Luukku Plus -paketilla p=E4=E4set eroon tila- ja turvallisuusongelmista=
-=2E
-Hanki Luukku Plus ja helpotat el=E4m=E4=E4si. http://www.mtv3.fi/luukku
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
