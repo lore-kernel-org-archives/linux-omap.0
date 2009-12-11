@@ -1,108 +1,141 @@
-From: Abhijit.Pagare@india.ti.com
-Subject: [PATCH 1/5] ARM: OMAP4: PM: OMAP4 essential basic initialisations.
-Date: Fri, 11 Dec 2009 16:15:52 +0530
-Message-ID: <27848.2793517925$1260528590@news.gmane.org>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 1/1] mfd: twl4030: clarify the return value for read
+ and write
+Date: Fri, 11 Dec 2009 12:53:45 +0200
+Message-ID: <20091211105345.GE8299@esdhcp037198.research.nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0309DAC23C@dbde02.ent.ti.com>
+ <449d505b874c236e4d0df0c1f765918386a4d58b.1260187781.git.amit.kucheria@verdurent.com>
+ <20091207135309.GA23829@esdhcp037198.research.nokia.com>
+ <20091211103609.GB5863@sortiz.org>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Abhijit Pagare <abhijitpagare@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:46964 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761097AbZLKKx7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 05:53:59 -0500
+Content-Disposition: inline
+In-Reply-To: <20091211103609.GB5863@sortiz.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Samuel Ortiz <sameo@linux.intel.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, Amit Kucheria <amit.kucheria@verdurent.com>, "gadiyar@ti.com" <gadiyar@ti.com>, List Linux Kernel <linux-kernel@vger.kernel.org>, List Linux Omap <linux-omap@vger.kernel.org>
 
-From: Abhijit Pagare <abhijitpagare@ti.com>
+On Fri, Dec 11, 2009 at 11:36:10AM +0100, ext Samuel Ortiz wrote:
+> Hi Amit,
+> 
+> On Mon, Dec 07, 2009 at 03:53:09PM +0200, Eduardo Valentin wrote:
+> > On Mon, Dec 07, 2009 at 01:17:29PM +0100, ext Amit Kucheria wrote:
+> > > Infact, we can just return -EIO so that caller knows for sure that all
+> > > messages were not tranferred. Please consider fixed patch instead.
+> > > 
+> > > We should be checking if all the messages were tranferred or not. And return
+> > > -1 for failure. Currently we return success (0) even if none of messages were
+> > > transferred successfully.
+> > > 
+> > > Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+> > > ---
+> > >  drivers/mfd/twl4030-core.c |   24 ++++++++++++++++--------
+> > >  1 files changed, 16 insertions(+), 8 deletions(-)
+> > > 
+> > > diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> > > index 56f1de5..3d2c413 100644
+> > > --- a/drivers/mfd/twl4030-core.c
+> > > +++ b/drivers/mfd/twl4030-core.c
+> > > @@ -292,10 +292,14 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+> > >  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
+> > >  	mutex_unlock(&twl->xfer_lock);
+> > >  
+> > > -	/* i2cTransfer returns num messages.translate it pls.. */
+> > > -	if (ret >= 0)
+> > > -		ret = 0;
+> > > -	return ret;
+> > > +	/* i2c_transfer returns number of messages transferred */
+> > > +	if (ret != 1) {
+> > > +		pr_err("%s: i2c_write failed to transfer all messages\n",
+> > > +			DRIVER_NAME);
+> > > +		return -EIO;
+> > 
+> > How about reporting the actual error that has occurred and reported by i2c_transfer?
+> > Instead of just masking it as EIO? If i2c_transfer returns something > 0 then EIO should be right.
+> > But if returns and error code, then that error code must be reported to upper layers.
+> >
+> So, I applied a modified version of this patch, see below. If you disagree
+> with it, please let me know and I wont push it upstream.
+> 
 
-Some of the OMAP4 specific chip level initialisations are taken care of.
+OK.
 
-Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/id.c              |    8 +++++++-
- arch/arm/plat-omap/include/plat/cpu.h |    6 +++++-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+> 
+> commit 8aa7cfd5732dee80aaaf3caa0a1d2f9621126315
+> Author: Amit Kucheria <amit.kucheria@verdurent.com>
+> Date:   Fri Dec 11 11:31:11 2009 +0100
+> 
+>     mfd: Clarify twl4030 return value for read and write
+>     
+>     We should be checking if all the messages were tranferred. If not, then we
+>     should propagate the i2c core error code.
+>     Currently we return success (0) even if none of messages were transferred
+>     successfully.
+>     
+>     Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+>     Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
+> 
+> diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> index e4a5d48..8add16c 100644
+> --- a/drivers/mfd/twl4030-core.c
+> +++ b/drivers/mfd/twl4030-core.c
+> @@ -306,10 +306,14 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
+>  	mutex_unlock(&twl->xfer_lock);
+>  
+> -	/* i2cTransfer returns num messages.translate it pls.. */
+> -	if (ret >= 0)
+> -		ret = 0;
+> -	return ret;
+> +	/* i2c_transfer returns number of messages transferred */
+> +	if (ret != 1) {
+> +		pr_err("%s: i2c_write failed to transfer all messages\n",
+> +			DRIVER_NAME);
+> +		return ret;
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 4fad192..52aca5f 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -336,8 +336,12 @@ void __init omap2_check_revision(void)
- 		omap3_check_features();
- 		omap3_cpuinfo();
- 	} else if (cpu_is_omap44xx()) {
-+		/*
-+		 * omap44xx_check_revision() should
-+		 * be defined above and then called
-+		 * from here.
-+		 */
- 		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
--		return;
- 	} else {
- 		pr_err("OMAP revision unknown, please fix!\n");
- 	}
-@@ -367,6 +371,8 @@ void __init omap2_check_revision(void)
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
- 		else if (omap_rev() == OMAP3630_REV_ES1_0)
- 			omap_chip.oc |= CHIP_IS_OMAP3630ES1;
-+	} else if (cpu_is_omap44xx()) {
-+		omap_chip.oc |= CHIP_IS_OMAP4430;
- 	} else {
- 		pr_err("Uninitialized omap_chip, please fix!\n");
- 	}
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 2e17890..6a296b8 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -154,6 +154,7 @@ unsigned int omap_rev(void);
-  * cpu_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
-  * cpu_is_omap243x():	True for OMAP2430
-  * cpu_is_omap343x():	True for OMAP3430
-+ * cpu_is_omap443x():	True for OMAP4430
-  */
- #define GET_OMAP_CLASS	(omap_rev() & 0xff)
- 
-@@ -284,6 +285,7 @@ IS_OMAP_SUBCLASS(363x, 0x363)
-  * cpu_is_omap2423():	True for OMAP2423
-  * cpu_is_omap2430():	True for OMAP2430
-  * cpu_is_omap3430():	True for OMAP3430
-+ * cpu_is_omap4430():	True for OMAP4430
-  * cpu_is_omap3505():	True for OMAP3505
-  * cpu_is_omap3517():	True for OMAP3517
-  */
-@@ -332,6 +334,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define cpu_is_omap3505()		0
- #define cpu_is_omap3517()		0
- #define cpu_is_omap3430()		0
-+#define cpu_is_omap4430()		0
- #define cpu_is_omap3630()		0
- 
- /*
-@@ -443,7 +446,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP3505_REV(v)		(OMAP35XX_CLASS | (0x3505 << 16) | (v << 12))
- #define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) | (v << 12))
- 
--#define OMAP443X_CLASS		0x44300034
-+#define OMAP443X_CLASS		0x44300044
- 
- /*
-  * omap_chip bits
-@@ -467,6 +470,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
- #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
- #define CHIP_IS_OMAP3630ES1		(1 << 7)
-+#define CHIP_IS_OMAP4430		(1 << 8)
- 
- #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
- 
+For this case we will be returning success if i2c_transfer fails to transfer the one message.
+I guess we should return ret only if ret < 0 ? otherwise -EIO.
+
+> +	} else {
+> +		return 0;
+> +	}
+>  }
+>  EXPORT_SYMBOL(twl4030_i2c_write);
+>  
+> @@ -358,10 +362,14 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
+>  	mutex_unlock(&twl->xfer_lock);
+>  
+> -	/* i2cTransfer returns num messages.translate it pls.. */
+> -	if (ret >= 0)
+> -		ret = 0;
+> -	return ret;
+> +	/* i2c_transfer returns number of messages transferred */
+> +	if (ret != 2) {
+> +		pr_err("%s: i2c_read failed to transfer all messages\n",
+> +			DRIVER_NAME);
+> +		return ret;
+
+Same case here, we will be returning success if i2c_transfer fails to transfer any of those messages.
+I guess we should return ret only if ret < 0 ? otherwise -EIO.
+
+
+> +	} else {
+> +		return 0;
+> +	}
+>  }
+>  EXPORT_SYMBOL(twl4030_i2c_read);
+>  
+> -- 
+> Intel Open Source Technology Centre
+> http://oss.intel.com/
+
 -- 
-1.5.4.7
+Eduardo Valentin
