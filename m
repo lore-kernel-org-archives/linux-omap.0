@@ -1,67 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/14] omap1: htcherald: Update defconfig to include mux
-	support
-Date: Fri, 11 Dec 2009 15:53:42 -0800
-Message-ID: <20091211235342.3189.5163.stgit@localhost>
+Subject: [PATCH 09/14] omap3: rx51: Use wl1251 in SPI mode 3
+Date: Fri, 11 Dec 2009 15:54:05 -0800
+Message-ID: <20091211235405.3189.53868.stgit@localhost>
 References: <20091211234919.3189.95607.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58199 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934009AbZLKXxg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:53:36 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60899 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934037AbZLKXx7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:53:59 -0500
 In-Reply-To: <20091211234919.3189.95607.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
+Cc: Kalle Valo <kalle.valo@nokia.com>, linux-omap@vger.kernel.org
 
-From: Cory Maccarrone <darkstar6262@gmail.com>
+From: Kalle Valo <kalle.valo@nokia.com>
 
-The existing htcherald_defconfig did not include mux support, which
-prevented USB and other functionality from working out of the box.
-This change updates the defconfig to add it in.  It also aligns the
-defconfig to the -rc8 kernel config.
+Otherwise Extreme Lower Power (ELP) wakeup doesn't work properly.
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+Signed-off-by: Kalle Valo <kalle.valo@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/htcherald_defconfig |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/configs/htcherald_defconfig b/arch/arm/configs/htcherald_defconfig
-index 3382676..1b39691 100644
---- a/arch/arm/configs/htcherald_defconfig
-+++ b/arch/arm/configs/htcherald_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.32-rc6
--# Sat Nov 14 10:56:01 2009
-+# Linux kernel version: 2.6.32-rc8
-+# Sat Dec  5 12:16:24 2009
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -198,7 +198,9 @@ CONFIG_ARCH_OMAP1=y
- # OMAP Feature Selections
- #
- # CONFIG_OMAP_RESET_CLOCKS is not set
--# CONFIG_OMAP_MUX is not set
-+CONFIG_OMAP_MUX=y
-+# CONFIG_OMAP_MUX_DEBUG is not set
-+CONFIG_OMAP_MUX_WARNINGS=y
- CONFIG_OMAP_MCBSP=y
- # CONFIG_OMAP_MBOX_FWK is not set
- CONFIG_OMAP_MPU_TIMER=y
-@@ -207,6 +209,7 @@ CONFIG_OMAP_LL_DEBUG_UART1=y
- # CONFIG_OMAP_LL_DEBUG_UART2 is not set
- # CONFIG_OMAP_LL_DEBUG_UART3 is not set
- # CONFIG_OMAP_LL_DEBUG_NONE is not set
-+CONFIG_OMAP_SERIAL_WAKE=y
- # CONFIG_OMAP_PM_NONE is not set
- CONFIG_OMAP_PM_NOOP=y
- 
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 8144420..bf26ad3 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -60,7 +60,7 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 		.bus_num		= 4,
+ 		.chip_select		= 0,
+ 		.max_speed_hz   	= 48000000,
+-		.mode                   = SPI_MODE_2,
++		.mode                   = SPI_MODE_3,
+ 		.controller_data	= &wl1251_mcspi_config,
+ 		.platform_data		= &wl1251_pdata,
+ 	},
 
