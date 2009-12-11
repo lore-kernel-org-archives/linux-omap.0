@@ -1,97 +1,165 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/14] Mostly fixes for 2.6.33
-Date: Fri, 11 Dec 2009 15:52:15 -0800
-Message-ID: <20091211234919.3189.95607.stgit@localhost>
+Subject: [PATCH 01/14] omap3: cm-t35: add mux initialization
+Date: Fri, 11 Dec 2009 15:52:28 -0800
+Message-ID: <20091211235228.3189.82115.stgit@localhost>
+References: <20091211234919.3189.95607.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59914 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761661AbZLKXwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:52:12 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57132 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761661AbZLKXwY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:52:24 -0500
+In-Reply-To: <20091211234919.3189.95607.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
 
-Hi all,
+From: Mike Rapoport <mike@compulab.co.il>
 
-Getting into fixes mode for omap, except for the first two
-patches in this series. The first one adds a mux table for
-the cm-t35 board, and second one adds a low-level serial
-init function that is needed if some serial ports are left for
-other drivers, such as dedicated bluetooth driver.
+CM-T35 can be assembled with different set of peripherals thus making
+certain interfaces available to user as GPIOs or dedicated pins. Because
+of it CM-T35 bootloader sets up mux configuration only for pins
+necessary to boot the system and the rest of the mux configuration is
+done by the kernel. Besides, having mux configuration in the kernel
+allows to minimize dependancy on bootloader.
 
-Other than that, the series contains various fixes from the
-linux-omap list.
-
-Regards,
-
-Tony
-
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/mach-omap2/Kconfig        |    1 
+ arch/arm/mach-omap2/board-cm-t35.c |   96 +++++++++++++++++++++++++++++++++---
+ 2 files changed, 90 insertions(+), 7 deletions(-)
 
-Anand Gadiyar (1):
-      omap3: zoom2/3: make MMC slot work again
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 06dc64d..76c11ee 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -135,6 +135,7 @@ config MACH_CM_T35
+ 	bool "CompuLab CM-T35 module"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+ 	select OMAP_PACKAGE_CUS
++	select OMAP_MUX
+ 
+ config MACH_IGEP0020
+ 	bool "IGEP0020"
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 507c922..1591aae 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -482,13 +482,98 @@ static void __init cm_t35_map_io(void)
+ 	omap2_map_common_io();
+ }
+ 
+-#ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* nCS and IRQ for CM-T35 ethernet */
++	OMAP3_MUX(GPMC_NCS5, OMAP_MUX_MODE0),
++	OMAP3_MUX(UART3_CTS_RCTX, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
++
++	/* nCS and IRQ for SB-T35 ethernet */
++	OMAP3_MUX(GPMC_NCS4, OMAP_MUX_MODE0),
++	OMAP3_MUX(GPMC_WAIT3, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
++
++	/* PENDOWN GPIO */
++	OMAP3_MUX(GPMC_NCS6, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
++
++	/* mUSB */
++	OMAP3_MUX(HSUSB0_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_STP, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(HSUSB0_DIR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_NXT, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(HSUSB0_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++
++	/* MMC 2 */
++	OMAP3_MUX(SDMMC2_DAT4, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(SDMMC2_DAT5, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(SDMMC2_DAT6, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(SDMMC2_DAT7, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
++
++	/* McSPI 1 */
++	OMAP3_MUX(MCSPI1_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCSPI1_SIMO, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCSPI1_SOMI, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCSPI1_CS0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
++
++	/* McSPI 4 */
++	OMAP3_MUX(MCBSP1_CLKR, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
++
++	/* McBSP 2 */
++	OMAP3_MUX(MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++
++	/* serial ports */
++	OMAP3_MUX(MCBSP3_CLKX, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(MCBSP3_FSX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
++	OMAP3_MUX(UART1_TX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(UART1_RX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++
++	/* DSS */
++	OMAP3_MUX(DSS_PCLK, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_HSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_VSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_ACBIAS, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA8, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA9, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA10, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA11, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA12, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA13, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA14, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA15, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA16, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA17, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA20, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++
++	/* TPS IRQ */
++	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_WAKEUP_EN | \
++		  OMAP_PIN_INPUT_PULLUP),
++
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+-#else
+-#define board_mux	NULL
+-#endif
+ 
+ static void __init cm_t35_init(void)
+ {
+@@ -501,9 +586,6 @@ static void __init cm_t35_init(void)
+ 	cm_t35_init_led();
+ 
+ 	usb_musb_init();
+-
+-	omap_mux_init_signal("sys_nirq",
+-		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
+ }
+ 
+ MACHINE_START(CM_T35, "Compulab CM-T35")
 
-Cory Maccarrone (1):
-      omap1: htcherald: Update defconfig to include mux support
-
-Janusz Krzysztofik (1):
-      omap1: LCD_DMA: Use some define rather than a hexadecimal
-
-Kalle Valo (1):
-      omap3: rx51: Use wl1251 in SPI mode 3
-
-Ladislav Michl (1):
-      omap: arch/arm/plat-omap/devices.c - sort alphabetically
-
-Madhusudhan Chikkature (1):
-      omap3: Zoom2/3: Update hsmmc board config params
-
-Mika Westerberg (1):
-      OMAP3: serial - allow platforms specify which UARTs to initialize
-
-Mike Rapoport (1):
-      omap3: cm-t35: add mux initialization
-
-Sanjeev Premi (1):
-      omap3: Fix OMAP35XX_REV macros
-
-Sergey Lapin (1):
-      omap3: id code detection 3525 vs 3515
-
-Vimal Singh (1):
-      omap: Correcting GPMC_CONFIG1_DEVICETYPE_NAND
-
-manjugk manjugk (1):
-      omap3 : Enable TWL4030 Keypad for Zoom2 and Zoom3 boards
-
-vikram pandita (2):
-      omap: header: remove unused data-type
-      omap: serial: fix non-empty uart fifo read abort
-
-
- arch/arm/configs/htcherald_defconfig         |    9 ++
- arch/arm/configs/omap_zoom2_defconfig        |    3 +
- arch/arm/configs/omap_zoom3_defconfig        |    3 +
- arch/arm/mach-omap1/include/mach/lcdc.h      |   57 +++++++++++++++
- arch/arm/mach-omap1/lcd_dma.c                |    3 +
- arch/arm/mach-omap2/Kconfig                  |    1 
- arch/arm/mach-omap2/board-cm-t35.c           |   96 ++++++++++++++++++++++++--
- arch/arm/mach-omap2/board-rx51-peripherals.c |    2 -
- arch/arm/mach-omap2/board-zoom-peripherals.c |   14 ++--
- arch/arm/mach-omap2/id.c                     |    4 +
- arch/arm/mach-omap2/serial.c                 |   88 ++++++++++++++++++++----
- arch/arm/plat-omap/devices.c                 |   68 +++++++++---------
- arch/arm/plat-omap/include/plat/board.h      |    9 --
- arch/arm/plat-omap/include/plat/cpu.h        |   20 +++--
- arch/arm/plat-omap/include/plat/gpmc.h       |    2 -
- arch/arm/plat-omap/include/plat/serial.h     |    1 
- drivers/video/omap/lcdc.c                    |   33 ---------
- 17 files changed, 291 insertions(+), 122 deletions(-)
- create mode 100644 arch/arm/mach-omap1/include/mach/lcdc.h
-
--- 
-Signature
