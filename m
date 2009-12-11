@@ -1,114 +1,97 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 107/122] USB: ehci-omap.c: introduce missing kfree
-Date: Sat, 12 Dec 2009 05:00:02 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FABD1BA8@dbde02.ent.ti.com>
-References: <20091211212646.GB6624@kroah.com>
- <1260570347-7236-107-git-send-email-gregkh@suse.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 00/14] Mostly fixes for 2.6.33
+Date: Fri, 11 Dec 2009 15:52:15 -0800
+Message-ID: <20091211234919.3189.95607.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42684 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934530AbZLKXaF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:30:05 -0500
-In-Reply-To: <1260570347-7236-107-git-send-email-gregkh@suse.de>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59914 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761661AbZLKXwM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 18:52:12 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Julia Lawall <julia@diku.dk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
+
+Hi all,
+
+Getting into fixes mode for omap, except for the first two
+patches in this series. The first one adds a mux table for
+the cm-t35 board, and second one adds a low-level serial
+init function that is needed if some serial ports are left for
+other drivers, such as dedicated bluetooth driver.
+
+Other than that, the series contains various fixes from the
+linux-omap list.
+
+Regards,
+
+Tony
+
+---
+
+Anand Gadiyar (1):
+      omap3: zoom2/3: make MMC slot work again
+
+Cory Maccarrone (1):
+      omap1: htcherald: Update defconfig to include mux support
+
+Janusz Krzysztofik (1):
+      omap1: LCD_DMA: Use some define rather than a hexadecimal
+
+Kalle Valo (1):
+      omap3: rx51: Use wl1251 in SPI mode 3
+
+Ladislav Michl (1):
+      omap: arch/arm/plat-omap/devices.c - sort alphabetically
+
+Madhusudhan Chikkature (1):
+      omap3: Zoom2/3: Update hsmmc board config params
+
+Mika Westerberg (1):
+      OMAP3: serial - allow platforms specify which UARTs to initialize
+
+Mike Rapoport (1):
+      omap3: cm-t35: add mux initialization
+
+Sanjeev Premi (1):
+      omap3: Fix OMAP35XX_REV macros
+
+Sergey Lapin (1):
+      omap3: id code detection 3525 vs 3515
+
+Vimal Singh (1):
+      omap: Correcting GPMC_CONFIG1_DEVICETYPE_NAND
+
+manjugk manjugk (1):
+      omap3 : Enable TWL4030 Keypad for Zoom2 and Zoom3 boards
+
+vikram pandita (2):
+      omap: header: remove unused data-type
+      omap: serial: fix non-empty uart fifo read abort
 
 
+ arch/arm/configs/htcherald_defconfig         |    9 ++
+ arch/arm/configs/omap_zoom2_defconfig        |    3 +
+ arch/arm/configs/omap_zoom3_defconfig        |    3 +
+ arch/arm/mach-omap1/include/mach/lcdc.h      |   57 +++++++++++++++
+ arch/arm/mach-omap1/lcd_dma.c                |    3 +
+ arch/arm/mach-omap2/Kconfig                  |    1 
+ arch/arm/mach-omap2/board-cm-t35.c           |   96 ++++++++++++++++++++++++--
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    2 -
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   14 ++--
+ arch/arm/mach-omap2/id.c                     |    4 +
+ arch/arm/mach-omap2/serial.c                 |   88 ++++++++++++++++++++----
+ arch/arm/plat-omap/devices.c                 |   68 +++++++++---------
+ arch/arm/plat-omap/include/plat/board.h      |    9 --
+ arch/arm/plat-omap/include/plat/cpu.h        |   20 +++--
+ arch/arm/plat-omap/include/plat/gpmc.h       |    2 -
+ arch/arm/plat-omap/include/plat/serial.h     |    1 
+ drivers/video/omap/lcdc.c                    |   33 ---------
+ 17 files changed, 291 insertions(+), 122 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/include/mach/lcdc.h
 
->-----Original Message-----
->From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-owner@vger.kernel.org] On Behalf Of Greg
->Kroah-Hartman
->Sent: Friday, December 11, 2009 4:26 PM
->To: linux-usb@vger.kernel.org
->Cc: Julia Lawall; Greg Kroah-Hartman
->Subject: [PATCH 107/122] USB: ehci-omap.c: introduce missing kfree
->Importance: High
->
->From: Julia Lawall <julia@diku.dk>
->
->Error handling code following a kzalloc should free the allocated data.
->
->The semantic match that finds this problem is as follows:
->(http://www.emn.fr/x-info/coccinelle/)
-
-Impressive.
-Wondering if sparse do such kind of things?
-
->
->// <smpl>
->@r exists@
->local idexpression x;
->statement S;
->expression E;
->identifier f,f1,l;
->position p1,p2;
->expression *ptr != NULL;
->@@
->
->x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
->...
->if (x == NULL) S
-><... when != x
->     when != if (...) { <+...x...+> }
->(
->x->f1 = E
->|
-> (x->f1 == NULL || ...)
->|
-> f(...,x->f1,...)
->)
->...>
->(
-> return \(0\|<+...x...+>\|ptr\);
->|
-> return@p2 ...;
->)
->
->@script:python@
->p1 << r.p1;
->p2 << r.p2;
->@@
->
->print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
->// </smpl>
->
->Signed-off-by: Julia Lawall <julia@diku.dk>
->Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
->---
-> drivers/usb/host/ehci-omap.c |    3 ++-
-> 1 files changed, 2 insertions(+), 1 deletions(-)
->
->diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
->index 7ba8df3..12f1ad2 100644
->--- a/drivers/usb/host/ehci-omap.c
->+++ b/drivers/usb/host/ehci-omap.c
->@@ -558,7 +558,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
-> 	omap = kzalloc(sizeof(*omap), GFP_KERNEL);
-> 	if (!omap) {
-> 		ret = -ENOMEM;
->-		goto err_create_hcd;
->+		goto err_disabled;
-> 	}
->
-> 	hcd = usb_create_hcd(&ehci_omap_hc_driver, &pdev->dev,
->@@ -653,6 +653,7 @@ err_ioremap:
-> 	usb_put_hcd(hcd);
->
-> err_create_hcd:
->+	kfree(omap);
-> err_disabled:
-> err_pdata:
-> 	return ret;
->--
->1.6.5.5
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-usb" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Signature
