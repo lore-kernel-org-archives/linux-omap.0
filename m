@@ -1,74 +1,94 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [GIT PULL]: OMAP2/3 Display Subsystem
-Date: Fri, 11 Dec 2009 07:49:55 +0200
-Message-ID: <1260510595.12346.148.camel@localhost>
-References: <1260377610.9700.49.camel@tubuntu.research.nokia.com>
-Reply-To: dedekind1@gmail.com
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [RFC][PATCH 4/5] input: serio: add support for Amstrad Delta
+	serial keyboard port
+Date: Fri, 11 Dec 2009 00:01:28 -0800
+Message-ID: <20091211080128.GD30274@core.coreip.homeip.net>
+References: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com> <200912110410.00123.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:25866 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756132AbZLKFuo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 00:50:44 -0500
-In-Reply-To: <1260377610.9700.49.camel@tubuntu.research.nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200912110410.00123.jkrzyszt@tis.icnet.pl>
+Sender: linux-input-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, e3-hacking@earth.li
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, tony@atomide.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-On Wed, 2009-12-09 at 18:53 +0200, Tomi Valkeinen wrote:
-> Linus,
+On Fri, Dec 11, 2009 at 04:09:58AM +0100, Janusz Krzysztofik wrote:
+> Friday 11 December 2009 03:36:58 Dmitry Torokhov napisa=C5=82(a):
+> > On Thu, Dec 10, 2009 at 09:07:50PM +0100, Janusz Krzysztofik wrote:
+> > > +
+> > > +/*
+> > > + * This table converts the amstrad mailboard scancodes to normal=
+ PC-
+> > > AT scancodes
+> > > + * The diagram below shows the amstrad keyboard, with the raw
+> > > scancodes
+> > > + *
+> > > + *   (70) (7A) (46) (7C) (77)   Amstrad     (72) (69) (1A) (2A)
+> > > (1C) (15)
+> > > + * [  71][1:74][2:73][3:6B][4:22][5:1B][6:1D][7:1E][8:79][9:7D]
+> > > [0:75][  6C]
+> > > + *  [Q:21][W:23][E:24][R:26][T:52][Y:5D][U:0D][I:0E][O:32][P:34]=
+  |
+> > > return|
+> > > + *   [A:31][S:33][D:35][F:36][G:29][H:5B][J:03][K:76][L:3A][@:3B=
+]
+> > >
+> > > |   2C|
+> > >
+> > > + *  [  3C][Z:3D][X:4E][C:54][V:0B][B:05][N:41][M:42][.:43][  3E]
+> > > [  55]
+> > > + *  [  83][  06][  49][           4B         ][,:44][  16][  2E]
+> > > [  09]
+> > > + *
+> > > + * These scancodes are then translated to AT scancodes using the
+> > > following table
+> > > + * The amstrad keyboard does not produce any extended scancodes,
+> > > but we need to
+> > > + * translate some amstrad scancodes to a AT extended scancode,
+> > > hence the 16bit
+> > > + * value for the translated scancode
+> > > + *
+> >
+> > No, please write a proper keyboard driver instead of creating this
+> > Frankenstain monster. It is not a generic serio-style data source s=
+o it
+> > should not use serio, should reside in drivers/input/keyboard and c=
+reate
+> > input device by itself.
+> >
+> > Thanks.
 >=20
-> Here are the new display subsystem and framebuffer drivers for OMAP2/=
-3.
+> Hi Dmitry,
 >=20
-> The drivers have been reviewed on linux-omap and linux-fbdev-devel, a=
-nd
-> are in use, for example, on N900, Beagle Board and Overo boards.
+> Thanks for your opinion.
 >=20
-> The drivers are actively maintained and developed further, and I have
-> already a bunch of patches on top of these patches, but I would like =
-to
-> get the big core driver merged first. After the core drivers are merg=
-ed,
-> other people can send patches to LCD drivers and board files to enabl=
-e
-> the new display subsystem on their boards.
+> Lack of support for Amstrad Delta external keybord is not a problem f=
+or me,=20
+> since I use the machine as an IP phone, not a network terminal. I jus=
+t=20
+> thought it would be nice for other users to have this old but perfect=
+ly=20
+> working driver integrated into the mainline. But if it is that bad as=
+ you=20
+> say, I have no problem with dropping it.
 >=20
-> Please pull the new OMAP2/3 display subsystem drivers from:
->=20
->   git://gitorious.org/linux-omap-dss2/linux.git for-linus
->=20
->  Tomi
+> I'll see if I'm able to create a proper driver myself when I find som=
+e spare=20
+> time.
 
-Hi Linus,
-
-I'd like to confirm that DSS2 is used in Nokia both internally and in
-production, namely in N900. Other people use it in production as well,
-e.g. Gumstix.
-
-DSS2 is basically de-facto standard display sub-system in the OMAP3
-world. It is mature, well-written and maintained, being around for at
-least 1+ year, and open from almost very beginning.
-
-ACK and Tested-by from my side. The OMAP maintainer (Tony) gave his Ack
-as well as many other people, e.g., in this thread:
-
-http://marc.info/?l=3Dlinux-kernel&m=3D125146241831217&w=3D2
-
-DSS2 is in linux-next for some time as well.
-
-Thanks.
+Yes, that would be great, thank you. In fact it should end up about the
+same as this driver, except instead of creating and registering serio
+port you will need to register input_dev structure and instead of
+translating into atkbd scancodes you need to translate directly into
+Linux keycodes (KEY_A, KEY_1 and so on).
 
 --=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
-
+Dmitry
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
