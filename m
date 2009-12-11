@@ -1,144 +1,274 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH 09/10 V4] omap3: pm: introduce 3630 opps
-Date: Fri, 11 Dec 2009 05:47:22 -0600
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012B9F4998@dlee02.ent.ti.com>
+Subject: RE: [PATCH 02/10 V4] omap3: pm: introduce opp accessor functions
+Date: Fri, 11 Dec 2009 05:49:32 -0600
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012B9F499B@dlee02.ent.ti.com>
 References: <1260339435-20294-1-git-send-email-nm@ti.com>
  <1260339435-20294-2-git-send-email-nm@ti.com>
  <1260339435-20294-3-git-send-email-nm@ti.com>
- <1260339435-20294-4-git-send-email-nm@ti.com>
- <1260339435-20294-5-git-send-email-nm@ti.com>
- <1260339435-20294-6-git-send-email-nm@ti.com>
- <1260339435-20294-7-git-send-email-nm@ti.com>
- <1260339435-20294-8-git-send-email-nm@ti.com>
- <1260339435-20294-9-git-send-email-nm@ti.com>
- <1260339435-20294-10-git-send-email-nm@ti.com>
- <20091211101212.GC8299@esdhcp037198.research.nokia.com>
+ <87iqceo1hb.fsf@deeprootsystems.com> <4B21954A.7010305@ti.com>
+ <20091211091849.GA8299@esdhcp037198.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42906 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33869 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762171AbZLKLrZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 06:47:25 -0500
-In-Reply-To: <20091211101212.GC8299@esdhcp037198.research.nokia.com>
+	id S1762312AbZLKLtg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 06:49:36 -0500
+In-Reply-To: <20091211091849.GA8299@esdhcp037198.research.nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, "Dasgupta, Romit" <romit@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, "Dasgupta, Romit" <romit@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Premi, Sanjeev" <premi@ti.com>
 
+Eduardo,
 > From: Eduardo Valentin [mailto:eduardo.valentin@nokia.com]
-> Sent: Friday, December 11, 2009 4:12 AM
+> Sent: Friday, December 11, 2009 3:19 AM
 > 
-> Hello Nishanth,
+> On Fri, Dec 11, 2009 at 01:41:46AM +0100, ext Nishanth Menon wrote:
+> > Kevin Hilman had written, on 12/10/2009 05:25 PM, the following:
+> > Thanks for the acks..
+> >
+> > > Nishanth Menon <nm@ti.com> writes:
+> > [...]
+> >
+> > >> diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-
+> omap/include/plat/opp.h
+> > >> new file mode 100644
+> > >> index 0000000..341c02b
+> >
+> > [...]
+> >
+> > >> +/**
+> > >> + * struct omap_opp - OMAP OPP description structure
+> > >> + * @enabled: true/false - marking this OPP as enabled/disabled
+> > >> + * @rate:    Frequency in hertz
+> > >> + * @opp_id:  (DEPRECATED) opp identifier
+> > >> + * @vsel:    Voltage in volt processor level(this usage is
+> > >> + *           DEPRECATED to use Voltage in microvolts in future)
+> > >> + *           uV = ((vsel * 12.5) + 600) * 1000
+> > >> + *
+> > >> + * This structure stores the OPP information for a given domain.
+> > >> + * Due to legacy reasons, this structure is currently exposed and
+> > >> + * will soon be removed elsewhere and will only be used as a handle
+> > >> + * from the OPP internal referencing mechanism
+> > >> + */
+> > >> +struct omap_opp {
+> > >> +     bool enabled;
+> > >> +     unsigned long rate;
+> > >> +     u8 opp_id __deprecated;
+> > >> +     u16 vsel;
+> > >
+> > > How about we add 'u32 voltage' here and mark vsel as __deprecated.
+> Then
+> > > we no longer need both an 'struct omap_opp' and a 'struct
+> omap_opp_def'.
+> > >
+> > > Or even better, with the uv <--> vsel conversion macros you added,
+> > > couldn't we alrady define the OPPs in terms of voltage, and drop the
+> > > vsel already?
+> >
+> > we should do that once we fix SR + resource34xx (underworks) - they
+> > directly use them and I kept my "status quo" rule switch on ;). Once it
+> > is done, vsel becomes voltage and an unsigned long. and we can manage it
+> > inside opp.c anyway we choose. For this starting set, I dont think we
+> > should do this.
 > 
-> On Wed, Dec 09, 2009 at 07:17:14AM +0100, ext Nishanth Menon wrote:
-> > Introduce the OMAP3630 OPPs including the defined OPP tuples.
-> >
-> > Further information on OMAP3630 can be found here:
-> >
-> http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=61
-> 23&navigationId=12836&contentId=52606
-> >
-> > OMAP36xx family introduces:
-> > VDD1 with 4 OPPs, of which OPP3 & 4 are available only on devices yet
-> > to be introduced in 36xx family. Meanwhile, VDD2 has 2 opps.
-> >
-> > Device Support of OPPs->
-> >            |<-3630-600->| (default)
-> >            |<-      3630-800    ->| (device: TBD)
-> >            |<-      3630-1000            ->| (device: TBD)
-> > H/w OPP-> OPP50 OPP100       OPP-Turbo   OPP1G-SB
-> > VDD1      OPP1  OPP2         OPP3        OPP4
-> > VDD2      OPP1  OPP2         OPP2        OPP2
-> >
-> > Note:
-> > a) TI h/w naming for OPPs are now standardized in terms of OPP50, 100,
-> >    Turbo and SB. This maps as shown above to the opp IDs (s/w term).
-> > b) For boards which need custom VDD1/2 OPPs, the opp table can be
-> >    updated by the board file on a need basis after the
-> >    omap3_pm_init_opp_table call. The OPPs introduced here are the
-> >    official OPP table at this point in time.
-> >
+> I'm OK if you have the plan to do it in steps. But might be useful to have
+> some
+> REVISIT / TODO comment on top of things you know you are going to change
+> afterwards.
 > 
-> [ ... ]
-> 
-> >
-> > +static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
-> > +	/* OPP1 - OPP50 */
-> > +	OMAP_OPP_DEF(true,  300000000, 930000),
-> > +	/* OPP2 - OPP100 */
-> > +	OMAP_OPP_DEF(true,  600000000, 1100000),
-> > +	/* OPP3 - OPP-Turbo */
-> > +	OMAP_OPP_DEF(false, 800000000, 1260000),
-> > +	/* OPP4 - OPP-SB */
-> > +	OMAP_OPP_DEF(false, 1000000000, 1310000),
-> > +	OMAP_OPP_DEF_TERMINATOR
-> 
-> What else needs to be done in order to enable OPP-Turbo & OPP-SB ?
+> It is not mandatory, but it helps to keep track of what is in your plans.
 
-Sigh - long story ;) but in a short line: you just need to call opp_enable(freq) in your board file while we send a future patch to enable auto detection: DISCLAIMER: for 3630, there may not be a way to differentiate between devices other than some specific one - and board file may need to enable the opp that board has (shrug.. I know it is not a good idea - but there are some non-technical reasons involved  - still waiting for confirmation before being able to share additional info on list).
+Is the following not good enough?
+
+> >> + * @vsel:    Voltage in volt processor level(this usage is
+> >> + *           DEPRECATED to use Voltage in microvolts in future)
+                   ^^^^^^^^^^^
+> >> + *           uV = ((vsel * 12.5) + 600) * 1000
+> >> + *
+> >> + * This structure stores the OPP information for a given domain.
+> >> + * Due to legacy reasons, this structure is currently exposed and
+> >> + * will soon be removed elsewhere and will only be used as a handle
+> >> + * from the OPP internal referencing mechanism
+
+Yes, I believe I have been liberal in sprinkling TODOs and __deprecated in 
+my patches.. but let me know if I missed any specifics..
 
 > 
-> 
-> > +};
-> > +
-> > +static struct omap_opp_def __initdata omap36xx_l3_rate_table[] = {
-> > +	/* OPP1 - OPP50 */
-> > +	OMAP_OPP_DEF(true, 100000000, 930000),
-> > +	/* OPP2 - OPP100, OPP-Turbo, OPP-SB */
-> > +	OMAP_OPP_DEF(true, 200000000, 1137500),
-> > +	OMAP_OPP_DEF_TERMINATOR
-> > +};
-> > +
-> > +static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
-> > +	/* OPP1 - OPP50 */
-> > +	OMAP_OPP_DEF(true,  260000000, 930000),
-> > +	/* OPP2 - OPP100 */
-> > +	OMAP_OPP_DEF(true,  520000000, 1100000),
-> > +	/* OPP3 - OPP-Turbo */
-> > +	OMAP_OPP_DEF(false, 660000000, 1260000),
-> > +	/* OPP4 - OPP-SB */
-> > +	OMAP_OPP_DEF(false, 875000000, 1310000),
-> > +	OMAP_OPP_DEF_TERMINATOR
-> > +};
-> > +
-> >  /* OMAP3 Rate Table */
-> >  struct omap_opp *omap3_mpu_rate_table;
-> >  struct omap_opp *omap3_dsp_rate_table;
-> > @@ -1296,18 +1328,27 @@ static void __init configure_vc(void)
-> >  void __init omap3_pm_init_opp_table(void)
-> >  {
-> >  	int i;
-> > +	struct omap_opp_def **omap3_opp_def_list;
-> >  	struct omap_opp_def *omap34xx_opp_def_list[] = {
-> >  		omap34xx_mpu_rate_table,
-> >  		omap34xx_l3_rate_table,
-> >  		omap34xx_dsp_rate_table
-> >  	};
-> > +	struct omap_opp_def *omap36xx_opp_def_list[] = {
-> > +		omap36xx_mpu_rate_table,
-> > +		omap36xx_l3_rate_table,
-> > +		omap36xx_dsp_rate_table
-> > +	};
-> >  	struct omap_opp **omap3_rate_tables[] = {
-> >  		&omap3_mpu_rate_table,
-> >  		&omap3_l3_rate_table,
-> >  		&omap3_dsp_rate_table
-> >  	};
-> > +
-> > +	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
-> > +				omap34xx_opp_def_list;
-> >  	for (i = 0; i < ARRAY_SIZE(omap3_rate_tables); i++) {
-> > -		*omap3_rate_tables[i] =
-> opp_init_list(omap34xx_opp_def_list[i]);
-> > +		*omap3_rate_tables[i] = opp_init_list(omap3_opp_def_list[i]);
-> >  		/* We dont want half configured system at the moment */
-> >  		BUG_ON(IS_ERR(omap3_rate_tables[i]));
-> >  	}
+> >
+> > [...]
+> > >
+> > >> +/**
+> > >> + * opp_find_freq_exact() - search for an exact frequency
+> > >> + * @oppl:    OPP list
+> > >> + * @freq:    frequency to search for
+> > >> + * @enabled: enabled/disabled OPP to search for
+> > >> + *
+> > >> + * searches for the match in the opp list and returns handle to the
+> matching
+> > >> + * opp if found, else returns ERR_PTR in case of error and should be
+> handled
+> > >> + * using IS_ERR.
+> > >> + *
+> > >> + * Note enabled is a modifier for the search. if enabled=true, then
+> the match is
+> > >> + * for exact matching frequency and is enabled. if true, the match
+> is for exact
+> > >> + * frequency which is disabled.
+> > >> + */
+> > >> +struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+> > >> +                                  unsigned long freq, bool enabled);
+> > >
+> > > ack
+> > >
+> > > I think we could drop the _exact, and just call it opp_find_freq(),
+> but I'm
+> > > ok either way.
+> > shrug.. kinda matches with _approx .. it improves readability esp when
+> > people look at a usage code 6 months from now and question what
+> > find_freq is doing and get confused about freq_approx
+> >
+> > [...]
+> >
+> > >> +/**
+> > >> + * struct omap_opp_def - OMAP OPP Definition
+> > >> + * @enabled: True/false - is this OPP enabled/disabled by default
+> > >> + * @freq:    Frequency in hertz corresponding to this OPP
+> > >> + * @u_volt:  Nominal voltage in microvolts corresponding to this OPP
+> > >> + *
+> > >> + * OMAP SOCs have a standard set of tuples consisting of frequency
+> and voltage
+> > >> + * pairs that the device will support per voltage domain. This is
+> called
+> > >> + * Operating Points or OPP. The actual definitions of OMAP Operating
+> Points
+> > >> + * varies over silicon within the same family of devices. For a
+> specific
+> > >> + * domain, you can have a set of {frequency, voltage} pairs and this
+> is denoted
+> > >> + * by an array of omap_opp_def. As the kernel boots and more
+> information is
+> > >> + * available, a set of these are activated based on the precise
+> nature of
+> > >> + * device the kernel boots up on. It is interesting to remember that
+> each IP
+> > >> + * which belongs to a voltage domain may define their own set of
+> OPPs on top
+> > >> + * of this - but this is handled by the appropriate driver.
+> > >> + */
+> > >> +struct omap_opp_def {
+> > >> +     bool enabled;
+> > >> +     unsigned long freq;
+> > >> +     u32 u_volt;
+> > Comment to self: I should really make the u32 as unsigned long to be in
+> > sync with what is used elsewhere..(get_voltage)
+> >
+> > >> +};
+> > >
+> > > See above comment on 'struct omap_opp'.  I think these two should be
+> > > combined.
+> > >
+> > > I think the initial intent of having them separated so that the
+> > > internal struct of 'struct omap_opp' could eventually move to the C
+> > > file was the original intent, but I think it aids readability to just
+> > > have a single OPP struct.
+> >
+> > In a few weeks we wont have the struct omap_opp exposed out(once all the
+> > cleanups are done).. at that point, how would one define an OPP and
+> > expect to get an handle which they cannot manipulate?
+> >
+> > >
+> > >> +/* Initialization wrapper */
+> > >> +#define OMAP_OPP_DEF(_enabled, _freq, _uv)   \
+> > >> +{                                            \
+> > >> +     .enabled        = _enabled,             \
+> > >> +     .freq           = _freq,                \
+> > >> +     .u_volt         = _uv,                  \
+> > >> +}
+> > >
+> > > nice
+> > >
+> > >> +/* Terminator for the initialization list */
+> > >> +#define OMAP_OPP_DEF_TERMINATOR OMAP_OPP_DEF(0, 0, 0)
+> > >
+> > > I'd just drop this and use OMAP_OPP_DEF(0, 0, 0) directly in
+> > > the table.
+> >
+> > Am ok with either (I dont like additional #defs). but terminator helps
+> > redability a bit though (debatable).. any reasons why u'd like it 0,0,0?
+> > >
+> > >> +/**
+> > >> + * opp_init_list() - Initialize an opp list from the opp definitions
+> > >> + * @opp_defs:        Initial opp definitions to create the list.
+> > >> + *
+> > >> + * This function creates a list of opp definitions and returns a
+> handle.
+> > >> + * This list can be used to further validation/search/modifications.
+> New
+> > >> + * opp entries can be added to this list by using opp_add().
+> > >> + *
+> > >> + * In the case of error, ERR_PTR is returned to the caller and
+> should be
+> > >> + * appropriately handled with IS_ERR.
+> > >> + */
+> > >> +struct omap_opp __init *opp_init_list(const struct omap_opp_def
+> *opp_defs);
+> > >
+> > > My original suggestion was that opp_init_list() simply creates a new
+> > > but empty list.  Adding OPPs should be done using opp_add().
+> > >
+> > > I guess I'm OK with having the 'bulk add' feature of init_list() but
+> > > would rather see a single way to add OPPs.
+> > Reasons why to have a buld add feature in init:
+> > a) There is opp_add below which allows u to add single opp
+> > b) In terms of walk thru code duplication (once this gets used accross
+> > OMAPs) it is essentially the same thing we do (add each OPP definition
+> > for a domain)..
+> > c) you dont incur function call latencies. (ok not a big deal.. but
+> still).
+> >
+> > >
+> > >> +/**
+> > >> + * opp_add()  - Add an OPP table from a table definitions
+> > >> + * @oppl:    List to add the OPP to
+> > >> + * @opp_def: omap_opp_def to describe the OPP which we want to add
+> to list.
+> > >> + *
+> > >> + * This function adds an opp definition to the opp list and returns
+> > >> + * a handle representing the new OPP list. This handle is then used
+> for further
+> > >> + * validation, search, modification operations on the OPP list.
+> > >> + *
+> > >> + * This function returns the pointer to the allocated list through
+> oppl if
+> > >> + * success, else corresponding ERR_PTR value. Caller should NOT free
+> the oppl.
+> > >> + * opps_defs can be freed after use.
+> > >> + *
+> > >> + * NOTE: caller should assume that on success, oppl is probably
+> populated with
+> > >> + * a new handle and the new handle should be used for further
+> referencing
+> > >> + */
+> > >> +struct omap_opp *opp_add(struct omap_opp *oppl,
+> > >> +                      const struct omap_opp_def *opp_def);
+> > >
+> > > c.f. proposal to drop omap_opp_def.
+> > explained above.
+> >
+> > >
+> > > otherwise, ack.
+> > >
+> >
 > > --
-> > 1.6.3.3
+> > Regards,
+> > Nishanth Menon
 > 
 > --
 > Eduardo Valentin
+
+Regards,
+Nishanth Menon
