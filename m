@@ -1,34 +1,49 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [RFC/PATCH 1/5] usb: otg: add notifier support
-Date: Fri, 11 Dec 2009 11:55:38 +0000
-Message-ID: <20091211115538.GB25806@sirena.org.uk>
-References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com> <1260531086-23857-2-git-send-email-felipe.balbi@nokia.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 0/2] [RESEND] Amstrad Delta: add support for LCD contrast
+Date: Fri, 11 Dec 2009 12:55:46 +0100
+Message-ID: <200912111255.48176.jkrzyszt@tis.icnet.pl>
+References: <200911231857.55566.jkrzyszt@tis.icnet.pl> <20091207213250.GI24013@atomide.com> <1260525223.9700.86.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:51292 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756176AbZLKL4K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 06:56:10 -0500
+In-Reply-To: <1260525223.9700.86.camel@tubuntu.research.nokia.com>
 Content-Disposition: inline
-In-Reply-To: <1260531086-23857-2-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Dec 11, 2009 at 01:31:22PM +0200, Felipe Balbi wrote:
-> The notifier will be used to communicate usb events
-> to other drivers like the charger chip.
+(dropping Imre to not bother him personally any longer)
+(dropping LKML, no need to spam them since omapfb maintaner problem sol=
+ved)
+(not sure if old fbdev list should be dropped as well - seems closed)
 
-> This can be used as source of information to kick
-> usb charger detection as described by the USB
-> Battery Charging Specification 1.1 and/or to
-> pass bMaxPower field of selected usb_configuration
-> to charger chip in order to use that information
-> as input current on the charging profile
-> setup.
+=46riday 11 December 2009 10:53:43 Tomi Valkeinen napisa=C5=82(a):
+>
+> I talked with Imre, and he's not too keen on maintaining the old omap=
+fb,
+> so I'll take over it.
 
-This one looks reasonable to me, though I've not thought it through
-properly yet.  Could you please add me to the CC list for future
-revisions of this - I've got some charger drivers that could use this?
+Tomi,
+
+That's great, thank you.
+
+> And perhaps it's easier to have all omap display=20
+> related patches in one place.
+
+Am I supposed to do anything about this series[1]? Resend to you?
+
+Thanks,
+Janusz
+
+[1] http://marc.info/?l=3Dlinux-fbdev&m=3D125900108905412&w=3D2
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
