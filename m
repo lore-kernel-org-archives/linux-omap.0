@@ -1,84 +1,116 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC][PATCH 4/5] input: serio: add support for Amstrad Delta serial keyboard port
-Date: Fri, 11 Dec 2009 04:09:58 +0100
-Message-ID: <200912110410.00123.jkrzyszt@tis.icnet.pl>
-References: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com>
-Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, e3-hacking@earth.li
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: [PATCH] [OMAP] gpio: Simultaneously requested rising and falling edge
+Date: Thu, 10 Dec 2009 19:59:54 -0800
+Message-ID: <1260503994-27823-1-git-send-email-darkstar6262@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:36516 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099AbZLKEA1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Dec 2009 23:00:27 -0500
+Received: by pzk1 with SMTP id 1so410623pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 10 Dec 2009 20:00:34 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-=46riday 11 December 2009 03:36:58 Dmitry Torokhov napisa=C5=82(a):
-> On Thu, Dec 10, 2009 at 09:07:50PM +0100, Janusz Krzysztofik wrote:
-> > +
-> > +/*
-> > + * This table converts the amstrad mailboard scancodes to normal P=
-C-
-> > AT scancodes
-> > + * The diagram below shows the amstrad keyboard, with the raw
-> > scancodes
-> > + *
-> > + *   (70) (7A) (46) (7C) (77)   Amstrad     (72) (69) (1A) (2A)
-> > (1C) (15)
-> > + * [  71][1:74][2:73][3:6B][4:22][5:1B][6:1D][7:1E][8:79][9:7D]
-> > [0:75][  6C]
-> > + *  [Q:21][W:23][E:24][R:26][T:52][Y:5D][U:0D][I:0E][O:32][P:34]  =
-|
-> > return|
-> > + *   [A:31][S:33][D:35][F:36][G:29][H:5B][J:03][K:76][L:3A][@:3B]
-> >
-> > |   2C|
-> >
-> > + *  [  3C][Z:3D][X:4E][C:54][V:0B][B:05][N:41][M:42][.:43][  3E]
-> > [  55]
-> > + *  [  83][  06][  49][           4B         ][,:44][  16][  2E]
-> > [  09]
-> > + *
-> > + * These scancodes are then translated to AT scancodes using the
-> > following table
-> > + * The amstrad keyboard does not produce any extended scancodes,
-> > but we need to
-> > + * translate some amstrad scancodes to a AT extended scancode,
-> > hence the 16bit
-> > + * value for the translated scancode
-> > + *
->
-> No, please write a proper keyboard driver instead of creating this
-> Frankenstain monster. It is not a generic serio-style data source so =
-it
-> should not use serio, should reside in drivers/input/keyboard and cre=
-ate
-> input device by itself.
->
-> Thanks.
+Some chips, namely any OMAP1 chips using METHOD_MPUIO,
+OMAP15xx and OMAP7xx, cannot be setup to respond to on-chip GPIO
+interrupts in both rising and falling edge directions -- they can
+only respond to one direction or the other, depending on how the
+ICR is configured.
 
-Hi Dmitry,
+This change implements a toggle function that will modify the ICR
+to flip the direction of interrupt for IRQs that are requested with
+both rising and falling flags.  The toggle function is a noop for
+chips and GPIOs it does not apply to.
 
-Thanks for your opinion.
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+---
+ arch/arm/plat-omap/gpio.c |   60 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 60 insertions(+), 0 deletions(-)
 
-Lack of support for Amstrad Delta external keybord is not a problem for=
- me,=20
-since I use the machine as an IP phone, not a network terminal. I just=20
-thought it would be nice for other users to have this old but perfectly=
-=20
-working driver integrated into the mainline. But if it is that bad as y=
-ou=20
-say, I have no problem with dropping it.
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 055160e..b594398 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -749,6 +749,53 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ }
+ #endif
+ 
++/*
++ * This only applies to chips that can't do both rising and falling edge
++ * detection at once.  For all other chips, this function is a noop.
++ */
++static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
++{
++	void __iomem *reg = bank->base;
++	u32 l = 0;
++
++	switch (bank->method) {
++#ifdef CONFIG_ARCH_OMAP1
++	case METHOD_MPUIO:
++		reg += OMAP_MPUIO_GPIO_INT_EDGE;
++		l = __raw_readl(reg);
++		if ((l >> gpio) & 1)
++			l &= ~(1 << gpio);
++		else
++			l |= 1 << gpio;
++		break;
++#endif
++#ifdef CONFIG_ARCH_OMAP15XX
++	case METHOD_GPIO_1510:
++		reg += OMAP1510_GPIO_INT_CONTROL;
++		l = __raw_readl(reg);
++		if ((l >> gpio) & 1)
++			l &= ~(1 << gpio);
++		else
++			l |= 1 << gpio;
++		break;
++#endif
++#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
++	case METHOD_GPIO_7XX:
++		reg += OMAP7XX_GPIO_INT_CONTROL;
++		l = __raw_readl(reg);
++		if ((l >> gpio) & 1) {
++			l &= ~(1 << gpio);
++		} else {
++			l |= 1 << gpio;
++		}
++		break;
++#endif
++	default:
++		return;
++	}
++	__raw_writel(l, reg);
++}
++
+ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ {
+ 	void __iomem *reg = bank->base;
+@@ -1284,9 +1331,22 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 
+ 		gpio_irq = bank->virtual_irq_start;
+ 		for (; isr != 0; isr >>= 1, gpio_irq++) {
++			struct irq_desc *desc = irq_to_desc(gpio_irq);
+ 			if (!(isr & 1))
+ 				continue;
+ 
++			/*
++			 * Some chips can't respond to both rising and falling at the
++			 * same time.  If this irq was requested with both flags, we
++			 * need to flip the ICR data for the IRQ to respond to the
++			 * IRQ for the opposite direction.
++			 */
++			if (desc->status & IRQ_TYPE_EDGE_FALLING &&
++			    desc->status & IRQ_TYPE_EDGE_RISING)
++				_toggle_gpio_edge_triggering(
++						get_irq_chip_data(gpio_irq),
++						get_gpio_index(irq_to_gpio(gpio_irq)));
++
+ 			generic_handle_irq(gpio_irq);
+ 		}
+ 	}
+-- 
+1.6.3.3
 
-I'll see if I'm able to create a proper driver myself when I find some =
-spare=20
-time.
-
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
