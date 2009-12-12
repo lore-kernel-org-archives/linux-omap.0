@@ -1,39 +1,186 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Conflict in irqs.h
-Date: Fri, 11 Dec 2009 17:13:42 -0800
-Message-ID: <20091212011342.GK24013@atomide.com>
-References: <2256F256009DAA4CBE661E9F41EAC84B88A174F9@dlee01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: [PATCH v2] [OMAP] gpio: Simultaneously requested rising and falling edge
+Date: Fri, 11 Dec 2009 17:25:53 -0800
+Message-ID: <1260581153-4472-1-git-send-email-darkstar6262@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53679 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759208AbZLLBNi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 20:13:38 -0500
-Content-Disposition: inline
-In-Reply-To: <2256F256009DAA4CBE661E9F41EAC84B88A174F9@dlee01.ent.ti.com>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:43949 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761500AbZLLB0A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 20:26:00 -0500
+Received: by pwj9 with SMTP id 9so926485pwj.21
+        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 17:26:07 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Candelaria Villareal, Jorge" <x0107209@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-* Candelaria Villareal, Jorge <x0107209@ti.com> [091211 17:08]:
-> Hi,
-> 
-> I am trying to get some patches pushed upstream. These patches are for OMAP4 McPDM driver and concern both linux-omap and alsa trees IMO. One of the patches (attached) modifies irqs.h to add McPDM irq number. The problem is irqs.h file is in a different path and the patches apply differently in each tree.
-> 
-> I was planning on sending the set to both alsa and linux-omap list, but there will be a conflict for your linux-omap tree. Is there a procedure to follow in these cases?
-> 
-> I have also considered sending two different sets of patches individually: one to you and the other to Mark Brown. 
-> 
-> Can you advice?
+Some chips, namely any OMAP1 chips using METHOD_MPUIO,
+OMAP15xx and OMAP7xx, cannot be setup to respond to on-chip GPIO
+interrupts in both rising and falling edge directions -- they can
+only respond to one direction or the other, depending on how the
+ICR is configured.
 
-Do all the patches against the current mainline kernel,
-other trees will eventually sync against that. If it's
-a patch against some code not yet in mainline, please
-do it against current omap-for-linus branch in the 
-linux-omap tree.
+Additionally, current code forces rising edge detection if both
+flags are specified:
 
-Regards,
+        if (trigger & IRQ_TYPE_EDGE_RISING)
+                l |= 1 << gpio;
+        else if (trigger & IRQ_TYPE_EDGE_FALLING)
+                l &= ~(1 << gpio);
+        else
+                goto bad;
 
-Tony
+This change implements a toggle function that will modify the ICR
+to flip the direction of interrupt for IRQs that are requested with
+both rising and falling flags.  The toggle function is not called
+for chips and GPIOs it does not apply to through the use of a flip_mask
+that's added on a per-bank basis.  The mask is only set for those
+GPIOs where a toggle is necessary.  Edge detection starts out the
+same as above with FALLING mode first.
+
+The toggle happens on EACH interrupt; without it, we have the
+following sequence of actions on GPIO transition:
+
+  ICR    GPIO               Result
+  0x1    0 -> 1 (rising)    Interrupt
+  0x1    1 -> 0 (falling)   No interrupt
+
+  (set ICR to 0x0 manually)
+  0x0    0 -> 1 (rising)    No interrupt
+  0x0    1 -> 0 (falling)   Interrupt
+
+That is, with the ICR set to 1 for a gpio, only rising edge interrupts
+are caught, and with it set to 0, only falling edge interrupts are
+caught.  If we add in the toggle, we get this:
+
+  ICR    GPIO               Result
+  0x1    0 -> 1 (rising)    Interrupt (ICR set to 0x0)
+  0x0    1 -> 0 (falling)   Interrupt (ICR set to 0x1)
+  0x1    0 -> 1 ...
+
+so, both rising and falling are caught, per the request for both
+(IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING).
+
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+---
+ arch/arm/plat-omap/gpio.c |   59 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 58 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 055160e..a05c83d 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -192,6 +192,7 @@ struct gpio_bank {
+ 	u32 saved_risingdetect;
+ #endif
+ 	u32 level_mask;
++	u32 flip_mask;
+ 	spinlock_t lock;
+ 	struct gpio_chip chip;
+ 	struct clk *dbck;
+@@ -749,6 +750,44 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ }
+ #endif
+ 
++/*
++ * This only applies to chips that can't do both rising and falling edge
++ * detection at once.  For all other chips, this function is a noop.
++ */
++static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
++{
++	void __iomem *reg = bank->base;
++	u32 l = 0;
++
++	switch (bank->method) {
++#ifdef CONFIG_ARCH_OMAP1
++	case METHOD_MPUIO:
++		reg += OMAP_MPUIO_GPIO_INT_EDGE;
++		break;
++#endif
++#ifdef CONFIG_ARCH_OMAP15XX
++	case METHOD_GPIO_1510:
++		reg += OMAP1510_GPIO_INT_CONTROL;
++		break;
++#endif
++#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
++	case METHOD_GPIO_7XX:
++		reg += OMAP7XX_GPIO_INT_CONTROL;
++		break;
++#endif
++	default:
++		return;
++	}
++
++	l = __raw_readl(reg);
++	if ((l >> gpio) & 1)
++		l &= ~(1 << gpio);
++	else
++		l |= 1 << gpio;
++
++	__raw_writel(l, reg);
++}
++
+ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ {
+ 	void __iomem *reg = bank->base;
+@@ -759,6 +798,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ 	case METHOD_MPUIO:
+ 		reg += OMAP_MPUIO_GPIO_INT_EDGE;
+ 		l = __raw_readl(reg);
++		if (trigger & IRQ_TYPE_EDGE_RISING && trigger & IRQ_TYPE_EDGE_FALLING)
++			bank->flip_mask |= 1 << gpio;
+ 		if (trigger & IRQ_TYPE_EDGE_RISING)
+ 			l |= 1 << gpio;
+ 		else if (trigger & IRQ_TYPE_EDGE_FALLING)
+@@ -771,6 +812,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ 	case METHOD_GPIO_1510:
+ 		reg += OMAP1510_GPIO_INT_CONTROL;
+ 		l = __raw_readl(reg);
++		if (trigger & IRQ_TYPE_EDGE_RISING && trigger & IRQ_TYPE_EDGE_FALLING)
++			bank->flip_mask |= 1 << gpio;
+ 		if (trigger & IRQ_TYPE_EDGE_RISING)
+ 			l |= 1 << gpio;
+ 		else if (trigger & IRQ_TYPE_EDGE_FALLING)
+@@ -803,6 +846,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ 	case METHOD_GPIO_7XX:
+ 		reg += OMAP7XX_GPIO_INT_CONTROL;
+ 		l = __raw_readl(reg);
++		if (trigger & IRQ_TYPE_EDGE_RISING && trigger & IRQ_TYPE_EDGE_FALLING)
++			bank->flip_mask |= 1 << gpio;
+ 		if (trigger & IRQ_TYPE_EDGE_RISING)
+ 			l |= 1 << gpio;
+ 		else if (trigger & IRQ_TYPE_EDGE_FALLING)
+@@ -1217,7 +1262,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ {
+ 	void __iomem *isr_reg = NULL;
+ 	u32 isr;
+-	unsigned int gpio_irq;
++	unsigned int gpio_irq, gpio_index;
+ 	struct gpio_bank *bank;
+ 	u32 retrigger = 0;
+ 	int unmasked = 0;
+@@ -1284,9 +1329,21 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 
+ 		gpio_irq = bank->virtual_irq_start;
+ 		for (; isr != 0; isr >>= 1, gpio_irq++) {
++			gpio_index = get_gpio_index(irq_to_gpio(gpio_irq));
++
+ 			if (!(isr & 1))
+ 				continue;
+ 
++			/*
++			 * Some chips can't respond to both rising and falling at the
++			 * same time.  If this irq was requested with both flags, we
++			 * need to flip the ICR data for the IRQ to respond to the
++			 * IRQ for the opposite direction.  This will be indicated in
++			 * the bank flip_mask.
++			 */
++			if ((bank->flip_mask >> gpio_index) & 1)
++				_toggle_gpio_edge_triggering(bank, gpio_index);
++
+ 			generic_handle_irq(gpio_irq);
+ 		}
+ 	}
+-- 
+1.6.3.3
+
