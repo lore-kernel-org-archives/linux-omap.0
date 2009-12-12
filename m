@@ -1,43 +1,139 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 00/10 V5] omap3: pm: introduce support for 3630 OPPs
-Date: Fri, 11 Dec 2009 23:00:28 -0600
-Message-ID: <1260594031-17268-1-git-send-email-nm@ti.com>
+Subject: [PATCH 09/10 V5] omap3: pm: introduce 3630 opps
+Date: Fri, 11 Dec 2009 23:00:31 -0600
+Message-ID: <1260594031-17268-4-git-send-email-nm@ti.com>
 References: <[PATCH 02/10 V4] omap3: pm: introduce opp accessor functions>
+ <1260594031-17268-1-git-send-email-nm@ti.com>
+ <1260594031-17268-2-git-send-email-nm@ti.com>
+ <1260594031-17268-3-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58039 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755142AbZLLFAa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 12 Dec 2009 00:00:30 -0500
-In-Reply-To: <[PATCH 02/10 V4] omap3: pm: introduce opp accessor functions>
+Received: from devils.ext.ti.com ([198.47.26.153]:57857 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757363AbZLLFAf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Dec 2009 00:00:35 -0500
+In-Reply-To: <1260594031-17268-3-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Tero Kristo <Tero.Kristo@nokia.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-Hi,
-Thanks for all the comments. Here are the *changed* patches since V5
+Introduce the OMAP3630 OPPs including the defined OPP tuples.
 
-What changed in V5:
-* review comment incorporated
-* vsel is deprecated now
-* I seem to have hit a checkpatch.pl bug as in 
-  http://lkml.org/lkml/2009/12/11/573, made me check the usage
-  of __deprecated for struct params, and used it in a
-  consistent manner to functions..
-* More warnings added to build :( (deprecated ones ofcourse)
-* removed OMAP_OPP_DEF_TERMINATOR
-* 3430 and 3630 patches changed as a result
+Further information on OMAP3630 can be found here:
+http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
 
-History:
-V4: http://marc.info/?t=126033962600001&r=1&w=2
-V3: http://marc.info/?t=125912234200001&r=1&w=2
-V2: http://marc.info/?l=linux-omap&m=125809232732700&w=2
-V1: http://marc.info/?l=linux-omap&m=125800488923479&w=2
+OMAP36xx family introduces:
+VDD1 with 4 OPPs, of which OPP3 & 4 are available only on devices yet
+to be introduced in 36xx family. Meanwhile, VDD2 has 2 opps.
 
-Ref: http://elinux.org/OMAP_Power_Management#Future_directions
+Device Support of OPPs->
+           |<-3630-600->| (default)
+           |<-      3630-800    ->| (device: TBD)
+           |<-      3630-1000            ->| (device: TBD)
+H/w OPP-> OPP50 OPP100       OPP-Turbo   OPP1G-SB
+VDD1      OPP1  OPP2         OPP3        OPP4
+VDD2      OPP1  OPP2         OPP2        OPP2
 
-TODO: The list is still the same as in:
-http://marc.info/?l=linux-omap&m=126033945313269&w=2
+Note:
+a) TI h/w naming for OPPs are now standardized in terms of OPP50, 100,
+   Turbo and SB. This maps as shown above to the opp IDs (s/w term).
+b) For boards which need custom VDD1/2 OPPs, the opp table can be
+   updated by the board file on a need basis after the
+   omap3_pm_init_opp_table call. The OPPs introduced here are the
+   official OPP table at this point in time.
 
-Regards,
-Nishanth Menon
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Romit Dasgupta <romit@ti.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+Cc: Tero Kristo <Tero.Kristo@nokia.com>
+Cc: Thara Gopinath <thara@ti.com>
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   46 +++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 45 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index f9d061d..73bfc18 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -143,6 +143,41 @@ static struct omap_opp_def __initdata omap34xx_dsp_rate_table[] = {
+ 	OMAP_OPP_DEF(0, 0, 0)
+ };
+ 
++static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
++	/* OPP1 - OPP50 */
++	OMAP_OPP_DEF(true,  300000000, 930000),
++	/* OPP2 - OPP100 */
++	OMAP_OPP_DEF(true,  600000000, 1100000),
++	/* OPP3 - OPP-Turbo */
++	OMAP_OPP_DEF(false, 800000000, 1260000),
++	/* OPP4 - OPP-SB */
++	OMAP_OPP_DEF(false, 1000000000, 1310000),
++	/* Terminator */
++	OMAP_OPP_DEF(0, 0, 0)
++};
++
++static struct omap_opp_def __initdata omap36xx_l3_rate_table[] = {
++	/* OPP1 - OPP50 */
++	OMAP_OPP_DEF(true, 100000000, 930000),
++	/* OPP2 - OPP100, OPP-Turbo, OPP-SB */
++	OMAP_OPP_DEF(true, 200000000, 1137500),
++	/* Terminator */
++	OMAP_OPP_DEF(0, 0, 0)
++};
++
++static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
++	/* OPP1 - OPP50 */
++	OMAP_OPP_DEF(true,  260000000, 930000),
++	/* OPP2 - OPP100 */
++	OMAP_OPP_DEF(true,  520000000, 1100000),
++	/* OPP3 - OPP-Turbo */
++	OMAP_OPP_DEF(false, 660000000, 1260000),
++	/* OPP4 - OPP-SB */
++	OMAP_OPP_DEF(false, 875000000, 1310000),
++	/* Terminator */
++	OMAP_OPP_DEF(0, 0, 0)
++};
++
+ /* OMAP3 Rate Table */
+ struct omap_opp *omap3_mpu_rate_table;
+ struct omap_opp *omap3_dsp_rate_table;
+@@ -1299,18 +1334,27 @@ static void __init configure_vc(void)
+ void __init omap3_pm_init_opp_table(void)
+ {
+ 	int i;
++	struct omap_opp_def **omap3_opp_def_list;
+ 	struct omap_opp_def *omap34xx_opp_def_list[] = {
+ 		omap34xx_mpu_rate_table,
+ 		omap34xx_l3_rate_table,
+ 		omap34xx_dsp_rate_table
+ 	};
++	struct omap_opp_def *omap36xx_opp_def_list[] = {
++		omap36xx_mpu_rate_table,
++		omap36xx_l3_rate_table,
++		omap36xx_dsp_rate_table
++	};
+ 	struct omap_opp **omap3_rate_tables[] = {
+ 		&omap3_mpu_rate_table,
+ 		&omap3_l3_rate_table,
+ 		&omap3_dsp_rate_table
+ 	};
++
++	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
++				omap34xx_opp_def_list;
+ 	for (i = 0; i < ARRAY_SIZE(omap3_rate_tables); i++) {
+-		*omap3_rate_tables[i] = opp_init_list(omap34xx_opp_def_list[i]);
++		*omap3_rate_tables[i] = opp_init_list(omap3_opp_def_list[i]);
+ 		/* We dont want half configured system at the moment */
+ 		BUG_ON(IS_ERR(omap3_rate_tables[i]));
+ 	}
+-- 
+1.6.3.3
+
