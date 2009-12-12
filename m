@@ -1,60 +1,53 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 3/6 v2] OMAP4: Re-arrange the low level debug code
-Date: Sat, 12 Dec 2009 13:05:34 +0530
-Message-ID: <1260603334-22158-1-git-send-email-santosh.shilimkar@ti.com>
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: Re: [APPLIED] [PATCH 2/2] usb: ehci: Allow EHCI to be built on OMAP3
+Date: Sat, 12 Dec 2009 07:48:17 +0000
+Message-ID: <4B234AC1.2010104@blueyonder.co.uk>
+References: <notify-1260223910@atomide.com>
+Reply-To: sboyce@blueyonder.co.uk
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36473 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750779AbZLLHfw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Dec 2009 02:35:52 -0500
+Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:50375 "EHLO
+	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751507AbZLLHsM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 Dec 2009 02:48:12 -0500
+Received: from [172.23.170.137] (helo=anti-virus01-08)
+	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1NJMiA-0005Z2-4j
+	for linux-omap@vger.kernel.org; Sat, 12 Dec 2009 07:48:18 +0000
+Received: from [94.171.130.58] (helo=[192.168.10.2])
+	by asmtp-out5.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1NJMi9-00044l-NO
+	for linux-omap@vger.kernel.org; Sat, 12 Dec 2009 07:48:17 +0000
+In-Reply-To: <notify-1260223910@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: linux-omap@vger.kernel.org
 
-On OMAP4430 the UART3 base address is different than that on OMAP3.
-Because of this existing code needs additional #ifdef'ry to accommodate
-that code. Hence this patch separates it. Also UART3 base address is
-fixed for OMAP4430 in this patch.
-
-Incorporated comment from Sergei Shtylyov [sshtylyov@ru.mvista.com]
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/include/mach/debug-macro.S |   13 ++++++++++++-
- 1 files changed, 12 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index e9f255d..791bd73 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -25,7 +25,7 @@
- 		add	\rx, \rx, #0x00004000	@ UART 3
- #endif
- 
--#elif defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-+#elif defined(CONFIG_ARCH_OMAP3)
- 		moveq	\rx, #0x48000000	@ physical base address
- 		movne	\rx, #0xfa000000	@ virtual base
- 		orr	\rx, \rx, #0x0006a000
-@@ -36,6 +36,17 @@
- 		add	\rx, \rx, #0x00fb0000	@ UART 3
- 		add	\rx, \rx, #0x00006000
- #endif
-+#elif defined(CONFIG_ARCH_OMAP4)
-+		moveq	\rx, #0x48000000	@ physical base address
-+		movne	\rx, #0xfa000000	@ virtua base
-+		orr	\rx, \rx, #0x0006a000	@ UART 1
-+#ifdef CONFIG_OMAP_LL_DEBUG_UART2
-+		add	\rx, \rx, #0x00002000	@ UART 2
-+#endif
-+#ifdef CONFIG_OMAP_LL_DEBUG_UART3
-+		and 	\rx, \rx, #0xff000000
-+		add	\rx, \rx, #0x00020000	@ UART 3
-+#endif
- #endif
- 		.endm
- 
+On 07/12/09 22:11, Tony Lindgren wrote:
+> This patch has been applied to the linux-omap
+> by youw fwiendly patch wobot.
+> 
+> Branch in linux-omap: for-next-vol2
+> 
+> Initial commit ID (Likely to change): caeaa2f4d7e3c8a2576bff1ca1b58e104e8f0266
+> 
+> PatchWorks
+> http://patchwork.kernel.org/patch/62727/
+> 
+> Git (Likely to change, and takes a while to get mirrored)
+> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=caeaa2f4d7e3c8a2576bff1ca1b58e104e8f0266
+> 
+> 
+Thanks Tony,
+It seemed these patches were somehow lost upstream.
+Regards
+Sid.
 -- 
-1.6.0.4
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
