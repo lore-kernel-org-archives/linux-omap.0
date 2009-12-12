@@ -1,186 +1,59 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH v2] [OMAP] gpio: Simultaneously requested rising and falling edge
-Date: Fri, 11 Dec 2009 17:25:53 -0800
-Message-ID: <1260581153-4472-1-git-send-email-darkstar6262@gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] OMAP3: PM:  Dynamic calculation of SDRC clock stabilization
+ delay
+Date: Fri, 11 Dec 2009 22:43:54 -0600
+Message-ID: <4B231F8A.2080706@ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4B50@dbde02.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0C012B9F49BC@dlee02.ent.ti.com> <4B223BA3.4000402@ti.com> <4B224C5B.3080808@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:43949 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761500AbZLLB0A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Dec 2009 20:26:00 -0500
-Received: by pwj9 with SMTP id 9so926485pwj.21
-        for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 17:26:07 -0800 (PST)
+Received: from bear.ext.ti.com ([192.94.94.41]:45398 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761178AbZLLEns (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Dec 2009 23:43:48 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBC4htPZ011975
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 22:43:55 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id nBC4htH6002676
+	for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 22:43:55 -0600 (CST)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBC4htDi018768
+	for <linux-omap@vger.kernel.org>; Fri, 11 Dec 2009 22:43:55 -0600 (CST)
+In-Reply-To: <4B224C5B.3080808@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Cory Maccarrone <darkstar6262@gmail.com>
+To: "Dasgupta, Romit" <romit@ti.com>
+Cc: "Reddy, Teerth" <teerth@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Some chips, namely any OMAP1 chips using METHOD_MPUIO,
-OMAP15xx and OMAP7xx, cannot be setup to respond to on-chip GPIO
-interrupts in both rising and falling edge directions -- they can
-only respond to one direction or the other, depending on how the
-ICR is configured.
+Menon, Nishanth had written, on 12/11/2009 07:42 AM, the following:
+> Dasgupta, Romit had written, on 12/11/2009 06:31 AM, the following:
+>>> Also Richard indicated that there might be a few tricky things with perf
+>>> Counters with specific devices - like EMU/HS/GP devices. It might need EMU
+>>> Domain for the values to pass through and there might be a yet-not-measured increase In power which could impact usage numbers and may need additional 
+>>> Code to switch off the domain correctly while hitting OFF/RET..
+>>>
+>> Yes someone with EMU/HS could run and let us know. OTOH there won't be any
+>> increase in power as it is done only once during boot time after which the
+>> perfcounters are stopped.
+>>
+>> By the way can you run this in 3630 and help us find what is the SRAM access
+>> delay? I am sure it should be lesser since it has a process improvement over 34xx.
+>>
+>>
+> will try on SDP3630 among the boards that I have around. meanwhile, 
+> would like an explanation to my previous comments also esp on the black 
+> magic "6" ;) - thanks.
+> 
+Just realized -> clock framework changes are not in yet, anyways, with 
+3630SDP (without my OPP series and on pm branch):
+Clocking rate (Crystal/Core/MPU): 26.0/400/600 MHz
+SRAM delay: 54 
 
-Additionally, current code forces rising edge detection if both
-flags are specified:
+Reprogramming SDRC clock to 400000000 Hz
 
-        if (trigger & IRQ_TYPE_EDGE_RISING)
-                l |= 1 << gpio;
-        else if (trigger & IRQ_TYPE_EDGE_FALLING)
-                l &= ~(1 << gpio);
-        else
-                goto bad;
-
-This change implements a toggle function that will modify the ICR
-to flip the direction of interrupt for IRQs that are requested with
-both rising and falling flags.  The toggle function is not called
-for chips and GPIOs it does not apply to through the use of a flip_mask
-that's added on a per-bank basis.  The mask is only set for those
-GPIOs where a toggle is necessary.  Edge detection starts out the
-same as above with FALLING mode first.
-
-The toggle happens on EACH interrupt; without it, we have the
-following sequence of actions on GPIO transition:
-
-  ICR    GPIO               Result
-  0x1    0 -> 1 (rising)    Interrupt
-  0x1    1 -> 0 (falling)   No interrupt
-
-  (set ICR to 0x0 manually)
-  0x0    0 -> 1 (rising)    No interrupt
-  0x0    1 -> 0 (falling)   Interrupt
-
-That is, with the ICR set to 1 for a gpio, only rising edge interrupts
-are caught, and with it set to 0, only falling edge interrupts are
-caught.  If we add in the toggle, we get this:
-
-  ICR    GPIO               Result
-  0x1    0 -> 1 (rising)    Interrupt (ICR set to 0x0)
-  0x0    1 -> 0 (falling)   Interrupt (ICR set to 0x1)
-  0x1    0 -> 1 ...
-
-so, both rising and falling are caught, per the request for both
-(IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING).
-
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- arch/arm/plat-omap/gpio.c |   59 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 58 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 055160e..a05c83d 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -192,6 +192,7 @@ struct gpio_bank {
- 	u32 saved_risingdetect;
- #endif
- 	u32 level_mask;
-+	u32 flip_mask;
- 	spinlock_t lock;
- 	struct gpio_chip chip;
- 	struct clk *dbck;
-@@ -749,6 +750,44 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
- }
- #endif
- 
-+/*
-+ * This only applies to chips that can't do both rising and falling edge
-+ * detection at once.  For all other chips, this function is a noop.
-+ */
-+static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
-+{
-+	void __iomem *reg = bank->base;
-+	u32 l = 0;
-+
-+	switch (bank->method) {
-+#ifdef CONFIG_ARCH_OMAP1
-+	case METHOD_MPUIO:
-+		reg += OMAP_MPUIO_GPIO_INT_EDGE;
-+		break;
-+#endif
-+#ifdef CONFIG_ARCH_OMAP15XX
-+	case METHOD_GPIO_1510:
-+		reg += OMAP1510_GPIO_INT_CONTROL;
-+		break;
-+#endif
-+#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-+	case METHOD_GPIO_7XX:
-+		reg += OMAP7XX_GPIO_INT_CONTROL;
-+		break;
-+#endif
-+	default:
-+		return;
-+	}
-+
-+	l = __raw_readl(reg);
-+	if ((l >> gpio) & 1)
-+		l &= ~(1 << gpio);
-+	else
-+		l |= 1 << gpio;
-+
-+	__raw_writel(l, reg);
-+}
-+
- static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
- {
- 	void __iomem *reg = bank->base;
-@@ -759,6 +798,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
- 	case METHOD_MPUIO:
- 		reg += OMAP_MPUIO_GPIO_INT_EDGE;
- 		l = __raw_readl(reg);
-+		if (trigger & IRQ_TYPE_EDGE_RISING && trigger & IRQ_TYPE_EDGE_FALLING)
-+			bank->flip_mask |= 1 << gpio;
- 		if (trigger & IRQ_TYPE_EDGE_RISING)
- 			l |= 1 << gpio;
- 		else if (trigger & IRQ_TYPE_EDGE_FALLING)
-@@ -771,6 +812,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
- 	case METHOD_GPIO_1510:
- 		reg += OMAP1510_GPIO_INT_CONTROL;
- 		l = __raw_readl(reg);
-+		if (trigger & IRQ_TYPE_EDGE_RISING && trigger & IRQ_TYPE_EDGE_FALLING)
-+			bank->flip_mask |= 1 << gpio;
- 		if (trigger & IRQ_TYPE_EDGE_RISING)
- 			l |= 1 << gpio;
- 		else if (trigger & IRQ_TYPE_EDGE_FALLING)
-@@ -803,6 +846,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
- 	case METHOD_GPIO_7XX:
- 		reg += OMAP7XX_GPIO_INT_CONTROL;
- 		l = __raw_readl(reg);
-+		if (trigger & IRQ_TYPE_EDGE_RISING && trigger & IRQ_TYPE_EDGE_FALLING)
-+			bank->flip_mask |= 1 << gpio;
- 		if (trigger & IRQ_TYPE_EDGE_RISING)
- 			l |= 1 << gpio;
- 		else if (trigger & IRQ_TYPE_EDGE_FALLING)
-@@ -1217,7 +1262,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- {
- 	void __iomem *isr_reg = NULL;
- 	u32 isr;
--	unsigned int gpio_irq;
-+	unsigned int gpio_irq, gpio_index;
- 	struct gpio_bank *bank;
- 	u32 retrigger = 0;
- 	int unmasked = 0;
-@@ -1284,9 +1329,21 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- 
- 		gpio_irq = bank->virtual_irq_start;
- 		for (; isr != 0; isr >>= 1, gpio_irq++) {
-+			gpio_index = get_gpio_index(irq_to_gpio(gpio_irq));
-+
- 			if (!(isr & 1))
- 				continue;
- 
-+			/*
-+			 * Some chips can't respond to both rising and falling at the
-+			 * same time.  If this irq was requested with both flags, we
-+			 * need to flip the ICR data for the IRQ to respond to the
-+			 * IRQ for the opposite direction.  This will be indicated in
-+			 * the bank flip_mask.
-+			 */
-+			if ((bank->flip_mask >> gpio_index) & 1)
-+				_toggle_gpio_edge_triggering(bank, gpio_index);
-+
- 			generic_handle_irq(gpio_irq);
- 		}
- 	}
 -- 
-1.6.3.3
-
+Regards,
+Nishanth Menon
