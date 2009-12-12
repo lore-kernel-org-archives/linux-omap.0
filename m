@@ -1,68 +1,25 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH v2 3/3] [OMAP] Add OMAP 7xx pin muxes for SPI
-Date: Sat, 12 Dec 2009 17:34:48 -0800
-Message-ID: <1260668088-27555-4-git-send-email-darkstar6262@gmail.com>
-References: <1260668088-27555-1-git-send-email-darkstar6262@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:49729 "HELO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933490AbZLMBfm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Dec 2009 20:35:42 -0500
-Received: by mail-pz0-f171.google.com with SMTP id 1so1530960pzk.33
-        for <linux-omap@vger.kernel.org>; Sat, 12 Dec 2009 17:35:42 -0800 (PST)
-In-Reply-To: <1260668088-27555-1-git-send-email-darkstar6262@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC/PATCH 2/5] usb: otg: twl4030: add support for notifier
+Date: Sat, 12 Dec 2009 18:34:10 +0000
+Message-ID: <20091212183410.GF3092@sirena.org.uk>
+References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
+ <1260531086-23857-3-git-send-email-felipe.balbi@nokia.com>
+ <c60a9cb0912110922g10fd0cc7m3b3430731db5ed81@mail.gmail.com>
+ <20091211204014.GA30776@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S934437AbZLMBuw@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20091211204014.GA30776@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext sai pavan <saipavan.243@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, David Brownell <dbrownell@users.sourceforge.net>
 List-Id: linux-omap@vger.kernel.org
-To: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
-Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-This change adds pin mux configuration for SPI100k on
-omap7xx platforms.
+On Fri, Dec 11, 2009 at 10:40:14PM +0200, Felipe Balbi wrote:
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- arch/arm/mach-omap1/mux.c             |    8 ++++++++
- arch/arm/plat-omap/include/plat/mux.h |    8 ++++++++
- 2 files changed, 16 insertions(+), 0 deletions(-)
+> that's a threaded irq. Maybe we should patch all twl children to use
+> request_threaded_irq() already. I'll test that tomorrow.
 
-diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
-index 07212cc..8434137 100644
---- a/arch/arm/mach-omap1/mux.c
-+++ b/arch/arm/mach-omap1/mux.c
-@@ -62,6 +62,14 @@ MUX_CFG_7XX("MMC_7XX_DAT0",        2,   17,    0,   16,   1, 0)
- /* I2C interface */
- MUX_CFG_7XX("I2C_7XX_SCL",         5,    1,    0,    0,   1, 0)
- MUX_CFG_7XX("I2C_7XX_SDA",         5,    5,    0,    0,   1, 0)
-+
-+/* SPI pins */
-+MUX_CFG_7XX("SPI_7XX_1",           6,    5,    4,    4,   1, 0)
-+MUX_CFG_7XX("SPI_7XX_2",           6,    9,    4,    8,   1, 0)
-+MUX_CFG_7XX("SPI_7XX_3",           6,   13,    4,   12,   1, 0)
-+MUX_CFG_7XX("SPI_7XX_4",           6,   17,    4,   16,   1, 0)
-+MUX_CFG_7XX("SPI_7XX_5",           8,   25,    0,   24,   0, 0)
-+MUX_CFG_7XX("SPI_7XX_6",           9,    5,    0,    4,   0, 0)
- };
- #define OMAP7XX_PINS_SZ		ARRAY_SIZE(omap7xx_pins)
- #else
-diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
-index 8f069cc..692c90e 100644
---- a/arch/arm/plat-omap/include/plat/mux.h
-+++ b/arch/arm/plat-omap/include/plat/mux.h
-@@ -183,6 +183,14 @@ enum omap7xx_index {
- 	/* I2C */
- 	I2C_7XX_SCL,
- 	I2C_7XX_SDA,
-+
-+	/* SPI */
-+	SPI_7XX_1,
-+	SPI_7XX_2,
-+	SPI_7XX_3,
-+	SPI_7XX_4,
-+	SPI_7XX_5,
-+	SPI_7XX_6,
- };
- 
- enum omap1xxx_index {
--- 
-1.6.3.3
-
+You should also now be able to do all the interrupt handling with genirq
+without the lockdep dodges that used to be be required.
