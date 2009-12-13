@@ -1,53 +1,44 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v3 03/04] ARM: OMAP: Rename twl4030_ in rtc-twl.c to
- make it generic rtc
-Date: Sun, 13 Dec 2009 21:28:27 +0100
-Message-ID: <20091213202826.GB10094@sortiz.org>
-References: <1254399633-3691-1-git-send-email-balajitk@ti.com>
- <20091118154252.55b97822@linux.lan.towertech.it>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: [PATCH v5] mmc-omap: Add support for 16-bit and 32-bit registers
+Date: Sun, 13 Dec 2009 13:29:23 -0800
+Message-ID: <6cb013310912131329i139c086av96f0b613647531c0@mail.gmail.com>
+References: <1259001448-9574-1-git-send-email-darkstar6262@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:13680 "HELO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with SMTP id S1752052AbZLMU0y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Dec 2009 15:26:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20091118154252.55b97822@linux.lan.towertech.it>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:48706 "HELO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754316AbZLMV3n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Dec 2009 16:29:43 -0500
+In-Reply-To: <1259001448-9574-1-git-send-email-darkstar6262@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alessandro Zummo <a.zummo@towertech.it>
-Cc: balajitk@ti.com, linux-omap@vger.kernel.org, wim@iguana.be, timo.t.kokkonen@nokia.com, ben-linux@fluff.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, p_gortmaker@yahoo.com, rtc-linux@googlegroups.com, Nayak Rajendra <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: Cory Maccarrone <darkstar6262@gmail.com>, Marek Belisko <marek.belisko@open-nandra.com>
 
-Hi Alessandro,
+On Mon, Nov 23, 2009 at 10:37 AM, Cory Maccarrone
+<darkstar6262@gmail.com> wrote:
+> The omap850 and omap730 use 16-bit registers instead of 32-bit, requi=
+ring
+> a modification of the register addresses in the mmc-omap driver. =C2=A0=
+To resolve
+> this, a bit shift is performed on base register addresses, either by =
+1 or 2
+> bits depending on the CPU in use. =C2=A0This yields the correct regis=
+ters for
+> each CPU.
+>
+> Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
+> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 
-On Wed, Nov 18, 2009 at 03:42:52PM +0100, Alessandro Zummo wrote:
-> On Thu,  1 Oct 2009 17:50:33 +0530
-> balajitk@ti.com wrote:
-> 
-> > From: Balaji T K <balajitk@ti.com>
-> > 
-> >  This patch renames all twl4030_ functions to twl_ so that RTC driver can be
-> >  shared between Triton and Phoenix.  
-> 
->  Which tree should handle that? The two patches you sent involves
->  both mfd and rtc and I don't have that mfd/twl.. in my tree.
-I'm taking this patch through the mfd tree, thanks.
+It's been a little while since I've heard anything about this patch.
+Is there any chance of it making it in for the current merge window?
 
-Cheers,
-Samuel.
-
-
-> -- 
-> 
->  Best regards,
-> 
->  Alessandro Zummo,
->   Tower Technologies - Torino, Italy
-> 
->   http://www.towertech.it
-> 
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Thanks
+- Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
