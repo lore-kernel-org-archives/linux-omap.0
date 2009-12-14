@@ -1,243 +1,652 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 4/4] OMAP3: I2C: Convert i2c driver to use omap_device/omap_hwmod
-Date: Mon, 14 Dec 2009 14:42:39 +0530
-Message-ID: <1260781959-28050-4-git-send-email-rnayak@ti.com>
+Subject: [PATCH 3/4] OMAP: I2C: split device registration; convert OMAP2+ to omap_device
+Date: Mon, 14 Dec 2009 14:42:38 +0530
+Message-ID: <1260781959-28050-3-git-send-email-rnayak@ti.com>
 References: <1260781959-28050-1-git-send-email-rnayak@ti.com>
  <1260781959-28050-2-git-send-email-rnayak@ti.com>
- <1260781959-28050-3-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52686 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52689 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753865AbZLNJMo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Dec 2009 04:12:44 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBE9CfQm015997
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 03:12:44 -0600
-In-Reply-To: <1260781959-28050-3-git-send-email-rnayak@ti.com>
+	id S1753885AbZLNJMq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Dec 2009 04:12:46 -0500
+In-Reply-To: <1260781959-28050-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-This patch converts the i2c driver to use omap_device/omap_hwmod.
+From: Paul Walmsley <paul@pwsan.com>
 
+Split the OMAP1 and OMAP2+ platform_device build and register code.
+Convert the OMAP2+ variant to use omap_device.
+
+This patch was developed in collaboration with Rajendra Nayak
+<rnayak@ti.com>.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   83 ++++++++++++++++-------------------------
- 1 files changed, 32 insertions(+), 51 deletions(-)
+ arch/arm/mach-omap1/Makefile          |    2 +
+ arch/arm/mach-omap1/i2c.c             |  137 ++++++++++++++++++++++
+ arch/arm/mach-omap2/Makefile          |    2 +
+ arch/arm/mach-omap2/i2c.c             |  132 ++++++++++++++++++++++
+ arch/arm/plat-omap/i2c.c              |  200 +++++++++------------------------
+ arch/arm/plat-omap/include/plat/i2c.h |   22 ++++
+ 6 files changed, 349 insertions(+), 146 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/i2c.c
+ create mode 100644 arch/arm/mach-omap2/i2c.c
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index bbea8a0..0334225 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -2,7 +2,7 @@
-  * TI OMAP I2C master mode driver
-  *
-  * Copyright (C) 2003 MontaVista Software, Inc.
-- * Copyright (C) 2005 Nokia Corporation
-+ * Copyright (C) 2005, 2009 Nokia Corporation
-  * Copyright (C) 2004 - 2007 Texas Instruments.
-  *
-  * Originally written by MontaVista Software, Inc.
-@@ -26,6 +26,10 @@
-  * You should have received a copy of the GNU General Public License
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index 87e539a..660eac6 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -17,6 +17,8 @@ obj-$(CONFIG_PM) += pm.o sleep.o
+ obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
+ mailbox_mach-objs		:= mailbox.o
+ 
++obj-$(CONFIG_I2C_OMAP)		+= i2c.o
++
+ led-y := leds.o
+ 
+ # Specific board support
+diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
+new file mode 100644
+index 0000000..4642b36
+--- /dev/null
++++ b/arch/arm/mach-omap1/i2c.c
+@@ -0,0 +1,137 @@
++/*
++ * linux/arch/arm/mach-omap1/i2c.c
 + *
-+ * To do:
-+ * - Add DMA for transfers longer than the FIFO
++ * Helper module for board specific I2C bus registration
 + *
++ * Copyright (C) 2007, 2009 Nokia Corporation.
++ *
++ * Contact: Jarkko Nikula <jhnikula@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/i2c.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++
++#include <mach/i2c.h>
++#include <mach/irqs.h>
++#include <mach/mux.h>
++
++#define OMAP1_I2C_SIZE		0x3f
++#define OMAP1_I2C_BASE		0xfffb3800
++
++static const char name[] = "i2c_omap";
++
++#define OMAP1_I2C_RESOURCE_BUILDER(base, irq)		\
++{
++	{						\
++		.start	= (base),			\
++		.end	= (base) + OMAP1_I2C_SIZE,	\
++		.flags	= IORESOURCE_MEM,		\
++	},						\
++	{						\
++		.start	= (irq),			\
++		.flags	= IORESOURCE_IRQ,		\
++	},						\
++}
++
++static struct resource i2c_resources[][2] = {
++	{ OMAP1_I2C_RESOURCE_BUILDER(OMAP1_I2C_BASE, INT_I2C) },
++};
++
++#define OMAP1_I2C_DEV_BUILDER(bus_id, res)		\
++	{						\
++		.id	= (bus_id),			\
++		.name	= name,				\
++		.num_resources	= ARRAY_SIZE(res),	\
++		.resource	= (res),		\
++	}
++
++static struct platform_device omap_i2c_devices[] = {
++	OMAP1_I2C_DEV_BUILDER(1, i2c_resources[0]),
++};
++
++#define I2C_ICLK	0
++#define I2C_FCLK	1
++static struct clk *omap_i2c_clks[ARRAY_SIZE(omap_i2c_devices)][2];
++
++static struct omap_i2c_dev_attr omap1_i2c_dev_attr;
++
++static void __init omap1_i2c_mux_pins(int bus)
++{
++	omap_cfg_reg(I2C_SCL);
++	omap_cfg_reg(I2C_SDA);
++}
++
++int __init omap1_i2c_nr_ports(void)
++{
++	return 1;
++}
++
++static int omap1_i2c_device_enable(struct platform_device *pdev)
++{
++	struct clk *c;
++
++	c = omap_i2c_clks[pdev->id - 1][I2C_ICLK];
++	if (c && !IS_ERR(c))
++		clk_enable(c);
++
++	c = omap_i2c_clks[pdev->id - 1][I2C_FCLK];
++	if (c && !IS_ERR(c))
++		clk_enable(c);
++
++	return 0;
++}
++
++static int omap1_i2c_device_idle(struct platform_device *pdev)
++{
++	struct clk *c;
++
++	c = omap_i2c_clks[pdev->id - 1][I2C_FCLK];
++	if (c && !IS_ERR(c))
++		clk_disable(c);
++
++	c = omap_i2c_clks[pdev->id - 1][I2C_ICLK];
++	if (c && !IS_ERR(c))
++		clk_disable(c);
++
++	return 0;
++}
++
++int __init omap1_i2c_add_bus(int bus_id)
++{
++	struct platform_device *pdev;
++	struct omap_i2c_platform_data *pdata;
++
++	pdev = &omap_i2c_devices[bus_id - 1];
++	pdata = omap_i2c_get_pdata(bus_id - 1);
++
++	/* idle and shutdown share the same code */
++	pdata->device_enable = omap1_i2c_device_enable;
++	pdata->device_idle = omap1_i2c_device_idle;
++	pdata->device_shutdown = omap1_i2c_device_idle;
++	pdata->dev_attr = &omap1_i2c_dev_attr;
++
++	omap_i2c_clks[bus_id - 1][I2C_ICLK] = clk_get(&pdev->dev, "ick");
++	omap_i2c_clks[bus_id - 1][I2C_FCLK] = clk_get(&pdev->dev, "fck");
++
++	omap1_i2c_mux_pins(bus_id - 1);
++
++	return platform_device_register(pdev);
++}
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 1ff10eb..1a4843e 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -57,6 +57,8 @@ obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
+ # Debobs
+ obj-$(CONFIG_OMAP3_DEBOBS)	+= debobs.o
+ 
++obj-$(CONFIG_I2C_OMAP)			+= i2c.o
++
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+new file mode 100644
+index 0000000..09f28ca
+--- /dev/null
++++ b/arch/arm/mach-omap2/i2c.c
+@@ -0,0 +1,132 @@
++/*
++ * linux/arch/arm/plat-omap/i2c.c
++ *
++ * Helper module for board specific I2C bus registration
++ *
++ * Copyright (C) 2007 Nokia Corporation.
++ *
++ * Contact: Jarkko Nikula <jhnikula@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/i2c.h>
++#include <linux/err.h>
++
++#include <plat/irqs.h>
++#include <plat/mux.h>
++#include <plat/i2c.h>
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
++
++static const char name[] = "i2c_omap";
++
++#define MAX_OMAP_I2C_HWMOD_NAME_LEN			16
++
++#if defined(CONFIG_ARCH_OMAP24XX)
++static const int omap24xx_pins[][2] = {
++	{ M19_24XX_I2C1_SCL, L15_24XX_I2C1_SDA },
++	{ J15_24XX_I2C2_SCL, H19_24XX_I2C2_SDA },
++};
++#else
++static const int omap24xx_pins[][2] = {};
++#endif
++#if defined(CONFIG_ARCH_OMAP34XX)
++static const int omap34xx_pins[][2] = {
++	{ K21_34XX_I2C1_SCL, J21_34XX_I2C1_SDA},
++	{ AF15_34XX_I2C2_SCL, AE15_34XX_I2C2_SDA},
++	{ AF14_34XX_I2C3_SCL, AG14_34XX_I2C3_SDA},
++};
++#else
++static const int omap34xx_pins[][2] = {};
++#endif
++
++static void __init omap2_i2c_mux_pins(int bus)
++{
++	int scl, sda;
++
++	if (cpu_is_omap24xx()) {
++		scl = omap24xx_pins[bus][0];
++		sda = omap24xx_pins[bus][1];
++	} else if (cpu_is_omap34xx()) {
++		scl = omap34xx_pins[bus][0];
++		sda = omap34xx_pins[bus][1];
++	} else {
++		return;
++	}
++
++	omap_cfg_reg(sda);
++	omap_cfg_reg(scl);
++}
++
++int __init omap2_i2c_nr_ports(void)
++{
++	int ports = 0;
++
++	if (cpu_is_omap24xx())
++		ports = 2;
++	else if (cpu_is_omap34xx())
++		ports = 3;
++
++	return ports;
++}
++
++static struct omap_device_pm_latency omap_i2c_latency[] = {
++	[0] = {
++		.deactivate_func	= omap_device_idle_hwmods,
++		.activate_func		= omap_device_enable_hwmods,
++		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	},
++};
++
++int __init omap2_i2c_add_bus(int bus_id)
++{
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++	char oh_name[MAX_OMAP_I2C_HWMOD_NAME_LEN];
++	int l, idx;
++	struct omap_i2c_platform_data *pdata;
++
++	idx = bus_id - 1;
++
++	l = snprintf(oh_name, MAX_OMAP_I2C_HWMOD_NAME_LEN,
++		     "i2c%d_hwmod", bus_id);
++	WARN(l >= MAX_OMAP_I2C_HWMOD_NAME_LEN,
++	     "String buffer overflow in I2C%d device setup\n", bus_id);
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh) {
++		pr_err("Could not look up %s\n", oh_name);
++		return -EEXIST;
++	}
++
++	omap2_i2c_mux_pins(idx);
++
++	pdata = omap_i2c_get_pdata(idx);
++	pdata->dev_attr = oh->dev_attr;
++	pdata->device_enable = omap_device_enable;
++	pdata->device_idle = omap_device_idle;
++	pdata->device_shutdown = omap_device_shutdown;
++
++	od = omap_device_build(name, bus_id, oh, pdata,
++			       sizeof(struct omap_i2c_platform_data),
++			       omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency));
++	WARN(IS_ERR(od), "Could not build omap_device for %s %s\n",
++	     name, oh_name);
++
++	return PTR_ERR(od);
++}
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index f8eb3a0..1a3facb 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -3,7 +3,7 @@
+  *
+  * Helper module for board specific I2C bus registration
+  *
+- * Copyright (C) 2007 Nokia Corporation.
++ * Copyright (C) 2007, 2009 Nokia Corporation.
+  *
+  * Contact: Jarkko Nikula <jhnikula@gmail.com>
+  *
+@@ -24,84 +24,28 @@
   */
  
- #include <linux/module.h>
-@@ -39,6 +43,8 @@
- #include <linux/io.h>
+ #include <linux/kernel.h>
+-#include <linux/platform_device.h>
+ #include <linux/i2c.h>
++#include <linux/platform_device.h>
  #include <linux/i2c-omap.h>
- 
 +#include <plat/i2c.h>
-+
- /* I2C controller revisions */
- #define OMAP_I2C_REV_2			0x20
++#include <plat/cpu.h>
  
-@@ -162,8 +168,6 @@ struct omap_i2c_dev {
- 	struct device		*dev;
- 	void __iomem		*base;		/* virtual */
- 	int			irq;
--	struct clk		*iclk;		/* Interface clock */
--	struct clk		*fclk;		/* Functional clock */
- 	struct completion	cmd_complete;
- 	struct resource		*ioarea;
- 	u32			latency;	/* maximum mpu wkup latency */
-@@ -201,45 +205,19 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- 	return __raw_readw(i2c_dev->base + reg);
+-#include <mach/irqs.h>
+-#include <plat/mux.h>
+ #include <plat/omap-pm.h>
+ 
+-#define OMAP_I2C_SIZE		0x3f
+-#define OMAP1_I2C_BASE		0xfffb3800
+-#define OMAP2_I2C_BASE1		0x48070000
+-#define OMAP2_I2C_BASE2		0x48072000
+-#define OMAP2_I2C_BASE3		0x48060000
+-
+-static const char name[] = "i2c_omap";
+-
+-#define I2C_RESOURCE_BUILDER(base, irq)			\
+-	{						\
+-		.start	= (base),			\
+-		.end	= (base) + OMAP_I2C_SIZE,	\
+-		.flags	= IORESOURCE_MEM,		\
+-	},						\
+-	{						\
+-		.start	= (irq),			\
+-		.flags	= IORESOURCE_IRQ,		\
+-	},
+-
+-static struct resource i2c_resources[][2] = {
+-	{ I2C_RESOURCE_BUILDER(0, 0) },
+-#if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+-	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_24XX_I2C2_IRQ) },
+-#endif
+-#if	defined(CONFIG_ARCH_OMAP34XX)
+-	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_34XX_I2C3_IRQ) },
+-#endif
+-};
+-
+-#define I2C_DEV_BUILDER(bus_id, res, data)		\
+-	{						\
+-		.id	= (bus_id),			\
+-		.name	= name,				\
+-		.num_resources	= ARRAY_SIZE(res),	\
+-		.resource	= (res),		\
+-		.dev		= {			\
+-			.platform_data	= (data),	\
+-		},					\
+-	}
++/*
++ * Indicates to the OMAP platform I2C init code that the rate was set
++ * from the kernel command line
++ */
++#define OMAP_I2C_CMDLINE_SETUP		(BIT(31))
+ 
+-static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
+-static struct platform_device omap_i2c_devices[] = {
+-	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
+-#if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+-	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
+-#endif
+-#if	defined(CONFIG_ARCH_OMAP34XX)
+-	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
+-#endif
+-};
++#define OMAP_I2C_MAX_CONTROLLERS	3
+ 
+-#if defined(CONFIG_ARCH_OMAP24XX)
+-static const int omap24xx_pins[][2] = {
+-	{ M19_24XX_I2C1_SCL, L15_24XX_I2C1_SDA },
+-	{ J15_24XX_I2C2_SCL, H19_24XX_I2C2_SDA },
+-};
+-#else
+-static const int omap24xx_pins[][2] = {};
+-#endif
+-#if defined(CONFIG_ARCH_OMAP34XX)
+-static const int omap34xx_pins[][2] = {
+-	{ K21_34XX_I2C1_SCL, J21_34XX_I2C1_SDA},
+-	{ AF15_34XX_I2C2_SCL, AE15_34XX_I2C2_SDA},
+-	{ AF14_34XX_I2C3_SCL, AG14_34XX_I2C3_SDA},
+-};
+-#else
+-static const int omap34xx_pins[][2] = {};
+-#endif
++static struct omap_i2c_platform_data omap_i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
+ 
+-#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
++struct omap_i2c_platform_data * __init omap_i2c_get_pdata(int bus_id)
++{
++	return &omap_i2c_pdata[bus_id];
++}
+ 
+ #ifdef CONFIG_ARCH_OMAP34XX
+ /*
+@@ -122,7 +66,7 @@ static inline void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int val){}
+ #endif
+ 
+ static void __init omap_set_i2c_constraint_func(
+-				struct omap_i2c_bus_platform_data *pd)
++				struct omap_i2c_platform_data *pd)
+ {
+ 	if (cpu_is_omap34xx())
+ 		pd->set_mpu_wkup_lat = omap_i2c_set_wfc_mpu_wkup_lat;
+@@ -130,66 +74,6 @@ static void __init omap_set_i2c_constraint_func(
+ 		pd->set_mpu_wkup_lat = NULL;
  }
  
--static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-+static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- {
--	int ret;
+-static void __init omap_i2c_mux_pins(int bus)
+-{
+-	int scl, sda;
 -
--	dev->iclk = clk_get(dev->dev, "ick");
--	if (IS_ERR(dev->iclk)) {
--		ret = PTR_ERR(dev->iclk);
--		dev->iclk = NULL;
--		return ret;
+-	if (cpu_class_is_omap1()) {
+-		scl = I2C_SCL;
+-		sda = I2C_SDA;
+-	} else if (cpu_is_omap24xx()) {
+-		scl = omap24xx_pins[bus][0];
+-		sda = omap24xx_pins[bus][1];
+-	} else if (cpu_is_omap34xx()) {
+-		scl = omap34xx_pins[bus][0];
+-		sda = omap34xx_pins[bus][1];
+-	} else {
+-		return;
 -	}
-+	struct platform_device *pdev;
-+	struct omap_i2c_platform_data *pdata;
- 
--	dev->fclk = clk_get(dev->dev, "fck");
--	if (IS_ERR(dev->fclk)) {
--		ret = PTR_ERR(dev->fclk);
--		if (dev->iclk != NULL) {
--			clk_put(dev->iclk);
--			dev->iclk = NULL;
+-
+-	omap_cfg_reg(sda);
+-	omap_cfg_reg(scl);
+-}
+-
+-static int __init omap_i2c_nr_ports(void)
+-{
+-	int ports = 0;
+-
+-	if (cpu_class_is_omap1())
+-		ports = 1;
+-	else if (cpu_is_omap24xx())
+-		ports = 2;
+-	else if (cpu_is_omap34xx())
+-		ports = 3;
+-
+-	return ports;
+-}
+-
+-static int __init omap_i2c_add_bus(int bus_id)
+-{
+-	struct platform_device *pdev;
+-	struct resource *res;
+-	resource_size_t base, irq;
+-
+-	pdev = &omap_i2c_devices[bus_id - 1];
+-	if (bus_id == 1) {
+-		res = pdev->resource;
+-		if (cpu_class_is_omap1()) {
+-			base = OMAP1_I2C_BASE;
+-			irq = INT_I2C;
+-		} else {
+-			base = OMAP2_I2C_BASE1;
+-			irq = INT_24XX_I2C1_IRQ;
 -		}
--		dev->fclk = NULL;
--		return ret;
+-		res[0].start = base;
+-		res[0].end = base + OMAP_I2C_SIZE;
+-		res[1].start = irq;
 -	}
 -
--	return 0;
+-	omap_i2c_mux_pins(bus_id - 1);
+-	return platform_device_register(pdev);
 -}
-+	WARN_ON(!dev->idle);
- 
--static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
--{
--	clk_put(dev->fclk);
--	dev->fclk = NULL;
--	clk_put(dev->iclk);
--	dev->iclk = NULL;
--}
-+	pdev = container_of(dev->dev, struct platform_device, dev);
-+	pdata = pdev->dev.platform_data;
- 
--static void omap_i2c_unidle(struct omap_i2c_dev *dev)
--{
--	WARN_ON(!dev->idle);
-+	if (pdata->device_enable)
-+		pdata->device_enable(pdev);
- 
--	clk_enable(dev->iclk);
--	clk_enable(dev->fclk);
- 	if (cpu_is_omap34xx()) {
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-@@ -256,10 +234,15 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- 
- static void omap_i2c_idle(struct omap_i2c_dev *dev)
+-
+ /**
+  * omap_i2c_bus_setup - Process command line options for the I2C bus speed
+  * @str: String of options
+@@ -205,13 +89,23 @@ static int __init omap_i2c_bus_setup(char *str)
  {
-+	struct platform_device *pdev;
-+	struct omap_i2c_platform_data *pdata;
- 	u16 iv;
- 
- 	WARN_ON(dev->idle);
- 
-+	pdev = container_of(dev->dev, struct platform_device, dev);
-+	pdata = pdev->dev.platform_data;
+ 	int ports;
+ 	int ints[3];
++	int rate;
 +
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
- 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
- 	if (dev->rev < OMAP_I2C_REV_2) {
-@@ -271,8 +254,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
- 	}
- 	dev->idle = 1;
--	clk_disable(dev->fclk);
--	clk_disable(dev->iclk);
-+	if (pdata->device_idle)
-+		pdata->device_idle(pdev);
++	if (cpu_class_is_omap1())
++		ports = omap1_i2c_nr_ports();
++	else if (cpu_class_is_omap2())
++		ports = omap2_i2c_nr_ports();
++	else
++		ports = 0;
+ 
+-	ports = omap_i2c_nr_ports();
+ 	get_options(str, 3, ints);
+ 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
+ 		return 0;
+-	i2c_pdata[ints[1] - 1].clkrate = ints[2];
+-	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
++
++	rate = ints[2];
++	rate |= OMAP_I2C_CMDLINE_SETUP;
++
++	omap_i2c_pdata[ints[1] - 1].rate = rate;
+ 
+ 	return 1;
  }
+@@ -225,11 +119,15 @@ static int __init omap_register_i2c_bus_cmdline(void)
+ {
+ 	int i, err = 0;
  
- static int omap_i2c_init(struct omap_i2c_dev *dev)
-@@ -282,6 +265,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	unsigned long fclk_rate = 12000000;
- 	unsigned long timeout;
- 	unsigned long internal_clk = 0;
-+	struct clk *fclk;
- 
- 	if (dev->rev >= OMAP_I2C_REV_2) {
- 		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, SYSC_SOFTRESET_MASK);
-@@ -333,7 +317,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 		 * always returns 12MHz for the functional clock, we can
- 		 * do this bit unconditionally.
- 		 */
--		fclk_rate = clk_get_rate(dev->fclk);
-+		fclk = clk_get(dev->dev, "fck");
-+		fclk_rate = clk_get_rate(fclk);
- 
- 		/* TRM for 5912 says the I2C clock must be prescaled to be
- 		 * between 7 - 12 MHz. The XOR input clock is typically
-@@ -349,7 +334,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	}
- 
- 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
--
- 		/*
- 		 * HSI2C controller internal clk rate should be 19.2 Mhz for
- 		 * HS and for all modes on 2430. On 34xx we can use lower rate
-@@ -362,7 +346,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			internal_clk = 9600;
- 		else
- 			internal_clk = 4000;
--		fclk_rate = clk_get_rate(dev->fclk) / 1000;
-+		fclk = clk_get(dev->dev, "fck");
-+		fclk_rate = clk_get_rate(fclk) / 1000;
- 
- 		/* Compute prescaler divisor */
- 		psc = fclk_rate / internal_clk;
-@@ -852,10 +837,10 @@ omap_i2c_probe(struct platform_device *pdev)
- 	struct omap_i2c_dev	*dev;
- 	struct i2c_adapter	*adap;
- 	struct resource		*mem, *irq, *ioarea;
--	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
- 	irq_handler_t isr;
- 	int r;
- 	u32 speed = 0;
-+	struct omap_i2c_platform_data *pdata;
- 
- 	/* NOTE: driver uses the static register mapping */
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -882,8 +867,10 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_release_region;
- 	}
- 
--	if (pdata != NULL) {
--		speed = pdata->clkrate;
-+	pdata = pdev->dev.platform_data;
+-	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
+-		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
+-			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+-			omap_set_i2c_constraint_func(&i2c_pdata[i]);
+-			err = omap_i2c_add_bus(i + 1);
++	for (i = 0; i < OMAP_I2C_MAX_CONTROLLERS; i++)
++		if (omap_i2c_pdata[i].rate & OMAP_I2C_CMDLINE_SETUP) {
++			omap_i2c_pdata[i].rate &= ~OMAP_I2C_CMDLINE_SETUP;
++			err = -EINVAL;
++			if (cpu_class_is_omap1())
++				err = omap1_i2c_add_bus(i + 1);
++			else if (cpu_class_is_omap2())
++				err = omap2_i2c_add_bus(i + 1);
++			omap_set_i2c_constraint_func(&omap_i2c_pdata[i]);
+ 			if (err)
+ 				goto out;
+ 		}
+@@ -253,8 +151,14 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 			  unsigned len)
+ {
+ 	int err;
++	int nr_ports = 0;
 +
-+	if (pdata->rate) {
-+		speed = pdata->rate;
- 		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
- 	} else {
- 		speed = 100;	/* Default speed */
-@@ -902,9 +889,6 @@ omap_i2c_probe(struct platform_device *pdev)
++	if (cpu_class_is_omap1())
++		nr_ports = omap1_i2c_nr_ports();
++	else if (cpu_class_is_omap2())
++		nr_ports = omap2_i2c_nr_ports();
  
- 	platform_set_drvdata(pdev, dev);
+-	BUG_ON(bus_id < 1 || bus_id > omap_i2c_nr_ports());
++	BUG_ON(bus_id < 1 || bus_id > nr_ports);
  
--	if ((r = omap_i2c_get_clocks(dev)) != 0)
--		goto err_iounmap;
--
- 	omap_i2c_unidle(dev);
+ 	if (info) {
+ 		err = i2c_register_board_info(bus_id, info, len);
+@@ -262,11 +166,15 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 			return err;
+ 	}
  
- 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-@@ -969,8 +953,6 @@ err_free_irq:
- err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	omap_i2c_idle(dev);
--	omap_i2c_put_clocks(dev);
--err_iounmap:
- 	iounmap(dev->base);
- err_free_mem:
- 	platform_set_drvdata(pdev, NULL);
-@@ -992,7 +974,6 @@ omap_i2c_remove(struct platform_device *pdev)
- 	free_irq(dev->irq, dev);
- 	i2c_del_adapter(&dev->adapter);
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
--	omap_i2c_put_clocks(dev);
- 	iounmap(dev->base);
- 	kfree(dev);
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!i2c_pdata[bus_id - 1].clkrate)
+-		i2c_pdata[bus_id - 1].clkrate = clkrate;
++	if (!omap_i2c_pdata[bus_id - 1].rate)
++		omap_i2c_pdata[bus_id - 1].rate = clkrate;
+ 
+-	omap_set_i2c_constraint_func(&i2c_pdata[bus_id - 1]);
+-	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
++	omap_set_i2c_constraint_func(&omap_i2c_pdata[bus_id - 1]);
++	omap_i2c_pdata[bus_id - 1].rate &= ~OMAP_I2C_CMDLINE_SETUP;
++
++	if (cpu_class_is_omap1())
++		return omap1_i2c_add_bus(bus_id);
++	else if (cpu_class_is_omap2())
++		return omap2_i2c_add_bus(bus_id);
+ 
+-	return omap_i2c_add_bus(bus_id);
+ }
+diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/plat-omap/include/plat/i2c.h
+index 886ee5d..1fe96ea 100644
+--- a/arch/arm/plat-omap/include/plat/i2c.h
++++ b/arch/arm/plat-omap/include/plat/i2c.h
+@@ -40,4 +40,26 @@ struct omap_i2c_dev_attr {
+ 	u8	flags;
+ };
+ 
++/**
++ * struct omap_i2c_platform_data - OMAP I2C controller platform data
++ */
++struct omap_i2c_platform_data {
++	u32 rate;
++	struct omap_i2c_dev_attr *dev_attr;
++	void (*set_mpu_wkup_lat)(struct device *dev, int set);
++	int (*device_enable) (struct platform_device *pdev);
++	int (*device_shutdown) (struct platform_device *pdev);
++	int (*device_idle) (struct platform_device *pdev);
++};
++
++/* Prototypes for OMAP platform I2C core initialization code */
++
++struct omap_i2c_platform_data * __init omap_i2c_get_pdata(int bus_id);
++
++int __init omap1_i2c_nr_ports(void);
++int __init omap2_i2c_nr_ports(void);
++
++int __init omap1_i2c_add_bus(int bus_id);
++int __init omap2_i2c_add_bus(int bus_id);
++
+ #endif
 -- 
 1.5.4.7
 
