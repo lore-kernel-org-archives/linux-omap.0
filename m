@@ -1,99 +1,169 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/2] OMAP3 clock: reorganize CK_* platform flags
-Date: Mon, 14 Dec 2009 13:16:38 -0700
-Message-ID: <20091214201635.370.2758.stgit@localhost.localdomain>
-References: <20091214201431.370.35496.stgit@localhost.localdomain>
+From: "Sonasath, Moiz" <m-sonasath@ti.com>
+Subject: RE: [RFC] MUSB: Workaround for Ethernet data alignment issue
+Date: Mon, 14 Dec 2009 14:30:08 -0600
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F2029E8FEBF6@dlee06.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DEAB8723@dbde02.ent.ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FABD2171@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46358 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758200AbZLNUTp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 15:19:45 -0500
-In-Reply-To: <20091214201431.370.35496.stgit@localhost.localdomain>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59593 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753827AbZLNUaN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 15:30:13 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FABD2171@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, Ranjith Lohithakshan <ranjithl@ti.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "Patra, Nilkesh" <nilkesh.patra@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>, "Gadiyar, Anand" <gadiyar@ti.com>
 
-Add CK_* flags for the two new Sitara chips, AM3505 and AM3517, and
-the OMAP34xx die shrink, OMAP36xx/OMAP37xx.  Introduce a new CK_*
-flag, CK_3XXX, that marks all clocks that are common to OMAP3 family
-chips.  CK_343X now refers to clocks that are available only on
-OMAP34{1,2,3,4}0 (WTBU) and OMAP35{03,15,25,30} (any version).
-At some point, the RATE_IN_* flags should be updated also.
+Nilkesh,
 
-While here, add some documentation describing the chip families
-covered by these clock flags.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Pandita, Vikram
+> Sent: Monday, December 14, 2009 11:39 AM
+> To: Patra, Nilkesh; linux-usb@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org; David Brownell; Gadiyar, Anand
+> Subject: RE: [RFC] MUSB: Workaround for Ethernet data alignment issue
+> 
+> 
+> Nilkesh
+> 
+> >-----Original Message-----
+> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Patra,
+> >Nilkesh
+> >Sent: Sunday, December 13, 2009 10:51 PM
+> >To: linux-usb@vger.kernel.org
+> >Cc: linux-omap@vger.kernel.org; David Brownell; Gadiyar, Anand
+> >Subject: [RFC] MUSB: Workaround for Ethernet data alignment issue
+> >
+> >On the latest version of MUSB, DMA is not working properly if the Data in
+> the packet doesn't start at
+> >32bit aligned address. This issue was found while using MUSB as g_ether.
+> The basic ping does not
+> >work, if the data in the Ethernet  packet does not start at 32bit aligned
+> address.
+> >
+> >To overcome this issue, we found one solution mentioned in the below
+> patch. This patch moves data
+> >(skb->data) by 2 bytes backwards in ethernet packet, which is nothing but
+> skb->head.
+> >
+> >I want to know, if there are any better approaches to fix this issue.
+> 
+> I would NAK the first part of patch for following reasons (and suggestions
+> are inlined):
+> a) this change is specific to OMAP hw only and so should not try to change
+> generic files like usb/gadget/u_ether.c
+> that get compiled for all the architectures having usb.
+> 
+> b) there are two issues to be handled separately ( separate patches are
+> good for review )
+> 	RX side buffer alignments handling
+> 	TX side buffer alignments handling
+> 
+> >
+> >Signed-off-by: Nilkesh Patra <nilkesh.patra@ti.com>
+> >---
+> > drivers/usb/gadget/u_ether.c |   14 ++++++++++----
+> > 1 files changed, 10 insertions(+), 4 deletions(-)
+> >
+> >diff --git a/drivers/usb/gadget/u_ether.c b/drivers/usb/gadget/u_ether.c
+> >index 2fc02bd..432b1bd 100644
+> >--- a/drivers/usb/gadget/u_ether.c
+> >+++ b/drivers/usb/gadget/u_ether.c
+> >@@ -249,7 +249,6 @@ rx_submit(struct eth_dev *dev, struct usb_request
+> *req, gfp_t gfp_flags)
+> > 	 * but on at least one, checksumming fails otherwise.  Note:
+> > 	 * RNDIS headers involve variable numbers of LE32 values.
+> > 	 */
+> >-	skb_reserve(skb, NET_IP_ALIGN);
+> 
+> NAK. Do not remove this line,
+> Instead over-ride the NET_IP_ALIGN macro for your architecture.
+> 
+> One suggestion to do so:
+> 
+> diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
+> index 058e7e9..b16c5f7 100644
+> --- a/arch/arm/include/asm/system.h
+> +++ b/arch/arm/include/asm/system.h
+> @@ -514,6 +514,10 @@ static inline unsigned long long
+> __cmpxchg64_mb(volatile void *ptr,
+> 
+>  #define arch_align_stack(x) (x)
+> 
+> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+> +#define NET_IP_ALIGN 0
+> +#endif
+> +
+>  #endif /* __KERNEL__ */
+> 
+>  #endif
+> 
+> This has been verified to work for OMAP3630.
+> 
+> >
+> > 	req->buf = skb->data;
+> > 	req->length = size;
+> >@@ -500,6 +499,8 @@ static netdev_tx_t eth_start_xmit(struct sk_buff
+> *skb,
+> > 	unsigned long		flags;
+> > 	struct usb_ep		*in;
+> > 	u16			cdc_filter;
+> >+	int			i = 0;
+> >+
+> >
+> > 	spin_lock_irqsave(&dev->lock, flags);
+> > 	if (dev->port_usb) {
+> >@@ -573,9 +574,6 @@ static netdev_tx_t eth_start_xmit(struct sk_buff
+> *skb,
+> >
+> > 		length = skb->len;
+> > 	}
+> >-	req->buf = skb->data;
+> >-	req->context = skb;
+> >-	req->complete = tx_complete;
+> 
+> This change would be to handle TX un-alignments.
+> So I would prefer to handle it separately ( a separate patch)
+> Have you explored the option of over-riding #define NET_SKB_PAD ??
+> 
+> >
+> > 	/* use zlp framing on tx for strict CDC-Ether conformance,
+> > 	 * though any robust network rx path ignores extra padding.
+> >@@ -585,6 +583,14 @@ static netdev_tx_t eth_start_xmit(struct sk_buff
+> *skb,
+> > 	if (!dev->zlp && (length % in->maxpacket) == 0)
+> > 		length++;
+> >
+> >+	if ((int)skb->data & 0x2) {
 
-This patch is partially based on patches from Ranjith Lohithakshan
-<ranjithl@ti.com> and Vishwanath Sripathy <vishwanath.bs@ti.com>.
+You can use this wrapper instead:
+!IS_ALIGNED(skb->data, 4) 
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Ranjith Lohithakshan <ranjithl@ti.com>
-Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
----
- arch/arm/mach-omap2/clock34xx_data.c          |    4 ++--
- arch/arm/plat-omap/include/plat/clkdev_omap.h |   26 ++++++++++++++++---------
- 2 files changed, 19 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
-index 8bdcc9c..d714f84 100644
---- a/arch/arm/mach-omap2/clock34xx_data.c
-+++ b/arch/arm/mach-omap2/clock34xx_data.c
-@@ -3216,11 +3216,11 @@ int __init omap2_clk_init(void)
- 	/* struct prcm_config *prcm; */
- 	struct omap_clk *c;
- 	/* u32 clkrate; */
--	u32 cpu_clkflg;
-+	u32 cpu_clkflg = CK_3XXX;
- 
- 	if (cpu_is_omap34xx()) {
- 		cpu_mask = RATE_IN_343X;
--		cpu_clkflg = CK_343X;
-+		cpu_clkflg |= CK_343X;
- 
- 		/*
- 		 * Update this if there are further clock changes between ES2
-diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-index 35b36ca..bb937f3 100644
---- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
-+++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-@@ -25,17 +25,25 @@ struct omap_clk {
- 		},			\
- 	}
- 
+> >+		skb_push(skb, 2);
+> 
+> Where have you made sure that skb->data allocation has this extra space of
+> two bytes?
+> 
+> >+		for (i = 0; i < length; i++)
+> >+			skb->data[i] = skb->data[i+2];
+> >+	}
+> >+	req->buf = skb->data;
+> >+	req->context = skb;
+> >+	req->complete = tx_complete;
+> > 	req->length = length;
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -
-+/* Platform flags for the clkdev-OMAP integration code */
- #define CK_310		(1 << 0)
--#define CK_7XX		(1 << 1)
-+#define CK_7XX		(1 << 1)	/* 7xx, 850 */
- #define CK_1510		(1 << 2)
--#define CK_16XX		(1 << 3)
--#define CK_243X		(1 << 4)
--#define CK_242X		(1 << 5)
--#define CK_343X		(1 << 6)
--#define CK_3430ES1	(1 << 7)
--#define CK_3430ES2	(1 << 8)
--#define CK_443X		(1 << 9)
-+#define CK_16XX		(1 << 3)	/* 16xx, 17xx, 5912 */
-+#define CK_242X		(1 << 4)
-+#define CK_243X		(1 << 5)
-+#define CK_3XXX		(1 << 6)	/* OMAP3 + AM3 common clocks*/
-+#define CK_343X		(1 << 7)	/* OMAP34xx common clocks */
-+#define CK_3430ES1	(1 << 8)	/* 34xxES1 only */
-+#define CK_3430ES2	(1 << 9)	/* 34xxES2, ES3, non-Sitara 35xx only */
-+#define CK_3505		(1 << 10)
-+#define CK_3517		(1 << 11)
-+#define CK_36XX		(1 << 12)	/* OMAP36xx/37xx-specific clocks */
-+#define CK_443X		(1 << 13)
-+
-+#define CK_AM35XX	(CK_3505 | CK_3517)	/* all Sitara AM35xx */
-+
-+
- 
- #endif
- 
-
-
+Moiz
