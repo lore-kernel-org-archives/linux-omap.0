@@ -1,289 +1,77 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH v2 2/2]: Introducing 'gpmc-nand.c' for GPMC specific NAND
-	init
-Date: Mon, 14 Dec 2009 16:11:59 +0530
-Message-ID: <ce9ab5790912140241k72cdc40cq79411bf194036c0@mail.gmail.com>
-References: <64662.192.168.10.89.1259933932.squirrel@dbdmail.itg.ti.com>
-	<20091204220138.GJ24013@atomide.com> <ce9ab5790912062229xae89bb3m6965b4f4465f11c3@mail.gmail.com>
-	<ce9ab5790912070529h1143355du691ce6a23f5ddb56@mail.gmail.com>
-	<20091207175644.GA24013@atomide.com> <20091208235725.GA24013@atomide.com>
-	<ce9ab5790912132226n6480c029ve93def5ebec1e2c9@mail.gmail.com>
-	<ce9ab5790912140147v23e3705aucf6d25c56aaaab31@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 3/4] ARM: L2 : Errata 588369: Clean & Invalidate do
+	notinvalidate clean lines
+Date: Mon, 14 Dec 2009 16:22:42 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BC142138@dbde02.ent.ti.com>
+References: <1260384233-2278-3-git-send-email-santosh.shilimkar@ti.com>
+ <1260787034.17159.24.camel@pc1117.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:43703 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756652AbZLNKmV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 05:42:21 -0500
-Received: by bwz27 with SMTP id 27so1870989bwz.21
-        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 02:42:20 -0800 (PST)
-In-Reply-To: <ce9ab5790912140147v23e3705aucf6d25c56aaaab31@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42988 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754947AbZLNKxI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 05:53:08 -0500
+In-Reply-To: <1260787034.17159.24.camel@pc1117.cambridge.arm.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, linux-arm-kernel@lists.infradead.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Last time I forgot to cc linux-arm-kernel@lists.infradead.org. Looping now.
+Thanks for comments Catalin !!
+> -----Original Message-----
+> From: Catalin Marinas [mailto:catalin.marinas@arm.com]
+> Sent: Monday, December 14, 2009 4:07 PM
+> To: Shilimkar, Santosh
+> Cc: tony@atomide.com; linux-omap@vger.kernel.org; linux@arm.linux.org.uk; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH 3/4] ARM: L2 : Errata 588369: Clean & Invalidate do notinvalidate clean lines
+> 
+> On Wed, 2009-12-09 at 18:43 +0000, Santosh Shilimkar wrote:
+> > This patch implements the work-around for the errata 588369. The secure API
+> > is used to alter L2 debug regsiter because of trust-zone.
+> [...]
+> > +config PL310_ERRATA_588369
+> > +       bool "Clean & Invalidate maintenance operations do not invalidate clean lines"
+> > +       depends on CACHE_L2X0
+> > +       default n
+> > +       help
+> > +          The PL310 L2 cache controller implements three types of Clean &
+> > +          Invalidate maintenance operations: by Physical Address
+> > +          (offset 0x7F0), by Index/Way (0x7F8) and by Way (0x7FC).
+> > +          They are architecturally defined to behave as the execution of a
+> > +          clean operation followed immediately by an invalidate operation,
+> > +          both performing to the same memory location. This functionality
+> > +          is not correctly implemented in PL310 as clean lines are not
+> > +          invalidated as a result of these operations
+> >  endmenu
+> 
+> Could you actually add a comment and a dependence on OMAP4 since this
+> requires the secure monitor that only TI has.
+OK
 
--vimal
-
-On Mon, Dec 14, 2009 at 3:17 PM, Vimal Singh <vimal.newwork@gmail.com> wrote:
-> From 6170aa1c63c49a3f09e76258f400230b742fdd6f Mon Sep 17 00:00:00 2001
-> From: Vimal Singh <vimalsingh@ti.com>
-> Date: Wed, 25 Nov 2009 18:23:15 +0530
-> Subject: [PATCH] Introducing 'gpmc-nand.c' for GPMC specific NAND init
->
-> Introducing 'gpmc-nand.c' for GPMC specific NAND init.
-> For example: GPMC timing parameters and all.
-> This patch also migrates gpmc related calls from 'nand/omap2.c'
-> to 'gpmc-nand.c'.
->
-> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile           |    3 +
->  arch/arm/mach-omap2/gpmc-nand.c        |  137 ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/nand.h |    6 ++
->  drivers/mtd/nand/omap2.c               |   26 +------
->  4 files changed, 149 insertions(+), 23 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 59b0ccc..0dfe27a 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -103,5 +103,8 @@ obj-y					+= usb-ehci.o
->  onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
->  obj-y					+= $(onenand-m) $(onenand-y)
->
-> +nand-$(CONFIG_MTD_NAND_OMAP2)		:= gpmc-nand.o
-> +obj-y					+= $(nand-m) $(nand-y)
-> +
->  smc91x-$(CONFIG_SMC91X)			:= gpmc-smc91x.o
->  obj-y					+= $(smc91x-m) $(smc91x-y)
-> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-> new file mode 100644
-> index 0000000..c0e8ba7
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/gpmc-nand.c
-> @@ -0,0 +1,137 @@
-> +/*
-> + * gpmc-nand.c
-> + *
-> + * Copyright (C) 2009 Texas Instruments
-> + * Vimal Singh <vimalsingh@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/io.h>
-> +
-> +#include <asm/mach/flash.h>
-> +
-> +#include <plat/nand.h>
-> +#include <plat/board.h>
-> +#include <plat/gpmc.h>
-> +
-> +#define WR_RD_PIN_MONITORING	0x00600000
-> +#define MASKADDR		8
-> +
-> +static struct omap_nand_platform_data *gpmc_nand_data;
-> +
-> +static struct resource gpmc_nand_resource = {
-> +	.flags		= IORESOURCE_MEM,
-> +};
-> +
-> +static struct platform_device gpmc_nand_device = {
-> +	.name		= "omap2-nand",
-> +	.id		= 0,
-> +	.num_resources	= 1,
-> +	.resource	= &gpmc_nand_resource,
-> +};
-> +
-> +static int omap2_nand_gpmc_config(int cs, void __iomem *nand_base)
-> +{
-> +	struct gpmc_timings t;
-> +	int err;
-> +
-> +	const int cs_rd_off = 36;
-> +	const int cs_wr_off = 36;
-> +	const int adv_on = 6;
-> +	const int adv_rd_off = 24;
-> +	const int adv_wr_off = 36;
-> +	const int oe_off = 48;
-> +	const int we_off = 30;
-> +	const int rd_cycle = 72;
-> +	const int wr_cycle = 72;
-> +	const int access = 54;
-> +	const int wr_data_mux_bus = 0;
-> +	const int wr_access = 30;
-> +
-> +	memset(&t, 0, sizeof(t));
-> +	t.sync_clk = 0;
-> +	t.cs_on = 0;
-> +	t.adv_on = gpmc_round_ns_to_ticks(adv_on);
-> +
-> +	/* Read */
-> +	t.adv_rd_off = gpmc_round_ns_to_ticks(adv_rd_off);
-> +	t.oe_on  = t.adv_on;
-> +	t.access = gpmc_round_ns_to_ticks(access);
-> +	t.oe_off = gpmc_round_ns_to_ticks(oe_off);
-> +	t.cs_rd_off = gpmc_round_ns_to_ticks(cs_rd_off);
-> +	t.rd_cycle  = gpmc_round_ns_to_ticks(rd_cycle);
-> +
-> +	/* Write */
-> +	t.adv_wr_off = gpmc_round_ns_to_ticks(adv_wr_off);
-> +	t.we_on  = t.oe_on;
-> +	if (cpu_is_omap34xx()) {
-> +		t.wr_data_mux_bus = gpmc_round_ns_to_ticks(wr_data_mux_bus);
-> +		t.wr_access = gpmc_round_ns_to_ticks(wr_access);
-> +	}
-> +	t.we_off = gpmc_round_ns_to_ticks(we_off);
-> +	t.cs_wr_off = gpmc_round_ns_to_ticks(cs_wr_off);
-> +	t.wr_cycle  = gpmc_round_ns_to_ticks(wr_cycle);
-> +
-> +	/* Configure GPMC */
-> +	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
-> +			GPMC_CONFIG1_DEVICESIZE(gpmc_nand_data->devsize) |
-> +			GPMC_CONFIG1_DEVICETYPE_NAND);
-> +
-> +	err = gpmc_cs_set_timings(cs, &t);
-> +	if (err)
-> +		return err;
-> +
-> +	return 0;
-> +}
-> +
-> +static int gpmc_nand_setup(void __iomem *nand_base)
-> +{
-> +	struct device *dev = &gpmc_nand_device.dev;
-> +
-> +	/* Set timings in GPMC */
-> +	if (omap2_nand_gpmc_config(gpmc_nand_data->cs, nand_base) < 0) {
-> +		dev_err(dev, "Unable to set gpmc timings\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int __init gpmc_nand_init(struct omap_nand_platform_data *_nand_data)
-> +{
-> +	unsigned int val;
-> +	int err	= 0;
-> +	struct device *dev = &gpmc_nand_device.dev;
-> +
-> +	gpmc_nand_data = _nand_data;
-> +	gpmc_nand_data->nand_setup = gpmc_nand_setup;
-> +	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
-> +
-> +	err = gpmc_nand_setup(gpmc_nand_data->gpmc_cs_baseaddr);
-> +	if (err < 0) {
-> +		dev_err(dev, "NAND platform setup failed: %d\n", err);
-> +		return err;
-> +	}
-> +
-> +	/* Enable RD PIN Monitoring Reg */
-> +	if (gpmc_nand_data->dev_ready) {
-> +		val  = gpmc_cs_read_reg(gpmc_nand_data->cs,
-> +						 GPMC_CS_CONFIG1);
-> +		val |= WR_RD_PIN_MONITORING;
-> +		gpmc_cs_write_reg(gpmc_nand_data->cs,
-> +						GPMC_CS_CONFIG1, val);
-> +	}
-> +
-> +	err = platform_device_register(&gpmc_nand_device);
-> +	if (err < 0) {
-> +		dev_err(dev, "Unable to register NAND device\n");
-> +		return err;
-> +	}
-> +
-> +	return 0;
-> +}
-> diff --git a/arch/arm/plat-omap/include/plat/nand.h b/arch/arm/plat-omap/include/plat/nand.h
-> index 631a7be..2ba9842 100644
-> --- a/arch/arm/plat-omap/include/plat/nand.h
-> +++ b/arch/arm/plat-omap/include/plat/nand.h
-> @@ -21,4 +21,10 @@ struct omap_nand_platform_data {
->  	int			dma_channel;
->  	void __iomem		*gpmc_cs_baseaddr;
->  	void __iomem		*gpmc_baseaddr;
-> +	int			devsize;
->  };
-> +
-> +/* size (4 KiB) for IO mapping */
-> +#define	NAND_IO_SIZE	SZ_4K
-> +
-> +extern int gpmc_nand_init(struct omap_nand_platform_data *d);
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 1bb799f..aaef170 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -30,12 +30,8 @@
->
->  #define	DRIVER_NAME	"omap2-nand"
->
-> -/* size (4 KiB) for IO mapping */
-> -#define	NAND_IO_SIZE	SZ_4K
-> -
->  #define	NAND_WP_OFF	0
->  #define NAND_WP_BIT	0x00000010
-> -#define WR_RD_PIN_MONITORING	0x00600000
->
->  #define	GPMC_BUF_FULL	0x00000001
->  #define	GPMC_BUF_EMPTY	0x00000000
-> @@ -882,8 +878,6 @@ static int __devinit omap_nand_probe
->  	struct omap_nand_info		*info;
->  	struct omap_nand_platform_data	*pdata;
->  	int				err;
-> -	unsigned long 			val;
-> -
->
->  	pdata = pdev->dev.platform_data;
->  	if (pdata == NULL) {
-> @@ -910,24 +904,15 @@ static int __devinit omap_nand_probe
->  	info->mtd.name		= dev_name(&pdev->dev);
->  	info->mtd.owner		= THIS_MODULE;
->
-> +	info->nand.options	|= pdata->devsize ? NAND_BUSWIDTH_16 : 0;
-> +	info->nand.options	|= NAND_SKIP_BBTSCAN;
-> +
->  	err = gpmc_cs_request(info->gpmc_cs, NAND_IO_SIZE, &info->phys_base);
->  	if (err < 0) {
->  		dev_err(&pdev->dev, "Cannot request GPMC CS\n");
->  		goto out_free_info;
->  	}
->
-> -	/* Enable RD PIN Monitoring Reg */
-> -	if (pdata->dev_ready) {
-> -		val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1);
-> -		val |= WR_RD_PIN_MONITORING;
-> -		gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG1, val);
-> -	}
-> -
-> -	val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG7);
-> -	val &= ~(0xf << 8);
-> -	val |=  (0xc & 0xf) << 8;
-> -	gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG7, val);
-> -
->  	/* NAND write protect off */
->  	omap_nand_wp(&info->mtd, NAND_WP_OFF);
->
-> @@ -963,11 +948,6 @@ static int __devinit omap_nand_probe
->  		info->nand.chip_delay = 50;
->  	}
->
-> -	info->nand.options  |= NAND_SKIP_BBTSCAN;
-> -	if ((gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1) & 0x3000)
-> -								== 0x1000)
-> -		info->nand.options  |= NAND_BUSWIDTH_16;
-> -
->  	if (use_prefetch) {
->  		/* copy the virtual address of nand base for fifo access */
->  		info->nand_pref_fifo_add = info->nand.IO_ADDR_R;
+> > +#ifdef CONFIG_PL310_ERRATA_588369
+> > +       /*
+> > +        * Disable Write-Back and Cache Linefill (set bits [1:0] of the Debug
+> > +        * Control Register)
+> > +        */
+> > +       __asm__ __volatile__(
+> > +       "stmfd r13!, {r0-r12, r14}\n"
+> > +       "mov r0, #3\n"
+> > +       "ldr r12, =0x100\n"
+> > +       "dsb\n"
+> > +       "smc\n"
+> > +       "ldmfd r13!, {r0-r12, r14}");
+> 
+> Could you actually add a function that gets called with a parameter
+> rather than having to similar inline asm blocks? You also don't need to
+> save/restore the registers if you declare them properly or use local
+> variables for that, the compiler does the work for you.
+A function call would be better as you suggested. We will look into this.
+> Is a DSB needed before SMC (I'm not sure)?
+That was a recommendation though not having it, I didn't observer any problems. 
 > --
-> 1.5.5
+> Catalin
+
