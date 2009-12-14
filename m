@@ -1,77 +1,51 @@
-From: "Patra, Nilkesh" <nilkesh.patra-l0cyMroinI0@public.gmane.org>
-Subject: [RFC] MUSB: Workaround for Ethernet data alignment issue
-Date: Mon, 14 Dec 2009 10:20:40 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DEAB8723@dbde02.ent.ti.com>
+From: "Varadarajan, Charu Latha" <charu@ti.com>
+Subject: RE: [PATCH v7 2/5] OMAP: McBSP: Modify macros/functions API for
+ easy cache access
+Date: Mon, 14 Dec 2009 11:35:06 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BC141E94@dbde02.ent.ti.com>
+References: <200912111642.34458.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50819 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752569AbZLNGFr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 01:05:47 -0500
+In-Reply-To: <200912111642.34458.jkrzyszt@tis.icnet.pl>
 Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On the latest version of MUSB, DMA is not working properly if the Data in the packet doesn't start at 32bit aligned address. This issue was found while using MUSB as g_ether. The basic ping does not work, if the data in the Ethernet  packet does not start at 32bit aligned address.
-
-To overcome this issue, we found one solution mentioned in the below patch. This patch moves data (skb->data) by 2 bytes backwards in ethernet packet, which is nothing but skb->head.
-
-I want to know, if there are any better approaches to fix this issue.
-
-Signed-off-by: Nilkesh Patra <nilkesh.patra-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/gadget/u_ether.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/usb/gadget/u_ether.c b/drivers/usb/gadget/u_ether.c
-index 2fc02bd..432b1bd 100644
---- a/drivers/usb/gadget/u_ether.c
-+++ b/drivers/usb/gadget/u_ether.c
-@@ -249,7 +249,6 @@ rx_submit(struct eth_dev *dev, struct usb_request *req, gfp_t gfp_flags)
- 	 * but on at least one, checksumming fails otherwise.  Note:
- 	 * RNDIS headers involve variable numbers of LE32 values.
- 	 */
--	skb_reserve(skb, NET_IP_ALIGN);
- 
- 	req->buf = skb->data;
- 	req->length = size;
-@@ -500,6 +499,8 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
- 	unsigned long		flags;
- 	struct usb_ep		*in;
- 	u16			cdc_filter;
-+	int			i = 0;
-+
- 
- 	spin_lock_irqsave(&dev->lock, flags);
- 	if (dev->port_usb) {
-@@ -573,9 +574,6 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
- 
- 		length = skb->len;
- 	}
--	req->buf = skb->data;
--	req->context = skb;
--	req->complete = tx_complete;
- 
- 	/* use zlp framing on tx for strict CDC-Ether conformance,
- 	 * though any robust network rx path ignores extra padding.
-@@ -585,6 +583,14 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
- 	if (!dev->zlp && (length % in->maxpacket) == 0)
- 		length++;
- 
-+	if ((int)skb->data & 0x2) {
-+		skb_push(skb, 2);
-+		for (i = 0; i < length; i++)
-+			skb->data[i] = skb->data[i+2];
-+	}
-+	req->buf = skb->data;
-+	req->context = skb;
-+	req->complete = tx_complete;
- 	req->length = length;
- 
- 	/* throttle highspeed IRQ rate back slightly */
--- 
-1.5.4.3
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PHNuaXA+DQoNCj4+ID5AQCAtNjEyLDcgKzU5Nyw2IEBAIEVYUE9SVF9TWU1CT0wob21hcF9tY2Jz
+cF9zdG9wKTsNCj4+ID4gaW50IG9tYXBfbWNic3BfcG9sbHdyaXRlKHVuc2lnbmVkIGludCBpZCwg
+dTE2IGJ1ZikNCj4+ID4gew0KPj4gPiAJc3RydWN0IG9tYXBfbWNic3AgKm1jYnNwOw0KPj4gPi0J
+dm9pZCBfX2lvbWVtICpiYXNlOw0KPj4gPg0KPj4gPiAJaWYgKCFvbWFwX21jYnNwX2NoZWNrX3Zh
+bGlkX2lkKGlkKSkgew0KPj4gPiAJCXByaW50ayhLRVJOX0VSUiAiJXM6IEludmFsaWQgaWQgKCVk
+KVxuIiwNCj4+ID5fX2Z1bmNfXywgaWQgKyAxKTsNCj4+ID5AQCAtNjIwLDI4ICs2MDQsMjUgQEAg
+aW50IG9tYXBfbWNic3BfcG9sbHdyaXRlKHVuc2lnbmVkIGludCBpZA0KPj4gPiAJfQ0KPj4gPg0K
+Pj4gPiAJbWNic3AgPSBpZF90b19tY2JzcF9wdHIoaWQpOw0KPj4gPi0JYmFzZSA9IG1jYnNwLT5p
+b19iYXNlOw0KPj4gPg0KPj4gPi0JT01BUF9NQ0JTUF9XUklURShiYXNlLCBEWFIxLCBidWYpOw0K
+Pj4gPisJTUNCU1BfV1JJVEUobWNic3AsIERYUjEsIGJ1Zik7DQo+Pg0KPj4gT01BUDMvNCBhbGxv
+d3MgMzIgYml0IGRhdGEgYWNjZXNzIGFsc28uDQo+PiBIb3cgaXMgaXQgdGFrZW4gY2FyZT8NCj4N
+Cj5Ob3QgYXQgYWxsIGluIGNhc2Ugb2YgdGhvc2Ugc2V2ZXJhbCBwYXJ0aWN1bGFyIGNoYW5nZXMg
+YWJvdmUuIA0KPkknbSBwcmV0dHkgc3VyZSANCj50aGF0IGp1c3QgcmVwbGFjaW5nIG9sZCBPTUFQ
+X01DQlNQX1dSSVRFKGJhc2UsIC4uLikgd2l0aCBuZXcgDQo+TUNCU1BfV1JJVEUobWNic3AsIC4u
+LikgY2hhbmdlZCBub3RoaW5nIGluIHRlcm1zIG9mIE9NQVAzLzQgDQo+MzItYml0IGRhdGEgDQo+
+YWNjZXNzLiBBZ2FpbiwgYmV5b25kIHRoZSBzY29wZS4NCj4NCj4+IFBsZWFzZSByZWZlciB0byAN
+Cj4+IGh0dHA6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC81NDg5Ni8gZm9yIG1vcmUgZGV0
+YWlscy4NCj4+DQo+PiBRdW90aW5nIFRvbnkncyB3b3JkczoNCj4+ICJUbyBtZSBpdCBzbWVsbHMg
+bGlrZSB0aGUgYWxsIGRyaXZlcnMgdXNpbmcgdGhlIHRoZQ0KPj4gb21hcF9tY2JzcF9wb2xscmVh
+ZC93cml0ZSBhcmUgYnJva2VuIGxlZ2FjeSBkcml2ZXJzLg0KPj4gU28gbWF5YmUgd2Ugc2hvdWxk
+IGp1c3QgcmVtb3ZlIHRoZXNlIHR3byBmdW5jdGlvbnM/DQo+PiBJZiB3ZSByZWFsbHkgd2FudCB0
+byBrZWVwIHRoZXNlIGFyb3VuZCwgd2Ugc2hvdWxkIHJldmlldw0KPj4gdGhlIGRyaXZlcnMgdXNp
+bmcgdGhlc2UgZnVuY3Rpb25zLiAiDQo+DQo+UGxlYXNlIGhhdmUgYSBsb29rIGF0IHBhdGNoIDEv
+NSwgdGhlcmUgcmVhZHcoKS93cml0ZXcoKSBoYXMgDQo+YmVlbiByZXBsYWNlZCB3aXRoIA0KPk9N
+QVBfTUNCU1BfUkVBRCgpL19XUklURSgpIGluc2lkZSANCj5vbWFwX21jYnNwX3BvbGx3cml0ZSgp
+L19wb2xscmVhZCgpLiBJZiB5b3UgDQo+dGhpbmsgdGhlcmUgaXMgc29tZXRoaW5nIHdyb25nIHdp
+dGggaXQsIHBsZWFzZSBjb21tZW50IHRoYXQgDQo+cGF0Y2gsIG5vdCB0aGlzIA0KPm9uZSB0aGF0
+IGNoYW5nZXMgbm90aGluZyByZWxhdGVkIGhlcmUsIEkgYmVsaWV2ZS4NCg0KVGhlIHBvaW50IGhl
+cmUgaXMgdG8gcmV2aWV3IHRoZSBkcml2ZXIgYmVmb3JlIHB1c2hpbmcgYW55IHBhdGNoDQp0b3Vj
+aGluZyB0aGVzZSBmdW5jdGlvbnMuDQoNCjxzbmlwPg==
