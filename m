@@ -1,54 +1,96 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/3] musb: save dynfifo in musb struct
-Date: Mon, 14 Dec 2009 19:09:40 +0530
-Message-ID: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 3/3] musb: Add 'extvbus' in musb_hdrc_platform_data
+Date: Mon, 14 Dec 2009 19:09:42 +0530
+Message-ID: <1260797982-28880-3-git-send-email-ajay.gupta@ti.com>
+References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
+ <1260797982-28880-2-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42249 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752551AbZLNNjx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Dec 2009 08:39:53 -0500
+In-Reply-To: <1260797982-28880-2-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, david-b@pacbell.net, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Save dynamic FIFO read only information for later uses such as, during
-musb_save/restore_context functions.
+Some of the board might use external Vbus power supply on musb
+interface which would require to program ULPI_BUSCONTROL register.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Adding 'extvbus' flag which can be set from such boards which will
+be checked at musb driver files before programming ULPI_BUSCONTROL.
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- drivers/usb/musb/musb_core.c |    4 +++-
- drivers/usb/musb/musb_core.h |    1 +
- 2 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/usb/musb/musb_core.c |    8 ++++++++
+ drivers/usb/musb/musb_regs.h |    5 +++++
+ include/linux/usb/musb.h     |    3 +++
+ 3 files changed, 16 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 49f2346..d4adbbf 100644
+index cd4462b..826d01d 100644
 --- a/drivers/usb/musb/musb_core.c
 +++ b/drivers/usb/musb/musb_core.c
-@@ -1328,8 +1328,10 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
- 	reg = musb_read_configdata(mbase);
+@@ -2027,6 +2027,7 @@ bad_config:
+ 	/* host side needs more setup */
+ 	if (is_host_enabled(musb)) {
+ 		struct usb_hcd	*hcd = musb_to_hcd(musb);
++		u8 busctl;
  
- 	strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-16" : "UTMI-8");
--	if (reg & MUSB_CONFIGDATA_DYNFIFO)
-+	if (reg & MUSB_CONFIGDATA_DYNFIFO) {
- 		strcat(aInfo, ", dyn FIFOs");
-+		musb->dyn_fifo = true;
-+	}
- 	if (reg & MUSB_CONFIGDATA_MPRXE) {
- 		strcat(aInfo, ", bulk combine");
- #ifdef C_MP_RX
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 03d5090..969287c 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -411,6 +411,7 @@ struct musb {
+ 		otg_set_host(musb->xceiv, &hcd->self);
  
- 	unsigned		hb_iso_rx:1;	/* high bandwidth iso rx? */
- 	unsigned		hb_iso_tx:1;	/* high bandwidth iso tx? */
-+	unsigned		dyn_fifo:1;	/* dynamic FIFO supported? */
+@@ -2034,6 +2035,13 @@ bad_config:
+ 			hcd->self.otg_port = 1;
+ 		musb->xceiv->host = &hcd->self;
+ 		hcd->power_budget = 2 * (plat->power ? : 250);
++
++		/* program PHY to use external vBus if required */
++		if (plat->extvbus) {
++			busctl = musb_readb(musb->mregs, MUSB_ULPI_BUSCONTROL);
++			busctl |= ULPI_USE_EXTVBUS;
++			musb_writeb(musb->mregs, MUSB_ULPI_BUSCONTROL, busctl);
++		}
+ 	}
  
- #ifdef C_MP_TX
- 	unsigned bulk_split:1;
+ 	/* For the host-only role, we can activate right away.
+diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
+index 8ca8f23..cba724d 100644
+--- a/drivers/usb/musb/musb_regs.h
++++ b/drivers/usb/musb/musb_regs.h
+@@ -72,6 +72,10 @@
+ #define MUSB_DEVCTL_HR		0x02
+ #define MUSB_DEVCTL_SESSION	0x01
+ 
++/* ULPI VBUSCONTROL */
++#define ULPI_USE_EXTVBUS	0x01
++#define ULPI_USE_EXTVBUSIND	0x02
++
+ /* TESTMODE */
+ #define MUSB_TEST_FORCE_HOST	0x80
+ #define MUSB_TEST_FIFO_ACCESS	0x40
+@@ -246,6 +250,7 @@
+ 
+ /* REVISIT: vctrl/vstatus: optional vendor utmi+phy register at 0x68 */
+ #define MUSB_HWVERS		0x6C	/* 8 bit */
++#define MUSB_ULPI_BUSCONTROL	0x70	/* 8 bit */
+ 
+ #define MUSB_EPINFO		0x78	/* 8 bit */
+ #define MUSB_RAMINFO		0x79	/* 8 bit */
+diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+index d437556..4b7f8fa 100644
+--- a/include/linux/usb/musb.h
++++ b/include/linux/usb/musb.h
+@@ -76,6 +76,9 @@ struct musb_hdrc_platform_data {
+ 	/* (HOST or OTG) msec/2 after VBUS on till power good */
+ 	u8		potpgt;
+ 
++	/* (HOST or OTG) program PHY for external Vbus */
++	unsigned	extvbus:1;
++
+ 	/* Power the device on or off */
+ 	int		(*set_power)(int state);
+ 
 -- 
 1.6.2.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
