@@ -1,29 +1,29 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [RFC/PATCH 3/4] rtc: twl4030: move to request_threaded_irq
-Date: Mon, 14 Dec 2009 12:30:53 +0200
-Message-ID: <1260786654-13294-4-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [RFC/PATCH 1/4] input: keyboard: twl4030: move to request_threaded_irq
+Date: Mon, 14 Dec 2009 12:30:51 +0200
+Message-ID: <1260786654-13294-2-git-send-email-felipe.balbi@nokia.com>
 References: <20091212183410.GF3092@sirena.org.uk>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756077AbZLNKcg@vger.kernel.org>
-In-Reply-To: <20091212183410.GF3092@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, David Brownell <david-b@pacbell.net>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@openedhand.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091212183410.GF3092-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Samuel Ortiz <sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 move to request_threaded_irq() on twl4030 children.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/rtc/rtc-twl4030.c |   10 +---------
- 1 files changed, 1 insertions(+), 9 deletions(-)
+ drivers/input/keyboard/twl4030_keypad.c |   11 ++---------
+ 1 files changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
-index 9c8c70c..46bc9c1 100644
---- a/drivers/rtc/rtc-twl4030.c
-+++ b/drivers/rtc/rtc-twl4030.c
-@@ -325,14 +325,6 @@ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
- 	int res;
- 	u8 rd_reg;
+diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/keyboard/twl4030_keypad.c
+index 9a2977c..753a693 100644
+--- a/drivers/input/keyboard/twl4030_keypad.c
++++ b/drivers/input/keyboard/twl4030_keypad.c
+@@ -253,14 +253,6 @@ static irqreturn_t do_kp_irq(int irq, void *_kp)
+ 	u8 reg;
+ 	int ret;
  
 -#ifdef CONFIG_LOCKDEP
 -	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
@@ -32,18 +32,3 @@ index 9c8c70c..46bc9c1 100644
 -	 */
 -	local_irq_enable();
 -#endif
--
- 	res = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
- 	if (res)
- 		goto out;
-@@ -424,7 +416,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto out1;
- 
--	ret = request_irq(irq, twl4030_rtc_interrupt,
-+	ret = request_threaded_irq(irq, NULL, twl4030_rtc_interrupt,
- 				IRQF_TRIGGER_RISING,
- 				dev_name(&rtc->dev), rtc);
- 	if (ret < 0) {
--- 
-1.6.6.rc0
