@@ -1,60 +1,56 @@
-From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCH 3/3] omap3: Add platform init code for EHCI driver on IGEP v2
-Date: Wed, 18 Nov 2009 19:13:24 +0100
-Message-ID: <1258568004-6993-3-git-send-email-eballetbo@gmail.com>
-References: <1258568004-6993-1-git-send-email-eballetbo@gmail.com>
- <1258568004-6993-2-git-send-email-eballetbo@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Padconf not working on pm_defconfig?
+Date: Mon, 14 Dec 2009 11:26:30 -0800
+Message-ID: <20091214192630.GA4575@atomide.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4EFC@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E739404372AAB54@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4F0F@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4F23@dbde02.ent.ti.com>
+ <87fx7dcx8k.fsf@deeprootsystems.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0309C86409@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:59112 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756047AbZLNR6q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 12:58:46 -0500
-Received: by mail-ew0-f219.google.com with SMTP id 19so3657006ewy.21
-        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 09:58:46 -0800 (PST)
-In-Reply-To: <1258568004-6993-2-git-send-email-eballetbo@gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62791 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757102AbZLNT0g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 14:26:36 -0500
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0309C86409@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Peter De Schrijver <peter.de-schrijver@nokia.com>
 
-From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+* Gadiyar, Anand <gadiyar@ti.com> [091214 09:07]:
+> Kevin Hilman wroteL
+> > >
+> > > Found it - I remember that these lines are muxed with ETK signals
+> > > and with the hwdebug signals.
+> > >
+> > > So I looked at the debobs driver - and that's the culprit!
+> > > (Cc-ing the author of that driver)
+> > >
+> > > How should this be handled? IMO, this driver has should use the
+> > > MUX framework for changing the mux modes.
+> > >
+> > > What say?
+> > 
+> > Yes, the debobs driver needs to be updated to use the MUX API.
+> > 
+> > But even with that, AFAICT, the new mux API will still allow
+> > the last caller to "win" as there is no request/free API
+> > to get pins.
+> > 
+> 
+> At least the debug prints would have pointed me to this driver.
+> 
+> Okay, I'll try and cook something up for updating the debobs driver.
 
+Sounds like debobs should only set the pins based on platform_data
+passed from the board-*.c file. Then maybe allow override from
+cmdline on boards that have both debobs and ehci?
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
----
- arch/arm/mach-omap2/board-igep0020.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+Regards,
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 221b497..76f0208 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -213,6 +213,17 @@ static int __init igep2_i2c_init(void)
- 	return 0;
- }
- 
-+static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+
-+	.phy_reset = true,
-+	.reset_gpio_port[0] = -EINVAL,
-+	.reset_gpio_port[1] = IGEP2_GPIO_USBH_NRESET,
-+	.reset_gpio_port[2] = -EINVAL,
-+};
-+
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
-@@ -227,6 +238,7 @@ static void __init igep2_init(void)
- 	igep2_i2c_init();
- 	omap_serial_init();
- 	usb_musb_init();
-+	usb_ehci_init(&ehci_pdata);
- 
- 	igep2_init_smsc911x();
- 
--- 
-1.5.4.3
-
+Tony
