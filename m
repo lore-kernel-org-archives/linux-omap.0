@@ -1,45 +1,47 @@
-From: Romit Dasgupta <romit@ti.com>
-Subject: Re: [PATCH] OMAP3: PM:  Dynamic calculation of SDRC clock stabilization
- delay
-Date: Mon, 14 Dec 2009 14:31:56 +0530
-Message-ID: <4B25FF04.4040306@ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4B50@dbde02.ent.ti.com>	<87skbhjwjo.fsf@deeprootsystems.com> <87my1pggok.fsf@deeprootsystems.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: [PATCH 0/4] i2c driver conversion to use omap_device/omap_hwmod
+Date: Mon, 14 Dec 2009 14:42:35 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4EC7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34299 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444AbZLNJCD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 04:02:03 -0500
-In-Reply-To: <87my1pggok.fsf@deeprootsystems.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:52682 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752059AbZLNJMl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 04:12:41 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBE9CbtB015991
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 03:12:40 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBE9CbkB010714
+	for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 14:42:37 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Reddy, Teerth" <teerth@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin Hilman wrote:
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
-> 
-> [...]
-> 
->> PMC code is ARM generic and already largely exists in other places
->> (oprofile for one.)  So the use of the PMC will need to be generalized
->> as well as be shown not to interfere with other users (as raised
->> already by Jean Pihet.)
-> 
-> Someone is already trying to generalize a PMC interface.  You might want
-> to follow this thread:
-> 
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2009-December/005898.html
-> 
-I tried to find the code in LO but I think it is not yet present. So with that
-in mind may I propose that the pmc functions we introduce in plat-omap will be
-present as __init code (so that we ensure no one uses it after the system
-finishes booting up) as long as the pmc infrastructure is not available for
-non-Oprofile uses? As I mentioned in an earlier thread, the pmc is used and
-stopped very early during the kernel boot and AFAICT there should not be any
-problem (probably we need to check its behavior on EMU/HS devices).
+Hi,
 
-Thanks,
--Romit
+This patch-set adds support for using omap_device api's based on omap_hwmod
+layer for i2c driver.
+
+I have based these currently on 'pm-wip/uart' branch manitained by Kevin Hilman [1].
+These add hwmod structures for OMAP3 only and are validated on omap3430sdp.
+These would break OMAP2/4 untill the hwmod structures are available for them.
+
+regards,
+Rajendra
+
+----
+
+Paul Walmsley (1):
+OMAP: I2C: split device registration; convert OMAP2+ to omap_device
+
+Rajendra Nayak (3):
+OMAP2: Fix compile breaks
+OMAP3: hwmod: add I2C hwmods for OMAP3430
+I2C: Convert i2c driver to use omap_device/omap_hwmod
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
