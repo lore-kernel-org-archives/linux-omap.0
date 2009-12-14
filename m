@@ -1,7 +1,7 @@
 From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC/PATCH 4/4] usb: otg: twl4030: move to request_threaded_irq
-Date: Mon, 14 Dec 2009 12:30:54 +0200
-Message-ID: <1260786654-13294-5-git-send-email-felipe.balbi@nokia.com>
+Subject: [RFC/PATCH 2/4] input: misc: twl4030: move to request_threaded_irq
+Date: Mon, 14 Dec 2009 12:30:52 +0200
+Message-ID: <1260786654-13294-3-git-send-email-felipe.balbi@nokia.com>
 References: <20091212183410.GF3092@sirena.org.uk>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20091212183410.GF3092-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
@@ -14,21 +14,23 @@ move to request_threaded_irq() on twl4030 children.
 
 Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/usb/otg/twl4030-usb.c |   10 +---------
- 1 files changed, 1 insertions(+), 9 deletions(-)
+ drivers/input/misc/twl4030-pwrbutton.c |   12 +-----------
+ 1 files changed, 1 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-index bd9883f..36bcd5f 100644
---- a/drivers/usb/otg/twl4030-usb.c
-+++ b/drivers/usb/otg/twl4030-usb.c
-@@ -576,14 +576,6 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- 	struct twl4030_usb *twl = _twl;
- 	int status;
+diff --git a/drivers/input/misc/twl4030-pwrbutton.c b/drivers/input/misc/twl4030-pwrbutton.c
+index f5fc997..cd47d9e 100644
+--- a/drivers/input/misc/twl4030-pwrbutton.c
++++ b/drivers/input/misc/twl4030-pwrbutton.c
+@@ -39,16 +39,6 @@ static irqreturn_t powerbutton_irq(int irq, void *_pwr)
+ 	int err;
+ 	u8 value;
  
 -#ifdef CONFIG_LOCKDEP
 -	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
--	 * we don't want and can't tolerate.  Although it might be
--	 * friendlier not to borrow this thread context...
+-	 * we don't want and can't tolerate since this is a threaded
+-	 * IRQ and can sleep due to the i2c reads it has to issue.
+-	 * Although it might be friendlier not to borrow this thread
+-	 * context...
 -	 */
 -	local_irq_enable();
 -#endif
