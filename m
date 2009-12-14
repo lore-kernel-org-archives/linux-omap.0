@@ -1,51 +1,38 @@
-From: "Varadarajan, Charu Latha" <charu@ti.com>
-Subject: RE: [PATCH v7 2/5] OMAP: McBSP: Modify macros/functions API for
- easy cache access
-Date: Mon, 14 Dec 2009 11:35:06 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BC141E94@dbde02.ent.ti.com>
-References: <200912111642.34458.jkrzyszt@tis.icnet.pl>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH 2/2]: Introducing 'gpmc-nand.c' for GPMC specific NAND
+	init
+Date: Mon, 14 Dec 2009 11:56:24 +0530
+Message-ID: <ce9ab5790912132226n6480c029ve93def5ebec1e2c9@mail.gmail.com>
+References: <64662.192.168.10.89.1259933932.squirrel@dbdmail.itg.ti.com>
+	<20091204220138.GJ24013@atomide.com> <ce9ab5790912062229xae89bb3m6965b4f4465f11c3@mail.gmail.com>
+	<ce9ab5790912070529h1143355du691ce6a23f5ddb56@mail.gmail.com>
+	<20091207175644.GA24013@atomide.com> <20091208235725.GA24013@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50819 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569AbZLNGFr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 01:05:47 -0500
-In-Reply-To: <200912111642.34458.jkrzyszt@tis.icnet.pl>
-Content-Language: en-US
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:58023 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753440AbZLNG0q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 01:26:46 -0500
+Received: by bwz27 with SMTP id 27so1773385bwz.21
+        for <linux-omap@vger.kernel.org>; Sun, 13 Dec 2009 22:26:45 -0800 (PST)
+In-Reply-To: <20091208235725.GA24013@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org
 
-PHNuaXA+DQoNCj4+ID5AQCAtNjEyLDcgKzU5Nyw2IEBAIEVYUE9SVF9TWU1CT0wob21hcF9tY2Jz
-cF9zdG9wKTsNCj4+ID4gaW50IG9tYXBfbWNic3BfcG9sbHdyaXRlKHVuc2lnbmVkIGludCBpZCwg
-dTE2IGJ1ZikNCj4+ID4gew0KPj4gPiAJc3RydWN0IG9tYXBfbWNic3AgKm1jYnNwOw0KPj4gPi0J
-dm9pZCBfX2lvbWVtICpiYXNlOw0KPj4gPg0KPj4gPiAJaWYgKCFvbWFwX21jYnNwX2NoZWNrX3Zh
-bGlkX2lkKGlkKSkgew0KPj4gPiAJCXByaW50ayhLRVJOX0VSUiAiJXM6IEludmFsaWQgaWQgKCVk
-KVxuIiwNCj4+ID5fX2Z1bmNfXywgaWQgKyAxKTsNCj4+ID5AQCAtNjIwLDI4ICs2MDQsMjUgQEAg
-aW50IG9tYXBfbWNic3BfcG9sbHdyaXRlKHVuc2lnbmVkIGludCBpZA0KPj4gPiAJfQ0KPj4gPg0K
-Pj4gPiAJbWNic3AgPSBpZF90b19tY2JzcF9wdHIoaWQpOw0KPj4gPi0JYmFzZSA9IG1jYnNwLT5p
-b19iYXNlOw0KPj4gPg0KPj4gPi0JT01BUF9NQ0JTUF9XUklURShiYXNlLCBEWFIxLCBidWYpOw0K
-Pj4gPisJTUNCU1BfV1JJVEUobWNic3AsIERYUjEsIGJ1Zik7DQo+Pg0KPj4gT01BUDMvNCBhbGxv
-d3MgMzIgYml0IGRhdGEgYWNjZXNzIGFsc28uDQo+PiBIb3cgaXMgaXQgdGFrZW4gY2FyZT8NCj4N
-Cj5Ob3QgYXQgYWxsIGluIGNhc2Ugb2YgdGhvc2Ugc2V2ZXJhbCBwYXJ0aWN1bGFyIGNoYW5nZXMg
-YWJvdmUuIA0KPkknbSBwcmV0dHkgc3VyZSANCj50aGF0IGp1c3QgcmVwbGFjaW5nIG9sZCBPTUFQ
-X01DQlNQX1dSSVRFKGJhc2UsIC4uLikgd2l0aCBuZXcgDQo+TUNCU1BfV1JJVEUobWNic3AsIC4u
-LikgY2hhbmdlZCBub3RoaW5nIGluIHRlcm1zIG9mIE9NQVAzLzQgDQo+MzItYml0IGRhdGEgDQo+
-YWNjZXNzLiBBZ2FpbiwgYmV5b25kIHRoZSBzY29wZS4NCj4NCj4+IFBsZWFzZSByZWZlciB0byAN
-Cj4+IGh0dHA6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC81NDg5Ni8gZm9yIG1vcmUgZGV0
-YWlscy4NCj4+DQo+PiBRdW90aW5nIFRvbnkncyB3b3JkczoNCj4+ICJUbyBtZSBpdCBzbWVsbHMg
-bGlrZSB0aGUgYWxsIGRyaXZlcnMgdXNpbmcgdGhlIHRoZQ0KPj4gb21hcF9tY2JzcF9wb2xscmVh
-ZC93cml0ZSBhcmUgYnJva2VuIGxlZ2FjeSBkcml2ZXJzLg0KPj4gU28gbWF5YmUgd2Ugc2hvdWxk
-IGp1c3QgcmVtb3ZlIHRoZXNlIHR3byBmdW5jdGlvbnM/DQo+PiBJZiB3ZSByZWFsbHkgd2FudCB0
-byBrZWVwIHRoZXNlIGFyb3VuZCwgd2Ugc2hvdWxkIHJldmlldw0KPj4gdGhlIGRyaXZlcnMgdXNp
-bmcgdGhlc2UgZnVuY3Rpb25zLiAiDQo+DQo+UGxlYXNlIGhhdmUgYSBsb29rIGF0IHBhdGNoIDEv
-NSwgdGhlcmUgcmVhZHcoKS93cml0ZXcoKSBoYXMgDQo+YmVlbiByZXBsYWNlZCB3aXRoIA0KPk9N
-QVBfTUNCU1BfUkVBRCgpL19XUklURSgpIGluc2lkZSANCj5vbWFwX21jYnNwX3BvbGx3cml0ZSgp
-L19wb2xscmVhZCgpLiBJZiB5b3UgDQo+dGhpbmsgdGhlcmUgaXMgc29tZXRoaW5nIHdyb25nIHdp
-dGggaXQsIHBsZWFzZSBjb21tZW50IHRoYXQgDQo+cGF0Y2gsIG5vdCB0aGlzIA0KPm9uZSB0aGF0
-IGNoYW5nZXMgbm90aGluZyByZWxhdGVkIGhlcmUsIEkgYmVsaWV2ZS4NCg0KVGhlIHBvaW50IGhl
-cmUgaXMgdG8gcmV2aWV3IHRoZSBkcml2ZXIgYmVmb3JlIHB1c2hpbmcgYW55IHBhdGNoDQp0b3Vj
-aGluZyB0aGVzZSBmdW5jdGlvbnMuDQoNCjxzbmlwPg==
+> Any news on posting the updated version of this? Would be nice to
+> get it in this merge window, so time's running out :)
+>
+> When re-posting, please also cc linux-arm-kernel@lists.infradead.org
+> in addition to linux-omap list. That way we can have it quickly
+> reviewed there too.
+>
+
+Sorry for replying late. Last week I was on vacation.
+I will drop new version of this patch today.
+
+-- 
+Regards,
+Vimal Singh
