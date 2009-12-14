@@ -1,67 +1,38 @@
 From: Mike Rapoport <mike.rapoport@gmail.com>
-Subject: Re: smc91x problems on 2430SDP
-Date: Mon, 14 Dec 2009 23:41:24 +0200
-Message-ID: <f870da180912141341p14a90f21nc8651dee1988874a@mail.gmail.com>
-References: <alpine.DEB.2.00.0912141353270.12561@utopia.booyaka.com>
+Subject: Re: [PATCH 0/3] Initial support for Technexion Thunderboard :
+	defconfig
+Date: Mon, 14 Dec 2009 23:46:43 +0200
+Message-ID: <f870da180912141346y169f9d77we64800cf12703e2@mail.gmail.com>
+References: <4B24EC92.90709@dmhome.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f171.google.com ([209.85.223.171]:60143 "EHLO
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:61029 "EHLO
 	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189AbZLNVlZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 16:41:25 -0500
-Received: by iwn1 with SMTP id 1so487646iwn.33
-        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 13:41:24 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.0912141353270.12561@utopia.booyaka.com>
+	with ESMTP id S1750746AbZLNVqo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 16:46:44 -0500
+Received: by iwn1 with SMTP id 1so491203iwn.33
+        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 13:46:43 -0800 (PST)
+In-Reply-To: <4B24EC92.90709@dmhome.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: daniel@dmhome.net
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Dec 14, 2009 at 10:55 PM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> Hi,
->
-> smc91x is preventing 2430SDP from booting. =A0Messages follow at the =
-end of
-> this message. =A0Any ideas?
->
+Hi Daniel,
 
-AFAIK, smc91x probes interrupts during initialization. Maybe interrupt
-flags got wrong somehow, of the interrupt pin mux is not properly  set
-up.
-
-> - Paul
+On Sun, Dec 13, 2009 at 3:30 PM, Daniel Toussaint <daniel@dmhome.net> wrote:
+> Dear All,
 >
->
-> smc91x.c: v1.1, sep 22 2004 by Nicolas Pitre <nico@fluxnic.net>
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> eth%d: spurious interrupt (mask =3D 0x0b)
-> ...
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Patches reformatted for mainline.
 >
 
+Please send the patches inline rather than as attachment. It is much
+easier for review.
+And, usually [PATCH 0/x] message contains brief description of the
+patchset and does not include actual patches.
+I'd also suggest making defconfig the last patch in the series.
 
-
---=20
+-- 
 	Sincerely Yours,
 		Mike.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
