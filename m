@@ -1,63 +1,68 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC][PATCH 4/5] input: serio: add support for
-	Amstrad Delta serial keyboard port
-Date: Mon, 14 Dec 2009 01:11:34 +0100
-Message-ID: <200912140111.36458.jkrzyszt@tis.icnet.pl>
-References: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com>
-	<200912122134.08795.jkrzyszt@tis.icnet.pl>
-	<20091212232003.GA16760@core.coreip.homeip.net>
-Reply-To: Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
+From: Heikki Orsila <heikki.orsila@iki.fi>
+Subject: [RFC PATCH] OMAP: DSS2: RFBI driver: Cleanup "kfifo is full" test
+Date: Mon, 14 Dec 2009 05:18:16 +0200
+Message-ID: <20091214031816.GA1829@zakalwe.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <e3-hacking-bounces@earth.li>
-In-Reply-To: <20091212232003.GA16760@core.coreip.homeip.net>
+Content-Type: text/plain; charset=iso-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from zakalwe.fi ([91.90.49.150]:43123 "EHLO zakalwe.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750905AbZLND13 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 13 Dec 2009 22:27:29 -0500
 Content-Disposition: inline
-List-Unsubscribe: <http://www.earth.li/cgi-bin/mailman/options/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=unsubscribe>
-List-Archive: <http://www.earth.li/pipermail/e3-hacking>
-List-Post: <mailto:e3-hacking@earth.li>
-List-Help: <mailto:e3-hacking-request@earth.li?subject=help>
-List-Subscribe: <http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=subscribe>
-Sender: e3-hacking-bounces@earth.li
-Errors-To: e3-hacking-bounces@earth.li
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, e3-hacking@earth.li, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-SGkgRG1pdHJ5LAoKU3VuZGF5IDEzIERlY2VtYmVyIDIwMDkgMDA6MjA6MDMgRG1pdHJ5IFRvcm9r
-aG92IG5hcGlzYcWCKGEpOgo+Cj4gYXRrYmQgaXMgc3VwcG9zZWQgdG8gc3VwcG9ydCBQUy8yIGRl
-dmljZXMgc3BlYWtpbmcgQVQga2V5Ym9hcmQgcHJvdG9jb2wuCj4gV2UgYWxzbyBkbyBzdXBwb3J0
-IHN1Y2ggZGV2aWNlcyBiZWhpbmQgZHVtYiBjb250cm9sbGVycyB0aGF0IGRvIG5vdAo+IGFsbG93
-IHF1ZXJ5aW5nIHRoZSBkZXZpY2UgYnV0IHdlIGV4cGVjdCB0aG9zZSB0byBhdCBsZWFzdCBwcm9k
-dWNlIHRoZQo+IHN0YW5kYXJkIHNjYW5jb2Rlcy4KCkFzIGZhciBhcyBJIGNhbiB1bmRlcnN0YW5k
-LCB1c2luZyB0aGUgYXRrYmQgZHJpdmVyIGlzIG5vdCBhIGdvb2QgaWRlYSBpbiB0aGlzIApjYXNl
-IGJlY2F1c2Ugb2YgdGhlIGtleWJvYXJkIG5vdCBwcm9kdWNpbmcgc3RhbmRhcmQgc2NhbmNvZGVz
-LCBjb3JyZWN0PwoKSXNuJ3QgdGhlIGhwcHMyYXRrYmQuaCBwcm92aWRlZCBrZXljb2RlIHRhYmxl
-IGFuIGFscmVhZHkgc3VwcG9ydGVkIHdheSBvZiAKaW50cm9kdWNpbmcgZXhjZXB0aW9ucyB0byB0
-aGlzIHN0YW5kYXJkIHNjYW5jb2RlcyByZXF1aXJlbWVudD8gV2h5IGNvdWxkbid0IAp0aGlzIG1l
-dGhvZCBiZSByZXVzZWQgaGVyZT8KCldoYXQgSSBhbSBhZnJhaWQgb2YgaXMgaWYgdGhlIGRyaXZl
-ciBzdXBwb3NlZCB0byBiZSBjcmVhdGVkIGluc3RlYWQgd291bGRuJ3QgCnJlcXVpcmUgcmVpcGxl
-bWVudGluZyBtb3N0IG9mIHRoZSBhdGtiZCBjb2RlLgoKPiBJIHdvdWxkIG5lZWQgdG8ga25vdyBh
-IGJpdCBtb3JlIGFib3V0IHRoZSBnYW1lcGFkLCBidXQgc28gZmFyIEkgc3RpbGwKPiB0aGluayB0
-aGF0IGN1cnJlbnQgYXR0ZW1wb3Qgb2YgY3JlYXRpbmcgaW50ZXJtZWRpYXRlIHNlcmlvIG1vZHVs
-ZSB3aGljaAo+IGFsbG93cyB0byB1c2UgYXRrYmQgZHJpdmVyIGlzIG5vdCB0aGUgcHJvcGVyIHNv
-bHV0aW9uLgoKSSBtb2RpZmllZCB0aGUgc2VyaW8gZHJpdmVyIHRvIHNlbmQgZXhhY3RseSB3aGF0
-IGl0IGdldHMgZnJvbSB0aGUgYnVmZmVyIGFuZCAKZXhhbWluZWQgaXRzIG91dHB1dCB3aXRoIHNl
-cmlvX3Jhdy4gVGhlIGdhbWVwYWQgKGNhbiBiZSBjb25uZWN0ZWQgCnNpbXVsdGFuZW91c2x5KSBh
-cHBlYXJlZCB0byBzZW5kIGV4YWN0bHkgdGhlIHNhbWUgc2NhbmNvZGVzIGFzIHRoZSBrZXlib2Fy
-ZCAKZGlkLiBJIGNvdWxkbid0IHNlZSBob3cgdGhvc2UgbWlnaHQgYmUgZGVzdGluZ3Vpc2hlZCB3
-aGV0aGVyIGNvbWluZyBmcm9tIHRoZSAKa2V5Ym9yZCBvciBmcm9tIHRoZSBnYW1lcGFkLiBUaHVz
-LCBoYW5kbGluZyB0aGVtIGJvdGggdG9nZXRoZXIgYXMgYSBzaW5nbGUgCmRldmljZSB3b3VsZCBw
-cm9iYWJseSBiZSB0aGUgb25seSBvcHRpb24gaGVyZS4KCldpdGggYm90aCBkZXZpY2VzIGNvbm5l
-Y3RlZCBhbmQga2V5cyBwcmVzc2VkIHNpbXVsdGFuZW91c2x5LCBlcnJvcnMgb2NjdXJlIGF0IAp0
-aGUgbG93ZXN0IGxldmVsOiBwYXJpdHkgY2hlY2sgZmFpbGVkLCBpbnZhbGlkIHN0b3AgYml0LCBl
-dGMuIEkgZG9uJ3QgdGhpbmsgCml0IHdvdWxkIGJlIHBvc3NpYmxlIHRvIGRvIGFueXRoaW5nIGFi
-b3V0IHRoaXMuIEJ1dCB0aGlzIGFsc28gbWVhbnMgdGhhdCAKdHJ5aW5nIHRvIHF1ZXJ5IHRoZW0g
-aW4gb3JkZXIgdG8gZ2V0IGEgc2Vuc2libGUgcmVzcG9uc2Ugd291bGQgcHJvYmFibHkgYmUgCm5v
-dCByZWxpYWJsZS4KCkFueSB0aG91Z2h0cz8KClRoYW5rcywKSmFudXN6CgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwplMy1oYWNraW5nIG1haWxpbmcgbGlz
-dAplMy1oYWNraW5nQGVhcnRoLmxpCmh0dHA6Ly93d3cuZWFydGgubGkvY2dpLWJpbi9tYWlsbWFu
-L2xpc3RpbmZvL2UzLWhhY2tpbmcK
+RFBI_CMD_FIFO_LEN_BYTES might not be a power-of-two,
+but kfifo() allocates the size up to the next power of two,
+which makes (RFBI_CMD_FIFO_LEN_BYTES - kfifo_len())
+look very dubious (possibly a negative value!).
+
+Notes:
+
+[1] Not tested nor compiled here
+
+[2] The removed code compares int with a size_t.
+It looks buggy, because if the full allocated
+size of the fifo is used, the integer comparison
+leads to "always empty space in the fifo".
+Fortunately, the code can never go there, because
+available == 0 will come before negative integer
+values.
+
+[3] Do we want to use the whole allocated space?
+In that case the change should be:
+
+-               available = RFBI_CMD_FIFO_LEN_BYTES -
+-                       __kfifo_len(rfbi.cmd_fifo);
++               available = rfbi.cmd_fifo->size - __kfifo_len(rfbi.cmd_fifo);
+
+Signed-off-by: Heikki Orsila <heikki.orsila@iki.fi>
+---
+ drivers/video/omap2/dss/rfbi.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index d0b3006..1dbe993 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -1050,14 +1050,11 @@ static void rfbi_push_cmd(struct update_param *p)
+ 
+ 	while (1) {
+ 		unsigned long flags;
+-		int available;
+ 
+ 		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
+-		available = RFBI_CMD_FIFO_LEN_BYTES -
+-			__kfifo_len(rfbi.cmd_fifo);
+ 
+ /*		DSSDBG("%d bytes left in fifo\n", available); */
+-		if (available < sizeof(struct update_param)) {
++		if (__kfifo_len(rfbi.cmd_fifo) >= RFBI_CMD_FIFO_LEN_BYTES) {
+ 			DSSDBG("Going to wait because FIFO FULL..\n");
+ 			spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
+ 			atomic_inc(&rfbi.cmd_fifo_full);
+-- 
+1.6.4.4
