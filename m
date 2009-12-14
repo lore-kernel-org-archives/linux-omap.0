@@ -1,28 +1,42 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH v2] AM35xx: Clock table updates for AM3505/17
-Date: Mon, 14 Dec 2009 13:17:41 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912141316500.12561@utopia.booyaka.com>
-References: <1258437308-29289-1-git-send-email-ranjithl@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BC14218A@dbde02.ent.ti.com>
+Subject: [PATCH 0/2] OMAP clock: new platform prep + AM35xx clock definitions
+Date: Mon, 14 Dec 2009 13:16:35 -0700
+Message-ID: <20091214201431.370.35496.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46341 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:46355 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758181AbZLNURm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 15:17:42 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BC14218A@dbde02.ent.ti.com>
+	with ESMTP id S1758178AbZLNUTp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 15:19:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Lohithakshan, Ranjith" <ranjithl@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, Ranjith Lohithakshan <ranjithl@ti.com>
 
+This series adds clkdev-OMAP platform flags for the AM35xx and OMAP36xx
+chips, and marks AM35xx platform clocks.
 
-Hi Ranjith,
-
-by the way, could you (or someone else from Catalog) please send in a 
-patch to add a defconfig for the Sitara EVM?  It would be good to add that 
-to the build tests.
-
-thanks,
 
 - Paul
+
+---
+
+size:
+   text	   data	    bss	    dec	    hex	filename
+3615944	 197312	 105168	3918424	 3bca58	vmlinux.beagle.orig
+3615944	 197312	 105168	3918424	 3bca58	vmlinux.beagle
+
+
+Paul Walmsley (1):
+      OMAP3 clock: reorganize CK_* platform flags
+
+Ranjith Lohithakshan (1):
+      AM35xx: Clock table updates for AM3505/17
+
+
+ arch/arm/mach-omap2/clock34xx_data.c          |  359 +++++++++++++------------
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |   26 +-
+ 2 files changed, 200 insertions(+), 185 deletions(-)
+
