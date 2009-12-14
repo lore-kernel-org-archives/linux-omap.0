@@ -1,34 +1,66 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC/PATCH 1/4] input: keyboard: twl4030: move to request_threaded_irq
-Date: Mon, 14 Dec 2009 12:30:51 +0200
-Message-ID: <1260786654-13294-2-git-send-email-felipe.balbi@nokia.com>
-References: <20091212183410.GF3092@sirena.org.uk>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091212183410.GF3092-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Samuel Ortiz <sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 3/4] ARM: L2 : Errata 588369: Clean & Invalidate do
+	notinvalidate clean lines
+Date: Mon, 14 Dec 2009 10:37:13 +0000
+Message-ID: <1260787034.17159.24.camel@pc1117.cambridge.arm.com>
+References: <1260384233-2278-3-git-send-email-santosh.shilimkar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:50101 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752379AbZLNKh2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Dec 2009 05:37:28 -0500
+In-Reply-To: <1260384233-2278-3-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
 
-move to request_threaded_irq() on twl4030 children.
+On Wed, 2009-12-09 at 18:43 +0000, Santosh Shilimkar wrote:
+> This patch implements the work-around for the errata 588369. The secure API
+> is used to alter L2 debug regsiter because of trust-zone.
+[...]
+> +config PL310_ERRATA_588369
+> +       bool "Clean & Invalidate maintenance operations do not invalidate clean lines"
+> +       depends on CACHE_L2X0
+> +       default n
+> +       help
+> +          The PL310 L2 cache controller implements three types of Clean &
+> +          Invalidate maintenance operations: by Physical Address
+> +          (offset 0x7F0), by Index/Way (0x7F8) and by Way (0x7FC).
+> +          They are architecturally defined to behave as the execution of a
+> +          clean operation followed immediately by an invalidate operation,
+> +          both performing to the same memory location. This functionality
+> +          is not correctly implemented in PL310 as clean lines are not
+> +          invalidated as a result of these operations
+>  endmenu
 
-Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
----
- drivers/input/keyboard/twl4030_keypad.c |   11 ++---------
- 1 files changed, 2 insertions(+), 9 deletions(-)
+Could you actually add a comment and a dependence on OMAP4 since this
+requires the secure monitor that only TI has.
+> 
+> +#ifdef CONFIG_PL310_ERRATA_588369
+> +       /*
+> +        * Disable Write-Back and Cache Linefill (set bits [1:0] of the Debug
+> +        * Control Register)
+> +        */
+> +       __asm__ __volatile__(
+> +       "stmfd r13!, {r0-r12, r14}\n"
+> +       "mov r0, #3\n"
+> +       "ldr r12, =0x100\n"
+> +       "dsb\n"
+> +       "smc\n"
+> +       "ldmfd r13!, {r0-r12, r14}");
 
-diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/keyboard/twl4030_keypad.c
-index 9a2977c..753a693 100644
---- a/drivers/input/keyboard/twl4030_keypad.c
-+++ b/drivers/input/keyboard/twl4030_keypad.c
-@@ -253,14 +253,6 @@ static irqreturn_t do_kp_irq(int irq, void *_kp)
- 	u8 reg;
- 	int ret;
- 
--#ifdef CONFIG_LOCKDEP
--	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
--	 * we don't want and can't tolerate.  Although it might be
--	 * friendlier not to borrow this thread context...
--	 */
--	local_irq_enable();
--#endif
+Could you actually add a function that gets called with a parameter
+rather than having to similar inline asm blocks? You also don't need to
+save/restore the registers if you declare them properly or use local
+variables for that, the compiler does the work for you.
+
+Is a DSB needed before SMC (I'm not sure)?
+
+-- 
+Catalin
+
