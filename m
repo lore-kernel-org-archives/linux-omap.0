@@ -1,172 +1,53 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: [PATCH 1/2] OMAP: DSS2: add Toppoly TDO35S panel
-Date: Mon, 14 Dec 2009 10:01:07 +0200
-Message-ID: <a5065426f4601793612b8b861e93b16ebbe746f9.1260777314.git.mike@compulab.co.il>
-References: <cover.1260777313.git.mike@compulab.co.il>
+From: Romit Dasgupta <romit@ti.com>
+Subject: Re: [PATCH] OMAP3: PM:  Dynamic calculation of SDRC clock stabilization
+ delay
+Date: Mon, 14 Dec 2009 13:49:07 +0530
+Message-ID: <4B25F4FB.6060100@ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD4B50@dbde02.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0C012B9F49BC@dlee02.ent.ti.com> <4B223BA3.4000402@ti.com> <4B224C5B.3080808@ti.com> <4B231F8A.2080706@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:42010 "EHLO compulab.co.il"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34019 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755165AbZLNIBb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Dec 2009 03:01:31 -0500
-In-Reply-To: <cover.1260777313.git.mike@compulab.co.il>
-In-Reply-To: <cover.1260777313.git.mike@compulab.co.il>
-References: <cover.1260777313.git.mike@compulab.co.il>
+	id S1751106AbZLNITO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Dec 2009 03:19:14 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBE8JAx9027786
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 02:19:13 -0600
+In-Reply-To: <4B231F8A.2080706@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "Reddy, Teerth" <teerth@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
----
- drivers/video/omap2/displays/Kconfig               |    6 +
- drivers/video/omap2/displays/Makefile              |    1 +
- .../video/omap2/displays/panel-toppoly-tdo35s.c    |  112 ++++++++++++++++++++
- 3 files changed, 119 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index b12a59c..86946e8 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -19,4 +19,10 @@ config PANEL_TAAL
-         help
-           Taal DSI command mode panel from TPO.
- 
-+config PANEL_TOPPOLY_TDO35S
-+        tristate "Toppoly TDO35S LCD Panel support"
-+        depends on OMAP2_DSS
-+        help
-+          LCD Panel used in CM-T35
-+
- endmenu
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index 9556464..0b7c3b3 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -2,3 +2,4 @@ obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
- obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
- 
- obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
-+obj-$(CONFIG_PANEL_TOPPOLY_TDO35S) += panel-toppoly-tdo35s.o
-\ No newline at end of file
-diff --git a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-new file mode 100644
-index 0000000..e744b8c
---- /dev/null
-+++ b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-@@ -0,0 +1,112 @@
-+/*
-+ * LCD panel driver for Toppoly TDO35S
-+ *
-+ * Copyright (C) 2009 CompuLab, Ltd.
-+ * Author: Mike Rapoport <mike@compulab.co.il>
-+ *
-+ * Based on generic panel support
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+
-+#include <plat/display.h>
-+
-+static struct omap_video_timings toppoly_tdo_panel_timings = {
-+	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
-+	.x_res		= 480,
-+	.y_res		= 640,
-+
-+	.pixel_clock	= 26000,
-+
-+	.hfp		= 104,
-+	.hsw		= 8,
-+	.hbp		= 8,
-+
-+	.vfp		= 4,
-+	.vsw		= 2,
-+	.vbp		= 2,
-+};
-+
-+static int toppoly_tdo_panel_probe(struct omap_dss_device *dssdev)
-+{
-+	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+		OMAP_DSS_LCD_IHS;
-+	dssdev->panel.timings = toppoly_tdo_panel_timings;
-+
-+	return 0;
-+}
-+
-+static void toppoly_tdo_panel_remove(struct omap_dss_device *dssdev)
-+{
-+}
-+
-+static int toppoly_tdo_panel_enable(struct omap_dss_device *dssdev)
-+{
-+	int r = 0;
-+
-+	if (dssdev->platform_enable)
-+		r = dssdev->platform_enable(dssdev);
-+
-+	return r;
-+}
-+
-+static void toppoly_tdo_panel_disable(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->platform_disable)
-+		dssdev->platform_disable(dssdev);
-+}
-+
-+static int toppoly_tdo_panel_suspend(struct omap_dss_device *dssdev)
-+{
-+	toppoly_tdo_panel_disable(dssdev);
-+	return 0;
-+}
-+
-+static int toppoly_tdo_panel_resume(struct omap_dss_device *dssdev)
-+{
-+	return toppoly_tdo_panel_enable(dssdev);
-+}
-+
-+static struct omap_dss_driver generic_driver = {
-+	.probe		= toppoly_tdo_panel_probe,
-+	.remove		= toppoly_tdo_panel_remove,
-+
-+	.enable		= toppoly_tdo_panel_enable,
-+	.disable	= toppoly_tdo_panel_disable,
-+	.suspend	= toppoly_tdo_panel_suspend,
-+	.resume		= toppoly_tdo_panel_resume,
-+
-+	.driver         = {
-+		.name   = "toppoly_tdo35s_panel",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+static int __init toppoly_tdo_panel_drv_init(void)
-+{
-+	return omap_dss_register_driver(&generic_driver);
-+}
-+
-+static void __exit toppoly_tdo_panel_drv_exit(void)
-+{
-+	omap_dss_unregister_driver(&generic_driver);
-+}
-+
-+module_init(toppoly_tdo_panel_drv_init);
-+module_exit(toppoly_tdo_panel_drv_exit);
-+MODULE_LICENSE("GPL");
--- 
-1.6.4.4
-
+Menon, Nishanth wrote:
+> Menon, Nishanth had written, on 12/11/2009 07:42 AM, the following:
+>> Dasgupta, Romit had written, on 12/11/2009 06:31 AM, the following:
+>>>> Also Richard indicated that there might be a few tricky things with perf
+>>>> Counters with specific devices - like EMU/HS/GP devices. It might need EMU
+>>>> Domain for the values to pass through and there might be a yet-not-measured increase In power which could impact usage numbers and may need additional 
+>>>> Code to switch off the domain correctly while hitting OFF/RET..
+>>>>
+>>> Yes someone with EMU/HS could run and let us know. OTOH there won't be any
+>>> increase in power as it is done only once during boot time after which the
+>>> perfcounters are stopped.
+>>>
+>>> By the way can you run this in 3630 and help us find what is the SRAM access
+>>> delay? I am sure it should be lesser since it has a process improvement over 34xx.
+>>>
+>>>
+>> will try on SDP3630 among the boards that I have around. meanwhile, 
+>> would like an explanation to my previous comments also esp on the black 
+>> magic "6" ;) - thanks.
+>>
+> Just realized -> clock framework changes are not in yet, anyways, with 
+> 3630SDP (without my OPP series and on pm branch):
+> Clocking rate (Crystal/Core/MPU): 26.0/400/600 MHz
+> SRAM delay: 54 
+> 
+> Reprogramming SDRC clock to 400000000 Hz
+> 
+Thanks Nishanth. As expected the SRAM delay cycles are less compared to 3430.
+However only 3 cycles!! ;-)
