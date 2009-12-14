@@ -1,30 +1,28 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/5] OMAP2: remove duplicated #include
-Date: Mon, 14 Dec 2009 13:13:22 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912141312430.12561@utopia.booyaka.com>
-References: <1260710017-3804-1-git-send-email-weiyi.huang@gmail.com>
+Subject: RE: [PATCH v2] AM35xx: Clock table updates for AM3505/17
+Date: Mon, 14 Dec 2009 13:17:41 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0912141316500.12561@utopia.booyaka.com>
+References: <1258437308-29289-1-git-send-email-ranjithl@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BC14218A@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42229 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:46341 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757806AbZLNUNW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 15:13:22 -0500
-In-Reply-To: <1260710017-3804-1-git-send-email-weiyi.huang@gmail.com>
+	with ESMTP id S1758181AbZLNURm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 15:17:42 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BC14218A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Huang Weiyi <weiyi.huang@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Lohithakshan, Ranjith" <ranjithl@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On Sun, 13 Dec 2009, Huang Weiyi wrote:
 
-> Remove duplicated #include('s) in
->   arch/arm/mach-omap2/clock34xx.c
->   arch/arm/mach-omap2/io.c
-> 
-> Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
+Hi Ranjith,
 
-Thanks Weiyi, will queue for .33-rc*.
+by the way, could you (or someone else from Catalog) please send in a 
+patch to add a defconfig for the Sitara EVM?  It would be good to add that 
+to the build tests.
 
+thanks,
 
 - Paul
