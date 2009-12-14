@@ -1,73 +1,40 @@
-From: John Faith <jfaith7@gmail.com>
-Subject: Re: Enabling 3530 sys_clkout2
-Date: Mon, 14 Dec 2009 14:58:42 -0800
-Message-ID: <e0727e900912141458i2737b7favfe1ecc8feceafe40@mail.gmail.com>
-References: <e0727e900912141230q1e98d4c3ge408101664a0c712@mail.gmail.com>
-	 <alpine.DEB.2.00.0912141457110.12561@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 0/5] OMAP4 Power Domain Framework Support
+Date: Mon, 14 Dec 2009 23:08:40 +0000
+Message-ID: <20091214230840.GA27612@n2100.arm.linux.org.uk>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02BC14194C@dbde02.ent.ti.com> <alpine.DEB.2.00.0912141546270.12561@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:55855 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757854AbZLNW6n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 17:58:43 -0500
-Received: by pzk1 with SMTP id 1so2618849pzk.33
-        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 14:58:42 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.0912141457110.12561@utopia.booyaka.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33567 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758738AbZLNXI6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 18:08:58 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0912141546270.12561@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+Cc: "Pagare, Abhijit" <abhijitpagare@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Mon, Dec 14, 2009 at 1:59 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hello John,
+On Mon, Dec 14, 2009 at 03:47:46PM -0700, Paul Walmsley wrote:
+> Hello Abhijit,
+> 
+> On Fri, 11 Dec 2009, Pagare, Abhijit wrote:
+> 
+> > This patch series adds support for OMAP4 power domain framework.
+> 
+> ...
+> 
+> > Abhijit Pagare (5):
+> > ARM: OMAP4: PM: OMAP4 essential basic initializations.
+> > ARM: OMAP4: PM: OMAP4 Power Domain Porting Related Clean-up.
+> > ARM: OMAP4: PM: Add the Auto-generated OMAP4 specific power domain framework.
+> > ARM: OMAP4: PM: Adapt the existing OMAP2/3 and common Power Domain Frameworks.
+> > ARM: OMAP4: PM: Refine the APIs to support OMAP4 features.
+> 
+> Looks like these patches didn't make it to the list.  Could you check and 
+> repost?
 
-Hi Paul,
-
->
-> On Mon, 14 Dec 2009, John Faith wrote:
->
->> I'm trying to enable the sys_clkout2 pin in a 2.6.29 kernel for my
->> 3530EVM-like board for the main clock line of an FPGA. =A0I've added=
- a
->> MUX_CFG_34XX entry in mux.c, set the gpio direction in my board.c
->> file, and set the rate in my driver with clk_set_parent(),
->> clk_set_rate() but I do not see any output clock when probed with a
->> scope.
->
-> Sounds like either the clock is not enabled (use clk_enable() for thi=
-s),
-> or there is a mux problem.
->
-> You might also want to make sure that you've set the parent of
-> clkout2_src_ck appropriately, although you still should be able to ge=
-t
-> something out of it.
-
-After 3 clk_get() for clkout2_src_ck, sys_clkout2, and func_96m_ck, I
-set the parent the same as n810.c with:
-
- clk_set_parent(sys_clkout2_src, func96m_clk);
- clk_set_rate(sys_clkout2, 12000000);
-
-Calling clk_enable(sys_clkout2); returns zero.
-
-
-As a test, I also tried going around the clock APIs and enabling the
-clock directly with by writing to the CM_CLKOUT_CTRL register, with
-similar results (no output).
-
-My mux setting is:
- MUX_CFG_34XX("SYS_CLKOUT2", 0x1E2,
-        OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_OUTPUT)
-
-
-Thanks for the suggestions!
-,
-John
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+They did but they aren't threaded to the description.  They were sent
+just prior to the message you replied to.
