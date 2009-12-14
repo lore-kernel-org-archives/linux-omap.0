@@ -1,414 +1,283 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 2/4] OMAP3: hwmod: add I2C hwmods for OMAP3430
-Date: Mon, 14 Dec 2009 14:42:37 +0530
-Message-ID: <1260781959-28050-2-git-send-email-rnayak@ti.com>
-References: <1260781959-28050-1-git-send-email-rnayak@ti.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: [PATCH v2 2/2]: Introducing 'gpmc-nand.c' for GPMC specific NAND init
+Date: Mon, 14 Dec 2009 15:17:15 +0530
+Message-ID: <ce9ab5790912140147v23e3705aucf6d25c56aaaab31@mail.gmail.com>
+References: <64662.192.168.10.89.1259933932.squirrel@dbdmail.itg.ti.com>
+	<20091204220138.GJ24013@atomide.com> <ce9ab5790912062229xae89bb3m6965b4f4465f11c3@mail.gmail.com>
+	<ce9ab5790912070529h1143355du691ce6a23f5ddb56@mail.gmail.com>
+	<20091207175644.GA24013@atomide.com> <20091208235725.GA24013@atomide.com>
+	<ce9ab5790912132226n6480c029ve93def5ebec1e2c9@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37244 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753727AbZLNJMq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Dec 2009 04:12:46 -0500
-In-Reply-To: <1260781959-28050-1-git-send-email-rnayak@ti.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:56176 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754458AbZLNJrh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 04:47:37 -0500
+Received: by bwz27 with SMTP id 27so1843210bwz.21
+        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 01:47:35 -0800 (PST)
+In-Reply-To: <ce9ab5790912132226n6480c029ve93def5ebec1e2c9@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>
 
-Add hwmod structures for I2C controllers on OMAP3430.
+>From 6170aa1c63c49a3f09e76258f400230b742fdd6f Mon Sep 17 00:00:00 2001
+From: Vimal Singh <vimalsingh@ti.com>
+Date: Wed, 25 Nov 2009 18:23:15 +0530
+Subject: [PATCH] Introducing 'gpmc-nand.c' for GPMC specific NAND init
 
-This patch was developed in collaboration with Paul Walmsley <paul@pwsan.com>.
+Introducing 'gpmc-nand.c' for GPMC specific NAND init.
+For example: GPMC timing parameters and all.
+This patch also migrates gpmc related calls from 'nand/omap2.c'
+to 'gpmc-nand.c'.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_34xx.h     |  235 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm-regbits-34xx.h    |    9 +-
- arch/arm/plat-omap/include/plat/i2c.h     |   43 ++++++
- arch/arm/plat-omap/include/plat/l4_3xxx.h |   24 +++
- 4 files changed, 308 insertions(+), 3 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/plat/i2c.h
- create mode 100644 arch/arm/plat-omap/include/plat/l4_3xxx.h
+ arch/arm/mach-omap2/Makefile           |    3 +
+ arch/arm/mach-omap2/gpmc-nand.c        |  137 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/nand.h |    6 ++
+ drivers/mtd/nand/omap2.c               |   26 +------
+ 4 files changed, 149 insertions(+), 23 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-index 8225bd3..80fa3cc 100644
---- a/arch/arm/mach-omap2/omap_hwmod_34xx.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-@@ -19,6 +19,8 @@
- #include <plat/cpu.h>
- #include <plat/dma.h>
- #include <plat/serial.h>
-+#include <plat/l4_3xxx.h>
-+#include <plat/i2c.h>
- 
- #include "prm-regbits-34xx.h"
- 
-@@ -74,6 +76,9 @@ static struct omap_hwmod omap34xx_l4_wkup_hwmod;
- static struct omap_hwmod omap34xx_uart1_hwmod;
- static struct omap_hwmod omap34xx_uart2_hwmod;
- static struct omap_hwmod omap34xx_uart3_hwmod;
-+static struct omap_hwmod omap34xx_i2c1_hwmod;
-+static struct omap_hwmod omap34xx_i2c2_hwmod;
-+static struct omap_hwmod omap34xx_i2c3_hwmod;
- 
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap34xx_l4_core__l4_wkup = {
-@@ -139,6 +144,91 @@ static struct omap_hwmod_ocp_if omap3_l4_per__uart3 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+#define OMAP3_I2C1_BASE			(L4_34XX_BASE + 0x70000)
-+#define OMAP3_I2C2_BASE			(L4_34XX_BASE + 0x72000)
-+#define OMAP3_I2C3_BASE			(L4_34XX_BASE + 0x60000)
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 59b0ccc..0dfe27a 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -103,5 +103,8 @@ obj-y					+= usb-ehci.o
+ onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
+ obj-y					+= $(onenand-m) $(onenand-y)
+
++nand-$(CONFIG_MTD_NAND_OMAP2)		:= gpmc-nand.o
++obj-y					+= $(nand-m) $(nand-y)
 +
-+/* I2C IP block address space length (in bytes) */
-+#define OMAP2_I2C_AS_LEN		128
-+
-+/* L4 CORE -> I2C1 interface */
-+static struct omap_hwmod_addr_space omap34xx_i2c1_addr_space[] = {
-+	{
-+		.pa_start	= OMAP3_I2C1_BASE,
-+		.pa_end		= OMAP3_I2C1_BASE + OMAP2_I2C_AS_LEN - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap34xx_l4_core__i2c1 = {
-+	.master		= &omap34xx_l4_core_hwmod,
-+	.slave		= &omap34xx_i2c1_hwmod,
-+	.clkdev_dev_id	= "i2c_omap.1",
-+	.clkdev_con_id  = "ick",
-+	.addr		= omap34xx_i2c1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap34xx_i2c1_addr_space),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP3_L4_CORE_FW_I2C1_REGION,
-+			.l4_prot_group = 7,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+	.flags		= OMAP_FIREWALL_L4
-+};
-+
-+/* L4 CORE -> I2C2 interface */
-+static struct omap_hwmod_addr_space omap34xx_i2c2_addr_space[] = {
-+	{
-+		.pa_start	= OMAP3_I2C2_BASE,
-+		.pa_end		= OMAP3_I2C2_BASE + OMAP2_I2C_AS_LEN - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap34xx_l4_core__i2c2 = {
-+	.master		= &omap34xx_l4_core_hwmod,
-+	.slave		= &omap34xx_i2c2_hwmod,
-+	.clkdev_dev_id	= "i2c_omap.2",
-+	.clkdev_con_id  = "ick",
-+	.addr		= omap34xx_i2c2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap34xx_i2c2_addr_space),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP3_L4_CORE_FW_I2C2_REGION,
-+			.l4_prot_group = 7,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+	.flags		= OMAP_FIREWALL_L4
-+};
-+
-+/* L4 CORE -> I2C3 interface */
-+static struct omap_hwmod_addr_space omap34xx_i2c3_addr_space[] = {
-+	{
-+		.pa_start	= OMAP3_I2C3_BASE,
-+		.pa_end		= OMAP3_I2C3_BASE + OMAP2_I2C_AS_LEN - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap34xx_l4_core__i2c3 = {
-+	.master		= &omap34xx_l4_core_hwmod,
-+	.slave		= &omap34xx_i2c3_hwmod,
-+	.clkdev_dev_id	= "i2c_omap.3",
-+	.clkdev_con_id  = "ick",
-+	.addr		= omap34xx_i2c3_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap34xx_i2c3_addr_space),
-+	.fw = {
-+		.omap2 = {
-+			.l4_fw_region  = OMAP3_L4_CORE_FW_I2C3_REGION,
-+			.l4_prot_group = 7,
-+		}
-+	},
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+	.flags		= OMAP_FIREWALL_L4
-+};
-+
- /* Slave interfaces on the L4_CORE interconnect */
- /* KJH: OCP ifs where L4 CORE is the slave */
- static struct omap_hwmod_ocp_if *omap34xx_l4_core_slaves[] = {
-@@ -151,6 +241,9 @@ static struct omap_hwmod_ocp_if *omap34xx_l4_core_masters[] = {
- 	&omap34xx_l4_core__l4_wkup,
- 	&omap3_l4_core__uart1,
- 	&omap3_l4_core__uart2,
-+	&omap34xx_l4_core__i2c1,
-+	&omap34xx_l4_core__i2c2,
-+	&omap34xx_l4_core__i2c3,
- };
- 
- /* L4 CORE */
-@@ -335,6 +428,145 @@ static struct omap_hwmod omap34xx_uart3_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
- 
-+/* I2C common */
-+static struct omap_hwmod_sysconfig i2c_if_ctrl = {
-+	.rev_offs	= 0x00,
-+	.sysc_offs	= 0x20,
-+	.syss_offs	= 0x10,
-+	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+};
-+
-+/* I2C1 */
-+
-+static struct omap_i2c_dev_attr i2c1_dev_attr = {
-+	.fifo_depth	= 8, /* bytes */
-+	.flags		= (OMAP_I2C_HAS_FIFO | OMAP_I2C_HAS_HIGH_SPEED |
-+			   OMAP_I2C_HAS_8_BIT_DATA_REG),
-+};
-+
-+static struct omap_hwmod_irq_info i2c1_mpu_irqs[] = {
-+	{ .irq = INT_24XX_I2C1_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info i2c1_sdma_chs[] = {
-+	{ .name = "tx", .dma_ch = OMAP24XX_DMA_I2C1_TX },
-+	{ .name = "rx", .dma_ch = OMAP24XX_DMA_I2C1_RX },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap34xx_i2c1_slaves[] = {
-+	&omap34xx_l4_core__i2c1,
-+};
-+
-+static struct omap_hwmod omap34xx_i2c1_hwmod = {
-+	.name		= "i2c1_hwmod",
-+	.mpu_irqs	= i2c1_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(i2c1_mpu_irqs),
-+	.sdma_chs	= i2c1_sdma_chs,
-+	.sdma_chs_cnt	= ARRAY_SIZE(i2c1_sdma_chs),
-+	.clkdev_dev_id	= "i2c_omap.1",
-+	.clkdev_con_id	= "fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_GRPSEL_I2C1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap34xx_i2c1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap34xx_i2c1_slaves),
-+	.sysconfig	= &i2c_if_ctrl,
-+	.dev_attr	= &i2c1_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* I2C2 */
-+
-+static struct omap_i2c_dev_attr i2c2_dev_attr = {
-+	.fifo_depth	= 8, /* bytes */
-+	.flags		= (OMAP_I2C_HAS_3_WIRE_SCCB | OMAP_I2C_HAS_FIFO |
-+			   OMAP_I2C_HAS_HIGH_SPEED |
-+			   OMAP_I2C_HAS_8_BIT_DATA_REG),
-+};
-+
-+static struct omap_hwmod_irq_info i2c2_mpu_irqs[] = {
-+	{ .irq = INT_24XX_I2C2_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info i2c2_sdma_chs[] = {
-+	{ .name = "tx", .dma_ch = OMAP24XX_DMA_I2C2_TX },
-+	{ .name = "rx", .dma_ch = OMAP24XX_DMA_I2C2_RX },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap34xx_i2c2_slaves[] = {
-+	&omap34xx_l4_core__i2c2,
-+};
-+
-+static struct omap_hwmod omap34xx_i2c2_hwmod = {
-+	.name		= "i2c2_hwmod",
-+	.mpu_irqs	= i2c2_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(i2c2_mpu_irqs),
-+	.sdma_chs	= i2c2_sdma_chs,
-+	.sdma_chs_cnt	= ARRAY_SIZE(i2c2_sdma_chs),
-+	.clkdev_dev_id	= "i2c_omap.2",
-+	.clkdev_con_id	= "fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_GRPSEL_I2C2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap34xx_i2c2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap34xx_i2c2_slaves),
-+	.sysconfig	= &i2c_if_ctrl,
-+	.dev_attr	= &i2c2_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* I2C3 */
-+
-+static struct omap_i2c_dev_attr i2c3_dev_attr = {
-+	.fifo_depth	= 64, /* bytes */
-+	.flags		= (OMAP_I2C_HAS_3_WIRE_SCCB | OMAP_I2C_HAS_FIFO |
-+			   OMAP_I2C_HAS_HIGH_SPEED |
-+			   OMAP_I2C_HAS_8_BIT_DATA_REG),
-+};
-+
-+static struct omap_hwmod_irq_info i2c3_mpu_irqs[] = {
-+	{ .irq = INT_34XX_I2C3_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info i2c3_sdma_chs[] = {
-+	{ .name = "tx", .dma_ch = OMAP34XX_DMA_I2C3_TX },
-+	{ .name = "rx", .dma_ch = OMAP34XX_DMA_I2C3_RX },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap34xx_i2c3_slaves[] = {
-+	&omap34xx_l4_core__i2c3,
-+};
-+
-+static struct omap_hwmod omap34xx_i2c3_hwmod = {
-+	.name		= "i2c3_hwmod",
-+	.mpu_irqs	= i2c3_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(i2c3_mpu_irqs),
-+	.sdma_chs	= i2c3_sdma_chs,
-+	.sdma_chs_cnt	= ARRAY_SIZE(i2c3_sdma_chs),
-+	.clkdev_dev_id	= "i2c_omap.3",
-+	.clkdev_con_id	= "fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_GRPSEL_I2C3_SHIFT,
-+		},
-+	},
-+	.slaves		= omap34xx_i2c3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap34xx_i2c3_slaves),
-+	.sysconfig	= &i2c_if_ctrl,
-+	.dev_attr	= &i2c3_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
- static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
- 	&omap34xx_l3_hwmod,
- 	&omap34xx_l4_core_hwmod,
-@@ -344,6 +576,9 @@ static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
- 	&omap34xx_uart1_hwmod,
- 	&omap34xx_uart2_hwmod,
- 	&omap34xx_uart3_hwmod,
-+	&omap34xx_i2c1_hwmod,
-+	&omap34xx_i2c2_hwmod,
-+	&omap34xx_i2c3_hwmod,
- 	NULL,
- };
- 
-diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-index 0066693..386d1b2 100644
---- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-@@ -101,9 +101,12 @@
- #define OMAP3430_GRPSEL_MCSPI3				(1 << 20)
- #define OMAP3430_GRPSEL_MCSPI2				(1 << 19)
- #define OMAP3430_GRPSEL_MCSPI1				(1 << 18)
--#define OMAP3430_GRPSEL_I2C3				(1 << 17)
--#define OMAP3430_GRPSEL_I2C2				(1 << 16)
--#define OMAP3430_GRPSEL_I2C1				(1 << 15)
-+#define OMAP3430_GRPSEL_I2C3_SHIFT			17
-+#define OMAP3430_GRPSEL_I2C3_MASK			(1 << 17)
-+#define OMAP3430_GRPSEL_I2C2_SHIFT			16
-+#define OMAP3430_GRPSEL_I2C2_MASK			(1 << 16)
-+#define OMAP3430_GRPSEL_I2C1_SHIFT			15
-+#define OMAP3430_GRPSEL_I2C1_MASK			(1 << 15)
- #define OMAP3430_GRPSEL_UART2				(1 << 14)
- #define OMAP3430_GRPSEL_UART1				(1 << 13)
- #define OMAP3430_GRPSEL_GPT11				(1 << 12)
-diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/plat-omap/include/plat/i2c.h
+ smc91x-$(CONFIG_SMC91X)			:= gpmc-smc91x.o
+ obj-y					+= $(smc91x-m) $(smc91x-y)
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
 new file mode 100644
-index 0000000..886ee5d
+index 0000000..c0e8ba7
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/i2c.h
-@@ -0,0 +1,43 @@
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -0,0 +1,137 @@
 +/*
-+ * i2c.h - common structures and macros for the OMAP I2C controller IP blocks
++ * gpmc-nand.c
 + *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Paul Walmsley
++ * Copyright (C) 2009 Texas Instruments
++ * Vimal Singh <vimalsingh@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
-+ *
 + */
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_I2C_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_I2C_H
 +
-+/*
-+ * i2c_dev_attr.flags bits
-+ *
-+ * OMAP_I2C_HAS_3_WIRE_SCCB: does this controller support 3-wire SCCB mode?
-+ * OMAP_I2C_HAS_FIFO: >= 2430.  does the I2C controller have a FIFO?
-+ * OMAP_I2C_HAS_HIGH_SPEED: >= 2430.  XXX Should be possible to test
-+ *     the I2C block revision register to detect this in the driver?
-+ * OMAP_I2C_HAS_8_BIT_DATA_REG: >= 2430.  XXX Should be possible to test
-+ *     the I2C block revision register to detect this in the driver?
-+ */
-+#define OMAP_I2C_HAS_3_WIRE_SCCB	(1 << 0)
-+#define OMAP_I2C_HAS_FIFO		(1 << 1)
-+#define OMAP_I2C_HAS_HIGH_SPEED		(1 << 2)
-+#define OMAP_I2C_HAS_8_BIT_DATA_REG	(1 << 3)
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
 +
-+/**
-+ * i2c_dev_attr - OMAP I2C controller device attributes for omap_hwmod
-+ * @fifo_depth: total controller FIFO size (in bytes)
-+ * @flags: differences in hardware support capability
-+ *
-+ * @fifo_depth represents what exists on the hardware, not what is
-+ * actually configured at runtime by the device driver.
-+ */
-+struct omap_i2c_dev_attr {
-+	u8	fifo_depth;
-+	u8	flags;
++#include <asm/mach/flash.h>
++
++#include <plat/nand.h>
++#include <plat/board.h>
++#include <plat/gpmc.h>
++
++#define WR_RD_PIN_MONITORING	0x00600000
++#define MASKADDR		8
++
++static struct omap_nand_platform_data *gpmc_nand_data;
++
++static struct resource gpmc_nand_resource = {
++	.flags		= IORESOURCE_MEM,
 +};
 +
-+#endif
-diff --git a/arch/arm/plat-omap/include/plat/l4_3xxx.h b/arch/arm/plat-omap/include/plat/l4_3xxx.h
-new file mode 100644
-index 0000000..83a9550
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/l4_3xxx.h
-@@ -0,0 +1,24 @@
-+/*
-+ * arch/arm/plat-omap/include/plat/l4_3xxx.h - L4 firewall definitions
-+ *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_L4_3XXX_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_L4_3XXX_H
++static struct platform_device gpmc_nand_device = {
++	.name		= "omap2-nand",
++	.id		= 0,
++	.num_resources	= 1,
++	.resource	= &gpmc_nand_resource,
++};
 +
-+/* L4 CORE */
-+#define OMAP3_L4_CORE_FW_I2C1_REGION				21
-+#define OMAP3_L4_CORE_FW_I2C1_TA_REGION				22
-+#define OMAP3_L4_CORE_FW_I2C2_REGION				23
-+#define OMAP3_L4_CORE_FW_I2C2_TA_REGION				24
-+#define OMAP3_L4_CORE_FW_I2C3_REGION				73
-+#define OMAP3_L4_CORE_FW_I2C3_TA_REGION				74
++static int omap2_nand_gpmc_config(int cs, void __iomem *nand_base)
++{
++	struct gpmc_timings t;
++	int err;
 +
-+#endif
--- 
-1.5.4.7
++	const int cs_rd_off = 36;
++	const int cs_wr_off = 36;
++	const int adv_on = 6;
++	const int adv_rd_off = 24;
++	const int adv_wr_off = 36;
++	const int oe_off = 48;
++	const int we_off = 30;
++	const int rd_cycle = 72;
++	const int wr_cycle = 72;
++	const int access = 54;
++	const int wr_data_mux_bus = 0;
++	const int wr_access = 30;
++
++	memset(&t, 0, sizeof(t));
++	t.sync_clk = 0;
++	t.cs_on = 0;
++	t.adv_on = gpmc_round_ns_to_ticks(adv_on);
++
++	/* Read */
++	t.adv_rd_off = gpmc_round_ns_to_ticks(adv_rd_off);
++	t.oe_on  = t.adv_on;
++	t.access = gpmc_round_ns_to_ticks(access);
++	t.oe_off = gpmc_round_ns_to_ticks(oe_off);
++	t.cs_rd_off = gpmc_round_ns_to_ticks(cs_rd_off);
++	t.rd_cycle  = gpmc_round_ns_to_ticks(rd_cycle);
++
++	/* Write */
++	t.adv_wr_off = gpmc_round_ns_to_ticks(adv_wr_off);
++	t.we_on  = t.oe_on;
++	if (cpu_is_omap34xx()) {
++		t.wr_data_mux_bus = gpmc_round_ns_to_ticks(wr_data_mux_bus);
++		t.wr_access = gpmc_round_ns_to_ticks(wr_access);
++	}
++	t.we_off = gpmc_round_ns_to_ticks(we_off);
++	t.cs_wr_off = gpmc_round_ns_to_ticks(cs_wr_off);
++	t.wr_cycle  = gpmc_round_ns_to_ticks(wr_cycle);
++
++	/* Configure GPMC */
++	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
++			GPMC_CONFIG1_DEVICESIZE(gpmc_nand_data->devsize) |
++			GPMC_CONFIG1_DEVICETYPE_NAND);
++
++	err = gpmc_cs_set_timings(cs, &t);
++	if (err)
++		return err;
++
++	return 0;
++}
++
++static int gpmc_nand_setup(void __iomem *nand_base)
++{
++	struct device *dev = &gpmc_nand_device.dev;
++
++	/* Set timings in GPMC */
++	if (omap2_nand_gpmc_config(gpmc_nand_data->cs, nand_base) < 0) {
++		dev_err(dev, "Unable to set gpmc timings\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++int __init gpmc_nand_init(struct omap_nand_platform_data *_nand_data)
++{
++	unsigned int val;
++	int err	= 0;
++	struct device *dev = &gpmc_nand_device.dev;
++
++	gpmc_nand_data = _nand_data;
++	gpmc_nand_data->nand_setup = gpmc_nand_setup;
++	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
++
++	err = gpmc_nand_setup(gpmc_nand_data->gpmc_cs_baseaddr);
++	if (err < 0) {
++		dev_err(dev, "NAND platform setup failed: %d\n", err);
++		return err;
++	}
++
++	/* Enable RD PIN Monitoring Reg */
++	if (gpmc_nand_data->dev_ready) {
++		val  = gpmc_cs_read_reg(gpmc_nand_data->cs,
++						 GPMC_CS_CONFIG1);
++		val |= WR_RD_PIN_MONITORING;
++		gpmc_cs_write_reg(gpmc_nand_data->cs,
++						GPMC_CS_CONFIG1, val);
++	}
++
++	err = platform_device_register(&gpmc_nand_device);
++	if (err < 0) {
++		dev_err(dev, "Unable to register NAND device\n");
++		return err;
++	}
++
++	return 0;
++}
+diff --git a/arch/arm/plat-omap/include/plat/nand.h
+b/arch/arm/plat-omap/include/plat/nand.h
+index 631a7be..2ba9842 100644
+--- a/arch/arm/plat-omap/include/plat/nand.h
++++ b/arch/arm/plat-omap/include/plat/nand.h
+@@ -21,4 +21,10 @@ struct omap_nand_platform_data {
+ 	int			dma_channel;
+ 	void __iomem		*gpmc_cs_baseaddr;
+ 	void __iomem		*gpmc_baseaddr;
++	int			devsize;
+ };
++
++/* size (4 KiB) for IO mapping */
++#define	NAND_IO_SIZE	SZ_4K
++
++extern int gpmc_nand_init(struct omap_nand_platform_data *d);
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 1bb799f..aaef170 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -30,12 +30,8 @@
 
+ #define	DRIVER_NAME	"omap2-nand"
+
+-/* size (4 KiB) for IO mapping */
+-#define	NAND_IO_SIZE	SZ_4K
+-
+ #define	NAND_WP_OFF	0
+ #define NAND_WP_BIT	0x00000010
+-#define WR_RD_PIN_MONITORING	0x00600000
+
+ #define	GPMC_BUF_FULL	0x00000001
+ #define	GPMC_BUF_EMPTY	0x00000000
+@@ -882,8 +878,6 @@ static int __devinit omap_nand_probe
+ 	struct omap_nand_info		*info;
+ 	struct omap_nand_platform_data	*pdata;
+ 	int				err;
+-	unsigned long 			val;
+-
+
+ 	pdata = pdev->dev.platform_data;
+ 	if (pdata == NULL) {
+@@ -910,24 +904,15 @@ static int __devinit omap_nand_probe
+ 	info->mtd.name		= dev_name(&pdev->dev);
+ 	info->mtd.owner		= THIS_MODULE;
+
++	info->nand.options	|= pdata->devsize ? NAND_BUSWIDTH_16 : 0;
++	info->nand.options	|= NAND_SKIP_BBTSCAN;
++
+ 	err = gpmc_cs_request(info->gpmc_cs, NAND_IO_SIZE, &info->phys_base);
+ 	if (err < 0) {
+ 		dev_err(&pdev->dev, "Cannot request GPMC CS\n");
+ 		goto out_free_info;
+ 	}
+
+-	/* Enable RD PIN Monitoring Reg */
+-	if (pdata->dev_ready) {
+-		val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1);
+-		val |= WR_RD_PIN_MONITORING;
+-		gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG1, val);
+-	}
+-
+-	val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG7);
+-	val &= ~(0xf << 8);
+-	val |=  (0xc & 0xf) << 8;
+-	gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG7, val);
+-
+ 	/* NAND write protect off */
+ 	omap_nand_wp(&info->mtd, NAND_WP_OFF);
+
+@@ -963,11 +948,6 @@ static int __devinit omap_nand_probe
+ 		info->nand.chip_delay = 50;
+ 	}
+
+-	info->nand.options  |= NAND_SKIP_BBTSCAN;
+-	if ((gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1) & 0x3000)
+-								== 0x1000)
+-		info->nand.options  |= NAND_BUSWIDTH_16;
+-
+ 	if (use_prefetch) {
+ 		/* copy the virtual address of nand base for fifo access */
+ 		info->nand_pref_fifo_add = info->nand.IO_ADDR_R;
+-- 
+1.5.5
