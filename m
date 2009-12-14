@@ -1,15 +1,14 @@
 From: Mike Rapoport <mike@compulab.co.il>
-Subject: [PATCH 2/2] omap3: cm-t35: add DSS2 display support
-Date: Mon, 14 Dec 2009 10:01:08 +0200
-Message-ID: <cafe301ef75b6e61cc8d3577ea86b57e4c50941e.1260777314.git.mike@compulab.co.il>
+Subject: [PATCH 1/2] OMAP: DSS2: add Toppoly TDO35S panel
+Date: Mon, 14 Dec 2009 10:01:07 +0200
+Message-ID: <a5065426f4601793612b8b861e93b16ebbe746f9.1260777314.git.mike@compulab.co.il>
 References: <cover.1260777313.git.mike@compulab.co.il>
- <a5065426f4601793612b8b861e93b16ebbe746f9.1260777314.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:42004 "EHLO compulab.co.il"
+Received: from compulab.co.il ([67.18.134.219]:42010 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754891AbZLNIB1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Dec 2009 03:01:27 -0500
-In-Reply-To: <a5065426f4601793612b8b861e93b16ebbe746f9.1260777314.git.mike@compulab.co.il>
+	id S1755165AbZLNIBb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Dec 2009 03:01:31 -0500
+In-Reply-To: <cover.1260777313.git.mike@compulab.co.il>
 In-Reply-To: <cover.1260777313.git.mike@compulab.co.il>
 References: <cover.1260777313.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
@@ -19,315 +18,155 @@ Cc: linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
 
 Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 ---
- arch/arm/mach-omap2/board-cm-t35.c |  239 +++++++++++++++++++++++++++++++++++-
- 1 files changed, 238 insertions(+), 1 deletions(-)
+ drivers/video/omap2/displays/Kconfig               |    6 +
+ drivers/video/omap2/displays/Makefile              |    1 +
+ .../video/omap2/displays/panel-toppoly-tdo35s.c    |  112 ++++++++++++++++++++
+ 3 files changed, 119 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-toppoly-tdo35s.c
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 1591aae..5e1b098 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -32,6 +32,9 @@
- #include <linux/i2c/twl4030.h>
- #include <linux/regulator/machine.h>
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index b12a59c..86946e8 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -19,4 +19,10 @@ config PANEL_TAAL
+         help
+           Taal DSI command mode panel from TPO.
  
-+#include <linux/spi/spi.h>
-+#include <linux/spi/tdo24m.h>
++config PANEL_TOPPOLY_TDO35S
++        tristate "Toppoly TDO35S LCD Panel support"
++        depends on OMAP2_DSS
++        help
++          LCD Panel used in CM-T35
 +
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -41,6 +44,7 @@
- #include <plat/nand.h>
- #include <plat/gpmc.h>
- #include <plat/usb.h>
+ endmenu
+diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
+index 9556464..0b7c3b3 100644
+--- a/drivers/video/omap2/displays/Makefile
++++ b/drivers/video/omap2/displays/Makefile
+@@ -2,3 +2,4 @@ obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
+ obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
+ 
+ obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
++obj-$(CONFIG_PANEL_TOPPOLY_TDO35S) += panel-toppoly-tdo35s.o
+\ No newline at end of file
+diff --git a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+new file mode 100644
+index 0000000..e744b8c
+--- /dev/null
++++ b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+@@ -0,0 +1,112 @@
++/*
++ * LCD panel driver for Toppoly TDO35S
++ *
++ * Copyright (C) 2009 CompuLab, Ltd.
++ * Author: Mike Rapoport <mike@compulab.co.il>
++ *
++ * Based on generic panel support
++ * Copyright (C) 2008 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/delay.h>
++
 +#include <plat/display.h>
- 
- #include <mach/hardware.h>
- 
-@@ -248,7 +252,6 @@ static inline void cm_t35_init_nand(void) {}
- 
- #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
- 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
--#include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
- 
- #include <plat/mcspi.h>
-@@ -304,6 +307,193 @@ static void __init cm_t35_init_ads7846(void)
- static inline void cm_t35_init_ads7846(void) {}
- #endif
- 
-+#define CM_T35_LCD_EN_GPIO 157
-+#define CM_T35_LCD_BL_GPIO 58
-+#define CM_T35_DVI_EN_GPIO 54
 +
-+static int lcd_bl_gpio;
-+static int lcd_en_gpio;
-+static int dvi_en_gpio;
++static struct omap_video_timings toppoly_tdo_panel_timings = {
++	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
++	.x_res		= 480,
++	.y_res		= 640,
 +
-+static int lcd_enabled;
-+static int dvi_enabled;
++	.pixel_clock	= 26000,
 +
-+static int cm_t35_panel_enable_lcd(struct omap_dss_device *dssdev)
++	.hfp		= 104,
++	.hsw		= 8,
++	.hbp		= 8,
++
++	.vfp		= 4,
++	.vsw		= 2,
++	.vbp		= 2,
++};
++
++static int toppoly_tdo_panel_probe(struct omap_dss_device *dssdev)
 +{
-+	if (dvi_enabled) {
-+		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
-+		return -EINVAL;
-+	}
-+
-+	gpio_set_value(lcd_en_gpio, 1);
-+	gpio_set_value(lcd_bl_gpio, 1);
-+
-+	lcd_enabled = 1;
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++		OMAP_DSS_LCD_IHS;
++	dssdev->panel.timings = toppoly_tdo_panel_timings;
 +
 +	return 0;
 +}
 +
-+static void cm_t35_panel_disable_lcd(struct omap_dss_device *dssdev)
++static void toppoly_tdo_panel_remove(struct omap_dss_device *dssdev)
 +{
-+	lcd_enabled = 0;
-+
-+	gpio_set_value(lcd_bl_gpio, 0);
-+	gpio_set_value(lcd_en_gpio, 0);
 +}
 +
-+static int cm_t35_panel_enable_dvi(struct omap_dss_device *dssdev)
++static int toppoly_tdo_panel_enable(struct omap_dss_device *dssdev)
 +{
-+	if (lcd_enabled) {
-+		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
-+		return -EINVAL;
-+	}
++	int r = 0;
 +
-+	gpio_set_value(dvi_en_gpio, 0);
-+	dvi_enabled = 1;
++	if (dssdev->platform_enable)
++		r = dssdev->platform_enable(dssdev);
 +
++	return r;
++}
++
++static void toppoly_tdo_panel_disable(struct omap_dss_device *dssdev)
++{
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++}
++
++static int toppoly_tdo_panel_suspend(struct omap_dss_device *dssdev)
++{
++	toppoly_tdo_panel_disable(dssdev);
 +	return 0;
 +}
 +
-+static void cm_t35_panel_disable_dvi(struct omap_dss_device *dssdev)
++static int toppoly_tdo_panel_resume(struct omap_dss_device *dssdev)
 +{
-+	gpio_set_value(dvi_en_gpio, 1);
-+	dvi_enabled = 0;
++	return toppoly_tdo_panel_enable(dssdev);
 +}
 +
-+static int cm_t35_panel_enable_tv(struct omap_dss_device *dssdev)
-+{
-+	return 0;
-+}
++static struct omap_dss_driver generic_driver = {
++	.probe		= toppoly_tdo_panel_probe,
++	.remove		= toppoly_tdo_panel_remove,
 +
-+static void cm_t35_panel_disable_tv(struct omap_dss_device *dssdev)
-+{
-+}
++	.enable		= toppoly_tdo_panel_enable,
++	.disable	= toppoly_tdo_panel_disable,
++	.suspend	= toppoly_tdo_panel_suspend,
++	.resume		= toppoly_tdo_panel_resume,
 +
-+static struct omap_dss_device cm_t35_lcd_device = {
-+	.name			= "lcd",
-+	.driver_name		= "toppoly_tdo35s_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 18,
-+	.platform_enable	= cm_t35_panel_enable_lcd,
-+	.platform_disable	= cm_t35_panel_disable_lcd,
-+};
-+
-+static struct omap_dss_device cm_t35_dvi_device = {
-+	.name			= "dvi",
-+	.driver_name		= "generic_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 24,
-+	.platform_enable	= cm_t35_panel_enable_dvi,
-+	.platform_disable	= cm_t35_panel_disable_dvi,
-+};
-+
-+static struct omap_dss_device cm_t35_tv_device = {
-+	.name			= "tv",
-+	.driver_name		= "venc",
-+	.type			= OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+	.platform_enable	= cm_t35_panel_enable_tv,
-+	.platform_disable	= cm_t35_panel_disable_tv,
-+};
-+
-+static struct omap_dss_device *cm_t35_dss_devices[] = {
-+	&cm_t35_lcd_device,
-+	&cm_t35_dvi_device,
-+	&cm_t35_tv_device,
-+};
-+
-+static struct omap_dss_board_info cm_t35_dss_data = {
-+	.num_devices	= ARRAY_SIZE(cm_t35_dss_devices),
-+	.devices	= cm_t35_dss_devices,
-+	.default_device	= &cm_t35_dvi_device,
-+};
-+
-+static struct platform_device cm_t35_dss_device = {
-+	.name		= "omapdss",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data = &cm_t35_dss_data,
++	.driver         = {
++		.name   = "toppoly_tdo35s_panel",
++		.owner  = THIS_MODULE,
 +	},
 +};
 +
-+static struct omap2_mcspi_device_config tdo24m_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,	/* 0: slave, 1: master */
-+};
-+
-+static struct tdo24m_platform_data tdo24m_config = {
-+	.model = TDO35S,
-+};
-+
-+static struct spi_board_info cm_t35_lcd_spi_board_info[] __initdata = {
-+	{
-+		.modalias		= "tdo24m",
-+		.bus_num		= 4,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 1000000,
-+		.controller_data	= &tdo24m_mcspi_config,
-+		.platform_data		= &tdo24m_config,
-+	},
-+};
-+
-+static void __init cm_t35_init_display(void)
++static int __init toppoly_tdo_panel_drv_init(void)
 +{
-+	int err;
-+
-+	lcd_en_gpio = CM_T35_LCD_EN_GPIO;
-+	lcd_bl_gpio = CM_T35_LCD_BL_GPIO;
-+	dvi_en_gpio = CM_T35_DVI_EN_GPIO;
-+
-+	spi_register_board_info(cm_t35_lcd_spi_board_info,
-+				ARRAY_SIZE(cm_t35_lcd_spi_board_info));
-+
-+	err = gpio_request(lcd_en_gpio, "LCD RST");
-+	if (err) {
-+		pr_err("CM-T35: failed to get LCD reset GPIO\n");
-+		goto out;
-+	}
-+
-+	err = gpio_request(lcd_bl_gpio, "LCD BL");
-+	if (err) {
-+		pr_err("CM-T35: failed to get LCD backlight control GPIO\n");
-+		goto err_lcd_bl;
-+	}
-+
-+	err = gpio_request(dvi_en_gpio, "DVI EN");
-+	if (err) {
-+		pr_err("CM-T35: failed to get DVI reset GPIO\n");
-+		goto err_dvi_en;
-+	}
-+
-+	gpio_export(lcd_en_gpio, 0);
-+	gpio_export(lcd_bl_gpio, 0);
-+	gpio_export(dvi_en_gpio, 0);
-+	gpio_direction_output(lcd_en_gpio, 0);
-+	gpio_direction_output(lcd_bl_gpio, 0);
-+	gpio_direction_output(dvi_en_gpio, 1);
-+
-+	msleep(50);
-+	gpio_set_value(lcd_en_gpio, 1);
-+
-+	err = platform_device_register(&cm_t35_dss_device);
-+	if (err) {
-+		pr_err("CM-T35: failed to register DSS device\n");
-+		goto err_dev_reg;
-+	}
-+
-+	return;
-+
-+err_dev_reg:
-+	gpio_free(dvi_en_gpio);
-+err_dvi_en:
-+	gpio_free(lcd_bl_gpio);
-+err_lcd_bl:
-+	gpio_free(lcd_en_gpio);
-+out:
-+
-+	return;
++	return omap_dss_register_driver(&generic_driver);
 +}
 +
- static struct regulator_consumer_supply cm_t35_vmmc1_supply = {
- 	.supply			= "vmmc",
- };
-@@ -312,6 +502,16 @@ static struct regulator_consumer_supply cm_t35_vsim_supply = {
- 	.supply			= "vmmc_aux",
- };
- 
-+static struct regulator_consumer_supply cm_t35_vdac_supply = {
-+	.supply		= "vdda_dac",
-+	.dev		= &cm_t35_dss_device.dev,
-+};
++static void __exit toppoly_tdo_panel_drv_exit(void)
++{
++	omap_dss_unregister_driver(&generic_driver);
++}
 +
-+static struct regulator_consumer_supply cm_t35_vdvi_supply = {
-+	.supply		= "vdvi",
-+	.dev		= &cm_t35_dss_device.dev,
-+};
-+
- /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
- static struct regulator_init_data cm_t35_vmmc1 = {
- 	.constraints = {
-@@ -342,6 +542,35 @@ static struct regulator_init_data cm_t35_vsim = {
- 	.consumer_supplies	= &cm_t35_vsim_supply,
- };
- 
-+/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
-+static struct regulator_init_data cm_t35_vdac = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &cm_t35_vdac_supply,
-+};
-+
-+/* VPLL2 for digital video outputs */
-+static struct regulator_init_data cm_t35_vpll2 = {
-+	.constraints = {
-+		.name			= "VDVI",
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &cm_t35_vdvi_supply,
-+};
-+
- static struct twl4030_usb_data cm_t35_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
-@@ -445,6 +674,8 @@ static struct twl4030_platform_data cm_t35_twldata = {
- 	.gpio		= &cm_t35_gpio_data,
- 	.vmmc1		= &cm_t35_vmmc1,
- 	.vsim		= &cm_t35_vsim,
-+	.vdac		= &cm_t35_vdac,
-+	.vpll2		= &cm_t35_vpll2,
- };
- 
- static struct i2c_board_info __initdata cm_t35_i2c_boardinfo[] = {
-@@ -568,6 +799,11 @@ static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 
-+	/* display controls */
-+	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(GPMC_NCS7, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(GPMC_NCS3, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-+
- 	/* TPS IRQ */
- 	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_WAKEUP_EN | \
- 		  OMAP_PIN_INPUT_PULLUP),
-@@ -584,6 +820,7 @@ static void __init cm_t35_init(void)
- 	cm_t35_init_ads7846();
- 	cm_t35_init_ethernet();
- 	cm_t35_init_led();
-+	cm_t35_init_display();
- 
- 	usb_musb_init();
- }
++module_init(toppoly_tdo_panel_drv_init);
++module_exit(toppoly_tdo_panel_drv_exit);
++MODULE_LICENSE("GPL");
 -- 
 1.6.4.4
 
