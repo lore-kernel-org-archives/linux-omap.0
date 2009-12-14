@@ -1,55 +1,37 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: [PATCH] omap i2c: add timeout to a busy loop in isr
-Date: Mon, 14 Dec 2009 15:21:04 +0200
-Message-ID: <1260796864-8560-1-git-send-email-virtuoso@slind.org>
+From: Bill Gatliff <bgat@billgatliff.com>
+Subject: Re: bootloader compilation
+Date: Mon, 14 Dec 2009 07:32:04 -0600
+Message-ID: <4B263E54.5050204@billgatliff.com>
+References: <4ad3b6300912132302x31d08d06gfba97dbb885a2ba@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:44355 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756113AbZLNNVj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 08:21:39 -0500
+Received: from mail-yw0-f182.google.com ([209.85.211.182]:63110 "EHLO
+	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750734AbZLNNb7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 08:31:59 -0500
+Received: by ywh12 with SMTP id 12so3074634ywh.21
+        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 05:31:59 -0800 (PST)
+In-Reply-To: <4ad3b6300912132302x31d08d06gfba97dbb885a2ba@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>
+To: Niamathullah sharief <omapsha@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
----
- drivers/i2c/busses/i2c-omap.c |   21 +++++++++++++--------
- 1 files changed, 13 insertions(+), 8 deletions(-)
+Niamathullah sharief wrote:
+> Hello,    i am newbie. i am having beagle board with me. now i want to
+> compile bootloader. what is theprocedure to do that? where can i find
+> the right tutorial to compile bootloader. i didnt find the right
+> tutorial for newbie. please help me.
+>   
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 75bf3ad..7617f18 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -803,15 +803,20 @@ complete:
- 				 */
- 
- 				if (dev->rev <= OMAP_I2C_REV_ON_3430) {
--						while (!(stat & OMAP_I2C_STAT_XUDF)) {
--							if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
--								omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
--								err |= OMAP_I2C_STAT_XUDF;
--								goto complete;
--							}
--							cpu_relax();
--							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+					unsigned long timeout = 10000;
-+
-+					while (!(stat & OMAP_I2C_STAT_XUDF) && --timeout) {
-+						if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
-+							omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-+							err |= OMAP_I2C_STAT_XUDF;
-+							goto complete;
- 						}
-+						cpu_relax();
-+						stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+					}
-+
-+					if (!timeout)
-+						dev_err(dev->dev, "timeout waiting on XUDF bit\n");
- 				}
- 
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+beagleboard.org.
+
+
+b.g.
+
 -- 
-1.6.3.3
+Bill Gatliff
+bgat@billgatliff.com
 
