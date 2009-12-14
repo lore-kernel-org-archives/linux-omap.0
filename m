@@ -1,37 +1,54 @@
-From: Bill Gatliff <bgat@billgatliff.com>
-Subject: Re: bootloader compilation
-Date: Mon, 14 Dec 2009 07:32:04 -0600
-Message-ID: <4B263E54.5050204@billgatliff.com>
-References: <4ad3b6300912132302x31d08d06gfba97dbb885a2ba@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f182.google.com ([209.85.211.182]:63110 "EHLO
-	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750734AbZLNNb7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 08:31:59 -0500
-Received: by ywh12 with SMTP id 12so3074634ywh.21
-        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 05:31:59 -0800 (PST)
-In-Reply-To: <4ad3b6300912132302x31d08d06gfba97dbb885a2ba@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/3] musb: save dynfifo in musb struct
+Date: Mon, 14 Dec 2009 19:09:40 +0530
+Message-ID: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Niamathullah sharief <omapsha@gmail.com>
-Cc: linux-omap@vger.kernel.org
 
-Niamathullah sharief wrote:
-> Hello,    i am newbie. i am having beagle board with me. now i want to
-> compile bootloader. what is theprocedure to do that? where can i find
-> the right tutorial to compile bootloader. i didnt find the right
-> tutorial for newbie. please help me.
->   
+Save dynamic FIFO read only information for later uses such as, during
+musb_save/restore_context functions.
 
-beagleboard.org.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/musb/musb_core.c |    4 +++-
+ drivers/usb/musb/musb_core.h |    1 +
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
-
-b.g.
-
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 49f2346..d4adbbf 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1328,8 +1328,10 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+ 	reg = musb_read_configdata(mbase);
+ 
+ 	strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-16" : "UTMI-8");
+-	if (reg & MUSB_CONFIGDATA_DYNFIFO)
++	if (reg & MUSB_CONFIGDATA_DYNFIFO) {
+ 		strcat(aInfo, ", dyn FIFOs");
++		musb->dyn_fifo = true;
++	}
+ 	if (reg & MUSB_CONFIGDATA_MPRXE) {
+ 		strcat(aInfo, ", bulk combine");
+ #ifdef C_MP_RX
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 03d5090..969287c 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -411,6 +411,7 @@ struct musb {
+ 
+ 	unsigned		hb_iso_rx:1;	/* high bandwidth iso rx? */
+ 	unsigned		hb_iso_tx:1;	/* high bandwidth iso tx? */
++	unsigned		dyn_fifo:1;	/* dynamic FIFO supported? */
+ 
+ #ifdef C_MP_TX
+ 	unsigned bulk_split:1;
 -- 
-Bill Gatliff
-bgat@billgatliff.com
+1.6.2.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
