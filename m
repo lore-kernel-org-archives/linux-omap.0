@@ -1,33 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3: Clock: Fixed dpll3_m2x2 rate calculation
-Date: Mon, 14 Dec 2009 14:28:10 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912141427430.12561@utopia.booyaka.com>
-References: <> <1256729890-21920-1-git-send-email-tero.kristo@nokia.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: Break: SMSC911x problems on Zoom3
+Date: Tue, 15 Dec 2009 03:00:49 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FABD21A8@dbde02.ent.ti.com>
+References: <alpine.DEB.2.00.0912141353270.12561@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39649 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756792AbZLNV2M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 16:28:12 -0500
-In-Reply-To: <1256729890-21920-1-git-send-email-tero.kristo@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41672 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932840AbZLNVa4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 16:30:56 -0500
+In-Reply-To: <alpine.DEB.2.00.0912141353270.12561@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
-
-On Wed, 28 Oct 2009, Tero Kristo wrote:
-
-> From: Tero Kristo <tero.kristo@nokia.com>
-> 
-> Current calculation does not take into account any changes to M2 divisor, and
-> thus when we change VDD2 OPP, dpll3_m2x2 rate does not change. Fixed by
-> re-routing dpll3_m2x2 parent to dpll3_m2.
-> 
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-
-For the archives: this was merged as 
-72f962fc7bc00f5ff4991912b889f87b464f7f1a.
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
 
-- Paul
+SMSC911x is preventing Zoom3 board from booting on latest master (06d9e4fdd20e).
+
+Bootup logs and shows getting stuck here:
+---
+net eth0: SMSC911x/921x identified at 0xd080c000, IRQ: 318
+mmc1: new high speed MMC card at address 0001
+mmcblk1: mmc1:0001 STM16G 1.00 GiB
+ mmcblk1: unknown partition table
+Sending DHCP requests ...... timed out!
+IP-Config: Retrying forever (NFS root)...
+net eth0: SMSC911x/921x identified at 0xd080c000, IRQ: 318
+Sending DHCP requests ...
+
