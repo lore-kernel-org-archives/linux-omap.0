@@ -1,38 +1,52 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: bootloader compilation
-Date: Mon, 14 Dec 2009 08:07:21 +0100
-Message-ID: <4B25E429.5050303@googlemail.com>
-References: <4ad3b6300912132302x31d08d06gfba97dbb885a2ba@mail.gmail.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: Re: [PATCH 1/2 v2] musb: Add context save and restore support
+Date: Mon, 14 Dec 2009 12:49:49 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940437211088@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:39702 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873AbZLNHHr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 02:07:47 -0500
-Received: by fxm5 with SMTP id 5so3167229fxm.28
-        for <linux-omap@vger.kernel.org>; Sun, 13 Dec 2009 23:07:45 -0800 (PST)
-In-Reply-To: <4ad3b6300912132302x31d08d06gfba97dbb885a2ba@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55515 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754565AbZLNHT5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 02:19:57 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Niamathullah sharief <omapsha@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-On 14.12.2009 08:02, Niamathullah sharief wrote:
-> Hello,    i am newbie. i am having beagle board with me. now i want to
-> compile bootloader. what is theprocedure to do that? where can i find
-> the right tutorial to compile bootloader. i didnt find the right
-> tutorial for newbie. please help me.
 
-http://elinux.org/BeagleBoard#U-Boot
+>Adding support for MUSB register save and restore during system
+>suspend and resume.
+>
+>Changes:
+>=A0=A0=A0=A0=A0=A0=A0 - Added musb_save/restore_context() functions
+>=A0=A0=A0=A0=A0=A0=A0 - Added platform specific musb_platform_save/res=
+tore_context()
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0 to handle platform specific jobs.
+>=A0=A0=A0=A0=A0=A0=A0 - Maintaining BlackFin compatibility by adding r=
+ead/write
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0 functions for registers which are not avai=
+lable in BlackFin
+>
+>Tested system suspend and resume on OMAP3EVM board.
+>
+>Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+>Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Best regards
+> will we have another version of this patch ??
 
-Dirk
+Yes, I need to resubmit this patch after fixing review comments.
 
-Btw.: Do you know Beagle mailing list
+-Ajay
 
-http://groups.google.com/group/beagleboard
+--=20
+balbi
+--
 
-?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
