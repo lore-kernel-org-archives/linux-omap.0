@@ -1,46 +1,52 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: RE: [PATCH 3/4] ARM: L2 : Errata 588369: Clean & Invalidate
-	donotinvalidate clean lines
-Date: Mon, 14 Dec 2009 11:09:04 +0000
-Message-ID: <1260788944.17159.40.camel@pc1117.cambridge.arm.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02BC142138@dbde02.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH v7 2/5] OMAP: McBSP: Modify macros/functions API for
+ easy cache access
+Date: Mon, 14 Dec 2009 13:14:33 +0200
+Message-ID: <20091214131433.5c9b26a6.jhnikula@gmail.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02BC141E94@dbde02.ent.ti.com>
+	<200912141111.29392.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:52677 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756783AbZLNLJS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Dec 2009 06:09:18 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BC142138@dbde02.ent.ti.com>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:37172 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756798AbZLNLNS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 06:13:18 -0500
+Received: by ewy19 with SMTP id 19so3228618ewy.21
+        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 03:13:16 -0800 (PST)
+In-Reply-To: <200912141111.29392.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "Varadarajan, Charu Latha" <charu@ti.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2009-12-14 at 10:52 +0000, Shilimkar, Santosh wrote:
-> > On Wed, 2009-12-09 at 18:43 +0000, Santosh Shilimkar wrote:
-> > > +#ifdef CONFIG_PL310_ERRATA_588369
-> > > +       /*
-> > > +        * Disable Write-Back and Cache Linefill (set bits [1:0] of the Debug
-> > > +        * Control Register)
-> > > +        */
-> > > +       __asm__ __volatile__(
-> > > +       "stmfd r13!, {r0-r12, r14}\n"
-> > > +       "mov r0, #3\n"
-> > > +       "ldr r12, =0x100\n"
-> > > +       "dsb\n"
-> > > +       "smc\n"
-> > > +       "ldmfd r13!, {r0-r12, r14}");
-[...]
-> > Is a DSB needed before SMC (I'm not sure)?
+On Mon, 14 Dec 2009 11:11:27 +0100
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+
+> If these functions are obsolete and going to be removed, I don't think it 
+> could be of any importance whether they are modified before removal or not. 
+> Otherwise, a solution seems simple to me: you submit a patch that addresses 
+> all concearns, yours, Tony's (BTW, have you already reviewed the drivers as 
+> Tony suggested?), maybe others. Then, after your patch is accepted for 
+> inclusion and it appears in conflict with this series still not applied for 
+> any reason (possibly waiting for your changes if that decided), Jarkko, or 
+> Tony, or anyone else pointed out by Tony, decides which one goes first and 
+> which is going to be refreshed on top of the other. Does it sound like a good 
+> plan for you?
 > 
-> That was a recommendation though not having it, I didn't observer any problems.
+I would favor the Janusz's set going in first since it will solve and
+help the in-tree problems without making out-of-tree use any worse than
+currently.
 
-Maybe it's needed, I'm not sure, but if you found it recommended in some
-errata description, then you probably need it.
+- Fixes register access in polled I/O functions (out-of-tree use)
+- Fixes McBSP register corruption noted on Amstrad Delta
+- McBSP register caching could help the PM development
+
+Fixing any other issues in polled I/O API belongs to another context
+than this patch set and IMO is easier to handle after this set since the
+patch 1/5 already fixes the register access width.
+
 
 -- 
-Catalin
-
+Jarkko
