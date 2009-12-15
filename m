@@ -1,31 +1,26 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: dspbridge sync proposal for 0.1
-Date: Tue, 15 Dec 2009 16:49:48 +0200
-Message-ID: <94a0d4530912150649r71947bb4qe7b1b333889458f0@mail.gmail.com>
-References: <20091205133900.GA17280@annwn.felipec.org>
-	 <94a0d4530912140803t4f910549ga04b02a14dabe715@mail.gmail.com>
-	 <27F9C60D11D683428E133F85D2BB4A53042D3963E0@dlee03.ent.ti.com>
-	 <94a0d4530912150345p2009dbddra805fd298ffc9e92@mail.gmail.com>
-	 <E8606C3FD412994585953171ED63A93401519EB627@dnce01.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: linux-next: origin tree build failure
+Date: Tue, 15 Dec 2009 14:53:45 +0000
+Message-ID: <20091215145344.GA30710@sirena.org.uk>
+References: <20091215164108.45c9d766.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f171.google.com ([209.85.223.171]:47261 "EHLO
-	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbZLOOtt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 09:49:49 -0500
-Received: by iwn1 with SMTP id 1so980561iwn.33
-        for <linux-omap@vger.kernel.org>; Tue, 15 Dec 2009 06:49:48 -0800 (PST)
-In-Reply-To: <E8606C3FD412994585953171ED63A93401519EB627@dnce01.ent.ti.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:41723 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757663AbZLOOxy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 09:53:54 -0500
+Content-Disposition: inline
+In-Reply-To: <20091215164108.45c9d766.sfr@canb.auug.org.au>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Dechesne, Nicolas" <n-dechesne@ti.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Artem Bityutskiy <artem.bityutskiy@nokia.com>, "Shah, Bhavin" <bshah@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Deacon, Keith" <kdeacon@ti.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Linus <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Tue, Dec 15, 2009 at 2:58 PM, Dechesne, Nicolas <n-dechesne@ti.com> wrote:
-> It's somehow a known issue. We are facing issues with dev.omapzoom.org and git.omapzoom.org servers and we are trying to resolve them.
+On Tue, Dec 15, 2009 at 04:41:08PM +1100, Stephen Rothwell wrote:
 
-Thanks. The http one worked, but it took *ages*.
+> I have applied this patch for today (please check):
 
--- 
-Felipe Contreras
+Looks good to me too, fwiw:
+
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
