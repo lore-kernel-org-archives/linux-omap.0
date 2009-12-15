@@ -1,55 +1,134 @@
-From: "Pagare, Abhijit" <abhijitpagare@ti.com>
-Subject: [v2 PATCH 0/5] OMAP4 Clock Domain Framework Support
-Date: Tue, 15 Dec 2009 19:21:52 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BC240732@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Abhijit Pagare <abhijitpagare@ti.com>
+Subject: [v2 PATCH 2/5] ARM: OMAP4: PM: Modify Clock-domain interfaces for OMAP4 compatibility.
+Date: Tue, 15 Dec 2009 19:22:54 +0530
+Message-ID: <1260885177-25665-2-git-send-email-abhijitpagare@ti.com>
+References: <1260885177-25665-1-git-send-email-abhijitpagare@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53887 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752128AbZLONwB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:52:01 -0500
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:43919 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757657AbZLONxL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Dec 2009 08:53:11 -0500
+In-Reply-To: <1260885177-25665-1-git-send-email-abhijitpagare@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pagare, Abhijit" <abhijitpagare@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Abhijit Pagare <abhijitpagare@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+Here the APIs are modified to use absolute addresses instead of module offsets.
 
-This is version two of the patch series which adds support for OMAP4 clock domain framework. 
+Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/clockdomain.c |   44 +++++++++++++++++++++----------------
+ 1 files changed, 25 insertions(+), 19 deletions(-)
 
-It can be applied on top of the latest Mainline Kernel but has a dependency on the series of OMAP4 power domain framework patches sent by me earlier.
-
-http://marc.info/?l=linux-omap&m=126088465431181&w=2
-
-
-It also has a dependency on the following fix patch:
-
-http://marc.info/?l=linux-omap&m=126088389030110&w=2
-
-
-These patches have been boot-tested on the following platforms:
--OMAP4 simulator
--OMAP4430 ES1.0 silicon
--OMAP3430 SDP
-
-In addition to this these patches have been compile-tested for the following platforms:
--omap_2430sdp
--omap_h4_2420sdp
-
-The complete omap4 clock domain structure is auto-generated using OMAP4 hardware database and is a joint effort of Paul Walmsley (paul@pwsan.com),
-Benoit Cousson (b-cousson@ti.com), Rajendra Nayak (rnayak@ti.com) and me.
-
-
-Best Regards,
-Abhijit Pagare
-
-Abhijit Pagare (5):
-ARM: OMAP4: PM: Make OMAP3 Clock-domain framework compatible for OMAP4.
-ARM: OMAP4: PM: Modify Clock-domain interfaces for OMAP4 compatibility.
-ARM: OMAP4: PM: Add the Auto-generated OMAP4 specific clock domain framework.
-ARM: OMAP4: PM: Adapt the existing OMAP2/3 Clock Domain Frameworks.
-ARM: OMAP4: PM: Refine the APIs to support OMAP4 features.
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 52885ac..5366a10 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -145,25 +145,29 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
+  */
+ static void _omap2_clkdm_set_hwsup(struct clockdomain *clkdm, int enable)
+ {
+-	u32 v;
++	u32 bits, v;
+ 
+ 	if (cpu_is_omap24xx()) {
+ 		if (enable)
+-			v = OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
++			bits = OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
+ 		else
+-			v = OMAP24XX_CLKSTCTRL_DISABLE_AUTO;
++			bits = OMAP24XX_CLKSTCTRL_DISABLE_AUTO;
+ 	} else if (cpu_is_omap34xx()) {
+ 		if (enable)
+-			v = OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
++			bits = OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
+ 		else
+-			v = OMAP34XX_CLKSTCTRL_DISABLE_AUTO;
++			bits = OMAP34XX_CLKSTCTRL_DISABLE_AUTO;
+ 	} else {
+ 		BUG();
+ 	}
+ 
+-	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
+-			    v << __ffs(clkdm->clktrctrl_mask),
+-			    clkdm->pwrdm.ptr->prcm_offs, OMAP2_CM_CLKSTCTRL);
++	bits = bits << __ffs(clkdm->clktrctrl_mask);
++
++	v = __raw_readl(clkdm->clkstctrl_reg);
++	v &= ~(clkdm->clktrctrl_mask);
++	v |= bits;
++	__raw_writel(v, clkdm->clkstctrl_reg);
++
+ }
+ 
+ static struct clockdomain *_clkdm_lookup(const char *name)
+@@ -381,7 +385,7 @@ static int omap2_clkdm_clktrctrl_read(struct clockdomain *clkdm)
+ 	if (!clkdm)
+ 		return -EINVAL;
+ 
+-	v = cm_read_mod_reg(clkdm->pwrdm.ptr->prcm_offs, OMAP2_CM_CLKSTCTRL);
++	v = __raw_readl(clkdm->clkstctrl_reg);
+ 	v &= clkdm->clktrctrl_mask;
+ 	v >>= __ffs(clkdm->clktrctrl_mask);
+ 
+@@ -417,12 +421,13 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+ 
+ 	} else if (cpu_is_omap34xx()) {
+ 
+-		u32 v = (OMAP34XX_CLKSTCTRL_FORCE_SLEEP <<
++		u32 bits = (OMAP34XX_CLKSTCTRL_FORCE_SLEEP <<
+ 			 __ffs(clkdm->clktrctrl_mask));
+ 
+-		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
+-				    clkdm->pwrdm.ptr->prcm_offs,
+-							 OMAP2_CM_CLKSTCTRL);
++		u32 v = __raw_readl(clkdm->clkstctrl_reg);
++		v &= ~(clkdm->clktrctrl_mask);
++		v |= bits;
++		__raw_writel(v, clkdm->clkstctrl_reg);
+ 
+ 	} else {
+ 		BUG();
+@@ -460,12 +465,13 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+ 
+ 	} else if (cpu_is_omap34xx()) {
+ 
+-		u32 v = (OMAP34XX_CLKSTCTRL_FORCE_WAKEUP <<
++		u32 bits = (OMAP34XX_CLKSTCTRL_FORCE_WAKEUP <<
+ 			 __ffs(clkdm->clktrctrl_mask));
+ 
+-		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
+-				    clkdm->pwrdm.ptr->prcm_offs,
+-						 OMAP2_CM_CLKSTCTRL);
++		u32 v = __raw_readl(clkdm->clkstctrl_reg);
++		v &= ~(clkdm->clktrctrl_mask);
++		v |= bits;
++		__raw_writel(v, clkdm->clkstctrl_reg);
+ 
+ 	} else {
+ 		BUG();
+@@ -561,7 +567,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	 * downstream clocks for debugging purposes?
+ 	 */
+ 
+-	if (!clkdm || !clk || !clkdm->clktrctrl_mask)
++	if (!clkdm || !clk || !clkdm->clkstctrl_reg)
+ 		return -EINVAL;
+ 
+ 	if (atomic_inc_return(&clkdm->usecount) > 1)
+@@ -612,7 +618,7 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	 * downstream clocks for debugging purposes?
+ 	 */
+ 
+-	if (!clkdm || !clk || !clkdm->clktrctrl_mask)
++	if (!clkdm || !clk || !clkdm->clkstctrl_reg)
+ 		return -EINVAL;
+ 
+ #ifdef DEBUG
+-- 
+1.5.4.7
 
