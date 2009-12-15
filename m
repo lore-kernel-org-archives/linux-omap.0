@@ -1,60 +1,60 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: [PATCH v2] AM35xx: Add AM35xx specific control module registers
-Date: Tue, 15 Dec 2009 16:57:42 +0530
-Message-ID: <1260876462-10826-1-git-send-email-ranjithl@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35777 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759934AbZLOL1u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Dec 2009 06:27:50 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/3 v3] musb: Add context save and restore support
+Date: Tue, 15 Dec 2009 17:14:56 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404372AAF0F@dbde02.ent.ti.com>
+References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
+ <1260797982-28880-2-git-send-email-ajay.gupta@ti.com>
+ <20091214163324.GB31829@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091214163324.GB31829-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: ranjithl@ti.com, paul@pwsan.com
 
-AM3517/05 has a few additional control module registers defined mainly
-to control the new IP's. This patch adds support for those new registers.
+<snip..>
 
-Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
----
- arch/arm/plat-omap/include/plat/control.h |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+> >@@ -2179,15 +2322,23 @@ static int musb_suspend(struct device *dev)
+> >        spin_lock_irqsave(&musb->lock, flags);
+> >
+> >        if (is_peripheral_active(musb)) {
+> >-               /* FIXME force disconnect unless we know USB will wake
+> >-                * the system up quickly enough to respond ...
+> >+               /* System is entering into suspend where gadget would not
+> be
+> >+                * able to respond to host and thus it will be in an
+> unknown
+> >+                * state for host. Re-enumeration of gadget is required
+> after
+> >+                * a resume. So we force a disconnect.
+> >                 */
+> >+               reg = musb_readb(musb->mregs, MUSB_POWER);
+> >+               reg &= ~MUSB_POWER_SOFTCONN;
+> >+               musb_writeb(musb->mregs, MUSB_POWER, reg);
+> >+
+> 
+> I think we should only allow suspend if cable isn't connected. What
+> would happend if you have mounted fs (using mass storage), user is
+> transferring files and you force a disconnect ?
 
-diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-index 2ae8843..6683419 100644
---- a/arch/arm/plat-omap/include/plat/control.h
-+++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -160,6 +160,14 @@
- #define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
- #define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
- 
-+/* AM35XX only CONTROL_GENERAL register offsets */
-+#define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
-+#define AM35XX_CONTROL_DEVCONF2         (OMAP2_CONTROL_GENERAL + 0x0310)
-+#define AM35XX_CONTROL_DEVCONF3         (OMAP2_CONTROL_GENERAL + 0x0314)
-+#define AM35XX_CONTROL_CBA_PRIORITY     (OMAP2_CONTROL_GENERAL + 0x0320)
-+#define AM35XX_CONTROL_LVL_INTR_CLEAR   (OMAP2_CONTROL_GENERAL + 0x0324)
-+#define AM35XX_CONTROL_IP_SW_RESET      (OMAP2_CONTROL_GENERAL + 0x0328)
-+#define AM35XX_CONTROL_IPSS_CLK_CTRL    (OMAP2_CONTROL_GENERAL + 0x032C)
- 
- /* 34xx PADCONF register offsets */
- #define OMAP343X_PADCONF_ETK(i)		(OMAP2_CONTROL_PADCONFS + 0x5a8 + \
-@@ -257,6 +265,15 @@
- #define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
- #define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
- 
-+/* AM35XX_CONTROL_IPSS_CLK_CTRL bits */
-+#define AM35XX_USBOTG_VBUSP_CLK_SHIFT   0
-+#define AM35XX_CPGMAC_VBUSP_CLK_SHIFT   1
-+#define AM35XX_VPFE_VBUSP_CLK_SHIFT     2
-+#define AM35XX_HECC_VBUSP_CLK_SHIFT     3
-+#define AM35XX_USBOTG_FCLK_SHIFT        8
-+#define AM35XX_CPGMAC_FCLK_SHIFT        9
-+#define AM35XX_VPFE_FCLK_SHIFT          10
-+
- /*
-  * CONTROL OMAP STATUS register to identify OMAP3 features
-  */
--- 
-1.6.2.4
+We force a disconnect during suspend which is actually triggered by user
+Only. So do we need to consider this scenario?
 
+Moreover, in case of OMAP3, as Smart-Idle/Stdby is enabled so system shouldn't enter into suspend state if cable is connected and data
+transfer is going on.
+
+-Ajay
+
+> 
+> >diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> >index 83beeac..15a3f27 100644
+> >--- a/drivers/usb/musb/omap2430.c
+> >+++ b/drivers/usb/musb/omap2430.c
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
