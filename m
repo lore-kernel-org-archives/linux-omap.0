@@ -1,127 +1,216 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [rft/rfc/patch-2.6.32-omap1+ 4/6] cbus: don't export the global cbus_host variable
-Date: Wed, 16 Dec 2009 01:44:11 +0200
-Message-ID: <1260920653-18503-5-git-send-email-felipe.balbi@nokia.com>
+Subject: [rft/rfc/patch-2.6.32-omap1+ 5/6] cbus: rely on gpiolib
+Date: Wed, 16 Dec 2009 01:44:12 +0200
+Message-ID: <1260920653-18503-6-git-send-email-felipe.balbi@nokia.com>
 References: <1260920653-18503-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:19908 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760681AbZLOXqp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 18:46:45 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:37289 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760711AbZLOXqq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 18:46:46 -0500
 In-Reply-To: <1260920653-18503-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-we can keep it static to cbus.c and refer to it when
-calling cbus_transfer().
+don't define our own concurrent accesses to gpio banks
+if we already have gpiolib to handle that.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/cbus/cbus.c  |   11 +++++------
- drivers/cbus/cbus.h  |    6 ++----
- drivers/cbus/retu.c  |    4 ++--
- drivers/cbus/tahvo.c |    4 ++--
- 4 files changed, 11 insertions(+), 14 deletions(-)
+ drivers/cbus/cbus.c |  109 ++++++--------------------------------------------
+ drivers/cbus/cbus.h |    2 -
+ 2 files changed, 13 insertions(+), 98 deletions(-)
 
 diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
-index e1be8c7..c976f49 100644
+index c976f49..615f447 100644
 --- a/drivers/cbus/cbus.c
 +++ b/drivers/cbus/cbus.c
-@@ -39,8 +39,7 @@
+@@ -41,78 +41,7 @@
  
- #include "cbus.h"
+ static struct cbus_host *cbus_host;
  
--struct cbus_host *cbus_host = NULL;
--EXPORT_SYMBOL(cbus_host);
-+static struct cbus_host *cbus_host;
- 
- #ifdef CONFIG_ARCH_OMAP1
- /* We use our own MPUIO functions to get closer to 1MHz bus speed */
-@@ -211,18 +210,18 @@ static int cbus_transfer(struct cbus_host *host, int dev, int reg, int data)
- /*
-  * Read a given register from the device
-  */
--int cbus_read_reg(struct cbus_host *host, int dev, int reg)
-+int cbus_read_reg(int dev, int reg)
+-#ifdef CONFIG_ARCH_OMAP1
+-/* We use our own MPUIO functions to get closer to 1MHz bus speed */
+-
+-static inline void cbus_set_gpio_direction(void __iomem *base,
+-		int mpuio, int is_input)
+-{
+-	u16 w;
+-
+-	mpuio &= 0x0f;
+-	w = __raw_readw(base + OMAP_MPUIO_IO_CNTL);
+-	if (is_input)
+-		w |= 1 << mpuio;
+-	else
+-		w &= ~(1 << mpuio);
+-	__raw_writew(w, base + OMAP_MPUIO_IO_CNTL);
+-
+-}
+-
+-static inline void cbus_set_gpio_dataout(void __iomem *base,
+-		int mpuio, int enable)
+-{
+-	u16 w;
+-
+-	mpuio &= 0x0f;
+-	w = __raw_readw(base + OMAP_MPUIO_OUTPUT);
+-	if (enable)
+-		w |= 1 << mpuio;
+-	else
+-		w &= ~(1 << mpuio);
+-	__raw_writew(w, base + OMAP_MPUIO_OUTPUT);
+-}
+-
+-static inline int cbus_get_gpio_datain(void __iomem *base, int mpuio)
+-{
+-	mpuio &= 0x0f;
+-
+-	return (__raw_readw(base + OMAP_MPUIO_INPUT_LATCH) & (1 << mpuio)) != 0;
+-}
+-
+-static void cbus_send_bit(struct cbus_host *host, void __iomem *base, int bit,
+-			  int set_to_input)
+-{
+-	cbus_set_gpio_dataout(base, host->dat_gpio, bit ? 1 : 0);
+-	cbus_set_gpio_dataout(base, host->clk_gpio, 1);
+-
+-	/* The data bit is read on the rising edge of CLK */
+-	if (set_to_input)
+-		cbus_set_gpio_direction(base, host->dat_gpio, 1);
+-
+-	cbus_set_gpio_dataout(base, host->clk_gpio, 0);
+-}
+-
+-static u8 cbus_receive_bit(struct cbus_host *host, void __iomem *base)
+-{
+-	u8 ret;
+-
+-	cbus_set_gpio_dataout(base, host->clk_gpio, 1);
+-	ret = cbus_get_gpio_datain(base, host->dat_gpio);
+-	cbus_set_gpio_dataout(base, host->clk_gpio, 0);
+-
+-	return ret;
+-}
+-
+-#define cbus_output(base, gpio, val)	cbus_set_gpio_direction(base, gpio, 0)
+-
+-#else
+-
+-#define cbus_output(base, gpio, val)	gpio_direction_output(gpio, val)
+-#define cbus_set_gpio_dataout(base, gpio, enable) gpio_set_value(gpio, enable)
+-#define cbus_get_gpio_datain(base, int, gpio) gpio_get_value(gpio)
+-
+-static void _cbus_send_bit(struct cbus_host *host, int bit, int set_to_input)
++static void cbus_send_bit(struct cbus_host *host, int bit, int set_to_input)
  {
--	return cbus_host ? cbus_transfer(host, dev, reg, -1) : -ENODEV;
-+	return cbus_transfer(cbus_host, dev, reg, -1);
+ 	gpio_set_value(host->dat_gpio, bit ? 1 : 0);
+ 	gpio_set_value(host->clk_gpio, 1);
+@@ -124,7 +53,7 @@ static void _cbus_send_bit(struct cbus_host *host, int bit, int set_to_input)
+ 	gpio_set_value(host->clk_gpio, 0);
  }
- EXPORT_SYMBOL(cbus_read_reg);
  
- /*
-  * Write to a given register of the device
-  */
--int cbus_write_reg(struct cbus_host *host, int dev, int reg, u16 val)
-+int cbus_write_reg(int dev, int reg, int val)
+-static u8 _cbus_receive_bit(struct cbus_host *host)
++static u8 cbus_receive_bit(struct cbus_host *host)
  {
--	return cbus_host ? cbus_transfer(host, dev, reg, (int)val) : -ENODEV;
-+	return cbus_transfer(cbus_host, dev, reg, val);
+ 	u8 ret;
+ 
+@@ -135,23 +64,11 @@ static u8 _cbus_receive_bit(struct cbus_host *host)
+ 	return ret;
  }
- EXPORT_SYMBOL(cbus_write_reg);
+ 
+-#define cbus_send_bit(h, b, bit, i) _cbus_send_bit(h, bit, i)
+-#define cbus_receive_bit(host, base) _cbus_receive_bit(host)
+-
+-#endif
+-
+ static int cbus_transfer(struct cbus_host *host, int dev, int reg, int data)
+ {
+ 	int i;
+ 	int is_read = 0;
+ 	unsigned long flags;
+-	void __iomem *base;
+-
+-#ifdef CONFIG_ARCH_OMAP1
+-	base = OMAP1_IO_ADDRESS(OMAP1_MPUIO_BASE);
+-#else
+-	base = NULL;
+-#endif
+ 
+ 	if (data < 0)
+ 		is_read = 1;
+@@ -160,17 +77,17 @@ static int cbus_transfer(struct cbus_host *host, int dev, int reg, int data)
+ 	spin_lock_irqsave(&host->lock, flags);
+ 
+ 	/* Reset state and start of transfer, SEL stays down during transfer */
+-	cbus_set_gpio_dataout(base, host->sel_gpio, 0);
++	gpio_set_value(host->sel_gpio, 0);
+ 
+ 	/* Set the DAT pin to output */
+-	cbus_output(base, host->dat_gpio, 1);
++	gpio_direction_output(host->dat_gpio, 1);
+ 
+ 	/* Send the device address */
+ 	for (i = 3; i > 0; i--)
+-		cbus_send_bit(host, base, dev & (1 << (i - 1)), 0);
++		cbus_send_bit(host, dev & (1 << (i - 1)), 0);
+ 
+ 	/* Send the rw flag */
+-	cbus_send_bit(host, base, is_read, 0);
++	cbus_send_bit(host, is_read, 0);
+ 
+ 	/* Send the register address */
+ 	for (i = 5; i > 0; i--) {
+@@ -179,18 +96,18 @@ static int cbus_transfer(struct cbus_host *host, int dev, int reg, int data)
+ 		if (is_read && i == 1)
+ 			set_to_input = 1;
+ 
+-		cbus_send_bit(host, base, reg & (1 << (i - 1)), set_to_input);
++		cbus_send_bit(host, reg & (1 << (i - 1)), set_to_input);
+ 	}
+ 
+ 	if (!is_read) {
+ 		for (i = 16; i > 0; i--)
+-			cbus_send_bit(host, base, data & (1 << (i - 1)), 0);
++			cbus_send_bit(host, data & (1 << (i - 1)), 0);
+ 	} else {
+-		cbus_set_gpio_dataout(base, host->clk_gpio, 1);
++		gpio_set_value(host->clk_gpio, 1);
+ 		data = 0;
+ 
+ 		for (i = 16; i > 0; i--) {
+-			u8 bit = cbus_receive_bit(host, base);
++			u8 bit = cbus_receive_bit(host);
+ 
+ 			if (bit)
+ 				data |= 1 << (i - 1);
+@@ -198,9 +115,9 @@ static int cbus_transfer(struct cbus_host *host, int dev, int reg, int data)
+ 	}
+ 
+ 	/* Indicate end of transfer, SEL goes up until next transfer */
+-	cbus_set_gpio_dataout(base, host->sel_gpio, 1);
+-	cbus_set_gpio_dataout(base, host->clk_gpio, 1);
+-	cbus_set_gpio_dataout(base, host->clk_gpio, 0);
++	gpio_set_value(host->sel_gpio, 1);
++	gpio_set_value(host->clk_gpio, 1);
++	gpio_set_value(host->clk_gpio, 0);
+ 
+ 	spin_unlock_irqrestore(&host->lock, flags);
  
 diff --git a/drivers/cbus/cbus.h b/drivers/cbus/cbus.h
-index 90c7617..4cd68fd 100644
+index 4cd68fd..fbaca09 100644
 --- a/drivers/cbus/cbus.h
 +++ b/drivers/cbus/cbus.h
-@@ -34,9 +34,7 @@ struct cbus_host {
- 	int	sel_gpio;
- };
+@@ -27,8 +27,6 @@ struct cbus_host {
+ 	/* host lock */
+ 	spinlock_t lock;
  
--extern struct cbus_host *cbus_host;
+-	void __iomem *base;
 -
--extern int cbus_read_reg(struct cbus_host *host, int dev, int reg);
--extern int cbus_write_reg(struct cbus_host *host, int dev, int reg, u16 val);
-+extern int cbus_read_reg(int dev, int reg);
-+extern int cbus_write_reg(int dev, int reg, int val);
- 
- #endif /* __DRIVERS_CBUS_CBUS_H */
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index 39493fb..e0c9715 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
-@@ -75,7 +75,7 @@ static struct retu_irq_handler_desc retu_irq_handlers[MAX_RETU_IRQ_HANDLERS];
- int retu_read_reg(int reg)
- {
- 	BUG_ON(!retu_initialized);
--	return cbus_read_reg(cbus_host, RETU_ID, reg);
-+	return cbus_read_reg(RETU_ID, reg);
- }
- 
- /**
-@@ -88,7 +88,7 @@ int retu_read_reg(int reg)
- void retu_write_reg(int reg, u16 val)
- {
- 	BUG_ON(!retu_initialized);
--	cbus_write_reg(cbus_host, RETU_ID, reg, val);
-+	cbus_write_reg(RETU_ID, reg, val);
- }
- 
- void retu_set_clear_reg_bits(int reg, u16 set, u16 clear)
-diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
-index 51d8128..2761843 100644
---- a/drivers/cbus/tahvo.c
-+++ b/drivers/cbus/tahvo.c
-@@ -75,7 +75,7 @@ static struct tahvo_irq_handler_desc tahvo_irq_handlers[MAX_TAHVO_IRQ_HANDLERS];
- int tahvo_read_reg(int reg)
- {
- 	BUG_ON(!tahvo_initialized);
--	return cbus_read_reg(cbus_host, TAHVO_ID, reg);
-+	return cbus_read_reg(TAHVO_ID, reg);
- }
- 
- /**
-@@ -88,7 +88,7 @@ int tahvo_read_reg(int reg)
- void tahvo_write_reg(int reg, u16 val)
- {
- 	BUG_ON(!tahvo_initialized);
--	cbus_write_reg(cbus_host, TAHVO_ID, reg, val);
-+	cbus_write_reg(TAHVO_ID, reg, val);
- }
- 
- /**
+ 	int	clk_gpio;
+ 	int	dat_gpio;
+ 	int	sel_gpio;
 -- 
 1.6.6.rc0
 
