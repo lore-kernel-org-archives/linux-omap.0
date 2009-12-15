@@ -1,41 +1,43 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: commit fc7b92fca4e546184557f1c53f84ad57c66b7695 broke compilation
-Date: Tue, 15 Dec 2009 13:58:06 +0200
-Message-ID: <20091215115806.GG3689@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/3 v3] musb: Add context save and restore support
+Date: Tue, 15 Dec 2009 17:34:01 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030ADD53A6@dbde02.ent.ti.com>
+References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
+ <1260797982-28880-2-git-send-email-ajay.gupta@ti.com>
+ <20091214163324.GB31829@nokia.com>
+ <19F8576C6E063C45BE387C64729E739404372AAF0F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:36970 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760012AbZLOL6s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 06:58:48 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404372AAF0F-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: Balaji T K <balajitk@ti.com>
 
-Hi,
+> > I think we should only allow suspend if cable isn't connected. What
+> > would happend if you have mounted fs (using mass storage), user is
+> > transferring files and you force a disconnect ?
+> 
+> We force a disconnect during suspend which is actually triggered by user
+> Only. So do we need to consider this scenario?
+> 
 
-the patch renaming twl4030 to twl broke compilation of several omap 
-boards.
+Like Ajay says, the kernel would need to take a call either way:
 
-Here are all the files including a file that doesn't exist anymore:
+- Disallowing a system wide suspend, just because a USB cable is connected
+- Allow a system-wide suspend, but disconnect the gadget device.
 
-arch/arm/mach-omap2/board-cm-t35.c:#include <linux/i2c/twl4030.h>
-arch/arm/mach-omap2/board-igep0020.c:#include <linux/i2c/twl4030.h>
-arch/arm/mach-omap2/board-omap3evm.c:#include <linux/i2c/twl4030.h>
-arch/arm/mach-omap2/board-omap3touchbook.c:#include <linux/i2c/twl4030.h>
-arch/arm/mach-omap2/board-rx51-peripherals.c:#include <linux/i2c/twl4030.h>
-arch/arm/mach-omap2/board-zoom-peripherals.c:#include <linux/i2c/twl4030.h>
-drivers/mfd/twl4030-codec.c:#include <linux/i2c/twl4030.h>
-drivers/video/omap/lcd_ldp.c:#include <linux/i2c/twl4030.h>
-drivers/video/omap/lcd_omap2evm.c:#include <linux/i2c/twl4030.h>
-drivers/video/omap/lcd_omap3beagle.c:#include <linux/i2c/twl4030.h>
-drivers/video/omap/lcd_omap3evm.c:#include <linux/i2c/twl4030.h>
-drivers/video/omap/lcd_overo.c:#include <linux/i2c/twl4030.h>
-sound/soc/omap/sdp3430.c:#include <linux/i2c/twl4030.h>
 
--- 
-balbi
+I would vote to allow a system-wide suspend. A user that tries to put
+a phone to standby in the middle of a data transfer shouldn't be too
+surprised that the data transfer was aborted.
+
+
+- Anand
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
