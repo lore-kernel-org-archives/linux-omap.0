@@ -1,62 +1,49 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: linux-next: origin tree build failure
-Date: Tue, 15 Dec 2009 15:01:27 +0200
-Message-ID: <200912151501.27582.peter.ujfalusi@nokia.com>
-References: <20091215164108.45c9d766.sfr@canb.auug.org.au>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] mfd: twl: fix twl4030 rename for remaining driver,
+ board files
+Date: Tue, 15 Dec 2009 15:05:46 +0200
+Message-ID: <20091215130546.GK3689@nokia.com>
+References: <1260881723-17255-1-git-send-email-balajitk@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53111 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:53586 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757286AbZLONBn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:01:43 -0500
-In-Reply-To: <20091215164108.45c9d766.sfr@canb.auug.org.au>
+	with ESMTP id S1757104AbZLONGl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:06:41 -0500
+Content-Disposition: inline
+In-Reply-To: <1260881723-17255-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "ext balajitk@ti.com" <balajitk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "tony@atomide.co" <tony@atomide.co>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>
 
-Hello,
+On Tue, Dec 15, 2009 at 01:55:23PM +0100, ext balajitk@ti.com wrote:
+>From: Balaji T K <balajitk@ti.com>
+>
+>        This patch renames include twl4030.h to include twl.h
+>	and also renames twl4030_i2c_ routines
 
-On Tuesday 15 December 2009 07:41:08 ext Stephen Rothwell wrote:
-> Hi all,
->=20
-> Today's linux-next build (powerpc allyesconfig) failed like this:
->=20
-> drivers/mfd/twl4030-codec.c:29:31: error: linux/i2c/twl4030.h: No suc=
-h file
->  or directory
->=20
-> (there were more, but I assume that they all stem form this one).
->=20
-> Caused by commit 0b83ddebc6e884dc0221358cf68c461520fbdd8e ("MFD: twl4=
-030:
-> add twl4030_codec MFD as a new child to the core") from Linus' tree
-> interacting with commit b07682b6056eb6701f8cb86aa5800e6f2ea7919b ("mf=
-d:
-> Rename twl4030* driver files to enable re-use") also from Linus' tree=
-=2E
-> This file seems to have been missed in the renaming.
+remove the spaces above.
 
-Yes, the twl4030-codec MFD driver went in earlier than the twl4030 rena=
-me patch,=20
-which does not taken care of the twl4030-codec MFD driver for some reas=
-ons.
+also, this patch doesn't apply neither on top of linus's master nor 
+tony's master:
 
-The patch looks good, I might also align the twl4030-codec MFD driver w=
-ith the=20
-renamed twl core soon.
-I have to check the feasibility of this first, since the renaming was d=
-one to=20
-facilitate the addition of twl6030 (OMAP4 companion chip), and I don't =
-have yet=20
-access to the documentation.
+$ git am ~/check.diff
+Applying: mfd: twl: fix twl4030 rename for remaining driver, board files
+error: patch failed: drivers/video/omap/lcd_omap2evm.c:24
+error: drivers/video/omap/lcd_omap2evm.c: patch does not apply
+error: patch failed: drivers/video/omap/lcd_omap3beagle.c:23
+error: drivers/video/omap/lcd_omap3beagle.c: patch does not apply
+error: patch failed: drivers/video/omap/lcd_omap3evm.c:23
+error: drivers/video/omap/lcd_omap3evm.c: patch does not apply
+Patch failed at 0001 mfd: twl: fix twl4030 rename for remaining driver, board files
+When you have resolved this problem run "git am --resolved".
+If you would prefer to skip this patch, instead run "git am --skip".
+To restore the original branch and stop patching run "git am --abort".
 
-Thank you,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+please rebase.
+
+-- 
+balbi
