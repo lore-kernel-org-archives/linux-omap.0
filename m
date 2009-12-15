@@ -1,70 +1,77 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: dspbridge sync proposal for 0.1
-Date: Mon, 14 Dec 2009 23:53:19 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53042D3963E0@dlee03.ent.ti.com>
-References: <20091205133900.GA17280@annwn.felipec.org>
- <94a0d4530912140803t4f910549ga04b02a14dabe715@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH 00/17] First set of unreviewed patches
+Date: Tue, 15 Dec 2009 00:19:41 -0600
+Message-ID: <1260857998-19349-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43434 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752557AbZLOFx0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 00:53:26 -0500
-In-Reply-To: <94a0d4530912140803t4f910549ga04b02a14dabe715@mail.gmail.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:55093 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751781AbZLOGMu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 01:12:50 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Artem Bityutskiy <artem.bityutskiy@nokia.com>, "Shah, Bhavin" <bshah@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@nokia.com>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Hi,
+These patches need to be reviewed to be included into dspbridge-baseline.
 
->From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
->Sent: Monday, December 14, 2009 10:04 AM
->
->On Sat, Dec 5, 2009 at 3:39 PM, Felipe Contreras
-><felipe.contreras@nokia.com> wrote:
->> There is a proposal to get the dspbridge branch into a decent state for
->> the 0.1 release, so I've been trying to synchronize the internal maemo
->> branch with the upstream one.
->
->After a few private discussions with Omar here's v2 which is
->essentially the same except many patches are taking from TI. There's
->not much difference in the actual content, the difference it's mostly
->in the commit messages:
->
->All the branches are in:
->http://gitorious.org/~felipec/linux-omap/felipec
->
->The branch for the current proposal is 'dspbridge-0.1-v2'.
->
+Ernest Ramos Falcon (1):
+  DSPBRIDGE: check pointer before calling Proc_Detach
 
-As a follow up...
+Ernesto Ramos Falcon (1):
+  DSPBRIDGE: Memory leak in Node Register Notify
 
-After the analysis of both branches (current dspbridge and dspbridge-0.1) and the need to resend the patches that haven't been reviewed. It was decided that the unsent patches would be reverted and sent to the list for review, given the need to have a baseline that works for most of the OMAP 3 platforms, I took Felipe's patch order proposal (as it is working for N900) and recreated the future dspbridge branch.
+Fernando Guzman Lugo (3):
+  DSPBRIDGE: Implemented Trampoline support for dynamic loader
+  DSPBRIDGE: Enable/Disable MCBSP_CLOCKS for MCBSP2
+  DSPBRIDGE: support loading 4 dependent DLL
 
-This can be found at:
-http://dev.omapzoom.org/?p=tidspbridge/kernel-dspbridge.git;a=summary  dspbridge-baseline-v2
+Omar Ramirez Luna (11):
+  DSPBRIDGE: set PWRERROR notifications as an option
+  DSPBRIDGE: Enable peripheral clocks on wake up
+  DSPBRIDGE: Remove long busy-wait loops on PWRST transitions
+  DSPBRIDGE: Rename usCount to timeout
+  DSPBRIDGE: Trivial cleanup on DBDCD
+  DSPBRIDGE: Do not panic on bad page count
+  DSPBRIDGE: check the status of DMM_GetHandle
+  DSPBRIDGE: KFILE_Seek & KFILE_Tell, u32 replaced with loff_t
+  DSPBRIDGE: Delete unused files
+  DSPBRIDGE: Avoid REGistry if pDevContext is available
+  DSPBRIDGE: Compilation fixes 2.6.31
 
-Differences:
+Rebecca Schultz Zavin (1):
+  DSPBRIDGE: Remove preproessor condition that could never work
 
-- DSPBRIDGE: enable smart/autoidle for mailbox sysconfig
-Patch dropped until final version is discussed
+ arch/arm/mach-omap2/dspbridge.c                |    2 +
+ arch/arm/plat-omap/include/dspbridge/cfgdefs.h |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dbl.h     |  354 ------
+ arch/arm/plat-omap/include/dspbridge/dbof.h    |  117 --
+ drivers/dsp/bridge/Kconfig                     |   11 +
+ drivers/dsp/bridge/Makefile                    |    3 +-
+ drivers/dsp/bridge/dynload/cload.c             |  328 ++++---
+ drivers/dsp/bridge/dynload/dlclasses_hdr.h     |   41 -
+ drivers/dsp/bridge/dynload/dload_internal.h    |  125 +++-
+ drivers/dsp/bridge/dynload/reloc.c             |   81 ++-
+ drivers/dsp/bridge/dynload/tramp.c             | 1110 +++++++++++++++++++
+ drivers/dsp/bridge/dynload/tramp_table_c6000.c |  164 +++
+ drivers/dsp/bridge/pmgr/cod.c                  |    4 +-
+ drivers/dsp/bridge/pmgr/dbl.c                  | 1385 ------------------------
+ drivers/dsp/bridge/pmgr/wcd.c                  |    5 +
+ drivers/dsp/bridge/rmgr/dbdcd.c                |  345 +++---
+ drivers/dsp/bridge/rmgr/drv.c                  |    2 +-
+ drivers/dsp/bridge/rmgr/drv_interface.c        |   11 +-
+ drivers/dsp/bridge/rmgr/proc.c                 |   20 +-
+ drivers/dsp/bridge/wmd/_tiomap.h               |    8 +-
+ drivers/dsp/bridge/wmd/_tiomap_util.h          |    6 +
+ drivers/dsp/bridge/wmd/mmu_fault.c             |   24 +-
+ drivers/dsp/bridge/wmd/tiomap3430.c            |  200 ++--
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c        |  134 ++-
+ drivers/dsp/bridge/wmd/tiomap_sm.c             |   54 +-
+ drivers/dsp/bridge/wmd/ue_deh.c                |   17 +-
+ 26 files changed, 2106 insertions(+), 2447 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/dspbridge/dbl.h
+ delete mode 100644 arch/arm/plat-omap/include/dspbridge/dbof.h
+ delete mode 100644 drivers/dsp/bridge/dynload/dlclasses_hdr.h
+ create mode 100644 drivers/dsp/bridge/dynload/tramp.c
+ create mode 100644 drivers/dsp/bridge/dynload/tramp_table_c6000.c
+ delete mode 100644 drivers/dsp/bridge/pmgr/dbl.c
 
-- DSPBRIDGE: Pass filp->private to all the ioctl wrappers
-Patch dropped until resource cleanup patches are discussed, this to keep the entire series of resource cleanup changes out.
-
-- DSPBRIDGE: Increased DMM size to 256MB
-Will be pushed on top of all patches as it seems it is breaking N900, this until failure is root caused.
-
-- DSPBRIDGE: Remove PID usage and replace with TGID
-Pushed as it was sent to LO mailing list.
-
-
-Next step will be to send the unreviewed patches and continue until no patches are missing. For now and until -baseline-v2 is synchronized, further development will continue on dspbridge-next.
-
-Regards,
-
-Omar
