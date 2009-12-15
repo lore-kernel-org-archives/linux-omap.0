@@ -1,321 +1,188 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 3/5 v8] OMAP: McBSP: Introduce caching in register write operations
-Date: Tue, 15 Dec 2009 01:36:47 +0100
-Message-ID: <200912150136.49087.jkrzyszt@tis.icnet.pl>
-References: <200912092124.14430.jkrzyszt@tis.icnet.pl> <20091211151149.c20acce5.jhnikula@gmail.com> <200912111451.29185.jkrzyszt@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: [PATCH v3] [OMAP] gpio: Simultaneously requested rising and falling edge
+Date: Mon, 14 Dec 2009 17:42:54 -0800
+Message-ID: <1260841374-7001-1-git-send-email-darkstar6262@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:37578 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750907AbZLOAhS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 19:37:18 -0500
-In-Reply-To: <200912111451.29185.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:52992 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751179AbZLOBnL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Dec 2009 20:43:11 -0500
+Received: by pzk1 with SMTP id 1so2704587pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 17:43:10 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-Determine cache size required per McBSP port at init time, based on pro=
-cessor
-type running on.
-Allocate space for storing cached copies of McBSP register values at po=
-rt
-request.
-Modify omap_msbcp_write() function to update the cache with every regis=
-ter
-write operation.
-Modify omap_mcbsp_read() to support reading from cache or hardware.
-Update MCBSP_READ() macro for modified omap_mcbsp_read() function API.
-Introduce a new macro that reads from the cache.
+Some chips, namely any OMAP1 chips using METHOD_MPUIO,
+OMAP15xx and OMAP7xx, cannot be setup to respond to on-chip GPIO
+interrupts in both rising and falling edge directions -- they can
+only respond to one direction or the other, depending on how the
+ICR is configured.
 
-Applies on top of patch 2 from this series:
-[PATCH v7 2/5] OMAP: McBSP: Modify macros/functions API for easy cache =
-access
+Additionally, current code forces rising edge detection if both
+flags are specified:
 
-Tested on OMAP1510 based Amstrad Delta using linux-omap for-next,
-commit 82f1d8f22f2c65e70206e40a6f17688bf64a892c.
-Compile-tested with: omap_perseus2_730_defconfig, omap_generic_1610_def=
-config,
-omap_generic_2420_defconfig, omap_2430sdp_defconfig, omap_3430sdp_defco=
-nfig,
-omap_4430sdp_defconfig with CONFIG_OMAP_MCBSP=3Dy selected.
+        if (trigger & IRQ_TYPE_EDGE_RISING)
+                l |= 1 << gpio;
+        else if (trigger & IRQ_TYPE_EDGE_FALLING)
+                l &= ~(1 << gpio);
+        else
+                goto bad;
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+This change implements a toggle function that will modify the ICR
+to flip the direction of interrupt for IRQs that are requested with
+both rising and falling flags.  The toggle function is not called
+for chips and GPIOs it does not apply to through the use of a flip_mask
+that's added on a per-bank basis.  The mask is only set for those
+GPIOs where a toggle is necessary.  Edge detection starts out the
+same as above with FALLING mode first.
 
+The toggle happens on EACH interrupt; without it, we have the
+following sequence of actions on GPIO transition:
+
+  ICR    GPIO               Result
+  0x1    0 -> 1 (rising)    Interrupt
+  0x1    1 -> 0 (falling)   No interrupt
+
+  (set ICR to 0x0 manually)
+  0x0    0 -> 1 (rising)    No interrupt
+  0x0    1 -> 0 (falling)   Interrupt
+
+That is, with the ICR set to 1 for a gpio, only rising edge interrupts
+are caught, and with it set to 0, only falling edge interrupts are
+caught.  If we add in the toggle, we get this:
+
+  ICR    GPIO               Result
+  0x1    0 -> 1 (rising)    Interrupt (ICR set to 0x0)
+  0x0    1 -> 0 (falling)   Interrupt (ICR set to 0x1)
+  0x1    0 -> 1 ...
+
+so, both rising and falling are caught, per the request for both
+(IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING).
+
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 ---
-=46riday 11 December 2009 14:51:27 Janusz Krzysztofik napisa=C5=82(a):
-> Friday 11 December 2009 14:11:49 Jarkko Nikula napisa=C5=82(a):
-> >
-> > ... Could have my ack to patches 1-4 by moving the cache
-> > allocation after the mcbsp->free test lines. Memory leak and other
-> > badness would happen otherwise in case of multiple call to
-> > omap_mcbsp_request.
->
-> Yes, it's a bug, sorry.
+ arch/arm/plat-omap/gpio.c |   61 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 60 insertions(+), 1 deletions(-)
 
-Actually, three distinct bugs could be recognized, not one :/
-1. Possible overwriting of mcbsp->reg_cache pointer for an already occu=
-pied=20
-   port.
-2. Not freeing allocated cache memory on return after the port appears =
-not=20
-   free.
-3. In omap_mcbsp_free(), marking the port as free before deallocating t=
-he=20
-   cache, could result in memory leak as well.
-
-I hope all are addressed correctly. Since releasing the port with
-
-	mcbsp->free =3D 1;
-
-after kzalloc() failure should be atomic, I have assumed this doesn't r=
-equire=20
-locking.
-
-Tested both alone and with patch v7 4/5 on top, just for case.
-
-Thanks,
-Janusz
-
-diff -upr git.orig/arch/arm/mach-omap1/mcbsp.c git/arch/arm/mach-omap1/=
-mcbsp.c
---- git.orig/arch/arm/mach-omap1/mcbsp.c	2009-12-02 15:48:37.000000000 =
-+0100
-+++ git/arch/arm/mach-omap1/mcbsp.c	2009-12-14 21:32:56.000000000 +0100
-@@ -99,9 +99,11 @@ static struct omap_mcbsp_platform_data o
- 	},
- };
- #define OMAP7XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap7xx_mcbsp_pdata)
-+#define OMAP7XX_MCBSP_REG_NUM		(OMAP_MCBSP_REG_XCERH / sizeof(u16) + 1=
-)
- #else
- #define omap7xx_mcbsp_pdata		NULL
- #define OMAP7XX_MCBSP_PDATA_SZ		0
-+#define OMAP7XX_MCBSP_REG_NUM		0
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 055160e..12a443f 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -192,6 +192,7 @@ struct gpio_bank {
+ 	u32 saved_risingdetect;
  #endif
-=20
- #ifdef CONFIG_ARCH_OMAP15XX
-@@ -132,9 +134,11 @@ static struct omap_mcbsp_platform_data o
- 	},
- };
- #define OMAP15XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap15xx_mcbsp_pdata)
-+#define OMAP15XX_MCBSP_REG_NUM		(OMAP_MCBSP_REG_XCERH / sizeof(u16) + =
-1)
- #else
- #define omap15xx_mcbsp_pdata		NULL
- #define OMAP15XX_MCBSP_PDATA_SZ		0
-+#define OMAP15XX_MCBSP_REG_NUM		0
- #endif
-=20
- #ifdef CONFIG_ARCH_OMAP16XX
-@@ -165,19 +169,25 @@ static struct omap_mcbsp_platform_data o
- 	},
- };
- #define OMAP16XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap16xx_mcbsp_pdata)
-+#define OMAP16XX_MCBSP_REG_NUM		(OMAP_MCBSP_REG_XCERH / sizeof(u16) + =
-1)
- #else
- #define omap16xx_mcbsp_pdata		NULL
- #define OMAP16XX_MCBSP_PDATA_SZ		0
-+#define OMAP16XX_MCBSP_REG_NUM		0
- #endif
-=20
- int __init omap1_mcbsp_init(void)
- {
--	if (cpu_is_omap7xx())
-+	if (cpu_is_omap7xx()) {
- 		omap_mcbsp_count =3D OMAP7XX_MCBSP_PDATA_SZ;
--	if (cpu_is_omap15xx())
-+		omap_mcbsp_cache_size =3D OMAP7XX_MCBSP_REG_NUM * sizeof(u16);
-+	} else if (cpu_is_omap15xx()) {
- 		omap_mcbsp_count =3D OMAP15XX_MCBSP_PDATA_SZ;
--	if (cpu_is_omap16xx())
-+		omap_mcbsp_cache_size =3D OMAP15XX_MCBSP_REG_NUM * sizeof(u16);
-+	} else if (cpu_is_omap16xx()) {
- 		omap_mcbsp_count =3D OMAP16XX_MCBSP_PDATA_SZ;
-+		omap_mcbsp_cache_size =3D OMAP16XX_MCBSP_REG_NUM * sizeof(u16);
-+	}
-=20
- 	mcbsp_ptr =3D kzalloc(omap_mcbsp_count * sizeof(struct omap_mcbsp *),
- 								GFP_KERNEL);
-diff -upr git.orig/arch/arm/mach-omap2/mcbsp.c git/arch/arm/mach-omap2/=
-mcbsp.c
---- git.orig/arch/arm/mach-omap2/mcbsp.c	2009-12-02 15:48:38.000000000 =
-+0100
-+++ git/arch/arm/mach-omap2/mcbsp.c	2009-12-14 21:32:56.000000000 +0100
-@@ -65,9 +65,11 @@ static struct omap_mcbsp_platform_data o
- 	},
- };
- #define OMAP2420_MCBSP_PDATA_SZ		ARRAY_SIZE(omap2420_mcbsp_pdata)
-+#define OMAP2420_MCBSP_REG_NUM		(OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1=
-)
- #else
- #define omap2420_mcbsp_pdata		NULL
- #define OMAP2420_MCBSP_PDATA_SZ		0
-+#define OMAP2420_MCBSP_REG_NUM		0
- #endif
-=20
- #ifdef CONFIG_ARCH_OMAP2430
-@@ -114,9 +116,11 @@ static struct omap_mcbsp_platform_data o
- 	},
- };
- #define OMAP2430_MCBSP_PDATA_SZ		ARRAY_SIZE(omap2430_mcbsp_pdata)
-+#define OMAP2430_MCBSP_REG_NUM		(OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1=
-)
- #else
- #define omap2430_mcbsp_pdata		NULL
- #define OMAP2430_MCBSP_PDATA_SZ		0
-+#define OMAP2430_MCBSP_REG_NUM		0
- #endif
-=20
- #ifdef CONFIG_ARCH_OMAP34XX
-@@ -168,9 +172,11 @@ static struct omap_mcbsp_platform_data o
- 	},
- };
- #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
-+#define OMAP34XX_MCBSP_REG_NUM		(OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1=
-)
- #else
- #define omap34xx_mcbsp_pdata		NULL
- #define OMAP34XX_MCBSP_PDATA_SZ		0
-+#define OMAP34XX_MCBSP_REG_NUM		0
- #endif
-=20
- static struct omap_mcbsp_platform_data omap44xx_mcbsp_pdata[] =3D {
-@@ -208,17 +214,23 @@ static struct omap_mcbsp_platform_data o
- 	},
- };
- #define OMAP44XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap44xx_mcbsp_pdata)
-+#define OMAP44XX_MCBSP_REG_NUM		(OMAP_MCBSP_REG_RCCR / sizeof(u32) + 1=
-)
-=20
- static int __init omap2_mcbsp_init(void)
- {
--	if (cpu_is_omap2420())
-+	if (cpu_is_omap2420()) {
- 		omap_mcbsp_count =3D OMAP2420_MCBSP_PDATA_SZ;
--	if (cpu_is_omap2430())
-+		omap_mcbsp_cache_size =3D OMAP2420_MCBSP_REG_NUM * sizeof(u16);
-+	} else if (cpu_is_omap2430()) {
- 		omap_mcbsp_count =3D OMAP2430_MCBSP_PDATA_SZ;
--	if (cpu_is_omap34xx())
-+		omap_mcbsp_cache_size =3D OMAP2430_MCBSP_REG_NUM * sizeof(u32);
-+	} else if (cpu_is_omap34xx()) {
- 		omap_mcbsp_count =3D OMAP34XX_MCBSP_PDATA_SZ;
--	if (cpu_is_omap44xx())
-+		omap_mcbsp_cache_size =3D OMAP34XX_MCBSP_REG_NUM * sizeof(u32);
-+	} else if (cpu_is_omap44xx()) {
- 		omap_mcbsp_count =3D OMAP44XX_MCBSP_PDATA_SZ;
-+		omap_mcbsp_cache_size =3D OMAP44XX_MCBSP_REG_NUM * sizeof(u32);
-+	}
-=20
- 	mcbsp_ptr =3D kzalloc(omap_mcbsp_count * sizeof(struct omap_mcbsp *),
- 								GFP_KERNEL);
-diff -upr git.orig/arch/arm/plat-omap/include/plat/mcbsp.h git/arch/arm=
-/plat-omap/include/plat/mcbsp.h
---- git.orig/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-02 15:48:5=
-1.000000000 +0100
-+++ git/arch/arm/plat-omap/include/plat/mcbsp.h	2009-12-14 21:32:56.000=
-000000 +0100
-@@ -415,9 +415,10 @@ struct omap_mcbsp {
- 	u16 max_tx_thres;
- 	u16 max_rx_thres;
- #endif
-+	void *reg_cache;
- };
- extern struct omap_mcbsp **mcbsp_ptr;
--extern int omap_mcbsp_count;
-+extern int omap_mcbsp_count, omap_mcbsp_cache_size;
-=20
- int omap_mcbsp_init(void);
- void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *co=
-nfig,
-diff -upr git.orig/arch/arm/plat-omap/mcbsp.c git/arch/arm/plat-omap/mc=
-bsp.c
---- git.orig/arch/arm/plat-omap/mcbsp.c	2009-12-11 18:19:18.000000000 +=
-0100
-+++ git/arch/arm/plat-omap/mcbsp.c	2009-12-14 21:45:16.000000000 +0100
-@@ -28,28 +28,42 @@
- #include <plat/mcbsp.h>
-=20
- struct omap_mcbsp **mcbsp_ptr;
--int omap_mcbsp_count;
-+int omap_mcbsp_count, omap_mcbsp_cache_size;
-=20
- void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
- {
--	if (cpu_class_is_omap1() || cpu_is_omap2420())
-+	if (cpu_class_is_omap1()) {
-+		((u16 *)mcbsp->reg_cache)[reg / sizeof(u16)] =3D (u16)val;
- 		__raw_writew((u16)val, mcbsp->io_base + reg);
--	else
-+	} else if (cpu_is_omap2420()) {
-+		((u16 *)mcbsp->reg_cache)[reg / sizeof(u32)] =3D (u16)val;
-+		__raw_writew((u16)val, mcbsp->io_base + reg);
-+	} else {
-+		((u32 *)mcbsp->reg_cache)[reg / sizeof(u32)] =3D val;
- 		__raw_writel(val, mcbsp->io_base + reg);
-+	}
+ 	u32 level_mask;
++	u32 toggle_mask;
+ 	spinlock_t lock;
+ 	struct gpio_chip chip;
+ 	struct clk *dbck;
+@@ -749,6 +750,44 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
  }
-=20
--int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg)
-+int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache=
-)
- {
--	if (cpu_class_is_omap1() || cpu_is_omap2420())
--		return __raw_readw(mcbsp->io_base + reg);
--	else
--		return __raw_readl(mcbsp->io_base + reg);
-+	if (cpu_class_is_omap1()) {
-+		return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
-+				((u16 *)mcbsp->reg_cache)[reg / sizeof(u16)];
-+	} else if (cpu_is_omap2420()) {
-+		return !from_cache ? __raw_readw(mcbsp->io_base + reg) :
-+				((u16 *)mcbsp->reg_cache)[reg / sizeof(u32)];
-+	} else {
-+		return !from_cache ? __raw_readl(mcbsp->io_base + reg) :
-+				((u32 *)mcbsp->reg_cache)[reg / sizeof(u32)];
-+	}
- }
-=20
- #define MCBSP_READ(mcbsp, reg) \
--		omap_mcbsp_read(mcbsp, OMAP_MCBSP_REG_##reg)
-+		omap_mcbsp_read(mcbsp, OMAP_MCBSP_REG_##reg, 0)
- #define MCBSP_WRITE(mcbsp, reg, val) \
- 		omap_mcbsp_write(mcbsp, OMAP_MCBSP_REG_##reg, val)
-+#define MCBSP_READ_CACHE(mcbsp, reg) \
-+		omap_mcbsp_read(mcbsp, OMAP_MCBSP_REG_##reg, 1)
-=20
- #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
- #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
-@@ -402,6 +416,12 @@ int omap_mcbsp_request(unsigned int id)
- 	mcbsp->free =3D 0;
- 	spin_unlock(&mcbsp->lock);
-=20
-+	mcbsp->reg_cache =3D kzalloc(omap_mcbsp_cache_size, GFP_KERNEL);
-+	if (!mcbsp->reg_cache) {
-+		mcbsp->free =3D 1;
-+		return -ENOMEM;
+ #endif
+ 
++/*
++ * This only applies to chips that can't do both rising and falling edge
++ * detection at once.  For all other chips, this function is a noop.
++ */
++static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
++{
++	void __iomem *reg = bank->base;
++	u32 l = 0;
++
++	switch (bank->method) {
++#ifdef CONFIG_ARCH_OMAP1
++	case METHOD_MPUIO:
++		reg += OMAP_MPUIO_GPIO_INT_EDGE;
++		break;
++#endif
++#ifdef CONFIG_ARCH_OMAP15XX
++	case METHOD_GPIO_1510:
++		reg += OMAP1510_GPIO_INT_CONTROL;
++		break;
++#endif
++#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
++	case METHOD_GPIO_7XX:
++		reg += OMAP7XX_GPIO_INT_CONTROL;
++		break;
++#endif
++	default:
++		return;
 +	}
 +
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
- 		mcbsp->pdata->ops->request(id);
-=20
-@@ -471,6 +491,9 @@ void omap_mcbsp_free(unsigned int id)
- 		free_irq(mcbsp->tx_irq, (void *)mcbsp);
++	l = __raw_readl(reg);
++	if ((l >> gpio) & 1)
++		l &= ~(1 << gpio);
++	else
++		l |= 1 << gpio;
++
++	__raw_writel(l, reg);
++}
++
+ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ {
+ 	void __iomem *reg = bank->base;
+@@ -759,6 +798,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ 	case METHOD_MPUIO:
+ 		reg += OMAP_MPUIO_GPIO_INT_EDGE;
+ 		l = __raw_readl(reg);
++		if (trigger & IRQ_TYPE_EDGE_BOTH)
++			bank->toggle_mask |= 1 << gpio;
+ 		if (trigger & IRQ_TYPE_EDGE_RISING)
+ 			l |= 1 << gpio;
+ 		else if (trigger & IRQ_TYPE_EDGE_FALLING)
+@@ -771,6 +812,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ 	case METHOD_GPIO_1510:
+ 		reg += OMAP1510_GPIO_INT_CONTROL;
+ 		l = __raw_readl(reg);
++		if (trigger & IRQ_TYPE_EDGE_BOTH)
++			bank->toggle_mask |= 1 << gpio;
+ 		if (trigger & IRQ_TYPE_EDGE_RISING)
+ 			l |= 1 << gpio;
+ 		else if (trigger & IRQ_TYPE_EDGE_FALLING)
+@@ -803,6 +846,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ 	case METHOD_GPIO_7XX:
+ 		reg += OMAP7XX_GPIO_INT_CONTROL;
+ 		l = __raw_readl(reg);
++		if (trigger & IRQ_TYPE_EDGE_BOTH)
++			bank->toggle_mask |= 1 << gpio;
+ 		if (trigger & IRQ_TYPE_EDGE_RISING)
+ 			l |= 1 << gpio;
+ 		else if (trigger & IRQ_TYPE_EDGE_FALLING)
+@@ -1217,7 +1262,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ {
+ 	void __iomem *isr_reg = NULL;
+ 	u32 isr;
+-	unsigned int gpio_irq;
++	unsigned int gpio_irq, gpio_index;
+ 	struct gpio_bank *bank;
+ 	u32 retrigger = 0;
+ 	int unmasked = 0;
+@@ -1284,9 +1329,23 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 
+ 		gpio_irq = bank->virtual_irq_start;
+ 		for (; isr != 0; isr >>= 1, gpio_irq++) {
++			gpio_index = get_gpio_index(irq_to_gpio(gpio_irq));
++
+ 			if (!(isr & 1))
+ 				continue;
+ 
++#ifdef CONFIG_ARCH_OMAP1
++			/*
++			 * Some chips can't respond to both rising and falling
++			 * at the same time.  If this irq was requested with
++			 * both flags, we need to flip the ICR data for the IRQ
++			 * to respond to the IRQ for the opposite direction.
++			 * This will be indicated in the bank toggle_mask.
++			 */
++			if (bank->toggle_mask & (1 << gpio_index))
++				_toggle_gpio_edge_triggering(bank, gpio_index);
++#endif
++
+ 			generic_handle_irq(gpio_irq);
+ 		}
  	}
-=20
-+	kfree(mcbsp->reg_cache);
-+	mcbsp->reg_cache =3D NULL;
-+
- 	spin_lock(&mcbsp->lock);
- 	if (mcbsp->free) {
- 		dev_err(mcbsp->dev, "McBSP%d was not reserved\n",
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.6.3.3
+
