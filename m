@@ -1,48 +1,86 @@
-From: "Pagare, Abhijit" <abhijitpagare@ti.com>
-Subject: [v2 PATCH 0/5] OMAP4 Power Domain Framework Support
-Date: Tue, 15 Dec 2009 19:14:00 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BC240726@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Abhijit Pagare <abhijitpagare@ti.com>
+Subject: [v2 PATCH 1/5] ARM: OMAP4: PM: OMAP4 essential basic initialisations.
+Date: Tue, 15 Dec 2009 19:15:30 +0530
+Message-ID: <1260884734-24579-1-git-send-email-abhijitpagare@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53440 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860AbZLONoM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:44:12 -0500
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:43430 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751243AbZLONpq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Dec 2009 08:45:46 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Abhijit Pagare <abhijitpagare@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+Some of the OMAP4 specific chip level initialisations are taken care of.
 
-This is version 2 of the patch series which adds support for OMAP4 power domain framework.
+Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/id.c              |    2 ++
+ arch/arm/plat-omap/include/plat/cpu.h |    6 +++++-
+ 2 files changed, 7 insertions(+), 1 deletions(-)
 
-It can be applied on top of the latest Mainline Kernel.
-
-These patches have been boot-tested on the following platforms:
--OMAP4 simulator
--OMAP4430 ES1.0 silicon
--OMAP3430 SDP
-
-In addition to this these patches have been compile-tested for the following platforms:
--omap_2430sdp
--omap_h4_2420sdp
-
-The complete omap4 power domain structure is auto-generated using OMAP4 hardware database and is a joint effort of Paul Walmsley (paul@pwsan.com),
-Benoit Cousson (b-cousson@ti.com), Rajendra Nayak (rnayak@ti.com) and me.
-
-
-Best Regards,
-Abhijit Pagare
-
-
-Abhijit Pagare (5):
-ARM: OMAP4: PM: OMAP4 essential basic initializations.
-ARM: OMAP4: PM: OMAP4 Power Domain Porting Related Clean-up.
-ARM: OMAP4: PM: Add the Auto-generated OMAP4 specific power domain framework.
-ARM: OMAP4: PM: Adapt the existing OMAP2/3 and common Power Domain Frameworks.
-ARM: OMAP4: PM: Refine the APIs to support OMAP4 features.
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index a091b53..a779240 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -392,6 +392,8 @@ void __init omap2_check_revision(void)
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+ 		else if (omap_rev() == OMAP3630_REV_ES1_0)
+ 			omap_chip.oc |= CHIP_IS_OMAP3630ES1;
++	} else if (cpu_is_omap44xx()) {
++		omap_chip.oc |= CHIP_IS_OMAP4430;
+ 	} else {
+ 		pr_err("Uninitialized omap_chip, please fix!\n");
+ 	}
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 9a028bd..3181436 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -44,7 +44,7 @@
+ int omap_type(void);
+ 
+ struct omap_chip_id {
+-	u8 oc;
++	u16 oc;
+ 	u8 type;
+ };
+ 
+@@ -154,6 +154,7 @@ unsigned int omap_rev(void);
+  * cpu_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
+  * cpu_is_omap243x():	True for OMAP2430
+  * cpu_is_omap343x():	True for OMAP3430
++ * cpu_is_omap443x():	True for OMAP4430
+  */
+ #define GET_OMAP_CLASS	(omap_rev() & 0xff)
+ 
+@@ -286,6 +287,7 @@ IS_OMAP_SUBCLASS(443x, 0x443)
+  * cpu_is_omap2423():	True for OMAP2423
+  * cpu_is_omap2430():	True for OMAP2430
+  * cpu_is_omap3430():	True for OMAP3430
++ * cpu_is_omap4430():	True for OMAP4430
+  * cpu_is_omap3505():	True for OMAP3505
+  * cpu_is_omap3517():	True for OMAP3517
+  */
+@@ -334,6 +336,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define cpu_is_omap3505()		0
+ #define cpu_is_omap3517()		0
+ #define cpu_is_omap3430()		0
++#define cpu_is_omap4430()		0
+ #define cpu_is_omap3630()		0
+ 
+ /*
+@@ -470,6 +473,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
+ #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
+ #define CHIP_IS_OMAP3630ES1		(1 << 7)
++#define CHIP_IS_OMAP4430		(1 << 8)
+ 
+ #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+ 
+-- 
+1.5.4.7
 
