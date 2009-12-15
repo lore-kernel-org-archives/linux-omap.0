@@ -1,108 +1,44 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 07/17] DSPBRIDGE: Rename usCount to timeout
-Date: Tue, 15 Dec 2009 00:19:48 -0600
-Message-ID: <1260857998-19349-8-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 12/17] DSPBRIDGE: check pointer before calling Proc_Detach
+Date: Tue, 15 Dec 2009 00:19:53 -0600
+Message-ID: <1260857998-19349-13-git-send-email-omar.ramirez@ti.com>
 References: <1260857998-19349-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45439 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44512 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752338AbZLOGMv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Dec 2009 01:12:51 -0500
+	id S1752949AbZLOGMw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Dec 2009 01:12:52 -0500
 In-Reply-To: <1260857998-19349-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>
 
-Rename usCount to timeout
+From: Ernest Ramos Falcon <ernesto@ti.com>
 
-Reported-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+This patch adds a check before calling Proc_Detach, otherwise
+we will see an error.
+
+Signed-off-by: Ernest Ramos Falcon <ernesto@ti.com>
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- drivers/dsp/bridge/wmd/tiomap3430.c     |    6 +++---
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   12 ++++++------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/dsp/bridge/rmgr/drv_interface.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index 018a5f4..65a21b2 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -2089,14 +2089,14 @@ void configureDspMmu(struct WMD_DEV_CONTEXT *pDevContext, u32 dataBasePhys,
-  */
- bool WaitForStart(struct WMD_DEV_CONTEXT *pDevContext, u32 dwSyncAddr)
- {
--	u16 usCount = TIHELEN_ACKTIMEOUT;
-+	u16 timeout = TIHELEN_ACKTIMEOUT;
- 
- 	/*  Wait for response from board */
--	while (*((volatile u16 *)dwSyncAddr) && --usCount)
-+	while (*((volatile u16 *)dwSyncAddr) && --timeout)
- 		udelay(10);
- 
- 	/*  If timed out: return FALSE */
--	if (!usCount) {
-+	if (!timeout) {
- 		DBG_Trace(DBG_LEVEL7, "Timed out Waiting for DSP to Start\n");
- 		return FALSE;
- 	}
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index da59e4b..ea299a0 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -110,7 +110,7 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
- {
- 	DSP_STATUS status = DSP_SOK;
- #ifdef CONFIG_PM
--	u16 usCount = PWRSTST_TIMEOUT / 10;
-+	u16 timeout = PWRSTST_TIMEOUT / 10;
- 	struct CFG_HOSTRES resources;
- 	enum HW_PwrState_t pwrState;
- #ifdef CONFIG_BRIDGE_DVFS
-@@ -128,7 +128,7 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
- 	HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
- 			    &pwrState);
- 	/* Wait for DSP to move into OFF state */
--	while ((pwrState != HW_PWR_STATE_OFF) && --usCount) {
-+	while ((pwrState != HW_PWR_STATE_OFF) && --timeout) {
- 		if (msleep_interruptible(10)) {
- 			pr_err("Waiting for DSP OFF mode interrupted\n");
- 			return DSP_EFAIL;
-@@ -136,7 +136,7 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
- 		HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
- 				    &pwrState);
- 	}
--	if (usCount == 0) {
-+	if (timeout == 0) {
- 		DBG_Trace(DBG_LEVEL7, "Timed out Waiting for DSP Off mode \n");
- 		status = WMD_E_TIMEOUT;
- 		return status;
-@@ -197,7 +197,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
- #ifdef CONFIG_BRIDGE_NTFY_PWRERR
- 	struct DEH_MGR *hDehMgr;
- #endif /* CONFIG_BRIDGE_NTFY_PWRERR */
--	u16 usCount = PWRSTST_TIMEOUT / 10;
-+	u16 timeout = PWRSTST_TIMEOUT / 10;
- 	enum HW_PwrState_t pwrState, targetPwrState;
- 
- 	DBG_Trace(DBG_LEVEL7, "SleepDSP- Enter function \n");
-@@ -259,7 +259,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
- 			&pwrState);
- 
- 	/* Wait for DSP to move into target power state */
--	while ((pwrState != targetPwrState) && usCount--) {
-+	while ((pwrState != targetPwrState) && timeout--) {
- 		if (msleep_interruptible(10)) {
- 			pr_err("Waiting for DSP to Suspend interrupted\n");
- 			return DSP_EFAIL;
-@@ -268,7 +268,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
- 				    &pwrState);
- 	}
- 
--	if (!usCount) {
-+	if (!timeout) {
- 		DBG_Trace(DBG_LEVEL7, "SleepDSP: Timed out Waiting for DSP"
- 			 " STANDBY %x \n", pwrState);
- #ifdef CONFIG_BRIDGE_NTFY_PWRERR
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index a2df832..6415955 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -592,7 +592,8 @@ static int bridge_release(struct inode *ip, struct file *filp)
+ 		if (DSP_SUCCEEDED(dsp_status)) {
+ 			flush_signals(current);
+ 			DRV_RemoveAllResources(pr_ctxt);
+-			PROC_Detach(pr_ctxt->hProcessor);
++			if (pr_ctxt->hProcessor)
++				PROC_Detach(pr_ctxt->hProcessor);
+ 			DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
+ 					pr_ctxt, (void *)pr_ctxt->pid);
+ 		} else {
 -- 
 1.6.2.4
 
