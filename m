@@ -1,42 +1,57 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 10/17] DSPBRIDGE: support loading 4 dependent DLL
-Date: Tue, 15 Dec 2009 00:19:51 -0600
-Message-ID: <1260857998-19349-11-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 13/17] DSPBRIDGE: check the status of DMM_GetHandle
+Date: Tue, 15 Dec 2009 00:19:54 -0600
+Message-ID: <1260857998-19349-14-git-send-email-omar.ramirez@ti.com>
 References: <1260857998-19349-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45444 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44516 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753218AbZLOGMx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753214AbZLOGMx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 15 Dec 2009 01:12:53 -0500
 In-Reply-To: <1260857998-19349-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-From: Fernando Guzman Lugo <x0095840@ti.com>
+Check the status of DMM_GetHandle
 
-This patch fixes loading a SN that has 4 dependent DLLs, previously
-it was failing due to a non-null terminated string.
-
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/rmgr/dbdcd.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/dsp/bridge/rmgr/proc.c |   17 ++++++++++-------
+ 1 files changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
-index b1391e2..fb06ff2 100644
---- a/drivers/dsp/bridge/rmgr/dbdcd.c
-+++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -1529,7 +1529,7 @@ static DSP_STATUS GetDepLibInfo(IN struct DCD_MANAGER *hDcdMgr,
- 		goto func_cont;
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index ab0b913..89b1ff3 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -1833,16 +1833,19 @@ DSP_STATUS PROC_UnMap(DSP_HPROCESSOR hProcessor, void *pMapAddr)
+ 	}
  
- 	/* Allocate zeroed buffer. */
--	pszCoffBuf = MEM_Calloc(ulLen, MEM_PAGED);
-+	pszCoffBuf = MEM_Calloc(ulLen + 4, MEM_PAGED);
- 	if (pszCoffBuf == NULL)
- 		status = DSP_EMEMORY;
- 
+ 	status = DMM_GetHandle(hProcessor, &hDmmMgr);
+-	/* Critical section */
+-	(void)SYNC_EnterCS(hProcLock);
+ 	if (DSP_FAILED(status)) {
+ 		GT_1trace(PROC_DebugMask, GT_7CLASS, "PROC_UnMap: "
+-			 "Failed to get DMM Mgr handle: 0x%x\n", status);
+-	} else {
+-		/* Update DMM structures. Get the size to unmap.
+-		 This function returns error if the VA is not mapped */
+-		status = DMM_UnMapMemory(hDmmMgr, (u32) vaAlign, &sizeAlign);
++			"Failed to get DMM Mgr handle: 0x%x\n", status);
++		goto func_end;
+ 	}
++
++	/* Critical section */
++	(void)SYNC_EnterCS(hProcLock);
++	/*
++	 * Update DMM structures. Get the size to unmap.
++	 * This function returns error if the VA is not mapped
++	 */
++	status = DMM_UnMapMemory(hDmmMgr, (u32) vaAlign, &sizeAlign);
+ 	/* Remove mapping from the page tables. */
+ 	if (DSP_SUCCEEDED(status)) {
+ 		status = (*pProcObject->pIntfFxns->pfnBrdMemUnMap)
 -- 
 1.6.2.4
 
