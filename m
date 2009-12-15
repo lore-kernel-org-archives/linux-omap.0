@@ -1,36 +1,28 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [v2 PATCH 0/5] OMAP4 Clock Domain Framework Support
-Date: Tue, 15 Dec 2009 10:13:14 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912151012500.12561@utopia.booyaka.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02BC240732@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-next: origin tree build failure
+Date: Tue, 15 Dec 2009 09:27:17 -0800
+Message-ID: <20091215172717.GF4575@atomide.com>
+References: <20091215164108.45c9d766.sfr@canb.auug.org.au>
+ <20091215145344.GA30710@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56870 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760652AbZLORNP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 12:13:15 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BC240732@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20091215145344.GA30710@sirena.org.uk>
+Sender: linux-next-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Samuel Ortiz <sameo@linux.intel.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Linus <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pagare, Abhijit" <abhijitpagare@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Hello Abhijit,
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [091215 06:52]:
+> On Tue, Dec 15, 2009 at 04:41:08PM +1100, Stephen Rothwell wrote:
+> 
+> > I have applied this patch for today (please check):
+> 
+> Looks good to me too, fwiw:
+> 
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-On Tue, 15 Dec 2009, Pagare, Abhijit wrote:
+Good thing we have for-next to catch things like this.
 
-> This is version two of the patch series which adds support for OMAP4 clock domain framework. 
-
-...
-
-> Abhijit Pagare (5):
-> ARM: OMAP4: PM: Make OMAP3 Clock-domain framework compatible for OMAP4.
-> ARM: OMAP4: PM: Modify Clock-domain interfaces for OMAP4 compatibility.
-> ARM: OMAP4: PM: Add the Auto-generated OMAP4 specific clock domain framework.
-> ARM: OMAP4: PM: Adapt the existing OMAP2/3 Clock Domain Frameworks.
-> ARM: OMAP4: PM: Refine the APIs to support OMAP4 features.
-
-thanks, queued for .34.
-
-- Paul
+Acked-by: Tony Lindgren <tony@atomide.com>
