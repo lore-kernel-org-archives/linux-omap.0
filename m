@@ -1,53 +1,41 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: Re: [PATCH 2/2] AM35xx: Clock table updates for AM3505/17
-Date: Tue, 15 Dec 2009 17:22:06 +0530
-Message-ID: <4B277866.1070602@ti.com>
-References: <20091214201431.370.35496.stgit@localhost.localdomain> <20091214201638.370.60113.stgit@localhost.localdomain>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: commit fc7b92fca4e546184557f1c53f84ad57c66b7695 broke compilation
+Date: Tue, 15 Dec 2009 13:58:06 +0200
+Message-ID: <20091215115806.GG3689@nokia.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36913 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757677AbZLOLwM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Dec 2009 06:52:12 -0500
-In-Reply-To: <20091214201638.370.60113.stgit@localhost.localdomain>
+Received: from smtp.nokia.com ([192.100.122.230]:36970 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760012AbZLOL6s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 06:58:48 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Balaji T K <balajitk@ti.com>
 
-Hi Paul,
+Hi,
 
-Two small changes wrt USB that came up when I reviewed the AM35XX
-clock tree again.
+the patch renaming twl4030 to twl broke compilation of several omap 
+boards.
 
-On Tue, 15-Dec-09 1:46 AM +0530, Paul Walmsley wrote:
-> From: Ranjith Lohithakshan <ranjithl@ti.com>
-> 
-> AM3505/17 though a OMAP3530 derivative have the following
-> main differences
-...
+Here are all the files including a file that doesn't exist anymore:
 
->         CLK("musb_hdrc",        "ick",  &hsotgusb_ick_3430es1,  CK_3430ES1),
-> -       CLK("musb_hdrc",        "ick",  &hsotgusb_ick_3430es2,  CK_3430ES2),
-> -       CLK(NULL,       "sdrc_ick",     &sdrc_ick,      CK_343X),
-> -       CLK(NULL,       "gpmc_fck",     &gpmc_fck,      CK_343X),
-> +       CLK("musb_hdrc",        "ick",  &hsotgusb_ick_3430es2,  CK_3430ES2 | CK_AM35XX),
+arch/arm/mach-omap2/board-cm-t35.c:#include <linux/i2c/twl4030.h>
+arch/arm/mach-omap2/board-igep0020.c:#include <linux/i2c/twl4030.h>
+arch/arm/mach-omap2/board-omap3evm.c:#include <linux/i2c/twl4030.h>
+arch/arm/mach-omap2/board-omap3touchbook.c:#include <linux/i2c/twl4030.h>
+arch/arm/mach-omap2/board-rx51-peripherals.c:#include <linux/i2c/twl4030.h>
+arch/arm/mach-omap2/board-zoom-peripherals.c:#include <linux/i2c/twl4030.h>
+drivers/mfd/twl4030-codec.c:#include <linux/i2c/twl4030.h>
+drivers/video/omap/lcd_ldp.c:#include <linux/i2c/twl4030.h>
+drivers/video/omap/lcd_omap2evm.c:#include <linux/i2c/twl4030.h>
+drivers/video/omap/lcd_omap3beagle.c:#include <linux/i2c/twl4030.h>
+drivers/video/omap/lcd_omap3evm.c:#include <linux/i2c/twl4030.h>
+drivers/video/omap/lcd_overo.c:#include <linux/i2c/twl4030.h>
+sound/soc/omap/sdp3430.c:#include <linux/i2c/twl4030.h>
 
-This musb clock is NOT used on AM35XX. I might have included it in
-my original patch by mistake.
-
-...
-
-> -       CLK(NULL,       "usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2),
-> +       CLK(NULL,       "usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2 | CK_AM35XX),
->         CLK(NULL,       "usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2),
-
-The 48 MHz USB Host fclk is used and applicable on AM35XX as well.
-
-Do you want me to issue another patch for these two changes or could
-you update it when you commit? Please let me know.
-
- - Ranjith
-
+-- 
+balbi
