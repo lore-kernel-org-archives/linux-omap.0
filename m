@@ -1,38 +1,58 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: Re: [PATCH v2] AM35xx: Clock table updates for AM3505/17
-Date: Tue, 15 Dec 2009 10:05:21 +0530
-Message-ID: <4B271209.6020705@ti.com>
-References: <1258437308-29289-1-git-send-email-ranjithl@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BC14218A@dbde02.ent.ti.com> <alpine.DEB.2.00.0912141316500.12561@utopia.booyaka.com>
+From: "Pagare, Abhijit" <abhijitpagare@ti.com>
+Subject: RE: [PATCH 0/5] OMAP4 Power Domain Framework Support
+Date: Tue, 15 Dec 2009 11:02:47 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BC2402B1@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02BC14194C@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.0912141546270.12561@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36598 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:40625 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1749667AbZLOEfb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Dec 2009 23:35:31 -0500
-In-Reply-To: <alpine.DEB.2.00.0912141316500.12561@utopia.booyaka.com>
+	id S1751343AbZLOFdB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 00:33:01 -0500
+In-Reply-To: <alpine.DEB.2.00.0912141546270.12561@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Hello Paul,
+Paul,
 
+I will check that and repost them soon.
 
-On Tue, 15-Dec-09 1:47 AM +0530, Paul Walmsley wrote:
-> Hi Ranjith,
+Best Regards,
+Abhijit Pagare
+
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Tuesday, December 15, 2009 4:18 AM
+> To: Pagare, Abhijit
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> Cousson, Benoit; Nayak, Rajendra
+> Subject: Re: [PATCH 0/5] OMAP4 Power Domain Framework Support
 > 
-> by the way, could you (or someone else from Catalog) please send in a 
-> patch to add a defconfig for the Sitara EVM?  It would be good to add that 
-> to the build tests.
+> Hello Abhijit,
 > 
-
-A defconfig exists on l-o master for AM3517 EVM. This was committed
-a couple of
-weeks ago.
-
-http://marc.info/?l=linux-omap&m=125673927427337&w=2
-http://marc.info/?l=linux-omap&m=125673925827323&w=2
-
- - Ranjith
+> On Fri, 11 Dec 2009, Pagare, Abhijit wrote:
+> 
+> > This patch series adds support for OMAP4 power domain framework.
+> 
+> ...
+> 
+> > Abhijit Pagare (5):
+> > ARM: OMAP4: PM: OMAP4 essential basic initializations.
+> > ARM: OMAP4: PM: OMAP4 Power Domain Porting Related Clean-up.
+> > ARM: OMAP4: PM: Add the Auto-generated OMAP4 specific power domain
+> framework.
+> > ARM: OMAP4: PM: Adapt the existing OMAP2/3 and common Power Domain
+> Frameworks.
+> > ARM: OMAP4: PM: Refine the APIs to support OMAP4 features.
+> 
+> Looks like these patches didn't make it to the list.  Could you check and
+> repost?
+> 
+> 
+> - Paul
