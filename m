@@ -1,56 +1,76 @@
-From: "Syed Rafiuddin" <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RESUBMIT][PATCH-v2][RFC] OMAP4: I2C Support for OMAP4430
-Date: Tue, 15 Dec 2009 17:48:31 +0530 (IST)
-Message-ID: <61140.192.168.10.88.1260879511.squirrel@dbdmail.itg.ti.com>
-References: <44891.192.168.10.89.1260254659.squirrel@dbdmail.itg.ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/3 v3] musb: Add context save and restore support
+Date: Tue, 15 Dec 2009 18:06:32 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404372AAF44@dbde02.ent.ti.com>
+References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
+ <1260797982-28880-2-git-send-email-ajay.gupta@ti.com>
+ <20091214163324.GB31829@nokia.com>
+ <19F8576C6E063C45BE387C64729E739404372AAF0F@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030ADD53A6@dbde02.ent.ti.com>
+ <20091215121032.GH3689@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <44891.192.168.10.89.1260254659.squirrel-pJFUjGLopx31T2qfsofKZtBPR1lH4CV8@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-elnMNo+KYs3pIgCt6eIbzw@public.gmane.org>
-Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091215121032.GH3689-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Ben,
+> -----Original Message-----
+> From: Felipe Balbi [mailto:felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org]
+> Sent: Tuesday, December 15, 2009 5:41 PM
+> To: Gadiyar, Anand
+> Cc: Gupta, Ajay Kumar; Balbi Felipe (Nokia-D/Helsinki); linux-
+> usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org
+> Subject: Re: [PATCH 2/3 v3] musb: Add context save and restore support
+> 
+> Hi,
+> 
+> On Tue, Dec 15, 2009 at 01:04:01PM +0100, ext Gadiyar, Anand wrote:
+> >> > I think we should only allow suspend if cable isn't connected. What
+> >> > would happend if you have mounted fs (using mass storage), user is
+> >> > transferring files and you force a disconnect ?
+> >>
+> >> We force a disconnect during suspend which is actually triggered by
+> user
+> >> Only. So do we need to consider this scenario?
+> >>
+> >
+> >Like Ajay says, the kernel would need to take a call either way:
+> >
+> >- Disallowing a system wide suspend, just because a USB cable is
+> connected
+> >- Allow a system-wide suspend, but disconnect the gadget device.
+> >
+> >
+> >I would vote to allow a system-wide suspend. A user that tries to put
+> >a phone to standby in the middle of a data transfer shouldn't be too
+> >surprised that the data transfer was aborted.
+> 
+> yes, but the problem would be the data corrupted. I'm pretty sure user
+> will be a bit surprised that he now can't use his 27GB and lost all
+> contacts, movies, smses, etc.
 
->>
->> Thu, 20 Aug 2009 14:19:04 -0700
->>
->> On Tue, Aug 18, 2009 at 03:35:31PM +0530, Syed Rafiuddin wrote:
->> > Ben,
->> >
->> > > On Fri, Jul 24, 2009 at 04:40:02PM +0530, Syed Rafiuddin wrote:
->> > >> Hi Ben,
->> > >>
->> > >> > This patch adds OMAP4 support to the I2C driver. All I2C register
->> > >> > addresses  are different
->> > >> between
->> > >> > OMAP1/2/3 and OMAP4. In order to not have #ifdef's at  various places in
->> > >> > code, as well as to
->> > >> > support multi-OMAP build, Array's are  created to hold the register
->> > >> > addresses.
->> > >> >
->> > >> > Signed-off-by: Syed Rafiuddin <rafiuddin.s...-l0cyMroinI0@public.gmane.org>
->> > >> > ---
->> > >>
->> > >> No comment received on this patch,
->> > >> Is there anything that I need to resolve?
->> > >> Else can this patch get merged.
->> > >
->> > > sorry, been busy, will look at this in the next few days.
->> >
->> > Seems like no issues with the patch since no comments received from long time.
->> > Did you get a chance to look at the patch.Could you please merge this.
->>
->> I can't currently think of any neater way of doing this, so i'll
->> probably merge this.
->
-> I do not see this patch merged. Is there some thing that needs to be resolved in this patch.
-> Else can you please merge this patch.
->
-Did you get a chance to look into the patch ? If patch is fine please merge this.
+It should be system's responsibility for not entering into suspend mode when
+there is an ongoing active transfer. If this is reliable then there is no
+need for any force disconnect.
 
-Regards,
-Syed Rafiuddin
+On OMAP3EVM, I can see that system doesn't enter into suspend mode when
+cable is connected so should be fine for OMAP.
+
+Felipe/Ajay,
+What do you suggest, shall we remove this force disconnect code?
+
+-Ajay
+
+
+> 
+> --
+> balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
