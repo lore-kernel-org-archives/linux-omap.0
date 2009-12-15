@@ -1,28 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next: origin tree build failure
-Date: Tue, 15 Dec 2009 09:27:17 -0800
-Message-ID: <20091215172717.GF4575@atomide.com>
-References: <20091215164108.45c9d766.sfr@canb.auug.org.au>
- <20091215145344.GA30710@sirena.org.uk>
+Subject: Re: [PATCH] mfd: twl: fix twl4030 rename for remaining driver,
+ board files
+Date: Tue, 15 Dec 2009 09:31:34 -0800
+Message-ID: <20091215173134.GG4575@atomide.com>
+References: <1260881723-17255-1-git-send-email-balajitk@ti.com>
+ <20091215130546.GK3689@nokia.com>
+ <20091215131102.GL3689@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64984 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760670AbZLORbq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 12:31:46 -0500
 Content-Disposition: inline
-In-Reply-To: <20091215145344.GA30710@sirena.org.uk>
-Sender: linux-next-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Samuel Ortiz <sameo@linux.intel.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Linus <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
+In-Reply-To: <20091215131102.GL3689@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: "ext balajitk@ti.com" <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [091215 06:52]:
-> On Tue, Dec 15, 2009 at 04:41:08PM +1100, Stephen Rothwell wrote:
+* Felipe Balbi <felipe.balbi@nokia.com> [091215 05:10]:
+> Hi,
 > 
-> > I have applied this patch for today (please check):
+> On Tue, Dec 15, 2009 at 02:05:46PM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
+> >also, this patch doesn't apply neither on top of linus's master nor
+> >tony's master:
+> >
+> >$ git am ~/check.diff
+> >Applying: mfd: twl: fix twl4030 rename for remaining driver, board files
+> >error: patch failed: drivers/video/omap/lcd_omap2evm.c:24
+> >error: drivers/video/omap/lcd_omap2evm.c: patch does not apply
+> >error: patch failed: drivers/video/omap/lcd_omap3beagle.c:23
+> >error: drivers/video/omap/lcd_omap3beagle.c: patch does not apply
+> >error: patch failed: drivers/video/omap/lcd_omap3evm.c:23
+> >error: drivers/video/omap/lcd_omap3evm.c: patch does not apply
+> >Patch failed at 0001 mfd: twl: fix twl4030 rename for remaining driver, board files
+> >When you have resolved this problem run "git am --resolved".
+> >If you would prefer to skip this patch, instead run "git am --skip".
+> >To restore the original branch and stop patching run "git am --abort".
+> >
+> >please rebase.
 > 
-> Looks good to me too, fwiw:
+> <fixed tony's address>
 > 
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> and btw, linux-omap doesn't have this problem (just yet). It's
+> missing a merge.
 
-Good thing we have for-next to catch things like this.
+Let me try to catch up to this thread.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+These twl rename patches have been through at least 4 revisions of
+changes, and they're still breaking compile?
+
+The fix for the build breakage does not even apply?
+
+And these are patches from TI for TI's own platform?
+
+And they also break compile for x86?
+
+Good thing these got stopped at for-next before hitting mainline.
+
+Regards,
+
+Tony
+
