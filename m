@@ -1,60 +1,69 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/3 v3] musb: Add context save and restore support
-Date: Tue, 15 Dec 2009 17:14:56 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404372AAF0F@dbde02.ent.ti.com>
-References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
- <1260797982-28880-2-git-send-email-ajay.gupta@ti.com>
- <20091214163324.GB31829@nokia.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: dspbridge sync proposal for 0.1
+Date: Tue, 15 Dec 2009 13:45:55 +0200
+Message-ID: <94a0d4530912150345p2009dbddra805fd298ffc9e92@mail.gmail.com>
+References: <20091205133900.GA17280@annwn.felipec.org>
+	 <94a0d4530912140803t4f910549ga04b02a14dabe715@mail.gmail.com>
+	 <27F9C60D11D683428E133F85D2BB4A53042D3963E0@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091214163324.GB31829-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:55623 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753237AbZLOLp5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 06:45:57 -0500
+Received: by iwn1 with SMTP id 1so875760iwn.33
+        for <linux-omap@vger.kernel.org>; Tue, 15 Dec 2009 03:45:56 -0800 (PST)
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53042D3963E0@dlee03.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Artem Bityutskiy <artem.bityutskiy@nokia.com>, "Shah, Bhavin" <bshah@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-<snip..>
+On Tue, Dec 15, 2009 at 7:53 AM, Ramirez Luna, Omar <omar.ramirez@ti.co=
+m> wrote:
+> After the analysis of both branches (current dspbridge and dspbridge-=
+0.1) and the need to resend the patches that haven't been reviewed. It =
+was decided that the unsent patches would be reverted and sent to the l=
+ist for review, given the need to have a baseline that works for most o=
+f the OMAP 3 platforms, I took Felipe's patch order proposal (as it is =
+working for N900) and recreated the future dspbridge branch.
+>
+> This can be found at:
+> http://dev.omapzoom.org/?p=3Dtidspbridge/kernel-dspbridge.git;a=3Dsum=
+mary =C2=A0dspbridge-baseline-v2
 
-> >@@ -2179,15 +2322,23 @@ static int musb_suspend(struct device *dev)
-> >        spin_lock_irqsave(&musb->lock, flags);
-> >
-> >        if (is_peripheral_active(musb)) {
-> >-               /* FIXME force disconnect unless we know USB will wake
-> >-                * the system up quickly enough to respond ...
-> >+               /* System is entering into suspend where gadget would not
-> be
-> >+                * able to respond to host and thus it will be in an
-> unknown
-> >+                * state for host. Re-enumeration of gadget is required
-> after
-> >+                * a resume. So we force a disconnect.
-> >                 */
-> >+               reg = musb_readb(musb->mregs, MUSB_POWER);
-> >+               reg &= ~MUSB_POWER_SOFTCONN;
-> >+               musb_writeb(musb->mregs, MUSB_POWER, reg);
-> >+
-> 
-> I think we should only allow suspend if cable isn't connected. What
-> would happend if you have mounted fs (using mass storage), user is
-> transferring files and you force a disconnect ?
+There's something wrong with that repository; I can't  retrieve it in a=
+ny way:
 
-We force a disconnect during suspend which is actually triggered by user
-Only. So do we need to consider this scenario?
+% git remote add omar git://dev.omapzoom.org/pub/scm/tidspbrid
+% git fetch omar
+fatal: The remote end hung up unexpectedly
+fatal: protocol error: bad pack header
 
-Moreover, in case of OMAP3, as Smart-Idle/Stdby is enabled so system shouldn't enter into suspend state if cable is connected and data
-transfer is going on.
+% git clone git://dev.omapzoom.org/pub/scm/tidspbridge/kernel-dspbridge=
+=2Egit
+--reference=3D~src/linux tmp-omar
+Initialized empty Git repository in tmp-omar/.git/
+fatal: The remote end hung up unexpectedly
+fatal: early EOF
+fatal: index-pack failed
 
--Ajay
+% git clone git://dev.omapzoom.org/pub/scm/tidspbridge/kernel-dspbridge=
+=2Egit
+tmp-omar
+Initialized empty Git repository in tmp-omar/.git/
+remote: Counting objects: 1430544, done.
+remote: Compressing objects: 100% (238646/238646), done.
+fatal: The remote end hung up unexpectedly3.75 MiB | 37 KiB/s
+fatal: early EOF
+fatal: index-pack failed
 
-> 
-> >diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> >index 83beeac..15a3f27 100644
-> >--- a/drivers/usb/musb/omap2430.c
-> >+++ b/drivers/usb/musb/omap2430.c
+--=20
+=46elipe Contreras
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
