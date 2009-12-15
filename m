@@ -1,75 +1,55 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/4] musb: get rid of unneeded musb->config->dyn_fifo
-Date: Tue, 15 Dec 2009 15:48:57 +0200
-Message-ID: <20091215134857.GO3689@nokia.com>
-References: <1260883909-26836-1-git-send-email-ajay.gupta@ti.com>
- <20091215133432.GN3689@nokia.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: "Pagare, Abhijit" <abhijitpagare@ti.com>
+Subject: [v2 PATCH 0/5] OMAP4 Clock Domain Framework Support
+Date: Tue, 15 Dec 2009 19:21:52 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BC240732@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091215133432.GN3689-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53887 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752128AbZLONwB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:52:01 -0500
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Pagare, Abhijit" <abhijitpagare@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Tue, Dec 15, 2009 at 02:34:32PM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
->Hi,
->
->On Tue, Dec 15, 2009 at 02:31:46PM +0100, ext Ajay Kumar Gupta wrote:
->>diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
->>index d437556..c5f006e 100644
->>--- a/include/linux/usb/musb.h
->>+++ b/include/linux/usb/musb.h
->>@@ -30,7 +30,6 @@ struct musb_hdrc_eps_bits {
->> struct musb_hdrc_config {
->> 	/* MUSB configuration-specific details */
->> 	unsigned	multipoint:1;	/* multipoint device */
->>-	unsigned	dyn_fifo:1;	/* supports dynamic fifo sizing */
->> 	unsigned	soft_con:1;	/* soft connect required */
->> 	unsigned	utm_16:1;	/* utm data witdh is 16 bits */
->> 	unsigned	big_endian:1;	/* true if CPU uses big-endian */
->
->same problem as the other patch I sent:
->
->$ git grep -w dyn_fifo arch/
->arch/arm/mach-davinci/usb.c:    .dyn_fifo       = true,
->arch/arm/mach-omap2/usb-musb.c: .dyn_fifo       = 1,
->arch/blackfin/mach-bf527/boards/cm_bf527.c:     .dyn_fifo       = 0,
->arch/blackfin/mach-bf527/boards/ezbrd.c:        .dyn_fifo       = 0,
->arch/blackfin/mach-bf527/boards/ezkit.c:        .dyn_fifo       = 0,
->arch/blackfin/mach-bf548/boards/cm_bf548.c:     .dyn_fifo       = 0,
->arch/blackfin/mach-bf548/boards/ezkit.c:        .dyn_fifo       = 0,
->
->we have to agree who will carry the arch changes.
+Hi,
 
-what we can do is mark that field as deprecated and give one major 
-release for people to remove that from their boards, then we send a 
-patch finally removing it.
+This is version two of the patch series which adds support for OMAP4 clock domain framework. 
 
-I'm talking about:
+It can be applied on top of the latest Mainline Kernel but has a dependency on the series of OMAP4 power domain framework patches sent by me earlier.
 
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index d437556..c3ca147 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -30,7 +30,7 @@ struct musb_hdrc_eps_bits {
-  struct musb_hdrc_config {
-         /* MUSB configuration-specific details */
-         unsigned        multipoint:1;   /* multipoint device */
--       unsigned        dyn_fifo:1;     /* supports dynamic fifo sizing */
-+       unsigned        dyn_fifo:1 __deprecated;        /* supports dynamic fifo sizing */
-         unsigned        soft_con:1;     /* soft connect required */
-         unsigned        utm_16:1;       /* utm data witdh is 16 bits */
-         unsigned        big_endian:1;   /* true if CPU uses big-endian */
+http://marc.info/?l=linux-omap&m=126088465431181&w=2
 
-how do you feel about that ?
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It also has a dependency on the following fix patch:
+
+http://marc.info/?l=linux-omap&m=126088389030110&w=2
+
+
+These patches have been boot-tested on the following platforms:
+-OMAP4 simulator
+-OMAP4430 ES1.0 silicon
+-OMAP3430 SDP
+
+In addition to this these patches have been compile-tested for the following platforms:
+-omap_2430sdp
+-omap_h4_2420sdp
+
+The complete omap4 clock domain structure is auto-generated using OMAP4 hardware database and is a joint effort of Paul Walmsley (paul@pwsan.com),
+Benoit Cousson (b-cousson@ti.com), Rajendra Nayak (rnayak@ti.com) and me.
+
+
+Best Regards,
+Abhijit Pagare
+
+Abhijit Pagare (5):
+ARM: OMAP4: PM: Make OMAP3 Clock-domain framework compatible for OMAP4.
+ARM: OMAP4: PM: Modify Clock-domain interfaces for OMAP4 compatibility.
+ARM: OMAP4: PM: Add the Auto-generated OMAP4 specific clock domain framework.
+ARM: OMAP4: PM: Adapt the existing OMAP2/3 Clock Domain Frameworks.
+ARM: OMAP4: PM: Refine the APIs to support OMAP4 features.
+
