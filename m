@@ -1,550 +1,147 @@
 From: Abhijit Pagare <abhijitpagare@ti.com>
-Subject: [v2 PATCH 1/5] ARM: OMAP4: PM: Make OMAP3 Clock-domain framework compatible for OMAP4.
-Date: Tue, 15 Dec 2009 19:22:53 +0530
-Message-ID: <1260885177-25665-1-git-send-email-abhijitpagare@ti.com>
+Subject: [v2 PATCH 5/5] ARM: OMAP4: PM: Refine the APIs to support OMAP4 features.
+Date: Tue, 15 Dec 2009 19:22:57 +0530
+Message-ID: <1260885177-25665-5-git-send-email-abhijitpagare@ti.com>
+References: <1260885177-25665-1-git-send-email-abhijitpagare@ti.com>
+ <1260885177-25665-2-git-send-email-abhijitpagare@ti.com>
+ <1260885177-25665-3-git-send-email-abhijitpagare@ti.com>
+ <1260885177-25665-4-git-send-email-abhijitpagare@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44662 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757657AbZLONxN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Dec 2009 08:53:13 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:53966 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757784AbZLONxM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:53:12 -0500
+In-Reply-To: <1260885177-25665-4-git-send-email-abhijitpagare@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Abhijit Pagare <abhijitpagare@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Here the ".clkstctrl_reg" field is added to the clockdomain stucture
-as the module offsets for OMAP4 do not map one to one for powerdomains
-and clockdomains as it used to for OMAP3. Hence we need to use absolute
-addresses to access the control registers. Some of the clock domains have
-modules falling in the address space of PRM partition. Hence  necessitating
-the use of absolute adresses.
+Port the APIs to support the OMAP4 clockdomain framework.
+Also take care of the compiling requirements for the same.
 
 Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clockdomain.c             |   12 ++-
- arch/arm/mach-omap2/clockdomains.h            |  133 +++++++++++++++++++------
- arch/arm/mach-omap2/cm.h                      |    5 +-
- arch/arm/mach-omap2/pm-debug.c                |    4 +-
- arch/arm/mach-omap2/prcm.c                    |   43 +++++----
- arch/arm/plat-omap/include/plat/clockdomain.h |    3 +
- 6 files changed, 142 insertions(+), 58 deletions(-)
+ arch/arm/mach-omap2/Makefile      |    2 +-
+ arch/arm/mach-omap2/clockdomain.c |   19 +++++++++++--------
+ arch/arm/mach-omap2/io.c          |    2 +-
+ 3 files changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 50c8cd7..52885ac 100644
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefil=
+e
+index 4a54e5a..64de2fd 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -13,7 +13,7 @@ clock-common				=3D clock.o clock_common_data.o clock=
+domain.o
+ obj-$(CONFIG_ARCH_OMAP2) +=3D $(omap-2-3-common) $(prcm-common) $(cloc=
+k-common)
+ obj-$(CONFIG_ARCH_OMAP3) +=3D $(omap-2-3-common) $(prcm-common) $(cloc=
+k-common) \
+ 			    $(omap-3-4-common)
+-obj-$(CONFIG_ARCH_OMAP4) +=3D $(omap-3-4-common) $(prcm-common) clock.=
+o
++obj-$(CONFIG_ARCH_OMAP4) +=3D $(omap-3-4-common) $(prcm-common) $(cloc=
+k-common)
+=20
+ obj-$(CONFIG_OMAP_MCBSP) +=3D mcbsp.o
+=20
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/cl=
+ockdomain.c
+index 5366a10..f768d37 100644
 --- a/arch/arm/mach-omap2/clockdomain.c
 +++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -163,7 +163,7 @@ static void _omap2_clkdm_set_hwsup(struct clockdomain *clkdm, int enable)
- 
- 	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
- 			    v << __ffs(clkdm->clktrctrl_mask),
--			    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
-+			    clkdm->pwrdm.ptr->prcm_offs, OMAP2_CM_CLKSTCTRL);
- }
- 
- static struct clockdomain *_clkdm_lookup(const char *name)
-@@ -371,7 +371,7 @@ struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm)
-  * @clk: struct clk * of a clockdomain
+@@ -1,10 +1,11 @@
+ /*
+- * OMAP2/3 clockdomain framework functions
++ * OMAP2/3/4 clockdomain framework functions
   *
-  * Return the clockdomain's current state transition mode from the
-- * corresponding domain CM_CLKSTCTRL register.	Returns -EINVAL if clk
-+ * corresponding domain OMAP2_CM_CLKSTCTRL register.	Returns -EINVAL if clk
-  * is NULL or the current mode upon success.
-  */
- static int omap2_clkdm_clktrctrl_read(struct clockdomain *clkdm)
-@@ -381,7 +381,7 @@ static int omap2_clkdm_clktrctrl_read(struct clockdomain *clkdm)
- 	if (!clkdm)
- 		return -EINVAL;
- 
--	v = cm_read_mod_reg(clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
-+	v = cm_read_mod_reg(clkdm->pwrdm.ptr->prcm_offs, OMAP2_CM_CLKSTCTRL);
- 	v &= clkdm->clktrctrl_mask;
- 	v >>= __ffs(clkdm->clktrctrl_mask);
- 
-@@ -421,7 +421,8 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+  * Copyright (C) 2008 Texas Instruments, Inc.
+  * Copyright (C) 2008-2009 Nokia Corporation
+  *
+  * Written by Paul Walmsley and Jouni H=C3=83=C2=B6gander
++ * Added OMAP4 specific support by Abhijit Pagare <abhijitpagare@ti.co=
+m>
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License version 2 as
+@@ -152,7 +153,7 @@ static void _omap2_clkdm_set_hwsup(struct clockdoma=
+in *clkdm, int enable)
+ 			bits =3D OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
+ 		else
+ 			bits =3D OMAP24XX_CLKSTCTRL_DISABLE_AUTO;
+-	} else if (cpu_is_omap34xx()) {
++	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
+ 		if (enable)
+ 			bits =3D OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
+ 		else
+@@ -213,10 +214,12 @@ void clkdm_init(struct clockdomain **clkdms,
+ 		for (c =3D clkdms; *c; c++)
+ 			clkdm_register(*c);
+=20
+-	autodeps =3D init_autodeps;
+-	if (autodeps)
+-		for (autodep =3D autodeps; autodep->pwrdm.ptr; autodep++)
+-			_autodep_lookup(autodep);
++	if (!cpu_is_omap44xx()) {
++		autodeps =3D init_autodeps;
++		if (autodeps)
++			for (autodep =3D autodeps; autodep->pwrdm.ptr; autodep++)
++				_autodep_lookup(autodep);
++	}
+ }
+=20
+ /**
+@@ -419,7 +422,7 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+ 		cm_set_mod_reg_bits(OMAP24XX_FORCESTATE,
+ 			    clkdm->pwrdm.ptr->prcm_offs, OMAP2_PM_PWSTCTRL);
+=20
+-	} else if (cpu_is_omap34xx()) {
++	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
+=20
+ 		u32 bits =3D (OMAP34XX_CLKSTCTRL_FORCE_SLEEP <<
  			 __ffs(clkdm->clktrctrl_mask));
- 
- 		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
--				    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
-+				    clkdm->pwrdm.ptr->prcm_offs,
-+							 OMAP2_CM_CLKSTCTRL);
- 
- 	} else {
- 		BUG();
-@@ -463,7 +464,8 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+@@ -463,7 +466,7 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+ 		cm_clear_mod_reg_bits(OMAP24XX_FORCESTATE,
+ 			      clkdm->pwrdm.ptr->prcm_offs, OMAP2_PM_PWSTCTRL);
+=20
+-	} else if (cpu_is_omap34xx()) {
++	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
+=20
+ 		u32 bits =3D (OMAP34XX_CLKSTCTRL_FORCE_WAKEUP <<
  			 __ffs(clkdm->clktrctrl_mask));
- 
- 		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
--				    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
-+				    clkdm->pwrdm.ptr->prcm_offs,
-+						 OMAP2_CM_CLKSTCTRL);
- 
- 	} else {
- 		BUG();
-diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
-index c4ee076..0e61140 100644
---- a/arch/arm/mach-omap2/clockdomains.h
-+++ b/arch/arm/mach-omap2/clockdomains.h
-@@ -11,6 +11,8 @@
- #define __ARCH_ARM_MACH_OMAP2_CLOCKDOMAINS_H
- 
- #include <plat/clockdomain.h>
-+#include "cm.h"
-+#include "prm44xx.h"
- 
- /*
-  * OMAP2/3-common clockdomains
-@@ -50,6 +52,7 @@ static struct clockdomain mpu_2420_clkdm = {
- 	.name		= "mpu_clkdm",
- 	.pwrdm		= { .name = "mpu_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP,
-+	.clkstctrl_reg  = OMAP2420_CM_REGADDR(MPU_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_MPU_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
- };
-@@ -58,11 +61,59 @@ static struct clockdomain iva1_2420_clkdm = {
- 	.name		= "iva1_clkdm",
- 	.pwrdm		= { .name = "dsp_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg  = OMAP2420_CM_REGADDR(OMAP24XX_DSP_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP2420_AUTOSTATE_IVA_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
- };
- 
--#endif  /* CONFIG_ARCH_OMAP2420 */
-+static struct clockdomain dsp_2420_clkdm = {
-+	.name		= "dsp_clkdm",
-+	.pwrdm		= { .name = "dsp_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg  = OMAP2420_CM_REGADDR(OMAP24XX_DSP_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSP_MASK,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+static struct clockdomain gfx_2420_clkdm = {
-+	.name		= "gfx_clkdm",
-+	.pwrdm		= { .name = "gfx_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg  = OMAP2420_CM_REGADDR(GFX_MOD, OMAP2_CM_CLKSTCTRL),
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_GFX_MASK,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+static struct clockdomain core_l3_2420_clkdm = {
-+	.name		= "core_l3_clkdm",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clkstctrl_reg  = OMAP2420_CM_REGADDR(CORE_MOD, OMAP2_CM_CLKSTCTRL),
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L3_MASK,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+static struct clockdomain core_l4_2420_clkdm = {
-+	.name		= "core_l4_clkdm",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clkstctrl_reg  = OMAP2420_CM_REGADDR(CORE_MOD, OMAP2_CM_CLKSTCTRL),
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L4_MASK,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+static struct clockdomain dss_2420_clkdm = {
-+	.name		= "dss_clkdm",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.flags		= CLKDM_CAN_HWSUP,
-+	.clkstctrl_reg  = OMAP2420_CM_REGADDR(CORE_MOD, OMAP2_CM_CLKSTCTRL),
-+	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSS_MASK,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+#endif   /* CONFIG_ARCH_OMAP2420 */
- 
- 
- /*
-@@ -75,6 +126,8 @@ static struct clockdomain mpu_2430_clkdm = {
- 	.name		= "mpu_clkdm",
- 	.pwrdm		= { .name = "mpu_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg  = OMAP2430_CM_REGADDR(MPU_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_MPU_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
-@@ -83,60 +136,59 @@ static struct clockdomain mdm_clkdm = {
- 	.name		= "mdm_clkdm",
- 	.pwrdm		= { .name = "mdm_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg  = OMAP2430_CM_REGADDR(OMAP2430_MDM_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP2430_AUTOSTATE_MDM_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
- 
--#endif    /* CONFIG_ARCH_OMAP2430 */
--
--
--/*
-- * 24XX-only clockdomains
-- */
--
--#if defined(CONFIG_ARCH_OMAP24XX)
--
--static struct clockdomain dsp_clkdm = {
-+static struct clockdomain dsp_2430_clkdm = {
- 	.name		= "dsp_clkdm",
- 	.pwrdm		= { .name = "dsp_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg  = OMAP2430_CM_REGADDR(OMAP24XX_DSP_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSP_MASK,
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
- 
--static struct clockdomain gfx_24xx_clkdm = {
-+static struct clockdomain gfx_2430_clkdm = {
- 	.name		= "gfx_clkdm",
- 	.pwrdm		= { .name = "gfx_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg  = OMAP2430_CM_REGADDR(GFX_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_GFX_MASK,
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
- 
--static struct clockdomain core_l3_24xx_clkdm = {
-+static struct clockdomain core_l3_2430_clkdm = {
- 	.name		= "core_l3_clkdm",
- 	.pwrdm		= { .name = "core_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP,
-+	.clkstctrl_reg  = OMAP2430_CM_REGADDR(CORE_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L3_MASK,
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
- 
--static struct clockdomain core_l4_24xx_clkdm = {
-+static struct clockdomain core_l4_2430_clkdm = {
- 	.name		= "core_l4_clkdm",
- 	.pwrdm		= { .name = "core_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP,
-+	.clkstctrl_reg  = OMAP2430_CM_REGADDR(CORE_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L4_MASK,
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
- 
--static struct clockdomain dss_24xx_clkdm = {
-+static struct clockdomain dss_2430_clkdm = {
- 	.name		= "dss_clkdm",
- 	.pwrdm		= { .name = "core_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP,
-+	.clkstctrl_reg  = OMAP2430_CM_REGADDR(CORE_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSS_MASK,
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
- 
--#endif   /* CONFIG_ARCH_OMAP24XX */
-+#endif    /* CONFIG_ARCH_OMAP2430 */
- 
- 
- /*
-@@ -149,6 +201,7 @@ static struct clockdomain mpu_34xx_clkdm = {
- 	.name		= "mpu_clkdm",
- 	.pwrdm		= { .name = "mpu_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(MPU_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -157,6 +210,8 @@ static struct clockdomain neon_clkdm = {
- 	.name		= "neon_clkdm",
- 	.pwrdm		= { .name = "neon_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430_NEON_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_NEON_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -165,6 +220,8 @@ static struct clockdomain iva2_clkdm = {
- 	.name		= "iva2_clkdm",
- 	.pwrdm		= { .name = "iva2_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430_IVA2_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_IVA2_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -173,6 +230,7 @@ static struct clockdomain gfx_3430es1_clkdm = {
- 	.name		= "gfx_clkdm",
- 	.pwrdm		= { .name = "gfx_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(GFX_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_GFX_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
- };
-@@ -181,6 +239,8 @@ static struct clockdomain sgx_clkdm = {
- 	.name		= "sgx_clkdm",
- 	.pwrdm		= { .name = "sgx_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430ES2_SGX_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
- };
-@@ -196,6 +256,7 @@ static struct clockdomain d2d_clkdm = {
- 	.name		= "d2d_clkdm",
- 	.pwrdm		= { .name = "core_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(CORE_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_D2D_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -204,6 +265,7 @@ static struct clockdomain core_l3_34xx_clkdm = {
- 	.name		= "core_l3_clkdm",
- 	.pwrdm		= { .name = "core_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(CORE_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L3_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -212,6 +274,7 @@ static struct clockdomain core_l4_34xx_clkdm = {
- 	.name		= "core_l4_clkdm",
- 	.pwrdm		= { .name = "core_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(CORE_MOD, OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L4_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -220,6 +283,8 @@ static struct clockdomain dss_34xx_clkdm = {
- 	.name		= "dss_clkdm",
- 	.pwrdm		= { .name = "dss_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -228,6 +293,8 @@ static struct clockdomain cam_clkdm = {
- 	.name		= "cam_clkdm",
- 	.pwrdm		= { .name = "cam_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_CAM_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -236,6 +303,8 @@ static struct clockdomain usbhost_clkdm = {
- 	.name		= "usbhost_clkdm",
- 	.pwrdm		= { .name = "usbhost_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430ES2_USBHOST_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
- };
-@@ -244,6 +313,8 @@ static struct clockdomain per_clkdm = {
- 	.name		= "per_clkdm",
- 	.pwrdm		= { .name = "per_pwrdm" },
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430_PER_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -256,6 +327,8 @@ static struct clockdomain emu_clkdm = {
- 	.name		= "emu_clkdm",
- 	.pwrdm		= { .name = "emu_pwrdm" },
- 	.flags		= /* CLKDM_CAN_ENABLE_AUTO |  */CLKDM_CAN_SWSUP,
-+	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430_EMU_MOD,
-+						 OMAP2_CM_CLKSTCTRL),
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_EMU_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -323,19 +396,21 @@ static struct clockdomain *clockdomains_omap[] = {
- #ifdef CONFIG_ARCH_OMAP2420
- 	&mpu_2420_clkdm,
- 	&iva1_2420_clkdm,
-+	&dsp_2420_clkdm,
-+	&gfx_2420_clkdm,
-+	&core_l3_2420_clkdm,
-+	&core_l4_2420_clkdm,
-+	&dss_2420_clkdm,
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index c4ffdaf..f2ad80b 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -314,12 +314,12 @@ void __init omap2_init_common_hw(struct omap_sdrc=
+_params *sdrc_cs0,
+ 		hwmods =3D omap34xx_hwmods;
+=20
+ 	pwrdm_init(powerdomains_omap);
++	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
+ #ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is rea=
+dy */
+ 	/* The OPP tables have to be registered before a clk init */
+ 	omap_hwmod_init(hwmods);
+ 	omap2_mux_init();
+ 	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
+-	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
  #endif
- 
- #ifdef CONFIG_ARCH_OMAP2430
- 	&mpu_2430_clkdm,
- 	&mdm_clkdm,
--#endif
--
--#ifdef CONFIG_ARCH_OMAP24XX
--	&dsp_clkdm,
--	&gfx_24xx_clkdm,
--	&core_l3_24xx_clkdm,
--	&core_l4_24xx_clkdm,
--	&dss_24xx_clkdm,
-+	&dsp_2430_clkdm,
-+	&gfx_2430_clkdm,
-+	&core_l3_2430_clkdm,
-+	&core_l4_2430_clkdm,
-+	&dss_2430_clkdm,
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP34XX
-diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-index 90a4086..4e4ac8c 100644
---- a/arch/arm/mach-omap2/cm.h
-+++ b/arch/arm/mach-omap2/cm.h
-@@ -67,7 +67,8 @@
- #define CM_CLKSEL					0x0040
- #define CM_CLKSEL1					CM_CLKSEL
- #define CM_CLKSEL2					0x0044
--#define CM_CLKSTCTRL					0x0048
-+#define OMAP2_CM_CLKSTCTRL				0x0048
-+#define OMAP4_CM_CLKSTCTRL				0x0000
- 
- 
- /* Architecture-specific registers */
-@@ -88,7 +89,7 @@
- #define OMAP3430_CM_CLKSEL1_PLL				CM_CLKSEL
- #define OMAP3430_CM_CLKSEL2_PLL				CM_CLKSEL2
- #define OMAP3430_CM_SLEEPDEP				CM_CLKSEL2
--#define OMAP3430_CM_CLKSEL3				CM_CLKSTCTRL
-+#define OMAP3430_CM_CLKSEL3				OMAP2_CM_CLKSTCTRL
- #define OMAP3430_CM_CLKSTST				0x004c
- #define OMAP3430ES2_CM_CLKSEL4				0x004c
- #define OMAP3430ES2_CM_CLKSEL5				0x0050
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index e79e0b1..32f1ae9 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -69,7 +69,7 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
- #if 0
- 		/* MPU */
- 		DUMP_PRM_MOD_REG(OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
--		DUMP_CM_MOD_REG(MPU_MOD, CM_CLKSTCTRL);
-+		DUMP_CM_MOD_REG(MPU_MOD, OMAP2_CM_CLKSTCTRL);
- 		DUMP_PRM_MOD_REG(MPU_MOD, OMAP2_PM_PWSTCTRL);
- 		DUMP_PRM_MOD_REG(MPU_MOD, OMAP2_PM_PWSTST);
- 		DUMP_PRM_MOD_REG(MPU_MOD, PM_WKDEP);
-@@ -105,7 +105,7 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
- 			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_IDLEST);
- 			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_AUTOIDLE);
- 			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_CLKSEL);
--			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_CLKSTCTRL);
-+			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, OMAP2_CM_CLKSTCTRL);
- 			DUMP_PRM_MOD_REG(OMAP24XX_DSP_MOD, OMAP2_RM_RSTCTRL);
- 			DUMP_PRM_MOD_REG(OMAP24XX_DSP_MOD, OMAP2_RM_RSTST);
- 			DUMP_PRM_MOD_REG(OMAP24XX_DSP_MOD, OMAP2_PM_PWSTCTRL);
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 920caae..cc621e2 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -295,7 +295,7 @@ void omap3_prcm_save_context(void)
- 	prcm_context.emu_cm_clksel =
- 			 cm_read_mod_reg(OMAP3430_EMU_MOD, CM_CLKSEL1);
- 	prcm_context.emu_cm_clkstctrl =
--			 cm_read_mod_reg(OMAP3430_EMU_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(OMAP3430_EMU_MOD, OMAP2_CM_CLKSTCTRL);
- 	prcm_context.pll_cm_autoidle2 =
- 			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE2);
- 	prcm_context.pll_cm_clksel4 =
-@@ -352,23 +352,25 @@ void omap3_prcm_save_context(void)
- 	prcm_context.pll_cm_autoidle =
- 			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
- 	prcm_context.iva2_cm_clkstctrl =
--			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(OMAP3430_IVA2_MOD, OMAP2_CM_CLKSTCTRL);
- 	prcm_context.mpu_cm_clkstctrl =
--			 cm_read_mod_reg(MPU_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(MPU_MOD, OMAP2_CM_CLKSTCTRL);
- 	prcm_context.core_cm_clkstctrl =
--			 cm_read_mod_reg(CORE_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(CORE_MOD, OMAP2_CM_CLKSTCTRL);
- 	prcm_context.sgx_cm_clkstctrl =
--			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
-+						OMAP2_CM_CLKSTCTRL);
- 	prcm_context.dss_cm_clkstctrl =
--			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(OMAP3430_DSS_MOD, OMAP2_CM_CLKSTCTRL);
- 	prcm_context.cam_cm_clkstctrl =
--			 cm_read_mod_reg(OMAP3430_CAM_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(OMAP3430_CAM_MOD, OMAP2_CM_CLKSTCTRL);
- 	prcm_context.per_cm_clkstctrl =
--			 cm_read_mod_reg(OMAP3430_PER_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(OMAP3430_PER_MOD, OMAP2_CM_CLKSTCTRL);
- 	prcm_context.neon_cm_clkstctrl =
--			 cm_read_mod_reg(OMAP3430_NEON_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(OMAP3430_NEON_MOD, OMAP2_CM_CLKSTCTRL);
- 	prcm_context.usbhost_cm_clkstctrl =
--			 cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_CLKSTCTRL);
-+			 cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-+						OMAP2_CM_CLKSTCTRL);
- 	prcm_context.core_cm_autoidle1 =
- 			 cm_read_mod_reg(CORE_MOD, CM_AUTOIDLE1);
- 	prcm_context.core_cm_autoidle2 =
-@@ -452,7 +454,7 @@ void omap3_prcm_restore_context(void)
- 	cm_write_mod_reg(prcm_context.emu_cm_clksel, OMAP3430_EMU_MOD,
- 					 CM_CLKSEL1);
- 	cm_write_mod_reg(prcm_context.emu_cm_clkstctrl, OMAP3430_EMU_MOD,
--					 CM_CLKSTCTRL);
-+					 OMAP2_CM_CLKSTCTRL);
- 	cm_write_mod_reg(prcm_context.pll_cm_autoidle2, PLL_MOD,
- 					 CM_AUTOIDLE2);
- 	cm_write_mod_reg(prcm_context.pll_cm_clksel4, PLL_MOD,
-@@ -500,22 +502,23 @@ void omap3_prcm_restore_context(void)
- 	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
- 	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
- 	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
--					CM_CLKSTCTRL);
--	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
-+					OMAP2_CM_CLKSTCTRL);
-+	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD,
-+					OMAP2_CM_CLKSTCTRL);
- 	cm_write_mod_reg(prcm_context.core_cm_clkstctrl, CORE_MOD,
--					CM_CLKSTCTRL);
-+					OMAP2_CM_CLKSTCTRL);
- 	cm_write_mod_reg(prcm_context.sgx_cm_clkstctrl, OMAP3430ES2_SGX_MOD,
--					CM_CLKSTCTRL);
-+					OMAP2_CM_CLKSTCTRL);
- 	cm_write_mod_reg(prcm_context.dss_cm_clkstctrl, OMAP3430_DSS_MOD,
--					CM_CLKSTCTRL);
-+					OMAP2_CM_CLKSTCTRL);
- 	cm_write_mod_reg(prcm_context.cam_cm_clkstctrl, OMAP3430_CAM_MOD,
--					CM_CLKSTCTRL);
-+					OMAP2_CM_CLKSTCTRL);
- 	cm_write_mod_reg(prcm_context.per_cm_clkstctrl, OMAP3430_PER_MOD,
--					CM_CLKSTCTRL);
-+					OMAP2_CM_CLKSTCTRL);
- 	cm_write_mod_reg(prcm_context.neon_cm_clkstctrl, OMAP3430_NEON_MOD,
--					CM_CLKSTCTRL);
-+					OMAP2_CM_CLKSTCTRL);
- 	cm_write_mod_reg(prcm_context.usbhost_cm_clkstctrl,
--					OMAP3430ES2_USBHOST_MOD, CM_CLKSTCTRL);
-+				OMAP3430ES2_USBHOST_MOD, OMAP2_CM_CLKSTCTRL);
- 	cm_write_mod_reg(prcm_context.core_cm_autoidle1, CORE_MOD,
- 					CM_AUTOIDLE1);
- 	cm_write_mod_reg(prcm_context.core_cm_autoidle2, CORE_MOD,
-diff --git a/arch/arm/plat-omap/include/plat/clockdomain.h b/arch/arm/plat-omap/include/plat/clockdomain.h
-index eb73482..4806e2c 100644
---- a/arch/arm/plat-omap/include/plat/clockdomain.h
-+++ b/arch/arm/plat-omap/include/plat/clockdomain.h
-@@ -74,6 +74,9 @@ struct clockdomain {
- 		struct powerdomain *ptr;
- 	} pwrdm;
- 
-+	/* CLKSTCTRL reg for the given clock domain*/
-+	void __iomem *clkstctrl_reg;
-+
- 	/* CLKTRCTRL/AUTOSTATE field mask in CM_CLKSTCTRL reg */
- 	const u16 clktrctrl_mask;
- 
--- 
+ 	omap2_clk_init();
+ 	omap_serial_early_init();
+--=20
 1.5.4.7
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
