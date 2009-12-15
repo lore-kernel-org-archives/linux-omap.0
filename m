@@ -1,78 +1,50 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: ARM tollchain support
-Date: Tue, 15 Dec 2009 06:09:30 -0700
-Message-ID: <4B278A8A.705@mlbassoc.com>
-References: <4ad3b6300912150451k34f8367eg4141f80c79f66413@mail.gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BC2406DF@dbde02.ent.ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] mfd: twl: fix twl4030 rename for remaining driver,
+ board files
+Date: Tue, 15 Dec 2009 15:11:02 +0200
+Message-ID: <20091215131102.GL3689@nokia.com>
+References: <1260881723-17255-1-git-send-email-balajitk@ti.com>
+ <20091215130546.GK3689@nokia.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:52610 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759361AbZLONJb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:09:31 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BC2406DF@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:62049 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756956AbZLONMF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:12:05 -0500
+Content-Disposition: inline
+In-Reply-To: <20091215130546.GK3689@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Niamathullah sharief <omapsha@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Cc: "ext balajitk@ti.com" <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "tony@atomide.com" <tony@atomide.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>
 
-On 12/15/2009 05:57 AM, Shilimkar, Santosh wrote:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->> Niamathullah sharief
->> Sent: Tuesday, December 15, 2009 6:22 PM
->> To: linux-omap@vger.kernel.org
->> Subject: ARM tollchain support
->>
->> Hello,
->>      I am trying to install ARM tollchain in my GCC. But i am not
->> getting to install correctly. When i try to compile an u boot image i
->> am getting the following errors in last few lines ..
->>
->>
->> make[1]: Leaving directory `/home/ariem/Desktop/u-boot-200901-lange51/tools'
->> make -C examples all
->> make[1]: execvp: /home/ariem/CodeSourcery/Sourcery_G++_Lite/lib/gcc:
->> Permission denied
->> make[1]: Entering directory `/home/ariem/Desktop/u-boot-200901-lange51/examples'
->> /bin/sh: /home/ariem/CodeSourcery/Sourcery_G++_Lite/lib/gcc: is a directory
->> dirname: missing operand
->> Try `dirname --help' for more information.
->> /bin/sh: /home/ariem/CodeSourcery/Sourcery_G++_Lite/lib/gcc: is a directory
->> dirname: missing operand
->> Try `dirname --help' for more information.
->> /home/ariem/CodeSourcery/Sourcery_G++_Lite/lib/gcc  -Os
->> -fno-strict-aliasing -fno-common -ffixed-r8 -msoft-float
->> -D__KERNEL__ -DTEXT_BASE=0x97800000
->> -I/home/ariem/Desktop/u-boot-200901-lange51/include -fno-builtin
->> -ffreestanding -nostdinc -isystem  -pipe  -DCONFIG_ARM -D__ARM__
->> -Wall -Wstrict-prototypes  -c -o hello_world.o hello_world.c
->> make[1]: execvp: /home/ariem/CodeSourcery/Sourcery_G++_Lite/lib/gcc:
->> Permission denied
->> make[1]: *** [hello_world.o] Error 127
->> make[1]: Leaving directory `/home/ariem/Desktop/u-boot-200901-lange51/examples'
->> make: *** [examples] Error 2
->> ariem@ariem-desktop:~/Desktop/u-boot-200901-lange51$
->>
->>
->> what will be the error. can anyone tell me. i think the path exported
->> is wrong. please help me
-> How are you exporting the path ? Can you copy paste that here
+Hi,
 
-That's not the problem - the tools have not been installed properly.
+On Tue, Dec 15, 2009 at 02:05:46PM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
+>also, this patch doesn't apply neither on top of linus's master nor
+>tony's master:
+>
+>$ git am ~/check.diff
+>Applying: mfd: twl: fix twl4030 rename for remaining driver, board files
+>error: patch failed: drivers/video/omap/lcd_omap2evm.c:24
+>error: drivers/video/omap/lcd_omap2evm.c: patch does not apply
+>error: patch failed: drivers/video/omap/lcd_omap3beagle.c:23
+>error: drivers/video/omap/lcd_omap3beagle.c: patch does not apply
+>error: patch failed: drivers/video/omap/lcd_omap3evm.c:23
+>error: drivers/video/omap/lcd_omap3evm.c: patch does not apply
+>Patch failed at 0001 mfd: twl: fix twl4030 rename for remaining driver, board files
+>When you have resolved this problem run "git am --resolved".
+>If you would prefer to skip this patch, instead run "git am --skip".
+>To restore the original branch and stop patching run "git am --abort".
+>
+>please rebase.
 
-It looks to me like Niamathullah sharief (I never know which name
-is prominent) is trying to use tools installed by another user
-(ariem).  I assume that 'sharief' does not have access to 'ariem's
-home directory, thus this fails.
+<fixed tony's address>
 
-Get the tools installed into a common directory and this should start
-working.
-
+and btw, linux-omap doesn't have this problem (just yet). It's missing a 
+merge.
 
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+balbi
