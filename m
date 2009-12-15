@@ -1,91 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] mfd: twl: fix twl4030 rename for remaining driver,
- board files
-Date: Tue, 15 Dec 2009 10:21:03 -0800
-Message-ID: <20091215182103.GK4575@atomide.com>
-References: <1260887942-32644-1-git-send-email-balajitk@ti.com>
- <19F8576C6E063C45BE387C64729E739404372AAFA4@dbde02.ent.ti.com>
- <20091215174318.GJ4575@atomide.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 16/17] DSPBRIDGE: Avoid REGistry if pDevContext is
+	available
+Date: Tue, 15 Dec 2009 20:21:42 +0200
+Message-ID: <94a0d4530912151021k231e5135q892721d091d8f101@mail.gmail.com>
+References: <1260857998-19349-1-git-send-email-omar.ramirez@ti.com>
+	 <1260857998-19349-17-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57203 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754839AbZLOSVJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 13:21:09 -0500
-Content-Disposition: inline
-In-Reply-To: <20091215174318.GJ4575@atomide.com>
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:54875 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757885AbZLOSVn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 13:21:43 -0500
+Received: by iwn1 with SMTP id 1so102328iwn.33
+        for <linux-omap@vger.kernel.org>; Tue, 15 Dec 2009 10:21:43 -0800 (PST)
+In-Reply-To: <1260857998-19349-17-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [091215 09:43]:
-> * Krishnamoorthy, Balaji T <balajitk@ti.com> [091215 08:09]:
-> > Hi Samuel,
-> > Could you please take this patch through the mfd tree.
-> 
-> NAK. Please redo the whole twl rename series so _every_ patch
-> in the series builds for _every_ omap and x86. Then let's have
-> it sit in for-next before merging it. Otherwise git bisect
-> breaks on x86 also.
+On Tue, Dec 15, 2009 at 8:19 AM, Omar Ramirez Luna <omar.ramirez@ti.com=
+> wrote:
+> Avoid calls to read the register if pDevContext is available
+> to the function, this will save a call to query and hold
+> a semaphore under registry operations.
 
-Argh. Too late. This twl rename series already hit the mainline
-just now.
+[...]
 
-Has this patch been compile tested on all omaps and x86?
+> --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+> +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+> @@ -82,11 +82,8 @@ DSP_STATUS handle_constraints_set(struct WMD_DEV_C=
+ONTEXT *pDevContext,
+> =C2=A0#ifdef CONFIG_BRIDGE_DVFS
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0u32 *pConstraintVal;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0DSP_STATUS status =3D DSP_SOK;
+> - =C2=A0 =C2=A0 =C2=A0 struct CFG_HOSTRES resources;
 
-Regards,
+This breaks the build when DVFS is enabled, because of:
+status =3D HW_MBOX_saveSettings(resources.dwMboxBase);
 
-Tony
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct dspbridge_platform_data *pdata =3D
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_dspbridge=
+_dev->dev.platform_data;
+> - =C2=A0 =C2=A0 =C2=A0 status =3D CFG_GetHostResources(
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (struct CFG_DEVNOD=
+E *)DRV_GetFirstDevExtension(), &resources);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0pConstraintVal =3D (u32 *)(pArgs);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Read the target value requested by DSP =
+=C2=A0*/
 
- 
-> Regards,
-> 
-> Tony
-> 
-> 
->  
-> > Thanks and Regards,
-> > Balaji T K
-> > 
-> > > -----Original Message-----
-> > > From: Krishnamoorthy, Balaji T
-> > > Sent: Tuesday, December 15, 2009 8:09 PM
-> > > To: linux-omap@vger.kernel.org; sameo@linux.intel.com
-> > > Cc: broonie@opensource.wolfsonmicro.com; tony@atomide.com;
-> > > sfr@canb.auug.org.au; felipe.balbi@nokia.com; lrg@slimlogic.co.uk;
-> > > Krishnamoorthy, Balaji T
-> > > Subject: [PATCH v2] mfd: twl: fix twl4030 rename for remaining driver, board
-> > > files
-> > > 
-> > > From: Balaji T K <balajitk@ti.com>
-> > > 
-> > > 	This patch renames include twl4030.h to include twl.h
-> > > 	and also renames twl4030_i2c_ routines
-> > > 
-> > > Signed-off-by: Balaji T K <balajitk@ti.com>
-> > > Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> > > Reviewed-by: Felipe Balbi <felipe.balbi@nokia.com>
-> > > ---
-> > > 	rebased the patch on latest mainline
-> > > 	commit 3ea6b3d0e6d0ffd91c0f8cadeb69b7133c038b32
-> > > 
-> > >  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
-> > >  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
-> > >  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
-> > >  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
-> > >  arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
-> > >  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
-> > >  drivers/mfd/twl4030-codec.c                  |   10 +++++-----
-> > >  drivers/video/omap/lcd_ldp.c                 |    4 ++--
-> > >  drivers/video/omap/lcd_omap2evm.c            |   10 +++++-----
-> > >  drivers/video/omap/lcd_omap3beagle.c         |    2 +-
-> > >  drivers/video/omap/lcd_omap3evm.c            |   10 +++++-----
-> > >  drivers/video/omap/lcd_overo.c               |    2 +-
-> > >  sound/soc/omap/sdp3430.c                     |    6 +++---
-> > >  13 files changed, 28 insertions(+), 28 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+BTW. Nobody is checking for errors in the 'status' variable.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
