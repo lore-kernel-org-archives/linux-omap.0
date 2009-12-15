@@ -1,92 +1,62 @@
-From: "Dechesne, Nicolas" <n-dechesne@ti.com>
-Subject: RE: dspbridge sync proposal for 0.1
-Date: Tue, 15 Dec 2009 13:58:40 +0100
-Message-ID: <E8606C3FD412994585953171ED63A93401519EB627@dnce01.ent.ti.com>
-References: <20091205133900.GA17280@annwn.felipec.org>
- <94a0d4530912140803t4f910549ga04b02a14dabe715@mail.gmail.com>
- <27F9C60D11D683428E133F85D2BB4A53042D3963E0@dlee03.ent.ti.com>
- <94a0d4530912150345p2009dbddra805fd298ffc9e92@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: linux-next: origin tree build failure
+Date: Tue, 15 Dec 2009 15:01:27 +0200
+Message-ID: <200912151501.27582.peter.ujfalusi@nokia.com>
+References: <20091215164108.45c9d766.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40297 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751591AbZLOM76 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 07:59:58 -0500
-Content-Class: urn:content-classes:message
-In-Reply-To: <94a0d4530912150345p2009dbddra805fd298ffc9e92@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:53111 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757286AbZLONBn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:01:43 -0500
+In-Reply-To: <20091215164108.45c9d766.sfr@canb.auug.org.au>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Artem Bityutskiy <artem.bityutskiy@nokia.com>, "Shah, Bhavin" <bshah@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Deacon, Keith" <kdeacon@ti.com>
+To: ext Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hello,
 
->
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+On Tuesday 15 December 2009 07:41:08 ext Stephen Rothwell wrote:
+> Hi all,
+>=20
+> Today's linux-next build (powerpc allyesconfig) failed like this:
+>=20
+> drivers/mfd/twl4030-codec.c:29:31: error: linux/i2c/twl4030.h: No suc=
+h file
+>  or directory
+>=20
+> (there were more, but I assume that they all stem form this one).
+>=20
+> Caused by commit 0b83ddebc6e884dc0221358cf68c461520fbdd8e ("MFD: twl4=
+030:
+> add twl4030_codec MFD as a new child to the core") from Linus' tree
+> interacting with commit b07682b6056eb6701f8cb86aa5800e6f2ea7919b ("mf=
+d:
+> Rename twl4030* driver files to enable re-use") also from Linus' tree=
+=2E
+> This file seems to have been missed in the renaming.
 
------Original Message-----
+Yes, the twl4030-codec MFD driver went in earlier than the twl4030 rena=
+me patch,=20
+which does not taken care of the twl4030-codec MFD driver for some reas=
+ons.
 
-> From: linux-omap-owner@vger.kernel.org
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe
-> Contreras
-> Sent: Tuesday, December 15, 2009 12:46 PM
-> To: Ramirez Luna, Omar
-> Cc: linux-omap; Hiroshi Doyu; Ameya Palande; Artem
-> Bityutskiy; Shah, Bhavin; Tony Lindgren; Felipe Contreras
-> Subject: Re: dspbridge sync proposal for 0.1
->
-> On Tue, Dec 15, 2009 at 7:53 AM, Ramirez Luna, Omar
-> <omar.ramirez@ti.com> wrote:
-> > After the analysis of both branches (current dspbridge and
-> dspbridge-0.1) and the need to resend the patches that
-> haven't been reviewed. It was decided that the unsent patches
-> would be reverted and sent to the list for review, given the
-> need to have a baseline that works for most of the OMAP 3
-> platforms, I took Felipe's patch order proposal (as it is
-> working for N900) and recreated the future dspbridge branch.
-> >
-> > This can be found at:
-> >
-> http://dev.omapzoom.org/?p=tidspbridge/kernel-dspbridge.git;a=
-> summary
-> > dspbridge-baseline-v2
->
-> There's something wrong with that repository; I can't
-> retrieve it in any way:
+The patch looks good, I might also align the twl4030-codec MFD driver w=
+ith the=20
+renamed twl core soon.
+I have to check the feasibility of this first, since the renaming was d=
+one to=20
+facilitate the addition of twl6030 (OMAP4 companion chip), and I don't =
+have yet=20
+access to the documentation.
 
-It's somehow a known issue. We are facing issues with dev.omapzoom.org and git.omapzoom.org servers and we are trying to resolve them.
-
->
-> % git remote add omar git://dev.omapzoom.org/pub/scm/tidspbrid
-> % git fetch omar
-> fatal: The remote end hung up unexpectedly
-> fatal: protocol error: bad pack header
->
-> % git clone
-> git://dev.omapzoom.org/pub/scm/tidspbridge/kernel-dspbridge.git
-> --reference=~src/linux tmp-omar
-> Initialized empty Git repository in tmp-omar/.git/
-> fatal: The remote end hung up unexpectedly
-> fatal: early EOF
-> fatal: index-pack failed
->
-> % git clone
-> git://dev.omapzoom.org/pub/scm/tidspbridge/kernel-dspbridge.git
-> tmp-omar
-> Initialized empty Git repository in tmp-omar/.git/
-> remote: Counting objects: 1430544, done.
-> remote: Compressing objects: 100% (238646/238646), done.
-> fatal: The remote end hung up unexpectedly3.75 MiB | 37 KiB/s
-> fatal: early EOF
-> fatal: index-pack failed
->
-> --
-> Felipe Contreras
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-omap" in the body of a message to
-> majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
->
+Thank you,
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
