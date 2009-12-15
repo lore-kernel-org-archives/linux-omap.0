@@ -1,68 +1,70 @@
-From: Niamathullah sharief <omapsha@gmail.com>
-Subject: Re: bootloader compilation
-Date: Tue, 15 Dec 2009 11:20:52 +0530
-Message-ID: <4ad3b6300912142150l42b4116dy20df36db1906aad9@mail.gmail.com>
-References: <4ad3b6300912132302x31d08d06gfba97dbb885a2ba@mail.gmail.com>
-	 <4B263E54.5050204@billgatliff.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: dspbridge sync proposal for 0.1
+Date: Mon, 14 Dec 2009 23:53:19 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53042D3963E0@dlee03.ent.ti.com>
+References: <20091205133900.GA17280@annwn.felipec.org>
+ <94a0d4530912140803t4f910549ga04b02a14dabe715@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:42232 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751924AbZLOFux convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 00:50:53 -0500
-Received: by pxi4 with SMTP id 4so2362232pxi.33
-        for <linux-omap@vger.kernel.org>; Mon, 14 Dec 2009 21:50:53 -0800 (PST)
-In-Reply-To: <4B263E54.5050204@billgatliff.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43434 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752557AbZLOFx0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 00:53:26 -0500
+In-Reply-To: <94a0d4530912140803t4f910549ga04b02a14dabe715@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bill Gatliff <bgat@billgatliff.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Artem Bityutskiy <artem.bityutskiy@nokia.com>, "Shah, Bhavin" <bshah@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-yes i saw all the steps in the website. i am getting some errors while
-doing that steps. now i have to boot from mmc card. for that i
-installed tollchain fpr ARM processor in my host computer. AFter
-installing that toolchain i gave "make" to compile "xloader". But
-found the following error
+Hi,
 
-"root@ariem-desktop:/home/xloader# make
-arm-none-linux-gnueabi-gcc -Wa,-gstabs -D__ASSEMBLY__ -g  -Os
--fno-strict-aliasing  -fno-common -ffixed-r8  -D__KERNEL__
--DTEXT_BASE=3D0x40200800 -I/home/xloader/include -fno-builtin
--ffreestanding -nostdinc -isystem
-/usr/lib/gcc/i486-linux-gnu/4.3.3/include -pipe  -DCONFIG_ARM
--D__ARM__ -march=3Darmv7-a  -c -o cpu/omap3/start.o
-/home/xloader/cpu/omap3/start.S
-make: arm-none-linux-gnueabi-gcc: Command not found
-make: *** [cpu/omap3/start.o] Error 127
-root@ariem-desktop:/home/xloader# "
+>From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+>Sent: Monday, December 14, 2009 10:04 AM
+>
+>On Sat, Dec 5, 2009 at 3:39 PM, Felipe Contreras
+><felipe.contreras@nokia.com> wrote:
+>> There is a proposal to get the dspbridge branch into a decent state for
+>> the 0.1 release, so I've been trying to synchronize the internal maemo
+>> branch with the upstream one.
+>
+>After a few private discussions with Omar here's v2 which is
+>essentially the same except many patches are taking from TI. There's
+>not much difference in the actual content, the difference it's mostly
+>in the commit messages:
+>
+>All the branches are in:
+>http://gitorious.org/~felipec/linux-omap/felipec
+>
+>The branch for the current proposal is 'dspbridge-0.1-v2'.
+>
 
-   i dont know what  is wrong.
+As a follow up...
 
-On Mon, Dec 14, 2009 at 7:02 PM, Bill Gatliff <bgat@billgatliff.com> wr=
-ote:
-> Niamathullah sharief wrote:
->> Hello, =A0 =A0i am newbie. i am having beagle board with me. now i w=
-ant to
->> compile bootloader. what is theprocedure to do that? where can i fin=
-d
->> the right tutorial to compile bootloader. i didnt find the right
->> tutorial for newbie. please help me.
->>
->
-> beagleboard.org.
->
->
-> b.g.
->
-> --
-> Bill Gatliff
-> bgat@billgatliff.com
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+After the analysis of both branches (current dspbridge and dspbridge-0.1) and the need to resend the patches that haven't been reviewed. It was decided that the unsent patches would be reverted and sent to the list for review, given the need to have a baseline that works for most of the OMAP 3 platforms, I took Felipe's patch order proposal (as it is working for N900) and recreated the future dspbridge branch.
+
+This can be found at:
+http://dev.omapzoom.org/?p=tidspbridge/kernel-dspbridge.git;a=summary  dspbridge-baseline-v2
+
+Differences:
+
+- DSPBRIDGE: enable smart/autoidle for mailbox sysconfig
+Patch dropped until final version is discussed
+
+- DSPBRIDGE: Pass filp->private to all the ioctl wrappers
+Patch dropped until resource cleanup patches are discussed, this to keep the entire series of resource cleanup changes out.
+
+- DSPBRIDGE: Increased DMM size to 256MB
+Will be pushed on top of all patches as it seems it is breaking N900, this until failure is root caused.
+
+- DSPBRIDGE: Remove PID usage and replace with TGID
+Pushed as it was sent to LO mailing list.
+
+
+Next step will be to send the unreviewed patches and continue until no patches are missing. For now and until -baseline-v2 is synchronized, further development will continue on dspbridge-next.
+
+Regards,
+
+Omar
