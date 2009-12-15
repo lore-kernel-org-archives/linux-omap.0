@@ -1,81 +1,60 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH -pm] OMAP3: GPIO: introduce per-bank context
- save/restore
-Date: Wed, 16 Dec 2009 00:37:28 +0200
-Message-ID: <20091215223728.GA28203@nokia.com>
-References: <1260916172-8226-1-git-send-email-khilman@deeprootsystems.com>
-Reply-To: felipe.balbi@nokia.com
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: origin tree build failure
+Date: Wed, 16 Dec 2009 09:45:41 +1100
+Message-ID: <20091216094541.e59d36fa.sfr@canb.auug.org.au>
+References: <20091215164108.45c9d766.sfr@canb.auug.org.au>
+	<20091215145344.GA30710@sirena.org.uk>
+	<20091215172717.GF4575@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:54613 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757352AbZLOWjg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 17:39:36 -0500
-Content-Disposition: inline
-In-Reply-To: <1260916172-8226-1-git-send-email-khilman@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__16_Dec_2009_09_45_41_+1100_hHAWWm4gzG0f6=tT"
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20091215172717.GF4575@atomide.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Linus <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+--Signature=_Wed__16_Dec_2009_09_45_41_+1100_hHAWWm4gzG0f6=tT
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Dec 15, 2009 at 11:29:32PM +0100, ext Kevin Hilman wrote:
->diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
->index 57a46be..283ed2e 100644
->--- a/arch/arm/plat-omap/gpio.c
->+++ b/arch/arm/plat-omap/gpio.c
->@@ -174,6 +174,21 @@
-> #define OMAP44XX_GPIO5_BASE             0x4805B000
-> #define OMAP44XX_GPIO6_BASE             0x4805D000
+Hi Tony,
+
+On Tue, 15 Dec 2009 09:27:17 -0800 Tony Lindgren <tony@atomide.com> wrote:
 >
->+struct omap3_gpio_bank_regs {
->+	u32 sysconfig;
->+	u32 irqenable1;
->+	u32 irqenable2;
->+	u32 wake_en;
->+	u32 ctrl;
->+	u32 oe;
->+	u32 leveldetect0;
->+	u32 leveldetect1;
->+	u32 risingdetect;
->+	u32 fallingdetect;
->+	u32 dataout;
->+};
->+
->+
+> * Mark Brown <broonie@opensource.wolfsonmicro.com> [091215 06:52]:
+> > On Tue, Dec 15, 2009 at 04:41:08PM +1100, Stephen Rothwell wrote:
+> >=20
+> > > I have applied this patch for today (please check):
+> >=20
+> > Looks good to me too, fwiw:
+> >=20
+> > Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+>=20
+> Good thing we have for-next to catch things like this.
 
-one blank line only ?
+Except if the renaming patch had gone through linux-next (even for one
+day) we would have found the problem *before* it was in Linus' tree ...
 
->@@ -2338,28 +2372,8 @@ void omap_gpio_restore_context(void)
->
-> 	for (i = 1; i < gpio_bank_count; i++) {
-> 		struct gpio_bank *bank = &gpio_bank[i];
->-		__raw_writel(gpio_context[i].sysconfig,
->-				bank->base + OMAP24XX_GPIO_SYSCONFIG);
->-		__raw_writel(gpio_context[i].irqenable1,
->-				bank->base + OMAP24XX_GPIO_IRQENABLE1);
->-		__raw_writel(gpio_context[i].irqenable2,
->-				bank->base + OMAP24XX_GPIO_IRQENABLE2);
->-		__raw_writel(gpio_context[i].wake_en,
->-				bank->base + OMAP24XX_GPIO_WAKE_EN);
->-		__raw_writel(gpio_context[i].ctrl,
->-				bank->base + OMAP24XX_GPIO_CTRL);
->-		__raw_writel(gpio_context[i].leveldetect0,
->-				bank->base + OMAP24XX_GPIO_LEVELDETECT0);
->-		__raw_writel(gpio_context[i].leveldetect1,
->-				bank->base + OMAP24XX_GPIO_LEVELDETECT1);
->-		__raw_writel(gpio_context[i].risingdetect,
->-				bank->base + OMAP24XX_GPIO_RISINGDETECT);
->-		__raw_writel(gpio_context[i].fallingdetect,
->-				bank->base + OMAP24XX_GPIO_FALLINGDETECT);
->-		__raw_writel(gpio_context[i].dataout,
->-				bank->base + OMAP24XX_GPIO_DATAOUT);
->-		__raw_writel(gpio_context[i].oe,
->-				bank->base + OMAP24XX_GPIO_OE);
->+		
-		^ trailing tabs (2 tabs).
+(/me is a little grumpy :-))
 
--- 
-balbi
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Wed__16_Dec_2009_09_45_41_+1100_hHAWWm4gzG0f6=tT
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAksoEZUACgkQjjKRsyhoI8x0BwCfVyM1p3B351+TSzFuRO5C+Tb+
+lKsAoIlsaqokRC6k3K2wu5pVo8yyXb0H
+=BxQL
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__16_Dec_2009_09_45_41_+1100_hHAWWm4gzG0f6=tT--
