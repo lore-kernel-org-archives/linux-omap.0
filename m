@@ -1,38 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP3: PM: Fix the Invalid CM_CLKSTCTRL reg
- access.
-Date: Tue, 15 Dec 2009 09:08:02 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912150906550.12561@utopia.booyaka.com>
-References: <1260883872-22299-1-git-send-email-abhijitpagare@ti.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: RE: [PATCH v2] mfd: twl: fix twl4030 rename for remaining driver,
+ board files
+Date: Tue, 15 Dec 2009 21:40:24 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404372AAFA4@dbde02.ent.ti.com>
+References: <1260887942-32644-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59001 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753931AbZLOQIF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 11:08:05 -0500
-In-Reply-To: <1260883872-22299-1-git-send-email-abhijitpagare@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47577 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754452AbZLOQKw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 11:10:52 -0500
+In-Reply-To: <1260887942-32644-1-git-send-email-balajitk@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>
+Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "tony@atomide.com" <tony@atomide.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 
-Hi Abhijit,
+Hi Samuel,
+Could you please take this patch through the mfd tree.
 
-On Tue, 15 Dec 2009, Abhijit Pagare wrote:
+Thanks and Regards,
+Balaji T K
 
-> In OMAP2/3 some of the clock-domains which did not have control
-> facility were being falsely written to and read using the CM_CLKSTCTRL
-> register though it did not exist for them. One check is added to remove
-> this flaw.
+> -----Original Message-----
+> From: Krishnamoorthy, Balaji T
+> Sent: Tuesday, December 15, 2009 8:09 PM
+> To: linux-omap@vger.kernel.org; sameo@linux.intel.com
+> Cc: broonie@opensource.wolfsonmicro.com; tony@atomide.com;
+> sfr@canb.auug.org.au; felipe.balbi@nokia.com; lrg@slimlogic.co.uk;
+> Krishnamoorthy, Balaji T
+> Subject: [PATCH v2] mfd: twl: fix twl4030 rename for remaining driver, board
+> files
 > 
-> Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-
-Thanks Abhijit, queueing for .33-rcX.
-
-
-- Paul
-
+> From: Balaji T K <balajitk@ti.com>
+> 
+> 	This patch renames include twl4030.h to include twl.h
+> 	and also renames twl4030_i2c_ routines
+> 
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Reviewed-by: Felipe Balbi <felipe.balbi@nokia.com>
+> ---
+> 	rebased the patch on latest mainline
+> 	commit 3ea6b3d0e6d0ffd91c0f8cadeb69b7133c038b32
+> 
+>  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
+>  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
+>  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+>  drivers/mfd/twl4030-codec.c                  |   10 +++++-----
+>  drivers/video/omap/lcd_ldp.c                 |    4 ++--
+>  drivers/video/omap/lcd_omap2evm.c            |   10 +++++-----
+>  drivers/video/omap/lcd_omap3beagle.c         |    2 +-
+>  drivers/video/omap/lcd_omap3evm.c            |   10 +++++-----
+>  drivers/video/omap/lcd_overo.c               |    2 +-
+>  sound/soc/omap/sdp3430.c                     |    6 +++---
+>  13 files changed, 28 insertions(+), 28 deletions(-)
