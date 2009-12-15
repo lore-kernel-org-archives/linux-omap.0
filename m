@@ -1,59 +1,83 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] AM35xx: Clock table updates for AM3505/17
-Date: Tue, 15 Dec 2009 13:02:31 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912151301150.12561@utopia.booyaka.com>
-References: <20091214201431.370.35496.stgit@localhost.localdomain> <20091214201638.370.60113.stgit@localhost.localdomain> <4B277866.1070602@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] usb: ehci-omap: Update platform header file path
+Date: Tue, 15 Dec 2009 13:25:49 -0800
+Message-ID: <20091215212549.GN4575@atomide.com>
+References: <20091125090259.GB30331@lixom.net>
+ <20091125125326.GA18175@suse.de>
+ <20091125175739.GE4348@atomide.com>
+ <20091204022357.GA19315@lixom.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60326 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755372AbZLOUCb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 15:02:31 -0500
-In-Reply-To: <4B277866.1070602@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20091204022357.GA19315-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Cc: gregkh-l3A5Bk7waGM@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Ranjith Lohithakshan <ranjithl@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Ranjith,
+* Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org> [091203 18:20]:
+> The OMAP usb header file will move in the same merge window as this
+> driver is getting introduced in, so update the driver now instead of
+> making a merge-order-dependent patch later on through linux-omap.
 
-On Tue, 15 Dec 2009, Ranjith Lohithakshan wrote:
+I'll get this merged via omap-fixes queue as it seems like it's not
+in Greg's queue.
 
-> Two small changes wrt USB that came up when I reviewed the AM35XX
-> clock tree again.
+Regards,
+
+Tony
+
+ 
+> Signed-off-by: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > 
-> On Tue, 15-Dec-09 1:46 AM +0530, Paul Walmsley wrote:
-> > From: Ranjith Lohithakshan <ranjithl@ti.com>
+> 
+> ---
+> 
+> Greg, see below for history (you were Cc:d at the time). Should have
+> gone to you in the first place. Sorry for the confusion. Either combine
+> with the ehci-omap patch, or merge separate.   Thanks!
+> 
+> -Olof
+> 
+> 
+> On Wed, Nov 25, 2009 at 09:57:39AM -0800, Tony Lindgren wrote:
+> 
+> > The ehci-omap.c driver should be in Greg's queue. I only have the
+> > the related platform init code and header changes in my for-next
+> > because of the omap header move from mach to plat.
 > > 
-> > AM3505/17 though a OMAP3530 derivative have the following
-> > main differences
-> ...
+> > IMHO, this fix would be best added to Greg's queue as the ehci-omap.c
+> > driver is there [1]. Or just merged into the exisiting patch
+> > to keep git bisect working:
+> > 
+> > Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > 
+> > Meanwhile, I'll also add this fix to omap-testing and master branches
+> > so people can use it until it gets merged.
+> > 
+> > Regards,
+> > 
+> > Tony
+> > 
+> > [1] http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/usb/usb-host-ehci-introduce-omap-ehci-hcd-driver.patch
 > 
-> >         CLK("musb_hdrc",        "ick",  &hsotgusb_ick_3430es1,  CK_3430ES1),
-> > -       CLK("musb_hdrc",        "ick",  &hsotgusb_ick_3430es2,  CK_3430ES2),
-> > -       CLK(NULL,       "sdrc_ick",     &sdrc_ick,      CK_343X),
-> > -       CLK(NULL,       "gpmc_fck",     &gpmc_fck,      CK_343X),
-> > +       CLK("musb_hdrc",        "ick",  &hsotgusb_ick_3430es2,  CK_3430ES2 | CK_AM35XX),
 > 
-> This musb clock is NOT used on AM35XX. I might have included it in
-> my original patch by mistake.
-> 
-> ...
-> 
-> > -       CLK(NULL,       "usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2),
-> > +       CLK(NULL,       "usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2 | CK_AM35XX),
-> >         CLK(NULL,       "usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2),
-> 
-> The 48 MHz USB Host fclk is used and applicable on AM35XX as well.
-> 
-> Do you want me to issue another patch for these two changes or could
-> you update it when you commit? Please let me know.
-
-It will probably just be easiest to fix them here.  Thanks for 
-doublechecking these, that is definitely appreciated.
-
-Queued for .34.
-
-
-- Paul
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index 7ba8df3..5cfed78 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -37,7 +37,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/clk.h>
+>  #include <linux/gpio.h>
+> -#include <mach/usb.h>
+> +#include <plat/usb.h>
+>  
+>  /*
+>   * OMAP USBHOST Register addresses: VIRTUAL ADDRESSES
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
