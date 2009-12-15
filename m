@@ -1,66 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: twl: fix twl4030 rename for remaining driver,
- board files
-Date: Tue, 15 Dec 2009 09:31:34 -0800
-Message-ID: <20091215173134.GG4575@atomide.com>
-References: <1260881723-17255-1-git-send-email-balajitk@ti.com>
- <20091215130546.GK3689@nokia.com>
- <20091215131102.GL3689@nokia.com>
+Subject: Re: [PATCH] OMAP: NAND: Adding config option to enable/disable HW
+ ECC mode
+Date: Tue, 15 Dec 2009 09:35:10 -0800
+Message-ID: <20091215173510.GH4575@atomide.com>
+References: <ce9ab5790912150746t29be1640g817ab883b16860a3@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64984 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760670AbZLORbq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 12:31:46 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61692 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754592AbZLORfW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 12:35:22 -0500
 Content-Disposition: inline
-In-Reply-To: <20091215131102.GL3689@nokia.com>
+In-Reply-To: <ce9ab5790912150746t29be1640g817ab883b16860a3@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: "ext balajitk@ti.com" <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: Linux MTD <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [091215 05:10]:
-> Hi,
+* Vimal Singh <vimal.newwork@gmail.com> [091215 07:45]:
+> OMAP NAND driver got HW ECC implemented.
 > 
-> On Tue, Dec 15, 2009 at 02:05:46PM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
-> >also, this patch doesn't apply neither on top of linus's master nor
-> >tony's master:
-> >
-> >$ git am ~/check.diff
-> >Applying: mfd: twl: fix twl4030 rename for remaining driver, board files
-> >error: patch failed: drivers/video/omap/lcd_omap2evm.c:24
-> >error: drivers/video/omap/lcd_omap2evm.c: patch does not apply
-> >error: patch failed: drivers/video/omap/lcd_omap3beagle.c:23
-> >error: drivers/video/omap/lcd_omap3beagle.c: patch does not apply
-> >error: patch failed: drivers/video/omap/lcd_omap3evm.c:23
-> >error: drivers/video/omap/lcd_omap3evm.c: patch does not apply
-> >Patch failed at 0001 mfd: twl: fix twl4030 rename for remaining driver, board files
-> >When you have resolved this problem run "git am --resolved".
-> >If you would prefer to skip this patch, instead run "git am --skip".
-> >To restore the original branch and stop patching run "git am --abort".
-> >
-> >please rebase.
+> From d5e28c9fdbc6b0a95c1259fac7add207f9c294d7 Mon Sep 17 00:00:00 2001
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Tue, 15 Dec 2009 21:10:54 +0530
+> Subject: [PATCH] OMAP: NAND: Adding config option to enable/disable HW ECC mode
 > 
-> <fixed tony's address>
+> This patch adds config option to select/deselect HW ECC feature
+> on OMAP NAND driver. This is a feature provided by OMAP GPMC for
+> NAND devices.
 > 
-> and btw, linux-omap doesn't have this problem (just yet). It's
-> missing a merge.
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> ---
+>  drivers/mtd/nand/Kconfig |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+> index 34598e9..6c4b27c 100644
+> --- a/drivers/mtd/nand/Kconfig
+> +++ b/drivers/mtd/nand/Kconfig
+> @@ -97,6 +97,16 @@ config MTD_NAND_OMAP_PREFETCH_DMA
+>  	 or in DMA interrupt mode.
+>  	 Say y for DMA mode or MPU mode will be used
+> 
+> +config MTD_NAND_OMAP_HWECC
+> +	bool "The Hardware ECC support"
+> +	depends on MTD_NAND && MTD_NAND_OMAP2
+> +	default n
+> +	help
+> +	 The ECC compuatation for the data to be written/read can be either by
+> +	 software or omap has Hw ecc engine which calculates it.
+> +	 MTD_NAND_OMAP_HWECC = y which enables the hw ecc
+> +	 MTD_NAND_OMAP_HWECC = n enables software ecc
+> +
+>  config MTD_NAND_TS7250
+>  	tristate "NAND Flash device on TS-7250 board"
+>  	depends on MACH_TS72XX
 
-Let me try to catch up to this thread.
-
-These twl rename patches have been through at least 4 revisions of
-changes, and they're still breaking compile?
-
-The fix for the build breakage does not even apply?
-
-And these are patches from TI for TI's own platform?
-
-And they also break compile for x86?
-
-Good thing these got stopped at for-next before hitting mainline.
-
-Regards,
+This sounds like it should be an option passed from the board-*.c
+files as platform_data rather than a Kconfig option.
 
 Tony
-
