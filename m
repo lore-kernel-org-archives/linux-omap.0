@@ -1,63 +1,85 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: NAND: Adding config option to enable/disable HW
- ECC mode
-Date: Tue, 15 Dec 2009 09:35:10 -0800
-Message-ID: <20091215173510.GH4575@atomide.com>
-References: <ce9ab5790912150746t29be1640g817ab883b16860a3@mail.gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/4] musb: get rid of unneeded musb->config->dyn_fifo
+Date: Tue, 15 Dec 2009 09:39:50 -0800
+Message-ID: <20091215173950.GI4575@atomide.com>
+References: <1260883909-26836-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61692 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754592AbZLORfW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 12:35:22 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <ce9ab5790912150746t29be1640g817ab883b16860a3@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1260883909-26836-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: Linux MTD <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org
 
-* Vimal Singh <vimal.newwork@gmail.com> [091215 07:45]:
-> OMAP NAND driver got HW ECC implemented.
-> 
-> From d5e28c9fdbc6b0a95c1259fac7add207f9c294d7 Mon Sep 17 00:00:00 2001
-> From: Vimal Singh <vimalsingh@ti.com>
-> Date: Tue, 15 Dec 2009 21:10:54 +0530
-> Subject: [PATCH] OMAP: NAND: Adding config option to enable/disable HW ECC mode
-> 
-> This patch adds config option to select/deselect HW ECC feature
-> on OMAP NAND driver. This is a feature provided by OMAP GPMC for
-> NAND devices.
-> 
-> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-> ---
->  drivers/mtd/nand/Kconfig |   10 ++++++++++
->  1 files changed, 10 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-> index 34598e9..6c4b27c 100644
-> --- a/drivers/mtd/nand/Kconfig
-> +++ b/drivers/mtd/nand/Kconfig
-> @@ -97,6 +97,16 @@ config MTD_NAND_OMAP_PREFETCH_DMA
->  	 or in DMA interrupt mode.
->  	 Say y for DMA mode or MPU mode will be used
-> 
-> +config MTD_NAND_OMAP_HWECC
-> +	bool "The Hardware ECC support"
-> +	depends on MTD_NAND && MTD_NAND_OMAP2
-> +	default n
-> +	help
-> +	 The ECC compuatation for the data to be written/read can be either by
-> +	 software or omap has Hw ecc engine which calculates it.
-> +	 MTD_NAND_OMAP_HWECC = y which enables the hw ecc
-> +	 MTD_NAND_OMAP_HWECC = n enables software ecc
-> +
->  config MTD_NAND_TS7250
->  	tristate "NAND Flash device on TS-7250 board"
->  	depends on MACH_TS72XX
+* Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org> [091215 05:31]:
+> We can get dynamic FIFO information from CONFIGDATA register and
+> thus there is no need for any user defiend dyn_fifo.
 
-This sounds like it should be an option passed from the board-*.c
-files as platform_data rather than a Kconfig option.
+Have you tested this?
+
+$ grep dyn_fifo arch/arm/mach-omap2/*.c
+arch/arm/mach-omap2/usb-musb.c: .dyn_fifo       = 1,
 
 Tony
+ 
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_core.c |   19 ++++---------------
+>  include/linux/usb/musb.h     |    1 -
+>  2 files changed, 4 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 49f2346..2858940 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1404,21 +1404,10 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+>  	musb->nr_endpoints = 1;
+>  	musb->epmask = 1;
+>  
+> -	if (reg & MUSB_CONFIGDATA_DYNFIFO) {
+> -		if (musb->config->dyn_fifo)
+> -			status = ep_config_from_table(musb);
+> -		else {
+> -			ERR("reconfigure software for Dynamic FIFOs\n");
+> -			status = -ENODEV;
+> -		}
+> -	} else {
+> -		if (!musb->config->dyn_fifo)
+> -			status = ep_config_from_hw(musb);
+> -		else {
+> -			ERR("reconfigure software for static FIFOs\n");
+> -			return -ENODEV;
+> -		}
+> -	}
+> +	if (reg & MUSB_CONFIGDATA_DYNFIFO)
+> +		status = ep_config_from_table(musb);
+> +	else
+> +		status = ep_config_from_hw(musb);
+>  
+>  	if (status < 0)
+>  		return status;
+> diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+> index d437556..c5f006e 100644
+> --- a/include/linux/usb/musb.h
+> +++ b/include/linux/usb/musb.h
+> @@ -30,7 +30,6 @@ struct musb_hdrc_eps_bits {
+>  struct musb_hdrc_config {
+>  	/* MUSB configuration-specific details */
+>  	unsigned	multipoint:1;	/* multipoint device */
+> -	unsigned	dyn_fifo:1;	/* supports dynamic fifo sizing */
+>  	unsigned	soft_con:1;	/* soft connect required */
+>  	unsigned	utm_16:1;	/* utm data witdh is 16 bits */
+>  	unsigned	big_endian:1;	/* true if CPU uses big-endian */
+> -- 
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
