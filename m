@@ -1,31 +1,43 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: linux-next: origin tree build failure
-Date: Tue, 15 Dec 2009 09:07:19 +0100
-Message-ID: <20091215080719.GA23630@elte.hu>
-References: <20091215164108.45c9d766.sfr@canb.auug.org.au>
+From: Ranjith Lohithakshan <ranjithl@ti.com>
+Subject: Re: [PATCH] AM35xx: Add AM35xx specific control module registers
+Date: Tue, 15 Dec 2009 13:45:43 +0530
+Message-ID: <4B2745AF.3070501@ti.com>
+References: <1257269870-10356-1-git-send-email-ranjithl@ti.com> <alpine.DEB.2.00.0912141525060.12561@utopia.booyaka.com> <alpine.DEB.2.00.0912141531100.12561@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:41693 "EHLO mx2.mail.elte.hu"
+Received: from bear.ext.ti.com ([192.94.94.41]:52988 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750850AbZLOIHp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Dec 2009 03:07:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20091215164108.45c9d766.sfr@canb.auug.org.au>
+	id S1758584AbZLOIPu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Dec 2009 03:15:50 -0500
+In-Reply-To: <alpine.DEB.2.00.0912141531100.12561@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Linus <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hi Paul,
 
-* Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-
-> Hi all,
+On Tue, 15-Dec-09 4:03 AM +0530, Paul Walmsley wrote:
+> Hi Ranjith,
 > 
-> Today's linux-next build (powerpc allyesconfig) failed like this:
+> one other question.
 > 
-> drivers/mfd/twl4030-codec.c:29:31: error: linux/i2c/twl4030.h: No such file or directory
+> On Mon, 14 Dec 2009, Paul Walmsley wrote:
+> 
+>> On Tue, 3 Nov 2009, Ranjith Lohithakshan wrote:
+>>
+>>> AM3517/05 has a few additional control module registers defined mainly
+>>> to control the new IP's. This patch adds support for those new registers.
+> 
+> Are these registers 3517-specific, or are they common to both AM3517 and 
+> 3505?  If the latter, than please use "AM35XX" or something similar as the 
+> prefix for the macros below.
+> 
 
-FYI, x86 allyesconfig fails to build too so this doesnt only affect PowerPC.
+Yes, these are common to 3517 & 3505. I will rename these to AM35XX,
+incorporate your IPSS_CLK_CTRL comment and generate a v2 version of
+this patch shortly.
 
-	Ingo
+- Ranjith
