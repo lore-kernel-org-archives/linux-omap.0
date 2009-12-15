@@ -1,65 +1,31 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/3] musb: save dynfifo in musb struct
-Date: Tue, 15 Dec 2009 13:14:56 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404372AAE06@dbde02.ent.ti.com>
-References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
- <20091214162454.GA31829@nokia.com>
- <19F8576C6E063C45BE387C64729E739404372AAD03@dbde02.ent.ti.com>
- <20091215072650.GA3147@nokia.com>
- <19F8576C6E063C45BE387C64729E739404372AAE01@dbde02.ent.ti.com>
- <20091215074025.GB3147@nokia.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: linux-next: origin tree build failure
+Date: Tue, 15 Dec 2009 09:07:19 +0100
+Message-ID: <20091215080719.GA23630@elte.hu>
+References: <20091215164108.45c9d766.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091215074025.GB3147-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:41693 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750850AbZLOIHp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Dec 2009 03:07:45 -0500
+Content-Disposition: inline
+In-Reply-To: <20091215164108.45c9d766.sfr@canb.auug.org.au>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Linus <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org]
-> Sent: Tuesday, December 15, 2009 1:10 PM
-> To: Gupta, Ajay Kumar
-> Cc: Balbi Felipe (Nokia-D/Helsinki); linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org
-> Subject: Re: [PATCH 1/3] musb: save dynfifo in musb struct
-> 
-> Hi,
-> 
-> On Tue, Dec 15, 2009 at 08:37:38AM +0100, ext Gupta, Ajay Kumar wrote:
-> >As per current logic, user has to set dyn_fifo if mentor core supports it
-> >and it has to be set to '0' if core doesn't support it. So what's the
-> need
-> >for musb->config->dyn_fifo at all. We can very well decide based on only
-> >CONFIGDATA register bits alone.
-> >
-> >I think we should just get rid of this unwanted user defined flag. I will
-> >post a patch on this along with next revision.
-> 
-> aaa ok, now I get what you're saying.
-> 
-> You're suggesting to drop musb->config->dyn_fifo and decide
-> ep_config_from_table() or ep_config_from_hw() based on CONFIGDATA.
-> 
-> Ok, makes sense. But first remove that before saving dyn_fifo on musb
-> structure.
 
-Another point, BlackFin doesn't have CONFIGDATA register and it always
-Returns '0' from it's custom function musb_read_configdata().
+* Stephen Rothwell <sfr@canb.auug.org.au> wrote:
 
-As it returns '0' and also BlackFin doesn't support Dynamic FIFO so
-Should be fine. 
-
-Any comment ?
-
--Ajay
+> Hi all,
 > 
-> --
-> balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Today's linux-next build (powerpc allyesconfig) failed like this:
+> 
+> drivers/mfd/twl4030-codec.c:29:31: error: linux/i2c/twl4030.h: No such file or directory
+
+FYI, x86 allyesconfig fails to build too so this doesnt only affect PowerPC.
+
+	Ingo
