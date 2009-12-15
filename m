@@ -1,255 +1,316 @@
-From: =?ISO-8859-1?Q?Fr=E9d=E9ric_BEGOU?= <fbegou@sios.fr>
-Subject: [RFC] twl4030 PWM backlight driver
-Date: Tue, 15 Dec 2009 15:23:18 +0100
-Message-ID: <4B279BD6.1010004@sios.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: balajitk@ti.com
+Subject: [PATCH v2] mfd: twl: fix twl4030 rename for remaining driver, board files
+Date: Tue, 15 Dec 2009 20:09:02 +0530
+Message-ID: <1260887942-32644-1-git-send-email-balajitk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2e.orange.fr ([80.12.242.111]:1607 "EHLO smtp2e.orange.fr"
+Received: from bear.ext.ti.com ([192.94.94.41]:46973 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932266AbZLOOXG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Dec 2009 09:23:06 -0500
+	id S1752530AbZLOOja (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Dec 2009 09:39:30 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, sameo@linux.intel.com
+Cc: broonie@opensource.wolfsonmicro.com, tony@atomide.com, sfr@canb.auug.org.au, felipe.balbi@nokia.com, lrg@slimlogic.co.uk, Balaji T K <balajitk@ti.com>
 
-Hello,
+From: Balaji T K <balajitk@ti.com>
 
-I am developing our own board file for my company's omap3530 basedboard.
-The board has an LCD panel and the backlight is PWM driven via the 
-twl4030's PWMB port.
-We are already using DSS2 on our board and things are going neatly.
+	This patch renames include twl4030.h to include twl.h
+	and also renames twl4030_i2c_ routines
 
-To clean up things, and planning to make the backlight level available 
-for the userland, I have already developped some piece of code, based 
-heavily on the drivers/video/backlight/omap1_bl.
-I've called this one twl4030_bl, very incomplete since it uses only PWMB 
-of the twl4030.
+Signed-off-by: Balaji T K <balajitk@ti.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Reviewed-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+	rebased the patch on latest mainline 
+	commit 3ea6b3d0e6d0ffd91c0f8cadeb69b7133c038b32
 
-Is it okay to have it done this way, or should I have based my work on 
-drivers/video/backlight/pwm_bl ?
+ arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c         |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+ drivers/mfd/twl4030-codec.c                  |   10 +++++-----
+ drivers/video/omap/lcd_ldp.c                 |    4 ++--
+ drivers/video/omap/lcd_omap2evm.c            |   10 +++++-----
+ drivers/video/omap/lcd_omap3beagle.c         |    2 +-
+ drivers/video/omap/lcd_omap3evm.c            |   10 +++++-----
+ drivers/video/omap/lcd_overo.c               |    2 +-
+ sound/soc/omap/sdp3430.c                     |    6 +++---
+ 13 files changed, 28 insertions(+), 28 deletions(-)
 
-Another question is whether the resulting driver will be usable on DSS2, 
-and how ? Every board which is now using DSS2 uses its own "set_level" 
-and "get_level" functions in the board file, and I'm wondering if this 
-shouldn't be done in a cleaner way, in an external driver like the one 
-I've done ?
-
-Thanks for your comments,
-
-Fred
-
-
-/*
-  * Backlight driver for twl4030 companion ship for OMAP2 based boards.
-  *
-  * Copyright (c) 2009 Frederic Begou <fbegou@sios.fr>
-  * based on OMAP1 backlight driver from
-  * Andrzej Zaborowski <balrog@zabor.org>
-  *
-  * This package is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-  * (at your option) any later version.
-  *
-  * This package is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this package; if not, write to the Free Software
-  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  * 02110-1301 USA
-  */
-
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
-#include <linux/platform_device.h>
-#include <linux/fb.h>
-#include <linux/backlight.h>
-#include <linux/i2c/twl4030.h>
-
-#include <mach/hardware.h>
-#include <plat/board.h>
-#include <plat/mux.h>
-
-#define TWL4030_MAX_INTENSITY	100
-
-struct twl4030_backlight {
-	int powermode;
-	int current_intensity;
-
-	struct device *dev;
-	struct omap_backlight_config *pdata;
-};
-
-static void inline twl4030bl_send_intensity(int intensity)
-{
-	u8 c;
-	c = (125 * (100 - intensity)) / 100 + 2;
-	twl4030_i2c_write_u8(TWL4030_MODULE_PWMB, intensity,
-					TWL_PWMB_PWMBOFF);
-}
-
-static void twl4030_blank(struct twl4030_backlight *bl, int mode)
-{
-	if (bl->pdata->set_power)
-		bl->pdata->set_power(bl->dev, mode);
-
-	switch (mode) {
-	case FB_BLANK_NORMAL:
-	case FB_BLANK_VSYNC_SUSPEND:
-	case FB_BLANK_HSYNC_SUSPEND:
-	case FB_BLANK_POWERDOWN:
-		twl4030bl_send_intensity(0);
-		break;
-
-	case FB_BLANK_UNBLANK:
-		twl4030bl_send_intensity(bl->current_intensity);
-		break;
-	}
-}
-
-#ifdef CONFIG_PM
-static int twl4030bl_suspend(struct platform_device *pdev, pm_message_t 
-state)
-{
-	struct backlight_device *dev = platform_get_drvdata(pdev);
-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-
-	twl4030bl_blank(bl, FB_BLANK_POWERDOWN);
-	return 0;
-}
-
-static int twl4030bl_resume(struct platform_device *pdev)
-{
-	struct backlight_device *dev = platform_get_drvdata(pdev);
-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-
-	twl4030bl_blank(bl, bl->powermode);
-	return 0;
-}
-#else
-#define twl4030bl_suspend	NULL
-#define twl4030bl_resume	NULL
-#endif
-
-static int twl4030bl_set_power(struct backlight_device *dev, int state)
-{
-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-
-	twl4030bl_blank(bl, state);
-	bl->powermode = state;
-
-	return 0;
-}
-
-static int twl4030bl_update_status(struct backlight_device *dev)
-{
-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-
-	if (bl->current_intensity != dev->props.brightness) {
-		if (bl->powermode == FB_BLANK_UNBLANK)
-			twl4030bl_send_intensity(dev->props.brightness);
-		bl->current_intensity = dev->props.brightness;
-	}
-
-	if (dev->props.fb_blank != bl->powermode)
-		twl4030bl_set_power(dev, dev->props.fb_blank);
-
-	return 0;
-}
-
-static int twl4030bl_get_intensity(struct backlight_device *dev)
-{
-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-	return bl->current_intensity;
-}
-
-static struct backlight_ops twl4030bl_ops = {
-	.get_brightness = twl4030bl_get_intensity,
-	.update_status  = twl4030bl_update_status,
-};
-
-static int twl4030bl_probe(struct platform_device *pdev)
-{
-	struct backlight_device *dev;
-	struct omap_backlight *bl;
-	struct omap_backlight_config *pdata = pdev->dev.platform_data;
-
-	if (!pdata)
-		return -ENXIO;
-
-	twl4030bl_ops.check_fb = pdata->check_fb;
-
-	bl = kzalloc(sizeof(struct omap_backlight), GFP_KERNEL);
-	if (unlikely(!bl))
-		return -ENOMEM;
-
-	dev = backlight_device_register("twl4030-bl", &pdev->dev,
-					bl, &twl4030bl_ops);
-	if (IS_ERR(dev)) {
-		kfree(bl);
-		return PTR_ERR(dev);
-	}
-
-	bl->powermode = FB_BLANK_POWERDOWN;
-	bl->current_intensity = 0;
-
-	bl->pdata = pdata;
-	bl->dev = &pdev->dev;
-
-	platform_set_drvdata(pdev, dev);
-
-	dev->props.fb_blank = FB_BLANK_UNBLANK;
-	dev->props.max_brightness = TWL4030BL_MAX_INTENSITY;
-	dev->props.brightness = pdata->default_intensity;
-	twl4030bl_update_status(dev);
-
-	printk(KERN_INFO "TWL4030 PWM LCD backlight initialised\n");
-
-	return 0;
-}
-
-static int twl4030bl_remove(struct platform_device *pdev)
-{
-	struct backlight_device *dev = platform_get_drvdata(pdev);
-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-
-	backlight_device_unregister(dev);
-	kfree(bl);
-
-	return 0;
-}
-
-static struct platform_driver twl4030bl_driver = {
-	.probe		= twl4030bl_probe,
-	.remove		= twl4030bl_remove,
-	.suspend	= twl4030bl_suspend,
-	.resume		= twl4030bl_resume,
-	.driver		= {
-		.name	= "twl4030-bl",
-	},
-};
-
-static int __init twl4030bl_init(void)
-{
-	return platform_driver_register(&twl4030bl_driver);
-}
-
-static void __exit twl4030bl_exit(void)
-{
-	platform_driver_unregister(&twl4030bl_driver);
-}
-
-module_init(twl4030bl_init);
-module_exit(twl4030bl_exit);
-
-MODULE_AUTHOR("Frederic Begou <fbegou@sios.fr>");
-MODULE_DESCRIPTION("TWL4030 PWM LCD Backlight driver");
-MODULE_LICENSE("GPL");
-
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 1591aae..2626a9f 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -29,7 +29,7 @@
+ #include <linux/gpio.h>
+ 
+ #include <linux/i2c/at24.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
+ 
+ #include <asm/mach-types.h>
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 44239e3..117b8fd 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -19,7 +19,7 @@
+ #include <linux/interrupt.h>
+ 
+ #include <linux/regulator/machine.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 18913e9..34de178 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -26,7 +26,7 @@
+ 
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/usb/otg.h>
+ #include <linux/smsc911x.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index c9e5ebb..fe3d22c 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -34,7 +34,7 @@
+ #include <linux/spi/ads7846.h>
+ 
+ #include <linux/regulator/machine.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 17f3c91..acafdbc 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -16,7 +16,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/wl12xx.h>
+ #include <linux/i2c.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/regulator/machine.h>
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 258794d..8dd277c 100755
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -14,7 +14,7 @@
+ #include <linux/input.h>
+ #include <linux/input/matrix_keypad.h>
+ #include <linux/gpio.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
+ 
+ #include <asm/mach-types.h>
+diff --git a/drivers/mfd/twl4030-codec.c b/drivers/mfd/twl4030-codec.c
+index 77b9149..700b149 100644
+--- a/drivers/mfd/twl4030-codec.c
++++ b/drivers/mfd/twl4030-codec.c
+@@ -26,7 +26,7 @@
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
+ #include <linux/platform_device.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/twl4030-codec.h>
+ 
+@@ -56,7 +56,7 @@ static int twl4030_codec_set_resource(enum twl4030_codec_res id, int enable)
+ 	struct twl4030_codec *codec = platform_get_drvdata(twl4030_codec_dev);
+ 	u8 val;
+ 
+-	twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &val,
++	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &val,
+ 			codec->resource[id].reg);
+ 
+ 	if (enable)
+@@ -64,7 +64,7 @@ static int twl4030_codec_set_resource(enum twl4030_codec_res id, int enable)
+ 	else
+ 		val &= ~codec->resource[id].mask;
+ 
+-	twl4030_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
++	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
+ 					val, codec->resource[id].reg);
+ 
+ 	return val;
+@@ -75,7 +75,7 @@ static inline int twl4030_codec_get_resource(enum twl4030_codec_res id)
+ 	struct twl4030_codec *codec = platform_get_drvdata(twl4030_codec_dev);
+ 	u8 val;
+ 
+-	twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &val,
++	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &val,
+ 			codec->resource[id].reg);
+ 
+ 	return val;
+@@ -183,7 +183,7 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "Invalid audio_mclk\n");
+ 		return -EINVAL;
+ 	}
+-	twl4030_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
++	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
+ 					val, TWL4030_REG_APLL_CTL);
+ 
+ 	codec = kzalloc(sizeof(struct twl4030_codec), GFP_KERNEL);
+diff --git a/drivers/video/omap/lcd_ldp.c b/drivers/video/omap/lcd_ldp.c
+index 5bb7f6f..0f5952c 100644
+--- a/drivers/video/omap/lcd_ldp.c
++++ b/drivers/video/omap/lcd_ldp.c
+@@ -24,7 +24,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/delay.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #include <mach/gpio.h>
+ #include <plat/mux.h>
+@@ -59,7 +59,7 @@
+ #define TWL4030_VPLL2_DEV_GRP           0x33
+ #define TWL4030_VPLL2_DEDICATED         0x36
+ 
+-#define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
++#define t2_out(c, r, v) twl_i2c_write_u8(c, r, v)
+ 
+ 
+ static int ldp_panel_init(struct lcd_panel *panel,
+diff --git a/drivers/video/omap/lcd_omap2evm.c b/drivers/video/omap/lcd_omap2evm.c
+index 006c2fe..7e7a65c 100644
+--- a/drivers/video/omap/lcd_omap2evm.c
++++ b/drivers/video/omap/lcd_omap2evm.c
+@@ -24,7 +24,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/gpio.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #include <plat/mux.h>
+ #include <asm/mach-types.h>
+@@ -61,9 +61,9 @@ static int omap2evm_panel_init(struct lcd_panel *panel,
+ 	gpio_direction_output(LCD_PANEL_LR, 1);
+ 	gpio_direction_output(LCD_PANEL_UD, 1);
+ 
+-	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
++	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
++	twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
++	twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
+ 	bklight_level = 100;
+ 
+ 	return 0;
+@@ -101,7 +101,7 @@ static int omap2evm_bklight_setlevel(struct lcd_panel *panel,
+ 	u8 c;
+ 	if ((level >= 0) && (level <= 100)) {
+ 		c = (125 * (100 - level)) / 100 + 2;
+-		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
++		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
+ 		bklight_level = level;
+ 	}
+ 	return 0;
+diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
+index fc503d8..ca75cc2 100644
+--- a/drivers/video/omap/lcd_omap3beagle.c
++++ b/drivers/video/omap/lcd_omap3beagle.c
+@@ -23,7 +23,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/gpio.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #include <plat/mux.h>
+ #include <plat/mux.h>
+diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
+index ae2edc4..06840da 100644
+--- a/drivers/video/omap/lcd_omap3evm.c
++++ b/drivers/video/omap/lcd_omap3evm.c
+@@ -23,7 +23,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/gpio.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #include <plat/mux.h>
+ #include <asm/mach-types.h>
+@@ -63,9 +63,9 @@ static int omap3evm_panel_init(struct lcd_panel *panel,
+ 	gpio_direction_output(LCD_PANEL_LR, 1);
+ 	gpio_direction_output(LCD_PANEL_UD, 1);
+ 
+-	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
++	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
++	twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
++	twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
+ 	bklight_level = 100;
+ 
+ 	return 0;
+@@ -102,7 +102,7 @@ static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
+ 	u8 c;
+ 	if ((level >= 0) && (level <= 100)) {
+ 		c = (125 * (100 - level)) / 100 + 2;
+-		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
++		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
+ 		bklight_level = level;
+ 	}
+ 	return 0;
+diff --git a/drivers/video/omap/lcd_overo.c b/drivers/video/omap/lcd_overo.c
+index 56ee192..564933f 100644
+--- a/drivers/video/omap/lcd_overo.c
++++ b/drivers/video/omap/lcd_overo.c
+@@ -21,7 +21,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #include <mach/gpio.h>
+ #include <plat/mux.h>
+diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
+index c071f96..3c85c0f 100644
+--- a/sound/soc/omap/sdp3430.c
++++ b/sound/soc/omap/sdp3430.c
+@@ -24,7 +24,7 @@
+ 
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/soc.h>
+@@ -321,11 +321,11 @@ static int __init sdp3430_soc_init(void)
+ 	*(unsigned int *)sdp3430_dai[1].cpu_dai->private_data = 2; /* McBSP3 */
+ 
+ 	/* Set TWL4030 GPIO6 as EXTMUTE signal */
+-	twl4030_i2c_read_u8(TWL4030_MODULE_INTBR, &pin_mux,
++	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &pin_mux,
+ 						TWL4030_INTBR_PMBR1);
+ 	pin_mux &= ~TWL4030_GPIO6_PWM0_MUTE(0x03);
+ 	pin_mux |= TWL4030_GPIO6_PWM0_MUTE(0x02);
+-	twl4030_i2c_write_u8(TWL4030_MODULE_INTBR, pin_mux,
++	twl_i2c_write_u8(TWL4030_MODULE_INTBR, pin_mux,
+ 						TWL4030_INTBR_PMBR1);
+ 
+ 	ret = platform_device_add(sdp3430_snd_device);
+-- 
+1.5.4.7
 
