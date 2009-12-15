@@ -1,74 +1,52 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: Re: [PATCH] omap i2c: add timeout to a busy loop in isr
-Date: Tue, 15 Dec 2009 15:20:14 +0200
-Message-ID: <4B278D0E.8000807@nokia.com>
-References: <1260796864-8560-1-git-send-email-virtuoso@slind.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Abhijit Pagare <abhijitpagare@ti.com>
+Subject: [PATCH 1/1] ARM: OMAP3: PM: Fix the Invalid CM_CLKSTCTRL reg access.
+Date: Tue, 15 Dec 2009 19:01:12 +0530
+Message-ID: <1260883872-22299-1-git-send-email-abhijitpagare@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:64963 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753828AbZLONU3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 08:20:29 -0500
-In-Reply-To: <1260796864-8560-1-git-send-email-virtuoso@slind.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42582 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760158AbZLONb2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Dec 2009 08:31:28 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Alexander Shishkin <virtuoso@slind.org>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Abhijit Pagare <abhijitpagare@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+In OMAP2/3 some of the clock-domains which did not have control
+facility were being falsely written to and read using the CM_CLKSTCTRL
+register though it did not exist for them. One check is added to remove
+this flaw.
 
-Alexander Shishkin wrote:
-> Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/clockdomain.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Could you add a better patch description? I.e. the patch is needed
-because I2C failure can cause a kernel hang. The problem can be
-reproduced by running the bus with wrong (too high) speed.
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 1a45ed1..dd285f0 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -559,7 +559,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	 * downstream clocks for debugging purposes?
+ 	 */
+ 
+-	if (!clkdm || !clk)
++	if (!clkdm || !clk || !clkdm->clktrctrl_mask)
+ 		return -EINVAL;
+ 
+ 	if (atomic_inc_return(&clkdm->usecount) > 1)
+@@ -610,7 +610,7 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	 * downstream clocks for debugging purposes?
+ 	 */
+ 
+-	if (!clkdm || !clk)
++	if (!clkdm || !clk || !clkdm->clktrctrl_mask)
+ 		return -EINVAL;
+ 
+ #ifdef DEBUG
+-- 
+1.5.4.7
 
-Also, you should send the patch to ben-linux@fluff.org with
-linux-omap and linux-i2c@vger.kernel.org in CC.
-
-Tested-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-
->  drivers/i2c/busses/i2c-omap.c |   21 +++++++++++++--------
->  1 files changed, 13 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 75bf3ad..7617f18 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -803,15 +803,20 @@ complete:
->  				 */
->  
->  				if (dev->rev <= OMAP_I2C_REV_ON_3430) {
-> -						while (!(stat & OMAP_I2C_STAT_XUDF)) {
-> -							if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
-> -								omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-> -								err |= OMAP_I2C_STAT_XUDF;
-> -								goto complete;
-> -							}
-> -							cpu_relax();
-> -							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-> +					unsigned long timeout = 10000;
-
-I think 10000 reads (with L4 core interconnect latency) is at least 0.8 ms. It should be more than
-enough for normal cases.
-
-> +					while (!(stat & OMAP_I2C_STAT_XUDF) && --timeout) {
-> +						if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
-> +							omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-> +							err |= OMAP_I2C_STAT_XUDF;
-> +							goto complete;
->  						}
-> +						cpu_relax();
-> +						stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-> +					}
-> +
-> +					if (!timeout)
-> +						dev_err(dev->dev, "timeout waiting on XUDF bit\n");
->  				}
->  
->  				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
-
-A.
