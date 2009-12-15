@@ -1,301 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] mfd: twl: fix twl4030 rename for remaining driver,
- board files
-Date: Tue, 15 Dec 2009 13:50:16 -0800
-Message-ID: <20091215215016.GP4575@atomide.com>
-References: <1260887942-32644-1-git-send-email-balajitk@ti.com>
- <19F8576C6E063C45BE387C64729E739404372AAFA4@dbde02.ent.ti.com>
- <20091215174318.GJ4575@atomide.com>
- <20091215182103.GK4575@atomide.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 02/17] DSPBRIDGE: Implemented Trampoline support for
+ 	dynamic loader
+Date: Tue, 15 Dec 2009 16:14:57 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53042D396AD9@dlee03.ent.ti.com>
+References: <1260857998-19349-1-git-send-email-omar.ramirez@ti.com>
+	 <1260857998-19349-3-git-send-email-omar.ramirez@ti.com>
+ <94a0d4530912151024v43b5941apdc3afeb00e18145c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="cNdxnHkX5QqsyA0e"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50540 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757936AbZLOVuY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 16:50:24 -0500
-Content-Disposition: inline
-In-Reply-To: <20091215182103.GK4575@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:35541 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933958AbZLOWPG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 17:15:06 -0500
+In-Reply-To: <94a0d4530912151024v43b5941apdc3afeb00e18145c@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>
 
+>From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+>Sent: Tuesday, December 15, 2009 12:25 PM
+>
+>On Tue, Dec 15, 2009 at 8:19 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
+>> From: Fernando Guzman Lugo <x0095840@ti.com>
+>>
+>> Implemented on dynamic loader automatic generation of
+>> trampolines when near calls are made to outside of signed
+>> 21-bit offset available in the C64X+ DSP.
+>
+>The commit message is not clear: Why do we want this? What problem is
+>fixed? Is old behavior changed, or is it an independent feature?
+>
 
---cNdxnHkX5QqsyA0e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+New commit message:
 
-* Tony Lindgren <tony@atomide.com> [091215 10:19]:
-> * Tony Lindgren <tony@atomide.com> [091215 09:43]:
-> > * Krishnamoorthy, Balaji T <balajitk@ti.com> [091215 08:09]:
-> > > Hi Samuel,
-> > > Could you please take this patch through the mfd tree.
-> > 
-> > NAK. Please redo the whole twl rename series so _every_ patch
-> > in the series builds for _every_ omap and x86. Then let's have
-> > it sit in for-next before merging it. Otherwise git bisect
-> > breaks on x86 also.
-> 
-> Argh. Too late. This twl rename series already hit the mainline
-> just now.
-> 
-> Has this patch been compile tested on all omaps and x86?
+"Trampolines" utilize memory space containing a local jump
+table to hit external locations. Instead of the "near"
+function call directly calling the external location it
+"calls" a trampoline entry.
 
-Looks like commit 8bea8672edfca7ec5f661cafb218f1205863b343 already
-took care of the x86 compile issue.
+A "near" function call requires the target to be within a
+signed, 21-bit offset from the current PC so all calls have
+to be within 4MB of the current execution point.
 
-I'll merge the refreshed version below via omap-fixes queue.
+The trampoline entry (location in memory) contains an
+unconditional long branch to the external address to be
+called. When the called function returns, the PC is returned
+to the original calling location since that is where the
+link register points, as the trampoline utilizes a branch
+instruction.
 
-Regards,
+Utilizing this method removes the 4MB location restriction
+as well since the long branch can be done within all of DSP
+addressable space.
 
-Tony
+This doesn't require any change on the dsp side, it is an
+enhancement for newer DSP side binaries.
 
-
---cNdxnHkX5QqsyA0e
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="twl-fix.patch"
-
->From 9008b8c9594df6e34992d766c04f0a0c60fa7d69 Mon Sep 17 00:00:00 2001
-From: Balaji T K <balajitk@ti.com>
-Date: Tue, 15 Dec 2009 20:09:02 +0530
-Subject: [PATCH] mfd: twl: fix twl4030 rename for remaining driver, board files
-
-Recent drivers/mfd/twl4030* renames to twl broke compile for
-various boards as the series was missing a patch to change
-the board-*.c files.
-
-This patch renames include twl4030.h to include twl.h
-and also renames twl4030_i2c_ routines.
-
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Reviewed-by: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 1591aae..2626a9f 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -29,7 +29,7 @@
- #include <linux/gpio.h>
- 
- #include <linux/i2c/at24.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- #include <linux/regulator/machine.h>
- 
- #include <asm/mach-types.h>
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 44239e3..117b8fd 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -19,7 +19,7 @@
- #include <linux/interrupt.h>
- 
- #include <linux/regulator/machine.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 18913e9..34de178 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -26,7 +26,7 @@
- 
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- #include <linux/usb/otg.h>
- #include <linux/smsc911x.h>
- 
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index c9e5ebb..fe3d22c 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -34,7 +34,7 @@
- #include <linux/spi/ads7846.h>
- 
- #include <linux/regulator/machine.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 17f3c91..acafdbc 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -16,7 +16,7 @@
- #include <linux/spi/spi.h>
- #include <linux/spi/wl12xx.h>
- #include <linux/i2c.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/regulator/machine.h>
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 258794d..8dd277c 100755
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -14,7 +14,7 @@
- #include <linux/input.h>
- #include <linux/input/matrix_keypad.h>
- #include <linux/gpio.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- #include <linux/regulator/machine.h>
- 
- #include <asm/mach-types.h>
-diff --git a/drivers/video/omap/lcd_ldp.c b/drivers/video/omap/lcd_ldp.c
-index 5bb7f6f..0f5952c 100644
---- a/drivers/video/omap/lcd_ldp.c
-+++ b/drivers/video/omap/lcd_ldp.c
-@@ -24,7 +24,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/delay.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- 
- #include <mach/gpio.h>
- #include <plat/mux.h>
-@@ -59,7 +59,7 @@
- #define TWL4030_VPLL2_DEV_GRP           0x33
- #define TWL4030_VPLL2_DEDICATED         0x36
- 
--#define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
-+#define t2_out(c, r, v) twl_i2c_write_u8(c, r, v)
- 
- 
- static int ldp_panel_init(struct lcd_panel *panel,
-diff --git a/drivers/video/omap/lcd_omap2evm.c b/drivers/video/omap/lcd_omap2evm.c
-index 006c2fe..7e7a65c 100644
---- a/drivers/video/omap/lcd_omap2evm.c
-+++ b/drivers/video/omap/lcd_omap2evm.c
-@@ -24,7 +24,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- 
- #include <plat/mux.h>
- #include <asm/mach-types.h>
-@@ -61,9 +61,9 @@ static int omap2evm_panel_init(struct lcd_panel *panel,
- 	gpio_direction_output(LCD_PANEL_LR, 1);
- 	gpio_direction_output(LCD_PANEL_UD, 1);
- 
--	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
--	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
--	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
-+	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
-+	twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
-+	twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
- 	bklight_level = 100;
- 
- 	return 0;
-@@ -101,7 +101,7 @@ static int omap2evm_bklight_setlevel(struct lcd_panel *panel,
- 	u8 c;
- 	if ((level >= 0) && (level <= 100)) {
- 		c = (125 * (100 - level)) / 100 + 2;
--		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
-+		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
- 		bklight_level = level;
- 	}
- 	return 0;
-diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
-index fc503d8..ca75cc2 100644
---- a/drivers/video/omap/lcd_omap3beagle.c
-+++ b/drivers/video/omap/lcd_omap3beagle.c
-@@ -23,7 +23,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- 
- #include <plat/mux.h>
- #include <plat/mux.h>
-diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
-index ae2edc4..06840da 100644
---- a/drivers/video/omap/lcd_omap3evm.c
-+++ b/drivers/video/omap/lcd_omap3evm.c
-@@ -23,7 +23,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- 
- #include <plat/mux.h>
- #include <asm/mach-types.h>
-@@ -63,9 +63,9 @@ static int omap3evm_panel_init(struct lcd_panel *panel,
- 	gpio_direction_output(LCD_PANEL_LR, 1);
- 	gpio_direction_output(LCD_PANEL_UD, 1);
- 
--	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
--	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
--	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
-+	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
-+	twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
-+	twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
- 	bklight_level = 100;
- 
- 	return 0;
-@@ -102,7 +102,7 @@ static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
- 	u8 c;
- 	if ((level >= 0) && (level <= 100)) {
- 		c = (125 * (100 - level)) / 100 + 2;
--		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
-+		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
- 		bklight_level = level;
- 	}
- 	return 0;
-diff --git a/drivers/video/omap/lcd_overo.c b/drivers/video/omap/lcd_overo.c
-index 56ee192..564933f 100644
---- a/drivers/video/omap/lcd_overo.c
-+++ b/drivers/video/omap/lcd_overo.c
-@@ -21,7 +21,7 @@
- 
- #include <linux/module.h>
- #include <linux/platform_device.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- 
- #include <mach/gpio.h>
- #include <plat/mux.h>
-diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
-index c071f96..3c85c0f 100644
---- a/sound/soc/omap/sdp3430.c
-+++ b/sound/soc/omap/sdp3430.c
-@@ -24,7 +24,7 @@
- 
- #include <linux/clk.h>
- #include <linux/platform_device.h>
--#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl.h>
- #include <sound/core.h>
- #include <sound/pcm.h>
- #include <sound/soc.h>
-@@ -321,11 +321,11 @@ static int __init sdp3430_soc_init(void)
- 	*(unsigned int *)sdp3430_dai[1].cpu_dai->private_data = 2; /* McBSP3 */
- 
- 	/* Set TWL4030 GPIO6 as EXTMUTE signal */
--	twl4030_i2c_read_u8(TWL4030_MODULE_INTBR, &pin_mux,
-+	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &pin_mux,
- 						TWL4030_INTBR_PMBR1);
- 	pin_mux &= ~TWL4030_GPIO6_PWM0_MUTE(0x03);
- 	pin_mux |= TWL4030_GPIO6_PWM0_MUTE(0x02);
--	twl4030_i2c_write_u8(TWL4030_MODULE_INTBR, pin_mux,
-+	twl_i2c_write_u8(TWL4030_MODULE_INTBR, pin_mux,
- 						TWL4030_INTBR_PMBR1);
- 
- 	ret = platform_device_add(sdp3430_snd_device);
-
---cNdxnHkX5QqsyA0e--
+- omar
