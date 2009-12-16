@@ -1,50 +1,63 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH] mfd: twl: fix twl4030 rename for remaining driver, board files
-Date: Wed, 16 Dec 2009 09:28:17 +0200
-Message-ID: <200912160928.17397.peter.ujfalusi@nokia.com>
-References: <1260881723-17255-1-git-send-email-balajitk@ti.com>
+Subject: Re: [PATCH v7 0/5] OMAP: McBSP: Use register cache
+Date: Wed, 16 Dec 2009 10:02:53 +0200
+Message-ID: <200912161002.53534.peter.ujfalusi@nokia.com>
+References: <200912092124.14430.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:55439 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934642AbZLPH2y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 02:28:54 -0500
-In-Reply-To: <1260881723-17255-1-git-send-email-balajitk@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:42872 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759129AbZLPIE4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 03:04:56 -0500
+In-Reply-To: <200912092124.14430.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext balajitk@ti.com" <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "tony@atomide.co" <tony@atomide.co>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>
+To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tuesday 15 December 2009 14:55:23 ext balajitk@ti.com wrote:
-> From: Balaji T K <balajitk@ti.com>
-> 
->         This patch renames include twl4030.h to include twl.h
-> 	and also renames twl4030_i2c_ routines
-> 
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> ---
->  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
->  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
->  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
->  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
->  arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
->  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
->  drivers/mfd/twl4030-codec.c                  |   10 +++++-----
->  drivers/video/omap/lcd_ldp.c                 |    4 ++--
->  drivers/video/omap/lcd_omap2evm.c            |   10 +++++-----
->  drivers/video/omap/lcd_omap3beagle.c         |    2 +-
->  drivers/video/omap/lcd_omap3evm.c            |   10 +++++-----
->  drivers/video/omap/lcd_overo.c               |    2 +-
->  sound/soc/omap/sdp3430.c                     |    6 +++---
->  13 files changed, 28 insertions(+), 28 deletions(-)
+Hello Janusz,
 
-I have not followed the thread too closely, but have you made the changes also 
-to the sound/soc/codec/twl4030.c driver as well, since that also includes the 
-linux/i2c/twl4030.h ?
+I'll try to go through the series.
 
-If that has been taken care by other patch, than:
+On Wednesday 09 December 2009 22:24:13 ext Janusz Krzysztofik wrote:
 
-Acked-By: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+> This could help for developing the McBSP context save/restore feature=
+s, as
+> well as solve the problem of possible register corruption, experience=
+d on
+> OMAP1510 based Amstrad Delta board at least.
+
+=46or the context save/restore feature:
+On OMAP3 this is not that straight forward IMHO.
+OMAP3 has FIFO on the McBSP ports (1024+256, or 128 word long).
+This buffer will be invalidated in case of OFF mode (or when context=20
+save/restore is needed).
+So if we ever face with this situation, we need to make sure that the M=
+cBSP FIFO=20
+is empty prior to context save, so when we are restoring we are not goi=
+ng to=20
+loose any data.
+Note also, that the McBSP FIFO can not be bypassed on OMAP3, which mean=
+s that=20
+the FIFO is most of the time is kind of full.
+Well, full in element mode, and mostly full in threshold mode.
+
+In other words: on OMAP3 the context save/restore is not that simple as=
+ it is on=20
+OMAP1/2. We need to make sure that the FIFO is empty at the right momen=
+t, which=20
+can not be done with the current code, and to be honest, I can not see =
+how it=20
+can be done, unless we branch out the OMAP3 related McBSP/DMA code, and=
+ leave=20
+the current implementation to support only OMAP1/2 class devices.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
