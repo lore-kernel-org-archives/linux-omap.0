@@ -1,88 +1,63 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [rfc/rft/patch-v2.6.32-omap1+ 1/2] arm: omap: clock: add omap_udc to clkdev
-Date: Wed, 16 Dec 2009 23:52:34 +0200
-Message-ID: <1261000355-2174-2-git-send-email-felipe.balbi@nokia.com>
-References: <1261000355-2174-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:40560 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755283AbZLPVz4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 16:55:56 -0500
-In-Reply-To: <1261000355-2174-1-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap build fixes
+Date: Wed, 16 Dec 2009 14:35:20 -0800
+Message-ID: <20091216223520.GV4575@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761370AbZLPWf1@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <kjh@hilman.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-then we can later remove all of those cpu conditionals
-on drivers/usb/gadget/omap_udc.c
+Hi Linus,
 
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
+Please pull omap build fixes from:
 
-Paul, do you think the following is correct ? Judging
-by omap_udc.c those are the clocks used by that driver
-but I don't have boards to try out.
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
 
-Anyways, after this patch hits mainline, I can send
-patches to omap_udc.c removing the cpu conditional
-clk_get().
+In addition to the three build fixes, there's also a suspend fix
+for omap serial init.
 
- arch/arm/mach-omap1/clock_data.c     |   10 +++++-----
- arch/arm/mach-omap2/clock2xxx_data.c |    4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+Regards,
 
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index ab995a9..72169e7 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -622,7 +622,7 @@ static struct omap_clk omap_clks[] = {
- 	/* CK_GEN3 clocks */
- 	CLK(NULL,	"tc_ck",	&tc_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	CLK(NULL,	"tipb_ck",	&tipb_ck,	CK_1510 | CK_310),
--	CLK(NULL,	"l3_ocpi_ck",	&l3_ocpi_ck,	CK_16XX | CK_7XX),
-+	CLK("omap_udc",	"l3_ocpi_ck",	&l3_ocpi_ck,	CK_16XX | CK_7XX),
- 	CLK(NULL,	"tc1_ck",	&tc1_ck,	CK_16XX),
- 	CLK(NULL,	"tc2_ck",	&tc2_ck,	CK_16XX),
- 	CLK(NULL,	"dma_ck",	&dma_ck,	CK_16XX | CK_1510 | CK_310),
-@@ -640,10 +640,10 @@ static struct omap_clk omap_clks[] = {
- 	CLK(NULL,	"uart3_ck",	&uart3_1510,	CK_1510 | CK_310),
- 	CLK(NULL,	"uart3_ck",	&uart3_16xx.clk, CK_16XX),
- 	CLK(NULL,	"usb_clko",	&usb_clko,	CK_16XX | CK_1510 | CK_310),
--	CLK(NULL,	"usb_hhc_ck",	&usb_hhc_ck1510, CK_1510 | CK_310),
--	CLK(NULL,	"usb_hhc_ck",	&usb_hhc_ck16xx, CK_16XX),
--	CLK(NULL,	"usb_dc_ck",	&usb_dc_ck,	CK_16XX),
--	CLK(NULL,	"usb_dc_ck",	&usb_dc_ck7xx,	CK_7XX),
-+	CLK("omap_udc",	"usb_hhc_ck",	&usb_hhc_ck1510, CK_1510 | CK_310),
-+	CLK("omap_hdc",	"usb_hhc_ck",	&usb_hhc_ck16xx, CK_16XX),
-+	CLK("omap_udc",	"usb_dc_ck",	&usb_dc_ck,	CK_16XX),
-+	CLK("omap_udc",	"usb_dc_ck",	&usb_dc_ck7xx,	CK_7XX),
- 	CLK(NULL,	"mclk",		&mclk_1510,	CK_1510 | CK_310),
- 	CLK(NULL,	"mclk",		&mclk_16xx,	CK_16XX),
- 	CLK(NULL,	"bclk",		&bclk_1510,	CK_1510 | CK_310),
-diff --git a/arch/arm/mach-omap2/clock2xxx_data.c b/arch/arm/mach-omap2/clock2xxx_data.c
-index 97dc7cf..c21bf7c 100644
---- a/arch/arm/mach-omap2/clock2xxx_data.c
-+++ b/arch/arm/mach-omap2/clock2xxx_data.c
-@@ -2126,7 +2126,7 @@ static struct omap_clk omap24xx_clks[] = {
- 	/* L3 domain clocks */
- 	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_243X | CK_242X),
- 	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_243X | CK_242X),
--	CLK(NULL,	"usb_l4_ick",	&usb_l4_ick,	CK_243X | CK_242X),
-+	CLK("omap_udc",	"usb_l4_ick",	&usb_l4_ick,	CK_243X | CK_242X),
- 	/* L4 domain clocks */
- 	CLK(NULL,	"l4_ck",	&l4_ck,		CK_243X | CK_242X),
- 	CLK(NULL,	"ssi_l4_ick",	&ssi_l4_ick,	CK_243X | CK_242X),
-@@ -2221,7 +2221,7 @@ static struct omap_clk omap24xx_clks[] = {
- 	CLK("omap_rng",	"ick",		&rng_ick,	CK_243X | CK_242X),
- 	CLK(NULL,	"aes_ick",	&aes_ick,	CK_243X | CK_242X),
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_243X | CK_242X),
--	CLK(NULL,	"usb_fck",	&usb_fck,	CK_243X | CK_242X),
-+	CLK("omap_udc",	"usb_fck",	&usb_fck,	CK_243X | CK_242X),
- 	CLK("musb_hdrc",	"ick",	&usbhs_ick,	CK_243X),
- 	CLK("mmci-omap-hs.0", "ick",	&mmchs1_ick,	CK_243X),
- 	CLK("mmci-omap-hs.0", "fck",	&mmchs1_fck,	CK_243X),
--- 
-1.6.6.rc0
+Tony
 
+
+The following changes since commit 8bea8672edfca7ec5f661cafb218f1205863b343:
+  Stephen Rothwell (1):
+        mfd: compile fix for twl4030 renaming
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Balaji T K (1):
+      mfd: twl: fix twl4030 rename for remaining driver, board files
+
+Mika Westerberg (1):
+      OMAP3: serial - fix bug introduced in
+
+Olof Johansson (1):
+      omap3: Allow EHCI to be built on OMAP3
+
+Thomas Weber (1):
+      USB ehci: replace mach header with plat
+
+ arch/arm/mach-omap2/Kconfig                  |    1 +
+ arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c         |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+ arch/arm/mach-omap2/serial.c                 |    7 ++++---
+ drivers/usb/host/ehci-omap.c                 |    2 +-
+ drivers/video/omap/lcd_ldp.c                 |    4 ++--
+ drivers/video/omap/lcd_omap2evm.c            |   10 +++++-----
+ drivers/video/omap/lcd_omap3beagle.c         |    2 +-
+ drivers/video/omap/lcd_omap3evm.c            |   10 +++++-----
+ drivers/video/omap/lcd_overo.c               |    2 +-
+ sound/soc/omap/sdp3430.c                     |    6 +++---
+ 15 files changed, 29 insertions(+), 27 deletions(-)
