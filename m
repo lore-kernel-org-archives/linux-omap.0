@@ -1,52 +1,130 @@
-From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: RE: OMAP3 I2C driver timing problem with multiple messages transfer
-Date: Wed, 16 Dec 2009 09:57:37 -0600
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F202A9A04B66@dlee06.ent.ti.com>
-References: <1260972144-31593-1-git-send-email-virtuoso@slind.org>
- <54B31811B83D744D90BF0289EB447D4609975E46F1@MAIL-MB1.oerlikon.ca>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] OMAP: McBSP: Fix possible port lockout
+Date: Wed, 16 Dec 2009 17:16:28 +0100
+Message-ID: <200912161716.30041.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59466 "EHLO arroyo.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:43003 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760027AbZLPP5q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 10:57:46 -0500
-In-Reply-To: <54B31811B83D744D90BF0289EB447D4609975E46F1@MAIL-MB1.oerlikon.ca>
-Content-Language: en-US
+	id S934515AbZLPQQu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 11:16:50 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Weng, Wending" <WWeng@rheinmetall.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org
 
-Wending,
+In its current form, the omap_mcbsp_request() function can return after=
+=20
+irq_request() failure without any cleanups, effectively locking out the=
+ port=20
+forever with clocks left running. Fix it.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Weng, Wending
-> Sent: Wednesday, December 16, 2009 8:54 AM
-> To: linux-omap@vger.kernel.org; linux-i2c@vger.kernel.org
-> Subject: OMAP3 I2C driver timing problem with multiple messages transfer
-> 
-> Hi All,
-> 
->         Some I2C related protocols as SMBus, each command is composed of
-> multiple I2C messages with timing constraint, the delay between two
-> messages must be less than 10 ms, otherwise, the SMBus device will be
-> timeout, and the command fails. As the function
-> wait_for_completion_timeout is used to wait the end of a message, it
-> doesn't guarante the next message will be sent out in 10 ms after the
-> previous message is completed, so the SMBus command fails very often. I
-> developped a patch for fixing this timing problem(2.6.32.RC5), is there
-> anybody willing to review and to incorporate the patch into the furture
-> release?
-> 
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Yes, do send out the patch as I am sure people would be interested to review your patch as well as incorporate it if it's needed. Please send out the patch to these mailing lists.
+---
+Wednesday 16 December 2009 09:12:55 Jarkko Nikula napisa=C5=82(a):
+> On Tue, 15 Dec 2009 01:36:47 +0100
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+> > 3. In omap_mcbsp_free(), marking the port as free before deallocati=
+ng the
+> >    cache, could result in memory leak as well.
+> >
+> > I hope all are addressed correctly. Since releasing the port with
+> >
+> > 	mcbsp->free =3D 1;
+> >
+> > after kzalloc() failure should be atomic, I have assumed this doesn=
+'t
+> > require locking.
+>
+> Good catch. One comment below.
+>
+> > @@ -471,6 +491,9 @@ void omap_mcbsp_free(unsigned int id)
+> >  		free_irq(mcbsp->tx_irq, (void *)mcbsp);
+> >  	}
+> >
+> > +	kfree(mcbsp->reg_cache);
+> > +	mcbsp->reg_cache =3D NULL;
+> > +
+> >  	spin_lock(&mcbsp->lock);
+> >  	if (mcbsp->free) {
+> >  		dev_err(mcbsp->dev, "McBSP%d was not reserved\n",
+>
+> This is fine in current form but to play safe, lets do the kfree
+> inside the spin_lock section where the mcbsp->free is set. Then there
+> is no risk if some future code would use the mcbsp->free as a guard f=
+or
+> cache etc. access.
 
-> Wending
-> Software Engineer
-> at Rheinmetall Canada
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jarkko,
+
+More and more looking at this, I think that omap_mcbsp_request() should=
+ be=20
+cleaned up frist in respect of freeing resources on error before we put=
+ any=20
+new functionality there.
+
+This patch could be either joined with patch 1/5 or introduced as extra=
+ patch=20
+1.5/5 into the McBSP caching set if not accepted as a separate fix.
+
+I'm not sure if it is really required to revert any =20
+mcbsp->pdata->ops->request() or omap34xx_mcbsp_request() applied change=
+s by=20
+calling mcbsp->pdata->ops->free() or omap34xx_mcbsp_free() from here.
+
+Thanks,
+Janusz
+
+
+diff -upr git.orig/arch/arm/plat-omap/mcbsp.c git/arch/arm/plat-omap/mc=
+bsp.c
+--- git.orig/arch/arm/plat-omap/mcbsp.c	2009-12-16 16:33:16.000000000 +=
+0100
++++ git/arch/arm/plat-omap/mcbsp.c	2009-12-16 16:32:50.000000000 +0100
+@@ -436,7 +436,7 @@ int omap_mcbsp_request(unsigned int id)
+ 			dev_err(mcbsp->dev, "Unable to request TX IRQ %d "
+ 					"for McBSP%d\n", mcbsp->tx_irq,
+ 					mcbsp->id);
+-			return err;
++			goto error;
+ 		}
+=20
+ 		init_completion(&mcbsp->rx_irq_completion);
+@@ -446,12 +446,26 @@ int omap_mcbsp_request(unsigned int id)
+ 			dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
+ 					"for McBSP%d\n", mcbsp->rx_irq,
+ 					mcbsp->id);
+-			free_irq(mcbsp->tx_irq, (void *)mcbsp);
+-			return err;
++			goto tx_irq;
+ 		}
+ 	}
+=20
+ 	return 0;
++tx_irq:
++	free_irq(mcbsp->tx_irq, (void *)mcbsp);
++error:
++	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
++			mcbsp->pdata->ops->free(id);
++
++	/* Do procedure specific to omap34xx arch, if applicable */
++	omap34xx_mcbsp_free(mcbsp);
++
++	clk_disable(mcbsp->fclk);
++	clk_disable(mcbsp->iclk);
++
++	mcbsp->free =3D 1;
++
++	return err;
+ }
+ EXPORT_SYMBOL(omap_mcbsp_request);
+=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
