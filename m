@@ -1,36 +1,35 @@
-From: Roel Kluin <roel.kluin@gmail.com>
-Subject: [PATCH] OMAP: omap3_pm_get_suspend_state() error ignored in pwrdm_suspend_get()
-Date: Wed, 16 Dec 2009 17:22:04 +0100
-Message-ID: <4B29092C.4040600@gmail.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: RE: [PATCH] mfd: twl: fix twl4030 rename for remaining driver,
+ board files
+Date: Wed, 16 Dec 2009 22:19:53 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940449F43789@dbde02.ent.ti.com>
+References: <1260881723-17255-1-git-send-email-balajitk@ti.com>
+ <200912160928.17397.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S934987AbZLPQUW@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linu>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35889 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932169AbZLPQuR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 11:50:17 -0500
+In-Reply-To: <200912160928.17397.peter.ujfalusi@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "tony@atomide.co" <tony@atomide.co>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>
 
-val is an u64 pointer, we need an int to check the error.
+> From: Peter Ujfalusi [mailto:peter.ujfalusi@nokia.com]
+> I have not followed the thread too closely, but have you made the changes also
+> to the sound/soc/codec/twl4030.c driver as well, since that also includes the
+> linux/i2c/twl4030.h ?
+Yes, that has been taken care
+I should have taken little more care, My Apologies.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
-Found using coccinelle: http://coccinelle.lip6.fr/
+> 
+> If that has been taken care by other patch, than:
+> 
+> Acked-By: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Thanks
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 860b755..081ca85 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -488,9 +488,11 @@ int pm_dbg_regset_init(int reg_set)
- 
- static int pwrdm_suspend_get(void *data, u64 *val)
- {
--	*val = omap3_pm_get_suspend_state((struct powerdomain *)data);
-+	int ret;
-+	ret = omap3_pm_get_suspend_state((struct powerdomain *)data);
-+	*val = ret;
- 
--	if (*val >= 0)
-+	if (ret >= 0)
- 		return 0;
- 	return *val;
- }
