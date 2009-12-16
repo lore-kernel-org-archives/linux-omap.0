@@ -1,63 +1,59 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH v7 0/5] OMAP: McBSP: Use register cache
-Date: Wed, 16 Dec 2009 10:02:53 +0200
-Message-ID: <200912161002.53534.peter.ujfalusi@nokia.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH 3/5 v8] OMAP: McBSP: Introduce caching in register write
+ operations
+Date: Wed, 16 Dec 2009 10:12:55 +0200
+Message-ID: <20091216101255.91e28a5f.jhnikula@gmail.com>
 References: <200912092124.14430.jkrzyszt@tis.icnet.pl>
+	<20091211151149.c20acce5.jhnikula@gmail.com>
+	<200912111451.29185.jkrzyszt@tis.icnet.pl>
+	<200912150136.49087.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:42872 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759129AbZLPIE4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 03:04:56 -0500
-In-Reply-To: <200912092124.14430.jkrzyszt@tis.icnet.pl>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:33921 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761788AbZLPILk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 03:11:40 -0500
+Received: by ewy19 with SMTP id 19so274064ewy.21
+        for <linux-omap@vger.kernel.org>; Wed, 16 Dec 2009 00:11:37 -0800 (PST)
+In-Reply-To: <200912150136.49087.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org
 
-Hello Janusz,
+On Tue, 15 Dec 2009 01:36:47 +0100
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
 
-I'll try to go through the series.
+> 3. In omap_mcbsp_free(), marking the port as free before deallocating the 
+>    cache, could result in memory leak as well.
+> 
+> I hope all are addressed correctly. Since releasing the port with
+> 
+> 	mcbsp->free = 1;
+> 
+> after kzalloc() failure should be atomic, I have assumed this doesn't require 
+> locking.
+> 
+Good catch. One comment below.
 
-On Wednesday 09 December 2009 22:24:13 ext Janusz Krzysztofik wrote:
+> @@ -471,6 +491,9 @@ void omap_mcbsp_free(unsigned int id)
+>  		free_irq(mcbsp->tx_irq, (void *)mcbsp);
+>  	}
+>  
+> +	kfree(mcbsp->reg_cache);
+> +	mcbsp->reg_cache = NULL;
+> +
+>  	spin_lock(&mcbsp->lock);
+>  	if (mcbsp->free) {
+>  		dev_err(mcbsp->dev, "McBSP%d was not reserved\n",
 
-> This could help for developing the McBSP context save/restore feature=
-s, as
-> well as solve the problem of possible register corruption, experience=
-d on
-> OMAP1510 based Amstrad Delta board at least.
+This is fine in current form but to play safe, lets do the kfree
+inside the spin_lock section where the mcbsp->free is set. Then there
+is no risk if some future code would use the mcbsp->free as a guard for
+cache etc. access.
 
-=46or the context save/restore feature:
-On OMAP3 this is not that straight forward IMHO.
-OMAP3 has FIFO on the McBSP ports (1024+256, or 128 word long).
-This buffer will be invalidated in case of OFF mode (or when context=20
-save/restore is needed).
-So if we ever face with this situation, we need to make sure that the M=
-cBSP FIFO=20
-is empty prior to context save, so when we are restoring we are not goi=
-ng to=20
-loose any data.
-Note also, that the McBSP FIFO can not be bypassed on OMAP3, which mean=
-s that=20
-the FIFO is most of the time is kind of full.
-Well, full in element mode, and mostly full in threshold mode.
 
-In other words: on OMAP3 the context save/restore is not that simple as=
- it is on=20
-OMAP1/2. We need to make sure that the FIFO is empty at the right momen=
-t, which=20
-can not be done with the current code, and to be honest, I can not see =
-how it=20
-can be done, unless we branch out the OMAP3 related McBSP/DMA code, and=
- leave=20
-the current implementation to support only OMAP1/2 class devices.
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jarkko
