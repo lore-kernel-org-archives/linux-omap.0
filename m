@@ -1,63 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap build fixes
-Date: Wed, 16 Dec 2009 14:35:20 -0800
-Message-ID: <20091216223520.GV4575@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 00/10 V5] omap3: pm: introduce support for 3630 OPPs
+Date: Wed, 16 Dec 2009 14:37:02 -0800
+Message-ID: <873a3aa6lt.fsf@deeprootsystems.com>
+References: <[PATCH 02/10 V4] omap3: pm: introduce opp accessor functions>
+	<1260594031-17268-1-git-send-email-nm@ti.com>
+	<87pr6eadx3.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761370AbZLPWf1@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:58613 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935413AbZLPWhG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 17:37:06 -0500
+Received: by pzk1 with SMTP id 1so1035602pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 16 Dec 2009 14:37:05 -0800 (PST)
+In-Reply-To: <87pr6eadx3.fsf@deeprootsystems.com> (Kevin Hilman's message of "Wed\, 16 Dec 2009 11\:59\:04 -0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi Linus,
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-Please pull omap build fixes from:
+> Nishanth Menon <nm@ti.com> writes:
+>
+>> Hi,
+>> Thanks for all the comments. Here are the *changed* patches since V5
+>>
+>> What changed in V5:
+>> * review comment incorporated
+>> * vsel is deprecated now
+>> * I seem to have hit a checkpatch.pl bug as in 
+>>   http://lkml.org/lkml/2009/12/11/573, made me check the usage
+>>   of __deprecated for struct params, and used it in a
+>>   consistent manner to functions..
+>> * More warnings added to build :( (deprecated ones ofcourse)
+>> * removed OMAP_OPP_DEF_TERMINATOR
+>> * 3430 and 3630 patches changed as a result
+[...]
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+> To facilitate the ongoing discussions on OPP rework, and to have a
+> common base, this series is available as a branch in my linux-omap-pm
+> repo[1].
+>
+> The branch is called 'pm-wip-opp' and I have rebased onto the PM
+> branch I pushed today.
 
-In addition to the three build fixes, there's also a suspend fix
-for omap serial init.
+I forgot to mention that I've also pushed the patch for removing OPP
+interface from the OMAP PM layer[1] to the work-in-progress OPP
+branch.
 
-Regards,
+Kevin
 
-Tony
-
-
-The following changes since commit 8bea8672edfca7ec5f661cafb218f1205863b343:
-  Stephen Rothwell (1):
-        mfd: compile fix for twl4030 renaming
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Balaji T K (1):
-      mfd: twl: fix twl4030 rename for remaining driver, board files
-
-Mika Westerberg (1):
-      OMAP3: serial - fix bug introduced in
-
-Olof Johansson (1):
-      omap3: Allow EHCI to be built on OMAP3
-
-Thomas Weber (1):
-      USB ehci: replace mach header with plat
-
- arch/arm/mach-omap2/Kconfig                  |    1 +
- arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
- arch/arm/mach-omap2/board-igep0020.c         |    2 +-
- arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
- arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
- arch/arm/mach-omap2/serial.c                 |    7 ++++---
- drivers/usb/host/ehci-omap.c                 |    2 +-
- drivers/video/omap/lcd_ldp.c                 |    4 ++--
- drivers/video/omap/lcd_omap2evm.c            |   10 +++++-----
- drivers/video/omap/lcd_omap3beagle.c         |    2 +-
- drivers/video/omap/lcd_omap3evm.c            |   10 +++++-----
- drivers/video/omap/lcd_overo.c               |    2 +-
- sound/soc/omap/sdp3430.c                     |    6 +++---
- 15 files changed, 29 insertions(+), 27 deletions(-)
+[1] http://marc.info/?l=linux-omap&m=125917007423545&w=2
