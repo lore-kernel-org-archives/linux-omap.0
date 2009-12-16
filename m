@@ -1,40 +1,56 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [rft/rfc/patch-2.6.32-omap1+ 6/6] cbus: no ternary on return
-Date: Wed, 16 Dec 2009 01:44:13 +0200
-Message-ID: <1260920653-18503-7-git-send-email-felipe.balbi@nokia.com>
-References: <1260920653-18503-1-git-send-email-felipe.balbi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Low level debugging using CONFIG_EARLY_PRINTK=y, omap-debug branch
+ removed
+Date: Tue, 15 Dec 2009 16:53:38 -0800
+Message-ID: <20091216005337.GR4575@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:19913 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760760AbZLOXqq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 18:46:46 -0500
-In-Reply-To: <1260920653-18503-1-git-send-email-felipe.balbi@nokia.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49783 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758238AbZLPAxl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Dec 2009 19:53:41 -0500
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NKi96-0007iz-Fw
+	for linux-omap@vger.kernel.org; Wed, 16 Dec 2009 00:53:40 +0000
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
 
-data is reset to 0 if is_read is true. No need
-to use ternary operator before returning.
+Hi all,
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/cbus/cbus.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Recent commit 93fd03a8c6728b58879f8af20ffd55d9c32a778b added
+support for CONFIG_EARLY_PRINTK on ARM. Recent earlier kernels
+should work too by applying the patch in the commit above.
 
-diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
-index 615f447..35f7c71 100644
---- a/drivers/cbus/cbus.c
-+++ b/drivers/cbus/cbus.c
-@@ -121,7 +121,7 @@ static int cbus_transfer(struct cbus_host *host, int dev, int reg, int data)
- 
- 	spin_unlock_irqrestore(&host->lock, flags);
- 
--	return is_read ? data : 0;
-+	return data;
- }
- 
- /*
--- 
-1.6.6.rc0
+This means we can now get rid of the old printk.c hack in the
+omap-debug branch, so I've deleted that branch.
 
+To use the earlyprintk, just do the following:
+
+1. Make sure you have the necessary .config options set
+
+CONFIG_DEBUG_LL=y
+CONFIG_EARLY_PRINTK=y
+CONFIG_OMAP_LL_DEBUG_UART1=y
+# CONFIG_OMAP_LL_DEBUG_UART2 is not set
+# CONFIG_OMAP_LL_DEBUG_UART3 is not set
+
+The LL_DEBUG_UART above is typically 1, but it's 3 on Nokia
+boards.
+
+2. Edit the kernel CMDLINE in your .config to have "debug earlyprintk"
+
+Optionally if you have a JTAG console, you can use CONFIG_DEBUG_ICEDCC
+instead LL_DEBUG_UART.
+
+I've also added these instructions to:
+
+http://www.elinux.org/Debugging_OMAP_kernel
+
+Regards,
+
+Tony
