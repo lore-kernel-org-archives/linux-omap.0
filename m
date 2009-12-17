@@ -1,13 +1,13 @@
 From: hvaibhav@ti.com
-Subject: [PATCH 0/5] Enable DSS2 for OMAP3EVM & AM3517
-Date: Thu, 17 Dec 2009 20:48:03 +0530
-Message-ID: <1261063083-19822-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 1/5] dss2-core:Warning Fix: core_dump_clocks enclosed under DEBUG_FS
+Date: Thu, 17 Dec 2009 20:48:25 +0530
+Message-ID: <1261063105-19874-1-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56979 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965131AbZLQPS0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 10:18:26 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43416 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965017AbZLQPSr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Dec 2009 10:18:47 -0500
 In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,35 +16,32 @@ Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-f
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Patch series adds following features -
 
-	- Enable DSS2/Fbdev on OMAP3EVM
-	- Add LQ043T1DG01 panel file
-	- Enable DSS2/Fbdev on AM3517EVM
-	- Warning message fix in dss-core
-	- Kconfig option added to choose between S-Video and CVBS output
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/video/omap2/dss/core.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-TODO -
-	- V4L2 Display driver ontop of DSS2 (will post in couple of days)
-	- regulator_get for panel-generic.c, which is required to get DVI colors
-	  properly
-
-Vaibhav Hiremath (5):
-  dss2-core:Warning Fix: core_dump_clocks enclosed under DEBUG_FS
-  OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
-  OMAP: Enable DSS2 for OMAP3EVM board
-  AM3517: Enable DSS2 for AM3517EVM board
-  OMAP3EVM: Kconfig option added for selection between SVIDEO and CVBS
-
- arch/arm/configs/am3517_evm_defconfig              |   53 ++++-
- arch/arm/configs/omap3_evm_defconfig               |   51 ++++-
- arch/arm/mach-omap2/board-am3517evm.c              |  142 +++++++++++
- arch/arm/mach-omap2/board-omap3evm.c               |  250 +++++++++++++++++++-
- drivers/video/omap2/displays/Kconfig               |    6 +
- drivers/video/omap2/displays/Makefile              |    1 +
- .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  120 ++++++++++
- drivers/video/omap2/dss/Kconfig                    |   15 ++
- drivers/video/omap2/dss/core.c                     |    2 +
- 9 files changed, 627 insertions(+), 13 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 29497a0..2fabaf2 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -124,6 +124,7 @@ static void restore_all_ctx(void)
+ 	dss_clk_disable_all_no_ctx();
+ }
+ 
++#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
+ /* CLOCKS */
+ static void core_dump_clocks(struct seq_file *s)
+ {
+@@ -149,6 +150,7 @@ static void core_dump_clocks(struct seq_file *s)
+ 				clocks[i]->usecount);
+ 	}
+ }
++#endif /* defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) */
+ 
+ static int dss_get_clock(struct clk **clock, const char *clk_name)
+ {
+-- 
+1.6.2.4
 
