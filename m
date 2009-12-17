@@ -1,7 +1,7 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCHv2 10/18] DSPBRIDGE: Trivial cleanup on DBDCD
-Date: Wed, 16 Dec 2009 20:15:55 -0600
-Message-ID: <1261016163-11091-11-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCHv2 17/18] DSPBRIDGE: Delete unused files
+Date: Wed, 16 Dec 2009 20:16:02 -0600
+Message-ID: <1261016163-11091-18-git-send-email-omar.ramirez@ti.com>
 References: <1261016163-11091-1-git-send-email-omar.ramirez@ti.com>
  <1261016163-11091-2-git-send-email-omar.ramirez@ti.com>
  <1261016163-11091-3-git-send-email-omar.ramirez@ti.com>
@@ -12,849 +12,1958 @@ References: <1261016163-11091-1-git-send-email-omar.ramirez@ti.com>
  <1261016163-11091-8-git-send-email-omar.ramirez@ti.com>
  <1261016163-11091-9-git-send-email-omar.ramirez@ti.com>
  <1261016163-11091-10-git-send-email-omar.ramirez@ti.com>
+ <1261016163-11091-11-git-send-email-omar.ramirez@ti.com>
+ <1261016163-11091-12-git-send-email-omar.ramirez@ti.com>
+ <1261016163-11091-13-git-send-email-omar.ramirez@ti.com>
+ <1261016163-11091-14-git-send-email-omar.ramirez@ti.com>
+ <1261016163-11091-15-git-send-email-omar.ramirez@ti.com>
+ <1261016163-11091-16-git-send-email-omar.ramirez@ti.com>
+ <1261016163-11091-17-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43916 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:43918 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763926AbZLQCIt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 21:08:49 -0500
-In-Reply-To: <1261016163-11091-10-git-send-email-omar.ramirez@ti.com>
+	with ESMTP id S1763896AbZLQCIu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 21:08:50 -0500
+In-Reply-To: <1261016163-11091-17-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Trivial spacing cleanup on DSP/BIOS Bridge Configuration
-Database module.
+These files seem to be unused, deleting them.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/rmgr/dbdcd.c |  343 ++++++++++++++++++++-------------------
- 1 files changed, 179 insertions(+), 164 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/dbl.h  |  354 -------
+ arch/arm/plat-omap/include/dspbridge/dbof.h |  117 ---
+ drivers/dsp/bridge/dynload/dlclasses_hdr.h  |   41 -
+ drivers/dsp/bridge/pmgr/dbl.c               | 1385 ---------------------------
+ 4 files changed, 0 insertions(+), 1897 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/dspbridge/dbl.h
+ delete mode 100644 arch/arm/plat-omap/include/dspbridge/dbof.h
+ delete mode 100644 drivers/dsp/bridge/dynload/dlclasses_hdr.h
+ delete mode 100644 drivers/dsp/bridge/pmgr/dbl.c
 
-diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
-index fb4a9a6..b1391e2 100644
---- a/drivers/dsp/bridge/rmgr/dbdcd.c
-+++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -31,32 +31,32 @@
-  *! ================
-  *! 03-Dec-2003 map Changed DCD_OBJTYPE to DSP_DCDOBJTYPE
-  *! 17-Dec-2002 map Modified DCD_GetDepLibs, DCD_GetNumDepLibs, GetDepLibInfo
-- *!                 to include phase information
-+ *!		 to include phase information
-  *! 02-Dec-2002 map Modified DCD_GetLibraryName for phases in different
-- *!                 libraries
-+ *!		 libraries
-  *! 26-Feb-2003 kc  Updated DCD_AutoUnregister and DCD_GetObjects to simplify
-- *!                 DCD implementation.
-+ *!		 DCD implementation.
-  *! 17-Jul-2002 jeh Call COD_Open() instead of COD_OpenBase(), call COD_Close()
-  *! 11-Jul-2002 jeh Added DCD_GetDepLibs(), DCD_GetNumDepLibs().
-  *! 18-Feb-2003 vp  Code review updates
-  *! 18-Oct-2002 vp  Ported to Linux platform
-  *! 15-Mar-2002 jeh Read dynamic loading memory requirements into node object
-- *!                 data. Added DCD_GetLibraryName().
-+ *!		 data. Added DCD_GetLibraryName().
-  *! 13-Feb-2002 jeh Get system stack size in GetAttrsFromBuf().
-  *! 01-Aug-2001 ag: Added check for PROC "extended" attributes used for
-- *!                    DSP-MMU setup. These are private attributes.
-+ *!		    DSP-MMU setup. These are private attributes.
-  *! 18-Apr-2001 jeh Use COD_OpenBase instead of COD_LoadBase.
-  *! 03-Apr-2001 sg: Changed error names to DSP_EDCD* format.
-  *! 11-Jan-2001 jeh Changes to DCD_GetObjectDef to match node.cdb, proc.cdb.
-  *! 12-Dec-2000 kc: Added DCD_AutoUnregister. MSGNODE, DAISNODE added in
-- *!                 GetAttrsFromBuf
-+ *!		 GetAttrsFromBuf
-  *! 22-Nov-2000 kc: Replaced sprintf() calls with strncat.
-  *! 09-Nov-2000 kc: Optimized DCD module.
-  *! 30-Oct-2000 kc: Added DCD_AutoRegister function; changed local var. names.
-  *! 29-Sep-2000 kc: Added code review changes (src/reviews/dcd_reviews.txt).
-  *! 06-Sep-2000 jeh Get message segid, message notification type. Added Atoi()
-- *!                 to replace atoi(), until cdb generation can output in
-- *!                 decimal format.
-+ *!		 to replace atoi(), until cdb generation can output in
-+ *!		 decimal format.
-  *! 26-Jul-2000 kc: Created.
-  *!
-  */
-@@ -88,12 +88,12 @@
- /*  ----------------------------------- Global defines. */
- #define SIGNATURE       0x5f444344	/* "DCD_" (in reverse). */
- 
--#define IsValidHandle(h)    (((h) != NULL) && (h->dwSignature == SIGNATURE))
-+#define IsValidHandle(h)	(((h) != NULL) && (h->dwSignature == SIGNATURE))
- 
- #define MAX_INT2CHAR_LENGTH     16   /* Maximum int2char len of 32 bit int. */
- 
- /* Name of section containing dependent libraries */
--#define DEPLIBSECT              ".dspbridge_deplibs"
-+#define DEPLIBSECT		".dspbridge_deplibs"
- 
- /* DCD specific structures. */
- struct DCD_MANAGER {
-@@ -107,17 +107,13 @@ static u32 cEnumRefs;
- 
- extern struct GT_Mask curTrace;
- 
--/* helper function prototypes. */
-+/* Helper function prototypes. */
- static s32 Atoi(char *pszBuf);
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbl.h b/arch/arm/plat-omap/include/dspbridge/dbl.h
+deleted file mode 100644
+index 19847f9..0000000
+--- a/arch/arm/plat-omap/include/dspbridge/dbl.h
++++ /dev/null
+@@ -1,354 +0,0 @@
+-/*
+- * dbl.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
 -
- static DSP_STATUS GetAttrsFromBuf(char *pszBuf, u32 ulBufSize,
- 				  enum DSP_DCDOBJTYPE objType,
- 				  struct DCD_GENERICOBJ *pGenObj);
 -
- static void CompressBuf(char *pszBuf, u32 ulBufSize, s32 cCharSize);
+-/*
+- *  ======== dbl.h ========
+- *
+- *! Revision History
+- *! ================
+- *! 19-Mar-2002 jeh     Pass DBL_Symbol pointer to DBL_getAddr, DBL_getCAddr
+- *!                     to accomodate dynamic loader library.
+- *! 20-Nov-2001 jeh     Removed DBL_loadArgs().
+- *! 24-Sep-2001 jeh     Code review changes.
+- *! 07-Sep-2001 jeh     Added DBL_LoadSect(), DBL_UnloadSect().
+- *! 05-Jun-2001 jeh     Created based on zl.h.
+- */
 -
- static char DspChar2GppChar(char *pWord, s32 cDspCharSize);
+-#ifndef DBL_
+-#define DBL_
 -
- static DSP_STATUS GetDepLibInfo(IN struct DCD_MANAGER *hDcdMgr,
- 				IN struct DSP_UUID *pUuid,
- 				IN OUT u16 *pNumLibs,
-@@ -131,9 +127,8 @@ static DSP_STATUS GetDepLibInfo(IN struct DCD_MANAGER *hDcdMgr,
-  *  Purpose:
-  *      Parses the supplied image and resigsters with DCD.
-  */
+-#include <dspbridge/dbdefs.h>
+-#include <dspbridge/dbldefs.h>
 -
- DSP_STATUS DCD_AutoRegister(IN struct DCD_MANAGER *hDcdMgr,
--			    IN char *pszCoffPath)
-+				IN char *pszCoffPath)
- {
- 	DSP_STATUS status = DSP_SOK;
- 
-@@ -161,7 +156,7 @@ DSP_STATUS DCD_AutoRegister(IN struct DCD_MANAGER *hDcdMgr,
-  *      Parses the supplied DSP image and unresiters from DCD.
-  */
- DSP_STATUS DCD_AutoUnregister(IN struct DCD_MANAGER *hDcdMgr,
--			     IN char *pszCoffPath)
-+				IN char *pszCoffPath)
- {
- 	DSP_STATUS status = DSP_SOK;
- 
-@@ -172,8 +167,7 @@ DSP_STATUS DCD_AutoUnregister(IN struct DCD_MANAGER *hDcdMgr,
- 
- 	if (IsValidHandle(hDcdMgr)) {
- 		status = DCD_GetObjects(hDcdMgr, pszCoffPath,
--				       (DCD_REGISTERFXN)DCD_RegisterObject,
--				       NULL);
-+				(DCD_REGISTERFXN)DCD_RegisterObject, NULL);
- 	} else {
- 		status = DSP_EHANDLE;
- 		GT_0trace(curTrace, GT_6CLASS,
-@@ -190,9 +184,9 @@ DSP_STATUS DCD_AutoUnregister(IN struct DCD_MANAGER *hDcdMgr,
-  *      Creates DCD manager.
-  */
- DSP_STATUS DCD_CreateManager(IN char *pszZlDllName,
--			    OUT struct DCD_MANAGER **phDcdMgr)
-+				OUT struct DCD_MANAGER **phDcdMgr)
- {
--	struct COD_MANAGER *hCodMgr;	/* COD manager handle */
-+	struct COD_MANAGER *hCodMgr;		/* COD manager handle */
- 	struct DCD_MANAGER *pDcdMgr = NULL;	/* DCD Manager pointer */
- 	DSP_STATUS status = DSP_SOK;
- 
-@@ -203,43 +197,44 @@ DSP_STATUS DCD_CreateManager(IN char *pszZlDllName,
- 		 phDcdMgr);
- 
- 	status = COD_Create(&hCodMgr, pszZlDllName, NULL);
--	if (DSP_SUCCEEDED(status)) {
- 
--		/* Create a DCD object. */
--		MEM_AllocObject(pDcdMgr, struct DCD_MANAGER, SIGNATURE);
--		if (pDcdMgr != NULL) {
-+	if (DSP_FAILED(status)) {
-+		status = DSP_EFAIL;
-+		GT_0trace(curTrace, GT_6CLASS,
-+			 "DCD_CreateManager: COD_Create failed\n");
-+		goto func_end;
-+	}
- 
--			/* Fill out the object. */
--			pDcdMgr->hCodMgr = hCodMgr;
-+	/* Create a DCD object. */
-+	MEM_AllocObject(pDcdMgr, struct DCD_MANAGER, SIGNATURE);
-+	if (pDcdMgr != NULL) {
-+		/* Fill out the object. */
-+		pDcdMgr->hCodMgr = hCodMgr;
- 
--			/* Return handle to this DCD interface. */
--			*phDcdMgr = pDcdMgr;
-+		/* Return handle to this DCD interface. */
-+		*phDcdMgr = pDcdMgr;
- 
--			GT_2trace(curTrace, GT_5CLASS,
--				 "DCD_CreateManager: pDcdMgr 0x%x, "
--				 " hCodMgr 0x%x", pDcdMgr, hCodMgr);
--		} else {
+-/*
+- *  ======== DBL_close ========
+- *  Close library opened with DBL_open.
+- *  Parameters:
+- *      lib             - Handle returned from DBL_open().
+- *  Returns:
+- *  Requires:
+- *      DBL initialized.
+- *      Valid lib.
+- *  Ensures:
+- */
+-	extern void DBL_close(struct DBL_LibraryObj *lib);
+-
+-/*
+- *  ======== DBL_create ========
+- *  Create a target object by specifying the alloc, free, and write
+- *  functions for the target.
+- *  Parameters:
+- *      pTarget         - Location to store target handle on output.
+- *      pAttrs          - Attributes.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EMEMORY:    Memory allocation failed.
+- *  Requires:
+- *      DBL initialized.
+- *      pAttrs != NULL.
+- *      pTarget != NULL;
+- *  Ensures:
+- *      Success:        *pTarget != NULL.
+- *      Failure:        *pTarget == NULL.
+- */
+-	extern DSP_STATUS DBL_create(struct DBL_TargetObj **pTarget,
+-				     struct DBL_Attrs *pAttrs);
+-
+-/*
+- *  ======== DBL_delete ========
+- *  Delete target object and free resources for any loaded libraries.
+- *  Parameters:
+- *      target          - Handle returned from DBL_Create().
+- *  Returns:
+- *  Requires:
+- *      DBL initialized.
+- *      Valid target.
+- *  Ensures:
+- */
+-	extern void DBL_delete(struct DBL_TargetObj *target);
+-
+-/*
+- *  ======== DBL_exit ========
+- *  Discontinue use of DBL module.
+- *  Parameters:
+- *  Returns:
+- *  Requires:
+- *      cRefs > 0.
+- *  Ensures:
+- *      cRefs >= 0.
+- */
+-	extern void DBL_exit(void);
+-
+-/*
+- *  ======== DBL_getAddr ========
+- *  Get address of name in the specified library.
+- *  Parameters:
+- *      lib             - Handle returned from DBL_open().
+- *      name            - Name of symbol
+- *      ppSym           - Location to store symbol address on output.
+- *  Returns:
+- *      TRUE:           Success.
+- *      FALSE:          Symbol not found.
+- *  Requires:
+- *      DBL initialized.
+- *      Valid lib.
+- *      name != NULL.
+- *      pAddr != NULL.
+- *  Ensures:
+- */
+-	extern bool DBL_getAddr(struct DBL_LibraryObj *lib, char *name,
+-				struct DBL_Symbol **ppSym);
+-
+-/*
+- *  ======== DBL_getAttrs ========
+- *  Retrieve the attributes of the target.
+- *  Parameters:
+- *      target          - Handle returned from DBL_Create().
+- *      pAttrs          - Location to store attributes on output.
+- *  Returns:
+- *  Requires:
+- *      DBL initialized.
+- *      Valid target.
+- *      pAttrs != NULL.
+- *  Ensures:
+- */
+-	extern void DBL_getAttrs(struct DBL_TargetObj *target,
+-				 struct DBL_Attrs *pAttrs);
+-
+-/*
+- *  ======== DBL_getCAddr ========
+- *  Get address of "C" name in the specified library.
+- *  Parameters:
+- *      lib             - Handle returned from DBL_open().
+- *      name            - Name of symbol
+- *      ppSym           - Location to store symbol address on output.
+- *  Returns:
+- *      TRUE:           Success.
+- *      FALSE:          Symbol not found.
+- *  Requires:
+- *      DBL initialized.
+- *      Valid lib.
+- *      name != NULL.
+- *      pAddr != NULL.
+- *  Ensures:
+- */
+-	extern bool DBL_getCAddr(struct DBL_LibraryObj *lib, char *name,
+-				 struct DBL_Symbol **ppSym);
+-
+-/*
+- *  ======== DBL_getEntry ========
+- *  Get program entry point.
+- *
+- *  Parameters:
+- *      lib             - Handle returned from DBL_open().
+- *      pEntry          - Location to store entry address on output.
+- *  Returns:
+- *      TRUE:           Success.
+- *      FALSE:          Failure.
+- *  Requires:
+- *      DBL initialized.
+- *      Valid lib.
+- *      pEntry != NULL.
+- *  Ensures:
+- */
+-	extern bool DBL_getEntry(struct DBL_LibraryObj *lib, u32 *pEntry);
+-
+-/*
+- *  ======== DBL_getSect ========
+- *  Get address and size of a named section.
+- *  Parameters:
+- *      lib             - Library handle returned from DBL_open().
+- *      name            - Name of section.
+- *      pAddr           - Location to store section address on output.
+- *      pSize           - Location to store section size on output.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_ENOSECT:    Section not found.
+- *  Requires:
+- *      DBL initialized.
+- *      Valid lib.
+- *      name != NULL.
+- *      pAddr != NULL;
+- *      pSize != NULL.
+- *  Ensures:
+- */
+-	extern DSP_STATUS DBL_getSect(struct DBL_LibraryObj *lib, char *name,
+-				      u32 *pAddr, u32 *pSize);
+-
+-/*
+- *  ======== DBL_init ========
+- *  Initialize DBL module.
+- *  Parameters:
+- *  Returns:
+- *      TRUE:           Success.
+- *      FALSE:          Failure.
+- *  Requires:
+- *      cRefs >= 0.
+- *  Ensures:
+- *      Success:        cRefs > 0.
+- *      Failure:        cRefs >= 0.
+- */
+-	extern bool DBL_init(void);
+-
+-/*
+- *  ======== DBL_load ========
+- *  Add symbols/code/data defined in file to that already present on
+- *  the target.
+- *
+- *  Parameters:
+- *      lib             - Library handle returned from DBL_open().
+- *      flags           - Specifies whether loading code, data, and/or symbols.
+- *      attrs           - May contain write, alloc, and free functions.
+- *      pulEntry        - Location to store program entry on output.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EFREAD:     File read failed.
+- *      DSP_EFWRITE:    Write to target failed.
+- *  Requires:
+- *      DBL initialized.
+- *      Valid lib.
+- *      pEntry != NULL.
+- *  Ensures:
+- */
+-	extern DSP_STATUS DBL_load(struct DBL_LibraryObj *lib, DBL_Flags flags,
+-				   struct DBL_Attrs *attrs, u32 *pEntry);
+-
+-/*
+- *  ======== DBL_loadSect ========
+- *  Load a named section from an library (for overlay support).
+- *  Parameters:
+- *      lib             - Handle returned from DBL_open().
+- *      sectName        - Name of section to load.
+- *      attrs           - Contains write function and handle to pass to it.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_ENOSECT:    Section not found.
+- *      DSP_EFWRITE:    Write function failed.
+- *  Requires:
+- *      Valid lib.
+- *      sectName != NULL.
+- *      attrs != NULL.
+- *      attrs->write != NULL.
+- *  Ensures:
+- */
+-	extern DSP_STATUS DBL_loadSect(struct DBL_LibraryObj *lib,
+-				       char *sectName,
+-				       struct DBL_Attrs *attrs);
+-
+-/*
+- *  ======== DBL_open ========
+- *  DBL_open() returns a library handle that can be used to load/unload
+- *  the symbols/code/data via DBL_load()/DBL_unload().
+- *  Parameters:
+- *      target          - Handle returned from DBL_create().
+- *      file            - Name of file to open.
+- *      flags           - Specifies whether to load symbols now.
+- *      pLib            - Location to store library handle on output.
+- *  Returns:
+- *      DSP_SOK:            Success.
+- *      DSP_EMEMORY:        Memory allocation failure.
+- *      DSP_EFOPEN:         File open failure.
+- *      DSP_EFREAD:         File read failure.
+- *      DSP_ECORRUPTFILE:   Unable to determine target type.
+- *  Requires:
+- *      DBL initialized.
+- *      Valid target.
+- *      file != NULL.
+- *      pLib != NULL.
+- *      struct DBL_Attrs fopen function non-NULL.
+- *  Ensures:
+- *      Success:        Valid *pLib.
+- *      Failure:        *pLib == NULL.
+- */
+-	extern DSP_STATUS DBL_open(struct DBL_TargetObj *target, char *file,
+-				   DBL_Flags flags,
+-				   struct DBL_LibraryObj **pLib);
+-
+-/*
+- *  ======== DBL_readSect ========
+- *  Read COFF section into a character buffer.
+- *  Parameters:
+- *      lib             - Library handle returned from DBL_open().
+- *      name            - Name of section.
+- *      pBuf            - Buffer to write section contents into.
+- *      size            - Buffer size
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_ENOSECT:    Named section does not exists.
+- *  Requires:
+- *      DBL initialized.
+- *      Valid lib.
+- *      name != NULL.
+- *      pBuf != NULL.
+- *      size != 0.
+- *  Ensures:
+- */
+-	extern DSP_STATUS DBL_readSect(struct DBL_LibraryObj *lib, char *name,
+-				       char *pBuf, u32 size);
+-
+-/*
+- *  ======== DBL_setAttrs ========
+- *  Set the attributes of the target.
+- *  Parameters:
+- *      target          - Handle returned from DBL_create().
+- *      pAttrs          - New attributes.
+- *  Returns:
+- *  Requires:
+- *      DBL initialized.
+- *      Valid target.
+- *      pAttrs != NULL.
+- *  Ensures:
+- */
+-	extern void DBL_setAttrs(struct DBL_TargetObj *target,
+-				 struct DBL_Attrs *pAttrs);
+-
+-/*
+- *  ======== DBL_unload ========
+- *  Remove the symbols/code/data corresponding to the library lib.
+- *  Parameters:
+- *      lib             - Handle returned from DBL_open().
+- *      attrs           - Contains free() function and handle to pass to it.
+- *  Returns:
+- *  Requires:
+- *      DBL initialized.
+- *      Valid lib.
+- *  Ensures:
+- */
+-	extern void DBL_unload(struct DBL_LibraryObj *lib,
+-			       struct DBL_Attrs *attrs);
+-
+-/*
+- *  ======== DBL_unloadSect ========
+- *  Unload a named section from an library (for overlay support).
+- *  Parameters:
+- *      lib             - Handle returned from DBL_open().
+- *      sectName        - Name of section to load.
+- *      attrs           - Contains free() function and handle to pass to it.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_ENOSECT:    Named section not found.
+- *  Requires:
+- *      DBL initialized.
+- *      Valid lib.
+- *      sectName != NULL.
+- *  Ensures:
+- */
+-	extern DSP_STATUS DBL_unloadSect(struct DBL_LibraryObj *lib,
+-					 char *sectName,
+-					 struct DBL_Attrs *attrs);
+-
+-#endif				/* DBL_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbof.h b/arch/arm/plat-omap/include/dspbridge/dbof.h
+deleted file mode 100644
+index 54f4250..0000000
+--- a/arch/arm/plat-omap/include/dspbridge/dbof.h
++++ /dev/null
+@@ -1,117 +0,0 @@
+-/*
+- * dbof.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-
+-/*
+- *  ======== dbof.h ========
+- *  Description:
+- *      Defines and typedefs for DSP/BIOS Bridge Object File Format (DBOF).
+- *
+- *! Revision History
+- *! ================
+- *! 12-Jul-2002 jeh     Added defines for DBOF_SectHdr page.
+- *! 12-Oct-2001 jeh     Converted to std.h format.
+- *! 07-Sep-2001 jeh     Added overlay support.
+- *! 06-Jul-2001 jeh     Created.
+- */
+-
+-#ifndef DBOF_
+-#define DBOF_
+-
+-/* Enough to hold DCD section names: 32 digit ID + underscores */
+-#define DBOF_DCDSECTNAMELEN     40
+-
+-/* Values for DBOF_SectHdr page field. */
+-#define         DBOF_PROGRAM    0
+-#define         DBOF_DATA       1
+-#define         DBOF_CINIT      2
+-
+-/*
+- *  ======== DBOF_FileHdr ========
+- */
+-	struct DBOF_FileHdr {
+-		u32 magic;	/* COFF magic number */
+-		u32 entry;	/* Program entry point */
+-		u16 numSymbols;	/* Number of bridge symbols */
+-		u16 numDCDSects;	/* Number of DCD sections */
+-		u16 numSects;	/* Number of sections to load */
+-		u16 numOvlySects;	/* Number of overlay sections */
+-		u32 symOffset;	/* Offset in file to symbols */
+-		u32 dcdSectOffset;	/* Offset to DCD sections */
+-		u32 loadSectOffset;	/* Offset to loadable sections */
+-		u32 ovlySectOffset;	/* Offset to overlay data */
+-		u16 version;	/* DBOF version number */
+-		u16 resvd;	/* Reserved for future use */
+-	} ;
+-
+-/*
+- *  ======== DBOF_DCDSectHdr ========
+- */
+-	struct DBOF_DCDSectHdr {
+-		u32 size;	/* Sect size (target MAUs) */
+-		char name[DBOF_DCDSECTNAMELEN];	/* DCD section name */
+-	} ;
+-
+-/*
+- *  ======== DBOF_OvlySectHdr ========
+- */
+-	struct DBOF_OvlySectHdr {
+-		u16 nameLen;	/* Length of section name */
+-		u16 numCreateSects;	/* # of sects loaded for create phase */
+-		u16 numDeleteSects;	/* # of sects loaded for delete phase */
+-		u16 numExecuteSects; /* # of sects loaded for execute phase */
+-
+-		/*
+-		 *  Number of sections where load/unload phase is not specified.
+-		 *  These sections will be loaded when create phase sects are
+-		 *  loaded, and unloaded when the delete phase is unloaded.
+-		 */
+-		u16 numOtherSects;
+-		u16 resvd;	/* Reserved for future use */
+-	};
+-
+-/*
+- *  ======== DBOF_OvlySectData ========
+- */
+-	struct DBOF_OvlySectData {
+-		u32 loadAddr;	/* Section load address */
+-		u32 runAddr;	/* Section run address */
+-		u32 size;	/* Section size (target MAUs) */
+-		u16 page;	/* Memory page number */
+-		u16 resvd;	/* Reserved */
+-	} ;
+-
+-/*
+- *  ======== DBOF_SectHdr ========
+- */
+-	struct DBOF_SectHdr {
+-		u32 addr;	/* Section address */
+-		u32 size;	/* Section size (target MAUs) */
+-		u16 page;	/* Page number */
+-		u16 resvd;	/* Reserved for future use */
+-	} ;
+-
+-/*
+- *  ======== DBOF_SymbolHdr ========
+- */
+-	struct DBOF_SymbolHdr {
+-		u32 value;	/* Symbol value */
+-		u16 nameLen;	/* Length of symbol name */
+-		u16 resvd;	/* Reserved for future use */
+-	} ;
+-
+-#endif				/* DBOF_ */
+-
+diff --git a/drivers/dsp/bridge/dynload/dlclasses_hdr.h b/drivers/dsp/bridge/dynload/dlclasses_hdr.h
+deleted file mode 100644
+index 04f136e..0000000
+--- a/drivers/dsp/bridge/dynload/dlclasses_hdr.h
++++ /dev/null
+@@ -1,41 +0,0 @@
+-/*
+- * dlclasses_hdr.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-
+-
+-#ifndef _DLCLASSES_HDR_H
+-#define _DLCLASSES_HDR_H
+-
+-/*****************************************************************************
+- *****************************************************************************
+- *
+- *                          DLCLASSES_HDR.H
+- *
+- * Sample classes in support of the dynamic loader
+- *
+- * These are just concrete derivations of the virtual ones in dynamic_loader.h
+- * with a few additional interfaces for init, etc.
+- *****************************************************************************
+- *****************************************************************************/
+-
+-#include <dspbridge/dynamic_loader.h>
+-
+-#include "DLstream.h"
+-#include "DLsymtab.h"
+-#include "DLalloc.h"
+-#include "DLinit.h"
+-
+-#endif				/* _DLCLASSES_HDR_H */
+diff --git a/drivers/dsp/bridge/pmgr/dbl.c b/drivers/dsp/bridge/pmgr/dbl.c
+deleted file mode 100644
+index 641b011..0000000
+--- a/drivers/dsp/bridge/pmgr/dbl.c
++++ /dev/null
+@@ -1,1385 +0,0 @@
+-/*
+- * dbl.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-
+-/*
+- *  ======== dbl.c ========
+- *  Dynamic BOF Loader library. Contains functions related to
+- *  loading and unloading symbols/code/data on DSP.
+- *  Also contains other support functions.
+- *
+- *! Revision History
+- *! ================
+- *! 24-Feb-2003 swa 	PMGR Code review comments incorporated.
+- *! 24-May-2002 jeh     Free DCD sects in DBL_close().
+- *! 19-Mar-2002 jeh     Changes made to match dynamic loader (dbll.c): Pass
+- *!		     DBL_Library to DBL_getAddr() instead of DBL_Target,
+- *!		     eliminate scope param, use DBL_Symbol. Pass attrs to
+- *!		     DBL_load(), DBL_unload().
+- *! 20-Nov-2001 jeh     Removed DBL_loadArgs().
+- *! 07-Sep-2001 jeh     Added overlay support.
+- *! 31-Jul-2001 jeh     Include windows.h.
+- *! 06-Jun-2001 jeh     Created.
+- */
+-
+-/*  ----------------------------------- Host OS */
+-#include <dspbridge/host_os.h>
+-
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dspbridge/std.h>
+-#include <dspbridge/dbdefs.h>
+-#include <dspbridge/errbase.h>
+-
+-/*  ----------------------------------- Trace & Debug */
+-#include <dspbridge/dbc.h>
+-#include <dspbridge/gt.h>
+-
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/csl.h>
+-#include <dspbridge/mem.h>
+-#include <dspbridge/kfile.h>
+-
+-/*  ----------------------------------- This */
+-#include <dspbridge/dbof.h>
+-#include <dspbridge/dbl.h>
+-
+-#define DBL_TARGSIGNATURE      0x544c4244	/* "TLBD" */
+-#define DBL_LIBSIGNATURE       0x4c4c4244	/* "LLBD" */
+-
+-#define C54TARG	 0
+-#define C55TARG	 1
+-#define NUMTARGS	2
+-
+-#define C54MAGIC	0x98	/* Magic number for TI C54 COF  */
+-#define C55MAGIC	0x9c	/* Magic number for LEAD3 (C55) COF  */
+-
+-/* Three task phases */
+-#define CREATEPHASE 0
+-#define DELETEPHASE 1
+-#define EXECUTEPHASE 2
+-#define NONE 3		/* For overlay section with phase not specified */
+-
+-/* Default load buffer size */
+-#define LOADBUFSIZE     0x800
+-
+-#define SWAPLONG(x) ((((x) << 24) & 0xFF000000) | (((x) << 8) & 0xFF0000L) | \
+-		      (((x) >> 8) & 0xFF00L) | (((x) >> 24) & 0xFF))
+-
+-#define SWAPWORD(x) ((((x) << 8) & 0xFF00) | (((x) >> 8) & 0xFF))
+-
+-/*
+- *  Macros for accessing the following types of overlay data within a
+- *  structure of type OvlyData:
+- *      - Overlay data not associated with a particular phase
+- *      - Create phase overlay data
+- *      - Delete phase overlay data
+- *      - Execute phase overlay data
+- */
+-#define numOtherSects(pOvlyData)    ((pOvlyData)->hdr.dbofHdr.numOtherSects)
+-#define numCreateSects(pOvlyData)   ((pOvlyData)->hdr.dbofHdr.numCreateSects)
+-#define numDeleteSects(pOvlyData)   ((pOvlyData)->hdr.dbofHdr.numDeleteSects)
+-#define numExecuteSects(pOvlyData)  ((pOvlyData)->hdr.dbofHdr.numExecuteSects)
+-#define otherOffset(pOvlyData)      0
+-#define createOffset(pOvlyData)     ((pOvlyData)->hdr.dbofHdr.numOtherSects)
+-#define deleteOffset(pOvlyData)     (createOffset(pOvlyData) + \
+-				     (pOvlyData->hdr.dbofHdr.numCreateSects))
+-#define executeOffset(pOvlyData)    (deleteOffset(pOvlyData) + \
+-				     (pOvlyData->hdr.dbofHdr.numDeleteSects))
+-/*
+- *  ======== OvlyHdr ========
+- */
+-struct OvlyHdr {
+-	struct DBOF_OvlySectHdr dbofHdr;
+-	char *pName; 		/* Name of overlay section */
+-	u16 createRef; 	/* Reference count for create phase */
+-	u16 deleteRef; 	/* Reference count for delete phase */
+-	u16 executeRef; 	/* Execute phase ref count */
+-	u16 otherRef; 		/* Unspecified phase ref count */
+-} ;
+-
+-/*
+- *  ======== OvlyData ========
+- */
+-struct OvlyData {
+-	struct OvlyHdr hdr;
+-	struct DBOF_OvlySectData data[1];
+-} ;
+-
+-/*
+- *  ======== Symbol ========
+- */
+-struct Symbol {
+-	struct DBL_Symbol sym;
+-	char *pSymName;
+-};
+-
+-/*
+- *  ======== DCDSect ========
+- */
+-struct DCDSect {
+-	struct DBOF_DCDSectHdr sectHdr;
+-	char *pData;
+-} ;
+-
+-/*
+- *  ======== DBL_TargetObj ========
+- */
+-struct DBL_TargetObj {
+-	u32 dwSignature; 	/* For object validation */
+-	struct DBL_Attrs dblAttrs; 	/* file read, write, etc. functions */
+-	char *pBuf; 		/* Load buffer */
+-};
+-
+-/*
+- *  ======== TargetInfo ========
+- */
+-struct TargetInfo {
+-	u16 dspType; 		/* eg, C54TARG, C55TARG */
+-	u32 magic; 		/* COFF magic number, identifies target type */
+-	u16 wordSize; 	/* Size of a DSP word */
+-	u16 mauSize; 		/* Size of minimum addressable unit */
+-	u16 charSize; 	/* For C55x, mausize = 1, but charsize = 2 */
+-} ;
+-
+-/*
+- *  ======== DBL_LibraryObj ========
+- *  Represents a library loaded on a target.
+- */
+-struct DBL_LibraryObj {
+-	u32 dwSignature; 	/* For object validation */
+-	struct DBL_TargetObj *pTarget; 	/* Target for this library */
+-	struct KFILE_FileObj *file; 	/* DBOF file handle */
+-	bool byteSwapped; 	/* Are bytes swapped? */
+-	struct DBOF_FileHdr fileHdr; 	/* Header of DBOF file */
+-	u16 nSymbols; 		/* Number of DSP/Bridge symbols */
+-	struct Symbol *symbols; 	/* Table of DSP/Bridge symbols */
+-	u16 nDCDSects; 	/* Number of DCD sections */
+-	u16 nOvlySects; 	/* Number of overlay nodes */
+-	struct DCDSect *dcdSects; 	/* DCD section data */
+-	struct OvlyData **ppOvlyData; 	/* Array of overlay section data */
+-	struct TargetInfo *pTargetInfo; 	/* Entry in targetTab[] below */
+-} ;
+-
+-#if GT_TRACE
+-static struct GT_Mask DBL_debugMask = { NULL, NULL }; 	/* GT trace variable */
+-#endif
+-
+-static u32 cRefs; 		/* module reference count */
+-
+-static u32 magicTab[NUMTARGS] = { C54MAGIC, C55MAGIC };
+-
+-static struct TargetInfo targetTab[] = {
+-	/* targ     magic       wordsize    mausize    charsize */
+-	{C54TARG, C54MAGIC, 2, 2, 2}, 	/* C54  */
+-	{C55TARG, C55MAGIC, 2, 1, 2}, 	/* C55  */
+-};
+-
+-static void freeSects(struct DBL_TargetObj *dbl, struct OvlyData *pOvlyData,
+-		     s32 offset, s32 nSects);
+-static DSP_STATUS loadSect(struct DBL_TargetObj *dbl,
+-			  struct DBL_LibraryObj *pdblLib);
+-static DSP_STATUS readDCDSects(struct DBL_TargetObj *dbl,
+-			      struct DBL_LibraryObj *pdblLib);
+-static DSP_STATUS readHeader(struct DBL_TargetObj *dbl,
+-			    struct DBL_LibraryObj *pdblLib);
+-static DSP_STATUS readOvlySects(struct DBL_TargetObj *dbl,
+-				struct DBL_LibraryObj *pdblLib);
+-static DSP_STATUS readSymbols(struct DBL_TargetObj *dbl,
+-			     struct DBL_LibraryObj *pdblLib);
+-
+-/*
+- *  ======== DBL_close ========
+- *  Purpose:
+- *  	Close library opened with DBL_open.
+- */
+-void DBL_close(struct DBL_LibraryObj *lib)
+-{
+-	struct DBL_LibraryObj *pdblLib = (struct DBL_LibraryObj *)lib;
+-	u16 i;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(pdblLib, DBL_LIBSIGNATURE));
+-
+-	GT_1trace(DBL_debugMask, GT_ENTER, "DBL_close: lib: 0x%x\n", lib);
+-
+-	/* Free symbols */
+-	if (pdblLib->symbols) {
+-		for (i = 0; i < pdblLib->nSymbols; i++) {
+-			if (pdblLib->symbols[i].pSymName)
+-				MEM_Free(pdblLib->symbols[i].pSymName);
+-
+-		}
+-		MEM_Free(pdblLib->symbols);
+-	}
+-
+-	/* Free DCD sects */
+-	if (pdblLib->dcdSects) {
+-		for (i = 0; i < pdblLib->nDCDSects; i++) {
+-			if (pdblLib->dcdSects[i].pData)
+-				MEM_Free(pdblLib->dcdSects[i].pData);
+-
+-		}
+-		MEM_Free(pdblLib->dcdSects);
+-	}
+-
+-	/* Free overlay sects */
+-	if (pdblLib->ppOvlyData) {
+-		for (i = 0;  i < pdblLib->nOvlySects;  i++) {
+-			if (pdblLib->ppOvlyData[i]) {
+-				if (pdblLib->ppOvlyData[i]->hdr.pName) {
+-					MEM_Free(pdblLib->ppOvlyData[i]->
+-						hdr.pName);
+-				}
+-				MEM_Free(pdblLib->ppOvlyData[i]);
+-			}
+-		}
+-		MEM_Free(pdblLib->ppOvlyData);
+-	}
+-
+-	/* Close the file */
+-	if (pdblLib->file)
+-		(*pdblLib->pTarget->dblAttrs.fclose) (pdblLib->file);
+-
+-
+-	MEM_FreeObject(pdblLib);
+-}
+-
+-/*
+- *  ======== DBL_create ========
+- *  Purpose:
+- *  	Create a target object by specifying the alloc, free, and
+- *  	write functions for the target.
+- */
+-DSP_STATUS DBL_create(struct DBL_TargetObj **pTarget, struct DBL_Attrs *pAttrs)
+-{
+-	struct DBL_TargetObj *pdblTarget = NULL;
+-	DSP_STATUS status = DSP_SOK;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(pAttrs != NULL);
+-	DBC_Require(pTarget != NULL);
+-
+-	GT_2trace(DBL_debugMask, GT_ENTER,
+-		 "DBL_create: pTarget: 0x%x pAttrs: 0x%x\n",
+-		 pTarget, pAttrs);
+-	/* Allocate DBL target object */
+-	MEM_AllocObject(pdblTarget, struct DBL_TargetObj, DBL_TARGSIGNATURE);
+-	if (pdblTarget == NULL) {
+-		GT_0trace(DBL_debugMask, GT_6CLASS,
+-			 "DBL_create: Memory allocation failed\n");
+-		status = DSP_EMEMORY;
+-	} else {
+-		pdblTarget->dblAttrs = *pAttrs;
+-		/* Allocate buffer for loading target */
+-		pdblTarget->pBuf = MEM_Calloc(LOADBUFSIZE, MEM_PAGED);
+-		if (pdblTarget->pBuf == NULL)
 -			status = DSP_EMEMORY;
-+		GT_2trace(curTrace, GT_5CLASS,
-+			 "DCD_CreateManager: pDcdMgr 0x%x, "
-+			 " hCodMgr 0x%x", pDcdMgr, hCodMgr);
-+	} else {
-+		status = DSP_EMEMORY;
- 
--			/*
--			 * If allocation of DcdManager object failed, delete the
--			 * COD manager.
--			 */
--			COD_Delete(hCodMgr);
-+		/*
-+		 * If allocation of DcdManager object failed, delete the
-+		 * COD manager.
-+		 */
-+		COD_Delete(hCodMgr);
- 
--			GT_0trace(curTrace, GT_6CLASS,
--				 "DCD_CreateManager: MEM_AllocObject failed\n");
+-
+-	}
+-	if (DSP_SUCCEEDED(status)) {
+-		*pTarget = pdblTarget;
+-	} else {
+-		*pTarget = NULL;
+-		if (pdblTarget)
+-			DBL_delete(pdblTarget);
+-
+-	}
+-	DBC_Ensure(DSP_SUCCEEDED(status) &&
+-		  ((MEM_IsValidHandle((*pTarget), DBL_TARGSIGNATURE)) ||
+-		  (DSP_FAILED(status) && *pTarget == NULL)));
+-	return status;
+-}
+-
+-/*
+- *  ======== DBL_delete ========
+- *  Purpose:
+- *  	Delete target object and free resources for any loaded libraries.
+- */
+-void DBL_delete(struct DBL_TargetObj *target)
+-{
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(target, DBL_TARGSIGNATURE));
+-
+-	GT_1trace(DBL_debugMask, GT_ENTER,
+-		 "DBL_delete: target: 0x%x\n", target);
+-
+-	if (target->pBuf)
+-		MEM_Free(target->pBuf);
+-
+-	MEM_FreeObject(target);
+-}
+-
+-/*
+- *  ======== DBL_exit ========
+- *  Purpose
+- *  	Discontinue usage of DBL module.
+- */
+-void DBL_exit()
+-{
+-	DBC_Require(cRefs > 0);
+-	cRefs--;
+-	GT_1trace(DBL_debugMask, GT_5CLASS,
+-		 "DBL_exit() ref count: 0x%x\n", cRefs);
+-	DBC_Ensure(cRefs >= 0);
+-}
+-
+-/*
+- *  ======== DBL_getAddr ========
+- *  Purpose:
+- *  	Get address of name in the specified library.
+- */
+-bool DBL_getAddr(struct DBL_LibraryObj *lib, char *name,
+-		struct DBL_Symbol **ppSym)
+-{
+-	bool retVal = false;
+-	struct Symbol *symbol;
+-	u16 i;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(lib, DBL_LIBSIGNATURE));
+-	DBC_Require(name != NULL);
+-	DBC_Require(ppSym != NULL);
+-
+-	GT_3trace(DBL_debugMask, GT_ENTER,
+-		 "DBL_getAddr: libt: 0x%x name: %s pAddr: "
+-		 "0x%x\n", lib, name, ppSym);
+-	for (i = 0; i < lib->nSymbols; i++) {
+-		symbol = &lib->symbols[i];
+-		if (CSL_Strcmp(name, symbol->pSymName) == 0) {
+-			/* Found it */
+-			*ppSym = &lib->symbols[i].sym;
+-			retVal = true;
+-			break;
+-		}
+-	}
+-	return retVal;
+-}
+-
+-/*
+- *  ======== DBL_getAttrs ========
+- *  Purpose:
+- *  	Retrieve the attributes of the target.
+- */
+-void DBL_getAttrs(struct DBL_TargetObj *target, struct DBL_Attrs *pAttrs)
+-{
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(target, DBL_TARGSIGNATURE));
+-	DBC_Require(pAttrs != NULL);
+-	GT_2trace(DBL_debugMask, GT_ENTER, "DBL_getAttrs: target: 0x%x pAttrs: "
+-		  "0x%x\n", target, pAttrs);
+-	*pAttrs = target->dblAttrs;
+-}
+-
+-/*
+- *  ======== DBL_getCAddr ========
+- *  Purpose:
+- *  	Get address of "C" name in the specified library.
+- */
+-bool DBL_getCAddr(struct DBL_LibraryObj *lib, char *name,
+-		 struct DBL_Symbol **ppSym)
+-{
+-	bool retVal = false;
+-	struct Symbol *symbol;
+-	u16 i;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(lib, DBL_LIBSIGNATURE));
+-	DBC_Require(name != NULL);
+-	DBC_Require(ppSym != NULL);
+-
+-	GT_3trace(DBL_debugMask, GT_ENTER,
+-		 "DBL_getCAddr: target: 0x%x name:%s pAddr:"
+-		 " 0x%x\n", lib, name, ppSym);
+-	for (i = 0;  i < lib->nSymbols;  i++) {
+-		symbol = &lib->symbols[i];
+-		if ((CSL_Strcmp(name, symbol->pSymName) == 0) ||
+-		    (CSL_Strcmp(name, symbol->pSymName + 1) == 0 &&
+-		     symbol->pSymName[0] == '_')) {
+-			/* Found it */
+-			*ppSym = &lib->symbols[i].sym;
+-			retVal = true;
+-			break;
+-		}
+-	}
+-	return retVal;
+-}
+-
+-/*
+- *  ======== DBL_getEntry ========
+- *  Purpose:
+- *  	Get program entry point.
+- *
+- */
+-bool DBL_getEntry(struct DBL_LibraryObj *lib, u32 *pEntry)
+-{
+-	struct DBL_LibraryObj *pdblLib = (struct DBL_LibraryObj *)lib;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(pdblLib, DBL_LIBSIGNATURE));
+-	DBC_Require(pEntry != NULL);
+-
+-	GT_2trace(DBL_debugMask, GT_ENTER,
+-		 "DBL_getEntry: lib: 0x%x pEntry: 0x%x\n", lib, pEntry);
+-	*pEntry = pdblLib->fileHdr.entry;
+-
+-	return true;
+-}
+-
+-/*
+- *  ======== DBL_getSect ========
+- *  Purpose:
+- *  	Get address and size of a named section.
+- */
+-DSP_STATUS DBL_getSect(struct DBL_LibraryObj *lib, char *name, u32 *pAddr,
+-		      u32 *pSize)
+-{
+-	struct DBL_LibraryObj *pdblLib = (struct DBL_LibraryObj *)lib;
+-	u16 i;
+-	DSP_STATUS status = DSP_ENOSECT;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(name != NULL);
+-	DBC_Require(pAddr != NULL);
+-	DBC_Require(pSize != NULL);
+-	DBC_Require(MEM_IsValidHandle(pdblLib, DBL_LIBSIGNATURE));
+-
+-	GT_4trace(DBL_debugMask, GT_ENTER,
+-		 "DBL_getSect: lib: 0x%x name: %s pAddr:"
+-		 " 0x%x pSize: 0x%x\n", lib, name, pAddr, pSize);
+-
+-	/*
+-	 *  Check for DCD and overlay sections. Overlay loader uses DBL_getSect
+-	 *  to determine whether or not a node has overlay sections.
+-	 *  DCD section names begin with '.'
+-	 */
+-	if (name[0] == '.') {
+-		/* Get DCD section size (address is 0, since it's a NOLOAD). */
+-		for (i = 0; i < pdblLib->nDCDSects; i++) {
+-			if (CSL_Strcmp(pdblLib->dcdSects[i].sectHdr.name,
+-			   name) == 0) {
+-				*pAddr = 0;
+-				*pSize = pdblLib->dcdSects[i].sectHdr.size *
+-					 pdblLib->pTargetInfo->mauSize;
+-				status = DSP_SOK;
+-				break;
+-			}
 -		}
 -	} else {
--		status = DSP_EFAIL;
- 		GT_0trace(curTrace, GT_6CLASS,
--			 "DCD_CreateManager: COD_Create failed\n");
-+			 "DCD_CreateManager: MEM_AllocObject failed\n");
- 	}
- 
- 	DBC_Ensure((DSP_SUCCEEDED(status)) || ((hCodMgr == NULL) &&
--		  (status == DSP_EFAIL)) || ((pDcdMgr == NULL) &&
--		  (status == DSP_EMEMORY)));
-+			(status == DSP_EFAIL)) || ((pDcdMgr == NULL) &&
-+			(status == DSP_EMEMORY)));
- 
-+func_end:
- 	return status;
- }
- 
-@@ -259,7 +254,6 @@ DSP_STATUS DCD_DestroyManager(IN struct DCD_MANAGER *hDcdMgr)
- 		 hDcdMgr);
- 
- 	if (IsValidHandle(hDcdMgr)) {
--
- 		/* Delete the COD manager. */
- 		COD_Delete(pDcdMgr->hCodMgr);
- 
-@@ -317,15 +311,15 @@ DSP_STATUS DCD_EnumerateObject(IN s32 cIndex, IN enum DSP_DCDOBJTYPE objType,
- 		 * Pre-determine final key length. It's length of DCD_REGKEY +
- 		 *  "_\0" + length of szObjType string + terminating NULL.
- 		 */
--               dwKeyLen = strlen(DCD_REGKEY) + 1 + sizeof(szObjType) + 1;
-+		dwKeyLen = strlen(DCD_REGKEY) + 1 + sizeof(szObjType) + 1;
- 		DBC_Assert(dwKeyLen < REG_MAXREGPATHLENGTH);
- 
- 		/* Create proper REG key; concatenate DCD_REGKEY with
- 		 * objType. */
--               strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
--               if ((strlen(szRegKey) + strlen("_\0")) <
-+		strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
-+		if ((strlen(szRegKey) + strlen("_\0")) <
- 		   REG_MAXREGPATHLENGTH) {
--                       strncat(szRegKey, "_\0", 2);
-+			strncat(szRegKey, "_\0", 2);
- 		} else {
- 			status = DSP_EFAIL;
- 		}
-@@ -339,10 +333,10 @@ DSP_STATUS DCD_EnumerateObject(IN s32 cIndex, IN enum DSP_DCDOBJTYPE objType,
- 			status = DSP_EFAIL;
- 		} else {
- 			status = DSP_SOK;
--                       if ((strlen(szRegKey) + strlen(szObjType)) <
-+			if ((strlen(szRegKey) + strlen(szObjType)) <
- 			   REG_MAXREGPATHLENGTH) {
--                               strncat(szRegKey, szObjType,
--                                          strlen(szObjType) + 1);
-+				strncat(szRegKey, szObjType,
-+					strlen(szObjType) + 1);
- 			} else {
- 				status = DSP_EFAIL;
- 			}
-@@ -447,7 +441,7 @@ DSP_STATUS DCD_GetNumDepLibs(IN struct DCD_MANAGER *hDcdMgr,
- 		 hDcdMgr);
- 
- 	status = GetDepLibInfo(hDcdMgr, pUuid, pNumLibs, pNumPersLibs,
--			      NULL, NULL, phase);
-+				NULL, NULL, phase);
- 
- 	return status;
- }
-@@ -459,9 +453,9 @@ DSP_STATUS DCD_GetNumDepLibs(IN struct DCD_MANAGER *hDcdMgr,
-  *      object type.
-  */
- DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
--			   IN struct DSP_UUID *pObjUuid,
--			   IN enum DSP_DCDOBJTYPE objType,
--			   OUT struct DCD_GENERICOBJ *pObjDef)
-+			IN struct DSP_UUID *pObjUuid,
-+			IN enum DSP_DCDOBJTYPE objType,
-+			OUT struct DCD_GENERICOBJ *pObjDef)
- {
- 	struct DCD_MANAGER *pDcdMgr = hDcdMgr;	/* pointer to DCD manager */
- 	struct COD_LIBRARYOBJ *lib = NULL;
-@@ -495,15 +489,17 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- 			 "DCD manager handle.\n");
- 		goto func_end;
- 	}
--	 /* Pre-determine final key length. It's length of DCD_REGKEY +
-+
-+	/* Pre-determine final key length. It's length of DCD_REGKEY +
- 	 *  "_\0" + length of szObjType string + terminating NULL */
--       dwKeyLen = strlen(DCD_REGKEY) + 1 + sizeof(szObjType) + 1;
-+	dwKeyLen = strlen(DCD_REGKEY) + 1 + sizeof(szObjType) + 1;
- 	DBC_Assert(dwKeyLen < REG_MAXREGPATHLENGTH);
-+
- 	/* Create proper REG key; concatenate DCD_REGKEY with objType. */
--       strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
-+	strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
- 
--       if ((strlen(szRegKey) + strlen("_\0")) < REG_MAXREGPATHLENGTH)
--               strncat(szRegKey, "_\0", 2);
-+	if ((strlen(szRegKey) + strlen("_\0")) < REG_MAXREGPATHLENGTH)
-+		strncat(szRegKey, "_\0", 2);
- 	else
- 		status = DSP_EFAIL;
- 
-@@ -513,32 +509,34 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- 	} else {
- 		status = DSP_SOK;
- 
--               if ((strlen(szRegKey) + strlen(szObjType)) <
-+		if ((strlen(szRegKey) + strlen(szObjType)) <
- 		   REG_MAXREGPATHLENGTH) {
--                       strncat(szRegKey, szObjType, strlen(szObjType) + 1);
-+			strncat(szRegKey, szObjType, strlen(szObjType) + 1);
- 		} else {
- 			status = DSP_EFAIL;
- 		}
-+
- 		/* Create UUID value to set in registry. */
- 		UUID_UuidToString(pObjUuid, szUuid, MAXUUIDLEN);
- 
--               if ((strlen(szRegKey) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
--                       strncat(szRegKey, szUuid, MAXUUIDLEN);
--               else
-+		if ((strlen(szRegKey) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
-+			strncat(szRegKey, szUuid, MAXUUIDLEN);
-+		else
- 			status = DSP_EFAIL;
- 
- 		/* Retrieve paths from the registry based on struct DSP_UUID */
- 		dwBufSize = REG_MAXREGPATHLENGTH;
- 	}
--	if (DSP_SUCCEEDED(status)) {
-+	if (DSP_SUCCEEDED(status))
- 		status = REG_GetValue(szRegKey, (u8 *)szRegData, &dwBufSize);
--	}
-+
- 	if (DSP_FAILED(status)) {
- 		status = DSP_EUUID;
- 		GT_0trace(curTrace, GT_6CLASS, "DCD_GetObjectDef: "
- 			 "REG_GetValue() failed\n");
- 		goto func_end;
- 	}
-+
- 	/* Open COFF file. */
- 	status = COD_Open(pDcdMgr->hCodMgr, szRegData, COD_NOLOAD, &lib);
- 	if (DSP_FAILED(status)) {
-@@ -547,13 +545,16 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- 			 "COD_OpenBase() failed\n");
- 		goto func_end;
- 	}
-+
- 	/* Ensure szUuid + 1 is not greater than sizeof szSectName. */
--       DBC_Assert((strlen(szUuid) + 1) < sizeof(szSectName));
-+	DBC_Assert((strlen(szUuid) + 1) < sizeof(szSectName));
-+
- 	/* Create section name based on node UUID. A period is
- 	 * pre-pended to the UUID string to form the section name.
- 	 * I.e. ".24BC8D90_BB45_11d4_B756_006008BDB66F" */
--       strncpy(szSectName, ".", 2);
--       strncat(szSectName, szUuid, strlen(szUuid));
-+	strncpy(szSectName, ".", 2);
-+	strncat(szSectName, szUuid, strlen(szUuid));
-+
- 	/* Get section information. */
- 	status = COD_GetSection(lib, szSectName, &ulAddr, &ulLen);
- 	if (DSP_FAILED(status)) {
-@@ -562,10 +563,11 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- 			 " COD_GetSection() failed\n");
- 		goto func_end;
- 	}
-+
- 	/* Allocate zeroed buffer. */
- 	pszCoffBuf = MEM_Calloc(ulLen + 4, MEM_PAGED);
- #ifdef _DB_TIOMAP
--       if (strstr(szRegData, "iva") == NULL) {
-+	if (strstr(szRegData, "iva") == NULL) {
- 		/* Locate section by objectID and read its content. */
- 		status = COD_ReadSection(lib, szSectName, pszCoffBuf, ulLen);
- 	} else {
-@@ -578,13 +580,14 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- #endif
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Compres DSP buffer to conform to PC format. */
--               if (strstr(szRegData, "iva") == NULL) {
-+		if (strstr(szRegData, "iva") == NULL) {
- 			CompressBuf(pszCoffBuf, ulLen, DSPWORDSIZE);
- 		} else {
- 			CompressBuf(pszCoffBuf, ulLen, 1);
- 			GT_0trace(curTrace, GT_4CLASS, "Compressing IVA "
- 				 "COFF buffer by 1 for IVA !!\n");
- 		}
-+
- 		/* Parse the content of the COFF buffer. */
- 		status = GetAttrsFromBuf(pszCoffBuf, ulLen, objType, pObjDef);
- 		if (DSP_FAILED(status)) {
-@@ -597,6 +600,7 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- 		GT_0trace(curTrace, GT_6CLASS, "DCD_GetObjectDef: "
- 			 "COD_ReadSection() failed\n");
- 	}
-+
- 	/* Free the previously allocated dynamic buffer. */
- 	MEM_Free(pszCoffBuf);
- func_end:
-@@ -605,6 +609,7 @@ func_end:
- 
- 	if (szUuid)
- 		MEM_Free(szUuid);
-+
- 	return status;
- }
- 
-@@ -635,6 +640,7 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
- 			 "DCD_GetObjects: invalid DCD manager handle.\n");
- 		goto func_end;
- 	}
-+
- 	/* Open DSP coff file, don't load symbols. */
- 	status = COD_Open(pDcdMgr->hCodMgr, pszCoffPath, COD_NOLOAD, &lib);
- 	if (DSP_FAILED(status)) {
-@@ -643,6 +649,7 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
- 			 "DCD_AutoRegister: COD_Open() failed\n");
- 		goto func_cont;
- 	}
-+
- 	/* Get DCD_RESIGER_SECTION section information. */
- 	status = COD_GetSection(lib, DCD_REGISTER_SECTION, &ulAddr, &ulLen);
- 	if (DSP_FAILED(status) ||  !(ulLen > 0)) {
-@@ -652,6 +659,7 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
- 			 "- no auto register section\n");
- 		goto func_cont;
- 	}
-+
- 	/* Allocate zeroed buffer. */
- 	pszCoffBuf = MEM_Calloc(ulLen + 4, MEM_PAGED);
- #ifdef _DB_TIOMAP
-@@ -678,15 +686,19 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
- 			GT_0trace(curTrace, GT_4CLASS, "Compress COFF buffer "
- 				 "with 1 word for IVA !!\n");
- 		}
-+
- 		/* Read from buffer and register object in buffer. */
- 		pszCur = pszCoffBuf;
- 		while ((pToken = strsep(&pszCur, seps)) && *pToken != '\0') {
- 			/*  Retrieve UUID string. */
- 			UUID_UuidFromString(pToken, &dspUuid);
-+
- 			/*  Retrieve object type */
- 			pToken = strsep(&pszCur, seps);
-+
- 			/*  Retrieve object type */
- 			cObjectType = Atoi(pToken);
-+
- 			/*
- 			 *  Apply registerFxn to the found DCD object.
- 			 *  Possible actions include:
-@@ -715,6 +727,7 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
- 		GT_0trace(curTrace, GT_6CLASS, "DCD_GetObjects: "
- 			 "COD_ReadSection() failed\n");
- 	}
-+
- 	/* Free the previously allocated dynamic buffer. */
- 	MEM_Free(pszCoffBuf);
- func_cont:
-@@ -732,9 +745,9 @@ func_end:
-  *
-  */
- DSP_STATUS DCD_GetLibraryName(IN struct DCD_MANAGER *hDcdMgr,
--			     IN struct DSP_UUID *pUuid,
--			     IN OUT char *pstrLibName, IN OUT u32 *pdwSize,
--			     enum NLDR_PHASE phase, OUT bool *fPhaseSplit)
-+			IN struct DSP_UUID *pUuid,
-+			IN OUT char *pstrLibName, IN OUT u32 *pdwSize,
-+			enum NLDR_PHASE phase, OUT bool *fPhaseSplit)
- {
- 	char szRegKey[REG_MAXREGPATHLENGTH];
- 	char szUuid[MAXUUIDLEN];
-@@ -751,16 +764,18 @@ DSP_STATUS DCD_GetLibraryName(IN struct DCD_MANAGER *hDcdMgr,
- 		 "DCD_GetLibraryName: hDcdMgr 0x%x, pUuid 0x%x, "
- 		 " pstrLibName 0x%x, pdwSize 0x%x\n", hDcdMgr, pUuid,
- 		 pstrLibName, pdwSize);
-+
- 	/*
- 	 *  Pre-determine final key length. It's length of DCD_REGKEY +
- 	 *  "_\0" + length of szObjType string + terminating NULL.
- 	 */
--       dwKeyLen = strlen(DCD_REGKEY) + 1 + sizeof(szObjType) + 1;
-+	dwKeyLen = strlen(DCD_REGKEY) + 1 + sizeof(szObjType) + 1;
- 	DBC_Assert(dwKeyLen < REG_MAXREGPATHLENGTH);
-+
- 	/* Create proper REG key; concatenate DCD_REGKEY with objType. */
--       strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
--       if ((strlen(szRegKey) + strlen("_\0")) < REG_MAXREGPATHLENGTH)
--               strncat(szRegKey, "_\0", 2);
-+	strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
-+	if ((strlen(szRegKey) + strlen("_\0")) < REG_MAXREGPATHLENGTH)
-+		strncat(szRegKey, "_\0", 2);
- 	else
- 		status = DSP_EFAIL;
- 
-@@ -789,17 +804,17 @@ DSP_STATUS DCD_GetLibraryName(IN struct DCD_MANAGER *hDcdMgr,
- 		status = DSP_EFAIL;
- 	} else {
- 		status = DSP_SOK;
--               if ((strlen(szRegKey) + strlen(szObjType))
--		   < REG_MAXREGPATHLENGTH) {
--                       strncat(szRegKey, szObjType, strlen(szObjType) + 1);
-+		if ((strlen(szRegKey) + strlen(szObjType)) <
-+		   REG_MAXREGPATHLENGTH) {
-+			strncat(szRegKey, szObjType, strlen(szObjType) + 1);
- 		} else {
- 			status = DSP_EFAIL;
- 		}
- 		/* Create UUID value to find match in registry. */
- 		UUID_UuidToString(pUuid, szUuid, MAXUUIDLEN);
--               if ((strlen(szRegKey) + MAXUUIDLEN) <
-+		if ((strlen(szRegKey) + MAXUUIDLEN) <
- 		   REG_MAXREGPATHLENGTH) {
--                       strncat(szRegKey, szUuid, MAXUUIDLEN);
-+			strncat(szRegKey, szUuid, MAXUUIDLEN);
- 		} else {
- 			status = DSP_EFAIL;
- 		}
-@@ -808,29 +823,30 @@ DSP_STATUS DCD_GetLibraryName(IN struct DCD_MANAGER *hDcdMgr,
- 		/* Retrieve path from the registry based on DSP_UUID */
- 		status = REG_GetValue(szRegKey,	(u8 *)pstrLibName, pdwSize);
- 	}
-+
- 	/* If can't find, phases might be registered as generic LIBRARYTYPE */
- 	if (DSP_FAILED(status) && phase != NLDR_NOPHASE) {
- 		if (fPhaseSplit)
- 			*fPhaseSplit = false;
- 
--               strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
--               if ((strlen(szRegKey) + strlen("_\0")) <
-+		strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
-+		if ((strlen(szRegKey) + strlen("_\0")) <
- 		   REG_MAXREGPATHLENGTH) {
--                       strncat(szRegKey, "_\0", 2);
-+			strncat(szRegKey, "_\0", 2);
- 		} else {
- 			status = DSP_EFAIL;
- 		}
- 		sprintf(szObjType, "%d", DSP_DCDLIBRARYTYPE);
--               if ((strlen(szRegKey) + strlen(szObjType))
-+		if ((strlen(szRegKey) + strlen(szObjType))
- 		   < REG_MAXREGPATHLENGTH) {
--                       strncat(szRegKey, szObjType, strlen(szObjType) + 1);
-+			strncat(szRegKey, szObjType, strlen(szObjType) + 1);
- 		} else {
- 			status = DSP_EFAIL;
- 		}
- 		UUID_UuidToString(pUuid, szUuid, MAXUUIDLEN);
--               if ((strlen(szRegKey) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
--                       strncat(szRegKey, szUuid, MAXUUIDLEN);
--               else
-+		if ((strlen(szRegKey) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
-+			strncat(szRegKey, szUuid, MAXUUIDLEN);
-+		else
- 			status = DSP_EFAIL;
- 
- 		status = REG_GetValue(szRegKey, (u8 *)pstrLibName, pdwSize);
-@@ -857,11 +873,11 @@ bool DCD_Init(void)
- 		 cRefs);
- 
- 	if (cRefs == 0) {
--
- 		/* Initialize required modules. */
- 		fInitMEM = MEM_Init();
- 		fInitCOD = COD_Init();
- 		fInitREG = REG_Init();
-+
- 		if (!fInitMEM || !fInitCOD || !fInitREG) {
- 			fInit = false;
- 			GT_0trace(curTrace, GT_6CLASS, "DCD_Init failed\n");
-@@ -897,91 +913,94 @@ bool DCD_Init(void)
-  *      If pszPathName == NULL, unregister the specified DCD object.
-  */
- DSP_STATUS DCD_RegisterObject(IN struct DSP_UUID *pUuid,
--			     IN enum DSP_DCDOBJTYPE objType,
--			     IN char *pszPathName)
-+			IN enum DSP_DCDOBJTYPE objType,
-+			IN char *pszPathName)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	char szRegKey[REG_MAXREGPATHLENGTH];
- 	char szUuid[MAXUUIDLEN + 1];
- 	u32 dwPathSize = 0;
--	u32 dwKeyLen;		/* Len of REG key. */
-+	u32 dwKeyLen;				/* Len of REG key. */
- 	char szObjType[MAX_INT2CHAR_LENGTH];	/* str. rep. of objType. */
- 
- 	DBC_Require(cRefs > 0);
- 	DBC_Require(pUuid != NULL);
- 	DBC_Require((objType == DSP_DCDNODETYPE) ||
--		   (objType == DSP_DCDPROCESSORTYPE) ||
--		   (objType == DSP_DCDLIBRARYTYPE) ||
--		   (objType == DSP_DCDCREATELIBTYPE) ||
--		   (objType == DSP_DCDEXECUTELIBTYPE) ||
--		   (objType == DSP_DCDDELETELIBTYPE));
-+			(objType == DSP_DCDPROCESSORTYPE) ||
-+			(objType == DSP_DCDLIBRARYTYPE) ||
-+			(objType == DSP_DCDCREATELIBTYPE) ||
-+			(objType == DSP_DCDEXECUTELIBTYPE) ||
-+			(objType == DSP_DCDDELETELIBTYPE));
- 
- 	GT_3trace(curTrace, GT_ENTER, "DCD_RegisterObject: object UUID 0x%x, "
- 		 "objType %d, szPathName %s\n", pUuid, objType, pszPathName);
-+
- 	/*
- 	 * Pre-determine final key length. It's length of DCD_REGKEY +
- 	 *  "_\0" + length of szObjType string + terminating NULL.
- 	 */
--       dwKeyLen = strlen(DCD_REGKEY) + 1 + sizeof(szObjType) + 1;
-+	dwKeyLen = strlen(DCD_REGKEY) + 1 + sizeof(szObjType) + 1;
- 	DBC_Assert(dwKeyLen < REG_MAXREGPATHLENGTH);
-+
- 	/* Create proper REG key; concatenate DCD_REGKEY with objType. */
--       strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
--       if ((strlen(szRegKey) + strlen("_\0")) < REG_MAXREGPATHLENGTH)
--               strncat(szRegKey, "_\0", 2);
--	else
-+	strncpy(szRegKey, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
-+	if ((strlen(szRegKey) + strlen("_\0")) < REG_MAXREGPATHLENGTH)
-+		strncat(szRegKey, "_\0", 2);
-+	else {
- 		status = DSP_EFAIL;
-+		goto func_end;
-+	}
- 
- 	status = snprintf(szObjType, MAX_INT2CHAR_LENGTH, "%d", objType);
- 	if (status == -1) {
- 		status = DSP_EFAIL;
- 	} else {
- 		status = DSP_SOK;
--               if ((strlen(szRegKey) + strlen(szObjType)) <
-+		if ((strlen(szRegKey) + strlen(szObjType)) <
- 		   REG_MAXREGPATHLENGTH) {
--                       strncat(szRegKey, szObjType, strlen(szObjType) + 1);
--		} else {
-+			strncat(szRegKey, szObjType, strlen(szObjType) + 1);
-+		} else
- 			status = DSP_EFAIL;
+-		/* Check for overlay section */
+-		for (i = 0;  i < pdblLib->nOvlySects;  i++) {
+-			if (CSL_Strcmp(pdblLib->ppOvlyData[i]->hdr.pName,
+-			   name) == 0) {
+-				/* Address and size are meaningless */
+-				*pAddr = 0;
+-				*pSize = 0;
+-				status = DSP_SOK;
+-				break;
+-			}
 -		}
-+
- 		/* Create UUID value to set in registry. */
- 		UUID_UuidToString(pUuid, szUuid, MAXUUIDLEN);
--               if ((strlen(szRegKey) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
--                       strncat(szRegKey, szUuid, MAXUUIDLEN);
--               else
-+		if ((strlen(szRegKey) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
-+			strncat(szRegKey, szUuid, MAXUUIDLEN);
-+		else
- 			status = DSP_EFAIL;
+-	}
 -
- 	}
- 
+-	return status;
+-}
+-
+-/*
+- *  ======== DBL_init ========
+- *  Purpose:
+- *  	Initialize DBL module.
+- */
+-bool DBL_init(void)
+-{
+-	bool retVal = true;
+-
+-	DBC_Require(cRefs >= 0);
+-
+-	if (cRefs == 0) {
+-		DBC_Assert(!DBL_debugMask.flags);
+-		GT_create(&DBL_debugMask, "BL"); 	/* "BL" for dBL */
+-
+-	}
+-
+-	if (retVal)
+-		cRefs++;
+-
+-
+-	GT_1trace(DBL_debugMask, GT_5CLASS, "DBL_init(), ref count:  0x%x\n",
+-		  cRefs);
+-
+-	DBC_Ensure((retVal && (cRefs > 0)) || (!retVal && (cRefs >= 0)));
+-
+-	return retVal;
+-}
+-
+-/*
+- *  ======== DBL_load ========
+- *  Purpose:
+- *  	Add symbols/code/data defined in file to that already present
+- *  	on the target.
+- */
+-DSP_STATUS DBL_load(struct DBL_LibraryObj *lib, DBL_Flags flags,
+-		   struct DBL_Attrs *attrs, u32 *pEntry)
+-{
+-	struct DBL_LibraryObj *pdblLib = (struct DBL_LibraryObj *)lib;
+-	struct DBL_TargetObj *dbl;
+-	u16 i;
+-	u16 nSects;
+-	DSP_STATUS status = DSP_EFAIL;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(pdblLib, DBL_LIBSIGNATURE));
+-	DBC_Require(pEntry != NULL);
+-	DBC_Require(attrs != NULL);
+-
+-	GT_4trace(DBL_debugMask, GT_ENTER, "DBL_load: lib: 0x%x flags: "
+-		 "0x%x attrs: 0x%x pEntry: 0x%x\n", lib, flags, attrs, pEntry);
+-
+-	dbl = pdblLib->pTarget;
+-	*pEntry = pdblLib->fileHdr.entry;
+-	nSects = pdblLib->fileHdr.numSects;
+-	dbl->dblAttrs = *attrs;
+-
+-	for (i = 0; i < nSects; i++) {
+-		/* Load the section at the current file offset */
+-		status = loadSect(dbl, lib);
+-		if (DSP_FAILED(status))
+-			break;
+-
+-	}
+-
+-	/* Done with file, we can close it */
+-	if (pdblLib->file) {
+-		(*pdblLib->pTarget->dblAttrs.fclose) (pdblLib->file);
+-		pdblLib->file = NULL;
+-	}
+-	return status;
+-}
+-
+-/*
+- *  ======== DBL_loadSect ========
+- *  Purpose:
+- *  	Load a named section from an library (for overlay support).
+- */
+-DSP_STATUS DBL_loadSect(struct DBL_LibraryObj *lib, char *sectName,
+-			struct DBL_Attrs *attrs)
+-{
+-	struct DBL_TargetObj *dbl;
+-	s32 i;
+-	s32 phase;
+-	s32 offset = -1;
+-	s32 nSects = -1;
+-	s32 allocdSects = 0;
+-	u32 loadAddr;
+-	u32 runAddr;
+-	u32 size;
+-	u32 space;
+-	u32 ulBytes;
+-	u16 mauSize;
+-	u16 wordSize;
+-	u16 *phaseRef = NULL;
+-	u16 *otherRef = NULL;
+-	char *name = NULL;
+-	struct OvlyData *pOvlyData;
+-	DSP_STATUS status = DSP_ENOSECT;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(lib, DBL_LIBSIGNATURE));
+-	DBC_Require(sectName != NULL);
+-	DBC_Require(attrs != NULL);
+-	DBC_Require(attrs->write != NULL);
+-	GT_3trace(DBL_debugMask, GT_ENTER,
+-		 "DBL_loadSect: lib: 0x%x sectName: %s "
+-		 "attrs: 0x%x\n", lib, sectName, attrs);
+-	dbl = lib->pTarget;
+-	mauSize = lib->pTargetInfo->mauSize;
+-	wordSize = lib->pTargetInfo->wordSize;
+-	/* Check for match of sect name in overlay table */
+-	for (i = 0; i < lib->nOvlySects; i++) {
+-		name = lib->ppOvlyData[i]->hdr.pName;
+-		if (!CSL_Strncmp(name, sectName, CSL_Strlen(name))) {
+-			/* Match found */
+-			status = DSP_SOK;
+-			break;
+-		}
+-	}
 -	if (DSP_SUCCEEDED(status)) {
+-		DBC_Assert(i < lib->nOvlySects);
+-		pOvlyData = lib->ppOvlyData[i];
 -		/*
--		 * If pszPathName != NULL, perform registration, otherwise,
--		 * perform unregistration.
+-		 *  If node overlay, phase will be encoded in name. If not node
+-		 *  overlay, set phase to NONE.
 -		 */
--		if (pszPathName) {
--			/* Add new reg value (UUID+objType) with COFF path
--			 * info. */
--                       dwPathSize = strlen(pszPathName) + 1;
--			status = REG_SetValue(szRegKey, (u8 *)pszPathName, dwPathSize);
--			GT_2trace(curTrace, GT_6CLASS, "REG_SetValue  "
--				  "(u8 *)pszPathName=%s, dwPathSize=%d\n",
--				  pszPathName, dwPathSize);
--
--			if (DSP_FAILED(status)) {
--				status = DSP_EFAIL;
--				GT_0trace(curTrace, GT_6CLASS,
-+	if (DSP_FAILED(status))
-+		goto func_end;
-+
-+	/*
-+	 * If pszPathName != NULL, perform registration, otherwise,
-+	 * perform unregistration.
-+	 */
-+	if (pszPathName) {
-+		/* Add new reg value (UUID+objType) with COFF path info */
-+		dwPathSize = strlen(pszPathName) + 1;
-+		status = REG_SetValue(szRegKey, (u8 *)pszPathName, dwPathSize);
-+		GT_2trace(curTrace, GT_6CLASS, "REG_SetValue "
-+			"(u8 *)pszPathName=%s, dwPathSize=%d\n",
-+			pszPathName, dwPathSize);
-+
-+		if (DSP_FAILED(status)) {
-+			status = DSP_EFAIL;
-+			GT_0trace(curTrace, GT_6CLASS,
- 				  "DCD_RegisterObject: REG_SetValue failed!\n");
+-		phase = (CSL_Strcmp(name, sectName)) ?
+-			CSL_Atoi(sectName + CSL_Strlen(sectName) - 1) : NONE;
+-		 /*  Get reference count of node phase to be loaded, offset into
+-		 *  overlay data array, and number of sections to overlay.  */
+-		switch (phase) {
+-		case NONE:
+-			/* Not a node overlay */
+-			phaseRef = &pOvlyData->hdr.otherRef;
+-			nSects = numOtherSects(pOvlyData);
+-			offset = otherOffset(pOvlyData);
+-			break;
+-		case CREATEPHASE:
+-			phaseRef = &pOvlyData->hdr.createRef;
+-			otherRef = &pOvlyData->hdr.otherRef;
+-			if (*otherRef) {
+-				/* The overlay sections where node phase was
+-				 * not specified, have already been loaded.  */
+-				nSects = numCreateSects(pOvlyData);
+-				offset = createOffset(pOvlyData);
+-			} else {
+-				/* Overlay sections where node phase was not
+-				 * specified get loaded at create time, along
+-				 * with create sects.  */
+-				nSects = numCreateSects(pOvlyData) +
+-					 numOtherSects(pOvlyData);
+-				offset = otherOffset(pOvlyData);
 -			}
+-			break;
+-		case DELETEPHASE:
+-			phaseRef = &pOvlyData->hdr.deleteRef;
+-			nSects = numDeleteSects(pOvlyData);
+-			offset = deleteOffset(pOvlyData);
+-			break;
+-		case EXECUTEPHASE:
+-			phaseRef = &pOvlyData->hdr.executeRef;
+-			nSects = numExecuteSects(pOvlyData);
+-			offset = executeOffset(pOvlyData);
+-			break;
+-		default:
+-			/* ERROR */
+-			DBC_Assert(false);
+-			break;
+-		}
+-		/* Do overlay if reference count is 0 */
+-		if (!(*phaseRef)) {
+-			/* "Allocate" all sections */
+-			for (i = 0; i < nSects; i++) {
+-				runAddr = pOvlyData->data[offset + i].runAddr;
+-				size = pOvlyData->data[offset + i].size;
+-				space = pOvlyData->data[offset + i].page;
+-				status = (dbl->dblAttrs.alloc)(dbl->dblAttrs.
+-					 rmmHandle, space, size, 0,
+-					 &runAddr, true);
+-				if (DSP_FAILED(status))
+-					break;
+-
+-				allocdSects++;
+-			}
+-			if (DSP_SUCCEEDED(status)) {
+-				/* Load sections */
+-				for (i = 0; i < nSects; i++) {
+-					loadAddr = pOvlyData->data[offset + i].
+-						   loadAddr;
+-					runAddr = pOvlyData->data[offset + i].
+-						  runAddr;
+-					size = pOvlyData->data[offset + i].
+-						size;
+-					space = pOvlyData->data[offset + i].
+-						page;
+-					/* Convert to word address, call
+-					 * write function */
+-					loadAddr /= (wordSize / mauSize);
+-					runAddr /= (wordSize / mauSize);
+-					ulBytes = size * mauSize;
+-					if ((*attrs->write)(attrs->wHandle,
+-					   runAddr, (void *)loadAddr, ulBytes,
+-					   space) != ulBytes) {
+-						GT_0trace(DBL_debugMask,
+-							GT_6CLASS,
+-							"DBL_loadSect: write"
+-							" failed\n");
+-						status = DSP_EFWRITE;
+-						break;
+-					}
+-				}
+-			}
+-			/* Free sections on failure */
+-			if (DSP_FAILED(status))
+-				freeSects(dbl, pOvlyData, offset, allocdSects);
+-
+-		}
+-	}
+-	if (DSP_SUCCEEDED(status)) {
+-		/* Increment reference counts */
+-		if (otherRef)
+-			*otherRef = *otherRef + 1;
+-
+-		*phaseRef = *phaseRef + 1;
+-	}
+-	return status;
+-}
+-
+-/*
+- *  ======== DBL_open ========
+- *  Purpose:
+- *  	DBL_open() returns a library handle that can be used to
+- *  	load/unload the symbols/code/data via DBL_load()/DBL_unload().
+- */
+-DSP_STATUS DBL_open(struct DBL_TargetObj *target, char *file, DBL_Flags flags,
+-		   struct DBL_LibraryObj **pLib)
+-{
+-	struct DBL_LibraryObj *pdblLib = NULL;
+-	u16 nSymbols;
+-	u16 nDCDSects;
+-	DSP_STATUS status = DSP_SOK;
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(target, DBL_TARGSIGNATURE));
+-	DBC_Require(target->dblAttrs.fopen != NULL);
+-	DBC_Require(file != NULL);
+-	DBC_Require(pLib != NULL);
+-
+-	GT_3trace(DBL_debugMask, GT_ENTER, "DBL_open: target: 0x%x file: %s "
+-		 "pLib: 0x%x\n", target, file, pLib);
+-	/* Allocate DBL library object */
+-	MEM_AllocObject(pdblLib, struct DBL_LibraryObj, DBL_LIBSIGNATURE);
+-	if (pdblLib == NULL)
+-		status = DSP_EMEMORY;
+-
+-	/* Open the file */
+-	if (DSP_SUCCEEDED(status)) {
+-		pdblLib->pTarget = target;
+-		pdblLib->file = (*target->dblAttrs.fopen)(file, "rb");
+-		if (pdblLib->file == NULL)
+-			status = DSP_EFOPEN;
+-
+-	}
+-	/* Read file header */
+-	if (DSP_SUCCEEDED(status)) {
+-		status = readHeader(target, pdblLib);
+-		if (DSP_FAILED(status)) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				 "DBL_open(): Failed to read file header\n");
+-		}
+-	}
+-	/* Allocate symbol table */
+-	if (DSP_SUCCEEDED(status)) {
+-		nSymbols = pdblLib->nSymbols = pdblLib->fileHdr.numSymbols;
+-		pdblLib->symbols = MEM_Calloc(nSymbols * sizeof(struct Symbol),
+-					     MEM_PAGED);
+-		if (pdblLib->symbols == NULL)
+-			status = DSP_EMEMORY;
+-
+-	}
+-	/* Read all the symbols */
+-	if (DSP_SUCCEEDED(status)) {
+-		status = readSymbols(target, pdblLib);
+-		if (DSP_FAILED(status)) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				 "DBL_open(): Failed to read symbols\n");
+-		}
+-	}
+-	/* Allocate DCD sect table */
+-	if (DSP_SUCCEEDED(status)) {
+-		nDCDSects = pdblLib->nDCDSects = pdblLib->fileHdr.numDCDSects;
+-		pdblLib->dcdSects = MEM_Calloc(nDCDSects *
+-					 sizeof(struct DCDSect), MEM_PAGED);
+-		if (pdblLib->dcdSects == NULL)
+-			status = DSP_EMEMORY;
+-
+-	}
+-	/* Read DCD sections */
+-	if (DSP_SUCCEEDED(status)) {
+-		status = readDCDSects(target, pdblLib);
+-		if (DSP_FAILED(status)) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				 "DBL_open(): Failed to read DCD sections\n");
+-		}
+-	}
+-	/* Read overlay sections */
+-	if (DSP_SUCCEEDED(status)) {
+-		status = readOvlySects(target, pdblLib);
+-		if (DSP_FAILED(status)) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				 "DBL_open(): Failed to read "
+-				 "overlay sections\n");
+-		}
+-	}
+-	if (DSP_FAILED(status)) {
+-		*pLib = NULL;
+-		if (pdblLib != NULL)
+-			DBL_close((struct DBL_LibraryObj *) pdblLib);
+-
+-	} else {
+-		*pLib = pdblLib;
+-	}
+-	DBC_Ensure((DSP_SUCCEEDED(status) &&
+-		  (MEM_IsValidHandle((*pLib), DBL_LIBSIGNATURE))) ||
+-		  (DSP_FAILED(status) && *pLib == NULL));
+-	return status;
+-}
+-
+-/*
+- *  ======== DBL_readSect ========
+- *  Purpose:
+- *  	Read COFF section into a character buffer.
+- */
+-DSP_STATUS DBL_readSect(struct DBL_LibraryObj *lib, char *name, char *pContent,
+-			u32 size)
+-{
+-	struct DBL_LibraryObj *pdblLib = (struct DBL_LibraryObj *)lib;
+-	u16 i;
+-	u32 mauSize;
+-	u32 max;
+-	DSP_STATUS status = DSP_ENOSECT;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(pdblLib, DBL_LIBSIGNATURE));
+-	DBC_Require(name != NULL);
+-	DBC_Require(pContent != NULL);
+-	DBC_Require(size != 0);
+-	GT_4trace(DBL_debugMask, GT_ENTER, "DBL_readSect: lib: 0x%x name: %s "
+-		 "pContent: 0x%x size: 0x%x\n", lib, name, pContent, size);
+-
+-	mauSize = pdblLib->pTargetInfo->mauSize;
+-
+-	/* Attempt to find match with DCD section names. */
+-	for (i = 0; i < pdblLib->nDCDSects; i++) {
+-		if (CSL_Strcmp(pdblLib->dcdSects[i].sectHdr.name, name) == 0) {
+-			/* Match found */
+-			max = pdblLib->dcdSects[i].sectHdr.size * mauSize;
+-			max = (max > size) ? size : max;
+-			memcpy(pContent, pdblLib->dcdSects[i].pData, max);
+-			status = DSP_SOK;
+-			break;
+-		}
+-	}
+-
+-	return status;
+-}
+-
+-/*
+- *  ======== DBL_setAttrs ========
+- *  Purpose:
+- *  	Set the attributes of the target.
+- */
+-void DBL_setAttrs(struct DBL_TargetObj *target, struct DBL_Attrs *pAttrs)
+-{
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(target, DBL_TARGSIGNATURE));
+-	DBC_Require(pAttrs != NULL);
+-
+-	GT_2trace(DBL_debugMask, GT_ENTER, "DBL_setAttrs: target: 0x%x pAttrs: "
+-		 "0x%x\n", target, pAttrs);
+-
+-	target->dblAttrs = *pAttrs;
+-}
+-
+-/*
+- *  ======== DBL_unload ========
+- *  Purpose:
+- *  	Remove the symbols/code/data corresponding to the library lib.
+- */
+-void DBL_unload(struct DBL_LibraryObj *lib, struct DBL_Attrs *attrs)
+-{
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(lib, DBL_LIBSIGNATURE));
+-
+-	GT_1trace(DBL_debugMask, GT_ENTER, "DBL_unload: lib: 0x%x\n", lib);
+-
+-	/* Nothing to do for static loading */
+-}
+-
+-/*
+- *  ======== DBL_unloadSect ========
+- *  Purpose:
+- *  	Unload a named section from an library (for overlay support).
+- */
+-DSP_STATUS DBL_unloadSect(struct DBL_LibraryObj *lib, char *sectName,
+-			  struct DBL_Attrs *attrs)
+-{
+-	struct DBL_TargetObj *dbl;
+-	s32 i;
+-	s32 phase;
+-	s32 offset = -1;
+-	s32 nSects = -1;
+-	u16 *phaseRef = NULL;
+-	u16 *otherRef = NULL;
+-	char *pName = NULL;
+-	struct OvlyData *pOvlyData;
+-	DSP_STATUS status = DSP_ENOSECT;
+-
+-	DBC_Require(cRefs > 0);
+-	DBC_Require(MEM_IsValidHandle(lib, DBL_LIBSIGNATURE));
+-	DBC_Require(sectName != NULL);
+-
+-	GT_2trace(DBL_debugMask, GT_ENTER,
+-		 "DBL_unloadSect: lib: 0x%x sectName: %s\n", lib, sectName);
+-	dbl = lib->pTarget;
+-	/* Check for match of sect name in overlay table */
+-	for (i = 0; i < lib->nOvlySects; i++) {
+-		pName = lib->ppOvlyData[i]->hdr.pName;
+-		if (!CSL_Strncmp(pName, sectName, CSL_Strlen(pName))) {
+-			/* Match found */
+-			status = DSP_SOK;
+-			break;
+-		}
+-	}
+-	if (DSP_SUCCEEDED(status)) {
+-		DBC_Assert(i < lib->nOvlySects);
+-		pOvlyData = lib->ppOvlyData[i];
+-		/* If node overlay, phase will be encoded in name. */
+-		phase = (CSL_Strcmp(pName, sectName)) ?
+-			CSL_Atoi(sectName + CSL_Strlen(sectName) - 1) : NONE;
+-		switch (phase) {
+-		case NONE:
+-			nSects = numOtherSects(pOvlyData);
+-			phaseRef = &pOvlyData->hdr.otherRef;
+-			offset = otherOffset(pOvlyData);
+-			break;
+-		case CREATEPHASE:
+-			nSects = numCreateSects(pOvlyData);
+-			offset = createOffset(pOvlyData);
+-			phaseRef = &pOvlyData->hdr.createRef;
+-			break;
+-		case DELETEPHASE:
+-			nSects = numDeleteSects(pOvlyData);
+-			offset = deleteOffset(pOvlyData);
+-			phaseRef = &pOvlyData->hdr.deleteRef;
+-			otherRef = &pOvlyData->hdr.otherRef;
+-			break;
+-		case EXECUTEPHASE:
+-			nSects = numExecuteSects(pOvlyData);
+-			offset = executeOffset(pOvlyData);
+-			phaseRef = &pOvlyData->hdr.executeRef;
+-			break;
+-		default:
+-			/* ERROR */
+-			DBC_Assert(false);
+-			break;
+-		}
+-		if (*phaseRef) {
+-			*phaseRef = *phaseRef - 1;
+-			if (*phaseRef == 0) {
+-				/* Unload overlay sections for phase */
+-				freeSects(dbl, pOvlyData, offset, nSects);
+-			}
+-			if (phase == DELETEPHASE) {
+-				DBC_Assert(*otherRef);
+-				*otherRef = *otherRef - 1;
+-				if (*otherRef == 0) {
+-					/* Unload other overlay sections */
+-					nSects = numOtherSects(pOvlyData);
+-					offset = otherOffset(pOvlyData);
+-					freeSects(dbl, pOvlyData, offset,
+-						 nSects);
+-				}
+-			}
+-		}
+-	}
+-
+-	return status;
+-}
+-
+-/*
+- *  ======== freeSects ========
+- *  Purpose:
+- *  	Free section
+- */
+-static void freeSects(struct DBL_TargetObj *dbl, struct OvlyData *pOvlyData,
+-		     s32 offset, s32 nSects)
+-{
+-	u32 runAddr;
+-	u32 size;
+-	u32 space;
+-	s32 i;
+-
+-	for (i = 0; i < nSects; i++) {
+-		runAddr = pOvlyData->data[offset + i].runAddr;
+-		size = pOvlyData->data[offset + i].size;
+-		space = pOvlyData->data[offset + i].page;
+-		if (!(dbl->dblAttrs.free)
+-		    (dbl->dblAttrs.rmmHandle, space, runAddr, size, true)) {
+-			/*
+-			 *  Free function will not fail for overlay, unless
+-			 *  address passed in is bad.
+-			 */
+-			DBC_Assert(false);
+-		}
+-	}
+-}
+-
+-/*
+- *  ======== loadSect ========
+- *  Purpose:
+- *  	Load section to target
+- */
+-static DSP_STATUS loadSect(struct DBL_TargetObj *dbl,
+-			  struct DBL_LibraryObj *pdblLib)
+-{
+-	struct DBOF_SectHdr sectHdr;
+-	char *pBuf;
+-	struct KFILE_FileObj *file;
+-	u32 space;
+-	u32 addr;
+-	u32 total;
+-	u32 nWords = 0;
+-	u32 nBytes = 0;
+-	u16 mauSize;
+-	u32 bufSize;
+-	DSP_STATUS status = DSP_SOK;
+-
+-	file = pdblLib->file;
+-	mauSize = pdblLib->pTargetInfo->mauSize;
+-	bufSize = LOADBUFSIZE / mauSize;
+-	pBuf = dbl->pBuf;
+-
+-	/* Read the section header */
+-	if ((*dbl->dblAttrs.fread)(&sectHdr, sizeof(struct DBOF_SectHdr),
+-	   1, file) != 1) {
+-		GT_0trace(DBL_debugMask, GT_6CLASS,
+-			 "Failed to read DCD sect header\n");
+-		status = DSP_EFREAD;
+-	} else {
+-		if (pdblLib->byteSwapped) {
+-			sectHdr.size = SWAPLONG(sectHdr.size);
+-			sectHdr.addr = SWAPLONG(sectHdr.addr);
+-			sectHdr.page = SWAPWORD(sectHdr.page);
+-		}
+-	}
+-	if (DSP_SUCCEEDED(status)) {
+-		addr = sectHdr.addr;
+-		space = sectHdr.page;
+-		for (total = sectHdr.size; total > 0; total -= nWords) {
+-			nWords = min(total, bufSize);
+-			nBytes = nWords * mauSize;
+-			/* Read section data */
+-			if ((*dbl->dblAttrs.fread)(pBuf, nBytes, 1,
+-			   file) != 1) {
+-				GT_0trace(DBL_debugMask, GT_6CLASS,
+-					 "Failed to read DCD sect header\n");
+-				status = DSP_EFREAD;
+-				break;
+-			}
+-			/* Write section to target */
+-			if (!(*dbl->dblAttrs.write)(dbl->dblAttrs.wHandle,
+-			   addr, pBuf, nBytes, space)) {
+-				GT_0trace(DBL_debugMask, GT_6CLASS,
+-					 "Failed to write section data\n");
+-				status = DSP_EFWRITE;
+-				break;
+-			}
+-			addr += nWords;
+-		}
+-	}
+-	return status;
+-}
+-
+-/*
+- *  ======== readDCDSects ========
+- *  Purpose:
+- *  	Read DCD sections.
+- */
+-static DSP_STATUS readDCDSects(struct DBL_TargetObj *dbl,
+-			      struct DBL_LibraryObj *pdblLib)
+-{
+-	struct DBOF_DCDSectHdr *pSectHdr;
+-	struct DCDSect *pSect;
+-	struct KFILE_FileObj *file;
+-	u16 nSects;
+-	u16 i;
+-	u16 mauSize;
+-	DSP_STATUS status = DSP_SOK;
+-
+-	file = pdblLib->file;
+-	mauSize = pdblLib->pTargetInfo->mauSize;
+-	nSects = pdblLib->fileHdr.numDCDSects;
+-	for (i = 0; i < nSects; i++) {
+-		pSect = &pdblLib->dcdSects[i];
+-		pSectHdr = &pdblLib->dcdSects[i].sectHdr;
+-		/* Read sect header */
+-		if ((*dbl->dblAttrs.fread)(pSectHdr,
+-		   sizeof(struct DBOF_DCDSectHdr), 1, file) != 1) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				 "Failed to read DCD sect header\n");
+-			status = DSP_EFREAD;
+-			break;
+-		}
+-		if (pdblLib->byteSwapped)
+-			pSectHdr->size = SWAPLONG(pSectHdr->size);
+-
+-		pSect->pData = (char *)MEM_Calloc(pSectHdr->size *
+-				mauSize, MEM_PAGED);
+-		if (pSect->pData == NULL) {
+-			GT_2trace(DBL_debugMask, GT_6CLASS,
+-				 "Memory allocation for sect %s "
+-				 "data failed: Size: 0x%lx\n", pSectHdr->name,
+-				 pSectHdr->size);
+-			status = DSP_EMEMORY;
+-			break;
+-		}
+-		/* Read DCD sect data */
+-		if ((*dbl->dblAttrs.fread)(pSect->pData, mauSize,
+-		   pSectHdr->size, file) != pSectHdr->size) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				  "Failed to read DCD sect data\n");
+-			status = DSP_EFREAD;
+-			break;
+-		}
+-	}
+-
+-	return status;
+-}
+-
+-/*
+- *  ======== readHeader ========
+- *  Purpose:
+- *  	Read Header.
+- */
+-static DSP_STATUS readHeader(struct DBL_TargetObj *dbl,
+-			    struct DBL_LibraryObj *pdblLib)
+-{
+-	struct KFILE_FileObj *file;
+-	s32 i;
+-	struct DBOF_FileHdr *pHdr;
+-	u32 swapMagic;
+-	DSP_STATUS status = DSP_SOK;
+-
+-	pdblLib->byteSwapped = false;
+-	file = pdblLib->file;
+-	pHdr = &pdblLib->fileHdr;
+-	if ((*dbl->dblAttrs.fread)(pHdr, sizeof(struct DBOF_FileHdr), 1,
+-	   file) != 1) {
+-		GT_0trace(DBL_debugMask, GT_6CLASS,
+-			 "readHeader: Failed to read file header\n");
+-		status = DSP_EFREAD;
+-	}
+-
+-	if (DSP_SUCCEEDED(status)) {
+-		/* Determine if byte swapped */
+-		for (i = 0; i < NUMTARGS; i++) {
+-			swapMagic = SWAPLONG(pHdr->magic);
+-			if (pHdr->magic == magicTab[i] || swapMagic ==
+-			   magicTab[i]) {
+-				if (swapMagic == magicTab[i]) {
+-					pdblLib->byteSwapped = true;
+-					pHdr->magic = SWAPLONG(pHdr->magic);
+-					pHdr->entry = SWAPLONG(pHdr->entry);
+-					pHdr->symOffset = SWAPLONG(pHdr->
+-								symOffset);
+-					pHdr->dcdSectOffset = SWAPLONG(pHdr->
+-								dcdSectOffset);
+-					pHdr->loadSectOffset = SWAPLONG(pHdr->
+-								loadSectOffset);
+-					pHdr->ovlySectOffset = SWAPLONG(pHdr->
+-								ovlySectOffset);
+-					pHdr->numSymbols = SWAPWORD(pHdr->
+-								numSymbols);
+-					pHdr->numDCDSects = SWAPWORD(pHdr->
+-								numDCDSects);
+-					pHdr->numSects = SWAPWORD(pHdr->
+-								numSects);
+-					pHdr->numOvlySects = SWAPWORD(pHdr->
+-								numOvlySects);
+-				}
+-				break;
+-			}
+-		}
+-		if (i == NUMTARGS) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				 "readHeader: Failed to determine"
+-				 " target type\n");
+-			status = DSP_ECORRUPTFILE;
 -		} else {
--			/* Deregister an existing object. */
--			status = REG_DeleteValue(szRegKey);
--			if (DSP_FAILED(status)) {
--				status = DSP_EFAIL;
--				GT_0trace(curTrace, GT_6CLASS,
--					"DCD_UnregisterObject: "
--					"REG_DeleteValue failed!\n");
+-			pdblLib->pTargetInfo = &targetTab[i];
+-			GT_1trace(DBL_debugMask, GT_ENTER,
+-				 "COF type: 0x%lx\n", pHdr->magic);
+-			GT_1trace(DBL_debugMask, GT_ENTER,
+-				 "Entry point:0x%lx\n", pHdr->entry);
+-		}
+-	}
+-	return status;
+-}
+-
+-/*
+- *  ======== readOvlySects ========
+- *  Purpose:
+- *  	Read Overlay Sections
+- */
+-static DSP_STATUS readOvlySects(struct DBL_TargetObj *dbl,
+-				struct DBL_LibraryObj *pdblLib)
+-{
+-	struct DBOF_OvlySectHdr hdr;
+-	struct DBOF_OvlySectData *pData;
+-	struct OvlyData *pOvlyData;
+-	char *pName;
+-	struct KFILE_FileObj *file;
+-	u16 i, j;
+-	u16 nSects;
+-	u16 n;
+-	DSP_STATUS status = DSP_SOK;
+-
+-	pdblLib->nOvlySects = nSects = pdblLib->fileHdr.numOvlySects;
+-	file = pdblLib->file;
+-	if (nSects > 0) {
+-		pdblLib->ppOvlyData = MEM_Calloc(nSects * sizeof(OvlyData *),
+-						 MEM_PAGED);
+-		if (pdblLib->ppOvlyData == NULL) {
+-			GT_0trace(DBL_debugMask, GT_7CLASS,
+-				 "Failed to allocatate overlay "
+-				 "data memory\n");
+-			status = DSP_EMEMORY;
+-		}
+-	}
+-	if (DSP_SUCCEEDED(status)) {
+-		/* Read overlay data for each node */
+-		for (i = 0; i < nSects; i++) {
+-			/* Read overlay section header */
+-			if ((*dbl->dblAttrs.fread)(&hdr,
+-			   sizeof(struct DBOF_OvlySectHdr), 1, file) != 1) {
+-				GT_0trace(DBL_debugMask, GT_6CLASS,
+-					 "Failed to read overlay sect"
+-					 " header\n");
+-				status = DSP_EFREAD;
+-				break;
 -			}
-+		}
-+	} else {
-+		/* Deregister an existing object */
-+		status = REG_DeleteValue(szRegKey);
-+		if (DSP_FAILED(status)) {
-+			status = DSP_EFAIL;
-+			GT_0trace(curTrace, GT_6CLASS, "DCD_UnregisterObject: "
-+				"REG_DeleteValue failed!\n");
- 		}
- 	}
- 
-+
- 	if (DSP_SUCCEEDED(status)) {
- 		/*
- 		 *  Because the node database has been updated through a
-@@ -990,10 +1009,9 @@ DSP_STATUS DCD_RegisterObject(IN struct DSP_UUID *pUuid,
- 		 *  current enumerations to reflect this update in the node
- 		 *  database.
- 		 */
+-			if (pdblLib->byteSwapped) {
+-				hdr.nameLen = SWAPWORD(hdr.nameLen);
+-				hdr.numCreateSects =
+-						SWAPWORD(hdr.numCreateSects);
+-				hdr.numDeleteSects =
+-						SWAPWORD(hdr.numDeleteSects);
+-				hdr.numExecuteSects =
+-						SWAPWORD(hdr.numExecuteSects);
+-				hdr.numOtherSects =
+-						SWAPWORD(hdr.numOtherSects);
+-				hdr.resvd = SWAPWORD(hdr.resvd);
+-			}
+-			n = hdr.numCreateSects + hdr.numDeleteSects +
+-			    hdr.numExecuteSects + hdr.numOtherSects;
 -
- 		cEnumRefs = 0;
- 	}
+-			/* Allocate memory for node's overlay data */
+-			pOvlyData = (struct OvlyData *)MEM_Calloc
+-				    (sizeof(struct OvlyHdr) +
+-				    n * sizeof(struct DBOF_OvlySectData),
+-				    MEM_PAGED);
+-			if (pOvlyData == NULL) {
+-				GT_0trace(DBL_debugMask, GT_7CLASS,
+-					 "Failed to allocatate ovlyay"
+-					 " data memory\n");
+-				status = DSP_EMEMORY;
+-				break;
+-			}
+-			pOvlyData->hdr.dbofHdr = hdr;
+-			pdblLib->ppOvlyData[i] = pOvlyData;
+-			/* Allocate memory for section name */
+-			pName = (char *)MEM_Calloc(hdr.nameLen + 1, MEM_PAGED);
+-			if (pName == NULL) {
+-				GT_0trace(DBL_debugMask, GT_7CLASS,
+-					 "Failed to allocatate ovlyay"
+-					 " section name\n");
+-				status = DSP_EMEMORY;
+-				break;
+-			}
+-			pOvlyData->hdr.pName = pName;
+-			/* Read the overlay section name */
+-			if ((*dbl->dblAttrs.fread)(pName, sizeof(char),
+-			   hdr.nameLen, file) != hdr.nameLen) {
+-				GT_0trace(DBL_debugMask, GT_7CLASS,
+-					 "readOvlySects: Unable to "
+-					 "read overlay name.\n");
+-				status = DSP_EFREAD;
+-				break;
+-			}
+-			/* Read the overlay section data */
+-			pData = pOvlyData->data;
+-			if ((*dbl->dblAttrs.fread)(pData,
+-			   sizeof(struct DBOF_OvlySectData), n, file) != n) {
+-				GT_0trace(DBL_debugMask, GT_7CLASS,
+-					 "readOvlySects: Unable to "
+-					 "read overlay data.\n");
+-				status = DSP_EFREAD;
+-				break;
+-			}
+-			/* Swap overlay data, if necessary */
+-			if (pdblLib->byteSwapped) {
+-				for (j = 0; j < n; j++) {
+-					pData[j].loadAddr =
+-						 SWAPLONG(pData[j].loadAddr);
+-					pData[j].runAddr =
+-						 SWAPLONG(pData[j].runAddr);
+-					pData[j].size =
+-						 SWAPLONG(pData[j].size);
+-					pData[j].page =
+-						 SWAPWORD(pData[j].page);
+-				}
+-			}
+-		}
+-	}
+-	return status;
+-}
 -
-+func_end:
- 	return status;
- }
- 
-@@ -1080,7 +1098,6 @@ static s32 Atoi(char *pszBuf)
- 				c = c - 'a' + 10;
- 			else
- 				c -= '0';
+-/*
+- *  ======== readSymbols ========
+- *  Purpose:
+- *  	Read Symbols
+- */
+-static DSP_STATUS readSymbols(struct DBL_TargetObj *dbl,
+-			     struct DBL_LibraryObj *pdblLib)
+-{
+-	struct DBOF_SymbolHdr symHdr;
+-	struct KFILE_FileObj *file;
+-	u16 i;
+-	u16 nSymbols;
+-	u16 len;
+-	char *pName = NULL;
+-	DSP_STATUS status = DSP_SOK;
 -
- 		}
- 		result += c;
- 		++pch;
-@@ -1116,7 +1133,6 @@ static DSP_STATUS GetAttrsFromBuf(char *pszBuf, u32 ulBufSize,
- 		    || (objType == DSP_DCDPROCESSORTYPE));
- 	DBC_Require(pGenObj != NULL);
- 
+-	file = pdblLib->file;
 -
- 	switch (objType) {
- 	case DSP_DCDNODETYPE:
- 		/*
-@@ -1137,12 +1153,12 @@ static DSP_STATUS GetAttrsFromBuf(char *pszBuf, u32 ulBufSize,
- 		token = strsep(&pszCur, seps);
- 
- 		/* acName */
--               DBC_Require(token);
-+		DBC_Require(token);
- 		cLen = strlen(token);
- 		if (cLen > DSP_MAXNAMELEN - 1)
- 			cLen = DSP_MAXNAMELEN - 1;
- 
--               strncpy(pGenObj->objData.nodeObj.ndbProps.acName,
-+		strncpy(pGenObj->objData.nodeObj.ndbProps.acName,
- 			   token, cLen);
- 		pGenObj->objData.nodeObj.ndbProps.acName[cLen] = '\0';
- 		token = strsep(&pszCur, seps);
-@@ -1220,8 +1236,8 @@ static DSP_STATUS GetAttrsFromBuf(char *pszBuf, u32 ulBufSize,
- 			Atoi(token);
- 		token = strsep(&pszCur, seps);
- 
--		/* char * pstrCreatePhaseFxn */
--               DBC_Require(token);
-+		/* char *pstrCreatePhaseFxn */
-+		DBC_Require(token);
- 		cLen = strlen(token);
- 		pGenObj->objData.nodeObj.pstrCreatePhaseFxn =
- 			MEM_Calloc(cLen + 1, MEM_PAGED);
-@@ -1230,8 +1246,8 @@ static DSP_STATUS GetAttrsFromBuf(char *pszBuf, u32 ulBufSize,
- 		pGenObj->objData.nodeObj.pstrCreatePhaseFxn[cLen] = '\0';
- 		token = strsep(&pszCur, seps);
- 
--		/* char * pstrExecutePhaseFxn */
--               DBC_Require(token);
-+		/* char *pstrExecutePhaseFxn */
-+		DBC_Require(token);
- 		cLen = strlen(token);
- 		pGenObj->objData.nodeObj.pstrExecutePhaseFxn =
- 			 MEM_Calloc(cLen + 1, MEM_PAGED);
-@@ -1240,8 +1256,8 @@ static DSP_STATUS GetAttrsFromBuf(char *pszBuf, u32 ulBufSize,
- 		pGenObj->objData.nodeObj.pstrExecutePhaseFxn[cLen] = '\0';
- 		token = strsep(&pszCur, seps);
- 
--		/* char * pstrDeletePhaseFxn */
--               DBC_Require(token);
-+		/* char *pstrDeletePhaseFxn */
-+		DBC_Require(token);
- 		cLen = strlen(token);
- 		pGenObj->objData.nodeObj.pstrDeletePhaseFxn =
- 			MEM_Calloc(cLen + 1, MEM_PAGED);
-@@ -1258,7 +1274,7 @@ static DSP_STATUS GetAttrsFromBuf(char *pszBuf, u32 ulBufSize,
- 		pGenObj->objData.nodeObj.uMsgNotifyType = Atoi(token);
- 		token = strsep(&pszCur, seps);
- 
--		/* char * pstrIAlgName */
-+		/* char *pstrIAlgName */
- 		if (token) {
- 			cLen = strlen(token);
- 			pGenObj->objData.nodeObj.pstrIAlgName =
-@@ -1388,7 +1404,6 @@ static void CompressBuf(char *pszBuf, u32 ulBufSize, s32 cCharSize)
- 		return;
- 
- 	for (q = pszBuf; q < (pszBuf + ulBufSize);) {
+-	nSymbols = pdblLib->fileHdr.numSymbols;
 -
- 		ch = DspChar2GppChar(q, cCharSize);
- 		if (ch == '\\') {
- 			q += cCharSize;
-@@ -1424,7 +1439,6 @@ static void CompressBuf(char *pszBuf, u32 ulBufSize, s32 cCharSize)
- 	/* NULL out remainder of buffer. */
- 	while (p < q)
- 		*p++ = '\0';
--
- }
- 
- /*
-@@ -1460,8 +1474,8 @@ static DSP_STATUS GetDepLibInfo(IN struct DCD_MANAGER *hDcdMgr,
- 	char *pszCur;
- 	char *pszFileName = NULL;
- 	struct COD_LIBRARYOBJ *lib = NULL;
--	u32 ulAddr = 0;	/* Used by COD_GetSection */
--	u32 ulLen = 0;	/* Used by COD_GetSection */
-+	u32 ulAddr = 0;				/* Used by COD_GetSection */
-+	u32 ulLen = 0;				/* Used by COD_GetSection */
- 	u32 dwDataSize = COD_MAXPATHLENGTH;
- 	char seps[] = ", ";
- 	char *pToken = NULL;
-@@ -1494,6 +1508,7 @@ static DSP_STATUS GetDepLibInfo(IN struct DCD_MANAGER *hDcdMgr,
- 		status = DCD_GetLibraryName(hDcdMgr, pUuid, pszFileName,
- 			 &dwDataSize, phase, NULL);
- 	}
-+
- 	/* Open the library */
- 	if (DSP_SUCCEEDED(status)) {
- 		status = COD_Open(pDcdMgr->hCodMgr, pszFileName,
-@@ -1525,6 +1540,7 @@ static DSP_STATUS GetDepLibInfo(IN struct DCD_MANAGER *hDcdMgr,
- 
- 	/* Compress and format DSP buffer to conform to PC format. */
- 	CompressBuf(pszCoffBuf, ulLen, DSPWORDSIZE);
-+
- 	/* Read from buffer */
- 	pszCur = pszCoffBuf;
- 	while ((pToken = strsep(&pszCur, seps)) && *pToken != '\0') {
-@@ -1564,4 +1580,3 @@ func_cont:
- 
- 	return status;
- }
+-	for (i = 0; i < nSymbols; i++) {
+-		/* Read symbol value */
+-		if ((*dbl->dblAttrs.fread)(&symHdr,
+-		   sizeof(struct DBOF_SymbolHdr), 1, file) != 1) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				 "Failed to read symbol value\n");
+-			status = DSP_EFREAD;
+-			break;
+-		}
+-		if (pdblLib->byteSwapped) {
+-			symHdr.nameLen = SWAPWORD(symHdr.nameLen);
+-			symHdr.value = SWAPLONG(symHdr.value);
+-		}
+-		/* Allocate buffer for symbol name */
+-		len = symHdr.nameLen;
+-		pName = (char *)MEM_Calloc(len + 1, MEM_PAGED);
+-		if (pName == NULL) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				 "Memory allocation failed\n");
+-			status = DSP_EMEMORY;
+-			break;
+-		}
+-		pdblLib->symbols[i].pSymName = pName;
+-		pdblLib->symbols[i].sym.value = symHdr.value;
+-		/* Read symbol name */
+-		if ((*dbl->dblAttrs.fread) (pName, sizeof(char), len, file) !=
+-		   len) {
+-			GT_0trace(DBL_debugMask, GT_6CLASS,
+-				 "Failed to read symbol value\n");
+-			status = DSP_EFREAD;
+-			break;
+-		} else {
+-			pName[len] = '\0';
+-			GT_2trace(DBL_debugMask, GT_ENTER,
+-				 "Symbol: %s  Value: 0x%lx\n",
+-				 pName, symHdr.value);
+-		}
+-	}
+-	return status;
+-}
 -
 -- 
 1.6.2.4
