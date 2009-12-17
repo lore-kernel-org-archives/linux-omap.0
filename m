@@ -1,66 +1,93 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH] DSPBRIDGE: Improve flush_all() performance
-Date: Wed, 16 Dec 2009 21:50:56 -0600
-Message-ID: <1261021856-19234-1-git-send-email-omar.ramirez@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: CPU consumption is going as high as 95% on ARM Cortex A8
+Date: Thu, 17 Dec 2009 11:08:31 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940449F43857@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45724 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758194AbZLQDni (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Dec 2009 22:43:38 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:53348 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752499AbZLQFjB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 00:39:01 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Ameya Palande <ameya.palande@nokia.com>
+Hi,
 
-This patch improves performance of flush_all operation by:
+I am seeing some strange behavior while accessing buffers through User Space (mapped using mmap call)
 
-1. Instead of checking IVA state by reading a register, use
-   pDevContext->dwBrdState variable.
+Background :- 
+------------
+Platform - TI AM3517
+CPU - ARM Cortex A8
 
-2. Only call WakeDSP() when IVA is in OFF state.
+root@am3517-evm:~#
+root@am3517-evm:~# cat /proc/cpuinfo
+Processor       : ARMv7 Processor rev 7 (v7l)
+BogoMIPS        : 499.92
+Features        : swp half thumb fastmult vfp edsp neon vfpv3
+CPU implementer : 0x41
+CPU architecture: 7
+CPU variant     : 0x1
+CPU part        : 0xc08
+CPU revision    : 7
+Hardware        : OMAP3517/AM3517 EVM
+Revision        : 0020
+Serial          : 0000000000000000
+root@omap3517-evm:~#
 
-Ported from:
-http://gitorious.org/tidspbridge/mainline/commit/f0cc4ab4e4c40043a423f178a970ad9c8ab8fa06
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-[ orl: ported ]
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- drivers/dsp/bridge/wmd/tiomap3430.c |   18 ++++--------------
- 1 files changed, 4 insertions(+), 14 deletions(-)
+Issue/Usage :- 
+-------------
+The V4l2-Capture driver captures the data from video decoder into buffer and the application does some processing on this buffer. The mmap implementation can be found at drivers/media/video/videobuf-dma-contig.c, function__videobuf_mmap_mapper().
 
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index b7447e1..7138396 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -275,21 +275,11 @@ static inline void tlb_flush_all(const void __iomem *base)
- 
- static inline void flush_all(struct WMD_DEV_CONTEXT *pDevContext)
- {
--	struct CFG_HOSTRES resources;
--	u32 temp = 0;
--
--	CFG_GetHostResources((struct CFG_DEVNODE *)DRV_GetFirstDevExtension(),
--				&resources);
--	HW_PWRST_IVA2RegGet(resources.dwPrmBase, &temp);
--
--	if ((temp & HW_PWR_STATE_ON) == HW_PWR_STATE_OFF ||
--	    (temp & HW_PWR_STATE_ON) == HW_PWR_STATE_RET) {
--		CLK_Enable(SERVICESCLK_iva2_ck);
-+	if (pDevContext->dwBrdState == BRD_DSP_HIBERNATION ||
-+				pDevContext->dwBrdState == BRD_HIBERNATION)
- 		WakeDSP(pDevContext, NULL);
--		tlb_flush_all(pDevContext->dwDSPMmuBase);
--		CLK_Disable(SERVICESCLK_iva2_ck);
--	} else
--		tlb_flush_all(pDevContext->dwDSPMmuBase);
-+
-+	tlb_flush_all(pDevContext->dwDSPMmuBase);
- }
- 
- static void bad_page_dump(u32 pa, struct page *pg)
--- 
-1.6.2.4
+Observation - 
+The CPU consumption goes as high as 95% on read buffer operation, please note that write operation on these buffers also gives 60-70% CPU consumption. (Using memcpy/memset API's for read and write operation).
+
+Some more inputs :- 
+------------------
+- If I specify PAGE_READONLY or PAGE_SHARED (actual flag is L_PTE_USER) while mapping the buffer to UserSpace in mmap system call, the CPU consumption goes down to expected value (20-27%). 
+Then I reached till the function cpu_v7_set_pte_ext, where we are configuring level 2 translation table entries, which makes use of these flags.
+
+- Below is the value of r0, r1 and r2 register (ptep, pteval, ext) in both the cases -
+
+
+Without PAGE_READONLY/PAGE_SHARED
+
+ptep - cfb5de10, pte - 8d200383, ext - 800
+ptep - cfb5de14, pte - 8d201383, ext - 800
+
+Important bits are [0-9] - 0x383
+
+With PAGE_READONLY/PAGE_SHARED set
+
+ptep - cfb30e10, pte - 8d10038f, ext - 800
+ptep - cfb30e14, pte - 8d10138f, ext - 800
+
+Important bits are [0-9] - 0x38F
+
+The lines inside function "cpu_v7_set_pte_ext", is using the flag as shown below -
+
+   tst     r1, #L_PTE_USER
+   orrne   r3, r3, #PTE_EXT_AP1
+   tstne   r3, #PTE_EXT_APX
+   bicne   r3, r3, #PTE_EXT_APX | PTE_EXT_AP0
+
+Without PAGE_READONLY/PAGE_SHARED		With flags set
+
+Access perm = reserved				Access Perm = Read Only
+
+- I tried the same thing with another platform (ARM9) and it works fine there.
+
+Can somebody help me to understand the flag PAGE_SHARED/PAGE_READONLY and access permissions? Am I debugging this into right path? Does anybody have seen/observed similar issue before?
+
+
+Thanks in advance.
+
+Thanks,
+Vaibhav Hiremath
 
