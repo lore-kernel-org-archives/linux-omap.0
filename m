@@ -1,86 +1,102 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 00/10 V5] omap3: pm: introduce support for 3630 OPPs
-Date: Thu, 17 Dec 2009 08:52:41 +0530
-Message-ID: <4B29A401.1050001@ti.com>
-References: <[PATCH 02/10 V4] omap3: pm: introduce opp accessor functions>	<1260594031-17268-1-git-send-email-nm@ti.com>	<87pr6eadx3.fsf@deeprootsystems.com> <873a3aa6lt.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH 7/7] DSPBRIDGE: Move PROC object abstraction to proc.c
+Date: Wed, 16 Dec 2009 21:45:58 -0600
+Message-ID: <1261021558-19036-8-git-send-email-omar.ramirez@ti.com>
+References: <1261021558-19036-1-git-send-email-omar.ramirez@ti.com>
+ <1261021558-19036-2-git-send-email-omar.ramirez@ti.com>
+ <1261021558-19036-3-git-send-email-omar.ramirez@ti.com>
+ <1261021558-19036-4-git-send-email-omar.ramirez@ti.com>
+ <1261021558-19036-5-git-send-email-omar.ramirez@ti.com>
+ <1261021558-19036-6-git-send-email-omar.ramirez@ti.com>
+ <1261021558-19036-7-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f182.google.com ([209.85.211.182]:64925 "EHLO
-	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932317AbZLQDWq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Dec 2009 22:22:46 -0500
-Received: by ywh12 with SMTP id 12so1887477ywh.21
-        for <linux-omap@vger.kernel.org>; Wed, 16 Dec 2009 19:22:45 -0800 (PST)
-In-Reply-To: <873a3aa6lt.fsf@deeprootsystems.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45483 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933252AbZLQDik (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Dec 2009 22:38:40 -0500
+In-Reply-To: <1261021558-19036-7-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Kevin Hilman said the following on 12/17/2009 04:07 AM:
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
->
->   
->> Nishanth Menon <nm@ti.com> writes:
->>
->>     
->>> Hi,
->>> Thanks for all the comments. Here are the *changed* patches since V5
->>>
->>> What changed in V5:
->>> * review comment incorporated
->>> * vsel is deprecated now
->>> * I seem to have hit a checkpatch.pl bug as in 
->>>   http://lkml.org/lkml/2009/12/11/573, made me check the usage
->>>   of __deprecated for struct params, and used it in a
->>>   consistent manner to functions..
->>> * More warnings added to build :( (deprecated ones ofcourse)
->>> * removed OMAP_OPP_DEF_TERMINATOR
->>> * 3430 and 3630 patches changed as a result
->>>       
-> [...]
->
->   
->> To facilitate the ongoing discussions on OPP rework, and to have a
->> common base, this series is available as a branch in my linux-omap-pm
->> repo[1].
->>
->> The branch is called 'pm-wip-opp' and I have rebased onto the PM
->> branch I pushed today.
->>     
->
->   
-Thanks Kevin.
+Move object structure to PROC module.
 
-> I forgot to mention that I've also pushed the patch for removing OPP
-> interface from the OMAP PM layer[1] to the work-in-progress OPP
-> branch.
->
-> Kevin
->
-> [1] http://marc.info/?l=linux-omap&m=125917007423545&w=2
->   
-Reg [1]
-What is the point of having
-void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
-<http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=blob;f=arch/arm/mach-omap2/io.c;h=a45ff981b8d65ed3004cec7b4e3431862d4447de;hb=925b2120f036c3374df3f58aeb2a0f39d1ba8d84#l305> 
-struct omap_sdrc_params *sdrc_cs1,
-<http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=blob;f=arch/arm/mach-omap2/io.c;h=a45ff981b8d65ed3004cec7b4e3431862d4447de;hb=925b2120f036c3374df3f58aeb2a0f39d1ba8d84#l306> 
-struct omap_opp *mpu_opps,
-<http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=blob;f=arch/arm/mach-omap2/io.c;h=a45ff981b8d65ed3004cec7b4e3431862d4447de;hb=925b2120f036c3374df3f58aeb2a0f39d1ba8d84#l307> 
-struct omap_opp *dsp_opps,
-<http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=blob;f=arch/arm/mach-omap2/io.c;h=a45ff981b8d65ed3004cec7b4e3431862d4447de;hb=925b2120f036c3374df3f58aeb2a0f39d1ba8d84#l308> 
-struct omap_opp *l3_opps)
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/proc.h |   24 ------------------------
+ drivers/dsp/bridge/rmgr/proc.c              |   23 +++++++++++++++++++++++
+ 2 files changed, 23 insertions(+), 24 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
+index 935afd0..d63c5cf 100644
+--- a/arch/arm/plat-omap/include/dspbridge/proc.h
++++ b/arch/arm/plat-omap/include/dspbridge/proc.h
+@@ -66,30 +66,6 @@
+ #include <dspbridge/devdefs.h>
+ #include <dspbridge/drv.h>
+ 
+-/* The PROC_OBJECT structure.   */
+-struct PROC_OBJECT {
+-	struct LST_ELEM link;		/* Link to next PROC_OBJECT */
+-	u32 dwSignature;		/* Used for object validation */
+-	struct DEV_OBJECT *hDevObject;	/* Device this PROC represents */
+-	u32 hProcess;			/* Process owning this Processor */
+-	struct MGR_OBJECT *hMgrObject;	/* Manager Object Handle */
+-	u32 uAttachCount;		/* Processor attach count */
+-	u32 uProcessor;			/* Processor number */
+-	u32 uTimeout;			/* Time out count */
+-	enum DSP_PROCSTATE sState;	/* Processor state */
+-	u32 ulUnit;			/* DDSP unit number */
+-	bool bIsAlreadyAttached;	/*
+-					 * True if the Device below has
+-					 * GPP Client attached
+-					 */
+-	struct NTFY_OBJECT *hNtfy;	/* Manages  notifications */
+-	struct WMD_DEV_CONTEXT *hWmdContext;	/* WMD Context Handle */
+-	struct WMD_DRV_INTERFACE *pIntfFxns;	/* Function interface to WMD */
+-	char *g_pszLastCoff;
+-	struct list_head proc_object;
+-};
+-
+-
+ /*
+  *  ======== PROC_Attach ========
+  *  Purpose:
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 8501b06..3055078 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -166,6 +166,29 @@ extern char *iva_img;
+ static struct GT_Mask PROC_DebugMask = { NULL, NULL };	/* WCD MGR Mask */
+ #endif
+ 
++/* The PROC_OBJECT structure.   */
++struct PROC_OBJECT {
++	struct LST_ELEM link;		/* Link to next PROC_OBJECT */
++	u32 dwSignature;		/* Used for object validation */
++	struct DEV_OBJECT *hDevObject;	/* Device this PROC represents */
++	u32 hProcess;			/* Process owning this Processor */
++	struct MGR_OBJECT *hMgrObject;	/* Manager Object Handle */
++	u32 uAttachCount;		/* Processor attach count */
++	u32 uProcessor;			/* Processor number */
++	u32 uTimeout;			/* Time out count */
++	enum DSP_PROCSTATE sState;	/* Processor state */
++	u32 ulUnit;			/* DDSP unit number */
++	bool bIsAlreadyAttached;	/*
++					 * True if the Device below has
++					 * GPP Client attached
++					 */
++	struct NTFY_OBJECT *hNtfy;	/* Manages  notifications */
++	struct WMD_DEV_CONTEXT *hWmdContext;	/* WMD Context Handle */
++	struct WMD_DRV_INTERFACE *pIntfFxns;	/* Function interface to WMD */
++	char *g_pszLastCoff;
++	struct list_head proc_object;
++};
++
+ static u32 cRefs;
+ 
+ struct SYNC_CSOBJECT *hProcLock;	/* For critical sections */
+-- 
+1.6.2.4
 
-Why have mpu_opps, dsp_opps and l3_opps anymore? those parameters are 
-unused anymore. the patch should have changed omap2_init_common_hw and 
-related board calls - am I right?
-
-regards,
-Nishanth Menon
-Ref:
-[1]: 
-http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commitdiff;h=925b2120f036c3374df3f58aeb2a0f39d1ba8d84
