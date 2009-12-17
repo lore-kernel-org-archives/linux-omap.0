@@ -1,71 +1,59 @@
-From: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH 2/2] omap i2c: add a timeout to the busy waiting
-Date: Thu, 17 Dec 2009 15:31:13 +0200
-Message-ID: <20091217133113.GC29059@shisha.kicks-ass.net>
-References: <1260972144-31593-1-git-send-email-virtuoso@slind.org>
- <1260972144-31593-2-git-send-email-virtuoso@slind.org>
- <1260972144-31593-3-git-send-email-virtuoso@slind.org>
- <4B29A0B7.1020908@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 3/4 v2] ARM: L2 : Errata 588369: Clean & Invalidate do
+	not invalidate clean lines
+Date: Thu, 17 Dec 2009 13:35:08 +0000
+Message-ID: <20091217133508.GA5813@n2100.arm.linux.org.uk>
+References: <1261054832-14995-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34096 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935415AbZLQNfd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 08:35:33 -0500
 Content-Disposition: inline
-In-Reply-To: <4B29A0B7.1020908-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
-Cc: "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1261054832-14995-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux-omap@vger.kernel.org, Woodruff Richard <r-woodruff2@ti.com>, Catalin Marinas <catalin.marinas@arm.com>
 
-On Thu, Dec 17, 2009 at 08:38:39 +0530, Menon, Nishanth wrote:
-> Alexander Shishkin said the following on 12/16/2009 07:32 PM:
-> >The errata 1.153 workaround is busy waiting on XUDF bit in interrupt
-> >context, which may lead to kernel hangs. The problem can be reproduced
-> >by running the bus with wrong (too high) speed.
-> >
-> >Signed-off-by: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
-> >CC: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >CC: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >---
-> > drivers/i2c/busses/i2c-omap.c |    7 ++++++-
-> > 1 files changed, 6 insertions(+), 1 deletions(-)
-> >
-> >diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> >index ad8242a..b474c20 100644
-> >--- a/drivers/i2c/busses/i2c-omap.c
-> >+++ b/drivers/i2c/busses/i2c-omap.c
-> >@@ -678,7 +678,9 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
-> >  */
-> > static int omap3430_workaround(struct omap_i2c_dev *dev, u16 *stat, int *err)
-> > {
-> >-	while (!(*stat & OMAP_I2C_STAT_XUDF)) {
-> >+	unsigned long timeout = 10000;
-> >+
-> >+	while (!(*stat & OMAP_I2C_STAT_XUDF && --timeout)) {
-> a) timeout without using an actual delay is not a good idea -
-> consider each OPP - we can go upto 1ghz on 3630,
-> the actual time for 10000 iterations will depend on the MPU speed.
+On Thu, Dec 17, 2009 at 06:30:32PM +0530, Santosh Shilimkar wrote:
+> +config PL310_ERRATA_588369
+> +	bool "Clean & Invalidate maintenance operations do not invalidate clean lines"
+> +	depends on CACHE_L2X0 && ARCH_OMAP4
+> +	default n
 
-Well, I could calculate the timeout value based on current operating speed,
-I guess. Or a delay. Perhaps OMAP_I2C_TIMEOUT can be used here?
+default n is the default anyway, so its redundant to specify it.
 
-> b) how did you arrive at the 10k iteration limit?
+> +#ifdef CONFIG_PL310_ERRATA_588369
+> +static void debug_writel(unsigned long val)
+> +{
+> +	/*
+> +	 * Texas Instrument secure monitor api to modify the PL310
+> +	 * Debug Control Register. R0 = val
+> +	 */
+> +	__asm__ __volatile__(
+> +	"stmfd r13!, {r4-r8}\n"
+> +	"ldr r12, =0x100\n"
+> +	"dsb\n"
+> +	"smc\n"
+> +	"ldmfd r13!, {r4-r8}");
 
-It was random, but then it seemed ok considering the l4 latency.
+Just tell the compiler that r4 to r8 are clobbered - then it'll save and
+restore them itself.  Also, you can't guarantee that r0 will contain the
+value unless you explicitly pass it in.  IOW:
 
-> > 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
-> > 			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
-> > 							OMAP_I2C_STAT_XDR));
-> >@@ -689,6 +691,9 @@ static int omap3430_workaround(struct omap_i2c_dev *dev, u16 *stat, int *err)
-> > 		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-> > 	}
-> >+	if (!timeout)
-> >+		dev_err(dev->dev, "timeout waiting on XUDF bit\n");
-> >+
-> > 	return 0;
-> > }
-> Regards,
-> Nishanth Menon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	register unsigned long r0 asm("r0") = val;
+
+	asm volatile(
+	__asmeq(%0, r0)
+	"..."
+	: : "r" (r0)
+	: "r4", "r5", "r6", "r7", "r8");
+
+The use of asmeq will also ensure that '%0' is indeed r0 - some gcc
+versions are buggy.
+
+As I've said before, your patch is fine for the current version, but
+not for the other cache-l2x0 changes.
