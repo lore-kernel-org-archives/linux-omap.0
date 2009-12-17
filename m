@@ -1,75 +1,99 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: CPU consumption is going as high as 95% on ARM Cortex A8
-Date: Thu, 17 Dec 2009 09:56:41 +0000
-Message-ID: <20091217095641.GA399@n2100.arm.linux.org.uk>
-References: <19F8576C6E063C45BE387C64729E73940449F43857@dbde02.ent.ti.com>
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: Re: [GIT PULL] omap build fixes
+Date: Thu, 17 Dec 2009 11:29:57 +0000
+Message-ID: <4B2A1635.1080505@blueyonder.co.uk>
+References: <20091216223520.GV4575@atomide.com>
+Reply-To: sboyce@blueyonder.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940449F43857@dbde02.ent.ti.com>
-Sender: owner-linux-mm@kvack.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965004AbZLQLa2@vger.kernel.org>
+In-Reply-To: <20091216223520.GV4575@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 17, 2009 at 11:08:31AM +0530, Hiremath, Vaibhav wrote:
-> Issue/Usage :- 
-> -------------
-> The V4l2-Capture driver captures the data from video decoder into buffer
-> and the application does some processing on this buffer. The mmap
-> implementation can be found at drivers/media/video/videobuf-dma-contig.c,
-> function__videobuf_mmap_mapper().
-
-        vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-
-will result in the memory being mapped as 'Strongly Ordered', resulting
-in there being multiple mappings with differing types.  In later
-kernels, we have pgprot_dmacoherent() and I'd suggest changing the above
-macro for that.
-
-> Without PAGE_READONLY/PAGE_SHARED
+On 16/12/09 22:35, Tony Lindgren wrote:
+> Hi Linus,
 > 
-> Important bits are [0-9] - 0x383
+> Please pull omap build fixes from:
 > 
-> With PAGE_READONLY/PAGE_SHARED set
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
 > 
-> Important bits are [0-9] - 0x38F
-
-So the difference is the C and B bits, which is more or less expected
-with the change you've made.
-
+> In addition to the three build fixes, there's also a suspend fix
+> for omap serial init.
 > 
-> The lines inside function "cpu_v7_set_pte_ext", is using the flag as shown below -
+> Regards,
 > 
->    tst     r1, #L_PTE_USER
->    orrne   r3, r3, #PTE_EXT_AP1
->    tstne   r3, #PTE_EXT_APX
->    bicne   r3, r3, #PTE_EXT_APX | PTE_EXT_AP0
+> Tony
 > 
-> Without PAGE_READONLY/PAGE_SHARED		With flags set
 > 
-> Access perm = reserved				Access Perm = Read Only
-
-The bits you quote above are L_PTE_* bits, so you need to be careful
-decoding them.  0x383 gives
-
-	L_PTE_EXEC|L_PTE_USER|L_PTE_WRITE|L_PTE_YOUNG|L_PTE_PRESENT
-
-which is as expected, and will be translated into: APX=0 AP1=1 AP0=0
-which is user r/o, system r/w.  The same will be true of 0x38f.
-
-> - I tried the same thing with another platform (ARM9) and it works fine there.
+> The following changes since commit 8bea8672edfca7ec5f661cafb218f1205863b343:
+>   Stephen Rothwell (1):
+>         mfd: compile fix for twl4030 renaming
 > 
-> Can somebody help me to understand the flag PAGE_SHARED/PAGE_READONLY
-> and access permissions? Am I debugging this into right path? Does
-> anybody have seen/observed similar issue before?
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+> 
+> Balaji T K (1):
+>       mfd: twl: fix twl4030 rename for remaining driver, board files
+> 
+> Mika Westerberg (1):
+>       OMAP3: serial - fix bug introduced in
+> 
+> Olof Johansson (1):
+>       omap3: Allow EHCI to be built on OMAP3
+> 
+> Thomas Weber (1):
+>       USB ehci: replace mach header with plat
+> 
+>  arch/arm/mach-omap2/Kconfig                  |    1 +
+>  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
+>  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
+>  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+>  arch/arm/mach-omap2/serial.c                 |    7 ++++---
+>  drivers/usb/host/ehci-omap.c                 |    2 +-
+>  drivers/video/omap/lcd_ldp.c                 |    4 ++--
+>  drivers/video/omap/lcd_omap2evm.c            |   10 +++++-----
+>  drivers/video/omap/lcd_omap3beagle.c         |    2 +-
+>  drivers/video/omap/lcd_omap3evm.c            |   10 +++++-----
+>  drivers/video/omap/lcd_overo.c               |    2 +-
+>  sound/soc/omap/sdp3430.c                     |    6 +++---
+>  15 files changed, 29 insertions(+), 27 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-I think you're just seeing the effects of 'strongly ordered' memory
-rather than anything actually wrong.
+uImage built, so EHCI build problem definitely fixed, just one error
+I've previously encountered when building modules.
+slipstream:/home/lancelot/ftp/dec09/OMAP/omap-fixes-for-linus # ARCH=arm
+make -j 4 CROSS_COMPILE=/opt/arm-2009q3/bin/arm-none-eabi- modules
+scripts/kconfig/conf -s arch/arm/Kconfig
+  CHK     include/linux/version.h
+  SYMLINK include/asm -> include/asm-arm
+make[1]: `include/asm-arm/mach-types.h' is up to date.
+  CHK     include/linux/utsrelease.h
+  CALL    scripts/checksyscalls.sh
+<stdin>:1523: warning: #warning syscall recvmmsg not implemented
+  Building modules, stage 2.
+  MODPOST 99 modules
+ERROR: "omap_ctrl_writel" [sound/soc/omap/snd-soc-omap-mcbsp.ko] undefined!
+ERROR: "omap_ctrl_readl" [sound/soc/omap/snd-soc-omap-mcbsp.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
