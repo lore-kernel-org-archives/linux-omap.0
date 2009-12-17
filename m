@@ -1,39 +1,46 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH] OMAP: McBSP: Fix possible port lockout
-Date: Thu, 17 Dec 2009 09:19:18 +0200
-Message-ID: <20091217091918.1ae3c388.jhnikula@gmail.com>
-References: <200912161716.30041.jkrzyszt@tis.icnet.pl>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH 0/2] omap3: cm-t35: enable display subsystem
+Date: Thu, 17 Dec 2009 10:10:23 +0200
+Message-ID: <4B29E76F.6060709@compulab.co.il>
+References: <cover.1260777313.git.mike@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:57845 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756942AbZLQHSA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 02:18:00 -0500
-Received: by bwz27 with SMTP id 27so1310959bwz.21
-        for <linux-omap@vger.kernel.org>; Wed, 16 Dec 2009 23:17:58 -0800 (PST)
-In-Reply-To: <200912161716.30041.jkrzyszt@tis.icnet.pl>
+Received: from compulab.co.il ([67.18.134.219]:43599 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757209AbZLQIK1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Dec 2009 03:10:27 -0500
+In-Reply-To: <cover.1260777313.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
 
-On Wed, 16 Dec 2009 17:16:28 +0100
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+Hi Tomi,
+Any updates on this?
 
-> More and more looking at this, I think that omap_mcbsp_request() should be 
-> cleaned up frist in respect of freeing resources on error before we put any 
-> new functionality there.
+Mike Rapoport wrote:
+> The below patches add display support for CM-T35 board.
 > 
-Good idea.
-
-> I'm not sure if it is really required to revert any  
-> mcbsp->pdata->ops->request() or omap34xx_mcbsp_request() applied changes by 
-> calling mcbsp->pdata->ops->free() or omap34xx_mcbsp_free() from here.
+> The following changes since commit f40542532e96dda5506eb76badea322f2ae4731c:
+>   Linus Torvalds (1):
+>         Merge branch 'ixp4xx' of git://git.kernel.org/.../chris/linux-2.6
 > 
-It is allways worth/must to keep request and free calls in balance as
-your patch does. In this case some clocks may left running
-(omap1_mcbsp_request/_free) or wakeup behavior (34xx) otherwise.
+> Mike Rapoport (2):
+>   OMAP: DSS2: add Toppoly TDO35S panel
+>   omap3: cm-t35: add DSS2 display support
+> 
+>  arch/arm/mach-omap2/board-cm-t35.c                 |  239 +++++++++++++++++++-
+>  drivers/video/omap2/displays/Kconfig               |    6 +
+>  drivers/video/omap2/displays/Makefile              |    1 +
+>  .../video/omap2/displays/panel-toppoly-tdo35s.c    |  112 +++++++++
+>  4 files changed, 357 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+> 
+> 
 
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+-- 
+Sincerely yours,
+Mike.
+
