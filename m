@@ -1,69 +1,103 @@
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-Subject: Re: [GIT PULL] omap build fixes
-Date: Thu, 17 Dec 2009 22:16:45 +0000
-Message-ID: <4B2AADCD.4080802@blueyonder.co.uk>
-References: <20091216223520.GV4575@atomide.com> <4B2A1635.1080505@blueyonder.co.uk> <20091217172600.GY4575@atomide.com>
-Reply-To: sboyce@blueyonder.co.uk
+From: "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/2] omap i2c: add a timeout to the busy waiting
+Date: Thu, 17 Dec 2009 16:46:19 -0600
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F202A9A04FC6@dlee06.ent.ti.com>
+References: <1260972144-31593-1-git-send-email-virtuoso@slind.org>
+ <1260972144-31593-2-git-send-email-virtuoso@slind.org>
+ <1260972144-31593-3-git-send-email-virtuoso@slind.org>
+ <4B29A0B7.1020908@ti.com> <20091217133113.GC29059@shisha.kicks-ass.net>
+ <4B2A3926.9090800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out5.blueyonder.co.uk ([195.188.213.8]:56123 "EHLO
-	smtp-out5.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932484AbZLQWQt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Dec 2009 17:16:49 -0500
-In-Reply-To: <20091217172600.GY4575@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4B2A3926.9090800-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29Tb/PtFMR13I2A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 17/12/09 17:26, Tony Lindgren wrote:
-> * Sid Boyce <sboyce@blueyonder.co.uk> [091217 03:29]:
+Alex,
+
+> -----Original Message-----
+> From: Menon, Nishanth
+> Sent: Thursday, December 17, 2009 7:59 AM
+> To: Menon, Nishanth; ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Sonasath, Moiz; Pandita, Vikram
+> Subject: Re: [PATCH 2/2] omap i2c: add a timeout to the busy waiting
 > 
-> <snip>
->  
->> uImage built, so EHCI build problem definitely fixed, just one error
->> I've previously encountered when building modules.
->> slipstream:/home/lancelot/ftp/dec09/OMAP/omap-fixes-for-linus # ARCH=arm
->> make -j 4 CROSS_COMPILE=/opt/arm-2009q3/bin/arm-none-eabi- modules
->> scripts/kconfig/conf -s arch/arm/Kconfig
->>   CHK     include/linux/version.h
->>   SYMLINK include/asm -> include/asm-arm
->> make[1]: `include/asm-arm/mach-types.h' is up to date.
->>   CHK     include/linux/utsrelease.h
->>   CALL    scripts/checksyscalls.sh
->> <stdin>:1523: warning: #warning syscall recvmmsg not implemented
->>   Building modules, stage 2.
->>   MODPOST 99 modules
->> ERROR: "omap_ctrl_writel" [sound/soc/omap/snd-soc-omap-mcbsp.ko] undefined!
->> ERROR: "omap_ctrl_readl" [sound/soc/omap/snd-soc-omap-mcbsp.ko] undefined!
->> make[1]: *** [__modpost] Error 1
->> make: *** [modules] Error 2
+> Alexander Shishkin said the following on 12/17/2009 07:01 PM:
+> > On Thu, Dec 17, 2009 at 08:38:39 +0530, Menon, Nishanth wrote:
+> >
+> >> Alexander Shishkin said the following on 12/16/2009 07:32 PM:
+> >>
+> >>> The errata 1.153 workaround is busy waiting on XUDF bit in interrupt
+> >>> context, which may lead to kernel hangs. The problem can be reproduced
+> >>> by running the bus with wrong (too high) speed.
+> >>>
+> >>> Signed-off-by: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
+> >>> CC: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >>> CC: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >>> ---
+> >>> drivers/i2c/busses/i2c-omap.c |    7 ++++++-
+> >>> 1 files changed, 6 insertions(+), 1 deletions(-)
+> >>>
+> >>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-
+> omap.c
+> >>> index ad8242a..b474c20 100644
+> >>> --- a/drivers/i2c/busses/i2c-omap.c
+> >>> +++ b/drivers/i2c/busses/i2c-omap.c
+> >>> @@ -678,7 +678,9 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
+> >>>  */
+> >>> static int omap3430_workaround(struct omap_i2c_dev *dev, u16 *stat,
+> int *err)
+> >>> {
+> >>> -	while (!(*stat & OMAP_I2C_STAT_XUDF)) {
+> >>> +	unsigned long timeout = 10000;
+> >>> +
+> >>> +	while (!(*stat & OMAP_I2C_STAT_XUDF && --timeout)) {
+> >>>
+> >> a) timeout without using an actual delay is not a good idea -
+> >> consider each OPP - we can go upto 1ghz on 3630,
+> >> the actual time for 10000 iterations will depend on the MPU speed.
+> >>
+> >
+> > Well, I could calculate the timeout value based on current operating
+> speed,
+> > I guess. Or a delay. Perhaps OMAP_I2C_TIMEOUT can be used here?
+> >
+> it might be an overkill trying to generate counter based on opp speeds.
+> wondering if this delay is required in the first place..
+
+The reason why this timeout was not put in place was that if the I2C controller is functional, the XUDF has to set after XRDY/XDR are set, the only case where it might not be set is when there is a sudden NACK | AL condition produced on the bus and the transfer stops (thereby the FIFO is not getting empty). The code takes care of this error situation so IMHO we can do without a timeout here.
+
+--- Moiz
 > 
-> Hmm. I'm not seeing this in any of the defconfigs, so I guess this
-> happens with ASoC complied as a module.
+> Moiz Sonasath / Vikram P, (commit cd086d3a) could probably comment?
+> Ref: http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg15317.html
 > 
-> But instead of exporting omap_ctrl_read/write, we need to get rid of 
-> omap_ctrl_read/write stuff in the drivers.
+> >
+> >> b) how did you arrive at the 10k iteration limit?
+> >>
+> >
+> > It was random, but then it seemed ok considering the l4 latency.
+> >
+> I had guessed this is an emperical value. It will be good to know the
+> exact rationale on why a timeout will happen, else we will have all kind
+> of questions pending trying to figure out if a timeout happened.
 > 
-> It seems that omap_mcbsp_dai_set_clks_src() should be implemented in
-> the clock framework instead.
-> 
+> >
+> >>> 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+> >>> 			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
+> >>> 							OMAP_I2C_STAT_XDR));
+> >>> @@ -689,6 +691,9 @@ static int omap3430_workaround(struct omap_i2c_dev
+> *dev, u16 *stat, int *err)
+> >>> 		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+> >>> 	}
+> >>> +	if (!timeout)
+> >>> +		dev_err(dev->dev, "timeout waiting on XUDF bit\n");
+> >>> +
+> >>> 	return 0;
+> >>> }
 > Regards,
-> 
-> Tony
-> 
-> 
-
-Confirmed it works when compiled in.
-Regards
-Sid.
-
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
-
+> Nishanth Menon
