@@ -1,87 +1,62 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 2/2] omap i2c: add a timeout to the busy waiting
-Date: Thu, 17 Dec 2009 19:29:02 +0530
-Message-ID: <4B2A3926.9090800@ti.com>
-References: <1260972144-31593-1-git-send-email-virtuoso@slind.org> <1260972144-31593-2-git-send-email-virtuoso@slind.org> <1260972144-31593-3-git-send-email-virtuoso@slind.org> <4B29A0B7.1020908@ti.com> <20091217133113.GC29059@shisha.kicks-ass.net>
-Reply-To: <nm@ti.com>
+From: Arnaud Mandy <ext-arnaud.2.mandy-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/3 v3] musb: Add context save and restore support
+Date: Thu, 17 Dec 2009 16:10:54 +0200
+Message-ID: <4B2A3BEE.7000809@nokia.com>
+References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com> <1260797982-28880-2-git-send-email-ajay.gupta@ti.com> <4B2A3453.7040008@nokia.com> <19F8576C6E063C45BE387C64729E73940449F439C7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35269 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750738AbZLQN7P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Dec 2009 08:59:15 -0500
-In-Reply-To: <20091217133113.GC29059@shisha.kicks-ass.net>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940449F439C7-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ext Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kern>
 
-Alexander Shishkin said the following on 12/17/2009 07:01 PM:
-> On Thu, Dec 17, 2009 at 08:38:39 +0530, Menon, Nishanth wrote:
+ext Gupta, Ajay Kumar wrote:
+> <snip>
 >   
->> Alexander Shishkin said the following on 12/16/2009 07:32 PM:
->>     
->>> The errata 1.153 workaround is busy waiting on XUDF bit in interrupt
->>> context, which may lead to kernel hangs. The problem can be reproduced
->>> by running the bus with wrong (too high) speed.
+>>>  #ifdef CONFIG_PM
 >>>
->>> Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
->>> CC: linux-i2c@vger.kernel.org
->>> CC: linux-omap@vger.kernel.org
->>> ---
->>> drivers/i2c/busses/i2c-omap.c |    7 ++++++-
->>> 1 files changed, 6 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->>> index ad8242a..b474c20 100644
->>> --- a/drivers/i2c/busses/i2c-omap.c
->>> +++ b/drivers/i2c/busses/i2c-omap.c
->>> @@ -678,7 +678,9 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
->>>  */
->>> static int omap3430_workaround(struct omap_i2c_dev *dev, u16 *stat, int *err)
->>> {
->>> -	while (!(*stat & OMAP_I2C_STAT_XUDF)) {
->>> +	unsigned long timeout = 10000;
+>>> +static struct musb_context_registers musb_context;
 >>> +
->>> +	while (!(*stat & OMAP_I2C_STAT_XUDF && --timeout)) {
+>>> +void musb_save_context(struct musb *musb)
+>>> +{
+>>>
 >>>       
->> a) timeout without using an actual delay is not a good idea -
->> consider each OPP - we can go upto 1ghz on 3630,
->> the actual time for 10000 iterations will depend on the MPU speed.
+>> Could you add one more parameter to this function call, which would
+>> select either if we want to save the musb_platform context or not?
+>> I m working at the moment on turning off the musb when cable unplugged
+>> and turning it on with restoring context after cable re-connect.
+>> In this case I don't need to restore the the musb_platform_context since
+>> I just set them before calling this one.
+>>
+>> Same apply for restore.
+>>
+>> what do you think?
+>> I could also modify slightly this implementation after it is ready and
+>> submit it.
 >>     
 >
-> Well, I could calculate the timeout value based on current operating speed,
-> I guess. Or a delay. Perhaps OMAP_I2C_TIMEOUT can be used here?
+> I think you want to add the parameter in musb_platform_save_context()  and
+> not in musb_save_context.
+> If so then where do you restore them? {As you said before calling this}
 >   
-it might be an overkill trying to generate counter based on opp speeds. 
-wondering if this delay is required in the first place..
 
-Moiz Sonasath / Vikram P, (commit cd086d3a) could probably comment?
-Ref: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg15317.html
+In order to support off-mode, we need the transceiver driver to wake-up 
+the controller.
+I m working on a hook which would allow that.
+I want to take advantage of your implementation for saving/restoring 
+musb context, but saving the platform data is not necessary in my case.
+Maybe it musb_platform_save/restore_context(), shouldn't be called from 
+musb_save/restore_context();
 
+> I think if the requirement is generic and suits for all other platforms
+> Using musb then we can add it.
 >   
->> b) how did you arrive at the 10k iteration limit?
->>     
->
-> It was random, but then it seemed ok considering the l4 latency.
->   
-I had guessed this is an emperical value. It will be good to know the 
-exact rationale on why a timeout will happen, else we will have all kind 
-of questions pending trying to figure out if a timeout happened.
 
->   
->>> 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
->>> 			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
->>> 							OMAP_I2C_STAT_XDR));
->>> @@ -689,6 +691,9 @@ static int omap3430_workaround(struct omap_i2c_dev *dev, u16 *stat, int *err)
->>> 		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
->>> 	}
->>> +	if (!timeout)
->>> +		dev_err(dev->dev, "timeout waiting on XUDF bit\n");
->>> +
->>> 	return 0;
->>> }
-Regards,
-Nishanth Menon
-
+Yes it should.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
