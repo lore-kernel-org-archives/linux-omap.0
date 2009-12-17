@@ -1,54 +1,104 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap build fixes
-Date: Thu, 17 Dec 2009 09:26:01 -0800
-Message-ID: <20091217172600.GY4575@atomide.com>
-References: <20091216223520.GV4575@atomide.com>
- <4B2A1635.1080505@blueyonder.co.uk>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH V2] AM3517: Add support for TSC2004 driver
+Date: Thu, 17 Dec 2009 23:38:18 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940449F43A4C@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1259212261-32528-1-git-send-email-hvaibhav@ti.com>
+ <19F8576C6E063C45BE387C64729E739404370D7AEB@dbde02.ent.ti.com>
+ <20091130173331.GS4348@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55935 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765038AbZLQR0I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 12:26:08 -0500
-Content-Disposition: inline
-In-Reply-To: <4B2A1635.1080505@blueyonder.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "dtor@mail.ru" <dtor@mail.ru>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sid Boyce <sboyce@blueyonder.co.uk>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Sid Boyce <sboyce@blueyonder.co.uk> [091217 03:29]:
 
-<snip>
- 
-> uImage built, so EHCI build problem definitely fixed, just one error
-> I've previously encountered when building modules.
-> slipstream:/home/lancelot/ftp/dec09/OMAP/omap-fixes-for-linus # ARCH=arm
-> make -j 4 CROSS_COMPILE=/opt/arm-2009q3/bin/arm-none-eabi- modules
-> scripts/kconfig/conf -s arch/arm/Kconfig
->   CHK     include/linux/version.h
->   SYMLINK include/asm -> include/asm-arm
-> make[1]: `include/asm-arm/mach-types.h' is up to date.
->   CHK     include/linux/utsrelease.h
->   CALL    scripts/checksyscalls.sh
-> <stdin>:1523: warning: #warning syscall recvmmsg not implemented
->   Building modules, stage 2.
->   MODPOST 99 modules
-> ERROR: "omap_ctrl_writel" [sound/soc/omap/snd-soc-omap-mcbsp.ko] undefined!
-> ERROR: "omap_ctrl_readl" [sound/soc/omap/snd-soc-omap-mcbsp.ko] undefined!
-> make[1]: *** [__modpost] Error 1
-> make: *** [modules] Error 2
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Thursday, December 10, 2009 11:13 AM
+> To: 'Tony Lindgren'; 'Dmitry Torokhov'; 'dtor@mail.ru'
+> Cc: linux-omap@vger.kernel.org; linux-input@vger.kernel.org
+> Subject: RE: [PATCH V2] AM3517: Add support for TSC2004 driver
+> 
+> 
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com]
+> > Sent: Monday, November 30, 2009 11:04 PM
+> > To: Hiremath, Vaibhav
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH V2] AM3517: Add support for TSC2004 driver
+> >
+> > * Hiremath, Vaibhav <hvaibhav@ti.com> [091125 21:13]:
+> > >
+> > > > -----Original Message-----
+> > > > From: Hiremath, Vaibhav
+> > > > Sent: Thursday, November 26, 2009 10:41 AM
+> > > > To: linux-omap@vger.kernel.org
+> > > > Cc: tony@atomide.com; Hiremath, Vaibhav
+> > > > Subject: [PATCH V2] AM3517: Add support for TSC2004 driver
+> > > >
+> > > > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > >
+> > > > Changes:
+> > > > 	- Removed omap_cfg_reg()
+> > > >
+> > > > Reviewed-by: Tony Lindgren <tony@atomide.com>
+> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > ---
+> > > >  arch/arm/mach-omap2/board-am3517evm.c |   61
+> > > > +++++++++++++++++++++++++++++++++
+> > > >  1 files changed, 61 insertions(+), 0 deletions(-)
+> > > >
+> > > > diff --git a/arch/arm/mach-omap2/board-am3517evm.c
+> > b/arch/arm/mach-
+> > > > omap2/board-am3517evm.c
+> > > > index 415a13d..b183d93 100644
+> > > > --- a/arch/arm/mach-omap2/board-am3517evm.c
+> > > > +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> > > > @@ -20,6 +20,8 @@
+> > > >  #include <linux/init.h>
+> > > >  #include <linux/platform_device.h>
+> > > >  #include <linux/gpio.h>
+> > > > +#include <linux/irq.h>
+> > > > +#include <linux/i2c/tsc2004.h>
+> > > >
+> > > >  #include <mach/hardware.h>
+> > > >  #include <asm/mach-types.h>
+> > > > @@ -27,10 +29,64 @@
+> > > >  #include <asm/mach/map.h>
+> > > >
+> > > >  #include <plat/board.h>
+> > > > +#include <plat/mux.h>
+> > > >  #include <plat/common.h>
+> > > >  #include <plat/usb.h>
+> > > >
+> > > >  /*
+> > > > + * TSC 2004 Support
+> > > > + */
+<snip>...
 
-Hmm. I'm not seeing this in any of the defconfigs, so I guess this
-happens with ASoC complied as a module.
+> > merged. But I am not sure what the procedure is for input
+> subsystem
+> > drivers? Is it happens through linux-omap or linux-input?
+> >
+> > I'd rather see it merged via linux-input as that's where most
+> > of the code is. The platform init code looks OK to me to merge
+> > via linux-input too.
+> >
+> [Hiremath, Vaibhav] Dmitry,
+> 
+> Can you please merge the TSC2004 driver patch?
+> 
+[Hiremath, Vaibhav] Just a gentle reminder. 
 
-But instead of exporting omap_ctrl_read/write, we need to get rid of 
-omap_ctrl_read/write stuff in the drivers.
+Thanks,
+Vaibhav
 
-It seems that omap_mcbsp_dai_set_clks_src() should be implemented in
-the clock framework instead.
-
-Regards,
-
-Tony
+> Thanks,
+> Vaibhav
+> 
+> > Tony
