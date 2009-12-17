@@ -1,235 +1,86 @@
-From: "witek mark" <witek_temp@wp.pl>
-Subject: Re: [RFC][PATCH 4/5] input: serio: add support
- forAmstrad Delta serial keyboard port
-Date: Thu, 17 Dec 2009 16:36:48 +0100
-Message-ID: <4b2a5010773714.47572109@wp.pl>
-References: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com><200912122134.08795.jkrzyszt@tis.icnet.pl><20091212232003.GA16760@core.coreip.homeip.net>
-	<200912140111.36458.jkrzyszt@tis.icnet.pl>
-Reply-To: Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 00/10 V5] omap3: pm: introduce support for 3630 OPPs
+Date: Thu, 17 Dec 2009 08:10:29 -0800
+Message-ID: <87tyvp60p6.fsf@deeprootsystems.com>
+References: <[PATCH 02/10 V4] omap3: pm: introduce opp accessor functions>
+	<1260594031-17268-1-git-send-email-nm@ti.com>
+	<87pr6eadx3.fsf@deeprootsystems.com>
+	<873a3aa6lt.fsf@deeprootsystems.com> <4B29A401.1050001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <e3-hacking-bounces@earth.li>
-In-reply-to: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com><200912122134.08795.jkrzyszt@tis.icnet.pl><20091212232003.GA16760@core.coreip.homeip.net>
-	<200912140111.36458.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
-List-Unsubscribe: <http://www.earth.li/cgi-bin/mailman/options/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=unsubscribe>
-List-Archive: <http://www.earth.li/pipermail/e3-hacking>
-List-Post: <mailto:e3-hacking@earth.li>
-List-Help: <mailto:e3-hacking-request@earth.li?subject=help>
-List-Subscribe: <http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=subscribe>
-Sender: e3-hacking-bounces@earth.li
-Errors-To: e3-hacking-bounces@earth.li
-To: jkrzyszt@tis.icnet.pl
-Cc: Tony Lindgren <tony@atomide.com>, linux-input@vger.kernel.org, e3-hacking <e3-hacking@earth.li>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:65125 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759111AbZLQQKc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 11:10:32 -0500
+Received: by pwj9 with SMTP id 9so1365527pwj.21
+        for <linux-omap@vger.kernel.org>; Thu, 17 Dec 2009 08:10:31 -0800 (PST)
+In-Reply-To: <4B29A401.1050001@ti.com> (Nishanth Menon's message of "Thu\, 17 Dec 2009 08\:52\:41 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Witam,
-
-
-Od jakiego=B6 czasu obserwuj=EA grup=EA dyskusyjn=B1 Amstrada. Sam posiadam =
-
-jeden egzemplarz i co=B6 tam sobie na nim pr=F3buj=EA uruchomi=E6.
-Chcia=B3em si=EA podzieli=E6 kilkoma spostrze=BFeniami dotycz=B1cymi klawia=
-tury.
-Na razie nie odpisuj=EA na grup=EA tylko do Pana.
-
-Zaintrygowany mailem dotycz=B1cym klawiatury postanowi=B3em j=B1 rozkr=EAci=
-=E6 aby =
-
-zobaczy=E6 co w =B6rodku jest. Okazuje si=EA, =BFe p=B3ytka klawiatury jest =
-
-"przyspawana" do jednej ze stron obudowy. Trzeba by wy=B3ama=E6 par=EA =
-
-zatrzask=F3w, =BFeby obejrze=E6 te stron=EA p=B3ytki drukowanej, gdzie s=B1 =
-
-rozmieszczone elementy - dlatego na razie da=B3em sobie z tym spok=F3j. Id=
-=B1c =
-
-dalej rozkr=EAci=B3em tego gamepada. Jak si=EA ponadto okazuje ten gamepad =
-
-wpina si=EA mi=EAdzy amstrada a klawiatur=EA. Klawiatura i gamepad maj=B1 =
-
-interfejs z=B3o=BFony z czterech pin=F3w i po sprawdzeniu miernikiem okazuj=
-=EA =
-
-si=EA, =BFe klawiatura i gamepad je=B6li si=EA je po=B3=B1czy razem do amst=
-rada to =
-
-s=B1 one pod=B3=B1czone r=F3wnolegle do tych pin=F3w (jestem tego pewien na=
- 90%).
-Ponadto po rozkr=EAceniu gamepada ukaza=B3a mi si=EA p=B3ytka drukowana ale =
-
-niestety nie wiem co to jest za chip elektroniczny w =B6rodku, gdy=BF ma on =
-
-posta=E6 "czarnego okr=B1g=B3ego kleksa plastikowego" (szkoda, =BFe nie zro=
-bi=B3em =
-
-zdj=EAcia). Jedno jest pewne: na tej p=B3ytce te cztery piny interfejsu by=
-=B3y =
-
-opisane jako GND, VCC, CLK i DATA. Czyli wnioskuj=B1c musi to by=E6 jaki=B6 =
-
-interfejs szeregowy. Ponadto wiemy ju=BF, =BFe klawiatura i gamepad s=B1 =
-
-pod=B3=B1czane r=F3wnolegle do amstrada, czyli musi to by=E6 interfejs =
-
-szeregowy, kt=F3ry niejako "wspiera" po=B3=B1czenie kilku urz=B1dze=F1 do j=
-ednej =
-
-magistrali.
-Mo=BFe to jest zwyk=B3y interfejs szeregowy typu rs232?
-Za=B3=F3=BFmy na chwilk=EA, =BFe jest to interfejs rs232. Mo=BFemy wtedy st=
-wierdzi=E6, =
-
-=BFe:
-a) klawiatura generuje jaki=B6 zestaw kod=F3w klawiszy,
-b) gamepad generuje ten sam zestaw kod=F3w klawiszy - mo=BFe i tak by=E6, =
-
-wtedy gamepad zachowuje si=EA jako "specjalna klawiatura na potrzeby gier" =
-
-i tak naprawd=EA mo=BFna powiedzie=E6 =BFe na amstradzie gra si=EA na klawi=
-aturze =
-
-a gamepad tylko u=B3atwia "wciskanie guzik=F3w",
-c) pisze Pan, =BFe je=B6li gamepad i klawiatura s=B1 pod=B3=B1czone jednocz=
-e=B6nie i =
-
-jednocze=B6nie cos na nich naciskamy to obserwuje Pan w sterowniku b=B3=EAd=
-y =
-
-typu: parity check failed, invalid stop bit. O ile moja znajomo=B6=E6 =
-
-protoko=B3=F3w transmisji jest dobra, to wychodzi na to, =BFe te b=B3=EAdy =
-
-wyst=EApuj=B1 w=B3a=B6nie w transmisji szeregowej rs232 (chyba, =BFe jest j=
-aki=B6 =
-
-inny podobny protok=F3=B3 transmisji). O ile naciska Pan przycisk tylko na =
-
-jednym urz=B1dzeniu to wszystko jest w porz=B1dku; urz=B1dzenie wysy=B3a np=
- kod =
-
-klawisza, a interfejs szeregowy dodaje jeszcze bity parzysto=B6ci =
-
-(kontrola b=B3=EAd=F3w) i stopu. Je=B6li teraz zaczniemy co=B6 naciska=E6 n=
-a drugim =
-
-urz=B1dzeniu to ono r=F3wnie=BF wysy=B3a sw=F3j kod b=B3=EAdu, bity parzyst=
-o=B6ci i bity =
-
-stopu. Wtedy mo=BFe dochodzi=E6 np do kolizji (klawiatura wysy=B3a w danym =
-
-momencie bit stopu a gamepad wysy=B3a sw=F3j kod klawisza) i port szeregowy =
-
-w amstradzie "g=B3upieje" i zg=B3asza b=B3=EAdy typu parity check failed, =
-
-invalid stop bit). Generalnie w porcie szeregowym typu rs232 mo=BFna =
-
-pod=B3=B1czy=E6 kilka urz=B1dze=F1 r=F3wnolegle, tylko jak przynajmniej dwa=
- zaczn=B1 =
-
-nadawa=E6 w tej samej chwili to zaczynaj=B1 si=EA kolizje.
-
-W sterownikach linuxa nie jestem za mocny dlatego nie mam poj=EAcia jak =
-
-jest napisany dotychczasowy driver. Gdybym mia=B3 oscyloskop to bym =
-
-sprawdzi=B3 komunikacj=EA na tych pinach i by si=EA okaza=B3o czy to jest =
-
-rzeczywi=B6cie transmisja typu rs232.
-
-
-Co Pan my=B6li o moich tezach? A mog=EA dosta=E6 Pa=F1skie logi ze sterowni=
-ka? =
-
-Mo=BFe co=B6 uda si=EA wymy=B6li=E6.
-
-
-pozdrawiam
-
-
-Witold Markowski
-
-
-
-
-
-
-
-
-
-Dnia 14-12-2009 o godz. 1:11 Janusz Krzysztofik napisa=B3(a):
-> Hi Dmitry,
-> =
-
-> Sunday 13 December 2009 00:20:03 Dmitry Torokhov napisa=B3(a):
-> >
-> > atkbd is supposed to support PS/2 devices speaking AT keyboard protocol.
-> > We also do support such devices behind dumb controllers that do not
-> > allow querying the device but we expect those to at least produce the
-> > standard scancodes.
-> =
-
-> As far as I can understand, using the atkbd driver is not a good idea in
-> this
-> case because of the keyboard not producing standard scancodes, correct?
-> =
-
-> Isn't the hpps2atkbd.h provided keycode table an already supported way of
-> introducing exceptions to this standard scancodes requirement? Why
-> couldn't
-> this method be reused here?
-> =
-
-> What I am afraid of is if the driver supposed to be created instead
-> wouldn't
-> require reiplementing most of the atkbd code.
-> =
-
-> > I would need to know a bit more about the gamepad, but so far I still
-> > think that current attempot of creating intermediate serio module which
-> > allows to use atkbd driver is not the proper solution.
-> =
-
-> I modified the serio driver to send exactly what it gets from the buffer
-> and
-> examined its output with serio_raw. The gamepad (can be connected
-> simultaneously) appeared to send exactly the same scancodes as the
-> keyboard
-> did. I couldn't see how those might be destinguished whether coming from
-> the
-> keybord or from the gamepad. Thus, handling them both together as a single
-> device would probably be the only option here.
-> =
-
-> With both devices connected and keys pressed simultaneously, errors
-> occure at
-> the lowest level: parity check failed, invalid stop bit, etc. I don't
-> think
-> it would be possible to do anything about this. But this also means that
-> trying to query them in order to get a sensible response would probably be
-> not reliable.
-> =
-
-> Any thoughts?
-> =
-
-> Thanks,
-> Janusz
-> =
-
-> _______________________________________________
-> e3-hacking mailing list
-> e3-hacking@earth.li
-> http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking
-
-----------------------------------------------------
-Ko=B3odziej b=EAdzie mia=BFd=BFy=B3 na ringu
-18 grudnia, Gala Boksu w =A3odzi
-Zobacz:
-http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fcorto.www.wp.pl%2Fas%2Fwojak18grudnia=
-.html&sid=3D926
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
+
+"Menon, Nishanth" <nm@ti.com> writes:
+
+> Kevin Hilman said the following on 12/17/2009 04:07 AM:
+>> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>>
+>>   
+>>> Nishanth Menon <nm@ti.com> writes:
+>>>
+>>>     
+>>>> Hi,
+>>>> Thanks for all the comments. Here are the *changed* patches since V5
+>>>>
+>>>> What changed in V5:
+>>>> * review comment incorporated
+>>>> * vsel is deprecated now
+>>>> * I seem to have hit a checkpatch.pl bug as in
+>>>> http://lkml.org/lkml/2009/12/11/573, made me check the usage
+>>>>   of __deprecated for struct params, and used it in a
+>>>>   consistent manner to functions..
+>>>> * More warnings added to build :( (deprecated ones ofcourse)
+>>>> * removed OMAP_OPP_DEF_TERMINATOR
+>>>> * 3430 and 3630 patches changed as a result
+>>>>       
+>> [...]
+>>
+>>   
+>>> To facilitate the ongoing discussions on OPP rework, and to have a
+>>> common base, this series is available as a branch in my linux-omap-pm
+>>> repo[1].
+>>>
+>>> The branch is called 'pm-wip-opp' and I have rebased onto the PM
+>>> branch I pushed today.
+>>>     
+>>
+>>   
+> Thanks Kevin.
+>
+>> I forgot to mention that I've also pushed the patch for removing OPP
+>> interface from the OMAP PM layer[1] to the work-in-progress OPP
+>> branch.
+>>
+>> Kevin
+>>
+>> [1] http://marc.info/?l=linux-omap&m=125917007423545&w=2
+>>   
+> Reg [1]
+> What is the point of having
+> void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+> struct omap_sdrc_params *sdrc_cs1,
+> struct omap_opp *mpu_opps,
+> struct omap_opp *dsp_opps,
+> struct omap_opp *l3_opps)
+>
+> Why have mpu_opps, dsp_opps and l3_opps anymore? those parameters are
+> unused anymore. the patch should have changed omap2_init_common_hw and
+> related board calls - am I right?
+
+Yes, I'm in the process cleaning that up.
+
+Once I get some of that cleanup done, I plan to rebase your OPP V5 and
+include it in the PM branch.
+
+Kevin
