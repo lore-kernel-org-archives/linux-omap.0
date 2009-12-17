@@ -1,95 +1,39 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: CPU consumption is going as high as 95% on ARM Cortex A8
-Date: Thu, 17 Dec 2009 11:54:10 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BFB58568@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E73940449F43857@dbde02.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH] OMAP: McBSP: Fix possible port lockout
+Date: Thu, 17 Dec 2009 09:19:18 +0200
+Message-ID: <20091217091918.1ae3c388.jhnikula@gmail.com>
+References: <200912161716.30041.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940449F43857@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
-Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:57845 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756942AbZLQHSA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 02:18:00 -0500
+Received: by bwz27 with SMTP id 27so1310959bwz.21
+        for <linux-omap@vger.kernel.org>; Wed, 16 Dec 2009 23:17:58 -0800 (PST)
+In-Reply-To: <200912161716.30041.jkrzyszt@tis.icnet.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org
 
+On Wed, 16 Dec 2009 17:16:28 +0100
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-arm-kern=
-el-
-> bounces@lists.infradead.org] On Behalf Of Hiremath, Vaibhav
-> Sent: Thursday, December 17, 2009 11:09 AM
-> To: linux@arm.linux.org.uk
-> Cc: linux-mm@kvack.org; linux-omap@vger.kernel.org; linux-arm-kernel@list=
-s.infradead.org
-> Subject: CPU consumption is going as high as 95% on ARM Cortex A8
->=20
-> Hi,
->=20
-> I am seeing some strange behavior while accessing buffers through User Sp=
-ace (mapped using mmap call)
->=20
-> Background :-
-> ------------
-> Platform - TI AM3517
-> CPU - ARM Cortex A8
->=20
-> root@am3517-evm:~#
-> root@am3517-evm:~# cat /proc/cpuinfo
-> Processor       : ARMv7 Processor rev 7 (v7l)
-> BogoMIPS        : 499.92
-> Features        : swp half thumb fastmult vfp edsp neon vfpv3
-> CPU implementer : 0x41
-> CPU architecture: 7
-> CPU variant     : 0x1
-> CPU part        : 0xc08
-> CPU revision    : 7
-> Hardware        : OMAP3517/AM3517 EVM
-> Revision        : 0020
-> Serial          : 0000000000000000
-> root@omap3517-evm:~#
->=20
->=20
-> Issue/Usage :-
-> -------------
-> The V4l2-Capture driver captures the data from video decoder into buffer =
-and the application does
-> some processing on this buffer. The mmap implementation can be found at d=
-rivers/media/video/videobuf-
-> dma-contig.c, function__videobuf_mmap_mapper().
->=20
-> Observation -
-> The CPU consumption goes as high as 95% on read buffer operation, please =
-note that write operation on
-> these buffers also gives 60-70% CPU consumption. (Using memcpy/memset API=
-'s for read and write
-> operation).
->=20
-> Some more inputs :-
-> ------------------
-> - If I specify PAGE_READONLY or PAGE_SHARED (actual flag is L_PTE_USER) w=
-hile mapping the buffer to
-> UserSpace in mmap system call, the CPU consumption goes down to expected =
-value (20-27%).
-> Then I reached till the function cpu_v7_set_pte_ext, where we are configu=
-ring level 2 translation
-> table entries, which makes use of these flags.
->=20
-> - Below is the value of r0, r1 and r2 register (ptep, pteval, ext) in bot=
-h the cases -
->=20
->=20
-> Without PAGE_READONLY/PAGE_SHARED
->=20
-> ptep - cfb5de10, pte - 8d200383, ext - 800
-> ptep - cfb5de14, pte - 8d201383, ext - 800
+> More and more looking at this, I think that omap_mcbsp_request() should be 
+> cleaned up frist in respect of freeing resources on error before we put any 
+> new functionality there.
+> 
+Good idea.
 
-Which kernel version is this? Can you please also give values of PRRR, NMRR=
- and SCTLR=20
+> I'm not sure if it is really required to revert any  
+> mcbsp->pdata->ops->request() or omap34xx_mcbsp_request() applied changes by 
+> calling mcbsp->pdata->ops->free() or omap34xx_mcbsp_free() from here.
+> 
+It is allways worth/must to keep request and free calls in balance as
+your patch does. In this case some clocks may left running
+(omap1_mcbsp_request/_free) or wakeup behavior (34xx) otherwise.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
