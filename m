@@ -1,59 +1,36 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 5/5] OMAP3EVM: Kconfig option added for selection
- between SVIDEO and CVBS
-Date: Thu, 17 Dec 2009 08:42:45 -0800
-Message-ID: <20091217084245.9faaa19c.randy.dunlap@oracle.com>
-References: <hvaibhav@ti.com>
-	<1261063176-20101-1-git-send-email-hvaibhav@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 4/4] musb: Add 'extvbus' in musb_hdrc_platform_data
+Date: Thu, 17 Dec 2009 18:59:51 +0200
+Message-ID: <20091217165951.GB27262@nokia.com>
+References: <1260883909-26836-1-git-send-email-ajay.gupta@ti.com>
+ <1260883909-26836-2-git-send-email-ajay.gupta@ti.com>
+ <1260883909-26836-3-git-send-email-ajay.gupta@ti.com>
+ <1260883909-26836-4-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:50735 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764572AbZLQQoU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 11:44:20 -0500
-In-Reply-To: <1261063176-20101-1-git-send-email-hvaibhav@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:31596 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764865AbZLQRBT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 12:01:19 -0500
+Content-Disposition: inline
+In-Reply-To: <1260883909-26836-4-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-fbdev@vger.kernel.org
+To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-On Thu, 17 Dec 2009 20:49:36 +0530 hvaibhav@ti.com wrote:
+On Tue, Dec 15, 2009 at 02:31:49PM +0100, ext Ajay Kumar Gupta wrote:
+>Some of the board might use external Vbus power supply on musb
+>interface which would require to program ULPI_BUSCONTROL register.
+>
+>Adding 'extvbus' flag which can be set from such boards which will
+>be checked at musb driver files before programming ULPI_BUSCONTROL.
+>
+>Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> Config option added to arch/arm/plat-omap/Kconfig for selection
-> of S-Video and Composite output interfaces. The default configuration would
-> be S-Video.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm.c |    4 ++++
->  drivers/video/omap2/dss/Kconfig      |   15 +++++++++++++++
->  2 files changed, 19 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index e615254..549e58e 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -275,7 +275,11 @@ static struct omap_dss_device omap3_evm_tv_device = {
->  	.name			= "tv",
->  	.driver_name		= "venc",
->  	.type			= OMAP_DISPLAY_TYPE_VENC,
-> +#if defined(CONFIG_OMAP2_VENC_OUT_TYPE_SVIDEO)
->  	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-> +#elif defined(CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE)
-> +	.u.venc.type		= OMAP_DSS_VENC_TYPE_COMPOSITE,
+applied, thanks
 
-	.u or .phy ?
-
-> +#endif
->  	.platform_enable	= omap3_evm_enable_tv,
->  	.platform_disable	= omap3_evm_disable_tv,
->  };
-
-
-
----
-~Randy
+-- 
+balbi
