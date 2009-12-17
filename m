@@ -1,83 +1,76 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/3 v3] musb: Add context save and restore support
-Date: Thu, 17 Dec 2009 19:46:50 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940449F439D9@dbde02.ent.ti.com>
-References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
- <1260797982-28880-2-git-send-email-ajay.gupta@ti.com>
- <4B2A3453.7040008@nokia.com>
- <19F8576C6E063C45BE387C64729E73940449F439C7@dbde02.ent.ti.com>
- <4B2A3BEE.7000809@nokia.com>
+From: Sergey Lapin <slapinid@gmail.com>
+Subject: Re: dadd2bb931a08a4b6b17f9e82d9bbe7bedebbc98 breaks omapfb (old
+	non-dss2)
+Date: Thu, 17 Dec 2009 17:51:32 +0300
+Message-ID: <48239d390912170651g1dab3c37ycbbbd2df1f722f3b@mail.gmail.com>
+References: <48239d390912150158xdf2999dr6b43f21c64456002@mail.gmail.com>
+	 <1260890578.6017.11.camel@tubuntu.research.nokia.com>
+	 <48239d390912150801y70da9d46k637c01d8da3a5595@mail.gmail.com>
+	 <1260962480.15771.1.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B2A3BEE.7000809-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnaud Mandy <ext-arnaud.2.mandy-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.27]:27294 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752080AbZLQOve (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 09:51:34 -0500
+Received: by ey-out-2122.google.com with SMTP id d26so549342eyd.19
+        for <linux-omap@vger.kernel.org>; Thu, 17 Dec 2009 06:51:33 -0800 (PST)
+In-Reply-To: <1260962480.15771.1.camel@tubuntu.research.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Arnaud Mandy [mailto:ext-arnaud.2.mandy-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org]
-> Sent: Thursday, December 17, 2009 7:41 PM
-> To: Gupta, Ajay Kumar
-> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Balbi Felipe
-> (Nokia-D/Helsinki); david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org; Gadiyar, Anand
-> Subject: Re: [PATCH 2/3 v3] musb: Add context save and restore support
-> 
-> ext Gupta, Ajay Kumar wrote:
-> > <snip>
-> >
-> >>>  #ifdef CONFIG_PM
-> >>>
-> >>> +static struct musb_context_registers musb_context;
-> >>> +
-> >>> +void musb_save_context(struct musb *musb)
-> >>> +{
-> >>>
-> >>>
-> >> Could you add one more parameter to this function call, which would
-> >> select either if we want to save the musb_platform context or not?
-> >> I m working at the moment on turning off the musb when cable unplugged
-> >> and turning it on with restoring context after cable re-connect.
-> >> In this case I don't need to restore the the musb_platform_context
-> since
-> >> I just set them before calling this one.
-> >>
-> >> Same apply for restore.
-> >>
-> >> what do you think?
-> >> I could also modify slightly this implementation after it is ready and
-> >> submit it.
-> >>
-> >
-> > I think you want to add the parameter in musb_platform_save_context()
-> and
-> > not in musb_save_context.
-> > If so then where do you restore them? {As you said before calling this}
-> >
-> 
-> In order to support off-mode, we need the transceiver driver to wake-up
-> the controller.
-> I m working on a hook which would allow that.
-> I want to take advantage of your implementation for saving/restoring
-> musb context, but saving the platform data is not necessary in my case.
+On Wed, Dec 16, 2009 at 2:21 PM, Tomi Valkeinen
+<tomi.valkeinen@nokia.com> wrote:
+> Hi,
+>
+> On Tue, 2009-12-15 at 17:01 +0100, ext Sergey Lapin wrote:
+>> On Tue, Dec 15, 2009 at 6:22 PM, Tomi Valkeinen
+>> <tomi.valkeinen@nokia.com> wrote:
+>> > Hi,
+>> >
+>> > On Tue, 2009-12-15 at 10:58 +0100, ext Sergey Lapin wrote:
+>> >> dadd2bb931a08a4b6b17f9e82d9bbe7bedebbc98
+>> >> OMAP: OMAPFB: add omapdss device
+>> >>
+>> >>     The upcoming new display subsystem driver is divided to two devices,
+>> >>     omapdss and omapfb, of which omapdss handles the actual hardware.
+>> >>
+>> >>     This patch adds a dummy omapdss platform device for the current omapfb
+>> >>     driver, which is then used to get the clocks. This will make it possible
+>> >>     for the current and the new display drivers to co-exist.
+>> >>
+>> >>     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+>> >>     Acked-by: Tony Lindgren <tony@atomide.com>
+>> >>
+>> >> breaks old omapfb.
+>> >
+>> > I didn't look at this further, but I quickly tested with OMAP3 SDP
+>> > board, reverting the patch that makes SDP use DSS2, and it seems to work
+>> > fine with the old omapfb.
+>
+> rfbi.c was still using omapfb device to get the clocks. Can you try this
+> patch?
+>
+>
+> >From 33b78006fb0387e21d5f780338d821621ecad929 Mon Sep 17 00:00:00 2001
+> From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> Date: Wed, 16 Dec 2009 13:18:07 +0200
+> Subject: [PATCH] OMAP: OMAPFB: fix clk_get for RFBI
+>
+> omapfb platform device was still used to get clocks inside rfbi.c
+If you add #include <linux/platform_device.h> to this patch,
+then problem is fixed.
 
-Then how about having a platform specific flag within
-musb_platform_save/restorae_context() implementation which wouldn't
-save/restore when you don't need them.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Tested-by: Sergey Lapin <slapin@ossfans.org>
 
-
-> Maybe it musb_platform_save/restore_context(), shouldn't be called from
-> musb_save/restore_context();
-> 
-> > I think if the requirement is generic and suits for all other platforms
-> > Using musb then we can add it.
-> >
-> 
-> Yes it should.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/video/omap/dispc.c  |    2 +-
+>  drivers/video/omap/omapfb.h |    2 ++
+>  drivers/video/omap/rfbi.c   |    4 ++--
+>  3 files changed, 5 insertions(+), 3 deletions(-)
+>
