@@ -1,76 +1,50 @@
-From: Sergey Lapin <slapinid@gmail.com>
-Subject: Re: dadd2bb931a08a4b6b17f9e82d9bbe7bedebbc98 breaks omapfb (old
-	non-dss2)
-Date: Thu, 17 Dec 2009 17:51:32 +0300
-Message-ID: <48239d390912170651g1dab3c37ycbbbd2df1f722f3b@mail.gmail.com>
-References: <48239d390912150158xdf2999dr6b43f21c64456002@mail.gmail.com>
-	 <1260890578.6017.11.camel@tubuntu.research.nokia.com>
-	 <48239d390912150801y70da9d46k637c01d8da3a5595@mail.gmail.com>
-	 <1260962480.15771.1.camel@tubuntu.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: hvaibhav@ti.com
+Subject: [PATCH 0/5] Enable DSS2 for OMAP3EVM & AM3517
+Date: Thu, 17 Dec 2009 20:48:03 +0530
+Message-ID: <1261063083-19822-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:27294 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752080AbZLQOve (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 09:51:34 -0500
-Received: by ey-out-2122.google.com with SMTP id d26so549342eyd.19
-        for <linux-omap@vger.kernel.org>; Thu, 17 Dec 2009 06:51:33 -0800 (PST)
-In-Reply-To: <1260962480.15771.1.camel@tubuntu.research.nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56979 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965131AbZLQPS0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 10:18:26 -0500
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-fbdev@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Wed, Dec 16, 2009 at 2:21 PM, Tomi Valkeinen
-<tomi.valkeinen@nokia.com> wrote:
-> Hi,
->
-> On Tue, 2009-12-15 at 17:01 +0100, ext Sergey Lapin wrote:
->> On Tue, Dec 15, 2009 at 6:22 PM, Tomi Valkeinen
->> <tomi.valkeinen@nokia.com> wrote:
->> > Hi,
->> >
->> > On Tue, 2009-12-15 at 10:58 +0100, ext Sergey Lapin wrote:
->> >> dadd2bb931a08a4b6b17f9e82d9bbe7bedebbc98
->> >> OMAP: OMAPFB: add omapdss device
->> >>
->> >>     The upcoming new display subsystem driver is divided to two devices,
->> >>     omapdss and omapfb, of which omapdss handles the actual hardware.
->> >>
->> >>     This patch adds a dummy omapdss platform device for the current omapfb
->> >>     driver, which is then used to get the clocks. This will make it possible
->> >>     for the current and the new display drivers to co-exist.
->> >>
->> >>     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
->> >>     Acked-by: Tony Lindgren <tony@atomide.com>
->> >>
->> >> breaks old omapfb.
->> >
->> > I didn't look at this further, but I quickly tested with OMAP3 SDP
->> > board, reverting the patch that makes SDP use DSS2, and it seems to work
->> > fine with the old omapfb.
->
-> rfbi.c was still using omapfb device to get the clocks. Can you try this
-> patch?
->
->
-> >From 33b78006fb0387e21d5f780338d821621ecad929 Mon Sep 17 00:00:00 2001
-> From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> Date: Wed, 16 Dec 2009 13:18:07 +0200
-> Subject: [PATCH] OMAP: OMAPFB: fix clk_get for RFBI
->
-> omapfb platform device was still used to get clocks inside rfbi.c
-If you add #include <linux/platform_device.h> to this patch,
-then problem is fixed.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Tested-by: Sergey Lapin <slapin@ossfans.org>
+Patch series adds following features -
 
-> ---
->  drivers/video/omap/dispc.c  |    2 +-
->  drivers/video/omap/omapfb.h |    2 ++
->  drivers/video/omap/rfbi.c   |    4 ++--
->  3 files changed, 5 insertions(+), 3 deletions(-)
->
+	- Enable DSS2/Fbdev on OMAP3EVM
+	- Add LQ043T1DG01 panel file
+	- Enable DSS2/Fbdev on AM3517EVM
+	- Warning message fix in dss-core
+	- Kconfig option added to choose between S-Video and CVBS output
+
+TODO -
+	- V4L2 Display driver ontop of DSS2 (will post in couple of days)
+	- regulator_get for panel-generic.c, which is required to get DVI colors
+	  properly
+
+Vaibhav Hiremath (5):
+  dss2-core:Warning Fix: core_dump_clocks enclosed under DEBUG_FS
+  OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
+  OMAP: Enable DSS2 for OMAP3EVM board
+  AM3517: Enable DSS2 for AM3517EVM board
+  OMAP3EVM: Kconfig option added for selection between SVIDEO and CVBS
+
+ arch/arm/configs/am3517_evm_defconfig              |   53 ++++-
+ arch/arm/configs/omap3_evm_defconfig               |   51 ++++-
+ arch/arm/mach-omap2/board-am3517evm.c              |  142 +++++++++++
+ arch/arm/mach-omap2/board-omap3evm.c               |  250 +++++++++++++++++++-
+ drivers/video/omap2/displays/Kconfig               |    6 +
+ drivers/video/omap2/displays/Makefile              |    1 +
+ .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  120 ++++++++++
+ drivers/video/omap2/dss/Kconfig                    |   15 ++
+ drivers/video/omap2/dss/core.c                     |    2 +
+ 9 files changed, 627 insertions(+), 13 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
+
