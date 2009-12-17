@@ -1,96 +1,235 @@
-From: Arnaud Mandy <ext-arnaud.2.mandy-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/3 v3] musb: Add context save and restore support
-Date: Thu, 17 Dec 2009 17:17:58 +0200
-Message-ID: <4B2A4BA6.9010804@nokia.com>
-References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com> <1260797982-28880-2-git-send-email-ajay.gupta@ti.com> <4B2A3453.7040008@nokia.com> <19F8576C6E063C45BE387C64729E73940449F439C7@dbde02.ent.ti.com> <4B2A3BEE.7000809@nokia.com> <19F8576C6E063C45BE387C64729E73940449F439D9@dbde02.ent.ti.com>
+From: "witek mark" <witek_temp@wp.pl>
+Subject: Re: [RFC][PATCH 4/5] input: serio: add support
+ forAmstrad Delta serial keyboard port
+Date: Thu, 17 Dec 2009 16:36:48 +0100
+Message-ID: <4b2a5010773714.47572109@wp.pl>
+References: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com><200912122134.08795.jkrzyszt@tis.icnet.pl><20091212232003.GA16760@core.coreip.homeip.net>
+	<200912140111.36458.jkrzyszt@tis.icnet.pl>
+Reply-To: Discussion of the Amstrad E3 emailer hardware/software
+	<e3-hacking@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940449F439D9-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ext Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <e3-hacking-bounces@earth.li>
+In-reply-to: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com><200912122134.08795.jkrzyszt@tis.icnet.pl><20091212232003.GA16760@core.coreip.homeip.net>
+	<200912140111.36458.jkrzyszt@tis.icnet.pl>
+Content-Disposition: inline
+List-Unsubscribe: <http://www.earth.li/cgi-bin/mailman/options/e3-hacking>,
+	<mailto:e3-hacking-request@earth.li?subject=unsubscribe>
+List-Archive: <http://www.earth.li/pipermail/e3-hacking>
+List-Post: <mailto:e3-hacking@earth.li>
+List-Help: <mailto:e3-hacking-request@earth.li?subject=help>
+List-Subscribe: <http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking>,
+	<mailto:e3-hacking-request@earth.li?subject=subscribe>
+Sender: e3-hacking-bounces@earth.li
+Errors-To: e3-hacking-bounces@earth.li
+To: jkrzyszt@tis.icnet.pl
+Cc: Tony Lindgren <tony@atomide.com>, linux-input@vger.kernel.org, e3-hacking <e3-hacking@earth.li>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-ext Gupta, Ajay Kumar wrote:
->> -----Original Message-----
->> From: Arnaud Mandy [mailto:ext-arnaud.2.mandy-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org]
->> Sent: Thursday, December 17, 2009 7:41 PM
->> To: Gupta, Ajay Kumar
->> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Balbi Felipe
->> (Nokia-D/Helsinki); david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org; Gadiyar, Anand
->> Subject: Re: [PATCH 2/3 v3] musb: Add context save and restore support
->>
->> ext Gupta, Ajay Kumar wrote:
->>     
->>> <snip>
->>>
->>>       
->>>>>  #ifdef CONFIG_PM
->>>>>
->>>>> +static struct musb_context_registers musb_context;
->>>>> +
->>>>> +void musb_save_context(struct musb *musb)
->>>>> +{
->>>>>
->>>>>
->>>>>           
->>>> Could you add one more parameter to this function call, which would
->>>> select either if we want to save the musb_platform context or not?
->>>> I m working at the moment on turning off the musb when cable unplugged
->>>> and turning it on with restoring context after cable re-connect.
->>>> In this case I don't need to restore the the musb_platform_context
->>>>         
->> since
->>     
->>>> I just set them before calling this one.
->>>>
->>>> Same apply for restore.
->>>>
->>>> what do you think?
->>>> I could also modify slightly this implementation after it is ready and
->>>> submit it.
->>>>
->>>>         
->>> I think you want to add the parameter in musb_platform_save_context()
->>>       
->> and
->>     
->>> not in musb_save_context.
->>> If so then where do you restore them? {As you said before calling this}
->>>
->>>       
->> In order to support off-mode, we need the transceiver driver to wake-up
->> the controller.
->> I m working on a hook which would allow that.
->> I want to take advantage of your implementation for saving/restoring
->> musb context, but saving the platform data is not necessary in my case.
->>     
->
-> Then how about having a platform specific flag within
-> musb_platform_save/restorae_context() implementation which wouldn't
-> save/restore when you don't need them.
->
->   
+Witam,
 
-I got your point, but how would this flag being passed into 
-musb_save_context()?
-As a new musb struct member?
 
->   
->> Maybe it musb_platform_save/restore_context(), shouldn't be called from
->> musb_save/restore_context();
->>
->>     
->>> I think if the requirement is generic and suits for all other platforms
->>> Using musb then we can add it.
->>>
->>>       
->> Yes it should.
->>     
+Od jakiego=B6 czasu obserwuj=EA grup=EA dyskusyjn=B1 Amstrada. Sam posiadam =
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+jeden egzemplarz i co=B6 tam sobie na nim pr=F3buj=EA uruchomi=E6.
+Chcia=B3em si=EA podzieli=E6 kilkoma spostrze=BFeniami dotycz=B1cymi klawia=
+tury.
+Na razie nie odpisuj=EA na grup=EA tylko do Pana.
+
+Zaintrygowany mailem dotycz=B1cym klawiatury postanowi=B3em j=B1 rozkr=EAci=
+=E6 aby =
+
+zobaczy=E6 co w =B6rodku jest. Okazuje si=EA, =BFe p=B3ytka klawiatury jest =
+
+"przyspawana" do jednej ze stron obudowy. Trzeba by wy=B3ama=E6 par=EA =
+
+zatrzask=F3w, =BFeby obejrze=E6 te stron=EA p=B3ytki drukowanej, gdzie s=B1 =
+
+rozmieszczone elementy - dlatego na razie da=B3em sobie z tym spok=F3j. Id=
+=B1c =
+
+dalej rozkr=EAci=B3em tego gamepada. Jak si=EA ponadto okazuje ten gamepad =
+
+wpina si=EA mi=EAdzy amstrada a klawiatur=EA. Klawiatura i gamepad maj=B1 =
+
+interfejs z=B3o=BFony z czterech pin=F3w i po sprawdzeniu miernikiem okazuj=
+=EA =
+
+si=EA, =BFe klawiatura i gamepad je=B6li si=EA je po=B3=B1czy razem do amst=
+rada to =
+
+s=B1 one pod=B3=B1czone r=F3wnolegle do tych pin=F3w (jestem tego pewien na=
+ 90%).
+Ponadto po rozkr=EAceniu gamepada ukaza=B3a mi si=EA p=B3ytka drukowana ale =
+
+niestety nie wiem co to jest za chip elektroniczny w =B6rodku, gdy=BF ma on =
+
+posta=E6 "czarnego okr=B1g=B3ego kleksa plastikowego" (szkoda, =BFe nie zro=
+bi=B3em =
+
+zdj=EAcia). Jedno jest pewne: na tej p=B3ytce te cztery piny interfejsu by=
+=B3y =
+
+opisane jako GND, VCC, CLK i DATA. Czyli wnioskuj=B1c musi to by=E6 jaki=B6 =
+
+interfejs szeregowy. Ponadto wiemy ju=BF, =BFe klawiatura i gamepad s=B1 =
+
+pod=B3=B1czane r=F3wnolegle do amstrada, czyli musi to by=E6 interfejs =
+
+szeregowy, kt=F3ry niejako "wspiera" po=B3=B1czenie kilku urz=B1dze=F1 do j=
+ednej =
+
+magistrali.
+Mo=BFe to jest zwyk=B3y interfejs szeregowy typu rs232?
+Za=B3=F3=BFmy na chwilk=EA, =BFe jest to interfejs rs232. Mo=BFemy wtedy st=
+wierdzi=E6, =
+
+=BFe:
+a) klawiatura generuje jaki=B6 zestaw kod=F3w klawiszy,
+b) gamepad generuje ten sam zestaw kod=F3w klawiszy - mo=BFe i tak by=E6, =
+
+wtedy gamepad zachowuje si=EA jako "specjalna klawiatura na potrzeby gier" =
+
+i tak naprawd=EA mo=BFna powiedzie=E6 =BFe na amstradzie gra si=EA na klawi=
+aturze =
+
+a gamepad tylko u=B3atwia "wciskanie guzik=F3w",
+c) pisze Pan, =BFe je=B6li gamepad i klawiatura s=B1 pod=B3=B1czone jednocz=
+e=B6nie i =
+
+jednocze=B6nie cos na nich naciskamy to obserwuje Pan w sterowniku b=B3=EAd=
+y =
+
+typu: parity check failed, invalid stop bit. O ile moja znajomo=B6=E6 =
+
+protoko=B3=F3w transmisji jest dobra, to wychodzi na to, =BFe te b=B3=EAdy =
+
+wyst=EApuj=B1 w=B3a=B6nie w transmisji szeregowej rs232 (chyba, =BFe jest j=
+aki=B6 =
+
+inny podobny protok=F3=B3 transmisji). O ile naciska Pan przycisk tylko na =
+
+jednym urz=B1dzeniu to wszystko jest w porz=B1dku; urz=B1dzenie wysy=B3a np=
+ kod =
+
+klawisza, a interfejs szeregowy dodaje jeszcze bity parzysto=B6ci =
+
+(kontrola b=B3=EAd=F3w) i stopu. Je=B6li teraz zaczniemy co=B6 naciska=E6 n=
+a drugim =
+
+urz=B1dzeniu to ono r=F3wnie=BF wysy=B3a sw=F3j kod b=B3=EAdu, bity parzyst=
+o=B6ci i bity =
+
+stopu. Wtedy mo=BFe dochodzi=E6 np do kolizji (klawiatura wysy=B3a w danym =
+
+momencie bit stopu a gamepad wysy=B3a sw=F3j kod klawisza) i port szeregowy =
+
+w amstradzie "g=B3upieje" i zg=B3asza b=B3=EAdy typu parity check failed, =
+
+invalid stop bit). Generalnie w porcie szeregowym typu rs232 mo=BFna =
+
+pod=B3=B1czy=E6 kilka urz=B1dze=F1 r=F3wnolegle, tylko jak przynajmniej dwa=
+ zaczn=B1 =
+
+nadawa=E6 w tej samej chwili to zaczynaj=B1 si=EA kolizje.
+
+W sterownikach linuxa nie jestem za mocny dlatego nie mam poj=EAcia jak =
+
+jest napisany dotychczasowy driver. Gdybym mia=B3 oscyloskop to bym =
+
+sprawdzi=B3 komunikacj=EA na tych pinach i by si=EA okaza=B3o czy to jest =
+
+rzeczywi=B6cie transmisja typu rs232.
+
+
+Co Pan my=B6li o moich tezach? A mog=EA dosta=E6 Pa=F1skie logi ze sterowni=
+ka? =
+
+Mo=BFe co=B6 uda si=EA wymy=B6li=E6.
+
+
+pozdrawiam
+
+
+Witold Markowski
+
+
+
+
+
+
+
+
+
+Dnia 14-12-2009 o godz. 1:11 Janusz Krzysztofik napisa=B3(a):
+> Hi Dmitry,
+> =
+
+> Sunday 13 December 2009 00:20:03 Dmitry Torokhov napisa=B3(a):
+> >
+> > atkbd is supposed to support PS/2 devices speaking AT keyboard protocol.
+> > We also do support such devices behind dumb controllers that do not
+> > allow querying the device but we expect those to at least produce the
+> > standard scancodes.
+> =
+
+> As far as I can understand, using the atkbd driver is not a good idea in
+> this
+> case because of the keyboard not producing standard scancodes, correct?
+> =
+
+> Isn't the hpps2atkbd.h provided keycode table an already supported way of
+> introducing exceptions to this standard scancodes requirement? Why
+> couldn't
+> this method be reused here?
+> =
+
+> What I am afraid of is if the driver supposed to be created instead
+> wouldn't
+> require reiplementing most of the atkbd code.
+> =
+
+> > I would need to know a bit more about the gamepad, but so far I still
+> > think that current attempot of creating intermediate serio module which
+> > allows to use atkbd driver is not the proper solution.
+> =
+
+> I modified the serio driver to send exactly what it gets from the buffer
+> and
+> examined its output with serio_raw. The gamepad (can be connected
+> simultaneously) appeared to send exactly the same scancodes as the
+> keyboard
+> did. I couldn't see how those might be destinguished whether coming from
+> the
+> keybord or from the gamepad. Thus, handling them both together as a single
+> device would probably be the only option here.
+> =
+
+> With both devices connected and keys pressed simultaneously, errors
+> occure at
+> the lowest level: parity check failed, invalid stop bit, etc. I don't
+> think
+> it would be possible to do anything about this. But this also means that
+> trying to query them in order to get a sensible response would probably be
+> not reliable.
+> =
+
+> Any thoughts?
+> =
+
+> Thanks,
+> Janusz
+> =
+
+> _______________________________________________
+> e3-hacking mailing list
+> e3-hacking@earth.li
+> http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking
+
+----------------------------------------------------
+Ko=B3odziej b=EAdzie mia=BFd=BFy=B3 na ringu
+18 grudnia, Gala Boksu w =A3odzi
+Zobacz:
+http://klik.wp.pl/?adr=3Dhttp%3A%2F%2Fcorto.www.wp.pl%2Fas%2Fwojak18grudnia=
+.html&sid=3D926
