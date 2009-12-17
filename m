@@ -1,36 +1,57 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Anyone using an ISP1505?
-Date: Fri, 18 Dec 2009 00:50:55 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031DC20A68@dbde02.ent.ti.com>
-References: <4B2A7FFB.6090909@billgatliff.com>
+From: "Candelaria Villareal, Jorge" <x0107209@ti.com>
+Subject: [PATCH 0/3] McPDM driver patch series
+Date: Thu, 17 Dec 2009 13:40:27 -0600
+Message-ID: <2256F256009DAA4CBE661E9F41EAC84B8BA0A6D0@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59880 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59778 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965368AbZLQTXF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 14:23:05 -0500
-In-Reply-To: <4B2A7FFB.6090909@billgatliff.com>
+	id S965471AbZLQTki convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 14:40:38 -0500
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bill Gatliff <bgat@billgatliff.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-> I'm working on an OMAP3530CUS board that uses an ISP1505 USB PHY, and I
-> haven't gotten much luck getting the kernel to recognize any USB
-> devices.  No luck, actually.  :)  My oscilloscope and the schematic say
-> that the hardware is wired up properly, I'm just wondering if anyone has
-> a similar configuration that's working for them--- and which kernel they
-> are using?
+McPDM module is the interface between the OMAP and TWL6030 audio codec.
+It transfers data between the two chips using a Pulse Density Modulation
+protocol, which allows sound to be played or recorded at speeds of up to
+96000 Hz. Besides data, McPDM can transfer commands and read status
+to/from the codec using the frame synchronization line.
 
-Is it with the OTG controller or with the EHCI controller?
+The interface supports the following:
+* Up to 5 downlink channels and 3 uplink channels
+* 88.2 and 96 KHz
+* 32 bit sample size
 
+Currently, driver is set to support up to 4 downlink channels. If 2
+channels are selected, output will go to the headset, and if 4 channels
+are selected, output will go to the headset and speakers. Functionality
+to select the output at runtime will be added afterwards.
 
-The NXP ISP1505 is supposed to be transparent - no programming usually
-required.
+Command and status mode is not supported in current patches.
 
-If it's with the EHCI controller, you need to take care of a couple of
-issues on the board (due to the input clocking mode used in the OMAP3).
+--
 
-- Anand
+Jorge Eduardo Candelaria (2):
+      OMAP4: IRQ: Add McPDM IRQ definition.
+      ASoC: OMAP4: Add support for McPDM
+
+Misael Lopez Cruz (1):
+      ASoC: OMAP4: Add McPDM platform driver
+
+ arch/arm/plat-omap/include/plat/irqs.h |    2 +-
+ sound/soc/omap/Kconfig                 |    3 +
+ sound/soc/omap/Makefile                |    2 +
+ sound/soc/omap/mcpdm.c                 |  505 ++++++++++++++++++++++++++++++++
+ sound/soc/omap/mcpdm.h                 |  156 ++++++++++
+ sound/soc/omap/omap-mcpdm.c            |  248 ++++++++++++++++
+ sound/soc/omap/omap-mcpdm.h            |   29 ++
+ 7 files changed, 944 insertions(+), 1 deletions(-)
+ create mode 100644 sound/soc/omap/mcpdm.c
+ create mode 100644 sound/soc/omap/mcpdm.h
+ create mode 100644 sound/soc/omap/omap-mcpdm.c
+ create mode 100644 sound/soc/omap/omap-mcpdm.h
