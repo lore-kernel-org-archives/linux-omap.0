@@ -1,56 +1,125 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCHv2 03/18] DSPBRIDGE: Remove preproessor condition that could never work
-Date: Wed, 16 Dec 2009 20:15:48 -0600
-Message-ID: <1261016163-11091-4-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCHv2 01/18] DSPBRIDGE: Fix compile break for WCD debug mask
+Date: Wed, 16 Dec 2009 20:15:46 -0600
+Message-ID: <1261016163-11091-2-git-send-email-omar.ramirez@ti.com>
 References: <1261016163-11091-1-git-send-email-omar.ramirez@ti.com>
- <1261016163-11091-2-git-send-email-omar.ramirez@ti.com>
- <1261016163-11091-3-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57400 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36702 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763897AbZLQCIs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Dec 2009 21:08:48 -0500
-In-Reply-To: <1261016163-11091-3-git-send-email-omar.ramirez@ti.com>
+	id S1758234AbZLQCIq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Dec 2009 21:08:46 -0500
+In-Reply-To: <1261016163-11091-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>, Rebecca Schultz Zavin <rebecca@android.com>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-From: Rebecca Schultz Zavin <rebecca@android.com>
+If debug mode is enabled compilation will break because WCD
+debug mask is used before behing defined.
 
-This macro can refer to a varible not defined in this scope.
-gcc 4.4 and later will view this as an error and this code
-will not compile.
-
-Signed-off-by: Rebecca Schultz Zavin <rebecca@android.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/dynload/cload.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ drivers/dsp/bridge/pmgr/wcd.c |   80 ++++++++++++++++++++--------------------
+ 1 files changed, 40 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/dsp/bridge/dynload/cload.c b/drivers/dsp/bridge/dynload/cload.c
-index ef5d7d9..4fead55 100644
---- a/drivers/dsp/bridge/dynload/cload.c
-+++ b/drivers/dsp/bridge/dynload/cload.c
-@@ -1475,10 +1475,6 @@ static char *copy_tgt_strings(void *dstp, void *srcp, unsigned charcount)
- #if TARGET_AU_BITS <= BITS_PER_AU
- 		/* byte-swapping issues may exist for strings on target */
- 		*dst++ = *src++;
--#elif TARGET_ENDIANNESS_DIFFERS(TARGET_BIG_ENDIAN)
--		register TgtAU_t tmp;
--		tmp = *src++;
--		*dst++ = SWAP16BY8(tmp);  /* right for TARGET_AU_BITS == 16 */
- #else
- 		*dst++ = *src++;
- #endif
-@@ -1486,8 +1482,6 @@ static char *copy_tgt_strings(void *dstp, void *srcp, unsigned charcount)
- 	/*apply force to make sure that the string table has null terminator */
- #if (BITS_PER_AU == BITS_PER_BYTE) && (TARGET_AU_BITS == BITS_PER_BYTE)
- 	dst[-1] = 0;
--#elif TARGET_BIG_ENDIAN
--	dst[-1] &= ~BYTE_MASK;	/*  big-endian */
- #else
- 	dst[-1] &= (1 << (BITS_PER_AU - BITS_PER_BYTE)) - 1; /* little endian */
- #endif
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index bb28cd2..3fb5208 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -144,46 +144,6 @@
+ #define MAX_STREAMS     16
+ #define MAX_BUFS	64
+ 
+-static inline void __cp_fm_usr(void *to, const void __user *from,
+-			       DSP_STATUS *err, unsigned long bytes)
+-{
+-	if (DSP_FAILED(*err))
+-		return;
+-
+-	if (unlikely(!from)) {
+-		*err = DSP_EPOINTER;
+-		return;
+-	}
+-
+-	if (unlikely(copy_from_user(to, from, bytes))) {
+-		GT_2trace(WCD_debugMask, GT_7CLASS,
+-			  "%s failed, from=0x%08x\n", __func__, from);
+-		*err = DSP_EPOINTER;
+-	}
+-}
+-#define cp_fm_usr(to, from, err, n)				\
+-	__cp_fm_usr(to, from, &(err), (n) * sizeof(*(to)))
+-
+-static inline void __cp_to_usr(void __user *to, const void *from,
+-			       DSP_STATUS *err, unsigned long bytes)
+-{
+-	if (DSP_FAILED(*err))
+-		return;
+-
+-	if (unlikely(!to)) {
+-		*err = DSP_EPOINTER;
+-		return;
+-	}
+-
+-	if (unlikely(copy_to_user(to, from, bytes))) {
+-		GT_2trace(WCD_debugMask, GT_7CLASS,
+-			  "%s failed, to=0x%08x\n", __func__, to);
+-		*err = DSP_EPOINTER;
+-	}
+-}
+-#define cp_to_usr(to, from, err, n)				\
+-	__cp_to_usr(to, from, &(err), (n) * sizeof(*(from)))
+-
+ /* Device IOCtl function pointer */
+ struct WCD_Cmd {
+ 	u32(*fxn)(union Trapped_Args *args);
+@@ -265,6 +225,46 @@ static struct WCD_Cmd WCD_cmdTable[] = {
+ 	{CMMWRAP_GetInfo, CMD_CMM_GETINFO_OFFSET}
+ };
+ 
++static inline void __cp_fm_usr(void *to, const void __user *from,
++			       DSP_STATUS *err, unsigned long bytes)
++{
++	if (DSP_FAILED(*err))
++		return;
++
++	if (unlikely(!from)) {
++		*err = DSP_EPOINTER;
++		return;
++	}
++
++	if (unlikely(copy_from_user(to, from, bytes))) {
++		GT_2trace(WCD_debugMask, GT_7CLASS,
++			  "%s failed, from=0x%08x\n", __func__, from);
++		*err = DSP_EPOINTER;
++	}
++}
++#define cp_fm_usr(to, from, err, n)				\
++	__cp_fm_usr(to, from, &(err), (n) * sizeof(*(to)))
++
++static inline void __cp_to_usr(void __user *to, const void *from,
++			       DSP_STATUS *err, unsigned long bytes)
++{
++	if (DSP_FAILED(*err))
++		return;
++
++	if (unlikely(!to)) {
++		*err = DSP_EPOINTER;
++		return;
++	}
++
++	if (unlikely(copy_to_user(to, from, bytes))) {
++		GT_2trace(WCD_debugMask, GT_7CLASS,
++			  "%s failed, to=0x%08x\n", __func__, to);
++		*err = DSP_EPOINTER;
++	}
++}
++#define cp_to_usr(to, from, err, n)				\
++	__cp_to_usr(to, from, &(err), (n) * sizeof(*(from)))
++
+ /*
+  *  ======== WCD_CallDevIOCtl ========
+  *  Purpose:
 -- 
 1.6.2.4
 
