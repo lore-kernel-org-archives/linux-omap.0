@@ -1,69 +1,51 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH] omap: zoom3: enable ehci support
-Date: Fri, 18 Dec 2009 13:41:40 -0600
-Message-ID: <1261165300-25985-1-git-send-email-vikram.pandita@ti.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: "Flush the D-cache during copy_user_highpage" breaks compile for
+ v7 on -rc1
+Date: Fri, 18 Dec 2009 14:50:22 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912181448120.28241@xanadu.home>
+References: <20091218031923.GA4575@atomide.com>
+ <20091218081851.GB28704@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59690 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751003AbZLRTjh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Dec 2009 14:39:37 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBIJdbeQ003657
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 18 Dec 2009 13:39:37 -0600
+Received: from relais.videotron.ca ([24.201.245.36]:23204 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752882AbZLRTuk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 14:50:40 -0500
+Received: from xanadu.home ([66.130.28.92]) by VL-MH-MR002.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007; 32bit))
+ with ESMTP id <0KUV00HZ65RYVN20@VL-MH-MR002.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Fri, 18 Dec 2009 14:50:22 -0500 (EST)
+In-reply-to: <20091218081851.GB28704@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Zoom3 board has omap3630 EHCI port2 connected to a ULPI phy.
-GPIO_64 is connected to the PHY reset pin.
+On Fri, 18 Dec 2009, Russell King - ARM Linux wrote:
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Cc: Gadiyar, Anand <gadiyar@ti.com>
----
- arch/arm/mach-omap2/board-zoom3.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+> On Thu, Dec 17, 2009 at 07:19:24PM -0800, Tony Lindgren wrote:
+> > Hi Catalin,
+> > 
+> > You may have already run into this, but if not, looks like commit
+> > 115b22474eb1905da2f606a057da3455833333d3 breaks compile for v7:
+> > 
+> > arch/arm/mm/copypage-v6.c: In function 'v6_copy_user_highpage_nonaliasing':
+> > arch/arm/mm/copypage-v6.c:51: error: implicit declaration of function '__cpuc_flush_dcache_page'
+> > 
+> > Undoing that makes it work again.
+> 
+> It's a combination of changes - my initial changes for fixing the ARMv7
+> DMA support went in last night, but were based on a tree older than
+> Catalin's changes, which had already been committed.
+> 
+> My test build didn't catch any of these - it's the usual problem that
+> there is no way to adequately build-test the ARM kernel in a reasonable
+> time anymore.
 
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index a9fe918..a5e8036 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -20,6 +20,8 @@
- 
- #include <plat/common.h>
- #include <plat/board.h>
-+#include <plat/usb.h>
-+#include <plat/mux.h>
- 
- #include "mux.h"
- #include "sdram-hynix-h8mbx00u0mer-0em.h"
-@@ -51,11 +53,25 @@ static struct omap_board_mux board_mux[] __initdata = {
- #define board_mux	NULL
- #endif
- 
-+static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+
-+	.phy_reset  = true,
-+	.reset_gpio_port[0]  = -EINVAL,
-+	.reset_gpio_port[1]  = 64,
-+	.reset_gpio_port[2]  = -EINVAL
-+};
-+
- static void __init omap_zoom_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
- 	zoom_peripherals_init();
- 	zoom_debugboard_init();
-+
-+	omap_mux_init_gpio(64, OMAP_PIN_OUTPUT);
-+	usb_ehci_init(&ehci_pdata);
- }
- 
- MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
--- 
-1.6.6.rc0.66.ge160d
+This is why we have a community of people reporting such issues, and a 
+long -rc period to fix them.
 
+
+Nicolas
