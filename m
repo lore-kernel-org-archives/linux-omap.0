@@ -1,16 +1,15 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 06/12] OMAP OPP: add microvolts DC ("u_volt") field into
-	struct omap_opp
-Date: Thu, 17 Dec 2009 17:47:37 -0700
-Message-ID: <20091218004736.7694.66518.stgit@localhost.localdomain>
+Subject: [PATCH 05/12] OMAP TWL/TPS OPP: vsel rounding belongs in opp_twl_tps.c
+Date: Thu, 17 Dec 2009 17:47:36 -0700
+Message-ID: <20091218004735.7694.13673.stgit@localhost.localdomain>
 References: <20091218004617.7694.84525.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46467 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:46465 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755570AbZLRAsb (ORCPT
+	with ESMTP id S1755562AbZLRAsb (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 19:48:31 -0500
 In-Reply-To: <20091218004617.7694.84525.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,83 +17,57 @@ List-Id: linux-omap@vger.kernel.org
 To: nm@ti.com
 Cc: linux-omap@vger.kernel.org
 
-OPP layer code should be PMIC-independent.  A future patch will remove
-the vsel field, which is TPS/TWL-dependent.
+The vsel roundoff code belongs in omap_twl_uv_to_vsel(), not
+omap_opp_populate(), since other code may use omap_twl_uv_to_vsel().
 ---
- arch/arm/plat-omap/include/plat/opp.h |    4 +++-
- arch/arm/plat-omap/opp.c              |    9 ++++++---
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/opp.c         |    3 ---
+ arch/arm/plat-omap/opp_twl_tps.c |   15 +++++++++++++--
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
-index 2a7c113..4329767 100644
---- a/arch/arm/plat-omap/include/plat/opp.h
-+++ b/arch/arm/plat-omap/include/plat/opp.h
-@@ -21,6 +21,7 @@
-  * @vsel:	Voltage in volt processor level(this usage is
-  *		DEPRECATED to use Voltage in microvolts in future)
-  *		uV = ((vsel * 12.5) + 600) * 1000
-+ * @u_volt:     minimum microvolts DC required for this OPP to function
-  *
-  * This structure stores the OPP information for a given domain.
-  * Due to legacy reasons, this structure is currently exposed and
-@@ -30,8 +31,9 @@
- struct omap_opp {
- 	bool enabled;
- 	unsigned long rate;
-+	unsigned long u_volt;
- 	u8 __deprecated opp_id;
--	u16 __deprecated vsel;
-+	u8 __deprecated vsel;
- };
- 
- /**
 diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-index 2543932..2e97237 100644
+index 9586e3b..2543932 100644
 --- a/arch/arm/plat-omap/opp.c
 +++ b/arch/arm/plat-omap/opp.c
-@@ -23,7 +23,7 @@
-  * This is meant to help co-exist with current SRF etc
-  * TODO: REMOVE!
-  */
--#define OPP_TERM(opp) (!(opp)->rate && !(opp)->vsel && !(opp)->enabled)
-+#define OPP_TERM(opp) (!(opp)->rate && !(opp)->u_volt && !(opp)->enabled)
- 
- unsigned long opp_get_voltage(const struct omap_opp *opp)
- {
-@@ -31,7 +31,7 @@ unsigned long opp_get_voltage(const struct omap_opp *opp)
- 		pr_err("%s: Invalid parameters being passed\n", __func__);
- 		return 0;
- 	}
--	return omap_twl_vsel_to_uv(opp->vsel);
-+	return opp->u_volt;
- }
- 
- unsigned long opp_get_freq(const struct omap_opp *opp)
-@@ -143,7 +143,8 @@ static void omap_opp_populate(struct omap_opp *opp,
- {
+@@ -144,9 +144,6 @@ static void omap_opp_populate(struct omap_opp *opp,
  	opp->rate = opp_def->freq;
  	opp->enabled = opp_def->enabled;
--	opp->vsel = omap_twl_uv_to_vsel(opp_def->u_volt);
-+	opp->u_volt = opp_def->u_volt;
-+	opp->vsel = omap_twl_uv_to_vsel(opp_def->u_volt); /* XXX remove me */
+ 	opp->vsel = omap_twl_uv_to_vsel(opp_def->u_volt);
+-	/* round off to higher voltage */
+-	if (opp_def->u_volt > omap_twl_vsel_to_uv(opp->vsel))
+-		opp->vsel++;
  }
  
  struct omap_opp *opp_add(struct omap_opp *oppl,
-@@ -234,6 +235,7 @@ struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs)
- 	opp->rate = 0;
- 	opp->enabled = 0;
- 	opp->vsel = 0;
-+	opp->u_volt = 0;
- 	opp++;
- 	while (n) {
- 		omap_opp_populate(opp, opp_defs);
-@@ -247,6 +249,7 @@ struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs)
- 	opp->rate = 0;
- 	opp->enabled = 0;
- 	opp->vsel = 0;
-+	opp->u_volt = 0;
- 	return oppl;
+diff --git a/arch/arm/plat-omap/opp_twl_tps.c b/arch/arm/plat-omap/opp_twl_tps.c
+index edcb719..e0db39b 100644
+--- a/arch/arm/plat-omap/opp_twl_tps.c
++++ b/arch/arm/plat-omap/opp_twl_tps.c
+@@ -2,7 +2,9 @@
+  * opp_twl_tps.c - TWL/TPS-specific functions for the OPP code
+  *
+  * Copyright (C) 2009 Texas Instruments Incorporated.
+- *	Nishanth Menon
++ * Nishanth Menon
++ * Copyright (C) 2009 Nokia Corporation
++ * Paul Walmsley
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -34,5 +36,14 @@ unsigned long omap_twl_vsel_to_uv(const u8 vsel)
+  */
+ u8 omap_twl_uv_to_vsel(unsigned long uv)
+ {
+-	return ((uv / 100) - 6000) / 125;
++	u8 vsel;
++
++	vsel = ((uv / 100) - 6000) / 125;
++
++	/* round off to higher voltage */
++	/* XXX Surely not the best way to handle this. */
++	if (uv > omap_twl_vsel_to_uv(vsel))
++		vsel++;
++
++	return vsel;
  }
- 
 
 
