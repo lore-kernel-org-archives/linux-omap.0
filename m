@@ -1,62 +1,42 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 2/3] ASoC: OMAP4: Add support for McPDM
-Date: Fri, 18 Dec 2009 13:13:55 +0200
-Message-ID: <20091218111355.GF32312@nokia.com>
-References: <2256F256009DAA4CBE661E9F41EAC84B8BA0A6D2@dlee01.ent.ti.com>
-	<20091217202821.GA30379@nokia.com>
-	<20091218105129.GB19544@sirena.org.uk>
-Reply-To: felipe.balbi@nokia.com
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/4 v4] musb: Add context save and restore support
+Date: Fri, 18 Dec 2009 13:35:04 +0200
+Message-ID: <20091218113503.GF32520@nokia.com>
+References: <1260883909-26836-1-git-send-email-ajay.gupta@ti.com>
+ <1260883909-26836-2-git-send-email-ajay.gupta@ti.com>
+ <1260883909-26836-3-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091218105129.GB19544@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ext Candelaria Villareal, Jorge" <x0107209@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+In-Reply-To: <1260883909-26836-3-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 18, 2009 at 11:51:30AM +0100, ext Mark Brown wrote:
->On Thu, Dec 17, 2009 at 10:28:21PM +0200, Felipe Balbi wrote:
->> On Thu, Dec 17, 2009 at 08:40:32PM +0100, ext Candelaria Villareal, Jorge wrote:
+On Tue, Dec 15, 2009 at 02:31:48PM +0100, ext Ajay Kumar Gupta wrote:
+>Adding support for MUSB register save and restore during system
+>suspend and resume.
 >
->> >+config SND_OMAP_SOC_MCPDM
->> >+       tristate
+>Changes:
+>        - Added musb_save/restore_context() functions
+>        - Added platform specific musb_platform_save/restore_context()
+>          to handle platform specific jobs.
+>        - Maintaining BlackFin compatibility by adding read/write
+>          functions for registers which are not available in BlackFin
 >
->> look at how SND_OMAP_SOC_N810 is done, can't you follow that ? put some
->> description ad help ?
+>Tested system suspend and resume on OMAP3EVM board.
 >
->This is fine - DAI drivers should be selected by machine drivers rather
->than by users since they are useless without the machine drivers.  This
->means that they shouldn't have a description.
->
->> >+EXPORT_SYMBOL(omap_mcpdm_start);
->> >+EXPORT_SYMBOL(omap_mcpdm_stop);
->> >+EXPORT_SYMBOL(omap_mcpdm_set_uplink);
->> >+EXPORT_SYMBOL(omap_mcpdm_set_downlink);
->> >+EXPORT_SYMBOL(omap_mcpdm_clr_uplink);
->> >+EXPORT_SYMBOL(omap_mcpdm_clr_downlink);
->> >+EXPORT_SYMBOL(omap_mcpdm_request);
->> >+EXPORT_SYMBOL(omap_mcpdm_free);
->
->> way too many exported symbols, no ? Doesn't ALSA API have proper place
->> for this kind of stuff ? I'd need ALSA experts to reply to that but it
->> does smell funny...
->
->With the McBSP these things are all exported because the McBSP isn't
->just used by ALSA, I beleive, but a PDM interface is probably only ever
->going to be used by audio.
+>Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+>Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-thanks for the explanation :-)
+applied, thanks
 
 -- 
 balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
