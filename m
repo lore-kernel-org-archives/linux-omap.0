@@ -1,52 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 7/8] OMAP3 clock: Add capability to change rate of dpll4_m5_ck
-Date: Thu, 17 Dec 2009 21:20:22 -0700
-Message-ID: <20091218042021.27280.93551.stgit@localhost.localdomain>
-References: <20091218041912.27280.92152.stgit@localhost.localdomain>
+From: Niamathullah sharief <omapsha@gmail.com>
+Subject: ARM CROSS COMPILATION
+Date: Fri, 18 Dec 2009 11:50:01 +0530
+Message-ID: <4ad3b6300912172220v5d6af078n302284331cc4345a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40411 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752363AbZLREVv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 23:21:51 -0500
-In-Reply-To: <20091218041912.27280.92152.stgit@localhost.localdomain>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:42708 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751440AbZLRGUC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 01:20:02 -0500
+Received: by pwj9 with SMTP id 9so1742422pwj.21
+        for <linux-omap@vger.kernel.org>; Thu, 17 Dec 2009 22:20:01 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>, Jouni =?utf-8?b?SMO2Z2FuZGVy?= <jouni.hogander@nokia.com>
+To: linux-omap@vger.kernel.org
 
-=46rom: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-
-Add necessary definitions to clock framework to allow changing
-dpll4_m5_ck rate.  This is used by the camera code.
-
-Signed-off-by: Jouni H=C3=B6gander <jouni.hogander@nokia.com>
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock34xx_data.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2=
-/clock34xx_data.c
-index 7eea9fb..c6031d7 100644
---- a/arch/arm/mach-omap2/clock34xx_data.c
-+++ b/arch/arm/mach-omap2/clock34xx_data.c
-@@ -776,6 +776,8 @@ static struct clk dpll4_m5_ck =3D {
- 	.clksel_mask	=3D OMAP3430_CLKSEL_CAM_MASK,
- 	.clksel		=3D div16_dpll4_clksel,
- 	.clkdm_name	=3D "dpll4_clkdm",
-+	.set_rate	=3D &omap2_clksel_set_rate,
-+	.round_rate	=3D &omap2_clksel_round_rate,
- 	.recalc		=3D &omap2_clksel_recalc,
- };
-=20
+Hello,
+I am trying to compile my kernel for ARM Processor. when i do that i
+am getting some following error. I didnt find what will be the
+problem.
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+root@ariem-desktop:/home/ariem/Desktop/kernels/linux-2.6.28-006rc8#
+make CROSS_COMPILE=/home/ariem/CodeSourcery/Sourcery_G++_Lite/bin/arm-none-linux-gnueabi-
+uImage
+  CHK     include/linux/version.h
+make[1]: `include/asm-arm/mach-types.h' is up to date.
+  CHK     include/linux/utsrelease.h
+  SYMLINK include/asm -> include/asm-arm
+  CALL    scripts/checksyscalls.sh
+<stdin>:1097:2: warning: #warning syscall fadvise64 not implemented
+<stdin>:1265:2: warning: #warning syscall migrate_pages not implemented
+<stdin>:1321:2: warning: #warning syscall pselect6 not implemented
+<stdin>:1325:2: warning: #warning syscall ppoll not implemented
+<stdin>:1365:2: warning: #warning syscall epoll_pwait not implemented
+  CC      init/main.o
+/tmp/cczCT0T5.s: Assembler messages:
+/tmp/cczCT0T5.s:255: Error: selected processor does not support `cpsie i'
+/tmp/cczCT0T5.s:704: Error: selected processor does not support `cpsid i'
+/tmp/cczCT0T5.s:712: Error: selected processor does not support `cpsid i'
+/tmp/cczCT0T5.s:726: Error: selected processor does not support `cpsid i'
+/tmp/cczCT0T5.s:740: Error: selected processor does not support `cpsid i'
+/tmp/cczCT0T5.s:812: Error: selected processor does not support `cpsid i'
+/tmp/cczCT0T5.s:837: Error: selected processor does not support `cpsie i'
+make[1]: *** [init/main.o] Error 1
+make: *** [init] Error 2
+root@ariem-desktop:/home/ariem/Desktop/kernels/linux-2.6.28-006rc8#
+
+Kindly help me
