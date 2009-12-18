@@ -1,39 +1,38 @@
-From: Huang Weiyi <weiyi.huang@gmail.com>
-Subject: [PATCH] OMAP: remove duplicated #include
-Date: Fri, 18 Dec 2009 23:57:08 +0800
-Message-ID: <1261151828-244-1-git-send-email-weiyi.huang@gmail.com>
+From: Bill Gatliff <bgat@billgatliff.com>
+Subject: [PATCH] Fix double-linking of drivers/usb/otg when ULPI is selected
+Date: Fri, 18 Dec 2009 09:57:22 -0600
+Message-ID: <1261151842-577-1-git-send-email-bgat@billgatliff.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:49147 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750888AbZLRP5Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 10:57:25 -0500
-Received: by pwj9 with SMTP id 9so1982448pwj.21
-        for <linux-omap@vger.kernel.org>; Fri, 18 Dec 2009 07:57:23 -0800 (PST)
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:42694 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751563AbZLRP5a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 10:57:30 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: beagleboard@googlegroups.com, daniel@caiaq.de, Bill Gatliff <bgat@billgatliff.com>
 
-Remove duplicated #include('s) in
-  drivers/video/omap/lcd_omap3beagle.c
+This patch corrects a problem where drivers/usb/otg is linked twice
+if CONFIG_USB_ULPI is selected, resulting in a build error (symbol
+conflict). The files in that directory are properly linked already
+as part of CONFIG_USB, and need not be indicated specifically for
+CONFIG_USB_ULPI.
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
+Signed-off-by: Bill Gatliff <bgat@billgatliff.com>
 ---
- drivers/video/omap/lcd_omap3beagle.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/usb/Makefile |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
-index ca75cc2..ac715f9 100644
---- a/drivers/video/omap/lcd_omap3beagle.c
-+++ b/drivers/video/omap/lcd_omap3beagle.c
-@@ -26,7 +26,6 @@
- #include <linux/i2c/twl.h>
+diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
+index 473aa1a..be3c9b8 100644
+--- a/drivers/usb/Makefile
++++ b/drivers/usb/Makefile
+@@ -44,5 +44,3 @@ obj-y				+= early/
  
- #include <plat/mux.h>
--#include <plat/mux.h>
- #include <asm/mach-types.h>
- 
- #include "omapfb.h"
+ obj-$(CONFIG_USB_ATM)		+= atm/
+ obj-$(CONFIG_USB_SPEEDTOUCH)	+= atm/
+-
+-obj-$(CONFIG_USB_ULPI)		+= otg/
 -- 
-1.6.1.3
+1.6.5
 
