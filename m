@@ -1,58 +1,67 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/8] ARM: OMAP3: PM: Fix the Invalid CM_CLKSTCTRL reg access.
-Date: Thu, 17 Dec 2009 21:20:17 -0700
-Message-ID: <20091218042015.27280.14688.stgit@localhost.localdomain>
+Subject: [PATCH 4/8] OMAP2420 IO mapping: move IVA mapping virtual address out
+	of vmalloc space
+Date: Thu, 17 Dec 2009 21:20:19 -0700
+Message-ID: <20091218042018.27280.57238.stgit@localhost.localdomain>
 References: <20091218041912.27280.92152.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40393 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:40401 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751491AbZLREVt (ORCPT
+	with ESMTP id S1751920AbZLREVt (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 23:21:49 -0500
 In-Reply-To: <20091218041912.27280.92152.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Abhijit Pagare <abhijitpagare@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Abhijit Pagare <abhijitpagare@ti.com>
+Commit 10db25fea4c11661070b97832b8cc3d2af495092 causes the following
+kernel messages during N800 boot (and presumably all other 2420
+boards):
 
-In OMAP2/3 some of the clock-domains which did not have control
-facility were being falsely written to and read using the CM_CLKSTCTRL
-register though it did not exist for them. One check is added to remove
-this flaw.
+[    0.000000] BUG: mapping for 0x58000000 at 0xe0000000 overlaps vmalloc space
+[    0.000000] BUG: mapping for 0x59000000 at 0xe1000000 overlaps vmalloc space
+[    0.000000] BUG: mapping for 0x5a000000 at 0xe2000000 overlaps vmalloc space
 
-Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+Fix by remapping the IVA memory areas somewhere outside vmalloc space.
+
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clockdomain.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/plat/io.h |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 1a45ed1..dd285f0 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -559,7 +559,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
- 	 * downstream clocks for debugging purposes?
- 	 */
+diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
+index 7d6f45f..a3e7b47 100644
+--- a/arch/arm/plat-omap/include/plat/io.h
++++ b/arch/arm/plat-omap/include/plat/io.h
+@@ -123,14 +123,17 @@
+ #define OMAP243X_SMS_SIZE	SZ_1M
  
--	if (!clkdm || !clk)
-+	if (!clkdm || !clk || !clkdm->clktrctrl_mask)
- 		return -EINVAL;
+ /* 2420 IVA */
+-#define DSP_MEM_2420_PHYS	OMAP2420_DSP_MEM_BASE	/* 0x58000000 */
+-#define DSP_MEM_2420_VIRT	0xe0000000
++#define DSP_MEM_2420_PHYS	OMAP2420_DSP_MEM_BASE
++						/* 0x58000000 --> 0xfc100000 */
++#define DSP_MEM_2420_VIRT	0xfc100000
+ #define DSP_MEM_2420_SIZE	0x28000
+-#define DSP_IPI_2420_PHYS	OMAP2420_DSP_IPI_BASE	/* 0x59000000 */
+-#define DSP_IPI_2420_VIRT	0xe1000000
++#define DSP_IPI_2420_PHYS	OMAP2420_DSP_IPI_BASE
++						/* 0x59000000 --> 0xfc128000 */
++#define DSP_IPI_2420_VIRT	0xfc128000
+ #define DSP_IPI_2420_SIZE	SZ_4K
+-#define DSP_MMU_2420_PHYS	OMAP2420_DSP_MMU_BASE	/* 0x5a000000 */
+-#define DSP_MMU_2420_VIRT	0xe2000000
++#define DSP_MMU_2420_PHYS	OMAP2420_DSP_MMU_BASE
++						/* 0x5a000000 --> 0xfc129000 */
++#define DSP_MMU_2420_VIRT	0xfc129000
+ #define DSP_MMU_2420_SIZE	SZ_4K
  
- 	if (atomic_inc_return(&clkdm->usecount) > 1)
-@@ -610,7 +610,7 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
- 	 * downstream clocks for debugging purposes?
- 	 */
- 
--	if (!clkdm || !clk)
-+	if (!clkdm || !clk || !clkdm->clktrctrl_mask)
- 		return -EINVAL;
- 
- #ifdef DEBUG
+ /* 2430 IVA2.1 - currently unmapped */
 
 
