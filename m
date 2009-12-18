@@ -1,67 +1,48 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv2 1/1] OMAP3: PM: Fix OTG autoidle workaround
-Date: Fri, 18 Dec 2009 12:39:23 +0200
-Message-ID: <1261132763-16697-1-git-send-email-eduardo.valentin@nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB031DC20A71@dbde02.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] [PATCH 2/3] ASoC: OMAP4: Add support for McPDM
+Date: Fri, 18 Dec 2009 10:51:30 +0000
+Message-ID: <20091218105129.GB19544@sirena.org.uk>
+References: <2256F256009DAA4CBE661E9F41EAC84B8BA0A6D2@dlee01.ent.ti.com> <20091217202821.GA30379@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:29908 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752382AbZLRKjx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 05:39:53 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031DC20A71@dbde02.ent.ti.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:39900 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216AbZLRKvg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 05:51:36 -0500
+Content-Disposition: inline
+In-Reply-To: <20091217202821.GA30379@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Kristo Tero <Tero.Kristo@nokia.com>, Balbi Felipe <felipe.balbi@nokia.com>, Gadiyar Anand <gadiyar@ti.com>, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: "ext Candelaria Villareal, Jorge" <x0107209@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+On Thu, Dec 17, 2009 at 10:28:21PM +0200, Felipe Balbi wrote:
+> On Thu, Dec 17, 2009 at 08:40:32PM +0100, ext Candelaria Villareal, Jorge wrote:
 
-This patch fix the OTG autoidle workaround so now
-usb gadget modules can be properly loaded.
+> >+config SND_OMAP_SOC_MCPDM
+> >+       tristate
 
-Besides it also adds a cpu check, because this hardware
-but is present only in OMAP34xx chips.
+> look at how SND_OMAP_SOC_N810 is done, can't you follow that ? put some 
+> description ad help ?
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c   |    3 ++-
- arch/arm/mach-omap2/usb-musb.c |    9 ++++++++-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+This is fine - DAI drivers should be selected by machine drivers rather
+than by users since they are useless without the machine drivers.  This
+means that they shouldn't have a description.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c301261..db75975 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -505,7 +505,8 @@ void omap_sram_idle(void)
- 			 * Errata 1.164 fix : OTG autoidle can prevent
- 			 * sleep
- 			 */
--			usb_musb_disable_autoidle();
-+			if (cpu_is_omap3430())
-+				usb_musb_disable_autoidle();
- 		}
- 		omap_uart_resume_idle(0);
- 		omap_uart_resume_idle(1);
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index bb3cee4..cbd4e45 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -81,7 +81,14 @@ static void __init usb_musb_pm_init(void)
- 
- void usb_musb_disable_autoidle(void)
- {
--	__raw_writel(0, otg_base + OTG_SYSCONFIG);
-+	if (otg_clk) {
-+		unsigned long reg;
-+
-+		clk_enable(otg_clk);
-+		reg = __raw_readl(otg_base + OTG_SYSCONFIG);
-+		__raw_writel(reg & ~1, otg_base + OTG_SYSCONFIG);
-+		clk_disable(otg_clk);
-+	}
- }
- 
- #ifdef CONFIG_USB_MUSB_SOC
--- 
-1.6.5.7.g9ecb2
+> >+EXPORT_SYMBOL(omap_mcpdm_start);
+> >+EXPORT_SYMBOL(omap_mcpdm_stop);
+> >+EXPORT_SYMBOL(omap_mcpdm_set_uplink);
+> >+EXPORT_SYMBOL(omap_mcpdm_set_downlink);
+> >+EXPORT_SYMBOL(omap_mcpdm_clr_uplink);
+> >+EXPORT_SYMBOL(omap_mcpdm_clr_downlink);
+> >+EXPORT_SYMBOL(omap_mcpdm_request);
+> >+EXPORT_SYMBOL(omap_mcpdm_free);
 
+> way too many exported symbols, no ? Doesn't ALSA API have proper place 
+> for this kind of stuff ? I'd need ALSA experts to reply to that but it 
+> does smell funny...
+
+With the McBSP these things are all exported because the McBSP isn't
+just used by ALSA, I beleive, but a PDM interface is probably only ever
+going to be used by audio.
