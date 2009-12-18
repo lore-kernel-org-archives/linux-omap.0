@@ -1,59 +1,65 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/3 v3] musb: Add context save and restore support
-Date: Fri, 18 Dec 2009 09:47:39 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940449F43A95@dbde02.ent.ti.com>
-References: <1260797982-28880-1-git-send-email-ajay.gupta@ti.com>
- <1260797982-28880-2-git-send-email-ajay.gupta@ti.com>
- <4B2A3453.7040008@nokia.com>
- <19F8576C6E063C45BE387C64729E73940449F439C7@dbde02.ent.ti.com>
- <4B2A3BEE.7000809@nokia.com>
- <19F8576C6E063C45BE387C64729E73940449F439D9@dbde02.ent.ti.com>
- <4B2A4BA6.9010804@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/8] OMAP clock & IO mapping fixes for 2.6.33-rc2
+Date: Thu, 17 Dec 2009 21:20:14 -0700
+Message-ID: <20091218041912.27280.92152.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B2A4BA6.9010804-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnaud Mandy <ext-arnaud.2.mandy-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:40389 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750902AbZLREVt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 23:21:49 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> >> In order to support off-mode, we need the transceiver driver to wake-up
-> >> the controller.
-> >> I m working on a hook which would allow that.
-> >> I want to take advantage of your implementation for saving/restoring
-> >> musb context, but saving the platform data is not necessary in my case.
-> >>
-> >
-> > Then how about having a platform specific flag within
-> > musb_platform_save/restorae_context() implementation which wouldn't
-> > save/restore when you don't need them.
-> >
-> >
-> 
-> I got your point, but how would this flag being passed into
-> musb_save_context()?
-> As a new musb struct member?
+Hello,
 
-yes, from musb only and in that case we need to add another parameter to musb_platform_save/restore_context as you suggested.
+Here are some relatively minor OMAP fixes for 2.6.33-rc2.  The most
+significant one is:
 
-Once your testing is completed then you can submit a separate patch on this?
-Or if already done then we can update the current one before it is sent to Greg.
+    OMAP2420 IO mapping: move IVA mapping virtual address out of vmalloc space
 
--Ajay
-> 
-> >
-> >> Maybe it musb_platform_save/restore_context(), shouldn't be called from
-> >> musb_save/restore_context();
-> >>
-> >>
-> >>> I think if the requirement is generic and suits for all other
-> platforms
-> >>> Using musb then we can add it.
+Without it, OMAP2420 systems with lots of vmalloc() usage could crash or
+memory could be corrupted.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+- Paul
+
+---
+
+Abhijit Pagare (1):
+      ARM: OMAP3: PM: Fix the Invalid CM_CLKSTCTRL reg access.
+
+Huang Weiyi (1):
+      OMAP2: remove duplicated #include
+
+Kevin Hilman (1):
+      OMAP3: clock: add clockdomains for UART1 & 2
+
+Paul Walmsley (4):
+      OMAP2xxx IO mapping: mark DSP mappings as being 2420-only
+      OMAP2420 IO mapping: move IVA mapping virtual address out of vmalloc space
+      OMAP3 clock: McBSP 2, 3, 4 functional clock parent is PER_96M_FCLK, not CORE_96M_FCLK
+      OMAP clock: remove incorrect EXPORT_SYMBOL()s
+
+Tuukka Toivonen (1):
+      OMAP3 clock: Add capability to change rate of dpll4_m5_ck
+
+
+ arch/arm/mach-omap2/clock34xx.c      |    1 -
+ arch/arm/mach-omap2/clock34xx_data.c |    6 +++++-
+ arch/arm/mach-omap2/clockdomain.c    |    4 ++--
+ arch/arm/mach-omap2/io.c             |   19 +++++++++---------
+ arch/arm/plat-omap/clock.c           |    6 ------
+ arch/arm/plat-omap/include/plat/io.h |   36 +++++++++++++++-------------------
+ arch/arm/plat-omap/io.c              |   12 ++++++-----
+ 7 files changed, 38 insertions(+), 46 deletions(-)
+
+
+   text	   data	    bss	    dec	    hex	filename
+3628182	 197984	 102920	3929086	 3bf3fe	vmlinux.beagle.orig
+3628135	 197984	 102920	3929039	 3bf3cf	vmlinux.beagle
+
+
