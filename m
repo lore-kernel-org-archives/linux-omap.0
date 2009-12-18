@@ -1,56 +1,69 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: Anyone using an ISP1505?
-Date: Sat, 19 Dec 2009 00:50:05 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FFDF312B@dbde02.ent.ti.com>
-References: <4B2A7FFB.6090909@billgatliff.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB031DC20A68@dbde02.ent.ti.com>
- <4B2BD3B6.20407@billgatliff.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH] omap: zoom3: enable ehci support
+Date: Fri, 18 Dec 2009 13:41:40 -0600
+Message-ID: <1261165300-25985-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57132 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59690 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932571AbZLRTUP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 14:20:15 -0500
-In-Reply-To: <4B2BD3B6.20407@billgatliff.com>
-Content-Language: en-US
+	id S1751003AbZLRTjh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Dec 2009 14:39:37 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBIJdbeQ003657
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 18 Dec 2009 13:39:37 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bill Gatliff <bgat@billgatliff.com>, "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>
+To: linux-omap@vger.kernel.org
+Cc: Vikram Pandita <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>
 
+Zoom3 board has omap3630 EHCI port2 connected to a ULPI phy.
+GPIO_64 is connected to the PHY reset pin.
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Bill
->Gatliff
->Sent: Friday, December 18, 2009 1:11 PM
->To: Gadiyar, Anand
->Cc: linux-omap@vger.kernel.org; beagleboard@googlegroups.com
->Subject: Re: Anyone using an ISP1505?
->
-<snip>
->
->> If it's with the EHCI controller, you need to take care of a couple of
->> issues on the board (due to the input clocking mode used in the OMAP3).
->>
->
->Can you elaborate?  Thanks!
->
-For omap-ehci, the OMAP feeds in the 60Mhz clock to the PHY(1505 in your case).
-This is the input clocking mode of phy.
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Gadiyar, Anand <gadiyar@ti.com>
+---
+ arch/arm/mach-omap2/board-zoom3.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
-It looks like the PHY state machine requires sometime to stabilize and lock into this 60Mhz clock input and this is done with a GPIO form omap.
-
-In ehci_hcd_omap_platform_data, Typically boards have
-. phy_reset = true
-. reset_gpio_port[0] = GPIO going to phy reset pin
-
-On your board you need to find, if there is a GPIO hooked from omap to PHY.
-And the GPIO behavior is decided by the PHY pin property ( whether its active high/low and whether its chipselect or reset of phy).
-
-By default the code assumes that the GPIO is connected to RESET pin: going 0 while the 60mhz clock input stabilizes and then once done, make it 1.
-
-So find out what GPIO from omap is connected to phy to control the phy.
-
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index a9fe918..a5e8036 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -20,6 +20,8 @@
+ 
+ #include <plat/common.h>
+ #include <plat/board.h>
++#include <plat/usb.h>
++#include <plat/mux.h>
+ 
+ #include "mux.h"
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
+@@ -51,11 +53,25 @@ static struct omap_board_mux board_mux[] __initdata = {
+ #define board_mux	NULL
+ #endif
+ 
++static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
++	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++
++	.phy_reset  = true,
++	.reset_gpio_port[0]  = -EINVAL,
++	.reset_gpio_port[1]  = 64,
++	.reset_gpio_port[2]  = -EINVAL
++};
++
+ static void __init omap_zoom_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 	zoom_peripherals_init();
+ 	zoom_debugboard_init();
++
++	omap_mux_init_gpio(64, OMAP_PIN_OUTPUT);
++	usb_ehci_init(&ehci_pdata);
+ }
+ 
+ MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
+-- 
+1.6.6.rc0.66.ge160d
 
