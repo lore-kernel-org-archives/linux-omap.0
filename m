@@ -1,66 +1,48 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCHv2 18/18] DSPBRIDGE: Compilation fixes 2.6.31
-Date: Fri, 18 Dec 2009 15:50:03 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53042D7EAE61@dlee03.ent.ti.com>
-References: <1261016163-11091-1-git-send-email-omar.ramirez@ti.com>
-	 <1261016163-11091-11-git-send-email-omar.ramirez@ti.com>
-	 <1261016163-11091-12-git-send-email-omar.ramirez@ti.com>
-	 <1261016163-11091-13-git-send-email-omar.ramirez@ti.com>
-	 <1261016163-11091-14-git-send-email-omar.ramirez@ti.com>
-	 <1261016163-11091-15-git-send-email-omar.ramirez@ti.com>
-	 <1261016163-11091-16-git-send-email-omar.ramirez@ti.com>
-	 <1261016163-11091-17-git-send-email-omar.ramirez@ti.com>
-	 <1261016163-11091-18-git-send-email-omar.ramirez@ti.com>
-	 <1261016163-11091-19-git-send-email-omar.ramirez@ti.com>
- <94a0d4530912180948r527cdb15w7ec241b2f6ad1fbb@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH v2 0/4] OPP layer: hide OPP implementation details
+Date: Fri, 18 Dec 2009 15:05:35 -0800
+Message-ID: <1261177539-15429-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48397 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932804AbZLRVuU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 16:50:20 -0500
-In-Reply-To: <94a0d4530912180948r527cdb15w7ec241b2f6ad1fbb@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:41371 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932936AbZLRXFo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 18:05:44 -0500
+Received: by pzk1 with SMTP id 1so2538284pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 18 Dec 2009 15:05:42 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: nm@ti.com
 
-Hi,
+This series continues on top of Paul's OPP cleanup series and aims to
+completly hide the OPP layer implementation details.  
 
->-----Original Message-----
->From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
->Sent: Friday, December 18, 2009 11:49 AM
->To: Ramirez Luna, Omar
->Cc: linux-omap; Hiroshi Doyu; Ameya Palande; Felipe Contreras; Guzman =
-Lugo, Fernando; Ramos Falcon,
->Ernesto
->Subject: Re: [PATCHv2 18/18] DSPBRIDGE: Compilation fixes 2.6.31
->
->On Thu, Dec 17, 2009 at 4:16 AM, Omar Ramirez Luna <omar.ramirez@ti.co=
-m> wrote:
->> Compilation fixes 2.6.31
->>
->> =A0 =A0 =A0 =A0board-sdp3430.h not found
->> =A0 =A0 =A0 =A0clk_handle undefined because of DVFS flag
->
->In fact, these are not specific to 2.6.31. The changes are good to
->have even on 2.6.28; they would get rid of warnings on certain
->configurations.
->
->So I'm sending a proposal that's a bit different: first I clean the PM
->idefs, then I remove unused headers. The end result is almost the
->same: the code compiles on 2.6.31 :)
->
+To do this, a couple more another accessor 
+functions have been added so current SR/SRF code can still function.
 
-Had a quick look at them, I agree patch 18 (DSPBRIDGE: Compilation fixe=
-s 2.6.31) can be replaced.
+The goal here is to allow continued OPP layer cleanup and possibly
+alternate implementations to be done in parallel with the ongoing
+SR/SRF rework efforts.
 
-- omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Unless I hear some objections, this series will be added onto my
+pm-wip-opp branch after some more thorough testing.
+
+Tested on OMAP3EVM, RX51
+
+Changes from v1:
+- actually works
+- Fix SRF indexing after initial terminators were removed
+- dropped opp_find_by_index() in favor of changing SRF remove indexing.
+
+Kevin Hilman (4):
+  OMAP OPP: Add accessor function for getting OPP ID.
+  OMAP SRF: adjust OPP array access
+  OMAP SR/SRF: use OPP API for OPP ID, remove direct access
+  OMAP OPP: hide struct omap_opp internals in OPP layer implementation
+
+ arch/arm/mach-omap2/resource34xx.c    |    6 +++---
+ arch/arm/mach-omap2/smartreflex.c     |    4 ++--
+ arch/arm/plat-omap/include/plat/opp.h |   20 ++------------------
+ arch/arm/plat-omap/opp.c              |   24 ++++++++++++++++++++++++
+ 4 files changed, 31 insertions(+), 23 deletions(-)
+
