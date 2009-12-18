@@ -1,177 +1,161 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [RESEND][PATCH 1/2] DSPBRIDGE: return right error codes services
- directory
-Date: Fri, 18 Dec 2009 12:57:30 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602A9ADD272@dlee06.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 10/12] OMAP OPP: remove "initial terminators" from OPP lists
+Date: Fri, 18 Dec 2009 11:08:43 -0800
+Message-ID: <87zl5gw150.fsf@deeprootsystems.com>
+References: <20091218004617.7694.84525.stgit@localhost.localdomain>
+	<20091218004739.7694.25893.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48713 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752683AbZLRS5d convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 13:57:33 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBIIvWBw000592
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 18 Dec 2009 12:57:32 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id nBIIvWK1029686
-	for <linux-omap@vger.kernel.org>; Fri, 18 Dec 2009 12:57:32 -0600 (CST)
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBIIvWlV019172
-	for <linux-omap@vger.kernel.org>; Fri, 18 Dec 2009 12:57:32 -0600 (CST)
-Content-Language: en-US
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:40125 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754433AbZLRTIq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 14:08:46 -0500
+Received: by pzk1 with SMTP id 1so2421141pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 18 Dec 2009 11:08:46 -0800 (PST)
+In-Reply-To: <20091218004739.7694.25893.stgit@localhost.localdomain> (Paul Walmsley's message of "Thu\, 17 Dec 2009 17\:47\:40 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: nm@ti.com, linux-omap@vger.kernel.org
+
+Paul Walmsley <paul@pwsan.com> writes:
+
+> Now that the SRF and Smartreflex code uses accessor functions to interact
+> with OPPs, the "initial terminators" can be removed.
+
+Nice.
+
+With the initial terminators gone, some assumptions in SRF have to be
+changed too where SRF is directly indexing into the OPP table.
+
+I'll fix that up in an updated version of my 'hide OPP details' series.
+
+Kevin
 
 
-Fixed typo in description.
-
-
->From c69aeb206fe38e2ca8a5d3f019672963f262b180 Mon Sep 17 00:00:00 2001
-From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Thu, 17 Dec 2009 11:53:30 -0600
-Subject: [PATCH] DSPBRIDGE: return right error codes services directory
-
-This patch fixes the bad error codes returned by some functions,
-also checks for status not checked before and removes unused checks
-or status variables.
-
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
----
- drivers/dsp/bridge/services/cfg.c  |    8 +++++---
- drivers/dsp/bridge/services/clk.c  |    7 ++-----
- drivers/dsp/bridge/services/reg.c  |   26 +++++++++++---------------
- drivers/dsp/bridge/services/sync.c |    1 -
- 4 files changed, 18 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/dsp/bridge/services/cfg.c b/drivers/dsp/bridge/services/cfg.c
-index b45a94c..1275ad3 100644
---- a/drivers/dsp/bridge/services/cfg.c
-+++ b/drivers/dsp/bridge/services/cfg.c
-@@ -194,8 +194,7 @@ DSP_STATUS CFG_GetExecFile(struct CFG_DEVNODE *hDevNode, u32 ulBufSize,
- 		  ulBufSize, pstrExecFile);
- 	if (!hDevNode)
- 		status = CFG_E_INVALIDHDEVNODE;
--
--	if (!pstrExecFile)
-+	else if (!pstrExecFile)
- 		status = CFG_E_INVALIDPOINTER;
- 
- 	if (DSP_SUCCEEDED(status)) {
-@@ -277,9 +276,13 @@ DSP_STATUS CFG_GetObject(OUT u32 *pdwValue, u32 dwType)
- 	switch (dwType) {
- 	case (REG_DRV_OBJECT):
- 		status = REG_GetValue(DRVOBJECT, (u8 *)pdwValue, &dwBufSize);
-+		if (DSP_FAILED(status))
-+			status = CFG_E_RESOURCENOTAVAIL;
- 		break;
- 	case (REG_MGR_OBJECT):
- 		status = REG_GetValue(MGROBJECT, (u8 *)pdwValue, &dwBufSize);
-+		if (DSP_FAILED(status))
-+			status = CFG_E_RESOURCENOTAVAIL;
- 		break;
- 	default:
- 		break;
-@@ -289,7 +292,6 @@ DSP_STATUS CFG_GetObject(OUT u32 *pdwValue, u32 dwType)
- 			  "CFG_GetObject SUCCESS DrvObject: "
- 			  "0x%x\n ", *pdwValue);
- 	} else {
--		status = CFG_E_RESOURCENOTAVAIL;
- 		*pdwValue = 0;
- 		GT_0trace(CFG_debugMask, GT_6CLASS, "CFG_GetObject Failed \n");
- 	}
-diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
-index a56f01e..9a18e11 100644
---- a/drivers/dsp/bridge/services/clk.c
-+++ b/drivers/dsp/bridge/services/clk.c
-@@ -173,9 +173,7 @@ DSP_STATUS CLK_Enable(IN enum SERVICES_ClkId clk_id)
- 
- 	pClk = SERVICES_Clks[clk_id].clk_handle;
- 	if (pClk) {
--		if (clk_enable(pClk) == 0x0) {
--			/* Success ? */
--		} else {
-+		if (clk_enable(pClk)) {
- 			pr_err("CLK_Enable: failed to Enable CLK %s, "
- 					"CLK dev id = %s\n",
- 					SERVICES_Clks[clk_id].clk_name,
-@@ -209,8 +207,7 @@ DSP_STATUS CLK_Set_32KHz(IN enum SERVICES_ClkId clk_id)
- 	DSP_STATUS status = DSP_SOK;
- 	struct clk *pClk;
- 	struct clk *pClkParent;
--	enum SERVICES_ClkId sys_32k_id = SERVICESCLK_sys_32k_ck;
--	pClkParent =  SERVICES_Clks[sys_32k_id].clk_handle;
-+	pClkParent =  SERVICES_Clks[SERVICESCLK_sys_32k_ck].clk_handle;
- 
- 	DBC_Require(clk_id < SERVICESCLK_NOT_DEFINED);
- 	GT_2trace(CLK_debugMask, GT_6CLASS, "CLK_Set_32KHz: CLK %s, "
-diff --git a/drivers/dsp/bridge/services/reg.c b/drivers/dsp/bridge/services/reg.c
-index 03b99fd..9f7cfcf 100644
---- a/drivers/dsp/bridge/services/reg.c
-+++ b/drivers/dsp/bridge/services/reg.c
-@@ -52,17 +52,14 @@ static unsigned int crefs;		/* module counter */
- DSP_STATUS REG_DeleteValue(IN CONST char *pstrValue)
- {
- 	DSP_STATUS status;
--       DBC_Require(strlen(pstrValue) < REG_MAXREGPATHLENGTH);
-+	DBC_Require(strlen(pstrValue) < REG_MAXREGPATHLENGTH);
- 
- 	GT_0trace(REG_debugMask, GT_ENTER, "REG_DeleteValue: entered\n");
- 
- 	SYNC_EnterCS(reglock);
--	if (regsupDeleteValue(pstrValue) == DSP_SOK)
--		status = DSP_SOK;
--	else
--		status = DSP_EFAIL;
--
-+	status = regsupDeleteValue(pstrValue);
- 	SYNC_LeaveCS(reglock);
-+
- 	return status;
- }
- 
-@@ -169,18 +166,17 @@ DSP_STATUS REG_SetValue(IN CONST char *pstrValue, IN u8 *pbData,
- 
- 	DBC_Require(pstrValue && pbData);
- 	DBC_Require(dwDataSize > 0);
--       DBC_Require(strlen(pstrValue) < REG_MAXREGPATHLENGTH);
-+	DBC_Require(strlen(pstrValue) < REG_MAXREGPATHLENGTH);
- 
- 	SYNC_EnterCS(reglock);
--	/*  We need to use regsup calls...  */
--	/*  ...for now we don't need the key handle or  */
--	/*  the subkey, all we need is the value to lookup.  */
--	if (regsupSetValue((char *)pstrValue, pbData, dwDataSize) == DSP_SOK)
--		status = DSP_SOK;
--	else
--		status = DSP_EFAIL;
--
-+	/*
-+	 * We need to use regsup calls
-+	 * for now we don't need the key handle or
-+	 * the subkey, all we need is the value to lookup.
-+	 */
-+	status = regsupSetValue((char *)pstrValue, pbData, dwDataSize);
- 	SYNC_LeaveCS(reglock);
-+
- 	return status;
- }
- 
-diff --git a/drivers/dsp/bridge/services/sync.c b/drivers/dsp/bridge/services/sync.c
-index c2d79c7..c76c23b 100644
---- a/drivers/dsp/bridge/services/sync.c
-+++ b/drivers/dsp/bridge/services/sync.c
-@@ -187,7 +187,6 @@ DSP_STATUS SYNC_ResetEvent(struct SYNC_OBJECT *hEvent)
- 
- 	if (MEM_IsValidHandle(hEvent, SIGNATURE)) {
- 		pEvent->state = so_reset;
--		status = DSP_SOK;
- 	} else {
- 		status = DSP_EHANDLE;
- 		GT_1trace(SYNC_debugMask, GT_6CLASS,
--- 
-1.6.0.4
-
+> ---
+>  arch/arm/plat-omap/opp.c |   36 ++++++++----------------------------
+>  1 files changed, 8 insertions(+), 28 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+> index 596e3ee..f651912 100644
+> --- a/arch/arm/plat-omap/opp.c
+> +++ b/arch/arm/plat-omap/opp.c
+> @@ -53,15 +53,15 @@ unsigned long opp_get_freq(const struct omap_opp *opp)
+>  struct omap_opp * __deprecated opp_find_by_opp_id(struct omap_opp *opps,
+>  						  u8 opp_id)
+>  {
+> -	int i = 1;
+> +	int i = 0;
+>  
+>  	if (!opps || !opp_id)
+>  		return NULL;
+>  
+> -	/* The first entry is a dummy one, loop till we hit terminator */
+>  	while (!OPP_TERM(&opps[i])) {
+>  		if (opps[i].enabled && (opps[i].opp_id == opp_id))
+>  			return &opps[i];
+> +
+>  		i++;
+>  	}
+>  
+> @@ -76,7 +76,6 @@ int opp_get_opp_count(struct omap_opp *oppl)
+>  		pr_err("%s: Invalid parameters being passed\n", __func__);
+>  		return -EINVAL;
+>  	}
+> -	oppl++;			/* skip initial terminator */
+>  	while (!OPP_TERM(oppl)) {
+>  		if (oppl->enabled)
+>  			n++;
+> @@ -92,9 +91,7 @@ struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+>  		pr_err("%s: Invalid parameters being passed\n", __func__);
+>  		return ERR_PTR(-EINVAL);
+>  	}
+> -	/* skip initial terminator */
+> -	if (OPP_TERM(oppl))
+> -		oppl++;
+> +
+>  	while (!OPP_TERM(oppl)) {
+>  		if ((oppl->rate == freq) && (oppl->enabled == enabled))
+>  			break;
+> @@ -111,10 +108,6 @@ struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl, unsigned long *freq)
+>  		return ERR_PTR(-EINVAL);
+>  	}
+>  
+> -	/* skip initial terminator */
+> -	if (OPP_TERM(oppl))
+> -		oppl++;
+> -
+>  	while (!OPP_TERM(oppl)) {
+>  		if (oppl->enabled && oppl->rate >= *freq)
+>  			break;
+> @@ -139,10 +132,6 @@ struct omap_opp *opp_find_freq_floor(struct omap_opp *oppl, unsigned long *freq)
+>  		return ERR_PTR(-EINVAL);
+>  	}
+>  
+> -	/* skip initial terminator */
+> -	if (OPP_TERM(oppl))
+> -		oppl++;
+> -
+>  	while (!OPP_TERM(oppl)) {
+>  		if (oppl->enabled) {
+>  			if (oppl->rate > *freq)
+> @@ -181,20 +170,16 @@ struct omap_opp *opp_add(struct omap_opp *oppl,
+>  		pr_err("%s: Invalid params being passed\n", __func__);
+>  		return ERR_PTR(-EINVAL);
+>  	}
+> -	/* need a start terminator.. */
+> -	if (unlikely(!OPP_TERM(oppl))) {
+> -		pr_err("%s: Expected a start terminator!!\n", __func__);
+> -		return ERR_PTR(-EINVAL);
+> -	}
+> +
+>  	n = 0;
+>  	opp = oppl;
+> -	opp++;
+>  	while (!OPP_TERM(opp)) {
+>  		n++;
+>  		opp++;
+>  	}
+> +
+>  	/* lets now reallocate memory */
+> -	oppr = kmalloc(sizeof(struct omap_opp) * (n + 3), GFP_KERNEL);
+> +	oppr = kmalloc(sizeof(struct omap_opp) * (n + 2), GFP_KERNEL);
+>  	if (!oppr) {
+>  		pr_err("%s: No memory for new opp array\n", __func__);
+>  		return ERR_PTR(-ENOMEM);
+> @@ -204,7 +189,7 @@ struct omap_opp *opp_add(struct omap_opp *oppl,
+>  	opp = oppl;
+>  	oppt = oppr;
+>  	ins = 0;
+> -	i = 0;
+> +	i = 1;
+>  	do {
+>  		if (ins || opp->rate < opp_def->freq) {
+>  			memcpy(oppt, opp, sizeof(struct omap_opp));
+> @@ -249,17 +234,12 @@ struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs)
+>  		t++;
+>  	}
+>  
+> -	oppl = kmalloc(sizeof(struct omap_opp) * (n + 2), GFP_KERNEL);
+> +	oppl = kmalloc(sizeof(struct omap_opp) * (n + 1), GFP_KERNEL);
+>  	if (!oppl) {
+>  		pr_err("%s: No memory for opp array\n", __func__);
+>  		return ERR_PTR(-ENOMEM);
+>  	}
+>  	opp = oppl;
+> -	/* Setup start terminator - SRF depends on this for indexing :( */
+> -	opp->rate = 0;
+> -	opp->enabled = 0;
+> -	opp->u_volt = 0;
+> -	opp++;
+>  	while (n) {
+>  		omap_opp_populate(opp, opp_defs);
+>  		opp->opp_id = i;
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
