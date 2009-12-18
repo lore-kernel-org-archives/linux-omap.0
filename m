@@ -1,41 +1,62 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCHv2 1/1] OMAP3: PM: Fix OTG autoidle workaround
-Date: Fri, 18 Dec 2009 13:12:36 +0200
-Message-ID: <20091218111236.GE32312@nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB031DC20A71@dbde02.ent.ti.com>
- <1261132763-16697-1-git-send-email-eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 2/3] ASoC: OMAP4: Add support for McPDM
+Date: Fri, 18 Dec 2009 13:13:55 +0200
+Message-ID: <20091218111355.GF32312@nokia.com>
+References: <2256F256009DAA4CBE661E9F41EAC84B8BA0A6D2@dlee01.ent.ti.com>
+	<20091217202821.GA30379@nokia.com>
+	<20091218105129.GB19544@sirena.org.uk>
 Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:32710 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988AbZLRLNj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 06:13:39 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <1261132763-16697-1-git-send-email-eduardo.valentin@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20091218105129.GB19544@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ext Candelaria Villareal, Jorge" <x0107209@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Gadiyar Anand <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-
-On Fri, Dec 18, 2009 at 11:39:23AM +0100, Valentin Eduardo (Nokia-D/Helsinki) wrote:
->From: Eduardo Valentin <eduardo.valentin@nokia.com>
+On Fri, Dec 18, 2009 at 11:51:30AM +0100, ext Mark Brown wrote:
+>On Thu, Dec 17, 2009 at 10:28:21PM +0200, Felipe Balbi wrote:
+>> On Thu, Dec 17, 2009 at 08:40:32PM +0100, ext Candelaria Villareal, Jorge wrote:
 >
->This patch fix the OTG autoidle workaround so now
->usb gadget modules can be properly loaded.
+>> >+config SND_OMAP_SOC_MCPDM
+>> >+       tristate
 >
->Besides it also adds a cpu check, because this hardware
->but is present only in OMAP34xx chips.
+>> look at how SND_OMAP_SOC_N810 is done, can't you follow that ? put some
+>> description ad help ?
 >
->Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+>This is fine - DAI drivers should be selected by machine drivers rather
+>than by users since they are useless without the machine drivers.  This
+>means that they shouldn't have a description.
+>
+>> >+EXPORT_SYMBOL(omap_mcpdm_start);
+>> >+EXPORT_SYMBOL(omap_mcpdm_stop);
+>> >+EXPORT_SYMBOL(omap_mcpdm_set_uplink);
+>> >+EXPORT_SYMBOL(omap_mcpdm_set_downlink);
+>> >+EXPORT_SYMBOL(omap_mcpdm_clr_uplink);
+>> >+EXPORT_SYMBOL(omap_mcpdm_clr_downlink);
+>> >+EXPORT_SYMBOL(omap_mcpdm_request);
+>> >+EXPORT_SYMBOL(omap_mcpdm_free);
+>
+>> way too many exported symbols, no ? Doesn't ALSA API have proper place
+>> for this kind of stuff ? I'd need ALSA experts to reply to that but it
+>> does smell funny...
+>
+>With the McBSP these things are all exported because the McBSP isn't
+>just used by ALSA, I beleive, but a PDM interface is probably only ever
+>going to be used by audio.
 
-looks like after this patch we can drop the workaround from omap2430.c 
-and use whatever platform code configured.
-
-Thanks
+thanks for the explanation :-)
 
 -- 
 balbi
