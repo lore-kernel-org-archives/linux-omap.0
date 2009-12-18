@@ -1,178 +1,206 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 04/12] OMAP TWL/TPS OPP: move TWL/TPS-specific code to its own
-	file
-Date: Thu, 17 Dec 2009 17:47:35 -0700
-Message-ID: <20091218004734.7694.32136.stgit@localhost.localdomain>
-References: <20091218004617.7694.84525.stgit@localhost.localdomain>
+Subject: Re: [PATCH] AM35xx: Add clock support for new modules on AM35xx
+Date: Thu, 17 Dec 2009 18:42:21 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0912171818150.12561@utopia.booyaka.com>
+References: <1260971823-8532-1-git-send-email-ranjithl@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46463 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:59788 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755524AbZLRAsb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 19:48:31 -0500
-In-Reply-To: <20091218004617.7694.84525.stgit@localhost.localdomain>
+	with ESMTP id S1754842AbZLRBmY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Dec 2009 20:42:24 -0500
+In-Reply-To: <1260971823-8532-1-git-send-email-ranjithl@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: nm@ti.com
+To: Ranjith Lohithakshan <ranjithl@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-The OPP layer code should be independent of the PMIC, so move
-the TWL/TPS-specific code out to its own file.
----
- arch/arm/plat-omap/Makefile                   |    4 ++-
- arch/arm/plat-omap/include/plat/opp_twl_tps.h |   21 ++++++++++++++
- arch/arm/plat-omap/opp.c                      |   27 +++---------------
- arch/arm/plat-omap/opp_twl_tps.c              |   38 +++++++++++++++++++++++++
- 4 files changed, 66 insertions(+), 24 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/plat/opp_twl_tps.h
- create mode 100644 arch/arm/plat-omap/opp_twl_tps.c
+Hello Ranjith,
 
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index e9cf601..b0c5b31 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -13,7 +13,9 @@ obj-  :=
- obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
- 
- # OPP support in (OMAP3+ only at the moment)
--obj-$(CONFIG_ARCH_OMAP3) += opp.o
-+# XXX The OPP TWL/TPS code should only be included when a TWL/TPS
-+# PMIC is selected.
-+obj-$(CONFIG_ARCH_OMAP3) += opp.o opp_twl_tps.o
- 
- # omap_device support (OMAP2+ only at the moment)
- obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
-diff --git a/arch/arm/plat-omap/include/plat/opp_twl_tps.h b/arch/arm/plat-omap/include/plat/opp_twl_tps.h
-new file mode 100644
-index 0000000..8784e5f
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/opp_twl_tps.h
-@@ -0,0 +1,21 @@
-+/*
-+ * opp_twl_tps.h - TWL/TPS-specific headers for the OPP code
-+ *
-+ * Copyright (C) 2009 Texas Instruments Incorporated.
-+ *	Nishanth Menon
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * XXX This code belongs as part of some other TWL/TPS code.
-+ */
-+#ifndef _ARCH_ARM_PLAT_OMAP_OPP_TWL_TPS_H
-+#define _ARCH_ARM_PLAT_OMAP_OPP_TWL_TPS_H
-+
-+#include <linux/kernel.h>
-+
-+unsigned long omap_twl_vsel_to_uv(const u8 vsel);
-+u8 omap_twl_uv_to_vsel(unsigned long uV);
-+
-+#endif
-diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-index e9f5706..9586e3b 100644
---- a/arch/arm/plat-omap/opp.c
-+++ b/arch/arm/plat-omap/opp.c
-@@ -15,6 +15,7 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- 
-+#include <plat/opp_twl_tps.h>
- #include <plat/opp.h>
- 
- /*
-@@ -24,33 +25,13 @@
-  */
- #define OPP_TERM(opp) (!(opp)->rate && !(opp)->vsel && !(opp)->enabled)
- 
--/*
-- * DEPRECATED: Meant to convert vsel value to uVolt
-- * This is meant to help co-exist with current SRF etc
-- * TODO: REMOVE!
-- */
--static inline unsigned long vsel_to_uv(const u8 vsel)
--{
--	return (((vsel * 125) + 6000)) * 100;
--}
--
--/*
-- * DEPRECATED: Meant to convert uVolt to vsel value
-- * This is meant to help co-exist with current SRF etc
-- * TODO: REMOVE!
-- */
--static inline unsigned char uv_to_vsel(unsigned long uV)
--{
--	return ((uV / 100) - 6000) / 125;
--}
--
- unsigned long opp_get_voltage(const struct omap_opp *opp)
- {
- 	if (unlikely(!opp || IS_ERR(opp)) || !opp->enabled) {
- 		pr_err("%s: Invalid parameters being passed\n", __func__);
- 		return 0;
- 	}
--	return vsel_to_uv(opp->vsel);
-+	return omap_twl_vsel_to_uv(opp->vsel);
- }
- 
- unsigned long opp_get_freq(const struct omap_opp *opp)
-@@ -162,9 +143,9 @@ static void omap_opp_populate(struct omap_opp *opp,
- {
- 	opp->rate = opp_def->freq;
- 	opp->enabled = opp_def->enabled;
--	opp->vsel = uv_to_vsel(opp_def->u_volt);
-+	opp->vsel = omap_twl_uv_to_vsel(opp_def->u_volt);
- 	/* round off to higher voltage */
--	if (opp_def->u_volt > vsel_to_uv(opp->vsel))
-+	if (opp_def->u_volt > omap_twl_vsel_to_uv(opp->vsel))
- 		opp->vsel++;
- }
- 
-diff --git a/arch/arm/plat-omap/opp_twl_tps.c b/arch/arm/plat-omap/opp_twl_tps.c
-new file mode 100644
-index 0000000..edcb719
---- /dev/null
-+++ b/arch/arm/plat-omap/opp_twl_tps.c
-@@ -0,0 +1,38 @@
-+/*
-+ * opp_twl_tps.c - TWL/TPS-specific functions for the OPP code
-+ *
-+ * Copyright (C) 2009 Texas Instruments Incorporated.
-+ *	Nishanth Menon
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * XXX This code should be part of some other TWL/TPS code.
-+ */
-+
-+#include <plat/opp_twl_tps.h>
-+
-+/**
-+ * omap_twl_vsel_to_vdc - convert TWL/TPS VSEL value to microvolts DC
-+ * @vsel: TWL/TPS VSEL value to convert
-+ *
-+ * Returns the microvolts DC that the TWL/TPS family of PMICs should
-+ * generate when programmed with @vsel.
-+ */
-+unsigned long omap_twl_vsel_to_uv(const u8 vsel)
-+{
-+	return (((vsel * 125) + 6000)) * 100;
-+}
-+
-+/**
-+ * omap_twl_uv_to_vsel - convert microvolts DC to TWL/TPS VSEL value
-+ * @uv: microvolts DC to convert
-+ *
-+ * Returns the VSEL value necessary for the TWL/TPS family of PMICs to
-+ * generate an output voltage equal to or greater than @uv microvolts DC.
-+ */
-+u8 omap_twl_uv_to_vsel(unsigned long uv)
-+{
-+	return ((uv / 100) - 6000) / 125;
-+}
+some comments:
+
+On Wed, 16 Dec 2009, Ranjith Lohithakshan wrote:
+
+> This patch adds clock support for the following AM35xx modules
+> 	- Ethernet MAC
+> 	- CAN Controller (HECC)
+> 	- New MUSB OTG Controller with integrated Phy
+> 	- Video Processing Front End (VPFE)
+> 	- Additional UART (UART4)
+> 
+> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock34xx_data.c  |   93 +++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/cm-regbits-34xx.h |    6 ++
+>  2 files changed, 99 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
+> index 043caed..d7942b3 100644
+> --- a/arch/arm/mach-omap2/clock34xx_data.c
+> +++ b/arch/arm/mach-omap2/clock34xx_data.c
+> @@ -2983,6 +2983,91 @@ static struct clk wdt1_fck = {
+>  	.recalc		= &followparent_recalc,
+>  };
+>  
+> +/* Clocks for AM35XX */
+> +static struct clk emac_ick = {
+> +	.name       = "emac_ick",
+> +	.ops        = &clkops_omap2_dflt,
+
+Shouldn't this clock use &clkops_omap2_dflt_wait (or rather, some custom 
+version that knows how to read the _ACK bits in IPSS_CLK_CTRL) and test 
+CPGMAC_VBUSP_CLK_EN_ACK?  Same for the other IPSS VBUSP clocks?   (I guess 
+"VBUSP" is a synonym for "interface"?)
+
+> +	.parent     = &core_l3_ick,
+> +	.clkdm_name = "core_l3_clkdm",
+> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+> +	.enable_bit = AM35XX_CPGMAC_VBUSP_CLK_SHIFT,
+> +	.recalc     = &followparent_recalc,
+> +};
+> +
+> +static struct clk emac_fck = {
+> +	.name       = "emac_fck",
+> +	.ops        = &clkops_omap2_dflt,
+> +	.clkdm_name = "core_l3_clkdm",
+
+Is this the correct clockdomain for this clock?  It seems unlikely that a 
+50MHz functional clock would be in core_l3_clkdm.  Usually these are all 
+interface clocks.  This applies for all the other functional clocks listed 
+in this file also.
+
+> +	.rate       = 50000000,
+
+What's the parent of this clock?  Looking at TRM section 4.7.7.12 it 
+appears that it gets this from an off-chip source, "rmii_clk"?  Guess that 
+should probably be defined as the fixed source clock, and emac_fck should 
+list rmii_clk as its parent?
+
+> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+> +	.enable_bit = AM35XX_CPGMAC_FCLK_SHIFT,
+> +	.recalc     = &omap2_clksel_recalc,
+
+This .recalc field is wrong, since there's no .clksel field defined.  If 
+you define that parent, then this should be followparent_recalc.  The 
+parent should have .flags = RATE_FIXED and no .recalc.
+
+> +};
+> +
+> +static struct clk hsotgusb_ick_am35xx = {
+> +	.name       = "hsotgusb_ick",
+> +	.ops        = &clkops_omap2_dflt,
+> +	.parent     = &core_l3_ick,
+> +	.clkdm_name = "core_l3_clkdm",
+> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+> +	.enable_bit = AM35XX_USBOTG_VBUSP_CLK_SHIFT,
+> +	.recalc     = &followparent_recalc,
+> +};
+> +
+> +static struct clk hsotgusb_fck_am35xx = {
+> +	.name       = "hsotgusb_fck",
+> +	.ops        = &clkops_omap2_dflt,
+> +	.parent     = &sys_ck,
+> +	.clkdm_name = "core_l3_clkdm",
+> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+> +	.enable_bit = AM35XX_USBOTG_FCLK_SHIFT,
+> +	.recalc     = &followparent_recalc,
+> +};
+> +
+> +static struct clk hecc_ck = {
+> +	.name       = "hecc_ck",
+> +	.ops        = &clkops_omap2_dflt,
+> +	.parent     = &sys_ck,
+> +	.clkdm_name = "core_l3_clkdm",
+> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+> +	.enable_bit = AM35XX_HECC_VBUSP_CLK_SHIFT,
+> +	.recalc     = &followparent_recalc,
+> +};
+> +
+> +static struct clk vpfe_ick = {
+> +	.name       = "vpfe_ick",
+> +	.ops        = &clkops_omap2_dflt,
+> +	.parent     = &core_l3_ick,
+> +	.clkdm_name = "core_l3_clkdm",
+> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+> +	.enable_bit = AM35XX_VPFE_VBUSP_CLK_SHIFT,
+> +	.recalc     = &followparent_recalc,
+> +};
+> +
+> +static struct clk vpfe_fck = {
+> +	.name       = "vpfe_fck",
+> +	.ops        = &clkops_omap2_dflt,
+> +	.clkdm_name = "core_l3_clkdm",
+> +	.rate       = 27000000,
+> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+> +	.enable_bit = AM35XX_VPFE_FCLK_SHIFT,
+> +	.recalc     = &omap2_clksel_recalc,
+
+This fixed rate clock isn't right, for the same reasons as described 
+above.
+
+> +};
+> +
+> +/*
+> + * The UART1/2 functional clock acts as the functional
+> + * clock for UART4. No separate fclk control available.
+> + */
+> +static struct clk uart4_ick = {
+> +	.name       = "uart4_ick",
+> +	.ops        = &clkops_omap2_dflt_wait,
+> +	.parent     = &core_l4_ick,
+> +	.enable_reg = OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+> +	.enable_bit = AM35XX_EN_UART4_SHIFT,
+> +	.clkdm_name = "core_l4_clkdm",
+> +	.recalc     = &followparent_recalc,
+> +};
+> +
+>  
+>  /*
+>   * clkdev
+> @@ -3209,6 +3294,14 @@ static struct omap_clk omap3xxx_clks[] = {
+>  	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_3XXX),
+>  	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_3XXX),
+>  	CLK(NULL,	"wdt1_fck",	&wdt1_fck,	CK_3XXX),
+> +	CLK("davinci_emac", "ick", &emac_ick, CK_AM35XX),
+> +	CLK("davinci_emac", "fck", &emac_fck, CK_AM35XX),
+> +	CLK("musb_hdrc", "ick", &hsotgusb_ick_am35xx, CK_AM35XX),
+> +	CLK("musb_hdrc", "fck", &hsotgusb_fck_am35xx, CK_AM35XX),
+> +	CLK(NULL, "hecc_ck", &hecc_ck, CK_AM35XX),
+> +	CLK("vpfe-capture", "master", &vpfe_ick, CK_AM35XX),
+> +	CLK("vpfe-capture", "slave", &vpfe_fck, CK_AM35XX),
+> +	CLK(NULL, "uart4_ick", &uart4_ick, CK_AM35XX),
+
+Please align the new structure entries with the previous entries.  
+
+>  };
+>  
+>  
+> diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> index 6923deb..39caf48 100644
+> --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
+> +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> @@ -168,6 +168,12 @@
+>  #define OMAP3430_EN_SDRC				(1 << 1)
+>  #define OMAP3430_EN_SDRC_SHIFT				1
+>  
+> +/*
+> + * On AM35XX MSPro is replaced by another UART (UART4)
+> + */
+> +#define AM35XX_EN_UART4					(1 << 23)
+> +#define AM35XX_EN_UART4_SHIFT				23
+> +
+>  /* CM_ICLKEN2_CORE */
+>  #define OMAP3430_EN_PKA					(1 << 4)
+>  #define OMAP3430_EN_PKA_SHIFT				4
+> -- 
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
+- Paul
