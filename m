@@ -1,52 +1,43 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] Fix double-linking of drivers/usb/otg when ULPI is
- selected
-Date: Fri, 18 Dec 2009 18:44:53 +0200
-Message-ID: <1261154693.3430.0.camel@gandalf>
-References: <1261151842-577-1-git-send-email-bgat@billgatliff.com>
-Reply-To: me@felipebalbi.com
+From: "Candelaria Villareal, Jorge" <x0107209@ti.com>
+Subject: Re: [PATCH 2/3] ASoC: OMAP4: Add support for McPDM
+Date: Fri, 18 Dec 2009 11:01:19 -0600
+Message-ID: <2256F256009DAA4CBE661E9F41EAC84B8BB2A669@dlee01.ent.ti.com>
+References: <2256F256009DAA4CBE661E9F41EAC84B8BA0A6D2@dlee01.ent.ti.com>
+	<20091217202821.GA30379@nokia.com>
+	<2256F256009DAA4CBE661E9F41EAC84B8BA0AA88@dlee01.ent.ti.com>
+	<20091218093338.GA31755@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:60938 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754846AbZLRQo5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 11:44:57 -0500
-In-Reply-To: <1261151842-577-1-git-send-email-bgat@billgatliff.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091218093338.GA31755@nokia.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Bill Gatliff <bgat@billgatliff.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, beagleboard@googlegroups.com, daniel@caiaq.de
 
-On Fri, 2009-12-18 at 09:57 -0600, Bill Gatliff wrote:
-> This patch corrects a problem where drivers/usb/otg is linked twice
-> if CONFIG_USB_ULPI is selected, resulting in a build error (symbol
-> conflict). The files in that directory are properly linked already
-> as part of CONFIG_USB, and need not be indicated specifically for
-> CONFIG_USB_ULPI.
+Felipe Balbi wrote:
+> Hi,
 > 
-> Signed-off-by: Bill Gatliff <bgat@billgatliff.com>
-
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-
-drivers/usb/otg is linked when CONFIG_USB_OTG_UTILS is set.
-
-> ---
->  drivers/usb/Makefile |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
+> On Fri, Dec 18, 2009 at 03:23:14AM +0100, ext Candelaria 
+> Villareal, Jorge wrote:
+> >Is this because if two interrupts were set, my approach would
+> >not recognize it as one of the cases and exit without processing
+> >the interrupt?
 > 
-> diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
-> index 473aa1a..be3c9b8 100644
-> --- a/drivers/usb/Makefile
-> +++ b/drivers/usb/Makefile
-> @@ -44,5 +44,3 @@ obj-y				+= early/
->  
->  obj-$(CONFIG_USB_ATM)		+= atm/
->  obj-$(CONFIG_USB_SPEEDTOUCH)	+= atm/
-> -
-> -obj-$(CONFIG_USB_ULPI)		+= otg/
+> you don't have a break in your switch. your approach would go through 
+> all irq cases no matter what :-p
 
--- 
-balbi
-
+Mmm... But it _does_ have some breaks. Besides, I am still unsure that
+if structure should be used here. Code would be duplicated, for example,
+DN_IRQ_FULL and DN_IRQ_EMPTY share the same procedure to acknowledge
+the request.
