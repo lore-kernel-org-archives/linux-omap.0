@@ -1,89 +1,193 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 03/12] OMAP OPP: only traverse opp_find_freq_floor() once
-Date: Sat, 19 Dec 2009 17:40:30 +0530
-Message-ID: <4B2CC2B6.8070509@ti.com>
-References: <20091218004617.7694.84525.stgit@localhost.localdomain> <20091218004733.7694.75878.stgit@localhost.localdomain>
+Subject: Re: [PATCH 04/12] OMAP TWL/TPS OPP: move TWL/TPS-specific code to
+ its own	file
+Date: Sat, 19 Dec 2009 17:44:22 +0530
+Message-ID: <4B2CC39E.3060400@ti.com>
+References: <20091218004617.7694.84525.stgit@localhost.localdomain> <20091218004734.7694.32136.stgit@localhost.localdomain>
 Reply-To: nm@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45777 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751861AbZLSMKd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Dec 2009 07:10:33 -0500
-In-Reply-To: <20091218004733.7694.75878.stgit@localhost.localdomain>
+Received: from devils.ext.ti.com ([198.47.26.153]:43476 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751909AbZLSMO0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Dec 2009 07:14:26 -0500
+In-Reply-To: <20091218004734.7694.32136.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Paul Walmsley said the following on 12/18/2009 06:17 AM:
-> There's no point traversing the OPP list twice in opp_find_freq_floor().
+> The OPP layer code should be independent of the PMIC, so move
+> the TWL/TPS-specific code out to its own file.
 > ---
->  arch/arm/plat-omap/opp.c |   30 +++++++++++++-----------------
->  1 files changed, 13 insertions(+), 17 deletions(-)
+>  arch/arm/plat-omap/Makefile                   |    4 ++-
+>  arch/arm/plat-omap/include/plat/opp_twl_tps.h |   21 ++++++++++++++
+>  arch/arm/plat-omap/opp.c                      |   27 +++---------------
+>  arch/arm/plat-omap/opp_twl_tps.c              |   38 +++++++++++++++++++++++++
+>  4 files changed, 66 insertions(+), 24 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/include/plat/opp_twl_tps.h
+>  create mode 100644 arch/arm/plat-omap/opp_twl_tps.c
 >
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index e9cf601..b0c5b31 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -13,7 +13,9 @@ obj-  :=
+>  obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+>  
+>  # OPP support in (OMAP3+ only at the moment)
+> -obj-$(CONFIG_ARCH_OMAP3) += opp.o
+> +# XXX The OPP TWL/TPS code should only be included when a TWL/TPS
+> +# PMIC is selected.
+> +obj-$(CONFIG_ARCH_OMAP3) += opp.o opp_twl_tps.o
+>  
+>  # omap_device support (OMAP2+ only at the moment)
+>  obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
+> diff --git a/arch/arm/plat-omap/include/plat/opp_twl_tps.h b/arch/arm/plat-omap/include/plat/opp_twl_tps.h
+> new file mode 100644
+> index 0000000..8784e5f
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/plat/opp_twl_tps.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + * opp_twl_tps.h - TWL/TPS-specific headers for the OPP code
+> + *
+> + * Copyright (C) 2009 Texas Instruments Incorporated.
+> + *	Nishanth Menon
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * XXX This code belongs as part of some other TWL/TPS code.
+> + */
+> +#ifndef _ARCH_ARM_PLAT_OMAP_OPP_TWL_TPS_H
+> +#define _ARCH_ARM_PLAT_OMAP_OPP_TWL_TPS_H
+> +
+> +#include <linux/kernel.h>
+> +
+> +unsigned long omap_twl_vsel_to_uv(const u8 vsel);
+> +u8 omap_twl_uv_to_vsel(unsigned long uV);
+> +
+> +#endif
 > diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-> index fc250b8..e9f5706 100644
+> index e9f5706..9586e3b 100644
 > --- a/arch/arm/plat-omap/opp.c
 > +++ b/arch/arm/plat-omap/opp.c
-> @@ -126,36 +126,32 @@ struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl, unsigned long *freq)
+> @@ -15,6 +15,7 @@
+>  #include <linux/init.h>
+>  #include <linux/slab.h>
 >  
->  struct omap_opp *opp_find_freq_floor(struct omap_opp *oppl, unsigned long *freq)
+> +#include <plat/opp_twl_tps.h>
+>  #include <plat/opp.h>
+>  
+>  /*
+> @@ -24,33 +25,13 @@
+>   */
+>  #define OPP_TERM(opp) (!(opp)->rate && !(opp)->vsel && !(opp)->enabled)
+>  
+> -/*
+> - * DEPRECATED: Meant to convert vsel value to uVolt
+> - * This is meant to help co-exist with current SRF etc
+> - * TODO: REMOVE!
+> - */
+> -static inline unsigned long vsel_to_uv(const u8 vsel)
+> -{
+> -	return (((vsel * 125) + 6000)) * 100;
+> -}
+> -
+> -/*
+> - * DEPRECATED: Meant to convert uVolt to vsel value
+> - * This is meant to help co-exist with current SRF etc
+> - * TODO: REMOVE!
+> - */
+> -static inline unsigned char uv_to_vsel(unsigned long uV)
+> -{
+> -	return ((uV / 100) - 6000) / 125;
+> -}
+> -
+>  unsigned long opp_get_voltage(const struct omap_opp *opp)
 >  {
-> +	struct omap_opp *prev_opp = oppl;
-> +
->  	if (unlikely(!oppl || IS_ERR(oppl) || !freq || IS_ERR(freq))) {
+>  	if (unlikely(!opp || IS_ERR(opp)) || !opp->enabled) {
 >  		pr_err("%s: Invalid parameters being passed\n", __func__);
->  		return ERR_PTR(-EINVAL);
+>  		return 0;
 >  	}
->  
->  	/* skip initial terminator */
-> -	if (OPP_TERM(oppl)) {
-> +	if (OPP_TERM(oppl))
->  		oppl++;
-> -		/* If searching init list for a high val, skip to very top */
-> -		/*
-> -		 * XXX What is the point of this?  If one is going to traverse
-> -		 * the list, might as well do what we need to do during the
-> -		 * traversal.
-> -		 */
-> -		while (!OPP_TERM(oppl)) /* XXX above */
-> -			oppl++;
-> -	}
->  
-> -	while (!OPP_TERM(--oppl)) {
-> -		if (!oppl->enabled)
-> -			continue;
-> +	while (!OPP_TERM(oppl)) {
-> +		if (oppl->enabled) {
-> +			if (oppl->rate > *freq)
-> +				break;
->  
-> -		if (oppl->rate <= *freq)
-> -			break;
-> +			prev_opp = oppl;
-> +		}
-> +
-> +		oppl++;
->  	}
->  
-> -	if (OPP_TERM(oppl))
-> +	if (prev_opp->rate > *freq)
->  		return ERR_PTR(-ENOENT);
->  
-> -	*freq = oppl->rate;
-> +	*freq = prev_opp->rate;
->  
->  	return oppl;
+> -	return vsel_to_uv(opp->vsel);
+> +	return omap_twl_vsel_to_uv(opp->vsel);
 >  }
+>  
+>  unsigned long opp_get_freq(const struct omap_opp *opp)
+> @@ -162,9 +143,9 @@ static void omap_opp_populate(struct omap_opp *opp,
+>  {
+>  	opp->rate = opp_def->freq;
+>  	opp->enabled = opp_def->enabled;
+> -	opp->vsel = uv_to_vsel(opp_def->u_volt);
+> +	opp->vsel = omap_twl_uv_to_vsel(opp_def->u_volt);
+>  	/* round off to higher voltage */
+> -	if (opp_def->u_volt > vsel_to_uv(opp->vsel))
+> +	if (opp_def->u_volt > omap_twl_vsel_to_uv(opp->vsel))
+>  		opp->vsel++;
+>  }
+>  
+> diff --git a/arch/arm/plat-omap/opp_twl_tps.c b/arch/arm/plat-omap/opp_twl_tps.c
+> new file mode 100644
+> index 0000000..edcb719
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/opp_twl_tps.c
+> @@ -0,0 +1,38 @@
+> +/*
+> + * opp_twl_tps.c - TWL/TPS-specific functions for the OPP code
+> + *
+> + * Copyright (C) 2009 Texas Instruments Incorporated.
+> + *	Nishanth Menon
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * XXX This code should be part of some other TWL/TPS code.
+> + */
+> +
+> +#include <plat/opp_twl_tps.h>
+> +
+> +/**
+> + * omap_twl_vsel_to_vdc - convert TWL/TPS VSEL value to microvolts DC
+> + * @vsel: TWL/TPS VSEL value to convert
+> + *
+> + * Returns the microvolts DC that the TWL/TPS family of PMICs should
+> + * generate when programmed with @vsel.
+> + */
+> +unsigned long omap_twl_vsel_to_uv(const u8 vsel)
+> +{
+> +	return (((vsel * 125) + 6000)) * 100;
+> +}
+> +
+> +/**
+> + * omap_twl_uv_to_vsel - convert microvolts DC to TWL/TPS VSEL value
+> + * @uv: microvolts DC to convert
+> + *
+> + * Returns the VSEL value necessary for the TWL/TPS family of PMICs to
+> + * generate an output voltage equal to or greater than @uv microvolts DC.
+> + */
+> +u8 omap_twl_uv_to_vsel(unsigned long uv)
+> +{
+> +	return ((uv / 100) - 6000) / 125;
+>   
+you may want to ensure that this returns ceil instead - that way you can 
+clean bit of code off the init logic
+
+if (opp_def->u_volt > omap_twl_vsel_to_uv(opp->vsel))
+
+
+> +}
 >
 >
 >   
-
-Nice. thanks.
-Acked-by: Nishanth Menon <nm@ti.com>
-
+I dont think this belongs here.. I agree this is a twl settings Vs being 
+other custom chip settings, probably we can do it part of sr cleanup 
+though..
 Regards,
-Nishanth Menon
+NM
