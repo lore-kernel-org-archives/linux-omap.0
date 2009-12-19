@@ -1,36 +1,32 @@
-From: Roel Kluin <roel.kluin@gmail.com>
-Subject: [PATCH] OMAP: &&/|| confusion in iommu_put()
-Date: Sat, 19 Dec 2009 16:17:40 +0100
-Message-ID: <4B2CEE94.3080800@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: OMAP4 clock code needs some modifying now that clockdomains are
+ present
+Date: Sat, 19 Dec 2009 10:14:34 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0912191011030.17907@utopia.booyaka.com>
+References: <alpine.DEB.2.00.0912181118100.12561@utopia.booyaka.com> <alpine.DEB.2.00.0912181331010.12561@utopia.booyaka.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BFFDEF40@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:41872 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194AbZLSPWn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Dec 2009 10:22:43 -0500
+Received: from utopia.booyaka.com ([72.9.107.138]:59416 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752671AbZLSROf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Dec 2009 12:14:35 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BFFDEF40@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Pagare, Abhijit" <abhijitpagare@ti.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-obj can't be both NULL and be an error pointer.
+On Sat, 19 Dec 2009, Pagare, Abhijit wrote:
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
- arch/arm/plat-omap/iommu.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> 	Thanks for the update. I will take care of that, rebase on the 
+> suggested queue and send them soon.
 
-diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-index c0ff1e3..463d638 100644
---- a/arch/arm/plat-omap/iommu.c
-+++ b/arch/arm/plat-omap/iommu.c
-@@ -827,7 +827,7 @@ EXPORT_SYMBOL_GPL(iommu_get);
-  **/
- void iommu_put(struct iommu *obj)
- {
--	if (!obj && IS_ERR(obj))
-+	if (!obj || IS_ERR(obj))
- 		return;
- 
- 	mutex_lock(&obj->iommu_lock);
+Hello Abhijit,
+
+Just to clarify, that branch already contains your patches.  No need to 
+rebase or replace your existing patches.  I'd like to see a new patch that 
+cleans up those TODOs.
+
+
+- Paul
