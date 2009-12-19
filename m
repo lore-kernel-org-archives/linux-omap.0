@@ -1,217 +1,47 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 12/12] OMAP3 OPP: move CPUFreq table init code to OPP
- layer
-Date: Sat, 19 Dec 2009 17:52:40 +0530
-Message-ID: <4B2CC590.4060604@ti.com>
-References: <20091218004617.7694.84525.stgit@localhost.localdomain> <20091218004741.7694.33747.stgit@localhost.localdomain>
-Reply-To: nm@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/2] omap:pm: cleanup omap3_[mpu|dsp|l3]_rate_table
+Date: Sat, 19 Dec 2009 18:40:51 +0530
+Message-ID: <1261228253-30283-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44721 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47253 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751801AbZLSMWo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Dec 2009 07:22:44 -0500
-In-Reply-To: <20091218004741.7694.33747.stgit@localhost.localdomain>
+	id S1751675AbZLSNLD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 19 Dec 2009 08:11:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: kevin h <khilman@deeprootsystems.com>
+Cc: linux omap <linux-omap@vger.kernel.org>, Romit Dasgupta <romit@ti.com>, Ambresh k <ambresh@ti.com>, Nishanth Menon <nm@ti.com>
 
-Paul Walmsley said the following on 12/18/2009 06:17 AM:
-> Move omap2_clk_init_cpufreq_table() to opp_init_cpufreq_table() in opp.c
-> where it now belongs.  OMAP2 still needs to be converted to use the OPP layer,
-> so it is using the old code.
->   
-Neat.. thanks.. helps Omap4 too I can see..
-Acked-by: Nishanth Menon <nm@ti.com>
-> ---
->  arch/arm/mach-omap2/clock34xx.c       |   55 +--------------------------------
->  arch/arm/plat-omap/cpu-omap.c         |    6 +++-
->  arch/arm/plat-omap/include/plat/opp.h |    4 ++
->  arch/arm/plat-omap/opp.c              |   46 ++++++++++++++++++++++++++++
->  4 files changed, 56 insertions(+), 55 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index ba3dd70..6a40fb1 100644
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -27,7 +27,6 @@
->  #include <linux/limits.h>
->  #include <linux/bitops.h>
->  #include <linux/err.h>
-> -#include <linux/cpufreq.h>
->  
->  #include <plat/cpu.h>
->  #include <plat/clock.h>
-> @@ -257,56 +256,7 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
->  
->  /* Common clock code */
->  
-> -/*
-> - * As it is structured now, this will prevent an OMAP2/3 multiboot
-> - * kernel from compiling.  This will need further attention.
-> - */
-> -#if defined(CONFIG_ARCH_OMAP3)
-> -
-> -#ifdef CONFIG_CPU_FREQ
-> -
-> -static struct cpufreq_frequency_table *freq_table;
-> -
-> -void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
-> -{
-> -	int i = 0;
-> -	int opp_num;
-> -	struct omap_opp *opp = mpu_opps;
-> -	unsigned long freq = ULONG_MAX;
-> -
-> -	if (!mpu_opps) {
-> -		pr_warning("%s: failed to initialize frequency"
-> -				"table\n", __func__);
-> -		return;
-> -	}
-> -	opp_num = opp_get_opp_count(mpu_opps);
-> -	if (opp_num < 0) {
-> -		pr_err("%s: no opp table?\n", __func__);
-> -		return;
-> -	}
-> -
-> -	freq_table = kmalloc(sizeof(struct cpufreq_frequency_table) *
-> -			(opp_num + 1), GFP_ATOMIC);
-> -	if (!freq_table) {
-> -		pr_warning("%s: failed to allocate frequency"
-> -				"table\n", __func__);
-> -		return;
-> -	}
-> -
-> -	while (!IS_ERR(opp = opp_find_freq_floor(opp, &freq))) {
-> -		freq_table[i].index = i;
-> -		freq_table[i].frequency = freq / 1000;
-> -		i++;
-> -		/* set the next benchmark to search */
-> -		freq--;
-> -	}
-> -
-> -	freq_table[i].index = i;
-> -	freq_table[i].frequency = CPUFREQ_TABLE_END;
-> -
-> -	*table = &freq_table[0];
-> -}
-> -#endif
-> +#ifdef CONFIG_ARCH_OMAP3
->  
->  struct clk_functions omap2_clk_functions = {
->  	.clk_enable		= omap2_clk_enable,
-> @@ -315,9 +265,6 @@ struct clk_functions omap2_clk_functions = {
->  	.clk_set_rate		= omap2_clk_set_rate,
->  	.clk_set_parent		= omap2_clk_set_parent,
->  	.clk_disable_unused	= omap2_clk_disable_unused,
-> -#ifdef CONFIG_CPU_FREQ
-> -	.clk_init_cpufreq_table = omap2_clk_init_cpufreq_table,
-> -#endif
->  };
->  
->  /*
-> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-> index a2b5ee4..723834e 100644
-> --- a/arch/arm/plat-omap/cpu-omap.c
-> +++ b/arch/arm/plat-omap/cpu-omap.c
-> @@ -132,7 +132,11 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
->  
->  	policy->cur = policy->min = policy->max = omap_getspeed(0);
->  
-> -	clk_init_cpufreq_table(&freq_table);
-> +	if (!cpu_is_omap34xx())
-> +		clk_init_cpufreq_table(&freq_table);
-> +	else
-> +		opp_init_cpufreq_table(mpu_opps, &freq_table);
-> +
->  	if (freq_table) {
->  		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
->  		if (!result)
-> diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
-> index b00f7f9..91b0aa6 100644
-> --- a/arch/arm/plat-omap/include/plat/opp.h
-> +++ b/arch/arm/plat-omap/include/plat/opp.h
-> @@ -240,4 +240,8 @@ int opp_disable(struct omap_opp *opp);
->  struct omap_opp * __deprecated opp_find_by_opp_id(struct omap_opp *opps,
->  						  u8 opp_id);
->  
-> +void opp_init_cpufreq_table(struct omap_opp *opps,
-> +			    struct cpufreq_frequency_table **table);
-> +
-> +
->  #endif		/* __ASM_ARM_OMAP_OPP_H */
-> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-> index 8bdad43..aaafc10 100644
-> --- a/arch/arm/plat-omap/opp.c
-> +++ b/arch/arm/plat-omap/opp.c
-> @@ -14,6 +14,7 @@
->  #include <linux/err.h>
->  #include <linux/init.h>
->  #include <linux/slab.h>
-> +#include <linux/cpufreq.h>
->  
->  #include <plat/opp_twl_tps.h>
->  #include <plat/opp.h>
-> @@ -281,3 +282,48 @@ int opp_disable(struct omap_opp *opp)
->  	opp->enabled = false;
->  	return 0;
->  }
-> +
-> +/* XXX document */
-> +void opp_init_cpufreq_table(struct omap_opp *opps,
-> +			    struct cpufreq_frequency_table **table)
-> +{
-> +	int i = 0;
-> +	int opp_num;
-> +	unsigned long freq = ULONG_MAX;
-> +	struct cpufreq_frequency_table *freq_table;
-> +
-> +	if (!opps) {
-> +		pr_warning("%s: failed to initialize frequency"
-> +				"table\n", __func__);
-> +		return;
-> +	}
-> +
-> +	opp_num = opp_get_opp_count(opps);
-> +	if (opp_num < 0) {
-> +		pr_err("%s: no opp table?\n", __func__);
-> +		return;
-> +	}
-> +
-> +	freq_table = kmalloc(sizeof(struct cpufreq_frequency_table) *
-> +			     (opp_num + 1), GFP_ATOMIC);
-> +	if (!freq_table) {
-> +		pr_warning("%s: failed to allocate frequency"
-> +				"table\n", __func__);
-> +		return;
-> +	}
-> +
-> +	while (!OPP_TERM(opps)) {
-> +		if (opps->enabled) {
-> +			freq_table[i].index = i;
-> +			freq_table[i].frequency = freq / 1000;
-> +			i++;
-> +		}
-> +
-> +		opps++;
-> +	}
-> +
-> +	freq_table[i].index = i;
-> +	freq_table[i].frequency = CPUFREQ_TABLE_END;
-> +
-> +	*table = &freq_table[0];
-> +}
->
->
->   
+With the pm-wip-opp branch, we can do further cleanups
+with the omap2_init_common_hw
 
+Since the inits of mpu_opps etc are happening at
+omap3_pm_init_opp_table, we can just quit doing a double init
 
-here is a future problem I see:
-I think we need notifiers for opp_enable,disable and add -> this will 
-allow dynamic opp table modification allowing cpufreq changes accordingly.
+Nishanth Menon (2):
+  io: remove redundant params in omap2_init_common_hw
+  omap3: pm: remove omap3_[mpu|dsp|l3]_rate_tables
+
+ arch/arm/mach-omap2/board-3430sdp.c      |    3 +--
+ arch/arm/mach-omap2/board-3630sdp.c      |    4 +---
+ arch/arm/mach-omap2/board-apollon.c      |    2 +-
+ arch/arm/mach-omap2/board-cm-t35.c       |    3 +--
+ arch/arm/mach-omap2/board-generic.c      |    2 +-
+ arch/arm/mach-omap2/board-h4.c           |    2 +-
+ arch/arm/mach-omap2/board-ldp.c          |    2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c  |    3 +--
+ arch/arm/mach-omap2/board-omap3evm.c     |    3 +--
+ arch/arm/mach-omap2/board-omap3pandora.c |    3 +--
+ arch/arm/mach-omap2/board-overo.c        |    2 +-
+ arch/arm/mach-omap2/board-rx51.c         |    5 +----
+ arch/arm/mach-omap2/board-zoom2.c        |    3 +--
+ arch/arm/mach-omap2/board-zoom3.c        |    4 +---
+ arch/arm/mach-omap2/io.c                 |    5 +----
+ arch/arm/mach-omap2/pm34xx.c             |   15 +++------------
+ arch/arm/plat-omap/include/plat/io.h     |    5 +----
+ 17 files changed, 19 insertions(+), 47 deletions(-)
 
 Regards,
 Nishanth Menon
+PS: my vacation is on for the next 2 weeks, see you all next year.
+happy hacking..
