@@ -1,85 +1,36 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/2 v2] omap3:pm: remove omap3_[mpu|dsp|l3]_rate_tables
-Date: Sat, 19 Dec 2009 19:02:59 +0530
-Message-ID: <1261229579-8553-1-git-send-email-nm@ti.com>
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: [PATCH] OMAP: &&/|| confusion in iommu_put()
+Date: Sat, 19 Dec 2009 16:17:40 +0100
+Message-ID: <4B2CEE94.3080800@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53363 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752022AbZLSNdJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Dec 2009 08:33:09 -0500
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:41872 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194AbZLSPWn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Dec 2009 10:22:43 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kevin h <khilman@deeprootsystems.com>
-Cc: linux omap <linux-omap@vger.kernel.org>, Romit Dasgupta <romit@ti.com>, Ambresh k <ambresh@ti.com>, Nishanth Menon <nm@ti.com>
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-since _rate_tables are initializing mpu_opps, dsp_opps  and l3_opps
-it makes no sense in having these initialize just once. optimize
-these out
+obj can't be both NULL and be an error pointer.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 ---
-v2: cleaned up omap3-opp.h -> leaving this file still here in case
-we will need to add omap3 specific exported stuff here. Apologies
-on the spam.. realized this a bit late..
-v1: original cleanup of pm34xx.c
+ arch/arm/plat-omap/iommu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
- arch/arm/mach-omap2/omap3-opp.h |    4 ----
- arch/arm/mach-omap2/pm34xx.c    |   15 +++------------
- 2 files changed, 3 insertions(+), 16 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
-index 994d8d4..b47bb44 100644
---- a/arch/arm/mach-omap2/omap3-opp.h
-+++ b/arch/arm/mach-omap2/omap3-opp.h
-@@ -3,8 +3,4 @@
- 
- #include <plat/omap-pm.h>
- 
--extern struct omap_opp *omap3_mpu_rate_table;
--extern struct omap_opp *omap3_dsp_rate_table;
--extern struct omap_opp *omap3_l3_rate_table;
--
- #endif
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index d7646ba..9744a35 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -189,11 +189,6 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
- 	OMAP_OPP_DEF(0, 0, 0)
- };
- 
--/* OMAP3 Rate Table */
--struct omap_opp *omap3_mpu_rate_table;
--struct omap_opp *omap3_dsp_rate_table;
--struct omap_opp *omap3_l3_rate_table;
--
- static inline void omap3_per_save_context(void)
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index c0ff1e3..463d638 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -827,7 +827,7 @@ EXPORT_SYMBOL_GPL(iommu_get);
+  **/
+ void iommu_put(struct iommu *obj)
  {
- 	omap_gpio_save_context();
-@@ -1365,9 +1360,9 @@ void __init omap3_pm_init_opp_table(void)
- 		omap36xx_dsp_rate_table
- 	};
- 	struct omap_opp **omap3_rate_tables[] = {
--		&omap3_mpu_rate_table,
--		&omap3_l3_rate_table,
--		&omap3_dsp_rate_table
-+		&mpu_opps,
-+		&dsp_opps,
-+		&l3_opps
- 	};
+-	if (!obj && IS_ERR(obj))
++	if (!obj || IS_ERR(obj))
+ 		return;
  
- 	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
-@@ -1377,10 +1372,6 @@ void __init omap3_pm_init_opp_table(void)
- 		/* We dont want half configured system at the moment */
- 		BUG_ON(IS_ERR(omap3_rate_tables[i]));
- 	}
--
--	mpu_opps = omap3_mpu_rate_table;
--	dsp_opps = omap3_dsp_rate_table;
--	l3_opps = omap3_l3_rate_table;
- }
- 
- static int __init omap3_pm_early_init(void)
--- 
-1.6.3.3
-
+ 	mutex_lock(&obj->iommu_lock);
