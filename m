@@ -1,117 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/5] arm: Fix DCC console for v7
-Date: Fri, 18 Dec 2009 19:45:54 -0800
-Message-ID: <20091219034554.26198.60138.stgit@localhost>
+Subject: [PATCH 2/5] arm: Fix cpu_proc_fin() for proc-v7.S and make kexec work
+Date: Fri, 18 Dec 2009 19:46:06 -0800
+Message-ID: <20091219034606.26198.9336.stgit@localhost>
 References: <20091219034151.26198.26570.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58244 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754907AbZLSDp4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 22:45:56 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55444 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755076AbZLSDqK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 22:46:10 -0500
 In-Reply-To: <20091219034151.26198.26570.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Without this patch arch/arm/compressed/head.S defaults to generic
-DCC code that does not work for v7.
+The comments in arm_machine_restart() suggest that cpu_proc_fin()
+will clean and disable cache and turn off interrupts. This does
+not seem to be implemented for proc-v7.S, implement it the same
+way as for proc-v6.S.
 
-For more information on the v7 DCC, see Cortex-A8 TRM
-"12.11.1 Debug communications channel".
-
-To use it with post 2.6.33-rc1 or later, you need to have:
-
-CONFIG_DEBUG_LL=y
-ONFIG_DEBUG_ICEDCC=y
-CONFIG_EARLY_PRINTK=y
-
-Earlier kernels need commit 93fd03a8c6728b58879f8af20ffd55d9c32a778b
-backported.
-
-Tested on omap3430.
+This also makes kexec work for v7. Note that a related TLB and
+branch traget flush patch is also needed to avoid kexec
+"crc error".
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/compressed/head.S |    8 ++++++++
- arch/arm/boot/compressed/misc.c |   12 ++++++++++++
- arch/arm/kernel/debug.S         |   20 ++++++++++++++++++++
- 3 files changed, 40 insertions(+), 0 deletions(-)
+ arch/arm/mm/proc-v7.S |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
-index d356af7..4fddc50 100644
---- a/arch/arm/boot/compressed/head.S
-+++ b/arch/arm/boot/compressed/head.S
-@@ -27,6 +27,14 @@
- 		.macro	writeb, ch, rb
- 		mcr	p14, 0, \ch, c0, c5, 0
- 		.endm
-+#elif defined(CONFIG_CPU_V7)
-+		.macro	loadsp, rb
-+		.endm
-+		.macro	writeb, ch, rb
-+wait:		mrc	p14, 0, pc, c0, c1, 0
-+		bcs	wait
-+		mcr	p14, 0, \ch, c0, c5, 0
-+		.endm
- #elif defined(CONFIG_CPU_XSCALE)
- 		.macro	loadsp, rb
- 		.endm
-diff --git a/arch/arm/boot/compressed/misc.c b/arch/arm/boot/compressed/misc.c
-index 17153b5..2d1e819 100644
---- a/arch/arm/boot/compressed/misc.c
-+++ b/arch/arm/boot/compressed/misc.c
-@@ -48,6 +48,18 @@ static void icedcc_putc(int ch)
+diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+index 3a28521..d2a8074 100644
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -45,7 +45,14 @@ ENTRY(cpu_v7_proc_init)
+ ENDPROC(cpu_v7_proc_init)
  
- 	asm("mcr p14, 0, %0, c0, c5, 0" : : "r" (ch));
- }
-+
-+#elif defined(CONFIG_CPU_V7)
-+
-+static void icedcc_putc(int ch)
-+{
-+	asm(
-+	"wait:	mrc	p14, 0, pc, c0, c1, 0			\n\
-+		bcs	wait					\n\
-+		mcr     p14, 0, %0, c0, c5, 0			"
-+	: : "r" (ch));
-+}
-+
- #elif defined(CONFIG_CPU_XSCALE)
+ ENTRY(cpu_v7_proc_fin)
+-	mov	pc, lr
++	stmfd	sp!, {lr}
++	cpsid	if				@ disable interrupts
++	bl	v7_flush_kern_cache_all
++	mrc	p15, 0, r0, c1, c0, 0		@ ctrl register
++	bic	r0, r0, #0x1000			@ ...i............
++	bic	r0, r0, #0x0006			@ .............ca.
++	mcr	p15, 0, r0, c1, c0, 0		@ disable caches
++	ldmfd	sp!, {pc}
+ ENDPROC(cpu_v7_proc_fin)
  
- static void icedcc_putc(int ch)
-diff --git a/arch/arm/kernel/debug.S b/arch/arm/kernel/debug.S
-index b121b60..5c91add 100644
---- a/arch/arm/kernel/debug.S
-+++ b/arch/arm/kernel/debug.S
-@@ -49,6 +49,26 @@
- 1002:
- 		.endm
- 
-+#elif defined(CONFIG_CPU_V7)
-+
-+		.macro	addruart, rx
-+		.endm
-+
-+		.macro	senduart, rd, rx
-+		mcr	p14, 0, \rd, c0, c5, 0
-+		.endm
-+
-+		.macro	busyuart, rd, rx
-+busy:		mrc	p14, 0, pc, c0, c1, 0
-+		bcs	busy
-+		.endm
-+
-+		.macro	waituart, rd, rx
-+wait:		mrc	p14, 0, pc, c0, c1, 0
-+		bcs	wait
-+
-+		.endm
-+
- #elif defined(CONFIG_CPU_XSCALE)
- 
- 		.macro	addruart, rx
+ /*
 
