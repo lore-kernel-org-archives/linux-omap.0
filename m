@@ -1,39 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] V7/Cortex/omap34xx fixes for 2.6.33-rc1: DCC,
- kexec, atags
-Date: Fri, 18 Dec 2009 21:07:30 -0800
-Message-ID: <20091219050730.GC4575@atomide.com>
-References: <20091219034151.26198.26570.stgit@localhost>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 4/5] arm: Fix init_atags_procfs() to check tag->hdr.size
+Date: Sat, 19 Dec 2009 09:03:32 +0000
+Message-ID: <20091219090332.GA28047@n2100.arm.linux.org.uk>
+References: <20091219034151.26198.26570.stgit@localhost> <20091219034630.26198.35713.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60848 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828AbZLSFHi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Dec 2009 00:07:38 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49298 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959AbZLSJDo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Dec 2009 04:03:44 -0500
 Content-Disposition: inline
-In-Reply-To: <20091219034151.26198.26570.stgit@localhost>
+In-Reply-To: <20091219034630.26198.35713.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [091218 19:44]:
-> Hi all,
+On Fri, Dec 18, 2009 at 07:46:30PM -0800, Tony Lindgren wrote:
+> The tag->hdr.size cannot be larger than XXX.
+> Otherwise we can getsomething similar during boot:
 > 
-> Here are some v7 fixes, mostly to make kexec work.
-> 
-> Using 2.6.33-rc1, these fixes, and kexec from kexec-tools
-> git repo, I can reboot my n900 in a loop reliably.
-> 
-> To clarify, this works booting 2.6.33-rc1 in a loop, booting
-> the Maemo kernel with kexec does not seem to boot very far
-> at all for some reason. I'll look into that next.
+> Unable to handle kernel paging request at virtual address 61a05020
+> ...
 
-After a quick look it seems that the Maemo kernel hangs
-at dss_boottime_get_clocks(). Oh well, if anybody has
-a patch for that, let me know.
+NAK.
 
-Regards,
-
-Tony
+Why can't people get the simple ATAG setup right?  Fix the boot loader.
