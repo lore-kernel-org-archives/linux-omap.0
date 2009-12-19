@@ -1,94 +1,68 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 5/9] omap3: pm: sr: replace get_opp with freq_to_opp
-Date: Fri, 18 Dec 2009 15:12:49 -0800
-Message-ID: <87eimrx4em.fsf@deeprootsystems.com>
-References: <1258004721-7315-1-git-send-email-nm@ti.com>
-	<1258004721-7315-2-git-send-email-nm@ti.com>
-	<1258004721-7315-3-git-send-email-nm@ti.com>
-	<1258004721-7315-4-git-send-email-nm@ti.com>
-	<1258004721-7315-5-git-send-email-nm@ti.com>
-	<1258004721-7315-6-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/5] V7/Cortex/omap34xx fixes for 2.6.33-rc1: DCC, kexec, atags
+Date: Fri, 18 Dec 2009 19:45:41 -0800
+Message-ID: <20091219034151.26198.26570.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:45235 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932801AbZLRXMw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 18:12:52 -0500
-Received: by pwj9 with SMTP id 9so2190276pwj.21
-        for <linux-omap@vger.kernel.org>; Fri, 18 Dec 2009 15:12:51 -0800 (PST)
-In-Reply-To: <1258004721-7315-6-git-send-email-nm@ti.com> (Nishanth Menon's message of "Wed\, 11 Nov 2009 23\:45\:17 -0600")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58025 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754388AbZLSDpp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Dec 2009 22:45:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+Hi all,
 
-> SmartReflex implements a get_opp to search through the opp table,
-> replace it with the accessor function as it is a duplicate of
-> freq_to_opp
+Here are some v7 fixes, mostly to make kexec work.
 
-SmartReflex is not quite working with this version which is in
-pm-wip-opp.  My (untested) theory below...
+Using 2.6.33-rc1, these fixes, and kexec from kexec-tools
+git repo, I can reboot my n900 in a loop reliably.
 
-[...]
+To clarify, this works booting 2.6.33-rc1 in a loop, booting
+the Maemo kernel with kexec does not seem to boot very far
+at all for some reason. I'll look into that next.
 
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -146,49 +146,29 @@ static u32 cal_test_nvalue(u32 sennval, u32 senpval)
->  		(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT);
->  }
->  
-> -/* determine the current OPP from the frequency
-> - * we need to give this function last element of OPP rate table
-> - * and the frequency
-> - */
-> -static u16 get_opp(struct omap_opp *opp_freq_table,
-> -					unsigned long freq)
-> -{
-> -	struct omap_opp *prcm_config;
-> -
-> -	prcm_config = opp_freq_table;
-> -
-> -	if (prcm_config->rate <= freq)
-> -		return prcm_config->opp_id; /* Return the Highest OPP */
-> -	for (; prcm_config->rate; prcm_config--)
-> -		if (prcm_config->rate < freq)
-> -			return (prcm_config+1)->opp_id;
-> -		else if (prcm_config->rate == freq)
-> -			return prcm_config->opp_id;
-> -	/* Return the least OPP */
-> -	return (prcm_config+1)->opp_id;
-> -}
+FYI, if anybody wants to play with it, I used something
+like this for kexec:
 
-The function you removed here is doing the equivalent of
-opp_find_freq_ceil()
+#!/bin/sh
+
+./kexec -l zImage --command-line="$(cat /proc/cmdline)"
+sync
+kexec -e
+
+Regards,
+
+Tony
 
 
-> -static u16 get_vdd1_opp(void)
-> +static u8 get_vdd1_opp(void)
->  {
-> -	u16 opp;
-> +	u8 opp;
->  
->  	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk) ||
->  							mpu_opps == NULL)
->  		return 0;
->  
-> -	opp = get_opp(mpu_opps + MAX_VDD1_OPP, sr1.vdd_opp_clk->rate);
-> +	/* Not expected to fail.. */
-> +	BUG_ON(freq_to_opp(&opp, mpu_opps, sr1.vdd_opp_clk->rate));
->  	return opp;
->  }
+---
 
-Ih this version you use freq_to_opp(), but in the V5 tarball you sent,
-you replace get_opp with:
+Tony Lindgren (5):
+      arm: Fix DCC console for v7
+      arm: Fix cpu_proc_fin() for proc-v7.S and make kexec work
+      arm: Flush TLB entries in setup_mm_for_reboot()
+      arm: Fix init_atags_procfs() to check tag->hdr.size
+      arm: Fix typo in cacheflush.h and remove unnecessary comments
 
-	opp = opp_find_freq_exact(mpu_opps, sr1.vdd_opp_clk->rate, true);
 
-This results in never finding an OPP, and SR never scaling.
+ arch/arm/boot/compressed/head.S   |    8 ++++++++
+ arch/arm/boot/compressed/misc.c   |   12 ++++++++++++
+ arch/arm/include/asm/cacheflush.h |    2 +-
+ arch/arm/include/asm/setup.h      |   12 +++++++++---
+ arch/arm/kernel/atags.c           |    2 +-
+ arch/arm/kernel/compat.c          |    2 +-
+ arch/arm/kernel/debug.S           |   20 ++++++++++++++++++++
+ arch/arm/kernel/setup.c           |    4 ++--
+ arch/arm/mach-orion5x/common.c    |    2 +-
+ arch/arm/mm/mmu.c                 |    3 +++
+ arch/arm/mm/proc-v6.S             |    2 --
+ arch/arm/mm/proc-v7.S             |   11 ++++++++---
+ 12 files changed, 66 insertions(+), 14 deletions(-)
 
-This should probably be opp_find_freq_ceil(), right?
-
-Kevin
+-- 
+Signature
