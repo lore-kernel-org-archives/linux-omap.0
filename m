@@ -1,50 +1,76 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH fixes] [OMAP1] Add missing clocks for OMAP 7xx
-Date: Sun, 20 Dec 2009 09:35:04 -0700
-Message-ID: <1261326904-31656-1-git-send-email-darkstar6262@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:44670 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753137AbZLTQfP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Dec 2009 11:35:15 -0500
-Received: by yxe17 with SMTP id 17so4245142yxe.33
-        for <linux-omap@vger.kernel.org>; Sun, 20 Dec 2009 08:35:13 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 2/3] ASoC: OMAP4: Add support for McPDM
+Date: Sun, 20 Dec 2009 20:58:18 +0200
+Message-ID: <20091220185818.GA6631@nokia.com>
+References: <2256F256009DAA4CBE661E9F41EAC84B8BA0A6D2@dlee01.ent.ti.com>
+	<20091217202821.GA30379@nokia.com>
+	<2256F256009DAA4CBE661E9F41EAC84B8BA0AA88@dlee01.ent.ti.com>
+	<20091218093338.GA31755@nokia.com>
+	<2256F256009DAA4CBE661E9F41EAC84B8BB2A669@dlee01.ent.ti.com>
+	<20091220141941.GA6089@nokia.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20091220141941.GA6089@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ext Candelaria Villareal, Jorge" <x0107209@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-This change adds in some missing clocks that were needed as a result
-of 526505... (OMAP1 clock: convert mach-omap1/clock.h to
-mach-omap1/clock_data.c).
+Hi,
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- arch/arm/mach-omap1/clock_data.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+On Sun, Dec 20, 2009 at 03:19:41PM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
+>Hi,
+>
+>On Fri, Dec 18, 2009 at 06:01:19PM +0100, ext Candelaria Villareal, Jorge wrote:
+>>Mmm... But it _does_ have some breaks. Besides, I am still unsure that
+>>if structure should be used here. Code would be duplicated, for example,
+>>DN_IRQ_FULL and DN_IRQ_EMPTY share the same procedure to acknowledge
+>>the request.
+>
+>quoting your switch for irq here:
+>
+>> +       switch (irq_status) {
+>> +       case DN_IRQ_FULL:
+>> +       case DN_IRQ_EMTPY:
+>> +               dev_err(mcpdm_irq->dev, "DN FIFO error %x\n", irq_status);
+>> +               omap_mcpdm_reset(MCPDM_DOWNLINK, 1);
+>> +               omap_mcpdm_set_downlink(mcpdm_irq->downlink);
+>> +               omap_mcpdm_reset(MCPDM_DOWNLINK, 0);
+>> +               break;
+>> +       case DN_IRQ:
+>> +               dev_dbg(mcpdm_irq->dev, "DN write request\n");
+>> +               break;
+>> +       case UP_IRQ_FULL:
+>> +       case UP_IRQ_EMPTY:
+>> +               dev_err(mcpdm_irq->dev, "UP FIFO error %x\n", irq_status);
+>> +               omap_mcpdm_reset(MCPDM_UPLINK, 1);
+>> +               omap_mcpdm_set_uplink(mcpdm_irq->uplink);
+>> +               omap_mcpdm_reset(MCPDM_UPLINK, 0);
+>> +               break;
+>> +       case UP_IRQ:
+>> +               dev_dbg(mcpdm_irq->dev, "UP write request\n");
+>> +               break;
+>> +       }
+>
+>what happens if you have both DN_IRQ_FULL and DN_IRQ_EMPTY at the same
+>time ?
 
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index ab995a9..31fba07 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -599,7 +599,7 @@ static struct clk i2c_ick = {
- static struct omap_clk omap_clks[] = {
- 	/* non-ULPD clocks */
- 	CLK(NULL,	"ck_ref",	&ck_ref,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
--	CLK(NULL,	"ck_dpll1",	&ck_dpll1,	CK_16XX | CK_1510 | CK_310),
-+	CLK(NULL,	"ck_dpll1",	&ck_dpll1,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	/* CK_GEN1 clocks */
- 	CLK(NULL,	"ck_dpll1out",	&ck_dpll1out.clk, CK_16XX),
- 	CLK(NULL,	"ck_sossi",	&sossi_ck,	CK_16XX),
-@@ -627,7 +627,7 @@ static struct omap_clk omap_clks[] = {
- 	CLK(NULL,	"tc2_ck",	&tc2_ck,	CK_16XX),
- 	CLK(NULL,	"dma_ck",	&dma_ck,	CK_16XX | CK_1510 | CK_310),
- 	CLK(NULL,	"dma_lcdfree_ck", &dma_lcdfree_ck, CK_16XX),
--	CLK(NULL,	"api_ck",	&api_ck.clk,	CK_16XX | CK_1510 | CK_310),
-+	CLK(NULL,	"api_ck",	&api_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	CLK(NULL,	"lb_ck",	&lb_ck.clk,	CK_1510 | CK_310),
- 	CLK(NULL,	"rhea1_ck",	&rhea1_ck,	CK_16XX),
- 	CLK(NULL,	"rhea2_ck",	&rhea2_ck,	CK_16XX),
+
+probably DN_IRQ_FULL and DN_IRQ_EMPTY won't happen at the same time, but 
+maybe DN_IRQ_FULL and DN_IRQ. The point is that if two bits are enabled 
+in the irq status register, the switch won't work.
+
 -- 
-1.6.3.3
-
+balbi
