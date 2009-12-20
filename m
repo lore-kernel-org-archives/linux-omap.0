@@ -1,47 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/5] arm: Fix init_atags_procfs() to check tag->hdr.size
-Date: Sat, 19 Dec 2009 10:44:18 -0800
-Message-ID: <20091219184418.GD11397@atomide.com>
-References: <20091219034151.26198.26570.stgit@localhost>
- <20091219034630.26198.35713.stgit@localhost>
- <20091219090332.GA28047@n2100.arm.linux.org.uk>
- <20091219174428.GA11397@atomide.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 2/3] ASoC: OMAP4: Add support for McPDM
+Date: Sun, 20 Dec 2009 16:19:41 +0200
+Message-ID: <20091220141941.GA6089@nokia.com>
+References: <2256F256009DAA4CBE661E9F41EAC84B8BA0A6D2@dlee01.ent.ti.com>
+	<20091217202821.GA30379@nokia.com>
+	<2256F256009DAA4CBE661E9F41EAC84B8BA0AA88@dlee01.ent.ti.com>
+	<20091218093338.GA31755@nokia.com>
+	<2256F256009DAA4CBE661E9F41EAC84B8BB2A669@dlee01.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61197 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752992AbZLSSod (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Dec 2009 13:44:33 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20091219174428.GA11397@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <2256F256009DAA4CBE661E9F41EAC84B8BB2A669@dlee01.ent.ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "ext Candelaria Villareal, Jorge" <x0107209@ti.com>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [091219 09:43]:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [091219 01:02]:
-> > On Fri, Dec 18, 2009 at 07:46:30PM -0800, Tony Lindgren wrote:
-> > > The tag->hdr.size cannot be larger than XXX.
-> > > Otherwise we can getsomething similar during boot:
-> > > 
-> > > Unable to handle kernel paging request at virtual address 61a05020
-> > > ...
-> > 
-> > NAK.
-> > 
-> > Why can't people get the simple ATAG setup right?  Fix the boot loader.
-> 
-> In this case why can't the kernel get ATAG setup right?
-> 
-> This only happens when kexec rebooting multiple times in a row.
-> 
-> Sounds like something is not memset/kzalloc'd somewhere?
+Hi,
 
-Heh. I can't reproduce this any longer. I bet it was caused by
-the bug in my earlier reboot script that kept appending another
-root= to the cmdline every reboot :)
+On Fri, Dec 18, 2009 at 06:01:19PM +0100, ext Candelaria Villareal, Jorge wrote:
+>Mmm... But it _does_ have some breaks. Besides, I am still unsure that
+>if structure should be used here. Code would be duplicated, for example,
+>DN_IRQ_FULL and DN_IRQ_EMPTY share the same procedure to acknowledge
+>the request.
 
-Tony
+quoting your switch for irq here:
 
+> +       switch (irq_status) {
+> +       case DN_IRQ_FULL:
+> +       case DN_IRQ_EMTPY:
+> +               dev_err(mcpdm_irq->dev, "DN FIFO error %x\n", irq_status);
+> +               omap_mcpdm_reset(MCPDM_DOWNLINK, 1);
+> +               omap_mcpdm_set_downlink(mcpdm_irq->downlink);
+> +               omap_mcpdm_reset(MCPDM_DOWNLINK, 0);
+> +               break;
+> +       case DN_IRQ:
+> +               dev_dbg(mcpdm_irq->dev, "DN write request\n");
+> +               break;
+> +       case UP_IRQ_FULL:
+> +       case UP_IRQ_EMPTY:
+> +               dev_err(mcpdm_irq->dev, "UP FIFO error %x\n", irq_status);
+> +               omap_mcpdm_reset(MCPDM_UPLINK, 1);
+> +               omap_mcpdm_set_uplink(mcpdm_irq->uplink);
+> +               omap_mcpdm_reset(MCPDM_UPLINK, 0);
+> +               break;
+> +       case UP_IRQ:
+> +               dev_dbg(mcpdm_irq->dev, "UP write request\n");
+> +               break;
+> +       }
+
+what happens if you have both DN_IRQ_FULL and DN_IRQ_EMPTY at the same 
+time ?
+
+irq_status == DN_IRQ_FULL will evaluate to false and
+irq_status == DN_IRQ_EMPTY will also evaluate to false so none of those 
+case statements will execute. Similarly to other case statements.
+
+if you have to execute the same piece of code for two different irqs you 
+can always:
+
+if ((irq_status & DN_IRQ_FULL) || (irq_status & DN_IRQ_EMPTY))
+	ack_those_irqs();
+
+this code might be working now only out of luck, simply because you 
+didn't have two irqs hapenning at the same time. Do not use switch() on 
+bitmasks, it won't work always.
+
+-- 
+balbi
