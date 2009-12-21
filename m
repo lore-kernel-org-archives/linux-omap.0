@@ -1,104 +1,90 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: CPU consumption is going as high as 95% on ARM Cortex A8
-Date: Mon, 21 Dec 2009 16:56:19 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940449F43F65@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E73940449F43857@dbde02.ent.ti.com>
- <20091217095641.GA399@n2100.arm.linux.org.uk>
- <19F8576C6E063C45BE387C64729E73940449F43E29@dbde02.ent.ti.com>
- <20091221090750.GA11669@n2100.arm.linux.org.uk>
- <19F8576C6E063C45BE387C64729E73940449F43EEE@dbde02.ent.ti.com>
- <20091221105017.GB11669@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20091221105017.GB11669@n2100.arm.linux.org.uk>
-Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: [PATCH v2 1/2] omap i2c: make errata 1.153 workaround a separate function
+Date: Mon, 21 Dec 2009 13:29:58 +0200
+Message-ID: <1261394999-20857-2-git-send-email-virtuoso@slind.org>
+References: <1261394999-20857-1-git-send-email-virtuoso@slind.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:27315 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752400AbZLULay (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Dec 2009 06:30:54 -0500
+In-Reply-To: <1261394999-20857-1-git-send-email-virtuoso@slind.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ben-linux@fluff.org
+Cc: nm@ti.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>
 
+This is to avoid insanely long lines and levels of indentation.
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Monday, December 21, 2009 4:20 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-arm-kernel@lists.infradead.org; linux-mm@kvack.org; linux-
-> omap@vger.kernel.org
-> Subject: Re: CPU consumption is going as high as 95% on ARM Cortex
-> A8
->=20
-> On Mon, Dec 21, 2009 at 02:51:13PM +0530, Hiremath, Vaibhav wrote:
-> > > On Mon, Dec 21, 2009 at 11:56:23AM +0530, Hiremath, Vaibhav
-> wrote:
-<snip>...
+Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+CC: linux-i2c@vger.kernel.org
+CC: linux-omap@vger.kernel.org
+CC: nm@ti.com
+---
+ drivers/i2c/busses/i2c-omap.c |   43 ++++++++++++++++++++++------------------
+ 1 files changed, 24 insertions(+), 19 deletions(-)
 
-> >
-> > If I comment the line completely then I am seeing
-> > CPU consumption similar to when I was setting
-> PAGE_READONLY/PAGE_SHARED
-> > flag, which is 25-32%.
-> >
-> > > I suspect that will "solve" the problem - but you'll then no
-> longer
-> > > have
-> > > DMA coherency with userspace, so its not really a solution.
->=20
-> So it _is_ down to purely the amount of time it takes to read from a
-> non-cacheable buffer.  I think you need to investigate the userspace
-> program and see whether it's doing anything silly - I don't think
-> the
-> lack of performance is a kernel problem as such.
->=20
-[Hiremath, Vaibhav] The User space application program is pretty simple, do=
-ing nothing as such -=20
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 75bf3ad..2d146ac 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -671,6 +671,27 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
+ #define omap_i2c_rev1_isr		NULL
+ #endif
+ 
++/*
++ * OMAP3430 Errata 1.153: When an XRDY/XDR is hit, wait for XUDF before writing
++ * data to DATA_REG. Otherwise some data bytes can be lost while transferring
++ * them from the memory to the I2C interface.
++ */
++static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
++{
++	while (!(*stat & OMAP_I2C_STAT_XUDF)) {
++		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
++			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
++							OMAP_I2C_STAT_XDR));
++			*err |= OMAP_I2C_STAT_XUDF;
++			return -ETIMEDOUT;
++		}
++		cpu_relax();
++		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
++	}
++
++	return 0;
++}
++
+ static irqreturn_t
+ omap_i2c_isr(int this_irq, void *dev_id)
+ {
+@@ -794,25 +815,9 @@ complete:
+ 					break;
+ 				}
+ 
+-				/*
+-				 * OMAP3430 Errata 1.153: When an XRDY/XDR
+-				 * is hit, wait for XUDF before writing data
+-				 * to DATA_REG. Otherwise some data bytes can
+-				 * be lost while transferring them from the
+-				 * memory to the I2C interface.
+-				 */
+-
+-				if (dev->rev <= OMAP_I2C_REV_ON_3430) {
+-						while (!(stat & OMAP_I2C_STAT_XUDF)) {
+-							if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+-								omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+-								err |= OMAP_I2C_STAT_XUDF;
+-								goto complete;
+-							}
+-							cpu_relax();
+-							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+-						}
+-				}
++				if ((dev->rev <= OMAP_I2C_REV_ON_3430) &&
++				    errata_omap3_1p153(dev, &stat, &err))
++					goto complete;
+ 
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
+-- 
+1.6.3.3
 
-It is a loopback application where the captured frame is copied to display =
-buffer -
-
-/*Display buffer mmap*/
-display_buff_info[i].start =3D mmap(NULL, buf.length,
-			PROT_READ | PROT_WRITE, MAP_SHARED, *display_fd,=20
-			buf.m.offset);
-/*Capture Buffer mmap*/
-capture_buff_info[i].start =3D mmap(NULL, buf.length,
-			PROT_READ | PROT_WRITE, MAP_SHARED, *capture_fd,
-			buf.m.offset);
-while (1)
-	DEQUEUE BUFFER (blocking call)
-
-	for (h =3D 0; h < display_fmt.fmt.pix.height; h++) {
-		memcpy(dis_ptr, cap_ptr, display_fmt.fmt.pix.width * 2);
-		cap_ptr +=3D capture_fmt.fmt.pix.width * 2;
-		dis_ptr +=3D display_fmt.fmt.pix.width * 2;
-	}
-
-	QUEUE BUFFER
-}
-
-I will again review the application one more time and see whether I could g=
-et anything.
-
-> How large is this buffer?=20
-[Hiremath, Vaibhav] The buffer size is 720x480x2, and we have 3 such buffer=
-s used in queue/dequeue operation.
-
-> What userspace program is reading from
-> it?
-[Hiremath, Vaibhav] Simple loopback application doing memcpy.
-
-> Could the userspace program be unnecessarily re-reading from the
-> multiple times for the same frame?
-[Hiremath, Vaibhav] Let me re-visit the code for both application and drive=
-r with respect to this suggestion, but I don't think application is reading=
- twice.
-
-Thanks,
-Vaibhav
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
