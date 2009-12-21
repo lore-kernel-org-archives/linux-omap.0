@@ -1,123 +1,170 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH 2/4] DSPBRIDGE: remove NLDR_Free wrapper function
-Date: Mon, 21 Dec 2009 16:51:29 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602A9F8ABD6@dlee06.ent.ti.com>
+Subject: [PATCH 3/4] DSPBRIDGE: Optimize remove resource functions
+Date: Mon, 21 Dec 2009 16:52:10 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602A9F8ABD8@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51125 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43674 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755948AbZLUWvb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Dec 2009 17:51:31 -0500
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBLMpVLA023857
+	id S1755485AbZLUWwM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Dec 2009 17:52:12 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBLMqC8L024645
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 16:51:31 -0600
+	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 16:52:12 -0600
 Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id nBLMpU9L011300
-	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 16:51:30 -0600 (CST)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBLMpUDN006283
-	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 16:51:30 -0600 (CST)
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id nBLMqBoe001400
+	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 16:52:11 -0600 (CST)
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBLMqB1r006492
+	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 16:52:11 -0600 (CST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 7e60e301595911595daa466d3994be4aed1fc79e Mon Sep 17 00:00:00 2001
+>From 30ff35b825462818158c03ee519820cb6580533e Mon Sep 17 00:00:00 2001
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Wed, 2 Dec 2009 18:03:25 -0600
-Subject: [PATCH] DSPBRIDGE: remove NLDR_Free wrapper function
+Date: Wed, 2 Dec 2009 18:48:09 -0600
+Subject: [PATCH] DSPBRIDGE: Optimize remove resource functions
 
-This patch removes the NLDR_Free which is a wrapper function
-
-Signed-off-by: Fernando Guzman Lugo <x0095849@ti.com>
+This patch optimizes the remove resource functions, i.e DMM,
+Stream and Nodes.
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/nldr.h     |    1 -
- arch/arm/plat-omap/include/dspbridge/nldrdefs.h |    1 -
- drivers/dsp/bridge/rmgr/nldr.c                  |   15 +--------------
- drivers/dsp/bridge/rmgr/node.c                  |    3 +--
- 4 files changed, 2 insertions(+), 18 deletions(-)
+ drivers/dsp/bridge/rmgr/drv.c |   86 +++++++++++++++++------------------------
+ 1 files changed, 35 insertions(+), 51 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/nldr.h b/arch/arm/plat-omap/include/dspbridge/nldr.h
-index 5a0538a..4f0639a 100644
---- a/arch/arm/plat-omap/include/dspbridge/nldr.h
-+++ b/arch/arm/plat-omap/include/dspbridge/nldr.h
-@@ -38,7 +38,6 @@
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 946205c..a44916b 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -142,26 +142,21 @@ DSP_STATUS DRV_RemoveNodeResElement(HANDLE hNodeRes, HANDLE hPCtxt)
+ {
+ 	struct NODE_RES_OBJECT *pNodeRes = (struct NODE_RES_OBJECT *)hNodeRes;
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+-	DSP_STATUS	status = DSP_SOK;
+-	struct NODE_RES_OBJECT *pTempNode2 = pCtxt->pNodeList;
+-	struct NODE_RES_OBJECT *pTempNode = pCtxt->pNodeList;
++	struct NODE_RES_OBJECT *pTempNode;
  
- 	extern void NLDR_Delete(struct NLDR_OBJECT *hNldr);
- 	extern void NLDR_Exit(void);
--	extern void NLDR_Free(struct NLDR_NODEOBJECT *hNldrNode);
- 
- 	extern DSP_STATUS NLDR_GetFxnAddr(struct NLDR_NODEOBJECT *hNldrNode,
- 					  char *pstrFxn, u32 *pulAddr);
-diff --git a/arch/arm/plat-omap/include/dspbridge/nldrdefs.h b/arch/arm/plat-omap/include/dspbridge/nldrdefs.h
-index 18d3bb9..b0646fa 100644
---- a/arch/arm/plat-omap/include/dspbridge/nldrdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/nldrdefs.h
-@@ -287,7 +287,6 @@
- 		NLDR_CREATEFXN pfnCreate;
- 		NLDR_DELETEFXN pfnDelete;
- 		NLDR_EXITFXN pfnExit;
--		NLDR_FREEFXN pfnFree;
- 		NLDR_GETFXNADDRFXN pfnGetFxnAddr;
- 		NLDR_INITFXN pfnInit;
- 		NLDR_LOADFXN pfnLoad;
-diff --git a/drivers/dsp/bridge/rmgr/nldr.c b/drivers/dsp/bridge/rmgr/nldr.c
-index 2f45c2d..d0a0ca7 100644
---- a/drivers/dsp/bridge/rmgr/nldr.c
-+++ b/drivers/dsp/bridge/rmgr/nldr.c
-@@ -435,7 +435,7 @@ DSP_STATUS NLDR_Allocate(struct NLDR_OBJECT *hNldr, void *pPrivRef,
- 	}
- 	/* Cleanup on failure */
- 	if (DSP_FAILED(status) && pNldrNode)
--		NLDR_Free((struct NLDR_NODEOBJECT *) pNldrNode);
-+		MEM_FreeObject(pNldrNode);
- 
- 	DBC_Ensure((DSP_SUCCEEDED(status) &&
- 		  MEM_IsValidHandle(((struct NLDR_NODEOBJECT *)(*phNldrNode)),
-@@ -718,19 +718,6 @@ void NLDR_Exit(void)
+ 	DBC_Assert(hPCtxt != NULL);
+-	GT_0trace(curTrace, GT_ENTER, "\nDRV_RemoveNodeResElement: 1\n");
+-	while ((pTempNode != NULL) && (pTempNode != pNodeRes)) {
+-		pTempNode2 = pTempNode;
+-		pTempNode = pTempNode->next;
+-	}
+-	if (pCtxt->pNodeList == pNodeRes)
++	pTempNode = pCtxt->pNodeList;
++	if (pTempNode == pNodeRes) {
+ 		pCtxt->pNodeList = pNodeRes->next;
+-
+-	if (pTempNode == NULL)
+-		return DSP_ENOTFOUND;
+-	else if (pTempNode2->next != NULL)
+-		pTempNode2->next = pTempNode2->next->next;
+-
+-	MEM_Free(pTempNode);
+-	return status;
++	} else {
++		while (pTempNode && pTempNode->next != pNodeRes)
++			pTempNode = pTempNode->next;
++		if (!pTempNode)
++			return DSP_ENOTFOUND;
++		pTempNode->next = pNodeRes->next;
++	}
++	MEM_Free(pNodeRes);
++	return DSP_SOK;
  }
  
- /*
-- *  ======== NLDR_Free ========
-- */
--void NLDR_Free(struct NLDR_NODEOBJECT *hNldrNode)
--{
--	DBC_Require(cRefs > 0);
--	DBC_Require(MEM_IsValidHandle(hNldrNode, NLDR_NODESIGNATURE));
--
--	GT_1trace(NLDR_debugMask, GT_ENTER, "NLDR_Free(0x%x)\n", hNldrNode);
--
--	MEM_FreeObject(hNldrNode);
--}
--
--/*
-  *  ======== NLDR_GetFxnAddr ========
-  */
- DSP_STATUS NLDR_GetFxnAddr(struct NLDR_NODEOBJECT *hNldrNode, char *pstrFxn,
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 3cc0bad..da887a1 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -284,7 +284,6 @@ static struct NLDR_FXNS nldrFxns = {
- 	NLDR_Create,
- 	NLDR_Delete,
- 	NLDR_Exit,
--	NLDR_Free,
- 	NLDR_GetFxnAddr,
- 	NLDR_Init,
- 	NLDR_Load,
-@@ -2808,7 +2807,7 @@ static void DeleteNode(struct NODE_OBJECT *hNode,
- 	}
+ /* Actual Node De-Allocation */
+@@ -248,35 +243,25 @@ DSP_STATUS DRV_InsertDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
  
- 	if (hNode->hNldrNode) {
--		hNodeMgr->nldrFxns.pfnFree(hNode->hNldrNode);
-+		MEM_Free(hNode->hNldrNode);
- 		hNode->hNldrNode = NULL;
+ /* Release DMM resource element context
+ * This is called from Proc_UnMap. after the actual resource is freed */
+-DSP_STATUS 	DRV_RemoveDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
++DSP_STATUS DRV_RemoveDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
+ {
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+ 	struct DMM_RES_OBJECT *pDMMRes = (struct DMM_RES_OBJECT *)hDMMRes;
+-	DSP_STATUS status = DSP_SOK;
+-	struct DMM_RES_OBJECT *pTempDMMRes2 = NULL;
+ 	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
+ 
+ 	DBC_Assert(hPCtxt != NULL);
+-	pTempDMMRes2 = pCtxt->pDMMList;
+ 	pTempDMMRes = pCtxt->pDMMList;
+-	GT_0trace(curTrace, GT_ENTER, "DRV_RemoveDMMResElement: 1");
+-	while ((pTempDMMRes != NULL) && (pTempDMMRes != pDMMRes)) {
+-		GT_0trace(curTrace, GT_ENTER, "DRV_RemoveDMMResElement: 2");
+-		pTempDMMRes2 = pTempDMMRes;
+-		pTempDMMRes = pTempDMMRes->next;
++	if (pCtxt->pDMMList == pDMMRes) {
++		pCtxt->pDMMList = pDMMRes->next;
++	} else {
++		while (pTempDMMRes && pTempDMMRes->next != pDMMRes)
++			pTempDMMRes = pTempDMMRes->next;
++		if (!pTempDMMRes)
++			return DSP_ENOTFOUND;
++		pTempDMMRes->next = pDMMRes->next;
  	}
- 	hNode->hNodeMgr = NULL;
+-	GT_0trace(curTrace, GT_ENTER, "DRV_RemoveDMMResElement: 3");
+-	if (pCtxt->pDMMList == pTempDMMRes)
+-		pCtxt->pDMMList = pTempDMMRes->next;
+-
+-	if (pTempDMMRes == NULL)
+-		return DSP_ENOTFOUND;
+-	else if (pTempDMMRes2->next != NULL)
+-		pTempDMMRes2->next = pTempDMMRes2->next->next;
+-
+ 	MEM_Free(pDMMRes);
+-	GT_0trace(curTrace, GT_ENTER, "DRV_RemoveDMMResElement: 4");
+-	return status;
++	return DSP_SOK;
+ }
+ 
+ /* Update DMM resource status */
+@@ -482,25 +467,24 @@ DSP_STATUS 	DRV_ProcRemoveSTRMResElement(HANDLE hSTRMRes, HANDLE hPCtxt)
+ {
+ 	struct STRM_RES_OBJECT *pSTRMRes = (struct STRM_RES_OBJECT *)hSTRMRes;
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+-	DSP_STATUS status = DSP_SOK;
+-	struct STRM_RES_OBJECT *pTempSTRMRes2 = pCtxt->pSTRMList;
+-	struct STRM_RES_OBJECT *pTempSTRMRes = pCtxt->pSTRMList;
++	struct STRM_RES_OBJECT *pTempSTRMRes;
+ 
+ 	DBC_Assert(hPCtxt != NULL);
+-	while ((pTempSTRMRes != NULL) && (pTempSTRMRes != pSTRMRes)) {
+-		pTempSTRMRes2 = pTempSTRMRes;
+-		pTempSTRMRes = pTempSTRMRes->next;
+-	}
+-	if (pCtxt->pSTRMList == pTempSTRMRes)
+-		pCtxt->pSTRMList = pTempSTRMRes->next;
+ 
+-	if (pTempSTRMRes == NULL)
+-		status = DSP_ENOTFOUND;
+-	else if (pTempSTRMRes2->next != NULL)
+-		pTempSTRMRes2->next = pTempSTRMRes2->next->next;
++	pTempSTRMRes = pCtxt->pSTRMList;
++
++	if (pCtxt->pSTRMList == pSTRMRes) {
++		pCtxt->pSTRMList = pSTRMRes->next;
++	} else {
++		while (pTempSTRMRes && pTempSTRMRes->next != pSTRMRes)
++			pTempSTRMRes = pTempSTRMRes->next;
++		if (pTempSTRMRes == NULL)
++			return DSP_ENOTFOUND;
++		pTempSTRMRes->next = pSTRMRes->next;
++	}
+ 
+ 	MEM_Free(pSTRMRes);
+-	return status;
++	return DSP_SOK;
+ }
+ 
+ /* Actual Stream De-Allocation */
 -- 
 1.6.0.4
 
