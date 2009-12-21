@@ -1,172 +1,90 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH] OMAP35xx:SDIO IRQ Support for OMAP35xx
-Date: Mon, 21 Dec 2009 18:46:36 +0200
-Message-ID: <4B2FA66C.7010902@compulab.co.il>
-References: <1261400646-7641-1-git-send-email-phani@embwise.com>
+From: Bill Gatliff <bgat@billgatliff.com>
+Subject: Re: Anyone using an ISP1505?
+Date: Mon, 21 Dec 2009 11:06:42 -0600
+Message-ID: <4B2FAB22.90000@billgatliff.com>
+References: <4B2A7FFB.6090909@billgatliff.com> <5A47E75E594F054BAF48C5E4FC4B92AB031DC20A68@dbde02.ent.ti.com> <4B2BD3B6.20407@billgatliff.com> <FCCFB4CDC6E5564B9182F639FC35608702FFDF312B@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1261400646-7641-1-git-send-email-phani@embwise.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Phaneendra Kumar Alapati <phani@embwise.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Adrian Hunter <adrian.hunter@nokia.com>, "Paasikivi Teemu.3 (EXT-Ixonos/Tampere)" <ext-teemu.3.paasikivi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.27]:54257 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756921AbZLURGX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Dec 2009 12:06:23 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so1055109qwe.37
+        for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 09:06:23 -0800 (PST)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FFDF312B@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>
 
-Hi,
-
-Phaneendra Kumar Alapati wrote:
-> This patch adds SDIO IRQ support for OMAP35xx. Tested on OMAP3530EVM
-> with Marvell 88W8686 card and below are the observed throughput results
-> (ttcp utility): 13Mbps (Downlink), 10.5 Mbps(Uplink)
+Pandita, Vikram wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Bill
+>> Gatliff
+>> Sent: Friday, December 18, 2009 1:11 PM
+>> To: Gadiyar, Anand
+>> Cc: linux-omap@vger.kernel.org; beagleboard@googlegroups.com
+>> Subject: Re: Anyone using an ISP1505?
+>>
+>>     
+> <snip>
+>   
+>>> If it's with the EHCI controller, you need to take care of a couple of
+>>> issues on the board (due to the input clocking mode used in the OMAP3).
+>>>
+>>>       
+>> Can you elaborate?  Thanks!
+>>
+>>     
+> For omap-ehci, the OMAP feeds in the 60Mhz clock to the PHY(1505 in your case).
+> This is the input clocking mode of phy.
 >
-> Signed-off-by: Phaneendra Kumar <phani@embwise.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   55 ++++++++++++++++++++++++++++++++++++----
->  1 files changed, 49 insertions(+), 6 deletions(-)
+> It looks like the PHY state machine requires sometime to stabilize and lock into this 60Mhz clock input and this is done with a GPIO form omap.
+>
+> In ehci_hcd_omap_platform_data, Typically boards have
+> . phy_reset = true
+> . reset_gpio_port[0] = GPIO going to phy reset pin
+>
+> On your board you need to find, if there is a GPIO hooked from omap to PHY.
+> And the GPIO behavior is decided by the PHY pin property ( whether its active high/low and whether its chipselect or reset of phy).
+>
+> By default the code assumes that the GPIO is connected to RESET pin: going 0 while the 60mhz clock input stabilizes and then once done, make it 1.
+>
+> So find out what GPIO from omap is connected to phy to control the phy.
+>   
 
-I've tried the patch on CM-T35 that has Marvell 88W8686 on-board and
-surprisingly I get a lot of command timeouts from the libertas driver :(
----
-libertas: requeueing command 0x0006 due to timeout (#1)
-libertas: Received result 0 to command 6 after 1 retries
-libertas: command 0x0006 timed out
----
-I hope I'll find time to debug it in the next few days and provide more valuable
-information...
+Ok, I'll look at that.  I'm not sure if I have such a GPIO pin going to
+the PHY.
+
+I do have the XTAL input tied to SYS_CLK1/GPIO_10, and I've verified
+that I'm sending out a 19.2MHz clock signal on that pin.  That seems to
+be what the ISP1505ABS chip needs.  I start that clock in my board setup
+code.
+
+I just re-re-re-read the ISP1505 datasheet, and noticed this remark:
+
+    "Remark: When CLOCK starts toggling after power-up, the USB link
+    must issue a reset command over the ULPI bus to ensure correct
+    operation of the ISP1505".
 
 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 4b23225..fa94580 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -100,6 +100,10 @@
->  #define SRD			(1 << 26)
->  #define SOFTRESET		(1 << 1)
->  #define RESETDONE		(1 << 0)
-> +#define CIRQ		(1 << 8)
-> +#define CIRQ_ENABLE	(1 << 8)
-> +#define CTPL		(1 << 11)
-> +#define CLKEXTFREE	(1 << 16)
->  
->  /*
->   * FIXME: Most likely all the data using these _DEVID defines should come
-> @@ -171,6 +175,7 @@ struct omap_hsmmc_host {
->  	int			vdd;
->  	int			protect_card;
->  	int			reqs_blocked;
-> +	int			sdio_int;
->  
->  	struct	omap_mmc_platform_data	*pdata;
->  };
-> @@ -436,6 +441,13 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
->  	else
->  		OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
->  
-> +	if (host->sdio_int) {
-> +		OMAP_HSMMC_WRITE(host->base, ISE,
-> +			(OMAP_HSMMC_READ(host->base, ISE) | CIRQ_ENABLE));
-> +		OMAP_HSMMC_WRITE(host->base, IE,
-> +			(OMAP_HSMMC_READ(host->base, IE) | CIRQ_ENABLE));
-> +	}
-> +
->  	host->response_busy = 0;
->  	if (cmd->flags & MMC_RSP_PRESENT) {
->  		if (cmd->flags & MMC_RSP_136)
-> @@ -640,6 +652,17 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
->  
->  	spin_lock(&host->irq_lock);
->  
-> +	data = host->data;
-> +	status = OMAP_HSMMC_READ(host->base, STAT);
-> +	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
-> +
-> +	if (host->mmc->caps & MMC_CAP_SDIO_IRQ) {
-> +		if (status & CIRQ) {
-> +			dev_dbg(mmc_dev(host->mmc), "SDIO Card Interrupt\n");
-> +			mmc_signal_sdio_irq(host->mmc);
-> +		}
-> +	}
-> +
->  	if (host->mrq == NULL) {
->  		OMAP_HSMMC_WRITE(host->base, STAT,
->  			OMAP_HSMMC_READ(host->base, STAT));
-> @@ -649,10 +672,6 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
->  		return IRQ_HANDLED;
->  	}
->  
-> -	data = host->data;
-> -	status = OMAP_HSMMC_READ(host->base, STAT);
-> -	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
-> -
->  	if (status & ERR) {
->  #ifdef CONFIG_MMC_DEBUG
->  		omap_hsmmc_report_irq(host, status);
-> @@ -1254,6 +1273,25 @@ static int omap_hsmmc_get_ro(struct mmc_host *mmc)
->  	return mmc_slot(host).get_ro(host->dev, 0);
->  }
->  
-> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
-> +{
-> +	struct omap_hsmmc_host *host = mmc_priv(mmc);
-> +
-> +	host->sdio_int = enable;
-> +	if (enable) {
-> +		OMAP_HSMMC_WRITE(host->base, ISE,
-> +			(OMAP_HSMMC_READ(host->base, ISE) | CIRQ_ENABLE));
-> +		OMAP_HSMMC_WRITE(host->base, IE,
-> +			(OMAP_HSMMC_READ(host->base, IE) | CIRQ_ENABLE));
-> +	} else {
-> +		OMAP_HSMMC_WRITE(host->base, IE,
-> +			(OMAP_HSMMC_READ(host->base, IE) & (~CIRQ_ENABLE)));
-> +		OMAP_HSMMC_WRITE(host->base, ISE,
-> +			(OMAP_HSMMC_READ(host->base, ISE) & (~CIRQ_ENABLE)));
-> +	}
-> +
-> +}
-> +
->  static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
->  {
->  	u32 hctl, capa, value;
-> @@ -1519,7 +1557,7 @@ static const struct mmc_host_ops omap_hsmmc_ops = {
->  	.set_ios = omap_hsmmc_set_ios,
->  	.get_cd = omap_hsmmc_get_cd,
->  	.get_ro = omap_hsmmc_get_ro,
-> -	/* NYET -- enable_sdio_irq */
-> +	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->  };
->  
->  static const struct mmc_host_ops omap_hsmmc_ps_ops = {
-> @@ -1529,7 +1567,7 @@ static const struct mmc_host_ops omap_hsmmc_ps_ops = {
->  	.set_ios = omap_hsmmc_set_ios,
->  	.get_cd = omap_hsmmc_get_cd,
->  	.get_ro = omap_hsmmc_get_ro,
-> -	/* NYET -- enable_sdio_irq */
-> +	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->  };
->  
->  #ifdef CONFIG_DEBUG_FS
-> @@ -1657,6 +1695,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
->  	host->mapbase	= res->start;
->  	host->base	= ioremap(host->mapbase, SZ_4K);
->  	host->power_mode = -1;
-> +	host->sdio_int = 0;
->  
->  	platform_set_drvdata(pdev, host);
->  	INIT_WORK(&host->mmc_carddetect_work, omap_hsmmc_detect);
-> @@ -1744,6 +1783,10 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
->  	if (mmc_slot(host).nonremovable)
->  		mmc->caps |= MMC_CAP_NONREMOVABLE;
->  
-> +	mmc->caps |= MMC_CAP_SDIO_IRQ;
-> +	OMAP_HSMMC_WRITE(host->base, CON,
-> +			OMAP_HSMMC_READ(host->base, CON) | (CTPL | CLKEXTFREE));
-> +
->  	omap_hsmmc_conf_bus_power(host);
->  
->  	/* Select DMA lines */
+I see in drivers/usb/host/ehci-omap.c where the TLL is reset, but I
+can't find any code that sends a ULPI reset command out over the link. 
+Or am I missing something?
+
+I also see drivers/usb/otg/ulpi.c which claims to support the ISP1504,
+which is a very similar chip to the ISP1505.  But it also lacks any
+mention of a ULPI reset-type command.
+
+
+Any additional thoughts?  I'm losing hair fast on this one....  :)
+
+
+b.g.
 
 -- 
-Sincerely yours,
-Mike.
+Bill Gatliff
+bgat@billgatliff.com
 
