@@ -1,82 +1,51 @@
-From: Abhijit Pagare <abhijitpagare@ti.com>
-Subject: [PATCH 1/1] ARM: OMAP4: PM: Remove the checks preventing OMAP4 clockdomain validation
-Date: Mon, 21 Dec 2009 16:05:47 +0530
-Message-ID: <1261391747-24066-1-git-send-email-abhijitpagare@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36601 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750915AbZLUKgD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Dec 2009 05:36:03 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] musb: Add new fifo table for a OMAP3 errata
+Date: Mon, 21 Dec 2009 12:46:47 +0200
+Message-ID: <20091221104647.GF30969@nokia.com>
+References: <1261387769-20247-1-git-send-email-ajay.gupta@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB031DB9AF94@dbde02.ent.ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031DB9AF94-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Abhijit Pagare <abhijitpagare@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-The clockdomain related code beng in place it is now not necessary to have
-some of the clock code commented out. This would help the validation of the
-clockdomain functions using the clock level interfaces.
+On Mon, Dec 21, 2009 at 11:12:16AM +0100, ext Gadiyar, Anand wrote:
+>Gupta, Ajay Kumar wrote:
+>>
+>> We have observed MSC data read corruption when USB LAN device is
+>> also connected and it's interface is up.
+>>
+>> Silicon team has confirmed an errata where in all the active
+>> transfers should use FIFO space either in first 8K or next 8K.
+>> So far we have observed the issue in above use case scenario.
+>>
+>> As a workaround to it, adding a new FIFO config (5) fitting well
+>> within first 8K which can be used for such use cases.
+>>
+>> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+>
+>Long term, do you think the board files should define the
+>the FIFO configuration table that they want to use (instead of
+>having different options in musb_core.c)?
 
-Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/clock.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
+I think so too and even sent a patch long time about doing that but it 
+got lost.
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 759c72a..a6d570a 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -181,7 +181,6 @@ static int _dpll_test_fint(struct clk *clk, u8 n)
-  * clockdomain pointer, and save it into the struct clk.  Intended to be
-  * called during clk_register().  No return value.
-  */
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- void omap2_init_clk_clkdm(struct clk *clk)
- {
- 	struct clockdomain *clkdm;
-@@ -199,7 +198,6 @@ void omap2_init_clk_clkdm(struct clk *clk)
- 			 "clkdm %s\n", clk->name, clk->clkdm_name);
- 	}
- }
--#endif
- 
- /**
-  * omap2_init_clksel_parent - set a clksel clk's parent field from the hardware
-@@ -476,10 +474,8 @@ void omap2_clk_disable(struct clk *clk)
- 		_omap2_clk_disable(clk);
- 		if (clk->parent)
- 			omap2_clk_disable(clk->parent);
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- 		if (clk->clkdm)
- 			omap2_clkdm_clk_disable(clk->clkdm, clk);
--#endif
- 
- 	}
- }
-@@ -489,10 +485,8 @@ int omap2_clk_enable(struct clk *clk)
- 	int ret = 0;
- 
- 	if (clk->usecount++ == 0) {
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- 		if (clk->clkdm)
- 			omap2_clkdm_clk_enable(clk->clkdm, clk);
--#endif
- 
- 		if (clk->parent) {
- 			ret = omap2_clk_enable(clk->parent);
-@@ -511,10 +505,8 @@ int omap2_clk_enable(struct clk *clk)
- 	return ret;
- 
- err:
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- 	if (clk->clkdm)
- 		omap2_clkdm_clk_disable(clk->clkdm, clk);
--#endif
- 	clk->usecount--;
- 	return ret;
- }
+I recall Dave wanted to have a default mode on musb_core.c though.
+
+>Acked-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+
+I'm taking this one
+
 -- 
-1.5.4.7
-
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
