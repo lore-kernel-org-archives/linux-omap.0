@@ -1,81 +1,65 @@
-From: "Candelaria Villareal, Jorge" <x0107209@ti.com>
-Subject: Re: [PATCH 2/3] ASoC: OMAP4: Add support for McPDM
-Date: Mon, 21 Dec 2009 16:50:18 -0600
-Message-ID: <2256F256009DAA4CBE661E9F41EAC84B8BC5C1F8@dlee01.ent.ti.com>
-References: <2256F256009DAA4CBE661E9F41EAC84B8BA0A6D2@dlee01.ent.ti.com>
-	<20091217202821.GA30379@nokia.com>
-	<2256F256009DAA4CBE661E9F41EAC84B8BA0AA88@dlee01.ent.ti.com>
-	<20091218093338.GA31755@nokia.com>
-	<2256F256009DAA4CBE661E9F41EAC84B8BB2A669@dlee01.ent.ti.com>,
-	<20091220141941.GA6089@nokia.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [PATCH] DSPBRIDGE: Always print DSP traces.
+Date: Mon, 21 Dec 2009 17:40:12 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602A9F8AC1C@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20091220141941.GA6089@nokia.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:57533 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751431AbZLUXkO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Dec 2009 18:40:14 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBLNeEvo024813
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 17:40:14 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBLNeDGs000164
+	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 17:40:13 -0600 (CST)
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBLNeDpd018745
+	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 17:40:13 -0600 (CST)
 Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->On Fri, Dec 18, 2009 at 06:01:19PM +0100, ext Candelaria Villareal, Jorge wrote:
->>Mmm... But it _does_ have some breaks. Besides, I am still unsure that
->>if structure should be used here. Code would be duplicated, for example,
->>DN_IRQ_FULL and DN_IRQ_EMPTY share the same procedure to acknowledge
->>the request.
->
->quoting your switch for irq here:
->
->> +       switch (irq_status) {
->> +       case DN_IRQ_FULL:
->> +       case DN_IRQ_EMTPY:
->> +               dev_err(mcpdm_irq->dev, "DN FIFO error %x\n", irq_status);
->> +               omap_mcpdm_reset(MCPDM_DOWNLINK, 1);
->> +               omap_mcpdm_set_downlink(mcpdm_irq->downlink);
->> +               omap_mcpdm_reset(MCPDM_DOWNLINK, 0);
->> +               break;
->> +       case DN_IRQ:
->> +               dev_dbg(mcpdm_irq->dev, "DN write request\n");
->> +               break;
->> +       case UP_IRQ_FULL:
->> +       case UP_IRQ_EMPTY:
->> +               dev_err(mcpdm_irq->dev, "UP FIFO error %x\n", irq_status);
->> +               omap_mcpdm_reset(MCPDM_UPLINK, 1);
->> +               omap_mcpdm_set_uplink(mcpdm_irq->uplink);
->> +               omap_mcpdm_reset(MCPDM_UPLINK, 0);
->> +               break;
->> +       case UP_IRQ:
->> +               dev_dbg(mcpdm_irq->dev, "UP write request\n");
->> +               break;
->> +       }
->
->what happens if you have both DN_IRQ_FULL and DN_IRQ_EMPTY at the same
->time ?
->
->irq_status == DN_IRQ_FULL will evaluate to false and
->irq_status == DN_IRQ_EMPTY will also evaluate to false so none of those
->case statements will execute. Similarly to other case statements.
->
->if you have to execute the same piece of code for two different irqs you
->can always:
->
->if ((irq_status & DN_IRQ_FULL) || (irq_status & DN_IRQ_EMPTY))
->        ack_those_irqs();
->
->this code might be working now only out of luck, simply because you
->didn't have two irqs hapenning at the same time. Do not use switch() on
->bitmasks, it won't work always.
->
->--
->balbi
+>From b2da1eae742842cd8fbc643d2038eedeed5f4d36 Mon Sep 17 00:00:00 2001
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Mon, 21 Dec 2009 13:25:24 -0600
+Subject: [PATCH] DSPBRIDGE: Always print DSP traces.
 
-OK, I get what you say now. This change will be added to version 2. Thanks
+This patches prints DSP traces always removing the need to
+compile debug version and enable DSP traces.
+
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ drivers/dsp/bridge/wmd/io_sm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index 208ee29..010928b 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -1850,7 +1850,7 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
+ 			 * pointer */
+ 			hIOMgr->ulGPPReadPointer += ulNewMessageLength;
+ 			/* Print the trace messages */
+-			GT_0trace(dsp_trace_mask, GT_1CLASS, hIOMgr->pMsg);
++			pr_info("DSPTrace:%s", hIOMgr->pMsg);
+ 		}
+ 		/* Handle trace buffer wraparound */
+ 		else if (ulGPPCurPointer < hIOMgr->ulGPPReadPointer) {
+@@ -1871,7 +1871,7 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
+ 			hIOMgr->ulGPPReadPointer = hIOMgr->ulTraceBufferBegin +
+ 						   ulNewMessageLength;
+ 			/* Print the trace messages */
+-			GT_0trace(dsp_trace_mask, GT_1CLASS, hIOMgr->pMsg);
++			pr_info("DSPTrace:%s", hIOMgr->pMsg);
+ 		}
+ 	}
+ }
+-- 
+1.6.0.4
+
