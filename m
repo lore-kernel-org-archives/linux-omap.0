@@ -1,137 +1,81 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH 4/4] DSPBRIDGE: Remove unused variables.
-Date: Mon, 21 Dec 2009 16:52:46 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602A9F8ABDC@dlee06.ent.ti.com>
+From: "Candelaria Villareal, Jorge" <x0107209@ti.com>
+Subject: Re: [PATCH 2/3] ASoC: OMAP4: Add support for McPDM
+Date: Mon, 21 Dec 2009 16:50:18 -0600
+Message-ID: <2256F256009DAA4CBE661E9F41EAC84B8BC5C1F8@dlee01.ent.ti.com>
+References: <2256F256009DAA4CBE661E9F41EAC84B8BA0A6D2@dlee01.ent.ti.com>
+	<20091217202821.GA30379@nokia.com>
+	<2256F256009DAA4CBE661E9F41EAC84B8BA0AA88@dlee01.ent.ti.com>
+	<20091218093338.GA31755@nokia.com>
+	<2256F256009DAA4CBE661E9F41EAC84B8BB2A669@dlee01.ent.ti.com>,
+	<20091220141941.GA6089@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43699 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755599AbZLUWws convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Dec 2009 17:52:48 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nBLMqmAW024956
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 16:52:48 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id nBLMqlVq001581
-	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 16:52:47 -0600 (CST)
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nBLMqlqp006730
-	for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 16:52:47 -0600 (CST)
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091220141941.GA6089@nokia.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From b2090120a5f816a788113edceb753caec25de0b2 Mon Sep 17 00:00:00 2001
-From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Fri, 18 Dec 2009 21:06:07 -0600
-Subject: [PATCH] DSPBRIDGE: Remove unused variables.
+>On Fri, Dec 18, 2009 at 06:01:19PM +0100, ext Candelaria Villareal, Jorge wrote:
+>>Mmm... But it _does_ have some breaks. Besides, I am still unsure that
+>>if structure should be used here. Code would be duplicated, for example,
+>>DN_IRQ_FULL and DN_IRQ_EMPTY share the same procedure to acknowledge
+>>the request.
+>
+>quoting your switch for irq here:
+>
+>> +       switch (irq_status) {
+>> +       case DN_IRQ_FULL:
+>> +       case DN_IRQ_EMTPY:
+>> +               dev_err(mcpdm_irq->dev, "DN FIFO error %x\n", irq_status);
+>> +               omap_mcpdm_reset(MCPDM_DOWNLINK, 1);
+>> +               omap_mcpdm_set_downlink(mcpdm_irq->downlink);
+>> +               omap_mcpdm_reset(MCPDM_DOWNLINK, 0);
+>> +               break;
+>> +       case DN_IRQ:
+>> +               dev_dbg(mcpdm_irq->dev, "DN write request\n");
+>> +               break;
+>> +       case UP_IRQ_FULL:
+>> +       case UP_IRQ_EMPTY:
+>> +               dev_err(mcpdm_irq->dev, "UP FIFO error %x\n", irq_status);
+>> +               omap_mcpdm_reset(MCPDM_UPLINK, 1);
+>> +               omap_mcpdm_set_uplink(mcpdm_irq->uplink);
+>> +               omap_mcpdm_reset(MCPDM_UPLINK, 0);
+>> +               break;
+>> +       case UP_IRQ:
+>> +               dev_dbg(mcpdm_irq->dev, "UP write request\n");
+>> +               break;
+>> +       }
+>
+>what happens if you have both DN_IRQ_FULL and DN_IRQ_EMPTY at the same
+>time ?
+>
+>irq_status == DN_IRQ_FULL will evaluate to false and
+>irq_status == DN_IRQ_EMPTY will also evaluate to false so none of those
+>case statements will execute. Similarly to other case statements.
+>
+>if you have to execute the same piece of code for two different irqs you
+>can always:
+>
+>if ((irq_status & DN_IRQ_FULL) || (irq_status & DN_IRQ_EMPTY))
+>        ack_those_irqs();
+>
+>this code might be working now only out of luck, simply because you
+>didn't have two irqs hapenning at the same time. Do not use switch() on
+>bitmasks, it won't work always.
+>
+>--
+>balbi
 
-This patch removes an unused variable and an unused
-parameter and also a false comment.
-
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
----
- .../plat-omap/include/dspbridge/resourcecleanup.h  |    3 +--
- drivers/dsp/bridge/rmgr/drv.c                      |   12 ++++--------
- drivers/dsp/bridge/rmgr/strm.c                     |    4 ++--
- 3 files changed, 7 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-index a6f4397..4ded5aa 100644
---- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-+++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-@@ -63,8 +63,7 @@ extern DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE dmmRes,
- 
- extern DSP_STATUS DRV_RemoveDMMResElement(HANDLE dmmRes, HANDLE pCtxt);
- 
--extern DSP_STATUS DRV_ProcUpdateSTRMRes(u32 uNumBufs, HANDLE STRMRes,
--					HANDLE pCtxt);
-+extern DSP_STATUS DRV_ProcUpdateSTRMRes(u32 uNumBufs, HANDLE STRMRes);
- 
- extern DSP_STATUS DRV_ProcInsertSTRMResElement(HANDLE hStrm, HANDLE STRMRes,
- 						HANDLE pPctxt);
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index a44916b..a5a9552 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -339,7 +339,6 @@ DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE hDMMRes, HANDLE hPCtxt)
- 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
- 	struct DMM_RES_OBJECT **pDMMRes = (struct DMM_RES_OBJECT **)hDMMRes;
- 	DSP_STATUS status = DSP_SOK;
--	struct DMM_RES_OBJECT *pTempDMM2 = NULL;
- 	struct DMM_RES_OBJECT *pTempDMM = NULL;
- 
- 	DBC_Assert(hPCtxt != NULL);
-@@ -349,7 +348,6 @@ DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE hDMMRes, HANDLE hPCtxt)
- 			 "DRV_GetDMMResElement: 2 pTempDMM:%x "
- 			 "pTempDMM->ulDSPAddr:%x pMapAddr:%x\n", pTempDMM,
- 			 pTempDMM->ulDSPAddr, pMapAddr);
--		pTempDMM2 = pTempDMM;
- 		pTempDMM = pTempDMM->next;
- 	}
- 	if (pTempDMM != NULL) {
-@@ -579,12 +577,11 @@ DSP_STATUS DRV_GetSTRMResElement(HANDLE hStrm, HANDLE hSTRMRes, HANDLE hPCtxt)
- }
- 
- /* Updating the stream resource element */
--DSP_STATUS DRV_ProcUpdateSTRMRes(u32 uNumBufs, HANDLE hSTRMRes, HANDLE hPCtxt)
-+DSP_STATUS DRV_ProcUpdateSTRMRes(u32 uNumBufs, HANDLE hSTRMRes)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct STRM_RES_OBJECT **STRMRes = (struct STRM_RES_OBJECT **)hSTRMRes;
- 
--	DBC_Assert(hPCtxt != NULL);
- 	(*STRMRes)->uNumBufs = uNumBufs;
- 	return status;
- }
-@@ -1141,11 +1138,9 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
- 				iounmap((void *)pResources->dwPerPmBase);
- 			if (pResources->dwCorePmBase)
- 				iounmap((void *)pResources->dwCorePmBase);
--			if (pResources->dwSysCtrlBase) {
-+			if (pResources->dwSysCtrlBase)
- 				iounmap(pResources->dwSysCtrlBase);
--				/* don't set pResources->dwSysCtrlBase to null
--				 * as it is used in BOARD_Stop */
--			}
-+
- 			pResources->dwPrmBase = NULL;
- 			pResources->dwCmBase = NULL;
- 			pResources->dwMboxBase = NULL;
-@@ -1155,6 +1150,7 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
- 			pResources->dwMemBase[4] = (u32) NULL;
- 			pResources->dwWdTimerDspBase = NULL;
- 			pResources->dwDmmuBase = NULL;
-+			pResources->dwSysCtrlBase = NULL;
- 
- 			dwBuffSize = sizeof(struct CFG_HOSTRES);
- 			status = REG_SetValue(CURRENTCONFIG, (u8 *)pResources,
-diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index b0b4d32..febb6c2 100644
---- a/drivers/dsp/bridge/rmgr/strm.c
-+++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -158,7 +158,7 @@ DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
- 
- 	if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pr_ctxt) !=
- 			DSP_ENOTFOUND)
--		DRV_ProcUpdateSTRMRes(uNumBufs, hSTRMRes, pr_ctxt);
-+		DRV_ProcUpdateSTRMRes(uNumBufs, hSTRMRes);
- #endif
- func_end:
- 	return status;
-@@ -340,7 +340,7 @@ DSP_STATUS STRM_FreeBuffer(struct STRM_OBJECT *hStrm, u8 **apBuffer,
- #ifndef RES_CLEANUP_DISABLE
- 	if (DRV_GetSTRMResElement(hStrm, hSTRMRes, pr_ctxt) !=
- 			DSP_ENOTFOUND)
--		DRV_ProcUpdateSTRMRes(uNumBufs-i, hSTRMRes, pr_ctxt);
-+		DRV_ProcUpdateSTRMRes(uNumBufs-i, hSTRMRes);
- #endif
- 	return status;
- }
--- 
-1.6.0.4
-
+OK, I get what you say now. This change will be added to version 2. Thanks
