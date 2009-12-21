@@ -1,66 +1,52 @@
-From: "Y, Kishore" <kishore.y@ti.com>
-Subject: [PATCH] OMAP3630:DSS2:Enable Pre-Multiplied Alpha Support
-Date: Mon, 21 Dec 2009 20:36:35 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026AD3FF3B@dbde02.ent.ti.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: [PATCH fixes] [OMAP1] Add missing clocks for OMAP 7xx
+Date: Mon, 21 Dec 2009 08:08:52 -0700
+Message-ID: <6cb013310912210708s517f9ffcsa819cc358c5f9562@mail.gmail.com>
+References: <1261326904-31656-1-git-send-email-darkstar6262@gmail.com>
+	<alpine.DEB.2.00.0912201532500.12561@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54654 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751703AbZLUPGO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Dec 2009 10:06:14 -0500
-Content-Language: en-US
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:49299 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752380AbZLUPJM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Dec 2009 10:09:12 -0500
+Received: by pwj9 with SMTP id 9so3209785pwj.21
+        for <linux-omap@vger.kernel.org>; Mon, 21 Dec 2009 07:09:12 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.0912201532500.12561@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
->From 2f873819a4b9eb0bd658db1e59408d8f0aeb14b6 Mon Sep 17 00:00:00 2001
-From: Sudeep Basavaraj <sudeep.basavaraj@ti.com>
-Date: Mon, 14 Dec 2009 18:54:51 +0530
-Subject: [PATCH] OMAP3630:DSS2:Enable Pre-Multiplied Alpha Support
+On Sun, Dec 20, 2009 at 3:35 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>
+> Hi Cory,
+>
+> Thanks, queued for .33-rcX. =C2=A0-- although I don't think this had =
+anything
+> to do with the clock_data.c conversion. =C2=A0At least,
+>
+> git diff 6f62b58dd4e697a23a308f5b77781394949d333e.. arch/arm/mach-oma=
+p1/clock.c
+>
+> doesn't show a CK_7XX for either ck_dpll1 or api_ck in the original f=
+ile.
+>
 
-Enables dss to process color formats with pre-mulitplied alpha values.
-With this we can have alpha values defined for each pixel
-and hence can have different blending values for each pixel.
+Part of the purpose of that patch was to use the two clocks like every
+other clock.  Prior to that, it was just assumed that that clock
+existed for all devices, and it was used directly instead of calling
+it out with a clock_get call or similar.  So, when the fix was made,
+not having the CK_7XX meant those clocks weren't being used anymore
+for omap 7xx devices, which broke things badly.
 
-Signed-off-by: Sudeep Basavaraj <sudeep.basavaraj@ti.com>
-Signed-off-by: Kishore Y <kishore.y@ti.com>
----
- drivers/video/omap2/dss/dispc.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+Thanks for queuing the change. :)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 6dabf4b..5f7819b 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -913,6 +913,11 @@ static void _dispc_set_vid_color_conv(enum omap_plane plane, bool enable)
- 	dispc_write_reg(dispc_reg_att[plane], val);
- }
- 
-+static void _dispc_set_alpha_blend_attrs(enum omap_plane plane, bool enable)
-+{
-+	REG_FLD_MOD(dispc_reg_att[plane], enable ? 1 : 0, 28, 28);
-+}
-+
- void dispc_enable_replication(enum omap_plane plane, bool enable)
- {
- 	int bit;
-@@ -1689,6 +1694,9 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 
- 	_dispc_set_rotation_attrs(plane, rotation, mirror, color_mode);
- 
-+	if (cpu_is_omap3630() && (plane != OMAP_DSS_VIDEO1))
-+		_dispc_set_alpha_blend_attrs(plane, 1);
-+
- 	if (plane != OMAP_DSS_VIDEO1)
- 		_dispc_setup_global_alpha(plane, global_alpha);
- 
--- 
-1.5.4.3
-
-
-Regards,
-Kishore Y
-
+- Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
