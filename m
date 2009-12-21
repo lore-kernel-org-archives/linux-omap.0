@@ -1,40 +1,39 @@
-From: Romit Dasgupta <romit@ti.com>
-Subject: Re: [PATCH v2 1/4] OMAP OPP: Add accessor function for getting OPP
- ID.
-Date: Mon, 21 Dec 2009 12:41:33 +0530
-Message-ID: <4B2F1FA5.4000009@ti.com>
-References: <1261177539-15429-1-git-send-email-khilman@deeprootsystems.com> <1261177539-15429-2-git-send-email-khilman@deeprootsystems.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: CPU consumption is going as high as 95% on ARM Cortex A8
+Date: Mon, 21 Dec 2009 09:07:50 +0000
+Message-ID: <20091221090750.GA11669@n2100.arm.linux.org.uk>
+References: <19F8576C6E063C45BE387C64729E73940449F43857@dbde02.ent.ti.com> <20091217095641.GA399@n2100.arm.linux.org.uk> <19F8576C6E063C45BE387C64729E73940449F43E29@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56227 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750991AbZLUHLk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Dec 2009 02:11:40 -0500
-In-Reply-To: <1261177539-15429-2-git-send-email-khilman@deeprootsystems.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53350 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754748AbZLUJKx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Dec 2009 04:10:53 -0500
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940449F43E29@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin,
-        Some comments below:
-Kevin Hilman wrote:
-> Add new function opp_get_opp_id() for finding the OPP ID of a given
-> OPP.  This allows us to further hide OPP layer details.
+On Mon, Dec 21, 2009 at 11:56:23AM +0530, Hiremath, Vaibhav wrote:
+> >         vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+> > 
+> > will result in the memory being mapped as 'Strongly Ordered',
+> > resulting
+> > in there being multiple mappings with differing types.  In later
+> > kernels, we have pgprot_dmacoherent() and I'd suggest changing the
+> > above
+> > macro for that.
+> > 
 > 
-> NOTE: OPP IDs are deprecated, and this function will eventually
->       be removed after all users of OPP IDs are removed.
-Let us not add a deprecated function. If we are fixing this let us fix it right
-the first time.
->  
-> +u8 __deprecated opp_get_opp_id(struct omap_opp *opp)
-> +{
-> +	return opp->opp_id;
-> +}
-> +
->  int opp_get_opp_count(struct omap_opp *oppl)
->  {
->  	u8 n = 0;
+> I tried with your suggestion above but unfortunately it didn't work for
+> me. I am seeing the same behavior with the pgprot_dmacoherent(). I
+> pulled your patch (which got applied cleanly on 2.6.32-rc5) -
 
+What happens if you comment out the pgprot_dmacoherent() / pgprot_noncached()
+line completely?
+
+I suspect that will "solve" the problem - but you'll then no longer have
+DMA coherency with userspace, so its not really a solution.
