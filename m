@@ -1,50 +1,50 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 1/2] DSPBRIDGE: Avoid saving mailbox settings on constraint request
-Date: Tue, 22 Dec 2009 00:11:42 -0600
-Message-ID: <1261462303-29437-2-git-send-email-omar.ramirez@ti.com>
-References: <1261462303-29437-1-git-send-email-omar.ramirez@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59194 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751667AbZLVGEA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Dec 2009 01:04:00 -0500
-In-Reply-To: <1261462303-29437-1-git-send-email-omar.ramirez@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: peterhuewe@gmx.de
+Subject: [PATCH 08/10] video/omap: add __init/__exit macros to drivers/video/omap/lcd_htcherald.c
+Date: Tue, 22 Dec 2009 09:34:49 +0100
+Message-ID: <1261470890-24031-1-git-send-email-peterhuewe@gmx.de>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751747AbZLVIe4@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Kosina <trivial@kernel.org>
+Cc: kernel-janitors@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>, Imre Deak <imre.deak@nokia.com>, Tony Lindgren <tony@atomide.com>, Cory Maccarrone <darkstar6262@gmail.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-There is no need to save the mailbox settings if a request
-to set the OPP constraint comes from the DSP.
+From: Peter Huewe <peterhuewe@gmx.de>
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+Trivial patch which adds the __init/__exit macros to the module_init/
+module_exit functions of
+
+drivers/video/omap/lcd_htcherald.c
+
+Please have a look at the small patch and either pull it through
+your tree, or please ack' it so Jiri can pull it through the trivial
+tree.
+
+Patch against linux-next-tree, 22. Dez 08:38:18 CET 2009
+but also present in linus tree.
+
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
 ---
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+ drivers/video/omap/lcd_htcherald.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index fd6097d..68b6993 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -80,18 +80,13 @@ DSP_STATUS handle_constraints_set(struct WMD_DEV_CONTEXT *pDevContext,
+diff --git a/drivers/video/omap/lcd_htcherald.c b/drivers/video/omap/lcd_htcherald.c
+index a9007c5..4802419 100644
+--- a/drivers/video/omap/lcd_htcherald.c
++++ b/drivers/video/omap/lcd_htcherald.c
+@@ -115,12 +115,12 @@ struct platform_driver htcherald_panel_driver = {
+ 	},
+ };
+ 
+-static int htcherald_panel_drv_init(void)
++static int __init htcherald_panel_drv_init(void)
  {
- #ifdef CONFIG_BRIDGE_DVFS
- 	u32 *pConstraintVal;
--	DSP_STATUS status = DSP_SOK;
--	struct CFG_HOSTRES resources;
- 	struct dspbridge_platform_data *pdata =
- 		omap_dspbridge_dev->dev.platform_data;
--	status = CFG_GetHostResources(
--		(struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
+ 	return platform_driver_register(&htcherald_panel_driver);
+ }
  
- 	pConstraintVal = (u32 *)(pArgs);
- 	/* Read the target value requested by DSP  */
- 	DBG_Trace(DBG_LEVEL7, "handle_constraints_set:"
- 		"opp requested = 0x%x\n", (u32)*(pConstraintVal+1));
--	status = HW_MBOX_saveSettings(resources.dwMboxBase);
- 
- 	/* Set the new opp value */
- 	if (pdata->dsp_set_min_opp)
+-static void htcherald_panel_drv_cleanup(void)
++static void __exit htcherald_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&htcherald_panel_driver);
+ }
 -- 
-1.6.2.4
-
+1.6.4.4
