@@ -1,73 +1,102 @@
-From: <Tomi.Valkeinen@nokia.com>
-Subject: RE: [PATCH 0/3] OMAP: DSS: Low power refresh rate support for dss
-Date: Wed, 23 Dec 2009 11:58:49 +0100
-Message-ID: <3647DBDA80551C4696E9E4506F0BE08E2183E0A017@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1261480426.2108.81.camel@tubuntu.research.nokia.com>,<E0D41E29EB0DAC4E9F3FF173962E9E94026AD40696@dbde02.ent.ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of
+ sysconfig register.
+Date: Wed, 23 Dec 2009 16:32:43 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E171@dbde02.ent.ti.com>
+References: <1260098674-27143-1-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:42138 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754739AbZLWLAP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Dec 2009 06:00:15 -0500
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026AD40696@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57040 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754763AbZLWLCu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Dec 2009 06:02:50 -0500
+In-Reply-To: <1260098674-27143-1-git-send-email-thara@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kishore.y@ti.com
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Paul Walmsley <paul@pwsan.com>
 
-> ________________________________________
-> From: ext Y, Kishore [kishore.y@ti.com]
-> Sent: Wednesday, December 23, 2009 12:22
-> To: Valkeinen Tomi (Nokia-D/Helsinki)
-> Cc: Kevin Hilman; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH 0/3] OMAP: DSS: Low power refresh rate support for dss
->
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Tuesday, December 22, 2009 4:44 PM
-> > To: Y, Kishore
-> > Cc: Kevin Hilman; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 0/3] OMAP: DSS: Low power refresh rate support for dss
-> >
-> > Hi,
-> >
-> > On Tue, 2009-12-22 at 10:37 +0100, ext Y, Kishore wrote:
-> > > These patches add Low Power Refresh functionality for DSS.
-> > > Short info on patches
-> > >
-> > > DSS PM_WKEN to refill DMA
-> > >     - DMA request to refill the FIFO will wake up the CORE domain
-> > > DSS2 LPR enable and disable function definition
-> > >     - LPR enable and disable functions implementing FIFO merge
-> > > DSS2 sysfs enteries to export LPR enable to user
-> > >     - sysfs entries for above methods
-> >
-> > I don't like this approach very much. Fifo merge should be automatic,
-> > not user configurable. It should be integrated into the apply/cache
-> > mechanism in manager.c.
-> >
-> > I actually implemented fifo merge at some point during DSS2 development,
-> > but I had to remove it when changing the driver/device model. I haven't
-> > had time to implement it again, as it not very trivial. The old version
-> > can be found in N900's kernel, and earlier snapshots of DSS2.
->
-> Can you point me to the git for N900 code or ur old dss code? I couldn't find it.
 
-I don't know if there's a git tree, but the kernel source can be downloaded from, for example, http://repository.maemo.org/pool/fremantle/free/k/kernel/kernel-source_2.6.28-20094102.3+0m5_all.deb
 
-Use "dpkg -x file.deb ." to extract.
+>>-----Original Message-----
+>>From: Gopinath, Thara
+>>Sent: Sunday, December 06, 2009 4:55 PM
+>>To: linux-omap@vger.kernel.org
+>>Cc: Gopinath, Thara; Paul Walmsley
+>>Subject: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
+>>
+>>In the current implementation the sysconfig value is read into
+>> _sysc_cache once and an actual update to the sysconfig register
+>>happens only if the new value paased is differnt from the one in _sysc_cache.
+>>_sysc_cache is updated only if _HWMOD_SYSCONFIG_LOADED is not set.
+>>This can lead to the follwing issue if off mode is enabled in modules
+>>which employs "always-retore" mechanism of context save and restore.
+>>
+>>	a. The module sets the sysconfig register through omap_device_enable.
+>>	   Here _sysc_cache is updated with the value written to the sysconfig
+>>	   register and left.
+>>	b. The power domain containig the module enters off mode and the
+>>	   module context is lost.
+>>	c. The module in use becomes active and calls omap_device_enable to
+>>	   enable itself. Here a read of sysconfig register does not happen
+>>	   as _HWMOD_SYSCONFIG_LOADED flag is set. The value to be written
+>>	   to the sysconfig register will be same as the one written in step a.
+>>	   Since _sysc_cache reflects the previous written value an update
+>>	   of the sysconfig register does not happen.
+>>This means in modules which employs "always-restore" mechanism
+>>after off , the sysconfig regsiters will never get updated.
+>>
+>>This patch introduces a flag SYSC_NO_CACHE which if set ensures that the
+>>sysconfig register is always read into _sysc_cache before an update is
+>>attempted.
+>>
+>>This flags need to be set only by modules which does not do a context save
+>>but re-initializes the registers every time the module is accessed. This
+>>includes modules like i2c, smartreflex etc.
+>>
+>>Signed-off-by: Thara Gopinath <thara@ti.com>
+>>Cc: Paul Walmsley <paul@pwsan.com>
+>>---
+>>This patch depends on
+>>		http://patchwork.kernel.org/patch/63383/
+>>		http://patchwork.kernel.org/patch/65140/
+>>
+>> arch/arm/mach-omap2/omap_hwmod.c             |    3 ++-
+>> arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+>> 2 files changed, 3 insertions(+), 1 deletions(-)
+>>
+>>diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>>index 3edc387..786bf2e 100644
+>>--- a/arch/arm/mach-omap2/omap_hwmod.c
+>>+++ b/arch/arm/mach-omap2/omap_hwmod.c
+>>@@ -93,7 +93,8 @@ static int _update_sysc_cache(struct omap_hwmod *oh)
+>>
+>> 	oh->_sysc_cache = omap_hwmod_readl(oh, oh->sysconfig->sysc_offs);
+>>
+>>-	oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
+>>+	if (!(oh->sysconfig->sysc_flags & SYSC_NO_CACHE))
+>>+		oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
+>>
+>> 	return 0;
+>> }
+>>diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-
+>>omap/include/plat/omap_hwmod.h
+>>index 1f83495..a3298ca 100644
+>>--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>>+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>>@@ -228,6 +228,7 @@ struct omap_hwmod_ocp_if {
+>> #define SYSC_HAS_MIDLEMODE		(1 << 6)
+>> #define SYSS_MISSING			(1 << 7)
+>> #define SYSC_CHANGE_CLKACT_OFFSET	(1 << 8)
+>>+#define SYSC_NO_CACHE			(1 << 9)
+>>
+>> /* omap_hwmod_sysconfig.clockact flags */
+>> #define CLOCKACT_TEST_BOTH	0x0
+>>--
+Hi Paul,Kevin.. Does this patch look ok?
 
-> Please suggest:
-> How do we decide when to enable or disable lpr if we include it in manager.c?
-> Should we be doing it based on video pipeline usage...?
+>>1.5.4.7
 
-If by LPR you mean fifo-merge, I think it's simple: fifo-merge can be used when only one overlay is in use. And as I don't know any drawbacks with fifo-merge, fifo-merge should be used whenever there's only one overlay in use.
-
-The complication comes from configuring fifo-merge. If I remember right, fifo-merge bit is not shadowed, but overlay disable/enable is, and thus you need to be careful that the overlays really are disabled when enabling fifo-merge etc.
-
- Tomi
-
-Ps. Removing Kevin from cc, I don't think this concerns him.
