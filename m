@@ -1,34 +1,96 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Amba device porting
-Date: Wed, 23 Dec 2009 16:50:09 +0000
-Message-ID: <20091223165009.GA13900@n2100.arm.linux.org.uk>
-References: <20091223101902.GA15537@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Issue in oamp nand driver with 32-bit reads in prefetch mode
+Date: Wed, 23 Dec 2009 09:44:29 -0800
+Message-ID: <20091223174429.GD3512@atomide.com>
+References: <ce9ab5790912230133wae2c4dcw73051221b66cb40f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49116 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbZLWQxG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Dec 2009 11:53:06 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54398 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753976AbZLWRod (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Dec 2009 12:44:33 -0500
 Content-Disposition: inline
-In-Reply-To: <20091223101902.GA15537@nokia.com>
+In-Reply-To: <ce9ab5790912230133wae2c4dcw73051221b66cb40f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roman <roman.tereshonkov@nokia.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Dec 23, 2009 at 12:19:02PM +0200, Roman wrote:
-> Hi,
+* Vimal Singh <vimal.newwork@gmail.com> [091223 01:32]:
+> In omap nand driver we used to do 32-bit reads (in function
+> omap_read_buf_pref, using 'ioread32_rep' i.e.: __raw_readsl), and it
+> was working fine till some time back. But now, somehow, this has got
+> some problem. Reads are not being done successfully, and driver gives
+> lots for error reprot like below:
 > 
-> I planned to port the omap3 SDTI (Serial Debug Trace Interface) driver to amba based interface.
+> td->read(0x604 bytes from 0x1fc) returned ECC error
+> uncorrectable error :
+> uncorrectable error :
+> uncorrectable error :
+> uncorrectable error :
+> uncorrectable error :
+> uncorrectable error :
+> mtd->read(0x520 bytes from 0x2e0) returned ECC error
 > 
-> SDTI memory map is two parts composed:
-> 0x54500000 0x5450FFFF 4KB       SDTI module (configuration) - coresight based format.
-> 0x54510000 0x545FFFFF 1984KB    Reserved
-> 0x54600000 0x546FFFFF 1MB       SDTI module (window)
+> While if we change 32-bit reads to 16-bit reads (using 'ioread16_rep'
+> i.e.: __raw_readwl) makes it working fine. (A patch to do this is
+> listed below at the bottom of this mail.)
 > 
-> But amba interface seems to support only one memory region resource.
+> I have not seen any change in routine '__raw_readsl'.
+> So, could someone help me find out the root cause the issue?
+> 
+> Thanks for any input.
 
-The 'amba' interface is more a primecell interface.  Is SDTI a primecell
-peripheral?  If not, then it shouldn't be using the AMBA "primecell" bus
-support.
+Maybe an issue with the GPMC timings?
+
+Regards,
+
+Tony
+
+> 
+> -- 
+> Regards,
+> Vimal Singh
+> 
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index aaef170..dc493f5 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -288,14 +288,14 @@ static void omap_read_buf_pref(struct mtd_info
+>  						struct omap_nand_info, mtd);
+>  	uint32_t pfpw_status = 0, r_count = 0;
+>  	int ret = 0;
+> -	u32 *p = (u32 *)buf;
+> +	u16 *p = (u16 *)buf;
+> 
+>  	/* take care of subpage reads */
+> -	for (; len % 4 != 0; ) {
+> +	for (; len % 2 != 0; ) {
+>  		*buf++ = __raw_readb(info->nand.IO_ADDR_R);
+>  		len--;
+>  	}
+> -	p = (u32 *) buf;
+> +	p = (u16 *) buf;
+> 
+>  	/* configure and start prefetch transfer */
+>  	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
+> @@ -308,10 +308,10 @@ static void omap_read_buf_pref(struct mtd_info
+> *mtd, u_char *buf, int len)
+>  	} else {
+>  		do {
+>  			pfpw_status = gpmc_prefetch_status();
+> -			r_count = ((pfpw_status >> 24) & 0x7F) >> 2;
+> -			ioread32_rep(info->nand_pref_fifo_add, p, r_count);
+> +			r_count = ((pfpw_status >> 24) & 0x7F) >> 1;
+> +			ioread16_rep(info->nand_pref_fifo_add, p, r_count);
+>  			p += r_count;
+> -			len -= r_count << 2;
+> +			len -= r_count << 1;
+>  		} while (len);
+> 
+>  		/* disable and stop the PFPW engine */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
