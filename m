@@ -1,33 +1,47 @@
-From: Roman <roman.tereshonkov@nokia.com>
-Subject: Amba device porting
-Date: Wed, 23 Dec 2009 12:19:02 +0200
-Message-ID: <20091223101902.GA15537@nokia.com>
+From: "Y, Kishore" <kishore.y@ti.com>
+Subject: RE: [PATCH 0/3] OMAP: DSS: Low power refresh rate support for dss
+Date: Wed, 23 Dec 2009 15:52:47 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026AD40696@dbde02.ent.ti.com>
+References: <1261480426.2108.81.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53086 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755147AbZLWKV4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Dec 2009 05:21:56 -0500
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:33033 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755474AbZLWKWX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Dec 2009 05:22:23 -0500
+In-Reply-To: <1261480426.2108.81.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-
-I planned to port the omap3 SDTI (Serial Debug Trace Interface) driver to amba based interface.
-
-SDTI memory map is two parts composed:
-0x54500000 0x5450FFFF 4KB       SDTI module (configuration) - coresight based format.
-0x54510000 0x545FFFFF 1984KB    Reserved
-0x54600000 0x546FFFFF 1MB       SDTI module (window)
-
-But amba interface seems to support only one memory region resource.
-
-Is there any way to pass two memory regions?
-
-
-Regards
-Roman Tereshonkov
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWkgVmFsa2VpbmVuIFtt
+YWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBEZWNlbWJl
+ciAyMiwgMjAwOSA0OjQ0IFBNDQo+IFRvOiBZLCBLaXNob3JlDQo+IENjOiBLZXZpbiBIaWxtYW47
+IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMC8zXSBP
+TUFQOiBEU1M6IExvdyBwb3dlciByZWZyZXNoIHJhdGUgc3VwcG9ydCBmb3IgZHNzDQo+IA0KPiBI
+aSwNCj4gDQo+IE9uIFR1ZSwgMjAwOS0xMi0yMiBhdCAxMDozNyArMDEwMCwgZXh0IFksIEtpc2hv
+cmUgd3JvdGU6DQo+ID4gVGhlc2UgcGF0Y2hlcyBhZGQgTG93IFBvd2VyIFJlZnJlc2ggZnVuY3Rp
+b25hbGl0eSBmb3IgRFNTLg0KPiA+IFNob3J0IGluZm8gb24gcGF0Y2hlcw0KPiA+DQo+ID4gRFNT
+IFBNX1dLRU4gdG8gcmVmaWxsIERNQQ0KPiA+IAktIERNQSByZXF1ZXN0IHRvIHJlZmlsbCB0aGUg
+RklGTyB3aWxsIHdha2UgdXAgdGhlIENPUkUgZG9tYWluDQo+ID4gRFNTMiBMUFIgZW5hYmxlIGFu
+ZCBkaXNhYmxlIGZ1bmN0aW9uIGRlZmluaXRpb24NCj4gPiAJLSBMUFIgZW5hYmxlIGFuZCBkaXNh
+YmxlIGZ1bmN0aW9ucyBpbXBsZW1lbnRpbmcgRklGTyBtZXJnZQ0KPiA+IERTUzIgc3lzZnMgZW50
+ZXJpZXMgdG8gZXhwb3J0IExQUiBlbmFibGUgdG8gdXNlcg0KPiA+IAktIHN5c2ZzIGVudHJpZXMg
+Zm9yIGFib3ZlIG1ldGhvZHMNCj4gDQo+IEkgZG9uJ3QgbGlrZSB0aGlzIGFwcHJvYWNoIHZlcnkg
+bXVjaC4gRmlmbyBtZXJnZSBzaG91bGQgYmUgYXV0b21hdGljLA0KPiBub3QgdXNlciBjb25maWd1
+cmFibGUuIEl0IHNob3VsZCBiZSBpbnRlZ3JhdGVkIGludG8gdGhlIGFwcGx5L2NhY2hlDQo+IG1l
+Y2hhbmlzbSBpbiBtYW5hZ2VyLmMuDQo+IA0KPiBJIGFjdHVhbGx5IGltcGxlbWVudGVkIGZpZm8g
+bWVyZ2UgYXQgc29tZSBwb2ludCBkdXJpbmcgRFNTMiBkZXZlbG9wbWVudCwNCj4gYnV0IEkgaGFk
+IHRvIHJlbW92ZSBpdCB3aGVuIGNoYW5naW5nIHRoZSBkcml2ZXIvZGV2aWNlIG1vZGVsLiBJIGhh
+dmVuJ3QNCj4gaGFkIHRpbWUgdG8gaW1wbGVtZW50IGl0IGFnYWluLCBhcyBpdCBub3QgdmVyeSB0
+cml2aWFsLiBUaGUgb2xkIHZlcnNpb24NCj4gY2FuIGJlIGZvdW5kIGluIE45MDAncyBrZXJuZWws
+IGFuZCBlYXJsaWVyIHNuYXBzaG90cyBvZiBEU1MyLg0KDQpDYW4geW91IHBvaW50IG1lIHRvIHRo
+ZSBnaXQgZm9yIE45MDAgY29kZSBvciB1ciBvbGQgZHNzIGNvZGU/IEkgY291bGRuJ3QgZmluZCBp
+dC4NCg0KUGxlYXNlIHN1Z2dlc3Q6DQpIb3cgZG8gd2UgZGVjaWRlIHdoZW4gdG8gZW5hYmxlIG9y
+IGRpc2FibGUgbHByIGlmIHdlIGluY2x1ZGUgaXQgaW4gbWFuYWdlci5jPyANClNob3VsZCB3ZSBi
+ZSBkb2luZyBpdCBiYXNlZCBvbiB2aWRlbyBwaXBlbGluZSB1c2FnZS4uLj8NCj4gDQo+ICBUb21p
+DQo+IA0KDQo=
