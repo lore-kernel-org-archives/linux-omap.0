@@ -1,96 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Issue in oamp nand driver with 32-bit reads in prefetch mode
-Date: Wed, 23 Dec 2009 09:44:29 -0800
-Message-ID: <20091223174429.GD3512@atomide.com>
-References: <ce9ab5790912230133wae2c4dcw73051221b66cb40f@mail.gmail.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: serial port input corruption with 2.6.32?
+Date: Wed, 23 Dec 2009 12:59:46 -0800
+Message-ID: <5e088bd90912231259k12dfafeckecbaaa1d29cec4ed@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54398 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753976AbZLWRod (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Dec 2009 12:44:33 -0500
-Content-Disposition: inline
-In-Reply-To: <ce9ab5790912230133wae2c4dcw73051221b66cb40f@mail.gmail.com>
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:42346 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755394AbZLWU7r convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Dec 2009 15:59:47 -0500
+Received: by qyk30 with SMTP id 30so3552075qyk.33
+        for <linux-omap@vger.kernel.org>; Wed, 23 Dec 2009 12:59:47 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-* Vimal Singh <vimal.newwork@gmail.com> [091223 01:32]:
-> In omap nand driver we used to do 32-bit reads (in function
-> omap_read_buf_pref, using 'ioread32_rep' i.e.: __raw_readsl), and it
-> was working fine till some time back. But now, somehow, this has got
-> some problem. Reads are not being done successfully, and driver gives
-> lots for error reprot like below:
-> 
-> td->read(0x604 bytes from 0x1fc) returned ECC error
-> uncorrectable error :
-> uncorrectable error :
-> uncorrectable error :
-> uncorrectable error :
-> uncorrectable error :
-> uncorrectable error :
-> mtd->read(0x520 bytes from 0x2e0) returned ECC error
-> 
-> While if we change 32-bit reads to 16-bit reads (using 'ioread16_rep'
-> i.e.: __raw_readwl) makes it working fine. (A patch to do this is
-> listed below at the bottom of this mail.)
-> 
-> I have not seen any change in routine '__raw_readsl'.
-> So, could someone help me find out the root cause the issue?
-> 
-> Thanks for any input.
+I'm seeing some strange behavior with my console serial port with 2.6.3=
+2.
 
-Maybe an issue with the GPMC timings?
+Output seems fine -- no errors in the boot messages.
 
-Regards,
+However it seems that quite often the first character typed in a
+console session is garbled -- subsequent characters are OK:
 
-Tony
+root@omap3:~# =EF=BF=BDs -l
+-sh: =EF=BF=BDs: not found
 
-> 
-> -- 
-> Regards,
-> Vimal Singh
-> 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index aaef170..dc493f5 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -288,14 +288,14 @@ static void omap_read_buf_pref(struct mtd_info
->  						struct omap_nand_info, mtd);
->  	uint32_t pfpw_status = 0, r_count = 0;
->  	int ret = 0;
-> -	u32 *p = (u32 *)buf;
-> +	u16 *p = (u16 *)buf;
-> 
->  	/* take care of subpage reads */
-> -	for (; len % 4 != 0; ) {
-> +	for (; len % 2 != 0; ) {
->  		*buf++ = __raw_readb(info->nand.IO_ADDR_R);
->  		len--;
->  	}
-> -	p = (u32 *) buf;
-> +	p = (u16 *) buf;
-> 
->  	/* configure and start prefetch transfer */
->  	ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
-> @@ -308,10 +308,10 @@ static void omap_read_buf_pref(struct mtd_info
-> *mtd, u_char *buf, int len)
->  	} else {
->  		do {
->  			pfpw_status = gpmc_prefetch_status();
-> -			r_count = ((pfpw_status >> 24) & 0x7F) >> 2;
-> -			ioread32_rep(info->nand_pref_fifo_add, p, r_count);
-> +			r_count = ((pfpw_status >> 24) & 0x7F) >> 1;
-> +			ioread16_rep(info->nand_pref_fifo_add, p, r_count);
->  			p += r_count;
-> -			len -= r_count << 2;
-> +			len -= r_count << 1;
->  		} while (len);
-> 
->  		/* disable and stop the PFPW engine */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If commands are typed in rapid succession this issue doesn't show up,
+but if several seconds pass since the last keystroke the first
+character is garbled once again.
+
+Anyone else seeing this?  A search of this list didn't turn anything
+up, but perhaps my google mojo is just bad today.
+
+Steve
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
