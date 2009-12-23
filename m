@@ -1,101 +1,91 @@
-From: Abhijit Pagare <abhijitpagare@ti.com>
-Subject: [PATCH 1/1] ARM: OMAP4: PM: Remove the checks preventing OMAP4 clockdomain validation
-Date: Wed, 23 Dec 2009 21:17:50 +0530
-Message-ID: <1261583270-22267-1-git-send-email-abhijitpagare@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/5] dss2-core:Warning Fix: core_dump_clocks enclosed
+ under DEBUG_FS
+Date: Wed, 23 Dec 2009 22:04:29 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A277589@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+	 <1261063105-19874-1-git-send-email-hvaibhav@ti.com>
+ <1261483154.2108.86.camel@tubuntu.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54126 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56456 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752663AbZLWPsE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Dec 2009 10:48:04 -0500
+	id S1756416AbZLWQew convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Dec 2009 11:34:52 -0500
+In-Reply-To: <1261483154.2108.86.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Abhijit Pagare <abhijitpagare@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-The clockdomain related code being in place, it is not necessary to have
-some part of the clock code commented out. This would help the validation of
-the clockdomain functions using the clock level interfaces.
 
-Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Tuesday, December 22, 2009 5:29 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; linux-fbdev-
+> devel@lists.sourceforge.net; linux-fbdev@vger.kernel.org
+> Subject: Re: [PATCH 1/5] dss2-core:Warning Fix: core_dump_clocks
+> enclosed under DEBUG_FS
+> 
+> Hi,
+> 
+> On Thu, 2009-12-17 at 16:18 +0100, ext hvaibhav@ti.com wrote:
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> >
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Which warning does this fix? I don't get any compiler warnings.
+> 
+[Hiremath, Vaibhav] Below is the log - 
 
-Compiled and Boot Tested on OMAP4430 simulator, ES1 Chip & OMAP3430 SDP.
-And also Compiled for OMAP2430 and OMAP2420
 
-This patch has a dependency on the earlier set of OMAP4 clock-domain patches.
+  CC      drivers/video/omap2/dss/core.o
+drivers/video/omap2/dss/core.c:129: warning: 'core_dump_clocks' defined but not used
+  CC      drivers/video/omap2/dss/dss.o
 
- arch/arm/mach-omap2/clock.c          |    8 --------
- arch/arm/mach-omap2/clock44xx_data.c |    2 --
- 2 files changed, 0 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 759c72a..a6d570a 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -181,7 +181,6 @@ static int _dpll_test_fint(struct clk *clk, u8 n)
-  * clockdomain pointer, and save it into the struct clk.  Intended to be
-  * called during clk_register().  No return value.
-  */
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- void omap2_init_clk_clkdm(struct clk *clk)
- {
- 	struct clockdomain *clkdm;
-@@ -199,7 +198,6 @@ void omap2_init_clk_clkdm(struct clk *clk)
- 			 "clkdm %s\n", clk->name, clk->clkdm_name);
- 	}
- }
--#endif
- 
- /**
-  * omap2_init_clksel_parent - set a clksel clk's parent field from the hardware
-@@ -476,10 +474,8 @@ void omap2_clk_disable(struct clk *clk)
- 		_omap2_clk_disable(clk);
- 		if (clk->parent)
- 			omap2_clk_disable(clk->parent);
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- 		if (clk->clkdm)
- 			omap2_clkdm_clk_disable(clk->clkdm, clk);
--#endif
- 
- 	}
- }
-@@ -489,10 +485,8 @@ int omap2_clk_enable(struct clk *clk)
- 	int ret = 0;
- 
- 	if (clk->usecount++ == 0) {
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- 		if (clk->clkdm)
- 			omap2_clkdm_clk_enable(clk->clkdm, clk);
--#endif
- 
- 		if (clk->parent) {
- 			ret = omap2_clk_enable(clk->parent);
-@@ -511,10 +505,8 @@ int omap2_clk_enable(struct clk *clk)
- 	return ret;
- 
- err:
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- 	if (clk->clkdm)
- 		omap2_clkdm_clk_disable(clk->clkdm, clk);
--#endif
- 	clk->usecount--;
- 	return ret;
- }
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 2210e22..f47ba9e 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -2749,9 +2749,7 @@ int __init omap2_clk_init(void)
- 		if (c->cpu & cpu_clkflg) {
- 			clkdev_add(&c->lk);
- 			clk_register(c->lk.clk);
--			/* TODO
- 			omap2_init_clk_clkdm(c->lk.clk);
--			*/
- 		}
- 
- 	recalculate_root_clocks();
--- 
-1.5.4.7
+> Can you change the name of the patch to a more standard one?
+> 
+[Hiremath, Vaibhav] Ok, will do that and resubmit. I believe only prefix "OMAP" should do.
+
+Thanks,
+Vaibhav
+
+>  Tomi
+> 
+> > ---
+> >  drivers/video/omap2/dss/core.c |    2 ++
+> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/drivers/video/omap2/dss/core.c
+> b/drivers/video/omap2/dss/core.c
+> > index 29497a0..2fabaf2 100644
+> > --- a/drivers/video/omap2/dss/core.c
+> > +++ b/drivers/video/omap2/dss/core.c
+> > @@ -124,6 +124,7 @@ static void restore_all_ctx(void)
+> >  	dss_clk_disable_all_no_ctx();
+> >  }
+> >
+> > +#if defined(CONFIG_DEBUG_FS) &&
+> defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
+> >  /* CLOCKS */
+> >  static void core_dump_clocks(struct seq_file *s)
+> >  {
+> > @@ -149,6 +150,7 @@ static void core_dump_clocks(struct seq_file
+> *s)
+> >  				clocks[i]->usecount);
+> >  	}
+> >  }
+> > +#endif /* defined(CONFIG_DEBUG_FS) &&
+> defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) */
+> >
+> >  static int dss_get_clock(struct clk **clock, const char
+> *clk_name)
+> >  {
+> 
 
