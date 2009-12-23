@@ -1,81 +1,49 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH] [OMAP1] Clock fixups for OMAP1 and OMAP7xx
-Date: Tue, 22 Dec 2009 17:37:21 -0700
-Message-ID: <1261528641-22465-1-git-send-email-darkstar6262@gmail.com>
-References: <6cb013310912221628m1b2b820fy1a96a9a9102274e5@mail.gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:46743 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348AbZLWAhj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Dec 2009 19:37:39 -0500
-Received: by yxe17 with SMTP id 17so6373920yxe.33
-        for <linux-omap@vger.kernel.org>; Tue, 22 Dec 2009 16:37:39 -0800 (PST)
-In-Reply-To: <6cb013310912221628m1b2b820fy1a96a9a9102274e5@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] [I2C] OMAP: Don't write IE state in unidle if 0
+Date: Tue, 22 Dec 2009 18:06:13 -0700
+Message-ID: <1261530373-408-1-git-send-email-darkstar6262@gmail.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Jouni Hogander <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>, Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, Hu Tao <taohu-3WKxDLwmzFNWk0Htik3J/w@public.gmane.org>, Xiaolong Chen <A21785-3WKxDLwmzFNWk0Htik3J/w@public.gmane.org>, Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
 
-This change adds in some missing clocks that were needed as a result
-of 526505... (OMAP1 clock: convert mach-omap1/clock.h to
-mach-omap1/clock_data.c).  Prior to this, it was just assumed that
-these clocks existed for all devices, and it was used directly instead
-of calling it out with a clk_get call.  So, not having the CK_7XX
-meant these clocks weren't being used anymore for omap 7xx devices,
-which broke things badly.
+Commit ef871432... (i2c-omap: OMAP3: PM: (re)init for every transfer
+to support off-mode) introduced a change which make the dev->iestate
+contents be written to the OMAP_I2C_IE_REG every time omap_i2c_unidle
+is called.  Previously, the state was only written if it wasn't equal
+to zero.
 
-Additionally, that change added an __initdata decoration to the
-structure containing the clk_enable and clk_disable functions.  Once
-init data was freed, these pointers went to null, and the next enable
-or disable call caused the kernel to crash.  This change removes
-this decoration.
+In omap_i2c_probe, omap_i2c_unidle() is called prior to omap_i2c_init(),
+in which case dev->iestate has not yet been initialized and will be set
+to zero.  Having this value written to the registers causes deadlock
+while booting.
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+As such, this change restores the original functionality.
+
+Signed-off-by: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- arch/arm/mach-omap1/clock_data.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index ab995a9..62f6ec3 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -599,15 +599,15 @@ static struct clk i2c_ick = {
- static struct omap_clk omap_clks[] = {
- 	/* non-ULPD clocks */
- 	CLK(NULL,	"ck_ref",	&ck_ref,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
--	CLK(NULL,	"ck_dpll1",	&ck_dpll1,	CK_16XX | CK_1510 | CK_310),
-+	CLK(NULL,	"ck_dpll1",	&ck_dpll1,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	/* CK_GEN1 clocks */
- 	CLK(NULL,	"ck_dpll1out",	&ck_dpll1out.clk, CK_16XX),
- 	CLK(NULL,	"ck_sossi",	&sossi_ck,	CK_16XX),
- 	CLK(NULL,	"arm_ck",	&arm_ck,	CK_16XX | CK_1510 | CK_310),
--	CLK(NULL,	"armper_ck",	&armper_ck.clk,	CK_16XX | CK_1510 | CK_310),
-+	CLK(NULL,	"armper_ck",	&armper_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	CLK(NULL,	"arm_gpio_ck",	&arm_gpio_ck,	CK_1510 | CK_310),
- 	CLK(NULL,	"armxor_ck",	&armxor_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
--	CLK(NULL,	"armtim_ck",	&armtim_ck.clk,	CK_16XX | CK_1510 | CK_310),
-+	CLK(NULL,	"armtim_ck",	&armtim_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	CLK("omap_wdt",	"fck",		&armwdt_ck.clk,	CK_16XX | CK_1510 | CK_310),
- 	CLK("omap_wdt",	"ick",		&armper_ck.clk,	CK_16XX),
- 	CLK("omap_wdt", "ick",		&dummy_ck,	CK_1510 | CK_310),
-@@ -627,7 +627,7 @@ static struct omap_clk omap_clks[] = {
- 	CLK(NULL,	"tc2_ck",	&tc2_ck,	CK_16XX),
- 	CLK(NULL,	"dma_ck",	&dma_ck,	CK_16XX | CK_1510 | CK_310),
- 	CLK(NULL,	"dma_lcdfree_ck", &dma_lcdfree_ck, CK_16XX),
--	CLK(NULL,	"api_ck",	&api_ck.clk,	CK_16XX | CK_1510 | CK_310),
-+	CLK(NULL,	"api_ck",	&api_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	CLK(NULL,	"lb_ck",	&lb_ck.clk,	CK_1510 | CK_310),
- 	CLK(NULL,	"rhea1_ck",	&rhea1_ck,	CK_16XX),
- 	CLK(NULL,	"rhea2_ck",	&rhea2_ck,	CK_16XX),
-@@ -674,7 +674,7 @@ static struct omap_clk omap_clks[] = {
-  * init
-  */
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 3440d88..c0bb9eb 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -248,7 +248,13 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 	}
+ 	dev->idle = 0;
+-	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++
++	/*
++	 * Don't write to this register if the IE state is 0 as it can
++	 * cause deadlock.
++	 */
++	if (dev->iestate)
++		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+ }
  
--static struct clk_functions omap1_clk_functions __initdata = {
-+static struct clk_functions omap1_clk_functions = {
- 	.clk_enable		= omap1_clk_enable,
- 	.clk_disable		= omap1_clk_disable,
- 	.clk_round_rate		= omap1_clk_round_rate,
+ static void omap_i2c_idle(struct omap_i2c_dev *dev)
 -- 
 1.6.3.3
-
