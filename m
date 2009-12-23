@@ -1,49 +1,32 @@
-From: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] [I2C] OMAP: Don't write IE state in unidle if 0
-Date: Tue, 22 Dec 2009 18:06:13 -0700
-Message-ID: <1261530373-408-1-git-send-email-darkstar6262@gmail.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Jouni Hogander <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>, Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, Hu Tao <taohu-3WKxDLwmzFNWk0Htik3J/w@public.gmane.org>, Xiaolong Chen <A21785-3WKxDLwmzFNWk0Htik3J/w@public.gmane.org>, Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: [PATCH] OMAP3: add missing parentheses
+Date: Wed, 23 Dec 2009 02:42:49 +0100
+Message-ID: <4B317599.30809@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753390AbZLWBk3@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit ef871432... (i2c-omap: OMAP3: PM: (re)init for every transfer
-to support off-mode) introduced a change which make the dev->iestate
-contents be written to the OMAP_I2C_IE_REG every time omap_i2c_unidle
-is called.  Previously, the state was only written if it wasn't equal
-to zero.
+not(!) has a higher precedence than bit and(&).
 
-In omap_i2c_probe, omap_i2c_unidle() is called prior to omap_i2c_init(),
-in which case dev->iestate has not yet been initialized and will be set
-to zero.  Having this value written to the registers causes deadlock
-while booting.
-
-As such, this change restores the original functionality.
-
-Signed-off-by: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/include/plat/control.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 3440d88..c0bb9eb 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -248,7 +248,13 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
- 	}
- 	dev->idle = 0;
--	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+
-+	/*
-+	 * Don't write to this register if the IE state is 0 as it can
-+	 * cause deadlock.
-+	 */
-+	if (dev->iestate)
-+		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
- }
- 
- static void omap_i2c_idle(struct omap_i2c_dev *dev)
--- 
-1.6.3.3
+diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+index 2ae8843..a745d62 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -147,7 +147,7 @@
+ #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
+ #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
+ #define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
+-					+ ((i) >> 1) * 4 + (!(i) & 1) * 2)
++					+ ((i) >> 1) * 4 + (!((i) & 1)) * 2)
+ #define OMAP343X_CONTROL_PROG_IO0	(OMAP2_CONTROL_GENERAL + 0x01D4)
+ #define OMAP343X_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
+ #define OMAP343X_CONTROL_DSS_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E0)
