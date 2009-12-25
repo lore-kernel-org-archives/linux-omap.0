@@ -1,37 +1,55 @@
-From: Niamathullah sharief <omapsha@gmail.com>
-Subject: Re: gstreamer compilation
-Date: Fri, 25 Dec 2009 11:30:23 +0530
-Message-ID: <4ad3b6300912242200h313d5f47m8a7d700bc2618fdd@mail.gmail.com>
-References: <4ad3b6300912240124o66abe09do585b3bb9c07a5d57@mail.gmail.com>
-	 <94a0d4530912240439u438e11caq6477780506b80ba1@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: clk2xxx.c doesn't compile if CPUFREQ is enabled
+Date: Sat, 26 Dec 2009 01:35:54 +0200
+Message-ID: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:44534 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750947AbZLYGAX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Dec 2009 01:00:23 -0500
-Received: by pxi27 with SMTP id 27so4287997pxi.4
-        for <linux-omap@vger.kernel.org>; Thu, 24 Dec 2009 22:00:23 -0800 (PST)
-In-Reply-To: <94a0d4530912240439u438e11caq6477780506b80ba1@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.233]:20302 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757406AbZLYXhY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Dec 2009 18:37:24 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-yes i already tried in that but i didnt get anyanswers from there.
-thats why i tried here
+Hi Paul,
 
-On Thu, Dec 24, 2009 at 6:09 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Thu, Dec 24, 2009 at 11:24 AM, Niamathullah sharief
-> <omapsha@gmail.com> wrote:
->> Hello i am trying to compile gstreamer for arm. But i am getting the
->> following error when i do configure
->
-> That's a question for gst-embedded, not linux-omap:
-> gstreamer-embedded@lists.sourceforge.net
->
-> --
-> Felipe Contreras
->
+if we enable CPUFREQ we can't build omap2 for two reasons,
+one of them is fixed by the patch below but the other one
+it seems like it'll need more invasive changes to the code
+so I'll leave it for you to decide how to do it.
+
+It's basically failing because the __musb_be_array() check
+in ARRAY_SIZE() is failing and printing the following message:
+
+arch/arm/mach-omap2/clock2xxx.c:453: error: negative width in bit-field '<anonymous>'
+
+NYET-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ arch/arm/mach-omap2/clock2xxx.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
+index d0e3fb7..4e2bdfe 100644
+--- a/arch/arm/mach-omap2/clock2xxx.c
++++ b/arch/arm/mach-omap2/clock2xxx.c
+@@ -455,12 +455,15 @@ static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(rate_table)];
+ void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+ {
+ 	struct prcm_config *prcm;
++	long rate;
+ 	int i = 0;
+ 
++	rate = clk_get_rate(sclk);
++
+ 	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+ 		if (!(prcm->flags & cpu_mask))
+ 			continue;
+-		if (prcm->xtal_speed != sys_ck.rate)
++		if (prcm->xtal_speed != rate)
+ 			continue;
+ 
+ 		/* don't put bypass rates in table */
+-- 
+1.6.6.rc0
+
