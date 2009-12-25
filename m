@@ -1,55 +1,34 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: clk2xxx.c doesn't compile if CPUFREQ is enabled
-Date: Sat, 26 Dec 2009 01:35:54 +0200
-Message-ID: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
+Subject: Re: clk2xxx.c doesn't compile if CPUFREQ is enabled
+Date: Sat, 26 Dec 2009 01:38:11 +0200
+Message-ID: <20091225233811.GA18606@nokia.com>
+References: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:20302 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:20351 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757406AbZLYXhY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Dec 2009 18:37:24 -0500
+	with ESMTP id S1753203AbZLYXji (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Dec 2009 18:39:38 -0500
+Content-Disposition: inline
+In-Reply-To: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi Paul,
+On Sat, Dec 26, 2009 at 12:35:54AM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
+>Hi Paul,
+>
+>if we enable CPUFREQ we can't build omap2 for two reasons,
+>one of them is fixed by the patch below but the other one
+>it seems like it'll need more invasive changes to the code
+>so I'll leave it for you to decide how to do it.
+>
+>It's basically failing because the __musb_be_array() check
 
-if we enable CPUFREQ we can't build omap2 for two reasons,
-one of them is fixed by the patch below but the other one
-it seems like it'll need more invasive changes to the code
-so I'll leave it for you to decide how to do it.
+oops, it comes out naturally. Should be __must_be_array() hehe.
 
-It's basically failing because the __musb_be_array() check
-in ARRAY_SIZE() is failing and printing the following message:
-
-arch/arm/mach-omap2/clock2xxx.c:453: error: negative width in bit-field '<anonymous>'
-
-NYET-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/mach-omap2/clock2xxx.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
-index d0e3fb7..4e2bdfe 100644
---- a/arch/arm/mach-omap2/clock2xxx.c
-+++ b/arch/arm/mach-omap2/clock2xxx.c
-@@ -455,12 +455,15 @@ static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(rate_table)];
- void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- {
- 	struct prcm_config *prcm;
-+	long rate;
- 	int i = 0;
- 
-+	rate = clk_get_rate(sclk);
-+
- 	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
- 		if (!(prcm->flags & cpu_mask))
- 			continue;
--		if (prcm->xtal_speed != sys_ck.rate)
-+		if (prcm->xtal_speed != rate)
- 			continue;
- 
- 		/* don't put bypass rates in table */
 -- 
-1.6.6.rc0
-
+balbi
