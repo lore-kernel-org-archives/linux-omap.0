@@ -1,34 +1,23 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: clk2xxx.c doesn't compile if CPUFREQ is enabled
-Date: Sat, 26 Dec 2009 01:38:11 +0200
-Message-ID: <20091225233811.GA18606@nokia.com>
-References: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tar Gz <bsdraisefromhell@gmail.com>
+Subject: [ask] Keypad Driver in zoom ldp
+Date: Sun, 27 Dec 2009 03:13:10 +0700
+Message-ID: <d9ca78710912261213yb192dc7vb69083eb8917acfd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:20351 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753203AbZLYXji (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Dec 2009 18:39:38 -0500
-Content-Disposition: inline
-In-Reply-To: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:41166 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750908AbZLZUNL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Dec 2009 15:13:11 -0500
+Received: by pzk1 with SMTP id 1so2193718pzk.33
+        for <linux-omap@vger.kernel.org>; Sat, 26 Dec 2009 12:13:10 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Sat, Dec 26, 2009 at 12:35:54AM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
->Hi Paul,
->
->if we enable CPUFREQ we can't build omap2 for two reasons,
->one of them is fixed by the patch below but the other one
->it seems like it'll need more invasive changes to the code
->so I'll leave it for you to decide how to do it.
->
->It's basically failing because the __musb_be_array() check
+Hi all,
 
-oops, it comes out naturally. Should be __must_be_array() hehe.
+where i can download source for keypad driver for ldp board?...
 
--- 
-balbi
+best regards,
+Aldyth M
