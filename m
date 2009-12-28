@@ -1,42 +1,42 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 4/8] arm: omap: musb: remove unused dma data
-Date: Mon, 28 Dec 2009 13:09:46 +0200
-Message-ID: <1261998590-6639-5-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 8/8] arm: omap: musb: remove unnecessary return
+Date: Mon, 28 Dec 2009 13:09:50 +0200
+Message-ID: <1261998590-6639-9-git-send-email-felipe.balbi@nokia.com>
 References: <1261998590-6639-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61559 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752437AbZL1LLy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 06:11:54 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:19161 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752519AbZL1LL5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 06:11:57 -0500
 In-Reply-To: <1261998590-6639-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-we don't use those anywhere on musb driver, so
-let's remove those old stuff.
+trivial patch, no functional changes.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap2/usb-musb.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index ceee958..12b0d24 100644
+index e0050c5..ec8869a 100644
 --- a/arch/arm/mach-omap2/usb-musb.c
 +++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -50,10 +50,7 @@ static struct resource musb_resources[] = {
- static struct musb_hdrc_config musb_config = {
- 	.multipoint	= 1,
- 	.dyn_fifo	= 1,
--	.dma		= 1,
- 	.num_eps	= 16,
--	.dma_channels	= 7,
--	.dma_req_chan	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
- 	.ram_bits	= 12,
- };
+@@ -91,10 +91,8 @@ void __init usb_musb_init(enum musb_mode mode, unsigned power)
+ 	musb_plat.power = power >> 1;
+ 	musb_plat.mode = mode;
  
+-	if (platform_device_register(&musb_device) < 0) {
++	if (platform_device_register(&musb_device) < 0)
+ 		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
+-		return;
+-	}
+ }
+ 
+ #else
 -- 
 1.6.6.rc0
 
