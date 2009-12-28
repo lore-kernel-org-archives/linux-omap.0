@@ -1,591 +1,665 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
-Date: Mon, 28 Dec 2009 13:48:46 -0800
-Message-ID: <20091228214846.GP3512@atomide.com>
-References: <618f0c910912110701p771dcf6fg655bb0a7b9bdc96d@mail.gmail.com>
+Subject: Re: [PATCH 3/4] OMAP: I2C: split device registration; convert
+ OMAP2+ to omap_device
+Date: Mon, 28 Dec 2009 15:20:39 -0800
+Message-ID: <20091228232039.GQ3512@atomide.com>
+References: <1260781959-28050-1-git-send-email-rnayak@ti.com>
+ <1260781959-28050-2-git-send-email-rnayak@ti.com>
+ <1260781959-28050-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59013 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57599 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751840AbZL1VtB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 16:49:01 -0500
+	with ESMTP id S1751627AbZL1XUp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 18:20:45 -0500
 Content-Disposition: inline
-In-Reply-To: <618f0c910912110701p771dcf6fg655bb0a7b9bdc96d@mail.gmail.com>
+In-Reply-To: <1260781959-28050-3-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-* Venkatraman S <svenkatr@ti.com> [091211 07:01]:
-> Here is the most updated version of the patch (thanks to Russell's
-> review). This patch is applicable to OMAP4xxx as well as OMAP3630
-> Reference to previous posts
-> v1  http://marc.info/?l=linux-omap&m=125012097403050&w=2
-> v2  http://marc.info/?l=linux-omap&m=125137152606644&w=2
-> v3  http://patchwork.kernel.org/patch/45408/
+* Rajendra Nayak <rnayak@ti.com> [091214 01:11]:
+> From: Paul Walmsley <paul@pwsan.com>
+> 
+> Split the OMAP1 and OMAP2+ platform_device build and register code.
+> Convert the OMAP2+ variant to use omap_device.
 
-Do you have a patch for drivers/mmc/host/omap_hsmmc.c to
-use this feature? Or some other driver?
-
-Regards,
+Looks like this needs to be updated.
 
 Tony
-
  
+> This patch was developed in collaboration with Rajendra Nayak
+> <rnayak@ti.com>.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > ---
-> From: Venkatraman S <svenkatr@ti.com>
-> Date: Fri, 11 Dec 2009 19:52:39 +0530
-> Subject: [PATCH] Omap DMA: Descriptor autoloading feature
+>  arch/arm/mach-omap1/Makefile          |    2 +
+>  arch/arm/mach-omap1/i2c.c             |  137 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/Makefile          |    2 +
+>  arch/arm/mach-omap2/i2c.c             |  132 ++++++++++++++++++++++
+>  arch/arm/plat-omap/i2c.c              |  200 +++++++++------------------------
+>  arch/arm/plat-omap/include/plat/i2c.h |   22 ++++
+>  6 files changed, 349 insertions(+), 146 deletions(-)
+>  create mode 100644 arch/arm/mach-omap1/i2c.c
+>  create mode 100644 arch/arm/mach-omap2/i2c.c
 > 
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> ---
->  arch/arm/plat-omap/dma.c              |  299 +++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/dma.h |  138 +++++++++++++++
->  2 files changed, 437 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index be4ce07..76f3871 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -29,6 +29,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/irq.h>
->  #include <linux/io.h>
-> +#include <linux/dma-mapping.h>
-> 
->  #include <asm/system.h>
->  #include <mach/hardware.h>
-> @@ -46,13 +47,42 @@ enum { DMA_CH_ALLOC_DONE, DMA_CH_PARAMS_SET_DONE,
-> DMA_CH_STARTED,
->  enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
->  #endif
-> 
-> +/* CDP Register bitmaps */
-> +#define DMA_LIST_CDP_DST_VALID	(BIT(0))
-> +#define DMA_LIST_CDP_SRC_VALID	(BIT(2))
-> +#define DMA_LIST_CDP_TYPE1	(BIT(4))
-> +#define DMA_LIST_CDP_TYPE2	(BIT(5))
-> +#define DMA_LIST_CDP_TYPE3	(BIT(4) | BIT(5))
-> +#define DMA_LIST_CDP_PAUSEMODE	(BIT(7))
-> +#define DMA_LIST_CDP_LISTMODE	(BIT(8))
-> +#define DMA_LIST_CDP_FASTMODE	(BIT(10))
-> +/* CAPS register bitmaps */
-> +#define DMA_CAPS_SGLIST_SUPPORT	(BIT(20))
+> diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+> index 87e539a..660eac6 100644
+> --- a/arch/arm/mach-omap1/Makefile
+> +++ b/arch/arm/mach-omap1/Makefile
+> @@ -17,6 +17,8 @@ obj-$(CONFIG_PM) += pm.o sleep.o
+>  obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
+>  mailbox_mach-objs		:= mailbox.o
+>  
+> +obj-$(CONFIG_I2C_OMAP)		+= i2c.o
 > +
-> +#define DMA_LIST_DESC_PAUSE	(BIT(0))
-> +#define DMA_LIST_DESC_SRC_VALID	(BIT(24))
-> +#define DMA_LIST_DESC_DST_VALID	(BIT(26))
-> +#define DMA_LIST_DESC_BLK_END	(BIT(28))
+>  led-y := leds.o
+>  
+>  # Specific board support
+> diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
+> new file mode 100644
+> index 0000000..4642b36
+> --- /dev/null
+> +++ b/arch/arm/mach-omap1/i2c.c
+> @@ -0,0 +1,137 @@
+> +/*
+> + * linux/arch/arm/mach-omap1/i2c.c
+> + *
+> + * Helper module for board specific I2C bus registration
+> + *
+> + * Copyright (C) 2007, 2009 Nokia Corporation.
+> + *
+> + * Contact: Jarkko Nikula <jhnikula@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + *
+> + */
 > +
->  #define OMAP_DMA_ACTIVE			0x01
->  #define OMAP_DMA_CCR_EN			(1 << 7)
->  #define OMAP2_DMA_CSR_CLEAR_MASK	0xffe
-> 
->  #define OMAP_FUNC_MUX_ARM_BASE		(0xfffe1000 + 0xec)
-> +#define OMAP_DMA_INVALID_FRAME_COUNT	(0xffff)
-> +#define OMAP_DMA_INVALID_ELEM_COUNT	(0xffffff)
-> +#define OMAP_DMA_INVALID_DESCRIPTOR_POINTER	(0xfffffffc)
-> 
->  static int enable_1510_mode;
-> +static int dma_caps0_status;
+> +#include <linux/kernel.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/i2c.h>
+> +#include <linux/err.h>
+> +#include <linux/clk.h>
 > +
-> +struct omap_dma_list_config_params {
-> +	unsigned int num_elem;
-> +	struct omap_dma_sglist_node *sghead;
-> +	dma_addr_t sgheadphy;
-> +	unsigned int pausenode;
-> +	struct device *ddev;
+> +#include <mach/i2c.h>
+> +#include <mach/irqs.h>
+> +#include <mach/mux.h>
+> +
+> +#define OMAP1_I2C_SIZE		0x3f
+> +#define OMAP1_I2C_BASE		0xfffb3800
+> +
+> +static const char name[] = "i2c_omap";
+> +
+> +#define OMAP1_I2C_RESOURCE_BUILDER(base, irq)		\
+> +{
+> +	{						\
+> +		.start	= (base),			\
+> +		.end	= (base) + OMAP1_I2C_SIZE,	\
+> +		.flags	= IORESOURCE_MEM,		\
+> +	},						\
+> +	{						\
+> +		.start	= (irq),			\
+> +		.flags	= IORESOURCE_IRQ,		\
+> +	},						\
+> +}
+> +
+> +static struct resource i2c_resources[][2] = {
+> +	{ OMAP1_I2C_RESOURCE_BUILDER(OMAP1_I2C_BASE, INT_I2C) },
 > +};
-> 
->  static struct omap_dma_global_context_registers {
->  	u32 dma_irqenable_l0;
-> @@ -78,6 +108,8 @@ struct omap_dma_lch {
-> 
->  	int status;
->  #endif
 > +
-> +	struct omap_dma_list_config_params *list_config;
->  	long flags;
->  };
-> 
-> @@ -215,6 +247,28 @@ static void clear_lch_regs(int lch)
->  		__raw_writew(0, lch_base + i);
->  }
-> 
-> +static inline void omap_dma_list_set_ntype(struct omap_dma_sglist_node *node,
-> +					   int value)
-> +{
-> +	node->num_of_elem |= ((value) << 29);
-> +}
-> +
-> +static void omap_set_dma_sglist_pausebit(
-> +		struct omap_dma_list_config_params *lcfg, int nelem, int set)
-> +{
-> +	struct omap_dma_sglist_node *sgn = lcfg->sghead;
-> +
-> +	if (nelem > 0 && nelem < lcfg->num_elem) {
-> +		lcfg->pausenode = nelem;
-> +		sgn += nelem;
-> +
-> +		if (set)
-> +			sgn->next_desc_add_ptr |= DMA_LIST_DESC_PAUSE;
-> +		else
-> +			sgn->next_desc_add_ptr &= ~(DMA_LIST_DESC_PAUSE);
+> +#define OMAP1_I2C_DEV_BUILDER(bus_id, res)		\
+> +	{						\
+> +		.id	= (bus_id),			\
+> +		.name	= name,				\
+> +		.num_resources	= ARRAY_SIZE(res),	\
+> +		.resource	= (res),		\
 > +	}
+> +
+> +static struct platform_device omap_i2c_devices[] = {
+> +	OMAP1_I2C_DEV_BUILDER(1, i2c_resources[0]),
+> +};
+> +
+> +#define I2C_ICLK	0
+> +#define I2C_FCLK	1
+> +static struct clk *omap_i2c_clks[ARRAY_SIZE(omap_i2c_devices)][2];
+> +
+> +static struct omap_i2c_dev_attr omap1_i2c_dev_attr;
+> +
+> +static void __init omap1_i2c_mux_pins(int bus)
+> +{
+> +	omap_cfg_reg(I2C_SCL);
+> +	omap_cfg_reg(I2C_SDA);
 > +}
 > +
->  void omap_set_dma_priority(int lch, int dst_port, int priority)
+> +int __init omap1_i2c_nr_ports(void)
+> +{
+> +	return 1;
+> +}
+> +
+> +static int omap1_i2c_device_enable(struct platform_device *pdev)
+> +{
+> +	struct clk *c;
+> +
+> +	c = omap_i2c_clks[pdev->id - 1][I2C_ICLK];
+> +	if (c && !IS_ERR(c))
+> +		clk_enable(c);
+> +
+> +	c = omap_i2c_clks[pdev->id - 1][I2C_FCLK];
+> +	if (c && !IS_ERR(c))
+> +		clk_enable(c);
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap1_i2c_device_idle(struct platform_device *pdev)
+> +{
+> +	struct clk *c;
+> +
+> +	c = omap_i2c_clks[pdev->id - 1][I2C_FCLK];
+> +	if (c && !IS_ERR(c))
+> +		clk_disable(c);
+> +
+> +	c = omap_i2c_clks[pdev->id - 1][I2C_ICLK];
+> +	if (c && !IS_ERR(c))
+> +		clk_disable(c);
+> +
+> +	return 0;
+> +}
+> +
+> +int __init omap1_i2c_add_bus(int bus_id)
+> +{
+> +	struct platform_device *pdev;
+> +	struct omap_i2c_platform_data *pdata;
+> +
+> +	pdev = &omap_i2c_devices[bus_id - 1];
+> +	pdata = omap_i2c_get_pdata(bus_id - 1);
+> +
+> +	/* idle and shutdown share the same code */
+> +	pdata->device_enable = omap1_i2c_device_enable;
+> +	pdata->device_idle = omap1_i2c_device_idle;
+> +	pdata->device_shutdown = omap1_i2c_device_idle;
+> +	pdata->dev_attr = &omap1_i2c_dev_attr;
+> +
+> +	omap_i2c_clks[bus_id - 1][I2C_ICLK] = clk_get(&pdev->dev, "ick");
+> +	omap_i2c_clks[bus_id - 1][I2C_FCLK] = clk_get(&pdev->dev, "fck");
+> +
+> +	omap1_i2c_mux_pins(bus_id - 1);
+> +
+> +	return platform_device_register(pdev);
+> +}
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 1ff10eb..1a4843e 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -57,6 +57,8 @@ obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
+>  # Debobs
+>  obj-$(CONFIG_OMAP3_DEBOBS)	+= debobs.o
+>  
+> +obj-$(CONFIG_I2C_OMAP)			+= i2c.o
+> +
+>  # Specific board support
+>  obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+>  obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+> diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+> new file mode 100644
+> index 0000000..09f28ca
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/i2c.c
+> @@ -0,0 +1,132 @@
+> +/*
+> + * linux/arch/arm/plat-omap/i2c.c
+> + *
+> + * Helper module for board specific I2C bus registration
+> + *
+> + * Copyright (C) 2007 Nokia Corporation.
+> + *
+> + * Contact: Jarkko Nikula <jhnikula@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + *
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/i2c.h>
+> +#include <linux/err.h>
+> +
+> +#include <plat/irqs.h>
+> +#include <plat/mux.h>
+> +#include <plat/i2c.h>
+> +#include <plat/omap_hwmod.h>
+> +#include <plat/omap_device.h>
+> +
+> +static const char name[] = "i2c_omap";
+> +
+> +#define MAX_OMAP_I2C_HWMOD_NAME_LEN			16
+> +
+> +#if defined(CONFIG_ARCH_OMAP24XX)
+> +static const int omap24xx_pins[][2] = {
+> +	{ M19_24XX_I2C1_SCL, L15_24XX_I2C1_SDA },
+> +	{ J15_24XX_I2C2_SCL, H19_24XX_I2C2_SDA },
+> +};
+> +#else
+> +static const int omap24xx_pins[][2] = {};
+> +#endif
+> +#if defined(CONFIG_ARCH_OMAP34XX)
+> +static const int omap34xx_pins[][2] = {
+> +	{ K21_34XX_I2C1_SCL, J21_34XX_I2C1_SDA},
+> +	{ AF15_34XX_I2C2_SCL, AE15_34XX_I2C2_SDA},
+> +	{ AF14_34XX_I2C3_SCL, AG14_34XX_I2C3_SDA},
+> +};
+> +#else
+> +static const int omap34xx_pins[][2] = {};
+> +#endif
+> +
+> +static void __init omap2_i2c_mux_pins(int bus)
+> +{
+> +	int scl, sda;
+> +
+> +	if (cpu_is_omap24xx()) {
+> +		scl = omap24xx_pins[bus][0];
+> +		sda = omap24xx_pins[bus][1];
+> +	} else if (cpu_is_omap34xx()) {
+> +		scl = omap34xx_pins[bus][0];
+> +		sda = omap34xx_pins[bus][1];
+> +	} else {
+> +		return;
+> +	}
+> +
+> +	omap_cfg_reg(sda);
+> +	omap_cfg_reg(scl);
+> +}
+> +
+> +int __init omap2_i2c_nr_ports(void)
+> +{
+> +	int ports = 0;
+> +
+> +	if (cpu_is_omap24xx())
+> +		ports = 2;
+> +	else if (cpu_is_omap34xx())
+> +		ports = 3;
+> +
+> +	return ports;
+> +}
+> +
+> +static struct omap_device_pm_latency omap_i2c_latency[] = {
+> +	[0] = {
+> +		.deactivate_func	= omap_device_idle_hwmods,
+> +		.activate_func		= omap_device_enable_hwmods,
+> +		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> +	},
+> +};
+> +
+> +int __init omap2_i2c_add_bus(int bus_id)
+> +{
+> +	struct omap_hwmod *oh;
+> +	struct omap_device *od;
+> +	char oh_name[MAX_OMAP_I2C_HWMOD_NAME_LEN];
+> +	int l, idx;
+> +	struct omap_i2c_platform_data *pdata;
+> +
+> +	idx = bus_id - 1;
+> +
+> +	l = snprintf(oh_name, MAX_OMAP_I2C_HWMOD_NAME_LEN,
+> +		     "i2c%d_hwmod", bus_id);
+> +	WARN(l >= MAX_OMAP_I2C_HWMOD_NAME_LEN,
+> +	     "String buffer overflow in I2C%d device setup\n", bus_id);
+> +	oh = omap_hwmod_lookup(oh_name);
+> +	if (!oh) {
+> +		pr_err("Could not look up %s\n", oh_name);
+> +		return -EEXIST;
+> +	}
+> +
+> +	omap2_i2c_mux_pins(idx);
+> +
+> +	pdata = omap_i2c_get_pdata(idx);
+> +	pdata->dev_attr = oh->dev_attr;
+> +	pdata->device_enable = omap_device_enable;
+> +	pdata->device_idle = omap_device_idle;
+> +	pdata->device_shutdown = omap_device_shutdown;
+> +
+> +	od = omap_device_build(name, bus_id, oh, pdata,
+> +			       sizeof(struct omap_i2c_platform_data),
+> +			       omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency));
+> +	WARN(IS_ERR(od), "Could not build omap_device for %s %s\n",
+> +	     name, oh_name);
+> +
+> +	return PTR_ERR(od);
+> +}
+> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+> index f8eb3a0..1a3facb 100644
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+> @@ -3,7 +3,7 @@
+>   *
+>   * Helper module for board specific I2C bus registration
+>   *
+> - * Copyright (C) 2007 Nokia Corporation.
+> + * Copyright (C) 2007, 2009 Nokia Corporation.
+>   *
+>   * Contact: Jarkko Nikula <jhnikula@gmail.com>
+>   *
+> @@ -24,84 +24,28 @@
+>   */
+>  
+>  #include <linux/kernel.h>
+> -#include <linux/platform_device.h>
+>  #include <linux/i2c.h>
+> +#include <linux/platform_device.h>
+>  #include <linux/i2c-omap.h>
+> +#include <plat/i2c.h>
+> +#include <plat/cpu.h>
+>  
+> -#include <mach/irqs.h>
+> -#include <plat/mux.h>
+>  #include <plat/omap-pm.h>
+>  
+> -#define OMAP_I2C_SIZE		0x3f
+> -#define OMAP1_I2C_BASE		0xfffb3800
+> -#define OMAP2_I2C_BASE1		0x48070000
+> -#define OMAP2_I2C_BASE2		0x48072000
+> -#define OMAP2_I2C_BASE3		0x48060000
+> -
+> -static const char name[] = "i2c_omap";
+> -
+> -#define I2C_RESOURCE_BUILDER(base, irq)			\
+> -	{						\
+> -		.start	= (base),			\
+> -		.end	= (base) + OMAP_I2C_SIZE,	\
+> -		.flags	= IORESOURCE_MEM,		\
+> -	},						\
+> -	{						\
+> -		.start	= (irq),			\
+> -		.flags	= IORESOURCE_IRQ,		\
+> -	},
+> -
+> -static struct resource i2c_resources[][2] = {
+> -	{ I2C_RESOURCE_BUILDER(0, 0) },
+> -#if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+> -	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_24XX_I2C2_IRQ) },
+> -#endif
+> -#if	defined(CONFIG_ARCH_OMAP34XX)
+> -	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_34XX_I2C3_IRQ) },
+> -#endif
+> -};
+> -
+> -#define I2C_DEV_BUILDER(bus_id, res, data)		\
+> -	{						\
+> -		.id	= (bus_id),			\
+> -		.name	= name,				\
+> -		.num_resources	= ARRAY_SIZE(res),	\
+> -		.resource	= (res),		\
+> -		.dev		= {			\
+> -			.platform_data	= (data),	\
+> -		},					\
+> -	}
+> +/*
+> + * Indicates to the OMAP platform I2C init code that the rate was set
+> + * from the kernel command line
+> + */
+> +#define OMAP_I2C_CMDLINE_SETUP		(BIT(31))
+>  
+> -static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
+> -static struct platform_device omap_i2c_devices[] = {
+> -	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
+> -#if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+> -	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
+> -#endif
+> -#if	defined(CONFIG_ARCH_OMAP34XX)
+> -	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
+> -#endif
+> -};
+> +#define OMAP_I2C_MAX_CONTROLLERS	3
+>  
+> -#if defined(CONFIG_ARCH_OMAP24XX)
+> -static const int omap24xx_pins[][2] = {
+> -	{ M19_24XX_I2C1_SCL, L15_24XX_I2C1_SDA },
+> -	{ J15_24XX_I2C2_SCL, H19_24XX_I2C2_SDA },
+> -};
+> -#else
+> -static const int omap24xx_pins[][2] = {};
+> -#endif
+> -#if defined(CONFIG_ARCH_OMAP34XX)
+> -static const int omap34xx_pins[][2] = {
+> -	{ K21_34XX_I2C1_SCL, J21_34XX_I2C1_SDA},
+> -	{ AF15_34XX_I2C2_SCL, AE15_34XX_I2C2_SDA},
+> -	{ AF14_34XX_I2C3_SCL, AG14_34XX_I2C3_SDA},
+> -};
+> -#else
+> -static const int omap34xx_pins[][2] = {};
+> -#endif
+> +static struct omap_i2c_platform_data omap_i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
+>  
+> -#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
+> +struct omap_i2c_platform_data * __init omap_i2c_get_pdata(int bus_id)
+> +{
+> +	return &omap_i2c_pdata[bus_id];
+> +}
+>  
+>  #ifdef CONFIG_ARCH_OMAP34XX
+>  /*
+> @@ -122,7 +66,7 @@ static inline void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int val){}
+>  #endif
+>  
+>  static void __init omap_set_i2c_constraint_func(
+> -				struct omap_i2c_bus_platform_data *pd)
+> +				struct omap_i2c_platform_data *pd)
 >  {
->  	unsigned long reg;
-> @@ -1820,6 +1874,249 @@ EXPORT_SYMBOL(omap_get_dma_chain_src_pos);
->  #endif	/* ifndef CONFIG_ARCH_OMAP1 */
-> 
->  /*----------------------------------------------------------------------------*/
-> +int omap_request_dma_sglist(struct device *ddev, int dev_id,
-> +	const char *dev_name, void (*callback) (int channel_id,
-> +	u16 ch_status, void *data),	int *listid, int nelem,
-> +	struct omap_dma_sglist_node **elems)
-> +{
-> +	struct omap_dma_list_config_params *lcfg;
-> +	struct omap_dma_sglist_node *desc;
-> +	int dma_lch;
-> +	int rc, i;
+>  	if (cpu_is_omap34xx())
+>  		pd->set_mpu_wkup_lat = omap_i2c_set_wfc_mpu_wkup_lat;
+> @@ -130,66 +74,6 @@ static void __init omap_set_i2c_constraint_func(
+>  		pd->set_mpu_wkup_lat = NULL;
+>  }
+>  
+> -static void __init omap_i2c_mux_pins(int bus)
+> -{
+> -	int scl, sda;
+> -
+> -	if (cpu_class_is_omap1()) {
+> -		scl = I2C_SCL;
+> -		sda = I2C_SDA;
+> -	} else if (cpu_is_omap24xx()) {
+> -		scl = omap24xx_pins[bus][0];
+> -		sda = omap24xx_pins[bus][1];
+> -	} else if (cpu_is_omap34xx()) {
+> -		scl = omap34xx_pins[bus][0];
+> -		sda = omap34xx_pins[bus][1];
+> -	} else {
+> -		return;
+> -	}
+> -
+> -	omap_cfg_reg(sda);
+> -	omap_cfg_reg(scl);
+> -}
+> -
+> -static int __init omap_i2c_nr_ports(void)
+> -{
+> -	int ports = 0;
+> -
+> -	if (cpu_class_is_omap1())
+> -		ports = 1;
+> -	else if (cpu_is_omap24xx())
+> -		ports = 2;
+> -	else if (cpu_is_omap34xx())
+> -		ports = 3;
+> -
+> -	return ports;
+> -}
+> -
+> -static int __init omap_i2c_add_bus(int bus_id)
+> -{
+> -	struct platform_device *pdev;
+> -	struct resource *res;
+> -	resource_size_t base, irq;
+> -
+> -	pdev = &omap_i2c_devices[bus_id - 1];
+> -	if (bus_id == 1) {
+> -		res = pdev->resource;
+> -		if (cpu_class_is_omap1()) {
+> -			base = OMAP1_I2C_BASE;
+> -			irq = INT_I2C;
+> -		} else {
+> -			base = OMAP2_I2C_BASE1;
+> -			irq = INT_24XX_I2C1_IRQ;
+> -		}
+> -		res[0].start = base;
+> -		res[0].end = base + OMAP_I2C_SIZE;
+> -		res[1].start = irq;
+> -	}
+> -
+> -	omap_i2c_mux_pins(bus_id - 1);
+> -	return platform_device_register(pdev);
+> -}
+> -
+>  /**
+>   * omap_i2c_bus_setup - Process command line options for the I2C bus speed
+>   * @str: String of options
+> @@ -205,13 +89,23 @@ static int __init omap_i2c_bus_setup(char *str)
+>  {
+>  	int ports;
+>  	int ints[3];
+> +	int rate;
 > +
-> +	if ((dma_caps0_status & DMA_CAPS_SGLIST_SUPPORT) == 0) {
-> +		printk(KERN_ERR "omap DMA: sglist feature not supported\n");
-> +		return -EPERM;
-> +	}
-> +	if (nelem <= 2) {
-> +		printk(KERN_ERR "omap DMA: Need >2 elements in the list\n");
-> +		return -EINVAL;
-> +	}
-> +	rc = omap_request_dma(dev_id, dev_name,
-> +			  callback, NULL, &dma_lch);
-> +	if (rc < 0) {
-> +		printk(KERN_ERR "omap DMA: Request failed %d\n", rc);
-> +		return rc;
-> +	}
-> +	*listid = dma_lch;
-> +	dma_chan[dma_lch].state = DMA_CH_NOTSTARTED;
-> +	lcfg = kmalloc(sizeof(*lcfg), GFP_KERNEL);
-> +	if (NULL == lcfg)
-> +		goto error1;
-> +	dma_chan[dma_lch].list_config = lcfg;
-> +
-> +	lcfg->num_elem = nelem;
-> +	lcfg->ddev = ddev;
-> +
-> +	lcfg->sghead = dma_alloc_coherent(ddev,
-> +		sizeof(*desc) * nelem, &(lcfg->sgheadphy), 0);
-> +	if (!lcfg->sghead)
-> +		goto error1;
-> +
-> +	*elems = desc = lcfg->sghead;
-> +
-> +	for (i = 1; i < nelem; desc++, i++) {
-> +		desc->next = desc + 1;
-> +		desc->next_desc_add_ptr = lcfg->sgheadphy + (i * sizeof(*desc));
-> +	}
-> +	desc->next_desc_add_ptr = OMAP_DMA_INVALID_DESCRIPTOR_POINTER;
-> +
-> +	dma_write(0, CCDN(dma_lch)); /* Reset List index numbering */
-> +	/* Initialize frame and element counters to invalid values */
-> +	dma_write(OMAP_DMA_INVALID_FRAME_COUNT, CCFN(dma_lch));
-> +	dma_write(OMAP_DMA_INVALID_ELEM_COUNT, CCEN(dma_lch));
-> +	return 0;
-> +
-> +error1:
-> +	omap_release_dma_sglist(dma_lch);
-> +	return -ENOMEM;
-> +
-> +}
-> +EXPORT_SYMBOL(omap_request_dma_sglist);
-> +
-> +/* The client can choose to not preconfigure the DMA registers
-> + * In fast mode,the DMA controller uses the first element in the list to
-> + * program the registers first, and then starts the transfer
-> + */
-> +
-> +int omap_set_dma_sglist_params(int listid,
-> +	struct omap_dma_channel_params *chparams)
-> +{
-> +	struct omap_dma_list_config_params *lcfg;
-> +	struct omap_dma_sglist_node *sgcurr, *sgprev;
-> +	struct omap_dma_sglist_node *sghead;
-> +	int l = DMA_LIST_CDP_LISTMODE; /* Enable Linked list mode in CDP */
-> +
-> +	lcfg = dma_chan[listid].list_config;
-> +	sghead = lcfg->sghead;
-> +	if (NULL == chparams)
-> +		l |= DMA_LIST_CDP_FASTMODE;
+> +	if (cpu_class_is_omap1())
+> +		ports = omap1_i2c_nr_ports();
+> +	else if (cpu_class_is_omap2())
+> +		ports = omap2_i2c_nr_ports();
 > +	else
-> +		omap_set_dma_params(listid, chparams);
-> +		/* The client can set the dma params and still use fast mode
-> +		 * by using the set fast mode api
-> +		 */
-> +	dma_write(l, CDP(listid));
+> +		ports = 0;
+>  
+> -	ports = omap_i2c_nr_ports();
+>  	get_options(str, 3, ints);
+>  	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
+>  		return 0;
+> -	i2c_pdata[ints[1] - 1].clkrate = ints[2];
+> -	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
 > +
-> +	for (sgprev = sghead;
-> +		sgprev < sghead + lcfg->num_elem;
-> +		sgprev++) {
+> +	rate = ints[2];
+> +	rate |= OMAP_I2C_CMDLINE_SETUP;
 > +
-> +		sgcurr = sgprev + 1;
-> +
-> +		switch (sgcurr->desc_type) {
-> +		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1:
-> +			omap_dma_list_set_ntype(sgprev, 1);
-> +			break;
-> +
-> +		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a:
-> +			/* intentional no break */
-> +		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b:
-> +			omap_dma_list_set_ntype(sgprev, 2);
-> +			break;
-> +
-> +		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a:
-> +			/* intentional no break */
-> +		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b:
-> +			omap_dma_list_set_ntype(sgprev, 3);
-> +			break;
-> +
-> +		default:
-> +			return -EINVAL;
-> +
-> +		}
-> +		if (sgcurr->flags & OMAP_DMA_LIST_SRC_VALID)
-> +			sgprev->num_of_elem |= DMA_LIST_DESC_SRC_VALID;
-> +		if (sgcurr->flags & OMAP_DMA_LIST_DST_VALID)
-> +			sgprev->num_of_elem |= DMA_LIST_DESC_DST_VALID;
-> +		if (sgcurr->flags & OMAP_DMA_LIST_NOTIFY_BLOCK_END)
-> +			sgprev->num_of_elem |= DMA_LIST_DESC_BLK_END;
-> +	}
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(omap_set_dma_sglist_params);
-> +
-> +int omap_start_dma_sglist_transfers(int listid, int pauseafter)
-> +{
-> +	struct omap_dma_list_config_params *lcfg;
-> +	struct omap_dma_sglist_node *sgn;
-> +	unsigned int l, type_id;
-> +
-> +	lcfg = dma_chan[listid].list_config;
-> +	sgn = lcfg->sghead;
-> +
-> +	lcfg->pausenode = 0;
-> +	omap_set_dma_sglist_pausebit(lcfg, pauseafter, 1);
-> +
-> +	/* Program the head descriptor's properties into CDP */
-> +	switch (lcfg->sghead->desc_type) {
-> +	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1:
-> +		type_id = DMA_LIST_CDP_TYPE1;
-> +		break;
-> +	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a:
-> +	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b:
-> +		type_id = DMA_LIST_CDP_TYPE2;
-> +		break;
-> +	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a:
-> +	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b:
-> +		type_id = DMA_LIST_CDP_TYPE3;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	l = dma_read(CDP(listid));
-> +	l |= type_id;
-> +	if (lcfg->sghead->flags & OMAP_DMA_LIST_SRC_VALID)
-> +		l |= DMA_LIST_CDP_SRC_VALID;
-> +	if (lcfg->sghead->flags & OMAP_DMA_LIST_DST_VALID)
-> +		l |= DMA_LIST_CDP_DST_VALID;
-> +
-> +	dma_write(l, CDP(listid));
-> +
-> +	dma_write((lcfg->sgheadphy), CNDP(listid));
-> +	printk(KERN_DEBUG "Start list transfer for list %x\n",
-> +		lcfg->sgheadphy);
-> +	omap_start_dma(listid);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(omap_start_dma_sglist_transfers);
-> +
-> +int omap_resume_dma_sglist_transfers(int listid, int pauseafter)
-> +{
-> +	struct omap_dma_list_config_params *lcfg;
-> +	struct omap_dma_sglist_node *sgn;
-> +	int l;
-> +
-> +	lcfg = dma_chan[listid].list_config;
-> +	sgn = lcfg->sghead;
-> +
-> +	/* Clear previous pause and set new value */
-> +	omap_set_dma_sglist_pausebit(lcfg, lcfg->pausenode, 0);
-> +	omap_set_dma_sglist_pausebit(lcfg, pauseafter, 1);
-> +
-> +	/* Clear pause bit in CDP */
-> +	l = dma_read(CDP(listid));
-> +	printk(KERN_DEBUG "Resuming after pause: CDP=%x\n", l);
-> +	l &= ~(DMA_LIST_CDP_PAUSEMODE);
-> +	dma_write(l, CDP(listid));
-> +	omap_start_dma(listid);
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(omap_resume_dma_sglist_transfers);
-> +
-> +int omap_release_dma_sglist(int listid)
-> +{
-> +	struct omap_dma_list_config_params *lcfg;
-> +	struct omap_dma_sglist_node *sgn;
-> +
-> +	lcfg = dma_chan[listid].list_config;
-> +	sgn = lcfg->sghead;
-> +
-> +	dma_free_coherent(lcfg->ddev, lcfg->num_elem * sizeof(*sgn),
-> +		sgn, lcfg->sgheadphy);
-> +	if (NULL != dma_chan[listid].list_config)
-> +		kfree(dma_chan[listid].list_config);
-> +
-> +	dma_chan[listid].list_config = NULL;
-> +	omap_free_dma(listid);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(omap_release_dma_sglist);
-> +
-> +int omap_get_completed_sglist_nodes(int listid)
-> +{
-> +	int list_count;
-> +
-> +	list_count = dma_read(CCDN(listid));
-> +	return list_count & 0xffff; /* only 16 LSB bits are valid */
-> +}
-> +EXPORT_SYMBOL(omap_get_completed_sglist_nodes);
-> +
-> +int omap_dma_sglist_is_paused(int listid)
-> +{
-> +	int list_state;
-> +
-> +	list_state = dma_read(CDP(listid));
-> +	return (list_state & DMA_LIST_CDP_PAUSEMODE) ? 1 : 0;
-> +}
-> +EXPORT_SYMBOL(omap_dma_sglist_is_paused);
-> +
-> +void omap_dma_set_sglist_fastmode(int listid, int fastmode)
-> +{
-> +	int l = dma_read(CDP(listid));
-> +
-> +	if (fastmode)
-> +		l |= DMA_LIST_CDP_FASTMODE;
-> +	else
-> +		l &= ~(DMA_LIST_CDP_FASTMODE);
-> +	dma_write(l, CDP(listid));
-> +}
-> +EXPORT_SYMBOL(omap_dma_set_sglist_fastmode);
-> +
-> 
->  #ifdef CONFIG_ARCH_OMAP1
-> 
-> @@ -2439,6 +2736,7 @@ static int __init omap_init_dma(void)
->  			r = -ENOMEM;
->  			goto out_free;
+> +	omap_i2c_pdata[ints[1] - 1].rate = rate;
+>  
+>  	return 1;
+>  }
+> @@ -225,11 +119,15 @@ static int __init omap_register_i2c_bus_cmdline(void)
+>  {
+>  	int i, err = 0;
+>  
+> -	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
+> -		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
+> -			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+> -			omap_set_i2c_constraint_func(&i2c_pdata[i]);
+> -			err = omap_i2c_add_bus(i + 1);
+> +	for (i = 0; i < OMAP_I2C_MAX_CONTROLLERS; i++)
+> +		if (omap_i2c_pdata[i].rate & OMAP_I2C_CMDLINE_SETUP) {
+> +			omap_i2c_pdata[i].rate &= ~OMAP_I2C_CMDLINE_SETUP;
+> +			err = -EINVAL;
+> +			if (cpu_class_is_omap1())
+> +				err = omap1_i2c_add_bus(i + 1);
+> +			else if (cpu_class_is_omap2())
+> +				err = omap2_i2c_add_bus(i + 1);
+> +			omap_set_i2c_constraint_func(&omap_i2c_pdata[i]);
+>  			if (err)
+>  				goto out;
 >  		}
-> +		dma_caps0_status = dma_read(CAPS_0);
+> @@ -253,8 +151,14 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+>  			  unsigned len)
+>  {
+>  	int err;
+> +	int nr_ports = 0;
+> +
+> +	if (cpu_class_is_omap1())
+> +		nr_ports = omap1_i2c_nr_ports();
+> +	else if (cpu_class_is_omap2())
+> +		nr_ports = omap2_i2c_nr_ports();
+>  
+> -	BUG_ON(bus_id < 1 || bus_id > omap_i2c_nr_ports());
+> +	BUG_ON(bus_id < 1 || bus_id > nr_ports);
+>  
+>  	if (info) {
+>  		err = i2c_register_board_info(bus_id, info, len);
+> @@ -262,11 +166,15 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+>  			return err;
 >  	}
-> 
->  	if (cpu_is_omap15xx()) {
-> @@ -2490,6 +2788,7 @@ static int __init omap_init_dma(void)
->  		omap_clear_dma(ch);
->  		dma_chan[ch].dev_id = -1;
->  		dma_chan[ch].next_lch = -1;
-> +		dma_chan[ch].list_config = NULL;
-> 
->  		if (ch >= 6 && enable_1510_mode)
->  			continue;
-> diff --git a/arch/arm/plat-omap/include/plat/dma.h
-> b/arch/arm/plat-omap/include/plat/dma.h
-> index 1c017b2..be128c9 100644
-> --- a/arch/arm/plat-omap/include/plat/dma.h
-> +++ b/arch/arm/plat-omap/include/plat/dma.h
-> @@ -21,6 +21,8 @@
->  #ifndef __ASM_ARCH_DMA_H
->  #define __ASM_ARCH_DMA_H
-> 
-> +#include <linux/device.h>
+>  
+> -	if (!i2c_pdata[bus_id - 1].clkrate)
+> -		i2c_pdata[bus_id - 1].clkrate = clkrate;
+> +	if (!omap_i2c_pdata[bus_id - 1].rate)
+> +		omap_i2c_pdata[bus_id - 1].rate = clkrate;
+>  
+> -	omap_set_i2c_constraint_func(&i2c_pdata[bus_id - 1]);
+> -	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+> +	omap_set_i2c_constraint_func(&omap_i2c_pdata[bus_id - 1]);
+> +	omap_i2c_pdata[bus_id - 1].rate &= ~OMAP_I2C_CMDLINE_SETUP;
 > +
->  /* Hardware registers for omap1 */
->  #define OMAP1_DMA_BASE			(0xfffed800)
-> 
-> @@ -112,8 +114,12 @@
->  #define OMAP1_DMA_COLOR_U(n)		(0x40 * (n) + 0x22)
->  #define OMAP1_DMA_CCR2(n)		(0x40 * (n) + 0x24)
->  #define OMAP1_DMA_LCH_CTRL(n)		(0x40 * (n) + 0x2a)	/* not on 15xx */
-> +#define OMAP1_DMA_COLOR(n)		0
->  #define OMAP1_DMA_CCEN(n)		0
->  #define OMAP1_DMA_CCFN(n)		0
-> +#define OMAP1_DMA_CDP(n)		0
-> +#define OMAP1_DMA_CNDP(n)		0
-> +#define OMAP1_DMA_CCDN(n)		0
-> 
->  /* Channel specific registers only on omap2 */
->  #define OMAP_DMA4_CSSA(n)		(0x60 * (n) + 0x9c)
-> @@ -132,6 +138,8 @@
->  #define OMAP1_DMA_IRQSTATUS_L0		0
->  #define OMAP1_DMA_IRQENABLE_L0		0
->  #define OMAP1_DMA_OCP_SYSCONFIG		0
-> +#define OMAP1_DMA_CAPS_0		0
-> +
->  #define OMAP_DMA4_HW_ID			0
->  #define OMAP_DMA4_CAPS_0_L		0
->  #define OMAP_DMA4_CAPS_0_U		0
-> @@ -576,6 +584,83 @@ struct omap_dma_channel_params {
->  #endif
+> +	if (cpu_class_is_omap1())
+> +		return omap1_i2c_add_bus(bus_id);
+> +	else if (cpu_class_is_omap2())
+> +		return omap2_i2c_add_bus(bus_id);
+>  
+> -	return omap_i2c_add_bus(bus_id);
+>  }
+> diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/plat-omap/include/plat/i2c.h
+> index 886ee5d..1fe96ea 100644
+> --- a/arch/arm/plat-omap/include/plat/i2c.h
+> +++ b/arch/arm/plat-omap/include/plat/i2c.h
+> @@ -40,4 +40,26 @@ struct omap_i2c_dev_attr {
+>  	u8	flags;
 >  };
-> 
-> +struct omap_dma_sglist_type1_params {
-> +	u32 src_addr;
-> +	u32 dst_addr;
-> +	u16 cfn_fn;
-> +	u16 cicr;
-> +	u16 dst_elem_idx;
-> +	u16 src_elem_idx;
-> +	u32 dst_frame_idx_or_pkt_size;
-> +	u32 src_frame_idx_or_pkt_size;
-> +	u32 color;
-> +	u32 csdp;
-> +	u32 clnk_ctrl;
-> +	u32 ccr;
+>  
+> +/**
+> + * struct omap_i2c_platform_data - OMAP I2C controller platform data
+> + */
+> +struct omap_i2c_platform_data {
+> +	u32 rate;
+> +	struct omap_i2c_dev_attr *dev_attr;
+> +	void (*set_mpu_wkup_lat)(struct device *dev, int set);
+> +	int (*device_enable) (struct platform_device *pdev);
+> +	int (*device_shutdown) (struct platform_device *pdev);
+> +	int (*device_idle) (struct platform_device *pdev);
 > +};
 > +
-> +struct omap_dma_sglist_type2a_params {
-> +	u32 src_addr;
-> +	u32 dst_addr;
-> +	u16 cfn_fn;
-> +	u16 cicr;
-> +	u16 dst_elem_idx;
-> +	u16 src_elem_idx;
-> +	u32 dst_frame_idx_or_pkt_size;
-> +	u32 src_frame_idx_or_pkt_size;
-> +};
+> +/* Prototypes for OMAP platform I2C core initialization code */
 > +
-> +struct omap_dma_sglist_type2b_params {
-> +	u32 src_or_dest_addr;
-> +	u16 cfn_fn;
-> +	u16 cicr;
-> +	u16 dst_elem_idx;
-> +	u16 src_elem_idx;
-> +	u32 dst_frame_idx_or_pkt_size;
-> +	u32 src_frame_idx_or_pkt_size;
-> +};
+> +struct omap_i2c_platform_data * __init omap_i2c_get_pdata(int bus_id);
 > +
-> +struct omap_dma_sglist_type3a_params {
-> +	u32 src_addr;
-> +	u32 dst_addr;
-> +};
+> +int __init omap1_i2c_nr_ports(void);
+> +int __init omap2_i2c_nr_ports(void);
 > +
-> +struct omap_dma_sglist_type3b_params {
-> +	u32 src_or_dest_addr;
-> +};
+> +int __init omap1_i2c_add_bus(int bus_id);
+> +int __init omap2_i2c_add_bus(int bus_id);
 > +
-> +enum omap_dma_sglist_descriptor_select {
-> +	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1,
-> +	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a,
-> +	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b,
-> +	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a,
-> +	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b,
-> +};
-> +
-> +union omap_dma_sglist_node_type{
-> +	struct omap_dma_sglist_type1_params t1;
-> +	struct omap_dma_sglist_type2a_params t2a;
-> +	struct omap_dma_sglist_type2b_params t2b;
-> +	struct omap_dma_sglist_type3a_params t3a;
-> +	struct omap_dma_sglist_type3b_params t3b;
-> +};
-> +
-> +struct omap_dma_sglist_node {
-> +
-> +	/* Common elements for all descriptors */
-> +	dma_addr_t next_desc_add_ptr;
-> +	u32 num_of_elem;
-> +	/* Type specific elements */
-> +	union omap_dma_sglist_node_type sg_node;
-> +	/* Control fields */
-> +	unsigned short flags;
-> +	/* Fields that can be set in flags variable */
-> +	#define OMAP_DMA_LIST_SRC_VALID		(1)
-> +	#define OMAP_DMA_LIST_DST_VALID		(2)
-> +	#define OMAP_DMA_LIST_NOTIFY_BLOCK_END	(4)
-> +	enum omap_dma_sglist_descriptor_select desc_type;
-> +	struct omap_dma_sglist_node *next;
-> +};
-> 
->  extern void omap_set_dma_priority(int lch, int dst_port, int priority);
->  extern int omap_request_dma(int dev_id, const char *dev_name,
-> @@ -660,6 +745,59 @@ extern int omap_modify_dma_chain_params(int chain_id,
->  					struct omap_dma_channel_params params);
->  extern int omap_dma_chain_status(int chain_id);
 >  #endif
-> +/* omap_request_dma_sglist:
-> + * Request to setup a DMA channel to transfer in linked list mode of nelem
-> + * elements. The memory for the list will be allocated and returned in
-> + * elems structure
-> + */
-> +extern int omap_request_dma_sglist(struct device *ddev, int dev_id,
-> +		const char *dev_name, void (*callback) (int channel_id,
-> +		u16 ch_status, void *data),	int *listid, int nelem,
-> +		struct omap_dma_sglist_node **elems);
-> +/* omap_set_dma_sglist_params
-> + * Provide the configuration parameters for the sglist channel
-> + * sghead should contain a fully populated list of nelems
-> + * which completely describe the transfer. chparams, if not NULL, will
-> + * set the appropriate parameters directly into the DMA register.
-> + * If chparams is NULL, fastmode will be enabled automatically
-> + */
-> +extern int omap_set_dma_sglist_params(const int listid,
-> +		struct omap_dma_channel_params *chparams);
-> +/* omap_start_dma_sglist_transfers
-> + * Starts the linked list based DMA transfer for the specified listid
-> + * If no pause is required, -1 is to be set in pauseafter.
-> + * Else, the transfer will suspend after pauseafter elements.
-> + */
-> +extern int omap_start_dma_sglist_transfers(const int listid,
-> +							const int pauseafter);
-> +/* omap_resume_dma_sglist_transfers
-> + * Resumes the previously paused transfer.
-> + * Can be again set to pause at pauseafter node of the linked list
-> + * The index is absolute (from the head of the list)
-> + */
-> +extern int omap_resume_dma_sglist_transfers(const int listid,
-> +							const int pauseafter);
-> +/* omap_release_dma_sglist
-> + * Releases the list based DMA channel and the associated list descriptors
-> + */
-> +extern int omap_release_dma_sglist(const int listid);
-> +/* omap_get_completed_sglist_nodes
-> + * Returns the number of completed elements in the linked list
-> + * The value is transient if the API is invoked for an ongoing transfer
-> + */
-> +int omap_get_completed_sglist_nodes(const int listid);
-> +/* omap_dma_sglist_is_paused
-> + * Returns non zero if the linked list is currently in pause state
-> + */
-> +int omap_dma_sglist_is_paused(const int listid);
-> +/* omap_dma_set_sglist_fastmode
-> + * Set or clear the fastmode status of the transfer
-> + * In fastmode, DMA register settings are updated from the first element
-> + * of the linked list, before initiating the tranfer.
-> + * In non-fastmode, the first element is used only after completing the
-> + * transfer as already configured in the registers
-> + */
-> +void omap_dma_set_sglist_fastmode(const int listid, const int fastmode);
-> 
->  /* LCD DMA functions */
->  extern int omap_request_lcd_dma(void (*callback)(u16 status, void *data),
 > -- 
 > 1.5.4.7
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
