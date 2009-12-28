@@ -1,107 +1,264 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP4: PM: Remove the checks preventing OMAP4
- clockdomain validation
-Date: Mon, 28 Dec 2009 11:47:31 -0800
-Message-ID: <20091228194731.GL3512@atomide.com>
-References: <1261391747-24066-1-git-send-email-abhijitpagare@ti.com>
+Subject: Re: [PATCH] OMAP3: PM:  Dynamic calculation of SDRC clock
+ stabilization delay
+Date: Mon, 28 Dec 2009 11:57:25 -0800
+Message-ID: <20091228195725.GM3512@atomide.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E2C2@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49740 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59120 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751210AbZL1Trh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 14:47:37 -0500
+	with ESMTP id S1751088AbZL1T52 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 14:57:28 -0500
 Content-Disposition: inline
-In-Reply-To: <1261391747-24066-1-git-send-email-abhijitpagare@ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E2C2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Abhijit Pagare <abhijitpagare@ti.com> [091221 02:34]:
-> The clockdomain related code beng in place it is now not necessary to have
-> some of the clock code commented out. This would help the validation of the
-> clockdomain functions using the clock level interfaces.
+* Reddy, Teerth <teerth@ti.com> [091223 21:31]:
+> From e5e82efbf6f736984668cc5e94d62635ed4de05e Mon Sep 17 00:00:00 2001
+> From: Teerth Reddy <teerth@ti.com>
+> Date: Wed, 23 Dec 2009 18:40:34 +0530
+> Subject: [PATCH] Dynamic Calculation of SDRC clock stabilization delay
+> 
+> The patch has the changes to calculate the dpll3 clock
+> stabilization delay dynamically. The SRAM delay is
+> calibrated during bootup using the gptimers and used while
+> calculating the stabilization delay. By using the dynamic
+> method the dependency on the type of cache being used is
+> removed. Hence there is no need of loop based calculation.
+> 
+> TO DO: However the value of 6us for SDRC to stabilize has
+> been hardcoded currently. The formula used to calculate
+> this value gives a very small number thus causing
+> instability. The right formula will be used which will
+> work across all boards.
 
-Why are tagging clock related  patches as "PM" in the subject?
+Why does this patch have "PM" in the subject?
 
-All the clock related patches should be done directly against
-the mainline kernel.
+This patch should not have anything to do with the pm branch,
+it's obviously clock + SRAM related. All that code is in the
+mainline kernel.
 
-If there is some dependency to the pm branch, that should be
-fixed and removed ASAP.
+Please stop tagging patches as "PM" unless they really are
+pm related.
 
 Regards,
 
 Tony
 
-
-
  
-> Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
+> Signed-off-by: Romit Dasgupta <romit@ti.com>
 > ---
->  arch/arm/mach-omap2/clock.c |    8 --------
->  1 files changed, 0 insertions(+), 8 deletions(-)
+>  arch/arm/mach-omap2/clock34xx.c        |   21 +++++++++------
+>  arch/arm/mach-omap2/clock34xx.h        |    2 +
+>  arch/arm/mach-omap2/clock34xx_data.c   |    4 +++
+>  arch/arm/mach-omap2/sram34xx.S         |   25 ++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/sram.h |    5 +++
+>  arch/arm/plat-omap/sram.c              |   43 ++++++++++++++++++++++++++++++++
+>  6 files changed, 91 insertions(+), 9 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index 759c72a..a6d570a 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -181,7 +181,6 @@ static int _dpll_test_fint(struct clk *clk, u8 n)
->   * clockdomain pointer, and save it into the struct clk.  Intended to be
->   * called during clk_register().  No return value.
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index d9329e2..6d87419 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -56,9 +56,18 @@
 >   */
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
->  void omap2_init_clk_clkdm(struct clk *clk)
->  {
->  	struct clockdomain *clkdm;
-> @@ -199,7 +198,6 @@ void omap2_init_clk_clkdm(struct clk *clk)
->  			 "clkdm %s\n", clk->name, clk->clkdm_name);
->  	}
->  }
-> -#endif
+>  #define DPLL5_FREQ_FOR_USBHOST		120000000
 >  
+> +/*
+> + * SDRC_TIME_STABILIZE: Time for SDRC to stabilize in us
+> + * TO DO: Use formula to calculate across all platforms
+> + */
+> +#define		SDRC_TIME_STABILIZE	6
+> +
+>  /* needed by omap3_core_dpll_m2_set_rate() */
+>  struct clk *sdrc_ick_p, *arm_fck_p;
+>  
+> +/* SRAM delay required for sdrc clk stab delay calculation */
+> +unsigned int delay_sram;
+> +
 >  /**
->   * omap2_init_clksel_parent - set a clksel clk's parent field from the hardware
-> @@ -476,10 +474,8 @@ void omap2_clk_disable(struct clk *clk)
->  		_omap2_clk_disable(clk);
->  		if (clk->parent)
->  			omap2_clk_disable(clk->parent);
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
->  		if (clk->clkdm)
->  			omap2_clkdm_clk_disable(clk->clkdm, clk);
-> -#endif
->  
+>   * omap3430es2_clk_ssi_find_idlest - return CM_IDLEST info for SSI
+>   * @clk: struct clk * being enabled
+> @@ -215,16 +224,10 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+>  		unlock_dll = 1;
 >  	}
+>  
+> -	/*
+> -	 * XXX This only needs to be done when the CPU frequency changes
+> -	 */
+> +	/* Calculate the number of MPU cycles to wait for SDRC to stabilize */
+> +
+>  	_mpurate = arm_fck_p->rate / CYCLES_PER_MHZ;
+> -	c = (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
+> -	c += 1;  /* for safety */
+> -	c *= SDRC_MPURATE_LOOPS;
+> -	c >>= SDRC_MPURATE_SCALE;
+> -	if (c == 0)
+> -		c = 1;
+> +	c = ((SDRC_TIME_STABILIZE * _mpurate) / (delay_sram * 2));
+>  
+>  	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+>  		 validrate);
+> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+> index 9a2c07e..1bc5044 100644
+> --- a/arch/arm/mach-omap2/clock34xx.h
+> +++ b/arch/arm/mach-omap2/clock34xx.h
+> @@ -21,4 +21,6 @@ extern const struct clkops clkops_omap3430es2_hsotgusb_wait;
+>  extern const struct clkops clkops_omap3430es2_dss_usbhost_wait;
+>  extern const struct clkops clkops_noncore_dpll_ops;
+>  
+> +extern unsigned int delay_sram;
+> +
+>  #endif
+> diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
+> index 8bdcc9c..e5d0941 100644
+> --- a/arch/arm/mach-omap2/clock34xx_data.c
+> +++ b/arch/arm/mach-omap2/clock34xx_data.c
+> @@ -22,6 +22,7 @@
+>  
+>  #include <plat/control.h>
+>  #include <plat/clkdev_omap.h>
+> +#include <plat/sram.h>
+>  
+>  #include "clock.h"
+>  #include "clock34xx.h"
+> @@ -3285,5 +3286,8 @@ int __init omap2_clk_init(void)
+>  	sdrc_ick_p = clk_get(NULL, "sdrc_ick");
+>  	arm_fck_p = clk_get(NULL, "arm_fck");
+>  
+> +	/* Measure sram delay */
+> +	delay_sram = measure_sram_delay(10000);
+> +	pr_debug("SRAM delay: %d\n", delay_sram);
+>  	return 0;
 >  }
-> @@ -489,10 +485,8 @@ int omap2_clk_enable(struct clk *clk)
->  	int ret = 0;
+> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+> index de99ba2..b4fba50 100644
+> --- a/arch/arm/mach-omap2/sram34xx.S
+> +++ b/arch/arm/mach-omap2/sram34xx.S
+> @@ -68,6 +68,10 @@
+>  /* CM_CLKSEL1_PLL bit settings */
+>  #define CORE_DPLL_CLKOUT_DIV_SHIFT	0x1b
 >  
->  	if (clk->usecount++ == 0) {
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
->  		if (clk->clkdm)
->  			omap2_clkdm_clk_enable(clk->clkdm, clk);
-> -#endif
+> +#define	GPTIMER10_TCRR_PHY			0x48086028
+> +
+> +#define	GPTIMER10_TCRR	OMAP2_L4_IO_ADDRESS(GPTIMER10_TCRR_PHY)
+> +
+>  /*
+>   * omap3_sram_configure_core_dpll - change DPLL3 M2 divider
+>   *
+> @@ -313,3 +317,24 @@ core_m2_mask_val:
+>  ENTRY(omap3_sram_configure_core_dpll_sz)
+>  	.word	. - omap3_sram_configure_core_dpll
 >  
->  		if (clk->parent) {
->  			ret = omap2_clk_enable(clk->parent);
-> @@ -511,10 +505,8 @@ int omap2_clk_enable(struct clk *clk)
->  	return ret;
+> +ENTRY(__sram_wait_delay)
+> +	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
+> + 	ldr	r2, gptimer10_counter
+> +	ldr	r3, [r2]
+> +
+> +loop1:
+> +	subs 	r0, r0, #1
+> +	bne	loop1
+> +
+> +	isb
+> +	ldr	r4, [r2]
+> +	subs	r5, r4, r3
+> +
+> +	mov 	r0, r5 			@ return value
+> +	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
+> +
+> +gptimer10_counter:
+> +	.word	GPTIMER10_TCRR
+> +
+> +ENTRY(__sram_wait_delay_sz)
+> +	.word	. - __sram_wait_delay
+> diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
+> index 16a1b45..7d0be2a 100644
+> --- a/arch/arm/plat-omap/include/plat/sram.h
+> +++ b/arch/arm/plat-omap/include/plat/sram.h
+> @@ -69,6 +69,11 @@ extern u32 omap3_sram_configure_core_dpll(
+>  			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
+>  extern unsigned long omap3_sram_configure_core_dpll_sz;
 >  
->  err:
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
->  	if (clk->clkdm)
->  		omap2_clkdm_clk_disable(clk->clkdm, clk);
-> -#endif
->  	clk->usecount--;
->  	return ret;
+> +extern unsigned int measure_sram_delay(unsigned int);
+> +
+> +extern u32 __sram_wait_delay(unsigned int);
+> +extern unsigned long __sram_wait_delay_sz;
+> +
+>  #ifdef CONFIG_PM
+>  extern void omap_push_sram_idle(void);
+>  #else
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index d8d5094..ddbdaaf 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -30,6 +30,9 @@
+>  #include <plat/cpu.h>
+>  #include <plat/vram.h>
+>  
+> +#include <linux/clk.h>
+> +#include <plat/dmtimer.h>
+> +
+>  #include <plat/control.h>
+>  
+>  #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> @@ -437,11 +440,51 @@ static inline int omap34xx_sram_init(void)
 >  }
-> -- 
-> 1.5.4.7
-> 
+>  #endif
+>  
+> +
+> +#ifdef CONFIG_ARCH_OMAP3
+> +unsigned long (*_omap3_sram_delay)(unsigned long);
+> +unsigned int  measure_sram_delay(unsigned int loop)
+> +{
+> +	static struct omap_dm_timer *gpt;
+> +	unsigned long flags, diff = 0, gt_rate, mpurate;
+> +	unsigned int delay_sram, error_gain;
+> +
+> +	omap_dm_timer_init();
+> +	gpt = omap_dm_timer_request_specific(10);
+> +	if (!gpt)
+> +		pr_err("Could not get the gptimer\n");
+> +	omap_dm_timer_set_source(gpt, OMAP_TIMER_SRC_SYS_CLK);
+> +
+> +	gt_rate = clk_get_rate(omap_dm_timer_get_fclk(gpt));
+> +	omap_dm_timer_set_load_start(gpt, 0, 0);
+> +
+> +	local_irq_save(flags);
+> +	diff = _omap3_sram_delay(loop);
+> +	local_irq_restore(flags);
+> +
+> +	omap_dm_timer_stop(gpt);
+> +	omap_dm_timer_free(gpt);
+> +
+> +	mpurate = clk_get_rate(clk_get(NULL, "arm_fck"));
+> +
+> +	/* calculate the sram delay */
+> +	delay_sram = (((mpurate / gt_rate) * diff) / 20000);
+> +
+> +	error_gain = mpurate / gt_rate;
+> +	delay_sram = delay_sram + error_gain;
+> +
+> +	return delay_sram;
+> +}
+> +#endif
+> +
+>  int __init omap_sram_init(void)
+>  {
+>  	omap_detect_sram();
+>  	omap_map_sram();
+>  
+> +	_omap3_sram_delay = omap_sram_push(__sram_wait_delay,
+> +						__sram_wait_delay_sz);
+> +
+>  	if (!(cpu_class_is_omap2()))
+>  		omap1_sram_init();
+>  	else if (cpu_is_omap242x())
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
