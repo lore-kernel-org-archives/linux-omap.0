@@ -1,42 +1,67 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 8/8] arm: omap: musb: remove unnecessary return
-Date: Mon, 28 Dec 2009 13:09:50 +0200
-Message-ID: <1261998590-6639-9-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 2/8] arm: omap: musb: we can use clk framework
+Date: Mon, 28 Dec 2009 13:09:44 +0200
+Message-ID: <1261998590-6639-3-git-send-email-felipe.balbi@nokia.com>
 References: <1261998590-6639-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:19161 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752519AbZL1LL5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 06:11:57 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:61561 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752494AbZL1LLz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 06:11:55 -0500
 In-Reply-To: <1261998590-6639-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-trivial patch, no functional changes.
+... in order to handle musb's clock. Let's start
+removing the old musb-only set_clock function.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap2/usb-musb.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |   22 ----------------------
+ 1 files changed, 0 insertions(+), 22 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index e0050c5..ec8869a 100644
+index de7ae49..5a55c12 100644
 --- a/arch/arm/mach-omap2/usb-musb.c
 +++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -91,10 +91,8 @@ void __init usb_musb_init(enum musb_mode mode, unsigned power)
- 	musb_plat.power = power >> 1;
- 	musb_plat.mode = mode;
+@@ -47,27 +47,6 @@ static struct resource musb_resources[] = {
+ 	},
+ };
  
--	if (platform_device_register(&musb_device) < 0) {
-+	if (platform_device_register(&musb_device) < 0)
- 		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
--		return;
+-static int clk_on;
+-
+-static int musb_set_clock(struct clk *clk, int state)
+-{
+-	if (state) {
+-		if (clk_on > 0)
+-			return -ENODEV;
+-
+-		clk_enable(clk);
+-		clk_on = 1;
+-	} else {
+-		if (clk_on == 0)
+-			return -ENODEV;
+-
+-		clk_disable(clk);
+-		clk_on = 0;
 -	}
- }
+-
+-	return 0;
+-}
+-
+ static struct musb_hdrc_config musb_config = {
+ 	.multipoint	= 1,
+ 	.dyn_fifo	= 1,
+@@ -88,7 +67,6 @@ static struct musb_hdrc_platform_data musb_plat = {
+ 	.mode		= MUSB_PERIPHERAL,
+ #endif
+ 	/* .clock is set dynamically */
+-	.set_clock	= musb_set_clock,
+ 	.config		= &musb_config,
  
- #else
+ 	/* REVISIT charge pump on TWL4030 can supply up to
 -- 
 1.6.6.rc0
 
