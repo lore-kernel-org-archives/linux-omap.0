@@ -1,58 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] arm: omap1: mailbox: kill compile warning
-Date: Mon, 28 Dec 2009 16:26:56 -0800
-Message-ID: <20091229002656.GW3512@atomide.com>
-References: <1261512955-19437-1-git-send-email-felipe.balbi@nokia.com>
- <1261512955-19437-2-git-send-email-felipe.balbi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH v2] arm: omap1: mailbox: kill compile warning
+Date: Tue, 29 Dec 2009 02:59:12 +0200
+Message-ID: <1262048352-23291-1-git-send-email-felipe.balbi@nokia.com>
+References: <20091229002656.GW3512@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52671 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078AbZL2A07 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 19:26:59 -0500
-Content-Disposition: inline
-In-Reply-To: <1261512955-19437-2-git-send-email-felipe.balbi@nokia.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:44480 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078AbZL2A7Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Dec 2009 19:59:24 -0500
+In-Reply-To: <20091229002656.GW3512@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-* Felipe Balbi <felipe.balbi@nokia.com> [091222 12:17]:
-> use ioremap to get the virtual address and
-> avoid a compile warning.
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  arch/arm/mach-omap1/mailbox.c |    7 ++++++-
->  1 files changed, 6 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
-> index caf889a..38a7d2c 100644
-> --- a/arch/arm/mach-omap1/mailbox.c
-> +++ b/arch/arm/mach-omap1/mailbox.c
-> @@ -160,7 +160,12 @@ static int __devinit omap1_mbox_probe(struct platform_device *pdev)
->  		dev_err(&pdev->dev, "invalid mem resource\n");
->  		return -ENODEV;
->  	}
-> -	mbox_base = res->start;
-> +
-> +	mbox_base = ioremap(res->start, resource_size(res));
-> +	if (!mbox_base) {
-> +		dev_err(&pdev->dev, "ioremap failed\n");
-> +		return -ENODEV;
-> +	}
->  
->  	/* DSP IRQ */
->  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+remove unused variable and kill compile warning.
 
-This does not look right, if you look at mach-omap1/devices.c,
-OMAP1_MBOX_BASE is still using OMAP1_IO_ADDRESS, so it's already
-a virt address.
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
 
-Maybe update the patch to remove OMAP1_IO_ADDRESS in
-mach-omap1/devices.c?
+Changes from previous version:
+	- Removed OMAP1_IO_ADDRESS() from OMAP1_MBOX_BASE define
 
-Regards,
+ arch/arm/mach-omap1/devices.c |    2 +-
+ arch/arm/mach-omap1/mailbox.c |    1 -
+ 2 files changed, 1 insertions(+), 2 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index 23ded2d..9caf51b 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -71,7 +71,7 @@ static inline void omap_init_rtc(void) {}
+ #  define INT_DSP_MAILBOX1	INT_1610_DSP_MAILBOX1
+ #endif
+ 
+-#define OMAP1_MBOX_BASE		OMAP1_IO_ADDRESS(OMAP16XX_MAILBOX_BASE)
++#define OMAP1_MBOX_BASE		OMAP16XX_MAILBOX_BASE
+ 
+ static struct resource mbox_resources[] = {
+ 	{
+diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
+index caf889a..a4dd4c0 100644
+--- a/arch/arm/mach-omap1/mailbox.c
++++ b/arch/arm/mach-omap1/mailbox.c
+@@ -146,7 +146,6 @@ EXPORT_SYMBOL(mbox_dsp_info);
+ static int __devinit omap1_mbox_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res;
+-	int ret = 0;
+ 
+ 	if (pdev->num_resources != 2) {
+ 		dev_err(&pdev->dev, "invalid number of resources: %d\n",
+-- 
+1.6.6.35.g1d85d
+
