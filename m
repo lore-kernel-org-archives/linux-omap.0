@@ -1,40 +1,36 @@
-From: "Luke-Jr" <luke@dashjr.org>
-Subject: Re: [PATCH] OMAP2: add USB platform data and initialization for Nokia N800 and N810
-Date: Tue, 29 Dec 2009 15:05:46 -0600
-Message-ID: <200912291505.51230.luke@dashjr.org>
-References: <200912290152.16357.luke@dashjr.org> <200912290246.57663.luke@dashjr.org> <873a2uxip9.fsf@purkki.valot.fi>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: Issue in oamp nand driver with 32-bit reads in prefetch mode
+Date: Tue, 29 Dec 2009 13:47:17 -0800
+Message-ID: <5e088bd90912291347j370ab30cid7c6cfc558c2ed18@mail.gmail.com>
+References: <ce9ab5790912230133wae2c4dcw73051221b66cb40f@mail.gmail.com>
+	 <20091223174429.GD3512@atomide.com>
+	 <5e088bd90912291238t1f2aba64na94887b2f864454d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752118AbZL2VGK@vger.kernel.org>
-In-Reply-To: <873a2uxip9.fsf@purkki.valot.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kalle Valo <kalle.valo@iki.fi>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.26]:38656 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752295AbZL2VrU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 16:47:20 -0500
+Received: by qw-out-2122.google.com with SMTP id 8so1044104qwh.37
+        for <linux-omap@vger.kernel.org>; Tue, 29 Dec 2009 13:47:18 -0800 (PST)
+In-Reply-To: <5e088bd90912291238t1f2aba64na94887b2f864454d@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Vimal Singh <vimal.newwork@gmail.com>, linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 29 December 2009 02:55:46 am Kalle Valo wrote:
-> Having lots of small files is difficult IMHO.
+On Tue, Dec 29, 2009 at 12:38 PM, Steve Sakoman <sakoman@gmail.com> wrote:
 
-The last-working N8x0 support (Linux-OMAP 2.6.30-rc8) required 1706 lines of 
-platform data and initialization, split up into 6 files:
-	590	N800 + i2c + FM + keyboard + light sensor + LED + LCD + temp + SPI + WiFi
-		 + touchscreen + OneNAND
-	47	N810
-	175	USB
-	362	MMC
-	156	DSP
-	376	camera
+> I can confirm that this issue exists on Overo too.  Sadly, switching
+> to 16 bit reads does not fix the issue for me.  I'll start digging to
+> see if I can find what's broken.
 
-The largest OMAP2 single-board file is merely 689 lines (3430sdp).
-N900/RX-51, totalling 863 lines itself, is split over 2 files.
+I can also confirm that there are days when I am not even capable of
+applying a patch properly :-(
 
-I think 4 or 5 files with ~350 lines is more manageable than a single 1700-
-line board file, especially when considering that parts depend on multiple 
-configuration options (LCD, which turns out to be a 128-line file, depends on 
-3 config options: N8x0, Blizzard, and MIPID).
+Switching to 16 bit read accesses does indeed fix the ECC issue on Overo too.
 
-Thoughts?
+Which still leaves us needing to find the root cause of the breakage . . .
 
-Luke
+Steve
