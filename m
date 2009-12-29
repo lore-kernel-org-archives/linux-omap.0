@@ -1,72 +1,45 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PULL REQUEST] arm omap patches for next -rc
-Date: Wed, 30 Dec 2009 00:58:29 +0200
-Message-ID: <1262127509.28789.90.camel@gandalf>
-Reply-To: me@felipebalbi.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [patch-v2.6.34 0/9] arm omap patches for -next merge window
+Date: Wed, 30 Dec 2009 00:59:18 +0200
+Message-ID: <1262127567-15202-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:59032 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:50500 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750986AbZL2W6c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 17:58:32 -0500
+	with ESMTP id S1751428AbZL2W7f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 17:59:35 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-The following changes since commit
-abb74381235a05f15a3b07e9e3831034942c67fb:
-  Tony Lindgren (1):
-        Linux-omap rebuilt: Updated to 2.6.33-rc2, clock fixes merged
+Hi Tony,
 
-are available in the git repository at:
+here are the patches I have prepared for you for
+the next merge window.
 
-  git://gitorious.org/usb/usb.git for-tony
+There's one patch on musb which is a dependency for
+for not passing the clk name down to the driver.
 
-Felipe Balbi (12):
-      arm: omap: musb: ioremap only what's ours
-      arm: omap: musb: fix board power budget by passing it to
-usb_musb_init
-      arm: omap: musb: fix board mode by passing it to usb_musb_init
-      arm: omap1: mailbox: kill compile warning
-      arm: omap: gpmc: kill compile warning
-      arm: omap: kill compile warning in irq.c
-      arm: omap: remove unused variables
-      arm: omap: io: kill compile warning
-      arm: omap: kill compile warning on board-4430-sdp.c
-      arm: omap: gpio: kill compile warning in gpio.c
-      arm: omap: mailbox: kill compile warning in mailbox.c
-      arm: omap: perseus: kill compile warning on board-perseus2.c
+The same patch will be going through Greg so you don't
+need to queue that patch on your tree.
 
- arch/arm/mach-omap1/devices.c                |    2 +-
- arch/arm/mach-omap1/mailbox.c                |    9 +++++++--
- arch/arm/mach-omap2/board-2430sdp.c          |    3 ++-
- arch/arm/mach-omap2/board-3430sdp.c          |    3 ++-
- arch/arm/mach-omap2/board-4430sdp.c          |    4 ----
- arch/arm/mach-omap2/board-cm-t35.c           |    3 ++-
- arch/arm/mach-omap2/board-igep0020.c         |    3 ++-
- arch/arm/mach-omap2/board-ldp.c              |    3 ++-
- arch/arm/mach-omap2/board-omap3beagle.c      |    3 ++-
- arch/arm/mach-omap2/board-omap3evm.c         |    3 ++-
- arch/arm/mach-omap2/board-omap3pandora.c     |    3 ++-
- arch/arm/mach-omap2/board-omap3touchbook.c   |    3 ++-
- arch/arm/mach-omap2/board-overo.c            |    3 ++-
- arch/arm/mach-omap2/board-rx51.c             |    3 ++-
- arch/arm/mach-omap2/board-zoom-peripherals.c |    3 ++-
- arch/arm/mach-omap2/gpmc.c                   |    6 ++++--
- arch/arm/mach-omap2/io.c                     |    2 ++
- arch/arm/mach-omap2/irq.c                    |    2 ++
- arch/arm/mach-omap2/mailbox.c                |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2430.h        |    2 --
- arch/arm/mach-omap2/usb-musb.c               |   23
-+++++++----------------
- arch/arm/plat-omap/gpio.c                    |    3 +++
- arch/arm/plat-omap/include/plat/fpga.h       |    4 ++--
- arch/arm/plat-omap/include/plat/usb.h        |    3 ++-
- 24 files changed, 55 insertions(+), 43 deletions(-)
+Felipe Balbi (9):
+  arm: omap: musb: remove unused data
+  arm: omap: musb: we can use clk framework
+  arm: omap: musb: remove unused soft_con field
+  arm: omap: musb: remove unused dma data
+  arm: omap: musb: remove unnecessary return
+  arm: omap: gpmc: avoid section definitions on headers
+  usb: musb: use only clk framework for clk handling
+  arm: omap: musb: do not pass clock name to driver
+  arm: omap: musb: get rid of dyn_fifo
 
--- 
-balbi
+ arch/arm/mach-omap2/usb-musb.c         |   71 +-------------------------------
+ arch/arm/plat-omap/include/plat/gpmc.h |    2 +-
+ drivers/usb/musb/musb_core.c           |   48 +++++++--------------
+ drivers/usb/musb/musb_core.h           |    2 -
+ drivers/usb/musb/omap2430.c            |   10 +----
+ drivers/usb/musb/tusb6010.c            |   16 +++----
+ include/linux/usb/musb.h               |    4 +-
+ 7 files changed, 28 insertions(+), 125 deletions(-)
 
