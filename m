@@ -1,42 +1,72 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [patch-v2.6.33-rc2+ 06/12] arm: omap: kill compile warning in irq.c
-Date: Wed, 30 Dec 2009 00:51:26 +0200
-Message-ID: <1262127092-14878-7-git-send-email-felipe.balbi@nokia.com>
-References: <1262127092-14878-1-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: [PULL REQUEST] arm omap patches for next -rc
+Date: Wed, 30 Dec 2009 00:58:29 +0200
+Message-ID: <1262127509.28789.90.camel@gandalf>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:58951 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:59032 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752030AbZL2W4g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 17:56:36 -0500
-In-Reply-To: <1262127092-14878-1-git-send-email-felipe.balbi@nokia.com>
+	with ESMTP id S1750986AbZL2W6c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 17:58:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-intc_context is only used when omap3 is to be built,
-so also put it under ifdef CONFIG_ARM_OMAP3 to avoid
-the compile warning.
+The following changes since commit
+abb74381235a05f15a3b07e9e3831034942c67fb:
+  Tony Lindgren (1):
+        Linux-omap rebuilt: Updated to 2.6.33-rc2, clock fixes merged
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/mach-omap2/irq.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+are available in the git repository at:
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index e9bc782..d370052 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -62,7 +62,9 @@ struct omap3_intc_regs {
- 	u32 mir[INTCPS_NR_MIR_REGS];
- };
- 
-+#ifdef CONFIG_ARCH_OMAP3
- static struct omap3_intc_regs intc_context[ARRAY_SIZE(irq_banks)];
-+#endif
- 
- /* INTC bank register get/set */
- 
+  git://gitorious.org/usb/usb.git for-tony
+
+Felipe Balbi (12):
+      arm: omap: musb: ioremap only what's ours
+      arm: omap: musb: fix board power budget by passing it to
+usb_musb_init
+      arm: omap: musb: fix board mode by passing it to usb_musb_init
+      arm: omap1: mailbox: kill compile warning
+      arm: omap: gpmc: kill compile warning
+      arm: omap: kill compile warning in irq.c
+      arm: omap: remove unused variables
+      arm: omap: io: kill compile warning
+      arm: omap: kill compile warning on board-4430-sdp.c
+      arm: omap: gpio: kill compile warning in gpio.c
+      arm: omap: mailbox: kill compile warning in mailbox.c
+      arm: omap: perseus: kill compile warning on board-perseus2.c
+
+ arch/arm/mach-omap1/devices.c                |    2 +-
+ arch/arm/mach-omap1/mailbox.c                |    9 +++++++--
+ arch/arm/mach-omap2/board-2430sdp.c          |    3 ++-
+ arch/arm/mach-omap2/board-3430sdp.c          |    3 ++-
+ arch/arm/mach-omap2/board-4430sdp.c          |    4 ----
+ arch/arm/mach-omap2/board-cm-t35.c           |    3 ++-
+ arch/arm/mach-omap2/board-igep0020.c         |    3 ++-
+ arch/arm/mach-omap2/board-ldp.c              |    3 ++-
+ arch/arm/mach-omap2/board-omap3beagle.c      |    3 ++-
+ arch/arm/mach-omap2/board-omap3evm.c         |    3 ++-
+ arch/arm/mach-omap2/board-omap3pandora.c     |    3 ++-
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    3 ++-
+ arch/arm/mach-omap2/board-overo.c            |    3 ++-
+ arch/arm/mach-omap2/board-rx51.c             |    3 ++-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    3 ++-
+ arch/arm/mach-omap2/gpmc.c                   |    6 ++++--
+ arch/arm/mach-omap2/io.c                     |    2 ++
+ arch/arm/mach-omap2/irq.c                    |    2 ++
+ arch/arm/mach-omap2/mailbox.c                |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_2430.h        |    2 --
+ arch/arm/mach-omap2/usb-musb.c               |   23
++++++++----------------
+ arch/arm/plat-omap/gpio.c                    |    3 +++
+ arch/arm/plat-omap/include/plat/fpga.h       |    4 ++--
+ arch/arm/plat-omap/include/plat/usb.h        |    3 ++-
+ 24 files changed, 55 insertions(+), 43 deletions(-)
+
 -- 
-1.6.6.35.g1d85d
+balbi
 
