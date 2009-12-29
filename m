@@ -1,70 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PULL REQUEST] arm omap patches for -next merge window
-Date: Tue, 29 Dec 2009 15:50:02 -0800
-Message-ID: <20091229235002.GP3512@atomide.com>
-References: <1262127697.28789.92.camel@gandalf>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: L4 interconnect memory mapping
+Date: Wed, 30 Dec 2009 01:50:10 +0200
+Message-ID: <1262130610.28789.116.camel@gandalf>
+References: <1262129134.28789.96.camel@gandalf>
+	 <1262129299.28789.97.camel@gandalf>  <20091229234657.GO3512@atomide.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52216 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751513AbZL2XuE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 18:50:04 -0500
-Content-Disposition: inline
-In-Reply-To: <1262127697.28789.92.camel@gandalf>
+Received: from ns1.siteground211.com ([209.62.36.12]:60972 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646AbZL2XuP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 18:50:15 -0500
+In-Reply-To: <20091229234657.GO3512@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org
 
-* Felipe Balbi <me@felipebalbi.com> [091229 14:59]:
-> After these, all the patches I have for you are
-> done, besides the CBUS stuff which I want to test
-> further. DSME is turning off my device right after
-> boot so I can't really test anything. If you have
-> some hint, I'd be glad to hear ;-)
+On Tue, 2009-12-29 at 15:46 -0800, Tony Lindgren wrote:
+> * Felipe Balbi <me@felipebalbi.com> [091229 15:26]:
+> > Hi,
+> > 
+> > On Wed, 2009-12-30 at 01:25 +0200, Felipe Balbi wrote:
+> > > Hi Tony and Paul,
+> > > 
+> > > maybe a silly question, but here it goes:
+> > > 
+> > > Do we have any piece of code handling the L4 interconnect memory space ?
+> > > I mean, looking at omap3 TRM pages 212 - 219, I see that e.g. for the
+> > > musb block we have:
+> > > 
+> > > HS USB OTG	0x480AB000 - 0x480ABFFF	4KB	Module
+> > > 		0x480AC000 - 0x480ACFFF	4KB	L4 interconnect
+> > > 
+> > > So the first 4K is what we pass down to drivers via struct resource and
+> > > the second 4K ? What do we do with that ?
+> > 
+> > no with Paul's address correct.
 > 
-> The following changes since commit
-> bb65718ad7ed3c4231f67cf3f8b4a9a071bdfd53:
->   Felipe Balbi (1):
->         arm: omap: perseus: kill compile warning on board-perseus2.c
-> 
-> are available in the git repository at:
-> 
->   git://gitorious.org/usb/usb.git for-tony-next
+> Looks like you might want to update your earlier patch to just comment
+> that the 8K address space for musb is 4K + 4K for L4 interconnect :)
 
-This too should be against Linus' -rc2. Also, please
-leave out the changes to drivers/usb/musb, I don't want
-to pull those into for-next as they'll go through Greg.
-We can add any patches like that to omap-testing branch
-temporarily. That way people using linux-omap tree can
-test them.
+was thinking about that just now heh, but what do we do with the extra
+4k ? It's the same for all other modules. Is omap_hwmod taking care of
+that ?
 
-Regards,
+-- 
+balbi
 
-Tony
- 
-> Felipe Balbi (9):
->       arm: omap: musb: remove unused data
->       arm: omap: musb: we can use clk framework
->       arm: omap: musb: remove unused soft_con field
->       arm: omap: musb: remove unused dma data
->       arm: omap: musb: remove unnecessary return
->       arm: omap: gpmc: avoid section definitions on headers
->       usb: musb: use only clk framework for clk handling
->       arm: omap: musb: do not pass clock name to driver
->       arm: omap: musb: get rid of dyn_fifo
-> 
->  arch/arm/mach-omap2/usb-musb.c         |   71
-> +-------------------------------
->  arch/arm/plat-omap/include/plat/gpmc.h |    2 +-
->  drivers/usb/musb/musb_core.c           |   48 +++++++--------------
->  drivers/usb/musb/musb_core.h           |    2 -
->  drivers/usb/musb/omap2430.c            |   10 +----
->  drivers/usb/musb/tusb6010.c            |   16 +++----
->  include/linux/usb/musb.h               |    4 +-
->  7 files changed, 28 insertions(+), 125 deletions(-)
-> 
-> -- 
-> balbi
-> 
