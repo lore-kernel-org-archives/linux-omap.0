@@ -1,36 +1,64 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: Issue in oamp nand driver with 32-bit reads in prefetch mode
-Date: Tue, 29 Dec 2009 13:47:17 -0800
-Message-ID: <5e088bd90912291347j370ab30cid7c6cfc558c2ed18@mail.gmail.com>
-References: <ce9ab5790912230133wae2c4dcw73051221b66cb40f@mail.gmail.com>
-	 <20091223174429.GD3512@atomide.com>
-	 <5e088bd90912291238t1f2aba64na94887b2f864454d@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] V7/Cortex/omap34xx fixes for 2.6.33-rc1: DCC,
+ kexec, atags
+Date: Tue, 29 Dec 2009 14:07:05 -0800
+Message-ID: <20091229220705.GM3512@atomide.com>
+References: <20091219034151.26198.26570.stgit@localhost>
+ <aec7e5c30912272155s41ce8914hd03a5e4c740a5b9d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:38656 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295AbZL2VrU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 16:47:20 -0500
-Received: by qw-out-2122.google.com with SMTP id 8so1044104qwh.37
-        for <linux-omap@vger.kernel.org>; Tue, 29 Dec 2009 13:47:18 -0800 (PST)
-In-Reply-To: <5e088bd90912291238t1f2aba64na94887b2f864454d@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55330 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751918AbZL2WHK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 17:07:10 -0500
+Content-Disposition: inline
+In-Reply-To: <aec7e5c30912272155s41ce8914hd03a5e4c740a5b9d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Vimal Singh <vimal.newwork@gmail.com>, linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, linux-arm-kernel@lists.infradead.org
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Dec 29, 2009 at 12:38 PM, Steve Sakoman <sakoman@gmail.com> wrote:
+Hi,
 
-> I can confirm that this issue exists on Overo too.  Sadly, switching
-> to 16 bit reads does not fix the issue for me.  I'll start digging to
-> see if I can find what's broken.
+* Magnus Damm <magnus.damm@gmail.com> [091227 21:54]:
+> Hi Tony,
+>=20
+> On Sat, Dec 19, 2009 at 12:45 PM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+> > Here are some v7 fixes, mostly to make kexec work.
+> >
+> > Using 2.6.33-rc1, these fixes, and kexec from kexec-tools
+> > git repo, I can reboot my n900 in a loop reliably.
+>=20
+> Thanks for your work on this. I previously tested kexec on ARM V6 and
+> V7 and noticed that V7 didn't work. I revisited my V7 test after
+> becoming aware of your patches. The single patch below unbreaks V7 on
+> my target system.
+>=20
+> > =A0 =A0 =A0arm: Fix cpu_proc_fin() for proc-v7.S and make kexec wor=
+k
 
-I can also confirm that there are days when I am not even capable of
-applying a patch properly :-(
+Cool. Thank you for fixing the kexec source :)
 
-Switching to 16 bit read accesses does indeed fix the ECC issue on Overo too.
+Are you seeing the occasional crc errors when uncompressing the
+new kernel on your v7?
 
-Which still leaves us needing to find the root cause of the breakage . . .
+I'm seeing those maybe 1 out of 10 times on omap3430 boards unless if
+I do an extra (and wrong) flush_cache_all after local_flush_tlb_all
+at the end of setup_mm_for_reboot.
 
-Steve
+If you're not seeing the crc errors, do you have L2 cache on?
+
+Also, what's the Cortex version on your v7? It's rev r2p3 on
+omap3430.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
