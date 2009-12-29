@@ -1,61 +1,68 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [patch-v2.6.34 1/9] arm: omap: musb: remove unused data
-Date: Wed, 30 Dec 2009 00:59:19 +0200
-Message-ID: <1262127567-15202-2-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [patch-v2.6.34 2/9] arm: omap: musb: we can use clk framework
+Date: Wed, 30 Dec 2009 00:59:20 +0200
+Message-ID: <1262127567-15202-3-git-send-email-felipe.balbi@nokia.com>
 References: <1262127567-15202-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1262127567-15202-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns1.siteground211.com ([209.62.36.12]:50509 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751735AbZL2W7i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 17:59:38 -0500
+In-Reply-To: <1262127567-15202-1-git-send-email-felipe.balbi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <felipe.balbi@nokia.com>, linux-usb@vger.kernel.org
 
-eps_bits wasn't being used anywhere, let's
-remove it.
+... in order to handle musb's clock. Let's start
+removing the old musb-only set_clock function.
 
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb@vger.kernel.org
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap2/usb-musb.c |   34 ----------------------------------
- 1 files changed, 0 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |   22 ----------------------
+ 1 files changed, 0 insertions(+), 22 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 884336f..57589ff 100644
+index 57589ff..4fbb7bc 100644
 --- a/arch/arm/mach-omap2/usb-musb.c
 +++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -68,39 +68,6 @@ static int musb_set_clock(struct clk *clk, int state)
- 	return 0;
- }
+@@ -47,27 +47,6 @@ static struct resource musb_resources[] = {
+ 	},
+ };
  
--static struct musb_hdrc_eps_bits musb_eps[] = {
--	{	"ep1_tx", 10,	},
--	{	"ep1_rx", 10,	},
--	{	"ep2_tx", 9,	},
--	{	"ep2_rx", 9,	},
--	{	"ep3_tx", 3,	},
--	{	"ep3_rx", 3,	},
--	{	"ep4_tx", 3,	},
--	{	"ep4_rx", 3,	},
--	{	"ep5_tx", 3,	},
--	{	"ep5_rx", 3,	},
--	{	"ep6_tx", 3,	},
--	{	"ep6_rx", 3,	},
--	{	"ep7_tx", 3,	},
--	{	"ep7_rx", 3,	},
--	{	"ep8_tx", 2,	},
--	{	"ep8_rx", 2,	},
--	{	"ep9_tx", 2,	},
--	{	"ep9_rx", 2,	},
--	{	"ep10_tx", 2,	},
--	{	"ep10_rx", 2,	},
--	{	"ep11_tx", 2,	},
--	{	"ep11_rx", 2,	},
--	{	"ep12_tx", 2,	},
--	{	"ep12_rx", 2,	},
--	{	"ep13_tx", 2,	},
--	{	"ep13_rx", 2,	},
--	{	"ep14_tx", 2,	},
--	{	"ep14_rx", 2,	},
--	{	"ep15_tx", 2,	},
--	{	"ep15_rx", 2,	},
--};
+-static int clk_on;
+-
+-static int musb_set_clock(struct clk *clk, int state)
+-{
+-	if (state) {
+-		if (clk_on > 0)
+-			return -ENODEV;
+-
+-		clk_enable(clk);
+-		clk_on = 1;
+-	} else {
+-		if (clk_on == 0)
+-			return -ENODEV;
+-
+-		clk_disable(clk);
+-		clk_on = 0;
+-	}
+-
+-	return 0;
+-}
+-
+ static struct musb_hdrc_config musb_config = {
+ 	.multipoint	= 1,
+ 	.dyn_fifo	= 1,
+@@ -81,7 +60,6 @@ static struct musb_hdrc_config musb_config = {
+ 
+ static struct musb_hdrc_platform_data musb_plat = {
+ 	/* .clock is set dynamically */
+-	.set_clock	= musb_set_clock,
+ 	.config		= &musb_config,
+ 	/* .power	= DYNAMIC, */
+ 	/* .mode	= DYNAMIC, */
+-- 
+1.6.6.35.g1d85d
+
