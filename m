@@ -1,74 +1,178 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Query on new mux usage
-Date: Tue, 29 Dec 2009 10:23:38 -0800
-Message-ID: <20091229182338.GY3512@atomide.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E1C30C1E@dbde02.ent.ti.com>
+Subject: Re: [PATCH] OMAP2: add USB platform data and initialization for
+ Nokia N800 and N810
+Date: Tue, 29 Dec 2009 11:24:07 -0800
+Message-ID: <20091229192407.GA3512@atomide.com>
+References: <200912290152.16357.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="1UWUbFP1cBYEclgG"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58138 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58700 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751529AbZL2SXl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 13:23:41 -0500
+	with ESMTP id S1752473AbZL2TYM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 14:24:12 -0500
 Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E1C30C1E@dbde02.ent.ti.com>
+In-Reply-To: <200912290152.16357.luke@dashjr.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Luke-Jr <luke@dashjr.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Kalle Valo <kalle.valo@iki.fi>
 
-* Premi, Sanjeev <premi@ti.com> [091229 05:41]:
-> Hi,
->  
-> I am trying to define the mux settings for keypad on the omap3evm.
-> I had a few queries on the same.
->  
-> 1) Is it enough to me this change:
->  
->  static struct omap_board_mux board_mux[] __initdata = {
-> +
-> +       /* SYS_NIRQ */
-> +       OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
-> +						OMAP_PIN_OFF_INPUT_PULLUP),
-> +
->  	{ .reg_offset = OMAP_MUX_TERMINATOR },
 
-This will do the trick for board specific things. If you want, you can
-dump the whole mux table set by the bootloader via debugfs if you cat
-/sys/kernel/debug/omap_mux. Then you can check and edit the table as
-needed.
- 
-> 2) Or should I follow with this (in the evm init code):
->  
-> +	omap_mux_init_signal("af26", OMAP_PIN_INPUT_PULLUP |
-> +						OMAP_PIN_OFF_INPUT_PULLUP);
+--1UWUbFP1cBYEclgG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This can be used too if you prefer. The mux_init_gpio and mux_init_signal
-functions are mostly intended for platform init functions for common
-hardware, like MMC, USB etc. For board specific pins, I'd go with
-#1 abobve.
+Hi,
 
-> 3) OR is this a better(or worse)
+* Luke-Jr <luke@dashjr.org> [091228 23:51]:
+> Add platform data and initialization for USB on Nokia N800 and N810 devices
+> via the TUSB6010 chipset.
 > 
->  static struct omap_board_mux board_mux[] __initdata = {
-> +
-> +       /* SYS_NIRQ */
-> +       OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0),
-> +
->  	{ .reg_offset = OMAP_MUX_TERMINATOR },
+> Tested on Nokia N810 in Linux-OMAP tree. Mainline is not bootable yet.
 > 
-> ..and later
->  
-> +	omap_mux_init_signal("af26", OMAP_PIN_INPUT_PULLUP |
-> +						OMAP_PIN_OFF_INPUT_PULLUP);
+> Signed-off-by: Luke Dashjr <luke_linuxkern@dashjr.org>
+> ---
+>  arch/arm/mach-omap2/Kconfig          |    5 +
+>  arch/arm/mach-omap2/Makefile         |    1 +
+>  arch/arm/mach-omap2/board-n8x0-usb.c |  173 ++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-n8x0.c     |    8 ++
+>  4 files changed, 187 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-n8x0-usb.c
 > 
 
-Then you're doing it twice, which is not needed.
+<snip>
 
-Eventually we should have common init functions using hwmod for all
-the omap internal devices and do the muxing there too. But some
-board specific muxing will always be still needed.
+> diff --git a/arch/arm/mach-omap2/board-n8x0-usb.c b/arch/arm/mach-omap2/board-n8x0-usb.c
+> new file mode 100644
+> index 0000000..2254ebd
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-n8x0-usb.c
+
+<snip>
+
+> +static int		osc_ck_on;
+> +
+> +static int tusb_set_clock(struct clk *osc_ck, int state)
+> +{
+> +	if (state) {
+> +		if (osc_ck_on > 0)
+> +			return -ENODEV;
+> +
+> +		clk_enable(osc_ck);
+> +		osc_ck_on = 1;
+> +	} else {
+> +		if (osc_ck_on == 0)
+> +			return -ENODEV;
+> +
+> +		clk_disable(osc_ck);
+> +		osc_ck_on = 0;
+> +	}
+> +
+> +	return 0;
+> +}
+
+Great. The comment from Russell earlier was that we should be now using
+clkdev to do things like this and get rid of the _set_clock functions.
+In musb_core.c are already using the clk directly if set_clock is NULL.
+
+Can you try the patch below? If it works, just merge it into your
+patch.
 
 Regards,
 
 Tony
+
+
+--1UWUbFP1cBYEclgG
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="tusb-clkdev.patch"
+
+>From e84994dccb71c1e01ca0b9f256d9b7496492a4e2 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 29 Dec 2009 11:04:58 -0800
+Subject: [PATCH] tusb6010: Use clkdev to initialize the clock
+
+Note that in this case the clock is fck, not ick
+like for musb.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/board-n8x0-usb.c b/arch/arm/mach-omap2/board-n8x0-usb.c
+index 2254ebd..e67eabf 100644
+--- a/arch/arm/mach-omap2/board-n8x0-usb.c
++++ b/arch/arm/mach-omap2/board-n8x0-usb.c
+@@ -25,7 +25,6 @@
+ #define GPIO_TUSB_ENABLE	0
+ 
+ static int tusb_set_power(int state);
+-static int tusb_set_clock(struct clk *osc_ck, int state);
+ 
+ #if	defined(CONFIG_USB_MUSB_OTG)
+ #	define BOARD_MODE	MUSB_OTG
+@@ -82,10 +81,8 @@ static struct musb_hdrc_config musb_config = {
+ static struct musb_hdrc_platform_data tusb_data = {
+ 	.mode		= BOARD_MODE,
+ 	.set_power	= tusb_set_power,
+-	.set_clock	= tusb_set_clock,
+ 	.min_power	= 25,	/* x2 = 50 mA drawn from VBUS as peripheral */
+ 	.power		= 100,	/* Max 100 mA VBUS for host mode */
+-	.clock		= "osc_ck",
+ 	.config		= &musb_config,
+ };
+ 
+@@ -121,27 +118,6 @@ static int tusb_set_power(int state)
+ 	return retval;
+ }
+ 
+-static int		osc_ck_on;
+-
+-static int tusb_set_clock(struct clk *osc_ck, int state)
+-{
+-	if (state) {
+-		if (osc_ck_on > 0)
+-			return -ENODEV;
+-
+-		clk_enable(osc_ck);
+-		osc_ck_on = 1;
+-	} else {
+-		if (osc_ck_on == 0)
+-			return -ENODEV;
+-
+-		clk_disable(osc_ck);
+-		osc_ck_on = 0;
+-	}
+-
+-	return 0;
+-}
+-
+ void __init n8x0_usb_init(void)
+ {
+ 	int ret = 0;
+@@ -156,6 +132,12 @@ void __init n8x0_usb_init(void)
+ 	}
+ 	gpio_direction_output(GPIO_TUSB_ENABLE, 0);
+ 
++	/*
++	 * REVISIT: This line can be removed once all the platforms using
++	 * musb_core.c have been converted to use use clkdev.
++	 */
++	tusb_data.clock = "fck";
++
+ 	tusb_set_power(0);
+ 
+ 	ret = tusb6010_setup_interface(&tusb_data, TUSB6010_REFCLK_19, 2,
+diff --git a/arch/arm/mach-omap2/clock2xxx_data.c b/arch/arm/mach-omap2/clock2xxx_data.c
+index 97dc7cf..e9c8f09 100644
+--- a/arch/arm/mach-omap2/clock2xxx_data.c
++++ b/arch/arm/mach-omap2/clock2xxx_data.c
+@@ -2222,6 +2222,7 @@ static struct omap_clk omap24xx_clks[] = {
+ 	CLK(NULL,	"aes_ick",	&aes_ick,	CK_243X | CK_242X),
+ 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_243X | CK_242X),
+ 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_243X | CK_242X),
++	CLK("musb_hdrc",	"fck",	&osc_ck,	CK_242X),
+ 	CLK("musb_hdrc",	"ick",	&usbhs_ick,	CK_243X),
+ 	CLK("mmci-omap-hs.0", "ick",	&mmchs1_ick,	CK_243X),
+ 	CLK("mmci-omap-hs.0", "fck",	&mmchs1_fck,	CK_243X),
+
+--1UWUbFP1cBYEclgG--
