@@ -1,34 +1,70 @@
-From: "Luke-Jr" <luke@dashjr.org>
-Subject: Re: [PATCH] OMAP2: add USB platform data and initialization for Nokia N800 and N810
-Date: Wed, 30 Dec 2009 03:02:23 -0600
-Message-ID: <200912300302.29725.luke@dashjr.org>
-References: <200912290152.16357.luke@dashjr.org> <200912292110.42122.luke@dashjr.org> <87pr5xvslk.fsf@purkki.valot.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: clk2xxx.c doesn't compile if CPUFREQ is enabled
+Date: Wed, 30 Dec 2009 02:09:58 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0912300208260.24862@utopia.booyaka.com>
+References: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752506AbZL3JDG@vger.kernel.org>
-In-Reply-To: <87pr5xvslk.fsf@purkki.valot.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kalle Valo <kalle.valo@iki.fi>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:45468 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752183AbZL3JJ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 04:09:59 -0500
+In-Reply-To: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Wednesday 30 December 2009 01:17:11 am Kalle Valo wrote:
-> "Luke-Jr" <luke@dashjr.org> writes:
-> > On that topic, is there a reason the newer code is under a unified "N8x0"
-> > config option instead of the split N800/N810 that was used for the old
-> > code, or is that simply a symptom of the currently-supported features all
-> > being common?
+Hi Felipe,
+
+On Sat, 26 Dec 2009, Felipe Balbi wrote:
+
+> if we enable CPUFREQ we can't build omap2 for two reasons,
+> one of them is fixed by the patch below but the other one
+> it seems like it'll need more invasive changes to the code
+> so I'll leave it for you to decide how to do it.
 > 
-> IIRC, I just used one common n8x0 file because the n810 board file was
-> very small and I didn't see any benefit from having it separately.
+> It's basically failing because the __musb_be_array() check
+> in ARRAY_SIZE() is failing and printing the following message:
+> 
+> arch/arm/mach-omap2/clock2xxx.c:453: error: negative width in bit-field '<anonymous>'
+> 
+> NYET-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-Yeah, that's because someone put all the N810 code in the N800 file ;)
+Care to send a version with a Signed-off-by?  I will base the remaining 
+fixes on top of this.  Thanks for reporting this and sending the initial 
+patch.
 
-Will probably at least split out the differences, if there's no other reason, 
-then. Since I'm doing this stuff only for my own personal interest, I'll 
-probably not bother to do much with N800 support unless someone feels like 
-sending me one when I finish N810 (definitely not touching N800 before then).
 
-Luke
+- Paul
+
+> ---
+>  arch/arm/mach-omap2/clock2xxx.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
+> index d0e3fb7..4e2bdfe 100644
+> --- a/arch/arm/mach-omap2/clock2xxx.c
+> +++ b/arch/arm/mach-omap2/clock2xxx.c
+> @@ -455,12 +455,15 @@ static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(rate_table)];
+>  void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+>  {
+>  	struct prcm_config *prcm;
+> +	long rate;
+>  	int i = 0;
+>  
+> +	rate = clk_get_rate(sclk);
+> +
+>  	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+>  		if (!(prcm->flags & cpu_mask))
+>  			continue;
+> -		if (prcm->xtal_speed != sys_ck.rate)
+> +		if (prcm->xtal_speed != rate)
+>  			continue;
+>  
+>  		/* don't put bypass rates in table */
+> -- 
+> 1.6.6.rc0
+> 
+
