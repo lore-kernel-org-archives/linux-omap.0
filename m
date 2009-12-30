@@ -1,116 +1,119 @@
-From: "Pagare, Abhijit" <abhijitpagare@ti.com>
-Subject: RE: [PATCH 1/1] ARM: OMAP4: PM: Add check for avoiding dependency
- related update.
-Date: Wed, 30 Dec 2009 17:38:42 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C02E919C@dbde02.ent.ti.com>
-References: <1261583238-22187-1-git-send-email-abhijitpagare@ti.com>
- <alpine.DEB.2.00.0912300125320.24862@utopia.booyaka.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: RE: [PATCH 1/2] ARM : OMAP: MUSB : Pass board specific data using
+ a structure
+Date: Wed, 30 Dec 2009 14:13:54 +0200
+Message-ID: <1262175234.28789.193.camel@gandalf>
+References: <1262169883-31226-1-git-send-email-x0082077@ti.com>
+	 <19F8576C6E063C45BE387C64729E7394044A277B44@dbde02.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44378 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751326AbZL3MIy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 07:08:54 -0500
-In-Reply-To: <alpine.DEB.2.00.0912300125320.24862@utopia.booyaka.com>
-Content-Language: en-US
+Received: from ns1.siteground211.com ([209.62.36.12]:58423 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752127AbZL3MOD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 07:14:03 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A277B44@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "Mankad, Maulik Ojas" <x0082077@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@suse.de>
 
-Hi Paul,
+Hi,
 
+On Wed, 2009-12-30 at 16:29 +0530, Gupta, Ajay Kumar wrote:
+> Hi,
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Mankad, Maulik Ojas
+> > Sent: Wednesday, December 30, 2009 4:15 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: linux-usb@vger.kernel.org; Mankad, Maulik Ojas; Felipe Balbi; Tony
+> > Lindgren; Greg Kroah-Hartman
+> > Subject: [PATCH 1/2] ARM : OMAP: MUSB : Pass board specific data using a
+> > structure
+> > 
+> > ARM : OMAP: MUSB :Pass board specific data from board file
+> > 
+> > This patch proposes to pass board specific data for MUSB
+> > (like interface_type, mode etc) from board file by defining
+> > board specific structure.
+> > 
+> > Each board file can define this structure based on
+> > its requirement and pass this information to the
+> > driver.
+> > 
+> > It addresses a comment from Felipe and thus help
+> > by preventing addition of too many fields in
+> > musb_platform_data.
+> > 
+> > Signed-off-by: Maulik Mankad <x0082077@ti.com>
+> > Cc: Felipe Balbi <felipe.balbi@nokia.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Greg Kroah-Hartman <gregkh@suse.de>
+> > 
+> > Index: felipe_musb/arch/arm/mach-omap2/board-2430sdp.c
+> > ===================================================================
+> > --- felipe_musb.orig/arch/arm/mach-omap2/board-2430sdp.c
+> > +++ felipe_musb/arch/arm/mach-omap2/board-2430sdp.c
+> > @@ -195,6 +195,12 @@ static struct twl4030_hsmmc_info mmc[] _
+> >  	{}	/* Terminator */
+> >  };
+> > 
+> > +static struct musb_omap_data omap2430sdp_data = {
+> > +.interface_type	= MUSB_INTERFACE_ULPI,
+> > +.mode		= MUSB_OTG,
+> > +.power		= 100,
+> > +}
+> > +
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Wednesday, December 30, 2009 2:02 PM
-> To: Pagare, Abhijit
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 1/1] ARM: OMAP4: PM: Add check for avoiding dependency
-> related update.
-> 
-> Hello Abhijit,
-> 
-> On Wed, 23 Dec 2009, Abhijit Pagare wrote:
-> 
-> > A check is added for avoiding the sleep/wakeup dependency updates
-> > for OMAP4 as the structures for the dependencies are currently absent.
-> 
-> As a threshold matter, code and data added in temporary hack patches like
-> this need to be marked with XXX or FIXME or something similar to indicate
-> that these are not intended features, but rather, temporary lines that
-> need to be removed in the near term.
+fix the indentation.
 
-I think I missed that. I will add the FIXME indication to the check below. I think that this check is essential for OMAP4 kernel boot-up as long as the dependency patches are not pushed in.
+> > -extern void usb_musb_init(enum musb_mode mode, unsigned power);
+> > +struct musb_omap_data {
+> > +u8	interface_type;
+> > +u8	mode;
+> > +u8	power;
+> > +};
+> 
+> It's board data so how about 'struct omap_musb_board_data'.
 
-> 
-> But really, I'd rather not apply this patch.  The best way forward is to
-> apply a patch that adds the OMAP4 wakeup and sleep dependencies
-> themselves.  Have you had a chance to look at the series that I sent you a
-> few weeks ago off-list that reorganizes the wakeup and sleep dependencies
-> to determine if it is adequate for you to add the OMAP4 wakeup/sleep
-> dependencies afterwards?
+good point.
 
-I had a look at the dependency patches that you had sent to me earlier and it seems feasible to add the OMAP4 related dependency data on top of those patches. A small change exists but can be taken care of.
+> > +
+> > +enum musb_interface	{MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
+> > +
+> > +extern void usb_musb_init(void *);
+> 
+> Can be modified to:
+> +extern void usb_musb_init(omap_musb_board_data *);
 
-Regards,
-Abhijit
+correct
 
+> >  	if (cpu_is_omap243x())
+> >  		musb_resources[0].start = OMAP243X_HS_BASE;
+> >  	else
+> > @@ -88,15 +90,16 @@ void __init usb_musb_init(enum musb_mode
+> >  	 * musb_core.c have been converted to use use clkdev.
+> >  	 */
+> >  	musb_plat.clock = "ick";
+> > -	musb_plat.power = power >> 1;
+> > -	musb_plat.mode = mode;
+> > +	musb_plat.arch_data = arch_data;
 > 
 > 
-> - Paul
-> 
-> >
-> > Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > ---
-> >
-> > Compiled and Boot Tested on OMAP4430 simulator, ES1 Chip & OMAP3430 SDP.
-> > And also Compiled for OMAP2430 and OMAP2420
-> >
-> > This patch has a dependency on the earlier set of OMAP4 clock-domain
-> patches.
-> >
-> >  arch/arm/mach-omap2/clockdomain.c |   10 ++++++----
-> >  1 files changed, 6 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-
-> omap2/clockdomain.c
-> > index 8c9e78c..6ec25ee 100644
-> > --- a/arch/arm/mach-omap2/clockdomain.c
-> > +++ b/arch/arm/mach-omap2/clockdomain.c
-> > @@ -507,8 +507,9 @@ void omap2_clkdm_allow_idle(struct clockdomain
-> *clkdm)
-> >  	pr_debug("clockdomain: enabling automatic idle transitions for
-> %s\n",
-> >  		 clkdm->name);
-> >
-> > -	if (atomic_read(&clkdm->usecount) > 0)
-> > -		_clkdm_add_autodeps(clkdm);
-> > +	if (!cpu_is_omap44xx())
-> > +		if (atomic_read(&clkdm->usecount) > 0)
-> > +			_clkdm_add_autodeps(clkdm);
-> >
-> >  	_omap2_clkdm_set_hwsup(clkdm, 1);
-> >
-> > @@ -540,8 +541,9 @@ void omap2_clkdm_deny_idle(struct clockdomain
-> *clkdm)
-> >
-> >  	_omap2_clkdm_set_hwsup(clkdm, 0);
-> >
-> > -	if (atomic_read(&clkdm->usecount) > 0)
-> > -		_clkdm_del_autodeps(clkdm);
-> > +	if (!cpu_is_omap44xx())
-> > +		if (atomic_read(&clkdm->usecount) > 0)
-> > +			_clkdm_del_autodeps(clkdm);
-> >  }
-> >
-> >
-> > --
-> > 1.5.4.7
-> >
-> 
-> 
-> - Paul
+> Not needed.
+
+why not ? we still want to pass interface_type down to omap2430.c,
+right ?
+
+> We don't need it as we will continue using 'power', 'mode', 'extvbus'
+> From musb_plat only.
+
+power and mode, yeah. extvbus is omap-only isn't it ? Then on omap2430.c
+is interested in that ?!?
+
+-- 
+balbi
+
