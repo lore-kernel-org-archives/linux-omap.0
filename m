@@ -1,52 +1,147 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: L4 interconnect memory mapping
-Date: Wed, 30 Dec 2009 11:47:52 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C02E9049@dbde02.ent.ti.com>
-References: <1262129134.28789.96.camel@gandalf>
-	 <1262129299.28789.97.camel@gandalf>  <20091229234657.GO3512@atomide.com>
- <1262130610.28789.116.camel@gandalf>
+From: "Pagare, Abhijit" <abhijitpagare@ti.com>
+Subject: RE: [PATCH 1/5] ARM: OMAP4: PM: OMAP4 essential basic
+ initialisations.
+Date: Wed, 30 Dec 2009 11:55:02 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C02E9055@dbde02.ent.ti.com>
+References: <1260528356-11621-1-git-send-email-a0393848@linfarm476.(none)>
+ <20091228233331.GR3512@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40676 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40885 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751989AbZL3GSI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Dec 2009 01:18:08 -0500
-In-Reply-To: <1262130610.28789.116.camel@gandalf>
+	id S1750851AbZL3GZR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 01:25:17 -0500
+In-Reply-To: <20091228233331.GR3512@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>, Tony Lindgren <tony@atomide.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Pagare, Abhijit" <abhijitpagare@ti.com>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1vbWFwLW93bmVyQHZn
-ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnXSBP
-biBCZWhhbGYgT2YgRmVsaXBlDQo+IEJhbGJpDQo+IFNlbnQ6IFdlZG5lc2RheSwgRGVjZW1iZXIg
-MzAsIDIwMDkgNToyMCBBTQ0KPiBUbzogVG9ueSBMaW5kZ3Jlbg0KPiBDYzogcGF1bEBwd3Nhbi5j
-b207IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBMNCBpbnRlcmNv
-bm5lY3QgbWVtb3J5IG1hcHBpbmcNCj4gDQo+IE9uIFR1ZSwgMjAwOS0xMi0yOSBhdCAxNTo0NiAt
-MDgwMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToNCj4gPiAqIEZlbGlwZSBCYWxiaSA8bWVAZmVsaXBl
-YmFsYmkuY29tPiBbMDkxMjI5IDE1OjI2XToNCj4gPiA+IEhpLA0KPiA+ID4NCj4gPiA+IE9uIFdl
-ZCwgMjAwOS0xMi0zMCBhdCAwMToyNSArMDIwMCwgRmVsaXBlIEJhbGJpIHdyb3RlOg0KPiA+ID4g
-PiBIaSBUb255IGFuZCBQYXVsLA0KPiA+ID4gPg0KPiA+ID4gPiBtYXliZSBhIHNpbGx5IHF1ZXN0
-aW9uLCBidXQgaGVyZSBpdCBnb2VzOg0KPiA+ID4gPg0KPiA+ID4gPiBEbyB3ZSBoYXZlIGFueSBw
-aWVjZSBvZiBjb2RlIGhhbmRsaW5nIHRoZSBMNCBpbnRlcmNvbm5lY3QgbWVtb3J5IHNwYWNlID8N
-Cj4gPiA+ID4gSSBtZWFuLCBsb29raW5nIGF0IG9tYXAzIFRSTSBwYWdlcyAyMTIgLSAyMTksIEkg
-c2VlIHRoYXQgZS5nLiBmb3IgdGhlDQo+ID4gPiA+IG11c2IgYmxvY2sgd2UgaGF2ZToNCj4gPiA+
-ID4NCj4gPiA+ID4gSFMgVVNCIE9URwkweDQ4MEFCMDAwIC0gMHg0ODBBQkZGRgk0S0IJTW9kdWxl
-DQo+ID4gPiA+IAkJMHg0ODBBQzAwMCAtIDB4NDgwQUNGRkYJNEtCCUw0IGludGVyY29ubmVjdA0K
-PiA+ID4gPg0KPiA+ID4gPiBTbyB0aGUgZmlyc3QgNEsgaXMgd2hhdCB3ZSBwYXNzIGRvd24gdG8g
-ZHJpdmVycyB2aWEgc3RydWN0IHJlc291cmNlIGFuZA0KPiA+ID4gPiB0aGUgc2Vjb25kIDRLID8g
-V2hhdCBkbyB3ZSBkbyB3aXRoIHRoYXQgPw0KPiA+ID4NCj4gPiA+IG5vIHdpdGggUGF1bCdzIGFk
-ZHJlc3MgY29ycmVjdC4NCj4gPg0KPiA+IExvb2tzIGxpa2UgeW91IG1pZ2h0IHdhbnQgdG8gdXBk
-YXRlIHlvdXIgZWFybGllciBwYXRjaCB0byBqdXN0IGNvbW1lbnQNCj4gPiB0aGF0IHRoZSA4SyBh
-ZGRyZXNzIHNwYWNlIGZvciBtdXNiIGlzIDRLICsgNEsgZm9yIEw0IGludGVyY29ubmVjdCA6KQ0K
-PiANCj4gd2FzIHRoaW5raW5nIGFib3V0IHRoYXQganVzdCBub3cgaGVoLCBidXQgd2hhdCBkbyB3
-ZSBkbyB3aXRoIHRoZSBleHRyYQ0KPiA0ayA/IEl0J3MgdGhlIHNhbWUgZm9yIGFsbCBvdGhlciBt
-b2R1bGVzLiBJcyBvbWFwX2h3bW9kIHRha2luZyBjYXJlIG9mDQo+IHRoYXQgPw0KSSBkb24ndCB0
-aGluayB5b3UgbmVlZCB0byBtYXAgOGsgaWYgdGhlcmUgaXMgbm8gYWRkaXRpb25hbCByZWdpc3Rl
-ciBpbiB1cHBlciA0Sy4NCkFsbCBtZW1vcnkgc3BhY2VzIGRlc2NyaWJlZCBhcyBtb2R1bGVzIHBy
-b3ZpZGUgZGlyZWN0IGFjY2VzcyB0byB0aGUgbW9kdWxlIHJlZ2lzdGVycyBvdXRzaWRlIHRoZSBM
-NCBpbnRlcmNvbm5lY3QuIEFsbCBvdGhlciBhY2Nlc3NlcyBhcmUgaW50ZXJuYWwgdG8gdGhlIEw0
-IGludGVyY29ubmVjdCAoIEw0X0NGRywgTDRfUEVSKS4gDQoNClJlZ2FyZHMsDQpTYW50b3NoDQo=
+
+Tony,
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Tuesday, December 29, 2009 5:04 AM
+> To: Abhijit.Pagare@india.ti.com
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Paul
+> Walmsley; Nayak, Rajendra; Pagare, Abhijit; Cousson, Benoit
+> Subject: Re: [PATCH 1/5] ARM: OMAP4: PM: OMAP4 essential basic
+> initialisations.
+> 
+> * Abhijit.Pagare@india.ti.com <Abhijit.Pagare@india.ti.com> [091211
+> 02:50]:
+> > From: Abhijit Pagare <abhijitpagare@ti.com>
+> >
+> > Some of the OMAP4 specific chip level initialisations are taken care of.
+> 
+> Here's yet another series of patches with "PM" in the subject
+> for no obvious reason.
+> 
+> Please repost all with with sensible subjects.
+
+
+I will re-post the patches with the necessary changes.
+
+Best Regards,
+Abhijit Pagare
+
+> 
+> Tony
+> 
+> 
+> > Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Rajendra Nayak <rnayak@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/id.c              |    8 +++++++-
+> >  arch/arm/plat-omap/include/plat/cpu.h |    6 +++++-
+> >  2 files changed, 12 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 4fad192..52aca5f 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -336,8 +336,12 @@ void __init omap2_check_revision(void)
+> >  		omap3_check_features();
+> >  		omap3_cpuinfo();
+> >  	} else if (cpu_is_omap44xx()) {
+> > +		/*
+> > +		 * omap44xx_check_revision() should
+> > +		 * be defined above and then called
+> > +		 * from here.
+> > +		 */
+> >  		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
+> > -		return;
+> >  	} else {
+> >  		pr_err("OMAP revision unknown, please fix!\n");
+> >  	}
+> > @@ -367,6 +371,8 @@ void __init omap2_check_revision(void)
+> >  			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+> >  		else if (omap_rev() == OMAP3630_REV_ES1_0)
+> >  			omap_chip.oc |= CHIP_IS_OMAP3630ES1;
+> > +	} else if (cpu_is_omap44xx()) {
+> > +		omap_chip.oc |= CHIP_IS_OMAP4430;
+> >  	} else {
+> >  		pr_err("Uninitialized omap_chip, please fix!\n");
+> >  	}
+> > diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
+> omap/include/plat/cpu.h
+> > index 2e17890..6a296b8 100644
+> > --- a/arch/arm/plat-omap/include/plat/cpu.h
+> > +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> > @@ -154,6 +154,7 @@ unsigned int omap_rev(void);
+> >   * cpu_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
+> >   * cpu_is_omap243x():	True for OMAP2430
+> >   * cpu_is_omap343x():	True for OMAP3430
+> > + * cpu_is_omap443x():	True for OMAP4430
+> >   */
+> >  #define GET_OMAP_CLASS	(omap_rev() & 0xff)
+> >
+> > @@ -284,6 +285,7 @@ IS_OMAP_SUBCLASS(363x, 0x363)
+> >   * cpu_is_omap2423():	True for OMAP2423
+> >   * cpu_is_omap2430():	True for OMAP2430
+> >   * cpu_is_omap3430():	True for OMAP3430
+> > + * cpu_is_omap4430():	True for OMAP4430
+> >   * cpu_is_omap3505():	True for OMAP3505
+> >   * cpu_is_omap3517():	True for OMAP3517
+> >   */
+> > @@ -332,6 +334,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+> >  #define cpu_is_omap3505()		0
+> >  #define cpu_is_omap3517()		0
+> >  #define cpu_is_omap3430()		0
+> > +#define cpu_is_omap4430()		0
+> >  #define cpu_is_omap3630()		0
+> >
+> >  /*
+> > @@ -443,7 +446,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+> >  #define OMAP3505_REV(v)		(OMAP35XX_CLASS | (0x3505 << 16) | (v
+> << 12))
+> >  #define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) | (v
+> << 12))
+> >
+> > -#define OMAP443X_CLASS		0x44300034
+> > +#define OMAP443X_CLASS		0x44300044
+> >
+> >  /*
+> >   * omap_chip bits
+> > @@ -467,6 +470,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+> >  #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
+> >  #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
+> >  #define CHIP_IS_OMAP3630ES1		(1 << 7)
+> > +#define CHIP_IS_OMAP4430		(1 << 8)
+> >
+> >  #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+> >
+> > --
+> > 1.5.4.7
+> >
+> >
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
