@@ -1,28 +1,45 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: [PATCH] OMAP2: add USB platform data and initialization for Nokia N800 and N810
-Date: Wed, 30 Dec 2009 09:17:11 +0200
-Message-ID: <87pr5xvslk.fsf@purkki.valot.fi>
-References: <200912290152.16357.luke@dashjr.org>
-	<873a2uxip9.fsf@purkki.valot.fi> <200912291505.51230.luke@dashjr.org>
-	<200912292110.42122.luke@dashjr.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] [OMAP1] Clock fixups for OMAP1 and OMAP7xx
+Date: Wed, 30 Dec 2009 01:19:41 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0912300116350.24862@utopia.booyaka.com>
+References: <6cb013310912221628m1b2b820fy1a96a9a9102274e5@mail.gmail.com> <1261528641-22465-1-git-send-email-darkstar6262@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751763AbZL3HRQ@vger.kernel.org>
-In-Reply-To: <200912292110.42122.luke@dashjr.org> (Luke-Jr's message of "Tue\, 29 Dec 2009 21\:10\:27 -0600")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Luke-Jr <luke@dashjr.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:32983 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042AbZL3ITm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 03:19:42 -0500
+In-Reply-To: <1261528641-22465-1-git-send-email-darkstar6262@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-"Luke-Jr" <luke@dashjr.org> writes:
+Hi Cory,
 
-> On that topic, is there a reason the newer code is under a unified "N8x0" 
-> config option instead of the split N800/N810 that was used for the old code, 
-> or is that simply a symptom of the currently-supported features all being 
-> common?
+On Tue, 22 Dec 2009, Cory Maccarrone wrote:
 
-IIRC, I just used one common n8x0 file because the n810 board file was
-very small and I didn't see any benefit from having it separately.
+> This change adds in some missing clocks that were needed as a result
+> of 526505... (OMAP1 clock: convert mach-omap1/clock.h to
+> mach-omap1/clock_data.c).  Prior to this, it was just assumed that
+> these clocks existed for all devices, and it was used directly instead
+> of calling it out with a clk_get call.  So, not having the CK_7XX
+> meant these clocks weren't being used anymore for omap 7xx devices,
+> which broke things badly.
+> 
+> Additionally, that change added an __initdata decoration to the
+> structure containing the clk_enable and clk_disable functions.  Once
+> init data was freed, these pointers went to null, and the next enable
+> or disable call caused the kernel to crash.  This change removes
+> this decoration.
 
--- 
-Kalle Valo
+Could you please split these two patches, since they fix different 
+problems?  Also the first patch is pertinent only to OMAP7xx-family 
+chips and the second is OMAP1-wide.  I've already got your first patch, so 
+no need to resend that.
+
+thanks,
+
+- Paul
+
