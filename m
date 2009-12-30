@@ -1,38 +1,35 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [patch-v2.6.34 8/9] arm: omap: musb: do not pass clock name to
- driver
-Date: Wed, 30 Dec 2009 13:55:06 +0200
-Message-ID: <1262174106.28789.180.camel@gandalf>
-References: <1262127567-15202-1-git-send-email-felipe.balbi@nokia.com>
-	 <1262127567-15202-9-git-send-email-felipe.balbi@nokia.com>
-	 <4B3B3818.5030804@ru.mvista.com>
+Subject: Re: L4 interconnect memory mapping
+Date: Wed, 30 Dec 2009 13:56:29 +0200
+Message-ID: <1262174189.28789.181.camel@gandalf>
+References: <1262129134.28789.96.camel@gandalf>
+	 <1262129299.28789.97.camel@gandalf>  <20091229234657.GO3512@atomide.com>
+	 <1262130610.28789.116.camel@gandalf>
+	 <alpine.DEB.2.00.0912300213530.24862@utopia.booyaka.com>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:58986 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:59069 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859AbZL3LzO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 06:55:14 -0500
-In-Reply-To: <4B3B3818.5030804@ru.mvista.com>
+	with ESMTP id S1751760AbZL3L4d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 06:56:33 -0500
+In-Reply-To: <alpine.DEB.2.00.0912300213530.24862@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
 Hi,
 
-On Wed, 2009-12-30 at 14:23 +0300, Sergei Shtylyov wrote:
->    It's not so actually. This depends on the matching mechanism 
-> established within clkdev: by device, by name, or by both. Not all 
-> implementations will match by device, e.g. DA8xx/OMAP-L1x will match by 
-> clock name.
+On Wed, 2009-12-30 at 02:16 -0700, Paul Walmsley wrote:
+> That second 4KiB range is the interconnect target agent between the 
+> interconnect and the HS USB OTG IP block.  No need to deal with it.  At 
+> some point either omap_hwmod or an interconnect driver will probably 
+> reserve it for bookkeeping purposes.
 
-then it has to be fixed. The name shouldn't matter. This was a big
-discussion when Russell came up with the clkdev stuff and I remember
-clearly that clock names shouldn't be passed down to drivers because
-they don't matter.
+Ok, got it. Thanks for the info.
 
 -- 
 balbi
