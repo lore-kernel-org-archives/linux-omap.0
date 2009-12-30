@@ -1,58 +1,58 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: regression: crash from 'ls /sys/modules/wl1251_spi/notes'
-Date: Wed, 30 Dec 2009 19:20:26 +0200
-Message-ID: <87d41wwf8l.fsf@purkki.valot.fi>
-References: <87k4w4wux9.fsf@purkki.valot.fi>
-	<1262188157.2749.21.camel@mulgrave.site>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI charger
+Date: Wed, 30 Dec 2009 13:07:45 -0600
+Message-ID: <001801ca8983$5f101110$544ff780@am.dhcp.ti.com>
+References: <6ed0b2680912021329g372bd0a4vb5b4a80244960f95@mail.gmail.com> <20091202215442.GA30658@oksana.dev.rtsoft.ru> <20091202223156.GA14921@nokia.com> <20091202225922.GA15568@oksana.dev.rtsoft.ru> <20091203083958.GB31110@nokia.com> <6ed0b2680912030255o57d7c46qb5ae1cfcb82e9976@mail.gmail.com> <20091203110332.GO1361@nokia.com> <6ed0b2680912100609g11706296qdbcea887dc3a5733@mail.gmail.com> <20091210141830.GA10687@oksana.dev.rtsoft.ru> <20091210142127.GB12526@nokia.com> <20091210144411.GA13120@oksana.dev.rtsoft.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-parisc-owner@vger.kernel.org>
-In-Reply-To: <1262188157.2749.21.camel@mulgrave.site> (James Bottomley's message of "Wed\, 30 Dec 2009 09\:49\:17 -0600")
-Sender: linux-parisc-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, Helge Deller <deller@gmx.de>, rusty@rustcorp.com.au, akpm@linux-foundation.org, roland@redhat.com, dave@hiauly1.hia.nrc.ca, Parisc List <linux-parisc@vger.kernel.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753352AbZL3TIO@vger.kernel.org>
+In-Reply-To: <20091210144411.GA13120@oksana.dev.rtsoft.ru>
+Sender: linux-kernel-owner@vger.kernel.org
+To: avorontsov@ru.mvista.com, 'Felipe Balbi' <felipe.balbi@nokia.com>
+Cc: 'Grazvydas Ignotas' <notasas@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-James Bottomley <James.Bottomley@HansenPartnership.com> writes:
 
-> On Wed, 2009-12-30 at 13:41 +0200, Kalle Valo wrote:
->
->> Also removing wl1251_spi causes a crash. The reason for this is that a
->> sysfs file with a null string as name is trying to be removed from the
->> notes directory.
->
-> Yes, this is because the notes sections describe the text sections.
-> When we ignore an empty text section, we'd need to ignore its
-> corresponding notes section.
->
-> The reason we didn't see this on parisc is because our compiler doesn't
-> actually produce any notes sections.
 
-Also on omap not all modules can reproduce the problem. For example
-cfg80211, mac80211 and wl1251 modules work just fine, but with
-wl1251_spi I see the problem everytime.
+> -----Original Message-----
+> From: Anton Vorontsov [mailto:avorontsov@ru.mvista.com]
+> Sent: Thursday, December 10, 2009 8:44 AM
+> To: Felipe Balbi
+> Cc: Grazvydas Ignotas; linux-kernel@vger.kernel.org; Madhusudhan
+> Chikkature; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
+> charger
+> 
+> On Thu, Dec 10, 2009 at 04:21:27PM +0200, Felipe Balbi wrote:
+> > Hi,
+> >
+> > On Thu, Dec 10, 2009 at 03:18:30PM +0100, ext Anton Vorontsov wrote:
+> > >>Ok since it doesn't look like this will resolve soon, what about
+> > >>adding some DEVICE_ATTR for the time being and requiring userspace to
+> > >>write charge current here to start actual charging?
+> > >
+> > >Works for me. Let's think of the kernel charging support as an
+> > >yet unimplemented feature.
+> >
+> > but if you guys are ok with this one for now. It can always be
+> > changed later :-)
+> 
+> Yep. The only thing I'm afraid of is that once the driver is in,
+> then nobody will bother with improving it to do the right thing.
+> But an imperfect driver is better than none.
+> 
 
-> A better, and more comprehensive patch would be to try not to count the
-> empty text sections when we're building the notes section (and actually
-> anywhere else in the file).  This patch actually relies on the fact that
-> if sh_size is zero for the text section it should be for the
-> corresponding notes section.  If that doesn't work, we'd actually have
-> to do the matching in the construction piece.
->
-> Can you try it to see if it works for you?  If it doesn't, I'll try
-> matching notes to text.  It works fine on parisc, but as we don't have a
-> notes section, that's not saying much ...
+So, what is the conclusion then? Are you planning to push the BCI charger
+patch currently and handle updates later?
 
-Thanks. I tested the patch on my setup, this time on top of Linus'
-tree (commit 6b7b284). And the patch fixes the issue, I can't
-reproduce the problem at all, both 'rmmod wl1251_spi' and ls work
-without any problems. So here's my tested-by:
+Regards,
+Madhu
 
-Tested-by: Kalle Valo <kalle.valo@iki.fi>
-
-Also please consider sending the fix to stable.
-
-Thank you for fixing this so fast.
-
--- 
-Kalle Valo
+> Thanks,
+> 
+> --
+> Anton Vorontsov
+> email: cbouatmailru@gmail.com
+> irc://irc.freenode.net/bd2
