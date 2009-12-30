@@ -1,59 +1,58 @@
-From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] ARM : OMAP4 : MUSB : Add USB support to 4430
-	SDP board file
-Date: Wed, 30 Dec 2009 11:06:48 -0600
-Message-ID: <20091230170648.GA7017@lixom.net>
-References: <1262183198-14854-1-git-send-email-x0082077@ti.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: Re: regression: crash from 'ls /sys/modules/wl1251_spi/notes'
+Date: Wed, 30 Dec 2009 19:20:26 +0200
+Message-ID: <87d41wwf8l.fsf@purkki.valot.fi>
+References: <87k4w4wux9.fsf@purkki.valot.fi>
+	<1262188157.2749.21.camel@mulgrave.site>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1262183198-14854-1-git-send-email-x0082077-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Return-path: <linux-parisc-owner@vger.kernel.org>
+In-Reply-To: <1262188157.2749.21.camel@mulgrave.site> (James Bottomley's message of "Wed\, 30 Dec 2009 09\:49\:17 -0600")
+Sender: linux-parisc-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, Helge Deller <deller@gmx.de>, rusty@rustcorp.com.au, akpm@linux-foundation.org, roland@redhat.com, dave@hiauly1.hia.nrc.ca, Parisc List <linux-parisc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+James Bottomley <James.Bottomley@HansenPartnership.com> writes:
 
-On Wed, Dec 30, 2009 at 07:56:38PM +0530, Maulik Mankad wrote:
+> On Wed, 2009-12-30 at 13:41 +0200, Kalle Valo wrote:
+>
+>> Also removing wl1251_spi causes a crash. The reason for this is that a
+>> sysfs file with a null string as name is trying to be removed from the
+>> notes directory.
+>
+> Yes, this is because the notes sections describe the text sections.
+> When we ignore an empty text section, we'd need to ignore its
+> corresponding notes section.
+>
+> The reason we didn't see this on parisc is because our compiler doesn't
+> actually produce any notes sections.
 
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-4430sdp.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -73,11 +75,21 @@ static void __init omap_4430sdp_init_irq
->  	omap_gpio_init();
->  }
->  
-> +static struct omap_musb_board_data musb_board_data = {
-> +	.interface_type		= MUSB_INTERFACE_UTMI,
-> +	.mode			= MUSB_PERIPHERAL,
-> +	.power			= 100,
-> +};
->  
->  static void __init omap_4430sdp_init(void)
->  {
->  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
->  	omap_serial_init();
-> +#ifdef CONFIG_NOP_USB_XCEIV
-> +	/* OMAP4 SDP uses Internal transceiver so register nop transceiver */
-> +	usb_nop_xceiv_register();
-> +#endif
-> +	usb_musb_init(&musb_board_data);
+Also on omap not all modules can reproduce the problem. For example
+cfg80211, mac80211 and wl1251 modules work just fine, but with
+wl1251_spi I see the problem everytime.
 
-If you add a select of NOP_USB_XCEIV in the board config option you can
-do away with the ifdef.
+> A better, and more comprehensive patch would be to try not to count the
+> empty text sections when we're building the notes section (and actually
+> anywhere else in the file).  This patch actually relies on the fact that
+> if sh_size is zero for the text section it should be for the
+> corresponding notes section.  If that doesn't work, we'd actually have
+> to do the matching in the construction piece.
+>
+> Can you try it to see if it works for you?  If it doesn't, I'll try
+> matching notes to text.  It works fine on parisc, but as we don't have a
+> notes section, that's not saying much ...
 
-Is there ever a case, for this board, where you don't want NOP_USB_XCEIV
-enabled?
+Thanks. I tested the patch on my setup, this time on top of Linus'
+tree (commit 6b7b284). And the patch fixes the issue, I can't
+reproduce the problem at all, both 'rmmod wl1251_spi' and ls work
+without any problems. So here's my tested-by:
 
-Failing that, add an empty init function to the header file such that
-you can always call it even when the option is not enabled. It keeps
-the amount of ifdeffery in the code to a minimum.
+Tested-by: Kalle Valo <kalle.valo@iki.fi>
 
+Also please consider sending the fix to stable.
 
--Olof
+Thank you for fixing this so fast.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Kalle Valo
