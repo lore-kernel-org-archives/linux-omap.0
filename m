@@ -1,119 +1,34 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP4: PM: Remove the checks preventing OMAP4
- clockdomain validation
-Date: Wed, 30 Dec 2009 01:34:57 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0912300134290.24862@utopia.booyaka.com>
-References: <1261583270-22267-1-git-send-email-abhijitpagare@ti.com>
+From: "Luke-Jr" <luke@dashjr.org>
+Subject: Re: [PATCH] OMAP2: add USB platform data and initialization for Nokia N800 and N810
+Date: Wed, 30 Dec 2009 03:02:23 -0600
+Message-ID: <200912300302.29725.luke@dashjr.org>
+References: <200912290152.16357.luke@dashjr.org> <200912292110.42122.luke@dashjr.org> <87pr5xvslk.fsf@purkki.valot.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51734 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042AbZL3Ie6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 03:34:58 -0500
-In-Reply-To: <1261583270-22267-1-git-send-email-abhijitpagare@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752506AbZL3JDG@vger.kernel.org>
+In-Reply-To: <87pr5xvslk.fsf@purkki.valot.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kalle Valo <kalle.valo@iki.fi>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, 23 Dec 2009, Abhijit Pagare wrote:
-
-> The clockdomain related code being in place, it is not necessary to have
-> some part of the clock code commented out. This would help the validation of
-> the clockdomain functions using the clock level interfaces.
-
-... likewise, with this patch, please fix the subject line, per Tony's 
-E-mail.
-
-
-- Paul
-
-
+On Wednesday 30 December 2009 01:17:11 am Kalle Valo wrote:
+> "Luke-Jr" <luke@dashjr.org> writes:
+> > On that topic, is there a reason the newer code is under a unified "N8x0"
+> > config option instead of the split N800/N810 that was used for the old
+> > code, or is that simply a symptom of the currently-supported features all
+> > being common?
 > 
-> Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> ---
-> 
-> Compiled and Boot Tested on OMAP4430 simulator, ES1 Chip & OMAP3430 SDP.
-> And also Compiled for OMAP2430 and OMAP2420
-> 
-> This patch has a dependency on the earlier set of OMAP4 clock-domain patches.
-> 
->  arch/arm/mach-omap2/clock.c          |    8 --------
->  arch/arm/mach-omap2/clock44xx_data.c |    2 --
->  2 files changed, 0 insertions(+), 10 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index 759c72a..a6d570a 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -181,7 +181,6 @@ static int _dpll_test_fint(struct clk *clk, u8 n)
->   * clockdomain pointer, and save it into the struct clk.  Intended to be
->   * called during clk_register().  No return value.
->   */
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
->  void omap2_init_clk_clkdm(struct clk *clk)
->  {
->  	struct clockdomain *clkdm;
-> @@ -199,7 +198,6 @@ void omap2_init_clk_clkdm(struct clk *clk)
->  			 "clkdm %s\n", clk->name, clk->clkdm_name);
->  	}
->  }
-> -#endif
->  
->  /**
->   * omap2_init_clksel_parent - set a clksel clk's parent field from the hardware
-> @@ -476,10 +474,8 @@ void omap2_clk_disable(struct clk *clk)
->  		_omap2_clk_disable(clk);
->  		if (clk->parent)
->  			omap2_clk_disable(clk->parent);
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
->  		if (clk->clkdm)
->  			omap2_clkdm_clk_disable(clk->clkdm, clk);
-> -#endif
->  
->  	}
->  }
-> @@ -489,10 +485,8 @@ int omap2_clk_enable(struct clk *clk)
->  	int ret = 0;
->  
->  	if (clk->usecount++ == 0) {
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
->  		if (clk->clkdm)
->  			omap2_clkdm_clk_enable(clk->clkdm, clk);
-> -#endif
->  
->  		if (clk->parent) {
->  			ret = omap2_clk_enable(clk->parent);
-> @@ -511,10 +505,8 @@ int omap2_clk_enable(struct clk *clk)
->  	return ret;
->  
->  err:
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
->  	if (clk->clkdm)
->  		omap2_clkdm_clk_disable(clk->clkdm, clk);
-> -#endif
->  	clk->usecount--;
->  	return ret;
->  }
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-> index 2210e22..f47ba9e 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -2749,9 +2749,7 @@ int __init omap2_clk_init(void)
->  		if (c->cpu & cpu_clkflg) {
->  			clkdev_add(&c->lk);
->  			clk_register(c->lk.clk);
-> -			/* TODO
->  			omap2_init_clk_clkdm(c->lk.clk);
-> -			*/
->  		}
->  
->  	recalculate_root_clocks();
-> -- 
-> 1.5.4.7
-> 
+> IIRC, I just used one common n8x0 file because the n810 board file was
+> very small and I didn't see any benefit from having it separately.
 
+Yeah, that's because someone put all the N810 code in the N800 file ;)
 
-- Paul
+Will probably at least split out the differences, if there's no other reason, 
+then. Since I'm doing this stuff only for my own personal interest, I'll 
+probably not bother to do much with N800 support unless someone feels like 
+sending me one when I finish N810 (definitely not touching N800 before then).
+
+Luke
