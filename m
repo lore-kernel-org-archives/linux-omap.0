@@ -1,101 +1,56 @@
-From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] ARM : OMAP4 : MUSB : Add USB support to 4430 SDP board file
-Date: Wed, 30 Dec 2009 16:15:02 +0530
-Message-ID: <1262169902-31258-1-git-send-email-x0082077@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+From: tarek attia <tarek.m.attia@gmail.com>
+Subject: Re: SR2: VDD autocomp is not active
+Date: Wed, 30 Dec 2009 12:50:13 +0200
+Message-ID: <82cfbe860912300250h5284bcb4u610ff6012dc97151@mail.gmail.com>
+References: <82cfbe860912270047j6332384drff2c82ecf8eccd24@mail.gmail.com>
+	 <4B3862E3.1090705@ti.com>
+	 <82cfbe860912290428v573ec0c5k5506ad3dad6c0c35@mail.gmail.com>
+	 <4B39F66F.8080709@ti.com>
+	 <82cfbe860912290532u5be4064gc56cd04f9805dbb5@mail.gmail.com>
+	 <4B3A0B92.4060106@ti.com>
+	 <82cfbe860912290757l4189783dya005def05584be4c@mail.gmail.com>
+	 <4B3AF4D1.3070906@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:53349 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751483AbZL3KuQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 05:50:16 -0500
+Received: by bwz27 with SMTP id 27so7397988bwz.21
+        for <linux-omap@vger.kernel.org>; Wed, 30 Dec 2009 02:50:13 -0800 (PST)
+In-Reply-To: <4B3AF4D1.3070906@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Romit Dasgupta <romit@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-ARM : OMAP4 : Add USB support to 4430 SDP board file
+Thank you very much :-) .
 
-This patch adds support for Mentor USB to 4430 SDP board file.
+Appreciate it really .
 
-It also defines the base address for HS USB OTG controller in OMAP4.
+Regards,
 
-Also updates platform specfic structure with base address and IRQ details.
+On Wed, Dec 30, 2009 at 8:36 AM, Romit Dasgupta <romit@ti.com> wrote:
+> tarek attia wrote:
+>> Thank you :) ,
+>>
+>> I found the "omap2_clk_init_cpufreq_table" function in the kernel
+>> image installed on my board ,and the hanging up is not permanent
+>> ,sometimes occurs and some time doesn't .
+>>
+>> So what the reason may be for this case? ..also what is the usage of
+>> "sr_vdd1_autocomp" ??
+>>
+>> I know that I'm bothering you,,but thanks for your reply in advance :-)
+>>
+> Nothing to be bothered. Always glad to reply. sr_vdd1_autocomp enables Smart
+> reflex voltage autocompensation for VDD1 voltage rail.
+> You do seem to have the low level cpufreq driver in place. May be you can try
+> with pm branch.
+>
 
-Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
 
-Index: felipe_musb/arch/arm/mach-omap2/board-4430sdp.c
-===================================================================
---- felipe_musb.orig/arch/arm/mach-omap2/board-4430sdp.c
-+++ felipe_musb/arch/arm/mach-omap2/board-4430sdp.c
-@@ -17,6 +17,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/gpio.h>
-+#include <linux/usb/otg.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -27,6 +28,7 @@
- #include <plat/common.h>
- #include <plat/control.h>
- #include <plat/timer-gp.h>
-+#include <plat/usb.h>
- #include <asm/hardware/gic.h>
- 
- static struct platform_device sdp4430_lcd_device = {
-@@ -73,11 +75,22 @@ static void __init omap_4430sdp_init_irq
- 	omap_gpio_init();
- }
- 
-+static struct musb_omap_data omap4430sdp_data = {
-+.interface_type	= MUSB_INTERFACE_UTMI,
-+.mode 		= MUSB_PERIPHERAL,
-+.power		= 100,
-+};
- 
- static void __init omap_4430sdp_init(void)
- {
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
- 	omap_serial_init();
-+#ifdef CONFIG_NOP_USB_XCEIV
-+	/* OMAP4 SDP uses Internal transceiver so register nop transceiver */
-+	usb_nop_xceiv_register();
-+#endif
-+	usb_musb_init(&omap4430sdp_data);
-+
- }
- 
- static void __init omap_4430sdp_map_io(void)
-Index: felipe_musb/arch/arm/mach-omap2/usb-musb.c
-===================================================================
---- felipe_musb.orig/arch/arm/mach-omap2/usb-musb.c
-+++ felipe_musb/arch/arm/mach-omap2/usb-musb.c
-@@ -81,8 +81,13 @@ void __init usb_musb_init(void *arch_dat
- 
- 	if (cpu_is_omap243x())
- 		musb_resources[0].start = OMAP243X_HS_BASE;
--	else
-+	else if (cpu_is_omap34xx())
- 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
-+	else if (cpu_is_omap44xx()) {
-+		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
-+		musb_resources[1].start =  INT_44XX_HS_USB_MC;
-+		musb_resources[2].start =  INT_44XX_HS_USB_DMA;
-+	}
- 	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
- 
- 	/*
-Index: felipe_musb/arch/arm/plat-omap/include/plat/omap44xx.h
-===================================================================
---- felipe_musb.orig/arch/arm/plat-omap/include/plat/omap44xx.h
-+++ felipe_musb/arch/arm/plat-omap/include/plat/omap44xx.h
-@@ -43,6 +43,7 @@
- #define OMAP44XX_WKUPGEN_BASE		0x48281000
- 
- #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
-+#define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
- 
- #endif /* __ASM_ARCH_OMAP44XX_H */
- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+tarek
