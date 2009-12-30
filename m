@@ -1,57 +1,49 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH] arm: omap2: clk2xxx.c doesn't compile if CPUFREQ is enabled
-Date: Wed, 30 Dec 2009 14:30:13 +0200
-Message-ID: <1262176213-16912-1-git-send-email-me@felipebalbi.com>
-References: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:45026 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395AbZL3MaV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 07:30:21 -0500
-In-Reply-To: <1261784154-18550-1-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Subject: Re: [patch-v2.6.34 7/9] usb: musb: use only clk framework for clk
+ handling
+Date: Wed, 30 Dec 2009 16:06:19 +0300
+Message-ID: <4B3B504B.4020602@ru.mvista.com>
+References: <1262127567-15202-1-git-send-email-felipe.balbi@nokia.com>	 <1262127567-15202-8-git-send-email-felipe.balbi@nokia.com>	 <4B3B3720.9070205@ru.mvista.com> <1262174012.28789.178.camel@gandalf>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1262174012.28789.178.camel@gandalf>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+Hello.
 
-if we enable CPUFREQ we can't build omap2 for two reasons,
-one of them is fixed by the patch below but the other one
-it seems like it'll need more invasive changes to the code
-so I'll leave it for you to decide how to do it.
+Felipe Balbi wrote:
 
-It's failing because the __must_be_array() check in
-ARRAY_SIZE() is failing and printing the following message:
+>>    Why always "ick"?! Do you think OMAPs are the only boards using MUSB 
+>> out there?
+>>     
+>
+> err, I'm afraid you have to read more about clock framework. The clock
+> name should not matter when you issue clk_get().
 
-arch/arm/mach-omap2/clock2xxx.c:453: error: negative width in bit-field '<anonymous>'
+   It depends on the matching type determined from a clkdev matching 
+table -- see dm644x_clks[] in arch/mach-davinci/dm644x.c as an example: 
+'struct davinci_clk' incorporates 'struct clk_lookup', and where its 1st 
+member is initialized, the matching is done by device, where its second 
+member is initialized, the matching is done by clock name -- see 
+clk_find() in arch/arm/common/clkdev.c for the logic.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/mach-omap2/clock2xxx.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+> I used the shortest
+> name that came to my mind. could've been "usb", "usb_clock",
+> "musb_otg_default_clock". It doesn't matter.
 
-diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
-index d0e3fb7..4e2bdfe 100644
---- a/arch/arm/mach-omap2/clock2xxx.c
-+++ b/arch/arm/mach-omap2/clock2xxx.c
-@@ -455,12 +455,15 @@ static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(rate_table)];
- void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- {
- 	struct prcm_config *prcm;
-+	long rate;
- 	int i = 0;
- 
-+	rate = clk_get_rate(sclk);
-+
- 	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
- 		if (!(prcm->flags & cpu_mask))
- 			continue;
--		if (prcm->xtal_speed != sys_ck.rate)
-+		if (prcm->xtal_speed != rate)
- 			continue;
- 
- 		/* don't put bypass rates in table */
--- 
-1.6.6.35.g1d85d
+   I know for sure that it still *can* matter with clkdev, and I do use 
+matching by clock name with DA8xx/OMAP-L1x glue layer. So I' strongly 
+against this patch.
 
+WBR, Sergei
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
