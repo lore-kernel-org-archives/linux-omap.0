@@ -1,39 +1,60 @@
-From: "Luke-Jr" <luke@dashjr.org>
-Subject: Re: [PATCH] OMAP2: add USB platform data and initialization for Nokia N800 and N810
-Date: Tue, 29 Dec 2009 21:10:27 -0600
-Message-ID: <200912292110.42122.luke@dashjr.org>
-References: <200912290152.16357.luke@dashjr.org> <873a2uxip9.fsf@purkki.valot.fi> <200912291505.51230.luke@dashjr.org>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 7/8] arm: omap: musb: pass board mode to usb_musb_init
+Date: Wed, 30 Dec 2009 10:14:50 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A277AD4@dbde02.ent.ti.com>
+References: <1261998590-6639-1-git-send-email-felipe.balbi@nokia.com>
+ <1261998590-6639-8-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752046AbZL3DLF@vger.kernel.org>
-In-Reply-To: <200912291505.51230.luke@dashjr.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kalle Valo <kalle.valo@iki.fi>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43429 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751571AbZL3EpE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 23:45:04 -0500
+In-Reply-To: <1261998590-6639-8-git-send-email-felipe.balbi@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Tuesday 29 December 2009 03:05:46 pm Luke-Jr wrote:
-> The last-working N8x0 support (Linux-OMAP 2.6.30-rc8) required 1706 lines
->  of platform data and initialization, split up into 6 files:
 
-Upon trying to debug my non-working keyboard, I learned that the status of 
-mainlining is actually worse off than I thought, and my "last 2.6.30-rc8 
-working" revision was actually already missing platform data.
+Hi,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Felipe Balbi
+> Sent: Monday, December 28, 2009 4:40 PM
+> To: Tony Lindgren
+> Cc: Linux OMAP Mailing List; Felipe Balbi
+> Subject: [PATCH 7/8] arm: omap: musb: pass board mode to usb_musb_init
+> 
+> each board will have a different mode which is peculiar
+> to that board.
+> 
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> ---
+<snip>
 
-It seems logical from looking at the code needed to divide the board into at 
-least 5 files (line number estimates based on old code):
-	460	board-n8x0-common.c
-	175	board-n800.c			(FM radio, touchscreen)
-	260	board-n810.c			(keyboard, light sensor, LEDs, touchscreen)
-	600	board-n8x0-multimedia.c	(camera, audio, DSP)
-	725	board-n8x0-storage.c	(flash, MMC)
-	120	board-n8x0-lcd.c
+> 
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -203,7 +204,7 @@ static void __init omap_2430sdp_init(void)
+>  	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
+>  	omap_serial_init();
+>  	twl4030_mmc_init(mmc);
+> -	usb_musb_init(100);
+> +	usb_musb_init(MUSB_OTG, 100);
 
-On that topic, is there a reason the newer code is under a unified "N8x0" 
-config option instead of the split N800/N810 that was used for the old code, 
-or is that simply a symptom of the currently-supported features all being 
-common?
+Similarly, we would need another parameter 'extvbus' which is required by
+OMAP3EVM Rev >= E. This way the parameter list would keep increasing and
+would look ugly.
 
-Luke
+So how about passing a "struct musb_board_data" structure completely ? It
+Can be generic across the musb platforms or we can have it only for OMAP
+platforms.
+
+Ajay
+
+>  	board_smc91x_init();
+> 
