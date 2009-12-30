@@ -1,60 +1,52 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 7/8] arm: omap: musb: pass board mode to usb_musb_init
-Date: Wed, 30 Dec 2009 10:14:50 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A277AD4@dbde02.ent.ti.com>
-References: <1261998590-6639-1-git-send-email-felipe.balbi@nokia.com>
- <1261998590-6639-8-git-send-email-felipe.balbi@nokia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: L4 interconnect memory mapping
+Date: Wed, 30 Dec 2009 11:47:52 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C02E9049@dbde02.ent.ti.com>
+References: <1262129134.28789.96.camel@gandalf>
+	 <1262129299.28789.97.camel@gandalf>  <20091229234657.GO3512@atomide.com>
+ <1262130610.28789.116.camel@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43429 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40676 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751571AbZL3EpE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Dec 2009 23:45:04 -0500
-In-Reply-To: <1261998590-6639-8-git-send-email-felipe.balbi@nokia.com>
+	id S1751989AbZL3GSI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Dec 2009 01:18:08 -0500
+In-Reply-To: <1262130610.28789.116.camel@gandalf>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "me@felipebalbi.com" <me@felipebalbi.com>, Tony Lindgren <tony@atomide.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-Hi,
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Felipe Balbi
-> Sent: Monday, December 28, 2009 4:40 PM
-> To: Tony Lindgren
-> Cc: Linux OMAP Mailing List; Felipe Balbi
-> Subject: [PATCH 7/8] arm: omap: musb: pass board mode to usb_musb_init
-> 
-> each board will have a different mode which is peculiar
-> to that board.
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
-<snip>
-
-> 
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
-> @@ -203,7 +204,7 @@ static void __init omap_2430sdp_init(void)
->  	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
->  	omap_serial_init();
->  	twl4030_mmc_init(mmc);
-> -	usb_musb_init(100);
-> +	usb_musb_init(MUSB_OTG, 100);
-
-Similarly, we would need another parameter 'extvbus' which is required by
-OMAP3EVM Rev >= E. This way the parameter list would keep increasing and
-would look ugly.
-
-So how about passing a "struct musb_board_data" structure completely ? It
-Can be generic across the musb platforms or we can have it only for OMAP
-platforms.
-
-Ajay
-
->  	board_smc91x_init();
-> 
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1vbWFwLW93bmVyQHZn
+ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnXSBP
+biBCZWhhbGYgT2YgRmVsaXBlDQo+IEJhbGJpDQo+IFNlbnQ6IFdlZG5lc2RheSwgRGVjZW1iZXIg
+MzAsIDIwMDkgNToyMCBBTQ0KPiBUbzogVG9ueSBMaW5kZ3Jlbg0KPiBDYzogcGF1bEBwd3Nhbi5j
+b207IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBMNCBpbnRlcmNv
+bm5lY3QgbWVtb3J5IG1hcHBpbmcNCj4gDQo+IE9uIFR1ZSwgMjAwOS0xMi0yOSBhdCAxNTo0NiAt
+MDgwMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToNCj4gPiAqIEZlbGlwZSBCYWxiaSA8bWVAZmVsaXBl
+YmFsYmkuY29tPiBbMDkxMjI5IDE1OjI2XToNCj4gPiA+IEhpLA0KPiA+ID4NCj4gPiA+IE9uIFdl
+ZCwgMjAwOS0xMi0zMCBhdCAwMToyNSArMDIwMCwgRmVsaXBlIEJhbGJpIHdyb3RlOg0KPiA+ID4g
+PiBIaSBUb255IGFuZCBQYXVsLA0KPiA+ID4gPg0KPiA+ID4gPiBtYXliZSBhIHNpbGx5IHF1ZXN0
+aW9uLCBidXQgaGVyZSBpdCBnb2VzOg0KPiA+ID4gPg0KPiA+ID4gPiBEbyB3ZSBoYXZlIGFueSBw
+aWVjZSBvZiBjb2RlIGhhbmRsaW5nIHRoZSBMNCBpbnRlcmNvbm5lY3QgbWVtb3J5IHNwYWNlID8N
+Cj4gPiA+ID4gSSBtZWFuLCBsb29raW5nIGF0IG9tYXAzIFRSTSBwYWdlcyAyMTIgLSAyMTksIEkg
+c2VlIHRoYXQgZS5nLiBmb3IgdGhlDQo+ID4gPiA+IG11c2IgYmxvY2sgd2UgaGF2ZToNCj4gPiA+
+ID4NCj4gPiA+ID4gSFMgVVNCIE9URwkweDQ4MEFCMDAwIC0gMHg0ODBBQkZGRgk0S0IJTW9kdWxl
+DQo+ID4gPiA+IAkJMHg0ODBBQzAwMCAtIDB4NDgwQUNGRkYJNEtCCUw0IGludGVyY29ubmVjdA0K
+PiA+ID4gPg0KPiA+ID4gPiBTbyB0aGUgZmlyc3QgNEsgaXMgd2hhdCB3ZSBwYXNzIGRvd24gdG8g
+ZHJpdmVycyB2aWEgc3RydWN0IHJlc291cmNlIGFuZA0KPiA+ID4gPiB0aGUgc2Vjb25kIDRLID8g
+V2hhdCBkbyB3ZSBkbyB3aXRoIHRoYXQgPw0KPiA+ID4NCj4gPiA+IG5vIHdpdGggUGF1bCdzIGFk
+ZHJlc3MgY29ycmVjdC4NCj4gPg0KPiA+IExvb2tzIGxpa2UgeW91IG1pZ2h0IHdhbnQgdG8gdXBk
+YXRlIHlvdXIgZWFybGllciBwYXRjaCB0byBqdXN0IGNvbW1lbnQNCj4gPiB0aGF0IHRoZSA4SyBh
+ZGRyZXNzIHNwYWNlIGZvciBtdXNiIGlzIDRLICsgNEsgZm9yIEw0IGludGVyY29ubmVjdCA6KQ0K
+PiANCj4gd2FzIHRoaW5raW5nIGFib3V0IHRoYXQganVzdCBub3cgaGVoLCBidXQgd2hhdCBkbyB3
+ZSBkbyB3aXRoIHRoZSBleHRyYQ0KPiA0ayA/IEl0J3MgdGhlIHNhbWUgZm9yIGFsbCBvdGhlciBt
+b2R1bGVzLiBJcyBvbWFwX2h3bW9kIHRha2luZyBjYXJlIG9mDQo+IHRoYXQgPw0KSSBkb24ndCB0
+aGluayB5b3UgbmVlZCB0byBtYXAgOGsgaWYgdGhlcmUgaXMgbm8gYWRkaXRpb25hbCByZWdpc3Rl
+ciBpbiB1cHBlciA0Sy4NCkFsbCBtZW1vcnkgc3BhY2VzIGRlc2NyaWJlZCBhcyBtb2R1bGVzIHBy
+b3ZpZGUgZGlyZWN0IGFjY2VzcyB0byB0aGUgbW9kdWxlIHJlZ2lzdGVycyBvdXRzaWRlIHRoZSBM
+NCBpbnRlcmNvbm5lY3QuIEFsbCBvdGhlciBhY2Nlc3NlcyBhcmUgaW50ZXJuYWwgdG8gdGhlIEw0
+IGludGVyY29ubmVjdCAoIEw0X0NGRywgTDRfUEVSKS4gDQoNClJlZ2FyZHMsDQpTYW50b3NoDQo=
