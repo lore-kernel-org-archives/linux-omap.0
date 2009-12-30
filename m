@@ -1,102 +1,59 @@
-From: Abhijit Pagare <abhijitpagare@ti.com>
-Subject: [PATCH] ARM: OMAP4 clock framework: Remove the checks preventing OMAP4 clockdomain validation
-Date: Wed, 30 Dec 2009 21:39:46 +0530
-Message-ID: <1262189386-22239-1-git-send-email-abhijitpagare@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32980 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752491AbZL3QJ6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Dec 2009 11:09:58 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] ARM : OMAP4 : MUSB : Add USB support to 4430
+	SDP board file
+Date: Wed, 30 Dec 2009 11:06:48 -0600
+Message-ID: <20091230170648.GA7017@lixom.net>
+References: <1262183198-14854-1-git-send-email-x0082077@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1262183198-14854-1-git-send-email-x0082077-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Abhijit Pagare <abhijitpagare@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-The clockdomain related code being in place, it is not necessary to have
-some part of the clock code commented out. This would help the validation of
-the clockdomain functions using the clock level interfaces.
+Hi,
 
-Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
-Re-submitting with proper subject line.
+On Wed, Dec 30, 2009 at 07:56:38PM +0530, Maulik Mankad wrote:
 
-Compiled and Boot Tested on OMAP4430 simulator, ES1 Chip & OMAP3430 SDP.
-And also Compiled for OMAP2430 and OMAP2420
+> --- felipe_musb.orig/arch/arm/mach-omap2/board-4430sdp.c
+> +++ felipe_musb/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -73,11 +75,21 @@ static void __init omap_4430sdp_init_irq
+>  	omap_gpio_init();
+>  }
+>  
+> +static struct omap_musb_board_data musb_board_data = {
+> +	.interface_type		= MUSB_INTERFACE_UTMI,
+> +	.mode			= MUSB_PERIPHERAL,
+> +	.power			= 100,
+> +};
+>  
+>  static void __init omap_4430sdp_init(void)
+>  {
+>  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+>  	omap_serial_init();
+> +#ifdef CONFIG_NOP_USB_XCEIV
+> +	/* OMAP4 SDP uses Internal transceiver so register nop transceiver */
+> +	usb_nop_xceiv_register();
+> +#endif
+> +	usb_musb_init(&musb_board_data);
 
-This patch has a dependency on the earlier set of OMAP4 clock-domain patches.
+If you add a select of NOP_USB_XCEIV in the board config option you can
+do away with the ifdef.
 
- arch/arm/mach-omap2/clock.c          |    8 --------
- arch/arm/mach-omap2/clock44xx_data.c |    2 --
- 2 files changed, 0 insertions(+), 10 deletions(-)
+Is there ever a case, for this board, where you don't want NOP_USB_XCEIV
+enabled?
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 759c72a..a6d570a 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -181,7 +181,6 @@ static int _dpll_test_fint(struct clk *clk, u8 n)
-  * clockdomain pointer, and save it into the struct clk.  Intended to be
-  * called during clk_register().  No return value.
-  */
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- void omap2_init_clk_clkdm(struct clk *clk)
- {
- 	struct clockdomain *clkdm;
-@@ -199,7 +198,6 @@ void omap2_init_clk_clkdm(struct clk *clk)
- 			 "clkdm %s\n", clk->name, clk->clkdm_name);
- 	}
- }
--#endif
- 
- /**
-  * omap2_init_clksel_parent - set a clksel clk's parent field from the hardware
-@@ -476,10 +474,8 @@ void omap2_clk_disable(struct clk *clk)
- 		_omap2_clk_disable(clk);
- 		if (clk->parent)
- 			omap2_clk_disable(clk->parent);
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- 		if (clk->clkdm)
- 			omap2_clkdm_clk_disable(clk->clkdm, clk);
--#endif
- 
- 	}
- }
-@@ -489,10 +485,8 @@ int omap2_clk_enable(struct clk *clk)
- 	int ret = 0;
- 
- 	if (clk->usecount++ == 0) {
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- 		if (clk->clkdm)
- 			omap2_clkdm_clk_enable(clk->clkdm, clk);
--#endif
- 
- 		if (clk->parent) {
- 			ret = omap2_clk_enable(clk->parent);
-@@ -511,10 +505,8 @@ int omap2_clk_enable(struct clk *clk)
- 	return ret;
- 
- err:
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once clkdm f/w is in place */
- 	if (clk->clkdm)
- 		omap2_clkdm_clk_disable(clk->clkdm, clk);
--#endif
- 	clk->usecount--;
- 	return ret;
- }
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 2210e22..f47ba9e 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -2749,9 +2749,7 @@ int __init omap2_clk_init(void)
- 		if (c->cpu & cpu_clkflg) {
- 			clkdev_add(&c->lk);
- 			clk_register(c->lk.clk);
--			/* TODO
- 			omap2_init_clk_clkdm(c->lk.clk);
--			*/
- 		}
- 
- 	recalculate_root_clocks();
--- 
-1.5.4.7
+Failing that, add an empty init function to the header file such that
+you can always call it even when the option is not enabled. It keeps
+the amount of ifdeffery in the code to a minimum.
 
+
+-Olof
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
