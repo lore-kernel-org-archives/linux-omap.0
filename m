@@ -1,451 +1,73 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 1/2] ARM : OMAP: MUSB : Pass board specific data using a
- structure
-Date: Wed, 30 Dec 2009 16:29:28 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A277B44@dbde02.ent.ti.com>
-References: <1262169883-31226-1-git-send-email-x0082077@ti.com>
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Re: [patch-v2.6.33-rc2+ 02/12] arm: omap: musb: fix board power budget
+ by passing it to usb_musb_init
+Date: Wed, 30 Dec 2009 14:13:05 +0300
+Message-ID: <4B3B35C1.6060501@ru.mvista.com>
+References: <1262127092-14878-1-git-send-email-felipe.balbi@nokia.com> <1262127092-14878-3-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42266 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752680AbZL3K7r convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 05:59:47 -0500
-In-Reply-To: <1262169883-31226-1-git-send-email-x0082077@ti.com>
-Content-Language: en-US
+Received: from gateway-1237.mvista.com ([206.112.117.35]:54135 "HELO
+	imap.sh.mvista.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S1752696AbZL3LN1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 06:13:27 -0500
+In-Reply-To: <1262127092-14878-3-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mankad, Maulik Ojas" <x0082077@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@suse.de>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 
-Hi,
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Mankad, Maulik Ojas
-> Sent: Wednesday, December 30, 2009 4:15 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-usb@vger.kernel.org; Mankad, Maulik Ojas; Felipe Balbi; Tony
-> Lindgren; Greg Kroah-Hartman
-> Subject: [PATCH 1/2] ARM : OMAP: MUSB : Pass board specific data using a
-> structure
-> 
-> ARM : OMAP: MUSB :Pass board specific data from board file
-> 
-> This patch proposes to pass board specific data for MUSB
-> (like interface_type, mode etc) from board file by defining
-> board specific structure.
-> 
-> Each board file can define this structure based on
-> its requirement and pass this information to the
-> driver.
-> 
-> It addresses a comment from Felipe and thus help
-> by preventing addition of too many fields in
-> musb_platform_data.
-> 
-> Signed-off-by: Maulik Mankad <x0082077@ti.com>
-> Cc: Felipe Balbi <felipe.balbi@nokia.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Greg Kroah-Hartman <gregkh@suse.de>
-> 
-> Index: felipe_musb/arch/arm/mach-omap2/board-2430sdp.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-2430sdp.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-2430sdp.c
-> @@ -195,6 +195,12 @@ static struct twl4030_hsmmc_info mmc[] _
->  	{}	/* Terminator */
+Hello.
+
+Felipe Balbi wrote:
+
+> each board might have a different charge pump and
+> thus able to source more or less current on vbus
+> so let power be easily configurable.
+>
+> Cc: linux-usb@vger.kernel.org
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+
+[...]
+
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index ba71f76..b4b8ccc 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -124,12 +124,7 @@ static struct musb_hdrc_platform_data musb_plat = {
+>  	/* .clock is set dynamically */
+>  	.set_clock	= musb_set_clock,
+>  	.config		= &musb_config,
+> -
+> -	/* REVISIT charge pump on TWL4030 can supply up to
+> -	 * 100 mA ... but this value is board-specific, like
+> -	 * "mode", and should be passed to usb_musb_init().
+> -	 */
+> -	.power		= 50,			/* up to 100 mA */
+> +	/* .power	= DYNAMIC, */
 >  };
-> 
-> +static struct musb_omap_data omap2430sdp_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode		= MUSB_OTG,
-> +.power		= 100,
-> +}
-> +
->  static void __init omap_2430sdp_init(void)
->  {
->  	int ret;
-> @@ -204,7 +210,7 @@ static void __init omap_2430sdp_init(voi
->  	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
->  	omap_serial_init();
->  	twl4030_mmc_init(mmc);
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omap2430sdp_data);
->  	board_smc91x_init();
-> 
->  	/* Turn off secondary LCD backlight */
-> Index: felipe_musb/arch/arm/mach-omap2/board-3430sdp.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-3430sdp.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -651,6 +651,12 @@ static struct omap_board_mux board_mux[]
->  #define board_mux	NULL
->  #endif
-> 
-> +static struct musb_omap_data omap3430sdp_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  static void __init omap_3430sdp_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> @@ -665,7 +671,7 @@ static void __init omap_3430sdp_init(voi
->  				ARRAY_SIZE(sdp3430_spi_board_info));
->  	ads7846_dev_init();
->  	omap_serial_init();
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omap3430sdp_data);
-
-Isn't it simpler to use same name across the boards like, 'musb_board_data'
-Instead of 'omap3430sdp_data'.
-
->  	board_smc91x_init();
->  	sdp3430_display_init();
->  	enable_board_wakeup_source();
-> Index: felipe_musb/arch/arm/mach-omap2/board-cm-t35.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-cm-t35.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-cm-t35.c
-> @@ -576,6 +576,12 @@ static struct omap_board_mux board_mux[]
->  	{ .reg_offset = OMAP_MUX_TERMINATOR },
->  };
-> 
-> +static struct musb_omap_data omapcm_t35_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  static void __init cm_t35_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
-> @@ -586,7 +592,7 @@ static void __init cm_t35_init(void)
->  	cm_t35_init_ethernet();
->  	cm_t35_init_led();
-> 
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omapcm_t35_data);
->  }
-> 
->  MACHINE_START(CM_T35, "Compulab CM-T35")
-> Index: felipe_musb/arch/arm/mach-omap2/board-igep0020.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-igep0020.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-igep0020.c
-> @@ -212,12 +212,18 @@ static struct omap_board_mux board_mux[]
->  #define board_mux	NULL
->  #endif
-> 
-> +static struct musb_omap_data omapigep2_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  static void __init igep2_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->  	igep2_i2c_init();
->  	omap_serial_init();
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omapigep2_data);
-> 
->  	igep2_init_smsc911x();
-> 
-> Index: felipe_musb/arch/arm/mach-omap2/board-ldp.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-ldp.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-ldp.c
-> @@ -384,6 +384,12 @@ static struct omap_board_mux board_mux[]
->  #define board_mux	NULL
->  #endif
-> 
-> +static struct musb_omap_data omapldp_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  static void __init omap_ldp_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> @@ -395,7 +401,7 @@ static void __init omap_ldp_init(void)
->  				ARRAY_SIZE(ldp_spi_board_info));
->  	ads7846_dev_init();
->  	omap_serial_init();
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omapldp_data);
-> 
->  	twl4030_mmc_init(mmc);
->  	/* link regulators to MMC adapters */
-> Index: felipe_musb/arch/arm/mach-omap2/board-omap3beagle.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -431,6 +431,12 @@ static struct omap_board_mux board_mux[]
->  #define board_mux	NULL
->  #endif
-> 
-> +static struct musb_omap_data omap3beagle_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  static void __init omap3_beagle_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> @@ -444,7 +450,7 @@ static void __init omap3_beagle_init(voi
->  	/* REVISIT leave DVI powered down until it's needed ... */
->  	gpio_direction_output(170, true);
-> 
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omap3beagle_data);
->  	usb_ehci_init(&ehci_pdata);
->  	omap3beagle_flash_init();
-> 
-> Index: felipe_musb/arch/arm/mach-omap2/board-omap3evm.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-omap3evm.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -431,6 +431,12 @@ static struct omap_board_mux board_mux[]
->  #define board_mux	NULL
->  #endif
-> 
-> +static struct musb_omap_data omap3evm_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  static void __init omap3_evm_init(void)
->  {
->  	omap3_evm_get_revision();
-> @@ -470,7 +476,7 @@ static void __init omap3_evm_init(void)
->  		omap_mux_init_gpio(135, OMAP_PIN_OUTPUT);
->  		ehci_pdata.reset_gpio_port[1] = 135;
->  	}
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omap3evm_data);
->  	usb_ehci_init(&ehci_pdata);
->  	ads7846_dev_init();
->  	omap3evm_init_smsc911x();
-> Index: felipe_musb/arch/arm/mach-omap2/board-omap3pandora.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-omap3pandora.c
-> @@ -402,6 +402,12 @@ static struct omap_board_mux board_mux[]
->  #define board_mux	NULL
->  #endif
-> 
-> +static struct musb_omap_data omap3pandora_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  static void __init omap3pandora_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> @@ -414,7 +420,7 @@ static void __init omap3pandora_init(voi
->  	omap3pandora_ads7846_init();
->  	usb_ehci_init(&ehci_pdata);
->  	pandora_keys_gpio_init();
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omap3pandora_data);
-> 
->  	/* Ensure SDRC pins are mux'd for self-refresh */
->  	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-> Index: felipe_musb/arch/arm/mach-omap2/board-omap3touchbook.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-omap3touchbook.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-omap3touchbook.c
-> @@ -528,6 +528,12 @@ static void __init early_touchbook_revis
->  }
->  __early_param("tbr=", early_touchbook_revision);
-> 
-> +static struct musb_omap_data omap3touchbook_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  static void __init omap3_touchbook_init(void)
->  {
->  	pm_power_off = omap3_touchbook_poweroff;
-> @@ -546,7 +552,7 @@ static void __init omap3_touchbook_init(
->  	spi_register_board_info(omap3_ads7846_spi_board_info,
->  				ARRAY_SIZE(omap3_ads7846_spi_board_info));
->  	omap3_ads7846_init();
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omap3touchbook_data);
->  	usb_ehci_init(&ehci_pdata);
->  	omap3touchbook_flash_init();
-> 
-> Index: felipe_musb/arch/arm/mach-omap2/board-overo.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-overo.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-overo.c
-> @@ -414,6 +414,12 @@ static struct omap_board_mux board_mux[]
->  #define board_mux	NULL
->  #endif
-> 
-> +static struct musb_omap_data omapovero_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  static void __init overo_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> @@ -421,7 +427,7 @@ static void __init overo_init(void)
->  	platform_add_devices(overo_devices, ARRAY_SIZE(overo_devices));
->  	omap_serial_init();
->  	overo_flash_init();
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omapovero_data);
->  	usb_ehci_init(&ehci_pdata);
->  	overo_ads7846_init();
->  	overo_init_smsc911x();
-> Index: felipe_musb/arch/arm/mach-omap2/board-rx51.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-rx51.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-rx51.c
-> @@ -79,11 +79,16 @@ static struct omap_board_mux board_mux[]
->  #define board_mux	NULL
->  #endif
-> 
-> +static struct musb_omap_data omaprx51_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_PERIPHERAL,
-> +.power		= 0,
-> +};
->  static void __init rx51_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->  	omap_serial_init();
-> -	usb_musb_init(MUSB_PERIPHERAL, 0);
-> +	usb_musb_init(&omaprx51_data);
->  	rx51_peripherals_init();
-> 
->  	/* Ensure SDRC pins are mux'd for self-refresh */
-> Index: felipe_musb/arch/arm/mach-omap2/board-zoom-peripherals.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/board-zoom-peripherals.c
-> +++ felipe_musb/arch/arm/mach-omap2/board-zoom-peripherals.c
-> @@ -264,9 +264,15 @@ static int __init omap_i2c_init(void)
->  	return 0;
->  }
-> 
-> +static struct musb_omap_data omapzoom_data = {
-> +.interface_type	= MUSB_INTERFACE_ULPI,
-> +.mode 		= MUSB_OTG,
-> +.power		= 100,
-> +};
-> +
->  void __init zoom_peripherals_init(void)
->  {
->  	omap_i2c_init();
->  	omap_serial_init();
-> -	usb_musb_init(MUSB_OTG, 100);
-> +	usb_musb_init(&omapzoom_data);
->  }
-> Index: felipe_musb/arch/arm/plat-omap/include/plat/usb.h
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/plat-omap/include/plat/usb.h
-> +++ felipe_musb/arch/arm/plat-omap/include/plat/usb.h
-> @@ -43,7 +43,15 @@ struct ehci_hcd_omap_platform_data {
->  #define UDC_BASE			OMAP2_UDC_BASE
->  #define OMAP_OHCI_BASE			OMAP2_OHCI_BASE
-> 
-> -extern void usb_musb_init(enum musb_mode mode, unsigned power);
-> +struct musb_omap_data {
-> +u8	interface_type;
-> +u8	mode;
-> +u8	power;
-> +};
-
-It's board data so how about 'struct omap_musb_board_data'.
-
-> +
-> +enum musb_interface	{MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
-> +
-> +extern void usb_musb_init(void *);
-
-Can be modified to:
-+extern void usb_musb_init(omap_musb_board_data *);
-
-> 
->  extern void usb_ehci_init(struct ehci_hcd_omap_platform_data *pdata);
-> 
-> Index: felipe_musb/arch/arm/mach-omap2/usb-musb.c
-> ===================================================================
-> --- felipe_musb.orig/arch/arm/mach-omap2/usb-musb.c
-> +++ felipe_musb/arch/arm/mach-omap2/usb-musb.c
-> @@ -75,8 +75,10 @@ static struct platform_device musb_devic
+>  
+>  static u64 musb_dmamask = DMA_BIT_MASK(32);
+> @@ -146,7 +141,7 @@ static struct platform_device musb_device = {
 >  	.resource	= musb_resources,
 >  };
-> 
-> -void __init usb_musb_init(enum musb_mode mode, unsigned power)
-> +void __init usb_musb_init(void *arch_data)
-
-It's actually board data so *board_data is clearer.
-
+>  
+> -void __init usb_musb_init(void)
+> +void __init usb_musb_init(unsigned power)
 >  {
-> +	struct musb_omap_data *data = arch_data;
-> +
-Required ? we can anyway use 'arch_data' (or board_data).
-
 >  	if (cpu_is_omap243x())
 >  		musb_resources[0].start = OMAP243X_HS_BASE;
->  	else
-> @@ -88,15 +90,16 @@ void __init usb_musb_init(enum musb_mode
+> @@ -159,6 +154,7 @@ void __init usb_musb_init(void)
 >  	 * musb_core.c have been converted to use use clkdev.
 >  	 */
 >  	musb_plat.clock = "ick";
-> -	musb_plat.power = power >> 1;
-> -	musb_plat.mode = mode;
-> +	musb_plat.arch_data = arch_data;
+> +	musb_plat.power = power >> 1;
+>   
+
+   Probably OMAP boards never supply much current, but otherwise capping 
+the value of 'power' at 510 seems a good idea.
+
+WBR, Sergei
 
 
-Not needed.
-
-> +	musb_plat.power = data->power >> 1;
-> +	musb_plat.mode = data->mode;
-> 
->  	if (platform_device_register(&musb_device) < 0)
->  		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
->  }
-> 
->  #else
-> -void __init usb_musb_init(enum musb_mode mode, unsigned power)
-> +void __init usb_musb_init(void *arch_data)
->  {
->  }
->  #endif /* CONFIG_USB_MUSB_SOC */
-> Index: felipe_musb/include/linux/usb/musb.h
-> ===================================================================
-> --- felipe_musb.orig/include/linux/usb/musb.h
-> +++ felipe_musb/include/linux/usb/musb.h
-> @@ -84,6 +84,9 @@ struct musb_hdrc_platform_data {
-> 
->  	/* MUSB configuration-specific details */
->  	struct musb_hdrc_config	*config;
-> +
-> +	/* Board specific data	*/
-> +	void		*arch_data;
-
-We don't need it as we will continue using 'power', 'mode', 'extvbus'
->From musb_plat only.
-
->  };
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
