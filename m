@@ -1,58 +1,80 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI charger
-Date: Wed, 30 Dec 2009 13:07:45 -0600
-Message-ID: <001801ca8983$5f101110$544ff780@am.dhcp.ti.com>
-References: <6ed0b2680912021329g372bd0a4vb5b4a80244960f95@mail.gmail.com> <20091202215442.GA30658@oksana.dev.rtsoft.ru> <20091202223156.GA14921@nokia.com> <20091202225922.GA15568@oksana.dev.rtsoft.ru> <20091203083958.GB31110@nokia.com> <6ed0b2680912030255o57d7c46qb5ae1cfcb82e9976@mail.gmail.com> <20091203110332.GO1361@nokia.com> <6ed0b2680912100609g11706296qdbcea887dc3a5733@mail.gmail.com> <20091210141830.GA10687@oksana.dev.rtsoft.ru> <20091210142127.GB12526@nokia.com> <20091210144411.GA13120@oksana.dev.rtsoft.ru>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 0/5] Enable DSS2 for OMAP3EVM & AM3517
+Date: Thu, 31 Dec 2009 10:17:47 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A277BAF@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1261063083-19822-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753352AbZL3TIO@vger.kernel.org>
-In-Reply-To: <20091210144411.GA13120@oksana.dev.rtsoft.ru>
-Sender: linux-kernel-owner@vger.kernel.org
-To: avorontsov@ru.mvista.com, 'Felipe Balbi' <felipe.balbi@nokia.com>
-Cc: 'Grazvydas Ignotas' <notasas@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60660 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752755AbZLaEsK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Dec 2009 23:48:10 -0500
+In-Reply-To: <1261063083-19822-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
 > -----Original Message-----
-> From: Anton Vorontsov [mailto:avorontsov@ru.mvista.com]
-> Sent: Thursday, December 10, 2009 8:44 AM
-> To: Felipe Balbi
-> Cc: Grazvydas Ignotas; linux-kernel@vger.kernel.org; Madhusudhan
-> Chikkature; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] power_supply: Add driver for TWL4030/TPS65950 BCI
-> charger
+> From: Hiremath, Vaibhav
+> Sent: Thursday, December 17, 2009 8:48 PM
+> To: tomi.valkeinen@nokia.com
+> Cc: linux-omap@vger.kernel.org; linux-fbdev-
+> devel@lists.sourceforge.net; linux-fbdev@vger.kernel.org; Hiremath,
+> Vaibhav
+> Subject: [PATCH 0/5] Enable DSS2 for OMAP3EVM & AM3517
 > 
-> On Thu, Dec 10, 2009 at 04:21:27PM +0200, Felipe Balbi wrote:
-> > Hi,
-> >
-> > On Thu, Dec 10, 2009 at 03:18:30PM +0100, ext Anton Vorontsov wrote:
-> > >>Ok since it doesn't look like this will resolve soon, what about
-> > >>adding some DEVICE_ATTR for the time being and requiring userspace to
-> > >>write charge current here to start actual charging?
-> > >
-> > >Works for me. Let's think of the kernel charging support as an
-> > >yet unimplemented feature.
-> >
-> > but if you guys are ok with this one for now. It can always be
-> > changed later :-)
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
 > 
-> Yep. The only thing I'm afraid of is that once the driver is in,
-> then nobody will bother with improving it to do the right thing.
-> But an imperfect driver is better than none.
+> Patch series adds following features -
 > 
+> 	- Enable DSS2/Fbdev on OMAP3EVM
+> 	- Add LQ043T1DG01 panel file
+> 	- Enable DSS2/Fbdev on AM3517EVM
+> 	- Warning message fix in dss-core
+> 	- Kconfig option added to choose between S-Video and CVBS
+> output
+> 
+> TODO -
+> 	- V4L2 Display driver ontop of DSS2 (will post in couple of
+> days)
+> 	- regulator_get for panel-generic.c, which is required to get
+> DVI colors
+> 	  properly
+> 
+> Vaibhav Hiremath (5):
+>   dss2-core:Warning Fix: core_dump_clocks enclosed under DEBUG_FS
+>   OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
+>   OMAP: Enable DSS2 for OMAP3EVM board
+>   AM3517: Enable DSS2 for AM3517EVM board
+>   OMAP3EVM: Kconfig option added for selection between SVIDEO and
+> CVBS
+> 
+>  arch/arm/configs/am3517_evm_defconfig              |   53 ++++-
+>  arch/arm/configs/omap3_evm_defconfig               |   51 ++++-
+>  arch/arm/mach-omap2/board-am3517evm.c              |  142
+> +++++++++++
+>  arch/arm/mach-omap2/board-omap3evm.c               |  250
+> +++++++++++++++++++-
+>  drivers/video/omap2/displays/Kconfig               |    6 +
+>  drivers/video/omap2/displays/Makefile              |    1 +
+>  .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  120
+> ++++++++++
+>  drivers/video/omap2/dss/Kconfig                    |   15 ++
+>  drivers/video/omap2/dss/core.c                     |    2 +
+>  9 files changed, 627 insertions(+), 13 deletions(-)
+>  create mode 100644 drivers/video/omap2/displays/panel-sharp-
+> lq043t1dg01.c
+[Hiremath, Vaibhav] 
+Tomi,
 
-So, what is the conclusion then? Are you planning to push the BCI charger
-patch currently and handle updates later?
+Any update on this? Can we merge these patches? 
+(Of-course except Kconfig changes for TV out selection, actually I am waiting for your comment on this patch.)
 
-Regards,
-Madhu
+Thanks,
+Vaibhav
 
-> Thanks,
-> 
-> --
-> Anton Vorontsov
-> email: cbouatmailru@gmail.com
-> irc://irc.freenode.net/bd2
