@@ -1,154 +1,60 @@
-From: Romit Dasgupta <romit@ti.com>
-Subject: [PATCH 10/10] OPP layer and additional cleanups
-Date: Thu, 31 Dec 2009 18:59:39 +0530
-Message-ID: <1262266179.20175.186.camel@boson>
-Reply-To: romit@ti.com
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Re: [PATCH 2/2] ARM : OMAP : Add empty function in header file
+Date: Thu, 31 Dec 2009 22:34:59 +0300
+Message-ID: <4B3CFCE3.2040206@ru.mvista.com>
+References: <1262265214-16906-1-git-send-email-x0082077@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47343 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752318AbZLaN3r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Dec 2009 08:29:47 -0500
+Received: from gateway-1237.mvista.com ([206.112.117.35]:53225 "HELO
+	imap.sh.mvista.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S1750714AbZLaTfX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Dec 2009 14:35:23 -0500
+In-Reply-To: <1262265214-16906-1-git-send-email-x0082077@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, nm@ti.com, khilman@deeprootsystems.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Maulik Mankad <x0082077@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, Olof Johansson <olof@lixom.net>
 
-1. Honor the CPUFREQ_RELATION{H|L} flags.
-2. Introduce the L3 frequency change notifier call back so that L3 frequency
-   can be cleanly handled along with MPU.
+Hello.
 
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index 78986f0..26fcae1 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -33,6 +33,8 @@
- #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
- #include <plat/omap-pm.h>
- #include <plat/opp.h>
-+#include <plat/resource.h>
-+#include "../mach-omap2/pm.h"
- #endif
- 
- #define VERY_HI_RATE	900000000
-@@ -48,6 +50,7 @@ static struct cpufreq_frequency_table *freq_table;
- #endif
- 
- static struct clk *mpu_clk;
-+static struct device l3_dev;
- 
- /* TODO: Add support for SDRAM timing changes */
- 
-@@ -87,6 +90,10 @@ static int omap_target(struct cpufreq_policy *policy,
- #ifdef CONFIG_ARCH_OMAP1
- 	struct cpufreq_freqs freqs;
- #endif
-+#ifdef CONFIG_ARCH_OMAP3
-+	struct omap_opp *opp;
-+	unsigned long freq;
-+#endif
- 	int ret = 0;
- 
- 	/* Ensure desired rate is within allowed range.  Some govenors
-@@ -111,15 +118,66 @@ static int omap_target(struct cpufreq_policy *policy,
- 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
- 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
- #elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
--	if (mpu_opps) {
--		unsigned long freq = target_freq * 1000;
--		if (!IS_ERR(opp_find_freq_ceil(mpu_opps, &freq)))
--			omap_pm_cpu_set_freq(freq);
-+	freq = target_freq * 1000;
-+	opp = find_opp_by_freq(OPP_MPU, freq, OPP_EQ | OPP_ENABLED);
-+	if (!opp) {
-+		if (relation == CPUFREQ_RELATION_H)
-+			opp = find_opp_by_freq(OPP_MPU, freq,
-+						OPP_H | OPP_ENABLED);
-+		else if (relation == CPUFREQ_RELATION_L)
-+			opp = find_opp_by_freq(OPP_MPU, freq,
-+						OPP_L | OPP_ENABLED);
- 	}
-+
-+	if (opp)
-+		omap_pm_cpu_set_freq(opp_to_freq(opp));
-+	else
-+		ret = -EPERM;
- #endif
- 	return ret;
- }
- 
-+static int l3_cpufreq_notifier(struct notifier_block *nb,
-+				unsigned long val, void *data)
-+{
-+	struct cpufreq_freqs *freq = data;
-+	struct omap_opp *mpu_target_opp;
-+	unsigned long l3_target_freq;
-+
-+	switch (val) {
-+	case CPUFREQ_PRECHANGE:
-+		mpu_target_opp = find_opp_by_freq(OPP_MPU, freq->new * 1000,
-+					OPP_EQ | OPP_ENABLED);
-+		l3_target_freq = get_l3_target_freq(mpu_target_opp);
-+		if (resource_get_level("l3_freq") != l3_target_freq)
-+			resource_request("l3_freq", &l3_dev, l3_target_freq);
-+		break;
-+
-+	case CPUFREQ_POSTCHANGE:
-+		break;
-+
-+	case CPUFREQ_RESUMECHANGE:
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct notifier_block l3_cpufreq_notifier_block = {
-+	.notifier_call = l3_cpufreq_notifier
-+};
-+
-+static void __init l3_cpufreq_init(void)
-+{
-+	if (cpufreq_register_notifier(&l3_cpufreq_notifier_block,
-+					CPUFREQ_TRANSITION_NOTIFIER))
-+		pr_err("omap-cpufreq: L3 cpufreq registration failed\n");
-+	return;
-+}
-+
- static int __init omap_cpu_init(struct cpufreq_policy *policy)
- {
- 	int result = 0;
-@@ -131,12 +189,10 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
- 	if (policy->cpu != 0)
- 		return -EINVAL;
- 
--	policy->cur = policy->min = policy->max = omap_getspeed(0);
--
- 	if (!cpu_is_omap34xx())
- 		clk_init_cpufreq_table(&freq_table);
- 	else
--		opp_init_cpufreq_table(mpu_opps, &freq_table);
-+		opp_init_cpufreq_table(&freq_table);
- 
- 	if (freq_table) {
- 		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
-@@ -151,10 +207,11 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
- 
- 	policy->min = policy->cpuinfo.min_freq;
- 	policy->max = policy->cpuinfo.max_freq;
--	policy->cur = omap_getspeed(0);
-+	policy->cur = omap_getspeed(smp_processor_id());
- 
- 	/* FIXME: what's the actual transition time? */
- 	policy->cpuinfo.transition_latency = 300 * 1000;
-+	l3_cpufreq_init();
- 
- 	return 0;
- }
+Maulik Mankad wrote:
+
+> ARM : OMAP : Add empty function in header file
+>
+> This patch adds empty functions for usb_nop_xceiv_register()
+> and usb_nop_xceiv_unregister() so that these functions
+> can be called even when CONFIG_NOP_USB_XCEIV is not 
+> enabled. 
+>
+> It allows to remove ifdef's from board file.
+>
+> Signed-off-by: Maulik Mankad <x0082077@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Felipe Balbi <felipe.balbi@nokia.com>
+> Cc: Greg Kroah-Hartman <gregkh@suse.de>
+> Cc: Olof Johansson <olof@lixom.net>
+> ---
+> Index: felipe_musb/include/linux/usb/otg.h
+> ===================================================================
+> --- felipe_musb.orig/include/linux/usb/otg.h
+> +++ felipe_musb/include/linux/usb/otg.h
+> @@ -110,9 +110,14 @@ struct otg_transceiver {
+>  /* for board-specific init logic */
+>  extern int otg_set_transceiver(struct otg_transceiver *);
+>  
+> +#if defined(CONFIG_USB) || defined(CONFIG_USB_GADGET)
+>  /* sometimes transceivers are accessed only through e.g. ULPI */
+>  extern void usb_nop_xceiv_register(void);
+>  extern void usb_nop_xceiv_unregister(void);
+> +#else
+> +#define usb_nop_xceiv_register()	do {} while (0)
+> +#define usb_nop_xceiv_unregister()	do {} while (0)
+>   
+
+   Inline functions are preferrable to macros.
+
+WBR, Sergei
 
 
