@@ -1,112 +1,75 @@
-From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 2/2] ARM : OMAP4 : MUSB : Add USB support to 4430 SDP board file
-Date: Thu, 31 Dec 2009 18:53:02 +0530
-Message-ID: <1262265782-17672-1-git-send-email-x0082077@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+From: Romit Dasgupta <romit@ti.com>
+Subject: [PATCH 0/10] OPP layer and additional cleanups.
+Date: Thu, 31 Dec 2009 18:59:00 +0530
+Message-ID: <1262266140.20175.176.camel@boson>
+Reply-To: romit@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:40807 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750898AbZLaN3M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Dec 2009 08:29:12 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com, nm@ti.com, khilman@deeprootsystems.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ARM : OMAP4 : Add USB support to 4430 SDP board file
+Hi,
+   The following set of patches apply on top of the Kevin's pm-wip-opp
+branch. What I have tried to do in this set of patches are:
 
-This patch adds support for Mentor USB to 4430 SDP board
-file.
+(Not in patch-set order)
+* OPP layer internals have moved to list based implementation.
+* The OPP layer APIs have been changed. The search APIs have been
+reduced to one instead of opp_find_{exact|floor|ceil}.
+* OPP book-keeping is now done inside OPP layer. We do not have to
+maintain pointers to {mpu|dsp|l3}_opp, outside this layer.
+* removed omap_opp_def as this is very similar to omap_opp.
+* Cleaned up the SRF framework to use new OPP APIs.
+* Removed VDD1,2 OPP resources and instead introduced voltage resources.
+   This results in leaner code.
+* L3 frequency change now happens from cpufreq notifier mechanism.
+* cpufreq driver now honors the CPUFREQ{H|L} flags.
+* uv to vsel precision loss is handled cleanly.
 
-It also defines the base address for HS USB OTG controller
-in OMAP4.
+Verified this on zoom2 with and without lock debugging. 
 
-Also updates platform specfic structure with base address
-and IRQ details.
+Some output from cpufreq translation statistics.
 
-Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
-Cc: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Cc: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
----
- arch/arm/mach-omap2/board-4430sdp.c        |   10 ++++++++++
- arch/arm/mach-omap2/usb-musb.c             |    9 +++++++--
- arch/arm/plat-omap/include/plat/omap44xx.h |    1 +
- 3 files changed, 18 insertions(+), 2 deletions(-)
+#
+cat /sys/devices/system/cpu/cpu0/cpufreq/stats/trans_table                    
+   From  :
+To                                                                
+          600000    550000    500000    250000 125000
+600000:      0      6804      4536      4536    4535
 
-Index: felipe_musb/arch/arm/mach-omap2/board-4430sdp.c
-===================================================================
---- felipe_musb.orig/arch/arm/mach-omap2/board-4430sdp.c
-+++ felipe_musb/arch/arm/mach-omap2/board-4430sdp.c
-@@ -17,6 +17,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/gpio.h>
-+#include <linux/usb/otg.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -27,6 +28,7 @@
- #include <plat/common.h>
- #include <plat/control.h>
- #include <plat/timer-gp.h>
-+#include <plat/usb.h>
- #include <asm/hardware/gic.h>
- 
- static struct platform_device sdp4430_lcd_device = {
-@@ -73,11 +75,19 @@ static void __init omap_4430sdp_init_irq
- 	omap_gpio_init();
- }
- 
-+static struct omap_musb_board_data musb_board_data = {
-+	.interface_type		= MUSB_INTERFACE_UTMI,
-+	.mode			= MUSB_PERIPHERAL,
-+	.power			= 100,
-+};
- 
- static void __init omap_4430sdp_init(void)
- {
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
- 	omap_serial_init();
-+	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
-+	usb_nop_xceiv_register();
-+	usb_musb_init(&musb_board_data);
- }
- 
- static void __init omap_4430sdp_map_io(void)
-Index: felipe_musb/arch/arm/mach-omap2/usb-musb.c
-===================================================================
---- felipe_musb.orig/arch/arm/mach-omap2/usb-musb.c
-+++ felipe_musb/arch/arm/mach-omap2/usb-musb.c
-@@ -77,10 +77,15 @@ static struct platform_device musb_devic
- 
- void __init usb_musb_init(struct omap_musb_board_data *board_data)
- {
--	if (cpu_is_omap243x())
-+	if (cpu_is_omap243x()) {
- 		musb_resources[0].start = OMAP243X_HS_BASE;
--	else
-+	} else if (cpu_is_omap34xx()) {
- 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
-+	} else if (cpu_is_omap44xx()) {
-+		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
-+		musb_resources[1].start = INT_44XX_HS_USB_MC;
-+		musb_resources[2].start = INT_44XX_HS_USB_DMA;
-+	}
- 	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
- 
- 	/*
-Index: felipe_musb/arch/arm/plat-omap/include/plat/omap44xx.h
-===================================================================
---- felipe_musb.orig/arch/arm/plat-omap/include/plat/omap44xx.h
-+++ felipe_musb/arch/arm/plat-omap/include/plat/omap44xx.h
-@@ -43,6 +43,7 @@
- #define OMAP44XX_WKUPGEN_BASE		0x48281000
- 
- #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
-+#define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
- 
- #endif /* __ASM_ARCH_OMAP44XX_H */
- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+550000:   4536         0      6804      4536    4535
+
+500000:   4537      4536         0      6804    4535
+
+250000:   4536      4536      4536         0    6802
+
+125000:   6802      4535      4535      4535     0
+
+
+diffstat output!
+
+ mach-omap2/pm.h              |   17 +
+ mach-omap2/pm34xx.c          |   79 ++++--
+ mach-omap2/resource34xx.c    |  542 ++++++++++++++-----------------------------
+ mach-omap2/resource34xx.h    |   62 ++--
+ mach-omap2/smartreflex.c     |  285 +++++++++++-----------
+ mach-omap2/smartreflex.h     |   16 -
+ plat-omap/common.c           |    6 
+ plat-omap/cpu-omap.c         |   73 +++++
+ plat-omap/include/plat/io.h  |    1 
+ plat-omap/include/plat/opp.h |  265 +++++----------------
+ plat-omap/omap-pm-noop.c     |   35 --
+ plat-omap/omap-pm-srf.c      |   38 ---
+ plat-omap/opp.c              |  497 +++++++++++++++++++++------------------
+ plat-omap/opp_twl_tps.c      |   11 
+ 14 files changed, 851 insertions(+), 1076 deletions(-)
+
+
