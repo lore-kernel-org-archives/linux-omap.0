@@ -1,60 +1,38 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Amba device porting
-Date: Fri, 1 Jan 2010 20:12:52 +0000
-Message-ID: <20100101201252.GA16220@n2100.arm.linux.org.uk>
-References: <20091223101902.GA15537@nokia.com> <20091223165009.GA13900@n2100.arm.linux.org.uk> <20091228110225.GB12341@nokia.com>
+From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM : OMAP : Remove #ifdef from board-omap3evm.c
+Date: Fri, 1 Jan 2010 23:00:43 +0200
+Message-ID: <20100101210043.GA11278@gandalf>
+References: <1262265182-16869-1-git-send-email-x0082077@ti.com>
+Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41709 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751932Ab0AAUNU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jan 2010 15:13:20 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091228110225.GB12341@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1262265182-16869-1-git-send-email-x0082077-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Roman <roman.tereshonkov@nokia.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, Dec 28, 2009 at 01:02:25PM +0200, Roman wrote:
-> On Wed, Dec 23, 2009 at 05:50:09PM +0100, ext Russell King - ARM Linux wrote:
-> > On Wed, Dec 23, 2009 at 12:19:02PM +0200, Roman wrote:
-> > > Hi,
-> > > 
-> > > I planned to port the omap3 SDTI (Serial Debug Trace Interface) driver to amba based interface.
-> > > 
-> > > SDTI memory map is two parts composed:
-> > > 0x54500000 0x5450FFFF 4KB       SDTI module (configuration) - coresight based format.
-> > > 0x54510000 0x545FFFFF 1984KB    Reserved
-> > > 0x54600000 0x546FFFFF 1MB       SDTI module (window)
-> > > 
-> > > But amba interface seems to support only one memory region resource.
-> > 
-> > The 'amba' interface is more a primecell interface.  Is SDTI a primecell
-> > peripheral?  If not, then it shouldn't be using the AMBA "primecell" bus
-> > support.
+Hi,
+
+On Thu, Dec 31, 2009 at 06:43:02PM +0530, Maulik Mankad wrote:
+> ARM : OMAP : Remove #ifdef from board-omap3evm.c
 > 
-> Yes, SDTI can be considered as a PrimeCell IP.
-> SDTI is the Coresight component which is the subgroup of PrimeCell.
+> This patch removes #ifdef around usb_nop_xceiv_register()
+> from board-omap3evm.c
 > 
-> So my question is still valid.
-> How does the 'amba' interface handle the fragmented memory regions?
+> Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+> Cc: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
 
-It doesn't.  Primecells have exactly one region and only one region.
-So I'm confused.
+should come after adding the ifdef to otg.h.
 
-> I understand that for the right Coresight IP it should not happen and the
-> whole register space should be continous and ended by the Peripherial and
-> Component Ids.
-
-Correct.  It could be that this Coresight stuff just calls itself a
-Primecell peripheral when it isn't actually a proper Primecell.  If
-it doesn't conform, maybe it's best that it doesn't use the AMBA bus
-support.
-
-> If I use SDTI module (window) memory region as a static definition inside
-> driver will my patch be accepted?
-
-That ties it firmly to the platform you created the driver for, making
-the driver useless on any other platform.
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
