@@ -1,115 +1,51 @@
-From: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
-Subject: [PATCH] OMAP3630 PM: Correct VDD1/VDD2 Retention and On voltage
-Date: Mon, 4 Jan 2010 11:34:39 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026AE8CA8C@dbde02.ent.ti.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: Re: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
+Date: Mon, 4 Jan 2010 12:33:11 +0530
+Message-ID: <618f0c911001032303p5d103f3et6271a71e1e5fbc96@mail.gmail.com>
+References: <618f0c910912110701p771dcf6fg655bb0a7b9bdc96d@mail.gmail.com>
+	 <20091228214846.GP3512@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42834 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752096Ab0ADGEz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 01:04:55 -0500
-Content-Language: en-US
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:47239 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753223Ab0ADHDM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 02:03:12 -0500
+Received: by pwj9 with SMTP id 9so9109945pwj.21
+        for <linux-omap@vger.kernel.org>; Sun, 03 Jan 2010 23:03:11 -0800 (PST)
+In-Reply-To: <20091228214846.GP3512@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
->From 61474f885fe048dd1b8b6f17cfbd1690ff281c49 Mon Sep 17 00:00:00 2001
-From: Vijaykumar GN <vijaykumar.gn@ti.com>
-Date: Mon, 21 Dec 2009 12:43:14 +0530
-Subject: [PATCH] OMAP3630 PM: Correct VDD1/VDD2 Retention and On voltage
+On Tue, Dec 29, 2009 at 3:18 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Venkatraman S <svenkatr@ti.com> [091211 07:01]:
+>> Here is the most updated version of the patch (thanks to Russell's
+>> review). This patch is applicable to OMAP4xxx as well as OMAP3630
+>> Reference to previous posts
+>> v1 =A0http://marc.info/?l=3Dlinux-omap&m=3D125012097403050&w=3D2
+>> v2 =A0http://marc.info/?l=3Dlinux-omap&m=3D125137152606644&w=3D2
+>> v3 =A0http://patchwork.kernel.org/patch/45408/
+>
+> Do you have a patch for drivers/mmc/host/omap_hsmmc.c to
+> use this feature? Or some other driver?
+>
+> Regards,
+>
+> Tony
 
-For OMAP3630 Retention Voltage must be set to OPP25
-1. vdd1 retention voltage ==> 0.83
-2. vdd2 retention voltage ==> 0.85
+I am about to start working on omap_hsmmc to use the descriptor load
+feature. If the DMA changes are acceptable, I can post the driver
+patch as well.
 
-On Voltage must be at default OPP (OPP100)
-1. vdd1 on voltage ==> 1.1
-2. vdd2 on voltage ==> 1.375
+Best regards,
 
-Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Signed-off-by: Vijaykumar GN <vijaykumar.gn@ti.com>
----
- arch/arm/mach-omap2/board-3630sdp.c |   19 +++++++++++++++++++
- arch/arm/mach-omap2/board-zoom3.c   |   19 +++++++++++++++++++
- 2 files changed, 38 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index d509c08..4d464fb 100755
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -25,6 +25,24 @@
- 
- #include "mux.h"
- #include "sdram-hynix-h8mbx00u0mer-0em.h"
-+#include "pm.h"
-+
-+/* Update with the optimal setup values to be used on 3630sdp */
-+static struct prm_setup_vc omap3_setuptime_table = {
-+	.clksetup = 0x14A,
-+	.voltsetup_time1 = 0x00B3,
-+	.voltsetup_time2 = 0x00A0,
-+	.voltoffset = 0x118,
-+	.voltsetup2 = 0x32,
-+	.vdd0_on = 0x28,	/* 1.1v */
-+	.vdd0_onlp = 0x20,	/* 1.0v */
-+	.vdd0_ret = 0x12,	/* 0.83v */
-+	.vdd0_off = 0x00,	/* 0.6v */
-+	.vdd1_on = 0x2B,	/* 1.1375v */
-+	.vdd1_onlp = 0x20,	/* 1.0v */
-+	.vdd1_ret = 0x14,	/* 0.85v */
-+	.vdd1_off = 0x00,	/* 0.6v */
-+};
- 
- #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
- 
-@@ -79,6 +97,7 @@ static void __init omap_sdp_init_irq(void)
- {
- 	omap_board_config = sdp_config;
- 	omap_board_config_size = ARRAY_SIZE(sdp_config);
-+	omap3_pm_init_vc(&omap3_setuptime_table);
- 	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
- 			     h8mbx00u0mer0em_sdrc_params,
-                              NULL, NULL, NULL);
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index 0778077..2c1f954 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -23,6 +23,24 @@
- 
- #include "mux.h"
- #include "sdram-hynix-h8mbx00u0mer-0em.h"
-+#include "pm.h"
-+
-+/* Update with the optimal setup values to be used on Zoom3 */
-+static struct prm_setup_vc omap3_setuptime_table = {
-+	.clksetup = 0x14A,
-+	.voltsetup_time1 = 0x00B3,
-+	.voltsetup_time2 = 0x00A0,
-+	.voltoffset = 0x118,
-+	.voltsetup2 = 0x32,
-+	.vdd0_on = 0x28,	/* 1.1v */
-+	.vdd0_onlp = 0x20,	/* 1.0v */
-+	.vdd0_ret = 0x12,	/* 0.83v */
-+	.vdd0_off = 0x00,	/* 0.6v */
-+	.vdd1_on = 0x2B,	/* 1.1375v */
-+	.vdd1_onlp = 0x20,	/* 1.0v */
-+	.vdd1_ret = 0x14,	/* 0.85v */
-+	.vdd1_off = 0x00,	/* 0.6v */
-+};
- 
- static void __init omap_zoom_map_io(void)
- {
-@@ -37,6 +55,7 @@ static void __init omap_zoom_init_irq(void)
- {
- 	omap_board_config = zoom_config;
- 	omap_board_config_size = ARRAY_SIZE(zoom_config);
-+	omap3_pm_init_vc(&omap3_setuptime_table);
- 	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
- 			     h8mbx00u0mer0em_sdrc_params,
- 			     NULL, NULL, NULL);
--- 
-1.5.6.3
-
+Venkat.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
