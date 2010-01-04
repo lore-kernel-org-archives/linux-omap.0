@@ -1,67 +1,165 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
-Date: Mon, 4 Jan 2010 12:40:05 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C02E97E9@dbde02.ent.ti.com>
-References: <618f0c910912110701p771dcf6fg655bb0a7b9bdc96d@mail.gmail.com>
-	 <20091228214846.GP3512@atomide.com>
- <618f0c911001032303p5d103f3et6271a71e1e5fbc96@mail.gmail.com>
+From: "Lohithakshan, Ranjith" <ranjithl@ti.com>
+Subject: RE: [PATCH] AM35xx: Add clock support for new modules on AM35xx
+Date: Mon, 4 Jan 2010 13:50:46 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C02E98A5@dbde02.ent.ti.com>
+References: <1260971823-8532-1-git-send-email-ranjithl@ti.com>
+ <alpine.DEB.2.00.0912171818150.12561@utopia.booyaka.com>
+ <4B2B5A0F.9050304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45136 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47448 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753068Ab0ADHK1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 02:10:27 -0500
-In-Reply-To: <618f0c911001032303p5d103f3et6271a71e1e5fbc96@mail.gmail.com>
+	id S1753234Ab0ADIUy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 03:20:54 -0500
+In-Reply-To: <4B2B5A0F.9050304@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Lohithakshan, Ranjith" <ranjithl@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hello Paul,
+Any comments on the approaches listed below? Let me know your thoughts and I will issue a new version of this patch accordingly
+
+Thanks,
+Ranjith 
 
 > -----Original Message-----
-> From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of S, =
-Venkatraman
-> Sent: Monday, January 04, 2010 12:33 PM
-> To: Tony Lindgren
-> Cc: Russell King - ARM Linux; Shilimkar, Santosh; Kevin Hilman; linux=
--omap@vger.kernel.org; linux-
-> arm-kernel@lists.infradead.org
-> Subject: Re: [Patch v4] OMAP: sDMA driver: descriptor autoloading fea=
-ture
->=20
-> On Tue, Dec 29, 2009 at 3:18 AM, Tony Lindgren <tony@atomide.com> wro=
-te:
-> > * Venkatraman S <svenkatr@ti.com> [091211 07:01]:
-> >> Here is the most updated version of the patch (thanks to Russell's
-> >> review). This patch is applicable to OMAP4xxx as well as OMAP3630
-> >> Reference to previous posts
-> >> v1 =A0http://marc.info/?l=3Dlinux-omap&m=3D125012097403050&w=3D2
-> >> v2 =A0http://marc.info/?l=3Dlinux-omap&m=3D125137152606644&w=3D2
-> >> v3 =A0http://patchwork.kernel.org/patch/45408/
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Lohithakshan, Ranjith
+> Sent: Friday, December 18, 2009 4:02 PM
+> To: Paul Walmsley
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] AM35xx: Add clock support for new 
+> modules on AM35xx
+> 
+> Hello Paul,
+> 
+> Thanks for the review comments. My replies below.
+> 
+> On Fri, 18-Dec-09 7:12 AM +0530, Paul Walmsley wrote:
+> 
+> >> +/* Clocks for AM35XX */
+> >> +static struct clk emac_ick = {
+> >> +	.name       = "emac_ick",
+> >> +	.ops        = &clkops_omap2_dflt,
 > >
-> > Do you have a patch for drivers/mmc/host/omap_hsmmc.c to
-> > use this feature? Or some other driver?
+> > Shouldn't this clock use &clkops_omap2_dflt_wait (or 
+> rather, some custom
+> > version that knows how to read the _ACK bits in 
+> IPSS_CLK_CTRL) and test
+> > CPGMAC_VBUSP_CLK_EN_ACK?  Same for the other IPSS VBUSP clocks?   (I
+> guess
+> > "VBUSP" is a synonym for "interface"?)
+> 
+> I will ad a custom clkops to address this. Do we need a find_companion
+> to be defined? The VBUSP clock ACK's do not depend on 
+> functional clocks
+> and the functional clocks themselves don't have ant ACK or 
+> status bits.
+> EMAC, VPFE amd MUSBOTG are initiators, but the their ACK bits are just
+> for the target idle status.
+> 
+> One of the issues on AM35xx is regarding the status indicator for new
+> clocks. Here 1 indicates as enabled and 0 as not ready state, 
+> similar to
+> 24xx case but just opposite to 34xx clocks. And now we have a mix of
+> these two on AM35xx. In omap2_cm_wait_idlest, I do not get a per clock
+> granularity to decide what should be the status check for that
+> particular clock. One of the approach I am thinking is to define a new
+> clock flag (say INVERT_ENABLE_STATUS) and set it for the new AM35xx
+> clocks. And in omap2_module_wait_ready I will do the cpu 
+> check and flag
+> check on a per clock basis and determine the status that need to be
+> checked and pass it to        omap2_module_wait_ready to check what we
+> want. omap2_module_wait_ready will not be doing any cpu checks as its
+> done today. Let me know what you think.
+> 
+> >> +static struct clk emac_fck = {
+> >> +	.name       = "emac_fck",
+> >> +	.ops        = &clkops_omap2_dflt,
+> >> +	.clkdm_name = "core_l3_clkdm",
 > >
-> > Regards,
+> > Is this the correct clockdomain for this clock?  It seems 
+> unlikely that a
+> > 50MHz functional clock would be in core_l3_clkdm.  Usually 
+> these are all
+> > interface clocks.  This applies for all the other functional clocks
+> listed
+> > in this file also.
+> 
+> Would it be OK if we just don't set clkdm_name. I am not sure 
+> whether we
+> can map it to any existing OMAP3 clock domains that way
+> 
 > >
-> > Tony
->=20
-> I am about to start working on omap_hsmmc to use the descriptor load
-> feature. If the DMA changes are acceptable, I can post the driver
-> patch as well.
-
-I don't think doing this for hsmmc makes any sense considering, the IC =
-in which DMA descriptor
-is available( OMAP3630 and OMAP4), the HSMMC controller is already equi=
-pped with its dedicated=20
-DMA controller (ADMA)
-
-Regards,
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> +	.rate       = 50000000,
+> >
+> > What's the parent of this clock?  Looking at TRM section 4.7.7.12 it
+> > appears that it gets this from an off-chip source, 
+> "rmii_clk"?  Guess
+> that
+> > should probably be defined as the fixed source clock, and 
+> emac_fck should
+> > list rmii_clk as its parent?
+> >
+> >> +	.enable_reg = 
+> OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+> >> +	.enable_bit = AM35XX_CPGMAC_FCLK_SHIFT,
+> >> +	.recalc     = &omap2_clksel_recalc,
+> >
+> > This .recalc field is wrong, since there's no .clksel field 
+> defined.  If
+> > you define that parent, then this should be 
+> followparent_recalc.  The
+> > parent should have .flags = RATE_FIXED and no .recalc.
+> 
+> Do we really need to define an rmii_ck? Can we make emac_fck itself as
+> the root clock with no parent? Here is what I was thinking of. Let me
+> know if you see any issues with this
+> static struct clk emac_fck = {
+>     .name       = "emac_fck",
+>     .ops        = &clkops_omap2_dflt,
+>     .flags      = RATE_FIXED,
+>     .rate       = 50000000,
+>     .enable_reg = OMAP343X_CTRL_REGADDR(OMAP3517_CONTROL_IP_CLK_CTRL),
+>     .enable_bit = OMAP3517_CPGMAC_FCLK_SHIFT,
+> };
+> 
+> >> +static struct clk vpfe_fck = {
+> >> +	.name       = "vpfe_fck",
+> >> +	.ops        = &clkops_omap2_dflt,
+> >> +	.clkdm_name = "core_l3_clkdm",
+> >> +	.rate       = 27000000,
+> >> +	.enable_reg = 
+> OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+> >> +	.enable_bit = AM35XX_VPFE_FCLK_SHIFT,
+> >> +	.recalc     = &omap2_clksel_recalc,
+> >
+> > This fixed rate clock isn't right, for the same reasons as described
+> > above.
+> 
+> Would make it similar to emac_fck depending on what we decide.
+> 
+> >> +	CLK("musb_hdrc", "ick", &hsotgusb_ick_am35xx, CK_AM35XX),
+> >> +	CLK("musb_hdrc", "fck", &hsotgusb_fck_am35xx, CK_AM35XX),
+> >> +	CLK(NULL, "hecc_ck", &hecc_ck, CK_AM35XX),
+> >> +	CLK("vpfe-capture", "master", &vpfe_ick, CK_AM35XX),
+> >> +	CLK("vpfe-capture", "slave", &vpfe_fck, CK_AM35XX),
+> >> +	CLK(NULL, "uart4_ick", &uart4_ick, CK_AM35XX),
+> >
+> > Please align the new structure entries with the previous entries.
+> 
+> Will do that.
+> 
+> 
+>  - Ranjith
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
