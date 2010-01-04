@@ -1,13 +1,13 @@
 From: hvaibhav@ti.com
-Subject: [PATCH 3/9] tvp514x: add YUYV format support
-Date: Mon,  4 Jan 2010 19:32:56 +0530
-Message-ID: <1262613782-20463-4-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 2/9] TVP514x:Switch to automode for querystd
+Date: Mon,  4 Jan 2010 19:32:55 +0530
+Message-ID: <1262613782-20463-3-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45606 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45602 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753301Ab0ADODN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jan 2010 09:03:13 -0500
+	id S1752842Ab0ADODM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jan 2010 09:03:12 -0500
 In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,30 +16,39 @@ Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl, davinci-linux-open-source@li
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
+Driver should switch to AutoSwitch mode on QUERYSTD ioctls.
+It has been observed that, if user configure the standard explicitely
+then driver preserves the old settings, but query_std must detect the
+standard instead of returning old settings.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- drivers/media/video/tvp514x.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/media/video/tvp514x.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
-index 4cf3593..b344b58 100644
+index 26b4e71..4cf3593 100644
 --- a/drivers/media/video/tvp514x.c
 +++ b/drivers/media/video/tvp514x.c
-@@ -212,6 +212,13 @@ static const struct v4l2_fmtdesc tvp514x_fmt_list[] = {
- 	 .description = "8-bit UYVY 4:2:2 Format",
- 	 .pixelformat = V4L2_PIX_FMT_UYVY,
- 	},
-+	{
-+	 .index = 1,
-+	 .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-+	 .flags = 0,
-+	 .description = "8-bit YUYV 4:2:2 Format",
-+	 .pixelformat = V4L2_PIX_FMT_YUYV,
-+	},
- };
+@@ -523,10 +523,18 @@ static int tvp514x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
+ 	enum tvp514x_std current_std;
+ 	enum tvp514x_input input_sel;
+ 	u8 sync_lock_status, lock_mask;
++	int err;
  
- /**
+ 	if (std_id == NULL)
+ 		return -EINVAL;
+ 
++	err = tvp514x_write_reg(sd, REG_VIDEO_STD,
++			VIDEO_STD_AUTO_SWITCH_BIT);
++	if (err < 0)
++		return err;
++
++	msleep(LOCK_RETRY_DELAY);
++
+ 	/* get the current standard */
+ 	current_std = tvp514x_get_current_std(sd);
+ 	if (current_std == STD_INVALID)
 -- 
 1.6.2.4
 
