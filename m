@@ -1,60 +1,60 @@
-From: "Maulik" <x0082077@ti.com>
-Subject: RE: [PATCH v2 1/2] ARM : OMAP : Add empty functions in header file
-Date: Mon, 4 Jan 2010 18:18:08 +0530
-Message-ID: <016301ca8d3c$2d2b7f60$808918ac@apr.dhcp.ti.com>
-References: <1262603399-13036-1-git-send-email-x0082077@ti.com> <20100104123423.GA1439@gandalf>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: hvaibhav@ti.com
+Subject: [PATCH 1/3] AM35xx: Add AM35xx intr_clr & sw_rst cntrl reg bit defination
+Date: Mon,  4 Jan 2010 19:21:54 +0530
+Message-ID: <1262613116-20185-2-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60851 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751883Ab0ADMsn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jan 2010 07:48:43 -0500
-In-Reply-To: <20100104123423.GA1439@gandalf>
+Received: from devils.ext.ti.com ([198.47.26.153]:42878 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752842Ab0ADNwF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 08:52:05 -0500
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, 'Tony Lindgren' <tony@atomide.com>, 'Felipe Balbi' <felipe.balbi@nokia.com>, 'Greg Kroah-Hartman' <gregkh@suse.de>, 'Olof Johansson' <olof@lixom.net>, 'Sergei Shtylyov' <sshtylyov@ru.mvista.com>, "'Gupta, Ajay Kumar'" <ajay.gupta@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
->>not omap-specific. How about USB: instead ?
+AM3517/05 has few additional control module registers to control
+the new IP's, like VPFE, USBOTG, CPGMAC.
 
-[Maulik] Yes this can go through linux-usb.
+This patch adds the bit defination for INTR_CLR and SW_RST control
+register.
 
-> +#if defined(CONFIG_USB_NOP_XCEIV)
->  /* sometimes transceivers are accessed only through e.g. ULPI */
->  extern void usb_nop_xceiv_register(void);
->  extern void usb_nop_xceiv_unregister(void);
-> +#else
-> +extern inline void usb_nop_xceiv_register()
-> +{
-> +}
-> +
-> +extern inline void usb_nop_xceiv_unregister()
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/plat-omap/include/plat/control.h |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
->>I hope these are copy&paste error
-
-[Maulik] Nope. When 'extern' is dropped I get the following error while
-compiling when CONFIG_USB_NOP_XCEIV is NOT defined. 
-
-arch/arm/plat-omap/built-in.o: In function `usb_nop_xceiv_unregister':
-/share/maulik/felipe_musb/include/linux/usb/otg.h:123: multiple definition
-of `usb_nop_xceiv_unregister'
-arch/arm/mach-omap2/built-in.o:/share/maulik/felipe_musb/include/linux/usb/o
-tg.h:123: first defined here
-arch/arm/plat-omap/built-in.o: In function `usb_nop_xceiv_register':
-/share/maulik/felipe_musb/include/linux/usb/otg.h:119: multiple definition
-of `usb_nop_xceiv_register'
-arch/arm/mach-omap2/built-in.o:/share/maulik/felipe_musb/include/linux/usb/o
-tg.h:119: first defined here
-make: *** [vmlinux.o] Error 1
-
-I referred some kernel code which uses extern inline. 
-
-Any suggestions?
-
-Regards,
-Maulik
+diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+index 6683419..5c15154 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -274,6 +274,23 @@
+ #define AM35XX_CPGMAC_FCLK_SHIFT        9
+ #define AM35XX_VPFE_FCLK_SHIFT          10
+ 
++/*AM35XX CONTROL_LVL_INTR_CLEAR bits*/
++#define AM35XX_CPGMAC_C0_MISC_PULSE_CLR	BIT(0)
++#define AM35XX_CPGMAC_C0_RX_PULSE_CLR	BIT(1)
++#define AM35XX_CPGMAC_C0_RX_THRESH_CLR	BIT(2)
++#define AM35XX_CPGMAC_C0_TX_PULSE_CLR	BIT(3)
++#define AM35XX_USBOTGSS_INT_CLR		BIT(4)
++#define AM35XX_VPFE_CCDC_VD0_INT_CLR	BIT(5)
++#define AM35XX_VPFE_CCDC_VD1_INT_CLR	BIT(6)
++#define AM35XX_VPFE_CCDC_VD2_INT_CLR	BIT(7)
++
++/*AM35XX CONTROL_IP_SW_RESET bits*/
++#define AM35XX_USBOTGSS_SW_RST		BIT(0)
++#define AM35XX_CPGMACSS_SW_RST		BIT(1)
++#define AM35XX_VPFE_VBUSP_SW_RST	BIT(2)
++#define AM35XX_HECC_SW_RST		BIT(3)
++#define AM35XX_VPFE_PCLK_SW_RST		BIT(4)
++
+ /*
+  * CONTROL OMAP STATUS register to identify OMAP3 features
+  */
+-- 
+1.6.2.4
 
