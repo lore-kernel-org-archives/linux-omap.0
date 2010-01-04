@@ -1,44 +1,64 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
-Date: Mon, 4 Jan 2010 14:30:55 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C02E9905@dbde02.ent.ti.com>
-References: <618f0c910912110701p771dcf6fg655bb0a7b9bdc96d@mail.gmail.com>
-	 <20091228214846.GP3512@atomide.com>
-	 <618f0c911001032303p5d103f3et6271a71e1e5fbc96@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C02E97E9@dbde02.ent.ti.com>
- <618f0c911001040048h573b2137v4577b8e00b0121a3@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH 1/5] dss2-core:Warning Fix: core_dump_clocks enclosed
+ under DEBUG_FS
+Date: Mon, 04 Jan 2010 11:42:59 +0200
+Message-ID: <1262598179.2381.20.camel@tubuntu.research.nokia.com>
+References: <hvaibhav@ti.com>
+	 <1261063105-19874-1-git-send-email-hvaibhav@ti.com>
+	 <1261483154.2108.86.camel@tubuntu.research.nokia.com>
+	 <19F8576C6E063C45BE387C64729E7394044A277589@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34316 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752439Ab0ADJBS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 04:01:18 -0500
-In-Reply-To: <618f0c911001040048h573b2137v4577b8e00b0121a3@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:28573 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753203Ab0ADJnH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 04:43:07 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A277589@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-> >>
-> >> I am about to start working on omap_hsmmc to use the descriptor load
-> >> feature. If the DMA changes are acceptable, I can post the driver
-> >> patch as well.
-> >
-> > I don't think doing this for hsmmc makes any sense considering, the IC in which DMA descriptor
-> > is available( OMAP3630 and OMAP4), the HSMMC controller is already equipped with its dedicated
-> > DMA controller (ADMA)
-> >
-> > Regards,
-> > Santosh
-> > --
+On Wed, 2009-12-23 at 17:34 +0100, ext Hiremath, Vaibhav wrote:
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > Sent: Tuesday, December 22, 2009 5:29 PM
+> > To: Hiremath, Vaibhav
+> > Cc: linux-omap@vger.kernel.org; linux-fbdev-
+> > devel@lists.sourceforge.net; linux-fbdev@vger.kernel.org
+> > Subject: Re: [PATCH 1/5] dss2-core:Warning Fix: core_dump_clocks
+> > enclosed under DEBUG_FS
+> > 
+> > Hi,
+> > 
+> > On Thu, 2009-12-17 at 16:18 +0100, ext hvaibhav@ti.com wrote:
+> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > >
+> > >
+> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > 
+> > Which warning does this fix? I don't get any compiler warnings.
+> > 
+> [Hiremath, Vaibhav] Below is the log - 
 > 
-> AFAIK, 3630 does not have ADMA feature.
-> In OMAP4, ADMA support is available for MMC controllers 1 and 2 only;
-> the other 3 controllers still use sDMA.
-You are correct. It surely help those cases.
+> 
+>   CC      drivers/video/omap2/dss/core.o
+> drivers/video/omap2/dss/core.c:129: warning: 'core_dump_clocks' defined but not used
+>   CC      drivers/video/omap2/dss/dss.o
 
-Regards,
-Santosh
+Ok. For some reason my compiler doesn't warn about that.
+
+> 
+> > Can you change the name of the patch to a more standard one?
+> > 
+> [Hiremath, Vaibhav] Ok, will do that and resubmit. I believe only prefix "OMAP" should do.
+
+Something like:
+
+OMAP: DSS2: fix compile warning
+
+ Tomi
+
+
