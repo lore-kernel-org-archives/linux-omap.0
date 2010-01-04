@@ -1,13 +1,13 @@
 From: hvaibhav@ti.com
-Subject: [PATCH 5/9] DMx:Update board files for ti-media directory change
-Date: Mon,  4 Jan 2010 19:32:58 +0530
-Message-ID: <1262613782-20463-6-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 6/9] Davinci VPFE Capture:Return 0 from suspend/resume
+Date: Mon,  4 Jan 2010 19:32:59 +0530
+Message-ID: <1262613782-20463-7-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35444 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35450 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753422Ab0ADODO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jan 2010 09:03:14 -0500
+	id S1753423Ab0ADODQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jan 2010 09:03:16 -0500
 In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,39 +16,41 @@ Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl, davinci-linux-open-source@li
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
+Now Suspend/Resume functionality is being handled by respective CCDC
+code, so return true (0) from bridge suspend/resume function.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- arch/arm/mach-davinci/include/mach/dm355.h  |    2 +-
- arch/arm/mach-davinci/include/mach/dm644x.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/ti-media/vpfe_capture.c |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/include/mach/dm355.h b/arch/arm/mach-davinci/include/mach/dm355.h
-index 85536d8..ffba662 100644
---- a/arch/arm/mach-davinci/include/mach/dm355.h
-+++ b/arch/arm/mach-davinci/include/mach/dm355.h
-@@ -13,7 +13,7 @@
+diff --git a/drivers/media/video/ti-media/vpfe_capture.c b/drivers/media/video/ti-media/vpfe_capture.c
+index 3257d26..7187eaa 100644
+--- a/drivers/media/video/ti-media/vpfe_capture.c
++++ b/drivers/media/video/ti-media/vpfe_capture.c
+@@ -2007,18 +2007,14 @@ static int vpfe_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
- #include <mach/hardware.h>
- #include <mach/asp.h>
--#include <media/davinci/vpfe_capture.h>
-+#include <media/ti-media/vpfe_capture.h>
+-static int
+-vpfe_suspend(struct device *dev)
++static int vpfe_suspend(struct device *dev)
+ {
+-	/* add suspend code here later */
+-	return -1;
++	return 0;
+ }
  
- #define ASP1_TX_EVT_EN	1
- #define ASP1_RX_EVT_EN	2
-diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
-index 44e8f0f..95f1e65 100644
---- a/arch/arm/mach-davinci/include/mach/dm644x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm644x.h
-@@ -25,7 +25,7 @@
- #include <mach/hardware.h>
- #include <mach/emac.h>
- #include <mach/asp.h>
--#include <media/davinci/vpfe_capture.h>
-+#include <media/ti-media/vpfe_capture.h>
+-static int
+-vpfe_resume(struct device *dev)
++static int vpfe_resume(struct device *dev)
+ {
+-	/* add resume code here later */
+-	return -1;
++	return 0;
+ }
  
- #define DM644X_EMAC_BASE		(0x01C80000)
- #define DM644X_EMAC_CNTRL_OFFSET	(0x0000)
+ static const struct dev_pm_ops vpfe_dev_pm_ops = {
 -- 
 1.6.2.4
 
