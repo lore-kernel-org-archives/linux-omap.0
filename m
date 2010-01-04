@@ -1,7 +1,7 @@
 From: hvaibhav@ti.com
-Subject: [PATCH 9/9] DM644x CCDC: Add 10bit BT support
-Date: Mon,  4 Jan 2010 19:33:02 +0530
-Message-ID: <1262613782-20463-10-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 8/9] VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
+Date: Mon,  4 Jan 2010 19:33:01 +0530
+Message-ID: <1262613782-20463-9-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <hvaibhav@ti.com>
@@ -12,77 +12,106 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
+For the devices like AM3517, it is expected that driver clears the
+interrupt in ISR. Since this is device spcific, callback function
+added to the platform_data.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- drivers/media/video/ti-media/dm644x_ccdc.c      |   16 +++++++++++++---
- drivers/media/video/ti-media/dm644x_ccdc_regs.h |    8 ++++++++
- 2 files changed, 21 insertions(+), 3 deletions(-)
+ drivers/media/video/ti-media/vpfe_capture.c |   24 ++++++++++++++++++++----
+ include/media/ti-media/vpfe_capture.h       |    2 ++
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/video/ti-media/dm644x_ccdc.c b/drivers/media/video/ti-media/dm644x_ccdc.c
-index b762f99..8483467 100644
---- a/drivers/media/video/ti-media/dm644x_ccdc.c
-+++ b/drivers/media/video/ti-media/dm644x_ccdc.c
-@@ -401,7 +401,11 @@ void ccdc_config_ycbcr(void)
- 		 * configure the FID, VD, HD pin polarity,
- 		 * fld,hd pol positive, vd negative, 8-bit data
- 		 */
--		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE | CCDC_SYN_MODE_8BITS;
-+		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE;
-+		if (ccdc_cfg.if_type == VPFE_BT656_10BIT)
-+			syn_mode |= CCDC_SYN_MODE_10BITS;
-+		else
-+			syn_mode |= CCDC_SYN_MODE_8BITS;
- 	} else {
- 		/* y/c external sync mode */
- 		syn_mode |= (((params->fid_pol & CCDC_FID_POL_MASK) <<
-@@ -420,8 +424,13 @@ void ccdc_config_ycbcr(void)
- 	 * configure the order of y cb cr in SDRAM, and disable latch
- 	 * internal register on vsync
- 	 */
--	regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
--		 CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
-+	if (ccdc_cfg.if_type == VPFE_BT656_10BIT)
-+		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
-+			CCDC_LATCH_ON_VSYNC_DISABLE | CCDC_CCDCFG_BW656_10BIT,
-+			CCDC_CCDCFG);
-+	else
-+		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
-+			CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
+diff --git a/drivers/media/video/ti-media/vpfe_capture.c b/drivers/media/video/ti-media/vpfe_capture.c
+index 7187eaa..95538b2 100644
+--- a/drivers/media/video/ti-media/vpfe_capture.c
++++ b/drivers/media/video/ti-media/vpfe_capture.c
+@@ -475,6 +475,11 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
+ 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
+ 	if (!ret)
+ 		vpfe_dev->initialized = 1;
++
++	/* Clear all VPFE/CCDC interrupts */
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(-1);
++
+ unlock:
+ 	mutex_unlock(&ccdc_lock);
+ 	return ret;
+@@ -562,7 +567,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
  
- 	/*
- 	 * configure the horizontal line offset. This should be a
-@@ -828,6 +837,7 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
- 	case VPFE_BT656:
- 	case VPFE_YCBCR_SYNC_16:
- 	case VPFE_YCBCR_SYNC_8:
-+	case VPFE_BT656_10BIT:
- 		ccdc_cfg.ycbcr.vd_pol = params->vdpol;
- 		ccdc_cfg.ycbcr.hd_pol = params->hdpol;
- 		break;
-diff --git a/drivers/media/video/ti-media/dm644x_ccdc_regs.h b/drivers/media/video/ti-media/dm644x_ccdc_regs.h
-index 319253a..90370e4 100644
---- a/drivers/media/video/ti-media/dm644x_ccdc_regs.h
-+++ b/drivers/media/video/ti-media/dm644x_ccdc_regs.h
-@@ -135,11 +135,19 @@
- #define CCDC_SYN_MODE_INPMOD_SHIFT		12
- #define CCDC_SYN_MODE_INPMOD_MASK		3
- #define CCDC_SYN_MODE_8BITS			(7 << 8)
-+#define CCDC_SYN_MODE_10BITS			(6 << 8)
-+#define CCDC_SYN_MODE_11BITS			(5 << 8)
-+#define CCDC_SYN_MODE_12BITS			(4 << 8)
-+#define CCDC_SYN_MODE_13BITS			(3 << 8)
-+#define CCDC_SYN_MODE_14BITS			(2 << 8)
-+#define CCDC_SYN_MODE_15BITS			(1 << 8)
-+#define CCDC_SYN_MODE_16BITS			(0 << 8)
- #define CCDC_SYN_FLDMODE_MASK			1
- #define CCDC_SYN_FLDMODE_SHIFT			7
- #define CCDC_REC656IF_BT656_EN			3
- #define CCDC_SYN_MODE_VD_POL_NEGATIVE		(1 << 2)
- #define CCDC_CCDCFG_Y8POS_SHIFT			11
-+#define CCDC_CCDCFG_BW656_10BIT 		(1 << 5)
- #define CCDC_SDOFST_FIELD_INTERLEAVED		0x249
- #define CCDC_NO_CULLING				0xffff00ff
- #endif
+ 	/* if streaming not started, don't do anything */
+ 	if (!vpfe_dev->started)
+-		return IRQ_HANDLED;
++		goto clear_intr;
+ 
+ 	/* only for 6446 this will be applicable */
+ 	if (NULL != ccdc_dev->hw_ops.reset)
+@@ -574,7 +579,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 			"frame format is progressive...\n");
+ 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
+ 			vpfe_process_buffer_complete(vpfe_dev);
+-		return IRQ_HANDLED;
++		goto clear_intr;
+ 	}
+ 
+ 	/* interlaced or TB capture check which field we are in hardware */
+@@ -604,7 +609,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 				addr += vpfe_dev->field_off;
+ 				ccdc_dev->hw_ops.setfbaddr(addr);
+ 			}
+-			return IRQ_HANDLED;
++			goto clear_intr;
+ 		}
+ 		/*
+ 		 * if one field is just being captured configure
+@@ -624,6 +629,10 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 		 */
+ 		vpfe_dev->field_id = fid;
+ 	}
++clear_intr:
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(irq);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -635,8 +644,11 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
+ 
+ 	/* if streaming not started, don't do anything */
+-	if (!vpfe_dev->started)
++	if (!vpfe_dev->started) {
++		if (vpfe_dev->cfg->clr_intr)
++			vpfe_dev->cfg->clr_intr(irq);
+ 		return IRQ_HANDLED;
++	}
+ 
+ 	spin_lock(&vpfe_dev->dma_queue_lock);
+ 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
+@@ -644,6 +656,10 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
+ 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
+ 		vpfe_schedule_next_buffer(vpfe_dev);
+ 	spin_unlock(&vpfe_dev->dma_queue_lock);
++
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(irq);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+diff --git a/include/media/ti-media/vpfe_capture.h b/include/media/ti-media/vpfe_capture.h
+index 5287368..f0a7b7a 100644
+--- a/include/media/ti-media/vpfe_capture.h
++++ b/include/media/ti-media/vpfe_capture.h
+@@ -94,6 +94,8 @@ struct vpfe_config {
+ 	/* vpfe clock */
+ 	struct clk *vpssclk;
+ 	struct clk *slaveclk;
++	/* Function for Clearing the interrupt */
++	void (*clr_intr)(int vdint);
+ };
+ 
+ struct vpfe_device {
 -- 
 1.6.2.4
