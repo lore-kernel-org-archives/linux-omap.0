@@ -1,117 +1,56 @@
 From: hvaibhav@ti.com
-Subject: [PATCH 8/9] VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
-Date: Mon,  4 Jan 2010 19:33:01 +0530
-Message-ID: <1262613782-20463-9-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 1/4] AM3517EVM: Enable I2C Support
+Date: Mon,  4 Jan 2010 19:46:34 +0530
+Message-ID: <1262614597-21685-2-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34060 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753094Ab0ADOQo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Jan 2010 09:16:44 -0500
 In-Reply-To: <hvaibhav@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl, davinci-linux-open-source@linux.davincidsp.com, m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-For the devices like AM3517, it is expected that driver clears the
-interrupt in ISR. Since this is device spcific, callback function
-added to the platform_data.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- drivers/media/video/ti-media/vpfe_capture.c |   24 ++++++++++++++++++++----
- include/media/ti-media/vpfe_capture.h       |    2 ++
- 2 files changed, 22 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/ti-media/vpfe_capture.c b/drivers/media/video/ti-media/vpfe_capture.c
-index 7187eaa..95538b2 100644
---- a/drivers/media/video/ti-media/vpfe_capture.c
-+++ b/drivers/media/video/ti-media/vpfe_capture.c
-@@ -475,6 +475,11 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
- 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
- 	if (!ret)
- 		vpfe_dev->initialized = 1;
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index b4e6eca..61ccb98 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -32,6 +32,15 @@
+ 
+ #include "mux.h"
+ 
++static int __init am3517_evm_i2c_init(void)
++{
++	omap_register_i2c_bus(1, 400, NULL, 0);
++	omap_register_i2c_bus(2, 400, NULL, 0);
++	omap_register_i2c_bus(3, 400, NULL, 0);
 +
-+	/* Clear all VPFE/CCDC interrupts */
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(-1);
++	return 0;
++}
 +
- unlock:
- 	mutex_unlock(&ccdc_lock);
- 	return ret;
-@@ -562,7 +567,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ /*
+  * Board initialization
+  */
+@@ -72,6 +81,8 @@ static struct omap_board_mux board_mux[] __initdata = {
  
- 	/* if streaming not started, don't do anything */
- 	if (!vpfe_dev->started)
--		return IRQ_HANDLED;
-+		goto clear_intr;
- 
- 	/* only for 6446 this will be applicable */
- 	if (NULL != ccdc_dev->hw_ops.reset)
-@@ -574,7 +579,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 			"frame format is progressive...\n");
- 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
- 			vpfe_process_buffer_complete(vpfe_dev);
--		return IRQ_HANDLED;
-+		goto clear_intr;
- 	}
- 
- 	/* interlaced or TB capture check which field we are in hardware */
-@@ -604,7 +609,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 				addr += vpfe_dev->field_off;
- 				ccdc_dev->hw_ops.setfbaddr(addr);
- 			}
--			return IRQ_HANDLED;
-+			goto clear_intr;
- 		}
- 		/*
- 		 * if one field is just being captured configure
-@@ -624,6 +629,10 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 		 */
- 		vpfe_dev->field_id = fid;
- 	}
-+clear_intr:
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
+ static void __init am3517_evm_init(void)
+ {
++	am3517_evm_i2c_init();
 +
- 	return IRQ_HANDLED;
- }
- 
-@@ -635,8 +644,11 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
- 
- 	/* if streaming not started, don't do anything */
--	if (!vpfe_dev->started)
-+	if (!vpfe_dev->started) {
-+		if (vpfe_dev->cfg->clr_intr)
-+			vpfe_dev->cfg->clr_intr(irq);
- 		return IRQ_HANDLED;
-+	}
- 
- 	spin_lock(&vpfe_dev->dma_queue_lock);
- 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
-@@ -644,6 +656,10 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
- 		vpfe_schedule_next_buffer(vpfe_dev);
- 	spin_unlock(&vpfe_dev->dma_queue_lock);
-+
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
-+
- 	return IRQ_HANDLED;
- }
- 
-diff --git a/include/media/ti-media/vpfe_capture.h b/include/media/ti-media/vpfe_capture.h
-index 5287368..f0a7b7a 100644
---- a/include/media/ti-media/vpfe_capture.h
-+++ b/include/media/ti-media/vpfe_capture.h
-@@ -94,6 +94,8 @@ struct vpfe_config {
- 	/* vpfe clock */
- 	struct clk *vpssclk;
- 	struct clk *slaveclk;
-+	/* Function for Clearing the interrupt */
-+	void (*clr_intr)(int vdint);
- };
- 
- struct vpfe_device {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	platform_add_devices(am3517_evm_devices,
+ 				ARRAY_SIZE(am3517_evm_devices));
 -- 
 1.6.2.4
+
