@@ -1,42 +1,57 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: regression: crash from 'ls /sys/modules/wl1251_spi/notes'
-Date: Sat, 02 Jan 2010 10:34:22 -0600
-Message-ID: <1262450062.2741.4.camel@mulgrave.site>
-References: <87k4w4wux9.fsf@purkki.valot.fi>
-	 <1262188157.2749.21.camel@mulgrave.site>
-	 <2375c9f90912311908r667966e1m919430c40cd9c571@mail.gmail.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 1/2] ARM : OMAP : Remove #ifdef from board-omap3evm.c
+Date: Mon, 4 Jan 2010 09:51:51 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A277D09@dbde02.ent.ti.com>
+References: <1262265182-16869-1-git-send-email-x0082077@ti.com>
+ <20100101210043.GA11278@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-parisc-owner@vger.kernel.org>
-In-Reply-To: <2375c9f90912311908r667966e1m919430c40cd9c571@mail.gmail.com>
-Sender: linux-parisc-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?Am=E9rico?= Wang <xiyou.wangcong@gmail.com>
-Cc: Kalle Valo <kalle.valo@iki.fi>, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, Helge Deller <deller@gmx.de>, rusty@rustcorp.com.au, akpm@linux-foundation.org, roland@redhat.com, dave@hiauly1.hia.nrc.ca, Parisc List <linux-parisc@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100101210043.GA11278@gandalf>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org" <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 2010-01-01 at 11:08 +0800, Am=C3=A9rico Wang wrote:
-> This patch looks fine for me, except that I don't think it's necessar=
-y
-> to introduce an inline function for that...
+> -----Original Message-----
+> From: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-usb-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Felipe Balbi
+> Sent: Saturday, January 02, 2010 2:31 AM
+> To: Mankad, Maulik Ojas
+> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Tony Lindgren;
+> Felipe Balbi; Greg Kroah-Hartman; Olof Johansson
+> Subject: Re: [PATCH 1/2] ARM : OMAP : Remove #ifdef from board-omap3evm.c
+> 
+> Hi,
+> 
+> On Thu, Dec 31, 2009 at 06:43:02PM +0530, Maulik Mankad wrote:
+> > ARM : OMAP : Remove #ifdef from board-omap3evm.c
+> >
+> > This patch removes #ifdef around usb_nop_xceiv_register()
+> > from board-omap3evm.c
+> >
+> > Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+> > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> > Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+> > Cc: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+> 
+> should come after adding the ifdef to otg.h.
 
-Actually, I really think we do.  The whole reason we got into this mess
-in the first place is that it wasn't obvious from the code that if we
-altered the loadability of sections, there were a ton of dependent
-places we also had to update.  Putting all that knowledge into a single
-inline makes the same mistake impossible to make because there's now
-only one place to go to adjust the loadability of sections, and it
-automatically takes care of all the dependencies.
+Correct, otherwise we will get compilation error if USB itself is not
+included in image.
 
-> Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
-
-Thanks,
-
-James
-
-
+-Ajay
+> 
+> --
+> balbi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-parisc"=
- in
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
