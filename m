@@ -1,36 +1,55 @@
 From: Maulik Mankad <x0082077@ti.com>
-Subject: [PATCH v2 0/2] ARM : OMAP : Get rid of ifdef
-Date: Mon,  4 Jan 2010 16:38:26 +0530
-Message-ID: <1262603306-12918-1-git-send-email-x0082077@ti.com>
+Subject: [PATCH v2 1/2] ARM : OMAP : Add empty functions in header file
+Date: Mon,  4 Jan 2010 16:39:59 +0530
+Message-ID: <1262603399-13036-1-git-send-email-x0082077@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53977 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752842Ab0ADLJL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Jan 2010 06:09:11 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:36724 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753235Ab0ADLK0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 06:10:26 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-usb@vger.kernel.org, Maulik Mankad <x0082077@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Olof Johansson <olof@lixom.net>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: linux-usb@vger.kernel.org, Maulik Mankad <x0082077@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, Olof Johansson <olof@lixom.net>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
 
-Hi,
-
-Felipe,
-
-Here is the Version 2 of the 2 patch series based 
-on top of your for-tony branch at [1].
-
-[1] git://gitorious.org/usb/usb.git for-tony
-
-Maulik Mankad (2):
 ARM : OMAP : Add empty functions in header file
-ARM : OMAP : Remove #ifdef from board-omap3evm.c
 
-The Version 2 of the patch set fixes the comments 
-received for Version 1. 
+Add empty functions for usb_nop_xceiv_register()
+and usb_nop_xceiv_unregister() so that these functions
+can be called even when CONFIG_NOP_USB_XCEIV is not 
+enabled. 
 
-The patches are compile tested and do not report
-any checkpatch warnings.
+It allows to remove ifdef's from board file.
 
-Thanks,
-Maulik
-
+Signed-off-by: Maulik Mankad <x0082077@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Gupta, Ajay Kumar <ajay.gupta@ti.com>
+---
+Index: felipe_musb/include/linux/usb/otg.h
+===================================================================
+--- felipe_musb.orig/include/linux/usb/otg.h
++++ felipe_musb/include/linux/usb/otg.h
+@@ -110,9 +110,19 @@ struct otg_transceiver {
+ /* for board-specific init logic */
+ extern int otg_set_transceiver(struct otg_transceiver *);
+ 
++#if defined(CONFIG_USB_NOP_XCEIV)
+ /* sometimes transceivers are accessed only through e.g. ULPI */
+ extern void usb_nop_xceiv_register(void);
+ extern void usb_nop_xceiv_unregister(void);
++#else
++extern inline void usb_nop_xceiv_register()
++{
++}
++
++extern inline void usb_nop_xceiv_unregister()
++{
++}
++#endif
+ 
+ /* helpers for direct access thru low-level io interface */
+ static inline int otg_io_read(struct otg_transceiver *otg, u32 reg)
