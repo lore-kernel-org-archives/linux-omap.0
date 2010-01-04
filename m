@@ -1,69 +1,74 @@
-From: hvaibhav@ti.com
-Subject: [PATCH 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
-Date: Mon,  4 Jan 2010 20:12:09 +0530
-Message-ID: <1262616129-23373-3-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <hvaibhav@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl, tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
+From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] ARM : OMAP : Add empty functions in header file
+Date: Mon, 4 Jan 2010 09:25:34 -0600
+Message-ID: <20100104152534.GA16974@lixom.net>
+References: <1262603399-13036-1-git-send-email-x0082077@ti.com> <20100104123423.GA1439@gandalf> <016301ca8d3c$2d2b7f60$808918ac@apr.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <016301ca8d3c$2d2b7f60$808918ac-wD+IZp/g4/2mHdYHvhjUOg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Maulik <x0082077-l0cyMroinI0@public.gmane.org>
+Cc: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tony Lindgren' <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, 'Felipe Balbi' <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, 'Greg Kroah-Hartman' <gregkh-l3A5Bk7waGM@public.gmane.org>, 'Sergei Shtylyov' <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, "'Gupta, Ajay Kumar'" <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Mon, Jan 04, 2010 at 06:18:08PM +0530, Maulik wrote:
+> 
+> >>not omap-specific. How about USB: instead ?
+> 
+> [Maulik] Yes this can go through linux-usb.
+> 
+> > +#if defined(CONFIG_USB_NOP_XCEIV)
+> >  /* sometimes transceivers are accessed only through e.g. ULPI */
+> >  extern void usb_nop_xceiv_register(void);
+> >  extern void usb_nop_xceiv_unregister(void);
+> > +#else
+> > +extern inline void usb_nop_xceiv_register()
+> > +{
+> > +}
+> > +
+> > +extern inline void usb_nop_xceiv_unregister()
+> 
+> >>I hope these are copy&paste error
+> 
+> [Maulik] Nope. When 'extern' is dropped I get the following error while
+> compiling when CONFIG_USB_NOP_XCEIV is NOT defined. 
+> 
+> arch/arm/plat-omap/built-in.o: In function `usb_nop_xceiv_unregister':
+> /share/maulik/felipe_musb/include/linux/usb/otg.h:123: multiple definition
+> of `usb_nop_xceiv_unregister'
+> arch/arm/mach-omap2/built-in.o:/share/maulik/felipe_musb/include/linux/usb/o
+> tg.h:123: first defined here
+> arch/arm/plat-omap/built-in.o: In function `usb_nop_xceiv_register':
+> /share/maulik/felipe_musb/include/linux/usb/otg.h:119: multiple definition
+> of `usb_nop_xceiv_register'
+> arch/arm/mach-omap2/built-in.o:/share/maulik/felipe_musb/include/linux/usb/o
+> tg.h:119: first defined here
+> make: *** [vmlinux.o] Error 1
+> 
+> I referred some kernel code which uses extern inline. 
+> 
+> Any suggestions?
 
+It needs to be static inline:
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/plat-omap/devices.c |   29 +++++++++++++++++++++++++++++
- 1 files changed, 29 insertions(+), 0 deletions(-)
+#ifdef CONFIG_USB_NO_XCEIV
+/* sometimes transceivers are accessed only through e.g. ULPI */
+extern void usb_nop_xceiv_register(void);
+extern void usb_nop_xceiv_unregister(void);
+#else
+static inline void usb_nop_xceiv_register(void) { }
+static inline void usb_nop_xceiv_unregister(void) { }
+#endif
 
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index 30b5db7..64f2a3a 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -357,6 +357,34 @@ static void omap_init_wdt(void)
- static inline void omap_init_wdt(void) {}
- #endif
- 
-+/*---------------------------------------------------------------------------*/
-+
-+#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
-+	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
-+#if defined (CONFIG_FB_OMAP2) || defined (CONFIG_FB_OMAP2_MODULE)
-+static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
-+};
-+#else
-+static struct resource omap_vout_resource[2] = {
-+};
-+#endif
-+
-+static struct platform_device omap_vout_device = {
-+	.name		= "omap_vout",
-+	.num_resources	= ARRAY_SIZE(omap_vout_resource),
-+	.resource 	= &omap_vout_resource[0],
-+	.id		= -1,
-+};
-+static void omap_init_vout(void)
-+{
-+	(void) platform_device_register(&omap_vout_device);
-+}
-+#else
-+static inline void omap_init_vout(void) {}
-+#endif
-+
-+/*---------------------------------------------------------------------------*/
-+
- /*
-  * This gets called after board-specific INIT_MACHINE, and initializes most
-  * on-chip peripherals accessible on this board (except for few like USB):
-@@ -387,6 +415,7 @@ static int __init omap_init_devices(void)
- 	omap_init_rng();
- 	omap_init_uwire();
- 	omap_init_wdt();
-+	omap_init_vout();
- 	return 0;
- }
- arch_initcall(omap_init_devices);
--- 
-1.6.2.4
+And you need to make sure that the actual body of the function in the
+C file is encapsulated with #ifdef too, since the very point of having
+it under a config option is to not include it if it's not selected
+and needed.
+
+-Olof
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
