@@ -1,160 +1,62 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Question about omap_hsmmc driver
-Date: Tue, 5 Jan 2010 17:46:23 +0100
-Message-ID: <70c9a9111001050846o59164ba3ka5dc557f49a57263@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: [PATCH] omap: make serial_in_override() address the right uart port
+Date: Tue,  5 Jan 2010 18:57:40 +0200
+Message-ID: <1262710660-25376-1-git-send-email-virtuoso@slind.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:42226 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754022Ab0AEQqY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 11:46:24 -0500
-Received: by pxi4 with SMTP id 4so12194733pxi.33
-        for <linux-omap@vger.kernel.org>; Tue, 05 Jan 2010 08:46:23 -0800 (PST)
+Received: from smtp.nokia.com ([192.100.122.230]:38249 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754505Ab0AEQ6d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 11:58:33 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>, Mika Westerberg <ext-mika.1.westerberg@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi all,
+Commit f62349ee9788b1d94c55eb6c291d74a1f69bdd9e makes it possible to
+have some other than first uart port as ttyS0, which breaks the workaround
+serial_in_override() function which will try to address the first uart
+port (for ttyS0) and not the one that was initialized.
 
-I'm having problems trying to run the SDIO WLAN module on my IGEP v2
-board using the latest omap kernel (2.6.33-rc2). The SDIO WLAN module
-is connected to the MMC2 using 4 wires. With an older kernel ( 2.6.28
-) works fine but the same configuration with 2.6.33-rc2 do not detect
-the SDIO card.
+Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+CC: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
+CC: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/serial.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-Any idea to solve the problem ? There is a substantial modification in
-this driver. Any help will be appreciated. I attached the log.
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 19805a7..8c964be 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -125,6 +125,13 @@ static struct plat_serial8250_port serial_platform_data3[] = {
+ 	}
+ };
+ #endif
++static inline unsigned int __serial_read_reg(struct uart_port *up,
++					   int offset)
++{
++	offset <<= up->regshift;
++	return (unsigned int)__raw_readb(up->membase + offset);
++}
++
+ static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
+ 					   int offset)
+ {
+@@ -583,11 +590,12 @@ static unsigned int serial_in_override(struct uart_port *up, int offset)
+ {
+ 	if (UART_RX == offset) {
+ 		unsigned int lsr;
+-		lsr = serial_read_reg(omap_uart[up->line].p, UART_LSR);
++		lsr = __serial_read_reg(up, UART_LSR);
+ 		if (!(lsr & UART_LSR_DR))
+ 			return -EPERM;
+ 	}
+-	return serial_read_reg(omap_uart[up->line].p, offset);
++
++	return __serial_read_reg(up, offset);
+ }
+ 
+ void __init omap_serial_early_init(void)
+-- 
+1.6.3.3
 
-Thanks in advance,
-=C2=A0=C2=A0 Enric
-
-
-[=C2=A0=C2=A0 24.521484] mmci-omap-hs mmci-omap-hs.1: DISABLED -> ENABL=
-ED
-[=C2=A0=C2=A0 24.522003] mmc1: clock 0Hz busmode 1 powermode 0 cs 0 Vdd=
- 0 width 0 timing 0
-[=C2=A0=C2=A0 24.522033] mmci-omap-hs mmci-omap-hs.1: ENABLED -> DISABL=
-ED
-[=C2=A0=C2=A0 24.522308] mmci-omap-hs mmci-omap-hs.1: DISABLED -> ENABL=
-ED
-[=C2=A0=C2=A0 24.522338] mmc1: clock 0Hz busmode 1 powermode 1 cs 0 Vdd=
- 65535
-width 0 timing 0
-[=C2=A0=C2=A0 24.545104] mmc1: clock 400000Hz busmode 1 powermode 2 cs =
-0 Vdd
-65535 width 0 timing 0
-[=C2=A0=C2=A0 24.568298] mmc1: clock 400000Hz busmode 1 powermode 2 cs =
-1 Vdd
-65535 width 0 timing 0
-[=C2=A0=C2=A0 24.569335] mmc1: starting CMD0 arg 00000000 flags 000000c=
-0
-[=C2=A0=C2=A0 24.569366] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD0, argum=
-ent 0x00000000
-[=C2=A0=C2=A0 24.569519] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 1
-[=C2=A0=C2=A0 24.569549] mmc1: req done (CMD0): 0: 00000000 00000000 00=
-000000 00000000
-[=C2=A0=C2=A0 24.572540] mmc1: clock 400000Hz busmode 1 powermode 2 cs =
-0 Vdd
-65535 width 0 timing 0
-[=C2=A0=C2=A0 24.573547] mmc1: starting CMD8 arg 000000aa flags 000002f=
-5
-[=C2=A0=C2=A0 24.573577] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD8, argum=
-ent 0x000000aa
-[=C2=A0=C2=A0 24.573913] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.573913] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.573944] mmc1: req done (CMD8): -110: 00000000 00000000=
- 00000000 00000000
-[=C2=A0=C2=A0 24.575744] mmc1: starting CMD5 arg 00000000 flags 000002e=
-1
-[=C2=A0=C2=A0 24.575775] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD5, argum=
-ent 0x00000000
-[=C2=A0=C2=A0 24.576110] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.576141] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.576171] mmc1: req failed (CMD5): -110, retrying...
-[=C2=A0=C2=A0 24.576171] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD5, argum=
-ent 0x00000000
-[=C2=A0=C2=A0 24.576507] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.576538] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.576568] mmc1: req failed (CMD5): -110, retrying...
-[=C2=A0=C2=A0 24.576568] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD5, argum=
-ent 0x00000000
-[=C2=A0=C2=A0 24.576904] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.576934] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.576934] mmc1: req failed (CMD5): -110, retrying...
-[=C2=A0=C2=A0 24.576965] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD5, argum=
-ent 0x00000000
-[=C2=A0=C2=A0 24.577301] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.577331] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.577331] mmc1: req done (CMD5): -110: 00000000 00000000=
- 00000000 00000000
-[=C2=A0=C2=A0 24.578247] mmc1: starting CMD55 arg 00000000 flags 000000=
-f5
-[=C2=A0=C2=A0 24.578247] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD55, argu=
-ment 0x00000000
-[=C2=A0=C2=A0 24.578582] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.578613] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.578643] mmc1: req done (CMD55): -110: 00000000 0000000=
-0 00000000 00000000
-[=C2=A0=C2=A0 24.580444] mmc1: starting CMD55 arg 00000000 flags 000000=
-f5
-[=C2=A0=C2=A0 24.580474] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD55, argu=
-ment 0x00000000
-[=C2=A0=C2=A0 24.580810] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.580810] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.580841] mmc1: req done (CMD55): -110: 00000000 0000000=
-0 00000000 00000000
-[=C2=A0=C2=A0 24.582641] mmc1: starting CMD55 arg 00000000 flags 000000=
-f5
-[=C2=A0=C2=A0 24.582672] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD55, argu=
-ment 0x00000000
-[=C2=A0=C2=A0 24.583007] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.583007] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.583038] mmc1: req done (CMD55): -110: 00000000 0000000=
-0 00000000 00000000
-[=C2=A0=C2=A0 24.584899] mmc1: starting CMD55 arg 00000000 flags 000000=
-f5
-[=C2=A0=C2=A0 24.584899] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD55, argu=
-ment 0x00000000
-[=C2=A0=C2=A0 24.585235] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.585266] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.585296] mmc1: req done (CMD55): -110: 00000000 0000000=
-0 00000000 00000000
-[=C2=A0=C2=A0 24.587097] mmc1: starting CMD1 arg 00000000 flags 000000e=
-1
-[=C2=A0=C2=A0 24.587097] mmci-omap-hs mmci-omap-hs.1: mmc1: CMD1, argum=
-ent 0x00000000
-[=C2=A0=C2=A0 24.587432] mmci-omap-hs mmci-omap-hs.1: IRQ Status is 180=
-00
-[=C2=A0=C2=A0 24.587463] mmci-omap-hs mmci-omap-hs.1: MMC IRQ 0x18000 :=
- ERRI CTO
-[=C2=A0=C2=A0 24.587493] mmc1: req done (CMD1): -110: 00000000 00000000=
- 00000000 00000000
-[=C2=A0=C2=A0 24.589294] mmc1: clock 0Hz busmode 1 powermode 0 cs 0 Vdd=
- 0 width 0 timing 0
-[=C2=A0=C2=A0 24.623962] mmci-omap-hs mmci-omap-hs.1: ENABLED -> DISABL=
-ED
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
