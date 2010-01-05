@@ -1,110 +1,53 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 4/4] OMAP clock/CPUFreq: avoid leaking the CPUFreq frequency
-	table
-Date: Mon, 04 Jan 2010 19:42:08 -0700
-Message-ID: <20100105024207.16275.26135.stgit@localhost.localdomain>
-References: <20100105024113.16275.96273.stgit@localhost.localdomain>
+Subject: [PATCH] OMAP1 clock: remove __initdata from struct clk_functions to
+ prevent crash
+Date: Mon, 4 Jan 2010 20:00:01 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001041958240.30892@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52035 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:58214 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754414Ab0AECsl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 21:48:41 -0500
-In-Reply-To: <20100105024113.16275.96273.stgit@localhost.localdomain>
+	with ESMTP id S1754207Ab0AEDAC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 22:00:02 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: darkstar6262@gmail.com
 
-OMAP2xxx uses a dynamically-allocated cpufreq_frequency_table array,
-so this patch ensures that it is freed if CPUFreq terminates.
 
+From: Cory Maccarrone <darkstar6262@gmail.com>
+
+Commit 52650505fbf3a6ab851c801f54e73e76c55ab8da added an __initdata
+decoration to the structure containing the clk_enable and clk_disable
+functions.  Once init data was freed, these pointers went to null, and
+the next enable or disable call caused the kernel to crash.  This
+change removes this decoration.
+
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+[paul@pwsan.com: patch manually split and commit message edited]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock2xxx.c         |    7 +++++++
- arch/arm/plat-omap/clock.c              |   10 ++++++++++
- arch/arm/plat-omap/cpu-omap.c           |    1 +
- arch/arm/plat-omap/include/plat/clock.h |    2 ++
- 4 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
-index 5c21afe..ec57927 100644
---- a/arch/arm/mach-omap2/clock2xxx.c
-+++ b/arch/arm/mach-omap2/clock2xxx.c
-@@ -518,6 +518,12 @@ void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- ocict_exit:
- 	return;
- }
-+
-+void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
-+{
-+	kfree(freq_table);
-+}
-+
- #endif
+[Queued for the next 2.6.33-rc clock fixes]
+
+---
+ arch/arm/mach-omap1/clock_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
+index 31fba07..8a85bbb 100644
+--- a/arch/arm/mach-omap1/clock_data.c
++++ b/arch/arm/mach-omap1/clock_data.c
+@@ -674,7 +674,7 @@ static struct omap_clk omap_clks[] = {
+  * init
+  */
  
- struct clk_functions omap2_clk_functions = {
-@@ -529,6 +535,7 @@ struct clk_functions omap2_clk_functions = {
- 	.clk_disable_unused	= omap2_clk_disable_unused,
- #ifdef	CONFIG_CPU_FREQ
- 	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
-+	.clk_exit_cpufreq_table	= omap2_clk_exit_cpufreq_table,
- #endif
- };
- 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index a64d84c..d9f8c84 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -329,6 +329,16 @@ void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- 		arch_clock->clk_init_cpufreq_table(table);
- 	spin_unlock_irqrestore(&clockfw_lock, flags);
- }
-+
-+void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&clockfw_lock, flags);
-+	if (arch_clock->clk_exit_cpufreq_table)
-+		arch_clock->clk_exit_cpufreq_table(table);
-+	spin_unlock_irqrestore(&clockfw_lock, flags);
-+}
- #endif
- 
- /*-------------------------------------------------------------------------*/
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index f8ddbdd..6d3d333 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -134,6 +134,7 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
- 
- static int omap_cpu_exit(struct cpufreq_policy *policy)
- {
-+	clk_exit_cpufreq_table(&freq_table);
- 	clk_put(mpu_clk);
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 309b6d1..94fe2a0 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -119,6 +119,7 @@ struct clk_functions {
- 	void		(*clk_disable_unused)(struct clk *clk);
- #ifdef CONFIG_CPU_FREQ
- 	void		(*clk_init_cpufreq_table)(struct cpufreq_frequency_table **);
-+	void		(*clk_exit_cpufreq_table)(struct cpufreq_frequency_table **);
- #endif
- };
- 
-@@ -135,6 +136,7 @@ extern unsigned long followparent_recalc(struct clk *clk);
- extern void clk_enable_init_clocks(void);
- #ifdef CONFIG_CPU_FREQ
- extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
-+extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
- #endif
- 
- extern const struct clkops clkops_null;
+-static struct clk_functions omap1_clk_functions __initdata = {
++static struct clk_functions omap1_clk_functions = {
+ 	.clk_enable		= omap1_clk_enable,
+ 	.clk_disable		= omap1_clk_disable,
+ 	.clk_round_rate		= omap1_clk_round_rate,
+-- 
+1.6.6.rc2.5.g49666
 
 
