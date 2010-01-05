@@ -1,75 +1,87 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: mfd: twl4030-irq: irq_desc->lock converted to raw_spinlock_t
-Date: Tue, 5 Jan 2010 20:34:19 +0100
-Message-ID: <20100105193418.GK4274@sortiz.org>
-References: <1261998172-29760-1-git-send-email-felipe.balbi@nokia.com>
- <1261998172-29760-5-git-send-email-felipe.balbi@nokia.com>
- <20091228200145.GN3512@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [patch-v2.6.33-rc2+ 10/12] arm: omap: gpio: kill compile
+ warning in gpio.c
+Date: Tue, 5 Jan 2010 12:20:16 -0800
+Message-ID: <20100105202016.GA14533@atomide.com>
+References: <1262127092-14878-1-git-send-email-felipe.balbi@nokia.com>
+ <1262127092-14878-11-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="Qxx1br4bt0+wmkIi"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:31743 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755183Ab0AETct (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 14:32:49 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58695 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755271Ab0AEUUS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 15:20:18 -0500
 Content-Disposition: inline
-In-Reply-To: <20091228200145.GN3512@atomide.com>
+In-Reply-To: <1262127092-14878-11-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
 
-On Mon, Dec 28, 2009 at 12:01:45PM -0800, Tony Lindgren wrote:
-> * Felipe Balbi <felipe.balbi@nokia.com> [091228 03:04]:
-> > commit 239007b8440abff689632f50cdf0f2b9e895b534 converted
-> > the spinlock_t to raw_spinlock_t. Unfortunately twl4030-irq
-> > was left aside on the conversion.
-> > 
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: linux-omap@vger.kernel.org
-> > Acked-by: Thomas Gleixner <tglx@linutronix.de>
-> > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> > 
-> > ---
-> > 
-> > resending because it wasn't applied before
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+* Felipe Balbi <felipe.balbi@nokia.com> [091229 14:59]:
+> when building linux-omap for omap1510, there will
+> be a compile warning about the unused flags variable
+> which is only used on 16xx and onwards.
 > 
-> This should go via Samuel as it's MFD related.
-Linus applied it to his tree directly.
-
-Cheers,
-Samuel.
-
-
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> ---
+>  arch/arm/plat-omap/gpio.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
 > 
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index 0484681..8c34b81 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -1072,7 +1072,10 @@ static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int ena
+>   */
+>  static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
+>  {
+> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP24XX) || \
+> +	defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP4)
+>  	unsigned long flags;
+> +#endif
 >  
-> > 
-> >  drivers/mfd/twl4030-irq.c |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-> > index 20d29ba..9df9a5a 100644
-> > --- a/drivers/mfd/twl4030-irq.c
-> > +++ b/drivers/mfd/twl4030-irq.c
-> > @@ -568,12 +568,12 @@ static void twl4030_sih_do_edge(struct work_struct *work)
-> >  
-> >  		bytes[byte] &= ~(0x03 << off);
-> >  
-> > -		spin_lock_irq(&d->lock);
-> > +		raw_spin_lock_irq(&d->lock);
-> >  		if (d->status & IRQ_TYPE_EDGE_RISING)
-> >  			bytes[byte] |= BIT(off + 1);
-> >  		if (d->status & IRQ_TYPE_EDGE_FALLING)
-> >  			bytes[byte] |= BIT(off + 0);
-> > -		spin_unlock_irq(&d->lock);
-> > +		raw_spin_unlock_irq(&d->lock);
-> >  
-> >  		edge_change &= ~BIT(i);
-> >  	}
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Let's not add more ifdeffery to gpio.c.. How about
+let's use uninitialized_var() instead? See the patch
+below.
+
+Regards,
+
+Tony
+
+
+--Qxx1br4bt0+wmkIi
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="uninitialized-var.patch"
+
+>From 62fc4a4ec588956979ef611da8753d8d1c02de8e Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 5 Jan 2010 12:17:06 -0800
+Subject: [PATCH] omap: Remove uninitialized warning for gpio.c
+
+Flags is not used on 15xx.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 0484681..792be9f 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -1072,7 +1072,7 @@ static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int ena
+  */
+ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
+ {
+-	unsigned long flags;
++	unsigned long uninitialized_var(flags);
+ 
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP16XX
+
+--Qxx1br4bt0+wmkIi--
