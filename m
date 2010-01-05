@@ -1,323 +1,545 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 02/10] OMAP2/3 clockdomains: split shared structures so
-	usecounting works
-Date: Tue, 05 Jan 2010 15:54:48 -0700
-Message-ID: <20100105225445.16474.79779.stgit@localhost.localdomain>
+Subject: [PATCH 04/10] OMAP clockdomain/powerdomain: remove runtime
+	register/unregister
+Date: Tue, 05 Jan 2010 15:54:53 -0700
+Message-ID: <20100105225450.16474.77816.stgit@localhost.localdomain>
 References: <20100105225217.16474.44114.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49852 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49854 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753539Ab0AEW6W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 17:58:22 -0500
+	with ESMTP id S1754255Ab0AEW6X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 17:58:23 -0500
 In-Reply-To: <20100105225217.16474.44114.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Previously some of the clockdomain wakeup/sleep dependency structures
-were shared between several domains.  For the subsequent wakeup and sleep
-dependency usecounting patch to work, these can no longer be
-shared.  This patch splits the shared structures apart.
+OMAP clockdomains and powerdomains are currently defined statically,
+only registered at boot, and never unregistered, so we can remove the
+unregister function and the locking.  A variant of this was originally
+suggested a while ago by Dmitry Baryshkov <dbaryshkov@gmail.com>.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clockdomains.h |  163 ++++++++++++++++++++++++++++--------
- 1 files changed, 127 insertions(+), 36 deletions(-)
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
 
-diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
-index c7cc0e7..894973c 100644
---- a/arch/arm/mach-omap2/clockdomains.h
-+++ b/arch/arm/mach-omap2/clockdomains.h
-@@ -52,6 +52,8 @@
-  * 2420/2430 PM_WKDEP_GFX: CORE, MPU, WKUP
-  * 3430ES1 PM_WKDEP_GFX: adds IVA2, removes CORE
-  * 3430ES2 PM_WKDEP_SGX: adds IVA2, removes CORE
-+ * These can share data since they will never be present simultaneously
-+ * on the same device.
+---
+ arch/arm/mach-omap2/clockdomain.c             |  118 ++++++-----------
+ arch/arm/mach-omap2/powerdomain.c             |  178 ++++++-------------------
+ arch/arm/plat-omap/include/plat/clockdomain.h |    2 
+ arch/arm/plat-omap/include/plat/powerdomain.h |    2 
+ 4 files changed, 85 insertions(+), 215 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index a70ba29..2af9996 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -39,9 +39,6 @@
+ /* clkdm_list contains all registered struct clockdomains */
+ static LIST_HEAD(clkdm_list);
+ 
+-/* clkdm_mutex protects clkdm_list add and del ops */
+-static DEFINE_MUTEX(clkdm_mutex);
+-
+ /* array of clockdomain deps to be added/removed when clkdm in hwsup mode */
+ static struct clkdm_autodep *autodeps;
+ 
+@@ -67,6 +64,45 @@ static struct clockdomain *_clkdm_lookup(const char *name)
+ 	return clkdm;
+ }
+ 
++/**
++ * _clkdm_register - register a clockdomain
++ * @clkdm: struct clockdomain * to register
++ *
++ * Adds a clockdomain to the internal clockdomain list.
++ * Returns -EINVAL if given a null pointer, -EEXIST if a clockdomain is
++ * already registered by the provided name, or 0 upon success.
++ */
++static int _clkdm_register(struct clockdomain *clkdm)
++{
++	struct powerdomain *pwrdm;
++
++	if (!clkdm || !clkdm->name)
++		return -EINVAL;
++
++	if (!omap_chip_is(clkdm->omap_chip))
++		return -EINVAL;
++
++	pwrdm = pwrdm_lookup(clkdm->pwrdm.name);
++	if (!pwrdm) {
++		pr_err("clockdomain: %s: powerdomain %s does not exist\n",
++			clkdm->name, clkdm->pwrdm.name);
++		return -EINVAL;
++	}
++	clkdm->pwrdm.ptr = pwrdm;
++
++	/* Verify that the clockdomain is not already registered */
++	if (_clkdm_lookup(clkdm->name))
++		return -EEXIST;
++
++	list_add(&clkdm->node, &clkdm_list);
++
++	pwrdm_add_clkdm(pwrdm, clkdm);
++
++	pr_debug("clockdomain: registered %s\n", clkdm->name);
++
++	return 0;
++}
++
+ /* _clkdm_deps_lookup - look up the specified clockdomain in a clkdm list */
+ static struct clkdm_dep *_clkdm_deps_lookup(struct clockdomain *clkdm,
+ 					    struct clkdm_dep *deps)
+@@ -240,7 +276,7 @@ void clkdm_init(struct clockdomain **clkdms,
+ 
+ 	if (clkdms)
+ 		for (c = clkdms; *c; c++)
+-			clkdm_register(*c);
++			_clkdm_register(*c);
+ 
+ 	autodeps = init_autodeps;
+ 	if (autodeps)
+@@ -249,76 +285,6 @@ void clkdm_init(struct clockdomain **clkdms,
+ }
+ 
+ /**
+- * clkdm_register - register a clockdomain
+- * @clkdm: struct clockdomain * to register
+- *
+- * Adds a clockdomain to the internal clockdomain list.
+- * Returns -EINVAL if given a null pointer, -EEXIST if a clockdomain is
+- * already registered by the provided name, or 0 upon success.
+- */
+-int clkdm_register(struct clockdomain *clkdm)
+-{
+-	int ret = -EINVAL;
+-	struct powerdomain *pwrdm;
+-
+-	if (!clkdm || !clkdm->name)
+-		return -EINVAL;
+-
+-	if (!omap_chip_is(clkdm->omap_chip))
+-		return -EINVAL;
+-
+-	pwrdm = pwrdm_lookup(clkdm->pwrdm.name);
+-	if (!pwrdm) {
+-		pr_err("clockdomain: %s: powerdomain %s does not exist\n",
+-			clkdm->name, clkdm->pwrdm.name);
+-		return -EINVAL;
+-	}
+-	clkdm->pwrdm.ptr = pwrdm;
+-
+-	mutex_lock(&clkdm_mutex);
+-	/* Verify that the clockdomain is not already registered */
+-	if (_clkdm_lookup(clkdm->name)) {
+-		ret = -EEXIST;
+-		goto cr_unlock;
+-	}
+-
+-	list_add(&clkdm->node, &clkdm_list);
+-
+-	pwrdm_add_clkdm(pwrdm, clkdm);
+-
+-	pr_debug("clockdomain: registered %s\n", clkdm->name);
+-	ret = 0;
+-
+-cr_unlock:
+-	mutex_unlock(&clkdm_mutex);
+-
+-	return ret;
+-}
+-
+-/**
+- * clkdm_unregister - unregister a clockdomain
+- * @clkdm: struct clockdomain * to unregister
+- *
+- * Removes a clockdomain from the internal clockdomain list.  Returns
+- * -EINVAL if clkdm argument is NULL.
+- */
+-int clkdm_unregister(struct clockdomain *clkdm)
+-{
+-	if (!clkdm)
+-		return -EINVAL;
+-
+-	pwrdm_del_clkdm(clkdm->pwrdm.ptr, clkdm);
+-
+-	mutex_lock(&clkdm_mutex);
+-	list_del(&clkdm->node);
+-	mutex_unlock(&clkdm_mutex);
+-
+-	pr_debug("clockdomain: unregistered %s\n", clkdm->name);
+-
+-	return 0;
+-}
+-
+-/**
+  * clkdm_lookup - look up a clockdomain by name, return a pointer
+  * @name: name of clockdomain
+  *
+@@ -334,14 +300,12 @@ struct clockdomain *clkdm_lookup(const char *name)
+ 
+ 	clkdm = NULL;
+ 
+-	mutex_lock(&clkdm_mutex);
+ 	list_for_each_entry(temp_clkdm, &clkdm_list, node) {
+ 		if (!strcmp(name, temp_clkdm->name)) {
+ 			clkdm = temp_clkdm;
+ 			break;
+ 		}
+ 	}
+-	mutex_unlock(&clkdm_mutex);
+ 
+ 	return clkdm;
+ }
+@@ -369,13 +333,11 @@ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
+ 	if (!fn)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&clkdm_mutex);
+ 	list_for_each_entry(clkdm, &clkdm_list, node) {
+ 		ret = (*fn)(clkdm, user);
+ 		if (ret)
+ 			break;
+ 	}
+-	mutex_unlock(&clkdm_mutex);
+ 
+ 	return ret;
+ }
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index e8e8d88..411361f 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -80,13 +80,6 @@ static u16 pwrstst_reg_offs;
+ /* pwrdm_list contains all registered struct powerdomains */
+ static LIST_HEAD(pwrdm_list);
+ 
+-/*
+- * pwrdm_rwlock protects pwrdm_list add and del ops - also reused to
+- * protect pwrdm_clkdms[] during clkdm add/del ops
+- */
+-static DEFINE_RWLOCK(pwrdm_rwlock);
+-
+-
+ /* Private functions */
+ 
+ static struct powerdomain *_pwrdm_lookup(const char *name)
+@@ -105,6 +98,42 @@ static struct powerdomain *_pwrdm_lookup(const char *name)
+ 	return pwrdm;
+ }
+ 
++/**
++ * _pwrdm_register - register a powerdomain
++ * @pwrdm: struct powerdomain * to register
++ *
++ * Adds a powerdomain to the internal powerdomain list.  Returns
++ * -EINVAL if given a null pointer, -EEXIST if a powerdomain is
++ * already registered by the provided name, or 0 upon success.
++ */
++static int _pwrdm_register(struct powerdomain *pwrdm)
++{
++	int i;
++
++	if (!pwrdm)
++		return -EINVAL;
++
++	if (!omap_chip_is(pwrdm->omap_chip))
++		return -EINVAL;
++
++	if (_pwrdm_lookup(pwrdm->name))
++		return -EEXIST;
++
++	list_add(&pwrdm->node, &pwrdm_list);
++
++	/* Initialize the powerdomain's state counter */
++	for (i = 0; i < 4; i++)
++		pwrdm->state_counter[i] = 0;
++
++	pwrdm_wait_transition(pwrdm);
++	pwrdm->state = pwrdm_read_pwrst(pwrdm);
++	pwrdm->state_counter[pwrdm->state] = 1;
++
++	pr_debug("powerdomain: registered %s\n", pwrdm->name);
++
++	return 0;
++}
++
+ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ {
+ 
+@@ -152,19 +181,6 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+ 	return 0;
+ }
+ 
+-static __init void _pwrdm_setup(struct powerdomain *pwrdm)
+-{
+-	int i;
+-
+-	for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
+-		pwrdm->state_counter[i] = 0;
+-
+-	pwrdm_wait_transition(pwrdm);
+-	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+-	pwrdm->state_counter[pwrdm->state] = 1;
+-
+-}
+-
+ /* Public functions */
+ 
+ /**
+@@ -192,73 +208,12 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+ 	}
+ 
+ 	if (pwrdm_list) {
+-		for (p = pwrdm_list; *p; p++) {
+-			pwrdm_register(*p);
+-			_pwrdm_setup(*p);
+-		}
++		for (p = pwrdm_list; *p; p++)
++			_pwrdm_register(*p);
+ 	}
+ }
+ 
+ /**
+- * pwrdm_register - register a powerdomain
+- * @pwrdm: struct powerdomain * to register
+- *
+- * Adds a powerdomain to the internal powerdomain list.  Returns
+- * -EINVAL if given a null pointer, -EEXIST if a powerdomain is
+- * already registered by the provided name, or 0 upon success.
+- */
+-int pwrdm_register(struct powerdomain *pwrdm)
+-{
+-	unsigned long flags;
+-	int ret = -EINVAL;
+-
+-	if (!pwrdm)
+-		return -EINVAL;
+-
+-	if (!omap_chip_is(pwrdm->omap_chip))
+-		return -EINVAL;
+-
+-	write_lock_irqsave(&pwrdm_rwlock, flags);
+-	if (_pwrdm_lookup(pwrdm->name)) {
+-		ret = -EEXIST;
+-		goto pr_unlock;
+-	}
+-
+-	list_add(&pwrdm->node, &pwrdm_list);
+-
+-	pr_debug("powerdomain: registered %s\n", pwrdm->name);
+-	ret = 0;
+-
+-pr_unlock:
+-	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+-
+-	return ret;
+-}
+-
+-/**
+- * pwrdm_unregister - unregister a powerdomain
+- * @pwrdm: struct powerdomain * to unregister
+- *
+- * Removes a powerdomain from the internal powerdomain list.  Returns
+- * -EINVAL if pwrdm argument is NULL.
+- */
+-int pwrdm_unregister(struct powerdomain *pwrdm)
+-{
+-	unsigned long flags;
+-
+-	if (!pwrdm)
+-		return -EINVAL;
+-
+-	write_lock_irqsave(&pwrdm_rwlock, flags);
+-	list_del(&pwrdm->node);
+-	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+-
+-	pr_debug("powerdomain: unregistered %s\n", pwrdm->name);
+-
+-	return 0;
+-}
+-
+-/**
+  * pwrdm_lookup - look up a powerdomain by name, return a pointer
+  * @name: name of powerdomain
+  *
+@@ -268,20 +223,17 @@ int pwrdm_unregister(struct powerdomain *pwrdm)
+ struct powerdomain *pwrdm_lookup(const char *name)
+ {
+ 	struct powerdomain *pwrdm;
+-	unsigned long flags;
+ 
+ 	if (!name)
+ 		return NULL;
+ 
+-	read_lock_irqsave(&pwrdm_rwlock, flags);
+ 	pwrdm = _pwrdm_lookup(name);
+-	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+ 	return pwrdm;
+ }
+ 
+ /**
+- * pwrdm_for_each_nolock - call function on each registered clockdomain
++ * pwrdm_for_each - call function on each registered clockdomain
+  * @fn: callback function *
+  *
+  * Call the supplied function for each registered powerdomain.  The
+@@ -290,8 +242,8 @@ struct powerdomain *pwrdm_lookup(const char *name)
+  * should be 0 for success or anything else to indicate failure; or -EINVAL if
+  * the function pointer is null.
   */
- static struct clkdm_dep gfx_sgx_wkdeps[] = {
- 	{
-@@ -86,11 +88,32 @@ static struct clkdm_dep gfx_sgx_wkdeps[] = {
+-int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
+-				void *user)
++int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
++		   void *user)
+ {
+ 	struct powerdomain *temp_pwrdm;
+ 	int ret = 0;
+@@ -309,28 +261,6 @@ int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
+ }
  
- /* Wakeup dependency source arrays */
- 
-+/* 2420/2430 PM_WKDEP_DSP: CORE, MPU, WKUP */
-+static struct clkdm_dep dsp_24xx_wkdeps[] = {
-+	{
-+		.clkdm_name = "core_l3_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
-+	},
-+	{
-+		.clkdm_name = "core_l4_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
-+	},
-+	{
-+		.clkdm_name = "mpu_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
-+	},
-+	{
-+		.clkdm_name = "wkup_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
-+	},
-+	{ NULL },
-+};
-+
- /*
-- * 2420/2430 PM_WKDEP_DSP: CORE, MPU, WKUP
-- * 2420/2430 PM_WKDEP_MDM: same as DSP
-+ * 2420/2430 PM_WKDEP_MDM: CORE, MPU, WKUP
-+ * XXX This is probably 2430-only; 2420 did not have a stacked modem config.
+ /**
+- * pwrdm_for_each - call function on each registered clockdomain
+- * @fn: callback function *
+- *
+- * This function is the same as 'pwrdm_for_each_nolock()', but keeps the
+- * &pwrdm_rwlock locked for reading, so no powerdomain structure manipulation
+- * functions should be called from the callback, although hardware powerdomain
+- * control functions are fine.
+- */
+-int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
+-			void *user)
+-{
+-	unsigned long flags;
+-	int ret;
+-
+-	read_lock_irqsave(&pwrdm_rwlock, flags);
+-	ret = pwrdm_for_each_nolock(fn, user);
+-	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+-
+-	return ret;
+-}
+-
+-/**
+  * pwrdm_add_clkdm - add a clockdomain to a powerdomain
+  * @pwrdm: struct powerdomain * to add the clockdomain to
+  * @clkdm: struct clockdomain * to associate with a powerdomain
+@@ -342,7 +272,6 @@ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
   */
--static struct clkdm_dep dsp_mdm_24xx_wkdeps[] = {
-+static struct clkdm_dep mdm_24xx_wkdeps[] = {
- 	{
- 		.clkdm_name = "core_l3_clkdm",
- 		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
-@@ -172,11 +195,8 @@ static struct clkdm_dep core_24xx_wkdeps[] = {
+ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ {
+-	unsigned long flags;
+ 	int i;
+ 	int ret = -EINVAL;
  
- #ifdef CONFIG_ARCH_OMAP34XX
+@@ -352,8 +281,6 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ 	pr_debug("powerdomain: associating clockdomain %s with powerdomain "
+ 		 "%s\n", clkdm->name, pwrdm->name);
  
--/*
-- * 3430: PM_WKDEP_{PER,USBHOST}: CORE, IVA2, MPU, WKUP
-- * (USBHOST is ES2 only)
-- */
--static struct clkdm_dep per_usbhost_wkdeps[] = {
-+/* 3430: PM_WKDEP_PER: CORE, IVA2, MPU, WKUP */
-+static struct clkdm_dep per_wkdeps[] = {
- 	{
- 		.clkdm_name = "core_l3_clkdm",
- 		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-@@ -200,9 +220,32 @@ static struct clkdm_dep per_usbhost_wkdeps[] = {
- 	{ NULL },
- };
+-	write_lock_irqsave(&pwrdm_rwlock, flags);
+-
+ 	for (i = 0; i < PWRDM_MAX_CLKDMS; i++) {
+ 		if (!pwrdm->pwrdm_clkdms[i])
+ 			break;
+@@ -378,8 +305,6 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ 	ret = 0;
  
--/*
-- * 3430 PM_WKDEP_MPU: CORE, IVA2, DSS, PER
-- */
-+/* 3430ES2: PM_WKDEP_USBHOST: CORE, IVA2, MPU, WKUP */
-+static struct clkdm_dep usbhost_wkdeps[] = {
-+	{
-+		.clkdm_name = "core_l3_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{
-+		.clkdm_name = "core_l4_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{
-+		.clkdm_name = "iva2_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{
-+		.clkdm_name = "mpu_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{
-+		.clkdm_name = "wkup_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{ NULL },
-+};
-+
-+/* 3430 PM_WKDEP_MPU: CORE, IVA2, DSS, PER */
- static struct clkdm_dep mpu_34xx_wkdeps[] = {
- 	{
- 		.clkdm_name = "core_l3_clkdm",
-@@ -227,9 +270,7 @@ static struct clkdm_dep mpu_34xx_wkdeps[] = {
- 	{ NULL },
- };
+ pac_exit:
+-	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+-
+ 	return ret;
+ }
  
--/*
-- * 3430 PM_WKDEP_IVA2: CORE, MPU, WKUP, DSS, PER
-- */
-+/* 3430 PM_WKDEP_IVA2: CORE, MPU, WKUP, DSS, PER */
- static struct clkdm_dep iva2_wkdeps[] = {
- 	{
- 		.clkdm_name = "core_l3_clkdm",
-@@ -259,8 +300,25 @@ static struct clkdm_dep iva2_wkdeps[] = {
- };
- 
- 
--/* 3430 PM_WKDEP_{CAM,DSS}: IVA2, MPU, WKUP */
--static struct clkdm_dep cam_dss_wkdeps[] = {
-+/* 3430 PM_WKDEP_CAM: IVA2, MPU, WKUP */
-+static struct clkdm_dep cam_wkdeps[] = {
-+	{
-+		.clkdm_name = "iva2_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{
-+		.clkdm_name = "mpu_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{
-+		.clkdm_name = "wkup_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{ NULL },
-+};
-+
-+/* 3430 PM_WKDEP_DSS: IVA2, MPU, WKUP */
-+static struct clkdm_dep dss_wkdeps[] = {
- 	{
- 		.clkdm_name = "iva2_clkdm",
- 		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-@@ -288,11 +346,8 @@ static struct clkdm_dep neon_wkdeps[] = {
- 
- /* Sleep dependency source arrays for 34xx-specific clkdms - 34XX only */
- 
--/*
-- * 3430: CM_SLEEPDEP_{DSS,PER}: MPU, IVA
-- * 3430ES2: CM_SLEEPDEP_USBHOST: MPU, IVA
-- */
--static struct clkdm_dep dss_per_usbhost_sleepdeps[] = {
-+/* 3430: CM_SLEEPDEP_DSS: MPU, IVA */
-+static struct clkdm_dep dss_sleepdeps[] = {
- 	{
- 		.clkdm_name = "mpu_clkdm",
- 		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-@@ -304,12 +359,48 @@ static struct clkdm_dep dss_per_usbhost_sleepdeps[] = {
- 	{ NULL },
- };
- 
-+/* 3430: CM_SLEEPDEP_PER: MPU, IVA */
-+static struct clkdm_dep per_sleepdeps[] = {
-+	{
-+		.clkdm_name = "mpu_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{
-+		.clkdm_name = "iva2_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{ NULL },
-+};
-+
-+/* 3430ES2: CM_SLEEPDEP_USBHOST: MPU, IVA */
-+static struct clkdm_dep usbhost_sleepdeps[] = {
-+	{
-+		.clkdm_name = "mpu_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{
-+		.clkdm_name = "iva2_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{ NULL },
-+};
-+
-+/* 3430: CM_SLEEPDEP_CAM: MPU */
-+static struct clkdm_dep cam_sleepdeps[] = {
-+	{
-+		.clkdm_name = "mpu_clkdm",
-+		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	},
-+	{ NULL },
-+};
-+
- /*
-- * 3430: CM_SLEEPDEP_CAM: MPU
-  * 3430ES1: CM_SLEEPDEP_GFX: MPU
-  * 3430ES2: CM_SLEEPDEP_SGX: MPU
-+ * These can share data since they will never be present simultaneously
-+ * on the same device.
+@@ -395,7 +320,6 @@ pac_exit:
   */
--static struct clkdm_dep cam_gfx_sleepdeps[] = {
-+static struct clkdm_dep gfx_sgx_sleepdeps[] = {
- 	{
- 		.clkdm_name = "mpu_clkdm",
- 		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-@@ -376,7 +467,7 @@ static struct clockdomain iva1_2420_clkdm = {
- 	.clkstctrl_reg  = OMAP2420_CM_REGADDR(OMAP24XX_DSP_MOD,
- 						 OMAP2_CM_CLKSTCTRL),
- 	.dep_bit	= OMAP24XX_PM_WKDEP_MPU_EN_DSP_SHIFT,
--	.wkdep_srcs	= dsp_mdm_24xx_wkdeps,
-+	.wkdep_srcs	= dsp_24xx_wkdeps,
- 	.clktrctrl_mask = OMAP2420_AUTOSTATE_IVA_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ {
+-	unsigned long flags;
+ 	int ret = -EINVAL;
+ 	int i;
+ 
+@@ -405,8 +329,6 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ 	pr_debug("powerdomain: dissociating clockdomain %s from powerdomain "
+ 		 "%s\n", clkdm->name, pwrdm->name);
+ 
+-	write_lock_irqsave(&pwrdm_rwlock, flags);
+-
+ 	for (i = 0; i < PWRDM_MAX_CLKDMS; i++)
+ 		if (pwrdm->pwrdm_clkdms[i] == clkdm)
+ 			break;
+@@ -423,8 +345,6 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
+ 	ret = 0;
+ 
+ pdc_exit:
+-	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+-
+ 	return ret;
+ }
+ 
+@@ -435,32 +355,24 @@ pdc_exit:
+  *
+  * Call the supplied function for each clockdomain in the powerdomain
+  * 'pwrdm'.  The callback function can return anything but 0 to bail
+- * out early from the iterator.  The callback function is called with
+- * the pwrdm_rwlock held for reading, so no powerdomain structure
+- * manipulation functions should be called from the callback, although
+- * hardware powerdomain control functions are fine.  Returns -EINVAL
+- * if presented with invalid pointers; or passes along the last return
+- * value of the callback function, which should be 0 for success or
+- * anything else to indicate failure.
++ * out early from the iterator.  Returns -EINVAL if presented with
++ * invalid pointers; or passes along the last return value of the
++ * callback function, which should be 0 for success or anything else
++ * to indicate failure.
+  */
+ int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
+ 			 int (*fn)(struct powerdomain *pwrdm,
+ 				   struct clockdomain *clkdm))
+ {
+-	unsigned long flags;
+ 	int ret = 0;
+ 	int i;
+ 
+ 	if (!fn)
+ 		return -EINVAL;
+ 
+-	read_lock_irqsave(&pwrdm_rwlock, flags);
+-
+ 	for (i = 0; i < PWRDM_MAX_CLKDMS && !ret; i++)
+ 		ret = (*fn)(pwrdm, pwrdm->pwrdm_clkdms[i]);
+ 
+-	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+-
+ 	return ret;
+ }
+ 
+diff --git a/arch/arm/plat-omap/include/plat/clockdomain.h b/arch/arm/plat-omap/include/plat/clockdomain.h
+index f77ca72..2286971 100644
+--- a/arch/arm/plat-omap/include/plat/clockdomain.h
++++ b/arch/arm/plat-omap/include/plat/clockdomain.h
+@@ -117,8 +117,6 @@ struct clockdomain {
  };
-@@ -458,7 +549,7 @@ static struct clockdomain mdm_clkdm = {
- 	.clkstctrl_reg  = OMAP2430_CM_REGADDR(OMAP2430_MDM_MOD,
- 						 OMAP2_CM_CLKSTCTRL),
- 	.dep_bit	= OMAP2430_PM_WKDEP_MPU_EN_MDM_SHIFT,
--	.wkdep_srcs	= dsp_mdm_24xx_wkdeps,
-+	.wkdep_srcs	= mdm_24xx_wkdeps,
- 	.clktrctrl_mask = OMAP2430_AUTOSTATE_MDM_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
-@@ -470,7 +561,7 @@ static struct clockdomain dsp_2430_clkdm = {
- 	.clkstctrl_reg  = OMAP2430_CM_REGADDR(OMAP24XX_DSP_MOD,
- 						 OMAP2_CM_CLKSTCTRL),
- 	.dep_bit	= OMAP24XX_PM_WKDEP_MPU_EN_DSP_SHIFT,
--	.wkdep_srcs	= dsp_mdm_24xx_wkdeps,
-+	.wkdep_srcs	= dsp_24xx_wkdeps,
- 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSP_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
-@@ -575,7 +666,7 @@ static struct clockdomain gfx_3430es1_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
- 	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(GFX_MOD, OMAP2_CM_CLKSTCTRL),
- 	.wkdep_srcs	= gfx_sgx_wkdeps,
--	.sleepdep_srcs	= cam_gfx_sleepdeps,
-+	.sleepdep_srcs	= gfx_sgx_sleepdeps,
- 	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_GFX_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
- };
-@@ -587,7 +678,7 @@ static struct clockdomain sgx_clkdm = {
- 	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430ES2_SGX_MOD,
- 						 OMAP2_CM_CLKSTCTRL),
- 	.wkdep_srcs	= gfx_sgx_wkdeps,
--	.sleepdep_srcs	= cam_gfx_sleepdeps,
-+	.sleepdep_srcs	= gfx_sgx_sleepdeps,
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
- };
-@@ -646,8 +737,8 @@ static struct clockdomain dss_34xx_clkdm = {
- 	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD,
- 						 OMAP2_CM_CLKSTCTRL),
- 	.dep_bit	= OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
--	.wkdep_srcs	= cam_dss_wkdeps,
--	.sleepdep_srcs	= dss_per_usbhost_sleepdeps,
-+	.wkdep_srcs	= dss_wkdeps,
-+	.sleepdep_srcs	= dss_sleepdeps,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -658,8 +749,8 @@ static struct clockdomain cam_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
- 	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD,
- 						 OMAP2_CM_CLKSTCTRL),
--	.wkdep_srcs	= cam_dss_wkdeps,
--	.sleepdep_srcs	= cam_gfx_sleepdeps,
-+	.wkdep_srcs	= cam_wkdeps,
-+	.sleepdep_srcs	= cam_sleepdeps,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_CAM_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-@@ -670,8 +761,8 @@ static struct clockdomain usbhost_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
- 	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430ES2_USBHOST_MOD,
- 						 OMAP2_CM_CLKSTCTRL),
--	.wkdep_srcs	= per_usbhost_wkdeps,
--	.sleepdep_srcs	= dss_per_usbhost_sleepdeps,
-+	.wkdep_srcs	= usbhost_wkdeps,
-+	.sleepdep_srcs	= usbhost_sleepdeps,
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
- };
-@@ -683,8 +774,8 @@ static struct clockdomain per_clkdm = {
- 	.clkstctrl_reg	= OMAP34XX_CM_REGADDR(OMAP3430_PER_MOD,
- 						 OMAP2_CM_CLKSTCTRL),
- 	.dep_bit	= OMAP3430_EN_PER_SHIFT,
--	.wkdep_srcs	= per_usbhost_wkdeps,
--	.sleepdep_srcs	= dss_per_usbhost_sleepdeps,
-+	.wkdep_srcs	= per_wkdeps,
-+	.sleepdep_srcs	= per_sleepdeps,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
+ 
+ void clkdm_init(struct clockdomain **clkdms, struct clkdm_autodep *autodeps);
+-int clkdm_register(struct clockdomain *clkdm);
+-int clkdm_unregister(struct clockdomain *clkdm);
+ struct clockdomain *clkdm_lookup(const char *name);
+ 
+ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+index dd5f79d..c590e2f 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -114,8 +114,6 @@ struct powerdomain {
+ 
+ void pwrdm_init(struct powerdomain **pwrdm_list);
+ 
+-int pwrdm_register(struct powerdomain *pwrdm);
+-int pwrdm_unregister(struct powerdomain *pwrdm);
+ struct powerdomain *pwrdm_lookup(const char *name);
+ 
+ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
 
 
