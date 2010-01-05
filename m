@@ -1,46 +1,30 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 3/4] OMAP2 clock: dynamically allocate CPUFreq
+Subject: Re: [PATCH 4/4] OMAP clock/CPUFreq: avoid leaking the CPUFreq
  frequency table
-Date: Tue, 5 Jan 2010 12:42:10 +0200
-Message-ID: <20100105104210.GA11291@nokia.com>
+Date: Tue, 5 Jan 2010 12:46:03 +0200
+Message-ID: <20100105104603.GB11291@nokia.com>
 References: <20100105024113.16275.96273.stgit@localhost.localdomain>
- <20100105024206.16275.58063.stgit@localhost.localdomain>
+ <20100105024207.16275.26135.stgit@localhost.localdomain>
 Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:21036 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753794Ab0AEKor (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 05:44:47 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:49074 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751191Ab0AEKs4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 05:48:56 -0500
 Content-Disposition: inline
-In-Reply-To: <20100105024206.16275.58063.stgit@localhost.localdomain>
+In-Reply-To: <20100105024207.16275.26135.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Tue, Jan 05, 2010 at 03:42:08AM +0100, ext Paul Walmsley wrote:
+>OMAP2xxx uses a dynamically-allocated cpufreq_frequency_table array,
+>so this patch ensures that it is freed if CPUFreq terminates.
 
-On Tue, Jan 05, 2010 at 03:42:07AM +0100, ext Paul Walmsley wrote:
->@@ -470,21 +472,51 @@ void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
-> 		if (prcm->dpll_speed == prcm->xtal_speed)
-> 			continue;
->
->+		tbl_sz++;
->+	}
->+
->+	/*
->+	 * XXX Ensure that we're doing what CPUFreq expects for this error
->+	 * case and the following one
->+	 */
->+	if (tbl_sz == 0) {
->+		pr_warning("%s: no matching entries in rate_table\n",
->+			   __func__);
->+		goto ocict_exit;
-
-you only use this ocict_exit here, so how about only return instead of a 
-goto to a return ?
+wasn't this introduced by the previous patch ?
 
 -- 
 balbi
