@@ -1,136 +1,31 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 06/10] OMAP2/3/4 clockdomain: add clkdm_clear_all_{wkdep,
-	sleepdep}s()
-Date: Tue, 05 Jan 2010 15:54:59 -0700
-Message-ID: <20100105225458.16474.11212.stgit@localhost.localdomain>
-References: <20100105225217.16474.44114.stgit@localhost.localdomain>
+Subject: Re: [PATCH] ARM: OMAP4 clock domains : Add the missing Clock Domain
+ Structure
+Date: Tue, 5 Jan 2010 16:06:45 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001051606310.21295@utopia.booyaka.com>
+References: <1262189297-22133-1-git-send-email-abhijitpagare@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49856 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:43512 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754923Ab0AEW6X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 17:58:23 -0500
-In-Reply-To: <20100105225217.16474.44114.stgit@localhost.localdomain>
+	with ESMTP id S1750738Ab0AEXGq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 18:06:46 -0500
+In-Reply-To: <1262189297-22133-1-git-send-email-abhijitpagare@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: Abhijit Pagare <abhijitpagare@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Add clkdm_clear_all_wkdeps() and clkdm_clear_all_sleepdeps().  These functions
-provide a fast way for code to clear all hardware clockdomain dependencies,
-since accesses to these registers can be quite slow.  These functions
-are currently targeted for use by PM branch code.
+On Wed, 30 Dec 2009, Abhijit Pagare wrote:
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/clockdomain.c             |   68 +++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/clockdomain.h |    2 +
- 2 files changed, 70 insertions(+), 0 deletions(-)
+> One of the clock domains was missing from the auto-generated file.
+> It has been added here.
+> 
+> Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index d039df7..f44d9ea 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -565,6 +565,38 @@ int clkdm_read_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- }
- 
- /**
-+ * clkdm_clear_all_wkdeps - remove all wakeup dependencies from target clkdm
-+ * @clkdm: struct clockdomain * to remove all wakeup dependencies from
-+ *
-+ * Remove all inter-clockdomain wakeup dependencies that could cause
-+ * @clkdm to wake.  Intended to be used during boot to initialize the
-+ * PRCM to a known state, after all clockdomains are put into swsup idle
-+ * and woken up.  Returns -EINVAL if @clkdm pointer is invalid, or
-+ * 0 upon success.
-+ */
-+int clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
-+{
-+	struct clkdm_dep *cd;
-+	u32 mask = 0;
-+
-+	if (!clkdm)
-+		return -EINVAL;
-+
-+	for (cd = clkdm->wkdep_srcs; cd->clkdm_name; cd++) {
-+		if (!omap_chip_is(cd->omap_chip))
-+			continue;
-+
-+		/* PRM accesses are slow, so minimize them */
-+		mask |= 1 << cd->clkdm->dep_bit;
-+		atomic_set(&cd->wkdep_usecount, 0);
-+	}
-+
-+	prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs, PM_WKDEP);
-+
-+	return 0;
-+}
-+
-+/**
-  * clkdm_add_sleepdep - add a sleep dependency from clkdm2 to clkdm1
-  * @clkdm1: prevent this struct clockdomain * from sleeping (dependent)
-  * @clkdm2: when this struct clockdomain * is active (source)
-@@ -690,6 +722,42 @@ int clkdm_read_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
- }
- 
- /**
-+ * clkdm_clear_all_sleepdeps - remove all sleep dependencies from target clkdm
-+ * @clkdm: struct clockdomain * to remove all sleep dependencies from
-+ *
-+ * Remove all inter-clockdomain sleep dependencies that could prevent
-+ * @clkdm from idling.	Intended to be used during boot to initialize the
-+ * PRCM to a known state, after all clockdomains are put into swsup idle
-+ * and woken up.  Returns -EINVAL if @clkdm pointer is invalid, or
-+ * 0 upon success.
-+ */
-+int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
-+{
-+	struct clkdm_dep *cd;
-+	u32 mask = 0;
-+
-+	if (!cpu_is_omap34xx())
-+		return -EINVAL;
-+
-+	if (!clkdm)
-+		return -EINVAL;
-+
-+	for (cd = clkdm->sleepdep_srcs; cd->clkdm_name; cd++) {
-+		if (!omap_chip_is(cd->omap_chip))
-+			continue;
-+
-+		/* PRM accesses are slow, so minimize them */
-+		mask |= 1 << cd->clkdm->dep_bit;
-+		atomic_set(&cd->sleepdep_usecount, 0);
-+	}
-+
-+	prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
-+			       OMAP3430_CM_SLEEPDEP);
-+
-+	return 0;
-+}
-+
-+/**
-  * omap2_clkdm_clktrctrl_read - read the clkdm's current state transition mode
-  * @clk: struct clk * of a clockdomain
-  *
-diff --git a/arch/arm/plat-omap/include/plat/clockdomain.h b/arch/arm/plat-omap/include/plat/clockdomain.h
-index 192cc95..45b5deb 100644
---- a/arch/arm/plat-omap/include/plat/clockdomain.h
-+++ b/arch/arm/plat-omap/include/plat/clockdomain.h
-@@ -132,9 +132,11 @@ struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm);
- int clkdm_add_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
- int clkdm_del_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
- int clkdm_read_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
-+int clkdm_clear_all_wkdeps(struct clockdomain *clkdm);
- int clkdm_add_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
- int clkdm_del_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
- int clkdm_read_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
-+int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm);
- 
- void omap2_clkdm_allow_idle(struct clockdomain *clkdm);
- void omap2_clkdm_deny_idle(struct clockdomain *clkdm);
+Thanks, queued for 2.6.34.
 
+- Paul
 
