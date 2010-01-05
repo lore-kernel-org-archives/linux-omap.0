@@ -1,54 +1,60 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/4] OMAP2xxx clock/CPUFreq: fix compilation errors; clean up
-Date: Mon, 04 Jan 2010 19:42:04 -0700
-Message-ID: <20100105024113.16275.96273.stgit@localhost.localdomain>
+Subject: [PATCH 1/4] OMAP2: clock: clk2xxx.c doesn't compile if CPUFREQ is
+	enabled
+Date: Mon, 04 Jan 2010 19:42:05 -0700
+Message-ID: <20100105024204.16275.82098.stgit@localhost.localdomain>
+References: <20100105024113.16275.96273.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52028 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52029 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754004Ab0AECsk (ORCPT
+	with ESMTP id S1754013Ab0AECsk (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 21:48:40 -0500
+In-Reply-To: <20100105024113.16275.96273.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-Hello,
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-This series fixes several compilation errors for OMAP2xxx chips when
-CONFIG_CPU_FREQ is set.  These were reported and partially fixed
-by Felipe Balbi <felipe.balbi@nokia.com>.
+if we enable CPUFREQ we can't build omap2 for two reasons,
+one of them is fixed by the patch below.
 
-Considerable work is still needed to fully support dynamic frequency
-changes on OMAP2xxx-series chips.  Readers interested in such a
-project are encouraged to review the Maemo Diablo RX-34 and RX-44
-kernel source at:
+It's failing because the __must_be_array() check in
+ARRAY_SIZE() is failing and printing the following message:
 
-    http://repository.maemo.org/pool/diablo/free/k/kernel-source-diablo/
+arch/arm/mach-omap2/clock2xxx.c:453: error: negative width in bit-field '<anonymous>'
 
-Boot-tested on N800 with n8x0_defconfig with CONFIG_CPU_FREQ; compile-tested
-for 2430SDP.
-
-
-- Paul
-
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+[paul@pwsan.com: commit message updated; changed rate variable name]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/clock2xxx.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-Felipe Balbi (1):
-      OMAP2: clock: clk2xxx.c doesn't compile if CPUFREQ is enabled
+diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
+index d0e3fb7..2f3c3ba 100644
+--- a/arch/arm/mach-omap2/clock2xxx.c
++++ b/arch/arm/mach-omap2/clock2xxx.c
+@@ -455,12 +455,15 @@ static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(rate_table)];
+ void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+ {
+ 	struct prcm_config *prcm;
++	long rate;
+ 	int i = 0;
+ 
++	sys_ck_rate = clk_get_rate(sclk);
++
+ 	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+ 		if (!(prcm->flags & cpu_mask))
+ 			continue;
+-		if (prcm->xtal_speed != sys_ck.rate)
++		if (prcm->xtal_speed != sys_ck_rate)
+ 			continue;
+ 
+ 		/* don't put bypass rates in table */
 
-Paul Walmsley (3):
-      OMAP2xxx OPP: clean up comments in OPP data
-      OMAP2 clock: dynamically allocate CPUFreq frequency table
-      OMAP clock/CPUFreq: avoid leaking the CPUFreq frequency table
-
-
- arch/arm/mach-omap2/clock2xxx.c         |   60 ++++++++++++++++++++++++++-----
- arch/arm/mach-omap2/opp2420_data.c      |   38 ++++++++++----------
- arch/arm/mach-omap2/opp2430_data.c      |   30 ++++++++--------
- arch/arm/plat-omap/clock.c              |   10 +++++
- arch/arm/plat-omap/cpu-omap.c           |    1 +
- arch/arm/plat-omap/include/plat/clock.h |    2 +
- 6 files changed, 99 insertions(+), 42 deletions(-)
 
