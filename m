@@ -1,53 +1,43 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP1 clock: remove __initdata from struct clk_functions to
- prevent crash
-Date: Mon, 4 Jan 2010 20:00:01 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001041958240.30892@utopia.booyaka.com>
+From: "Maulik" <x0082077@ti.com>
+Subject: RE: [PATCH v2 1/2] ARM : OMAP : Add empty functions in header file
+Date: Tue, 5 Jan 2010 10:45:19 +0530
+Message-ID: <016d01ca8dc6$168f6de0$808918ac@apr.dhcp.ti.com>
+References: <1262603399-13036-1-git-send-email-x0082077@ti.com> <20100104123423.GA1439@gandalf> <016301ca8d3c$2d2b7f60$808918ac@apr.dhcp.ti.com> <20100104152534.GA16974@lixom.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58214 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754207Ab0AEDAC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Jan 2010 22:00:02 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:35574 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750920Ab0AEFPx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Jan 2010 00:15:53 -0500
+In-Reply-To: <20100104152534.GA16974@lixom.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: darkstar6262@gmail.com
+To: 'Olof Johansson' <olof@lixom.net>
+Cc: me@felipebalbi.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, 'Tony Lindgren' <tony@atomide.com>, 'Felipe Balbi' <felipe.balbi@nokia.com>, 'Greg Kroah-Hartman' <gregkh@suse.de>, 'Sergei Shtylyov' <sshtylyov@ru.mvista.com>, "'Gupta, Ajay Kumar'" <ajay.gupta@ti.com>
 
 
-From: Cory Maccarrone <darkstar6262@gmail.com>
+>>It needs to be static inline:
 
-Commit 52650505fbf3a6ab851c801f54e73e76c55ab8da added an __initdata
-decoration to the structure containing the clk_enable and clk_disable
-functions.  Once init data was freed, these pointers went to null, and
-the next enable or disable call caused the kernel to crash.  This
-change removes this decoration.
+[Maulik] Yes that's true. 
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
-[paul@pwsan.com: patch manually split and commit message edited]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+>>And you need to make sure that the actual body of the function in the
+>>C file is encapsulated with #ifdef too, since the very point of having
+>>it under a config option is to not include it if it's not selected
+>>and needed.
 
-[Queued for the next 2.6.33-rc clock fixes]
+[Maulik] The actual body of the function is defined in 
+drivers/usb/otg/nop-usb-xceiv.c. This file is compiled only if
+CONFIG_NOP_USB_XCEIV option is selected. 
 
----
- arch/arm/mach-omap1/clock_data.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Hence I think we won't need to explicitly protect it with a #ifdef.
 
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index 31fba07..8a85bbb 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -674,7 +674,7 @@ static struct omap_clk omap_clks[] = {
-  * init
-  */
- 
--static struct clk_functions omap1_clk_functions __initdata = {
-+static struct clk_functions omap1_clk_functions = {
- 	.clk_enable		= omap1_clk_enable,
- 	.clk_disable		= omap1_clk_disable,
- 	.clk_round_rate		= omap1_clk_round_rate,
--- 
-1.6.6.rc2.5.g49666
+I shall post a new version of the patch with the changes.
+
+Regards,
+Maulik
+
 
 
