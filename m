@@ -1,33 +1,31 @@
-From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] ARM : OMAP : Remove #ifdef from board-omap3evm.c
-Date: Tue, 5 Jan 2010 11:53:34 -0600
-Message-ID: <20100105175334.GB27177@lixom.net>
-References: <1262681372-7602-1-git-send-email-x0082077@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/5] V7/Cortex/omap34xx fixes for 2.6.33-rc1: DCC, kexec,
+ atags
+Date: Tue, 5 Jan 2010 10:54:19 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001051053000.2083@utopia.booyaka.com>
+References: <20091219034151.26198.26570.stgit@localhost> <aec7e5c30912272155s41ce8914hd03a5e4c740a5b9d@mail.gmail.com> <20091229220705.GM3512@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1262681372-7602-1-git-send-email-x0082077-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:54510 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755068Ab0AERyU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 12:54:20 -0500
+In-Reply-To: <20091229220705.GM3512@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Magnus Damm <magnus.damm@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Jan 05, 2010 at 02:19:32PM +0530, Maulik Mankad wrote:
-> ARM : OMAP : Remove #ifdef from board-omap3evm.c
-> 
-> Remove #ifdef around usb_nop_xceiv_register() from
-> board-omap3evm.c
-> 
-> Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
-> Cc: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Hi, 
 
-Acked-by: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+On Tue, 29 Dec 2009, Tony Lindgren wrote:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Also, what's the Cortex version on your v7? It's rev r2p3 on
+> omap3430.
+
+Just a quick note - I think it is r1p3 on OMAP34xx ES3.1 and below, and 
+r1p7 on ES3.1.2.
+
+
+- Paul
