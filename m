@@ -1,53 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/4] OMAP2xxx clock/CPUFreq: fix compilation errors;
- clean up
-Date: Tue, 5 Jan 2010 10:28:56 -0800
-Message-ID: <20100105182856.GF12378@atomide.com>
-References: <20100105173347.15485.42853.stgit@localhost.localdomain>
- <20100105180659.GD12378@atomide.com>
- <alpine.DEB.2.00.1001051121140.2083@utopia.booyaka.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [RFC][PATCH] mfd: twl4030: Check for i2c error code in
+ protect_pm_master function
+Date: Tue, 5 Jan 2010 19:43:04 +0100
+Message-ID: <20100105184303.GF4274@sortiz.org>
+References: <1260548958-27317-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53149 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753702Ab0AES25 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 13:28:57 -0500
+Received: from mga06.intel.com ([134.134.136.21]:40746 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755175Ab0AESlZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 13:41:25 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1001051121140.2083@utopia.booyaka.com>
+In-Reply-To: <1260548958-27317-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: balajitk@ti.com
+Cc: linux-omap@vger.kernel.org, amit.kucheria@verdurent.com
 
-* Paul Walmsley <paul@pwsan.com> [100105 10:20]:
-> On Tue, 5 Jan 2010, Tony Lindgren wrote:
+Hi Balaji,
+
+On Fri, Dec 11, 2009 at 09:59:18PM +0530, balajitk@ti.com wrote:
+> From: Balaji T K <balajitk@ti.com>
 > 
-> > * Paul Walmsley <paul@pwsan.com> [100105 09:35]:
-> > > Hello,
-> > > 
-> > > This series fixes several compilation errors for OMAP2xxx chips when
-> > > CONFIG_CPU_FREQ is set.  These were reported and partially fixed
-> > > by Felipe Balbi <felipe.balbi@nokia.com>.
-> > > 
-> > > Considerable work is still needed to fully support dynamic frequency
-> > > changes on OMAP2xxx-series chips.  Readers interested in such a
-> > > project are encouraged to review the Maemo Diablo RX-34 and RX-44
-> > > kernel source at:
-> > > 
-> > >     http://repository.maemo.org/pool/diablo/free/k/kernel-source-diablo/
-> > > 
-> > > Boot-tested on N800 with n8x0_defconfig with CONFIG_CPU_FREQ; compile-tested
-> > > for 2430SDP.
-> > > 
-> > > This second version also incorporates some comments from Felipe.
-> > 
-> > These look good to me, can you please send them one more time with
-> > LAKML Cc'd for a quick review there?
+>         Warn about error messages immediately after i2c write to R_PROTECT_KEY
+> 	in functions protect_pm_master/unprotect_pm_master
 > 
-> Yes, I plan to send them there along with some other queued fixes for 
-> another .33-rc fixes series.
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> ---
+>  drivers/mfd/twl-core.c |   23 ++++++++++++++++++-----
+>  1 files changed, 18 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 42af794..74f93ed 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -804,6 +804,9 @@ static inline int __init protect_pm_master(void)
+>  
+>  	e = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, KEY_LOCK,
+>  			R_PROTECT_KEY);
+> +	if (e < 0)
+> +		pr_err("twl_core: Could not write value : %x to TWL"
+> +		       " register %x err %d\n", KEY_LOCK, R_PROTECT_KEY, e);
+>  	return e;
+>  }
+>  
+> @@ -811,10 +814,17 @@ static inline int __init unprotect_pm_master(void)
+>  {
+>  	int e = 0;
+>  
+> -	e |= twl_i2c_write_u8(TWL_MODULE_PM_MASTER, KEY_UNLOCK1,
+> +	e = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, KEY_UNLOCK1,
+>  			R_PROTECT_KEY);
+> -	e |= twl_i2c_write_u8(TWL_MODULE_PM_MASTER, KEY_UNLOCK2,
+> +	if (e < 0)
+> +		pr_err("twl_core: Could not write value : %x to TWL"
+> +		       " register %x err %d\n", KEY_UNLOCK1, R_PROTECT_KEY, e);
+> +
+Does it make sense to continue here ? If the key unlocking failed, shouldnt we
+just return the error and leave ?
 
-OK, thanks.
 
-Tony
+> +	e = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, KEY_UNLOCK2,
+>  			R_PROTECT_KEY);
+> +	if (e < 0)
+> +		pr_err("twl_core: Could not write value : %x to TWL"
+> +		       " register %x err %d\n", KEY_UNLOCK1, R_PROTECT_KEY, e);
+>  	return e;
+>  }
+>  
+> @@ -865,10 +875,13 @@ static void clocks_init(struct device *dev)
+>  	}
+>  
+>  	ctrl |= HIGH_PERF_SQ;
+> -	e |= unprotect_pm_master();
+> +	e = unprotect_pm_master();
+Same here: If the unprotection failed, the rest probably will fail as well,
+right ?
+
+Cheers,
+Samuel.
+
+>  	/* effect->MADC+USB ck en */
+> -	e |= twl_i2c_write_u8(TWL_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
+> -	e |= protect_pm_master();
+> +	e = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
+> +	if (e < 0)
+> +		pr_err("twl_core: Could not write value : %x to TWL"
+> +		       " register %x err %d\n", ctrl, R_CFG_BOOT, e);
+> +	e = protect_pm_master();
+>  
+>  	if (e < 0)
+>  		pr_err("%s: clock init err [%d]\n", DRIVER_NAME, e);
+> -- 
+> 1.5.4.7
+> 
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
