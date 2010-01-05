@@ -1,58 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 0/4] OMAP2xxx clock/CPUFreq: fix compilation errors;
-	clean up
-Date: Tue, 05 Jan 2010 10:35:08 -0700
-Message-ID: <20100105173347.15485.42853.stgit@localhost.localdomain>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH v3 1/2] USB: Add empty functions in otg.h
+Date: Tue, 5 Jan 2010 11:53:07 -0600
+Message-ID: <20100105175307.GA27177@lixom.net>
+References: <1262681218-6875-1-git-send-email-x0082077@ti.com> <20100105105450.GD11291@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:32790 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751963Ab0AERgt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 12:36:49 -0500
+Received: from lixom.net ([66.141.50.11]:46134 "EHLO mail.lixom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754757Ab0AERqZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Jan 2010 12:46:25 -0500
+Content-Disposition: inline
+In-Reply-To: <20100105105450.GD11291@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext Maulik Mankad <x0082077@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@suse.de>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
 
-Hello,
+On Tue, Jan 05, 2010 at 12:54:50PM +0200, Felipe Balbi wrote:
+> On Tue, Jan 05, 2010 at 09:46:58AM +0100, ext Maulik Mankad wrote:
+>> USB : Add empty functions in otg.h
+>>
+>> Add empty functions for usb_nop_xceiv_register()
+>> and usb_nop_xceiv_unregister() in otg.h so that
+>> these functions can be called even when
+>> CONFIG_NOP_USB_XCEIV is not enabled.
+>>
+>> It allows to remove ifdef's from board file.
+>>
+>> Signed-off-by: Maulik Mankad <x0082077@ti.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Felipe Balbi <felipe.balbi@nokia.com>
+>
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+>
+> Now this patch looks ok.
 
-This series fixes several compilation errors for OMAP2xxx chips when
-CONFIG_CPU_FREQ is set.  These were reported and partially fixed
-by Felipe Balbi <felipe.balbi@nokia.com>.
+Don't you mean Acked-by?
 
-Considerable work is still needed to fully support dynamic frequency
-changes on OMAP2xxx-series chips.  Readers interested in such a
-project are encouraged to review the Maemo Diablo RX-34 and RX-44
-kernel source at:
+Anyway, also:
 
-    http://repository.maemo.org/pool/diablo/free/k/kernel-source-diablo/
-
-Boot-tested on N800 with n8x0_defconfig with CONFIG_CPU_FREQ; compile-tested
-for 2430SDP.
-
-This second version also incorporates some comments from Felipe.
-
-
-- Paul
-
----
-
-Felipe Balbi (1):
-      OMAP2xxx clock: clk2xxx.c doesn't compile if CPUFREQ is enabled
-
-Paul Walmsley (3):
-      OMAP2xxx OPP: clean up comments in OPP data
-      OMAP2 clock: dynamically allocate CPUFreq frequency table
-      OMAP clock/CPUFreq: avoid leaking the CPUFreq frequency table
+Acked-by: Olof Johansson <olof@lixom.net>
 
 
- arch/arm/mach-omap2/clock2xxx.c         |   57 ++++++++++++++++++++++++++-----
- arch/arm/mach-omap2/opp2420_data.c      |   38 +++++++++++----------
- arch/arm/mach-omap2/opp2430_data.c      |   30 ++++++++--------
- arch/arm/plat-omap/clock.c              |   10 +++++
- arch/arm/plat-omap/cpu-omap.c           |    1 +
- arch/arm/plat-omap/include/plat/clock.h |    2 +
- 6 files changed, 96 insertions(+), 42 deletions(-)
-
-
+-Olof
