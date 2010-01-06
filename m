@@ -1,65 +1,82 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
-Date: Wed, 6 Jan 2010 20:15:07 +0530
-Message-ID: <618f0c911001060645g4580a83je653fcdb3d0f2e7@mail.gmail.com>
-References: <618f0c910912110701p771dcf6fg655bb0a7b9bdc96d@mail.gmail.com>
-	 <20091228214846.GP3512@atomide.com>
-	 <618f0c911001032303p5d103f3et6271a71e1e5fbc96@mail.gmail.com>
-	 <4B448D11.5060400@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] omap: Fix compile for omap1_bl.c
+Date: Wed, 6 Jan 2010 10:56:11 -0800
+Message-ID: <20100106185611.GA11511@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary="bg08WKrSYDhXBjb5"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:52460 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932206Ab0AFOpI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 09:45:08 -0500
-Received: by pxi4 with SMTP id 4so394723pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 06 Jan 2010 06:45:07 -0800 (PST)
-In-Reply-To: <4B448D11.5060400@nokia.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53602 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932584Ab0AFS4N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 13:56:13 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Lavinen Jarkko (Nokia-M/Helsinki)" <jarkko.lavinen@nokia.com>
+To: Emese Revfy <re.emese@gmail.com>, Richard Purdie <rpurdie@linux.intel.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, Jan 6, 2010 at 6:46 PM, Adrian Hunter <adrian.hunter@nokia.com>=
- wrote:
-> Venkatraman S wrote:
->>
->> On Tue, Dec 29, 2009 at 3:18 AM, Tony Lindgren <tony@atomide.com> wr=
-ote:
->>>
->>> * Venkatraman S <svenkatr@ti.com> [091211 07:01]:
->>>>
->>>> Here is the most updated version of the patch (thanks to Russell's
->>>> review). This patch is applicable to OMAP4xxx as well as OMAP3630
->>>> Reference to previous posts
->>>> v1 =A0http://marc.info/?l=3Dlinux-omap&m=3D125012097403050&w=3D2
->>>> v2 =A0http://marc.info/?l=3Dlinux-omap&m=3D125137152606644&w=3D2
->>>> v3 =A0http://patchwork.kernel.org/patch/45408/
->>>
->>> Do you have a patch for drivers/mmc/host/omap_hsmmc.c to
->>> use this feature? Or some other driver?
->>>
->>> Regards,
->>>
->>> Tony
->>
->> I am about to start working on omap_hsmmc to use the descriptor load
->> feature. If the DMA changes are acceptable, I can post the driver
->> patch as well.
->
-> I presume this is about performance. =A0How does it compare to chaine=
-d DMA?
-> We have a patch for omap_hsmmc for chained DMA that we are still test=
-ing.
->
- The main difference would be the number of logical channels used.
-With chaining, I assume you'd request for (or the API internally
-reserves) as many logical channels as there are segments. Here a
-single logical channel would do.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--bg08WKrSYDhXBjb5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+I'd like to push the following compile fix via the omap-fixes
+queue. Emese & Richard, care to ack?
+
+Regards,
+
+Tony
+
+
+--bg08WKrSYDhXBjb5
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="omap1-bl.patch"
+
+>From 72318a4604b7fa40a1e65d3e18f639ba0134d789 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 6 Jan 2010 10:31:06 -0800
+Subject: [PATCH] omap: Fix compile for omap1_bl.c
+
+Commit 9905a43b made struct backlight_ops const. Omap was
+setting check_fb dynamically, which caused the following
+compile error:
+
+drivers/video/backlight/omap1_bl.c: In function 'omapbl_probe':
+drivers/video/backlight/omap1_bl.c:142: error: assignment of read-only variable 'omapbl_ops'
+
+Turns out pdata->check_fb is not being used, so just remove
+it to fix the compile.
+
+Cc: Emese Revfy <re.emese@gmail.com>
+Cc: Richard Purdie <rpurdie@linux.intel.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/plat-omap/include/plat/board.h b/arch/arm/plat-omap/include/plat/board.h
+index 376ce18..5cd6220 100644
+--- a/arch/arm/plat-omap/include/plat/board.h
++++ b/arch/arm/plat-omap/include/plat/board.h
+@@ -99,7 +99,6 @@ struct fb_info;
+ struct omap_backlight_config {
+ 	int default_intensity;
+ 	int (*set_power)(struct device *dev, int state);
+-	int (*check_fb)(struct fb_info *fb);
+ };
+ 
+ struct omap_fbmem_config {
+diff --git a/drivers/video/backlight/omap1_bl.c b/drivers/video/backlight/omap1_bl.c
+index 409ca96..a3a7f89 100644
+--- a/drivers/video/backlight/omap1_bl.c
++++ b/drivers/video/backlight/omap1_bl.c
+@@ -139,8 +139,6 @@ static int omapbl_probe(struct platform_device *pdev)
+ 	if (!pdata)
+ 		return -ENXIO;
+ 
+-	omapbl_ops.check_fb = pdata->check_fb;
+-
+ 	bl = kzalloc(sizeof(struct omap_backlight), GFP_KERNEL);
+ 	if (unlikely(!bl))
+ 		return -ENOMEM;
+
+--bg08WKrSYDhXBjb5--
