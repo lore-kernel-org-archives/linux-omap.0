@@ -1,29 +1,50 @@
-From: "Luke-Jr" <luke@dashjr.org>
-Subject: Re: problem with n810 boot up
-Date: Wed, 6 Jan 2010 17:40:07 -0600
-Message-ID: <201001061740.17161.luke@dashjr.org>
-References: <200912290152.16357.luke@dashjr.org> <20100106224520.GA29239@gandalf> <4B45167F.8020605@gmail.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: serial port input corruption with 2.6.32?
+Date: Thu, 7 Jan 2010 05:10:50 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870300519479@dbde02.ent.ti.com>
+References: <5e088bd90912231259k12dfafeckecbaaa1d29cec4ed@mail.gmail.com>
+	<4551feaf0912231306gfebba89rf4e5b014c3a74fe7@mail.gmail.com>
+	<5e088bd90912231322y3f507e4bvc453583946340cb8@mail.gmail.com>
+ <87k4vuak71.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from vps2.mechanicalrealm.com ([66.216.20.21]:44979 "EHLO
-	zinan.dashjr.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756533Ab0AFXkb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 18:40:31 -0500
-In-Reply-To: <4B45167F.8020605@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58770 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756311Ab0AFXk7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 18:40:59 -0500
+In-Reply-To: <87k4vuak71.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Francisco Alecrim <alecrim@gmail.com>
-Cc: me@felipebalbi.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Kalle Valo <kalle.valo@iki.fi>
+To: Kevin Hilman <khilman@deeprootsystems.com>, Steve Sakoman <sakoman@gmail.com>
+Cc: Robert Nelson <robertcnelson@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wednesday 06 January 2010 05:02:23 pm you wrote:
-> I'm using the flags (no-omap-wd,no-retu-wd,no-lifeguard-reset)
-> recommended by Kalle[1]. This's not the problem. :(
-
-AFAIK, no-retu-wd disables *pinging* the retu WD (which itself cannot be 
-disabled). I'd try removing that one.
-
-Also, note my rootfs is Gentoo, not Maemo. Maemo will depend on DSME which is 
-not being started with my modded linuxrc.
+DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGxpbnV4LW9tYXAtb3duZXJA
+dmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtb21hcC1vd25lckB2Z2VyLmtlcm5lbC5vcmdd
+IE9uIEJlaGFsZiBPZiBLZXZpbg0KPkhpbG1hbg0KPlNlbnQ6IFdlZG5lc2RheSwgSmFudWFyeSAw
+NiwgMjAxMCA1OjI3IFBNDQo+VG86IFN0ZXZlIFNha29tYW4NCj5DYzogUm9iZXJ0IE5lbHNvbjsg
+bGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj5TdWJqZWN0OiBSZTogc2VyaWFsIHBvcnQgaW5w
+dXQgY29ycnVwdGlvbiB3aXRoIDIuNi4zMj8NCj4NCj5TdGV2ZSBTYWtvbWFuIDxzYWtvbWFuQGdt
+YWlsLmNvbT4gd3JpdGVzOg0KPg0KPj4gT24gV2VkLCBEZWMgMjMsIDIwMDkgYXQgMTowNiBQTSwg
+Um9iZXJ0IE5lbHNvbiA8cm9iZXJ0Y25lbHNvbkBnbWFpbC5jb20+IHdyb3RlOg0KPj4+IE9uIFdl
+ZCwgRGVjIDIzLCAyMDA5IGF0IDI6NTkgUE0sIFN0ZXZlIFNha29tYW4gPHNha29tYW5AZ21haWwu
+Y29tPiB3cm90ZToNCj4+Pj4gSSdtIHNlZWluZyBzb21lIHN0cmFuZ2UgYmVoYXZpb3Igd2l0aCBt
+eSBjb25zb2xlIHNlcmlhbCBwb3J0IHdpdGggMi42LjMyLg0KPj4+Pg0KPHNuaXA+DQo+VGhpcyB3
+aWxsIGFsc28gaGF2ZSBvYnZpb3VzIGFuZCBzZXJpb3VzIFBNIGltcGxpY2F0aW9ucyBmb3Igbm9u
+DQo+c2VyaWFsLWNvbnNvbGUgZGV2aWNlcyBjb25uZWN0ZWQgdG8gVUFSVHMgKElyREEsIGJsdWV0
+b290aCwgbW9kZW1zLA0KPmV0Yy4pDQoNCk9NQVAgdWFydHMgZm9yIEJUIGV0YyB1c2UgaC93IGZs
+b3cgY29udHJvbCwgd2hpY2ggaXMgYW5vdGhlciB3YXkgb2Ygd2FraW5nIHVwIG9tYXAgYmVmb3Jl
+IHNlbmRpbmcgYW55IGNoYXJzIGFuZCBoZW5jZSBkb27igJl0IGxvb3NlIGRhdGEuDQoNCkNvbnNv
+bGUgdXNlcyBubyBmbG93IGNvbnRyb2wgYXMgeW91IGtub3cuDQoNCj4NCj5JJ3ZlIGhlYXJkIHNv
+bWUgaWRlYXMgb2YgbXV4aW5nIHRoZSBVQVJUIGludG8gR1BJTyBtb2RlIHdoZW4gaWRsZSBhbmQN
+Cj5oYXZpbmcgYSBiaXRiYW5naW5nIHRvIGdldCB0aGUgZmlyc3QgY2hhciBzbyBpdCBpcyBub3Qg
+bG9zdCwgYnV0DQo+aGF2ZW4ndCBzZWVuIGFueSBwYXRjaGVzIHRvIGRvIGl0Lg0KPg0KPldoaWxl
+IGl0IGRvZXNuJ3QgcmVhbGx5IHNvbHZlIHlvdXIgcHJvYmxlbSwgSSBob3BlIGl0IGF0IGxlYXN0
+IGhlbHBzDQo+dW5kZXJzdGFuZCB0aGUgcmVhc29uIGZvciBpdC4NCg0KWW91IGNvdWxkIHdyaXRl
+IGEgYm9vayBvbiB1YXJ0IHBtIDopDQoNCj4NCj5LZXZpbg0KPg0KPg0KPi0tDQo+VG8gdW5zdWJz
+Y3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9t
+YXAiIGluDQo+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5v
+cmcNCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9y
+ZG9tby1pbmZvLmh0bWwNCg==
