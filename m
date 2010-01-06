@@ -1,42 +1,32 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
-Date: Wed, 06 Jan 2010 15:16:01 +0200
-Message-ID: <4B448D11.5060400@nokia.com>
-References: <618f0c910912110701p771dcf6fg655bb0a7b9bdc96d@mail.gmail.com>	 <20091228214846.GP3512@atomide.com> <618f0c911001032303p5d103f3et6271a71e1e5fbc96@mail.gmail.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: [PATCH 0/3][NAND][OMAP]: fixing omap nand driver issues
+Date: Wed, 6 Jan 2010 19:28:38 +0530
+Message-ID: <ce9ab5791001060558u362f17baj5ee90e9b4adb72a7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:44860 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932158Ab0AFNRP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 08:17:15 -0500
-In-Reply-To: <618f0c911001032303p5d103f3et6271a71e1e5fbc96@mail.gmail.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:44364 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754713Ab0AFN7A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 08:59:00 -0500
+Received: by bwz27 with SMTP id 27so10682241bwz.21
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jan 2010 05:58:58 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Lavinen Jarkko (Nokia-M/Helsinki)" <jarkko.lavinen@nokia.com>
+To: Linux MTD <linux-mtd@lists.infradead.org>
+Cc: linux-omap@vger.kernel.org
 
-Venkatraman S wrote:
-> On Tue, Dec 29, 2009 at 3:18 AM, Tony Lindgren <tony@atomide.com> wrote:
->> * Venkatraman S <svenkatr@ti.com> [091211 07:01]:
->>> Here is the most updated version of the patch (thanks to Russell's
->>> review). This patch is applicable to OMAP4xxx as well as OMAP3630
->>> Reference to previous posts
->>> v1  http://marc.info/?l=linux-omap&m=125012097403050&w=2
->>> v2  http://marc.info/?l=linux-omap&m=125137152606644&w=2
->>> v3  http://patchwork.kernel.org/patch/45408/
->> Do you have a patch for drivers/mmc/host/omap_hsmmc.c to
->> use this feature? Or some other driver?
->>
->> Regards,
->>
->> Tony
-> 
-> I am about to start working on omap_hsmmc to use the descriptor load
-> feature. If the DMA changes are acceptable, I can post the driver
-> patch as well.
+>From 3700088e8da8c890d9e4c6eb626e18287d149b97 Mon Sep 17 00:00:00 2001
+From: Vimal Singh <vimalsingh@ti.com>
+Date: Tue, 5 Jan 2010 16:43:08 +0530
+Subject: [PATCH] fixing omap nand driver issues
 
-I presume this is about performance.  How does it compare to chained DMA?
-We have a patch for omap_hsmmc for chained DMA that we are still testing.
+fixing omap nand driver issues.
 
+Vimal Singh (3):
+  Fixing compilation warning for 'nand/omap2.c'
+  NAND: OMAP: correct 'info' pointer in 'omap_nand_remove'
+  NAND: OMAP: Fixing issue in oamp nand driver in prefetch mode read
+
+ drivers/mtd/nand/omap2.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
