@@ -1,32 +1,134 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig
- register.
-Date: Tue, 5 Jan 2010 17:32:23 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001051730230.21295@utopia.booyaka.com>
-References: <1260098674-27143-1-git-send-email-thara@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E171@dbde02.ent.ti.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: regression: crash from 'ls /sys/modules/wl1251_spi/notes'
+Date: Tue, 5 Jan 2010 17:15:50 -0800
+Message-ID: <20100105171550.8aef9b15.akpm@linux-foundation.org>
+References: <87k4w4wux9.fsf@purkki.valot.fi>
+	<1262188157.2749.21.camel@mulgrave.site>
+	<4B3D145C.2080106@gmx.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46659 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754009Ab0AFAcY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 19:32:24 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E171@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-parisc-owner@vger.kernel.org>
+In-Reply-To: <4B3D145C.2080106@gmx.de>
+Sender: linux-parisc-owner@vger.kernel.org
+To: Helge Deller <deller@gmx.de>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, ben@decadent.org.uk, tbm@cyrius.com, Kalle Valo <kalle.valo@iki.fi>, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, rusty@rustcorp.com.au, roland@redhat.com, dave@hiauly1.hia.nrc.ca, Parisc List <linux-parisc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 23 Dec 2009, Gopinath, Thara wrote:
+On Thu, 31 Dec 2009 22:15:08 +0100
+Helge Deller <deller@gmx.de> wrote:
 
-> Hi Paul,Kevin.. Does this patch look ok?
+> On 12/30/2009 04:49 PM, James Bottomley wrote:
+> > A better, and more comprehensive patch would be to try not to count the
+> > empty text sections when we're building the notes section (and actually
+> > anywhere else in the file).  This patch actually relies on the fact that
+> > if sh_size is zero for the text section it should be for the
+> > corresponding notes section.  If that doesn't work, we'd actually have
+> > to do the matching in the construction piece.
+> >
+> > Can you try it to see if it works for you?  If it doesn't, I'll try
+> > matching notes to text.  It works fine on parisc, but as we don't have a
+> > notes section, that's not saying much ...
+> >
+> > Thanks,
+> >
+> > James
+> 
+> 
+> Ben Hutchings already sent a similar patch.
+> See: http://patchwork.kernel.org/patch/68925/
+> 
+> IMHO James patch below seems better since it
+> checks if a section will be allocated at a few more
+> places...
+> 
 
-Hello Thara,
+Ben's patch (which is below) is currently in linux-next, via a Rusty
+tree.  It is marked for -stable backporting.
 
-looking over this patch.  Nice job on the descriptive patch comment; 
-it explains the problem well.  What do you think about a slightly 
-different approach -- that is, to add a hook to the hwmod code to 
-invalidate the cache if the module's powerdomain has lost context?
+If James's patch is preferable then there's an opportunity to do the
+swap if we move promptly.
 
 
-- Paul
+
+
+commit 9e9b48a89ed43c73d7355ff999b8e87b0628e1cd
+Author:     Ben Hutchings <ben@decadent.org.uk>
+AuthorDate: Sat Dec 19 14:43:01 2009 +0000
+Commit:     Stephen Rothwell <sfr@canb.auug.org.au>
+CommitDate: Tue Jan 5 08:44:50 2010 +1100
+
+    modules: Skip empty sections when exporting section notes
+    
+    Commit 35dead4 "modules: don't export section names of empty sections
+    via sysfs" changed the set of sections that have attributes, but did
+    not change the iteration over these attributes in add_notes_attrs().
+    This can lead to add_notes_attrs() creating attributes with the wrong
+    names or with null name pointers.
+    
+    Introduce a sect_empty() function and use it in both add_sect_attrs()
+    and add_notes_attrs().
+    
+    Reported-by: Martin Michlmayr <tbm@cyrius.com>
+    Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+    Tested-by: Martin Michlmayr <tbm@cyrius.com>
+    Cc: stable@kernel.org
+    Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+
+diff --git a/kernel/module.c b/kernel/module.c
+index e96b8ed..f82386b 100644
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -1010,6 +1010,12 @@ static const struct kernel_symbol *resolve_symbol(Elf_Shdr *sechdrs,
+  * J. Corbet <corbet@lwn.net>
+  */
+ #if defined(CONFIG_KALLSYMS) && defined(CONFIG_SYSFS)
++
++static inline bool sect_empty(const Elf_Shdr *sect)
++{
++	return !(sect->sh_flags & SHF_ALLOC) || sect->sh_size == 0;
++}
++
+ struct module_sect_attr
+ {
+ 	struct module_attribute mattr;
+@@ -1051,8 +1057,7 @@ static void add_sect_attrs(struct module *mod, unsigned int nsect,
+ 
+ 	/* Count loaded sections and allocate structures */
+ 	for (i = 0; i < nsect; i++)
+-		if (sechdrs[i].sh_flags & SHF_ALLOC
+-		    && sechdrs[i].sh_size)
++		if (!sect_empty(&sechdrs[i]))
+ 			nloaded++;
+ 	size[0] = ALIGN(sizeof(*sect_attrs)
+ 			+ nloaded * sizeof(sect_attrs->attrs[0]),
+@@ -1070,9 +1075,7 @@ static void add_sect_attrs(struct module *mod, unsigned int nsect,
+ 	sattr = &sect_attrs->attrs[0];
+ 	gattr = &sect_attrs->grp.attrs[0];
+ 	for (i = 0; i < nsect; i++) {
+-		if (! (sechdrs[i].sh_flags & SHF_ALLOC))
+-			continue;
+-		if (!sechdrs[i].sh_size)
++		if (sect_empty(&sechdrs[i]))
+ 			continue;
+ 		sattr->address = sechdrs[i].sh_addr;
+ 		sattr->name = kstrdup(secstrings + sechdrs[i].sh_name,
+@@ -1156,7 +1159,7 @@ static void add_notes_attrs(struct module *mod, unsigned int nsect,
+ 	/* Count notes sections and allocate structures.  */
+ 	notes = 0;
+ 	for (i = 0; i < nsect; i++)
+-		if ((sechdrs[i].sh_flags & SHF_ALLOC) &&
++		if (!sect_empty(&sechdrs[i]) &&
+ 		    (sechdrs[i].sh_type == SHT_NOTE))
+ 			++notes;
+ 
+@@ -1172,7 +1175,7 @@ static void add_notes_attrs(struct module *mod, unsigned int nsect,
+ 	notes_attrs->notes = notes;
+ 	nattr = &notes_attrs->attrs[0];
+ 	for (loaded = i = 0; i < nsect; ++i) {
+-		if (!(sechdrs[i].sh_flags & SHF_ALLOC))
++		if (sect_empty(&sechdrs[i]))
+ 			continue;
+ 		if (sechdrs[i].sh_type == SHT_NOTE) {
+ 			nattr->attr.name = mod->sect_attrs->attrs[loaded].name;
+
