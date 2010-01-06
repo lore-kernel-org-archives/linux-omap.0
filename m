@@ -1,60 +1,63 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH v2 2/2]: Introducing 'gpmc-nand.c' for GPMC specific
- NAND init
-Date: Wed, 06 Jan 2010 16:34:57 +0200
-Message-ID: <1262788497.3177.14.camel@localhost>
-References: <64662.192.168.10.89.1259933932.squirrel@dbdmail.itg.ti.com>
-	 <20091204220138.GJ24013@atomide.com>
-	 <ce9ab5790912062229xae89bb3m6965b4f4465f11c3@mail.gmail.com>
-	 <ce9ab5790912070529h1143355du691ce6a23f5ddb56@mail.gmail.com>
-	 <20091207175644.GA24013@atomide.com> <20091208235725.GA24013@atomide.com>
-	 <ce9ab5790912132226n6480c029ve93def5ebec1e2c9@mail.gmail.com>
-	 <ce9ab5790912140147v23e3705aucf6d25c56aaaab31@mail.gmail.com>
-Reply-To: dedekind1@gmail.com
+From: Venkatraman S <svenkatr@ti.com>
+Subject: Re: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
+Date: Wed, 6 Jan 2010 20:15:07 +0530
+Message-ID: <618f0c911001060645g4580a83je653fcdb3d0f2e7@mail.gmail.com>
+References: <618f0c910912110701p771dcf6fg655bb0a7b9bdc96d@mail.gmail.com>
+	 <20091228214846.GP3512@atomide.com>
+	 <618f0c911001032303p5d103f3et6271a71e1e5fbc96@mail.gmail.com>
+	 <4B448D11.5060400@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49128 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932214Ab0AFOfR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 09:35:17 -0500
-In-Reply-To: <ce9ab5790912140147v23e3705aucf6d25c56aaaab31@mail.gmail.com>
+Received: from mail-px0-f174.google.com ([209.85.216.174]:52460 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932206Ab0AFOpI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 09:45:08 -0500
+Received: by pxi4 with SMTP id 4so394723pxi.33
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jan 2010 06:45:07 -0800 (PST)
+In-Reply-To: <4B448D11.5060400@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Lavinen Jarkko (Nokia-M/Helsinki)" <jarkko.lavinen@nokia.com>
 
-On Mon, 2009-12-14 at 15:17 +0530, Vimal Singh wrote:
-> From 6170aa1c63c49a3f09e76258f400230b742fdd6f Mon Sep 17 00:00:00 200=
-1
-> From: Vimal Singh <vimalsingh@ti.com>
-> Date: Wed, 25 Nov 2009 18:23:15 +0530
-> Subject: [PATCH] Introducing 'gpmc-nand.c' for GPMC specific NAND ini=
-t
->=20
-> Introducing 'gpmc-nand.c' for GPMC specific NAND init.
-> For example: GPMC timing parameters and all.
-> This patch also migrates gpmc related calls from 'nand/omap2.c'
-> to 'gpmc-nand.c'.
->=20
-> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile           |    3 +
->  arch/arm/mach-omap2/gpmc-nand.c        |  137 ++++++++++++++++++++++=
-++++++++++
->  arch/arm/plat-omap/include/plat/nand.h |    6 ++
->  drivers/mtd/nand/omap2.c               |   26 +------
->  4 files changed, 149 insertions(+), 23 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
-
-I assume this is material for Tony and the omap tree.
-
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
-
+On Wed, Jan 6, 2010 at 6:46 PM, Adrian Hunter <adrian.hunter@nokia.com>=
+ wrote:
+> Venkatraman S wrote:
+>>
+>> On Tue, Dec 29, 2009 at 3:18 AM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+>>>
+>>> * Venkatraman S <svenkatr@ti.com> [091211 07:01]:
+>>>>
+>>>> Here is the most updated version of the patch (thanks to Russell's
+>>>> review). This patch is applicable to OMAP4xxx as well as OMAP3630
+>>>> Reference to previous posts
+>>>> v1 =A0http://marc.info/?l=3Dlinux-omap&m=3D125012097403050&w=3D2
+>>>> v2 =A0http://marc.info/?l=3Dlinux-omap&m=3D125137152606644&w=3D2
+>>>> v3 =A0http://patchwork.kernel.org/patch/45408/
+>>>
+>>> Do you have a patch for drivers/mmc/host/omap_hsmmc.c to
+>>> use this feature? Or some other driver?
+>>>
+>>> Regards,
+>>>
+>>> Tony
+>>
+>> I am about to start working on omap_hsmmc to use the descriptor load
+>> feature. If the DMA changes are acceptable, I can post the driver
+>> patch as well.
+>
+> I presume this is about performance. =A0How does it compare to chaine=
+d DMA?
+> We have a patch for omap_hsmmc for chained DMA that we are still test=
+ing.
+>
+ The main difference would be the number of logical channels used.
+With chaining, I assume you'd request for (or the API internally
+reserves) as many logical channels as there are segments. Here a
+single logical channel would do.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
