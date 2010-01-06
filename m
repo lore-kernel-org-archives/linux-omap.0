@@ -1,84 +1,67 @@
-From: "Luke-Jr" <luke@dashjr.org>
-Subject: Re: problem with n810 boot up
-Date: Tue, 5 Jan 2010 21:07:48 -0600
-Message-ID: <201001052107.55283.luke@dashjr.org>
-References: <200912290152.16357.luke@dashjr.org> <201001051747.02221.luke@dashjr.org> <4B43F983.5050200@gmail.com>
+From: "Pagare, Abhijit" <abhijitpagare@ti.com>
+Subject: RE: [PATCH 1/1] ARM: OMAP4: PM: Add check for avoiding dependency
+ related update.
+Date: Wed, 6 Jan 2010 14:39:43 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C041BB3A@dbde02.ent.ti.com>
+References: <1261583238-22187-1-git-send-email-abhijitpagare@ti.com>
+ <alpine.DEB.2.00.0912300125320.24862@utopia.booyaka.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C02E919C@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1001051608340.21295@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from vps2.mechanicalrealm.com ([66.216.20.21]:44966 "EHLO
-	zinan.dashjr.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754247Ab0AFDIK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Jan 2010 22:08:10 -0500
-In-Reply-To: <4B43F983.5050200@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56868 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755331Ab0AFJJ6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 04:09:58 -0500
+In-Reply-To: <alpine.DEB.2.00.1001051608340.21295@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Francisco Alecrim <alecrim@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Kalle Valo <kalle.valo@iki.fi>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday 05 January 2010 08:46:27 pm Francisco Alecrim wrote:
-> Luke-Jr wrote:
-> > On Tuesday 05 January 2010 05:24:56 pm Francisco Alecrim wrote:
-> >> Luke-Jr wrote:
-> >>> Tested on Nokia N810 in Linux-OMAP tree. Mainline is not bootable yet.
-> >>
-> >> I'm with some problems to boot-up latest l-o(commit
-> >> abb74381235a05f15a3b07e9e3831034942c67fb) with n810. The error message
-> >> can be found below and full boot output in the end of email.
-> >>
-> >> dsme: No correct bootreason found, entering the malfunction state
+Hello Paul,
+
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Wednesday, January 06, 2010 4:40 AM
+> To: Pagare, Abhijit
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [PATCH 1/1] ARM: OMAP4: PM: Add check for avoiding dependency
+> related update.
+> 
+> On Wed, 30 Dec 2009, Pagare, Abhijit wrote:
+> 
+> > > -----Original Message-----
+> > > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > > Sent: Wednesday, December 30, 2009 2:02 PM
 > >
-> > That's DSME, part of Maemo userland. You can possibly write a LD_PRELOAD
-> > workaround if you want to run it anyway...
-> 
-> I tried but it doesn't work. I included a line to print the
-> /proc/bootreason value and there is no bootreason. :P
-> 
-> cat: /proc/bootreason: No such file or directory
-> 
-> I guess that's the problem.
-
-Yeah, that "file" isn't supposed to exist. It was a Nokia-specific hack.
-
-> >> What rootfs do you use? Did you change initfs?
+> > > But really, I'd rather not apply this patch.  The best way forward is
+> to
+> > > apply a patch that adds the OMAP4 wakeup and sleep dependencies
+> > > themselves.  Have you had a chance to look at the series that I sent
+> you a
+> > > few weeks ago off-list that reorganizes the wakeup and sleep
+> dependencies
+> > > to determine if it is adequate for you to add the OMAP4 wakeup/sleep
+> > > dependencies afterwards?
 > >
-> > Gentoo. I modified my initfs to chainload its init if a new kernel is
-> > running.
+> > I had a look at the dependency patches that you had sent to me earlier
+> > and it seems feasible to add the OMAP4 related dependency data on top of
+> > those patches. A small change exists but can be taken care of.
 > 
-> I don't know how to do it. Could you send me yours?
+> Great, I've just cleaned those up, rebased them, and posted them to the
+> list.  If you prefer, you can also get from the
+> 'move_wkdeps_sleepdeps_to_clkdm' branch at git://git.pwsan.com/linux-2.6
+> 
 
-special=false
-if echo -n >/writetest; then
-        exec >/$(uname -r).log
-        exec 2>&1
-        /dmesg.static
-        ls -lh /dev
-#       ifconfig usb0 192.168.1.2
-#       mount -t proc proc proc
-#               ifconfig -a
-#       umount proc
-#       sync
+I checked the dependency patch-set. The complete stuff looks really neat. Applying OMAP4 on top of this would be feasible.
+The only thing is that till the point the OMAP4 dependency patches go in the "autodeps" variable in arch/arm/clockdomain.c would not be initialized which will cause a kernel boot-crash for the functions _clkdm_add_autodeps(clkdm) and _clkdm_del_autodeps(clkdm). Hence the hack patch referred to in the subject above is essential. Should I re-post it with the missing FIXME indication that you had recommended?
 
-if true; then
+Thanks & Regards,
+Abhijit
 
-echo A
-mount -t proc proc proc
-mount /dev/mmcblk0p1 /mnt/new_root || exec /bin/sh
-echo B
-cd /mnt/new_root
-mkdir -p mnt/initfs
-echo C
-pivot_root . mnt/initfs
-echo D
-cd /
-mount
-sync
-echo E
-exec /usr/bin/chroot / /sbin/init
-
-fi
-
-        special=true
-fi
+> 
+> - Paul
