@@ -1,40 +1,52 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 5/9] omap3: pm: sr: replace get_opp with freq_to_opp
-Date: Thu, 7 Jan 2010 08:18:43 -0600
-Message-ID: <4B45ED43.3090607@ti.com>
-References: <1258004721-7315-1-git-send-email-nm@ti.com>	<1258004721-7315-2-git-send-email-nm@ti.com>	<1258004721-7315-3-git-send-email-nm@ti.com>	<1258004721-7315-4-git-send-email-nm@ti.com>	<1258004721-7315-5-git-send-email-nm@ti.com>	<1258004721-7315-6-git-send-email-nm@ti.com>	<87eimrx4em.fsf@deeprootsystems.com> <4B2CBA8A.5030905@ti.com> <87k4wfrm89.fsf@deeprootsystems.com> <4B4520CF.3000306@ti.com> <FCCFB4CDC6E5564B9182F639FC3560870300519667@dbde02.ent.ti.com> <4B45D065.6090800@gmail.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of
+ sysconfig register.
+Date: Thu, 7 Jan 2010 20:48:10 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D6B7B@dbde02.ent.ti.com>
+References: <1260098674-27143-1-git-send-email-thara@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E171@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1001051730230.21295@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32835 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751280Ab0AGOSt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jan 2010 09:18:49 -0500
-In-Reply-To: <4B45D065.6090800@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42092 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752893Ab0AGPSd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 10:18:33 -0500
+In-Reply-To: <alpine.DEB.2.00.1001051730230.21295@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <menon.nishanth@gmail.com>
-Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, "Dasgupta, Romit" <romit@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Gopinath, Thara" <thara@ti.com>, "K, Ambresh" <ambresh@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Nishanth Menon had written, on 01/07/2010 06:15 AM, the following:
-> Sripathy, Vishwanath said the following on 01/07/2010 02:35 AM:
->> Nishant,
->> Have you tested your opp patches on 3630? Apparently opp changes in wip branch does not even boot on ZOOM3 board.
->>   
-> The original series was tested and reported with results. I have'nt had 
-> a chance to try with the newer patch set. if there are patches, they are 
-> most welcome meanwhile. I will also try to do some on SDP3630 later today.
-> 
-[...]
-http://pastebin.mozilla.org/695411 has the boot log on SDP3630! as 
-reported previously clock framework is crashing, that is probably 
-because the clock framework changes for 3630 corresponding to 3630 OPPs 
-are not available.
 
-the scripts and kernel details are part of
-http://marc.info/?l=linux-omap&m=126282159227739&w=2
 
--- 
-Regards,
-Nishanth Menon
+>>-----Original Message-----
+>>From: Paul Walmsley [mailto:paul@pwsan.com]
+>>Sent: Wednesday, January 06, 2010 6:02 AM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org
+>>Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
+>>
+>>On Wed, 23 Dec 2009, Gopinath, Thara wrote:
+>>
+>>> Hi Paul,Kevin.. Does this patch look ok?
+>>
+>>Hello Thara,
+>>
+>>looking over this patch.  Nice job on the descriptive patch comment;
+>>it explains the problem well.  What do you think about a slightly
+>>different approach -- that is, to add a hook to the hwmod code to
+>>invalidate the cache if the module's powerdomain has lost context?
+
+Hi Paul
+
+It should be possible but I feel it is a bit cumbersome. Couple of reasons I have. 
+a. Some modules like smartreflex does not have any power domain associated with it.
+b. Invalidating the cache is not needed for all modules even if the module powerdomain context is lost. This is needed only for modules which employ always restore mechanism. All other modules will do explicit context save and restore of its registers
+c. Getting whether power domain context is lost or not is not very straight forward. If I am not mistaken the only way is to keep tab of the powerdomain counters through omap_pm_get_dev_context_loss_count. I might be mistaken.
+
+Regards
+Thara
