@@ -1,68 +1,35 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARCH OMAP : enable ARCH_HAS_HOLES_MEMORYMODEL for OMAP
-Date: Thu, 7 Jan 2010 09:22:51 -0600
-Message-ID: <4B45FC4B.9080302@ti.com>
-References: <1262867408-9895-1-git-send-email-srk@ti.com>
+From: Francisco Alecrim <alecrim@gmail.com>
+Subject: Re: problem with n810 boot up
+Date: Thu, 07 Jan 2010 11:25:40 -0400
+Message-ID: <4B45FCF4.5030409@gmail.com>
+References: <200912290152.16357.luke@dashjr.org> <201001061740.17161.luke@dashjr.org> <4B4523F4.7080504@gmail.com> <201001061810.49763.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42457 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752869Ab0AGPWw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 10:22:52 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o07FMqqZ001159
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 7 Jan 2010 09:22:52 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id o07FMqN3003548
-	for <linux-omap@vger.kernel.org>; Thu, 7 Jan 2010 09:22:52 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o07FMqVF025148
-	for <linux-omap@vger.kernel.org>; Thu, 7 Jan 2010 09:22:52 -0600 (CST)
-In-Reply-To: <1262867408-9895-1-git-send-email-srk@ti.com>
+Received: from mail-gx0-f211.google.com ([209.85.217.211]:60005 "EHLO
+	mail-gx0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752174Ab0AGPZs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 10:25:48 -0500
+Received: by gxk3 with SMTP id 3so7678966gxk.1
+        for <linux-omap@vger.kernel.org>; Thu, 07 Jan 2010 07:25:46 -0800 (PST)
+In-Reply-To: <201001061810.49763.luke@dashjr.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindarajan, Sriramakrishnan" <srk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
+To: Luke-Jr <luke@dashjr.org>
+Cc: me@felipebalbi.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Kalle Valo <kalle.valo@iki.fi>
 
-Govindarajan, Sriramakrishnan had written, on 01/07/2010 06:30 AM, the 
-following:
-> From: Sriram <srk@ti.com>
+Luke-Jr wrote:
+> On Wednesday 06 January 2010 05:59:48 pm you wrote:
+>> Luke-Jr wrote:
+>>> Also, note my rootfs is Gentoo, not Maemo. Maemo will depend on DSME
+>>> which is not being started with my modded linuxrc.
+>> I'm using Mamona. Anyway,I did some tests before rootfs execution and I
+>> got the same problem. My current init contain only "exec /bin/sh".
+>> Device just turn power-off without error message.  :(
 > 
-> OMAP platforms(like OMAP3530) include DSP or other co-processors
-> for media acceleration. when carving out memory for the
-> accelerators we can end up creating a hole in the memory map
-> of sort:
-> <kernel memory><hole(memory for accelerator)><kernel memory>
-> 
-> To handle such a memory configuration ARCH_HAS_HOLES_MEMORYMODEL
-> has to be enabled. For further information refer discussion at:
-> http://www.mail-archive.com/linux-omap@vger.kernl.org/msg15262.html.
+> Well, give me a place to push my git tree and try that :)
 
-pls check the link: I see "The document you were looking for was not found."
-> 
-> Signed-off-by: Sriramakrishnan <srk@ti.com>
-> ---
->  arch/arm/Kconfig |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index 5e0bcc5..88f628b 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -699,6 +699,7 @@ config ARCH_OMAP
->  	select ARCH_HAS_CPUFREQ
->  	select GENERIC_TIME
->  	select GENERIC_CLOCKEVENTS
-> +	select ARCH_HAS_HOLES_MEMORYMODEL
-why enable this for all OMAPs?
->  	help
->  	  Support for TI's OMAP platform (OMAP1 and OMAP2).
->  
-
-
--- 
-Regards,
-Nishanth Menon
+If you have some custom changes to linux-omap kernel work correctly with
+N8x0+Gentoo, you can share it using http://gitorious.org/ . It's gonne
+be nice!
