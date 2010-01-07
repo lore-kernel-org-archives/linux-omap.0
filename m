@@ -1,61 +1,249 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 0/4] Add I2C support to AM3517EVM
-Date: Thu, 7 Jan 2010 23:10:33 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A397EDD@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	<1262614597-21685-1-git-send-email-hvaibhav@ti.com>
- <87vdfe94h4.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHV4 1/4] OMAP3: introduce DPLL4 Jtype
+Date: Thu, 7 Jan 2010 10:55:48 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001071047240.10034@utopia.booyaka.com>
+References: <1262849801-9955-1-git-send-email-vishwanath.bs@ti.com> <1262849801-9955-2-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51717 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012Ab0AGRlU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 12:41:20 -0500
-In-Reply-To: <87vdfe94h4.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:34277 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752452Ab0AGRzt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 12:55:49 -0500
+In-Reply-To: <1262849801-9955-2-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>, Nishanth Menon <nm@ti.com>
+
+Hello Vishwanath,
+
+some comments.
+
+On Thu, 7 Jan 2010, Vishwanath BS wrote:
+
+> DPLL4 for 3630 introduces a changed block called j type dpll, requiring
+> special divisor bits and additional reg fields. To allow for silicons to
+> use this, this is introduced as a flag and is enabled for 3630 silicon.
+> OMAP4 also has j type dpll for usb.
+> 
+> Tested with 3630 ZOOM3 and OMAP3430 ZOOM2
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
+> 
+> Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Vishwanath BS <Vishwanath.bs@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock.h             |    4 ++
+>  arch/arm/mach-omap2/clock34xx_data.c    |   26 +++++++++++++++++
+>  arch/arm/mach-omap2/clock44xx_data.c    |    1 +
+>  arch/arm/mach-omap2/cm-regbits-34xx.h   |    6 +++-
+>  arch/arm/mach-omap2/dpll.c              |   47 ++++++++++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/plat/clock.h |    2 +
+>  6 files changed, 84 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+> index 93c48df..297ade8
+> --- a/arch/arm/mach-omap2/clock.h
+> +++ b/arch/arm/mach-omap2/clock.h
+> @@ -47,6 +47,10 @@
+>  #define DPLL_LOW_POWER_BYPASS	0x5
+>  #define DPLL_LOCKED		0x7
+>  
+> +/*DPLL Type and DCO Selection Flags*/
+
+Please conform with CodingStyle and put spaces before and after the 
+comment text.
+
+> +#define DPLL_J_TYPE	0x1
+> +#define DPLL_NO_DCO_SEL	0x2
+> +
+>  int omap2_clk_init(void);
+>  int omap2_clk_enable(struct clk *clk);
+>  void omap2_clk_disable(struct clk *clk);
+> diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
+> index 043caed..66a3a96
+> --- a/arch/arm/mach-omap2/clock34xx_data.c
+> +++ b/arch/arm/mach-omap2/clock34xx_data.c
+> @@ -552,6 +552,30 @@ static struct dpll_data dpll4_dd = {
+>  	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+>  };
+>  
+> +static struct dpll_data dpll4_dd_3630 = {
+> +	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL2),
+> +	.mult_mask	= OMAP3430_PERIPH_DPLL_MULT_MASK,
+> +	.div1_mask	= OMAP3430_PERIPH_DPLL_DIV_MASK,
+> +	.clk_bypass	= &sys_ck,
+> +	.clk_ref	= &sys_ck,
+> +	.freqsel_mask	= OMAP3430_PERIPH_DPLL_FREQSEL_MASK,
+> +	.control_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+> +	.enable_mask	= OMAP3430_EN_PERIPH_DPLL_MASK,
+> +	.modes		= (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
+> +	.auto_recal_bit	= OMAP3430_EN_PERIPH_DPLL_DRIFTGUARD_SHIFT,
+> +	.recal_en_bit	= OMAP3430_PERIPH_DPLL_RECAL_EN_SHIFT,
+> +	.recal_st_bit	= OMAP3430_PERIPH_DPLL_ST_SHIFT,
+> +	.autoidle_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_AUTOIDLE),
+> +	.autoidle_mask	= OMAP3430_AUTO_PERIPH_DPLL_MASK,
+> +	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
+> +	.idlest_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
+> +	.max_multiplier = OMAP3_MAX_DPLL_MULT,
+> +	.min_divider	= 1,
+> +	.max_divider	= OMAP3_MAX_DPLL_DIV,
+> +	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE,
+> +	.flags		= DPLL_J_TYPE
+> +};
+> +
+>  static struct clk dpll4_ck = {
+>  	.name		= "dpll4_ck",
+>  	.ops		= &clkops_noncore_dpll_ops,
+> @@ -3241,6 +3265,8 @@ int __init omap2_clk_init(void)
+>  			cpu_clkflg |= CK_3430ES2;
+>  		}
+>  	}
+
+Add an extra newline here to stay in line with the existing clock code 
+style.
+
+> +	if (cpu_is_omap3630())
+> +		dpll4_dd = dpll4_dd_3630;
+
+I guess you decided not to resolve clock parents by name?
+
+If you're going to do it this way, then please rename the existing 
+dpll4_dd to something like dpll4_dd_3430, and assign that here as part of 
+the other branch of the conditional.
+
+>  
+>  	clk_init(&omap2_clk_functions);
+>  
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index 2210e22..a95930e
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -980,6 +980,7 @@ static struct dpll_data dpll_usb_dd = {
+>  	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+>  	.max_divider	= OMAP4430_MAX_DPLL_DIV,
+>  	.min_divider	= 1,
+> +	.flags		= DPLL_J_TYPE | DPLL_NO_DCO_SEL
+>  };
+>  
+>  
+> diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> index 6923deb..6f2802b 100644
+> --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
+> +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> @@ -516,9 +516,13 @@
+>  
+>  /* CM_CLKSEL2_PLL */
+>  #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
+> -#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0x7ff << 8)
+> +#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0xfff << 8)
+>  #define OMAP3430_PERIPH_DPLL_DIV_SHIFT			0
+>  #define OMAP3430_PERIPH_DPLL_DIV_MASK			(0x7f << 0)
+> +#define OMAP3630_PERIPH_DPLL_DCO_SEL_SHIFT		21
+> +#define OMAP3630_PERIPH_DPLL_DCO_SEL_MASK		(0x7 << 21)
+> +#define OMAP3630_PERIPH_DPLL_SD_DIV_SHIFT		24
+> +#define OMAP3630_PERIPH_DPLL_SD_DIV_MASK		(0xff << 24)
+>  
+>  /* CM_CLKSEL3_PLL */
+>  #define OMAP3430_DIV_96M_SHIFT				0
+> diff --git a/arch/arm/mach-omap2/dpll.c b/arch/arm/mach-omap2/dpll.c
+> index f6055b4..4f5570e
+> --- a/arch/arm/mach-omap2/dpll.c
+> +++ b/arch/arm/mach-omap2/dpll.c
+> @@ -238,6 +238,42 @@ static int _omap3_noncore_dpll_stop(struct clk *clk)
+>  }
+>  
+>  /**
+> + * lookup_dco_sddiv -  Set j-type DPLL4 compensation variables
+> + * @clk: pointer to a DPLL struct clk
+> + * @dco: digital control oscillator selector
+> + * @sd_div: target sigma-delta divider
+> + * @m: DPLL multiplier to set
+> + * @n: DPLL divider to set
+> + */
+> +static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16
+> +								m, u8 n)
+> +	{
+> +	unsigned long fint, clkinp, sd; /* watch out for overflow */
+> +	int mod1, mod2;
+> +
+> +	clkinp = clk->parent->rate;
+> +	fint = (clkinp / n) * m;
+> +
+> +	if (fint < 1000000000)
+> +		*dco = 2;
+> +	else
+> +		*dco = 4;
+> +	/*
+> +	 * target sigma-delta to near 250MHz
+> +	 * sd = ceil[(m/(n+1)) * (clkinp_MHz / 250)]
+> +	 */
+> +	clkinp /= 100000; /* shift from MHz to 10*Hz for 38.4 and 19.2*/
+> +	mod1 = (clkinp * m) % (250 * n);
+> +	sd = (clkinp * m) / (250 * n);
+> +	mod2 = sd % 10;
+> +	sd /= 10;
+> +
+> +	if (mod1 || mod2)
+> +		sd++;
+> +	*sd_div = sd;
+> +}
+> +
+> +/**
+>   * omap3_noncore_dpll_enable - instruct a DPLL to enter bypass or lock mode
+>   * @clk: pointer to a DPLL struct clk
+>   *
+> @@ -323,6 +359,15 @@ int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+>  	v &= ~(dd->mult_mask | dd->div1_mask);
+>  	v |= m << __ffs(dd->mult_mask);
+>  	v |= (n - 1) << __ffs(dd->div1_mask);
+> +
+> +      if ((dd->flags & DPLL_J_TYPE) && !(dd->flags & DPLL_NO_DCO_SEL)) {
+> +		u8 dco, sd_div;
+> +		lookup_dco_sddiv(clk, &dco, &sd_div, m, n);
+> +		v &= ~(OMAP3630_PERIPH_DPLL_DCO_SEL_MASK
+> +			| OMAP3630_PERIPH_DPLL_SD_DIV_MASK);
+> +		v |=  dco << __ffs(OMAP3630_PERIPH_DPLL_DCO_SEL_MASK);
+> +		v |=  sd_div << __ffs(OMAP3630_PERIPH_DPLL_SD_DIV_MASK);
+> +	}
+
+Add an extra newline here to stay in line with the existing clock code 
+style.
+
+>  	__raw_writel(v, dd->mult_div1_reg);
+>  
+>  	/* We let the clock framework set the other output dividers later */
+> @@ -530,7 +575,7 @@ unsigned long omap3_clkoutx2_recalc(struct clk *clk)
+>  
+>  	v = __raw_readl(dd->control_reg) & dd->enable_mask;
+>  	v >>= __ffs(dd->enable_mask);
+> -	if (v != OMAP3XXX_EN_DPLL_LOCKED)
+> +	if ((v != OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_TYPE))
+>  		rate = clk->parent->rate;
+>  	else
+>  		rate = clk->parent->rate * 2;
+> diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+> index 309b6d1..148d8ae
+> --- a/arch/arm/plat-omap/include/plat/clock.h
+> +++ b/arch/arm/plat-omap/include/plat/clock.h
+> @@ -62,6 +62,8 @@ struct dpll_data {
+>  	void __iomem		*idlest_reg;
+>  	u32			autoidle_mask;
+>  	u32			freqsel_mask;
+> +	u8			flags; /* indiciates what is the type of dpll
+> +						(like j_type, no_dco_sel) */
+
+Please start a kerneldoc comment block at the top of this structure and 
+move the comment up there. 
+
+>  	u32			idlest_mask;
+>  	u8			auto_recal_bit;
+>  	u8			recal_en_bit;
+> -- 
+> 1.5.6.3
+> 
 
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, January 07, 2010 5:22 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: Re: [PATCH 0/4] Add I2C support to AM3517EVM
-> 
-> hvaibhav@ti.com writes:
-> 
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > This series of patchset adds support for I2C bus interface along
-> with
-> > respective slave devices -
-> > 	- RTC-S35390A
-> > 	- TSC2004
-> > 	- TVP5146 decoder along with VPFE-capture
-> >
-> > Vaibhav Hiremath (4):
-> >   AM3517EVM: Enable I2C Support
-> >   AM3517: Add support for TSC2004 driver
-> >   AM3517: Add RTC-S35390A support
-> >   AM3517: Add VPFE Capture driver support
-> >
-> >  arch/arm/mach-omap2/board-am3517evm.c |  249
-> +++++++++++++++++++++++++++++++++
-> >  1 files changed, 249 insertions(+), 0 deletions(-)
-> 
-> Please add some more detailed changelogs in this series.
-> 
-[Hiremath, Vaibhav] Will update description and post is again.
-
-Thanks,
-Vaibhav
-
-> Thanks,
-> 
-> Kevin
+- Paul
