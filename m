@@ -1,60 +1,70 @@
-From: Lesly A M <x0080970@ti.com>
-Subject: [PATCH] omap3: pm: Add T2 Keypad as a wakeup source
-Date: Thu,  7 Jan 2010 15:17:12 +0530
-Message-ID: <1262857632-24364-1-git-send-email-x0080970@ti.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: RE: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
+Date: Thu, 7 Jan 2010 15:06:02 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003AF886DA0@dbde02.ent.ti.com>
+References: <1262851175.3933.5.camel@Nokia-N900-51-1>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C041C1BD@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49658 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50186 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751460Ab0AGJfJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jan 2010 04:35:09 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o079Z62B007856
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 7 Jan 2010 03:35:08 -0600
+	id S1750838Ab0AGJgW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Jan 2010 04:36:22 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C041C1BD@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M <x0080970@ti.com>, Teerth Reddy <teerth@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "adrian.hunter@nokia.com" <adrian.hunter@nokia.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "jarkko.lavinen@nokia.com" <jarkko.lavinen@nokia.com>
 
-Changes for setting the padconf value for sys_nirq line which is
-connected to T2 INTR1. This will fix the T2 keypad wakeup.
-
-Signed-off-by: Lesly A M <x0080970@ti.com>
-Signed-off-by: Teerth Reddy <teerth@ti.com>
----
- arch/arm/mach-omap2/board-zoom-peripherals.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 8dd277c..64d4db0 100755
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -24,6 +24,7 @@
- #include <plat/common.h>
- #include <plat/usb.h>
- 
-+#include "mux.h"
- #include "mmc-twl4030.h"
- 
- /* Zoom2 has Qwerty keyboard*/
-@@ -263,9 +264,17 @@ static int __init omap_i2c_init(void)
- 	return 0;
- }
- 
-+static void enable_board_wakeup_source(void)
-+{
-+	/* T2 interrupt line (keypad) */
-+	omap_mux_init_signal("sys_nirq",
-+		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
-+}
-+
- void __init zoom_peripherals_init(void)
- {
- 	omap_i2c_init();
- 	omap_serial_init();
- 	usb_musb_init();
-+	enable_board_wakeup_source();
- }
--- 
-1.6.0.4
-
+PiBWZW5rYXRyYW1hbiBTIHdyb3RlOiANCj4gPiBPbiBXZWQsIEphbiA2LCAyMDEwIGF0IDY6NDYg
+UE0sIEFkcmlhbiBIdW50ZXIgDQo+ID4gPGFkcmlhbi5odW50ZXJAbm9raWEuY29tPg0KPiA+IHdy
+b3RlOiANCj4gPiA+IFZlbmthdHJhbWFuIFMgd3JvdGU6IA0KPiA+ID4gPiANCj4gPiA+ID4gT24g
+VHVlLCBEZWMgMjksIDIwMDkgYXQgMzoxOCBBTSwgVG9ueSBMaW5kZ3JlbiANCj4gPHRvbnlAYXRv
+bWlkZS5jb20+DQo+ID4gd3JvdGU6IA0KPiA+ID4gPiA+IA0KPiA+ID4gPiA+ICogVmVua2F0cmFt
+YW4gUyA8c3ZlbmthdHJAdGkuY29tPiBbMDkxMjExIDA3OjAxXTogDQo+ID4gPiA+ID4gPiANCj4g
+PiA+ID4gPiA+IEhlcmUgaXMgdGhlIG1vc3QgdXBkYXRlZCB2ZXJzaW9uIG9mIHRoZSBwYXRjaCAo
+dGhhbmtzIHRvIA0KPiA+ID4gPiA+ID4gUnVzc2VsbCdzIHJldmlldykuIFRoaXMgcGF0Y2ggaXMg
+YXBwbGljYWJsZSB0byBPTUFQNHh4eCBhcyANCj4gPiA+ID4gPiA+IHdlbGwgYXMgT01BUDM2MzAg
+UmVmZXJlbmNlIHRvIHByZXZpb3VzIHBvc3RzDQo+ID4gPiA+ID4gPiB2McKgIGh0dHA6Ly9tYXJj
+LmluZm8vP2w9bGludXgtb21hcCZtPTEyNTAxMjA5NzQwMzA1MCZ3PTINCj4gPiA+ID4gPiA+IHYy
+wqAgaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTI1MTM3MTUyNjA2NjQ0Jnc9Mg0K
+PiA+ID4gPiA+ID4gdjPCoCBodHRwOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvNDU0MDgv
+DQo+ID4gPiA+ID4gDQo+ID4gPiA+ID4gRG8geW91IGhhdmUgYSBwYXRjaCBmb3IgZHJpdmVycy9t
+bWMvaG9zdC9vbWFwX2hzbW1jLmMgdG8gdXNlIA0KPiA+ID4gPiA+IHRoaXMgZmVhdHVyZT8gT3Ig
+c29tZSBvdGhlciBkcml2ZXI/DQo+ID4gPiA+ID4gDQo+ID4gPiA+ID4gUmVnYXJkcywNCj4gPiA+
+ID4gPiANCj4gPiA+ID4gPiBUb255DQo+ID4gPiA+IA0KPiA+ID4gPiBJIGFtIGFib3V0IHRvIHN0
+YXJ0IHdvcmtpbmcgb24gb21hcF9oc21tYyB0byB1c2UgdGhlIGRlc2NyaXB0b3IgDQo+ID4gPiA+
+IGxvYWQgZmVhdHVyZS4gSWYgdGhlIERNQSBjaGFuZ2VzIGFyZSBhY2NlcHRhYmxlLCBJIGNhbiBw
+b3N0IHRoZSANCj4gPiA+ID4gZHJpdmVyIHBhdGNoIGFzIHdlbGwuDQo+ID4gPiANCj4gPiA+IEkg
+cHJlc3VtZSB0aGlzIGlzIGFib3V0IHBlcmZvcm1hbmNlLsKgIEhvdyBkb2VzIGl0IGNvbXBhcmUg
+DQo+IHRvIGNoYWluZWQNCj4gPiBETUE/IA0KPiA+ID4gV2UgaGF2ZSBhIHBhdGNoIGZvciBvbWFw
+X2hzbW1jIGZvciBjaGFpbmVkIERNQSB0aGF0IHdlIGFyZSBzdGlsbA0KPiA+IHRlc3RpbmcuIA0K
+PiA+ID4gDQo+ID7CoCBUaGUgbWFpbiBkaWZmZXJlbmNlIHdvdWxkIGJlIHRoZSBudW1iZXIgb2Yg
+bG9naWNhbCBjaGFubmVscyB1c2VkLiANCj4gPiBXaXRoIGNoYWluaW5nLCBJIGFzc3VtZSB5b3Un
+ZCByZXF1ZXN0IGZvciAob3IgdGhlIEFQSSBpbnRlcm5hbGx5DQo+ID4gcmVzZXJ2ZXMpIGFzIG1h
+bnkgbG9naWNhbCBjaGFubmVscyBhcyB0aGVyZSBhcmUgc2VnbWVudHMuIEhlcmUgYSAgDQo+ID5z
+aW5nbGUgbG9naWNhbCBjaGFubmVsIHdvdWxkIGRvLg0KPiA+IA0KPiANCj4gSG93IGRvZXMgdGhl
+IHBlcmZvcm1hbmNlIGNvbXBhcmU/IFdoaWNoIGlzIGZhc3Rlcj8gRG9lcyANCj4gZGVzY3JpcHRv
+ciBhdXRvbG9hZGluZyByZWR1Y2UgdGhlIG51bWJlciBvZiBpbnRlcnJ1cHRzPyANCj4gPj4NCj4g
+VGhpcyBzaG91bGQgaW1wcm92ZSB0aGUgcGVyZm9yYW1hbmNlIGNvbXBhcmVkIHRvIGNoYWluaW5n
+ICANCj4gY2FzZS4gVGhpcyBmZWF0dXJlcyBlbXVsYXRlcyBzY2F0dGVyIGdhdGhlciB0cmFuc2Zl
+cnMgDQo+IGNhcGFiaWxpdHkgd2l0aCBtaW5pbXVtIE1QVSBzdXBwb3J0IGJ5IHJlbW92aW5nIHRo
+ZSANCj4gc3VjY2Vzc2l2ZSBjaGFubmVsIGNvbmZpZ3VyYXRpb24gcHJvY2Vzc2luZyBhbmQgdGhl
+IA0KPiBhc3NvY2lhdGVkIGludGVycnVwdCBoYW5kbGluZyBvdmVyaGVhZHMuIA0KPiBUaGlzIGlz
+IGFwYXJ0IGZyb20gb3B0aW1pemUgY2hhbm5lbCByZXNvdXJjZXMgYnkgZW5hYmxpbmcgDQo+IGVm
+ZmljaWVudCB0cmFuc2ZlciDigJxzZXJpYWxpemF0aW9u4oCdIG9uIGEgc2luZ2xlIGxvZ2ljYWwg
+DQo+IGNoYW5uZWwgdmVyc3VzIGNvbmN1cnJlbnQgKG11bHRpcGxlKSBsb2dpY2FsIGNoYW5uZWwg
+dXNhZ2UuIA0KPiANCj4gUmVnYXJkcywNCj4gU2FudG9zaA0KPiANCg0KV2UgaGF2ZSBub3QgZG9u
+ZSBmdWxsIGJlbmNobWFyayB0ZXN0cyB5ZXQsIGJ1dCBhcyBTYW50b3NoIG1lbnRpb25lZCwNCjEp
+IE9ubHkgb25lIGxvZ2ljYWwgY2hhbm5lbCBpcyB1c2VkLg0KMikgTm8gaW50ZXJydXB0cyBhcmUg
+Z2VuZXJhdGVkIHRpbGwgdGhlIGVuZCBvZiB0cmFuc2ZlciBvZiB0aGUgZW50aXJlIHNjYXR0ZXJs
+aXN0Lg0KKEluZmFjdCwgbXVsdGlwbGUgc2NhdHRlcmxpc3RzIGNhbiBiZSBjb21iaW5lZCBieSB0
+aGUgdXNlciBkcml2ZXIgdG8gYSBzaW5nbGUNCmRlc2NyaXB0b3IgbGlzdCwgYW5kIG5vIElSUXMg
+d291bGQgYmUgZ2VuZXJhdGVkIHRpbGwgdGhlIGVudGlyZSB0cmFuc2ZlciBjb21wbGV0ZXMuDQpJ
+ZiBuZWVkZWQsIHRoZSBkZXNjcmlwdG9ycyBjYW4gYmUgcHJvZ3JhbW1lZCB0byBnZW5lcmF0ZSBp
+bnRlcnJ1cHQocykgYXQgYW55IHBvaW50LikNClRoaXMgc2hvdWxkIHlpZWxkIGJldHRlciBwZXJm
+b3JtYW5jZSAvIENQVSB1dGlsaXphdGlvbiB0aGFuIGNoYWluaW5nLg0KDQpSZWdhcmRzLA0KVmVu
+a2F0Lg0KDQo=
