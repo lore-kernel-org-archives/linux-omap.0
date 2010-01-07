@@ -1,55 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/12] omap3: Fix booting if package is uninitialized
-Date: Wed, 06 Jan 2010 16:20:43 -0800
-Message-ID: <20100107002043.21352.9923.stgit@baageli.muru.com>
+Subject: [PATCH 12/12] omap3: EVM: Choose OMAP_PACKAGE_CBB
+Date: Wed, 06 Jan 2010 16:20:54 -0800
+Message-ID: <20100107002054.21352.23704.stgit@baageli.muru.com>
 References: <20100107001728.21352.38471.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54899 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932276Ab0AGAUl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 19:20:41 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56977 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932266Ab0AGAUy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 19:20:54 -0500
 In-Reply-To: <20100107001728.21352.38471.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Otherwise bringing up new boards can be harder:
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Unable to handle kernel NULL pointer dereference at virtual address 00000000
-pgd = c0004000
-[00000000] *pgd=00000000
-Internal error: Oops: 5 [#1]
-last sysfs file:
-Modules linked in:
-CPU: 0    Not tainted  (2.6.33-rc2-00015-g0bc9c93-dirty #37)
-PC is at omap_mux_init+0xa4/0x3d8
-LR is at omap_mux_init+0x3c/0x3d8
-...
+Without this the kernel doesn't boot, it craches in
+omap_mux_package_fixup(), since the package_subset becomes NULL.
 
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mux.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index e071b3f..459ef23 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -994,8 +994,10 @@ int __init omap_mux_init(u32 mux_pbase, u32 mux_size,
- 	}
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 10eafa7..606bf04 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -80,6 +80,7 @@ config MACH_OVERO
+ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select OMAP_PACKAGE_CBB
  
- #ifdef CONFIG_OMAP_MUX
--	omap_mux_package_fixup(package_subset, superset);
--	omap_mux_package_init_balls(package_balls, superset);
-+	if (package_subset)
-+		omap_mux_package_fixup(package_subset, superset);
-+	if (package_balls)
-+		omap_mux_package_init_balls(package_balls, superset);
- 	omap_mux_set_cmdline_signals();
- 	omap_mux_set_board_signals(board_mux);
- #endif
+ config MACH_OMAP3517EVM
+ 	bool "OMAP3517/ AM3517 EVM board"
 
