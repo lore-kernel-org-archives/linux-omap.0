@@ -1,29 +1,65 @@
-From: Romit Dasgupta <romit@ti.com>
-Subject: Re: [PATCH 8/10] OPP layer and additional cleanups
-Date: Thu, 07 Jan 2010 14:28:44 +0530
-Message-ID: <4B45A244.3010007@ti.com>
-References: <1262266172.20175.184.camel@boson> <FCCFB4CDC6E5564B9182F639FC3560870300519663@dbde02.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
+Date: Thu, 7 Jan 2010 14:35:59 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C041C1BD@dbde02.ent.ti.com>
+References: <1262851175.3933.5.camel@Nokia-N900-51-1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47834 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932506Ab0AGI6y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jan 2010 03:58:54 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870300519663@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:52896 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755309Ab0AGJG2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 04:06:28 -0500
+In-Reply-To: <1262851175.3933.5.camel@Nokia-N900-51-1>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "adrian.hunter@nokia.com" <adrian.hunter@nokia.com>, "S, Venkatraman" <svenkatr@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "jarkko.lavinen@nokia.com" <jarkko.lavinen@nokia.com>
 
-Sripathy, Vishwanath wrote:
-> Romit,
-> With VDD1 OPP resource being removed, how are you maitaning link between MPU and DSP frequencies? I could not find such a link in the below code. May be I am missing something??
-I have not linked DSP and MPU frequencies as I thought it is possible to run DSP
-and MPU with different frequencies as long as voltages are satisfied. If this is
-incorrect then this can be done from the cpufreq notifiers as I have tried to do
-it for L3.
-
-Thanks,
--Romit
+DQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQpGcm9tOiBhZHJpYW4u
+aHVudGVyQG5va2lhLmNvbSBbbWFpbHRvOmFkcmlhbi5odW50ZXJAbm9raWEuY29tXSANClNlbnQ6
+IFRodXJzZGF5LCBKYW51YXJ5IDA3LCAyMDEwIDE6MzAgUE0NClRvOiBTLCBWZW5rYXRyYW1hbg0K
+Q2M6IHRvbnlAYXRvbWlkZS5jb207IGxpbnV4QGFybS5saW51eC5vcmcudWs7IFNoaWxpbWthciwg
+U2FudG9zaDsga2hpbG1hbkBkZWVwcm9vdHN5c3RlbXMuY29tOyBsaW51eC1vbWFwQHZnZXIua2Vy
+bmVsLm9yZzsgbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBqYXJra28ubGF2
+aW5lbkBub2tpYS5jb20NClN1YmplY3Q6IFJlOiBbUGF0Y2ggdjRdIE9NQVA6IHNETUEgZHJpdmVy
+OiBkZXNjcmlwdG9yIGF1dG9sb2FkaW5nIGZlYXR1cmUNCg0KVmVua2F0cmFtYW4gUyB3cm90ZTog
+DQo+IE9uIFdlZCwgSmFuIDYsIDIwMTAgYXQgNjo0NiBQTSwgQWRyaWFuIEh1bnRlciA8YWRyaWFu
+Lmh1bnRlckBub2tpYS5jb20+IA0KPiB3cm90ZTogDQo+ID4gVmVua2F0cmFtYW4gUyB3cm90ZTog
+DQo+ID4gPiANCj4gPiA+IE9uIFR1ZSwgRGVjIDI5LCAyMDA5IGF0IDM6MTggQU0sIFRvbnkgTGlu
+ZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+IA0KPiB3cm90ZTogDQo+ID4gPiA+IA0KPiA+ID4gPiAq
+IFZlbmthdHJhbWFuIFMgPHN2ZW5rYXRyQHRpLmNvbT4gWzA5MTIxMSAwNzowMV06IA0KPiA+ID4g
+PiA+IA0KPiA+ID4gPiA+IEhlcmUgaXMgdGhlIG1vc3QgdXBkYXRlZCB2ZXJzaW9uIG9mIHRoZSBw
+YXRjaCAodGhhbmtzIHRvIFJ1c3NlbGwncyANCj4gPiA+ID4gPiByZXZpZXcpLiBUaGlzIHBhdGNo
+IGlzIGFwcGxpY2FibGUgdG8gT01BUDR4eHggYXMgd2VsbCBhcyBPTUFQMzYzMCANCj4gPiA+ID4g
+PiBSZWZlcmVuY2UgdG8gcHJldmlvdXMgcG9zdHMgDQo+ID4gPiA+ID4gdjHCoCBodHRwOi8vbWFy
+Yy5pbmZvLz9sPWxpbnV4LW9tYXAmbT0xMjUwMTIwOTc0MDMwNTAmdz0yIA0KPiA+ID4gPiA+IHYy
+wqAgaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTI1MTM3MTUyNjA2NjQ0Jnc9MiAN
+Cj4gPiA+ID4gPiB2M8KgIGh0dHA6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC80NTQwOC8g
+DQo+ID4gPiA+IA0KPiA+ID4gPiBEbyB5b3UgaGF2ZSBhIHBhdGNoIGZvciBkcml2ZXJzL21tYy9o
+b3N0L29tYXBfaHNtbWMuYyB0byANCj4gPiA+ID4gdXNlIHRoaXMgZmVhdHVyZT8gT3Igc29tZSBv
+dGhlciBkcml2ZXI/IA0KPiA+ID4gPiANCj4gPiA+ID4gUmVnYXJkcywgDQo+ID4gPiA+IA0KPiA+
+ID4gPiBUb255IA0KPiA+ID4gDQo+ID4gPiBJIGFtIGFib3V0IHRvIHN0YXJ0IHdvcmtpbmcgb24g
+b21hcF9oc21tYyB0byB1c2UgdGhlIGRlc2NyaXB0b3IgbG9hZCANCj4gPiA+IGZlYXR1cmUuIElm
+IHRoZSBETUEgY2hhbmdlcyBhcmUgYWNjZXB0YWJsZSwgSSBjYW4gcG9zdCB0aGUgZHJpdmVyIA0K
+PiA+ID4gcGF0Y2ggYXMgd2VsbC4gDQo+ID4gDQo+ID4gSSBwcmVzdW1lIHRoaXMgaXMgYWJvdXQg
+cGVyZm9ybWFuY2UuwqAgSG93IGRvZXMgaXQgY29tcGFyZSB0byBjaGFpbmVkIA0KPiBETUE/IA0K
+PiA+IFdlIGhhdmUgYSBwYXRjaCBmb3Igb21hcF9oc21tYyBmb3IgY2hhaW5lZCBETUEgdGhhdCB3
+ZSBhcmUgc3RpbGwgDQo+IHRlc3RpbmcuIA0KPiA+IA0KPsKgIFRoZSBtYWluIGRpZmZlcmVuY2Ug
+d291bGQgYmUgdGhlIG51bWJlciBvZiBsb2dpY2FsIGNoYW5uZWxzIHVzZWQuIA0KPiBXaXRoIGNo
+YWluaW5nLCBJIGFzc3VtZSB5b3UnZCByZXF1ZXN0IGZvciAob3IgdGhlIEFQSSBpbnRlcm5hbGx5
+IA0KPiByZXNlcnZlcykgYXMgbWFueSBsb2dpY2FsIGNoYW5uZWxzIGFzIHRoZXJlIGFyZSBzZWdt
+ZW50cy4gSGVyZSBhIA0KPiBzaW5nbGUgbG9naWNhbCBjaGFubmVsIHdvdWxkIGRvLiANCj4gDQoN
+CkhvdyBkb2VzIHRoZSBwZXJmb3JtYW5jZSBjb21wYXJlPyBXaGljaCBpcyBmYXN0ZXI/IERvZXMg
+ZGVzY3JpcHRvciBhdXRvbG9hZGluZyByZWR1Y2UgdGhlIG51bWJlciBvZiBpbnRlcnJ1cHRzPyAN
+Cj4+DQpUaGlzIHNob3VsZCBpbXByb3ZlIHRoZSBwZXJmb3JhbWFuY2UgY29tcGFyZWQgdG8gY2hh
+aW5pbmcgIGNhc2UuIFRoaXMgZmVhdHVyZXMgZW11bGF0ZXMNCnNjYXR0ZXIgZ2F0aGVyIHRyYW5z
+ZmVycyBjYXBhYmlsaXR5IHdpdGggbWluaW11bSBNUFUgc3VwcG9ydCBieSByZW1vdmluZyB0aGUN
+CnN1Y2Nlc3NpdmUgY2hhbm5lbCBjb25maWd1cmF0aW9uIHByb2Nlc3NpbmcgYW5kIHRoZSBhc3Nv
+Y2lhdGVkIGludGVycnVwdCBoYW5kbGluZyBvdmVyaGVhZHMuIA0KVGhpcyBpcyBhcGFydCBmcm9t
+IG9wdGltaXplIGNoYW5uZWwgcmVzb3VyY2VzIGJ5IGVuYWJsaW5nIGVmZmljaWVudCB0cmFuc2Zl
+ciDigJxzZXJpYWxpemF0aW9u4oCdIG9uIGEgc2luZ2xlIGxvZ2ljYWwgY2hhbm5lbCB2ZXJzdXMg
+Y29uY3VycmVudCAobXVsdGlwbGUpIGxvZ2ljYWwgY2hhbm5lbCB1c2FnZS4gDQoNClJlZ2FyZHMs
+DQpTYW50b3NoDQo=
