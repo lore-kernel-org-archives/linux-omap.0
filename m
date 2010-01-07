@@ -1,57 +1,73 @@
 From: Francisco Alecrim <alecrim@gmail.com>
-Subject: Re: problem with n810 boot up
-Date: Wed, 06 Jan 2010 22:04:58 -0400
-Message-ID: <4B45414A.9010805@gmail.com>
-References: <200912290152.16357.luke@dashjr.org> <20100106224520.GA29239@gandalf> <4B45167F.8020605@gmail.com> <201001070233.36120.siarhei.siamashka@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] n8x0_defconfig: active cbus, retu-wd and omap-wd
+Date: Wed,  6 Jan 2010 22:20:00 -0400
+Message-ID: <1262830800-30192-1-git-send-email-alecrim@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.211.176]:47962 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756608Ab0AGCFG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 21:05:06 -0500
-Received: by ywh6 with SMTP id 6so18055485ywh.4
-        for <linux-omap@vger.kernel.org>; Wed, 06 Jan 2010 18:05:04 -0800 (PST)
-In-Reply-To: <201001070233.36120.siarhei.siamashka@gmail.com>
+Received: from mail-yx0-f188.google.com ([209.85.210.188]:50373 "EHLO
+	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756631Ab0AGC1i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 21:27:38 -0500
+Received: by yxe26 with SMTP id 26so17289467yxe.4
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jan 2010 18:27:37 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Siarhei Siamashka <siarhei.siamashka@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Luke-Jr <luke@dashjr.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Francisco Alecrim <francisco.alecrim@openbossa.org>, Francisco Alecrim <alecrim@gmail.com>
 
-Siarhei Siamashka wrote:
-> On Thursday 07 January 2010, Francisco Alecrim wrote:
->> Felipe Balbi wrote:
->>> On Wed, Jan 06, 2010 at 06:11:10PM -0400, Francisco Alecrim wrote:
->>>> Thanks! Now it goes to rootfs and continue the boot, but device
->>>> power-off after 10-20 seconds. There is no error message to help. :(
->>> watchdog ?
->>>
->>> how about disabling watchdog with flasher ??
->> I'm using the flags (no-omap-wd,no-retu-wd,no-lifeguard-reset)
->> recommended by Kalle[1]. This's not the problem. :(
-> 
-> If I read these recommendations correctly, they tell to *clear* these R&D
-> flags. So probably it's better not to have them enabled.
-> 
-> Moreover, based on the following post, watchdog is hardwired and just can't be
-> disabled by any software methods:
-> http://lists.maemo.org/pipermail/maemo-developers/2007-June/010650.html
-> 
-> Your powerdown problem is exactly caused by a watchdog. Earlier a solution was 
-> to have a script which would kick watchdog periodically. But right now it is
-> kicked automatically in the kernel if CONFIG_CBUS_RETU_WDT option is enabled.
-> You also need to enable CONFIG_WATCHDOG, CONFIG_CBUS and probably some other
-> stuff.
-Thanks for this explanation. I works fine with the flags you indicate. :)
-> 
-> This all also means that CBUS is critical for correct N8x0 operation and these
-> devices simply can't work without it at all.
+From: Francisco Alecrim <francisco.alecrim@openbossa.org>
 
-Well, if it's critical to n8x0 operation then it should be in
-n8x0_defconfig.
-> 
-> Hope this information helps.
-> 
-Thanks,
-Alecrim.
+It's critical for correct n8x0 operation. Device turn power-off after some
+seconds without these options.
+
+Signed-off-by: Francisco Alecrim <alecrim@gmail.com>
+---
+ arch/arm/configs/n8x0_defconfig |   26 +++++++++++++++++++++++++-
+ 1 files changed, 25 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/configs/n8x0_defconfig b/arch/arm/configs/n8x0_defconfig
+index e6f667c..66b1d3f 100644
+--- a/arch/arm/configs/n8x0_defconfig
++++ b/arch/arm/configs/n8x0_defconfig
+@@ -661,7 +661,19 @@ CONFIG_GPIOLIB=y
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
+ # CONFIG_THERMAL_HWMON is not set
+-# CONFIG_WATCHDOG is not set
++CONFIG_WATCHDOG=y
++# CONFIG_WATCHDOG_NOWAYOUT is not set
++
++#
++# Watchdog Device Drivers
++#
++# CONFIG_SOFT_WATCHDOG is not set
++CONFIG_OMAP_WATCHDOG=y
++
++#
++# USB-based Watchdog Cards
++#
++# CONFIG_USBPCWATCHDOG is not set
+ CONFIG_SSB_POSSIBLE=y
+ 
+ #
+@@ -851,6 +863,18 @@ CONFIG_RTC_LIB=y
+ # CONFIG_STAGING is not set
+ 
+ #
++# CBUS support
++#
++CONFIG_CBUS=y
++# CONFIG_CBUS_TAHVO is not set
++CONFIG_CBUS_RETU=y
++# CONFIG_CBUS_RETU_USER is not set
++# CONFIG_CBUS_RETU_POWERBUTTON is not set
++# CONFIG_CBUS_RETU_RTC is not set
++CONFIG_CBUS_RETU_WDT=y
++# CONFIG_CBUS_RETU_HEADSET is not set
++
++#
+ # File systems
+ #
+ # CONFIG_EXT2_FS is not set
+-- 
+1.6.3.3
+
