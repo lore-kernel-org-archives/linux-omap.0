@@ -1,90 +1,86 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: dadd2bb931a08a4b6b17f9e82d9bbe7bedebbc98 breaks omapfb (old
- non-dss2)
-Date: Thu, 07 Jan 2010 13:46:23 +0200
-Message-ID: <1262864783.2127.18.camel@tubuntu.research.nokia.com>
-References: <48239d390912150158xdf2999dr6b43f21c64456002@mail.gmail.com>
-	 <1260890578.6017.11.camel@tubuntu.research.nokia.com>
-	 <48239d390912150801y70da9d46k637c01d8da3a5595@mail.gmail.com>
-	 <1260962480.15771.1.camel@tubuntu.research.nokia.com>
-	 <48239d390912170651g1dab3c37ycbbbd2df1f722f3b@mail.gmail.com>
-	 <1262862298.2127.6.camel@tubuntu.research.nokia.com>
+Subject: Re: [RFC PATCH] OMAP: DSS2: RFBI driver: Cleanup "kfifo is full"
+ test
+Date: Thu, 07 Jan 2010 14:06:19 +0200
+Message-ID: <1262865979.2127.34.camel@tubuntu.research.nokia.com>
+References: <20091214031816.GA1829@zakalwe.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:17920 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752196Ab0AGLpp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 06:45:45 -0500
-In-Reply-To: <1262862298.2127.6.camel@tubuntu.research.nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:64475 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752452Ab0AGMFd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 07:05:33 -0500
+In-Reply-To: <20091214031816.GA1829@zakalwe.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Sergey Lapin <slapinid@gmail.com>, ext Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Heikki Orsila <heikki.orsila@iki.fi>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-On Thu, 2010-01-07 at 12:05 +0100, Tomi Valkeinen wrote:
-> On Thu, 2009-12-17 at 15:51 +0100, ext Sergey Lapin wrote:
-> > On Wed, Dec 16, 2009 at 2:21 PM, Tomi Valkeinen
-> > <tomi.valkeinen@nokia.com> wrote:
-> > > Hi,
-> > >
-> > > On Tue, 2009-12-15 at 17:01 +0100, ext Sergey Lapin wrote:
-> > >> On Tue, Dec 15, 2009 at 6:22 PM, Tomi Valkeinen
-> > >> <tomi.valkeinen@nokia.com> wrote:
-> > >> > Hi,
-> > >> >
-> > >> > On Tue, 2009-12-15 at 10:58 +0100, ext Sergey Lapin wrote:
-> > >> >> dadd2bb931a08a4b6b17f9e82d9bbe7bedebbc98
-> > >> >> OMAP: OMAPFB: add omapdss device
-> > >> >>
-> > >> >>     The upcoming new display subsystem driver is divided to two devices,
-> > >> >>     omapdss and omapfb, of which omapdss handles the actual hardware.
-> > >> >>
-> > >> >>     This patch adds a dummy omapdss platform device for the current omapfb
-> > >> >>     driver, which is then used to get the clocks. This will make it possible
-> > >> >>     for the current and the new display drivers to co-exist.
-> > >> >>
-> > >> >>     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> > >> >>     Acked-by: Tony Lindgren <tony@atomide.com>
-> > >> >>
-> > >> >> breaks old omapfb.
-> > >> >
-> > >> > I didn't look at this further, but I quickly tested with OMAP3 SDP
-> > >> > board, reverting the patch that makes SDP use DSS2, and it seems to work
-> > >> > fine with the old omapfb.
-> > >
-> > > rfbi.c was still using omapfb device to get the clocks. Can you try this
-> > > patch?
-> > >
-> > >
-> > > >From 33b78006fb0387e21d5f780338d821621ecad929 Mon Sep 17 00:00:00 2001
-> > > From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> > > Date: Wed, 16 Dec 2009 13:18:07 +0200
-> > > Subject: [PATCH] OMAP: OMAPFB: fix clk_get for RFBI
-> > >
-> > > omapfb platform device was still used to get clocks inside rfbi.c
-> > If you add #include <linux/platform_device.h> to this patch,
-> > then problem is fixed.
-> 
-> Hmm, where do you need to add that include? n770 compiles ok for me.
-> 
-> I pushed this patch and another patch fixing the warning to master
-> branch in my tree:
-> http://gitorious.org/linux-omap-dss2/linux
-> 
-> Can you try them out? The commits are
-> 3a2cbca3a3703ecd77c6fe633543ea0926b95564 and
-> c47f085ecf6d024c8850177694c702d814563580
+On Mon, 2009-12-14 at 04:18 +0100, ext Heikki Orsila wrote:
+> RFBI_CMD_FIFO_LEN_BYTES might not be a power-of-two,
+> but kfifo() allocates the size up to the next power of two,
+> which makes (RFBI_CMD_FIFO_LEN_BYTES - kfifo_len())
+> look very dubious (possibly a negative value!).
 
-Sorry, I was too hasty. The release function should return void, not
-int.
+But this can never happen, as the code never pushes more than
+RFBI_CMD_FIFO_LEN_BYTES bytes into the fifo.
 
-The new patches are
-3a2cbca3a3703ecd77c6fe633543ea0926b95564 and
-ed18458714274525545349a2c35cf32f4a17f166
+> 
+> Notes:
+> 
+> [1] Not tested nor compiled here
+> 
+> [2] The removed code compares int with a size_t.
+> It looks buggy, because if the full allocated
+> size of the fifo is used, the integer comparison
+> leads to "always empty space in the fifo".
+> Fortunately, the code can never go there, because
+> available == 0 will come before negative integer
+> values.
+> 
+> [3] Do we want to use the whole allocated space?
+
+I think if we allocate space for n bytes, we should use n bytes of the
+area, even though the underlying mechanism would allocate more. 
+
+> In that case the change should be:
+> 
+> -               available = RFBI_CMD_FIFO_LEN_BYTES -
+> -                       __kfifo_len(rfbi.cmd_fifo);
+> +               available = rfbi.cmd_fifo->size - __kfifo_len(rfbi.cmd_fifo);
+> 
+> Signed-off-by: Heikki Orsila <heikki.orsila@iki.fi>
+> ---
+>  drivers/video/omap2/dss/rfbi.c |    5 +----
+>  1 files changed, 1 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+> index d0b3006..1dbe993 100644
+> --- a/drivers/video/omap2/dss/rfbi.c
+> +++ b/drivers/video/omap2/dss/rfbi.c
+> @@ -1050,14 +1050,11 @@ static void rfbi_push_cmd(struct update_param *p)
+>  
+>  	while (1) {
+>  		unsigned long flags;
+> -		int available;
+>  
+>  		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
+> -		available = RFBI_CMD_FIFO_LEN_BYTES -
+> -			__kfifo_len(rfbi.cmd_fifo);
+>  
+>  /*		DSSDBG("%d bytes left in fifo\n", available); */
+> -		if (available < sizeof(struct update_param)) {
+> +		if (__kfifo_len(rfbi.cmd_fifo) >= RFBI_CMD_FIFO_LEN_BYTES) {
+>  			DSSDBG("Going to wait because FIFO FULL..\n");
+>  			spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
+>  			atomic_inc(&rfbi.cmd_fifo_full);
+
+Hmm, I don't think this is correct. The point is to test if there's
+enough space for one struct update_param in the fifo. You are testing if
+the fifo is full.
 
  Tomi
-
 
 
