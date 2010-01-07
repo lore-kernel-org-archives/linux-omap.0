@@ -1,53 +1,60 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 5/9] omap3: pm: sr: replace get_opp with freq_to_opp
-Date: Thu, 7 Jan 2010 14:43:58 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703005196AC@dbde02.ent.ti.com>
-References: <1258004721-7315-1-git-send-email-nm@ti.com>
-	<1258004721-7315-2-git-send-email-nm@ti.com>
-	<1258004721-7315-3-git-send-email-nm@ti.com>
-	<1258004721-7315-4-git-send-email-nm@ti.com>
-	<1258004721-7315-5-git-send-email-nm@ti.com>
-	<1258004721-7315-6-git-send-email-nm@ti.com>
-	<87eimrx4em.fsf@deeprootsystems.com> <4B2CBA8A.5030905@ti.com>
- <87k4wfrm89.fsf@deeprootsystems.com> <4B4520CF.3000306@ti.com>
- <FCCFB4CDC6E5564B9182F639FC3560870300519667@dbde02.ent.ti.com>
- <4B45A0F5.1020603@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Lesly A M <x0080970@ti.com>
+Subject: [PATCH] omap3: pm: Add T2 Keypad as a wakeup source
+Date: Thu,  7 Jan 2010 15:17:12 +0530
+Message-ID: <1262857632-24364-1-git-send-email-x0080970@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49184 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49658 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756033Ab0AGJOE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 04:14:04 -0500
-In-Reply-To: <4B45A0F5.1020603@ti.com>
-Content-Language: en-US
+	id S1751460Ab0AGJfJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Jan 2010 04:35:09 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o079Z62B007856
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 7 Jan 2010 03:35:08 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Dasgupta, Romit" <romit@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Gopinath, Thara" <thara@ti.com>, "K, Ambresh" <ambresh@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Lesly A M <x0080970@ti.com>, Teerth Reddy <teerth@ti.com>
 
-Yes Vijay tried with your OPP patches on 3630 ZOOM3 and it seems to work.
+Changes for setting the padconf value for sys_nirq line which is
+connected to T2 INTR1. This will fix the T2 keypad wakeup.
 
-Vishwa
+Signed-off-by: Lesly A M <x0080970@ti.com>
+Signed-off-by: Teerth Reddy <teerth@ti.com>
+---
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-> -----Original Message-----
-> From: Dasgupta, Romit
-> Sent: Thursday, January 07, 2010 2:23 PM
-> To: Sripathy, Vishwanath
-> Cc: Menon, Nishanth; Kevin Hilman; linux-omap; Cousson, Benoit; Chikkature
-> Rajashekar, Madhusudhan; Paul Walmsley; Premi, Sanjeev; Shilimkar, Santosh;
-> Aguirre, Sergio; Gopinath, Thara; K, Ambresh
-> Subject: Re: [PATCH 5/9] omap3: pm: sr: replace get_opp with freq_to_opp
-> 
-> Sripathy, Vishwanath wrote:
-> > Nishant,
-> > Have you tested your opp patches on 3630? Apparently opp changes in wip branch
-> does not even boot on ZOOM3 board.
-> >
-> > Vishwa
-> Vishwa,
->           did you try on top of my OPP patches?
-> 
-> Thanks,
-> -Romit
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 8dd277c..64d4db0 100755
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -24,6 +24,7 @@
+ #include <plat/common.h>
+ #include <plat/usb.h>
+ 
++#include "mux.h"
+ #include "mmc-twl4030.h"
+ 
+ /* Zoom2 has Qwerty keyboard*/
+@@ -263,9 +264,17 @@ static int __init omap_i2c_init(void)
+ 	return 0;
+ }
+ 
++static void enable_board_wakeup_source(void)
++{
++	/* T2 interrupt line (keypad) */
++	omap_mux_init_signal("sys_nirq",
++		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
++}
++
+ void __init zoom_peripherals_init(void)
+ {
+ 	omap_i2c_init();
+ 	omap_serial_init();
+ 	usb_musb_init();
++	enable_board_wakeup_source();
+ }
+-- 
+1.6.0.4
+
