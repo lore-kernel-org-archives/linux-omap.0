@@ -1,34 +1,40 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 8/10] OPP layer and additional cleanups
-Date: Thu, 7 Jan 2010 09:35:44 -0600
-Message-ID: <4B45FF50.8040805@ti.com>
-References: <1262266172.20175.184.camel@boson> <FCCFB4CDC6E5564B9182F639FC3560870300519663@dbde02.ent.ti.com> <4B45A244.3010007@ti.com>
+From: "Luke-Jr" <luke@dashjr.org>
+Subject: Re: problem with n810 boot up
+Date: Thu, 7 Jan 2010 09:40:59 -0600
+Message-ID: <201001070941.05201.luke@dashjr.org>
+References: <200912290152.16357.luke@dashjr.org> <201001061810.49763.luke@dashjr.org> <4B45FCF4.5030409@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35942 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752692Ab0AGPfr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jan 2010 10:35:47 -0500
-In-Reply-To: <4B45A244.3010007@ti.com>
+Received: from vps2.mechanicalrealm.com ([66.216.20.21]:45332 "EHLO
+	zinan.dashjr.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750964Ab0AGPlU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 10:41:20 -0500
+In-Reply-To: <4B45FCF4.5030409@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Dasgupta, Romit" <romit@ti.com>
-Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Francisco Alecrim <alecrim@gmail.com>
+Cc: me@felipebalbi.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Kalle Valo <kalle.valo@iki.fi>
 
-Dasgupta, Romit had written, on 01/07/2010 02:58 AM, the following:
-> Sripathy, Vishwanath wrote:
->> Romit,
->> With VDD1 OPP resource being removed, how are you maitaning link between MPU and DSP frequencies? I could not find such a link in the below code. May be I am missing something??
-> I have not linked DSP and MPU frequencies as I thought it is possible to run DSP
-> and MPU with different frequencies as long as voltages are satisfied. If this is
-> incorrect then this can be done from the cpufreq notifiers as I have tried to do
-> it for L3.
-Is'nt DSP and MPU frequencies linked 1-1? at a given VDD1 OPP, DSP and 
-MPU have a specific frequency. I am guessing we will need the cpufreq 
-notifiers to link them up.
+On Thursday 07 January 2010 09:25:40 am Francisco Alecrim wrote:
+> Luke-Jr wrote:
+> > On Wednesday 06 January 2010 05:59:48 pm you wrote:
+> >> Luke-Jr wrote:
+> >>> Also, note my rootfs is Gentoo, not Maemo. Maemo will depend on DSME
+> >>> which is not being started with my modded linuxrc.
+> >>
+> >> I'm using Mamona. Anyway,I did some tests before rootfs execution and I
+> >> got the same problem. My current init contain only "exec /bin/sh".
+> >> Device just turn power-off without error message.  :(
+> >
+> > Well, give me a place to push my git tree and try that :)
+> 
+> If you have some custom changes to linux-omap kernel work correctly with
+> N8x0+Gentoo, you can share it using http://gitorious.org/ . It's gonne
+> be nice!
 
--- 
-Regards,
-Nishanth Menon
+Hmm, for some reason I thought Gitorious had a storage limit... guess not! :)
+Pushing to http://gitorious.org/~Luke-Jr/n8x0
+It's taking a while :/
