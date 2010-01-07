@@ -1,130 +1,91 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 5/5] OMAP2 clock: dynamically allocate CPUFreq frequency
-	table
-Date: Wed, 06 Jan 2010 18:22:26 -0700
-Message-ID: <20100107012222.3551.97749.stgit@localhost.localdomain>
-References: <20100107011932.3551.75659.stgit@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Nishanth Menon <nm@ti.com>
+Subject: [pm-wip-opp][PATCH] omap3: pm: sr: fix get_vddx_opp to use ceil
+Date: Wed,  6 Jan 2010 19:56:42 -0600
+Message-ID: <1262829402-10158-1-git-send-email-nm@ti.com>
+References: <[PATCH 5/9] omap3: pm: sr: replace get_opp with freq_to_opp>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37145 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756326Ab0AGBYS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 20:24:18 -0500
-In-Reply-To: <20100107011932.3551.75659.stgit@localhost.localdomain>
+Received: from comal.ext.ti.com ([198.47.26.152]:56068 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756441Ab0AGB4p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Jan 2010 20:56:45 -0500
+In-Reply-To: <[PATCH 5/9] omap3: pm: sr: replace get_opp with freq_to_opp>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Dynamically allocate the CPUFreq frequency table on OMAP2xxx chips.
-This fixes some compilation problems, since the kernel may not know
-what chip it is running on until boot-time.  This also reduces the size
-of the CPUFreq frequency table.
+commit ad248123 changed the behavior of get_vdd1_opp and get_vdd2_opp
+to use exact frequencies causing a break in rx51. we re-introduce the
+approximate search to maintain consistent behavior.
 
-Problem originally reported by Felipe Balbi <felipe.balbi@nokia.com>.
-Thanks also for comments on the patch from Felipe and Kevin.
+The DPLL frequencies are expected to be the same as the OPP frequencies,
+inconsistency here should be investigated, this introduces a warning for
+the same.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Discussion: http://marc.info/?t=125800503700009&r=1&w=2
+
+Reported-by: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/clock2xxx.c |   52 +++++++++++++++++++++++++++++++++------
- 1 files changed, 44 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   23 ++++++++++++++++++++---
+ 1 files changed, 20 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
-index ce6742f..5420356 100644
---- a/arch/arm/mach-omap2/clock2xxx.c
-+++ b/arch/arm/mach-omap2/clock2xxx.c
-@@ -449,14 +449,16 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- #ifdef CONFIG_CPU_FREQ
- /*
-  * Walk PRCM rate table and fillout cpufreq freq_table
-+ * XXX This should be replaced by an OPP layer in the near future
-  */
--static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(rate_table)];
-+static struct cpufreq_frequency_table *freq_table;
- 
- void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index d341857..c518f9e 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -150,14 +150,23 @@ static u32 cal_test_nvalue(u32 sennval, u32 senpval)
+ static u8 get_vdd1_opp(void)
  {
--	struct prcm_config *prcm;
-+	const struct prcm_config *prcm;
- 	long sys_ck_rate;
- 	int i = 0;
-+	int tbl_sz = 0;
+ 	struct omap_opp *opp;
++	unsigned long freq;
  
- 	sys_ck_rate = clk_get_rate(sclk);
+ 	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk) ||
+ 							mpu_opps == NULL)
+ 		return 0;
  
-@@ -470,22 +472,55 @@ void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- 		if (prcm->dpll_speed == prcm->xtal_speed)
- 			continue;
- 
--		freq_table[i].index = i;
--		freq_table[i].frequency = prcm->mpu_speed / 1000;
--		i++;
-+		tbl_sz++;
- 	}
- 
--	if (i == 0) {
--		printk(KERN_WARNING "%s: failed to initialize frequency "
--		       "table\n", __func__);
+-	opp = opp_find_freq_exact(mpu_opps, sr1.vdd_opp_clk->rate, true);
++	freq = sr1.vdd_opp_clk->rate;
++	opp = opp_find_freq_ceil(mpu_opps, &freq);
+ 	if (IS_ERR(opp))
+ 		return 0;
 +	/*
-+	 * XXX Ensure that we're doing what CPUFreq expects for this error
-+	 * case and the following one
++	 * Use higher freq voltage even if an exact match is not available
++	 * we are probably masking a clock framework bug, so warn
 +	 */
-+	if (tbl_sz == 0) {
-+		pr_warning("%s: no matching entries in rate_table\n",
-+			   __func__);
- 		return;
- 	}
++	if (unlikely(freq != sr1.vdd_opp_clk->rate))
++		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
++			   __func__, freq, sr1.vdd_opp_clk->rate);
  
-+	/* Include the CPUFREQ_TABLE_END terminator entry */
-+	tbl_sz++;
-+
-+	freq_table = kzalloc(sizeof(struct cpufreq_frequency_table) * tbl_sz,
-+			     GFP_ATOMIC);
-+	if (!freq_table) {
-+		pr_err("%s: could not kzalloc frequency table\n", __func__);
-+		return;
-+	}
-+
-+	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
-+		if (!(prcm->flags & cpu_mask))
-+			continue;
-+		if (prcm->xtal_speed != sys_ck_rate)
-+			continue;
-+
-+		/* don't put bypass rates in table */
-+		if (prcm->dpll_speed == prcm->xtal_speed)
-+			continue;
-+
-+		freq_table[i].index = i;
-+		freq_table[i].frequency = prcm->mpu_speed / 1000;
-+		i++;
-+	}
-+
- 	freq_table[i].index = i;
- 	freq_table[i].frequency = CPUFREQ_TABLE_END;
- 
- 	*table = &freq_table[0];
+ 	return opp_get_opp_id(opp);
  }
-+
-+void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
-+{
-+	kfree(freq_table);
-+}
-+
- #endif
+@@ -165,15 +174,23 @@ static u8 get_vdd1_opp(void)
+ static u8 get_vdd2_opp(void)
+ {
+ 	struct omap_opp *opp;
++	unsigned long freq;
  
- struct clk_functions omap2_clk_functions = {
-@@ -497,6 +532,7 @@ struct clk_functions omap2_clk_functions = {
- 	.clk_disable_unused	= omap2_clk_disable_unused,
- #ifdef	CONFIG_CPU_FREQ
- 	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
-+	.clk_exit_cpufreq_table	= omap2_clk_exit_cpufreq_table,
- #endif
- };
+ 	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk) ||
+ 							l3_opps == NULL)
+ 		return 0;
+-
+-	opp = opp_find_freq_exact(l3_opps, sr2.vdd_opp_clk->rate, true);
++	freq = sr2.vdd_opp_clk->rate;
++	opp = opp_find_freq_ceil(l3_opps, &freq);
+ 	if (IS_ERR(opp))
+ 		return 0;
  
-
++	/*
++	 * Use higher freq voltage even if an exact match is not available
++	 * we are probably masking a clock framework bug, so warn
++	 */
++	if (unlikely(freq != sr2.vdd_opp_clk->rate))
++		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
++			   __func__, freq, sr2.vdd_opp_clk->rate);
+ 	return opp_get_opp_id(opp);
+ }
+ 
+-- 
+1.6.3.3
 
