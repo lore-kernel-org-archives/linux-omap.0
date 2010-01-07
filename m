@@ -1,60 +1,86 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [pm-wip-opp][PATCH] omap3: pm: fix opp initialization
-Date: Wed, 06 Jan 2010 16:30:20 -0800
-Message-ID: <87wrzu7o4j.fsf@deeprootsystems.com>
-References: <1262817757-21937-1-git-send-email-nm@ti.com>
+From: Siarhei Siamashka <siarhei.siamashka@gmail.com>
+Subject: Re: problem with n810 boot up
+Date: Thu, 7 Jan 2010 02:33:30 +0200
+Message-ID: <201001070233.36120.siarhei.siamashka@gmail.com>
+References: <200912290152.16357.luke@dashjr.org> <20100106224520.GA29239@gandalf> <4B45167F.8020605@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart7706782.y0DziGGMCy";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:33125 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755309Ab0AGAaX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 19:30:23 -0500
-Received: by pwj9 with SMTP id 9so11607045pwj.21
-        for <linux-omap@vger.kernel.org>; Wed, 06 Jan 2010 16:30:22 -0800 (PST)
-In-Reply-To: <1262817757-21937-1-git-send-email-nm@ti.com> (Nishanth Menon's message of "Wed\,  6 Jan 2010 16\:42\:37 -0600")
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:33496 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161Ab0AGAdl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 19:33:41 -0500
+Received: by fxm25 with SMTP id 25so11259977fxm.21
+        for <linux-omap@vger.kernel.org>; Wed, 06 Jan 2010 16:33:39 -0800 (PST)
+In-Reply-To: <4B45167F.8020605@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Francisco Alecrim <alecrim@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Nishanth Menon <nm@ti.com> writes:
+--nextPart7706782.y0DziGGMCy
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> dsp_opp and l3_opps are reversed as part of commit 6e1276ff
-> this is wrong as the correct order needs to be l3, dsp
+On Thursday 07 January 2010, Francisco Alecrim wrote:
+> Hi/Ol=E1 Balbi, :)
 >
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-
-Thanks.
-
-I folded this into the original patch and pushed an updated
-pm-wip-opp.
-
-Kevin
-
-> ---
-> This was identified as part of investigation into Kevin's initial
-> report here:
-> http://marc.info/?l=linux-omap&m=126150035411486&w=2
+> Felipe Balbi wrote:
+> > Hi,
+> >
+> > On Wed, Jan 06, 2010 at 06:11:10PM -0400, Francisco Alecrim wrote:
+> >> Thanks! Now it goes to rootfs and continue the boot, but device
+> >> power-off after 10-20 seconds. There is no error message to help. :(
+> >
+> > watchdog ?
+> >
+> > how about disabling watchdog with flasher ??
 >
->  arch/arm/mach-omap2/pm34xx.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 9744a35..7d12a3f 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -1361,8 +1361,8 @@ void __init omap3_pm_init_opp_table(void)
->  	};
->  	struct omap_opp **omap3_rate_tables[] = {
->  		&mpu_opps,
-> -		&dsp_opps,
-> -		&l3_opps
-> +		&l3_opps,
-> +		&dsp_opps
->  	};
->  
->  	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
-> -- 
-> 1.6.3.3
+> I'm using the flags (no-omap-wd,no-retu-wd,no-lifeguard-reset)
+> recommended by Kalle[1]. This's not the problem. :(
+
+If I read these recommendations correctly, they tell to *clear* these R&D
+flags. So probably it's better not to have them enabled.
+
+Moreover, based on the following post, watchdog is hardwired and just can't=
+ be
+disabled by any software methods:
+http://lists.maemo.org/pipermail/maemo-developers/2007-June/010650.html
+
+Your powerdown problem is exactly caused by a watchdog. Earlier a solution =
+was=20
+to have a script which would kick watchdog periodically. But right now it is
+kicked automatically in the kernel if CONFIG_CBUS_RETU_WDT option is enable=
+d.
+You also need to enable CONFIG_WATCHDOG, CONFIG_CBUS and probably some other
+stuff.
+
+This all also means that CBUS is critical for correct N8x0 operation and th=
+ese
+devices simply can't work without it at all.
+
+Hope this information helps.
+
+=2D-=20
+Best regards,
+Siarhei Siamashka
+
+--nextPart7706782.y0DziGGMCy
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBLRSvgvyB/CfYEEt4RAu9ZAJ9GRJcLJ783y+1ab3L3DQMFIny6UQCgsB5X
+bdR4ZOOqHYsetnxH+K5XxFs=
+=PKCJ
+-----END PGP SIGNATURE-----
+
+--nextPart7706782.y0DziGGMCy--
