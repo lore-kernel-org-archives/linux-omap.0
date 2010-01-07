@@ -1,70 +1,99 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: RE: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
-Date: Thu, 7 Jan 2010 15:06:02 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003AF886DA0@dbde02.ent.ti.com>
-References: <1262851175.3933.5.camel@Nokia-N900-51-1>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C041C1BD@dbde02.ent.ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 05/12] omap1: Add 7xx clocks and pin muxes for SPI
+Date: Thu, 7 Jan 2010 11:46:23 +0200
+Message-ID: <6ed0b2681001070146x4dbf52d9h406d128ccea826cf@mail.gmail.com>
+References: <20100107001728.21352.38471.stgit@baageli.muru.com>
+	 <20100107001934.21352.83656.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50186 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750838Ab0AGJgW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Jan 2010 04:36:22 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C041C1BD@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.159]:51979 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870Ab0AGJqY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 04:46:24 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so7414484fgg.1
+        for <linux-omap@vger.kernel.org>; Thu, 07 Jan 2010 01:46:23 -0800 (PST)
+In-Reply-To: <20100107001934.21352.83656.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "adrian.hunter@nokia.com" <adrian.hunter@nokia.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "jarkko.lavinen@nokia.com" <jarkko.lavinen@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
 
-PiBWZW5rYXRyYW1hbiBTIHdyb3RlOiANCj4gPiBPbiBXZWQsIEphbiA2LCAyMDEwIGF0IDY6NDYg
-UE0sIEFkcmlhbiBIdW50ZXIgDQo+ID4gPGFkcmlhbi5odW50ZXJAbm9raWEuY29tPg0KPiA+IHdy
-b3RlOiANCj4gPiA+IFZlbmthdHJhbWFuIFMgd3JvdGU6IA0KPiA+ID4gPiANCj4gPiA+ID4gT24g
-VHVlLCBEZWMgMjksIDIwMDkgYXQgMzoxOCBBTSwgVG9ueSBMaW5kZ3JlbiANCj4gPHRvbnlAYXRv
-bWlkZS5jb20+DQo+ID4gd3JvdGU6IA0KPiA+ID4gPiA+IA0KPiA+ID4gPiA+ICogVmVua2F0cmFt
-YW4gUyA8c3ZlbmthdHJAdGkuY29tPiBbMDkxMjExIDA3OjAxXTogDQo+ID4gPiA+ID4gPiANCj4g
-PiA+ID4gPiA+IEhlcmUgaXMgdGhlIG1vc3QgdXBkYXRlZCB2ZXJzaW9uIG9mIHRoZSBwYXRjaCAo
-dGhhbmtzIHRvIA0KPiA+ID4gPiA+ID4gUnVzc2VsbCdzIHJldmlldykuIFRoaXMgcGF0Y2ggaXMg
-YXBwbGljYWJsZSB0byBPTUFQNHh4eCBhcyANCj4gPiA+ID4gPiA+IHdlbGwgYXMgT01BUDM2MzAg
-UmVmZXJlbmNlIHRvIHByZXZpb3VzIHBvc3RzDQo+ID4gPiA+ID4gPiB2McKgIGh0dHA6Ly9tYXJj
-LmluZm8vP2w9bGludXgtb21hcCZtPTEyNTAxMjA5NzQwMzA1MCZ3PTINCj4gPiA+ID4gPiA+IHYy
-wqAgaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTI1MTM3MTUyNjA2NjQ0Jnc9Mg0K
-PiA+ID4gPiA+ID4gdjPCoCBodHRwOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvNDU0MDgv
-DQo+ID4gPiA+ID4gDQo+ID4gPiA+ID4gRG8geW91IGhhdmUgYSBwYXRjaCBmb3IgZHJpdmVycy9t
-bWMvaG9zdC9vbWFwX2hzbW1jLmMgdG8gdXNlIA0KPiA+ID4gPiA+IHRoaXMgZmVhdHVyZT8gT3Ig
-c29tZSBvdGhlciBkcml2ZXI/DQo+ID4gPiA+ID4gDQo+ID4gPiA+ID4gUmVnYXJkcywNCj4gPiA+
-ID4gPiANCj4gPiA+ID4gPiBUb255DQo+ID4gPiA+IA0KPiA+ID4gPiBJIGFtIGFib3V0IHRvIHN0
-YXJ0IHdvcmtpbmcgb24gb21hcF9oc21tYyB0byB1c2UgdGhlIGRlc2NyaXB0b3IgDQo+ID4gPiA+
-IGxvYWQgZmVhdHVyZS4gSWYgdGhlIERNQSBjaGFuZ2VzIGFyZSBhY2NlcHRhYmxlLCBJIGNhbiBw
-b3N0IHRoZSANCj4gPiA+ID4gZHJpdmVyIHBhdGNoIGFzIHdlbGwuDQo+ID4gPiANCj4gPiA+IEkg
-cHJlc3VtZSB0aGlzIGlzIGFib3V0IHBlcmZvcm1hbmNlLsKgIEhvdyBkb2VzIGl0IGNvbXBhcmUg
-DQo+IHRvIGNoYWluZWQNCj4gPiBETUE/IA0KPiA+ID4gV2UgaGF2ZSBhIHBhdGNoIGZvciBvbWFw
-X2hzbW1jIGZvciBjaGFpbmVkIERNQSB0aGF0IHdlIGFyZSBzdGlsbA0KPiA+IHRlc3RpbmcuIA0K
-PiA+ID4gDQo+ID7CoCBUaGUgbWFpbiBkaWZmZXJlbmNlIHdvdWxkIGJlIHRoZSBudW1iZXIgb2Yg
-bG9naWNhbCBjaGFubmVscyB1c2VkLiANCj4gPiBXaXRoIGNoYWluaW5nLCBJIGFzc3VtZSB5b3Un
-ZCByZXF1ZXN0IGZvciAob3IgdGhlIEFQSSBpbnRlcm5hbGx5DQo+ID4gcmVzZXJ2ZXMpIGFzIG1h
-bnkgbG9naWNhbCBjaGFubmVscyBhcyB0aGVyZSBhcmUgc2VnbWVudHMuIEhlcmUgYSAgDQo+ID5z
-aW5nbGUgbG9naWNhbCBjaGFubmVsIHdvdWxkIGRvLg0KPiA+IA0KPiANCj4gSG93IGRvZXMgdGhl
-IHBlcmZvcm1hbmNlIGNvbXBhcmU/IFdoaWNoIGlzIGZhc3Rlcj8gRG9lcyANCj4gZGVzY3JpcHRv
-ciBhdXRvbG9hZGluZyByZWR1Y2UgdGhlIG51bWJlciBvZiBpbnRlcnJ1cHRzPyANCj4gPj4NCj4g
-VGhpcyBzaG91bGQgaW1wcm92ZSB0aGUgcGVyZm9yYW1hbmNlIGNvbXBhcmVkIHRvIGNoYWluaW5n
-ICANCj4gY2FzZS4gVGhpcyBmZWF0dXJlcyBlbXVsYXRlcyBzY2F0dGVyIGdhdGhlciB0cmFuc2Zl
-cnMgDQo+IGNhcGFiaWxpdHkgd2l0aCBtaW5pbXVtIE1QVSBzdXBwb3J0IGJ5IHJlbW92aW5nIHRo
-ZSANCj4gc3VjY2Vzc2l2ZSBjaGFubmVsIGNvbmZpZ3VyYXRpb24gcHJvY2Vzc2luZyBhbmQgdGhl
-IA0KPiBhc3NvY2lhdGVkIGludGVycnVwdCBoYW5kbGluZyBvdmVyaGVhZHMuIA0KPiBUaGlzIGlz
-IGFwYXJ0IGZyb20gb3B0aW1pemUgY2hhbm5lbCByZXNvdXJjZXMgYnkgZW5hYmxpbmcgDQo+IGVm
-ZmljaWVudCB0cmFuc2ZlciDigJxzZXJpYWxpemF0aW9u4oCdIG9uIGEgc2luZ2xlIGxvZ2ljYWwg
-DQo+IGNoYW5uZWwgdmVyc3VzIGNvbmN1cnJlbnQgKG11bHRpcGxlKSBsb2dpY2FsIGNoYW5uZWwg
-dXNhZ2UuIA0KPiANCj4gUmVnYXJkcywNCj4gU2FudG9zaA0KPiANCg0KV2UgaGF2ZSBub3QgZG9u
-ZSBmdWxsIGJlbmNobWFyayB0ZXN0cyB5ZXQsIGJ1dCBhcyBTYW50b3NoIG1lbnRpb25lZCwNCjEp
-IE9ubHkgb25lIGxvZ2ljYWwgY2hhbm5lbCBpcyB1c2VkLg0KMikgTm8gaW50ZXJydXB0cyBhcmUg
-Z2VuZXJhdGVkIHRpbGwgdGhlIGVuZCBvZiB0cmFuc2ZlciBvZiB0aGUgZW50aXJlIHNjYXR0ZXJs
-aXN0Lg0KKEluZmFjdCwgbXVsdGlwbGUgc2NhdHRlcmxpc3RzIGNhbiBiZSBjb21iaW5lZCBieSB0
-aGUgdXNlciBkcml2ZXIgdG8gYSBzaW5nbGUNCmRlc2NyaXB0b3IgbGlzdCwgYW5kIG5vIElSUXMg
-d291bGQgYmUgZ2VuZXJhdGVkIHRpbGwgdGhlIGVudGlyZSB0cmFuc2ZlciBjb21wbGV0ZXMuDQpJ
-ZiBuZWVkZWQsIHRoZSBkZXNjcmlwdG9ycyBjYW4gYmUgcHJvZ3JhbW1lZCB0byBnZW5lcmF0ZSBp
-bnRlcnJ1cHQocykgYXQgYW55IHBvaW50LikNClRoaXMgc2hvdWxkIHlpZWxkIGJldHRlciBwZXJm
-b3JtYW5jZSAvIENQVSB1dGlsaXphdGlvbiB0aGFuIGNoYWluaW5nLg0KDQpSZWdhcmRzLA0KVmVu
-a2F0Lg0KDQo=
+<snip>
+
+> diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devi=
+ces.c
+> index 23ded2d..17ebb47 100644
+> --- a/arch/arm/mach-omap1/devices.c
+> +++ b/arch/arm/mach-omap1/devices.c
+> @@ -14,6 +14,7 @@
+> =A0#include <linux/init.h>
+> =A0#include <linux/platform_device.h>
+> =A0#include <linux/io.h>
+> +#include <linux/spi/spi.h>
+>
+> =A0#include <mach/hardware.h>
+> =A0#include <asm/mach/map.h>
+> @@ -23,6 +24,7 @@
+> =A0#include <plat/mux.h>
+> =A0#include <mach/gpio.h>
+> =A0#include <plat/mmc.h>
+> +#include <plat/omap7xx.h>
+>
+> =A0/*----------------------------------------------------------------=
+---------*/
+>
+> @@ -196,6 +198,38 @@ void __init omap1_init_mmc(struct omap_mmc_platf=
+orm_data **mmc_data,
+>
+> =A0/*----------------------------------------------------------------=
+---------*/
+>
+> +/* OMAP7xx SPI support */
+> +#if defined(CONFIG_SPI_OMAP_100K) || defined(CONFIG_SPI_OMAP_100K_MO=
+DULE)
+> +
+> +struct platform_device omap_spi1 =3D {
+> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "omap1_spi100k",
+> + =A0 =A0 =A0 .id =A0 =A0 =A0 =A0 =A0 =A0 =3D 1,
+> +};
+> +
+> +struct platform_device omap_spi2 =3D {
+> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "omap1_spi100k",
+> + =A0 =A0 =A0 .id =A0 =A0 =A0 =A0 =A0 =A0 =3D 2,
+> +};
+> +
+> +static void omap_init_spi100k(void)
+> +{
+> + =A0 =A0 =A0 omap_spi1.dev.platform_data =3D ioremap(OMAP7XX_SPI1_BA=
+SE, 0x7ff);
+> + =A0 =A0 =A0 if (omap_spi1.dev.platform_data)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 platform_device_register(&omap_spi1);
+> +
+> + =A0 =A0 =A0 omap_spi2.dev.platform_data =3D ioremap(OMAP7XX_SPI2_BA=
+SE, 0x7ff);
+> + =A0 =A0 =A0 ifi (omap_spi2.dev.platform_data)
+
+a typo here?
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 platform_device_register(&omap_spi2);
+> +}
+> +
+> +#else
+> +static inline void omap_init_spi100k(void)
+> +{
+> +}
+> +#endif
+> +
+> +/*------------------------------------------------------------------=
+-------*/
+> +
+> =A0#if defined(CONFIG_OMAP_STI)
+>
+> =A0#define OMAP1_STI_BASE =A0 =A0 =A0 =A0 0xfffea000
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
