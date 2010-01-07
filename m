@@ -1,34 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [_NOT_ APPLIED] [rfc/rft/patch-v2.6.32-omap1+ 2/2] arm: omap:
- add missing
-Date: Wed, 6 Jan 2010 16:53:43 -0800
-Message-ID: <20100107005343.GD11511@atomide.com>
-References: <20091216234144.GA11702@localhost.localdomain>
- <notify-1262825385@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 4/4] OMAP clock/CPUFreq: avoid leaking the CPUFreq
+ frequency table
+Date: Wed, 6 Jan 2010 17:54:59 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001061750590.10034@utopia.booyaka.com>
+References: <20100105173347.15485.42853.stgit@localhost.localdomain> <20100105173517.15485.60424.stgit@localhost.localdomain> <87k4vu93rw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52067 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756106Ab0AGAxl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 19:53:41 -0500
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1NSgdB-000FKP-4V
-	for linux-omap@vger.kernel.org; Thu, 07 Jan 2010 00:53:41 +0000
-Content-Disposition: inline
-In-Reply-To: <notify-1262825385@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39345 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756405Ab0AGAzA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 19:55:00 -0500
+In-Reply-To: <87k4vu93rw.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
-* Tony Lindgren <tony@atomide.com> [100106 16:47]:
-> This patch has been applied to the linux-omap
+On Wed, 6 Jan 2010, Kevin Hilman wrote:
 
-Oops, sorry, accident. Not applying this one, I'll
-let Tomi queue with all the fb/dss2 patches.
+> Paul Walmsley <paul@pwsan.com> writes:
+> 
+> > OMAP2xxx uses a dynamically-allocated cpufreq_frequency_table array,
+> > so this patch ensures that it is freed if CPUFreq terminates.
+> >
+> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> 
+> Minor nit, but shouldn't this be just folded into PATCH 3/4 since you
+> add the dynamic allocation there?
 
-Regards,
+I guess it's a matter of taste.  Maybe this is what Felipe was talking 
+about.
 
-Tony
+The addition of clk_exit_cpufreq_table belongs in a separate patch.  So I 
+will split that part out and put it earlier in the series.
+
+
+- Paul
