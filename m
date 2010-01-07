@@ -1,44 +1,37 @@
-From: Francisco Alecrim <alecrim@gmail.com>
-Subject: Re: problem with n810 boot up
-Date: Wed, 06 Jan 2010 19:59:48 -0400
-Message-ID: <4B4523F4.7080504@gmail.com>
-References: <200912290152.16357.luke@dashjr.org> <20100106224520.GA29239@gandalf> <4B45167F.8020605@gmail.com> <201001061740.17161.luke@dashjr.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] OMAP3: add missing parentheses
+Date: Wed, 6 Jan 2010 19:03:08 -0500
+Message-ID: <notify-1262822588@atomide.com>
+References: <4B450D14.5060308@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f188.google.com ([209.85.210.188]:43838 "EHLO
-	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933213Ab0AFX74 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 18:59:56 -0500
-Received: by yxe26 with SMTP id 26so17185450yxe.4
-        for <linux-omap@vger.kernel.org>; Wed, 06 Jan 2010 15:59:55 -0800 (PST)
-In-Reply-To: <201001061740.17161.luke@dashjr.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62120 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756548Ab0AGADI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Jan 2010 19:03:08 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NSfqE-000Jvh-Hq
+	for linux-omap@vger.kernel.org; Thu, 07 Jan 2010 00:03:07 +0000
+In-Reply-To: <4B450D14.5060308@gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Luke-Jr <luke@dashjr.org>
-Cc: me@felipebalbi.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Kalle Valo <kalle.valo@iki.fi>
+To: linux-omap@vger.kernel.org
 
-Hi Luke,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Luke-Jr wrote:
-> On Wednesday 06 January 2010 05:02:23 pm you wrote:
->> I'm using the flags (no-omap-wd,no-retu-wd,no-lifeguard-reset)
->> recommended by Kalle[1]. This's not the problem. :(
-> 
-> AFAIK, no-retu-wd disables *pinging* the retu WD (which itself cannot be 
-> disabled). I'd try removing that one.
+Branch in linux-omap: omap-fixes
 
-I tried with/without no-retu-wd, no-omap-wd .
-> 
-> Also, note my rootfs is Gentoo, not Maemo. Maemo will depend on DSME which is 
-> not being started with my modded linuxrc.
+Initial commit ID (Likely to change): e9a87c0b3ee1478c3309b1ffa75873a556fadcee
 
-I'm using Mamona. Anyway,I did some tests before rootfs execution and I
-got the same problem. My current init contain only "exec /bin/sh".
-Device just turn power-off without error message.  :(
+PatchWorks
+http://patchwork.kernel.org/patch/71449/
 
-Thanks anyway,
-Alecrim.
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=e9a87c0b3ee1478c3309b1ffa75873a556fadcee
 
 
