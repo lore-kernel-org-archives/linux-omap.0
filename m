@@ -1,36 +1,72 @@
-From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Subject: Re: [RFC/PATCH 1/2] usb_otg: compile fix
-Date: Fri, 8 Jan 2010 07:43:09 +0200
-Message-ID: <20100108054302.GA7683@gandalf>
-References: <1262912592-7817-1-git-send-email-alecrim@gmail.com>
-Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+From: "Maulik" <x0082077-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v3 0/2] ARM : OMAP patches
+Date: Fri, 8 Jan 2010 11:22:19 +0530
+Message-ID: <001601ca9026$bf673710$808918ac@apr.dhcp.ti.com>
+References: <1262265701-17550-1-git-send-email-x0082077@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1262912592-7817-1-git-send-email-alecrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1262265701-17550-1-git-send-email-x0082077-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Francisco Alecrim <alecrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
+To: 'Felipe Balbi' <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tony Lindgren' <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, 'Greg Kroah-Hartman' <gregkh-l3A5Bk7waGM@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 07, 2010 at 09:03:11PM -0400, Francisco Alecrim wrote:
-> From: Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
-> 
-> include/linux/usb.h: In function 'usb_mark_last_busy':
-> include/linux/usb.h:561: error: 'struct usb_device' has no member named
-> 'last_busy'
-> 
-> Option USB_OTG selects USB_SUSPEND but doesn't select PM(required by
-> USB_SUSPEND) causing this compile error. Putting USB_SUSPEND as
-> USB_OTG depend ensure that PM is selected.
-> 
-> Signed-off-by: Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
+Felipe,
 
-should go to linux-usb@vger
+Do you have any comments on Version 3 of this patch series as per the below
+link.
 
--- 
-balbi
+http://marc.info/?l=linux-usb&m=126226571531540&w=2
+ 
+This series applies cleanly on top of your for-tony branch.
+
+Also note that the series depends on the 2 patch series as below.
+[PATCH 1/2] USB : Add empty functions in otg.h 
+[PATCH 2/2] ARM : OMAP : Remove #ifdef from board-omap3evm.c
+
+http://marc.info/?l=linux-usb&m=126268112828212&w=2
+
+Regards,
+Maulik
+
+-----Original Message-----
+From: Maulik Mankad [mailto:x0082077-l0cyMroinI0@public.gmane.org] 
+Sent: Thursday, December 31, 2009 6:52 PM
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Maulik Mankad; Tony Lindgren; Felipe Balbi;
+Greg Kroah-Hartman
+Subject: [PATCH v3 0/2] ARM : OMAP patches
+
+Hi,
+
+Felipe,
+
+Here is the Version 3 of the 2 patch series based on top of 
+your for-tony branch at [1].
+
+[1] git://gitorious.org/usb/usb.git for-tony
+
+Please note that this series depends on the patches 
+that remove if-def's from code found at [2].
+
+[2] http://marc.info/?l=linux-omap&m=126226514430984&w=2
+
+Maulik Mankad (2):
+ARM : OMAP: MUSB : Pass board specific data using a structure.
+ARM : OMAP4 : MUSB : Add USB support to 4430 SDP board file
+
+The patches are compile tested and do not report
+any checkpatch warnings.
+
+The patch set addresses comments received for Version 2.
+
+Thanks,
+Maulik
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
