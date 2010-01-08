@@ -1,43 +1,50 @@
-From: Abhijit Pagare <abhijitpagare@ti.com>
-Subject: [PATCH] ARM: OMAP4: Power Domains: Remove the return as power domain framework is in place
-Date: Fri,  8 Jan 2010 17:29:04 +0530
-Message-ID: <1262951944-7693-1-git-send-email-abhijitpagare@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCH 01/15] OMAP: DSS2: DSI: fix VC channels in send_short and send_null
+Date: Fri,  8 Jan 2010 15:22:35 +0200
+Message-ID: <1262956969-1664-2-git-send-email-tomi.valkeinen@nokia.com>
+References: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37076 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752023Ab0AHL7T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Jan 2010 06:59:19 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:57027 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752054Ab0AHNWS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 08:22:18 -0500
+In-Reply-To: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Abhijit Pagare <abhijitpagare@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-The return prevents the power domains from getting registered.
-Hence removing it to allow the frameworks model to work.
+- dsi_vc_send_short() needs to use dest_per for the peripheral id
+- dsi_vc_send_null() was always using channel id 0
 
-Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
+ drivers/video/omap2/dss/dsi.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Compiled and Boot Tested on OMAP4430 simulator and ES1 Chip
-Compiled and Boot Tested on OMAP3430 SDP
-Compiled for OMAP2430 and OMAP2420
-
- arch/arm/mach-omap2/id.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index a779240..6d1e97b 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -362,7 +362,6 @@ void __init omap2_check_revision(void)
- 		omap3_cpuinfo();
- 	} else if (cpu_is_omap44xx()) {
- 		omap4_check_revision();
--		return;
- 	} else {
- 		pr_err("OMAP revision unknown, please fix!\n");
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 5936487..c37bc5b 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -1999,7 +1999,8 @@ static int dsi_vc_send_short(int channel, u8 data_type, u16 data, u8 ecc)
+ 		return -EINVAL;
  	}
+ 
+-	data_id = data_type | channel << 6;
++	/* data_id = data_type | channel << 6; */
++	data_id = data_type | dsi.vc[channel].dest_per << 6;
+ 
+ 	r = (data_id << 0) | (data << 8) | (ecc << 24);
+ 
+@@ -2011,7 +2012,7 @@ static int dsi_vc_send_short(int channel, u8 data_type, u16 data, u8 ecc)
+ int dsi_vc_send_null(int channel)
+ {
+ 	u8 nullpkg[] = {0, 0, 0, 0};
+-	return dsi_vc_send_long(0, DSI_DT_NULL_PACKET, nullpkg, 4, 0);
++	return dsi_vc_send_long(channel, DSI_DT_NULL_PACKET, nullpkg, 4, 0);
+ }
+ EXPORT_SYMBOL(dsi_vc_send_null);
+ 
 -- 
-1.5.4.7
+1.6.5
 
