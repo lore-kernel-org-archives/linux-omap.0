@@ -1,87 +1,52 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/6] Regulator: Removing common code for TWL4030 PMIC from various OMAP3 board-evms
-Date: Fri, 08 Jan 2010 14:26:47 -0800
-Message-ID: <874omws060.fsf@deeprootsystems.com>
-References: <1262973448-32439-1-git-send-email-anuj.aggarwal@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap fixes for 2.6.33-rc3
+Date: Fri, 8 Jan 2010 14:27:15 -0800
+Message-ID: <20100108222715.GC2879@atomide.com>
+References: <20100108180912.GC6831@atomide.com>
+ <alpine.LFD.2.00.1001081014090.7821@localhost.localdomain>
+ <20100108182236.GE6831@atomide.com>
+ <alpine.DEB.2.00.1001081502480.19243@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f211.google.com ([209.85.217.211]:33007 "EHLO
-	mail-gx0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180Ab0AHW0u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 17:26:50 -0500
-Received: by gxk3 with SMTP id 3so8974553gxk.1
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 14:26:49 -0800 (PST)
-In-Reply-To: <1262973448-32439-1-git-send-email-anuj.aggarwal@ti.com> (Anuj Aggarwal's message of "Fri\,  8 Jan 2010 23\:27\:28 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52958 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754019Ab0AHW1U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 17:27:20 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1001081502480.19243@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Anuj Aggarwal <anuj.aggarwal@ti.com> writes:
+* Paul Walmsley <paul@pwsan.com> [100108 14:03]:
+> Hello Linus, Tony,
+> 
+> On Fri, 8 Jan 2010, Tony Lindgren wrote:
+> 
+> > * Linus Torvalds <torvalds@linux-foundation.org> [100108 10:18]:
+> > > 
+> > > There are other problems with that branch too - the "committer" 
+> > > information is pure sh*t. It says "paul <paul@twilight.(none)>", so quite 
+> > > frankly, somebody hasn't even read the very first chapter of just about 
+> > > every single git documentation that is out there.
+> > > 
+> > > And now that I noticed, I see that the crap-for-brains committer info has 
+> > > been going on for a long time, and I just hadn't looked closely enough 
+> > > before. I didn't look closely enough to see if the rebase problem had also 
+> > > happened before.
+> 
+> Sorry - I seem to be the crap-for-brains committer.  Will fix -
 
-> Based on the discussions and feedback received, this patch set is
-> created which cleans up various OMAP3-board-evm files and removes
-> common TWL4030 specific regulator suuplies and init data structs.
-> These structures are instead placed in a new file - 
-> board-omap35x-twl4030-pmic.c and are referenced from the board-evm
+Here's a check for unconfigured GIT_AUTHOR_EMAIL and GIT_COMMITTER_EMAIL:
 
-Why is this omap35x?  You seem to be using this from omap34xx board
-files as well.
+$ git log --pretty=oneline --author=".(none)" --committer=".(none)" v2.6.33-rc1..
 
-I don't think you need the board-omap* prefix at all.  Why not just
-call it twl4030-pmic.c.
+If it returns results, something is wrong.
 
-There has been some proposals to unify the twl4030 scripts as well by
-Lesley, and this new file would be a logical place for those as well.
+Should we have some check like this in place for all pulls?
 
-Kevin
+Regards,
 
-
-> files depending on the platform requirements. Regulator having specific
-> supplies or init data structs are not changed in their respective
-> board-evms.
->
-> The main advantages of having one common file for these structures
-> are redundant code removal, easy maintainability and single copy of 
-> common structure(s) in case uImage for multiple platforms is built.
->
-> Please see the following links for previous discussions:
->   http://marc.info/?l=linux-omap&m=125795487111175&w=2
->   http://marc.info/?l=linux-omap&m=125795068502904&w=2 
->
-> I have tested these patches on OMAP3EVM and the image boots fine. I
-> have compile-tested them for SDP3430 and all OMAP platforms (using
-> omap3_defconfig) and the build went fine. If someone can test them
-> on their hardware, that would be great !!!
->
-> Anuj Aggarwal (6):
->   Regulator: Creating TWL4030 specific file having supplies & init data
->   Regulator: Removing the common supplies and regulator init data
->     structs
->   Regulator: Use common regulator supplies and init data structs
->   Regulator: Modifying Kconfig to choose from the available PMICs
->   Regulator: Kconfig modified to select TWL4030 for OMAP3 based
->     platforms
->   Regulator: Makefile modified to include TWL4030-PMIC specific file
->
->  arch/arm/mach-omap2/Kconfig                      |   20 +++
->  arch/arm/mach-omap2/Makefile                     |    1 +
->  arch/arm/mach-omap2/board-3430sdp.c              |  146 +++---------------
->  arch/arm/mach-omap2/board-cm-t35.c               |   52 ++-----
->  arch/arm/mach-omap2/board-igep0020.c             |   26 +---
->  arch/arm/mach-omap2/board-ldp.c                  |   26 +---
->  arch/arm/mach-omap2/board-omap35x-twl4030-pmic.c |  175 ++++++++++++++++++++++
->  arch/arm/mach-omap2/board-omap3beagle.c          |   52 ++-----
->  arch/arm/mach-omap2/board-omap3evm.c             |   63 ++------
->  arch/arm/mach-omap2/board-omap3pandora.c         |   52 ++-----
->  arch/arm/mach-omap2/board-omap3touchbook.c       |   52 ++-----
->  arch/arm/mach-omap2/board-overo.c                |   26 +---
->  arch/arm/mach-omap2/board-zoom-peripherals.c     |   78 ++--------
->  13 files changed, 304 insertions(+), 465 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-omap35x-twl4030-pmic.c
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
