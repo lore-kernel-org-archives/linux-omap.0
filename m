@@ -1,142 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [GIT PULL] omap fixes for 2.6.33-rc3
-Date: Fri, 8 Jan 2010 10:20:49 -0800
-Message-ID: <20100108182048.GD6831@atomide.com>
+Date: Fri, 8 Jan 2010 10:22:37 -0800
+Message-ID: <20100108182236.GE6831@atomide.com>
 References: <20100108180912.GC6831@atomide.com>
+ <alpine.LFD.2.00.1001081014090.7821@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54077 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752901Ab0AHSU5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 13:20:57 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51170 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753646Ab0AHSWm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 13:22:42 -0500
 Content-Disposition: inline
-In-Reply-To: <20100108180912.GC6831@atomide.com>
+In-Reply-To: <alpine.LFD.2.00.1001081014090.7821@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: linux@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [100108 10:07]:
-> Linus,
+* Linus Torvalds <torvalds@linux-foundation.org> [100108 10:18]:
 > 
-> Please pull omap fixes from:
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+> On Fri, 8 Jan 2010, Tony Lindgren wrote:
+> > 
+> > Please pull omap fixes from:
+> > 
+> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+> 
+> No.
+> 
+> I don't know what the *** people have been doing in that tree, but it 
+> looks like the _same_ branch was merged twice after rebasing:
+> 
+> 	Merge branch 'for_2_6_33_rc_a' of git://git.pwsan.com/linux-2.6 into omap-fixes-2.6.33-rc3
+> 	Merge branch 'for_2.6.33rc_b' of git://git.pwsan.com/linux-2.6 into omap-fixes-for-linus
+> 
+> This is why we don't rebase public trees, and I refuse to pull crap like 
+> that. You need to teach the people you work with to not rebase, and the 
+> only way I can say "stop" is by simply not pulling the crap.
+> 
+> There are other problems with that branch too - the "committer" 
+> information is pure sh*t. It says "paul <paul@twilight.(none)>", so quite 
+> frankly, somebody hasn't even read the very first chapter of just about 
+> every single git documentation that is out there.
+> 
+> And now that I noticed, I see that the crap-for-brains committer info has 
+> been going on for a long time, and I just hadn't looked closely enough 
+> before. I didn't look closely enough to see if the rebase problem had also 
+> happened before.
 
-Oops, please dont, let me first check what's up with the duplicate commits first.
+Yeah sorry, noticed the duplicate mess too. Will look into it.
 
 Regards,
 
 Tony
-
- 
-> Regards,
-> 
-> Tony
-> 
-> 
-> The following changes since commit 74d2e4f8d79ae0c4b6ec027958d5b18058662eea:
->   Linus Torvalds (1):
->         Linux 2.6.33-rc3
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-> 
-> Abhijit Pagare (2):
->       ARM: OMAP3: PM: Fix the Invalid CM_CLKSTCTRL reg access.
->       ARM: OMAP3: PM: Fix the Invalid CM_CLKSTCTRL reg access.
-> 
-> Alexander Shishkin (1):
->       omap2/3: make serial_in_override() address the right uart port
-> 
-> Cory Maccarrone (5):
->       OMAP1 clock: Add missing clocks for OMAP 7xx
->       OMAP1 clock: Add missing clocks for OMAP 7xx
->       OMAP1 clock: remove __initdata from struct clk_functions to prevent crash
->       omap: gpio: Simultaneously requested rising and falling edge
->       omap1: Add 7xx clocks and pin muxes for SPI
-> 
-> Felipe Balbi (1):
->       OMAP2xxx clock: clk2xxx.c doesn't compile if CPUFREQ is enabled
-> 
-> Huang Weiyi (2):
->       OMAP2: remove duplicated #include
->       OMAP2: remove duplicated #include
-> 
-> Janusz Krzysztofik (1):
->       omap: McBSP: Fix possible port lockout
-> 
-> Kevin Hilman (2):
->       OMAP3: clock: add clockdomains for UART1 & 2
->       OMAP3: clock: add clockdomains for UART1 & 2
-> 
-> Paul Walmsley (11):
->       OMAP2xxx IO mapping: mark DSP mappings as being 2420-only
->       OMAP2420 IO mapping: move IVA mapping virtual address out of vmalloc space
->       OMAP3 clock: McBSP 2, 3, 4 functional clock parent is PER_96M_FCLK, not CORE_96M_FCLK
->       OMAP clock: remove incorrect EXPORT_SYMBOL()s
->       OMAP2xxx IO mapping: mark DSP mappings as being 2420-only
->       OMAP2420 IO mapping: move IVA mapping virtual address out of vmalloc space
->       OMAP3 clock: McBSP 2, 3, 4 functional clock parent is PER_96M_FCLK, not CORE_96M_FCLK
->       OMAP clock: remove incorrect EXPORT_SYMBOL()s
->       OMAP2xxx OPP: clean up comments in OPP data
->       OMAP clock/CPUFreq: add clk_exit_cpufreq_table()
->       OMAP2 clock: dynamically allocate CPUFreq frequency table
-> 
-> Roel Kluin (3):
->       omap: &&/|| confusion in iommu_put()
->       omap3: add missing parentheses
->       omap3: add missing parentheses
-> 
-> Tony Lindgren (5):
->       Merge branch 'for_2_6_33_rc_a' of git://git.pwsan.com/linux-2.6 into omap-fixes-2.6.33-rc3
->       Merge branch 'for_2.6.33rc_b' of git://git.pwsan.com/linux-2.6 into omap-fixes-for-linus
->       omap: Remove uninitialized warning for gpio.c
->       omap1: Fix compile for omap1_bl.c
->       omap3: Fix booting if package is uninitialized
-> 
-> Tuukka Toivonen (2):
->       OMAP3 clock: Add capability to change rate of dpll4_m5_ck
->       OMAP3 clock: Add capability to change rate of dpll4_m5_ck
-> 
-> Vaibhav Hiremath (1):
->       omap3: EVM: Choose OMAP_PACKAGE_CBB
-> 
-> Vimal Singh (1):
->       omap2/3: ZOOM: Correcting key mapping for few keys
-> 
->  arch/arm/mach-omap1/clock_data.c             |   10 +++-
->  arch/arm/mach-omap1/devices.c                |   35 ++++++++++++++
->  arch/arm/mach-omap1/mux.c                    |    8 +++
->  arch/arm/mach-omap2/Kconfig                  |    1 +
->  arch/arm/mach-omap2/board-zoom-peripherals.c |    8 ++--
->  arch/arm/mach-omap2/clock2xxx.c              |   57 +++++++++++++++++++----
->  arch/arm/mach-omap2/clock34xx.c              |    1 -
->  arch/arm/mach-omap2/clock34xx_data.c         |    6 ++-
->  arch/arm/mach-omap2/clockdomain.c            |    4 +-
->  arch/arm/mach-omap2/io.c                     |   19 ++++----
->  arch/arm/mach-omap2/mux.c                    |    6 ++-
->  arch/arm/mach-omap2/opp2420_data.c           |   38 ++++++++-------
->  arch/arm/mach-omap2/opp2430_data.c           |   30 ++++++------
->  arch/arm/mach-omap2/pm34xx.c                 |    4 +-
->  arch/arm/mach-omap2/serial.c                 |   12 ++++-
->  arch/arm/plat-omap/clock.c                   |   16 ++++---
->  arch/arm/plat-omap/cpu-omap.c                |    1 +
->  arch/arm/plat-omap/gpio.c                    |   63 +++++++++++++++++++++++++-
->  arch/arm/plat-omap/include/plat/board.h      |    1 -
->  arch/arm/plat-omap/include/plat/clock.h      |    2 +
->  arch/arm/plat-omap/include/plat/control.h    |    2 +-
->  arch/arm/plat-omap/include/plat/io.h         |   36 +++++++--------
->  arch/arm/plat-omap/include/plat/mux.h        |    8 +++
->  arch/arm/plat-omap/include/plat/omap7xx.h    |    3 +
->  arch/arm/plat-omap/io.c                      |   12 +++---
->  arch/arm/plat-omap/iommu.c                   |    2 +-
->  arch/arm/plat-omap/mcbsp.c                   |   20 +++++++-
->  drivers/video/backlight/omap1_bl.c           |    2 -
->  28 files changed, 296 insertions(+), 111 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
