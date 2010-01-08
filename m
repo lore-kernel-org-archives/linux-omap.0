@@ -1,106 +1,299 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/10] OPP layer and additional cleanups.
-Date: Fri, 8 Jan 2010 09:17:08 -0600
-Message-ID: <4B474C74.9020407@ti.com>
-References: <1262266140.20175.176.camel@boson> <4B42609B.7050403@ti.com> <4B459A23.9030709@ti.com> <4B4603A3.4030608@ti.com> <4B46DA7F.8080808@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH 1/1] omap3: Add macros for comparing si revision
+Date: Fri,  8 Jan 2010 20:56:15 +0530
+Message-ID: <1262964375-21873-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54778 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753247Ab0AHPRL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 10:17:11 -0500
-In-Reply-To: <4B46DA7F.8080808@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49431 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751579Ab0AHP0T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Jan 2010 10:26:19 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o08FQGtF013971
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 8 Jan 2010 09:26:18 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Dasgupta, Romit" <romit@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Dasgupta, Romit had written, on 01/08/2010 01:10 AM, the following:
->>> Only point I see that may disfavor list based implementation is the fact that we
->>> do not expect high number of OPPs.
->> yes + overhead of CPU cycles walking thru the list Vs indexing off an array.
-> True there is overhead but the downside of an array is reallocing (as is the
-> case in the previous patch).
-lets see this series of list implementation as a seperate series.
+This patch adds verbose macros for comparing silicon
+revision bits. Current mechanism of comparing complete
+'omap_revision' does not work/ represent the multiple
+processors, and their revisions.
 
->>> Having said this, I have tried to encapsulate the implementation within the OPP
->>> layer. So moving to array/list/any other fancy data structure should be hidden
->>> within OPP.  So the patchset is not only about moving to a list based
->>> implementation. It also to change the semantics of the OPP layer APIs with a
->>> deliberate intent to hide/encapsulate the implementation details.
->> opp.h:
->> +struct omap_opp {
->> +       struct list_head opp_node;
->> +       unsigned int enabled:1;
->> +       unsigned long rate;
->> +       unsigned long uvolt;
->> +};
->> this is exactly what we have been trying to avoid in the first place 
->> (see numerous discussions in the last few months in l-o ML). This allows 
->> for users of opp.h to write their own direct handling mechanisms and we 
->> want to prevent it by forcing callers to use only accessor apis. opp.h 
->> is meant as in include file for all users of opp layer and it's inner 
->> workings/ inner structures should be isolated to opp.c OR a private 
->> header file alone.
-> 
-> I am not sure what you say is correct. If you see the opp.h file in my patches
-> you will find that it has accessor APIs. One does not have to do any
-> dereferencing to access any of the struct omap_opp members.
-> On the other hand if you look into opp.c you will find a struct opp_list. This
-> is the internal details that users do not want to care about and thus I have put
-> it in opp.c. OTOH when you define the opp lists (e.g. for 3630, 3430) we do it
-> in an array of struct omap_opp. Hence we need to define this in opp.h So I think
-> your concern is taken care of.
->>>>> * The OPP layer APIs have been changed. The search APIs have been
->>>>> reduced to one instead of opp_find_{exact|floor|ceil}.
->>>> Could you let us know the benefit of merging this? the split is aligned 
->>>> in the community as such after the very first implementation which had 
->>>> all three merged as a single function, but was split after multiple 
->>>> review comments on readability aspects.
->>> Actually I wanted to minimize the number of interfaces to OPP Layer. What was
->>> shouting at me was the fact that OPP layer at the heart of it is a in memory
->>> data list. So all we need to poke about OPP is to add/delete/enable/disable/search.
->>> for search I thought only a single interface like
->>> 'find_opp_by_freq' is enough. The flags passed to this function should dictate
->>> the mode of the search.
->> yes, I am aware of this(my first series was motivated by the same 
->> though), but the alignment with the community is for:
->> split search into search_exact, search_ceil, search_floor for 
->> readability purposes. I dont deny that this is a data list and the basic 
->> APIs u mentioned are what is enough, but functionally, search is split 
->> as the above instead of taking params to denote the variations in search 
->> techniques - hence the community consensus.
->>
-> 
-> I wanted to reduce the interfaces. Imagine designing a car with two steerings
-> (one for going for driving back and the other for going forward). Instead it is
-> better to have one steering with a control to decide if you want to go forward
-> or backward.
+Existing instances of comparison via omap_rev() have
+been replaced with new macros.
 
-lets make the list implementation as a seperate series and discuss this. 
-I am guessing that there could be wrapper apis which would could 
-optimize the implementation while maintaining the overall APIs allowing 
-other dependent users to continue. I will reserve my comments till we 
-see the series on this.
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/clock34xx.c       |    2 +-
+ arch/arm/mach-omap2/clock34xx_data.c  |    6 ++-
+ arch/arm/mach-omap2/control.c         |    7 ++--
+ arch/arm/mach-omap2/id.c              |   13 +++----
+ arch/arm/mach-omap2/pm34xx.c          |   35 ++++++++++++++++-----
+ arch/arm/plat-omap/include/plat/cpu.h |   55 +++++++++++++++++++++++++++++++++
+ 6 files changed, 97 insertions(+), 21 deletions(-)
 
-
-> 
->> I really dont care if struct omap_opp * or enum is used (they are both 
->> 32bit and have to be dereferenced at the end of the day) to refer to a 
->> voltage domain. In fact using enum might allow us to do cross opp 
->> dependency queries too if such an infrastructure is being introduced, 
->> but that can be done also with struct omap_opp albiet in an obtuse way.
-> 
-> Slight difference than what you say. When you maintain a pointer to the head of
-> your data structure (be it an array or a list) and expect the APIs to pass it
-> around, it is different from passing an enum to identify which list you want to
-> search. You do not need to store a handle to the initiliazed list anymore.
-Enum referencing is better that way, ack. looking forward to seeing a 
-seperate series with this.
-
-
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index d4217b9..6cef2f1 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -154,7 +154,7 @@ int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
+ 	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
+ 	 * on DPLL4.
+ 	 */
+-	if (omap_rev() == OMAP3430_REV_ES1_0) {
++	if (cpu_is_omap34xx() && omap_rev_is_1_0()) {
+ 		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
+ 		       "silicon 'Limitation 2.5' on 3430ES1.\n");
+ 		return -EINVAL;
+diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
+index c6031d7..0a00a49 100644
+--- a/arch/arm/mach-omap2/clock34xx_data.c
++++ b/arch/arm/mach-omap2/clock34xx_data.c
+@@ -3230,7 +3230,7 @@ int __init omap2_clk_init(void)
+ 		 * Update this if there are further clock changes between ES2
+ 		 * and production parts
+ 		 */
+-		if (omap_rev() == OMAP3430_REV_ES1_0) {
++		if (cpu_is_omap34xx() && omap_rev_is_1_0()) {
+ 			/* No 3430ES1-only rates exist, so no RATE_IN_3430ES1 */
+ 			cpu_clkflg |= CK_3430ES1;
+ 		} else {
+@@ -3282,7 +3282,9 @@ int __init omap2_clk_init(void)
+ 	/*
+ 	 * Lock DPLL5 and put it in autoidle.
+ 	 */
+-	if (omap_rev() >= OMAP3430_REV_ES2_0)
++	if ((cpu_is_omap34xx() && omap_rev_ge_2_0())
++		|| cpu_is_omap3505() || cpu_is_omap3517()
++		|| cpu_is_omap3630())
+ 		omap3_clk_lock_dpll5();
+ 
+ 	/* Avoid sleeping during omap3_core_dpll_m2_set_rate() */
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index cdd1f35..55e9b0a 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -209,8 +209,7 @@ void omap3_save_scratchpad_contents(void)
+ 
+ 	/* Populate the Scratchpad contents */
+ 	scratchpad_contents.boot_config_ptr = 0x0;
+-	if (omap_rev() != OMAP3430_REV_ES3_0 &&
+-					omap_rev() != OMAP3430_REV_ES3_1)
++	if (cpu_is_omap34xx() && omap_rev_le_3_0())
+ 		scratchpad_contents.public_restore_ptr =
+ 			virt_to_phys(get_restore_pointer());
+ 	else
+@@ -271,7 +270,9 @@ void omap3_save_scratchpad_contents(void)
+ 	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
+ 	 */
+ 	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
+-			&& (omap_rev() >= OMAP3430_REV_ES3_0))
++		&& ((cpu_is_omap34xx() && omap_rev_ge_3_0())
++			|| cpu_is_omap3505() || cpu_is_omap3517()
++			|| cpu_is_omap3630()))
+ 		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
+ 				~(SDRC_POWER_AUTOCOUNT_MASK|
+ 				SDRC_POWER_CLKCTRL_MASK)) |
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index a091b53..2d4c246 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -379,19 +379,18 @@ void __init omap2_check_revision(void)
+ 		omap_chip.oc |= CHIP_IS_OMAP2420;
+ 	} else if (cpu_is_omap3505() || cpu_is_omap3517()) {
+ 		omap_chip.oc = CHIP_IS_OMAP3430 | CHIP_IS_OMAP3430ES3_1;
++	} else if (cpu_is_omap3630()) {
++		omap_chip.oc = CHIP_IS_OMAP3430 | CHIP_IS_OMAP3630ES1;
+ 	} else if (cpu_is_omap343x()) {
+ 		omap_chip.oc = CHIP_IS_OMAP3430;
+-		if (omap_rev() == OMAP3430_REV_ES1_0)
++		if (omap_rev_is_1_0())
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES1;
+-		else if (omap_rev() >= OMAP3430_REV_ES2_0 &&
+-			 omap_rev() <= OMAP3430_REV_ES2_1)
++		else if (omap_rev_is_2_0() || omap_rev_is_2_1())
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
+-		else if (omap_rev() == OMAP3430_REV_ES3_0)
++		else if (omap_rev_is_3_0())
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
+-		else if (omap_rev() == OMAP3430_REV_ES3_1)
++		else if (omap_rev_is_3_1())
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+-		else if (omap_rev() == OMAP3630_REV_ES1_0)
+-			omap_chip.oc |= CHIP_IS_OMAP3630ES1;
+ 	} else {
+ 		pr_err("Uninitialized omap_chip, please fix!\n");
+ 	}
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 81ed252..dc4050f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -27,6 +27,7 @@
+ #include <linux/gpio.h>
+ #include <linux/clk.h>
+ 
++#include <plat/cpu.h>
+ #include <plat/sram.h>
+ #include <plat/clockdomain.h>
+ #include <plat/powerdomain.h>
+@@ -90,7 +91,9 @@ static void omap3_enable_io_chain(void)
+ {
+ 	int timeout = 0;
+ 
+-	if (omap_rev() >= OMAP3430_REV_ES3_1) {
++	if ((cpu_is_omap34xx() && omap_rev_ge_3_1())
++		|| cpu_is_omap3505() || cpu_is_omap3517()
++		|| cpu_is_omap3630()) {
+ 		prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN, WKUP_MOD, PM_WKEN);
+ 		/* Do a readback to assure write has been done */
+ 		prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+@@ -111,7 +114,9 @@ static void omap3_enable_io_chain(void)
+ 
+ static void omap3_disable_io_chain(void)
+ {
+-	if (omap_rev() >= OMAP3430_REV_ES3_1)
++	if ((cpu_is_omap34xx() && omap_rev_ge_3_1())
++		|| cpu_is_omap3505() || cpu_is_omap3517()
++		|| cpu_is_omap3630())
+ 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN, WKUP_MOD, PM_WKEN);
+ }
+ 
+@@ -230,7 +235,10 @@ static int _prcm_int_handle_wakeup(void)
+ 	c = prcm_clear_mod_irqs(WKUP_MOD, 1);
+ 	c += prcm_clear_mod_irqs(CORE_MOD, 1);
+ 	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
+-	if (omap_rev() > OMAP3430_REV_ES1_0) {
++
++	if ((cpu_is_omap34xx() && omap_rev_gt_1_0())
++		|| cpu_is_omap3505() || cpu_is_omap3517()
++		|| cpu_is_omap3630()) {
+ 		c += prcm_clear_mod_irqs(CORE_MOD, 3);
+ 		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
+ 	}
+@@ -399,7 +407,9 @@ void omap_sram_idle(void)
+ 	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
+ 	* Hence store/restore the SDRC_POWER register here.
+ 	*/
+-	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
++	if (((cpu_is_omap34xx() && omap_rev_ge_3_0())
++		|| cpu_is_omap3505() || cpu_is_omap3517()
++		|| cpu_is_omap3630()) &&
+ 	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+ 	    core_next_state == PWRDM_POWER_OFF)
+ 		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
+@@ -413,7 +423,9 @@ void omap_sram_idle(void)
+ 	cpu_init();
+ 
+ 	/* Restore normal SDRC POWER settings */
+-	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
++	if (((cpu_is_omap34xx() && omap_rev_ge_3_0())
++		|| cpu_is_omap3505() || cpu_is_omap3517()
++		|| cpu_is_omap3630()) &&
+ 	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+ 	    core_next_state == PWRDM_POWER_OFF)
+ 		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
+@@ -729,7 +741,10 @@ static void __init prcm_setup_regs(void)
+ 	prm_write_mod_reg(0, OMAP3430_NEON_MOD, PM_WKDEP);
+ 	prm_write_mod_reg(0, OMAP3430_CAM_MOD, PM_WKDEP);
+ 	prm_write_mod_reg(0, OMAP3430_PER_MOD, PM_WKDEP);
+-	if (omap_rev() > OMAP3430_REV_ES1_0) {
++
++	if ((cpu_is_omap34xx() && omap_rev_gt_1_0())
++		|| cpu_is_omap3505() || cpu_is_omap3517()
++		|| cpu_is_omap3630()) {
+ 		prm_write_mod_reg(0, OMAP3430ES2_SGX_MOD, PM_WKDEP);
+ 		prm_write_mod_reg(0, OMAP3430ES2_USBHOST_MOD, PM_WKDEP);
+ 	} else
+@@ -780,7 +795,9 @@ static void __init prcm_setup_regs(void)
+ 		OMAP3430_AUTO_DES1,
+ 		CORE_MOD, CM_AUTOIDLE2);
+ 
+-	if (omap_rev() > OMAP3430_REV_ES1_0) {
++	if ((cpu_is_omap34xx() && omap_rev_gt_1_0())
++		|| cpu_is_omap3505() || cpu_is_omap3517()
++		|| cpu_is_omap3630()) {
+ 		cm_write_mod_reg(
+ 			OMAP3430_AUTO_MAD2D |
+ 			OMAP3430ES2_AUTO_USBTLL,
+@@ -828,7 +845,9 @@ static void __init prcm_setup_regs(void)
+ 		OMAP3430_PER_MOD,
+ 		CM_AUTOIDLE);
+ 
+-	if (omap_rev() > OMAP3430_REV_ES1_0) {
++	if ((cpu_is_omap34xx() && omap_rev_gt_1_0())
++		|| cpu_is_omap3505() || cpu_is_omap3517()
++		|| cpu_is_omap3630()) {
+ 		cm_write_mod_reg(
+ 			OMAP3430ES2_AUTO_USBHOST,
+ 			OMAP3430ES2_USBHOST_MOD,
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 9a028bd..534171a 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -449,6 +449,61 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define OMAP4430_REV_ES1_0	0x44300044
+ 
+ /*
++ * Silicon revisions
++ */
++#define OMAP_ES_1_0		0x00
++#define OMAP_ES_2_0		0x10
++#define OMAP_ES_2_1		0x20
++#define OMAP_ES_3_0		0x30
++#define OMAP_ES_3_1		0x40
++
++#define OMAP_REV_MASK		0x0000ff00
++#define OMAP_REV_BITS		((omap_rev() & OMAP_REV_MASK) >> 8)
++
++#define OMAP_REV_IS(revid)					\
++static inline u8 omap_rev_is_ ##revid (void)			\
++{								\
++	return (OMAP_REV_BITS == OMAP_ES_ ##revid) ? 1 : 0;	\
++}
++
++#define OMAP_REV_LT(revid)					\
++static inline u8 omap_rev_lt_ ##revid (void)			\
++{								\
++	return (OMAP_REV_BITS < OMAP_ES_ ##revid) ? 1 : 0;	\
++}
++
++#define OMAP_REV_LE(revid)					\
++static inline u8 omap_rev_le_ ##revid (void)			\
++{								\
++	return (OMAP_REV_BITS <= OMAP_ES_ ##revid) ? 1 : 0;	\
++}
++
++#define OMAP_REV_GT(revid)					\
++static inline u8 omap_rev_gt_ ##revid (void)			\
++{								\
++	return (OMAP_REV_BITS > OMAP_ES_ ##revid) ? 1 : 0;	\
++}
++
++#define OMAP_REV_GE(revid)					\
++static inline u8 omap_rev_ge_ ##revid (void)			\
++{								\
++	return (OMAP_REV_BITS >= OMAP_ES_ ##revid) ? 1 : 0;	\
++}
++
++#define OMAP_REV_FUNCTIONS(revid)	\
++	OMAP_REV_IS(revid)		\
++	OMAP_REV_LT(revid)		\
++	OMAP_REV_LE(revid)		\
++	OMAP_REV_GT(revid)		\
++	OMAP_REV_GE(revid)
++
++OMAP_REV_FUNCTIONS(1_0)
++OMAP_REV_FUNCTIONS(2_0)
++OMAP_REV_FUNCTIONS(2_1)
++OMAP_REV_FUNCTIONS(3_0)
++OMAP_REV_FUNCTIONS(3_1)
++
++/*
+  * omap_chip bits
+  *
+  * CHIP_IS_OMAP{2420,2430,3430} indicate that a particular structure is
 -- 
-Regards,
-Nishanth Menon
+1.6.2.2
+
