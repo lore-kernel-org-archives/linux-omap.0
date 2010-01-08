@@ -1,40 +1,38 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCHV4 3/4] OMAP3: Introduce 3630 DPLL4 HSDivider changes
-Date: Fri, 8 Jan 2010 16:24:06 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001081619390.28650@utopia.booyaka.com>
-References: <1262849801-9955-1-git-send-email-vishwanath.bs@ti.com> <1262849801-9955-2-git-send-email-vishwanath.bs@ti.com> <1262849801-9955-3-git-send-email-vishwanath.bs@ti.com> <1262849801-9955-4-git-send-email-vishwanath.bs@ti.com>
- <alpine.DEB.2.00.1001071106150.10034@utopia.booyaka.com> <FCCFB4CDC6E5564B9182F639FC3560870300519BD9@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 0/3] misc. omap_device/omap_hwmod updates
+Date: Fri,  8 Jan 2010 15:26:50 -0800
+Message-ID: <1262993213-19866-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53738 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754139Ab0AHXYI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 18:24:08 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870300519BD9@dbde02.ent.ti.com>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:51668 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754278Ab0AHX04 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 18:26:56 -0500
+Received: by pzk1 with SMTP id 1so4078226pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 15:26:55 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com
 
-Hello Vishwanath,
+A small series of proposed updates for omap_device/omap_hwmod.
 
-On Fri, 8 Jan 2010, Sripathy, Vishwanath wrote:
+This series was tested on the current PM branch but also applies cleanly to current linux-omap master branch.  
 
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > > On Thu, 7 Jan 2010, Vishwanath BS wrote:
-> > >
-> > > +static struct clk dpll4_ck_3630 __initdata = {
-> > 
-> > Marking these as __initdata will crash the system for DVFS changes after
-> > the kernel boots.  Please fix.
-> 
-> Sorry I did not understand why it should crash the system for DVFS? 
-> dpll4_ck_3630 is not used anywhere after it's values are copied into 
-> dpll4_ck as part of clock_init. Same is the case with others.
+It was tested along with previously posted changes to convert UARTs to
+omap_device.  A new version of the UART omap_device conversion will be
+arriving soon-ish.
 
-Sorry, you're right - your code copies the entire structure and not just 
-the pointer. 
+Kevin
 
+Kevin Hilman (3):
+  OMAP: omap_device: optionally auto-adjust device activate/deactivate
+    latencies
+  OMAP: hwmod: add read/write API for SYSCONFIG
+  OMAP: hwmod: allow idle after HWMOD_INIT_NO_IDLE
 
-- Paul
+ arch/arm/mach-omap2/omap_hwmod.c              |   21 ++++++++++++-
+ arch/arm/plat-omap/include/plat/omap_device.h |    4 ++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    3 ++
+ arch/arm/plat-omap/omap_device.c              |   41 ++++++++++++++++++++-----
+ 4 files changed, 60 insertions(+), 9 deletions(-)
+
