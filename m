@@ -1,70 +1,62 @@
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Subject: Re: [PATCH 01/12] omap: McBSP: Fix possible port lockout
-Date: Fri, 08 Jan 2010 20:14:06 +0300
-Message-ID: <4B4767DE.4070801@ru.mvista.com>
-References: <20100107001728.21352.38471.stgit@baageli.muru.com> <20100107001844.21352.899.stgit@baageli.muru.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 8/8] DSPBRIDGE: Use _IOxx macro to define ioctls
+Date: Fri, 8 Jan 2010 11:19:21 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53042DC952BE@dlee03.ent.ti.com>
+References: <1262912461-30151-1-git-send-email-omar.ramirez@ti.com>
+ <4B469FA0.8000106@ti.com> <4B46A22D.1010507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([206.112.117.35]:25795 "HELO
-	imap.sh.mvista.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with SMTP id S1753455Ab0AHROK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 12:14:10 -0500
-In-Reply-To: <20100107001844.21352.899.stgit@baageli.muru.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49989 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751408Ab0AHRT3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 12:19:29 -0500
+In-Reply-To: <4B46A22D.1010507@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>
 
-Tony Lindgren wrote:
-> From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>From: Menon, Nishanth
+>
+>Apologies on the spam, but a few points below for preventing a future
+>ioctl change:
+>
+>Menon, Nishanth had written, on 01/07/2010 08:59 PM, the following:
+>> Ramirez Luna, Omar had written, on 01/07/2010 07:01 PM, the following:
+>>> - Use standard convention to define ioctls.
+>please warn in the commit message that this will break compatibility.
+>
 
-> In its current form, the omap_mcbsp_request() function can return after
-> irq_request() failure without any cleanups, effectively locking out the port
-> forever with clocks left running. Fix it.
+Will do
 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-> Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>>> - Removed runtime check for ioctl matching table number.
+>>> - Added __deprectaed marker to functions that are not used anymore.
+>generic idea:
+>  	if (cmd < ARRAY_SIZE(WCD_cmdTable)) {
+>  		/* make the fxn call via the cmd table */
+>  		*pResult = (*WCD_cmdTable[cmd].fxn) (args, pr_ctxt);
+>if you convert this into:
+>  	if (!WCD_cmdTable[cmd].fxn)
+>		return -EINVAL;
+>  	/* make the fxn call via the cmd table */
+>  	*pResult = (*WCD_cmdTable[cmd].fxn) (args, pr_ctxt);
+>you'd make deprecation of a previously defined ioctl easy -> just NULL
+>and remove the function  in the array and remove it and it's unused
+>helper functions.. :)..
 
-[...]
+Problem comes if you are expecting some status value from that function
 
-> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-> index 2cc1cc3..f757672 100644
-> --- a/arch/arm/plat-omap/mcbsp.c
-> +++ b/arch/arm/plat-omap/mcbsp.c
-> @@ -436,7 +436,7 @@ int omap_mcbsp_request(unsigned int id)
->  			dev_err(mcbsp->dev, "Unable to request TX IRQ %d "
->  					"for McBSP%d\n", mcbsp->tx_irq,
->  					mcbsp->id);
-> -			return err;
-> +			goto error;
->  		}
->  
->  		init_completion(&mcbsp->rx_irq_completion);
-> @@ -446,12 +446,26 @@ int omap_mcbsp_request(unsigned int id)
->  			dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
->  					"for McBSP%d\n", mcbsp->rx_irq,
->  					mcbsp->id);
-> -			free_irq(mcbsp->tx_irq, (void *)mcbsp);
-> -			return err;
-> +			goto tx_irq;
->  		}
->  	}
->  
->  	return 0;
-> +tx_irq:
+>
+>
+>one generic question - I did not see an features/ioctls supported around
+>- having not dug enough, how does the userspace know if the bridge uses
+>the new ioctls/old ioctls?
 
-    As if this wasn't a label for error cleanup, i.e. labels could be named 
-more consistently, both including 'err' or 'error'...
+Patch will be sent to userspace repository on dev.omapzoom.org... the idea is to support this set of ioctls from now on... overall I don't think I got your question
 
-> +	free_irq(mcbsp->tx_irq, (void *)mcbsp);
-> +error:
-> +	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
-> +			mcbsp->pdata->ops->free(id);
+[snip]
 
-    This line is overindented.
-
-WBR, Sergei
+- omar
