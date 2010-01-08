@@ -1,7 +1,7 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 10/15] OMAP: DSS2: Fix compile warning
-Date: Fri,  8 Jan 2010 15:22:44 +0200
-Message-ID: <1262956969-1664-11-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 12/15] OMAP: DSS2: OMAPFB: fix omapfb_free_fbmem()
+Date: Fri,  8 Jan 2010 15:22:46 +0200
+Message-ID: <1262956969-1664-13-git-send-email-tomi.valkeinen@nokia.com>
 References: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
  <1262956969-1664-2-git-send-email-tomi.valkeinen@nokia.com>
  <1262956969-1664-3-git-send-email-tomi.valkeinen@nokia.com>
@@ -12,45 +12,39 @@ References: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
  <1262956969-1664-8-git-send-email-tomi.valkeinen@nokia.com>
  <1262956969-1664-9-git-send-email-tomi.valkeinen@nokia.com>
  <1262956969-1664-10-git-send-email-tomi.valkeinen@nokia.com>
+ <1262956969-1664-11-git-send-email-tomi.valkeinen@nokia.com>
+ <1262956969-1664-12-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:57056 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:57051 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752980Ab0AHNWb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 08:22:31 -0500
-In-Reply-To: <1262956969-1664-10-git-send-email-tomi.valkeinen@nokia.com>
+	with ESMTP id S1752943Ab0AHNW1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 08:22:27 -0500
+In-Reply-To: <1262956969-1664-12-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Fixes bug causing VRFB memory area to be released twice.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Reported-by: Eino-Ville Talvala <talvala@stanford.edu>
 ---
- drivers/video/omap2/dss/core.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-main.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index dbb0ce2..82918ee 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -124,6 +124,7 @@ static void restore_all_ctx(void)
- 	dss_clk_disable_all_no_ctx();
- }
- 
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
- /* CLOCKS */
- static void core_dump_clocks(struct seq_file *s)
- {
-@@ -149,6 +150,7 @@ static void core_dump_clocks(struct seq_file *s)
- 				clocks[i]->usecount);
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index ef29983..e61a75c 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -1311,6 +1311,7 @@ static void omapfb_free_fbmem(struct fb_info *fbi)
+ 		if (rg->vrfb.vaddr[0]) {
+ 			iounmap(rg->vrfb.vaddr[0]);
+ 			omap_vrfb_release_ctx(&rg->vrfb);
++			rg->vrfb.vaddr[0] = NULL;
+ 		}
  	}
- }
-+#endif /* defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) */
  
- static int dss_get_clock(struct clk **clock, const char *clk_name)
- {
 -- 
 1.6.5
 
