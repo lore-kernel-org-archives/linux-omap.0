@@ -1,89 +1,37 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 3/8] DSPBRIDGE: Increased DMM size to 256MB
-Date: Thu, 7 Jan 2010 23:16:13 -0600
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E43C043AC@dlee03.ent.ti.com>
-References: <1262912435-30024-1-git-send-email-omar.ramirez@ti.com>
- <4B4695CB.4080606@ti.com>
+From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Subject: Re: [RFC/PATCH 1/2] usb_otg: compile fix
+Date: Fri, 8 Jan 2010 07:43:09 +0200
+Message-ID: <20100108054302.GA7683@gandalf>
+References: <1262912592-7817-1-git-send-email-alecrim@gmail.com>
+Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57494 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750965Ab0AHFQT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 00:16:19 -0500
-In-Reply-To: <4B4695CB.4080606@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1262912592-7817-1-git-send-email-alecrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Francisco Alecrim <alecrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Aguilar Pena, Leed" <leed.aguilar@ti.com>
 
-Nishant,
-
-With 64MB we were seeing cases of running out of DSP virtual memory when running multiple Multimedia use cases in parallel at a time. 
-
-Thank you,
-Best regards,
-Hari  
-
------Original Message-----
-From: Menon, Nishanth 
-Sent: Friday, January 08, 2010 7:48 AM
-To: Ramirez Luna, Omar
-Cc: linux-omap; Hiroshi Doyu; Ameya Palande; Felipe Contreras; Guzman Lugo, Fernando; Ramos Falcon, Ernesto; Kanigeri, Hari; Aguilar Pena, Leed
-Subject: Re: [PATCH 3/8] DSPBRIDGE: Increased DMM size to 256MB
-
-Ramirez Luna, Omar had written, on 01/07/2010 07:00 PM, the following:
-> From: Hari Kanigeri <h-kanigeri2@ti.com>
+On Thu, Jan 07, 2010 at 09:03:11PM -0400, Francisco Alecrim wrote:
+> From: Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
 > 
-> This patch increases the DMM from 64MB to 256MB.
-
-begs the question: Why?
-
+> include/linux/usb.h: In function 'usb_mark_last_busy':
+> include/linux/usb.h:561: error: 'struct usb_device' has no member named
+> 'last_busy'
 > 
-> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-> Signed-off-by: Leed Aguilar <leed.aguilar@ti.com>
-> ---
->  arch/arm/plat-omap/include/dspbridge/dmm.h |    2 +-
->  drivers/dsp/bridge/pmgr/dmm.c              |    8 ++++----
->  2 files changed, 5 insertions(+), 5 deletions(-)
+> Option USB_OTG selects USB_SUSPEND but doesn't select PM(required by
+> USB_SUSPEND) causing this compile error. Putting USB_SUSPEND as
+> USB_OTG depend ensure that PM is selected.
 > 
-> diff --git a/arch/arm/plat-omap/include/dspbridge/dmm.h b/arch/arm/plat-omap/include/dspbridge/dmm.h
-> index 335edf8..af0c35a 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/dmm.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/dmm.h
-> @@ -41,7 +41,7 @@
->  		u32 reserved;
->  	} ;
->  
-> -#define DMMPOOLSIZE      0x4000000
-> +#define DMMPOOLSIZE      0x10000000
->  
->  /*
->   *  ======== DMM_GetHandle ========
-> diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
-> index 46c05c6..f878855 100644
-> --- a/drivers/dsp/bridge/pmgr/dmm.c
-> +++ b/drivers/dsp/bridge/pmgr/dmm.c
-> @@ -103,10 +103,10 @@ static struct GT_Mask DMM_debugMask = { NULL, NULL };	/* GT trace variable */
->  
->  static u32 cRefs;		/* module reference count */
->  struct MapPage {
-> -	u32   RegionSize:15;
-> -	u32   MappedSize:15;
-> -	u32   bReserved:1;
-> -	u32   bMapped:1;
-> +	u64   RegionSize:31;
-> +	u64   MappedSize:31;
-> +	u64   bReserved:1;
-> +	u64   bMapped:1;
->  };
->  
->  /*  Create the free list */
+> Signed-off-by: Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
 
+should go to linux-usb@vger
 
 -- 
-Regards,
-Nishanth Menon
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
