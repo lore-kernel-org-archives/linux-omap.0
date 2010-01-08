@@ -1,64 +1,43 @@
-From: "Maulik" <x0082077@ti.com>
-Subject: RE: [PATCH v3 1/2] USB: Add empty functions in otg.h
-Date: Fri, 8 Jan 2010 11:26:16 +0530
-Message-ID: <001701ca9027$4b6401d0$808918ac@apr.dhcp.ti.com>
-References: <1262681218-6875-1-git-send-email-x0082077@ti.com> <20100105105450.GD11291@nokia.com> <20100105175307.GA27177@lixom.net>
+From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Subject: Re: [RFC/PATCH 1/2] usb_otg: compile fix
+Date: Fri, 8 Jan 2010 07:57:19 +0200
+Message-ID: <20100108055719.GA7995@gandalf>
+References: <1262912592-7817-1-git-send-email-alecrim@gmail.com>
+ <20100108054302.GA7683@gandalf>
+Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49148 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750915Ab0AHF43 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Jan 2010 00:56:29 -0500
-In-Reply-To: <20100105175307.GA27177@lixom.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20100108054302.GA7683@gandalf>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Cc: Francisco Alecrim <alecrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: 'Greg Kroah-Hartman' <gregkh@suse.de>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, 'Olof Johansson' <olof@lixom.net>, 'Felipe Balbi' <felipe.balbi@nokia.com>, 'Tony Lindgren' <tony@atomide.com>
 
-Greg,
+Hi,
 
-Are you going to include this patch in your queue?
+On Fri, Jan 08, 2010 at 07:43:09AM +0200, Felipe Balbi wrote:
+> On Thu, Jan 07, 2010 at 09:03:11PM -0400, Francisco Alecrim wrote:
+> > From: Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
+> > 
+> > include/linux/usb.h: In function 'usb_mark_last_busy':
+> > include/linux/usb.h:561: error: 'struct usb_device' has no member named
+> > 'last_busy'
+> > 
+> > Option USB_OTG selects USB_SUSPEND but doesn't select PM(required by
+> > USB_SUSPEND) causing this compile error. Putting USB_SUSPEND as
+> > USB_OTG depend ensure that PM is selected.
+> > 
+> > Signed-off-by: Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
+> 
+> should go to linux-usb@vger
 
-Thanks,
-Maulik
+my bad, it's already in Cc.
 
------Original Message-----
-From: Olof Johansson [mailto:olof@lixom.net] 
-Sent: Tuesday, January 05, 2010 11:23 PM
-To: Felipe Balbi
-Cc: ext Maulik Mankad; linux-usb@vger.kernel.org;
-linux-omap@vger.kernel.org; Tony Lindgren; Greg Kroah-Hartman; Sergei
-Shtylyov; Gupta, Ajay Kumar
-Subject: Re: [PATCH v3 1/2] USB: Add empty functions in otg.h
-
-On Tue, Jan 05, 2010 at 12:54:50PM +0200, Felipe Balbi wrote:
-> On Tue, Jan 05, 2010 at 09:46:58AM +0100, ext Maulik Mankad wrote:
->> USB : Add empty functions in otg.h
->>
->> Add empty functions for usb_nop_xceiv_register()
->> and usb_nop_xceiv_unregister() in otg.h so that
->> these functions can be called even when
->> CONFIG_NOP_USB_XCEIV is not enabled.
->>
->> It allows to remove ifdef's from board file.
->>
->> Signed-off-by: Maulik Mankad <x0082077@ti.com>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Felipe Balbi <felipe.balbi@nokia.com>
->
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
->
-> Now this patch looks ok.
-
-Don't you mean Acked-by?
-
-Anyway, also:
-
-Acked-by: Olof Johansson <olof@lixom.net>
-
-
--Olof
-
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
