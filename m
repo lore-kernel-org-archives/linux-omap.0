@@ -1,37 +1,29 @@
-From: Philip Balister <philip@balister.org>
-Subject: New pinmux
-Date: Fri, 08 Jan 2010 10:30:35 -0500
-Message-ID: <4B474F9B.9020409@balister.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: PM branch updated to 2.6.33-rc3
+Date: Fri, 08 Jan 2010 07:40:16 -0800
+Message-ID: <87skagsizj.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.geekisp.com ([216.168.135.169]:16540 "EHLO
-	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751675Ab0AHPhT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 10:37:19 -0500
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:37717 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752270Ab0AHPk0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 10:40:26 -0500
+Received: by pzk1 with SMTP id 1so3807236pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 07:40:25 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-I am trying to work out how to use the new pinmux code on my 
-Overo+Summit system. I have a recent git running with the new pinmux 
-code built. I am trying to configure the mcspi1_clk pin on the expansion 
-connector as gpio_171 with the following:
+FYI... 
 
-root@overo:~# dmesg |grep mux
+PM branch has been updated to current omap/master (2.6.33-rc3 based.)
 
-Kernel command line: console=ttyS2,115200n8 vram=12M 
-omapfb.mode=dvi:1024x768MR-16@60 omapfb.debug=y omapdss.def_display=dvi 
-root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait 
-omap_mux=mcspi1_clk.gpio_171=0x0
+In addition, the work-in-progress branch for OPP rework (pm-wip-opp)
+has been rebased onto current PM branch head.
 
-And this is what happens :(
+Now that I'm back from vacation and mostly caught up on mailing lists,
+I have to catch up on incoming PM patches on the mailing list...  my
+patchwork queue needs some attention.
 
-mux: Could not set signal mcspi1_clk 
-
-mux: Setting signal i2c3_scl.i2c3_scl 0x0118 -> 0x0100
-
-Any suggestions?
-
-Philip
+Kevin
