@@ -1,47 +1,60 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 3/8] DSPBRIDGE: Increased DMM size to 256MB
-Date: Fri, 8 Jan 2010 08:14:13 -0600
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E43C0449B@dlee03.ent.ti.com>
-References: <1262912435-30024-1-git-send-email-omar.ramirez@ti.com>
- <20100108140818.GD11897@annwn.felipec.org>
+From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: Re: [PATCH 1/8] DSPBRIDGE: Cleanup SSI handling - remove IO_ADDRESS
+Date: Fri, 8 Jan 2010 16:20:31 +0200
+Message-ID: <20100108142031.GE11897@annwn.felipec.org>
+References: <1262912426-29974-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45113 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753437Ab0AHOOW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 09:14:22 -0500
-In-Reply-To: <20100108140818.GD11897@annwn.felipec.org>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:52456 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752270Ab0AHOVc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 09:21:32 -0500
+Content-Disposition: inline
+In-Reply-To: <1262912426-29974-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Aguilar Pena, Leed" <leed.aguilar@ti.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Fernando Guzman <x0095840@ti.com>, Ernesto Ramos <ernesto@ti.com>
 
-Felipe,
+On Fri, Jan 08, 2010 at 02:00:26AM +0100, Omar Ramirez Luna wrote:
+> This patch cleans SSI clock preparation and also removes
+> the dependency on IO_ADDRESS variants for easier maintenance.
 
-> Will this work when shm_size=0x4000000?
+So this patch is:
+ * reorganizing SSI configuration
+ * doing some code-style cleanups
+ * using ioremap()
 
-It will. Increasing DMM pool size doesn't have any dependency on shm size. The SHM is used for IPC mechanism to exchange data and loading base images. The DMM is just the DSP virtual address pool that is used for dynamic memory mapping to the buffers allocated on ARM (this buffer is not coming from SHM).
+That doesn't look very atomic to me.
 
-Thank you,
-Best regards,
-Hari
-
------Original Message-----
-From: Felipe Contreras [mailto:felipe.contreras@nokia.com] 
-Sent: Friday, January 08, 2010 7:38 PM
-To: Ramirez Luna, Omar
-Cc: linux-omap; Hiroshi Doyu; Ameya Palande; Guzman Lugo, Fernando; Ramos Falcon, Ernesto; Kanigeri, Hari; Aguilar Pena, Leed
-Subject: Re: [PATCH 3/8] DSPBRIDGE: Increased DMM size to 256MB
-
-On Fri, Jan 08, 2010 at 02:00:35AM +0100, Omar Ramirez Luna wrote:
-> From: Hari Kanigeri <h-kanigeri2@ti.com>
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> ---
+>  arch/arm/plat-omap/include/dspbridge/drv.h |    7 ++++++
+>  drivers/dsp/bridge/services/clk.c          |   30 ++++++++++++++-------------
+>  2 files changed, 23 insertions(+), 14 deletions(-)
 > 
-> This patch increases the DMM from 64MB to 256MB.
+> diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+> index d14613f..59c26fc 100644
+> --- a/arch/arm/plat-omap/include/dspbridge/drv.h
+> +++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+> @@ -115,6 +115,13 @@
+>  #define OMAP_DMMU_BASE 0x5D000000
+>  #define OMAP_DMMU_SIZE 0x1000
+>  
+> +#define OMAP_SSI_BASE		0x48058000
+> +#define OMAP_SSI_SIZE		0x1000
+> +
+> +#define SSI_AUTOIDLE			(1 << 0)
+> +#define SSI_SIDLE_SMARTIDLE	(2 << 3)
+> +#define SSI_MIDLE_NOIDLE		(1 << 12)
+> +
+>  #define OMAP_PRCM_VDD1_DOMAIN 1
+>  #define OMAP_PRCM_VDD2_DOMAIN 2
 
-Will this work when shm_size=0x4000000?
+Isn't this some abuse of arch/arm? In general things in header files are
+meant to be used in more than one source file, and it doesn't seem
+anybody would use these other than clk.c.
 
 -- 
 Felipe Contreras
