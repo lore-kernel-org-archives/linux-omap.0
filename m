@@ -1,62 +1,62 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH 8/8] DSPBRIDGE: Use _IOxx macro to define ioctls
-Date: Fri, 8 Jan 2010 11:19:21 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53042DC952BE@dlee03.ent.ti.com>
-References: <1262912461-30151-1-git-send-email-omar.ramirez@ti.com>
- <4B469FA0.8000106@ti.com> <4B46A22D.1010507@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Subject: [PATCH 0/6] Regulator: Removing common code for TWL4030 PMIC from various OMAP3 board-evms
+Date: Fri,  8 Jan 2010 23:27:28 +0530
+Message-ID: <1262973448-32439-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49989 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751408Ab0AHRT3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 12:19:29 -0500
-In-Reply-To: <4B46A22D.1010507@ti.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:36072 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753520Ab0AHR5j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 12:57:39 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
->From: Menon, Nishanth
->
->Apologies on the spam, but a few points below for preventing a future
->ioctl change:
->
->Menon, Nishanth had written, on 01/07/2010 08:59 PM, the following:
->> Ramirez Luna, Omar had written, on 01/07/2010 07:01 PM, the following:
->>> - Use standard convention to define ioctls.
->please warn in the commit message that this will break compatibility.
->
+Based on the discussions and feedback received, this patch set is
+created which cleans up various OMAP3-board-evm files and removes
+common TWL4030 specific regulator suuplies and init data structs.
+These structures are instead placed in a new file - 
+board-omap35x-twl4030-pmic.c and are referenced from the board-evm
+files depending on the platform requirements. Regulator having specific
+supplies or init data structs are not changed in their respective
+board-evms.
 
-Will do
+The main advantages of having one common file for these structures
+are redundant code removal, easy maintainability and single copy of 
+common structure(s) in case uImage for multiple platforms is built.
 
->>> - Removed runtime check for ioctl matching table number.
->>> - Added __deprectaed marker to functions that are not used anymore.
->generic idea:
->  	if (cmd < ARRAY_SIZE(WCD_cmdTable)) {
->  		/* make the fxn call via the cmd table */
->  		*pResult = (*WCD_cmdTable[cmd].fxn) (args, pr_ctxt);
->if you convert this into:
->  	if (!WCD_cmdTable[cmd].fxn)
->		return -EINVAL;
->  	/* make the fxn call via the cmd table */
->  	*pResult = (*WCD_cmdTable[cmd].fxn) (args, pr_ctxt);
->you'd make deprecation of a previously defined ioctl easy -> just NULL
->and remove the function  in the array and remove it and it's unused
->helper functions.. :)..
+Please see the following links for previous discussions:
+  http://marc.info/?l=linux-omap&m=125795487111175&w=2
+  http://marc.info/?l=linux-omap&m=125795068502904&w=2 
 
-Problem comes if you are expecting some status value from that function
+I have tested these patches on OMAP3EVM and the image boots fine. I
+have compile-tested them for SDP3430 and all OMAP platforms (using
+omap3_defconfig) and the build went fine. If someone can test them
+on their hardware, that would be great !!!
 
->
->
->one generic question - I did not see an features/ioctls supported around
->- having not dug enough, how does the userspace know if the bridge uses
->the new ioctls/old ioctls?
+Anuj Aggarwal (6):
+  Regulator: Creating TWL4030 specific file having supplies & init data
+  Regulator: Removing the common supplies and regulator init data
+    structs
+  Regulator: Use common regulator supplies and init data structs
+  Regulator: Modifying Kconfig to choose from the available PMICs
+  Regulator: Kconfig modified to select TWL4030 for OMAP3 based
+    platforms
+  Regulator: Makefile modified to include TWL4030-PMIC specific file
 
-Patch will be sent to userspace repository on dev.omapzoom.org... the idea is to support this set of ioctls from now on... overall I don't think I got your question
+ arch/arm/mach-omap2/Kconfig                      |   20 +++
+ arch/arm/mach-omap2/Makefile                     |    1 +
+ arch/arm/mach-omap2/board-3430sdp.c              |  146 +++---------------
+ arch/arm/mach-omap2/board-cm-t35.c               |   52 ++-----
+ arch/arm/mach-omap2/board-igep0020.c             |   26 +---
+ arch/arm/mach-omap2/board-ldp.c                  |   26 +---
+ arch/arm/mach-omap2/board-omap35x-twl4030-pmic.c |  175 ++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c          |   52 ++-----
+ arch/arm/mach-omap2/board-omap3evm.c             |   63 ++------
+ arch/arm/mach-omap2/board-omap3pandora.c         |   52 ++-----
+ arch/arm/mach-omap2/board-omap3touchbook.c       |   52 ++-----
+ arch/arm/mach-omap2/board-overo.c                |   26 +---
+ arch/arm/mach-omap2/board-zoom-peripherals.c     |   78 ++--------
+ 13 files changed, 304 insertions(+), 465 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap35x-twl4030-pmic.c
 
-[snip]
-
-- omar
