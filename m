@@ -1,161 +1,344 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: Re: [PATCH] AM35xx: Add clock support for new modules on AM35xx
-Date: Fri, 08 Jan 2010 16:17:04 +0530
-Message-ID: <4B470D28.7010900@ti.com>
-References: <1260971823-8532-1-git-send-email-ranjithl@ti.com> <alpine.DEB.2.00.0912171818150.12561@utopia.booyaka.com> <4B2B5A0F.9050304@ti.com> <alpine.DEB.2.00.1001051134240.2083@utopia.booyaka.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCHV4 3/4] OMAP3: Introduce 3630 DPLL4 HSDivider changes
+Date: Fri, 8 Jan 2010 16:43:09 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870300519BD9@dbde02.ent.ti.com>
+References: <1262849801-9955-1-git-send-email-vishwanath.bs@ti.com>
+ <1262849801-9955-2-git-send-email-vishwanath.bs@ti.com>
+ <1262849801-9955-3-git-send-email-vishwanath.bs@ti.com>
+ <1262849801-9955-4-git-send-email-vishwanath.bs@ti.com>
+ <alpine.DEB.2.00.1001071106150.10034@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60415 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35752 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751370Ab0AHKrM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Jan 2010 05:47:12 -0500
-In-Reply-To: <alpine.DEB.2.00.1001051134240.2083@utopia.booyaka.com>
+	id S1752056Ab0AHLN1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 06:13:27 -0500
+In-Reply-To: <alpine.DEB.2.00.1001071106150.10034@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Paul,
+Hi Paul,
 
-On Wed, 06-Jan-10 2:51 AM +0530, Paul Walmsley wrote:
-> On Fri, 18 Dec 2009, Ranjith Lohithakshan wrote:
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Friday, January 08, 2010 3:14 AM
+> To: Sripathy, Vishwanath
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCHV4 3/4] OMAP3: Introduce 3630 DPLL4 HSDivider changes
 > 
->> On Fri, 18-Dec-09 7:12 AM +0530, Paul Walmsley wrote:
->>
->>> +/* Clocks for AM35XX */
->>> +static struct clk emac_ick = {
->>> +    .name       = "emac_ick",
->>> +    .ops        = &clkops_omap2_dflt,
->>> Shouldn't this clock use &clkops_omap2_dflt_wait (or rather, some custom
->>> version that knows how to read the _ACK bits in IPSS_CLK_CTRL) and test
->>> CPGMAC_VBUSP_CLK_EN_ACK?  Same for the other IPSS VBUSP clocks?   (I
->> guess
->>> "VBUSP" is a synonym for "interface"?)
->> I will ad a custom clkops to address this. Do we need a find_companion
->> to be defined?  The VBUSP clock ACK's do not depend on functional clocks
->> and the functional clocks themselves don't have ant ACK or status bits.
->> EMAC, VPFE amd MUSBOTG are initiators, but the their ACK bits are just
->> for the target idle status.
+> Hello Vishwanath,
 > 
-> I see four ACK bits marked as "clock status bits" in the TRM.  Are these 
-> interface clock status bits for initiator interfaces, or are they module 
-> target IdleAck bits?  If they are the former, then they are useless and 
-> there is no point waiting for these clocks.  If they are the latter, then 
-> yes, you'll need a find_companion, because the clock code must ensure that 
-> both the interface clock and main functional clock are both enabled before 
-> checking the module's target idle status, and the AM35xx IPSS does this in 
-> a completely different way than the OMAP35xx.  I guess the IPSS was just 
-> 'bolted on' to the chip, rather than really integrated into the OMAP2 PRCM 
-> design.
-
-These ACK bits are for the target IdleAck status. I will add a custom
-find_companion code for AM35xx. As you rightly said, the IPSS was kind
-of bolted together and not properly integrated into the PRCM
-
->> One of the issues on AM35xx is regarding the status indicator for new
->> clocks. Here 1 indicates as enabled and 0 as not ready state, similar to
->> 24xx case but just opposite to 34xx clocks. And now we have a mix of
->> these two on AM35xx. 
+> some more comments.
 > 
-> Wow, that's really craptacular.
+> On Thu, 7 Jan 2010, Vishwanath BS wrote:
 > 
->> In omap2_cm_wait_idlest, I do not get a per clock granularity to
->> decide what should be the status check for that particular
->> clock. One of the approach I am thinking is to define a new clock
->> flag (say INVERT_ENABLE_STATUS) and set it for the new AM35xx
->> clocks. And in omap2_module_wait_ready I will do the cpu check and
->> flag check on a per clock basis and determine the status that need
->> to be checked and pass it to omap2_module_wait_ready to check what
->> we want. omap2_module_wait_ready will not be doing any cpu checks as
->> its done today. Let me know what you think.
+> > DPLL4 HS Divider (M2, M3, M4, M5 and M6) field width has been increased by 1 bit
+> in 3630.
+> > This patch has changes to accommodate this in CM dynamically based on chip
+> version.
+> > Basically new clock nodes have been added for 3630 DPLL4 M2,M3,M4,M5 and M6
+> and
+> > value of these nodes are used if cpu type is 3630.
+> >
+> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/clock34xx_data.c    |  125
+> ++++++++++++++++++++++++++++++-
+> >  arch/arm/mach-omap2/cm-regbits-34xx.h   |    8 ++-
+> >  arch/arm/plat-omap/include/plat/clock.h |    1 +
+> >  3 files changed, 132 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-
+> omap2/clock34xx_data.c
+> > index 66a3a96..04c8e3c 100755
+> > --- a/arch/arm/mach-omap2/clock34xx_data.c
+> > +++ b/arch/arm/mach-omap2/clock34xx_data.c
+> > @@ -236,6 +236,42 @@ static const struct clksel_rate div16_dpll_rates[] = {
+> >  	{ .div = 0 }
+> >  };
+> >
+> > +static const struct clksel_rate div32_dpll_rates[] = {
 > 
-> (I guess you mean  omap2_cm_wait_module_ready() in the last two sentences?)
-
-I am actually referring to omap2_module_wait_ready defined in
-mach-omap2/clock.c
-
-> How about extending find_idlest to pass back whether to test against 0 or 
-> 1?  The cpu code will then move into the find_idlest code, and you can 
-> just create a few new find_idlest functions for the AM35xx clocks.  Let's 
-> try to avoid creating new clock flags for this, I'm trying to move all of 
-> this module IDLEST testing code out of the clock code and into the hwmod 
-> code where it belongs.
-
-OK. I will extend the existing find_idlest to pass back what value needs
-to be checked as you suggested. I will make this change as a separate patch.
-
->>>> +static struct clk emac_fck = {
->>>> +	.name       = "emac_fck",
->>>> +	.ops        = &clkops_omap2_dflt,
->>>> +	.clkdm_name = "core_l3_clkdm",
->>> Is this the correct clockdomain for this clock?  It seems unlikely that a
->>> 50MHz functional clock would be in core_l3_clkdm.  Usually these are all
->>> interface clocks.  This applies for all the other functional clocks
->> listed
->>> in this file also.
->> Would it be OK if we just don't set clkdm_name. I am not sure whether we
->> can map it to any existing OMAP3 clock domains that way
+> Please rename this to something like 'div32_dpll4_rates_3630' to indicate
+> that it is DPLL4-specific and 3630-specific.
+OK
 > 
-> I'd like to see all new clocks added with a clockdomain, even if it is not 
-> a software-controllable clockdomain.  That makes it possible for others to 
-> understand what is really going on from a power management point of view.  
-> What is the clockdomain structure for these new clocks?
-
-All the VBUSP (interface) clocks are derived from core_l3_clk and I am
-making them as part of core_l3_clk domain. The rmii_ck/emac_fck and
-vpfe_fck are sourced from external clock sources. (AM35XX TRM section
-4.7.7.12)
-
->>>> +	.rate       = 50000000,
->>> What's the parent of this clock?  Looking at TRM section 4.7.7.12 it
->>> appears that it gets this from an off-chip source, "rmii_clk"?  Guess
->> that
->>> should probably be defined as the fixed source clock, and emac_fck should
->>> list rmii_clk as its parent?
->>>
->>>> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
->>>> +	.enable_bit = AM35XX_CPGMAC_FCLK_SHIFT,
->>>> +	.recalc     = &omap2_clksel_recalc,
->>> This .recalc field is wrong, since there's no .clksel field defined.  If
->>> you define that parent, then this should be followparent_recalc.  The
->>> parent should have .flags = RATE_FIXED and no .recalc.
->> Do we really need to define an rmii_ck? Can we make emac_fck itself as
->> the root clock with no parent? Here is what I was thinking of. Let me
->> know if you see any issues with this
+> > +	{ .div = 1, .val = 1, .flags = RATE_IN_36XX | DEFAULT_RATE },
+> > +	{ .div = 2, .val = 2, .flags = RATE_IN_36XX },
+> > +	{ .div = 3, .val = 3, .flags = RATE_IN_36XX },
+> > +	{ .div = 4, .val = 4, .flags = RATE_IN_36XX },
+> > +	{ .div = 5, .val = 5, .flags = RATE_IN_36XX },
+> > +	{ .div = 6, .val = 6, .flags = RATE_IN_36XX },
+> > +	{ .div = 7, .val = 7, .flags = RATE_IN_36XX },
+> > +	{ .div = 8, .val = 8, .flags = RATE_IN_36XX },
+> > +	{ .div = 9, .val = 9, .flags = RATE_IN_36XX },
+> > +	{ .div = 10, .val = 10, .flags = RATE_IN_36XX },
+> > +	{ .div = 11, .val = 11, .flags = RATE_IN_36XX },
+> > +	{ .div = 12, .val = 12, .flags = RATE_IN_36XX },
+> > +	{ .div = 13, .val = 13, .flags = RATE_IN_36XX },
+> > +	{ .div = 14, .val = 14, .flags = RATE_IN_36XX },
+> > +	{ .div = 15, .val = 15, .flags = RATE_IN_36XX },
+> > +	{ .div = 16, .val = 16, .flags = RATE_IN_36XX },
+> > +	{ .div = 17, .val = 17, .flags = RATE_IN_36XX },
+> > +	{ .div = 18, .val = 18, .flags = RATE_IN_36XX },
+> > +	{ .div = 19, .val = 19, .flags = RATE_IN_36XX },
+> > +	{ .div = 20, .val = 20, .flags = RATE_IN_36XX },
+> > +	{ .div = 21, .val = 21, .flags = RATE_IN_36XX },
+> > +	{ .div = 22, .val = 22, .flags = RATE_IN_36XX },
+> > +	{ .div = 23, .val = 23, .flags = RATE_IN_36XX },
+> > +	{ .div = 24, .val = 24, .flags = RATE_IN_36XX },
+> > +	{ .div = 25, .val = 25, .flags = RATE_IN_36XX },
+> > +	{ .div = 26, .val = 26, .flags = RATE_IN_36XX },
+> > +	{ .div = 27, .val = 27, .flags = RATE_IN_36XX },
+> > +	{ .div = 28, .val = 28, .flags = RATE_IN_36XX },
+> > +	{ .div = 29, .val = 29, .flags = RATE_IN_36XX },
+> > +	{ .div = 30, .val = 30, .flags = RATE_IN_36XX },
+> > +	{ .div = 31, .val = 31, .flags = RATE_IN_36XX },
+> > +	{ .div = 32, .val = 32, .flags = RATE_IN_36XX },
+> > +	{ .div = 0 }
+> > +};
+> > +
+> >  /* DPLL1 */
+> >  /* MPU clock source */
+> >  /* Type: DPLL */
+> > @@ -587,6 +623,17 @@ static struct clk dpll4_ck = {
+> >  	.recalc		= &omap3_dpll_recalc,
+> >  };
+> >
+> > +static struct clk dpll4_ck_3630 __initdata = {
 > 
-> Yes, please define the parent clocks appropriately.  They will probably be 
-> in different clockdomains from the downstream clocks.  Where does rmii_clk 
-> come from?  Is this an off-chip clock?  Is this coming from one of the 
-> on-chip DPLLs?  
+> Marking these as __initdata will crash the system for DVFS changes after
+> the kernel boots.  Please fix.
 
-rmii_ck and vpfe_fck are from off-chip sources. These are fixed rate
-clocks being fed to the chip. Do we need to associate a dummy or virtual
-clock domain for these clocks or is it OK if we treat it similar to the
-way we currently treat 32K timer clock (RATE_FIXED, clockops_null, no
-clock domain and having no parent)?
+Sorry I did not understand why it should crash the system for DVFS? dpll4_ck_3630 is not used anywhere after it's values are copied into dpll4_ck as part of clock_init. Same is the case with others. 
 
->> static struct clk emac_fck = {
->>     .name       = "emac_fck",
->>     .ops        = &clkops_omap2_dflt,
->>     .flags      = RATE_FIXED,
->>     .rate       = 50000000,
->>     .enable_reg = OMAP343X_CTRL_REGADDR(OMAP3517_CONTROL_IP_CLK_CTRL),
->>     .enable_bit = OMAP3517_CPGMAC_FCLK_SHIFT,
->> };
->>
->>>> +static struct clk vpfe_fck = {
->>>> +	.name       = "vpfe_fck",
->>>> +	.ops        = &clkops_omap2_dflt,
->>>> +	.clkdm_name = "core_l3_clkdm",
->>>> +	.rate       = 27000000,
->>>> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
->>>> +	.enable_bit = AM35XX_VPFE_FCLK_SHIFT,
->>>> +	.recalc     = &omap2_clksel_recalc,
->>> This fixed rate clock isn't right, for the same reasons as described
->>> above.
->> Would make it similar to emac_fck depending on what we decide.
+> 
+> > +	.name		= "dpll4_ck",
+> > +	.ops		= &clkops_noncore_dpll_ops,
+> > +	.parent		= &sys_ck,
+> > +	.dpll_data	= &dpll4_dd_3630,
+> > +	.round_rate	= &omap2_dpll_round_rate,
+> > +	.set_rate	= &omap3_dpll4_set_rate,
+> > +	.clkdm_name	= "dpll4_clkdm",
+> > +	.recalc		= &omap3_dpll_recalc,
+> > +};
+> > +
+> >  /*
+> >   * This virtual clock provides the CLKOUTX2 output from the DPLL if the
+> >   * DPLL isn't bypassed --
+> > @@ -605,6 +652,11 @@ static const struct clksel div16_dpll4_clksel[] = {
+> >  	{ .parent = NULL }
+> >  };
+> >
+> > +static const struct clksel div32_dpll4_clksel[] = {
+> > +	{ .parent = &dpll4_ck, .rates = div32_dpll_rates },
+> > +	{ .parent = NULL }
+> > +};
+> > +
+> >  /* This virtual clock is the source for dpll4_m2x2_ck */
+> >  static struct clk dpll4_m2_ck = {
+> >  	.name		= "dpll4_m2_ck",
+> > @@ -618,6 +670,18 @@ static struct clk dpll4_m2_ck = {
+> >  	.recalc		= &omap2_clksel_recalc,
+> >  };
+> >
+> > +static struct clk dpll4_m2_ck_3630 __initdata  = {
+> > +	.name		= "dpll4_m2_ck",
+> > +	.ops		= &clkops_null,
+> > +	.parent		= &dpll4_ck,
+> > +	.init		= &omap2_init_clksel_parent,
+> > +	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, OMAP3430_CM_CLKSEL3),
+> > +	.clksel_mask	= OMAP3630_DIV_96M_MASK,
+> > +	.clksel		= div32_dpll4_clksel,
+> > +	.clkdm_name	= "dpll4_clkdm",
+> > +	.recalc		= &omap2_clksel_recalc,
+> > +};
+> > +
+> >  /* The PWRDN bit is apparently only available on 3430ES2 and above */
+> >  static struct clk dpll4_m2x2_ck = {
+> >  	.name		= "dpll4_m2x2_ck",
+> > @@ -690,6 +754,18 @@ static struct clk dpll4_m3_ck = {
+> >  	.recalc		= &omap2_clksel_recalc,
+> >  };
+> >
+> > +static struct clk dpll4_m3_ck_3630 __initdata = {
+> > +	.name		= "dpll4_m3_ck",
+> > +	.ops		= &clkops_null,
+> > +	.parent		= &dpll4_ck,
+> > +	.init		= &omap2_init_clksel_parent,
+> > +	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
+> > +	.clksel_mask	= OMAP3630_CLKSEL_TV_MASK,
+> > +	.clksel		= div32_dpll4_clksel,
+> > +	.clkdm_name	= "dpll4_clkdm",
+> > +	.recalc		= &omap2_clksel_recalc,
+> > +};
+> > +
+> >  /* The PWRDN bit is apparently only available on 3430ES2 and above */
+> >  static struct clk dpll4_m3x2_ck = {
+> >  	.name		= "dpll4_m3x2_ck",
+> > @@ -778,6 +854,20 @@ static struct clk dpll4_m4_ck = {
+> >  	.round_rate	= &omap2_clksel_round_rate,
+> >  };
+> >
+> > +static struct clk dpll4_m4_ck_3630 __initdata = {
+> > +	.name		= "dpll4_m4_ck",
+> > +	.ops		= &clkops_null,
+> > +	.parent		= &dpll4_ck,
+> > +	.init		= &omap2_init_clksel_parent,
+> > +	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
+> > +	.clksel_mask	= OMAP3630_CLKSEL_DSS1_MASK,
+> > +	.clksel		= div32_dpll4_clksel,
+> > +	.clkdm_name	= "dpll4_clkdm",
+> > +	.recalc		= &omap2_clksel_recalc,
+> > +	.set_rate	= &omap2_clksel_set_rate,
+> > +	.round_rate	= &omap2_clksel_round_rate,
+> > +};
+> > +
+> >  /* The PWRDN bit is apparently only available on 3430ES2 and above */
+> >  static struct clk dpll4_m4x2_ck = {
+> >  	.name		= "dpll4_m4x2_ck",
+> > @@ -803,6 +893,18 @@ static struct clk dpll4_m5_ck = {
+> >  	.recalc		= &omap2_clksel_recalc,
+> >  };
+> >
+> > +static struct clk dpll4_m5_ck_3630 __initdata = {
+> > +	.name		= "dpll4_m5_ck",
+> > +	.ops		= &clkops_null,
+> > +	.parent		= &dpll4_ck,
+> > +	.init		= &omap2_init_clksel_parent,
+> > +	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_CLKSEL),
+> > +	.clksel_mask	= OMAP3630_CLKSEL_CAM_MASK,
+> > +	.clksel		= div32_dpll4_clksel,
+> > +	.clkdm_name	= "dpll4_clkdm",
+> > +	.recalc		= &omap2_clksel_recalc,
+> > +};
+> > +
+> >  /* The PWRDN bit is apparently only available on 3430ES2 and above */
+> >  static struct clk dpll4_m5x2_ck = {
+> >  	.name		= "dpll4_m5x2_ck",
+> > @@ -828,6 +930,18 @@ static struct clk dpll4_m6_ck = {
+> >  	.recalc		= &omap2_clksel_recalc,
+> >  };
+> >
+> > +static struct clk dpll4_m6_ck_3630 __initdata = {
+> > +	.name		= "dpll4_m6_ck",
+> > +	.ops		= &clkops_null,
+> > +	.parent		= &dpll4_ck,
+> > +	.init		= &omap2_init_clksel_parent,
+> > +	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
+> > +	.clksel_mask	= OMAP3630_DIV_DPLL4_MASK,
+> > +	.clksel		= div32_dpll4_clksel,
+> > +	.clkdm_name	= "dpll4_clkdm",
+> > +	.recalc		= &omap2_clksel_recalc,
+> > +};
+> > +
+> >  /* The PWRDN bit is apparently only available on 3430ES2 and above */
+> >  static struct clk dpll4_m6x2_ck = {
+> >  	.name		= "dpll4_m6x2_ck",
+> > @@ -3265,8 +3379,17 @@ int __init omap2_clk_init(void)
+> >  			cpu_clkflg |= CK_3430ES2;
+> >  		}
+> >  	}
+> > -	if (cpu_is_omap3630())
+> > +	if (cpu_is_omap3630()) {
+> > +		cpu_mask |= RATE_IN_36XX;
+> > +		cpu_clkflg |= CK_36XX;
+> >  		dpll4_dd = dpll4_dd_3630;
+> > +		dpll4_ck = dpll4_ck_3630;
+> > +		dpll4_m2_ck = dpll4_m2_ck_3630;
+> > +		dpll4_m3_ck = dpll4_m3_ck_3630;
+> > +		dpll4_m4_ck = dpll4_m4_ck_3630;
+> > +		dpll4_m5_ck = dpll4_m5_ck_3630;
+> > +		dpll4_m6_ck = dpll4_m6_ck_3630;
+> > +	}
+> 
+> As mentioned in a previous E-mail, please add a _34xx suffix on the 34xx
+> versions and in a separate branch of this conditional, assign those
+> instead.
+> 
+OK. I will take care of this in next patch. 
+> >
+> >  	clk_init(&omap2_clk_functions);
+> >
+> > diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-
+> regbits-34xx.h
+> > index 6f2802b..c81ec27
+> > --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
+> > +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> > @@ -516,7 +516,8 @@
+> >
+> >  /* CM_CLKSEL2_PLL */
+> >  #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
+> > -#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0xfff << 8)
+> > +#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0x7ff << 8)
+> > +#define OMAP3630_PERIPH_DPLL_MULT_MASK			(0xfff << 8)
+> >  #define OMAP3430_PERIPH_DPLL_DIV_SHIFT			0
+> >  #define OMAP3430_PERIPH_DPLL_DIV_MASK			(0x7f << 0)
+> >  #define OMAP3630_PERIPH_DPLL_DCO_SEL_SHIFT		21
+> > @@ -527,6 +528,7 @@
+> >  /* CM_CLKSEL3_PLL */
+> >  #define OMAP3430_DIV_96M_SHIFT				0
+> >  #define OMAP3430_DIV_96M_MASK				(0x1f << 0)
+> > +#define OMAP3630_DIV_96M_MASK				(0x3f << 0)
+> >
+> >  /* CM_CLKSEL4_PLL */
+> >  #define OMAP3430ES2_PERIPH2_DPLL_MULT_SHIFT		8
+> > @@ -573,8 +575,10 @@
+> >  /* CM_CLKSEL_DSS */
+> >  #define OMAP3430_CLKSEL_TV_SHIFT			8
+> >  #define OMAP3430_CLKSEL_TV_MASK				(0x1f << 8)
+> > +#define OMAP3630_CLKSEL_TV_MASK				(0x3f << 8)
+> >  #define OMAP3430_CLKSEL_DSS1_SHIFT			0
+> >  #define OMAP3430_CLKSEL_DSS1_MASK			(0x1f << 0)
+> > +#define OMAP3630_CLKSEL_DSS1_MASK			(0x3f << 0)
+> >
+> >  /* CM_SLEEPDEP_DSS specific bits */
+> >
+> > @@ -602,6 +606,7 @@
+> >  /* CM_CLKSEL_CAM */
+> >  #define OMAP3430_CLKSEL_CAM_SHIFT			0
+> >  #define OMAP3430_CLKSEL_CAM_MASK			(0x1f << 0)
+> > +#define OMAP3630_CLKSEL_CAM_MASK			(0x3f << 0)
+> >
+> >  /* CM_SLEEPDEP_CAM specific bits */
+> >
+> > @@ -697,6 +702,7 @@
+> >  /* CM_CLKSEL1_EMU */
+> >  #define OMAP3430_DIV_DPLL4_SHIFT			24
+> >  #define OMAP3430_DIV_DPLL4_MASK				(0x1f << 24)
+> > +#define OMAP3630_DIV_DPLL4_MASK				(0x3f << 24)
+> >  #define OMAP3430_DIV_DPLL3_SHIFT			16
+> >  #define OMAP3430_DIV_DPLL3_MASK				(0x1f << 16)
+> >  #define OMAP3430_CLKSEL_TRACECLK_SHIFT			11
+> > diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-
+> omap/include/plat/clock.h
+> > index 148d8ae..ee32a6e 100755
+> > --- a/arch/arm/plat-omap/include/plat/clock.h
+> > +++ b/arch/arm/plat-omap/include/plat/clock.h
+> > @@ -163,6 +163,7 @@ extern const struct clkops clkops_null;
+> >  #define RATE_IN_343X		(1 << 3)	/* rates common to all 343X */
+> >  #define RATE_IN_3430ES2		(1 << 4)	/* 3430ES2 rates only */
+> >  #define RATE_IN_4430            (1 << 5)
+> > +#define RATE_IN_36XX		(1 << 6)
+> 
+> Please add the new RATE define between 3430ES2 and 4430 and renumber
+> RATE_IN_4430.
+
+OK
+Regards
+Vishwa
 > 
 
-- Ranjith
+> >
+> >  #define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
+> >
+> > --
+> > 1.5.6.3
+> 
+> 
+> - Paul
