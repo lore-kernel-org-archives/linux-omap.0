@@ -1,68 +1,125 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 00/15] OMAP DSS fixes
-Date: Fri,  8 Jan 2010 15:22:34 +0200
-Message-ID: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 05/15] OMAP: DSS2: RFBI: convert to new kfifo API
+Date: Fri,  8 Jan 2010 15:22:39 +0200
+Message-ID: <1262956969-1664-6-git-send-email-tomi.valkeinen@nokia.com>
+References: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
+ <1262956969-1664-2-git-send-email-tomi.valkeinen@nokia.com>
+ <1262956969-1664-3-git-send-email-tomi.valkeinen@nokia.com>
+ <1262956969-1664-4-git-send-email-tomi.valkeinen@nokia.com>
+ <1262956969-1664-5-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:48278 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076Ab0AHNWg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 08:22:36 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:25339 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753149Ab0AHNWh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 08:22:37 -0500
+In-Reply-To: <1262956969-1664-5-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Bunch of small fixes to OMAP DSS for review.
+Compiles, but not tested.
 
- Tomi
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ drivers/video/omap2/dss/rfbi.c |   30 +++++++++++++++---------------
+ 1 files changed, 15 insertions(+), 15 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index d0b3006..b936495 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -120,7 +120,7 @@ static struct {
+ 
+ 	struct omap_dss_device *dssdev[2];
+ 
+-	struct kfifo      *cmd_fifo;
++	struct kfifo      cmd_fifo;
+ 	spinlock_t        cmd_lock;
+ 	struct completion cmd_done;
+ 	atomic_t          cmd_fifo_full;
+@@ -1011,20 +1011,20 @@ static void process_cmd_fifo(void)
+ 		return;
+ 
+ 	while (true) {
+-		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
++		spin_lock_irqsave(&rfbi.cmd_lock, flags);
+ 
+-		len = __kfifo_get(rfbi.cmd_fifo, (unsigned char *)&p,
++		len = kfifo_out(&rfbi.cmd_fifo, (unsigned char *)&p,
+ 				  sizeof(struct update_param));
+ 		if (len == 0) {
+ 			DSSDBG("nothing more in fifo\n");
+ 			atomic_set(&rfbi.cmd_pending, 0);
+-			spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
++			spin_unlock_irqrestore(&rfbi.cmd_lock, flags);
+ 			break;
+ 		}
+ 
+ 		/* DSSDBG("fifo full %d\n", rfbi.cmd_fifo_full.counter);*/
+ 
+-		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
++		spin_unlock_irqrestore(&rfbi.cmd_lock, flags);
+ 
+ 		BUG_ON(len != sizeof(struct update_param));
+ 		BUG_ON(p.rfbi_module > 1);
+@@ -1052,25 +1052,25 @@ static void rfbi_push_cmd(struct update_param *p)
+ 		unsigned long flags;
+ 		int available;
+ 
+-		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
++		spin_lock_irqsave(&rfbi.cmd_lock, flags);
+ 		available = RFBI_CMD_FIFO_LEN_BYTES -
+-			__kfifo_len(rfbi.cmd_fifo);
++			kfifo_len(&rfbi.cmd_fifo);
+ 
+ /*		DSSDBG("%d bytes left in fifo\n", available); */
+ 		if (available < sizeof(struct update_param)) {
+ 			DSSDBG("Going to wait because FIFO FULL..\n");
+-			spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
++			spin_unlock_irqrestore(&rfbi.cmd_lock, flags);
+ 			atomic_inc(&rfbi.cmd_fifo_full);
+ 			wait_for_completion(&rfbi.cmd_done);
+ 			/*DSSDBG("Woke up because fifo not full anymore\n");*/
+ 			continue;
+ 		}
+ 
+-		ret = __kfifo_put(rfbi.cmd_fifo, (unsigned char *)p,
++		ret = kfifo_in(&rfbi.cmd_fifo, (unsigned char *)p,
+ 				  sizeof(struct update_param));
+ /*		DSSDBG("pushed %d bytes\n", ret);*/
+ 
+-		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
++		spin_unlock_irqrestore(&rfbi.cmd_lock, flags);
+ 
+ 		BUG_ON(ret != sizeof(struct update_param));
+ 
+@@ -1155,12 +1155,12 @@ int rfbi_init(void)
+ {
+ 	u32 rev;
+ 	u32 l;
++	int r;
+ 
+ 	spin_lock_init(&rfbi.cmd_lock);
+-	rfbi.cmd_fifo = kfifo_alloc(RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL,
+-				    &rfbi.cmd_lock);
+-	if (IS_ERR(rfbi.cmd_fifo))
+-		return -ENOMEM;
++	r = kfifo_alloc(&rfbi.cmd_fifo, RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL);
++	if (r)
++		return r;
+ 
+ 	init_completion(&rfbi.cmd_done);
+ 	atomic_set(&rfbi.cmd_fifo_full, 0);
+@@ -1196,7 +1196,7 @@ void rfbi_exit(void)
+ {
+ 	DSSDBG("rfbi_exit\n");
+ 
+-	kfifo_free(rfbi.cmd_fifo);
++	kfifo_free(&rfbi.cmd_fifo);
+ 
+ 	iounmap(rfbi.base);
+ }
+-- 
+1.6.5
 
-Peter Huewe (1):
-  video/omap: add __init/__exit macros to
-    drivers/video/omap/lcd_htcherald.c
-
-Tomi Valkeinen (12):
-  OMAP: DSS2: DSI: fix VC channels in send_short and send_null
-  OMAP: DSS2: DSI: print debug DCS cmd in hex
-  OMAP: DSS2: Collect interrupt statistics
-  OMAP: DSS2: Fix crash when panel doesn't define enable_te()
-  OMAP: DSS2: RFBI: convert to new kfifo API
-  OMAP: OMAPFB: fix clk_get for RFBI
-  OMAP: OMAPFB: add dummy release function for omapdss
-  MAINTAINERS: change omapfb maintainer
-  MAINTAINERS: Combine DSS2 and OMAPFB2 into one entry
-  OMAP: DSS2: OMAPFB: fix omapfb_free_fbmem()
-  OMAP: DSS2: Make check-delay-loops consistent
-  OMAP: DSS2: OMAPFB: fix crash when panel driver was not loaded
-
-Vaibhav Hiremath (1):
-  OMAP: DSS2: Fix compile warning
-
-Ville Syrj=C3=A4l=C3=A4 (1):
-  DSS2: Reject scaling settings when they cannot be supported
-
- MAINTAINERS                              |   15 +---
- drivers/video/omap/dispc.c               |   18 +---
- drivers/video/omap/lcd_htcherald.c       |    4 +-
- drivers/video/omap/omapfb.h              |    2 +
- drivers/video/omap/omapfb_main.c         |   25 +++++
- drivers/video/omap/rfbi.c                |    4 +-
- drivers/video/omap2/dss/Kconfig          |    7 ++
- drivers/video/omap2/dss/core.c           |   10 ++
- drivers/video/omap2/dss/dispc.c          |   74 +++++++++++++-
- drivers/video/omap2/dss/dsi.c            |  160 ++++++++++++++++++++++=
-+++++---
- drivers/video/omap2/dss/dss.c            |    6 +-
- drivers/video/omap2/dss/dss.h            |   14 +++
- drivers/video/omap2/dss/rfbi.c           |   30 +++---
- drivers/video/omap2/omapfb/omapfb-main.c |    6 +
- 14 files changed, 309 insertions(+), 66 deletions(-)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
