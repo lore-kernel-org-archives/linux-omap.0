@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 07/13] OMAP3: Fixed ARM aux ctrl register save/restore
-Date: Fri,  8 Jan 2010 09:59:25 -0800
-Message-ID: <1262973571-25796-8-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 08/13] OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
+Date: Fri,  8 Jan 2010 09:59:26 -0800
+Message-ID: <1262973571-25796-9-git-send-email-khilman@deeprootsystems.com>
 References: <1262973571-25796-1-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-2-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-3-git-send-email-khilman@deeprootsystems.com>
@@ -9,81 +9,112 @@ References: <1262973571-25796-1-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-5-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-6-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-7-git-send-email-khilman@deeprootsystems.com>
+ <1262973571-25796-8-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pw0-f42.google.com ([209.85.160.42]:47107 "EHLO
 	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753728Ab0AHR7r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 12:59:47 -0500
+	with ESMTP id S1753764Ab0AHR7t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 12:59:49 -0500
 Received: by mail-pw0-f42.google.com with SMTP id 9so160327pwj.21
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 09:59:47 -0800 (PST)
-In-Reply-To: <1262973571-25796-7-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 09:59:49 -0800 (PST)
+In-Reply-To: <1262973571-25796-8-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <tero.kristo@nokia.com>
+Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+From: Sripathy, Vishwanath <vishwanath.bs@ti.com>
 
-Current value is stored on SDRAM and it is written back during wakeup.
-Previously a static value of 0x72 was written there.
+As part of Core domain context restoration while coming out of off mode
+there are some registers being restored which are not required to be restored.
+ROM code will have restored them already. Overwriting some of them can have
+potential side effect. Eg: CM_CLKEN_PLL register should not be written while dpll is locked.
+Tested on OMAP 3430 SDP for suspend/resume and off mode with sleep_while_idle enabled.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Acked-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/sleep34xx.S |   13 +++++++++----
- 1 files changed, 9 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/prcm.c |   11 -----------
+ 1 files changed, 0 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 15268f8..c3626ea 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -245,7 +245,8 @@ restore:
- 	mov	r1, #0		@ set task id for ROM code in r1
- 	mov	r2, #4		@ set some flags in r2, r6
- 	mov	r6, #0xff
--	adr	r3, write_aux_control_params	@ r3 points to parameters
-+	ldr	r4, scratchpad_base
-+	ldr	r3, [r4, #0xBC]	@ r3 points to parameters
- 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
- 	.word	0xE1600071		@ call SMI monitor (smi #1)
-@@ -253,14 +254,14 @@ restore:
- 	b	logic_l1_restore
- l2_inv_api_params:
- 	.word   0x1, 0x00
--write_aux_control_params:
--	.word   0x1, 0x72
- l2_inv_gp:
- 	/* Execute smi to invalidate L2 cache */
- 	mov r12, #0x1                         @ set up to invalide L2
- smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
- 	/* Write to Aux control register to set some bits */
--	mov	r0, #0x72
-+	ldr	r4, scratchpad_base
-+	ldr	r3, [r4,#0xBC]
-+	ldr	r0, [r3,#4]
- 	mov	r12, #0x3
- 	.word 0xE1600070	@ Call SMI monitor (smieq)
- logic_l1_restore:
-@@ -271,6 +272,7 @@ logic_l1_restore:
- 
- 	ldr	r4, scratchpad_base
- 	ldr	r3, [r4,#0xBC]
-+	adds	r3, r3, #8
- 	ldmia	r3!, {r4-r6}
- 	mov	sp, r4
- 	msr	spsr_cxsf, r5
-@@ -387,6 +389,9 @@ usettbr0:
- save_context_wfi:
- 	/*b	save_context_wfi*/	@ enable to debug save code
- 	mov	r8, r0 /* Store SDRAM address in r8 */
-+	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
-+	mov	r4, #0x1		@ Number of parameters for restore call
-+	stmia	r8!, {r4-r5}
-         /* Check what that target sleep state is:stored in r1*/
-         /* 1 - Only L1 and logic lost */
-         /* 2 - Only L2 lost */
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 3ea8177..cf466ea 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -44,7 +44,6 @@ struct omap3_prcm_regs {
+ 	u32 iva2_cm_clksel2;
+ 	u32 cm_sysconfig;
+ 	u32 sgx_cm_clksel;
+-	u32 wkup_cm_clksel;
+ 	u32 dss_cm_clksel;
+ 	u32 cam_cm_clksel;
+ 	u32 per_cm_clksel;
+@@ -53,7 +52,6 @@ struct omap3_prcm_regs {
+ 	u32 pll_cm_autoidle2;
+ 	u32 pll_cm_clksel4;
+ 	u32 pll_cm_clksel5;
+-	u32 pll_cm_clken;
+ 	u32 pll_cm_clken2;
+ 	u32 cm_polctrl;
+ 	u32 iva2_cm_fclken;
+@@ -77,7 +75,6 @@ struct omap3_prcm_regs {
+ 	u32 usbhost_cm_iclken;
+ 	u32 iva2_cm_autiidle2;
+ 	u32 mpu_cm_autoidle2;
+-	u32 pll_cm_autoidle;
+ 	u32 iva2_cm_clkstctrl;
+ 	u32 mpu_cm_clkstctrl;
+ 	u32 core_cm_clkstctrl;
+@@ -274,7 +271,6 @@ void omap3_prcm_save_context(void)
+ 	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
+ 	prcm_context.sgx_cm_clksel =
+ 			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
+-	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
+ 	prcm_context.dss_cm_clksel =
+ 			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
+ 	prcm_context.cam_cm_clksel =
+@@ -291,8 +287,6 @@ void omap3_prcm_save_context(void)
+ 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
+ 	prcm_context.pll_cm_clksel5 =
+ 			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
+-	prcm_context.pll_cm_clken =
+-			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+ 	prcm_context.pll_cm_clken2 =
+ 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+ 	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
+@@ -338,8 +332,6 @@ void omap3_prcm_save_context(void)
+ 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
+ 	prcm_context.mpu_cm_autoidle2 =
+ 			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
+-	prcm_context.pll_cm_autoidle =
+-			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
+ 	prcm_context.iva2_cm_clkstctrl =
+ 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
+ 	prcm_context.mpu_cm_clkstctrl =
+@@ -431,7 +423,6 @@ void omap3_prcm_restore_context(void)
+ 	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
+ 	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
+ 					 CM_CLKSEL);
+-	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
+ 	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
+ 					 CM_CLKSEL);
+ 	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
+@@ -448,7 +439,6 @@ void omap3_prcm_restore_context(void)
+ 					OMAP3430ES2_CM_CLKSEL4);
+ 	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
+ 					 OMAP3430ES2_CM_CLKSEL5);
+-	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
+ 	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
+ 					OMAP3430ES2_CM_CLKEN2);
+ 	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
+@@ -487,7 +477,6 @@ void omap3_prcm_restore_context(void)
+ 	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
+ 					CM_AUTOIDLE2);
+ 	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
+-	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
+ 	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
+ 					CM_CLKSTCTRL);
+ 	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
 -- 
 1.6.6.rc2.1.g42108
 
