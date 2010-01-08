@@ -1,78 +1,64 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 6/8] DSPBRIDGE: Use dspbridge to initialize platform data
-Date: Fri, 8 Jan 2010 13:05:25 -0600
-Message-ID: <4B4781F5.9060203@ti.com>
-References: <1262912450-30100-1-git-send-email-omar.ramirez@ti.com> <4B469884.1080209@ti.com> <27F9C60D11D683428E133F85D2BB4A53042DC9524E@dlee03.ent.ti.com> <4B476297.9080705@ti.com> <27F9C60D11D683428E133F85D2BB4A53042DC95329@dlee03.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: Fix cmdline muxing (Re: New pinmux)
+Date: Fri, 8 Jan 2010 11:35:08 -0800
+Message-ID: <20100108193508.GA2879@atomide.com>
+References: <4B474F9B.9020409@balister.org>
+ <20100108180031.GB6831@atomide.com>
+ <4B478081.4060809@balister.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55079 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753371Ab0AHTFb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Jan 2010 14:05:31 -0500
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53042DC95329@dlee03.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50356 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379Ab0AHTfH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 14:35:07 -0500
+Content-Disposition: inline
+In-Reply-To: <4B478081.4060809@balister.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>
+To: Philip Balister <philip@balister.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Ramirez Luna, Omar had written, on 01/08/2010 11:58 AM, the following:
->> From: Menon, Nishanth
->>
->> Ramirez Luna, Omar had written, on 01/08/2010 10:48 AM, the following:
->>>> From: Menon, Nishanth
->>>>
->>>> Ramirez Luna, Omar had written, on 01/07/2010 07:00 PM, the following:
->>>>> Include dspbridge compilation whenever bridge driver is selected to
->>>>> be compiled, either as a module or part of the kernel. This will
->>>>> initialize platform data specific PM functions.
->>>> ?? are you intending to state that dspbridge.c can now not be a module?
->>> Yes, if bridge is selected it will include dspbridge as part of the kernel, leaving bridgedriver to
->> be installed depending on selected option (module or built in)
->>>> can you elaborate more as to why?
->>> Lately EXPORT_SYMBOL has been removed from pm functions, bridge depends on those symbols and now
->> that they can't be resolved at runtime (or insmod time), then dspbridge driver needs to be compiled
->> as part of the kernel to resolve them on its platform data structure, otherwise linking will break.
->>
->> might be good to know what these functions are and why they need to be
->> exported. we could see how the community thinks about exporting those
->> APIs. further, I thought your branch was based on l-o and not l-o pm. am
->> I wrong?
+* Philip Balister <philip@balister.org> [100108 10:57]:
+> On 01/08/2010 01:00 PM, Tony Lindgren wrote:
+> >* Philip Balister<philip@balister.org>  [100108 07:35]:
+> >>I am trying to work out how to use the new pinmux code on my
+> >>Overo+Summit system. I have a recent git running with the new pinmux
+> >>code built. I am trying to configure the mcspi1_clk pin on the
+> >>expansion connector as gpio_171 with the following:
+> >>
+> >>root@overo:~# dmesg |grep mux
+> >>
+> >>Kernel command line: console=ttyS2,115200n8 vram=12M
+> >>omapfb.mode=dvi:1024x768MR-16@60 omapfb.debug=y
+> >>omapdss.def_display=dvi root=/dev/mmcblk0p2 rw rootfstype=ext3
+> >>rootwait omap_mux=mcspi1_clk.gpio_171=0x0
+> >>
+> >>And this is what happens :(
+> >>
+> >>mux: Could not set signal mcspi1_clk
+> >>
+> >>mux: Setting signal i2c3_scl.i2c3_scl 0x0118 ->  0x0100
+> >>
+> >>Any suggestions?
+> >
+> >Sounds like the cmdline options got broken by some changes
+> >I did to limit everything to happen as __init..
+> >
+> >Can you please try the following patch?
 > 
-> Branch is based on l-o, but I'm trying to keep the less differences between l-o-pm version...
- > as of now since DVFS doesn't exists on l-o, this problem is not 
-shown, but bridge version based on l-o-pm has it.
-alright, so please keep the patch for dspbridge-pm or equivalent branch 
-that you maintain :).
+> The patch solved the problem, thanks! Great work guys, this will
+> really help people working with boards with expansion connectors
+> like the Beagle and Overo.
 
-> 
->>>>> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
->>>>> ---
->>>>>  arch/arm/mach-omap2/Makefile |    4 +++-
->>>>>  1 files changed, 3 insertions(+), 1 deletions(-)
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
->>>>> index d1cf986..0881470 100644
->>>>> --- a/arch/arm/mach-omap2/Makefile
->>>>> +++ b/arch/arm/mach-omap2/Makefile
->>>>> @@ -75,7 +75,9 @@ obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
->>>>>  # Debobs
->>>>>  obj-$(CONFIG_OMAP3_DEBOBS)	+= debobs.o
->>>> ?? I dont find this in l-o master/2.6.32.. something I am missing?
->> You never answered this.is your patch based on PM branch?
-> 
-> Sorry, yes this version of the patch is based on PM, must have confused both versions. 
- > I'll resend master/2.6.32 which should change this reference lines...
-> 
-> Btw why do we have this "debobs" on l-o-pm and not on l-o?
-due to patch in pm tree:
-OMAP3: Add debug observablity (debobs) Kconfig item
-this is adding debug observability signals over ETK lines (which is 
-kinda cool ;) ).
+Good to hear :)
+ 
+> Tony, do you need a signoff from me for this? Not to sure what the
+> procedure is.
 
-[...]
+Maybe reply with your Tested-by? See Documentation/SubmittingPatches
+for Reported-by/Tested-by etc.
 
--- 
 Regards,
-Nishanth Menon
+
+Tony
