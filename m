@@ -1,87 +1,54 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 8/8] DSPBRIDGE: Use _IOxx macro to define ioctls
-Date: Fri, 8 Jan 2010 12:53:18 -0600
-Message-ID: <4B477F1E.2010309@ti.com>
-References: <1262912461-30151-1-git-send-email-omar.ramirez@ti.com> <4B469FA0.8000106@ti.com> <4B46A22D.1010507@ti.com> <27F9C60D11D683428E133F85D2BB4A53042DC952BE@dlee03.ent.ti.com>
+From: Philip Balister <philip@balister.org>
+Subject: Re: [PATCH] omap: Fix cmdline muxing (Re: New pinmux)
+Date: Fri, 08 Jan 2010 13:59:13 -0500
+Message-ID: <4B478081.4060809@balister.org>
+References: <4B474F9B.9020409@balister.org> <20100108180031.GB6831@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54541 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752259Ab0AHSx1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Jan 2010 13:53:27 -0500
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53042DC952BE@dlee03.ent.ti.com>
+Received: from mail.geekisp.com ([216.168.135.169]:22369 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753404Ab0AHS7Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 13:59:16 -0500
+In-Reply-To: <20100108180031.GB6831@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Ramirez Luna, Omar had written, on 01/08/2010 11:19 AM, the following:
->> From: Menon, Nishanth
+On 01/08/2010 01:00 PM, Tony Lindgren wrote:
+> * Philip Balister<philip@balister.org>  [100108 07:35]:
+>> I am trying to work out how to use the new pinmux code on my
+>> Overo+Summit system. I have a recent git running with the new pinmux
+>> code built. I am trying to configure the mcspi1_clk pin on the
+>> expansion connector as gpio_171 with the following:
 >>
->> Apologies on the spam, but a few points below for preventing a future
->> ioctl change:
+>> root@overo:~# dmesg |grep mux
 >>
->> Menon, Nishanth had written, on 01/07/2010 08:59 PM, the following:
->>> Ramirez Luna, Omar had written, on 01/07/2010 07:01 PM, the following:
->>>> - Use standard convention to define ioctls.
->> please warn in the commit message that this will break compatibility.
+>> Kernel command line: console=ttyS2,115200n8 vram=12M
+>> omapfb.mode=dvi:1024x768MR-16@60 omapfb.debug=y
+>> omapdss.def_display=dvi root=/dev/mmcblk0p2 rw rootfstype=ext3
+>> rootwait omap_mux=mcspi1_clk.gpio_171=0x0
 >>
-> 
-> Will do
-Thanks.
-> 
->>>> - Removed runtime check for ioctl matching table number.
->>>> - Added __deprectaed marker to functions that are not used anymore.
->> generic idea:
->>  	if (cmd < ARRAY_SIZE(WCD_cmdTable)) {
->>  		/* make the fxn call via the cmd table */
->>  		*pResult = (*WCD_cmdTable[cmd].fxn) (args, pr_ctxt);
->> if you convert this into:
->>  	if (!WCD_cmdTable[cmd].fxn)
->> 		return -EINVAL;
->>  	/* make the fxn call via the cmd table */
->>  	*pResult = (*WCD_cmdTable[cmd].fxn) (args, pr_ctxt);
->> you'd make deprecation of a previously defined ioctl easy -> just NULL
->> and remove the function  in the array and remove it and it's unused
->> helper functions.. :)..
-> 
-> Problem comes if you are expecting some status value from that function
--EINVAL is an error value. are there status values that match it?
-Actually looking at
-include/asm-generic/errno.h
--ENOSYS seems more apt :D.
-
-if there are functions that are sending error values as valid return 
-values, heh heh.. I guess we can expect more patches ;).
-
-> 
+>> And this is what happens :(
 >>
->> one generic question - I did not see an features/ioctls supported around
->> - having not dug enough, how does the userspace know if the bridge uses
->> the new ioctls/old ioctls?
-> 
-> Patch will be sent to userspace repository on dev.omapzoom.org... 
- >the idea is to support this set of ioctls from now on... overall I don't
- >think I got your question
-Try 2:
+>> mux: Could not set signal mcspi1_clk
+>>
+>> mux: Setting signal i2c3_scl.i2c3_scl 0x0118 ->  0x0100
+>>
+>> Any suggestions?
+>
+> Sounds like the cmdline options got broken by some changes
+> I did to limit everything to happen as __init..
+>
+> Can you please try the following patch?
 
-lets say I want to write an gst-dsp which will run accross bridge that 
-was there before and now - how do i do it? I need to know if I should 
-use the new ioctl numbers OR the old ioctl numbers to dspbridge 
-something like DSPBRIDGE_GET_REV or DSPBRIDGE_GET_CAPS
+The patch solved the problem, thanks! Great work guys, this will really 
+help people working with boards with expansion connectors like the 
+Beagle and Overo.
 
-result of this tells userspace "aah here is a bridge rev "x" or bridge 
-has capabilities "abc" - do I support it? hmm.. let me check.. well :( I 
-dont.. print "sorry dude.. i dont support this rev of bridge.. tata"..
+Tony, do you need a signoff from me for this? Not to sure what the 
+procedure is.
 
-> 
-> [snip]
-> 
-> - omar
-
-
--- 
-Regards,
-Nishanth Menon
+Philip
