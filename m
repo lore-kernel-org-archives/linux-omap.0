@@ -1,38 +1,147 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 0/3] misc. omap_device/omap_hwmod updates
-Date: Fri,  8 Jan 2010 15:26:50 -0800
-Message-ID: <1262993213-19866-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 1/3] OMAP: omap_device: optionally auto-adjust device activate/deactivate latencies
+Date: Fri,  8 Jan 2010 15:26:51 -0800
+Message-ID: <1262993213-19866-2-git-send-email-khilman@deeprootsystems.com>
+References: <1262993213-19866-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pz0-f171.google.com ([209.85.222.171]:51668 "EHLO
 	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754278Ab0AHX04 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 18:26:56 -0500
-Received: by pzk1 with SMTP id 1so4078226pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 15:26:55 -0800 (PST)
+	with ESMTP id S1754276Ab0AHX05 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 18:26:57 -0500
+Received: by mail-pz0-f171.google.com with SMTP id 1so4078226pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 15:26:57 -0800 (PST)
+In-Reply-To: <1262993213-19866-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com
 
-A small series of proposed updates for omap_device/omap_hwmod.
+First, this patch adds new worst-case latency values to the
+omap_device_pm_latency struct.  Here the worst-case measured latencies
+for the activate and deactivate hooks are stored.
 
-This series was tested on the current PM branch but also applies cleanly to current linux-omap master branch.  
+In addition, add an option to auto-adjust the latency values used for
+device activate/deactivate.
 
-It was tested along with previously posted changes to convert UARTs to
-omap_device.  A new version of the UART omap_device conversion will be
-arriving soon-ish.
+By setting a new 'OMAP_DEVICE_LATENCY_AUTO_ADJUST' flag in the
+omap_device_pm_latency struct, the omap_device layer automatically
+adjusts the activate/deactivate latencies to the worst-case measured
+values.
 
-Kevin
+Anytime a new worst-case value is found, it is printed to the console.
+Here is an example log during boot using UART2 s an example.  After
+boot, the OPP is manually changed to the 125MHz OPP:
 
-Kevin Hilman (3):
-  OMAP: omap_device: optionally auto-adjust device activate/deactivate
-    latencies
-  OMAP: hwmod: add read/write API for SYSCONFIG
-  OMAP: hwmod: allow idle after HWMOD_INIT_NO_IDLE
+[...]
+Freeing init memory: 128K
+omap_device: serial8250.2: new worst case deactivate latency 0: 30517
+omap_device: serial8250.2: new worst case activate latency 0: 30517
+omap_device: serial8250.2: new worst case activate latency 0: 218139648
+omap_device: serial8250.2: new worst case deactivate latency 0: 61035
+omap_device: serial8250.2: new worst case activate latency 0: 278076171
+omap_device: serial8250.2: new worst case activate latency 0: 298614501
+omap_device: serial8250.2: new worst case activate latency 0: 327331542
 
- arch/arm/mach-omap2/omap_hwmod.c              |   21 ++++++++++++-
+/ # echo 125000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
+
+omap_device: serial8250.2: new worst case deactivate latency 0: 91552
+
+Motivation: this can be used as a technique to automatically determine
+the worst case latency values.  The current method of printing a
+warning on every violation is too noisy to actually interact the
+console in order to set low OPP to discover latencies.
+
+Another motivation for this patch is that the activate/deactivate
+latenices can vary depending on the idlemode of the device.  While
+working on the UARTs, I noticed that when using no-idle, the activate
+latencies were as high as several hundred msecs as shown above.  When
+the UARTs are in smart-idle, the max latency is well under 100 usecs.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
  arch/arm/plat-omap/include/plat/omap_device.h |    4 ++
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    3 ++
  arch/arm/plat-omap/omap_device.c              |   41 ++++++++++++++++++++-----
- 4 files changed, 60 insertions(+), 9 deletions(-)
+ 2 files changed, 37 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index dc1fac1..76d4917 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -131,11 +131,15 @@ int omap_device_enable_clocks(struct omap_device *od);
+  */
+ struct omap_device_pm_latency {
+ 	u32 deactivate_lat;
++	u32 deactivate_lat_worst;
+ 	int (*deactivate_func)(struct omap_device *od);
+ 	u32 activate_lat;
++	u32 activate_lat_worst;
+ 	int (*activate_func)(struct omap_device *od);
++	u32 flags;
+ };
+ 
++#define OMAP_DEVICE_LATENCY_AUTO_ADJUST BIT(1)
+ 
+ /* Get omap_device pointer from platform_device pointer */
+ #define to_omap_device(x) container_of((x), struct omap_device, pdev)
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 1e5648d..d8c75c8 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -148,10 +148,22 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+ 			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
+ 			 act_lat);
+ 
+-		WARN(act_lat > odpl->activate_lat, "omap_device: %s.%d: "
+-		     "activate step %d took longer than expected (%llu > %d)\n",
+-		     od->pdev.name, od->pdev.id, od->pm_lat_level,
+-		     act_lat, odpl->activate_lat);
++		if (act_lat > odpl->activate_lat) {
++			odpl->activate_lat_worst = act_lat;
++			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
++				odpl->activate_lat = act_lat;
++				pr_warning("omap_device: %s.%d: new worst case "
++					   "activate latency %d: %llu\n",
++					   od->pdev.name, od->pdev.id,
++					   od->pm_lat_level, act_lat);
++			} else
++				pr_warning("omap_device: %s.%d: activate "
++					   "latency %d higher than exptected. "
++					   "(%llu > %d)\n",
++					   od->pdev.name, od->pdev.id,
++					   od->pm_lat_level, act_lat,
++					   odpl->activate_lat);
++		}
+ 
+ 		od->dev_wakeup_lat -= odpl->activate_lat;
+ 	}
+@@ -204,10 +216,23 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+ 			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
+ 			 deact_lat);
+ 
+-		WARN(deact_lat > odpl->deactivate_lat, "omap_device: %s.%d: "
+-		     "deactivate step %d took longer than expected "
+-		     "(%llu > %d)\n", od->pdev.name, od->pdev.id,
+-		     od->pm_lat_level, deact_lat, odpl->deactivate_lat);
++		if (deact_lat > odpl->deactivate_lat) {
++			odpl->deactivate_lat_worst = deact_lat;
++			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
++				odpl->deactivate_lat = deact_lat;
++				pr_warning("omap_device: %s.%d: new worst case "
++					   "deactivate latency %d: %llu\n",
++					   od->pdev.name, od->pdev.id,
++					   od->pm_lat_level, deact_lat);
++			} else
++				pr_warning("omap_device: %s.%d: deactivate "
++					   "latency %d higher than exptected. "
++					   "(%llu > %d)\n",
++					   od->pdev.name, od->pdev.id,
++					   od->pm_lat_level, deact_lat,
++					   odpl->deactivate_lat);
++		}
++
+ 
+ 		od->dev_wakeup_lat += odpl->activate_lat;
+ 
+-- 
+1.6.6.rc2.1.g42108
 
