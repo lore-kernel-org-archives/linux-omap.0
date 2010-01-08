@@ -1,58 +1,49 @@
-From: Francisco Alecrim <alecrim@gmail.com>
-Subject: [RFC/PATCH 1/2] usb_otg: compile fix
-Date: Thu,  7 Jan 2010 21:03:11 -0400
-Message-ID: <1262912592-7817-1-git-send-email-alecrim@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.211.176]:60750 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633Ab0AHBDk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 20:03:40 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Francisco Alecrim <alecrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [RFC/PATCH 2/2] fix compile for tahvo-usb.c
+Date: Thu,  7 Jan 2010 21:03:12 -0400
+Message-ID: <1262912592-7817-2-git-send-email-alecrim@gmail.com>
+References: <1262912592-7817-1-git-send-email-alecrim@gmail.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1262912592-7817-1-git-send-email-alecrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: Francisco Alecrim <francisco.alecrim@openbossa.org>
 
-From: Francisco Alecrim <francisco.alecrim@openbossa.org>
+From: Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
 
-include/linux/usb.h: In function 'usb_mark_last_busy':
-include/linux/usb.h:561: error: 'struct usb_device' has no member named
-'last_busy'
+drivers/cbus/tahvo-usb.c:138: undefined reference to 'usb_bus_start_enum'
 
-Option USB_OTG selects USB_SUSPEND but doesn't select PM(required by
-USB_SUSPEND) causing this compile error. Putting USB_SUSPEND as
-USB_OTG depend ensure that PM is selected.
+usb_bus_start_enum only exported if USB_OTG enabled
 
-Signed-off-by: Francisco Alecrim <francisco.alecrim@openbossa.org>
+Signed-off-by: Francisco Alecrim <francisco.alecrim-430g2QfJUUCGglJvpFV4uA@public.gmane.org>
 ---
- drivers/usb/core/Kconfig   |    1 -
- drivers/usb/gadget/Kconfig |    2 +-
- 2 files changed, 1 insertions(+), 2 deletions(-)
+ drivers/cbus/tahvo-usb.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
-index ad92594..4c7d6e8 100644
---- a/drivers/usb/core/Kconfig
-+++ b/drivers/usb/core/Kconfig
-@@ -109,7 +109,6 @@ config USB_SUSPEND
- config USB_OTG
- 	bool
- 	depends on USB && EXPERIMENTAL
--	select USB_SUSPEND
- 	default n
- 
- 
-diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-index ee41120..af819fe 100644
---- a/drivers/usb/gadget/Kconfig
-+++ b/drivers/usb/gadget/Kconfig
-@@ -211,7 +211,7 @@ config USB_OMAP
- 
- config USB_OTG
- 	boolean "OTG Support"
--	depends on USB_GADGET_OMAP && ARCH_OMAP_OTG && USB_OHCI_HCD
-+	depends on USB_GADGET_OMAP && ARCH_OMAP_OTG && USB_OHCI_HCD && USB_SUSPEND
- 	help
- 	   The most notable feature of USB OTG is support for a
- 	   "Dual-Role" device, which can act as either a device
+diff --git a/drivers/cbus/tahvo-usb.c b/drivers/cbus/tahvo-usb.c
+index 9f8bbcc..762671a 100644
+--- a/drivers/cbus/tahvo-usb.c
++++ b/drivers/cbus/tahvo-usb.c
+@@ -132,12 +132,14 @@ static irqreturn_t omap_otg_irq(int irq, void *arg)
+ 	} else if (otg_irq & A_VBUS_ERR) {
+ 		omap_writew(A_VBUS_ERR, OTG_IRQ_SRC);
+ 	} else if (otg_irq & DRIVER_SWITCH) {
++#ifdef CONFIG_USB_OTG
+ 		if ((!(omap_readl(OTG_CTRL) & OTG_DRIVER_SEL)) &&
+ 		   tu->otg.host && tu->otg.state == OTG_STATE_A_HOST) {
+ 			/* role is host */
+ 			usb_bus_start_enum(tu->otg.host,
+ 					   tu->otg.host->otg_port);
+ 		}
++#endif
+ 		omap_writew(DRIVER_SWITCH, OTG_IRQ_SRC);
+ 	} else
+ 		return IRQ_NONE;
 -- 
 1.6.3.3
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
