@@ -1,131 +1,161 @@
-From: <adrian.hunter@nokia.com>
-Subject: Re: [Patch v4] OMAP: sDMA driver: descriptor autoloading feature
-Date: Thu, 7 Jan 2010 08:59:35 +0100
-Message-ID: <1262851175.3933.5.camel@Nokia-N900-51-1>
-Reply-To: adrian.hunter@nokia.com
+From: Ranjith Lohithakshan <ranjithl@ti.com>
+Subject: Re: [PATCH] AM35xx: Add clock support for new modules on AM35xx
+Date: Fri, 08 Jan 2010 16:17:04 +0530
+Message-ID: <4B470D28.7010900@ti.com>
+References: <1260971823-8532-1-git-send-email-ranjithl@ti.com> <alpine.DEB.2.00.0912171818150.12561@utopia.booyaka.com> <4B2B5A0F.9050304@ti.com> <alpine.DEB.2.00.1001051134240.2083@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0061457662=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: svenkatr@ti.com
-Cc: linux@arm.linux.org.uk, tony@atomide.com, khilman@deeprootsystems.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
---===============0061457662==
-Content-Language: en-US
-Content-Type: multipart/alternative;
-	boundary="_000_126285117539335camelNokiaN900511_"
-
---_000_126285117539335camelNokiaN900511_
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-
-VmVua2F0cmFtYW4gUyB3cm90ZToNCj4gT24gV2VkLCBKYW4gNiwgMjAxMCBhdCA2OjQ2IFBNLCBB
-ZHJpYW4gSHVudGVyIDxhZHJpYW4uaHVudGVyQG5va2lhLmNvbTxtYWlsdG86YWRyaWFuLmh1bnRl
-ckBub2tpYS5jb20+Pg0KPiB3cm90ZToNCj4gPiBWZW5rYXRyYW1hbiBTIHdyb3RlOg0KPiA+ID4N
-Cj4gPiA+IE9uIFR1ZSwgRGVjIDI5LCAyMDA5IGF0IDM6MTggQU0sIFRvbnkgTGluZGdyZW4gPHRv
-bnlAYXRvbWlkZS5jb208bWFpbHRvOnRvbnlAYXRvbWlkZS5jb20+Pg0KPiB3cm90ZToNCj4gPiA+
-ID4NCj4gPiA+ID4gKiBWZW5rYXRyYW1hbiBTIDxzdmVua2F0ckB0aS5jb208bWFpbHRvOnN2ZW5r
-YXRyQHRpLmNvbT4+IFswOTEyMTEgMDc6MDFdOg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gSGVyZSBp
-cyB0aGUgbW9zdCB1cGRhdGVkIHZlcnNpb24gb2YgdGhlIHBhdGNoICh0aGFua3MgdG8gUnVzc2Vs
-bCdzDQo+ID4gPiA+ID4gcmV2aWV3KS4gVGhpcyBwYXRjaCBpcyBhcHBsaWNhYmxlIHRvIE9NQVA0
-eHh4IGFzIHdlbGwgYXMgT01BUDM2MzANCj4gPiA+ID4gPiBSZWZlcmVuY2UgdG8gcHJldmlvdXMg
-cG9zdHMNCj4gPiA+ID4gPiB2MSAgaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTI1
-MDEyMDk3NDAzMDUwJnc9Mg0KPiA+ID4gPiA+IHYyICBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4
-LW9tYXAmbT0xMjUxMzcxNTI2MDY2NDQmdz0yDQo+ID4gPiA+ID4gdjMgIGh0dHA6Ly9wYXRjaHdv
-cmsua2VybmVsLm9yZy9wYXRjaC80NTQwOC8NCj4gPiA+ID4NCj4gPiA+ID4gRG8geW91IGhhdmUg
-YSBwYXRjaCBmb3IgZHJpdmVycy9tbWMvaG9zdC9vbWFwX2hzbW1jLmMgdG8NCj4gPiA+ID4gdXNl
-IHRoaXMgZmVhdHVyZT8gT3Igc29tZSBvdGhlciBkcml2ZXI/DQo+ID4gPiA+DQo+ID4gPiA+IFJl
-Z2FyZHMsDQo+ID4gPiA+DQo+ID4gPiA+IFRvbnkNCj4gPiA+DQo+ID4gPiBJIGFtIGFib3V0IHRv
-IHN0YXJ0IHdvcmtpbmcgb24gb21hcF9oc21tYyB0byB1c2UgdGhlIGRlc2NyaXB0b3IgbG9hZA0K
-PiA+ID4gZmVhdHVyZS4gSWYgdGhlIERNQSBjaGFuZ2VzIGFyZSBhY2NlcHRhYmxlLCBJIGNhbiBw
-b3N0IHRoZSBkcml2ZXINCj4gPiA+IHBhdGNoIGFzIHdlbGwuDQo+ID4NCj4gPiBJIHByZXN1bWUg
-dGhpcyBpcyBhYm91dCBwZXJmb3JtYW5jZS4gIEhvdyBkb2VzIGl0IGNvbXBhcmUgdG8gY2hhaW5l
-ZA0KPiBETUE/DQo+ID4gV2UgaGF2ZSBhIHBhdGNoIGZvciBvbWFwX2hzbW1jIGZvciBjaGFpbmVk
-IERNQSB0aGF0IHdlIGFyZSBzdGlsbA0KPiB0ZXN0aW5nLg0KPiA+DQo+ICBUaGUgbWFpbiBkaWZm
-ZXJlbmNlIHdvdWxkIGJlIHRoZSBudW1iZXIgb2YgbG9naWNhbCBjaGFubmVscyB1c2VkLg0KPiBX
-aXRoIGNoYWluaW5nLCBJIGFzc3VtZSB5b3UnZCByZXF1ZXN0IGZvciAob3IgdGhlIEFQSSBpbnRl
-cm5hbGx5DQo+IHJlc2VydmVzKSBhcyBtYW55IGxvZ2ljYWwgY2hhbm5lbHMgYXMgdGhlcmUgYXJl
-IHNlZ21lbnRzLiBIZXJlIGENCj4gc2luZ2xlIGxvZ2ljYWwgY2hhbm5lbCB3b3VsZCBkby4NCj4N
-Cg0KSG93IGRvZXMgdGhlIHBlcmZvcm1hbmNlIGNvbXBhcmU/IFdoaWNoIGlzIGZhc3Rlcj8gRG9l
-cyBkZXNjcmlwdG9yIGF1dG9sb2FkaW5nIHJlZHVjZSB0aGUgbnVtYmVyIG9mIGludGVycnVwdHM/
-DQo=
-
---_000_126285117539335camelNokiaN900511_
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: base64
-
-PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMDEgVHJhbnNpdGlvbmFs
-Ly9FTiIgImh0dHA6Ly93d3cudzMub3JnL1RSL2h0bWw0L2xvb3NlLmR0ZCI+DQo8aHRtbD48aGVh
-ZD4NCiAgICA8bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVR5cGUiIGNvbnRlbnQ9InRleHQvaHRt
-bDsgY2hhcnNldD11dGYtOCI+DQogICAgPG1ldGEgbmFtZT0iZ2VuZXJhdG9yIiBjb250ZW50PSJP
-c3NvIE5vdGVzIj4NCiAgICA8dGl0bGU+PC90aXRsZT48L2hlYWQ+DQo8Ym9keT4NCjxwPlZlbmth
-dHJhbWFuIFMgd3JvdGU6DQo8YnI+Jmd0OyBPbiBXZWQsIEphbiA2LCAyMDEwIGF0IDY6NDYgUE0s
-IEFkcmlhbiBIdW50ZXIgJmx0OzxhIGhyZWY9Im1haWx0bzphZHJpYW4uaHVudGVyQG5va2lhLmNv
-bSI+YWRyaWFuLmh1bnRlckBub2tpYS5jb208L2E+Jmd0Ow0KPGJyPiZndDsgd3JvdGU6DQo8YnI+
-Jmd0OyAmZ3Q7IFZlbmthdHJhbWFuIFMgd3JvdGU6DQo8YnI+Jmd0OyAmZ3Q7ICZndDsNCjxicj4m
-Z3Q7ICZndDsgJmd0OyBPbiBUdWUsIERlYyAyOSwgMjAwOSBhdCAzOjE4IEFNLCBUb255IExpbmRn
-cmVuICZsdDs8YSBocmVmPSJtYWlsdG86dG9ueUBhdG9taWRlLmNvbSI+dG9ueUBhdG9taWRlLmNv
-bTwvYT4mZ3Q7DQo8YnI+Jmd0OyB3cm90ZToNCjxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7DQo8YnI+
-Jmd0OyAmZ3Q7ICZndDsgJmd0OyAqIFZlbmthdHJhbWFuIFMgJmx0OzxhIGhyZWY9Im1haWx0bzpz
-dmVua2F0ckB0aS5jb20iPnN2ZW5rYXRyQHRpLmNvbTwvYT4mZ3Q7IFswOTEyMTEgMDc6MDFdOg0K
-PGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0Ow0KPGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0
-OyBIZXJlIGlzIHRoZSBtb3N0IHVwZGF0ZWQgdmVyc2lvbiBvZiB0aGUgcGF0Y2ggKHRoYW5rcyB0
-byBSdXNzZWxsJ3MNCjxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZndDsgcmV2aWV3KS4gVGhpcyBw
-YXRjaCBpcyBhcHBsaWNhYmxlIHRvIE9NQVA0eHh4IGFzIHdlbGwgYXMgT01BUDM2MzANCjxicj4m
-Z3Q7ICZndDsgJmd0OyAmZ3Q7ICZndDsgUmVmZXJlbmNlIHRvIHByZXZpb3VzIHBvc3RzDQo8YnI+
-Jmd0OyAmZ3Q7ICZndDsgJmd0OyAmZ3Q7IHYxJm5ic3A7IDxhIGhyZWY9Imh0dHA6Ly9tYXJjLmlu
-Zm8vP2w9bGludXgtb21hcCZhbXA7bT0xMjUwMTIwOTc0MDMwNTAmYW1wO3c9MiI+aHR0cDovL21h
-cmMuaW5mby8/bD1saW51eC1vbWFwJmFtcDttPTEyNTAxMjA5NzQwMzA1MCZhbXA7dz0yPC9hPg0K
-PGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgJmd0OyB2MiZuYnNwOyA8YSBocmVmPSJodHRwOi8vbWFy
-Yy5pbmZvLz9sPWxpbnV4LW9tYXAmYW1wO209MTI1MTM3MTUyNjA2NjQ0JmFtcDt3PTIiPmh0dHA6
-Ly9tYXJjLmluZm8vP2w9bGludXgtb21hcCZhbXA7bT0xMjUxMzcxNTI2MDY2NDQmYW1wO3c9Mjwv
-YT4NCjxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7ICZndDsgdjMmbmJzcDsgPGEgaHJlZj0iaHR0cDov
-L3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzQ1NDA4LyI+aHR0cDovL3BhdGNod29yay5rZXJu
-ZWwub3JnL3BhdGNoLzQ1NDA4LzwvYT4NCjxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7DQo8YnI+Jmd0
-OyAmZ3Q7ICZndDsgJmd0OyBEbyB5b3UgaGF2ZSBhIHBhdGNoIGZvciBkcml2ZXJzL21tYy9ob3N0
-L29tYXBfaHNtbWMuYyB0bw0KPGJyPiZndDsgJmd0OyAmZ3Q7ICZndDsgdXNlIHRoaXMgZmVhdHVy
-ZT8gT3Igc29tZSBvdGhlciBkcml2ZXI/DQo8YnI+Jmd0OyAmZ3Q7ICZndDsgJmd0Ow0KPGJyPiZn
-dDsgJmd0OyAmZ3Q7ICZndDsgUmVnYXJkcywNCjxicj4mZ3Q7ICZndDsgJmd0OyAmZ3Q7DQo8YnI+
-Jmd0OyAmZ3Q7ICZndDsgJmd0OyBUb255DQo8YnI+Jmd0OyAmZ3Q7ICZndDsNCjxicj4mZ3Q7ICZn
-dDsgJmd0OyBJIGFtIGFib3V0IHRvIHN0YXJ0IHdvcmtpbmcgb24gb21hcF9oc21tYyB0byB1c2Ug
-dGhlIGRlc2NyaXB0b3IgbG9hZA0KPGJyPiZndDsgJmd0OyAmZ3Q7IGZlYXR1cmUuIElmIHRoZSBE
-TUEgY2hhbmdlcyBhcmUgYWNjZXB0YWJsZSwgSSBjYW4gcG9zdCB0aGUgZHJpdmVyDQo8YnI+Jmd0
-OyAmZ3Q7ICZndDsgcGF0Y2ggYXMgd2VsbC4NCjxicj4mZ3Q7ICZndDsNCjxicj4mZ3Q7ICZndDsg
-SSBwcmVzdW1lIHRoaXMgaXMgYWJvdXQgcGVyZm9ybWFuY2UuJm5ic3A7IEhvdyBkb2VzIGl0IGNv
-bXBhcmUgdG8gY2hhaW5lZA0KPGJyPiZndDsgRE1BPw0KPGJyPiZndDsgJmd0OyBXZSBoYXZlIGEg
-cGF0Y2ggZm9yIG9tYXBfaHNtbWMgZm9yIGNoYWluZWQgRE1BIHRoYXQgd2UgYXJlIHN0aWxsDQo8
-YnI+Jmd0OyB0ZXN0aW5nLg0KPGJyPiZndDsgJmd0Ow0KPGJyPiZndDsmbmJzcDsgVGhlIG1haW4g
-ZGlmZmVyZW5jZSB3b3VsZCBiZSB0aGUgbnVtYmVyIG9mIGxvZ2ljYWwgY2hhbm5lbHMgdXNlZC4N
-Cjxicj4mZ3Q7IFdpdGggY2hhaW5pbmcsIEkgYXNzdW1lIHlvdSdkIHJlcXVlc3QgZm9yIChvciB0
-aGUgQVBJIGludGVybmFsbHkNCjxicj4mZ3Q7IHJlc2VydmVzKSBhcyBtYW55IGxvZ2ljYWwgY2hh
-bm5lbHMgYXMgdGhlcmUgYXJlIHNlZ21lbnRzLiBIZXJlIGENCjxicj4mZ3Q7IHNpbmdsZSBsb2dp
-Y2FsIGNoYW5uZWwgd291bGQgZG8uDQo8YnI+Jmd0Ow0KPGJyPg0KPGJyPkhvdyBkb2VzIHRoZSBw
-ZXJmb3JtYW5jZSBjb21wYXJlPyBXaGljaCBpcyBmYXN0ZXI/IERvZXMgZGVzY3JpcHRvciBhdXRv
-bG9hZGluZyByZWR1Y2UgdGhlIG51bWJlciBvZiBpbnRlcnJ1cHRzPyA8L3A+DQo8L2JvZHk+DQo8
-L2h0bWw+DQo=
-
---_000_126285117539335camelNokiaN900511_--
-
-
---===============0061457662==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60415 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751370Ab0AHKrM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Jan 2010 05:47:12 -0500
+In-Reply-To: <alpine.DEB.2.00.1001051134240.2083@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Hello Paul,
 
---===============0061457662==--
+On Wed, 06-Jan-10 2:51 AM +0530, Paul Walmsley wrote:
+> On Fri, 18 Dec 2009, Ranjith Lohithakshan wrote:
+> 
+>> On Fri, 18-Dec-09 7:12 AM +0530, Paul Walmsley wrote:
+>>
+>>> +/* Clocks for AM35XX */
+>>> +static struct clk emac_ick = {
+>>> +    .name       = "emac_ick",
+>>> +    .ops        = &clkops_omap2_dflt,
+>>> Shouldn't this clock use &clkops_omap2_dflt_wait (or rather, some custom
+>>> version that knows how to read the _ACK bits in IPSS_CLK_CTRL) and test
+>>> CPGMAC_VBUSP_CLK_EN_ACK?  Same for the other IPSS VBUSP clocks?   (I
+>> guess
+>>> "VBUSP" is a synonym for "interface"?)
+>> I will ad a custom clkops to address this. Do we need a find_companion
+>> to be defined?  The VBUSP clock ACK's do not depend on functional clocks
+>> and the functional clocks themselves don't have ant ACK or status bits.
+>> EMAC, VPFE amd MUSBOTG are initiators, but the their ACK bits are just
+>> for the target idle status.
+> 
+> I see four ACK bits marked as "clock status bits" in the TRM.  Are these 
+> interface clock status bits for initiator interfaces, or are they module 
+> target IdleAck bits?  If they are the former, then they are useless and 
+> there is no point waiting for these clocks.  If they are the latter, then 
+> yes, you'll need a find_companion, because the clock code must ensure that 
+> both the interface clock and main functional clock are both enabled before 
+> checking the module's target idle status, and the AM35xx IPSS does this in 
+> a completely different way than the OMAP35xx.  I guess the IPSS was just 
+> 'bolted on' to the chip, rather than really integrated into the OMAP2 PRCM 
+> design.
+
+These ACK bits are for the target IdleAck status. I will add a custom
+find_companion code for AM35xx. As you rightly said, the IPSS was kind
+of bolted together and not properly integrated into the PRCM
+
+>> One of the issues on AM35xx is regarding the status indicator for new
+>> clocks. Here 1 indicates as enabled and 0 as not ready state, similar to
+>> 24xx case but just opposite to 34xx clocks. And now we have a mix of
+>> these two on AM35xx. 
+> 
+> Wow, that's really craptacular.
+> 
+>> In omap2_cm_wait_idlest, I do not get a per clock granularity to
+>> decide what should be the status check for that particular
+>> clock. One of the approach I am thinking is to define a new clock
+>> flag (say INVERT_ENABLE_STATUS) and set it for the new AM35xx
+>> clocks. And in omap2_module_wait_ready I will do the cpu check and
+>> flag check on a per clock basis and determine the status that need
+>> to be checked and pass it to omap2_module_wait_ready to check what
+>> we want. omap2_module_wait_ready will not be doing any cpu checks as
+>> its done today. Let me know what you think.
+> 
+> (I guess you mean  omap2_cm_wait_module_ready() in the last two sentences?)
+
+I am actually referring to omap2_module_wait_ready defined in
+mach-omap2/clock.c
+
+> How about extending find_idlest to pass back whether to test against 0 or 
+> 1?  The cpu code will then move into the find_idlest code, and you can 
+> just create a few new find_idlest functions for the AM35xx clocks.  Let's 
+> try to avoid creating new clock flags for this, I'm trying to move all of 
+> this module IDLEST testing code out of the clock code and into the hwmod 
+> code where it belongs.
+
+OK. I will extend the existing find_idlest to pass back what value needs
+to be checked as you suggested. I will make this change as a separate patch.
+
+>>>> +static struct clk emac_fck = {
+>>>> +	.name       = "emac_fck",
+>>>> +	.ops        = &clkops_omap2_dflt,
+>>>> +	.clkdm_name = "core_l3_clkdm",
+>>> Is this the correct clockdomain for this clock?  It seems unlikely that a
+>>> 50MHz functional clock would be in core_l3_clkdm.  Usually these are all
+>>> interface clocks.  This applies for all the other functional clocks
+>> listed
+>>> in this file also.
+>> Would it be OK if we just don't set clkdm_name. I am not sure whether we
+>> can map it to any existing OMAP3 clock domains that way
+> 
+> I'd like to see all new clocks added with a clockdomain, even if it is not 
+> a software-controllable clockdomain.  That makes it possible for others to 
+> understand what is really going on from a power management point of view.  
+> What is the clockdomain structure for these new clocks?
+
+All the VBUSP (interface) clocks are derived from core_l3_clk and I am
+making them as part of core_l3_clk domain. The rmii_ck/emac_fck and
+vpfe_fck are sourced from external clock sources. (AM35XX TRM section
+4.7.7.12)
+
+>>>> +	.rate       = 50000000,
+>>> What's the parent of this clock?  Looking at TRM section 4.7.7.12 it
+>>> appears that it gets this from an off-chip source, "rmii_clk"?  Guess
+>> that
+>>> should probably be defined as the fixed source clock, and emac_fck should
+>>> list rmii_clk as its parent?
+>>>
+>>>> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+>>>> +	.enable_bit = AM35XX_CPGMAC_FCLK_SHIFT,
+>>>> +	.recalc     = &omap2_clksel_recalc,
+>>> This .recalc field is wrong, since there's no .clksel field defined.  If
+>>> you define that parent, then this should be followparent_recalc.  The
+>>> parent should have .flags = RATE_FIXED and no .recalc.
+>> Do we really need to define an rmii_ck? Can we make emac_fck itself as
+>> the root clock with no parent? Here is what I was thinking of. Let me
+>> know if you see any issues with this
+> 
+> Yes, please define the parent clocks appropriately.  They will probably be 
+> in different clockdomains from the downstream clocks.  Where does rmii_clk 
+> come from?  Is this an off-chip clock?  Is this coming from one of the 
+> on-chip DPLLs?  
+
+rmii_ck and vpfe_fck are from off-chip sources. These are fixed rate
+clocks being fed to the chip. Do we need to associate a dummy or virtual
+clock domain for these clocks or is it OK if we treat it similar to the
+way we currently treat 32K timer clock (RATE_FIXED, clockops_null, no
+clock domain and having no parent)?
+
+>> static struct clk emac_fck = {
+>>     .name       = "emac_fck",
+>>     .ops        = &clkops_omap2_dflt,
+>>     .flags      = RATE_FIXED,
+>>     .rate       = 50000000,
+>>     .enable_reg = OMAP343X_CTRL_REGADDR(OMAP3517_CONTROL_IP_CLK_CTRL),
+>>     .enable_bit = OMAP3517_CPGMAC_FCLK_SHIFT,
+>> };
+>>
+>>>> +static struct clk vpfe_fck = {
+>>>> +	.name       = "vpfe_fck",
+>>>> +	.ops        = &clkops_omap2_dflt,
+>>>> +	.clkdm_name = "core_l3_clkdm",
+>>>> +	.rate       = 27000000,
+>>>> +	.enable_reg = OMAP343X_CTRL_REGADDR(AM35XX_CONTROL_IPSS_CLK_CTRL),
+>>>> +	.enable_bit = AM35XX_VPFE_FCLK_SHIFT,
+>>>> +	.recalc     = &omap2_clksel_recalc,
+>>> This fixed rate clock isn't right, for the same reasons as described
+>>> above.
+>> Would make it similar to emac_fck depending on what we decide.
+> 
+
+- Ranjith
