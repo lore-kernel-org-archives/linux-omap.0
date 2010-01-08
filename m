@@ -1,75 +1,65 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 14/15] DSS2: Reject scaling settings when they cannot be supported
-Date: Fri,  8 Jan 2010 15:22:48 +0200
-Message-ID: <1262956969-1664-15-git-send-email-tomi.valkeinen@nokia.com>
-References: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-2-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-3-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-4-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-5-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-6-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-7-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-8-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-9-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-10-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-11-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-12-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-13-git-send-email-tomi.valkeinen@nokia.com>
- <1262956969-1664-14-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 00/15] OMAP DSS fixes
+Date: Fri,  8 Jan 2010 15:22:34 +0200
+Message-ID: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:25342 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753211Ab0AHNWh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 08:22:37 -0500
-In-Reply-To: <1262956969-1664-14-git-send-email-tomi.valkeinen@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:48278 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753076Ab0AHNWg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 08:22:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@nokia.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-=46rom: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
+Bunch of small fixes to OMAP DSS for review.
 
-If the scaling ratio is below 0.5 video output width can't be identical
-to the display width. Reject such settings.
+ Tomi
 
-Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
----
- drivers/video/omap2/dss/dispc.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/=
-dispc.c
-index e2e0f9a..de8bfba 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1454,7 +1454,10 @@ static unsigned long calc_fclk_five_taps(u16 wid=
-th, u16 height,
- 		do_div(tmp, 2 * out_height * ppl);
- 		fclk =3D tmp;
-=20
--		if (height > 2 * out_height && ppl !=3D out_width) {
-+		if (height > 2 * out_height) {
-+			if (ppl =3D=3D out_width)
-+				return 0;
-+
- 			tmp =3D pclk * (height - 2 * out_height) * out_width;
- 			do_div(tmp, 2 * out_height * (ppl - out_width));
- 			fclk =3D max(fclk, (u32) tmp);
-@@ -1634,7 +1637,7 @@ static int _dispc_setup_plane(enum omap_plane pla=
-ne,
- 		DSSDBG("required fclk rate =3D %lu Hz\n", fclk);
- 		DSSDBG("current fclk rate =3D %lu Hz\n", dispc_fclk_rate());
-=20
--		if (fclk > dispc_fclk_rate()) {
-+		if (!fclk || fclk > dispc_fclk_rate()) {
- 			DSSERR("failed to set up scaling, "
- 					"required fclk rate =3D %lu Hz, "
- 					"current fclk rate =3D %lu Hz\n",
---=20
-1.6.5
+Peter Huewe (1):
+  video/omap: add __init/__exit macros to
+    drivers/video/omap/lcd_htcherald.c
+
+Tomi Valkeinen (12):
+  OMAP: DSS2: DSI: fix VC channels in send_short and send_null
+  OMAP: DSS2: DSI: print debug DCS cmd in hex
+  OMAP: DSS2: Collect interrupt statistics
+  OMAP: DSS2: Fix crash when panel doesn't define enable_te()
+  OMAP: DSS2: RFBI: convert to new kfifo API
+  OMAP: OMAPFB: fix clk_get for RFBI
+  OMAP: OMAPFB: add dummy release function for omapdss
+  MAINTAINERS: change omapfb maintainer
+  MAINTAINERS: Combine DSS2 and OMAPFB2 into one entry
+  OMAP: DSS2: OMAPFB: fix omapfb_free_fbmem()
+  OMAP: DSS2: Make check-delay-loops consistent
+  OMAP: DSS2: OMAPFB: fix crash when panel driver was not loaded
+
+Vaibhav Hiremath (1):
+  OMAP: DSS2: Fix compile warning
+
+Ville Syrj=C3=A4l=C3=A4 (1):
+  DSS2: Reject scaling settings when they cannot be supported
+
+ MAINTAINERS                              |   15 +---
+ drivers/video/omap/dispc.c               |   18 +---
+ drivers/video/omap/lcd_htcherald.c       |    4 +-
+ drivers/video/omap/omapfb.h              |    2 +
+ drivers/video/omap/omapfb_main.c         |   25 +++++
+ drivers/video/omap/rfbi.c                |    4 +-
+ drivers/video/omap2/dss/Kconfig          |    7 ++
+ drivers/video/omap2/dss/core.c           |   10 ++
+ drivers/video/omap2/dss/dispc.c          |   74 +++++++++++++-
+ drivers/video/omap2/dss/dsi.c            |  160 ++++++++++++++++++++++=
++++++---
+ drivers/video/omap2/dss/dss.c            |    6 +-
+ drivers/video/omap2/dss/dss.h            |   14 +++
+ drivers/video/omap2/dss/rfbi.c           |   30 +++---
+ drivers/video/omap2/omapfb/omapfb-main.c |    6 +
+ 14 files changed, 309 insertions(+), 66 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
