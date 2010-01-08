@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 09/13] OMAP3: PM debug: fix build error when !CONFIG_DEBUG_FS
-Date: Fri,  8 Jan 2010 09:59:27 -0800
-Message-ID: <1262973571-25796-10-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 13/13] OMAP: timekeeping: time should not stop during suspend
+Date: Fri,  8 Jan 2010 09:59:31 -0800
+Message-ID: <1262973571-25796-14-git-send-email-khilman@deeprootsystems.com>
 References: <1262973571-25796-1-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-2-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-3-git-send-email-khilman@deeprootsystems.com>
@@ -11,78 +11,81 @@ References: <1262973571-25796-1-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-7-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-8-git-send-email-khilman@deeprootsystems.com>
  <1262973571-25796-9-git-send-email-khilman@deeprootsystems.com>
+ <1262973571-25796-10-git-send-email-khilman@deeprootsystems.com>
+ <1262973571-25796-11-git-send-email-khilman@deeprootsystems.com>
+ <1262973571-25796-12-git-send-email-khilman@deeprootsystems.com>
+ <1262973571-25796-13-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:63991 "EHLO
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:49737 "EHLO
 	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783Ab0AHR7x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 12:59:53 -0500
-Received: by mail-pz0-f171.google.com with SMTP id 1so3897390pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 09:59:53 -0800 (PST)
-In-Reply-To: <1262973571-25796-9-git-send-email-khilman@deeprootsystems.com>
+	with ESMTP id S1753811Ab0AHR76 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 12:59:58 -0500
+Received: by mail-pz0-f171.google.com with SMTP id 1so3897523pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 09:59:58 -0800 (PST)
+In-Reply-To: <1262973571-25796-13-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Manjunatha GK <manjugk@ti.com>
 
-From: Manjunatha GK <manjugk@ti.com>
+During suspend, the kernel timekeeping subsystem is shut down.  Before
+suspend and upon resume, it uses a weak function
+read_persistent_clock() to determine the amount of time that elapsed
+during suspend.
 
-The PM debug code fails to build on when CONFIG_DEBUG_FS is not
-enabled.
+This function was not implemented on OMAP, so from the timekeeping
+subsystem perspective (and thus userspace as well) it appeared that no
+time elapsed during suspend.
 
-Build error log:
-arch/arm/mach-omap2/built-in.o: In function `omap_sram_idle':
-arch/arm/mach-omap2/pm34xx.c:449: undefined reference to `pm_dbg_regset_save'
-arch/arm/mach-omap2/pm34xx.c:460: undefined reference to `pm_dbg_regset_save'
-arch/arm/mach-omap2/built-in.o: In function `configure_vc':
-arch/arm/mach-omap2/pm34xx.c:1237: undefined reference to `pm_dbg_regset_init'
-arch/arm/mach-omap2/pm34xx.c:1238: undefined reference to `pm_dbg_regset_init'
-make: *** [.tmp_vmlinux1] Error 1
+This patch uses the 32k sync timer as a the persistent clock.
 
-This patch fixes the above errors.
+NOTE: This does *NOT* fully handle wrapping of the 32k sync timer, so
+      more than one wrapping of the 32k sync timer during suspend may
+      cause problems.  Also note there are not interrupts when the 32k
+      sync timer wraps, so something else has to be done.
 
-Kernel booting is tested on omap zoom2 and zoom3 boards.
-
-Signed-off-by: Manjunatha GK <manjugk@ti.com>
+Reported-by: Jon Hunter <jon-hunter@ti.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm-debug.c |    2 --
- arch/arm/mach-omap2/pm.h       |    8 ++++++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/common.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 860b755..e9d3993 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -604,6 +604,4 @@ static int __init pm_dbg_init(void)
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index bf1eaf3..dddc027 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -172,6 +172,32 @@ unsigned long long sched_clock(void)
+ 				  clocksource_32k.mult, clocksource_32k.shift);
  }
- arch_initcall(pm_dbg_init);
  
--#else
--void pm_dbg_update_time(struct powerdomain *pwrdm, int prev) {}
- #endif
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 0bf345d..7a9c2d0 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -32,12 +32,16 @@ extern struct omap_dm_timer *gptimer_wakeup;
- #ifdef CONFIG_PM_DEBUG
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
- extern int omap2_pm_debug;
-+#else
-+#define omap2_pm_dump(mode, resume, us)		do {} while (0);
-+#define omap2_pm_debug				0
-+#endif
++/**
++ * read_persistent_clock -  Return time from a persistent clock.
++ *
++ * Reads the time from a source which isn't disabled during PM, the
++ * 32k sync timer.  Convert the cycles elapsed since last read into
++ * nsecs and adds to a monotonically increasing timespec.
++ */
++static struct timespec persistent_ts;
++static cycles_t cycles, last_cycles;
++void read_persistent_clock(struct timespec *ts)
++{
++	unsigned long long nsecs;
++	cycles_t delta;
++	struct timespec *tsp = &persistent_ts;
 +
-+#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
- extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
- extern int pm_dbg_regset_save(int reg_set);
- extern int pm_dbg_regset_init(int reg_set);
- #else
--#define omap2_pm_dump(mode, resume, us)		do {} while (0);
--#define omap2_pm_debug				0
- #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
- #define pm_dbg_regset_save(reg_set) do {} while (0);
- #define pm_dbg_regset_init(reg_set) do {} while (0);
++	last_cycles = cycles;
++	cycles = clocksource_32k.read(&clocksource_32k);
++	delta = cycles - last_cycles;
++
++	nsecs = clocksource_cyc2ns(delta,
++				   clocksource_32k.mult, clocksource_32k.shift);
++
++	timespec_add_ns(tsp, nsecs);
++	*ts = *tsp;
++}
++
+ static int __init omap_init_clocksource_32k(void)
+ {
+ 	static char err[] __initdata = KERN_ERR
 -- 
 1.6.6.rc2.1.g42108
 
