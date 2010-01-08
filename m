@@ -1,96 +1,76 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/8] DSPBRIDGE: Increased DMM size to 256MB
-Date: Fri, 8 Jan 2010 08:28:11 -0600
-Message-ID: <4B4740FB.6040403@ti.com>
-References: <1262912435-30024-1-git-send-email-omar.ramirez@ti.com> <4B4695CB.4080606@ti.com> <8F7AF80515AF0D4D93307E594F3CB40E43C043AC@dlee03.ent.ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 1/3][NAND][OMAP]: Fixing compilation warning for
+ 	'nand/omap2.c'
+Date: Fri, 8 Jan 2010 20:31:16 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E1EB4063@dbde02.ent.ti.com>
+References: <ce9ab5791001060600q1bef6ff5x602519e7db9e145@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45796 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47873 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752171Ab0AHO2Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Jan 2010 09:28:16 -0500
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E43C043AC@dlee03.ent.ti.com>
+	id S1752414Ab0AHPB3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 10:01:29 -0500
+In-Reply-To: <ce9ab5791001060600q1bef6ff5x602519e7db9e145@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Aguilar Pena, Leed" <leed.aguilar@ti.com>
+To: Vimal Singh <vimal.newwork@gmail.com>, Linux MTD <linux-mtd@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kanigeri, Hari had written, on 01/07/2010 11:16 PM, the following:
-> Nishant,
-> 
-> With 64MB we were seeing cases of running out of DSP virtual memory when running multiple Multimedia use cases in parallel at a time. 
-Would it be better that we make this as a board specific memory 
-requirement? not all boards will have the same needs right?
-
-> 
-> Thank you,
-> Best regards,
-> Hari  
-> 
 > -----Original Message-----
-> From: Menon, Nishanth 
-> Sent: Friday, January 08, 2010 7:48 AM
-> To: Ramirez Luna, Omar
-> Cc: linux-omap; Hiroshi Doyu; Ameya Palande; Felipe Contreras; Guzman Lugo, Fernando; Ramos Falcon, Ernesto; Kanigeri, Hari; Aguilar Pena, Leed
-> Subject: Re: [PATCH 3/8] DSPBRIDGE: Increased DMM size to 256MB
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Vimal Singh
+> Sent: Wednesday, January 06, 2010 7:30 PM
+> To: Linux MTD
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH 1/3][NAND][OMAP]: Fixing compilation warning 
+> for 'nand/omap2.c'
 > 
-> Ramirez Luna, Omar had written, on 01/07/2010 07:00 PM, the following:
->> From: Hari Kanigeri <h-kanigeri2@ti.com>
->>
->> This patch increases the DMM from 64MB to 256MB.
+> From 3e856346f93afaf3f519dffe7987e4bbf56a136d Mon Sep 17 00:00:00 2001
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Tue, 5 Jan 2010 12:49:24 +0530
+> Subject: [PATCH] Fixing compilation warning for 'nand/omap2.c'
 > 
-> begs the question: Why?
+> Fixing below warning in compilation:
+> drivers/mtd/nand/omap2.c: In function 'omap_write_buf_dma_pref':
+> drivers/mtd/nand/omap2.c:508: warning: passing argument 2 of
+> 'omap_nand_dma_transfer' discards qualifiers from pointer target type
 > 
->> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
->> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
->> Signed-off-by: Leed Aguilar <leed.aguilar@ti.com>
->> ---
->>  arch/arm/plat-omap/include/dspbridge/dmm.h |    2 +-
->>  drivers/dsp/bridge/pmgr/dmm.c              |    8 ++++----
->>  2 files changed, 5 insertions(+), 5 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/include/dspbridge/dmm.h b/arch/arm/plat-omap/include/dspbridge/dmm.h
->> index 335edf8..af0c35a 100644
->> --- a/arch/arm/plat-omap/include/dspbridge/dmm.h
->> +++ b/arch/arm/plat-omap/include/dspbridge/dmm.h
->> @@ -41,7 +41,7 @@
->>  		u32 reserved;
->>  	} ;
->>  
->> -#define DMMPOOLSIZE      0x4000000
->> +#define DMMPOOLSIZE      0x10000000
->>  
->>  /*
->>   *  ======== DMM_GetHandle ========
->> diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
->> index 46c05c6..f878855 100644
->> --- a/drivers/dsp/bridge/pmgr/dmm.c
->> +++ b/drivers/dsp/bridge/pmgr/dmm.c
->> @@ -103,10 +103,10 @@ static struct GT_Mask DMM_debugMask = { NULL, NULL };	/* GT trace variable */
->>  
->>  static u32 cRefs;		/* module reference count */
->>  struct MapPage {
->> -	u32   RegionSize:15;
->> -	u32   MappedSize:15;
->> -	u32   bReserved:1;
->> -	u32   bMapped:1;
->> +	u64   RegionSize:31;
->> +	u64   MappedSize:31;
->> +	u64   bReserved:1;
->> +	u64   bMapped:1;
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> ---
+>  drivers/mtd/nand/omap2.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 1bb799f..4eea97c 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -505,7 +505,7 @@ static void 
+> omap_write_buf_dma_pref(struct mtd_info *mtd,
+>  		omap_write_buf_pref(mtd, buf, len);
+>  	else
+>  		/* start transfer in DMA mode */
+> -		omap_nand_dma_transfer(mtd, buf, len, 0x1);
+> +		omap_nand_dma_transfer(mtd, (u_char *) buf, len, 0x1);
+>  }
 
-this does not make much sense meanwhile.. what does this have to do with 
-the dmmpool size increase and what are these unused fields being used for?
+Vimal,
 
->>  };
->>  
->>  /*  Create the free list */
+I had posted the fix in DEC. Did you miss it?
+http://lists.infradead.org/pipermail/linux-mtd/2009-December/028373.html
+
+Best regards,
+Sanjeev
+
 > 
+>  /**
+> -- 
+> 1.5.5
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-
-
--- 
-Regards,
-Nishanth Menon
