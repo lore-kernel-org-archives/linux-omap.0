@@ -1,65 +1,89 @@
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-Subject: Re: rt2x00 support not available for beagleboard
-Date: Fri, 08 Jan 2010 04:18:29 +0000
-Message-ID: <4B46B215.10302@blueyonder.co.uk>
-References: <4B4662DC.9000500@blueyonder.co.uk>
-Reply-To: sboyce@blueyonder.co.uk
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 3/8] DSPBRIDGE: Increased DMM size to 256MB
+Date: Thu, 7 Jan 2010 23:16:13 -0600
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E43C043AC@dlee03.ent.ti.com>
+References: <1262912435-30024-1-git-send-email-omar.ramirez@ti.com>
+ <4B4695CB.4080606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:54685 "EHLO
-	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750870Ab0AHESc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 23:18:32 -0500
-Received: from [172.23.170.138] (helo=anti-virus01-09)
-	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1NT6Iw-00088V-EK
-	for linux-omap@vger.kernel.org; Fri, 08 Jan 2010 04:18:30 +0000
-Received: from [94.171.130.58] (helo=[192.168.10.2])
-	by asmtp-out6.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1NT6Iw-0005vc-2P
-	for linux-omap@vger.kernel.org; Fri, 08 Jan 2010 04:18:30 +0000
-In-Reply-To: <4B4662DC.9000500@blueyonder.co.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:57494 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750965Ab0AHFQT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 00:16:19 -0500
+In-Reply-To: <4B4695CB.4080606@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Aguilar Pena, Leed" <leed.aguilar@ti.com>
 
-On 07/01/10 22:40, Sid Boyce wrote:
-> That's the same on all recent kernels.
-> # grep RT2X00 arch/arm/configs/omap3_beagle_defconfig
-> #
-> # grep RT2X00 arch/arm/configs/*
-> arch/arm/configs/eseries_pxa_defconfig:# CONFIG_RT2X00 is not set
-> arch/arm/configs/igep0020_defconfig:CONFIG_RT2X00=m
-> arch/arm/configs/igep0020_defconfig:CONFIG_RT2X00_LIB_USB=m
-> arch/arm/configs/igep0020_defconfig:CONFIG_RT2X00_LIB=m
-> arch/arm/configs/igep0020_defconfig:CONFIG_RT2X00_LIB_HT=y
-> arch/arm/configs/igep0020_defconfig:CONFIG_RT2X00_LIB_FIRMWARE=y
-> arch/arm/configs/igep0020_defconfig:CONFIG_RT2X00_LIB_CRYPTO=y
-> arch/arm/configs/igep0020_defconfig:# CONFIG_RT2X00_DEBUG is not set
-> arch/arm/configs/kirkwood_defconfig:# CONFIG_RT2X00 is not set
-> arch/arm/configs/mini2440_defconfig:# CONFIG_RT2X00 is not set
-> arch/arm/configs/omap3_defconfig:# CONFIG_RT2X00 is not set
-> arch/arm/configs/omap3_touchbook_defconfig:# CONFIG_RT2X00 is not set
-> arch/arm/configs/overo_defconfig:# CONFIG_RT2X00 is not set
-> arch/arm/configs/rx51_defconfig:# CONFIG_RT2X00 is not set
-> arch/arm/configs/zeus_defconfig:CONFIG_RT2X00=m
-> arch/arm/configs/zeus_defconfig:CONFIG_RT2X00_LIB_USB=m
-> arch/arm/configs/zeus_defconfig:CONFIG_RT2X00_LIB=m
-> arch/arm/configs/zeus_defconfig:CONFIG_RT2X00_LIB_FIRMWARE=y
-> arch/arm/configs/zeus_defconfig:CONFIG_RT2X00_LIB_CRYPTO=y
-> arch/arm/configs/zeus_defconfig:CONFIG_RT2X00_LIB_LEDS=y
-> arch/arm/configs/zeus_defconfig:# CONFIG_RT2X00_DEBUG is not set
-> Regards
-> Sid.
+Nishant,
 
-OK, it seems I need to use omap3_defconfig.
-Regards
-Sid.
+With 64MB we were seeing cases of running out of DSP virtual memory when running multiple Multimedia use cases in parallel at a time. 
+
+Thank you,
+Best regards,
+Hari  
+
+-----Original Message-----
+From: Menon, Nishanth 
+Sent: Friday, January 08, 2010 7:48 AM
+To: Ramirez Luna, Omar
+Cc: linux-omap; Hiroshi Doyu; Ameya Palande; Felipe Contreras; Guzman Lugo, Fernando; Ramos Falcon, Ernesto; Kanigeri, Hari; Aguilar Pena, Leed
+Subject: Re: [PATCH 3/8] DSPBRIDGE: Increased DMM size to 256MB
+
+Ramirez Luna, Omar had written, on 01/07/2010 07:00 PM, the following:
+> From: Hari Kanigeri <h-kanigeri2@ti.com>
+> 
+> This patch increases the DMM from 64MB to 256MB.
+
+begs the question: Why?
+
+> 
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> Signed-off-by: Leed Aguilar <leed.aguilar@ti.com>
+> ---
+>  arch/arm/plat-omap/include/dspbridge/dmm.h |    2 +-
+>  drivers/dsp/bridge/pmgr/dmm.c              |    8 ++++----
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/dspbridge/dmm.h b/arch/arm/plat-omap/include/dspbridge/dmm.h
+> index 335edf8..af0c35a 100644
+> --- a/arch/arm/plat-omap/include/dspbridge/dmm.h
+> +++ b/arch/arm/plat-omap/include/dspbridge/dmm.h
+> @@ -41,7 +41,7 @@
+>  		u32 reserved;
+>  	} ;
+>  
+> -#define DMMPOOLSIZE      0x4000000
+> +#define DMMPOOLSIZE      0x10000000
+>  
+>  /*
+>   *  ======== DMM_GetHandle ========
+> diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
+> index 46c05c6..f878855 100644
+> --- a/drivers/dsp/bridge/pmgr/dmm.c
+> +++ b/drivers/dsp/bridge/pmgr/dmm.c
+> @@ -103,10 +103,10 @@ static struct GT_Mask DMM_debugMask = { NULL, NULL };	/* GT trace variable */
+>  
+>  static u32 cRefs;		/* module reference count */
+>  struct MapPage {
+> -	u32   RegionSize:15;
+> -	u32   MappedSize:15;
+> -	u32   bReserved:1;
+> -	u32   bMapped:1;
+> +	u64   RegionSize:31;
+> +	u64   MappedSize:31;
+> +	u64   bReserved:1;
+> +	u64   bMapped:1;
+>  };
+>  
+>  /*  Create the free list */
+
+
 -- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
-
+Regards,
+Nishanth Menon
