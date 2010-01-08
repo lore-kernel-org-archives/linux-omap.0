@@ -1,91 +1,98 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 13/13] OMAP: timekeeping: time should not stop during suspend
-Date: Fri,  8 Jan 2010 09:59:31 -0800
-Message-ID: <1262973571-25796-14-git-send-email-khilman@deeprootsystems.com>
-References: <1262973571-25796-1-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-2-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-3-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-4-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-5-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-6-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-7-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-8-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-9-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-10-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-11-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-12-git-send-email-khilman@deeprootsystems.com>
- <1262973571-25796-13-git-send-email-khilman@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] omap: Fix cmdline muxing (Re: New pinmux)
+Date: Fri, 8 Jan 2010 10:00:31 -0800
+Message-ID: <20100108180031.GB6831@atomide.com>
+References: <4B474F9B.9020409@balister.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="WIyZ46R2i8wDzkSu"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:49737 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753811Ab0AHR76 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 12:59:58 -0500
-Received: by mail-pz0-f171.google.com with SMTP id 1so3897523pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 09:59:58 -0800 (PST)
-In-Reply-To: <1262973571-25796-13-git-send-email-khilman@deeprootsystems.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64886 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752985Ab0AHSA3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 13:00:29 -0500
+Content-Disposition: inline
+In-Reply-To: <4B474F9B.9020409@balister.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Philip Balister <philip@balister.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-During suspend, the kernel timekeeping subsystem is shut down.  Before
-suspend and upon resume, it uses a weak function
-read_persistent_clock() to determine the amount of time that elapsed
-during suspend.
 
-This function was not implemented on OMAP, so from the timekeeping
-subsystem perspective (and thus userspace as well) it appeared that no
-time elapsed during suspend.
+--WIyZ46R2i8wDzkSu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This patch uses the 32k sync timer as a the persistent clock.
+* Philip Balister <philip@balister.org> [100108 07:35]:
+> I am trying to work out how to use the new pinmux code on my
+> Overo+Summit system. I have a recent git running with the new pinmux
+> code built. I am trying to configure the mcspi1_clk pin on the
+> expansion connector as gpio_171 with the following:
+> 
+> root@overo:~# dmesg |grep mux
+> 
+> Kernel command line: console=ttyS2,115200n8 vram=12M
+> omapfb.mode=dvi:1024x768MR-16@60 omapfb.debug=y
+> omapdss.def_display=dvi root=/dev/mmcblk0p2 rw rootfstype=ext3
+> rootwait omap_mux=mcspi1_clk.gpio_171=0x0
+> 
+> And this is what happens :(
+> 
+> mux: Could not set signal mcspi1_clk
+> 
+> mux: Setting signal i2c3_scl.i2c3_scl 0x0118 -> 0x0100
+> 
+> Any suggestions?
 
-NOTE: This does *NOT* fully handle wrapping of the 32k sync timer, so
-      more than one wrapping of the 32k sync timer during suspend may
-      cause problems.  Also note there are not interrupts when the 32k
-      sync timer wraps, so something else has to be done.
+Sounds like the cmdline options got broken by some changes
+I did to limit everything to happen as __init..
 
-Reported-by: Jon Hunter <jon-hunter@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/plat-omap/common.c |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
+Can you please try the following patch?
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index bf1eaf3..dddc027 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -172,6 +172,32 @@ unsigned long long sched_clock(void)
- 				  clocksource_32k.mult, clocksource_32k.shift);
+Regards,
+
+Tony
+
+--WIyZ46R2i8wDzkSu
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="mux-fix-cmdline.patch"
+
+>From 3b7bbb130c01ec7a2d4337d43bbfbc4e1fe1615b Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Fri, 8 Jan 2010 09:45:11 -0800
+Subject: [PATCH] omap: Fix cmdline muxing
+
+Looks like cmdline muxing got broken at some point when we
+decided to limit muxing to __init code. Currently omap_mux_entry
+list is not yet initialized when we try to initialize cmdline
+muxing.
+
+Fix this by calling omap_mux_init_list() before calling
+omap_mux_set_cmdline_signals().
+
+Reported-by: Philip Balister <philip@balister.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 459ef23..40ea9fd 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -998,12 +998,15 @@ int __init omap_mux_init(u32 mux_pbase, u32 mux_size,
+ 		omap_mux_package_fixup(package_subset, superset);
+ 	if (package_balls)
+ 		omap_mux_package_init_balls(package_balls, superset);
+-	omap_mux_set_cmdline_signals();
+-	omap_mux_set_board_signals(board_mux);
+ #endif
+ 
+ 	omap_mux_init_list(superset);
+ 
++#ifdef CONFIG_OMAP_MUX
++	omap_mux_set_cmdline_signals();
++	omap_mux_set_board_signals(board_mux);
++#endif
++
+ 	return 0;
  }
  
-+/**
-+ * read_persistent_clock -  Return time from a persistent clock.
-+ *
-+ * Reads the time from a source which isn't disabled during PM, the
-+ * 32k sync timer.  Convert the cycles elapsed since last read into
-+ * nsecs and adds to a monotonically increasing timespec.
-+ */
-+static struct timespec persistent_ts;
-+static cycles_t cycles, last_cycles;
-+void read_persistent_clock(struct timespec *ts)
-+{
-+	unsigned long long nsecs;
-+	cycles_t delta;
-+	struct timespec *tsp = &persistent_ts;
-+
-+	last_cycles = cycles;
-+	cycles = clocksource_32k.read(&clocksource_32k);
-+	delta = cycles - last_cycles;
-+
-+	nsecs = clocksource_cyc2ns(delta,
-+				   clocksource_32k.mult, clocksource_32k.shift);
-+
-+	timespec_add_ns(tsp, nsecs);
-+	*ts = *tsp;
-+}
-+
- static int __init omap_init_clocksource_32k(void)
- {
- 	static char err[] __initdata = KERN_ERR
--- 
-1.6.6.rc2.1.g42108
 
+--WIyZ46R2i8wDzkSu--
