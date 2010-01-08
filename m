@@ -1,70 +1,97 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/8] DSPBRIDGE: Increased DMM size to 256MB
-Date: Thu, 7 Jan 2010 20:17:47 -0600
-Message-ID: <4B4695CB.4080606@ti.com>
-References: <1262912435-30024-1-git-send-email-omar.ramirez@ti.com>
+Subject: Re: [PATCH 4/8] DSPBRIDGE: Remove unused hDrvObject in bridge_[open|release]
+Date: Thu, 7 Jan 2010 20:19:30 -0600
+Message-ID: <4B469632.8030900@ti.com>
+References: <1262912440-30050-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="iso-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50507 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184Ab0AHCRw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Jan 2010 21:17:52 -0500
-In-Reply-To: <1262912435-30024-1-git-send-email-omar.ramirez@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41593 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752648Ab0AHCTd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 Jan 2010 21:19:33 -0500
+In-Reply-To: <1262912440-30050-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Aguilar Pena, Leed" <leed.aguilar@ti.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>
 
-Ramirez Luna, Omar had written, on 01/07/2010 07:00 PM, the following:
-> From: Hari Kanigeri <h-kanigeri2@ti.com>
+Omar Ramirez Luna had written, on 01/07/2010 07:00 PM, the following:
+> This patch removes an unused variable in bridge_open
+> and bridge_release functions, which reduces indentation.
 > 
-> This patch increases the DMM from 64MB to 256MB.
-
-begs the question: Why?
-
-> 
-> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 > Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-> Signed-off-by: Leed Aguilar <leed.aguilar@ti.com>
 > ---
->  arch/arm/plat-omap/include/dspbridge/dmm.h |    2 +-
->  drivers/dsp/bridge/pmgr/dmm.c              |    8 ++++----
->  2 files changed, 5 insertions(+), 5 deletions(-)
+>  drivers/dsp/bridge/rmgr/drv_interface.c |   25 +++++--------------------
+>  1 files changed, 5 insertions(+), 20 deletions(-)
 > 
-> diff --git a/arch/arm/plat-omap/include/dspbridge/dmm.h b/arch/arm/plat-omap/include/dspbridge/dmm.h
-> index 335edf8..af0c35a 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/dmm.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/dmm.h
-> @@ -41,7 +41,7 @@
->  		u32 reserved;
->  	} ;
+> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+> index 3a4d058..e551840 100644
+> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
+> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+> @@ -540,18 +540,10 @@ static void __exit bridge_exit(void)
+>  static int bridge_open(struct inode *ip, struct file *filp)
+>  {
+>  	int status = 0;
+> -	DSP_STATUS dsp_status;
+> -	HANDLE hDrvObject;
+>  	struct PROCESS_CONTEXT *pr_ctxt = NULL;
 >  
-> -#define DMMPOOLSIZE      0x4000000
-> +#define DMMPOOLSIZE      0x10000000
+>  	GT_0trace(driverTrace, GT_ENTER, "-> bridge_open\n");
 >  
->  /*
->   *  ======== DMM_GetHandle ========
-> diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
-> index 46c05c6..f878855 100644
-> --- a/drivers/dsp/bridge/pmgr/dmm.c
-> +++ b/drivers/dsp/bridge/pmgr/dmm.c
-> @@ -103,10 +103,10 @@ static struct GT_Mask DMM_debugMask = { NULL, NULL };	/* GT trace variable */
+> -	dsp_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+> -	if (DSP_FAILED(dsp_status)) {
+is this some sort of verification if the hDrvObject is valid?
+if so this is not an unused variable rt?
+
+> -		status = -EIO;
+> -		goto err;
+> -	}
+> -
+>  	/*
+>  	 * Allocate a new process context and insert it into global
+>  	 * process context list.
+> @@ -564,7 +556,6 @@ static int bridge_open(struct inode *ip, struct file *filp)
 >  
->  static u32 cRefs;		/* module reference count */
->  struct MapPage {
-> -	u32   RegionSize:15;
-> -	u32   MappedSize:15;
-> -	u32   bReserved:1;
-> -	u32   bMapped:1;
-> +	u64   RegionSize:31;
-> +	u64   MappedSize:31;
-> +	u64   bReserved:1;
-> +	u64   bMapped:1;
->  };
+>  	filp->private_data = pr_ctxt;
 >  
->  /*  Create the free list */
+> -err:
+>  	GT_0trace(driverTrace, GT_ENTER, "<- bridge_open\n");
+>  	return status;
+>  }
+> @@ -576,8 +567,6 @@ err:
+>  static int bridge_release(struct inode *ip, struct file *filp)
+>  {
+>  	int status = 0;
+> -	DSP_STATUS dsp_status;
+> -	HANDLE hDrvObject;
+>  	struct PROCESS_CONTEXT *pr_ctxt;
+>  
+>  	GT_0trace(driverTrace, GT_ENTER, "-> bridge_release\n");
+> @@ -588,15 +577,11 @@ static int bridge_release(struct inode *ip, struct file *filp)
+>  	}
+>  
+>  	pr_ctxt = filp->private_data;
+> -	dsp_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+> -	if (DSP_SUCCEEDED(dsp_status)) {
+is this some sort of verification if the hDrvObject is valid?
+if so this is not an unused variable rt?
+> -		flush_signals(current);
+> -		DRV_RemoveAllResources(pr_ctxt);
+> -		PROC_Detach(pr_ctxt);
+> -		MEM_Free(pr_ctxt);
+> -	} else {
+> -		status = -EIO;
+> -	}
+> +	flush_signals(current);
+> +	DRV_RemoveAllResources(pr_ctxt);
+> +	PROC_Detach(pr_ctxt);
+> +	MEM_Free(pr_ctxt);
+> +
+>  	filp->private_data = NULL;
+>  
+>  err:
 
 
 -- 
