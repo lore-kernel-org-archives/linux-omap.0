@@ -1,51 +1,47 @@
 From: green <greenfreedom10@gmail.com>
 Subject: Re: problem with n810 boot up
-Date: Fri, 8 Jan 2010 22:59:01 -0600
-Message-ID: <20100109045901.GA9728@swansys>
-References: <200912290152.16357.luke@dashjr.org> <201001070941.05201.luke@dashjr.org> <20100107165502.GS9728@swansys> <201001082056.48448.luke@dashjr.org>
+Date: Fri, 8 Jan 2010 23:03:38 -0600
+Message-ID: <20100109050338.GB9728@swansys>
+References: <200912290152.16357.luke@dashjr.org> <4B43CA48.3070009@gmail.com> <201001051747.02221.luke@dashjr.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TXv8ADjWKuT9E31y"
+	protocol="application/pgp-signature"; boundary="+0KmLy8UubQqhxHi"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.211.176]:52251 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751949Ab0AIE7Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 23:59:16 -0500
-Received: by ywh6 with SMTP id 6so20119954ywh.4
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 20:59:16 -0800 (PST)
+Received: from mail-iw0-f194.google.com ([209.85.223.194]:53043 "EHLO
+	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750822Ab0AIFEO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Jan 2010 00:04:14 -0500
+Received: by iwn32 with SMTP id 32so3583020iwn.33
+        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 21:04:13 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <201001082056.48448.luke@dashjr.org>
+In-Reply-To: <201001051747.02221.luke@dashjr.org>
 Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
---TXv8ADjWKuT9E31y
+--+0KmLy8UubQqhxHi
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Luke-Jr wrote at 2010-01-08 20:56 -0600:
-> On Thursday 07 January 2010 10:55:02 am green wrote:
-> > I would like to run Debian on my N810; have you gotten PM, gps, and
-> >  internal mmc to work while running Gentoo?
->=20
-> Don't expect GPS to ever work. The proprietary driver depends on a bug fi=
-xed=20
-> in 2.6.23 or so, and even ignoring that, is full of bugs. It's a soft-GPS=
+Luke-Jr wrote at 2010-01-05 17:46 -0600:
+> * N900 is supposedly mostly mainlined already, and supposedly Nokia will=
 =20
-> (like winmodems are for modems), so I suppose someone who understands GPS=
+> actually finish the job with unlike N8x0; it also has nicer hardware, eve=
+n if=20
+> you just ignore the cellular capabilities
+
+You say "supposedly"; where do you get this information?  Is there a mailin=
+g=20
+list or something...?  I would like to find out what works before making a=
 =20
-> technical stuff might be able to rewrite it.
+purchase.  I made careless assumptions about Linux support when purchasing =
+the=20
+N810.
 
-Okay, thanks for the information.
-
-> If you know anyone who has push with TI, the chipset is the TI GPS5300.
-
-I don't but if I did...
-
---TXv8ADjWKuT9E31y
+--+0KmLy8UubQqhxHi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -53,9 +49,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.9 (GNU/Linux)
 
-iEYEARECAAYFAktIDRUACgkQ682C+dBP+oRMTQCfcLEsipI+NENmjHx6IVfweVJk
-TNgAoNLhuS+c4Z4h7qQKv2GsowEXtf9J
-=3+DJ
+iEYEARECAAYFAktIDioACgkQ682C+dBP+oRq1wCg4LVO8u18Q7r8v4QLY9YKo/sx
+DuoAnjqQHvSGY9PhrPX2sRZ5J3e7x37K
+=ZwBB
 -----END PGP SIGNATURE-----
 
---TXv8ADjWKuT9E31y--
+--+0KmLy8UubQqhxHi--
