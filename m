@@ -1,64 +1,66 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 3/3] OMAP: hwmod: allow idle after HWMOD_INIT_NO_IDLE
-Date: Fri,  8 Jan 2010 15:26:53 -0800
-Message-ID: <1262993213-19866-4-git-send-email-khilman@deeprootsystems.com>
-References: <1262993213-19866-1-git-send-email-khilman@deeprootsystems.com>
- <1262993213-19866-2-git-send-email-khilman@deeprootsystems.com>
- <1262993213-19866-3-git-send-email-khilman@deeprootsystems.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [GIT PULL] omap fixes for 2.6.33-rc3
+Date: Sat, 9 Jan 2010 13:47:31 +1100
+Message-ID: <20100109134731.a1bca240.sfr@canb.auug.org.au>
+References: <20100108180912.GC6831@atomide.com>
+	<alpine.LFD.2.00.1001081014090.7821@localhost.localdomain>
+	<20100108182236.GE6831@atomide.com>
+	<alpine.DEB.2.00.1001081502480.19243@utopia.booyaka.com>
+	<20100108222715.GC2879@atomide.com>
+	<alpine.LFD.2.00.1001081430210.7821@localhost.localdomain>
+	<20100108225023.GD2879@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Sat__9_Jan_2010_13_47_31_+1100_Hw95CVMhFaGBIeaV"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:41422 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754284Ab0AHX1B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jan 2010 18:27:01 -0500
-Received: by pxi4 with SMTP id 4so2403672pxi.33
-        for <linux-omap@vger.kernel.org>; Fri, 08 Jan 2010 15:27:01 -0800 (PST)
-In-Reply-To: <1262993213-19866-3-git-send-email-khilman@deeprootsystems.com>
+Received: from chilli.pcug.org.au ([203.10.76.44]:56344 "EHLO smtps.tip.net.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751612Ab0AICri (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Jan 2010 21:47:38 -0500
+In-Reply-To: <20100108225023.GD2879@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-If an omap_hwmod is setup using HWMOD_INIT_NO_IDLE flag, there is
-currently way to idle it since omap_hwmod_idle() requires the hwmod to
-be in the enabled state.
+--Signature=_Sat__9_Jan_2010_13_47_31_+1100_Hw95CVMhFaGBIeaV
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch adds a check to omap_hwmod_idle() so if the hwmod was has
-the INIT_NO_IDLE flag, calling omap_hwmod_idle() will still succeed.
+Hi Tony,
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+On Fri, 8 Jan 2010 14:50:23 -0800 Tony Lindgren <tony@atomide.com> wrote:
+>
+> Hmm, sounds like it might make sense to check for that in Stephen's
+> for-next tree then. Added Stephen to the loop, let's see if what he
+> thinks.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 307deea..2de4cc3 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -869,7 +869,13 @@ static int _enable(struct omap_hwmod *oh)
-  */
- static int _idle(struct omap_hwmod *oh)
- {
--	if (oh->_state != _HWMOD_STATE_ENABLED) {
-+	/*
-+	 * To idle, hwmod must be enabled, EXCEPT if hwmod was
-+	 * initialized using the INIT_NO_IDLE flag.  In this case it
-+	 * will not yet be enabled so we have to allow it to be idled.
-+	 */
-+	if ((oh->_state != _HWMOD_STATE_ENABLED) &&
-+	    !(oh->flags & HWMOD_INIT_NO_IDLE)) {
- 		WARN(1, "omap_hwmod: %s: idle state can only be entered from "
- 		     "enabled state\n", oh->name);
- 		return -EINVAL;
-@@ -884,6 +890,9 @@ static int _idle(struct omap_hwmod *oh)
- 
- 	oh->_state = _HWMOD_STATE_IDLE;
- 
-+	/* Clear init flag which should only affect first call to idle */
-+	oh->flags &= ~HWMOD_INIT_NO_IDLE;
-+
- 	return 0;
- }
- 
--- 
-1.6.6.rc2.1.g42108
+I can certainly add hooks to my tree if someone can suggest what should
+be in them (I didn't get enough context here ...).  That way I could send
+the tree maintainer a warning email letting them know something is
+fishy ...
 
+Of course, this only helps those who don't mind rebasing their trees,
+right?  The non-rebasing tree maintainers should do these checks
+themselves.  Maybe we could propogate a suggested (or mandatory) set of
+hooks?
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Sat__9_Jan_2010_13_47_31_+1100_Hw95CVMhFaGBIeaV
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAktH7kMACgkQjjKRsyhoI8yekgCgrH/rD3jyEDsv67aB3L9hb8ig
+ls4An2+HvTqM91K8Cb99yxdZPuiJKGlb
+=vk9i
+-----END PGP SIGNATURE-----
+
+--Signature=_Sat__9_Jan_2010_13_47_31_+1100_Hw95CVMhFaGBIeaV--
