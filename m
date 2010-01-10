@@ -1,92 +1,69 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH 01/12] omap: McBSP: Fix possible port lockout
-Date: Sun, 10 Jan 2010 20:55:39 +0100
-Message-ID: <201001102055.41300.jkrzyszt@tis.icnet.pl>
-References: <20100107001728.21352.38471.stgit@baageli.muru.com> <20100107001844.21352.899.stgit@baageli.muru.com> <4B4767DE.4070801@ru.mvista.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH] Remove unnecessarily .init initializers from OMAP3 clocks
+Date: Sun, 10 Jan 2010 22:30:31 +0000
+Message-ID: <20100110223031.GA15812@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:37220 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753341Ab0AJUIY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jan 2010 15:08:24 -0500
-In-Reply-To: <4B4767DE.4070801@ru.mvista.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53450 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754039Ab0AJWan (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jan 2010 17:30:43 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-=46riday 08 January 2010 18:14:06 Sergei Shtylyov napisa=C5=82(a):
-> Tony Lindgren wrote:
-> > From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> >
-> > In its current form, the omap_mcbsp_request() function can return a=
-fter
-> > irq_request() failure without any cleanups, effectively locking out=
- the
-> > port forever with clocks left running. Fix it.
-> >
-> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> > Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-> > Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> [...]
->
-> > diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.=
-c
-> > index 2cc1cc3..f757672 100644
-> > --- a/arch/arm/plat-omap/mcbsp.c
-> > +++ b/arch/arm/plat-omap/mcbsp.c
-> > @@ -436,7 +436,7 @@ int omap_mcbsp_request(unsigned int id)
-> >  			dev_err(mcbsp->dev, "Unable to request TX IRQ %d "
-> >  					"for McBSP%d\n", mcbsp->tx_irq,
-> >  					mcbsp->id);
-> > -			return err;
-> > +			goto error;
-> >  		}
-> >
-> >  		init_completion(&mcbsp->rx_irq_completion);
-> > @@ -446,12 +446,26 @@ int omap_mcbsp_request(unsigned int id)
-> >  			dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
-> >  					"for McBSP%d\n", mcbsp->rx_irq,
-> >  					mcbsp->id);
-> > -			free_irq(mcbsp->tx_irq, (void *)mcbsp);
-> > -			return err;
-> > +			goto tx_irq;
-> >  		}
-> >  	}
-> >
-> >  	return 0;
-> > +tx_irq:
->
->     As if this wasn't a label for error cleanup, i.e. labels could be=
- named
-> more consistently, both including 'err' or 'error'...
->
-> > +	free_irq(mcbsp->tx_irq, (void *)mcbsp);
-> > +error:
-> > +	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
-> > +			mcbsp->pdata->ops->free(id);
->
->     This line is overindented.
->
+The first thing that omap2_init_clksel_parent() does is check for
+a non-zero .clksel field in the struct clk.  Therefore, it is
+pointless calling this function on clocks where the clksel field
+is unset.
 
-Sergei,
-Thanks for pointing these out.
+Remove init calls to omap2_init_clksel_parent() on clocks without
+a clksel field.
 
-Tony,
-Since you have already sent a pull request covering this patch, I propo=
-se I=20
-will address both issues soon when I revisit the source while further=20
-modifying this function for McBSP register cache support, OK?
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+The changes in this patch were script generated.  Script will follow
+with other changes shortly.
 
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap2/clock34xx_data.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
+index 8bdcc9c..08f6e10 100644
+--- a/arch/arm/mach-omap2/clock34xx_data.c
++++ b/arch/arm/mach-omap2/clock34xx_data.c
+@@ -671,7 +671,6 @@ static struct clk dpll4_m3x2_ck = {
+ 	.name		= "dpll4_m3x2_ck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+ 	.parent		= &dpll4_m3_ck,
+-	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_TV_SHIFT,
+ 	.flags		= INVERT_ENABLE,
+@@ -809,7 +808,6 @@ static struct clk dpll4_m6x2_ck = {
+ 	.name		= "dpll4_m6x2_ck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+ 	.parent		= &dpll4_m6_ck,
+-	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_EMU_PERIPH_SHIFT,
+ 	.flags		= INVERT_ENABLE,
+@@ -1045,7 +1043,6 @@ static struct clk iva2_ck = {
+ 	.name		= "iva2_ck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+ 	.parent		= &dpll2_m2_ck,
+-	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_SHIFT,
+ 	.clkdm_name	= "iva2_clkdm",
+@@ -1119,7 +1116,6 @@ static struct clk gfx_l3_ck = {
+ 	.name		= "gfx_l3_ck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+ 	.parent		= &l3_ick,
+-	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(GFX_MOD, CM_ICLKEN),
+ 	.enable_bit	= OMAP_EN_GFX_SHIFT,
+ 	.recalc		= &followparent_recalc,
