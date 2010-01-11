@@ -1,94 +1,66 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: Issue in oamp nand driver with 32-bit reads in prefetch mode
-Date: Mon, 11 Jan 2010 12:00:53 +0530
-Message-ID: <ce9ab5791001102230j7923ef01j6f17b7ca9fafde56@mail.gmail.com>
-References: <ce9ab5790912230133wae2c4dcw73051221b66cb40f@mail.gmail.com>
-	<20091223174429.GD3512@atomide.com> <5e088bd90912291238t1f2aba64na94887b2f864454d@mail.gmail.com>
-	<5e088bd90912291347j370ab30cid7c6cfc558c2ed18@mail.gmail.com>
-	<ce9ab5790912310420h20beb04csba060b3f5cfeee92@mail.gmail.com>
-	<1263113195.7315.129.camel@localhost.localdomain>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 0/6] Added DSS2/FBDEV support for OMAP3EVM & AM3517EVM
+Date: Mon, 11 Jan 2010 12:03:03 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A3982CC@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1262615657-22723-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:44477 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab0AKGbQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 01:31:16 -0500
-Received: by bwz27 with SMTP id 27so31940bwz.21
-        for <linux-omap@vger.kernel.org>; Sun, 10 Jan 2010 22:31:14 -0800 (PST)
-In-Reply-To: <1263113195.7315.129.camel@localhost.localdomain>
+Received: from bear.ext.ti.com ([192.94.94.41]:36095 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750909Ab0AKGdN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 01:33:13 -0500
+In-Reply-To: <1262615657-22723-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, linux-arm-kernel@lists.infradead.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Sun, Jan 10, 2010 at 2:16 PM, Artem Bityutskiy <dedekind1@gmail.com>=
- wrote:
-> On Thu, 2009-12-31 at 17:50 +0530, Vimal Singh wrote:
->> There is a bug in nand prefetch read routine, which comes into effec=
-t
->> only if nand device is a 16-bit device (as we have in zoom boards).
->> This bug is effective only with below combination of conditions:
->> 1. nand deivce, in use, is a 16 bit device
->> 2. nand driver supports 'subpage' read
->> 3. SW ECC is in use
->>
->> This was not seen old =A0kernel (ex: .23), because when, in early da=
-ys,
->> we tested this (nand prefetch read in LDP boards) there was no
->> 'subpage read' support.
->> Later when we had subpage read in (.27) kernel, we had hw ecc enable=
-d
->> always in our internal tree. So, we missed this bug.
->>
->> Here is a patch to fix this issue:
->>
->> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
->> index 1bb799f..75004fe 100644
->> --- a/drivers/mtd/nand/omap2.c
->> +++ b/drivers/mtd/nand/omap2.c
->> @@ -295,11 +295,14 @@ static void omap_read_buf_pref(struct
->> =A0 =A0 =A0 u32 *p =3D (u32 *)buf;
->>
->> =A0 =A0 =A0 /* take care of subpage reads */
->> - =A0 =A0 for (; len % 4 !=3D 0; ) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 *buf++ =3D __raw_readb(info->nand.IO_ADDR_=
-R);
->> - =A0 =A0 =A0 =A0 =A0 =A0 len--;
->> + =A0 =A0 if (len % 4) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (info->nand.options & NAND_BUSWIDTH_16)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_read_buf16(mtd, buf, =
-len % 4);
->> + =A0 =A0 =A0 =A0 =A0 =A0 else
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_read_buf8(mtd, buf, l=
-en % 4);
->> + =A0 =A0 =A0 =A0 =A0 =A0 p =3D (u32 *) (buf + len % 4);
->> + =A0 =A0 =A0 =A0 =A0 =A0 len -=3D len % 4;
->> =A0 =A0 =A0 }
->> - =A0 =A0 p =3D (u32 *) buf;
->>
->> =A0 =A0 =A0 /* configure and start prefetch transfer */
->> =A0 =A0 =A0 ret =3D gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x=
-0);
->
-> Pushed this patch to my l2-mtd-2.6.git/dunno.
->
+\
 
-I have posted this patch formally in patch series:
-[PATCH 0/3][NAND][OMAP]: fixing omap nand driver issues
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Monday, January 04, 2010 8:04 PM
+> To: linux-omap@vger.kernel.org
+> Cc: tomi.valkeinen@nokia.com; tony@atomide.com; Hiremath, Vaibhav
+> Subject: [PATCH 0/6] Added DSS2/FBDEV support for OMAP3EVM &
+> AM3517EVM
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> This patch added DSS2 + OMAPFB support for OMAP3EVM and AM3517/05
+> EVM along
+> with sharp LQ043T1DG01 panel support.
+> 
+> Vaibhav Hiremath (4):
+>   OMAP: DSS2: Fix compile warning
+>   OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
+>   OMAP: Enable DSS2 for OMAP3EVM board
+>   OMAP: AM3517: Enable DSS2 for AM3517EVM board
+> 
+[Hiremath, Vaibhav] Tomi,
 
-Corresponding patch is:
-[PATCH 3/3][NAND][OMAP] : Fixing issue in oamp nand driver in prefetch =
-mode read
+Do you see any issues with this patch-series? It has been reviewed multiple times. Can we merge these patches?
+You had only taken warning fix patch, any specific reason?
 
-Can you please give a look for this patch series?
+Thanks,
+Vaibhav
 
---=20
-Regards,
-Vimal Singh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  arch/arm/configs/am3517_evm_defconfig              |   52 ++++-
+>  arch/arm/configs/omap3_evm_defconfig               |   51 ++++-
+>  arch/arm/mach-omap2/board-am3517evm.c              |  144
+> ++++++++++++
+>  arch/arm/mach-omap2/board-omap3evm.c               |  246
+> +++++++++++++++++++-
+>  drivers/video/omap2/displays/Kconfig               |    6 +
+>  drivers/video/omap2/displays/Makefile              |    1 +
+>  .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  120
+> ++++++++++
+>  drivers/video/omap2/dss/core.c                     |    2 +
+>  8 files changed, 609 insertions(+), 13 deletions(-)
+>  create mode 100644 drivers/video/omap2/displays/panel-sharp-
+> lq043t1dg01.c
+
