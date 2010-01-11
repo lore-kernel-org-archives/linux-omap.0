@@ -1,59 +1,57 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: Re: [PATCH] AM35xx: Add clock support for new modules on AM35xx
-Date: Mon, 11 Jan 2010 23:38:26 +0530
-Message-ID: <4B4B691A.30504@ti.com>
-References: <1260971823-8532-1-git-send-email-ranjithl@ti.com> <alpine.DEB.2.00.0912171818150.12561@utopia.booyaka.com> <4B2B5A0F.9050304@ti.com> <alpine.DEB.2.00.1001051134240.2083@utopia.booyaka.com> <4B470D28.7010900@ti.com> <alpine.DEB.2.00.1001081558530.28650@utopia.booyaka.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] DSPBRIDGE: driver version 0.1
+Date: Mon, 11 Jan 2010 12:30:45 -0600
+Message-ID: <4B4B6E55.9000406@ti.com>
+References: <1263232222-30599-1-git-send-email-omar.ramirez@ti.com> <1263232222-30599-2-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53499 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509Ab0AKSId (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 13:08:33 -0500
-In-Reply-To: <alpine.DEB.2.00.1001081558530.28650@utopia.booyaka.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:49764 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751448Ab0AKSay (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jan 2010 13:30:54 -0500
+In-Reply-To: <1263232222-30599-2-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>
 
-Hi Paul,
+Ramirez Luna, Omar had written, on 01/11/2010 11:50 AM, the following:
+> This is the official 0.1 dspbridge version.
+> 
+> CC: Felipe Contreras <felipe.contreras@nokia.com>
+> CC: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+> CC: Ameya Palande <ameya.palande@nokia.com>
+> CC: Nishant Menon <nm@ti.com>
+> 
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> ---
+>  drivers/dsp/bridge/rmgr/drv_interface.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+> index c853854..efce35d 100644
+> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
+> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+> @@ -101,6 +101,7 @@
+>  #define BRIDGE_NAME "C6410"
+>  /*  ----------------------------------- Globals */
+>  #define DRIVER_NAME  "DspBridge"
+> +#define DSPBRIDGE_VERSION	"0.1"
+>  s32 dsp_debug;
+>  
+>  struct platform_device *omap_dspbridge_dev;
+> @@ -177,6 +178,7 @@ MODULE_PARM_DESC(tc_wordswapon, "TC Word Swap Option. default = 0");
+>  
+>  MODULE_AUTHOR("Texas Instruments");
+>  MODULE_LICENSE("GPL");
+> +MODULE_VERSION(DSPBRIDGE_VERSION);
+>  
+>  static char *driver_name = DRIVER_NAME;
+>  
+is the IOCTL patch before or after the 0.1?
 
-On Sat, 09-Jan-10 4:37 AM +0530, Paul Walmsley wrote:
-> Hello Ranjith,
-> 
-> On Fri, 8 Jan 2010, Ranjith Lohithakshan wrote:
-> 
->> These ACK bits are for the target IdleAck status. I will add a custom
->> find_companion code for AM35xx.
-> 
-> ...
-> 
->> OK. I will extend the existing find_idlest to pass back what value needs
->> to be checked as you suggested. I will make this change as a separate patch.
-> 
-> Both of the above sound good.
-> 
->> All the VBUSP (interface) clocks are derived from core_l3_clk and I am
->> making them as part of core_l3_clk domain. The rmii_ck/emac_fck and
->> vpfe_fck are sourced from external clock sources. (AM35XX TRM section
->> 4.7.7.12)
-> 
-> ...
-> 
->> rmii_ck and vpfe_fck are from off-chip sources. These are fixed rate
->> clocks being fed to the chip. Do we need to associate a dummy or virtual
->> clock domain for these clocks or is it OK if we treat it similar to the
->> way we currently treat 32K timer clock (RATE_FIXED, clockops_null, no
->> clock domain and having no parent)?
-> 
-> I guess it will be fine to add these with no clockdomain until we add an 
-> external clockdomain.  One last question - do you know if these external 
-> clocks require the CORE powerdomain to be powered for them to be routed?  
-> I believe this is the case for some of the external clocks that are routed 
-> through the CM on OMAP3.
-
-These external clocks are routed directly from IO to the respective
-modules. They are not controlled by CM.
-
- - Ranjith
+-- 
+Regards,
+Nishanth Menon
