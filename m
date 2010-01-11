@@ -1,69 +1,103 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH] Remove unnecessarily .init initializers from OMAP3 clocks
-Date: Sun, 10 Jan 2010 22:30:31 +0000
-Message-ID: <20100110223031.GA15812@n2100.arm.linux.org.uk>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: Re: [PATCH] OMAP: Exporting functions doing common
+	register access
+Date: Mon, 11 Jan 2010 10:11:51 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D703E@dbde02.ent.ti.com>
+References: <1258384836-24854-1-git-send-email-anuj.aggarwal@ti.com>
+	<alpine.DEB.2.00.0911161408260.29213@utopia.booyaka.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030A8C8EC2@dbde02.ent.ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030A9CA8F7@dbde02.ent.ti.com>
+	<alpine.DEB.2.00.0911180324350.25515@utopia.booyaka.com>
+	<20091118163314.d0325283.jhnikula@gmail.com>
+	<alpine.DEB.2.00.0911181220560.9248@utopia.booyaka.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB031E0A39D8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53450 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754039Ab0AJWan (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jan 2010 17:30:43 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E0A39D8@dbde02.ent.ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Paul Walmsley <paul@pwsan.com>, Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Lohithakshan,
+	Ranjith" <ranjithl@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
-The first thing that omap2_init_clksel_parent() does is check for
-a non-zero .clksel field in the struct clk.  Therefore, it is
-pointless calling this function on clocks where the clksel field
-is unset.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Aggarwal, Anuj
+> Sent: Thursday, January 07, 2010 7:40 PM
+> To: Paul Walmsley; Jarkko Nikula
+> Cc: linux-omap@vger.kernel.org; alsa-devel@alsa-project.org; Lohithakshan,
+> Ranjith
+> Subject: RE: [PATCH] OMAP: Exporting functions doing common register
+> access
+> 
+> > > > In the interim, I would suggest that you remove the the clock source
+> > and
+> > > > receiver source change functions from omap-mcbsp.c, split them into
+> > OMAP1
+> > > > and OMAP2/3 variants, and place them into arch/arm/mach-
+> omap*/mcbsp.c.
+> > > > Expand struct omap_mcbsp_ops to add function pointers to those
+> > functions.
+> > > > Call those from soc/omap-mcbsp.c via mcbsp->pdata->ops. That way you
+> > won't
+> > > > need those exports.
+> > > >
+> > > Paul: What's your opinnion, would it be possible or would it be wise
+> to
+> > > handle these McBSP clock route setups with the clock framework
+> instead?
+> > >
+> > > Functions omap_mcbsp_dai_set_clks_src and omap_mcbsp_dai_set_rcvr_src
+> > > are basically just setting up the input clock for McBSP SRG or McBSP1
+> > > receiver.
+> >
+> > Sure.  There already should be some support for it in clock34xx.h, but I
+> > doubt anyone's tested it:
+> >
+> > static struct clk mcbsp1_fck = {
+> >         .name           = "mcbsp_fck",
+> >         .ops            = &clkops_omap2_dflt_wait,
+> >         .id             = 1,
+> >         .init           = &omap2_init_clksel_parent,
+> >         .enable_reg     = OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+> >         .enable_bit     = OMAP3430_EN_MCBSP1_SHIFT,
+> >         .clksel_reg     = OMAP343X_CTRL_REGADDR(OMAP2_CONTROL_DEVCONF0),
+> >         .clksel_mask    = OMAP2_MCBSP1_CLKS_MASK,
+> >         .clksel         = mcbsp_15_clksel,
+> >         .clkdm_name     = "core_l4_clkdm",
+> >         .recalc         = &omap2_clksel_recalc,
+> > };
+> >
+> > etc.  Some similar entries would need to be added to the clock24xx.h
+> file.
+> [Aggarwal, Anuj] One problem which I found in trying the above discussed
+> approach is that I am not able to get mcbsp clock handles in omap-mcbsp.c
+> file. To call clk_set_parent() with the new parent clock as "mcbsp_clks"
+> (in case of an external clock), I need the mcbsp_fck clock handle. But
+> this
+> handle is not shared with the omap_mcbsp_dai[].
+> 
+> What should be the right method of getting this handle in
+> omap_mcbsp_dai_set_dai_sysclk(), in case I understood the concept
+> properly.
+> Basically, we want to get rid of the low level stuff in this function
+> and instead use standard clock framework APIs?
 
-Remove init calls to omap2_init_clksel_parent() on clocks without
-a clksel field.
+Paul / Jarkko,
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
-The changes in this patch were script generated.  Script will follow
-with other changes shortly.
-
- arch/arm/mach-omap2/clock34xx_data.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
-index 8bdcc9c..08f6e10 100644
---- a/arch/arm/mach-omap2/clock34xx_data.c
-+++ b/arch/arm/mach-omap2/clock34xx_data.c
-@@ -671,7 +671,6 @@ static struct clk dpll4_m3x2_ck = {
- 	.name		= "dpll4_m3x2_ck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &dpll4_m3_ck,
--	.init		= &omap2_init_clksel_parent,
- 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
- 	.enable_bit	= OMAP3430_PWRDN_TV_SHIFT,
- 	.flags		= INVERT_ENABLE,
-@@ -809,7 +808,6 @@ static struct clk dpll4_m6x2_ck = {
- 	.name		= "dpll4_m6x2_ck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &dpll4_m6_ck,
--	.init		= &omap2_init_clksel_parent,
- 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
- 	.enable_bit	= OMAP3430_PWRDN_EMU_PERIPH_SHIFT,
- 	.flags		= INVERT_ENABLE,
-@@ -1045,7 +1043,6 @@ static struct clk iva2_ck = {
- 	.name		= "iva2_ck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &dpll2_m2_ck,
--	.init		= &omap2_init_clksel_parent,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_SHIFT,
- 	.clkdm_name	= "iva2_clkdm",
-@@ -1119,7 +1116,6 @@ static struct clk gfx_l3_ck = {
- 	.name		= "gfx_l3_ck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &l3_ick,
--	.init		= &omap2_init_clksel_parent,
- 	.enable_reg	= OMAP_CM_REGADDR(GFX_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP_EN_GFX_SHIFT,
- 	.recalc		= &followparent_recalc,
+Any comments/pointers please?
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
