@@ -1,50 +1,57 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 2/3] omap iommu: fix incorrect address for large page 1st entry
-Date: Mon, 11 Jan 2010 09:46:34 +0200
-Message-ID: <1263195995-23244-2-git-send-email-Hiroshi.DOYU@nokia.com>
-References: <1263195995-23244-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH 0/6] Added DSS2/FBDEV support for OMAP3EVM & AM3517EVM
+Date: Mon, 11 Jan 2010 11:07:25 +0200
+Message-ID: <1263200845.2087.7.camel@tubuntu.research.nokia.com>
+References: <hvaibhav@ti.com>
+	 <1262615657-22723-1-git-send-email-hvaibhav@ti.com>
+	 <19F8576C6E063C45BE387C64729E7394044A3982CC@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:61380 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752042Ab0AKHrW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 02:47:22 -0500
-In-Reply-To: <1263195995-23244-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:59409 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352Ab0AKJGf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 04:06:35 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A3982CC@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: hnagalla@ti.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+On Mon, 2010-01-11 at 07:33 +0100, ext Hiremath, Vaibhav wrote:
+> \
+> 
+> > -----Original Message-----
+> > From: Hiremath, Vaibhav
+> > Sent: Monday, January 04, 2010 8:04 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: tomi.valkeinen@nokia.com; tony@atomide.com; Hiremath, Vaibhav
+> > Subject: [PATCH 0/6] Added DSS2/FBDEV support for OMAP3EVM &
+> > AM3517EVM
+> > 
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > 
+> > This patch added DSS2 + OMAPFB support for OMAP3EVM and AM3517/05
+> > EVM along
+> > with sharp LQ043T1DG01 panel support.
+> > 
+> > Vaibhav Hiremath (4):
+> >   OMAP: DSS2: Fix compile warning
+> >   OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
+> >   OMAP: Enable DSS2 for OMAP3EVM board
+> >   OMAP: AM3517: Enable DSS2 for AM3517EVM board
+> > 
+> [Hiremath, Vaibhav] Tomi,
+> 
+> Do you see any issues with this patch-series? It has been reviewed multiple times. Can we merge these patches?
+> You had only taken warning fix patch, any specific reason?
 
-Reported-by: Hari Nagalla <hnagalla@ti.com>
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Signed-off-by: Hari Nagalla <hnagalla@ti.com>
----
- arch/arm/plat-omap/iommu.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+They look ok to me. The reason I took only the warning fix patch was
+that I'm going to send only bug fixes in the next pull request. I will
+merge the other patches to my tree soon, I just haven't had time for
+that yet.
 
-diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-index c0ff1e3..ccf25b3 100644
---- a/arch/arm/plat-omap/iommu.c
-+++ b/arch/arm/plat-omap/iommu.c
-@@ -1,7 +1,7 @@
- /*
-  * omap iommu: tlb and pagetable primitives
-  *
-- * Copyright (C) 2008-2009 Nokia Corporation
-+ * Copyright (C) 2008-2010 Nokia Corporation
-  *
-  * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-  *		Paul Mundt and Toshihiro Kobayashi
-@@ -646,7 +646,7 @@ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
- 		if (*iopte & IOPTE_LARGE) {
- 			nent *= 16;
- 			/* rewind to the 1st entry */
--			iopte = (u32 *)((u32)iopte & IOLARGE_MASK);
-+			iopte = iopte_offset(iopgd, (da & IOLARGE_MASK));
- 		}
- 		bytes *= nent;
- 		memset(iopte, 0, nent * sizeof(*iopte));
--- 
-1.6.0.4
+ Tomi
+
 
