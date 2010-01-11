@@ -1,103 +1,122 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig
- register.
-Date: Mon, 11 Jan 2010 15:32:20 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001111529380.8534@utopia.booyaka.com>
-References: <1260098674-27143-1-git-send-email-thara@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E171@dbde02.ent.ti.com> <alpine.DEB.2.00.1001051730230.21295@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB031E1D6B7B@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1001111515080.8534@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/6] Regulator: Kconfig modified to select TWL4030 for
+ OMAP3 based platforms
+Date: Mon, 11 Jan 2010 14:39:38 -0800
+Message-ID: <20100111223938.GC5055@atomide.com>
+References: <1262973491-32648-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37632 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751459Ab0AKWcV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 17:32:21 -0500
-In-Reply-To: <alpine.DEB.2.00.1001111515080.8534@utopia.booyaka.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56070 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750809Ab0AKWjd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 17:39:33 -0500
+Content-Disposition: inline
+In-Reply-To: <1262973491-32648-1-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
 
-On Mon, 11 Jan 2010, Paul Walmsley wrote:
+* Anuj Aggarwal <anuj.aggarwal@ti.com> [100108 09:57]:
+> Kconfig is modified so that PMIC TWL4030 is automatically selected for
+> platforms using it. It is required to compile board-omap35x-twl4030-pmic.c
+> in the build.
 
-> Queued for .33-rc (fixes).
+Please group the patches in a way that compile works for each patch
+in the series.  Otherwise git bisect will break.
 
-By the way, the patch had to be slightly tweaked to apply it since the 
-original was based on the configurable clockactivity offset patch - here's 
-what is queued in the 'for_2.6.33rc_d' branch of 
-git://git.pwsan.com/linux-2.6
+Regards,
 
-- Paul
+Tony
 
-
->From 5d121735372f9983cca1747bc0332a045151d4a8 Mon Sep 17 00:00:00 2001
-From: Thara Gopinath <thara@ti.com>
-Date: Mon, 11 Jan 2010 15:25:05 -0700
-Subject: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
-
-In the current implementation the sysconfig value is read into
- _sysc_cache once and an actual update to the sysconfig register
-happens only if the new value paased is differnt from the one in _sysc_cache.
-_sysc_cache is updated only if _HWMOD_SYSCONFIG_LOADED is not set.
-This can lead to the follwing issue if off mode is enabled in modules
-which employs "always-retore" mechanism of context save and restore.
-
-        a. The module sets the sysconfig register through omap_device_enable.
-           Here _sysc_cache is updated with the value written to the sysconfig
-           register and left.
-        b. The power domain containig the module enters off mode and the
-           module context is lost.
-        c. The module in use becomes active and calls omap_device_enable to
-           enable itself. Here a read of sysconfig register does not happen
-           as _HWMOD_SYSCONFIG_LOADED flag is set. The value to be written
-           to the sysconfig register will be same as the one written in step a.
-           Since _sysc_cache reflects the previous written value an update
-           of the sysconfig register does not happen.
-This means in modules which employs "always-restore" mechanism
-after off , the sysconfig regsiters will never get updated.
-
-This patch introduces a flag SYSC_NO_CACHE which if set ensures that the
-sysconfig register is always read into _sysc_cache before an update is
-attempted.
-
-This flags need to be set only by modules which does not do a context save
-but re-initializes the registers every time the module is accessed. This
-includes modules like i2c, smartreflex etc.
-
-Signed-off-by: Thara Gopinath <thara@ti.com>
-[paul@pwsan.com: tweaked to apply on a different head]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod.c             |    3 ++-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 2 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index d8c8545..478ae58 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -94,7 +94,8 @@ static int _update_sysc_cache(struct omap_hwmod *oh)
  
- 	oh->_sysc_cache = omap_hwmod_readl(oh, oh->sysconfig->sysc_offs);
- 
--	oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
-+	if (!(oh->sysconfig->sysc_flags & SYSC_NO_CACHE))
-+		oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
- 
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 007935a..c110c8a 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -227,6 +227,7 @@ struct omap_hwmod_ocp_if {
- #define SYSC_HAS_SIDLEMODE	(1 << 5)
- #define SYSC_HAS_MIDLEMODE	(1 << 6)
- #define SYSS_MISSING		(1 << 7)
-+#define SYSC_NO_CACHE		(1 << 8)
- 
- /* omap_hwmod_sysconfig.clockact flags */
- #define CLOCKACT_TEST_BOTH	0x0
--- 
-1.6.6.rc2.5.g49666
-
+> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 95b8eb2..ab3abc9 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -66,16 +66,19 @@ config MACH_OMAP3_BEAGLE
+>  	bool "OMAP3 BEAGLE board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CBB
+> +	select PMIC_TWL4030
+>  
+>  config MACH_OMAP_LDP
+>  	bool "OMAP3 LDP board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CBB
+> +	select PMIC_TWL4030
+>  
+>  config MACH_OVERO
+>  	bool "Gumstix Overo board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CBB
+> +	select PMIC_TWL4030
+>  
+>  config MACH_OMAP3EVM
+>  	bool "OMAP 3530 EVM board"
+> @@ -100,16 +103,19 @@ config MACH_OMAP3_PANDORA
+>  	bool "OMAP3 Pandora"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CBB
+> +	select PMIC_TWL4030
+>  
+>  config MACH_OMAP3_TOUCHBOOK
+>  	bool "OMAP3 Touch Book"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select BACKLIGHT_CLASS_DEVICE
+> +	select PMIC_TWL4030
+>  
+>  config MACH_OMAP_3430SDP
+>  	bool "OMAP 3430 SDP board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CBB
+> +	select PMIC_TWL4030
+>  
+>  config MACH_NOKIA_N800
+>         bool
+> @@ -136,27 +142,32 @@ config MACH_OMAP_ZOOM2
+>  	bool "OMAP3 Zoom2 board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CBB
+> +	select PMIC_TWL4030
+>  
+>  config MACH_OMAP_ZOOM3
+>  	bool "OMAP3630 Zoom3 board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CBP
+> +	select PMIC_TWL4030
+>  
+>  config MACH_CM_T35
+>  	bool "CompuLab CM-T35 module"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CUS
+>  	select OMAP_MUX
+> +	select PMIC_TWL4030
+>  
+>  config MACH_IGEP0020
+>  	bool "IGEP0020"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CBB
+> +	select PMIC_TWL4030
+>  
+>  config MACH_OMAP_3630SDP
+>  	bool "OMAP3630 SDP board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select OMAP_PACKAGE_CBP
+> +	select PMIC_TWL4030
+>  
+>  config MACH_OMAP_4430SDP
+>  	bool "OMAP 4430 SDP board"
+> -- 
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
