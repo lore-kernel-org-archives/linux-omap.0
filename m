@@ -1,48 +1,75 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2 0/6] misc patches
-Date: Mon, 11 Jan 2010 14:12:40 -0600
-Message-ID: <1263240766-13000-1-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 2/6] DSPBRIDGE: Replace magic numbers in SSI configuration
+Date: Mon, 11 Jan 2010 14:12:42 -0600
+Message-ID: <1263240766-13000-3-git-send-email-omar.ramirez@ti.com>
+References: <1263240766-13000-1-git-send-email-omar.ramirez@ti.com>
+ <1263240766-13000-2-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33336 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754005Ab0AKUDV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 15:03:21 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32996 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754109Ab0AKUDX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jan 2010 15:03:23 -0500
+In-Reply-To: <1263240766-13000-2-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Nishant Menon <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Ioctl numbers has changed, this will require an update
-on libbridge and clients accesing directly to the driver
+Rename ssi_sysconfig variable and replace the usage of magic
+numbers while updating SSI configuration.
 
-- IO_ADDRESS is replaced for ioremap.
-
-*v2
-- dropped from the series:
-	DSPBRIDGE: Increased DMM size to 256MB
-	DSPBRIDGE: sysfs entry for global driver state
-- will be kept in bridge-pm
-	DSPBRIDGE: Use dspbridge to initialize platform data
-	DSPBRIDGE: change to cpufreq_register_notifier for OPP changes
-	DSPBRIDGE: Fix header locations mach to plat
-- previously acked
-	DSPBRIDGE: Remove unused hDrvObject in bridge_[open|release]
-
-Omar Ramirez Luna (6):
-  DSPBRIDGE: replace IO_ADDRESS with ioremap
-  DSPBRIDGE: Replace magic numbers in SSI configuration
-  DSPBRIDGE: Mark unused ioctls as deprecated
-  DSPBRIDGE: remove ioctl runtime check
-  DSPBRIDGE: Rename pResult to result for WCD_CallDevIOCtl
-  DSPBRIDGE: Use _IOxx macro to define ioctls
-
- arch/arm/plat-omap/include/dspbridge/wcdioctl.h |  167 +++++++++--------
- drivers/dsp/bridge/pmgr/wcd.c                   |  228 +++++++++++++----------
- drivers/dsp/bridge/rmgr/drv_interface.c         |    3 -
- drivers/dsp/bridge/services/clk.c               |   23 ++-
- 4 files changed, 234 insertions(+), 187 deletions(-)
-
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 CC: Nishant Menon <nm@ti.com>
 CC: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 CC: Ameya Palande <ameya.palande@nokia.com>
 CC: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ drivers/dsp/bridge/services/clk.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
+index 116e10e..0537487 100644
+--- a/drivers/dsp/bridge/services/clk.c
++++ b/drivers/dsp/bridge/services/clk.c
+@@ -58,6 +58,10 @@ typedef volatile unsigned long  REG_UWORD32;
+ #define OMAP_SSI_SIZE			0x1000
+ #define OMAP_SSI_SYSCONFIG_OFFSET	0x10
+ 
++#define SSI_AUTOIDLE			(1 << 0)
++#define SSI_SIDLE_SMARTIDLE		(2 << 3)
++#define SSI_MIDLE_NOIDLE		(1 << 12)
++
+ struct SERVICES_Clk_t {
+ 	struct clk *clk_handle;
+ 	const char *clk_name;
+@@ -353,8 +357,8 @@ s32 CLK_Get_UseCnt(IN enum SERVICES_ClkId clk_id)
+ 
+ void SSI_Clk_Prepare(bool FLAG)
+ {
+-	u32 ssi_sysconfig;
+ 	void __iomem *ssi_base;
++	unsigned int value;
+ 
+ 	ssi_base = ioremap(L4_34XX_BASE + OMAP_SSI_OFFSET, OMAP_SSI_SIZE);
+ 
+@@ -362,14 +366,14 @@ void SSI_Clk_Prepare(bool FLAG)
+ 		/* Set Autoidle, SIDLEMode to smart idle, and MIDLEmode to
+ 		 * no idle
+ 		 */
+-		ssi_sysconfig = 0x1011;
++		value = SSI_AUTOIDLE | SSI_SIDLE_SMARTIDLE | SSI_MIDLE_NOIDLE;
+ 	} else {
+ 		/* Set Autoidle, SIDLEMode to forced idle, and MIDLEmode to
+ 		 * forced idle
+ 		 */
+-		ssi_sysconfig = 0x1;
++		value = SSI_AUTOIDLE;
+ 	}
+ 
+-	__raw_writel(ssi_sysconfig, ssi_base + OMAP_SSI_SYSCONFIG_OFFSET);
++	__raw_writel(value, ssi_base + OMAP_SSI_SYSCONFIG_OFFSET);
+ 	iounmap(ssi_base);
+ }
+-- 
+1.6.2.4
+
