@@ -1,103 +1,103 @@
 From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Subject: Re: [PATCH] OMAP: Exporting functions doing common
-	register access
-Date: Mon, 11 Jan 2010 10:11:51 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D703E@dbde02.ent.ti.com>
-References: <1258384836-24854-1-git-send-email-anuj.aggarwal@ti.com>
-	<alpine.DEB.2.00.0911161408260.29213@utopia.booyaka.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB030A8C8EC2@dbde02.ent.ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB030A9CA8F7@dbde02.ent.ti.com>
-	<alpine.DEB.2.00.0911180324350.25515@utopia.booyaka.com>
-	<20091118163314.d0325283.jhnikula@gmail.com>
-	<alpine.DEB.2.00.0911181220560.9248@utopia.booyaka.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB031E0A39D8@dbde02.ent.ti.com>
+Subject: RE: [PATCH 0/6] Regulator: Removing common code for TWL4030 PMIC
+ from various OMAP3 board-evms
+Date: Mon, 11 Jan 2010 10:17:18 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D7047@dbde02.ent.ti.com>
+References: <1262973448-32439-1-git-send-email-anuj.aggarwal@ti.com>
+ <874omws060.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E0A39D8@dbde02.ent.ti.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37189 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750977Ab0AKEra convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jan 2010 23:47:30 -0500
+In-Reply-To: <874omws060.fsf@deeprootsystems.com>
 Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Paul Walmsley <paul@pwsan.com>, Jarkko Nikula <jhnikula@gmail.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Lohithakshan,
-	Ranjith" <ranjithl@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aggarwal, Anuj
-> Sent: Thursday, January 07, 2010 7:40 PM
-> To: Paul Walmsley; Jarkko Nikula
-> Cc: linux-omap@vger.kernel.org; alsa-devel@alsa-project.org; Lohithakshan,
-> Ranjith
-> Subject: RE: [PATCH] OMAP: Exporting functions doing common register
-> access
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Saturday, January 09, 2010 3:57 AM
+> To: Aggarwal, Anuj
+> Cc: linux-omap@vger.kernel.org; broonie@opensource.wolfsonmicro.com;
+> lrg@slimlogic.co.uk
+> Subject: Re: [PATCH 0/6] Regulator: Removing common code for TWL4030 PMIC
+> from various OMAP3 board-evms
 > 
-> > > > In the interim, I would suggest that you remove the the clock source
-> > and
-> > > > receiver source change functions from omap-mcbsp.c, split them into
-> > OMAP1
-> > > > and OMAP2/3 variants, and place them into arch/arm/mach-
-> omap*/mcbsp.c.
-> > > > Expand struct omap_mcbsp_ops to add function pointers to those
-> > functions.
-> > > > Call those from soc/omap-mcbsp.c via mcbsp->pdata->ops. That way you
-> > won't
-> > > > need those exports.
-> > > >
-> > > Paul: What's your opinnion, would it be possible or would it be wise
-> to
-> > > handle these McBSP clock route setups with the clock framework
-> instead?
-> > >
-> > > Functions omap_mcbsp_dai_set_clks_src and omap_mcbsp_dai_set_rcvr_src
-> > > are basically just setting up the input clock for McBSP SRG or McBSP1
-> > > receiver.
-> >
-> > Sure.  There already should be some support for it in clock34xx.h, but I
-> > doubt anyone's tested it:
-> >
-> > static struct clk mcbsp1_fck = {
-> >         .name           = "mcbsp_fck",
-> >         .ops            = &clkops_omap2_dflt_wait,
-> >         .id             = 1,
-> >         .init           = &omap2_init_clksel_parent,
-> >         .enable_reg     = OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
-> >         .enable_bit     = OMAP3430_EN_MCBSP1_SHIFT,
-> >         .clksel_reg     = OMAP343X_CTRL_REGADDR(OMAP2_CONTROL_DEVCONF0),
-> >         .clksel_mask    = OMAP2_MCBSP1_CLKS_MASK,
-> >         .clksel         = mcbsp_15_clksel,
-> >         .clkdm_name     = "core_l4_clkdm",
-> >         .recalc         = &omap2_clksel_recalc,
-> > };
-> >
-> > etc.  Some similar entries would need to be added to the clock24xx.h
-> file.
-> [Aggarwal, Anuj] One problem which I found in trying the above discussed
-> approach is that I am not able to get mcbsp clock handles in omap-mcbsp.c
-> file. To call clk_set_parent() with the new parent clock as "mcbsp_clks"
-> (in case of an external clock), I need the mcbsp_fck clock handle. But
-> this
-> handle is not shared with the omap_mcbsp_dai[].
+> Anuj Aggarwal <anuj.aggarwal@ti.com> writes:
 > 
-> What should be the right method of getting this handle in
-> omap_mcbsp_dai_set_dai_sysclk(), in case I understood the concept
-> properly.
-> Basically, we want to get rid of the low level stuff in this function
-> and instead use standard clock framework APIs?
+> > Based on the discussions and feedback received, this patch set is
+> > created which cleans up various OMAP3-board-evm files and removes
+> > common TWL4030 specific regulator suuplies and init data structs.
+> > These structures are instead placed in a new file -
+> > board-omap35x-twl4030-pmic.c and are referenced from the board-evm
+> 
+> Why is this omap35x?  You seem to be using this from omap34xx board
+> files as well.
+> 
+> I don't think you need the board-omap* prefix at all.  Why not just
+> call it twl4030-pmic.c.
+> 
+[Aggarwal, Anuj] That's fine with me. I will wait for some more comments 
+to pour in today and will re-send the patch with this modification.
 
-Paul / Jarkko,
-
-Any comments/pointers please?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> There has been some proposals to unify the twl4030 scripts as well by
+> Lesley, and this new file would be a logical place for those as well.
+> 
+> Kevin
+> 
+> 
+> > files depending on the platform requirements. Regulator having specific
+> > supplies or init data structs are not changed in their respective
+> > board-evms.
+> >
+> > The main advantages of having one common file for these structures
+> > are redundant code removal, easy maintainability and single copy of
+> > common structure(s) in case uImage for multiple platforms is built.
+> >
+> > Please see the following links for previous discussions:
+> >   http://marc.info/?l=linux-omap&m=125795487111175&w=2
+> >   http://marc.info/?l=linux-omap&m=125795068502904&w=2
+> >
+> > I have tested these patches on OMAP3EVM and the image boots fine. I
+> > have compile-tested them for SDP3430 and all OMAP platforms (using
+> > omap3_defconfig) and the build went fine. If someone can test them
+> > on their hardware, that would be great !!!
+> >
+> > Anuj Aggarwal (6):
+> >   Regulator: Creating TWL4030 specific file having supplies & init data
+> >   Regulator: Removing the common supplies and regulator init data
+> >     structs
+> >   Regulator: Use common regulator supplies and init data structs
+> >   Regulator: Modifying Kconfig to choose from the available PMICs
+> >   Regulator: Kconfig modified to select TWL4030 for OMAP3 based
+> >     platforms
+> >   Regulator: Makefile modified to include TWL4030-PMIC specific file
+> >
+> >  arch/arm/mach-omap2/Kconfig                      |   20 +++
+> >  arch/arm/mach-omap2/Makefile                     |    1 +
+> >  arch/arm/mach-omap2/board-3430sdp.c              |  146 +++------------
+> ---
+> >  arch/arm/mach-omap2/board-cm-t35.c               |   52 ++-----
+> >  arch/arm/mach-omap2/board-igep0020.c             |   26 +---
+> >  arch/arm/mach-omap2/board-ldp.c                  |   26 +---
+> >  arch/arm/mach-omap2/board-omap35x-twl4030-pmic.c |  175
+> ++++++++++++++++++++++
+> >  arch/arm/mach-omap2/board-omap3beagle.c          |   52 ++-----
+> >  arch/arm/mach-omap2/board-omap3evm.c             |   63 ++------
+> >  arch/arm/mach-omap2/board-omap3pandora.c         |   52 ++-----
+> >  arch/arm/mach-omap2/board-omap3touchbook.c       |   52 ++-----
+> >  arch/arm/mach-omap2/board-overo.c                |   26 +---
+> >  arch/arm/mach-omap2/board-zoom-peripherals.c     |   78 ++--------
+> >  13 files changed, 304 insertions(+), 465 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/board-omap35x-twl4030-pmic.c
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
