@@ -1,66 +1,115 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 0/6] Added DSS2/FBDEV support for OMAP3EVM & AM3517EVM
-Date: Mon, 11 Jan 2010 12:03:03 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A3982CC@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1262615657-22723-1-git-send-email-hvaibhav@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/3] omap iommu: cleanup iommu page address mask and definitions
+Date: Mon, 11 Jan 2010 09:46:33 +0200
+Message-ID: <1263195995-23244-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36095 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750909Ab0AKGdN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 01:33:13 -0500
-In-Reply-To: <1262615657-22723-1-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:51434 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751811Ab0AKHrG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 02:47:06 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "tony@atomide.com" <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: hnagalla@ti.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-\
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Monday, January 04, 2010 8:04 PM
-> To: linux-omap@vger.kernel.org
-> Cc: tomi.valkeinen@nokia.com; tony@atomide.com; Hiremath, Vaibhav
-> Subject: [PATCH 0/6] Added DSS2/FBDEV support for OMAP3EVM &
-> AM3517EVM
-> 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> This patch added DSS2 + OMAPFB support for OMAP3EVM and AM3517/05
-> EVM along
-> with sharp LQ043T1DG01 panel support.
-> 
-> Vaibhav Hiremath (4):
->   OMAP: DSS2: Fix compile warning
->   OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
->   OMAP: Enable DSS2 for OMAP3EVM board
->   OMAP: AM3517: Enable DSS2 for AM3517EVM board
-> 
-[Hiremath, Vaibhav] Tomi,
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/plat-omap/iopgtable.h |   50 +++++++++++++++++++++++++++++++--------
+ 1 files changed, 39 insertions(+), 11 deletions(-)
 
-Do you see any issues with this patch-series? It has been reviewed multiple times. Can we merge these patches?
-You had only taken warning fix patch, any specific reason?
-
-Thanks,
-Vaibhav
-
->  arch/arm/configs/am3517_evm_defconfig              |   52 ++++-
->  arch/arm/configs/omap3_evm_defconfig               |   51 ++++-
->  arch/arm/mach-omap2/board-am3517evm.c              |  144
-> ++++++++++++
->  arch/arm/mach-omap2/board-omap3evm.c               |  246
-> +++++++++++++++++++-
->  drivers/video/omap2/displays/Kconfig               |    6 +
->  drivers/video/omap2/displays/Makefile              |    1 +
->  .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  120
-> ++++++++++
->  drivers/video/omap2/dss/core.c                     |    2 +
->  8 files changed, 609 insertions(+), 13 deletions(-)
->  create mode 100644 drivers/video/omap2/displays/panel-sharp-
-> lq043t1dg01.c
+diff --git a/arch/arm/plat-omap/iopgtable.h b/arch/arm/plat-omap/iopgtable.h
+index 37dac43..ab23b6a 100644
+--- a/arch/arm/plat-omap/iopgtable.h
++++ b/arch/arm/plat-omap/iopgtable.h
+@@ -1,7 +1,7 @@
+ /*
+  * omap iommu: pagetable definitions
+  *
+- * Copyright (C) 2008-2009 Nokia Corporation
++ * Copyright (C) 2008-2010 Nokia Corporation
+  *
+  * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+  *
+@@ -13,26 +13,52 @@
+ #ifndef __PLAT_OMAP_IOMMU_H
+ #define __PLAT_OMAP_IOMMU_H
+ 
++/*
++ * "L2 table" address mask and size definitions.
++ */
+ #define IOPGD_SHIFT		20
+-#define IOPGD_SIZE		(1 << IOPGD_SHIFT)
++#define IOPGD_SIZE		(1UL << IOPGD_SHIFT)
+ #define IOPGD_MASK		(~(IOPGD_SIZE - 1))
+-#define IOSECTION_MASK		IOPGD_MASK
+-#define PTRS_PER_IOPGD		(1 << (32 - IOPGD_SHIFT))
+-#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
+ 
+-#define IOSUPER_SIZE		(IOPGD_SIZE << 4)
++/*
++ * "section" address mask and size definitions.
++ */
++#define IOSECTION_SHIFT		20
++#define IOSECTION_SIZE		(1UL << IOSECTION_SHIFT)
++#define IOSECTION_MASK		(~(IOSECTION_SIZE - 1))
++
++/*
++ * "supersection" address mask and size definitions.
++ */
++#define IOSUPER_SHIFT		24
++#define IOSUPER_SIZE		(1UL << IOSUPER_SHIFT)
+ #define IOSUPER_MASK		(~(IOSUPER_SIZE - 1))
+ 
++#define PTRS_PER_IOPGD		(1UL << (32 - IOPGD_SHIFT))
++#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
++
++/*
++ * "small page" address mask and size definitions.
++ */
+ #define IOPTE_SHIFT		12
+-#define IOPTE_SIZE		(1 << IOPTE_SHIFT)
++#define IOPTE_SIZE		(1UL << IOPTE_SHIFT)
+ #define IOPTE_MASK		(~(IOPTE_SIZE - 1))
+-#define IOPAGE_MASK		IOPTE_MASK
+-#define PTRS_PER_IOPTE		(1 << (IOPGD_SHIFT - IOPTE_SHIFT))
+-#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
+ 
+-#define IOLARGE_SIZE		(IOPTE_SIZE << 4)
++/*
++ * "large page" address mask and size definitions.
++ */
++#define IOLARGE_SHIFT		16
++#define IOLARGE_SIZE		(1UL << IOLARGE_SHIFT)
+ #define IOLARGE_MASK		(~(IOLARGE_SIZE - 1))
+ 
++#define PTRS_PER_IOPTE		(1UL << (IOPGD_SHIFT - IOPTE_SHIFT))
++#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
++
++#define IOPAGE_MASK		IOPTE_MASK
++
++/*
++ * some descriptor attributes.
++ */
+ #define IOPGD_TABLE		(1 << 0)
+ #define IOPGD_SECTION		(2 << 0)
+ #define IOPGD_SUPER		(1 << 18 | 2 << 0)
+@@ -40,12 +66,14 @@
+ #define IOPTE_SMALL		(2 << 0)
+ #define IOPTE_LARGE		(1 << 0)
+ 
++/* to find an entry in a page-table-directory */
+ #define iopgd_index(da)		(((da) >> IOPGD_SHIFT) & (PTRS_PER_IOPGD - 1))
+ #define iopgd_offset(obj, da)	((obj)->iopgd + iopgd_index(da))
+ 
+ #define iopte_paddr(iopgd)	(*iopgd & ~((1 << 10) - 1))
+ #define iopte_vaddr(iopgd)	((u32 *)phys_to_virt(iopte_paddr(iopgd)))
+ 
++/* to find an entry in the second-level page table. */
+ #define iopte_index(da)		(((da) >> IOPTE_SHIFT) & (PTRS_PER_IOPTE - 1))
+ #define iopte_offset(iopgd, da)	(iopte_vaddr(iopgd) + iopte_index(da))
+ 
+-- 
+1.6.0.4
 
