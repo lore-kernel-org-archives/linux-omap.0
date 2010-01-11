@@ -1,68 +1,48 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 1/6] DSPBRIDGE: replace IO_ADDRESS with ioremap
-Date: Mon, 11 Jan 2010 14:12:41 -0600
-Message-ID: <1263240766-13000-2-git-send-email-omar.ramirez@ti.com>
-References: <1263240766-13000-1-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v2 0/6] misc patches
+Date: Mon, 11 Jan 2010 14:12:40 -0600
+Message-ID: <1263240766-13000-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32994 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754062Ab0AKUDV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jan 2010 15:03:21 -0500
-In-Reply-To: <1263240766-13000-1-git-send-email-omar.ramirez@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33336 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754005Ab0AKUDV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 15:03:21 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Nishant Menon <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Use ioremap() instead of using IO_ADDRESS macro to make it generic.
+Ioctl numbers has changed, this will require an update
+on libbridge and clients accesing directly to the driver
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+- IO_ADDRESS is replaced for ioremap.
+
+*v2
+- dropped from the series:
+	DSPBRIDGE: Increased DMM size to 256MB
+	DSPBRIDGE: sysfs entry for global driver state
+- will be kept in bridge-pm
+	DSPBRIDGE: Use dspbridge to initialize platform data
+	DSPBRIDGE: change to cpufreq_register_notifier for OPP changes
+	DSPBRIDGE: Fix header locations mach to plat
+- previously acked
+	DSPBRIDGE: Remove unused hDrvObject in bridge_[open|release]
+
+Omar Ramirez Luna (6):
+  DSPBRIDGE: replace IO_ADDRESS with ioremap
+  DSPBRIDGE: Replace magic numbers in SSI configuration
+  DSPBRIDGE: Mark unused ioctls as deprecated
+  DSPBRIDGE: remove ioctl runtime check
+  DSPBRIDGE: Rename pResult to result for WCD_CallDevIOCtl
+  DSPBRIDGE: Use _IOxx macro to define ioctls
+
+ arch/arm/plat-omap/include/dspbridge/wcdioctl.h |  167 +++++++++--------
+ drivers/dsp/bridge/pmgr/wcd.c                   |  228 +++++++++++++----------
+ drivers/dsp/bridge/rmgr/drv_interface.c         |    3 -
+ drivers/dsp/bridge/services/clk.c               |   23 ++-
+ 4 files changed, 234 insertions(+), 187 deletions(-)
+
 CC: Nishant Menon <nm@ti.com>
 CC: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 CC: Ameya Palande <ameya.palande@nokia.com>
 CC: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/dsp/bridge/services/clk.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
-index d1c68fc..116e10e 100644
---- a/drivers/dsp/bridge/services/clk.c
-+++ b/drivers/dsp/bridge/services/clk.c
-@@ -54,10 +54,9 @@
- 
- typedef volatile unsigned long  REG_UWORD32;
- 
--#define SSI_Base        0x48058000
--
--#define SSI_BASE                     IO_ADDRESS(SSI_Base)
--
-+#define OMAP_SSI_OFFSET			0x58000
-+#define OMAP_SSI_SIZE			0x1000
-+#define OMAP_SSI_SYSCONFIG_OFFSET	0x10
- 
- struct SERVICES_Clk_t {
- 	struct clk *clk_handle;
-@@ -355,7 +354,9 @@ s32 CLK_Get_UseCnt(IN enum SERVICES_ClkId clk_id)
- void SSI_Clk_Prepare(bool FLAG)
- {
- 	u32 ssi_sysconfig;
--	ssi_sysconfig = __raw_readl((SSI_BASE) + 0x10);
-+	void __iomem *ssi_base;
-+
-+	ssi_base = ioremap(L4_34XX_BASE + OMAP_SSI_OFFSET, OMAP_SSI_SIZE);
- 
- 	if (FLAG) {
- 		/* Set Autoidle, SIDLEMode to smart idle, and MIDLEmode to
-@@ -368,5 +369,7 @@ void SSI_Clk_Prepare(bool FLAG)
- 		 */
- 		ssi_sysconfig = 0x1;
- 	}
--	__raw_writel((u32)ssi_sysconfig, SSI_BASE + 0x10);
-+
-+	__raw_writel(ssi_sysconfig, ssi_base + OMAP_SSI_SYSCONFIG_OFFSET);
-+	iounmap(ssi_base);
- }
--- 
-1.6.2.4
-
