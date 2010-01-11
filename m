@@ -1,65 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/6] DSPBRIDGE: replace IO_ADDRESS with ioremap
-Date: Mon, 11 Jan 2010 14:32:31 -0800
-Message-ID: <20100111223231.GB5055@atomide.com>
-References: <1263240766-13000-1-git-send-email-omar.ramirez@ti.com>
- <1263240766-13000-2-git-send-email-omar.ramirez@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig
+ register.
+Date: Mon, 11 Jan 2010 15:32:20 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001111529380.8534@utopia.booyaka.com>
+References: <1260098674-27143-1-git-send-email-thara@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E171@dbde02.ent.ti.com> <alpine.DEB.2.00.1001051730230.21295@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB031E1D6B7B@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1001111515080.8534@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61109 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221Ab0AKWc0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 17:32:26 -0500
-Content-Disposition: inline
-In-Reply-To: <1263240766-13000-2-git-send-email-omar.ramirez@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:37632 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751459Ab0AKWcV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 17:32:21 -0500
+In-Reply-To: <alpine.DEB.2.00.1001111515080.8534@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Nishant Menon <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Omar Ramirez Luna <omar.ramirez@ti.com> [100111 12:02]:
-> Use ioremap() instead of using IO_ADDRESS macro to make it generic.
-> 
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-> CC: Nishant Menon <nm@ti.com>
-> CC: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
-> CC: Ameya Palande <ameya.palande@nokia.com>
-> CC: Felipe Contreras <felipe.contreras@gmail.com>
-> ---
->  drivers/dsp/bridge/services/clk.c |   15 +++++++++------
->  1 files changed, 9 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
-> index d1c68fc..116e10e 100644
-> --- a/drivers/dsp/bridge/services/clk.c
-> +++ b/drivers/dsp/bridge/services/clk.c
-> @@ -54,10 +54,9 @@
->  
->  typedef volatile unsigned long  REG_UWORD32;
->  
-> -#define SSI_Base        0x48058000
-> -
-> -#define SSI_BASE                     IO_ADDRESS(SSI_Base)
-> -
-> +#define OMAP_SSI_OFFSET			0x58000
-> +#define OMAP_SSI_SIZE			0x1000
-> +#define OMAP_SSI_SYSCONFIG_OFFSET	0x10
->  
->  struct SERVICES_Clk_t {
->  	struct clk *clk_handle;
-> @@ -355,7 +354,9 @@ s32 CLK_Get_UseCnt(IN enum SERVICES_ClkId clk_id)
->  void SSI_Clk_Prepare(bool FLAG)
->  {
->  	u32 ssi_sysconfig;
-> -	ssi_sysconfig = __raw_readl((SSI_BASE) + 0x10);
-> +	void __iomem *ssi_base;
-> +
-> +	ssi_base = ioremap(L4_34XX_BASE + OMAP_SSI_OFFSET, OMAP_SSI_SIZE);
+On Mon, 11 Jan 2010, Paul Walmsley wrote:
 
-Please check the results from ioremap. Currently we're using static mapping,
-but that may not always be the case in the future.
+> Queued for .33-rc (fixes).
 
-Regards,
+By the way, the patch had to be slightly tweaked to apply it since the 
+original was based on the configurable clockactivity offset patch - here's 
+what is queued in the 'for_2.6.33rc_d' branch of 
+git://git.pwsan.com/linux-2.6
 
-Tony
+- Paul
+
+
+>From 5d121735372f9983cca1747bc0332a045151d4a8 Mon Sep 17 00:00:00 2001
+From: Thara Gopinath <thara@ti.com>
+Date: Mon, 11 Jan 2010 15:25:05 -0700
+Subject: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
+
+In the current implementation the sysconfig value is read into
+ _sysc_cache once and an actual update to the sysconfig register
+happens only if the new value paased is differnt from the one in _sysc_cache.
+_sysc_cache is updated only if _HWMOD_SYSCONFIG_LOADED is not set.
+This can lead to the follwing issue if off mode is enabled in modules
+which employs "always-retore" mechanism of context save and restore.
+
+        a. The module sets the sysconfig register through omap_device_enable.
+           Here _sysc_cache is updated with the value written to the sysconfig
+           register and left.
+        b. The power domain containig the module enters off mode and the
+           module context is lost.
+        c. The module in use becomes active and calls omap_device_enable to
+           enable itself. Here a read of sysconfig register does not happen
+           as _HWMOD_SYSCONFIG_LOADED flag is set. The value to be written
+           to the sysconfig register will be same as the one written in step a.
+           Since _sysc_cache reflects the previous written value an update
+           of the sysconfig register does not happen.
+This means in modules which employs "always-restore" mechanism
+after off , the sysconfig regsiters will never get updated.
+
+This patch introduces a flag SYSC_NO_CACHE which if set ensures that the
+sysconfig register is always read into _sysc_cache before an update is
+attempted.
+
+This flags need to be set only by modules which does not do a context save
+but re-initializes the registers every time the module is accessed. This
+includes modules like i2c, smartreflex etc.
+
+Signed-off-by: Thara Gopinath <thara@ti.com>
+[paul@pwsan.com: tweaked to apply on a different head]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c             |    3 ++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 2 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index d8c8545..478ae58 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -94,7 +94,8 @@ static int _update_sysc_cache(struct omap_hwmod *oh)
+ 
+ 	oh->_sysc_cache = omap_hwmod_readl(oh, oh->sysconfig->sysc_offs);
+ 
+-	oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
++	if (!(oh->sysconfig->sysc_flags & SYSC_NO_CACHE))
++		oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 007935a..c110c8a 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -227,6 +227,7 @@ struct omap_hwmod_ocp_if {
+ #define SYSC_HAS_SIDLEMODE	(1 << 5)
+ #define SYSC_HAS_MIDLEMODE	(1 << 6)
+ #define SYSS_MISSING		(1 << 7)
++#define SYSC_NO_CACHE		(1 << 8)
+ 
+ /* omap_hwmod_sysconfig.clockact flags */
+ #define CLOCKACT_TEST_BOTH	0x0
+-- 
+1.6.6.rc2.5.g49666
+
