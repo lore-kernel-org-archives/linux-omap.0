@@ -1,71 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 01/13] OMAP2/3: DMTIMER: Clear pending interrupts when
- stopping a timer
-Date: Mon, 11 Jan 2010 10:42:36 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001111022110.19988@utopia.booyaka.com>
-References: <1262973571-25796-1-git-send-email-khilman@deeprootsystems.com> <1262973571-25796-2-git-send-email-khilman@deeprootsystems.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C0508DA2@dbde02.ent.ti.com>
+From: Ranjith Lohithakshan <ranjithl@ti.com>
+Subject: Re: [PATCH] AM35xx: Add clock support for new modules on AM35xx
+Date: Mon, 11 Jan 2010 23:38:26 +0530
+Message-ID: <4B4B691A.30504@ti.com>
+References: <1260971823-8532-1-git-send-email-ranjithl@ti.com> <alpine.DEB.2.00.0912171818150.12561@utopia.booyaka.com> <4B2B5A0F.9050304@ti.com> <alpine.DEB.2.00.1001051134240.2083@utopia.booyaka.com> <4B470D28.7010900@ti.com> <alpine.DEB.2.00.1001081558530.28650@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37345 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750890Ab0AKRmi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 12:42:38 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C0508DA2@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53499 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752509Ab0AKSId (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 13:08:33 -0500
+In-Reply-To: <alpine.DEB.2.00.1001081558530.28650@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tero Kristo <tero.kristo@nokia.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Santosh,
+Hi Paul,
 
-On Sun, 10 Jan 2010, Shilimkar, Santosh wrote:
+On Sat, 09-Jan-10 4:37 AM +0530, Paul Walmsley wrote:
+> Hello Ranjith,
+> 
+> On Fri, 8 Jan 2010, Ranjith Lohithakshan wrote:
+> 
+>> These ACK bits are for the target IdleAck status. I will add a custom
+>> find_companion code for AM35xx.
+> 
+> ...
+> 
+>> OK. I will extend the existing find_idlest to pass back what value needs
+>> to be checked as you suggested. I will make this change as a separate patch.
+> 
+> Both of the above sound good.
+> 
+>> All the VBUSP (interface) clocks are derived from core_l3_clk and I am
+>> making them as part of core_l3_clk domain. The rmii_ck/emac_fck and
+>> vpfe_fck are sourced from external clock sources. (AM35XX TRM section
+>> 4.7.7.12)
+> 
+> ...
+> 
+>> rmii_ck and vpfe_fck are from off-chip sources. These are fixed rate
+>> clocks being fed to the chip. Do we need to associate a dummy or virtual
+>> clock domain for these clocks or is it OK if we treat it similar to the
+>> way we currently treat 32K timer clock (RATE_FIXED, clockops_null, no
+>> clock domain and having no parent)?
+> 
+> I guess it will be fine to add these with no clockdomain until we add an 
+> external clockdomain.  One last question - do you know if these external 
+> clocks require the CORE powerdomain to be powered for them to be routed?  
+> I believe this is the case for some of the external clocks that are routed 
+> through the CM on OMAP3.
 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
-> > Hilman
-> > Sent: Friday, January 08, 2010 11:29 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: Tero Kristo
-> > Subject: [PATCH 01/13] OMAP2/3: DMTIMER: Clear pending interrupts when stopping a timer
-> > 
-> > From: Tero Kristo <tero.kristo@nokia.com>
-> > 
-> > OMAP GP timers keep running for a few cycles after they are stopped,
-> > which can cause the timer to expire and generate an interrupt. The pending
-> > interrupt will prevent e.g. OMAP from entering suspend, thus we ack it
-> > manually.
-> > 
-> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> > Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> > ---
-> >  arch/arm/plat-omap/dmtimer.c |   10 ++++++++++
-> >  1 files changed, 10 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> > index 64f407e..5502ce8 100644
-> > --- a/arch/arm/plat-omap/dmtimer.c
-> > +++ b/arch/arm/plat-omap/dmtimer.c
-> > @@ -551,6 +551,16 @@ void omap_dm_timer_stop(struct omap_dm_timer *timer)
-> >  	if (l & OMAP_TIMER_CTRL_ST) {
-> >  		l &= ~0x1;
-> >  		omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
-> > +		/* Readback to make sure write has completed */
-> > +		omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-> Hopefully compiler don't optimize your readback.
+These external clocks are routed directly from IO to the respective
+modules. They are not controlled by CM.
 
-It can't - if it does, it is a gcc bug.  omap_dm_timer_read_reg() 
-ultimately calls __raw_readl() which uses the 'volatile' keyword:
-
-http://en.wikipedia.org/wiki/Volatile_variable
-
-...
-
-Separately from the compiler, one must also ensure that the ARM core 
-itself does not cache the readback.  This is handled by mapping the 
-GPTIMER memory space as MT_DEVICE in mach-omap2/io.c.  See also the 
-MT_DEVICE section in arch/arm/mm/mmu.c.  Further details are in the ARMv7 
-Architecture Reference Manual, section A3.5.5, "Device Memory".
-
-
-- Paul
+ - Ranjith
