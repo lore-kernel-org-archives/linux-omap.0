@@ -1,67 +1,40 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] DSPBRIDGE: driver version 0.1
-Date: Mon, 11 Jan 2010 12:55:28 -0600
-Message-ID: <4B4B7420.8090608@ti.com>
-References: <1263232222-30599-1-git-send-email-omar.ramirez@ti.com> <1263232222-30599-2-git-send-email-omar.ramirez@ti.com> <4B4B6E55.9000406@ti.com> <27F9C60D11D683428E133F85D2BB4A53042DC95D1B@dlee03.ent.ti.com>
+From: "Weng, Wending" <WWeng@rheinmetall.ca>
+Subject: PM: Device usb1 failed to suspend: error -16
+Date: Mon, 11 Jan 2010 14:03:45 -0500
+Message-ID: <54B31811B83D744D90BF0289EB447D4609978796D3@MAIL-MB1.oerlikon.ca>
+References: <1263232222-30599-1-git-send-email-omar.ramirez@ti.com>
+ <1263232222-30599-2-git-send-email-omar.ramirez@ti.com>
+ <4B4B6E55.9000406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42484 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751186Ab0AKSzg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jan 2010 13:55:36 -0500
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53042DC95D1B@dlee03.ent.ti.com>
+Received: from mx.rheinmetall.ca ([207.61.105.111]:52105 "EHLO
+	MAIL-ET.oerlikon.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751087Ab0AKTDu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 14:03:50 -0500
+In-Reply-To: <4B4B6E55.9000406@ti.com>
+Content-Language: fr-FR
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Ramirez Luna, Omar had written, on 01/11/2010 12:46 PM, the following:
->> From: Menon, Nishanth
->>
->> Ramirez Luna, Omar had written, on 01/11/2010 11:50 AM, the following:
->>> This is the official 0.1 dspbridge version.
->>>
->>> CC: Felipe Contreras <felipe.contreras@nokia.com>
->>> CC: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
->>> CC: Ameya Palande <ameya.palande@nokia.com>
->>> CC: Nishant Menon <nm@ti.com>
->>>
->>> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
->>> ---
->>>  drivers/dsp/bridge/rmgr/drv_interface.c |    2 ++
->>>  1 files changed, 2 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
->>> index c853854..efce35d 100644
->>> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
->>> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
->>> @@ -101,6 +101,7 @@
->>>  #define BRIDGE_NAME "C6410"
->>>  /*  ----------------------------------- Globals */
->>>  #define DRIVER_NAME  "DspBridge"
->>> +#define DSPBRIDGE_VERSION	"0.1"
->>>  s32 dsp_debug;
->>>
->>>  struct platform_device *omap_dspbridge_dev;
->>> @@ -177,6 +178,7 @@ MODULE_PARM_DESC(tc_wordswapon, "TC Word Swap Option. default = 0");
->>>
->>>  MODULE_AUTHOR("Texas Instruments");
->>>  MODULE_LICENSE("GPL");
->>> +MODULE_VERSION(DSPBRIDGE_VERSION);
->>>
->>>  static char *driver_name = DRIVER_NAME;
->>>
->> is the IOCTL patch before or after the 0.1?
-> 
-> IOCTL patch is after 0.1
-> 
-> I'll be resending v2 of IOCTL patch but should be applied after this patch.
-sounds reasonable. I wonder what happened to
-http://marc.info/?l=linux-omap&m=125729526105560&w=2
+Hi All,
 
+	I tried to suspend the system, and got the following messages:
 
--- 
-Regards,
-Nishanth Menon
+PM: Syncing filesystems ... done.
+Freezing user space processes ... (elapsed 0.00 seconds) done.
+Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+Suspending console(s) (use no_console_suspend to debug)
+musb_bus_suspend 2261: trying to suspend as a_host while active
+pm_op(): usb_dev_suspend+0x0/0x8 returns -16
+PM: Device usb1 failed to suspend: error -16
+PM: Some devices failed to suspend
+Restarting tasks ... Segmentation fault
+done.
+
+I use linux-omap-2.6.git, should I use the branch linux-omap-pm? Thanks.
+
+Wending Weng
+Software Engineer at Rheinmetall
