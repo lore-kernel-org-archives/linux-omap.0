@@ -1,115 +1,74 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 3/6] Regulator: Use common regulator supplies and init
-	data structs
-Date: Mon, 11 Jan 2010 14:41:58 +0200
-Message-ID: <6ed0b2681001110441j75863ab8l467fdf2660328171@mail.gmail.com>
-References: <1262973479-32570-1-git-send-email-anuj.aggarwal@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v3] ARM: L2 : Errata 588369: Clean & Invalidate do not
+	invalidate clean lines
+Date: Mon, 11 Jan 2010 14:37:08 +0000
+Message-ID: <1263220628.6305.44.camel@pc1117.cambridge.arm.com>
+References: <1261390161-20196-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:58198 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751150Ab0AKMmD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 07:42:03 -0500
-Received: by fg-out-1718.google.com with SMTP id 22so694278fge.1
-        for <linux-omap@vger.kernel.org>; Mon, 11 Jan 2010 04:41:58 -0800 (PST)
-In-Reply-To: <1262973479-32570-1-git-send-email-anuj.aggarwal@ti.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:36681 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752255Ab0AKOhf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jan 2010 09:37:35 -0500
+In-Reply-To: <1261390161-20196-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, Woodruff Richard <r-woodruff2@ti.com>
 
-On Fri, Jan 8, 2010 at 7:57 PM, Anuj Aggarwal <anuj.aggarwal@ti.com> wr=
-ote:
-> Common TWL4030 specific regulator supplies and init data structs are
-> used instead of platform specific ones. Only one copy of the common
-> structs will be included in the image, built for multiple OMAP3 based
-> platforms.
->
-> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/board-3430sdp.c =A0 =A0 =A0 =A0 =A0| =A0 32 ++=
-+++++++++++++++--------
-> =A0arch/arm/mach-omap2/board-cm-t35.c =A0 =A0 =A0 =A0 =A0 | =A0 14 ++=
-++++++---
-> =A0arch/arm/mach-omap2/board-igep0020.c =A0 =A0 =A0 =A0 | =A0 =A07 ++=
-++-
-> =A0arch/arm/mach-omap2/board-ldp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-7 ++++-
-> =A0arch/arm/mach-omap2/board-omap3beagle.c =A0 =A0 =A0| =A0 14 ++++++=
-++---
-> =A0arch/arm/mach-omap2/board-omap3evm.c =A0 =A0 =A0 =A0 | =A0 25 ++++=
-+++++++++-------
-> =A0arch/arm/mach-omap2/board-omap3pandora.c =A0 =A0 | =A0 14 ++++++++=
----
-> =A0arch/arm/mach-omap2/board-omap3touchbook.c =A0 | =A0 14 ++++++++--=
--
-> =A0arch/arm/mach-omap2/board-overo.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-8 +++++-
-> =A0arch/arm/mach-omap2/board-zoom-peripherals.c | =A0 21 +++++++++++-=
-----
-> =A010 files changed, 108 insertions(+), 48 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap=
-2/board-3430sdp.c
-> index 2951029..b1267eb 100644
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -55,6 +55,18 @@
->
-> =A0#define TWL4030_MSECURE_GPIO 22
->
-> +extern struct regulator_consumer_supply twl4030_vmmc1_supply;
-> +extern struct regulator_consumer_supply twl4030_vmmc2_supply;
-> +extern struct regulator_consumer_supply twl4030_vsim_supply;
-> +
-> +extern struct regulator_init_data vaux1_data;
-> +extern struct regulator_init_data vaux2_data;
-> +extern struct regulator_init_data vaux3_data;
-> +extern struct regulator_init_data vaux4_data;
-> +extern struct regulator_init_data vmmc1_data;
-> +extern struct regulator_init_data vmmc2_data;
-> +extern struct regulator_init_data vsim_data;
+On Mon, 2009-12-21 at 10:09 +0000, Santosh Shilimkar wrote:
+> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+> index cb8fc65..5443c0d 100644
+> --- a/arch/arm/mm/cache-l2x0.c
+> +++ b/arch/arm/mm/cache-l2x0.c
+> @@ -28,6 +28,24 @@
+>  static void __iomem *l2x0_base;
+>  static DEFINE_SPINLOCK(l2x0_lock);
+> 
+> +#ifdef CONFIG_PL310_ERRATA_588369
+> +static void debug_writel(unsigned long val)
+> +{
+> +       register unsigned long r0 asm("r0") = val;
+> +       /*
+> +        * Texas Instrument secure monitor api to modify the PL310
+> +        * Debug Control Register.
+> +        */
+> +       __asm__ __volatile__(
+> +               __asmeq("%0", "r0")
+> +               "ldr r12, =0x100\n"
+> +               "dsb\n"
+> +               "smc\n"
+> +               : : "r" (r0)
+> +               : "r4", "r5", "r6", "r7", "r8");
 
-Have you tried running your patches through ./scripts/checkpatch.pl?
+Does your secure monitor corrupt r4-r8? Maybe you could add a comment
+with a few words on this API.
 
-WARNING: externs should be avoided in .c files
-#75: FILE: arch/arm/mach-omap2/board-3430sdp.c:58:
-+extern struct regulator_consumer_supply twl4030_vmmc1_supply;
+Do you need to specify "r12" as well? What about "cc", are they
+preserved by the secure monitor?
 
-<snip>
+> @@ -139,7 +184,12 @@ static void l2x0_flush_range(unsigned long start, unsigned long end)
+>                         spin_lock_irqsave(&l2x0_lock, flags);
+>                 }
+>         }
+> +#ifdef CONFIG_PL310_ERRATA_588369
+> +       cache_wait(base + L2X0_CLEAN_LINE_PA, 1);
+> +       cache_wait(base + L2X0_INV_LINE_PA, 1);
+> +#else
+>         cache_wait(base + L2X0_CLEAN_INV_LINE_PA, 1);
+> +#endif
 
-> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach=
--omap2/board-omap3pandora.c
-> index 4a24d94..98b46ef 100644
-> --- a/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
+I don't think we need to way on two separate registers here. AFAICT, bit
+1 of those registers is shared for all the operations.
 
-<snip>
+As a general comment, maybe an inline function called something like
+wait_writel(before/after) would be better than a lot of ifdefs in the
+code, especially if one has a different workaround other than using TI's
+secure monitor.
 
-> @@ -258,8 +264,8 @@ static struct twl4030_platform_data omap3pandora_=
-twldata =3D {
-> =A0 =A0 =A0 =A0.gpio =A0 =A0 =A0 =A0 =A0 =3D &omap3pandora_gpio_data,
-> =A0 =A0 =A0 =A0.usb =A0 =A0 =A0 =A0 =A0 =A0=3D &omap3pandora_usb_data=
-,
-> =A0 =A0 =A0 =A0.codec =A0 =A0 =A0 =A0 =A0=3D &omap3pandora_codec_data=
-,
-> - =A0 =A0 =A0 .vmmc1 =A0 =A0 =A0 =A0 =A0=3D &pandora_vmmc1,
-> - =A0 =A0 =A0 .vmmc2 =A0 =A0 =A0 =A0 =A0=3D &pandora_vmmc2,
-> + =A0 =A0 =A0 .vmmc1 =A0 =A0 =A0 =A0 =A0=3D &vmmc1_data,
-> + =A0 =A0 =A0 .vmmc2 =A0 =A0 =A0 =A0 =A0=3D &vmmc2_data,
+-- 
+Catalin
 
-Your common supply file has VMMC2 supply configured for 1.8V which is
-wrong for pandora (it uses 3.1V because it has a transceiver attached
-to MMC2 that handles level shifting transparently).
-
-I think you should leave pandora board file alone, because it uses
-many supplies differently than your common file configures them
-(VAUX1-VAUX4, VSIM differ, only VMMC1, VDAC and VPLL2 match, which is
-not that much duplication).
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
