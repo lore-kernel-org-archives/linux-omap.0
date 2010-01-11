@@ -1,44 +1,169 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3] ARM: L2 : Errata 588369: Clean & Invalidate do not
-	invalidate clean lines
-Date: Mon, 11 Jan 2010 14:45:05 +0000
-Message-ID: <20100111144505.GA4109@n2100.arm.linux.org.uk>
-References: <1261390161-20196-1-git-send-email-santosh.shilimkar@ti.com> <1263220628.6305.44.camel@pc1117.cambridge.arm.com>
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: RE: [PATCH 0/9] Feature enhancement of VPFE/CCDC Capture driver
+Date: Mon, 11 Jan 2010 08:56:52 -0600
+Message-ID: <A69FA2915331DC488A831521EAE36FE40162D439FF@dlee06.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1262613782-20463-1-git-send-email-hvaibhav@ti.com>
+ <19F8576C6E063C45BE387C64729E7394044A3982C1@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60275 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698Ab0AKOph (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 09:45:37 -0500
-Content-Disposition: inline
-In-Reply-To: <1263220628.6305.44.camel@pc1117.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A3982C1@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, Woodruff Richard <r-woodruff2@ti.com>
 
-On Mon, Jan 11, 2010 at 02:37:08PM +0000, Catalin Marinas wrote:
-> On Mon, 2009-12-21 at 10:09 +0000, Santosh Shilimkar wrote:
-> > @@ -139,7 +184,12 @@ static void l2x0_flush_range(unsigned long start, unsigned long end)
-> >                         spin_lock_irqsave(&l2x0_lock, flags);
-> >                 }
-> >         }
-> > +#ifdef CONFIG_PL310_ERRATA_588369
-> > +       cache_wait(base + L2X0_CLEAN_LINE_PA, 1);
-> > +       cache_wait(base + L2X0_INV_LINE_PA, 1);
-> > +#else
-> >         cache_wait(base + L2X0_CLEAN_INV_LINE_PA, 1);
-> > +#endif
-> 
-> I don't think we need to way on two separate registers here. AFAICT, bit
-> 1 of those registers is shared for all the operations.
-> 
-> As a general comment, maybe an inline function called something like
-> wait_writel(before/after) would be better than a lot of ifdefs in the
-> code, especially if one has a different workaround other than using TI's
-> secure monitor.
+Vaibhav,
 
-Since the bit is shared between all 'R7' registers, the ifdef above makes
-no sense.  We can just wait on any R7 register - I suggest that bit of
-code is left as-is.
+Hans already merged my dm365 patches. So you have rebase this to that before
+merging.
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Hiremath, Vaibhav
+>Sent: Monday, January 11, 2010 1:29 AM
+>To: Hiremath, Vaibhav; linux-media@vger.kernel.org
+>Cc: linux-omap@vger.kernel.org; hverkuil@xs4all.nl; davinci-linux-open-
+>source@linux.davincidsp.com; Karicheri, Muralidharan
+>Subject: RE: [PATCH 0/9] Feature enhancement of VPFE/CCDC Capture driver
+>
+>
+>> -----Original Message-----
+>> From: Hiremath, Vaibhav
+>> Sent: Monday, January 04, 2010 7:33 PM
+>> To: linux-media@vger.kernel.org
+>> Cc: linux-omap@vger.kernel.org; hverkuil@xs4all.nl; davinci-linux-
+>> open-source@linux.davincidsp.com; Karicheri, Muralidharan; Hiremath,
+>> Vaibhav
+>> Subject: [PATCH 0/9] Feature enhancement of VPFE/CCDC Capture driver
+>>
+>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>
+>> While adding support for AM3517/05 devices I have implemented/came-
+>> across
+>> these features/enhancement/bug-fixes for VPFE-Capture driver.
+>>
+>> Also the important change added is, to introduced "ti-media"
+>> directory for all TI devices.
+>>
+>> Vaibhav Hiremath (9):
+>>   Makfile:Removed duplicate entry of davinci
+>>   TVP514x:Switch to automode for querystd
+>>   tvp514x: add YUYV format support
+>>   Introducing ti-media directory
+>>   DMx:Update board files for ti-media directory change
+>>   Davinci VPFE Capture:Return 0 from suspend/resume
+>>   DM644x CCDC : Add Suspend/Resume Support
+>>   VPFE Capture: Add call back function for interrupt clear to
+>> vpfe_cfg
+>>   DM644x CCDC: Add 10bit BT support
+>>
+>>  arch/arm/mach-davinci/include/mach/dm355.h      |    2 +-
+>>  arch/arm/mach-davinci/include/mach/dm644x.h     |    2 +-
+>>  drivers/media/video/Kconfig                     |   84 +-
+>>  drivers/media/video/Makefile                    |    4 +-
+>>  drivers/media/video/davinci/Makefile            |   17 -
+>>  drivers/media/video/davinci/ccdc_hw_device.h    |  110 --
+>>  drivers/media/video/davinci/dm355_ccdc.c        | 1081 -----------
+>>  drivers/media/video/davinci/dm355_ccdc_regs.h   |  310 ----
+>>  drivers/media/video/davinci/dm644x_ccdc.c       |  966 ----------
+>>  drivers/media/video/davinci/dm644x_ccdc_regs.h  |  145 --
+>>  drivers/media/video/davinci/vpfe_capture.c      | 2055 ------------
+>> ---------
+>>  drivers/media/video/davinci/vpif.c              |  296 ---
+>>  drivers/media/video/davinci/vpif.h              |  642 -------
+>>  drivers/media/video/davinci/vpif_capture.c      | 2168 ------------
+>> -----------
+>>  drivers/media/video/davinci/vpif_capture.h      |  165 --
+>>  drivers/media/video/davinci/vpif_display.c      | 1654 ------------
+>> -----
+>>  drivers/media/video/davinci/vpif_display.h      |  175 --
+>>  drivers/media/video/davinci/vpss.c              |  301 ----
+>>  drivers/media/video/ti-media/Kconfig            |   88 +
+>>  drivers/media/video/ti-media/Makefile           |   17 +
+>>  drivers/media/video/ti-media/ccdc_hw_device.h   |  110 ++
+>>  drivers/media/video/ti-media/dm355_ccdc.c       | 1081 +++++++++++
+>>  drivers/media/video/ti-media/dm355_ccdc_regs.h  |  310 ++++
+>>  drivers/media/video/ti-media/dm644x_ccdc.c      | 1090 ++++++++++++
+>>  drivers/media/video/ti-media/dm644x_ccdc_regs.h |  153 ++
+>>  drivers/media/video/ti-media/vpfe_capture.c     | 2067
+>> +++++++++++++++++++++
+>>  drivers/media/video/ti-media/vpif.c             |  296 +++
+>>  drivers/media/video/ti-media/vpif.h             |  642 +++++++
+>>  drivers/media/video/ti-media/vpif_capture.c     | 2168
+>> +++++++++++++++++++++++
+>>  drivers/media/video/ti-media/vpif_capture.h     |  165 ++
+>>  drivers/media/video/ti-media/vpif_display.c     | 1654
+>> +++++++++++++++++
+>>  drivers/media/video/ti-media/vpif_display.h     |  175 ++
+>>  drivers/media/video/ti-media/vpss.c             |  301 ++++
+>>  drivers/media/video/tvp514x.c                   |   15 +
+>>  include/media/davinci/ccdc_types.h              |   43 -
+>>  include/media/davinci/dm355_ccdc.h              |  321 ----
+>>  include/media/davinci/dm644x_ccdc.h             |  184 --
+>>  include/media/davinci/vpfe_capture.h            |  200 ---
+>>  include/media/davinci/vpfe_types.h              |   51 -
+>>  include/media/davinci/vpss.h                    |   69 -
+>>  include/media/ti-media/ccdc_types.h             |   43 +
+>>  include/media/ti-media/dm355_ccdc.h             |  321 ++++
+>>  include/media/ti-media/dm644x_ccdc.h            |  184 ++
+>>  include/media/ti-media/vpfe_capture.h           |  202 +++
+>>  include/media/ti-media/vpfe_types.h             |   51 +
+>>  include/media/ti-media/vpss.h                   |   69 +
+>>  46 files changed, 11207 insertions(+), 11040 deletions(-)
+>>  delete mode 100644 drivers/media/video/davinci/Makefile
+>>  delete mode 100644 drivers/media/video/davinci/ccdc_hw_device.h
+>>  delete mode 100644 drivers/media/video/davinci/dm355_ccdc.c
+>>  delete mode 100644 drivers/media/video/davinci/dm355_ccdc_regs.h
+>>  delete mode 100644 drivers/media/video/davinci/dm644x_ccdc.c
+>>  delete mode 100644 drivers/media/video/davinci/dm644x_ccdc_regs.h
+>>  delete mode 100644 drivers/media/video/davinci/vpfe_capture.c
+>>  delete mode 100644 drivers/media/video/davinci/vpif.c
+>>  delete mode 100644 drivers/media/video/davinci/vpif.h
+>>  delete mode 100644 drivers/media/video/davinci/vpif_capture.c
+>>  delete mode 100644 drivers/media/video/davinci/vpif_capture.h
+>>  delete mode 100644 drivers/media/video/davinci/vpif_display.c
+>>  delete mode 100644 drivers/media/video/davinci/vpif_display.h
+>>  delete mode 100644 drivers/media/video/davinci/vpss.c
+>>  create mode 100644 drivers/media/video/ti-media/Kconfig
+>>  create mode 100644 drivers/media/video/ti-media/Makefile
+>>  create mode 100644 drivers/media/video/ti-media/ccdc_hw_device.h
+>>  create mode 100644 drivers/media/video/ti-media/dm355_ccdc.c
+>>  create mode 100644 drivers/media/video/ti-media/dm355_ccdc_regs.h
+>>  create mode 100644 drivers/media/video/ti-media/dm644x_ccdc.c
+>>  create mode 100644 drivers/media/video/ti-media/dm644x_ccdc_regs.h
+>>  create mode 100644 drivers/media/video/ti-media/vpfe_capture.c
+>>  create mode 100644 drivers/media/video/ti-media/vpif.c
+>>  create mode 100644 drivers/media/video/ti-media/vpif.h
+>>  create mode 100644 drivers/media/video/ti-media/vpif_capture.c
+>>  create mode 100644 drivers/media/video/ti-media/vpif_capture.h
+>>  create mode 100644 drivers/media/video/ti-media/vpif_display.c
+>>  create mode 100644 drivers/media/video/ti-media/vpif_display.h
+>>  create mode 100644 drivers/media/video/ti-media/vpss.c
+>>  delete mode 100644 include/media/davinci/ccdc_types.h
+>>  delete mode 100644 include/media/davinci/dm355_ccdc.h
+>>  delete mode 100644 include/media/davinci/dm644x_ccdc.h
+>>  delete mode 100644 include/media/davinci/vpfe_capture.h
+>>  delete mode 100644 include/media/davinci/vpfe_types.h
+>>  delete mode 100644 include/media/davinci/vpss.h
+>>  create mode 100644 include/media/ti-media/ccdc_types.h
+>>  create mode 100644 include/media/ti-media/dm355_ccdc.h
+>>  create mode 100644 include/media/ti-media/dm644x_ccdc.h
+>>  create mode 100644 include/media/ti-media/vpfe_capture.h
+>>  create mode 100644 include/media/ti-media/vpfe_types.h
+>>  create mode 100644 include/media/ti-media/vpss.h
+>[Hiremath, Vaibhav] Hans,
+>
+>Since we do not have any comments on this, can we merge these patches?
+>
+>Thanks,
+>Vaibhav
