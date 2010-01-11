@@ -1,45 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: dma_chan[lch_head].flag & OMAP_DMA_ACTIVE tested
- twice in omap_dma_unlink_lch()
-Date: Mon, 11 Jan 2010 15:14:15 -0800
-Message-ID: <20100111231415.GE5055@atomide.com>
+Subject: [APPLIED] [PATCH] OMAP: dma_chan[lch_head].flag &amp; OMAP_DMA_ACTIVE tested twice
+Date: Mon, 11 Jan 2010 18:14:43 -0500
+Message-ID: <notify-1263251688@atomide.com>
 References: <4B488ABF.4070403@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752322Ab0AKXOM@vger.kernel.org>
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60901 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751843Ab0AKXOn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 18:14:43 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NUTT8-000359-8X
+	for linux-omap@vger.kernel.org; Mon, 11 Jan 2010 23:14:42 +0000
 In-Reply-To: <4B488ABF.4070403@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roel Kluin <roel.kluin@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Roel Kluin <roel.kluin@gmail.com> [100109 05:49]:
-> The same flag and bits were tested twice.
-> 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> ---
->  arch/arm/plat-omap/dma.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> Is this what was intended? please review.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Thanks, nice catch. Will queue into omap-fixes.
+Branch in linux-omap: omap-fixes
 
-Regards,
+Initial commit ID (Likely to change): bf9e6367f80b285100f5fecd59ec11b643d4dcf1
 
-Tony
- 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 09d82b3..728c642 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -1183,7 +1183,7 @@ void omap_dma_unlink_lch(int lch_head, int lch_queue)
->  	}
->  
->  	if ((dma_chan[lch_head].flags & OMAP_DMA_ACTIVE) ||
-> -	    (dma_chan[lch_head].flags & OMAP_DMA_ACTIVE)) {
-> +	    (dma_chan[lch_queue].flags & OMAP_DMA_ACTIVE)) {
->  		printk(KERN_ERR "omap_dma: You need to stop the DMA channels "
->  		       "before unlinking\n");
->  		dump_stack();
+PatchWorks
+http://patchwork.kernel.org/patch/71928/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=bf9e6367f80b285100f5fecd59ec11b643d4dcf1
+
+
