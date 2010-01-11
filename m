@@ -1,56 +1,37 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH 0/6] Added DSS2/FBDEV support for OMAP3EVM & AM3517EVM
-Date: Mon, 11 Jan 2010 11:07:25 +0200
-Message-ID: <1263200845.2087.7.camel@tubuntu.research.nokia.com>
-References: <hvaibhav@ti.com>
-	 <1262615657-22723-1-git-send-email-hvaibhav@ti.com>
-	 <19F8576C6E063C45BE387C64729E7394044A3982CC@dbde02.ent.ti.com>
+Subject: Re: [PATCH 05/15] OMAP: DSS2: RFBI: convert to new kfifo API
+Date: Mon, 11 Jan 2010 11:09:18 +0200
+Message-ID: <1263200958.2087.9.camel@tubuntu.research.nokia.com>
+References: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
+	 <1262956969-1664-2-git-send-email-tomi.valkeinen@nokia.com>
+	 <1262956969-1664-3-git-send-email-tomi.valkeinen@nokia.com>
+	 <1262956969-1664-4-git-send-email-tomi.valkeinen@nokia.com>
+	 <1262956969-1664-5-git-send-email-tomi.valkeinen@nokia.com>
+	 <1262956969-1664-6-git-send-email-tomi.valkeinen@nokia.com>
+	 <20100108165210.GA6831@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:59409 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:59586 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752352Ab0AKJGf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 04:06:35 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A3982CC@dbde02.ent.ti.com>
+	with ESMTP id S1752852Ab0AKJIt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 04:08:49 -0500
+In-Reply-To: <20100108165210.GA6831@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-On Mon, 2010-01-11 at 07:33 +0100, ext Hiremath, Vaibhav wrote:
-> \
+On Fri, 2010-01-08 at 17:52 +0100, ext Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [100108 05:21]:
+> > Compiles, but not tested.
 > 
-> > -----Original Message-----
-> > From: Hiremath, Vaibhav
-> > Sent: Monday, January 04, 2010 8:04 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: tomi.valkeinen@nokia.com; tony@atomide.com; Hiremath, Vaibhav
-> > Subject: [PATCH 0/6] Added DSS2/FBDEV support for OMAP3EVM &
-> > AM3517EVM
-> > 
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > 
-> > This patch added DSS2 + OMAPFB support for OMAP3EVM and AM3517/05
-> > EVM along
-> > with sharp LQ043T1DG01 panel support.
-> > 
-> > Vaibhav Hiremath (4):
-> >   OMAP: DSS2: Fix compile warning
-> >   OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
-> >   OMAP: Enable DSS2 for OMAP3EVM board
-> >   OMAP: AM3517: Enable DSS2 for AM3517EVM board
-> > 
-> [Hiremath, Vaibhav] Tomi,
-> 
-> Do you see any issues with this patch-series? It has been reviewed multiple times. Can we merge these patches?
-> You had only taken warning fix patch, any specific reason?
+> Heh, maybe update the comments on this one before asking
+> Linus to pull? :)
 
-They look ok to me. The reason I took only the warning fix patch was
-that I'm going to send only bug fixes in the next pull request. I will
-merge the other patches to my tree soon, I just haven't had time for
-that yet.
+Yes, perhaps that would be wise =). I hope somebody is able to test the
+patch, as I don't have hardware to test it.
 
  Tomi
 
