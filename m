@@ -1,74 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig
- register.
-Date: Mon, 11 Jan 2010 15:20:39 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001111515080.8534@utopia.booyaka.com>
-References: <1260098674-27143-1-git-send-email-thara@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E171@dbde02.ent.ti.com> <alpine.DEB.2.00.1001051730230.21295@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB031E1D6B7B@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PM-WIP-OPP] [PATCH] cleaner ceil function for uv to vsel conversion
+Date: Mon, 11 Jan 2010 14:29:01 -0800
+Message-ID: <876378mg2a.fsf@deeprootsystems.com>
+References: <1263189218.16324.3.camel@boson>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33627 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751895Ab0AKWUk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 17:20:40 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D6B7B@dbde02.ent.ti.com>
+Received: from mail-px0-f174.google.com ([209.85.216.174]:49727 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab0AKW3F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 17:29:05 -0500
+Received: by pxi4 with SMTP id 4so4021180pxi.33
+        for <linux-omap@vger.kernel.org>; Mon, 11 Jan 2010 14:29:04 -0800 (PST)
+In-Reply-To: <1263189218.16324.3.camel@boson> (Romit Dasgupta's message of "Mon\, 11 Jan 2010 11\:23\:38 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: romit@ti.com
+Cc: nm@ti.com, linux-omap@vger.kernel.org
 
-On Thu, 7 Jan 2010, Gopinath, Thara wrote:
+Romit Dasgupta <romit@ti.com> writes:
 
-> >>-----Original Message-----
-> >>From: Paul Walmsley [mailto:paul@pwsan.com]
-> >>Sent: Wednesday, January 06, 2010 6:02 AM
-> >>To: Gopinath, Thara
-> >>Cc: linux-omap@vger.kernel.org
-> >>Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
-> >>
-> >>On Wed, 23 Dec 2009, Gopinath, Thara wrote:
-> >>
-> >>> Hi Paul,Kevin.. Does this patch look ok?
-> >>
-> >>Hello Thara,
-> >>
-> >>looking over this patch.  Nice job on the descriptive patch comment;
-> >>it explains the problem well.  What do you think about a slightly
-> >>different approach -- that is, to add a hook to the hwmod code to
-> >>invalidate the cache if the module's powerdomain has lost context?
-> 
-> It should be possible but I feel it is a bit cumbersome. Couple of 
-> reasons I have.
-> a. Some modules like smartreflex does not have any power domain 
-> associated with it.
+> Cleaner ceil function.
 
-Aren't the SmartReflex modules in their own powerdomain that changes with 
-the CORE powerdomain?
+Needs better subject and better changelog.
 
-> b. Invalidating the cache is not needed for all modules even if the 
-> module powerdomain context is lost. This is needed only for modules 
-> which employ always restore mechanism. All other modules will do 
-> explicit context save and restore of its registers
+Subject should probably be something like: OMAP: 
 
-I think we'll want to move all SYSCONFIG manipulation into the hwmod 
-layer, once it is in place.
+  [PATCH] OPP: TWL/TPS: optimize uv to vsel function
 
-> c. Getting whether power domain context is lost or not is not very 
-> straight forward. If I am not mistaken the only way is to keep tab of 
-> the powerdomain counters through omap_pm_get_dev_context_loss_count. I 
-> might be mistaken.
+And changelog should describe the motiviation for the patch or a
+description of the problem you're trying to solve.  IOW, is this a
+correctness fix, or an optimization, etc.  Looks to me like it's tring
+to compensate for some rounding issues, but please describe in detail
+in the changelog.
 
-Yeah.  Getting the hook in will take a little bit of work.
+Thanks,
 
-Anyway, for the time being, we can take this patch.  But the other reason 
-that this approach doesn't appeal is that this new flag doesn't have 
-anything to do with the hardware -- it's just a software workaround for 
-device driver code.  Ideally, all of these flags should be generatable 
-based on hardware data only.  Flags that pertain to how the device driver 
-works belong in a different place.  Perhaps they should still be connected 
-to the hwmod code, but they should exist separately from the hwmod data.
-
-Queued for .33-rc (fixes).
+Kevin
 
 
-- Paul
+> Signed-off-by: Romit Dasgupta <romit@ti.com>
+> ---
+> diff --git a/arch/arm/plat-omap/opp_twl_tps.c b/arch/arm/plat-omap/opp_twl_tps.c
+> index e0db39b..1caa414 100644
+> --- a/arch/arm/plat-omap/opp_twl_tps.c
+> +++ b/arch/arm/plat-omap/opp_twl_tps.c
+> @@ -36,14 +36,7 @@ unsigned long omap_twl_vsel_to_uv(const u8 vsel)
+>   */
+>  u8 omap_twl_uv_to_vsel(unsigned long uv)
+>  {
+> -	u8 vsel;
+>  
+> -	vsel = ((uv / 100) - 6000) / 125;
+> +	return (((uv + 99) / 100 - 6000) + 124) / 125;
+>  
+> -	/* round off to higher voltage */
+> -	/* XXX Surely not the best way to handle this. */
+> -	if (uv > omap_twl_vsel_to_uv(vsel))
+> -		vsel++;
+> -
+> -	return vsel;
+>  }
