@@ -1,18 +1,19 @@
 From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH 1/3] omap iommu: cleanup iommu page address mask and
- definitions
-Date: Mon, 11 Jan 2010 15:53:16 -0600
-Message-ID: <A24693684029E5489D1D202277BE8944513DBE43@dlee02.ent.ti.com>
+Subject: RE: [PATCH 2/3] omap iommu: fix incorrect address for large page
+ 1st entry
+Date: Mon, 11 Jan 2010 15:57:44 -0600
+Message-ID: <A24693684029E5489D1D202277BE8944513DBE55@dlee02.ent.ti.com>
 References: <1263195995-23244-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1263195995-23244-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40375 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917Ab0AKVwz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 16:52:55 -0500
-In-Reply-To: <1263195995-23244-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:53768 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751613Ab0AKVzz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 16:55:55 -0500
+In-Reply-To: <1263195995-23244-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -27,120 +28,46 @@ Hi Hiroshi,
 > Sent: Monday, January 11, 2010 1:47 AM
 > To: linux-omap@vger.kernel.org
 > Cc: Nagalla, Hari; Hiroshi DOYU
-> Subject: [PATCH 1/3] omap iommu: cleanup iommu page address mask and
-> definitions
+> Subject: [PATCH 2/3] omap iommu: fix incorrect address for large page 1st
+> entry
 > 
 > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Maybe a small description would help here...
-
-Are you just reshuffling defines, or are you also adding new ones?
-
-Is this just a cleanup or is it fixing a hidden bug?
+Description missing here aswell.
 
 Regards,
 Sergio
 > 
+> Reported-by: Hari Nagalla <hnagalla@ti.com>
 > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Signed-off-by: Hari Nagalla <hnagalla@ti.com>
 > ---
->  arch/arm/plat-omap/iopgtable.h |   50 +++++++++++++++++++++++++++++++----
-> ----
->  1 files changed, 39 insertions(+), 11 deletions(-)
+>  arch/arm/plat-omap/iommu.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/arch/arm/plat-omap/iopgtable.h b/arch/arm/plat-
-> omap/iopgtable.h
-> index 37dac43..ab23b6a 100644
-> --- a/arch/arm/plat-omap/iopgtable.h
-> +++ b/arch/arm/plat-omap/iopgtable.h
+> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> index c0ff1e3..ccf25b3 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
 > @@ -1,7 +1,7 @@
 >  /*
->   * omap iommu: pagetable definitions
+>   * omap iommu: tlb and pagetable primitives
 >   *
 > - * Copyright (C) 2008-2009 Nokia Corporation
 > + * Copyright (C) 2008-2010 Nokia Corporation
 >   *
->   * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->   *
-> @@ -13,26 +13,52 @@
->  #ifndef __PLAT_OMAP_IOMMU_H
->  #define __PLAT_OMAP_IOMMU_H
-> 
-> +/*
-> + * "L2 table" address mask and size definitions.
-> + */
->  #define IOPGD_SHIFT		20
-> -#define IOPGD_SIZE		(1 << IOPGD_SHIFT)
-> +#define IOPGD_SIZE		(1UL << IOPGD_SHIFT)
->  #define IOPGD_MASK		(~(IOPGD_SIZE - 1))
-> -#define IOSECTION_MASK		IOPGD_MASK
-> -#define PTRS_PER_IOPGD		(1 << (32 - IOPGD_SHIFT))
-> -#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
-> 
-> -#define IOSUPER_SIZE		(IOPGD_SIZE << 4)
-> +/*
-> + * "section" address mask and size definitions.
-> + */
-> +#define IOSECTION_SHIFT		20
-> +#define IOSECTION_SIZE		(1UL << IOSECTION_SHIFT)
-> +#define IOSECTION_MASK		(~(IOSECTION_SIZE - 1))
-> +
-> +/*
-> + * "supersection" address mask and size definitions.
-> + */
-> +#define IOSUPER_SHIFT		24
-> +#define IOSUPER_SIZE		(1UL << IOSUPER_SHIFT)
->  #define IOSUPER_MASK		(~(IOSUPER_SIZE - 1))
-> 
-> +#define PTRS_PER_IOPGD		(1UL << (32 - IOPGD_SHIFT))
-> +#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
-> +
-> +/*
-> + * "small page" address mask and size definitions.
-> + */
->  #define IOPTE_SHIFT		12
-> -#define IOPTE_SIZE		(1 << IOPTE_SHIFT)
-> +#define IOPTE_SIZE		(1UL << IOPTE_SHIFT)
->  #define IOPTE_MASK		(~(IOPTE_SIZE - 1))
-> -#define IOPAGE_MASK		IOPTE_MASK
-> -#define PTRS_PER_IOPTE		(1 << (IOPGD_SHIFT - IOPTE_SHIFT))
-> -#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
-> 
-> -#define IOLARGE_SIZE		(IOPTE_SIZE << 4)
-> +/*
-> + * "large page" address mask and size definitions.
-> + */
-> +#define IOLARGE_SHIFT		16
-> +#define IOLARGE_SIZE		(1UL << IOLARGE_SHIFT)
->  #define IOLARGE_MASK		(~(IOLARGE_SIZE - 1))
-> 
-> +#define PTRS_PER_IOPTE		(1UL << (IOPGD_SHIFT - IOPTE_SHIFT))
-> +#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
-> +
-> +#define IOPAGE_MASK		IOPTE_MASK
-> +
-> +/*
-> + * some descriptor attributes.
-> + */
->  #define IOPGD_TABLE		(1 << 0)
->  #define IOPGD_SECTION		(2 << 0)
->  #define IOPGD_SUPER		(1 << 18 | 2 << 0)
-> @@ -40,12 +66,14 @@
->  #define IOPTE_SMALL		(2 << 0)
->  #define IOPTE_LARGE		(1 << 0)
-> 
-> +/* to find an entry in a page-table-directory */
->  #define iopgd_index(da)		(((da) >> IOPGD_SHIFT) &
-> (PTRS_PER_IOPGD - 1))
->  #define iopgd_offset(obj, da)	((obj)->iopgd + iopgd_index(da))
-> 
->  #define iopte_paddr(iopgd)	(*iopgd & ~((1 << 10) - 1))
->  #define iopte_vaddr(iopgd)	((u32 *)phys_to_virt(iopte_paddr(iopgd)))
-> 
-> +/* to find an entry in the second-level page table. */
->  #define iopte_index(da)		(((da) >> IOPTE_SHIFT) &
-> (PTRS_PER_IOPTE - 1))
->  #define iopte_offset(iopgd, da)	(iopte_vaddr(iopgd) + iopte_index(da))
-> 
+>   * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+>   *		Paul Mundt and Toshihiro Kobayashi
+> @@ -646,7 +646,7 @@ static size_t iopgtable_clear_entry_core(struct iommu
+> *obj, u32 da)
+>  		if (*iopte & IOPTE_LARGE) {
+>  			nent *= 16;
+>  			/* rewind to the 1st entry */
+> -			iopte = (u32 *)((u32)iopte & IOLARGE_MASK);
+> +			iopte = iopte_offset(iopgd, (da & IOLARGE_MASK));
+>  		}
+>  		bytes *= nent;
+>  		memset(iopte, 0, nent * sizeof(*iopte));
 > --
 > 1.6.0.4
 > 
