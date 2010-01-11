@@ -1,12 +1,15 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/3] omap iommu: cleanup iommu page address mask and definitions
-Date: Mon, 11 Jan 2010 09:46:33 +0200
-Message-ID: <1263195995-23244-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 3/3] omap iommu: fix incorrect address for supersection 1st entry
+Date: Mon, 11 Jan 2010 09:46:35 +0200
+Message-ID: <1263195995-23244-3-git-send-email-Hiroshi.DOYU@nokia.com>
+References: <1263195995-23244-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1263195995-23244-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:51434 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751811Ab0AKHrG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 02:47:06 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:61246 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752034Ab0AKHrH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 02:47:07 -0500
+In-Reply-To: <1263195995-23244-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -15,101 +18,24 @@ Cc: hnagalla@ti.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Hari Nagalla <hnagalla@ti.com>
 ---
- arch/arm/plat-omap/iopgtable.h |   50 +++++++++++++++++++++++++++++++--------
- 1 files changed, 39 insertions(+), 11 deletions(-)
+ arch/arm/plat-omap/iommu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/iopgtable.h b/arch/arm/plat-omap/iopgtable.h
-index 37dac43..ab23b6a 100644
---- a/arch/arm/plat-omap/iopgtable.h
-+++ b/arch/arm/plat-omap/iopgtable.h
-@@ -1,7 +1,7 @@
- /*
-  * omap iommu: pagetable definitions
-  *
-- * Copyright (C) 2008-2009 Nokia Corporation
-+ * Copyright (C) 2008-2010 Nokia Corporation
-  *
-  * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-  *
-@@ -13,26 +13,52 @@
- #ifndef __PLAT_OMAP_IOMMU_H
- #define __PLAT_OMAP_IOMMU_H
- 
-+/*
-+ * "L2 table" address mask and size definitions.
-+ */
- #define IOPGD_SHIFT		20
--#define IOPGD_SIZE		(1 << IOPGD_SHIFT)
-+#define IOPGD_SIZE		(1UL << IOPGD_SHIFT)
- #define IOPGD_MASK		(~(IOPGD_SIZE - 1))
--#define IOSECTION_MASK		IOPGD_MASK
--#define PTRS_PER_IOPGD		(1 << (32 - IOPGD_SHIFT))
--#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
- 
--#define IOSUPER_SIZE		(IOPGD_SIZE << 4)
-+/*
-+ * "section" address mask and size definitions.
-+ */
-+#define IOSECTION_SHIFT		20
-+#define IOSECTION_SIZE		(1UL << IOSECTION_SHIFT)
-+#define IOSECTION_MASK		(~(IOSECTION_SIZE - 1))
-+
-+/*
-+ * "supersection" address mask and size definitions.
-+ */
-+#define IOSUPER_SHIFT		24
-+#define IOSUPER_SIZE		(1UL << IOSUPER_SHIFT)
- #define IOSUPER_MASK		(~(IOSUPER_SIZE - 1))
- 
-+#define PTRS_PER_IOPGD		(1UL << (32 - IOPGD_SHIFT))
-+#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
-+
-+/*
-+ * "small page" address mask and size definitions.
-+ */
- #define IOPTE_SHIFT		12
--#define IOPTE_SIZE		(1 << IOPTE_SHIFT)
-+#define IOPTE_SIZE		(1UL << IOPTE_SHIFT)
- #define IOPTE_MASK		(~(IOPTE_SIZE - 1))
--#define IOPAGE_MASK		IOPTE_MASK
--#define PTRS_PER_IOPTE		(1 << (IOPGD_SHIFT - IOPTE_SHIFT))
--#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
- 
--#define IOLARGE_SIZE		(IOPTE_SIZE << 4)
-+/*
-+ * "large page" address mask and size definitions.
-+ */
-+#define IOLARGE_SHIFT		16
-+#define IOLARGE_SIZE		(1UL << IOLARGE_SHIFT)
- #define IOLARGE_MASK		(~(IOLARGE_SIZE - 1))
- 
-+#define PTRS_PER_IOPTE		(1UL << (IOPGD_SHIFT - IOPTE_SHIFT))
-+#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
-+
-+#define IOPAGE_MASK		IOPTE_MASK
-+
-+/*
-+ * some descriptor attributes.
-+ */
- #define IOPGD_TABLE		(1 << 0)
- #define IOPGD_SECTION		(2 << 0)
- #define IOPGD_SUPER		(1 << 18 | 2 << 0)
-@@ -40,12 +66,14 @@
- #define IOPTE_SMALL		(2 << 0)
- #define IOPTE_LARGE		(1 << 0)
- 
-+/* to find an entry in a page-table-directory */
- #define iopgd_index(da)		(((da) >> IOPGD_SHIFT) & (PTRS_PER_IOPGD - 1))
- #define iopgd_offset(obj, da)	((obj)->iopgd + iopgd_index(da))
- 
- #define iopte_paddr(iopgd)	(*iopgd & ~((1 << 10) - 1))
- #define iopte_vaddr(iopgd)	((u32 *)phys_to_virt(iopte_paddr(iopgd)))
- 
-+/* to find an entry in the second-level page table. */
- #define iopte_index(da)		(((da) >> IOPTE_SHIFT) & (PTRS_PER_IOPTE - 1))
- #define iopte_offset(iopgd, da)	(iopte_vaddr(iopgd) + iopte_index(da))
- 
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index ccf25b3..ce0072a 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -667,7 +667,7 @@ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
+ 		if ((*iopgd & IOPGD_SUPER) == IOPGD_SUPER) {
+ 			nent *= 16;
+ 			/* rewind to the 1st entry */
+-			iopgd = (u32 *)((u32)iopgd & IOSUPER_MASK);
++			iopgd = iopgd_offset(obj, (da & IOSUPER_MASK));
+ 		}
+ 		bytes *= nent;
+ 	}
 -- 
 1.6.0.4
 
