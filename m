@@ -1,89 +1,84 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 09/15] MAINTAINERS: Combine DSS2 and OMAPFB2 into one
-	entry
-Date: Mon, 11 Jan 2010 13:46:40 +0200
-Message-ID: <6ed0b2681001110346w284ab362s6fd10421e81d9edd@mail.gmail.com>
-References: <1262956969-1664-1-git-send-email-tomi.valkeinen@nokia.com>
-	 <1262956969-1664-2-git-send-email-tomi.valkeinen@nokia.com>
-	 <1262956969-1664-3-git-send-email-tomi.valkeinen@nokia.com>
-	 <1262956969-1664-4-git-send-email-tomi.valkeinen@nokia.com>
-	 <1262956969-1664-5-git-send-email-tomi.valkeinen@nokia.com>
-	 <1262956969-1664-6-git-send-email-tomi.valkeinen@nokia.com>
-	 <1262956969-1664-7-git-send-email-tomi.valkeinen@nokia.com>
-	 <1262956969-1664-8-git-send-email-tomi.valkeinen@nokia.com>
-	 <1262956969-1664-9-git-send-email-tomi.valkeinen@nokia.com>
-	 <1262956969-1664-10-git-send-email-tomi.valkeinen@nokia.com>
+From: "Govindarajan, Sriramakrishnan" <srk@ti.com>
+Subject: RE: [PATCH] ARCH OMAP : enable ARCH_HAS_HOLES_MEMORYMODEL for OMAP
+Date: Mon, 11 Jan 2010 17:42:58 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030051A222@dbde02.ent.ti.com>
+References: <1262867408-9895-1-git-send-email-srk@ti.com>
+ <4B45FC4B.9080302@ti.com>
+ <FCCFB4CDC6E5564B9182F639FC3560870300519AC7@dbde02.ent.ti.com>
+ <4B47491F.1000303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:50255 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751208Ab0AKLqm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 06:46:42 -0500
-In-Reply-To: <1262956969-1664-10-git-send-email-tomi.valkeinen@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60014 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753244Ab0AKMNE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 07:13:04 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0BCCxwY011275
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 11 Jan 2010 06:13:01 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o0BCCwYh028882
+	for <linux-omap@vger.kernel.org>; Mon, 11 Jan 2010 17:42:58 +0530 (IST)
+In-Reply-To: <4B47491F.1000303@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
 
-On Fri, Jan 8, 2010 at 3:22 PM, Tomi Valkeinen <tomi.valkeinen@nokia.co=
-m> wrote:
-> There isn't really any reason to divide those.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> ---
-> =A0MAINTAINERS | =A0 13 ++-----------
-> =A01 files changed, 2 insertions(+), 11 deletions(-)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 8d2fcee..d370787 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -3955,23 +3955,14 @@ L: =A0 =A0 =A0linux-omap@vger.kernel.org
-> =A0S: =A0 =A0 Maintained
-> =A0F: =A0 =A0 drivers/video/omap/
->
-> -OMAP DISPLAY SUBSYSTEM SUPPORT (DSS2)
-> +OMAP DISPLAY SUBSYSTEM and FRAMEBUFFER SUPPORT (DSS2)
-> =A0M: =A0 =A0 Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> =A0L: =A0 =A0 linux-omap@vger.kernel.org
-> =A0L: =A0 =A0 linux-fbdev@vger.kernel.org (moderated for non-subscrib=
-ers)
+From: Menon, Nishanth
+> Sent: Friday, January 08, 2010 8:33 PM
+> To: Govindarajan, Sriramakrishnan
+> Cc: linux-omap@vger.kernel.org; Syed Mohammed, Khasim; Nori, Sekhar
+> Subject: Re: [PATCH] ARCH OMAP : enable ARCH_HAS_HOLES_MEMORYMODEL for
+> OMAP
+> 
+> Govindarajan, Sriramakrishnan had written, on 01/08/2010 02:15 AM, the
+> following:
+> >
+> >> From: Menon, Nishanth
+> >> Govindarajan, Sriramakrishnan had written, on 01/07/2010 06:30 AM, the
+> >> following:
+> >>> From: Sriram <srk@ti.com>
+> >>>
+> >>> OMAP platforms(like OMAP3530) include DSP or other co-processors
+> >>> for media acceleration. when carving out memory for the
+> >>> accelerators we can end up creating a hole in the memory map
+> >>> of sort:
+> >>> <kernel memory><hole(memory for accelerator)><kernel memory>
+> >>>
+> >>> To handle such a memory configuration ARCH_HAS_HOLES_MEMORYMODEL
+> >>> has to be enabled. For further information refer discussion at:
+> >>> http://www.mail-archive.com/linux-omap@vger.kernl.org/msg15262.html.
+> >> pls check the link: I see "The document you were looking for was not
+> >> found."
+> >
+> > The URL is spelt incorrectly. Here is the correct URL:
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg15262.html
+> >
+> >>>  	select GENERIC_TIME
+> >>>  	select GENERIC_CLOCKEVENTS
+> >>> +	select ARCH_HAS_HOLES_MEMORYMODEL
+> >> why enable this for all OMAPs?
+> >
+> > I have tested this on several OMAP3 platforms and this feature is
+> required
+> > Wherever some memory needs to be reserved for media accelerators - hence
+> it
+> > Would be handy for earlier OMAP platforms as well
+> I understand that you have tested with OMAP3. my question is you have
+> handled this as per the diff
+> @@ -699,6 +699,7 @@ config ARCH_OMAP
+> to ARCH_OMAP
+> 
+> is this good for OMAP1510, 1610, 1710, 2420,2430, 770 etc..?
 
-Not that it's very important, but linux-fbdev is not really moderated
-(see other entries in this file), this is probably leftover from the
-old list (linux-fbdev-devel@lists.sourceforge.net).
+I do not have other OMAP platforms for me to validate this patch on.
+I believe the nature of change is generic and benefit other OMAP
+Platforms as well.
 
-> =A0S: =A0 =A0 Maintained
-> -F: =A0 =A0 drivers/video/omap2/dss/
-> -F: =A0 =A0 drivers/video/omap2/vrfb.c
-> -F: =A0 =A0 drivers/video/omap2/vram.c
-> +F: =A0 =A0 drivers/video/omap2/
-> =A0F: =A0 =A0 Documentation/arm/OMAP/DSS
->
-> -OMAP FRAMEBUFFER SUPPORT (FOR DSS2)
-> -M: =A0 =A0 Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> -L: =A0 =A0 linux-omap@vger.kernel.org
-> -L: =A0 =A0 linux-fbdev@vger.kernel.org (moderated for non-subscriber=
-s)
-> -S: =A0 =A0 Maintained
-> -F: =A0 =A0 drivers/video/omap2/omapfb/
-> -
-> =A0OMAP MMC SUPPORT
-> =A0M: =A0 =A0 Jarkko Lavinen <jarkko.lavinen@nokia.com>
-> =A0L: =A0 =A0 linux-omap@vger.kernel.org
-> --
-> 1.6.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Sriram
+
