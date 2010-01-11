@@ -1,51 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 resubmit] mmc-omap: Add support for 16-bit and
- 32-bit registers
-Date: Mon, 11 Jan 2010 15:31:54 -0800
-Message-ID: <20100111233153.GG5055@atomide.com>
-References: <1263059536-11397-1-git-send-email-darkstar6262@gmail.com>
- <20100111104402.GA2587@localhost.localdomain>
- <6cb013311001111114g6cd49663ja9f2099b6431d28@mail.gmail.com>
+Subject: [APPLIED] [RFC/PATCH 2/2] fix compile for tahvo-usb.c
+Date: Mon, 11 Jan 2010 18:33:25 -0500
+Message-ID: <notify-1263252812@atomide.com>
+References: <1262912592-7817-2-git-send-email-alecrim@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51452 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752014Ab0AKXdZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 18:33:25 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NUTlF-0002XP-0T
+	for linux-omap@vger.kernel.org; Mon, 11 Jan 2010 23:33:25 +0000
+In-Reply-To: <1262912592-7817-2-git-send-email-alecrim@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <6cb013311001111114g6cd49663ja9f2099b6431d28@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Marek Belisko <marek.belisko@open-nandra.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Cory Maccarrone <darkstar6262@gmail.com> [100111 11:13]:
-> On Mon, Jan 11, 2010 at 2:44 AM, Ladislav Michl
-> <Ladislav.Michl@seznam.cz> wrote:
-> >
-> > This patch differs from v5 you sent earlier:
-> > =C2=A0Subject: [PATCH v5] mmc-omap: Add support for 16-bit and 32-b=
-it registers
-> > =C2=A0Date: Mon, 23 Nov 2009 10:37:28 -0800
-> > =C2=A0Message-Id: <1259001448-9574-1-git-send-email-darkstar6262@gm=
-ail.com>
-> >
-> > Patch below is not going to work with 32-bit wide registers. Whoeve=
-r is going
-> > to apply it, please don't. Use original version referred above.
-> >
-> > <snip>
-> >
-> > This is not going to work =C2=A0 =C2=A0 =C2=A0 ^^^^^^^^^^^^
->=20
-> Ah, right, good catch.  I thought I got the same one submitted -- thi=
-s
-> is an older one.  Sorry about that.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-I'll add the working v5 into omap-testing so we can make sure it works =
-with
-other omaps. Will not merge it further, it still needs to get to mainli=
-ne
-via linux-mmc list.
+Branch in linux-omap: cbus
 
-Regards,
+Initial commit ID (Likely to change): df01abf99660f3077315a1f69a462a8e46bacccb
 
-Tony
+PatchWorks
+http://patchwork.kernel.org/patch/71704/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=df01abf99660f3077315a1f69a462a8e46bacccb
+
+
