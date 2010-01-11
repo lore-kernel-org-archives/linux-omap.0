@@ -1,167 +1,284 @@
-From: Ladislav Michl <Ladislav.Michl@seznam.cz>
-Subject: Re: [PATCH v5 resubmit] mmc-omap: Add support for 16-bit and
-	32-bit registers
-Date: Mon, 11 Jan 2010 11:44:02 +0100
-Message-ID: <20100111104402.GA2587@localhost.localdomain>
-References: <1263059536-11397-1-git-send-email-darkstar6262@gmail.com>
-Reply-To: Ladislav Michl <ladis@linux-mips.org>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: [PATCH v3]: Introducing 'gpmc-nand.c' for GPMC specific NAND init
+Date: Mon, 11 Jan 2010 16:10:30 +0530
+Message-ID: <ce9ab5791001110240p6c74497eg128cb726ed4fe4d0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.76.43]:37698 "EHLO smtp.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752896Ab0AKJoK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Jan 2010 04:44:10 -0500
-Content-Disposition: inline
-In-Reply-To: <1263059536-11397-1-git-send-email-darkstar6262@gmail.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:36521 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750917Ab0AKKkw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 05:40:52 -0500
+Received: by bwz27 with SMTP id 27so126783bwz.21
+        for <linux-omap@vger.kernel.org>; Mon, 11 Jan 2010 02:40:50 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Marek Belisko <marek.belisko@open-nandra.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Linux MTD <linux-mtd@lists.infradead.org>
 
-On Sat, Jan 09, 2010 at 09:52:16AM -0800, Cory Maccarrone wrote:
-> From: Marek Belisko <marek.belisko@open-nandra.com>
-> 
-> The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
-> a modification of the register addresses in the mmc-omap driver.  To resolve
-> this, a bit shift is performed on base register addresses, either by 1 or 2
-> bits depending on the CPU in use.  This yields the correct registers for
-> each CPU.
-> 
-> Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
-> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
-> ---
->  drivers/mmc/host/omap.c |   63 +++++++++++++++++++++++++---------------------
->  1 files changed, 34 insertions(+), 29 deletions(-)
-> 
-> I am submitting this patch again, as it has been a long time since any
-> activity was on it, and I fear it may have been lost in the mailing list
-> history.  This change is required for mmc card functionality to work on
-> omap7xx devices.
+Re-summiting this patch. After re-basing on LO master.
 
-This patch differs from v5 you sent earlier:
-  Subject: [PATCH v5] mmc-omap: Add support for 16-bit and 32-bit registers
-  Date: Mon, 23 Nov 2009 10:37:28 -0800
-  Message-Id: <1259001448-9574-1-git-send-email-darkstar6262@gmail.com>
+-vimal
 
-Patch below is not going to work with 32-bit wide registers. Whoever is going
-to apply it, please don't. Use original version referred above.
 
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index c6d7e8e..c7ed01f 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -38,30 +38,30 @@
->  #include <plat/fpga.h>
->  
->  #define	OMAP_MMC_REG_CMD	0x00
-> -#define	OMAP_MMC_REG_ARGL	0x04
-> -#define	OMAP_MMC_REG_ARGH	0x08
-> -#define	OMAP_MMC_REG_CON	0x0c
-> -#define	OMAP_MMC_REG_STAT	0x10
-> -#define	OMAP_MMC_REG_IE		0x14
-> -#define	OMAP_MMC_REG_CTO	0x18
-> -#define	OMAP_MMC_REG_DTO	0x1c
-> -#define	OMAP_MMC_REG_DATA	0x20
-> -#define	OMAP_MMC_REG_BLEN	0x24
-> -#define	OMAP_MMC_REG_NBLK	0x28
-> -#define	OMAP_MMC_REG_BUF	0x2c
-> -#define OMAP_MMC_REG_SDIO	0x34
-> -#define	OMAP_MMC_REG_REV	0x3c
-> -#define	OMAP_MMC_REG_RSP0	0x40
-> -#define	OMAP_MMC_REG_RSP1	0x44
-> -#define	OMAP_MMC_REG_RSP2	0x48
-> -#define	OMAP_MMC_REG_RSP3	0x4c
-> -#define	OMAP_MMC_REG_RSP4	0x50
-> -#define	OMAP_MMC_REG_RSP5	0x54
-> -#define	OMAP_MMC_REG_RSP6	0x58
-> -#define	OMAP_MMC_REG_RSP7	0x5c
-> -#define	OMAP_MMC_REG_IOSR	0x60
-> -#define	OMAP_MMC_REG_SYSC	0x64
-> -#define	OMAP_MMC_REG_SYSS	0x68
-> +#define	OMAP_MMC_REG_ARGL	0x01
-> +#define	OMAP_MMC_REG_ARGH	0x02
-> +#define	OMAP_MMC_REG_CON	0x03
-> +#define	OMAP_MMC_REG_STAT	0x04
-> +#define	OMAP_MMC_REG_IE		0x05
-> +#define	OMAP_MMC_REG_CTO	0x06
-> +#define	OMAP_MMC_REG_DTO	0x07
-> +#define	OMAP_MMC_REG_DATA	0x08
-> +#define	OMAP_MMC_REG_BLEN	0x09
-> +#define	OMAP_MMC_REG_NBLK	0x0a
-> +#define	OMAP_MMC_REG_BUF	0x0b
-> +#define	OMAP_MMC_REG_SDIO	0x0d
-> +#define	OMAP_MMC_REG_REV	0x0f
-> +#define	OMAP_MMC_REG_RSP0	0x10
-> +#define	OMAP_MMC_REG_RSP1	0x11
-> +#define	OMAP_MMC_REG_RSP2	0x12
-> +#define	OMAP_MMC_REG_RSP3	0x13
-> +#define	OMAP_MMC_REG_RSP4	0x14
-> +#define	OMAP_MMC_REG_RSP5	0x15
-> +#define	OMAP_MMC_REG_RSP6	0x16
-> +#define	OMAP_MMC_REG_RSP7	0x17
-> +#define	OMAP_MMC_REG_IOSR	0x18
-> +#define	OMAP_MMC_REG_SYSC	0x19
-> +#define	OMAP_MMC_REG_SYSS	0x1a
->  
->  #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
->  #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
-> @@ -77,8 +77,9 @@
->  #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
->  #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
->  
-> -#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
-> -#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
-> +#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
-> +#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
-> +#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
->  
->  /*
->   * Command types
-> @@ -167,6 +168,8 @@ struct mmc_omap_host {
->  	spinlock_t		clk_lock;     /* for changing enabled state */
->  	unsigned int            fclk_enabled:1;
->  
-> +	unsigned		reg_shift:1;
-> +
-This is not going to work       ^^^^^^^^^^^^
->  	struct omap_mmc_platform_data *pdata;
->  };
->  
-> @@ -679,9 +682,9 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
->  	host->data->bytes_xfered += n;
->  
->  	if (write) {
-> -		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-> +		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
->  	} else {
-> -		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-> +		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
->  	}
->  }
->  
-> @@ -899,7 +902,7 @@ mmc_omap_prepare_dma(struct mmc_omap_host *host, struct mmc_data *data)
->  	int dst_port = 0;
->  	int sync_dev = 0;
->  
-> -	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
-> +	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
->  	frame = data->blksz;
->  	count = sg_dma_len(sg);
->  
-> @@ -1492,6 +1495,8 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
->  		}
->  	}
->  
-> +	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
-> +
->  	return 0;
->  
->  err_plat_cleanup:
-> -- 
-> 1.6.3.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>From a7ea8851fe96690c9322393eb35a344853992166 Mon Sep 17 00:00:00 2001
+From: Vimal Singh <vimalsingh@ti.com>
+Date: Mon, 11 Jan 2010 16:01:29 +0530
+Subject: [PATCH] Introducing 'gpmc-nand.c' for GPMC specific NAND init
+
+Introducing 'gpmc-nand.c' for GPMC specific NAND init.
+For example: GPMC timing parameters and all.
+This patch also migrates gpmc related calls from 'nand/omap2.c'
+to 'gpmc-nand.c'.
+
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+---
+ arch/arm/mach-omap2/Makefile           |    3 +
+ arch/arm/mach-omap2/gpmc-nand.c        |  136 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/nand.h |    6 ++
+ drivers/mtd/nand/omap2.c               |   26 +------
+ 4 files changed, 148 insertions(+), 23 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index b32678b..247438b 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -119,5 +119,8 @@ obj-y					+= usb-ehci.o
+ onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
+ obj-y					+= $(onenand-m) $(onenand-y)
+
++nand-$(CONFIG_MTD_NAND_OMAP2)		:= gpmc-nand.o
++obj-y					+= $(nand-m) $(nand-y)
++
+ smc91x-$(CONFIG_SMC91X)			:= gpmc-smc91x.o
+ obj-y					+= $(smc91x-m) $(smc91x-y)
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+new file mode 100644
+index 0000000..822ba82
+--- /dev/null
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -0,0 +1,136 @@
++/*
++ * gpmc-nand.c
++ *
++ * Copyright (C) 2009 Texas Instruments
++ * Vimal Singh <vimalsingh@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
++
++#include <asm/mach/flash.h>
++
++#include <plat/nand.h>
++#include <plat/board.h>
++#include <plat/gpmc.h>
++
++#define WR_RD_PIN_MONITORING	0x00600000
++
++static struct omap_nand_platform_data *gpmc_nand_data;
++
++static struct resource gpmc_nand_resource = {
++	.flags		= IORESOURCE_MEM,
++};
++
++static struct platform_device gpmc_nand_device = {
++	.name		= "omap2-nand",
++	.id		= 0,
++	.num_resources	= 1,
++	.resource	= &gpmc_nand_resource,
++};
++
++static int omap2_nand_gpmc_config(int cs, void __iomem *nand_base)
++{
++	struct gpmc_timings t;
++	int err;
++
++	const int cs_rd_off = 36;
++	const int cs_wr_off = 36;
++	const int adv_on = 6;
++	const int adv_rd_off = 24;
++	const int adv_wr_off = 36;
++	const int oe_off = 48;
++	const int we_off = 30;
++	const int rd_cycle = 72;
++	const int wr_cycle = 72;
++	const int access = 54;
++	const int wr_data_mux_bus = 0;
++	const int wr_access = 30;
++
++	memset(&t, 0, sizeof(t));
++	t.sync_clk = 0;
++	t.cs_on = 0;
++	t.adv_on = gpmc_round_ns_to_ticks(adv_on);
++
++	/* Read */
++	t.adv_rd_off = gpmc_round_ns_to_ticks(adv_rd_off);
++	t.oe_on  = t.adv_on;
++	t.access = gpmc_round_ns_to_ticks(access);
++	t.oe_off = gpmc_round_ns_to_ticks(oe_off);
++	t.cs_rd_off = gpmc_round_ns_to_ticks(cs_rd_off);
++	t.rd_cycle  = gpmc_round_ns_to_ticks(rd_cycle);
++
++	/* Write */
++	t.adv_wr_off = gpmc_round_ns_to_ticks(adv_wr_off);
++	t.we_on  = t.oe_on;
++	if (cpu_is_omap34xx()) {
++		t.wr_data_mux_bus = gpmc_round_ns_to_ticks(wr_data_mux_bus);
++		t.wr_access = gpmc_round_ns_to_ticks(wr_access);
++	}
++	t.we_off = gpmc_round_ns_to_ticks(we_off);
++	t.cs_wr_off = gpmc_round_ns_to_ticks(cs_wr_off);
++	t.wr_cycle  = gpmc_round_ns_to_ticks(wr_cycle);
++
++	/* Configure GPMC */
++	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
++			GPMC_CONFIG1_DEVICESIZE(gpmc_nand_data->devsize) |
++			GPMC_CONFIG1_DEVICETYPE_NAND);
++
++	err = gpmc_cs_set_timings(cs, &t);
++	if (err)
++		return err;
++
++	return 0;
++}
++
++static int gpmc_nand_setup(void __iomem *nand_base)
++{
++	struct device *dev = &gpmc_nand_device.dev;
++
++	/* Set timings in GPMC */
++	if (omap2_nand_gpmc_config(gpmc_nand_data->cs, nand_base) < 0) {
++		dev_err(dev, "Unable to set gpmc timings\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++int __init gpmc_nand_init(struct omap_nand_platform_data *_nand_data)
++{
++	unsigned int val;
++	int err	= 0;
++	struct device *dev = &gpmc_nand_device.dev;
++
++	gpmc_nand_data = _nand_data;
++	gpmc_nand_data->nand_setup = gpmc_nand_setup;
++	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
++
++	err = gpmc_nand_setup(gpmc_nand_data->gpmc_cs_baseaddr);
++	if (err < 0) {
++		dev_err(dev, "NAND platform setup failed: %d\n", err);
++		return err;
++	}
++
++	/* Enable RD PIN Monitoring Reg */
++	if (gpmc_nand_data->dev_ready) {
++		val  = gpmc_cs_read_reg(gpmc_nand_data->cs,
++						 GPMC_CS_CONFIG1);
++		val |= WR_RD_PIN_MONITORING;
++		gpmc_cs_write_reg(gpmc_nand_data->cs,
++						GPMC_CS_CONFIG1, val);
++	}
++
++	err = platform_device_register(&gpmc_nand_device);
++	if (err < 0) {
++		dev_err(dev, "Unable to register NAND device\n");
++		return err;
++	}
++
++	return 0;
++}
+diff --git a/arch/arm/plat-omap/include/plat/nand.h
+b/arch/arm/plat-omap/include/plat/nand.h
+index 631a7be..2ba9842 100644
+--- a/arch/arm/plat-omap/include/plat/nand.h
++++ b/arch/arm/plat-omap/include/plat/nand.h
+@@ -21,4 +21,10 @@ struct omap_nand_platform_data {
+ 	int			dma_channel;
+ 	void __iomem		*gpmc_cs_baseaddr;
+ 	void __iomem		*gpmc_baseaddr;
++	int			devsize;
+ };
++
++/* size (4 KiB) for IO mapping */
++#define	NAND_IO_SIZE	SZ_4K
++
++extern int gpmc_nand_init(struct omap_nand_platform_data *d);
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 7df303a..af028f7 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -30,12 +30,8 @@
+
+ #define	DRIVER_NAME	"omap2-nand"
+
+-/* size (4 KiB) for IO mapping */
+-#define	NAND_IO_SIZE	SZ_4K
+-
+ #define	NAND_WP_OFF	0
+ #define NAND_WP_BIT	0x00000010
+-#define WR_RD_PIN_MONITORING	0x00600000
+
+ #define	GPMC_BUF_FULL	0x00000001
+ #define	GPMC_BUF_EMPTY	0x00000000
+@@ -885,8 +881,6 @@ static int __devinit omap_nand_probe(struct
+platform_device *pdev)
+ 	struct omap_nand_info		*info;
+ 	struct omap_nand_platform_data	*pdata;
+ 	int				err;
+-	unsigned long 			val;
+-
+
+ 	pdata = pdev->dev.platform_data;
+ 	if (pdata == NULL) {
+@@ -913,24 +907,15 @@ static int __devinit omap_nand_probe(struct
+platform_device *pdev)
+ 	info->mtd.name		= dev_name(&pdev->dev);
+ 	info->mtd.owner		= THIS_MODULE;
+
++	info->nand.options	|= pdata->devsize ? NAND_BUSWIDTH_16 : 0;
++	info->nand.options	|= NAND_SKIP_BBTSCAN;
++
+ 	err = gpmc_cs_request(info->gpmc_cs, NAND_IO_SIZE, &info->phys_base);
+ 	if (err < 0) {
+ 		dev_err(&pdev->dev, "Cannot request GPMC CS\n");
+ 		goto out_free_info;
+ 	}
+
+-	/* Enable RD PIN Monitoring Reg */
+-	if (pdata->dev_ready) {
+-		val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1);
+-		val |= WR_RD_PIN_MONITORING;
+-		gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG1, val);
+-	}
+-
+-	val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG7);
+-	val &= ~(0xf << 8);
+-	val |=  (0xc & 0xf) << 8;
+-	gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG7, val);
+-
+ 	/* NAND write protect off */
+ 	omap_nand_wp(&info->mtd, NAND_WP_OFF);
+
+@@ -966,11 +951,6 @@ static int __devinit omap_nand_probe(struct
+platform_device *pdev)
+ 		info->nand.chip_delay = 50;
+ 	}
+
+-	info->nand.options  |= NAND_SKIP_BBTSCAN;
+-	if ((gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1) & 0x3000)
+-								== 0x1000)
+-		info->nand.options  |= NAND_BUSWIDTH_16;
+-
+ 	if (use_prefetch) {
+ 		/* copy the virtual address of nand base for fifo access */
+ 		info->nand_pref_fifo_add = info->nand.IO_ADDR_R;
+-- 
+1.5.5
