@@ -1,79 +1,58 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv2 1/1] OMAP3: PM: Fix OTG autoidle workaround
-Date: Tue, 12 Jan 2010 11:49:46 -0800
-Message-ID: <87skab6r39.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB031DC20A71@dbde02.ent.ti.com>
-	<1261132763-16697-1-git-send-email-eduardo.valentin@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] save and restore etm state across core OFF modes
+Date: Tue, 12 Jan 2010 13:04:04 -0800
+Message-ID: <20100112210404.GB2986@atomide.com>
+References: <1263315891-4440-1-git-send-email-virtuoso@slind.org>
+ <4B4CADA9.4020502@ti.com>
+ <20100112173022.GG29059@shisha.kicks-ass.net>
+ <4B4CB259.2010301@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f228.google.com ([209.85.217.228]:36024 "EHLO
-	mail-gx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753606Ab0ALTtu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 14:49:50 -0500
-Received: by gxk28 with SMTP id 28so15951391gxk.9
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jan 2010 11:49:49 -0800 (PST)
-In-Reply-To: <1261132763-16697-1-git-send-email-eduardo.valentin@nokia.com> (Eduardo Valentin's message of "Fri\, 18 Dec 2009 12\:39\:23 +0200")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65106 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753989Ab0ALVEA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 16:04:00 -0500
+Content-Disposition: inline
+In-Reply-To: <4B4CB259.2010301@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: Kristo Tero <Tero.Kristo@nokia.com>, Balbi Felipe <felipe.balbi@nokia.com>, Gadiyar Anand <gadiyar@ti.com>, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-Eduardo Valentin <eduardo.valentin@nokia.com> writes:
+* Nishanth Menon <nm@ti.com> [100112 09:31]:
+> Alexander Shishkin had written, on 01/12/2010 11:30 AM, the following:
+> >On Tue, Jan 12, 2010 at 11:13:13 -0600, Nishanth Menon wrote:
+> >>Alexander Shishkin had written, on 01/12/2010 11:04 AM, the following:
+> 
+> >>>diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> >>>index 69521be..0a5ec86 100644
+> >>>--- a/arch/arm/mach-omap2/sleep34xx.S
+> >>>+++ b/arch/arm/mach-omap2/sleep34xx.S
+> [...]
+> >>>	/* Store current cpsr*/
+> >>>	mrs	r2, cpsr
+> >>>	stmia	r8!, {r2}
+> >>>@@ -520,6 +616,7 @@ clean_caches:
+> >>>	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+> >>>	bne	skip_l2_inval
+> >>>clean_l2:
+> >>>+#if 0
+> >>my aversion to #if 0 kicks in here :(.. do we have an alternative
+> >>like using the CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG or something
+> >>else?
+> >
+> >Fair enough. I could replace it with "#if !defined(...)" as the first
+> >thing that comes to mind. This way it will only take disabling the
+> >config option to catch any possible regressions in between. Does this
+> >sound reasonable?
+> sounds ok to me.. unless folks have ideas coz of clean_l2 label..
+> more comments might be useful before a rev2 of the patch..
 
-> From: Eduardo Valentin <eduardo.valentin@nokia.com>
->
-> This patch fix the OTG autoidle workaround so now
-> usb gadget modules can be properly loaded.
->
-> Besides it also adds a cpu check, because this hardware
-> but is present only in OMAP34xx chips.
+The best solution would be to be able to toggle this via sysfs or
+debugfs by swapping the sram code for idle loop when JTAG support
+is needed.
 
-s/but/bug/
+Regards,
 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-
-Thanks, adding to PM branch with above typo fix.
-
-Kevin
-
->  arch/arm/mach-omap2/pm34xx.c   |    3 ++-
->  arch/arm/mach-omap2/usb-musb.c |    9 ++++++++-
->  2 files changed, 10 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index c301261..db75975 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -505,7 +505,8 @@ void omap_sram_idle(void)
->  			 * Errata 1.164 fix : OTG autoidle can prevent
->  			 * sleep
->  			 */
-> -			usb_musb_disable_autoidle();
-> +			if (cpu_is_omap3430())
-> +				usb_musb_disable_autoidle();
->  		}
->  		omap_uart_resume_idle(0);
->  		omap_uart_resume_idle(1);
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-> index bb3cee4..cbd4e45 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -81,7 +81,14 @@ static void __init usb_musb_pm_init(void)
->  
->  void usb_musb_disable_autoidle(void)
->  {
-> -	__raw_writel(0, otg_base + OTG_SYSCONFIG);
-> +	if (otg_clk) {
-> +		unsigned long reg;
-> +
-> +		clk_enable(otg_clk);
-> +		reg = __raw_readl(otg_base + OTG_SYSCONFIG);
-> +		__raw_writel(reg & ~1, otg_base + OTG_SYSCONFIG);
-> +		clk_disable(otg_clk);
-> +	}
->  }
->  
->  #ifdef CONFIG_USB_MUSB_SOC
-> -- 
-> 1.6.5.7.g9ecb2
+Tony
