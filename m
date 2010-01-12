@@ -1,35 +1,42 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCH] ASoC: TWL4030: Fix typo in comment in header file
-Date: Tue, 12 Jan 2010 09:54:47 +0100
-Message-ID: <1263286487-27471-1-git-send-email-weber@corscience.de>
+From: Romit Dasgupta <romit@ti.com>
+Subject: Re: [PM-WIP-OPP] [PATCH] cleaner ceil function for uv to vsel conversion
+Date: Tue, 12 Jan 2010 14:28:35 +0530
+Message-ID: <4B4C39BB.5090409@ti.com>
+References: <1263189218.16324.3.camel@boson> <876378mg2a.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:51700 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753368Ab0ALIzJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 03:55:09 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:54652 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753266Ab0ALI6o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jan 2010 03:58:44 -0500
+In-Reply-To: <876378mg2a.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thomas Weber <weber@corscience.de>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
----
- sound/soc/codecs/twl4030.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Kevin Hilman wrote:
+> Romit Dasgupta <romit@ti.com> writes:
+> 
+>> Cleaner ceil function.
+> 
+> Needs better subject and better changelog.
+> 
+> Subject should probably be something like: OMAP: 
+> 
+>   [PATCH] OPP: TWL/TPS: optimize uv to vsel function
+> 
+> And changelog should describe the motiviation for the patch or a
+> description of the problem you're trying to solve.
+The description of the problem is "Cleaner ceil function for uv to vsel
+conversion".
 
-diff --git a/sound/soc/codecs/twl4030.h b/sound/soc/codecs/twl4030.h
-index dd6396e..f206d24 100644
---- a/sound/soc/codecs/twl4030.h
-+++ b/sound/soc/codecs/twl4030.h
-@@ -25,7 +25,7 @@
- /* Register descriptions are here */
- #include <linux/mfd/twl4030-codec.h>
- 
--/* Sgadow register used by the audio driver */
-+/* Shadow register used by the audio driver */
- #define TWL4030_REG_SW_SHADOW		0x4A
- #define TWL4030_CACHEREGNUM	(TWL4030_REG_SW_SHADOW + 1)
- 
--- 
-1.6.4.4
+I think this patch is simple enough for people on this list to understand the
+optimization. I am sorry I cant be more descriptive.
 
+> IOW, is this a
+> correctness fix, or an optimization, etc.  Looks to me like it's tring
+> to compensate for some rounding issues, but please describe in detail
+> in the changelog.
