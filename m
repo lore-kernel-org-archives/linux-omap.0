@@ -1,61 +1,99 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 5/5] OMAP1 clock: convert armwdt_ck to use the fixed divisor
-	recalc function
-Date: Mon, 11 Jan 2010 17:46:29 -0700
-Message-ID: <20100112004628.24684.49978.stgit@localhost.localdomain>
+Subject: [PATCH 2/5] OMAP3 clock: reorganize CK_* platform flags
+Date: Mon, 11 Jan 2010 17:46:24 -0700
+Message-ID: <20100112004623.24684.75044.stgit@localhost.localdomain>
 References: <20100112004326.24684.91321.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55147 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55134 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753887Ab0ALArb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 19:47:31 -0500
+	with ESMTP id S1753312Ab0ALAra (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 19:47:30 -0500
 In-Reply-To: <20100112004326.24684.91321.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, Ranjith Lohithakshan <ranjithl@ti.com>
 
-The armwdt_ck clock uses a fixed divisor, so it can use the OMAP clock
-fixed divisor recalculation code, rather than a custom function.
+Add CK_* flags for the two new Sitara chips, AM3505 and AM3517, and
+the OMAP34xx die shrink, OMAP36xx/OMAP37xx.  Introduce a new CK_*
+flag, CK_3XXX, that marks all clocks that are common to OMAP3 family
+chips.  CK_343X now refers to clocks that are available only on
+OMAP34{1,2,3,4}0 (WTBU) and OMAP35{03,15,25,30} (any version).
+At some point, the RATE_IN_* flags should be updated also.
+
+While here, add some documentation describing the chip families
+covered by these clock flags.
+
+This patch is partially based on patches from Ranjith Lohithakshan
+<ranjithl@ti.com> and Vishwanath Sripathy <vishwanath.bs@ti.com>.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Ranjith Lohithakshan <ranjithl@ti.com>
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap1/clock.c      |    6 ------
- arch/arm/mach-omap1/clock_data.c |    3 ++-
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/clock34xx_data.c          |    4 ++--
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |   26 ++++++++++++++++---------
+ 2 files changed, 19 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 2ba9ab9..5b735b2 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -52,12 +52,6 @@ const struct clkops clkops_dummy = {
- 	.disable	= clk_omap1_dummy_disable,
- };
+diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
+index c6031d7..59b0903 100644
+--- a/arch/arm/mach-omap2/clock34xx_data.c
++++ b/arch/arm/mach-omap2/clock34xx_data.c
+@@ -3220,11 +3220,11 @@ int __init omap2_clk_init(void)
+ 	/* struct prcm_config *prcm; */
+ 	struct omap_clk *c;
+ 	/* u32 clkrate; */
+-	u32 cpu_clkflg;
++	u32 cpu_clkflg = CK_3XXX;
  
--/* XXX can be replaced with a fixed_divisor_recalc */
--unsigned long omap1_watchdog_recalc(struct clk *clk)
--{
--	return clk->parent->rate / 14;
--}
+ 	if (cpu_is_omap34xx()) {
+ 		cpu_mask = RATE_IN_343X;
+-		cpu_clkflg = CK_343X;
++		cpu_clkflg |= CK_343X;
+ 
+ 		/*
+ 		 * Update this if there are further clock changes between ES2
+diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+index 35b36ca..bb937f3 100644
+--- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
++++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+@@ -25,17 +25,25 @@ struct omap_clk {
+ 		},			\
+ 	}
+ 
 -
- unsigned long omap1_uart_recalc(struct clk *clk)
- {
- 	unsigned int val = __raw_readl(clk->enable_reg);
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index 65e7b5b..edefb34 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -149,7 +149,8 @@ static struct arm_idlect1_clk armwdt_ck = {
- 		.flags		= CLOCK_IDLE_CONTROL,
- 		.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
- 		.enable_bit	= EN_WDTCK,
--		.recalc		= &omap1_watchdog_recalc,
-+		.fixed_div	= 14,
-+		.recalc		= &omap_fixed_divisor_recalc,
- 	},
- 	.idlect_shift	= 0,
- };
++/* Platform flags for the clkdev-OMAP integration code */
+ #define CK_310		(1 << 0)
+-#define CK_7XX		(1 << 1)
++#define CK_7XX		(1 << 1)	/* 7xx, 850 */
+ #define CK_1510		(1 << 2)
+-#define CK_16XX		(1 << 3)
+-#define CK_243X		(1 << 4)
+-#define CK_242X		(1 << 5)
+-#define CK_343X		(1 << 6)
+-#define CK_3430ES1	(1 << 7)
+-#define CK_3430ES2	(1 << 8)
+-#define CK_443X		(1 << 9)
++#define CK_16XX		(1 << 3)	/* 16xx, 17xx, 5912 */
++#define CK_242X		(1 << 4)
++#define CK_243X		(1 << 5)
++#define CK_3XXX		(1 << 6)	/* OMAP3 + AM3 common clocks*/
++#define CK_343X		(1 << 7)	/* OMAP34xx common clocks */
++#define CK_3430ES1	(1 << 8)	/* 34xxES1 only */
++#define CK_3430ES2	(1 << 9)	/* 34xxES2, ES3, non-Sitara 35xx only */
++#define CK_3505		(1 << 10)
++#define CK_3517		(1 << 11)
++#define CK_36XX		(1 << 12)	/* OMAP36xx/37xx-specific clocks */
++#define CK_443X		(1 << 13)
++
++#define CK_AM35XX	(CK_3505 | CK_3517)	/* all Sitara AM35xx */
++
++
+ 
+ #endif
+ 
 
 
