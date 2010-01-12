@@ -1,139 +1,175 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/3] OMAP: omap_device: optionally auto-adjust device activate/deactivate latencies
-Date: Mon, 11 Jan 2010 16:50:26 -0800
-Message-ID: <871vhwjgdp.fsf@deeprootsystems.com>
-References: <1262993213-19866-1-git-send-email-khilman@deeprootsystems.com>
-	<1262993213-19866-2-git-send-email-khilman@deeprootsystems.com>
-	<4B489B1A.8040609@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH v3 3/7] DSPBRIDGE: Mark unused ioctls as deprecated
+Date: Mon, 11 Jan 2010 19:00:37 -0600
+Message-ID: <1263258041-16836-4-git-send-email-omar.ramirez@ti.com>
+References: <1263258041-16836-1-git-send-email-omar.ramirez@ti.com>
+ <1263258041-16836-2-git-send-email-omar.ramirez@ti.com>
+ <1263258041-16836-3-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.211.176]:48615 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754575Ab0ALAu2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Jan 2010 19:50:28 -0500
-Received: by ywh6 with SMTP id 6so22012364ywh.4
-        for <linux-omap@vger.kernel.org>; Mon, 11 Jan 2010 16:50:28 -0800 (PST)
-In-Reply-To: <4B489B1A.8040609@gmail.com> (Nishanth Menon's message of "Sat\, 09 Jan 2010 09\:04\:58 -0600")
+Received: from comal.ext.ti.com ([198.47.26.152]:47214 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754576Ab0ALAvO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Jan 2010 19:51:14 -0500
+In-Reply-To: <1263258041-16836-3-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <menon.nishanth@gmail.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Nishanth Menon <menon.nishanth@gmail.com> writes:
+Mark unused ioctls as deprecated for future removal
+and print an error message whenever they are used.
 
-> Kevin Hilman said the following on 01/08/2010 05:26 PM:
->> First, this patch adds new worst-case latency values to the
->> omap_device_pm_latency struct.  Here the worst-case measured latencies
->> for the activate and deactivate hooks are stored.
->>
->> In addition, add an option to auto-adjust the latency values used for
->> device activate/deactivate.
->>
->> By setting a new 'OMAP_DEVICE_LATENCY_AUTO_ADJUST' flag in the
->> omap_device_pm_latency struct, the omap_device layer automatically
->> adjusts the activate/deactivate latencies to the worst-case measured
->> values.
->>
->> Anytime a new worst-case value is found, it is printed to the console.
->> Here is an example log during boot using UART2 s an example.  After
->> boot, the OPP is manually changed to the 125MHz OPP:
->>
->> [...]
->> Freeing init memory: 128K
->> omap_device: serial8250.2: new worst case deactivate latency 0: 30517
->> omap_device: serial8250.2: new worst case activate latency 0: 30517
->> omap_device: serial8250.2: new worst case activate latency 0: 218139648
->> omap_device: serial8250.2: new worst case deactivate latency 0: 61035
->> omap_device: serial8250.2: new worst case activate latency 0: 278076171
->> omap_device: serial8250.2: new worst case activate latency 0: 298614501
->> omap_device: serial8250.2: new worst case activate latency 0: 327331542
->>
->> / # echo 125000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
->>
->> omap_device: serial8250.2: new worst case deactivate latency 0: 91552
->>
->> Motivation: this can be used as a technique to automatically determine
->> the worst case latency values.  The current method of printing a
->> warning on every violation is too noisy to actually interact the
->> console in order to set low OPP to discover latencies.
->>
->> Another motivation for this patch is that the activate/deactivate
->> latenices can vary depending on the idlemode of the device.  While
->> working on the UARTs, I noticed that when using no-idle, the activate
->> latencies were as high as several hundred msecs as shown above.  When
->> the UARTs are in smart-idle, the max latency is well under 100 usecs.
->>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->>  arch/arm/plat-omap/include/plat/omap_device.h |    4 ++
->>  arch/arm/plat-omap/omap_device.c              |   41 ++++++++++++++++++++-----
->>  2 files changed, 37 insertions(+), 8 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
->> index dc1fac1..76d4917 100644
->> --- a/arch/arm/plat-omap/include/plat/omap_device.h
->> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
->> @@ -131,11 +131,15 @@ int omap_device_enable_clocks(struct omap_device *od);
->>   */
->>  struct omap_device_pm_latency {
->>  	u32 deactivate_lat;
->> +	u32 deactivate_lat_worst;
->>  	int (*deactivate_func)(struct omap_device *od);
->>  	u32 activate_lat;
->> +	u32 activate_lat_worst;
->>  	int (*activate_func)(struct omap_device *od);
->> +	u32 flags;
->>  };
->>  +#define OMAP_DEVICE_LATENCY_AUTO_ADJUST BIT(1)
->>   /* Get omap_device pointer from platform_device pointer */
->>  #define to_omap_device(x) container_of((x), struct omap_device, pdev)
->> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
->> index 1e5648d..d8c75c8 100644
->> --- a/arch/arm/plat-omap/omap_device.c
->> +++ b/arch/arm/plat-omap/omap_device.c
->> @@ -148,10 +148,22 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
->>  			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
->>  			 act_lat);
->>  -		WARN(act_lat > odpl->activate_lat, "omap_device:
->> %s.%d: "
->> -		     "activate step %d took longer than expected (%llu > %d)\n",
->> -		     od->pdev.name, od->pdev.id, od->pm_lat_level,
->> -		     act_lat, odpl->activate_lat);
->> +		if (act_lat > odpl->activate_lat) {
->> +			odpl->activate_lat_worst = act_lat;
->> +			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
->> +				odpl->activate_lat = act_lat;
->> +				pr_warning("omap_device: %s.%d: new worst case "
->> +					   "activate latency %d: %llu\n",
->> +					   od->pdev.name, od->pdev.id,
->> +					   od->pm_lat_level, act_lat);
->>   
-> nitpicky dumb comment: since the flags say auto adjust, do you care to
-> make this just a pr_info instead of a warning. it is not the same
-> severity as latency>activate_latency without AUTO_ADJUST right?
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+CC: Nishanth Menon <nm@ti.com>
+CC: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+CC: Ameya Palande <ameya.palande@nokia.com>
+CC: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ arch/arm/plat-omap/include/dspbridge/wcdioctl.h |   11 ++++--
+ drivers/dsp/bridge/pmgr/wcd.c                   |   38 +++++++++--------------
+ 2 files changed, 22 insertions(+), 27 deletions(-)
 
-Agreed, will change to pr_info()
+diff --git a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h b/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
+index 04b13ab..4b9dd0a 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
++++ b/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
+@@ -439,6 +439,8 @@ union Trapped_Args {
+ 
+ #define CMD_BASE		    1
+ 
++/* TODO: Remove deprecated and not implemented */
++
+ /* MGR module offsets */
+ #define CMD_MGR_BASE_OFFSET	     CMD_BASE
+ #define CMD_MGR_ENUMNODE_INFO_OFFSET    (CMD_MGR_BASE_OFFSET + 0)
+@@ -448,7 +450,7 @@ union Trapped_Args {
+ #define CMD_MGR_WAIT_OFFSET	     (CMD_MGR_BASE_OFFSET + 4)
+ 
+ #ifndef RES_CLEANUP_DISABLE
+-#define CMD_MGR_RESOUCES_OFFSET	 (CMD_MGR_BASE_OFFSET + 5)
++#define CMD_MGR_RESOUCES_OFFSET	 (CMD_MGR_BASE_OFFSET + 5)    /* Deprecated */
+ #define CMD_MGR_END_OFFSET	      CMD_MGR_RESOUCES_OFFSET
+ #else
+ #define CMD_MGR_END_OFFSET	      CMD_MGR_WAIT_OFFSET
+@@ -457,7 +459,7 @@ union Trapped_Args {
+ #define CMD_PROC_BASE_OFFSET	    (CMD_MGR_END_OFFSET + 1)
+ #define CMD_PROC_ATTACH_OFFSET	  (CMD_PROC_BASE_OFFSET + 0)
+ #define CMD_PROC_CTRL_OFFSET	    (CMD_PROC_BASE_OFFSET + 1)
+-#define CMD_PROC_DETACH_OFFSET	  (CMD_PROC_BASE_OFFSET + 2)
++#define CMD_PROC_DETACH_OFFSET	  (CMD_PROC_BASE_OFFSET + 2)  /* Deprecated */
+ #define CMD_PROC_ENUMNODE_OFFSET	(CMD_PROC_BASE_OFFSET + 3)
+ #define CMD_PROC_ENUMRESOURCES_OFFSET   (CMD_PROC_BASE_OFFSET + 4)
+ #define CMD_PROC_GETSTATE_OFFSET	(CMD_PROC_BASE_OFFSET + 5)
+@@ -497,6 +499,7 @@ union Trapped_Args {
+ #define CMD_STRM_ALLOCATEBUFFER_OFFSET  (CMD_STRM_BASE_OFFSET + 0)
+ #define CMD_STRM_CLOSE_OFFSET	   (CMD_STRM_BASE_OFFSET + 1)
+ #define CMD_STRM_FREEBUFFER_OFFSET      (CMD_STRM_BASE_OFFSET + 2)
++/* Not Impl'd */
+ #define CMD_STRM_GETEVENTHANDLE_OFFSET  (CMD_STRM_BASE_OFFSET + 3)
+ #define CMD_STRM_GETINFO_OFFSET	 (CMD_STRM_BASE_OFFSET + 4)
+ #define CMD_STRM_IDLE_OFFSET	    (CMD_STRM_BASE_OFFSET + 5)
+@@ -509,8 +512,8 @@ union Trapped_Args {
+ 
+ /* Communication Memory Manager (UCMM) */
+ #define CMD_CMM_BASE_OFFSET	     (CMD_STRM_END_OFFSET + 1)
+-#define CMD_CMM_ALLOCBUF_OFFSET	 (CMD_CMM_BASE_OFFSET + 0)
+-#define CMD_CMM_FREEBUF_OFFSET	  (CMD_CMM_BASE_OFFSET + 1)
++#define CMD_CMM_ALLOCBUF_OFFSET	 (CMD_CMM_BASE_OFFSET + 0)    /* Not Impl'd */
++#define CMD_CMM_FREEBUF_OFFSET	  (CMD_CMM_BASE_OFFSET + 1)   /* Not Impl'd */
+ #define CMD_CMM_GETHANDLE_OFFSET	(CMD_CMM_BASE_OFFSET + 2)
+ #define CMD_CMM_GETINFO_OFFSET	  (CMD_CMM_BASE_OFFSET + 3)
+ #define CMD_CMM_END_OFFSET	      CMD_CMM_GETINFO_OFFSET
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index 7226b5a..f95980b 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -456,6 +456,8 @@ DSP_STATUS WCD_InitComplete2(void)
+ 	return status;
+ }
+ 
++/* TODO: Remove deprecated and not implemented ioctl wrappers */
++
+ /*
+  * ======== MGRWRAP_EnumNode_Info ========
+  */
+@@ -634,21 +636,11 @@ u32 MGRWRAP_WaitForBridgeEvents(union Trapped_Args *args, void *pr_ctxt)
+ /*
+  * ======== MGRWRAP_GetProcessResourceInfo ========
+  */
+-u32 MGRWRAP_GetProcessResourcesInfo(union Trapped_Args *args, void *pr_ctxt)
++u32 __deprecated MGRWRAP_GetProcessResourcesInfo(union Trapped_Args *args,
++						void *pr_ctxt)
+ {
+-    DSP_STATUS status = DSP_SOK;
+-    u32 uSize = 0;
+-    u8 *pBuf = MEM_Alloc(8092, MEM_NONPAGED);
+-    GT_1trace(WCD_debugMask, GT_ENTER,
+-	     "MGRWRAP_GetProcessResourcesInfo:uSize=%d :\n", uSize);
+-    cp_to_usr(args->ARGS_PROC_GETTRACE.pBuf, pBuf, status, uSize);
+-    GT_0trace(WCD_debugMask, GT_ENTER, "\n***********"
+-	     "123MGRWRAP_GetProcessResourcesInfo:**************\n");
+-    GT_0trace(WCD_debugMask, GT_ENTER, "\n***********"
+-	     "456MGRWRAP_GetProcessResourcesInfo:**************\n");
+-    cp_to_usr(args->ARGS_PROC_GETTRACE.pSize, &uSize, status, 1);
+-    MEM_Free(pBuf);
+-    return status;
++	pr_err("%s: deprecated dspbridge ioctl\n", __func__);
++	return DSP_SOK;
+ }
+ #endif
+ 
+@@ -732,14 +724,10 @@ func_end:
+ /*
+  * ======== PROCWRAP_Detach ========
+  */
+-u32 PROCWRAP_Detach(union Trapped_Args *args, void *pr_ctxt)
++u32 __deprecated PROCWRAP_Detach(union Trapped_Args *args, void *pr_ctxt)
+ {
+-	GT_1trace(WCD_debugMask, GT_ENTER,
+-		 "PROCWRAP_Detach: entered args\n0x%x "
+-		 "hProceesor \n", args->ARGS_PROC_DETACH.hProcessor);
+-
+ 	/* PROC_Detach called at bridge_release only */
+-
++	pr_err("%s: deprecated dspbridge ioctl\n", __func__);
+ 	return DSP_SOK;
+ }
+ 
+@@ -1540,8 +1528,10 @@ u32 STRMWRAP_FreeBuffer(union Trapped_Args *args, void *pr_ctxt)
+ /*
+  * ======== STRMWRAP_GetEventHandle ========
+  */
+-u32 STRMWRAP_GetEventHandle(union Trapped_Args *args, void *pr_ctxt)
++u32 __deprecated STRMWRAP_GetEventHandle(union Trapped_Args *args,
++					void *pr_ctxt)
+ {
++	pr_err("%s: deprecated dspbridge ioctl\n", __func__);
+ 	return DSP_ENOTIMPL;
+ }
+ 
+@@ -1703,18 +1693,20 @@ u32 STRMWRAP_Select(union Trapped_Args *args, void *pr_ctxt)
+ /*
+  * ======== CMMWRAP_CallocBuf ========
+  */
+-u32 CMMWRAP_CallocBuf(union Trapped_Args *args, void *pr_ctxt)
++u32 __deprecated CMMWRAP_CallocBuf(union Trapped_Args *args, void *pr_ctxt)
+ {
+ 	/* This operation is done in kernel */
++	pr_err("%s: deprecated dspbridge ioctl\n", __func__);
+ 	return DSP_ENOTIMPL;
+ }
+ 
+ /*
+  * ======== CMMWRAP_FreeBuf ========
+  */
+-u32 CMMWRAP_FreeBuf(union Trapped_Args *args, void *pr_ctxt)
++u32 __deprecated CMMWRAP_FreeBuf(union Trapped_Args *args, void *pr_ctxt)
+ {
+ 	/* This operation is done in kernel */
++	pr_err("%s: deprecated dspbridge ioctl\n", __func__);
+ 	return DSP_ENOTIMPL;
+ }
+ 
+-- 
+1.6.2.4
 
->> +			} else
->> +				pr_warning("omap_device: %s.%d: activate "
->> +					   "latency %d higher than exptected. "
->> +					   "(%llu > %d)\n",
->> +					   od->pdev.name, od->pdev.id,
->> +					   od->pm_lat_level, act_lat,
->> +					   odpl->activate_lat);
->>   
-> nitpick: I think you need {} for the else part too now a days..
-
-you mean as a CodingStyle issue, or a compiler issue?
-do you have a reference for this requirement? 
-
-do you mean if the 'if' part has {}, the else part should too, even if
-it's a single line?
-
-I don't really care one way or the other, just want to know more about
-what you're suggesting.
-
-Thanks,
-
-Kevin
