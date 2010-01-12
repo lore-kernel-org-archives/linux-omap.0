@@ -1,71 +1,109 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PM-WIP-OPP][PATCH v3] pm: opp: twl/tps: optimize uv to vsel function
-Date: Tue, 12 Jan 2010 08:07:53 -0800
-Message-ID: <87ockzi9wm.fsf@deeprootsystems.com>
-References: <1263306978-7150-1-git-send-email-nm@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of
+ sysconfig register.
+Date: Tue, 12 Jan 2010 17:08:38 +0100
+Message-ID: <74583B8642AB8841B30447520659FCA9E73BD934@dnce01.ent.ti.com>
+References: <1260098674-27143-1-git-send-email-thara@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E171@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1001051730230.21295@utopia.booyaka.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB031E1D6B7B@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1001111515080.8534@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:9695 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750741Ab0ALQID (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 11:08:03 -0500
-Received: by qw-out-2122.google.com with SMTP id 8so3379999qwh.37
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jan 2010 08:08:02 -0800 (PST)
-In-Reply-To: <1263306978-7150-1-git-send-email-nm@ti.com> (Nishanth Menon's message of "Tue\, 12 Jan 2010 08\:36\:18 -0600")
+Received: from bear.ext.ti.com ([192.94.94.41]:45730 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751445Ab0ALQI6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 11:08:58 -0500
+Content-Class: urn:content-classes:message
+In-Reply-To: <alpine.DEB.2.00.1001111515080.8534@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Romit Dasgupta <romit@ti.com>
+To: 'Paul Walmsley' <paul@pwsan.com>, "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Nishanth Menon <nm@ti.com> writes:
+Hi Paul,
 
-> From: Romit Dasgupta <romit@ti.com>
 >
-> For integer values x and y; int div x / y causes truncation. Current
-> omap_twl_uv_to_vsel function implements an equivalent of ceil which
-> is based on an if condition to check truncation and round up. We can
-> do this in a more optimal manner without the if condition. The round
-> up is handled by adding the round off factor prior to truncation as:
-> (x + (y - 1)) / y
->
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Acked-by: Nishanth Menon <nm@ti.com>
->
-> Signed-off-by: Romit Dasgupta <romit@ti.com>
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
 
-Thanks, adding to pm-wip-opp
+-----Original Message-----
 
-Kevin
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>owner@vger.kernel.org] On Behalf Of Paul Walmsley
+>Sent: Monday, January 11, 2010 11:21 PM
+>To: Gopinath, Thara
+>Cc: linux-omap@vger.kernel.org
+>Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of
+>sysconfig register.
+>
+>On Thu, 7 Jan 2010, Gopinath, Thara wrote:
+>
+>> >>-----Original Message-----
+>> >>From: Paul Walmsley [mailto:paul@pwsan.com]
+>> >>Sent: Wednesday, January 06, 2010 6:02 AM
+>> >>To: Gopinath, Thara
+>> >>Cc: linux-omap@vger.kernel.org
+>> >>Subject: RE: [PATCH] OMAP3: hwmod: Adding flag to prevent caching of
+>sysconfig register.
+>> >>
+>> >>On Wed, 23 Dec 2009, Gopinath, Thara wrote:
+>> >>
+>> >>> Hi Paul,Kevin.. Does this patch look ok?
+>> >>
+>> >>Hello Thara,
+>> >>
+>> >>looking over this patch.  Nice job on the descriptive patch comment;
+>> >>it explains the problem well.  What do you think about a slightly
+>> >>different approach -- that is, to add a hook to the hwmod code to
+>> >>invalidate the cache if the module's powerdomain has lost context?
+>>
+>> It should be possible but I feel it is a bit cumbersome. Couple of
+>> reasons I have.
+>> a. Some modules like smartreflex does not have any power domain
+>> associated with it.
+>
+>Aren't the SmartReflex modules in their own powerdomain that changes with
+>the CORE powerdomain?
 
-> ---
-> Discussions:
-> v2: http://marc.info/?t=126318930800001&r=1&w=2
-> v1: http://marc.info/?t=126226623800006&r=1&w=2
+Yes, both SR1 and SR2 are inside a "tactical" power domain, without any SW control. It follows the CORE power domain state.
+This is in fact not very well explained in the TRM.
+
+Regards,
+Benoit
+
 >
->  arch/arm/plat-omap/opp_twl_tps.c |   12 ++----------
->  1 files changed, 2 insertions(+), 10 deletions(-)
+>> b. Invalidating the cache is not needed for all modules even if the
+>> module powerdomain context is lost. This is needed only for modules
+>> which employ always restore mechanism. All other modules will do
+>> explicit context save and restore of its registers
 >
-> diff --git a/arch/arm/plat-omap/opp_twl_tps.c b/arch/arm/plat-omap/opp_twl_tps.c
-> index e0db39b..468fb97 100644
-> --- a/arch/arm/plat-omap/opp_twl_tps.c
-> +++ b/arch/arm/plat-omap/opp_twl_tps.c
-> @@ -36,14 +36,6 @@ unsigned long omap_twl_vsel_to_uv(const u8 vsel)
->   */
->  u8 omap_twl_uv_to_vsel(unsigned long uv)
->  {
-> -	u8 vsel;
-> -
-> -	vsel = ((uv / 100) - 6000) / 125;
-> -
-> -	/* round off to higher voltage */
-> -	/* XXX Surely not the best way to handle this. */
-> -	if (uv > omap_twl_vsel_to_uv(vsel))
-> -		vsel++;
-> -
-> -	return vsel;
-> +	/* Round up to higher voltage */
-> +	return (((uv + 99) / 100 - 6000) + 124) / 125;
->  }
-> -- 
-> 1.6.3.3
+>I think we'll want to move all SYSCONFIG manipulation into the hwmod
+>layer, once it is in place.
+>
+>> c. Getting whether power domain context is lost or not is not very
+>> straight forward. If I am not mistaken the only way is to keep tab of
+>> the powerdomain counters through omap_pm_get_dev_context_loss_count. I
+>> might be mistaken.
+>
+>Yeah.  Getting the hook in will take a little bit of work.
+>
+>Anyway, for the time being, we can take this patch.  But the other reason
+>that this approach doesn't appeal is that this new flag doesn't have
+>anything to do with the hardware -- it's just a software workaround for
+>device driver code.  Ideally, all of these flags should be generatable
+>based on hardware data only.  Flags that pertain to how the device driver
+>works belong in a different place.  Perhaps they should still be connected
+>to the hwmod code, but they should exist separately from the hwmod data.
+>
+>Queued for .33-rc (fixes).
+>
+>
+>- Paul
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
