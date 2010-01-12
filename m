@@ -1,104 +1,126 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP3: PM: cpuidle and debounced GPIOs
-Date: Tue, 12 Jan 2010 11:41:27 -0800
-Message-ID: <877hrn861k.fsf@deeprootsystems.com>
-References: <WC20100106141608.0400A6@terrafix.co.uk>
+Subject: Re: [PATCH] OMAP3630 PM: Correct VDD1/VDD2 Retention and On voltage
+Date: Tue, 12 Jan 2010 11:44:34 -0800
+Message-ID: <87zl4j6rbx.fsf@deeprootsystems.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026AE8CA8C@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:43937 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754773Ab0ALTla (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 14:41:30 -0500
-Received: by yxe17 with SMTP id 17so21722221yxe.33
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jan 2010 11:41:30 -0800 (PST)
-In-Reply-To: <WC20100106141608.0400A6@terrafix.co.uk> (Joe Woodward's message of "Wed\, 06 Jan 2010 14\:16\:08 +0000")
+Received: from mail-gx0-f228.google.com ([209.85.217.228]:35501 "EHLO
+	mail-gx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754669Ab0ALToh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 14:44:37 -0500
+Received: by gxk28 with SMTP id 28so15945713gxk.9
+        for <linux-omap@vger.kernel.org>; Tue, 12 Jan 2010 11:44:37 -0800 (PST)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026AE8CA8C@dbde02.ent.ti.com> (G. N.'s message of "Mon\, 4 Jan 2010 11\:34\:39 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: linux-omap@vger.kernel.org
+To: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-"Joe Woodward" <jw@terrafix.co.uk> writes:
+"G.N, Vijayakumar" <vijaykumar.gn@ti.com> writes:
 
-> I am reasonably new to OMAP Linux so feel free to point me to the
-> correct mailing list/documentation...
+> From 61474f885fe048dd1b8b6f17cfbd1690ff281c49 Mon Sep 17 00:00:00 2001
+> From: Vijaykumar GN <vijaykumar.gn@ti.com>
+> Date: Mon, 21 Dec 2009 12:43:14 +0530
+> Subject: [PATCH] OMAP3630 PM: Correct VDD1/VDD2 Retention and On voltage
 >
-> Is it possible to use cpuidle for OMAP3530 when using GPIO with
-> debouncing enabled?
+> For OMAP3630 Retention Voltage must be set to OPP25
+> 1. vdd1 retention voltage ==> 0.83
+> 2. vdd2 retention voltage ==> 0.85
 >
-> Some background:
+> On Voltage must be at default OPP (OPP100)
+> 1. vdd1 on voltage ==> 1.1
+> 2. vdd2 on voltage ==> 1.375
 >
-> I have an LogicPD SOM-LV 3530 evaluation kit. This has an OMAP3530
-> connected to a touchscreen controller (tsc2004) via GPIO153.
->
-> This GPIO requires debouncing:
->   omap_set_gpio_debounce(153, 1);
->   omap_set_gpio_debounce_time(153, 0xa);
->
-> This GPIO is also set as a wake source (as described in the comment in
-> arch/arm/plat-omap/gpio.c:gpio_wake_enable()): 
->   enable_irq_wake(OMAP_GPIO_IRQ(153));
->
-> When using the PM-branch (the latest copy as of 17-Dec-09) I notice that
-> this can cause problems if cpuidle is enabled.
->
-> According to my understanding the following is happening:
->   - When cpuidle is enabled the kernel attempts to idle.
->   - This causes the OMAP3530 to attempt to enter PWRDM_POWER_RET.
->   - This causes the GPIO driver to disable the debounce clock (otherwise
->     per_pwrdm cannot enter retention).
->   - The system enters retention.
->   - Some time later the GPIO is toggled by a touch on the screen and the
->     system wakes, but this GPIO is not debounced (as the debounce clock
->     is not yet running).
->
-x> This is a problem as I then get false "clicks" on the touchscreen. This
-> happens for *every* click because as soon as processing of one click has
-> finished cpuidle places the chip back in to retention.
->
-> This is less of a problem if I do not use cpuidle, and only enter
-> retention when I choose (echo "mem" > /sys/power/state). I still get
-> false clicks when waking but can mitigate this as I know they will
-> happen.
->
-> So, in general:
->
-> - Is it not possible to have a GPIO which requires debouncing as
->   a wake source?
-> - Are hardware debounced GPIOs generally a bad idea when using cpuidle?
-> - And a more general question, does the kernel provide features to
->   debounce a GPIO in software (rather than using the hardware)?
+> Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> Signed-off-by: Vijaykumar GN <vijaykumar.gn@ti.com>
 
-Hi Joe,
+These are SoC-specific values, not board-specific values, right?
 
-Thanks for the very thorough description of the problem you're having.
-You've correctly analyzed and diagnosed the problem with the debounce
-clocks being disabled.
-
-It sounds like we're being too aggressive in disabling the debounce
-clocks.  We probably need some type of inactivity timer in the
-touchscreen drivers to indicate when it's OK to cut clocks.
-
-While not related to debounce, we do this in the serial driver as well
-to prevent the UARTs to go idle between keystrokes on the console.
-
-I think the right solution is to move the debounce clock init and
-managment into the touchscreen driver.
-
-What probably needs to happen is that rather than the platform init
-code and PM idle code setting up and idling the debounce clocks, the
-touchscreen driver itself should be managing these clocks.  The driver
-is the place that these kinds of decision should be made.  It could
-then use an inactivity timer to cut the clocks to allow full idle
-and cut the clocks before suspending.
-
-This would require extending the platform_data for the touchscreen
-drivers to have some additional hooks to call platform code for
-pre-idle, post-idle activity where the clocks could be managed.
-
-Doing it this way, only when the driver is ready to allow idle will
-it actually happen.
+We should have a way to do this in SoC common code instead of
+duplicating across board files.
 
 Kevin
 
-
+> ---
+>  arch/arm/mach-omap2/board-3630sdp.c |   19 +++++++++++++++++++
+>  arch/arm/mach-omap2/board-zoom3.c   |   19 +++++++++++++++++++
+>  2 files changed, 38 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+> index d509c08..4d464fb 100755
+> --- a/arch/arm/mach-omap2/board-3630sdp.c
+> +++ b/arch/arm/mach-omap2/board-3630sdp.c
+> @@ -25,6 +25,24 @@
+>  
+>  #include "mux.h"
+>  #include "sdram-hynix-h8mbx00u0mer-0em.h"
+> +#include "pm.h"
+> +
+> +/* Update with the optimal setup values to be used on 3630sdp */
+> +static struct prm_setup_vc omap3_setuptime_table = {
+> +	.clksetup = 0x14A,
+> +	.voltsetup_time1 = 0x00B3,
+> +	.voltsetup_time2 = 0x00A0,
+> +	.voltoffset = 0x118,
+> +	.voltsetup2 = 0x32,
+> +	.vdd0_on = 0x28,	/* 1.1v */
+> +	.vdd0_onlp = 0x20,	/* 1.0v */
+> +	.vdd0_ret = 0x12,	/* 0.83v */
+> +	.vdd0_off = 0x00,	/* 0.6v */
+> +	.vdd1_on = 0x2B,	/* 1.1375v */
+> +	.vdd1_onlp = 0x20,	/* 1.0v */
+> +	.vdd1_ret = 0x14,	/* 0.85v */
+> +	.vdd1_off = 0x00,	/* 0.6v */
+> +};
+>  
+>  #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
+>  
+> @@ -79,6 +97,7 @@ static void __init omap_sdp_init_irq(void)
+>  {
+>  	omap_board_config = sdp_config;
+>  	omap_board_config_size = ARRAY_SIZE(sdp_config);
+> +	omap3_pm_init_vc(&omap3_setuptime_table);
+>  	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
+>  			     h8mbx00u0mer0em_sdrc_params,
+>                               NULL, NULL, NULL);
+> diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+> index 0778077..2c1f954 100644
+> --- a/arch/arm/mach-omap2/board-zoom3.c
+> +++ b/arch/arm/mach-omap2/board-zoom3.c
+> @@ -23,6 +23,24 @@
+>  
+>  #include "mux.h"
+>  #include "sdram-hynix-h8mbx00u0mer-0em.h"
+> +#include "pm.h"
+> +
+> +/* Update with the optimal setup values to be used on Zoom3 */
+> +static struct prm_setup_vc omap3_setuptime_table = {
+> +	.clksetup = 0x14A,
+> +	.voltsetup_time1 = 0x00B3,
+> +	.voltsetup_time2 = 0x00A0,
+> +	.voltoffset = 0x118,
+> +	.voltsetup2 = 0x32,
+> +	.vdd0_on = 0x28,	/* 1.1v */
+> +	.vdd0_onlp = 0x20,	/* 1.0v */
+> +	.vdd0_ret = 0x12,	/* 0.83v */
+> +	.vdd0_off = 0x00,	/* 0.6v */
+> +	.vdd1_on = 0x2B,	/* 1.1375v */
+> +	.vdd1_onlp = 0x20,	/* 1.0v */
+> +	.vdd1_ret = 0x14,	/* 0.85v */
+> +	.vdd1_off = 0x00,	/* 0.6v */
+> +};
+>  
+>  static void __init omap_zoom_map_io(void)
+>  {
+> @@ -37,6 +55,7 @@ static void __init omap_zoom_init_irq(void)
+>  {
+>  	omap_board_config = zoom_config;
+>  	omap_board_config_size = ARRAY_SIZE(zoom_config);
+> +	omap3_pm_init_vc(&omap3_setuptime_table);
+>  	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
+>  			     h8mbx00u0mer0em_sdrc_params,
+>  			     NULL, NULL, NULL);
+> -- 
+> 1.5.6.3
