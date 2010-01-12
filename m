@@ -1,58 +1,35 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 2/3] Input:TouchScreen: Introduce TSC2004 driver support
-Date: Tue, 12 Jan 2010 00:37:02 -0800
-Message-ID: <20100112083702.GB3252@core.coreip.homeip.net>
-References: <hvaibhav@ti.com>
- <1258642000-2271-1-git-send-email-hvaibhav@ti.com>
- <19F8576C6E063C45BE387C64729E7394044A3982AE@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A3982AE@dbde02.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Thomas Weber <weber@corscience.de>
+Subject: [PATCH] ASoC: TWL4030: Fix typo in comment in header file
+Date: Tue, 12 Jan 2010 09:54:47 +0100
+Message-ID: <1263286487-27471-1-git-send-email-weber@corscience.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:51700 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753368Ab0ALIzJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 03:55:09 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Thomas Weber <weber@corscience.de>
 
-On Mon, Jan 11, 2010 at 11:54:05AM +0530, Hiremath, Vaibhav wrote:
-> 
-> > -----Original Message-----
-> > From: Hiremath, Vaibhav
-> > Sent: Thursday, November 19, 2009 8:17 PM
-> > To: linux-input@vger.kernel.org
-> > Cc: linux-omap@vger.kernel.org; Hiremath, Vaibhav
-> > Subject: [PATCH 2/3] Input:TouchScreen: Introduce TSC2004 driver
-> > support
-> >
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  drivers/input/touchscreen/Kconfig   |   11 +
-> >  drivers/input/touchscreen/Makefile  |    1 +
-> >  drivers/input/touchscreen/tsc2004.c |  525
-> > +++++++++++++++++++++++++++++++++++
-> >  include/linux/i2c/tsc2004.h         |   17 ++
-> >  4 files changed, 554 insertions(+), 0 deletions(-)
-> >  create mode 100644 drivers/input/touchscreen/tsc2004.c
-> >  create mode 100644 include/linux/i2c/tsc2004.h
-> >
-> [Hiremath, Vaibhav] Dmitry,
-> 
-> Any update on this? This driver support is important for AM3517EVM, can we merge this patch?
-> 
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ sound/soc/codecs/twl4030.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Hi Hiremath,
-
-I looked over the 2 drivers again and I still think that they are too
-much alike to warrant splitting them into 2. The only thing that you
-need is provide tsc2004-specific variant of tsc2007_read_values and
-add tsc2007-specific variant of tsc2004_prepare_for_reading.
-
-Once the drivers start really diverging we may revisit this issue.
-
-Thanks.
-
+diff --git a/sound/soc/codecs/twl4030.h b/sound/soc/codecs/twl4030.h
+index dd6396e..f206d24 100644
+--- a/sound/soc/codecs/twl4030.h
++++ b/sound/soc/codecs/twl4030.h
+@@ -25,7 +25,7 @@
+ /* Register descriptions are here */
+ #include <linux/mfd/twl4030-codec.h>
+ 
+-/* Sgadow register used by the audio driver */
++/* Shadow register used by the audio driver */
+ #define TWL4030_REG_SW_SHADOW		0x4A
+ #define TWL4030_CACHEREGNUM	(TWL4030_REG_SW_SHADOW + 1)
+ 
 -- 
-Dmitry
+1.6.4.4
+
