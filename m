@@ -1,126 +1,79 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3630 PM: Correct VDD1/VDD2 Retention and On voltage
-Date: Tue, 12 Jan 2010 11:44:34 -0800
-Message-ID: <87zl4j6rbx.fsf@deeprootsystems.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E94026AE8CA8C@dbde02.ent.ti.com>
+Subject: Re: [PATCHv2 1/1] OMAP3: PM: Fix OTG autoidle workaround
+Date: Tue, 12 Jan 2010 11:49:46 -0800
+Message-ID: <87skab6r39.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031DC20A71@dbde02.ent.ti.com>
+	<1261132763-16697-1-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f228.google.com ([209.85.217.228]:35501 "EHLO
+Received: from mail-gx0-f228.google.com ([209.85.217.228]:36024 "EHLO
 	mail-gx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754669Ab0ALToh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 14:44:37 -0500
-Received: by gxk28 with SMTP id 28so15945713gxk.9
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jan 2010 11:44:37 -0800 (PST)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026AE8CA8C@dbde02.ent.ti.com> (G. N.'s message of "Mon\, 4 Jan 2010 11\:34\:39 +0530")
+	with ESMTP id S1753606Ab0ALTtu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 14:49:50 -0500
+Received: by gxk28 with SMTP id 28so15951391gxk.9
+        for <linux-omap@vger.kernel.org>; Tue, 12 Jan 2010 11:49:49 -0800 (PST)
+In-Reply-To: <1261132763-16697-1-git-send-email-eduardo.valentin@nokia.com> (Eduardo Valentin's message of "Fri\, 18 Dec 2009 12\:39\:23 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Kristo Tero <Tero.Kristo@nokia.com>, Balbi Felipe <felipe.balbi@nokia.com>, Gadiyar Anand <gadiyar@ti.com>, linux-omap@vger.kernel.org
 
-"G.N, Vijayakumar" <vijaykumar.gn@ti.com> writes:
+Eduardo Valentin <eduardo.valentin@nokia.com> writes:
 
-> From 61474f885fe048dd1b8b6f17cfbd1690ff281c49 Mon Sep 17 00:00:00 2001
-> From: Vijaykumar GN <vijaykumar.gn@ti.com>
-> Date: Mon, 21 Dec 2009 12:43:14 +0530
-> Subject: [PATCH] OMAP3630 PM: Correct VDD1/VDD2 Retention and On voltage
+> From: Eduardo Valentin <eduardo.valentin@nokia.com>
 >
-> For OMAP3630 Retention Voltage must be set to OPP25
-> 1. vdd1 retention voltage ==> 0.83
-> 2. vdd2 retention voltage ==> 0.85
+> This patch fix the OTG autoidle workaround so now
+> usb gadget modules can be properly loaded.
 >
-> On Voltage must be at default OPP (OPP100)
-> 1. vdd1 on voltage ==> 1.1
-> 2. vdd2 on voltage ==> 1.375
->
-> Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com>
-> Signed-off-by: Vijaykumar GN <vijaykumar.gn@ti.com>
+> Besides it also adds a cpu check, because this hardware
+> but is present only in OMAP34xx chips.
 
-These are SoC-specific values, not board-specific values, right?
+s/but/bug/
 
-We should have a way to do this in SoC common code instead of
-duplicating across board files.
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+
+Thanks, adding to PM branch with above typo fix.
 
 Kevin
 
-> ---
->  arch/arm/mach-omap2/board-3630sdp.c |   19 +++++++++++++++++++
->  arch/arm/mach-omap2/board-zoom3.c   |   19 +++++++++++++++++++
->  2 files changed, 38 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/pm34xx.c   |    3 ++-
+>  arch/arm/mach-omap2/usb-musb.c |    9 ++++++++-
+>  2 files changed, 10 insertions(+), 2 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-> index d509c08..4d464fb 100755
-> --- a/arch/arm/mach-omap2/board-3630sdp.c
-> +++ b/arch/arm/mach-omap2/board-3630sdp.c
-> @@ -25,6 +25,24 @@
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index c301261..db75975 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -505,7 +505,8 @@ void omap_sram_idle(void)
+>  			 * Errata 1.164 fix : OTG autoidle can prevent
+>  			 * sleep
+>  			 */
+> -			usb_musb_disable_autoidle();
+> +			if (cpu_is_omap3430())
+> +				usb_musb_disable_autoidle();
+>  		}
+>  		omap_uart_resume_idle(0);
+>  		omap_uart_resume_idle(1);
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index bb3cee4..cbd4e45 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -81,7 +81,14 @@ static void __init usb_musb_pm_init(void)
 >  
->  #include "mux.h"
->  #include "sdram-hynix-h8mbx00u0mer-0em.h"
-> +#include "pm.h"
+>  void usb_musb_disable_autoidle(void)
+>  {
+> -	__raw_writel(0, otg_base + OTG_SYSCONFIG);
+> +	if (otg_clk) {
+> +		unsigned long reg;
 > +
-> +/* Update with the optimal setup values to be used on 3630sdp */
-> +static struct prm_setup_vc omap3_setuptime_table = {
-> +	.clksetup = 0x14A,
-> +	.voltsetup_time1 = 0x00B3,
-> +	.voltsetup_time2 = 0x00A0,
-> +	.voltoffset = 0x118,
-> +	.voltsetup2 = 0x32,
-> +	.vdd0_on = 0x28,	/* 1.1v */
-> +	.vdd0_onlp = 0x20,	/* 1.0v */
-> +	.vdd0_ret = 0x12,	/* 0.83v */
-> +	.vdd0_off = 0x00,	/* 0.6v */
-> +	.vdd1_on = 0x2B,	/* 1.1375v */
-> +	.vdd1_onlp = 0x20,	/* 1.0v */
-> +	.vdd1_ret = 0x14,	/* 0.85v */
-> +	.vdd1_off = 0x00,	/* 0.6v */
-> +};
+> +		clk_enable(otg_clk);
+> +		reg = __raw_readl(otg_base + OTG_SYSCONFIG);
+> +		__raw_writel(reg & ~1, otg_base + OTG_SYSCONFIG);
+> +		clk_disable(otg_clk);
+> +	}
+>  }
 >  
->  #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
->  
-> @@ -79,6 +97,7 @@ static void __init omap_sdp_init_irq(void)
->  {
->  	omap_board_config = sdp_config;
->  	omap_board_config_size = ARRAY_SIZE(sdp_config);
-> +	omap3_pm_init_vc(&omap3_setuptime_table);
->  	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
->  			     h8mbx00u0mer0em_sdrc_params,
->                               NULL, NULL, NULL);
-> diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-> index 0778077..2c1f954 100644
-> --- a/arch/arm/mach-omap2/board-zoom3.c
-> +++ b/arch/arm/mach-omap2/board-zoom3.c
-> @@ -23,6 +23,24 @@
->  
->  #include "mux.h"
->  #include "sdram-hynix-h8mbx00u0mer-0em.h"
-> +#include "pm.h"
-> +
-> +/* Update with the optimal setup values to be used on Zoom3 */
-> +static struct prm_setup_vc omap3_setuptime_table = {
-> +	.clksetup = 0x14A,
-> +	.voltsetup_time1 = 0x00B3,
-> +	.voltsetup_time2 = 0x00A0,
-> +	.voltoffset = 0x118,
-> +	.voltsetup2 = 0x32,
-> +	.vdd0_on = 0x28,	/* 1.1v */
-> +	.vdd0_onlp = 0x20,	/* 1.0v */
-> +	.vdd0_ret = 0x12,	/* 0.83v */
-> +	.vdd0_off = 0x00,	/* 0.6v */
-> +	.vdd1_on = 0x2B,	/* 1.1375v */
-> +	.vdd1_onlp = 0x20,	/* 1.0v */
-> +	.vdd1_ret = 0x14,	/* 0.85v */
-> +	.vdd1_off = 0x00,	/* 0.6v */
-> +};
->  
->  static void __init omap_zoom_map_io(void)
->  {
-> @@ -37,6 +55,7 @@ static void __init omap_zoom_init_irq(void)
->  {
->  	omap_board_config = zoom_config;
->  	omap_board_config_size = ARRAY_SIZE(zoom_config);
-> +	omap3_pm_init_vc(&omap3_setuptime_table);
->  	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
->  			     h8mbx00u0mer0em_sdrc_params,
->  			     NULL, NULL, NULL);
+>  #ifdef CONFIG_USB_MUSB_SOC
 > -- 
-> 1.5.6.3
+> 1.6.5.7.g9ecb2
