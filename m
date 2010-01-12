@@ -1,92 +1,295 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] save and restore etm state across core OFF modes
-Date: Tue, 12 Jan 2010 16:08:23 -0600
-Message-ID: <4B4CF2D7.9000200@ti.com>
-References: <1263315891-4440-1-git-send-email-virtuoso@slind.org> <4B4CADA9.4020502@ti.com> <20100112173022.GG29059@shisha.kicks-ass.net> <4B4CB259.2010301@ti.com> <20100112210404.GB2986@atomide.com> <20100112214654.GH29059@shisha.kicks-ass.net>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: ISP OMAP3 camera support ov7690
+Date: Tue, 12 Jan 2010 16:12:30 -0600
+Message-ID: <A24693684029E5489D1D202277BE8944514AC7F3@dlee02.ent.ti.com>
+References: <4AC7DAAD.2020203@panicking.kicks-ass.org>
+ <4AC8B764.2030101@gmail.com> <4AC93DC9.2080809@panicking.kicks-ass.org>
+ <A24693684029E5489D1D202277BE89444CB3A2CB@dlee02.ent.ti.com>
+ <4B4C75F0.3060108@panicking.kicks-ass.org>
+ <A24693684029E5489D1D202277BE8944514AC214@dlee02.ent.ti.com>
+ <4B4CB241.6050603@panicking.kicks-ass.org>
+ <4B4CE976.5050503@panicking.kicks-ass.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52904 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751180Ab0ALWIZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 17:08:25 -0500
-In-Reply-To: <20100112214654.GH29059@shisha.kicks-ass.net>
+Received: from bear.ext.ti.com ([192.94.94.41]:36603 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753161Ab0ALWJ7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 17:09:59 -0500
+In-Reply-To: <4B4CE976.5050503@panicking.kicks-ass.org>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Woodruff, Richard
+To: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Cc: Nishanth Menon <menon.nishanth@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-Alexander Shishkin had written, on 01/12/2010 03:46 PM, the following:
-> On Tue, Jan 12, 2010 at 01:04:04 -0800, Tony Lindgren wrote:
->> * Nishanth Menon <nm@ti.com> [100112 09:31]:
->>> Alexander Shishkin had written, on 01/12/2010 11:30 AM, the following:
->>>> On Tue, Jan 12, 2010 at 11:13:13 -0600, Nishanth Menon wrote:
->>>>> Alexander Shishkin had written, on 01/12/2010 11:04 AM, the following:
->>>>>> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
->>>>>> index 69521be..0a5ec86 100644
->>>>>> --- a/arch/arm/mach-omap2/sleep34xx.S
->>>>>> +++ b/arch/arm/mach-omap2/sleep34xx.S
->>> [...]
->>>>>> 	/* Store current cpsr*/
->>>>>> 	mrs	r2, cpsr
->>>>>> 	stmia	r8!, {r2}
->>>>>> @@ -520,6 +616,7 @@ clean_caches:
->>>>>> 	cmp	r9, #1 /* Check whether L2 inval is required or not*/
->>>>>> 	bne	skip_l2_inval
->>>>>> clean_l2:
->>>>>> +#if 0
->>>>> my aversion to #if 0 kicks in here :(.. do we have an alternative
->>>>> like using the CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG or something
->>>>> else?
->>>> Fair enough. I could replace it with "#if !defined(...)" as the first
->>>> thing that comes to mind. This way it will only take disabling the
->>>> config option to catch any possible regressions in between. Does this
->>>> sound reasonable?
->>> sounds ok to me.. unless folks have ideas coz of clean_l2 label..
->>> more comments might be useful before a rev2 of the patch..
->> The best solution would be to be able to toggle this via sysfs or
->> debugfs by swapping the sram code for idle loop when JTAG support
->> is needed.
+Michael,
+
+> -----Original Message-----
+> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+> Sent: Tuesday, January 12, 2010 3:28 PM
+> To: Aguirre, Sergio
+> Cc: Nishanth Menon; linux-omap@vger.kernel.org; linux-
+> media@vger.kernel.org
+> Subject: Re: ISP OMAP3 camera support ov7690
 > 
-> Well, if you say, compile the ETM driver in, this will be needed most of
-> the time.
+> Hi,
 > 
-I can think of reasons for an against a sysfs entry (as part of 
-discussion -warning lot of self contradictions below- but I think might 
-save a bit of back and froth ;)):
+> Michael Trimarchi wrote:
+> > Hi all,
+> >
+> > Aguirre, Sergio wrote:
+> >>
+> >>> -----Original Message-----
+> >>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+> >>> Sent: Tuesday, January 12, 2010 7:15 AM
+> >>> To: Aguirre, Sergio
+> >>> Cc: Nishanth Menon; linux-omap@vger.kernel.org; linux-
+> >>> media@vger.kernel.org
+> >>> Subject: Re: ISP OMAP3 camera support ov7690
+> >>>
+> >>> Hi all,
+> >>>
+> >>> Now I have a good camera pcb and I can test again the driver. My
+> >>> board is
+> >>> an overo gumstix board.
+> >>
+> >> Excellent!
+> >>
+> >> Please let me know if you're having issues with it.
+> >>
+> >> Thanks for your interest!
+> >>
+> >> Regards,
+> >> Sergio
+> >>
+> >
+> > maybe I have done some mistake during writing the email, but I have
+> > asked few things inside the email.
+> > The camera part is ok because I have written a driver using the ov538
+> > bridge but I have some problem
+> > in configuring the isp omap3 device. It opens correctly the camera, and
+> > set xclk frequency. Then
+> > seems that vsync and hsync are not routed to the engine because I don't
+> > receive any interrupt.
+> 
+> --- a/drivers/media/video/isp/isp.c
+> +++ b/drivers/media/video/isp/isp.c
+> @@ -299,6 +299,7 @@ static void isp_enable_interrupts(struct device *dev)
+>                 | IRQ0ENABLE_CSIA_IRQ
+>                 | IRQ0ENABLE_CSIB_IRQ | IRQ0ENABLE_HIST_DONE_IRQ
+>                 | IRQ0ENABLE_H3A_AWB_DONE_IRQ | IRQ0ENABLE_H3A_AF_DONE_IRQ
+> +               | IRQ0ENABLE_HS_VS_IRQ
+>                 | isp->interrupts;
+> 
+>         if (CCDC_PREV_CAPTURE(isp))
+> @@ -328,6 +329,7 @@ static void isp_disable_interrupts(struct device *dev)
+>                 | IRQ0ENABLE_CSIA_IRQ
+>                 | IRQ0ENABLE_CSIB_IRQ | IRQ0ENABLE_HIST_DONE_IRQ
+>                 | IRQ0ENABLE_H3A_AWB_DONE_IRQ | IRQ0ENABLE_H3A_AF_DONE_IRQ
+> +               | IRQ0ENABLE_HS_VS_IRQ
+>                 | isp->interrupts);
+> 
+> Adding this in the irq mask give me interrupt from the camera, but I don't
+> undestarstand
+> why they are disabled. Are they disabled in the latest git code?
 
-for sysfs entry:
-a) save and restore will have additional latency when you save a chunk 
-such as EMU domain regs - this will not be needed in production phones, 
-disabling it might pop up surprises
-	counter: having a disabled defconfig allows relevant folks to
-	enable on a need basis
-		counter to counter: what do you do when a user reports
-		an issue in a release and you'd want to debug it with 		
-		ETM on his platform other than doing a rebuild?
-b) mostly a debug support -> only for blokes using ETM/JTAG interfaces - 
-not everyone can afford these (no offense to openOCD guys - but they are 
-still a bit away from being able to debug kernel yet on OMAP)..
-	counter and counter to counter - just like previous point
-c) easy mechanism to enable/disable the path runtime
-	counter: defconfig rebuild is not *that difficult*
-		counter to counter: sysfs is easier and faster, saves
-		developer time == money
+In the past, we used to rely on HS_VS for signaling when to do some actions, like enable ISP preview sub-module, and also had VD0 and VD1 programmable interrupts to do other actions.
 
-for defconfig:
-a) defconfig restricts un-informed users to not mess with something they 
-should'nt use in the first place
-	counter: -EINVAL
-b) defconfig removes the entire code structure out - saving on space of 
-save and restore memory + code path
-	counter: sysfs option could be wrapped within a defconfig to do exactly 
-the same.
-c) what do you do if you need to use ETM during initial boottime (Vs 
-echo 1>/sys/.../etm_saverestore
-	counter: use save-restore sysfs entry enabled at init - a defconfig 
-might be helpful
+Nowadays, the usage has changed. We don't really use HS_VS anymore. And we rely mainly on VD0 (generated based on CCDC input) for doing many interframe operations (like targeting for next buffer in the queue, and updating some other settings.)
 
+In conclusion, we disabled HS_VS, because we don't use it anymore.
 
--- 
+> 
+> how can I get the vrise?
+> 
+> .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
+
+.hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSRISE,
+
+I'm interested in seeing your board file in which you configure interface from sensor to ISP. (See arch/arm/mach-omap2/board-zoom-camera.c for how I use it)
+
 Regards,
-Nishanth Menon
+Sergio
+
+> 
+> 
+> Michael
+> 
+> >>> Aguirre Rodriguez, Sergio Alberto wrote:
+> >>>> Hi Michael,
+> >>>>
+> >>>>> -----Original Message-----
+> >>>>> From: linux-omap-owner@vger.kernel.org
+> >>>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of michael
+> >>>>> Sent: Sunday, October 04, 2009 7:29 PM
+> >>>>> To: Nishanth Menon
+> >>>>> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org
+> >>>>> Subject: Re: ISP OMAP3 camera support ov7690
+> >>>>>
+> >>>>> Hi,
+> >>>>>
+> >>>>> cc: linux-media
+> >>>>>
+> >>>>> Nishanth Menon wrote:
+> >>>>>> michael said the following on 10/03/2009 06:13 PM:
+> >>>>>>> I'm writing a driver to support the ov7690 camera and I have some
+> >>>>>>> question about the meaning of:
+> >>>>>>>
+> >>>>>>> - datalane configuration
+> >>>>>> CSI2 Data lanes - each CSI2 lane is a differential pair.
+> >>>>> And, at least 1
+> >>>>>> clock and data lane is used in devices.
+> >>>>> Sorry can you explain a little bit more. I have the camera
+> >>>>> connected to the
+> >>>>> cam_hs and cam_vs and the data is 8Bit. I use the the isp init
+> >>>>> structure. The sccb bus works great and I can send
+> >>>>> configuration to it,
+> >>>>> but I don't receive any interrupt from the ics, seems that it
+> >>>>> doen't see
+> >>>>> the transaction:
+> >>>>>
+> >>>>> The ISPCCDC: ###CCDC SYN_MODE=0x31704 seems ok.
+> >>>>>
+> >>>>>
+> >>>>> static struct isp_interface_config ov7690_if_config = {
+> >>>>>         .ccdc_par_ser           = ISP_CSIA,
+> >>>>>         .dataline_shift         = 0x0,
+> >>>>>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
+> >>>> Can you try with ISPCTRL_SYNC_DETECT_VSRISE ?
+> >>>>
+> >>>>>         .strobe                 = 0x0,
+> >>>>>         .prestrobe              = 0x0,
+> >>>>>         .shutter                = 0x0,
+> >>>>>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
+> >>>>>         .wait_hs_vs             = 0x4,
+> >>>>>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
+> >>>>>         .u.csi.crc              = 0x0,
+> >>>>>         .u.csi.mode             = 0x0,
+> >>>>>         .u.csi.edge             = 0x0,
+> >>>>>         .u.csi.signalling       = 0x0,
+> >>>>>         .u.csi.strobe_clock_inv = 0x0,
+> >>>>>         .u.csi.vs_edge          = 0x0,
+> >>>>>         .u.csi.channel          = 0x0,
+> >>>>>         .u.csi.vpclk            = 0x1,
+> >>>>>         .u.csi.data_start       = 0x0,
+> >>>>>         .u.csi.data_size        = 0x0,
+> >>>>>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
+> >>>>> };
+> >>>>>
+> >>>>> and I don't know the meaning of
+> >>>>>
+> >>>>> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
+> >>>>> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
+> >>>>> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
+> >>>>> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
+> >>>>> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
+> >>>>> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
+> >>>>> lanecfg.data[2].pol = 0;
+> >>>>> lanecfg.data[2].pos = 0;
+> >>>>> lanecfg.data[3].pol = 0;
+> >>>>> lanecfg.data[3].pos = 0;
+> >>>>>
+> >>>> This is the physical connection details:
+> >>>>
+> >>>> - The .pol field stands for the differntial pair polarity.
+> >>>>   (i.e. the order in which the negative and positive connections
+> >>>>   are pugged in to the CSI2 ComplexIO module)
+> >>> What exact the meaning of the pol, sorry? I have a signal that is
+> >>> connected
+> >>> to a pin. If the pos is avalaible can I use it?
+> >>> It's not important how to route the signal but don't route on the same
+> >>> lane.
+> >>> Is it right?
+> >>>
+> >>> This is the timing of the camera so I can check signal, but I don't
+> >>> receive interrupt
+> >>> of isp engine
+> >>>
+> >>> The camera is direct connected to the
+> >>> camera omap camera signal and using the oscilloscope I can see the
+> hs/vs
+> >>> signal
+> >>> The hs is low and go up, like the vs signal. I have only one camera
+> >>> with that use D0 to D7 data bit.
+> >>>
+> >>> http://www.gumstix.net/Hardware/view/I/O-connectors-cabling/Gumstix-
+> Overo-
+> >>>
+> >>> 27-pin-connector-J5-to-manage-camera-controls/112.html
+> >>>
+> >>> static struct isp_interface_config ov7690_if_config = {
+> >>>         .ccdc_par_ser           = ISP_CSIA,
+> >>>         .dataline_shift         = 0x0,
+> >>>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSRISE,
+> >>>         .strobe                 = 0x0,
+> >>>         .prestrobe              = 0x0,
+> >>>         .shutter                = 0x0,
+> >>>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
+> >>>         .wait_hs_vs             = 0x4,
+> >>>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
+> >>>         .u.csi.crc              = 0x0,
+> >>>         .u.csi.mode             = 0x0,
+> >>>         .u.csi.edge             = 0x0,
+> >>>         .u.csi.signalling       = 0x0,
+> >>>         .u.csi.strobe_clock_inv = 0x0,
+> >>>         .u.csi.vs_edge          = 0x0,
+> >>>         .u.csi.channel          = 0x0,
+> >>>         .u.csi.vpclk            = 0x1,
+> >>>         .u.csi.data_start       = 0x0,
+> >>>         .u.csi.data_size        = 0x0,
+> >>>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
+> >>> };
+> >>>
+> >>> This is my initial configuration
+> >>> #define OV7690_CSI2_CLOCK_POLARITY      0       /* +/- pin order */
+> >>> #define OV7690_CSI2_DATA0_POLARITY      0       /* +/- pin order */
+> >>> #define OV7690_CSI2_DATA1_POLARITY      0       /* +/- pin order */
+> >>> #define OV7690_CSI2_CLOCK_LANE          1        /* Clock lane
+> >>> position: 1
+> >>> */
+> >>> #define OV7690_CSI2_DATA0_LANE          2        /* Data0 lane
+> >>> position: 2
+> >>> */
+> >>> #define OV7690_CSI2_DATA1_LANE          3        /* Data1 lane
+> >>> position: 3
+> >>> */
+> >>> tim#define OV7690_CSI2_PHY_THS_TERM        2
+> >>> #define OV7690_CSI2_PHY_THS_SETTLE      23
+> >>> #define OV7690_CSI2_PHY_TCLK_TERM       0
+> >>> #define OV7690_CSI2_PHY_TCLK_MISS       1
+> >>> #define OV7690_CSI2_PHY_TCLK_SETTLE     14
+> >>>
+> >>> With this clock polarity
+> >>>
+> >>> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
+> >>> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
+> >>> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
+> >>> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
+> >>> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
+> >>> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
+> >>> lanecfg.data[2].pol = 0;
+> >>> lanecfg.data[2].pos = 0;
+> >>> lanecfg.data[3].pol = 0;
+> >>> lanecfg.data[3].pos = 0;
+> >>> isp_csi2_complexio_lanes_config(&isp->isp_csi2, &lanecfg);
+> >>>
+> >>> Michael
+> >> --
+> >
+> > Regards Michael
+> >
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+
