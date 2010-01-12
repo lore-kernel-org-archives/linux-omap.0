@@ -1,71 +1,61 @@
 From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: Interval value set in RXINTERVAL register of MUSB?
-Date: Tue, 12 Jan 2010 16:51:49 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A3987C7@dbde02.ent.ti.com>
-References: <c27069991001120152h7085aa5cu29121f12791f28aa@mail.gmail.com>
+Subject: RE: Device usb1 failed to suspend: error -16
+Date: Tue, 12 Jan 2010 17:10:32 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A3987E0@dbde02.ent.ti.com>
+References: <1263232222-30599-1-git-send-email-omar.ramirez@ti.com>
+ <1263232222-30599-2-git-send-email-omar.ramirez@ti.com>
+ <4B4B6E55.9000406@ti.com>
+ <54B31811B83D744D90BF0289EB447D4609978796D3@MAIL-MB1.oerlikon.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45769 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648Ab0ALLV4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 06:21:56 -0500
-In-Reply-To: <c27069991001120152h7085aa5cu29121f12791f28aa@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41589 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750951Ab0ALLkk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 06:40:40 -0500
+In-Reply-To: <54B31811B83D744D90BF0289EB447D4609978796D3@MAIL-MB1.oerlikon.ca>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jung songtan <jungsongtan@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Weng, Wending" <WWeng@rheinmetall.ca>, linux-omap <linux-omap@vger.kernel.org>
 
 > -----Original Message-----
-> From: jung songtan [mailto:jungsongtan@gmail.com]
-> Sent: Tuesday, January 12, 2010 3:22 PM
-> To: Gupta, Ajay Kumar; linux-omap@vger.kernel.org
-> Subject: Interval value set in RXINTERVAL register of MUSB?
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Weng, Wending
+> Sent: Tuesday, January 12, 2010 12:34 AM
+> To: linux-omap
+> Subject: PM: Device usb1 failed to suspend: error -16
 > 
-> Hi Ajay and expert,
+> Hi All,
 > 
-> Can you correct me if my understanding has something wrong?
+> 	I tried to suspend the system, and got the following messages:
 > 
-> 
-> [Quote from usb 2.0 spec]
-> For full-/low-speed interrupt endpoints, the value of this field may
-> be from 1 to 255.
-> [Quote from usb 2.0 spec]
-> 
-> So, If a Low speed Interrupt IN endpoint, the endpoint->interval = 0x2.
-> Now I want to request data from the endpoint, I set RXINTERVAL = 0x2,
-> and start to request the data.(All the related register set as bellow)
+> PM: Syncing filesystems ... done.
+> Freezing user space processes ... (elapsed 0.00 seconds) done.
+> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+> Suspending console(s) (use no_console_suspend to debug)
+> musb_bus_suspend 2261: trying to suspend as a_host while active
+> pm_op(): usb_dev_suspend+0x0/0x8 returns -16
+> PM: Device usb1 failed to suspend: error -16
+> PM: Some devices failed to suspend
 
-> If my understanding is correctly, one NAKTIMEOUT interrupt will happen
-> if the device responses NAK longer time than 2 frame, rigtht?
+You need to apply MUSB and EHCI patches to fix this.
 
-Interval=2 for a low speed device means Host would issue one IN tokens
-to get data on Interrupt IN pipe after every 2-frames
-(2ms or 16 micro frames). 
+MUSB PM patch is already submitted (at [1]) and is in queue.
+I plan to submit OMAP EHCI PM patch after some cleanups.
 
-We get NAK timeout error interrupt only in BULK transfers case. Please
-See the details of RxInterval register.
+[1] http://marc.info/?l=linux-usb&m=126200057420865&w=2
 
 -Ajay
+> Restarting tasks ... Segmentation fault
+> done.
 > 
-> But in my case did not, the host pending on the request for the data,
-> and no TIMEOUT interrupt happen , can you tell me, where I am missed
-> or where am I wrong?
+> I use linux-omap-2.6.git, should I use the branch linux-omap-pm? Thanks.
 > 
-> [Registers value ]
-> 
->  RXCSR            0x20
->  RXFUNCADDR 0x4
->  RXHUBADDR   0x2
->  RXHUBPORT   0x4
->  RXMAXP          0x4
->  RXINTERVAL   0x2
-> 
-> [Registers value ]
-> Thanks in advance,
-> 
-> 
-> 
+> Wending Weng
+> Software Engineer at Rheinmetall
 > --
-> K T Jung
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
