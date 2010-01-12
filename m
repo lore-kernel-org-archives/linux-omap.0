@@ -1,102 +1,37 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: [PM-WIP-OPP][PATCH] OPP: Introduces enum for addressing
- different OPP types
-Date: Tue, 12 Jan 2010 18:36:37 +0100
-Message-ID: <74583B8642AB8841B30447520659FCA9E73BDA08@dnce01.ent.ti.com>
-References: <1263299979.1536.7.camel@boson>
- <87iqb7fdgf.fsf@deeprootsystems.com>
+From: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Subject: Re: [alsa-devel] Audio suspend/resume status on OMAP3 based platforms
+Date: Tue, 12 Jan 2010 23:19:26 +0530
+Message-ID: <2ee9e08d1001120949l5b1e5b8dhd96c09faabcea91d@mail.gmail.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D7807@dbde02.ent.ti.com>
+	<20100112161109.GC17092@sirena.org.uk>
+Reply-To: anuj.aggarwal@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59383 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751621Ab0ALRgx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 12:36:53 -0500
-Content-Class: urn:content-classes:message
-In-Reply-To: <87iqb7fdgf.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:47467 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751475Ab0ALRtr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 12:49:47 -0500
+Received: by pzk1 with SMTP id 1so6399485pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 12 Jan 2010 09:49:46 -0800 (PST)
+In-Reply-To: <20100112161109.GC17092@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Dasgupta, Romit" <romit@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Kevin,
-
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Kevin Hilman
->Sent: Tuesday, January 12, 2010 6:19 PM
->To: Dasgupta, Romit
->Cc: Menon, Nishanth; linux-omap@vger.kernel.org
->Subject: Re: [PM-WIP-OPP][PATCH] OPP: Introduces enum for addressing
->different OPP types
+On Tue, Jan 12, 2010 at 9:41 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
 >
->Romit Dasgupta <romit@ti.com> writes:
+> On Tue, Jan 12, 2010 at 09:35:15PM +0530, Aggarwal, Anuj wrote:
 >
->> Introduces enum for identifying OPP types. This helps in querying the OPP
->> layer by passing the type of OPP (enum types) and gets away from
->maintaining
->> the pointer to the OPP data list outside the OPP layer.
->>
->> Signed-off-by: Romit Dasgupta <romit@ti.com>
+> > b) same command, when audio loopback is running in
+> > background
 >
->I like this idea... but I have some questions about how we should
->cleanly handle SMP and future SoCs.
-
-Well, it is better than what we have today, but maybe not super scalable for next device. This information is completely device dependant and should not be in a plat-omap file.
-In that case, it will be tricky to have an enum per devices because it will prevent multiple omap build.
-That for that reason that I think we might use hwmod to identify the relevant scalable IPs, instead of yet another identifier for something that is IP related.
-
-Regards,
-Benoit
-
-
->> diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-
->omap/include/plat/opp.h
->> index 9f91ad3..c4d5bf9 100644
->> --- a/arch/arm/plat-omap/include/plat/opp.h
->> +++ b/arch/arm/plat-omap/include/plat/opp.h
->> @@ -13,9 +13,18 @@
->>  #ifndef __ASM_ARM_OMAP_OPP_H
->>  #define __ASM_ARM_OMAP_OPP_H
->>
->> -extern struct omap_opp *mpu_opps;
->> -extern struct omap_opp *dsp_opps;
->> -extern struct omap_opp *l3_opps;
->> +#ifdef CONFIG_ARCH_OMAP3
->> +#define OPP_TYPES 3
->> +#else
->> +#error "You need to put the number of OPP types for OMAP chip type."
->> +#endif
->
->Rather than the #ifdef...
->> +enum opp_t {
->> +    OPP_NONE,
->> +    OPP_MPU,
->> +    OPP_L3,
->> +    OPP_DSP
->
->add OPP_MAX_TYPES here
->
->> +};
->
->And with that, how do you suggest handling SMP.  Do we assume that the
->OPP_MPU OPPs are common across all CPUs?  Do we possibly need other
->types for other busses on future SoCs?
->
->We don't need the answeres to all these questions today, but I'd like
->to know your thoughts on how this would be extended or made SoC
->specific.
->
->Thanks,
->
->Kevin
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
-
-
-
+> It'd be helpful to specify what you mean by audio loopback here - I
+> think you mean something along the lines of 'arecord | aplay -' but
+> it'd be good to confirm since there's multiple meanings people use for
+> the term.
+Thanks for pointing it out, I meant the same:
+arecord -f cd | aplay &
+echo mem > /sys/power/state
