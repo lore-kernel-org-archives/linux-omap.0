@@ -1,212 +1,213 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: Re: [PATCH] save and restore etm state across core OFF modes
-Date: Tue, 12 Jan 2010 19:30:22 +0200
-Message-ID: <20100112173022.GG29059@shisha.kicks-ass.net>
-References: <1263315891-4440-1-git-send-email-virtuoso@slind.org>
- <4B4CADA9.4020502@ti.com>
+From: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Subject: Re: ISP OMAP3 camera support ov7690
+Date: Tue, 12 Jan 2010 18:32:49 +0100
+Message-ID: <4B4CB241.6050603@panicking.kicks-ass.org>
+References: <4AC7DAAD.2020203@panicking.kicks-ass.org> <4AC8B764.2030101@gmail.com> <4AC93DC9.2080809@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE89444CB3A2CB@dlee02.ent.ti.com> <4B4C75F0.3060108@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE8944514AC214@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:49346 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753865Ab0ALRbZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Jan 2010 12:31:25 -0500
-Content-Disposition: inline
-In-Reply-To: <4B4CADA9.4020502@ti.com>
+Received: from ms01.sssup.it ([193.205.80.99]:56234 "EHLO sssup.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751083Ab0ALRcx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Jan 2010 12:32:53 -0500
+In-Reply-To: <A24693684029E5489D1D202277BE8944514AC214@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: Nishanth Menon <menon.nishanth@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-On Tue, Jan 12, 2010 at 11:13:13 -0600, Nishanth Menon wrote:
-> Alexander Shishkin had written, on 01/12/2010 11:04 AM, the following:
-> >This prevents ETM stalls whenever core enters OFF mode. Original patch
-> >author is Richard Woodruff <r-woodruff2@ti.com>.
-> >
-> >This patch applies on top of pm branch.
-> >
-> >Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
-> >CC: Richard Woodruff <r-woodruff2@ti.com>
-> 
-> thanks..
-> 
-> >---
-> > arch/arm/mach-omap2/Kconfig               |    9 ++
-> > arch/arm/mach-omap2/control.c             |    2 +-
-> > arch/arm/mach-omap2/sleep34xx.S           |  133 +++++++++++++++++++++++++++++
-> > arch/arm/plat-omap/include/plat/control.h |    2 +-
-> > 4 files changed, 144 insertions(+), 2 deletions(-)
-> >
-> >diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> >index 606bf04..02ea136 100644
-> >--- a/arch/arm/mach-omap2/Kconfig
-> >+++ b/arch/arm/mach-omap2/Kconfig
-> >@@ -153,6 +153,15 @@ config MACH_OMAP_4430SDP
-> > 	bool "OMAP 4430 SDP board"
-> > 	depends on ARCH_OMAP4
-> >+config ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> >+	bool "Enable hardware emulation context save and restore"
-> >+	depends on ARCH_OMAP3
-> >+	default y
-> >+	help
-> >+	  This option enables JTAG & ETM debugging across power states.
-> >+	  With out this option emulation features are reset across OFF
-> >+	  mode state changes.
-> >+
-> > config OMAP3_EMU
-> > 	bool "OMAP3 debugging peripherals"
-> > 	depends on ARCH_OMAP3
-> >diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> >index cdd1f35..78f4634 100644
-> >--- a/arch/arm/mach-omap2/control.c
-> >+++ b/arch/arm/mach-omap2/control.c
-> >@@ -93,7 +93,7 @@ void *omap3_secure_ram_storage;
-> >  * The address is stored in scratchpad, so that it can be used
-> >  * during the restore path.
-> >  */
-> >-u32 omap3_arm_context[128];
-> >+u32 omap3_arm_context[256];
-> > struct omap3_control_regs {
-> > 	u32 sysconfig;
-> >diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> >index 69521be..0a5ec86 100644
-> >--- a/arch/arm/mach-omap2/sleep34xx.S
-> >+++ b/arch/arm/mach-omap2/sleep34xx.S
-> >@@ -59,6 +59,13 @@
-> > #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
-> > #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
-> >+#define CORTEX_CORSIGHT_OFF     (0x00011000)
-> >+#define CORTEX_EMU_DEBUG_V      (L4_EMU_34XX_VIRT + CORTEX_CORSIGHT_OFF)
-> >+#define CORTEX_EMU_DEBUG_P      (L4_EMU_34XX_PHYS + CORTEX_CORSIGHT_OFF)
-> >+#define ETM_CORSIGHT_OFF        (0x00010000)
-> >+#define CORTEX_EMU_ETM_V        (L4_EMU_34XX_VIRT + ETM_CORSIGHT_OFF)
-> >+#define CORTEX_EMU_ETM_P        (L4_EMU_34XX_PHYS + ETM_CORSIGHT_OFF)
-> >+
-> >         .text
-> > /* Function to aquire the semaphore in scratchpad */
-> > ENTRY(lock_scratchpad_sem)
-> >@@ -226,6 +233,18 @@ loop:
-> > 	nop
-> > 	bl wait_sdrc_ok
-> >+#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> >+	/*
-> >+	 * Restore Coresight debug registers
-> >+	 */
-> >+	ldr     r6, debug_vbase      /* base Vaddr of CortexA8-Debug */
-> >+	ldr     r4, debug_xlar_key   /* get lock key for OSLAR */
-> >+	bl      unlock_debug         /* remove global lock if set */
-> >+	ldr     r6, etm_vbase        /* base Vaddr of ETM */
-> >+	bl      unlock_debug         /* remove global lock if set */
-> >+	str     r6, [r6, #0x300]     /* clear OSLAR lock using non-key */
-> >+#endif
-> >+
-> > 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
-> > restore_es3:
-> > 	/*b restore_es3*/		@ Enable to debug restore code
-> >@@ -385,6 +404,50 @@ logic_l1_restore:
-> > 	/*normal memory remap register */
-> > 	MCR p15, 0, r5, c10, c2, 1
-> >+#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> >+	/*
-> >+	 * Restore Coresight debug registers
-> >+	 */
-> >+	ldr     r6, debug_pbase      /* base paddr of CortexA8-Debug */
-> >+	ldr     r4, debug_xlar_key   /* get lock key for OSLAR */
-> >+	bl      unlock_debug         /* remove global lock if set */
-> >+	str     r4, [r6, #0x300]     /* reset-pointer (already locked) */
-> >+	ldr     r4, [r6, #0x308]     /* dummy read */
-> >+	ldr     r4, [r3], #4         /* load save size */
-> >+	cmp     r4, #0               /* check for zero */
-> >+debug_restore:
-> >+	ittt    ne                   /* t2/compat if-then block */
-> >+	ldrne   r5, [r3], #4         /* get save value */
-> >+	strne   r5, [r6,#0x308]      /* restore cp14 value */
-> >+	subnes  r4, r4, #1           /* decrement loop */
-> >+	bne     debug_restore        /* loop till done */
-> >+	str     r5, [r6, #0x300]     /* clear lock */
-> >+	/*
-> >+	 * Restore CoreSight ETM registers
-> >+	 */
-> >+	ldr     r6, etm_pbase        /* base paddr of ETM */
-> >+	ldr     r4, debug_xlar_key   /* get lock key for OSLAR */
-> >+	bl      unlock_debug         /* remove global lock if set */
-> >+	ldr     r4, [r3], #4         /* load save size */
-> >+	cmp     r4, #0               /* check for zero */
-> >+	beq     etm_skip
-> >+	sub     r4, #1
-> >+	ldr     r7, [r3], #4         /* get/store first value to r7 */
-> >+	mov     r5, #0x3             /* enable programming in ETMCR*/
-> >+	lsl     r5, r5, #10
-> >+	orr     r5, r7
-> >+	str     r5,[r6], #4
-> >+	cmp     r4, #0               /* check for zero */
-> >+etm_restore:
-> >+	ldrne   r5, [r3], #4         /* get save value */
-> >+	strne   r5, [r6], #4         /* restore cp14 value */
-> >+	subnes  r4, r4, #1           /* decrement loop */
-> >+	bne     etm_restore          /* loop till done */
-> >+	ldr     r6, etm_pbase        /* base paddr of ETM */
-> >+	str     r7,[r6]              /* dis-able programming in ETMCR */
-> >+etm_skip:
-> >+#endif
-> >+
-> > 	/* Restore cpsr */
-> > 	ldmia	r3!,{r4}	/*load CPSR from SDRAM*/
-> > 	msr	cpsr, r4	/*store cpsr */
-> >@@ -506,6 +569,39 @@ l1_logic_lost:
-> > 	mrc	p15, 0, r5, c10, c2, 1
-> > 	stmia	r8!,{r4-r5}
-> >+#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> >+	/*
-> >+	 * Save Coresight debug registers
-> >+	 */
-> >+	ldr     r6, debug_vbase      /* base vaddr of CortexA8-Debug */
-> >+	ldr     r4, debug_xlar_key   /* get lock key for OSLAR */
-> >+	bl      unlock_debug         /* force global unlock */
-> >+	str     r4, [r6, #0x300]     /* lock debug access */
-> >+	ldr     r4, [r6, #0x308]     /* OSSRR returns size on first read */
-> >+	str     r4, [r8], #4         /* push item to save area */
-> >+	cmp     r4, #0               /* zero check */
-> >+debug_save:
-> >+	ittt    ne                   /* thumb 2 compat if-then block */
-> >+	ldrne   r5, [r6, #0x308]     /* get reg value */
-> >+	strne   r5, [r8], #4         /* push item to save area */
-> >+	subnes  r4, r4, #1           /* decrement size */
-> >+	bne     debug_save           /* loop till done */
-> >+	/*
-> >+	 * Save etm registers
-> >+	 */
-> >+	ldr     r6, etm_vbase        /* base vaddr of CortexA8-Debug */
-> >+	ldr     r4, debug_xlar_key   /* get lock key for OSLAR */
-> >+	bl      unlock_debug         /* force global unlock */
-> >+	mov     r4, #128             /* OSSRR returns size on first read */
-> >+	str     r4, [r8], #4         /* push item to save area */
-> >+	cmp     r4, #0               /* zero check */
-> >+etm_save:
-> >+	ldrne   r5, [r6], #4         /* get reg value */
-> >+	strne   r5, [r8], #4         /* push item to save area */
-> >+	subnes  r4, r4, #1           /* decrement size */
-> >+	bne     etm_save             /* loop till done */
-> >+#endif
-> >+
-> > 	/* Store current cpsr*/
-> > 	mrs	r2, cpsr
-> > 	stmia	r8!, {r2}
-> >@@ -520,6 +616,7 @@ clean_caches:
-> > 	cmp	r9, #1 /* Check whether L2 inval is required or not*/
-> > 	bne	skip_l2_inval
-> > clean_l2:
-> >+#if 0
-> 
-> my aversion to #if 0 kicks in here :(.. do we have an alternative
-> like using the CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG or something
-> else?
+Hi all,
 
-Fair enough. I could replace it with "#if !defined(...)" as the first
-thing that comes to mind. This way it will only take disabling the
-config option to catch any possible regressions in between. Does this
-sound reasonable?
+Aguirre, Sergio wrote:
+> 
+>> -----Original Message-----
+>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+>> Sent: Tuesday, January 12, 2010 7:15 AM
+>> To: Aguirre, Sergio
+>> Cc: Nishanth Menon; linux-omap@vger.kernel.org; linux-
+>> media@vger.kernel.org
+>> Subject: Re: ISP OMAP3 camera support ov7690
+>>
+>> Hi all,
+>>
+>> Now I have a good camera pcb and I can test again the driver. My board is
+>> an overo gumstix board.
+> 
+> Excellent!
+> 
+> Please let me know if you're having issues with it.
+> 
+> Thanks for your interest!
+> 
+> Regards,
+> Sergio
+> 
 
-Regards,
---
-Alex
+maybe I have done some mistake during writing the email, but I have asked few things inside the email.
+The camera part is ok because I have written a driver using the ov538 bridge but I have some problem
+in configuring the isp omap3 device. It opens correctly the camera, and set xclk frequency. Then
+seems that vsync and hsync are not routed to the engine because I don't receive any interrupt. 
+
+>> Aguirre Rodriguez, Sergio Alberto wrote:
+>>> Hi Michael,
+>>>
+>>>> -----Original Message-----
+>>>> From: linux-omap-owner@vger.kernel.org
+>>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of michael
+>>>> Sent: Sunday, October 04, 2009 7:29 PM
+>>>> To: Nishanth Menon
+>>>> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org
+>>>> Subject: Re: ISP OMAP3 camera support ov7690
+>>>>
+>>>> Hi,
+>>>>
+>>>> cc: linux-media
+>>>>
+>>>> Nishanth Menon wrote:
+>>>>> michael said the following on 10/03/2009 06:13 PM:
+>>>>>> I'm writing a driver to support the ov7690 camera and I have some
+>>>>>> question about the meaning of:
+>>>>>>
+>>>>>> - datalane configuration
+>>>>> CSI2 Data lanes - each CSI2 lane is a differential pair.
+>>>> And, at least 1
+>>>>> clock and data lane is used in devices.
+>>>> Sorry can you explain a little bit more. I have the camera
+>>>> connected to the
+>>>> cam_hs and cam_vs and the data is 8Bit. I use the the isp init
+>>>> structure. The sccb bus works great and I can send
+>>>> configuration to it,
+>>>> but I don't receive any interrupt from the ics, seems that it
+>>>> doen't see
+>>>> the transaction:
+>>>>
+>>>> The ISPCCDC: ###CCDC SYN_MODE=0x31704 seems ok.
+>>>>
+>>>>
+>>>> static struct isp_interface_config ov7690_if_config = {
+>>>>         .ccdc_par_ser           = ISP_CSIA,
+>>>>         .dataline_shift         = 0x0,
+>>>>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
+>>> Can you try with ISPCTRL_SYNC_DETECT_VSRISE ?
+>>>
+>>>>         .strobe                 = 0x0,
+>>>>         .prestrobe              = 0x0,
+>>>>         .shutter                = 0x0,
+>>>>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
+>>>>         .wait_hs_vs             = 0x4,
+>>>>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
+>>>>         .u.csi.crc              = 0x0,
+>>>>         .u.csi.mode             = 0x0,
+>>>>         .u.csi.edge             = 0x0,
+>>>>         .u.csi.signalling       = 0x0,
+>>>>         .u.csi.strobe_clock_inv = 0x0,
+>>>>         .u.csi.vs_edge          = 0x0,
+>>>>         .u.csi.channel          = 0x0,
+>>>>         .u.csi.vpclk            = 0x1,
+>>>>         .u.csi.data_start       = 0x0,
+>>>>         .u.csi.data_size        = 0x0,
+>>>>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
+>>>> };
+>>>>
+>>>> and I don't know the meaning of
+>>>>
+>>>> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
+>>>> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
+>>>> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
+>>>> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
+>>>> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
+>>>> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
+>>>> lanecfg.data[2].pol = 0;
+>>>> lanecfg.data[2].pos = 0;
+>>>> lanecfg.data[3].pol = 0;
+>>>> lanecfg.data[3].pos = 0;
+>>>>
+>>> This is the physical connection details:
+>>>
+>>> - The .pol field stands for the differntial pair polarity.
+>>>   (i.e. the order in which the negative and positive connections
+>>>   are pugged in to the CSI2 ComplexIO module)
+>> What exact the meaning of the pol, sorry? I have a signal that is
+>> connected
+>> to a pin. If the pos is avalaible can I use it?
+>> It's not important how to route the signal but don't route on the same
+>> lane.
+>> Is it right?
+>>
+>> This is the timing of the camera so I can check signal, but I don't
+>> receive interrupt
+>> of isp engine
+>>
+>> The camera is direct connected to the
+>> camera omap camera signal and using the oscilloscope I can see the hs/vs
+>> signal
+>> The hs is low and go up, like the vs signal. I have only one camera
+>> with that use D0 to D7 data bit.
+>>
+>> http://www.gumstix.net/Hardware/view/I/O-connectors-cabling/Gumstix-Overo-
+>> 27-pin-connector-J5-to-manage-camera-controls/112.html
+>>
+>> static struct isp_interface_config ov7690_if_config = {
+>>         .ccdc_par_ser           = ISP_CSIA,
+>>         .dataline_shift         = 0x0,
+>>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSRISE,
+>>         .strobe                 = 0x0,
+>>         .prestrobe              = 0x0,
+>>         .shutter                = 0x0,
+>>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
+>>         .wait_hs_vs             = 0x4,
+>>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
+>>         .u.csi.crc              = 0x0,
+>>         .u.csi.mode             = 0x0,
+>>         .u.csi.edge             = 0x0,
+>>         .u.csi.signalling       = 0x0,
+>>         .u.csi.strobe_clock_inv = 0x0,
+>>         .u.csi.vs_edge          = 0x0,
+>>         .u.csi.channel          = 0x0,
+>>         .u.csi.vpclk            = 0x1,
+>>         .u.csi.data_start       = 0x0,
+>>         .u.csi.data_size        = 0x0,
+>>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
+>> };
+>>
+>> This is my initial configuration
+>> #define OV7690_CSI2_CLOCK_POLARITY      0       /* +/- pin order */
+>> #define OV7690_CSI2_DATA0_POLARITY      0       /* +/- pin order */
+>> #define OV7690_CSI2_DATA1_POLARITY      0       /* +/- pin order */
+>> #define OV7690_CSI2_CLOCK_LANE          1        /* Clock lane position: 1
+>> */
+>> #define OV7690_CSI2_DATA0_LANE          2        /* Data0 lane position: 2
+>> */
+>> #define OV7690_CSI2_DATA1_LANE          3        /* Data1 lane position: 3
+>> */
+>> tim#define OV7690_CSI2_PHY_THS_TERM        2
+>> #define OV7690_CSI2_PHY_THS_SETTLE      23
+>> #define OV7690_CSI2_PHY_TCLK_TERM       0
+>> #define OV7690_CSI2_PHY_TCLK_MISS       1
+>> #define OV7690_CSI2_PHY_TCLK_SETTLE     14
+>>
+>> With this clock polarity
+>>
+>> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
+>> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
+>> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
+>> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
+>> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
+>> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
+>> lanecfg.data[2].pol = 0;
+>> lanecfg.data[2].pos = 0;
+>> lanecfg.data[3].pol = 0;
+>> lanecfg.data[3].pos = 0;
+>> isp_csi2_complexio_lanes_config(&isp->isp_csi2, &lanecfg);
+>>
+>> Michael
+> --
+
+Regards Michael
+
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
