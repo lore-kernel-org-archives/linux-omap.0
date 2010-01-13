@@ -1,457 +1,270 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 4/4] OMAP: AM3517: Enable DSS2 for AM3517EVM board
-Date: Wed, 13 Jan 2010 17:18:33 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A4716F7@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	 <1262615657-22723-5-git-send-email-hvaibhav@ti.com>
- <1263372401.2087.91.camel@tubuntu.research.nokia.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/3] omap iommu: cleanup iommu page address mask and
+ definitions
+Date: Wed, 13 Jan 2010 14:18:28 +0200 (EET)
+Message-ID: <20100113.141828.59662176.Hiroshi.DOYU@nokia.com>
+References: <1263195995-23244-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	<A24693684029E5489D1D202277BE8944513DBE43@dlee02.ent.ti.com>
+	<20100113.085252.226801492.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_19F8576C6E063C45BE387C64729E7394044A4716F7dbde02enttico_"
+Content-Type: Multipart/Mixed;
+ boundary="--Next_Part(Wed_Jan_13_14_18_28_2010_630)--"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57831 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751832Ab0AMLt6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jan 2010 06:49:58 -0500
-In-Reply-To: <1263372401.2087.91.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:29815 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752410Ab0AMMSs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 07:18:48 -0500
+In-Reply-To: <20100113.085252.226801492.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@Nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: hnagalla@ti.com, saaguirre@ti.com
 
---_002_19F8576C6E063C45BE387C64729E7394044A4716F7dbde02enttico_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+----Next_Part(Wed_Jan_13_14_18_28_2010_630)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/3] omap iommu: cleanup iommu page address mask and definitions
+Date: Wed, 13 Jan 2010 08:52:52 +0200 (EET)
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@Nokia.com]
-> Sent: Wednesday, January 13, 2010 2:17 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: Re: [PATCH 4/4] OMAP: AM3517: Enable DSS2 for AM3517EVM
-> board
->=20
-> Hi,
->=20
-> I applied these two to my tree:
-> [PATCH 2/4] OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
-> [PATCH 3/4] OMAP: Enable DSS2 for OMAP3EVM board
->=20
-[Hiremath, Vaibhav] Great and Thanks.
+> Hi Sergio,
+> 
+> From: "ext Aguirre, Sergio" <saaguirre@ti.com>
+> Subject: RE: [PATCH 1/3] omap iommu: cleanup iommu page address mask and definitions
+> Date: Mon, 11 Jan 2010 22:53:16 +0100
+> 
+>> Hi Hiroshi,
+>> 
+>> > -----Original Message-----
+>> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> > owner@vger.kernel.org] On Behalf Of Hiroshi DOYU
+>> > Sent: Monday, January 11, 2010 1:47 AM
+>> > To: linux-omap@vger.kernel.org
+>> > Cc: Nagalla, Hari; Hiroshi DOYU
+>> > Subject: [PATCH 1/3] omap iommu: cleanup iommu page address mask and
+>> > definitions
+>> > 
+>> > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+>> 
+>> Maybe a small description would help here...
+>> 
+>> Are you just reshuffling defines, or are you also adding new ones?
+>> 
+>> Is this just a cleanup or is it fixing a hidden bug?
+> 
+> It's just a cleanup, but added a few macros here, This patch is
+> necessary for the proceeding patches which are the ones to fix a bug.
+> 
+> I'll add some description on them.
 
-> But this patch doesn't apply, I guess the below mentioned I2C stuff
-> is
-> missing from the linus' tree.
->=20
-[Hiremath, Vaibhav] Yes, as I mentioned, the I2C patches are still now pres=
-ent under Linus's tree.=20
+Here's the updates.
 
-I have attached patch which should get applied cleanly.
+----Next_Part(Wed_Jan_13_14_18_28_2010_630)--
+Content-Type: Text/X-Patch; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0001-omap-iommu-cleanup-iommu-page-address-mask-and-defi.patch"
 
-Thanks,
-Vaibhav
+>From 73251730aff0c9d53f0100a2166501eee370578f Mon Sep 17 00:00:00 2001
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Date: Fri, 8 Jan 2010 18:49:00 +0200
+Subject: [PATCH 1/3] omap iommu: cleanup iommu page address mask and definitions
 
->  Tomi
->=20
->=20
-> On Mon, 2010-01-04 at 15:34 +0100, ext hvaibhav@ti.com wrote:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > This patch is dependent on I2C interface support patch, since both
-> > the patch series modifies same file (board-am3517evm.c) file.
-> Please refer to
-> > the link -
-> >
-> > http://marc.info/?l=3Dlinux-omap&m=3D126261461106778&w=3D2
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  arch/arm/configs/am3517_evm_defconfig |   52 ++++++++++++-
-> >  arch/arm/mach-omap2/board-am3517evm.c |  144
-> +++++++++++++++++++++++++++++++++
-> >  2 files changed, 195 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/configs/am3517_evm_defconfig
-> b/arch/arm/configs/am3517_evm_defconfig
-> > index abe9966..859f352 100644
-> > --- a/arch/arm/configs/am3517_evm_defconfig
-> > +++ b/arch/arm/configs/am3517_evm_defconfig
-> > @@ -653,7 +653,57 @@ CONFIG_SSB_POSSIBLE=3Dy
-> >  #
-> >  # CONFIG_VGASTATE is not set
-> >  # CONFIG_VIDEO_OUTPUT_CONTROL is not set
-> > -# CONFIG_FB is not set
-> > +CONFIG_FB=3Dy
-> > +# CONFIG_FIRMWARE_EDID is not set
-> > +# CONFIG_FB_DDC is not set
-> > +# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-> > +CONFIG_FB_CFB_FILLRECT=3Dy
-> > +CONFIG_FB_CFB_COPYAREA=3Dy
-> > +CONFIG_FB_CFB_IMAGEBLIT=3Dy
-> > +# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-> > +# CONFIG_FB_SYS_FILLRECT is not set
-> > +# CONFIG_FB_SYS_COPYAREA is not set
-> > +# CONFIG_FB_SYS_IMAGEBLIT is not set
-> > +# CONFIG_FB_FOREIGN_ENDIAN is not set
-> > +# CONFIG_FB_SYS_FOPS is not set
-> > +# CONFIG_FB_SVGALIB is not set
-> > +# CONFIG_FB_MACMODES is not set
-> > +# CONFIG_FB_BACKLIGHT is not set
-> > +# CONFIG_FB_MODE_HELPERS is not set
-> > +# CONFIG_FB_TILEBLITTING is not set
-> > +
-> > +#
-> > +# Frame buffer hardware drivers
-> > +#
-> > +# CONFIG_FB_ARMCLCD is not set
-> > +# CONFIG_FB_S1D13XXX is not set
-> > +# CONFIG_FB_VIRTUAL is not set
-> > +# CONFIG_FB_METRONOME is not set
-> > +# CONFIG_FB_MB862XX is not set
-> > +# CONFIG_FB_BROADSHEET is not set
-> > +# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-> > +CONFIG_OMAP2_VRAM=3Dy
-> > +CONFIG_OMAP2_VRFB=3Dy
-> > +CONFIG_OMAP2_DSS=3Dy
-> > +CONFIG_OMAP2_VRAM_SIZE=3D4
-> > +CONFIG_OMAP2_DSS_DEBUG_SUPPORT=3Dy
-> > +# CONFIG_OMAP2_DSS_RFBI is not set
-> > +CONFIG_OMAP2_DSS_VENC=3Dy
-> > +# CONFIG_OMAP2_DSS_SDI is not set
-> > +# CONFIG_OMAP2_DSS_DSI is not set
-> > +# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-> > +CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=3D4
-> > +CONFIG_FB_OMAP2=3Dy
-> > +CONFIG_FB_OMAP2_DEBUG_SUPPORT=3Dy
-> > +# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-> > +CONFIG_FB_OMAP2_NUM_FBS=3D3
-> > +
-> > +#
-> > +# OMAP2/3 Display Device Drivers
-> > +#
-> > +CONFIG_PANEL_GENERIC=3Dy
-> > +# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-> > +CONFIG_PANEL_SHARP_LQ043T1DG01=3Dy
-> >  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-> >
-> >  #
-> > diff --git a/arch/arm/mach-omap2/board-am3517evm.c
-> b/arch/arm/mach-omap2/board-am3517evm.c
-> > index e85243e..b924f15 100644
-> > --- a/arch/arm/mach-omap2/board-am3517evm.c
-> > +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> > @@ -32,12 +32,153 @@
-> >  #include <plat/common.h>
-> >  #include <plat/control.h>
-> >  #include <plat/usb.h>
-> > +#include <plat/display.h>
-> >
-> >  #include <media/tvp514x.h>
-> >  #include <media/ti-media/vpfe_capture.h>
-> >
-> >  #include "mux.h"
-> >
-> > +#define LCD_PANEL_PWR		176
-> > +#define LCD_PANEL_BKLIGHT_PWR	182
-> > +#define LCD_PANEL_PWM		181
-> > +
-> > +static int lcd_enabled;
-> > +static int dvi_enabled;
-> > +
-> > +static void __init am3517_evm_display_init(void)
-> > +{
-> > +	int r;
-> > +
-> > +	omap_mux_init_gpio(LCD_PANEL_PWR, OMAP_PIN_INPUT_PULLUP);
-> > +	omap_mux_init_gpio(LCD_PANEL_BKLIGHT_PWR,
-> OMAP_PIN_INPUT_PULLDOWN);
-> > +	omap_mux_init_gpio(LCD_PANEL_PWM, OMAP_PIN_INPUT_PULLDOWN);
-> > +	/*
-> > +	 * Enable GPIO 182 =3D LCD Backlight Power
-> > +	 */
-> > +	r =3D gpio_request(LCD_PANEL_BKLIGHT_PWR, "lcd_backlight_pwr");
-> > +	if (r) {
-> > +		printk(KERN_ERR "failed to get lcd_backlight_pwr\n");
-> > +		return;
-> > +	}
-> > +	gpio_direction_output(LCD_PANEL_BKLIGHT_PWR, 1);
-> > +	/*
-> > +	 * Enable GPIO 181 =3D LCD Panel PWM
-> > +	 */
-> > +	r =3D gpio_request(LCD_PANEL_PWM, "lcd_pwm");
-> > +	if (r) {
-> > +		printk(KERN_ERR "failed to get lcd_pwm\n");
-> > +		goto err_1;
-> > +	}
-> > +	gpio_direction_output(LCD_PANEL_PWM, 1);
-> > +	/*
-> > +	 * Enable GPIO 176 =3D LCD Panel Power enable pin
-> > +	 */
-> > +	r =3D gpio_request(LCD_PANEL_PWR, "lcd_panel_pwr");
-> > +	if (r) {
-> > +		printk(KERN_ERR "failed to get lcd_panel_pwr\n");
-> > +		goto err_2;
-> > +	}
-> > +	gpio_direction_output(LCD_PANEL_PWR, 1);
-> > +
-> > +	printk(KERN_INFO "Display initialized successfully\n");
-> > +	return;
-> > +
-> > +err_2:
-> > +	gpio_free(LCD_PANEL_PWM);
-> > +err_1:
-> > +	gpio_free(LCD_PANEL_BKLIGHT_PWR);
-> > +}
-> > +
-> > +static int am3517_evm_panel_enable_lcd(struct omap_dss_device
-> *dssdev)
-> > +{
-> > +	if (dvi_enabled) {
-> > +		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
-> > +		return -EINVAL;
-> > +	}
-> > +	gpio_set_value(LCD_PANEL_PWR, 1);
-> > +	lcd_enabled =3D 1;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static void am3517_evm_panel_disable_lcd(struct omap_dss_device
-> *dssdev)
-> > +{
-> > +	gpio_set_value(LCD_PANEL_PWR, 0);
-> > +	lcd_enabled =3D 0;
-> > +}
-> > +
-> > +static struct omap_dss_device am3517_evm_lcd_device =3D {
-> > +	.type			=3D OMAP_DISPLAY_TYPE_DPI,
-> > +	.name			=3D "lcd",
-> > +	.driver_name		=3D "sharp_lq_panel",
-> > +	.phy.dpi.data_lines 	=3D 16,
-> > +	.platform_enable	=3D am3517_evm_panel_enable_lcd,
-> > +	.platform_disable	=3D am3517_evm_panel_disable_lcd,
-> > +};
-> > +
-> > +static int am3517_evm_panel_enable_tv(struct omap_dss_device
-> *dssdev)
-> > +{
-> > +	return 0;
-> > +}
-> > +
-> > +static void am3517_evm_panel_disable_tv(struct omap_dss_device
-> *dssdev)
-> > +{
-> > +}
-> > +
-> > +static struct omap_dss_device am3517_evm_tv_device =3D {
-> > +	.type 			=3D OMAP_DISPLAY_TYPE_VENC,
-> > +	.name 			=3D "tv",
-> > +	.driver_name		=3D "venc",
-> > +	.phy.venc.type		=3D OMAP_DSS_VENC_TYPE_SVIDEO,
-> > +	.platform_enable	=3D am3517_evm_panel_enable_tv,
-> > +	.platform_disable	=3D am3517_evm_panel_disable_tv,
-> > +};
-> > +
-> > +static int am3517_evm_panel_enable_dvi(struct omap_dss_device
-> *dssdev)
-> > +{
-> > +	if (lcd_enabled) {
-> > +		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
-> > +		return -EINVAL;
-> > +	}
-> > +	dvi_enabled =3D 1;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static void am3517_evm_panel_disable_dvi(struct omap_dss_device
-> *dssdev)
-> > +{
-> > +	dvi_enabled =3D 0;
-> > +}
-> > +
-> > +static struct omap_dss_device am3517_evm_dvi_device =3D {
-> > +	.type			=3D OMAP_DISPLAY_TYPE_DPI,
-> > +	.name			=3D "dvi",
-> > +	.driver_name		=3D "generic_panel",
-> > +	.phy.dpi.data_lines	=3D 24,
-> > +	.platform_enable	=3D am3517_evm_panel_enable_dvi,
-> > +	.platform_disable	=3D am3517_evm_panel_disable_dvi,
-> > +};
-> > +
-> > +static struct omap_dss_device *am3517_evm_dss_devices[] =3D {
-> > +	&am3517_evm_lcd_device,
-> > +	&am3517_evm_tv_device,
-> > +	&am3517_evm_dvi_device,
-> > +};
-> > +
-> > +static struct omap_dss_board_info am3517_evm_dss_data =3D {
-> > +	.num_devices	=3D ARRAY_SIZE(am3517_evm_dss_devices),
-> > +	.devices	=3D am3517_evm_dss_devices,
-> > +	.default_device	=3D &am3517_evm_lcd_device,
-> > +};
-> > +
-> > +struct platform_device am3517_evm_dss_device =3D {
-> > +	.name		=3D "omapdss",
-> > +	.id		=3D -1,
-> > +	.dev		=3D {
-> > +		.platform_data	=3D &am3517_evm_dss_data,
-> > +	},
-> > +};
-> >
-> >  /*
-> >   * VPFE - Video Decoder interface
-> > @@ -269,6 +410,7 @@ static struct omap_board_config_kernel
-> am3517_evm_config[] __initdata =3D {
-> >  static struct platform_device *am3517_evm_devices[] __initdata =3D
-> {
-> >  	&dm644x_ccdc_dev,
-> >  	&vpfe_capture_dev,
-> > +	&am3517_evm_dss_device,
-> >  };
-> >
-> >  static void __init am3517_evm_init_irq(void)
-> > @@ -327,6 +469,8 @@ static void __init am3517_evm_init(void)
-> >
-> >  	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
-> >  				ARRAY_SIZE(am3517evm_i2c_boardinfo));
-> > +	/* DSS */
-> > +	am3517_evm_display_init();
-> >  }
-> >
-> >  static void __init am3517_evm_map_io(void)
->=20
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+
+This is just a cleanup, but adds a few macros here, which can be used
+in the proceeding patches.
+
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/plat-omap/iopgtable.h |   50 +++++++++++++++++++++++++++++++--------
+ 1 files changed, 39 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/plat-omap/iopgtable.h b/arch/arm/plat-omap/iopgtable.h
+index 37dac43..ab23b6a 100644
+--- a/arch/arm/plat-omap/iopgtable.h
++++ b/arch/arm/plat-omap/iopgtable.h
+@@ -1,7 +1,7 @@
+ /*
+  * omap iommu: pagetable definitions
+  *
+- * Copyright (C) 2008-2009 Nokia Corporation
++ * Copyright (C) 2008-2010 Nokia Corporation
+  *
+  * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+  *
+@@ -13,26 +13,52 @@
+ #ifndef __PLAT_OMAP_IOMMU_H
+ #define __PLAT_OMAP_IOMMU_H
+ 
++/*
++ * "L2 table" address mask and size definitions.
++ */
+ #define IOPGD_SHIFT		20
+-#define IOPGD_SIZE		(1 << IOPGD_SHIFT)
++#define IOPGD_SIZE		(1UL << IOPGD_SHIFT)
+ #define IOPGD_MASK		(~(IOPGD_SIZE - 1))
+-#define IOSECTION_MASK		IOPGD_MASK
+-#define PTRS_PER_IOPGD		(1 << (32 - IOPGD_SHIFT))
+-#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
+ 
+-#define IOSUPER_SIZE		(IOPGD_SIZE << 4)
++/*
++ * "section" address mask and size definitions.
++ */
++#define IOSECTION_SHIFT		20
++#define IOSECTION_SIZE		(1UL << IOSECTION_SHIFT)
++#define IOSECTION_MASK		(~(IOSECTION_SIZE - 1))
++
++/*
++ * "supersection" address mask and size definitions.
++ */
++#define IOSUPER_SHIFT		24
++#define IOSUPER_SIZE		(1UL << IOSUPER_SHIFT)
+ #define IOSUPER_MASK		(~(IOSUPER_SIZE - 1))
+ 
++#define PTRS_PER_IOPGD		(1UL << (32 - IOPGD_SHIFT))
++#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
++
++/*
++ * "small page" address mask and size definitions.
++ */
+ #define IOPTE_SHIFT		12
+-#define IOPTE_SIZE		(1 << IOPTE_SHIFT)
++#define IOPTE_SIZE		(1UL << IOPTE_SHIFT)
+ #define IOPTE_MASK		(~(IOPTE_SIZE - 1))
+-#define IOPAGE_MASK		IOPTE_MASK
+-#define PTRS_PER_IOPTE		(1 << (IOPGD_SHIFT - IOPTE_SHIFT))
+-#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
+ 
+-#define IOLARGE_SIZE		(IOPTE_SIZE << 4)
++/*
++ * "large page" address mask and size definitions.
++ */
++#define IOLARGE_SHIFT		16
++#define IOLARGE_SIZE		(1UL << IOLARGE_SHIFT)
+ #define IOLARGE_MASK		(~(IOLARGE_SIZE - 1))
+ 
++#define PTRS_PER_IOPTE		(1UL << (IOPGD_SHIFT - IOPTE_SHIFT))
++#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
++
++#define IOPAGE_MASK		IOPTE_MASK
++
++/*
++ * some descriptor attributes.
++ */
+ #define IOPGD_TABLE		(1 << 0)
+ #define IOPGD_SECTION		(2 << 0)
+ #define IOPGD_SUPER		(1 << 18 | 2 << 0)
+@@ -40,12 +66,14 @@
+ #define IOPTE_SMALL		(2 << 0)
+ #define IOPTE_LARGE		(1 << 0)
+ 
++/* to find an entry in a page-table-directory */
+ #define iopgd_index(da)		(((da) >> IOPGD_SHIFT) & (PTRS_PER_IOPGD - 1))
+ #define iopgd_offset(obj, da)	((obj)->iopgd + iopgd_index(da))
+ 
+ #define iopte_paddr(iopgd)	(*iopgd & ~((1 << 10) - 1))
+ #define iopte_vaddr(iopgd)	((u32 *)phys_to_virt(iopte_paddr(iopgd)))
+ 
++/* to find an entry in the second-level page table. */
+ #define iopte_index(da)		(((da) >> IOPTE_SHIFT) & (PTRS_PER_IOPTE - 1))
+ #define iopte_offset(iopgd, da)	(iopte_vaddr(iopgd) + iopte_index(da))
+ 
+-- 
+1.6.0.4
 
 
---_002_19F8576C6E063C45BE387C64729E7394044A4716F7dbde02enttico_
-Content-Type: application/octet-stream;
-	name="OMAP-AM3517-Enable-DSS2-for-AM3517EVM-board.patch"
-Content-Description: OMAP-AM3517-Enable-DSS2-for-AM3517EVM-board.patch
-Content-Disposition: attachment;
-	filename="OMAP-AM3517-Enable-DSS2-for-AM3517EVM-board.patch"; size=6688;
-	creation-date="Wed, 13 Jan 2010 17:17:51 GMT";
-	modification-date="Wed, 13 Jan 2010 17:17:51 GMT"
-Content-Transfer-Encoding: base64
+----Next_Part(Wed_Jan_13_14_18_28_2010_630)--
+Content-Type: Text/X-Patch; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0002-omap-iommu-fix-incorrect-address-for-large-page-1st.patch"
 
-RnJvbSA0NDlmYTM1MjYwNDg0M2Y0OWU2YjJlOGZjYmEzMDhlNjJhMzUwYmRmIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBWYWliaGF2IEhpcmVtYXRoIDxodmFpYmhhdkB0aS5jb20+CkRh
-dGU6IFdlZCwgMTMgSmFuIDIwMTAgMTc6MTc6MTAgKzA1MzAKU3ViamVjdDogW1BBVENIXSBPTUFQ
-OiBBTTM1MTc6IEVuYWJsZSBEU1MyIGZvciBBTTM1MTdFVk0gYm9hcmQKCgpTaWduZWQtb2ZmLWJ5
-OiBWYWliaGF2IEhpcmVtYXRoIDxodmFpYmhhdkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vY29uZmln
-cy9hbTM1MTdfZXZtX2RlZmNvbmZpZyB8ICAgNTIgKysrKysrKysrKysrLQogYXJjaC9hcm0vbWFj
-aC1vbWFwMi9ib2FyZC1hbTM1MTdldm0uYyB8ICAxNDUgKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrCiAyIGZpbGVzIGNoYW5nZWQsIDE5NiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9u
-cygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2NvbmZpZ3MvYW0zNTE3X2V2bV9kZWZjb25maWcg
-Yi9hcmNoL2FybS9jb25maWdzL2FtMzUxN19ldm1fZGVmY29uZmlnCmluZGV4IGFiZTk5NjYuLjg1
-OWYzNTIgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2NvbmZpZ3MvYW0zNTE3X2V2bV9kZWZjb25maWcK
-KysrIGIvYXJjaC9hcm0vY29uZmlncy9hbTM1MTdfZXZtX2RlZmNvbmZpZwpAQCAtNjUzLDcgKzY1
-Myw1NyBAQCBDT05GSUdfU1NCX1BPU1NJQkxFPXkKICMKICMgQ09ORklHX1ZHQVNUQVRFIGlzIG5v
-dCBzZXQKICMgQ09ORklHX1ZJREVPX09VVFBVVF9DT05UUk9MIGlzIG5vdCBzZXQKLSMgQ09ORklH
-X0ZCIGlzIG5vdCBzZXQKK0NPTkZJR19GQj15CisjIENPTkZJR19GSVJNV0FSRV9FRElEIGlzIG5v
-dCBzZXQKKyMgQ09ORklHX0ZCX0REQyBpcyBub3Qgc2V0CisjIENPTkZJR19GQl9CT09UX1ZFU0Ff
-U1VQUE9SVCBpcyBub3Qgc2V0CitDT05GSUdfRkJfQ0ZCX0ZJTExSRUNUPXkKK0NPTkZJR19GQl9D
-RkJfQ09QWUFSRUE9eQorQ09ORklHX0ZCX0NGQl9JTUFHRUJMSVQ9eQorIyBDT05GSUdfRkJfQ0ZC
-X1JFVl9QSVhFTFNfSU5fQllURSBpcyBub3Qgc2V0CisjIENPTkZJR19GQl9TWVNfRklMTFJFQ1Qg
-aXMgbm90IHNldAorIyBDT05GSUdfRkJfU1lTX0NPUFlBUkVBIGlzIG5vdCBzZXQKKyMgQ09ORklH
-X0ZCX1NZU19JTUFHRUJMSVQgaXMgbm90IHNldAorIyBDT05GSUdfRkJfRk9SRUlHTl9FTkRJQU4g
-aXMgbm90IHNldAorIyBDT05GSUdfRkJfU1lTX0ZPUFMgaXMgbm90IHNldAorIyBDT05GSUdfRkJf
-U1ZHQUxJQiBpcyBub3Qgc2V0CisjIENPTkZJR19GQl9NQUNNT0RFUyBpcyBub3Qgc2V0CisjIENP
-TkZJR19GQl9CQUNLTElHSFQgaXMgbm90IHNldAorIyBDT05GSUdfRkJfTU9ERV9IRUxQRVJTIGlz
-IG5vdCBzZXQKKyMgQ09ORklHX0ZCX1RJTEVCTElUVElORyBpcyBub3Qgc2V0CisKKyMKKyMgRnJh
-bWUgYnVmZmVyIGhhcmR3YXJlIGRyaXZlcnMKKyMKKyMgQ09ORklHX0ZCX0FSTUNMQ0QgaXMgbm90
-IHNldAorIyBDT05GSUdfRkJfUzFEMTNYWFggaXMgbm90IHNldAorIyBDT05GSUdfRkJfVklSVFVB
-TCBpcyBub3Qgc2V0CisjIENPTkZJR19GQl9NRVRST05PTUUgaXMgbm90IHNldAorIyBDT05GSUdf
-RkJfTUI4NjJYWCBpcyBub3Qgc2V0CisjIENPTkZJR19GQl9CUk9BRFNIRUVUIGlzIG5vdCBzZXQK
-KyMgQ09ORklHX0ZCX09NQVBfQk9PVExPQURFUl9JTklUIGlzIG5vdCBzZXQKK0NPTkZJR19PTUFQ
-Ml9WUkFNPXkKK0NPTkZJR19PTUFQMl9WUkZCPXkKK0NPTkZJR19PTUFQMl9EU1M9eQorQ09ORklH
-X09NQVAyX1ZSQU1fU0laRT00CitDT05GSUdfT01BUDJfRFNTX0RFQlVHX1NVUFBPUlQ9eQorIyBD
-T05GSUdfT01BUDJfRFNTX1JGQkkgaXMgbm90IHNldAorQ09ORklHX09NQVAyX0RTU19WRU5DPXkK
-KyMgQ09ORklHX09NQVAyX0RTU19TREkgaXMgbm90IHNldAorIyBDT05GSUdfT01BUDJfRFNTX0RT
-SSBpcyBub3Qgc2V0CisjIENPTkZJR19PTUFQMl9EU1NfRkFLRV9WU1lOQyBpcyBub3Qgc2V0CitD
-T05GSUdfT01BUDJfRFNTX01JTl9GQ0tfUEVSX1BDSz00CitDT05GSUdfRkJfT01BUDI9eQorQ09O
-RklHX0ZCX09NQVAyX0RFQlVHX1NVUFBPUlQ9eQorIyBDT05GSUdfRkJfT01BUDJfRk9SQ0VfQVVU
-T19VUERBVEUgaXMgbm90IHNldAorQ09ORklHX0ZCX09NQVAyX05VTV9GQlM9MworCisjCisjIE9N
-QVAyLzMgRGlzcGxheSBEZXZpY2UgRHJpdmVycworIworQ09ORklHX1BBTkVMX0dFTkVSSUM9eQor
-IyBDT05GSUdfUEFORUxfU0hBUlBfTFMwMzdWN0RXMDEgaXMgbm90IHNldAorQ09ORklHX1BBTkVM
-X1NIQVJQX0xRMDQzVDFERzAxPXkKICMgQ09ORklHX0JBQ0tMSUdIVF9MQ0RfU1VQUE9SVCBpcyBu
-b3Qgc2V0CiAKICMKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYW0zNTE3
-ZXZtLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWFtMzUxN2V2bS5jCmluZGV4IGI0ZTZl
-Y2EuLjU0YWY1ZjggMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtYW0zNTE3
-ZXZtLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1hbTM1MTdldm0uYwpAQCAtMjks
-OSArMjksMTUxIEBACiAjaW5jbHVkZSA8cGxhdC9ib2FyZC5oPgogI2luY2x1ZGUgPHBsYXQvY29t
-bW9uLmg+CiAjaW5jbHVkZSA8cGxhdC91c2IuaD4KKyNpbmNsdWRlIDxwbGF0L2Rpc3BsYXkuaD4K
-IAogI2luY2x1ZGUgIm11eC5oIgogCisjZGVmaW5lIExDRF9QQU5FTF9QV1IJCTE3NgorI2RlZmlu
-ZSBMQ0RfUEFORUxfQktMSUdIVF9QV1IJMTgyCisjZGVmaW5lIExDRF9QQU5FTF9QV00JCTE4MQor
-CitzdGF0aWMgaW50IGxjZF9lbmFibGVkOworc3RhdGljIGludCBkdmlfZW5hYmxlZDsKKworc3Rh
-dGljIHZvaWQgX19pbml0IGFtMzUxN19ldm1fZGlzcGxheV9pbml0KHZvaWQpCit7CisJaW50IHI7
-CisKKwlvbWFwX211eF9pbml0X2dwaW8oTENEX1BBTkVMX1BXUiwgT01BUF9QSU5fSU5QVVRfUFVM
-TFVQKTsKKwlvbWFwX211eF9pbml0X2dwaW8oTENEX1BBTkVMX0JLTElHSFRfUFdSLCBPTUFQX1BJ
-Tl9JTlBVVF9QVUxMRE9XTik7CisJb21hcF9tdXhfaW5pdF9ncGlvKExDRF9QQU5FTF9QV00sIE9N
-QVBfUElOX0lOUFVUX1BVTExET1dOKTsKKwkvKgorCSAqIEVuYWJsZSBHUElPIDE4MiA9IExDRCBC
-YWNrbGlnaHQgUG93ZXIKKwkgKi8KKwlyID0gZ3Bpb19yZXF1ZXN0KExDRF9QQU5FTF9CS0xJR0hU
-X1BXUiwgImxjZF9iYWNrbGlnaHRfcHdyIik7CisJaWYgKHIpIHsKKwkJcHJpbnRrKEtFUk5fRVJS
-ICJmYWlsZWQgdG8gZ2V0IGxjZF9iYWNrbGlnaHRfcHdyXG4iKTsKKwkJcmV0dXJuOworCX0KKwln
-cGlvX2RpcmVjdGlvbl9vdXRwdXQoTENEX1BBTkVMX0JLTElHSFRfUFdSLCAxKTsKKwkvKgorCSAq
-IEVuYWJsZSBHUElPIDE4MSA9IExDRCBQYW5lbCBQV00KKwkgKi8KKwlyID0gZ3Bpb19yZXF1ZXN0
-KExDRF9QQU5FTF9QV00sICJsY2RfcHdtIik7CisJaWYgKHIpIHsKKwkJcHJpbnRrKEtFUk5fRVJS
-ICJmYWlsZWQgdG8gZ2V0IGxjZF9wd21cbiIpOworCQlnb3RvIGVycl8xOworCX0KKwlncGlvX2Rp
-cmVjdGlvbl9vdXRwdXQoTENEX1BBTkVMX1BXTSwgMSk7CisJLyoKKwkgKiBFbmFibGUgR1BJTyAx
-NzYgPSBMQ0QgUGFuZWwgUG93ZXIgZW5hYmxlIHBpbgorCSAqLworCXIgPSBncGlvX3JlcXVlc3Qo
-TENEX1BBTkVMX1BXUiwgImxjZF9wYW5lbF9wd3IiKTsKKwlpZiAocikgeworCQlwcmludGsoS0VS
-Tl9FUlIgImZhaWxlZCB0byBnZXQgbGNkX3BhbmVsX3B3clxuIik7CisJCWdvdG8gZXJyXzI7CisJ
-fQorCWdwaW9fZGlyZWN0aW9uX291dHB1dChMQ0RfUEFORUxfUFdSLCAxKTsKKworCXByaW50ayhL
-RVJOX0lORk8gIkRpc3BsYXkgaW5pdGlhbGl6ZWQgc3VjY2Vzc2Z1bGx5XG4iKTsKKwlyZXR1cm47
-CisKK2Vycl8yOgorCWdwaW9fZnJlZShMQ0RfUEFORUxfUFdNKTsKK2Vycl8xOgorCWdwaW9fZnJl
-ZShMQ0RfUEFORUxfQktMSUdIVF9QV1IpOworfQorCitzdGF0aWMgaW50IGFtMzUxN19ldm1fcGFu
-ZWxfZW5hYmxlX2xjZChzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3NkZXYpCit7CisJaWYgKGR2
-aV9lbmFibGVkKSB7CisJCXByaW50ayhLRVJOX0VSUiAiY2Fubm90IGVuYWJsZSBMQ0QsIERWSSBp
-cyBlbmFibGVkXG4iKTsKKwkJcmV0dXJuIC1FSU5WQUw7CisJfQorCWdwaW9fc2V0X3ZhbHVlKExD
-RF9QQU5FTF9QV1IsIDEpOworCWxjZF9lbmFibGVkID0gMTsKKworCXJldHVybiAwOworfQorCitz
-dGF0aWMgdm9pZCBhbTM1MTdfZXZtX3BhbmVsX2Rpc2FibGVfbGNkKHN0cnVjdCBvbWFwX2Rzc19k
-ZXZpY2UgKmRzc2RldikKK3sKKwlncGlvX3NldF92YWx1ZShMQ0RfUEFORUxfUFdSLCAwKTsKKwls
-Y2RfZW5hYmxlZCA9IDA7Cit9CisKK3N0YXRpYyBzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlIGFtMzUx
-N19ldm1fbGNkX2RldmljZSA9IHsKKwkudHlwZQkJCT0gT01BUF9ESVNQTEFZX1RZUEVfRFBJLAor
-CS5uYW1lCQkJPSAibGNkIiwKKwkuZHJpdmVyX25hbWUJCT0gInNoYXJwX2xxX3BhbmVsIiwKKwku
-cGh5LmRwaS5kYXRhX2xpbmVzIAk9IDE2LAorCS5wbGF0Zm9ybV9lbmFibGUJPSBhbTM1MTdfZXZt
-X3BhbmVsX2VuYWJsZV9sY2QsCisJLnBsYXRmb3JtX2Rpc2FibGUJPSBhbTM1MTdfZXZtX3BhbmVs
-X2Rpc2FibGVfbGNkLAorfTsKKworc3RhdGljIGludCBhbTM1MTdfZXZtX3BhbmVsX2VuYWJsZV90
-dihzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3NkZXYpCit7CisJcmV0dXJuIDA7Cit9CisKK3N0
-YXRpYyB2b2lkIGFtMzUxN19ldm1fcGFuZWxfZGlzYWJsZV90dihzdHJ1Y3Qgb21hcF9kc3NfZGV2
-aWNlICpkc3NkZXYpCit7Cit9CisKK3N0YXRpYyBzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlIGFtMzUx
-N19ldm1fdHZfZGV2aWNlID0geworCS50eXBlIAkJCT0gT01BUF9ESVNQTEFZX1RZUEVfVkVOQywK
-KwkubmFtZSAJCQk9ICJ0diIsCisJLmRyaXZlcl9uYW1lCQk9ICJ2ZW5jIiwKKwkucGh5LnZlbmMu
-dHlwZQkJPSBPTUFQX0RTU19WRU5DX1RZUEVfU1ZJREVPLAorCS5wbGF0Zm9ybV9lbmFibGUJPSBh
-bTM1MTdfZXZtX3BhbmVsX2VuYWJsZV90diwKKwkucGxhdGZvcm1fZGlzYWJsZQk9IGFtMzUxN19l
-dm1fcGFuZWxfZGlzYWJsZV90diwKK307CisKK3N0YXRpYyBpbnQgYW0zNTE3X2V2bV9wYW5lbF9l
-bmFibGVfZHZpKHN0cnVjdCBvbWFwX2Rzc19kZXZpY2UgKmRzc2RldikKK3sKKwlpZiAobGNkX2Vu
-YWJsZWQpIHsKKwkJcHJpbnRrKEtFUk5fRVJSICJjYW5ub3QgZW5hYmxlIERWSSwgTENEIGlzIGVu
-YWJsZWRcbiIpOworCQlyZXR1cm4gLUVJTlZBTDsKKwl9CisJZHZpX2VuYWJsZWQgPSAxOworCisJ
-cmV0dXJuIDA7Cit9CisKK3N0YXRpYyB2b2lkIGFtMzUxN19ldm1fcGFuZWxfZGlzYWJsZV9kdmko
-c3RydWN0IG9tYXBfZHNzX2RldmljZSAqZHNzZGV2KQoreworCWR2aV9lbmFibGVkID0gMDsKK30K
-Kworc3RhdGljIHN0cnVjdCBvbWFwX2Rzc19kZXZpY2UgYW0zNTE3X2V2bV9kdmlfZGV2aWNlID0g
-eworCS50eXBlCQkJPSBPTUFQX0RJU1BMQVlfVFlQRV9EUEksCisJLm5hbWUJCQk9ICJkdmkiLAor
-CS5kcml2ZXJfbmFtZQkJPSAiZ2VuZXJpY19wYW5lbCIsCisJLnBoeS5kcGkuZGF0YV9saW5lcwk9
-IDI0LAorCS5wbGF0Zm9ybV9lbmFibGUJPSBhbTM1MTdfZXZtX3BhbmVsX2VuYWJsZV9kdmksCisJ
-LnBsYXRmb3JtX2Rpc2FibGUJPSBhbTM1MTdfZXZtX3BhbmVsX2Rpc2FibGVfZHZpLAorfTsKKwor
-c3RhdGljIHN0cnVjdCBvbWFwX2Rzc19kZXZpY2UgKmFtMzUxN19ldm1fZHNzX2RldmljZXNbXSA9
-IHsKKwkmYW0zNTE3X2V2bV9sY2RfZGV2aWNlLAorCSZhbTM1MTdfZXZtX3R2X2RldmljZSwKKwkm
-YW0zNTE3X2V2bV9kdmlfZGV2aWNlLAorfTsKKworc3RhdGljIHN0cnVjdCBvbWFwX2Rzc19ib2Fy
-ZF9pbmZvIGFtMzUxN19ldm1fZHNzX2RhdGEgPSB7CisJLm51bV9kZXZpY2VzCT0gQVJSQVlfU0la
-RShhbTM1MTdfZXZtX2Rzc19kZXZpY2VzKSwKKwkuZGV2aWNlcwk9IGFtMzUxN19ldm1fZHNzX2Rl
-dmljZXMsCisJLmRlZmF1bHRfZGV2aWNlCT0gJmFtMzUxN19ldm1fbGNkX2RldmljZSwKK307CisK
-K3N0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgYW0zNTE3X2V2bV9kc3NfZGV2aWNlID0geworCS5uYW1l
-CQk9ICJvbWFwZHNzIiwKKwkuaWQJCT0gLTEsCisJLmRldgkJPSB7CisJCS5wbGF0Zm9ybV9kYXRh
-CT0gJmFtMzUxN19ldm1fZHNzX2RhdGEsCisJfSwKK307CisKIC8qCiAgKiBCb2FyZCBpbml0aWFs
-aXphdGlvbgogICovCkBAIC0zOSw2ICsxODEsNyBAQCBzdGF0aWMgc3RydWN0IG9tYXBfYm9hcmRf
-Y29uZmlnX2tlcm5lbCBhbTM1MTdfZXZtX2NvbmZpZ1tdIF9faW5pdGRhdGEgPSB7CiB9OwogCiBz
-dGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSAqYW0zNTE3X2V2bV9kZXZpY2VzW10gX19pbml0
-ZGF0YSA9IHsKKwkmYW0zNTE3X2V2bV9kc3NfZGV2aWNlLAogfTsKIAogc3RhdGljIHZvaWQgX19p
-bml0IGFtMzUxN19ldm1faW5pdF9pcnEodm9pZCkKQEAgLTc4LDYgKzIyMSw4IEBAIHN0YXRpYyB2
-b2lkIF9faW5pdCBhbTM1MTdfZXZtX2luaXQodm9pZCkKIAogCW9tYXBfc2VyaWFsX2luaXQoKTsK
-IAl1c2JfZWhjaV9pbml0KCZlaGNpX3BkYXRhKTsKKwkvKiBEU1MgKi8KKwlhbTM1MTdfZXZtX2Rp
-c3BsYXlfaW5pdCgpOwogfQogCiBzdGF0aWMgdm9pZCBfX2luaXQgYW0zNTE3X2V2bV9tYXBfaW8o
-dm9pZCkKLS0gCjEuNi4yLjQKCg==
+>From a3db27c46ec02b48d4fb3bac8b37be652a1d392c Mon Sep 17 00:00:00 2001
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Date: Fri, 8 Jan 2010 18:52:05 +0200
+Subject: [PATCH 2/3] omap iommu: fix incorrect address for largepage 1st entry
 
---_002_19F8576C6E063C45BE387C64729E7394044A4716F7dbde02enttico_--
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+
+There was a potential risk that the following "memset" could override
+its range if a given address was not the 1st entry of a
+largepage. This is not the case for "iovmm".
+
+Reported-by: Hari Nagalla <hnagalla@ti.com>
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Hari Nagalla <hnagalla@ti.com>
+---
+ arch/arm/plat-omap/iommu.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index c0ff1e3..ccf25b3 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -1,7 +1,7 @@
+ /*
+  * omap iommu: tlb and pagetable primitives
+  *
+- * Copyright (C) 2008-2009 Nokia Corporation
++ * Copyright (C) 2008-2010 Nokia Corporation
+  *
+  * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+  *		Paul Mundt and Toshihiro Kobayashi
+@@ -646,7 +646,7 @@ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
+ 		if (*iopte & IOPTE_LARGE) {
+ 			nent *= 16;
+ 			/* rewind to the 1st entry */
+-			iopte = (u32 *)((u32)iopte & IOLARGE_MASK);
++			iopte = iopte_offset(iopgd, (da & IOLARGE_MASK));
+ 		}
+ 		bytes *= nent;
+ 		memset(iopte, 0, nent * sizeof(*iopte));
+-- 
+1.6.0.4
+
+
+----Next_Part(Wed_Jan_13_14_18_28_2010_630)--
+Content-Type: Text/X-Patch; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0003-omap-iommu-fix-incorrect-address-for-supersection-1.patch"
+
+>From 0f299c722404f367733da07125b6e4b6c722432b Mon Sep 17 00:00:00 2001
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Date: Fri, 8 Jan 2010 18:54:25 +0200
+Subject: [PATCH 3/3] omap iommu: fix incorrect address for supersection 1st entry
+
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+
+There was a potential risk that the following "memset" could override
+its range if a given address was not the 1st entry of a
+supersection. This is not the case for "iovmm".
+
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Hari Nagalla <hnagalla@ti.com>
+---
+ arch/arm/plat-omap/iommu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index ccf25b3..ce0072a 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -667,7 +667,7 @@ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
+ 		if ((*iopgd & IOPGD_SUPER) == IOPGD_SUPER) {
+ 			nent *= 16;
+ 			/* rewind to the 1st entry */
+-			iopgd = (u32 *)((u32)iopgd & IOSUPER_MASK);
++			iopgd = iopgd_offset(obj, (da & IOSUPER_MASK));
+ 		}
+ 		bytes *= nent;
+ 	}
+-- 
+1.6.0.4
+
+
+----Next_Part(Wed_Jan_13_14_18_28_2010_630)----
