@@ -1,66 +1,35 @@
-From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Subject: Re: Audio suspend/resume status on OMAP3 based
- platforms
-Date: Wed, 13 Jan 2010 14:22:18 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D7A8D@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D7807@dbde02.ent.ti.com>
-	<201001130910.04292.peter.ujfalusi@nokia.com>
+From: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Subject: Re: ISP OMAP3 camera support ov7690
+Date: Wed, 13 Jan 2010 11:18:19 +0100
+Message-ID: <4B4D9DEB.1030306@panicking.kicks-ass.org>
+References: <4AC7DAAD.2020203@panicking.kicks-ass.org> <4AC8B764.2030101@gmail.com> <4AC93DC9.2080809@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE89444CB3A2CB@dlee02.ent.ti.com> <4B4C75F0.3060108@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE8944514AC214@dlee02.ent.ti.com> <4B4CB241.6050603@panicking.kicks-ass.org> <4B4CE976.5050503@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE8944514AC7F3@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <201001130910.04292.peter.ujfalusi@nokia.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <A24693684029E5489D1D202277BE8944514AC7F3@dlee02.ent.ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: Nishanth Menon <menon.nishanth@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Peter Ujfalusi [mailto:peter.ujfalusi@nokia.com]
-> Sent: Wednesday, January 13, 2010 12:40 PM
-> To: alsa-devel@alsa-project.org
-> Cc: Aggarwal, Anuj; linux-omap@vger.kernel.org
-> Subject: Re: [alsa-devel] Audio suspend/resume status on OMAP3 based
-> platforms
-> 
-> On Tuesday 12 January 2010 18:05:15 ext Aggarwal, Anuj wrote:
-> > Hi,
-> >
-> > I want to check the status of suspend/resume functionality when audio
-> > subsystem is being used. Specifically, has some one tried the following
-> > tests on their omap3 based platforms:
-> >
-> > a) echo mem > /sys/power/state, when audio playback is running in
-> > background
-> > b) same command, when audio capture is running in
-> > background
-> > b) same command, when audio loopback is running in
-> > background
-> >
-> > I am facing some issues with (b) & (c) so wanted to confirm whether
-> > someone else has faced similar problem or not.
-> 
-> As Jarkko pointed out in a separate mail, we should not expect the
-> suspend/resume to be working correctly until the context save/restore, and
-> the
-> clock management is sorted out.
-> 
-> On the other hand it seams that the problem is in the capture path (b and
-> c
-> having issues).
-> 
-> How is the McBSP configured in your setup (master or slave)?
-[Aggarwal, Anuj] TWL4030 is master and McBSP is slave.
+Hi,
 
-> I think we might have different issues with suspend/resume when OMAP McBSP
-> is
-> slave or if it is master.
+I have done a step ahead maybe:
+
+The camera has this output format:
+
+YUYV     ---> the first use the CCDC_OTHERS_MEM, so seems that it needs the WEN signal to syncronize (I don't have this one)
+RGB565   ---> is not supported
+RAW8     ---> is supported by the ISP but seems that is not implemented as a isp formats
+
+So I can't use the first one but I can use the last one because the pipeline support RAW format,
+the data path is the same of RAW10 expet for the autofocus module. If all is correct what are the steps?
+
+- add the isp_format
+- add in the if confidition this data format and use the same path of RAW10
+...
+
+Regards
+
+Michael
