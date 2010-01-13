@@ -1,287 +1,603 @@
-From: Tomi Valkeinen <tomi.valkeinen@Nokia.com>
-Subject: Re: [PATCH 4/4] OMAP: AM3517: Enable DSS2 for AM3517EVM board
-Date: Wed, 13 Jan 2010 10:46:41 +0200
-Message-ID: <1263372401.2087.91.camel@tubuntu.research.nokia.com>
-References: <hvaibhav@ti.com>
-	 <1262615657-22723-5-git-send-email-hvaibhav@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH] OMAP: DSS: add TPO TD043MTEA1 panel
+Date: Wed, 13 Jan 2010 10:49:34 +0200
+Message-ID: <1263372574.2087.93.camel@tubuntu.research.nokia.com>
+References: <1260559814-25075-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:32927 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:33180 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009Ab0AMIqy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 03:46:54 -0500
-In-Reply-To: <1262615657-22723-5-git-send-email-hvaibhav@ti.com>
+	with ESMTP id S1752009Ab0AMIso (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 03:48:44 -0500
+In-Reply-To: <1260559814-25075-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext hvaibhav@ti.com" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: ext Grazvydas Ignotas <notasas@gmail.com>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi,
 
-I applied these two to my tree:
-[PATCH 2/4] OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
-[PATCH 3/4] OMAP: Enable DSS2 for OMAP3EVM board
-
-But this patch doesn't apply, I guess the below mentioned I2C stuff is
-missing from the linus' tree.
+Sorry for the long time it took me to check this out. Checkpatch
+complains about indentation, I think the whole file is indented with
+spaces, not tabs.
 
  Tomi
 
 
-On Mon, 2010-01-04 at 15:34 +0100, ext hvaibhav@ti.com wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> This patch is dependent on I2C interface support patch, since both 
-> the patch series modifies same file (board-am3517evm.c) file. Please refer to
-> the link - 
-> 
-> http://marc.info/?l=linux-omap&m=126261461106778&w=2
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+On Fri, 2009-12-11 at 20:30 +0100, ext Grazvydas Ignotas wrote:
+> Add support of TPO TD043MTEA1 TFT LCD panel to DSS2 driver.
+> This panel is used by OMAP3 Pandora device.
+>=20
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 > ---
->  arch/arm/configs/am3517_evm_defconfig |   52 ++++++++++++-
->  arch/arm/mach-omap2/board-am3517evm.c |  144 +++++++++++++++++++++++++++++++++
->  2 files changed, 195 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/configs/am3517_evm_defconfig b/arch/arm/configs/am3517_evm_defconfig
-> index abe9966..859f352 100644
-> --- a/arch/arm/configs/am3517_evm_defconfig
-> +++ b/arch/arm/configs/am3517_evm_defconfig
-> @@ -653,7 +653,57 @@ CONFIG_SSB_POSSIBLE=y
->  #
->  # CONFIG_VGASTATE is not set
->  # CONFIG_VIDEO_OUTPUT_CONTROL is not set
-> -# CONFIG_FB is not set
-> +CONFIG_FB=y
-> +# CONFIG_FIRMWARE_EDID is not set
-> +# CONFIG_FB_DDC is not set
-> +# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-> +CONFIG_FB_CFB_FILLRECT=y
-> +CONFIG_FB_CFB_COPYAREA=y
-> +CONFIG_FB_CFB_IMAGEBLIT=y
-> +# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-> +# CONFIG_FB_SYS_FILLRECT is not set
-> +# CONFIG_FB_SYS_COPYAREA is not set
-> +# CONFIG_FB_SYS_IMAGEBLIT is not set
-> +# CONFIG_FB_FOREIGN_ENDIAN is not set
-> +# CONFIG_FB_SYS_FOPS is not set
-> +# CONFIG_FB_SVGALIB is not set
-> +# CONFIG_FB_MACMODES is not set
-> +# CONFIG_FB_BACKLIGHT is not set
-> +# CONFIG_FB_MODE_HELPERS is not set
-> +# CONFIG_FB_TILEBLITTING is not set
+>  drivers/video/omap2/displays/Kconfig               |    6 +
+>  drivers/video/omap2/displays/Makefile              |    1 +
+>  .../video/omap2/displays/panel-tpo-td043mtea1.c    |  489 ++++++++++=
+++++++++++
+>  3 files changed, 496 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/video/omap2/displays/panel-tpo-td043mtea1=
+=2Ec
+>=20
+> diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/oma=
+p2/displays/Kconfig
+> index b12a59c..a1d0ce4 100644
+> --- a/drivers/video/omap2/displays/Kconfig
+> +++ b/drivers/video/omap2/displays/Kconfig
+> @@ -19,4 +19,10 @@ config PANEL_TAAL
+>          help
+>            Taal DSI command mode panel from TPO.
+>=20
+> +config PANEL_TPO_TD043MTEA1
+> +        tristate "TPO TD043MTEA1 LCD Panel"
+> +        depends on OMAP2_DSS && I2C
+> +        help
+> +          LCD Panel used in OMAP3 Pandora
 > +
-> +#
-> +# Frame buffer hardware drivers
-> +#
-> +# CONFIG_FB_ARMCLCD is not set
-> +# CONFIG_FB_S1D13XXX is not set
-> +# CONFIG_FB_VIRTUAL is not set
-> +# CONFIG_FB_METRONOME is not set
-> +# CONFIG_FB_MB862XX is not set
-> +# CONFIG_FB_BROADSHEET is not set
-> +# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-> +CONFIG_OMAP2_VRAM=y
-> +CONFIG_OMAP2_VRFB=y
-> +CONFIG_OMAP2_DSS=y
-> +CONFIG_OMAP2_VRAM_SIZE=4
-> +CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
-> +# CONFIG_OMAP2_DSS_RFBI is not set
-> +CONFIG_OMAP2_DSS_VENC=y
-> +# CONFIG_OMAP2_DSS_SDI is not set
-> +# CONFIG_OMAP2_DSS_DSI is not set
-> +# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-> +CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
-> +CONFIG_FB_OMAP2=y
-> +CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
-> +# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-> +CONFIG_FB_OMAP2_NUM_FBS=3
+>  endmenu
+> diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/om=
+ap2/displays/Makefile
+> index 9556464..143a717 100644
+> --- a/drivers/video/omap2/displays/Makefile
+> +++ b/drivers/video/omap2/displays/Makefile
+> @@ -2,3 +2,4 @@ obj-$(CONFIG_PANEL_GENERIC) +=3D panel-generic.o
+>  obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) +=3D panel-sharp-ls037v7dw01.o
+>=20
+>  obj-$(CONFIG_PANEL_TAAL) +=3D panel-taal.o
+> +obj-$(CONFIG_PANEL_TPO_TD043MTEA1) +=3D panel-tpo-td043mtea1.o
+> diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/dr=
+ivers/video/omap2/displays/panel-tpo-td043mtea1.c
+> new file mode 100644
+> index 0000000..f297a46
+> --- /dev/null
+> +++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+> @@ -0,0 +1,489 @@
+> +/*
+> + * LCD panel driver for TPO TD043MTEA1
+> + *
+> + * Author: Gra=C3=85=C2=BEvydas Ignotas <notasas@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License as published=
+ by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
 > +
-> +#
-> +# OMAP2/3 Display Device Drivers
-> +#
-> +CONFIG_PANEL_GENERIC=y
-> +# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-> +CONFIG_PANEL_SHARP_LQ043T1DG01=y
->  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
->  
->  #
-> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-> index e85243e..b924f15 100644
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@ -32,12 +32,153 @@
->  #include <plat/common.h>
->  #include <plat/control.h>
->  #include <plat/usb.h>
+> +#include <linux/module.h>
+> +#include <linux/delay.h>
+> +#include <linux/spi/spi.h>
+> +#include <linux/regulator/consumer.h>
+> +#include <linux/gpio.h>
+> +#include <linux/err.h>
+> +
 > +#include <plat/display.h>
->  
->  #include <media/tvp514x.h>
->  #include <media/ti-media/vpfe_capture.h>
->  
->  #include "mux.h"
->  
-> +#define LCD_PANEL_PWR		176
-> +#define LCD_PANEL_BKLIGHT_PWR	182
-> +#define LCD_PANEL_PWM		181
 > +
-> +static int lcd_enabled;
-> +static int dvi_enabled;
+> +#define TPO_R02_MODE(x)                ((x) & 7)
+> +#define TPO_R02_MODE_800x480   7
+> +#define TPO_R02_NCLK_RISING    BIT(3)
+> +#define TPO_R02_HSYNC_HIGH     BIT(4)
+> +#define TPO_R02_VSYNC_HIGH     BIT(5)
 > +
-> +static void __init am3517_evm_display_init(void)
-> +{
-> +	int r;
+> +#define TPO_R03_NSTANDBY       BIT(0)
+> +#define TPO_R03_EN_CP_CLK      BIT(1)
+> +#define TPO_R03_EN_VGL_PUMP    BIT(2)
+> +#define TPO_R03_EN_PWM         BIT(3)
+> +#define TPO_R03_DRIVING_CAP_100        BIT(4)
+> +#define TPO_R03_EN_PRE_CHARGE  BIT(6)
+> +#define TPO_R03_SOFTWARE_CTL   BIT(7)
 > +
-> +	omap_mux_init_gpio(LCD_PANEL_PWR, OMAP_PIN_INPUT_PULLUP);
-> +	omap_mux_init_gpio(LCD_PANEL_BKLIGHT_PWR, OMAP_PIN_INPUT_PULLDOWN);
-> +	omap_mux_init_gpio(LCD_PANEL_PWM, OMAP_PIN_INPUT_PULLDOWN);
-> +	/*
-> +	 * Enable GPIO 182 = LCD Backlight Power
-> +	 */
-> +	r = gpio_request(LCD_PANEL_BKLIGHT_PWR, "lcd_backlight_pwr");
-> +	if (r) {
-> +		printk(KERN_ERR "failed to get lcd_backlight_pwr\n");
-> +		return;
-> +	}
-> +	gpio_direction_output(LCD_PANEL_BKLIGHT_PWR, 1);
-> +	/*
-> +	 * Enable GPIO 181 = LCD Panel PWM
-> +	 */
-> +	r = gpio_request(LCD_PANEL_PWM, "lcd_pwm");
-> +	if (r) {
-> +		printk(KERN_ERR "failed to get lcd_pwm\n");
-> +		goto err_1;
-> +	}
-> +	gpio_direction_output(LCD_PANEL_PWM, 1);
-> +	/*
-> +	 * Enable GPIO 176 = LCD Panel Power enable pin
-> +	 */
-> +	r = gpio_request(LCD_PANEL_PWR, "lcd_panel_pwr");
-> +	if (r) {
-> +		printk(KERN_ERR "failed to get lcd_panel_pwr\n");
-> +		goto err_2;
-> +	}
-> +	gpio_direction_output(LCD_PANEL_PWR, 1);
+> +#define TPO_R04_NFLIP_H                BIT(0)
+> +#define TPO_R04_NFLIP_V                BIT(1)
+> +#define TPO_R04_CP_CLK_FREQ_1H BIT(2)
+> +#define TPO_R04_VGL_FREQ_1H    BIT(4)
 > +
-> +	printk(KERN_INFO "Display initialized successfully\n");
-> +	return;
+> +#define TPO_R03_VAL_NORMAL (TPO_R03_NSTANDBY | TPO_R03_EN_CP_CLK | \
+> +                       TPO_R03_EN_VGL_PUMP |  TPO_R03_EN_PWM | \
+> +                       TPO_R03_DRIVING_CAP_100 | TPO_R03_EN_PRE_CHAR=
+GE | \
+> +                       TPO_R03_SOFTWARE_CTL)
 > +
-> +err_2:
-> +	gpio_free(LCD_PANEL_PWM);
-> +err_1:
-> +	gpio_free(LCD_PANEL_BKLIGHT_PWR);
-> +}
+> +#define TPO_R03_VAL_STANDBY (TPO_R03_DRIVING_CAP_100 | \
+> +                       TPO_R03_EN_PRE_CHARGE | TPO_R03_SOFTWARE_CTL)
 > +
-> +static int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +	if (dvi_enabled) {
-> +		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
-> +		return -EINVAL;
-> +	}
-> +	gpio_set_value(LCD_PANEL_PWR, 1);
-> +	lcd_enabled = 1;
-> +
-> +	return 0;
-> +}
-> +
-> +static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +	gpio_set_value(LCD_PANEL_PWR, 0);
-> +	lcd_enabled = 0;
-> +}
-> +
-> +static struct omap_dss_device am3517_evm_lcd_device = {
-> +	.type			= OMAP_DISPLAY_TYPE_DPI,
-> +	.name			= "lcd",
-> +	.driver_name		= "sharp_lq_panel",
-> +	.phy.dpi.data_lines 	= 16,
-> +	.platform_enable	= am3517_evm_panel_enable_lcd,
-> +	.platform_disable	= am3517_evm_panel_disable_lcd,
+> +static const u16 tpo_td043_def_gamma[12] =3D {
+> +       106, 200, 289, 375, 460, 543, 625, 705, 785, 864, 942, 1020
 > +};
 > +
-> +static int am3517_evm_panel_enable_tv(struct omap_dss_device *dssdev)
+> +struct tpo_td043_device {
+> +       struct spi_device *spi;
+> +       struct regulator *vcc_reg;
+> +       u16 gamma[12];
+> +       u32 mode;
+> +       u32 hmirror:1;
+> +       u32 vmirror:1;
+> +};
+> +
+> +static int tpo_td043_write(struct spi_device *spi, u8 addr, u8 data)
 > +{
-> +	return 0;
+> +       struct spi_message      m;
+> +       struct spi_transfer     xfer;
+> +       u16                     w;
+> +       int                     r;
+> +
+> +       spi_message_init(&m);
+> +
+> +       memset(&xfer, 0, sizeof(xfer));
+> +
+> +       w =3D ((u16)addr << 10) | (1 << 8) | data;
+> +       xfer.tx_buf =3D &w;
+> +       xfer.bits_per_word =3D 16;
+> +       xfer.len =3D 2;
+> +       spi_message_add_tail(&xfer, &m);
+> +
+> +       r =3D spi_sync(spi, &m);
+> +       if (r < 0)
+> +               dev_warn(&spi->dev, "failed to write to LCD reg (%d)\=
+n", r);
+> +       return r;
 > +}
 > +
-> +static void am3517_evm_panel_disable_tv(struct omap_dss_device *dssdev)
+> +static void tpo_td043_write_gamma(struct spi_device *spi, u16 gamma[=
+12])
 > +{
+> +       u8 i, val;
+> +
+> +       /* gamma bits [9:8] */
+> +       for (val =3D i =3D 0; i < 4; i++)
+> +               val |=3D (gamma[i] & 0x300) >> ((i + 1) * 2);
+> +       tpo_td043_write(spi, 0x11, val);
+> +
+> +       for (val =3D i =3D 0; i < 4; i++)
+> +               val |=3D (gamma[i+4] & 0x300) >> ((i + 1) * 2);
+> +       tpo_td043_write(spi, 0x12, val);
+> +
+> +       for (val =3D i =3D 0; i < 4; i++)
+> +               val |=3D (gamma[i+8] & 0x300) >> ((i + 1) * 2);
+> +       tpo_td043_write(spi, 0x13, val);
+> +
+> +       /* gamma bits [7:0] */
+> +       for (val =3D i =3D 0; i < 12; i++)
+> +               tpo_td043_write(spi, 0x14 + i, gamma[i] & 0xff);
 > +}
 > +
-> +static struct omap_dss_device am3517_evm_tv_device = {
-> +	.type 			= OMAP_DISPLAY_TYPE_VENC,
-> +	.name 			= "tv",
-> +	.driver_name		= "venc",
-> +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-> +	.platform_enable	= am3517_evm_panel_enable_tv,
-> +	.platform_disable	= am3517_evm_panel_disable_tv,
-> +};
-> +
-> +static int am3517_evm_panel_enable_dvi(struct omap_dss_device *dssdev)
+> +static int tpo_td043_write_mirror(struct spi_device *spi, bool h, bo=
+ol v)
 > +{
-> +	if (lcd_enabled) {
-> +		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
-> +		return -EINVAL;
-> +	}
-> +	dvi_enabled = 1;
+> +       u8 reg4 =3D TPO_R04_NFLIP_H | TPO_R04_NFLIP_V | \
+> +               TPO_R04_CP_CLK_FREQ_1H | TPO_R04_VGL_FREQ_1H;
+> +       if (h)
+> +               reg4 &=3D ~TPO_R04_NFLIP_H;
+> +       if (v)
+> +               reg4 &=3D ~TPO_R04_NFLIP_V;
 > +
-> +	return 0;
+> +       return tpo_td043_write(spi, 4, reg4);
 > +}
 > +
-> +static void am3517_evm_panel_disable_dvi(struct omap_dss_device *dssdev)
+> +static int tpo_td043_set_hmirror(struct omap_dss_device *dssdev, boo=
+l enable)
 > +{
-> +	dvi_enabled = 0;
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(&dssde=
+v->dev);
+> +
+> +       tpo_td043->hmirror =3D enable;
+> +       return tpo_td043_write_mirror(tpo_td043->spi, tpo_td043->hmir=
+ror,
+> +                       tpo_td043->vmirror);
 > +}
 > +
-> +static struct omap_dss_device am3517_evm_dvi_device = {
-> +	.type			= OMAP_DISPLAY_TYPE_DPI,
-> +	.name			= "dvi",
-> +	.driver_name		= "generic_panel",
-> +	.phy.dpi.data_lines	= 24,
-> +	.platform_enable	= am3517_evm_panel_enable_dvi,
-> +	.platform_disable	= am3517_evm_panel_disable_dvi,
+> +static bool tpo_td043_get_hmirror(struct omap_dss_device *dssdev)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(&dssde=
+v->dev);
+> +
+> +       return tpo_td043->hmirror;
+> +}
+> +
+> +static ssize_t tpo_td043_vmirror_show(struct device *dev,
+> +       struct device_attribute *attr, char *buf)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(dev);
+> +
+> +       return snprintf(buf, PAGE_SIZE, "%d\n", tpo_td043->vmirror);
+> +}
+> +
+> +static ssize_t tpo_td043_vmirror_store(struct device *dev,
+> +       struct device_attribute *attr, const char *buf, size_t count)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(dev);
+> +       long val;
+> +       int ret;
+> +
+> +       ret =3D strict_strtol(buf, 0, &val);
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       ret =3D tpo_td043_write_mirror(tpo_td043->spi, tpo_td043->hmi=
+rror, val);
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       tpo_td043->vmirror =3D val;
+> +
+> +       return count;
+> +}
+> +
+> +static ssize_t tpo_td043_mode_show(struct device *dev,
+> +       struct device_attribute *attr, char *buf)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(dev);
+> +
+> +       return snprintf(buf, PAGE_SIZE, "%d\n", tpo_td043->mode);
+> +}
+> +
+> +static ssize_t tpo_td043_mode_store(struct device *dev,
+> +       struct device_attribute *attr, const char *buf, size_t count)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(dev);
+> +       long val;
+> +       int ret;
+> +
+> +       ret =3D strict_strtol(buf, 0, &val);
+> +       if (ret !=3D 0 || val & ~7)
+> +               return -EINVAL;
+> +
+> +       tpo_td043->mode =3D val;
+> +
+> +       val |=3D TPO_R02_NCLK_RISING;
+> +       tpo_td043_write(tpo_td043->spi, 2, val);
+> +
+> +       return count;
+> +}
+> +
+> +static ssize_t tpo_td043_gamma_show(struct device *dev,
+> +       struct device_attribute *attr, char *buf)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(dev);
+> +       ssize_t len =3D 0;
+> +       int ret;
+> +       int i;
+> +
+> +       for (i =3D 0; i < ARRAY_SIZE(tpo_td043->gamma); i++) {
+> +               ret =3D snprintf(buf + len, PAGE_SIZE - len, "%u ",
+> +                               tpo_td043->gamma[i]);
+> +               if (ret < 0)
+> +                       return ret;
+> +               len +=3D ret;
+> +       }
+> +       buf[len - 1] =3D '\n';
+> +
+> +       return len;
+> +}
+> +
+> +static ssize_t tpo_td043_gamma_store(struct device *dev,
+> +       struct device_attribute *attr, const char *buf, size_t count)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(dev);
+> +       unsigned int g[12];
+> +       int ret;
+> +       int i;
+> +
+> +       ret =3D sscanf(buf, "%u %u %u %u %u %u %u %u %u %u %u %u",
+> +                       &g[0], &g[1], &g[2], &g[3], &g[4], &g[5],
+> +                       &g[6], &g[7], &g[8], &g[9], &g[10], &g[11]);
+> +
+> +       if (ret !=3D 12)
+> +               return -EINVAL;
+> +
+> +       for (i =3D 0; i < 12; i++)
+> +               tpo_td043->gamma[i] =3D g[i];
+> +
+> +       tpo_td043_write_gamma(tpo_td043->spi, tpo_td043->gamma);
+> +
+> +       return count;
+> +}
+> +
+> +static DEVICE_ATTR(vmirror, S_IRUGO | S_IWUSR,
+> +               tpo_td043_vmirror_show, tpo_td043_vmirror_store);
+> +static DEVICE_ATTR(mode, S_IRUGO | S_IWUSR,
+> +               tpo_td043_mode_show, tpo_td043_mode_store);
+> +static DEVICE_ATTR(gamma, S_IRUGO | S_IWUSR,
+> +               tpo_td043_gamma_show, tpo_td043_gamma_store);
+> +
+> +static struct attribute *tpo_td043_attrs[] =3D {
+> +       &dev_attr_vmirror.attr,
+> +       &dev_attr_mode.attr,
+> +       &dev_attr_gamma.attr,
+> +       NULL,
 > +};
 > +
-> +static struct omap_dss_device *am3517_evm_dss_devices[] = {
-> +	&am3517_evm_lcd_device,
-> +	&am3517_evm_tv_device,
-> +	&am3517_evm_dvi_device,
+> +static struct attribute_group tpo_td043_attr_group =3D {
+> +       .attrs =3D tpo_td043_attrs,
 > +};
 > +
-> +static struct omap_dss_board_info am3517_evm_dss_data = {
-> +	.num_devices	= ARRAY_SIZE(am3517_evm_dss_devices),
-> +	.devices	= am3517_evm_dss_devices,
-> +	.default_device	= &am3517_evm_lcd_device,
+> +static const struct omap_video_timings tpo_td043_timings =3D {
+> +       .x_res          =3D 800,
+> +       .y_res          =3D 480,
+> +
+> +       .pixel_clock    =3D 36000,
+> +
+> +       .hsw            =3D 1,
+> +       .hfp            =3D 68,
+> +       .hbp            =3D 214,
+> +
+> +       .vsw            =3D 1,
+> +       .vfp            =3D 39,
+> +       .vbp            =3D 34,
 > +};
 > +
-> +struct platform_device am3517_evm_dss_device = {
-> +	.name		= "omapdss",
-> +	.id		= -1,
-> +	.dev		= {
-> +		.platform_data	= &am3517_evm_dss_data,
-> +	},
+> +static int tpo_td043_enable(struct omap_dss_device *dssdev)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(&dssde=
+v->dev);
+> +       int nreset_gpio =3D dssdev->reset_gpio;
+> +       int ret;
+> +
+> +       dev_dbg(&dssdev->dev, "enable\n");
+> +
+> +       if (dssdev->platform_enable) {
+> +               ret =3D dssdev->platform_enable(dssdev);
+> +               if (ret)
+> +                       return ret;
+> +       }
+> +
+> +       regulator_enable(tpo_td043->vcc_reg);
+> +
+> +       /* wait for power up */
+> +       msleep(160);
+> +
+> +       if (gpio_is_valid(nreset_gpio))
+> +               gpio_set_value(nreset_gpio, 1);
+> +
+> +       tpo_td043_write(tpo_td043->spi, 2,
+> +                       TPO_R02_MODE(tpo_td043->mode) | TPO_R02_NCLK_=
+RISING);
+> +       tpo_td043_write(tpo_td043->spi, 3, TPO_R03_VAL_NORMAL);
+> +       tpo_td043_write(tpo_td043->spi, 0x20, 0xf0);
+> +       tpo_td043_write(tpo_td043->spi, 0x21, 0xf0);
+> +       tpo_td043_write_mirror(tpo_td043->spi, tpo_td043->hmirror,
+> +                       tpo_td043->vmirror);
+> +       tpo_td043_write_gamma(tpo_td043->spi, tpo_td043->gamma);
+> +
+> +       return 0;
+> +}
+> +
+> +static void tpo_td043_disable(struct omap_dss_device *dssdev)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(&dssde=
+v->dev);
+> +       int nreset_gpio =3D dssdev->reset_gpio;
+> +
+> +       dev_dbg(&dssdev->dev, "disable\n");
+> +
+> +       tpo_td043_write(tpo_td043->spi, 3,
+> +                       TPO_R03_VAL_STANDBY | TPO_R03_EN_PWM);
+> +
+> +       if (gpio_is_valid(nreset_gpio))
+> +               gpio_set_value(nreset_gpio, 0);
+> +
+> +       /* wait for at least 2 vsyncs before cutting off power */
+> +       msleep(50);
+> +
+> +       tpo_td043_write(tpo_td043->spi, 3, TPO_R03_VAL_STANDBY);
+> +
+> +       regulator_disable(tpo_td043->vcc_reg);
+> +
+> +       if (dssdev->platform_disable)
+> +               dssdev->platform_disable(dssdev);
+> +}
+> +
+> +static int tpo_td043_suspend(struct omap_dss_device *dssdev)
+> +{
+> +       tpo_td043_disable(dssdev);
+> +       return 0;
+> +}
+> +
+> +static int tpo_td043_resume(struct omap_dss_device *dssdev)
+> +{
+> +       return tpo_td043_enable(dssdev);
+> +}
+> +
+> +static int tpo_td043_probe(struct omap_dss_device *dssdev)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(&dssde=
+v->dev);
+> +       int nreset_gpio =3D dssdev->reset_gpio;
+> +       int ret =3D 0;
+> +
+> +       dev_dbg(&dssdev->dev, "probe\n");
+> +
+> +       if (tpo_td043 =3D=3D NULL) {
+> +               dev_err(&dssdev->dev, "missing tpo_td043_device\n");
+> +               return -ENODEV;
+> +       }
+> +
+> +       dssdev->panel.config =3D OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IHS =
+|
+> +                               OMAP_DSS_LCD_IVS | OMAP_DSS_LCD_IPC;
+> +       dssdev->panel.timings =3D tpo_td043_timings;
+> +       dssdev->ctrl.pixel_size =3D 24;
+> +
+> +       tpo_td043->mode =3D TPO_R02_MODE_800x480;
+> +       memcpy(tpo_td043->gamma, tpo_td043_def_gamma, sizeof(tpo_td04=
+3->gamma));
+> +
+> +       tpo_td043->vcc_reg =3D regulator_get(&dssdev->dev, "vcc");
+> +       if (IS_ERR(tpo_td043->vcc_reg)) {
+> +               dev_err(&dssdev->dev, "failed to get LCD VCC regulato=
+r\n");
+> +               ret =3D PTR_ERR(tpo_td043->vcc_reg);
+> +               goto fail_regulator;
+> +       }
+> +
+> +       if (gpio_is_valid(nreset_gpio)) {
+> +               ret =3D gpio_request(nreset_gpio, "lcd reset");
+> +               if (ret < 0) {
+> +                       dev_err(&dssdev->dev, "couldn't request reset=
+ GPIO\n");
+> +                       goto fail_gpio_req;
+> +               }
+> +
+> +               ret =3D gpio_direction_output(nreset_gpio, 0);
+> +               if (ret < 0) {
+> +                       dev_err(&dssdev->dev, "couldn't set GPIO dire=
+ction\n");
+> +                       goto fail_gpio_direction;
+> +               }
+> +       }
+> +
+> +       ret =3D sysfs_create_group(&dssdev->dev.kobj, &tpo_td043_attr=
+_group);
+> +       if (ret)
+> +               dev_warn(&dssdev->dev, "failed to create sysfs files\=
+n");
+> +
+> +       return 0;
+> +
+> +fail_gpio_direction:
+> +       gpio_free(nreset_gpio);
+> +fail_gpio_req:
+> +       regulator_put(tpo_td043->vcc_reg);
+> +fail_regulator:
+> +       kfree(tpo_td043);
+> +       return ret;
+> +}
+> +
+> +static void tpo_td043_remove(struct omap_dss_device *dssdev)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(&dssde=
+v->dev);
+> +       int nreset_gpio =3D dssdev->reset_gpio;
+> +
+> +       dev_dbg(&dssdev->dev, "remove\n");
+> +
+> +       sysfs_remove_group(&dssdev->dev.kobj, &tpo_td043_attr_group);
+> +       regulator_put(tpo_td043->vcc_reg);
+> +       if (gpio_is_valid(nreset_gpio))
+> +               gpio_free(nreset_gpio);
+> +}
+> +
+> +static struct omap_dss_driver tpo_td043_driver =3D {
+> +       .probe          =3D tpo_td043_probe,
+> +       .remove         =3D tpo_td043_remove,
+> +
+> +       .enable         =3D tpo_td043_enable,
+> +       .disable        =3D tpo_td043_disable,
+> +       .suspend        =3D tpo_td043_suspend,
+> +       .resume         =3D tpo_td043_resume,
+> +       .set_mirror     =3D tpo_td043_set_hmirror,
+> +       .get_mirror     =3D tpo_td043_get_hmirror,
+> +
+> +       .driver         =3D {
+> +               .name   =3D "tpo_td043mtea1_panel",
+> +               .owner  =3D THIS_MODULE,
+> +       },
 > +};
->  
->  /*
->   * VPFE - Video Decoder interface
-> @@ -269,6 +410,7 @@ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
->  static struct platform_device *am3517_evm_devices[] __initdata = {
->  	&dm644x_ccdc_dev,
->  	&vpfe_capture_dev,
-> +	&am3517_evm_dss_device,
->  };
->  
->  static void __init am3517_evm_init_irq(void)
-> @@ -327,6 +469,8 @@ static void __init am3517_evm_init(void)
->  
->  	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
->  				ARRAY_SIZE(am3517evm_i2c_boardinfo));
-> +	/* DSS */
-> +	am3517_evm_display_init();
->  }
->  
->  static void __init am3517_evm_map_io(void)
+> +
+> +static int tpo_td043_spi_probe(struct spi_device *spi)
+> +{
+> +       struct omap_dss_device *dssdev =3D spi->dev.platform_data;
+> +       struct tpo_td043_device *tpo_td043;
+> +       int ret;
+> +
+> +       if (dssdev =3D=3D NULL) {
+> +               dev_err(&spi->dev, "missing dssdev\n");
+> +               return -ENODEV;
+> +       }
+> +
+> +       spi->bits_per_word =3D 16;
+> +       spi->mode =3D SPI_MODE_0;
+> +
+> +       ret =3D spi_setup(spi);
+> +       if (ret < 0) {
+> +               dev_err(&spi->dev, "spi_setup failed: %d\n", ret);
+> +               return ret;
+> +       }
+> +
+> +       tpo_td043 =3D kzalloc(sizeof(*tpo_td043), GFP_KERNEL);
+> +       if (tpo_td043 =3D=3D NULL)
+> +               return -ENOMEM;
+> +
+> +       tpo_td043->spi =3D spi;
+> +       dev_set_drvdata(&spi->dev, tpo_td043);
+> +       dev_set_drvdata(&dssdev->dev, tpo_td043);
+> +
+> +       omap_dss_register_driver(&tpo_td043_driver);
+> +
+> +       return 0;
+> +}
+> +
+> +static int __devexit tpo_td043_spi_remove(struct spi_device *spi)
+> +{
+> +       struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata(&spi->=
+dev);
+> +
+> +       omap_dss_unregister_driver(&tpo_td043_driver);
+> +       kfree(tpo_td043);
+> +
+> +       return 0;
+> +}
+> +
+> +static struct spi_driver tpo_td043_spi_driver =3D {
+> +       .driver =3D {
+> +               .name   =3D "tpo_td043mtea1_panel_spi",
+> +               .bus    =3D &spi_bus_type,
+> +               .owner  =3D THIS_MODULE,
+> +       },
+> +       .probe  =3D tpo_td043_spi_probe,
+> +       .remove =3D __devexit_p(tpo_td043_spi_remove),
+> +};
+> +
+> +static int __init tpo_td043_init(void)
+> +{
+> +       return spi_register_driver(&tpo_td043_spi_driver);
+> +}
+> +
+> +static void __exit tpo_td043_exit(void)
+> +{
+> +       spi_unregister_driver(&tpo_td043_spi_driver);
+> +}
+> +
+> +module_init(tpo_td043_init);
+> +module_exit(tpo_td043_exit);
+> +
+> +MODULE_AUTHOR("Gra=C3=85=C2=BEvydas Ignotas <notasas@gmail.com>");
+> +MODULE_DESCRIPTION("TPO TD043MTEA1 LCD Driver");
+> +MODULE_LICENSE("GPL");
+> --
+> 1.6.3.3
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
