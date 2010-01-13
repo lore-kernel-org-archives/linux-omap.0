@@ -1,325 +1,287 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCHv2 1/6] OMAP: Powerdomains: Add support for INACTIVE
- state on pwrdm level
-Date: Wed, 13 Jan 2010 09:33:09 +0100
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A223723AB990@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1259916781-2741-1-git-send-email-tero.kristo@nokia.com>
-	<1259916781-2741-2-git-send-email-tero.kristo@nokia.com>
- <87tyurch9z.fsf@deeprootsystems.com>
+From: Tomi Valkeinen <tomi.valkeinen@Nokia.com>
+Subject: Re: [PATCH 4/4] OMAP: AM3517: Enable DSS2 for AM3517EVM board
+Date: Wed, 13 Jan 2010 10:46:41 +0200
+Message-ID: <1263372401.2087.91.camel@tubuntu.research.nokia.com>
+References: <hvaibhav@ti.com>
+	 <1262615657-22723-5-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:20176 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707Ab0AMIdu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 03:33:50 -0500
-In-Reply-To: <87tyurch9z.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:32927 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009Ab0AMIqy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 03:46:54 -0500
+In-Reply-To: <1262615657-22723-5-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
+To: "ext hvaibhav@ti.com" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
- 
+Hi,
 
->-----Original Message-----
->From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->Sent: 12 January, 2010 20:25
->To: Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCHv2 1/6] OMAP: Powerdomains: Add support for 
->INACTIVE state on pwrdm level
->
->Tero Kristo <tero.kristo@nokia.com> writes:
->
->> From: Tero Kristo <tero.kristo@nokia.com>
->>
->> Currently only ON, RET and OFF are supported, and ON is 
->arguably broken as it
->> allows the powerdomain to enter INACTIVE state unless idle 
->is prevented.
->> Now, pwrdm code prevents idle if ON is selected, and also 
->adds support for
->> INACTIVE. This simplifies the control needed inside sleep code.
->>
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->
->Hi Tero,
->
->apologies for the long delay in reviewing this updated series.
+I applied these two to my tree:
+[PATCH 2/4] OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
+[PATCH 3/4] OMAP: Enable DSS2 for OMAP3EVM board
 
-No problem, I have actually been on a holiday myself so I did not really miss review comments that much. Thanks for taking the time to look at this.
+But this patch doesn't apply, I guess the below mentioned I2C stuff is
+missing from the linus' tree.
 
->I really like this idea as it indeed simplifies the control code
->inside the idle path.  This also needs a review by Paul and should
->merge via his powerdomain updates for 2.6.34.
->
->The changelog should also describe that the powerdomain struct
->now caches the next_state.
+ Tomi
 
-Yeah, I can add this comment.
 
->One minor comment.  I think the introduction of signed compares in
->certain cases leads to possible confusion and readability problems.
->
->I'm not sure I realy follow the need for the invalid state.  Instead
->of setting next_state to -1 in pwrdm_register, why not read the
->current HW value and use that as the starting value?
+On Mon, 2010-01-04 at 15:34 +0100, ext hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> This patch is dependent on I2C interface support patch, since both 
+> the patch series modifies same file (board-am3517evm.c) file. Please refer to
+> the link - 
+> 
+> http://marc.info/?l=linux-omap&m=126261461106778&w=2
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  arch/arm/configs/am3517_evm_defconfig |   52 ++++++++++++-
+>  arch/arm/mach-omap2/board-am3517evm.c |  144 +++++++++++++++++++++++++++++++++
+>  2 files changed, 195 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/configs/am3517_evm_defconfig b/arch/arm/configs/am3517_evm_defconfig
+> index abe9966..859f352 100644
+> --- a/arch/arm/configs/am3517_evm_defconfig
+> +++ b/arch/arm/configs/am3517_evm_defconfig
+> @@ -653,7 +653,57 @@ CONFIG_SSB_POSSIBLE=y
+>  #
+>  # CONFIG_VGASTATE is not set
+>  # CONFIG_VIDEO_OUTPUT_CONTROL is not set
+> -# CONFIG_FB is not set
+> +CONFIG_FB=y
+> +# CONFIG_FIRMWARE_EDID is not set
+> +# CONFIG_FB_DDC is not set
+> +# CONFIG_FB_BOOT_VESA_SUPPORT is not set
+> +CONFIG_FB_CFB_FILLRECT=y
+> +CONFIG_FB_CFB_COPYAREA=y
+> +CONFIG_FB_CFB_IMAGEBLIT=y
+> +# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
+> +# CONFIG_FB_SYS_FILLRECT is not set
+> +# CONFIG_FB_SYS_COPYAREA is not set
+> +# CONFIG_FB_SYS_IMAGEBLIT is not set
+> +# CONFIG_FB_FOREIGN_ENDIAN is not set
+> +# CONFIG_FB_SYS_FOPS is not set
+> +# CONFIG_FB_SVGALIB is not set
+> +# CONFIG_FB_MACMODES is not set
+> +# CONFIG_FB_BACKLIGHT is not set
+> +# CONFIG_FB_MODE_HELPERS is not set
+> +# CONFIG_FB_TILEBLITTING is not set
+> +
+> +#
+> +# Frame buffer hardware drivers
+> +#
+> +# CONFIG_FB_ARMCLCD is not set
+> +# CONFIG_FB_S1D13XXX is not set
+> +# CONFIG_FB_VIRTUAL is not set
+> +# CONFIG_FB_METRONOME is not set
+> +# CONFIG_FB_MB862XX is not set
+> +# CONFIG_FB_BROADSHEET is not set
+> +# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
+> +CONFIG_OMAP2_VRAM=y
+> +CONFIG_OMAP2_VRFB=y
+> +CONFIG_OMAP2_DSS=y
+> +CONFIG_OMAP2_VRAM_SIZE=4
+> +CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
+> +# CONFIG_OMAP2_DSS_RFBI is not set
+> +CONFIG_OMAP2_DSS_VENC=y
+> +# CONFIG_OMAP2_DSS_SDI is not set
+> +# CONFIG_OMAP2_DSS_DSI is not set
+> +# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
+> +CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
+> +CONFIG_FB_OMAP2=y
+> +CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
+> +# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
+> +CONFIG_FB_OMAP2_NUM_FBS=3
+> +
+> +#
+> +# OMAP2/3 Display Device Drivers
+> +#
+> +CONFIG_PANEL_GENERIC=y
+> +# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
+> +CONFIG_PANEL_SHARP_LQ043T1DG01=y
+>  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+>  
+>  #
+> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+> index e85243e..b924f15 100644
+> --- a/arch/arm/mach-omap2/board-am3517evm.c
+> +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> @@ -32,12 +32,153 @@
+>  #include <plat/common.h>
+>  #include <plat/control.h>
+>  #include <plat/usb.h>
+> +#include <plat/display.h>
+>  
+>  #include <media/tvp514x.h>
+>  #include <media/ti-media/vpfe_capture.h>
+>  
+>  #include "mux.h"
+>  
+> +#define LCD_PANEL_PWR		176
+> +#define LCD_PANEL_BKLIGHT_PWR	182
+> +#define LCD_PANEL_PWM		181
+> +
+> +static int lcd_enabled;
+> +static int dvi_enabled;
+> +
+> +static void __init am3517_evm_display_init(void)
+> +{
+> +	int r;
+> +
+> +	omap_mux_init_gpio(LCD_PANEL_PWR, OMAP_PIN_INPUT_PULLUP);
+> +	omap_mux_init_gpio(LCD_PANEL_BKLIGHT_PWR, OMAP_PIN_INPUT_PULLDOWN);
+> +	omap_mux_init_gpio(LCD_PANEL_PWM, OMAP_PIN_INPUT_PULLDOWN);
+> +	/*
+> +	 * Enable GPIO 182 = LCD Backlight Power
+> +	 */
+> +	r = gpio_request(LCD_PANEL_BKLIGHT_PWR, "lcd_backlight_pwr");
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_backlight_pwr\n");
+> +		return;
+> +	}
+> +	gpio_direction_output(LCD_PANEL_BKLIGHT_PWR, 1);
+> +	/*
+> +	 * Enable GPIO 181 = LCD Panel PWM
+> +	 */
+> +	r = gpio_request(LCD_PANEL_PWM, "lcd_pwm");
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_pwm\n");
+> +		goto err_1;
+> +	}
+> +	gpio_direction_output(LCD_PANEL_PWM, 1);
+> +	/*
+> +	 * Enable GPIO 176 = LCD Panel Power enable pin
+> +	 */
+> +	r = gpio_request(LCD_PANEL_PWR, "lcd_panel_pwr");
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_panel_pwr\n");
+> +		goto err_2;
+> +	}
+> +	gpio_direction_output(LCD_PANEL_PWR, 1);
+> +
+> +	printk(KERN_INFO "Display initialized successfully\n");
+> +	return;
+> +
+> +err_2:
+> +	gpio_free(LCD_PANEL_PWM);
+> +err_1:
+> +	gpio_free(LCD_PANEL_BKLIGHT_PWR);
+> +}
+> +
+> +static int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +	if (dvi_enabled) {
+> +		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
+> +		return -EINVAL;
+> +	}
+> +	gpio_set_value(LCD_PANEL_PWR, 1);
+> +	lcd_enabled = 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +	gpio_set_value(LCD_PANEL_PWR, 0);
+> +	lcd_enabled = 0;
+> +}
+> +
+> +static struct omap_dss_device am3517_evm_lcd_device = {
+> +	.type			= OMAP_DISPLAY_TYPE_DPI,
+> +	.name			= "lcd",
+> +	.driver_name		= "sharp_lq_panel",
+> +	.phy.dpi.data_lines 	= 16,
+> +	.platform_enable	= am3517_evm_panel_enable_lcd,
+> +	.platform_disable	= am3517_evm_panel_disable_lcd,
+> +};
+> +
+> +static int am3517_evm_panel_enable_tv(struct omap_dss_device *dssdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static void am3517_evm_panel_disable_tv(struct omap_dss_device *dssdev)
+> +{
+> +}
+> +
+> +static struct omap_dss_device am3517_evm_tv_device = {
+> +	.type 			= OMAP_DISPLAY_TYPE_VENC,
+> +	.name 			= "tv",
+> +	.driver_name		= "venc",
+> +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
+> +	.platform_enable	= am3517_evm_panel_enable_tv,
+> +	.platform_disable	= am3517_evm_panel_disable_tv,
+> +};
+> +
+> +static int am3517_evm_panel_enable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	if (lcd_enabled) {
+> +		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
+> +		return -EINVAL;
+> +	}
+> +	dvi_enabled = 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static void am3517_evm_panel_disable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	dvi_enabled = 0;
+> +}
+> +
+> +static struct omap_dss_device am3517_evm_dvi_device = {
+> +	.type			= OMAP_DISPLAY_TYPE_DPI,
+> +	.name			= "dvi",
+> +	.driver_name		= "generic_panel",
+> +	.phy.dpi.data_lines	= 24,
+> +	.platform_enable	= am3517_evm_panel_enable_dvi,
+> +	.platform_disable	= am3517_evm_panel_disable_dvi,
+> +};
+> +
+> +static struct omap_dss_device *am3517_evm_dss_devices[] = {
+> +	&am3517_evm_lcd_device,
+> +	&am3517_evm_tv_device,
+> +	&am3517_evm_dvi_device,
+> +};
+> +
+> +static struct omap_dss_board_info am3517_evm_dss_data = {
+> +	.num_devices	= ARRAY_SIZE(am3517_evm_dss_devices),
+> +	.devices	= am3517_evm_dss_devices,
+> +	.default_device	= &am3517_evm_lcd_device,
+> +};
+> +
+> +struct platform_device am3517_evm_dss_device = {
+> +	.name		= "omapdss",
+> +	.id		= -1,
+> +	.dev		= {
+> +		.platform_data	= &am3517_evm_dss_data,
+> +	},
+> +};
+>  
+>  /*
+>   * VPFE - Video Decoder interface
+> @@ -269,6 +410,7 @@ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
+>  static struct platform_device *am3517_evm_devices[] __initdata = {
+>  	&dm644x_ccdc_dev,
+>  	&vpfe_capture_dev,
+> +	&am3517_evm_dss_device,
+>  };
+>  
+>  static void __init am3517_evm_init_irq(void)
+> @@ -327,6 +469,8 @@ static void __init am3517_evm_init(void)
+>  
+>  	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
+>  				ARRAY_SIZE(am3517evm_i2c_boardinfo));
+> +	/* DSS */
+> +	am3517_evm_display_init();
+>  }
+>  
+>  static void __init am3517_evm_map_io(void)
 
-I guess this invalid stuff comes from my old lazy initialization habits. :) But yes, I can change this into a format where we just read the current value from the register.
 
->If the invalid state is really needed, instead of using -1 and having
->to change to using signed comparisons in certain cases, it seems like
->we could just define a new invalid state as zero, and move the others
->up a notch.
-
-This is probably not good, as it would break the direct SW to HW value mapping, so I will go with the previous one.
-
->
->Then, use something like this to check for a valid state:
->
->static inline bool pwrdm_is_valid_state(struct powerdomain *pwrdm) {
->       return (pwrdm->state > PWRDM_POWER_INVALID) ? true : false;
->}
->
->Kevin
->
->> ---
->>  arch/arm/mach-omap2/powerdomain.c             |   32 
->+++++++++++++++++++++----
->>  arch/arm/mach-omap2/powerdomains34xx.h        |   26 
->++++++++++----------
->>  arch/arm/plat-omap/include/plat/powerdomain.h |    6 ++++-
->>  3 files changed, 45 insertions(+), 19 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/powerdomain.c 
->b/arch/arm/mach-omap2/powerdomain.c
->> index b6990e3..1237717 100644
->> --- a/arch/arm/mach-omap2/powerdomain.c
->> +++ b/arch/arm/mach-omap2/powerdomain.c
->> @@ -112,8 +112,8 @@ static struct powerdomain 
->*_pwrdm_deps_lookup(struct powerdomain *pwrdm,
->>  static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->>  {
->>  
->> -	int prev;
->> -	int state;
->> +	u8 prev;
->> +	u8 state;
->>  
->>  	if (pwrdm == NULL)
->>  		return -EINVAL;
->> @@ -220,7 +220,7 @@ int pwrdm_register(struct powerdomain *pwrdm)
->>  
->>  	pr_debug("powerdomain: registered %s\n", pwrdm->name);
->>  	ret = 0;
->> -
->> +	pwrdm->next_state = -1;
->
->>  pr_unlock:
->>  	write_unlock_irqrestore(&pwrdm_rwlock, flags);
->>  
->> @@ -701,19 +701,38 @@ int pwrdm_get_mem_bank_count(struct 
->powerdomain *pwrdm)
->>   */
->>  int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
->>  {
->> +	u8 prg_pwrst;
->> +
->>  	if (!pwrdm)
->>  		return -EINVAL;
->>  
->> +	if (pwrdm->next_state == pwrst)
->> +		return 0;
->> +
->>  	if (!(pwrdm->pwrsts & (1 << pwrst)))
->>  		return -EINVAL;
->>  
->>  	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
->>  		 pwrdm->name, pwrst);
->>  
->> +	/* INACTIVE is reserved, so we program pwrdm as ON */
->> +	if (pwrst == PWRDM_POWER_INACTIVE)
->> +		prg_pwrst = PWRDM_POWER_ON;
->> +	else
->> +		prg_pwrst = pwrst;
->> +
->>  	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
->> -			     (pwrst << OMAP_POWERSTATE_SHIFT),
->> +			     (prg_pwrst << OMAP_POWERSTATE_SHIFT),
->>  			     pwrdm->prcm_offs, PM_PWSTCTRL);
->>  
->> +	/* If next state is ON, prevent idle */
->> +	if (pwrst == PWRDM_POWER_ON)
->> +		omap2_clkdm_deny_idle(pwrdm->pwrdm_clkdms[0]);
->> +	else
->> +		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
->> +
->> +	pwrdm->next_state = pwrst;
->> +
->>  	return 0;
->>  }
->>  
->> @@ -730,8 +749,11 @@ int pwrdm_read_next_pwrst(struct 
->powerdomain *pwrdm)
->>  	if (!pwrdm)
->>  		return -EINVAL;
->>  
->> +	if (pwrdm->next_state > -1)
->> +		return pwrdm->next_state;
->> +
->>  	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
->> -					OMAP_POWERSTATE_MASK);
->> +				       OMAP_POWERSTATE_MASK);
->>  }
->>  
->>  /**
->> diff --git a/arch/arm/mach-omap2/powerdomains34xx.h 
->b/arch/arm/mach-omap2/powerdomains34xx.h
->> index fd09b08..9eb2dc5 100644
->> --- a/arch/arm/mach-omap2/powerdomains34xx.h
->> +++ b/arch/arm/mach-omap2/powerdomains34xx.h
->> @@ -165,7 +165,7 @@ static struct powerdomain iva2_pwrdm = {
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->>  	.dep_bit	  = OMAP3430_PM_WKDEP_MPU_EN_IVA2_SHIFT,
->>  	.wkdep_srcs	  = iva2_wkdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
->>  	.banks		  = 4,
->>  	.pwrsts_mem_ret	  = {
->> @@ -188,7 +188,7 @@ static struct powerdomain mpu_34xx_pwrdm = {
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->>  	.dep_bit	  = OMAP3430_EN_MPU_SHIFT,
->>  	.wkdep_srcs	  = mpu_34xx_wkdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
->>  	.banks		  = 1,
->>  	.pwrsts_mem_ret	  = {
->> @@ -206,7 +206,7 @@ static struct powerdomain 
->core_34xx_pre_es3_1_pwrdm = {
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
->>  					   CHIP_IS_OMAP3430ES2 |
->>  					   CHIP_IS_OMAP3430ES3_0),
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
->>  	.banks		  = 2,
->>  	.pwrsts_mem_ret	  = {
->> @@ -214,8 +214,8 @@ static struct powerdomain 
->core_34xx_pre_es3_1_pwrdm = {
->>  		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
->>  	},
->>  	.pwrsts_mem_on	  = {
->> -		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
->> -		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
->> +		[0] = PWRSTS_OFF_RET_INA_ON, /* MEM1ONSTATE */
->> +		[1] = PWRSTS_OFF_RET_INA_ON, /* MEM2ONSTATE */
->>  	},
->>  };
->>  
->> @@ -224,7 +224,7 @@ static struct powerdomain 
->core_34xx_es3_1_pwrdm = {
->>  	.name		  = "core_pwrdm",
->>  	.prcm_offs	  = CORE_MOD,
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
->>  	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
->>  	.banks		  = 2,
->> @@ -233,8 +233,8 @@ static struct powerdomain 
->core_34xx_es3_1_pwrdm = {
->>  		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
->>  	},
->>  	.pwrsts_mem_on	  = {
->> -		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
->> -		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
->> +		[0] = PWRSTS_OFF_RET_INA_ON, /* MEM1ONSTATE */
->> +		[1] = PWRSTS_OFF_RET_INA_ON, /* MEM2ONSTATE */
->>  	},
->>  };
->>  
->> @@ -246,7 +246,7 @@ static struct powerdomain dss_pwrdm = {
->>  	.dep_bit	  = OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
->>  	.wkdep_srcs	  = cam_dss_wkdeps,
->>  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
->>  	.banks		  = 1,
->>  	.pwrsts_mem_ret	  = {
->> @@ -286,7 +286,7 @@ static struct powerdomain cam_pwrdm = {
->>  	.prcm_offs	  = OMAP3430_CAM_MOD,
->>  	.wkdep_srcs	  = cam_dss_wkdeps,
->>  	.sleepdep_srcs	  = cam_gfx_sleepdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
->>  	.banks		  = 1,
->>  	.pwrsts_mem_ret	  = {
->> @@ -304,7 +304,7 @@ static struct powerdomain per_pwrdm = {
->>  	.dep_bit	  = OMAP3430_EN_PER_SHIFT,
->>  	.wkdep_srcs	  = per_usbhost_wkdeps,
->>  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
->>  	.banks		  = 1,
->>  	.pwrsts_mem_ret	  = {
->> @@ -326,7 +326,7 @@ static struct powerdomain neon_pwrdm = {
->>  	.prcm_offs	  = OMAP3430_NEON_MOD,
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->>  	.wkdep_srcs	  = neon_wkdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
->>  };
->>  
->> @@ -336,7 +336,7 @@ static struct powerdomain usbhost_pwrdm = {
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
->>  	.wkdep_srcs	  = per_usbhost_wkdeps,
->>  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
->>  	/*
->>  	 * REVISIT: Enabling usb host save and restore 
->mechanism seems to
->> diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h 
->b/arch/arm/plat-omap/include/plat/powerdomain.h
->> index 3d45ee1..55350d0 100644
->> --- a/arch/arm/plat-omap/include/plat/powerdomain.h
->> +++ b/arch/arm/plat-omap/include/plat/powerdomain.h
->> @@ -37,6 +37,9 @@
->>  
->>  #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
->>  
->> +#define PWRSTS_OFF_RET_INA_ON	(PWRSTS_OFF_RET_ON | \
->> +				 (1 << PWRDM_POWER_INACTIVE))
->> +
->>  
->>  /* Powerdomain flags */
->>  #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware 
->save-and-restore support */
->> @@ -117,7 +120,8 @@ struct powerdomain {
->>  
->>  	struct list_head node;
->>  
->> -	int state;
->> +	u8 state;
->> +	s8 next_state;
->>  	unsigned state_counter[4];
->>  
->>  #ifdef CONFIG_PM_DEBUG
->> -- 
->> 1.5.4.3
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
