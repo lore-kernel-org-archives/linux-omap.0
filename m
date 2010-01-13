@@ -1,113 +1,58 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: [PATCH 3/3] OMAP3: Add support for NAND on ZOOM3 board
-Date: Wed, 13 Jan 2010 12:33:55 +0530
-Message-ID: <ce9ab5791001122303ia2d6797j14c1a8cb45103665@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [alsa-devel] Audio suspend/resume status on OMAP3 based platforms
+Date: Wed, 13 Jan 2010 09:10:04 +0200
+Message-ID: <201001130910.04292.peter.ujfalusi@nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D7807@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:38347 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751453Ab0AMHEQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 02:04:16 -0500
-Received: by bwz27 with SMTP id 27so1719055bwz.21
-        for <linux-omap@vger.kernel.org>; Tue, 12 Jan 2010 23:04:15 -0800 (PST)
+Received: from smtp.nokia.com ([192.100.105.134]:51862 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754886Ab0AMHKa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 02:10:30 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D7807@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
+To: alsa-devel@alsa-project.org
+Cc: "ext Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 345704a79f15b0481b14d5d504b0bcdf55f2a9a6 Mon Sep 17 00:00:00 2001
-From: Vimal Singh <vimalsingh@ti.com>
-Date: Tue, 12 Jan 2010 17:56:44 +0530
-Subject: [PATCH] OMAP3: Add support for NAND on ZOOM3 board
+On Tuesday 12 January 2010 18:05:15 ext Aggarwal, Anuj wrote:
+> Hi,
+>=20
+> I want to check the status of suspend/resume functionality when audio
+> subsystem is being used. Specifically, has some one tried the followi=
+ng
+> tests on their omap3 based platforms:
+>=20
+> a) echo mem > /sys/power/state, when audio playback is running in
+> background
+> b) same command, when audio capture is running in
+> background
+> b) same command, when audio loopback is running in
+> background
+>=20
+> I am facing some issues with (b) & (c) so wanted to confirm whether
+> someone else has faced similar problem or not.
 
-This patch adds NAND support to ZOOM3 board.
+As Jarkko pointed out in a separate mail, we should not expect the=20
+suspend/resume to be working correctly until the context save/restore, =
+and the=20
+clock management is sorted out.
 
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
----
- arch/arm/mach-omap2/Makefile      |    1 +
- arch/arm/mach-omap2/board-zoom3.c |   49 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 50 insertions(+), 0 deletions(-)
+On the other hand it seams that the problem is in the capture path (b a=
+nd c=20
+having issues).
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 434310e..f9b8473 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -97,6 +97,7 @@ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
- 					   mmc-twl4030.o \
- 					   board-zoom-debugboard.o
- obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
-+ 					   board-zoom-flash.o \
- 					   board-zoom-peripherals.o \
- 					   mmc-twl4030.o \
- 					   board-zoom-debugboard.o
-diff --git a/arch/arm/mach-omap2/board-zoom3.c
-b/arch/arm/mach-omap2/board-zoom3.c
-index a9fe918..3b5e45a 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -33,6 +33,54 @@ static void __init omap_zoom_map_io(void)
- static struct omap_board_config_kernel zoom_config[] __initdata = {
- };
+How is the McBSP configured in your setup (master or slave)?
+I think we might have different issues with suspend/resume when OMAP Mc=
+BSP is=20
+slave or if it is master.
 
-+static struct mtd_partition zoom_nand_partitions[] = {
-+	/* All the partition sizes are listed in terms of NAND block size */
-+	{
-+		.name		= "X-Loader-NAND",
-+		.offset		= 0,
-+		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-+		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "Boot Env-NAND",
-+		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
-+		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
-+	},
-+	{
-+		.name		= "Kernel-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
-+		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
-+	},
-+	{
-+		.name		= "system",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
-+		.size           = 1280 * (64 * 2048),	/* 160M, 0xA000000 */
-+	},
-+	{
-+		.name		= "userdata",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xC000000 */
-+		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
-+	},
-+	{
-+		.name		= "cache",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xE000000 */
-+		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
-+	},
-+};
-+
-+static struct flash_partitions zoom_flash_partitions[] = {
-+	{
-+		.parts = zoom_nand_partitions,
-+		.nr_parts = ARRAY_SIZE(zoom_nand_partitions),
-+	},
-+};
-+
- static void __init omap_zoom_init_irq(void)
- {
- 	omap_board_config = zoom_config;
-@@ -55,6 +103,7 @@ static void __init omap_zoom_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
- 	zoom_peripherals_init();
-+	zoom_flash_init(zoom_flash_partitions, ZOOM_NAND_CS);
- 	zoom_debugboard_init();
- }
-
--- 
-1.5.5
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
