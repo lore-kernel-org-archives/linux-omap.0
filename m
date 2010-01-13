@@ -1,91 +1,82 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH V2] OMAP3: hwmod: support to specify the offset position
- of various SYSCONFIG register bits.
-Date: Wed, 13 Jan 2010 11:44:53 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001131139170.20437@utopia.booyaka.com>
-References: <1263294013-9140-1-git-send-email-thara@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/8] omap_hsmmc: move gpio and regulator control from
+ board file
+Date: Wed, 13 Jan 2010 10:54:48 -0800
+Message-ID: <20100113185448.GJ2986@atomide.com>
+References: <20100113114010.7615.84920.sendpatchset@ahunter-work.research.nokia.com>
+ <20100113114018.7615.66637.sendpatchset@ahunter-work.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40620 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328Ab0AMSoy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 13:44:54 -0500
-In-Reply-To: <1263294013-9140-1-git-send-email-thara@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100113114018.7615.66637.sendpatchset@ahunter-work.research.nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-Hello Thara,
+* Adrian Hunter <adrian.hunter@nokia.com> [100113 03:38]:
+> From c2ed3074a73fc13d088c53193af546c01d1061b1 Mon Sep 17 00:00:00 2001
+> From: Adrian Hunter <adrian.hunter@nokia.com>
+> Date: Mon, 4 Jan 2010 13:44:36 +0200
+> Subject: [PATCH] omap_hsmmc: move gpio and regulator control from board file
+> 
+> This patch moves the setup code for GPIO's and Voltage
+> Regulators from the board file mmc-twl4030.c to the
+> driver omap_hsmmc.c.
+> 
+> Moving GPIO code to the driver makes the board initialisation
+> code independent of when GPIO's are defined.  That makes the
+> board initialisation now entirely independent of its original
+> twl4030 roots.
+> 
+> Moving Voltage Regulator code to the driver allows for further
+> development of regulator support in the core MMC code.  It also
+> permits the MMC core to be compiled as a module, because the
+> board code no longer calls MMC core functions.
+> 
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+> ---
+>  arch/arm/configs/rx51_defconfig       |    4 +-
+>  arch/arm/mach-omap2/control.c         |    2 +
+>  arch/arm/mach-omap2/mmc-twl4030.c     |  419 +--------------------------------
+>  arch/arm/mach-omap2/mmc-twl4030.h     |    4 +-
+>  arch/arm/plat-omap/include/plat/mmc.h |    2 +-
+>  drivers/mmc/host/omap_hsmmc.c         |  417 +++++++++++++++++++++++++++++++-
+>  6 files changed, 419 insertions(+), 429 deletions(-)
 
-two more minor changes to make:
+<snip>
+ 
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index cdd1f35..f3e31dc 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -162,6 +162,7 @@ u32 omap_ctrl_readl(u16 offset)
+>  {
+>  	return __raw_readl(OMAP_CTRL_REGADDR(offset));
+>  }
+> +EXPORT_SYMBOL(omap_ctrl_readl);
+>  
+>  void omap_ctrl_writeb(u8 val, u16 offset)
+>  {
+> @@ -177,6 +178,7 @@ void omap_ctrl_writel(u32 val, u16 offset)
+>  {
+>  	__raw_writel(val, OMAP_CTRL_REGADDR(offset));
+>  }
+> +EXPORT_SYMBOL(omap_ctrl_writel);
+>  
+>  #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+>  /*
 
-On Tue, 12 Jan 2010, Thara Gopinath wrote:
+NAK, we don't want to export omap_ctrl_read/write. That will
+lead into a horrible mess again of all the drivers tinkering
+with the omap hardware registers directly.
 
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
-> @@ -0,0 +1,51 @@
-> +/*
-> + * omap_hwmod common data structures
-> + *
-> + * Copyright (C) 2010 Nokia Corporation
-> + * Paul Walmsley
-> + *
+All code like that needs to stay under mach-omap2. This same
+mmc controller could in theory be used on other hardware too,
+not just omaps. The ctrl registers are omap specific, not
+mmc controller specific.
 
-Please remove the above copyright, etc., since you created it, your 
-code.
+Regards,
 
-> + * Copyright (C) 2010 Texas Instruments, Inc.
-> + * Thara Gopinath <thara@ti.com>
-> + *
-> + * Created in collaboration with (alphabetical order): Benoit Cousson,
-> + * Kevin Hilman, Tony Lindgren, Rajendra Nayak, Vikram Pandita, Sakari
-> + * Poussa, Anand Sawant, Santosh Shilimkar, Richard Woodruff
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This data/structures are to be used while defining OMAP on-chip module
-> + * data and their integration with other OMAP modules and Linux.
-> + */
-> +
-> +#include <linux/list.h>
-> +
-> +#include <plat/omap_hwmod.h>
-> +
-> +/**
-> + * struct omap_hwmod_sysc_legacy - OMAP3 legacy scheme for old IPs
-> + *
-> + * To be used by hwmod structure to specify the sysconfig offsets
-> + * if the device ip follows the Legacy scheme.
-> + */
-> +struct omap_hwmod_sysc_fields omap_hwmod_sysc_legacy = {
-> +	.midle_shift        = SYSC_LGCY_MIDLEMODE_SHIFT,
-> +	.clkact_shift       = SYSC_LGCY_CLOCKACTIVITY_SHIFT,
-> +	.sidle_shift        = SYSC_LGCY_SIDLEMODE_SHIFT,
-> +	.enwkup_shift       = SYSC_LGCY_ENAWAKEUP_SHIFT,
-> +	.srst_shift         = SYSC_LGCY_SOFTRESET_SHIFT,
-> +	.autoidle_shift     = SYSC_LGCY_AUTOIDLE_SHIFT,
-> +};
-> +
-> +/**
-> + * struct omap_hwmod_sysc_fields - OMAP4 new scheme for Highlander compliant IPs
-> + *
-> + * To be used by hwmod structure to specify the sysconfig offsets if the
-> + * device ip follows the highlander scheme
-> + */
-> +struct omap_hwmod_sysc_fields omap_hwmod_sysc_highlander = {
-> +	.midle_shift        = SYSC_HIGH_MIDLEMODE_SHIFT,
-> +	.sidle_shift        = SYSC_HIGH_SIDLEMODE_SHIFT,
-> +	.srst_shift         = SYSC_HIGH_SOFTRESET_SHIFT,
-> +};
-
-All of these assignment lines have whitespace problems.  The whitespace
-between the field names and the equal signs should be implemented with 
-tabs, not spaces.
-
-Once these two issues are fixed, I'll queue the patch.
-
-- Paul
+Tony
