@@ -1,44 +1,62 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 5/8] omap_hsmmc: RX51: set padconfs to pull down when
- powering off eMMC
-Date: Wed, 13 Jan 2010 17:30:45 -0600
-Message-ID: <4B4E57A5.4050400@ti.com>
-References: <20100113114010.7615.84920.sendpatchset@ahunter-work.research.nokia.com> <20100113114048.7615.51097.sendpatchset@ahunter-work.research.nokia.com> <20100113203745.GK2986@atomide.com> <20100113203958.GL2986@atomide.com> <20100113210042.GM2986@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/3] DSS PM_WKEN to refill DMA
+Date: Wed, 13 Jan 2010 15:47:15 -0800
+Message-ID: <877hrlftz0.fsf@deeprootsystems.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026AD401DB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33395 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754527Ab0AMXbB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 18:31:01 -0500
-In-Reply-To: <20100113210042.GM2986@atomide.com>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:33942 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835Ab0AMXrW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 18:47:22 -0500
+Received: by fxm25 with SMTP id 25so797681fxm.21
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jan 2010 15:47:20 -0800 (PST)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026AD401DB@dbde02.ent.ti.com> (Kishore Y.'s message of "Tue\, 22 Dec 2009 15\:07\:50 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: "Y, Kishore" <kishore.y@ti.com>
+Cc: "Tomi Valkeinen (tomi.valkeinen@nokia.com)" <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony Lindgren had written, on 01/13/2010 03:00 PM, the following:
-> * Tony Lindgren <tony@atomide.com> [100113 12:38]:
->> * Tony Lindgren <tony@atomide.com> [100113 12:36]:
->>> You might want to check what happens in omap off-idle mode in these cases
->>> and see if enabling OMAP_PIN_OFF_INPUT_PULLDOWN makes any difference in
->>> power consumption in off state. That probably does not matter unless the
->>> floating lines cause the eMMC to do something on it's own :)
->> Or OMAP_PIN_OFF_OUTPUT_LOW actually.
-> 
-> One more time.. Most likely OMAP_PIN_OFF_INPUT_PULLDOWN is safer
-> in general as the OMAP_PIN_OFF_OUTPUT_LOW does not work for all
-> pins. According to the TRM, OMAP_PIN_OFF_OUTPUT_LOW only works
-> for pins where at least one of the mux modes supports output
-> mode.
+"Y, Kishore" <kishore.y@ti.com> writes:
 
-is'nt vaux/vmmc/whatever voltage to eMMC shutoff for the device on the 
-board in off mode? I wonder why the behavior is seen. The only thing 
-that I am worried is that the board potentially will draw more current 
-as the lines are driven low.
+> From: Subramani Venkatesh <x0108988@ti.com>
+>
+> Currently, DSS doesnot wakeup when there is a DMA request.
+> DSS wake up event must be enabled so that the DMA request to refill
+> the FIFO will wake up the CORE domain.
+>
+> Signed-off-by: Subramani Venkatesh <subramani.venkatesh@windriver.com>
 
+Adding this one to pm-fixes queue for 2.6.33-rc.
 
--- 
-Regards,
-Nishanth Menon
+The rest of this series needs to go upstream via Tomi's DSS2 tree.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 81ed252..2d11b80 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -726,6 +726,11 @@ static void __init prcm_setup_regs(void)
+>  	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
+>  	prm_write_mod_reg(0, MPU_MOD, PM_WKDEP);
+>  	prm_write_mod_reg(0, OMAP3430_DSS_MOD, PM_WKDEP);
+> +
+> +	/* Enable PM_WKEN to support DSS LPR */
+> +	prm_write_mod_reg(OMAP3430_PM_WKEN_DSS_EN_DSS,
+> +				OMAP3430_DSS_MOD, PM_WKEN);
+> +
+>  	prm_write_mod_reg(0, OMAP3430_NEON_MOD, PM_WKDEP);
+>  	prm_write_mod_reg(0, OMAP3430_CAM_MOD, PM_WKDEP);
+>  	prm_write_mod_reg(0, OMAP3430_PER_MOD, PM_WKDEP);
+> -- 
+> 1.5.4.3
+>
+>
+> Regards,
+> Kishore Y
