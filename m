@@ -1,194 +1,78 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] omap3: pandora: add DSS2 support and related regulators
-Date: Wed, 13 Jan 2010 17:02:56 +0200
-Message-ID: <1263394976.2087.106.camel@tubuntu.research.nokia.com>
-References: <1260559940-25103-1-git-send-email-notasas@gmail.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: RE: [PATCHv2 0/4] Regulator: OMAP: Removing common code for TWL4030
+ from OMAP3- board-evms
+Date: Wed, 13 Jan 2010 22:25:59 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E2EB3E3@dbde02.ent.ti.com>
+References: <1263287625-10094-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:42610 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754537Ab0AMPCI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 10:02:08 -0500
-In-Reply-To: <1260559940-25103-1-git-send-email-notasas@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52583 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754931Ab0AMQ4M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 11:56:12 -0500
+In-Reply-To: <1263287625-10094-1-git-send-email-anuj.aggarwal@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 
-Hi,
+Any comments on this version?
 
-This doesn't apply, can you resend based on Linus' tree or my DSS2 tree?
+Regards,
+Anuj Aggarwal
 
- Tomi
-
-On Fri, 2009-12-11 at 20:32 +0100, ext Grazvydas Ignotas wrote:
-> This patch adds configuration data for DSS2 and sets up
-> display related regulators.
+> -----Original Message-----
+> From: Aggarwal, Anuj
+> Sent: Tuesday, January 12, 2010 2:44 PM
+> To: linux-omap@vger.kernel.org
+> Cc: broonie@opensource.wolfsonmicro.com; lrg@slimlogic.co.uk; Aggarwal,
+> Anuj
+> Subject: [PATCHv2 0/4] Regulator: OMAP: Removing common code for TWL4030
+> from OMAP3- board-evms
 > 
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> ---
-> This patch depends on 'omap3: pandora: board file updates for .33'
-> in Tony's queue.
+> Sending version 2 of this patch set after taking all those comments. First
+> series can be found at:
+>   http://marc.info/?l=linux-omap&m=126297346131188&w=2
 > 
->  arch/arm/mach-omap2/board-omap3pandora.c |  109 ++++++++++++++++++++++++++++++
->  1 files changed, 109 insertions(+), 0 deletions(-)
+> This patch set is created to clean up various OMAP3-board-evm files
+> and remove common TWL4030 specific regulator suplies and init data
+> structs. These structures are instead placed in a new generic file -
+> twl4030-pmic.c - and are referenced from the OMAP3 board-evm
+> files depending on the platform requirements. Regulator having specific
+> supplies or init data structs are not changed in their respective
+> board-evms.
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-> index 89a541d..a02ede6 100644
-> --- a/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-> @@ -41,6 +41,7 @@
->  #include <plat/mcspi.h>
->  #include <plat/usb.h>
->  #include <plat/mux.h>
-> +#include <plat/display.h>
->  
->  #include "sdram-micron-mt46h32m32lf-6.h"
->  #include "mmc-twl4030.h"
-> @@ -192,6 +193,61 @@ static struct twl4030_keypad_data pandora_kp_data = {
->  	.rep		= 1,
->  };
->  
-> +static struct omap_dss_device pandora_lcd_device = {
-> +	.name			= "lcd",
-> +	.driver_name		= "tpo_td043mtea1_panel",
-> +	.type			= OMAP_DISPLAY_TYPE_DPI,
-> +	.phy.dpi.data_lines	= 24,
-> +	.reset_gpio		= 157,
-> +};
-> +
-> +static struct omap_dss_device pandora_tv_device = {
-> +	.name			= "tv",
-> +	.driver_name		= "venc",
-> +	.type			= OMAP_DISPLAY_TYPE_VENC,
-> +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-> +};
-> +
-> +static struct omap_dss_device *pandora_dss_devices[] = {
-> +	&pandora_lcd_device,
-> +	&pandora_tv_device,
-> +};
-> +
-> +static struct omap_dss_board_info pandora_dss_data = {
-> +	.num_devices	= ARRAY_SIZE(pandora_dss_devices),
-> +	.devices	= pandora_dss_devices,
-> +	.default_device	= &pandora_lcd_device,
-> +};
-> +
-> +static struct platform_device pandora_dss_device = {
-> +	.name		= "omapdss",
-> +	.id		= -1,
-> +	.dev		= {
-> +		.platform_data = &pandora_dss_data,
-> +	},
-> +};
-> +
-> +static struct regulator_consumer_supply pandora_vcc_lcd_supply = {
-> +	.supply		= "vcc",
-> +	.dev		= &pandora_lcd_device.dev,
-> +};
-> +
-> +static struct regulator_consumer_supply pandora_vdda_dac_supply = {
-> +	.supply		= "vdda_dac",
-> +	.dev		= &pandora_dss_device.dev,
-> +};
-> +
-> +static struct regulator_consumer_supply pandora_vdds_supplies[] = {
-> +	{
-> +		.supply		= "vdds_sdi",
-> +		.dev		= &pandora_dss_device.dev,
-> +	},
-> +	{
-> +		.supply		= "vdds_dsi",
-> +		.dev		= &pandora_dss_device.dev,
-> +	},
-> +};
-> +
->  static struct twl4030_hsmmc_info omap3pandora_mmc[] = {
->  	{
->  		.mmc		= 1,
-> @@ -277,6 +333,49 @@ static struct regulator_init_data pandora_vmmc2 = {
->  	.consumer_supplies	= &pandora_vmmc2_supply,
->  };
->  
-> +/* VDAC for DSS driving S-Video */
-> +static struct regulator_init_data pandora_vdac = {
-> +	.constraints = {
-> +		.min_uV			= 1800000,
-> +		.max_uV			= 1800000,
-> +		.apply_uV		= true,
-> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-> +					| REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies	= 1,
-> +	.consumer_supplies	= &pandora_vdda_dac_supply,
-> +};
-> +
-> +/* VPLL2 for digital video outputs */
-> +static struct regulator_init_data pandora_vpll2 = {
-> +	.constraints = {
-> +		.min_uV			= 1800000,
-> +		.max_uV			= 1800000,
-> +		.apply_uV		= true,
-> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-> +					| REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies	= ARRAY_SIZE(pandora_vdds_supplies),
-> +	.consumer_supplies	= pandora_vdds_supplies,
-> +};
-> +
-> +/* VAUX1 for LCD */
-> +static struct regulator_init_data pandora_vaux1 = {
-> +	.constraints = {
-> +		.min_uV			= 3000000,
-> +		.max_uV			= 3000000,
-> +		.apply_uV		= true,
-> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
-> +		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies	= 1,
-> +	.consumer_supplies	= &pandora_vcc_lcd_supply,
-> +};
-> +
->  static struct twl4030_usb_data omap3pandora_usb_data = {
->  	.usb_mode	= T2_USB_MODE_ULPI,
->  };
-> @@ -298,6 +397,9 @@ static struct twl4030_platform_data omap3pandora_twldata = {
->  	.codec		= &omap3pandora_codec_data,
->  	.vmmc1		= &pandora_vmmc1,
->  	.vmmc2		= &pandora_vmmc2,
-> +	.vdac		= &pandora_vdac,
-> +	.vpll2		= &pandora_vpll2,
-> +	.vaux1		= &pandora_vaux1,
->  	.keypad		= &pandora_kp_data,
->  };
->  
-> @@ -365,6 +467,12 @@ static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
->  		.controller_data	= &ads7846_mcspi_config,
->  		.irq			= OMAP_GPIO_IRQ(OMAP3_PANDORA_TS_GPIO),
->  		.platform_data		= &ads7846_config,
-> +	}, {
-> +		.modalias		= "tpo_td043mtea1_panel_spi",
-> +		.bus_num		= 1,
-> +		.chip_select		= 1,
-> +		.max_speed_hz		= 375000,
-> +		.platform_data		= &pandora_lcd_device,
->  	}
->  };
->  
-> @@ -384,6 +492,7 @@ static void __init omap3pandora_init_irq(void)
->  static struct platform_device *omap3pandora_devices[] __initdata = {
->  	&pandora_leds_gpio,
->  	&pandora_keys_gpio,
-> +	&pandora_dss_device,
->  };
->  
->  static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-
+> The main advantages of having one common file for these structures
+> are redundant code removal, easy maintainability and single copy of
+> common structure(s) in case uImage for multiple platforms is built.
+> 
+> Anuj Aggarwal (4):
+>   Regulator: OMAP: Creating TWL4030 file having supplies & init data
+>   Regulator: OMAP:Modifying Kconfig/Makefile to choose from available
+>     PMICs
+>   Regulator: OMAP: Kconfig modified to select TWL4030 for
+>     OMAP3-platforms
+>   Regulator: OMAP: Use common regulator supplies and init data structs
+> 
+>  arch/arm/mach-omap2/Kconfig                  |   20 +++
+>  arch/arm/mach-omap2/Makefile                 |    1 +
+>  arch/arm/mach-omap2/board-3430sdp.c          |  135 ++------------------
+>  arch/arm/mach-omap2/board-cm-t35.c           |   47 +------
+>  arch/arm/mach-omap2/board-igep0020.c         |   24 +---
+>  arch/arm/mach-omap2/board-ldp.c              |   24 +---
+>  arch/arm/mach-omap2/board-omap3beagle.c      |   47 +------
+>  arch/arm/mach-omap2/board-omap3evm.c         |   47 +------
+>  arch/arm/mach-omap2/board-omap3touchbook.c   |   47 +------
+>  arch/arm/mach-omap2/board-overo.c            |   23 +---
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |   71 +----------
+>  arch/arm/mach-omap2/twl4030-pmic.c           |  175
+> ++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/twl4030-pmic.h           |   34 +++++
+>  13 files changed, 277 insertions(+), 418 deletions(-)
+>  mode change 100755 => 100644 arch/arm/mach-omap2/board-zoom-peripherals.c
+>  create mode 100644 arch/arm/mach-omap2/twl4030-pmic.c
+>  create mode 100644 arch/arm/mach-omap2/twl4030-pmic.h
 
