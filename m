@@ -1,38 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/8] omap_hsmmc: RX51: set padconfs to pull down when
- powering off eMMC
-Date: Wed, 13 Jan 2010 13:00:42 -0800
-Message-ID: <20100113210042.GM2986@atomide.com>
-References: <20100113114010.7615.84920.sendpatchset@ahunter-work.research.nokia.com>
- <20100113114048.7615.51097.sendpatchset@ahunter-work.research.nokia.com>
- <20100113203745.GK2986@atomide.com>
- <20100113203958.GL2986@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR stall
+ in SDRC after a Warm-reset
+Date: Wed, 13 Jan 2010 14:00:53 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001131355210.20437@utopia.booyaka.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D798A@dbde02.ent.ti.com> <alpine.DEB.2.00.1001131051210.20437@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100113203958.GL2986@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:57017 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756039Ab0AMVAy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 16:00:54 -0500
+In-Reply-To: <alpine.DEB.2.00.1001131051210.20437@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-* Tony Lindgren <tony@atomide.com> [100113 12:38]:
-> * Tony Lindgren <tony@atomide.com> [100113 12:36]:
-> > 
-> > You might want to check what happens in omap off-idle mode in these cases
-> > and see if enabling OMAP_PIN_OFF_INPUT_PULLDOWN makes any difference in
-> > power consumption in off state. That probably does not matter unless the
-> > floating lines cause the eMMC to do something on it's own :)
-> 
-> Or OMAP_PIN_OFF_OUTPUT_LOW actually.
+Hello Teerth,
 
-One more time.. Most likely OMAP_PIN_OFF_INPUT_PULLDOWN is safer
-in general as the OMAP_PIN_OFF_OUTPUT_LOW does not work for all
-pins. According to the TRM, OMAP_PIN_OFF_OUTPUT_LOW only works
-for pins where at least one of the mux modes supports output
-mode.
+another question that just occurred to me.
 
-Regards,
+On Wed, 13 Jan 2010, Paul Walmsley wrote:
 
-Tony
+> > @@ -147,10 +149,9 @@ void omap_prcm_arch_reset(char mode)
+> >  		 * cf. OMAP34xx TRM, Initialization / Software Booting
+> >  		 * Configuration. */
+> >  		omap_writel(l, OMAP343X_SCRATCHPAD + 4);
+> > +		omap3_warmreset();
+
+Wouldn't this code need to enable interrupts before calling 
+omap3_sram_warmreset()?  Seems like an interrupt could occur after the 
+SDRC has been placed into idle which could effectively hang the ARM.  
+
+I wonder if this also needs to make sure that all the other system 
+initiators are mute before continuing, for the same reason cited in commit 
+18862cbe47e37beba98f22c088fbe6fe029df889 ?  I suppose that, for example, 
+if an interrupt occurs on the IVA2.2 or the DMA controller tries to access 
+the SDRC, it would hopefully only wedge those initiators and not the whole 
+chip?
+
+- Paul
