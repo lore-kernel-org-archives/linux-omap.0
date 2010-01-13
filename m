@@ -1,150 +1,114 @@
 From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [PM-WIP-OPP][PATCH] OPP: Introduces enum for addressing different
- OPP types
-Date: Wed, 13 Jan 2010 06:54:47 -0600
-Message-ID: <4B4DC297.8070703@gmail.com>
-References: <1263299979.1536.7.camel@boson> <7A436F7769CA33409C6B44B358BFFF0C012E309BE6@dlee02.ent.ti.com> <4B4DA36C.7040206@ti.com>
+Subject: Re: [PATCH] save and restore etm state across core OFF modes
+Date: Wed, 13 Jan 2010 06:58:28 -0600
+Message-ID: <4B4DC374.1010909@gmail.com>
+References: <1263315891-4440-1-git-send-email-virtuoso@slind.org> <4B4CADA9.4020502@ti.com> <20100112173022.GG29059@shisha.kicks-ass.net> <4B4CB259.2010301@ti.com> <20100112210404.GB2986@atomide.com> <20100112214654.GH29059@shisha.kicks-ass.net> <4B4CF2D7.9000200@ti.com> <20100113113616.GI29059@shisha.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.211.176]:43528 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752445Ab0AMMyv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 07:54:51 -0500
-Received: by ywh6 with SMTP id 6so23423521ywh.4
-        for <linux-omap@vger.kernel.org>; Wed, 13 Jan 2010 04:54:49 -0800 (PST)
-In-Reply-To: <4B4DA36C.7040206@ti.com>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:64532 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754886Ab0AMM6c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 07:58:32 -0500
+Received: by yxe17 with SMTP id 17so22500123yxe.33
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jan 2010 04:58:31 -0800 (PST)
+In-Reply-To: <20100113113616.GI29059@shisha.kicks-ass.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Romit Dasgupta <romit@ti.com>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Woodruff, Richard
 
-Romit Dasgupta said the following on 01/13/2010 04:41 AM:
-> Menon, Nishanth wrote:
+Alexander Shishkin said the following on 01/13/2010 05:36 AM:
+> On Tue, Jan 12, 2010 at 04:08:23 -0600, Nishanth Menon wrote:
 >   
->> General comment: might be good to state the enum types you are introducing
->> for OMAP3 in the commit message
+>> Alexander Shishkin had written, on 01/12/2010 03:46 PM, the following:
 >>     
-> Actually the introduction of enum type itself is the heart of the patch. The
-> details are irrelevant.
->   
-could you be a little more verbose as to what is irrelevant? the OMAP3 
-enums descriptions in commit message?
-
->>> Signed-off-by: Romit Dasgupta <romit@ti.com>
->>> ---
->>>
->>>         omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
->>>                                 omap34xx_opp_def_list;
->>> -       for (i = 0; i < ARRAY_SIZE(omap3_rate_tables); i++) {
->>> -               *omap3_rate_tables[i] = opp_init_list(omap3_opp_def_list[i]);
->>> +       entries = cpu_is_omap3630() ? ARRAY_SIZE(omap34xx_opp_def_list) :
->>> +                       ARRAY_SIZE(omap36xx_opp_def_list);
->>> +       for (i = 1; i <= entries; i++) {
->>> +               ret = opp_init_list(i, omap3_opp_def_list[i - 1]);
+>>> On Tue, Jan 12, 2010 at 01:04:04 -0800, Tony Lindgren wrote:
 >>>       
->> a) if you remove OPP_NONE, i-1 is not needed (same everywhere in the patch)
->>     
-> Frankly, I did not want to introduce OPP_NONE but did so as you are checking all
-> parameters passed to the OPP APIs.
->   
-Lets remove it then.
->   
->> b) if we modify the ENUMS or the sequence of definitions in opp_t the logic
->> here becomes fault. it might be good to retain an equivalent of
->> omap3_rate_table with enum equivalents and register by indexing off that.
->>     
-> You are right but this is a kernel level API and user level code is not going to
-> use this. Having said this there is no scope for a programmer to introduce new
-> sequences without understanding the consequences.
->   
-definition of enum and the implicit usage  of enums are in two different 
-files. there is a distinct possibility of some one modifying the header 
-without actually knowing that .c depends on the exact values of the enum 
-definition.
-
-pm34xx.c has no right to depend on opp.h definition values -> if it does 
-it ties it down and a constraint for future flexibility. please change.
-
->>>                 /* We dont want half configured system at the moment */
->>> -               BUG_ON(IS_ERR(omap3_rate_tables[i]));
->>> +               BUG_ON(ret);
->>>         }
->>>  }
+>>>> * Nishanth Menon <nm@ti.com> [100112 09:31]:
+>>>>         
+>>>>> Alexander Shishkin had written, on 01/12/2010 11:30 AM, the following:
+>>>>>           
+>>>>>> On Tue, Jan 12, 2010 at 11:13:13 -0600, Nishanth Menon wrote:
+>>>>>>             
+>>>>>>> Alexander Shishkin had written, on 01/12/2010 11:04 AM, the following:
+>>>>>>>               
+>>>>>>>> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+>>>>>>>> index 69521be..0a5ec86 100644
+>>>>>>>> --- a/arch/arm/mach-omap2/sleep34xx.S
+>>>>>>>> +++ b/arch/arm/mach-omap2/sleep34xx.S
+>>>>>>>>                 
+>>>>> [...]
+>>>>>           
+>>>>>>>> 	/* Store current cpsr*/
+>>>>>>>> 	mrs	r2, cpsr
+>>>>>>>> 	stmia	r8!, {r2}
+>>>>>>>> @@ -520,6 +616,7 @@ clean_caches:
+>>>>>>>> 	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+>>>>>>>> 	bne	skip_l2_inval
+>>>>>>>> clean_l2:
+>>>>>>>> +#if 0
+>>>>>>>>                 
+>>>>>>> my aversion to #if 0 kicks in here :(.. do we have an alternative
+>>>>>>> like using the CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG or something
+>>>>>>> else?
+>>>>>>>               
+>>>>>> Fair enough. I could replace it with "#if !defined(...)" as the first
+>>>>>> thing that comes to mind. This way it will only take disabling the
+>>>>>> config option to catch any possible regressions in between. Does this
+>>>>>> sound reasonable?
+>>>>>>             
+>>>>> sounds ok to me.. unless folks have ideas coz of clean_l2 label..
+>>>>> more comments might be useful before a rev2 of the patch..
+>>>>>           
+>>>> The best solution would be to be able to toggle this via sysfs or
+>>>> debugfs by swapping the sram code for idle loop when JTAG support
+>>>> is needed.
+>>>>         
+>>> Well, if you say, compile the ETM driver in, this will be needed most of
+>>> the time.
 >>>
->>> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
->>> index 157b38e..38c44ee 100644
->>> --- a/arch/arm/mach-omap2/resource34xx.c
->>> +++ b/arch/arm/mach-omap2/resource34xx.c
->>> @@ -161,7 +161,7 @@ static DEFINE_MUTEX(dvfs_mutex);
->>>  /**
->>>   * opp_to_freq - convert OPPID to frequency (DEPRECATED)
->>>   * @freq: return frequency back to caller
->>> - * @opps: opp list
->>> + * @opp_t: OPP type where we need to look.
->>>   * @opp_id: OPP ID we are searching for
->>>   *
->>>   * return 0 and freq is populated if we find the opp_id, else,
->>> @@ -169,14 +169,14 @@ static DEFINE_MUTEX(dvfs_mutex);
->>>   *
->>>   * NOTE: this function is a standin for the timebeing as opp_id is deprecated
->>>   */
->>> -static int __deprecated opp_to_freq(unsigned long *freq,
->>> -               const struct omap_opp *opps, u8 opp_id)
->>> +static int __deprecated opp_to_freq(unsigned long *freq, enum opp_t opp_t,
 >>>       
->> Enum type and variable have the same name :( mebbe a rename of variable is
->> appropriate
+>> I can think of reasons for an against a sysfs entry (as part of
+>> discussion -warning lot of self contradictions below- but I think
+>> might save a bit of back and froth ;)):
+>>
+>> for sysfs entry:
+>> a) save and restore will have additional latency when you save a
+>> chunk such as EMU domain regs - this will not be needed in
+>> production phones, disabling it might pop up surprises
+>> 	counter: having a disabled defconfig allows relevant folks to
+>> 	enable on a need basis
+>> 		counter to counter: what do you do when a user reports
+>> 		an issue in a release and you'd want to debug it with 		
+>> 		ETM on his platform other than doing a rebuild?
 >>     
 >
-> Not sure why you say this. Did you see the compiler throwing up any warning?
+> Well, my intention is to have it enabled for most of the cases only having
+> it disabled for testing purposes.
 >   
-The usage later in the code is opp_t -> this is a readability issue not 
-a compiler warning.
+with a sysfs you can go either way, with proper #ifdeferry, you can get 
+the best of all worlds I guess.. I know in one of the products, a 
+similar patch was not taken in due to introduction of additional 
+scratchpad space and latencies - so there are folks who would like this 
+and those who would like to see this not present in the binary they 
+flash to thier device.
 
->>> @@ -188,20 +188,20 @@ static int __deprecated opp_to_freq(unsigned long *freq,
->>> -static int __deprecated freq_to_opp(u8 *opp_id, struct omap_opp *opps,
->>> +static int __deprecated freq_to_opp(u8 *opp_id, enum opp_t opp_t,
->>>       
->> Re: enum type and variable have the same name :( mebbe a rename of variable is
->> appropriate
->>     
->>>                 unsigned long freq)
->>>  {
->>>         struct omap_opp *opp;
->>>
->>> -       BUG_ON(!opp_id || !opps);
->>> -       opp = opp_find_freq_ceil(opps, &freq);
->>> +       BUG_ON(opp_t == OPP_NONE || opp_t > OPP_TYPES);
->>> +       opp = opp_find_freq_ceil(opp_t, &freq);
->>>         if (IS_ERR(opp))
->>>                 return -EINVAL;
->>>         *opp_id = opp_get_opp_id(opp);
->>> @@ -218,9 +218,6 @@ void init_opp(struct shared_resource *resp)
->>>         u8 opp_id;
->>>         resp->no_of_users = 0;
->>>
->>> -       if (!mpu_opps || !dsp_opps || !l3_opps)
->>> -               return;
->>> -
->>>       
->> the original intent of this check is lost here - if the initializations did not
->> take place, we will not proceed. An equivalent check might be good to maintain
->> at this point.
+>   
+>> b) mostly a debug support -> only for blokes using ETM/JTAG
+>> interfaces - not everyone can afford these (no offense to openOCD
+>> guys - but they are still a bit away from being able to debug kernel
+>> yet on OMAP)..
 >>     
 >
-> You are partially correct. I took off the checks because we have a BUG_ON() call
-> in the beginning of the boot code right after we initialize the OPP tables. So
-> we should not hit this check.
->   
-hmm.. interesting.. can you elaborate with exact functions?
+> Not really, you can still make use of ETM without any additional hardware
+> attached.
+For the unitiated (like me) link from Alex's offline email[1].
 
-if you are removing this check, please do a follow up patch and maintain 
-equivalent one for this so that the patch does exactly what the commit 
-message says "introduce enums" - not do something more.
-
-
-[...]
 Regards,
 Nishanth Menon
+
+[1]
+
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=c5d6c7708c3e58015b2e4e13e6cea02c8567a94e
+
