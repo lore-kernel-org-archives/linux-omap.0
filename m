@@ -1,99 +1,146 @@
 From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: [ANN] gst-dsp 0.7.0 released
 Date: Thu, 14 Jan 2010 00:07:09 +0200
-Message-ID: <94a0d4531001131407r46b6a428i493cfaceef69d65a__13497.1226136715$1263420459$gmane$org@mail.gmail.com>
+Message-ID: <94a0d4531001131407r46b6a428i493cfaceef69d65a__21286.0672771514$1263420479$gmane$org@mail.gmail.com>
+Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <gstreamer-embedded-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/gstreamer-embedded>,
-	<mailto:gstreamer-embedded-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=gstreamer-embedded>
-List-Post: <mailto:gstreamer-embedded-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:gstreamer-embedded-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/gstreamer-embedded>,
-	<mailto:gstreamer-embedded-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: gstreamer-embedded-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed; boundary=0016e645ba44007a64047d12fe95
+Return-path: <3EEROSwAAC-0QTPVaTQdPgSVddVaTVgdjeh.Rdb-JX7+OpRa80S8N/ZHIG5xj07CuiCeIGUxQQ4Iyu8u01E@public.gmane.org>
+List-Post: <http://groups.google.com/group/beagleboard/post?hl=>,
+	<mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/beagleboard?hl=>
+Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=>,
+	<mailto:beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=>,
+	<mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 To: gst-dsp <gst-dsp-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Cc: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, gstreamer-embedded-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: gstreamer-embedded-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgpnc3QtZHNwIGlzIEdTdHJlYW1lciBwbHVnLWluIHRvIHV0aWxpemUgVGV4YXMgSW50cnVt
-ZW50cycgRFNQCmFsZ29yaXRobXMgZm9yIE9NQVAzIHBsYXRmb3JtcyAodXNpbmcgZHNwLWJyaWRn
-ZSkuIEl0J3MgdXNlZCBpbiB0aGUKb2ZmaWNpYWwgTm9raWEgTjkwMCBzeXN0ZW0sIGJ1dCBzaG91
-bGQgd29yayBvbiBhbnkgcGxhdGZvcm0gKGhhcyBiZWVuCnRlc3RlZCBvbiBiZWFnbGVib2FyZCku
-CgpJdCdzIHRpbWUgZm9yIHRoZSBuZXh0IHJlbGVhc2UuIFRoZXJlIGhhdmUgYmVlbiBhIGh1Z2Ug
-YW1vdW50IG9mCmNoYW5nZXMsIG1vc3RseSBmb3Igc3RhYmlsaXphdGlvbiwgYnV0IGFsc28gc29t
-ZSBuZXcgZmVhdHVyZXM6CgogKiBkeW5hbWljIGJpdHJhdGUgZm9yIHZlbmMKICogc3VwcG9ydCB0
-byBmb3JjZSBrZXlmcmFuZSBvbiB2ZW5jCiAqIFdNViBzdXBwb3J0CiAqIEltcHJvdmVkIEguMjY0
-IGRlY29kZXIgc3VwcG9ydAogKiBOZXcgSC4yNjQgdmlkZW8gZW5jb2RlcgogKiBJbXByb3ZlZCB2
-ZW5jIGxhdGVuY3kKCkluIGdlbmVyYWwgaXQgc2VlbXMgYWxtb3N0IHJlYWR5IGZvciB0aGUgMS4w
-IHJlbGVhc2UuLi4gb25jZSB0aGUgV01WMwppc3N1ZXMgaGF2ZSBiZWVuIHNvbHZlZCwgYW5kIHRo
-ZSBwYXJzZXJzIGFyZSBmaW5hbGl6ZWQuCgpUaGFua3MgdG8gYWxsIHRoZSBwZW9wbGUgdGhhdCBj
-b250cmlidXRlZCB0byB0aGlzIHJlbGVhc2UuIEhlcmUncyB0aGUgc2hvcnRsb2c6CgpGZWxpcGUg
-Q29udHJlcmFzICg0OSk6CiAgICAgIE1ha2VmaWxlOiB0cml2aWFsIGNsZWFudXAKICAgICAgcGx1
-Z2luOiB1cGRhdGUgcmFua3MgdG8gcHJpbWFyeQogICAgICBUcml2aWFsIGNsZWFudXBzCiAgICAg
-IGJhc2U6IGFkZCBhIGZldyBtb3JlIGJyYW5jaCBwcmVkaWN0aW9uIGhpbnRzCiAgICAgIGgyNjRl
-bmM6IGVuYWJsZSBieXRlc3RyZWFtIGJ5IGRlZmF1bHQKICAgICAgaDI2NGVuYzogZml4IGRlZmF1
-bHQgYnl0ZXN0cmVhbSBtb2RlCiAgICAgIE5ldyBza2lwIGhhY2sKICAgICAgdmVuYzogY2xlYW51
-cCBzb21lIGNhY2hlIG9wZXJhdGlvbnMKICAgICAgSW1wbGVtZW50IG11bHRpcGxlIHBhcmFtZXRl
-cnMKICAgICAgdmVuYzogdXNlIGEgZ2xvYmFsIGZyYW1lX2luZGV4CiAgICAgIHZlbmM6IGluY3Jl
-YXNlIG51bWJlciBvZiBidWZmZXJzCiAgICAgIE1ha2VmaWxlOiB0cml2aWFsIGNsZWFudXAKICAg
-ICAgdmVuYzogaW1wcm92ZSBzZXRjYXBzKCkKICAgICAgdmVuYzogZW5hYmxlIHBhY2tldC1tb2Rl
-IGZvciBILjI2MwogICAgICB2ZW5jOiBkaXNhYmxlIHVucmVzdHJpY3RlZCBtdiBmb3IgSC4yNjMK
-ICAgICAgdmVuYzogc2V0IGEgbW9yZSBwcm9wZXIgaW50cmFfZnJhbWVfaW50ZXJ2YWwKICAgICAg
-dmVuYzogaDI2NGVuYzogbWFyayBrZXlmcmFtZXMKICAgICAgbG9nLmg6IGZpeCB0cml2aWFsIHdh
-cm5pbmdzCiAgICAgIHZkZWM6IHJlZmFjdG9yIHNpbmtfc2V0Y2FwcyBhIGJpdAogICAgICBnZXQt
-dmVyc2lvbjogdHJpdmlhbCBjbGVhbnVwCiAgICAgIHZkZWM6IHRyaXZpYWwgY2xlYW51cHMKICAg
-ICAgZHVtbXk6IHRyaXZpYWwgY29kZS1zdHlsZSBmaXhlcwogICAgICBkc3AtYnJpZGdlOiBhZGQg
-cHJvYyBnZXQgaW5mbyBzdHVmZgogICAgICBkc3AtYnJpZGdlOiBtYWtlIGRzcF9ub2RlX2dldF9h
-dHRyKCkgcHVibGljCiAgICAgIGRzcC1icmlkZ2U6IGFkZCBkc3BfZW51bV9ub2RlcygpCiAgICAg
-IGxvZzogZ2VuZXJpYyBpbXByb3ZlbWVudHMKICAgICAgdmRlYzogc2V0dXAgaDI2NCBwYXJhbXMK
-ICAgICAgdmVuYzogYWRkIG1pc3NpbmcgYnVmZmVyIGNsZWFuIGZvciBqcGVnZW5jCiAgICAgIHZl
-bmM6IGFkZCBiaXRyYXRlIHByb3BlcnR5CiAgICAgIGpwZWdlbmM6IGZvcmNlIHBvcnRzIHRvIGhh
-dmUgb25seSBvbmUgYnVmZmVyCiAgICAgIGxvZzogcmVvcmdhbml6YXRpb24gZm9yIGJldHRlciBw
-cl90ZXN0CiAgICAgIHZlbmM6IHN1cHBvcnQgZHluYW1pYyBiaXRyYXRlIGNvbmZpZ3VyYXRpb24K
-ICAgICAgTWFrZWZpbGU6IGFkZCAtZlBJQwogICAgICBUcml2aWFsIGNsZWFudXBzCiAgICAgIHt2
-ZW5jLHZkZWN9OiByZW5hbWUge3NlbmQscmVjdn1fY2IKICAgICAge3ZlbmMsdmRlY306IGFkZCBz
-ZW5kX2NiIGZvciBvdXRwdXQgYnVmZmVycwogICAgICBiYXNlOiB0cml2aWFsIHNpbXBsaWZpY2F0
-aW9uCiAgICAgIFVwZGF0ZSBjb2RlIHN0eWxlIGZvciBzd2l0Y2hlcwogICAgICBUcml2aWFsIHBh
-cmVudF9jbGFzcyBpbXByb3ZlbWVudHMKICAgICAgYmFzZTogYWRkIHtzcmMsc2lua31fZXZlbnQg
-dmlydHVhbCBtZXRob2RzCiAgICAgIHZlbmM6IGFkZCBlbXB0eSBldmVudCBoYW5kbGVycwogICAg
-ICB2ZW5jOiBhZGQgZmluYWxpemUgZnVuY3Rpb24KICAgICAgdmVuYzogaW5pdGlhbCAnZm9yY2Ug
-a2V5ZnJhbWUnIHN1cHBvcnQKICAgICAgdmVuYzogc3RvcmUgZXZlbnQgdG8gcHVzaCBkb3duc3Ry
-ZWFtCiAgICAgIHZlbmM6IGFkZCB1cHN0cmVhbSAnZm9yY2Uga2V5ZnJhbWUnIHN1cHBvcnQKICAg
-ICAgYmFzZTogc2FmZXR5IGNoZWNrIGZvciBidWZmZXIgbGVuZ3RoCiAgICAgIHZlbmM6IGFkZCAn
-bW9kZScgcHJvcGVydHkKICAgICAgdmVuYzogc3RhcnQgdXNpbmcgJ21vZGUnIHByb3BlcnR5CiAg
-ICAgIHZlbmM6IHNldCByYXRlIGNvbnRyb2wgYmFzZWQgb24gdGhlIG1vZGUKCkp1aGEgQWxhbmVu
-ICgxMik6CiAgICAgIEluaXRpYWwgc3VwcG9ydCBmb3IgSC4yNjQgZW5jb2RlcgogICAgICB2ZW5j
-OiBhZGQgZ2VuZXJpYyBhbmQgaDI2NCBzcGVjaWZpYyBzdHJ1Y3RzCiAgICAgIHZlbmM6IGFkZCBi
-eXRlc3RyZWFtIHByb3BlcnR5IGZvciBoMjY0CiAgICAgIHZlbmM6IGFkZCByZWN2X2J1ZmZlciBj
-YWxsYmFjayBmb3IgaDI2NAogICAgICB2ZGVjOiBtb2RpZnkgTVBFRzQgY3JlYXRlIHBoYXNlIHBh
-cmFtZXRlcnMKICAgICAgYmFzZTogdXNlIHByb3BlciBidWZmZXIgbGVuZ3RoIGluIHNlbmRfYnVm
-ZmVyCiAgICAgIHZkZWM6IG1vZGlmeSBzb21lIFdNViBwYXJhbWV0ZXJzCiAgICAgIHZkZWM6IGFk
-ZCBzdXBwb3J0IGZvciBXTVYzIGRlY29kaW5nCiAgICAgIHZkZWM6IGFkZCBzdXBwb3J0IGZvciBX
-VkMxIGRlY29kaW5nCiAgICAgIHZkZWM6IGFkZCByZWN2X2NiIGZvciB3bXYKICAgICAgdmRlYzog
-c2VuZCBkeW5hbWljIHBhcmFtZXRlcnMgZm9yIHdtdgogICAgICB2ZGVjOiB1cGRhdGUgZnJhbWUg
-aW5kZXggaW4gd212ZGVjX3NlbmRfY2IKCk1hcmsgTmF1d2VsYWVydHMgKDgpOgogICAgICB2ZGVj
-OiBjYWxsIHNlbmRfY2IgZWFybGllcgogICAgICBiYXNlOiBtYWtlIGVycm9yIGhhbmRsZXIgaGVs
-cGVyIHB1YmxpYwogICAgICB2ZGVjOiBhZGQgcHJpdl9kYXRhIGZvciBoMjY0IGxvbAogICAgICB2
-ZGVjOiBhZGQgaDI2NGRlY190cmFuc2Zvcm1fY29kZWNfZGF0YQogICAgICB2ZGVjOiB0cmFuc2Zv
-cm0gaDI2NCBidWZmZXJzIHRvIGJ5dGVzdHJlYW0KICAgICAgdmRlYzogY2F0ZXIgZm9yIGgyNjQg
-bm9kZSBvdXRwdXQgcGFyYW1ldGVycwogICAgICB2ZGVjOiBhZGQgZXh0cmEgc2l6ZSBjaGVja3Mg
-Zm9yIGgyNjQgdHJhbnNmb3JtCiAgICAgIHZkZWM6IGhhbmRsZSB0aGUgY2FzZSB3aGVyZSBOQUwg
-c2l6ZSBwcmVmaXggaXMgPCAzCgpUaW0tUGhpbGlwcCBNw7xsbGVyICgzKToKICAgICAgYmFzZTog
-Zml4IHNvbWUgbWlub3IgYnV0IHJlY3VycmVudCBtZW1vcnkgbGVha3MKICAgICAgRml4IHJlZmNv
-dW50IGxlYWsgd2hlbiBzZXR0aW5nIHVwIHBhZCB0ZW1wbGF0ZXMKICAgICAgYmFzZTogZG9uJ3Qg
-bGVhayBpbnB1dCBidWZmZXIgaWYgd2UgaGF2ZSBhIG5vbi1PSyBmbG93IHJldHVybgoKWW91bmVz
-cyBBbGFvdWkgKDEpOgogICAgICBQbHVnaW4gYSBsZWFrIG9uIHZpZGVvIGVuY29kZXJzCgotLSAK
-RmVsaXBlIENvbnRyZXJhcwoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRocm91Z2hvdXQgaXRzIDE4
-LXllYXIgaGlzdG9yeSwgUlNBIENvbmZlcmVuY2UgY29uc2lzdGVudGx5IGF0dHJhY3RzIHRoZQp3
-b3JsZCdzIGJlc3QgYW5kIGJyaWdodGVzdCBpbiB0aGUgZmllbGQsIGNyZWF0aW5nIG9wcG9ydHVu
-aXRpZXMgZm9yIENvbmZlcmVuY2UKYXR0ZW5kZWVzIHRvIGxlYXJuIGFib3V0IGluZm9ybWF0aW9u
-IHNlY3VyaXR5J3MgbW9zdCBpbXBvcnRhbnQgaXNzdWVzIHRocm91Z2gKaW50ZXJhY3Rpb25zIHdp
-dGggcGVlcnMsIGx1bWluYXJpZXMgYW5kIGVtZXJnaW5nIGFuZCBlc3RhYmxpc2hlZCBjb21wYW5p
-ZXMuCmh0dHA6Ly9wLnNmLm5ldC9zZnUvcnNhY29uZi1kZXYyZGV2Cl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkdzdHJlYW1lci1lbWJlZGRlZCBtYWlsaW5n
-IGxpc3QKR3N0cmVhbWVyLWVtYmVkZGVkQGxpc3RzLnNvdXJjZWZvcmdlLm5ldApodHRwczovL2xp
-c3RzLnNvdXJjZWZvcmdlLm5ldC9saXN0cy9saXN0aW5mby9nc3RyZWFtZXItZW1iZWRkZWQK
+--0016e645ba44007a64047d12fe95
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+gst-dsp is GStreamer plug-in to utilize Texas Intruments' DSP
+algorithms for OMAP3 platforms (using dsp-bridge). It's used in the
+official Nokia N900 system, but should work on any platform (has been
+tested on beagleboard).
+
+It's time for the next release. There have been a huge amount of
+changes, mostly for stabilization, but also some new features:
+
+ * dynamic bitrate for venc
+ * support to force keyfrane on venc
+ * WMV support
+ * Improved H.264 decoder support
+ * New H.264 video encoder
+ * Improved venc latency
+
+In general it seems almost ready for the 1.0 release... once the WMV3
+issues have been solved, and the parsers are finalized.
+
+Thanks to all the people that contributed to this release. Here's the short=
+log:
+
+Felipe Contreras (49):
+      Makefile: trivial cleanup
+      plugin: update ranks to primary
+      Trivial cleanups
+      base: add a few more branch prediction hints
+      h264enc: enable bytestream by default
+      h264enc: fix default bytestream mode
+      New skip hack
+      venc: cleanup some cache operations
+      Implement multiple parameters
+      venc: use a global frame_index
+      venc: increase number of buffers
+      Makefile: trivial cleanup
+      venc: improve setcaps()
+      venc: enable packet-mode for H.263
+      venc: disable unrestricted mv for H.263
+      venc: set a more proper intra_frame_interval
+      venc: h264enc: mark keyframes
+      log.h: fix trivial warnings
+      vdec: refactor sink_setcaps a bit
+      get-version: trivial cleanup
+      vdec: trivial cleanups
+      dummy: trivial code-style fixes
+      dsp-bridge: add proc get info stuff
+      dsp-bridge: make dsp_node_get_attr() public
+      dsp-bridge: add dsp_enum_nodes()
+      log: generic improvements
+      vdec: setup h264 params
+      venc: add missing buffer clean for jpegenc
+      venc: add bitrate property
+      jpegenc: force ports to have only one buffer
+      log: reorganization for better pr_test
+      venc: support dynamic bitrate configuration
+      Makefile: add -fPIC
+      Trivial cleanups
+      {venc,vdec}: rename {send,recv}_cb
+      {venc,vdec}: add send_cb for output buffers
+      base: trivial simplification
+      Update code style for switches
+      Trivial parent_class improvements
+      base: add {src,sink}_event virtual methods
+      venc: add empty event handlers
+      venc: add finalize function
+      venc: initial 'force keyframe' support
+      venc: store event to push downstream
+      venc: add upstream 'force keyframe' support
+      base: safety check for buffer length
+      venc: add 'mode' property
+      venc: start using 'mode' property
+      venc: set rate control based on the mode
+
+Juha Alanen (12):
+      Initial support for H.264 encoder
+      venc: add generic and h264 specific structs
+      venc: add bytestream property for h264
+      venc: add recv_buffer callback for h264
+      vdec: modify MPEG4 create phase parameters
+      base: use proper buffer length in send_buffer
+      vdec: modify some WMV parameters
+      vdec: add support for WMV3 decoding
+      vdec: add support for WVC1 decoding
+      vdec: add recv_cb for wmv
+      vdec: send dynamic parameters for wmv
+      vdec: update frame index in wmvdec_send_cb
+
+Mark Nauwelaerts (8):
+      vdec: call send_cb earlier
+      base: make error handler helper public
+      vdec: add priv_data for h264 lol
+      vdec: add h264dec_transform_codec_data
+      vdec: transform h264 buffers to bytestream
+      vdec: cater for h264 node output parameters
+      vdec: add extra size checks for h264 transform
+      vdec: handle the case where NAL size prefix is < 3
+
+Tim-Philipp M=C3=BCller (3):
+      base: fix some minor but recurrent memory leaks
+      Fix refcount leak when setting up pad templates
+      base: don't leak input buffer if we have a non-OK flow return
+
+Youness Alaoui (1):
+      Plugin a leak on video encoders
+
+--=20
+Felipe Contreras
+
+--0016e645ba44007a64047d12fe95
+Content-Type: text/plain; charset=ISO-8859-1
+
+-- 
+You received this message because you are subscribed to the Google Groups "Beagle Board" group.
+To post to this group, send email to beagleboard-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+To unsubscribe from this group, send email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit this group at http://groups.google.com/group/beagleboard?hl=en.
+
+
+
+--0016e645ba44007a64047d12fe95--
