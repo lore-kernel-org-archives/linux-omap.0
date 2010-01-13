@@ -1,82 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/8] omap_hsmmc: move gpio and regulator control from
- board file
-Date: Wed, 13 Jan 2010 10:54:48 -0800
-Message-ID: <20100113185448.GJ2986@atomide.com>
-References: <20100113114010.7615.84920.sendpatchset@ahunter-work.research.nokia.com>
- <20100113114018.7615.66637.sendpatchset@ahunter-work.research.nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Enabling spidev in MCSPI1
+Date: Wed, 13 Jan 2010 13:36:11 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001131329330.20437@utopia.booyaka.com>
+References: <4B4DC3FB.3020702@balister.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100113114018.7615.66637.sendpatchset@ahunter-work.research.nokia.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:45168 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754227Ab0AMUgM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 15:36:12 -0500
+In-Reply-To: <4B4DC3FB.3020702@balister.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Philip Balister <philip@balister.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Adrian Hunter <adrian.hunter@nokia.com> [100113 03:38]:
-> From c2ed3074a73fc13d088c53193af546c01d1061b1 Mon Sep 17 00:00:00 2001
-> From: Adrian Hunter <adrian.hunter@nokia.com>
-> Date: Mon, 4 Jan 2010 13:44:36 +0200
-> Subject: [PATCH] omap_hsmmc: move gpio and regulator control from board file
+Hi Philip,
+
+On Wed, 13 Jan 2010, Philip Balister wrote:
+
+> I'm trying to enable spidev on mcspi1, but when I do, the kernel while booting
+> after the kernel is uncompressed. No useful messages are displayed. This is
+> with a current git.
 > 
-> This patch moves the setup code for GPIO's and Voltage
-> Regulators from the board file mmc-twl4030.c to the
-> driver omap_hsmmc.c.
-> 
-> Moving GPIO code to the driver makes the board initialisation
-> code independent of when GPIO's are defined.  That makes the
-> board initialisation now entirely independent of its original
-> twl4030 roots.
-> 
-> Moving Voltage Regulator code to the driver allows for further
-> development of regulator support in the core MMC code.  It also
-> permits the MMC core to be compiled as a module, because the
-> board code no longer calls MMC core functions.
-> 
-> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> ---
->  arch/arm/configs/rx51_defconfig       |    4 +-
->  arch/arm/mach-omap2/control.c         |    2 +
->  arch/arm/mach-omap2/mmc-twl4030.c     |  419 +--------------------------------
->  arch/arm/mach-omap2/mmc-twl4030.h     |    4 +-
->  arch/arm/plat-omap/include/plat/mmc.h |    2 +-
->  drivers/mmc/host/omap_hsmmc.c         |  417 +++++++++++++++++++++++++++++++-
->  6 files changed, 419 insertions(+), 429 deletions(-)
+> I've attached the diff I use to add the spi driver to the board file. (OVero +
+> Summit).
 
-<snip>
- 
-> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> index cdd1f35..f3e31dc 100644
-> --- a/arch/arm/mach-omap2/control.c
-> +++ b/arch/arm/mach-omap2/control.c
-> @@ -162,6 +162,7 @@ u32 omap_ctrl_readl(u16 offset)
->  {
->  	return __raw_readl(OMAP_CTRL_REGADDR(offset));
->  }
-> +EXPORT_SYMBOL(omap_ctrl_readl);
->  
->  void omap_ctrl_writeb(u8 val, u16 offset)
->  {
-> @@ -177,6 +178,7 @@ void omap_ctrl_writel(u32 val, u16 offset)
->  {
->  	__raw_writel(val, OMAP_CTRL_REGADDR(offset));
->  }
-> +EXPORT_SYMBOL(omap_ctrl_writel);
->  
->  #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
->  /*
+Maybe try enabling early printk support if you haven't already?
 
-NAK, we don't want to export omap_ctrl_read/write. That will
-lead into a horrible mess again of all the drivers tinkering
-with the omap hardware registers directly.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg21017.html
 
-All code like that needs to stay under mach-omap2. This same
-mmc controller could in theory be used on other hardware too,
-not just omaps. The ctrl registers are omap specific, not
-mmc controller specific.
 
-Regards,
-
-Tony
+- Paul
