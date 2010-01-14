@@ -1,53 +1,129 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH v9 0/4] OMAP: McBSP: Use register cache
-Date: Thu, 14 Jan 2010 16:58:29 +0100
-Message-ID: <201001141658.32034.jkrzyszt@tis.icnet.pl>
+Subject: [PATCH v9 1/4] OMAP: McBSP: Use macros for all register read/write operations
+Date: Thu, 14 Jan 2010 17:03:04 +0100
+Message-ID: <201001141703.07009.jkrzyszt@tis.icnet.pl>
+References: <201001141658.32034.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:39748 "EHLO d1.icnet.pl"
+Received: from d1.icnet.pl ([212.160.220.21]:40503 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752991Ab0ANP6S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jan 2010 10:58:18 -0500
+	id S1756835Ab0ANQCl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jan 2010 11:02:41 -0500
+In-Reply-To: <201001141658.32034.jkrzyszt@tis.icnet.pl>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org, "Varadarajan, Charu Latha" <charu@ti.com>
 
-Change the way McBSP registers are maintained: store values written to the
-device in a cache in order to make use of those cached values when
-convenient.
+There are several places where readw()/writew() functions are used instead of
+OMAP_MCBSP_READ()/WRITE() macros for manipulating McBSP registers. Replace
+them with macros to ensure consistent behaviour after caching is introduced.
 
-This could help for developing the McBSP context save/restore features, as
-well as solve the problem of possible register corruption, experienced on
-OMAP1510 based Amstrad Delta board at least.
-
-Series created against linux-omap for-next, commit
+Created against linux-omap for-next, commit 
 fb7380d70e041e4b3892f6b19dff7efb609d15a4 (2.6.33-rc3+ dated 2010-01-11).
-All patches tested on OMAP1510 based Amstrad Delta and compile-tested using
-omap_3430sdp_defconfig at least.
 
-Latest changes:
-- patch 3: allow for using the mcbsp->free as a guard for cache access,
-	   adpot for fixed error handling in omap_mcbsp_request().
-- patch 5: dropped
-- all: refresh against latest l-o for-next tree.
+Tested on OMAP1510 based Amstrad Delta.
+Compile-tested with omap_3430sdp_defconfig.
 
-Janusz Krzysztofik (4):
-	OMAP: McBSP: Use macros for all register read/write operations
-	OMAP: McBSP: Modify macros/functions API for easy cache access
-	OMAP: McBSP: Introduce caching in register write operations
-	OMAP: McBSP: Use cache when modifying individual register bits
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
- arch/arm/mach-omap1/mcbsp.c             |   16 -
- arch/arm/mach-omap2/mcbsp.c             |   20 +
- arch/arm/plat-omap/include/plat/mcbsp.h |    3
- arch/arm/plat-omap/mcbsp.c              |  480 
-++++++++++++++++----------------
- 4 files changed, 278 insertions(+), 241 deletions(-)
+---
+No functional changes since v3.
 
-Thanks,
-Janusz
+Charu,
+After a week has passed with no answer from you to my proposal, I'm no longer 
+waiting for you to submit your version, sorry.
+
+ arch/arm/plat-omap/mcbsp.c |   44 ++++++++++++++++++++++----------------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
+
+--- git/arch/arm/plat-omap/mcbsp.c.orig	2010-01-13 12:56:42.000000000 +0100
++++ git/arch/arm/plat-omap/mcbsp.c	2010-01-13 23:43:13.000000000 +0100
+@@ -636,26 +636,26 @@ int omap_mcbsp_pollwrite(unsigned int id
+ 	mcbsp = id_to_mcbsp_ptr(id);
+ 	base = mcbsp->io_base;
+ 
+-	writew(buf, base + OMAP_MCBSP_REG_DXR1);
++	OMAP_MCBSP_WRITE(base, DXR1, buf);
+ 	/* if frame sync error - clear the error */
+-	if (readw(base + OMAP_MCBSP_REG_SPCR2) & XSYNC_ERR) {
++	if (OMAP_MCBSP_READ(base, SPCR2) & XSYNC_ERR) {
+ 		/* clear error */
+-		writew(readw(base + OMAP_MCBSP_REG_SPCR2) & (~XSYNC_ERR),
+-		       base + OMAP_MCBSP_REG_SPCR2);
++		OMAP_MCBSP_WRITE(base, SPCR2,
++				OMAP_MCBSP_READ(base, SPCR2) & (~XSYNC_ERR));
+ 		/* resend */
+ 		return -1;
+ 	} else {
+ 		/* wait for transmit confirmation */
+ 		int attemps = 0;
+-		while (!(readw(base + OMAP_MCBSP_REG_SPCR2) & XRDY)) {
++		while (!(OMAP_MCBSP_READ(base, SPCR2) & XRDY)) {
+ 			if (attemps++ > 1000) {
+-				writew(readw(base + OMAP_MCBSP_REG_SPCR2) &
+-				       (~XRST),
+-				       base + OMAP_MCBSP_REG_SPCR2);
++				OMAP_MCBSP_WRITE(base, SPCR2,
++						OMAP_MCBSP_READ(base, SPCR2) &
++						(~XRST));
+ 				udelay(10);
+-				writew(readw(base + OMAP_MCBSP_REG_SPCR2) |
+-				       (XRST),
+-				       base + OMAP_MCBSP_REG_SPCR2);
++				OMAP_MCBSP_WRITE(base, SPCR2,
++						OMAP_MCBSP_READ(base, SPCR2) |
++						(XRST));
+ 				udelay(10);
+ 				dev_err(mcbsp->dev, "Could not write to"
+ 					" McBSP%d Register\n", mcbsp->id);
+@@ -681,24 +681,24 @@ int omap_mcbsp_pollread(unsigned int id,
+ 
+ 	base = mcbsp->io_base;
+ 	/* if frame sync error - clear the error */
+-	if (readw(base + OMAP_MCBSP_REG_SPCR1) & RSYNC_ERR) {
++	if (OMAP_MCBSP_READ(base, SPCR1) & RSYNC_ERR) {
+ 		/* clear error */
+-		writew(readw(base + OMAP_MCBSP_REG_SPCR1) & (~RSYNC_ERR),
+-		       base + OMAP_MCBSP_REG_SPCR1);
++		OMAP_MCBSP_WRITE(base, SPCR1,
++				OMAP_MCBSP_READ(base, SPCR1) & (~RSYNC_ERR));
+ 		/* resend */
+ 		return -1;
+ 	} else {
+ 		/* wait for recieve confirmation */
+ 		int attemps = 0;
+-		while (!(readw(base + OMAP_MCBSP_REG_SPCR1) & RRDY)) {
++		while (!(OMAP_MCBSP_READ(base, SPCR1) & RRDY)) {
+ 			if (attemps++ > 1000) {
+-				writew(readw(base + OMAP_MCBSP_REG_SPCR1) &
+-				       (~RRST),
+-				       base + OMAP_MCBSP_REG_SPCR1);
++				OMAP_MCBSP_WRITE(base, SPCR1,
++						OMAP_MCBSP_READ(base, SPCR1) &
++						(~RRST));
+ 				udelay(10);
+-				writew(readw(base + OMAP_MCBSP_REG_SPCR1) |
+-				       (RRST),
+-				       base + OMAP_MCBSP_REG_SPCR1);
++				OMAP_MCBSP_WRITE(base, SPCR1,
++						OMAP_MCBSP_READ(base, SPCR1) |
++						(RRST));
+ 				udelay(10);
+ 				dev_err(mcbsp->dev, "Could not read from"
+ 					" McBSP%d Register\n", mcbsp->id);
+@@ -706,7 +706,7 @@ int omap_mcbsp_pollread(unsigned int id,
+ 			}
+ 		}
+ 	}
+-	*buf = readw(base + OMAP_MCBSP_REG_DRR1);
++	*buf = OMAP_MCBSP_READ(base, DRR1);
+ 
+ 	return 0;
+ }
+
+
