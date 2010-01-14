@@ -1,35 +1,39 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: Missing help texts
-Date: Thu, 14 Jan 2010 11:18:29 +0200
-Message-ID: <1263460709.2087.114.camel@tubuntu.research.nokia.com>
-References: <20100113125400.GA28292@n2100.arm.linux.org.uk>
-	 <20100113172431.GH2986@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: "MailScanner" <postmaster@olc-group.com>
+Subject: Warning: E-mail error detected
+Date: Thu, 14 Jan 2010 19:22:25 +0800 (CST)
+Message-ID: <20100114112225.CEE48E8F2D@olc-group.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:20639 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756594Ab0ANJRH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jan 2010 04:17:07 -0500
-In-Reply-To: <20100113172431.GH2986@atomide.com>
+Received: from olc-group.com ([219.87.81.194]:35719 "EHLO olc-group.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756014Ab0ANLXp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Jan 2010 06:23:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: linux-omap@vger.kernel.org
 
-On Wed, 2010-01-13 at 18:24 +0100, ext Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100113 04:52]:
-> > Can you guys _please_ ensure that Kconfig entries have help texts before
-> > they hit Linus' tree please?
-> > 
-> > Eg, without help texts, options such as "DSS_RFBI" make precisely zero
-> > sense to people who don't know what DSS_RFBI is...
-> 
-> Tomi, can you fix this please?
+Our virus detector failed to completely analyse a message you sent:-
+  To: 
+  Subject: Mail System Error - Returned Mail
+  Date: Thu Jan 14 19:22:25 2010
+Any parts of the message that could not be analysed will not have been
+delivered.
 
-Yes, I'll fix them.
+If you are using Microsoft Outlook, we strongly recommend you change your
+outgoing message format from "Rich Text" to "HTML" or "Plain Text".
 
- Tomi
+1) Click on the "Tools" menu and choose "Options..."
+2) Go to the "Mail Format" tab
+3) For message format, select "HTML" or "Plain text"
+4) Click OK
+
+The virus detector said this about the message:
+Report: Report: MailScanner: Message attempted to kill MailScanner
 
 
+-- 
+MailScanner
+Email Virus Scanner
+Oriental Logistics Group
+www.olc-group.com
+
+For all your IT requirements visit: http://www.transtec.co.uk
