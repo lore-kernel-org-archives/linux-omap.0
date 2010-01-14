@@ -1,101 +1,41 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 2/3] DSPBRIDGE: Undo allocation of resources in case of cp_to_usr fails
-Date: Wed, 13 Jan 2010 19:11:15 -0600
-Message-ID: <1263431476-19206-3-git-send-email-omar.ramirez@ti.com>
-References: <1263431476-19206-1-git-send-email-omar.ramirez@ti.com>
- <1263431476-19206-2-git-send-email-omar.ramirez@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/3] OMAP: hwmod: add read/write API for SYSCONFIG
+Date: Wed, 13 Jan 2010 18:26:04 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001131822440.4769@utopia.booyaka.com>
+References: <1262993213-19866-1-git-send-email-khilman@deeprootsystems.com> <1262993213-19866-2-git-send-email-khilman@deeprootsystems.com> <1262993213-19866-3-git-send-email-khilman@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50377 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751411Ab0ANBUT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jan 2010 20:20:19 -0500
-In-Reply-To: <1263431476-19206-2-git-send-email-omar.ramirez@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:41282 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750998Ab0ANB0F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 20:26:05 -0500
+In-Reply-To: <1262993213-19866-3-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ernesto Ramos <ernesto@ti.com>, Nishanth Menon <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Ernesto Ramos <ernesto@ti.com>
+Hi Kevin, 
 
-Release resources allocated during MAP, Node Allocation,
-STRM Buf Allocation in the case of cp_to_usr fails.
+On Fri, 8 Jan 2010, Kevin Hilman wrote:
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
-CC: Nishanth Menon <nm@ti.com>
-CC: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
-CC: Ameya Palande <ameya.palande@nokia.com>
----
- drivers/dsp/bridge/pmgr/wcd.c |   35 ++++++++++++++++++++++++++++-------
- 1 files changed, 28 insertions(+), 7 deletions(-)
+> Some HW blocks have errata which requires selective enabling/disabling
+> of SYSCONFIG bits.  In particular, some blocks have known issues with
+> smart-idle so smart-idle has to be disabled under certain conditions.
 
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 006ca63..5062053 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -1104,8 +1104,11 @@ u32 PROCWRAP_Map(union Trapped_Args *args, void *pr_ctxt)
- 			 args->ARGS_PROC_MAPMEM.pReqAddr, &pMapAddr,
- 			 args->ARGS_PROC_MAPMEM.ulMapAttr, pr_ctxt);
- 	if (DSP_SUCCEEDED(status)) {
--		if (put_user(pMapAddr, args->ARGS_PROC_MAPMEM.ppMapAddr))
-+		if (put_user(pMapAddr, args->ARGS_PROC_MAPMEM.ppMapAddr)) {
- 			status = DSP_EINVALIDARG;
-+			PROC_UnMap(args->ARGS_PROC_MAPMEM.hProcessor,
-+				pMapAddr, pr_ctxt);
-+		}
- 
- 	}
- 	return status;
-@@ -1150,9 +1153,13 @@ u32 PROCWRAP_ReserveMemory(union Trapped_Args *args, void *pr_ctxt)
- 	GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_ReserveMemory: entered\n");
- 	status = PROC_ReserveMemory(args->ARGS_PROC_RSVMEM.hProcessor,
- 				   args->ARGS_PROC_RSVMEM.ulSize, &pRsvAddr);
--	if (put_user(pRsvAddr, args->ARGS_PROC_RSVMEM.ppRsvAddr))
--		status = DSP_EINVALIDARG;
--
-+	if (DSP_SUCCEEDED(status)) {
-+		if (put_user(pRsvAddr, args->ARGS_PROC_RSVMEM.ppRsvAddr)) {
-+			status = DSP_EINVALIDARG;
-+			PROC_UnReserveMemory(args->ARGS_PROC_RSVMEM.hProcessor,
-+				pRsvAddr);
-+		}
-+	}
- 	return status;
- }
- 
-@@ -1255,7 +1262,13 @@ u32 NODEWRAP_Allocate(union Trapped_Args *args, void *pr_ctxt)
- 				      &nodeId, (struct DSP_CBDATA *)pArgs,
- 				      pAttrIn, &hNode, pr_ctxt);
- 	}
--	cp_to_usr(args->ARGS_NODE_ALLOCATE.phNode, &hNode, status, 1);
-+	if (DSP_SUCCEEDED(status)) {
-+		cp_to_usr(args->ARGS_NODE_ALLOCATE.phNode, &hNode, status, 1);
-+		if (DSP_FAILED(status)) {
-+			status = DSP_EPOINTER;
-+			NODE_Delete(hNode, pr_ctxt);
-+		}
-+	}
- func_cont:
- 	if (pArgs)
- 		MEM_Free(pArgs);
-@@ -1589,8 +1602,16 @@ u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args, void *pr_ctxt)
- 	status = STRM_AllocateBuffer(args->ARGS_STRM_ALLOCATEBUFFER.hStream,
- 				     args->ARGS_STRM_ALLOCATEBUFFER.uSize,
- 				     apBuffer, uNumBufs, pr_ctxt);
--	cp_to_usr(args->ARGS_STRM_ALLOCATEBUFFER.apBuffer, apBuffer, status,
--		 uNumBufs);
-+	if (DSP_SUCCEEDED(status)) {
-+		cp_to_usr(args->ARGS_STRM_ALLOCATEBUFFER.apBuffer, apBuffer,
-+			status, uNumBufs);
-+		if (DSP_FAILED(status)) {
-+			status = DSP_EPOINTER;
-+			STRM_FreeBuffer(
-+				args->ARGS_STRM_ALLOCATEBUFFER.hStream,
-+				apBuffer, uNumBufs, pr_ctxt);
-+		}
-+	}
- 	if (apBuffer)
- 		MEM_Free(apBuffer);
- 
--- 
-1.6.2.4
+...
 
+> RFC: would an API to only touch smart-idle be more appropriate? Maybe 
+> omap_hwmod_smart_idle_enable(oh, bool enable)?
+
+This idea sounds good.  Since the SYSCONFIG bit fields can change and move 
+around depending on the chip and IP, some type of higher-level API seems 
+necessary to preserve sanity.
+
+Maybe omap_hwmod_smart_idle_enable() and omap_hwmod_smart_idle_disable(), 
+mimicking API styles like clk_enable()/clk_disable(), etc.?  Care to spin 
+something like that?
+
+
+- Paul
