@@ -1,314 +1,157 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 1/3] DSPBRIDGE: Interface tightening to check for invalid input parameters
-Date: Wed, 13 Jan 2010 19:11:14 -0600
-Message-ID: <1263431476-19206-2-git-send-email-omar.ramirez@ti.com>
-References: <1263431476-19206-1-git-send-email-omar.ramirez@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] OMAP: omap_device: optionally auto-adjust device
+ activate/deactivate latencies
+Date: Wed, 13 Jan 2010 18:05:03 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001131804250.4769@utopia.booyaka.com>
+References: <1262993213-19866-1-git-send-email-khilman@deeprootsystems.com> <1262993213-19866-2-git-send-email-khilman@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52364 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755150Ab0ANBCF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Jan 2010 20:02:05 -0500
-In-Reply-To: <1263431476-19206-1-git-send-email-omar.ramirez@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:47126 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752688Ab0ANBFE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 20:05:04 -0500
+In-Reply-To: <1262993213-19866-2-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ernesto Ramos <ernesto@ti.com>, Nishanth Menon <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Ernesto Ramos <ernesto@ti.com>
+Hi Kevin,
 
-Add more error checking and range to address usecases
-accessing kernel APIs directly.
+On Fri, 8 Jan 2010, Kevin Hilman wrote:
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
-CC: Nishanth Menon <nm@ti.com>
-CC: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
-CC: Ameya Palande <ameya.palande@nokia.com>
----
- arch/arm/plat-omap/include/dspbridge/dbdefs.h |    4 +-
- drivers/dsp/bridge/pmgr/wcd.c                 |   91 +++++++++++++++++++-----
- drivers/dsp/bridge/services/mem.c             |    4 -
- 3 files changed, 75 insertions(+), 24 deletions(-)
+> First, this patch adds new worst-case latency values to the
+> omap_device_pm_latency struct.  Here the worst-case measured latencies
+> for the activate and deactivate hooks are stored.
+> 
+> In addition, add an option to auto-adjust the latency values used for
+> device activate/deactivate.
+> 
+> By setting a new 'OMAP_DEVICE_LATENCY_AUTO_ADJUST' flag in the
+> omap_device_pm_latency struct, the omap_device layer automatically
+> adjusts the activate/deactivate latencies to the worst-case measured
+> values.
+> 
+> Anytime a new worst-case value is found, it is printed to the console.
+> Here is an example log during boot using UART2 s an example.  After
+> boot, the OPP is manually changed to the 125MHz OPP:
+> 
+> [...]
+> Freeing init memory: 128K
+> omap_device: serial8250.2: new worst case deactivate latency 0: 30517
+> omap_device: serial8250.2: new worst case activate latency 0: 30517
+> omap_device: serial8250.2: new worst case activate latency 0: 218139648
+> omap_device: serial8250.2: new worst case deactivate latency 0: 61035
+> omap_device: serial8250.2: new worst case activate latency 0: 278076171
+> omap_device: serial8250.2: new worst case activate latency 0: 298614501
+> omap_device: serial8250.2: new worst case activate latency 0: 327331542
+> 
+> / # echo 125000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
+> 
+> omap_device: serial8250.2: new worst case deactivate latency 0: 91552
+> 
+> Motivation: this can be used as a technique to automatically determine
+> the worst case latency values.  The current method of printing a
+> warning on every violation is too noisy to actually interact the
+> console in order to set low OPP to discover latencies.
+> 
+> Another motivation for this patch is that the activate/deactivate
+> latenices can vary depending on the idlemode of the device.  While
+> working on the UARTs, I noticed that when using no-idle, the activate
+> latencies were as high as several hundred msecs as shown above.  When
+> the UARTs are in smart-idle, the max latency is well under 100 usecs.
+> 
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/plat-omap/include/plat/omap_device.h |    4 ++
+>  arch/arm/plat-omap/omap_device.c              |   41 ++++++++++++++++++++-----
+>  2 files changed, 37 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index dc1fac1..76d4917 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -131,11 +131,15 @@ int omap_device_enable_clocks(struct omap_device *od);
+>   */
+>  struct omap_device_pm_latency {
+>  	u32 deactivate_lat;
+> +	u32 deactivate_lat_worst;
+>  	int (*deactivate_func)(struct omap_device *od);
+>  	u32 activate_lat;
+> +	u32 activate_lat_worst;
+>  	int (*activate_func)(struct omap_device *od);
+> +	u32 flags;
+>  };
+>  
+> +#define OMAP_DEVICE_LATENCY_AUTO_ADJUST BIT(1)
+>  
+>  /* Get omap_device pointer from platform_device pointer */
+>  #define to_omap_device(x) container_of((x), struct omap_device, pdev)
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 1e5648d..d8c75c8 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -148,10 +148,22 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+>  			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
+>  			 act_lat);
+>  
+> -		WARN(act_lat > odpl->activate_lat, "omap_device: %s.%d: "
+> -		     "activate step %d took longer than expected (%llu > %d)\n",
+> -		     od->pdev.name, od->pdev.id, od->pm_lat_level,
+> -		     act_lat, odpl->activate_lat);
+> +		if (act_lat > odpl->activate_lat) {
+> +			odpl->activate_lat_worst = act_lat;
+> +			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
+> +				odpl->activate_lat = act_lat;
+> +				pr_warning("omap_device: %s.%d: new worst case "
+> +					   "activate latency %d: %llu\n",
+> +					   od->pdev.name, od->pdev.id,
+> +					   od->pm_lat_level, act_lat);
+> +			} else
+> +				pr_warning("omap_device: %s.%d: activate "
+> +					   "latency %d higher than exptected. "
+> +					   "(%llu > %d)\n",
+> +					   od->pdev.name, od->pdev.id,
+> +					   od->pm_lat_level, act_lat,
+> +					   odpl->activate_lat);
+> +		}
+>  
+>  		od->dev_wakeup_lat -= odpl->activate_lat;
+>  	}
+> @@ -204,10 +216,23 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+>  			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
+>  			 deact_lat);
+>  
+> -		WARN(deact_lat > odpl->deactivate_lat, "omap_device: %s.%d: "
+> -		     "deactivate step %d took longer than expected "
+> -		     "(%llu > %d)\n", od->pdev.name, od->pdev.id,
+> -		     od->pm_lat_level, deact_lat, odpl->deactivate_lat);
+> +		if (deact_lat > odpl->deactivate_lat) {
+> +			odpl->deactivate_lat_worst = deact_lat;
+> +			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
+> +				odpl->deactivate_lat = deact_lat;
+> +				pr_warning("omap_device: %s.%d: new worst case "
+> +					   "deactivate latency %d: %llu\n",
+> +					   od->pdev.name, od->pdev.id,
+> +					   od->pm_lat_level, deact_lat);
+> +			} else
+> +				pr_warning("omap_device: %s.%d: deactivate "
+> +					   "latency %d higher than exptected. "
+> +					   "(%llu > %d)\n",
+> +					   od->pdev.name, od->pdev.id,
+> +					   od->pm_lat_level, deact_lat,
+> +					   odpl->deactivate_lat);
+> +		}
+> +
+>  
+>  		od->dev_wakeup_lat += odpl->activate_lat;
+>  
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbdefs.h b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-index acd291f..f77de39 100644
---- a/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-@@ -217,7 +217,9 @@
- 		DSP_DCDLIBRARYTYPE,
- 		DSP_DCDCREATELIBTYPE,
- 		DSP_DCDEXECUTELIBTYPE,
--		DSP_DCDDELETELIBTYPE
-+		DSP_DCDDELETELIBTYPE,
-+		/* DSP_DCDMAXOBJTYPE is meant to be the last DCD object type */
-+		DSP_DCDMAXOBJTYPE
- 	} ;
- 
- /* Processor states */
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 39e3110..006ca63 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -539,6 +539,10 @@ u32 MGRWRAP_EnumNode_Info(union Trapped_Args *args, void *pr_ctxt)
- 		 args->ARGS_MGR_ENUMNODE_INFO.pNDBProps,
- 		 args->ARGS_MGR_ENUMNODE_INFO.uNDBPropsSize,
- 		 args->ARGS_MGR_ENUMNODE_INFO.puNumNodes);
-+
-+	if (size < sizeof(struct DSP_NDBPROPS))
-+		return DSP_ESIZE;
-+
- 	pNDBProps = MEM_Alloc(size, MEM_NONPAGED);
- 	if (pNDBProps == NULL)
- 		status = DSP_EMEMORY;
-@@ -576,6 +580,10 @@ u32 MGRWRAP_EnumProc_Info(union Trapped_Args *args, void *pr_ctxt)
- 		 args->ARGS_MGR_ENUMPROC_INFO.pProcessorInfo,
- 		 args->ARGS_MGR_ENUMPROC_INFO.uProcessorInfoSize,
- 		 args->ARGS_MGR_ENUMPROC_INFO.puNumProcs);
-+
-+	if (size < sizeof(struct DSP_PROCESSORINFO))
-+		return DSP_ESIZE;
-+
- 	pProcessorInfo = MEM_Alloc(size, MEM_NONPAGED);
- 	if (pProcessorInfo == NULL)
- 		status = DSP_EMEMORY;
-@@ -608,6 +616,11 @@ u32 MGRWRAP_RegisterObject(union Trapped_Args *args, void *pr_ctxt)
- 	char *pszPathName = NULL;
- 	DSP_STATUS status = DSP_SOK;
- 
-+
-+	GT_1trace(WCD_debugMask, GT_ENTER,
-+		 "MGRWRAP_RegisterObject: entered "
-+		 "0x%x\n", args->ARGS_MGR_REGISTEROBJECT.pUuid);
-+
- 	cp_fm_usr(&pUuid, args->ARGS_MGR_REGISTEROBJECT.pUuid, status, 1);
- 	if (DSP_FAILED(status))
- 		goto func_end;
-@@ -625,9 +638,9 @@ u32 MGRWRAP_RegisterObject(union Trapped_Args *args, void *pr_ctxt)
- 		goto func_end;
- 	}
- 
--	GT_1trace(WCD_debugMask, GT_ENTER,
--		 "MGRWRAP_RegisterObject: entered pg2hMsg "
--		 "0x%x\n", args->ARGS_MGR_REGISTEROBJECT.pUuid);
-+	if (args->ARGS_MGR_REGISTEROBJECT.objType >= DSP_DCDMAXOBJTYPE)
-+		return DSP_EINVALIDARG;
-+
- 	status = DCD_RegisterObject(&pUuid,
- 				args->ARGS_MGR_REGISTEROBJECT.objType,
- 				(char *)pszPathName);
-@@ -814,7 +827,10 @@ u32 PROCWRAP_EnumNode_Info(union Trapped_Args *args, void *pr_ctxt)
- 		 args->ARGS_PROC_ENUMNODE_INFO.uNodeTabSize,
- 		 args->ARGS_PROC_ENUMNODE_INFO.puNumNodes,
- 		 args->ARGS_PROC_ENUMNODE_INFO.puAllocated);
--	DBC_Require(args->ARGS_PROC_ENUMNODE_INFO.uNodeTabSize <= MAX_NODES);
-+
-+	if (!args->ARGS_PROC_ENUMNODE_INFO.uNodeTabSize)
-+		return DSP_ESIZE;
-+
- 	status = PROC_EnumNodes(args->ARGS_PROC_ENUMNODE_INFO.hProcessor,
- 				aNodeTab,
- 				args->ARGS_PROC_ENUMNODE_INFO.uNodeTabSize,
-@@ -837,6 +853,10 @@ u32 PROCWRAP_FlushMemory(union Trapped_Args *args, void *pr_ctxt)
- 
- 	GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_FlushMemory: entered\n");
- 
-+	if (args->ARGS_PROC_FLUSHMEMORY.ulFlags >
-+					 PROC_WRITEBACK_INVALIDATE_MEM)
-+		return DSP_EINVALIDARG;
-+
- 	status = PROC_FlushMemory(args->ARGS_PROC_FLUSHMEMORY.hProcessor,
- 				 args->ARGS_PROC_FLUSHMEMORY.pMpuAddr,
- 				 args->ARGS_PROC_FLUSHMEMORY.ulSize,
-@@ -871,9 +891,6 @@ u32 PROCWRAP_EnumResources(union Trapped_Args *args, void *pr_ctxt)
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_RESOURCEINFO pResourceInfo;
- 
--	if (DSP_FAILED(status))
--		goto func_end;
--
- 	GT_4trace(WCD_debugMask, GT_ENTER,
- 		 "PROCWRAP_EnumResources: entered args:\n"
- 		 "0x%x hProcessor: 0x%x\tuResourceMask: 0x%x\tpResourceInfo"
-@@ -882,15 +899,19 @@ u32 PROCWRAP_EnumResources(union Trapped_Args *args, void *pr_ctxt)
- 		 args->ARGS_PROC_ENUMRESOURCES.uResourceType,
- 		 args->ARGS_PROC_ENUMRESOURCES.pResourceInfo,
- 		 args->ARGS_PROC_ENUMRESOURCES.uResourceInfoSize);
-+
-+	if (args->ARGS_PROC_ENUMRESOURCES.uResourceInfoSize <
-+		sizeof(struct DSP_RESOURCEINFO))
-+		return DSP_ESIZE;
-+
- 	status = PROC_GetResourceInfo(args->ARGS_PROC_ENUMRESOURCES.hProcessor,
- 			args->ARGS_PROC_ENUMRESOURCES.uResourceType,
- 			&pResourceInfo,
- 			args->ARGS_PROC_ENUMRESOURCES.uResourceInfoSize);
--	if (DSP_FAILED(status))
--		goto func_end;
-+
- 	cp_to_usr(args->ARGS_PROC_ENUMRESOURCES.pResourceInfo, &pResourceInfo,
- 						status, 1);
--func_end:
-+
- 	return status;
- 
- }
-@@ -903,6 +924,11 @@ u32 PROCWRAP_GetState(union Trapped_Args *args, void *pr_ctxt)
- 	DSP_STATUS status;
- 	struct DSP_PROCESSORSTATE procStatus;
- 	GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_GetState: entered\n");
-+
-+	if (args->ARGS_PROC_GETSTATE.uStateInfoSize <
-+		sizeof(struct DSP_PROCESSORSTATE))
-+		return DSP_ESIZE;
-+
- 	status = PROC_GetState(args->ARGS_PROC_GETSTATE.hProcessor, &procStatus,
- 			      args->ARGS_PROC_GETSTATE.uStateInfoSize);
- 	cp_to_usr(args->ARGS_PROC_GETSTATE.pProcStatus, &procStatus, status, 1);
-@@ -920,7 +946,8 @@ u32 PROCWRAP_GetTrace(union Trapped_Args *args, void *pr_ctxt)
- 
- 	GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_GetTrace: entered\n");
- 
--	DBC_Require(args->ARGS_PROC_GETTRACE.uMaxSize <= MAX_TRACEBUFLEN);
-+	if (args->ARGS_PROC_GETTRACE.uMaxSize > MAX_TRACEBUFLEN)
-+		return DSP_ESIZE;
- 
- 	pBuf = MEM_Calloc(args->ARGS_PROC_GETTRACE.uMaxSize, MEM_NONPAGED);
- 	if (pBuf != NULL) {
-@@ -946,10 +973,12 @@ u32 PROCWRAP_Load(union Trapped_Args *args, void *pr_ctxt)
- 	DSP_STATUS status = DSP_SOK;
- 	char *temp;
- 	s32 count = args->ARGS_PROC_LOAD.iArgc;
--	u8 **argv, **envp = NULL;
-+	u8 **argv = NULL, **envp = NULL;
- 
--	DBC_Require(count > 0);
--	DBC_Require(count <= MAX_LOADARGS);
-+	if (count <= 0 || count > MAX_LOADARGS) {
-+		status = DSP_EINVALIDARG;
-+		goto func_cont;
-+	}
- 
- 	argv = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
- 	if (!argv) {
-@@ -1065,6 +1094,10 @@ u32 PROCWRAP_Map(union Trapped_Args *args, void *pr_ctxt)
- 	void *pMapAddr;
- 
- 	GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_Map: entered\n");
-+
-+	if (!args->ARGS_PROC_MAPMEM.ulSize)
-+		return DSP_ESIZE;
-+
- 	status = PROC_Map(args->ARGS_PROC_MAPMEM.hProcessor,
- 			 args->ARGS_PROC_MAPMEM.pMpuAddr,
- 			 args->ARGS_PROC_MAPMEM.ulSize,
-@@ -1110,6 +1143,10 @@ u32 PROCWRAP_ReserveMemory(union Trapped_Args *args, void *pr_ctxt)
- 	DSP_STATUS status;
- 	void *pRsvAddr;
- 
-+	if ((args->ARGS_PROC_RSVMEM.ulSize <= 0) ||
-+		(args->ARGS_PROC_RSVMEM.ulSize & (PG_SIZE_4K - 1)) != 0)
-+		return DSP_ESIZE;
-+
- 	GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_ReserveMemory: entered\n");
- 	status = PROC_ReserveMemory(args->ARGS_PROC_RSVMEM.hProcessor,
- 				   args->ARGS_PROC_RSVMEM.ulSize, &pRsvAddr);
-@@ -1236,6 +1273,9 @@ u32 NODEWRAP_AllocMsgBuf(union Trapped_Args *args, void *pr_ctxt)
- 	struct DSP_BUFFERATTR attr;
- 	u8 *pBuffer = NULL;
- 
-+	if (!args->ARGS_NODE_ALLOCMSGBUF.uSize)
-+		return DSP_ESIZE;
-+
- 	if (args->ARGS_NODE_ALLOCMSGBUF.pAttr) {	/* Optional argument */
- 		cp_fm_usr(&attr, args->ARGS_NODE_ALLOCMSGBUF.pAttr, status, 1);
- 		if (DSP_SUCCEEDED(status))
-@@ -1361,6 +1401,10 @@ u32 NODEWRAP_FreeMsgBuf(union Trapped_Args *args, void *pr_ctxt)
- 			pAttr = &attr;
- 
- 	}
-+
-+	if (!args->ARGS_NODE_FREEMSGBUF.pBuffer)
-+		return DSP_EPOINTER;
-+
- 	if (DSP_SUCCEEDED(status)) {
- 		status = NODE_FreeMsgBuf(args->ARGS_NODE_FREEMSGBUF.hNode,
- 					args->ARGS_NODE_FREEMSGBUF.pBuffer,
-@@ -1510,7 +1554,6 @@ u32 NODEWRAP_GetUUIDProps(union Trapped_Args *args, void *pr_ctxt)
- 	GT_0trace(WCD_debugMask, GT_ENTER,
- 		 "NODEWRAP_GetUUIDPropste: entered\n");
- 
--
- 	cp_fm_usr(&nodeId, args->ARGS_NODE_GETUUIDPROPS.pNodeID, status, 1);
- 	if (DSP_FAILED(status))
- 		goto func_cont;
-@@ -1538,7 +1581,8 @@ u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args, void *pr_ctxt)
- 	u8 **apBuffer = NULL;
- 	u32 uNumBufs = args->ARGS_STRM_ALLOCATEBUFFER.uNumBufs;
- 
--	DBC_Require(uNumBufs <= MAX_BUFS);
-+	if (uNumBufs > MAX_BUFS)
-+		return DSP_EINVALIDARG;
- 
- 	apBuffer = MEM_Alloc((uNumBufs * sizeof(u8 *)), MEM_NONPAGED);
- 
-@@ -1570,7 +1614,8 @@ u32 STRMWRAP_FreeBuffer(union Trapped_Args *args, void *pr_ctxt)
- 	u8 **apBuffer = NULL;
- 	u32 uNumBufs = args->ARGS_STRM_FREEBUFFER.uNumBufs;
- 
--	DBC_Require(uNumBufs <= MAX_BUFS);
-+	if (uNumBufs > MAX_BUFS)
-+		return DSP_EINVALIDARG;
- 
- 	apBuffer = MEM_Alloc((uNumBufs * sizeof(u8 *)), MEM_NONPAGED);
- 
-@@ -1643,6 +1688,10 @@ u32 STRMWRAP_Idle(union Trapped_Args *args, void *pr_ctxt)
- u32 STRMWRAP_Issue(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
-+
-+	if (!args->ARGS_STRM_ISSUE.pBuffer)
-+		return DSP_EPOINTER;
-+
- 	/* No need of doing cp_fm_usr for the user buffer (pBuffer)
- 	as this is done in Bridge internal function WMD_CHNL_AddIOReq
- 	in chnl_sm.c */
-@@ -1669,8 +1718,11 @@ u32 STRMWRAP_Open(union Trapped_Args *args, void *pr_ctxt)
- 
- 	if (attr.pStreamAttrIn != NULL) {	/* Optional argument */
- 		cp_fm_usr(&strmAttrIn, attr.pStreamAttrIn, status, 1);
--		if (DSP_SUCCEEDED(status))
-+		if (DSP_SUCCEEDED(status)) {
- 			attr.pStreamAttrIn = &strmAttrIn;
-+			if (attr.pStreamAttrIn->lMode == STRMMODE_LDMA)
-+				return DSP_ENOTIMPL;
-+		}
- 
- 	}
- 	status = STRM_Open(args->ARGS_STRM_OPEN.hNode,
-@@ -1740,7 +1792,8 @@ u32 STRMWRAP_Select(union Trapped_Args *args, void *pr_ctxt)
- 	struct STRM_OBJECT *aStrmTab[MAX_STREAMS];
- 	DSP_STATUS status = DSP_SOK;
- 
--	DBC_Require(args->ARGS_STRM_SELECT.nStreams <= MAX_STREAMS);
-+	if (args->ARGS_STRM_SELECT.nStreams > MAX_STREAMS)
-+		return DSP_EINVALIDARG;
- 
- 	cp_fm_usr(aStrmTab, args->ARGS_STRM_SELECT.aStreamTab, status,
- 		 args->ARGS_STRM_SELECT.nStreams);
-diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
-index 85eb477..cdda1e8 100644
---- a/drivers/dsp/bridge/services/mem.c
-+++ b/drivers/dsp/bridge/services/mem.c
-@@ -493,10 +493,6 @@ void MEM_FlushCache(void *pMemBuf, u32 cBytes, s32 FlushType)
- 		outer_flush_range(__pa((u32)pMemBuf), __pa((u32)pMemBuf +
- 				  cBytes));
- 	break;
--	default:
--		GT_1trace(MEM_debugMask, GT_6CLASS, "MEM_FlushCache: invalid "
--			  "FlushMemType 0x%x\n", FlushType);
--	break;
- 	}
- 
- }
--- 
-1.6.2.4
+Thanks, looks very useful.  The no-idle thing is extremely strange and 
+useful to know.
 
+Queued for 2.6.34. 
+
+
+- Paul
