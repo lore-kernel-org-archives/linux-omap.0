@@ -1,33 +1,20 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: Re: [PATCH 1/4] Add minimal support for DEVKIT8000
-Date: Thu, 14 Jan 2010 15:59:51 +0100
-Message-ID: <4B4F3167.3080300@corscience.de>
-References: <75653cbc7d7ba7c6cfc501db7c0373d3@djdvant.com> <20091112104032.GB32578@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 1/4] Add minimal support for DEVKIT8000
+Date: Thu, 14 Jan 2010 16:21:26 +0100
+Message-ID: <1263482486-18138-1-git-send-email-weber@corscience.de>
+References: <Re: [PATCH 1/4] Add minimal support for DEVKIT8000>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62996 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.186]:51811 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753790Ab0ANPAA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jan 2010 10:00:00 -0500
-In-Reply-To: <20091112104032.GB32578@nokia.com>
+	with ESMTP id S1753270Ab0ANPV7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jan 2010 10:21:59 -0500
+In-Reply-To: <Re: [PATCH 1/4] Add minimal support for DEVKIT8000>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: ext Kim Botherway <kbotherway@djdvant.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Kim Botherway <kbotherway@djdvant.com>, Thomas Weber <weber@corscience.de>
 
-Hello,
-
-I use Kims patches and I have done some work on it over the time and
-after the comments from Felipe, so I want to submit them one more time.
-
-Thomas
-
->From fb89dd25e77401d42d7216d5adadb94b1c2298fe Mon Sep 17 00:00:00 2001
 From: Kim Botherway <kbotherway@djdvant.com>
-Date: Thu, 12 Nov 2009 21:17:42 +1100
-Subject: [PATCH 1/4] Add minimal support for DEVKIT8000
 
 These patches add omap3 board support for the Timll DEVKIT8000
 
@@ -37,8 +24,7 @@ rework after comments from mailing list.
 ---
  arch/arm/mach-omap2/Kconfig                 |    4 +
  arch/arm/mach-omap2/Makefile                |    2 +
- arch/arm/mach-omap2/board-omap3devkit8000.c |  616
-+++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3devkit8000.c |  616 +++++++++++++++++++++++++++
  3 files changed, 622 insertions(+), 0 deletions(-)
  create mode 100644 arch/arm/mach-omap2/board-omap3devkit8000.c
 
@@ -47,32 +33,30 @@ index 606bf04..94e3ef5 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
 @@ -67,6 +67,10 @@ config MACH_OMAP3_BEAGLE
-     depends on ARCH_OMAP3 && ARCH_OMAP34XX
-     select OMAP_PACKAGE_CBB
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+ 	select OMAP_PACKAGE_CBB
  
 +config MACH_OMAP3_DEVKIT8000
 +        bool "OMAP3 DEVKIT8000 board"
 +        depends on ARCH_OMAP3 && ARCH_OMAP34XX
 +
  config MACH_OMAP_LDP
-     bool "OMAP3 LDP board"
-     depends on ARCH_OMAP3 && ARCH_OMAP34XX
+ 	bool "OMAP3 LDP board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
 index b32678b..083236b 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -75,6 +75,8 @@ obj-$(CONFIG_MACH_OMAP_2430SDP)        +=
-board-2430sdp.o \
- obj-$(CONFIG_MACH_OMAP_APOLLON)        += board-apollon.o
- obj-$(CONFIG_MACH_OMAP3_BEAGLE)        += board-omap3beagle.o \
-                        mmc-twl4030.o
+@@ -75,6 +75,8 @@ obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+ 					   mmc-twl4030.o
 +obj-$(CONFIG_MACH_OMAP3_DEVKIT8000)     += board-omap3devkit8000.o \
 +                                           mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_LDP)        += board-ldp.o \
-                        mmc-twl4030.o
- obj-$(CONFIG_MACH_OVERO)        += board-overo.o \
-diff --git a/arch/arm/mach-omap2/board-omap3devkit8000.c
-b/arch/arm/mach-omap2/board-omap3devkit8000.c
+ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+diff --git a/arch/arm/mach-omap2/board-omap3devkit8000.c b/arch/arm/mach-omap2/board-omap3devkit8000.c
 new file mode 100644
 index 0000000..5f85dc6
 --- /dev/null
@@ -140,432 +124,429 @@ index 0000000..5f85dc6
 +#define GPMC_CS0_BASE  0x60
 +#define GPMC_CS_SIZE   0x30
 +
-+#define NAND_BLOCK_SIZE        SZ_128K
++#define NAND_BLOCK_SIZE		SZ_128K
 +
-+#define OMAP_DM9000_GPIO_IRQ    25
-+#define OMAP3_DEVKIT_TS_GPIO    27
++#define OMAP_DM9000_GPIO_IRQ	25
++#define OMAP3_DEVKIT_TS_GPIO	27
 +
 +static struct mtd_partition omap3devkit8000_nand_partitions[] = {
-+    /* All the partition sizes are listed in terms of NAND block size */
-+    {
-+        .name        = "X-Loader",
-+        .offset        = 0,
-+        .size        = 4 * NAND_BLOCK_SIZE,
-+        .mask_flags    = MTD_WRITEABLE,    /* force read-only */
-+    },
-+    {
-+        .name        = "U-Boot",
-+        .offset        = MTDPART_OFS_APPEND,    /* Offset = 0x80000 */
-+        .size        = 15 * NAND_BLOCK_SIZE,
-+        .mask_flags    = MTD_WRITEABLE,    /* force read-only */
-+    },
-+    {
-+        .name        = "U-Boot Env",
-+        .offset        = MTDPART_OFS_APPEND,    /* Offset = 0x260000 */
-+        .size        = 1 * NAND_BLOCK_SIZE,
-+    },
-+    {
-+        .name        = "Kernel",
-+        .offset        = MTDPART_OFS_APPEND,    /* Offset = 0x280000 */
-+        .size        = 32 * NAND_BLOCK_SIZE,
-+    },
-+    {
-+        .name        = "File System",
-+        .offset        = MTDPART_OFS_APPEND,    /* Offset = 0x680000 */
-+        .size        = MTDPART_SIZ_FULL,
-+    },
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "X-Loader",
++		.offset		= 0,
++		.size		= 4 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
++		.size		= 15 * NAND_BLOCK_SIZE,
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot Env",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
++		.size		= 1 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "Kernel",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
++		.size		= 32 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name		= "File System",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
++		.size		= MTDPART_SIZ_FULL,
++	},
 +};
 +
 +static struct omap_nand_platform_data omap3devkit8000_nand_data = {
-+    .options    = NAND_BUSWIDTH_16,
-+    .parts        = omap3devkit8000_nand_partitions,
-+    .nr_parts    = ARRAY_SIZE(omap3devkit8000_nand_partitions),
-+    .dma_channel    = -1,        /* disable DMA in OMAP NAND driver */
++	.options	= NAND_BUSWIDTH_16,
++	.parts		= omap3devkit8000_nand_partitions,
++	.nr_parts	= ARRAY_SIZE(omap3devkit8000_nand_partitions),
++	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
 +};
 +
 +static struct resource omap3devkit8000_nand_resource = {
-+    .flags        = IORESOURCE_MEM,
++	.flags		= IORESOURCE_MEM,
 +};
 +
 +static struct platform_device omap3devkit8000_nand_device = {
-+    .name        = "omap2-nand",
-+    .id        = -1,
-+    .dev        = {
-+        .platform_data    = &omap3devkit8000_nand_data,
-+    },
-+    .num_resources    = 1,
-+    .resource    = &omap3devkit8000_nand_resource,
++	.name		= "omap2-nand",
++	.id		= -1,
++	.dev		= {
++		.platform_data	= &omap3devkit8000_nand_data,
++	},
++	.num_resources	= 1,
++	.resource	= &omap3devkit8000_nand_resource,
 +};
 +
 +
 +static struct twl4030_hsmmc_info mmc[] = {
-+    {
-+        .mmc        = 1,
-+        .wires        = 8,
-+        .gpio_wp    = 29,
-+    },
-+    {}    /* Terminator */
++	{
++		.mmc		= 1,
++		.wires		= 8,
++		.gpio_wp	= 29,
++	},
++	{}	/* Terminator */
 +};
 +
 +static struct platform_device omap3_devkit8000_lcd_device = {
-+    .name        = "omap3devkit8000_lcd",
-+    .id        = -1,
++	.name		= "omap3devkit8000_lcd",
++	.id		= -1,
 +};
 +
 +static struct omap_lcd_config omap3_devkit8000_lcd_config __initdata = {
-+    .ctrl_name    = "internal",
++	.ctrl_name	= "internal",
 +};
 +
 +static struct regulator_consumer_supply devkit8000_vmmc1_supply = {
-+    .supply            = "vmmc",
++	.supply			= "vmmc",
 +};
 +
 +static struct regulator_consumer_supply devkit8000_vsim_supply = {
-+    .supply            = "vmmc_aux",
++	.supply			= "vmmc_aux",
 +};
 +
 +static int board_keymap[] = {
-+    KEY(0, 0, KEY_1),
-+    KEY(1, 0, KEY_2),
-+    KEY(2, 0, KEY_3),
-+    KEY(0, 1, KEY_4),
-+    KEY(1, 1, KEY_5),
-+    KEY(2, 1, KEY_6),
-+    KEY(3, 1, KEY_F5),
-+    KEY(0, 2, KEY_7),
-+    KEY(1, 2, KEY_8),
-+    KEY(2, 2, KEY_9),
-+    KEY(3, 2, KEY_F6),
-+    KEY(0, 3, KEY_F7),
-+    KEY(1, 3, KEY_0),
-+    KEY(2, 3, KEY_F8),
-+    PERSISTENT_KEY(4, 5),
-+    KEY(4, 4, KEY_VOLUMEUP),
-+    KEY(5, 5, KEY_VOLUMEDOWN),
-+    0
++	KEY(0, 0, KEY_1),
++	KEY(1, 0, KEY_2),
++	KEY(2, 0, KEY_3),
++	KEY(0, 1, KEY_4),
++	KEY(1, 1, KEY_5),
++	KEY(2, 1, KEY_6),
++	KEY(3, 1, KEY_F5),
++	KEY(0, 2, KEY_7),
++	KEY(1, 2, KEY_8),
++	KEY(2, 2, KEY_9),
++	KEY(3, 2, KEY_F6),
++	KEY(0, 3, KEY_F7),
++	KEY(1, 3, KEY_0),
++	KEY(2, 3, KEY_F8),
++	PERSISTENT_KEY(4, 5),
++	KEY(4, 4, KEY_VOLUMEUP),
++	KEY(5, 5, KEY_VOLUMEDOWN),
++	0
 +};
 +
 +static struct matrix_keymap_data board_map_data = {
-+    .keymap            = board_keymap,
-+    .keymap_size        = ARRAY_SIZE(board_keymap),
++	.keymap			= board_keymap,
++	.keymap_size		= ARRAY_SIZE(board_keymap),
 +};
 +
 +static struct twl4030_keypad_data devkit8000_kp_data = {
-+    .keymap_data    = &board_map_data,
-+    .rows        = 6,
-+    .cols        = 6,
-+    .rep        = 1,
++	.keymap_data	= &board_map_data,
++	.rows		= 6,
++	.cols		= 6,
++	.rep		= 1,
 +};
 +
 +static struct gpio_led gpio_leds[];
 +
 +static int devkit8000_twl_gpio_setup(struct device *dev,
-+        unsigned gpio, unsigned ngpio)
++		unsigned gpio, unsigned ngpio)
 +{
-+    omap_mux_init_gpio(29, OMAP_PIN_INPUT);
-+    /* gpio + 0 is "mmc0_cd" (input/IRQ) */
-+    mmc[0].gpio_cd = gpio + 0;
-+    twl4030_mmc_init(mmc);
++	omap_mux_init_gpio(29, OMAP_PIN_INPUT);
++	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++	mmc[0].gpio_cd = gpio + 0;
++	twl4030_mmc_init(mmc);
 +
-+    /* link regulators to MMC adapters */
-+    devkit8000_vmmc1_supply.dev = mmc[0].dev;
-+    devkit8000_vsim_supply.dev = mmc[0].dev;
++	/* link regulators to MMC adapters */
++	devkit8000_vmmc1_supply.dev = mmc[0].dev;
++	devkit8000_vsim_supply.dev = mmc[0].dev;
 +
-+    /* REVISIT: need ehci-omap hooks for external VBUS
-+     * power switch and overcurrent detect
-+     */
++	/* REVISIT: need ehci-omap hooks for external VBUS
++	 * power switch and overcurrent detect
++	 */
 +
-+    gpio_request(gpio + 1, "EHCI_nOC");
-+    gpio_direction_input(gpio + 1);
++	gpio_request(gpio + 1, "EHCI_nOC");
++	gpio_direction_input(gpio + 1);
 +
-+    /* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
-+    gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
-+    gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
++	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
++	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
++	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
 +
-+    /* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
-+    gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
++	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
++	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
 +
-+    return 0;
++	return 0;
 +}
 +
 +static struct twl4030_gpio_platform_data devkit8000_gpio_data = {
-+    .gpio_base    = OMAP_MAX_GPIO_LINES,
-+    .irq_base    = TWL4030_GPIO_IRQ_BASE,
-+    .irq_end    = TWL4030_GPIO_IRQ_END,
-+    .use_leds    = true,
-+    .pullups    = BIT(1),
-+    .pulldowns    = BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
-+                | BIT(15) | BIT(16) | BIT(17),
-+    .setup        = devkit8000_twl_gpio_setup,
++	.gpio_base	= OMAP_MAX_GPIO_LINES,
++	.irq_base	= TWL4030_GPIO_IRQ_BASE,
++	.irq_end	= TWL4030_GPIO_IRQ_END,
++	.use_leds	= true,
++	.pullups	= BIT(1),
++	.pulldowns	= BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
++				| BIT(15) | BIT(16) | BIT(17),
++	.setup		= devkit8000_twl_gpio_setup,
 +};
 +
 +static struct regulator_consumer_supply devkit8000_vdac_supply = {
-+    .supply        = "vdac",
-+    .dev        = &omap3_devkit8000_lcd_device.dev,
++	.supply		= "vdac",
++	.dev		= &omap3_devkit8000_lcd_device.dev,
 +};
 +
 +static struct regulator_consumer_supply devkit8000_vdvi_supply = {
-+    .supply        = "vdvi",
-+    .dev        = &omap3_devkit8000_lcd_device.dev,
++	.supply		= "vdvi",
++	.dev		= &omap3_devkit8000_lcd_device.dev,
 +};
 +
-+/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max
-220 mA) */
++/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
 +static struct regulator_init_data devkit8000_vmmc1 = {
-+    .constraints = {
-+        .min_uV            = 1850000,
-+        .max_uV            = 3150000,
-+        .valid_modes_mask    = REGULATOR_MODE_NORMAL
-+                    | REGULATOR_MODE_STANDBY,
-+        .valid_ops_mask        = REGULATOR_CHANGE_VOLTAGE
-+                    | REGULATOR_CHANGE_MODE
-+                    | REGULATOR_CHANGE_STATUS,
-+    },
-+    .num_consumer_supplies    = 1,
-+    .consumer_supplies    = &devkit8000_vmmc1_supply,
++	.constraints = {
++		.min_uV			= 1850000,
++		.max_uV			= 3150000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &devkit8000_vmmc1_supply,
 +};
 +
 +/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
 +static struct regulator_init_data devkit8000_vsim = {
-+    .constraints = {
-+        .min_uV            = 1800000,
-+        .max_uV            = 3000000,
-+        .valid_modes_mask    = REGULATOR_MODE_NORMAL
-+                    | REGULATOR_MODE_STANDBY,
-+        .valid_ops_mask        = REGULATOR_CHANGE_VOLTAGE
-+                    | REGULATOR_CHANGE_MODE
-+                    | REGULATOR_CHANGE_STATUS,
-+    },
-+    .num_consumer_supplies    = 1,
-+    .consumer_supplies    = &devkit8000_vsim_supply,
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 3000000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &devkit8000_vsim_supply,
 +};
 +
 +/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
 +static struct regulator_init_data devkit8000_vdac = {
-+    .constraints = {
-+        .min_uV            = 1800000,
-+        .max_uV            = 1800000,
-+        .valid_modes_mask    = REGULATOR_MODE_NORMAL
-+                    | REGULATOR_MODE_STANDBY,
-+        .valid_ops_mask        = REGULATOR_CHANGE_MODE
-+                    | REGULATOR_CHANGE_STATUS,
-+    },
-+    .num_consumer_supplies    = 1,
-+    .consumer_supplies    = &devkit8000_vdac_supply,
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &devkit8000_vdac_supply,
 +};
 +
 +/* VPLL2 for digital video outputs */
 +static struct regulator_init_data devkit8000_vpll2 = {
-+    .constraints = {
-+        .name            = "VDVI",
-+        .min_uV            = 1800000,
-+        .max_uV            = 1800000,
-+        .valid_modes_mask    = REGULATOR_MODE_NORMAL
-+                    | REGULATOR_MODE_STANDBY,
-+        .valid_ops_mask        = REGULATOR_CHANGE_MODE
-+                    | REGULATOR_CHANGE_STATUS,
-+    },
-+    .num_consumer_supplies    = 1,
-+    .consumer_supplies    = &devkit8000_vdvi_supply,
++	.constraints = {
++		.name			= "VDVI",
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &devkit8000_vdvi_supply,
 +};
 +
 +static struct twl4030_usb_data devkit8000_usb_data = {
-+    .usb_mode    = T2_USB_MODE_ULPI,
++	.usb_mode	= T2_USB_MODE_ULPI,
 +};
 +
 +static struct twl4030_codec_audio_data devkit8000_audio_data = {
-+    .audio_mclk = 26000000,
++	.audio_mclk = 26000000,
 +};
 +
 +static struct twl4030_codec_data devkit8000_codec_data = {
-+    .audio_mclk = 26000000,
-+    .audio = &devkit8000_audio_data,
++	.audio_mclk = 26000000,
++	.audio = &devkit8000_audio_data,
 +};
 +
 +
 +static struct twl4030_platform_data devkit8000_twldata = {
-+    .irq_base    = TWL4030_IRQ_BASE,
-+    .irq_end    = TWL4030_IRQ_END,
++	.irq_base	= TWL4030_IRQ_BASE,
++	.irq_end	= TWL4030_IRQ_END,
 +
-+    /* platform_data for children goes here */
-+    .usb        = &devkit8000_usb_data,
-+    .gpio        = &devkit8000_gpio_data,
-+    .codec        = &devkit8000_codec_data,
-+    .vmmc1        = &devkit8000_vmmc1,
-+    .vsim        = &devkit8000_vsim,
-+    .vdac        = &devkit8000_vdac,
-+    .vpll2        = &devkit8000_vpll2,
-+    .keypad        = &devkit8000_kp_data,
++	/* platform_data for children goes here */
++	.usb		= &devkit8000_usb_data,
++	.gpio		= &devkit8000_gpio_data,
++	.codec		= &devkit8000_codec_data,
++	.vmmc1		= &devkit8000_vmmc1,
++	.vsim		= &devkit8000_vsim,
++	.vdac		= &devkit8000_vdac,
++	.vpll2		= &devkit8000_vpll2,
++	.keypad		= &devkit8000_kp_data,
 +};
 +
 +static struct i2c_board_info __initdata devkit8000_i2c_boardinfo[] = {
-+    {
-+        I2C_BOARD_INFO("twl4030", 0x48),
-+        .flags = I2C_CLIENT_WAKE,
-+        .irq = INT_34XX_SYS_NIRQ,
-+        .platform_data = &devkit8000_twldata,
-+    },
++	{
++		I2C_BOARD_INFO("twl4030", 0x48),
++		.flags = I2C_CLIENT_WAKE,
++		.irq = INT_34XX_SYS_NIRQ,
++		.platform_data = &devkit8000_twldata,
++	},
 +};
 +
 +static int __init omap3_devkit8000_i2c_init(void)
 +{
-+    omap_register_i2c_bus(1, 2600, devkit8000_i2c_boardinfo,
-+            ARRAY_SIZE(devkit8000_i2c_boardinfo));
-+    /* Bus 3 is attached to the DVI port where devices like the pico DLP
-+     * projector don't work reliably with 400kHz */
-+    omap_register_i2c_bus(3, 400, NULL, 0);
-+    return 0;
++	omap_register_i2c_bus(1, 2600, devkit8000_i2c_boardinfo,
++			ARRAY_SIZE(devkit8000_i2c_boardinfo));
++	/* Bus 3 is attached to the DVI port where devices like the pico DLP
++	 * projector don't work reliably with 400kHz */
++	omap_register_i2c_bus(3, 400, NULL, 0);
++	return 0;
 +}
 +
 +static struct gpio_led gpio_leds[] = {
-+    {
-+        .name            = "led1",
-+        .default_trigger    = "heartbeat",
-+        .gpio            = 186,
-+        .active_low        = true,
-+    },
-+    {
-+        .name            = "led2",
-+        .default_trigger    = "mmc0",
-+        .gpio            = 163,
-+        .active_low        = true,
-+    },
-+    {
-+        .name            = "ledB",
-+        .default_trigger    = "none",
-+        .gpio            = 153,
-+        .active_low             = true,
-+    },
-+    {
-+        .name            = "led3",
-+        .default_trigger    = "none",
-+        .gpio            = 164,    /* gets replaced */
-+        .active_low             = true,
-+    },
++	{
++		.name			= "led1",
++		.default_trigger	= "heartbeat",
++		.gpio			= 186,
++		.active_low		= true,
++	},
++	{
++		.name			= "led2",
++		.default_trigger	= "mmc0",
++		.gpio			= 163,
++		.active_low		= true,
++	},
++	{
++		.name			= "ledB",
++		.default_trigger	= "none",
++		.gpio			= 153,
++		.active_low             = true,
++	},
++	{
++		.name			= "led3",
++		.default_trigger	= "none",
++		.gpio			= 164,	/* gets replaced */
++		.active_low             = true,
++	},
 +};
 +
 +static struct gpio_led_platform_data gpio_led_info = {
-+    .leds        = gpio_leds,
-+    .num_leds    = ARRAY_SIZE(gpio_leds),
++	.leds		= gpio_leds,
++	.num_leds	= ARRAY_SIZE(gpio_leds),
 +};
 +
 +static struct platform_device leds_gpio = {
-+    .name    = "leds-gpio",
-+    .id    = -1,
-+    .dev    = {
-+        .platform_data    = &gpio_led_info,
-+    },
++	.name	= "leds-gpio",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &gpio_led_info,
++	},
 +};
 +
 +static struct gpio_keys_button gpio_buttons[] = {
-+    {
-+        .code            = BTN_EXTRA,
-+        .gpio            = 26,
-+        .desc            = "user",
-+        .wakeup            = 1,
-+    },
++	{
++		.code			= BTN_EXTRA,
++		.gpio			= 26,
++		.desc			= "user",
++		.wakeup			= 1,
++	},
 +};
 +
 +static struct gpio_keys_platform_data gpio_key_info = {
-+    .buttons    = gpio_buttons,
-+    .nbuttons    = ARRAY_SIZE(gpio_buttons),
++	.buttons	= gpio_buttons,
++	.nbuttons	= ARRAY_SIZE(gpio_buttons),
 +};
 +
 +static struct platform_device keys_gpio = {
-+    .name    = "gpio-keys",
-+    .id    = -1,
-+    .dev    = {
-+        .platform_data    = &gpio_key_info,
-+    },
++	.name	= "gpio-keys",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &gpio_key_info,
++	},
 +};
 +
-+static struct omap_board_config_kernel omap3_devkit8000_config[]
-__initdata = {
-+    { OMAP_TAG_LCD,        &omap3_devkit8000_lcd_config },
++static struct omap_board_config_kernel omap3_devkit8000_config[] __initdata = {
++	{ OMAP_TAG_LCD,		&omap3_devkit8000_lcd_config },
 +};
 +
 +static void __init omap3_devkit8000_init_irq(void)
 +{
-+    omap_board_config = omap3_devkit8000_config;
-+    omap_board_config_size = ARRAY_SIZE(omap3_devkit8000_config);
-+    omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-+                 mt46h32m32lf6_sdrc_params);
-+    omap_init_irq();
++	omap_board_config = omap3_devkit8000_config;
++	omap_board_config_size = ARRAY_SIZE(omap3_devkit8000_config);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
++			     mt46h32m32lf6_sdrc_params);
++	omap_init_irq();
 +#ifdef CONFIG_OMAP_32K_TIMER
-+    omap2_gp_clockevent_set_gptimer(12);
++	omap2_gp_clockevent_set_gptimer(12);
 +#endif
-+    omap_gpio_init();
++	omap_gpio_init();
 +}
 +
 +static void __init omap3devkit8000_ads7846_init(void)
 +{
-+    int gpio = OMAP3_DEVKIT_TS_GPIO;
-+    int ret;
++	int gpio = OMAP3_DEVKIT_TS_GPIO;
++	int ret;
 +
-+    ret = gpio_request(gpio, "ads7846_pen_down");
-+    if (ret < 0) {
-+        printk(KERN_ERR "Failed to request GPIO %d for "
-+                "ads7846 pen down IRQ\n", gpio);
-+        return;
-+    }
++	ret = gpio_request(gpio, "ads7846_pen_down");
++	if (ret < 0) {
++		printk(KERN_ERR "Failed to request GPIO %d for "
++				"ads7846 pen down IRQ\n", gpio);
++		return;
++	}
 +
-+    gpio_direction_input(gpio);
++	gpio_direction_input(gpio);
 +}
 +
 +static int ads7846_get_pendown_state(void)
 +{
-+    return !gpio_get_value(OMAP3_DEVKIT_TS_GPIO);
++	return !gpio_get_value(OMAP3_DEVKIT_TS_GPIO);
 +}
 +
 +static struct ads7846_platform_data ads7846_config = {
-+    .x_max                  = 0x0fff,
-+    .y_max                  = 0x0fff,
-+    .x_plate_ohms           = 180,
-+    .pressure_max           = 255,
-+    .debounce_max           = 10,
-+    .debounce_tol           = 5,
-+    .debounce_rep           = 1,
-+    .get_pendown_state    = ads7846_get_pendown_state,
-+    .keep_vref_on        = 1,
-+    .settle_delay_usecs     = 150,
++	.x_max                  = 0x0fff,
++	.y_max                  = 0x0fff,
++	.x_plate_ohms           = 180,
++	.pressure_max           = 255,
++	.debounce_max           = 10,
++	.debounce_tol           = 5,
++	.debounce_rep           = 1,
++	.get_pendown_state	= ads7846_get_pendown_state,
++	.keep_vref_on		= 1,
++	.settle_delay_usecs     = 150,
 +};
 +
 +static struct omap2_mcspi_device_config ads7846_mcspi_config = {
-+    .turbo_mode    = 0,
-+    .single_channel    = 1,    /* 0: slave, 1: master */
++	.turbo_mode	= 0,
++	.single_channel	= 1,	/* 0: slave, 1: master */
 +};
 +
-+static struct spi_board_info omap3devkit8000_spi_board_info[]
-__initdata = {
-+    {
-+        .modalias        = "ads7846",
-+        .bus_num        = 2,
-+        .chip_select        = 0,
-+        .max_speed_hz        = 1500000,
-+        .controller_data    = &ads7846_mcspi_config,
-+        .irq            = OMAP_GPIO_IRQ(OMAP3_DEVKIT_TS_GPIO),
-+        .platform_data        = &ads7846_config,
-+    }
++static struct spi_board_info omap3devkit8000_spi_board_info[] __initdata = {
++	{
++		.modalias		= "ads7846",
++		.bus_num		= 2,
++		.chip_select		= 0,
++		.max_speed_hz		= 1500000,
++		.controller_data	= &ads7846_mcspi_config,
++		.irq			= OMAP_GPIO_IRQ(OMAP3_DEVKIT_TS_GPIO),
++		.platform_data		= &ads7846_config,
++	}
 +};
 +
 +
-+#define OMAP_DM9000_BASE    0x2c000000
++#define OMAP_DM9000_BASE	0x2c000000
 +
 +static struct resource omap_dm9000_resources[] = {
-+    [0] = {
-+        .start        = OMAP_DM9000_BASE,
-+        .end        = (OMAP_DM9000_BASE + 0x4 - 1),
-+        .flags        = IORESOURCE_MEM,
-+    },
-+    [1] = {
-+        .start        = (OMAP_DM9000_BASE + 0x400),
-+        .end        = (OMAP_DM9000_BASE + 0x400 + 0x4 - 1),
-+        .flags        = IORESOURCE_MEM,
-+    },
-+    [2] = {
-+        .start        = OMAP_GPIO_IRQ(OMAP_DM9000_GPIO_IRQ),
-+        .flags        = IORESOURCE_IRQ | IRQF_TRIGGER_LOW,
-+    },
++	[0] = {
++		.start		= OMAP_DM9000_BASE,
++		.end		= (OMAP_DM9000_BASE + 0x4 - 1),
++		.flags		= IORESOURCE_MEM,
++	},
++	[1] = {
++		.start		= (OMAP_DM9000_BASE + 0x400),
++		.end		= (OMAP_DM9000_BASE + 0x400 + 0x4 - 1),
++		.flags		= IORESOURCE_MEM,
++	},
++	[2] = {
++		.start		= OMAP_GPIO_IRQ(OMAP_DM9000_GPIO_IRQ),
++		.flags		= IORESOURCE_IRQ | IRQF_TRIGGER_LOW,
++	},
 +};
 +
 +static struct dm9000_plat_data omap_dm9000_platdata = {
@@ -573,10 +554,10 @@ __initdata = {
 +};
 +
 +static struct platform_device omap_dm9000_dev = {
-+    .name = "dm9000",
-+    .id = -1,
-+    .num_resources    = ARRAY_SIZE(omap_dm9000_resources),
-+    .resource    = omap_dm9000_resources,
++	.name = "dm9000",
++	.id = -1,
++	.num_resources	= ARRAY_SIZE(omap_dm9000_resources),
++	.resource	= omap_dm9000_resources,
 +        .dev = {
 +                .platform_data = &omap_dm9000_platdata,
 +        },
@@ -585,8 +566,7 @@ __initdata = {
 +static void __init omap_dm9000_init(void)
 +{
 +        if (gpio_request(OMAP_DM9000_GPIO_IRQ, "dm9000 irq") < 0) {
-+                printk(KERN_ERR "Failed to request GPIO%d for dm9000
-IRQ\n",
++                printk(KERN_ERR "Failed to request GPIO%d for dm9000 IRQ\n",
 +                        OMAP_DM9000_GPIO_IRQ);
 +                return;
 +        }
@@ -595,285 +575,109 @@ IRQ\n",
 +}
 +
 +static struct platform_device *omap3_devkit8000_devices[] __initdata = {
-+    &omap3_devkit8000_lcd_device,
-+    &leds_gpio,
-+    &keys_gpio,
-+    &omap_dm9000_dev,
++	&omap3_devkit8000_lcd_device,
++	&leds_gpio,
++	&keys_gpio,
++	&omap_dm9000_dev,
 +};
 +
 +static void __init omap3devkit8000_flash_init(void)
 +{
-+    u8 cs = 0;
-+    u8 nandcs = GPMC_CS_NUM + 1;
++	u8 cs = 0;
++	u8 nandcs = GPMC_CS_NUM + 1;
 +
-+    u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
++	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
 +
-+    /* find out the chip-select on which NAND exists */
-+    while (cs < GPMC_CS_NUM) {
-+        u32 ret = 0;
-+        ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++	/* find out the chip-select on which NAND exists */
++	while (cs < GPMC_CS_NUM) {
++		u32 ret = 0;
++		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
 +
-+        if ((ret & 0xC00) == 0x800) {
-+            printk(KERN_INFO "Found NAND on CS%d\n", cs);
-+            if (nandcs > GPMC_CS_NUM)
-+                nandcs = cs;
-+        }
-+        cs++;
-+    }
++		if ((ret & 0xC00) == 0x800) {
++			printk(KERN_INFO "Found NAND on CS%d\n", cs);
++			if (nandcs > GPMC_CS_NUM)
++				nandcs = cs;
++		}
++		cs++;
++	}
 +
-+    if (nandcs > GPMC_CS_NUM) {
-+        printk(KERN_INFO "NAND: Unable to find configuration "
-+                 "in GPMC\n ");
-+        return;
-+    }
++	if (nandcs > GPMC_CS_NUM) {
++		printk(KERN_INFO "NAND: Unable to find configuration "
++				 "in GPMC\n ");
++		return;
++	}
 +
-+    if (nandcs < GPMC_CS_NUM) {
-+        omap3devkit8000_nand_data.cs = nandcs;
-+        omap3devkit8000_nand_data.gpmc_cs_baseaddr = (void *)
-+            (gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-+        omap3devkit8000_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
++	if (nandcs < GPMC_CS_NUM) {
++		omap3devkit8000_nand_data.cs = nandcs;
++		omap3devkit8000_nand_data.gpmc_cs_baseaddr = (void *)
++			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
++		omap3devkit8000_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
 +
-+        printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
-+        if (platform_device_register(&omap3devkit8000_nand_device) < 0)
-+            printk(KERN_ERR "Unable to register NAND device\n");
-+    }
++		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
++		if (platform_device_register(&omap3devkit8000_nand_device) < 0)
++			printk(KERN_ERR "Unable to register NAND device\n");
++	}
 +}
 +
 +static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
 +
-+    .port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-+    .port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-+    .port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
 +
-+    .phy_reset  = true,
-+    .reset_gpio_port[0]  = -EINVAL,
-+    .reset_gpio_port[1]  = 147,
-+    .reset_gpio_port[2]  = -EINVAL
++	.phy_reset  = true,
++	.reset_gpio_port[0]  = -EINVAL,
++	.reset_gpio_port[1]  = 147,
++	.reset_gpio_port[2]  = -EINVAL
 +};
 +
 +static void __init omap3_devkit8000_init(void)
 +{
-+    omap3_devkit8000_i2c_init();
-+    platform_add_devices(omap3_devkit8000_devices,
-+            ARRAY_SIZE(omap3_devkit8000_devices));
-+    omap_board_config = omap3_devkit8000_config;
-+    omap_board_config_size = ARRAY_SIZE(omap3_devkit8000_config);
++	omap3_devkit8000_i2c_init();
++	platform_add_devices(omap3_devkit8000_devices,
++			ARRAY_SIZE(omap3_devkit8000_devices));
++	omap_board_config = omap3_devkit8000_config;
++	omap_board_config_size = ARRAY_SIZE(omap3_devkit8000_config);
 +
-+    spi_register_board_info(omap3devkit8000_spi_board_info,
++	spi_register_board_info(omap3devkit8000_spi_board_info,
 +                    ARRAY_SIZE(omap3devkit8000_spi_board_info));
 +
-+    omap_serial_init();
-+   
-+    omap_dm9000_init();
++	omap_serial_init();
++	
++	omap_dm9000_init();
 +
-+    omap3devkit8000_ads7846_init();
++	omap3devkit8000_ads7846_init();
 +
-+    omap_mux_init_gpio(170, OMAP_PIN_INPUT);
-+   
-+    gpio_request(170, "DVI_nPD");
-+    /* REVISIT leave DVI powered down until it's needed ... */
-+    gpio_direction_output(170, true);
++	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
++	
++	gpio_request(170, "DVI_nPD");
++	/* REVISIT leave DVI powered down until it's needed ... */
++	gpio_direction_output(170, true);
 +
-+    usb_musb_init();
-+    usb_ehci_init(&ehci_pdata);
-+    omap3devkit8000_flash_init();
++	usb_musb_init();
++	usb_ehci_init(&ehci_pdata);
++	omap3devkit8000_flash_init();
 +
-+    /* Ensure SDRC pins are mux'd for self-refresh */
-+    omap_mux_init_signal("sdr_cke0", OMAP_PIN_OUTPUT);
-+    omap_mux_init_signal("sdr_cke1", OMAP_PIN_OUTPUT);
++	/* Ensure SDRC pins are mux'd for self-refresh */
++	omap_mux_init_signal("sdr_cke0", OMAP_PIN_OUTPUT);
++	omap_mux_init_signal("sdr_cke1", OMAP_PIN_OUTPUT);
 +}
 +
 +static void __init omap3_devkit8000_map_io(void)
 +{
-+    omap2_set_globals_343x();
-+    omap2_map_common_io();
++	omap2_set_globals_343x();
++	omap2_map_common_io();
 +}
 +
 +MACHINE_START(DEVKIT8000, "OMAP3 Devkit8000")
-+    .phys_io    = 0x48000000,
-+    .io_pg_offst    = ((0xd8000000) >> 18) & 0xfffc,
-+    .boot_params    = 0x80000100,
-+    .map_io        = omap3_devkit8000_map_io,
-+    .init_irq    = omap3_devkit8000_init_irq,
-+    .init_machine    = omap3_devkit8000_init,
-+    .timer        = &omap_timer,
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap3_devkit8000_map_io,
++	.init_irq	= omap3_devkit8000_init_irq,
++	.init_machine	= omap3_devkit8000_init,
++	.timer		= &omap_timer,
 +MACHINE_END
 -- 
 1.6.4.4
-
-
-
-Felipe Balbi schrieb:
-> Hi,
->
-> On Thu, Nov 12, 2009 at 11:17:42AM +0100, ext Kim Botherway wrote:
->> These patches add omap3 board support for the Timll DEVKIT8000
->>
->> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
->> index 8685df5..5c850e1 100644
->> --- a/arch/arm/mach-omap2/Kconfig
->> +++ b/arch/arm/mach-omap2/Kconfig
->> @@ -53,6 +53,10 @@ config MACH_OMAP3_BEAGLE
->>        bool "OMAP3 BEAGLE board"
->>        depends on ARCH_OMAP3 && ARCH_OMAP34XX
->>
->> +config MACH_OMAP3_DEVKIT8000
->> +        bool "OMAP3 DEVKIT8000 board"
->> +        depends on ARCH_OMAP3 && ARCH_OMAP34XX
->> +
->> config MACH_OMAP_LDP
->>        bool "OMAP3 LDP board"
->>        depends on ARCH_OMAP3 && ARCH_OMAP34XX
->> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
->> index 03cb4fc..080f3ac 100644
->> --- a/arch/arm/mach-omap2/Makefile
->> +++ b/arch/arm/mach-omap2/Makefile
->> @@ -57,6 +57,8 @@ obj-$(CONFIG_MACH_OMAP_2430SDP)               +=
->> board-2430sdp.o \
->> obj-$(CONFIG_MACH_OMAP_APOLLON)                += board-apollon.o
->> obj-$(CONFIG_MACH_OMAP3_BEAGLE)                += board-omap3beagle.o \
->>                                           mmc-twl4030.o
->> +obj-$(CONFIG_MACH_OMAP3_DEVKIT8000)     += board-omap3devkit8000.o \
->> +                                           mmc-twl4030.o
->> obj-$(CONFIG_MACH_OMAP_LDP)            += board-ldp.o \
->>                                           mmc-twl4030.o
->> obj-$(CONFIG_MACH_OVERO)               += board-overo.o \
->> diff --git a/arch/arm/mach-omap2/board-omap3devkit8000.c
->> b/arch/arm/mach-omap2/board-omap3devkit8000.c
->> new file mode 100644
->> index 0000000..5be7852
->> --- /dev/null
->> +++ b/arch/arm/mach-omap2/board-omap3devkit8000.c
->> @@ -0,0 +1,604 @@
->> +/*
->> + * linux/arch/arm/mach-omap2/board-omap3devkit8000.c
->
-> remove the path, it should be something like:
->
-> board-omap3devkit8000.c - Texas Instruments' DevKit 8000
->
->> +static struct omap_nand_platform_data omap3devkit8000_nand_data = {
->> +       .options        = NAND_BUSWIDTH_16,
->> +       .parts          = omap3devkit8000_nand_partitions,
->> +       .nr_parts       = ARRAY_SIZE(omap3devkit8000_nand_partitions),
->> +       .dma_channel    = -1,           /* disable DMA in OMAP NAND
->> driver */
->> +       .nand_setup     = NULL,
->> +       .dev_ready      = NULL,
->
-> this is static variable, you don't need these NULL here.
->
->> +};
->> +
->> +static struct resource omap3devkit8000_nand_resource = {
->
-> wrong, should be a real array:
->
-> static struct resource omap3devkti8000_nand_resources[] = {
->     {
->         .start    = ??,
->         .end    = ??,
->         .flags    = IORESOURCE_MEM,
->     },
-> };
->
->> +static struct platform_device omap3devkit8000_nand_device = {
->> +       .name           = "omap2-nand",
->> +       .id             = -1,
->> +       .dev            = {
->> +               .platform_data  = &omap3devkit8000_nand_data,
->> +       },
->> +       .num_resources  = 1,
->> +       .resource       = &omap3devkit8000_nand_resource,
->
->     .num_resources = ARRAY_SIZE(omap3devkit8000_nand_resources),
->     .resource    = omap3devkit8000_nand_resources,
->
->> +static struct gpio_led gpio_leds[] = {
->> +       {
->> +               .name                   = "led1",
->> +               .default_trigger        = "heartbeat",
->> +               .gpio                   = 186,
->> +               .active_low             = true,
->> +       },
->> +       {
->> +               .name                   = "led2",
->> +               .default_trigger        = "mmc0",
->> +               .gpio                   = 163,
->> +               .active_low             = true,
->> +       },
->> +       {
->> +               .name                   = "ledB",
->> +               .default_trigger        = "none",
->> +               .gpio                   = 153,
->> +               .active_low             = true,
->> +       },
->> +       {
->> +               .name                   = "led3",
->> +               .default_trigger        = "none",
->> +               .gpio                   = 164,  /* gets replaced */
->
-> if so, you should initialize to -EINVAL.
->
->> +static struct ads7846_platform_data ads7846_config = {
->> +       .x_max                  = 0x0fff,
->> +       .y_max                  = 0x0fff,
->> +//     .x_plate_ohms           = 180,
->> +//     .pressure_max           = 255,
->
-> why this commented code with the wrong comment style here ?
->
->> +static struct spi_board_info omap3devkit8000_spi_board_info[]
->> __initdata = {
->> +       {
->> +               .modalias               = "ads7846",
->> +               .bus_num                = 2,
->> +               .chip_select            = 0,
->> +               .max_speed_hz           = 1500000,
->> +               .controller_data        = &ads7846_mcspi_config,
->> +               .irq                    =
->> OMAP_GPIO_IRQ(OMAP3_DEVKIT_TS_GPIO),
->> +               .platform_data          = &ads7846_config,
->> +       }
->> +};
->> +
->> +
->
-> one blank like is enough.
->
->> +#define OMAP_DM9000_BASE       0x2c000000
->> +
->> +static struct resource omap_dm9000_resources[] = {
->> +       [0] = {
->> +               .start          = OMAP_DM9000_BASE,
->> +               .end            = (OMAP_DM9000_BASE + 0x4 - 1),
->> +               .flags          = IORESOURCE_MEM,
->> +       },
->> +       [1] = {
->> +               .start          = (OMAP_DM9000_BASE + 0x400),
->> +               .end            = (OMAP_DM9000_BASE + 0x400 + 0x4 - 1),
->> +               .flags          = IORESOURCE_MEM,
->> +       },
->> +       [2] = {
->> +               .start          = OMAP_GPIO_IRQ(OMAP_DM9000_GPIO_IRQ),
->> +               .end            = OMAP_GPIO_IRQ(OMAP_DM9000_GPIO_IRQ),
->
-> no need to initialize end here.
->
->> +static void __init omap_dm9000_init(void)
->> +{
->> +        if (gpio_request(OMAP_DM9000_GPIO_IRQ, "dm9000 irq") < 0) {
->> +                printk(KERN_ERR "Failed to request GPIO%d for dm9000
->> IRQ\n",
->> +                        OMAP_DM9000_GPIO_IRQ);
->> +                return;
->> +        }
->> +
->> +        gpio_direction_input(OMAP_DM9000_GPIO_IRQ);
->> +}
->> +
->> +
->
-> one blank like is enough.
->
 
