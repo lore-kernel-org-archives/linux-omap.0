@@ -1,49 +1,65 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/3] OMAP: hwmod: add read/write API for SYSCONFIG
-Date: Thu, 14 Jan 2010 10:07:34 -0800
-Message-ID: <87ockwa7bt.fsf@deeprootsystems.com>
-References: <1262993213-19866-1-git-send-email-khilman@deeprootsystems.com>
-	<1262993213-19866-2-git-send-email-khilman@deeprootsystems.com>
-	<1262993213-19866-3-git-send-email-khilman@deeprootsystems.com>
-	<alpine.DEB.2.00.1001131822440.4769@utopia.booyaka.com>
+Subject: Re: [PATCH] PM debug: Fix warning when no CONFIG_DEBUG_FS
+Date: Thu, 14 Jan 2010 10:33:10 -0800
+Message-ID: <87eils8rkp.fsf@deeprootsystems.com>
+References: <A24693684029E5489D1D202277BE894451538FE7@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:47103 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751431Ab0ANSPV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jan 2010 13:15:21 -0500
-Received: by pzk1 with SMTP id 1so8522278pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 14 Jan 2010 10:15:19 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1001131822440.4769@utopia.booyaka.com> (Paul Walmsley's message of "Wed\, 13 Jan 2010 18\:26\:04 -0700 \(MST\)")
+Received: from mail-px0-f182.google.com ([209.85.216.182]:39000 "EHLO
+	mail-px0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751791Ab0ANSdM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jan 2010 13:33:12 -0500
+Received: by pxi12 with SMTP id 12so334234pxi.33
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jan 2010 10:33:12 -0800 (PST)
+In-Reply-To: <A24693684029E5489D1D202277BE894451538FE7@dlee02.ent.ti.com> (Sergio Aguirre's message of "Thu\, 14 Jan 2010 11\:05\:55 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Paul Walmsley <paul@pwsan.com> writes:
+"Aguirre, Sergio" <saaguirre@ti.com> writes:
 
-> Hi Kevin, 
+> From ec3f04ec8cf4851fceb249acf832755b7aad1766 Mon Sep 17 00:00:00 2001
+> From: Sergio Aguirre <saaguirre@ti.com>
+> Date: Thu, 14 Jan 2010 11:01:15 -0600
+> Subject: [PATCH] PM debug: Fix warning when no CONFIG_DEBUG_FS
 >
-> On Fri, 8 Jan 2010, Kevin Hilman wrote:
+> Fix following warning when CONFIG_DEBUG_FS wasn't selected:
 >
->> Some HW blocks have errata which requires selective enabling/disabling
->> of SYSCONFIG bits.  In particular, some blocks have known issues with
->> smart-idle so smart-idle has to be disabled under certain conditions.
+> arch/arm/mach-omap2/pm-debug.c:57: warning: 'pm_dbg_init' declared 'static' but never defined
 >
-> ...
->
->> RFC: would an API to only touch smart-idle be more appropriate? Maybe 
->> omap_hwmod_smart_idle_enable(oh, bool enable)?
->
-> This idea sounds good.  Since the SYSCONFIG bit fields can change and move 
-> around depending on the chip and IP, some type of higher-level API seems 
-> necessary to preserve sanity.
->
-> Maybe omap_hwmod_smart_idle_enable() and omap_hwmod_smart_idle_disable(), 
-> mimicking API styles like clk_enable()/clk_disable(), etc.?  Care to spin 
-> something like that?
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 
-Sounds good, Coming right up....
+Thanks, adding to PM branch and queuing in pm-fixes for 2.6.33-rc.
 
 Kevin
+
+> ---
+>  arch/arm/mach-omap2/pm-debug.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index 860b755..9727484 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -54,8 +54,6 @@ int omap2_pm_debug;
+>  	regs[reg_count++].val = \
+>  			 __raw_readl(OMAP2_L4_IO_ADDRESS(0x480fe000 + (off)))
+>  
+> -static int __init pm_dbg_init(void);
+> -
+>  void omap2_pm_dump(int mode, int resume, unsigned int us)
+>  {
+>  	struct reg {
+> @@ -167,6 +165,8 @@ struct dentry *pm_dbg_dir;
+>  
+>  static int pm_dbg_init_done;
+>  
+> +static int __init pm_dbg_init(void);
+> +
+>  enum {
+>  	DEBUG_FILE_COUNTERS = 0,
+>  	DEBUG_FILE_TIMERS,
+> -- 
+> 1.6.5.3
