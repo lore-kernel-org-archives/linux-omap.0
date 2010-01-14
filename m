@@ -1,39 +1,49 @@
-From: "MailScanner" <postmaster@olc-group.com>
-Subject: Warning: E-mail error detected
-Date: Thu, 14 Jan 2010 19:22:25 +0800 (CST)
-Message-ID: <20100114112225.CEE48E8F2D@olc-group.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from olc-group.com ([219.87.81.194]:35719 "EHLO olc-group.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756014Ab0ANLXp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jan 2010 06:23:45 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] USB: musb: allow unaligned memory data transfers
+Date: Thu, 14 Jan 2010 13:23:54 +0200
+Message-ID: <20100114112354.GG19526@nokia.com>
+References: <1263310937-7249-1-git-send-email-vikram.pandita@ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1263310937-7249-1-git-send-email-vikram.pandita-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Nilkesh Patra <nilkesh.patra-l0cyMroinI0@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Our virus detector failed to completely analyse a message you sent:-
-  To: 
-  Subject: Mail System Error - Returned Mail
-  Date: Thu Jan 14 19:22:25 2010
-Any parts of the message that could not be analysed will not have been
-delivered.
+Hi,
 
-If you are using Microsoft Outlook, we strongly recommend you change your
-outgoing message format from "Rich Text" to "HTML" or "Plain Text".
+On Tue, Jan 12, 2010 at 04:42:17PM +0100, ext Vikram Pandita wrote:
+>diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
+>index a237550..f118ae2 100644
+>--- a/drivers/usb/musb/musbhsdma.c
+>+++ b/drivers/usb/musb/musbhsdma.c
+>@@ -166,6 +166,8 @@ static int dma_channel_program(struct dma_channel *channel,
+> 				dma_addr_t dma_addr, u32 len)
+> {
+> 	struct musb_dma_channel *musb_channel = channel->private_data;
+>+	struct musb_dma_controller *controller = musb_channel->controller;
+>+	struct musb *musb = controller->private_data;
+>
+> 	DBG(2, "ep%d-%s pkt_sz %d, dma_addr 0x%x length %d, mode %d\n",
+> 		musb_channel->epnum,
+>@@ -175,6 +177,15 @@ static int dma_channel_program(struct dma_channel *channel,
+> 	BUG_ON(channel->status == MUSB_DMA_STATUS_UNKNOWN ||
+> 		channel->status == MUSB_DMA_STATUS_BUSY);
+>
+>+	/* On MUSB:RTL1.8 and above, DMA has to be word aligned */
+>+	if ((dma_addr % 4) &&
+>+		(musb->hwvers >= MUSB_HWVERS_1800)) {
 
-1) Click on the "Tools" menu and choose "Options..."
-2) Go to the "Mail Format" tab
-3) For message format, select "HTML" or "Plain text"
-4) Click OK
-
-The virus detector said this about the message:
-Report: Report: MailScanner: Message attempted to kill MailScanner
-
+is it only inventra dma that suffers from this ? If not, we could move 
+this check before even calling the dma routine.
 
 -- 
-MailScanner
-Email Virus Scanner
-Oriental Logistics Group
-www.olc-group.com
-
-For all your IT requirements visit: http://www.transtec.co.uk
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
