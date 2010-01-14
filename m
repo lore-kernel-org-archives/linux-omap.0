@@ -1,156 +1,39 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/3] OMAP: omap_device: optionally auto-adjust device
- activate/deactivate latencies (fwd) - queued for 2.6.34
-Date: Wed, 13 Jan 2010 18:40:00 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001131838110.11365@utopia.booyaka.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH 5/8] omap_hsmmc: RX51: set padconfs to pull down when
+ powering off eMMC
+Date: Thu, 14 Jan 2010 09:57:22 +0200
+Message-ID: <4B4ECE62.5030408@nokia.com>
+References: <20100113114010.7615.84920.sendpatchset@ahunter-work.research.nokia.com> <20100113114048.7615.51097.sendpatchset@ahunter-work.research.nokia.com> <20100113203745.GK2986@atomide.com> <20100113203958.GL2986@atomide.com> <20100113210042.GM2986@atomide.com> <4B4E57A5.4050400@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43163 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609Ab0ANBkC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jan 2010 20:40:02 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4B4E57A5.4050400@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+
+Nishanth Menon wrote:
+> Tony Lindgren had written, on 01/13/2010 03:00 PM, the following:
+>> * Tony Lindgren <tony@atomide.com> [100113 12:38]:
+>>> * Tony Lindgren <tony@atomide.com> [100113 12:36]:
+>>>> You might want to check what happens in omap off-idle mode in these cases
+>>>> and see if enabling OMAP_PIN_OFF_INPUT_PULLDOWN makes any difference in
+>>>> power consumption in off state. That probably does not matter unless the
+>>>> floating lines cause the eMMC to do something on it's own :)
+>>> Or OMAP_PIN_OFF_OUTPUT_LOW actually.
+>> One more time.. Most likely OMAP_PIN_OFF_INPUT_PULLDOWN is safer
+>> in general as the OMAP_PIN_OFF_OUTPUT_LOW does not work for all
+>> pins. According to the TRM, OMAP_PIN_OFF_OUTPUT_LOW only works
+>> for pins where at least one of the mux modes supports output
+>> mode.
+> 
+> is'nt vaux/vmmc/whatever voltage to eMMC shutoff for the device on the 
+> board in off mode? I wonder why the behavior is seen. The only thing 
+> that I am worried is that the board potentially will draw more current 
+> as the lines are driven low.
 
 
-Hi,
-
-this patch is queued up here locally for 2.6.34, but wanted to post it to 
-lakml in case there are any further comments.
-
-
-- Paul
-
-From: Kevin Hilman <khilman@deeprootsystems.com>
-
-First, this patch adds new worst-case latency values to the
-omap_device_pm_latency struct.  Here the worst-case measured latencies
-for the activate and deactivate hooks are stored.
-
-In addition, add an option to auto-adjust the latency values used for
-device activate/deactivate.
-
-By setting a new 'OMAP_DEVICE_LATENCY_AUTO_ADJUST' flag in the
-omap_device_pm_latency struct, the omap_device layer automatically
-adjusts the activate/deactivate latencies to the worst-case measured
-values.
-
-Anytime a new worst-case value is found, it is printed to the console.
-Here is an example log during boot using UART2 s an example.  After
-boot, the OPP is manually changed to the 125MHz OPP:
-
-[...]
-Freeing init memory: 128K
-omap_device: serial8250.2: new worst case deactivate latency 0: 30517
-omap_device: serial8250.2: new worst case activate latency 0: 30517
-omap_device: serial8250.2: new worst case activate latency 0: 218139648
-omap_device: serial8250.2: new worst case deactivate latency 0: 61035
-omap_device: serial8250.2: new worst case activate latency 0: 278076171
-omap_device: serial8250.2: new worst case activate latency 0: 298614501
-omap_device: serial8250.2: new worst case activate latency 0: 327331542
-
-/ # echo 125000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
-
-omap_device: serial8250.2: new worst case deactivate latency 0: 91552
-
-Motivation: this can be used as a technique to automatically determine
-the worst case latency values.  The current method of printing a
-warning on every violation is too noisy to actually interact the
-console in order to set low OPP to discover latencies.
-
-Another motivation for this patch is that the activate/deactivate
-latenices can vary depending on the idlemode of the device.  While
-working on the UARTs, I noticed that when using no-idle, the activate
-latencies were as high as several hundred msecs as shown above.  When
-the UARTs are in smart-idle, the max latency is well under 100 usecs.
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/plat-omap/include/plat/omap_device.h |    4 ++
- arch/arm/plat-omap/omap_device.c              |   41 ++++++++++++++++++++-----
- 2 files changed, 37 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index dc1fac1..76d4917 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -131,11 +131,15 @@ int omap_device_enable_clocks(struct omap_device *od);
-  */
- struct omap_device_pm_latency {
- 	u32 deactivate_lat;
-+	u32 deactivate_lat_worst;
- 	int (*deactivate_func)(struct omap_device *od);
- 	u32 activate_lat;
-+	u32 activate_lat_worst;
- 	int (*activate_func)(struct omap_device *od);
-+	u32 flags;
- };
- 
-+#define OMAP_DEVICE_LATENCY_AUTO_ADJUST BIT(1)
- 
- /* Get omap_device pointer from platform_device pointer */
- #define to_omap_device(x) container_of((x), struct omap_device, pdev)
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 1e5648d..d8c75c8 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -148,10 +148,22 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
- 			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
- 			 act_lat);
- 
--		WARN(act_lat > odpl->activate_lat, "omap_device: %s.%d: "
--		     "activate step %d took longer than expected (%llu > %d)\n",
--		     od->pdev.name, od->pdev.id, od->pm_lat_level,
--		     act_lat, odpl->activate_lat);
-+		if (act_lat > odpl->activate_lat) {
-+			odpl->activate_lat_worst = act_lat;
-+			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
-+				odpl->activate_lat = act_lat;
-+				pr_warning("omap_device: %s.%d: new worst case "
-+					   "activate latency %d: %llu\n",
-+					   od->pdev.name, od->pdev.id,
-+					   od->pm_lat_level, act_lat);
-+			} else
-+				pr_warning("omap_device: %s.%d: activate "
-+					   "latency %d higher than exptected. "
-+					   "(%llu > %d)\n",
-+					   od->pdev.name, od->pdev.id,
-+					   od->pm_lat_level, act_lat,
-+					   odpl->activate_lat);
-+		}
- 
- 		od->dev_wakeup_lat -= odpl->activate_lat;
- 	}
-@@ -204,10 +216,23 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
- 			 "%llu nsec\n", od->pdev.name, od->pm_lat_level,
- 			 deact_lat);
- 
--		WARN(deact_lat > odpl->deactivate_lat, "omap_device: %s.%d: "
--		     "deactivate step %d took longer than expected "
--		     "(%llu > %d)\n", od->pdev.name, od->pdev.id,
--		     od->pm_lat_level, deact_lat, odpl->deactivate_lat);
-+		if (deact_lat > odpl->deactivate_lat) {
-+			odpl->deactivate_lat_worst = deact_lat;
-+			if (odpl->flags & OMAP_DEVICE_LATENCY_AUTO_ADJUST) {
-+				odpl->deactivate_lat = deact_lat;
-+				pr_warning("omap_device: %s.%d: new worst case "
-+					   "deactivate latency %d: %llu\n",
-+					   od->pdev.name, od->pdev.id,
-+					   od->pm_lat_level, deact_lat);
-+			} else
-+				pr_warning("omap_device: %s.%d: deactivate "
-+					   "latency %d higher than exptected. "
-+					   "(%llu > %d)\n",
-+					   od->pdev.name, od->pdev.id,
-+					   od->pm_lat_level, deact_lat,
-+					   odpl->deactivate_lat);
-+		}
-+
- 
- 		od->dev_wakeup_lat += odpl->activate_lat;
- 
--- 
-1.6.6.rc2.1.g42108
-
+OMAP is not OFF just the eMMC.  Current is sucked out of the data lines
+through the eMMC to the regulator which is off.
