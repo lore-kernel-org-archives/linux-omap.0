@@ -1,69 +1,78 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [RFC] [PATCH] omapfb: Fix 12-bit display (RGB444 color mode) handling
-Date: Thu, 14 Jan 2010 21:25:43 +0100
-Message-ID: <201001142125.45468.jkrzyszt@tis.icnet.pl>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] omap3: pandora: add DSS2 support and related regulators
+Date: Thu, 14 Jan 2010 22:37:48 +0200
+Message-ID: <6ed0b2681001141237m2691037dsc7e84f8a70292a95@mail.gmail.com>
+References: <1260559940-25103-1-git-send-email-notasas@gmail.com>
+	 <1263394976.2087.106.camel@tubuntu.research.nokia.com>
+	 <6ed0b2681001131301v3e295a51g1d3177c51377356f@mail.gmail.com>
+	 <1263477920.2087.186.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:47537 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757592Ab0ANU0C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Jan 2010 15:26:02 -0500
-Content-Disposition: inline
+Received: from fg-out-1718.google.com ([72.14.220.156]:20023 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754790Ab0ANUhu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jan 2010 15:37:50 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so423700fga.1
+        for <linux-omap@vger.kernel.org>; Thu, 14 Jan 2010 12:37:49 -0800 (PST)
+In-Reply-To: <1263477920.2087.186.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: linux-omap@vger.kernel.org, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Support for RGB444 (12-bit) pixel format has been introduced into omapfb/lcdc 
-by Mark Underwood on 2006-05-26 (commit 
-f74edb6668aad9fc8e81585861b18f996c78a574) in preparation for Amstrad Delta 
-(E3) videophone LCD display support.
+On Thu, Jan 14, 2010 at 4:05 PM, Tomi Valkeinen
+<tomi.valkeinen@nokia.com> wrote:
+> On Wed, 2010-01-13 at 22:01 +0100, ext Grazvydas Ignotas wrote:
+>> On Wed, Jan 13, 2010 at 5:02 PM, Tomi Valkeinen
+>> <tomi.valkeinen@nokia.com> wrote:
+>> > Hi,
+>> >
+>> > This doesn't apply, can you resend based on Linus' tree or my DSS2=
+ tree?
+>>
+>> ok, will resend shortly.
+>>
+>> BTW, what about enabling vdds_dsi/vdds_sdi regulators we talked abou=
+t
+>> earlier? This patch already sets up those regulators in the board fi=
+le
+>> for DSS2 to get and enable them. I can come up with a patch for that
+>> if you want (perhaps doing it somewhere in dss_init()).
+>
+> It would be nice to get this clarified from TI's HW side, but I haven=
+'t
+> had time to do that.
+>
+> However, it sure looks like your theory is correct, so a patch would =
+be
+> ok.
+>
+> I don't think dss_init is a proper place for it. The power only needs=
+ to
+> be enabled when the display is on, so perhaps
+> dpi_display_enable/disable() would be better place to turn it on and =
+off
+> (and suspend/resume). Below is a quick patch I made to test this.
+>
+> But is the same code needed by RFBI and SDI also? And is it needed on=
+ly
+> when certain pins are in use? And only on OMAP3. I'm not sure what wo=
+uld
+> be the most elegant way for this, but perhaps for now it's good enoug=
+h
+> if we enable the power in dpi.c's enable/disable.
 
-Before the Amstrad Delta LCD patch by Jonathan McDowell was applied (on 
-2006-08-04, commit 8d22fb2ea004cdb6379b54c1a8fd1546cfe40ed7), omapfb and lcdc 
-code was changed substantially (commit 
-e563dc81aa01bd8bbb01bc53975a15c398715f62 dated 2006-06-26) in a way that broke 
-Mark's 12-bit display support. Than, a patch by Jonathan, that supposed to 
-correct the problem, was introduced immediatelly (on 2006-08-04, commit 
-e10a75b49e7a57ae17c28b705153c70eba15a8ef).
+I can only test this on pandora (24bit parallel display), and your
+patch works fine there.
 
-As a result, the Amstrad Delta display was working correctly at boot time, 
-with fbset reporting:
+Gra=C5=BEvydas
 
-	geometry 480 320 480 320 16
-	...
-	rgba 4/8,4/4,4/0,0/0
-
-However, after first framebuffer reinitialization, colors were no longer being 
-displayed correctly and fbset was reporting:
-
-        rgba 5/11,6/5,5/0,0/0
-
-The patch tries to correct the issue by setting plane->color_mode depending on 
-panel->bpp, not var->bits_per_pixel.
-
-Created and tested on Amstrad Delta against linux-2.6.33-rc3.
-
-Signed-off-by: Janusz Krzysztofik <jkrzysz@tis.icnet.pl>
-
----
---- git/drivers/video/omap/omapfb_main.c.orig	2010-01-14 19:30:23.000000000 +0100
-+++ git/drivers/video/omap/omapfb_main.c	2010-01-14 20:31:18.000000000 +0100
-@@ -473,10 +473,11 @@ static int set_color_mode(struct omapfb_
- 		return 0;
- 	case 12:
- 		var->bits_per_pixel = 16;
--		plane->color_mode = OMAPFB_COLOR_RGB444;
--		return 0;
- 	case 16:
--		plane->color_mode = OMAPFB_COLOR_RGB565;
-+		if (plane->fbdev->panel->bpp == 12)
-+			plane->color_mode = OMAPFB_COLOR_RGB444;
-+		else
-+			plane->color_mode = OMAPFB_COLOR_RGB565;
- 		return 0;
- 	default:
- 		return -EINVAL;
+PS: I see some author names got mangled in your GIT (got prefixed with =
+'ext').
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
