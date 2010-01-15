@@ -1,403 +1,256 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 4/4] DSPBRIDGE: Remove DPC object structure
-Date: Fri, 15 Jan 2010 17:35:04 -0600
-Message-ID: <1263598504-2353-5-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 2/4] DSPBRIDGE: Remove main DPC wrapper for IO and MMUfault
+Date: Fri, 15 Jan 2010 17:35:02 -0600
+Message-ID: <1263598504-2353-3-git-send-email-omar.ramirez@ti.com>
 References: <1263598504-2353-1-git-send-email-omar.ramirez@ti.com>
  <1263598504-2353-2-git-send-email-omar.ramirez@ti.com>
- <1263598504-2353-3-git-send-email-omar.ramirez@ti.com>
- <1263598504-2353-4-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39158 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42854 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932286Ab0AOXZS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jan 2010 18:25:18 -0500
-In-Reply-To: <1263598504-2353-4-git-send-email-omar.ramirez@ti.com>
+	id S932247Ab0AOXZR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jan 2010 18:25:17 -0500
+In-Reply-To: <1263598504-2353-2-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Remove DPC object structure and declare required members
-for each tasklet inside their correspondent modules.
-
-Remove dpc header file.
+Remove DeferredProcedure which is used as a wrapper to call
+either IO or MMUfault DPCs. This also removes a custom typedef.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/_chnl_sm.h |    1 -
- arch/arm/plat-omap/include/dspbridge/dpc.h      |   38 -----------
- drivers/dsp/bridge/pmgr/chnl.c                  |    1 -
- drivers/dsp/bridge/services/services.c          |    1 -
- drivers/dsp/bridge/wmd/_deh.h                   |    5 +-
- drivers/dsp/bridge/wmd/io_sm.c                  |   79 ++++++++---------------
- drivers/dsp/bridge/wmd/mmu_fault.c              |   24 +------
- drivers/dsp/bridge/wmd/ue_deh.c                 |   25 +------
- 8 files changed, 35 insertions(+), 139 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/dspbridge/dpc.h
+ arch/arm/plat-omap/include/dspbridge/dpc.h   |   23 ---------------
+ arch/arm/plat-omap/include/dspbridge/io_sm.h |    2 +-
+ drivers/dsp/bridge/services/dpc.c            |   36 -----------------------
+ drivers/dsp/bridge/wmd/io_sm.c               |   40 +++++++++++++++++--------
+ drivers/dsp/bridge/wmd/mmu_fault.c           |    2 +-
+ drivers/dsp/bridge/wmd/mmu_fault.h           |    2 +-
+ drivers/dsp/bridge/wmd/ue_deh.c              |    5 +--
+ 7 files changed, 31 insertions(+), 79 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-index f22b2cb..eb5adc2 100644
---- a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-@@ -25,7 +25,6 @@
- 
- #include <dspbridge/wcd.h>
- #include <dspbridge/wmd.h>
--#include <dspbridge/dpc.h>
- 
- #include <dspbridge/list.h>
- #include <dspbridge/ntfy.h>
 diff --git a/arch/arm/plat-omap/include/dspbridge/dpc.h b/arch/arm/plat-omap/include/dspbridge/dpc.h
-deleted file mode 100644
-index aee910d..0000000
+index 0c60342..b22140f 100644
 --- a/arch/arm/plat-omap/include/dspbridge/dpc.h
-+++ /dev/null
-@@ -1,38 +0,0 @@
++++ b/arch/arm/plat-omap/include/dspbridge/dpc.h
+@@ -19,30 +19,10 @@
+ #ifndef DPC_
+ #define DPC_
+ 
 -/*
-- * dpc.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Deferred Procedure Call(DPC) Services.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- *  ======== DPC_PROC ========
+- *  Purpose:
+- *      Deferred processing routine.  Typically scheduled from an ISR to
+- *      complete I/O processing.
+- *  Parameters:
+- *      pRefData:   Ptr to user data: passed in via ISR_ScheduleDPC.
+- *  Returns:
+- *  Requires:
+- *      The DPC should not block, or otherwise acquire resources.
+- *      Interrupts to the processor are enabled.
+- *      DPC_PROC executes in a critical section.
+- *  Ensures:
+- *      This DPC will not be reenterred on the same thread.
+- *      However, the DPC may take hardware interrupts during execution.
+- *      Interrupts to the processor are enabled.
 - */
+-       typedef void(*DPC_PROC) (void *pRefData);
 -
--#ifndef DPC_
--#define DPC_
--
--/* The DPC object, passed to our priority event callback routine: */
--struct DPC_OBJECT {
--	u32 dwSignature;	/* Used for object validation.   */
--	void *pRefData;		/* Argument for client's DPC.    */
--	u32 numRequested;	/* Number of requested DPC's.      */
--	u32 numScheduled;	/* Number of executed DPC's.      */
--	struct tasklet_struct dpc_tasklet;
--
--#ifdef DEBUG
--	u32 cEntryCount;	/* Number of times DPC reentered. */
--	u32 numRequestedMax;	/* Keep track of max pending DPC's. */
--#endif
--
--	spinlock_t dpc_lock;
--};
--
--#endif				/* DPC_ */
-diff --git a/drivers/dsp/bridge/pmgr/chnl.c b/drivers/dsp/bridge/pmgr/chnl.c
-index f4d0fc1..fd487f0 100644
---- a/drivers/dsp/bridge/pmgr/chnl.c
-+++ b/drivers/dsp/bridge/pmgr/chnl.c
-@@ -31,7 +31,6 @@
+ /* The DPC object, passed to our priority event callback routine: */
+ struct DPC_OBJECT {
+ 	u32 dwSignature;	/* Used for object validation.   */
+ 	void *pRefData;		/* Argument for client's DPC.    */
+-	DPC_PROC pfnDPC;	/* Client's DPC.                 */
+ 	u32 numRequested;	/* Number of requested DPC's.      */
+ 	u32 numScheduled;	/* Number of executed DPC's.      */
+ 	struct tasklet_struct dpc_tasklet;
+@@ -81,7 +61,4 @@ struct DPC_OBJECT {
+  */
+        extern bool DPC_Init(void);
  
- /*  ----------------------------------- OS Adaptation Layer */
- #include <dspbridge/cfg.h>
--#include <dspbridge/dpc.h>
- #include <dspbridge/list.h>
- #include <dspbridge/mem.h>
- #include <dspbridge/sync.h>
-diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
-index e337cf3..efedb00 100644
---- a/drivers/dsp/bridge/services/services.c
-+++ b/drivers/dsp/bridge/services/services.c
-@@ -29,7 +29,6 @@
- /*  ----------------------------------- OS Adaptation Layer */
- #include <dspbridge/cfg.h>
- #include <dspbridge/dbg.h>
--#include <dspbridge/dpc.h>
- #include <dspbridge/list.h>
- #include <dspbridge/mem.h>
- #include <dspbridge/ntfy.h>
-diff --git a/drivers/dsp/bridge/wmd/_deh.h b/drivers/dsp/bridge/wmd/_deh.h
-index 2b364b5..aadb9fa 100644
---- a/drivers/dsp/bridge/wmd/_deh.h
-+++ b/drivers/dsp/bridge/wmd/_deh.h
-@@ -19,7 +19,6 @@
- #ifndef _DEH_
- #define _DEH_
+-/*  ----------------------------------- Function Prototypes */
+- void DPC_DeferredProcedure(IN unsigned long pDeferredContext);
+-
+ #endif				/* DPC_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/io_sm.h b/arch/arm/plat-omap/include/dspbridge/io_sm.h
+index 77f9e25..67e3834 100644
+--- a/arch/arm/plat-omap/include/dspbridge/io_sm.h
++++ b/arch/arm/plat-omap/include/dspbridge/io_sm.h
+@@ -77,7 +77,7 @@
+  *  Ensures:
+  *      Non-preemptible (but interruptible).
+  */
+-	extern void IO_DPC(IN OUT void *pRefData);
++	extern void IO_DPC(IN OUT unsigned long pRefData);
  
--#include <dspbridge/dpc.h>
- #include <dspbridge/ntfy.h>
- #include <dspbridge/wmd.h>
+ /*
+  *  ======== IO_ISR ========
+diff --git a/drivers/dsp/bridge/services/dpc.c b/drivers/dsp/bridge/services/dpc.c
+index 10bd792..bbb2d47 100644
+--- a/drivers/dsp/bridge/services/dpc.c
++++ b/drivers/dsp/bridge/services/dpc.c
+@@ -66,39 +66,3 @@ bool DPC_Init(void)
+ 	return true;
+ }
  
-@@ -30,8 +29,10 @@ struct DEH_MGR {
- 	u32 dwSignature;	/* Used for object validation.  */
- 	struct WMD_DEV_CONTEXT *hWmdContext;	/* WMD device context. */
- 	struct NTFY_OBJECT *hNtfy;	/* NTFY object                  */
--	struct DPC_OBJECT *hMmuFaultDpc;	/* DPC object handle.  */
- 	struct DSP_ERRORINFO errInfo;	/* DSP exception info.          */
-+
-+	/* MMU Fault DPC */
-+	struct tasklet_struct dpc_tasklet;
- } ;
- 
- #endif				/* _DEH_ */
+-/*
+- *  ======== DeferredProcedure ========
+- *  Purpose:
+- *      Main DPC routine.  This is called by host OS DPC callback
+- *      mechanism with interrupts enabled.
+- */
+-void DPC_DeferredProcedure(IN unsigned long pDeferredContext)
+-{
+-	struct DPC_OBJECT *pDPCObject = (struct DPC_OBJECT *)pDeferredContext;
+-	/* read numRequested in local variable */
+-	u32 requested;
+-	u32 serviced;
+-
+-	DBC_Require(pDPCObject != NULL);
+-	requested = pDPCObject->numRequested;
+-	serviced = pDPCObject->numScheduled;
+-
+-	GT_1trace(DPC_DebugMask, GT_ENTER, "> DPC_DeferredProcedure "
+-		  "pDeferredContext=%x\n", pDeferredContext);
+-	/* Rollover taken care of using != instead of < */
+-	if (serviced != requested) {
+-		if (pDPCObject->pfnDPC != NULL) {
+-			/* Process pending DPC's: */
+-			do {
+-				/* Call client's DPC: */
+-				(*(pDPCObject->pfnDPC))(pDPCObject->pRefData);
+-				serviced++;
+-			} while (serviced != requested);
+-		}
+-		pDPCObject->numScheduled = requested;
+-	}
+-	GT_2trace(DPC_DebugMask, GT_ENTER,
+-		  "< DPC_DeferredProcedure requested %d"
+-		  " serviced %d\n", requested, serviced);
+-}
+-
 diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 470c83b..4511ec5 100644
+index b7b7bd9..470c83b 100644
 --- a/drivers/dsp/bridge/wmd/io_sm.c
 +++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -39,7 +39,6 @@
+@@ -252,10 +252,8 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+ 				IO_MGRSIGNATURE);
+ 		if (pIOMgr->hDPC) {
+ 			tasklet_init(&pIOMgr->hDPC->dpc_tasklet,
+-				DPC_DeferredProcedure, (u32)pIOMgr->hDPC);
++				IO_DPC, (u32)pIOMgr);
+ 			/* Fill out our DPC Object */
+-			pIOMgr->hDPC->pRefData = (void *)pIOMgr;
+-			pIOMgr->hDPC->pfnDPC = IO_DPC;
+ 			pIOMgr->hDPC->numRequested = 0;
+ 			pIOMgr->hDPC->numScheduled = 0;
+ #ifdef DEBUG
+@@ -1010,12 +1008,14 @@ static void IO_DispatchPM(struct work_struct *work)
+  *      out the dispatch of I/O as a non-preemptible event.It can only be
+  *      pre-empted      by an ISR.
+  */
+-void IO_DPC(IN OUT void *pRefData)
++void IO_DPC(IN OUT unsigned long pRefData)
+ {
+ 	struct IO_MGR *pIOMgr = (struct IO_MGR *)pRefData;
+ 	struct CHNL_MGR *pChnlMgr;
+ 	struct MSG_MGR *pMsgMgr;
+ 	struct DEH_MGR *hDehMgr;
++	u32 requested;
++	u32 serviced;
  
- /* Services Layer */
- #include <dspbridge/cfg.h>
--#include <dspbridge/dpc.h>
- #include <dspbridge/mem.h>
- #include <dspbridge/ntfy.h>
- #include <dspbridge/sync.h>
-@@ -104,7 +103,6 @@ struct IO_MGR {
- 	u8 *pMsgOutput; 	/* Address of output messages */
- 	u32 uSMBufSize; 	/* Size of a shared memory I/O channel */
- 	bool fSharedIRQ; 	/* Is this IRQ shared? */
--	struct DPC_OBJECT *hDPC; 	/* DPC object handle */
- 	struct SYNC_CSOBJECT *hCSObj; 	/* Critical section object handle */
- 	u32 uWordSize; 	/* Size in bytes of DSP word */
- 	u16 wIntrVal; 		/* Interrupt value */
-@@ -124,6 +122,12 @@ struct IO_MGR {
- 	u32 ulGppVa;
- 	u32 ulDspVa;
- #endif
-+	/* IO Dpc */
-+	u32 dpc_req;				/* Number of requested DPC's. */
-+	u32 dpc_sched;				/* Number of executed DPC's. */
-+	struct tasklet_struct dpc_tasklet;
-+	spinlock_t dpc_lock;
-+
- } ;
- 
- /* Function Prototypes */
-@@ -247,24 +251,14 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		status = SYNC_InitializeCS(&pIOMgr->hCSObj);
- 
- 	if (devType == DSP_UNIT) {
--		/* Create a DPC object */
--		MEM_AllocObject(pIOMgr->hDPC, struct DPC_OBJECT,
--				IO_MGRSIGNATURE);
--		if (pIOMgr->hDPC) {
--			tasklet_init(&pIOMgr->hDPC->dpc_tasklet,
--				IO_DPC, (u32)pIOMgr);
--			/* Fill out our DPC Object */
--			pIOMgr->hDPC->numRequested = 0;
--			pIOMgr->hDPC->numScheduled = 0;
--#ifdef DEBUG
--			pIOMgr->hDPC->numRequestedMax = 0;
--			pIOMgr->hDPC->cEntryCount = 0;
--#endif
--			spin_lock_init(&pIOMgr->hDPC->dpc_lock);
--		} else {
--			DBG_Trace(GT_6CLASS, "IO DPC Create: DSP_EMEMORY\n");
--			status = DSP_EMEMORY;
--		}
-+		/* Create an IO DPC */
-+		tasklet_init(&pIOMgr->dpc_tasklet, IO_DPC, (u32)pIOMgr);
-+
-+		/* Initialize DPC counters */
-+		pIOMgr->dpc_req = 0;
-+		pIOMgr->dpc_sched = 0;
-+
-+		spin_lock_init(&pIOMgr->dpc_lock);
- 
- 		if (DSP_SUCCEEDED(status))
- 			status = DEV_GetDevNode(hDevObject, &hDevNode);
-@@ -328,10 +322,8 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
- 		/* Linux function to uninstall ISR */
- 		free_irq(INT_MAIL_MPU_IRQ, (void *)hIOMgr);
- 
--		/* Free DPC object */
--		tasklet_kill(&hIOMgr->hDPC->dpc_tasklet);
--		MEM_FreeObject(hIOMgr->hDPC);
--		hIOMgr->hDPC = NULL;
-+		/* Free IO DPC object */
-+		tasklet_kill(&hIOMgr->dpc_tasklet);
- 		DBG_Trace(GT_2CLASS, "DPC_Destroy: SUCCESS\n");
- 
- #ifndef DSP_TRACEBUF_DISABLED
-@@ -1026,8 +1018,8 @@ void IO_DPC(IN OUT unsigned long pRefData)
+ 	if (!MEM_IsValidHandle(pIOMgr, IO_MGRSIGNATURE))
+ 		goto func_end;
+@@ -1025,16 +1025,27 @@ void IO_DPC(IN OUT void *pRefData)
+ 	if (!MEM_IsValidHandle(pChnlMgr, CHNL_MGRSIGNATURE))
  		goto func_end;
  	DBG_Trace(DBG_LEVEL7, "Entering IO_DPC(0x%x)\n", pRefData);
- 
--	requested = pIOMgr->hDPC->numRequested;
--	serviced = pIOMgr->hDPC->numScheduled;
-+	requested = pIOMgr->dpc_req;
-+	serviced = pIOMgr->dpc_sched;
- 
- 	if (serviced == requested)
- 		goto func_end;
-@@ -1055,7 +1047,7 @@ void IO_DPC(IN OUT unsigned long pRefData)
+-	/* Check value of interrupt register to ensure it is a valid error */
+-	if ((pIOMgr->wIntrVal > DEH_BASE) && (pIOMgr->wIntrVal < DEH_LIMIT)) {
+-		/* Notify DSP/BIOS exception */
+-		if (hDehMgr)
+-			WMD_DEH_Notify(hDehMgr, DSP_SYSERROR, pIOMgr->wIntrVal);
+-	}
+-	IO_DispatchChnl(pIOMgr, NULL, IO_SERVICE);
++
++	requested = pIOMgr->hDPC->numRequested;
++	serviced = pIOMgr->hDPC->numScheduled;
++
++	if (serviced == requested)
++		goto func_end;
++
++	/* Process pending DPC's */
++	do {
++		/* Check value of interrupt reg to ensure it's a valid error */
++		if ((pIOMgr->wIntrVal > DEH_BASE) &&
++		   (pIOMgr->wIntrVal < DEH_LIMIT)) {
++			/* Notify DSP/BIOS exception */
++			if (hDehMgr)
++				WMD_DEH_Notify(hDehMgr, DSP_SYSERROR,
++						pIOMgr->wIntrVal);
++		}
++		IO_DispatchChnl(pIOMgr, NULL, IO_SERVICE);
+ #ifdef CHNL_MESSAGES
+-	if (MEM_IsValidHandle(pMsgMgr, MSGMGR_SIGNATURE))
+-		IO_DispatchMsg(pIOMgr, pMsgMgr);
++		if (MEM_IsValidHandle(pMsgMgr, MSGMGR_SIGNATURE))
++			IO_DispatchMsg(pIOMgr, pMsgMgr);
  #endif
- 		serviced++;
- 	} while (serviced != requested);
--	pIOMgr->hDPC->numScheduled = requested;
-+	pIOMgr->dpc_sched = requested;
+ #ifndef DSP_TRACEBUF_DISABLED
+ 	if (pIOMgr->wIntrVal & MBX_DBG_SYSPRINTF) {
+@@ -1042,6 +1053,9 @@ void IO_DPC(IN OUT void *pRefData)
+ 		PrintDSPDebugTrace(pIOMgr);
+ 	}
+ #endif
++		serviced++;
++	} while (serviced != requested);
++	pIOMgr->hDPC->numScheduled = requested;
  func_end:
  	return;
  }
-@@ -1097,21 +1089,12 @@ irqreturn_t IO_ISR(int irq, IN void *pRefData)
- 			 * PROC-COPY defer i/o.
- 			 * Increment count of DPC's pending.
- 			 */
--			spin_lock_irqsave(&hIOMgr->hDPC->dpc_lock, flags);
--			hIOMgr->hDPC->numRequested++;
--			spin_unlock_irqrestore(&hIOMgr->hDPC->dpc_lock, flags);
-+			spin_lock_irqsave(&hIOMgr->dpc_lock, flags);
-+			hIOMgr->dpc_req++;
-+			spin_unlock_irqrestore(&hIOMgr->dpc_lock, flags);
- 
- 			/* Schedule DPC */
--			tasklet_schedule(&hIOMgr->hDPC->dpc_tasklet);
--#ifdef DEBUG
--			if (hIOMgr->hDPC->numRequested >
--			   hIOMgr->hDPC->numScheduled +
--			   hIOMgr->hDPC->numRequestedMax) {
--				hIOMgr->hDPC->numRequestedMax =
--					hIOMgr->hDPC->numRequested -
--					hIOMgr->hDPC->numScheduled;
--			}
--#endif
-+			tasklet_schedule(&hIOMgr->dpc_tasklet);
- 		}
- 	} else {
- 		/* Ensure that, if WMD didn't claim it, the IRQ is shared. */
-@@ -1179,20 +1162,12 @@ void IO_Schedule(struct IO_MGR *pIOMgr)
- 		return;
- 
- 	/* Increment count of DPC's pending. */
--	spin_lock_irqsave(&pIOMgr->hDPC->dpc_lock, flags);
--	pIOMgr->hDPC->numRequested++;
--	spin_unlock_irqrestore(&pIOMgr->hDPC->dpc_lock, flags);
-+	spin_lock_irqsave(&pIOMgr->dpc_lock, flags);
-+	pIOMgr->dpc_req++;
-+	spin_unlock_irqrestore(&pIOMgr->dpc_lock, flags);
- 
- 	/* Schedule DPC */
--	tasklet_schedule(&pIOMgr->hDPC->dpc_tasklet);
--#ifdef DEBUG
--	if (pIOMgr->hDPC->numRequested > pIOMgr->hDPC->numScheduled +
--	   pIOMgr->hDPC->numRequestedMax) {
--		pIOMgr->hDPC->numRequestedMax =	pIOMgr->hDPC->numRequested -
--				pIOMgr->hDPC->numScheduled;
--	}
--#endif
--
-+	tasklet_schedule(&pIOMgr->dpc_tasklet);
- }
- 
- /*
 diff --git a/drivers/dsp/bridge/wmd/mmu_fault.c b/drivers/dsp/bridge/wmd/mmu_fault.c
-index d3807ac..ef6ea77 100644
+index 057fe65..d3807ac 100644
 --- a/drivers/dsp/bridge/wmd/mmu_fault.c
 +++ b/drivers/dsp/bridge/wmd/mmu_fault.c
-@@ -27,7 +27,6 @@
- #include <dspbridge/dbg.h>
- 
- /*  ----------------------------------- OS Adaptation Layer */
--#include <dspbridge/dpc.h>
- #include <dspbridge/mem.h>
- #include <dspbridge/drv.h>
- 
-@@ -57,11 +56,10 @@ static bool MMU_CheckIfFault(struct WMD_DEV_CONTEXT *pDevContext);
- void MMU_FaultDpc(IN unsigned long pRefData)
+@@ -54,7 +54,7 @@ static bool MMU_CheckIfFault(struct WMD_DEV_CONTEXT *pDevContext);
+  *  ======== MMU_FaultDpc ========
+  *      Deferred procedure call to handle DSP MMU fault.
+  */
+-void MMU_FaultDpc(IN void *pRefData)
++void MMU_FaultDpc(IN unsigned long pRefData)
  {
  	struct DEH_MGR *hDehMgr = (struct DEH_MGR *)pRefData;
--	struct DEH_MGR *pDehMgr = (struct DEH_MGR *)hDehMgr;
+ 	struct DEH_MGR *pDehMgr = (struct DEH_MGR *)hDehMgr;
+diff --git a/drivers/dsp/bridge/wmd/mmu_fault.h b/drivers/dsp/bridge/wmd/mmu_fault.h
+index bed466c..d3849b5 100644
+--- a/drivers/dsp/bridge/wmd/mmu_fault.h
++++ b/drivers/dsp/bridge/wmd/mmu_fault.h
+@@ -23,7 +23,7 @@
+  *  ======== MMU_FaultDpc ========
+  *      Deferred procedure call to handle DSP MMU fault.
+  */
+-	void MMU_FaultDpc(IN void *pRefData);
++	void MMU_FaultDpc(IN unsigned long pRefData);
  
- 	DBG_Trace(DBG_LEVEL1, "MMU_FaultDpc Enter: 0x%x\n", pRefData);
- 
--	if (pDehMgr)
-+	if (hDehMgr)
- 		WMD_DEH_Notify(hDehMgr, DSP_MMUFAULT, 0L);
- 
- 	DBG_Trace(DBG_LEVEL1, "MMU_FaultDpc Exit: 0x%x\n", pRefData);
-@@ -77,7 +75,6 @@ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
- 	struct WMD_DEV_CONTEXT *pDevContext;
- 	struct CFG_HOSTRES resources;
- 	DSP_STATUS status = DSP_SOK;
--	unsigned long flags;
- 
- 	DBG_Trace(DBG_LEVEL1, "Entering DEH_DspMmuIsr: 0x%x\n", pRefData);
-        DBC_Require(irq == INT_DSP_MMU_IRQ);
-@@ -103,24 +100,7 @@ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
- 			 * necessary to check if DSP MMU fault is intended for
- 			 * Bridge.
- 			 */
--			/* Increment count of DPC's pending. */
--			spin_lock_irqsave(&pDehMgr->hMmuFaultDpc->dpc_lock,
--						flags);
--			pDehMgr->hMmuFaultDpc->numRequested++;
--			spin_unlock_irqrestore(&pDehMgr->hMmuFaultDpc->dpc_lock,
--						flags);
--
--			/* Schedule DPC */
--			tasklet_schedule(&pDehMgr->hMmuFaultDpc->dpc_tasklet);
--#ifdef DEBUG
--			if (pDehMgr->hMmuFaultDpc->numRequested >
--			   pDehMgr->hMmuFaultDpc->numScheduled +
--			   pDehMgr->hMmuFaultDpc->numRequestedMax) {
--				pDehMgr->hMmuFaultDpc->numRequestedMax =
--					pDehMgr->hMmuFaultDpc->numRequested -
--					pDehMgr->hMmuFaultDpc->numScheduled;
--			}
--#endif
-+			tasklet_schedule(&pDehMgr->dpc_tasklet);
- 
- 			/* Reset errInfo structure before use. */
- 			pDehMgr->errInfo.dwErrMask = DSP_MMUFAULT;
+ /*
+  *  ======== MMU_FaultIsr ========
 diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index cd2d220..daf75b6 100644
+index d4d45d4..cd2d220 100644
 --- a/drivers/dsp/bridge/wmd/ue_deh.c
 +++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -30,7 +30,6 @@
- 
- /*  ----------------------------------- OS Adaptation Layer */
- #include <dspbridge/cfg.h>
--#include <dspbridge/dpc.h>
- #include <dspbridge/mem.h>
- #include <dspbridge/ntfy.h>
- #include <dspbridge/drv.h>
-@@ -90,24 +89,8 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
- 		if (DSP_SUCCEEDED(status))
- 			status = NTFY_Create(&pDehMgr->hNtfy);
- 
--		/* Create a DPC object. */
--		MEM_AllocObject(pDehMgr->hMmuFaultDpc, struct DPC_OBJECT,
--				SIGNATURE);
--		if (pDehMgr->hMmuFaultDpc) {
--			tasklet_init(&pDehMgr->hMmuFaultDpc->dpc_tasklet,
--				MMU_FaultDpc, (u32)pDehMgr);
--			/* Fill out DPC Object */
--			pDehMgr->hMmuFaultDpc->numRequested = 0;
--			pDehMgr->hMmuFaultDpc->numScheduled = 0;
--#ifdef DEBUG
--			pDehMgr->hMmuFaultDpc->numRequestedMax = 0;
--			pDehMgr->hMmuFaultDpc->cEntryCount = 0;
--#endif
--			spin_lock_init(&pDehMgr->hMmuFaultDpc->dpc_lock);
--		} else {
--			DBG_Trace(GT_6CLASS, "DEH DPC Create: DSP_EMEMORY\n");
--			status = DSP_EMEMORY;
--		}
-+		/* Create a MMUfault DPC */
-+		tasklet_init(&pDehMgr->dpc_tasklet, MMU_FaultDpc, (u32)pDehMgr);
- 
- 		if (DSP_SUCCEEDED(status))
- 			status = DEV_GetDevNode(hDevObject, &hDevNode);
-@@ -162,9 +145,7 @@ DSP_STATUS WMD_DEH_Destroy(struct DEH_MGR *hDehMgr)
- 		free_irq(INT_DSP_MMU_IRQ, pDehMgr);
- 
- 		/* Free DPC object */
--		tasklet_kill(&pDehMgr->hMmuFaultDpc->dpc_tasklet);
--		MEM_FreeObject(pDehMgr->hMmuFaultDpc);
--		pDehMgr->hMmuFaultDpc = NULL;
-+		tasklet_kill(&pDehMgr->dpc_tasklet);
- 		DBG_Trace(GT_2CLASS, "DPC_Destroy: SUCCESS\n");
- 
- 		/* Deallocate the DEH manager object */
+@@ -95,11 +95,8 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
+ 				SIGNATURE);
+ 		if (pDehMgr->hMmuFaultDpc) {
+ 			tasklet_init(&pDehMgr->hMmuFaultDpc->dpc_tasklet,
+-				DPC_DeferredProcedure,
+-				(u32)pDehMgr->hMmuFaultDpc);
++				MMU_FaultDpc, (u32)pDehMgr);
+ 			/* Fill out DPC Object */
+-			pDehMgr->hMmuFaultDpc->pRefData = (void *)pDehMgr;
+-			pDehMgr->hMmuFaultDpc->pfnDPC = MMU_FaultDpc;
+ 			pDehMgr->hMmuFaultDpc->numRequested = 0;
+ 			pDehMgr->hMmuFaultDpc->numScheduled = 0;
+ #ifdef DEBUG
 -- 
 1.6.2.4
 
