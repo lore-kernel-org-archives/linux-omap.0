@@ -1,85 +1,99 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP: hwmod: add read/write API for SYSCONFIG - for 2.6.34
-Date: Fri, 15 Jan 2010 10:11:05 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001151009280.9529@utopia.booyaka.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: Re: Audio suspend/resume status on OMAP3 based
+ platforms
+Date: Fri, 15 Jan 2010 23:30:33 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E2EB8F4@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D7807@dbde02.ent.ti.com>
+	<201001130910.04292.peter.ujfalusi@nokia.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB031E1D7A8D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41800 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751476Ab0AORLI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 12:11:08 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D7A8D@dbde02.ent.ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
+> > > I want to check the status of suspend/resume functionality when audio
+> > > subsystem is being used. Specifically, has some one tried the
+> following
+> > > tests on their omap3 based platforms:
+> > >
+> > > a) echo mem > /sys/power/state, when audio playback is running in
+> > > background
+> > > b) same command, when audio capture is running in
+> > > background
+> > > b) same command, when audio loopback is running in
+> > > background
+> > >
+> > > I am facing some issues with (b) & (c) so wanted to confirm whether
+> > > someone else has faced similar problem or not.
+> >
+> > As Jarkko pointed out in a separate mail, we should not expect the
+> > suspend/resume to be working correctly until the context save/restore,
+> and
+> > the
+> > clock management is sorted out.
+> >
+> > On the other hand it seams that the problem is in the capture path (b
+> and
+> > c
+> > having issues).
+> >
+> > How is the McBSP configured in your setup (master or slave)?
+> [Aggarwal, Anuj] TWL4030 is master and McBSP is slave.
+> 
+> > I think we might have different issues with suspend/resume when OMAP
+> McBSP
+> > is
+> > slave or if it is master.
+Few (+)updates from my side:
 
-Hi,
+a) Capture not working after suspend/resume: After taking a dump of
+mcbsp, DMA and codec registers and comparing them, I found out that
+DMA.CCR[Enable] and DMA.CSR[Sync] bits were set when system was coming out
+of suspend. I don't understand why these two bits are not set in case of
+playback running in backgnd but when I forcefully clear them in 
+omap_pcm_trigger() fn under SNDRV_PCM_TRIGGER_RESUME, my problem goes away.
+Now I am able to do suspend/resume successfully while capture is running in bg without getting the Input/output error.
 
-this patch is currently queued for 2.6.34, but is being posted here in 
-case anyone has any further comments.
+b) McBSP registers being accessed from omap_pcm_trigger(): When audio
+playback is running in background and I try suspend, I saw mcbsp registers
+getting read/written by omap_pcm_trigger() through 
+dma_data->set_threshold(). This happens when soc_pcm_trigger() calls
+platform->pcm_ops->trigger before cpu_dai->ops->trigger and the clocks
+are getting enabled only in cpu_dai->trigger. Because of this,
+I found one warning coming through but this needs a fix.
 
+c) System hangs when audio loopback is going on in background: Finally, I 
+was able to narrow down the problem. After the mcbsp clocks are cut for
+playback stream, when suspend gets called for capture, mcbsp is stopped
+inside omap_mcbsp_dai_trigger->SNDRV_PCM_TRIGGER_PAUSE_PUSH, before
+disabling the clocks. This resulted in hang and the system doesn't 
+come out of snd_pcm_suspend_all() which I reported in my previous email.
+I modified the clock disabling routine and averted the hang. Now the problem
+is with the mcbsp/DMA configuration as I am not able to resume the loopback fully (1 in 5 times only it works) and receive this error:
 
-- Paul
+ALSA sound/core/pcm_lib.c:1708: playback write error (DMA or IRQ trouble?)
 
+After this, the application exits gracefully. On further debugging, I 
+realized that mcbsp is not getting configured properly on either the
+playback or capture stream, while resuming. Hence the error. I think
+this problem can go if I apply the mcbsp-register-cache patches but
+I have to try that before I can come to a conclusion.
 
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Mon, 23 Nov 2009 09:41:54 -0800
-Subject: [PATCH 2/2] OMAP: hwmod: add API for slave idlemode setting
+I have (dirty) fixes for (a) and (b) which, on cleaning, I would be
+sending for reviews.
 
-Some HW blocks have errata which requires specific slave idle mode
-under certain conditions.
-
-This patch adds an hwmod API to allow setting slave idlemode
-ensuring that any SYSCONFIG register updates go through hwmod.
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/omap_hwmod.c             |   17 +++++++++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 ++
- 2 files changed, 19 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index d8c8545..3bc47dc 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -993,6 +993,23 @@ void omap_hwmod_writel(u32 v, struct omap_hwmod *oh, u16 reg_offs)
- 	__raw_writel(v, oh->_rt_va + reg_offs);
- }
- 
-+int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode)
-+{
-+	u32 v;
-+	int retval = 0;
-+
-+	if (!oh)
-+		return -EINVAL;
-+
-+	v = oh->_sysc_cache;
-+
-+	retval = _set_slave_idlemode(oh, idlemode, &v);
-+	if (!retval)
-+		_write_sysconfig(v, oh);
-+
-+	return retval;
-+}
-+
- /**
-  * omap_hwmod_register - register a struct omap_hwmod
-  * @oh: struct omap_hwmod *
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 007935a..1f57330 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -440,6 +440,8 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh);
- int omap_hwmod_enable_clocks(struct omap_hwmod *oh);
- int omap_hwmod_disable_clocks(struct omap_hwmod *oh);
- 
-+int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode);
-+
- int omap_hwmod_reset(struct omap_hwmod *oh);
- void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
- 
--- 
-1.6.6
+Thanks for the suggestions/pointers.
