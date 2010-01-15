@@ -1,59 +1,39 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH v3 0/7] misc patches (for ioctl and ssi)
-Date: Fri, 15 Jan 2010 15:06:20 +0200
-Message-ID: <1263560780.2092.5.camel@sanganak>
-References: <1263258041-16836-1-git-send-email-omar.ramirez@ti.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH 5/8] omap_hsmmc: RX51: set padconfs to pull down when
+ powering off eMMC
+Date: Fri, 15 Jan 2010 15:11:06 +0200
+Message-ID: <4B50696A.6050904@nokia.com>
+References: <20100113114010.7615.84920.sendpatchset@ahunter-work.research.nokia.com> <20100113114048.7615.51097.sendpatchset@ahunter-work.research.nokia.com> <20100113203745.GK2986@atomide.com> <20100113203958.GL2986@atomide.com> <20100113210042.GM2986@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:59730 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752177Ab0AONG6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 08:06:58 -0500
-In-Reply-To: <1263258041-16836-1-git-send-email-omar.ramirez@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:58652 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755263Ab0AONLT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 08:11:19 -0500
+In-Reply-To: <20100113210042.GM2986@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Contreras Felipe <felipe.contreras@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
 
-Hi Omar,
-
-On Tue, 2010-01-12 at 02:00 +0100, ext Omar Ramirez Luna wrote:
-> Ioctl numbers has changed, this will require an update on libbridge and clients accesing directly to the driver
+Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [100113 12:38]:
+>> * Tony Lindgren <tony@atomide.com> [100113 12:36]:
+>>> You might want to check what happens in omap off-idle mode in these cases
+>>> and see if enabling OMAP_PIN_OFF_INPUT_PULLDOWN makes any difference in
+>>> power consumption in off state. That probably does not matter unless the
+>>> floating lines cause the eMMC to do something on it's own :)
+>> Or OMAP_PIN_OFF_OUTPUT_LOW actually.
 > 
-> - IO_ADDRESS is replaced for ioremap.
-> 
-> *v3
-> - modified:
-> 	DSPBRIDGE: replace IO_ADDRESS with ioremap, checking
-> 	the result of ioremap
-> 	(http://marc.info/?l=linux-omap&m=126324914710445&w=2).
-> 	DSPBRIDGE: Use _IOxx macro to define ioctls (as per Nishanth comments)
-> - new patch:
->   	DSPBRIDGE: remove WCD_Cmd structure
->   	
-> *v2
-> - dropped from the series:
-> 	DSPBRIDGE: Increased DMM size to 256MB
-> 	DSPBRIDGE: sysfs entry for global driver state
-> - will be kept in bridge-pm
-> 	DSPBRIDGE: Use dspbridge to initialize platform data
-> 	DSPBRIDGE: change to cpufreq_register_notifier for OPP changes
-> 	DSPBRIDGE: Fix header locations mach to plat
+> One more time.. Most likely OMAP_PIN_OFF_INPUT_PULLDOWN is safer
+> in general as the OMAP_PIN_OFF_OUTPUT_LOW does not work for all
+> pins. According to the TRM, OMAP_PIN_OFF_OUTPUT_LOW only works
+> for pins where at least one of the mux modes supports output
+> mode.
 
-Where is the bridge-pm repository?
-I am trying to compile dspbridge branch with HEAD commit as: DSPBRIDGE:
-Use _IOxx macro to define ioctls. But compilation fails because of
-following missing commit:
-
-DSPBRIDGE: Fix header locations mach to plat
-
-Can you move this commit from bridge-pm to dspbridge so that dspbridge
-is in compilable state?
-
-Thanks!
-
-Cheers,
-Ameya.
+While eMMC is on, it is better if the lines are pulled up,
+irrespective of whether OMAP is OFF, just to keep to the
+MMC specification.
 
