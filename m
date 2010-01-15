@@ -1,82 +1,99 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PM-WIP-OPP][PATCH] OPP: Introduces enum for addressing different
- OPP types
-Date: Fri, 15 Jan 2010 04:56:56 -0600
-Message-ID: <4B5049F8.2090708@ti.com>
-References: <1263299979.1536.7.camel@boson> <7A436F7769CA33409C6B44B358BFFF0C012E309BE6@dlee02.ent.ti.com> <4B4DA36C.7040206@ti.com> <4B4DC297.8070703@gmail.com> <4B4DC8FF.8090606@ti.com> <4B5044DB.1010201@ti.com> <4B504678.8030407@ti.com>
+From: Romit Dasgupta <romit@ti.com>
+Subject: [PM-WIP-OPP] [PATCH 2/2]: Change return value from ERR_PTR(..) to
+ NULL in opp layer
+Date: Fri, 15 Jan 2010 16:33:03 +0530
+Message-ID: <1263553383.3490.44.camel@boson>
+Reply-To: romit@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59252 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950Ab0AOK47 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 05:56:59 -0500
-In-Reply-To: <4B504678.8030407@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41526 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753847Ab0AOLDJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jan 2010 06:03:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Dasgupta, Romit" <romit@ti.com>
-Cc: Nishanth Menon <menon.nishanth@gmail.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: khilman@deeprootsystems.com
+Cc: nm@ti.com, linux-omap@vger.kernel.org
 
-Dasgupta, Romit had written, on 01/15/2010 04:42 AM, the following:
-[..]
-> I like this message. I will include it.
-:) I am getting this wrong feel that I should start writing novels ;).
+Returning NULL pointer from the OPP APIs instead of ERR_PTR where
+return struct omap_opp *. This is because there is no inherent value in
+returning ERR_PTR from the opp layer. Returning NULL serves the purpose.
 
-[...]
->> now, I was recommending doing a, till a thought a little more on the 
->> implementation(array based) and how long that implementation might 
->> last(we might potentially move opp.c to a list implementation). the 
->> effort would be to complicate the opp_init,add functions for a very 
->> short lifetime. This effort maynot be worth it.
-> 
-> I understand your concern. I have made some changes in the code. Please look at
-> the reposted patch (in few mins from now I shall post them).
-Thanks..
+Signed-off-by: Romit Dasgupta <romit@ti.com>
+---
 
->>>>>> Enum type and variable have the same name :( mebbe a rename of variable is
->>>>>> appropriate
->>>>>>     
->>>>> Not sure why you say this. Did you see the compiler throwing up any warning?
->>>>>   
->>>> The usage later in the code is opp_t -> this is a readability issue not 
->>>> a compiler warning.
->>> What is the readability issue? Why cant we declare something like enum opp_t opp_t?
->> Let me try to explain this clearly. assume we have a struct opp_t (not 
->> enum) for the time being.
->> void some_func(struct opp_t *opp_t)
->> {
->>    struct opp_t *opp;
->>
->> ..
->> 200 line of code (>one page full)
->> ....
->> /* point 1 */
->>     BUG_ON(opp_t.xyz)
->> ...
->>   200 lines of more code
->> ..
->> /* point 2 */
->>     BUG_ON(opp.xyz)
->> ...
->>
->> }
->>
->> lets say this is compiled by some non follower of this mail chain,
->> compiler throws an error for point 1: filex:liney
->> so the guy/gal fires up vim and opens the filex, goes to line y
->> he/she cannot see the start of the function, knows that there is a 
->> struct opp_t
-> 
-> If a function is that big then the fault lies there to start with! What do you say?
-> Nevertheless, your suggestion is cosmetic but I think we should not assume that
-> developers are so ignorant. For now I will do away with your suggestion. Please
-> feel free to change the code if you think what you say is the right thing.
-Having spent a few years on properitory s/w and been one of those 
-confused blokes(I being a certified nitwit), I will try to see if I can 
-provide a patch on top and Kevin/community can choose to add their 
-comments/club the patches and make the few folks like me happy.
+diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+index 5ec072e..9572062 100644
+--- a/arch/arm/mach-omap2/resource34xx.c
++++ b/arch/arm/mach-omap2/resource34xx.c
+@@ -202,7 +202,7 @@ static int __deprecated freq_to_opp(u8 *opp_id, enum opp_t opp_t,
+ 
+ 	BUG_ON(opp_t >= OPP_TYPES_MAX);
+ 	opp = opp_find_freq_ceil(opp_t, &freq);
+-	if (IS_ERR(opp))
++	if (!opp)
+ 		return -EINVAL;
+ 	*opp_id = opp_get_opp_id(opp);
+ 	return 0;
+diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+index 8fd9366..7835b5d 100644
+--- a/arch/arm/plat-omap/opp.c
++++ b/arch/arm/plat-omap/opp.c
+@@ -129,7 +129,7 @@ struct omap_opp *opp_find_freq_exact(enum opp_t opp_t,
+ 
+ 	if (unlikely(opp_t >= OPP_TYPES_MAX)) {
+ 		pr_err("%s: Invalid parameters being passed\n", __func__);
+-		return ERR_PTR(-EINVAL);
++		return NULL;
+ 	}
+ 
+ 	oppl = _opp_list[opp_t];
+@@ -143,7 +143,7 @@ struct omap_opp *opp_find_freq_exact(enum opp_t opp_t,
+ 		oppl++;
+ 	}
+ 
+-	return OPP_TERM(oppl) ? ERR_PTR(-ENOENT) : oppl;
++	return OPP_TERM(oppl) ? NULL : oppl;
+ }
+ 
+ struct omap_opp *opp_find_freq_ceil(enum opp_t opp_t, unsigned long *freq)
+@@ -153,7 +153,7 @@ struct omap_opp *opp_find_freq_ceil(enum opp_t opp_t, unsigned long *freq)
+ 	if (unlikely(opp_t >= OPP_TYPES_MAX || !freq ||
+ 		 IS_ERR(freq))) {
+ 		pr_err("%s: Invalid parameters being passed\n", __func__);
+-		return ERR_PTR(-EINVAL);
++		return NULL;
+ 	}
+ 
+ 	oppl = _opp_list[opp_t];
+@@ -169,7 +169,7 @@ struct omap_opp *opp_find_freq_ceil(enum opp_t opp_t, unsigned long *freq)
+ 	}
+ 
+ 	if (OPP_TERM(oppl))
+-		return ERR_PTR(-ENOENT);
++		return NULL;
+ 
+ 	*freq = oppl->rate;
+ 
+@@ -183,7 +183,7 @@ struct omap_opp *opp_find_freq_floor(enum opp_t opp_t, unsigned long *freq)
+ 	if (unlikely(opp_t >= OPP_TYPES_MAX || !freq ||
+ 		 IS_ERR(freq))) {
+ 		pr_err("%s: Invalid parameters being passed\n", __func__);
+-		return ERR_PTR(-EINVAL);
++		return NULL;
+ 	}
+ 	oppl = prev_opp = _opp_list[opp_t];
+ 
+@@ -202,7 +202,7 @@ struct omap_opp *opp_find_freq_floor(enum opp_t opp_t, unsigned long *freq)
+ 	}
+ 
+ 	if (prev_opp->rate > *freq)
+-		return ERR_PTR(-ENOENT);
++		return NULL;
+ 
+ 	*freq = prev_opp->rate;
+ 
 
--- 
-Regards,
-Nishanth Menon
+
