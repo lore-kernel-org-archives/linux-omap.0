@@ -1,1248 +1,975 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 10/10] DSPBRIDGE: trivial cleanup for io_sm
-Date: Fri, 15 Jan 2010 15:28:41 -0600
-Message-ID: <1263590921-24357-11-git-send-email-omar.ramirez@ti.com>
-References: <1263590921-24357-1-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-2-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-3-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-4-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-5-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-6-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-7-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-8-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-9-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-10-git-send-email-omar.ramirez@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PM-WIP-OPP] [PATCH 1/2]: Introducing enum for OPP types
+Date: Fri, 15 Jan 2010 15:21:12 -0800
+Message-ID: <87tyun2bvb.fsf@deeprootsystems.com>
+References: <1263553380.3490.43.camel@boson>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38525 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758288Ab0AOVS7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jan 2010 16:18:59 -0500
-In-Reply-To: <1263590921-24357-10-git-send-email-omar.ramirez@ti.com>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:55370 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758629Ab0AOXVR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 18:21:17 -0500
+Received: by yxe17 with SMTP id 17so1246564yxe.33
+        for <linux-omap@vger.kernel.org>; Fri, 15 Jan 2010 15:21:15 -0800 (PST)
+In-Reply-To: <1263553380.3490.43.camel@boson> (Romit Dasgupta's message of "Fri\, 15 Jan 2010 16\:33\:00 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: romit@ti.com
+Cc: nm@ti.com, linux-omap@vger.kernel.org
 
-- Removed duplicate set of braces from if statement
-- Placed braces for single (if or else) statements when
-  their counter part is a multiline block.
-- Reduce indentation
-- Removed a preprocessor block statement affecting
-  DSP trace buffer and reduced condition as MBX_DBG_CLASS
-  and MBX_DBG_SYSPRINTF have the same value
-- Fix multiline comments according to Documentation/CodingStyle
+Romit Dasgupta <romit@ti.com> writes:
 
-Functions comments will be addressed in a different patch.
+> Using omap_opp * to refer to domain types restricts opp implementation
+> into maintaining pointers outside the opp layer. This causes issues such
+> as:
+> a) Describing cross domain dependencies (e.g. dsp vs mpu)
+>
+> b) Ease of transitioning/supporting to multiple silicon variants and
+> families
+>
+> c) Choice of varied options in implementing opp layer internals.
+>
+> Since all we need a identifying a specific domain for query/operational 
+> purposes, we introduce enum for identifying OPP types instead of using 
+> opp layer's internal data structure pointer.
+>  
+> Currently, OMAP3 is the only silicon supporting the OPP layer, hence 
+> mpu_opps, l3_opps and dsp_opps are deprecated and replaced with
+> OPP_MPU, 
+> OPP_L3 and OPP_DSP respectively.
+>
+> Signed-off-by: Romit Dasgupta <romit@ti.com>
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- drivers/dsp/bridge/wmd/io_sm.c |  503 ++++++++++++++++++++++------------------
- 1 files changed, 275 insertions(+), 228 deletions(-)
+OK, this looks mostly ok, but I agree with Nishanth about he readability of 
+the 'enum opp_t opp_t' stuff.
 
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index e37d447..3a35378 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -17,14 +17,14 @@
-  */
- 
- /*
-- *  Channel Invariant:
-- *      There is an important invariant condition which must be maintained per
-- *      channel outside of WMD_CHNL_GetIOC() and IO_Dispatch(), violation of
-- *      which may cause timeouts and/or failure of the SYNC_WaitOnEvent
-- *      function.
-+ * Channel Invariant:
-+ * There is an important invariant condition which must be maintained per
-+ * channel outside of WMD_CHNL_GetIOC() and IO_Dispatch(), violation of
-+ * which may cause timeouts and/or failure of the SYNC_WaitOnEvent
-+ * function.
-  */
- 
--/*  ----------------------------------- Host OS */
-+/* Host OS */
- #include <dspbridge/host_os.h>
- #include <linux/workqueue.h>
- 
-@@ -33,11 +33,11 @@
- #include <dspbridge/dbdefs.h>
- #include <dspbridge/errbase.h>
- 
--/*  ----------------------------------- Trace & Debug */
-+/* Trace & Debug */
- #include <dspbridge/dbc.h>
- #include <dspbridge/dbg.h>
- 
--/*  ----------------------------------- OS Adaptation Layer */
-+/* Services Layer */
- #include <dspbridge/cfg.h>
- #include <dspbridge/dpc.h>
- #include <dspbridge/mem.h>
-@@ -45,11 +45,11 @@
- #include <dspbridge/sync.h>
- #include <dspbridge/reg.h>
- 
--/* ------------------------------------ Hardware Abstraction Layer */
-+/* Hardware Abstraction Layer */
- #include <hw_defs.h>
- #include <hw_mmu.h>
- 
--/*  ----------------------------------- Mini Driver */
-+/* Mini Driver */
- #include <dspbridge/wmddeh.h>
- #include <dspbridge/wmdio.h>
- #include <dspbridge/wmdioctl.h>
-@@ -57,25 +57,25 @@
- #include <tiomap_io.h>
- #include <_tiomap_pwr.h>
- 
--/*  ----------------------------------- Platform Manager */
-+/* Platform Manager */
- #include <dspbridge/cod.h>
- #include <dspbridge/dev.h>
- #include <dspbridge/chnl_sm.h>
- 
--/*  ----------------------------------- Others */
-+/* Others */
- #include <dspbridge/rms_sh.h>
- #include <dspbridge/mgr.h>
- #include <dspbridge/drv.h>
- #include "_cmm.h"
- 
--/*  ----------------------------------- This */
-+/* This */
- #include <dspbridge/io_sm.h>
- #include "_msg_sm.h"
- #include <dspbridge/gt.h>
- 
--/*  ----------------------------------- Defines, Data Structures, Typedefs */
-+/* Defines, Data Structures, Typedefs */
- #define OUTPUTNOTREADY  0xffff
--#define NOTENABLED      0xffff	/* channel(s) not enabled */
-+#define NOTENABLED      0xffff	/* Channel(s) not enabled */
- 
- #define EXTEND      "_EXT_END"
- 
-@@ -84,34 +84,34 @@
- 
- #define MAX_PM_REQS 32
- 
--/* IO Manager: only one created per board: */
-+/* IO Manager: only one created per board */
- struct IO_MGR {
--	/* These four fields must be the first fields in a IO_MGR_ struct: */
--	u32 dwSignature; 	/* Used for object validation   */
--	struct WMD_DEV_CONTEXT *hWmdContext; 	/* WMD device context  */
-+	/* These four fields must be the first fields in a IO_MGR_ struct */
-+	u32 dwSignature; 	/* Used for object validation */
-+	struct WMD_DEV_CONTEXT *hWmdContext; 	/* WMD device context */
- 	struct WMD_DRV_INTERFACE *pIntfFxns; 	/* Function interface to WMD */
- 	struct DEV_OBJECT *hDevObject; 	/* Device this board represents */
- 
--	/* These fields initialized in WMD_IO_Create():    */
-+	/* These fields initialized in WMD_IO_Create() */
- 	struct CHNL_MGR *hChnlMgr;
--	struct SHM *pSharedMem; 	/* Shared Memory control	*/
--	u8 *pInput; 		/* Address of input channel     */
--	u8 *pOutput; 		/* Address of output channel    */
-+	struct SHM *pSharedMem; 	/* Shared Memory control */
-+	u8 *pInput; 		/* Address of input channel */
-+	u8 *pOutput; 		/* Address of output channel */
- 	struct MSG_MGR *hMsgMgr; 	/* Message manager */
- 	struct MSG *pMsgInputCtrl; 	/* Msg control for from DSP messages */
- 	struct MSG *pMsgOutputCtrl; 	/* Msg control for to DSP messages */
--	u8 *pMsgInput; 	/* Address of input messages    */
--	u8 *pMsgOutput; 	/* Address of output messages   */
-+	u8 *pMsgInput; 	/* Address of input messages */
-+	u8 *pMsgOutput; 	/* Address of output messages */
- 	u32 uSMBufSize; 	/* Size of a shared memory I/O channel */
--	bool fSharedIRQ; 	/* Is this IRQ shared?	  */
--	struct DPC_OBJECT *hDPC; 	/* DPC object handle	    */
-+	bool fSharedIRQ; 	/* Is this IRQ shared? */
-+	struct DPC_OBJECT *hDPC; 	/* DPC object handle */
- 	struct SYNC_CSOBJECT *hCSObj; 	/* Critical section object handle */
--	u32 uWordSize; 	/* Size in bytes of DSP word    */
--	u16 wIntrVal; 		/* interrupt value	      */
--	/* private extnd proc info; mmu setup */
-+	u32 uWordSize; 	/* Size in bytes of DSP word */
-+	u16 wIntrVal; 		/* Interrupt value */
-+	/* Private extnd proc info; mmu setup */
- 	struct MGR_PROCESSOREXTINFO extProcInfo;
--	struct CMM_OBJECT *hCmmMgr; 	/* Shared Mem Mngr	      */
--       struct work_struct io_workq;     /*workqueue */
-+	struct CMM_OBJECT *hCmmMgr; 	/* Shared Mem Mngr */
-+	struct work_struct io_workq;     /* workqueue */
- 	u32 dQuePowerMbxVal[MAX_PM_REQS];
- 	u32 iQuePowerHead;
- 	u32 iQuePowerTail;
-@@ -126,7 +126,7 @@ struct IO_MGR {
- #endif
- } ;
- 
--/*  ----------------------------------- Function Prototypes */
-+/* Function Prototypes */
- static void IO_DispatchChnl(IN struct IO_MGR *pIOMgr,
- 			   IN OUT struct CHNL_OBJECT *pChnl, u32 iMode);
- static void IO_DispatchMsg(IN struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr);
-@@ -150,7 +150,7 @@ static struct workqueue_struct *bridge_workqueue;
- void PrintDSPDebugTrace(struct IO_MGR *hIOMgr);
- #endif
- 
--/* Bus Addr (cached kernel)*/
-+/* Bus Addr (cached kernel) */
- static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 				  struct COD_MANAGER *hCodMan,
- 				  u32 dwGPPBasePA);
-@@ -181,9 +181,9 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 	struct CFG_HOSTRES hostRes;
- 	struct CFG_DEVNODE *hDevNode;
- 	struct CHNL_MGR *hChnlMgr;
--       static int ref_count;
-+	static int ref_count;
- 	u32 devType;
--	/* Check requirements:  */
-+	/* Check requirements */
- 	if (!phIOMgr || !pMgrAttrs || pMgrAttrs->uWordSize == 0) {
- 		status = DSP_EHANDLE;
- 		goto func_end;
-@@ -193,26 +193,28 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		status = DSP_EHANDLE;
- 		goto func_end;
- 	}
--	 /*  Message manager will be created when a file is loaded, since
--	 *  size of message buffer in shared memory is configurable in
--	 *  the base image.  */
-+	/*
-+	 * Message manager will be created when a file is loaded, since
-+	 * size of message buffer in shared memory is configurable in
-+	 * the base image.
-+	 */
- 	DEV_GetWMDContext(hDevObject, &hWmdContext);
- 	if (!hWmdContext) {
- 		status = DSP_EHANDLE;
- 		goto func_end;
- 	}
- 	DEV_GetDevType(hDevObject, &devType);
--	/*  DSP shared memory area will get set properly when
--	 *  a program is loaded. They are unknown until a COFF file is
--	 *  loaded. I chose the value -1 because it was less likely to be
--	 *  a valid address than 0.  */
-+	/*
-+	 * DSP shared memory area will get set properly when
-+	 * a program is loaded. They are unknown until a COFF file is
-+	 * loaded. I chose the value -1 because it was less likely to be
-+	 * a valid address than 0.
-+	 */
- 	pSharedMem = (struct SHM *) -1;
- 	if (DSP_FAILED(status))
- 		goto func_cont;
- 
--	/*
--	 * Create a Single Threaded Work Queue
--	 */
-+	/* Create a Single Threaded Work Queue */
- 	if (ref_count == 0)
- 		bridge_workqueue = create_workqueue("bridge_work-queue");
- 
-@@ -220,13 +222,13 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		DBG_Trace(DBG_LEVEL1, "Workque Create failed 0x%d \n",
- 						bridge_workqueue);
- 
--	/* Allocate IO manager object: */
-+	/* Allocate IO manager object */
- 	MEM_AllocObject(pIOMgr, struct IO_MGR, IO_MGRSIGNATURE);
- 	if (pIOMgr == NULL) {
- 		status = DSP_EMEMORY;
- 		goto func_cont;
- 	}
--	/*Intializing Work Element*/
-+	/* Intializing Work Element */
- 	if (ref_count == 0) {
- 		INIT_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
- 		ref_count = 1;
-@@ -234,7 +236,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		PREPARE_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
- 	}
- 
--	/* Initialize CHNL_MGR object:    */
-+	/* Initialize CHNL_MGR object */
- #ifndef DSP_TRACEBUF_DISABLED
- 	pIOMgr->pMsg = NULL;
- #endif
-@@ -245,7 +247,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		status = SYNC_InitializeCS(&pIOMgr->hCSObj);
- 
- 	if (devType == DSP_UNIT) {
--		/* Create a DPC object: */
-+		/* Create a DPC object */
- 		status = DPC_Create(&pIOMgr->hDPC, IO_DPC, (void *)pIOMgr);
- 		if (DSP_SUCCEEDED(status))
- 			status = DEV_GetDevNode(hDevObject, &hDevNode);
-@@ -263,7 +265,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		IO_DisableInterrupt(hWmdContext);
- 		if (devType == DSP_UNIT) {
- 			HW_MBOX_initSettings(hostRes.dwMboxBase);
--			/* Plug the channel ISR:. */
-+			/* Plug the channel ISR */
- 			if ((request_irq(INT_MAIL_MPU_IRQ, IO_ISR, 0,
- 			  "DspBridge\tmailbox", (void *)pIOMgr)) == 0) {
- 				status = DSP_SOK;
-@@ -278,7 +280,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 	}
- func_cont:
- 	if (DSP_FAILED(status)) {
--		/* Cleanup: */
-+		/* Cleanup */
- 		WMD_IO_Destroy(pIOMgr);
- 		*phIOMgr = NULL;
- 	} else {
-@@ -300,8 +302,7 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
- 	DSP_STATUS status = DSP_SOK;
- 	struct WMD_DEV_CONTEXT *hWmdContext;
- 	if (MEM_IsValidHandle(hIOMgr, IO_MGRSIGNATURE)) {
--		/* Unplug IRQ:    */
--		/* Disable interrupts from the board:  */
-+		/* Disable interrupts from the board */
- 		status = DEV_GetWMDContext(hIOMgr->hDevObject, &hWmdContext);
- 		if (DSP_SUCCEEDED(status))
- 			(void)CHNLSM_DisableInterrupt(hWmdContext);
-@@ -316,10 +317,11 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
- 			MEM_Free(hIOMgr->pMsg);
- #endif
- 		SYNC_DeleteCS(hIOMgr->hCSObj); 	/* Leak Fix. */
--		/* Free this IO manager object: */
-+		/* Free this IO manager object */
- 		MEM_FreeObject(hIOMgr);
--       } else
-+	} else {
- 		status = DSP_EHANDLE;
-+	}
- 
- 	return status;
- }
-@@ -373,7 +375,7 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
- 	if (DSP_FAILED(status))
- 		goto func_end;
- 	hChnlMgr = hIOMgr->hChnlMgr;
--	 /*  The message manager is destroyed when the board is stopped.  */
-+	/* The message manager is destroyed when the board is stopped. */
- 	DEV_GetMsgMgr(hIOMgr->hDevObject, &hIOMgr->hMsgMgr);
- 	hMsgMgr = hIOMgr->hMsgMgr;
- 	if (!MEM_IsValidHandle(hChnlMgr, CHNL_MGRSIGNATURE) ||
-@@ -400,7 +402,7 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
- 	if (ulShmLimit <= ulShmBase) {
- 		status = CHNL_E_INVALIDMEMBASE;
- 	} else {
--		/* get total length in bytes */
-+		/* Get total length in bytes */
- 		ulShmLength = (ulShmLimit - ulShmBase + 1) * hIOMgr->uWordSize;
- 		/* Calculate size of a PROCCOPY shared memory region */
- 		DBG_Trace(DBG_LEVEL7,
-@@ -420,12 +422,16 @@ func_cont1:
- 			if (ulMsgLimit <= ulMsgBase) {
- 				status = CHNL_E_INVALIDMEMBASE;
- 			} else {
--				/* Length (bytes) of messaging part of shared
--				 * memory */
-+				/*
-+				 * Length (bytes) of messaging part of shared
-+				 * memory.
-+				 */
- 				ulMsgLength = (ulMsgLimit - ulMsgBase + 1) *
- 					      hIOMgr->uWordSize;
--				/* Total length (bytes) of shared memory:
--				 * chnl + msg */
-+				/*
-+				 * Total length (bytes) of shared memory:
-+				 * chnl + msg.
-+				 */
- 				ulMemLength = ulShmLength + ulMsgLength;
- 			}
- 		} else {
-@@ -444,19 +450,16 @@ func_cont1:
- #endif
- 		if (DSP_FAILED(status))
- 			status = CHNL_E_NOMEMMAP;
--
- 	}
- 	if (DSP_SUCCEEDED(status)) {
- 		status = COD_GetSymValue(hCodMan, DYNEXTBASE, &ulDynExtBase);
- 		if (DSP_FAILED(status))
- 			status = CHNL_E_NOMEMMAP;
--
- 	}
- 	if (DSP_SUCCEEDED(status)) {
- 		status = COD_GetSymValue(hCodMan, EXTEND, &ulExtEnd);
- 		if (DSP_FAILED(status))
- 			status = CHNL_E_NOMEMMAP;
--
- 	}
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Get memory reserved in host resources */
-@@ -470,7 +473,7 @@ func_cont1:
- 		ndx = 0;
- 		ulGppPa = hostRes.dwMemPhys[1];
- 		ulGppVa = hostRes.dwMemBase[1];
--		/* THIS IS THE VIRTUAL UNCACHED IOREMAPPED ADDRESS !!! */
-+		/* This is the virtual uncached ioremapped address!!! */
- 		/* Why can't we directly take the DSPVA from the symbols? */
- 		ulDspVa = hIOMgr->extProcInfo.tyTlb[0].ulDspVirt;
- 		ulSegSize = (ulShm0End - ulDspVa) * hIOMgr->uWordSize;
-@@ -522,8 +525,10 @@ func_cont1:
- 	mapAttrs |= DSP_MAPDONOTLOCK;
- 
- 	while (numBytes && DSP_SUCCEEDED(status)) {
--		/* To find the max. page size with which both PA & VA are
--		 * aligned */
-+		/*
-+		 * To find the max. page size with which both PA & VA are
-+		 * aligned.
-+		 */
- 		allBits = paCurr | vaCurr;
- 		DBG_Trace(DBG_LEVEL1, "allBits %x, paCurr %x, vaCurr %x, "
- 			 "numBytes %x\n", allBits, paCurr, vaCurr, numBytes);
-@@ -539,9 +544,11 @@ func_cont1:
- 				vaCurr += pgSize[i];
- 				gppVaCurr += pgSize[i];
- 				numBytes -= pgSize[i];
--				/* Don't try smaller sizes. Hopefully we have
-+				/*
-+				 * Don't try smaller sizes. Hopefully we have
- 				 * reached an address aligned to a bigger page
--				 * size*/
-+				 * size.
-+				 */
- 				break;
- 			}
- 		}
-@@ -550,13 +557,15 @@ func_cont1:
- 	vaCurr += ulPadSize;
- 	gppVaCurr += ulPadSize;
- 
--	/* configure the TLB entries for the next cacheable segment */
-+	/* Configure the TLB entries for the next cacheable segment */
- 	numBytes = ulSegSize;
- 	vaCurr = ulDspVa * hIOMgr->uWordSize;
- 	allBits = 0x0;
- 	while (numBytes && DSP_SUCCEEDED(status)) {
--		/* To find the max. page size with which both PA & VA are
--		 * aligned*/
-+		/*
-+		 * To find the max. page size with which both PA & VA are
-+		 * aligned.
-+		 */
- 		allBits = paCurr | vaCurr;
- 		DBG_Trace(DBG_LEVEL1, "allBits for Seg1 %x, paCurr %x, "
- 			 "vaCurr %x, numBytes %x\n", allBits, paCurr, vaCurr,
-@@ -566,11 +575,15 @@ func_cont1:
- 			   !((allBits & (pgSize[i]-1)) == 0))
- 				continue;
- 			if (ndx < MAX_LOCK_TLB_ENTRIES) {
--				/* This is the physical address written to
--				 * DSP MMU */
-+				/*
-+				 * This is the physical address written to
-+				 * DSP MMU.
-+				 */
- 				aEProc[ndx].ulGppPa = paCurr;
--				/* THIS IS THE VIRTUAL UNCACHED IOREMAPPED
--				 * ADDRESS!!! */
-+				/*
-+				 * This is the virtual uncached ioremapped
-+				 * address!!!
-+				 */
- 				aEProc[ndx].ulGppVa = gppVaCurr;
- 				aEProc[ndx].ulDspVa = vaCurr / hIOMgr->
- 						      uWordSize;
-@@ -603,14 +616,18 @@ func_cont1:
- 			vaCurr += pgSize[i];
- 			gppVaCurr += pgSize[i];
- 			numBytes -= pgSize[i];
--			/* Don't try smaller sizes. Hopefully we have reached
--			 an address aligned to a bigger page size*/
-+			/*
-+			 * Don't try smaller sizes. Hopefully we have reached
-+			 * an address aligned to a bigger page size.
-+			 */
- 			break;
- 		}
- 	}
- 
--	 /* Copy remaining entries from CDB. All entries are 1 MB and should not
--	 * conflict with SHM entries on MPU or DSP side */
-+	/*
-+	 * Copy remaining entries from CDB. All entries are 1 MB and
-+	 * should not conflict with SHM entries on MPU or DSP side.
-+	 */
- 	for (i = 3; i < 7 && ndx < WMDIOCTL_NUMOFMMUTLB &&
- 	    DSP_SUCCEEDED(status); i++) {
- 		if (hIOMgr->extProcInfo.tyTlb[i].ulGppPhys == 0)
-@@ -637,8 +654,8 @@ func_cont1:
- 				aEProc[ndx].ulGppPa = hIOMgr->extProcInfo.
- 					tyTlb[i].ulGppPhys;
- 				aEProc[ndx].ulGppVa = 0;
--				/* Can't convert, so set to zero*/
--				aEProc[ndx].ulSize = 0x100000; 	/* 1 MB*/
-+				/* Can't convert, so set to zero */
-+				aEProc[ndx].ulSize = 0x100000; 	/* 1 MB */
- 				DBG_Trace(DBG_LEVEL1, "SHM MMU entry PA %x "
- 					 "DSP_VA 0x%x\n", aEProc[ndx].ulGppPa,
- 					aEProc[ndx].ulDspVa);
-@@ -653,7 +670,7 @@ func_cont1:
- 		}
- 	}
- 	if (i < 7 && DSP_SUCCEEDED(status)) {
--		/* All CDB entries could not be made*/
-+		/* All CDB entries could not be made */
- 		status = DSP_EFAIL;
- 	}
- func_cont:
-@@ -682,15 +699,19 @@ func_cont:
- 			aEProc[i].ulGppVa = 0;
- 			aEProc[i].ulSize = 0;
- 		}
--		/* Set the SHM physical address entry (grayed out in CDB file)
-+		/*
-+		 * Set the SHM physical address entry (grayed out in CDB file)
- 		 * to the virtual uncached ioremapped address of SHM reserved
--		 * on MPU */
-+		 * on MPU.
-+		 */
- 		hIOMgr->extProcInfo.tyTlb[0].ulGppPhys = (ulGppVa + ulSeg1Size +
- 							 ulPadSize);
- 		DBG_Trace(DBG_LEVEL1, "*********extProcInfo *********%x \n",
- 			  hIOMgr->extProcInfo.tyTlb[0].ulGppPhys);
--		/* Need SHM Phys addr. IO supports only one DSP for now:
--		 * uNumProcs=1 */
-+		/*
-+		 * Need SHM Phys addr. IO supports only one DSP for now:
-+		 * uNumProcs = 1.
-+		 */
- 		if ((hIOMgr->extProcInfo.tyTlb[0].ulGppPhys == 0) ||
- 		   (uNumProcs != 1)) {
- 			status = CHNL_E_NOMEMMAP;
-@@ -703,10 +724,12 @@ func_cont:
- 			/* ulShmBase may not be at ulDspVa address */
- 			ulShmBaseOffset = (ulShmBase - aEProc[0].ulDspVa) *
- 			    hIOMgr->uWordSize;
--			 /* WMD_BRD_Ctrl() will set dev context dsp-mmu info. In
--			 *   _BRD_Start() the MMU will be re-programed with MMU
--			 *   DSPVa-GPPPa pair info while DSP is in a known
--			 *   (reset) state.  */
-+			/*
-+			 * WMD_BRD_Ctrl() will set dev context dsp-mmu info. In
-+			 * _BRD_Start() the MMU will be re-programed with MMU
-+			 * DSPVa-GPPPa pair info while DSP is in a known
-+			 * (reset) state.
-+			 */
- 			if (!hIOMgr->pIntfFxns || !hIOMgr->hWmdContext)	{
- 				status = DSP_EHANDLE;
- 				goto func_end;
-@@ -726,9 +749,9 @@ func_cont:
- 			}
- 			DBC_Assert(ulShmBase != 0);
- 			if (DSP_SUCCEEDED(status)) {
-+				/* Register SM */
- 				status = registerSHMSegs(hIOMgr, hCodMan,
- 					 aEProc[0].ulGppPa);
--				/* Register SM */
- 			}
- 		}
- 	}
-@@ -746,7 +769,7 @@ func_cont:
- 			 "pSharedMem %p uSMBufSize %x sizeof(SHM) %x\n",
- 			 hIOMgr->pSharedMem, hIOMgr->uSMBufSize,
- 			 sizeof(struct SHM));
--		 /*  Set up Shared memory addresses for messaging. */
-+		/* Set up Shared memory addresses for messaging. */
- 		hIOMgr->pMsgInputCtrl = (struct MSG *)((u8 *)
- 					hIOMgr->pSharedMem +
- 					ulShmLength);
-@@ -780,7 +803,6 @@ func_cont:
- 				 &hIOMgr->ulTraceBufferBegin);
- 			if (DSP_FAILED(status))
- 				status = CHNL_E_NOMEMMAP;
--
- 		}
- 		hIOMgr->ulGPPReadPointer = hIOMgr->ulTraceBufferBegin =
- 			(ulGppVa + ulSeg1Size + ulPadSize) +
-@@ -791,7 +813,6 @@ func_cont:
- 				 &hIOMgr->ulTraceBufferEnd);
- 			if (DSP_FAILED(status))
- 				status = CHNL_E_NOMEMMAP;
--
- 		}
- 		hIOMgr->ulTraceBufferEnd = (ulGppVa + ulSeg1Size + ulPadSize) +
- 					   (hIOMgr->ulTraceBufferEnd - ulDspVa);
-@@ -802,7 +823,6 @@ func_cont:
- 				 &hIOMgr->ulTraceBufferCurrent);
- 			if (DSP_FAILED(status))
- 				status = CHNL_E_NOMEMMAP;
--
- 		}
- 		hIOMgr->ulTraceBufferCurrent = (ulGppVa + ulSeg1Size +
- 						ulPadSize) + (hIOMgr->
-@@ -851,7 +871,7 @@ void IO_CancelChnl(struct IO_MGR *hIOMgr, u32 ulChnl)
- 		goto func_end;
- 	sm = hIOMgr->pSharedMem;
- 
--	/* Inform DSP that we have no more buffers on this channel:  */
-+	/* Inform DSP that we have no more buffers on this channel */
- 	IO_AndValue(pIOMgr->hWmdContext, struct SHM, sm, hostFreeMask,
- 		   (~(1 << ulChnl)));
- 
-@@ -872,11 +892,11 @@ static void IO_DispatchChnl(IN struct IO_MGR *pIOMgr,
- 
- 	DBG_Trace(DBG_LEVEL3, "Entering IO_DispatchChnl \n");
- 
--	/* See if there is any data available for transfer: */
-+	/* See if there is any data available for transfer */
- 	if (iMode != IO_SERVICE)
- 		goto func_end;
- 
--	/* Any channel will do for this mode: */
-+	/* Any channel will do for this mode */
- 	InputChnl(pIOMgr, pChnl, iMode);
- 	OutputChnl(pIOMgr, pChnl, iMode);
- func_end:
-@@ -894,7 +914,7 @@ static void IO_DispatchMsg(IN struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 
- 	DBG_Trace(DBG_LEVEL3, "Entering IO_DispatchMsg \n");
- 
--	/*  We are performing both input and output processing. */
-+	/* We are performing both input and output processing. */
- 	InputMsg(pIOMgr, hMsgMgr);
- 	OutputMsg(pIOMgr, hMsgMgr);
- func_end:
-@@ -953,13 +973,11 @@ static void IO_DispatchPM(struct work_struct *work)
- 					 *pArg);
- 			}
- 		}
--		/* increment the tail count here */
-+		/* Increment the tail count here */
- 		pIOMgr->iQuePowerTail++;
- 		if (pIOMgr->iQuePowerTail >= MAX_PM_REQS)
- 			pIOMgr->iQuePowerTail = 0;
--
- 	}
--
- }
- 
- /*
-@@ -985,10 +1003,9 @@ void IO_DPC(IN OUT void *pRefData)
- 	DBG_Trace(DBG_LEVEL7, "Entering IO_DPC(0x%x)\n", pRefData);
- 	/* Check value of interrupt register to ensure it is a valid error */
- 	if ((pIOMgr->wIntrVal > DEH_BASE) && (pIOMgr->wIntrVal < DEH_LIMIT)) {
--		/* notify DSP/BIOS exception */
-+		/* Notify DSP/BIOS exception */
- 		if (hDehMgr)
- 			WMD_DEH_Notify(hDehMgr, DSP_SYSERROR, pIOMgr->wIntrVal);
--
- 	}
- 	IO_DispatchChnl(pIOMgr, NULL, IO_SERVICE);
- #ifdef CHNL_MESSAGES
-@@ -996,21 +1013,15 @@ void IO_DPC(IN OUT void *pRefData)
- 		IO_DispatchMsg(pIOMgr, pMsgMgr);
- #endif
- #ifndef DSP_TRACEBUF_DISABLED
--	if (pIOMgr->wIntrVal & MBX_DBG_CLASS) {
--		/* notify DSP Trace message */
--		if (pIOMgr->wIntrVal & MBX_DBG_SYSPRINTF)
--			PrintDSPDebugTrace(pIOMgr);
-+	if (pIOMgr->wIntrVal & MBX_DBG_SYSPRINTF) {
-+		/* Notify DSP Trace message */
-+		PrintDSPDebugTrace(pIOMgr);
- 	}
- #endif
--
--#ifndef DSP_TRACEBUF_DISABLED
--	PrintDSPDebugTrace(pIOMgr);
--#endif
- func_end:
- 	return;
- }
- 
--
- /*
-  *  ======== IO_ISR ========
-  *      Main interrupt handler for the shared memory IO manager.
-@@ -1028,29 +1039,29 @@ irqreturn_t IO_ISR(int irq, IN void *pRefData)
- 
- 	/* Call WMD's CHNLSM_ISR() to see if interrupt is ours, and process. */
- 	if (IO_CALLISR(hIOMgr->hWmdContext, &fSchedDPC, &hIOMgr->wIntrVal)) {
--		{
--			DBG_Trace(DBG_LEVEL3, "IO_ISR %x\n", hIOMgr->wIntrVal);
--			if (hIOMgr->wIntrVal & MBX_PM_CLASS) {
--				hIOMgr->dQuePowerMbxVal[hIOMgr->iQuePowerHead] =
--					hIOMgr->wIntrVal;
--				hIOMgr->iQuePowerHead++;
--				if (hIOMgr->iQuePowerHead >= MAX_PM_REQS)
--					hIOMgr->iQuePowerHead = 0;
--
--				queue_work(bridge_workqueue, &hIOMgr->io_workq);
--			}
--			if (hIOMgr->wIntrVal == MBX_DEH_RESET) {
--				DBG_Trace(DBG_LEVEL6, "*** DSP RESET ***\n");
--				hIOMgr->wIntrVal = 0;
--			} else if (fSchedDPC) {
--				/* PROC-COPY defer i/o  */
--				DPC_Schedule(hIOMgr->hDPC);
--			}
-+		DBG_Trace(DBG_LEVEL3, "IO_ISR %x\n", hIOMgr->wIntrVal);
-+		if (hIOMgr->wIntrVal & MBX_PM_CLASS) {
-+			hIOMgr->dQuePowerMbxVal[hIOMgr->iQuePowerHead] =
-+				hIOMgr->wIntrVal;
-+			hIOMgr->iQuePowerHead++;
-+			if (hIOMgr->iQuePowerHead >= MAX_PM_REQS)
-+				hIOMgr->iQuePowerHead = 0;
-+
-+			queue_work(bridge_workqueue, &hIOMgr->io_workq);
-+		}
-+		if (hIOMgr->wIntrVal == MBX_DEH_RESET) {
-+			DBG_Trace(DBG_LEVEL6, "*** DSP RESET ***\n");
-+			hIOMgr->wIntrVal = 0;
-+		} else if (fSchedDPC) {
-+			/* PROC-COPY defer i/o */
-+			DPC_Schedule(hIOMgr->hDPC);
- 		}
--       } else
-+	} else {
- 		/* Ensure that, if WMD didn't claim it, the IRQ is shared. */
- 		DBC_Ensure(hIOMgr->fSharedIRQ);
--       return IRQ_HANDLED;
-+	}
-+
-+	return IRQ_HANDLED;
- }
- 
- /*
-@@ -1070,21 +1081,27 @@ void IO_RequestChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 	pChnlMgr = pIOMgr->hChnlMgr;
- 	sm = pIOMgr->pSharedMem;
- 	if (iMode == IO_INPUT) {
--		/*  Assertion fires if CHNL_AddIOReq() called on a stream
--		 * which was cancelled, or attached to a dead board: */
-+		/*
-+		 * Assertion fires if CHNL_AddIOReq() called on a stream
-+		 * which was cancelled, or attached to a dead board.
-+		 */
- 		DBC_Assert((pChnl->dwState == CHNL_STATEREADY) ||
- 			  (pChnl->dwState == CHNL_STATEEOS));
--		/* Indicate to the DSP we have a buffer available for input: */
-+		/* Indicate to the DSP we have a buffer available for input */
- 		IO_OrValue(pIOMgr->hWmdContext, struct SHM, sm, hostFreeMask,
- 			  (1 << pChnl->uId));
- 		*pwMbVal = MBX_PCPY_CLASS;
- 	} else if (iMode == IO_OUTPUT) {
--		/*  This assertion fails if CHNL_AddIOReq() was called on a
--		 * stream which was cancelled, or attached to a dead board: */
-+		/*
-+		 * This assertion fails if CHNL_AddIOReq() was called on a
-+		 * stream which was cancelled, or attached to a dead board.
-+		 */
- 		DBC_Assert((pChnl->dwState & ~CHNL_STATEEOS) ==
- 			  CHNL_STATEREADY);
--		/* Record the fact that we have a buffer available for
--		 * output: */
-+		/*
-+		 * Record the fact that we have a buffer available for
-+		 * output.
-+		 */
- 		pChnlMgr->dwOutputMask |= (1 << pChnl->uId);
- 	} else {
- 		DBC_Assert(iMode); 	/* Shouldn't get here. */
-@@ -1131,7 +1148,6 @@ static u32 FindReadyOutput(struct CHNL_MGR *pChnlMgr,
- 				uRetval = id;
- 				if (pChnl == NULL)
- 					pChnlMgr->dwLastOutput = id;
--
- 				break;
- 			}
- 			id = id + 1;
-@@ -1164,7 +1180,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 
- 	DBG_Trace(DBG_LEVEL3, "> InputChnl\n");
- 
--	/* Attempt to perform input.... */
-+	/* Attempt to perform input */
- 	if (!IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputFull))
- 		goto func_end;
- 
-@@ -1182,17 +1198,19 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 		if ((pChnl->dwState & ~CHNL_STATEEOS) == CHNL_STATEREADY) {
- 			if (!pChnl->pIORequests)
- 				goto func_end;
--			/* Get the I/O request, and attempt a transfer:  */
-+			/* Get the I/O request, and attempt a transfer */
- 			pChirp = (struct CHNL_IRP *)LST_GetHead(pChnl->
- 				 pIORequests);
- 			if (pChirp) {
- 				pChnl->cIOReqs--;
- 				if (pChnl->cIOReqs < 0)
- 					goto func_end;
--				/* Ensure we don't overflow the client's
--				 * buffer: */
-+				/*
-+				 * Ensure we don't overflow the client's
-+				 * buffer.
-+				 */
- 				uBytes = min(uBytes, pChirp->cBytes);
--				/* Transfer buffer from DSP side: */
-+				/* Transfer buffer from DSP side */
- 				uBytes = ReadData(pIOMgr->hWmdContext,
- 						pChirp->pHostSysBuf,
- 						pIOMgr->pInput, uBytes);
-@@ -1204,24 +1222,30 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 					 "\n", *((RMS_WORD *)(pChirp->
- 					 pHostSysBuf)));
- 				if (uBytes == 0) {
--					/* This assertion fails if the DSP
-+					/*
-+					 * This assertion fails if the DSP
- 					 * sends EOS more than once on this
--					 * channel: */
-+					 * channel.
-+					 */
- 					if (pChnl->dwState & CHNL_STATEEOS)
- 						goto func_end;
--					 /* Zero bytes indicates EOS. Update
--					  * IOC status for this chirp, and also
--					  * the channel state: */
-+					/*
-+					 * Zero bytes indicates EOS. Update
-+					 * IOC status for this chirp, and also
-+					 * the channel state.
-+					 */
- 					pChirp->status |= CHNL_IOCSTATEOS;
- 					pChnl->dwState |= CHNL_STATEEOS;
--					/* Notify that end of stream has
--					 * occurred */
-+					/*
-+					 * Notify that end of stream has
-+					 * occurred.
-+					 */
- 					NTFY_Notify(pChnl->hNtfy,
- 						   DSP_STREAMDONE);
- 					DBG_Trace(DBG_LEVEL7, "Input Chnl NTFY "
- 						 "chnl = 0x%x\n", pChnl);
- 				}
--				/* Tell DSP if no more I/O buffers available: */
-+				/* Tell DSP if no more I/O buffers available */
- 				if (!pChnl->pIORequests)
- 					goto func_end;
- 				if (LST_IsEmpty(pChnl->pIORequests)) {
-@@ -1232,27 +1256,29 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 				fClearChnl = true;
- 				fNotifyClient = true;
- 			} else {
--				/* Input full for this channel, but we have no
-+				/*
-+				 * Input full for this channel, but we have no
- 				 * buffers available.  The channel must be
- 				 * "idling". Clear out the physical input
--				 * channel.  */
-+				 * channel.
-+				 */
- 				fClearChnl = true;
- 			}
- 		} else {
--			/* Input channel cancelled:  clear input channel.  */
-+			/* Input channel cancelled: clear input channel */
- 			fClearChnl = true;
- 		}
- 	} else {
--		/* DPC fired after host closed channel: clear input channel. */
-+		/* DPC fired after host closed channel: clear input channel */
- 		fClearChnl = true;
- 	}
- 	if (fClearChnl) {
--		/* Indicate to the DSP we have read the input: */
-+		/* Indicate to the DSP we have read the input */
- 		IO_SetValue(pIOMgr->hWmdContext, struct SHM, sm, inputFull, 0);
- 		CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
- 	}
- 	if (fNotifyClient) {
--		/* Notify client with IO completion record:  */
-+		/* Notify client with IO completion record */
- 		NotifyChnlComplete(pChnl, pChirp);
- 	}
- func_end:
-@@ -1276,7 +1302,7 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 	u32 addr;
- 
- 	pCtrl = pIOMgr->pMsgInputCtrl;
--	/* Get the number of input messages to be read. */
-+	/* Get the number of input messages to be read */
- 	fInputEmpty = IO_GetValue(pIOMgr->hWmdContext, struct MSG, pCtrl,
- 				 bufEmpty);
- 	uMsgs = IO_GetValue(pIOMgr->hWmdContext, struct MSG, pCtrl, size);
-@@ -1303,9 +1329,11 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 		DBG_Trace(DBG_LEVEL7, "InputMsg RECVD: dwCmd=0x%x dwArg1=0x%x "
- 			 "dwArg2=0x%x dwId=0x%x \n", msg.msg.dwCmd,
- 			 msg.msg.dwArg1, msg.msg.dwArg2, msg.dwId);
--		/*  Interrupt may occur before shared memory and message
--		 *  input locations have been set up. If all nodes were
--		 *  cleaned up, hMsgMgr->uMaxMsgs should be 0.  */
-+		/*
-+		 * Interrupt may occur before shared memory and message
-+		 * input locations have been set up. If all nodes were
-+		 * cleaned up, hMsgMgr->uMaxMsgs should be 0.
-+		 */
- 		if (hMsgQueue && uMsgs > hMsgMgr->uMaxMsgs)
- 			goto func_end;
- 
-@@ -1313,15 +1341,18 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 			if (msg.dwId == hMsgQueue->dwId) {
- 				/* Found it */
- 				if (msg.msg.dwCmd == RMS_EXITACK) {
--					/* The exit message does not get
--					 * queued */
--					/* Call the node exit notification */
--					/* Node handle */ /* status */
-+					/*
-+					 * Call the node exit notification.
-+					 * The exit message does not get
-+					 * queued.
-+					 */
- 					(*hMsgMgr->onExit)((HANDLE)hMsgQueue->
- 						hArg, msg.msg.dwArg1);
- 				} else {
--					/* Not an exit acknowledgement, queue
--					 * the message */
-+					/*
-+					 * Not an exit acknowledgement, queue
-+					 * the message.
-+					 */
- 					if (!hMsgQueue->msgFreeList)
- 						goto func_end;
- 					pMsg = (struct MSG_FRAME *)LST_GetHead
-@@ -1336,8 +1367,10 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 						SYNC_SetEvent(hMsgQueue->
- 							hSyncEvent);
- 					} else {
--						/* No free frame to copy the
--						 * message into */
-+						/*
-+						 * No free frame to copy the
-+						 * message into.
-+						 */
- 						DBG_Trace(DBG_LEVEL7, "NO FREE "
- 							"MSG FRAMES, DISCARDING"
- 							" MESSAGE\n");
-@@ -1362,8 +1395,7 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 		CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
- 	}
- func_end:
--       return;
--
-+	return;
- }
- 
- /*
-@@ -1380,18 +1412,20 @@ static void NotifyChnlComplete(struct CHNL_OBJECT *pChnl,
- 	   !pChnl->pIOCompletions || !pChirp)
- 		goto func_end;
- 
--	 /*  Note: we signal the channel event only if the queue of IO
--	  *  completions is empty.  If it is not empty, the event is sure to be
--	  *  signalled by the only IO completion list consumer:
--	  *  WMD_CHNL_GetIOC().  */
-+	/*
-+	 * Note: we signal the channel event only if the queue of IO
-+	 * completions is empty.  If it is not empty, the event is sure to be
-+	 * signalled by the only IO completion list consumer:
-+	 * WMD_CHNL_GetIOC().
-+	 */
- 	fSignalEvent = LST_IsEmpty(pChnl->pIOCompletions);
--	/* Enqueue the IO completion info for the client: */
-+	/* Enqueue the IO completion info for the client */
- 	LST_PutTail(pChnl->pIOCompletions, (struct LST_ELEM *) pChirp);
- 	pChnl->cIOCs++;
- 
- 	if (pChnl->cIOCs > pChnl->cChirps)
- 		goto func_end;
--	/* Signal the channel event (if not already set) that IO is complete: */
-+	/* Signal the channel event (if not already set) that IO is complete */
- 	if (fSignalEvent)
- 		SYNC_SetEvent(pChnl->hSyncEvent);
- 
-@@ -1418,14 +1452,14 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 	pChnlMgr = pIOMgr->hChnlMgr;
- 	sm = pIOMgr->pSharedMem;
- 	DBG_Trace(DBG_LEVEL3, "> OutputChnl\n");
--	/* Attempt to perform output: */
-+	/* Attempt to perform output */
- 	if (IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, outputFull))
- 		goto func_end;
- 
- 	if (pChnl && !((pChnl->dwState & ~CHNL_STATEEOS) == CHNL_STATEREADY))
- 		goto func_end;
- 
--	/* Look to see if both a PC and DSP output channel are ready: */
-+	/* Look to see if both a PC and DSP output channel are ready */
- 	dwDspFMask = IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm,
- 				 dspFreeMask);
- 	chnlId = FindReadyOutput(pChnlMgr, pChnl, (pChnlMgr->dwOutputMask &
-@@ -1434,11 +1468,11 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 		goto func_end;
- 
- 	pChnl = pChnlMgr->apChannel[chnlId];
--       if (!pChnl || !pChnl->pIORequests) {
--		/* Shouldn't get here: */
-+	if (!pChnl || !pChnl->pIORequests) {
-+		/* Shouldn't get here */
- 		goto func_end;
- 	}
--	/* Get the I/O request, and attempt a transfer:  */
-+	/* Get the I/O request, and attempt a transfer */
- 	pChirp = (struct CHNL_IRP *)LST_GetHead(pChnl->pIORequests);
- 	if (!pChirp)
- 		goto func_end;
-@@ -1447,11 +1481,11 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 	if (pChnl->cIOReqs < 0 || !pChnl->pIORequests)
- 		goto func_end;
- 
--	/* Record fact that no more I/O buffers available:  */
-+	/* Record fact that no more I/O buffers available */
- 	if (LST_IsEmpty(pChnl->pIORequests))
- 		pChnlMgr->dwOutputMask &= ~(1 << chnlId);
- 
--	/* Transfer buffer to DSP side: */
-+	/* Transfer buffer to DSP side */
- 	pChirp->cBytes = WriteData(pIOMgr->hWmdContext, pIOMgr->pOutput,
- 			pChirp->pHostSysBuf, min(pIOMgr->uSMBufSize, pChirp->
- 			cBytes));
-@@ -1471,7 +1505,7 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 		   uWordSize);
- #endif
- 	IO_SetValue(pIOMgr->hWmdContext, struct SHM, sm, outputFull, 1);
--	/* Indicate to the DSP we have written the output: */
-+	/* Indicate to the DSP we have written the output */
- 	CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
- 	/* Notify client with IO completion record (keep EOS) */
- 	pChirp->status &= CHNL_IOCSTATEOS;
-@@ -1571,8 +1605,7 @@ static void OutputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 		}
- 	}
- func_end:
--       return;
--
-+	return;
- }
- 
- /*
-@@ -1594,8 +1627,10 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 	u32 ulShmSegId0 = 0;
- 	u32 dwOffset, dwGPPBaseVA, ulDSPSize;
- 
--	/* Read address and size info for first SM region.*/
--	/* Get start of 1st SM Heap region */
-+	/*
-+	 * Read address and size info for first SM region.
-+	 * Get start of 1st SM Heap region.
-+	 */
- 	status = COD_GetSymValue(hCodMan, SHM0_SHARED_BASE_SYM, &ulShm0_Base);
- 	if (ulShm0_Base == 0) {
- 		status = DSP_EFAIL;
-@@ -1611,7 +1646,7 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 			goto func_end;
- 		}
- 	}
--	/* start of Gpp reserved region */
-+	/* Start of Gpp reserved region */
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Get start and length of message part of shared memory */
- 		status = COD_GetSymValue(hCodMan, SHM0_SHARED_RESERVED_BASE_SYM,
-@@ -1640,27 +1675,29 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 	}
- 	/* Register new SM region(s) */
- 	if (DSP_SUCCEEDED(status) && (ulShm0_End - ulShm0_Base) > 0) {
--		/* calc size (bytes) of SM the GPP can alloc from */
-+		/* Calc size (bytes) of SM the GPP can alloc from */
- 		ulRsrvdSize = (ulShm0_End - ulShm0_RsrvdStart + 1) * hIOMgr->
- 			      uWordSize;
- 		if (ulRsrvdSize <= 0) {
- 			status = DSP_EFAIL;
- 			goto func_end;
- 		}
--		/* calc size of SM DSP can alloc from */
-+		/* Calc size of SM DSP can alloc from */
- 		ulDSPSize = (ulShm0_RsrvdStart - ulShm0_Base) * hIOMgr->
- 			uWordSize;
- 		if (ulDSPSize <= 0) {
- 			status = DSP_EFAIL;
- 			goto func_end;
- 		}
--		/*  First TLB entry reserved for Bridge SM use.*/
-+		/* First TLB entry reserved for Bridge SM use.*/
- 		ulGppPhys = hIOMgr->extProcInfo.tyTlb[0].ulGppPhys;
--		/* get size in bytes */
-+		/* Get size in bytes */
- 		ulDspVirt = hIOMgr->extProcInfo.tyTlb[0].ulDspVirt * hIOMgr->
- 			uWordSize;
--		 /* Calc byte offset used to convert GPP phys <-> DSP byte
--		  * address.*/
-+		/*
-+		 * Calc byte offset used to convert GPP phys <-> DSP byte
-+		 * address.
-+		 */
- 		if (dwGPPBasePA > ulDspVirt)
- 			dwOffset = dwGPPBasePA - ulDspVirt;
- 		else
-@@ -1670,15 +1707,19 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 			status = DSP_EFAIL;
- 			goto func_end;
- 		}
--		/* calc Gpp phys base of SM region */
--		/* Linux - this is actually uncached kernel virtual address*/
-+		/*
-+		 * Calc Gpp phys base of SM region.
-+		 * This is actually uncached kernel virtual address.
-+		 */
- 		dwGPPBaseVA = ulGppPhys + ulShm0_RsrvdStart * hIOMgr->uWordSize
- 				- ulDspVirt;
--		/* calc Gpp phys base of SM region */
--		/* Linux - this is the physical address*/
-+		/*
-+		 * Calc Gpp phys base of SM region.
-+		 * This is the physical address.
-+		 */
- 		dwGPPBasePA = dwGPPBasePA + ulShm0_RsrvdStart * hIOMgr->
- 			      uWordSize - ulDspVirt;
--		 /* Register SM Segment 0.*/
-+		/* Register SM Segment 0.*/
- 		status = CMM_RegisterGPPSMSeg(hIOMgr->hCmmMgr, dwGPPBasePA,
- 			 ulRsrvdSize, dwOffset, (dwGPPBasePA > ulDspVirt) ?
- 			 CMM_ADDTODSPPA : CMM_SUBFROMDSPPA,
-@@ -1688,7 +1729,7 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 			DBG_Trace(DBG_LEVEL7, "ERROR - Failed to register SM "
- 				 "Seg 0 \n");
- 		}
--		/* first SM region is segId = 1 */
-+		/* First SM region is segId = 1 */
- 		if (ulShmSegId0 != 1)
- 			status = DSP_EFAIL;
- 	}
-@@ -1712,7 +1753,7 @@ static u32 ReadData(struct WMD_DEV_CONTEXT *hDevContext, void *pDest,
-  *      Copies buffers from the host side buffer to the shared memory.
-  */
- static u32 WriteData(struct WMD_DEV_CONTEXT *hDevContext, void *pDest,
--		       void *pSrc, u32 uSize)
-+			void *pSrc, u32 uSize)
- {
- 	memcpy(pDest, pSrc, uSize);
- 	return uSize;
-@@ -1746,8 +1787,10 @@ DSP_STATUS IO_SHMsetting(IN struct IO_MGR *hIOMgr, IN enum SHM_DESCTYPE desc,
- 			return DSP_EFAIL;
- 		break;
- 	case SHM_OPPINFO:
--		/* Update the shared memory with the voltage, frequency,
--				   min and max frequency values for an OPP */
-+		/*
-+		 * Update the shared memory with the voltage, frequency,
-+		 * min and max frequency values for an OPP.
-+		 */
- 		for (i = 0; i <= dsp_max_opps; i++) {
- 			hIOMgr->pSharedMem->oppTableStruct.oppPoint[i].voltage =
- 				vdd1_dsp_freq[i][0];
-@@ -1815,7 +1858,7 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
- {
- 	u32 ulNewMessageLength = 0, ulGPPCurPointer;
- 
--       GT_0trace(dsp_trace_mask, GT_ENTER, "Entering PrintDSPDebugTrace\n");
-+	GT_0trace(dsp_trace_mask, GT_ENTER, "Entering PrintDSPDebugTrace\n");
- 
- 	while (true) {
- 		/* Get the DSP current pointer */
-@@ -1824,25 +1867,25 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
- 				  hIOMgr->ulDspVa);
- 
- 		/* No new debug messages available yet */
--		if (ulGPPCurPointer == hIOMgr->ulGPPReadPointer)
-+		if (ulGPPCurPointer == hIOMgr->ulGPPReadPointer) {
- 			break;
--
--		/* Continuous data */
--		else if (ulGPPCurPointer > hIOMgr->ulGPPReadPointer) {
-+		} else if (ulGPPCurPointer > hIOMgr->ulGPPReadPointer) {
-+			/* Continuous data */
- 			ulNewMessageLength = ulGPPCurPointer - hIOMgr->
- 					     ulGPPReadPointer;
- 
- 			memcpy(hIOMgr->pMsg, (char *)hIOMgr->ulGPPReadPointer,
--			       ulNewMessageLength);
-+				ulNewMessageLength);
- 			hIOMgr->pMsg[ulNewMessageLength] = '\0';
--			/* Advance the GPP trace pointer to DSP current
--			 * pointer */
-+			/*
-+			 * Advance the GPP trace pointer to DSP current
-+			 * pointer.
-+			 */
- 			hIOMgr->ulGPPReadPointer += ulNewMessageLength;
- 			/* Print the trace messages */
- 			GT_0trace(dsp_trace_mask, GT_1CLASS, hIOMgr->pMsg);
--		}
--		/* Handle trace buffer wraparound */
--		else if (ulGPPCurPointer < hIOMgr->ulGPPReadPointer) {
-+		} else if (ulGPPCurPointer < hIOMgr->ulGPPReadPointer) {
-+			/* Handle trace buffer wraparound */
- 			memcpy(hIOMgr->pMsg, (char *)hIOMgr->ulGPPReadPointer,
- 				hIOMgr->ulTraceBufferEnd -
- 				hIOMgr->ulGPPReadPointer);
-@@ -1855,8 +1898,10 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
- 			hIOMgr->pMsg[hIOMgr->ulTraceBufferEnd -
- 				hIOMgr->ulGPPReadPointer +
- 				ulNewMessageLength] = '\0';
--			/* Advance the GPP trace pointer to DSP current
--			 * pointer */
-+			/*
-+			 * Advance the GPP trace pointer to DSP current
-+			 * pointer.
-+			 */
- 			hIOMgr->ulGPPReadPointer = hIOMgr->ulTraceBufferBegin +
- 						   ulNewMessageLength;
- 			/* Print the trace messages */
-@@ -1895,7 +1940,7 @@ static DSP_STATUS PackTraceBuffer(char *lpBuf, u32 nBytes, u32 ulNumWords)
- 	u32 nCnt;
- 	char thisChar;
- 
--	/* tmp workspace, 1 KB longer than input buf */
-+	/* Tmp workspace, 1 KB longer than input buf */
- 	lpTmpBuf = MEM_Calloc((nBytes + ulNumWords), MEM_PAGED);
- 	if (lpTmpBuf == NULL) {
- 		DBG_Trace(DBG_LEVEL7, "PackTrace buffer:OutofMemory \n");
-@@ -1911,8 +1956,10 @@ static DSP_STATUS PackTraceBuffer(char *lpBuf, u32 nBytes, u32 ulNumWords)
- 			case '\0':      /* Skip null bytes */
- 				break;
- 			case '\n':      /* Convert \n to \r\n */
--				/* NOTE: do not reverse order; Some OS */
--				/* editors control doesn't understand "\n\r" */
-+				/*
-+				 * NOTE: do not reverse order; Some OS
-+				 * editors control doesn't understand "\n\r"
-+				 */
- 				*lpTmpBuf++ = '\r';
- 				*lpTmpBuf++ = '\n';
- 				break;
-@@ -1924,7 +1971,7 @@ static DSP_STATUS PackTraceBuffer(char *lpBuf, u32 nBytes, u32 ulNumWords)
- 		*lpTmpBuf = '\0';    /* Make sure tmp buf is null terminated */
- 		/* Cut output down to input buf size */
- 		strncpy(lpBufStart, lpTmpStart, nBytes);
--		/*Make sure output is null terminated */
-+		/* Make sure output is null terminated */
- 		lpBufStart[nBytes - 1] = '\0';
- 		MEM_Free(lpTmpStart);
- 	}
-@@ -1972,7 +2019,7 @@ DSP_STATUS PrintDspTraceBuffer(struct WMD_DEV_CONTEXT *hWmdContext)
- 			"PrintDspTraceBuffer: Failed on DEV_GetCodMgr.\n");
- 
- 	if (DSP_SUCCEEDED(status)) {
--		/* Look for SYS_PUTCBEG/SYS_PUTCEND: */
-+		/* Look for SYS_PUTCBEG/SYS_PUTCEND */
- 		status = COD_GetSymValue(hCodMgr, COD_TRACEBEG, &ulTraceBegin);
- 		GT_1trace(dsp_trace_mask, GT_2CLASS,
- 			"PrintDspTraceBuffer: ulTraceBegin Value 0x%x\n",
--- 
-1.6.2.4
+Please re-spin one more time using 'enum opp_type type' which I think
+is much more redable and greppable.
 
+After this, I'll be considering the OPP API frozen, and begin
+consolidating stuff for a push to mainline or 2.6.34.
+
+Kevin
+
+> ---
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 5c751c1..0930aef 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -1347,7 +1347,6 @@ static void __init configure_vc(void)
+>  
+>  void __init omap3_pm_init_opp_table(void)
+>  {
+> -	int i;
+>  	struct omap_opp_def **omap3_opp_def_list;
+>  	struct omap_opp_def *omap34xx_opp_def_list[] = {
+>  		omap34xx_mpu_rate_table,
+> @@ -1359,19 +1358,13 @@ void __init omap3_pm_init_opp_table(void)
+>  		omap36xx_l3_rate_table,
+>  		omap36xx_dsp_rate_table
+>  	};
+> -	struct omap_opp **omap3_rate_tables[] = {
+> -		&mpu_opps,
+> -		&l3_opps,
+> -		&dsp_opps
+> -	};
+>  
+>  	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
+>  				omap34xx_opp_def_list;
+> -	for (i = 0; i < ARRAY_SIZE(omap3_rate_tables); i++) {
+> -		*omap3_rate_tables[i] = opp_init_list(omap3_opp_def_list[i]);
+> -		/* We dont want half configured system at the moment */
+> -		BUG_ON(IS_ERR(omap3_rate_tables[i]));
+> -	}
+> +
+> +	BUG_ON(opp_init_list(OPP_MPU, omap3_opp_def_list[0]));
+> +	BUG_ON(opp_init_list(OPP_L3, omap3_opp_def_list[1]));
+> +	BUG_ON(opp_init_list(OPP_DSP, omap3_opp_def_list[2]));
+>  }
+>  
+>  static int __init omap3_pm_early_init(void)
+> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+> index 157b38e..5ec072e 100644
+> --- a/arch/arm/mach-omap2/resource34xx.c
+> +++ b/arch/arm/mach-omap2/resource34xx.c
+> @@ -161,7 +161,7 @@ static DEFINE_MUTEX(dvfs_mutex);
+>  /**
+>   * opp_to_freq - convert OPPID to frequency (DEPRECATED)
+>   * @freq: return frequency back to caller
+> - * @opps: opp list
+> + * @opp_t: OPP type where we need to look.
+>   * @opp_id: OPP ID we are searching for
+>   *
+>   * return 0 and freq is populated if we find the opp_id, else,
+> @@ -169,14 +169,14 @@ static DEFINE_MUTEX(dvfs_mutex);
+>   *
+>   * NOTE: this function is a standin for the timebeing as opp_id is deprecated
+>   */
+> -static int __deprecated opp_to_freq(unsigned long *freq,
+> -		const struct omap_opp *opps, u8 opp_id)
+> +static int __deprecated opp_to_freq(unsigned long *freq, enum opp_t opp_t,
+> +				 u8 opp_id)
+>  {
+>  	struct omap_opp *opp;
+>  
+> -	BUG_ON(!freq || !opps);
+> +	BUG_ON(!freq || opp_t >= OPP_TYPES_MAX);
+>  
+> -	opp = opp_find_by_opp_id(opps, opp_id);
+> +	opp = opp_find_by_opp_id(opp_t, opp_id);
+>  	if (!opp)
+>  		return -EINVAL;
+>  
+> @@ -188,20 +188,20 @@ static int __deprecated opp_to_freq(unsigned long *freq,
+>  /**
+>   * freq_to_opp - convert a frequency back to OPP ID (DEPRECATED)
+>   * @opp_id: opp ID returned back to caller
+> - * @opps: opp list
+> + * @opp_t: OPP type where we need to look.
+>   * @freq: frequency we are searching for
+>   *
+>   * return 0 and opp_id is populated if we find the freq, else, we return error
+>   *
+>   * NOTE: this function is a standin for the timebeing as opp_id is deprecated
+>   */
+> -static int __deprecated freq_to_opp(u8 *opp_id, struct omap_opp *opps,
+> +static int __deprecated freq_to_opp(u8 *opp_id, enum opp_t opp_t,
+>  		unsigned long freq)
+>  {
+>  	struct omap_opp *opp;
+>  
+> -	BUG_ON(!opp_id || !opps);
+> -	opp = opp_find_freq_ceil(opps, &freq);
+> +	BUG_ON(opp_t >= OPP_TYPES_MAX);
+> +	opp = opp_find_freq_ceil(opp_t, &freq);
+>  	if (IS_ERR(opp))
+>  		return -EINVAL;
+>  	*opp_id = opp_get_opp_id(opp);
+> @@ -218,9 +218,6 @@ void init_opp(struct shared_resource *resp)
+>  	u8 opp_id;
+>  	resp->no_of_users = 0;
+>  
+> -	if (!mpu_opps || !dsp_opps || !l3_opps)
+> -		return;
+> -
+>  	/* Initialize the current level of the OPP resource
+>  	* to the  opp set by u-boot.
+>  	*/
+> @@ -228,14 +225,14 @@ void init_opp(struct shared_resource *resp)
+>  		vdd1_resp = resp;
+>  		dpll1_clk = clk_get(NULL, "dpll1_ck");
+>  		dpll2_clk = clk_get(NULL, "dpll2_ck");
+> -		ret = freq_to_opp(&opp_id, mpu_opps, dpll1_clk->rate);
+> +		ret = freq_to_opp(&opp_id, OPP_MPU, dpll1_clk->rate);
+>  		BUG_ON(ret); /* TBD Cleanup handling */
+>  		curr_vdd1_opp = opp_id;
+>  	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
+>  		vdd2_resp = resp;
+>  		dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
+>  		l3_clk = clk_get(NULL, "l3_ick");
+> -		ret = freq_to_opp(&opp_id, l3_opps, l3_clk->rate);
+> +		ret = freq_to_opp(&opp_id, OPP_L3, l3_clk->rate);
+>  		BUG_ON(ret); /* TBD Cleanup handling */
+>  		curr_vdd2_opp = opp_id;
+>  	}
+> @@ -288,13 +285,13 @@ static int program_opp_freq(int res, int target_level, int current_level)
+>  
+>  	/* Check if I can actually switch or not */
+>  	if (res == VDD1_OPP) {
+> -		ret = opp_to_freq(&mpu_freq, mpu_opps, target_level);
+> -		ret |= opp_to_freq(&dsp_freq, dsp_opps, target_level);
+> +		ret = opp_to_freq(&mpu_freq, OPP_MPU, target_level);
+> +		ret |= opp_to_freq(&dsp_freq, OPP_DSP, target_level);
+>  #ifndef CONFIG_CPU_FREQ
+> -		ret |= opp_to_freq(&mpu_cur_freq, mpu_opps, current_level);
+> +		ret |= opp_to_freq(&mpu_cur_freq, OPP_MPU, current_level);
+>  #endif
+>  	} else {
+> -		ret = opp_to_freq(&l3_freq, l3_opps, target_level);
+> +		ret = opp_to_freq(&l3_freq, OPP_L3, target_level);
+>  	}
+>  	/* we would have caught all bad levels earlier.. */
+>  	if (unlikely(ret))
+> @@ -329,7 +326,7 @@ static int program_opp_freq(int res, int target_level, int current_level)
+>  	return target_level;
+>  }
+>  
+> -static int program_opp(int res, struct omap_opp *opp, int target_level,
+> +static int program_opp(int res, enum opp_t opp_t, int target_level,
+>  		int current_level)
+>  {
+>  	int i, ret = 0, raise;
+> @@ -342,7 +339,7 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
+>  #endif
+>  
+>  	/* See if have a freq associated, if not, invalid opp */
+> -	ret = opp_to_freq(&freq, opp, target_level);
+> +	ret = opp_to_freq(&freq, opp_t, target_level);
+>  	if (unlikely(ret))
+>  		return ret;
+>  
+> @@ -365,13 +362,13 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
+>  			 * transitioning from good to good OPP
+>  			 * none of the following should fail..
+>  			 */
+> -			oppx = opp_find_freq_exact(opp, freq, true);
+> +			oppx = opp_find_freq_exact(opp_t, freq, true);
+>  			BUG_ON(IS_ERR(oppx));
+>  			uvdc = opp_get_voltage(oppx);
+>  			vt = omap_twl_uv_to_vsel(uvdc);
+>  
+> -			BUG_ON(opp_to_freq(&freq, opp, current_level));
+> -			oppx = opp_find_freq_exact(opp, freq, true);
+> +			BUG_ON(opp_to_freq(&freq, opp_t, current_level));
+> +			oppx = opp_find_freq_exact(opp_t, freq, true);
+>  			BUG_ON(IS_ERR(oppx));
+>  			uvdc = opp_get_voltage(oppx);
+>  			vc = omap_twl_uv_to_vsel(uvdc);
+> @@ -404,15 +401,12 @@ int resource_set_opp_level(int res, u32 target_level, int flags)
+>  	if (resp->curr_level == target_level)
+>  		return 0;
+>  
+> -	if (!mpu_opps || !dsp_opps || !l3_opps)
+> -		return 0;
+> -
+>  	/* Check if I can actually switch or not */
+>  	if (res == VDD1_OPP) {
+> -		ret = opp_to_freq(&mpu_freq, mpu_opps, target_level);
+> -		ret |= opp_to_freq(&mpu_old_freq, mpu_opps, resp->curr_level);
+> +		ret = opp_to_freq(&mpu_freq, OPP_MPU, target_level);
+> +		ret |= opp_to_freq(&mpu_old_freq, OPP_MPU, resp->curr_level);
+>  	} else {
+> -		ret = opp_to_freq(&l3_freq, l3_opps, target_level);
+> +		ret = opp_to_freq(&l3_freq, OPP_L3, target_level);
+>  	}
+>  	if (ret)
+>  		return ret;
+> @@ -431,7 +425,7 @@ int resource_set_opp_level(int res, u32 target_level, int flags)
+>  		/* Send pre notification to CPUFreq */
+>  		cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
+>  #endif
+> -		resp->curr_level = program_opp(res, mpu_opps, target_level,
+> +		resp->curr_level = program_opp(res, OPP_MPU, target_level,
+>  			resp->curr_level);
+>  #ifdef CONFIG_CPU_FREQ
+>  		/* Send a post notification to CPUFreq */
+> @@ -442,7 +436,7 @@ int resource_set_opp_level(int res, u32 target_level, int flags)
+>  			mutex_unlock(&dvfs_mutex);
+>  			return 0;
+>  		}
+> -		resp->curr_level = program_opp(res, l3_opps, target_level,
+> +		resp->curr_level = program_opp(res, OPP_L3, target_level,
+>  			resp->curr_level);
+>  	}
+>  	mutex_unlock(&dvfs_mutex);
+> @@ -474,17 +468,17 @@ int set_opp(struct shared_resource *resp, u32 target_level)
+>  		req_l3_freq = (target_level * 1000)/4;
+>  
+>  		/* Do I have a best match? */
+> -		oppx = opp_find_freq_ceil(l3_opps, &req_l3_freq);
+> +		oppx = opp_find_freq_ceil(OPP_L3, &req_l3_freq);
+>  		if (IS_ERR(oppx)) {
+>  			/* Give me the best we got */
+>  			req_l3_freq = ULONG_MAX;
+> -			oppx = opp_find_freq_floor(l3_opps, &req_l3_freq);
+> +			oppx = opp_find_freq_floor(OPP_L3, &req_l3_freq);
+>  		}
+>  
+>  		/* uh uh.. no OPPs?? */
+>  		BUG_ON(IS_ERR(oppx));
+>  
+> -		ret = freq_to_opp((u8 *)&target_level, l3_opps, req_l3_freq);
+> +		ret = freq_to_opp((u8 *)&target_level, OPP_L3, req_l3_freq);
+>  		/* we dont expect this to fail */
+>  		BUG_ON(ret);
+>  
+> @@ -503,9 +497,9 @@ int validate_opp(struct shared_resource *resp, u32 target_level)
+>  {
+>  	unsigned long x;
+>  	if (strcmp(resp->name, "mpu_freq") == 0)
+> -		return opp_to_freq(&x, mpu_opps, target_level);
+> +		return opp_to_freq(&x, OPP_MPU, target_level);
+>  	else if (strcmp(resp->name, "dsp_freq") == 0)
+> -		return opp_to_freq(&x, dsp_opps, target_level);
+> +		return opp_to_freq(&x, OPP_DSP, target_level);
+>  	return 0;
+>  }
+>  
+> @@ -519,19 +513,16 @@ void init_freq(struct shared_resource *resp)
+>  	unsigned long freq;
+>  	resp->no_of_users = 0;
+>  
+> -	if (!mpu_opps || !dsp_opps)
+> -		return;
+> -
+>  	linked_res_name = (char *)resp->resource_data;
+>  	/* Initialize the current level of the Freq resource
+>  	* to the frequency set by u-boot.
+>  	*/
+>  	if (strcmp(resp->name, "mpu_freq") == 0)
+>  		/* MPU freq in Mhz */
+> -		ret = opp_to_freq(&freq, mpu_opps, curr_vdd1_opp);
+> +		ret = opp_to_freq(&freq, OPP_MPU, curr_vdd1_opp);
+>  	else if (strcmp(resp->name, "dsp_freq") == 0)
+>  		/* DSP freq in Mhz */
+> -		ret = opp_to_freq(&freq, dsp_opps, curr_vdd1_opp);
+> +		ret = opp_to_freq(&freq, OPP_DSP, curr_vdd1_opp);
+>  	BUG_ON(ret);
+>  
+>  	resp->curr_level = freq;
+> @@ -543,16 +534,13 @@ int set_freq(struct shared_resource *resp, u32 target_level)
+>  	u8 vdd1_opp;
+>  	int ret = -EINVAL;
+>  
+> -	if (!mpu_opps || !dsp_opps)
+> -		return 0;
+> -
+>  	if (strcmp(resp->name, "mpu_freq") == 0) {
+> -		ret = freq_to_opp(&vdd1_opp, mpu_opps, target_level);
+> +		ret = freq_to_opp(&vdd1_opp, OPP_MPU, target_level);
+>  		if (!ret)
+>  			ret = resource_request("vdd1_opp", &dummy_mpu_dev,
+>  					vdd1_opp);
+>  	} else if (strcmp(resp->name, "dsp_freq") == 0) {
+> -		ret = freq_to_opp(&vdd1_opp, dsp_opps, target_level);
+> +		ret = freq_to_opp(&vdd1_opp, OPP_DSP, target_level);
+>  		if (!ret)
+>  			ret = resource_request("vdd1_opp", &dummy_dsp_dev,
+>  					vdd1_opp);
+> @@ -566,8 +554,8 @@ int validate_freq(struct shared_resource *resp, u32 target_level)
+>  {
+>  	u8 x;
+>  	if (strcmp(resp->name, "mpu_freq") == 0)
+> -		return freq_to_opp(&x, mpu_opps, target_level);
+> +		return freq_to_opp(&x, OPP_MPU, target_level);
+>  	else if (strcmp(resp->name, "dsp_freq") == 0)
+> -		return freq_to_opp(&x, dsp_opps, target_level);
+> +		return freq_to_opp(&x, OPP_DSP, target_level);
+>  	return 0;
+>  }
+> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+> index 3c37837..1c5ec37 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -152,12 +152,11 @@ static u8 get_vdd1_opp(void)
+>  	struct omap_opp *opp;
+>  	unsigned long freq;
+>  
+> -	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk) ||
+> -							mpu_opps == NULL)
+> +	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk))
+>  		return 0;
+>  
+>  	freq = sr1.vdd_opp_clk->rate;
+> -	opp = opp_find_freq_ceil(mpu_opps, &freq);
+> +	opp = opp_find_freq_ceil(OPP_MPU, &freq);
+>  	if (IS_ERR(opp))
+>  		return 0;
+>  	/*
+> @@ -176,12 +175,11 @@ static u8 get_vdd2_opp(void)
+>  	struct omap_opp *opp;
+>  	unsigned long freq;
+>  
+> -	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk) ||
+> -							l3_opps == NULL)
+> +	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk))
+>  		return 0;
+>  
+>  	freq = sr2.vdd_opp_clk->rate;
+> -	opp = opp_find_freq_ceil(l3_opps, &freq);
+> +	opp = opp_find_freq_ceil(OPP_L3, &freq);
+>  	if (IS_ERR(opp))
+>  		return 0;
+>  
+> @@ -310,7 +308,7 @@ static void sr_configure_vp(int srid)
+>  		if (!target_opp_no)
+>  			target_opp_no = VDD1_OPP3;
+>  
+> -		opp = opp_find_by_opp_id(mpu_opps, target_opp_no);
+> +		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+>  		BUG_ON(!opp); /* XXX ugh */
+>  
+>  		uvdc = opp_get_voltage(opp);
+> @@ -359,7 +357,7 @@ static void sr_configure_vp(int srid)
+>  		if (!target_opp_no)
+>  			target_opp_no = VDD2_OPP3;
+>  
+> -		opp = opp_find_by_opp_id(l3_opps, target_opp_no);
+> +		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+>  		BUG_ON(!opp); /* XXX ugh */
+>  
+>  		uvdc = opp_get_voltage(opp);
+> @@ -472,7 +470,7 @@ static int sr_reset_voltage(int srid)
+>  			return 1;
+>  		}
+>  
+> -		opp = opp_find_by_opp_id(mpu_opps, target_opp_no);
+> +		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+>  		if (!opp)
+>  			return 1;
+>  
+> @@ -490,7 +488,7 @@ static int sr_reset_voltage(int srid)
+>  			return 1;
+>  		}
+>  
+> -		opp = opp_find_by_opp_id(l3_opps, target_opp_no);
+> +		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+>  		if (!opp)
+>  			return 1;
+>  
+> @@ -546,11 +544,6 @@ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+>  	int uvdc;
+>  	char vsel;
+>  
+> -	if (!(mpu_opps && l3_opps)) {
+> -		pr_notice("VSEL values not found\n");
+> -		return false;
+> -	}
+> -
+>  	sr->req_opp_no = target_opp_no;
+>  
+>  	if (sr->srid == SR1) {
+> @@ -575,7 +568,7 @@ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+>  			break;
+>  		}
+>  
+> -		opp = opp_find_by_opp_id(mpu_opps, target_opp_no);
+> +		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+>  		if (!opp)
+>  			return false;
+>  	} else {
+> @@ -594,7 +587,7 @@ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+>  			break;
+>  		}
+>  
+> -		opp = opp_find_by_opp_id(l3_opps, target_opp_no);
+> +		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+>  		if (!opp)
+>  			return false;
+>  	}
+> @@ -1010,12 +1003,6 @@ static int __init omap3_sr_init(void)
+>  	int ret = 0;
+>  	u8 RdReg;
+>  
+> -	/* Exit if OPP tables are not defined */
+> -        if (!(mpu_opps && l3_opps)) {
+> -                pr_err("SR: OPP rate tables not defined for platform, not enabling SmartReflex\n");
+> -		return -ENODEV;
+> -        }
+> -
+>  	/* Enable SR on T2 */
+>  	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
+>  			      R_DCDC_GLOBAL_CFG);
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> index 6bd62ea..dddc027 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -52,12 +52,6 @@ int omap_board_config_size;
+>  /* used by omap-smp.c and board-4430sdp.c */
+>  void __iomem *gic_cpu_base_addr;
+>  
+> -#ifdef CONFIG_OMAP_PM_NONE
+> -struct omap_opp *mpu_opps;
+> -struct omap_opp *dsp_opps;
+> -struct omap_opp *l3_opps;
+> -#endif
+> -
+>  static const void *get_config(u16 tag, size_t len, int skip, size_t *len_out)
+>  {
+>  	struct omap_board_config_kernel *kinfo = NULL;
+> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+> index 109203e..a69b557 100644
+> --- a/arch/arm/plat-omap/cpu-omap.c
+> +++ b/arch/arm/plat-omap/cpu-omap.c
+> @@ -87,6 +87,9 @@ static int omap_target(struct cpufreq_policy *policy,
+>  #ifdef CONFIG_ARCH_OMAP1
+>  	struct cpufreq_freqs freqs;
+>  #endif
+> +#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> +	unsigned long freq = target_freq * 1000;
+> +#endif
+>  	int ret = 0;
+>  
+>  	/* Ensure desired rate is within allowed range.  Some govenors
+> @@ -111,11 +114,8 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+>  	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+>  #elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> -	if (mpu_opps) {
+> -		unsigned long freq = target_freq * 1000;
+> -		if (!IS_ERR(opp_find_freq_ceil(mpu_opps, &freq)))
+> -			omap_pm_cpu_set_freq(freq);
+> -	}
+> +	if (opp_find_freq_ceil(OPP_MPU, &freq))
+> +		omap_pm_cpu_set_freq(freq);
+>  #endif
+>  	return ret;
+>  }
+> @@ -136,7 +136,7 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
+>  	if (!cpu_is_omap34xx())
+>  		clk_init_cpufreq_table(&freq_table);
+>  	else
+> -		opp_init_cpufreq_table(mpu_opps, &freq_table);
+> +		opp_init_cpufreq_table(OPP_MPU, &freq_table);
+>  
+>  	if (freq_table) {
+>  		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+> diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
+> index 9f91ad3..b4ef532 100644
+> --- a/arch/arm/plat-omap/include/plat/opp.h
+> +++ b/arch/arm/plat-omap/include/plat/opp.h
+> @@ -13,9 +13,16 @@
+>  #ifndef __ASM_ARM_OMAP_OPP_H
+>  #define __ASM_ARM_OMAP_OPP_H
+>  
+> -extern struct omap_opp *mpu_opps;
+> -extern struct omap_opp *dsp_opps;
+> -extern struct omap_opp *l3_opps;
+> +#ifdef CONFIG_ARCH_OMAP3
+> +enum opp_t {
+> +	OPP_MPU,
+> +	OPP_L3,
+> +	OPP_DSP,
+> +	OPP_TYPES_MAX
+> +};
+> +#else
+> +#error "You need to populate the OPP types for OMAP chip type."
+> +#endif
+>  
+>  struct omap_opp;
+>  
+> @@ -40,16 +47,16 @@ unsigned long opp_get_freq(const struct omap_opp *opp);
+>  /**
+>   * opp_get_opp_count() - Get number of opps enabled in the opp list
+>   * @num:	returns the number of opps
+> - * @oppl:	opp list
+> + * @opp_t:	OPP type we want to count
+>   *
+>   * This functions returns the number of opps if there are any OPPs enabled,
+>   * else returns corresponding error value.
+>   */
+> -int opp_get_opp_count(struct omap_opp *oppl);
+> +int opp_get_opp_count(enum opp_t opp_t);
+>  
+>  /**
+>   * opp_find_freq_exact() - search for an exact frequency
+> - * @oppl:	OPP list
+> + * @opp_t:	OPP type we want to search in.
+>   * @freq:	frequency to search for
+>   * @enabled:	enabled/disabled OPP to search for
+>   *
+> @@ -61,14 +68,14 @@ int opp_get_opp_count(struct omap_opp *oppl);
+>   * for exact matching frequency and is enabled. if true, the match is for exact
+>   * frequency which is disabled.
+>   */
+> -struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+> +struct omap_opp *opp_find_freq_exact(enum opp_t opp_t,
+>  				     unsigned long freq, bool enabled);
+>  
+>  /* XXX This documentation needs fixing */
+>  
+>  /**
+>   * opp_find_freq_floor() - Search for an rounded freq
+> - * @oppl:	Starting list
+> + * @opp_t:	OPP type we want to search in
+>   * @freq:	Start frequency
+>   *
+>   * Search for the lower *enabled* OPP from a starting freq
+> @@ -97,14 +104,13 @@ struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+>   * NOTE: if we set freq as ULONG_MAX and search low, we get the
+>   * highest enabled frequency
+>   */
+> -struct omap_opp *opp_find_freq_floor(struct omap_opp *oppl,
+> -				     unsigned long *freq);
+> +struct omap_opp *opp_find_freq_floor(enum opp_t opp_t, unsigned long *freq);
+>  
+>  /* XXX This documentation needs fixing */
+>  
+>  /**
+>   * opp_find_freq_ceil() - Search for an rounded freq
+> - * @oppl:	Starting list
+> + * @opp_t:	OPP type where we want to search in
+>   * @freq:	Start frequency
+>   *
+>   * Search for the higher *enabled* OPP from a starting freq
+> @@ -130,7 +136,7 @@ struct omap_opp *opp_find_freq_floor(struct omap_opp *oppl,
+>   *		freq++; * for next higher match *
+>   *	}
+>   */
+> -struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl, unsigned long *freq);
+> +struct omap_opp *opp_find_freq_ceil(enum opp_t opp_t, unsigned long *freq);
+>  
+>  
+>  /**
+> @@ -170,35 +176,27 @@ struct omap_opp_def {
+>  
+>  /**
+>   * opp_init_list() - Initialize an opp list from the opp definitions
+> + * @opp_t:	OPP type to initialize this list for.
+>   * @opp_defs:	Initial opp definitions to create the list.
+>   *
+> - * This function creates a list of opp definitions and returns a handle.
+> + * This function creates a list of opp definitions and returns status.
+>   * This list can be used to further validation/search/modifications. New
+>   * opp entries can be added to this list by using opp_add().
+>   *
+> - * In the case of error, ERR_PTR is returned to the caller and should be
+> - * appropriately handled with IS_ERR.
+> + * In the case of error, suitable error code is returned.
+>   */
+> -struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs);
+> +int  __init opp_init_list(enum opp_t opp_t,
+> +			 const struct omap_opp_def *opp_defs);
+>  
+>  /**
+>   * opp_add()  - Add an OPP table from a table definitions
+> - * @oppl:	List to add the OPP to
+> + * @opp_t:	OPP type under which we want to add our new OPP.
+>   * @opp_def:	omap_opp_def to describe the OPP which we want to add to list.
+>   *
+> - * This function adds an opp definition to the opp list and returns
+> - * a handle representing the new OPP list. This handle is then used for further
+> - * validation, search, modification operations on the OPP list.
+> - *
+> - * This function returns the pointer to the allocated list through oppl if
+> - * success, else corresponding ERR_PTR value. Caller should NOT free the oppl.
+> - * opps_defs can be freed after use.
+> + * This function adds an opp definition to the opp list and returns status.
+>   *
+> - * NOTE: caller should assume that on success, oppl is probably populated with
+> - * a new handle and the new handle should be used for further referencing
+>   */
+> -struct omap_opp *opp_add(struct omap_opp *oppl,
+> -			 const struct omap_opp_def *opp_def);
+> +int opp_add(enum opp_t opp_t, const struct omap_opp_def *opp_def);
+>  
+>  /**
+>   * opp_enable() - Enable a specific OPP
+> @@ -224,11 +222,11 @@ int opp_enable(struct omap_opp *opp);
+>   */
+>  int opp_disable(struct omap_opp *opp);
+>  
+> -struct omap_opp * __deprecated opp_find_by_opp_id(struct omap_opp *opps,
+> +struct omap_opp * __deprecated opp_find_by_opp_id(enum opp_t opp_t,
+>  						  u8 opp_id);
+>  u8 __deprecated opp_get_opp_id(struct omap_opp *opp);
+>  
+> -void opp_init_cpufreq_table(struct omap_opp *opps,
+> +void opp_init_cpufreq_table(enum opp_t opp_t,
+>  			    struct cpufreq_frequency_table **table);
+>  
+>  
+> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+> index aeb372e..713a59f 100644
+> --- a/arch/arm/plat-omap/omap-pm-noop.c
+> +++ b/arch/arm/plat-omap/omap-pm-noop.c
+> @@ -26,10 +26,6 @@
+>  
+>  #include <plat/powerdomain.h>
+>  
+> -struct omap_opp *dsp_opps;
+> -struct omap_opp *mpu_opps;
+> -struct omap_opp *l3_opps;
+> -
+>  /*
+>   * Device-driver-originated constraints (via board-*.c files)
+>   */
+> diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
+> index f7bf353..9b4cf7f 100644
+> --- a/arch/arm/plat-omap/omap-pm-srf.c
+> +++ b/arch/arm/plat-omap/omap-pm-srf.c
+> @@ -25,10 +25,6 @@
+>  #include <plat/resource.h>
+>  #include <plat/omap_device.h>
+>  
+> -struct omap_opp *dsp_opps;
+> -struct omap_opp *mpu_opps;
+> -struct omap_opp *l3_opps;
+> -
+>  #define LAT_RES_POSTAMBLE "_latency"
+>  #define MAX_LATENCY_RES_NAME 30
+>  
+> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+> index 4fe1933..8fd9366 100644
+> --- a/arch/arm/plat-omap/opp.c
+> +++ b/arch/arm/plat-omap/opp.c
+> @@ -38,6 +38,8 @@ struct omap_opp {
+>  	u8 opp_id;
+>  };
+>  
+> +
+> +static struct omap_opp *_opp_list[OPP_TYPES_MAX];
+>  /*
+>   * DEPRECATED: Meant to detect end of opp array
+>   * This is meant to help co-exist with current SRF etc
+> @@ -65,17 +67,22 @@ unsigned long opp_get_freq(const struct omap_opp *opp)
+>  
+>  /**
+>   * opp_find_by_opp_id - look up OPP by OPP ID (deprecated)
+> - * @opps: pointer to an array of struct omap_opp
+> + * @opp_t: OPP type where we want the look up to happen.
+>   *
+>   * Returns the struct omap_opp pointer corresponding to the given OPP
+>   * ID @opp_id, or returns NULL on error.
+>   */
+> -struct omap_opp * __deprecated opp_find_by_opp_id(struct omap_opp *opps,
+> +struct omap_opp * __deprecated opp_find_by_opp_id(enum opp_t opp_t,
+>  						  u8 opp_id)
+>  {
+> +	struct omap_opp *opps;
+>  	int i = 0;
+>  
+> -	if (!opps || !opp_id)
+> +	if (unlikely(opp_t >= OPP_TYPES_MAX || !opp_id))
+> +		return NULL;
+> +	opps = _opp_list[opp_t];
+> +
+> +	if (!opps)
+>  		return NULL;
+>  
+>  	while (!OPP_TERM(&opps[i])) {
+> @@ -93,14 +100,20 @@ u8 __deprecated opp_get_opp_id(struct omap_opp *opp)
+>  	return opp->opp_id;
+>  }
+>  
+> -int opp_get_opp_count(struct omap_opp *oppl)
+> +int opp_get_opp_count(enum opp_t opp_t)
+>  {
+>  	u8 n = 0;
+> +	struct omap_opp *oppl;
+>  
+> -	if (unlikely(!oppl || IS_ERR(oppl))) {
+> +	if (unlikely(opp_t >= OPP_TYPES_MAX)) {
+>  		pr_err("%s: Invalid parameters being passed\n", __func__);
+>  		return -EINVAL;
+>  	}
+> +
+> +	oppl = _opp_list[opp_t];
+> +	if (!oppl)
+> +		return -ENOENT;
+> +
+>  	while (!OPP_TERM(oppl)) {
+>  		if (oppl->enabled)
+>  			n++;
+> @@ -109,14 +122,21 @@ int opp_get_opp_count(struct omap_opp *oppl)
+>  	return n;
+>  }
+>  
+> -struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+> +struct omap_opp *opp_find_freq_exact(enum opp_t opp_t,
+>  				     unsigned long freq, bool enabled)
+>  {
+> -	if (unlikely(!oppl || IS_ERR(oppl))) {
+> +	struct omap_opp *oppl;
+> +
+> +	if (unlikely(opp_t >= OPP_TYPES_MAX)) {
+>  		pr_err("%s: Invalid parameters being passed\n", __func__);
+>  		return ERR_PTR(-EINVAL);
+>  	}
+>  
+> +	oppl = _opp_list[opp_t];
+> +
+> +	if (!oppl)
+> +		return NULL;
+> +
+>  	while (!OPP_TERM(oppl)) {
+>  		if ((oppl->rate == freq) && (oppl->enabled == enabled))
+>  			break;
+> @@ -126,13 +146,21 @@ struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+>  	return OPP_TERM(oppl) ? ERR_PTR(-ENOENT) : oppl;
+>  }
+>  
+> -struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl, unsigned long *freq)
+> +struct omap_opp *opp_find_freq_ceil(enum opp_t opp_t, unsigned long *freq)
+>  {
+> -	if (unlikely(!oppl || IS_ERR(oppl) || !freq || IS_ERR(freq))) {
+> +	struct omap_opp *oppl;
+> +
+> +	if (unlikely(opp_t >= OPP_TYPES_MAX || !freq ||
+> +		 IS_ERR(freq))) {
+>  		pr_err("%s: Invalid parameters being passed\n", __func__);
+>  		return ERR_PTR(-EINVAL);
+>  	}
+>  
+> +	oppl = _opp_list[opp_t];
+> +
+> +	if (!oppl)
+> +		return NULL;
+> +
+>  	while (!OPP_TERM(oppl)) {
+>  		if (oppl->enabled && oppl->rate >= *freq)
+>  			break;
+> @@ -148,14 +176,19 @@ struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl, unsigned long *freq)
+>  	return oppl;
+>  }
+>  
+> -struct omap_opp *opp_find_freq_floor(struct omap_opp *oppl, unsigned long *freq)
+> +struct omap_opp *opp_find_freq_floor(enum opp_t opp_t, unsigned long *freq)
+>  {
+> -	struct omap_opp *prev_opp = oppl;
+> +	struct omap_opp *prev_opp, *oppl;
+>  
+> -	if (unlikely(!oppl || IS_ERR(oppl) || !freq || IS_ERR(freq))) {
+> +	if (unlikely(opp_t >= OPP_TYPES_MAX || !freq ||
+> +		 IS_ERR(freq))) {
+>  		pr_err("%s: Invalid parameters being passed\n", __func__);
+>  		return ERR_PTR(-EINVAL);
+>  	}
+> +	oppl = prev_opp = _opp_list[opp_t];
+> +
+> +	if (!oppl)
+> +		return NULL;
+>  
+>  	while (!OPP_TERM(oppl)) {
+>  		if (oppl->enabled) {
+> @@ -185,19 +218,23 @@ static void omap_opp_populate(struct omap_opp *opp,
+>  	opp->u_volt = opp_def->u_volt;
+>  }
+>  
+> -struct omap_opp *opp_add(struct omap_opp *oppl,
+> -			 const struct omap_opp_def *opp_def)
+> +int opp_add(enum opp_t opp_t, const struct omap_opp_def *opp_def)
+>  {
+> -	struct omap_opp *opp, *oppt, *oppr;
+> +	struct omap_opp *opp, *oppt, *oppr, *oppl;
+>  	u8 n, i, ins;
+>  
+> -	if (unlikely(!oppl || IS_ERR(oppl) || !opp_def || IS_ERR(opp_def))) {
+> +	if (unlikely(opp_t >= OPP_TYPES_MAX || !opp_def ||
+> +			 IS_ERR(opp_def))) {
+>  		pr_err("%s: Invalid params being passed\n", __func__);
+> -		return ERR_PTR(-EINVAL);
+> +		return -EINVAL;
+>  	}
+>  
+>  	n = 0;
+> -	opp = oppl;
+> +	oppl = opp = _opp_list[opp_t];
+> +
+> +	if (!oppl)
+> +		return -ENOENT;
+> +
+>  	while (!OPP_TERM(opp)) {
+>  		n++;
+>  		opp++;
+> @@ -210,11 +247,11 @@ struct omap_opp *opp_add(struct omap_opp *oppl,
+>  	oppr = kzalloc(sizeof(struct omap_opp) * (n + 2), GFP_KERNEL);
+>  	if (!oppr) {
+>  		pr_err("%s: No memory for new opp array\n", __func__);
+> -		return ERR_PTR(-ENOMEM);
+> +		return -ENOMEM;
+>  	}
+>  
+>  	/* Simple insertion sort */
+> -	opp = oppl;
+> +	opp = _opp_list[opp_t];
+>  	oppt = oppr;
+>  	ins = 0;
+>  	i = 1;
+> @@ -238,23 +275,27 @@ struct omap_opp *opp_add(struct omap_opp *oppl,
+>  		oppt++;
+>  	}
+>  
+> +	_opp_list[opp_t] = oppr;
+> +
+>  	/* Terminator implicitly added by kzalloc() */
+>  
+>  	/* Free the old list */
+>  	kfree(oppl);
+>  
+> -	return oppr;
+> +	return 0;
+>  }
+>  
+> -struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs)
+> +int __init opp_init_list(enum opp_t opp_t,
+> +				 const struct omap_opp_def *opp_defs)
+>  {
+>  	struct omap_opp_def *t = (struct omap_opp_def *)opp_defs;
+> -	struct omap_opp *opp, *oppl;
+> +	struct omap_opp *oppl;
+>  	u8 n = 0, i = 1;
+>  
+> -	if (unlikely(!opp_defs || IS_ERR(opp_defs))) {
+> +	if (unlikely(opp_t >= OPP_TYPES_MAX || !opp_defs ||
+> +			 IS_ERR(opp_defs))) {
+>  		pr_err("%s: Invalid params being passed\n", __func__);
+> -		return ERR_PTR(-EINVAL);
+> +		return -EINVAL;
+>  	}
+>  	/* Grab a count */
+>  	while (t->enabled || t->freq || t->u_volt) {
+> @@ -269,22 +310,23 @@ struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs)
+>  	oppl = kzalloc(sizeof(struct omap_opp) * (n + 1), GFP_KERNEL);
+>  	if (!oppl) {
+>  		pr_err("%s: No memory for opp array\n", __func__);
+> -		return ERR_PTR(-ENOMEM);
+> +		return -ENOMEM;
+>  	}
+>  
+> -	opp = oppl;
+> +
+> +	_opp_list[opp_t] = oppl;
+>  	while (n) {
+> -		omap_opp_populate(opp, opp_defs);
+> -		opp->opp_id = i;
+> +		omap_opp_populate(oppl, opp_defs);
+> +		oppl->opp_id = i;
+>  		n--;
+> -		opp++;
+> +		oppl++;
+>  		opp_defs++;
+>  		i++;
+>  	}
+>  
+>  	/* Terminator implicitly added by kzalloc() */
+>  
+> -	return oppl;
+> +	return 0;
+>  }
+>  
+>  int opp_enable(struct omap_opp *opp)
+> @@ -308,20 +350,21 @@ int opp_disable(struct omap_opp *opp)
+>  }
+>  
+>  /* XXX document */
+> -void opp_init_cpufreq_table(struct omap_opp *opps,
+> +void opp_init_cpufreq_table(enum opp_t opp_t,
+>  			    struct cpufreq_frequency_table **table)
+>  {
+>  	int i = 0, j;
+>  	int opp_num;
+>  	struct cpufreq_frequency_table *freq_table;
+> +	struct omap_opp *opp;
+>  
+> -	if (!opps) {
+> +	if (opp_t >= OPP_TYPES_MAX) {
+>  		pr_warning("%s: failed to initialize frequency"
+>  				"table\n", __func__);
+>  		return;
+>  	}
+>  
+> -	opp_num = opp_get_opp_count(opps);
+> +	opp_num = opp_get_opp_count(opp_t);
+>  	if (opp_num < 0) {
+>  		pr_err("%s: no opp table?\n", __func__);
+>  		return;
+> @@ -335,14 +378,14 @@ void opp_init_cpufreq_table(struct omap_opp *opps,
+>  		return;
+>  	}
+>  
+> +	opp = _opp_list[opp_t];
+>  	for (j = opp_num; j >= 0; j--) {
+> -		struct omap_opp *opp = &opps[j];
+> -
+>  		if (opp->enabled) {
+>  			freq_table[i].index = i;
+>  			freq_table[i].frequency = opp->rate / 1000;
+>  			i++;
+>  		}
+> +		opp++;
+>  	}
+>  
+>  	freq_table[i].index = i;
