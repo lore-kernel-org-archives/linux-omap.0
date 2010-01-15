@@ -1,150 +1,175 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 04/18] OMAP2 clock: move all static functions to the top of
-	the file
-Date: Fri, 15 Jan 2010 02:06:55 -0700
-Message-ID: <20100115090654.30690.46792.stgit@localhost.localdomain>
+Subject: [PATCH 16/18] OMAP3 DPLL: reorganize static functions
+Date: Fri, 15 Jan 2010 02:07:08 -0700
+Message-ID: <20100115090707.30690.33928.stgit@localhost.localdomain>
 References: <20100115090613.30690.49355.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48721 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:48752 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756281Ab0AOJIN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 04:08:13 -0500
+	with ESMTP id S1756843Ab0AOJIQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 04:08:16 -0500
 In-Reply-To: <20100115090613.30690.49355.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Move static functions to the top of the file and ensure that their names
-are prefixed with an underscore to conform with the practice in the newer
-OMAP clock code files.
+Move all static functions up to the top of the file to match the
+practice in other OMAP clock code.  Make omap3_noncore_dpll_program()
+static (noted by sparse) and prepend an underscore to the function
+name to mark that it is file-local.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.c |   88 ++++++++++++++++++++++---------------------
- 1 files changed, 46 insertions(+), 42 deletions(-)
+ arch/arm/mach-omap2/dpll3xxx.c |  113 +++++++++++++++++++++-------------------
+ 1 files changed, 58 insertions(+), 55 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index d3ebb74..0d54fde 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -42,6 +42,51 @@ u8 cpu_mask;
-  * OMAP2/3/4 specific clock functions
-  *-------------------------------------------------------------------------*/
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index f6055b4..2b559fc 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -44,17 +44,7 @@
  
+ #define MAX_DPLL_WAIT_TRIES		1000000
+ 
+-
+-/**
+- * omap3_dpll_recalc - recalculate DPLL rate
+- * @clk: DPLL struct clk
+- *
+- * Recalculate and propagate the DPLL rate.
+- */
+-unsigned long omap3_dpll_recalc(struct clk *clk)
+-{
+-	return omap2_get_dpll_rate(clk);
+-}
 +/* Private functions */
-+
-+/**
-+ * _omap2_module_wait_ready - wait for an OMAP module to leave IDLE
-+ * @clk: struct clk * belonging to the module
+ 
+ /* _omap3_dpll_write_clken - write clken_bits arg to a DPLL's enable bits */
+ static void _omap3_dpll_write_clken(struct clk *clk, u8 clken_bits)
+@@ -136,8 +126,6 @@ static u16 _omap3_dpll_compute_freqsel(struct clk *clk, u8 n)
+ 	return f;
+ }
+ 
+-/* Non-CORE DPLL (e.g., DPLLs that do not control SDRC) clock functions */
+-
+ /*
+  * _omap3_noncore_dpll_lock - instruct a DPLL to lock and wait for readiness
+  * @clk: pointer to a DPLL struct clk
+@@ -237,6 +225,63 @@ static int _omap3_noncore_dpll_stop(struct clk *clk)
+ 	return 0;
+ }
+ 
++/*
++ * _omap3_noncore_dpll_program - set non-core DPLL M,N values directly
++ * @clk: struct clk * of DPLL to set
++ * @m: DPLL multiplier to set
++ * @n: DPLL divider to set
++ * @freqsel: FREQSEL value to set
 + *
-+ * If the necessary clocks for the OMAP hardware IP block that
-+ * corresponds to clock @clk are enabled, then wait for the module to
-+ * indicate readiness (i.e., to leave IDLE).  This code does not
-+ * belong in the clock code and will be moved in the medium term to
-+ * module-dependent code.  No return value.
++ * Program the DPLL with the supplied M, N values, and wait for the DPLL to
++ * lock..  Returns -EINVAL upon error, or 0 upon success.
 + */
-+static void _omap2_module_wait_ready(struct clk *clk)
++static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
 +{
-+	void __iomem *companion_reg, *idlest_reg;
-+	u8 other_bit, idlest_bit;
++	struct dpll_data *dd = clk->dpll_data;
++	u32 v;
 +
-+	/* Not all modules have multiple clocks that their IDLEST depends on */
-+	if (clk->ops->find_companion) {
-+		clk->ops->find_companion(clk, &companion_reg, &other_bit);
-+		if (!(__raw_readl(companion_reg) & (1 << other_bit)))
-+			return;
++	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
++	_omap3_noncore_dpll_bypass(clk);
++
++	/* Set jitter correction */
++	if (!cpu_is_omap44xx()) {
++		v = __raw_readl(dd->control_reg);
++		v &= ~dd->freqsel_mask;
++		v |= freqsel << __ffs(dd->freqsel_mask);
++		__raw_writel(v, dd->control_reg);
 +	}
 +
-+	clk->ops->find_idlest(clk, &idlest_reg, &idlest_bit);
++	/* Set DPLL multiplier, divider */
++	v = __raw_readl(dd->mult_div1_reg);
++	v &= ~(dd->mult_mask | dd->div1_mask);
++	v |= m << __ffs(dd->mult_mask);
++	v |= (n - 1) << __ffs(dd->div1_mask);
++	__raw_writel(v, dd->mult_div1_reg);
 +
-+	omap2_cm_wait_idlest(idlest_reg, (1 << idlest_bit), clk->name);
-+}
++	/* We let the clock framework set the other output dividers later */
 +
-+/* Enables clock without considering parent dependencies or use count
-+ * REVISIT: Maybe change this to use clk->enable like on omap1?
-+ */
-+static int _omap2_clk_enable(struct clk *clk)
-+{
-+	return clk->ops->enable(clk);
-+}
++	/* REVISIT: Set ramp-up delay? */
 +
-+/* Disables clock without considering parent dependencies or use count */
-+static void _omap2_clk_disable(struct clk *clk)
-+{
-+	clk->ops->disable(clk);
++	_omap3_noncore_dpll_lock(clk);
++
++	return 0;
 +}
 +
 +/* Public functions */
 +
++/**
++ * omap3_dpll_recalc - recalculate DPLL rate
++ * @clk: DPLL struct clk
++ *
++ * Recalculate and propagate the DPLL rate.
++ */
++unsigned long omap3_dpll_recalc(struct clk *clk)
++{
++	return omap2_get_dpll_rate(clk);
++}
++
++/* Non-CORE DPLL (e.g., DPLLs that do not control SDRC) clock functions */
++
  /**
-  * omap2xxx_clk_commit - commit clock parent/rate changes in hardware
-  * @clk: struct clk *
-@@ -149,33 +194,6 @@ void omap2_clk_dflt_find_idlest(struct clk *clk, void __iomem **idlest_reg,
- 	*idlest_bit = clk->enable_bit;
- }
+  * omap3_noncore_dpll_enable - instruct a DPLL to enter bypass or lock mode
+  * @clk: pointer to a DPLL struct clk
+@@ -292,48 +337,6 @@ void omap3_noncore_dpll_disable(struct clk *clk)
  
--/**
-- * omap2_module_wait_ready - wait for an OMAP module to leave IDLE
-- * @clk: struct clk * belonging to the module
+ /* Non-CORE DPLL rate set code */
+ 
+-/*
+- * omap3_noncore_dpll_program - set non-core DPLL M,N values directly
+- * @clk: struct clk * of DPLL to set
+- * @m: DPLL multiplier to set
+- * @n: DPLL divider to set
+- * @freqsel: FREQSEL value to set
 - *
-- * If the necessary clocks for the OMAP hardware IP block that
-- * corresponds to clock @clk are enabled, then wait for the module to
-- * indicate readiness (i.e., to leave IDLE).  This code does not
-- * belong in the clock code and will be moved in the medium term to
-- * module-dependent code.  No return value.
+- * Program the DPLL with the supplied M, N values, and wait for the DPLL to
+- * lock..  Returns -EINVAL upon error, or 0 upon success.
 - */
--static void omap2_module_wait_ready(struct clk *clk)
+-int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
 -{
--	void __iomem *companion_reg, *idlest_reg;
--	u8 other_bit, idlest_bit;
+-	struct dpll_data *dd = clk->dpll_data;
+-	u32 v;
 -
--	/* Not all modules have multiple clocks that their IDLEST depends on */
--	if (clk->ops->find_companion) {
--		clk->ops->find_companion(clk, &companion_reg, &other_bit);
--		if (!(__raw_readl(companion_reg) & (1 << other_bit)))
--			return;
+-	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
+-	_omap3_noncore_dpll_bypass(clk);
+-
+-	/* Set jitter correction */
+-	if (!cpu_is_omap44xx()) {
+-		v = __raw_readl(dd->control_reg);
+-		v &= ~dd->freqsel_mask;
+-		v |= freqsel << __ffs(dd->freqsel_mask);
+-		__raw_writel(v, dd->control_reg);
 -	}
 -
--	clk->ops->find_idlest(clk, &idlest_reg, &idlest_bit);
+-	/* Set DPLL multiplier, divider */
+-	v = __raw_readl(dd->mult_div1_reg);
+-	v &= ~(dd->mult_mask | dd->div1_mask);
+-	v |= m << __ffs(dd->mult_mask);
+-	v |= (n - 1) << __ffs(dd->div1_mask);
+-	__raw_writel(v, dd->mult_div1_reg);
 -
--	omap2_cm_wait_idlest(idlest_reg, (1 << idlest_bit), clk->name);
+-	/* We let the clock framework set the other output dividers later */
+-
+-	/* REVISIT: Set ramp-up delay? */
+-
+-	_omap3_noncore_dpll_lock(clk);
+-
+-	return 0;
 -}
 -
- int omap2_dflt_clk_enable(struct clk *clk)
- {
- 	u32 v;
-@@ -195,7 +213,7 @@ int omap2_dflt_clk_enable(struct clk *clk)
- 	v = __raw_readl(clk->enable_reg); /* OCP barrier */
- 
- 	if (clk->ops->find_idlest)
--		omap2_module_wait_ready(clk);
-+		_omap2_module_wait_ready(clk);
- 
- 	return 0;
- }
-@@ -235,20 +253,6 @@ const struct clkops clkops_omap2_dflt = {
- 	.disable	= omap2_dflt_clk_disable,
- };
- 
--/* Enables clock without considering parent dependencies or use count
-- * REVISIT: Maybe change this to use clk->enable like on omap1?
-- */
--static int _omap2_clk_enable(struct clk *clk)
--{
--	return clk->ops->enable(clk);
--}
--
--/* Disables clock without considering parent dependencies or use count */
--static void _omap2_clk_disable(struct clk *clk)
--{
--	clk->ops->disable(clk);
--}
--
- void omap2_clk_disable(struct clk *clk)
- {
- 	if (clk->usecount > 0 && !(--clk->usecount)) {
+ /**
+  * omap3_noncore_dpll_set_rate - set non-core DPLL rate
+  * @clk: struct clk * of DPLL to set
 
 
