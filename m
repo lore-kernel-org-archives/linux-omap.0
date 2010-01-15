@@ -1,62 +1,34 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: USB: Add empty functions in otg.h
-Date: Fri, 15 Jan 2010 11:10:14 -0800
-Message-ID: <20100115191014.GA24694@kroah.com>
-References: <1262681218-6875-1-git-send-email-x0082077@ti.com>
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ARM: OMAP: Remove #ifdef from board-omap3evm.c
+Date: Fri, 15 Jan 2010 11:10:48 -0800
+Message-ID: <20100115191048.GA5730@kroah.com>
+References: <1262681372-7602-1-git-send-email-x0082077@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:51597 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758231Ab0AOUQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jan 2010 15:16:53 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1262681218-6875-1-git-send-email-x0082077@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1262681372-7602-1-git-send-email-x0082077-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Maulik Mankad <x0082077@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, Olof Johansson <olof@lixom.net>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
 
-On Tue, Jan 05, 2010 at 02:16:58PM +0530, Maulik Mankad wrote:
->=20
-> USB : Add empty functions in otg.h
->=20
-> Add empty functions for usb_nop_xceiv_register() and
-> usb_nop_xceiv_unregister() in otg.h so that these functions can be
-> called even when CONFIG_NOP_USB_XCEIV is not enabled.=20
->=20
-> It allows to remove ifdef's from board file.
->=20
-> Signed-off-by: Maulik Mankad <x0082077@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> Acked-by: Olof Johansson <olof@lixom.net>
-> Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-> Cc: Gupta, Ajay Kumar <ajay.gupta@ti.com>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+On Tue, Jan 05, 2010 at 02:19:32PM +0530, Maulik Mankad wrote:
+> 
+> ARM : OMAP : Remove #ifdef from board-omap3evm.c
+> 
+> Remove #ifdef around usb_nop_xceiv_register() from
+> board-omap3evm.c
+> 
+> Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Acked-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> Acked-by: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
 
-Oops, no, I'm rejecting this, as it breaks the build:
-  CC [M]  drivers/usb/otg/nop-usb-xceiv.o
-drivers/usb/otg/nop-usb-xceiv.c:41: error: redefinition of =E2=80=98usb=
-_nop_xceiv_register=E2=80=99
-include/linux/usb/otg.h:132: error: previous definition of =E2=80=98usb=
-_nop_xceiv_register=E2=80=99 was here
-drivers/usb/otg/nop-usb-xceiv.c:53: error: redefinition of =E2=80=98usb=
-_nop_xceiv_unregister=E2=80=99
-include/linux/usb/otg.h:136: error: previous definition of =E2=80=98usb=
-_nop_xceiv_unregister=E2=80=99 was here
-make[2]: *** [drivers/usb/otg/nop-usb-xceiv.o] Error 1
-make[1]: *** [drivers/usb/otg] Error 2
-make[1]: *** Waiting for unfinished jobs....
-
-Doesn't anyone build their patches anymore?  Kids these days...
-
-thanks,
+I'm rejecting this one as well, as the previous one breaks the build.
 
 greg k-h
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
