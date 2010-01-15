@@ -1,75 +1,105 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 09/10] DSPBRIDGE: checkpatch - printk() should include KERN_ facility level
-Date: Fri, 15 Jan 2010 15:28:40 -0600
-Message-ID: <1263590921-24357-10-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 02/10] DSPBRIDGE: contributors file
+Date: Fri, 15 Jan 2010 15:28:33 -0600
+Message-ID: <1263590921-24357-3-git-send-email-omar.ramirez@ti.com>
 References: <1263590921-24357-1-git-send-email-omar.ramirez@ti.com>
  <1263590921-24357-2-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-3-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-4-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-5-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-6-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-7-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-8-git-send-email-omar.ramirez@ti.com>
- <1263590921-24357-9-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58661 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758280Ab0AOVSz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 16:18:55 -0500
-In-Reply-To: <1263590921-24357-9-git-send-email-omar.ramirez@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38509 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758025Ab0AOVSy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jan 2010 16:18:54 -0500
+In-Reply-To: <1263590921-24357-2-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-WARNING: printk() should include KERN_ facility level
+This creates a new contributors file under Documentation/tidspbridge
+to acknowledge all the people working in DSP/Bridge project.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/dbc.h |    2 +-
- arch/arm/plat-omap/include/dspbridge/gt.h  |    2 +-
- drivers/dsp/bridge/gen/_gt_para.c          |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ Documentation/tidspbridge/CONTRIBUTORS |   70 ++++++++++++++++++++++++++++++++
+ 1 files changed, 70 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/tidspbridge/CONTRIBUTORS
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
-index e9cb548..ac5d178 100644
---- a/arch/arm/plat-omap/include/dspbridge/dbc.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbc.h
-@@ -36,7 +36,7 @@
- 
- #define DBC_Assert(exp) \
-     if (!(exp)) \
--	printk("%s, line %d: Assertion (" #exp ") failed.\n", \
-+	pr_err("%s, line %d: Assertion (" #exp ") failed.\n", \
- 	__FILE__, __LINE__)
- #define DBC_Require DBC_Assert	/* Function Precondition.  */
- #define DBC_Ensure  DBC_Assert	/* Function Postcondition. */
-diff --git a/arch/arm/plat-omap/include/dspbridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
-index b43b1e7..6082d15 100644
---- a/arch/arm/plat-omap/include/dspbridge/gt.h
-+++ b/arch/arm/plat-omap/include/dspbridge/gt.h
-@@ -232,7 +232,7 @@ extern struct GT_Config _GT_params;
- 
- #define GT_assert(mask, expr) \
- 	(!(expr) ? \
--	    printk("assertion violation: %s, line %d\n", \
-+	    pr_err("assertion violation: %s, line %d\n", \
- 			    __FILE__, __LINE__), NULL : NULL)
- 
- #define GT_config(config)     (_GT_params = *(config))
-diff --git a/drivers/dsp/bridge/gen/_gt_para.c b/drivers/dsp/bridge/gen/_gt_para.c
-index 9f8246b..f676d3f 100644
---- a/drivers/dsp/bridge/gen/_gt_para.c
-+++ b/drivers/dsp/bridge/gen/_gt_para.c
-@@ -77,7 +77,7 @@ static void error(char *fmt, ...)
- 
- 	va_end(va);
- 
--	printk("ERROR: ");
-+	pr_err("ERROR: ");
- 	printk(fmt, arg1, arg2, arg3, arg4, arg5, arg6);
- 
- #if defined(DEBUG) || defined(DDSP_DEBUG_PRODUCT)
+diff --git a/Documentation/tidspbridge/CONTRIBUTORS b/Documentation/tidspbridge/CONTRIBUTORS
+new file mode 100644
+index 0000000..d3977ad
+--- /dev/null
++++ b/Documentation/tidspbridge/CONTRIBUTORS
+@@ -0,0 +1,70 @@
++TI DSP/Bridge Driver - Contributors File
++
++The DSP/Bridge project wish to thank all of its contributors, current bridge
++driver is the result of the work of all of them. If any name is accidentally
++omitted, let us know by sending a mail to omar.ramirez@ti.com or
++x095840@ti.com.
++
++Please keep the following list in alphabetical order.
++
++	Suman Anna
++	Felipe Balbi
++	Phil Carmody
++	Felipe Contreras
++	Hiroshi Doyu
++	Seth Forshee
++	Mark Grosen
++	Ramesh Gupta G
++	Fernando Guzman Lugo
++	Axel Haslam
++	Janet Head
++	Hari Kanigeri
++	Tony Lindgren
++	Antonio Luna
++	Hari Nagalla
++	Ameya Palande
++	Gilbert Pitney
++	Omar Ramirez Luna
++	Ernesto Ramos
++	Chris Ring
++	Rebecca Schultz Zavin
++	Andy Shevchenko
++	Roman Tereshonkov
++	Armando Uribe de Leon
++	Nischal Varide
++	Wenbiao Wang
++
++The following list was taken from file Revision History, if you recognize your
++alias or did any contribution to the project please let us now, so we can
++proper credit your work.
++
++	ag
++	ap
++	cc
++	db
++	dh4
++	dr
++	hp
++	jg
++	kc
++	kln
++	kw
++	ge
++	gv
++	map
++	mf
++	mk
++	mr
++	nn
++	rajesh
++	rg
++	rr
++	rt
++	sb
++	sg
++	sh
++	sp
++	srid
++	swa
++	vp
++	ww
 -- 
 1.6.2.4
 
