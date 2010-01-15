@@ -1,23 +1,23 @@
-From: Romit Dasgupta <romit@ti.com>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PM-WIP-OPP][PATCH] pm: omap3: fix build error for PM disabled
-Date: Fri, 15 Jan 2010 18:57:56 +0530
-Message-ID: <4B506D5C.1000008@ti.com>
+Date: Fri, 15 Jan 2010 07:32:51 -0600
+Message-ID: <4B506E83.5080806@ti.com>
 References: <1263561186-12994-1-git-send-email-nm@ti.com> <4B506C4A.8080406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40100 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751069Ab0AON2F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jan 2010 08:28:05 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:36032 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932080Ab0AONcz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 08:32:55 -0500
 In-Reply-To: <4B506C4A.8080406@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
+To: "Dasgupta, Romit" <romit@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-Romit Dasgupta wrote:
+Dasgupta, Romit had written, on 01/15/2010 07:23 AM, the following:
 > Nishanth Menon wrote:
 >> omap3_pm_init_opp_table should be under #ifdef CONFIG_PM
 >> else build fails when PM is disabled. Reported by Paul originally.
@@ -53,5 +53,12 @@ Romit Dasgupta wrote:
 > This patch IMHO just solves the build issue. The runtime behaviour is a nasty
 > crash. OMAP architecture has tied CONFIG_PM with CONFIG_CPU_FREQ. So I think we
 > need a fix that solves the runtime behavior too.
-What I meant to say is that CONFIG_PM & CONFIG_CPU_FREQ are independent. So this
-is not correct.
+hmm.. thanks for pointing it out (dropping the patch) - even though that 
+was not the reason for this patch - I had send this patch after booting 
+the kernel using omap3_pm_defconfig (disable PM) on SDP3630:
+SDP3630: http://pastebin.mozilla.org/697292 - complete boot
+SDP3430: http://pastebin.mozilla.org/697294 - hang
+
+-- 
+Regards,
+Nishanth Menon
