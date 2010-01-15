@@ -1,81 +1,60 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: issue with panel drivers in DSS2
-Date: Fri, 15 Jan 2010 22:16:22 +0200
-Message-ID: <6ed0b2681001151216h44fa7d02pe0a19ba6b801fa5c@mail.gmail.com>
-References: <6ed0b2681001141259o3d81b949s69d44ab37f54c936@mail.gmail.com>
-	 <1263550029.2087.242.camel@tubuntu.research.nokia.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: USB: Add empty functions in otg.h
+Date: Fri, 15 Jan 2010 11:10:14 -0800
+Message-ID: <20100115191014.GA24694@kroah.com>
+References: <1262681218-6875-1-git-send-email-x0082077@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:57545 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758184Ab0AOUQ0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 15:16:26 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so395470fga.1
-        for <linux-omap@vger.kernel.org>; Fri, 15 Jan 2010 12:16:23 -0800 (PST)
-In-Reply-To: <1263550029.2087.242.camel@tubuntu.research.nokia.com>
+Received: from kroah.org ([198.145.64.141]:51597 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758231Ab0AOUQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jan 2010 15:16:53 -0500
+Content-Disposition: inline
+In-Reply-To: <1262681218-6875-1-git-send-email-x0082077@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Maulik Mankad <x0082077@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, Olof Johansson <olof@lixom.net>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
 
-On Fri, Jan 15, 2010 at 12:07 PM, Tomi Valkeinen
-<tomi.valkeinen@nokia.com> wrote:
-> On Thu, 2010-01-14 at 21:59 +0100, ext Grazvydas Ignotas wrote:
->> Hi,
->>
->> there is an issue related to panel drivers:
->> even if panel driver provides get_rotate/set_rotate and/or
->> get_mirror/set_mirror functions, those cannot be accessed over sysfs=
-,
->> even though corresponding entries are created in omapdss/displayX.
->> This is because panel driver fills omap_dss_driver structure, but
->> sysfs entries are created for omap_dss_device when it probes. So
->> perhaps those pointers need to be copied from omap_dss_driver to
->> omap_dss_device somewhere in dss_driver_probe().
->
-> If you look at dsi.c, you'll see how it currently works. So it's the =
-job
-> of the interface (dpi, sdi, rfbi or dsi) to act as a intermediary, an=
-d
-> call the functions in the driver.
->
-> Rotate and mirror aren't implemented in dpi and sdi, as I don't know =
-any
-> displays that could use them. But if there are such displays, dpi.c c=
-an
-> either just copy the driver's function in to the device struct, or
-> implement an intermediary function of its own.
+On Tue, Jan 05, 2010 at 02:16:58PM +0530, Maulik Mankad wrote:
+>=20
+> USB : Add empty functions in otg.h
+>=20
+> Add empty functions for usb_nop_xceiv_register() and
+> usb_nop_xceiv_unregister() in otg.h so that these functions can be
+> called even when CONFIG_NOP_USB_XCEIV is not enabled.=20
+>=20
+> It allows to remove ifdef's from board file.
+>=20
+> Signed-off-by: Maulik Mankad <x0082077@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> Acked-by: Olof Johansson <olof@lixom.net>
+> Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+> Cc: Gupta, Ajay Kumar <ajay.gupta@ti.com>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-Pandora's TPO display supports mirroring (vertical and horizontal),
-and also several resolutions. It would be nice to have this
-functionality accessible somehow.
+Oops, no, I'm rejecting this, as it breaks the build:
+  CC [M]  drivers/usb/otg/nop-usb-xceiv.o
+drivers/usb/otg/nop-usb-xceiv.c:41: error: redefinition of =E2=80=98usb=
+_nop_xceiv_register=E2=80=99
+include/linux/usb/otg.h:132: error: previous definition of =E2=80=98usb=
+_nop_xceiv_register=E2=80=99 was here
+drivers/usb/otg/nop-usb-xceiv.c:53: error: redefinition of =E2=80=98usb=
+_nop_xceiv_unregister=E2=80=99
+include/linux/usb/otg.h:136: error: previous definition of =E2=80=98usb=
+_nop_xceiv_unregister=E2=80=99 was here
+make[2]: *** [drivers/usb/otg/nop-usb-xceiv.o] Error 1
+make[1]: *** [drivers/usb/otg] Error 2
+make[1]: *** Waiting for unfinished jobs....
 
-> That said, I'm actually in the process of changing the driver/device
-> model a bit. My aim is that all the calls (from omapfb, sysfs etc) go
-> directly to the driver code, which then will call necessary functions=
- in
-> the dss to accomplish its goal.
->
-> It was foolish of me to design the model the way it's now, but my
-> reasoning was that all the displays of certain type must be very
-> similar, and thus it's easier for everyone if the dss driver is in
-> control. I coulnd't have been more wrong =3D). Especially the more co=
-mplex
-> DSI peripherals are unique, and the only solution is to let the drive=
-r
-> be in total control.
->
-> But more of that later, when I have something working.
+Doesn't anyone build their patches anymore?  Kids these days...
 
-Good luck then, I should be able to do some testing as needed.
+thanks,
 
->
-> =A0Tomi
->
->
->
+greg k-h
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
