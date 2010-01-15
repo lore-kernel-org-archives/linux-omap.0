@@ -1,98 +1,100 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv3 4/6] OMAP3: PM: Removed pwrdm state hacking from omap_sram_idle
-Date: Fri, 15 Jan 2010 14:46:55 +0200
-Message-ID: <1263559617-663-5-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1263559617-663-1-git-send-email-tero.kristo@nokia.com>
- <1263559617-663-2-git-send-email-tero.kristo@nokia.com>
- <1263559617-663-3-git-send-email-tero.kristo@nokia.com>
- <1263559617-663-4-git-send-email-tero.kristo@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/4] Add minimal support for DEVKIT8000
+Date: Fri, 15 Jan 2010 12:52:11 +0200
+Message-ID: <20100115105211.GQ19526@nokia.com>
+References: <75653cbc7d7ba7c6cfc501db7c0373d3@djdvant.com>
+ <20091112104032.GB32578@nokia.com>
+ <4B4F3167.3080300@corscience.de>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45167 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753243Ab0AOKzc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 05:55:32 -0500
-In-Reply-To: <1263559617-663-4-git-send-email-tero.kristo@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:22124 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756665Ab0AOKzf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 05:55:35 -0500
+Content-Disposition: inline
+In-Reply-To: <4B4F3167.3080300@corscience.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com
+To: ext Thomas Weber <weber@corscience.de>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, ext Kim Botherway <kbotherway@djdvant.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+Hi,
 
-Following hacks will be moved inside cpuidle in subsequent patch:
+On Thu, Jan 14, 2010 at 03:59:51PM +0100, ext Thomas Weber wrote:
+>I use Kims patches and I have done some work on it over the time and
+>after the comments from Felipe, so I want to submit them one more time.
 
-- CAM domain prevents idle completely
-- PER should not go OFF if core remains active
+and you resent the same patch without my comments sorted out
 
-This simplifies the design and allows cpuidle to keep better track of which
-power states system will actually enter.
+>diff --git a/arch/arm/mach-omap2/board-omap3devkit8000.c
+>b/arch/arm/mach-omap2/board-omap3devkit8000.c
+>new file mode 100644
+>index 0000000..5f85dc6
+>--- /dev/null
+>+++ b/arch/arm/mach-omap2/board-omap3devkit8000.c
+>@@ -0,0 +1,616 @@
+>+/*
+>+ * linux/arch/arm/mach-omap2/board-omap3devkit8000.c
+>+ *
+>+ * Copyright (C) 2008 Texas Instruments
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |   18 ++----------------
- 1 files changed, 2 insertions(+), 16 deletions(-)
+still this part wasn't addressed.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7cc3293..549be95 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -93,7 +93,6 @@ static int (*_omap_save_secure_sram)(u32 *addr);
- 
- static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
--static struct powerdomain *cam_pwrdm;
- 
- static struct prm_setup_vc prm_setup = {
- 	.clksetup = 0xff,
-@@ -373,7 +372,6 @@ void omap_sram_idle(void)
- 	int core_next_state = PWRDM_POWER_ON;
- 	int core_prev_state, per_prev_state;
- 	u32 sdrc_pwr = 0;
--	int per_state_modified = 0;
- 
- 	if (!_omap_sram_idle)
- 		return;
-@@ -411,20 +409,11 @@ void omap_sram_idle(void)
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		omap2_gpio_prepare_for_idle(per_next_state);
--		if (per_next_state == PWRDM_POWER_OFF) {
--			if (core_next_state == PWRDM_POWER_ON) {
--				per_next_state = PWRDM_POWER_RET;
--				pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
--				per_state_modified = 1;
--			} else
--				omap3_per_save_context();
--		}
-+		if (per_next_state == PWRDM_POWER_OFF)
-+			omap3_per_save_context();
- 		omap_uart_prepare_idle(2);
- 	}
- 
--	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
--		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
--
- 	/*
- 	 * Disable smartreflex before entering WFI.
- 	 * Only needed if we are going to enter retention or off.
-@@ -553,8 +542,6 @@ void omap_sram_idle(void)
- 		}
- 		omap2_gpio_resume_after_idle();
- 		omap_uart_resume_idle(2);
--		if (per_state_modified)
--			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
- 	}
- 
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
-@@ -1171,7 +1158,6 @@ static int __init omap3_pm_init(void)
- 	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
- 	per_pwrdm = pwrdm_lookup("per_pwrdm");
- 	core_pwrdm = pwrdm_lookup("core_pwrdm");
--	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
- 
- 	omap_push_sram_idle();
- #ifdef CONFIG_SUSPEND
+>+static struct platform_device omap3devkit8000_nand_device = {
+>+    .name        = "omap2-nand",
+>+    .id        = -1,
+>+    .dev        = {
+>+        .platform_data    = &omap3devkit8000_nand_data,
+>+    },
+>+    .num_resources    = 1,
+>+    .resource    = &omap3devkit8000_nand_resource,
+
+neither this...
+
+>+static struct gpio_led gpio_leds[] = {
+>+    {
+>+        .name            = "led1",
+>+        .default_trigger    = "heartbeat",
+>+        .gpio            = 186,
+>+        .active_low        = true,
+>+    },
+>+    {
+>+        .name            = "led2",
+>+        .default_trigger    = "mmc0",
+>+        .gpio            = 163,
+>+        .active_low        = true,
+>+    },
+>+    {
+>+        .name            = "ledB",
+>+        .default_trigger    = "none",
+>+        .gpio            = 153,
+>+        .active_low             = true,
+>+    },
+>+    {
+>+        .name            = "led3",
+>+        .default_trigger    = "none",
+>+        .gpio            = 164,    /* gets replaced */
+
+nor this.
+
+>+static struct spi_board_info omap3devkit8000_spi_board_info[]
+>__initdata = {
+>+    {
+>+        .modalias        = "ads7846",
+>+        .bus_num        = 2,
+>+        .chip_select        = 0,
+>+        .max_speed_hz        = 1500000,
+>+        .controller_data    = &ads7846_mcspi_config,
+>+        .irq            = OMAP_GPIO_IRQ(OMAP3_DEVKIT_TS_GPIO),
+>+        .platform_data        = &ads7846_config,
+>+    }
+>+};
+>+
+>+
+
+nor this.
+
 -- 
-1.5.4.3
-
+balbi
