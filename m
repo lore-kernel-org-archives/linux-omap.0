@@ -1,17 +1,17 @@
 From: <gregkh@suse.de>
-Subject: patch arm-defconfig-rx51-enable-phonet-and-g_nokia.patch added to gregkh-2.6 tree
-Date: Fri, 15 Jan 2010 12:15:37 -0800
-Message-ID: <12635865373646@kroah.org>
-References: <1262700614-16438-2-git-send-email-felipe.balbi@nokia.com>
+Subject: patch usb-gadget-introduce-g_nokia-gadget-driver.patch added to gregkh-2.6 tree
+Date: Fri, 15 Jan 2010 12:15:47 -0800
+Message-ID: <12635865471554@kroah.org>
+References: <1262700614-16438-1-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:51614 "EHLO coco.kroah.org"
+Received: from kroah.org ([198.145.64.141]:51692 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758241Ab0AOURB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jan 2010 15:17:01 -0500
-In-Reply-To: <1262700614-16438-2-git-send-email-felipe.balbi@nokia.com>
+	id S1758205Ab0AOURe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jan 2010 15:17:34 -0500
+In-Reply-To: <1262700614-16438-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: felipe.balbi@nokia.com, gregkh@suse.de, greg@kroah.com, linux-omap@vger.kernel.org, tony@atomide.com
@@ -19,79 +19,333 @@ To: felipe.balbi@nokia.com, gregkh@suse.de, greg@kroah.com, linux-omap@vger.kern
 
 This is a note to let you know that I've just added the patch titled
 
-    Subject: arm: defconfig: rx51: enable phonet and g_nokia
+    Subject: USB: gadget: introduce g_nokia gadget driver
 
 to my gregkh-2.6 tree.  Its filename is
 
-    arm-defconfig-rx51-enable-phonet-and-g_nokia.patch
+    usb-gadget-introduce-g_nokia-gadget-driver.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 
->From felipe.balbi@nokia.com  Fri Jan 15 10:59:45 2010
+>From felipe.balbi@nokia.com  Fri Jan 15 10:59:19 2010
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Date: Tue,  5 Jan 2010 16:10:14 +0200
-Subject: arm: defconfig: rx51: enable phonet and g_nokia
+Date: Tue,  5 Jan 2010 16:10:13 +0200
+Subject: USB: gadget: introduce g_nokia gadget driver
 To: linux-usb@vger.kernel.org
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Felipe Balbi <felipe.balbi@nokia.com>
-Message-ID: <1262700614-16438-2-git-send-email-felipe.balbi@nokia.com>
+Message-ID: <1262700614-16438-1-git-send-email-felipe.balbi@nokia.com>
 
 
-trivial patch enabling g_nokia on rx51_defconfig.
+g_nokia is the gadget driver implementing
+WMCDC Wireless Handset Control Model for the N900
+device.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- arch/arm/configs/rx51_defconfig |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/usb/gadget/Kconfig  |   10 +
+ drivers/usb/gadget/Makefile |    2 
+ drivers/usb/gadget/nokia.c  |  259 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 271 insertions(+)
 
---- a/arch/arm/configs/rx51_defconfig
-+++ b/arch/arm/configs/rx51_defconfig
-@@ -445,6 +445,8 @@ CONFIG_IP_NF_FILTER=m
- # CONFIG_LAPB is not set
- # CONFIG_ECONET is not set
- # CONFIG_WAN_ROUTER is not set
-+CONFIG_PHONET=y
-+# CONFIG_IEEE802154 is not set
- # CONFIG_NET_SCHED is not set
- # CONFIG_DCB is not set
+--- a/drivers/usb/gadget/Kconfig
++++ b/drivers/usb/gadget/Kconfig
+@@ -812,6 +812,16 @@ config USB_CDC_COMPOSITE
+ 	  Say "y" to link the driver statically, or "m" to build a
+ 	  dynamically linked module.
  
-@@ -1325,27 +1327,34 @@ CONFIG_USB_GADGET_SELECTED=y
- # CONFIG_USB_GADGET_LH7A40X is not set
- # CONFIG_USB_GADGET_OMAP is not set
- # CONFIG_USB_GADGET_PXA25X is not set
-+# CONFIG_USB_GADGET_R8A66597 is not set
- # CONFIG_USB_GADGET_PXA27X is not set
--# CONFIG_USB_GADGET_S3C2410 is not set
-+# CONFIG_USB_GADGET_S3C_HSOTG is not set
- # CONFIG_USB_GADGET_IMX is not set
-+# CONFIG_USB_GADGET_S3C2410 is not set
- # CONFIG_USB_GADGET_M66592 is not set
- # CONFIG_USB_GADGET_AMD5536UDC is not set
- # CONFIG_USB_GADGET_FSL_QE is not set
- # CONFIG_USB_GADGET_CI13XXX is not set
- # CONFIG_USB_GADGET_NET2280 is not set
- # CONFIG_USB_GADGET_GOKU is not set
-+# CONFIG_USB_GADGET_LANGWELL is not set
- # CONFIG_USB_GADGET_DUMMY_HCD is not set
- CONFIG_USB_GADGET_DUALSPEED=y
- CONFIG_USB_ZERO=m
- # CONFIG_USB_ZERO_HNPTEST is not set
-+# CONFIG_USB_AUDIO is not set
- # CONFIG_USB_ETH is not set
- # CONFIG_USB_GADGETFS is not set
- CONFIG_USB_FILE_STORAGE=m
- # CONFIG_USB_FILE_STORAGE_TEST is not set
-+# CONFIG_USB_MASS_STORAGE is not set
- # CONFIG_USB_G_SERIAL is not set
- # CONFIG_USB_MIDI_GADGET is not set
- # CONFIG_USB_G_PRINTER is not set
- # CONFIG_USB_CDC_COMPOSITE is not set
-+CONFIG_USB_G_NOKIA=m
-+# CONFIG_USB_G_MULTI is not set
++config USB_G_NOKIA
++	tristate "Nokia composite gadget"
++	depends on PHONET
++	help
++	  The Nokia composite gadget provides support for acm, obex
++	  and phonet in only one composite gadget driver.
++
++	  It's only really useful for N900 hardware. If you're building
++	  a kernel for N900, say Y or M here. If unsure, say N.
++
+ config USB_G_MULTI
+ 	tristate "Multifunction Composite Gadget (EXPERIMENTAL)"
+ 	depends on BLOCK && NET
+--- a/drivers/usb/gadget/Makefile
++++ b/drivers/usb/gadget/Makefile
+@@ -43,6 +43,7 @@ g_mass_storage-objs		:= mass_storage.o
+ g_printer-objs			:= printer.o
+ g_cdc-objs			:= cdc2.o
+ g_multi-objs			:= multi.o
++g_nokia-objs			:= nokia.o
  
- #
- # OTG and related infrastructure
+ obj-$(CONFIG_USB_ZERO)		+= g_zero.o
+ obj-$(CONFIG_USB_AUDIO)		+= g_audio.o
+@@ -55,4 +56,5 @@ obj-$(CONFIG_USB_G_PRINTER)	+= g_printer
+ obj-$(CONFIG_USB_MIDI_GADGET)	+= g_midi.o
+ obj-$(CONFIG_USB_CDC_COMPOSITE) += g_cdc.o
+ obj-$(CONFIG_USB_G_MULTI)	+= g_multi.o
++obj-$(CONFIG_USB_G_NOKIA)	+= g_nokia.o
+ 
+--- /dev/null
++++ b/drivers/usb/gadget/nokia.c
+@@ -0,0 +1,259 @@
++/*
++ * nokia.c -- Nokia Composite Gadget Driver
++ *
++ * Copyright (C) 2008-2010 Nokia Corporation
++ * Contact: Felipe Balbi <felipe.balbi@nokia.com>
++ *
++ * This gadget driver borrows from serial.c which is:
++ *
++ * Copyright (C) 2003 Al Borchers (alborchers@steinerpoint.com)
++ * Copyright (C) 2008 by David Brownell
++ * Copyright (C) 2008 by Nokia Corporation
++ *
++ * This software is distributed under the terms of the GNU General
++ * Public License ("GPL") as published by the Free Software Foundation,
++ * version 2 of that License.
++ */
++
++#include <linux/kernel.h>
++#include <linux/utsname.h>
++#include <linux/device.h>
++
++#include "u_serial.h"
++#include "u_ether.h"
++#include "u_phonet.h"
++#include "gadget_chips.h"
++
++/* Defines */
++
++#define NOKIA_VERSION_NUM		0x0211
++#define NOKIA_LONG_NAME			"N900 (PC-Suite Mode)"
++
++/*-------------------------------------------------------------------------*/
++
++/*
++ * Kbuild is not very cooperative with respect to linking separately
++ * compiled library objects into one module.  So for now we won't use
++ * separate compilation ... ensuring init/exit sections work to shrink
++ * the runtime footprint, and giving us at least some parts of what
++ * a "gcc --combine ... part1.c part2.c part3.c ... " build would.
++ */
++#include "composite.c"
++#include "usbstring.c"
++#include "config.c"
++#include "epautoconf.c"
++
++#include "u_serial.c"
++#include "f_acm.c"
++#include "f_ecm.c"
++#include "f_obex.c"
++#include "f_serial.c"
++#include "f_phonet.c"
++#include "u_ether.c"
++
++/*-------------------------------------------------------------------------*/
++
++#define NOKIA_VENDOR_ID			0x0421	/* Nokia */
++#define NOKIA_PRODUCT_ID		0x01c8	/* Nokia Gadget */
++
++/* string IDs are assigned dynamically */
++
++#define STRING_MANUFACTURER_IDX		0
++#define STRING_PRODUCT_IDX		1
++#define STRING_DESCRIPTION_IDX		2
++
++static char manufacturer_nokia[] = "Nokia";
++static const char product_nokia[] = NOKIA_LONG_NAME;
++static const char description_nokia[] = "PC-Suite Configuration";
++
++static struct usb_string strings_dev[] = {
++	[STRING_MANUFACTURER_IDX].s = manufacturer_nokia,
++	[STRING_PRODUCT_IDX].s = NOKIA_LONG_NAME,
++	[STRING_DESCRIPTION_IDX].s = description_nokia,
++	{  } /* end of list */
++};
++
++static struct usb_gadget_strings stringtab_dev = {
++	.language	= 0x0409,	/* en-us */
++	.strings	= strings_dev,
++};
++
++static struct usb_gadget_strings *dev_strings[] = {
++	&stringtab_dev,
++	NULL,
++};
++
++static struct usb_device_descriptor device_desc = {
++	.bLength		= USB_DT_DEVICE_SIZE,
++	.bDescriptorType	= USB_DT_DEVICE,
++	.bcdUSB			= __constant_cpu_to_le16(0x0200),
++	.bDeviceClass		= USB_CLASS_COMM,
++	.idVendor		= __constant_cpu_to_le16(NOKIA_VENDOR_ID),
++	.idProduct		= __constant_cpu_to_le16(NOKIA_PRODUCT_ID),
++	/* .iManufacturer = DYNAMIC */
++	/* .iProduct = DYNAMIC */
++	.bNumConfigurations =	1,
++};
++
++/*-------------------------------------------------------------------------*/
++
++/* Module */
++MODULE_DESCRIPTION("Nokia composite gadget driver for N900");
++MODULE_AUTHOR("Felipe Balbi");
++MODULE_LICENSE("GPL");
++
++/*-------------------------------------------------------------------------*/
++
++static u8 hostaddr[ETH_ALEN];
++
++static int __init nokia_bind_config(struct usb_configuration *c)
++{
++	int status = 0;
++
++	status = phonet_bind_config(c);
++	if (status)
++		printk(KERN_DEBUG "could not bind phonet config\n");
++
++	status = obex_bind_config(c, 0);
++	if (status)
++		printk(KERN_DEBUG "could not bind obex config %d\n", 0);
++
++	status = obex_bind_config(c, 1);
++	if (status)
++		printk(KERN_DEBUG "could not bind obex config %d\n", 0);
++
++	status = acm_bind_config(c, 2);
++	if (status)
++		printk(KERN_DEBUG "could not bind acm config\n");
++
++	status = ecm_bind_config(c, hostaddr);
++	if (status)
++		printk(KERN_DEBUG "could not bind ecm config\n");
++
++	return status;
++}
++
++static struct usb_configuration nokia_config_500ma_driver = {
++	.label		= "Bus Powered",
++	.bind		= nokia_bind_config,
++	.bConfigurationValue = 1,
++	/* .iConfiguration = DYNAMIC */
++	.bmAttributes	= USB_CONFIG_ATT_ONE,
++	.bMaxPower	= 250, /* 500mA */
++};
++
++static struct usb_configuration nokia_config_100ma_driver = {
++	.label		= "Self Powered",
++	.bind		= nokia_bind_config,
++	.bConfigurationValue = 2,
++	/* .iConfiguration = DYNAMIC */
++	.bmAttributes	= USB_CONFIG_ATT_ONE | USB_CONFIG_ATT_SELFPOWER,
++	.bMaxPower	= 50, /* 100 mA */
++};
++
++static int __init nokia_bind(struct usb_composite_dev *cdev)
++{
++	int			gcnum;
++	struct usb_gadget	*gadget = cdev->gadget;
++	int			status;
++
++	status = gphonet_setup(cdev->gadget);
++	if (status < 0)
++		goto err_phonet;
++
++	status = gserial_setup(cdev->gadget, 3);
++	if (status < 0)
++		goto err_serial;
++
++	status = gether_setup(cdev->gadget, hostaddr);
++	if (status < 0)
++		goto err_ether;
++
++	status = usb_string_id(cdev);
++	if (status < 0)
++		goto err_usb;
++	strings_dev[STRING_MANUFACTURER_IDX].id = status;
++
++	device_desc.iManufacturer = status;
++
++	status = usb_string_id(cdev);
++	if (status < 0)
++		goto err_usb;
++	strings_dev[STRING_PRODUCT_IDX].id = status;
++
++	device_desc.iProduct = status;
++
++	/* config description */
++	status = usb_string_id(cdev);
++	if (status < 0)
++		goto err_usb;
++	strings_dev[STRING_DESCRIPTION_IDX].id = status;
++
++	nokia_config_500ma_driver.iConfiguration = status;
++	nokia_config_100ma_driver.iConfiguration = status;
++
++	/* set up other descriptors */
++	gcnum = usb_gadget_controller_number(gadget);
++	if (gcnum >= 0)
++		device_desc.bcdDevice = cpu_to_le16(NOKIA_VERSION_NUM);
++	else {
++		/* this should only work with hw that supports altsettings
++		 * and several endpoints, anything else, panic.
++		 */
++		pr_err("nokia_bind: controller '%s' not recognized\n",
++			gadget->name);
++		goto err_usb;
++	}
++
++	/* finaly register the configuration */
++	status = usb_add_config(cdev, &nokia_config_500ma_driver);
++	if (status < 0)
++		goto err_usb;
++
++	status = usb_add_config(cdev, &nokia_config_100ma_driver);
++	if (status < 0)
++		goto err_usb;
++
++	dev_info(&gadget->dev, "%s\n", NOKIA_LONG_NAME);
++
++	return 0;
++
++err_usb:
++	gether_cleanup();
++err_ether:
++	gserial_cleanup();
++err_serial:
++	gphonet_cleanup();
++err_phonet:
++	return status;
++}
++
++static int __exit nokia_unbind(struct usb_composite_dev *cdev)
++{
++	gphonet_cleanup();
++	gserial_cleanup();
++	gether_cleanup();
++
++	return 0;
++}
++
++static struct usb_composite_driver nokia_driver = {
++	.name		= "g_nokia",
++	.dev		= &device_desc,
++	.strings	= dev_strings,
++	.bind		= nokia_bind,
++	.unbind		= __exit_p(nokia_unbind),
++};
++
++static int __init nokia_init(void)
++{
++	return usb_composite_register(&nokia_driver);
++}
++module_init(nokia_init);
++
++static void __exit nokia_cleanup(void)
++{
++	usb_composite_unregister(&nokia_driver);
++}
++module_exit(nokia_cleanup);
++
 
