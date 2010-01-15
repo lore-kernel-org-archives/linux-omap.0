@@ -1,39 +1,47 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH 5/8] omap_hsmmc: RX51: set padconfs to pull down when
- powering off eMMC
-Date: Fri, 15 Jan 2010 15:11:06 +0200
-Message-ID: <4B50696A.6050904@nokia.com>
-References: <20100113114010.7615.84920.sendpatchset@ahunter-work.research.nokia.com> <20100113114048.7615.51097.sendpatchset@ahunter-work.research.nokia.com> <20100113203745.GK2986@atomide.com> <20100113203958.GL2986@atomide.com> <20100113210042.GM2986@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Nishanth Menon <nm@ti.com>
+Subject: [PM-WIP-OPP][PATCH] pm: omap3: fix build error for PM disabled
+Date: Fri, 15 Jan 2010 07:13:06 -0600
+Message-ID: <1263561186-12994-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58652 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755263Ab0AONLT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 08:11:19 -0500
-In-Reply-To: <20100113210042.GM2986@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47450 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752177Ab0AONNM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jan 2010 08:13:12 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [100113 12:38]:
->> * Tony Lindgren <tony@atomide.com> [100113 12:36]:
->>> You might want to check what happens in omap off-idle mode in these cases
->>> and see if enabling OMAP_PIN_OFF_INPUT_PULLDOWN makes any difference in
->>> power consumption in off state. That probably does not matter unless the
->>> floating lines cause the eMMC to do something on it's own :)
->> Or OMAP_PIN_OFF_OUTPUT_LOW actually.
-> 
-> One more time.. Most likely OMAP_PIN_OFF_INPUT_PULLDOWN is safer
-> in general as the OMAP_PIN_OFF_OUTPUT_LOW does not work for all
-> pins. According to the TRM, OMAP_PIN_OFF_OUTPUT_LOW only works
-> for pins where at least one of the mux modes supports output
-> mode.
+omap3_pm_init_opp_table should be under #ifdef CONFIG_PM
+else build fails when PM is disabled. Reported by Paul originally.
 
-While eMMC is on, it is better if the lines are pulled up,
-irrespective of whether OMAP is OFF, just to keep to the
-MMC specification.
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Reported-by: Paul Walmsley <paul@pwsan.com>
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/pm.h |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index d257225..5fc056f 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -69,7 +69,13 @@ static inline void omap3_pm_init_vc(struct prm_setup_vc *setup_vc)
+  * Initialize the basic opp table here, board files could choose to modify opp
+  * table after the basic initialization
+  */
++#ifdef CONFIG_PM
+ extern void omap3_pm_init_opp_table(void);
++#else
++static inline void omap3_pm_init_opp_table(void)
++{
++}
++#endif
+ 
+ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+-- 
+1.6.3.3
 
