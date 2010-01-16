@@ -1,63 +1,35 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/4] omap: Clean the serial port defines
-Date: Sat, 16 Jan 2010 13:18:33 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C06F9005@dbde02.ent.ti.com>
-References: <20100116013205.10065.95921.stgit@baageli.muru.com>
- <20100116013510.10065.59461.stgit@baageli.muru.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code
+	generic
+Date: Sat, 16 Jan 2010 09:35:55 +0000
+Message-ID: <20100116093555.GA13596@n2100.arm.linux.org.uk>
+References: <20100116013205.10065.95921.stgit@baageli.muru.com> <20100116013515.10065.30649.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52934 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750936Ab0APHsr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 16 Jan 2010 02:48:47 -0500
-In-Reply-To: <20100116013510.10065.59461.stgit@baageli.muru.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55201 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752445Ab0APJgL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Jan 2010 04:36:11 -0500
+Content-Disposition: inline
+In-Reply-To: <20100116013515.10065.30649.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-VGhhbmtzIGZvciB0aGUgbmljZSBjbGVhbnVwLg0KPHNuaXA+DQoNCj4gLS0tLS1PcmlnaW5hbCBN
-ZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtb21hcC1vd25lckB2Z2VyLmtlcm5lbC5vcmcgDQo+
-IFttYWlsdG86bGludXgtb21hcC1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBU
-b255IExpbmRncmVuDQo+IFNlbnQ6IFNhdHVyZGF5LCBKYW51YXJ5IDE2LCAyMDEwIDc6MDUgQU0N
-Cj4gVG86IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0KPiBDYzogbGludXgt
-b21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogW1BBVENIIDEvNF0gb21hcDogQ2xlYW4g
-dGhlIHNlcmlhbCBwb3J0IGRlZmluZXMNCj4gDQo+IFRoaXMgd2F5IHdlIGRvbid0IGhhdmUgY29u
-ZmxpY3RzIHdpdGggdGhlIGRlZmluZXMNCj4gd2l0aCBjb21waWxpbmcgaW4gbXVsdGlwbGUgb21h
-cHMuIFNldCB0aGUgYWRkcmVzc2VzDQo+IGZvciB1YXJ0cyBpbiBzdHJ1Y3Qgb21hcF9nbG9iYWxz
-IGZvciB0aGUgZWFybHkgc2VyaWFsDQo+IGluaXQgY29kZS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6
-IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+DQo+IC0tLQ0KPiAgYXJjaC9hcm0vbWFj
-aC1vbWFwMS9pbmNsdWRlL21hY2gvZGVidWctbWFjcm8uUyB8ICAgMTYgKysrKystLS0tDQo+ICBh
-cmNoL2FybS9tYWNoLW9tYXAxL3NlcmlhbC5jICAgICAgICAgICAgICAgICAgIHwgICAgNiArKy0N
-Cj4gIGFyY2gvYXJtL21hY2gtb21hcDIvaW5jbHVkZS9tYWNoL2RlYnVnLW1hY3JvLlMgfCAgIDE1
-ICsrKystLS0tDQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL3NlcmlhbC5jICAgICAgICAgICAgICAg
-ICAgIHwgICAxNSArKysrKystLQ0KPiAgYXJjaC9hcm0vcGxhdC1vbWFwL2NvbW1vbi5jICAgICAg
-ICAgICAgICAgICAgICB8ICAgMTggKysrKysrKysrKw0KPiAgYXJjaC9hcm0vcGxhdC1vbWFwL2lu
-Y2x1ZGUvcGxhdC9jb21tb24uaCAgICAgICB8ICAgIDUgKysrDQo+ICBhcmNoL2FybS9wbGF0LW9t
-YXAvaW5jbHVkZS9wbGF0L3NlcmlhbC5oICAgICAgIHwgICA0NCANCj4gKysrKysrKysrKysrKy0t
-LS0tLS0tLS0tDQo+ICA3IGZpbGVzIGNoYW5nZWQsIDc3IGluc2VydGlvbnMoKyksIDQyIGRlbGV0
-aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDEvaW5jbHVkZS9t
-YWNoL2RlYnVnLW1hY3JvLlMgDQo+IGIvYXJjaC9hcm0vbWFjaC1vbWFwMS9pbmNsdWRlL21hY2gv
-ZGVidWctbWFjcm8uUw0KPiBpbmRleCBhZWRiNzQ2Li4yM2U0NzI0IDEwMDY0NA0KPiAtLS0gYS9h
-cmNoL2FybS9tYWNoLW9tYXAxL2luY2x1ZGUvbWFjaC9kZWJ1Zy1tYWNyby5TDQo+ICsrKyBiL2Fy
-Y2gvYXJtL21hY2gtb21hcDEvaW5jbHVkZS9tYWNoL2RlYnVnLW1hY3JvLlMNCj4gQEAgLTExLDYg
-KzExLDEwIEBADQouLi4NCg0KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9zZXJp
-YWwuYyANCj4gYi9hcmNoL2FybS9tYWNoLW9tYXAyL3NlcmlhbC5jDQo+IGluZGV4IDgzN2IzNDcu
-LjIxZTUxYzUgMTAwNjQ0DQo+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvc2VyaWFsLmMNCj4g
-KysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9zZXJpYWwuYw0KPiBAQCAtNzQsNyArNzQsNiBAQCBz
-dGF0aWMgTElTVF9IRUFEKHVhcnRfbGlzdCk7DQoNCi4uLg0KDQoNCj4gZGlmZiAtLWdpdCBhL2Fy
-Y2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvY29tbW9uLmggDQo+IGIvYXJjaC9hcm0vcGxh
-dC1vbWFwL2luY2x1ZGUvcGxhdC9jb21tb24uaA0KPiBpbmRleCAzMmMyMjI3Li5hOGZhMGQ3IDEw
-MDY0NA0KPiAtLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5oDQo+
-ICsrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvY29tbW9uLmgNCj4gQEAgLTQ3
-LDYgKzQ3LDEwIEBAIHN0cnVjdCBvbWFwX2dsb2JhbHMgew0KPiAgCXZvaWQgX19pb21lbQkqcHJt
-OwkJLyogUG93ZXIgYW5kIFJlc2V0IE1hbmFnZW1lbnQgKi8NCj4gIAl2b2lkIF9faW9tZW0JKmNt
-OwkJLyogQ2xvY2sgTWFuYWdlbWVudCAqLw0KPiAgCXZvaWQgX19pb21lbQkqY20yOw0KPiArCXVu
-c2lnbmVkIGxvbmcJdWFydDFfcGh5czsNCj4gKwl1bnNpZ25lZCBsb25nCXVhcnQyX3BoeXM7DQo+
-ICsJdW5zaWduZWQgbG9uZwl1YXJ0M19waHlzOw0KPiArCXVuc2lnbmVkIGxvbmcJdWFydDRfcGh5
-czsNCkNvbnNpZGVyaW5nIHRoZXkgYXJlIHJlZ2lzdGVyIGJhc2UgYWRkcmVzcywgY2FuDQp0aGVz
-ZSBiZSBkZWNsYXJlZCBhcyAidm9pZCBfX2lvbWVtIiBpbnN0ZWFkIG9mICJ1bnNpZ25lZCBsb25n
-Ig0KDQpSZWdhcmRzDQpTYW50b3No
+On Fri, Jan 15, 2010 at 05:35:15PM -0800, Tony Lindgren wrote:
+> diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
+> index 23e4724..0174858 100644
+> --- a/arch/arm/mach-omap1/include/mach/debug-macro.S
+> +++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
+> @@ -15,18 +15,71 @@
+>  
+>  #include <plat/serial.h>
+>  
+> +omap_uart_phys:	.word	0x0
+> +omap_uart_virt:	.word	0x0
+
+I assume that you have no plans for XIP kernel support on OMAP, since
+these will be placed in the .text section, and is therefore read-only
+on XIP kernels.
