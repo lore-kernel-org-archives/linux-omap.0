@@ -1,45 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code
  generic
-Date: Sat, 16 Jan 2010 11:18:20 -0800
-Message-ID: <20100116191820.GI10318@atomide.com>
+Date: Sat, 16 Jan 2010 11:20:30 -0800
+Message-ID: <20100116192029.GJ10318@atomide.com>
 References: <20100116013205.10065.95921.stgit@baageli.muru.com>
  <20100116013515.10065.30649.stgit@baageli.muru.com>
- <20100116093555.GA13596@n2100.arm.linux.org.uk>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C06F902C@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50743 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52859 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756183Ab0APTSN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Jan 2010 14:18:13 -0500
+	with ESMTP id S1756348Ab0APTUY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Jan 2010 14:20:24 -0500
 Content-Disposition: inline
-In-Reply-To: <20100116093555.GA13596@n2100.arm.linux.org.uk>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C06F902C@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [100116 01:33]:
-> On Fri, Jan 15, 2010 at 05:35:15PM -0800, Tony Lindgren wrote:
-> > diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
-> > index 23e4724..0174858 100644
-> > --- a/arch/arm/mach-omap1/include/mach/debug-macro.S
-> > +++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
-> > @@ -15,18 +15,71 @@
-> >  
-> >  #include <plat/serial.h>
-> >  
-> > +omap_uart_phys:	.word	0x0
-> > +omap_uart_virt:	.word	0x0
-> 
-> I assume that you have no plans for XIP kernel support on OMAP, since
-> these will be placed in the .text section, and is therefore read-only
-> on XIP kernels.
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100116 03:02]:
 
-Did not think of that.. Maybe some addruart_premable solution here would.
-Or adding \tmp register for addruart and just do the detection for each
-character.
+<snip>
+
+> Can you please add add OMAP4 UART3 case as well here using 
+> "OMAP4UART3". 
+
+Sure.
+ 
+> Attached patch fixes UART3 support for OMAP4 on top of your patches. Tested 
+> this on OMAP4430 SDP. You can fold this patch if you like
+
+Thanks will test. And thanks for testing. Note that once the
+issues Russell pointed out are solved, we should also easily
+be able to support the external uart on Zoom boards for
+DEBUG_LL.
 
 Regards,
 
