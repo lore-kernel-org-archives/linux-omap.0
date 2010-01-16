@@ -1,106 +1,45 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 2/3] DSPBRIDGE: change to cpufreq_register_notifier for OPP changes
-Date: Fri, 15 Jan 2010 20:01:46 -0600
-Message-ID: <1263607307-21693-3-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 3/3] DSPBRIDGE: Use dspbridge to initialize platform data
+Date: Fri, 15 Jan 2010 20:01:47 -0600
+Message-ID: <1263607307-21693-4-git-send-email-omar.ramirez@ti.com>
 References: <1263607307-21693-1-git-send-email-omar.ramirez@ti.com>
  <1263607307-21693-2-git-send-email-omar.ramirez@ti.com>
+ <1263607307-21693-3-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50768 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42913 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932392Ab0APBwB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jan 2010 20:52:01 -0500
-In-Reply-To: <1263607307-21693-2-git-send-email-omar.ramirez@ti.com>
+	id S932328Ab0APBwE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jan 2010 20:52:04 -0500
+In-Reply-To: <1263607307-21693-3-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-From: Fernando Guzman Lugo <x0095840@ti.com>
+Include dspbridge compilation whenever bridge driver is selected to
+be compiled, either as a module or part of the kernel. This will
+initialize platform data specific PM functions.
 
-This patch changes clk_notifier_unregister with
-cpufreq_unregister_notifier, which is used for OPP change
-notifications
-
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/Kconfig              |    2 +-
- drivers/dsp/bridge/rmgr/drv_interface.c |   25 +++++++++++++++----------
- 2 files changed, 16 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/Makefile |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/dsp/bridge/Kconfig b/drivers/dsp/bridge/Kconfig
-index e494f02..ea639e3 100644
---- a/drivers/dsp/bridge/Kconfig
-+++ b/drivers/dsp/bridge/Kconfig
-@@ -13,7 +13,7 @@ menuconfig MPU_BRIDGE
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index a37c713..1693c03 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -57,7 +57,9 @@ obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
+ # Debobs
+ obj-$(CONFIG_OMAP3_DEBOBS)	+= debobs.o
  
- config BRIDGE_DVFS
- 	bool "Enable Bridge Dynamic Voltage and Frequency Scaling (DVFS)"
--	depends on MPU_BRIDGE && OMAP_PM_SRF
-+	depends on MPU_BRIDGE && OMAP_PM_SRF && CPU_FREQ
- 	default n
- 	help
- 	  DVFS allows DSP Bridge to initiate the operating point change to
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 8fce70c..19682b5 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -236,15 +236,18 @@ u32 vdd1_dsp_freq[6][4] = {
- };
+-obj-$(CONFIG_MPU_BRIDGE)		+= dspbridge.o
++ifneq ($(CONFIG_MPU_BRIDGE),)
++obj-y					+= dspbridge.o
++endif
  
- #ifdef CONFIG_BRIDGE_DVFS
--static int dspbridge_post_scale(struct notifier_block *op, unsigned long level,
--				void *ptr)
-+static int dspbridge_scale_notification(struct notifier_block *op,
-+		unsigned long val, void *ptr)
- {
--	PWR_PM_PostScale(PRCM_VDD1, level);
-+	struct dspbridge_platform_data *pdata =
-+					omap_dspbridge_dev->dev.platform_data;
-+	if (CPUFREQ_POSTCHANGE == val && pdata->dsp_get_opp)
-+		PWR_PM_PostScale(PRCM_VDD1, pdata->dsp_get_opp());
- 	return 0;
- }
- 
- static struct notifier_block iva_clk_notifier = {
--	.notifier_call = dspbridge_post_scale,
-+	.notifier_call = dspbridge_scale_notification,
- 	NULL,
- };
- #endif
-@@ -380,12 +383,13 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
- 			GT_0trace(driverTrace, GT_7CLASS,
- 			"clk_get PASS to get iva2_ck \n");
- 		}
--		if (!clk_notifier_register(clk_handle, &iva_clk_notifier)) {
-+		if (!cpufreq_register_notifier(&iva_clk_notifier,
-+						CPUFREQ_TRANSITION_NOTIFIER)) {
- 			GT_0trace(driverTrace, GT_7CLASS,
--			"clk_notifier_register PASS for iva2_ck \n");
-+				"cpufreq_register_notifier PASS for iva2_ck\n");
- 		} else {
- 			GT_0trace(driverTrace, GT_7CLASS,
--			"clk_notifier_register FAIL for iva2_ck \n");
-+				"cpufreq_register_notifier FAIL for iva2_ck\n");
- 		}
- #endif
- 		driverContext = DSP_Init(&initStatus);
-@@ -429,12 +433,13 @@ static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
- 		goto func_cont;
- 
- #ifdef CONFIG_BRIDGE_DVFS
--	if (!clk_notifier_unregister(clk_handle, &iva_clk_notifier)) {
-+	if (!cpufreq_unregister_notifier(&iva_clk_notifier,
-+						CPUFREQ_TRANSITION_NOTIFIER)) {
- 		GT_0trace(driverTrace, GT_7CLASS,
--		"clk_notifier_unregister PASS for iva2_ck \n");
-+			"cpufreq_unregister_notifier PASS for iva2_ck\n");
- 	} else {
- 		GT_0trace(driverTrace, GT_7CLASS,
--		"clk_notifier_unregister FAILED for iva2_ck \n");
-+			"cpufreq_unregister_notifier FAILED for iva2_ck\n");
- 	}
- #endif /* #ifdef CONFIG_BRIDGE_DVFS */
- 
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
 -- 
 1.6.2.4
 
