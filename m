@@ -1,60 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP1 clock: fix for "BUG: spinlock lockup on CPU#0"
-Date: Fri, 15 Jan 2010 18:06:17 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001151805130.11569@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/4] omap multiboot improvments for merge window after 2.6.34
+Date: Fri, 15 Jan 2010 17:35:07 -0800
+Message-ID: <20100116013205.10065.95921.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35690 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932073Ab0APBGS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 20:06:18 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58970 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758375Ab0APBe5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jan 2010 20:34:57 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: tony@atomide.com
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
+Hi all,
 
-Commit 52650505fbf3a6ab851c801f54e73e76c55ab8da caused clock initialization
-to fail on OMAP1 with "BUG: spinlock lockup on CPU#0" -- this is because
-omap1_select_table_rate() and omap1_round_to_table_rate() call clk_get_rate()
-with the clockfw spinlock held.  Fix by accessing the rate directly from
-the internal clock framework functions.
+Here are some multiboot improvments for review. These patches
+are intended for the 2.6.34 merge window.
 
-Thanks to Tony Lindgren <tony@atomide.com> for reporting and testing the fix.
+Comments and testing would be nice, I've tested them so far
+on osk, 770, n800, rx51 and overo.
 
-Queued for 2.6.33-rcX fixes.
+Regards,
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Tony
+
 ---
- arch/arm/mach-omap1/clock.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 2ba9ab9..04f1d29 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -214,8 +214,8 @@ int omap1_select_table_rate(struct clk *clk, unsigned long rate)
- 	struct mpu_rate * ptr;
- 	unsigned long dpll1_rate, ref_rate;
- 
--	dpll1_rate = clk_get_rate(ck_dpll1_p);
--	ref_rate = clk_get_rate(ck_ref_p);
-+	dpll1_rate = ck_dpll1_p->rate;
-+	ref_rate = ck_ref_p->rate;
- 
- 	for (ptr = omap1_rate_table; ptr->rate; ptr++) {
- 		if (ptr->xtal != ref_rate)
-@@ -306,7 +306,7 @@ long omap1_round_to_table_rate(struct clk *clk, unsigned long rate)
- 	long highest_rate;
- 	unsigned long ref_rate;
- 
--	ref_rate = clk_get_rate(ck_ref_p);
-+	ref_rate = ck_ref_p->rate;
- 
- 	highest_rate = -EINVAL;
- 
+Tony Lindgren (4):
+      omap: Clean the serial port defines
+      omap: Make uncompress code and DEBUG_LL code generic
+      omap: Remove old DEBUG_LL serial port options
+      omap: Make get_irqnr_and_base common for mach-omap2 multiboot
+
+
+ arch/arm/mach-omap1/include/mach/debug-macro.S |   83 ++++++++++--
+ arch/arm/mach-omap1/serial.c                   |   18 ++-
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   91 +++++++++----
+ arch/arm/mach-omap2/include/mach/entry-macro.S |   55 +++++---
+ arch/arm/mach-omap2/serial.c                   |   26 +++-
+ arch/arm/plat-omap/Kconfig                     |   19 ---
+ arch/arm/plat-omap/common.c                    |   18 +++
+ arch/arm/plat-omap/include/plat/common.h       |    5 +
+ arch/arm/plat-omap/include/plat/serial.h       |   62 ++++++---
+ arch/arm/plat-omap/include/plat/uncompress.h   |  168 +++++++++++++++++-------
+ 10 files changed, 390 insertions(+), 155 deletions(-)
+
 -- 
-1.6.6.rc2.5.g49666
-
+Signature
