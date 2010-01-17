@@ -1,99 +1,81 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: Issue in oamp nand driver with 32-bit reads in prefetch mode
-Date: Sat, 16 Jan 2010 23:35:16 +0200
-Message-ID: <1263677716.8276.130.camel@localhost.localdomain>
-References: <ce9ab5790912230133wae2c4dcw73051221b66cb40f@mail.gmail.com>
-	 <20091223174429.GD3512@atomide.com>
-	 <5e088bd90912291238t1f2aba64na94887b2f864454d@mail.gmail.com>
-	 <5e088bd90912291347j370ab30cid7c6cfc558c2ed18@mail.gmail.com>
-	 <ce9ab5790912310420h20beb04csba060b3f5cfeee92@mail.gmail.com>
-	 <1263113195.7315.129.camel@localhost.localdomain>
-	 <ce9ab5791001102230j7923ef01j6f17b7ca9fafde56@mail.gmail.com>
-Reply-To: dedekind1@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:57655 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751489Ab0APVfV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Jan 2010 16:35:21 -0500
-Received: by fxm25 with SMTP id 25so38793fxm.21
-        for <linux-omap@vger.kernel.org>; Sat, 16 Jan 2010 13:35:19 -0800 (PST)
-In-Reply-To: <ce9ab5791001102230j7923ef01j6f17b7ca9fafde56@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: [PATCH V2 0/10] omap_hsmmc changes V2
+Date: Sun, 17 Jan 2010 03:28:02 +0200
+Message-ID: <20100117012802.16545.88531.sendpatchset@ahunter-work.research.nokia.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>, linux-arm-kernel@lists.infradead.org
 
-On Mon, 2010-01-11 at 12:00 +0530, Vimal Singh wrote:
-> On Sun, Jan 10, 2010 at 2:16 PM, Artem Bityutskiy <dedekind1@gmail.co=
-m> wrote:
-> > On Thu, 2009-12-31 at 17:50 +0530, Vimal Singh wrote:
-> >> There is a bug in nand prefetch read routine, which comes into eff=
-ect
-> >> only if nand device is a 16-bit device (as we have in zoom boards)=
-=2E
-> >> This bug is effective only with below combination of conditions:
-> >> 1. nand deivce, in use, is a 16 bit device
-> >> 2. nand driver supports 'subpage' read
-> >> 3. SW ECC is in use
-> >>
-> >> This was not seen old  kernel (ex: .23), because when, in early da=
-ys,
-> >> we tested this (nand prefetch read in LDP boards) there was no
-> >> 'subpage read' support.
-> >> Later when we had subpage read in (.27) kernel, we had hw ecc enab=
-led
-> >> always in our internal tree. So, we missed this bug.
-> >>
-> >> Here is a patch to fix this issue:
-> >>
-> >> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> >> index 1bb799f..75004fe 100644
-> >> --- a/drivers/mtd/nand/omap2.c
-> >> +++ b/drivers/mtd/nand/omap2.c
-> >> @@ -295,11 +295,14 @@ static void omap_read_buf_pref(struct
-> >>       u32 *p =3D (u32 *)buf;
-> >>
-> >>       /* take care of subpage reads */
-> >> -     for (; len % 4 !=3D 0; ) {
-> >> -             *buf++ =3D __raw_readb(info->nand.IO_ADDR_R);
-> >> -             len--;
-> >> +     if (len % 4) {
-> >> +             if (info->nand.options & NAND_BUSWIDTH_16)
-> >> +                     omap_read_buf16(mtd, buf, len % 4);
-> >> +             else
-> >> +                     omap_read_buf8(mtd, buf, len % 4);
-> >> +             p =3D (u32 *) (buf + len % 4);
-> >> +             len -=3D len % 4;
-> >>       }
-> >> -     p =3D (u32 *) buf;
-> >>
-> >>       /* configure and start prefetch transfer */
-> >>       ret =3D gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
-> >
-> > Pushed this patch to my l2-mtd-2.6.git/dunno.
-> >
->=20
-> I have posted this patch formally in patch series:
-> [PATCH 0/3][NAND][OMAP]: fixing omap nand driver issues
->=20
-> Corresponding patch is:
-> [PATCH 3/3][NAND][OMAP] : Fixing issue in oamp nand driver in prefetc=
-h mode read
->=20
-> Can you please give a look for this patch series?
+Hi
 
-Just pushed them to my l2-mtd-2.6.git/dunno
+Here are some changes we need for omap_hsmmc.  They are dependent on OMAP
+board files so it would be simplest if the patches all went via the OMAP
+tree.
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+This is version 2 of this patch set.  Thank you Tony, Paul and Madhu for
+your comments.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes from version 1:
+	- amended patch 'omap_hsmmc: Move gpio and regulator control from
+	board file' so that system control functions remain in the board
+	file
+	- for clarity, split patch 'omap: Rename mmc-twl4030 to hsmmc' into
+	'omap: Rename mmc-twl4030 files to hsmmc' and
+	'omap: Rename hsmmc symbols to reflect independence from twl4030'
+	- removed patch 'omap_hsmmc: set DVFS/PM constraints'
+	- added patch 'omap: Add functions for dynamic remuxing of pins'
+	- renamed and reworked patch 'omap: RX51: Remux to pull eMMC lines
+	down when powering off' (was 'omap_hsmmc: RX51: set padconfs to pull
+	down when powering off eMMC')
+	- added patch 'omap_hsmmc: Ensure regulator enable / disable are
+	paired'
+	- fixed mistakes in patch 'omap_hsmmc: Allow for a shared VccQ'
+
+
+Adrian Hunter (9):
+      omap_hsmmc: Move gpio and regulator control from board file
+      omap: Rename mmc-twl4030 files to hsmmc
+      omap: Rename hsmmc symbols to reflect independence from twl4030
+      omap: Reconnect hsmmc context loss count
+      omap: RX51: Remux to pull eMMC lines down when powering off
+      omap_hsmmc: Allow for power saving without going off
+      omap_hsmmc: Fix disable timeouts
+      omap_hsmmc: Ensure regulator enable / disable are paired
+      omap_hsmmc: Allow for a shared VccQ
+
+Tony Lindgren (1):
+      omap: Add functions for dynamic remuxing of pins
+
+ arch/arm/configs/rx51_defconfig                |    4 +-
+ arch/arm/mach-omap2/Makefile                   |   28 +-
+ arch/arm/mach-omap2/board-2430sdp.c            |    6 +-
+ arch/arm/mach-omap2/board-3430sdp.c            |    6 +-
+ arch/arm/mach-omap2/board-cm-t35.c             |    6 +-
+ arch/arm/mach-omap2/board-igep0020.c           |    6 +-
+ arch/arm/mach-omap2/board-ldp.c                |    6 +-
+ arch/arm/mach-omap2/board-omap3beagle.c        |    6 +-
+ arch/arm/mach-omap2/board-omap3evm.c           |    6 +-
+ arch/arm/mach-omap2/board-omap3pandora.c       |    6 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c     |    6 +-
+ arch/arm/mach-omap2/board-overo.c              |    6 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c   |   63 +++-
+ arch/arm/mach-omap2/board-zoom-peripherals.c   |    6 +-
+ arch/arm/mach-omap2/hsmmc.c                    |  261 ++++++++++++
+ arch/arm/mach-omap2/{mmc-twl4030.h => hsmmc.h} |   14 +-
+ arch/arm/mach-omap2/mmc-twl4030.c              |  537 ------------------------
+ arch/arm/mach-omap2/mux.c                      |   22 +-
+ arch/arm/mach-omap2/mux.h                      |   24 +
+ arch/arm/plat-omap/include/plat/mmc.h          |   35 ++-
+ drivers/mmc/host/omap_hsmmc.c                  |  375 ++++++++++++++++-
+ 21 files changed, 788 insertions(+), 641 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/hsmmc.c
+ rename arch/arm/mach-omap2/{mmc-twl4030.h => hsmmc.h} (63%)
+ delete mode 100644 arch/arm/mach-omap2/mmc-twl4030.c
+
+
+ 
+Regards
+Adrian
+
