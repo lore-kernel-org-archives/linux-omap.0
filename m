@@ -1,71 +1,78 @@
-From: "Y, Kishore" <kishore.y@ti.com>
-Subject: RE: [PATCH] OMAP3630:DSS2:Enable Pre-Multiplied Alpha Support
-Date: Mon, 18 Jan 2010 16:56:43 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DBBB2@dbde02.ent.ti.com>
-References: <1263551393.2087.249.camel@tubuntu.research.nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH] OMAP3 PM export chip IDCODE, Production ID and Die ID
+Date: Mon, 18 Jan 2010 13:46:16 +0200
+Message-ID: <20100118114616.GE2234@esdhcp037198.research.nokia.com>
+References: <1255359069-9621-1-git-send-email-peter.de-schrijver@nokia.com>
+ <87r5t7ku90.fsf@deeprootsystems.com>
+ <20091013194808.GB12700@atomide.com>
+ <636c5030910131251p14057abdobab3ba5bfb0d67f2@mail.gmail.com>
+ <20091014094407.GA7471@codecarver.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38697 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751161Ab0ARL0o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jan 2010 06:26:44 -0500
-In-Reply-To: <1263551393.2087.249.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:43232 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753927Ab0ARLqo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 06:46:44 -0500
+Content-Disposition: inline
+In-Reply-To: <20091014094407.GA7471@codecarver.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mande, Nikhil" <nikhil@ti.com>
+To: "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>
+Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBUb21pIFZhbGtlaW5lbiBbbWFp
-bHRvOnRvbWkudmFsa2VpbmVuQG5va2lhLmNvbV0NCj4gU2VudDogRnJpZGF5LCBKYW51YXJ5IDE1
-LCAyMDEwIDQ6MDAgUE0NCj4gVG86IFksIEtpc2hvcmUNCj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5r
-ZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIE9NQVAzNjMwOkRTUzI6RW5hYmxlIFBy
-ZS1NdWx0aXBsaWVkIEFscGhhIFN1cHBvcnQNCj4gDQo+IEhpLA0KPiANCj4gT24gTW9uLCAyMDA5
-LTEyLTIxIGF0IDE2OjA2ICswMTAwLCBleHQgWSwgS2lzaG9yZSB3cm90ZToNCj4gPiBGcm9tIDJm
-ODczODE5YTRiOWViMGJkNjU4ZGIxZTU5NDA4ZDhmMGFlYjE0YjYgTW9uIFNlcCAxNyAwMDowMDow
-MCAyMDAxDQo+ID4gRnJvbTogU3VkZWVwIEJhc2F2YXJhaiA8c3VkZWVwLmJhc2F2YXJhakB0aS5j
-b20+DQo+ID4gRGF0ZTogTW9uLCAxNCBEZWMgMjAwOSAxODo1NDo1MSArMDUzMA0KPiA+IFN1Ympl
-Y3Q6IFtQQVRDSF0gT01BUDM2MzA6RFNTMjpFbmFibGUgUHJlLU11bHRpcGxpZWQgQWxwaGEgU3Vw
-cG9ydA0KPiA+DQo+ID4gRW5hYmxlcyBkc3MgdG8gcHJvY2VzcyBjb2xvciBmb3JtYXRzIHdpdGgg
-cHJlLW11bGl0cGxpZWQgYWxwaGEgdmFsdWVzLg0KPiA+IFdpdGggdGhpcyB3ZSBjYW4gaGF2ZSBh
-bHBoYSB2YWx1ZXMgZGVmaW5lZCBmb3IgZWFjaCBwaXhlbA0KPiA+IGFuZCBoZW5jZSBjYW4gaGF2
-ZSBkaWZmZXJlbnQgYmxlbmRpbmcgdmFsdWVzIGZvciBlYWNoIHBpeGVsLg0KPiANCj4gV2hhdCBk
-b2VzIHByZS1tdWx0aXBsaWVkIGFscGhhIG1lYW4/IFRoZSBUUk0gZGlkbid0IHJlYWxseSBvcGVu
-IGl0IHVwLi4uDQo+IERvbid0IHdlIGFscmVhZHkgaGF2ZSBwZXIgcGl4ZWwgYWxwaGEgd2hlbiB1
-c2luZyBBUkdCL1JHQkE/DQoNCldoZW4gd2Ugc2V0IHBpeGVsIGZvcm1hdCB0byBBUkdCL1JHQkEg
-ZHNzIGFscGhhIGJsZW5kZXIgd291bGQgbXVsdGlwbHkgdGhlIHZhbHVlIHByZXNlbnQgaW4gJ0En
-IHdpdGggJ1JHQicuDQpCeSBzZXR0aW5nIHRoaXMgYml0IGRpc3BsYXkgaGFyZHdhcmUgYXNzdW1l
-cyB0aGF0IHRoZSBSLEcsQiBhcmUgYWxyZWFkeSBtdWx0aXBsaWVkIHdpdGggdGhlIGFscGhhIHZh
-bHVlIGFuZCB0aGVyZSBpcyBubyBuZWVkIHRvIG11bHRpcGx5IGFnYWluLg0KDQpFeDotDQoJCQlB
-CVIJRwlCDQphcmdiIGRhdGEJCTEyOAkyNTUJMTI4CTEwMA0KcHJlLW11bHRpcGxpZWQJMTI4CTEy
-OAk2NAk1MA0KDQpTbyB0aGlzIGJpdCwgd2hlbiBzZXQsIHdvdWxkIG5vdCBtdWx0aXBseSB0aGUg
-cGl4ZWwgd2l0aCBhbHBoYSB2YWx1ZS4NCg0KPiANCj4gVGhpcyBwYXRjaCBzZWVtcyB0byBhbHdh
-eXMgc2V0IHRoZSBiaXQgb24sIG5ldmVyIHNldCBpdCBvZmYuIElzIHRoYXQgdGhlDQo+IHB1cnBv
-c2U/DQoNCkFzIHBlciBUUk0sIHRoaXMgYml0IGlzIHZhbGlkIG9ubHkgZm9yIEFSR0IgZm9ybWF0
-cyBhbmQgZXhwZXJ0cyBzdWdnZXN0ZWQgdGhhdCB3ZSBjYW4gc2FmZWx5IGFzc3VtZSBwcmUtbXVs
-dGlwbGllZCBkYXRhIGFsd2F5cyBpbiByZWFsIHdvcmxkDQoNCj4gDQo+ICBUb21pDQo+IA0KPiAN
-Cj4gPiBTaWduZWQtb2ZmLWJ5OiBTdWRlZXAgQmFzYXZhcmFqIDxzdWRlZXAuYmFzYXZhcmFqQHRp
-LmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBLaXNob3JlIFkgPGtpc2hvcmUueUB0aS5jb20+DQo+
-ID4gLS0tDQo+ID4gIGRyaXZlcnMvdmlkZW8vb21hcDIvZHNzL2Rpc3BjLmMgfCAgICA4ICsrKysr
-KysrDQo+ID4gIDEgZmlsZXMgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygt
-KQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vb21hcDIvZHNzL2Rpc3BjLmMN
-Cj4gYi9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kaXNwYy5jDQo+ID4gaW5kZXggNmRhYmY0Yi4u
-NWY3ODE5YiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kaXNwYy5j
-DQo+ID4gKysrIGIvZHJpdmVycy92aWRlby9vbWFwMi9kc3MvZGlzcGMuYw0KPiA+IEBAIC05MTMs
-NiArOTEzLDExIEBAIHN0YXRpYyB2b2lkIF9kaXNwY19zZXRfdmlkX2NvbG9yX2NvbnYoZW51bQ0K
-PiBvbWFwX3BsYW5lIHBsYW5lLCBib29sIGVuYWJsZSkNCj4gPiAgCWRpc3BjX3dyaXRlX3JlZyhk
-aXNwY19yZWdfYXR0W3BsYW5lXSwgdmFsKTsNCj4gPiAgfQ0KPiA+DQo+ID4gK3N0YXRpYyB2b2lk
-IF9kaXNwY19zZXRfYWxwaGFfYmxlbmRfYXR0cnMoZW51bSBvbWFwX3BsYW5lIHBsYW5lLCBib29s
-DQo+IGVuYWJsZSkNCj4gPiArew0KPiA+ICsJUkVHX0ZMRF9NT0QoZGlzcGNfcmVnX2F0dFtwbGFu
-ZV0sIGVuYWJsZSA/IDEgOiAwLCAyOCwgMjgpOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICB2b2lkIGRp
-c3BjX2VuYWJsZV9yZXBsaWNhdGlvbihlbnVtIG9tYXBfcGxhbmUgcGxhbmUsIGJvb2wgZW5hYmxl
-KQ0KPiA+ICB7DQo+ID4gIAlpbnQgYml0Ow0KPiA+IEBAIC0xNjg5LDYgKzE2OTQsOSBAQCBzdGF0
-aWMgaW50IF9kaXNwY19zZXR1cF9wbGFuZShlbnVtIG9tYXBfcGxhbmUNCj4gcGxhbmUsDQo+ID4N
-Cj4gPiAgCV9kaXNwY19zZXRfcm90YXRpb25fYXR0cnMocGxhbmUsIHJvdGF0aW9uLCBtaXJyb3Is
-IGNvbG9yX21vZGUpOw0KPiA+DQo+ID4gKwlpZiAoY3B1X2lzX29tYXAzNjMwKCkgJiYgKHBsYW5l
-ICE9IE9NQVBfRFNTX1ZJREVPMSkpDQo+ID4gKwkJX2Rpc3BjX3NldF9hbHBoYV9ibGVuZF9hdHRy
-cyhwbGFuZSwgMSk7DQo+ID4gKw0KPiA+ICAJaWYgKHBsYW5lICE9IE9NQVBfRFNTX1ZJREVPMSkN
-Cj4gPiAgCQlfZGlzcGNfc2V0dXBfZ2xvYmFsX2FscGhhKHBsYW5lLCBnbG9iYWxfYWxwaGEpOw0K
-PiA+DQo+IA0KDQo=
+Hello Tony and Kevin,
+
+On Wed, Oct 14, 2009 at 11:44:07AM +0200, De-Schrijver Peter (Nokia-D/Helsinki) wrote:
+> On Tue, Oct 13, 2009 at 09:51:30PM +0200, ext Kevin Hilman wrote:
+> > On Tue, Oct 13, 2009 at 12:48 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > > * Kevin Hilman <khilman@deeprootsystems.com> [091013 12:09]:
+> > >> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
+> > >>
+> > >> > From: De-Schrijver Peter (Nokia-D/Helsinki) <Peter.De-Schrijver@nokia.com>
+> > >> >
+> > >> > This patch exports the OMAP3 IDCODE, Production ID and Die ID to userspace via
+> > >> > sysfs. This can be used to track down silicon specific issues. The info is
+> > >> > exported via sysfs because it should be possible to include this in corematic
+> > >> > dumps.
+> > >> >
+> > >> > Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> > >>
+> > >> Please export these via debugfs.
+> > >
+> > > I don't think we want to export unique chip identifiers by default.
+> > >
+> > 
+> > Right, which is why I suggested using debugfs, which is something that
+> > probably wouldn't be enabled/exported on default production kernels.
+> > 
+> 
+> Which is why I do not want it in debugfs as we log this info in
+> crash reports on devices which might not have debugfs enabled.
+
+As Peter said here, this patch is to identify the chip from user land.
+So it is not really a debug tool, but a identification tool.
+
+Any good reason why we should not have it?
+
+Another thing is, it could go into /proc/cpuinfo. Currently I don't
+see any OMAP related info there, only ARM. Do you guys know why we don't
+put anything in /proc/cpuinfo?
+
+> 
+> Cheers,
+> 
+> Peter.
+> 
+> -- 
+> goa is a state of mind
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+BR,
+
+-- 
+Eduardo Valentin
