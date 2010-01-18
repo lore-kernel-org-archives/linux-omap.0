@@ -1,104 +1,133 @@
 From: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
-Subject: [PATCHV2 1/2] OMAP3630: Clock: add clksel_shift to struct clk
-Date: Mon, 18 Jan 2010 18:04:24 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DBC11@dbde02.ent.ti.com>
+Subject: [PATCHV2 2/2] OMAP3630: Clock: Fixing HSDivider Limitation
+Date: Mon, 18 Jan 2010 18:06:31 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DBC17@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41011 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45765 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752163Ab0ARMeq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 07:34:46 -0500
+	id S1751490Ab0ARMgy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 07:36:54 -0500
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Turquette, Mike" <mturquette@ti.com>
 
->From f9a7f877368830fdf28f9892940d05517f07a582 Mon Sep 17 00:00:00 2001
+>From 719417657425d4f12369b5ddad79c86baddfefa5 Mon Sep 17 00:00:00 2001
 From: Mike Turquette <mturquette@ti.com>
-Date: Tue, 12 Jan 2010 16:58:39 +0530
-Subject: [PATCH 1/2] OMAP3630: Clock: add clksel_shift to struct clk
+Date: Mon, 18 Jan 2010 17:38:19 +0530
+Subject: [PATCH 2/2] OMAP3630: Clock: Fixing HSDivider Limitation
 
-Introduces clksel_shift to struct clk and populates the same for
-dpll4_m3_ck, dpll4_m4_ck, dpll4_m2_ck, dpll4_m6, dpll4_m5_ck and dpll3_m3.
-The purpose of this change is to make it easy for a generic function to
-refresh specific CM_CLKSEL registers on a per-clock basis by first
-adding then subtracting the shift value from the register.This is the 
-recommended sequence to solve HSDivider PWRDN limitations in OMAP3630.
+It implements the recommended sequence to solve HS divider PWRDN limitation in
+OMAP3630 DPLL3 and DPLL4. Without this workaround the divider value goes
+to its reset state after the corresponding PWRDN bit is set from the
+CM_CLKEN_PLL register. The correct divider value can be restored by
+writing a dummy value to the register different than what is in there, and
+then re-writing the desired value.
+This Work around is applicable for below HS Dividers.
+ 1. DPLL3_M3
+ 2. DPLL4_M2
+ 3. DPLL4_M3
+ 4. DPLL4_M4
+ 5. DPLL4_M5
+ 6. DPLL4_M6
 
 Signed-off-by: Mike Turquette <mturquette@ti.com>
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 Signed-off-by: Vijaykumar GN <vijaykumar.gn@ti.com>
 ---
- arch/arm/mach-omap2/clock34xx_data.c    |    6 ++++++
- arch/arm/plat-omap/include/plat/clock.h |    1 +
- 2 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c      |   36 ++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock34xx.h      |    1 +
+ arch/arm/mach-omap2/clock34xx_data.c |   15 ++++++++++++++
+ 3 files changed, 52 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 0d30e53..e5213f8 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -146,6 +146,42 @@ const struct clkops clkops_omap3430es2_hsotgusb_wait = {
+ 	.find_companion = omap2_clk_dflt_find_companion,
+ };
+ 
++/** omap3_pwrdn_clk_enable_with_hsdiv_restore - enable clocks suffering
++ *         from HSDivider problem.
++ * @clk: DPLL output struct clk
++ *
++ * 3630 only: dpll3_m3_ck, dpll4_m2_ck, dpll4_m3_ck, dpll4_m4_ck, dpll4_m5_ck
++ * & dpll4_m6_ck dividers get lost after their respective PWRDN bits are set.
++ * Any write to the corresponding CM_CLKSEL register will refresh the
++ * dividers.  Only x2 clocks are affected, so it is safe to trust the parent
++ * clock information to refresh the CM_CLKSEL registers.
++ */
++int omap3_pwrdn_clk_enable_with_hsdiv_restore(struct clk *clk)
++{
++	u32 v;
++	int ret;
++
++	/* enable the clock */
++	ret = omap2_dflt_clk_enable(clk);
++
++	/* Restore the dividers */
++	if (!ret) {
++		v = __raw_readl(clk->parent->clksel_reg);
++		v += (1 << clk->parent->clksel_shift);
++		__raw_writel(v, clk->parent->clksel_reg);
++		v -= (1 << clk->parent->clksel_shift);
++		__raw_writel(v, clk->parent->clksel_reg);
++	}
++	return ret;
++}
++
++const struct clkops clkops_omap3_pwrdn_with_hsdiv_wait_restore = {
++	.enable		= omap3_pwrdn_clk_enable_with_hsdiv_restore,
++	.disable	= omap2_dflt_clk_disable,
++	.find_companion	= omap2_clk_dflt_find_companion,
++	.find_idlest	= omap2_clk_dflt_find_idlest,
++};
++
+ const struct clkops clkops_noncore_dpll_ops = {
+ 	.enable		= omap3_noncore_dpll_enable,
+ 	.disable	= omap3_noncore_dpll_disable,
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 9a2c07e..6f7d271 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -20,5 +20,6 @@ extern const struct clkops clkops_omap3430es2_ssi_wait;
+ extern const struct clkops clkops_omap3430es2_hsotgusb_wait;
+ extern const struct clkops clkops_omap3430es2_dss_usbhost_wait;
+ extern const struct clkops clkops_noncore_dpll_ops;
++extern const struct clkops clkops_omap3_pwrdn_with_hsdiv_wait_restore;
+ 
+ #endif
 diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
-index 6473247..ed17501 100755
+index 955d4ef..39a1b3c 100755
 --- a/arch/arm/mach-omap2/clock34xx_data.c
 +++ b/arch/arm/mach-omap2/clock34xx_data.c
-@@ -537,6 +537,7 @@ static struct clk dpll3_m3_ck = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
- 	.clksel_mask	= OMAP3430_DIV_DPLL3_MASK,
-+	.clksel_shift	= OMAP3430_DIV_DPLL3_SHIFT,
- 	.clksel		= div16_dpll3_clksel,
- 	.clkdm_name	= "dpll3_clkdm",
- 	.recalc		= &omap2_clksel_recalc,
-@@ -677,6 +678,7 @@ static struct clk dpll4_m2_ck_3630 __initdata  = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, OMAP3430_CM_CLKSEL3),
- 	.clksel_mask	= OMAP3630_DIV_96M_MASK,
-+	.clksel_shift	= OMAP3430_DIV_96M_SHIFT,
- 	.clksel		= div32_dpll4_clksel,
- 	.clkdm_name	= "dpll4_clkdm",
- 	.recalc		= &omap2_clksel_recalc,
-@@ -792,6 +794,7 @@ static struct clk dpll4_m3_ck_3630 __initdata = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
- 	.clksel_mask	= OMAP3630_CLKSEL_TV_MASK,
-+	.clksel_shift = OMAP3430_CLKSEL_TV_SHIFT,
- 	.clksel		= div32_dpll4_clksel,
- 	.clkdm_name	= "dpll4_clkdm",
- 	.recalc		= &omap2_clksel_recalc,
-@@ -892,6 +895,7 @@ static struct clk dpll4_m4_ck_3630 __initdata = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
- 	.clksel_mask	= OMAP3630_CLKSEL_DSS1_MASK,
-+	.clksel_shift	= OMAP3430_CLKSEL_DSS1_SHIFT,
- 	.clksel		= div32_dpll4_clksel,
- 	.clkdm_name	= "dpll4_clkdm",
- 	.recalc		= &omap2_clksel_recalc,
-@@ -933,6 +937,7 @@ static struct clk dpll4_m5_ck_3630 __initdata = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_CLKSEL),
- 	.clksel_mask	= OMAP3630_CLKSEL_CAM_MASK,
-+	.clksel_shift	= OMAP3430_CLKSEL_CAM_SHIFT,
- 	.clksel		= div32_dpll4_clksel,
- 	.clkdm_name	= "dpll4_clkdm",
- 	.recalc		= &omap2_clksel_recalc,
-@@ -970,6 +975,7 @@ static struct clk dpll4_m6_ck_3630 __initdata = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430_EMU_MOD, CM_CLKSEL1),
- 	.clksel_mask	= OMAP3630_DIV_DPLL4_MASK,
-+	.clksel_shift	= OMAP3430_DIV_DPLL4_SHIFT,
- 	.clksel		= div32_dpll4_clksel,
- 	.clkdm_name	= "dpll4_clkdm",
- 	.recalc		= &omap2_clksel_recalc,
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 71d78f7..e841755 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -93,6 +93,7 @@ struct clk {
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
- 		defined(CONFIG_ARCH_OMAP4)
- 	u8			fixed_div;
-+	u8			clksel_shift;
- 	void __iomem		*clksel_reg;
- 	u32			clksel_mask;
- 	const struct clksel	*clksel;
+@@ -3447,6 +3447,21 @@ int __init omap2_clk_init(void)
+ 		dpll4_m4_ck = dpll4_m4_ck_3630;
+ 		dpll4_m5_ck = dpll4_m5_ck_3630;
+ 		dpll4_m6_ck = dpll4_m6_ck_3630;
++
++		/* For 3630: override clkops_omap2_dflt_wait for the
++		 * clocks affected from HSDivider PWRDN reset limitation */
++		dpll3_m3x2_ck.ops =
++			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
++		dpll4_m2x2_ck.ops =
++			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
++		dpll4_m3x2_ck.ops =
++			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
++		dpll4_m4x2_ck.ops =
++			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
++		dpll4_m5x2_ck.ops =
++			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
++		dpll4_m6x2_ck.ops =
++			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
+ 	} else {
+ 		dpll4_dd = dpll4_dd_34xx;
+ 		dpll4_m2_ck = dpll4_m2_ck_34xx;
 -- 
 1.5.6.3
 
