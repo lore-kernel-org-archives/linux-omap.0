@@ -1,44 +1,71 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH v9 4/4] OMAP: McBSP: Use cache when modifying individual
- register bits
-Date: Mon, 18 Jan 2010 13:13:43 +0200
-Message-ID: <20100118131343.7d763f8c.jhnikula@gmail.com>
-References: <201001141658.32034.jkrzyszt@tis.icnet.pl>
-	<201001151111.28462.peter.ujfalusi@nokia.com>
-	<4B509B1F.2000302@tis.icnet.pl>
-	<201001181005.12307.peter.ujfalusi@nokia.com>
+From: "Y, Kishore" <kishore.y@ti.com>
+Subject: RE: [PATCH] OMAP3630:DSS2:Enable Pre-Multiplied Alpha Support
+Date: Mon, 18 Jan 2010 16:56:43 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DBBB2@dbde02.ent.ti.com>
+References: <1263551393.2087.249.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:41758 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753768Ab0ARLMY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 06:12:24 -0500
-Received: by ewy19 with SMTP id 19so391718ewy.21
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jan 2010 03:12:22 -0800 (PST)
-In-Reply-To: <201001181005.12307.peter.ujfalusi@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38697 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751161Ab0ARL0o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jan 2010 06:26:44 -0500
+In-Reply-To: <1263551393.2087.249.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mande, Nikhil" <nikhil@ti.com>
 
-On Mon, 18 Jan 2010 10:05:12 +0200
-Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
-
-> > What about introducing this simplification in a separate followup patch,
-> > quoting your rationale in its changelog? I can try to prepare one if you
-> > agree.
-> 
-> I think it is OK to have a followup patch addressing these.
-> Just mention in a comment, that you are writing the cached value back to the 
-> register, which does not have these status flags set, thus clearing the reason 
-> in McBSP.
-> 
-> Jarkko: What do you think?
-> 
-I agree, follow-up patch sound cleaner and safer than modifying the
-patch 4.
-
--- 
-Jarkko
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBUb21pIFZhbGtlaW5lbiBbbWFp
+bHRvOnRvbWkudmFsa2VpbmVuQG5va2lhLmNvbV0NCj4gU2VudDogRnJpZGF5LCBKYW51YXJ5IDE1
+LCAyMDEwIDQ6MDAgUE0NCj4gVG86IFksIEtpc2hvcmUNCj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5r
+ZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIE9NQVAzNjMwOkRTUzI6RW5hYmxlIFBy
+ZS1NdWx0aXBsaWVkIEFscGhhIFN1cHBvcnQNCj4gDQo+IEhpLA0KPiANCj4gT24gTW9uLCAyMDA5
+LTEyLTIxIGF0IDE2OjA2ICswMTAwLCBleHQgWSwgS2lzaG9yZSB3cm90ZToNCj4gPiBGcm9tIDJm
+ODczODE5YTRiOWViMGJkNjU4ZGIxZTU5NDA4ZDhmMGFlYjE0YjYgTW9uIFNlcCAxNyAwMDowMDow
+MCAyMDAxDQo+ID4gRnJvbTogU3VkZWVwIEJhc2F2YXJhaiA8c3VkZWVwLmJhc2F2YXJhakB0aS5j
+b20+DQo+ID4gRGF0ZTogTW9uLCAxNCBEZWMgMjAwOSAxODo1NDo1MSArMDUzMA0KPiA+IFN1Ympl
+Y3Q6IFtQQVRDSF0gT01BUDM2MzA6RFNTMjpFbmFibGUgUHJlLU11bHRpcGxpZWQgQWxwaGEgU3Vw
+cG9ydA0KPiA+DQo+ID4gRW5hYmxlcyBkc3MgdG8gcHJvY2VzcyBjb2xvciBmb3JtYXRzIHdpdGgg
+cHJlLW11bGl0cGxpZWQgYWxwaGEgdmFsdWVzLg0KPiA+IFdpdGggdGhpcyB3ZSBjYW4gaGF2ZSBh
+bHBoYSB2YWx1ZXMgZGVmaW5lZCBmb3IgZWFjaCBwaXhlbA0KPiA+IGFuZCBoZW5jZSBjYW4gaGF2
+ZSBkaWZmZXJlbnQgYmxlbmRpbmcgdmFsdWVzIGZvciBlYWNoIHBpeGVsLg0KPiANCj4gV2hhdCBk
+b2VzIHByZS1tdWx0aXBsaWVkIGFscGhhIG1lYW4/IFRoZSBUUk0gZGlkbid0IHJlYWxseSBvcGVu
+IGl0IHVwLi4uDQo+IERvbid0IHdlIGFscmVhZHkgaGF2ZSBwZXIgcGl4ZWwgYWxwaGEgd2hlbiB1
+c2luZyBBUkdCL1JHQkE/DQoNCldoZW4gd2Ugc2V0IHBpeGVsIGZvcm1hdCB0byBBUkdCL1JHQkEg
+ZHNzIGFscGhhIGJsZW5kZXIgd291bGQgbXVsdGlwbHkgdGhlIHZhbHVlIHByZXNlbnQgaW4gJ0En
+IHdpdGggJ1JHQicuDQpCeSBzZXR0aW5nIHRoaXMgYml0IGRpc3BsYXkgaGFyZHdhcmUgYXNzdW1l
+cyB0aGF0IHRoZSBSLEcsQiBhcmUgYWxyZWFkeSBtdWx0aXBsaWVkIHdpdGggdGhlIGFscGhhIHZh
+bHVlIGFuZCB0aGVyZSBpcyBubyBuZWVkIHRvIG11bHRpcGx5IGFnYWluLg0KDQpFeDotDQoJCQlB
+CVIJRwlCDQphcmdiIGRhdGEJCTEyOAkyNTUJMTI4CTEwMA0KcHJlLW11bHRpcGxpZWQJMTI4CTEy
+OAk2NAk1MA0KDQpTbyB0aGlzIGJpdCwgd2hlbiBzZXQsIHdvdWxkIG5vdCBtdWx0aXBseSB0aGUg
+cGl4ZWwgd2l0aCBhbHBoYSB2YWx1ZS4NCg0KPiANCj4gVGhpcyBwYXRjaCBzZWVtcyB0byBhbHdh
+eXMgc2V0IHRoZSBiaXQgb24sIG5ldmVyIHNldCBpdCBvZmYuIElzIHRoYXQgdGhlDQo+IHB1cnBv
+c2U/DQoNCkFzIHBlciBUUk0sIHRoaXMgYml0IGlzIHZhbGlkIG9ubHkgZm9yIEFSR0IgZm9ybWF0
+cyBhbmQgZXhwZXJ0cyBzdWdnZXN0ZWQgdGhhdCB3ZSBjYW4gc2FmZWx5IGFzc3VtZSBwcmUtbXVs
+dGlwbGllZCBkYXRhIGFsd2F5cyBpbiByZWFsIHdvcmxkDQoNCj4gDQo+ICBUb21pDQo+IA0KPiAN
+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBTdWRlZXAgQmFzYXZhcmFqIDxzdWRlZXAuYmFzYXZhcmFqQHRp
+LmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBLaXNob3JlIFkgPGtpc2hvcmUueUB0aS5jb20+DQo+
+ID4gLS0tDQo+ID4gIGRyaXZlcnMvdmlkZW8vb21hcDIvZHNzL2Rpc3BjLmMgfCAgICA4ICsrKysr
+KysrDQo+ID4gIDEgZmlsZXMgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygt
+KQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vb21hcDIvZHNzL2Rpc3BjLmMN
+Cj4gYi9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kaXNwYy5jDQo+ID4gaW5kZXggNmRhYmY0Yi4u
+NWY3ODE5YiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kaXNwYy5j
+DQo+ID4gKysrIGIvZHJpdmVycy92aWRlby9vbWFwMi9kc3MvZGlzcGMuYw0KPiA+IEBAIC05MTMs
+NiArOTEzLDExIEBAIHN0YXRpYyB2b2lkIF9kaXNwY19zZXRfdmlkX2NvbG9yX2NvbnYoZW51bQ0K
+PiBvbWFwX3BsYW5lIHBsYW5lLCBib29sIGVuYWJsZSkNCj4gPiAgCWRpc3BjX3dyaXRlX3JlZyhk
+aXNwY19yZWdfYXR0W3BsYW5lXSwgdmFsKTsNCj4gPiAgfQ0KPiA+DQo+ID4gK3N0YXRpYyB2b2lk
+IF9kaXNwY19zZXRfYWxwaGFfYmxlbmRfYXR0cnMoZW51bSBvbWFwX3BsYW5lIHBsYW5lLCBib29s
+DQo+IGVuYWJsZSkNCj4gPiArew0KPiA+ICsJUkVHX0ZMRF9NT0QoZGlzcGNfcmVnX2F0dFtwbGFu
+ZV0sIGVuYWJsZSA/IDEgOiAwLCAyOCwgMjgpOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICB2b2lkIGRp
+c3BjX2VuYWJsZV9yZXBsaWNhdGlvbihlbnVtIG9tYXBfcGxhbmUgcGxhbmUsIGJvb2wgZW5hYmxl
+KQ0KPiA+ICB7DQo+ID4gIAlpbnQgYml0Ow0KPiA+IEBAIC0xNjg5LDYgKzE2OTQsOSBAQCBzdGF0
+aWMgaW50IF9kaXNwY19zZXR1cF9wbGFuZShlbnVtIG9tYXBfcGxhbmUNCj4gcGxhbmUsDQo+ID4N
+Cj4gPiAgCV9kaXNwY19zZXRfcm90YXRpb25fYXR0cnMocGxhbmUsIHJvdGF0aW9uLCBtaXJyb3Is
+IGNvbG9yX21vZGUpOw0KPiA+DQo+ID4gKwlpZiAoY3B1X2lzX29tYXAzNjMwKCkgJiYgKHBsYW5l
+ICE9IE9NQVBfRFNTX1ZJREVPMSkpDQo+ID4gKwkJX2Rpc3BjX3NldF9hbHBoYV9ibGVuZF9hdHRy
+cyhwbGFuZSwgMSk7DQo+ID4gKw0KPiA+ICAJaWYgKHBsYW5lICE9IE9NQVBfRFNTX1ZJREVPMSkN
+Cj4gPiAgCQlfZGlzcGNfc2V0dXBfZ2xvYmFsX2FscGhhKHBsYW5lLCBnbG9iYWxfYWxwaGEpOw0K
+PiA+DQo+IA0KDQo=
