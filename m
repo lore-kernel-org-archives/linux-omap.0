@@ -1,51 +1,93 @@
-From: Ameya Palande <ameya.palande@Nokia.com>
-Subject: Re: [PATCH 3/3] DSPBRIDGE: Use dspbridge to initialize platform
- data
-Date: Mon, 18 Jan 2010 12:32:03 +0200
-Message-ID: <1263810723.1968.8.camel@sanganak>
-References: <1263607307-21693-1-git-send-email-omar.ramirez@ti.com>
-	 <1263607307-21693-2-git-send-email-omar.ramirez@ti.com>
-	 <1263607307-21693-3-git-send-email-omar.ramirez@ti.com>
-	 <1263607307-21693-4-git-send-email-omar.ramirez@ti.com>
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: Re: [PATCH] save and restore etm state across core OFF modes
+Date: Mon, 18 Jan 2010 12:46:59 +0200
+Message-ID: <20100118104659.GN29059@shisha.kicks-ass.net>
+References: <1263315891-4440-1-git-send-email-virtuoso@slind.org>
+ <4B4CADA9.4020502@ti.com>
+ <20100112173022.GG29059@shisha.kicks-ass.net>
+ <4B4CB259.2010301@ti.com>
+ <20100112210404.GB2986@atomide.com>
+ <20100112214654.GH29059@shisha.kicks-ass.net>
+ <4B4CF2D7.9000200@ti.com>
+ <20100113113616.GI29059@shisha.kicks-ass.net>
+ <4B4DC374.1010909@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35810 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904Ab0ARKcz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 05:32:55 -0500
-In-Reply-To: <1263607307-21693-4-git-send-email-omar.ramirez@ti.com>
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:53316 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751640Ab0ARKsO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 05:48:14 -0500
+Content-Disposition: inline
+In-Reply-To: <4B4DC374.1010909@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@Nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@Nokia.com>, Nishanth Menon <nm@ti.com>
+To: Nishanth Menon <menon.nishanth@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-On Sat, 2010-01-16 at 03:01 +0100, ext Omar Ramirez Luna wrote:
-> Include dspbridge compilation whenever bridge driver is selected to
-> be compiled, either as a module or part of the kernel. This will
-> initialize platform data specific PM functions.
-> 
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index a37c713..1693c03 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -57,7 +57,9 @@ obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
->  # Debobs
->  obj-$(CONFIG_OMAP3_DEBOBS)	+= debobs.o
->  
-> -obj-$(CONFIG_MPU_BRIDGE)		+= dspbridge.o
-> +ifneq ($(CONFIG_MPU_BRIDGE),)
-> +obj-y					+= dspbridge.o
-> +endif
->  
->  # Specific board support
->  obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+On Wed, Jan 13, 2010 at 06:58:28 -0600, Nishanth Menon wrote:
+> Alexander Shishkin said the following on 01/13/2010 05:36 AM:
+> >On Tue, Jan 12, 2010 at 04:08:23 -0600, Nishanth Menon wrote:
+> >>Alexander Shishkin had written, on 01/12/2010 03:46 PM, the following:
+> >>>On Tue, Jan 12, 2010 at 01:04:04 -0800, Tony Lindgren wrote:
+> >>>>* Nishanth Menon <nm@ti.com> [100112 09:31]:
+> >>>>>Alexander Shishkin had written, on 01/12/2010 11:30 AM, the following:
+> >>>>>>On Tue, Jan 12, 2010 at 11:13:13 -0600, Nishanth Menon wrote:
+> >>>>>>>Alexander Shishkin had written, on 01/12/2010 11:04 AM, the following:
+> >>>>>>>>diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> >>>>>>>>index 69521be..0a5ec86 100644
+> >>>>>>>>--- a/arch/arm/mach-omap2/sleep34xx.S
+> >>>>>>>>+++ b/arch/arm/mach-omap2/sleep34xx.S
+> >>>>>[...]
+> >>>>>>>>	/* Store current cpsr*/
+> >>>>>>>>	mrs	r2, cpsr
+> >>>>>>>>	stmia	r8!, {r2}
+> >>>>>>>>@@ -520,6 +616,7 @@ clean_caches:
+> >>>>>>>>	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+> >>>>>>>>	bne	skip_l2_inval
+> >>>>>>>>clean_l2:
+> >>>>>>>>+#if 0
+> >>>>>>>my aversion to #if 0 kicks in here :(.. do we have an alternative
+> >>>>>>>like using the CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG or something
+> >>>>>>>else?
+> >>>>>>Fair enough. I could replace it with "#if !defined(...)" as the first
+> >>>>>>thing that comes to mind. This way it will only take disabling the
+> >>>>>>config option to catch any possible regressions in between. Does this
+> >>>>>>sound reasonable?
+> >>>>>sounds ok to me.. unless folks have ideas coz of clean_l2 label..
+> >>>>>more comments might be useful before a rev2 of the patch..
+> >>>>The best solution would be to be able to toggle this via sysfs or
+> >>>>debugfs by swapping the sram code for idle loop when JTAG support
+> >>>>is needed.
+> >>>Well, if you say, compile the ETM driver in, this will be needed most of
+> >>>the time.
+> >>>
+> >>I can think of reasons for an against a sysfs entry (as part of
+> >>discussion -warning lot of self contradictions below- but I think
+> >>might save a bit of back and froth ;)):
+> >>
+> >>for sysfs entry:
+> >>a) save and restore will have additional latency when you save a
+> >>chunk such as EMU domain regs - this will not be needed in
+> >>production phones, disabling it might pop up surprises
+> >>	counter: having a disabled defconfig allows relevant folks to
+> >>	enable on a need basis
+> >>		counter to counter: what do you do when a user reports
+> >>		an issue in a release and you'd want to debug it with 		
+> >>		ETM on his platform other than doing a rebuild?
+> >
+> >Well, my intention is to have it enabled for most of the cases only having
+> >it disabled for testing purposes.
+> with a sysfs you can go either way, with proper #ifdeferry, you can
+> get the best of all worlds I guess.. I know in one of the products,
+> a similar patch was not taken in due to introduction of additional
+> scratchpad space and latencies - so there are folks who would like
+> this and those who would like to see this not present in the binary
+> they flash to thier device.
 
-Acked-by: Ameya Palande <ameya.palande@nokia.com>
+What would you suggest for a place in sysfs for such a file? I'm thinking
+/sys/power.
 
+Regards,
+--
+Alex
