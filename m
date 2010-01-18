@@ -1,69 +1,31 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3 PM export chip IDCODE, Production ID and Die ID
-Date: Mon, 18 Jan 2010 08:05:48 -0800
-Message-ID: <87vdeziejn.fsf@deeprootsystems.com>
-References: <1255359069-9621-1-git-send-email-peter.de-schrijver@nokia.com>
-	<87r5t7ku90.fsf@deeprootsystems.com>
-	<20091013194808.GB12700@atomide.com>
-	<636c5030910131251p14057abdobab3ba5bfb0d67f2@mail.gmail.com>
-	<20091014094407.GA7471@codecarver.research.nokia.com>
-	<20100118114616.GE2234@esdhcp037198.research.nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 0/3] OMAP4: prcm/clock fixes
+Date: Mon, 18 Jan 2010 10:11:32 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001181010290.3977@utopia.booyaka.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031E2EBD46@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f190.google.com ([209.85.222.190]:56411 "EHLO
-	mail-pz0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754418Ab0ARQLL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 11:11:11 -0500
-Received: by pzk28 with SMTP id 28so1685536pzk.4
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jan 2010 08:11:10 -0800 (PST)
-In-Reply-To: <20100118114616.GE2234@esdhcp037198.research.nokia.com> (Eduardo Valentin's message of "Mon\, 18 Jan 2010 13\:46\:16 +0200")
+Received: from utopia.booyaka.com ([72.9.107.138]:51533 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751947Ab0ARRLd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 12:11:33 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E2EBD46@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: eduardo.valentin@nokia.com
-Cc: "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Eduardo Valentin <eduardo.valentin@nokia.com> writes:
+Hi Rajendra,
 
-> Hello Tony and Kevin,
->
-> On Wed, Oct 14, 2009 at 11:44:07AM +0200, De-Schrijver Peter (Nokia-D/Helsinki) wrote:
->> On Tue, Oct 13, 2009 at 09:51:30PM +0200, ext Kevin Hilman wrote:
->> > On Tue, Oct 13, 2009 at 12:48 PM, Tony Lindgren <tony@atomide.com> wrote:
->> > > * Kevin Hilman <khilman@deeprootsystems.com> [091013 12:09]:
->> > >> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
->> > >>
->> > >> > From: De-Schrijver Peter (Nokia-D/Helsinki) <Peter.De-Schrijver@nokia.com>
->> > >> >
->> > >> > This patch exports the OMAP3 IDCODE, Production ID and Die ID to userspace via
->> > >> > sysfs. This can be used to track down silicon specific issues. The info is
->> > >> > exported via sysfs because it should be possible to include this in corematic
->> > >> > dumps.
->> > >> >
->> > >> > Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
->> > >>
->> > >> Please export these via debugfs.
->> > >
->> > > I don't think we want to export unique chip identifiers by default.
->> > >
->> > 
->> > Right, which is why I suggested using debugfs, which is something that
->> > probably wouldn't be enabled/exported on default production kernels.
->> > 
->> 
->> Which is why I do not want it in debugfs as we log this info in
->> crash reports on devices which might not have debugfs enabled.
->
-> As Peter said here, this patch is to identify the chip from user land.
-> So it is not really a debug tool, but a identification tool.
->
-> Any good reason why we should not have it?
->
-> Another thing is, it could go into /proc/cpuinfo. Currently I don't
-> see any OMAP related info there, only ARM. Do you guys know why we don't
-> put anything in /proc/cpuinfo?
+On Mon, 18 Jan 2010, Nayak, Rajendra wrote:
 
-I don't know any reason not to.  This sounds like a good candiate
-for OMAP specific details in /proc/cpuinfo.
+> Ok, so I will repost it as an attachement since its too big.
+> Hope that's fine.
 
-Kevin
+How about either posting it on a website somewhere and sending a link? Or 
+send it to me and I will post it on the website here.
+
+thanks
+
+- Paul
