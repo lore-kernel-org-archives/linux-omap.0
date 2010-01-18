@@ -1,133 +1,58 @@
-From: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
-Subject: [PATCHV2 2/2] OMAP3630: Clock: Fixing HSDivider Limitation
-Date: Mon, 18 Jan 2010 18:06:31 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DBC17@dbde02.ent.ti.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 0/3] OMAP4: prcm/clock fixes
+Date: Mon, 18 Jan 2010 18:37:46 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E2EBD46@dbde02.ent.ti.com>
+References: <alpine.DEB.2.00.1001131610390.4769@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45765 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42405 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751490Ab0ARMgy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 07:36:54 -0500
+	id S1751113Ab0ARNIA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jan 2010 08:08:00 -0500
+In-Reply-To: <alpine.DEB.2.00.1001131610390.4769@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Turquette, Mike" <mturquette@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
->From 719417657425d4f12369b5ddad79c86baddfefa5 Mon Sep 17 00:00:00 2001
-From: Mike Turquette <mturquette@ti.com>
-Date: Mon, 18 Jan 2010 17:38:19 +0530
-Subject: [PATCH 2/2] OMAP3630: Clock: Fixing HSDivider Limitation
+>-----Original Message-----
+>From: Paul Walmsley [mailto:paul@pwsan.com] 
+>Sent: Thursday, January 14, 2010 4:42 AM
+>To: Nayak, Rajendra
+>Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+>Subject: Re: [PATCH 0/3] OMAP4: prcm/clock fixes
+>
+>Hi Rajendra,
+>
+>well, right after I sent this message, I noticed that I was 
+>looking at an 
+>older copy of my lakml inbox.  So,
+>
+>On Wed, 13 Jan 2010, Paul Walmsley wrote:
+>
+>> Patch 1 is missing from both the linux-omap and 
+>linux-arm-kernel mailing 
+>> lists.  Too big, perhaps?
+>> 
+>> Patches 2 and 3 only made it to linux-omap, it seems.  At 
+>least, I can't 
+>> find them on linux-arm-kernel.
+>> 
+>> Anyway, patches 2 and 3 have been queued up for 2.6.33-rc*, 
+>but could you 
+>> please resend the whole series?
+>
+>... since patches 2 and 3 have made it to the lists, all you need to 
+>resend is patch 1.
 
-It implements the recommended sequence to solve HS divider PWRDN limitation in
-OMAP3630 DPLL3 and DPLL4. Without this workaround the divider value goes
-to its reset state after the corresponding PWRDN bit is set from the
-CM_CLKEN_PLL register. The correct divider value can be restored by
-writing a dummy value to the register different than what is in there, and
-then re-writing the desired value.
-This Work around is applicable for below HS Dividers.
- 1. DPLL3_M3
- 2. DPLL4_M2
- 3. DPLL4_M3
- 4. DPLL4_M4
- 5. DPLL4_M5
- 6. DPLL4_M6
+Ok, so I will repost it as an attachement since its too big.
+Hope that's fine.
 
-Signed-off-by: Mike Turquette <mturquette@ti.com>
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Signed-off-by: Vijaykumar GN <vijaykumar.gn@ti.com>
----
- arch/arm/mach-omap2/clock34xx.c      |   36 ++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clock34xx.h      |    1 +
- arch/arm/mach-omap2/clock34xx_data.c |   15 ++++++++++++++
- 3 files changed, 52 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 0d30e53..e5213f8 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -146,6 +146,42 @@ const struct clkops clkops_omap3430es2_hsotgusb_wait = {
- 	.find_companion = omap2_clk_dflt_find_companion,
- };
- 
-+/** omap3_pwrdn_clk_enable_with_hsdiv_restore - enable clocks suffering
-+ *         from HSDivider problem.
-+ * @clk: DPLL output struct clk
-+ *
-+ * 3630 only: dpll3_m3_ck, dpll4_m2_ck, dpll4_m3_ck, dpll4_m4_ck, dpll4_m5_ck
-+ * & dpll4_m6_ck dividers get lost after their respective PWRDN bits are set.
-+ * Any write to the corresponding CM_CLKSEL register will refresh the
-+ * dividers.  Only x2 clocks are affected, so it is safe to trust the parent
-+ * clock information to refresh the CM_CLKSEL registers.
-+ */
-+int omap3_pwrdn_clk_enable_with_hsdiv_restore(struct clk *clk)
-+{
-+	u32 v;
-+	int ret;
-+
-+	/* enable the clock */
-+	ret = omap2_dflt_clk_enable(clk);
-+
-+	/* Restore the dividers */
-+	if (!ret) {
-+		v = __raw_readl(clk->parent->clksel_reg);
-+		v += (1 << clk->parent->clksel_shift);
-+		__raw_writel(v, clk->parent->clksel_reg);
-+		v -= (1 << clk->parent->clksel_shift);
-+		__raw_writel(v, clk->parent->clksel_reg);
-+	}
-+	return ret;
-+}
-+
-+const struct clkops clkops_omap3_pwrdn_with_hsdiv_wait_restore = {
-+	.enable		= omap3_pwrdn_clk_enable_with_hsdiv_restore,
-+	.disable	= omap2_dflt_clk_disable,
-+	.find_companion	= omap2_clk_dflt_find_companion,
-+	.find_idlest	= omap2_clk_dflt_find_idlest,
-+};
-+
- const struct clkops clkops_noncore_dpll_ops = {
- 	.enable		= omap3_noncore_dpll_enable,
- 	.disable	= omap3_noncore_dpll_disable,
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 9a2c07e..6f7d271 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -20,5 +20,6 @@ extern const struct clkops clkops_omap3430es2_ssi_wait;
- extern const struct clkops clkops_omap3430es2_hsotgusb_wait;
- extern const struct clkops clkops_omap3430es2_dss_usbhost_wait;
- extern const struct clkops clkops_noncore_dpll_ops;
-+extern const struct clkops clkops_omap3_pwrdn_with_hsdiv_wait_restore;
- 
- #endif
-diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
-index 955d4ef..39a1b3c 100755
---- a/arch/arm/mach-omap2/clock34xx_data.c
-+++ b/arch/arm/mach-omap2/clock34xx_data.c
-@@ -3447,6 +3447,21 @@ int __init omap2_clk_init(void)
- 		dpll4_m4_ck = dpll4_m4_ck_3630;
- 		dpll4_m5_ck = dpll4_m5_ck_3630;
- 		dpll4_m6_ck = dpll4_m6_ck_3630;
-+
-+		/* For 3630: override clkops_omap2_dflt_wait for the
-+		 * clocks affected from HSDivider PWRDN reset limitation */
-+		dpll3_m3x2_ck.ops =
-+			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
-+		dpll4_m2x2_ck.ops =
-+			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
-+		dpll4_m3x2_ck.ops =
-+			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
-+		dpll4_m4x2_ck.ops =
-+			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
-+		dpll4_m5x2_ck.ops =
-+			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
-+		dpll4_m6x2_ck.ops =
-+			&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
- 	} else {
- 		dpll4_dd = dpll4_dd_34xx;
- 		dpll4_m2_ck = dpll4_m2_ck_34xx;
--- 
-1.5.6.3
-
+>
+>thanks,
+>
+>- Paul
+>
