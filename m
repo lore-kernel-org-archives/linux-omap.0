@@ -1,204 +1,108 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 09/18] OMAP2xxx clock: move osc_clk code into
-	mach-omap2/clkt2xxx_osc.c
-Date: Tue, 19 Jan 2010 16:36:16 -0700
-Message-ID: <20100119233613.26047.28399.stgit@localhost.localdomain>
+Subject: [PATCH v2 13/18] OMAP2/3 clock: clean up omap*_clk_arch_init()
+Date: Tue, 19 Jan 2010 16:36:30 -0700
+Message-ID: <20100119233626.26047.20505.stgit@localhost.localdomain>
 References: <20100119232900.26047.98263.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58626 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:58637 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755146Ab0ASXie (ORCPT
+	with ESMTP id S1754770Ab0ASXie (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 18:38:34 -0500
 In-Reply-To: <20100119232900.26047.98263.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Alexander Shishkin <virtuoso@slind.org>
 
-Move the osc_clk clock functions from clock2xxx.c to
-mach-omap2/clkt2xxx_osc.  This is intended to make the clock code
-easier to understand, since all of the functions needed to manage the
-osc_clk are now located in their own file, rather than being mixed
-with other, unrelated functions.
+In the OMAP3xxx clock code, remove the #ifdef CONFIG_ARCH_OMAP3 in
+clock34xx.c, since this file is only compiled for OMAP3xxx builds.  Also,
+rename omap2_clk_arch_init in this file to omap3xxx_clk_arch_init() to
+pave the way for multi-OMAP kernels.  Ensure that it is not executed
+on non-OMAP3xxx systems.
 
-Clock debugging is also now more finely-grained, since the DEBUG
-macro can now be defined for osc_clk clocks alone.  This
-should reduce unnecessary console noise when debugging.
-
-Also, if at some future point the mach-omap2/ directory is split
-into OMAP2/3/4 variants, this clkt file can be placed in the mach-omap2xxx/
-directory, rather than shared with other chip types that don't use this
-clock type.
-
-Thanks to Alexander Shishkin <virtuoso@slind.org> for his comments to
-improve the patch description.
+In the OMAP2xxx clock code, rename omap2_clk_arch_init in this file to
+omap2xxx_clk_arch_init() to pave the way for multi-OMAP kernels.
+Ensure that it is not executed on non-OMAP2xxx systems.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Alexander Shishkin <virtuoso@slind.org>
 ---
- arch/arm/mach-omap2/Makefile       |    2 +
- arch/arm/mach-omap2/clkt2xxx_osc.c |   62 ++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clock2xxx.c    |   34 +-------------------
- arch/arm/mach-omap2/clock2xxx.h    |    1 +
- 4 files changed, 66 insertions(+), 33 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clkt2xxx_osc.c
+ arch/arm/mach-omap2/clock2xxx.c |    7 +++++--
+ arch/arm/mach-omap2/clock34xx.c |   16 +++++-----------
+ 2 files changed, 10 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 825c303..51178bf 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -13,7 +13,7 @@ clock-common				= clock.o clock_common_data.o \
- 					  clkt_clksel.o
- clock-omap2xxx				= clkt2xxx_dpllcore.o \
- 					  clkt2xxx_virt_prcm_set.o \
--					  clkt2xxx_apll.o
-+					  clkt2xxx_apll.o clkt2xxx_osc.o
- 
- obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(prcm-common) $(clock-common) \
- 			    $(clock-omap2xxx)
-diff --git a/arch/arm/mach-omap2/clkt2xxx_osc.c b/arch/arm/mach-omap2/clkt2xxx_osc.c
-new file mode 100644
-index 0000000..2167be8
---- /dev/null
-+++ b/arch/arm/mach-omap2/clkt2xxx_osc.c
-@@ -0,0 +1,62 @@
-+/*
-+ * OMAP2xxx osc_clk-specific clock code
-+ *
-+ * Copyright (C) 2005-2008 Texas Instruments, Inc.
-+ * Copyright (C) 2004-2010 Nokia Corporation
-+ *
-+ * Contacts:
-+ * Richard Woodruff <r-woodruff2@ti.com>
-+ * Paul Walmsley
-+ *
-+ * Based on earlier work by Tuukka Tikkanen, Tony Lindgren,
-+ * Gordon McNutt and RidgeRun, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#undef DEBUG
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+
-+#include <plat/clock.h>
-+
-+#include "clock.h"
-+#include "clock2xxx.h"
-+#include "prm.h"
-+#include "prm-regbits-24xx.h"
-+
-+static int omap2_enable_osc_ck(struct clk *clk)
-+{
-+	u32 pcc;
-+
-+	pcc = __raw_readl(prcm_clksrc_ctrl);
-+
-+	__raw_writel(pcc & ~OMAP_AUTOEXTCLKMODE_MASK, prcm_clksrc_ctrl);
-+
-+	return 0;
-+}
-+
-+static void omap2_disable_osc_ck(struct clk *clk)
-+{
-+	u32 pcc;
-+
-+	pcc = __raw_readl(prcm_clksrc_ctrl);
-+
-+	__raw_writel(pcc | OMAP_AUTOEXTCLKMODE_MASK, prcm_clksrc_ctrl);
-+}
-+
-+const struct clkops clkops_oscck = {
-+	.enable		= omap2_enable_osc_ck,
-+	.disable	= omap2_disable_osc_ck,
-+};
-+
-+unsigned long omap2_osc_clk_recalc(struct clk *clk)
-+{
-+	return omap2xxx_get_apll_clkin() * omap2xxx_get_sysclkdiv();
-+}
-+
 diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
-index 88077e7..62c3b02 100644
+index e5b9851..b7e81ec 100644
 --- a/arch/arm/mach-omap2/clock2xxx.c
 +++ b/arch/arm/mach-omap2/clock2xxx.c
-@@ -79,31 +79,6 @@ const struct clkops clkops_omap2430_i2chs_wait = {
- 	.find_companion = omap2_clk_dflt_find_companion,
- };
- 
--static int omap2_enable_osc_ck(struct clk *clk)
--{
--	u32 pcc;
--
--	pcc = __raw_readl(prcm_clksrc_ctrl);
--
--	__raw_writel(pcc & ~OMAP_AUTOEXTCLKMODE_MASK, prcm_clksrc_ctrl);
--
--	return 0;
--}
--
--static void omap2_disable_osc_ck(struct clk *clk)
--{
--	u32 pcc;
--
--	pcc = __raw_readl(prcm_clksrc_ctrl);
--
--	__raw_writel(pcc | OMAP_AUTOEXTCLKMODE_MASK, prcm_clksrc_ctrl);
--}
--
--const struct clkops clkops_oscck = {
--	.enable		= omap2_enable_osc_ck,
--	.disable	= omap2_disable_osc_ck,
--};
--
- #ifdef OLD_CK
- /* Recalculate SYST_CLK */
- static void omap2_sys_clk_recalc(struct clk *clk)
-@@ -116,7 +91,7 @@ static void omap2_sys_clk_recalc(struct clk *clk)
- }
- #endif	/* OLD_CK */
- 
--static u32 omap2_get_sysclkdiv(void)
-+u32 omap2xxx_get_sysclkdiv(void)
+@@ -101,11 +101,14 @@ void omap2_clk_prepare_for_reboot(void)
+  * Switch the MPU rate if specified on cmdline.
+  * We cannot do this early until cmdline is parsed.
+  */
+-static int __init omap2_clk_arch_init(void)
++static int __init omap2xxx_clk_arch_init(void)
  {
- 	u32 div;
+ 	struct clk *virt_prcm_set, *sys_ck, *dpll_ck, *mpu_ck;
+ 	unsigned long sys_ck_rate;
  
-@@ -127,14 +102,9 @@ static u32 omap2_get_sysclkdiv(void)
- 	return div;
- }
++	if (!cpu_is_omap24xx())
++		return 0;
++
+ 	if (!mpurate)
+ 		return -EINVAL;
  
--unsigned long omap2_osc_clk_recalc(struct clk *clk)
--{
--	return omap2xxx_get_apll_clkin() * omap2_get_sysclkdiv();
--}
--
- unsigned long omap2_sys_clk_recalc(struct clk *clk)
- {
--	return clk->parent->rate / omap2_get_sysclkdiv();
-+	return clk->parent->rate / omap2xxx_get_sysclkdiv();
+@@ -129,6 +132,6 @@ static int __init omap2_clk_arch_init(void)
+ 
+ 	return 0;
  }
+-arch_initcall(omap2_clk_arch_init);
++arch_initcall(omap2xxx_clk_arch_init);
+ 
+ 
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 552ad30..d38ad44 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -163,12 +163,6 @@ int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
+ /* Common clock code */
  
  /*
-diff --git a/arch/arm/mach-omap2/clock2xxx.h b/arch/arm/mach-omap2/clock2xxx.h
-index 3f1672e..3b0610d 100644
---- a/arch/arm/mach-omap2/clock2xxx.h
-+++ b/arch/arm/mach-omap2/clock2xxx.h
-@@ -18,6 +18,7 @@ unsigned long omap2_dpllcore_recalc(struct clk *clk);
- int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate);
- unsigned long omap2xxx_clk_get_core_rate(struct clk *clk);
- u32 omap2xxx_get_apll_clkin(void);
-+u32 omap2xxx_get_sysclkdiv(void);
+- * As it is structured now, this will prevent an OMAP2/3 multiboot
+- * kernel from compiling.  This will need further attention.
+- */
+-#if defined(CONFIG_ARCH_OMAP3)
+-
+-/*
+  * Set clocks for bypass mode for reboot to work.
+  */
+ void omap2_clk_prepare_for_reboot(void)
+@@ -213,11 +207,14 @@ void omap3_clk_lock_dpll5(void)
+  * Switch the MPU rate if specified on cmdline.
+  * We cannot do this early until cmdline is parsed.
+  */
+-static int __init omap2_clk_arch_init(void)
++static int __init omap3xxx_clk_arch_init(void)
+ {
+ 	struct clk *osc_sys_ck, *dpll1_ck, *arm_fck, *core_ck;
+ 	unsigned long osc_sys_rate;
  
- /* REVISIT: These should be set dynamically for CONFIG_MULTI_OMAP2 */
- #ifdef CONFIG_ARCH_OMAP2420
++	if (!cpu_is_omap34xx())
++		return 0;
++
+ 	if (!mpurate)
+ 		return -EINVAL;
+ 
+@@ -246,9 +243,6 @@ static int __init omap2_clk_arch_init(void)
+ 
+ 	return 0;
+ }
+-arch_initcall(omap2_clk_arch_init);
+-
+-
+-#endif
++arch_initcall(omap3xxx_clk_arch_init);
+ 
+ 
 
 
