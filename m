@@ -1,79 +1,38 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code generic
-Date: Tue, 19 Jan 2010 06:56:22 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030070F293@dbde02.ent.ti.com>
-References: <20100116013205.10065.95921.stgit@baageli.muru.com>
- <20100116013515.10065.30649.stgit@baageli.muru.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH] DSPBRIDGE: Fix wrong condition on NODE_GetUUIDProps
+Date: Mon, 18 Jan 2010 19:58:04 -0600
+Message-ID: <1263866284-5587-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42346 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43056 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752710Ab0ASB0i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jan 2010 20:26:38 -0500
-In-Reply-To: <20100116013515.10065.30649.stgit@baageli.muru.com>
-Content-Language: en-US
+	id S932122Ab0ASBsB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jan 2010 20:48:01 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGxpbnV4LW9tYXAtb3duZXJA
-dmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtb21hcC1vd25lckB2Z2VyLmtlcm5lbC5vcmdd
-IE9uIEJlaGFsZiBPZiBUb255DQo+TGluZGdyZW4NCj5TZW50OiBGcmlkYXksIEphbnVhcnkgMTUs
-IDIwMTAgNzozNSBQTQ0KPlRvOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcN
-Cj5DYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj5TdWJqZWN0OiBbUEFUQ0ggMi80XSBv
-bWFwOiBNYWtlIHVuY29tcHJlc3MgY29kZSBhbmQgREVCVUdfTEwgY29kZSBnZW5lcmljDQoNClVB
-UlRfU0NSIAkJLT4gdGhpcyBpcyB0aGUgc2NyYXRjaHBhZCByZWdpc3RlciANClVBUlRfT01BUF9T
-Q1IJLT4gVGhpcyBpcyBUSS1vbmx5IFN1cHBsZW1lbnRhcnkgY29udHJvbCByZWdpc3Rlcg0KDQpZ
-b3UgcHJvYmFibHkgY29uZnVzZWQgdGhlIHR3byAoYXMgcmlnaHRseSBzbyBzaW5jZSBTQ1IgaXMg
-c2FtZSBuYW1lKS4NClNvIHRoZXJlIGlzIG5vIG5lZWQgdG8gc2F2ZS9yZXN0b3JlIHRoZSBVQVJU
-X1NDUiByZWdpc3RlciBhcyB5b3UgaGF2ZSBkb25lLCBzZWUgaW5saW5lZCAtLSANCg0KPg0KPkRl
-ZmluZSBhcmNoX2RlY29tcF9zZXR1cCgpIHRoZSBzYW1lIHdheSBhcyBzb21lIG90aGVyDQo+YXJj
-aGl0ZWN0dXJlcyBkby4gVXNlIGFyY2hfaWQgdG8gY29uZmlndXJlIHRoZSBkZWJ1ZyB1YXJ0DQo+
-YmFzZWQgb24gdGhlIG1hY2hpbmVfaXMgYnkgc3RvcmluZyBpdCBpbnRvIHRoZSB1YXJ0DQo+c2Ny
-YXRjaHBhZCByZWdpc3RlciBmb3IgREVCVUdfTEwgY29kZSB0byB1c2UuDQo+DQo+U2lnbmVkLW9m
-Zi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NCjxzbmlwPg0KPi0tLSBhL2Fy
-Y2gvYXJtL21hY2gtb21hcDIvc2VyaWFsLmMNCj4rKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3Nl
-cmlhbC5jDQo+QEAgLTE2MSwxMSArMTYxLDIyIEBAIHN0YXRpYyBpbmxpbmUgdm9pZCBzZXJpYWxf
-d3JpdGVfcmVnKHN0cnVjdCBwbGF0X3NlcmlhbDgyNTBfcG9ydCAqcCwgaW50IG9mZnNldCwNCj4g
-c3RhdGljIGlubGluZSB2b2lkIF9faW5pdCBvbWFwX3VhcnRfcmVzZXQoc3RydWN0IG9tYXBfdWFy
-dF9zdGF0ZSAqdWFydCkNCj4gew0KPiAJc3RydWN0IHBsYXRfc2VyaWFsODI1MF9wb3J0ICpwID0g
-dWFydC0+cDsNCj4rCXU4IHNjcmF0Y2hwYWQgPSAwOw0KPisNCj4rCS8qDQo+KwkgKiBTYXZlIFVB
-UlQxIHNjcmF0Y2hwYWQgcmVnaXN0ZXIgdmFsdWUgZm9yIFVBUlQxIGZvciBERUJVR19MTC4NCj4r
-CSAqIFNlZSBhbHNvIGluY2x1ZGUvcGxhdC91bmNvbXByZXNzLmggYW5kIGluY2x1ZGUvbWFjaC9k
-ZWJ1Zy1tYWNyby5TLg0KPisJICovDQo+KwlpZiAocC0+bWFwYmFzZSA9PSBPTUFQMl9VQVJUMV9C
-QVNFKQkvKiBPTUFQMi8zLzRVQVJUMV9CQVNFICovDQo+KwkJc2NyYXRjaHBhZCA9IHNlcmlhbF9y
-ZWFkX3JlZyhwLCBVQVJUX1NDUik7DQoNCk5vIG5lZWQgdG8gc2F2ZSBhbmQgcmVzdG9yZSB0aGUg
-VUFSVF9TQ1IgcmVnaXN0ZXIuIA0KVGhpcyBuZXZlciBnZXRzIHVzZWQgaW4gdGhpcyBmdW5jdGlv
-bi4NCg0KV2hhdCBnZXRzIHVzZWQgaXMgVUFSVF9PTUFQX1NDUiB3aGljaCBpcyBPTUFQIHNwZWNp
-ZmljIHN1cHBsaW1hbnRyeSBjb250cm9sIHJlZ2lzdGVyIA0KYW5kIG5vdCBzY3JhdGNocGFkLg0K
-DQo+DQo+IAlzZXJpYWxfd3JpdGVfcmVnKHAsIFVBUlRfT01BUF9NRFIxLCAweDA3KTsNCj4gCXNl
-cmlhbF93cml0ZV9yZWcocCwgVUFSVF9PTUFQX1NDUiwgMHgwOCk7DQo+IAlzZXJpYWxfd3JpdGVf
-cmVnKHAsIFVBUlRfT01BUF9NRFIxLCAweDAwKTsNCj4gCXNlcmlhbF93cml0ZV9yZWcocCwgVUFS
-VF9PTUFQX1NZU0MsICgweDAyIDw8IDMpIHwgKDEgPDwgMikgfCAoMSA8PCAwKSk7DQo+Kw0KPisJ
-aWYgKHAtPm1hcGJhc2UgPT0gT01BUDJfVUFSVDFfQkFTRSkJLyogT01BUDIvMy80VUFSVDFfQkFT
-RSAqLw0KPisJCXNlcmlhbF93cml0ZV9yZWcocCwgVUFSVF9TQ1IsIHNjcmF0Y2hwYWQpOw0KDQpS
-ZW1vdmUgdGhpcyBhcyB3ZWxsLiBObyBuZWVkLiANCg0KDQo8c25pcD4NCj5kaWZmIC0tZ2l0IGEv
-YXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC91bmNvbXByZXNzLmggYi9hcmNoL2FybS9w
-bGF0LQ0KPm9tYXAvaW5jbHVkZS9wbGF0L3VuY29tcHJlc3MuaA0KPmluZGV4IDEzYzMwNWQuLjQ3
-OWJhYzggMTAwNjQ0DQo+LS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC91bmNv
-bXByZXNzLmgNCj4rKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L3VuY29tcHJl
-c3MuaA0KPkBAIC0xOSw2MiArMTksMzYgQEANCj4NCj4gI2luY2x1ZGUgPGxpbnV4L3R5cGVzLmg+
-DQo+ICNpbmNsdWRlIDxsaW51eC9zZXJpYWxfcmVnLmg+DQo+Kw0KPisjaW5jbHVkZSA8YXNtL21h
-Y2gtdHlwZXMuaD4NCj4rDQo+ICNpbmNsdWRlIDxwbGF0L3NlcmlhbC5oPg0KPg0KPi11bnNpZ25l
-ZCBpbnQgc3lzdGVtX3JldjsNCj4rc3RhdGljIHZvbGF0aWxlIHU4ICp1YXJ0MV9iYXNlOw0KPitz
-dGF0aWMgdm9sYXRpbGUgdTggKnVhcnRfYmFzZTsNCj4rc3RhdGljIHZvbGF0aWxlIGludCB1YXJ0
-X3NoaWZ0Ow0KDQpKdXN0IGxpa2UgdWFydF9iYXNlIGlzIHN0b3JlZCBpbiBzY3JhdGNocGFkLA0K
-U29tZWhvdyB0aGUgdWFydF9zaGlmdCBhbHNvIG5lZWRzIHRvIGJlIHN0b3JlZCBzbyB0aGF0IGJv
-YXJkcyB3aXRoIGRpZmZlcmVudCB1YXJ0X3NoaWZ0IHJlcXVpcmVtZW50cyBjYW4gYmUgYWRkcmVz
-c2VkLiBXaGVyZSBjYW4gd2Ugc3RvcmUgdGhpcyBhbm90aGVyIHZhcmlhYmxlPyANCg0KPHNuaXA+
-DQoNCj4gLyoNCj4rICogTWFjcm9zIHRvIGNvbmZpZ3VyZSBVQVJUMSBhbmQgZGVidWcgVUFSVA0K
-PisgKi8NCj4rI2RlZmluZSBfREVCVUdfTExfRU5UUlkobWFjaCwgdWFydDEsIGRiZ191YXJ0LCBz
-aGlmdCwgZGJnX2lkLCByZXNldF9mbikJXA0KPisJaWYgKG1hY2hpbmVfaXNfIyNtYWNoKCkpIHsJ
-CQkJCVwNCj4rCQl1YXJ0MV9iYXNlID0gKHZvbGF0aWxlIHU4ICopKHVhcnQxKTsJCQlcDQo+KwkJ
-dWFydF9iYXNlID0gKHZvbGF0aWxlIHU4ICopKGRiZ191YXJ0KTsJCQlcDQo+KwkJdWFydF9zaGlm
-dCA9IChzaGlmdCk7CQkJCQlcDQo+KwkJcG9ydCA9IChkYmdfaWQpOwkJCQkJXA0KPisJCXJlc2V0
-X2ZuOwkJCQkJCVwNCj4rCQlicmVhazsJCQkJCQkJXA0KPisJfQ0KDQpOaWNlIElkZWEuLi4geW91
-IGFyZSB0aGUgbWFuICEhDQoNCjxzbmlwPg0K
+Fix wrong condition because of a wrong patch included.
+
+Discovered-by: Ernesto Ramos Falcon <ernesto@ti.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ drivers/dsp/bridge/rmgr/node.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 72c2411..e8ba0dd 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -3252,7 +3252,7 @@ DSP_STATUS NODE_GetUUIDProps(DSP_HPROCESSOR hProcessor,
+ 		 pNodeId, pNodeProps);
+ 
+ 	status = PROC_GetDevObject(hProcessor, &hDevObject);
+-	if (!hDevObject) {
++	if (hDevObject) {
+ 		status = DEV_GetNodeManager(hDevObject, &hNodeMgr);
+ 		if (hNodeMgr == NULL) {
+ 			status = DSP_EHANDLE;
+-- 
+1.6.2.4
+
