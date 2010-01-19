@@ -1,82 +1,60 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH/USB 08/16] usb: musb: workaround toggle bug when doing bulk transfer after isoc
-Date: Tue, 19 Jan 2010 15:14:07 +0200
-Message-ID: <1263906855-28341-9-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH/USB 12/16] usb: musb: save dynfifo in musb struct
+Date: Tue, 19 Jan 2010 15:14:11 +0200
+Message-ID: <1263906855-28341-13-git-send-email-felipe.balbi@nokia.com>
 References: <1263906855-28341-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27327 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752560Ab0ASNO7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 08:14:59 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:54616 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751564Ab0ASNPf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 08:15:35 -0500
 In-Reply-To: <1263906855-28341-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com
 
-From: Swaminathan S <swami.iyer@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-This patch implements the work around for a Mentor controller related
-bug where it's observed a BULK Tx toggle error on the bus when a
-BULK IO gets scheduled on an endpoint that was earlier used for
-handling ISOC transaction and needed to start on 1 toggle.  When such
-a situation arises even if the TXCSR toggle bits are programmed
-correctly by the musb driver the data gets transmitted with 0 toggle
-which leads to toggle error on the bus and the BULK transaction fails.
-In case of MSC write, the device gets reset by the Host.
+Save dynamic FIFO read only information for later uses during
+musb_save/restore_context functions.
 
-This Mentor bug is observed on almost all Mentor versions (1.3, 1.5,
-1.8).  Confirmed on DM644x, DM355, DM365, OMAPL13x platforms.
-
-Signed-off-by: Swaminathan S <swami.iyer@ti.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/usb/musb/musb_host.c |   24 ++++++++++++++++++++++++
- 1 files changed, 24 insertions(+), 0 deletions(-)
+ drivers/usb/musb/musb_core.c |    4 +++-
+ drivers/usb/musb/musb_core.h |    1 +
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 74c4c36..c3fdd6d 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -1771,6 +1771,9 @@ static int musb_schedule(
- 	int			best_end, epnum;
- 	struct musb_hw_ep	*hw_ep = NULL;
- 	struct list_head	*head = NULL;
-+	u8			toggle;
-+	u8			txtype;
-+	struct urb		*urb = next_urb(qh);
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index bd14e81..4c8962f 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1341,8 +1341,10 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+ 	reg = musb_read_configdata(mbase);
  
- 	/* use fixed hardware for control and bulk */
- 	if (qh->type == USB_ENDPOINT_XFER_CONTROL) {
-@@ -1809,6 +1812,27 @@ static int musb_schedule(
- 		diff -= (qh->maxpacket * qh->hb_mult);
+ 	strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-16" : "UTMI-8");
+-	if (reg & MUSB_CONFIGDATA_DYNFIFO)
++	if (reg & MUSB_CONFIGDATA_DYNFIFO) {
+ 		strcat(aInfo, ", dyn FIFOs");
++		musb->dyn_fifo = true;
++	}
+ 	if (reg & MUSB_CONFIGDATA_MPRXE) {
+ 		strcat(aInfo, ", bulk combine");
+ 		musb->bulk_combine = true;
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 2ac0e6f..eaa0114 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -411,6 +411,7 @@ struct musb {
  
- 		if (diff >= 0 && best_diff > diff) {
-+
-+			/*
-+			 * Mentor controller has a bug in that if we schedule
-+			 * a BULK Tx transfer on an endpoint that had earlier
-+			 * handled ISOC then the BULK transfer has to start on
-+			 * a zero toggle.  If the BULK transfer starts on a 1
-+			 * toggle then this transfer will fail as the mentor
-+			 * controller starts the Bulk transfer on a 0 toggle
-+			 * irrespective of the programming of the toggle bits
-+			 * in the TXCSR register.  Check for this condition
-+			 * while allocating the EP for a Tx Bulk transfer.  If
-+			 * so skip this EP.
-+			 */
-+			hw_ep = musb->endpoints + epnum;
-+			toggle = usb_gettoggle(urb->dev, qh->epnum, !is_in);
-+			txtype = (musb_readb(hw_ep->regs, MUSB_TXTYPE)
-+					>> 4) & 0x3;
-+			if (!is_in && (qh->type == USB_ENDPOINT_XFER_BULK) &&
-+				toggle && (txtype == USB_ENDPOINT_XFER_ISOC))
-+				continue;
-+
- 			best_diff = diff;
- 			best_end = epnum;
- 		}
+ 	unsigned		hb_iso_rx:1;	/* high bandwidth iso rx? */
+ 	unsigned		hb_iso_tx:1;	/* high bandwidth iso tx? */
++	unsigned		dyn_fifo:1;	/* dynamic FIFO supported? */
+ 
+ 	unsigned		bulk_split:1;
+ #define	can_bulk_split(musb,type) \
 -- 
 1.6.6.rc0
 
