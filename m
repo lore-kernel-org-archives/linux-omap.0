@@ -1,81 +1,32 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP CPU ID: fix OMAP4 build failure (fwd)
-Date: Tue, 19 Jan 2010 14:25:18 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001191424430.3977@utopia.booyaka.com>
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: [RFC] [PATCH] watchdog_info separation and
+	constify
+Date: Tue, 19 Jan 2010 21:27:55 +0000
+Message-ID: <20100119212755.72e81d24@lxorguk.ukuu.org.uk>
+References: <20100119211759.GE3804@infomag.iguana.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37496 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755837Ab0ASVZT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 16:25:19 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <uclinux-dist-devel-bounces-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org>
+In-Reply-To: <20100119211759.GE3804-flHiHfN8CTwhDM6iD19NGrNAH6kLmebB@public.gmane.org>
+List-Unsubscribe: <https://blackfin.uclinux.org/mailman/options/uclinux-dist-devel>,
+	<mailto:uclinux-dist-devel-request-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://blackfin.uclinux.org/pipermail/uclinux-dist-devel>
+List-Post: <mailto:uclinux-dist-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org>
+List-Help: <mailto:uclinux-dist-devel-request-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org?subject=help>
+List-Subscribe: <https://blackfin.uclinux.org/mailman/listinfo/uclinux-dist-devel>,
+	<mailto:uclinux-dist-devel-request-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org?subject=subscribe>
+Sender: uclinux-dist-devel-bounces-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org
+Errors-To: uclinux-dist-devel-bounces-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org
+To: Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>
+Cc: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linuxppc-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, Joe-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org, uclinux-dist-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org, Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Fainelli <florian-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: abhijit.pagare@ti.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Tue, 19 Jan 2010 22:17:59 +0100
+Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org> wrote:
 
-Resending with Abhijit's correct E-mail address.
+> Hi All,
+> 
+> please comment on following patch.
 
-- Paul
-
----------- Forwarded message ----------
-Date: Tue, 19 Jan 2010 14:14:08 -0700 (MST)
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP CPU ID: fix OMAP4 build failure
-
-Hello Abhijit,
-
-it seems that my for_2.6.34 branch does not build unless the following 
-patch, or one like it, is included.  Any comments?
-
-
-- Paul
-
-
-From: Paul Walmsley <paul@pwsan.com>
-
-
-omap_4430sdp_defconfig currently does not build due to some missing CPU IDs:
-
-In file included from arch/arm/mach-omap2/powerdomains.h:59,
-                 from arch/arm/mach-omap2/io.c:42:
-arch/arm/mach-omap2/powerdomains44xx.h:39: error: 'CHIP_IS_OMAP4430' undeclared here (not in a function)
-
-... so add CHIP_IS_OMAP4430ES1.  Note that this is not yet set by
-mach-omap2/id.c; this is for TI to fix.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Abhijit Pagare <abhijit.pagare@ti.com>
----
- arch/arm/plat-omap/include/plat/cpu.h |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 9a028bd..8ada0ef 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -44,7 +44,7 @@
- int omap_type(void);
- 
- struct omap_chip_id {
--	u8 oc;
-+	u16 oc;
- 	u8 type;
- };
- 
-@@ -470,8 +470,10 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
- #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
- #define CHIP_IS_OMAP3630ES1		(1 << 7)
-+#define CHIP_IS_OMAP4430ES1		(1 << 8)
- 
- #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
-+#define CHIP_IS_OMAP4430		CHIP_IS_OMAP4430ES1
- 
- /*
-  * "GE" here represents "greater than or equal to" in terms of ES
--- 
-1.6.6.rc2.5.g49666
-
+Why move them out - why not just make them const ?
