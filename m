@@ -1,14 +1,16 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 1/3] DSPBRIDGE: return right error codes wmd directory
-Date: Tue, 19 Jan 2010 12:15:09 -0600
-Message-ID: <1263924911-7404-2-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 3/3] DSPBRIDGE: return right error codes rmgr directory
+Date: Tue, 19 Jan 2010 12:15:11 -0600
+Message-ID: <1263924911-7404-4-git-send-email-omar.ramirez@ti.com>
 References: <1263924911-7404-1-git-send-email-omar.ramirez@ti.com>
+ <1263924911-7404-2-git-send-email-omar.ramirez@ti.com>
+ <1263924911-7404-3-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57235 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755004Ab0ASSFS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 13:05:18 -0500
-In-Reply-To: <1263924911-7404-1-git-send-email-omar.ramirez@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39100 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754854Ab0ASSFv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jan 2010 13:05:51 -0500
+In-Reply-To: <1263924911-7404-3-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
@@ -22,1176 +24,1187 @@ removes unused conditional statements or status variables.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- drivers/dsp/bridge/wmd/chnl_sm.c        |  230 +++++++++++------------
- drivers/dsp/bridge/wmd/io_sm.c          |  322 ++++++++++++++-----------------
- drivers/dsp/bridge/wmd/mmu_fault.c      |    4 +-
- drivers/dsp/bridge/wmd/msg_sm.c         |   47 +++--
- drivers/dsp/bridge/wmd/tiomap3430.c     |   28 +--
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   10 +-
- drivers/dsp/bridge/wmd/tiomap_io.c      |   10 +-
- drivers/dsp/bridge/wmd/tiomap_sm.c      |    2 -
- drivers/dsp/bridge/wmd/ue_deh.c         |   21 +--
- 9 files changed, 308 insertions(+), 366 deletions(-)
+ drivers/dsp/bridge/rmgr/dbdcd.c  |   31 ++++------
+ drivers/dsp/bridge/rmgr/disp.c   |   36 +++++------
+ drivers/dsp/bridge/rmgr/drv.c    |   89 ++++++++++++++-------------
+ drivers/dsp/bridge/rmgr/dspdrv.c |   27 ++++-----
+ drivers/dsp/bridge/rmgr/mgr.c    |   23 +++----
+ drivers/dsp/bridge/rmgr/nldr.c   |   32 ++++-------
+ drivers/dsp/bridge/rmgr/node.c   |  123 ++++++++++++++++++--------------------
+ drivers/dsp/bridge/rmgr/proc.c   |  100 +++++++++++++-----------------
+ drivers/dsp/bridge/rmgr/strm.c   |   31 +++-------
+ 9 files changed, 217 insertions(+), 275 deletions(-)
 
-diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index 867792e..ae2e3ec 100644
---- a/drivers/dsp/bridge/wmd/chnl_sm.c
-+++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -109,7 +109,34 @@ DSP_STATUS WMD_CHNL_AddIOReq(struct CHNL_OBJECT *hChnl, void *pHostBuf,
- 		  "%x Id %d\n", pChnl, CHNL_IsOutput(pChnl->uMode),
- 		  pChnl->uChnlType, pChnl->uId);
+diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
+index fed9f38..3d50952 100644
+--- a/drivers/dsp/bridge/rmgr/dbdcd.c
++++ b/drivers/dsp/bridge/rmgr/dbdcd.c
+@@ -161,7 +161,6 @@ DSP_STATUS DCD_CreateManager(IN char *pszZlDllName,
+ 	status = COD_Create(&hCodMgr, pszZlDllName, NULL);
  
--	fIsEOS = (cBytes == 0) ? true : false;
-+	fIsEOS = (cBytes == 0);
-+
-+	/* Validate args */
-+	if (!pHostBuf) {
-+		status = DSP_EPOINTER;
-+	} else if (!MEM_IsValidHandle(pChnl, CHNL_SIGNATURE)) {
-+		status = DSP_EHANDLE;
-+	} else if (fIsEOS && CHNL_IsInput(pChnl->uMode)) {
-+		status = CHNL_E_NOEOS;
-+	} else {
-+		/*
-+		 * Check the channel state: only queue chirp if channel state
-+		 * allows it.
-+		 */
-+		dwState = pChnl->dwState;
-+		if (dwState != CHNL_STATEREADY) {
-+			if (dwState & CHNL_STATECANCEL)
-+				status = CHNL_E_CANCELLED;
-+			else if ((dwState & CHNL_STATEEOS) &&
-+						CHNL_IsOutput(pChnl->uMode))
-+				status = CHNL_E_EOS;
-+			else
-+				/* No other possible states left */
-+				DBC_Assert(0);
-+		}
-+	}
-+	if (DSP_FAILED(status))
+ 	if (DSP_FAILED(status)) {
+-		status = DSP_EFAIL;
+ 		GT_0trace(curTrace, GT_6CLASS,
+ 			 "DCD_CreateManager: COD_Create failed\n");
+ 		goto func_end;
+@@ -442,8 +441,10 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
+ 		 " 0x%x, objType 0x%x, pObjDef 0x%x\n", hDcdMgr, pObjUuid,
+ 		 objType, pObjDef);
+ 	szUuid = (char *)MEM_Calloc(MAXUUIDLEN, MEM_PAGED);
+-	if (!szUuid)
+-		return status = DSP_EMEMORY;
++	if (!szUuid) {
++		status = DSP_EMEMORY;
 +		goto func_end;
++	}
  
- 	if (pChnl->uChnlType == CHNL_PCPY && pChnl->uId > 1 && pHostBuf) {
- 		if (!(pHostBuf < (void *)USERMODE_ADDR)) {
-@@ -122,7 +149,7 @@ DSP_STATUS WMD_CHNL_AddIOReq(struct CHNL_OBJECT *hChnl, void *pHostBuf,
- 			status = DSP_EMEMORY;
- 			DBG_Trace(DBG_LEVEL7,
- 				 "No memory to allocate kernel buffer\n");
--			goto func_cont;
-+			goto func_end;
+ 	if (!IsValidHandle(hDcdMgr)) {
+ 		status = DSP_EHANDLE;
+@@ -759,13 +760,10 @@ DSP_STATUS DCD_GetLibraryName(IN struct DCD_MANAGER *hDcdMgr,
+ 		sprintf(szObjType, "%d", DSP_DCDLIBRARYTYPE);
+ 		break;
+ 	default:
+-		status = -1;
++		status = DSP_EINVALIDARG;
+ 		DBC_Assert(false);
+ 	}
+-	if (status == -1) {
+-		status = DSP_EFAIL;
+-	} else {
+-		status = DSP_SOK;
++	if (DSP_SUCCEEDED(status)) {
+ 		if ((strlen(szRegKey) + strlen(szObjType)) <
+ 		   REG_MAXREGPATHLENGTH) {
+ 			strncat(szRegKey, szObjType, strlen(szObjType) + 1);
+@@ -943,23 +941,18 @@ DSP_STATUS DCD_RegisterObject(IN struct DSP_UUID *pUuid,
+ 		/* Add new reg value (UUID+objType) with COFF path info */
+ 		dwPathSize = strlen(pszPathName) + 1;
+ 		status = REG_SetValue(szRegKey, (u8 *)pszPathName, dwPathSize);
+-		GT_2trace(curTrace, GT_6CLASS, "REG_SetValue "
+-			"(u8 *)pszPathName=%s, dwPathSize=%d\n",
+-			pszPathName, dwPathSize);
+-
+-		if (DSP_FAILED(status)) {
+-			status = DSP_EFAIL;
++		GT_2trace(curTrace, GT_6CLASS, "REG_SetValue  "
++			  "(u8 *)pszPathName=%s, dwPathSize=%d\n",
++			  pszPathName, dwPathSize);
++		if (DSP_FAILED(status))
+ 			GT_0trace(curTrace, GT_6CLASS,
+-				  "DCD_RegisterObject: REG_SetValue failed!\n");
+-		}
++				"DCD_RegisterObject: REG_SetValue failed!\n");
+ 	} else {
+ 		/* Deregister an existing object */
+ 		status = REG_DeleteValue(szRegKey);
+-		if (DSP_FAILED(status)) {
+-			status = DSP_EFAIL;
++		if (DSP_FAILED(status))
+ 			GT_0trace(curTrace, GT_6CLASS, "DCD_UnregisterObject: "
+ 				"REG_DeleteValue failed!\n");
+-		}
+ 	}
+ 
+ 
+diff --git a/drivers/dsp/bridge/rmgr/disp.c b/drivers/dsp/bridge/rmgr/disp.c
+index 6ea15b4..949c5e3 100644
+--- a/drivers/dsp/bridge/rmgr/disp.c
++++ b/drivers/dsp/bridge/rmgr/disp.c
+@@ -160,23 +160,22 @@ DSP_STATUS DISP_Create(OUT struct DISP_OBJECT **phDispObject,
+ 		status = DSP_EFAIL;
+ 		goto func_cont;
+ 	}
+-	if (DSP_SUCCEEDED(status)) {
+-		pDisp->uCharSize = DSPWORDSIZE;
+-		pDisp->uWordSize = DSPWORDSIZE;
+-		pDisp->uDataMauSize = DSPWORDSIZE;
+-		/* Open channels for communicating with the RMS */
+-		chnlAttrs.uIOReqs = CHNLIOREQS;
+-		chnlAttrs.hEvent = NULL;
+-		ulChnlId = pDispAttrs->ulChnlOffset + CHNLTORMSOFFSET;
+-		status = (*pIntfFxns->pfnChnlOpen)(&(pDisp->hChnlToDsp),
+-			 pDisp->hChnlMgr, CHNL_MODETODSP, ulChnlId, &chnlAttrs);
+-		if (DSP_FAILED(status)) {
+-			GT_2trace(DISP_DebugMask, GT_6CLASS,
+-				 "DISP_Create:  Channel to RMS "
+-				 "open failed, chnl id = %d, status = 0x%x\n",
+-				 ulChnlId, status);
+-		}
+-	}
++
++	pDisp->uCharSize = DSPWORDSIZE;
++	pDisp->uWordSize = DSPWORDSIZE;
++	pDisp->uDataMauSize = DSPWORDSIZE;
++	/* Open channels for communicating with the RMS */
++	chnlAttrs.uIOReqs = CHNLIOREQS;
++	chnlAttrs.hEvent = NULL;
++	ulChnlId = pDispAttrs->ulChnlOffset + CHNLTORMSOFFSET;
++	status = (*pIntfFxns->pfnChnlOpen)(&(pDisp->hChnlToDsp),
++		 pDisp->hChnlMgr, CHNL_MODETODSP, ulChnlId, &chnlAttrs);
++	if (DSP_FAILED(status))
++		GT_2trace(DISP_DebugMask, GT_6CLASS,
++			 "DISP_Create:  Channel to RMS "
++			 "open failed, chnl id = %d, status = 0x%x\n",
++			 ulChnlId, status);
++
+ 	if (DSP_SUCCEEDED(status)) {
+ 		ulChnlId = pDispAttrs->ulChnlOffset + CHNLFROMRMSOFFSET;
+ 		status = (*pIntfFxns->pfnChnlOpen)(&(pDisp->hChnlFromDsp),
+@@ -819,7 +818,7 @@ static DSP_STATUS SendMessage(struct DISP_OBJECT *hDisp, u32 dwTimeout,
+ 		GT_1trace(DISP_DebugMask, GT_6CLASS,
+ 			 "SendMessage: Channel AddIOReq to"
+ 			 " RMS failed! Status = 0x%x\n", status);
+-		goto func_cont;
++		goto func_end;
+ 	}
+ 	status = (*pIntfFxns->pfnChnlGetIOC) (hChnl, dwTimeout, &chnlIOC);
+ 	if (DSP_SUCCEEDED(status)) {
+@@ -839,7 +838,6 @@ static DSP_STATUS SendMessage(struct DISP_OBJECT *hDisp, u32 dwTimeout,
+ 			 "SendMessage: Channel GetIOC to"
+ 			 " RMS failed! Status = 0x%x\n", status);
+ 	}
+-func_cont:
+ 	/* Get the reply */
+ 	if (DSP_FAILED(status))
+ 		goto func_end;
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 440bb91..0120989 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -91,6 +91,7 @@ DSP_STATUS DRV_ProcUpdatestate(HANDLE hPCtxt, enum GPP_PROC_RES_STATE status)
+ 	if (pCtxt != NULL) {
+ 		pCtxt->resState = status;
+ 	} else {
++		status1 = DSP_EHANDLE;
+ 		GT_0trace(curTrace, GT_ENTER,
+ 			 "DRV_ProcUpdatestate: Failed to update "
+ 			 "process state");
+@@ -313,8 +314,14 @@ DSP_STATUS  DRV_ProcFreeDMMRes(HANDLE hPCtxt)
+ 		if (pDMMRes->dmmAllocated) {
+ 			status = PROC_UnMap(pDMMRes->hProcessor,
+ 				 (void *)pDMMRes->ulDSPResAddr, pCtxt);
++			if (DSP_FAILED(status))
++				pr_debug("%s: PROC_UnMap failed! status ="
++						" 0x%xn", __func__, status);
+ 			status = PROC_UnReserveMemory(pDMMRes->hProcessor,
+ 				 (void *)pDMMRes->ulDSPResAddr);
++			if (DSP_FAILED(status))
++				pr_debug("%s: PROC_UnReserveMemory failed!"
++					" status = 0x%xn", __func__, status);
+ 			pDMMRes->dmmAllocated = 0;
  		}
- 		if (CHNL_IsOutput(pChnl->uMode)) {
- 			status = copy_from_user(pHostSysBuf, pHostBuf,
-@@ -135,33 +162,11 @@ DSP_STATUS WMD_CHNL_AddIOReq(struct CHNL_OBJECT *hChnl, void *pHostBuf,
- 				MEM_Free(pHostSysBuf);
- 				pHostSysBuf = NULL;
- 				status = DSP_EPOINTER;
-+				goto func_end;
+ 	}
+@@ -629,32 +636,31 @@ DSP_STATUS DRV_Create(OUT struct DRV_OBJECT **phDRVObject)
+ 				MEM_FreeObject(pDRVObject);
+ 			}
+ 		} else {
+-			status = DSP_EFAIL;
++			status = DSP_EMEMORY;
+ 			GT_0trace(curTrace, GT_7CLASS,
+ 				 "Failed to Create Dev List ");
+ 			MEM_FreeObject(pDRVObject);
+ 		}
+ 	} else {
+-		status = DSP_EFAIL;
++		status = DSP_EMEMORY;
+ 		GT_0trace(curTrace, GT_7CLASS,
+ 			 "Failed to Allocate Memory for DRV Obj");
+ 	}
++	/* Store the DRV Object in the Registry */
++	if (DSP_SUCCEEDED(status))
++		status = CFG_SetObject((u32) pDRVObject, REG_DRV_OBJECT);
+ 	if (DSP_SUCCEEDED(status)) {
+-		/* Store the DRV Object in the Registry */
+-		if (DSP_SUCCEEDED
+-		    (CFG_SetObject((u32) pDRVObject, REG_DRV_OBJECT))) {
+-			GT_1trace(curTrace, GT_1CLASS,
+-				 "DRV Obj Created pDrvObject 0x%x\n ",
+-				 pDRVObject);
+-			*phDRVObject = pDRVObject;
+-		} else {
+-			/* Free the DRV Object */
+-			status = DSP_EFAIL;
+-			MEM_Free(pDRVObject);
+-			GT_0trace(curTrace, GT_7CLASS,
+-				 "Failed to update the Registry with "
++		GT_1trace(curTrace, GT_1CLASS,
++			 "DRV Obj Created pDrvObject 0x%x\n ",
++			 pDRVObject);
++		*phDRVObject = pDRVObject;
++	} else {
++		/* Free the DRV Object */
++		MEM_Free(pDRVObject);
++		GT_0trace(curTrace, GT_7CLASS,
++			 "Failed to update the Registry with "
+ 				 "DRV Object ");
+-		}
++
+ 	}
+ 	GT_2trace(curTrace, GT_ENTER,
+ 		 "Exiting DRV_Create: phDRVObject: 0x%x\tstatus:"
+@@ -748,7 +754,6 @@ DSP_STATUS DRV_GetDevObject(u32 uIndex, struct DRV_OBJECT *hDrvObject,
+ 	}
+ 	if (pDevObject) {
+ 		*phDevObject = (struct DEV_OBJECT *) pDevObject;
+-		status = DSP_SOK;
+ 	} else {
+ 		*phDevObject = NULL;
+ 		status = DSP_EFAIL;
+@@ -976,8 +981,9 @@ DSP_STATUS DRV_RequestResources(u32 dwContext, u32 *pDevNodeString)
+ 	 *  it is freed in the Release resources. Update the driver object
+ 	 *  list.
+ 	 */
+-	if (DSP_SUCCEEDED(CFG_GetObject((u32 *)&pDRVObject,
+-	   REG_DRV_OBJECT))) {
++
++	status = CFG_GetObject((u32 *)&pDRVObject, REG_DRV_OBJECT);
++	if (DSP_SUCCEEDED(status)) {
+ 		pszdevNode = MEM_Calloc(sizeof(struct DRV_EXT), MEM_NONPAGED);
+ 		if (pszdevNode) {
+ 			LST_InitElem(&pszdevNode->link);
+@@ -991,11 +997,10 @@ DSP_STATUS DRV_RequestResources(u32 dwContext, u32 *pDevNodeString)
+ 		} else {
+ 			GT_0trace(curTrace, GT_7CLASS,
+ 				"Failed to Allocate Memory devNodeString ");
+-			status = DSP_EFAIL;
++			status = DSP_EMEMORY;
+ 			*pDevNodeString = 0;
+ 		}
+ 	} else {
+-		status = DSP_EFAIL;
+ 		GT_0trace(curTrace, GT_7CLASS,
+ 			 "Failed to get Driver Object from Registry");
+ 		*pDevNodeString = 0;
+@@ -1043,10 +1048,9 @@ DSP_STATUS DRV_ReleaseResources(u32 dwContext, struct DRV_OBJECT *hDrvObject)
+ 		GT_0trace(curTrace, GT_1CLASS, " Unknown device\n");
+ 	}
+ 
+-	if (DSP_SUCCEEDED(status)) {
++	if (DSP_FAILED(status))
+ 		GT_0trace(curTrace, GT_1CLASS,
+ 			 "Failed to relese bridge resources\n");
+-	}
+ 
+ 	/*
+ 	 *  Irrespective of the status go ahead and clean it
+@@ -1212,27 +1216,26 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
+ 		/* for 24xx base port is not mapping the mamory for DSP
+ 		 * internal memory TODO Do a ioremap here */
+ 		/* Second window is for DSP external memory shared with MPU */
++
++		/* For Linux, these are hard-coded values */
++		pResources->bIRQRegisters = 0;
++		pResources->bIRQAttrib = 0;
++		pResources->dwOffsetForMonitor = 0;
++		pResources->dwChnlOffset = 0;
++		/* CHNL_MAXCHANNELS */
++		pResources->dwNumChnls = CHNL_MAXCHANNELS;
++		pResources->dwChnlBufSize = 0x400;
++		dwBuffSize = sizeof(struct CFG_HOSTRES);
++		status = REG_SetValue(CURRENTCONFIG, (u8 *)pResources,
++						sizeof(struct CFG_HOSTRES));
+ 		if (DSP_SUCCEEDED(status)) {
+-			/* for Linux, these are hard-coded values */
+-			pResources->bIRQRegisters = 0;
+-			pResources->bIRQAttrib = 0;
+-			pResources->dwOffsetForMonitor = 0;
+-			pResources->dwChnlOffset = 0;
+-			/* CHNL_MAXCHANNELS */
+-			pResources->dwNumChnls = CHNL_MAXCHANNELS;
+-			pResources->dwChnlBufSize = 0x400;
+-			dwBuffSize = sizeof(struct CFG_HOSTRES);
+-			status = REG_SetValue(CURRENTCONFIG, (u8 *)pResources,
+-					     sizeof(struct CFG_HOSTRES));
+-			if (DSP_SUCCEEDED(status)) {
+-				GT_0trace(curTrace, GT_1CLASS,
+-					 " Successfully set the registry "
+-					 "value for CURRENTCONFIG\n");
+-			} else {
+-				GT_0trace(curTrace, GT_7CLASS,
+-					 " Failed to set the registry "
+-					 "value for CURRENTCONFIG\n");
+-			}
++			GT_0trace(curTrace, GT_1CLASS,
++				 " Successfully set the registry "
++				 "value for CURRENTCONFIG\n");
++		} else {
++			GT_0trace(curTrace, GT_7CLASS,
++				 " Failed to set the registry "
++				 "value for CURRENTCONFIG\n");
+ 		}
+ 		MEM_Free(pResources);
+ 	}
+diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
+index 183aba6..9920059 100644
+--- a/drivers/dsp/bridge/rmgr/dspdrv.c
++++ b/drivers/dsp/bridge/rmgr/dspdrv.c
+@@ -56,7 +56,6 @@ u32 DSP_Init(OUT u32 *initStatus)
+ 	char devNode[MAXREGPATHLENGTH] = "TIOMAP1510";
+ 	DSP_STATUS status = DSP_EFAIL;
+ 	struct DRV_OBJECT *drvObject = NULL;
+-	u32 index = 0;
+ 	u32 deviceNode;
+ 	u32 deviceNodeString;
+ 
+@@ -64,11 +63,12 @@ u32 DSP_Init(OUT u32 *initStatus)
+ 
+ 	GT_0trace(curTrace, GT_ENTER, "Entering DSP_Init \r\n");
+ 
+-	if (DSP_FAILED(WCD_Init())) {
++	if (!WCD_Init()) {
+ 		GT_0trace(curTrace, GT_7CLASS, "DSP_Init Failed \n");
+ 		goto func_cont;
+ 	}			/* End WCD_Exit */
+-	if (DSP_FAILED(DRV_Create(&drvObject))) {
++	status = DRV_Create(&drvObject);
++	if (DSP_FAILED(status)) {
+ 		GT_0trace(curTrace, GT_7CLASS, "DSP_Init:DRV_Create Failed \n");
+ 		WCD_Exit();
+ 		goto func_cont;
+@@ -76,29 +76,27 @@ u32 DSP_Init(OUT u32 *initStatus)
+ 	GT_0trace(curTrace, GT_5CLASS, "DSP_Init:DRV Created \r\n");
+ 
+ 	/* Request Resources */
+-	if (DSP_SUCCEEDED(DRV_RequestResources((u32)&devNode,
+-	   &deviceNodeString))) {
++	status = DRV_RequestResources((u32)&devNode, &deviceNodeString);
++	if (DSP_SUCCEEDED(status)) {
+ 		/* Attempt to Start the Device */
+-		if (DSP_SUCCEEDED(DEV_StartDevice(
+-		   (struct CFG_DEVNODE *)deviceNodeString))) {
++		status = DEV_StartDevice((struct CFG_DEVNODE *)
++							deviceNodeString);
++		if (DSP_SUCCEEDED(status)) {
+ 			/* Retreive the DevObject from the Registry */
+-			GT_2trace(curTrace, GT_1CLASS,
+-				 "DSP_Init Succeeded for Device1:"
+-				 "%d: value: %x\n", index, deviceNodeString);
+-			status = DSP_SOK;
++			GT_1trace(curTrace, GT_1CLASS,
++				 "DSP_Init Succeeded for Device1 value: %x\n",
++				 deviceNodeString);
+ 		} else {
+ 			GT_0trace(curTrace, GT_7CLASS,
+ 				 "DSP_Init:DEV_StartDevice Failed\n");
+ 			(void)DRV_ReleaseResources
+ 				((u32) deviceNodeString, drvObject);
+-			status = DSP_EFAIL;
+ 		}
+ 	} else {
+ 		GT_0trace(curTrace, GT_7CLASS,
+ 			 "DSP_Init:DRV_RequestResources Failed \r\n");
+ 		status = DSP_EFAIL;
+-	}	/* DRV_RequestResources */
+-	index++;
++	}
+ 
+ 	/* Unwind whatever was loaded */
+ 	if (DSP_FAILED(status)) {
+@@ -106,7 +104,6 @@ u32 DSP_Init(OUT u32 *initStatus)
+ 		 * unloading. Get the Driver Object iterate through and remove.
+ 		 * Reset the status to E_FAIL to avoid going through
+ 		 * WCD_InitComplete2. */
+-		status = DSP_EFAIL;
+ 		for (deviceNode = DRV_GetFirstDevExtension(); deviceNode != 0;
+ 		    deviceNode = DRV_GetNextDevExtension(deviceNode)) {
+ 			(void)DEV_RemoveDevice
+diff --git a/drivers/dsp/bridge/rmgr/mgr.c b/drivers/dsp/bridge/rmgr/mgr.c
+index d96716a..4562157 100644
+--- a/drivers/dsp/bridge/rmgr/mgr.c
++++ b/drivers/dsp/bridge/rmgr/mgr.c
+@@ -74,16 +74,16 @@ DSP_STATUS MGR_Create(OUT struct MGR_OBJECT **phMgrObject,
+ 		 phMgrObject);
+ 	MEM_AllocObject(pMgrObject, struct MGR_OBJECT, SIGNATURE);
+ 	if (pMgrObject) {
+-		if (DSP_SUCCEEDED(DCD_CreateManager(ZLDLLNAME,
+-		   &pMgrObject->hDcdMgr))) {
++		status = DCD_CreateManager(ZLDLLNAME, &pMgrObject->hDcdMgr);
++		if (DSP_SUCCEEDED(status)) {
+ 			/* If succeeded store the handle in the MGR Object */
+-			if (DSP_SUCCEEDED(CFG_SetObject((u32)pMgrObject,
+-			   REG_MGR_OBJECT))) {
++			status = CFG_SetObject((u32)pMgrObject,
++							REG_MGR_OBJECT);
++			if (DSP_SUCCEEDED(status)) {
+ 				*phMgrObject = pMgrObject;
+ 				GT_0trace(MGR_DebugMask, GT_1CLASS,
+ 					 "MGR_Create:MGR Created\r\n");
+ 			} else {
+-				status = DSP_EFAIL;
+ 				GT_0trace(MGR_DebugMask, GT_7CLASS,
+ 					 "MGR_Create:CFG_SetObject "
+ 					 "Failed\r\n");
+@@ -92,7 +92,6 @@ DSP_STATUS MGR_Create(OUT struct MGR_OBJECT **phMgrObject,
+ 			}
+ 		} else {
+ 			/* failed to Create DCD Manager */
+-			status = DSP_EFAIL;
+ 			GT_0trace(MGR_DebugMask, GT_7CLASS,
+ 				 "MGR_Create:DCD_ManagerCreate Failed\r\n");
+ 			MEM_FreeObject(pMgrObject);
+@@ -151,7 +150,6 @@ DSP_STATUS MGR_EnumNodeInfo(u32 uNode, OUT struct DSP_NDBPROPS *pNDBProps,
+ 			   u32 uNDBPropsSize, OUT u32 *puNumNodes)
+ {
+ 	DSP_STATUS status = DSP_SOK;
+-	DSP_STATUS status1 = DSP_SOK;
+ 	struct DSP_UUID Uuid, uTempUuid;
+ 	u32 uTempIndex = 0;
+ 	u32 uNodeIndex = 0;
+@@ -169,8 +167,8 @@ DSP_STATUS MGR_EnumNodeInfo(u32 uNode, OUT struct DSP_NDBPROPS *pNDBProps,
+ 		 uNDBPropsSize, puNumNodes);
+ 	*puNumNodes = 0;
+ 	/* Get The Manager Object from the Registry */
+-	if (DSP_FAILED(CFG_GetObject((u32 *)&pMgrObject,
+-	   REG_MGR_OBJECT))) {
++	status = CFG_GetObject((u32 *)&pMgrObject, REG_MGR_OBJECT);
++	if (DSP_FAILED(status)) {
+ 		GT_0trace(MGR_DebugMask, GT_7CLASS,
+ 			 "Manager_EnumNodeInfo:Failed To Get"
+ 			 " MGR Object from Registry\r\n");
+@@ -196,26 +194,23 @@ DSP_STATUS MGR_EnumNodeInfo(u32 uNode, OUT struct DSP_NDBPROPS *pNDBProps,
+ 				 "Manager_EnumNodeInfo: uNode"
+ 				 " is Invalid \r\n");
+ 		} else {
+-			status1 = DCD_GetObjectDef(pMgrObject->hDcdMgr,
++			status = DCD_GetObjectDef(pMgrObject->hDcdMgr,
+ 						(struct DSP_UUID *)&Uuid,
+ 						DSP_DCDNODETYPE, &GenObj);
+-			if (DSP_SUCCEEDED(status1)) {
++			if (DSP_SUCCEEDED(status)) {
+ 				/* Get the Obj def */
+ 				*pNDBProps = GenObj.objData.nodeObj.ndbProps;
+ 				*puNumNodes = uNodeIndex;
+-				status = DSP_SOK;
+ 			} else {
+ 				GT_0trace(MGR_DebugMask, GT_7CLASS,
+ 					 "Manager_EnumNodeInfo: "
+ 					 "Failed to Get Node Info \r\n");
+-				status = DSP_EFAIL;
  			}
  		}
+ 	} else {
+ 		/* This could be changed during enum, EFAIL ... */
+ 		GT_0trace(MGR_DebugMask, GT_7CLASS, "Manager_EnumNodeInfo: "
+ 			 "Enumeration failure\r\n");
+-		status = DSP_EFAIL;
  	}
  func_cont:
--	/* Validate args:  */
--	if (pHostBuf == NULL) {
--		status = DSP_EPOINTER;
--	} else if (!MEM_IsValidHandle(pChnl, CHNL_SIGNATURE)) {
--		status = DSP_EHANDLE;
--	} else if (fIsEOS && CHNL_IsInput(pChnl->uMode)) {
--		status = CHNL_E_NOEOS;
--	} else {
--		/* Check the channel state: only queue chirp if channel state
--		 * allows */
--		dwState = pChnl->dwState;
--		if (dwState != CHNL_STATEREADY) {
--			if (dwState & CHNL_STATECANCEL) {
--				status = CHNL_E_CANCELLED;
--			} else if ((dwState & CHNL_STATEEOS)
--				   && CHNL_IsOutput(pChnl->uMode)) {
--				status = CHNL_E_EOS;
--			} else {
--				/* No other possible states left: */
--				DBC_Assert(0);
--			}
--		}
--	}
- 	/* Mailbox IRQ is disabled to avoid race condition with DMA/ZCPY
- 	 * channels. DPCCS is held to avoid race conditions with PCPY channels.
- 	 * If DPC is scheduled in process context (IO_Schedule) and any
-@@ -191,47 +196,49 @@ func_cont:
- 		if (pChnl->uChnlType == CHNL_PCPY && pChnl->uId > 1)
- 			pChirp->pHostSysBuf = pHostSysBuf;
+ 	GT_4trace(MGR_DebugMask, GT_ENTER,
+diff --git a/drivers/dsp/bridge/rmgr/nldr.c b/drivers/dsp/bridge/rmgr/nldr.c
+index 5f0d4e1..19861bd 100644
+--- a/drivers/dsp/bridge/rmgr/nldr.c
++++ b/drivers/dsp/bridge/rmgr/nldr.c
+@@ -1018,7 +1018,7 @@ static DSP_STATUS AddOvlyInfo(void *handle, struct DBLL_SectInfo *sectInfo,
  
--		if (DSP_SUCCEEDED(status)) {
--			/* Note: for dma chans dwDspAddr contains dsp address
--			 * of SM buffer.*/
--			DBC_Assert(pChnlMgr->uWordSize != 0);
--			/* DSP address */
--			pChirp->uDspAddr = dwDspAddr / pChnlMgr->uWordSize;
--			pChirp->cBytes = cBytes;
--			pChirp->cBufSize = cBufSize;
--			/* Only valid for output channel */
--			pChirp->dwArg = dwArg;
--			pChirp->status = (fIsEOS ? CHNL_IOCSTATEOS :
--					 CHNL_IOCSTATCOMPLETE);
--			LST_PutTail(pChnl->pIORequests, (struct LST_ELEM *)
--				   pChirp);
--			pChnl->cIOReqs++;
--			DBC_Assert(pChnl->cIOReqs <= pChnl->cChirps);
--			/* If end of stream, update the channel state to prevent
--			 * more IOR's: */
--			if (fIsEOS)
--				pChnl->dwState |= CHNL_STATEEOS;
-+		/*
-+		 * Note: for dma chans dwDspAddr contains dsp address
-+		 * of SM buffer.
-+		 */
-+		DBC_Assert(pChnlMgr->uWordSize != 0);
-+		/* DSP address */
-+		pChirp->uDspAddr = dwDspAddr / pChnlMgr->uWordSize;
-+		pChirp->cBytes = cBytes;
-+		pChirp->cBufSize = cBufSize;
-+		/* Only valid for output channel */
-+		pChirp->dwArg = dwArg;
-+		pChirp->status = (fIsEOS ? CHNL_IOCSTATEOS :
-+						CHNL_IOCSTATCOMPLETE);
-+		LST_PutTail(pChnl->pIORequests, (struct LST_ELEM *)pChirp);
-+		pChnl->cIOReqs++;
-+		DBC_Assert(pChnl->cIOReqs <= pChnl->cChirps);
-+		/*
-+		 * If end of stream, update the channel state to prevent
-+		 * more IOR's.
-+		 */
-+		if (fIsEOS)
-+			pChnl->dwState |= CHNL_STATEEOS;
-+
-+		/* Legacy DSM Processor-Copy */
-+		DBC_Assert(pChnl->uChnlType == CHNL_PCPY);
-+		/* Request IO from the DSP */
-+		IO_RequestChnl(pChnlMgr->hIOMgr, pChnl,
-+			(CHNL_IsInput(pChnl->uMode) ? IO_INPUT : IO_OUTPUT),
-+								&wMbVal);
-+		fSchedDPC = true;
-+
+ 	/* Determine which phase this section belongs to */
+ 	for (pch = pSectName + 1; *pch && *pch != seps; pch++)
+-		;;
++		;
  
--			{
--				/* Legacy DSM Processor-Copy */
--				DBC_Assert(pChnl->uChnlType == CHNL_PCPY);
--				/* Request IO from the DSP */
--				IO_RequestChnl(pChnlMgr->hIOMgr, pChnl,
--					(CHNL_IsInput(pChnl->uMode) ?
--					IO_INPUT : IO_OUTPUT), &wMbVal);
--				fSchedDPC = true;
--			}
--		}
- 	}
- 	enable_irq(MAILBOX_IRQ);
- 	SYNC_LeaveCS(pChnlMgr->hCSObj);
- 	if (wMbVal != 0)
- 		IO_IntrDSP2(pChnlMgr->hIOMgr, wMbVal);
+ 	if (*pch) {
+ 		pch++;	/* Skip over the ':' */
+@@ -1398,7 +1398,7 @@ static DSP_STATUS LoadLib(struct NLDR_NODEOBJECT *hNldrNode,
+ 	/*
+ 	 *  Recursively load dependent libraries.
+ 	 */
+-	if (DSP_SUCCEEDED(status) && persistentDepLibs) {
++	if (DSP_SUCCEEDED(status)) {
+ 		for (i = 0; i < nLibs; i++) {
+ 			/* If root library is NOT persistent, and dep library
+ 			 * is, then record it.  If root library IS persistent,
+@@ -1422,15 +1422,11 @@ static DSP_STATUS LoadLib(struct NLDR_NODEOBJECT *hNldrNode,
+ 				pDepLib = &root->pDepLibs[nLoaded];
+ 			}
  
--	if (fSchedDPC == true) {
--		/* Schedule a DPC, to do the actual data transfer: */
-+	/* Schedule a DPC, to do the actual data transfer */
-+	if (fSchedDPC)
- 		IO_Schedule(pChnlMgr->hIOMgr);
--	}
-+
-+func_end:
- 	DBG_Trace(DBG_ENTER, "< WMD_CHNL_AddIOReq pChnl %p\n", pChnl);
- 	return status;
- }
-@@ -382,58 +389,49 @@ DSP_STATUS WMD_CHNL_Create(OUT struct CHNL_MGR **phChnlMgr,
- 	DSP_STATUS status = DSP_SOK;
- 	struct CHNL_MGR *pChnlMgr = NULL;
- 	s32 cChannels;
--#ifdef DEBUG
--	struct CHNL_MGR *hChnlMgr;
--#endif
-+
- 	/* Check DBC requirements:  */
- 	DBC_Require(phChnlMgr != NULL);
- 	DBC_Require(pMgrAttrs != NULL);
- 	DBC_Require(pMgrAttrs->cChannels > 0);
- 	DBC_Require(pMgrAttrs->cChannels <= CHNL_MAXCHANNELS);
- 	DBC_Require(pMgrAttrs->uWordSize != 0);
--#ifdef DEBUG
--	/* This for the purposes of DBC_Require: */
--	status = DEV_GetChnlMgr(hDevObject, &hChnlMgr);
--	DBC_Require(status != DSP_EHANDLE);
--	DBC_Require(hChnlMgr == NULL);
--#endif
--	if (DSP_SUCCEEDED(status)) {
--		/* Allocate channel manager object: */
--		MEM_AllocObject(pChnlMgr, struct CHNL_MGR, CHNL_MGRSIGNATURE);
--		if (pChnlMgr) {
--			/* The cChannels attr must equal the # of supported
--			 * chnls for each transport(# chnls for PCPY = DDMA =
--			 * ZCPY): i.e. pMgrAttrs->cChannels = CHNL_MAXCHANNELS =
--			 * DDMA_MAXDDMACHNLS = DDMA_MAXZCPYCHNLS.  */
--			DBC_Assert(pMgrAttrs->cChannels == CHNL_MAXCHANNELS);
--			cChannels = (CHNL_MAXCHANNELS + (CHNL_MAXCHANNELS *
--				    CHNL_PCPY));
--			/* Create array of channels: */
--			pChnlMgr->apChannel = MEM_Calloc(
--						sizeof(struct CHNL_OBJECT *) *
--						cChannels, MEM_NONPAGED);
--			if (pChnlMgr->apChannel) {
--				/* Initialize CHNL_MGR object: */
--				/* Shared memory driver. */
--				pChnlMgr->dwType = CHNL_TYPESM;
--				pChnlMgr->uWordSize = pMgrAttrs->uWordSize;
--				/* total # chnls supported */
--				pChnlMgr->cChannels = cChannels;
--				pChnlMgr->cOpenChannels = 0;
--				pChnlMgr->dwOutputMask = 0;
--				pChnlMgr->dwLastOutput = 0;
--				pChnlMgr->hDevObject = hDevObject;
--				if (DSP_SUCCEEDED(status)) {
--					status = SYNC_InitializeDPCCS
--						(&pChnlMgr->hCSObj);
--				}
+-			if (depLibUUIDs) {
+-				status = LoadLib(hNldrNode, pDepLib,
++			status = LoadLib(hNldrNode, pDepLib,
+ 						depLibUUIDs[i],
+ 						persistentDepLibs[i], libPath,
+ 						phase,
+ 						depth);
 -			} else {
 -				status = DSP_EMEMORY;
 -			}
-+
-+	/* Allocate channel manager object */
-+	MEM_AllocObject(pChnlMgr, struct CHNL_MGR, CHNL_MGRSIGNATURE);
-+	if (pChnlMgr) {
-+		/*
-+		 * The cChannels attr must equal the # of supported chnls for
-+		 * each transport(# chnls for PCPY = DDMA = ZCPY): i.e.
-+		 * 	pMgrAttrs->cChannels = CHNL_MAXCHANNELS =
-+		 * 			 DDMA_MAXDDMACHNLS = DDMA_MAXZCPYCHNLS.
-+		 */
-+		DBC_Assert(pMgrAttrs->cChannels == CHNL_MAXCHANNELS);
-+		cChannels = CHNL_MAXCHANNELS + CHNL_MAXCHANNELS * CHNL_PCPY;
-+		/* Create array of channels */
-+		pChnlMgr->apChannel = MEM_Calloc(
-+				sizeof(struct CHNL_OBJECT *) *
-+				cChannels, MEM_NONPAGED);
-+		if (pChnlMgr->apChannel) {
-+			/* Initialize CHNL_MGR object */
-+			pChnlMgr->dwType = CHNL_TYPESM;
-+			pChnlMgr->uWordSize = pMgrAttrs->uWordSize;
-+			/* Total # chnls supported */
-+			pChnlMgr->cChannels = cChannels;
-+			pChnlMgr->cOpenChannels = 0;
-+			pChnlMgr->dwOutputMask = 0;
-+			pChnlMgr->dwLastOutput = 0;
-+			pChnlMgr->hDevObject = hDevObject;
-+			if (DSP_SUCCEEDED(status))
-+				status = SYNC_InitializeDPCCS(
-+							&pChnlMgr->hCSObj);
- 		} else {
- 			status = DSP_EMEMORY;
- 		}
-+	} else {
-+		status = DSP_EMEMORY;
+ 
+ 			if (DSP_SUCCEEDED(status)) {
+ 				if ((status != DSP_SALREADYLOADED) &&
+@@ -1555,10 +1551,6 @@ static DSP_STATUS LoadOvly(struct NLDR_NODEOBJECT *hNldrNode,
+ 		break;
  	}
-+
- 	if (DSP_FAILED(status)) {
- 		WMD_CHNL_Destroy(pChnlMgr);
- 		*phChnlMgr = NULL;
-@@ -458,10 +456,10 @@ DSP_STATUS WMD_CHNL_Destroy(struct CHNL_MGR *hChnlMgr)
- 	if (MEM_IsValidHandle(hChnlMgr, CHNL_MGRSIGNATURE)) {
- 		/* Close all open channels: */
- 		for (iChnl = 0; iChnl < pChnlMgr->cChannels; iChnl++) {
--			if (DSP_SUCCEEDED
--			    (WMD_CHNL_Close(pChnlMgr->apChannel[iChnl]))) {
--				DBC_Assert(pChnlMgr->apChannel[iChnl] == NULL);
--			}
-+			status = WMD_CHNL_Close(pChnlMgr->apChannel[iChnl]);
-+			if (DSP_FAILED(status))
-+				DBG_Trace(DBG_LEVEL7, "Error in CHNL_Close "
-+						"status 0x%x\n", status);
- 		}
- 		/* release critical section */
- 		if (pChnlMgr->hCSObj)
-@@ -804,6 +802,7 @@ DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
- 	/* Ensure DBC requirements:  */
- 	DBC_Require(phChnl != NULL);
- 	DBC_Require(pAttrs != NULL);
-+	DBC_Require(hChnlMgr != NULL);
- 	*phChnl = NULL;
- 	/* Validate Args:  */
- 	if (pAttrs->uIOReqs == 0) {
-@@ -813,12 +812,10 @@ DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
- 			status = DSP_EHANDLE;
- 		} else {
- 			if (uChnlId != CHNL_PICKFREE) {
--				if (uChnlId >= pChnlMgr->cChannels) {
-+				if (uChnlId >= pChnlMgr->cChannels)
- 					status = CHNL_E_BADCHANID;
--				} else if (pChnlMgr->apChannel[uChnlId] !=
--					  NULL) {
-+				else if (pChnlMgr->apChannel[uChnlId] != NULL)
- 					status = CHNL_E_CHANBUSY;
--				}
- 			} else {
- 				/* Check for free channel */
- 				status = SearchFreeChannel(pChnlMgr, &uChnlId);
-@@ -833,7 +830,7 @@ DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
- 	MEM_AllocObject(pChnl, struct CHNL_OBJECT, 0x0000);
- 	if (!pChnl) {
- 		status = DSP_EMEMORY;
--		goto func_cont;
-+		goto func_end;
- 	}
- 	/* Protect queues from IO_DPC: */
- 	pChnl->dwState = CHNL_STATECANCEL;
-@@ -845,13 +842,9 @@ DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
- 	pChnl->cIOCs = 0;
- 	pChnl->cIOReqs = 0;
- 	status = SYNC_OpenEvent(&hSyncEvent, pSyncAttrs);
--	if (DSP_SUCCEEDED(status)) {
-+	if (DSP_SUCCEEDED(status))
- 		status = NTFY_Create(&pChnl->hNtfy);
--		if (DSP_FAILED(status)) {
--			/* The only failure that could have occurred */
--			status = DSP_EMEMORY;
--		}
--	}
-+
- 	if (DSP_SUCCEEDED(status)) {
- 		if (pChnl->pIOCompletions && pChnl->pIORequests &&
- 		   pChnl->pFreeList) {
-@@ -870,9 +863,8 @@ DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
- 		} else {
- 			status = DSP_EMEMORY;
- 		}
--	} else {
--		status = DSP_EINVALIDARG;
- 	}
-+
- 	if (DSP_FAILED(status)) {
- 		/* Free memory */
- 		if (pChnl->pIOCompletions) {
-@@ -897,9 +889,7 @@ DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
- 			pChnl->hNtfy = NULL;
- 		}
- 		MEM_FreeObject(pChnl);
--	}
--func_cont:
--	if (DSP_SUCCEEDED(status)) {
-+	} else {
- 		/* Insert channel object in channel manager: */
- 		pChnlMgr->apChannel[pChnl->uId] = pChnl;
- 		SYNC_EnterCS(pChnlMgr->hCSObj);
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 4511ec5..edb83c1 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -192,8 +192,8 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		status = DSP_EHANDLE;
- 		goto func_end;
- 	}
--	status = DEV_GetChnlMgr(hDevObject, &hChnlMgr);
--	if (status == DSP_EHANDLE || !hChnlMgr || hChnlMgr->hIOMgr) {
-+	DEV_GetChnlMgr(hDevObject, &hChnlMgr);
-+	if (!hChnlMgr || hChnlMgr->hIOMgr) {
- 		status = DSP_EHANDLE;
- 		goto func_end;
- 	}
-@@ -215,8 +215,6 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 	 * a valid address than 0.
- 	 */
- 	pSharedMem = (struct SHM *) -1;
+ 
+-	DBC_Assert(pRefCount != NULL);
 -	if (DSP_FAILED(status))
--		goto func_cont;
- 
- 	/* Create a Single Threaded Work Queue */
- 	if (ref_count == 0)
-@@ -230,7 +228,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 	MEM_AllocObject(pIOMgr, struct IO_MGR, IO_MGRSIGNATURE);
- 	if (pIOMgr == NULL) {
- 		status = DSP_EMEMORY;
--		goto func_cont;
-+		goto func_end;
- 	}
- 	/* Intializing Work Element */
- 	if (ref_count == 0) {
-@@ -278,28 +276,26 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 			HW_MBOX_initSettings(hostRes.dwMboxBase);
- 			/* Plug the channel ISR */
- 			if ((request_irq(INT_MAIL_MPU_IRQ, IO_ISR, 0,
--			  "DspBridge\tmailbox", (void *)pIOMgr)) == 0) {
--				status = DSP_SOK;
-+			  "DspBridge\tmailbox", (void *)pIOMgr)) == 0)
- 				DBG_Trace(DBG_LEVEL1, "ISR_IRQ Object 0x%x \n",
- 						pIOMgr);
--			} else {
-+			else
- 				status = CHNL_E_ISR;
--			}
- 		}
- 	} else {
- 		status = CHNL_E_ISR;
- 	}
--func_cont:
-+func_end:
- 	if (DSP_FAILED(status)) {
- 		/* Cleanup */
- 		WMD_IO_Destroy(pIOMgr);
--		*phIOMgr = NULL;
-+		if (phIOMgr)
-+			*phIOMgr = NULL;
- 	} else {
- 		/* Return IO manager object to caller... */
- 		hChnlMgr->hIOMgr = pIOMgr;
- 		*phIOMgr = pIOMgr;
- 	}
--func_end:
- 	return status;
- }
- 
-@@ -394,7 +390,7 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
- 	hMsgMgr = hIOMgr->hMsgMgr;
- 	if (!MEM_IsValidHandle(hChnlMgr, CHNL_MGRSIGNATURE) ||
- 	   !MEM_IsValidHandle(hMsgMgr, MSGMGR_SIGNATURE)) {
--		status = DSP_EMEMORY;
-+		status = DSP_EHANDLE;
+-		goto func_end;
+-
+ 	if (pRefCount == NULL)
  		goto func_end;
+ 
+@@ -1837,7 +1829,6 @@ static void UnloadOvly(struct NLDR_NODEOBJECT *hNldrNode, enum NLDR_PHASE phase)
+ 	u16 nOtherAlloc = 0;
+ 	u16 *pRefCount = NULL;
+ 	u16 *pOtherRef = NULL;
+-	DSP_STATUS status = DSP_SOK;
+ 
+ 	/* Find the node in the table */
+ 	for (i = 0; i < hNldr->nOvlyNodes; i++) {
+@@ -1878,17 +1869,16 @@ static void UnloadOvly(struct NLDR_NODEOBJECT *hNldrNode, enum NLDR_PHASE phase)
+ 		DBC_Assert(false);
+ 		break;
  	}
- 	if (hIOMgr->pSharedMem)
-@@ -405,25 +401,25 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
- 				 &ulShmBase);
- 	if (DSP_FAILED(status)) {
- 		status = CHNL_E_NOMEMMAP;
--		goto func_cont1;
-+		goto func_end;
+-	if (DSP_SUCCEEDED(status)) {
+-		DBC_Assert(pRefCount && (*pRefCount > 0));
+-		 if (pRefCount && (*pRefCount > 0)) {
+-			*pRefCount -= 1;
+-			if (pOtherRef) {
+-				DBC_Assert(*pOtherRef > 0);
+-				*pOtherRef -= 1;
+-			}
++	DBC_Assert(pRefCount && (*pRefCount > 0));
++	if (pRefCount && (*pRefCount > 0)) {
++		*pRefCount -= 1;
++		if (pOtherRef) {
++			DBC_Assert(*pOtherRef > 0);
++			*pOtherRef -= 1;
+ 		}
  	}
- 	status = COD_GetSymValue(hCodMan, CHNL_SHARED_BUFFER_LIMIT_SYM,
- 				&ulShmLimit);
- 	if (DSP_FAILED(status)) {
- 		status = CHNL_E_NOMEMMAP;
--		goto func_cont1;
-+		goto func_end;
- 	}
- 	if (ulShmLimit <= ulShmBase) {
- 		status = CHNL_E_INVALIDMEMBASE;
--	} else {
--		/* Get total length in bytes */
--		ulShmLength = (ulShmLimit - ulShmBase + 1) * hIOMgr->uWordSize;
--		/* Calculate size of a PROCCOPY shared memory region */
--		DBG_Trace(DBG_LEVEL7,
--			 "**(proc)PROCCOPY SHMMEM SIZE: 0x%x bytes\n",
--			  (ulShmLength - sizeof(struct SHM)));
-+		goto func_end;
- 	}
--func_cont1:
-+	/* Get total length in bytes */
-+	ulShmLength = (ulShmLimit - ulShmBase + 1) * hIOMgr->uWordSize;
-+	/* Calculate size of a PROCCOPY shared memory region */
-+	DBG_Trace(DBG_LEVEL7,
-+		 "**(proc)PROCCOPY SHMMEM SIZE: 0x%x bytes\n",
-+		  (ulShmLength - sizeof(struct SHM)));
+-	if (pRefCount && (*pRefCount == 0)) {
 +
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Get start and length of message part of shared memory */
- 		status = COD_GetSymValue(hCodMan, MSG_SHARED_BUFFER_BASE_SYM,
-@@ -451,6 +447,8 @@ func_cont1:
- 		} else {
- 			status = CHNL_E_NOMEMMAP;
- 		}
-+	} else {
-+		status = CHNL_E_NOMEMMAP;
++	if (pRefCount && *pRefCount == 0) {
+ 		/* 'Deallocate' memory */
+ 		FreeSects(hNldr, pPhaseSects, nAlloc);
  	}
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index e8ba0dd..7fd9977 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -357,6 +357,9 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
+ 
+ 	status = PROC_GetProcessorId(hProcessor, &procId);
+ 
++	if (procId != DSP_UNIT)
++		goto func_end;
++
+ 	status = PROC_GetDevObject(hProcessor, &hDevObject);
  	if (DSP_SUCCEEDED(status)) {
- #ifndef DSP_TRACEBUF_DISABLED
-@@ -519,7 +517,7 @@ func_cont1:
- 		}
+ 		status = DEV_GetNodeManager(hDevObject, &hNodeMgr);
+@@ -364,11 +367,9 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
+ 			status = DSP_EFAIL;
+ 
  	}
+-	if (procId != DSP_UNIT)
+-		goto func_cont;
+ 
  	if (DSP_FAILED(status))
 -		goto func_cont;
 +		goto func_end;
  
- 	paCurr = ulGppPa;
- 	vaCurr = ulDynExtBase * hIOMgr->uWordSize;
-@@ -538,7 +536,7 @@ func_cont1:
- 	mapAttrs |= DSP_MAPELEMSIZE32;
- 	mapAttrs |= DSP_MAPDONOTLOCK;
- 
--	while (numBytes && DSP_SUCCEEDED(status)) {
-+	while (numBytes) {
- 		/*
- 		 * To find the max. page size with which both PA & VA are
- 		 * aligned.
-@@ -574,8 +572,7 @@ func_cont1:
- 	/* Configure the TLB entries for the next cacheable segment */
- 	numBytes = ulSegSize;
- 	vaCurr = ulDspVa * hIOMgr->uWordSize;
--	allBits = 0x0;
--	while (numBytes && DSP_SUCCEEDED(status)) {
-+	while (numBytes) {
- 		/*
- 		 * To find the max. page size with which both PA & VA are
- 		 * aligned.
-@@ -642,8 +639,7 @@ func_cont1:
- 	 * Copy remaining entries from CDB. All entries are 1 MB and
- 	 * should not conflict with SHM entries on MPU or DSP side.
- 	 */
--	for (i = 3; i < 7 && ndx < WMDIOCTL_NUMOFMMUTLB &&
--	    DSP_SUCCEEDED(status); i++) {
-+	for (i = 3; i < 7 && ndx < WMDIOCTL_NUMOFMMUTLB; i++) {
- 		if (hIOMgr->extProcInfo.tyTlb[i].ulGppPhys == 0)
- 			continue;
- 
-@@ -682,12 +678,10 @@ func_cont1:
- 					0x100000, mapAttrs);
- 			}
+ 	status = PROC_GetState(hProcessor, &procStatus,
+ 			sizeof(struct DSP_PROCESSORSTATE));
+@@ -399,27 +400,27 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
+ 				status = DSP_ERANGE;
  		}
-+		if (DSP_FAILED(status))
-+			goto func_end;
  	}
--	if (i < 7 && DSP_SUCCEEDED(status)) {
--		/* All CDB entries could not be made */
--		status = DSP_EFAIL;
--	}
 -func_cont:
-+
- 	mapAttrs = 0x00000000;
- 	mapAttrs = DSP_MAPLITTLEENDIAN;
- 	mapAttrs |= DSP_MAPPHYSICALADDR;
-@@ -696,164 +690,144 @@ func_cont:
- 
- 	/* Map the L4 peripherals */
- 	i = 0;
--	while (L4PeripheralTable[i].physAddr && DSP_SUCCEEDED(status)) {
-+	while (L4PeripheralTable[i].physAddr) {
- 		status = hIOMgr->pIntfFxns->pfnBrdMemMap
- 			(hIOMgr->hWmdContext, L4PeripheralTable[i].physAddr,
- 			L4PeripheralTable[i].dspVirtAddr, HW_PAGE_SIZE_4KB,
- 			mapAttrs);
- 		if (DSP_FAILED(status))
--			break;
-+			goto func_end;
- 		i++;
- 	}
- 
--	if (DSP_SUCCEEDED(status)) {
--		for (i = ndx; i < WMDIOCTL_NUMOFMMUTLB; i++) {
--			aEProc[i].ulDspVa = 0;
--			aEProc[i].ulGppPa = 0;
--			aEProc[i].ulGppVa = 0;
--			aEProc[i].ulSize = 0;
-+
-+	for (i = ndx; i < WMDIOCTL_NUMOFMMUTLB; i++) {
-+		aEProc[i].ulDspVa = 0;
-+		aEProc[i].ulGppPa = 0;
-+		aEProc[i].ulGppVa = 0;
-+		aEProc[i].ulSize = 0;
-+	}
-+	/*
-+	 * Set the SHM physical address entry (grayed out in CDB file)
-+	 * to the virtual uncached ioremapped address of SHM reserved
-+	 * on MPU.
-+	 */
-+	hIOMgr->extProcInfo.tyTlb[0].ulGppPhys = (ulGppVa + ulSeg1Size +
-+						 ulPadSize);
-+	DBG_Trace(DBG_LEVEL1, "*********extProcInfo *********%x \n",
-+		  hIOMgr->extProcInfo.tyTlb[0].ulGppPhys);
-+	/*
-+	 * Need SHM Phys addr. IO supports only one DSP for now:
-+	 * uNumProcs = 1.
-+	 */
-+	if (!hIOMgr->extProcInfo.tyTlb[0].ulGppPhys || uNumProcs != 1) {
-+		status = CHNL_E_NOMEMMAP;
+ 	/* Allocate node object and fill in */
+ 	if (DSP_FAILED(status))
+-		goto func_cont2;
 +		goto func_end;
-+	} else {
-+		if (aEProc[0].ulDspVa > ulShmBase) {
-+			status = DSP_EFAIL;
-+			goto func_end;
- 		}
-+		/* ulShmBase may not be at ulDspVa address */
-+		ulShmBaseOffset = (ulShmBase - aEProc[0].ulDspVa) *
-+				hIOMgr->uWordSize;
- 		/*
--		 * Set the SHM physical address entry (grayed out in CDB file)
--		 * to the virtual uncached ioremapped address of SHM reserved
--		 * on MPU.
--		 */
--		hIOMgr->extProcInfo.tyTlb[0].ulGppPhys = (ulGppVa + ulSeg1Size +
--							 ulPadSize);
--		DBG_Trace(DBG_LEVEL1, "*********extProcInfo *********%x \n",
--			  hIOMgr->extProcInfo.tyTlb[0].ulGppPhys);
--		/*
--		 * Need SHM Phys addr. IO supports only one DSP for now:
--		 * uNumProcs = 1.
-+		 * WMD_BRD_Ctrl() will set dev context dsp-mmu info. In
-+		 * _BRD_Start() the MMU will be re-programed with MMU
-+		 * DSPVa-GPPPa pair info while DSP is in a known
-+		 * (reset) state.
- 		 */
--		if ((hIOMgr->extProcInfo.tyTlb[0].ulGppPhys == 0) ||
--		   (uNumProcs != 1)) {
--			status = CHNL_E_NOMEMMAP;
-+
-+		status = hIOMgr->pIntfFxns->pfnDevCntrl(hIOMgr->hWmdContext,
-+						WMDIOCTL_SETMMUCONFIG, aEProc);
-+		if (DSP_FAILED(status))
- 			goto func_end;
--		} else {
--			if (aEProc[0].ulDspVa > ulShmBase) {
--				status = DSP_EFAIL;
--				goto func_end;
--			}
--			/* ulShmBase may not be at ulDspVa address */
--			ulShmBaseOffset = (ulShmBase - aEProc[0].ulDspVa) *
--			    hIOMgr->uWordSize;
--			/*
--			 * WMD_BRD_Ctrl() will set dev context dsp-mmu info. In
--			 * _BRD_Start() the MMU will be re-programed with MMU
--			 * DSPVa-GPPPa pair info while DSP is in a known
--			 * (reset) state.
--			 */
--			if (!hIOMgr->pIntfFxns || !hIOMgr->hWmdContext)	{
--				status = DSP_EHANDLE;
--				goto func_end;
--			}
--			status = hIOMgr->pIntfFxns->pfnDevCntrl(hIOMgr->
--				 hWmdContext, WMDIOCTL_SETMMUCONFIG, aEProc);
--			ulShmBase = hIOMgr->extProcInfo.tyTlb[0].ulGppPhys;
--			DBG_Trace(DBG_LEVEL1, "extProcInfo.tyTlb[0].ulGppPhys "
--				 "%x \n ", hIOMgr->extProcInfo.tyTlb[0].
--				 ulGppPhys);
--			ulShmBase += ulShmBaseOffset;
--			ulShmBase = (u32)MEM_LinearAddress((void *)ulShmBase,
-+		ulShmBase = hIOMgr->extProcInfo.tyTlb[0].ulGppPhys;
-+		DBG_Trace(DBG_LEVEL1, "extProcInfo.tyTlb[0].ulGppPhys %x \n ",
-+				hIOMgr->extProcInfo.tyTlb[0].ulGppPhys);
-+		ulShmBase += ulShmBaseOffset;
-+		ulShmBase = (u32)MEM_LinearAddress((void *)ulShmBase,
- 				    ulMemLength);
--			if (ulShmBase == 0) {
--				status = DSP_EFAIL;
--				goto func_end;
--			}
--			DBC_Assert(ulShmBase != 0);
--			if (DSP_SUCCEEDED(status)) {
--				/* Register SM */
--				status = registerSHMSegs(hIOMgr, hCodMan,
--					 aEProc[0].ulGppPa);
--			}
-+		if (ulShmBase == 0) {
-+			status = DSP_EPOINTER;
-+			goto func_end;
- 		}
-+		/* Register SM */
-+		status = registerSHMSegs(hIOMgr, hCodMan, aEProc[0].ulGppPa);
+ 
+ 	MEM_AllocObject(pNode, struct NODE_OBJECT, NODE_SIGNATURE);
+ 	if (pNode == NULL) {
+ 		status = DSP_EMEMORY;
+-		goto func_cont1;
++		goto func_end;
  	}
+ 	pNode->hNodeMgr = hNodeMgr;
+ 	/* This critical section protects GetNodeProps */
+ 	status = SYNC_EnterCS(hNodeMgr->hSync);
+-	if (procId != DSP_UNIT)
+-		goto func_cont3;
++
++	if (DSP_FAILED(status))
++		goto func_end;
+ 
+ 	/* Get DSP_NDBPROPS from node database */
+ 	status = GetNodeProps(hNodeMgr->hDcdMgr, pNode, pNodeId,
+ 			     &(pNode->dcdProps));
+ 	if (DSP_FAILED(status))
+-		goto func_cont3;
++		goto func_cont;
+ 
+ 	pNode->nodeId = *pNodeId;
+ 	pNode->hProcessor = hProcessor;
+@@ -434,11 +435,11 @@ func_cont:
+ 	pNode->createArgs.asa.taskArgs.uDSPHeapResAddr = 0;
+ 	pNode->createArgs.asa.taskArgs.uGPPHeapAddr = 0;
+ 	if (!pAttrIn)
+-		goto func_cont3;
++		goto func_cont;
+ 
+ 	/* Check if we have a user allocated node heap */
+ 	if (!(pAttrIn->pGPPVirtAddr))
+-		goto func_cont3;
++		goto func_cont;
+ 
+ 	/* check for page aligned Heap size */
+ 	if (((pAttrIn->uHeapSize) & (PG_SIZE_4K - 1))) {
+@@ -453,7 +454,7 @@ func_cont:
+ 						 (u32)pAttrIn->pGPPVirtAddr;
+ 	}
+ 	if (DSP_FAILED(status))
+-		goto func_cont3;
++		goto func_cont;
+ 
+ 	status = PROC_ReserveMemory(hProcessor,
+ 			pNode->createArgs.asa.taskArgs.uHeapSize + PAGE_SIZE,
+@@ -463,18 +464,16 @@ func_cont:
+ 		GT_1trace(NODE_debugMask, GT_5CLASS,
+ 			 "NODE_Allocate:Failed to reserve "
+ 			 "memory for Heap: 0x%x\n", status);
+-	} else {
+-		GT_1trace(NODE_debugMask, GT_5CLASS,
+-			 "NODE_Allocate: DSPProcessor_Reserve"
+-			 " Memory successful: 0x%x\n", status);
++
++		goto func_cont;
+ 	}
+ #ifdef DSP_DMM_DEBUG
+ 	status = DMM_GetHandle(pProcObject, &hDmmMgr);
+-	if (DSP_SUCCEEDED(status))
+-		DMM_MemMapDump(hDmmMgr);
+-#endif
+ 	if (DSP_FAILED(status))
+-		goto func_cont3;
++		goto func_cont;
++
++	DMM_MemMapDump(hDmmMgr);
++#endif
+ 
+ 	mapAttrs |= DSP_MAPLITTLEENDIAN;
+ 	mapAttrs |= DSP_MAPELEMSIZE32;
+@@ -495,15 +494,13 @@ func_cont:
+ 			 " successful: 0x%x\n", status);
+ 	}
+ 
+-func_cont3:
++func_cont:
+ 	(void)SYNC_LeaveCS(hNodeMgr->hSync);
+-func_cont1:
+ 	if (pAttrIn != NULL) {
+ 		/* Overrides of NBD properties */
+ 		pNode->uTimeout = pAttrIn->uTimeout;
+ 		pNode->nPriority = pAttrIn->iPriority;
+ 	}
+-func_cont2:
+ 	/* Create object to manage notifications */
+ 	if (DSP_SUCCEEDED(status))
+ 		status = NTFY_Create(&pNode->hNtfy);
+@@ -645,6 +642,7 @@ func_cont2:
+ 				GT_1trace(NODE_debugMask, GT_5CLASS,
+ 				"NODE_Allocate: Failed to get host resource "
+ 				"0x%x\n", status);
++				goto func_end;
+ 			}
+ 
+ 			ulGppMemBase = (u32)hostRes.dwMemBase[1];
+@@ -848,7 +846,7 @@ DSP_STATUS NODE_ChangePriority(struct NODE_OBJECT *hNode, s32 nPriority)
+ 	/* Enter critical section */
+ 	status = SYNC_EnterCS(hNodeMgr->hSync);
+ 	if (DSP_FAILED(status))
+-		goto func_cont;
++		goto func_end;
+ 
+ 	state = NODE_GetState(hNode);
+ 	if (state == NODE_ALLOCATED || state == NODE_PAUSED) {
+@@ -858,19 +856,16 @@ DSP_STATUS NODE_ChangePriority(struct NODE_OBJECT *hNode, s32 nPriority)
+ 			status = DSP_EWRONGSTATE;
+ 			goto func_cont;
+ 		}
+-		if (DSP_SUCCEEDED(status)) {
+-			status = PROC_GetProcessorId(pNode->hProcessor,
+-						    &procId);
+-			if (procId == DSP_UNIT) {
+-				status = DISP_NodeChangePriority(hNodeMgr->
+-				    hDisp, hNode,
+-				    hNodeMgr->ulFxnAddrs[RMSCHANGENODEPRIORITY],
+-				    hNode->nodeEnv, nPriority);
+-			}
+-			if (DSP_SUCCEEDED(status))
+-				NODE_SetPriority(hNode, nPriority);
+-
++		status = PROC_GetProcessorId(pNode->hProcessor, &procId);
++		if (procId == DSP_UNIT) {
++			status = DISP_NodeChangePriority(hNodeMgr->
++			    hDisp, hNode,
++			    hNodeMgr->ulFxnAddrs[RMSCHANGENODEPRIORITY],
++			    hNode->nodeEnv, nPriority);
+ 		}
++		if (DSP_SUCCEEDED(status))
++			NODE_SetPriority(hNode, nPriority);
++
+ 	}
+ func_cont:
+ 		/* Leave critical section */
+@@ -909,13 +904,13 @@ DSP_STATUS NODE_Connect(struct NODE_OBJECT *hNode1, u32 uStream1,
+ 		 "NODE_Connect: hNode1: 0x%x\tuStream1:"
+ 		 " %d\thNode2: 0x%x\tuStream2: %d\tpAttrs: 0x%x\n", hNode1,
+ 		 uStream1, hNode2, uStream2, pAttrs);
 -	if (DSP_SUCCEEDED(status)) {
--		hIOMgr->pSharedMem = (struct SHM *)ulShmBase;
--		hIOMgr->pInput = (u8 *)hIOMgr->pSharedMem +
--				 sizeof(struct SHM);
--		hIOMgr->pOutput = hIOMgr->pInput + (ulShmLength -
--				  sizeof(struct SHM))/2;
--		hIOMgr->uSMBufSize = hIOMgr->pOutput - hIOMgr->pInput;
--		DBG_Trace(DBG_LEVEL3,
--			 "hIOMgr: pInput %p pOutput %p ulShmLength %x\n",
--			 hIOMgr->pInput, hIOMgr->pOutput, ulShmLength);
--		DBG_Trace(DBG_LEVEL3,
--			 "pSharedMem %p uSMBufSize %x sizeof(SHM) %x\n",
--			 hIOMgr->pSharedMem, hIOMgr->uSMBufSize,
--			 sizeof(struct SHM));
--		/* Set up Shared memory addresses for messaging. */
--		hIOMgr->pMsgInputCtrl = (struct MSG *)((u8 *)
--					hIOMgr->pSharedMem +
--					ulShmLength);
--		hIOMgr->pMsgInput = (u8 *)hIOMgr->pMsgInputCtrl +
--				    sizeof(struct MSG);
--		hIOMgr->pMsgOutputCtrl = (struct MSG *)((u8 *)hIOMgr->
--					 pMsgInputCtrl + ulMsgLength / 2);
--		hIOMgr->pMsgOutput = (u8 *)hIOMgr->pMsgOutputCtrl +
--				     sizeof(struct MSG);
--		hMsgMgr->uMaxMsgs = ((u8 *)hIOMgr->pMsgOutputCtrl -
--				    hIOMgr->pMsgInput) /
--				    sizeof(struct MSG_DSPMSG);
--		DBG_Trace(DBG_LEVEL7, "IO MGR SHM details : pSharedMem 0x%x, "
--			 "pInput 0x%x, pOutput 0x%x, pMsgInputCtrl 0x%x, "
--			 "pMsgInput 0x%x, pMsgOutputCtrl 0x%x, pMsgOutput "
--			 "0x%x \n", (u8 *)hIOMgr->pSharedMem,
--			 (u8 *)hIOMgr->pInput, (u8 *)hIOMgr->pOutput,
--			 (u8 *)hIOMgr->pMsgInputCtrl,
--			 (u8 *)hIOMgr->pMsgInput,
--			 (u8 *)hIOMgr->pMsgOutputCtrl,
--			 (u8 *)hIOMgr->pMsgOutput);
--		DBG_Trace(DBG_LEVEL7, "** (proc) MAX MSGS IN SHARED MEMORY: "
--			 "0x%x\n", hMsgMgr->uMaxMsgs);
--		memset((void *) hIOMgr->pSharedMem, 0, sizeof(struct SHM));
+-		if ((hNode1 != (struct NODE_OBJECT *) DSP_HGPPNODE &&
+-		   !MEM_IsValidHandle(hNode1, NODE_SIGNATURE)) ||
+-		   (hNode2 != (struct NODE_OBJECT *) DSP_HGPPNODE &&
+-		   !MEM_IsValidHandle(hNode2, NODE_SIGNATURE)))
+-			status = DSP_EHANDLE;
 -	}
 +
-+	hIOMgr->pSharedMem = (struct SHM *)ulShmBase;
-+	hIOMgr->pInput = (u8 *)hIOMgr->pSharedMem + sizeof(struct SHM);
-+	hIOMgr->pOutput = hIOMgr->pInput + (ulShmLength -
-+						sizeof(struct SHM)) / 2;
-+	hIOMgr->uSMBufSize = hIOMgr->pOutput - hIOMgr->pInput;
-+	DBG_Trace(DBG_LEVEL3, "hIOMgr: pInput %p pOutput %p ulShmLength %x\n",
-+				 hIOMgr->pInput, hIOMgr->pOutput, ulShmLength);
-+	DBG_Trace(DBG_LEVEL3, "pSharedMem %p uSMBufSize %x sizeof(SHM) %x\n",
-+		 hIOMgr->pSharedMem, hIOMgr->uSMBufSize, sizeof(struct SHM));
-+	 /*  Set up Shared memory addresses for messaging. */
-+	hIOMgr->pMsgInputCtrl = (struct MSG *)((u8 *)hIOMgr->pSharedMem
-+							+ ulShmLength);
-+	hIOMgr->pMsgInput = (u8 *)hIOMgr->pMsgInputCtrl + sizeof(struct MSG);
-+	hIOMgr->pMsgOutputCtrl = (struct MSG *)((u8 *)hIOMgr->pMsgInputCtrl
-+							+ ulMsgLength / 2);
-+	hIOMgr->pMsgOutput = (u8 *)hIOMgr->pMsgOutputCtrl + sizeof(struct MSG);
-+	hMsgMgr->uMaxMsgs = ((u8 *)hIOMgr->pMsgOutputCtrl - hIOMgr->pMsgInput)
-+						/ sizeof(struct MSG_DSPMSG);
-+	DBG_Trace(DBG_LEVEL7, "IO MGR SHM details : pSharedMem 0x%x, "
-+		"pInput 0x%x, pOutput 0x%x, pMsgInputCtrl 0x%x, "
-+		"pMsgInput 0x%x, pMsgOutputCtrl 0x%x, pMsgOutput "
-+		"0x%x \n", (u8 *)hIOMgr->pSharedMem, (u8 *)hIOMgr->pInput,
-+		(u8 *)hIOMgr->pOutput, (u8 *)hIOMgr->pMsgInputCtrl,
-+		(u8 *)hIOMgr->pMsgInput, (u8 *)hIOMgr->pMsgOutputCtrl,
-+		(u8 *)hIOMgr->pMsgOutput);
-+	DBG_Trace(DBG_LEVEL7, "** (proc) MAX MSGS IN SHARED MEMORY: "
-+					"0x%x\n", hMsgMgr->uMaxMsgs);
-+	memset((void *) hIOMgr->pSharedMem, 0, sizeof(struct SHM));
++	if ((hNode1 != (struct NODE_OBJECT *) DSP_HGPPNODE &&
++			!MEM_IsValidHandle(hNode1, NODE_SIGNATURE)) ||
++			(hNode2 != (struct NODE_OBJECT *) DSP_HGPPNODE &&
++			!MEM_IsValidHandle(hNode2, NODE_SIGNATURE)))
++		status = DSP_EHANDLE;
 +
- #ifndef DSP_TRACEBUF_DISABLED
--	if (DSP_SUCCEEDED(status)) {
--		/* Get the start address of trace buffer */
--		if (DSP_SUCCEEDED(status)) {
--			status = COD_GetSymValue(hCodMan, SYS_PUTCBEG,
-+	/* Get the start address of trace buffer */
-+	status = COD_GetSymValue(hCodMan, SYS_PUTCBEG,
- 				 &hIOMgr->ulTraceBufferBegin);
--			if (DSP_FAILED(status))
--				status = CHNL_E_NOMEMMAP;
--		}
--		hIOMgr->ulGPPReadPointer = hIOMgr->ulTraceBufferBegin =
--			(ulGppVa + ulSeg1Size + ulPadSize) +
--			(hIOMgr->ulTraceBufferBegin - ulDspVa);
--		/* Get the end address of trace buffer */
--		if (DSP_SUCCEEDED(status)) {
--			status = COD_GetSymValue(hCodMan, SYS_PUTCEND,
--				 &hIOMgr->ulTraceBufferEnd);
--			if (DSP_FAILED(status))
--				status = CHNL_E_NOMEMMAP;
--		}
--		hIOMgr->ulTraceBufferEnd = (ulGppVa + ulSeg1Size + ulPadSize) +
--					   (hIOMgr->ulTraceBufferEnd - ulDspVa);
--		/* Get the current address of DSP write pointer */
--		if (DSP_SUCCEEDED(status)) {
--			status = COD_GetSymValue(hCodMan,
--				 BRIDGE_SYS_PUTC_current,
--				 &hIOMgr->ulTraceBufferCurrent);
--			if (DSP_FAILED(status))
--				status = CHNL_E_NOMEMMAP;
--		}
--		hIOMgr->ulTraceBufferCurrent = (ulGppVa + ulSeg1Size +
--						ulPadSize) + (hIOMgr->
--						ulTraceBufferCurrent - ulDspVa);
--		/* Calculate the size of trace buffer */
--		if (hIOMgr->pMsg)
--			MEM_Free(hIOMgr->pMsg);
--		hIOMgr->pMsg = MEM_Alloc(((hIOMgr->ulTraceBufferEnd -
--					hIOMgr->ulTraceBufferBegin) *
--					hIOMgr->uWordSize) + 2, MEM_NONPAGED);
--		if (!hIOMgr->pMsg)
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/* The two nodes must be on the same processor */
+ 		if (hNode1 != (struct NODE_OBJECT *)DSP_HGPPNODE &&
+@@ -1236,7 +1231,7 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
+ 	/* Get access to node dispatcher */
+ 	status = SYNC_EnterCS(hNodeMgr->hSync);
+ 	if (DSP_FAILED(status))
+-		goto func_cont;
++		goto func_end;
+ 
+ 	/* Check node state */
+ 	if (NODE_GetState(hNode) != NODE_ALLOCATED)
+@@ -1432,8 +1427,6 @@ DSP_STATUS NODE_CreateMgr(OUT struct NODE_MGR **phNodeMgr,
+ 		/* Get MSG queue manager */
+ 		DEV_GetMsgMgr(hDevObject, &pNodeMgr->hMsg);
+ 		status = SYNC_InitializeCS(&pNodeMgr->hSync);
+-		if (DSP_FAILED(status))
 -			status = DSP_EMEMORY;
-+	if (DSP_FAILED(status)) {
-+		status = CHNL_E_NOMEMMAP;
-+		goto func_end;
-+	}
-+
-+	hIOMgr->ulGPPReadPointer = hIOMgr->ulTraceBufferBegin =
-+		(ulGppVa + ulSeg1Size + ulPadSize) +
-+		(hIOMgr->ulTraceBufferBegin - ulDspVa);
-+	/* Get the end address of trace buffer */
-+	status = COD_GetSymValue(hCodMan, SYS_PUTCEND,
-+						&hIOMgr->ulTraceBufferEnd);
-+	if (DSP_FAILED(status)) {
-+		status = CHNL_E_NOMEMMAP;
-+		goto func_end;
-+	}
-+	hIOMgr->ulTraceBufferEnd = (ulGppVa + ulSeg1Size + ulPadSize) +
-+				   (hIOMgr->ulTraceBufferEnd - ulDspVa);
-+	/* Get the current address of DSP write pointer */
-+	status = COD_GetSymValue(hCodMan, BRIDGE_SYS_PUTC_current,
-+					 &hIOMgr->ulTraceBufferCurrent);
-+	if (DSP_FAILED(status)) {
-+		status = CHNL_E_NOMEMMAP;
-+		goto func_end;
-+	}
-+	hIOMgr->ulTraceBufferCurrent = (ulGppVa + ulSeg1Size + ulPadSize) +
-+				(hIOMgr->ulTraceBufferCurrent - ulDspVa);
-+	/* Calculate the size of trace buffer */
-+	if (hIOMgr->pMsg)
-+		MEM_Free(hIOMgr->pMsg);
-+	hIOMgr->pMsg = MEM_Alloc(((hIOMgr->ulTraceBufferEnd -
-+				hIOMgr->ulTraceBufferBegin) *
-+				hIOMgr->uWordSize) + 2, MEM_NONPAGED);
-+	if (!hIOMgr->pMsg)
-+		status = DSP_EMEMORY;
-+
-+	DBG_Trace(DBG_LEVEL1, "** hIOMgr->pMsg: 0x%x\n", hIOMgr->pMsg);
-+	hIOMgr->ulDspVa = ulDspVa;
-+	hIOMgr->ulGppVa = (ulGppVa + ulSeg1Size + ulPadSize);
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+ 		pNodeMgr->chnlMap = GB_create(pNodeMgr->ulNumChnls);
+@@ -1796,11 +1789,6 @@ DSP_STATUS NODE_FreeMsgBuf(struct NODE_OBJECT *hNode, IN u8 *pBuffer,
  
--		DBG_Trace(DBG_LEVEL1, "** hIOMgr->pMsg: 0x%x\n", hIOMgr->pMsg);
--		hIOMgr->ulDspVa = ulDspVa;
--		hIOMgr->ulGppVa = (ulGppVa + ulSeg1Size + ulPadSize);
--    }
- #endif
- 	IO_EnableInterrupt(hIOMgr->hWmdContext);
- func_end:
-diff --git a/drivers/dsp/bridge/wmd/mmu_fault.c b/drivers/dsp/bridge/wmd/mmu_fault.c
-index ef6ea77..14ca490 100644
---- a/drivers/dsp/bridge/wmd/mmu_fault.c
-+++ b/drivers/dsp/bridge/wmd/mmu_fault.c
-@@ -77,7 +77,7 @@ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
- 	DSP_STATUS status = DSP_SOK;
- 
- 	DBG_Trace(DBG_LEVEL1, "Entering DEH_DspMmuIsr: 0x%x\n", pRefData);
--       DBC_Require(irq == INT_DSP_MMU_IRQ);
-+	DBC_Require(irq == INT_DSP_MMU_IRQ);
- 	DBC_Require(MEM_IsValidHandle(pDehMgr, SIGNATURE));
- 
- 	if (MEM_IsValidHandle(pDehMgr, SIGNATURE)) {
-@@ -119,7 +119,7 @@ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
- 					    HW_MMU_ALL_INTERRUPTS);
+ 			/* pBuffer is clients Va. */
+ 			status = CMM_XlatorFreeBuf(pNode->hXlator, pBuffer);
+-			if (DSP_FAILED(status))
+-				status = DSP_EFAIL;
+-			else
+-				status = DSP_SOK;
+-
  		}
- 	}
--       return IRQ_HANDLED;
-+	return IRQ_HANDLED;
- }
- 
- 
-diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-index 970eb72..4b5f742 100644
---- a/drivers/dsp/bridge/wmd/msg_sm.c
-+++ b/drivers/dsp/bridge/wmd/msg_sm.c
-@@ -87,7 +87,7 @@ DSP_STATUS WMD_MSG_Create(OUT struct MSG_MGR **phMsgMgr,
- 		    pMsgMgr->msgFreeList == NULL ||
- 		    pMsgMgr->msgUsedList == NULL)
- 			status = DSP_EMEMORY;
--		if (DSP_SUCCEEDED(status))
-+		else
- 			status = SYNC_InitializeDPCCS(&pMsgMgr->hSyncCS);
- 
- 		 /*  Create an event to be used by WMD_MSG_Put() in waiting
-@@ -414,6 +414,8 @@ DSP_STATUS WMD_MSG_Put(struct MSG_QUEUE *hMsgQueue,
- 		hSyncs[1] = hMsgQueue->hSyncDone;
- 		status = SYNC_WaitOnMultipleEvents(hSyncs, 2, uTimeout,
- 			 &uIndex);
-+		if (DSP_FAILED(status))
-+			goto func_end;
- 		/* Enter critical section */
- 		(void)SYNC_EnterCS(hMsgMgr->hSyncCS);
- 		if (hMsgQueue->fDone) {
-@@ -425,29 +427,30 @@ DSP_STATUS WMD_MSG_Put(struct MSG_QUEUE *hMsgQueue,
- 			(void)SYNC_SetEvent(hMsgQueue->hSyncDoneAck);
- 			status = DSP_EFAIL;
- 		} else {
--			if (DSP_SUCCEEDED(status)) {
--				if (LST_IsEmpty(hMsgMgr->msgFreeList)) {
--					status = DSP_EPOINTER;
--					goto func_cont;
--				}
--				/* Get msg from free list */
--				pMsgFrame = (struct MSG_FRAME *)
-+			if (LST_IsEmpty(hMsgMgr->msgFreeList)) {
-+				status = DSP_EPOINTER;
-+				goto func_cont;
-+			}
-+			/* Get msg from free list */
-+			pMsgFrame = (struct MSG_FRAME *)
- 					    LST_GetHead(hMsgMgr->msgFreeList);
--				/* Copy message into pMsg and put frame on the
--				 * used list */
--				if (pMsgFrame != NULL) {
--					pMsgFrame->msgData.msg = *pMsg;
--					pMsgFrame->msgData.dwId =
--						hMsgQueue->dwId;
--					LST_PutTail(hMsgMgr->msgUsedList,
--						   (struct LST_ELEM *)
--						   pMsgFrame);
--					hMsgMgr->uMsgsPending++;
--					/* Schedule a DPC, to do the actual
--					 * data transfer: */
--					IO_Schedule(hMsgMgr->hIOMgr);
--				}
-+			/*
-+			 * Copy message into pMsg and put frame on the
-+			 * used list.
-+			 */
-+			if (pMsgFrame) {
-+				pMsgFrame->msgData.msg = *pMsg;
-+				pMsgFrame->msgData.dwId = hMsgQueue->dwId;
-+				LST_PutTail(hMsgMgr->msgUsedList,
-+					   (struct LST_ELEM *)pMsgFrame);
-+				hMsgMgr->uMsgsPending++;
-+				/*
-+				 * Schedule a DPC, to do the actual
-+				 * data transfer.
-+				*/
-+				IO_Schedule(hMsgMgr->hIOMgr);
- 			}
-+
- 			hMsgQueue->refCount--;
- 			/* Reset event if there are still frames available */
- 			if (!LST_IsEmpty(hMsgMgr->msgFreeList))
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index 4729ae5..2411917 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -591,13 +591,11 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
- 				}
- 			}
- 
--			if (clkIdIndex < MBX_PM_MAX_RESOURCES)
-+			if (clkIdIndex < MBX_PM_MAX_RESOURCES) {
- 				status =
- 				    CLK_Set_32KHz(BPWR_Clks[clkIdIndex].funClk);
--			else
-+			} else {
- 				status = DSP_EFAIL;
--
--			if (DSP_FAILED(status)) {
- 				DBG_Trace(DBG_LEVEL7, " Error while setting"
- 							"LM Timer  to 32KHz\n");
- 			}
-@@ -633,13 +631,11 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
- 				}
- 			}
- 
--			if (clkIdIndex < MBX_PM_MAX_RESOURCES)
-+			if (clkIdIndex < MBX_PM_MAX_RESOURCES) {
- 				status = CLK_Set_32KHz(
- 						BPWR_Clks[clkIdIndex].funClk);
--			else
-+			} else {
- 				status = DSP_EFAIL;
--
--			if (DSP_FAILED(status)) {
- 				DBG_Trace(DBG_LEVEL7,
- 				" Error while setting BIOS Timer  to 32KHz\n");
- 			}
-@@ -708,9 +704,7 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
- 		/* Enable Mailbox events and also drain any pending
- 		 * stale messages */
- 		(void)CHNLSM_EnableInterrupt(pDevContext);
--	}
- 
--	if (DSP_SUCCEEDED(status)) {
- 		HW_RSTCTRL_RegGet(resources.dwPrmBase, HW_RST1_IVA2, &temp);
- 		DBG_Trace(DBG_LEVEL7, "BRD_Start: RM_RSTCTRL_DSP = 0x%x \n",
- 				temp);
-@@ -738,10 +732,8 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
- 				dwDSPAddr);
- 		if (dsp_debug)
- 			while (*((volatile u16 *)dwSyncAddr))
--				;;
--	}
-+				;
- 
--	if (DSP_SUCCEEDED(status)) {
- 		/* Wait for DSP to clear word in shared memory */
- 		/* Read the Location */
- 		if (!WaitForStart(pDevContext, dwSyncAddr)) {
-@@ -758,8 +750,7 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
- 			 * completion of OPP table update to DSP
- 			 */
- 			*((volatile u32 *)dwSyncAddr) = 0XCAFECAFE;
--		}
--		if (DSP_SUCCEEDED(status)) {
-+
- 			/* update board state */
- 			pDevContext->dwBrdState = BRD_RUNNING;
- 			/* (void)CHNLSM_EnableInterrupt(pDevContext);*/
-@@ -2048,9 +2039,7 @@ void configureDspMmu(struct WMD_DEV_CONTEXT *pDevContext, u32 dataBasePhys,
- 		    enum HW_ElementSize_t elemSize,
- 		    enum HW_MMUMixedSize_t mixedSize)
- {
--	struct CFG_HOSTRES resources;
- 	struct HW_MMUMapAttrs_t mapAttrs = { endianism, elemSize, mixedSize };
--	DSP_STATUS status = DSP_SOK;
- 
- 	DBC_Require(sizeInBytes > 0);
- 	DBG_Trace(DBG_LEVEL1,
-@@ -2059,9 +2048,8 @@ void configureDspMmu(struct WMD_DEV_CONTEXT *pDevContext, u32 dataBasePhys,
- 
- 	DBG_Trace(DBG_LEVEL1, "endianism %x, elemSize %x, mixedSize %x\n",
- 		 endianism, elemSize, mixedSize);
--	status = CFG_GetHostResources(
--		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
--	status = HW_MMU_TLBAdd(pDevContext->dwDSPMmuBase, dataBasePhys,
-+
-+	HW_MMU_TLBAdd(pDevContext->dwDSPMmuBase, dataBasePhys,
- 				dspBaseVirt, sizeInBytes, nEntryStart,
- 				&mapAttrs, HW_SET, HW_SET);
- }
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 4effe0c..084f406 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -492,13 +492,15 @@ DSP_STATUS PreScale_DSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
-  */
- DSP_STATUS PostScale_DSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
- {
-+	DSP_STATUS status = DSP_SOK;
- #ifdef CONFIG_BRIDGE_DVFS
- 	u32 level;
- 	u32 voltage_domain;
- 	struct IO_MGR *hIOMgr;
--	DSP_STATUS status = DSP_SOK;
- 
- 	status = DEV_GetIOMgr(pDevContext->hDevObject, &hIOMgr);
-+	if (!hIOMgr)
-+		return DSP_EHANDLE;
- 
- 	voltage_domain = *((u32 *)pArgs);
- 	level = *((u32 *)pArgs + 1);
-@@ -513,7 +515,6 @@ DSP_STATUS PostScale_DSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
- 		DBG_Trace(DBG_LEVEL7,
- 			 "PostScale_DSP: IVA in sleep. Wrote to shared "
- 			 "memory \n");
--		return DSP_SOK;
- 	} else  if ((pDevContext->dwBrdState == BRD_RUNNING)) {
- 		/* Update the OPP value in shared memory */
- 		IO_SHMsetting(hIOMgr, SHM_CURROPP, &level);
-@@ -522,14 +523,13 @@ DSP_STATUS PostScale_DSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
- 		DBG_Trace(DBG_LEVEL7,
- 			"PostScale_DSP: Wrote to shared memory Sent post"
- 			" notification to DSP\n");
--		return DSP_SOK;
  	} else {
- 		DBG_Trace(DBG_LEVEL7, "PostScale_DSP: Failed - DSP BRD state "
- 			"in wrong state");
--		return DSP_EFAIL;
-+		status = DSP_EFAIL;
+ 		DBC_Assert(NULL);	/* BUG */
+@@ -2092,8 +2080,6 @@ enum NODE_TYPE NODE_GetType(struct NODE_OBJECT *hNode)
+  */
+ bool NODE_Init(void)
+ {
+-	bool fRetVal = true;
+-
+ 	DBC_Require(cRefs >= 0);
+ 
+ 	if (cRefs == 0) {
+@@ -2101,14 +2087,12 @@ bool NODE_Init(void)
+ 		GT_create(&NODE_debugMask, "NO");	/* "NO" for NOde */
  	}
- #endif /* #ifdef CONFIG_BRIDGE_DVFS */
--	return DSP_SOK;
-+	return status;
+ 
+-	if (fRetVal)
+-		cRefs++;
++	cRefs++;
+ 
+ 	GT_1trace(NODE_debugMask, GT_5CLASS, "NODE_Init(), ref count: 0x%x\n",
+ 		 cRefs);
+ 
+-	DBC_Ensure((fRetVal && (cRefs > 0)) || (!fRetVal && (cRefs >= 0)));
+-	return fRetVal;
++	return true;
  }
  
  /*
-diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/wmd/tiomap_io.c
-index 33cf876..f60b8db 100644
---- a/drivers/dsp/bridge/wmd/tiomap_io.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_io.c
-@@ -78,7 +78,7 @@ DSP_STATUS ReadExtDspData(struct WMD_DEV_CONTEXT *hDevContext,
- 	DBC_Assert(ulShmBaseVirt != 0);
+@@ -2158,7 +2142,6 @@ DSP_STATUS NODE_Pause(struct NODE_OBJECT *hNode)
  
- 	/* Check if it is a read of Trace section */
--	if (!ulTraceSecBeg) {
-+	if (DSP_SUCCEEDED(status) && !ulTraceSecBeg) {
- 		status = DEV_GetSymbol(pDevContext->hDevObject,
- 		DSP_TRACESEC_BEG, &ulTraceSecBeg);
- 	}
-@@ -100,7 +100,7 @@ DSP_STATUS ReadExtDspData(struct WMD_DEV_CONTEXT *hDevContext,
- 	}
- 
- 	/* If reading from TRACE, force remap/unmap */
--	if ((bTraceRead) && dwBaseAddr) {
-+	if (bTraceRead && dwBaseAddr) {
- 		dwBaseAddr = 0;
- 		pDevContext->dwDspExtBaseAddr = 0;
- 	}
-@@ -212,6 +212,9 @@ DSP_STATUS WriteDspData(struct WMD_DEV_CONTEXT *hDevContext, IN u8 *pbHostBuf,
- 	status =  CFG_GetHostResources(
- 		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
- 
-+	if (DSP_FAILED(status))
-+		return status;
-+
- 	offset = dwDSPAddr - hDevContext->dwDSPStartAdd;
- 	if (offset < base1) {
- 		dwBaseAddr = MEM_LinearAddress(resources.dwMemBase[2],
-@@ -226,8 +229,7 @@ DSP_STATUS WriteDspData(struct WMD_DEV_CONTEXT *hDevContext, IN u8 *pbHostBuf,
- 						resources.dwMemLength[4]);
- 		offset = offset - base3;
- 	} else{
--		status = DSP_EFAIL;
--		return status;
-+		return DSP_EFAIL;
- 	}
- 	if (ulNumBytes)
- 		memcpy((u8 *) (dwBaseAddr+offset), pbHostBuf, ulNumBytes);
-diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
-index 84e10ea..b04ed6d 100644
---- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-@@ -40,7 +40,6 @@ DSP_STATUS CHNLSM_EnableInterrupt(struct WMD_DEV_CONTEXT *pDevContext)
- 	u32 mbxValue;
- 	struct CFG_HOSTRES resources;
- 	u32 devType;
--	struct IO_MGR *hIOMgr;
- 
- 	DBG_Trace(DBG_ENTER, "CHNLSM_EnableInterrupt(0x%x)\n", pDevContext);
- 
-@@ -49,7 +48,6 @@ DSP_STATUS CHNLSM_EnableInterrupt(struct WMD_DEV_CONTEXT *pDevContext)
- 	CFG_GetHostResources((struct CFG_DEVNODE *)DRV_GetFirstDevExtension(),
- 			     &resources);
- 	DEV_GetDevType(pDevContext->hDevObject, &devType);
--	status = DEV_GetIOMgr(pDevContext->hDevObject, &hIOMgr);
- 	if (devType == DSP_UNIT) {
- 		HW_MBOX_NumMsgGet(resources.dwMboxBase,
- 				  MBOX_DSP2ARM, &numMbxMsg);
-diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index daf75b6..6166d97 100644
---- a/drivers/dsp/bridge/wmd/ue_deh.c
-+++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -86,8 +86,7 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
- 		status = DSP_EMEMORY;
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+-		goto func_end;
  	} else {
- 		/* Create an NTFY object to manage notifications */
--		if (DSP_SUCCEEDED(status))
--			status = NTFY_Create(&pDehMgr->hNtfy);
-+		status = NTFY_Create(&pDehMgr->hNtfy);
+ 		nodeType = NODE_GetType(hNode);
+ 		if (nodeType != NODE_TASK && nodeType != NODE_DAISSOCKET)
+@@ -2184,11 +2167,13 @@ DSP_STATUS NODE_Pause(struct NODE_OBJECT *hNode)
+ 			if (state != NODE_RUNNING)
+ 				status = DSP_EWRONGSTATE;
  
- 		/* Create a MMUfault DPC */
- 		tasklet_init(&pDehMgr->dpc_tasklet, MMU_FaultDpc, (u32)pDehMgr);
-@@ -188,7 +187,6 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
- 	struct DEH_MGR *pDehMgr = (struct DEH_MGR *)hDehMgr;
- 	struct WMD_DEV_CONTEXT *pDevContext;
- 	DSP_STATUS status = DSP_SOK;
--	DSP_STATUS status1 = DSP_EFAIL;
- 	u32 memPhysical = 0;
- 	u32 HW_MMU_MAX_TLB_COUNT = 31;
- 	u32 extern faultAddr;
-@@ -287,16 +285,8 @@ DBG_Trace(DBG_LEVEL6, "WMD_DEH_Notify: DSP_MMUFAULT, "
++			if (DSP_FAILED(status))
++				goto func_cont;
+ 			hProcessor = hNode->hProcessor;
+ 			status = PROC_GetState(hProcessor, &procStatus,
+ 					sizeof(struct DSP_PROCESSORSTATE));
+ 			if (DSP_FAILED(status))
+-				goto func_end;
++				goto func_cont;
+ 			/* If processor is in error state then don't attempt
+ 			    to send the message */
+ 			if (procStatus.iState == PROC_ERROR) {
+@@ -2196,7 +2181,7 @@ DSP_STATUS NODE_Pause(struct NODE_OBJECT *hNode)
+ 					"NODE_Pause: proc Status 0x%x\n",
+ 					procStatus.iState);
+ 				status = DSP_EFAIL;
+-				goto func_end;
++				goto func_cont;
+ 			}
+ 			if (DSP_SUCCEEDED(status)) {
+ 				status = DISP_NodeChangePriority(hNodeMgr->
+@@ -2214,6 +2199,7 @@ DSP_STATUS NODE_Pause(struct NODE_OBJECT *hNode)
+ 					 " 0x%x\n", hNode);
+ 			}
  		}
- 
- 		/* Filter subsequent notifications when an error occurs */
--		if (pDevContext->dwBrdState != BRD_ERROR) {
--			/* Use it as a flag to send notifications the
--			 * first time and error occurred, next time
--			 * state will be BRD_ERROR */
--			status1 = DSP_EFAIL;
--		}
++func_cont:
+ 		/* End of SYNC_EnterCS */
+ 		/* Leave critical section */
+ 		(void)SYNC_LeaveCS(hNodeMgr->hSync);
+@@ -3374,11 +3360,18 @@ static u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
+ 	/* Call new MemCopy function */
+ 	pIntfFxns = hNodeMgr->pIntfFxns;
+ 	status = DEV_GetWMDContext(hNodeMgr->hDevObject, &hWmdContext);
+-	status = (*pIntfFxns->pfnBrdMemCopy)(hWmdContext, ulDspRunAddr,
+-		 ulDspLoadAddr,	ulNumBytes, (u32) nMemSpace);
 -
--		/* Filter subsequent notifications when an error occurs */
- 		if (pDevContext->dwBrdState != BRD_ERROR)
--			status1 = DSP_SOK;
-+			NTFY_Notify(pDehMgr->hNtfy, ulEventMask);
- 
- 		/* Set the Board state as ERROR */
- 		pDevContext->dwBrdState = BRD_ERROR;
-@@ -305,11 +295,6 @@ DBG_Trace(DBG_LEVEL6, "WMD_DEH_Notify: DSP_MMUFAULT, "
- 		/* Call DSP Trace Buffer */
- 		PrintDspTraceBuffer(hDehMgr->hWmdContext);
- 
--		if (DSP_SUCCEEDED(status1)) {
--			/* Signal DSP error/exception event. */
--			NTFY_Notify(pDehMgr->hNtfy, ulEventMask);
--		}
--
- 	}
- 	DBG_Trace(DBG_LEVEL1, "Exiting WMD_DEH_Notify\n");
- 
-@@ -337,6 +322,8 @@ DSP_STATUS WMD_DEH_GetInfo(struct DEH_MGR *hDehMgr,
- 		pErrInfo->dwVal1 = pDehMgr->errInfo.dwVal1;
- 		pErrInfo->dwVal2 = pDehMgr->errInfo.dwVal2;
- 		pErrInfo->dwVal3 = pDehMgr->errInfo.dwVal3;
+-	if (DSP_SUCCEEDED(status))
+-		ulBytes = ulNumBytes;
++	if (DSP_SUCCEEDED(status)) {
++		status = (*pIntfFxns->pfnBrdMemCopy)(hWmdContext, ulDspRunAddr,
++			 ulDspLoadAddr,	ulNumBytes, (u32) nMemSpace);
++		if (DSP_SUCCEEDED(status))
++			ulBytes = ulNumBytes;
++		else
++			pr_debug("%s: failed to copy brd memory, status 0x%x\n",
++							__func__, status);
 +	} else {
-+		status = DSP_EHANDLE;
- 	}
++		pr_debug("%s: failed to get WMD context, status 0x%x\n",
++							__func__, status);
++	}
  
- 	DBG_Trace(DBG_LEVEL1, "Exiting WMD_DEH_GetInfo\n");
+ 	return ulBytes;
+ }
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 9eae2f9..fd8fdbc 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -182,7 +182,7 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
+ 	if (pProcObject == NULL) {
+ 		GT_0trace(PROC_DebugMask, GT_7CLASS,
+ 			 "PROC_Attach:Out of memeory \n");
+-		status = DSP_EFAIL;
++		status = DSP_EMEMORY;
+ 		goto func_end;
+ 	}
+ 	pProcObject->hDevObject = hDevObject;
+@@ -329,8 +329,8 @@ DSP_STATUS PROC_AutoStart(struct CFG_DEVNODE *hDevNode,
+ 		 "Entered PROC_AutoStart, args:\n\t"
+ 		 "hDevNode: 0x%x\thDevObject: 0x%x\n", hDevNode, hDevObject);
+ 	/* Create a Dummy PROC Object */
+-	if (DSP_FAILED(CFG_GetObject((u32 *)&hMgrObject,
+-	   REG_MGR_OBJECT))) {
++	status = CFG_GetObject((u32 *)&hMgrObject, REG_MGR_OBJECT);
++	if (DSP_FAILED(status)) {
+ 		GT_0trace(PROC_DebugMask, GT_7CLASS,
+ 			 "PROC_AutoStart: DSP_FAILED to "
+ 			 "Get MGR Object\n");
+@@ -341,18 +341,18 @@ DSP_STATUS PROC_AutoStart(struct CFG_DEVNODE *hDevNode,
+ 		GT_0trace(PROC_DebugMask, GT_7CLASS,
+ 			 "PROC_AutoStart: DSP_FAILED "
+ 			 "to Create a dummy Processor\n");
++		status = DSP_EMEMORY;
+ 		goto func_end;
+ 	}
+ 	GT_0trace(PROC_DebugMask, GT_1CLASS, "NTFY Created \n");
+ 	pProcObject->hDevObject = hDevObject;
+ 	pProcObject->hMgrObject = hMgrObject;
+ 	hProcObject = pProcObject;
+-	if (DSP_SUCCEEDED(DEV_GetIntfFxns(hDevObject,
+-	   &pProcObject->pIntfFxns))) {
+-		if (DSP_SUCCEEDED(DEV_GetWMDContext(hDevObject,
+-				 &pProcObject->hWmdContext))) {
+-			status = DSP_SOK;
+-		} else {
++	status = DEV_GetIntfFxns(hDevObject, &pProcObject->pIntfFxns);
++	if (DSP_SUCCEEDED(status)) {
++		status = DEV_GetWMDContext(hDevObject,
++					&pProcObject->hWmdContext);
++		if (DSP_FAILED(status)) {
+ 			MEM_FreeObject(hProcObject);
+ 			GT_0trace(PROC_DebugMask, GT_7CLASS,
+ 				 "PROC_AutoStart: Failed "
+@@ -365,12 +365,16 @@ DSP_STATUS PROC_AutoStart(struct CFG_DEVNODE *hDevNode,
+ 			 "get IntFxns \n");
+ 	}
+ 	if (DSP_FAILED(status))
+-		goto func_end;
++		goto func_cont;
+ 
+ 	/* Stop the Device, put it into standby mode */
+ 	status = PROC_Stop(hProcObject);
+-	if (DSP_FAILED(CFG_GetAutoStart(hDevNode, &dwAutoStart)) ||
+-			   !dwAutoStart) {
++
++	if (DSP_FAILED(status))
++		goto func_cont;
++
++	status = CFG_GetAutoStart(hDevNode, &dwAutoStart);
++	if (DSP_FAILED(status) || !dwAutoStart) {
+ 		status = DSP_EFAIL;
+ 		/* DSP_FAILED to Get s32 Fxn or Wmd Context */
+ 		GT_0trace(PROC_DebugMask, GT_1CLASS, "PROC_AutoStart: "
+@@ -380,8 +384,9 @@ DSP_STATUS PROC_AutoStart(struct CFG_DEVNODE *hDevNode,
+ 	/* Get the default executable for this board... */
+ 	DEV_GetDevType(hDevObject, (u32 *)&devType);
+ 	pProcObject->uProcessor = devType;
+-	if (DSP_SUCCEEDED(GetExecFile(hDevNode, hDevObject,
+-			 sizeof(szExecFile), szExecFile))) {
++	status = GetExecFile(hDevNode, hDevObject, sizeof(szExecFile),
++							szExecFile);
++	if (DSP_SUCCEEDED(status)) {
+ 		argv[0] = szExecFile;
+ 		argv[1] = NULL;
+ 		/* ...and try to load it: */
+@@ -402,7 +407,6 @@ DSP_STATUS PROC_AutoStart(struct CFG_DEVNODE *hDevNode,
+ 				  "PROC_AutoStart: DSP_FAILED to Load\n");
+ 		}
+ 	} else {
+-		status = DSP_EFILE;
+ 		GT_0trace(PROC_DebugMask, GT_7CLASS, "PROC_AutoStart: "
+ 			 "No Exec file found \n");
+ 	}
+@@ -706,31 +710,33 @@ DSP_STATUS PROC_GetResourceInfo(DSP_HPROCESSOR hProcessor, u32 uResourceType,
+ 	case DSP_RESOURCE_DYNSARAM:
+ 	case DSP_RESOURCE_DYNEXTERNAL:
+ 	case DSP_RESOURCE_DYNSRAM:
+-		if (DSP_FAILED(DEV_GetNodeManager(pProcObject->hDevObject,
+-		   &hNodeMgr)))
++		status = DEV_GetNodeManager(pProcObject->hDevObject,
++								&hNodeMgr);
++		if (DSP_FAILED(status))
+ 			goto func_end;
+ 
+-		if (DSP_SUCCEEDED(NODE_GetNldrObj(hNodeMgr, &hNldr))) {
+-			if (DSP_SUCCEEDED(NLDR_GetRmmManager(hNldr, &rmm))) {
++		status = NODE_GetNldrObj(hNodeMgr, &hNldr);
++		if (DSP_SUCCEEDED(status)) {
++			status = NLDR_GetRmmManager(hNldr, &rmm);
++			if (DSP_SUCCEEDED(status)) {
+ 				DBC_Assert(rmm != NULL);
+-				status = DSP_EVALUE;
+-				if (RMM_stat(rmm,
++				if (!RMM_stat(rmm,
+ 				   (enum DSP_MEMTYPE)uResourceType,
+ 				   (struct DSP_MEMSTAT *)&(pResourceInfo->
+ 				   result.memStat)))
+-					status = DSP_SOK;
++					status = DSP_EVALUE;
+ 			}
+ 		}
+ 		break;
+ 	case DSP_RESOURCE_PROCLOAD:
+ 		status = DEV_GetIOMgr(pProcObject->hDevObject, &hIOMgr);
+-		status = pProcObject->pIntfFxns->pfnIOGetProcLoad(hIOMgr,
+-			 (struct DSP_PROCLOADSTAT *)&(pResourceInfo->
+-			 result.procLoadStat));
+-		if (DSP_FAILED(status)) {
++		if (DSP_SUCCEEDED(status))
++			status = pProcObject->pIntfFxns->pfnIOGetProcLoad(
++				hIOMgr, (struct DSP_PROCLOADSTAT *)&
++				(pResourceInfo->result.procLoadStat));
++		if (DSP_FAILED(status))
+ 			GT_1trace(PROC_DebugMask, GT_7CLASS,
+ 			"Error in procLoadStat function 0x%x\n", status);
+-		}
+ 		break;
+ 	default:
+ 		status = DSP_EFAIL;
+@@ -814,8 +820,9 @@ DSP_STATUS PROC_GetState(DSP_HPROCESSOR hProcessor,
+ 		 " 0x%x\n", pProcStatus, hProcessor, uStateInfoSize);
+ 	if (MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
+ 		/* First, retrieve BRD state information */
+-		if (DSP_SUCCEEDED((*pProcObject->pIntfFxns->pfnBrdStatus)
+-		   (pProcObject->hWmdContext, &brdStatus))) {
++		status = (*pProcObject->pIntfFxns->pfnBrdStatus)
++				   (pProcObject->hWmdContext, &brdStatus);
++		if (DSP_SUCCEEDED(status)) {
+ 			switch (brdStatus) {
+ 			case BRD_STOPPED:
+ 				pProcStatus->iState = PROC_STOPPED;
+@@ -837,7 +844,6 @@ DSP_STATUS PROC_GetState(DSP_HPROCESSOR hProcessor,
+ 				break;
+ 			}
+ 		} else {
+-			status = DSP_EFAIL;
+ 			GT_0trace(PROC_DebugMask, GT_7CLASS,
+ 				 "PROC_GetState: General Failure"
+ 				 " to read the PROC Status \n");
+@@ -853,7 +859,6 @@ DSP_STATUS PROC_GetState(DSP_HPROCESSOR hProcessor,
+ 					 "retrieve exception info.\n");
+ 			}
+ 		} else {
+-			status = DSP_EFAIL;
+ 			GT_0trace(PROC_DebugMask, GT_7CLASS,
+ 				 "PROC_GetState: Failed to "
+ 				 "retrieve DEH handle.\n");
+@@ -1100,30 +1105,19 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
+ 			DBC_Assert(DSP_SUCCEEDED(status));
+ 			DEV_SetMsgMgr(pProcObject->hDevObject, hMsgMgr);
+ 		}
+-		if (status == DSP_ENOTIMPL) {
+-			/* It's OK not to have a message manager */
+-			status = DSP_SOK;
+-		}
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/* Set the Device object's message manager */
+ 		status = DEV_GetIOMgr(pProcObject->hDevObject, &hIOMgr);
+ 		DBC_Assert(DSP_SUCCEEDED(status));
+ 		status = (*pProcObject->pIntfFxns->pfnIOOnLoaded)(hIOMgr);
+-		if (status == DSP_ENOTIMPL) {
+-			/* Ok not to implement this function */
+-			status = DSP_SOK;
+-		} else {
+-			if (DSP_FAILED(status)) {
+-				GT_1trace(PROC_DebugMask, GT_7CLASS,
+-					  "PROC_Load: Failed to get shared "
+-					  "memory or message buffer address "
+-					  "from COFF status 0x%x\n", status);
+-				status = DSP_EFAIL;
+-			}
+-		}
++		if (DSP_FAILED(status))
++			GT_1trace(PROC_DebugMask, GT_7CLASS,
++				  "PROC_Load: Failed to get shared "
++				  "memory or message buffer address "
++				  "from COFF status 0x%x\n", status);
++
+ 	} else {
+-		status = DSP_EFAIL;
+ 		GT_1trace(PROC_DebugMask, GT_7CLASS,
+ 			  "PROC_Load: DSP_FAILED in "
+ 			  "MSG_Create status 0x%x\n", status);
+@@ -1166,15 +1160,13 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
+ 			 (pProcObject->hWmdContext, BRD_LOADED);
+ 		if (DSP_SUCCEEDED(status)) {
+ 			pProcObject->sState = PROC_LOADED;
+-			if (pProcObject->hNtfy) {
++			if (pProcObject->hNtfy)
+ 				PROC_NotifyClients(pProcObject,
+ 						 DSP_PROCESSORSTATECHANGE);
+-			}
+ 		} else {
+ 			GT_1trace(PROC_DebugMask, GT_7CLASS,
+ 				 "PROC_Load, pfnBrdSetState "
+ 				 "failed: 0x%x\n", status);
+-			status = DSP_EFAIL;
+ 		}
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+@@ -1396,8 +1388,6 @@ DSP_STATUS PROC_RegisterNotify(DSP_HPROCESSOR hProcessor, u32 uEventMask,
+ 			status = (*pProcObject->pIntfFxns->pfnDehRegisterNotify)
+ 				 (hDehMgr, uEventMask, uNotifyType,
+ 				 hNotification);
+-			if (DSP_FAILED(status))
+-				status = DSP_EFAIL;
+ 
+ 		}
+ 	}
+@@ -1472,7 +1462,6 @@ DSP_STATUS PROC_Start(DSP_HPROCESSOR hProcessor)
+ 	}
+ 	status = DEV_GetCodMgr(pProcObject->hDevObject, &hCodMgr);
+ 	if (DSP_FAILED(status)) {
+-		status = DSP_EFAIL;
+ 		GT_1trace(PROC_DebugMask, GT_7CLASS,
+ 			 "Processor Start DSP_FAILED "
+ 			 "in Getting DEV_GetCodMgr status 0x%x\n", status);
+@@ -1480,7 +1469,6 @@ DSP_STATUS PROC_Start(DSP_HPROCESSOR hProcessor)
+ 	}
+ 	status = COD_GetEntry(hCodMgr, &dwDspAddr);
+ 	if (DSP_FAILED(status)) {
+-		status = DSP_EFAIL;
+ 		GT_1trace(PROC_DebugMask, GT_7CLASS,
+ 			 "Processor Start  DSP_FAILED in "
+ 			 "Getting COD_GetEntry status 0x%x\n", status);
+@@ -1489,7 +1477,6 @@ DSP_STATUS PROC_Start(DSP_HPROCESSOR hProcessor)
+ 	status = (*pProcObject->pIntfFxns->pfnBrdStart)
+ 		 (pProcObject->hWmdContext, dwDspAddr);
+ 	if (DSP_FAILED(status)) {
+-		status = DSP_EFAIL;
+ 		GT_0trace(PROC_DebugMask, GT_7CLASS,
+ 			 "PROC_Start Failed to Start the board\n");
+ 		goto func_cont;
+@@ -1513,7 +1500,6 @@ DSP_STATUS PROC_Start(DSP_HPROCESSOR hProcessor)
+ 		 * Stop the Processor from running. Put it in STOPPED State */
+ 		(void)(*pProcObject->pIntfFxns->pfnBrdStop)(pProcObject->
+ 			hWmdContext);
+-		status = DSP_EFAIL;
+ 		pProcObject->sState = PROC_STOPPED;
+ 		GT_0trace(PROC_DebugMask, GT_7CLASS, "PROC_Start "
+ 			 "Failed to Create the Node Manager\n");
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index 9200aed..b0b4d32 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -130,11 +130,13 @@ DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
+ 		if (uSize == 0)
+ 			status = DSP_ESIZE;
+ 
+-	}
+-	if (DSP_FAILED(status)) {
++	} else {
+ 		status = DSP_EHANDLE;
+-		goto func_end;
+ 	}
++
++	if (DSP_FAILED(status))
++		goto func_end;
++
+ 	for (i = 0; i < uNumBufs; i++) {
+ 		DBC_Assert(hStrm->hXlator != NULL);
+ 		(void)CMM_XlatorAllocBuf(hStrm->hXlator, &apBuffer[i], uSize);
+@@ -191,20 +193,10 @@ DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm,
+ 		status = (*pIntfFxns->pfnChnlGetInfo) (hStrm->hChnl, &chnlInfo);
+ 		DBC_Assert(DSP_SUCCEEDED(status));
+ 
+-		if (chnlInfo.cIOCs > 0 || chnlInfo.cIOReqs > 0) {
++		if (chnlInfo.cIOCs > 0 || chnlInfo.cIOReqs > 0)
+ 			status = DSP_EPENDING;
+-		} else {
+-
++		else
+ 			status = DeleteStrm(hStrm);
+-
+-			if (DSP_FAILED(status)) {
+-				/* we already validated the handle. */
+-				DBC_Assert(status != DSP_EHANDLE);
+-
+-				/* make sure we return a documented result */
+-				status = DSP_EFAIL;
+-			}
+-		}
+ 	}
+ #ifndef RES_CLEANUP_DISABLE
+ 	if (DSP_FAILED(status))
+@@ -511,13 +503,8 @@ DSP_STATUS STRM_Issue(struct STRM_OBJECT *hStrm, IN u8 *pBuf, u32 ulBytes,
+ 				 (hStrm->hChnl, pBuf, ulBytes, ulBufSize,
+ 				 (u32) pTmpBuf, dwArg);
+ 		}
+-		if (DSP_FAILED(status)) {
+-			if (status == CHNL_E_NOIORPS)
+-				status = DSP_ESTREAMFULL;
+-			else
+-				status = DSP_EFAIL;
+-
+-		}
++		if (status == CHNL_E_NOIORPS)
++			status = DSP_ESTREAMFULL;
+ 	}
+ 	return status;
+ }
 -- 
 1.6.2.4
 
