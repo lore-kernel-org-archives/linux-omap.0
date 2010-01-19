@@ -1,59 +1,72 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 5/6] DSPBRIDGE: remove wrong comment from RequestBridgeResources
-Date: Tue, 19 Jan 2010 14:54:08 -0600
-Message-ID: <1263934449-16891-6-git-send-email-omar.ramirez@ti.com>
-References: <1263934449-16891-1-git-send-email-omar.ramirez@ti.com>
- <1263934449-16891-2-git-send-email-omar.ramirez@ti.com>
- <1263934449-16891-3-git-send-email-omar.ramirez@ti.com>
- <1263934449-16891-4-git-send-email-omar.ramirez@ti.com>
- <1263934449-16891-5-git-send-email-omar.ramirez@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP CPU ID: fix OMAP4 build failure
+Date: Tue, 19 Jan 2010 14:14:08 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001191412130.3977@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60721 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755528Ab0ASUoG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Jan 2010 15:44:06 -0500
-In-Reply-To: <1263934449-16891-5-git-send-email-omar.ramirez@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:38247 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755735Ab0ASVOJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 16:14:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>
+To: abhijit.pagare@ti.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Fernando Guzman Lugo <x0095840@ti.com>
 
-This patch removes a wrong pointer and set to NULL dwSysCtrlBase
-as it shouldn't be used anymore after iounmap.
+Hello Abhijit,
 
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+it seems that my for_2.6.34 branch does not build unless the following 
+patch, or one like it, is included.  Any comments?
+
+
+- Paul
+
+
+From: Paul Walmsley <paul@pwsan.com>
+
+
+omap_4430sdp_defconfig currently does not build due to some missing CPU IDs:
+
+In file included from arch/arm/mach-omap2/powerdomains.h:59,
+                 from arch/arm/mach-omap2/io.c:42:
+arch/arm/mach-omap2/powerdomains44xx.h:39: error: 'CHIP_IS_OMAP4430' undeclared here (not in a function)
+
+... so add CHIP_IS_OMAP4430ES1.  Note that this is not yet set by
+mach-omap2/id.c; this is for TI to fix.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Abhijit Pagare <abhijit.pagare@ti.com>
 ---
- drivers/dsp/bridge/rmgr/drv.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/include/plat/cpu.h |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 56ceb6c..9b07f25 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -1138,11 +1138,9 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
- 				iounmap((void *)pResources->dwPerPmBase);
- 			if (pResources->dwCorePmBase)
- 				iounmap((void *)pResources->dwCorePmBase);
--			if (pResources->dwSysCtrlBase) {
-+			if (pResources->dwSysCtrlBase)
- 				iounmap(pResources->dwSysCtrlBase);
--				/* don't set pResources->dwSysCtrlBase to null
--				 * as it is used in BOARD_Stop */
--			}
-+
- 			pResources->dwPrmBase = NULL;
- 			pResources->dwCmBase = NULL;
- 			pResources->dwMboxBase = NULL;
-@@ -1152,6 +1150,7 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
- 			pResources->dwMemBase[4] = (u32) NULL;
- 			pResources->dwWdTimerDspBase = NULL;
- 			pResources->dwDmmuBase = NULL;
-+			pResources->dwSysCtrlBase = NULL;
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 9a028bd..8ada0ef 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -44,7 +44,7 @@
+ int omap_type(void);
  
- 			dwBuffSize = sizeof(struct CFG_HOSTRES);
- 			status = REG_SetValue(CURRENTCONFIG, (u8 *)pResources,
+ struct omap_chip_id {
+-	u8 oc;
++	u16 oc;
+ 	u8 type;
+ };
+ 
+@@ -470,8 +470,10 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
+ #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
+ #define CHIP_IS_OMAP3630ES1		(1 << 7)
++#define CHIP_IS_OMAP4430ES1		(1 << 8)
+ 
+ #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
++#define CHIP_IS_OMAP4430		CHIP_IS_OMAP4430ES1
+ 
+ /*
+  * "GE" here represents "greater than or equal to" in terms of ES
 -- 
-1.6.2.4
+1.6.6.rc2.5.g49666
 
