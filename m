@@ -1,68 +1,64 @@
 From: "Y, Kishore" <kishore.y@ti.com>
-Subject: RE: [PATCH] OMAP3630:DSS2:Enable Pre-Multiplied Alpha Support
-Date: Tue, 19 Jan 2010 18:47:50 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DC245@dbde02.ent.ti.com>
-References: <1263817469.2352.7.camel@tubuntu.research.nokia.com>
+Subject: RE: [PATCH 0/2] Enable DSS on zoom2/3 and 3630 sdp boards
+Date: Tue, 19 Jan 2010 18:52:45 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DC24C@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DC23B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40833 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433Ab0ASNRm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 08:17:42 -0500
-In-Reply-To: <1263817469.2352.7.camel@tubuntu.research.nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38019 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751336Ab0ASNWj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 08:22:39 -0500
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DC23B@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mande, Nikhil" <nikhil@ti.com>
+To: "Y, Kishore" <kishore.y@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBUb21pIFZhbGtlaW5lbiBbbWFp
-bHRvOnRvbWkudmFsa2VpbmVuQG5va2lhLmNvbV0NCj4gU2VudDogTW9uZGF5LCBKYW51YXJ5IDE4
-LCAyMDEwIDU6NTQgUE0NCj4gVG86IFksIEtpc2hvcmUNCj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5r
-ZXJuZWwub3JnOyBNYW5kZSwgTmlraGlsDQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0hdIE9NQVAzNjMw
-OkRTUzI6RW5hYmxlIFByZS1NdWx0aXBsaWVkIEFscGhhIFN1cHBvcnQNCj4gDQo+IE9uIE1vbiwg
-MjAxMC0wMS0xOCBhdCAxMjoyNiArMDEwMCwgZXh0IFksIEtpc2hvcmUgd3JvdGU6DQo+ID4gPiAt
-LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+ID4gRnJvbTogVG9taSBWYWxrZWluZW4gW21h
-aWx0bzp0b21pLnZhbGtlaW5lbkBub2tpYS5jb21dDQo+ID4gPiBTZW50OiBGcmlkYXksIEphbnVh
-cnkgMTUsIDIwMTAgNDowMCBQTQ0KPiA+ID4gVG86IFksIEtpc2hvcmUNCj4gPiA+IENjOiBsaW51
-eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSF0gT01BUDM2
-MzA6RFNTMjpFbmFibGUgUHJlLU11bHRpcGxpZWQgQWxwaGEgU3VwcG9ydA0KPiA+ID4NCj4gPiA+
-IEhpLA0KPiA+ID4NCj4gPiA+IE9uIE1vbiwgMjAwOS0xMi0yMSBhdCAxNjowNiArMDEwMCwgZXh0
-IFksIEtpc2hvcmUgd3JvdGU6DQo+ID4gPiA+IEZyb20gMmY4NzM4MTlhNGI5ZWIwYmQ2NThkYjFl
-NTk0MDhkOGYwYWViMTRiNiBNb24gU2VwIDE3IDAwOjAwOjAwDQo+IDIwMDENCj4gPiA+ID4gRnJv
-bTogU3VkZWVwIEJhc2F2YXJhaiA8c3VkZWVwLmJhc2F2YXJhakB0aS5jb20+DQo+ID4gPiA+IERh
-dGU6IE1vbiwgMTQgRGVjIDIwMDkgMTg6NTQ6NTEgKzA1MzANCj4gPiA+ID4gU3ViamVjdDogW1BB
-VENIXSBPTUFQMzYzMDpEU1MyOkVuYWJsZSBQcmUtTXVsdGlwbGllZCBBbHBoYSBTdXBwb3J0DQo+
-ID4gPiA+DQo+ID4gPiA+IEVuYWJsZXMgZHNzIHRvIHByb2Nlc3MgY29sb3IgZm9ybWF0cyB3aXRo
-IHByZS1tdWxpdHBsaWVkIGFscGhhDQo+IHZhbHVlcy4NCj4gPiA+ID4gV2l0aCB0aGlzIHdlIGNh
-biBoYXZlIGFscGhhIHZhbHVlcyBkZWZpbmVkIGZvciBlYWNoIHBpeGVsDQo+ID4gPiA+IGFuZCBo
-ZW5jZSBjYW4gaGF2ZSBkaWZmZXJlbnQgYmxlbmRpbmcgdmFsdWVzIGZvciBlYWNoIHBpeGVsLg0K
-PiA+ID4NCj4gPiA+IFdoYXQgZG9lcyBwcmUtbXVsdGlwbGllZCBhbHBoYSBtZWFuPyBUaGUgVFJN
-IGRpZG4ndCByZWFsbHkgb3BlbiBpdA0KPiB1cC4uLg0KPiA+ID4gRG9uJ3Qgd2UgYWxyZWFkeSBo
-YXZlIHBlciBwaXhlbCBhbHBoYSB3aGVuIHVzaW5nIEFSR0IvUkdCQT8NCj4gPg0KPiA+IFdoZW4g
-d2Ugc2V0IHBpeGVsIGZvcm1hdCB0byBBUkdCL1JHQkEgZHNzIGFscGhhIGJsZW5kZXIgd291bGQg
-bXVsdGlwbHkNCj4gdGhlIHZhbHVlIHByZXNlbnQgaW4gJ0EnIHdpdGggJ1JHQicuDQo+ID4gQnkg
-c2V0dGluZyB0aGlzIGJpdCBkaXNwbGF5IGhhcmR3YXJlIGFzc3VtZXMgdGhhdCB0aGUgUixHLEIg
-YXJlIGFscmVhZHkNCj4gbXVsdGlwbGllZCB3aXRoIHRoZSBhbHBoYSB2YWx1ZSBhbmQgdGhlcmUg
-aXMgbm8gbmVlZCB0byBtdWx0aXBseSBhZ2Fpbi4NCj4gPg0KPiA+IEV4Oi0NCj4gPiAJCQlBCVIJ
-RwlCDQo+ID4gYXJnYiBkYXRhCQkxMjgJMjU1CTEyOAkxMDANCj4gPiBwcmUtbXVsdGlwbGllZAkx
-MjgJMTI4CTY0CTUwDQo+ID4NCj4gPiBTbyB0aGlzIGJpdCwgd2hlbiBzZXQsIHdvdWxkIG5vdCBt
-dWx0aXBseSB0aGUgcGl4ZWwgd2l0aCBhbHBoYSB2YWx1ZS4NCj4gDQo+IE9rLCBhZnRlciBzdGFy
-aW5nIGxvbmcgZW5vdWdoIHRvIHRoZSBUUk0ncyBhbHBoYS1waWN0dXJlLCBJIGdvdCBpdCA9KS4N
-Cj4gDQo+IEJ1dCBoYXZpbmcgdGhpcyBiaXQgYWx3YXlzIG9uIG9uIDM2MzAgd291bGQgbWVhbiB0
-aGF0IHRoZSBzb2Z0d2FyZQ0KPiBkZXNpZ25lZCBmb3IgMzQzMCB3b3VsZCBub3Qgd29yayBwcm9w
-ZXJseSBvbiAzNjMwLCB3b3VsZG4ndCBpdD8NCj4gDQo+ID4gPiBUaGlzIHBhdGNoIHNlZW1zIHRv
-IGFsd2F5cyBzZXQgdGhlIGJpdCBvbiwgbmV2ZXIgc2V0IGl0IG9mZi4gSXMgdGhhdA0KPiB0aGUN
-Cj4gPiA+IHB1cnBvc2U/DQo+ID4NCj4gPiBBcyBwZXIgVFJNLCB0aGlzIGJpdCBpcyB2YWxpZCBv
-bmx5IGZvciBBUkdCIGZvcm1hdHMgYW5kIGV4cGVydHMNCj4gc3VnZ2VzdGVkIHRoYXQgd2UgY2Fu
-IHNhZmVseSBhc3N1bWUgcHJlLW11bHRpcGxpZWQgZGF0YSBhbHdheXMgaW4gcmVhbA0KPiB3b3Js
-ZA0KPiANCj4gSSBhc2tlZCBhIGZldyBleHBlcnRzIGhlcmUsIGFuZCB0aGV5IHdlcmVuJ3Qgc28g
-c3VyZSwgYW5kIG5laXRoZXIgYW0gSS4NCj4gDQo+IEkgZG9uJ3Qgc2VlIGFueSBwcm9ibGVtcyBt
-YWtpbmcgdGhpcyBmZWF0dXJlIGNvbmZpZ3VyYWJsZSwgYnV0IHRoZXJlIG1heQ0KPiBiZSBwcm9i
-bGVtcyBpZiBpdCdzIGhhcmRjb2RlZC4gU28sIGl0IHNob3VsZCBiZSBjb25maWd1cmFibGUuIEkg
-dGhpbmsNCj4gdGhlIGRlZmF1bHQgc2hvdWxkIGJlIHRoZSBzYW1lIGFzIG9uIDM0MzAsIHNvIHRo
-YXQgdGhleSB3aWxsIHdvcmsNCj4gc2ltaWxhcmx5Lg0KPiANCj4gIFRvbWkNCkkgaGF2ZW4ndCBj
-b25zaWRlcmVkIHRoZSBiYWNrd2FyZCBjb21wYXRpYmlsaXR5IHdpdGggMzQzMCBhcHBzLiANCkkg
-d2lsbCBtYWtlIHRoaXMgY29uZmlndXJhYmxlLg0Ka2lzaG9yZQ0KPiANCg0K
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Y, Kishore
+> Sent: Tuesday, January 19, 2010 6:42 PM
+> To: Tomi Valkeinen
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH 0/2] Enable DSS on zoom2/3 and 3630 sdp boards
+> 
+> From: Kishore Y <kishore.y@ti.com>
+> 
+> This patch series enables DSS and FB in zoom2, zoom3 and 3630sdp.
+> 
+> OMAP: DSS: Enable display on ZOOM2/3 & 3630SDP
+> 	- Included display in boards and enabled in defconfig
+> OMAP: DSS: Add display board file for zoom boards
+> 	- Display board file added common for all boards
+> 
+>  arch/arm/configs/omap_3630sdp_defconfig       |   60 +++++++-
+>  arch/arm/configs/omap_zoom2_defconfig         |   60 +++++++-
+>  arch/arm/configs/omap_zoom3_defconfig         |   60 +++++++-
+>  arch/arm/mach-omap2/Makefile                  |    3 +
+>  arch/arm/mach-omap2/board-3630sdp.c           |    1 +
+>  arch/arm/mach-omap2/board-zoom-display.c      |  232
+> +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-zoom-peripherals.c  |   36 ++++
+>  arch/arm/mach-omap2/board-zoom2.c             |    1 +
+>  arch/arm/mach-omap2/board-zoom3.c             |    1 +
+>  arch/arm/mach-omap2/include/mach/board-zoom.h |    3 +
+>  10 files changed, 454 insertions(+), 3 deletions(-)
+> 
+> Tested on top of LO kernel commit id
+> a468c9100977c3f163bfa9de7af1bbcb5dc5e260
+> 
+
+This patch series has been reviewed by Gadiyar Anand.
+Reviewed by: Gadiyar, Anand <gadiyar@ti.com>
+
+> Regards,
+> Kishore Y
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
