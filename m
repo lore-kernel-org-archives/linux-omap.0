@@ -1,55 +1,45 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: [PATCH 1/1] OMAP3: PM: Fix compilation issue of
- omap3_pm_init_opp_table
-Date: Tue, 19 Jan 2010 22:32:24 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E196B373@dbde02.ent.ti.com>
-References: <1263902254-3015-1-git-send-email-eduardo.valentin@nokia.com>
- <4B559F1C.6070802@gmail.com>
- <20100119134927.GE12231@esdhcp037198.research.nokia.com>
- <4B55BD13.70704@ti.com> <4B55C290.2060205@ti.com> <4B55C47E.2090002@ti.com>
- <4B55C4CF.4030509@ti.com> <4B55C521.5050602@ti.com>
- <4B55C56F.9030100@ti.com> <4B55C6BF.4080601@ti.com>,<4B55CC92.6090403@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Lesly A M <x0080970@ti.com>
+Subject: [PATCH v2 0/6] omap3: pm: Update TRITON power scripts and making it generic
+Date: Tue, 19 Jan 2010 22:59:53 +0530
+Message-ID: <1263922193-13468-1-git-send-email-x0080970@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50154 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51021 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754463Ab0ASRHZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 12:07:25 -0500
-In-Reply-To: <4B55CC92.6090403@ti.com>
-Content-Language: en-US
+	id S1754387Ab0ASRRl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jan 2010 12:17:41 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0JHHbWV031177
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 19 Jan 2010 11:17:40 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, ext Nishanth Menon <menon.nishanth@gmail.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Lesly A M <x0080970@ti.com>
 
-________________________________________
+map3: pm: Update TRITON power scripts and making it generic
 
->there are multiple ways to use SR -> Not all of them can use OMAP chip
->registers. certain class of devices would need to use PMICs,
-Even then you do not need OPP layer. For PMIC based solutions you need
-to use I2C to get the voltage. So this should be abstracted. OPP layer is just for
-CPU FREQ.
-> further SRF
->or it's equivalent will need to query the table for knowing what voltage
->corresponds to frequency, 
-Why should you know the voltage for a frequency other than your current
-frequency when you do not scale the frequency of your CPU? Clock framework
-will give you the current freq. For voltage, we already discussed above.
+This series of patch implements a updated TRITON power scripts.
+Also moving the sleep, wakeup & warm_reset sequence to a generic script file,
+which can be used by different OMAP3 board with the power companion chip TWL4030.
 
+V1: Initial Patch Series
 
->DSPBRidge needs to report to the baseimage
->what voltage corresponds to the frequency for the baseimage's load
->balancing/power decision logic etc.. in short when dynamic voltage
->scaling is needed, we need OPP layer a.k.a CONFIG_PM needs opp layer -
->not just cpufreq.
-Please understand CONFIG_PM is not for any kind of __cpufreq or dspfreq__.
-It is for suspend resume and few other stuff. So why should CONFIG_PM need
-OPP layer?
+V2: Incorporated comments
 
+ arch/arm/mach-omap2/Makefile                  |   12 ++-
+ arch/arm/mach-omap2/board-3430sdp.c           |  124 ++++++++-----------------
+ arch/arm/mach-omap2/board-3630sdp.c           |   25 +++++-
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |   43 +++++++++-
+ arch/arm/mach-omap2/board-zoom2.c             |   25 +++++-
+ arch/arm/mach-omap2/board-zoom3.c             |   25 +++++-
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    2 +-
+ arch/arm/mach-omap2/pm.h                      |   11 ++-
+ arch/arm/mach-omap2/pm34xx.c                  |   60 ++++++++++--
+ drivers/mfd/twl4030-power.c                   |   30 +++++--
+ include/linux/i2c/twl.h                       |    4 +
+ 11 files changed, 245 insertions(+), 116 deletions(-)
 
 
---
-Regards,
-Nishanth Menon
+Tested on top of Kevins PM branch commit id:
+ad4776c4207a376961372752fe0a0ae3814990b3
+
