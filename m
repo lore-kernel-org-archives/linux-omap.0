@@ -1,93 +1,113 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH/USB 03/16] USB: musb: move to sysfs_groups
-Date: Tue, 19 Jan 2010 15:14:02 +0200
-Message-ID: <1263906855-28341-4-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH/USB 04/16] USB: musb: remove some of the never defined defines
+Date: Tue, 19 Jan 2010 15:14:03 +0200
+Message-ID: <1263906855-28341-5-git-send-email-felipe.balbi@nokia.com>
 References: <1263906855-28341-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:54486 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751632Ab0ASNOx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 08:14:53 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:27294 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750995Ab0ASNOw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 08:14:52 -0500
 In-Reply-To: <1263906855-28341-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com
 
-it's easier to keep up and add more sysfs entries
-as necessary.
+just makes the musb init code a bit cleaner.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/usb/musb/musb_core.c |   33 +++++++++++++++------------------
- 1 files changed, 15 insertions(+), 18 deletions(-)
+ drivers/usb/musb/musb_core.c |   24 ------------------------
+ drivers/usb/musb/musb_core.h |   16 ++++------------
+ 2 files changed, 4 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 91c31f2..52295bc 100644
+index 52295bc..b7e2d1b 100644
 --- a/drivers/usb/musb/musb_core.c
 +++ b/drivers/usb/musb/musb_core.c
-@@ -1759,6 +1759,19 @@ static DEVICE_ATTR(srp, 0644, NULL, musb_srp_store);
- 
- #endif /* CONFIG_USB_GADGET_MUSB_HDRC */
- 
-+static struct attribute *musb_attributes[] = {
-+	&dev_attr_mode.attr,
-+	&dev_attr_vbus.attr,
-+#ifdef CONFIG_USB_GADGET_MUSB_HDRC
-+	&dev_attr_srp.attr,
-+#endif
-+	NULL
-+};
-+
-+static const struct attribute_group musb_attr_group = {
-+	.attrs = musb_attributes,
-+};
-+
- #endif	/* sysfs */
- 
- /* Only used to provide driver mode change events */
-@@ -1833,11 +1846,7 @@ static void musb_free(struct musb *musb)
- 	 */
- 
- #ifdef CONFIG_SYSFS
--	device_remove_file(musb->controller, &dev_attr_mode);
--	device_remove_file(musb->controller, &dev_attr_vbus);
--#ifdef CONFIG_USB_GADGET_MUSB_HDRC
--	device_remove_file(musb->controller, &dev_attr_srp);
+@@ -1314,9 +1314,6 @@ enum { MUSB_CONTROLLER_MHDRC, MUSB_CONTROLLER_HDRC, };
+  */
+ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+ {
+-#ifdef MUSB_AHB_ID
+-	u32 data;
 -#endif
-+	sysfs_remove_group(&musb->controller->kobj, &musb_attr_group);
- #endif
+ 	u8 reg;
+ 	char *type;
+ 	char aInfo[90], aRevision[32], aDate[12];
+@@ -1332,19 +1329,11 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+ 		strcat(aInfo, ", dyn FIFOs");
+ 	if (reg & MUSB_CONFIGDATA_MPRXE) {
+ 		strcat(aInfo, ", bulk combine");
+-#ifdef C_MP_RX
+ 		musb->bulk_combine = true;
+-#else
+-		strcat(aInfo, " (X)");		/* no driver support */
+-#endif
+ 	}
+ 	if (reg & MUSB_CONFIGDATA_MPTXE) {
+ 		strcat(aInfo, ", bulk split");
+-#ifdef C_MP_TX
+ 		musb->bulk_split = true;
+-#else
+-		strcat(aInfo, " (X)");		/* no driver support */
+-#endif
+ 	}
+ 	if (reg & MUSB_CONFIGDATA_HBRXE) {
+ 		strcat(aInfo, ", HB-ISO Rx");
+@@ -1360,20 +1349,7 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+ 	printk(KERN_DEBUG "%s: ConfigData=0x%02x (%s)\n",
+ 			musb_driver_name, reg, aInfo);
+ 
+-#ifdef MUSB_AHB_ID
+-	data = musb_readl(mbase, 0x404);
+-	sprintf(aDate, "%04d-%02x-%02x", (data & 0xffff),
+-		(data >> 16) & 0xff, (data >> 24) & 0xff);
+-	/* FIXME ID2 and ID3 are unused */
+-	data = musb_readl(mbase, 0x408);
+-	printk(KERN_DEBUG "ID2=%lx\n", (long unsigned)data);
+-	data = musb_readl(mbase, 0x40c);
+-	printk(KERN_DEBUG "ID3=%lx\n", (long unsigned)data);
+-	reg = musb_readb(mbase, 0x400);
+-	musb_type = ('M' == reg) ? MUSB_CONTROLLER_MHDRC : MUSB_CONTROLLER_HDRC;
+-#else
+ 	aDate[0] = 0;
+-#endif
+ 	if (MUSB_CONTROLLER_MHDRC == musb_type) {
+ 		musb->is_multipoint = 1;
+ 		type = "M";
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 03d5090..2ac0e6f 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -412,21 +412,13 @@ struct musb {
+ 	unsigned		hb_iso_rx:1;	/* high bandwidth iso rx? */
+ 	unsigned		hb_iso_tx:1;	/* high bandwidth iso tx? */
+ 
+-#ifdef C_MP_TX
+-	unsigned bulk_split:1;
++	unsigned		bulk_split:1;
+ #define	can_bulk_split(musb,type) \
+-		(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bulk_split)
+-#else
+-#define	can_bulk_split(musb, type)	0
+-#endif
++	(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bulk_split)
+ 
+-#ifdef C_MP_RX
+-	unsigned bulk_combine:1;
++	unsigned		bulk_combine:1;
+ #define	can_bulk_combine(musb,type) \
+-		(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bulk_combine)
+-#else
+-#define	can_bulk_combine(musb, type)	0
+-#endif
++	(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bulk_combine)
  
  #ifdef CONFIG_USB_GADGET_MUSB_HDRC
-@@ -2079,12 +2088,7 @@ bad_config:
- 	}
- 
- #ifdef CONFIG_SYSFS
--	status = device_create_file(dev, &dev_attr_mode);
--	status = device_create_file(dev, &dev_attr_vbus);
--#ifdef CONFIG_USB_GADGET_MUSB_HDRC
--	status = device_create_file(dev, &dev_attr_srp);
--#endif /* CONFIG_USB_GADGET_MUSB_HDRC */
--	status = 0;
-+	status = sysfs_create_group(&musb->controller->kobj, &musb_attr_group);
- #endif
- 	if (status)
- 		goto fail2;
-@@ -2092,13 +2096,6 @@ bad_config:
- 	return 0;
- 
- fail2:
--#ifdef CONFIG_SYSFS
--	device_remove_file(musb->controller, &dev_attr_mode);
--	device_remove_file(musb->controller, &dev_attr_vbus);
--#ifdef CONFIG_USB_GADGET_MUSB_HDRC
--	device_remove_file(musb->controller, &dev_attr_srp);
--#endif
--#endif
- 	musb_platform_exit(musb);
- fail:
- 	dev_err(musb->controller,
+ 	/* is_suspended means USB B_PERIPHERAL suspend */
 -- 
 1.6.6.rc0
 
