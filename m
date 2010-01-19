@@ -1,325 +1,209 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 12/18] OMAP3 clock: split out DPLL3 M2 divider functions
-	into mach-omap2/clkt3xxx_dpll3m2.c
-Date: Tue, 19 Jan 2010 16:36:26 -0700
-Message-ID: <20100119233623.26047.22184.stgit@localhost.localdomain>
+Subject: [PATCH v2 18/18] OMAP2/3/4 clock: rename and clean the
+	omap2_clk_init() functions
+Date: Tue, 19 Jan 2010 16:36:46 -0700
+Message-ID: <20100119233643.26047.45488.stgit@localhost.localdomain>
 References: <20100119232900.26047.98263.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58633 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:58655 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755373Ab0ASXif (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 18:38:35 -0500
+	with ESMTP id S1754567Ab0ASXih (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 18:38:37 -0500
 In-Reply-To: <20100119232900.26047.98263.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Alexander Shishkin <virtuoso@slind.org>, Jouni =?utf-8?b?SMO2Z2FuZGVy?= <jouni.hogander@nokia.com>
 
-Split the DPLL3 M2 divider clock functions out of clock34xx.c and move
-them into mach-omap2/clkt3xxx_dpll3m2.c. This is intended to make the
-clock code easier to understand, since all of the functions needed to
-manage the OMAP3 DPLL3 M2 divider are now located in their own file,
-rather than being mixed with other, unrelated functions.
+Rename the omap2_clk_init() in the OMAP2, 3, and 4 clock code to be
+omap2xxx_clk_init(), omap3xxx_clk_init(), etc.  Remove all traces of
+the (commented) old virt_prcm_set code from omap3xxx_clk_init() and
+omap4xxx_clk_init(), since this will be handled with the OPP code that
+is cooking in the PM branch.
 
-Clock debugging is also now more finely-grained, since the DEBUG macro
-can now be defined for the DPLL3 M2 clock alone.  This should reduce
-unnecessary console noise when debugging DVFS.
-
-Also, if at some future point the mach-omap2/ directory is split
-into OMAP2/3/4 variants, this clkt file can be placed in the mach-omap3=
-4xx/
-directory, rather than shared with other chip types that don't use this
-clock type.
-
-This patch also lays the groundwork to skip compilation of this
-code on OMAP3 chips that don't support DVFS (e.g., AM35xx) via
-the Makefile, rather than via #ifdefs.
-
-Thanks to Alexander Shishkin <virtuoso@slind.org> for his comments to
-improve the patch description.
+After this patch, there should be very little else in the clock code
+that blocks a multi-OMAP 2+3 kernel.  (OMAP2420+OMAP2430 still has some
+outstanding issues that need to be resolved; this is pending on some
+additions to the hwmod data.)
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Jouni H=C3=B6gander <jouni.hogander@nokia.com>
-Cc: Alexander Shishkin <virtuoso@slind.org>
 ---
- arch/arm/mach-omap2/Makefile           |    3 +
- arch/arm/mach-omap2/clkt3xxx_dpll3m2.c |  120 ++++++++++++++++++++++++=
-++++++++
- arch/arm/mach-omap2/clock34xx.c        |   90 ------------------------
- 3 files changed, 122 insertions(+), 91 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clkt3xxx_dpll3m2.c
+ arch/arm/mach-omap2/clock.h          |    1 -
+ arch/arm/mach-omap2/clock2xxx.h      |    1 +
+ arch/arm/mach-omap2/clock2xxx_data.c |    2 +-
+ arch/arm/mach-omap2/clock34xx.c      |    2 +-
+ arch/arm/mach-omap2/clock34xx.h      |    1 +
+ arch/arm/mach-omap2/clock34xx_data.c |   19 +------------------
+ arch/arm/mach-omap2/clock44xx.h      |    2 ++
+ arch/arm/mach-omap2/clock44xx_data.c |    4 +---
+ arch/arm/mach-omap2/io.c             |   15 +++++++++++++--
+ 9 files changed, 21 insertions(+), 26 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefil=
-e
-index 7ce5fea..b002c81 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -15,11 +15,12 @@ clock-omap2xxx				=3D clkt2xxx_dpllcore.o \
- 					  clkt2xxx_virt_prcm_set.o \
- 					  clkt2xxx_apll.o clkt2xxx_osc.o \
- 					  clkt2xxx_sys.o
-+clock-omap3xxx				=3D clkt3xxx_dpll3m2.o
-=20
- obj-$(CONFIG_ARCH_OMAP2) +=3D $(omap-2-3-common) $(prcm-common) $(cloc=
-k-common) \
- 			    $(clock-omap2xxx)
- obj-$(CONFIG_ARCH_OMAP3) +=3D $(omap-2-3-common) $(prcm-common) $(cloc=
-k-common) \
--			    $(omap-3-4-common)
-+			    $(omap-3-4-common) $(clock-omap3xxx)
- obj-$(CONFIG_ARCH_OMAP4) +=3D $(omap-3-4-common) $(prcm-common) $(cloc=
-k-common)
-=20
- obj-$(CONFIG_OMAP_MCBSP) +=3D mcbsp.o
-diff --git a/arch/arm/mach-omap2/clkt3xxx_dpll3m2.c b/arch/arm/mach-oma=
-p2/clkt3xxx_dpll3m2.c
-new file mode 100644
-index 0000000..14f1a4b
---- /dev/null
-+++ b/arch/arm/mach-omap2/clkt3xxx_dpll3m2.c
-@@ -0,0 +1,120 @@
-+/*
-+ * OMAP3 M2 divider clock code
-+ *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Copyright (C) 2007-2010 Nokia Corporation
-+ *
-+ * Paul Walmsley
-+ * Jouni H=C3=B6gander
-+ *
-+ * Parts of this code are based on code written by
-+ * Richard Woodruff, Tony Lindgren, Tuukka Tikkanen, Karthik Dasu
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#undef DEBUG
-+
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+
-+#include <plat/clock.h>
-+#include <plat/sram.h>
-+#include <plat/sdrc.h>
-+
-+#include "clock.h"
-+#include "clock34xx.h"
-+#include "sdrc.h"
-+
-+#define CYCLES_PER_MHZ			1000000
-+
-+/*
-+ * CORE DPLL (DPLL3) M2 divider rate programming functions
-+ *
-+ * These call into SRAM code to do the actual CM writes, since the SDR=
-AM
-+ * is clocked from DPLL3.
-+ */
-+
-+/**
-+ * omap3_core_dpll_m2_set_rate - set CORE DPLL M2 divider
-+ * @clk: struct clk * of DPLL to set
-+ * @rate: rounded target rate
-+ *
-+ * Program the DPLL M2 divider with the rounded target rate.  Returns
-+ * -EINVAL upon error, or 0 upon success.
-+ */
-+int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
-+{
-+	u32 new_div =3D 0;
-+	u32 unlock_dll =3D 0;
-+	u32 c;
-+	unsigned long validrate, sdrcrate, _mpurate;
-+	struct omap_sdrc_params *sdrc_cs0;
-+	struct omap_sdrc_params *sdrc_cs1;
-+	int ret;
-+
-+	if (!clk || !rate)
-+		return -EINVAL;
-+
-+	validrate =3D omap2_clksel_round_rate_div(clk, rate, &new_div);
-+	if (validrate !=3D rate)
-+		return -EINVAL;
-+
-+	sdrcrate =3D sdrc_ick_p->rate;
-+	if (rate > clk->rate)
-+		sdrcrate <<=3D ((rate / clk->rate) >> 1);
-+	else
-+		sdrcrate >>=3D ((clk->rate / rate) >> 1);
-+
-+	ret =3D omap2_sdrc_get_params(sdrcrate, &sdrc_cs0, &sdrc_cs1);
-+	if (ret)
-+		return -EINVAL;
-+
-+	if (sdrcrate < MIN_SDRC_DLL_LOCK_FREQ) {
-+		pr_debug("clock: will unlock SDRC DLL\n");
-+		unlock_dll =3D 1;
-+	}
-+
-+	/*
-+	 * XXX This only needs to be done when the CPU frequency changes
-+	 */
-+	_mpurate =3D arm_fck_p->rate / CYCLES_PER_MHZ;
-+	c =3D (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
-+	c +=3D 1;  /* for safety */
-+	c *=3D SDRC_MPURATE_LOOPS;
-+	c >>=3D SDRC_MPURATE_SCALE;
-+	if (c =3D=3D 0)
-+		c =3D 1;
-+
-+	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rat=
-e,
-+		 validrate);
-+	pr_debug("clock: SDRC CS0 timing params used:"
-+		 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
-+		 sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
-+		 sdrc_cs0->actim_ctrlb, sdrc_cs0->mr);
-+	if (sdrc_cs1)
-+		pr_debug("clock: SDRC CS1 timing params used: "
-+		 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
-+		 sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
-+		 sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
-+
-+	if (sdrc_cs1)
-+		omap3_configure_core_dpll(
-+				  new_div, unlock_dll, c, rate > clk->rate,
-+				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
-+				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
-+				  sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
-+				  sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
-+	else
-+		omap3_configure_core_dpll(
-+				  new_div, unlock_dll, c, rate > clk->rate,
-+				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
-+				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
-+				  0, 0, 0, 0);
-+
-+	return 0;
-+}
-+
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/cloc=
-k34xx.c
-index 4c4bb3c..552ad30 100644
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index be5a55f..7bc344b 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -47,7 +47,6 @@
+ #define DPLL_LOW_POWER_BYPASS	0x5
+ #define DPLL_LOCKED		0x7
+ 
+-int omap2_clk_init(void);
+ int omap2_clk_enable(struct clk *clk);
+ void omap2_clk_disable(struct clk *clk);
+ long omap2_clk_round_rate(struct clk *clk, unsigned long rate);
+diff --git a/arch/arm/mach-omap2/clock2xxx.h b/arch/arm/mach-omap2/clock2xxx.h
+index bed294a..32f3d0a 100644
+--- a/arch/arm/mach-omap2/clock2xxx.h
++++ b/arch/arm/mach-omap2/clock2xxx.h
+@@ -19,6 +19,7 @@ unsigned long omap2xxx_clk_get_core_rate(struct clk *clk);
+ u32 omap2xxx_get_apll_clkin(void);
+ u32 omap2xxx_get_sysclkdiv(void);
+ void omap2xxx_clk_prepare_for_reboot(void);
++int omap2xxx_clk_init(void);
+ 
+ /* REVISIT: These should be set dynamically for CONFIG_MULTI_OMAP2 */
+ #ifdef CONFIG_ARCH_OMAP2420
+diff --git a/arch/arm/mach-omap2/clock2xxx_data.c b/arch/arm/mach-omap2/clock2xxx_data.c
+index 3a435bb..52c7a6c 100644
+--- a/arch/arm/mach-omap2/clock2xxx_data.c
++++ b/arch/arm/mach-omap2/clock2xxx_data.c
+@@ -2238,7 +2238,7 @@ static struct omap_clk omap24xx_clks[] = {
+  * init code
+  */
+ 
+-int __init omap2_clk_init(void)
++int __init omap2xxx_clk_init(void)
+ {
+ 	const struct prcm_config *prcm;
+ 	struct omap_clk *c;
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 34d3950..1f1b5a6 100644
 --- a/arch/arm/mach-omap2/clock34xx.c
 +++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -42,8 +42,6 @@
- #include "cm.h"
- #include "cm-regbits-34xx.h"
-=20
--#define CYCLES_PER_MHZ			1000000
--
- /*
-  * DPLL5_FREQ_FOR_USBHOST: USBHOST and USBTLL are the only clocks
-  * that are sourced by DPLL5, and both of these require this clock
-@@ -162,94 +160,6 @@ int omap3_dpll4_set_rate(struct clk *clk, unsigned=
- long rate)
+@@ -150,7 +150,7 @@ int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
  	return omap3_noncore_dpll_set_rate(clk, rate);
  }
-=20
--
--/*
-- * CORE DPLL (DPLL3) rate programming functions
-- *
-- * These call into SRAM code to do the actual CM writes, since the SDR=
-AM
-- * is clocked from DPLL3.
-- */
--
--/**
-- * omap3_core_dpll_m2_set_rate - set CORE DPLL M2 divider
-- * @clk: struct clk * of DPLL to set
-- * @rate: rounded target rate
-- *
-- * Program the DPLL M2 divider with the rounded target rate.  Returns
-- * -EINVAL upon error, or 0 upon success.
-- */
--int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
--{
--	u32 new_div =3D 0;
--	u32 unlock_dll =3D 0;
--	u32 c;
--	unsigned long validrate, sdrcrate, _mpurate;
--	struct omap_sdrc_params *sdrc_cs0;
--	struct omap_sdrc_params *sdrc_cs1;
--	int ret;
--
--	if (!clk || !rate)
--		return -EINVAL;
--
--	validrate =3D omap2_clksel_round_rate_div(clk, rate, &new_div);
--	if (validrate !=3D rate)
--		return -EINVAL;
--
--	sdrcrate =3D sdrc_ick_p->rate;
--	if (rate > clk->rate)
--		sdrcrate <<=3D ((rate / clk->rate) >> 1);
--	else
--		sdrcrate >>=3D ((clk->rate / rate) >> 1);
--
--	ret =3D omap2_sdrc_get_params(sdrcrate, &sdrc_cs0, &sdrc_cs1);
--	if (ret)
--		return -EINVAL;
--
--	if (sdrcrate < MIN_SDRC_DLL_LOCK_FREQ) {
--		pr_debug("clock: will unlock SDRC DLL\n");
--		unlock_dll =3D 1;
+ 
+-void omap3_clk_lock_dpll5(void)
++void __init omap3_clk_lock_dpll5(void)
+ {
+ 	struct clk *dpll5_clk;
+ 	struct clk *dpll5_m2_clk;
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 9a2c07e..73f2109 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -8,6 +8,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_CLOCK_34XX_H
+ #define __ARCH_ARM_MACH_OMAP2_CLOCK_34XX_H
+ 
++int omap3xxx_clk_init(void);
+ int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate);
+ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate);
+ void omap3_clk_lock_dpll5(void);
+diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
+index 9e7f68a..0d04f92 100644
+--- a/arch/arm/mach-omap2/clock34xx_data.c
++++ b/arch/arm/mach-omap2/clock34xx_data.c
+@@ -3212,11 +3212,9 @@ static struct omap_clk omap3xxx_clks[] = {
+ };
+ 
+ 
+-int __init omap2_clk_init(void)
++int __init omap3xxx_clk_init(void)
+ {
+-	/* struct prcm_config *prcm; */
+ 	struct omap_clk *c;
+-	/* u32 clkrate; */
+ 	u32 cpu_clkflg = CK_3XXX;
+ 
+ 	if (cpu_is_omap3517()) {
+@@ -3254,21 +3252,6 @@ int __init omap2_clk_init(void)
+ 			omap2_init_clk_clkdm(c->lk.clk);
+ 		}
+ 
+-	/* REVISIT: Not yet ready for OMAP3 */
+-#if 0
+-	/* Check the MPU rate set by bootloader */
+-	clkrate = omap2_get_dpll_rate_24xx(&dpll_ck);
+-	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+-		if (!(prcm->flags & cpu_mask))
+-			continue;
+-		if (prcm->xtal_speed != sys_ck.rate)
+-			continue;
+-		if (prcm->dpll_speed <= clkrate)
+-			break;
 -	}
+-	curr_prcm_set = prcm;
+-#endif
 -
--	/*
--	 * XXX This only needs to be done when the CPU frequency changes
--	 */
--	_mpurate =3D arm_fck_p->rate / CYCLES_PER_MHZ;
--	c =3D (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
--	c +=3D 1;  /* for safety */
--	c *=3D SDRC_MPURATE_LOOPS;
--	c >>=3D SDRC_MPURATE_SCALE;
--	if (c =3D=3D 0)
--		c =3D 1;
--
--	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rat=
-e,
--		 validrate);
--	pr_debug("clock: SDRC CS0 timing params used:"
--		 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
--		 sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
--		 sdrc_cs0->actim_ctrlb, sdrc_cs0->mr);
--	if (sdrc_cs1)
--		pr_debug("clock: SDRC CS1 timing params used: "
--		 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
--		 sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
--		 sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
--
--	if (sdrc_cs1)
--		omap3_configure_core_dpll(
--				  new_div, unlock_dll, c, rate > clk->rate,
--				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
--				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
--				  sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
--				  sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
--	else
--		omap3_configure_core_dpll(
--				  new_div, unlock_dll, c, rate > clk->rate,
--				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
--				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
--				  0, 0, 0, 0);
--
--	return 0;
--}
--
- /* Common clock code */
-=20
- /*
+ 	recalculate_root_clocks();
+ 
+ 	printk(KERN_INFO "Clocking rate (Crystal/Core/MPU): "
+diff --git a/arch/arm/mach-omap2/clock44xx.h b/arch/arm/mach-omap2/clock44xx.h
+index 59b9ced..1f55b6b 100644
+--- a/arch/arm/mach-omap2/clock44xx.h
++++ b/arch/arm/mach-omap2/clock44xx.h
+@@ -10,6 +10,8 @@
+ #define OMAP4430_MAX_DPLL_MULT	2048
+ #define OMAP4430_MAX_DPLL_DIV	128
+ 
++int omap4xxx_clk_init(void);
++
+ extern const struct clkops clkops_noncore_dpll_ops;
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index ae9649f..35ffe63 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -2726,11 +2726,9 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"utmi_p2_gfclk_ck",		&utmi_p2_gfclk_ck,	CK_443X),
+ };
+ 
+-int __init omap2_clk_init(void)
++int __init omap4xxx_clk_init(void)
+ {
+-	/* struct prcm_config *prcm; */
+ 	struct omap_clk *c;
+-	/* u32 clkrate; */
+ 	u32 cpu_clkflg;
+ 
+ 	if (cpu_is_omap44xx()) {
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 8c58699..01ef2ae 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -35,7 +35,9 @@
+ #include <plat/serial.h>
+ #include <plat/vram.h>
+ 
+-#include "clock.h"
++#include "clock2xxx.h"
++#include "clock34xx.h"
++#include "clock44xx.h"
+ 
+ #include <plat/omap-pm.h>
+ #include <plat/powerdomain.h>
+@@ -320,7 +322,16 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 	omap2_mux_init();
+ 	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
+ #endif
+-	omap2_clk_init();
++
++	if (cpu_is_omap24xx())
++		omap2xxx_clk_init();
++	else if (cpu_is_omap34xx())
++		omap3xxx_clk_init();
++	else if (cpu_is_omap44xx())
++		omap4xxx_clk_init();
++	else
++		pr_err("Could not init clock framework - unknown CPU\n");
++
+ 	omap_serial_early_init();
+ #ifndef CONFIG_ARCH_OMAP4
+ 	omap_hwmod_late_init();
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
