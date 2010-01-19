@@ -1,12 +1,12 @@
 From: x0080970@ti.com
-Subject: [PATCH v2 5/6] omap3: pm: Use generic TRITON power scripts for OMAP3430 board
-Date: Tue, 19 Jan 2010 23:06:25 +0530
-Message-ID: <1263922585-13854-1-git-send-email-x0080970@ti.com>
+Subject: [PATCH v2 6/6] omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP board
+Date: Tue, 19 Jan 2010 23:06:35 +0530
+Message-ID: <1263922595-13878-1-git-send-email-x0080970@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51362 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51372 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751523Ab0ASRYQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Jan 2010 12:24:16 -0500
+	id S1751458Ab0ASRY3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jan 2010 12:24:29 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -14,7 +14,7 @@ Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dder
 
 From: Lesly A M <x0080970@ti.com>
 
-omap3: pm: Use generic TRITON power scripts for OMAP3430 board
+omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP board
 
 Removed the sleep/wakeup/warm_rest sequence from the board file.
 Using the api(use_generic_twl4030_script) to update
@@ -26,41 +26,51 @@ Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 
 ---
- arch/arm/mach-omap2/Makefile        |    3 -
- arch/arm/mach-omap2/board-3430sdp.c |   79 +-----------------------------------
- 2 files changed, 6 insertions(+), 76 deletions(-)
+ arch/arm/mach-omap2/Makefile                 |    9 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   82 ++-------------------------
+ 2 files changed, 13 insertions(+), 78 deletions(-)
 
 Index: linux-omap-pm/arch/arm/mach-omap2/Makefile
 ===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/Makefile	2010-01-19 20:59:58.000000000 +0530
-+++ linux-omap-pm/arch/arm/mach-omap2/Makefile	2010-01-19 21:14:14.000000000 +0530
-@@ -89,7 +89,8 @@
- obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+--- linux-omap-pm.orig/arch/arm/mach-omap2/Makefile	2010-01-19 21:00:26.000000000 +0530
++++ linux-omap-pm/arch/arm/mach-omap2/Makefile	2010-01-19 21:00:26.000000000 +0530
+@@ -99,14 +99,17 @@
+ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+ 					   board-zoom-peripherals.o \
+ 					   mmc-twl4030.o \
+-					   board-zoom-debugboard.o
++					   board-zoom-debugboard.o \
++					   twl4030-script.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+ 					   board-zoom-peripherals.o \
+ 					   mmc-twl4030.o \
+-					   board-zoom-debugboard.o
++					   board-zoom-debugboard.o \
++					   twl4030-script.o
+ obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
+ 					   board-zoom-peripherals.o \
 -					   mmc-twl4030.o
 +					   mmc-twl4030.o \
 +					   twl4030-script.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-sdram.o \
-Index: linux-omap-pm/arch/arm/mach-omap2/board-3430sdp.c
+ obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
+Index: linux-omap-pm/arch/arm/mach-omap2/board-zoom-peripherals.c
 ===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/board-3430sdp.c	2010-01-19 21:00:25.000000000 +0530
-+++ linux-omap-pm/arch/arm/mach-omap2/board-3430sdp.c	2010-01-19 21:15:38.000000000 +0530
-@@ -46,6 +46,7 @@
+--- linux-omap-pm.orig/arch/arm/mach-omap2/board-zoom-peripherals.c	2010-01-19 21:00:25.000000000 +0530
++++ linux-omap-pm/arch/arm/mach-omap2/board-zoom-peripherals.c	2010-01-19 21:11:01.000000000 +0530
+@@ -26,6 +26,7 @@
+ 
  #include "mux.h"
- #include "sdram-qimonda-hyb18m512160af-6.h"
  #include "mmc-twl4030.h"
 +#include "twl4030-script.h"
  #include "pm.h"
- #include "omap3-opp.h"
  
-@@ -446,79 +447,6 @@
- 	.irq_line	= 1,
+ /* Zoom2 has Qwerty keyboard*/
+@@ -95,78 +96,6 @@
+ 	.rep		= 1,
  };
  
--
 -static struct twl4030_ins __initdata sleep_on_seq[] = {
 -	/* Broadcast message to put res to sleep */
 -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
@@ -136,22 +146,28 @@ Index: linux-omap-pm/arch/arm/mach-omap2/board-3430sdp.c
  static struct twl4030_resconfig twl4030_rconfig[] = {
  	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1, .type = 3,
  		.type2 = 1, .remap_sleep = RES_STATE_OFF },
-@@ -548,8 +476,6 @@
+@@ -196,8 +125,6 @@
  };
  
- static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
+ static struct twl4030_power_data zoom_t2scripts_data __initdata = {
 -	.scripts	= twl4030_scripts,
 -	.num		= ARRAY_SIZE(twl4030_scripts),
  	.resource_config = twl4030_rconfig,
  };
  
-@@ -806,6 +732,9 @@
+@@ -381,9 +308,14 @@
  
- static void __init omap_3430sdp_init(void)
+ void __init zoom_peripherals_init(void *peripheral_data)
  {
-+	use_generic_twl4030_script(&sdp3430_t2scripts_data,
-+				&omap3_setuptime_table);
++	struct prm_setup_vc *omap3_setuptime =
++				(struct prm_setup_vc *)peripheral_data;
 +
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap3430_i2c_init();
- 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
++	use_generic_twl4030_script(&zoom_t2scripts_data , omap3_setuptime);
++
+ 	omap_i2c_init();
+ 	omap_serial_init();
+ 	usb_musb_init();
+ 	enable_board_wakeup_source();
+-	omap3_pm_init_vc((struct prm_setup_vc *)peripheral_data);
++	omap3_pm_init_vc(omap3_setuptime);
+ }
