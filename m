@@ -1,135 +1,140 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 2/8] OMAP3 PM: Conditional UART context save restore.
-Date: Wed, 20 Jan 2010 21:00:36 +0530
-Message-ID: <1264001442-20078-3-git-send-email-thara@ti.com>
+Subject: [PATCH 3/8] OMAP2/3 PM: Adding powerdomain APIs for reading the next logic and mem state
+Date: Wed, 20 Jan 2010 21:00:37 +0530
+Message-ID: <1264001442-20078-4-git-send-email-thara@ti.com>
 References: <1264001442-20078-1-git-send-email-thara@ti.com>
  <1264001442-20078-2-git-send-email-thara@ti.com>
+ <1264001442-20078-3-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46418 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59004 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753300Ab0ATPat (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jan 2010 10:30:49 -0500
+	id S1753351Ab0ATPas (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jan 2010 10:30:48 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0KFUjq4015566
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0KFUjda012766
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <linux-omap@vger.kernel.org>; Wed, 20 Jan 2010 09:30:47 -0600
-In-Reply-To: <1264001442-20078-2-git-send-email-thara@ti.com>
+In-Reply-To: <1264001442-20078-3-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Thara Gopinath <thara@ti.com>
 
-Currently UART context save is done in idle
-thread thru a call to omap_uart_prepare_idle irrespective of
-what power state is attained by the power domain to which
-the UART belongs to. This patch allows omap_uart_prepare_idle
-to take power state as a parameter and this function in
-turn does a uart context save only if the passed power state
-is PWRDM_POWER_OFF. In the restore path a restore will
-happen only if a valid save has happened.
+This patch adds APIs pwrdm_read_next_logic_pwrst and
+pwrdm_read_next_mem_pwrst for reading the next programmed
+logic and memory state a powerdomain is to hit in event
+of the next power domain state being retention.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c             |    6 +++---
- arch/arm/mach-omap2/serial.c             |   17 +++++++----------
- arch/arm/plat-omap/include/plat/serial.h |    2 +-
- 3 files changed, 11 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c             |   71 +++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/powerdomain.h |    2 +
+ 2 files changed, 73 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 8f5e819..895e9ef 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -418,7 +418,7 @@ void omap_sram_idle(void)
- 			} else
- 				omap3_per_save_context();
- 		}
--		omap_uart_prepare_idle(2);
-+		omap_uart_prepare_idle(2, per_next_state);
- 	}
- 
- 	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
-@@ -435,8 +435,8 @@ void omap_sram_idle(void)
- 
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
--		omap_uart_prepare_idle(0);
--		omap_uart_prepare_idle(1);
-+		omap_uart_prepare_idle(0, core_next_state);
-+		omap_uart_prepare_idle(1, core_next_state);
- 		if (core_next_state == PWRDM_POWER_OFF) {
- 			u32 voltctrl = OMAP3430_AUTO_OFF;
- 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 837b347..fb59d5f 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -168,9 +168,6 @@ static void omap_uart_save_context(struct omap_uart_state *uart)
- 	u16 lcr = 0;
- 	struct plat_serial8250_port *p = uart->p;
- 
--	if (!enable_off_mode)
--		return;
--
- 	lcr = serial_read_reg(p, UART_LCR);
- 	serial_write_reg(p, UART_LCR, 0xBF);
- 	uart->dll = serial_read_reg(p, UART_DLL);
-@@ -189,9 +186,6 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
- 	u16 efr = 0;
- 	struct plat_serial8250_port *p = uart->p;
- 
--	if (!enable_off_mode)
--		return;
--
- 	if (!uart->context_valid)
- 		return;
- 
-@@ -235,12 +229,15 @@ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
- 
- #ifdef CONFIG_PM
- 
--static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
-+static inline void omap_uart_disable_clocks(struct omap_uart_state *uart,
-+							int power_state)
- {
- 	if (!uart->clocked)
- 		return;
- 
--	omap_uart_save_context(uart);
-+	if (power_state == PWRDM_POWER_OFF)
-+		omap_uart_save_context(uart);
-+
- 	uart->clocked = 0;
- 	clk_disable(uart->ick);
- 	clk_disable(uart->fck);
-@@ -329,13 +326,13 @@ static void omap_uart_idle_timer(unsigned long data)
- 	omap_uart_allow_sleep(uart);
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 26b3f3e..06bf290 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -964,6 +964,29 @@ int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
  }
  
--void omap_uart_prepare_idle(int num)
-+void omap_uart_prepare_idle(int num, int power_state)
- {
- 	struct omap_uart_state *uart;
+ /**
++ * pwrdm_read_next_logic_pwrst - get next powerdomain logic power state
++ * @pwrdm: struct powerdomain * to get next logic power state
++ *
++ * Return the powerdomain pwrdm's logic power state.  Returns -EINVAL
++ * if the powerdomain pointer is null or returns the next logic
++ * power state upon success.
++ */
++int pwrdm_read_next_logic_pwrst(struct powerdomain *pwrdm)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	/*
++	 * The register bit names below may not correspond to the
++	 * actual names of the bits in each powerdomain's register,
++	 * but the type of value returned is the same for each
++	 * powerdomain.
++	 */
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
++					OMAP3430_LOGICSTATEST);
++}
++
++/**
+  * pwrdm_read_mem_pwrst - get current memory bank power state
+  * @pwrdm: struct powerdomain * to get current memory bank power state
+  * @bank: memory bank number (0-3)
+@@ -1065,6 +1088,54 @@ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+ }
  
- 	list_for_each_entry(uart, &uart_list, node) {
- 		if (num == uart->num && uart->can_sleep) {
--			omap_uart_disable_clocks(uart);
-+			omap_uart_disable_clocks(uart, power_state);
- 			return;
- 		}
- 	}
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index f5a4a92..ca76742 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -57,7 +57,7 @@ extern void omap_serial_init_port(int port);
- extern int omap_uart_can_sleep(void);
- extern void omap_uart_check_wakeup(void);
- extern void omap_uart_prepare_suspend(void);
--extern void omap_uart_prepare_idle(int num);
-+extern void omap_uart_prepare_idle(int num, int power_state);
- extern void omap_uart_resume_idle(int num);
- extern void omap_uart_enable_irqs(int enable);
- #endif
+ /**
++ * pwrdm_read_next_mem_pwrst - get next memory bank power state
++ * @pwrdm: struct powerdomain * to get mext memory bank power state
++ * @bank: memory bank number (0-3)
++ *
++ * Return the powerdomain pwrdm's next memory power state for bank
++ * x.  Returns -EINVAL if the powerdomain pointer is null, -EEXIST if
++ * the target memory bank does not exist or is not controllable, or
++ * returns the next memory power state upon success.
++ */
++int pwrdm_read_next_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
++{
++	u32 m;
++
++	if (!pwrdm)
++		return -EINVAL;
++
++	if (pwrdm->banks < (bank + 1))
++		return -EEXIST;
++
++	/*
++	 * The register bit names below may not correspond to the
++	 * actual names of the bits in each powerdomain's register,
++	 * but the type of value returned is the same for each
++	 * powerdomain.
++	 */
++	switch (bank) {
++	case 0:
++		m = OMAP3430_SHAREDL1CACHEFLATRETSTATE;
++		break;
++	case 1:
++		m = OMAP3430_L1FLATMEMRETSTATE;
++		break;
++	case 2:
++		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
++		break;
++	case 3:
++		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
++		break;
++	default:
++		WARN_ON(1); /* should never happen */
++		return -EEXIST;
++	}
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
++					PM_PWSTCTRL, m);
++}
++
++/**
+  * pwrdm_clear_all_prev_pwrst - clear previous powerstate register for a pwrdm
+  * @pwrdm: struct powerdomain * to clear
+  *
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+index 0b96005..7576559 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -170,8 +170,10 @@ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
+ 
+ int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
+ int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
++int pwrdm_read_next_logic_pwrst(struct powerdomain *pwrdm);
+ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
+ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
++int pwrdm_read_next_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
+ 
+ int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm);
+ int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
 -- 
 1.5.6.3
 
