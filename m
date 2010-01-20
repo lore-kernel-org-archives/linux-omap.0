@@ -1,28 +1,32 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH] DSPBRIDGE: replace init_timer with init_timer_on_stack
-Date: Wed, 20 Jan 2010 11:55:03 +0200
-Message-ID: <1263981303.2066.2.camel@sanganak>
-References: <1263948311-22140-1-git-send-email-nm@ti.com>
+Subject: Re: [PATCH] DSPBRIDGE: dont pass invalid DSP OPP requests
+Date: Wed, 20 Jan 2010 12:01:23 +0200
+Message-ID: <1263981683.2066.5.camel@sanganak>
+References: <1263951848-16822-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:51925 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250Ab0ATJ4K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 04:56:10 -0500
-In-Reply-To: <1263948311-22140-1-git-send-email-nm@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:22687 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902Ab0ATKCH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 05:02:07 -0500
+In-Reply-To: <1263951848-16822-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Nishanth Menon <nm@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, Deepak Chitriki <deepak.chitriki@ti.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-On Wed, 2010-01-20 at 01:45 +0100, ext Nishanth Menon wrote:
-> With LOCK_DEP enabled and DEBUG_OBJECTS_TIMERS, DSPBridge
-> SYNC_WaitOnMultipleEvents will fail with message
-> "ODEBUG: object is on stack, but not annotated"
-> since the timeout timer is on the stack, we should rightly use
-> init_timer_on_stack.
+Hi Nishanth,
+
+On Wed, 2010-01-20 at 02:44 +0100, ext Nishanth Menon wrote:
+> If DSP baseimage requests for invalid OPPs, do not pass them
+> to the rest of the linux kernel subsystem. with a test baseimage
+> it was found to send
+> IO_DispatchPM: WMDIOCTL_CONSTRAINT_REQUEST with parameter 0.
+> this is an invalid OPP ID and should not be passed anywhere.
+> we add a param check for this prior to passing it along to the
+> workqueue.
 > 
 > Cc: Ameya Palande <ameya.palande@nokia.com>
 > Cc: Deepak Chitriki <deepak.chitriki@ti.com>
@@ -32,22 +36,34 @@ On Wed, 2010-01-20 at 01:45 +0100, ext Nishanth Menon wrote:
 > 
 > Signed-off-by: Nishanth Menon <nm@ti.com>
 > ---
->  drivers/dsp/bridge/services/sync.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  drivers/dsp/bridge/wmd/io_sm.c |    9 ++++++---
+>  1 files changed, 6 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/dsp/bridge/services/sync.c b/drivers/dsp/bridge/services/sync.c
-> index c2d79c7..d246656 100644
-> --- a/drivers/dsp/bridge/services/sync.c
-> +++ b/drivers/dsp/bridge/services/sync.c
-> @@ -330,7 +330,7 @@ DSP_STATUS SYNC_WaitOnMultipleEvents(struct SYNC_OBJECT **hSyncEvents,
->  	if (Wp->state != wo_signalled && dwTimeout > 0) {
->  		struct timer_list timeout;
->  		if (dwTimeout != SYNC_INFINITE) {
-> -			init_timer(&timeout);
-> +			init_timer_on_stack(&timeout);
->  			timeout.function = timeout_callback;
->  			timeout.data = (unsigned long)Wp;
->  			timeout.expires = jiffies + dwTimeout * HZ / 1000;
+> diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+> index 6c140c5..618bedb 100644
+> --- a/drivers/dsp/bridge/wmd/io_sm.c
+> +++ b/drivers/dsp/bridge/wmd/io_sm.c
+> @@ -960,9 +960,12 @@ static void IO_DispatchPM(struct work_struct *work)
+>  			pArg[1] = pIOMgr->pSharedMem->oppRequest.rqstOppPt;
+>  			DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Value of OPP "
+>  				 "value =0x%x \n", pArg[1]);
+> -			status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
+> -				 hWmdContext, WMDIOCTL_CONSTRAINT_REQUEST,
+> -				 pArg);
+> +			if (!pArg[1])
+> +				status = DSP_EINVALIDARG;
+> +			else
+> +				status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
+> +					 hWmdContext,
+> +					 WMDIOCTL_CONSTRAINT_REQUEST, pArg);
+>  			if (DSP_FAILED(status)) {
+>  				DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Failed "
+>  					 "to set constraint = 0x%x \n",
 
-Acked-by: Ameya Palande <ameya.palande@nokia.com>
+Instead of checking just for 0, isn't it better to check for any value
+outside of valid OPPs? (Especially if we need robust implementation
+which shouldn't break because of DSP BIOS blackbox!).
+
+Cheers,
+Ameya.
 
