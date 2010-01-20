@@ -1,149 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 5/10] omap: Add functions for dynamic remuxing of
- pins
-Date: Tue, 19 Jan 2010 17:21:21 -0800
-Message-ID: <20100120012120.GJ10318@atomide.com>
-References: <20100117013250.17308.17861.sendpatchset@ahunter-work.research.nokia.com>
- <20100117013328.17308.2865.sendpatchset@ahunter-work.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] DSPBRIDGE: dont pass invalid DSP OPP requests
+Date: Tue, 19 Jan 2010 19:44:08 -0600
+Message-ID: <1263951848-16822-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49730 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755092Ab0ATBVP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 20:21:15 -0500
-Content-Disposition: inline
-In-Reply-To: <20100117013328.17308.2865.sendpatchset@ahunter-work.research.nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45389 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754033Ab0ATBoR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jan 2010 20:44:17 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Deepak Chitriki <deepak.chitriki@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-* Adrian Hunter <adrian.hunter@nokia.com> [100116 17:31]:
-> From 33beb5bc36cba739971dc8919a6929925ad3dafc Mon Sep 17 00:00:00 2001
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Wed, 13 Jan 2010 10:27:17 -0800
-> Subject: [PATCH] omap: Add functions for dynamic remuxing of pins
-> 
-> Make the omap_mux_read and write available for board code,
-> and rename omap_mux_set_board_signals into omap_mux_write_array.
-> 
-> In some cases we want to change the signals dynamically,
-> mostly for power management.
-> 
-> Note that we cannot use the signal names as they are set
-> __init to save memory.
+If DSP baseimage requests for invalid OPPs, do not pass them
+to the rest of the linux kernel subsystem. with a test baseimage
+it was found to send
+IO_DispatchPM: WMDIOCTL_CONSTRAINT_REQUEST with parameter 0.
+this is an invalid OPP ID and should not be passed anywhere.
+we add a param check for this prior to passing it along to the
+workqueue.
 
-I'll try to merge this as a fix since it fixes dynamic remuxing.
+Cc: Ameya Palande <ameya.palande@nokia.com>
+Cc: Deepak Chitriki <deepak.chitriki@ti.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Adrian, can I add your Acked-by?
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ drivers/dsp/bridge/wmd/io_sm.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-Regards,
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index 6c140c5..618bedb 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -960,9 +960,12 @@ static void IO_DispatchPM(struct work_struct *work)
+ 			pArg[1] = pIOMgr->pSharedMem->oppRequest.rqstOppPt;
+ 			DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Value of OPP "
+ 				 "value =0x%x \n", pArg[1]);
+-			status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
+-				 hWmdContext, WMDIOCTL_CONSTRAINT_REQUEST,
+-				 pArg);
++			if (!pArg[1])
++				status = DSP_EINVALIDARG;
++			else
++				status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
++					 hWmdContext,
++					 WMDIOCTL_CONSTRAINT_REQUEST, pArg);
+ 			if (DSP_FAILED(status)) {
+ 				DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Failed "
+ 					 "to set constraint = 0x%x \n",
+-- 
+1.6.3.3
 
-Tony
- 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/mux.c |   22 +++++++++++-----------
->  arch/arm/mach-omap2/mux.h |   24 ++++++++++++++++++++++++
->  2 files changed, 35 insertions(+), 11 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index a8febd3..50298b4 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -51,7 +51,7 @@ struct omap_mux_entry {
->  static unsigned long mux_phys;
->  static void __iomem *mux_base;
->  
-> -static inline u16 omap_mux_read(u16 reg)
-> +u16 omap_mux_read(u16 reg)
->  {
->  	if (cpu_is_omap24xx())
->  		return __raw_readb(mux_base + reg);
-> @@ -59,7 +59,7 @@ static inline u16 omap_mux_read(u16 reg)
->  		return __raw_readw(mux_base + reg);
->  }
->  
-> -static inline void omap_mux_write(u16 val, u16 reg)
-> +void omap_mux_write(u16 val, u16 reg)
->  {
->  	if (cpu_is_omap24xx())
->  		__raw_writeb(val, mux_base + reg);
-> @@ -67,6 +67,14 @@ static inline void omap_mux_write(u16 val, u16 reg)
->  		__raw_writew(val, mux_base + reg);
->  }
->  
-> +void omap_mux_write_array(struct omap_board_mux *board_mux)
-> +{
-> +	while (board_mux->reg_offset !=  OMAP_MUX_TERMINATOR) {
-> +		omap_mux_write(board_mux->value, board_mux->reg_offset);
-> +		board_mux++;
-> +	}
-> +}
-> +
->  #if defined(CONFIG_ARCH_OMAP24XX) && defined(CONFIG_OMAP_MUX)
->  
->  static struct omap_mux_cfg arch_mux_cfg;
-> @@ -833,14 +841,6 @@ static void __init omap_mux_set_cmdline_signals(void)
->  	kfree(options);
->  }
->  
-> -static void __init omap_mux_set_board_signals(struct omap_board_mux *board_mux)
-> -{
-> -	while (board_mux->reg_offset !=  OMAP_MUX_TERMINATOR) {
-> -		omap_mux_write(board_mux->value, board_mux->reg_offset);
-> -		board_mux++;
-> -	}
-> -}
-> -
->  static int __init omap_mux_copy_names(struct omap_mux *src,
->  					struct omap_mux *dst)
->  {
-> @@ -992,7 +992,7 @@ static void omap_mux_init_package(struct omap_mux *superset,
->  static void omap_mux_init_signals(struct omap_board_mux *board_mux)
->  {
->  	omap_mux_set_cmdline_signals();
-> -	omap_mux_set_board_signals(board_mux);
-> +	omap_mux_write_array(board_mux);
->  }
->  
->  #else
-> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-> index d8b4d5a..f8c2e7a 100644
-> --- a/arch/arm/mach-omap2/mux.h
-> +++ b/arch/arm/mach-omap2/mux.h
-> @@ -147,6 +147,30 @@ u16 omap_mux_get_gpio(int gpio);
->  void omap_mux_set_gpio(u16 val, int gpio);
->  
->  /**
-> + * omap_mux_read() - read mux register
-> + * @mux_offset:		Offset of the mux register
-> + *
-> + */
-> +u16 omap_mux_read(u16 mux_offset);
-> +
-> +/**
-> + * omap_mux_write() - write mux register
-> + * @val:		New mux register value
-> + * @mux_offset:		Offset of the mux register
-> + *
-> + * This should be only needed for dynamic remuxing of non-gpio signals.
-> + */
-> +void omap_mux_write(u16 val, u16 mux_offset);
-> +
-> +/**
-> + * omap_mux_write_array() - write an array of mux registers
-> + * @board_mux:		Array of mux registers terminated by MAP_MUX_TERMINATOR
-> + *
-> + * This should be only needed for dynamic remuxing of non-gpio signals.
-> + */
-> +void omap_mux_write_array(struct omap_board_mux *board_mux);
-> +
-> +/**
->   * omap3_mux_init() - initialize mux system with board specific set
->   * @board_mux:		Board specific mux table
->   * @flags:		OMAP package type used for the board
-> -- 
-> 1.6.0.4
-> 
