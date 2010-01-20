@@ -1,55 +1,66 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 4/8] OMAP3 PM: Defining .pwrsts_logic_ret field for core power domain structure
-Date: Wed, 20 Jan 2010 21:00:38 +0530
-Message-ID: <1264001442-20078-5-git-send-email-thara@ti.com>
-References: <1264001442-20078-1-git-send-email-thara@ti.com>
- <1264001442-20078-2-git-send-email-thara@ti.com>
- <1264001442-20078-3-git-send-email-thara@ti.com>
- <1264001442-20078-4-git-send-email-thara@ti.com>
+Subject: [PATCH 0/8] OMAP3: PM: Open Switch Retention support in the cpuidle thread.
+Date: Wed, 20 Jan 2010 21:00:34 +0530
+Message-ID: <1264001442-20078-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53796 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:53795 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753357Ab0ATPas (ORCPT
+	with ESMTP id S1752619Ab0ATPas (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 10:30:48 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0KFUj9T002045
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0KFUjab002042
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <linux-omap@vger.kernel.org>; Wed, 20 Jan 2010 09:30:47 -0600
-In-Reply-To: <1264001442-20078-4-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Thara Gopinath <thara@ti.com>
 
-This patch adds the flag .pwrsts_logic_ret info for the core power domain
-in the associated powerdomain structure. This flag specifies the states
-core domain logic can hit in event of the domain entering retention.
+In OMAP all power domains embed some logic and some memory.
+The power domain memory contains 
+	memory arrays: powered by a dedicated voltage rail
+	memory  logic : powered by the same voltage rail as
+			the power domain logic but has a
+			dedicated power switch(power on switch)
+The power domain logic for some power domains can be split between
+retention flip flops (RFF) or nonretention flip flops (DFF).
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
- arch/arm/mach-omap2/powerdomains34xx.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+When a power domain is in Open Switch Retention(OSWR) power on
+switch is set to 0, Vdd can be lowered to its retention value
+and is provided only to the RFF logic. Only the RFF logic is
+retained. The DFF logic is lost and reset on wakeup. The voltage
+to the memory arrays can be retained or cut which will in turn lead
+to memory arrays retaining or losing their contents
 
-diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
-index 588f7e0..6a058c7 100644
---- a/arch/arm/mach-omap2/powerdomains34xx.h
-+++ b/arch/arm/mach-omap2/powerdomains34xx.h
-@@ -208,6 +208,7 @@ static struct powerdomain core_34xx_pre_es3_1_pwrdm = {
- 					   CHIP_IS_OMAP3430ES2 |
- 					   CHIP_IS_OMAP3430ES3_0),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
-+	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
- 	.banks		  = 2,
- 	.pwrsts_mem_ret	  = {
-@@ -226,6 +227,7 @@ static struct powerdomain core_34xx_es3_1_pwrdm = {
- 	.prcm_offs	  = CORE_MOD,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
-+	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
- 	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
- 	.banks		  = 2,
--- 
-1.5.6.3
+This patch series introduces OSWR support for MPU and core domain
+in the cpuidle thread. The voltage to memory arrays in these
+power domains are also cut during OSWR.
+
+Thara Gopinath (8):
+  PM: Increase the cpu idle max state.
+  OMAP3 PM: Conditional UART context save restore.
+  OMAP2/3 PM: Adding powerdomain APIs for reading the next logic and
+    mem state
+  OMAP3 PM: Defining .pwrsts_logic_ret field for core power domain
+    structure
+  OMAP3 PM: Adding conditional core powerdomain context save and
+    restore
+  OMAP3 PM: Enable DPLL4 autoidle after system off.
+  OMAP3 PM: Support for Open SWitch Retention for Core and MPU power
+    domains in cpuidle path
+  OMAP3 PM: Support to enable disable OSWR feature from pm debug fs
+
+ arch/arm/mach-omap2/board-3430sdp.c           |    4 +
+ arch/arm/mach-omap2/cpuidle34xx.c             |  138 +++++++++++++++++++++++--
+ arch/arm/mach-omap2/pm-debug.c                |    5 +
+ arch/arm/mach-omap2/pm.h                      |    1 +
+ arch/arm/mach-omap2/pm34xx.c                  |  137 ++++++++++++++++++-------
+ arch/arm/mach-omap2/powerdomain.c             |   84 +++++++++++++++
+ arch/arm/mach-omap2/powerdomains34xx.h        |    2 +
+ arch/arm/mach-omap2/serial.c                  |   17 ++--
+ arch/arm/mach-omap2/sleep34xx.S               |    4 +
+ arch/arm/plat-omap/include/plat/powerdomain.h |    4 +
+ arch/arm/plat-omap/include/plat/serial.h      |    2 +-
+ include/linux/cpuidle.h                       |    2 +-
+ 12 files changed, 342 insertions(+), 58 deletions(-)
 
