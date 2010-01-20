@@ -1,108 +1,111 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv3 1/1] OMAP3: PM: move omap opp layer from pm34xx.c
-Date: Wed, 20 Jan 2010 16:20:52 +0200
-Message-ID: <20100120142052.GK12231@esdhcp037198.research.nokia.com>
-References: <1263983963-18480-1-git-send-email-eduardo.valentin@nokia.com>
- <4B56E5B3.8070303@ti.com>
- <20100120115407.GG12231@esdhcp037198.research.nokia.com>
- <4B56F045.4040708@ti.com>
- <20100120124052.GH12231@esdhcp037198.research.nokia.com>
- <4B56FAAF.2070600@ti.com>
- <20100120124906.GI12231@esdhcp037198.research.nokia.com>
- <4B56FD06.6040403@ti.com>
-Reply-To: eduardo.valentin@nokia.com
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH v2 1/6] omap3: pm: re-program the sleep state of TRITON
+ resources by modifying the REMAP register
+Date: Wed, 20 Jan 2010 17:28:33 +0200
+Message-ID: <4B572121.50402@compulab.co.il>
+References: <1263922501-13701-1-git-send-email-x0080970@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:25711 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752387Ab0ATOVb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 09:21:31 -0500
-Content-Disposition: inline
-In-Reply-To: <4B56FD06.6040403@ti.com>
+Received: from compulab.co.il ([67.18.134.219]:49197 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752324Ab0ATP3A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jan 2010 10:29:00 -0500
+In-Reply-To: <1263922501-13701-1-git-send-email-x0080970@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Romit Dasgupta <romit@ti.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "Keski-Saari Juha.1 (EXT-Teleca/Helsinki)" <ext-juha.1.keski-saari@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+To: x0080970@ti.com
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-On Wed, Jan 20, 2010 at 01:54:30PM +0100, ext Romit Dasgupta wrote:
-> Eduardo Valentin wrote:
-> > On Wed, Jan 20, 2010 at 01:44:31PM +0100, ext Romit Dasgupta wrote:
-> >> Eduardo Valentin wrote:
-> >>> On Wed, Jan 20, 2010 at 01:00:05PM +0100, ext Romit Dasgupta wrote:
-> >>>> Eduardo Valentin wrote:
-> >>>>> On Wed, Jan 20, 2010 at 12:14:59PM +0100, ext Romit Dasgupta wrote:
-> >>>>>>> From: Eduardo Valentin <eduardo.valentin@nokia.com>
-> >>>>>>>
-> >>>>>>> OMAP OPP layer functions now have dependencies of CONFIG_CPU_FREQ only.
-> >>>>>>>
-> >>>>>>> With this patch, omap opp layer now has its compilation flags
-> >>>>>>> bound to CONFIG_CPU_FREQ. Also its code has been removed from pm34xx.c.
-> >>>>>>>
-> >>>>>>> A new file has been created to contain cpu freq code related to
-> >>>>>>> OMAP3: cpufreq34xx.c.
-> >>>>>>>
-> >>>>>>> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> >>>>>> NAK also for the following  non-working kernel (smartreflex without cpufreq).
-> >>>>> Then this is a problem of dependency with smartreflex and cpufreq. In this case
-> >>>>> better to solve this other problem with another patch. This patch is to rip off
-> >>>>> cpufreq code from pm34xx, as stated in the above description.
-> >>>> In that case the right fix should
-> >>> OK
-> >>>
-> >>>> 1) __not__ include opp.h for non cpufreq builds
-> >>> I guess the patch is "more or less" this option, as it maps
-> >>> all functions inside opp.h to nops if it is a cpufreq build.
-> >>> And all related real code is not compiled.
-> >>>
-> >>> Basically removes the opp layer  code if cpufreq is disabled.
-> >>>
-> >> IMHO, making functions return 0 will give you run time issues when opp related
-> >> APIs are called in non cpufreq path. So your patch will for the time being solve
-> >> the build issue but not runtime issue. Hence I suggested to compile out opp.h if
-> >> you are not using cpufreq. Solving a build issue is not the right fix for this.
-> > 
-> > No, they are cleaned up by compiler. The following:
-> > 
-> > +static inline unsigned long omap_twl_vsel_to_uv(const u8 vsel)
-> > +{
-> > +	return 0;
-> > +}
-> > 
-> > will be translated to a nop in final kernel image.
-> > 
-> > That's the whole idea of this patch.
-> > 
-> > 
+x0080970@ti.com wrote:
+> From: Lesly A M <x0080970@ti.com>
 > 
-> Ok, what I mean is that it still solves build issue only. It does not produce a
-> bootable kernel without CPU_FREQ but with SMARTREFLEX. Smartreflex is almost
-> always there for a OMAP kernel. It is not a rarely used feature. So this patch
-> should have another part that fixes the Smartreflex issue!
+> omap3: pm: re-program the sleep state of TRITON resources by modifying the REMAP register
+> 
+> Removed the warning print with checking order of scripts, since the order
+> is not important. Only the values configured in the register, which is pointing to
+> the starting address of each sequence should be correct.
+> 
+> Signed-off-by: Lesly A M <x0080970@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: David Derrick <dderrick@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> 
+> ---
+>  drivers/mfd/twl4030-power.c |   30 +++++++++++++++++++++++-------
+>  1 file changed, 23 insertions(+), 7 deletions(-)
+> 
+> Index: linux-omap-pm/drivers/mfd/twl4030-power.c
+> ===================================================================
+> --- linux-omap-pm.orig/drivers/mfd/twl4030-power.c	2010-01-19 19:18:56.000000000 +0530
+> +++ linux-omap-pm/drivers/mfd/twl4030-power.c	2010-01-19 19:19:02.000000000 +0530
+> @@ -416,14 +416,35 @@
+>  		return err;
+>  	}
+>  
+> -	return 0;
+> +
+> +	/* Set the remap sleep cmd */
+> +	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &remap,
+> +					rconfig_addr + REMAP_OFFSET);
+> +	if (err < 0) {
+> +		printk(KERN_ERR "TWL4030 Resource %d remap could not read\n",
+> +							rconfig->resource);
+> +		return err;
+> +	}
+> +
+> +	if (rconfig->remap_sleep >= 0) {
+> +		remap &= ~SLEEP_STATE_MASK;
+> +		remap |= rconfig->remap_sleep;
+> +	}
+> +
+> +	err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, remap,
+> +				rconfig_addr + REMAP_OFFSET);
+> +	if (err < 0) {
+> +		pr_err("TWL4030 failed to program remap sleep cmd \n");
+> +		return err;
+> +	}
+> +
 
-Actually, system boots. It does not break the system. What I've tried is:
+Is it necessary to initialize the remap sleep twice?
 
-- rx51 board
-- omap3_pm_defconfig without CPU_FREQ
-- linux-omap-pm/pm-wip-opp branch + this patch
+> +	return err;
+>  }
+>  
+>  static int __init load_twl4030_script(struct twl4030_script *tscript,
+>  	       u8 address)
+>  {
+>  	int err;
+> -	static int order;
+>  
+>  	/* Make sure the script isn't going beyond last valid address (0x3f) */
+>  	if ((address + tscript->size) > END_OF_SCRIPT) {
+> @@ -444,7 +465,6 @@
+>  		err = twl4030_config_wakeup12_sequence(address);
+>  		if (err)
+>  			goto out;
+> -		order = 1;
+>  	}
+>  	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
+>  		err = twl4030_config_wakeup3_sequence(address);
+> @@ -452,10 +472,6 @@
+>  			goto out;
+>  	}
+>  	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+> -		if (order)
+> -			pr_warning("TWL4030: Bad order of scripts (sleep "\
+> -					"script before wakeup) Leads to boot"\
+> -					"failure on some boards\n");
+>  		err = twl4030_config_sleep_sequence(address);
+>  out:
+>  	return err;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-System boots, but smartreflex disables itself:
-
-...
-TCP cubic registered
-NET: Registered protocol family 17
-NET: Registered protocol family 15
-Power Management for TI OMAP3.
-SR: OPP rate tables not defined for platform, not enabling SmartReflex
-VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev 1
-,..
-
-But it does not break booting procedure.
-
-So, I don't see why this would be a reason for doing this compilation fix
-into two steps. Unless you see another issue.
-
-BR,
 
 -- 
-Eduardo Valentin
+Sincerely yours,
+Mike.
