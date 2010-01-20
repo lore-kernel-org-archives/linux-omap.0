@@ -1,69 +1,65 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH] DSPBRIDGE: dont pass invalid DSP OPP requests
-Date: Wed, 20 Jan 2010 12:01:23 +0200
-Message-ID: <1263981683.2066.5.camel@sanganak>
-References: <1263951848-16822-1-git-send-email-nm@ti.com>
+Subject: Re: [PATCH 5/6] DSPBRIDGE: remove wrong comment from
+ RequestBridgeResources
+Date: Wed, 20 Jan 2010 12:04:16 +0200
+Message-ID: <1263981856.2066.7.camel@sanganak>
+References: <1263934449-16891-1-git-send-email-omar.ramirez@ti.com>
+	 <1263934449-16891-2-git-send-email-omar.ramirez@ti.com>
+	 <1263934449-16891-3-git-send-email-omar.ramirez@ti.com>
+	 <1263934449-16891-4-git-send-email-omar.ramirez@ti.com>
+	 <1263934449-16891-5-git-send-email-omar.ramirez@ti.com>
+	 <1263934449-16891-6-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:22687 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751902Ab0ATKCH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 05:02:07 -0500
-In-Reply-To: <1263951848-16822-1-git-send-email-nm@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:54609 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751700Ab0ATKFa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 05:05:30 -0500
+In-Reply-To: <1263934449-16891-6-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Deepak Chitriki <deepak.chitriki@ti.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: ext Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>
 
-Hi Nishanth,
-
-On Wed, 2010-01-20 at 02:44 +0100, ext Nishanth Menon wrote:
-> If DSP baseimage requests for invalid OPPs, do not pass them
-> to the rest of the linux kernel subsystem. with a test baseimage
-> it was found to send
-> IO_DispatchPM: WMDIOCTL_CONSTRAINT_REQUEST with parameter 0.
-> this is an invalid OPP ID and should not be passed anywhere.
-> we add a param check for this prior to passing it along to the
-> workqueue.
+On Tue, 2010-01-19 at 21:54 +0100, ext Omar Ramirez Luna wrote:
+> From: Fernando Guzman Lugo <x0095840@ti.com>
 > 
-> Cc: Ameya Palande <ameya.palande@nokia.com>
-> Cc: Deepak Chitriki <deepak.chitriki@ti.com>
-> Cc: Felipe Contreras <felipe.contreras@nokia.com>
-> Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
-> Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+> This patch removes a wrong pointer and set to NULL dwSysCtrlBase
+> as it shouldn't be used anymore after iounmap.
 > 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 > ---
->  drivers/dsp/bridge/wmd/io_sm.c |    9 ++++++---
->  1 files changed, 6 insertions(+), 3 deletions(-)
+>  drivers/dsp/bridge/rmgr/drv.c |    7 +++----
+>  1 files changed, 3 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-> index 6c140c5..618bedb 100644
-> --- a/drivers/dsp/bridge/wmd/io_sm.c
-> +++ b/drivers/dsp/bridge/wmd/io_sm.c
-> @@ -960,9 +960,12 @@ static void IO_DispatchPM(struct work_struct *work)
->  			pArg[1] = pIOMgr->pSharedMem->oppRequest.rqstOppPt;
->  			DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Value of OPP "
->  				 "value =0x%x \n", pArg[1]);
-> -			status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
-> -				 hWmdContext, WMDIOCTL_CONSTRAINT_REQUEST,
-> -				 pArg);
-> +			if (!pArg[1])
-> +				status = DSP_EINVALIDARG;
-> +			else
-> +				status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
-> +					 hWmdContext,
-> +					 WMDIOCTL_CONSTRAINT_REQUEST, pArg);
->  			if (DSP_FAILED(status)) {
->  				DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Failed "
->  					 "to set constraint = 0x%x \n",
+> diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+> index 56ceb6c..9b07f25 100644
+> --- a/drivers/dsp/bridge/rmgr/drv.c
+> +++ b/drivers/dsp/bridge/rmgr/drv.c
+> @@ -1138,11 +1138,9 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
+>  				iounmap((void *)pResources->dwPerPmBase);
+>  			if (pResources->dwCorePmBase)
+>  				iounmap((void *)pResources->dwCorePmBase);
+> -			if (pResources->dwSysCtrlBase) {
+> +			if (pResources->dwSysCtrlBase)
+>  				iounmap(pResources->dwSysCtrlBase);
+> -				/* don't set pResources->dwSysCtrlBase to null
+> -				 * as it is used in BOARD_Stop */
+> -			}
+> +
+>  			pResources->dwPrmBase = NULL;
+>  			pResources->dwCmBase = NULL;
+>  			pResources->dwMboxBase = NULL;
+> @@ -1152,6 +1150,7 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
+>  			pResources->dwMemBase[4] = (u32) NULL;
+>  			pResources->dwWdTimerDspBase = NULL;
+>  			pResources->dwDmmuBase = NULL;
+> +			pResources->dwSysCtrlBase = NULL;
+>  
+>  			dwBuffSize = sizeof(struct CFG_HOSTRES);
+>  			status = REG_SetValue(CURRENTCONFIG, (u8 *)pResources,
 
-Instead of checking just for 0, isn't it better to check for any value
-outside of valid OPPs? (Especially if we need robust implementation
-which shouldn't break because of DSP BIOS blackbox!).
-
-Cheers,
-Ameya.
+Acked-by: Ameya Palande <ameya.palande@nokia.com>
 
