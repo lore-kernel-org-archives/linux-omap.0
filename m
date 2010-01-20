@@ -1,55 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL v2] More OMAP clock/hwmod fixes for 2.6.33-rc
-Date: Wed, 20 Jan 2010 14:06:21 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001201405440.3977@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/4] omap fixes for 2.6.33-rc4
+Date: Wed, 20 Jan 2010 13:23:29 -0800
+Message-ID: <20100120212248.25335.55761.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42629 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754180Ab0ATVGV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 16:06:21 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54441 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754758Ab0ATVXU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 16:23:20 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
+
+Hi all,
+
+Here are some omap fixes for review.
+
+Regards,
+
+Tony
+
+---
+
+Roel Kluin (1):
+      OMAP: dma_chan[lch_head].flag & OMAP_DMA_ACTIVE tested twice in omap_dma_unlink_lch()
+
+Tony Lindgren (3):
+      omap: Fix cmdline muxing
+      omap: Fix functions for dynamic remuxing of pins
+      omap3: Fix cpu detection
 
 
-Hi Tony,
+ arch/arm/mach-omap2/id.c              |   41 +++++++++++++++++++--------------
+ arch/arm/mach-omap2/mux.c             |   27 ++++++++++++----------
+ arch/arm/mach-omap2/mux.h             |   24 +++++++++++++++++++
+ arch/arm/plat-omap/dma.c              |    2 +-
+ arch/arm/plat-omap/include/plat/cpu.h |    1 +
+ 5 files changed, 64 insertions(+), 31 deletions(-)
 
-The following changes since commit 7284ce6c9f6153d1777df5f310c959724d1bd446:
-  Linus Torvalds (1):
-        Linux 2.6.33-rc4
-
-are available in the git repository at:
-
-  git://git.pwsan.com/linux-2.6 for_2.6.33rc_d
-
-This updated branch updates RMK's E-mail address and moves the OMAP4 PRCM 
-shift patch to the for_2.6.34 branch.
-
-
-Paul Walmsley (1):
-      OMAP1 clock: fix for "BUG: spinlock lockup on CPU#0"
-
-Rajendra Nayak (2):
-      OMAP4: PRCM: Fix the base address for CHIRONSS reg defines
-      OMAP4: clocks: Fix the clksel_rate struct DPLL divs
-
-Russell King (1):
-      OMAP3: clock: Remove unnecessarily .init initializers from OMAP3 clocks
-
-Thara Gopinath (1):
-      OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
-
- arch/arm/mach-omap1/clock.c                  |    6 +-
- arch/arm/mach-omap2/clock34xx_data.c         |    4 --
- arch/arm/mach-omap2/clock44xx_data.c         |   62 +++++++++++++-------------
- arch/arm/mach-omap2/omap_hwmod.c             |    3 +-
- arch/arm/mach-omap2/prm.h                    |    2 +
- arch/arm/mach-omap2/prm44xx.h                |   32 +++++++-------
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 7 files changed, 55 insertions(+), 55 deletions(-)
-
-
-- Paul
+-- 
+Signature
