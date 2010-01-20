@@ -1,132 +1,160 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] omap: Fix functions for dynamic remuxing of pins
-Date: Wed, 20 Jan 2010 13:23:38 -0800
-Message-ID: <20100120212338.25335.92846.stgit@baageli.muru.com>
+Subject: [PATCH 3/4] omap3: Fix cpu detection
+Date: Wed, 20 Jan 2010 13:23:41 -0800
+Message-ID: <20100120212341.25335.46975.stgit@baageli.muru.com>
 References: <20100120212248.25335.55761.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63656 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754762Ab0ATVX0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 16:23:26 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54683 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754767Ab0ATVX2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 16:23:28 -0500
 In-Reply-To: <20100120212248.25335.55761.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-Make the omap_mux_read and write available for board code,
-and rename omap_mux_set_board_signals into omap_mux_write_array.
-Also add the related prototypes and comments into mux.h.
+We need to set the omap_chip.oc carefully for the clocks to work.
 
-In some cases we want to change the signals dynamically,
-mostly for power management.
+To fix this, set the omap_chip.oc in omap3_check_features() based
+on the CONTROL_IDCODE and silicon revision registers.
 
-Note that we cannot use the signal names as they are set
-__init to save memory.
+Also add handling for 34xx es3.1.2 as es3.1 for now.
 
+Fixes booting on at least overo board.
+
+Based on an earlier patch by Paul Walmsley <paul@pwsan.com>.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mux.c |   22 +++++++++++-----------
- arch/arm/mach-omap2/mux.h |   24 ++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/id.c              |   41 +++++++++++++++++++--------------
+ arch/arm/plat-omap/include/plat/cpu.h |    1 +
+ 2 files changed, 24 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 40ea9fd..3f59bd1 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -51,7 +51,7 @@ struct omap_mux_entry {
- static unsigned long mux_phys;
- static void __iomem *mux_base;
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index a091b53..3d65c50 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -188,6 +188,8 @@ void __init omap3_check_revision(void)
+ 	u16 hawkeye;
+ 	u8 rev;
  
--static inline u16 omap_mux_read(u16 reg)
-+u16 omap_mux_read(u16 reg)
- {
- 	if (cpu_is_omap24xx())
- 		return __raw_readb(mux_base + reg);
-@@ -59,7 +59,7 @@ static inline u16 omap_mux_read(u16 reg)
- 		return __raw_readw(mux_base + reg);
++	omap_chip.oc = CHIP_IS_OMAP3430;
++
+ 	/*
+ 	 * We cannot access revision registers on ES1.0.
+ 	 * If the processor type is Cortex-A8 and the revision is 0x0
+@@ -196,6 +198,7 @@ void __init omap3_check_revision(void)
+ 	cpuid = read_cpuid(CPUID_ID);
+ 	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) == 0x0)) {
+ 		omap_revision = OMAP3430_REV_ES1_0;
++		omap_chip.oc |= CHIP_IS_OMAP3430ES1;
+ 		return;
+ 	}
+ 
+@@ -216,18 +219,28 @@ void __init omap3_check_revision(void)
+ 		case 0: /* Take care of early samples */
+ 		case 1:
+ 			omap_revision = OMAP3430_REV_ES2_0;
++			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
+ 			break;
+ 		case 2:
+ 			omap_revision = OMAP3430_REV_ES2_1;
++			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
+ 			break;
+ 		case 3:
+ 			omap_revision = OMAP3430_REV_ES3_0;
++			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
+ 			break;
+ 		case 4:
++			omap_revision = OMAP3430_REV_ES3_1;
++			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
++			break;
++		case 7:
+ 		/* FALLTHROUGH */
+ 		default:
+ 			/* Use the latest known revision as default */
+-			omap_revision = OMAP3430_REV_ES3_1;
++			omap_revision = OMAP3430_REV_ES3_1_2;
++
++			/* REVISIT: Add CHIP_IS_OMAP3430ES3_1_2? */
++			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+ 		}
+ 		break;
+ 	case 0xb868:
+@@ -235,14 +248,18 @@ void __init omap3_check_revision(void)
+ 		 *
+ 		 * Set the device to be OMAP3505 here. Actual device
+ 		 * is identified later based on the features.
++		 *
++		 * REVISIT: AM3505/AM3517 should have their own CHIP_IS
+ 		 */
+ 		omap_revision = OMAP3505_REV(rev);
++		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+ 		break;
+ 	case 0xb891:
+ 	/* FALLTHROUGH */
+ 	default:
+ 		/* Unknown default to latest silicon rev as default*/
+ 		omap_revision = OMAP3630_REV_ES1_0;
++		omap_chip.oc |= CHIP_IS_OMAP3630ES1;
+ 	}
  }
  
--static inline void omap_mux_write(u16 val, u16 reg)
-+void omap_mux_write(u16 val, u16 reg)
- {
- 	if (cpu_is_omap24xx())
- 		__raw_writeb(val, mux_base + reg);
-@@ -67,6 +67,14 @@ static inline void omap_mux_write(u16 val, u16 reg)
- 		__raw_writew(val, mux_base + reg);
+@@ -360,6 +377,7 @@ void __init omap2_check_revision(void)
+ 		omap3_check_revision();
+ 		omap3_check_features();
+ 		omap3_cpuinfo();
++		return;
+ 	} else if (cpu_is_omap44xx()) {
+ 		omap4_check_revision();
+ 		return;
+@@ -374,27 +392,14 @@ void __init omap2_check_revision(void)
+ 	if (cpu_is_omap243x()) {
+ 		/* Currently only supports 2430ES2.1 and 2430-all */
+ 		omap_chip.oc |= CHIP_IS_OMAP2430;
++		return;
+ 	} else if (cpu_is_omap242x()) {
+ 		/* Currently only supports 2420ES2.1.1 and 2420-all */
+ 		omap_chip.oc |= CHIP_IS_OMAP2420;
+-	} else if (cpu_is_omap3505() || cpu_is_omap3517()) {
+-		omap_chip.oc = CHIP_IS_OMAP3430 | CHIP_IS_OMAP3430ES3_1;
+-	} else if (cpu_is_omap343x()) {
+-		omap_chip.oc = CHIP_IS_OMAP3430;
+-		if (omap_rev() == OMAP3430_REV_ES1_0)
+-			omap_chip.oc |= CHIP_IS_OMAP3430ES1;
+-		else if (omap_rev() >= OMAP3430_REV_ES2_0 &&
+-			 omap_rev() <= OMAP3430_REV_ES2_1)
+-			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
+-		else if (omap_rev() == OMAP3430_REV_ES3_0)
+-			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
+-		else if (omap_rev() == OMAP3430_REV_ES3_1)
+-			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+-		else if (omap_rev() == OMAP3630_REV_ES1_0)
+-			omap_chip.oc |= CHIP_IS_OMAP3630ES1;
+-	} else {
+-		pr_err("Uninitialized omap_chip, please fix!\n");
++		return;
+ 	}
++
++	pr_err("Uninitialized omap_chip, please fix!\n");
  }
  
-+void omap_mux_write_array(struct omap_board_mux *board_mux)
-+{
-+	while (board_mux->reg_offset !=  OMAP_MUX_TERMINATOR) {
-+		omap_mux_write(board_mux->value, board_mux->reg_offset);
-+		board_mux++;
-+	}
-+}
-+
- #if defined(CONFIG_ARCH_OMAP24XX) && defined(CONFIG_OMAP_MUX)
+ /*
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 9a028bd..a162f58 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -434,6 +434,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define OMAP3430_REV_ES2_1	0x34302034
+ #define OMAP3430_REV_ES3_0	0x34303034
+ #define OMAP3430_REV_ES3_1	0x34304034
++#define OMAP3430_REV_ES3_1_2	0x34305034
  
- static struct omap_mux_cfg arch_mux_cfg;
-@@ -833,14 +841,6 @@ static void __init omap_mux_set_cmdline_signals(void)
- 	kfree(options);
- }
+ #define OMAP3630_REV_ES1_0	0x36300034
  
--static void __init omap_mux_set_board_signals(struct omap_board_mux *board_mux)
--{
--	while (board_mux->reg_offset !=  OMAP_MUX_TERMINATOR) {
--		omap_mux_write(board_mux->value, board_mux->reg_offset);
--		board_mux++;
--	}
--}
--
- static int __init omap_mux_copy_names(struct omap_mux *src,
- 					struct omap_mux *dst)
- {
-@@ -1004,7 +1004,7 @@ int __init omap_mux_init(u32 mux_pbase, u32 mux_size,
- 
- #ifdef CONFIG_OMAP_MUX
- 	omap_mux_set_cmdline_signals();
--	omap_mux_set_board_signals(board_mux);
-+	omap_mux_write_array(board_mux);
- #endif
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index d8b4d5a..f8c2e7a 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -147,6 +147,30 @@ u16 omap_mux_get_gpio(int gpio);
- void omap_mux_set_gpio(u16 val, int gpio);
- 
- /**
-+ * omap_mux_read() - read mux register
-+ * @mux_offset:		Offset of the mux register
-+ *
-+ */
-+u16 omap_mux_read(u16 mux_offset);
-+
-+/**
-+ * omap_mux_write() - write mux register
-+ * @val:		New mux register value
-+ * @mux_offset:		Offset of the mux register
-+ *
-+ * This should be only needed for dynamic remuxing of non-gpio signals.
-+ */
-+void omap_mux_write(u16 val, u16 mux_offset);
-+
-+/**
-+ * omap_mux_write_array() - write an array of mux registers
-+ * @board_mux:		Array of mux registers terminated by MAP_MUX_TERMINATOR
-+ *
-+ * This should be only needed for dynamic remuxing of non-gpio signals.
-+ */
-+void omap_mux_write_array(struct omap_board_mux *board_mux);
-+
-+/**
-  * omap3_mux_init() - initialize mux system with board specific set
-  * @board_mux:		Board specific mux table
-  * @flags:		OMAP package type used for the board
 
