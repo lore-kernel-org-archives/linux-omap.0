@@ -1,21 +1,22 @@
 From: Romit Dasgupta <romit@ti.com>
 Subject: Re: [PATCHv3 1/1] OMAP3: PM: move omap opp layer from pm34xx.c
-Date: Wed, 20 Jan 2010 16:43:17 +0530
-Message-ID: <4B56E54D.4070304@ti.com>
+Date: Wed, 20 Jan 2010 16:44:59 +0530
+Message-ID: <4B56E5B3.8070303@ti.com>
 References: <1263983963-18480-1-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47766 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35745 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752249Ab0ATLNa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jan 2010 06:13:30 -0500
+	id S1751874Ab0ATLPM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jan 2010 06:15:12 -0500
 In-Reply-To: <1263983963-18480-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Eduardo Valentin <eduardo.valentin@nokia.com>
 Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "\"Keski-Saari Juha.1 (EXT-Teleca/Helsinki)\"" <ext-juha.1.keski-saari@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+
 
 > From: Eduardo Valentin <eduardo.valentin@nokia.com>
 > 
@@ -28,6 +29,4 @@ Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com
 > OMAP3: cpufreq34xx.c.
 > 
 > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> ---
->  arch/arm/mach-omap2/Makefile          |    5 +
-NAK.  Your kernel will not boot if you build it without CONFIG_CPU_FREQ.
+NAK also for the following  non-working kernel (smartreflex without cpufreq).
