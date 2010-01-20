@@ -1,35 +1,55 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 0/3] OMAP4: prcm/clock fixes
-Date: Wed, 20 Jan 2010 13:46:55 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001201346070.3977@utopia.booyaka.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB031E2EC077@dbde02.ent.ti.com> <alpine.DEB.2.00.1001190911530.3977@utopia.booyaka.com> <alpine.DEB.2.00.1001190931480.3977@utopia.booyaka.com>
+Subject: [GIT PULL v2] More OMAP clock/hwmod fixes for 2.6.33-rc
+Date: Wed, 20 Jan 2010 14:06:21 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001201405440.3977@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58252 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42629 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754558Ab0ATUq4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 15:46:56 -0500
-In-Reply-To: <alpine.DEB.2.00.1001190931480.3977@utopia.booyaka.com>
+	with ESMTP id S1754180Ab0ATVGV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 16:06:21 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
 
-On Tue, 19 Jan 2010, Paul Walmsley wrote:
+Hi Tony,
 
-> On Tue, 19 Jan 2010, Paul Walmsley wrote:
-> > This patch is now posted for any comments or review:
-> > 
-> > http://www.pwsan.com/omap/patches/omap4_clk_fix/0001-OMAP4-PRCM-Define-shift-macros-as-n-instead-of-1.patch
-> 
-> Thanks, this is a total "brown paper bag" bug :-(
-> 
-> Queued for 2.6.33-rc.
+The following changes since commit 7284ce6c9f6153d1777df5f310c959724d1bd446:
+  Linus Torvalds (1):
+        Linux 2.6.33-rc4
 
-Based on some advice from Tony, this patch has been moved to the 
-for_2.6.34 branch.  Please let me know if this causes any problems.
+are available in the git repository at:
+
+  git://git.pwsan.com/linux-2.6 for_2.6.33rc_d
+
+This updated branch updates RMK's E-mail address and moves the OMAP4 PRCM 
+shift patch to the for_2.6.34 branch.
+
+
+Paul Walmsley (1):
+      OMAP1 clock: fix for "BUG: spinlock lockup on CPU#0"
+
+Rajendra Nayak (2):
+      OMAP4: PRCM: Fix the base address for CHIRONSS reg defines
+      OMAP4: clocks: Fix the clksel_rate struct DPLL divs
+
+Russell King (1):
+      OMAP3: clock: Remove unnecessarily .init initializers from OMAP3 clocks
+
+Thara Gopinath (1):
+      OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
+
+ arch/arm/mach-omap1/clock.c                  |    6 +-
+ arch/arm/mach-omap2/clock34xx_data.c         |    4 --
+ arch/arm/mach-omap2/clock44xx_data.c         |   62 +++++++++++++-------------
+ arch/arm/mach-omap2/omap_hwmod.c             |    3 +-
+ arch/arm/mach-omap2/prm.h                    |    2 +
+ arch/arm/mach-omap2/prm44xx.h                |   32 +++++++-------
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 7 files changed, 55 insertions(+), 55 deletions(-)
+
 
 - Paul
