@@ -1,84 +1,98 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE: dont pass invalid DSP OPP requests
-Date: Wed, 20 Jan 2010 11:04:01 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53042DF3AD46@dlee03.ent.ti.com>
-References: <1263951848-16822-1-git-send-email-nm@ti.com>
- <1263981683.2066.5.camel@sanganak> <4B56F0C8.9030903@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP: omap_device: add omap_device_is_valid()
+Date: Wed, 20 Jan 2010 09:17:07 -0800
+Message-ID: <1264007827-10138-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60729 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088Ab0ATREJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 12:04:09 -0500
-In-Reply-To: <4B56F0C8.9030903@gmail.com>
-Content-Language: en-US
+Received: from mail-iw0-f196.google.com ([209.85.223.196]:38900 "EHLO
+	mail-iw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751533Ab0ATRWd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 12:22:33 -0500
+Received: by iwn34 with SMTP id 34so3837415iwn.21
+        for <linux-omap@vger.kernel.org>; Wed, 20 Jan 2010 09:22:32 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <menon.nishanth@gmail.com>, Ameya Palande <ameya.palande@nokia.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+To: linux-omap@vger.kernel.org
 
->From: Nishanth Menon on Wednesday, January 20, 2010 6:02 AM
->
->Ameya Palande said the following on 01/20/2010 04:01 AM:
->> Hi Nishanth,
->>
->> On Wed, 2010-01-20 at 02:44 +0100, ext Nishanth Menon wrote:
->>
->>> If DSP baseimage requests for invalid OPPs, do not pass them
->>> to the rest of the linux kernel subsystem. with a test baseimage
->>> it was found to send
->>> IO_DispatchPM: WMDIOCTL_CONSTRAINT_REQUEST with parameter 0.
->>> this is an invalid OPP ID and should not be passed anywhere.
->>> we add a param check for this prior to passing it along to the
->>> workqueue.
->>>
->>> Cc: Ameya Palande <ameya.palande@nokia.com>
->>> Cc: Deepak Chitriki <deepak.chitriki@ti.com>
->>> Cc: Felipe Contreras <felipe.contreras@nokia.com>
->>> Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
->>> Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
->>>
->>> Signed-off-by: Nishanth Menon <nm@ti.com>
->>> ---
->>>  drivers/dsp/bridge/wmd/io_sm.c |    9 ++++++---
->>>  1 files changed, 6 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
->>> index 6c140c5..618bedb 100644
->>> --- a/drivers/dsp/bridge/wmd/io_sm.c
->>> +++ b/drivers/dsp/bridge/wmd/io_sm.c
->>> @@ -960,9 +960,12 @@ static void IO_DispatchPM(struct work_struct *work)
->>>  			pArg[1] = pIOMgr->pSharedMem->oppRequest.rqstOppPt;
->>>  			DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Value of OPP "
->>>  				 "value =0x%x \n", pArg[1]);
->>> -			status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
->>> -				 hWmdContext, WMDIOCTL_CONSTRAINT_REQUEST,
->>> -				 pArg);
->>> +			if (!pArg[1])
->>> +				status = DSP_EINVALIDARG;
->>> +			else
->>> +				status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
->>> +					 hWmdContext,
->>> +					 WMDIOCTL_CONSTRAINT_REQUEST, pArg);
->>>  			if (DSP_FAILED(status)) {
->>>  				DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Failed "
->>>  					 "to set constraint = 0x%x \n",
->>>
->>
->> Instead of checking just for 0, isn't it better to check for any value
->> outside of valid OPPs? (Especially if we need robust implementation
->> which shouldn't break because of DSP BIOS blackbox!).
+The omap_device struct contains a 'struct platform_device'.  Normally,
+converting a platform_device pointer to an omap_device pointer
+consists of simply doing a container_of(), as is done currently by the
+to_omap_device() macro.
 
-Dsp will ask only for the opps programmed to the shared memory... so no need, as long as the shared memory is filled with the right values.
+However, if this is attempted when using platform_device that has not
+been created as part of the omap_device creation, the container_of()
+will point to a memory location before the platform_device pointer
+which will contain random data.
 
->>
->>
->yeah, i agree. should check for the max level also. dropping this and
->will resend.
+Therefore, we need a way to detect valid omap_device pointers.  This
+patch solves this by using the simple magic number approach.
 
-Dsp doesn't request opp 0 to kernel.
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
+ arch/arm/plat-omap/omap_device.c              |   16 ++++++++++++++++
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
-- omar
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 76d4917..4677ff7 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -62,6 +62,7 @@
+  *
+  */
+ struct omap_device {
++	u32                             magic;
+ 	struct platform_device		pdev;
+ 	struct omap_hwmod		**hwmods;
+ 	struct omap_device_pm_latency	*pm_lats;
+@@ -81,6 +82,7 @@ int omap_device_shutdown(struct platform_device *pdev);
+ 
+ /* Core code interface */
+ 
++bool omap_device_is_valid(struct omap_device *od);
+ int omap_device_count_resources(struct omap_device *od);
+ int omap_device_fill_resources(struct omap_device *od, struct resource *res);
+ 
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index d8c75c8..3d1baa1 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -100,6 +100,8 @@
+ # error Unknown OMAP device
+ #endif
+ 
++#define OMAP_DEVICE_MAGIC 0xf00dcafe
++
+ /* Private functions */
+ 
+ /**
+@@ -417,6 +419,8 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	if (ret)
+ 		goto odbs_exit4;
+ 
++	od->magic = OMAP_DEVICE_MAGIC;
++
+ 	return od;
+ 
+ odbs_exit4:
+@@ -599,6 +603,18 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
+ }
+ 
+ /**
++ * omap_device_is_valid()
++ * @od: struct omap_device *
++ *
++ * Return whether struct omap_device pointer @od points to a valid
++ * omap_device.
++ */
++bool omap_device_is_valid(struct omap_device *od)
++{
++	return (od && od->magic == OMAP_DEVICE_MAGIC);
++}
++
++/**
+  * omap_device_get_pwrdm - return the powerdomain * associated with @od
+  * @od: struct omap_device *
+  *
+-- 
+1.6.6
 
