@@ -1,140 +1,84 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 3/8] OMAP2/3 PM: Adding powerdomain APIs for reading the next logic and mem state
-Date: Wed, 20 Jan 2010 21:00:37 +0530
-Message-ID: <1264001442-20078-4-git-send-email-thara@ti.com>
-References: <1264001442-20078-1-git-send-email-thara@ti.com>
- <1264001442-20078-2-git-send-email-thara@ti.com>
- <1264001442-20078-3-git-send-email-thara@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH] DSPBRIDGE: dont pass invalid DSP OPP requests
+Date: Wed, 20 Jan 2010 11:04:01 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53042DF3AD46@dlee03.ent.ti.com>
+References: <1263951848-16822-1-git-send-email-nm@ti.com>
+ <1263981683.2066.5.camel@sanganak> <4B56F0C8.9030903@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59004 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753351Ab0ATPas (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jan 2010 10:30:48 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0KFUjda012766
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 20 Jan 2010 09:30:47 -0600
-In-Reply-To: <1264001442-20078-3-git-send-email-thara@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60729 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752088Ab0ATREJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 12:04:09 -0500
+In-Reply-To: <4B56F0C8.9030903@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thara Gopinath <thara@ti.com>
+To: Nishanth Menon <menon.nishanth@gmail.com>, Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
 
-This patch adds APIs pwrdm_read_next_logic_pwrst and
-pwrdm_read_next_mem_pwrst for reading the next programmed
-logic and memory state a powerdomain is to hit in event
-of the next power domain state being retention.
+>From: Nishanth Menon on Wednesday, January 20, 2010 6:02 AM
+>
+>Ameya Palande said the following on 01/20/2010 04:01 AM:
+>> Hi Nishanth,
+>>
+>> On Wed, 2010-01-20 at 02:44 +0100, ext Nishanth Menon wrote:
+>>
+>>> If DSP baseimage requests for invalid OPPs, do not pass them
+>>> to the rest of the linux kernel subsystem. with a test baseimage
+>>> it was found to send
+>>> IO_DispatchPM: WMDIOCTL_CONSTRAINT_REQUEST with parameter 0.
+>>> this is an invalid OPP ID and should not be passed anywhere.
+>>> we add a param check for this prior to passing it along to the
+>>> workqueue.
+>>>
+>>> Cc: Ameya Palande <ameya.palande@nokia.com>
+>>> Cc: Deepak Chitriki <deepak.chitriki@ti.com>
+>>> Cc: Felipe Contreras <felipe.contreras@nokia.com>
+>>> Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
+>>> Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+>>>
+>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>> ---
+>>>  drivers/dsp/bridge/wmd/io_sm.c |    9 ++++++---
+>>>  1 files changed, 6 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+>>> index 6c140c5..618bedb 100644
+>>> --- a/drivers/dsp/bridge/wmd/io_sm.c
+>>> +++ b/drivers/dsp/bridge/wmd/io_sm.c
+>>> @@ -960,9 +960,12 @@ static void IO_DispatchPM(struct work_struct *work)
+>>>  			pArg[1] = pIOMgr->pSharedMem->oppRequest.rqstOppPt;
+>>>  			DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Value of OPP "
+>>>  				 "value =0x%x \n", pArg[1]);
+>>> -			status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
+>>> -				 hWmdContext, WMDIOCTL_CONSTRAINT_REQUEST,
+>>> -				 pArg);
+>>> +			if (!pArg[1])
+>>> +				status = DSP_EINVALIDARG;
+>>> +			else
+>>> +				status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
+>>> +					 hWmdContext,
+>>> +					 WMDIOCTL_CONSTRAINT_REQUEST, pArg);
+>>>  			if (DSP_FAILED(status)) {
+>>>  				DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Failed "
+>>>  					 "to set constraint = 0x%x \n",
+>>>
+>>
+>> Instead of checking just for 0, isn't it better to check for any value
+>> outside of valid OPPs? (Especially if we need robust implementation
+>> which shouldn't break because of DSP BIOS blackbox!).
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
- arch/arm/mach-omap2/powerdomain.c             |   71 +++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/powerdomain.h |    2 +
- 2 files changed, 73 insertions(+), 0 deletions(-)
+Dsp will ask only for the opps programmed to the shared memory... so no need, as long as the shared memory is filled with the right values.
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 26b3f3e..06bf290 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -964,6 +964,29 @@ int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
- }
- 
- /**
-+ * pwrdm_read_next_logic_pwrst - get next powerdomain logic power state
-+ * @pwrdm: struct powerdomain * to get next logic power state
-+ *
-+ * Return the powerdomain pwrdm's logic power state.  Returns -EINVAL
-+ * if the powerdomain pointer is null or returns the next logic
-+ * power state upon success.
-+ */
-+int pwrdm_read_next_logic_pwrst(struct powerdomain *pwrdm)
-+{
-+	if (!pwrdm)
-+		return -EINVAL;
-+
-+	/*
-+	 * The register bit names below may not correspond to the
-+	 * actual names of the bits in each powerdomain's register,
-+	 * but the type of value returned is the same for each
-+	 * powerdomain.
-+	 */
-+	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
-+					OMAP3430_LOGICSTATEST);
-+}
-+
-+/**
-  * pwrdm_read_mem_pwrst - get current memory bank power state
-  * @pwrdm: struct powerdomain * to get current memory bank power state
-  * @bank: memory bank number (0-3)
-@@ -1065,6 +1088,54 @@ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- }
- 
- /**
-+ * pwrdm_read_next_mem_pwrst - get next memory bank power state
-+ * @pwrdm: struct powerdomain * to get mext memory bank power state
-+ * @bank: memory bank number (0-3)
-+ *
-+ * Return the powerdomain pwrdm's next memory power state for bank
-+ * x.  Returns -EINVAL if the powerdomain pointer is null, -EEXIST if
-+ * the target memory bank does not exist or is not controllable, or
-+ * returns the next memory power state upon success.
-+ */
-+int pwrdm_read_next_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
-+{
-+	u32 m;
-+
-+	if (!pwrdm)
-+		return -EINVAL;
-+
-+	if (pwrdm->banks < (bank + 1))
-+		return -EEXIST;
-+
-+	/*
-+	 * The register bit names below may not correspond to the
-+	 * actual names of the bits in each powerdomain's register,
-+	 * but the type of value returned is the same for each
-+	 * powerdomain.
-+	 */
-+	switch (bank) {
-+	case 0:
-+		m = OMAP3430_SHAREDL1CACHEFLATRETSTATE;
-+		break;
-+	case 1:
-+		m = OMAP3430_L1FLATMEMRETSTATE;
-+		break;
-+	case 2:
-+		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
-+		break;
-+	case 3:
-+		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
-+		break;
-+	default:
-+		WARN_ON(1); /* should never happen */
-+		return -EEXIST;
-+	}
-+
-+	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
-+					PM_PWSTCTRL, m);
-+}
-+
-+/**
-  * pwrdm_clear_all_prev_pwrst - clear previous powerstate register for a pwrdm
-  * @pwrdm: struct powerdomain * to clear
-  *
-diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
-index 0b96005..7576559 100644
---- a/arch/arm/plat-omap/include/plat/powerdomain.h
-+++ b/arch/arm/plat-omap/include/plat/powerdomain.h
-@@ -170,8 +170,10 @@ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
- 
- int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
- int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
-+int pwrdm_read_next_logic_pwrst(struct powerdomain *pwrdm);
- int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
- int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
-+int pwrdm_read_next_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
- 
- int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm);
- int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
--- 
-1.5.6.3
+>>
+>>
+>yeah, i agree. should check for the max level also. dropping this and
+>will resend.
+
+Dsp doesn't request opp 0 to kernel.
+
+- omar
 
