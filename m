@@ -1,73 +1,123 @@
-From: Romit Dasgupta <romit@ti.com>
-Subject: Re: [PATCHv3 1/1] OMAP3: PM: move omap opp layer from pm34xx.c
-Date: Wed, 20 Jan 2010 18:24:30 +0530
-Message-ID: <4B56FD06.6040403@ti.com>
-References: <1263983963-18480-1-git-send-email-eduardo.valentin@nokia.com> <4B56E5B3.8070303@ti.com> <20100120115407.GG12231@esdhcp037198.research.nokia.com> <4B56F045.4040708@ti.com> <20100120124052.GH12231@esdhcp037198.research.nokia.com> <4B56FAAF.2070600@ti.com> <20100120124906.GI12231@esdhcp037198.research.nokia.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 1/2] OMAP: DSS: Add display board file for zoom boards
+Date: Wed, 20 Jan 2010 15:34:52 +0200
+Message-ID: <6ed0b2681001200534h34c8fe03jf07d9fa765e07924@mail.gmail.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026B2DC23C@dbde02.ent.ti.com>
+	 <19F8576C6E063C45BE387C64729E7394044A47239C@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39049 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751147Ab0ATMyj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jan 2010 07:54:39 -0500
-In-Reply-To: <20100120124906.GI12231@esdhcp037198.research.nokia.com>
+Received: from fg-out-1718.google.com ([72.14.220.155]:9941 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082Ab0ATNey convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 08:34:54 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so897144fgg.1
+        for <linux-omap@vger.kernel.org>; Wed, 20 Jan 2010 05:34:52 -0800 (PST)
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A47239C@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>
-Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "Keski-Saari Juha.1 (EXT-Teleca/Helsinki)" <ext-juha.1.keski-saari@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Y, Kishore" <kishore.y@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Eduardo Valentin wrote:
-> On Wed, Jan 20, 2010 at 01:44:31PM +0100, ext Romit Dasgupta wrote:
->> Eduardo Valentin wrote:
->>> On Wed, Jan 20, 2010 at 01:00:05PM +0100, ext Romit Dasgupta wrote:
->>>> Eduardo Valentin wrote:
->>>>> On Wed, Jan 20, 2010 at 12:14:59PM +0100, ext Romit Dasgupta wrote:
->>>>>>> From: Eduardo Valentin <eduardo.valentin@nokia.com>
->>>>>>>
->>>>>>> OMAP OPP layer functions now have dependencies of CONFIG_CPU_FREQ only.
->>>>>>>
->>>>>>> With this patch, omap opp layer now has its compilation flags
->>>>>>> bound to CONFIG_CPU_FREQ. Also its code has been removed from pm34xx.c.
->>>>>>>
->>>>>>> A new file has been created to contain cpu freq code related to
->>>>>>> OMAP3: cpufreq34xx.c.
->>>>>>>
->>>>>>> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
->>>>>> NAK also for the following  non-working kernel (smartreflex without cpufreq).
->>>>> Then this is a problem of dependency with smartreflex and cpufreq. In this case
->>>>> better to solve this other problem with another patch. This patch is to rip off
->>>>> cpufreq code from pm34xx, as stated in the above description.
->>>> In that case the right fix should
->>> OK
->>>
->>>> 1) __not__ include opp.h for non cpufreq builds
->>> I guess the patch is "more or less" this option, as it maps
->>> all functions inside opp.h to nops if it is a cpufreq build.
->>> And all related real code is not compiled.
->>>
->>> Basically removes the opp layer  code if cpufreq is disabled.
->>>
->> IMHO, making functions return 0 will give you run time issues when opp related
->> APIs are called in non cpufreq path. So your patch will for the time being solve
->> the build issue but not runtime issue. Hence I suggested to compile out opp.h if
->> you are not using cpufreq. Solving a build issue is not the right fix for this.
-> 
-> No, they are cleaned up by compiler. The following:
-> 
-> +static inline unsigned long omap_twl_vsel_to_uv(const u8 vsel)
-> +{
-> +	return 0;
-> +}
-> 
-> will be translated to a nop in final kernel image.
-> 
-> That's the whole idea of this patch.
-> 
-> 
+On Tue, Jan 19, 2010 at 7:52 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wr=
+ote:
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Y, Kishore
+>> Sent: Tuesday, January 19, 2010 6:42 PM
+>> To: Tomi Valkeinen
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: [PATCH 1/2] OMAP: DSS: Add display board file for zoom
+>> boards
+>>
+>> From: Kishore Y <kishore.y@ti.com>
+>>
+>> board-zoom-display.c added as a common file for display
+>> fucntionality
+>> on boards zoom2, zoom3 and 3630sdp
+>>
+>> Signed-off-by: Mukund Mittal <mmittal@ti.com>
+>> Signed-off-by: Kishore Y <kishore.y@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 =A03 +
+>> =A0arch/arm/mach-omap2/board-zoom-display.c =A0 =A0 =A0| =A0232
+>> +++++++++++++++++++++++++
+>> =A0arch/arm/mach-omap2/board-zoom-peripherals.c =A0| =A0 36 ++++
+>> =A0arch/arm/mach-omap2/include/mach/board-zoom.h | =A0 =A03 +
+>> =A04 files changed, 274 insertions(+), 0 deletions(-)
+>> =A0create mode 100644 arch/arm/mach-omap2/board-zoom-display.c
+>>
+>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-
+>> omap2/Makefile
+>> index b32678b..3dbe694 100644
+>> --- a/arch/arm/mach-omap2/Makefile
+>> +++ b/arch/arm/mach-omap2/Makefile
+>> @@ -91,14 +91,17 @@ obj-$(CONFIG_MACH_NOKIA_RX51) =A0 =A0 =A0 =A0 =A0=
+ =A0 +=3D
+>> board-rx51.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0board-rx51-peripherals.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0mmc-twl4030.o
+>> =A0obj-$(CONFIG_MACH_OMAP_ZOOM2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0+=3D=
+ board-zoom2.o \
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0board-zoom-display.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0board-zoom-peripherals.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0mmc-twl4030.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0board-zoom-debugboard.o
+>> =A0obj-$(CONFIG_MACH_OMAP_ZOOM3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0+=3D=
+ board-zoom3.o \
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0board-zoom-display.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0board-zoom-peripherals.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0mmc-twl4030.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0board-zoom-debugboard.o
+>> =A0obj-$(CONFIG_MACH_OMAP_3630SDP) =A0 =A0 =A0 =A0 =A0 =A0 =A0+=3D b=
+oard-3630sdp.o \
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0board-zoom-display.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0board-zoom-peripherals.o \
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0mmc-twl4030.o
+>> =A0obj-$(CONFIG_MACH_CM_T35) =A0 =A0 =A0 =A0 =A0 =A0+=3D board-cm-t3=
+5.o \
+>> diff --git a/arch/arm/mach-omap2/board-zoom-display.c
+>> b/arch/arm/mach-omap2/board-zoom-display.c
+>> new file mode 100644
+>> index 0000000..c8f47f4
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/board-zoom-display.c
 
-Ok, what I mean is that it still solves build issue only. It does not produce a
-bootable kernel without CPU_FREQ but with SMARTREFLEX. Smartreflex is almost
-always there for a OMAP kernel. It is not a rarely used feature. So this patch
-should have another part that fixes the Smartreflex issue!
+<snip>
 
+>> +static int zoom_panel_enable_tv(struct omap_dss_device *dssdev)
+>> +{
+>> + =A0 =A0 int ret;
+>> + =A0 =A0 struct regulator *vdac_reg;
+>> +
+>> + =A0 =A0 vdac_reg =3D regulator_get(NULL, "vdda_dac");
+>> + =A0 =A0 if (IS_ERR(vdac_reg)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Unable to get vdac regulator\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(vdac_reg);
+>> + =A0 =A0 }
+> [Hiremath, Vaibhav] Same here.
+
+Actually you don't need this regulator_get() at all, DSS2 core already
+calls it for you. With upcoming DSS2 updates you will not need
+regulator_get() vpll2 too, so I guess it can already be removed too.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
