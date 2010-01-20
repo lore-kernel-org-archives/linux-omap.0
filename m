@@ -1,96 +1,149 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] omap3: Check return values for clk_get
-Date: Tue, 19 Jan 2010 18:19:13 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001191816330.3977@utopia.booyaka.com>
-References: <1262974746-5060-1-git-send-email-premi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2 5/10] omap: Add functions for dynamic remuxing of
+ pins
+Date: Tue, 19 Jan 2010 17:21:21 -0800
+Message-ID: <20100120012120.GJ10318@atomide.com>
+References: <20100117013250.17308.17861.sendpatchset@ahunter-work.research.nokia.com>
+ <20100117013328.17308.2865.sendpatchset@ahunter-work.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48084 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755799Ab0ATBTO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 20:19:14 -0500
-In-Reply-To: <1262974746-5060-1-git-send-email-premi@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49730 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755092Ab0ATBVP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 20:21:15 -0500
+Content-Disposition: inline
+In-Reply-To: <20100117013328.17308.2865.sendpatchset@ahunter-work.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-Hello Sanjeev,
-
-some comments.
-
-
-On Fri, 8 Jan 2010, Sanjeev Premi wrote:
-
-> This patch checks if clk_get() returned success for
-> the clocks used in function omap2_clk_arch_init().
+* Adrian Hunter <adrian.hunter@nokia.com> [100116 17:31]:
+> From 33beb5bc36cba739971dc8919a6929925ad3dafc Mon Sep 17 00:00:00 2001
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Wed, 13 Jan 2010 10:27:17 -0800
+> Subject: [PATCH] omap: Add functions for dynamic remuxing of pins
 > 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> Make the omap_mux_read and write available for board code,
+> and rename omap_mux_set_board_signals into omap_mux_write_array.
+> 
+> In some cases we want to change the signals dynamically,
+> mostly for power management.
+> 
+> Note that we cannot use the signal names as they are set
+> __init to save memory.
+
+I'll try to merge this as a fix since it fixes dynamic remuxing.
+
+Adrian, can I add your Acked-by?
+
+Regards,
+
+Tony
+ 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  arch/arm/mach-omap2/clock34xx.c |   25 +++++++++++++++++++++++--
->  1 files changed, 23 insertions(+), 2 deletions(-)
+>  arch/arm/mach-omap2/mux.c |   22 +++++++++++-----------
+>  arch/arm/mach-omap2/mux.h |   24 ++++++++++++++++++++++++
+>  2 files changed, 35 insertions(+), 11 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index d4217b9..2c2165b 100644
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -316,17 +316,38 @@ static int __init omap2_clk_arch_init(void)
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index a8febd3..50298b4 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -51,7 +51,7 @@ struct omap_mux_entry {
+>  static unsigned long mux_phys;
+>  static void __iomem *mux_base;
+>  
+> -static inline u16 omap_mux_read(u16 reg)
+> +u16 omap_mux_read(u16 reg)
 >  {
->  	struct clk *osc_sys_ck, *dpll1_ck, *arm_fck, *core_ck;
->  	unsigned long osc_sys_rate;
-> +	short err = 0 ;
-
-Why a 'short' here?  Seems like it makes more sense as a bool.
-
+>  	if (cpu_is_omap24xx())
+>  		return __raw_readb(mux_base + reg);
+> @@ -59,7 +59,7 @@ static inline u16 omap_mux_read(u16 reg)
+>  		return __raw_readw(mux_base + reg);
+>  }
 >  
->  	if (!mpurate)
->  		return -EINVAL;
+> -static inline void omap_mux_write(u16 val, u16 reg)
+> +void omap_mux_write(u16 val, u16 reg)
+>  {
+>  	if (cpu_is_omap24xx())
+>  		__raw_writeb(val, mux_base + reg);
+> @@ -67,6 +67,14 @@ static inline void omap_mux_write(u16 val, u16 reg)
+>  		__raw_writew(val, mux_base + reg);
+>  }
 >  
-> -	/* XXX test these for success */
->  	dpll1_ck = clk_get(NULL, "dpll1_ck");
-> +	if (dpll1_ck == NULL) {
-> +		err = 1;
-> +		pr_err("*** Failed to get dpll1_ck.\n");
+> +void omap_mux_write_array(struct omap_board_mux *board_mux)
+> +{
+> +	while (board_mux->reg_offset !=  OMAP_MUX_TERMINATOR) {
+> +		omap_mux_write(board_mux->value, board_mux->reg_offset);
+> +		board_mux++;
 > +	}
+> +}
 > +
->  	arm_fck = clk_get(NULL, "arm_fck");
-> +	if (arm_fck == NULL) {
-> +		err = 1;
-> +		pr_err("*** Failed to get arm_fck.\n");
-> +	}
-> +
->  	core_ck = clk_get(NULL, "core_ck");
-> +	if (core_ck == NULL) {
-> +		err = 1;
-> +		pr_err("*** Failed to get core_ck.\n");
-> +	}
-> +
->  	osc_sys_ck = clk_get(NULL, "osc_sys_ck");
-> +	if (osc_sys_ck == NULL) {
-> +		err = 1;
-> +		pr_err("*** Failed to get osc_sys_ck.\n");
-> +	}
-> +
-> +	if (err)
-> +		return 1;
-
-This is not a good error value.  This function should return either 0 for 
-success or a negative error number on failure.  Maybe ENOENT?
-
+>  #if defined(CONFIG_ARCH_OMAP24XX) && defined(CONFIG_OMAP_MUX)
 >  
-> -	/* REVISIT: not yet ready for 343x */
->  	if (clk_set_rate(dpll1_ck, mpurate))
->  		printk(KERN_ERR "*** Unable to set MPU rate\n");
+>  static struct omap_mux_cfg arch_mux_cfg;
+> @@ -833,14 +841,6 @@ static void __init omap_mux_set_cmdline_signals(void)
+>  	kfree(options);
+>  }
 >  
+> -static void __init omap_mux_set_board_signals(struct omap_board_mux *board_mux)
+> -{
+> -	while (board_mux->reg_offset !=  OMAP_MUX_TERMINATOR) {
+> -		omap_mux_write(board_mux->value, board_mux->reg_offset);
+> -		board_mux++;
+> -	}
+> -}
+> -
+>  static int __init omap_mux_copy_names(struct omap_mux *src,
+>  					struct omap_mux *dst)
+>  {
+> @@ -992,7 +992,7 @@ static void omap_mux_init_package(struct omap_mux *superset,
+>  static void omap_mux_init_signals(struct omap_board_mux *board_mux)
+>  {
+>  	omap_mux_set_cmdline_signals();
+> -	omap_mux_set_board_signals(board_mux);
+> +	omap_mux_write_array(board_mux);
+>  }
+>  
+>  #else
+> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+> index d8b4d5a..f8c2e7a 100644
+> --- a/arch/arm/mach-omap2/mux.h
+> +++ b/arch/arm/mach-omap2/mux.h
+> @@ -147,6 +147,30 @@ u16 omap_mux_get_gpio(int gpio);
+>  void omap_mux_set_gpio(u16 val, int gpio);
+>  
+>  /**
+> + * omap_mux_read() - read mux register
+> + * @mux_offset:		Offset of the mux register
+> + *
+> + */
+> +u16 omap_mux_read(u16 mux_offset);
+> +
+> +/**
+> + * omap_mux_write() - write mux register
+> + * @val:		New mux register value
+> + * @mux_offset:		Offset of the mux register
+> + *
+> + * This should be only needed for dynamic remuxing of non-gpio signals.
+> + */
+> +void omap_mux_write(u16 val, u16 mux_offset);
+> +
+> +/**
+> + * omap_mux_write_array() - write an array of mux registers
+> + * @board_mux:		Array of mux registers terminated by MAP_MUX_TERMINATOR
+> + *
+> + * This should be only needed for dynamic remuxing of non-gpio signals.
+> + */
+> +void omap_mux_write_array(struct omap_board_mux *board_mux);
+> +
+> +/**
+>   * omap3_mux_init() - initialize mux system with board specific set
+>   * @board_mux:		Board specific mux table
+>   * @flags:		OMAP package type used for the board
 > -- 
-> 1.6.2.2
+> 1.6.0.4
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-- Paul
