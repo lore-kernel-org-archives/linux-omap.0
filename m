@@ -1,160 +1,159 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/4] omap3: Fix cpu detection
-Date: Wed, 20 Jan 2010 13:23:41 -0800
-Message-ID: <20100120212341.25335.46975.stgit@baageli.muru.com>
-References: <20100120212248.25335.55761.stgit@baageli.muru.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Nishanth Menon <nm@ti.com>
+Subject: [RFC] [PATCH 2/2] DSPBRIDGE: pm: use pm-wip-opp APIs for opp list
+Date: Wed, 20 Jan 2010 16:19:13 -0600
+Message-ID: <1264025953-4620-4-git-send-email-nm@ti.com>
+References: <1264025953-4620-1-git-send-email-nm@ti.com>
+ <1264025953-4620-2-git-send-email-nm@ti.com>
+ <1264025953-4620-3-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54683 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754767Ab0ATVX2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 16:23:28 -0500
-In-Reply-To: <20100120212248.25335.55761.stgit@baageli.muru.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59053 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751660Ab0ATWTR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jan 2010 17:19:17 -0500
+In-Reply-To: <1264025953-4620-3-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Deepak Chitriki <deepak.chitriki@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-We need to set the omap_chip.oc carefully for the clocks to work.
+Use the PM-WIP-OPP branch apis for generating the opp list for DSP.
+This allows for scaling accross 3430,3440,3450 and 3630 series.
 
-To fix this, set the omap_chip.oc in omap3_check_features() based
-on the CONTROL_IDCODE and silicon revision registers.
+Caveat: does not handle dynamic addition of opp after the
+bridgedriver is inserted - this can be done once the framework for
+the same is made available
 
-Also add handling for 34xx es3.1.2 as es3.1 for now.
+Cc: Ameya Palande <ameya.palande@nokia.com>
+Cc: Deepak Chitriki <deepak.chitriki@ti.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Fixes booting on at least overo board.
-
-Based on an earlier patch by Paul Walmsley <paul@pwsan.com>.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/id.c              |   41 +++++++++++++++++++--------------
- arch/arm/plat-omap/include/plat/cpu.h |    1 +
- 2 files changed, 24 insertions(+), 18 deletions(-)
+caveat: this does not use the ENUM implementation yet, this can be once it is
+merged to pm-wip-opp branch.
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index a091b53..3d65c50 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -188,6 +188,8 @@ void __init omap3_check_revision(void)
- 	u16 hawkeye;
- 	u8 rev;
+ arch/arm/mach-omap2/dspbridge.c |   99 ++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 98 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/dspbridge.c b/arch/arm/mach-omap2/dspbridge.c
+index 26b860f..935afd7 100644
+--- a/arch/arm/mach-omap2/dspbridge.c
++++ b/arch/arm/mach-omap2/dspbridge.c
+@@ -15,6 +15,20 @@
  
-+	omap_chip.oc = CHIP_IS_OMAP3430;
-+
- 	/*
- 	 * We cannot access revision registers on ES1.0.
- 	 * If the processor type is Cortex-A8 and the revision is 0x0
-@@ -196,6 +198,7 @@ void __init omap3_check_revision(void)
- 	cpuid = read_cpuid(CPUID_ID);
- 	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) == 0x0)) {
- 		omap_revision = OMAP3430_REV_ES1_0;
-+		omap_chip.oc |= CHIP_IS_OMAP3430ES1;
- 		return;
- 	}
+ #ifdef CONFIG_BRIDGE_DVFS
+ #include <mach/omap-pm.h>
++#include <plat/opp.h>
++/*
++ * The DSP load balancer works on the following logic:
++ * Opp frequencies:
++ * 0 <---------> Freq 1 <------------> Freq 2 <---------> Freq 3
++ * DSP Thresholds for the frequencies:
++ * 0M<-------X-> Freq 1 <-------M--X-> Freq 2 <----M--X-> Freq 3
++ * Where, M is the minimal threshold and X is maximum threshold
++ *
++ * if from Freq x to Freq y; where x > y, transition happens on M
++ * if from Freq x to Freq y; where x < y, transition happens on X
++ */
++#define BRIDGE_THRESH_HIGH_PERCENT	95
++#define BRIDGE_THRESH_LOW_PERCENT	88
+ #endif
  
-@@ -216,18 +219,28 @@ void __init omap3_check_revision(void)
- 		case 0: /* Take care of early samples */
- 		case 1:
- 			omap_revision = OMAP3430_REV_ES2_0;
-+			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
- 			break;
- 		case 2:
- 			omap_revision = OMAP3430_REV_ES2_1;
-+			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
- 			break;
- 		case 3:
- 			omap_revision = OMAP3430_REV_ES3_0;
-+			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
- 			break;
- 		case 4:
-+			omap_revision = OMAP3430_REV_ES3_1;
-+			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
-+			break;
-+		case 7:
- 		/* FALLTHROUGH */
- 		default:
- 			/* Use the latest known revision as default */
--			omap_revision = OMAP3430_REV_ES3_1;
-+			omap_revision = OMAP3430_REV_ES3_1_2;
+ #include <dspbridge/host_os.h>
+@@ -42,7 +56,90 @@ static struct dspbridge_platform_data dspbridge_pdata __initdata = {
+ static int get_opp_table(struct dspbridge_platform_data *pdata)
+ {
+ #ifdef CONFIG_BRIDGE_DVFS
+-	/* Do nothing now  - fill based on PM implementation */
++	int mpu_freqs;
++	int dsp_freqs;
++	int i;
++	struct omap_opp *opp;
++	unsigned long freq, old_rate;
 +
-+			/* REVISIT: Add CHIP_IS_OMAP3430ES3_1_2? */
-+			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
- 		}
- 		break;
- 	case 0xb868:
-@@ -235,14 +248,18 @@ void __init omap3_check_revision(void)
- 		 *
- 		 * Set the device to be OMAP3505 here. Actual device
- 		 * is identified later based on the features.
-+		 *
-+		 * REVISIT: AM3505/AM3517 should have their own CHIP_IS
- 		 */
- 		omap_revision = OMAP3505_REV(rev);
-+		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
- 		break;
- 	case 0xb891:
- 	/* FALLTHROUGH */
- 	default:
- 		/* Unknown default to latest silicon rev as default*/
- 		omap_revision = OMAP3630_REV_ES1_0;
-+		omap_chip.oc |= CHIP_IS_OMAP3630ES1;
- 	}
++	mpu_freqs = opp_get_opp_count(mpu_opps);
++	dsp_freqs = opp_get_opp_count(dsp_opps);
++	if (mpu_freqs < 0 || dsp_freqs < 0 || mpu_freqs != dsp_freqs) {
++		pr_err("mpu and dsp frequencies are inconsistent! "
++			"mpu_freqs=%d dsp_freqs=%d\n", mpu_freqs, dsp_freqs);
++		return -EINVAL;
++	}
++	/* allocate memory if we have opps initialized */
++	pdata->mpu_speeds = kzalloc(sizeof(u32) * mpu_freqs,
++			GFP_KERNEL);
++	if (!pdata->mpu_speeds) {
++		pr_err("unable to allocate memory for the mpu"
++		"frequencies\n");
++		return -ENOMEM;
++	}
++	opp = mpu_opps;
++	i = 0;
++	freq = 0;
++	while (!IS_ERR(opp = opp_find_freq_ceil(opp, &freq))) {
++		pdata->mpu_speeds[i] = freq;
++		freq++;
++		i++;
++	}
++	pdata->mpu_num_speeds = mpu_freqs;
++	pdata->mpu_min_speed = pdata->mpu_speeds[0];
++	pdata->mpu_max_speed = pdata->mpu_speeds[mpu_freqs - 1];
++	/* need an initial terminator */
++	pdata->dsp_freq_table = kzalloc(
++			sizeof(struct dsp_shm_freq_table) *
++			(dsp_freqs + 1), GFP_KERNEL);
++	if (!pdata->dsp_freq_table) {
++		pr_err("unable to allocate memory for the dsp"
++			"frequencies\n");
++		return -ENOMEM;
++	}
++
++	opp = dsp_opps;
++	i = 1;
++	freq = 0;
++	old_rate = 0;
++	/*
++	 * the freq table is in terms of khz.. so we need to
++	 * divide by 1000
++	 */
++	while (!IS_ERR(opp = opp_find_freq_ceil(opp, &freq))) {
++		/* dsp frequencies are in khz */
++		u32 rate = freq / 1000;
++		/*
++		 * On certain 34xx silicons, certain OPPs are duplicated
++		 * for DSP - handle those by copying previous opp value
++		 */
++		if (rate == old_rate) {
++			memcpy(&pdata->dsp_freq_table[i],
++				&pdata->dsp_freq_table[i-1],
++				sizeof(struct dsp_shm_freq_table));
++		} else {
++			pdata->dsp_freq_table[i].dsp_freq = rate;
++			pdata->dsp_freq_table[i].u_volts =
++				opp_get_voltage(opp);
++			/*
++			 * min threshold:
++			 * NOTE: index 1 needs a min of 0! else no
++			 * scaling happens at DSP!
++			 */
++			pdata->dsp_freq_table[i].thresh_min_freq =
++				((old_rate * BRIDGE_THRESH_LOW_PERCENT) / 100);
++
++			/* max threshold */
++			pdata->dsp_freq_table[i].thresh_max_freq =
++				((rate * BRIDGE_THRESH_HIGH_PERCENT) / 100);
++		}
++		old_rate = rate;
++		freq++;
++		i++;
++	}
++	/* the last entry should map with maximum rate */
++	pdata->dsp_freq_table[i - 1].thresh_max_freq = old_rate;
++	pdata->dsp_num_speeds = dsp_freqs;
+ #endif
+ 	return 0;
  }
- 
-@@ -360,6 +377,7 @@ void __init omap2_check_revision(void)
- 		omap3_check_revision();
- 		omap3_check_features();
- 		omap3_cpuinfo();
-+		return;
- 	} else if (cpu_is_omap44xx()) {
- 		omap4_check_revision();
- 		return;
-@@ -374,27 +392,14 @@ void __init omap2_check_revision(void)
- 	if (cpu_is_omap243x()) {
- 		/* Currently only supports 2430ES2.1 and 2430-all */
- 		omap_chip.oc |= CHIP_IS_OMAP2430;
-+		return;
- 	} else if (cpu_is_omap242x()) {
- 		/* Currently only supports 2420ES2.1.1 and 2420-all */
- 		omap_chip.oc |= CHIP_IS_OMAP2420;
--	} else if (cpu_is_omap3505() || cpu_is_omap3517()) {
--		omap_chip.oc = CHIP_IS_OMAP3430 | CHIP_IS_OMAP3430ES3_1;
--	} else if (cpu_is_omap343x()) {
--		omap_chip.oc = CHIP_IS_OMAP3430;
--		if (omap_rev() == OMAP3430_REV_ES1_0)
--			omap_chip.oc |= CHIP_IS_OMAP3430ES1;
--		else if (omap_rev() >= OMAP3430_REV_ES2_0 &&
--			 omap_rev() <= OMAP3430_REV_ES2_1)
--			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
--		else if (omap_rev() == OMAP3430_REV_ES3_0)
--			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
--		else if (omap_rev() == OMAP3430_REV_ES3_1)
--			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
--		else if (omap_rev() == OMAP3630_REV_ES1_0)
--			omap_chip.oc |= CHIP_IS_OMAP3630ES1;
--	} else {
--		pr_err("Uninitialized omap_chip, please fix!\n");
-+		return;
- 	}
-+
-+	pr_err("Uninitialized omap_chip, please fix!\n");
- }
- 
- /*
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 9a028bd..a162f58 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -434,6 +434,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP3430_REV_ES2_1	0x34302034
- #define OMAP3430_REV_ES3_0	0x34303034
- #define OMAP3430_REV_ES3_1	0x34304034
-+#define OMAP3430_REV_ES3_1_2	0x34305034
- 
- #define OMAP3630_REV_ES1_0	0x36300034
- 
+-- 
+1.6.3.3
 
