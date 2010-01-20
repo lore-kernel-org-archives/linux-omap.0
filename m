@@ -1,55 +1,99 @@
-From: Sergey Lapin <slapinid@gmail.com>
-Subject: Re: [PATCH] mfd: twl4030: Driver for twl4030 madc module
-Date: Wed, 20 Jan 2010 15:12:29 +0300
-Message-ID: <48239d391001200412i7736354dg4e07076a63d7b966@mail.gmail.com>
-References: <1259146071-2372-1-git-send-email-amit.kucheria@verdurent.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv3 1/1] OMAP3: PM: move omap opp layer from pm34xx.c
+Date: Wed, 20 Jan 2010 14:40:52 +0200
+Message-ID: <20100120124052.GH12231@esdhcp037198.research.nokia.com>
+References: <1263983963-18480-1-git-send-email-eduardo.valentin@nokia.com>
+ <4B56E5B3.8070303@ti.com>
+ <20100120115407.GG12231@esdhcp037198.research.nokia.com>
+ <4B56F045.4040708@ti.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f209.google.com ([209.85.219.209]:48458 "EHLO
-	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752352Ab0ATMMc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 07:12:32 -0500
-In-Reply-To: <1259146071-2372-1-git-send-email-amit.kucheria@verdurent.com>
+Received: from smtp.nokia.com ([192.100.122.233]:35989 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751931Ab0ATMlA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 07:41:00 -0500
+Content-Disposition: inline
+In-Reply-To: <4B56F045.4040708@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@verdurent.com>
-Cc: sameo@linux.intel.com, List Linux Kernel <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Mikko Ylinen <mikko.k.ylinen@nokia.com>
+To: ext Romit Dasgupta <romit@ti.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "Keski-Saari Juha.1 (EXT-Teleca/Helsinki)" <ext-juha.1.keski-saari@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-Hi, all!
+On Wed, Jan 20, 2010 at 01:00:05PM +0100, ext Romit Dasgupta wrote:
+> Eduardo Valentin wrote:
+> > On Wed, Jan 20, 2010 at 12:14:59PM +0100, ext Romit Dasgupta wrote:
+> >>> From: Eduardo Valentin <eduardo.valentin@nokia.com>
+> >>>
+> >>> OMAP OPP layer functions now have dependencies of CONFIG_CPU_FREQ only.
+> >>>
+> >>> With this patch, omap opp layer now has its compilation flags
+> >>> bound to CONFIG_CPU_FREQ. Also its code has been removed from pm34xx.c.
+> >>>
+> >>> A new file has been created to contain cpu freq code related to
+> >>> OMAP3: cpufreq34xx.c.
+> >>>
+> >>> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> >> NAK also for the following  non-working kernel (smartreflex without cpufreq).
+> > 
+> > Then this is a problem of dependency with smartreflex and cpufreq. In this case
+> > better to solve this other problem with another patch. This patch is to rip off
+> > cpufreq code from pm34xx, as stated in the above description.
+> 
+> In that case the right fix should
 
-On Wed, Nov 25, 2009 at 1:47 PM, Amit Kucheria
-<amit.kucheria@verdurent.com> wrote:
-> From: Mikko Ylinen <mikko.k.ylinen@nokia.com>
->
-> This ADC allows monitoring of analog signals such as battery levels,
-> temperatures, etc.
->
-> Several people have contributed to this driver on the linux-omap list=
-=2E
->
-> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-> ---
-> =A0drivers/mfd/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 21 ++
-> =A0drivers/mfd/Makefile =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A03 +-
-> =A0drivers/mfd/twl4030-madc.c =A0 =A0 =A0 | =A0548 ++++++++++++++++++=
-++++++++++++++++++++
-> =A0include/linux/i2c/twl4030-madc.h | =A0126 +++++++++
-> =A04 files changed, 697 insertions(+), 1 deletions(-)
-> =A0create mode 100644 drivers/mfd/twl4030-madc.c
-> =A0create mode 100644 include/linux/i2c/twl4030-madc.h
->
+OK
 
-We have just tried to adopt this driver to our custom OMAP3 board, but
-were unable to get any interrupts.
-Any ideas on what is missing? We've checked whole TRM and found
-nothing wrong yet :(
+> 
+> 1) __not__ include opp.h for non cpufreq builds
 
-Thanks a lot.
-S.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I guess the patch is "more or less" this option, as it maps
+all functions inside opp.h to nops if it is a cpufreq build.
+And all related real code is not compiled.
+
+Basically removes the opp layer  code if cpufreq is disabled.
+
+One thing I forgot to add here was this part:
+
+diff --git a/arch/arm/plat-omap/include/plat/opp_twl_tps.h b/arch/arm/plat-omap/include/plat/opp
+index 8784e5f..0460ca8 100644
+--- a/arch/arm/plat-omap/include/plat/opp_twl_tps.h
++++ b/arch/arm/plat-omap/include/plat/opp_twl_tps.h
+@@ -15,7 +15,16 @@
+ 
+ #include <linux/kernel.h>
+ 
++#ifdef CONFIG_CPU_FREQ
+ unsigned long omap_twl_vsel_to_uv(const u8 vsel);
+ u8 omap_twl_uv_to_vsel(unsigned long uV);
++#else
++static inline unsigned long omap_twl_vsel_to_uv(const u8 vsel)
++{
++}
++static inline u8 omap_twl_uv_to_vsel(unsigned long uV)
++{
++}
++#endif
+
+
+> OR
+> 2) If it includes opp.h the functions for getting current opp
+> should abstract out the right mechanism to get current frequency/voltage from
+>  the chip/power IC.
+
+I guess this looks as good way to do it. But the patch I sent is more like the first
+option and fixes the compilation issue.
+
+> 
+> > 
+> > And sorry, I didn't get your boot log (if you intended to put it, as you said
+> > "following non-working kernel"
+> > 
+> Actually I meant for the following non-working kernel __configuration__. I do
+> not have boot logs!
+
+Ahh. right! No I see. Yeah, as mention in other thread, the patch is meant to fix that one.
+
+-- 
+Eduardo Valentin
