@@ -1,56 +1,37 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] DSPBRIDGE: dont pass invalid DSP OPP requests
-Date: Tue, 19 Jan 2010 19:44:08 -0600
-Message-ID: <1263951848-16822-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH/USB 01/16] USB: musb: use resource_size()
+Date: Tue, 19 Jan 2010 20:44:56 -0500
+Message-ID: <notify-1263951908@atomide.com>
+References: <1263906855-28341-2-git-send-email-felipe.balbi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45389 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754033Ab0ATBoR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Jan 2010 20:44:17 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58706 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755500Ab0ATBo4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jan 2010 20:44:56 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NXPct-000Ksi-Sf
+	for linux-omap@vger.kernel.org; Wed, 20 Jan 2010 01:44:56 +0000
+In-Reply-To: <1263906855-28341-2-git-send-email-felipe.balbi@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Deepak Chitriki <deepak.chitriki@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: linux-omap@vger.kernel.org
 
-If DSP baseimage requests for invalid OPPs, do not pass them
-to the rest of the linux kernel subsystem. with a test baseimage
-it was found to send
-IO_DispatchPM: WMDIOCTL_CONSTRAINT_REQUEST with parameter 0.
-this is an invalid OPP ID and should not be passed anywhere.
-we add a param check for this prior to passing it along to the
-workqueue.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Cc: Ameya Palande <ameya.palande@nokia.com>
-Cc: Deepak Chitriki <deepak.chitriki@ti.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+Branch in linux-omap: omap-testing
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- drivers/dsp/bridge/wmd/io_sm.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+Initial commit ID (Likely to change): 75ecde9c4fcf2ec04419f86344b523190af79704
 
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 6c140c5..618bedb 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -960,9 +960,12 @@ static void IO_DispatchPM(struct work_struct *work)
- 			pArg[1] = pIOMgr->pSharedMem->oppRequest.rqstOppPt;
- 			DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Value of OPP "
- 				 "value =0x%x \n", pArg[1]);
--			status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
--				 hWmdContext, WMDIOCTL_CONSTRAINT_REQUEST,
--				 pArg);
-+			if (!pArg[1])
-+				status = DSP_EINVALIDARG;
-+			else
-+				status = pIOMgr->pIntfFxns->pfnDevCntrl(pIOMgr->
-+					 hWmdContext,
-+					 WMDIOCTL_CONSTRAINT_REQUEST, pArg);
- 			if (DSP_FAILED(status)) {
- 				DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Failed "
- 					 "to set constraint = 0x%x \n",
--- 
-1.6.3.3
+PatchWorks
+http://patchwork.kernel.org/patch/73868/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=75ecde9c4fcf2ec04419f86344b523190af79704
+
 
