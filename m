@@ -1,60 +1,108 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: Re: [PATCH 12/18] OMAP3 clock: split out DPLL3 M2 divider functions
- into clkt3xxx_dpll3m2.c
-Date: Wed, 20 Jan 2010 19:26:46 +0530
-Message-ID: <4B570B9E.9060104@ti.com>
-References: <20100115090613.30690.49355.stgit@localhost.localdomain> <20100115090703.30690.171.stgit@localhost.localdomain> <20100115125014.GK29059@shisha.kicks-ass.net> <alpine.DEB.2.00.1001191128120.3977@utopia.booyaka.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv3 1/1] OMAP3: PM: move omap opp layer from pm34xx.c
+Date: Wed, 20 Jan 2010 16:20:52 +0200
+Message-ID: <20100120142052.GK12231@esdhcp037198.research.nokia.com>
+References: <1263983963-18480-1-git-send-email-eduardo.valentin@nokia.com>
+ <4B56E5B3.8070303@ti.com>
+ <20100120115407.GG12231@esdhcp037198.research.nokia.com>
+ <4B56F045.4040708@ti.com>
+ <20100120124052.GH12231@esdhcp037198.research.nokia.com>
+ <4B56FAAF.2070600@ti.com>
+ <20100120124906.GI12231@esdhcp037198.research.nokia.com>
+ <4B56FD06.6040403@ti.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41396 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752694Ab0ATN5I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jan 2010 08:57:08 -0500
-In-Reply-To: <alpine.DEB.2.00.1001191128120.3977@utopia.booyaka.com>
+Received: from smtp.nokia.com ([192.100.122.230]:25711 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752387Ab0ATOVb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 09:21:31 -0500
+Content-Disposition: inline
+In-Reply-To: <4B56FD06.6040403@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Alexander Shishkin <virtuoso@slind.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, =?ISO-8859-1?Q?Jouni_H=F6gander?= <jouni.hogander@nokia.com>
+To: ext Romit Dasgupta <romit@ti.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "Keski-Saari Juha.1 (EXT-Teleca/Helsinki)" <ext-juha.1.keski-saari@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-Paul,
+On Wed, Jan 20, 2010 at 01:54:30PM +0100, ext Romit Dasgupta wrote:
+> Eduardo Valentin wrote:
+> > On Wed, Jan 20, 2010 at 01:44:31PM +0100, ext Romit Dasgupta wrote:
+> >> Eduardo Valentin wrote:
+> >>> On Wed, Jan 20, 2010 at 01:00:05PM +0100, ext Romit Dasgupta wrote:
+> >>>> Eduardo Valentin wrote:
+> >>>>> On Wed, Jan 20, 2010 at 12:14:59PM +0100, ext Romit Dasgupta wrote:
+> >>>>>>> From: Eduardo Valentin <eduardo.valentin@nokia.com>
+> >>>>>>>
+> >>>>>>> OMAP OPP layer functions now have dependencies of CONFIG_CPU_FREQ only.
+> >>>>>>>
+> >>>>>>> With this patch, omap opp layer now has its compilation flags
+> >>>>>>> bound to CONFIG_CPU_FREQ. Also its code has been removed from pm34xx.c.
+> >>>>>>>
+> >>>>>>> A new file has been created to contain cpu freq code related to
+> >>>>>>> OMAP3: cpufreq34xx.c.
+> >>>>>>>
+> >>>>>>> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> >>>>>> NAK also for the following  non-working kernel (smartreflex without cpufreq).
+> >>>>> Then this is a problem of dependency with smartreflex and cpufreq. In this case
+> >>>>> better to solve this other problem with another patch. This patch is to rip off
+> >>>>> cpufreq code from pm34xx, as stated in the above description.
+> >>>> In that case the right fix should
+> >>> OK
+> >>>
+> >>>> 1) __not__ include opp.h for non cpufreq builds
+> >>> I guess the patch is "more or less" this option, as it maps
+> >>> all functions inside opp.h to nops if it is a cpufreq build.
+> >>> And all related real code is not compiled.
+> >>>
+> >>> Basically removes the opp layer  code if cpufreq is disabled.
+> >>>
+> >> IMHO, making functions return 0 will give you run time issues when opp related
+> >> APIs are called in non cpufreq path. So your patch will for the time being solve
+> >> the build issue but not runtime issue. Hence I suggested to compile out opp.h if
+> >> you are not using cpufreq. Solving a build issue is not the right fix for this.
+> > 
+> > No, they are cleaned up by compiler. The following:
+> > 
+> > +static inline unsigned long omap_twl_vsel_to_uv(const u8 vsel)
+> > +{
+> > +	return 0;
+> > +}
+> > 
+> > will be translated to a nop in final kernel image.
+> > 
+> > That's the whole idea of this patch.
+> > 
+> > 
+> 
+> Ok, what I mean is that it still solves build issue only. It does not produce a
+> bootable kernel without CPU_FREQ but with SMARTREFLEX. Smartreflex is almost
+> always there for a OMAP kernel. It is not a rarely used feature. So this patch
+> should have another part that fixes the Smartreflex issue!
 
-On Wed, 20-Jan-10 12:06 AM +0530, Paul Walmsley wrote:
-> (cc'ing Ranjith)
-> 
-> Hi Alexander,
-> 
-> On Fri, 15 Jan 2010, Alexander Shishkin wrote:
-> 
->> On Fri, Jan 15, 2010 at 02:07:04 -0700, Paul Walmsley wrote:
->>> Split the DPLL3 M2 divider clock functions out of clock34xx.c and move them
->>> into clkt3xxx_dpll3m2.c to improve maintainability.
->> I'm not very familiar with maintainability issues of dpll3m2, so
->> forgive me if it is ignorant for me to ask you to elaborate on this.
-> 
-> That is a very good point, those original patch changelogs are pretty 
-> crappy.  "OMAP clock code - same great taste, now with more 
-> maintainability!"  I will update them and repost with more detail.
-> 
->> It does look like a bit of an overkill to have a separate file for
->> a divider. But again, I might well be missing the point.
-> 
-> Yep, this is definitely a borderline case where it might be more 
-> appropriate to keep it in the clock34xx.c file.  What ultimately motivated 
-> splitting it out was the thought that the AM3517/3505 chips probably won't 
-> need this function, since I don't believe they support DVFS [1], so we 
-> could skip compiling this function for kernels built for those devices via 
-> the Makefile, and not need #ifdefs. 
-> 
-> Ranjith, could you correct me if I am wrong about the DVFS part?
+Actually, system boots. It does not break the system. What I've tried is:
 
-You are right, AM35xx devices do not support DVFS. In fact, the only
-power management support planned is for the suspend/resume capability
-with retention (no off mode)
+- rx51 board
+- omap3_pm_defconfig without CPU_FREQ
+- linux-omap-pm/pm-wip-opp branch + this patch
 
-> 
-> 1. AM35x ARM Microprocessor Technical Reference Manual, 
->    http://www.ti.com/litv/pdf/sprugr0
+System boots, but smartreflex disables itself:
 
- - Ranjith
+...
+TCP cubic registered
+NET: Registered protocol family 17
+NET: Registered protocol family 15
+Power Management for TI OMAP3.
+SR: OPP rate tables not defined for platform, not enabling SmartReflex
+VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev 1
+,..
+
+But it does not break booting procedure.
+
+So, I don't see why this would be a reason for doing this compilation fix
+into two steps. Unless you see another issue.
+
+BR,
+
+-- 
+Eduardo Valentin
