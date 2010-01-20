@@ -1,507 +1,915 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] omap: Clean the serial port defines
-Date: Wed, 20 Jan 2010 15:10:44 -0800
-Message-ID: <20100120231044.GE23467@atomide.com>
-References: <20100116013205.10065.95921.stgit@baageli.muru.com>
- <20100116013510.10065.59461.stgit@baageli.muru.com>
- <FCCFB4CDC6E5564B9182F639FC356087030070F290@dbde02.ent.ti.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH V2 2/10] omap: Rename mmc-twl4030 files to hsmmc
+Date: Wed, 20 Jan 2010 17:41:39 -0600
+Message-ID: <017601ca9a2a$1d1e7640$544ff780@am.dhcp.ti.com>
+References: <20100117013250.17308.17861.sendpatchset@ahunter-work.research.nokia.com> <20100117013306.17308.2282.sendpatchset@ahunter-work.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="W/nzBZO5zC0uMSeA"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59773 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997Ab0ATXKj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 18:10:39 -0500
-Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087030070F290@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100117013306.17308.2282.sendpatchset@ahunter-work.research.nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: 'Adrian Hunter' <adrian.hunter@nokia.com>, 'Tony Lindgren' <tony@atomide.com>
+Cc: 'Paul Walmsley' <paul@pwsan.com>, 'linux-omap Mailing List' <linux-omap@vger.kernel.org>, 'linux-mmc Mailing List' <linux-mmc@vger.kernel.org>, 'Andrew Morton' <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hi,
-
-* Pandita, Vikram <vikram.pandita@ti.com> [100118 16:37]:
-
-<snip>
-
-> Is it possible to use the same approach as mach-omap2/ for physical address assignments?
-> I like that approach.
-> Refer this part from mach-omap2:
-> 	+	serial_platform_data0[0].mapbase = omap2_globals->uart1_phys;
-> 	+	serial_platform_data1[0].mapbase = omap2_globals->uart2_phys;
-> 	+	serial_platform_data2[0].mapbase = omap2_globals->uart3_phys;	
+> -----Original Message-----
+> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+> Sent: Saturday, January 16, 2010 7:33 PM
+> To: Tony Lindgren
+> Cc: Adrian Hunter; Madhusudhan Chikkature; Paul Walmsley; linux-omap
+> Mailing List; linux-mmc Mailing List; Andrew Morton
+> Subject: [PATCH V2 2/10] omap: Rename mmc-twl4030 files to hsmmc
 > 
-> > 		.irq		= INT_UART1,
-> > 		.flags		= UPF_BOOT_AUTOCONF,
-> > 		.iotype		= UPIO_MEM,
-
-It would be possible if we had omap1_globals. But we don't have it as
-the address space is so similar across all omap1 processors.
-
-> > 		.macro	busyuart,rd,rx
-> >-1001:		ldrb	\rd, [\rx, #(0x5 << 2)]	@ OMAP-1510 and friends
-> >-		and	\rd, \rd, #0x60
-> >-		teq	\rd, #0x60
-> >-		beq	1002f
-> >-		ldrb	\rd, [\rx, #(0x5 << 0)]	@ OMAP-730 only
-> >-		and	\rd, \rd, #0x60
-> >-		teq	\rd, #0x60
-> >+1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
+> From a65fae702aa81d4596d6fbefd2ab3c8ea87c244a Mon Sep 17 00:00:00 2001
+> From: Adrian Hunter <adrian.hunter@nokia.com>
+> Date: Sun, 17 Jan 2010 02:34:22 +0200
+> Subject: [PATCH] omap: Rename mmc-twl4030 files to hsmmc
 > 
-> Zoom2/3 kind of boards have external debug Serial port.
-> For those boards and maybe others, the shift value is 1 and not OMAP_PORT_SHIFT(2).
-
-OK, thanks for pointing that out. Let's add the shift as a variable
-in debug-macro.S, see the next patch in the series.
- 
-> This solution is not extensible to zoom2/3 boards with external debug board uarts.
-> How do we address that? 
- 
-It should be doable, we need to initialize zoom external uart physical
-and virtual address in uncompress.h, and also initialize the shift for
-it.
- 
-> >diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> <snip>
-> >@@ -269,11 +278,15 @@ static struct omap_globals omap343x_globals = {
-> > 	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE),
-> > 	.prm	= OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE),
-> > 	.cm	= OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
-> >+	.uart1_phys	= OMAP3_UART1_BASE,
-> >+	.uart2_phys	= OMAP3_UART2_BASE,
-> >+	.uart3_phys	= OMAP3_UART3_BASE,
+> mmc-twl4030.[ch] no longer has any dependency on twl4030
+> and should be renamed to reflect that.
 > 
-> OMAP3630 also has 4 UARTS and this same global is getting used for both 34xx and 36xx.
-> This is not right.
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+> ---
+>  arch/arm/mach-omap2/Makefile                 |   28 ++--
+>  arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+>  arch/arm/mach-omap2/board-3430sdp.c          |    2 +-
+>  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
+>  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
+>  arch/arm/mach-omap2/board-ldp.c              |    2 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c      |    2 +-
+>  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+>  arch/arm/mach-omap2/board-omap3pandora.c     |    2 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
+>  arch/arm/mach-omap2/board-overo.c            |    2 +-
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+>  arch/arm/mach-omap2/hsmmc.c                  |  247
+> ++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/hsmmc.h                  |   34 ++++
+>  arch/arm/mach-omap2/mmc-twl4030.c            |  247 ---------------------
+> -----
+>  arch/arm/mach-omap2/mmc-twl4030.h            |   34 ----
+>  17 files changed, 307 insertions(+), 307 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/hsmmc.c
+>  create mode 100644 arch/arm/mach-omap2/hsmmc.h
+>  delete mode 100644 arch/arm/mach-omap2/mmc-twl4030.c
+>  delete mode 100644 arch/arm/mach-omap2/mmc-twl4030.h
 > 
-> For 3630 uart4_phys = 0x49042000
-
-OK, updated.
-
-> >+#define OMAP3_UART1_BASE	0x4806a000
-> >+#define OMAP3_UART2_BASE	0x4806c000
-> >+#define OMAP3_UART3_BASE	0x49020000
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index b32678b..a7e4c5a 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -71,42 +71,42 @@ obj-y					+=
+$(i2c-omap-m)
+> $(i2c-omap-y)
+>  obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+>  obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+>  obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+>  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+>  obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+>  					   board-rx51-sdram.o \
+>  					   board-rx51-peripherals.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+>  					   board-zoom-peripherals.o \
+> -					   mmc-twl4030.o \
+> +					   hsmmc.o \
+>  					   board-zoom-debugboard.o
+>  obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+>  					   board-zoom-peripherals.o \
+> -					   mmc-twl4030.o \
+> +					   hsmmc.o \
+>  					   board-zoom-debugboard.o
+>  obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
+>  					   board-zoom-peripherals.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK)	+= board-omap3touchbook.o \
+> -					   mmc-twl4030.o
+> +					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
 > 
-> Need to add 0x4904 2000 for 3630 UART4
+>  obj-$(CONFIG_MACH_OMAP3517EVM)     += board-am3517evm.o
+> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-
+> omap2/board-2430sdp.c
+> index 31042ee..e42848d 100644
+> --- a/arch/arm/mach-omap2/board-2430sdp.c
+> +++ b/arch/arm/mach-omap2/board-2430sdp.c
+> @@ -38,7 +38,7 @@
+>  #include <plat/usb.h>
+>  #include <plat/gpmc-smc91x.h>
+> 
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define SDP2430_CS0_BASE	0x04000000
+>  #define SECONDARY_LCD_GPIO		147
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
+> omap2/board-3430sdp.c
+> index c90b0d0..a0cf00f 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -43,7 +43,7 @@
+> 
+>  #include "mux.h"
+>  #include "sdram-qimonda-hyb18m512160af-6.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define CONFIG_DISABLE_HFCLK 1
+> 
+> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-
+> omap2/board-cm-t35.c
+> index 2626a9f..214a2a8 100644
+> --- a/arch/arm/mach-omap2/board-cm-t35.c
+> +++ b/arch/arm/mach-omap2/board-cm-t35.c
+> @@ -46,7 +46,7 @@
+> 
+>  #include "mux.h"
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define CM_T35_GPIO_PENDOWN	57
+> 
+> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-
+> omap2/board-igep0020.c
+> index 117b8fd..9db061f 100644
+> --- a/arch/arm/mach-omap2/board-igep0020.c
+> +++ b/arch/arm/mach-omap2/board-igep0020.c
+> @@ -30,7 +30,7 @@
+>  #include <plat/usb.h>
+> 
+>  #include "mux.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define IGEP2_SMSC911X_CS       5
+>  #define IGEP2_SMSC911X_GPIO     176
+> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-
+> ldp.c
+> index 995d4a2..635f54d 100644
+> --- a/arch/arm/mach-omap2/board-ldp.c
+> +++ b/arch/arm/mach-omap2/board-ldp.c
+> @@ -44,7 +44,7 @@
+>  #include <plat/usb.h>
+> 
+>  #include "mux.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define LDP_SMSC911X_CS		1
+>  #define LDP_SMSC911X_GPIO	152
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-
+> omap2/board-omap3beagle.c
+> index 231cb4e..aaa9760 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -45,7 +45,7 @@
+>  #include <plat/timer-gp.h>
+> 
+>  #include "mux.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define GPMC_CS0_BASE  0x60
+>  #define GPMC_CS_SIZE   0x30
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> omap2/board-omap3evm.c
+> index 34de178..2dd52ad 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -44,7 +44,7 @@
+> 
+>  #include "mux.h"
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define OMAP3_EVM_TS_GPIO	175
+>  #define OMAP3_EVM_EHCI_VBUS	22
+> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-
+> omap2/board-omap3pandora.c
+> index ef17cf1..3a11506 100644
+> --- a/arch/arm/mach-omap2/board-omap3pandora.c
+> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
+> @@ -43,7 +43,7 @@
+> 
+>  #include "mux.h"
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define OMAP3_PANDORA_TS_GPIO		94
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-
+> omap2/board-omap3touchbook.c
+> index fe3d22c..8efef51 100644
+> --- a/arch/arm/mach-omap2/board-omap3touchbook.c
+> +++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+> @@ -50,7 +50,7 @@
+>  #include <plat/timer-gp.h>
+> 
+>  #include "mux.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #include <asm/setup.h>
+> 
+> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-
+> omap2/board-overo.c
+> index d192dd9..8a9d439 100644
+> --- a/arch/arm/mach-omap2/board-overo.c
+> +++ b/arch/arm/mach-omap2/board-overo.c
+> @@ -48,7 +48,7 @@
+> 
+>  #include "mux.h"
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define OVERO_GPIO_BT_XGATE	15
+>  #define OVERO_GPIO_W2W_NRESET	16
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-
+> omap2/board-rx51-peripherals.c
+> index acafdbc..b2de206 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -34,7 +34,7 @@
+>  #include <plat/gpmc-smc91x.h>
+> 
+>  #include "mux.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  #define SYSTEM_REV_B_USES_VAUX3	0x1699
+>  #define SYSTEM_REV_S_USES_VAUX3 0x8
+> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-
+> omap2/board-zoom-peripherals.c
+> index 5c8474c..671dd06 100755
+> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> @@ -25,7 +25,7 @@
+>  #include <plat/usb.h>
+> 
+>  #include "mux.h"
+> -#include "mmc-twl4030.h"
+> +#include "hsmmc.h"
+> 
+>  /* Zoom2 has Qwerty keyboard*/
+>  static int board_keymap[] = {
+> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+> new file mode 100644
+> index 0000000..b88c538
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/hsmmc.c
+> @@ -0,0 +1,247 @@
+> +/*
+> + * linux/arch/arm/mach-omap2/hsmmc.c
+> + *
+> + * Copyright (C) 2007-2008 Texas Instruments
+> + * Copyright (C) 2008 Nokia Corporation
+> + * Author: Texas Instruments
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#include <linux/kernel.h>
+> +#include <linux/slab.h>
+> +#include <linux/string.h>
+> +#include <linux/delay.h>
+> +#include <mach/hardware.h>
+> +#include <plat/control.h>
+> +#include <plat/mmc.h>
+> +
+> +#include "hsmmc.h"
+> +
+> +#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+> +
+> +static u16 control_pbias_offset;
+> +static u16 control_devconf1_offset;
+> +
+> +#define HSMMC_NAME_LEN	9
+> +
+> +static struct twl_mmc_controller {
 
-OK, added now. Care to look and ack the attached updated patch?
+Now that this file is hsmmc specific, how about renaming this as
+"hsmmc_controller"?
+ 
+> +	char				name[HSMMC_NAME_LEN + 1];
+> +} hsmmc[OMAP34XX_NR_MMC];
+> +
+> +#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+> +
+> +static int twl4030_mmc_get_context_loss(struct device *dev)
 
-Regards,
+Ditto, hsmmc_get_context_loss?
 
-Tony
+> +{
+> +	/* FIXME: PM DPS not implemented yet */
+> +	return 0;
+> +}
+> +
+> +#else
+> +#define twl4030_mmc_get_context_loss NULL
+> +#endif
+> +
+> +static void hsmmc1_before_set_reg(struct device *dev, int slot,
+> +				  int power_on, int vdd)
+> +{
+> +	u32 reg, prog_io;
+> +	struct omap_mmc_platform_data *mmc = dev->platform_data;
+> +
+> +	/*
+> +	 * Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0..3) and the
+> +	 * card with Vcc regulator (from twl4030 or whatever).  OMAP has
+> both
+> +	 * 1.8V and 3.0V modes, controlled by the PBIAS register.
+> +	 *
+> +	 * In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a supply, which
+> +	 * is most naturally TWL VSIM; those pins also use PBIAS.
+> +	 *
+> +	 * FIXME handle VMMC1A as needed ...
+> +	 */
+> +	if (power_on) {
+> +		if (cpu_is_omap2430()) {
+> +			reg = omap_ctrl_readl(OMAP243X_CONTROL_DEVCONF1);
+> +			if ((1 << vdd) >= MMC_VDD_30_31)
+> +				reg |= OMAP243X_MMC1_ACTIVE_OVERWRITE;
+> +			else
+> +				reg &= ~OMAP243X_MMC1_ACTIVE_OVERWRITE;
+> +			omap_ctrl_writel(reg, OMAP243X_CONTROL_DEVCONF1);
+> +		}
+> +
+> +		if (mmc->slots[0].internal_clock) {
+> +			reg = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+> +			reg |= OMAP2_MMCSDIO1ADPCLKISEL;
+> +			omap_ctrl_writel(reg, OMAP2_CONTROL_DEVCONF0);
+> +		}
+> +
+> +		reg = omap_ctrl_readl(control_pbias_offset);
+> +		if (cpu_is_omap3630()) {
+> +			/* Set MMC I/O to 52Mhz */
+> +			prog_io =
+omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
+> +			prog_io |= OMAP3630_PRG_SDMMC1_SPEEDCTRL;
+> +			omap_ctrl_writel(prog_io,
+OMAP343X_CONTROL_PROG_IO1);
+> +		} else {
+> +			reg |= OMAP2_PBIASSPEEDCTRL0;
+> +		}
+> +		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
+> +		omap_ctrl_writel(reg, control_pbias_offset);
+> +	} else {
+> +		reg = omap_ctrl_readl(control_pbias_offset);
+> +		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
+> +		omap_ctrl_writel(reg, control_pbias_offset);
+> +	}
+> +}
+> +
+> +static void hsmmc1_after_set_reg(struct device *dev, int slot,
+> +				 int power_on, int vdd)
+> +{
+> +	u32 reg;
+> +
+> +	/* 100ms delay required for PBIAS configuration */
+> +	msleep(100);
+> +
+> +	if (power_on) {
+> +		reg = omap_ctrl_readl(control_pbias_offset);
+> +		reg |= (OMAP2_PBIASLITEPWRDNZ0 | OMAP2_PBIASSPEEDCTRL0);
+> +		if ((1 << vdd) <= MMC_VDD_165_195)
+> +			reg &= ~OMAP2_PBIASLITEVMODE0;
+> +		else
+> +			reg |= OMAP2_PBIASLITEVMODE0;
+> +		omap_ctrl_writel(reg, control_pbias_offset);
+> +	} else {
+> +		reg = omap_ctrl_readl(control_pbias_offset);
+> +		reg |= (OMAP2_PBIASSPEEDCTRL0 | OMAP2_PBIASLITEPWRDNZ0 |
+> +			OMAP2_PBIASLITEVMODE0);
+> +		omap_ctrl_writel(reg, control_pbias_offset);
+> +	}
+> +}
+> +
+> +static void hsmmc23_before_set_reg(struct device *dev, int slot,
+> +				   int power_on, int vdd)
+> +{
+> +	struct omap_mmc_platform_data *mmc = dev->platform_data;
+> +
+> +	if (power_on) {
+> +		/* Only MMC2 supports a CLKIN */
+> +		if (mmc->slots[0].internal_clock) {
+> +			u32 reg;
+> +
+> +			reg = omap_ctrl_readl(control_devconf1_offset);
+> +			reg |= OMAP2_MMCSDIO2ADPCLKISEL;
+> +			omap_ctrl_writel(reg, control_devconf1_offset);
+> +		}
+> +	}
+> +}
+> +
+> +static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC]
+> __initdata;
+> +
+> +void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
+
+Ditto, hsmmc_init?
+
+> +{
+> +	struct twl4030_hsmmc_info *c;
+> +	int nr_hsmmc = ARRAY_SIZE(hsmmc_data);
+> +
+> +	if (cpu_is_omap2430()) {
+> +		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
+> +		control_devconf1_offset = OMAP243X_CONTROL_DEVCONF1;
+> +	} else {
+> +		control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
+> +		control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
+> +	}
+> +
+> +	for (c = controllers; c->mmc; c++) {
+> +		struct twl_mmc_controller *twl = hsmmc + c->mmc - 1;
+> +		struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
+> +
+> +		if (!c->mmc || c->mmc > nr_hsmmc) {
+> +			pr_debug("MMC%d: no such controller\n", c->mmc);
+> +			continue;
+> +		}
+> +		if (mmc) {
+> +			pr_debug("MMC%d: already configured\n", c->mmc);
+> +			continue;
+> +		}
+> +
+> +		mmc = kzalloc(sizeof(struct omap_mmc_platform_data),
+> GFP_KERNEL);
+> +		if (!mmc) {
+> +			pr_err("Cannot allocate memory for mmc device!\n");
+> +			return;
+> +		}
+> +
+> +		if (c->name)
+> +			strncpy(twl->name, c->name, HSMMC_NAME_LEN);
+> +		else
+> +			snprintf(twl->name, ARRAY_SIZE(twl->name),
+> +				"mmc%islot%i", c->mmc, 1);
+> +		mmc->slots[0].name = twl->name;
+> +		mmc->nr_slots = 1;
+> +		mmc->slots[0].wires = c->wires;
+> +		mmc->slots[0].internal_clock = !c->ext_clock;
+> +		mmc->dma_mask = 0xffffffff;
+> +
+> +		mmc->get_context_loss_count =
+> +				twl4030_mmc_get_context_loss;
+> +
+> +		mmc->slots[0].switch_pin = c->gpio_cd;
+> +		mmc->slots[0].gpio_wp = c->gpio_wp;
+> +
+> +		if (c->cover_only)
+> +			mmc->slots[0].cover = 1;
+> +
+> +		if (c->nonremovable)
+> +			mmc->slots[0].nonremovable = 1;
+> +
+> +		if (c->power_saving)
+> +			mmc->slots[0].power_saving = 1;
+> +
+> +		/* NOTE:  MMC slots should have a Vcc regulator set up.
+> +		 * This may be from a TWL4030-family chip, another
+> +		 * controllable regulator, or a fixed supply.
+> +		 *
+> +		 * temporary HACK: ocr_mask instead of fixed supply
+> +		 */
+> +		mmc->slots[0].ocr_mask = c->ocr_mask;
+> +
+> +		switch (c->mmc) {
+> +		case 1:
+> +			/* on-chip level shifting via PBIAS0/PBIAS1 */
+> +			mmc->slots[0].before_set_reg =
+hsmmc1_before_set_reg;
+> +			mmc->slots[0].after_set_reg = hsmmc1_after_set_reg;
+> +
+> +			/* Omap3630 HSMMC1 supports only 4-bit */
+> +			if (cpu_is_omap3630() && c->wires > 4) {
+> +				c->wires = 4;
+> +				mmc->slots[0].wires = c->wires;
+> +			}
+> +			break;
+> +		case 2:
+> +			if (c->ext_clock)
+> +				c->transceiver = 1;
+> +			if (c->transceiver && c->wires > 4)
+> +				c->wires = 4;
+> +			/* FALLTHROUGH */
+> +		case 3:
+> +			/* off-chip level shifting, or none */
+> +			mmc->slots[0].before_set_reg =
+hsmmc23_before_set_reg;
+> +			mmc->slots[0].after_set_reg = NULL;
+> +			break;
+> +		default:
+> +			pr_err("MMC%d configuration not supported!\n",
+c->mmc);
+> +			kfree(mmc);
+> +			continue;
+> +		}
+> +		hsmmc_data[c->mmc - 1] = mmc;
+> +	}
+> +
+> +	omap2_init_mmc(hsmmc_data, OMAP34XX_NR_MMC);
+> +
+> +	/* pass the device nodes back to board setup code */
+> +	for (c = controllers; c->mmc; c++) {
+> +		struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
+> +
+> +		if (!c->mmc || c->mmc > nr_hsmmc)
+> +			continue;
+> +		c->dev = mmc->dev;
+> +	}
+> +}
+> +
+> +#endif
+> diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
+> new file mode 100644
+> index 0000000..87d67c1
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/hsmmc.h
+> @@ -0,0 +1,34 @@
+> +/*
+> + * MMC definitions for OMAP2
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +struct twl4030_hsmmc_info {
+> +	u8	mmc;		/* controller 1/2/3 */
+> +	u8	wires;		/* 1/4/8 wires */
+> +	bool	transceiver;	/* MMC-2 option */
+> +	bool	ext_clock;	/* use external pin for input clock */
+> +	bool	cover_only;	/* No card detect - just cover switch */
+> +	bool	nonremovable;	/* Nonremovable e.g. eMMC */
+> +	bool	power_saving;	/* Try to sleep or power off when possible
+> */
+> +	int	gpio_cd;	/* or -EINVAL */
+> +	int	gpio_wp;	/* or -EINVAL */
+> +	char	*name;		/* or NULL for default */
+> +	struct device *dev;	/* returned: pointer to mmc adapter */
+> +	int	ocr_mask;	/* temporary HACK */
+> +};
+> +
+> +#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+> +
+> +void twl4030_mmc_init(struct twl4030_hsmmc_info *);
+
+Ditto
+
+> +
+> +#else
+> +
+> +static inline void twl4030_mmc_init(struct twl4030_hsmmc_info *info)
+> +{
+> +}
+> +
+> +#endif
+> diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-
+> twl4030.c
+> deleted file mode 100644
+> index 9d5ad0b..0000000
+> --- a/arch/arm/mach-omap2/mmc-twl4030.c
+> +++ /dev/null
+> @@ -1,247 +0,0 @@
+> -/*
+> - * linux/arch/arm/mach-omap2/mmc-twl4030.c
+> - *
+> - * Copyright (C) 2007-2008 Texas Instruments
+> - * Copyright (C) 2008 Nokia Corporation
+> - * Author: Texas Instruments
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2 as
+> - * published by the Free Software Foundation.
+> - */
+> -#include <linux/kernel.h>
+> -#include <linux/slab.h>
+> -#include <linux/string.h>
+> -#include <linux/delay.h>
+> -#include <mach/hardware.h>
+> -#include <plat/control.h>
+> -#include <plat/mmc.h>
+> -
+> -#include "mmc-twl4030.h"
+> -
+> -#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+> -
+> -static u16 control_pbias_offset;
+> -static u16 control_devconf1_offset;
+> -
+> -#define HSMMC_NAME_LEN	9
+> -
+> -static struct twl_mmc_controller {
+> -	char				name[HSMMC_NAME_LEN + 1];
+> -} hsmmc[OMAP34XX_NR_MMC];
+> -
+> -#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+> -
+> -static int twl4030_mmc_get_context_loss(struct device *dev)
+> -{
+> -	/* FIXME: PM DPS not implemented yet */
+> -	return 0;
+> -}
+> -
+> -#else
+> -#define twl4030_mmc_get_context_loss NULL
+> -#endif
+> -
+> -static void hsmmc1_before_set_reg(struct device *dev, int slot,
+> -				  int power_on, int vdd)
+> -{
+> -	u32 reg, prog_io;
+> -	struct omap_mmc_platform_data *mmc = dev->platform_data;
+> -
+> -	/*
+> -	 * Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0..3) and the
+> -	 * card with Vcc regulator (from twl4030 or whatever).  OMAP has
+> both
+> -	 * 1.8V and 3.0V modes, controlled by the PBIAS register.
+> -	 *
+> -	 * In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a supply, which
+> -	 * is most naturally TWL VSIM; those pins also use PBIAS.
+> -	 *
+> -	 * FIXME handle VMMC1A as needed ...
+> -	 */
+> -	if (power_on) {
+> -		if (cpu_is_omap2430()) {
+> -			reg = omap_ctrl_readl(OMAP243X_CONTROL_DEVCONF1);
+> -			if ((1 << vdd) >= MMC_VDD_30_31)
+> -				reg |= OMAP243X_MMC1_ACTIVE_OVERWRITE;
+> -			else
+> -				reg &= ~OMAP243X_MMC1_ACTIVE_OVERWRITE;
+> -			omap_ctrl_writel(reg, OMAP243X_CONTROL_DEVCONF1);
+> -		}
+> -
+> -		if (mmc->slots[0].internal_clock) {
+> -			reg = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+> -			reg |= OMAP2_MMCSDIO1ADPCLKISEL;
+> -			omap_ctrl_writel(reg, OMAP2_CONTROL_DEVCONF0);
+> -		}
+> -
+> -		reg = omap_ctrl_readl(control_pbias_offset);
+> -		if (cpu_is_omap3630()) {
+> -			/* Set MMC I/O to 52Mhz */
+> -			prog_io =
+omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
+> -			prog_io |= OMAP3630_PRG_SDMMC1_SPEEDCTRL;
+> -			omap_ctrl_writel(prog_io,
+OMAP343X_CONTROL_PROG_IO1);
+> -		} else {
+> -			reg |= OMAP2_PBIASSPEEDCTRL0;
+> -		}
+> -		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
+> -		omap_ctrl_writel(reg, control_pbias_offset);
+> -	} else {
+> -		reg = omap_ctrl_readl(control_pbias_offset);
+> -		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
+> -		omap_ctrl_writel(reg, control_pbias_offset);
+> -	}
+> -}
+> -
+> -static void hsmmc1_after_set_reg(struct device *dev, int slot,
+> -				 int power_on, int vdd)
+> -{
+> -	u32 reg;
+> -
+> -	/* 100ms delay required for PBIAS configuration */
+> -	msleep(100);
+> -
+> -	if (power_on) {
+> -		reg = omap_ctrl_readl(control_pbias_offset);
+> -		reg |= (OMAP2_PBIASLITEPWRDNZ0 | OMAP2_PBIASSPEEDCTRL0);
+> -		if ((1 << vdd) <= MMC_VDD_165_195)
+> -			reg &= ~OMAP2_PBIASLITEVMODE0;
+> -		else
+> -			reg |= OMAP2_PBIASLITEVMODE0;
+> -		omap_ctrl_writel(reg, control_pbias_offset);
+> -	} else {
+> -		reg = omap_ctrl_readl(control_pbias_offset);
+> -		reg |= (OMAP2_PBIASSPEEDCTRL0 | OMAP2_PBIASLITEPWRDNZ0 |
+> -			OMAP2_PBIASLITEVMODE0);
+> -		omap_ctrl_writel(reg, control_pbias_offset);
+> -	}
+> -}
+> -
+> -static void hsmmc23_before_set_reg(struct device *dev, int slot,
+> -				   int power_on, int vdd)
+> -{
+> -	struct omap_mmc_platform_data *mmc = dev->platform_data;
+> -
+> -	if (power_on) {
+> -		/* Only MMC2 supports a CLKIN */
+> -		if (mmc->slots[0].internal_clock) {
+> -			u32 reg;
+> -
+> -			reg = omap_ctrl_readl(control_devconf1_offset);
+> -			reg |= OMAP2_MMCSDIO2ADPCLKISEL;
+> -			omap_ctrl_writel(reg, control_devconf1_offset);
+> -		}
+> -	}
+> -}
+> -
+> -static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC]
+> __initdata;
+> -
+> -void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
+> -{
+> -	struct twl4030_hsmmc_info *c;
+> -	int nr_hsmmc = ARRAY_SIZE(hsmmc_data);
+> -
+> -	if (cpu_is_omap2430()) {
+> -		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
+> -		control_devconf1_offset = OMAP243X_CONTROL_DEVCONF1;
+> -	} else {
+> -		control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
+> -		control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
+> -	}
+> -
+> -	for (c = controllers; c->mmc; c++) {
+> -		struct twl_mmc_controller *twl = hsmmc + c->mmc - 1;
+> -		struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
+> -
+> -		if (!c->mmc || c->mmc > nr_hsmmc) {
+> -			pr_debug("MMC%d: no such controller\n", c->mmc);
+> -			continue;
+> -		}
+> -		if (mmc) {
+> -			pr_debug("MMC%d: already configured\n", c->mmc);
+> -			continue;
+> -		}
+> -
+> -		mmc = kzalloc(sizeof(struct omap_mmc_platform_data),
+> GFP_KERNEL);
+> -		if (!mmc) {
+> -			pr_err("Cannot allocate memory for mmc device!\n");
+> -			return;
+> -		}
+> -
+> -		if (c->name)
+> -			strncpy(twl->name, c->name, HSMMC_NAME_LEN);
+> -		else
+> -			snprintf(twl->name, ARRAY_SIZE(twl->name),
+> -				"mmc%islot%i", c->mmc, 1);
+> -		mmc->slots[0].name = twl->name;
+> -		mmc->nr_slots = 1;
+> -		mmc->slots[0].wires = c->wires;
+> -		mmc->slots[0].internal_clock = !c->ext_clock;
+> -		mmc->dma_mask = 0xffffffff;
+> -
+> -		mmc->get_context_loss_count =
+> -				twl4030_mmc_get_context_loss;
+> -
+> -		mmc->slots[0].switch_pin = c->gpio_cd;
+> -		mmc->slots[0].gpio_wp = c->gpio_wp;
+> -
+> -		if (c->cover_only)
+> -			mmc->slots[0].cover = 1;
+> -
+> -		if (c->nonremovable)
+> -			mmc->slots[0].nonremovable = 1;
+> -
+> -		if (c->power_saving)
+> -			mmc->slots[0].power_saving = 1;
+> -
+> -		/* NOTE:  MMC slots should have a Vcc regulator set up.
+> -		 * This may be from a TWL4030-family chip, another
+> -		 * controllable regulator, or a fixed supply.
+> -		 *
+> -		 * temporary HACK: ocr_mask instead of fixed supply
+> -		 */
+> -		mmc->slots[0].ocr_mask = c->ocr_mask;
+> -
+> -		switch (c->mmc) {
+> -		case 1:
+> -			/* on-chip level shifting via PBIAS0/PBIAS1 */
+> -			mmc->slots[0].before_set_reg =
+hsmmc1_before_set_reg;
+> -			mmc->slots[0].after_set_reg = hsmmc1_after_set_reg;
+> -
+> -			/* Omap3630 HSMMC1 supports only 4-bit */
+> -			if (cpu_is_omap3630() && c->wires > 4) {
+> -				c->wires = 4;
+> -				mmc->slots[0].wires = c->wires;
+> -			}
+> -			break;
+> -		case 2:
+> -			if (c->ext_clock)
+> -				c->transceiver = 1;
+> -			if (c->transceiver && c->wires > 4)
+> -				c->wires = 4;
+> -			/* FALLTHROUGH */
+> -		case 3:
+> -			/* off-chip level shifting, or none */
+> -			mmc->slots[0].before_set_reg =
+hsmmc23_before_set_reg;
+> -			mmc->slots[0].after_set_reg = NULL;
+> -			break;
+> -		default:
+> -			pr_err("MMC%d configuration not supported!\n",
+c->mmc);
+> -			kfree(mmc);
+> -			continue;
+> -		}
+> -		hsmmc_data[c->mmc - 1] = mmc;
+> -	}
+> -
+> -	omap2_init_mmc(hsmmc_data, OMAP34XX_NR_MMC);
+> -
+> -	/* pass the device nodes back to board setup code */
+> -	for (c = controllers; c->mmc; c++) {
+> -		struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
+> -
+> -		if (!c->mmc || c->mmc > nr_hsmmc)
+> -			continue;
+> -		c->dev = mmc->dev;
+> -	}
+> -}
+> -
+> -#endif
+> diff --git a/arch/arm/mach-omap2/mmc-twl4030.h b/arch/arm/mach-omap2/mmc-
+> twl4030.h
+> deleted file mode 100644
+> index 87d67c1..0000000
+> --- a/arch/arm/mach-omap2/mmc-twl4030.h
+> +++ /dev/null
+> @@ -1,34 +0,0 @@
+> -/*
+> - * MMC definitions for OMAP2
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2 as
+> - * published by the Free Software Foundation.
+> - */
+> -
+> -struct twl4030_hsmmc_info {
+> -	u8	mmc;		/* controller 1/2/3 */
+> -	u8	wires;		/* 1/4/8 wires */
+> -	bool	transceiver;	/* MMC-2 option */
+> -	bool	ext_clock;	/* use external pin for input clock */
+> -	bool	cover_only;	/* No card detect - just cover switch */
+> -	bool	nonremovable;	/* Nonremovable e.g. eMMC */
+> -	bool	power_saving;	/* Try to sleep or power off when possible
+> */
+> -	int	gpio_cd;	/* or -EINVAL */
+> -	int	gpio_wp;	/* or -EINVAL */
+> -	char	*name;		/* or NULL for default */
+> -	struct device *dev;	/* returned: pointer to mmc adapter */
+> -	int	ocr_mask;	/* temporary HACK */
+> -};
+> -
+> -#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+> -
+> -void twl4030_mmc_init(struct twl4030_hsmmc_info *);
+> -
+> -#else
+> -
+> -static inline void twl4030_mmc_init(struct twl4030_hsmmc_info *info)
+> -{
+> -}
+> -
+> -#endif
+> --
+> 1.6.0.4
 
 
---W/nzBZO5zC0uMSeA
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="serial-port-defines-v2.patch"
-
->From ecfb8e2561eb91a76797fdf38204bfa70f1d062b Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 20 Jan 2010 14:11:59 -0800
-Subject: [PATCH] omap: Clean the serial port defines
-
-This way we don't have conflicts with the defines
-with compiling in multiple omaps. Set the addresses
-for uarts in struct omap_globals for the early serial
-init code.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
-index aedb746..23e4724 100644
---- a/arch/arm/mach-omap1/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
-@@ -11,6 +11,10 @@
-  *
- */
- 
-+#include <linux/serial_reg.h>
-+
-+#include <plat/serial.h>
-+
- 		.macro	addruart,rx
- 		mrc	p15, 0, \rx, c1, c0
- 		tst	\rx, #1			@ MMU enabled?
-@@ -30,13 +34,13 @@
- 		.endm
- 
- 		.macro	busyuart,rd,rx
--1001:		ldrb	\rd, [\rx, #(0x5 << 2)]	@ OMAP-1510 and friends
--		and	\rd, \rd, #0x60
--		teq	\rd, #0x60
-+1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
-+		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-+		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
- 		beq	1002f
--		ldrb	\rd, [\rx, #(0x5 << 0)]	@ OMAP-730 only
--		and	\rd, \rd, #0x60
--		teq	\rd, #0x60
-+		ldrb	\rd, [\rx, #(UART_LSR << OMAP7XX_PORT_SHIFT)]
-+		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-+		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
- 		bne	1001b
- 1002:
- 		.endm
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index 6e5207c..349de90 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -64,7 +64,7 @@ static void __init omap_serial_reset(struct plat_serial8250_port *p)
- 
- static struct plat_serial8250_port serial_platform_data[] = {
- 	{
--		.mapbase	= OMAP_UART1_BASE,
-+		.mapbase	= OMAP1_UART1_BASE,
- 		.irq		= INT_UART1,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -72,7 +72,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 		.uartclk	= OMAP16XX_BASE_BAUD * 16,
- 	},
- 	{
--		.mapbase	= OMAP_UART2_BASE,
-+		.mapbase	= OMAP1_UART2_BASE,
- 		.irq		= INT_UART2,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -80,7 +80,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 		.uartclk	= OMAP16XX_BASE_BAUD * 16,
- 	},
- 	{
--		.mapbase	= OMAP_UART3_BASE,
-+		.mapbase	= OMAP1_UART3_BASE,
- 		.irq		= INT_UART3,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 7390596..c178e68 100755
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -68,7 +68,7 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 
- static void __init omap_sdp_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_36xx();
- 	omap2_map_common_io();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index 6512b21..bb1bb8f 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -27,7 +27,7 @@
- 
- static void __init omap_zoom_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_36xx();
- 	omap2_map_common_io();
- }
- 
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index e9f255d..0c96e1c 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -11,6 +11,10 @@
-  *
- */
- 
-+#include <linux/serial_reg.h>
-+
-+#include <plat/serial.h>
-+
- 		.macro	addruart,rx
- 		mrc	p15, 0, \rx, c1, c0
- 		tst	\rx, #1			@ MMU enabled?
-@@ -44,15 +48,10 @@
- 		.endm
- 
- 		.macro	busyuart,rd,rx
--1001:		ldrb	\rd, [\rx, #(0x5 << 2)]	@ OMAP-1510 and friends
--		and	\rd, \rd, #0x60
--		teq	\rd, #0x60
--		beq	1002f
--		ldrb	\rd, [\rx, #(0x5 << 0)]	@ OMAP-730 only
--		and	\rd, \rd, #0x60
--		teq	\rd, #0x60
-+1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
-+		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-+		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
- 		bne	1001b
--1002:
- 		.endm
- 
- 		.macro	waituart,rd,rx
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 837b347..21e51c5 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -74,7 +74,6 @@ static LIST_HEAD(uart_list);
- 
- static struct plat_serial8250_port serial_platform_data0[] = {
- 	{
--		.mapbase	= OMAP_UART1_BASE,
- 		.irq		= 72,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -87,7 +86,6 @@ static struct plat_serial8250_port serial_platform_data0[] = {
- 
- static struct plat_serial8250_port serial_platform_data1[] = {
- 	{
--		.mapbase	= OMAP_UART2_BASE,
- 		.irq		= 73,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -100,7 +98,6 @@ static struct plat_serial8250_port serial_platform_data1[] = {
- 
- static struct plat_serial8250_port serial_platform_data2[] = {
- 	{
--		.mapbase	= OMAP_UART3_BASE,
- 		.irq		= 74,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -114,7 +111,6 @@ static struct plat_serial8250_port serial_platform_data2[] = {
- #ifdef CONFIG_ARCH_OMAP4
- static struct plat_serial8250_port serial_platform_data3[] = {
- 	{
--		.mapbase	= OMAP_UART4_BASE,
- 		.irq		= 70,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -125,6 +121,17 @@ static struct plat_serial8250_port serial_platform_data3[] = {
- 	}
- };
- #endif
-+
-+void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
-+{
-+	serial_platform_data0[0].mapbase = omap2_globals->uart1_phys;
-+	serial_platform_data1[0].mapbase = omap2_globals->uart2_phys;
-+	serial_platform_data2[0].mapbase = omap2_globals->uart3_phys;
-+#ifdef CONFIG_ARCH_OMAP4
-+	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
-+#endif
-+}
-+
- static inline unsigned int __serial_read_reg(struct uart_port *up,
- 					   int offset)
- {
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index bf1eaf3..dddce03 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -34,6 +34,7 @@
- #include <plat/control.h>
- #include <plat/mux.h>
- #include <plat/fpga.h>
-+#include <plat/serial.h>
- 
- #include <plat/clock.h>
- 
-@@ -219,6 +220,7 @@ static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
- 	omap2_set_globals_sdrc(omap2_globals);
- 	omap2_set_globals_control(omap2_globals);
- 	omap2_set_globals_prcm(omap2_globals);
-+	omap2_set_globals_uart(omap2_globals);
- }
- 
- #endif
-@@ -233,6 +235,9 @@ static struct omap_globals omap242x_globals = {
- 	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP2420_CTRL_BASE),
- 	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE),
- 	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE),
-+	.uart1_phys	= OMAP2_UART1_BASE,
-+	.uart2_phys	= OMAP2_UART2_BASE,
-+	.uart3_phys	= OMAP2_UART3_BASE,
- };
- 
- void __init omap2_set_globals_242x(void)
-@@ -251,6 +256,9 @@ static struct omap_globals omap243x_globals = {
- 	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE),
- 	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE),
- 	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE),
-+	.uart1_phys	= OMAP2_UART1_BASE,
-+	.uart2_phys	= OMAP2_UART2_BASE,
-+	.uart3_phys	= OMAP2_UART3_BASE,
- };
- 
- void __init omap2_set_globals_243x(void)
-@@ -259,9 +267,9 @@ void __init omap2_set_globals_243x(void)
- }
- #endif
- 
--#if defined(CONFIG_ARCH_OMAP3430)
-+#if defined(CONFIG_ARCH_OMAP3)
- 
--static struct omap_globals omap343x_globals = {
-+static struct omap_globals omap3_globals = {
- 	.class	= OMAP343X_CLASS,
- 	.tap	= OMAP2_L4_IO_ADDRESS(0x4830A000),
- 	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP343X_SDRC_BASE),
-@@ -269,11 +277,21 @@ static struct omap_globals omap343x_globals = {
- 	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE),
- 	.prm	= OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE),
- 	.cm	= OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
-+	.uart1_phys	= OMAP3_UART1_BASE,
-+	.uart2_phys	= OMAP3_UART2_BASE,
-+	.uart3_phys	= OMAP3_UART3_BASE,
- };
- 
- void __init omap2_set_globals_343x(void)
- {
--	__omap2_set_globals(&omap343x_globals);
-+	__omap2_set_globals(&omap3_globals);
-+}
-+
-+void __init omap2_set_globals_36xx(void)
-+{
-+	omap3_globals.uart4_phys = OMAP3_UART4_BASE;
-+
-+	__omap2_set_globals(&omap3_globals);
- }
- #endif
- 
-@@ -285,6 +303,10 @@ static struct omap_globals omap4_globals = {
- 	.prm	= OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE),
- 	.cm	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
- 	.cm2	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE),
-+	.uart1_phys	= OMAP4_UART1_BASE,
-+	.uart2_phys	= OMAP4_UART2_BASE,
-+	.uart3_phys	= OMAP4_UART3_BASE,
-+	.uart4_phys	= OMAP4_UART4_BASE,
- };
- 
- void __init omap2_set_globals_443x(void)
-@@ -292,6 +314,7 @@ void __init omap2_set_globals_443x(void)
- 	omap2_set_globals_tap(&omap4_globals);
- 	omap2_set_globals_control(&omap4_globals);
- 	omap2_set_globals_prcm(&omap4_globals);
-+	omap2_set_globals_uart(&omap4_globals);
- }
- #endif
- 
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 32c2227..e04a58e 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -47,11 +47,16 @@ struct omap_globals {
- 	void __iomem	*prm;		/* Power and Reset Management */
- 	void __iomem	*cm;		/* Clock Management */
- 	void __iomem	*cm2;
-+	unsigned long	uart1_phys;
-+	unsigned long	uart2_phys;
-+	unsigned long	uart3_phys;
-+	unsigned long	uart4_phys;
- };
- 
- void omap2_set_globals_242x(void);
- void omap2_set_globals_243x(void);
- void omap2_set_globals_343x(void);
-+void omap2_set_globals_36xx(void);
- void omap2_set_globals_443x(void);
- 
- /* These get called from omap2_set_globals_xxxx(), do not call these */
-@@ -59,6 +64,7 @@ void omap2_set_globals_tap(struct omap_globals *);
- void omap2_set_globals_sdrc(struct omap_globals *);
- void omap2_set_globals_control(struct omap_globals *);
- void omap2_set_globals_prcm(struct omap_globals *);
-+void omap2_set_globals_uart(struct omap_globals *);
- 
- /**
-  * omap_test_timeout - busy-loop, testing a condition
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index f5a4a92..7f5a7a8 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -15,37 +15,40 @@
- 
- #include <linux/init.h>
- 
--#if defined(CONFIG_ARCH_OMAP1)
- /* OMAP1 serial ports */
--#define OMAP_UART1_BASE		0xfffb0000
--#define OMAP_UART2_BASE		0xfffb0800
--#define OMAP_UART3_BASE		0xfffb9800
--#elif defined(CONFIG_ARCH_OMAP2)
-+#define OMAP1_UART1_BASE	0xfffb0000
-+#define OMAP1_UART2_BASE	0xfffb0800
-+#define OMAP1_UART3_BASE	0xfffb9800
-+
- /* OMAP2 serial ports */
--#define OMAP_UART1_BASE		0x4806a000
--#define OMAP_UART2_BASE		0x4806c000
--#define OMAP_UART3_BASE		0x4806e000
--#elif defined(CONFIG_ARCH_OMAP3)
-+#define OMAP2_UART1_BASE	0x4806a000
-+#define OMAP2_UART2_BASE	0x4806c000
-+#define OMAP2_UART3_BASE	0x4806e000
-+
- /* OMAP3 serial ports */
--#define OMAP_UART1_BASE		0x4806a000
--#define OMAP_UART2_BASE		0x4806c000
--#define OMAP_UART3_BASE		0x49020000
--#elif defined(CONFIG_ARCH_OMAP4)
-+#define OMAP3_UART1_BASE	0x4806a000
-+#define OMAP3_UART2_BASE	0x4806c000
-+#define OMAP3_UART3_BASE	0x49020000
-+#define OMAP3_UART4_BASE	0x49042000	/* Only on 36xx */
-+
- /* OMAP4 serial ports */
--#define OMAP_UART1_BASE		0x4806a000
--#define OMAP_UART2_BASE		0x4806c000
--#define OMAP_UART3_BASE		0x48020000
--#define OMAP_UART4_BASE		0x4806e000
--#endif
-+#define OMAP4_UART1_BASE	0x4806a000
-+#define OMAP4_UART2_BASE	0x4806c000
-+#define OMAP4_UART3_BASE	0x48020000
-+#define OMAP4_UART4_BASE	0x4806e000
-+
-+#define OMAP_PORT_SHIFT		2
-+#define OMAP7XX_PORT_SHIFT	0
- 
- #define OMAP1510_BASE_BAUD	(12000000/16)
- #define OMAP16XX_BASE_BAUD	(48000000/16)
- #define OMAP24XX_BASE_BAUD	(48000000/16)
- 
-+/* This is only used by 8250.c for omap1510 */
- #define is_omap_port(pt)	({int __ret = 0;			\
--			if ((pt)->port.mapbase == OMAP_UART1_BASE ||	\
--			    (pt)->port.mapbase == OMAP_UART2_BASE ||	\
--			    (pt)->port.mapbase == OMAP_UART3_BASE)	\
-+			if ((pt)->port.mapbase == OMAP1_UART1_BASE ||	\
-+			    (pt)->port.mapbase == OMAP1_UART2_BASE ||	\
-+			    (pt)->port.mapbase == OMAP1_UART3_BASE)	\
- 				__ret = 1;				\
- 			__ret;						\
- 			})
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 13c305d..e5723c3 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -40,12 +40,13 @@ static void putc(int c)
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP
-+	/* Will get removed in the next patch, set to OMAP3 to compile */
- #ifdef	CONFIG_OMAP_LL_DEBUG_UART3
--	uart = (volatile u8 *)(OMAP_UART3_BASE);
-+	uart = (volatile u8 *)(OMAP3_UART3_BASE);
- #elif defined(CONFIG_OMAP_LL_DEBUG_UART2)
--	uart = (volatile u8 *)(OMAP_UART2_BASE);
-+	uart = (volatile u8 *)(OMAP3_UART2_BASE);
- #elif defined(CONFIG_OMAP_LL_DEBUG_UART1)
--	uart = (volatile u8 *)(OMAP_UART1_BASE);
-+	uart = (volatile u8 *)(OMAP3_UART1_BASE);
- #elif defined(CONFIG_OMAP_LL_DEBUG_NONE)
- 	return;
- #else
-
---W/nzBZO5zC0uMSeA--
