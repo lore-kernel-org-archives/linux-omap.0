@@ -1,47 +1,50 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] DSPBRIDGE: Various compile warning fixes
-Date: Thu, 21 Jan 2010 18:01:13 +0200
-Message-ID: <5ec8ebd51001210801h3eb8c337l2cd0d4e501ed724f@mail.gmail.com>
-References: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [ANNOUNCE] rebased dspbridge-pm on top of dspbridge
+Date: Thu, 21 Jan 2010 10:02:23 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53042DF3B5FB@dlee03.ent.ti.com>
+References: <27F9C60D11D683428E133F85D2BB4A53042DF3B315@dlee03.ent.ti.com>
+ <20100121131816.GA3787@annwn.felipec.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:53858 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753054Ab0AUQBU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 11:01:20 -0500
-Received: by ewy19 with SMTP id 19so135642ewy.1
-        for <linux-omap@vger.kernel.org>; Thu, 21 Jan 2010 08:01:18 -0800 (PST)
-In-Reply-To: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50383 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751774Ab0AUQDu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 11:03:50 -0500
+In-Reply-To: <20100121131816.GA3787@annwn.felipec.org>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: linux-omap@vger.kernel.org, omar.ramirez@ti.com, nm@ti.com, deepak.chitriki@ti.com, mika.kukkonen@nokia.com
+To: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Nishanth Menon <menon.nishanth@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-On Thu, Jan 21, 2010 at 3:40 PM, Ameya Palande <ameya.palande@nokia.com=
-> wrote:
-> --- a/drivers/dsp/bridge/wmd/io_sm.c
-> +++ b/drivers/dsp/bridge/wmd/io_sm.c
-> @@ -1210,7 +1210,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, st=
-ruct CHNL_OBJECT *pChnl,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0pChnlMgr->uWordSize;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0chnlId =3D IO_GetValue(pIOMgr->hWmdContext=
-, struct SHM, sm, inputId);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0dwArg =3D IO_GetLong(pIOMgr->hWmdContext, =
-struct SHM, sm, arg);
-> - =C2=A0 =C2=A0 =C2=A0 if (!(chnlId >=3D 0) || !(chnlId < CHNL_MAXCHA=
-NNELS)) {
-> + =C2=A0 =C2=A0 =C2=A0 if (chnlId >=3D CHNL_MAXCHANNELS) {
-Could chnlld be less than zero? Anyway better to test:
-(chnlId >=3D CHNL_MAXCHANNELS || chnlld < 0)
 
---=20
-With Best Regards,
-Andy Shevchenko
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>-----Original Message-----
+>From: Felipe Contreras [mailto:felipe.contreras@nokia.com]
+>Sent: Thursday, January 21, 2010 7:18 AM
+>To: Ramirez Luna, Omar
+>Cc: linux-omap; Ameya Palande; Hiroshi Doyu; Nishanth Menon; Tony Lindgren
+>Subject: Re: [ANNOUNCE] rebased dspbridge-pm on top of dspbridge
+>
+>On Thu, Jan 21, 2010 at 01:19:52AM +0100, Omar Ramirez Luna wrote:
+>> dspbridge-pm branch was rebased on top of latest dspbridge, so please
+>> update your local branches.
+>>
+>> As a reminder:
+>> 	dspbridge is based on top of 2.6.32 LO
+>
+>I remember Tony explained that branches should be based on top of
+>mainstream, not l-o. Moreover, I see no reason to depend on l-o;
+>everything dspbridge needs is already in mainstream.
+
+My bad, meant 2.6.32 not LO specific.
+
+commit 22763c5cf3690a681551162c15d34d935308c8d7
+Author: Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Wed Dec 2 19:51:21 2009 -0800
+
+    Linux 2.6.32
+
+- omar
