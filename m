@@ -1,56 +1,55 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/2] DSPBRIDGE: sanitize opp_idx before passing to PM
-Date: Wed, 20 Jan 2010 23:45:10 -0600
-Message-ID: <1264052710-30337-3-git-send-email-nm@ti.com>
-References: <[PATCH 1/2] DSPBRIDGE: remove dependency of mpu freq>
- <1264052710-30337-1-git-send-email-nm@ti.com>
- <1264052710-30337-2-git-send-email-nm@ti.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 0/3] OMAP4: prcm/clock fixes
+Date: Thu, 21 Jan 2010 11:16:49 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0B6A@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031E2EC077@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1001190911530.3977@utopia.booyaka.com>
+ <alpine.DEB.2.00.1001190931480.3977@utopia.booyaka.com>
+ <alpine.DEB.2.00.1001201346070.3977@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46607 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55118 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752000Ab0AUFpW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jan 2010 00:45:22 -0500
-In-Reply-To: <1264052710-30337-2-git-send-email-nm@ti.com>
+	id S1750839Ab0AUFrA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 00:47:00 -0500
+In-Reply-To: <alpine.DEB.2.00.1001201346070.3977@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Deepak Chitriki <deepak.chitriki@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-DSP is not supposed to return bad opp_indices which are not part of
-the opp table we created for it. If it does, throw an error, and
-refuse to switch the OPP.
 
-Ref: discussion: http://marc.info/?t=126395196000002&r=1&w=2
-Depends on: http://marc.info/?l=linux-omap&m=126402596424801&w=2
 
-Cc: Ameya Palande <ameya.palande@nokia.com>
-Cc: Deepak Chitriki <deepak.chitriki@ti.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com] 
+> Sent: Thursday, January 21, 2010 2:17 AM
+> To: Nayak, Rajendra
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [PATCH 0/3] OMAP4: prcm/clock fixes
+> 
+> Hi,
+> 
+> On Tue, 19 Jan 2010, Paul Walmsley wrote:
+> 
+> > On Tue, 19 Jan 2010, Paul Walmsley wrote:
+> > > This patch is now posted for any comments or review:
+> > > 
+> > > 
+> http://www.pwsan.com/omap/patches/omap4_clk_fix/0001-OMAP4-PRC
+> M-Define-shift-macros-as-n-instead-of-1.patch
+> > 
+> > Thanks, this is a total "brown paper bag" bug :-(
+> > 
+> > Queued for 2.6.33-rc.
+> 
+> Based on some advice from Tony, this patch has been moved to the 
+> for_2.6.34 branch.  Please let me know if this causes any problems.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+Thanks Paul, that should be just fine.
 
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 5dfbef8..a13e035 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -73,6 +73,12 @@ DSP_STATUS handle_constraints_set(struct WMD_DEV_CONTEXT *pDevContext,
- 	/* pick up the opp index */
- 	opp_idx = *(((u32 *)(pArgs)) + 1);
- 
-+	/* Sanity check to ensure things are fine */
-+	if (!opp_idx || (opp_idx > pdata->dsp_num_speeds)) {
-+		pr_err("%s: DSP requested for an invalid OPP %d Vs %d->%d!\n",
-+			__func__, opp_idx, 1, pdata->dsp_num_speeds);
-+		return DSP_EINVALIDARG;
-+	}
- 	/* Read the target value requested by DSP  */
- 	DBG_Trace(DBG_LEVEL7, "handle_constraints_set:"
- 		"opp requested = 0x%x\n", opp_idx);
--- 
-1.6.3.3
-
+> 
+> - Paul
+> 
