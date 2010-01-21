@@ -1,943 +1,997 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH V2 2/10] omap: Rename mmc-twl4030 files to hsmmc
-Date: Thu, 21 Jan 2010 11:07:49 +0200
-Message-ID: <4B581965.3090403@nokia.com>
-References: <20100117013250.17308.17861.sendpatchset@ahunter-work.research.nokia.com> <20100117013306.17308.2282.sendpatchset@ahunter-work.research.nokia.com> <017601ca9a2a$1d1e7640$544ff780@am.dhcp.ti.com> <017701ca9a2b$07ceb920$544ff780@am.dhcp.ti.com>
+From: Romit Dasgupta <romit@ti.com>
+Subject: [PM-WIP-OPP] [PATCH v2] Introducing enum for OPP types
+Date: Thu, 21 Jan 2010 15:20:46 +0530
+Message-ID: <1264067446.6568.5.camel@boson>
+Reply-To: romit@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <017701ca9a2b$07ceb920$544ff780@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Tony Lindgren' <tony@atomide.com>, 'Paul Walmsley' <paul@pwsan.com>, 'linux-omap Mailing List' <linux-omap@vger.kernel.org>, 'linux-mmc Mailing List' <linux-mmc@vger.kernel.org>, 'Andrew Morton' <akpm@linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50661 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751795Ab0AUJu4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jan 2010 04:50:56 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@deeprootsystems.com
+Cc: nm@ti.com, linux-omap@vger.kernel.org
 
-ext Madhusudhan wrote:
-> 
->> -----Original Message-----
->> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
->> owner@vger.kernel.org] On Behalf Of Madhusudhan
->> Sent: Wednesday, January 20, 2010 5:42 PM
->> To: 'Adrian Hunter'; 'Tony Lindgren'
->> Cc: 'Paul Walmsley'; 'linux-omap Mailing List'; 'linux-mmc Mailing List';
->> 'Andrew Morton'
->> Subject: RE: [PATCH V2 2/10] omap: Rename mmc-twl4030 files to hsmmc
->>
->>
->>
->>> -----Original Message-----
->>> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
->>> Sent: Saturday, January 16, 2010 7:33 PM
->>> To: Tony Lindgren
->>> Cc: Adrian Hunter; Madhusudhan Chikkature; Paul Walmsley; linux-omap
->>> Mailing List; linux-mmc Mailing List; Andrew Morton
->>> Subject: [PATCH V2 2/10] omap: Rename mmc-twl4030 files to hsmmc
->>>
->>> From a65fae702aa81d4596d6fbefd2ab3c8ea87c244a Mon Sep 17 00:00:00 2001
->>> From: Adrian Hunter <adrian.hunter@nokia.com>
->>> Date: Sun, 17 Jan 2010 02:34:22 +0200
->>> Subject: [PATCH] omap: Rename mmc-twl4030 files to hsmmc
->>>
->>> mmc-twl4030.[ch] no longer has any dependency on twl4030
->>> and should be renamed to reflect that.
->>>
->>> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
->>> ---
->>>  arch/arm/mach-omap2/Makefile                 |   28 ++--
->>>  arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
->>>  arch/arm/mach-omap2/board-3430sdp.c          |    2 +-
->>>  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
->>>  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
->>>  arch/arm/mach-omap2/board-ldp.c              |    2 +-
->>>  arch/arm/mach-omap2/board-omap3beagle.c      |    2 +-
->>>  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
->>>  arch/arm/mach-omap2/board-omap3pandora.c     |    2 +-
->>>  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
->>>  arch/arm/mach-omap2/board-overo.c            |    2 +-
->>>  arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
->>>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
->>>  arch/arm/mach-omap2/hsmmc.c                  |  247
->>> ++++++++++++++++++++++++++
->>>  arch/arm/mach-omap2/hsmmc.h                  |   34 ++++
->>>  arch/arm/mach-omap2/mmc-twl4030.c            |  247 -------------------
->> --
->>> -----
->>>  arch/arm/mach-omap2/mmc-twl4030.h            |   34 ----
->>>  17 files changed, 307 insertions(+), 307 deletions(-)
->>>  create mode 100644 arch/arm/mach-omap2/hsmmc.c
->>>  create mode 100644 arch/arm/mach-omap2/hsmmc.h
->>>  delete mode 100644 arch/arm/mach-omap2/mmc-twl4030.c
->>>  delete mode 100644 arch/arm/mach-omap2/mmc-twl4030.h
->>>
->>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
->>> index b32678b..a7e4c5a 100644
->>> --- a/arch/arm/mach-omap2/Makefile
->>> +++ b/arch/arm/mach-omap2/Makefile
->>> @@ -71,42 +71,42 @@ obj-y                                   +=
->> $(i2c-omap-m)
->>> $(i2c-omap-y)
->>>  obj-$(CONFIG_MACH_OMAP_GENERIC)            += board-generic.o
->>>  obj-$(CONFIG_MACH_OMAP_H4)         += board-h4.o
->>>  obj-$(CONFIG_MACH_OMAP_2430SDP)            += board-2430sdp.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_OMAP_APOLLON)            += board-apollon.o
->>>  obj-$(CONFIG_MACH_OMAP3_BEAGLE)            += board-omap3beagle.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_OMAP_LDP)                += board-ldp.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_OVERO)           += board-overo.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_OMAP3EVM)                += board-omap3evm.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_OMAP3_PANDORA)   += board-omap3pandora.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_OMAP_3430SDP)            += board-3430sdp.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_NOKIA_N8X0)              += board-n8x0.o
->>>  obj-$(CONFIG_MACH_NOKIA_RX51)              += board-rx51.o \
->>>                                        board-rx51-sdram.o \
->>>                                        board-rx51-peripherals.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_OMAP_ZOOM2)              += board-zoom2.o \
->>>                                        board-zoom-peripherals.o \
->>> -                                      mmc-twl4030.o \
->>> +                                      hsmmc.o \
->>>                                        board-zoom-debugboard.o
->>>  obj-$(CONFIG_MACH_OMAP_ZOOM3)              += board-zoom3.o \
->>>                                        board-zoom-peripherals.o \
->>> -                                      mmc-twl4030.o \
->>> +                                      hsmmc.o \
->>>                                        board-zoom-debugboard.o
->>>  obj-$(CONFIG_MACH_OMAP_3630SDP)            += board-3630sdp.o \
->>>                                        board-zoom-peripherals.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_CM_T35)          += board-cm-t35.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_IGEP0020)                += board-igep0020.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK) += board-omap3touchbook.o \
->>> -                                      mmc-twl4030.o
->>> +                                      hsmmc.o
->>>  obj-$(CONFIG_MACH_OMAP_4430SDP)            += board-4430sdp.o
->>>
->>>  obj-$(CONFIG_MACH_OMAP3517EVM)     += board-am3517evm.o
->>> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-
->>> omap2/board-2430sdp.c
->>> index 31042ee..e42848d 100644
->>> --- a/arch/arm/mach-omap2/board-2430sdp.c
->>> +++ b/arch/arm/mach-omap2/board-2430sdp.c
->>> @@ -38,7 +38,7 @@
->>>  #include <plat/usb.h>
->>>  #include <plat/gpmc-smc91x.h>
->>>
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define SDP2430_CS0_BASE   0x04000000
->>>  #define SECONDARY_LCD_GPIO         147
->>> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
->>> omap2/board-3430sdp.c
->>> index c90b0d0..a0cf00f 100644
->>> --- a/arch/arm/mach-omap2/board-3430sdp.c
->>> +++ b/arch/arm/mach-omap2/board-3430sdp.c
->>> @@ -43,7 +43,7 @@
->>>
->>>  #include "mux.h"
->>>  #include "sdram-qimonda-hyb18m512160af-6.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define CONFIG_DISABLE_HFCLK 1
->>>
->>> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-
->>> omap2/board-cm-t35.c
->>> index 2626a9f..214a2a8 100644
->>> --- a/arch/arm/mach-omap2/board-cm-t35.c
->>> +++ b/arch/arm/mach-omap2/board-cm-t35.c
->>> @@ -46,7 +46,7 @@
->>>
->>>  #include "mux.h"
->>>  #include "sdram-micron-mt46h32m32lf-6.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define CM_T35_GPIO_PENDOWN        57
->>>
->>> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-
->>> omap2/board-igep0020.c
->>> index 117b8fd..9db061f 100644
->>> --- a/arch/arm/mach-omap2/board-igep0020.c
->>> +++ b/arch/arm/mach-omap2/board-igep0020.c
->>> @@ -30,7 +30,7 @@
->>>  #include <plat/usb.h>
->>>
->>>  #include "mux.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define IGEP2_SMSC911X_CS       5
->>>  #define IGEP2_SMSC911X_GPIO     176
->>> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-
->> omap2/board-
->>> ldp.c
->>> index 995d4a2..635f54d 100644
->>> --- a/arch/arm/mach-omap2/board-ldp.c
->>> +++ b/arch/arm/mach-omap2/board-ldp.c
->>> @@ -44,7 +44,7 @@
->>>  #include <plat/usb.h>
->>>
->>>  #include "mux.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define LDP_SMSC911X_CS            1
->>>  #define LDP_SMSC911X_GPIO  152
->>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-
->>> omap2/board-omap3beagle.c
->>> index 231cb4e..aaa9760 100644
->>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->>> @@ -45,7 +45,7 @@
->>>  #include <plat/timer-gp.h>
->>>
->>>  #include "mux.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define GPMC_CS0_BASE  0x60
->>>  #define GPMC_CS_SIZE   0x30
->>> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
->>> omap2/board-omap3evm.c
->>> index 34de178..2dd52ad 100644
->>> --- a/arch/arm/mach-omap2/board-omap3evm.c
->>> +++ b/arch/arm/mach-omap2/board-omap3evm.c
->>> @@ -44,7 +44,7 @@
->>>
->>>  #include "mux.h"
->>>  #include "sdram-micron-mt46h32m32lf-6.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define OMAP3_EVM_TS_GPIO  175
->>>  #define OMAP3_EVM_EHCI_VBUS        22
->>> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-
->>> omap2/board-omap3pandora.c
->>> index ef17cf1..3a11506 100644
->>> --- a/arch/arm/mach-omap2/board-omap3pandora.c
->>> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
->>> @@ -43,7 +43,7 @@
->>>
->>>  #include "mux.h"
->>>  #include "sdram-micron-mt46h32m32lf-6.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define OMAP3_PANDORA_TS_GPIO              94
->>>
->>> diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-
->>> omap2/board-omap3touchbook.c
->>> index fe3d22c..8efef51 100644
->>> --- a/arch/arm/mach-omap2/board-omap3touchbook.c
->>> +++ b/arch/arm/mach-omap2/board-omap3touchbook.c
->>> @@ -50,7 +50,7 @@
->>>  #include <plat/timer-gp.h>
->>>
->>>  #include "mux.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #include <asm/setup.h>
->>>
->>> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-
->>> omap2/board-overo.c
->>> index d192dd9..8a9d439 100644
->>> --- a/arch/arm/mach-omap2/board-overo.c
->>> +++ b/arch/arm/mach-omap2/board-overo.c
->>> @@ -48,7 +48,7 @@
->>>
->>>  #include "mux.h"
->>>  #include "sdram-micron-mt46h32m32lf-6.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define OVERO_GPIO_BT_XGATE        15
->>>  #define OVERO_GPIO_W2W_NRESET      16
->>> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
->> b/arch/arm/mach-
->>> omap2/board-rx51-peripherals.c
->>> index acafdbc..b2de206 100644
->>> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
->>> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
->>> @@ -34,7 +34,7 @@
->>>  #include <plat/gpmc-smc91x.h>
->>>
->>>  #include "mux.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  #define SYSTEM_REV_B_USES_VAUX3    0x1699
->>>  #define SYSTEM_REV_S_USES_VAUX3 0x8
->>> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c
->> b/arch/arm/mach-
->>> omap2/board-zoom-peripherals.c
->>> index 5c8474c..671dd06 100755
->>> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
->>> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
->>> @@ -25,7 +25,7 @@
->>>  #include <plat/usb.h>
->>>
->>>  #include "mux.h"
->>> -#include "mmc-twl4030.h"
->>> +#include "hsmmc.h"
->>>
->>>  /* Zoom2 has Qwerty keyboard*/
->>>  static int board_keymap[] = {
->>> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
->>> new file mode 100644
->>> index 0000000..b88c538
->>> --- /dev/null
->>> +++ b/arch/arm/mach-omap2/hsmmc.c
->>> @@ -0,0 +1,247 @@
->>> +/*
->>> + * linux/arch/arm/mach-omap2/hsmmc.c
->>> + *
->>> + * Copyright (C) 2007-2008 Texas Instruments
->>> + * Copyright (C) 2008 Nokia Corporation
->>> + * Author: Texas Instruments
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
->>> +#include <linux/kernel.h>
->>> +#include <linux/slab.h>
->>> +#include <linux/string.h>
->>> +#include <linux/delay.h>
->>> +#include <mach/hardware.h>
->>> +#include <plat/control.h>
->>> +#include <plat/mmc.h>
->>> +
->>> +#include "hsmmc.h"
->>> +
->>> +#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
->>> +
->>> +static u16 control_pbias_offset;
->>> +static u16 control_devconf1_offset;
->>> +
->>> +#define HSMMC_NAME_LEN     9
->>> +
->>> +static struct twl_mmc_controller {
->> Now that this file is hsmmc specific, how about renaming this as
->> "hsmmc_controller"?
->>
-> 
-> My bad, please ignore. The 3rd patch in the series seems to take care of
-> renaming these bits.
-> 
-> Regards,
-> Madhu
-> 
+Using omap_opp * to refer to domain types entails opp implementation
+into maintaining pointers outside the opp layer. 
+Since all we need a identifying a specific domain for query/operational
+purposes, we introduce enum for identifying OPP types instead of using
+opp layer's internal data structure pointer.
 
-Will you be Ack'ing these patches?
+Currently, OMAP3 is the only silicon supporting the OPP layer, hence
+mpu_opps, l3_opps and dsp_opps are deprecated and replaced with
+OPP_MPU, OPP_L3 and OPP_DSP respectively.
 
->>> +   char                            name[HSMMC_NAME_LEN + 1];
->>> +} hsmmc[OMAP34XX_NR_MMC];
->>> +
->>> +#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
->>> +
->>> +static int twl4030_mmc_get_context_loss(struct device *dev)
->> Ditto, hsmmc_get_context_loss?
->>
->>> +{
->>> +   /* FIXME: PM DPS not implemented yet */
->>> +   return 0;
->>> +}
->>> +
->>> +#else
->>> +#define twl4030_mmc_get_context_loss NULL
->>> +#endif
->>> +
->>> +static void hsmmc1_before_set_reg(struct device *dev, int slot,
->>> +                             int power_on, int vdd)
->>> +{
->>> +   u32 reg, prog_io;
->>> +   struct omap_mmc_platform_data *mmc = dev->platform_data;
->>> +
->>> +   /*
->>> +    * Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0..3) and the
->>> +    * card with Vcc regulator (from twl4030 or whatever).  OMAP has
->>> both
->>> +    * 1.8V and 3.0V modes, controlled by the PBIAS register.
->>> +    *
->>> +    * In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a supply, which
->>> +    * is most naturally TWL VSIM; those pins also use PBIAS.
->>> +    *
->>> +    * FIXME handle VMMC1A as needed ...
->>> +    */
->>> +   if (power_on) {
->>> +           if (cpu_is_omap2430()) {
->>> +                   reg = omap_ctrl_readl(OMAP243X_CONTROL_DEVCONF1);
->>> +                   if ((1 << vdd) >= MMC_VDD_30_31)
->>> +                           reg |= OMAP243X_MMC1_ACTIVE_OVERWRITE;
->>> +                   else
->>> +                           reg &= ~OMAP243X_MMC1_ACTIVE_OVERWRITE;
->>> +                   omap_ctrl_writel(reg, OMAP243X_CONTROL_DEVCONF1);
->>> +           }
->>> +
->>> +           if (mmc->slots[0].internal_clock) {
->>> +                   reg = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
->>> +                   reg |= OMAP2_MMCSDIO1ADPCLKISEL;
->>> +                   omap_ctrl_writel(reg, OMAP2_CONTROL_DEVCONF0);
->>> +           }
->>> +
->>> +           reg = omap_ctrl_readl(control_pbias_offset);
->>> +           if (cpu_is_omap3630()) {
->>> +                   /* Set MMC I/O to 52Mhz */
->>> +                   prog_io =
->> omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
->>> +                   prog_io |= OMAP3630_PRG_SDMMC1_SPEEDCTRL;
->>> +                   omap_ctrl_writel(prog_io,
->> OMAP343X_CONTROL_PROG_IO1);
->>> +           } else {
->>> +                   reg |= OMAP2_PBIASSPEEDCTRL0;
->>> +           }
->>> +           reg &= ~OMAP2_PBIASLITEPWRDNZ0;
->>> +           omap_ctrl_writel(reg, control_pbias_offset);
->>> +   } else {
->>> +           reg = omap_ctrl_readl(control_pbias_offset);
->>> +           reg &= ~OMAP2_PBIASLITEPWRDNZ0;
->>> +           omap_ctrl_writel(reg, control_pbias_offset);
->>> +   }
->>> +}
->>> +
->>> +static void hsmmc1_after_set_reg(struct device *dev, int slot,
->>> +                            int power_on, int vdd)
->>> +{
->>> +   u32 reg;
->>> +
->>> +   /* 100ms delay required for PBIAS configuration */
->>> +   msleep(100);
->>> +
->>> +   if (power_on) {
->>> +           reg = omap_ctrl_readl(control_pbias_offset);
->>> +           reg |= (OMAP2_PBIASLITEPWRDNZ0 | OMAP2_PBIASSPEEDCTRL0);
->>> +           if ((1 << vdd) <= MMC_VDD_165_195)
->>> +                   reg &= ~OMAP2_PBIASLITEVMODE0;
->>> +           else
->>> +                   reg |= OMAP2_PBIASLITEVMODE0;
->>> +           omap_ctrl_writel(reg, control_pbias_offset);
->>> +   } else {
->>> +           reg = omap_ctrl_readl(control_pbias_offset);
->>> +           reg |= (OMAP2_PBIASSPEEDCTRL0 | OMAP2_PBIASLITEPWRDNZ0 |
->>> +                   OMAP2_PBIASLITEVMODE0);
->>> +           omap_ctrl_writel(reg, control_pbias_offset);
->>> +   }
->>> +}
->>> +
->>> +static void hsmmc23_before_set_reg(struct device *dev, int slot,
->>> +                              int power_on, int vdd)
->>> +{
->>> +   struct omap_mmc_platform_data *mmc = dev->platform_data;
->>> +
->>> +   if (power_on) {
->>> +           /* Only MMC2 supports a CLKIN */
->>> +           if (mmc->slots[0].internal_clock) {
->>> +                   u32 reg;
->>> +
->>> +                   reg = omap_ctrl_readl(control_devconf1_offset);
->>> +                   reg |= OMAP2_MMCSDIO2ADPCLKISEL;
->>> +                   omap_ctrl_writel(reg, control_devconf1_offset);
->>> +           }
->>> +   }
->>> +}
->>> +
->>> +static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC]
->>> __initdata;
->>> +
->>> +void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
->> Ditto, hsmmc_init?
->>
->>> +{
->>> +   struct twl4030_hsmmc_info *c;
->>> +   int nr_hsmmc = ARRAY_SIZE(hsmmc_data);
->>> +
->>> +   if (cpu_is_omap2430()) {
->>> +           control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
->>> +           control_devconf1_offset = OMAP243X_CONTROL_DEVCONF1;
->>> +   } else {
->>> +           control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
->>> +           control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
->>> +   }
->>> +
->>> +   for (c = controllers; c->mmc; c++) {
->>> +           struct twl_mmc_controller *twl = hsmmc + c->mmc - 1;
->>> +           struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
->>> +
->>> +           if (!c->mmc || c->mmc > nr_hsmmc) {
->>> +                   pr_debug("MMC%d: no such controller\n", c->mmc);
->>> +                   continue;
->>> +           }
->>> +           if (mmc) {
->>> +                   pr_debug("MMC%d: already configured\n", c->mmc);
->>> +                   continue;
->>> +           }
->>> +
->>> +           mmc = kzalloc(sizeof(struct omap_mmc_platform_data),
->>> GFP_KERNEL);
->>> +           if (!mmc) {
->>> +                   pr_err("Cannot allocate memory for mmc device!\n");
->>> +                   return;
->>> +           }
->>> +
->>> +           if (c->name)
->>> +                   strncpy(twl->name, c->name, HSMMC_NAME_LEN);
->>> +           else
->>> +                   snprintf(twl->name, ARRAY_SIZE(twl->name),
->>> +                           "mmc%islot%i", c->mmc, 1);
->>> +           mmc->slots[0].name = twl->name;
->>> +           mmc->nr_slots = 1;
->>> +           mmc->slots[0].wires = c->wires;
->>> +           mmc->slots[0].internal_clock = !c->ext_clock;
->>> +           mmc->dma_mask = 0xffffffff;
->>> +
->>> +           mmc->get_context_loss_count =
->>> +                           twl4030_mmc_get_context_loss;
->>> +
->>> +           mmc->slots[0].switch_pin = c->gpio_cd;
->>> +           mmc->slots[0].gpio_wp = c->gpio_wp;
->>> +
->>> +           if (c->cover_only)
->>> +                   mmc->slots[0].cover = 1;
->>> +
->>> +           if (c->nonremovable)
->>> +                   mmc->slots[0].nonremovable = 1;
->>> +
->>> +           if (c->power_saving)
->>> +                   mmc->slots[0].power_saving = 1;
->>> +
->>> +           /* NOTE:  MMC slots should have a Vcc regulator set up.
->>> +            * This may be from a TWL4030-family chip, another
->>> +            * controllable regulator, or a fixed supply.
->>> +            *
->>> +            * temporary HACK: ocr_mask instead of fixed supply
->>> +            */
->>> +           mmc->slots[0].ocr_mask = c->ocr_mask;
->>> +
->>> +           switch (c->mmc) {
->>> +           case 1:
->>> +                   /* on-chip level shifting via PBIAS0/PBIAS1 */
->>> +                   mmc->slots[0].before_set_reg =
->> hsmmc1_before_set_reg;
->>> +                   mmc->slots[0].after_set_reg = hsmmc1_after_set_reg;
->>> +
->>> +                   /* Omap3630 HSMMC1 supports only 4-bit */
->>> +                   if (cpu_is_omap3630() && c->wires > 4) {
->>> +                           c->wires = 4;
->>> +                           mmc->slots[0].wires = c->wires;
->>> +                   }
->>> +                   break;
->>> +           case 2:
->>> +                   if (c->ext_clock)
->>> +                           c->transceiver = 1;
->>> +                   if (c->transceiver && c->wires > 4)
->>> +                           c->wires = 4;
->>> +                   /* FALLTHROUGH */
->>> +           case 3:
->>> +                   /* off-chip level shifting, or none */
->>> +                   mmc->slots[0].before_set_reg =
->> hsmmc23_before_set_reg;
->>> +                   mmc->slots[0].after_set_reg = NULL;
->>> +                   break;
->>> +           default:
->>> +                   pr_err("MMC%d configuration not supported!\n",
->> c->mmc);
->>> +                   kfree(mmc);
->>> +                   continue;
->>> +           }
->>> +           hsmmc_data[c->mmc - 1] = mmc;
->>> +   }
->>> +
->>> +   omap2_init_mmc(hsmmc_data, OMAP34XX_NR_MMC);
->>> +
->>> +   /* pass the device nodes back to board setup code */
->>> +   for (c = controllers; c->mmc; c++) {
->>> +           struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
->>> +
->>> +           if (!c->mmc || c->mmc > nr_hsmmc)
->>> +                   continue;
->>> +           c->dev = mmc->dev;
->>> +   }
->>> +}
->>> +
->>> +#endif
->>> diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
->>> new file mode 100644
->>> index 0000000..87d67c1
->>> --- /dev/null
->>> +++ b/arch/arm/mach-omap2/hsmmc.h
->>> @@ -0,0 +1,34 @@
->>> +/*
->>> + * MMC definitions for OMAP2
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
->>> +
->>> +struct twl4030_hsmmc_info {
->>> +   u8      mmc;            /* controller 1/2/3 */
->>> +   u8      wires;          /* 1/4/8 wires */
->>> +   bool    transceiver;    /* MMC-2 option */
->>> +   bool    ext_clock;      /* use external pin for input clock */
->>> +   bool    cover_only;     /* No card detect - just cover switch */
->>> +   bool    nonremovable;   /* Nonremovable e.g. eMMC */
->>> +   bool    power_saving;   /* Try to sleep or power off when possible
->>> */
->>> +   int     gpio_cd;        /* or -EINVAL */
->>> +   int     gpio_wp;        /* or -EINVAL */
->>> +   char    *name;          /* or NULL for default */
->>> +   struct device *dev;     /* returned: pointer to mmc adapter */
->>> +   int     ocr_mask;       /* temporary HACK */
->>> +};
->>> +
->>> +#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
->>> +
->>> +void twl4030_mmc_init(struct twl4030_hsmmc_info *);
->> Ditto
->>
->>> +
->>> +#else
->>> +
->>> +static inline void twl4030_mmc_init(struct twl4030_hsmmc_info *info)
->>> +{
->>> +}
->>> +
->>> +#endif
->>> diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-
->> omap2/mmc-
->>> twl4030.c
->>> deleted file mode 100644
->>> index 9d5ad0b..0000000
->>> --- a/arch/arm/mach-omap2/mmc-twl4030.c
->>> +++ /dev/null
->>> @@ -1,247 +0,0 @@
->>> -/*
->>> - * linux/arch/arm/mach-omap2/mmc-twl4030.c
->>> - *
->>> - * Copyright (C) 2007-2008 Texas Instruments
->>> - * Copyright (C) 2008 Nokia Corporation
->>> - * Author: Texas Instruments
->>> - *
->>> - * This program is free software; you can redistribute it and/or modify
->>> - * it under the terms of the GNU General Public License version 2 as
->>> - * published by the Free Software Foundation.
->>> - */
->>> -#include <linux/kernel.h>
->>> -#include <linux/slab.h>
->>> -#include <linux/string.h>
->>> -#include <linux/delay.h>
->>> -#include <mach/hardware.h>
->>> -#include <plat/control.h>
->>> -#include <plat/mmc.h>
->>> -
->>> -#include "mmc-twl4030.h"
->>> -
->>> -#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
->>> -
->>> -static u16 control_pbias_offset;
->>> -static u16 control_devconf1_offset;
->>> -
->>> -#define HSMMC_NAME_LEN     9
->>> -
->>> -static struct twl_mmc_controller {
->>> -   char                            name[HSMMC_NAME_LEN + 1];
->>> -} hsmmc[OMAP34XX_NR_MMC];
->>> -
->>> -#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
->>> -
->>> -static int twl4030_mmc_get_context_loss(struct device *dev)
->>> -{
->>> -   /* FIXME: PM DPS not implemented yet */
->>> -   return 0;
->>> -}
->>> -
->>> -#else
->>> -#define twl4030_mmc_get_context_loss NULL
->>> -#endif
->>> -
->>> -static void hsmmc1_before_set_reg(struct device *dev, int slot,
->>> -                             int power_on, int vdd)
->>> -{
->>> -   u32 reg, prog_io;
->>> -   struct omap_mmc_platform_data *mmc = dev->platform_data;
->>> -
->>> -   /*
->>> -    * Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0..3) and the
->>> -    * card with Vcc regulator (from twl4030 or whatever).  OMAP has
->>> both
->>> -    * 1.8V and 3.0V modes, controlled by the PBIAS register.
->>> -    *
->>> -    * In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a supply, which
->>> -    * is most naturally TWL VSIM; those pins also use PBIAS.
->>> -    *
->>> -    * FIXME handle VMMC1A as needed ...
->>> -    */
->>> -   if (power_on) {
->>> -           if (cpu_is_omap2430()) {
->>> -                   reg = omap_ctrl_readl(OMAP243X_CONTROL_DEVCONF1);
->>> -                   if ((1 << vdd) >= MMC_VDD_30_31)
->>> -                           reg |= OMAP243X_MMC1_ACTIVE_OVERWRITE;
->>> -                   else
->>> -                           reg &= ~OMAP243X_MMC1_ACTIVE_OVERWRITE;
->>> -                   omap_ctrl_writel(reg, OMAP243X_CONTROL_DEVCONF1);
->>> -           }
->>> -
->>> -           if (mmc->slots[0].internal_clock) {
->>> -                   reg = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
->>> -                   reg |= OMAP2_MMCSDIO1ADPCLKISEL;
->>> -                   omap_ctrl_writel(reg, OMAP2_CONTROL_DEVCONF0);
->>> -           }
->>> -
->>> -           reg = omap_ctrl_readl(control_pbias_offset);
->>> -           if (cpu_is_omap3630()) {
->>> -                   /* Set MMC I/O to 52Mhz */
->>> -                   prog_io =
->> omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
->>> -                   prog_io |= OMAP3630_PRG_SDMMC1_SPEEDCTRL;
->>> -                   omap_ctrl_writel(prog_io,
->> OMAP343X_CONTROL_PROG_IO1);
->>> -           } else {
->>> -                   reg |= OMAP2_PBIASSPEEDCTRL0;
->>> -           }
->>> -           reg &= ~OMAP2_PBIASLITEPWRDNZ0;
->>> -           omap_ctrl_writel(reg, control_pbias_offset);
->>> -   } else {
->>> -           reg = omap_ctrl_readl(control_pbias_offset);
->>> -           reg &= ~OMAP2_PBIASLITEPWRDNZ0;
->>> -           omap_ctrl_writel(reg, control_pbias_offset);
->>> -   }
->>> -}
->>> -
->>> -static void hsmmc1_after_set_reg(struct device *dev, int slot,
->>> -                            int power_on, int vdd)
->>> -{
->>> -   u32 reg;
->>> -
->>> -   /* 100ms delay required for PBIAS configuration */
->>> -   msleep(100);
->>> -
->>> -   if (power_on) {
->>> -           reg = omap_ctrl_readl(control_pbias_offset);
->>> -           reg |= (OMAP2_PBIASLITEPWRDNZ0 | OMAP2_PBIASSPEEDCTRL0);
->>> -           if ((1 << vdd) <= MMC_VDD_165_195)
->>> -                   reg &= ~OMAP2_PBIASLITEVMODE0;
->>> -           else
->>> -                   reg |= OMAP2_PBIASLITEVMODE0;
->>> -           omap_ctrl_writel(reg, control_pbias_offset);
->>> -   } else {
->>> -           reg = omap_ctrl_readl(control_pbias_offset);
->>> -           reg |= (OMAP2_PBIASSPEEDCTRL0 | OMAP2_PBIASLITEPWRDNZ0 |
->>> -                   OMAP2_PBIASLITEVMODE0);
->>> -           omap_ctrl_writel(reg, control_pbias_offset);
->>> -   }
->>> -}
->>> -
->>> -static void hsmmc23_before_set_reg(struct device *dev, int slot,
->>> -                              int power_on, int vdd)
->>> -{
->>> -   struct omap_mmc_platform_data *mmc = dev->platform_data;
->>> -
->>> -   if (power_on) {
->>> -           /* Only MMC2 supports a CLKIN */
->>> -           if (mmc->slots[0].internal_clock) {
->>> -                   u32 reg;
->>> -
->>> -                   reg = omap_ctrl_readl(control_devconf1_offset);
->>> -                   reg |= OMAP2_MMCSDIO2ADPCLKISEL;
->>> -                   omap_ctrl_writel(reg, control_devconf1_offset);
->>> -           }
->>> -   }
->>> -}
->>> -
->>> -static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC]
->>> __initdata;
->>> -
->>> -void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
->>> -{
->>> -   struct twl4030_hsmmc_info *c;
->>> -   int nr_hsmmc = ARRAY_SIZE(hsmmc_data);
->>> -
->>> -   if (cpu_is_omap2430()) {
->>> -           control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
->>> -           control_devconf1_offset = OMAP243X_CONTROL_DEVCONF1;
->>> -   } else {
->>> -           control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
->>> -           control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
->>> -   }
->>> -
->>> -   for (c = controllers; c->mmc; c++) {
->>> -           struct twl_mmc_controller *twl = hsmmc + c->mmc - 1;
->>> -           struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
->>> -
->>> -           if (!c->mmc || c->mmc > nr_hsmmc) {
->>> -                   pr_debug("MMC%d: no such controller\n", c->mmc);
->>> -                   continue;
->>> -           }
->>> -           if (mmc) {
->>> -                   pr_debug("MMC%d: already configured\n", c->mmc);
->>> -                   continue;
->>> -           }
->>> -
->>> -           mmc = kzalloc(sizeof(struct omap_mmc_platform_data),
->>> GFP_KERNEL);
->>> -           if (!mmc) {
->>> -                   pr_err("Cannot allocate memory for mmc device!\n");
->>> -                   return;
->>> -           }
->>> -
->>> -           if (c->name)
->>> -                   strncpy(twl->name, c->name, HSMMC_NAME_LEN);
->>> -           else
->>> -                   snprintf(twl->name, ARRAY_SIZE(twl->name),
->>> -                           "mmc%islot%i", c->mmc, 1);
->>> -           mmc->slots[0].name = twl->name;
->>> -           mmc->nr_slots = 1;
->>> -           mmc->slots[0].wires = c->wires;
->>> -           mmc->slots[0].internal_clock = !c->ext_clock;
->>> -           mmc->dma_mask = 0xffffffff;
->>> -
->>> -           mmc->get_context_loss_count =
->>> -                           twl4030_mmc_get_context_loss;
->>> -
->>> -           mmc->slots[0].switch_pin = c->gpio_cd;
->>> -           mmc->slots[0].gpio_wp = c->gpio_wp;
->>> -
->>> -           if (c->cover_only)
->>> -                   mmc->slots[0].cover = 1;
->>> -
->>> -           if (c->nonremovable)
->>> -                   mmc->slots[0].nonremovable = 1;
->>> -
->>> -           if (c->power_saving)
->>> -                   mmc->slots[0].power_saving = 1;
->>> -
->>> -           /* NOTE:  MMC slots should have a Vcc regulator set up.
->>> -            * This may be from a TWL4030-family chip, another
->>> -            * controllable regulator, or a fixed supply.
->>> -            *
->>> -            * temporary HACK: ocr_mask instead of fixed supply
->>> -            */
->>> -           mmc->slots[0].ocr_mask = c->ocr_mask;
->>> -
->>> -           switch (c->mmc) {
->>> -           case 1:
->>> -                   /* on-chip level shifting via PBIAS0/PBIAS1 */
->>> -                   mmc->slots[0].before_set_reg =
->> hsmmc1_before_set_reg;
->>> -                   mmc->slots[0].after_set_reg = hsmmc1_after_set_reg;
->>> -
->>> -                   /* Omap3630 HSMMC1 supports only 4-bit */
->>> -                   if (cpu_is_omap3630() && c->wires > 4) {
->>> -                           c->wires = 4;
->>> -                           mmc->slots[0].wires = c->wires;
->>> -                   }
->>> -                   break;
->>> -           case 2:
->>> -                   if (c->ext_clock)
->>> -                           c->transceiver = 1;
->>> -                   if (c->transceiver && c->wires > 4)
->>> -                           c->wires = 4;
->>> -                   /* FALLTHROUGH */
->>> -           case 3:
->>> -                   /* off-chip level shifting, or none */
->>> -                   mmc->slots[0].before_set_reg =
->> hsmmc23_before_set_reg;
->>> -                   mmc->slots[0].after_set_reg = NULL;
->>> -                   break;
->>> -           default:
->>> -                   pr_err("MMC%d configuration not supported!\n",
->> c->mmc);
->>> -                   kfree(mmc);
->>> -                   continue;
->>> -           }
->>> -           hsmmc_data[c->mmc - 1] = mmc;
->>> -   }
->>> -
->>> -   omap2_init_mmc(hsmmc_data, OMAP34XX_NR_MMC);
->>> -
->>> -   /* pass the device nodes back to board setup code */
->>> -   for (c = controllers; c->mmc; c++) {
->>> -           struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
->>> -
->>> -           if (!c->mmc || c->mmc > nr_hsmmc)
->>> -                   continue;
->>> -           c->dev = mmc->dev;
->>> -   }
->>> -}
->>> -
->>> -#endif
->>> diff --git a/arch/arm/mach-omap2/mmc-twl4030.h b/arch/arm/mach-
->> omap2/mmc-
->>> twl4030.h
->>> deleted file mode 100644
->>> index 87d67c1..0000000
->>> --- a/arch/arm/mach-omap2/mmc-twl4030.h
->>> +++ /dev/null
->>> @@ -1,34 +0,0 @@
->>> -/*
->>> - * MMC definitions for OMAP2
->>> - *
->>> - * This program is free software; you can redistribute it and/or modify
->>> - * it under the terms of the GNU General Public License version 2 as
->>> - * published by the Free Software Foundation.
->>> - */
->>> -
->>> -struct twl4030_hsmmc_info {
->>> -   u8      mmc;            /* controller 1/2/3 */
->>> -   u8      wires;          /* 1/4/8 wires */
->>> -   bool    transceiver;    /* MMC-2 option */
->>> -   bool    ext_clock;      /* use external pin for input clock */
->>> -   bool    cover_only;     /* No card detect - just cover switch */
->>> -   bool    nonremovable;   /* Nonremovable e.g. eMMC */
->>> -   bool    power_saving;   /* Try to sleep or power off when possible
->>> */
->>> -   int     gpio_cd;        /* or -EINVAL */
->>> -   int     gpio_wp;        /* or -EINVAL */
->>> -   char    *name;          /* or NULL for default */
->>> -   struct device *dev;     /* returned: pointer to mmc adapter */
->>> -   int     ocr_mask;       /* temporary HACK */
->>> -};
->>> -
->>> -#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
->>> -
->>> -void twl4030_mmc_init(struct twl4030_hsmmc_info *);
->>> -
->>> -#else
->>> -
->>> -static inline void twl4030_mmc_init(struct twl4030_hsmmc_info *info)
->>> -{
->>> -}
->>> -
->>> -#endif
->>> --
->>> 1.6.0.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Signed-off-by: Romit Dasgupta <romit@ti.com>
+---
+
+
+ arch/arm/mach-omap2/pm34xx.c          |   15 --
+ arch/arm/mach-omap2/resource34xx.c    |   84 ++++++----------
+ arch/arm/mach-omap2/smartreflex.c     |   33 +-----
+ arch/arm/plat-omap/common.c           |    6 -
+ arch/arm/plat-omap/cpu-omap.c         |   12 +-
+ arch/arm/plat-omap/include/plat/opp.h |   60 +++++------
+ arch/arm/plat-omap/omap-pm-noop.c     |    4 
+ arch/arm/plat-omap/omap-pm-srf.c      |    4 
+ arch/arm/plat-omap/opp.c              |  124 ++++++++++++++++--------
+ 9 files changed, 172 insertions(+), 170 deletions(-)
+
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 5c751c1..0930aef 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -1347,7 +1347,6 @@ static void __init configure_vc(void)
+ 
+ void __init omap3_pm_init_opp_table(void)
+ {
+-	int i;
+ 	struct omap_opp_def **omap3_opp_def_list;
+ 	struct omap_opp_def *omap34xx_opp_def_list[] = {
+ 		omap34xx_mpu_rate_table,
+@@ -1359,19 +1358,13 @@ void __init omap3_pm_init_opp_table(void)
+ 		omap36xx_l3_rate_table,
+ 		omap36xx_dsp_rate_table
+ 	};
+-	struct omap_opp **omap3_rate_tables[] = {
+-		&mpu_opps,
+-		&l3_opps,
+-		&dsp_opps
+-	};
+ 
+ 	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
+ 				omap34xx_opp_def_list;
+-	for (i = 0; i < ARRAY_SIZE(omap3_rate_tables); i++) {
+-		*omap3_rate_tables[i] = opp_init_list(omap3_opp_def_list[i]);
+-		/* We dont want half configured system at the moment */
+-		BUG_ON(IS_ERR(omap3_rate_tables[i]));
+-	}
++
++	BUG_ON(opp_init_list(OPP_MPU, omap3_opp_def_list[0]));
++	BUG_ON(opp_init_list(OPP_L3, omap3_opp_def_list[1]));
++	BUG_ON(opp_init_list(OPP_DSP, omap3_opp_def_list[2]));
+ }
+ 
+ static int __init omap3_pm_early_init(void)
+diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+index 157b38e..3604a38 100644
+--- a/arch/arm/mach-omap2/resource34xx.c
++++ b/arch/arm/mach-omap2/resource34xx.c
+@@ -161,7 +161,7 @@ static DEFINE_MUTEX(dvfs_mutex);
+ /**
+  * opp_to_freq - convert OPPID to frequency (DEPRECATED)
+  * @freq: return frequency back to caller
+- * @opps: opp list
++ * @opp_type: OPP type where we need to look.
+  * @opp_id: OPP ID we are searching for
+  *
+  * return 0 and freq is populated if we find the opp_id, else,
+@@ -169,14 +169,14 @@ static DEFINE_MUTEX(dvfs_mutex);
+  *
+  * NOTE: this function is a standin for the timebeing as opp_id is deprecated
+  */
+-static int __deprecated opp_to_freq(unsigned long *freq,
+-		const struct omap_opp *opps, u8 opp_id)
++static int __deprecated opp_to_freq(unsigned long *freq, enum opp_t opp_type,
++				 u8 opp_id)
+ {
+ 	struct omap_opp *opp;
+ 
+-	BUG_ON(!freq || !opps);
++	BUG_ON(!freq || opp_type >= OPP_TYPES_MAX);
+ 
+-	opp = opp_find_by_opp_id(opps, opp_id);
++	opp = opp_find_by_opp_id(opp_type, opp_id);
+ 	if (!opp)
+ 		return -EINVAL;
+ 
+@@ -188,20 +188,20 @@ static int __deprecated opp_to_freq(unsigned long *freq,
+ /**
+  * freq_to_opp - convert a frequency back to OPP ID (DEPRECATED)
+  * @opp_id: opp ID returned back to caller
+- * @opps: opp list
++ * @opp_type: OPP type where we need to look.
+  * @freq: frequency we are searching for
+  *
+  * return 0 and opp_id is populated if we find the freq, else, we return error
+  *
+  * NOTE: this function is a standin for the timebeing as opp_id is deprecated
+  */
+-static int __deprecated freq_to_opp(u8 *opp_id, struct omap_opp *opps,
++static int __deprecated freq_to_opp(u8 *opp_id, enum opp_t opp_type,
+ 		unsigned long freq)
+ {
+ 	struct omap_opp *opp;
+ 
+-	BUG_ON(!opp_id || !opps);
+-	opp = opp_find_freq_ceil(opps, &freq);
++	BUG_ON(opp_type >= OPP_TYPES_MAX);
++	opp = opp_find_freq_ceil(opp_type, &freq);
+ 	if (IS_ERR(opp))
+ 		return -EINVAL;
+ 	*opp_id = opp_get_opp_id(opp);
+@@ -218,9 +218,6 @@ void init_opp(struct shared_resource *resp)
+ 	u8 opp_id;
+ 	resp->no_of_users = 0;
+ 
+-	if (!mpu_opps || !dsp_opps || !l3_opps)
+-		return;
+-
+ 	/* Initialize the current level of the OPP resource
+ 	* to the  opp set by u-boot.
+ 	*/
+@@ -228,14 +225,14 @@ void init_opp(struct shared_resource *resp)
+ 		vdd1_resp = resp;
+ 		dpll1_clk = clk_get(NULL, "dpll1_ck");
+ 		dpll2_clk = clk_get(NULL, "dpll2_ck");
+-		ret = freq_to_opp(&opp_id, mpu_opps, dpll1_clk->rate);
++		ret = freq_to_opp(&opp_id, OPP_MPU, dpll1_clk->rate);
+ 		BUG_ON(ret); /* TBD Cleanup handling */
+ 		curr_vdd1_opp = opp_id;
+ 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
+ 		vdd2_resp = resp;
+ 		dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
+ 		l3_clk = clk_get(NULL, "l3_ick");
+-		ret = freq_to_opp(&opp_id, l3_opps, l3_clk->rate);
++		ret = freq_to_opp(&opp_id, OPP_L3, l3_clk->rate);
+ 		BUG_ON(ret); /* TBD Cleanup handling */
+ 		curr_vdd2_opp = opp_id;
+ 	}
+@@ -288,13 +285,13 @@ static int program_opp_freq(int res, int target_level, int current_level)
+ 
+ 	/* Check if I can actually switch or not */
+ 	if (res == VDD1_OPP) {
+-		ret = opp_to_freq(&mpu_freq, mpu_opps, target_level);
+-		ret |= opp_to_freq(&dsp_freq, dsp_opps, target_level);
++		ret = opp_to_freq(&mpu_freq, OPP_MPU, target_level);
++		ret |= opp_to_freq(&dsp_freq, OPP_DSP, target_level);
+ #ifndef CONFIG_CPU_FREQ
+-		ret |= opp_to_freq(&mpu_cur_freq, mpu_opps, current_level);
++		ret |= opp_to_freq(&mpu_cur_freq, OPP_MPU, current_level);
+ #endif
+ 	} else {
+-		ret = opp_to_freq(&l3_freq, l3_opps, target_level);
++		ret = opp_to_freq(&l3_freq, OPP_L3, target_level);
+ 	}
+ 	/* we would have caught all bad levels earlier.. */
+ 	if (unlikely(ret))
+@@ -329,7 +326,7 @@ static int program_opp_freq(int res, int target_level, int current_level)
+ 	return target_level;
+ }
+ 
+-static int program_opp(int res, struct omap_opp *opp, int target_level,
++static int program_opp(int res, enum opp_t opp_type, int target_level,
+ 		int current_level)
+ {
+ 	int i, ret = 0, raise;
+@@ -342,7 +339,7 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
+ #endif
+ 
+ 	/* See if have a freq associated, if not, invalid opp */
+-	ret = opp_to_freq(&freq, opp, target_level);
++	ret = opp_to_freq(&freq, opp_type, target_level);
+ 	if (unlikely(ret))
+ 		return ret;
+ 
+@@ -365,13 +362,13 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
+ 			 * transitioning from good to good OPP
+ 			 * none of the following should fail..
+ 			 */
+-			oppx = opp_find_freq_exact(opp, freq, true);
++			oppx = opp_find_freq_exact(opp_type, freq, true);
+ 			BUG_ON(IS_ERR(oppx));
+ 			uvdc = opp_get_voltage(oppx);
+ 			vt = omap_twl_uv_to_vsel(uvdc);
+ 
+-			BUG_ON(opp_to_freq(&freq, opp, current_level));
+-			oppx = opp_find_freq_exact(opp, freq, true);
++			BUG_ON(opp_to_freq(&freq, opp_type, current_level));
++			oppx = opp_find_freq_exact(opp_type, freq, true);
+ 			BUG_ON(IS_ERR(oppx));
+ 			uvdc = opp_get_voltage(oppx);
+ 			vc = omap_twl_uv_to_vsel(uvdc);
+@@ -404,15 +401,12 @@ int resource_set_opp_level(int res, u32 target_level, int flags)
+ 	if (resp->curr_level == target_level)
+ 		return 0;
+ 
+-	if (!mpu_opps || !dsp_opps || !l3_opps)
+-		return 0;
+-
+ 	/* Check if I can actually switch or not */
+ 	if (res == VDD1_OPP) {
+-		ret = opp_to_freq(&mpu_freq, mpu_opps, target_level);
+-		ret |= opp_to_freq(&mpu_old_freq, mpu_opps, resp->curr_level);
++		ret = opp_to_freq(&mpu_freq, OPP_MPU, target_level);
++		ret |= opp_to_freq(&mpu_old_freq, OPP_MPU, resp->curr_level);
+ 	} else {
+-		ret = opp_to_freq(&l3_freq, l3_opps, target_level);
++		ret = opp_to_freq(&l3_freq, OPP_L3, target_level);
+ 	}
+ 	if (ret)
+ 		return ret;
+@@ -431,7 +425,7 @@ int resource_set_opp_level(int res, u32 target_level, int flags)
+ 		/* Send pre notification to CPUFreq */
+ 		cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
+ #endif
+-		resp->curr_level = program_opp(res, mpu_opps, target_level,
++		resp->curr_level = program_opp(res, OPP_MPU, target_level,
+ 			resp->curr_level);
+ #ifdef CONFIG_CPU_FREQ
+ 		/* Send a post notification to CPUFreq */
+@@ -442,7 +436,7 @@ int resource_set_opp_level(int res, u32 target_level, int flags)
+ 			mutex_unlock(&dvfs_mutex);
+ 			return 0;
+ 		}
+-		resp->curr_level = program_opp(res, l3_opps, target_level,
++		resp->curr_level = program_opp(res, OPP_L3, target_level,
+ 			resp->curr_level);
+ 	}
+ 	mutex_unlock(&dvfs_mutex);
+@@ -474,17 +468,17 @@ int set_opp(struct shared_resource *resp, u32 target_level)
+ 		req_l3_freq = (target_level * 1000)/4;
+ 
+ 		/* Do I have a best match? */
+-		oppx = opp_find_freq_ceil(l3_opps, &req_l3_freq);
++		oppx = opp_find_freq_ceil(OPP_L3, &req_l3_freq);
+ 		if (IS_ERR(oppx)) {
+ 			/* Give me the best we got */
+ 			req_l3_freq = ULONG_MAX;
+-			oppx = opp_find_freq_floor(l3_opps, &req_l3_freq);
++			oppx = opp_find_freq_floor(OPP_L3, &req_l3_freq);
+ 		}
+ 
+ 		/* uh uh.. no OPPs?? */
+ 		BUG_ON(IS_ERR(oppx));
+ 
+-		ret = freq_to_opp((u8 *)&target_level, l3_opps, req_l3_freq);
++		ret = freq_to_opp((u8 *)&target_level, OPP_L3, req_l3_freq);
+ 		/* we dont expect this to fail */
+ 		BUG_ON(ret);
+ 
+@@ -503,9 +497,9 @@ int validate_opp(struct shared_resource *resp, u32 target_level)
+ {
+ 	unsigned long x;
+ 	if (strcmp(resp->name, "mpu_freq") == 0)
+-		return opp_to_freq(&x, mpu_opps, target_level);
++		return opp_to_freq(&x, OPP_MPU, target_level);
+ 	else if (strcmp(resp->name, "dsp_freq") == 0)
+-		return opp_to_freq(&x, dsp_opps, target_level);
++		return opp_to_freq(&x, OPP_DSP, target_level);
+ 	return 0;
+ }
+ 
+@@ -519,19 +513,16 @@ void init_freq(struct shared_resource *resp)
+ 	unsigned long freq;
+ 	resp->no_of_users = 0;
+ 
+-	if (!mpu_opps || !dsp_opps)
+-		return;
+-
+ 	linked_res_name = (char *)resp->resource_data;
+ 	/* Initialize the current level of the Freq resource
+ 	* to the frequency set by u-boot.
+ 	*/
+ 	if (strcmp(resp->name, "mpu_freq") == 0)
+ 		/* MPU freq in Mhz */
+-		ret = opp_to_freq(&freq, mpu_opps, curr_vdd1_opp);
++		ret = opp_to_freq(&freq, OPP_MPU, curr_vdd1_opp);
+ 	else if (strcmp(resp->name, "dsp_freq") == 0)
+ 		/* DSP freq in Mhz */
+-		ret = opp_to_freq(&freq, dsp_opps, curr_vdd1_opp);
++		ret = opp_to_freq(&freq, OPP_DSP, curr_vdd1_opp);
+ 	BUG_ON(ret);
+ 
+ 	resp->curr_level = freq;
+@@ -543,16 +534,13 @@ int set_freq(struct shared_resource *resp, u32 target_level)
+ 	u8 vdd1_opp;
+ 	int ret = -EINVAL;
+ 
+-	if (!mpu_opps || !dsp_opps)
+-		return 0;
+-
+ 	if (strcmp(resp->name, "mpu_freq") == 0) {
+-		ret = freq_to_opp(&vdd1_opp, mpu_opps, target_level);
++		ret = freq_to_opp(&vdd1_opp, OPP_MPU, target_level);
+ 		if (!ret)
+ 			ret = resource_request("vdd1_opp", &dummy_mpu_dev,
+ 					vdd1_opp);
+ 	} else if (strcmp(resp->name, "dsp_freq") == 0) {
+-		ret = freq_to_opp(&vdd1_opp, dsp_opps, target_level);
++		ret = freq_to_opp(&vdd1_opp, OPP_DSP, target_level);
+ 		if (!ret)
+ 			ret = resource_request("vdd1_opp", &dummy_dsp_dev,
+ 					vdd1_opp);
+@@ -566,8 +554,8 @@ int validate_freq(struct shared_resource *resp, u32 target_level)
+ {
+ 	u8 x;
+ 	if (strcmp(resp->name, "mpu_freq") == 0)
+-		return freq_to_opp(&x, mpu_opps, target_level);
++		return freq_to_opp(&x, OPP_MPU, target_level);
+ 	else if (strcmp(resp->name, "dsp_freq") == 0)
+-		return freq_to_opp(&x, dsp_opps, target_level);
++		return freq_to_opp(&x, OPP_DSP, target_level);
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 3c37837..1c5ec37 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -152,12 +152,11 @@ static u8 get_vdd1_opp(void)
+ 	struct omap_opp *opp;
+ 	unsigned long freq;
+ 
+-	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk) ||
+-							mpu_opps == NULL)
++	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk))
+ 		return 0;
+ 
+ 	freq = sr1.vdd_opp_clk->rate;
+-	opp = opp_find_freq_ceil(mpu_opps, &freq);
++	opp = opp_find_freq_ceil(OPP_MPU, &freq);
+ 	if (IS_ERR(opp))
+ 		return 0;
+ 	/*
+@@ -176,12 +175,11 @@ static u8 get_vdd2_opp(void)
+ 	struct omap_opp *opp;
+ 	unsigned long freq;
+ 
+-	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk) ||
+-							l3_opps == NULL)
++	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk))
+ 		return 0;
+ 
+ 	freq = sr2.vdd_opp_clk->rate;
+-	opp = opp_find_freq_ceil(l3_opps, &freq);
++	opp = opp_find_freq_ceil(OPP_L3, &freq);
+ 	if (IS_ERR(opp))
+ 		return 0;
+ 
+@@ -310,7 +308,7 @@ static void sr_configure_vp(int srid)
+ 		if (!target_opp_no)
+ 			target_opp_no = VDD1_OPP3;
+ 
+-		opp = opp_find_by_opp_id(mpu_opps, target_opp_no);
++		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+ 		BUG_ON(!opp); /* XXX ugh */
+ 
+ 		uvdc = opp_get_voltage(opp);
+@@ -359,7 +357,7 @@ static void sr_configure_vp(int srid)
+ 		if (!target_opp_no)
+ 			target_opp_no = VDD2_OPP3;
+ 
+-		opp = opp_find_by_opp_id(l3_opps, target_opp_no);
++		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+ 		BUG_ON(!opp); /* XXX ugh */
+ 
+ 		uvdc = opp_get_voltage(opp);
+@@ -472,7 +470,7 @@ static int sr_reset_voltage(int srid)
+ 			return 1;
+ 		}
+ 
+-		opp = opp_find_by_opp_id(mpu_opps, target_opp_no);
++		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+ 		if (!opp)
+ 			return 1;
+ 
+@@ -490,7 +488,7 @@ static int sr_reset_voltage(int srid)
+ 			return 1;
+ 		}
+ 
+-		opp = opp_find_by_opp_id(l3_opps, target_opp_no);
++		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+ 		if (!opp)
+ 			return 1;
+ 
+@@ -546,11 +544,6 @@ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+ 	int uvdc;
+ 	char vsel;
+ 
+-	if (!(mpu_opps && l3_opps)) {
+-		pr_notice("VSEL values not found\n");
+-		return false;
+-	}
+-
+ 	sr->req_opp_no = target_opp_no;
+ 
+ 	if (sr->srid == SR1) {
+@@ -575,7 +568,7 @@ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+ 			break;
+ 		}
+ 
+-		opp = opp_find_by_opp_id(mpu_opps, target_opp_no);
++		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+ 		if (!opp)
+ 			return false;
+ 	} else {
+@@ -594,7 +587,7 @@ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+ 			break;
+ 		}
+ 
+-		opp = opp_find_by_opp_id(l3_opps, target_opp_no);
++		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+ 		if (!opp)
+ 			return false;
+ 	}
+@@ -1010,12 +1003,6 @@ static int __init omap3_sr_init(void)
+ 	int ret = 0;
+ 	u8 RdReg;
+ 
+-	/* Exit if OPP tables are not defined */
+-        if (!(mpu_opps && l3_opps)) {
+-                pr_err("SR: OPP rate tables not defined for platform, not enabling SmartReflex\n");
+-		return -ENODEV;
+-        }
+-
+ 	/* Enable SR on T2 */
+ 	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
+ 			      R_DCDC_GLOBAL_CFG);
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 6bd62ea..dddc027 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -52,12 +52,6 @@ int omap_board_config_size;
+ /* used by omap-smp.c and board-4430sdp.c */
+ void __iomem *gic_cpu_base_addr;
+ 
+-#ifdef CONFIG_OMAP_PM_NONE
+-struct omap_opp *mpu_opps;
+-struct omap_opp *dsp_opps;
+-struct omap_opp *l3_opps;
+-#endif
+-
+ static const void *get_config(u16 tag, size_t len, int skip, size_t *len_out)
+ {
+ 	struct omap_board_config_kernel *kinfo = NULL;
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index 109203e..a69b557 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -87,6 +87,9 @@ static int omap_target(struct cpufreq_policy *policy,
+ #ifdef CONFIG_ARCH_OMAP1
+ 	struct cpufreq_freqs freqs;
+ #endif
++#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
++	unsigned long freq = target_freq * 1000;
++#endif
+ 	int ret = 0;
+ 
+ 	/* Ensure desired rate is within allowed range.  Some govenors
+@@ -111,11 +114,8 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+ #elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+-	if (mpu_opps) {
+-		unsigned long freq = target_freq * 1000;
+-		if (!IS_ERR(opp_find_freq_ceil(mpu_opps, &freq)))
+-			omap_pm_cpu_set_freq(freq);
+-	}
++	if (opp_find_freq_ceil(OPP_MPU, &freq))
++		omap_pm_cpu_set_freq(freq);
+ #endif
+ 	return ret;
+ }
+@@ -136,7 +136,7 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
+ 	if (!cpu_is_omap34xx())
+ 		clk_init_cpufreq_table(&freq_table);
+ 	else
+-		opp_init_cpufreq_table(mpu_opps, &freq_table);
++		opp_init_cpufreq_table(OPP_MPU, &freq_table);
+ 
+ 	if (freq_table) {
+ 		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
+index 9f91ad3..c3dc9fc 100644
+--- a/arch/arm/plat-omap/include/plat/opp.h
++++ b/arch/arm/plat-omap/include/plat/opp.h
+@@ -5,6 +5,8 @@
+  *	Nishanth Menon
+  * Copyright (C) 2009 Deep Root Systems, LLC.
+  *	Kevin Hilman
++ * Copyright (C) 2010 Texas Instruments Incorporated
++ *	Romit Dasgupta <romit@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -13,9 +15,16 @@
+ #ifndef __ASM_ARM_OMAP_OPP_H
+ #define __ASM_ARM_OMAP_OPP_H
+ 
+-extern struct omap_opp *mpu_opps;
+-extern struct omap_opp *dsp_opps;
+-extern struct omap_opp *l3_opps;
++#ifdef CONFIG_ARCH_OMAP3
++enum opp_t {
++	OPP_MPU,
++	OPP_L3,
++	OPP_DSP,
++	OPP_TYPES_MAX
++};
++#else
++#error "You need to populate the OPP types for OMAP chip type."
++#endif
+ 
+ struct omap_opp;
+ 
+@@ -40,16 +49,16 @@ unsigned long opp_get_freq(const struct omap_opp *opp);
+ /**
+  * opp_get_opp_count() - Get number of opps enabled in the opp list
+  * @num:	returns the number of opps
+- * @oppl:	opp list
++ * @opp_type:	OPP type we want to count
+  *
+  * This functions returns the number of opps if there are any OPPs enabled,
+  * else returns corresponding error value.
+  */
+-int opp_get_opp_count(struct omap_opp *oppl);
++int opp_get_opp_count(enum opp_t opp_type);
+ 
+ /**
+  * opp_find_freq_exact() - search for an exact frequency
+- * @oppl:	OPP list
++ * @opp_type:	OPP type we want to search in.
+  * @freq:	frequency to search for
+  * @enabled:	enabled/disabled OPP to search for
+  *
+@@ -61,14 +70,14 @@ int opp_get_opp_count(struct omap_opp *oppl);
+  * for exact matching frequency and is enabled. if true, the match is for exact
+  * frequency which is disabled.
+  */
+-struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
++struct omap_opp *opp_find_freq_exact(enum opp_t opp_type,
+ 				     unsigned long freq, bool enabled);
+ 
+ /* XXX This documentation needs fixing */
+ 
+ /**
+  * opp_find_freq_floor() - Search for an rounded freq
+- * @oppl:	Starting list
++ * @opp_type:	OPP type we want to search in
+  * @freq:	Start frequency
+  *
+  * Search for the lower *enabled* OPP from a starting freq
+@@ -97,14 +106,13 @@ struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+  * NOTE: if we set freq as ULONG_MAX and search low, we get the
+  * highest enabled frequency
+  */
+-struct omap_opp *opp_find_freq_floor(struct omap_opp *oppl,
+-				     unsigned long *freq);
++struct omap_opp *opp_find_freq_floor(enum opp_t opp_type, unsigned long *freq);
+ 
+ /* XXX This documentation needs fixing */
+ 
+ /**
+  * opp_find_freq_ceil() - Search for an rounded freq
+- * @oppl:	Starting list
++ * @opp_type:	OPP type where we want to search in
+  * @freq:	Start frequency
+  *
+  * Search for the higher *enabled* OPP from a starting freq
+@@ -130,7 +138,7 @@ struct omap_opp *opp_find_freq_floor(struct omap_opp *oppl,
+  *		freq++; * for next higher match *
+  *	}
+  */
+-struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl, unsigned long *freq);
++struct omap_opp *opp_find_freq_ceil(enum opp_t opp_type, unsigned long *freq);
+ 
+ 
+ /**
+@@ -170,35 +178,27 @@ struct omap_opp_def {
+ 
+ /**
+  * opp_init_list() - Initialize an opp list from the opp definitions
++ * @opp_type:	OPP type to initialize this list for.
+  * @opp_defs:	Initial opp definitions to create the list.
+  *
+- * This function creates a list of opp definitions and returns a handle.
++ * This function creates a list of opp definitions and returns status.
+  * This list can be used to further validation/search/modifications. New
+  * opp entries can be added to this list by using opp_add().
+  *
+- * In the case of error, ERR_PTR is returned to the caller and should be
+- * appropriately handled with IS_ERR.
++ * In the case of error, suitable error code is returned.
+  */
+-struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs);
++int  __init opp_init_list(enum opp_t opp_type,
++			 const struct omap_opp_def *opp_defs);
+ 
+ /**
+  * opp_add()  - Add an OPP table from a table definitions
+- * @oppl:	List to add the OPP to
++ * @opp_type:	OPP type under which we want to add our new OPP.
+  * @opp_def:	omap_opp_def to describe the OPP which we want to add to list.
+  *
+- * This function adds an opp definition to the opp list and returns
+- * a handle representing the new OPP list. This handle is then used for further
+- * validation, search, modification operations on the OPP list.
+- *
+- * This function returns the pointer to the allocated list through oppl if
+- * success, else corresponding ERR_PTR value. Caller should NOT free the oppl.
+- * opps_defs can be freed after use.
++ * This function adds an opp definition to the opp list and returns status.
+  *
+- * NOTE: caller should assume that on success, oppl is probably populated with
+- * a new handle and the new handle should be used for further referencing
+  */
+-struct omap_opp *opp_add(struct omap_opp *oppl,
+-			 const struct omap_opp_def *opp_def);
++int opp_add(enum opp_t opp_type, const struct omap_opp_def *opp_def);
+ 
+ /**
+  * opp_enable() - Enable a specific OPP
+@@ -224,11 +224,11 @@ int opp_enable(struct omap_opp *opp);
+  */
+ int opp_disable(struct omap_opp *opp);
+ 
+-struct omap_opp * __deprecated opp_find_by_opp_id(struct omap_opp *opps,
++struct omap_opp * __deprecated opp_find_by_opp_id(enum opp_t opp_type,
+ 						  u8 opp_id);
+ u8 __deprecated opp_get_opp_id(struct omap_opp *opp);
+ 
+-void opp_init_cpufreq_table(struct omap_opp *opps,
++void opp_init_cpufreq_table(enum opp_t opp_type,
+ 			    struct cpufreq_frequency_table **table);
+ 
+ 
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+index aeb372e..713a59f 100644
+--- a/arch/arm/plat-omap/omap-pm-noop.c
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -26,10 +26,6 @@
+ 
+ #include <plat/powerdomain.h>
+ 
+-struct omap_opp *dsp_opps;
+-struct omap_opp *mpu_opps;
+-struct omap_opp *l3_opps;
+-
+ /*
+  * Device-driver-originated constraints (via board-*.c files)
+  */
+diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
+index f7bf353..9b4cf7f 100644
+--- a/arch/arm/plat-omap/omap-pm-srf.c
++++ b/arch/arm/plat-omap/omap-pm-srf.c
+@@ -25,10 +25,6 @@
+ #include <plat/resource.h>
+ #include <plat/omap_device.h>
+ 
+-struct omap_opp *dsp_opps;
+-struct omap_opp *mpu_opps;
+-struct omap_opp *l3_opps;
+-
+ #define LAT_RES_POSTAMBLE "_latency"
+ #define MAX_LATENCY_RES_NAME 30
+ 
+diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+index 4fe1933..faaff70 100644
+--- a/arch/arm/plat-omap/opp.c
++++ b/arch/arm/plat-omap/opp.c
+@@ -3,6 +3,8 @@
+  *
+  * Copyright (C) 2009 Texas Instruments Incorporated.
+  *	Nishanth Menon
++ * Copyright (C) 2010 Texas Instruments Incorportated.
++ *	Romit Dasgupta <romit@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -39,6 +41,11 @@ struct omap_opp {
+ };
+ 
+ /*
++ * This maintains pointers to the start of each OPP array.
++ */
++
++static struct omap_opp *_opp_list[OPP_TYPES_MAX];
++/*
+  * DEPRECATED: Meant to detect end of opp array
+  * This is meant to help co-exist with current SRF etc
+  * TODO: REMOVE!
+@@ -65,18 +72,23 @@ unsigned long opp_get_freq(const struct omap_opp *opp)
+ 
+ /**
+  * opp_find_by_opp_id - look up OPP by OPP ID (deprecated)
+- * @opps: pointer to an array of struct omap_opp
++ * @opp_type: OPP type where we want the look up to happen.
+  *
+  * Returns the struct omap_opp pointer corresponding to the given OPP
+  * ID @opp_id, or returns NULL on error.
+  */
+-struct omap_opp * __deprecated opp_find_by_opp_id(struct omap_opp *opps,
++struct omap_opp * __deprecated opp_find_by_opp_id(enum opp_t opp_type,
+ 						  u8 opp_id)
+ {
++	struct omap_opp *opps;
+ 	int i = 0;
+ 
+-	if (!opps || !opp_id)
+-		return NULL;
++	if (unlikely(opp_type >= OPP_TYPES_MAX || !opp_id))
++		return ERR_PTR(-EINVAL);
++	opps = _opp_list[opp_type];
++
++	if (!opps)
++		return ERR_PTR(-ENOENT);
+ 
+ 	while (!OPP_TERM(&opps[i])) {
+ 		if (opps[i].enabled && (opps[i].opp_id == opp_id))
+@@ -85,7 +97,7 @@ struct omap_opp * __deprecated opp_find_by_opp_id(struct omap_opp *opps,
+ 		i++;
+ 	}
+ 
+-	return NULL;
++	return ERR_PTR(-ENOENT);
+ }
+ 
+ u8 __deprecated opp_get_opp_id(struct omap_opp *opp)
+@@ -93,14 +105,20 @@ u8 __deprecated opp_get_opp_id(struct omap_opp *opp)
+ 	return opp->opp_id;
+ }
+ 
+-int opp_get_opp_count(struct omap_opp *oppl)
++int opp_get_opp_count(enum opp_t opp_type)
+ {
+ 	u8 n = 0;
++	struct omap_opp *oppl;
+ 
+-	if (unlikely(!oppl || IS_ERR(oppl))) {
++	if (unlikely(opp_type >= OPP_TYPES_MAX)) {
+ 		pr_err("%s: Invalid parameters being passed\n", __func__);
+ 		return -EINVAL;
+ 	}
++
++	oppl = _opp_list[opp_type];
++	if (!oppl)
++		return -ENOENT;
++
+ 	while (!OPP_TERM(oppl)) {
+ 		if (oppl->enabled)
+ 			n++;
+@@ -109,14 +127,21 @@ int opp_get_opp_count(struct omap_opp *oppl)
+ 	return n;
+ }
+ 
+-struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
++struct omap_opp *opp_find_freq_exact(enum opp_t opp_type,
+ 				     unsigned long freq, bool enabled)
+ {
+-	if (unlikely(!oppl || IS_ERR(oppl))) {
++	struct omap_opp *oppl;
++
++	if (unlikely(opp_type >= OPP_TYPES_MAX)) {
+ 		pr_err("%s: Invalid parameters being passed\n", __func__);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
++	oppl = _opp_list[opp_type];
++
++	if (!oppl)
++		return ERR_PTR(-ENOENT);
++
+ 	while (!OPP_TERM(oppl)) {
+ 		if ((oppl->rate == freq) && (oppl->enabled == enabled))
+ 			break;
+@@ -126,13 +151,21 @@ struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+ 	return OPP_TERM(oppl) ? ERR_PTR(-ENOENT) : oppl;
+ }
+ 
+-struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl, unsigned long *freq)
++struct omap_opp *opp_find_freq_ceil(enum opp_t opp_type, unsigned long *freq)
+ {
+-	if (unlikely(!oppl || IS_ERR(oppl) || !freq || IS_ERR(freq))) {
++	struct omap_opp *oppl;
++
++	if (unlikely(opp_type >= OPP_TYPES_MAX || !freq ||
++		 IS_ERR(freq))) {
+ 		pr_err("%s: Invalid parameters being passed\n", __func__);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
++	oppl = _opp_list[opp_type];
++
++	if (!oppl)
++		return ERR_PTR(-ENOENT);
++
+ 	while (!OPP_TERM(oppl)) {
+ 		if (oppl->enabled && oppl->rate >= *freq)
+ 			break;
+@@ -148,14 +181,19 @@ struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl, unsigned long *freq)
+ 	return oppl;
+ }
+ 
+-struct omap_opp *opp_find_freq_floor(struct omap_opp *oppl, unsigned long *freq)
++struct omap_opp *opp_find_freq_floor(enum opp_t opp_type, unsigned long *freq)
+ {
+-	struct omap_opp *prev_opp = oppl;
++	struct omap_opp *prev_opp, *oppl;
+ 
+-	if (unlikely(!oppl || IS_ERR(oppl) || !freq || IS_ERR(freq))) {
++	if (unlikely(opp_type >= OPP_TYPES_MAX || !freq ||
++		 IS_ERR(freq))) {
+ 		pr_err("%s: Invalid parameters being passed\n", __func__);
+ 		return ERR_PTR(-EINVAL);
+ 	}
++	oppl = prev_opp = _opp_list[opp_type];
++
++	if (!oppl)
++		return ERR_PTR(-ENOENT);
+ 
+ 	while (!OPP_TERM(oppl)) {
+ 		if (oppl->enabled) {
+@@ -185,19 +223,23 @@ static void omap_opp_populate(struct omap_opp *opp,
+ 	opp->u_volt = opp_def->u_volt;
+ }
+ 
+-struct omap_opp *opp_add(struct omap_opp *oppl,
+-			 const struct omap_opp_def *opp_def)
++int opp_add(enum opp_t opp_type, const struct omap_opp_def *opp_def)
+ {
+-	struct omap_opp *opp, *oppt, *oppr;
++	struct omap_opp *opp, *oppt, *oppr, *oppl;
+ 	u8 n, i, ins;
+ 
+-	if (unlikely(!oppl || IS_ERR(oppl) || !opp_def || IS_ERR(opp_def))) {
++	if (unlikely(opp_type >= OPP_TYPES_MAX || !opp_def ||
++			 IS_ERR(opp_def))) {
+ 		pr_err("%s: Invalid params being passed\n", __func__);
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 	}
+ 
+ 	n = 0;
+-	opp = oppl;
++	oppl = opp = _opp_list[opp_type];
++
++	if (!oppl)
++		return -ENOENT;
++
+ 	while (!OPP_TERM(opp)) {
+ 		n++;
+ 		opp++;
+@@ -210,11 +252,11 @@ struct omap_opp *opp_add(struct omap_opp *oppl,
+ 	oppr = kzalloc(sizeof(struct omap_opp) * (n + 2), GFP_KERNEL);
+ 	if (!oppr) {
+ 		pr_err("%s: No memory for new opp array\n", __func__);
+-		return ERR_PTR(-ENOMEM);
++		return -ENOMEM;
+ 	}
+ 
+ 	/* Simple insertion sort */
+-	opp = oppl;
++	opp = _opp_list[opp_type];
+ 	oppt = oppr;
+ 	ins = 0;
+ 	i = 1;
+@@ -238,23 +280,27 @@ struct omap_opp *opp_add(struct omap_opp *oppl,
+ 		oppt++;
+ 	}
+ 
++	_opp_list[opp_type] = oppr;
++
+ 	/* Terminator implicitly added by kzalloc() */
+ 
+ 	/* Free the old list */
+ 	kfree(oppl);
+ 
+-	return oppr;
++	return 0;
+ }
+ 
+-struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs)
++int __init opp_init_list(enum opp_t opp_type,
++				 const struct omap_opp_def *opp_defs)
+ {
+ 	struct omap_opp_def *t = (struct omap_opp_def *)opp_defs;
+-	struct omap_opp *opp, *oppl;
++	struct omap_opp *oppl;
+ 	u8 n = 0, i = 1;
+ 
+-	if (unlikely(!opp_defs || IS_ERR(opp_defs))) {
++	if (unlikely(opp_type >= OPP_TYPES_MAX || !opp_defs ||
++			 IS_ERR(opp_defs))) {
+ 		pr_err("%s: Invalid params being passed\n", __func__);
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 	}
+ 	/* Grab a count */
+ 	while (t->enabled || t->freq || t->u_volt) {
+@@ -269,22 +315,23 @@ struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs)
+ 	oppl = kzalloc(sizeof(struct omap_opp) * (n + 1), GFP_KERNEL);
+ 	if (!oppl) {
+ 		pr_err("%s: No memory for opp array\n", __func__);
+-		return ERR_PTR(-ENOMEM);
++		return -ENOMEM;
+ 	}
+ 
+-	opp = oppl;
++
++	_opp_list[opp_type] = oppl;
+ 	while (n) {
+-		omap_opp_populate(opp, opp_defs);
+-		opp->opp_id = i;
++		omap_opp_populate(oppl, opp_defs);
++		oppl->opp_id = i;
+ 		n--;
+-		opp++;
++		oppl++;
+ 		opp_defs++;
+ 		i++;
+ 	}
+ 
+ 	/* Terminator implicitly added by kzalloc() */
+ 
+-	return oppl;
++	return 0;
+ }
+ 
+ int opp_enable(struct omap_opp *opp)
+@@ -308,20 +355,21 @@ int opp_disable(struct omap_opp *opp)
+ }
+ 
+ /* XXX document */
+-void opp_init_cpufreq_table(struct omap_opp *opps,
++void opp_init_cpufreq_table(enum opp_t opp_type,
+ 			    struct cpufreq_frequency_table **table)
+ {
+ 	int i = 0, j;
+ 	int opp_num;
+ 	struct cpufreq_frequency_table *freq_table;
++	struct omap_opp *opp;
+ 
+-	if (!opps) {
++	if (opp_type >= OPP_TYPES_MAX) {
+ 		pr_warning("%s: failed to initialize frequency"
+ 				"table\n", __func__);
+ 		return;
+ 	}
+ 
+-	opp_num = opp_get_opp_count(opps);
++	opp_num = opp_get_opp_count(opp_type);
+ 	if (opp_num < 0) {
+ 		pr_err("%s: no opp table?\n", __func__);
+ 		return;
+@@ -335,14 +383,14 @@ void opp_init_cpufreq_table(struct omap_opp *opps,
+ 		return;
+ 	}
+ 
++	opp = _opp_list[opp_type];
+ 	for (j = opp_num; j >= 0; j--) {
+-		struct omap_opp *opp = &opps[j];
+-
+ 		if (opp->enabled) {
+ 			freq_table[i].index = i;
+ 			freq_table[i].frequency = opp->rate / 1000;
+ 			i++;
+ 		}
++		opp++;
+ 	}
+ 
+ 	freq_table[i].index = i;
+
 
