@@ -1,55 +1,48 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 0/8] OMAP3: PM: Open Switch Retention support in the
- cpuidle thread.
-Date: Thu, 21 Jan 2010 12:38:40 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0BE1@dbde02.ent.ti.com>
-References: <1264001442-20078-1-git-send-email-thara@ti.com>
- <alpine.DEB.2.00.1001202314040.24456@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 6/8] OMAP3 PM: Enable DPLL4 autoidle after system off.
+Date: Thu, 21 Jan 2010 00:12:31 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001210008190.24456@utopia.booyaka.com>
+References: <1264001442-20078-1-git-send-email-thara@ti.com> <1264001442-20078-2-git-send-email-thara@ti.com> <1264001442-20078-3-git-send-email-thara@ti.com> <1264001442-20078-4-git-send-email-thara@ti.com> <1264001442-20078-5-git-send-email-thara@ti.com>
+ <1264001442-20078-6-git-send-email-thara@ti.com> <1264001442-20078-7-git-send-email-thara@ti.com> <alpine.DEB.2.00.1001201033120.3977@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0B49@dbde02.ent.ti.com> <alpine.DEB.2.00.1001202236150.24456@utopia.booyaka.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0BD5@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57496 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752693Ab0AUHIs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 02:08:48 -0500
-In-Reply-To: <alpine.DEB.2.00.1001202314040.24456@utopia.booyaka.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:57298 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752533Ab0AUHMc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 02:12:32 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0BD5@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hi,
+
+On Thu, 21 Jan 2010, Gopinath, Thara wrote:
+
+> >>> But if this approach is not ok, I can modify the save restore APIs to
+> >>> take power state as a parameter and do only dpll4 autoidle save and
+> >>> restore in case of OSWR. Is this ok?
+> >>
+> >>Well, let me know what you think of the above...
+> 
+> I am ok with this. Only thing is it will involve a clk_get("dpll4_clk") 
+> and then rest of the API calls as you have suggested. Considering this 
+> is in cpuidle path, will the latencies be high?
+
+How about doing the clk_get() in advance in omap3_pm_init(), and store the 
+struct clk pointer in a static variable that can be referenced from the 
+cpuidle path?
+
+> If we have a latency issue, we can still keep the logic same as you have 
+> suggested and instead of dpll api's directly use CM API's to implement 
+> the same. So use cm_read_mod_reg and cm_rmw_mod_reg_bits.
+
+We could but let's try the DPLL API first.  I doubt the difference between 
+using the DPLL API and using the cm_* functions will be measurable.  If 
+you look at the code for those functions, there's not much to them.
 
 
-
->>-----Original Message-----
->>From: Paul Walmsley [mailto:paul@pwsan.com]
->>Sent: Thursday, January 21, 2010 11:54 AM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com
->>Subject: Re: [PATCH 0/8] OMAP3: PM: Open Switch Retention support in the cpuidle thread.
->>
->>
->>Hi Thara,
->>
->>I'd like to merge the powerdomain changes separately from the other
->>changes, most of which should probably go through Kevin's PM branch.
->>
->>After you revise your patches based on the comments, can you take your
->>patches 3, 4, and the powerdomain portions of patch 7 and post those in a
->>separate series as an OSWR preparatory powerdomain patch set?  That will
->>make it easier for both Kevin and I to handle.
-
-When you say patch 7, I believe you are mentioning the book keeping part for OSWR where logic_ret_off and mem_ret_off counters are added. I can separate this out and post these three patches separately. Do let me know should I base these on linux-omap master branch or Kevin's pm tree.
-
->>
->>Note: the powerdomain code will need to be edited somewhat to bring it
->>up-to-date with the latest OMAP4 changes in the for_2.6.34 branch, which
->>is where your patches will go.  I'm happy to do this, but after I do it,
->>will you be able to test the updated series to ensure that this process
->>didn't break anything?
-
-Thanks for this and sure I can test the updated series! But I do not understand what OMAP4 specific support has to be added for these three patches. These three patches will be considerably free of OMAP2/OMAP3/OMAP4 specific stuff. Or are you talking of rebasing on 2.6.34 kernel?
-
-Regards
-Thara
+- Paul
