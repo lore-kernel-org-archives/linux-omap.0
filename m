@@ -1,58 +1,133 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 0/6] omap3: pm: Update TRITON power scripts and making it generic
-Date: Thu, 21 Jan 2010 13:19:10 -0800
-Message-ID: <873a1z17ht.fsf@deeprootsystems.com>
-References: <1263922193-13468-1-git-send-email-x0080970@ti.com>
+Subject: Re: [PATCH v2 1/6] omap3: pm: re-program the sleep state of TRITON resources by modifying the REMAP register
+Date: Thu, 21 Jan 2010 14:53:14 -0800
+Message-ID: <877hrbhxyd.fsf@deeprootsystems.com>
+References: <1263922501-13701-1-git-send-email-x0080970@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f196.google.com ([209.85.223.196]:36167 "EHLO
+Received: from mail-iw0-f196.google.com ([209.85.223.196]:34871 "EHLO
 	mail-iw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755259Ab0AUVTN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 16:19:13 -0500
-Received: by iwn34 with SMTP id 34so396702iwn.21
-        for <linux-omap@vger.kernel.org>; Thu, 21 Jan 2010 13:19:12 -0800 (PST)
-In-Reply-To: <1263922193-13468-1-git-send-email-x0080970@ti.com> (Lesly A. M.'s message of "Tue\, 19 Jan 2010 22\:59\:53 +0530")
+	with ESMTP id S1755076Ab0AUWxT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 17:53:19 -0500
+Received: by iwn34 with SMTP id 34so472465iwn.21
+        for <linux-omap@vger.kernel.org>; Thu, 21 Jan 2010 14:53:17 -0800 (PST)
+In-Reply-To: <1263922501-13701-1-git-send-email-x0080970@ti.com> (x0080970@ti.com's message of "Tue\, 19 Jan 2010 23\:05\:01 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lesly A M <x0080970@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: x0080970@ti.com
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Lesly A M <x0080970@ti.com> writes:
+x0080970@ti.com writes:
 
-> map3: pm: Update TRITON power scripts and making it generic
+> From: Lesly A M <x0080970@ti.com>
 >
-> This series of patch implements a updated TRITON power scripts.
-> Also moving the sleep, wakeup & warm_reset sequence to a generic script file,
-> which can be used by different OMAP3 board with the power companion chip TWL4030.
->
-> V1: Initial Patch Series
->
-> V2: Incorporated comments
->
->  arch/arm/mach-omap2/Makefile                  |   12 ++-
->  arch/arm/mach-omap2/board-3430sdp.c           |  124 ++++++++-----------------
->  arch/arm/mach-omap2/board-3630sdp.c           |   25 +++++-
->  arch/arm/mach-omap2/board-zoom-peripherals.c  |   43 +++++++++-
->  arch/arm/mach-omap2/board-zoom2.c             |   25 +++++-
->  arch/arm/mach-omap2/board-zoom3.c             |   25 +++++-
->  arch/arm/mach-omap2/include/mach/board-zoom.h |    2 +-
->  arch/arm/mach-omap2/pm.h                      |   11 ++-
->  arch/arm/mach-omap2/pm34xx.c                  |   60 ++++++++++--
->  drivers/mfd/twl4030-power.c                   |   30 +++++--
->  include/linux/i2c/twl.h                       |    4 +
->  11 files changed, 245 insertions(+), 116 deletions(-)
->
->
-> Tested on top of Kevins PM branch commit id:
-> ad4776c4207a376961372752fe0a0ae3814990b3
+> omap3: pm: re-program the sleep state of TRITON resources by modifying the REMAP register
 
-Lesly,
+This line duplicates subject, and is duplicated when applying to git.
+This causes maintainers to have t manually edit the changelog to
+remove the duplicate lines.
 
-Could you also report what platforms this was tested on, and what
-exactly was tested?  RET, OFF in suspend?  RET & OFF while idle? etc.
+Could I recommend that you use git-format-patch + git-send-email?
 
-Thanks,
+The additional From: at the top isn't necessary either when the sender
+and the author are the same.  To ensure you have the right name/email
+in your git-generated patches, edit/edit  ~/.gitconfig and add something
+that looks like this (changing the name/email to yours of course)  ;)
+
+[user]
+	name = Kevin Hilman
+	email = khilman@deeprootsystems.com
+
+I also noticed that the diffstat in PATCH 0/6 did not reflect all the
+files touched.  At least the twl4030-script* files are missing from
+the diffstat.
+
+Again, git-format-patch would help here.  Using the --cover-letter option
+to git-format-patch would generate a template for PATCH 0/x with the right
+diffstat already done.
+
+
+> Removed the warning print with checking order of scripts, since the order
+> is not important. Only the values configured in the register, which is pointing to
+> the starting address of each sequence should be correct.
+>
+> Signed-off-by: Lesly A M <x0080970@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: David Derrick <dderrick@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+
+So I take it this patch can be ignored, as the equivalent is already
+upstream, right?
 
 Kevin
 
+> ---
+>  drivers/mfd/twl4030-power.c |   30 +++++++++++++++++++++++-------
+>  1 file changed, 23 insertions(+), 7 deletions(-)
+>
+> Index: linux-omap-pm/drivers/mfd/twl4030-power.c
+> ===================================================================
+> --- linux-omap-pm.orig/drivers/mfd/twl4030-power.c	2010-01-19 19:18:56.000000000 +0530
+> +++ linux-omap-pm/drivers/mfd/twl4030-power.c	2010-01-19 19:19:02.000000000 +0530
+> @@ -416,14 +416,35 @@
+>  		return err;
+>  	}
+>  
+> -	return 0;
+> +
+> +	/* Set the remap sleep cmd */
+> +	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &remap,
+> +					rconfig_addr + REMAP_OFFSET);
+> +	if (err < 0) {
+> +		printk(KERN_ERR "TWL4030 Resource %d remap could not read\n",
+> +							rconfig->resource);
+> +		return err;
+> +	}
+> +
+> +	if (rconfig->remap_sleep >= 0) {
+> +		remap &= ~SLEEP_STATE_MASK;
+> +		remap |= rconfig->remap_sleep;
+> +	}
+> +
+> +	err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, remap,
+> +				rconfig_addr + REMAP_OFFSET);
+> +	if (err < 0) {
+> +		pr_err("TWL4030 failed to program remap sleep cmd \n");
+> +		return err;
+> +	}
+> +
+> +	return err;
+>  }
+>  
+>  static int __init load_twl4030_script(struct twl4030_script *tscript,
+>  	       u8 address)
+>  {
+>  	int err;
+> -	static int order;
+>  
+>  	/* Make sure the script isn't going beyond last valid address (0x3f) */
+>  	if ((address + tscript->size) > END_OF_SCRIPT) {
+> @@ -444,7 +465,6 @@
+>  		err = twl4030_config_wakeup12_sequence(address);
+>  		if (err)
+>  			goto out;
+> -		order = 1;
+>  	}
+>  	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
+>  		err = twl4030_config_wakeup3_sequence(address);
+> @@ -452,10 +472,6 @@
+>  			goto out;
+>  	}
+>  	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+> -		if (order)
+> -			pr_warning("TWL4030: Bad order of scripts (sleep "\
+> -					"script before wakeup) Leads to boot"\
+> -					"failure on some boards\n");
+>  		err = twl4030_config_sleep_sequence(address);
+>  out:
+>  	return err;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
