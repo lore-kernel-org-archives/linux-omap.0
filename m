@@ -1,118 +1,58 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] DSPBRIDGE: Fix BUG scheduling while atomic
-Date: Thu, 21 Jan 2010 13:53:15 -0600
-Message-ID: <4B58B0AB.5060105@ti.com>
-References: <1264046462-2417-1-git-send-email-deepak.chitriki@ti.com> <27F9C60D11D683428E133F85D2BB4A53042DF3B7BA@dlee03.ent.ti.com> <4B58931A.2090008@ti.com> <27F9C60D11D683428E133F85D2BB4A53042DF3B7E7@dlee03.ent.ti.com> <4B5896D9.7020403@ti.com> <27F9C60D11D683428E133F85D2BB4A53042DF3B949@dlee03.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 0/6] omap3: pm: Update TRITON power scripts and making it generic
+Date: Thu, 21 Jan 2010 13:19:10 -0800
+Message-ID: <873a1z17ht.fsf@deeprootsystems.com>
+References: <1263922193-13468-1-git-send-email-x0080970@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56873 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753834Ab0AUTxU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jan 2010 14:53:20 -0500
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53042DF3B949@dlee03.ent.ti.com>
+Received: from mail-iw0-f196.google.com ([209.85.223.196]:36167 "EHLO
+	mail-iw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755259Ab0AUVTN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 16:19:13 -0500
+Received: by iwn34 with SMTP id 34so396702iwn.21
+        for <linux-omap@vger.kernel.org>; Thu, 21 Jan 2010 13:19:12 -0800 (PST)
+In-Reply-To: <1263922193-13468-1-git-send-email-x0080970@ti.com> (Lesly A. M.'s message of "Tue\, 19 Jan 2010 22\:59\:53 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
+To: Lesly A M <x0080970@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Ramirez Luna, Omar had written, on 01/21/2010 01:46 PM, the following:
->> From: Menon, Nishanth on Thursday, January 21, 2010 12:03 PM
->>
->> Ramirez Luna, Omar had written, on 01/21/2010 11:57 AM, the following:
->>>> From: Menon, Nishanth on Thursday, January 21, 2010 11:47 AM
->>>>
->>>> Ramirez Luna, Omar had written, on 01/21/2010 11:43 AM, the following:
->>>>>> From: Chitriki Rudramuni, Deepak on Wednesday, January 20, 2010 10:01 PM
->>>>>>
->>>> [...]
->>>>
->>>>>> diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
->>>>>> index 94b399f..54cba9f 100644
->>>>>> --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
->>>>>> +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
->>>>>> @@ -806,3 +806,34 @@ void DSPClkWakeupEventCtrl(u32 ClkId, bool enable)
->>>>>> 	break;
->>>>>> 	}
->>>>>> }
->>>>>> +
->>>>>> +/**
->>>>>> + * tiomap3430_bump_dsp_opp_level() - bump up the opp if at minimum
->>>>>> + *
->>>>>> + * if we need a higher opp index, request for the same
->>>>>> + */
->>>>>> +DSP_STATUS tiomap3430_bump_dsp_opp_level(void)
->>>>>> +{
->>>>>> +#ifndef CONFIG_BRIDGE_DVFS
->>>>> Basically if DVFS is defined nothing is done, this was wrong in the original patch (like I
->>>> mentioned offline).
->>>>>> +	u32 opplevel;
->>>>>> +
->>>>>> +	struct dspbridge_platform_data *pdata =
->>>>>> +			omap_dspbridge_dev->dev.platform_data;
->>>>>> +
->>>>>> +	if (pdata->dsp_get_opp) {
->>>>>> +		opplevel = (*pdata->dsp_get_opp)();
->>>>>> +
->>>>>> +		/*
->>>>>> +		 * If OPP is at minimum level, increase it before waking
->>>>>> +		 * up the DSP.
->>>>>> +		 */
->>>>>> +		if (opplevel == 1 && pdata->dsp_set_min_opp) {
->>>>>> +			(*pdata->dsp_set_min_opp)(opp_level + 1);
->>>>>> +			DBG_Trace(DBG_LEVEL7, "CHNLSM_InterruptDSP: Setting "
->>>>>> +				"the vdd1 constraint level to %d before "
->>>>>> +				"waking DSP \n", opp_level + 1);
->>>>>> +		}
->>>>>> +	}
->>>>>> +#endif
->>>>>> +	return DSP_SOK;
->>>>>> +}
->>>>> Since we are reworking all of this can be changed (u32, opplevel == MAGIC_NUM), besides this was
->>>> specific to 3430.
->>>> 							^^^^^^^^^^^^^^^
->>>> opplevel==1 is independent of 3430.. index 1 has to be the lowest right?
->>> You are right, I meant opplevel == VDD1_OPP or similar.
->> arrggh... NOoooooo more #ifdefs, I would rather see my patch for min,max
->> opps pushed in(after a rework and add a nominal_opp, min_opp params to
->> pdata and use it :D) - that way all silicon variances are handled in
->> arch/arm/mach-omap2 rather than drivers/dsp/bridge.
-> 
-> Need to see the patch before commenting; agree to no #def's, thought
-> definition was there already.
-Hoping to isolate direct index accesses to pdata. that would be cleaner. 
-VDD1_OPP1, OPP2 definitions are there in pm branch today to keep SRF 
-happy, but in future, it will go away.. and it is a simple thing anyways..
+Lesly A M <x0080970@ti.com> writes:
 
-> 
->>> But the entire bumping thing is specific to 3430 IMHO.
->>>
->> if I get your point, you would rather see that this bump up disappear?
-> 
-> Only if it is not needed.
-> 
->> OR is there a reason for saying this 3430 specific? on 3630, there are
->> upto 4 OPPs(on the 1Ghz device)
-> 
-> Doesn't matter if you have a 100 opps, no point if you have to bump from
-> 1 to 2 and don't need it. Apparently it is needed for 3430.
-> 
->> OR is this a errata workaround that we have here? the original commit
->> is lacking in info about this.
-> 
-> This patch moves the code that bumps the opp outside an interrupt or
-> atomic context only (would be nice to add a good commit message so it can
-> be clear).
-> 
-> Code to bump the opp was there already, fixing a crash when waking up
-> the dsp at OPP1; haven't found the errata, if there is, there might be
-> one that says this also applies for 3630.
-> 
-Now you have me really curious - maybe we need to understand the need to 
-bump the OPP up for loading to DSP.. we could create a patch to remove 
-the entire logic out and see?
+> map3: pm: Update TRITON power scripts and making it generic
+>
+> This series of patch implements a updated TRITON power scripts.
+> Also moving the sleep, wakeup & warm_reset sequence to a generic script file,
+> which can be used by different OMAP3 board with the power companion chip TWL4030.
+>
+> V1: Initial Patch Series
+>
+> V2: Incorporated comments
+>
+>  arch/arm/mach-omap2/Makefile                  |   12 ++-
+>  arch/arm/mach-omap2/board-3430sdp.c           |  124 ++++++++-----------------
+>  arch/arm/mach-omap2/board-3630sdp.c           |   25 +++++-
+>  arch/arm/mach-omap2/board-zoom-peripherals.c  |   43 +++++++++-
+>  arch/arm/mach-omap2/board-zoom2.c             |   25 +++++-
+>  arch/arm/mach-omap2/board-zoom3.c             |   25 +++++-
+>  arch/arm/mach-omap2/include/mach/board-zoom.h |    2 +-
+>  arch/arm/mach-omap2/pm.h                      |   11 ++-
+>  arch/arm/mach-omap2/pm34xx.c                  |   60 ++++++++++--
+>  drivers/mfd/twl4030-power.c                   |   30 +++++--
+>  include/linux/i2c/twl.h                       |    4 +
+>  11 files changed, 245 insertions(+), 116 deletions(-)
+>
+>
+> Tested on top of Kevins PM branch commit id:
+> ad4776c4207a376961372752fe0a0ae3814990b3
 
--- 
-Regards,
-Nishanth Menon
+Lesly,
+
+Could you also report what platforms this was tested on, and what
+exactly was tested?  RET, OFF in suspend?  RET & OFF while idle? etc.
+
+Thanks,
+
+Kevin
+
