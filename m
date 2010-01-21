@@ -1,69 +1,136 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/7] usb: musb: deprecate what we don't use
-Date: Thu, 21 Jan 2010 15:33:55 +0200
-Message-ID: <1264080838-9452-5-git-send-email-felipe.balbi@nokia.com>
-References: <1264080838-9452-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1264080838-9452-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCH] DSPBRIDGE: Various compile warning fixes
+Date: Thu, 21 Jan 2010 15:40:41 +0200
+Message-ID: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:20880 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750866Ab0AUNld (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 08:41:33 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: omar.ramirez@ti.com, nm@ti.com, deepak.chitriki@ti.com, mika.kukkonen@nokia.com
 
-after 2.6.34, those fields will be removed from
-struct musb_hdrc_platform_data, it's expected
-that other architectures are fixed by then.
+This patch contains indentation fixes and cleans up various warnings
+uncovered with extra warning flags:
 
-Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+  - empty if() bodies
+  - incorrect use of unsigned variables
+  - bad comparison of pointer value
+  - pointless check of unsigned value being smaller than zero
+  - keyword 'extern' has to be first one in variable declaration
+
+Signed-off-by: Mika Kukkonen <mika.kukkonen@nokia.com>
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- include/linux/usb/musb.h |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/dbc.h |    6 +++---
+ arch/arm/plat-omap/include/dspbridge/dbg.h |    4 ++--
+ arch/arm/plat-omap/include/dspbridge/gt.h  |   16 +++++++++-------
+ arch/arm/plat-omap/include/dspbridge/mem.h |    2 +-
+ drivers/dsp/bridge/wmd/io_sm.c             |    2 +-
+ drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
+ 6 files changed, 17 insertions(+), 15 deletions(-)
 
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index 4b7f8fa..8e0f2bc 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -30,26 +30,26 @@ struct musb_hdrc_eps_bits {
- struct musb_hdrc_config {
- 	/* MUSB configuration-specific details */
- 	unsigned	multipoint:1;	/* multipoint device */
--	unsigned	dyn_fifo:1;	/* supports dynamic fifo sizing */
--	unsigned	soft_con:1;	/* soft connect required */
--	unsigned	utm_16:1;	/* utm data witdh is 16 bits */
-+	unsigned	dyn_fifo:1 __deprecated; /* supports dynamic fifo sizing */
-+	unsigned	soft_con:1 __deprecated; /* soft connect required */
-+	unsigned	utm_16:1 __deprecated; /* utm data witdh is 16 bits */
- 	unsigned	big_endian:1;	/* true if CPU uses big-endian */
- 	unsigned	mult_bulk_tx:1;	/* Tx ep required for multbulk pkts */
- 	unsigned	mult_bulk_rx:1;	/* Rx ep required for multbulk pkts */
- 	unsigned	high_iso_tx:1;	/* Tx ep required for HB iso */
- 	unsigned	high_iso_rx:1;	/* Rx ep required for HD iso */
--	unsigned	dma:1;		/* supports DMA */
--	unsigned	vendor_req:1;	/* vendor registers required */
-+	unsigned	dma:1 __deprecated; /* supports DMA */
-+	unsigned	vendor_req:1 __deprecated; /* vendor registers required */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
+index ac5d178..1b3ac44 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbc.h
++++ b/arch/arm/plat-omap/include/dspbridge/dbc.h
+@@ -43,9 +43,9 @@
  
- 	u8		num_eps;	/* number of endpoints _with_ ep0 */
--	u8		dma_channels;	/* number of dma channels */
-+	u8		dma_channels __deprecated; /* number of dma channels */
- 	u8		dyn_fifo_size;	/* dynamic size in bytes */
--	u8		vendor_ctrl;	/* vendor control reg width */
--	u8		vendor_stat;	/* vendor status reg witdh */
--	u8		dma_req_chan;	/* bitmask for required dma channels */
-+	u8		vendor_ctrl __deprecated; /* vendor control reg width */
-+	u8		vendor_stat __deprecated; /* vendor status reg witdh */
-+	u8		dma_req_chan __deprecated; /* bitmask for required dma channels */
- 	u8		ram_bits;	/* ram address size */
+ #else
  
--	struct musb_hdrc_eps_bits *eps_bits;
-+	struct musb_hdrc_eps_bits *eps_bits __deprecated;
- #ifdef CONFIG_BLACKFIN
-         /* A GPIO controlling VRSEL in Blackfin */
-         unsigned int    gpio_vrsel;
+-#define DBC_Assert(exp)
+-#define DBC_Require(exp)
+-#define DBC_Ensure(exp)
++#define DBC_Assert(exp) {}
++#define DBC_Require(exp) {}
++#define DBC_Ensure(exp) {}
+ 
+ #endif				/* DEBUG */
+ 
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbg.h b/arch/arm/plat-omap/include/dspbridge/dbg.h
+index 2f61dab..4d01eca 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbg.h
++++ b/arch/arm/plat-omap/include/dspbridge/dbg.h
+@@ -80,9 +80,9 @@
+ 	extern DSP_STATUS DBG_Trace(IN u8 bLevel, IN char *pstrFormat, ...);
+ #else
+ 
+-#define DBG_Exit(void)
++#define DBG_Exit(void) do {} while (0)
+ #define DBG_Init(void) true
+-#define DBG_Trace(bLevel, pstrFormat, args...)
++#define DBG_Trace(bLevel, pstrFormat, args...) do {} while (0)
+ 
+ #endif	/* (CONFIG_BRIDGE_DEBUG || DDSP_DEBUG_PRODUCT) && GT_TRACE */
+ 
+diff --git a/arch/arm/plat-omap/include/dspbridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
+index 6082d15..9097910 100644
+--- a/arch/arm/plat-omap/include/dspbridge/gt.h
++++ b/arch/arm/plat-omap/include/dspbridge/gt.h
+@@ -252,13 +252,15 @@ extern struct GT_Config _GT_params;
+ 
+ #define GT_query(mask, class)     false
+ 
+-#define GT_0trace(mask, class, format)
+-#define GT_1trace(mask, class, format, arg1)
+-#define GT_2trace(mask, class, format, arg1, arg2)
+-#define GT_3trace(mask, class, format, arg1, arg2, arg3)
+-#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4)
+-#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5)
+-#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6)
++#define GT_0trace(mask, class, format) do {} while (0)
++#define GT_1trace(mask, class, format, arg1) do {} while (0)
++#define GT_2trace(mask, class, format, arg1, arg2) do {} while (0)
++#define GT_3trace(mask, class, format, arg1, arg2, arg3) do {} while (0)
++#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4) do {} while (0)
++#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5) \
++	do {} while (0)
++#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6) \
++	do {} while (0)
+ 
+ #else				/* GT_TRACE == 1 */
+ 
+diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
+index 03b419a..353ffb0 100644
+--- a/arch/arm/plat-omap/include/dspbridge/mem.h
++++ b/arch/arm/plat-omap/include/dspbridge/mem.h
+@@ -286,7 +286,7 @@
+  *  Ensures:
+  *      - pBaseAddr no longer points to a valid linear address.
+  */
+-#define MEM_UnmapLinearAddress(pBaseAddr)
++#define MEM_UnmapLinearAddress(pBaseAddr) {}
+ 
+ /*
+  *  ======== MEM_ExtPhysPoolInit ========
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index e35ce57..64eba5a 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -1210,7 +1210,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+ 			    pChnlMgr->uWordSize;
+ 	chnlId = IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputId);
+ 	dwArg = IO_GetLong(pIOMgr->hWmdContext, struct SHM, sm, arg);
+-	if (!(chnlId >= 0) || !(chnlId < CHNL_MAXCHANNELS)) {
++	if (chnlId >= CHNL_MAXCHANNELS) {
+ 		/* Shouldn't be here: would indicate corrupted SHM. */
+ 		DBC_Assert(chnlId);
+ 		goto func_end;
+diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
+index 6166d97..2c3a2cd 100644
+--- a/drivers/dsp/bridge/wmd/ue_deh.c
++++ b/drivers/dsp/bridge/wmd/ue_deh.c
+@@ -189,7 +189,7 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
+ 	DSP_STATUS status = DSP_SOK;
+ 	u32 memPhysical = 0;
+ 	u32 HW_MMU_MAX_TLB_COUNT = 31;
+-	u32 extern faultAddr;
++	extern u32 faultAddr;
+ 	struct CFG_HOSTRES resources;
+ 	HW_STATUS hwStatus;
+ 
 -- 
-1.6.6.rc0
+1.6.3.3
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
