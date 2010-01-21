@@ -1,137 +1,117 @@
-From: "Pais, Allen" <allen.pais@ti.com>
-Subject: [PATCH 2/2 V2] omap: 3630: Disable internal pull-ups
-Date: Thu, 21 Jan 2010 16:22:33 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B4CBE03@dbde02.ent.ti.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: OMAP3: PM: Disable OTG autoidle when waking up from off-mode
+Date: Thu, 21 Jan 2010 11:53:18 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A2237255DD7E@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1264069473-30236-1-git-send-email-ajay.gupta@ti.com>
+ <19F8576C6E063C45BE387C64729E7394044A5422EC@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53374 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754484Ab0AUKwi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 05:52:38 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0LAqYZx017455
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 21 Jan 2010 04:52:37 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o0LAqY0J002523
-	for <linux-omap@vger.kernel.org>; Thu, 21 Jan 2010 16:22:34 +0530 (IST)
+Received: from smtp.nokia.com ([192.100.122.230]:30460 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755238Ab0AUKyV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 05:54:21 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A5422EC@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ajay.gupta@ti.com, linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com
 
->From 4aa00e5dd0bdf06b7eb421cef9e066670669691e Mon Sep 17 00:00:00 2001
-From: Allen Pais <allen.pais@ti.com>
-Date: Thu, 21 Jan 2010 21:54:04 +0530
-Subject: [PATCH 2/2] omap: 3630: Disable internal pull-ups
+ 
 
-This patch disables the newly introduced internal pull-up feature in
-OMAP3630, to use only the external HW resistor >=470 Ohm for the
-assured functionality in HS mode.
+>-----Original Message-----
+>From: ext Gupta, Ajay Kumar [mailto:ajay.gupta@ti.com] 
+>Sent: 21 January, 2010 12:31
+>To: Kristo Tero (Nokia-D/Tampere); linux-omap@vger.kernel.org
+>Cc: Kevin Hilman
+>Subject: RE: OMAP3: PM: Disable OTG autoidle when waking up 
+>from off-mode
+>
+>Hi Kristo,
+>
+>There are some issues with this patch in PM branch.
+>
+>Please find my comments inline.
+>
+>Regards,
+>Ajay
+>
+>>     OMAP3: PM: Disable OTG autoidle when waking up from off-mode
+>> 
+>>     OMAP3 sleep can be prevented in some cases where OTG autoidle is
+>> enabled.
+>>     This patch force disables autoidle during wakeup from 
+>off-mode. See
+>> omap
+>>     errata 1.164.
+>> 
+>>     This fix can't be done in driver level, as off-mode 
+>entry resets and
+>> enables
+>>     the autoidle bit, and driver does not access the 
+>register after each
+>> off-mode
+>>     entry even if it is loaded.
+>> 
+>> 	Tero Kristo <tero.kristo nokia.com>
+>> 	Kevin Hilman <khilman deeprootsystems.com>
+>> 
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c 
+>b/arch/arm/mach-omap2/pm34xx.c
+>> index 81ed252..ddd19cd 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -37,6 +37,7 @@
+>>  #include <plat/gpmc.h>
+>>  #include <plat/dma.h>
+>>  #include <plat/dmtimer.h>
+>> +#include <plat/usb.h>
+>> 
+>>  #include <asm/tlbflush.h>
+>> 
+>> @@ -430,6 +431,11 @@ void omap_sram_idle(void)
+>>  			omap3_prcm_restore_context();
+>>  			omap3_sram_restore_context();
+>>  			omap2_sms_restore_context();
+>> +			/*
+>> +			 * Errata 1.164 fix : OTG autoidle can prevent
+>> +			 * sleep
+>> +			 */
+>> +			usb_musb_disable_autoidle();
+>
+>Do we really need it? We are anyway disabling autoidle in
+>Drivers/usb/musb/omap2430.c file.
 
-While testing the I2C in High Speed mode, it was discovered that
-without a proper pull-up resistor, there is data corruption during
-multi-byte transfers. RTC(time_set) test case was used for testing.
+This is not enough, as off-mode entry will reset this register. And, we are not calling MUSB resume functions after every wakeup from off.
 
->From the analysis done, it was concluded that ideally we need a
-pull-up of 1.6K Ohm (recomended) or atleast 470 Ohm or greater for
-assured performance in HS mode.
+>
+>
+>>  		clk_disable(otg_clk);
+>> -		clk_put(otg_clk);
+>> -	}
+>> +}
+>
+><snip..>
+>
+>> 
+>> -	iounmap(otg_base);
+>> +void usb_musb_disable_autoidle(void)
+>> +{
+>> +	__raw_writel(0, otg_base + OTG_SYSCONFIG);
+>
+>
+>We should first read the register and the reset the first bit D0
+>for disabling autoidle.
 
-Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
-Signed-off-by: Allen Pais <allen.pais@ti.com>
----
- arch/arm/mach-omap2/board-zoom-peripherals.c |   21 +++++++++++++++++++++
- arch/arm/plat-omap/include/plat/control.h    |   13 +++++++++++++
- 2 files changed, 34 insertions(+), 0 deletions(-)
+We know that always when we are calling this function, we are waking up from off-mode and MUSB module has been reset also. Thus, no need to read it, as we know what the reset value is.
 
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 5c8474c..804e8f5 100755
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -23,6 +23,7 @@
- 
- #include <plat/common.h>
- #include <plat/usb.h>
-+#include <plat/control.h>
- 
- #include "mux.h"
- #include "mmc-twl4030.h"
-@@ -257,6 +258,26 @@ static struct i2c_board_info __initdata zoom_i2c_boardinfo[] = {
- 
- static int __init omap_i2c_init(void)
- {
-+	/* Disable OMAP 3630 internal pull-ups for I2Ci */
-+	if (cpu_is_omap3630()) {
-+		u32 prog_io;
-+		prog_io = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
-+		/* Program (bit 19)=1 to disable internal pull-up on I2C1 */
-+		prog_io |= OMAP3630_PRG_I2C1_PULLUPRESX;
-+		/* Program (bit 0)=1 to disable internal pull-up on I2C2 */
-+		prog_io |= OMAP3630_PRG_I2C2_PULLUPRESX;
-+		omap_ctrl_writel(prog_io, OMAP343X_CONTROL_PROG_IO1);
-+
-+		prog_io = omap_ctrl_readl(OMAP36XX_CONTROL_PROG_IO2);
-+		/* Program (bit 7)=1 to disable internal pull-up on I2C3 */
-+		prog_io |= OMAP3630_PRG_I2C3_PULLUPRESX;
-+		omap_ctrl_writel(prog_io, OMAP36XX_CONTROL_PROG_IO2);
-+
-+		prog_io = omap_ctrl_readl(OMAP36XX_CONTROL_PROG_IO_WKUP1);
-+		/* Program (bit 5)=1 to disable internall pull-up on I2C4(SR) */
-+		prog_io |= OMAP3630_PRG_SR_PULLUPRESX;
-+		omap_ctrl_writel(prog_io, OMAP36XX_CONTROL_PROG_IO_WKUP1);
-+	}
- 	omap_register_i2c_bus(1, 2400, zoom_i2c_boardinfo,
- 			ARRAY_SIZE(zoom_i2c_boardinfo));
- 	omap_register_i2c_bus(2, 400, NULL, 0);
-diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-index a745d62..4fb487a 100644
---- a/arch/arm/plat-omap/include/plat/control.h
-+++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -160,6 +160,8 @@
- #define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
- #define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
- 
-+/* 36xx-only CONTROL_GENERAL registor offsets */
-+#define OMAP36XX_CONTROL_PROG_IO2	(OMAP2_CONTROL_GENERAL + 0x0198)
- 
- /* 34xx PADCONF register offsets */
- #define OMAP343X_PADCONF_ETK(i)		(OMAP2_CONTROL_PADCONFS + 0x5a8 + \
-@@ -192,6 +194,9 @@
- #define OMAP343X_CONTROL_WKUP_DEBOBS3 (OMAP343X_CONTROL_GENERAL_WKUP + 0x014)
- #define OMAP343X_CONTROL_WKUP_DEBOBS4 (OMAP343X_CONTROL_GENERAL_WKUP + 0x018)
- 
-+/* 36xx-only GENERAL_WKUP register offsets */
-+#define OMAP36XX_CONTROL_PROG_IO_WKUP1	(OMAP343X_CONTROL_GENERAL_WKUP + 0x020)
-+
- /* 34xx D2D idle-related pins, handled by PM core */
- #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
- #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
-@@ -242,6 +247,8 @@
- #define OMAP2_PBIASLITEVMODE0		(1 << 0)
- 
- /* CONTROL_PROG_IO1 bits */
-+#define OMAP3630_PRG_I2C2_PULLUPRESX	(1 << 0)
-+#define OMAP3630_PRG_I2C1_PULLUPRESX	(1 << 19)
- #define OMAP3630_PRG_SDMMC1_SPEEDCTRL	(1 << 20)
- 
- /* CONTROL_IVA2_BOOTMOD bits */
-@@ -249,6 +256,12 @@
- #define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
- #define OMAP3_IVA2_BOOTMOD_IDLE		(0x1 << 0)
- 
-+/* CONTROL_PROG_IO2 bits on omap3630 */
-+#define OMAP3630_PRG_I2C3_PULLUPRESX	(1 << 7)
-+
-+/* CONTROL_PROG_IO_WKUP1 bits on omap3630 */
-+#define OMAP3630_PRG_SR_PULLUPRESX	(1 << 5)
-+
- /* CONTROL_PADCONF_X bits */
- #define OMAP3_PADCONF_WAKEUPEVENT0	(1 << 15)
- #define OMAP3_PADCONF_WAKEUPENABLE0	(1 << 14)
--- 
-1.6.3.3
+>
+>Also, musb clock needs to be enabled during this function call.
+>When I tool musb save/restore patch (accepted and in queue),
+>I found a system hand during resume.
 
+It is possible that MUSB clock is disabled here if you are fiddling with the clocks on the MUSB module side. In that case this patch should probably be modified.
 
-- Allen 
+-Tero
