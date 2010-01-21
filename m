@@ -1,173 +1,103 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 5/6] omap3: pm: Use generic TRITON power scripts for
- OMAP3430 board
-Date: Thu, 21 Jan 2010 01:38:14 -0600
-Message-ID: <4B580466.40807@ti.com>
-References: <1263922585-13854-1-git-send-email-x0080970@ti.com>
+From: Romit Dasgupta <romit@ti.com>
+Subject: Re: [PATCH 2/2] DSPBRIDGE: pm: use old implementation for opps
+Date: Thu, 21 Jan 2010 13:08:19 +0530
+Message-ID: <4B58046B.9040804@ti.com>
+References: <1264025953-4620-1-git-send-email-nm@ti.com> <1264025953-4620-2-git-send-email-nm@ti.com> <1264025953-4620-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58458 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45888 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751702Ab0AUHiS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jan 2010 02:38:18 -0500
-In-Reply-To: <1263922585-13854-1-git-send-email-x0080970@ti.com>
+	id S1752877Ab0AUHia (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jan 2010 02:38:30 -0500
+In-Reply-To: <1264025953-4620-3-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Manuel, Lesly Arackal" <x0080970@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
-
-Manuel, Lesly Arackal had written, on 01/19/2010 11:36 AM, the following:
-> From: Lesly A M <x0080970@ti.com>
-> 
-> omap3: pm: Use generic TRITON power scripts for OMAP3430 board
-						^^^^^^^^^ + subject
-I suppose you meant SDP3430 as zoom2 is also OMAP3430 and so are few 
-more boards out in the list..
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
 > 
-> Removed the sleep/wakeup/warm_rest sequence from the board file.
-> Using the api(use_generic_twl4030_script) to update
-> the sleep/wakeup/warm_rest sequence & voltsetup_time in the board file.
+>  arch/arm/mach-omap2/dspbridge.c |   59 ++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 58 insertions(+), 1 deletions(-)
 > 
-> Signed-off-by: Lesly A M <x0080970@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: David Derrick <dderrick@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> 
-> ---
->  arch/arm/mach-omap2/Makefile        |    3 -
->  arch/arm/mach-omap2/board-3430sdp.c |   79 +-----------------------------------
->  2 files changed, 6 insertions(+), 76 deletions(-)
-> 
-> Index: linux-omap-pm/arch/arm/mach-omap2/Makefile
-> ===================================================================
-> --- linux-omap-pm.orig/arch/arm/mach-omap2/Makefile	2010-01-19 20:59:58.000000000 +0530
-> +++ linux-omap-pm/arch/arm/mach-omap2/Makefile	2010-01-19 21:14:14.000000000 +0530
-> @@ -89,7 +89,8 @@
->  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
->  					   mmc-twl4030.o
->  obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
-> -					   mmc-twl4030.o
-> +					   mmc-twl4030.o \
-> +					   twl4030-script.o
->  obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
->  obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
->  					   board-rx51-sdram.o \
-> Index: linux-omap-pm/arch/arm/mach-omap2/board-3430sdp.c
-> ===================================================================
-> --- linux-omap-pm.orig/arch/arm/mach-omap2/board-3430sdp.c	2010-01-19 21:00:25.000000000 +0530
-> +++ linux-omap-pm/arch/arm/mach-omap2/board-3430sdp.c	2010-01-19 21:15:38.000000000 +0530
-> @@ -46,6 +46,7 @@
->  #include "mux.h"
->  #include "sdram-qimonda-hyb18m512160af-6.h"
->  #include "mmc-twl4030.h"
-> +#include "twl4030-script.h"
->  #include "pm.h"
->  #include "omap3-opp.h"
->  
-> @@ -446,79 +447,6 @@
->  	.irq_line	= 1,
->  };
->  
-> -
-> -static struct twl4030_ins __initdata sleep_on_seq[] = {
-> -	/* Broadcast message to put res to sleep */
-> -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-> -							RES_STATE_SLEEP), 2},
-> -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-> -							RES_STATE_SLEEP), 2},
-> -};
-> -
-> -static struct twl4030_script sleep_on_script __initdata = {
-> -	.script	= sleep_on_seq,
-> -	.size	= ARRAY_SIZE(sleep_on_seq),
-> -	.flags	= TWL4030_SLEEP_SCRIPT,
-> -};
-> -
-> -static struct twl4030_ins wakeup_p12_seq[] __initdata = {
-> -	/* Broadcast message to put res to active */
-> -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-> -							RES_STATE_ACTIVE), 2},
-> -};
-> -
-> -static struct twl4030_script wakeup_p12_script __initdata = {
-> -	.script	= wakeup_p12_seq,
-> -	.size	= ARRAY_SIZE(wakeup_p12_seq),
-> -	.flags	= TWL4030_WAKEUP12_SCRIPT,
-> -};
-> -
-> -static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-> -	/* Broadcast message to put res to active */
-> -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-> -							RES_STATE_ACTIVE), 2},
-> -};
-> -
-> -static struct twl4030_script wakeup_p3_script __initdata = {
-> -	.script = wakeup_p3_seq,
-> -	.size   = ARRAY_SIZE(wakeup_p3_seq),
-> -	.flags  = TWL4030_WAKEUP3_SCRIPT,
-> -};
-> -
-> -static struct twl4030_ins wrst_seq[] __initdata = {
-> -/*
-> - * Reset twl4030.
-> - * Reset Main_Ref.
-> - * Reset All type2_group2.
-> - * Reset VUSB_3v1.
-> - * Reset All type2_group1.
-> - * Reset RC.
-> - * Reenable twl4030.
-> - */
-> -	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-> -	{MSG_SINGULAR(DEV_GRP_NULL, RES_Main_Ref, RES_STATE_WRST), 2},
-> -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-> -							RES_STATE_WRST), 2},
-> -	{MSG_SINGULAR(DEV_GRP_NULL, RES_VUSB_3V1, RES_STATE_WRST), 2},
-> -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-> -							RES_STATE_WRST), 2},
-> -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
-> -							RES_STATE_WRST), 2},
-> -	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-> -};
-> -static struct twl4030_script wrst_script __initdata = {
-> -	.script = wrst_seq,
-> -	.size   = ARRAY_SIZE(wrst_seq),
-> -	.flags  = TWL4030_WRST_SCRIPT,
-> -};
-> -
-> -static struct twl4030_script *twl4030_scripts[] __initdata = {
-> -	&sleep_on_script,
-> -	&wakeup_p12_script,
-> -	&wakeup_p3_script,
-> -	&wrst_script,
-> -};
-> -
->  static struct twl4030_resconfig twl4030_rconfig[] = {
->  	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1, .type = 3,
->  		.type2 = 1, .remap_sleep = RES_STATE_OFF },
-> @@ -548,8 +476,6 @@
->  };
->  
->  static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
-> -	.scripts	= twl4030_scripts,
-> -	.num		= ARRAY_SIZE(twl4030_scripts),
->  	.resource_config = twl4030_rconfig,
->  };
->  
-> @@ -806,6 +732,9 @@
->  
->  static void __init omap_3430sdp_init(void)
+> diff --git a/arch/arm/mach-omap2/dspbridge.c b/arch/arm/mach-omap2/dspbridge.c
+> index 26b860f..120d8a2 100644
+> --- a/arch/arm/mach-omap2/dspbridge.c
+> +++ b/arch/arm/mach-omap2/dspbridge.c
+> @@ -42,7 +42,64 @@ static struct dspbridge_platform_data dspbridge_pdata __initdata = {
+>  static int get_opp_table(struct dspbridge_platform_data *pdata)
 >  {
-> +	use_generic_twl4030_script(&sdp3430_t2scripts_data,
-> +				&omap3_setuptime_table);
-> +
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->  	omap3430_i2c_init();
->  	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+>  #ifdef CONFIG_BRIDGE_DVFS
+> -	/* Do nothing now  - fill based on PM implementation */
+> +	/* legacy values for 3430 */
+> +	u32 vdd1_dsp_freq[6][4] = {
+> +		{0, 0, 0, 0},
+> +		/*OPP1*/
+> +		{0, 90000, 0, 86000},
+> +		/*OPP2*/
+> +		{0, 180000, 80000, 170000},
+> +		/*OPP3*/
+> +		{0, 360000, 160000, 340000},
+> +		/*OPP4*/
+> +		{0, 396000, 325000, 376000},
+> +		/*OPP5*/
+> +		{0, 430000, 355000, 430000},
+> +	};
+> +	struct omap_opp vdd1_rate_table_bridge[] = {
+> +		{0, 0, 0},
+> +		/*OPP1*/
+> +		{S125M, VDD1_OPP1, 0},
+> +		/*OPP2*/
+> +		{S250M, VDD1_OPP2, 0},
+> +		/*OPP3*/
+> +		{S500M, VDD1_OPP3, 0},
+> +		/*OPP4*/
+> +		{S550M, VDD1_OPP4, 0},
+> +		/*OPP5*/
+> +		{S600M, VDD1_OPP5, 0},
+> +	};
+> +	pdata->dsp_num_speeds = VDD1_OPP5;
+Why dont you use ARRAY_SIZE - 1 ?
+> +	pdata->mpu_speeds = kzalloc(sizeof(u32) * pdata->dsp_num_speeds,
+> +			GFP_KERNEL);
+I understand pdata->dsp_num_speeds == pdata->mpu_num_speeds. But don't you think
+passing pdata->mpu_num_speeds makes more sense here?
+> +	if (!pdata->mpu_speeds) {
+> +		pr_err("unable to allocate memory for the mpu"
+> +		"frequencies\n");
+> +		return -ENOMEM;
+> +	}
+As I mentioned in my earlier email. You return to the caller here but you free
+pdata->dsp_freq_table in the caller even if pdata->dsp_freq_table is not allocated.
 
+> +	pdata->dsp_freq_table = kzalloc(
+> +			sizeof(struct dsp_shm_freq_table) *
+> +			(pdata->dsp_num_speeds + 1), GFP_KERNEL);
+> +	if (!pdata->dsp_freq_table) {
+> +		pr_err("unable to allocate memory for the dsp"
+> +		"frequencies\n");
+> +		return -ENOMEM;
+> +	}
+> +	for (i = 0; i < 6; i++)
+Why are you hard coding numeric 6 here?
 
--- 
-Regards,
-Nishanth Menon
+> +		pdata->mpu_speed[i] = vdd1_rate_table_bridge[i].rate;
+> +	pdata->mpu_max_speed = pdata->mpu_speed[VDD1_OPP5];
+You can use ARRAY_SIZE.
+> +	pdata->mpu_min_speed = pdata->mpu_speed[VDD1_OPP1];
+> +	pdata->dsp_num_speeds = VDD1_OPP5;
+Same..ARRAY_SIZE...
+> +	for (i = 0; i <= pdata->dsp_num_speeds; i++) {
+> +		pdata->dsp_freq_table[i].u_volts =
+> +				vdd1_dsp_freq[i][0];
+> +		frequency = pdata->dsp_freq_table[i].dsp_freq =
+> +			frequency = vdd1_dsp_freq[i][1];
+> +		pdata->dsp_freq_table[i].thresh_min_freq =
+> +			vdd1_dsp_freq[i][2];
+> +		pdata->dsp_freq_table[i].thresh_max_freq =
+> +			vdd1_dsp_freq[i][3];
+> +	}
+>  #endif
+>  	return 0;
+>  }
