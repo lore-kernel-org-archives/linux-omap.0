@@ -1,29 +1,48 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: [ANNOUNCE] rebased dspbridge-pm on top of dspbridge
-Date: Wed, 20 Jan 2010 18:19:52 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53042DF3B315@dlee03.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: Enable GPMC clock in gpmc_init
+Date: Wed, 20 Jan 2010 17:24:56 -0800
+Message-ID: <20100121012456.GH23467@atomide.com>
+References: <20100120223929.GA10739@lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55441 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752100Ab0AUAT7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 19:19:59 -0500
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63372 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751268Ab0AUBYu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 20:24:50 -0500
+Content-Disposition: inline
+In-Reply-To: <20100120223929.GA10739@lixom.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, Nishanth Menon <menon.nishanth@gmail.com>
+To: Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org
 
-Hi All,
+* Olof Johansson <olof@lixom.net> [100120 14:36]:
+> Don't assume that gpmc_l3_clk is on, enable it before touching
+> configuration registers.
 
-dspbridge-pm branch was rebased on top of latest dspbridge, so please update your local branches.
-
-As a reminder:
-	dspbridge is based on top of 2.6.32 LO
-	dspbridge-pm is based on top of pm-2.6.32 LO-pm
+Seems like this is OK to do even though we do not disable it anywhere
+currently since we're setting smart idle and L3 autogating also
+in gpmc_init. So adding to omap-fixes.
 
 Regards,
 
-Omar
+Tony
+
+ 
+> Signed-off-by: Olof Johansson <olof@lixom.net>
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index e86f5ca..dea72f3 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -534,6 +534,8 @@ void __init gpmc_init(void)
+>  		BUG();
+>  	}
+>  
+> +	clk_enable(gpmc_l3_clk);
+> +
+>  	l = gpmc_read_reg(GPMC_REVISION);
+>  	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
+>  	/* Set smart idle mode and automatic L3 clock gating */
