@@ -1,170 +1,62 @@
-From: Karthick Tharakraj <Karthick_Tharakraj@phoenix.com>
-Subject: Omapfb issue
-Date: Thu, 21 Jan 2010 11:26:39 +0900
-Message-ID: <0AAE131817A2E34DA8AD5EB0BADB2AD74ACD39D14D@kor-exch2k7.phoenix.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] OMAP CPU ID: fix OMAP4 build failure
+Date: Wed, 20 Jan 2010 20:20:28 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001202008530.3977@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1001191412130.3977@utopia.booyaka.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C07CC987@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_0AAE131817A2E34DA8AD5EB0BADB2AD74ACD39D14Dkorexch2k7pho_"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kor-exch2k7.phoenix.com ([220.117.152.1]:38299 "EHLO
-	kor-exch2k7.phoenix.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751682Ab0AUC0q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jan 2010 21:26:46 -0500
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:58963 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751710Ab0AUDU3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jan 2010 22:20:29 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C07CC987@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Pagare, Abhijit" <abhijitpagare@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---_002_0AAE131817A2E34DA8AD5EB0BADB2AD74ACD39D14Dkorexch2k7pho_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Hello Abhijit,
+
+On Wed, 20 Jan 2010, Pagare, Abhijit wrote:
+
+> I think the latest patch-set that I had posted has this change in it. 
+> You can refer to the patch in the link below
+> 
+> http://marc.info/?l=linux-omap&m=126088474831309&w=2
+
+Looks like this patch had somehow not made it into the for_2.6.34 branch; 
+this has now been fixed, which resolves the problem.  But this part we 
+should discuss further:
+
+> I had used this flag earlier as there was nothing fixed as to name it as 
+> ES1 that time.
+
+Yep, I understand.
+
+> So now it can be migrated from CHIP_IS_OMAP4430 to CHIP_IS_OMAP4430ES1. 
+> I think CHIP_IS_OMAP4430 would be redundant in that case and should be 
+> removed. A patch would be essential to take care of that in the places 
+> where it is used. If you feel the same I can send a patch for fixing 
+> this.
+
+In the past, there have been some clock, clockdomain, powerdomain, IP 
+block, etc. changes going from ES1 to ES2 revisions.  But most clocks, 
+etc. stay the same.  So it seems best to keep the actual CHIP_IS_* bits 
+ES-level sensitive, then define a rollup macro like CHIP_IS_OMAP4430 for 
+what stays the same.  Until ES2 details are available, this shouldn't 
+require any further changes to the codebase aside from id.c.
+
+We don't currently define a rollup macro for CHIP_IS_OMAP3430, but it's 
+planned for 2.6.34 to include all of the individual CHIP_IS_OMAP* bits.  
+We'd do the same thing for OMAP2xxx but most of the 2xxx data in the 
+kernel tree has no ES-level information, so we'll probably leave those 
+as-is.  We'll probably add in a Sitara CHIP_IS_* bit in there also.
+
+Anyway, there's no need for you to change your patch, now that it's 
+included in the for_2.6.34 branch.  But keep in mind that we'll probably 
+post another id.c cleanup patch to change things around as described 
+above, unless you or others have some strong reason not to...
 
 
-Hello everyone,
-	         We are facing an issue with Framebuffer (omapfb) driver while sta=
-rting Xorg.
-
-Currently we are using Devkit8000 and trying to boot Linux with our inhouse=
- rootfs.  While booting the X throws an error saying:
-
-(EE) omapfb(0): FBIOBLANK: Invalid argument
-
-However, X comes up but crashes if we try to launch application which use X=
-.
-
-I have attached Xorg log file for your reference.  Please let us know if th=
-ere is a issue with omapfb drivers.  We are using Linux 2.6.28-rc9-omap1 (w=
-hich came with the board).
-
-Kernel command line: console=3DttyS2,115200n8 root=3D/dev/mmcblk0p3 video=
-=3Domapfb:mode:7inch_LCD
-
-Your help will be much appreciated.
-
-Thanks and regards,
-Karthick :)
-
---_002_0AAE131817A2E34DA8AD5EB0BADB2AD74ACD39D14Dkorexch2k7pho_
-Content-Type: application/octet-stream; name="Xorg.0.log"
-Content-Description: Xorg.0.log
-Content-Disposition: attachment; filename="Xorg.0.log"; size=6399;
-	creation-date="Tue, 19 Jan 2010 21:04:48 GMT";
-	modification-date="Tue, 19 Jan 2010 21:04:48 GMT"
-Content-Transfer-Encoding: base64
-
-X1hTRVJWVHJhbnNTb2NrZXRPcGVuQ09UU1NlcnZlcjogVW5hYmxlIHRvIG9wZW4gc29ja2V0IGZv
-ciBpbmV0NgpfWFNFUlZUcmFuc09wZW46IHRyYW5zcG9ydCBvcGVuIGZhaWxlZCBmb3IgaW5ldDYv
-bGFuZ2U6MApfWFNFUlZUcmFuc01ha2VBbGxDT1RTU2VydmVyTGlzdGVuZXJzOiBmYWlsZWQgdG8g
-b3BlbiBsaXN0ZW5lciBmb3IgaW5ldDYKKFdXKSBGYWlsZWQgdG8gb3BlbiBwcm90b2NvbCBuYW1l
-cyBmaWxlIC91c3IvbGliL3hvcmcvcHJvdG9jb2wudHh0ClguT3JnIFggU2VydmVyIDEuNS4zClJl
-bGVhc2UgRGF0ZTogNSBOb3ZlbWJlciAyMDA4ClggUHJvdG9jb2wgVmVyc2lvbiAxMSwgUmV2aXNp
-b24gMApCdWlsZCBPcGVyYXRpbmcgU3lzdGVtOiBMaW51eCAyLjYuMjcuNS0xMTcuZmMxMC5pNjg2
-LlBBRSBpNjg2IApDdXJyZW50IE9wZXJhdGluZyBTeXN0ZW06IExpbnV4IGxhbmdlIDIuNi4yOC1y
-Yzktb21hcDEgIzIgV2VkIEphbiAxMyAxNzozODozMCBJU1QgMjAxMCBhcm12N2wKQnVpbGQgRGF0
-ZTogMzAgRGVjZW1iZXIgMjAwOSAgMTE6MDk6NDVBTQogCglCZWZvcmUgcmVwb3J0aW5nIHByb2Js
-ZW1zLCBjaGVjayBodHRwOi8vd2lraS54Lm9yZwoJdG8gbWFrZSBzdXJlIHRoYXQgeW91IGhhdmUg
-dGhlIGxhdGVzdCB2ZXJzaW9uLgpNYXJrZXJzOiAoLS0pIHByb2JlZCwgKCoqKSBmcm9tIGNvbmZp
-ZyBmaWxlLCAoPT0pIGRlZmF1bHQgc2V0dGluZywKCSgrKykgZnJvbSBjb21tYW5kIGxpbmUsICgh
-ISkgbm90aWNlLCAoSUkpIGluZm9ybWF0aW9uYWwsCgkoV1cpIHdhcm5pbmcsIChFRSkgZXJyb3Is
-IChOSSkgbm90IGltcGxlbWVudGVkLCAoPz8pIHVua25vd24uCig9PSkgTG9nIGZpbGU6ICIvdmFy
-L2xvZy9Yb3JnLjAubG9nIiwgVGltZTogU3VuIEphbiAxMCAxMjowMTowMiAyMDEwCig9PSkgVXNp
-bmcgY29uZmlnIGZpbGU6ICIvZXRjL1gxMS94b3JnLmNvbmYiCig9PSkgU2VydmVyTGF5b3V0ICJC
-dWlsdGluIERlZmF1bHQgTGF5b3V0IgooKiopIHwtLT5TY3JlZW4gIkJ1aWx0aW4gRGVmYXVsdCBm
-YmRldiBTY3JlZW4gMCIgKDApCigqKikgfCAgIHwtLT5Nb25pdG9yICJCdWlsdGluIERlZmF1bHQg
-TW9uaXRvciIKKCoqKSB8ICAgfC0tPkRldmljZSAiQnVpbHRpbiBEZWZhdWx0IGZiZGV2IERldmlj
-ZSAwIgooPT0pIEF1dG9tYXRpY2FsbHkgYWRkaW5nIGRldmljZXMKKD09KSBBdXRvbWF0aWNhbGx5
-IGVuYWJsaW5nIGRldmljZXMKKD09KSBObyBGb250UGF0aCBzcGVjaWZpZWQuICBVc2luZyBjb21w
-aWxlZC1pbiBkZWZhdWx0LgooPT0pIEZvbnRQYXRoIHNldCB0bzoKCS91c3Ivc2hhcmUvZm9udHMv
-WDExL21pc2MKKD09KSBNb2R1bGVQYXRoIHNldCB0byAiL3Vzci9saWIveG9yZy9tb2R1bGVzIgoo
-SUkpIENhbm5vdCBsb2NhdGUgYSBjb3JlIHBvaW50ZXIgZGV2aWNlLgooSUkpIENhbm5vdCBsb2Nh
-dGUgYSBjb3JlIGtleWJvYXJkIGRldmljZS4KKElJKSBUaGUgc2VydmVyIHJlbGllcyBvbiBIQUwg
-dG8gcHJvdmlkZSB0aGUgbGlzdCBvZiBpbnB1dCBkZXZpY2VzLgoJSWYgbm8gZGV2aWNlcyBiZWNv
-bWUgYXZhaWxhYmxlLCByZWNvbmZpZ3VyZSBIQUwgb3IgZGlzYWJsZSBBbGxvd0VtcHR5SW5wdXQu
-CihJSSkgTG9hZGVyIG1hZ2ljOiAweDE3ZWE0MAooSUkpIE1vZHVsZSBBQkkgdmVyc2lvbnM6CglY
-Lk9yZyBBTlNJIEMgRW11bGF0aW9uOiAwLjQKCVguT3JnIFZpZGVvIERyaXZlcjogNC4xCglYLk9y
-ZyBYSW5wdXQgZHJpdmVyIDogMi4xCglYLk9yZyBTZXJ2ZXIgRXh0ZW5zaW9uIDogMS4xCglYLk9y
-ZyBGb250IFJlbmRlcmVyIDogMC42CihJSSkgTG9hZGVyIHJ1bm5pbmcgb24gbGludXgKKC0tKSB1
-c2luZyBWVCBudW1iZXIgMgoKKElJKSBTeXN0ZW0gcmVzb3VyY2UgcmFuZ2VzOgooSUkpIExvYWRN
-b2R1bGU6ICJleHRtb2QiCgooSUkpIExvYWRpbmcgL3Vzci9saWIveG9yZy9tb2R1bGVzL2V4dGVu
-c2lvbnMvL2xpYmV4dG1vZC5zbwooSUkpIE1vZHVsZSBleHRtb2Q6IHZlbmRvcj0iWC5PcmcgRm91
-bmRhdGlvbiIKCWNvbXBpbGVkIGZvciAxLjUuMywgbW9kdWxlIHZlcnNpb24gPSAxLjAuMAoJTW9k
-dWxlIGNsYXNzOiBYLk9yZyBTZXJ2ZXIgRXh0ZW5zaW9uCglBQkkgY2xhc3M6IFguT3JnIFNlcnZl
-ciBFeHRlbnNpb24sIHZlcnNpb24gMS4xCihJSSkgTG9hZGluZyBleHRlbnNpb24gU0hBUEUKKElJ
-KSBMb2FkaW5nIGV4dGVuc2lvbiBNSVQtU1VORFJZLU5PTlNUQU5EQVJECihJSSkgTG9hZGluZyBl
-eHRlbnNpb24gQklHLVJFUVVFU1RTCihJSSkgTG9hZGluZyBleHRlbnNpb24gU1lOQwooSUkpIExv
-YWRpbmcgZXh0ZW5zaW9uIE1JVC1TQ1JFRU4tU0FWRVIKKElJKSBMb2FkaW5nIGV4dGVuc2lvbiBY
-Qy1NSVNDCihJSSkgTG9hZGluZyBleHRlbnNpb24gWEZyZWU4Ni1WaWRNb2RlRXh0ZW5zaW9uCihJ
-SSkgTG9hZGluZyBleHRlbnNpb24gWEZyZWU4Ni1NaXNjCihJSSkgTG9hZGluZyBleHRlbnNpb24g
-WEZyZWU4Ni1ER0EKKElJKSBMb2FkaW5nIGV4dGVuc2lvbiBEUE1TCihJSSkgTG9hZGluZyBleHRl
-bnNpb24gVE9HLUNVUAooSUkpIExvYWRpbmcgZXh0ZW5zaW9uIEV4dGVuZGVkLVZpc3VhbC1JbmZv
-cm1hdGlvbgooSUkpIExvYWRpbmcgZXh0ZW5zaW9uIFhWaWRlbwooSUkpIExvYWRpbmcgZXh0ZW5z
-aW9uIFhWaWRlby1Nb3Rpb25Db21wZW5zYXRpb24KKElJKSBMb2FkaW5nIGV4dGVuc2lvbiBYLVJl
-c291cmNlCihJSSkgTG9hZE1vZHVsZTogImRiZSIKCihJSSkgTG9hZGluZyAvdXNyL2xpYi94b3Jn
-L21vZHVsZXMvZXh0ZW5zaW9ucy8vbGliZGJlLnNvCihJSSkgTW9kdWxlIGRiZTogdmVuZG9yPSJY
-Lk9yZyBGb3VuZGF0aW9uIgoJY29tcGlsZWQgZm9yIDEuNS4zLCBtb2R1bGUgdmVyc2lvbiA9IDEu
-MC4wCglNb2R1bGUgY2xhc3M6IFguT3JnIFNlcnZlciBFeHRlbnNpb24KCUFCSSBjbGFzczogWC5P
-cmcgU2VydmVyIEV4dGVuc2lvbiwgdmVyc2lvbiAxLjEKKElJKSBMb2FkaW5nIGV4dGVuc2lvbiBE
-T1VCTEUtQlVGRkVSCihJSSkgTG9hZE1vZHVsZTogImdseCIKCihXVykgV2FybmluZywgY291bGRu
-J3Qgb3BlbiBtb2R1bGUgZ2x4CihJSSkgVW5sb2FkTW9kdWxlOiAiZ2x4IgooRUUpIEZhaWxlZCB0
-byBsb2FkIG1vZHVsZSAiZ2x4IiAobW9kdWxlIGRvZXMgbm90IGV4aXN0LCAwKQooSUkpIExvYWRN
-b2R1bGU6ICJmcmVldHlwZSIKCihJSSkgTG9hZGluZyAvdXNyL2xpYi94b3JnL21vZHVsZXMvZm9u
-dHMvL2xpYmZyZWV0eXBlLnNvCihJSSkgTW9kdWxlIGZyZWV0eXBlOiB2ZW5kb3I9IlguT3JnIEZv
-dW5kYXRpb24gJiB0aGUgQWZ0ZXIgWC1UVCBQcm9qZWN0IgoJY29tcGlsZWQgZm9yIDEuNS4zLCBt
-b2R1bGUgdmVyc2lvbiA9IDIuMS4wCglNb2R1bGUgY2xhc3M6IFguT3JnIEZvbnQgUmVuZGVyZXIK
-CUFCSSBjbGFzczogWC5PcmcgRm9udCBSZW5kZXJlciwgdmVyc2lvbiAwLjYKKElJKSBMb2FkaW5n
-IGZvbnQgRnJlZVR5cGUKKElJKSBMb2FkTW9kdWxlOiAiZHJpIgoKKFdXKSBXYXJuaW5nLCBjb3Vs
-ZG4ndCBvcGVuIG1vZHVsZSBkcmkKKElJKSBVbmxvYWRNb2R1bGU6ICJkcmkiCihFRSkgRmFpbGVk
-IHRvIGxvYWQgbW9kdWxlICJkcmkiIChtb2R1bGUgZG9lcyBub3QgZXhpc3QsIDApCihJSSkgTG9h
-ZE1vZHVsZTogIm9tYXBmYiIKCihJSSkgTG9hZGluZyAvdXNyL2xpYi94b3JnL21vZHVsZXMvZHJp
-dmVycy8vb21hcGZiX2Rydi5zbwooSUkpIE1vZHVsZSBvbWFwZmI6IHZlbmRvcj0iWC5PcmcgRm91
-bmRhdGlvbiIKCWNvbXBpbGVkIGZvciAxLjUuMywgbW9kdWxlIHZlcnNpb24gPSAwLjAuMQoJQUJJ
-IGNsYXNzOiBYLk9yZyBWaWRlbyBEcml2ZXIsIHZlcnNpb24gNC4xCihJSSkgb21hcGZiOiBEcml2
-ZXIgZm9yIE9NQVAgZnJhbWVidWZmZXIgKG9tYXBmYikgYW5kIGV4dGVybmFsIExDRCBjb250cm9s
-bGVyczoKCW9tYXAxLzIvMywgUzFEMTM3NDUsIEhXQTc0MgooV1cpIEZhbGxpbmcgYmFjayB0byBv
-bGQgcHJvYmUgbWV0aG9kIGZvciBPTUFQRkIKKElJKSBSdW5uaW5nIGluIEZSQU1FQlVGRkVSIE1v
-ZGUKKFdXKSBFcnJvciBvcGVuaW5nIC9zeXMvZGV2aWNlcy9wbGF0Zm9ybS9vbWFwZmIvY3RybC9u
-YW1lOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5CihXVykgQ2FuJ3QgYXV0b2RldGVjdCBMQ0Qg
-Y29udHJvbGxlciwgYXNzdW1pbmcgaW50ZXJuYWwKKElJKSBMQ0QgY29udHJvbGxlcjogaW50ZXJu
-YWwKKElJKSBvbWFwZmIoMCk6IFZpZGVvUkFNOiA3MjAwS2lCIChTRFJBTSkKKElJKSBvbWFwZmIo
-MCk6IENyZWF0aW5nIGRlZmF1bHQgRGlzcGxheSBzdWJzZWN0aW9uIGluIFNjcmVlbiBzZWN0aW9u
-CgkiQnVpbHRpbiBEZWZhdWx0IGZiZGV2IFNjcmVlbiAwIiBmb3IgZGVwdGgvZmJicHAgMTYvMTYK
-KC0tKSBvbWFwZmIoMCk6IERlcHRoIDE2LCAoPT0pIGZyYW1lYnVmZmVyIGJwcCAxNgooPT0pIG9t
-YXBmYigwKTogUkdCIHdlaWdodCA1NjUKKD09KSBvbWFwZmIoMCk6IERlZmF1bHQgdmlzdWFsIGlz
-IFRydWVDb2xvcgooLS0pIG9tYXBmYigwKTogVmlydHVhbCBzaXplIGlzIDgwMHg0ODAgKHBpdGNo
-IDgwMCkKKCoqKSBvbWFwZmIoMCk6ICBCdWlsdC1pbiBtb2RlICJjdXJyZW50IgooPT0pIG9tYXBm
-YigwKTogRFBJIHNldCB0byAoOTYsIDk2KQooSUkpIExvYWRpbmcgc3ViIG1vZHVsZSAiZmIiCihJ
-SSkgTG9hZE1vZHVsZTogImZiIgoKKElJKSBMb2FkaW5nIC91c3IvbGliL3hvcmcvbW9kdWxlcy8v
-bGliZmIuc28KKElJKSBNb2R1bGUgZmI6IHZlbmRvcj0iWC5PcmcgRm91bmRhdGlvbiIKCWNvbXBp
-bGVkIGZvciAxLjUuMywgbW9kdWxlIHZlcnNpb24gPSAxLjAuMAoJQUJJIGNsYXNzOiBYLk9yZyBB
-TlNJIEMgRW11bGF0aW9uLCB2ZXJzaW9uIDAuNAooRUUpIG9tYXBmYigwKTogRkJJT0JMQU5LOiBJ
-bnZhbGlkIGFyZ3VtZW50CihJSSkgb21hcGZiKDApOiBEUE1TIGVuYWJsZWQKKElJKSBvbWFwZmIo
-MCk6IFZpZGVvIHBsYW5lIGNhcGFiaWxpdGllczoKKElJKSBvbWFwZmIoMCk6IFZpZGVvIHBsYW5l
-IHN1cHBvcnRzIHRoZSBmb2xsb3dpbmcgaW1hZ2UgZm9ybWF0czoKKElJKSBvbWFwZmIoMCk6IFhW
-aWRlbyBleHRlbnNpb24gaW5pdGlhbGl6ZWQKKD09KSBSYW5kUiBlbmFibGVkCihJSSkgSW5pdGlh
-bGl6aW5nIGJ1aWx0LWluIGV4dGVuc2lvbiBNSVQtU0hNCihJSSkgSW5pdGlhbGl6aW5nIGJ1aWx0
-LWluIGV4dGVuc2lvbiBYSW5wdXRFeHRlbnNpb24KKElJKSBJbml0aWFsaXppbmcgYnVpbHQtaW4g
-ZXh0ZW5zaW9uIFhURVNUCihJSSkgSW5pdGlhbGl6aW5nIGJ1aWx0LWluIGV4dGVuc2lvbiBYS0VZ
-Qk9BUkQKKElJKSBJbml0aWFsaXppbmcgYnVpbHQtaW4gZXh0ZW5zaW9uIFhJTkVSQU1BCihJSSkg
-SW5pdGlhbGl6aW5nIGJ1aWx0LWluIGV4dGVuc2lvbiBYRklYRVMKKElJKSBJbml0aWFsaXppbmcg
-YnVpbHQtaW4gZXh0ZW5zaW9uIFJFTkRFUgooSUkpIEluaXRpYWxpemluZyBidWlsdC1pbiBleHRl
-bnNpb24gUkFORFIKKElJKSBJbml0aWFsaXppbmcgYnVpbHQtaW4gZXh0ZW5zaW9uIENPTVBPU0lU
-RQooSUkpIEluaXRpYWxpemluZyBidWlsdC1pbiBleHRlbnNpb24gREFNQUdFCihJSSkgSW5pdGlh
-bGl6aW5nIGJ1aWx0LWluIGV4dGVuc2lvbiBYRVZJRQooTkkpIE9NQVBGQlNhdmVTY3JlZW46IERp
-bSBiYWNrbGlnaHQ/CihJSSkgY29uZmlnL2hhbDogQWRkaW5nIGlucHV0IGRldmljZSBvbWFwX3R3
-bDQwMzBrZXlwYWQKKElJKSBMb2FkTW9kdWxlOiAiZXZkZXYiCgooSUkpIExvYWRpbmcgL3Vzci9s
-aWIveG9yZy9tb2R1bGVzL2lucHV0Ly9ldmRldl9kcnYuc28KKElJKSBNb2R1bGUgZXZkZXY6IHZl
-bmRvcj0iWC5PcmcgRm91bmRhdGlvbiIKCWNvbXBpbGVkIGZvciAxLjUuMywgbW9kdWxlIHZlcnNp
-b24gPSAyLjEuMAoJTW9kdWxlIGNsYXNzOiBYLk9yZyBYSW5wdXQgRHJpdmVyCglBQkkgY2xhc3M6
-IFguT3JnIFhJbnB1dCBkcml2ZXIsIHZlcnNpb24gMi4xCigqKikgb21hcF90d2w0MDMwa2V5cGFk
-OiBhbHdheXMgcmVwb3J0cyBjb3JlIGV2ZW50cwooKiopIG9tYXBfdHdsNDAzMGtleXBhZDogRGV2
-aWNlOiAiL2Rldi9pbnB1dC9ldmVudDAiCihJSSkgb21hcF90d2w0MDMwa2V5cGFkOiBGb3VuZCBr
-ZXlzCihJSSkgb21hcF90d2w0MDMwa2V5cGFkOiBDb25maWd1cmluZyBhcyBrZXlib2FyZAooSUkp
-IFhJTlBVVDogQWRkaW5nIGV4dGVuZGVkIGlucHV0IGRldmljZSAib21hcF90d2w0MDMwa2V5cGFk
-IiAodHlwZTogS0VZQk9BUkQpCigqKikgT3B0aW9uICJ4a2JfcnVsZXMiICJldmRldiIKKCoqKSBv
-bWFwX3R3bDQwMzBrZXlwYWQ6IHhrYl9ydWxlczogImV2ZGV2IgooKiopIE9wdGlvbiAieGtiX21v
-ZGVsIiAiZXZkZXYiCigqKikgb21hcF90d2w0MDMwa2V5cGFkOiB4a2JfbW9kZWw6ICJldmRldiIK
-KCoqKSBPcHRpb24gInhrYl9sYXlvdXQiICJ1cyIKKCoqKSBvbWFwX3R3bDQwMzBrZXlwYWQ6IHhr
-Yl9sYXlvdXQ6ICJ1cyIK
-
---_002_0AAE131817A2E34DA8AD5EB0BADB2AD74ACD39D14Dkorexch2k7pho_--
+- Paul
