@@ -1,55 +1,48 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 3/6] omap3: pm: Update Triton2 scripts
-Date: Thu, 21 Jan 2010 02:42:29 -0600
-Message-ID: <4B581375.6050103@ti.com>
-References: <1263922556-13806-1-git-send-email-x0080970@ti.com> <4B5802BE.2070401@ti.com> <028101ca9a74$d6588610$LocalHost@wipultra1385>
+From: "Reddy, Teerth" <teerth@ti.com>
+Subject: RE: [PATCH] OMAP3: PM:  Dynamic calculation of SDRC clock
+ stabilization delay
+Date: Thu, 21 Jan 2010 14:28:54 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0C44@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E2C2@dbde02.ent.ti.com>
+ <87vdfebzqa.fsf@deeprootsystems.com>
+ <alpine.DEB.2.00.1001202232320.24456@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52690 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53303 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753447Ab0AUImd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Jan 2010 03:42:33 -0500
-In-Reply-To: <028101ca9a74$d6588610$LocalHost@wipultra1385>
+	id S1752398Ab0AUI7C convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 03:59:02 -0500
+In-Reply-To: <alpine.DEB.2.00.1001202232320.24456@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Manuel, Lesly Arackal" <x0080970@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Manuel, Lesly Arackal had written, on 01/21/2010 02:34 AM, the following:
-> From: "Nishanth Menon" <nm@ti.com>
-> To: "Manuel, Lesly Arackal" <x0080970@ti.com>
-> Cc: <linux-omap@vger.kernel.org>; "Derrick, David" <dderrick@ti.com>; 
+Hi Paul,
+
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Thursday, January 21, 2010 11:05 AM
+> To: Reddy, Teerth
+> Cc: Kevin Hilman; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] OMAP3: PM: Dynamic calculation of SDRC clock
+> stabilization delay
 > 
+> Hi Teerth,
 > 
->> Manuel, Lesly Arackal had written, on 01/19/2010 11:35 AM, the following:
->>> From: Lesly A M <x0080970@ti.com>
->>>
->>> omap3: pm: Update Triton2 scripts
->>>
->>> Updated the sleep, wakeup & warm_reset sequence as recommended by David 
->>> Derrick.
->>> Used broadcast command, modified the resource type association and remap 
->>> sleep_state.
->>> Added the new script changes for zoom[2,3] boards.
->>>
->>> VDD1, VDD2 and VPLL1 are remapped to turn off during sleep state.
->>> Changed RES_TYPE2 of VPLL1, VDD1, VDD2, REGEN, NRESPWRON & SYSEN to '1'
->>> and VINTANA1, VINTANA2, VINTDIG, VIO, CLKEN & HFCLKOUT to '2'.
->> How about VMMC,VAUX and other resources?
->>
-> These LDOs are controlled by drivers using regulator frame work, not through 
-> TRITON power sequence.
-Context of my question was - how do we handle devices such as eMMC which 
-is required on bootup? I suppose the suspend/resume of those driver 
-should ideally handle it..
+> any update on Kevin's comments?
+> 
+> This patch shouldn't use a hardcoded value.  Please explain further why
+> that formula can't be included...
 
-but overall fair enough from me, if relevant comments are available in 
-commit message.
+Time required to switch clocks -
+4 REFCLKS + 2 CLKOUTX2
+Gives a small number which doesn't seem to work and causes instability during DVFS. I found that the value of 6us is safe and stable for the DVFS.I tried this value on OMAP3430 sdp, zoom2 and zoom3 and it worked fine.
+I will let you know more about the formula once I get the updates.
 
-[..]
+Regards
+Teerth
 
--- 
-Regards,
-Nishanth Menon
