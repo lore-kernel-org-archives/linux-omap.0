@@ -1,48 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 6/8] OMAP3 PM: Enable DPLL4 autoidle after system off.
-Date: Thu, 21 Jan 2010 00:12:31 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001210008190.24456@utopia.booyaka.com>
-References: <1264001442-20078-1-git-send-email-thara@ti.com> <1264001442-20078-2-git-send-email-thara@ti.com> <1264001442-20078-3-git-send-email-thara@ti.com> <1264001442-20078-4-git-send-email-thara@ti.com> <1264001442-20078-5-git-send-email-thara@ti.com>
- <1264001442-20078-6-git-send-email-thara@ti.com> <1264001442-20078-7-git-send-email-thara@ti.com> <alpine.DEB.2.00.1001201033120.3977@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0B49@dbde02.ent.ti.com> <alpine.DEB.2.00.1001202236150.24456@utopia.booyaka.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0BD5@dbde02.ent.ti.com>
+From: Romit Dasgupta <romit@ti.com>
+Subject: Re: [PATCHv3 1/1] OMAP3: PM: move omap opp layer from pm34xx.c
+Date: Thu, 21 Jan 2010 12:46:09 +0530
+Message-ID: <4B57FF39.3040607@ti.com>
+References: <1263983963-18480-1-git-send-email-eduardo.valentin@nokia.com> <4B56E5B3.8070303@ti.com> <20100120115407.GG12231@esdhcp037198.research.nokia.com> <4B56F045.4040708@ti.com> <20100120124052.GH12231@esdhcp037198.research.nokia.com> <4B56FAAF.2070600@ti.com> <20100120124906.GI12231@esdhcp037198.research.nokia.com> <4B56FD06.6040403@ti.com> <20100120142052.GK12231@esdhcp037198.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57298 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752533Ab0AUHMc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 02:12:32 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0BD5@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41525 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752763Ab0AUHQX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 02:16:23 -0500
+In-Reply-To: <20100120142052.GK12231@esdhcp037198.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>
+Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "Keski-Saari Juha.1 (EXT-Teleca/Helsinki)" <ext-juha.1.keski-saari@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-Hi,
-
-On Thu, 21 Jan 2010, Gopinath, Thara wrote:
-
-> >>> But if this approach is not ok, I can modify the save restore APIs to
-> >>> take power state as a parameter and do only dpll4 autoidle save and
-> >>> restore in case of OSWR. Is this ok?
-> >>
-> >>Well, let me know what you think of the above...
+> Actually, system boots. It does not break the system. What I've tried is:
 > 
-> I am ok with this. Only thing is it will involve a clk_get("dpll4_clk") 
-> and then rest of the API calls as you have suggested. Considering this 
-> is in cpuidle path, will the latencies be high?
-
-How about doing the clk_get() in advance in omap3_pm_init(), and store the 
-struct clk pointer in a static variable that can be referenced from the 
-cpuidle path?
-
-> If we have a latency issue, we can still keep the logic same as you have 
-> suggested and instead of dpll api's directly use CM API's to implement 
-> the same. So use cm_read_mod_reg and cm_rmw_mod_reg_bits.
-
-We could but let's try the DPLL API first.  I doubt the difference between 
-using the DPLL API and using the cm_* functions will be measurable.  If 
-you look at the code for those functions, there's not much to them.
-
-
-- Paul
+> - rx51 board
+> - omap3_pm_defconfig without CPU_FREQ
+> - linux-omap-pm/pm-wip-opp branch + this patch
+> 
+> System boots, but smartreflex disables itself:
+> 
+> ...
+> TCP cubic registered
+> NET: Registered protocol family 17
+> NET: Registered protocol family 15
+> Power Management for TI OMAP3.
+> SR: OPP rate tables not defined for platform, not enabling SmartReflex
+> VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev 1
+> ,..
+> 
+> But it does not break booting procedure.
+> 
+> So, I don't see why this would be a reason for doing this compilation fix
+> into two steps. Unless you see another issue.
+Ok sorry about the misunderstanding then. Its ok from my side. ACKed.
