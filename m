@@ -1,121 +1,63 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap3: Check return values for clk_get
-Date: Thu, 21 Jan 2010 20:05:42 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E2167CD3@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.1001191816330.3977@utopia.booyaka.com>
+From: Ben Dooks <ben@simtec.co.uk>
+Subject: Re:
+Date: Thu, 21 Jan 2010 09:04:30 +0900
+Message-ID: <4B579A0E.4030108__46446.1063886576$1264085152$gmane$org@simtec.co.uk>
+References: <1264016711-sup-309@ben-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59327 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751513Ab0AUOfx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 09:35:53 -0500
-In-Reply-To: <alpine.DEB.2.00.1001191816330.3977@utopia.booyaka.com>
-Content-Language: en-US
+Received: from [121.136.51.252] ([121.136.51.252]:38484 "EHLO ben-laptop"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750985Ab0AUOpk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jan 2010 09:45:40 -0500
+In-Reply-To: <1264016711-sup-309@ben-laptop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ben Gamari <bgamari@gmail.com>
+Cc: beagleboard <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Eric Miao <eric.miao@marvell.com>, Michael Hennerich <michael.hennerich@analog.com>, Grant Likely <grant.likely@secretlab.ca>, spi-devel-general@lists.sourceforge.net
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com] 
-> Sent: Wednesday, January 20, 2010 6:49 AM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] omap3: Check return values for clk_get
+Ben Gamari wrote:
+> Bcc: 
+> Subject: GPIO chip select support in omap2_mcspi driver
 > 
-> Hello Sanjeev,
+> Hey,
 > 
-> some comments.
+> Recently I have been looking to use a BeagleBoard to drive several
+> serial ADCs and DACs in a data acquisition and analysis setup. Unfortunately, the
+> BeagleBoard is severely limited by the number of SPI controllers it
+> exposes on the expansion connector (McSPI3 with 2 CS lines and McSPI4
+> with one). This is insufficient for our application and thus I have been
+> investigating adding support to the mcspi driver for using GPIO lines as
+> chip select lines, as is done in the pxa2xx, bfin5xx, and s3c24xx drivers.
 > 
-> 
-> On Fri, 8 Jan 2010, Sanjeev Premi wrote:
-> 
-> > This patch checks if clk_get() returned success for
-> > the clocks used in function omap2_clk_arch_init().
-> > 
-> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/clock34xx.c |   25 +++++++++++++++++++++++--
-> >  1 files changed, 23 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/clock34xx.c 
-> b/arch/arm/mach-omap2/clock34xx.c
-> > index d4217b9..2c2165b 100644
-> > --- a/arch/arm/mach-omap2/clock34xx.c
-> > +++ b/arch/arm/mach-omap2/clock34xx.c
-> > @@ -316,17 +316,38 @@ static int __init omap2_clk_arch_init(void)
-> >  {
-> >  	struct clk *osc_sys_ck, *dpll1_ck, *arm_fck, *core_ck;
-> >  	unsigned long osc_sys_rate;
-> > +	short err = 0 ;
-> 
-> Why a 'short' here?  Seems like it makes more sense as a bool.
-> 
-> >  
-> >  	if (!mpurate)
-> >  		return -EINVAL;
-> >  
-> > -	/* XXX test these for success */
-> >  	dpll1_ck = clk_get(NULL, "dpll1_ck");
-> > +	if (dpll1_ck == NULL) {
-> > +		err = 1;
-> > +		pr_err("*** Failed to get dpll1_ck.\n");
-> > +	}
-> > +
-> >  	arm_fck = clk_get(NULL, "arm_fck");
-> > +	if (arm_fck == NULL) {
-> > +		err = 1;
-> > +		pr_err("*** Failed to get arm_fck.\n");
-> > +	}
-> > +
-> >  	core_ck = clk_get(NULL, "core_ck");
-> > +	if (core_ck == NULL) {
-> > +		err = 1;
-> > +		pr_err("*** Failed to get core_ck.\n");
-> > +	}
-> > +
-> >  	osc_sys_ck = clk_get(NULL, "osc_sys_ck");
-> > +	if (osc_sys_ck == NULL) {
-> > +		err = 1;
-> > +		pr_err("*** Failed to get osc_sys_ck.\n");
-> > +	}
-> > +
-> > +	if (err)
-> > +		return 1;
-> 
-> This is not a good error value.  This function should return 
-> either 0 for 
-> success or a negative error number on failure.  Maybe ENOENT?
-> 
+> To this end, I have a few questions about how this support was
+> implemented. First, it seems that the s3c24xx driver is built on the
+> spi_bitbang driver, despite interfacing with a dedicated hardware SPI
+> controller.  What is the reason for this? Was this done specifically for
+> the purpose of incorporating support for GPIO CS pins?
 
-Thanks for comments Paul.
+The spi_bitbang driver also has a really useful spi queue and workqueue
+built into it, which is what the s3c24xx spi driver actually bothers to
+use.
 
-After Kevin's comments, I had reworked this patch and I believe all
-your comments are getting addressed there
-
-I am stuck in some 3630/3730 boot issues; will be sending the
-updated patch soon.
-
-Best regards,
-Sanjeev
-
-> >  
-> > -	/* REVISIT: not yet ready for 343x */
-> >  	if (clk_set_rate(dpll1_ck, mpurate))
-> >  		printk(KERN_ERR "*** Unable to set MPU rate\n");
-> >  
-> > -- 
-> > 1.6.2.2
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
+> It seems like the rough idea is to add a cs_gpio field to the device
+> struct (omap2_mcspi) and add the appropriate code to the
+> omap2_mcspi_force_cs() to bring cs_gpio high or low if it is valid. The
+> potential problem I can see with this is that omap2_mcspi_set_enable()
+> is called to enable the channel before the force_cs() is called (in
+> omap2_mcspi_work()). If I'm interpreting the documentation correctly,
+> the enable bit starts the clocks, meaning that the chip will begin
+> clocking out data before CS is brought high. I must be missing something
+> here, no?
+> 
+> For reference, I included a short list of relevant commits below, largely for
+> my own benefit. I would greatly appreciate any feedback you might have.
+> 
+> Thanks,
+> - Ben
 > 
 > 
-> - Paul
-> 
+> pxa2xx_spi: a7bb3909b3293d503211d7f6af8ed62c1644b686
+> bfin_spi: 42c78b2bf51bafb4cfa98dfecc28dd9b8bcd04b0
+
