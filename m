@@ -1,73 +1,75 @@
-From: Ben Dooks <ben-Y5A6D6n0/KfQXOPxS62xeg@public.gmane.org>
-Subject: Re: (no subject)
-Date: Thu, 21 Jan 2010 09:04:30 +0900
-Message-ID: <4B579A0E.4030108__36441.4532472894$1264085164$gmane$org@simtec.co.uk>
-References: <1264016711-sup-309@ben-laptop>
+From: "Lesly AM" <x0080970@ti.com>
+Subject: Re: How to put TWL/TPS into sleep?
+Date: Thu, 21 Jan 2010 20:34:38 +0530
+Message-ID: <032901ca9aab$0e9ac6b0$LocalHost@wipultra1385>
+References: <4B583E62.80603@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1264016711-sup-309@ben-laptop>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Ben Gamari <bgamari-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Michael Hennerich <michael.hennerich-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>, beagleboard <beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, Eric Miao <eric.miao-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39893 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750985Ab0AUPEz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jan 2010 10:04:55 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org
 
-Ben Gamari wrote:
-> Bcc: 
-> Subject: GPIO chip select support in omap2_mcspi driver
-> 
-> Hey,
-> 
-> Recently I have been looking to use a BeagleBoard to drive several
-> serial ADCs and DACs in a data acquisition and analysis setup. Unfortunately, the
-> BeagleBoard is severely limited by the number of SPI controllers it
-> exposes on the expansion connector (McSPI3 with 2 CS lines and McSPI4
-> with one). This is insufficient for our application and thus I have been
-> investigating adding support to the mcspi driver for using GPIO lines as
-> chip select lines, as is done in the pxa2xx, bfin5xx, and s3c24xx drivers.
-> 
-> To this end, I have a few questions about how this support was
-> implemented. First, it seems that the s3c24xx driver is built on the
-> spi_bitbang driver, despite interfacing with a dedicated hardware SPI
-> controller.  What is the reason for this? Was this done specifically for
-> the purpose of incorporating support for GPIO CS pins?
+Hi Mike,
 
-The spi_bitbang driver also has a really useful spi queue and workqueue
-built into it, which is what the s3c24xx spi driver actually bothers to
-use.
-
-> It seems like the rough idea is to add a cs_gpio field to the device
-> struct (omap2_mcspi) and add the appropriate code to the
-> omap2_mcspi_force_cs() to bring cs_gpio high or low if it is valid. The
-> potential problem I can see with this is that omap2_mcspi_set_enable()
-> is called to enable the channel before the force_cs() is called (in
-> omap2_mcspi_work()). If I'm interpreting the documentation correctly,
-> the enable bit starts the clocks, meaning that the chip will begin
-> clocking out data before CS is brought high. I must be missing something
-> here, no?
-> 
-> For reference, I included a short list of relevant commits below, largely for
-> my own benefit. I would greatly appreciate any feedback you might have.
-> 
-> Thanks,
-> - Ben
-> 
-> 
-> pxa2xx_spi: a7bb3909b3293d503211d7f6af8ed62c1644b686
-> bfin_spi: 42c78b2bf51bafb4cfa98dfecc28dd9b8bcd04b0
+----- Original Message ----- 
+From: "Mike Rapoport" <mike@compulab.co.il>
+To: <linux-omap@vger.kernel.org>
+Sent: Thursday, January 21, 2010 5:15 PM
+Subject: How to put TWL/TPS into sleep?
 
 
-------------------------------------------------------------------------------
-Throughout its 18-year history, RSA Conference consistently attracts the
-world's best and brightest in the field, creating opportunities for Conference
-attendees to learn about information security's most important issues through
-interactions with peers, luminaries and emerging and established companies.
-http://p.sf.net/sfu/rsaconf-dev2dev
+> Hi all,
+> I'm trying to achieve maximal power savings on omap3 based system with
+> TPS65930 PMIC using twl4030_script and twl4030_resconfig. I've tried
+> different resource mappings and different command sequences in the
+> sleep/wakeup scripts by to no avail. Moreover, with some resource
+> definitions and sleep/wakeup scripts the system behaves in a weird ways,
+> e.g. does not properly respond to hard resets.
+> Most probably my resource remapping and command sequences are wrong and
+> this is the reason for system misbehavior.
+>
+> However, several things are completely unclear to me:
+> * Does TPS/TWL have defaults for sleep-on and sleep-off transitions?
+
+AFIK TPS659x & TWL4030 is same chip, may have some Si version(ES 1.x) 
+difference.
+So the power seqeunce used on TWL4030, should work on TPS659x  also.
+
+> * What would happen if nSLEEP1 would go low/high and there is no
+> sleep/wakeup sequence programmed?
+By default reset value for the resgister pointing to [sleep/wakeup/wrst] seq 
+is 0x3F, which is the exit addr for seq.
+So the TRITON resources will not have any change.
+
+> * If I have a sleep sequence that disables some power resources, what
+> would be the state of the other resources?
+If you are using singular messages in the seq, you can address each resource 
+by specifying the Resource_id.
+But if you are using broadcast messages, the resources which will respond 
+depends on the Resource_group, TYPE & TYPE2 values.
+
+>
+> I've read the TPS TRM several times to now and I still got now clue
+> about what's going on there :(
+You can verify wether your clk/volt setup_time holds good.
+
+>
+>
+> -- 
+> Sincerely yours,
+> Mike.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
