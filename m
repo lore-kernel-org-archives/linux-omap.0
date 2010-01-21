@@ -1,204 +1,86 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH] OMAP35xx:SDIO IRQ Support for OMAP35xx
-Date: Thu, 21 Jan 2010 08:36:56 +0200
-Message-ID: <4B57F608.1030508@compulab.co.il>
-References: <1261400646-7641-1-git-send-email-phani@embwise.com> <4B2FA66C.7010902@compulab.co.il> <4B573F04.8080604@googlemail.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 6/8] OMAP3 PM: Enable DPLL4 autoidle after system off.
+Date: Thu, 21 Jan 2010 12:31:19 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0BD5@dbde02.ent.ti.com>
+References: <1264001442-20078-1-git-send-email-thara@ti.com>
+ <1264001442-20078-2-git-send-email-thara@ti.com>
+ <1264001442-20078-3-git-send-email-thara@ti.com>
+ <1264001442-20078-4-git-send-email-thara@ti.com>
+ <1264001442-20078-5-git-send-email-thara@ti.com>
+ <1264001442-20078-6-git-send-email-thara@ti.com>
+ <1264001442-20078-7-git-send-email-thara@ti.com>
+ <alpine.DEB.2.00.1001201033120.3977@utopia.booyaka.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0B49@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1001202236150.24456@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4B573F04.8080604@googlemail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: Phaneendra Kumar Alapati <phani@embwise.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Adrian Hunter <adrian.hunter@nokia.com>, "Paasikivi Teemu.3 (EXT-Ixonos/Tampere)" <ext-teemu.3.paasikivi@nokia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57293 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752670Ab0AUHB0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 02:01:26 -0500
+In-Reply-To: <alpine.DEB.2.00.1001202236150.24456@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Dirk,
 
-Dirk Behme wrote:
-> On 21.12.2009 17:46, Mike Rapoport wrote:
->> Hi,
+
+Hi Paul,
 >>
->> Phaneendra Kumar Alapati wrote:
->>> This patch adds SDIO IRQ support for OMAP35xx. Tested on OMAP3530EVM
->>> with Marvell 88W8686 card and below are the observed throughput results
->>> (ttcp utility): 13Mbps (Downlink), 10.5 Mbps(Uplink)
->>>
->>> Signed-off-by: Phaneendra Kumar<phani@embwise.com>
->>> ---
->>>   drivers/mmc/host/omap_hsmmc.c |   55
->>> ++++++++++++++++++++++++++++++++++++----
->>>   1 files changed, 49 insertions(+), 6 deletions(-)
+>>That may change depending on device wakeup latency constraints.  If a
+>>device has a low wakeup latency, we may choose to keep a DPLL running.
+>>Sometimes this is also changed to work around silicon bugs.  So we should
+>>avoid adding code that makes assumptions about any of those autoidle bits.
 >>
->> I've tried the patch on CM-T35 that has Marvell 88W8686 on-board and
->> surprisingly I get a lot of command timeouts from the libertas driver :(
->> ---
->> libertas: requeueing command 0x0006 due to timeout (#1)
->> libertas: Received result 0 to command 6 after 1 retries
->> libertas: command 0x0006 timed out
->> ---
->> I hope I'll find time to debug it in the next few days and provide
->> more valuable
->> information...
-> 
-> There is a test report from Overo air that there it doesn't work, too:
-> 
-> http://old.nabble.com/Re%3A-Overo-wifi-speed-and-WPA2-connection-issue-p27231874.html
-> 
-> 
-> Any news on this patch?
-
-Unfortunately I haven't got time to see why libertas is unhappy with
-this patch.. :(
-
-> Best regards
-> 
-> Dirk
-> 
->>> diff --git a/drivers/mmc/host/omap_hsmmc.c
->>> b/drivers/mmc/host/omap_hsmmc.c
->>> index 4b23225..fa94580 100644
->>> --- a/drivers/mmc/host/omap_hsmmc.c
->>> +++ b/drivers/mmc/host/omap_hsmmc.c
->>> @@ -100,6 +100,10 @@
->>>   #define SRD            (1<<  26)
->>>   #define SOFTRESET        (1<<  1)
->>>   #define RESETDONE        (1<<  0)
->>> +#define CIRQ        (1<<  8)
->>> +#define CIRQ_ENABLE    (1<<  8)
->>> +#define CTPL        (1<<  11)
->>> +#define CLKEXTFREE    (1<<  16)
->>>
->>>   /*
->>>    * FIXME: Most likely all the data using these _DEVID defines
->>> should come
->>> @@ -171,6 +175,7 @@ struct omap_hsmmc_host {
->>>       int            vdd;
->>>       int            protect_card;
->>>       int            reqs_blocked;
->>> +    int            sdio_int;
->>>
->>>       struct    omap_mmc_platform_data    *pdata;
->>>   };
->>> @@ -436,6 +441,13 @@ omap_hsmmc_start_command(struct omap_hsmmc_host
->>> *host, struct mmc_command *cmd,
->>>       else
->>>           OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
->>>
->>> +    if (host->sdio_int) {
->>> +        OMAP_HSMMC_WRITE(host->base, ISE,
->>> +            (OMAP_HSMMC_READ(host->base, ISE) | CIRQ_ENABLE));
->>> +        OMAP_HSMMC_WRITE(host->base, IE,
->>> +            (OMAP_HSMMC_READ(host->base, IE) | CIRQ_ENABLE));
->>> +    }
->>> +
->>>       host->response_busy = 0;
->>>       if (cmd->flags&  MMC_RSP_PRESENT) {
->>>           if (cmd->flags&  MMC_RSP_136)
->>> @@ -640,6 +652,17 @@ static irqreturn_t omap_hsmmc_irq(int irq, void
->>> *dev_id)
->>>
->>>       spin_lock(&host->irq_lock);
->>>
->>> +    data = host->data;
->>> +    status = OMAP_HSMMC_READ(host->base, STAT);
->>> +    dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
->>> +
->>> +    if (host->mmc->caps&  MMC_CAP_SDIO_IRQ) {
->>> +        if (status&  CIRQ) {
->>> +            dev_dbg(mmc_dev(host->mmc), "SDIO Card Interrupt\n");
->>> +            mmc_signal_sdio_irq(host->mmc);
->>> +        }
->>> +    }
->>> +
->>>       if (host->mrq == NULL) {
->>>           OMAP_HSMMC_WRITE(host->base, STAT,
->>>               OMAP_HSMMC_READ(host->base, STAT));
->>> @@ -649,10 +672,6 @@ static irqreturn_t omap_hsmmc_irq(int irq, void
->>> *dev_id)
->>>           return IRQ_HANDLED;
->>>       }
->>>
->>> -    data = host->data;
->>> -    status = OMAP_HSMMC_READ(host->base, STAT);
->>> -    dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
->>> -
->>>       if (status&  ERR) {
->>>   #ifdef CONFIG_MMC_DEBUG
->>>           omap_hsmmc_report_irq(host, status);
->>> @@ -1254,6 +1273,25 @@ static int omap_hsmmc_get_ro(struct mmc_host
->>> *mmc)
->>>       return mmc_slot(host).get_ro(host->dev, 0);
->>>   }
->>>
->>> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int
->>> enable)
->>> +{
->>> +    struct omap_hsmmc_host *host = mmc_priv(mmc);
->>> +
->>> +    host->sdio_int = enable;
->>> +    if (enable) {
->>> +        OMAP_HSMMC_WRITE(host->base, ISE,
->>> +            (OMAP_HSMMC_READ(host->base, ISE) | CIRQ_ENABLE));
->>> +        OMAP_HSMMC_WRITE(host->base, IE,
->>> +            (OMAP_HSMMC_READ(host->base, IE) | CIRQ_ENABLE));
->>> +    } else {
->>> +        OMAP_HSMMC_WRITE(host->base, IE,
->>> +            (OMAP_HSMMC_READ(host->base, IE)&  (~CIRQ_ENABLE)));
->>> +        OMAP_HSMMC_WRITE(host->base, ISE,
->>> +            (OMAP_HSMMC_READ(host->base, ISE)&  (~CIRQ_ENABLE)));
->>> +    }
->>> +
->>> +}
->>> +
->>>   static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
->>>   {
->>>       u32 hctl, capa, value;
->>> @@ -1519,7 +1557,7 @@ static const struct mmc_host_ops omap_hsmmc_ops
->>> = {
->>>       .set_ios = omap_hsmmc_set_ios,
->>>       .get_cd = omap_hsmmc_get_cd,
->>>       .get_ro = omap_hsmmc_get_ro,
->>> -    /* NYET -- enable_sdio_irq */
->>> +    .enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->>>   };
->>>
->>>   static const struct mmc_host_ops omap_hsmmc_ps_ops = {
->>> @@ -1529,7 +1567,7 @@ static const struct mmc_host_ops
->>> omap_hsmmc_ps_ops = {
->>>       .set_ios = omap_hsmmc_set_ios,
->>>       .get_cd = omap_hsmmc_get_cd,
->>>       .get_ro = omap_hsmmc_get_ro,
->>> -    /* NYET -- enable_sdio_irq */
->>> +    .enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->>>   };
->>>
->>>   #ifdef CONFIG_DEBUG_FS
->>> @@ -1657,6 +1695,7 @@ static int __init omap_hsmmc_probe(struct
->>> platform_device *pdev)
->>>       host->mapbase    = res->start;
->>>       host->base    = ioremap(host->mapbase, SZ_4K);
->>>       host->power_mode = -1;
->>> +    host->sdio_int = 0;
->>>
->>>       platform_set_drvdata(pdev, host);
->>>       INIT_WORK(&host->mmc_carddetect_work, omap_hsmmc_detect);
->>> @@ -1744,6 +1783,10 @@ static int __init omap_hsmmc_probe(struct
->>> platform_device *pdev)
->>>       if (mmc_slot(host).nonremovable)
->>>           mmc->caps |= MMC_CAP_NONREMOVABLE;
->>>
->>> +    mmc->caps |= MMC_CAP_SDIO_IRQ;
->>> +    OMAP_HSMMC_WRITE(host->base, CON,
->>> +            OMAP_HSMMC_READ(host->base, CON) | (CTPL | CLKEXTFREE));
->>> +
->>>       omap_hsmmc_conf_bus_power(host);
->>>
->>>       /* Select DMA lines */
+>>> Why I had to make this unconditional is because later before core
+>>> entering OSWR I explicitly disable this bit in the register. This is so
+>>> as to match this register content with those of scratchpad during OSWR.
+>>> Failing to do this rom code while exiting OSWR will take the path it
+>>> takes while coming out of core off . This causes a crash in the system
+>>> today.
 >>
-> 
+>>Fine, but can't you save the previous state of the DPLL autoidle with
+>>omap3_dpll_autoidle_read() before you disable it prior to OSWR, and just
+>>restore it afterwards?
+>>
+>>> Also another reason is omap3_prcm_save_context needs to be called
+>>> only during core off today.
+>>
+>>Is this because the CM registers are part of the logic section of the CORE
+>>powerdomain?
 
+This is because CM module is built with Retention flip flops(RFF) and during OSWR the voltage is still supplied to the logic built with RFF. Thus no content loss.
 
--- 
-Sincerely yours,
-Mike.
+>>
+>>> If I move saving of this bit and restoring it back into
+>>> omap3_prcm_save_context and omap3_prcm_restore_context I will have to
+>>> call it during core OSWR also.
+>>
+>>If you're not calling those now for OSWR, you shouldn't have to call them
+>>just to save and restore the DPLL4 autoidle state, right?  Wouldn't it
+>>work to simply read the current autoidle state with
+>>omap3_dpll_autoidle_read() before entering OSWR, then restore it
+>>afterwards with omap3_dpll_{allow,deny}_idle() ?
+>>
+>>> Wanted to avoid the extra complications.
+>>
+>>And the extra delay.  Reads and writes from L4_WAKEUP-connected devices
+>>are sllloooooowwwww.
+
+Agreed.
+>>
+>>> But if this approach is not ok, I can modify the save restore APIs to
+>>> take power state as a parameter and do only dpll4 autoidle save and
+>>> restore in case of OSWR. Is this ok?
+>>
+>>Well, let me know what you think of the above...
+
+I am ok with this. Only thing is it will involve a clk_get("dpll4_clk") and then rest of the API calls as you have suggested. Considering this is in cpuidle path, will the latencies be high?
+If we have a latency issue, we can still keep the logic same as you have suggested and instead of dpll api's directly use CM API's to implement the same. So use cm_read_mod_reg and cm_rmw_mod_reg_bits.
+
+Regards
+Thara
