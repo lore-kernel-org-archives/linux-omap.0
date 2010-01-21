@@ -1,39 +1,40 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH] DSPBRIDGE: Various compile warning fixes
-Date: Thu, 21 Jan 2010 18:33:08 +0200
-Message-ID: <1264091588.3544.12.camel@sanganak>
-References: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
-	 <5ec8ebd51001210801h3eb8c337l2cd0d4e501ed724f@mail.gmail.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH V2 2/10] omap: Rename mmc-twl4030 files to hsmmc
+Date: Thu, 21 Jan 2010 11:23:58 -0600
+Message-ID: <004701ca9abe$84341530$544ff780@am.dhcp.ti.com>
+References: <20100117013250.17308.17861.sendpatchset@ahunter-work.research.nokia.com> <20100117013306.17308.2282.sendpatchset@ahunter-work.research.nokia.com> <017601ca9a2a$1d1e7640$544ff780@am.dhcp.ti.com> <017701ca9a2b$07ceb920$544ff780@am.dhcp.ti.com> <4B581965.3090403@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:32891 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457Ab0AUQdz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 11:33:55 -0500
-In-Reply-To: <5ec8ebd51001210801h3eb8c337l2cd0d4e501ed724f@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:48708 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751948Ab0AURYj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jan 2010 12:24:39 -0500
+In-Reply-To: <4B581965.3090403@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "omar.ramirez@ti.com" <omar.ramirez@ti.com>, "nm@ti.com" <nm@ti.com>, "deepak.chitriki@ti.com" <deepak.chitriki@ti.com>, "Kukkonen Mika (Nokia-D/Helsinki)" <mika.kukkonen@nokia.com>
+To: 'Adrian Hunter' <adrian.hunter@nokia.com>
+Cc: 'Tony Lindgren' <tony@atomide.com>, 'Paul Walmsley' <paul@pwsan.com>, 'linux-omap Mailing List' <linux-omap@vger.kernel.org>, 'linux-mmc Mailing List' <linux-mmc@vger.kernel.org>, 'Andrew Morton' <akpm@linux-foundation.org>
 
-On Thu, 2010-01-21 at 17:01 +0100, ext Andy Shevchenko wrote:
-> On Thu, Jan 21, 2010 at 3:40 PM, Ameya Palande <ameya.palande@nokia.com> wrote:
-> > --- a/drivers/dsp/bridge/wmd/io_sm.c
-> > +++ b/drivers/dsp/bridge/wmd/io_sm.c
-> > @@ -1210,7 +1210,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
-> >                            pChnlMgr->uWordSize;
-> >        chnlId = IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputId);
-> >        dwArg = IO_GetLong(pIOMgr->hWmdContext, struct SHM, sm, arg);
-> > -       if (!(chnlId >= 0) || !(chnlId < CHNL_MAXCHANNELS)) {
-> > +       if (chnlId >= CHNL_MAXCHANNELS) {
-> Could chnlld be less than zero? Anyway better to test:
-> (chnlId >= CHNL_MAXCHANNELS || chnlld < 0)
+
+<snip>
+
+> >>
+> >
+> > My bad, please ignore. The 3rd patch in the series seems to take care of
+> > renaming these bits.
+> >
+> > Regards,
+> > Madhu
+> >
 > 
+> Will you be Ack'ing these patches?
 
-chnlId is defined as u32 ;)
+Sure. I will do that. The changes to hsmmc look okay to me. Having the
+controller driver call the mmc core regulator fns is good.
 
-Cheers,
-Ameya.
+Regards,
+Madhu
 
