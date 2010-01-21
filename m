@@ -1,57 +1,55 @@
-From: Sergey Lapin <slapinid-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: MUSB crash on OMAP3 board with second load of gadget
-Date: Thu, 21 Jan 2010 14:26:49 +0300
-Message-ID: <48239d391001210326y25986d59hd10d390ef9c8ddea@mail.gmail.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: How to put TWL/TPS into sleep?
+Date: Thu, 21 Jan 2010 13:45:38 +0200
+Message-ID: <4B583E62.80603@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from compulab.co.il ([67.18.134.219]:56317 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751700Ab0AULqF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jan 2010 06:46:05 -0500
+Received: from [62.90.235.247] (helo=zimbra-mta.compulab.co.il)
+	by compulab.site5.com with esmtp (Exim 4.69)
+	(envelope-from <mike@compulab.co.il>)
+	id 1NXvUB-00049s-1a
+	for linux-omap@vger.kernel.org; Thu, 21 Jan 2010 05:46:03 -0600
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id DC5279A034F
+	for <linux-omap@vger.kernel.org>; Thu, 21 Jan 2010 13:46:01 +0200 (IST)
+Received: from zimbra-mta.compulab.co.il ([127.0.0.1])
+	by localhost (zimbra-mta.compulab.co.il [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id WaLfwF4yBe39 for <linux-omap@vger.kernel.org>;
+	Thu, 21 Jan 2010 13:46:01 +0200 (IST)
+Received: from [10.1.1.77] (droid.compulab.local [10.1.1.77])
+	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id AA8DA9A0313
+	for <linux-omap@vger.kernel.org>; Thu, 21 Jan 2010 13:46:01 +0200 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi! I have crashes in MUSB code when working with USB gadget drivers.
-Kernel version: linux-omap master d8ebff302ff819587377b123e900e501e4135d86
-To reproduce: (USB device cable should be attached).
+Hi all,
+I'm trying to achieve maximal power savings on omap3 based system with
+TPS65930 PMIC using twl4030_script and twl4030_resconfig. I've tried
+different resource mappings and different command sequences in the
+sleep/wakeup scripts by to no avail. Moreover, with some resource
+definitions and sleep/wakeup scripts the system behaves in a weird ways,
+e.g. does not properly respond to hard resets.
+Most probably my resource remapping and command sequences are wrong and
+this is the reason for system misbehavior.
 
-dd if=/dev/zero of=/tmp/disk bs=1k count=1024
-mkdosfs -F 32 /tmp/disk
-insmod g_mass_storage  file=/tmp/disk stall=0
+However, several things are completely unclear to me:
+* Does TPS/TWL have defaults for sleep-on and sleep-off transitions?
+* What would happen if nSLEEP1 would go low/high and there is no
+sleep/wakeup sequence programmed?
+* If I have a sleep sequence that disables some power resources, what
+would be the state of the other resources?
 
-Wait till disk is mounted on host, then
+I've read the TPS TRM several times to now and I still got now clue
+about what's going on there :(
 
-rmmod g_mass_storage
-insmod g_mass_storage  file=/tmp/disk stall=0
 
-And here we get Oops in include/linux/list.h line 93,
-list_del function, which leads us to drivers/usb/musb/musb_gadget.c,
-function void musb_g_giveback(
-        struct musb_ep          *ep,
-        struct usb_request      *request,
-        int                     status),
-just at the beginning of function.
-
-if we add
-pr_debug("list.prev = %p\n", request->list.prev);
-pr_debug("list.next = %p\n", request->list.next);
-
-and we see
-
-list.prev = 6b6b6b6b
-list.next = 6b6b6b6b
-
-And these are NOT values set during list deletion.
-
-Any ideas where to debug from here? If I just do return from that
-function in case
-of list.prev = 6b6b6b6b, then there's no crash, but there's no working
-USB either.
-if I just ignore list_del, I have crash later, where it seems to
-execute bad code
-from address 0x6b6b6b6a. Please, help!
-
-Thanks a lot,
-S.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Sincerely yours,
+Mike.
