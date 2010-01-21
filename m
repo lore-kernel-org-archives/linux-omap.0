@@ -1,337 +1,47 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCHv3 1/6] OMAP: Powerdomains: Add support for INACTIVE
- state on pwrdm level
-Date: Thu, 21 Jan 2010 16:43:57 +0100
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A2237255E0DB@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <> <1263559617-663-1-git-send-email-tero.kristo@nokia.com>
- <1263559617-663-2-git-send-email-tero.kristo@nokia.com>
- <alpine.DEB.2.00.1001202112380.24456@utopia.booyaka.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] DSPBRIDGE: Various compile warning fixes
+Date: Thu, 21 Jan 2010 18:01:13 +0200
+Message-ID: <5ec8ebd51001210801h3eb8c337l2cd0d4e501ed724f@mail.gmail.com>
+References: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:57205 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751677Ab0AUPot convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 10:44:49 -0500
-In-Reply-To: <alpine.DEB.2.00.1001202112380.24456@utopia.booyaka.com>
-Content-Language: en-US
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:53858 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753054Ab0AUQBU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 11:01:20 -0500
+Received: by ewy19 with SMTP id 19so135642ewy.1
+        for <linux-omap@vger.kernel.org>; Thu, 21 Jan 2010 08:01:18 -0800 (PST)
+In-Reply-To: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap@vger.kernel.org, omar.ramirez@ti.com, nm@ti.com, deepak.chitriki@ti.com, mika.kukkonen@nokia.com
 
-Hi Paul,
+On Thu, Jan 21, 2010 at 3:40 PM, Ameya Palande <ameya.palande@nokia.com=
+> wrote:
+> --- a/drivers/dsp/bridge/wmd/io_sm.c
+> +++ b/drivers/dsp/bridge/wmd/io_sm.c
+> @@ -1210,7 +1210,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, st=
+ruct CHNL_OBJECT *pChnl,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0pChnlMgr->uWordSize;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0chnlId =3D IO_GetValue(pIOMgr->hWmdContext=
+, struct SHM, sm, inputId);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0dwArg =3D IO_GetLong(pIOMgr->hWmdContext, =
+struct SHM, sm, arg);
+> - =C2=A0 =C2=A0 =C2=A0 if (!(chnlId >=3D 0) || !(chnlId < CHNL_MAXCHA=
+NNELS)) {
+> + =C2=A0 =C2=A0 =C2=A0 if (chnlId >=3D CHNL_MAXCHANNELS) {
+Could chnlld be less than zero? Anyway better to test:
+(chnlId >=3D CHNL_MAXCHANNELS || chnlld < 0)
 
-Thanks for comments, my responses inline below.
-
->-----Original Message-----
->From: ext Paul Walmsley [mailto:paul@pwsan.com] 
->Sent: 21 January, 2010 06:35
->To: Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com
->Subject: Re: [PATCHv3 1/6] OMAP: Powerdomains: Add support for 
->INACTIVE state on pwrdm level
->
->Hi Tero,
->
->I regret the delay in reviewing.  I haven't kept up on the comments on 
->this thread, so if I've asked a question that you've already answered, 
->please feel free to point me to the response.
->
->A few comments/questions:
->
->On Fri, 15 Jan 2010, Tero Kristo wrote:
->
->> From: Tero Kristo <tero.kristo@nokia.com>
->> 
->> Currently only ON, RET and OFF are supported, and ON is 
->arguably broken as it
->> allows the powerdomain to enter INACTIVE state unless idle 
->is prevented.
->> Now, pwrdm code prevents idle if ON is selected, and also 
->adds support for
->> INACTIVE. This simplifies the control needed inside sleep code.
->> 
->> This patch also requires caching of next power state inside 
->powerdomain code,
->> as INACTIVE is not directly supported by hardware.
->
->The idea seems like a good one, and a simplification for the 
->PM code.  I'm 
->a little worried that this patch mixes hardware-programmable 
->powerdomain 
->states with logical powerdomain states.  I wonder if we would 
->be better 
->off separating, for example, the logic of putting a powerdomain into 
->INACTIVE state and any other logical powerdomain management, from the 
->physical details of how the chip is programmed.  Just looking for your 
->comments on this, not necessarily any changes in your patches in this 
->regard.
->
->> Next powerstate is thus now stored for each powerdomain in 
->next_state.
->> 
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->> ---
->>  arch/arm/mach-omap2/powerdomain.c             |   32 
->++++++++++++++++++++----
->>  arch/arm/mach-omap2/powerdomains34xx.h        |   26 
->++++++++++----------
->>  arch/arm/plat-omap/include/plat/powerdomain.h |    4 +++
->>  3 files changed, 43 insertions(+), 19 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/powerdomain.c 
->b/arch/arm/mach-omap2/powerdomain.c
->> index 26b3f3e..a08d596 100644
->> --- a/arch/arm/mach-omap2/powerdomain.c
->> +++ b/arch/arm/mach-omap2/powerdomain.c
->> @@ -110,8 +110,8 @@ static struct powerdomain 
->*_pwrdm_deps_lookup(struct powerdomain *pwrdm,
->>  static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->>  {
->>  
->> -	int prev;
->> -	int state;
->> +	u8 prev;
->> +	u8 state;
->>  
->>  	if (pwrdm == NULL)
->>  		return -EINVAL;
->> @@ -218,7 +218,9 @@ int pwrdm_register(struct powerdomain *pwrdm)
->>  
->>  	pr_debug("powerdomain: registered %s\n", pwrdm->name);
->>  	ret = 0;
->> -
->> +	pwrdm->next_state =
->> +		prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
->> +			OMAP_POWERSTATE_MASK);
->>  pr_unlock:
->>  	write_unlock_irqrestore(&pwrdm_rwlock, flags);
->>  
->> @@ -699,19 +701,38 @@ int pwrdm_get_mem_bank_count(struct 
->powerdomain *pwrdm)
->>   */
->>  int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
->>  {
->> +	u8 prg_pwrst;
->> +
->>  	if (!pwrdm)
->>  		return -EINVAL;
->>  
->> +	if (pwrdm->next_state == pwrst)
->> +		return 0;
->> +
->>  	if (!(pwrdm->pwrsts & (1 << pwrst)))
->>  		return -EINVAL;
->>  
->>  	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
->>  		 pwrdm->name, pwrst);
->>  
->> +	/* INACTIVE is reserved, so we program pwrdm as ON */
->> +	if (pwrst == PWRDM_POWER_INACTIVE)
->> +		prg_pwrst = PWRDM_POWER_ON;
->> +	else
->> +		prg_pwrst = pwrst;
->> +
->>  	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
->> -			     (pwrst << OMAP_POWERSTATE_SHIFT),
->> +			     (prg_pwrst << OMAP_POWERSTATE_SHIFT),
->>  			     pwrdm->prcm_offs, PM_PWSTCTRL);
->>  
->> +	/* If next state is ON, prevent idle */
->> +	if (pwrst == PWRDM_POWER_ON)
->> +		omap2_clkdm_deny_idle(pwrdm->pwrdm_clkdms[0]);
->> +	else
->> +		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
->
->Looks like this will force clockdomains into hardware-supervised mode, 
->even if they were originally programmed into software-supervised mode.
->Please fix this so clockdomains that were originally programmed into 
->software-supervised mode aren't inadvertently switched.
-
-I think the change here would be to only deny/allow idle if we are in hwsup mode. Probably needs caching of the setup also. I'll do the change for this.
-
->
->> +
->> +	pwrdm->next_state = pwrst;
->> +
->>  	return 0;
->>  }
->>  
->> @@ -728,8 +749,7 @@ int pwrdm_read_next_pwrst(struct 
->powerdomain *pwrdm)
->>  	if (!pwrdm)
->>  		return -EINVAL;
->>  
->> -	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
->> -					OMAP_POWERSTATE_MASK);
->> +	return pwrdm->next_state;
->>  }
->>  
->>  /**
->> diff --git a/arch/arm/mach-omap2/powerdomains34xx.h 
->b/arch/arm/mach-omap2/powerdomains34xx.h
->> index 588f7e0..f50a3f2 100644
->> --- a/arch/arm/mach-omap2/powerdomains34xx.h
->> +++ b/arch/arm/mach-omap2/powerdomains34xx.h
->> @@ -165,7 +165,7 @@ static struct powerdomain iva2_pwrdm = {
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->>  	.dep_bit	  = OMAP3430_PM_WKDEP_MPU_EN_IVA2_SHIFT,
->>  	.wkdep_srcs	  = iva2_wkdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
->>  	.banks		  = 4,
->>  	.pwrsts_mem_ret	  = {
->> @@ -188,7 +188,7 @@ static struct powerdomain mpu_34xx_pwrdm = {
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->>  	.dep_bit	  = OMAP3430_EN_MPU_SHIFT,
->>  	.wkdep_srcs	  = mpu_34xx_wkdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
->>  	.flags		  = PWRDM_HAS_MPU_QUIRK,
->>  	.banks		  = 1,
->> @@ -207,7 +207,7 @@ static struct powerdomain 
->core_34xx_pre_es3_1_pwrdm = {
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
->>  					   CHIP_IS_OMAP3430ES2 |
->>  					   CHIP_IS_OMAP3430ES3_0),
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
->>  	.banks		  = 2,
->>  	.pwrsts_mem_ret	  = {
->> @@ -215,8 +215,8 @@ static struct powerdomain 
->core_34xx_pre_es3_1_pwrdm = {
->>  		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
->>  	},
->>  	.pwrsts_mem_on	  = {
->> -		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
->> -		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
->> +		[0] = PWRSTS_OFF_RET_INA_ON, /* MEM1ONSTATE */
->> +		[1] = PWRSTS_OFF_RET_INA_ON, /* MEM2ONSTATE */
->
->What's the thinking behind changing these memory bank states?  
->Will some 
->code try to call pwrdm_set_mem_onst() with pwrst = INACTIVE, 
->and if so, 
->what should it do?  Similarly, if we add a 
->pwrdm_read_mem_onst(), under 
->what conditions should it return pwrst = INACTIVE?  Will we also need 
->next_state variables for all of the banks?
-
-Did some checking on the code + TRM, and true, these memory bank states should not be altered, HW only supports certain subset of states. I will remove these pieces from the patch. This was just some bogus logic of mine thinking also these needed to be changed as I added the support for INA.
-
-
->
->>  	},
->>  };
->>  
->> @@ -225,7 +225,7 @@ static struct powerdomain 
->core_34xx_es3_1_pwrdm = {
->>  	.name		  = "core_pwrdm",
->>  	.prcm_offs	  = CORE_MOD,
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
->>  	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
->>  	.banks		  = 2,
->> @@ -234,8 +234,8 @@ static struct powerdomain 
->core_34xx_es3_1_pwrdm = {
->>  		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
->>  	},
->>  	.pwrsts_mem_on	  = {
->> -		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
->> -		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
->> +		[0] = PWRSTS_OFF_RET_INA_ON, /* MEM1ONSTATE */
->> +		[1] = PWRSTS_OFF_RET_INA_ON, /* MEM2ONSTATE */
->>  	},
->>  };
->>  
->> @@ -247,7 +247,7 @@ static struct powerdomain dss_pwrdm = {
->>  	.dep_bit	  = OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
->>  	.wkdep_srcs	  = cam_dss_wkdeps,
->>  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
->>  	.banks		  = 1,
->>  	.pwrsts_mem_ret	  = {
->> @@ -287,7 +287,7 @@ static struct powerdomain cam_pwrdm = {
->>  	.prcm_offs	  = OMAP3430_CAM_MOD,
->>  	.wkdep_srcs	  = cam_dss_wkdeps,
->>  	.sleepdep_srcs	  = cam_gfx_sleepdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
->>  	.banks		  = 1,
->>  	.pwrsts_mem_ret	  = {
->> @@ -305,7 +305,7 @@ static struct powerdomain per_pwrdm = {
->>  	.dep_bit	  = OMAP3430_EN_PER_SHIFT,
->>  	.wkdep_srcs	  = per_usbhost_wkdeps,
->>  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
->>  	.banks		  = 1,
->>  	.pwrsts_mem_ret	  = {
->> @@ -327,7 +327,7 @@ static struct powerdomain neon_pwrdm = {
->>  	.prcm_offs	  = OMAP3430_NEON_MOD,
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->>  	.wkdep_srcs	  = neon_wkdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
->>  };
->>  
->> @@ -337,7 +337,7 @@ static struct powerdomain usbhost_pwrdm = {
->>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
->>  	.wkdep_srcs	  = per_usbhost_wkdeps,
->>  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
->> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
->> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
->>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
->>  	/*
->>  	 * REVISIT: Enabling usb host save and restore 
->mechanism seems to
->> diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h 
->b/arch/arm/plat-omap/include/plat/powerdomain.h
->> index 0b96005..159e4ad 100644
->> --- a/arch/arm/plat-omap/include/plat/powerdomain.h
->> +++ b/arch/arm/plat-omap/include/plat/powerdomain.h
->> @@ -39,6 +39,9 @@
->>  
->>  #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
->>  
->> +#define PWRSTS_OFF_RET_INA_ON	(PWRSTS_OFF_RET_ON | \
->> +				 (1 << PWRDM_POWER_INACTIVE))
->> +
->>  
->>  /* Powerdomain flags */
->>  #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware 
->save-and-restore support */
->> @@ -123,6 +126,7 @@ struct powerdomain {
->>  	struct list_head node;
->>  
->>  	int state;
->> +	int next_state;
->>  	unsigned state_counter[PWRDM_MAX_PWRSTS];
->>  
->>  #ifdef CONFIG_PM_DEBUG
->> -- 
->> 1.5.4.3
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
->
->regards,
->
->- Paul
->
+--=20
+With Best Regards,
+Andy Shevchenko
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
