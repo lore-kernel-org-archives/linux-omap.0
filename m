@@ -1,132 +1,171 @@
-From: "Lesly AM" <x0080970@ti.com>
-Subject: Re: [PATCH v2 1/6] omap3: pm: re-program the sleep state of TRITON resources by modifying the REMAP register
-Date: Thu, 21 Jan 2010 11:40:30 +0530
-Message-ID: <020501ca9a60$71a2e800$LocalHost@wipultra1385>
-References: <1263922501-13701-1-git-send-email-x0080970@ti.com> <4B572121.50402@compulab.co.il>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/8] OMAP2/3 PM: Adding powerdomain APIs for reading the
+ next logic and mem state
+Date: Wed, 20 Jan 2010 23:12:55 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001202308180.24456@utopia.booyaka.com>
+References: <1264001442-20078-1-git-send-email-thara@ti.com> <1264001442-20078-2-git-send-email-thara@ti.com> <1264001442-20078-3-git-send-email-thara@ti.com> <1264001442-20078-4-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39337 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752156Ab0AUGKo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 01:10:44 -0500
+Received: from utopia.booyaka.com ([72.9.107.138]:50170 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751334Ab0AUGM4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jan 2010 01:12:56 -0500
+In-Reply-To: <1264001442-20078-4-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org
 
+Hi Thara,
 
------ Original Message ----- 
-From: "Mike Rapoport" <mike@compulab.co.il>
-To: <x0080970@ti.com>
-Cc: <linux-omap@vger.kernel.org>; "Nishanth Menon" <nm@ti.com>; "David 
-Derrick" <dderrick@ti.com>; "Samuel Ortiz" <sameo@linux.intel.com>
-Sent: Wednesday, January 20, 2010 8:58 PM
-Subject: Re: [PATCH v2 1/6] omap3: pm: re-program the sleep state of TRITON 
-resources by modifying the REMAP register
+some more comments:
 
+On Wed, 20 Jan 2010, Thara Gopinath wrote:
 
-> x0080970@ti.com wrote:
->> From: Lesly A M <x0080970@ti.com>
->>
->> omap3: pm: re-program the sleep state of TRITON resources by modifying 
->> the REMAP register
->>
->> Removed the warning print with checking order of scripts, since the order
->> is not important. Only the values configured in the register, which is 
->> pointing to
->> the starting address of each sequence should be correct.
->>
->> Signed-off-by: Lesly A M <x0080970@ti.com>
->> Cc: Nishanth Menon <nm@ti.com>
->> Cc: David Derrick <dderrick@ti.com>
->> Cc: Samuel Ortiz <sameo@linux.intel.com>
->>
->> ---
->>  drivers/mfd/twl4030-power.c |   30 +++++++++++++++++++++++-------
->>  1 file changed, 23 insertions(+), 7 deletions(-)
->>
->> Index: linux-omap-pm/drivers/mfd/twl4030-power.c
->> ===================================================================
->> --- linux-omap-pm.orig/drivers/mfd/twl4030-power.c 2010-01-19 
->> 19:18:56.000000000 +0530
->> +++ linux-omap-pm/drivers/mfd/twl4030-power.c 2010-01-19 
->> 19:19:02.000000000 +0530
->> @@ -416,14 +416,35 @@
->>  return err;
->>  }
->>
->> - return 0;
->> +
->> + /* Set the remap sleep cmd */
->> + err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &remap,
->> + rconfig_addr + REMAP_OFFSET);
->> + if (err < 0) {
->> + printk(KERN_ERR "TWL4030 Resource %d remap could not read\n",
->> + rconfig->resource);
->> + return err;
->> + }
->> +
->> + if (rconfig->remap_sleep >= 0) {
->> + remap &= ~SLEEP_STATE_MASK;
->> + remap |= rconfig->remap_sleep;
->> + }
->> +
->> + err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, remap,
->> + rconfig_addr + REMAP_OFFSET);
->> + if (err < 0) {
->> + pr_err("TWL4030 failed to program remap sleep cmd \n");
->> + return err;
->> + }
->> +
->
-> Is it necessary to initialize the remap sleep twice?
-No.
-Sorry..  I didn't notice that Amit has already pushed this.
+> This patch adds APIs pwrdm_read_next_logic_pwrst and
 
->
->> + return err;
->>  }
->>
->>  static int __init load_twl4030_script(struct twl4030_script *tscript,
->>         u8 address)
->>  {
->>  int err;
->> - static int order;
->>
->>  /* Make sure the script isn't going beyond last valid address (0x3f) */
->>  if ((address + tscript->size) > END_OF_SCRIPT) {
->> @@ -444,7 +465,6 @@
->>  err = twl4030_config_wakeup12_sequence(address);
->>  if (err)
->>  goto out;
->> - order = 1;
->>  }
->>  if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
->>  err = twl4030_config_wakeup3_sequence(address);
->> @@ -452,10 +472,6 @@
->>  goto out;
->>  }
->>  if (tscript->flags & TWL4030_SLEEP_SCRIPT)
->> - if (order)
->> - pr_warning("TWL4030: Bad order of scripts (sleep "\
->> - "script before wakeup) Leads to boot"\
->> - "failure on some boards\n");
->>  err = twl4030_config_sleep_sequence(address);
->>  out:
->>  return err;
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+Shouldn't this be pwrdm_read_logic_retst(), to match the existing code's 
+pwrdm_set_logic_retst() ?
+
+> pwrdm_read_next_mem_pwrst 
+
+and similarly, shouldn't this be pwrdm_read_next_mem_retst() to match the 
+existing code's pwrdm_read_mem_retst() ?
+
+> for reading the next programmed logic and memory state a powerdomain is 
+> to hit in event of the next power domain state being retention.
+> 
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/powerdomain.c             |   71 +++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/powerdomain.h |    2 +
+>  2 files changed, 73 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 26b3f3e..06bf290 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -964,6 +964,29 @@ int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
+>  }
+>  
+>  /**
+> + * pwrdm_read_next_logic_pwrst - get next powerdomain logic power state
+> + * @pwrdm: struct powerdomain * to get next logic power state
+> + *
+> + * Return the powerdomain pwrdm's logic power state.  Returns -EINVAL
+> + * if the powerdomain pointer is null or returns the next logic
+> + * power state upon success.
+> + */
+> +int pwrdm_read_next_logic_pwrst(struct powerdomain *pwrdm)
+
+(see above)
+
+> +{
+> +	if (!pwrdm)
+> +		return -EINVAL;
+> +
+> +	/*
+> +	 * The register bit names below may not correspond to the
+> +	 * actual names of the bits in each powerdomain's register,
+> +	 * but the type of value returned is the same for each
+> +	 * powerdomain.
+> +	 */
+> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
+> +					OMAP3430_LOGICSTATEST);
+> +}
+> +
+> +/**
+>   * pwrdm_read_mem_pwrst - get current memory bank power state
+>   * @pwrdm: struct powerdomain * to get current memory bank power state
+>   * @bank: memory bank number (0-3)
+> @@ -1065,6 +1088,54 @@ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+>  }
+>  
+>  /**
+> + * pwrdm_read_next_mem_pwrst - get next memory bank power state
+> + * @pwrdm: struct powerdomain * to get mext memory bank power state
+> + * @bank: memory bank number (0-3)
+> + *
+> + * Return the powerdomain pwrdm's next memory power state for bank
+> + * x.  Returns -EINVAL if the powerdomain pointer is null, -EEXIST if
+> + * the target memory bank does not exist or is not controllable, or
+> + * returns the next memory power state upon success.
+> + */
+> +int pwrdm_read_next_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+
+(see above)
+
+> +{
+> +	u32 m;
+> +
+> +	if (!pwrdm)
+> +		return -EINVAL;
+> +
+> +	if (pwrdm->banks < (bank + 1))
+> +		return -EEXIST;
+> +
+> +	/*
+> +	 * The register bit names below may not correspond to the
+> +	 * actual names of the bits in each powerdomain's register,
+> +	 * but the type of value returned is the same for each
+> +	 * powerdomain.
+> +	 */
+> +	switch (bank) {
+> +	case 0:
+> +		m = OMAP3430_SHAREDL1CACHEFLATRETSTATE;
+> +		break;
+> +	case 1:
+> +		m = OMAP3430_L1FLATMEMRETSTATE;
+> +		break;
+> +	case 2:
+> +		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
+> +		break;
+> +	case 3:
+> +		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
+> +		break;
+> +	default:
+> +		WARN_ON(1); /* should never happen */
+> +		return -EEXIST;
+> +	}
+> +
+> +	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
+> +					PM_PWSTCTRL, m);
+> +}
+> +
+> +/**
+>   * pwrdm_clear_all_prev_pwrst - clear previous powerstate register for a pwrdm
+>   * @pwrdm: struct powerdomain * to clear
+>   *
+> diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+> index 0b96005..7576559 100644
+> --- a/arch/arm/plat-omap/include/plat/powerdomain.h
+> +++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+> @@ -170,8 +170,10 @@ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
+>  
+>  int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
+>  int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
+> +int pwrdm_read_next_logic_pwrst(struct powerdomain *pwrdm);
+
+(as above)
+
+>  int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
+>  int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
+> +int pwrdm_read_next_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
+
+(as above)
+
+>  
+>  int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm);
+>  int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
 > -- 
-> Sincerely yours,
-> Mike.
+> 1.5.6.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 
+
+- Paul
