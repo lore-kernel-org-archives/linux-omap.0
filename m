@@ -1,65 +1,96 @@
 From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code
- generic, v2
-Date: Fri, 22 Jan 2010 20:18:14 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703007F2289@dbde02.ent.ti.com>
-References: <20100116013205.10065.95921.stgit@baageli.muru.com>
- <20100116013515.10065.30649.stgit@baageli.muru.com>
- <20100116093555.GA13596@n2100.arm.linux.org.uk>
- <20100116191820.GI10318@atomide.com>
- <20100116193313.GA23092@n2100.arm.linux.org.uk>
- <20100116200003.GL10318@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC356087030070F296@dbde02.ent.ti.com>
- <20100122030711.GP23467@atomide.com>
+Subject: RE: [PATCH 1/7] usb: musb: Add context save and restore support
+Date: Fri, 22 Jan 2010 20:33:33 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703007F229A@dbde02.ent.ti.com>
+References: <1264080838-9452-1-git-send-email-felipe.balbi@nokia.com>
+ <1264080838-9452-2-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50350 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752681Ab0AVOsh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jan 2010 09:48:37 -0500
-In-Reply-To: <20100122030711.GP23467@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45190 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753947Ab0AVPDs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jan 2010 10:03:48 -0500
+In-Reply-To: <1264080838-9452-2-git-send-email-felipe.balbi@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Balbi <felipe.balbi@nokia.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>
 
-
+Ajay/Felipe
+Off usb list not to interfere with your merge req to Gregkh
 
 >-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Thursday, January 21, 2010 9:07 PM
->To: Pandita, Vikram
->Cc: Russell King - ARM Linux; linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
->Subject: Re: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code generic, v2
+>From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-owner@vger.kernel.org] On Behalf Of Felipe
+>Balbi
+>Sent: Thursday, January 21, 2010 7:34 AM
+>To: Greg KH
+>Cc: Linux USB Mailing List; Linux OMAP Mailing List; Gupta, Ajay Kumar; Gadiyar, Anand; Felipe Balbi
+>Subject: [PATCH 1/7] usb: musb: Add context save and restore support
+>Importance: High
 >
->* Pandita, Vikram <vikram.pandita@ti.com> [100118 17:48]:
->>
->> >* Russell King - ARM Linux <linux@arm.linux.org.uk> [100116 11:31]:
->> >
->> >> Why not do something like this:
->> >>
->> >> 		.pushsection .data
->> >> omap_uart_phys:	.word 0
->> >> omap_uart_virt:	.word 0
->> >> 		.popsection
+>From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 >
->Updated patch below using .data. This assumes getting an additional
->tmp register passed to addruart as in the patch I posted earlier.
+>Adding support for MUSB register save and restore during system
+>suspend and resume.
 >
->> Also We may need a:
->> 	 omap_uart_shift: .word 0
->> Since shift also varies depending on different omap boards
->> (external debug board shift=1, internal omap has shift=2)
+>Changes:
+>        - Added musb_save/restore_context() functions
+>        - Added platform specific musb_platform_save/restore_context()
+>          to handle platform specific jobs.
+>        - Maintaining BlackFin compatibility by adding read/write
+>          functions for registers which are not available in BlackFin
 >
->OK, I've added that too, but for mach-omap2 only. I've also
->added an experimental zoom2/3 support.
+>Tested system suspend and resume on OMAP3EVM board.
 >
->Care to take try it out and see what happens on a zoom?
+>Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+>Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+>Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+>---
+> drivers/usb/musb/musb_core.c |  146 ++++++++++++++++++++++++++++++++++++++++++
+> drivers/usb/musb/musb_core.h |   39 +++++++++++
+> drivers/usb/musb/musb_regs.h |   90 ++++++++++++++++++++++++++
+> drivers/usb/musb/omap2430.c  |   16 +++++
+> 4 files changed, 291 insertions(+), 0 deletions(-)
+>
+<snip>
+>diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+>index 83beeac..15a3f27 100644
+>--- a/drivers/usb/musb/omap2430.c
+>+++ b/drivers/usb/musb/omap2430.c
+>@@ -255,6 +255,22 @@ int __init musb_platform_init(struct musb *musb)
+> 	return 0;
+> }
+>
+>+#ifdef CONFIG_PM
+>+void musb_platform_save_context(struct musb_context_registers
+>+		*musb_context)
+>+{
+>+	musb_context->otg_sysconfig = omap_readl(OTG_SYSCONFIG);
+>+	musb_context->otg_forcestandby = omap_readl(OTG_FORCESTDBY);
 
-Test on zoom3 failed with multi-omap branch.
-Debugging the same, should have a zoom correction patch out today.
+Any reason not to store: OTG_INTERFSEL
+Depending on reset value is not a good idea.
 
+>+}
+>+
+>+void musb_platform_restore_context(struct musb_context_registers
+>+		*musb_context)
+>+{
+>+	omap_writel(musb_context->otg_sysconfig, OTG_SYSCONFIG);
+>+	omap_writel(musb_context->otg_forcestandby, OTG_FORCESTDBY);
+>+}
+>+#endif
+>+
+> int musb_platform_suspend(struct musb *musb)
+> {
+> 	u32 l;
+>--
+>1.6.6.rc0
 >
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
