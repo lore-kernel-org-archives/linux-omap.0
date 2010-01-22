@@ -1,69 +1,111 @@
-From: <mika.kukkonen@nokia.com>
-Subject: RE: [PATCH] DSPBRIDGE: Various compile warning fixes
-Date: Fri, 22 Jan 2010 07:00:33 +0100
-Message-ID: <20D73E2631F7914F868646E119DEC1CE21024B2780@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
-	 <5ec8ebd51001210801h3eb8c337l2cd0d4e501ed724f@mail.gmail.com>
- <1264091588.3544.12.camel@sanganak>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH V2 0/10] omap_hsmmc changes V2
+Date: Fri, 22 Jan 2010 10:41:29 +0200
+Message-ID: <4B5964B9.1030509@nokia.com>
+References: <20100117013250.17308.17861.sendpatchset@ahunter-work.research.nokia.com> <004b01ca9abf$57088e50$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:63525 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750954Ab0AVGAx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jan 2010 01:00:53 -0500
-In-Reply-To: <1264091588.3544.12.camel@sanganak>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:26068 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742Ab0AVIlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jan 2010 03:41:50 -0500
+In-Reply-To: <004b01ca9abf$57088e50$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ameya.palande@nokia.com, andy.shevchenko@gmail.com
-Cc: linux-omap@vger.kernel.org, omar.ramirez@ti.com, nm@ti.com, deepak.chitriki@ti.com
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Tony Lindgren' <tony@atomide.com>, 'Paul Walmsley' <paul@pwsan.com>, 'linux-omap Mailing List' <linux-omap@vger.kernel.org>, 'linux-mmc Mailing List' <linux-mmc@vger.kernel.org>, 'Andrew Morton' <akpm@linux-foundation.org>
 
->-----Original Message-----
->From: Palande Ameya (Nokia-D/Helsinki) 
->Sent: 21 January, 2010 18:33
->To: ext Andy Shevchenko
->Cc: linux-omap@vger.kernel.org; omar.ramirez@ti.com; 
->nm@ti.com; deepak.chitriki@ti.com; Kukkonen Mika (Nokia-D/Helsinki)
->Subject: Re: [PATCH] DSPBRIDGE: Various compile warning fixes
->
->On Thu, 2010-01-21 at 17:01 +0100, ext Andy Shevchenko wrote:
->> On Thu, Jan 21, 2010 at 3:40 PM, Ameya Palande 
-><ameya.palande@nokia.com> wrote:
->> > --- a/drivers/dsp/bridge/wmd/io_sm.c
->> > +++ b/drivers/dsp/bridge/wmd/io_sm.c
->> > @@ -1210,7 +1210,7 @@ static void InputChnl(struct IO_MGR 
->*pIOMgr, struct CHNL_OBJECT *pChnl,
->> >                            pChnlMgr->uWordSize;
->> >        chnlId = IO_GetValue(pIOMgr->hWmdContext, struct 
->SHM, sm, inputId);
->> >        dwArg = IO_GetLong(pIOMgr->hWmdContext, struct SHM, 
->sm, arg);
->> > -       if (!(chnlId >= 0) || !(chnlId < CHNL_MAXCHANNELS)) {
->> > +       if (chnlId >= CHNL_MAXCHANNELS) {
->> Could chnlld be less than zero? Anyway better to test:
->> (chnlId >= CHNL_MAXCHANNELS || chnlld < 0)
->> 
->
->chnlId is defined as u32 ;)
+Madhusudhan wrote:
+> 
+>> -----Original Message-----
+>> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+>> Sent: Saturday, January 16, 2010 7:33 PM
+>> To: Tony Lindgren
+>> Cc: Adrian Hunter; Madhusudhan Chikkature; Paul Walmsley; linux-omap
+>> Mailing List; linux-mmc Mailing List; Andrew Morton
+>> Subject: [PATCH V2 0/10] omap_hsmmc changes V2
+>>
+>> Hi
+>>
+>> Here are some changes we need for omap_hsmmc.  They are dependent on OMAP
+>> board files so it would be simplest if the patches all went via the OMAP
+>> tree.
+>>
+>> This is version 2 of this patch set.  Thank you Tony, Paul and Madhu for
+>> your comments.
+>>
+>> Changes from version 1:
+>> 	- amended patch 'omap_hsmmc: Move gpio and regulator control from
+>> 	board file' so that system control functions remain in the board
+>> 	file
+>> 	- for clarity, split patch 'omap: Rename mmc-twl4030 to hsmmc' into
+>> 	'omap: Rename mmc-twl4030 files to hsmmc' and
+>> 	'omap: Rename hsmmc symbols to reflect independence from twl4030'
+>> 	- removed patch 'omap_hsmmc: set DVFS/PM constraints'
+>> 	- added patch 'omap: Add functions for dynamic remuxing of pins'
+>> 	- renamed and reworked patch 'omap: RX51: Remux to pull eMMC lines
+>> 	down when powering off' (was 'omap_hsmmc: RX51: set padconfs to pull
+>> 	down when powering off eMMC')
+>> 	- added patch 'omap_hsmmc: Ensure regulator enable / disable are
+>> 	paired'
+>> 	- fixed mistakes in patch 'omap_hsmmc: Allow for a shared VccQ'
+>>
+> Reviewed the omap_hsmmc changes and did a sanity test on Zoom2.
+> Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> 
+> Regards,
+> Madhu
 
-Yeah, this is the ages old discussion about whether it makes
-sense to test if unsigned is smaller than zero.
+Thanks Madhu.  Tony, are you ok taking these patches into your tree?
 
-a) compiler complain (with extra flags), since it is NOP
-b) from casual reader viewpoint, it is nice annotation
-   (you know the range of the value without needing to
-    check the type)
-c) on the other hand, it may mislead somebody to think that
-   the variable is signed
-d) use of unsigned should always be a design decision, and
-   things get pretty dangerous when there are lot of layers
-   (I think over the years I have at least twice seen a driver
-   that returned on lower levels -ERRNO that got assigned to
-   unsigned at higher levels)
+>> Adrian Hunter (9):
+>>       omap_hsmmc: Move gpio and regulator control from board file
+>>       omap: Rename mmc-twl4030 files to hsmmc
+>>       omap: Rename hsmmc symbols to reflect independence from twl4030
+>>       omap: Reconnect hsmmc context loss count
+>>       omap: RX51: Remux to pull eMMC lines down when powering off
+>>       omap_hsmmc: Allow for power saving without going off
+>>       omap_hsmmc: Fix disable timeouts
+>>       omap_hsmmc: Ensure regulator enable / disable are paired
+>>       omap_hsmmc: Allow for a shared VccQ
+>>
+>> Tony Lindgren (1):
+>>       omap: Add functions for dynamic remuxing of pins
+>>
+>>  arch/arm/configs/rx51_defconfig                |    4 +-
+>>  arch/arm/mach-omap2/Makefile                   |   28 +-
+>>  arch/arm/mach-omap2/board-2430sdp.c            |    6 +-
+>>  arch/arm/mach-omap2/board-3430sdp.c            |    6 +-
+>>  arch/arm/mach-omap2/board-cm-t35.c             |    6 +-
+>>  arch/arm/mach-omap2/board-igep0020.c           |    6 +-
+>>  arch/arm/mach-omap2/board-ldp.c                |    6 +-
+>>  arch/arm/mach-omap2/board-omap3beagle.c        |    6 +-
+>>  arch/arm/mach-omap2/board-omap3evm.c           |    6 +-
+>>  arch/arm/mach-omap2/board-omap3pandora.c       |    6 +-
+>>  arch/arm/mach-omap2/board-omap3touchbook.c     |    6 +-
+>>  arch/arm/mach-omap2/board-overo.c              |    6 +-
+>>  arch/arm/mach-omap2/board-rx51-peripherals.c   |   63 +++-
+>>  arch/arm/mach-omap2/board-zoom-peripherals.c   |    6 +-
+>>  arch/arm/mach-omap2/hsmmc.c                    |  261 ++++++++++++
+>>  arch/arm/mach-omap2/{mmc-twl4030.h => hsmmc.h} |   14 +-
+>>  arch/arm/mach-omap2/mmc-twl4030.c              |  537 -------------------
+>> -----
+>>  arch/arm/mach-omap2/mux.c                      |   22 +-
+>>  arch/arm/mach-omap2/mux.h                      |   24 +
+>>  arch/arm/plat-omap/include/plat/mmc.h          |   35 ++-
+>>  drivers/mmc/host/omap_hsmmc.c                  |  375 ++++++++++++++++-
+>>  21 files changed, 788 insertions(+), 641 deletions(-)
+>>  create mode 100644 arch/arm/mach-omap2/hsmmc.c
+>>  rename arch/arm/mach-omap2/{mmc-twl4030.h => hsmmc.h} (63%)
+>>  delete mode 100644 arch/arm/mach-omap2/mmc-twl4030.c
+>>
+>>
+>>
+>> Regards
+>> Adrian
+> 
+> 
+> 
 
-Summary: Linus likes the check, compiler (and I) don't.
-Choose your side :-)
-
---MiKu
