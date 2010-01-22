@@ -1,101 +1,70 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code
- generic, v2
-Date: Sat, 23 Jan 2010 04:40:20 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703007F2340@dbde02.ent.ti.com>
-References: <20100116013515.10065.30649.stgit@baageli.muru.com>
- <20100116093555.GA13596@n2100.arm.linux.org.uk>
- <20100116191820.GI10318@atomide.com>
- <20100116193313.GA23092@n2100.arm.linux.org.uk>
- <20100116200003.GL10318@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC356087030070F296@dbde02.ent.ti.com>
- <20100122030711.GP23467@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC35608703007F2289@dbde02.ent.ti.com>
- <20100122205511.GB11835@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC35608703007F232B@dbde02.ent.ti.com>
- <20100122211052.GE11835@atomide.com>
+From: "Candelaria Villareal, Jorge" <x0107209@ti.com>
+Subject: [PATCHv2 0/6] McPDM driver patch series
+Date: Fri, 22 Jan 2010 17:14:48 -0600
+Message-ID: <2256F256009DAA4CBE661E9F41EAC84B8C43A8AB@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42599 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755127Ab0AVXKn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jan 2010 18:10:43 -0500
-In-Reply-To: <20100122211052.GE11835@atomide.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony
+McPDM module is the interface between the OMAP and TWL6030 audio codec.
 
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Friday, January 22, 2010 3:11 PM
->To: Pandita, Vikram
->Cc: Russell King - ARM Linux; linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
->Subject: Re: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code generic, v2
->
->* Pandita, Vikram <vikram.pandita@ti.com> [100122 12:56]:
->>
->>
->> >-----Original Message-----
->> >From: Tony Lindgren [mailto:tony@atomide.com]
->> >Sent: Friday, January 22, 2010 2:55 PM
->> >To: Pandita, Vikram
->> >Cc: Russell King - ARM Linux; linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
->> >Subject: Re: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code generic, v2
->> >
->> >* Pandita, Vikram <vikram.pandita@ti.com> [100122 06:46]:
->> >> >
->> >> >OK, I've added that too, but for mach-omap2 only. I've also
->> >> >added an experimental zoom2/3 support.
->> >> >
->> >> >Care to take try it out and see what happens on a zoom?
->> >>
->> >> Test on zoom3 failed with multi-omap branch.
->> >> Debugging the same, should have a zoom correction patch out today.
->> >
->> >Heh OK. I just pushed more updates into the multi-omap branch
->> >if you want to try to boot zoom2/zoom3 using the same .config.
->>
->> Refreshed my tree and I don't see your patches yet.
->
->Takes a few minutes to get mirrored from master.kernel.org..
+The interface supports the following:
+* Up to 5 downlink channels and 3 uplink channels
+* 88.2 and 96 KHz
+* 32 bit sample size
 
-Yes I tried with new branch and zoom2/3 does not work.
-Root cause: 
-There is a very basic issue in low level code.
+Currently, driver is set to support up to 4 downlink channels. If 2
+channels are selected, output will go to the headset, and if 4 channels
+are selected, output will go to the headset and speakers. Functionality
+to select the output at runtime will be added afterwards.
 
-We are allowed to create only one Physical to Virtual mapping using MACHINE_START() phys_io and io_pg_offst of size 0x100000(1MB).
+Command and status mode is not supported in current patches.
 
-Now for zoom2/3 we need to do following:
-MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
--       .phys_io        = 0x48000000,
--       .io_pg_offst    = ((0xfa000000) >> 18) & 0xfffc,
-+       .phys_io        = 0x1000000, /*ZOOM_UART_BASE*/
-+       .io_pg_offst    = ((0xfb000000) >> 18) & 0xfffc, /*ZOOM_UART_VIRT*/
-        .boot_params    = 0x80000100,
-        .map_io         = omap_zoom_map_io,
-        .init_irq       = omap_zoom_init_irq,
+Changes from v1:
+- Device registration now takes place plat-omap/devices.c
+- struct resources is used to store mem and irq resources.
+- DMA allows packet_size to be configured.
+- PACKET is now used as sync_mode for McPDM
 
-This will create mapping:
-0x1000000 <-> 0xfb000000 of 1MB
+--
 
-Now that leaves the phy address 0x4800000 omap register mapping, unmapped.
+Jorge Eduardo Candelaria (4):
+      OMAP4: IRQ: Add McPDM IRQ definition.
+      ARM: OMAP4: Add McPDM base address
+      OMAP4: MCPDM: Register McPDM platform device
+      ASoC: OMAP4: Add support for McPDM
 
-So the code to get scratchpad contents will abort:
-arch/arm/mach-omap2/include/mach/debug-macro.S
-	moveq   \rx, #0x48000000        @ physical base address
-	movne   \rx, #0xfa000000        @ virtual base
-	orr     \rx, \rx, #0x0006a000   @ uart1 on omap2/3/4
+Misael Lopez Cruz (2):
+      ASoC: OMAP: data_type and sync_mode configurable in audio dma
+      ASoC: OMAP4: Add McPDM platform driver
 
-
-This seems to be a basic limitation of low level code and I have not clue how to circumvent this.
-Thoughts?
-
-Regards,
-Vikram 
-
+ arch/arm/plat-omap/devices.c               |   34 ++
+ arch/arm/plat-omap/include/plat/irqs.h     |    1 +
+ arch/arm/plat-omap/include/plat/omap44xx.h |    2 +
+ sound/soc/omap/Kconfig                     |    3 +
+ sound/soc/omap/Makefile                    |    2 +
+ sound/soc/omap/mcpdm.c                     |  524 ++++++++++++++++++++++++++++
+ sound/soc/omap/mcpdm.h                     |  153 ++++++++
+ sound/soc/omap/omap-mcbsp.c                |    2 +
+ sound/soc/omap/omap-mcpdm.c                |  248 +++++++++++++
+ sound/soc/omap/omap-mcpdm.h                |   29 ++
+ sound/soc/omap/omap-pcm.c                  |   15 +-
+ sound/soc/omap/omap-pcm.h                  |    4 +-
+ 12 files changed, 1009 insertions(+), 8 deletions(-)
+ create mode 100644 sound/soc/omap/mcpdm.c
+ create mode 100644 sound/soc/omap/mcpdm.h
+ create mode 100644 sound/soc/omap/omap-mcpdm.c
