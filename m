@@ -1,55 +1,234 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv4 6/8] OMAP3: Clock: Added IDLEST definitions for SGX
-Date: Fri, 22 Jan 2010 19:55:49 +0200
-Message-ID: <1264182951-9205-7-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCHv4 2/8] OMAP: Powerdomains: Add support for INACTIVE state on pwrdm level
+Date: Fri, 22 Jan 2010 19:55:45 +0200
+Message-ID: <1264182951-9205-3-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1264182951-9205-1-git-send-email-tero.kristo@nokia.com>
  <1264182951-9205-2-git-send-email-tero.kristo@nokia.com>
- <1264182951-9205-3-git-send-email-tero.kristo@nokia.com>
- <1264182951-9205-4-git-send-email-tero.kristo@nokia.com>
- <1264182951-9205-5-git-send-email-tero.kristo@nokia.com>
- <1264182951-9205-6-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:59824 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:59822 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755742Ab0AVQFZ (ORCPT
+	with ESMTP id S1755691Ab0AVQFZ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jan 2010 11:05:25 -0500
 Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o0MG5DUk020487
-	for <linux-omap@vger.kernel.org>; Fri, 22 Jan 2010 10:05:24 -0600
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o0MG5DUi020487
+	for <linux-omap@vger.kernel.org>; Fri, 22 Jan 2010 10:05:23 -0600
 Received: from localhost.localdomain (sokoban.nmp.nokia.com [172.22.215.13])
-	by mgw-da01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o0MG51XO002591
-	for <linux-omap@vger.kernel.org>; Fri, 22 Jan 2010 18:05:08 +0200
-In-Reply-To: <1264182951-9205-6-git-send-email-tero.kristo@nokia.com>
+	by mgw-da01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o0MG51XK002591
+	for <linux-omap@vger.kernel.org>; Fri, 22 Jan 2010 18:05:04 +0200
+In-Reply-To: <1264182951-9205-2-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Tero Kristo <tero.kristo@nokia.com>
 
-Added definitions for OMAP3430ES2_ST_SGX_SHIFT and OMAP3430ES2_ST_SGX_MASK
-as these were missing.
+Currently only ON, RET and OFF are supported, and ON is arguably broken as it
+allows the powerdomain to enter INACTIVE state unless idle is prevented.
+Now, pwrdm code prevents idle if ON is selected and hardware supervised
+mode for the underlying clockdomain is enabled, and also adds support for
+INACTIVE. This simplifies the control needed inside sleep code.
+
+This patch also requires caching of next power state inside powerdomain code,
+as INACTIVE is not directly supported by hardware. Next powerstate is thus
+now stored for each powerdomain in next_state.
 
 Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c             |   37 +++++++++++++++++++++----
+ arch/arm/mach-omap2/powerdomains34xx.h        |   18 ++++++------
+ arch/arm/plat-omap/include/plat/powerdomain.h |    5 +++
+ 3 files changed, 45 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index a76e835..d18da47 100644
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -379,6 +379,10 @@
- #define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_SHIFT		1
- #define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_MASK		(1 << 1)
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 26b3f3e..bdfbbea 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -110,8 +110,8 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
+ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ {
  
-+/* CM_IDLEST_SGX */
-+#define OMAP3430ES2_ST_SGX_SHIFT			1
-+#define OMAP3430ES2_ST_SGX_MASK				(1 << 1)
+-	int prev;
+-	int state;
++	u8 prev;
++	u8 state;
+ 
+ 	if (pwrdm == NULL)
+ 		return -EINVAL;
+@@ -218,7 +218,9 @@ int pwrdm_register(struct powerdomain *pwrdm)
+ 
+ 	pr_debug("powerdomain: registered %s\n", pwrdm->name);
+ 	ret = 0;
+-
++	pwrdm->next_state =
++		prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
++			OMAP_POWERSTATE_MASK);
+ pr_unlock:
+ 	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+@@ -699,19 +701,43 @@ int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm)
+  */
+ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ {
++	u8 prg_pwrst;
 +
- /* CM_ICLKEN_SGX */
- #define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_SHIFT		0
- #define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_MASK		(1 << 0)
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
++	if (pwrdm->next_state == pwrst)
++		return 0;
++
+ 	if (!(pwrdm->pwrsts & (1 << pwrst)))
+ 		return -EINVAL;
+ 
+ 	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
+ 		 pwrdm->name, pwrst);
+ 
++	/* INACTIVE is reserved, so we program pwrdm as ON */
++	if (pwrst == PWRDM_POWER_INACTIVE)
++		prg_pwrst = PWRDM_POWER_ON;
++	else
++		prg_pwrst = pwrst;
++
+ 	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
+-			     (pwrst << OMAP_POWERSTATE_SHIFT),
++			     (prg_pwrst << OMAP_POWERSTATE_SHIFT),
+ 			     pwrdm->prcm_offs, PM_PWSTCTRL);
+ 
++	/* If next state is ON, prevent idle */
++	if (pwrst == PWRDM_POWER_ON) {
++		if (omap2_clkdm_get_hwsup(pwrdm->pwrdm_clkdms[0])) {
++			omap2_clkdm_deny_idle(pwrdm->pwrdm_clkdms[0]);
++			pwrdm->hwsup_changed = 1;
++		}
++	} else if (pwrdm->hwsup_changed) {
++		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
++		pwrdm->hwsup_changed = 0;
++	}
++
++	pwrdm->next_state = pwrst;
++
+ 	return 0;
+ }
+ 
+@@ -728,8 +754,7 @@ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
+-	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
+-					OMAP_POWERSTATE_MASK);
++	return pwrdm->next_state;
+ }
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+index 588f7e0..7a7d8d3 100644
+--- a/arch/arm/mach-omap2/powerdomains34xx.h
++++ b/arch/arm/mach-omap2/powerdomains34xx.h
+@@ -165,7 +165,7 @@ static struct powerdomain iva2_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ 	.dep_bit	  = OMAP3430_PM_WKDEP_MPU_EN_IVA2_SHIFT,
+ 	.wkdep_srcs	  = iva2_wkdeps,
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 4,
+ 	.pwrsts_mem_ret	  = {
+@@ -188,7 +188,7 @@ static struct powerdomain mpu_34xx_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ 	.dep_bit	  = OMAP3430_EN_MPU_SHIFT,
+ 	.wkdep_srcs	  = mpu_34xx_wkdeps,
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.flags		  = PWRDM_HAS_MPU_QUIRK,
+ 	.banks		  = 1,
+@@ -207,7 +207,7 @@ static struct powerdomain core_34xx_pre_es3_1_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
+ 					   CHIP_IS_OMAP3430ES2 |
+ 					   CHIP_IS_OMAP3430ES3_0),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
+ 	.banks		  = 2,
+ 	.pwrsts_mem_ret	  = {
+@@ -225,7 +225,7 @@ static struct powerdomain core_34xx_es3_1_pwrdm = {
+ 	.name		  = "core_pwrdm",
+ 	.prcm_offs	  = CORE_MOD,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
+ 	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
+ 	.banks		  = 2,
+@@ -247,7 +247,7 @@ static struct powerdomain dss_pwrdm = {
+ 	.dep_bit	  = OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
+ 	.wkdep_srcs	  = cam_dss_wkdeps,
+ 	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_RET,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	  = {
+@@ -287,7 +287,7 @@ static struct powerdomain cam_pwrdm = {
+ 	.prcm_offs	  = OMAP3430_CAM_MOD,
+ 	.wkdep_srcs	  = cam_dss_wkdeps,
+ 	.sleepdep_srcs	  = cam_gfx_sleepdeps,
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_RET,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	  = {
+@@ -305,7 +305,7 @@ static struct powerdomain per_pwrdm = {
+ 	.dep_bit	  = OMAP3430_EN_PER_SHIFT,
+ 	.wkdep_srcs	  = per_usbhost_wkdeps,
+ 	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	  = {
+@@ -327,7 +327,7 @@ static struct powerdomain neon_pwrdm = {
+ 	.prcm_offs	  = OMAP3430_NEON_MOD,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ 	.wkdep_srcs	  = neon_wkdeps,
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_RET,
+ };
+ 
+@@ -337,7 +337,7 @@ static struct powerdomain usbhost_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+ 	.wkdep_srcs	  = per_usbhost_wkdeps,
+ 	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_RET,
+ 	/*
+ 	 * REVISIT: Enabling usb host save and restore mechanism seems to
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+index 0b96005..17377c3 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -39,6 +39,9 @@
+ 
+ #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
+ 
++#define PWRSTS_OFF_RET_INA_ON	(PWRSTS_OFF_RET_ON | \
++				 (1 << PWRDM_POWER_INACTIVE))
++
+ 
+ /* Powerdomain flags */
+ #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
+@@ -123,6 +126,8 @@ struct powerdomain {
+ 	struct list_head node;
+ 
+ 	int state;
++	int next_state;
++	int hwsup_changed;
+ 	unsigned state_counter[PWRDM_MAX_PWRSTS];
+ 
+ #ifdef CONFIG_PM_DEBUG
 -- 
 1.5.4.3
 
