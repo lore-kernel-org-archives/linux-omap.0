@@ -1,90 +1,40 @@
 From: "Candelaria Villareal, Jorge" <x0107209@ti.com>
-Subject: [PATCHv2 4/6] OMAP4: MCPDM: Register McPDM platform device
-Date: Fri, 22 Jan 2010 17:15:31 -0600
-Message-ID: <2256F256009DAA4CBE661E9F41EAC84B8C43A8B3@dlee01.ent.ti.com>
+Subject: [PATCHv2 3/6] ARM: OMAP4: Add McPDM base address
+Date: Fri, 22 Jan 2010 17:15:21 -0600
+Message-ID: <2256F256009DAA4CBE661E9F41EAC84B8C43A8B2@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43862 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755417Ab0AVXPg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jan 2010 18:15:36 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:39621 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755414Ab0AVXP1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jan 2010 18:15:27 -0500
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-Add platform device for McPDM interface in OMAP4 and register
-its memory and irq resources.
+Define McPDM physical and L3 base address for OMAP4
 
 Signed-off-by: Jorge Eduardo Candelaria <x0107209@ti.com>
 ---
- arch/arm/plat-omap/devices.c |   37 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 37 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/omap44xx.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index 30b5db7..572265c 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -28,6 +28,7 @@
- #include <plat/menelaus.h>
- #include <plat/mcbsp.h>
- #include <plat/dsp_common.h>
-+#include <plat/omap44xx.h>
+diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
+index 8e4c581..4c64f20 100644
+--- a/arch/arm/plat-omap/include/plat/omap44xx.h
++++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+@@ -43,6 +43,8 @@
+ #define OMAP44XX_SCU_BASE		0x48240000
+ #define OMAP44XX_LOCAL_TWD_BASE		0x48240600
+ #define OMAP44XX_WKUPGEN_BASE		0x48281000
++#define OMAP44XX_MCPDM_BASE		0x40132000
++#define OMAP44XX_MCPDM_L3_BASE		0x49032000
  
- #if	defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
+ #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
  
-@@ -192,6 +193,41 @@ void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
- 
- /*-------------------------------------------------------------------------*/
- 
-+#if defined(CONFIG_SND_OMAP_SOC_MCPDM) || \
-+		defined(CONFIG_SND_OMAP_SOC_MCPDM_MODULE)
-+
-+static struct resource mcpdm_resources[] = {
-+	{
-+		.name		= "mcpdm_mem",
-+		.start		= OMAP44XX_MCPDM_BASE,
-+		.end		= OMAP44XX_MCPDM_BASE + SZ_4K,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.name		= "mcpdm_irq",
-+		.start		= INT_44XX_MCPDM_IRQ,
-+		.end		= INT_44XX_MCPDM_IRQ,
-+		.flags		= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device omap_mcpdm_device = {
-+	.name		= "omap-mcpdm",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(mcpdm_resources),
-+	.resource	= mcpdm_resources,
-+};
-+
-+static void omap_init_mcpdm(void)
-+{
-+	(void) platform_device_register(&omap_mcpdm_device);
-+}
-+#else
-+static inline void omap_init_mcpdm(void) {}
-+#endif
-+
-+/*-------------------------------------------------------------------------*/
-+
- #if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
- 	defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
- 
-@@ -385,6 +421,7 @@ static int __init omap_init_devices(void)
- 	omap_init_dsp();
- 	omap_init_kp();
- 	omap_init_rng();
-+	omap_init_mcpdm();
- 	omap_init_uwire();
- 	omap_init_wdt();
- 	return 0;
 -- 
 1.6.0.4
