@@ -1,151 +1,115 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 2/2] DSPBRIDGE: Various compile warning fixes
-Date: Sat, 23 Jan 2010 12:19:46 +0200
-Message-ID: <1264241986-29071-3-git-send-email-felipe.contreras@gmail.com>
-References: <1264241986-29071-1-git-send-email-felipe.contreras@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code
+ generic, v2
+Date: Sat, 23 Jan 2010 09:13:17 -0800
+Message-ID: <20100123171317.GA6836@atomide.com>
+References: <20100116191820.GI10318@atomide.com>
+ <20100116193313.GA23092@n2100.arm.linux.org.uk>
+ <20100116200003.GL10318@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC356087030070F296@dbde02.ent.ti.com>
+ <20100122030711.GP23467@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC35608703007F2289@dbde02.ent.ti.com>
+ <20100122205511.GB11835@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC35608703007F232B@dbde02.ent.ti.com>
+ <20100122211052.GE11835@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC35608703007F2340@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:37353 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754319Ab0AWKUK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jan 2010 05:20:10 -0500
-Received: by bwz27 with SMTP id 27so1661481bwz.21
-        for <linux-omap@vger.kernel.org>; Sat, 23 Jan 2010 02:20:09 -0800 (PST)
-In-Reply-To: <1264241986-29071-1-git-send-email-felipe.contreras@gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53682 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752457Ab0AWRNR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jan 2010 12:13:17 -0500
+Content-Disposition: inline
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703007F2340@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Mika Kukkonen <mika.kukkonen@nokia.com>, Ameya Palande <ameya.palande@nokia.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Mika Kukkonen <mika.kukkonen@nokia.com>
+* Pandita, Vikram <vikram.pandita@ti.com> [100122 15:08]:
+> Tony
+> 
+> >-----Original Message-----
+> >From: Tony Lindgren [mailto:tony@atomide.com]
+> >Sent: Friday, January 22, 2010 3:11 PM
+> >To: Pandita, Vikram
+> >Cc: Russell King - ARM Linux; linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> >Subject: Re: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code generic, v2
+> >
+> >* Pandita, Vikram <vikram.pandita@ti.com> [100122 12:56]:
+> >>
+> >>
+> >> >-----Original Message-----
+> >> >From: Tony Lindgren [mailto:tony@atomide.com]
+> >> >Sent: Friday, January 22, 2010 2:55 PM
+> >> >To: Pandita, Vikram
+> >> >Cc: Russell King - ARM Linux; linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> >> >Subject: Re: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code generic, v2
+> >> >
+> >> >* Pandita, Vikram <vikram.pandita@ti.com> [100122 06:46]:
+> >> >> >
+> >> >> >OK, I've added that too, but for mach-omap2 only. I've also
+> >> >> >added an experimental zoom2/3 support.
+> >> >> >
+> >> >> >Care to take try it out and see what happens on a zoom?
+> >> >>
+> >> >> Test on zoom3 failed with multi-omap branch.
+> >> >> Debugging the same, should have a zoom correction patch out today.
+> >> >
+> >> >Heh OK. I just pushed more updates into the multi-omap branch
+> >> >if you want to try to boot zoom2/zoom3 using the same .config.
+> >>
+> >> Refreshed my tree and I don't see your patches yet.
+> >
+> >Takes a few minutes to get mirrored from master.kernel.org..
+> 
+> Yes I tried with new branch and zoom2/3 does not work.
+> Root cause: 
+> There is a very basic issue in low level code.
+> 
+> We are allowed to create only one Physical to Virtual mapping using MACHINE_START() phys_io and io_pg_offst of size 0x100000(1MB).
+> 
+> Now for zoom2/3 we need to do following:
+> MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
+> -       .phys_io        = 0x48000000,
+> -       .io_pg_offst    = ((0xfa000000) >> 18) & 0xfffc,
+> +       .phys_io        = 0x1000000, /*ZOOM_UART_BASE*/
+> +       .io_pg_offst    = ((0xfb000000) >> 18) & 0xfffc, /*ZOOM_UART_VIRT*/
+>         .boot_params    = 0x80000100,
+>         .map_io         = omap_zoom_map_io,
+>         .init_irq       = omap_zoom_init_irq,
+> 
+> This will create mapping:
+> 0x1000000 <-> 0xfb000000 of 1MB
+> 
+> Now that leaves the phy address 0x4800000 omap register mapping, unmapped.
 
-This patch contains indentation fixes and cleans up various warnings
-uncovered with extra warning flags:
-  - empty if() bodies
-  - incorrect use of unsigned variables
-  - bad comparison of pointer value
-  - pointless check of unsigned value being smaller than zero
-  - keyword 'extern' has to be first one in variable declaration
+Right, we really need 0x48000000 mapped :)
+ 
+> So the code to get scratchpad contents will abort:
+> arch/arm/mach-omap2/include/mach/debug-macro.S
+> 	moveq   \rx, #0x48000000        @ physical base address
+> 	movne   \rx, #0xfa000000        @ virtual base
+> 	orr     \rx, \rx, #0x0006a000   @ uart1 on omap2/3/4
+> 
+> 
+> This seems to be a basic limitation of low level code and I have not clue how to circumvent this.
+> Thoughts?
 
-Signed-off-by: Mika Kukkonen <mika.kukkonen@nokia.com>
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- arch/arm/plat-omap/include/dspbridge/dbc.h |    6 +++---
- arch/arm/plat-omap/include/dspbridge/dbg.h |    4 ++--
- arch/arm/plat-omap/include/dspbridge/gt.h  |   16 +++++++++-------
- arch/arm/plat-omap/include/dspbridge/mem.h |    2 +-
- drivers/dsp/bridge/wmd/io_sm.c             |    5 ++---
- drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
- 6 files changed, 18 insertions(+), 17 deletions(-)
+Please take a look at arch/arm/kernel/head.S where you can add
+the extra mapping early on.
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
-index ac5d178..1b3ac44 100644
---- a/arch/arm/plat-omap/include/dspbridge/dbc.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbc.h
-@@ -43,9 +43,9 @@
- 
- #else
- 
--#define DBC_Assert(exp)
--#define DBC_Require(exp)
--#define DBC_Ensure(exp)
-+#define DBC_Assert(exp) {}
-+#define DBC_Require(exp) {}
-+#define DBC_Ensure(exp) {}
- 
- #endif				/* DEBUG */
- 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbg.h b/arch/arm/plat-omap/include/dspbridge/dbg.h
-index 2f61dab..4d01eca 100644
---- a/arch/arm/plat-omap/include/dspbridge/dbg.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbg.h
-@@ -80,9 +80,9 @@
- 	extern DSP_STATUS DBG_Trace(IN u8 bLevel, IN char *pstrFormat, ...);
- #else
- 
--#define DBG_Exit(void)
-+#define DBG_Exit(void) do {} while (0)
- #define DBG_Init(void) true
--#define DBG_Trace(bLevel, pstrFormat, args...)
-+#define DBG_Trace(bLevel, pstrFormat, args...) do {} while (0)
- 
- #endif	/* (CONFIG_BRIDGE_DEBUG || DDSP_DEBUG_PRODUCT) && GT_TRACE */
- 
-diff --git a/arch/arm/plat-omap/include/dspbridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
-index 6082d15..9097910 100644
---- a/arch/arm/plat-omap/include/dspbridge/gt.h
-+++ b/arch/arm/plat-omap/include/dspbridge/gt.h
-@@ -252,13 +252,15 @@ extern struct GT_Config _GT_params;
- 
- #define GT_query(mask, class)     false
- 
--#define GT_0trace(mask, class, format)
--#define GT_1trace(mask, class, format, arg1)
--#define GT_2trace(mask, class, format, arg1, arg2)
--#define GT_3trace(mask, class, format, arg1, arg2, arg3)
--#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4)
--#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5)
--#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6)
-+#define GT_0trace(mask, class, format) do {} while (0)
-+#define GT_1trace(mask, class, format, arg1) do {} while (0)
-+#define GT_2trace(mask, class, format, arg1, arg2) do {} while (0)
-+#define GT_3trace(mask, class, format, arg1, arg2, arg3) do {} while (0)
-+#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4) do {} while (0)
-+#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5) \
-+	do {} while (0)
-+#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6) \
-+	do {} while (0)
- 
- #else				/* GT_TRACE == 1 */
- 
-diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
-index 03b419a..353ffb0 100644
---- a/arch/arm/plat-omap/include/dspbridge/mem.h
-+++ b/arch/arm/plat-omap/include/dspbridge/mem.h
-@@ -286,7 +286,7 @@
-  *  Ensures:
-  *      - pBaseAddr no longer points to a valid linear address.
-  */
--#define MEM_UnmapLinearAddress(pBaseAddr)
-+#define MEM_UnmapLinearAddress(pBaseAddr) {}
- 
- /*
-  *  ======== MEM_ExtPhysPoolInit ========
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index e35ce57..587dc6c 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -221,8 +221,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		bridge_workqueue = create_workqueue("bridge_work-queue");
- 
- 	if (bridge_workqueue <= 0)
--		DBG_Trace(DBG_LEVEL1, "Workque Create failed 0x%d \n",
--						bridge_workqueue);
-+		DBG_Trace(DBG_LEVEL1, "Workqueue creation failed!\n");
- 
- 	/* Allocate IO manager object */
- 	MEM_AllocObject(pIOMgr, struct IO_MGR, IO_MGRSIGNATURE);
-@@ -1210,7 +1209,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 			    pChnlMgr->uWordSize;
- 	chnlId = IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputId);
- 	dwArg = IO_GetLong(pIOMgr->hWmdContext, struct SHM, sm, arg);
--	if (!(chnlId >= 0) || !(chnlId < CHNL_MAXCHANNELS)) {
-+	if (chnlId >= CHNL_MAXCHANNELS) {
- 		/* Shouldn't be here: would indicate corrupted SHM. */
- 		DBC_Assert(chnlId);
- 		goto func_end;
-diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index 6166d97..2c3a2cd 100644
---- a/drivers/dsp/bridge/wmd/ue_deh.c
-+++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -189,7 +189,7 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
- 	DSP_STATUS status = DSP_SOK;
- 	u32 memPhysical = 0;
- 	u32 HW_MMU_MAX_TLB_COUNT = 31;
--	u32 extern faultAddr;
-+	extern u32 faultAddr;
- 	struct CFG_HOSTRES resources;
- 	HW_STATUS hwStatus;
- 
--- 
-1.6.6.1
+Hmm, I wonder if we cand nowadays do the extra mapping for zoom
+external uart in arch/arm/kernel/early_printk.c?
 
+Are you getting anything out of the zoom uart before MMU is
+enabled?
+
+To test this you can temporarily break your kernel by commenting
+out the start_kernel line in head-common.S. Then the code falls
+through to __error_p and prints out a processor error..
+
+Regards,
+
+Tony
