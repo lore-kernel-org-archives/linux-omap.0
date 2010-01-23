@@ -1,30 +1,36 @@
-From: huronbaptist@xcelco.on.ca
-Subject: =?iso-8859-1?b?ozg5MSw5MzQuMDA=?= GBP
-Date: Fri, 22 Jan 2010 23:16:38 -0500
-Message-ID: <1264220198.4b5a782674d28@webmail.xcelco.on.ca>
-Reply-To: derek_max@9.cn
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH 0/2] DSPBRIDGE: trivial cleanup for enums
+Date: Fri, 22 Jan 2010 22:44:28 -0600
+Message-ID: <1264221870-11178-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtpout.eastlink.ca ([24.222.0.30]:54602 "EHLO
-	mta04.eastlink.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752069Ab0AWEQs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jan 2010 23:16:48 -0500
-Received: from ip04.eastlink.ca ([unknown] [24.222.39.52])
- by mta04.eastlink.ca (Sun Java(tm) System Messaging Server 7.3-11.01 64bit
- (built Sep  1 2009)) with ESMTP id <0KWO000TFMJYL7L0@mta04.eastlink.ca> for
- linux-omap@vger.kernel.org; Sat, 23 Jan 2010 00:16:46 -0400 (AST)
+Received: from bear.ext.ti.com ([192.94.94.41]:50561 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753624Ab0AWEeH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jan 2010 23:34:07 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-You have =A3891,934.00 GBP.Confirm this receipt
-byreplying the due process unit officer:Fill
-thedetails:FullName,Address,Tel,Occupation,etc,Replyto:(derek_max@9.cn)=
-for
-claims immediately.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Remove unused enums and replace unrelated enum constants with
+defines.
+
+Shivananda Hebbar (2):
+  DSPBRIDGE: Remove un-used enums
+  DSPBRIDGE: Remove enum definitions and replace with macros
+
+ arch/arm/plat-omap/include/dspbridge/_chnl_sm.h |   11 +++++------
+ arch/arm/plat-omap/include/dspbridge/cmm.h      |    2 +-
+ arch/arm/plat-omap/include/dspbridge/cmmdefs.h  |   18 ++----------------
+ arch/arm/plat-omap/include/dspbridge/dbdefs.h   |   10 +++-------
+ arch/arm/plat-omap/include/dspbridge/io_sm.h    |    5 ++---
+ drivers/dsp/bridge/hw/IPIAccInt.h               |   15 ---------------
+ drivers/dsp/bridge/hw/hw_defs.h                 |    8 +++-----
+ drivers/dsp/bridge/hw/hw_mmu.c                  |    3 +--
+ drivers/dsp/bridge/hw/hw_mmu.h                  |    3 +--
+ drivers/dsp/bridge/hw/hw_prcm.c                 |    6 ++----
+ drivers/dsp/bridge/pmgr/cmm.c                   |    5 ++---
+ drivers/dsp/bridge/wmd/_tiomap.h                |   23 ++---------------------
+ drivers/dsp/bridge/wmd/io_sm.c                  |    3 +--
+ 13 files changed, 25 insertions(+), 87 deletions(-)
+
