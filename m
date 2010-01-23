@@ -1,44 +1,38 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: Omapfb issue
-Date: Sat, 23 Jan 2010 11:03:32 +0200
-Message-ID: <94a0d4531001230103s37d2a92co9171b13fa0d72147@mail.gmail.com>
-References: <0AAE131817A2E34DA8AD5EB0BADB2AD74ACD39D14D@kor-exch2k7.phoenix.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 0/2] dspbridge: maemo lingering patches
+Date: Sat, 23 Jan 2010 12:19:44 +0200
+Message-ID: <1264241986-29071-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f186.google.com ([209.85.223.186]:36061 "EHLO
-	mail-iw0-f186.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750770Ab0AWJDf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jan 2010 04:03:35 -0500
-Received: by iwn16 with SMTP id 16so808089iwn.33
-        for <linux-omap@vger.kernel.org>; Sat, 23 Jan 2010 01:03:34 -0800 (PST)
-In-Reply-To: <0AAE131817A2E34DA8AD5EB0BADB2AD74ACD39D14D@kor-exch2k7.phoenix.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:64164 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742Ab0AWKT7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jan 2010 05:19:59 -0500
+Received: by bwz27 with SMTP id 27so1661440bwz.21
+        for <linux-omap@vger.kernel.org>; Sat, 23 Jan 2010 02:19:57 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Karthick Tharakraj <Karthick_Tharakraj@phoenix.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Thu, Jan 21, 2010 at 4:26 AM, Karthick Tharakraj
-<Karthick_Tharakraj@phoenix.com> wrote:
->
-> Hello everyone,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 We are facing=
- an issue with Framebuffer (omapfb) driver while starting Xorg.
->
-> Currently we are using Devkit8000 and trying to boot Linux with our i=
-nhouse rootfs. =C2=A0While booting the X throws an error saying:
->
-> (EE) omapfb(0): FBIOBLANK: Invalid argument
+Hi,
 
-Maybe it's related to this change?
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-commit;h=3Dc958557eb6e5f0fa15aeda3b6f952051b4179394
+These are some patches that were lingering in the maemo branch since a long
+time ago.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jouni Hogander (1):
+  DSPBRIDGE: Use enable_off_mode variable instead of
+    dsp_test_sleepstate
+
+Mika Kukkonen (1):
+  DSPBRIDGE: Various compile warning fixes
+
+ arch/arm/plat-omap/include/dspbridge/dbc.h |    6 +++---
+ arch/arm/plat-omap/include/dspbridge/dbg.h |    4 ++--
+ arch/arm/plat-omap/include/dspbridge/gt.h  |   16 +++++++++-------
+ arch/arm/plat-omap/include/dspbridge/mem.h |    2 +-
+ drivers/dsp/bridge/rmgr/drv_interface.c    |    5 -----
+ drivers/dsp/bridge/wmd/io_sm.c             |    5 ++---
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c    |    9 ++++-----
+ drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
+ 8 files changed, 22 insertions(+), 27 deletions(-)
+
