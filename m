@@ -1,147 +1,82 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 8/8] OMAP3 PM: Support to enable disable OSWR feature
- from pm debug fs
-Date: Sun, 24 Jan 2010 09:42:08 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F128A@dbde02.ent.ti.com>
-References: <1264001442-20078-1-git-send-email-thara@ti.com>
-	<1264001442-20078-2-git-send-email-thara@ti.com>
-	<1264001442-20078-3-git-send-email-thara@ti.com>
-	<1264001442-20078-4-git-send-email-thara@ti.com>
-	<1264001442-20078-5-git-send-email-thara@ti.com>
-	<1264001442-20078-6-git-send-email-thara@ti.com>
-	<1264001442-20078-7-git-send-email-thara@ti.com>
-	<1264001442-20078-8-git-send-email-thara@ti.com>
-	<1264001442-20078-9-git-send-email-thara@ti.com>
- <87y6jpy7ms.fsf@deeprootsystems.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: How to put TWL/TPS into sleep?
+Date: Sun, 24 Jan 2010 08:47:36 +0200
+Message-ID: <4B5BED08.6070203@compulab.co.il>
+References: <4B583E62.80603@compulab.co.il> <032901ca9aab$0e9ac6b0$LocalHost@wipultra1385>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47503 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752195Ab0AXEMU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jan 2010 23:12:20 -0500
-In-Reply-To: <87y6jpy7ms.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from compulab.co.il ([67.18.134.219]:49050 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751977Ab0AXGsJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 24 Jan 2010 01:48:09 -0500
+In-Reply-To: <032901ca9aab$0e9ac6b0$LocalHost@wipultra1385>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Lesly AM <x0080970@ti.com>
+Cc: linux-omap@vger.kernel.org
+
+Lesly AM wrote:
+> Hi Mike,
+> 
+> ----- Original Message ----- From: "Mike Rapoport" <mike@compulab.co.il>
+> To: <linux-omap@vger.kernel.org>
+> Sent: Thursday, January 21, 2010 5:15 PM
+> Subject: How to put TWL/TPS into sleep?
+> 
+> 
+>> Hi all,
+>> I'm trying to achieve maximal power savings on omap3 based system with
+>> TPS65930 PMIC using twl4030_script and twl4030_resconfig. I've tried
+>> different resource mappings and different command sequences in the
+>> sleep/wakeup scripts by to no avail. Moreover, with some resource
+>> definitions and sleep/wakeup scripts the system behaves in a weird ways,
+>> e.g. does not properly respond to hard resets.
+>> Most probably my resource remapping and command sequences are wrong and
+>> this is the reason for system misbehavior.
+>>
+>> However, several things are completely unclear to me:
+>> * Does TPS/TWL have defaults for sleep-on and sleep-off transitions?
+> 
+> AFIK TPS659x & TWL4030 is same chip, may have some Si version(ES 1.x)
+> difference.
+> So the power seqeunce used on TWL4030, should work on TPS659x  also.
+> 
+>> * What would happen if nSLEEP1 would go low/high and there is no
+>> sleep/wakeup sequence programmed?
+> By default reset value for the resgister pointing to [sleep/wakeup/wrst]
+> seq is 0x3F, which is the exit addr for seq.
+> So the TRITON resources will not have any change.
+> 
+>> * If I have a sleep sequence that disables some power resources, what
+>> would be the state of the other resources?
+> If you are using singular messages in the seq, you can address each
+> resource by specifying the Resource_id.
+> But if you are using broadcast messages, the resources which will
+> respond depends on the Resource_group, TYPE & TYPE2 values.
+> 
+>>
+>> I've read the TPS TRM several times to now and I still got now clue
+>> about what's going on there :(
+> You can verify wether your clk/volt setup_time holds good.
 
 
-
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Saturday, January 23, 2010 6:12 AM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org
->>Subject: Re: [PATCH 8/8] OMAP3 PM: Support to enable disable OSWR feature from pm debug fs
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>> This patch adds enable_oswr flag in pm debug fs to enable
->>> disable OSWR feature.
->>> To enable this feature:
->>> 	echo 1 > <path>/debug/pm_debug/enable_oswr
->>> To disable this feature
->>> 	echo 0 > <path>/debug/pm_debug/enable_oswr
->>>
->>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>
->>I don't like this approach since it leads to incorrect CPUidle statistics.
->>
->>Sanjeev has proposed a different approach[1] (which I still need to
->>review/merge) which just invalidates particular CPUidle states and
->>then lets the CPUidle enter hook only pick a valid state.
->>
->>This then will work for the enable_off_mode support and the enable_oswr support
->>as well as anything else we can dream up down the road.
-
-Hi Kevin,
-
-Yes I agree with you.. I did not implement this for OSWR as I did not see it in you pm branch. I thought let the first set of patches for OSWR be merged in and then when we change enable_off_mode we can change enable_oswr also. Is there an issue with this?
-
-Regards
-Thara 
+Thanks a lot. This is really helpful :)
 
 >>
->>Kevin
 >>
->>[1] http://marc.info/?l=linux-omap&m=125908504530674&w=2
+>> -- 
+>> Sincerely yours,
+>> Mike.
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>
->>> ---
->>>  arch/arm/mach-omap2/cpuidle34xx.c |    9 +++++++++
->>>  arch/arm/mach-omap2/pm-debug.c    |    2 ++
->>>  arch/arm/mach-omap2/pm.h          |    1 +
->>>  arch/arm/mach-omap2/pm34xx.c      |    1 +
->>>  4 files changed, 13 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
->>> index 419f683..91ef0df 100644
->>> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->>> @@ -155,11 +155,20 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
->>>  	 * bits in case the powerdomain enters retention
->>>  	 */
->>>  	if (mpu_state <= PWRDM_POWER_RET) {
->>> +		if (!enable_oswr) {
->>> +			mpu_logicl1_ret_state = PWRDM_POWER_RET;
->>> +			mpu_l2cache_ret_state = PWRDM_POWER_RET;
->>> +		}
->>>  		pwrdm_set_logic_retst(mpu_pd, mpu_logicl1_ret_state);
->>>  		pwrdm_set_mem_retst(mpu_pd, 0, mpu_l2cache_ret_state);
->>>  	}
->>>
->>>  	if (core_state <= PWRDM_POWER_RET) {
->>> +		if (!enable_oswr) {
->>> +			core_logic_state = PWRDM_POWER_RET;
->>> +			core_mem1_ret_state = PWRDM_POWER_RET;
->>> +			core_mem2_ret_state = PWRDM_POWER_RET;
->>> +		}
->>>  		pwrdm_set_logic_retst(core_pd, core_logic_state);
->>>  		pwrdm_set_mem_retst(core_pd, 0, core_mem1_ret_state);
->>>  		pwrdm_set_mem_retst(core_pd, 1, core_mem2_ret_state);
->>> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
->>> index 035cfa7..cdb081b 100644
->>> --- a/arch/arm/mach-omap2/pm-debug.c
->>> +++ b/arch/arm/mach-omap2/pm-debug.c
->>> @@ -601,6 +601,8 @@ static int __init pm_dbg_init(void)
->>>  				   &enable_off_mode, &pm_dbg_option_fops);
->>>  	(void) debugfs_create_file("sleep_while_idle", S_IRUGO | S_IWUGO, d,
->>>  				   &sleep_while_idle, &pm_dbg_option_fops);
->>> +	(void) debugfs_create_file("enable_oswr", S_IRUGO | S_IWUGO, d,
->>> +				   &enable_oswr, &pm_dbg_option_fops);
->>>  	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUGO, d,
->>>  				   &wakeup_timer_seconds, &pm_dbg_option_fops);
->>>
->>> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
->>> index 75aa685..03c49a8 100644
->>> --- a/arch/arm/mach-omap2/pm.h
->>> +++ b/arch/arm/mach-omap2/pm.h
->>> @@ -15,6 +15,7 @@
->>>
->>>  extern u32 enable_off_mode;
->>>  extern u32 sleep_while_idle;
->>> +extern u32 enable_oswr;
->>>  extern u32 voltage_off_while_idle;
->>>
->>>  extern void *omap3_secure_ram_storage;
->>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->>> index bfdcac2..53c08a5 100644
->>> --- a/arch/arm/mach-omap2/pm34xx.c
->>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>> @@ -73,6 +73,7 @@ static inline bool is_suspending(void)
->>>
->>>  u32 enable_off_mode;
->>>  u32 sleep_while_idle;
->>> +u32 enable_oswr;
->>>  u32 wakeup_timer_seconds;
->>>  u32 voltage_off_while_idle;
->>>
->>> --
->>> 1.5.6.3
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+-- 
+Sincerely yours,
+Mike.
