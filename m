@@ -1,279 +1,70 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv2 1/1] omap3: cpuidle: Update statistics for correct state
-Date: Mon, 25 Jan 2010 11:54:51 -0800
-Message-ID: <87my02559w.fsf@deeprootsystems.com>
-References: <1259085039-13305-1-git-send-email-premi@ti.com>
+Subject: Re: [PATCH 8/8] OMAP3 PM: Support to enable disable OSWR feature from pm debug fs
+Date: Mon, 25 Jan 2010 11:55:59 -0800
+Message-ID: <87hbqa5580.fsf@deeprootsystems.com>
+References: <1264001442-20078-1-git-send-email-thara@ti.com>
+	<1264001442-20078-2-git-send-email-thara@ti.com>
+	<1264001442-20078-3-git-send-email-thara@ti.com>
+	<1264001442-20078-4-git-send-email-thara@ti.com>
+	<1264001442-20078-5-git-send-email-thara@ti.com>
+	<1264001442-20078-6-git-send-email-thara@ti.com>
+	<1264001442-20078-7-git-send-email-thara@ti.com>
+	<1264001442-20078-8-git-send-email-thara@ti.com>
+	<1264001442-20078-9-git-send-email-thara@ti.com>
+	<87y6jpy7ms.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB031E3F128A@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f173.google.com ([209.85.223.173]:57389 "EHLO
+Received: from mail-iw0-f173.google.com ([209.85.223.173]:41722 "EHLO
 	mail-iw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751611Ab0AYTy6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jan 2010 14:54:58 -0500
-Received: by iwn3 with SMTP id 3so1219726iwn.19
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jan 2010 11:54:54 -0800 (PST)
-In-Reply-To: <1259085039-13305-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Tue\, 24 Nov 2009 23\:20\:39 +0530")
+	with ESMTP id S1752346Ab0AYT4I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jan 2010 14:56:08 -0500
+Received: by iwn3 with SMTP id 3so1221005iwn.19
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jan 2010 11:56:07 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F128A@dbde02.ent.ti.com> (Thara Gopinath's message of "Sun\, 24 Jan 2010 09\:42\:08 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Sanjeev Premi <premi@ti.com> writes:
+"Gopinath, Thara" <thara@ti.com> writes:
 
-> When 'enable_off_mode' is 0, the target power state for MPU
-> and CORE was locally changed to PWRDM_POWER_RET but, the
-> statistics are updated for idle state originally selected
-> by the governor.
+>>>-----Original Message-----
+>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>Sent: Saturday, January 23, 2010 6:12 AM
+>>>To: Gopinath, Thara
+>>>Cc: linux-omap@vger.kernel.org
+>>>Subject: Re: [PATCH 8/8] OMAP3 PM: Support to enable disable OSWR feature from pm debug fs
+>>>
+>>>Thara Gopinath <thara@ti.com> writes:
+>>>
+>>>> This patch adds enable_oswr flag in pm debug fs to enable
+>>>> disable OSWR feature.
+>>>> To enable this feature:
+>>>> 	echo 1 > <path>/debug/pm_debug/enable_oswr
+>>>> To disable this feature
+>>>> 	echo 0 > <path>/debug/pm_debug/enable_oswr
+>>>>
+>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>>
+>>>I don't like this approach since it leads to incorrect CPUidle statistics.
+>>>
+>>>Sanjeev has proposed a different approach[1] (which I still need to
+>>>review/merge) which just invalidates particular CPUidle states and
+>>>then lets the CPUidle enter hook only pick a valid state.
+>>>
+>>>This then will work for the enable_off_mode support and the enable_oswr support
+>>>as well as anything else we can dream up down the road.
 >
-> This patch 'invalidates' the idle states that lead either of
-> MPU or Core to PWRDM_POWER_OFF state when 'enable_off_mode'
-> is '0'. The states are valid once 'enable_off_mode' is set
-> to '1'.
+> Hi Kevin,
 >
-> Added function next_valid_state() to check if current state
-> is valid; else get the next valid state. It is called from
-> omap3_enter_idle_bm().
->
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> Yes I agree with you.. I did not implement this for OSWR as I did
+> not see it in you pm branch. I thought let the first set of patches
+> for OSWR be merged in and then when we change enable_off_mode we can
+> change enable_oswr also. Is there an issue with this?
 
-Hi Sanjeev,
-
-I quite like this approach, but have a few minor comments.  First,
-please fix the checkpatch errors and warnings, as well as a few minor
-things below...
-
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |   98 ++++++++++++++++++++++++++++++++++---
->  arch/arm/mach-omap2/pm.h          |    1 +
->  arch/arm/mach-omap2/pm34xx.c      |    4 ++
->  3 files changed, 95 insertions(+), 8 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index fdfa1d5..308865c 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -45,6 +45,8 @@
->  #define OMAP3_STATE_C6 5 /* C6 - MPU OFF + Core RET */
->  #define OMAP3_STATE_C7 6 /* C7 - MPU OFF + Core OFF */
->  
-> +#define OMAP3_STATE_MAX OMAP3_STATE_C7
-> +
->  struct omap3_processor_cx {
->  	u8 valid;
->  	u8 type;
-> @@ -128,13 +130,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
->  	local_irq_disable();
->  	local_fiq_disable();
->  
-> -	if (!enable_off_mode) {
-> -		if (mpu_state < PWRDM_POWER_RET)
-> -			mpu_state = PWRDM_POWER_RET;
-> -		if (core_state < PWRDM_POWER_RET)
-> -			core_state = PWRDM_POWER_RET;
-> -	}
-> -
->  	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
->  	pwrdm_set_next_pwrst(core_pd, core_state);
->  
-> @@ -164,6 +159,65 @@ return_sleep_time:
->  	return (u32)timespec_to_ns(&ts_idle)/1000;
->  }
->  
-> +
-> +/* next_valid_state - Find next valid c-state
-> + * @dev: cpuidle device
-> + * @state: Currently selected c-state
-> + *
-> + * If the current state is valid, it is returned back to the caller.
-> + * Else, this function searches for a lower c-state which is still
-> + * valid (as defined in omap3_power_states[]).
-> + */
-
-Please fix kerneldoc style.   Opening comment should be '/**'
-
-> +static struct cpuidle_state* next_valid_state(struct cpuidle_device *dev,
-> +						struct cpuidle_state *curr)
-> +{
-> +	struct cpuidle_state *next = NULL;
-> +	struct omap3_processor_cx *cx;
-> +
-> +	cx = (struct omap3_processor_cx *)cpuidle_get_statedata(curr);
-> +
-> +	/* Check if current state is valid */
-> +	if (cx->valid) {
-> +		next = curr;
-
-could just return curr here
-
-> +	}
-> +	else {
-> +		u8 idx = OMAP3_STATE_MAX;
-> +
-> +		/* Reach the current state starting at highest C-state */
-> +		for (; idx >= OMAP3_STATE_C1; idx--) {
-> +			if (&dev->states[idx] == curr) {
-> +				next = &dev->states[idx];
-> +				break;
-> +			}
-> +		}
-> +
-> +		/*
-> +		 * Should never hit this condition.
-> +		 */
-> +		BUG_ON(next == NULL);
-
-This shouldn't trigger a panic.  Please fail more cleanly using WARN_ON()
-
-> +		/* Drop to next valid state.
-> +		 * Start search from the next (lower) state.
-> +		 */
-
-fix multiline comment.  Should start with '/*' on its own line.
-(c.f. Documentation/CodingStyle, search for 'multi-line')
-
-> +		idx--;
-> +		for (; idx >= OMAP3_STATE_C1; idx--) {
-> +			if (((struct omap3_processor_cx *)
-> +				cpuidle_get_statedata(
-> +					&dev->states[idx]))->valid) {
-> +				next = &dev->states[idx];
-> +				break;
-> +			}
-> +		}
-
-Due to line-wrapping etc., this has readabiliyt problems.  Consider this
-instead:
-
-		for (; idx >= OMAP3_STATE_C1; idx--) {
-			struct omap3_processor_cx *cx;
-
-			cx = cpuidle_get_statedata(&dev->states[idx]);
-			if (cx->valid) {
-				next = &dev->states[idx];
-				break;
-			}
-		}
-
-> +		/*
-> +		 * C1 and C2 are always valid.
-> +		 * So, no need to check for 'next==NULL' outside this loop.
-> +		 */
-> +	}
-> +
-> +	return next;
-> +}
-> +
-> +
->  /**
->   * omap3_enter_idle_bm - Checks for any bus activity
->   * @dev: cpuidle device
-> @@ -176,7 +230,7 @@ return_sleep_time:
->  static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  			       struct cpuidle_state *state)
->  {
-> -	struct cpuidle_state *new_state = state;
-> +	struct cpuidle_state *new_state= next_valid_state(dev, state);
-                                       ^
-
-missing space
-
->  
->  	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
->  		BUG_ON(!dev->safe_state);
-> @@ -207,6 +261,32 @@ void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
->  	return;
->  }
->  
-> +/**
-> + * omap3_cpuidle_update_states - Update the cpuidle states.
-> + *
-> + * Currently, this function toggles the validity of idle states based upon
-> + * the flag 'enable_off_mode'. When the flag is set all states are valid.
-> + * Else, states leading to OFF state set to be invalid.
-> + */
-> +void omap3_cpuidle_update_states(void)
-> +{
-> +	int i;
-> +
-> +	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
-> +		if (enable_off_mode) {
-> +			omap3_power_states[i].valid = 1;
-> +		}
-> +		else {
-> +			if ((omap3_power_states[i].mpu_state
-> +					== PWRDM_POWER_OFF)
-> +				|| (omap3_power_states[i].core_state
-> +					== PWRDM_POWER_OFF))
-> +			omap3_power_states[i].valid = 0;
-> +		}
-> +	}
-> +}
-
-more readability problems due to wrapping.  consider:
-
-void omap3_cpuidle_update_states(void)
-{
-	int i;
-
-	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
-		struct omap3_processor_cx *cx = &omap3_power_states[i]
-
-		if (enable_off_mode)
-			cx->valid = 1;
-		else
-			if ((cx->mpu_state == PWRDM_POWER_OFF) ||
-			    (cx->core_state == PWRDM_POWER_OFF))
-				cx->valid = 0;
-	}
-}
+I would rather merge Sanjeev's patch first.  I just reviewed it and
+asked him for a few minor fixes and then I'd like to merge it.
 
 Kevin
-
-
-> +
->  /* omap3_init_power_states - Initialises the OMAP3 specific C states.
->   *
->   * Below is the desciption of each C state.
-> @@ -365,6 +445,8 @@ int __init omap3_idle_init(void)
->  		return -EINVAL;
->  	dev->state_count = count;
->  
-> +	omap3_cpuidle_update_states();
-> +
->  	if (cpuidle_register_device(dev)) {
->  		printk(KERN_ERR "%s: CPUidle register device failed\n",
->  		       __func__);
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index b9421e8..9351490 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -51,6 +51,7 @@ struct cpuidle_params {
->  extern void omap3_pm_init_vc(struct prm_setup_vc *setup_vc);
->  #ifdef CONFIG_CPU_IDLE
->  extern void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params);
-> +extern void omap3_cpuidle_update_states(void);
->  #else
->  static inline void omap3_pm_init_cpuidle(
->  			struct cpuidle_params *cpuidle_board_params)
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 90c4949..d9f0626 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -981,6 +981,10 @@ void omap3_pm_off_mode_enable(int enable)
->  	else
->  		state = PWRDM_POWER_RET;
->  
-> +#ifdef CONFIG_CPU_IDLE
-> +	omap3_cpuidle_update_states();
-> +#endif
-> +
->  #ifdef CONFIG_OMAP_PM_SRF
->  	resource_lock_opp(VDD1_OPP);
->  	resource_lock_opp(VDD2_OPP);
-> -- 
-> 1.6.2.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
