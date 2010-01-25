@@ -1,424 +1,443 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH V3] OMAP3: hwmod: support to specify the offset position of various SYSCONFIG register bits.
-Date: Sun, 24 Jan 2010 19:19:10 +0530
-Message-ID: <1264340951-3461-1-git-send-email-thara@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57614 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751863Ab0AXNtU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 24 Jan 2010 08:49:20 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: "Patra, Nilkesh" <nilkesh.patra-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 1/7] usb: musb: Add context save and restore support
+Date: Mon, 25 Jan 2010 12:48:38 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E22167F0@dbde02.ent.ti.com>
+References: <1264080838-9452-2-git-send-email-felipe.balbi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1264080838-9452-2-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thara Gopinath <thara@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-In OMAP3 Some modules like Smartreflex do not have the regular sysconfig
-register.Instead clockactivity bits are part of another register at a
-different bit position than the usual bit positions 8 and 9.
+Felipe,
+	
+> -----Original Message-----
+> From: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-usb-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Felipe Balbi
+> Sent: Thursday, January 21, 2010 7:04 PM
+> To: Greg KH
+> Cc: Linux USB Mailing List; Linux OMAP Mailing List; Gupta, Ajay Kumar;
+> Gadiyar, Anand; Felipe Balbi
+> Subject: [PATCH 1/7] usb: musb: Add context save and restore support
+> 
+> From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> 
+> Adding support for MUSB register save and restore during system
+> suspend and resume.
+> 
+> Changes:
+>         - Added musb_save/restore_context() functions
+>         - Added platform specific musb_platform_save/restore_context()
+>           to handle platform specific jobs.
+>         - Maintaining BlackFin compatibility by adding read/write
+>           functions for registers which are not available in BlackFin
+> 
+> Tested system suspend and resume on OMAP3EVM board.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_core.c |  146
+> ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/usb/musb/musb_core.h |   39 +++++++++++
+>  drivers/usb/musb/musb_regs.h |   90 ++++++++++++++++++++++++++
+>  drivers/usb/musb/omap2430.c  |   16 +++++
+>  4 files changed, 291 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 074d380..2c53da7 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -2167,6 +2167,148 @@ static int __exit musb_remove(struct
+> platform_device *pdev)
+> 
+>  #ifdef	CONFIG_PM
+> 
+> +static struct musb_context_registers musb_context;
+> +
+> +void musb_save_context(struct musb *musb)
+> +{
+> +	int i;
+> +	void __iomem *musb_base = musb->mregs;
+> +
+> +	if (is_host_enabled(musb)) {
+> +		musb_context.frame = musb_readw(musb_base, MUSB_FRAME);
+> +		musb_context.testmode = musb_readb(musb_base, MUSB_TESTMODE);
+> +	}
+> +	musb_context.power = musb_readb(musb_base, MUSB_POWER);
+> +	musb_context.intrtxe = musb_readw(musb_base, MUSB_INTRTXE);
+> +	musb_context.intrrxe = musb_readw(musb_base, MUSB_INTRRXE);
+> +	musb_context.intrusbe = musb_readb(musb_base, MUSB_INTRUSBE);
+> +	musb_context.index = musb_readb(musb_base, MUSB_INDEX);
+> +	musb_context.devctl = musb_readb(musb_base, MUSB_DEVCTL);
+> +
+> +	for (i = 0; i < MUSB_C_NUM_EPS; ++i) {
+> +		musb_writeb(musb_base, MUSB_INDEX, i);
+> +		musb_context.index_regs[i].txmaxp =
+> +			musb_readw(musb_base, 0x10 + MUSB_TXMAXP);
+> +		musb_context.index_regs[i].txcsr =
+> +			musb_readw(musb_base, 0x10 + MUSB_TXCSR);
+> +		musb_context.index_regs[i].rxmaxp =
+> +			musb_readw(musb_base, 0x10 + MUSB_RXMAXP);
+> +		musb_context.index_regs[i].rxcsr =
+> +			musb_readw(musb_base, 0x10 + MUSB_RXCSR);
+> +
+> +		if (musb->dyn_fifo) {
 
-In OMAP4, a new scheme is available  due to the new protocol
-between the PRCM and the IPs. Depending of the scheme, the SYSCONFIG
-bitfields position will be different.
-The IP_REVISION register should be at offset 0x00.
-It should contain a SCHEME field From this we can determine legacy or HL.
+dyn_fifo should be declared under struct musb. Otherwise it will give compilation errors.
 
-31:30 SCHEME  Used to distinguish between old scheme and current.
- Read 0x0:  Legacy ASP or WTBU scheme
- Read 0x1:  Highlander 0.8 scheme
-
-For legacy IP
- 13:12 MIDLEMODE
- 11:8  CLOCKACTIVITY
- 6     EMUSOFT
- 5     EMUFREE
- 4:3   SIDLEMODE
- 2     ENAWAKEUP
- 1     SOFTRESET
- 0     AUTOIDLE
-
-For Highlander IP, the bit position in SYSCONFIG is (for simple target):
- 5:4   STANDBYMODE (Ex MIDLEMODE)
- 3:2   IDLEMODE (Ex SIDLEMODE)
- 1     FREEEMU (Ex EMUFREE)
- 0     SOFTRESET
-
-Unfortunately In OMAP4 also some IPs will not follow any of these
-two schemes. This is the case at least for McASP, SmartReflex
-and some security IPs.
-
-This patch introduces a new field sysc_fields in omap_hwmod_sysconfig which
-can be used by the hwmod structures to specify the offsets for the
-sysconfig register of the IP.Also two static structures
-omap_hwmod_sysc_fields and omap_hwmod_sysc_highlander are defined
-which can be used directly to populate the sysc_fields if the IP follows
-legacy or highlander scheme. If the IP follows none of these two schemes
-a new omap_hwmod_sysc_fields structure has to be defined and
-passed as part of omap_hwmod_sysconfig.
-
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/Makefile                 |    3 +-
- arch/arm/mach-omap2/omap_hwmod.c             |  100 ++++++++++++++++++++++----
- arch/arm/mach-omap2/omap_hwmod_common_data.c |   44 +++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |   65 +++++++++++++----
- 4 files changed, 184 insertions(+), 28 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_common_data.c
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index a08aa62..cbeb8bd 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -5,7 +5,8 @@
- # Common support
- obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
- 
--omap-2-3-common				= irq.o sdrc.o omap_hwmod.o
-+omap-2-3-common				= irq.o sdrc.o omap_hwmod.o \
-+					  omap_hwmod_common_data.o
- omap-3-4-common				= dpll.o
- prcm-common				= prcm.o powerdomain.o
- clock-common				= clock.o clock_common_data.o clockdomain.o
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 2de4cc3..d519b16 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -136,12 +136,24 @@ static void _write_sysconfig(u32 v, struct omap_hwmod *oh)
- static int _set_master_standbymode(struct omap_hwmod *oh, u8 standbymode,
- 				   u32 *v)
- {
-+	u32 mstandby_mask;
-+	u8 mstandby_shift;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_MIDLEMODE))
- 		return -EINVAL;
- 
--	*v &= ~SYSC_MIDLEMODE_MASK;
--	*v |= __ffs(standbymode) << SYSC_MIDLEMODE_SHIFT;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	mstandby_shift = oh->sysconfig->sysc_fields->midle_shift;
-+	mstandby_mask = (0x3 << mstandby_shift);
-+
-+	*v &= ~mstandby_mask;
-+	*v |= __ffs(standbymode) << mstandby_shift;
- 
- 	return 0;
- }
-@@ -158,12 +170,24 @@ static int _set_master_standbymode(struct omap_hwmod *oh, u8 standbymode,
-  */
- static int _set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode, u32 *v)
- {
-+	u32 sidle_mask;
-+	u8 sidle_shift;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_SIDLEMODE))
- 		return -EINVAL;
- 
--	*v &= ~SYSC_SIDLEMODE_MASK;
--	*v |= __ffs(idlemode) << SYSC_SIDLEMODE_SHIFT;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	sidle_shift = oh->sysconfig->sysc_fields->sidle_shift;
-+	sidle_mask = (0x3 << sidle_shift);
-+
-+	*v &= ~sidle_mask;
-+	*v |= __ffs(idlemode) << sidle_shift;
- 
- 	return 0;
- }
-@@ -181,12 +205,24 @@ static int _set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode, u32 *v)
-  */
- static int _set_clockactivity(struct omap_hwmod *oh, u8 clockact, u32 *v)
- {
-+	u32 clkact_mask;
-+	u8  clkact_shift;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_CLOCKACTIVITY))
- 		return -EINVAL;
- 
--	*v &= ~SYSC_CLOCKACTIVITY_MASK;
--	*v |= clockact << SYSC_CLOCKACTIVITY_SHIFT;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	clkact_shift = oh->sysconfig->sysc_fields->clkact_shift;
-+	clkact_mask = (0x3 << clkact_shift);
-+
-+	*v &= ~clkact_mask;
-+	*v |= clockact << clkact_shift;
- 
- 	return 0;
- }
-@@ -201,11 +237,21 @@ static int _set_clockactivity(struct omap_hwmod *oh, u8 clockact, u32 *v)
-  */
- static int _set_softreset(struct omap_hwmod *oh, u32 *v)
- {
-+	u32 softrst_mask;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_SOFTRESET))
- 		return -EINVAL;
- 
--	*v |= SYSC_SOFTRESET_MASK;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	softrst_mask = (0x1 << oh->sysconfig->sysc_fields->srst_shift);
-+
-+	*v |= softrst_mask;
- 
- 	return 0;
- }
-@@ -226,12 +272,24 @@ static int _set_softreset(struct omap_hwmod *oh, u32 *v)
- static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
- 				u32 *v)
- {
-+	u32 autoidle_mask;
-+	u8 autoidle_shift;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_AUTOIDLE))
- 		return -EINVAL;
- 
--	*v &= ~SYSC_AUTOIDLE_MASK;
--	*v |= autoidle << SYSC_AUTOIDLE_SHIFT;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	autoidle_shift = oh->sysconfig->sysc_fields->autoidle_shift;
-+	autoidle_mask = (0x3 << autoidle_shift);
-+
-+	*v &= ~autoidle_mask;
-+	*v |= autoidle << autoidle_shift;
- 
- 	return 0;
- }
-@@ -245,14 +303,22 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
-  */
- static int _enable_wakeup(struct omap_hwmod *oh)
- {
--	u32 v;
-+	u32 v, wakeup_mask;
- 
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	wakeup_mask = (0x1 << oh->sysconfig->sysc_fields->enwkup_shift);
-+
- 	v = oh->_sysc_cache;
--	v |= SYSC_ENAWAKEUP_MASK;
-+	v |= wakeup_mask;
- 	_write_sysconfig(v, oh);
- 
- 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
-@@ -271,14 +337,22 @@ static int _enable_wakeup(struct omap_hwmod *oh)
-  */
- static int _disable_wakeup(struct omap_hwmod *oh)
- {
--	u32 v;
-+	u32 v, wakeup_mask;
- 
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	wakeup_mask = (0x1 << oh->sysconfig->sysc_fields->enwkup_shift);
-+
- 	v = oh->_sysc_cache;
--	v &= ~SYSC_ENAWAKEUP_MASK;
-+	v &= ~wakeup_mask;
- 	_write_sysconfig(v, oh);
- 
- 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
-diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.c b/arch/arm/mach-omap2/omap_hwmod_common_data.c
-new file mode 100644
-index 0000000..8700ffe
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
-@@ -0,0 +1,44 @@
-+/*
-+ * omap_hwmod common data structures
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Thara Gopinath <thara@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This data/structures are to be used while defining OMAP on-chip module
-+ * data and their integration with other OMAP modules and Linux.
-+ */
-+
-+#include <linux/list.h>
-+
-+#include <plat/omap_hwmod.h>
-+
-+/**
-+ * struct omap_hwmod_sysc_legacy - OMAP3 legacy scheme for old IPs
-+ *
-+ * To be used by hwmod structure to specify the sysconfig offsets
-+ * if the device ip follows the Legacy scheme.
-+ */
-+struct omap_hwmod_sysc_fields omap_hwmod_sysc_legacy = {
-+	.midle_shift	= SYSC_LGCY_MIDLEMODE_SHIFT,
-+	.clkact_shift	= SYSC_LGCY_CLOCKACTIVITY_SHIFT,
-+	.sidle_shift	= SYSC_LGCY_SIDLEMODE_SHIFT,
-+	.enwkup_shift	= SYSC_LGCY_ENAWAKEUP_SHIFT,
-+	.srst_shift	= SYSC_LGCY_SOFTRESET_SHIFT,
-+	.autoidle_shift	= SYSC_LGCY_AUTOIDLE_SHIFT,
-+};
-+
-+/**
-+ * struct omap_hwmod_sysc_fields - OMAP4 new scheme for Highlander compliant IPs
-+ *
-+ * To be used by hwmod structure to specify the sysconfig offsets if the
-+ * device ip follows the highlander scheme
-+ */
-+struct omap_hwmod_sysc_fields omap_hwmod_sysc_highlander = {
-+	.midle_shift	= SYSC_MIDLEMODE_SHIFT,
-+	.sidle_shift	= SYSC_SIDLEMODE_SHIFT,
-+	.srst_shift	= SYSC_SOFTRESET_SHIFT,
-+};
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index db1e6ef..e7b1127 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -39,19 +39,31 @@
- 
- struct omap_device;
- 
--/* OCP SYSCONFIG bit shifts/masks */
--#define SYSC_MIDLEMODE_SHIFT		12
--#define SYSC_MIDLEMODE_MASK		(0x3 << SYSC_MIDLEMODE_SHIFT)
--#define SYSC_CLOCKACTIVITY_SHIFT	8
--#define SYSC_CLOCKACTIVITY_MASK		(0x3 << SYSC_CLOCKACTIVITY_SHIFT)
--#define SYSC_SIDLEMODE_SHIFT		3
--#define SYSC_SIDLEMODE_MASK		(0x3 << SYSC_SIDLEMODE_SHIFT)
--#define SYSC_ENAWAKEUP_SHIFT		2
--#define SYSC_ENAWAKEUP_MASK		(1 << SYSC_ENAWAKEUP_SHIFT)
--#define SYSC_SOFTRESET_SHIFT		1
--#define SYSC_SOFTRESET_MASK		(1 << SYSC_SOFTRESET_SHIFT)
--#define SYSC_AUTOIDLE_SHIFT		0
--#define SYSC_AUTOIDLE_MASK		(1 << SYSC_AUTOIDLE_SHIFT)
-+extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_legacy;
-+extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_highlander;
-+
-+/* OCP SYSCONFIG bit shifts/masks Legacy scheme */
-+#define SYSC_LGCY_MIDLEMODE_SHIFT		12
-+#define SYSC_LGCY_MIDLEMODE_MASK		(0x3 << SYSC_MIDLEMODE_SHIFT)
-+#define SYSC_LGCY_CLOCKACTIVITY_SHIFT		8
-+#define SYSC_LGCY_CLOCKACTIVITY_MASK 		\
-+					(0x3 << SYSC_CLOCKACTIVITY_SHIFT)
-+#define SYSC_LGCY_SIDLEMODE_SHIFT		3
-+#define SYSC_LGCY_SIDLEMODE_MASK		(0x3 << SYSC_SIDLEMODE_SHIFT)
-+#define SYSC_LGCY_ENAWAKEUP_SHIFT		2
-+#define SYSC_LGCY_ENAWAKEUP_MASK		(1 << SYSC_ENAWAKEUP_SHIFT)
-+#define SYSC_LGCY_SOFTRESET_SHIFT		1
-+#define SYSC_LGCY_SOFTRESET_MASK		(1 << SYSC_SOFTRESET_SHIFT)
-+#define SYSC_LGCY_AUTOIDLE_SHIFT		0
-+#define SYSC_LGCY_AUTOIDLE_MASK			(1 << SYSC_AUTOIDLE_SHIFT)
-+
-+/* OCP SYSCONFIG bit shifts/masks Highlander scheme */
-+#define SYSC_SOFTRESET_SHIFT		0
-+#define SYSC_SOFTRESET_MASK		(1 << SYSC_HIGH_SOFTRESET_SHIFT)
-+#define SYSC_SIDLEMODE_SHIFT		2
-+#define SYSC_SIDLEMODE_MASK		(0x3 << SYSC_HIGH_SIDLEMODE_SHIFT)
-+#define SYSC_MIDLEMODE_SHIFT		4
-+#define SYSC_MIDLEMODE_MASK		(0x3 << SYSC_HIGH_MIDLEMODE_SHIFT)
- 
- /* OCP SYSSTATUS bit shifts/masks */
- #define SYSS_RESETDONE_SHIFT		0
-@@ -62,7 +74,6 @@ struct omap_device;
- #define HWMOD_IDLEMODE_NO		(1 << 1)
- #define HWMOD_IDLEMODE_SMART		(1 << 2)
- 
--
- /**
-  * struct omap_hwmod_irq_info - MPU IRQs used by the hwmod
-  * @name: name of the IRQ channel (module local name)
-@@ -235,6 +246,24 @@ struct omap_hwmod_ocp_if {
- #define CLOCKACT_TEST_NONE	0x3
- 
- /**
-+ * struct omap_hwmod_sysc_fields - hwmod OCP_SYSCONFIG register field offsets.
-+ * @midle_shift: Offset of the midle bit
-+ * @clkact_shift: Offset of the clockactivity bit
-+ * @sidle_shift: Offset of the sidle bit
-+ * @enawkup_shift: Offset of the enawakeup bit
-+ * @sreset_shift: Offset of the softreset bit
-+ * @autoidle_shift: Offset of the autoidle bit.
-+ */
-+struct omap_hwmod_sysc_fields {
-+	u8 midle_shift;
-+	u8 clkact_shift;
-+	u8 sidle_shift;
-+	u8 enwkup_shift;
-+	u8 srst_shift;
-+	u8 autoidle_shift;
-+};
-+
-+/**
-  * struct omap_hwmod_sysconfig - hwmod OCP_SYSCONFIG/OCP_SYSSTATUS data
-  * @rev_offs: IP block revision register offset (from module base addr)
-  * @sysc_offs: OCP_SYSCONFIG register offset (from module base addr)
-@@ -251,6 +280,13 @@ struct omap_hwmod_ocp_if {
-  * been associated with the clocks marked in @clockact.  This field is
-  * only used if HWMOD_SET_DEFAULT_CLOCKACT is set (see below)
-  *
-+ *
-+ * @sysc_fields: structure containing the offset positions of various bits in
-+ * SYSCONFIG register. This can be populated using omap_hwmod_sysc_legacy or
-+ * omap_hwmod_highlander_legacy defined in omap_hwmod_common_data.c if the
-+ * device follows legacy or highlander scheme for the sysconfig register.
-+ * If the device follows a differnet scheme for the sysconfig register ,
-+ * then this field has to be populated with the correct offset structure.
-  */
- struct omap_hwmod_sysconfig {
- 	u16 rev_offs;
-@@ -259,6 +295,7 @@ struct omap_hwmod_sysconfig {
- 	u8 idlemodes;
- 	u8 sysc_flags;
- 	u8 clockact;
-+	struct omap_hwmod_sysc_fields *sysc_fields;
- };
- 
- /**
--- 
-1.5.6.3
-
+> +			musb_context.index_regs[i].txfifoadd =
+> +					musb_read_txfifoadd(musb_base);
+> +			musb_context.index_regs[i].rxfifoadd =
+> +					musb_read_rxfifoadd(musb_base);
+> +			musb_context.index_regs[i].txfifosz =
+> +					musb_read_txfifosz(musb_base);
+> +			musb_context.index_regs[i].rxfifosz =
+> +					musb_read_rxfifosz(musb_base);
+> +		}
+> +		if (is_host_enabled(musb)) {
+> +			musb_context.index_regs[i].txtype =
+> +				musb_readb(musb_base, 0x10 + MUSB_TXTYPE);
+> +			musb_context.index_regs[i].txinterval =
+> +				musb_readb(musb_base, 0x10 + MUSB_TXINTERVAL);
+> +			musb_context.index_regs[i].rxtype =
+> +				musb_readb(musb_base, 0x10 + MUSB_RXTYPE);
+> +			musb_context.index_regs[i].rxinterval =
+> +				musb_readb(musb_base, 0x10 + MUSB_RXINTERVAL);
+> +
+> +			musb_context.index_regs[i].txfunaddr =
+> +				musb_read_txfunaddr(musb_base, i);
+> +			musb_context.index_regs[i].txhubaddr =
+> +				musb_read_txhubaddr(musb_base, i);
+> +			musb_context.index_regs[i].txhubport =
+> +				musb_read_txhubport(musb_base, i);
+> +
+> +			musb_context.index_regs[i].rxfunaddr =
+> +				musb_read_rxfunaddr(musb_base, i);
+> +			musb_context.index_regs[i].rxhubaddr =
+> +				musb_read_rxhubaddr(musb_base, i);
+> +			musb_context.index_regs[i].rxhubport =
+> +				musb_read_rxhubport(musb_base, i);
+> +		}
+> +	}
+> +
+> +	musb_writeb(musb_base, MUSB_INDEX, musb_context.index);
+> +
+> +	musb_platform_save_context(&musb_context);
+> +}
+> +
+> +void musb_restore_context(struct musb *musb)
+> +{
+> +	int i;
+> +	void __iomem *musb_base = musb->mregs;
+> +	void __iomem *ep_target_regs;
+> +
+> +	musb_platform_restore_context(&musb_context);
+> +
+> +	if (is_host_enabled(musb)) {
+> +		musb_writew(musb_base, MUSB_FRAME, musb_context.frame);
+> +		musb_writeb(musb_base, MUSB_TESTMODE, musb_context.testmode);
+> +	}
+> +	musb_writeb(musb_base, MUSB_POWER, musb_context.power);
+> +	musb_writew(musb_base, MUSB_INTRTXE, musb_context.intrtxe);
+> +	musb_writew(musb_base, MUSB_INTRRXE, musb_context.intrrxe);
+> +	musb_writeb(musb_base, MUSB_INTRUSBE, musb_context.intrusbe);
+> +	musb_writeb(musb_base, MUSB_DEVCTL, musb_context.devctl);
+> +
+> +	for (i = 0; i < MUSB_C_NUM_EPS; ++i) {
+> +		musb_writeb(musb_base, MUSB_INDEX, i);
+> +		musb_writew(musb_base, 0x10 + MUSB_TXMAXP,
+> +			musb_context.index_regs[i].txmaxp);
+> +		musb_writew(musb_base, 0x10 + MUSB_TXCSR,
+> +			musb_context.index_regs[i].txcsr);
+> +		musb_writew(musb_base, 0x10 + MUSB_RXMAXP,
+> +			musb_context.index_regs[i].rxmaxp);
+> +		musb_writew(musb_base, 0x10 + MUSB_RXCSR,
+> +			musb_context.index_regs[i].rxcsr);
+> +
+> +		if (musb->dyn_fifo) {
+> +			musb_write_txfifosz(musb_base,
+> +				musb_context.index_regs[i].txfifosz);
+> +			musb_write_rxfifosz(musb_base,
+> +				musb_context.index_regs[i].rxfifosz);
+> +			musb_write_txfifoadd(musb_base,
+> +				musb_context.index_regs[i].txfifoadd);
+> +			musb_write_rxfifoadd(musb_base,
+> +				musb_context.index_regs[i].rxfifoadd);
+> +		}
+> +
+> +		if (is_host_enabled(musb)) {
+> +			musb_writeb(musb_base, 0x10 + MUSB_TXTYPE,
+> +				musb_context.index_regs[i].txtype);
+> +			musb_writeb(musb_base, 0x10 + MUSB_TXINTERVAL,
+> +				musb_context.index_regs[i].txinterval);
+> +			musb_writeb(musb_base, 0x10 + MUSB_RXTYPE,
+> +				musb_context.index_regs[i].rxtype);
+> +			musb_writeb(musb_base, 0x10 + MUSB_RXINTERVAL,
+> +
+> +			musb_context.index_regs[i].rxinterval);
+> +			musb_write_txfunaddr(musb_base, i,
+> +				musb_context.index_regs[i].txfunaddr);
+> +			musb_write_txhubaddr(musb_base, i,
+> +				musb_context.index_regs[i].txhubaddr);
+> +			musb_write_txhubport(musb_base, i,
+> +				musb_context.index_regs[i].txhubport);
+> +
+> +			ep_target_regs =
+> +				musb_read_target_reg_base(i, musb_base);
+> +
+> +			musb_write_rxfunaddr(ep_target_regs,
+> +				musb_context.index_regs[i].rxfunaddr);
+> +			musb_write_rxhubaddr(ep_target_regs,
+> +				musb_context.index_regs[i].rxhubaddr);
+> +			musb_write_rxhubport(ep_target_regs,
+> +				musb_context.index_regs[i].rxhubport);
+> +		}
+> +	}
+> +
+> +	musb_writeb(musb_base, MUSB_INDEX, musb_context.index);
+> +}
+> +
+>  static int musb_suspend(struct device *dev)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+> @@ -2188,6 +2330,8 @@ static int musb_suspend(struct device *dev)
+>  		 */
+>  	}
+> 
+> +	musb_save_context(musb);
+> +
+>  	if (musb->set_clock)
+>  		musb->set_clock(musb->clock, 0);
+>  	else
+> @@ -2209,6 +2353,8 @@ static int musb_resume_noirq(struct device *dev)
+>  	else
+>  		clk_enable(musb->clock);
+> 
+> +	musb_restore_context(musb);
+> +
+>  	/* for static cmos like DaVinci, register values were preserved
+>  	 * unless for some reason the whole soc powered down or the USB
+>  	 * module got reset through the PSC (vs just being disabled).
+> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+> index eaa0114..3d66c3e 100644
+> --- a/drivers/usb/musb/musb_core.h
+> +++ b/drivers/usb/musb/musb_core.h
+> @@ -454,6 +454,45 @@ struct musb {
+>  #endif
+>  };
+> 
+> +#ifdef CONFIG_PM
+> +struct musb_csr_regs {
+> +	/* FIFO registers */
+> +	u16 txmaxp, txcsr, rxmaxp, rxcsr;
+> +	u16 rxfifoadd, txfifoadd;
+> +	u8 txtype, txinterval, rxtype, rxinterval;
+> +	u8 rxfifosz, txfifosz;
+> +	u8 txfunaddr, txhubaddr, txhubport;
+> +	u8 rxfunaddr, rxhubaddr, rxhubport;
+> +};
+> +
+> +struct musb_context_registers {
+> +
+> +#if defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP2430)
+> +	u32 otg_sysconfig, otg_forcestandby;
+> +#endif
+> +	u8 power;
+> +	u16 intrtxe, intrrxe;
+> +	u8 intrusbe;
+> +	u16 frame;
+> +	u8 index, testmode;
+> +
+> +	u8 devctl, misc;
+> +
+> +	struct musb_csr_regs index_regs[MUSB_C_NUM_EPS];
+> +};
+> +
+> +#if defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP2430)
+> +extern void musb_platform_save_context(struct musb_context_registers
+> +		*musb_context);
+> +extern void musb_platform_restore_context(struct musb_context_registers
+> +		*musb_context);
+> +#else
+> +#define musb_platform_save_context(x)		do {} while (0)
+> +#define musb_platform_restore_context(x)	do {} while (0)
+> +#endif
+> +
+> +#endif
+> +
+>  static inline void musb_set_vbus(struct musb *musb, int is_on)
+>  {
+>  	musb->board_set_vbus(musb, is_on);
+> diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
+> index 9a8621a..895fb05 100644
+> --- a/drivers/usb/musb/musb_regs.h
+> +++ b/drivers/usb/musb/musb_regs.h
+> @@ -326,6 +326,26 @@ static inline void  musb_write_rxfifoadd(void __iomem
+> *mbase, u16 c_off)
+>  	musb_writew(mbase, MUSB_RXFIFOADD, c_off);
+>  }
+> 
+> +static inline u8 musb_read_txfifosz(void __iomem *mbase)
+> +{
+> +	return musb_readb(mbase, MUSB_TXFIFOSZ);
+> +}
+> +
+> +static inline u16 musb_read_txfifoadd(void __iomem *mbase)
+> +{
+> +	return musb_readw(mbase, MUSB_TXFIFOADD);
+> +}
+> +
+> +static inline u8 musb_read_rxfifosz(void __iomem *mbase)
+> +{
+> +	return musb_readb(mbase, MUSB_RXFIFOSZ);
+> +}
+> +
+> +static inline u16  musb_read_rxfifoadd(void __iomem *mbase)
+> +{
+> +	return musb_readw(mbase, MUSB_RXFIFOADD);
+> +}
+> +
+>  static inline u8 musb_read_configdata(void __iomem *mbase)
+>  {
+>  	musb_writeb(mbase, MUSB_INDEX, 0);
+> @@ -381,6 +401,36 @@ static inline void  musb_write_txhubport(void __iomem
+> *mbase, u8 epnum,
+>  			qh_h_port_reg);
+>  }
+> 
+> +static inline u8 musb_read_rxfunaddr(void __iomem *mbase, u8 epnum)
+> +{
+> +	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum,
+> MUSB_RXFUNCADDR));
+> +}
+> +
+> +static inline u8 musb_read_rxhubaddr(void __iomem *mbase, u8 epnum)
+> +{
+> +	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_RXHUBADDR));
+> +}
+> +
+> +static inline u8 musb_read_rxhubport(void __iomem *mbase, u8 epnum)
+> +{
+> +	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_RXHUBPORT));
+> +}
+> +
+> +static inline u8  musb_read_txfunaddr(void __iomem *mbase, u8 epnum)
+> +{
+> +	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum,
+> MUSB_TXFUNCADDR));
+> +}
+> +
+> +static inline u8  musb_read_txhubaddr(void __iomem *mbase, u8 epnum)
+> +{
+> +	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_TXHUBADDR));
+> +}
+> +
+> +static inline u8  musb_read_txhubport(void __iomem *mbase, u8 epnum)
+> +{
+> +	return musb_readb(mbase, MUSB_BUSCTL_OFFSET(epnum, MUSB_TXHUBPORT));
+> +}
+> +
+>  #else /* CONFIG_BLACKFIN */
+> 
+>  #define USB_BASE		USB_FADDR
+> @@ -460,6 +510,22 @@ static inline void  musb_write_rxfifoadd(void __iomem
+> *mbase, u16 c_off)
+>  {
+>  }
+> 
+> +static inline u8 musb_read_txfifosz(void __iomem *mbase)
+> +{
+> +}
+> +
+> +static inline u16 musb_read_txfifoadd(void __iomem *mbase)
+> +{
+> +}
+> +
+> +static inline u8 musb_read_rxfifosz(void __iomem *mbase)
+> +{
+> +}
+> +
+> +static inline u16  musb_read_rxfifoadd(void __iomem *mbase)
+> +{
+> +}
+> +
+>  static inline u8 musb_read_configdata(void __iomem *mbase)
+>  {
+>  	return 0;
+> @@ -505,6 +571,30 @@ static inline void  musb_write_txhubport(void __iomem
+> *mbase, u8 epnum,
+>  {
+>  }
+> 
+> +static inline u8 musb_read_rxfunaddr(void __iomem *mbase, u8 epnum)
+> +{
+> +}
+> +
+> +static inline u8 musb_read_rxhubaddr(void __iomem *mbase, u8 epnum)
+> +{
+> +}
+> +
+> +static inline u8 musb_read_rxhubport(void __iomem *mbase, u8 epnum)
+> +{
+> +}
+> +
+> +static inline u8  musb_read_txfunaddr(void __iomem *mbase, u8 epnum)
+> +{
+> +}
+> +
+> +static inline u8  musb_read_txhubaddr(void __iomem *mbase, u8 epnum)
+> +{
+> +}
+> +
+> +static inline void  musb_read_txhubport(void __iomem *mbase, u8 epnum)
+> +{
+> +}
+> +
+>  #endif /* CONFIG_BLACKFIN */
+> 
+>  #endif	/* __MUSB_REGS_H__ */
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 83beeac..15a3f27 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -255,6 +255,22 @@ int __init musb_platform_init(struct musb *musb)
+>  	return 0;
+>  }
+> 
+> +#ifdef CONFIG_PM
+> +void musb_platform_save_context(struct musb_context_registers
+> +		*musb_context)
+> +{
+> +	musb_context->otg_sysconfig = omap_readl(OTG_SYSCONFIG);
+> +	musb_context->otg_forcestandby = omap_readl(OTG_FORCESTDBY);
+> +}
+> +
+> +void musb_platform_restore_context(struct musb_context_registers
+> +		*musb_context)
+> +{
+> +	omap_writel(musb_context->otg_sysconfig, OTG_SYSCONFIG);
+> +	omap_writel(musb_context->otg_forcestandby, OTG_FORCESTDBY);
+> +}
+> +#endif
+> +
+>  int musb_platform_suspend(struct musb *musb)
+>  {
+>  	u32 l;
+> --
+> 1.6.6.rc0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
