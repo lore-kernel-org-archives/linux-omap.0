@@ -1,162 +1,76 @@
-From: <ameya.palande@nokia.com>
-Subject: RE: [PATCH] DSPBRIDGE: Various compile warning fixes
-Date: Mon, 25 Jan 2010 18:03:12 +0100
-Message-ID: <DDE834F1D8D96540B7373DFF675BF56C1B8A2B5AA0@NOK-EUMSG-03.mgdnok.nokia.com>
-References: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>,<4B5DCDDB.10409@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/2] omap: define _toggle_gpio_edge_triggering only for OMAP1
+Date: Mon, 25 Jan 2010 10:22:18 -0800
+Message-ID: <87sk9u6o4l.fsf@deeprootsystems.com>
+References: <1264280500-22878-2-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:54571 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754128Ab0AYREz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jan 2010 12:04:55 -0500
-In-Reply-To: <4B5DCDDB.10409@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754128Ab0AYSXO@vger.kernel.org>
+In-Reply-To: <1264280500-22878-2-git-send-email-u.kleine-koenig@pengutronix.de> ("Uwe
+ =?iso-8859-1?Q?Kleine-K=F6nig=22's?= message of "Sat\, 23 Jan 2010
+ 22\:01\:40 +0100")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: omar.ramirez@ti.com
-Cc: linux-omap@vger.kernel.org, nm@ti.com, deepak.chitriki@ti.com, mika.kukkonen@nokia.com
 
-Hi Omar,
+Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de> writes:
 
-Sorry for the top posthing :(
-I guess the original patch had empty if() bodies. 
-That comment can be removed :)
-
-Cheers,
-Ameya.
-________________________________________
-From: ext Omar Ramirez Luna [omar.ramirez@ti.com]
-Sent: Monday, January 25, 2010 6:59 PM
-To: Palande Ameya (Nokia-D/Helsinki)
-Cc: linux-omap@vger.kernel.org; Menon, Nishanth; Chitriki Rudramuni, Deepak; Kukkonen Mika (Nokia-D/Helsinki)
-Subject: Re: [PATCH] DSPBRIDGE: Various compile warning fixes
-
-Patch looks good, just one question:
-
-> This patch contains indentation fixes and cleans up various warnings
-> uncovered with extra warning flags:
+> The only usage of _toggle_gpio_edge_triggering is in an
+> CONFIG_ARCH_OMAP1 is defined, too.
 >
->   - empty if() bodies
-
-am i missing something? which hunk fix this?
-
->   - incorrect use of unsigned variables
->   - bad comparison of pointer value
->   - pointless check of unsigned value being smaller than zero
->   - keyword 'extern' has to be first one in variable declaration
+> This fixes a compiler warning:
 >
-> Signed-off-by: Mika Kukkonen <mika.kukkonen@nokia.com>
-> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+> 	arch/arm/plat-omap/gpio.c:758: warning: '_toggle_gpio_edge_triggerin=
+g' defined but not used
+>
+> when compiling for ARCH_OMAP2, ARCH_OMAP3 or ARCH_OMAP4.
+>
+> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+
 > ---
->  arch/arm/plat-omap/include/dspbridge/dbc.h |    6 +++---
->  arch/arm/plat-omap/include/dspbridge/dbg.h |    4 ++--
->  arch/arm/plat-omap/include/dspbridge/gt.h  |   16 +++++++++-------
->  arch/arm/plat-omap/include/dspbridge/mem.h |    2 +-
->  drivers/dsp/bridge/wmd/io_sm.c             |    2 +-
->  drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
->  6 files changed, 17 insertions(+), 15 deletions(-)
+>  arch/arm/plat-omap/gpio.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/arch/arm/plat-omap/include/dspbridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
-> index ac5d178..1b3ac44 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/dbc.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/dbc.h
-> @@ -43,9 +43,9 @@
->
->  #else
->
-> -#define DBC_Assert(exp)
-> -#define DBC_Require(exp)
-> -#define DBC_Ensure(exp)
-> +#define DBC_Assert(exp) {}
-> +#define DBC_Require(exp) {}
-> +#define DBC_Ensure(exp) {}
->
->  #endif                               /* DEBUG */
->
-> diff --git a/arch/arm/plat-omap/include/dspbridge/dbg.h b/arch/arm/plat-omap/include/dspbridge/dbg.h
-> index 2f61dab..4d01eca 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/dbg.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/dbg.h
-> @@ -80,9 +80,9 @@
->       extern DSP_STATUS DBG_Trace(IN u8 bLevel, IN char *pstrFormat, ...);
->  #else
->
-> -#define DBG_Exit(void)
-> +#define DBG_Exit(void) do {} while (0)
->  #define DBG_Init(void) true
-> -#define DBG_Trace(bLevel, pstrFormat, args...)
-> +#define DBG_Trace(bLevel, pstrFormat, args...) do {} while (0)
->
->  #endif       /* (CONFIG_BRIDGE_DEBUG || DDSP_DEBUG_PRODUCT) && GT_TRACE */
->
-> diff --git a/arch/arm/plat-omap/include/dspbridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
-> index 6082d15..9097910 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/gt.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/gt.h
-> @@ -252,13 +252,15 @@ extern struct GT_Config _GT_params;
->
->  #define GT_query(mask, class)     false
->
-> -#define GT_0trace(mask, class, format)
-> -#define GT_1trace(mask, class, format, arg1)
-> -#define GT_2trace(mask, class, format, arg1, arg2)
-> -#define GT_3trace(mask, class, format, arg1, arg2, arg3)
-> -#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4)
-> -#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5)
-> -#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6)
-> +#define GT_0trace(mask, class, format) do {} while (0)
-> +#define GT_1trace(mask, class, format, arg1) do {} while (0)
-> +#define GT_2trace(mask, class, format, arg1, arg2) do {} while (0)
-> +#define GT_3trace(mask, class, format, arg1, arg2, arg3) do {} while (0)
-> +#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4) do {} while (0)
-> +#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5) \
-> +     do {} while (0)
-> +#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6) \
-> +     do {} while (0)
->
->  #else                                /* GT_TRACE == 1 */
->
-> diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
-> index 03b419a..353ffb0 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/mem.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/mem.h
-> @@ -286,7 +286,7 @@
->   *  Ensures:
->   *      - pBaseAddr no longer points to a valid linear address.
->   */
-> -#define MEM_UnmapLinearAddress(pBaseAddr)
-> +#define MEM_UnmapLinearAddress(pBaseAddr) {}
->
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index d17620c..d2422c7 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -750,6 +750,7 @@ static inline void set_24xx_gpio_triggering(struc=
+t gpio_bank *bank, int gpio,
+>  }
+>  #endif
+> =20
+> +#ifdef CONFIG_ARCH_OMAP1
 >  /*
->   *  ======== MEM_ExtPhysPoolInit ========
-> diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-> index e35ce57..64eba5a 100644
-> --- a/drivers/dsp/bridge/wmd/io_sm.c
-> +++ b/drivers/dsp/bridge/wmd/io_sm.c
-> @@ -1210,7 +1210,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
->                           pChnlMgr->uWordSize;
->       chnlId = IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputId);
->       dwArg = IO_GetLong(pIOMgr->hWmdContext, struct SHM, sm, arg);
-> -     if (!(chnlId >= 0) || !(chnlId < CHNL_MAXCHANNELS)) {
-> +     if (chnlId >= CHNL_MAXCHANNELS) {
->               /* Shouldn't be here: would indicate corrupted SHM. */
->               DBC_Assert(chnlId);
->               goto func_end;
-> diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-> index 6166d97..2c3a2cd 100644
-> --- a/drivers/dsp/bridge/wmd/ue_deh.c
-> +++ b/drivers/dsp/bridge/wmd/ue_deh.c
-> @@ -189,7 +189,7 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
->       DSP_STATUS status = DSP_SOK;
->       u32 memPhysical = 0;
->       u32 HW_MMU_MAX_TLB_COUNT = 31;
-> -     u32 extern faultAddr;
-> +     extern u32 faultAddr;
->       struct CFG_HOSTRES resources;
->       HW_STATUS hwStatus;
->
-> -- 1.6.3.3
-
-- omar
+>   * This only applies to chips that can't do both rising and falling =
+edge
+>   * detection at once.  For all other chips, this function is a noop.
+> @@ -760,11 +761,9 @@ static void _toggle_gpio_edge_triggering(struct =
+gpio_bank *bank, int gpio)
+>  	u32 l =3D 0;
+> =20
+>  	switch (bank->method) {
+> -#ifdef CONFIG_ARCH_OMAP1
+>  	case METHOD_MPUIO:
+>  		reg +=3D OMAP_MPUIO_GPIO_INT_EDGE;
+>  		break;
+> -#endif
+>  #ifdef CONFIG_ARCH_OMAP15XX
+>  	case METHOD_GPIO_1510:
+>  		reg +=3D OMAP1510_GPIO_INT_CONTROL;
+> @@ -787,6 +786,7 @@ static void _toggle_gpio_edge_triggering(struct g=
+pio_bank *bank, int gpio)
+> =20
+>  	__raw_writel(l, reg);
+>  }
+> +#endif
+> =20
+>  static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, in=
+t trigger)
+>  {
+> --=20
+> 1.6.6
