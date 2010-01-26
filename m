@@ -1,515 +1,532 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/14] omap: Clean the serial port defines
-Date: Tue, 26 Jan 2010 12:12:35 -0800
-Message-ID: <20100126201235.15382.85560.stgit@baageli.muru.com>
+Subject: [PATCH 02/14] omap: Make uncompress code and DEBUG_LL code generic
+Date: Tue, 26 Jan 2010 12:12:39 -0800
+Message-ID: <20100126201239.15382.34792.stgit@baageli.muru.com>
 References: <20100126200646.15382.52167.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60143 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752112Ab0AZUMR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 15:12:17 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57819 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752346Ab0AZUMV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 15:12:21 -0500
 In-Reply-To: <20100126200646.15382.52167.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-This way we don't have conflicts with the defines
-with compiling in multiple omaps. Set the addresses
-for uarts in struct omap_globals for the early serial
-init code.
+Define arch_decomp_setup() the same way as some other
+architectures do. Use arch_id to configure the debug uart
+based on the machine_is by storing it into the uart
+scratchpad register for DEBUG_LL code to use.
+
+Note that to avoid merge conflicts, this patch is using
+hardcoded register r1 until tmp register is being passed
+for all addruart macros.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/include/mach/debug-macro.S |   16 +++--
- arch/arm/mach-omap1/serial.c                   |    6 +-
- arch/arm/mach-omap2/board-3630sdp.c            |    2 -
- arch/arm/mach-omap2/board-zoom3.c              |    2 -
- arch/arm/mach-omap2/include/mach/debug-macro.S |   15 ++---
- arch/arm/mach-omap2/serial.c                   |   15 ++++-
- arch/arm/plat-omap/common.c                    |   29 ++++++++-
- arch/arm/plat-omap/include/plat/common.h       |    6 ++
- arch/arm/plat-omap/include/plat/omap16xx.h     |   74 ++++++++++++------------
- arch/arm/plat-omap/include/plat/serial.h       |   45 ++++++++-------
- arch/arm/plat-omap/include/plat/uncompress.h   |    7 +-
- 11 files changed, 130 insertions(+), 87 deletions(-)
+ arch/arm/mach-omap1/include/mach/debug-macro.S |   72 +++++++++
+ arch/arm/mach-omap2/include/mach/debug-macro.S |  117 +++++++++++++--
+ arch/arm/plat-omap/include/plat/serial.h       |   33 ++++
+ arch/arm/plat-omap/include/plat/uncompress.h   |  182 ++++++++++++++++++------
+ 4 files changed, 322 insertions(+), 82 deletions(-)
 
 diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
-index aedb746..23e4724 100644
+index 23e4724..0187391 100644
 --- a/arch/arm/mach-omap1/include/mach/debug-macro.S
 +++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
-@@ -11,6 +11,10 @@
-  *
- */
+@@ -15,18 +15,76 @@
  
-+#include <linux/serial_reg.h>
+ #include <plat/serial.h>
+ 
++		.pushsection .data
++omap_uart_phys:	.word	0x0
++omap_uart_virt:	.word	0x0
++		.popsection
 +
-+#include <plat/serial.h>
-+
++		/*
++		 * Note that this code won't work if the bootloader passes
++		 * a wrong machine ID number in r1. To debug, just hardcode
++		 * the desired UART phys and virt addresses temporarily into
++		 * the omap_uart_phys and omap_uart_virt above.
++		 */
  		.macro	addruart,rx
++
++		/* Use omap_uart_phys/virt if already configured */
++9:		mrc	p15, 0, \rx, c1, c0
++		tst	\rx, #1			@ MMU enabled?
++		ldreq	\rx, =omap_uart_phys	@ physical base address
++		ldrne	\rx, =omap_uart_virt	@ virtual base
++		ldr	\rx, [\rx, #0]
++		cmp	\rx, #0			@ is port configured?
++		bne	99f			@ already configured
++
++		/* Check 7XX UART1 scratchpad register for uart to use */
++		mrc	p15, 0, \rx, c1, c0
++		tst	\rx, #1			@ MMU enabled?
++		moveq	\rx, #0xff000000	@ physical base address
++		movne	\rx, #0xfe000000	@ virtual base
++		orr	\rx, \rx, #0x00fb0000	@ OMAP1UART1
++		ldrb	\rx, [\rx, #(UART_SCR << OMAP7XX_PORT_SHIFT)]
++		cmp	\rx, #0			@ anything in 7XX scratchpad?
++		bne	10f			@ found 7XX uart
++
++		/* Check 15xx/16xx UART1 scratchpad register for uart to use */
  		mrc	p15, 0, \rx, c1, c0
  		tst	\rx, #1			@ MMU enabled?
-@@ -30,13 +34,13 @@
+ 		moveq	\rx, #0xff000000	@ physical base address
+ 		movne	\rx, #0xfe000000	@ virtual base
+-		orr	\rx, \rx, #0x00fb0000
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART3
+-		orr	\rx, \rx, #0x00009000	@ UART 3
+-#endif
+-#if defined(CONFIG_OMAP_LL_DEBUG_UART2) || defined(CONFIG_OMAP_LL_DEBUG_UART3)
+-		orr	\rx, \rx, #0x00000800	@ UART 2 & 3
+-#endif
++		orr	\rx, \rx, #0x00fb0000	@ OMAP1UART1
++		ldrb	\rx, [\rx, #(UART_SCR << OMAP_PORT_SHIFT)]
++
++		/* Select the UART to use based on the UART1 scratchpad value */
++10:		cmp	\rx, #0			@ no port configured?
++		beq	11f			@ if none, try to use UART1
++		cmp	\rx, #OMAP1UART1
++		beq	11f			@ configure OMAP1UART1
++		cmp	\rx, #OMAP1UART2
++		beq	12f			@ configure OMAP1UART2
++		cmp	\rx, #OMAP1UART3
++		beq	13f			@ configure OMAP2UART3
++
++		/* Configure the UART offset from the phys/virt base */
++11:		mov	\rx, #0x00fb0000	@ OMAP1UART1
++		b	98f
++12:		mov	\rx, #0x00fb0000	@ OMAP1UART1
++		orr	\rx, \rx, #0x00000800	@ OMAP1UART2
++		b	98f
++13:		mov	\rx, #0x00fb0000	@ OMAP1UART1
++		orr	\rx, \rx, #0x00000800	@ OMAP1UART2
++		orr	\rx, \rx, #0x00009000	@ OMAP1UART3
++
++		/* Store both phys and virt address for the uart */
++98:		add	\rx, \rx, #0xff000000	@ phys base
++		ldr	r1, =omap_uart_phys
++		str	\rx, [r1, #0]
++		sub	\rx, \rx, #0xff000000	@ phys base
++		add	\rx, \rx, #0xfe000000	@ virt base
++		ldr	r1, =omap_uart_virt
++		str	\rx, [r1, #0]
++		b	9b
++99:
  		.endm
  
- 		.macro	busyuart,rd,rx
--1001:		ldrb	\rd, [\rx, #(0x5 << 2)]	@ OMAP-1510 and friends
--		and	\rd, \rd, #0x60
--		teq	\rd, #0x60
-+1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
-+		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-+		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
- 		beq	1002f
--		ldrb	\rd, [\rx, #(0x5 << 0)]	@ OMAP-730 only
--		and	\rd, \rd, #0x60
--		teq	\rd, #0x60
-+		ldrb	\rd, [\rx, #(UART_LSR << OMAP7XX_PORT_SHIFT)]
-+		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-+		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
- 		bne	1001b
- 1002:
- 		.endm
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index 6e5207c..349de90 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -64,7 +64,7 @@ static void __init omap_serial_reset(struct plat_serial8250_port *p)
- 
- static struct plat_serial8250_port serial_platform_data[] = {
- 	{
--		.mapbase	= OMAP_UART1_BASE,
-+		.mapbase	= OMAP1_UART1_BASE,
- 		.irq		= INT_UART1,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -72,7 +72,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 		.uartclk	= OMAP16XX_BASE_BAUD * 16,
- 	},
- 	{
--		.mapbase	= OMAP_UART2_BASE,
-+		.mapbase	= OMAP1_UART2_BASE,
- 		.irq		= INT_UART2,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -80,7 +80,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 		.uartclk	= OMAP16XX_BASE_BAUD * 16,
- 	},
- 	{
--		.mapbase	= OMAP_UART3_BASE,
-+		.mapbase	= OMAP1_UART3_BASE,
- 		.irq		= INT_UART3,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 7390596..c178e68 100755
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -68,7 +68,7 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 
- static void __init omap_sdp_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_36xx();
- 	omap2_map_common_io();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index a9fe918..456b690 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -26,7 +26,7 @@
- 
- static void __init omap_zoom_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_36xx();
- 	omap2_map_common_io();
- }
- 
+ 		.macro	senduart,rd,rx
 diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index e9f255d..0c96e1c 100644
+index 0c96e1c..eb05a22 100644
 --- a/arch/arm/mach-omap2/include/mach/debug-macro.S
 +++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -11,6 +11,10 @@
-  *
- */
+@@ -15,32 +15,103 @@
  
-+#include <linux/serial_reg.h>
+ #include <plat/serial.h>
+ 
++#define UART_OFFSET(addr)	((addr) & 0x00ffffff)
 +
-+#include <plat/serial.h>
++		.pushsection .data
++omap_uart_phys:	.word	0
++omap_uart_virt:	.word	0
++omap_uart_lsr:	.word	0
++		.popsection
 +
++		/*
++		 * Note that this code won't work if the bootloader passes
++		 * a wrong machine ID number in r1. To debug, just hardcode
++		 * the desired UART phys and virt addresses temporarily into
++		 * the omap_uart_phys and omap_uart_virt above.
++		 */
  		.macro	addruart,rx
++
++		/* Use omap_uart_phys/virt if already configured */
++10:		mrc	p15, 0, \rx, c1, c0
++		tst	\rx, #1			@ MMU enabled?
++		ldreq	\rx, =omap_uart_phys	@ physical base address
++		ldrne	\rx, =omap_uart_virt	@ virtual base address
++		ldr	\rx, [\rx, #0]
++		cmp	\rx, #0			@ is port configured?
++		bne	99f			@ already configured
++
++		/* Check UART1 scratchpad register for uart to use */
  		mrc	p15, 0, \rx, c1, c0
  		tst	\rx, #1			@ MMU enabled?
-@@ -44,15 +48,10 @@
+-#ifdef  CONFIG_ARCH_OMAP2
+ 		moveq	\rx, #0x48000000	@ physical base address
+ 		movne	\rx, #0xfa000000	@ virtual base
+-		orr	\rx, \rx, #0x0006a000
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART2
+-		add	\rx, \rx, #0x00002000	@ UART 2
+-#endif
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART3
+-		add	\rx, \rx, #0x00004000	@ UART 3
+-#endif
+-
+-#elif defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+-		moveq	\rx, #0x48000000	@ physical base address
+-		movne	\rx, #0xfa000000	@ virtual base
+-		orr	\rx, \rx, #0x0006a000
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART2
+-		add	\rx, \rx, #0x00002000	@ UART 2
+-#endif
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART3
+-		add	\rx, \rx, #0x00fb0000	@ UART 3
+-		add	\rx, \rx, #0x00006000
+-#endif
+-#endif
++		orr	\rx, \rx, #0x0006a000	@ uart1 on omap2/3/4
++		ldrb	\rx, [\rx, #(UART_SCR << OMAP_PORT_SHIFT)] @ scratchpad
++
++		/* Select the UART to use based on the UART1 scratchpad value */
++		cmp	\rx, #0			@ no port configured?
++		beq	21f			@ if none, try to use UART1
++		cmp	\rx, #OMAP2UART1	@ OMAP2/3/4UART1
++		beq	21f			@ configure OMAP2/3/4UART1
++		cmp	\rx, #OMAP2UART2	@ OMAP2/3/4UART2
++		beq	22f			@ configure OMAP2/3/4UART2
++		cmp	\rx, #OMAP2UART3	@ only on 24xx
++		beq	23f			@ configure OMAP2UART3
++		cmp	\rx, #OMAP3UART3	@ only on 34xx
++		beq	33f			@ configure OMAP3UART3
++		cmp	\rx, #OMAP4UART3	@ only on 44xx
++		beq	43f			@ configure OMAP4UART3
++		cmp	\rx, #OMAP3UART4	@ only on 36xx
++		beq	34f			@ configure OMAP3UART4
++		cmp	\rx, #OMAP4UART4	@ only on 44xx
++		beq	44f			@ configure OMAP4UART4
++		cmp	\rx, #ZOOM_UART		@ only on zoom2/3
++		beq	95f			@ configure ZOOM_UART
++
++		/* Configure the UART offset from the phys/virt base */
++21:		mov	\rx, #UART_OFFSET(OMAP2_UART1_BASE)	@ omap2/3/4
++		b	98f
++22:		mov	\rx, #UART_OFFSET(OMAP2_UART2_BASE)	@ omap2/3/4
++		b	98f
++23:		mov	\rx, #UART_OFFSET(OMAP2_UART3_BASE)
++		b	98f
++33:		mov	\rx, #UART_OFFSET(OMAP3_UART1_BASE)
++		add	\rx, \rx, #0x00fb0000
++		add	\rx, \rx, #0x00006000		@ OMAP3_UART3_BASE
++		b	98f
++34:		mov	\rx, #UART_OFFSET(OMAP3_UART1_BASE)
++		add	\rx, \rx, #0x00fb0000
++		add	\rx, \rx, #0x00028000		@ OMAP3_UART4_BASE
++		b	98f
++43:		mov	\rx, #UART_OFFSET(OMAP4_UART3_BASE)
++		b	98f
++44:		mov	\rx, #UART_OFFSET(OMAP4_UART4_BASE)
++		b	98f
++95:		mov	\rx, #ZOOM_UART_BASE
++		ldr	r1, =omap_uart_phys
++		str	\rx, [r1, #0]
++		mov	\rx, #ZOOM_UART_VIRT
++		ldr	r1, =omap_uart_virt
++		str	\rx, [r1, #0]
++		mov	\rx, #(UART_LSR << ZOOM_PORT_SHIFT)
++		ldr	r1, =omap_uart_lsr
++		str	\rx, [r1, #0]
++		b	10b
++
++		/* Store both phys and virt address for the uart */
++98:		add	\rx, \rx, #0x48000000	@ phys base
++		ldr	r1, =omap_uart_phys
++		str	\rx, [r1, #0]
++		sub	\rx, \rx, #0x48000000	@ phys base
++		add	\rx, \rx, #0xfa000000	@ virt base
++		ldr	r1, =omap_uart_virt
++		str	\rx, [r1, #0]
++		mov	\rx, #(UART_LSR << OMAP_PORT_SHIFT)
++		ldr	r1, =omap_uart_lsr
++		str	\rx, [r1, #0]
++
++		b	10b
++99:
+ 		.endm
+ 
+ 		.macro	senduart,rd,rx
+@@ -48,7 +119,9 @@
  		.endm
  
  		.macro	busyuart,rd,rx
--1001:		ldrb	\rd, [\rx, #(0x5 << 2)]	@ OMAP-1510 and friends
--		and	\rd, \rd, #0x60
--		teq	\rd, #0x60
--		beq	1002f
--		ldrb	\rd, [\rx, #(0x5 << 0)]	@ OMAP-730 only
--		and	\rd, \rd, #0x60
--		teq	\rd, #0x60
-+1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
-+		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-+		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
++1001:		ldr	\rd, =omap_uart_lsr
++		ldr	\rd, [\rd, #0]
++		ldrb	\rd, [\rx, \rd]
+ 		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+ 		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
  		bne	1001b
--1002:
- 		.endm
- 
- 		.macro	waituart,rd,rx
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 8c964be..eb56e19 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -74,7 +74,6 @@ static LIST_HEAD(uart_list);
- 
- static struct plat_serial8250_port serial_platform_data0[] = {
- 	{
--		.mapbase	= OMAP_UART1_BASE,
- 		.irq		= 72,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -87,7 +86,6 @@ static struct plat_serial8250_port serial_platform_data0[] = {
- 
- static struct plat_serial8250_port serial_platform_data1[] = {
- 	{
--		.mapbase	= OMAP_UART2_BASE,
- 		.irq		= 73,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -100,7 +98,6 @@ static struct plat_serial8250_port serial_platform_data1[] = {
- 
- static struct plat_serial8250_port serial_platform_data2[] = {
- 	{
--		.mapbase	= OMAP_UART3_BASE,
- 		.irq		= 74,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -114,7 +111,6 @@ static struct plat_serial8250_port serial_platform_data2[] = {
- #ifdef CONFIG_ARCH_OMAP4
- static struct plat_serial8250_port serial_platform_data3[] = {
- 	{
--		.mapbase	= OMAP_UART4_BASE,
- 		.irq		= 70,
- 		.flags		= UPF_BOOT_AUTOCONF,
- 		.iotype		= UPIO_MEM,
-@@ -125,6 +121,17 @@ static struct plat_serial8250_port serial_platform_data3[] = {
- 	}
- };
- #endif
-+
-+void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
-+{
-+	serial_platform_data0[0].mapbase = omap2_globals->uart1_phys;
-+	serial_platform_data1[0].mapbase = omap2_globals->uart2_phys;
-+	serial_platform_data2[0].mapbase = omap2_globals->uart3_phys;
-+#ifdef CONFIG_ARCH_OMAP4
-+	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
-+#endif
-+}
-+
- static inline unsigned int __serial_read_reg(struct uart_port *up,
- 					   int offset)
- {
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index dddc027..7cbc0a2 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -34,6 +34,7 @@
- #include <plat/control.h>
- #include <plat/mux.h>
- #include <plat/fpga.h>
-+#include <plat/serial.h>
- 
- #include <plat/clock.h>
- 
-@@ -245,6 +246,7 @@ static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
- 	omap2_set_globals_sdrc(omap2_globals);
- 	omap2_set_globals_control(omap2_globals);
- 	omap2_set_globals_prcm(omap2_globals);
-+	omap2_set_globals_uart(omap2_globals);
- }
- 
- #endif
-@@ -259,6 +261,9 @@ static struct omap_globals omap242x_globals = {
- 	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP2420_CTRL_BASE),
- 	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE),
- 	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE),
-+	.uart1_phys	= OMAP2_UART1_BASE,
-+	.uart2_phys	= OMAP2_UART2_BASE,
-+	.uart3_phys	= OMAP2_UART3_BASE,
- };
- 
- void __init omap2_set_globals_242x(void)
-@@ -277,6 +282,9 @@ static struct omap_globals omap243x_globals = {
- 	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE),
- 	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE),
- 	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE),
-+	.uart1_phys	= OMAP2_UART1_BASE,
-+	.uart2_phys	= OMAP2_UART2_BASE,
-+	.uart3_phys	= OMAP2_UART3_BASE,
- };
- 
- void __init omap2_set_globals_243x(void)
-@@ -285,9 +293,9 @@ void __init omap2_set_globals_243x(void)
- }
- #endif
- 
--#if defined(CONFIG_ARCH_OMAP3430)
-+#if defined(CONFIG_ARCH_OMAP3)
- 
--static struct omap_globals omap343x_globals = {
-+static struct omap_globals omap3_globals = {
- 	.class	= OMAP343X_CLASS,
- 	.tap	= OMAP2_L4_IO_ADDRESS(0x4830A000),
- 	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP343X_SDRC_BASE),
-@@ -295,11 +303,21 @@ static struct omap_globals omap343x_globals = {
- 	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE),
- 	.prm	= OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE),
- 	.cm	= OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
-+	.uart1_phys	= OMAP3_UART1_BASE,
-+	.uart2_phys	= OMAP3_UART2_BASE,
-+	.uart3_phys	= OMAP3_UART3_BASE,
- };
- 
- void __init omap2_set_globals_343x(void)
- {
--	__omap2_set_globals(&omap343x_globals);
-+	__omap2_set_globals(&omap3_globals);
-+}
-+
-+void __init omap2_set_globals_36xx(void)
-+{
-+	omap3_globals.uart4_phys = OMAP3_UART4_BASE;
-+
-+	__omap2_set_globals(&omap3_globals);
- }
- #endif
- 
-@@ -311,6 +329,10 @@ static struct omap_globals omap4_globals = {
- 	.prm	= OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE),
- 	.cm	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
- 	.cm2	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE),
-+	.uart1_phys	= OMAP4_UART1_BASE,
-+	.uart2_phys	= OMAP4_UART2_BASE,
-+	.uart3_phys	= OMAP4_UART3_BASE,
-+	.uart4_phys	= OMAP4_UART4_BASE,
- };
- 
- void __init omap2_set_globals_443x(void)
-@@ -318,6 +340,7 @@ void __init omap2_set_globals_443x(void)
- 	omap2_set_globals_tap(&omap4_globals);
- 	omap2_set_globals_control(&omap4_globals);
- 	omap2_set_globals_prcm(&omap4_globals);
-+	omap2_set_globals_uart(&omap4_globals);
- }
- #endif
- 
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 32c2227..e04a58e 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -47,11 +47,16 @@ struct omap_globals {
- 	void __iomem	*prm;		/* Power and Reset Management */
- 	void __iomem	*cm;		/* Clock Management */
- 	void __iomem	*cm2;
-+	unsigned long	uart1_phys;
-+	unsigned long	uart2_phys;
-+	unsigned long	uart3_phys;
-+	unsigned long	uart4_phys;
- };
- 
- void omap2_set_globals_242x(void);
- void omap2_set_globals_243x(void);
- void omap2_set_globals_343x(void);
-+void omap2_set_globals_36xx(void);
- void omap2_set_globals_443x(void);
- 
- /* These get called from omap2_set_globals_xxxx(), do not call these */
-@@ -59,6 +64,7 @@ void omap2_set_globals_tap(struct omap_globals *);
- void omap2_set_globals_sdrc(struct omap_globals *);
- void omap2_set_globals_control(struct omap_globals *);
- void omap2_set_globals_prcm(struct omap_globals *);
-+void omap2_set_globals_uart(struct omap_globals *);
- 
- /**
-  * omap_test_timeout - busy-loop, testing a condition
-diff --git a/arch/arm/plat-omap/include/plat/omap16xx.h b/arch/arm/plat-omap/include/plat/omap16xx.h
-index 7560b4d..e69e1d8 100644
---- a/arch/arm/plat-omap/include/plat/omap16xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap16xx.h
-@@ -125,43 +125,43 @@
- #define OMAP16XX_MMCSD2_SSW_MPU_CONF	(TIPB_SWITCH_BASE + 0x160)
- 
- /* UART3 Registers Mapping through MPU bus */
--#define UART3_RHR               (OMAP_UART3_BASE + 0)
--#define UART3_THR               (OMAP_UART3_BASE + 0)
--#define UART3_DLL               (OMAP_UART3_BASE + 0)
--#define UART3_IER               (OMAP_UART3_BASE + 4)
--#define UART3_DLH               (OMAP_UART3_BASE + 4)
--#define UART3_IIR               (OMAP_UART3_BASE + 8)
--#define UART3_FCR               (OMAP_UART3_BASE + 8)
--#define UART3_EFR               (OMAP_UART3_BASE + 8)
--#define UART3_LCR               (OMAP_UART3_BASE + 0x0C)
--#define UART3_MCR               (OMAP_UART3_BASE + 0x10)
--#define UART3_XON1_ADDR1        (OMAP_UART3_BASE + 0x10)
--#define UART3_XON2_ADDR2        (OMAP_UART3_BASE + 0x14)
--#define UART3_LSR               (OMAP_UART3_BASE + 0x14)
--#define UART3_TCR               (OMAP_UART3_BASE + 0x18)
--#define UART3_MSR               (OMAP_UART3_BASE + 0x18)
--#define UART3_XOFF1             (OMAP_UART3_BASE + 0x18)
--#define UART3_XOFF2             (OMAP_UART3_BASE + 0x1C)
--#define UART3_SPR               (OMAP_UART3_BASE + 0x1C)
--#define UART3_TLR               (OMAP_UART3_BASE + 0x1C)
--#define UART3_MDR1              (OMAP_UART3_BASE + 0x20)
--#define UART3_MDR2              (OMAP_UART3_BASE + 0x24)
--#define UART3_SFLSR             (OMAP_UART3_BASE + 0x28)
--#define UART3_TXFLL             (OMAP_UART3_BASE + 0x28)
--#define UART3_RESUME            (OMAP_UART3_BASE + 0x2C)
--#define UART3_TXFLH             (OMAP_UART3_BASE + 0x2C)
--#define UART3_SFREGL            (OMAP_UART3_BASE + 0x30)
--#define UART3_RXFLL             (OMAP_UART3_BASE + 0x30)
--#define UART3_SFREGH            (OMAP_UART3_BASE + 0x34)
--#define UART3_RXFLH             (OMAP_UART3_BASE + 0x34)
--#define UART3_BLR               (OMAP_UART3_BASE + 0x38)
--#define UART3_ACREG             (OMAP_UART3_BASE + 0x3C)
--#define UART3_DIV16             (OMAP_UART3_BASE + 0x3C)
--#define UART3_SCR               (OMAP_UART3_BASE + 0x40)
--#define UART3_SSR               (OMAP_UART3_BASE + 0x44)
--#define UART3_EBLR              (OMAP_UART3_BASE + 0x48)
--#define UART3_OSC_12M_SEL       (OMAP_UART3_BASE + 0x4C)
--#define UART3_MVR               (OMAP_UART3_BASE + 0x50)
-+#define UART3_RHR               (OMAP1_UART3_BASE + 0)
-+#define UART3_THR               (OMAP1_UART3_BASE + 0)
-+#define UART3_DLL               (OMAP1_UART3_BASE + 0)
-+#define UART3_IER               (OMAP1_UART3_BASE + 4)
-+#define UART3_DLH               (OMAP1_UART3_BASE + 4)
-+#define UART3_IIR               (OMAP1_UART3_BASE + 8)
-+#define UART3_FCR               (OMAP1_UART3_BASE + 8)
-+#define UART3_EFR               (OMAP1_UART3_BASE + 8)
-+#define UART3_LCR               (OMAP1_UART3_BASE + 0x0C)
-+#define UART3_MCR               (OMAP1_UART3_BASE + 0x10)
-+#define UART3_XON1_ADDR1        (OMAP1_UART3_BASE + 0x10)
-+#define UART3_XON2_ADDR2        (OMAP1_UART3_BASE + 0x14)
-+#define UART3_LSR               (OMAP1_UART3_BASE + 0x14)
-+#define UART3_TCR               (OMAP1_UART3_BASE + 0x18)
-+#define UART3_MSR               (OMAP1_UART3_BASE + 0x18)
-+#define UART3_XOFF1             (OMAP1_UART3_BASE + 0x18)
-+#define UART3_XOFF2             (OMAP1_UART3_BASE + 0x1C)
-+#define UART3_SPR               (OMAP1_UART3_BASE + 0x1C)
-+#define UART3_TLR               (OMAP1_UART3_BASE + 0x1C)
-+#define UART3_MDR1              (OMAP1_UART3_BASE + 0x20)
-+#define UART3_MDR2              (OMAP1_UART3_BASE + 0x24)
-+#define UART3_SFLSR             (OMAP1_UART3_BASE + 0x28)
-+#define UART3_TXFLL             (OMAP1_UART3_BASE + 0x28)
-+#define UART3_RESUME            (OMAP1_UART3_BASE + 0x2C)
-+#define UART3_TXFLH             (OMAP1_UART3_BASE + 0x2C)
-+#define UART3_SFREGL            (OMAP1_UART3_BASE + 0x30)
-+#define UART3_RXFLL             (OMAP1_UART3_BASE + 0x30)
-+#define UART3_SFREGH            (OMAP1_UART3_BASE + 0x34)
-+#define UART3_RXFLH             (OMAP1_UART3_BASE + 0x34)
-+#define UART3_BLR               (OMAP1_UART3_BASE + 0x38)
-+#define UART3_ACREG             (OMAP1_UART3_BASE + 0x3C)
-+#define UART3_DIV16             (OMAP1_UART3_BASE + 0x3C)
-+#define UART3_SCR               (OMAP1_UART3_BASE + 0x40)
-+#define UART3_SSR               (OMAP1_UART3_BASE + 0x44)
-+#define UART3_EBLR              (OMAP1_UART3_BASE + 0x48)
-+#define UART3_OSC_12M_SEL       (OMAP1_UART3_BASE + 0x4C)
-+#define UART3_MVR               (OMAP1_UART3_BASE + 0x50)
- 
- /*
-  * ---------------------------------------------------------------------------
 diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index f5a4a92..7f5a7a8 100644
+index 7f5a7a8..67ffa08 100644
 --- a/arch/arm/plat-omap/include/plat/serial.h
 +++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -15,37 +15,40 @@
+@@ -26,24 +26,49 @@
+ #define OMAP2_UART3_BASE	0x4806e000
  
- #include <linux/init.h>
- 
--#if defined(CONFIG_ARCH_OMAP1)
- /* OMAP1 serial ports */
--#define OMAP_UART1_BASE		0xfffb0000
--#define OMAP_UART2_BASE		0xfffb0800
--#define OMAP_UART3_BASE		0xfffb9800
--#elif defined(CONFIG_ARCH_OMAP2)
-+#define OMAP1_UART1_BASE	0xfffb0000
-+#define OMAP1_UART2_BASE	0xfffb0800
-+#define OMAP1_UART3_BASE	0xfffb9800
-+
- /* OMAP2 serial ports */
--#define OMAP_UART1_BASE		0x4806a000
--#define OMAP_UART2_BASE		0x4806c000
--#define OMAP_UART3_BASE		0x4806e000
--#elif defined(CONFIG_ARCH_OMAP3)
-+#define OMAP2_UART1_BASE	0x4806a000
-+#define OMAP2_UART2_BASE	0x4806c000
-+#define OMAP2_UART3_BASE	0x4806e000
-+
  /* OMAP3 serial ports */
--#define OMAP_UART1_BASE		0x4806a000
--#define OMAP_UART2_BASE		0x4806c000
--#define OMAP_UART3_BASE		0x49020000
--#elif defined(CONFIG_ARCH_OMAP4)
-+#define OMAP3_UART1_BASE	0x4806a000
-+#define OMAP3_UART2_BASE	0x4806c000
-+#define OMAP3_UART3_BASE	0x49020000
-+#define OMAP3_UART4_BASE	0x49042000	/* Only on 36xx */
-+
+-#define OMAP3_UART1_BASE	0x4806a000
+-#define OMAP3_UART2_BASE	0x4806c000
++#define OMAP3_UART1_BASE	OMAP2_UART1_BASE
++#define OMAP3_UART2_BASE	OMAP2_UART2_BASE
+ #define OMAP3_UART3_BASE	0x49020000
+ #define OMAP3_UART4_BASE	0x49042000	/* Only on 36xx */
+ 
  /* OMAP4 serial ports */
--#define OMAP_UART1_BASE		0x4806a000
--#define OMAP_UART2_BASE		0x4806c000
--#define OMAP_UART3_BASE		0x48020000
--#define OMAP_UART4_BASE		0x4806e000
--#endif
-+#define OMAP4_UART1_BASE	0x4806a000
-+#define OMAP4_UART2_BASE	0x4806c000
-+#define OMAP4_UART3_BASE	0x48020000
-+#define OMAP4_UART4_BASE	0x4806e000
+-#define OMAP4_UART1_BASE	0x4806a000
+-#define OMAP4_UART2_BASE	0x4806c000
++#define OMAP4_UART1_BASE	OMAP2_UART1_BASE
++#define OMAP4_UART2_BASE	OMAP2_UART1_BASE
+ #define OMAP4_UART3_BASE	0x48020000
+ #define OMAP4_UART4_BASE	0x4806e000
+ 
++/* External port on Zoom2/3 */
++#define ZOOM_UART_BASE		0x10000000
++#define ZOOM_UART_VIRT		0xfb000000
 +
-+#define OMAP_PORT_SHIFT		2
-+#define OMAP7XX_PORT_SHIFT	0
+ #define OMAP_PORT_SHIFT		2
+ #define OMAP7XX_PORT_SHIFT	0
++#define ZOOM_PORT_SHIFT		1
  
  #define OMAP1510_BASE_BAUD	(12000000/16)
  #define OMAP16XX_BASE_BAUD	(48000000/16)
  #define OMAP24XX_BASE_BAUD	(48000000/16)
  
-+/* This is only used by 8250.c for omap1510 */
++/*
++ * DEBUG_LL port encoding stored into the UART1 scratchpad register by
++ * decomp_setup in uncompress.h
++ */
++#define OMAP1UART1		11
++#define OMAP1UART2		12
++#define OMAP1UART3		13
++#define OMAP2UART1		21
++#define OMAP2UART2		22
++#define OMAP2UART3		23
++#define OMAP3UART1		OMAP2UART1
++#define OMAP3UART2		OMAP2UART2
++#define OMAP3UART3		33
++#define OMAP3UART4		34		/* Only on 36xx */
++#define OMAP4UART1		OMAP2UART1
++#define OMAP4UART2		OMAP2UART2
++#define OMAP4UART3		43
++#define OMAP4UART4		44
++#define ZOOM_UART		95		/* Only on zoom2/3 */
++
+ /* This is only used by 8250.c for omap1510 */
  #define is_omap_port(pt)	({int __ret = 0;			\
--			if ((pt)->port.mapbase == OMAP_UART1_BASE ||	\
--			    (pt)->port.mapbase == OMAP_UART2_BASE ||	\
--			    (pt)->port.mapbase == OMAP_UART3_BASE)	\
-+			if ((pt)->port.mapbase == OMAP1_UART1_BASE ||	\
-+			    (pt)->port.mapbase == OMAP1_UART2_BASE ||	\
-+			    (pt)->port.mapbase == OMAP1_UART3_BASE)	\
- 				__ret = 1;				\
- 			__ret;						\
- 			})
+ 			if ((pt)->port.mapbase == OMAP1_UART1_BASE ||	\
 diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 13c305d..e5723c3 100644
+index e5723c3..81d9ec5 100644
 --- a/arch/arm/plat-omap/include/plat/uncompress.h
 +++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -40,12 +40,13 @@ static void putc(int c)
- #endif
+@@ -19,63 +19,38 @@
  
- #ifdef CONFIG_ARCH_OMAP
-+	/* Will get removed in the next patch, set to OMAP3 to compile */
- #ifdef	CONFIG_OMAP_LL_DEBUG_UART3
--	uart = (volatile u8 *)(OMAP_UART3_BASE);
-+	uart = (volatile u8 *)(OMAP3_UART3_BASE);
- #elif defined(CONFIG_OMAP_LL_DEBUG_UART2)
--	uart = (volatile u8 *)(OMAP_UART2_BASE);
-+	uart = (volatile u8 *)(OMAP3_UART2_BASE);
- #elif defined(CONFIG_OMAP_LL_DEBUG_UART1)
--	uart = (volatile u8 *)(OMAP_UART1_BASE);
-+	uart = (volatile u8 *)(OMAP3_UART1_BASE);
- #elif defined(CONFIG_OMAP_LL_DEBUG_NONE)
- 	return;
- #else
+ #include <linux/types.h>
+ #include <linux/serial_reg.h>
++
++#include <asm/mach-types.h>
++
+ #include <plat/serial.h>
+ 
+-unsigned int system_rev;
++static volatile u8 *uart1_base;
++static int uart1_shift;
+ 
+-#define UART_OMAP_MDR1		0x08	/* mode definition register */
+-#define OMAP_ID_730		0x355F
+-#define OMAP_ID_850		0x362C
+-#define ID_MASK			0x7fff
+-#define check_port(base, shift) ((base[UART_OMAP_MDR1 << shift] & 7) == 0)
+-#define omap_get_id() ((*(volatile unsigned int *)(0xfffed404)) >> 12) & ID_MASK
++static volatile u8 *uart_base;
++static int uart_shift;
+ 
+-static void putc(int c)
++/*
++ * Store the DEBUG_LL uart number into UART1 scratchpad register.
++ * See also debug-macro.S, and serial.c for related code.
++ *
++ * Please note that we currently assume that:
++ * - UART1 clocks are enabled for register access
++ * - UART1 scratchpad register can be used
++ */
++static void set_uart1_scratchpad(unsigned char port)
+ {
+-	volatile u8 * uart = 0;
+-	int shift = 2;
+-
+-#ifdef CONFIG_MACH_OMAP_PALMTE
+-	return;
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP
+-	/* Will get removed in the next patch, set to OMAP3 to compile */
+-#ifdef	CONFIG_OMAP_LL_DEBUG_UART3
+-	uart = (volatile u8 *)(OMAP3_UART3_BASE);
+-#elif defined(CONFIG_OMAP_LL_DEBUG_UART2)
+-	uart = (volatile u8 *)(OMAP3_UART2_BASE);
+-#elif defined(CONFIG_OMAP_LL_DEBUG_UART1)
+-	uart = (volatile u8 *)(OMAP3_UART1_BASE);
+-#elif defined(CONFIG_OMAP_LL_DEBUG_NONE)
+-	return;
+-#else
+-	return;
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP1
+-	/* Determine which serial port to use */
+-	do {
+-		/* MMU is not on, so cpu_is_omapXXXX() won't work here */
+-		unsigned int omap_id = omap_get_id();
+-
+-		if (omap_id == OMAP_ID_730 || omap_id == OMAP_ID_850)
+-			shift = 0;
++	uart1_base[UART_SCR << uart1_shift] = port;
++}
+ 
+-		if (check_port(uart, shift))
+-			break;
+-		/* Silent boot if no serial ports are enabled. */
++static void putc(int c)
++{
++	if (!uart_base)
+ 		return;
+-	} while (0);
+-#endif /* CONFIG_ARCH_OMAP1 */
+-#endif
+ 
+-	/*
+-	 * Now, xmit each character
+-	 */
+-	while (!(uart[UART_LSR << shift] & UART_LSR_THRE))
++	while (!(uart_base[UART_LSR << uart_shift] & UART_LSR_THRE))
+ 		barrier();
+-	uart[UART_TX << shift] = c;
++	uart_base[UART_TX << uart_shift] = c;
+ }
+ 
+ static inline void flush(void)
+@@ -83,7 +58,116 @@ static inline void flush(void)
+ }
+ 
+ /*
++ * Macros to configure UART1 and debug UART
++ */
++#define _DEBUG_LL_ENTRY(mach, uart1_phys, uart1_shft,			\
++			dbg_uart, dbg_shft, dbg_id)			\
++	if (machine_is_##mach()) {					\
++		uart1_base = (volatile u8 *)(uart1_phys);		\
++		uart1_shift = (uart1_shft);				\
++		uart_base = (volatile u8 *)(dbg_uart);			\
++		uart_shift = (dbg_shft);				\
++		port = (dbg_id);					\
++		set_uart1_scratchpad(port);				\
++		break;							\
++	}
++
++#define DEBUG_LL_OMAP7XX(p, mach)					\
++	_DEBUG_LL_ENTRY(mach, OMAP1_UART1_BASE, OMAP7XX_PORT_SHIFT,	\
++		OMAP1_UART##p##_BASE, OMAP7XX_PORT_SHIFT, OMAP1UART##p)
++
++#define DEBUG_LL_OMAP1(p, mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP1_UART1_BASE, OMAP_PORT_SHIFT,	\
++		OMAP1_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP1UART##p)
++
++#define DEBUG_LL_OMAP2(p, mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP2_UART1_BASE, OMAP_PORT_SHIFT,	\
++		OMAP2_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP2UART##p)
++
++#define DEBUG_LL_OMAP3(p, mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP3_UART1_BASE, OMAP_PORT_SHIFT,	\
++		OMAP3_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP3UART##p)
++
++#define DEBUG_LL_OMAP4(p, mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP4_UART1_BASE, OMAP_PORT_SHIFT,	\
++		OMAP4_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP4UART##p)
++
++/* Zoom2/3 shift is different for UART1 and external port */
++#define DEBUG_LL_ZOOM(mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP2_UART1_BASE, OMAP_PORT_SHIFT,	\
++		ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
++
++static inline void __arch_decomp_setup(unsigned long arch_id)
++{
++	int port = 0;
++
++	/*
++	 * Initialize the port based on the machine ID from the bootloader.
++	 * Note that we're using macros here instead of switch statement
++	 * as machine_is functions are optimized out for the boards that
++	 * are not selected.
++	 */
++	do {
++		/* omap7xx/8xx based boards using UART1 with shift 0 */
++		DEBUG_LL_OMAP7XX(1, herald);
++		DEBUG_LL_OMAP7XX(1, omap_perseus2);
++
++		/* omap15xx/16xx based boards using UART1 */
++		DEBUG_LL_OMAP1(1, ams_delta);
++		DEBUG_LL_OMAP1(1, nokia770);
++		DEBUG_LL_OMAP1(1, omap_h2);
++		DEBUG_LL_OMAP1(1, omap_h3);
++		DEBUG_LL_OMAP1(1, omap_innovator);
++		DEBUG_LL_OMAP1(1, omap_osk);
++		DEBUG_LL_OMAP1(1, omap_palmte);
++		DEBUG_LL_OMAP1(1, omap_palmz71);
++
++		/* omap15xx/16xx based boards using UART2 */
++		DEBUG_LL_OMAP1(2, omap_palmtt);
++
++		/* omap15xx/16xx based boards using UART3 */
++		DEBUG_LL_OMAP1(3, sx1);
++
++		/* omap2 based boards using UART1 */
++		DEBUG_LL_OMAP2(1, omap2evm);
++		DEBUG_LL_OMAP2(1, omap_2430sdp);
++		DEBUG_LL_OMAP2(1, omap_apollon);
++		DEBUG_LL_OMAP2(1, omap_h4);
++
++		/* omap2 based boards using UART3 */
++		DEBUG_LL_OMAP2(3, nokia_n800);
++		DEBUG_LL_OMAP2(3, nokia_n810);
++		DEBUG_LL_OMAP2(3, nokia_n810_wimax);
++
++		/* omap3 based boards using UART1 */
++		DEBUG_LL_OMAP2(1, omap3evm);
++		DEBUG_LL_OMAP3(1, omap_3430sdp);
++		DEBUG_LL_OMAP3(1, omap_3630sdp);
++
++		/* omap3 based boards using UART3 */
++		DEBUG_LL_OMAP3(3, cm_t35);
++		DEBUG_LL_OMAP3(3, igep0020);
++		DEBUG_LL_OMAP3(3, nokia_rx51);
++		DEBUG_LL_OMAP3(3, omap3517evm);
++		DEBUG_LL_OMAP3(3, omap3_beagle);
++		DEBUG_LL_OMAP3(3, omap3_pandora);
++		DEBUG_LL_OMAP3(3, omap_ldp);
++		DEBUG_LL_OMAP3(3, overo);
++		DEBUG_LL_OMAP3(3, touchbook);
++
++		/* omap4 based boards using UART3 */
++		DEBUG_LL_OMAP4(3, omap_4430sdp);
++
++		/* zoom2/3 external uart */
++		DEBUG_LL_ZOOM(omap_zoom2);
++		DEBUG_LL_ZOOM(omap_zoom3);
++
++	} while (0);
++}
++
++#define arch_decomp_setup()	__arch_decomp_setup(arch_id)
++
++/*
+  * nothing to do
+  */
+-#define arch_decomp_setup()
+ #define arch_decomp_wdog()
 
