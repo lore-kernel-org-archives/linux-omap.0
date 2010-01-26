@@ -1,49 +1,85 @@
-From: "Andrew Murray" <amurray@mpc-data.co.uk>
-Subject: Issue with pm_debug?
-Date: Tue, 26 Jan 2010 15:45:13 -0000
-Message-ID: <0C997DD87CC88A4F86C897F52650B52B025627F2@MOLSON.mpc-data.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP2/3/4: ioremap address space
+Date: Tue, 26 Jan 2010 07:46:08 -0800
+Message-ID: <20100126154608.GA17449@atomide.com>
+References: <1264495210-17344-1-git-send-email-santosh.shilimkar@ti.com>
+ <1264495210-17344-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cvs.mpc-ogw.co.uk ([81.2.99.171]:49587 "EHLO
-	molson.mpc-data.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754317Ab0AZPpS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 10:45:18 -0500
-Content-class: urn:content-classes:message
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59504 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754041Ab0AZPpv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 10:45:51 -0500
+Content-Disposition: inline
+In-Reply-To: <1264495210-17344-2-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hello,
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [100126 00:37]:
+> This patch update the sdrc, prcm, tap and control module to
+> allocate iospace dynamically
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> CC: Kevin Hilman <khilman@deeprootsystems.com>
+> CC: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/control.c |    6 +++++-
+>  arch/arm/mach-omap2/id.c      |    7 ++++++-
+>  arch/arm/mach-omap2/prcm.c    |   16 +++++++++++++---
+>  arch/arm/mach-omap2/sdrc.c    |   11 +++++++++--
+>  4 files changed, 33 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index cdd1f35..43f8a33 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -140,7 +140,11 @@ static struct omap3_control_regs control_context;
+>  
+>  void __init omap2_set_globals_control(struct omap_globals *omap2_globals)
+>  {
+> -	omap2_ctrl_base = omap2_globals->ctrl;
+> +	/* Static mapping, never released */
+> +	if (omap2_globals->ctrl) {
+> +		omap2_ctrl_base = ioremap(omap2_globals->ctrl, SZ_4K);
+> +		WARN_ON(!omap2_ctrl_base);
+> +	}
+>  }
+>  
+>  void __iomem *omap_ctrl_base_get(void)
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index a091b53..fb5921b 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -407,7 +407,12 @@ void __init omap2_check_revision(void)
+>  void __init omap2_set_globals_tap(struct omap_globals *omap2_globals)
+>  {
+>  	omap_revision = omap2_globals->class;
+> -	tap_base = omap2_globals->tap;
+> +
+> +	/* Static mapping, never released */
+> +	if (omap2_globals->tap) {
+> +		tap_base = ioremap(omap2_globals->tap, SZ_4K);
+> +		WARN_ON(!tap_base);
+> +	}
+>  
+>  	if (cpu_is_omap34xx())
+>  		tap_prod_id = 0x0210;
 
-I've been studying the power management support on the OMAP 35x EVM (Rev
-G) and have noticed something which seems inconsistent with the
-documentation. 
+Nice clean-up.
 
-According to the elinux OMAP Power Management wiki page
-(http://elinux.org/OMAP_Power_Management) - setting "sleep_while_idle"
-to '1' and setting "enable_off_mode" and "voltage_off_while_idle" to '0'
-in the debugfs should result in a kernel which will never hit 'off'
-sleep states. 
+We need to check carefully that the cpu detection is done by the time
+we do the ioremap.. Initially we only know the machine class such as
+34xx/24xx.
 
-However in this set up (with both ladder and menu governor) I've found
-that in this state the C5 and C6 states are entered (according to
-/sys/devices/system/cpu/cpu0/cpuidle/state[5/6]/time). However according
-to the sources these states include the off state. 
+We have at least cpu_is_omap2420 and cpu_is_omap2430 being used in io.c,
+so all these mappings may not work properly.
 
-Also the /debug/pm_debug/time indicates the off state wasn't reached.
-Therefore is it just the case that the CPUIdle framework requested C5/6
-and the omap driver accepted by actually used another state?
+Also, we should merge this as one patch to keep the system booting
+between the patches.
 
-Is this incorrect behaviour? Or is my understanding of power management
-implementation incorrect? Any clarifications would be of great value.
+Regards,
 
-I've used the 'pm' branch in the khilman linux-omap-pm repository. (Is
-this the most appropriate mailing list?)
-
-Many Thanks,
-
-Andrew Murray
-
+Tony
