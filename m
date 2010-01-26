@@ -1,86 +1,114 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] omap: define _toggle_gpio_edge_triggering only for
- OMAP1
-Date: Mon, 25 Jan 2010 16:28:32 -0800
-Message-ID: <20100126002832.GD2879@atomide.com>
-References: <1264280500-22878-2-git-send-email-u.kleine-koenig@pengutronix.de>
- <87sk9u6o4l.fsf@deeprootsystems.com>
+Subject: [GIT PULL] omap-fixes for 2.6.33-rc5
+Date: Mon, 25 Jan 2010 16:53:42 -0800
+Message-ID: <20100126005342.GE2879@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751823Ab0AZA2s@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752475Ab0AZAxa@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87sk9u6o4l.fsf@deeprootsystems.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100125 10:20]:
-> Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> writes:
->=20
-> > The only usage of _toggle_gpio_edge_triggering is in an
-> > CONFIG_ARCH_OMAP1 is defined, too.
-> >
-> > This fixes a compiler warning:
-> >
-> > 	arch/arm/plat-omap/gpio.c:758: warning: '_toggle_gpio_edge_trigger=
-ing' defined but not used
-> >
-> > when compiling for ARCH_OMAP2, ARCH_OMAP3 or ARCH_OMAP4.
-> >
-> > Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.d=
-e>
->=20
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Linus,
 
-Ack, I'll add this into omap-fixes for the -rc cycle.
+Please pull omap-fixes from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
 
 Regards,
 
 Tony
-=20
-> > ---
-> >  arch/arm/plat-omap/gpio.c |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> > index d17620c..d2422c7 100644
-> > --- a/arch/arm/plat-omap/gpio.c
-> > +++ b/arch/arm/plat-omap/gpio.c
-> > @@ -750,6 +750,7 @@ static inline void set_24xx_gpio_triggering(str=
-uct gpio_bank *bank, int gpio,
-> >  }
-> >  #endif
-> > =20
-> > +#ifdef CONFIG_ARCH_OMAP1
-> >  /*
-> >   * This only applies to chips that can't do both rising and fallin=
-g edge
-> >   * detection at once.  For all other chips, this function is a noo=
-p.
-> > @@ -760,11 +761,9 @@ static void _toggle_gpio_edge_triggering(struc=
-t gpio_bank *bank, int gpio)
-> >  	u32 l =3D 0;
-> > =20
-> >  	switch (bank->method) {
-> > -#ifdef CONFIG_ARCH_OMAP1
-> >  	case METHOD_MPUIO:
-> >  		reg +=3D OMAP_MPUIO_GPIO_INT_EDGE;
-> >  		break;
-> > -#endif
-> >  #ifdef CONFIG_ARCH_OMAP15XX
-> >  	case METHOD_GPIO_1510:
-> >  		reg +=3D OMAP1510_GPIO_INT_CONTROL;
-> > @@ -787,6 +786,7 @@ static void _toggle_gpio_edge_triggering(struct=
- gpio_bank *bank, int gpio)
-> > =20
-> >  	__raw_writel(l, reg);
-> >  }
-> > +#endif
-> > =20
-> >  static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, =
-int trigger)
-> >  {
-> > --=20
-> > 1.6.6
+
+
+The following changes since commit 92dcffb916d309aa01778bf8963a6932e4014d07:
+  Linus Torvalds (1):
+        Linux 2.6.33-rc5
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Kevin Hilman (1):
+      OMAP: timekeeping: time should not stop during suspend
+
+Manjunatha GK (1):
+      OMAP3: PM debug: fix build error when !CONFIG_DEBUG_FS
+
+Olof Johansson (1):
+      omap: Enable GPMC clock in gpmc_init
+
+Paul Walmsley (1):
+      OMAP1 clock: fix for "BUG: spinlock lockup on CPU#0"
+
+Peter Ujfalusi (1):
+      OMAP3: PM: Enable wake-up from McBSP2, 3 and 4 modules
+
+Rajendra Nayak (2):
+      OMAP4: PRCM: Fix the base address for CHIRONSS reg defines
+      OMAP4: clocks: Fix the clksel_rate struct DPLL divs
+
+Roel Kluin (2):
+      OMAP: dma_chan[lch_head].flag & OMAP_DMA_ACTIVE tested twice in omap_dma_unlink_lch()
+      OMAP: omap3_pm_get_suspend_state() error ignored in pwrdm_suspend_get()
+
+Russell King (1):
+      OMAP3: clock: Remove unnecessarily .init initializers from OMAP3 clocks
+
+Sanjeev Premi (1):
+      OMAP3: PM: Remove duplicate code blocks
+
+Sergio Aguirre (1):
+      PM debug: Fix warning when no CONFIG_DEBUG_FS
+
+Sripathy, Vishwanath (1):
+      OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
+
+Subramani Venkatesh (1):
+      OMAP3: PM: DSS PM_WKEN to refill DMA
+
+Tero Kristo (7):
+      OMAP3: PM: Ack pending interrupts before entering suspend
+      OMAP3: PM: Enable system control module autoidle
+      OMAP3: PM: Disable interrupt controller AUTOIDLE before WFI
+      OMAP3: CPUidle: Fixed timer resolution
+      OMAP3: Fixed ARM aux ctrl register save/restore
+      OMAP3: PM: Force write last pad config register into save area
+      OMAP2/3: DMTIMER: Clear pending interrupts when stopping a timer
+
+Thara Gopinath (1):
+      OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
+
+Tony Lindgren (6):
+      omap: Fix cmdline muxing
+      omap: Fix functions for dynamic remuxing of pins
+      omap3: Fix cpu detection
+      Merge branch 'for_2.6.33rc_d' of git://git.pwsan.com/linux-2.6 into omap-fixes-for-linus
+      Merge branch 'pm-fixes' of master.kernel.org:/.../khilman/linux-omap-pm into omap-fixes-for-linus
+      Merge branch 'omap-fixes' into omap-fixes-for-linus
+
+ arch/arm/mach-omap1/clock.c                  |    6 +-
+ arch/arm/mach-omap2/clock34xx_data.c         |    4 --
+ arch/arm/mach-omap2/clock44xx_data.c         |   62 +++++++++++++-------------
+ arch/arm/mach-omap2/cpuidle34xx.c            |    2 +-
+ arch/arm/mach-omap2/gpmc.c                   |    2 +
+ arch/arm/mach-omap2/id.c                     |   41 ++++++++++-------
+ arch/arm/mach-omap2/irq.c                    |   18 +++++++
+ arch/arm/mach-omap2/mux.c                    |   27 ++++++-----
+ arch/arm/mach-omap2/mux.h                    |   24 ++++++++++
+ arch/arm/mach-omap2/omap_hwmod.c             |    3 +-
+ arch/arm/mach-omap2/pm-debug.c               |   12 +++---
+ arch/arm/mach-omap2/pm.h                     |    8 +++-
+ arch/arm/mach-omap2/pm34xx.c                 |   47 +++++++++++---------
+ arch/arm/mach-omap2/prcm.c                   |   11 -----
+ arch/arm/mach-omap2/prm.h                    |    2 +
+ arch/arm/mach-omap2/prm44xx.h                |   32 +++++++-------
+ arch/arm/mach-omap2/sleep34xx.S              |   13 ++++--
+ arch/arm/plat-omap/common.c                  |   26 +++++++++++
+ arch/arm/plat-omap/dma.c                     |    2 +-
+ arch/arm/plat-omap/dmtimer.c                 |   13 +++++
+ arch/arm/plat-omap/include/plat/cpu.h        |    1 +
+ arch/arm/plat-omap/include/plat/irqs.h       |    3 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 23 files changed, 229 insertions(+), 131 deletions(-)
