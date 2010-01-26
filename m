@@ -1,144 +1,88 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
 Subject: Re: [RFC/PATCH 1/5] usb: otg: add notifier support
-Date: Tue, 26 Jan 2010 16:10:16 +0200
-Message-ID: <20100126141016.GD10690@nokia.com>
+Date: Tue, 26 Jan 2010 16:14:43 +0200
+Message-ID: <20100126141443.GE10690@nokia.com>
 References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
- <1260531086-23857-2-git-send-email-felipe.balbi@nokia.com>
  <201001260316.20529.david-b@pacbell.net>
+ <20100126131146.GC32291@sirena.org.uk>
+ <201001260535.21689.david-b@pacbell.net>
 Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:19239 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752353Ab0AZOMU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 09:12:20 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754065Ab0AZORK@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201001260316.20529.david-b@pacbell.net>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <201001260535.21689.david-b@pacbell.net>
+Sender: linux-kernel-owner@vger.kernel.org
 To: ext David Brownell <david-b@pacbell.net>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tue, Jan 26, 2010 at 12:16:20PM +0100, ext David Brownell wrote:
->On Friday 11 December 2009, Felipe Balbi wrote:
->> The notifier will be used to communicate usb events
->> to other drivers like the charger chip.
->
->Good idea ... but not OTG-specific.  It doesn't seem to me
-
-thanks
-
->that charging hookups belong in that header at all.
-
-I noticed that when started actually using it :-)
-
->In fact, usb_gadget_vbus_draw() might better be implemented
->as such a notifier call, removing that configuration mess
->from the usb gadget drivers ("how can I know what charger
->to use??").  That would be the most common situation:  a
->peripheral-only device.
->
->And in fact, OTG can be treated as a trivial superset of
->peripheral-only USB.  (In terms of charger support, only!!)
->
->I'd vote to convert all the USB-to-charger interfaces so
->they use notifiers.  After fixing the events ... see
->comments below.  :)
-
-makes sense
-
->> @@ -9,6 +9,8 @@
->>  #ifndef __LINUX_USB_OTG_H
->>  #define __LINUX_USB_OTG_H
+On Tue, Jan 26, 2010 at 02:35:21PM +0100, ext David Brownell wrote:
+>On Tuesday 26 January 2010, Mark Brown wrote:
+>> On Tue, Jan 26, 2010 at 03:16:20AM -0800, David Brownell wrote:
 >>
->> +#include <linux/notifier.h>
->> +
->>  /* OTG defines lots of enumeration states before device reset */
->>  enum usb_otg_state {
->>  	OTG_STATE_UNDEFINED = 0,
->> @@ -33,6 +35,14 @@ enum usb_otg_state {
->>  	OTG_STATE_A_VBUS_ERR,
->>  };
+>> > I'd vote to convert all the USB-to-charger interfaces so
+>> > they use notifiers.  After fixing the events ... see
+>> > comments below.  :)
 >>
->> +enum usb_xceiv_events {
+>> Yes please - it's not just chargers either, this can also be used by
+>> PMICs which do power path management that includes USB.
 >
->Let's keep charger events separate from anything else,
->like "enter host mode" or "enter peripheral mode" (or
->even "disconnect").  The audiences for any other types
->of event would be entirely different.
-
-the idea was to notify USB events to interested drivers, not only "usb 
-charger events".
-
->Right now there's a mess in terms of charger hookup,
->so getting that straight is IMO a priority over any
->other type of event.  Using events will decouple a
->bunch of drivers, and simplify driver configuration.
-
-well, if you consider that this transceiver isn't really otg specific, 
-then this is already wrong.
-
->> +	USB_EVENT_NONE,         /* no events or cable disconnected */
->> +	USB_EVENT_VBUS,         /* vbus valid event */
->> +	USB_EVENT_ID,           /* id was grounded */
->> +	USB_EVENT_CHARGER,      /* usb dedicated charger */
->> +	USB_EVENT_ENUMERATED,   /* gadget driver enumerated */
+>Color me confused ... what do you mean by "power path"?
 >
->Those seem like the wrong events.  The right events for a charger
->would be more along the lines of:
+>Do you mean something like "the board as a whole can take N mA of
+>current from USB", rather than specifically addressing a charger?
 >
-> - For peripheral:  "you may use N milliAmperes now".
-> - General:  "Don't Charge" (a.k.a. "use 0 mA").
-
-I have to disagree, which information would you used to kick the usb 
-dedicated charger detection other than VBUS irq from transceiver ?
-
-So we need at least that, and also need to notify when the charger 
-detection is finished, so we can enable data pullups on the link. 
-Remember we might be connected to a charging downstream port.
-
->I don't see how "N" would be passed with those events ...
-
-there's a void * we can use to pass bMaxPower field of the selected 
-configuration.
-
->Haven't looked at the details of the charger spec, but
->those two events are the *basics* from the USB 2.0 spec,
->so "official" charger hardware wouldn't be less capable.
-
-I believe the dedicated charger is also "basic".
-
->Thing like different levels of VBUS validity, ID grounding,
->and so forth ... wouldn't be very relevant.  An OTG driver
->will do various things, internally, when ID grounds; but
->anything else is a function of what role eventually gets
->negotiated.  And for the charger, they all add up to "Don't
->Charge" (since ID grounded means A-role, sourcing power).
-
-ID grounding event is necessary if you have an external charge pump. 
-At least the boards I've been working use an external chip as the USB 
-Charger and Charge pump, iow, the transceiver doesn't source VBUS on ID 
-ground, but the charger chip is put into "boost" mode for that role.
-
->>  #define USB_OTG_PULLUP_ID		(1 << 0)
->>  #define USB_OTG_PULLDOWN_DP		(1 << 1)
->>  #define USB_OTG_PULLDOWN_DM		(1 << 2)
->> @@ -70,6 +80,9 @@ struct otg_transceiver {
->>  	struct otg_io_access_ops	*io_ops;
->>  	void __iomem			*io_priv;
+>It's not uncommon to do things like use VBUS current to power the
+>USB circuitry, too.  That can leave less for other purposes.  All
+>of that being rather board-specific.
+>
+>
+>> > Those seem like the wrong events.  The right events for a charger
+>> > would be more along the lines of:
 >>
->> +	/* for notification of usb_xceiv_events */
->> +	struct blocking_notifier_head	notifier;
+>> >  - For peripheral:  "you may use N milliAmperes now".
+>> >  - General:  "Don't Charge" (a.k.a. "use 0 mA").
+>>
+>> > I don't see how "N" would be passed with those events ...
+>>
+>> These are good for the peripheral side.  You do get to pass a void *
+>> along with the notifier value, that could be used to pass data like the
+>> current limit.
 >
->Why "blocking"?  That seems kind of unnatural; for example,
->the main users -- like usb_gadget_vbus_draw() -- would be
->called in IRQ context (blocking not allowed).
+>I don't think I saw that being done ... either in code, comments,
+>or documentation.  Passing N is fundamental.
 
-what about irqs running in thread, wouldn't we "BUG sleeping in irq 
-context" ?
+yeah, my bad. I should have said that, but it's more related to the 
+implementation of the notifier_block.
+
+>> > A host *might* want to be able to say things like "supply
+>> > up to N milliAmperes now", e.g. to let a regulator choose
+>> > the most efficient mode.
+>>
+>> Yes, they definitely want this - not just for efficiency but also to
+>> allow current limiting to protect the system from excessive current
+>> drain.
+>
+>There are load bursting issues too.  All part of the USB spec;
+>a load that's OK for 1 millisecond might not be OK for 1 second.
+
+if you get a SetConfiguration(config), then you can use that load for as 
+long as needed, the limitation is when not enumerated, afaict.
+
+>ISTR the "supply N mA" refers to an average.  And there are some
+>limits to the capacitance that can practically be stuck on VBUS
+>output lines (which includes the cable).  Solvable problems, but
+>not always pretty if software has to think it through.
+>
+>Thing is, supplying current is a bit more involved.  If the
+>board can't supply 300 mA, the USB configuration selection
+>mechanism has to know that, so it never selects peripheral
+>configurations which require that much current.
+
+but that's done already by the usb core, no ? It rules out configuration 
+based on the hub->power_budget (can't remember if the field is that 
+exact name).
 
 -- 
 balbi
