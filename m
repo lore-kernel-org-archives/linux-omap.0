@@ -1,88 +1,90 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
 Subject: Re: [RFC/PATCH 1/5] usb: otg: add notifier support
-Date: Tue, 26 Jan 2010 16:14:43 +0200
-Message-ID: <20100126141443.GE10690@nokia.com>
+Date: Tue, 26 Jan 2010 14:21:02 +0000
+Message-ID: <20100126142102.GU15759@rakim.wolfsonmicro.main>
 References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
  <201001260316.20529.david-b@pacbell.net>
  <20100126131146.GC32291@sirena.org.uk>
  <201001260535.21689.david-b@pacbell.net>
-Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754065Ab0AZORK@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <201001260535.21689.david-b@pacbell.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>
+In-Reply-To: <201001260535.21689.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 26, 2010 at 02:35:21PM +0100, ext David Brownell wrote:
->On Tuesday 26 January 2010, Mark Brown wrote:
->> On Tue, Jan 26, 2010 at 03:16:20AM -0800, David Brownell wrote:
->>
->> > I'd vote to convert all the USB-to-charger interfaces so
->> > they use notifiers.  After fixing the events ... see
->> > comments below.  :)
->>
->> Yes please - it's not just chargers either, this can also be used by
->> PMICs which do power path management that includes USB.
->
->Color me confused ... what do you mean by "power path"?
->
->Do you mean something like "the board as a whole can take N mA of
->current from USB", rather than specifically addressing a charger?
->
->It's not uncommon to do things like use VBUS current to power the
->USB circuitry, too.  That can leave less for other purposes.  All
->of that being rather board-specific.
->
->
->> > Those seem like the wrong events.  The right events for a charger
->> > would be more along the lines of:
->>
->> >  - For peripheral:  "you may use N milliAmperes now".
->> >  - General:  "Don't Charge" (a.k.a. "use 0 mA").
->>
->> > I don't see how "N" would be passed with those events ...
->>
->> These are good for the peripheral side.  You do get to pass a void *
->> along with the notifier value, that could be used to pass data like the
->> current limit.
->
->I don't think I saw that being done ... either in code, comments,
->or documentation.  Passing N is fundamental.
+On Tue, Jan 26, 2010 at 05:35:21AM -0800, David Brownell wrote:
+> On Tuesday 26 January 2010, Mark Brown wrote:
 
-yeah, my bad. I should have said that, but it's more related to the 
-implementation of the notifier_block.
+> > Yes please - it's not just chargers either, this can also be used by
+> > PMICs which do power path management that includes USB.
 
->> > A host *might* want to be able to say things like "supply
->> > up to N milliAmperes now", e.g. to let a regulator choose
->> > the most efficient mode.
->>
->> Yes, they definitely want this - not just for efficiency but also to
->> allow current limiting to protect the system from excessive current
->> drain.
->
->There are load bursting issues too.  All part of the USB spec;
->a load that's OK for 1 millisecond might not be OK for 1 second.
+> Color me confused ... what do you mean by "power path"?
 
-if you get a SetConfiguration(config), then you can use that load for as 
-long as needed, the limitation is when not enumerated, afaict.
+In the sort of design I'm talking about there is generally a system
+power rail which is generated from the various power sources available
+to the system, which might include a combination of batteries, USB and
+wall adaptors.  The power path management logic is the hardware which
+controls which of these are actually being used as supplies, and may
+also include battery charger management.
 
->ISTR the "supply N mA" refers to an average.  And there are some
->limits to the capacitance that can practically be stuck on VBUS
->output lines (which includes the cable).  Solvable problems, but
->not always pretty if software has to think it through.
->
->Thing is, supplying current is a bit more involved.  If the
->board can't supply 300 mA, the USB configuration selection
->mechanism has to know that, so it never selects peripheral
->configurations which require that much current.
+> Do you mean something like "the board as a whole can take N mA of
+> current from USB", rather than specifically addressing a charger?
 
-but that's done already by the usb core, no ? It rules out configuration 
-based on the hub->power_budget (can't remember if the field is that 
-exact name).
+Pretty much, from this point of view.
 
--- 
-balbi
+> It's not uncommon to do things like use VBUS current to power the
+> USB circuitry, too.  That can leave less for other purposes.  All
+> of that being rather board-specific.
+
+In this sort of design either VBUS goes through the power path
+management logic before anything else gets to use it or the hardware
+will know about the headroom it needs to leave.  The power path
+management will usually do things like try to suppliment VBUS with any
+battery that's available to generate the main system supply rail.
+
+This all needs to function without software since it tends to get used
+to decide things like if the system is able to begin power up at all, .
+
+> > > Those seem like the wrong events.  The right events for a charger
+> > > would be more along the lines of:
+
+> > >  - For peripheral:  "you may use N milliAmperes now".
+> > >  - General:  "Don't Charge" (a.k.a. "use 0 mA").
+
+> > > I don't see how "N" would be passed with those events ...
+
+> > These are good for the peripheral side.  You do get to pass a void *
+> > along with the notifier value, that could be used to pass data like the
+> > current limit.
+
+> I don't think I saw that being done ... either in code, comments,
+> or documentation.  Passing N is fundamental.
+
+I think we're talking at cross purposes - I was reading "these events"
+as being the new events quoted above, not the events in the existing
+code.  I certainly agree that N is fundamental.
+
+> Thing is, supplying current is a bit more involved.  If the
+> board can't supply 300 mA, the USB configuration selection
+> mechanism has to know that, so it never selects peripheral
+> configurations which require that much current.
+
+Indeed, the specific limits are more used for protection against things
+like the connected devices drawing more current than they claimed than
+anything else.
+
+> Ergo my desire to start with a straightforward problem whose
+> solution has real value (how much VBUS current may be consumed?),
+> and leave some of those other messes for later!
+
+Understandable.  It would be good to have an idea what sort of general
+direction to go in there, though I do agree that the gadget case is much
+more important here.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
