@@ -1,114 +1,163 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap-fixes for 2.6.33-rc5
-Date: Mon, 25 Jan 2010 16:53:42 -0800
-Message-ID: <20100126005342.GE2879@atomide.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [RESEND][PATCH] DSPBRIDGE: cache operation against kernel address
+ instead of user's
+Date: Mon, 25 Jan 2010 19:56:08 -0600
+Message-ID: <4B5E4BB8.5090108@ti.com>
+References: <1264220772-11097-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752475Ab0AZAxa@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:34795 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751868Ab0AZB4O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jan 2010 20:56:14 -0500
+In-Reply-To: <1264220772-11097-1-git-send-email-omar.ramirez@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-Linus,
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Please pull omap-fixes from:
+Based on the discussion:
+   http://www.spinics.net/lists/arm-kernel/msg72810.html
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+HACK: export "follow_page()" for dspbridge cache operation
 
-Regards,
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+  drivers/dsp/bridge/rmgr/proc.c |   68 
+++++++++++++++++++++++++++++++---------
+  mm/memory.c                    |    1 +
+  2 files changed, 53 insertions(+), 16 deletions(-)
 
-Tony
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 491661f..3e05281 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -574,8 +574,43 @@ DSP_STATUS PROC_EnumNodes(DSP_HPROCESSOR 
+hProcessor, OUT DSP_HNODE *aNodeTab,
+  	return status;
+  }
+
++/* Cache operation against kernel address instead of users */
++static int memory_sync_page(struct vm_area_struct *vma, unsigned long 
+start,
++			    ssize_t len, enum DSP_FLUSHTYPE ftype)
++{
++	struct page *page;
++	void *kaddr;
++	unsigned long offset;
++	ssize_t rest;
++
++	while (len) {
++		page = follow_page(vma, start, FOLL_GET);
++		if (!page) {
++			pr_err("%s: no page for %08lx\n", __func__, start);
++			return -EINVAL;
++		} else if (IS_ERR(page)) {
++			pr_err("%s: err page for %08lx(%lu)\n", __func__, start,
++			       IS_ERR(page));
++			return IS_ERR(page);
++		}
++
++		offset = start & ~PAGE_MASK;
++		kaddr = page_address(page) + offset;
++		rest = min_t(ssize_t, PAGE_SIZE - offset, len);
++
++		MEM_FlushCache(kaddr, rest, ftype);
++
++		put_page(page);
++		len -= rest;
++		start += rest;
++	}
++
++	return 0;
++}
++
+  /* Check if the given area blongs to process virtul memory address 
+space */
+-static int memory_check_vma(unsigned long start, u32 len)
++static int memory_sync_vma(unsigned long start, u32 len,
++			   enum DSP_FLUSHTYPE ftype)
+  {
+  	int err = 0;
+  	unsigned long end;
+@@ -585,14 +620,19 @@ static int memory_check_vma(unsigned long start, 
+u32 len)
+  	if (end <= start)
+  		return -EINVAL;
+
+-	down_read(&current->mm->mmap_sem);
+-
+  	while ((vma = find_vma(current->mm, start)) != NULL) {
++		ssize_t size;
+
+-		if (vma->vm_start > start) {
+-			err = -EINVAL;
++		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
++			return -EINVAL;
++
++		if (vma->vm_start > start)
++			return -EINVAL;
++
++		size = min_t(ssize_t, vma->vm_end - start, len);
++		err = memory_sync_page(vma, start, size, ftype);
++		if (err)
+  			break;
+-		}
+
+  		if (end <= vma->vm_end)
+  			break;
+@@ -603,8 +643,6 @@ static int memory_check_vma(unsigned long start, u32 
+len)
+  	if (!vma)
+  		err = -EINVAL;
+
+-	up_read(&current->mm->mmap_sem);
+-
+  	return err;
+  }
+
+@@ -629,17 +667,15 @@ static DSP_STATUS proc_memory_sync(DSP_HPROCESSOR 
+hProcessor, void *pMpuAddr,
+  		goto err_out;
+  	}
+
+-	if (memory_check_vma((u32)pMpuAddr, ulSize)) {
+-		GT_3trace(PROC_DebugMask, GT_7CLASS,
+-			  "%s: InValid address parameters\n",
+-			  __func__, pMpuAddr, ulSize);
++	down_read(&current->mm->mmap_sem);
++
++	if (memory_sync_vma((u32)pMpuAddr, ulSize, FlushMemType)) {
++		pr_err("%s: InValid address parameters %p %x\n",
++		       __func__, pMpuAddr, ulSize);
+  		status = DSP_EHANDLE;
+-		goto err_out;
+  	}
+
+-	(void)SYNC_EnterCS(hProcLock);
+-	MEM_FlushCache(pMpuAddr, ulSize, FlushMemType);
+-	(void)SYNC_LeaveCS(hProcLock);
++	up_read(&current->mm->mmap_sem);
+
+  err_out:
+  	GT_2trace(PROC_DebugMask, GT_ENTER,
+diff --git a/mm/memory.c b/mm/memory.c
+index 6ab19dd..377be88 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1228,6 +1228,7 @@ no_page_table:
+  		return ERR_PTR(-EFAULT);
+  	return page;
+  }
++EXPORT_SYMBOL_GPL(follow_page);
+
+  int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+  		     unsigned long start, int nr_pages, unsigned int gup_flags,
+-- 
+1.6.2.4
 
 
-The following changes since commit 92dcffb916d309aa01778bf8963a6932e4014d07:
-  Linus Torvalds (1):
-        Linux 2.6.33-rc5
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Kevin Hilman (1):
-      OMAP: timekeeping: time should not stop during suspend
-
-Manjunatha GK (1):
-      OMAP3: PM debug: fix build error when !CONFIG_DEBUG_FS
-
-Olof Johansson (1):
-      omap: Enable GPMC clock in gpmc_init
-
-Paul Walmsley (1):
-      OMAP1 clock: fix for "BUG: spinlock lockup on CPU#0"
-
-Peter Ujfalusi (1):
-      OMAP3: PM: Enable wake-up from McBSP2, 3 and 4 modules
-
-Rajendra Nayak (2):
-      OMAP4: PRCM: Fix the base address for CHIRONSS reg defines
-      OMAP4: clocks: Fix the clksel_rate struct DPLL divs
-
-Roel Kluin (2):
-      OMAP: dma_chan[lch_head].flag & OMAP_DMA_ACTIVE tested twice in omap_dma_unlink_lch()
-      OMAP: omap3_pm_get_suspend_state() error ignored in pwrdm_suspend_get()
-
-Russell King (1):
-      OMAP3: clock: Remove unnecessarily .init initializers from OMAP3 clocks
-
-Sanjeev Premi (1):
-      OMAP3: PM: Remove duplicate code blocks
-
-Sergio Aguirre (1):
-      PM debug: Fix warning when no CONFIG_DEBUG_FS
-
-Sripathy, Vishwanath (1):
-      OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
-
-Subramani Venkatesh (1):
-      OMAP3: PM: DSS PM_WKEN to refill DMA
-
-Tero Kristo (7):
-      OMAP3: PM: Ack pending interrupts before entering suspend
-      OMAP3: PM: Enable system control module autoidle
-      OMAP3: PM: Disable interrupt controller AUTOIDLE before WFI
-      OMAP3: CPUidle: Fixed timer resolution
-      OMAP3: Fixed ARM aux ctrl register save/restore
-      OMAP3: PM: Force write last pad config register into save area
-      OMAP2/3: DMTIMER: Clear pending interrupts when stopping a timer
-
-Thara Gopinath (1):
-      OMAP3: hwmod: Adding flag to prevent caching of sysconfig register.
-
-Tony Lindgren (6):
-      omap: Fix cmdline muxing
-      omap: Fix functions for dynamic remuxing of pins
-      omap3: Fix cpu detection
-      Merge branch 'for_2.6.33rc_d' of git://git.pwsan.com/linux-2.6 into omap-fixes-for-linus
-      Merge branch 'pm-fixes' of master.kernel.org:/.../khilman/linux-omap-pm into omap-fixes-for-linus
-      Merge branch 'omap-fixes' into omap-fixes-for-linus
-
- arch/arm/mach-omap1/clock.c                  |    6 +-
- arch/arm/mach-omap2/clock34xx_data.c         |    4 --
- arch/arm/mach-omap2/clock44xx_data.c         |   62 +++++++++++++-------------
- arch/arm/mach-omap2/cpuidle34xx.c            |    2 +-
- arch/arm/mach-omap2/gpmc.c                   |    2 +
- arch/arm/mach-omap2/id.c                     |   41 ++++++++++-------
- arch/arm/mach-omap2/irq.c                    |   18 +++++++
- arch/arm/mach-omap2/mux.c                    |   27 ++++++-----
- arch/arm/mach-omap2/mux.h                    |   24 ++++++++++
- arch/arm/mach-omap2/omap_hwmod.c             |    3 +-
- arch/arm/mach-omap2/pm-debug.c               |   12 +++---
- arch/arm/mach-omap2/pm.h                     |    8 +++-
- arch/arm/mach-omap2/pm34xx.c                 |   47 +++++++++++---------
- arch/arm/mach-omap2/prcm.c                   |   11 -----
- arch/arm/mach-omap2/prm.h                    |    2 +
- arch/arm/mach-omap2/prm44xx.h                |   32 +++++++-------
- arch/arm/mach-omap2/sleep34xx.S              |   13 ++++--
- arch/arm/plat-omap/common.c                  |   26 +++++++++++
- arch/arm/plat-omap/dma.c                     |    2 +-
- arch/arm/plat-omap/dmtimer.c                 |   13 +++++
- arch/arm/plat-omap/include/plat/cpu.h        |    1 +
- arch/arm/plat-omap/include/plat/irqs.h       |    3 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 23 files changed, 229 insertions(+), 131 deletions(-)
