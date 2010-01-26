@@ -1,78 +1,56 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [RESEND][PATCH 4/5] DSPBRIDGE: Remove multiple initializations of
- REG module
-Date: Mon, 25 Jan 2010 19:57:06 -0600
-Message-ID: <4B5E4BF2.6000708@ti.com>
-References: <1264217604-8021-1-git-send-email-omar.ramirez@ti.com> <1264217604-8021-2-git-send-email-omar.ramirez@ti.com> <1264217604-8021-3-git-send-email-omar.ramirez@ti.com> <1264217604-8021-4-git-send-email-omar.ramirez@ti.com> <1264217604-8021-5-git-send-email-omar.ramirez@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR stall
+ in SDRC after a Warm-reset
+Date: Mon, 25 Jan 2010 22:42:53 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001252234130.18597@utopia.booyaka.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D798A@dbde02.ent.ti.com> <alpine.DEB.2.00.1001131051210.20437@utopia.booyaka.com> <alpine.DEB.2.00.1001131355210.20437@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB031E3F145D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37710 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751973Ab0AZB5M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jan 2010 20:57:12 -0500
-In-Reply-To: <1264217604-8021-5-git-send-email-omar.ramirez@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:45777 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751122Ab0AZFmy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 00:42:54 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F145D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
- From cab08d7241af701397f6e78723d8e2125c3f2306 Mon Sep 17 00:00:00 2001
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Date: Thu, 21 Jan 2010 20:34:20 -0600
-Subject: [PATCH 08/15] DSPBRIDGE: Remove multiple initializations of REG 
-module
+Hello Teerth,
 
-REG module should be only initialized by services layer.
+On Mon, 25 Jan 2010, Reddy, Teerth wrote:
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
-  drivers/dsp/bridge/rmgr/dbdcd.c |    9 +--------
-  1 files changed, 1 insertions(+), 8 deletions(-)
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> >
+> > I wonder if this also needs to make sure that all the other system
+> > initiators are mute before continuing, for the same reason cited in commit
+> > 18862cbe47e37beba98f22c088fbe6fe029df889 ?  I suppose that, for example,
+> > if an interrupt occurs on the IVA2.2 or the DMA controller tries to access
+> > the SDRC, it would hopefully only wedge those initiators and not the whole
+> > chip?
+>  Do you think we need to take care of the system initiators if we are 
+> disabling all the interrupts before going for a warm reset?
 
-diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c 
-b/drivers/dsp/bridge/rmgr/dbdcd.c
-index cb244f4..caa57f1 100644
---- a/drivers/dsp/bridge/rmgr/dbdcd.c
-+++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -350,7 +350,6 @@ void DCD_Exit(void)
+Are you disabling _all_ the interrupts, or just the MPU's interrupts?  
+Even if you did disable all of the system interrupts, couldn't DMA be 
+ongoing from/to another system initiator, independently of interrupts?
 
-  	cRefs--;
-  	if (cRefs == 0) {
--		REG_Exit();
-  		COD_Exit();
-  	}
+> I think this doesn't seem to hold good here.
 
-@@ -821,7 +820,6 @@ DSP_STATUS DCD_GetLibraryName(IN struct DCD_MANAGER 
-*hDcdMgr,
-   */
-  bool DCD_Init(void)
-  {
--	bool fInitREG;
-  	bool fInitCOD;
-  	bool fInit = true;
+You may be right, but I'd like you to describe your reasoning on this 
+point. 
 
-@@ -833,18 +831,13 @@ bool DCD_Init(void)
-  	if (cRefs == 0) {
-  		/* Initialize required modules. */
-  		fInitCOD = COD_Init();
--		fInitREG = REG_Init();
+> Please let me know if you understanding is wrong.
 
--		if (!fInitCOD || !fInitREG) {
-+		if (!fInitCOD) {
-  			fInit = false;
-  			GT_0trace(curTrace, GT_6CLASS, "DCD_Init failed\n");
-  			/* Exit initialized modules. */
-  			if (fInitCOD)
-  				COD_Exit();
--
--			if (fInitREG)
--				REG_Exit();
--
-  		}
-  	}
+My concerns here are twofold:
 
--- 
-1.6.2.4
+1. If other system initiators are interacting with the SDRC during this 
+process, is there a danger that the interconnect could enter a state that 
+would prevent the warm reset from occurring, thus wedging the system?
 
+2. When the warm-reset occurs, will it also completely reset other 
+initiators that may be wedged waiting for some SDRC access to complete?
+
+
+- Paul
