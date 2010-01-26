@@ -1,109 +1,38 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: PM: VDD2 OPPs
-Date: Tue, 26 Jan 2010 14:40:53 -0800
-Message-ID: <87636o1ocq.fsf@deeprootsystems.com>
-References: <0C997DD87CC88A4F86C897F52650B52B02807701@MOLSON.mpc-data.co.uk>
-	<4B5F5378.9020800@ti.com>
-	<0C997DD87CC88A4F86C897F52650B52B02807703@MOLSON.mpc-data.co.uk>
+From: "Andrew Murray" <amurray@mpc-data.co.uk>
+Subject: RE: PM: VDD2 OPPs
+Date: Tue, 26 Jan 2010 23:06:40 -0000
+Message-ID: <0C997DD87CC88A4F86C897F52650B52B0280770B@MOLSON.mpc-data.co.uk>
+References: <0C997DD87CC88A4F86C897F52650B52B02807701@MOLSON.mpc-data.co.uk> <4B5F5378.9020800@ti.com> <0C997DD87CC88A4F86C897F52650B52B02807703@MOLSON.mpc-data.co.uk> <74583B8642AB8841B30447520659FCA9E761EEC1@dnce01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f189.google.com ([209.85.222.189]:42714 "EHLO
-	mail-pz0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164Ab0AZWk5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 17:40:57 -0500
-Received: by pzk27 with SMTP id 27so1063319pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jan 2010 14:40:57 -0800 (PST)
-In-Reply-To: <0C997DD87CC88A4F86C897F52650B52B02807703@MOLSON.mpc-data.co.uk> (Andrew Murray's message of "Tue\, 26 Jan 2010 21\:46\:15 -0000")
+Received: from cvs.mpc-ogw.co.uk ([81.2.99.171]:21406 "EHLO
+	molson.mpc-data.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752577Ab0AZXGn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 18:06:43 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <74583B8642AB8841B30447520659FCA9E761EEC1@dnce01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Murray <amurray@mpc-data.co.uk>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, "Menon, Nishanth" <nm@ti.com>
 
-"Andrew Murray" <amurray@mpc-data.co.uk> writes:
+> The OPP sets in the TRM are the one that were characterized and
+validated by TI. They provide you the max frequency you  > can achieve
+at a certain voltage.
+> As soon as the frequency is below the one defined in the OPP, you can
+do whatever you want.
 
-[...]
+Thanks for the clarification - this makes sense to me now.
 
-> I've noticed that other than using the debugfs there is no way for a
-> user to configure sleep_when_idle, enable_off_mode,
-> voltage_off_when_idle. Do you think it would be worthwhile to add
-> these options to the KConfigs? I'd be happy to make these
-> modifications if so.  :)
+> Concerning the 41.5MHz for the core, the issue is that the voltage for
+that OPP is almost the same than the one at 83MHz > thus providing very
+little gain for the power point of view. In term of energy it will even
+increase the consumption due > to the very negative performance impact
+that frequency will do to the MPU and the whole system in general.
 
-Hi Andrew,
+Yes I see this - understood.
 
-I'm curious what benefit you to having them as compile-time options
-instead of run-time?
-
-In general, these options are all under debugfs for debug during PM
-development, but they should not be considered as PM knobs for a
-production system.
-
-For a production system, the assumption is that the kernel is *always*
-trying to sleep-while-idle and enter off-mode.  Preventing low-power
-states is intended to be directed by drivers using constraints
-(latency, throughput, etc.)  When using constraints, the deeper sleep
-states are prevented while the constraints are in place and then
-(re)allowed after the constraints are removed.
-
-Kevin
-
-
-
->
-> Many Thanks,
->
-> Andrew Murray
-> 	
-> -----Original Message-----
-> From: Nishanth Menon [mailto:nm@ti.com] 
-> Sent: 26 January 2010 20:41
-> To: Andrew Murray
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: PM: VDD2 OPPs
->
-> Andrew Murray had written, on 01/26/2010 02:34 PM, the following:
->> Hello,
->> 
->> With regards to the OMAP2 (or at least the 3530 EVM) -the TRM and
->> various whitepapers suggest that they are 3 OPP levels available for
->> VDD2 (L3). However, from looking at the sources (linux-omap-pm / pm
->> branch) it seems that only 2 OPP levels are supported (@166Mhz and
->> @83Mhz) and used. I also notice that these rates are different to
-> those
->> in a whitepaper (166, 100 and 41.5). Is there any particular reason
-> why
-> on OMAP34/35xx, I believe it should be s/100/83/.
->> only 2 OPPs are used? 
-> to my knowledge 41.5Mhz is not known to provide any performance 
-> benefits. you can also see [1] and add 41.5 (pm-wip-opp is the new 
-> branch where we are introducing opp layer.
->
->> 
->> I understand that the OPP level of VDD2 may be set by changes to the
-> OPP
->> level of VDD1 (i.e. resource34xx.c:set_opp) - and modifying VDD1's OPP
->> via cpufreq seems to be the only way to adjust the VDD2 OPP from
->> user-land - is this correct?
-> The old /sys/power/vdd2_[opp|lock] was deprecated out. currently the 
-> control is for vdd1 OPP using cpufreq and indirect dependency for VDD2, 
-> is there a need for direct control of VDD2 freq?
-> -- 
-> Regards,
-> Nishanth Menon
->
-> Ref:
-> [1] 
-> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=bl
-> ob;f=arch/arm/mach-omap2/cpufreq34xx.c;h=07873e87ffc0fef97b4554efc3f17dc
-> 696cb25e3;hb=4f54a09e0ed9b2ee8e1adfe1716297792310d1c6#l46
->
->
-> No virus found in this incoming message.
-> Checked by AVG - www.avg.com 
-> Version: 8.5.432 / Virus Database: 271.1.1/2641 - Release Date: 01/25/10
-> 19:36:00
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for the quick answers!
