@@ -1,38 +1,50 @@
-From: David Brownell <david-b@pacbell.net>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 Subject: Re: [RFC/PATCH 1/5] usb: otg: add notifier support
-Date: Tue, 26 Jan 2010 07:21:28 -0800
-Message-ID: <201001260721.29275.david-b@pacbell.net>
-References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com> <201001260535.21689.david-b@pacbell.net> <20100126141443.GE10690@nokia.com>
+Date: Tue, 26 Jan 2010 07:33:01 -0800
+Message-ID: <201001260733.01628.david-b@pacbell.net>
+References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com> <20100126141016.GD10690@nokia.com> <20100126141935.GG10690@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754530Ab0AZPVc@vger.kernel.org>
-In-Reply-To: <20100126141443.GE10690@nokia.com>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100126141935.GG10690-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 On Tuesday 26 January 2010, Felipe Balbi wrote:
-> >
-> >Thing is, supplying current is a bit more involved. =A0If the
-> >board can't supply 300 mA, the USB configuration selection
-> >mechanism has to know that, so it never selects peripheral
-> >configurations which require that much current.
->=20
-> but that's done already by the usb core, no ? It rules out configurat=
-ion=20
-> based on the hub->power_budget (can't remember if the field is that=20
-> exact name).
+> just remember of another problem which I couldn't solve yet:
+> 
+> if you boot the board with the usb cable already attached, then we miss 
+> the first notification because when the notifier is called, usb 
+> controller driver isn't probed yet.
 
-Yes, it handles that ... but where does the power budget
-come from?  That's what I meant by "more involved".
+That's part of why the OTG transceiver driver has methods
+used by host and peripheral drivers to register themselves.
 
-As in, the host/supplying side of the power equation can't
-be event driven like the peripheral/consuming side can.
+Standard init sequence there is to do nothing until both
+drivers are fully initialized ... last step being to
+register the drivers with the transceiver.  That way the
+transceiver can know when its peer drivers are ready.
 
-And that's another reason I think it's best to fully solve
-the common (peripheral, recharge-that-batter) case first.
+Example:  VBUS present from a host.  If the board runs
+in OTG mode, as soon as both drivers are registered then
+the B-Default state machine would start running ... and
+that involves (see the OTG state machine!) issuing a VBBUS
+event.
+
+Same thing can be done with the power events.  As soon
+as an event listener is registered, it could be fed any
+events it missed.  (Just one approach; one must sort
+out any other interdependencies too.  In this case, it
+can make sense to consume 100mA current right away, and
+then adjust the draw later if needed.)
 
 - Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
