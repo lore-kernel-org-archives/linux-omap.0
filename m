@@ -1,25 +1,144 @@
-From: CGNL <robertwinder@bellnet.ca>
-Subject: =?utf-8?Q?=C2=A3891,934.00_GBP?=
-Date: Tue, 26 Jan 2010 8:40:25 -0500
-Message-ID: <20100126084025.NT0A2.13825.root@toroondcbfep01>
-Reply-To: derek_max@gala.net
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [RFC/PATCH 1/5] usb: otg: add notifier support
+Date: Tue, 26 Jan 2010 16:10:16 +0200
+Message-ID: <20100126141016.GD10690@nokia.com>
+References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
+ <1260531086-23857-2-git-send-email-felipe.balbi@nokia.com>
+ <201001260316.20529.david-b@pacbell.net>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from toroondcbmts06-srv.bellnexxia.net ([207.236.237.40]:54891 "EHLO
-	toroondcbmts06-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753669Ab0AZNjy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jan 2010 08:39:54 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:19239 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752353Ab0AZOMU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 09:12:20 -0500
+Content-Disposition: inline
+In-Reply-To: <201001260316.20529.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext David Brownell <david-b@pacbell.net>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>
 
-You were selected as a WINNER from the Camelot Group Lottery For A Lump=
- Sum Pay Out =C2=A3891,934.00 GBP.Fill the details: FullName,Address,Te=
-l,Occupation,etc,to (derek_max@gala.net)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
+
+On Tue, Jan 26, 2010 at 12:16:20PM +0100, ext David Brownell wrote:
+>On Friday 11 December 2009, Felipe Balbi wrote:
+>> The notifier will be used to communicate usb events
+>> to other drivers like the charger chip.
+>
+>Good idea ... but not OTG-specific.  It doesn't seem to me
+
+thanks
+
+>that charging hookups belong in that header at all.
+
+I noticed that when started actually using it :-)
+
+>In fact, usb_gadget_vbus_draw() might better be implemented
+>as such a notifier call, removing that configuration mess
+>from the usb gadget drivers ("how can I know what charger
+>to use??").  That would be the most common situation:  a
+>peripheral-only device.
+>
+>And in fact, OTG can be treated as a trivial superset of
+>peripheral-only USB.  (In terms of charger support, only!!)
+>
+>I'd vote to convert all the USB-to-charger interfaces so
+>they use notifiers.  After fixing the events ... see
+>comments below.  :)
+
+makes sense
+
+>> @@ -9,6 +9,8 @@
+>>  #ifndef __LINUX_USB_OTG_H
+>>  #define __LINUX_USB_OTG_H
+>>
+>> +#include <linux/notifier.h>
+>> +
+>>  /* OTG defines lots of enumeration states before device reset */
+>>  enum usb_otg_state {
+>>  	OTG_STATE_UNDEFINED = 0,
+>> @@ -33,6 +35,14 @@ enum usb_otg_state {
+>>  	OTG_STATE_A_VBUS_ERR,
+>>  };
+>>
+>> +enum usb_xceiv_events {
+>
+>Let's keep charger events separate from anything else,
+>like "enter host mode" or "enter peripheral mode" (or
+>even "disconnect").  The audiences for any other types
+>of event would be entirely different.
+
+the idea was to notify USB events to interested drivers, not only "usb 
+charger events".
+
+>Right now there's a mess in terms of charger hookup,
+>so getting that straight is IMO a priority over any
+>other type of event.  Using events will decouple a
+>bunch of drivers, and simplify driver configuration.
+
+well, if you consider that this transceiver isn't really otg specific, 
+then this is already wrong.
+
+>> +	USB_EVENT_NONE,         /* no events or cable disconnected */
+>> +	USB_EVENT_VBUS,         /* vbus valid event */
+>> +	USB_EVENT_ID,           /* id was grounded */
+>> +	USB_EVENT_CHARGER,      /* usb dedicated charger */
+>> +	USB_EVENT_ENUMERATED,   /* gadget driver enumerated */
+>
+>Those seem like the wrong events.  The right events for a charger
+>would be more along the lines of:
+>
+> - For peripheral:  "you may use N milliAmperes now".
+> - General:  "Don't Charge" (a.k.a. "use 0 mA").
+
+I have to disagree, which information would you used to kick the usb 
+dedicated charger detection other than VBUS irq from transceiver ?
+
+So we need at least that, and also need to notify when the charger 
+detection is finished, so we can enable data pullups on the link. 
+Remember we might be connected to a charging downstream port.
+
+>I don't see how "N" would be passed with those events ...
+
+there's a void * we can use to pass bMaxPower field of the selected 
+configuration.
+
+>Haven't looked at the details of the charger spec, but
+>those two events are the *basics* from the USB 2.0 spec,
+>so "official" charger hardware wouldn't be less capable.
+
+I believe the dedicated charger is also "basic".
+
+>Thing like different levels of VBUS validity, ID grounding,
+>and so forth ... wouldn't be very relevant.  An OTG driver
+>will do various things, internally, when ID grounds; but
+>anything else is a function of what role eventually gets
+>negotiated.  And for the charger, they all add up to "Don't
+>Charge" (since ID grounded means A-role, sourcing power).
+
+ID grounding event is necessary if you have an external charge pump. 
+At least the boards I've been working use an external chip as the USB 
+Charger and Charge pump, iow, the transceiver doesn't source VBUS on ID 
+ground, but the charger chip is put into "boost" mode for that role.
+
+>>  #define USB_OTG_PULLUP_ID		(1 << 0)
+>>  #define USB_OTG_PULLDOWN_DP		(1 << 1)
+>>  #define USB_OTG_PULLDOWN_DM		(1 << 2)
+>> @@ -70,6 +80,9 @@ struct otg_transceiver {
+>>  	struct otg_io_access_ops	*io_ops;
+>>  	void __iomem			*io_priv;
+>>
+>> +	/* for notification of usb_xceiv_events */
+>> +	struct blocking_notifier_head	notifier;
+>
+>Why "blocking"?  That seems kind of unnatural; for example,
+>the main users -- like usb_gadget_vbus_draw() -- would be
+>called in IRQ context (blocking not allowed).
+
+what about irqs running in thread, wouldn't we "BUG sleeping in irq 
+context" ?
+
+-- 
+balbi
