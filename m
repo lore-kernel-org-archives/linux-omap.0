@@ -1,81 +1,47 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCHv2 6/6] ASoC: OMAP4: Add McPDM platform
- driver
-Date: Tue, 26 Jan 2010 10:27:48 +0200
-Message-ID: <20100126102748.3b9fb04d.jhnikula@gmail.com>
-References: <2256F256009DAA4CBE661E9F41EAC84B8C43A8B5@dlee01.ent.ti.com>
-	<1264210638.3480.127.camel@odin>
-	<2256F256009DAA4CBE661E9F41EAC84B8C4CEF36@dlee01.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/2] omap_globals cleanup
+Date: Tue, 26 Jan 2010 14:08:34 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C089455A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <2256F256009DAA4CBE661E9F41EAC84B8C4CEF36@dlee01.ent.ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Candelaria Villareal, Jorge" <jorge.candelaria@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52138 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751816Ab0AZIim convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 03:38:42 -0500
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi
+Tony, Kevin,
 
-On Mon, 25 Jan 2010 15:06:44 -0600
-"Candelaria Villareal, Jorge" <jorge.candelaria@ti.com> wrote:
+As discussed on off the list email, below two patches converts all the omap_globals to
+physical address and ioremap the space dynamically. Patches generated against the latest 
+2.6.33-rc5+ mainline kernel.
 
-> > > +static int omap_mcpdm_dai_startup(struct snd_pcm_substream 
-> > *substream,
-> > > +				  struct snd_soc_dai *dai)
-> > > +{
-> > > +	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-> > > +	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-> > > +	int err = 0;
-> > > +
-> > > +	if (!cpu_dai->active)
-> > > +		err = omap_mcpdm_request();
-> > 
-> > Will anything else use this hw interface other than ALSA audio ?
-> > If not, the request is probably better in the machine driver probe().
-> 
-> omap_mcpdm_request will enable the functional clock. Isn't it better
-> for the clock to be enabled only when is about to get used?
-> 
-Definitely yes if there is no any need to keep block active after the
-request. That would help the power-management if there are no active
-clocks when the streams are suspended with omap_mcpdm_stop() but the
-block remains reserved (i.e. omap_mcpdm_free is not called).
+Boot tested on OMAP4430SDP and OMAP3430SDP. I don't have OMAP2 board here :(
 
-The current McBSP implementation is not the best example here but
-hopefully that will get fixed at some point.
+The following changes since commit f6760aa024199cfbce564311dc4bc4d47b6fb349:
+  Linus Torvalds (1):
+        Merge branch 'timers-fixes-for-linus' of git://git.kernel.org/.../tip/linux-2.6-tip
 
-> > stream is either PLAYBACK or CAPTURE here.
-> 
-> Downlink and uplink were chosen instead to avoid confusion
-> because that is how it is referred in McPDM technical
-> documentation. But I do understand that we are talking
-> about ALSA stream, not McPDM...
-...
-> Here, however, the methods set_uplink & set_downlink are
-> Named after McPDM data paths. In this case is it preferred
-> to name everything using ALSA convention? Or would it be ok
-> to use downlink/uplink on certain cases?
-> 
-I think something like below is clear enough. It is easy to see that we
-are dealing with ALSA playback stream which corresponds to downlink path
-in HW.
+Santosh Shilimkar (2):
+      OMAP2/3/4: Convert bases in omap_globals to physical address
+      OMAP2/3/4: ioremap address space
 
-if (stream == SNDRV_PCM_STREAM_PLAYBACK)
-	omap_mcpdm_downlink_opxxx();
+ arch/arm/mach-omap2/control.c              |    6 +++-
+ arch/arm/mach-omap2/id.c                   |    7 ++++-
+ arch/arm/mach-omap2/prcm.c                 |   16 ++++++++--
+ arch/arm/mach-omap2/sdrc.c                 |   11 +++++-
+ arch/arm/plat-omap/common.c                |   46 ++++++++++++++--------------
+ arch/arm/plat-omap/include/plat/common.h   |   14 ++++----
+ arch/arm/plat-omap/include/plat/omap24xx.h |    2 +
+ arch/arm/plat-omap/include/plat/omap34xx.h |    1 +
+ 8 files changed, 66 insertions(+), 37 deletions(-)
 
-Also for the user(-space) standard playback and capture naming is more
-clear than downlink/uplink terminology.
+Regards
+Santosh
 
-
--- 
-Jarkko
