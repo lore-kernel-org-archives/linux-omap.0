@@ -1,78 +1,109 @@
-From: Andreas Hartmetz <ahartmetz@gmail.com>
-Subject: USB lockup on OMAP3530
-Date: Tue, 26 Jan 2010 23:30:54 +0100
-Message-ID: <f3642e6b1001261430n32d55can502931fc93271f67@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: PM: VDD2 OPPs
+Date: Tue, 26 Jan 2010 14:40:53 -0800
+Message-ID: <87636o1ocq.fsf@deeprootsystems.com>
+References: <0C997DD87CC88A4F86C897F52650B52B02807701@MOLSON.mpc-data.co.uk>
+	<4B5F5378.9020800@ti.com>
+	<0C997DD87CC88A4F86C897F52650B52B02807703@MOLSON.mpc-data.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:41715 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866Ab0AZWa4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 17:30:56 -0500
-Received: by fxm20 with SMTP id 20so946531fxm.21
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jan 2010 14:30:54 -0800 (PST)
+Received: from mail-pz0-f189.google.com ([209.85.222.189]:42714 "EHLO
+	mail-pz0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164Ab0AZWk5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 17:40:57 -0500
+Received: by pzk27 with SMTP id 27so1063319pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 26 Jan 2010 14:40:57 -0800 (PST)
+In-Reply-To: <0C997DD87CC88A4F86C897F52650B52B02807703@MOLSON.mpc-data.co.uk> (Andrew Murray's message of "Tue\, 26 Jan 2010 21\:46\:15 -0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Andrew Murray <amurray@mpc-data.co.uk>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
 
-Hi,
+"Andrew Murray" <amurray@mpc-data.co.uk> writes:
 
-I have a problem with the USB OTG port on my Beagle Board revision B6 - the OTG
-port is the only USB port on that device so it's critical that it works.
-Everybody on this list probably knows this hardware, I'll just say that it has
-an ARM Cortex-A8 CPU (OMAP3530) with a built-in USB interface. The driver is
-musb_hdrc.
-I'm using this interface in host mode (no gadget mode support compiled in,
-though this doesn't seem to make a difference) to attach necessary peripherals
-via a powered USB hub. The make and model of hub do not play a role, I've tried
-several.
+[...]
 
-The problem:
-Whenever the following conditions are met all hardware on the port "disappears"
-after a few minutes, cutting off the board from network and storage:
-- Network traffic over USB (doesn't matter if it's regular 100 Mbps Ethernet
-  or a WLAN stick)
-- Disk "traffic" over USB - I use a 2,5" disk in a USB enclosure
-- CPU load - not sure if this is necessary
-The only fix seems to be a reboot.
+> I've noticed that other than using the debugfs there is no way for a
+> user to configure sleep_when_idle, enable_off_mode,
+> voltage_off_when_idle. Do you think it would be worthwhile to add
+> these options to the KConfigs? I'd be happy to make these
+> modifications if so.  :)
 
-This happens to me when compiling something on the board (easier than
-cross-compiling) with the help of Icecream, which is a kind of distcc on
-steroids. On #beagle on Freenode IRC I've found somebody with the same problem
-when scp-ing a large file (several hundred megabytes) off or onto the USB disk.
-I can reproduce that as well.
-I have spent a lot of time trying to find fixes and/or workarounds but nothing
-worked so far except using the "validation kernel" recommended to test the
-hardware e.g. after receipt:
-http://code.google.com/p/beagleboard/wiki/BeagleBoardDiagnostics.
-Fittingly, the link to the kernel image is currently broken. The board usually
-locked itself up after about a day when using that ancient kernel, so it's not
-an option either, and probably quite unmaintained and buggy in many other areas.
+Hi Andrew,
 
-So far I have tried many versions of the linux-omap and linux-omap-pm kernel,
-from about 2.6.30 to the latest git version. They all exhibit the USB OTG death
-bug.
-I've used kernels with openembedded patches and without, currently without.
-Yesterday I discovered the musb_hdrc.fifo_mode parameter and played around
-with it. I also modified the given configurations. Result:
-- FIFO configurations including .mode = BUF_DOUBLE don't work at all - no
-  devices work.
-- the USB death bug is not fixed by:
-  - using only one endpoint
-  - using no TXRX entries but only separate RX and TX
-    (every endpoint gets a TX and an RX entry though)
-  - using a large number of endpoints with same maxpacket value
-... still no solution.
+I'm curious what benefit you to having them as compile-time options
+instead of run-time?
 
-Enabling debug output of the musb_hdrc driver (yes I've also compiled in debug
-messages) is not very practical due to the high volume of messages; also, when
-the bug occurs nothing special is printed. The first error usually comes from
-the memory manager / filesystem complaining that it can't do "IO to offline
-device", i.e. the disappeared external harddisk (which contains the swapfile).
+In general, these options are all under debugfs for debug during PM
+development, but they should not be considered as PM knobs for a
+production system.
 
-I would *really* appreciate somebody looking into this because this currently
-makes the hardware as useful as a brick for me. I can supply debug output and
-test patches.
+For a production system, the assumption is that the kernel is *always*
+trying to sleep-while-idle and enter off-mode.  Preventing low-power
+states is intended to be directed by drivers using constraints
+(latency, throughput, etc.)  When using constraints, the deeper sleep
+states are prevented while the constraints are in place and then
+(re)allowed after the constraints are removed.
 
-Cheers,
-Andreas
+Kevin
+
+
+
+>
+> Many Thanks,
+>
+> Andrew Murray
+> 	
+> -----Original Message-----
+> From: Nishanth Menon [mailto:nm@ti.com] 
+> Sent: 26 January 2010 20:41
+> To: Andrew Murray
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: PM: VDD2 OPPs
+>
+> Andrew Murray had written, on 01/26/2010 02:34 PM, the following:
+>> Hello,
+>> 
+>> With regards to the OMAP2 (or at least the 3530 EVM) -the TRM and
+>> various whitepapers suggest that they are 3 OPP levels available for
+>> VDD2 (L3). However, from looking at the sources (linux-omap-pm / pm
+>> branch) it seems that only 2 OPP levels are supported (@166Mhz and
+>> @83Mhz) and used. I also notice that these rates are different to
+> those
+>> in a whitepaper (166, 100 and 41.5). Is there any particular reason
+> why
+> on OMAP34/35xx, I believe it should be s/100/83/.
+>> only 2 OPPs are used? 
+> to my knowledge 41.5Mhz is not known to provide any performance 
+> benefits. you can also see [1] and add 41.5 (pm-wip-opp is the new 
+> branch where we are introducing opp layer.
+>
+>> 
+>> I understand that the OPP level of VDD2 may be set by changes to the
+> OPP
+>> level of VDD1 (i.e. resource34xx.c:set_opp) - and modifying VDD1's OPP
+>> via cpufreq seems to be the only way to adjust the VDD2 OPP from
+>> user-land - is this correct?
+> The old /sys/power/vdd2_[opp|lock] was deprecated out. currently the 
+> control is for vdd1 OPP using cpufreq and indirect dependency for VDD2, 
+> is there a need for direct control of VDD2 freq?
+> -- 
+> Regards,
+> Nishanth Menon
+>
+> Ref:
+> [1] 
+> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=bl
+> ob;f=arch/arm/mach-omap2/cpufreq34xx.c;h=07873e87ffc0fef97b4554efc3f17dc
+> 696cb25e3;hb=4f54a09e0ed9b2ee8e1adfe1716297792310d1c6#l46
+>
+>
+> No virus found in this incoming message.
+> Checked by AVG - www.avg.com 
+> Version: 8.5.432 / Virus Database: 271.1.1/2641 - Release Date: 01/25/10
+> 19:36:00
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
