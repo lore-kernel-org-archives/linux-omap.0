@@ -1,85 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2/3/4: ioremap address space
-Date: Tue, 26 Jan 2010 07:46:08 -0800
-Message-ID: <20100126154608.GA17449@atomide.com>
-References: <1264495210-17344-1-git-send-email-santosh.shilimkar@ti.com>
- <1264495210-17344-2-git-send-email-santosh.shilimkar@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC/PATCH 1/5] usb: otg: add notifier support
+Date: Tue, 26 Jan 2010 16:13:19 +0000
+Message-ID: <20100126161319.GX15759@rakim.wolfsonmicro.main>
+References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
+ <201001260535.21689.david-b@pacbell.net>
+ <20100126142102.GU15759@rakim.wolfsonmicro.main>
+ <201001260744.46780.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59504 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754041Ab0AZPpv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 10:45:51 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754650Ab0AZQNX@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1264495210-17344-2-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <201001260744.46780.david-b@pacbell.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [100126 00:37]:
-> This patch update the sdrc, prcm, tap and control module to
-> allocate iospace dynamically
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> CC: Kevin Hilman <khilman@deeprootsystems.com>
-> CC: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/control.c |    6 +++++-
->  arch/arm/mach-omap2/id.c      |    7 ++++++-
->  arch/arm/mach-omap2/prcm.c    |   16 +++++++++++++---
->  arch/arm/mach-omap2/sdrc.c    |   11 +++++++++--
->  4 files changed, 33 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> index cdd1f35..43f8a33 100644
-> --- a/arch/arm/mach-omap2/control.c
-> +++ b/arch/arm/mach-omap2/control.c
-> @@ -140,7 +140,11 @@ static struct omap3_control_regs control_context;
->  
->  void __init omap2_set_globals_control(struct omap_globals *omap2_globals)
->  {
-> -	omap2_ctrl_base = omap2_globals->ctrl;
-> +	/* Static mapping, never released */
-> +	if (omap2_globals->ctrl) {
-> +		omap2_ctrl_base = ioremap(omap2_globals->ctrl, SZ_4K);
-> +		WARN_ON(!omap2_ctrl_base);
-> +	}
->  }
->  
->  void __iomem *omap_ctrl_base_get(void)
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index a091b53..fb5921b 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -407,7 +407,12 @@ void __init omap2_check_revision(void)
->  void __init omap2_set_globals_tap(struct omap_globals *omap2_globals)
->  {
->  	omap_revision = omap2_globals->class;
-> -	tap_base = omap2_globals->tap;
-> +
-> +	/* Static mapping, never released */
-> +	if (omap2_globals->tap) {
-> +		tap_base = ioremap(omap2_globals->tap, SZ_4K);
-> +		WARN_ON(!tap_base);
-> +	}
->  
->  	if (cpu_is_omap34xx())
->  		tap_prod_id = 0x0210;
+On Tue, Jan 26, 2010 at 07:44:46AM -0800, David Brownell wrote:
+> On Tuesday 26 January 2010, Mark Brown wrote:
 
-Nice clean-up.
+> > In the sort of design I'm talking about there is generally a system
+> > power rail which is generated from the various power sources available
+> > to the system, which might include a combination of batteries, USB and
+> > wall adaptors.
 
-We need to check carefully that the cpu detection is done by the time
-we do the ioremap.. Initially we only know the machine class such as
-34xx/24xx.
+> Just as an example:  drivers/mfd/tps6510.c supports exactly
+> that trio of power sources.
 
-We have at least cpu_is_omap2420 and cpu_is_omap2430 being used in io.c,
-so all these mappings may not work properly.
+Yup, it's a fairly standard feature set for all in one PMICs, WM835x and
+WM831x are also examples of this.
 
-Also, we should merge this as one patch to keep the system booting
-between the patches.
+>                              More than one system rail though,
+> which (as you know) is pretty common -- core != I/O.
 
-Regards,
+Yes, in this context the system rail is the supply input to the
+regulators rather than the regulated voltages that are (mostly)
+used directly by the chips.
 
-Tony
+> Bus powered devices can come up on that 100mA, running
+> enough to enumerate ... and request more power, if they
+> need it.
+
+> Not all Linux systems can boot with that little power!
+
+Some can even brown themselves out going full pelt with the full 500mA
+supply if there's no battery to supplement it :/
