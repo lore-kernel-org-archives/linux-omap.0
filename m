@@ -1,109 +1,78 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 1/2] DSPBRIDGE: Use enable_off_mode variable instead of
- dsp_test_sleepstate
-Date: Tue, 26 Jan 2010 16:23:13 -0600
-Message-ID: <4B5F6B51.6050607@ti.com>
-References: <1264241986-29071-1-git-send-email-felipe.contreras@gmail.com> <1264241986-29071-2-git-send-email-felipe.contreras@gmail.com>
+From: Andreas Hartmetz <ahartmetz@gmail.com>
+Subject: USB lockup on OMAP3530
+Date: Tue, 26 Jan 2010 23:30:54 +0100
+Message-ID: <f3642e6b1001261430n32d55can502931fc93271f67@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37169 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751788Ab0AZWXW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jan 2010 17:23:22 -0500
-In-Reply-To: <1264241986-29071-2-git-send-email-felipe.contreras@gmail.com>
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:41715 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751866Ab0AZWa4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 17:30:56 -0500
+Received: by fxm20 with SMTP id 20so946531fxm.21
+        for <linux-omap@vger.kernel.org>; Tue, 26 Jan 2010 14:30:54 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Jouni Hogander <jouni.hogander@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: linux-omap@vger.kernel.org
 
 Hi,
 
-On 1/23/2010 4:19 AM, Felipe Contreras wrote:
-> From: Jouni Hogander<jouni.hogander@nokia.com>
->
-> Signed-off-by: Jouni Hogander<jouni.hogander@nokia.com>
-> Signed-off-by: Hiroshi DOYU<Hiroshi.DOYU@nokia.com>
+I have a problem with the USB OTG port on my Beagle Board revision B6 - the OTG
+port is the only USB port on that device so it's critical that it works.
+Everybody on this list probably knows this hardware, I'll just say that it has
+an ARM Cortex-A8 CPU (OMAP3530) with a built-in USB interface. The driver is
+musb_hdrc.
+I'm using this interface in host mode (no gadget mode support compiled in,
+though this doesn't seem to make a difference) to attach necessary peripherals
+via a powered USB hub. The make and model of hub do not play a role, I've tried
+several.
 
-This patch is missing to export enable_off_mode otherwise it will fail 
-while linking.
+The problem:
+Whenever the following conditions are met all hardware on the port "disappears"
+after a few minutes, cutting off the board from network and storage:
+- Network traffic over USB (doesn't matter if it's regular 100 Mbps Ethernet
+  or a WLAN stick)
+- Disk "traffic" over USB - I use a 2,5" disk in a USB enclosure
+- CPU load - not sure if this is necessary
+The only fix seems to be a reboot.
 
-FTR, I don't like to be exporting symbols of other subsystems, guess the 
-same applies to:
+This happens to me when compiling something on the board (easier than
+cross-compiling) with the help of Icecream, which is a kind of distcc on
+steroids. On #beagle on Freenode IRC I've found somebody with the same problem
+when scp-ing a large file (several hundred megabytes) off or onto the USB disk.
+I can reproduce that as well.
+I have spent a lot of time trying to find fixes and/or workarounds but nothing
+worked so far except using the "validation kernel" recommended to test the
+hardware e.g. after receipt:
+http://code.google.com/p/beagleboard/wiki/BeagleBoardDiagnostics.
+Fittingly, the link to the kernel image is currently broken. The board usually
+locked itself up after about a day when using that ancient kernel, so it's not
+an option either, and probably quite unmaintained and buggy in many other areas.
 
-http://marc.info/?l=linux-omap&m=126450677527042&w=2
+So far I have tried many versions of the linux-omap and linux-omap-pm kernel,
+from about 2.6.30 to the latest git version. They all exhibit the USB OTG death
+bug.
+I've used kernels with openembedded patches and without, currently without.
+Yesterday I discovered the musb_hdrc.fifo_mode parameter and played around
+with it. I also modified the given configurations. Result:
+- FIFO configurations including .mode = BUF_DOUBLE don't work at all - no
+  devices work.
+- the USB death bug is not fixed by:
+  - using only one endpoint
+  - using no TXRX entries but only separate RX and TX
+    (every endpoint gets a TX and an RX entry though)
+  - using a large number of endpoints with same maxpacket value
+... still no solution.
 
-> ---
->   drivers/dsp/bridge/rmgr/drv_interface.c |    5 -----
->   drivers/dsp/bridge/wmd/tiomap3430_pwr.c |    9 ++++-----
->   2 files changed, 4 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-> index a02a32a..b20f77e 100644
-> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
-> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-> @@ -78,8 +78,6 @@ s32 dsp_debug;
->
->   struct platform_device *omap_dspbridge_dev;
->
-> -/* This is a test variable used by Bridge to test different sleep states */
-> -s32 dsp_test_sleepstate;
->   struct bridge_dev {
->   	struct cdev cdev;
->   };
-> @@ -129,9 +127,6 @@ module_param(dsp_debug, int, 0);
->   MODULE_PARM_DESC(dsp_debug, "Wait after loading DSP image. default = false");
->   #endif
->
-> -module_param(dsp_test_sleepstate, int, 0);
-> -MODULE_PARM_DESC(dsp_test_sleepstate, "DSP Sleep state = 0");
-> -
->   module_param(base_img, charp, 0);
->   MODULE_PARM_DESC(base_img, "DSP base image, default = NULL");
->
-> diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-> index 084f406..c0e0994 100644
-> --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-> +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-> @@ -54,10 +54,9 @@
->   #include<mach-omap2/cm-regbits-34xx.h>
->
->   #ifdef CONFIG_PM
-> -extern s32 dsp_test_sleepstate;
-> +extern unsigned short enable_off_mode;
->   #endif
->   extern struct MAILBOX_CONTEXT mboxsetting;
-> -
->   /*
->    *  ======== handle_constraints_set ========
->    *  	Sets new DSP constraint
-> @@ -196,7 +195,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
->   	switch (pDevContext->dwBrdState) {
->   	case BRD_RUNNING:
->   		status = HW_MBOX_saveSettings(resources.dwMboxBase);
-> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
-> +		if (enable_off_mode) {
->   			CHNLSM_InterruptDSP2(pDevContext,
->   					     MBX_PM_DSPHIBERNATE);
->   			DBG_Trace(DBG_LEVEL7,
-> @@ -211,7 +210,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
->   		break;
->   	case BRD_RETENTION:
->   		status = HW_MBOX_saveSettings(resources.dwMboxBase);
-> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
-> +		if (enable_off_mode) {
->   			CHNLSM_InterruptDSP2(pDevContext,
->   					     MBX_PM_DSPHIBERNATE);
->   			targetPwrState = HW_PWR_STATE_OFF;
-> @@ -261,7 +260,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
->   			 pwrState);
->
->   		/* Update the Bridger Driver state */
-> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF)
-> +		if (enable_off_mode)
->   			pDevContext->dwBrdState = BRD_HIBERNATION;
->   		else
->   			pDevContext->dwBrdState = BRD_RETENTION;
+Enabling debug output of the musb_hdrc driver (yes I've also compiled in debug
+messages) is not very practical due to the high volume of messages; also, when
+the bug occurs nothing special is printed. The first error usually comes from
+the memory manager / filesystem complaining that it can't do "IO to offline
+device", i.e. the disappeared external harddisk (which contains the swapfile).
 
-- omar
+I would *really* appreciate somebody looking into this because this currently
+makes the hardware as useful as a brick for me. I can supply debug output and
+test patches.
+
+Cheers,
+Andreas
