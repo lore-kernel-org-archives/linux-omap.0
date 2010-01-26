@@ -1,99 +1,92 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code
- generic
-Date: Tue, 26 Jan 2010 09:22:21 -0800
-Message-ID: <20100126172221.GB17449@atomide.com>
-References: <20100116013205.10065.95921.stgit@baageli.muru.com>
- <20100116013515.10065.30649.stgit@baageli.muru.com>
- <FCCFB4CDC6E5564B9182F639FC356087030070F293@dbde02.ent.ti.com>
+From: "Candelaria Villareal, Jorge" <jorge.candelaria@ti.com>
+Subject: RE: [alsa-devel] [PATCHv2 6/6] ASoC: OMAP4: Add McPDM platform
+ driver
+Date: Tue, 26 Jan 2010 11:55:46 -0600
+Message-ID: <2256F256009DAA4CBE661E9F41EAC84B8C569C02@dlee01.ent.ti.com>
+References: <2256F256009DAA4CBE661E9F41EAC84B8C43A8B5@dlee01.ent.ti.com>
+	<1264210638.3480.127.camel@odin>
+	<2256F256009DAA4CBE661E9F41EAC84B8C4CEF36@dlee01.ent.ti.com>
+ <20100126102748.3b9fb04d.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54811 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753358Ab0AZRWH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 12:22:07 -0500
-Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087030070F293@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:50946 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754577Ab0AZR4A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 12:56:00 -0500
+In-Reply-To: <20100126102748.3b9fb04d.jhnikula@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-Hi,
+ 
 
-* Pandita, Vikram <vikram.pandita@ti.com> [100118 17:24]:
+Jarkko Nikula wrote:
+> Hi
+> 
+> On Mon, 25 Jan 2010 15:06:44 -0600
+> "Candelaria Villareal, Jorge" <jorge.candelaria@ti.com> wrote:
+> 
+> > > > +static int omap_mcpdm_dai_startup(struct snd_pcm_substream 
+> > > *substream,
+> > > > +				  struct snd_soc_dai *dai)
+> > > > +{
+> > > > +	struct snd_soc_pcm_runtime *rtd = 
+> substream->private_data;
+> > > > +	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
+> > > > +	int err = 0;
+> > > > +
+> > > > +	if (!cpu_dai->active)
+> > > > +		err = omap_mcpdm_request();
+> > > 
+> > > Will anything else use this hw interface other than ALSA audio ?
+> > > If not, the request is probably better in the machine 
+> driver probe().
+> > 
+> > omap_mcpdm_request will enable the functional clock. Isn't it better
+> > for the clock to be enabled only when is about to get used?
+> > 
+> Definitely yes if there is no any need to keep block active after the
+> request. That would help the power-management if there are no active
+> clocks when the streams are suspended with omap_mcpdm_stop() but the
+> block remains reserved (i.e. omap_mcpdm_free is not called).
+> 
+> The current McBSP implementation is not the best example here but
+> hopefully that will get fixed at some point.
+> 
+> > > stream is either PLAYBACK or CAPTURE here.
+> > 
+> > Downlink and uplink were chosen instead to avoid confusion
+> > because that is how it is referred in McPDM technical
+> > documentation. But I do understand that we are talking
+> > about ALSA stream, not McPDM...
+> ...
+> > Here, however, the methods set_uplink & set_downlink are
+> > Named after McPDM data paths. In this case is it preferred
+> > to name everything using ALSA convention? Or would it be ok
+> > to use downlink/uplink on certain cases?
+> > 
+> I think something like below is clear enough. It is easy to 
+> see that we
+> are dealing with ALSA playback stream which corresponds to 
+> downlink path
+> in HW.
+> 
+> if (stream == SNDRV_PCM_STREAM_PLAYBACK)
+> 	omap_mcpdm_downlink_opxxx();
+> 
+> Also for the user(-space) standard playback and capture naming is more
+> clear than downlink/uplink terminology.
+
+So the idea would be to show that ALSA playback/capture correspond
+to McPDM downlink/uplink paths. Sounds good, I can try this for all
+downlink/uplink operations.
+
 > 
 > 
-> >-----Original Message-----
-> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
-> >Lindgren
-> >Sent: Friday, January 15, 2010 7:35 PM
-> >To: linux-arm-kernel@lists.infradead.org
-> >Cc: linux-omap@vger.kernel.org
-> >Subject: [PATCH 2/4] omap: Make uncompress code and DEBUG_LL code generic
+> -- 
+> Jarkko
 > 
-> UART_SCR 		-> this is the scratchpad register 
-> UART_OMAP_SCR	-> This is TI-only Supplementary control register
-> 
-> You probably confused the two (as rightly so since SCR is same name).
-> So there is no need to save/restore the UART_SCR register as you have done, see inlined -- 
-> 
-> >
-> >Define arch_decomp_setup() the same way as some other
-> >architectures do. Use arch_id to configure the debug uart
-> >based on the machine_is by storing it into the uart
-> >scratchpad register for DEBUG_LL code to use.
-> >
-> >Signed-off-by: Tony Lindgren <tony@atomide.com>
-> <snip>
-> >--- a/arch/arm/mach-omap2/serial.c
-> >+++ b/arch/arm/mach-omap2/serial.c
-> >@@ -161,11 +161,22 @@ static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
-> > static inline void __init omap_uart_reset(struct omap_uart_state *uart)
-> > {
-> > 	struct plat_serial8250_port *p = uart->p;
-> >+	u8 scratchpad = 0;
-> >+
-> >+	/*
-> >+	 * Save UART1 scratchpad register value for UART1 for DEBUG_LL.
-> >+	 * See also include/plat/uncompress.h and include/mach/debug-macro.S.
-> >+	 */
-> >+	if (p->mapbase == OMAP2_UART1_BASE)	/* OMAP2/3/4UART1_BASE */
-> >+		scratchpad = serial_read_reg(p, UART_SCR);
-> 
-> No need to save and restore the UART_SCR register. 
-> This never gets used in this function.
-> 
-> What gets used is UART_OMAP_SCR which is OMAP specific supplimantry control register 
-> and not scratchpad.
-> 
-> >
-> > 	serial_write_reg(p, UART_OMAP_MDR1, 0x07);
-> > 	serial_write_reg(p, UART_OMAP_SCR, 0x08);
-> > 	serial_write_reg(p, UART_OMAP_MDR1, 0x00);
-> > 	serial_write_reg(p, UART_OMAP_SYSC, (0x02 << 3) | (1 << 2) | (1 << 0));
-> >+
-> >+	if (p->mapbase == OMAP2_UART1_BASE)	/* OMAP2/3/4UART1_BASE */
-> >+		serial_write_reg(p, UART_SCR, scratchpad);
-> 
-> Remove this as well. No need. 
-
-Just to clarify, the uncompress.h code is using the UART_SCR to store the
-DEBUG_LL port number based on the machine ID.
-
-The reason this code is not needed is that the earlyprintk code prints
-out something already before we get to this code.
-
-If earlyprintk did not print anything before this code, we would need
-to save UART_SCR here as the debug serial port gets initialized the first
-time something is printed.
-
-Although the code above uses UART_OMAP_SCR and not UART_SCR, it resets
-the uart so we lose UART_SCR.
-
-So in any case I've dropped the code above.
-
-Regards,
-
-Tony
