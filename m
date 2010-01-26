@@ -1,48 +1,41 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [RFC/PATCH 0/4] twl4030 threaded_irq support
-Date: Tue, 26 Jan 2010 13:02:47 +0200
-Message-ID: <20100126110247.GB13062@nokia.com>
-References: <20091212183410.GF3092@sirena.org.uk>
- <1260786654-13294-1-git-send-email-felipe.balbi@nokia.com>
- <201001252306.55625.david-b@pacbell.net>
-Reply-To: felipe.balbi@nokia.com
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RESEND][PATCH] DSPBRIDGE: cache operation against kernel address
+	instead of user's
+Date: Tue, 26 Jan 2010 13:52:52 +0200
+Message-ID: <94a0d4531001260352x38d35cf6g1b0713c951c25618@mail.gmail.com>
+References: <1264220772-11097-1-git-send-email-omar.ramirez@ti.com>
+	 <4B5E4BB8.5090108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:21496 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751919Ab0AZLEo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 06:04:44 -0500
-Content-Disposition: inline
-In-Reply-To: <201001252306.55625.david-b@pacbell.net>
+Received: from mail-iw0-f173.google.com ([209.85.223.173]:56682 "EHLO
+	mail-iw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893Ab0AZLwx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 06:52:53 -0500
+Received: by iwn3 with SMTP id 3so288314iwn.19
+        for <linux-omap@vger.kernel.org>; Tue, 26 Jan 2010 03:52:52 -0800 (PST)
+In-Reply-To: <4B5E4BB8.5090108@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Koskinen Aaro (Nokia-D/Helsinki)" <aaro.koskinen@nokia.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@openedhand.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-On Tue, Jan 26, 2010 at 08:06:55AM +0100, ext David Brownell wrote:
->On Monday 14 December 2009, Felipe Balbi wrote:
->> move twl4030 children to threaded irq.
->>
->> Felipe Balbi (4):
->>   input: keyboard: twl4030: move to request_threaded_irq
->>   input: misc: twl4030: move to request_threaded_irq
->>   rtc: twl4030: move to request_threaded_irq
->>   usb: otg: twl4030: move to request_threaded_irq
+On Tue, Jan 26, 2010 at 3:56 AM, Omar Ramirez Luna <omar.ramirez@ti.com=
+> wrote:
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 >
->But nothing in drivers/mfd ... the entry to the whole stack?
+> Based on the discussion:
+> =C2=A0http://www.spinics.net/lists/arm-kernel/msg72810.html
 >
->Did the threaded IRQ stuff ever get set up so that the top
->level IRQ thread didn't have to hand off to another thread
->each time?  (That's how the current stuff works.  One thread
->calling out to each handler.)
->
->If so, I'd like to see that be used here, rather than needlessly
->spend all those pages on mostly-unused stacks.
+> HACK: export "follow_page()" for dspbridge cache operation
 
-correct, that's still missing. I tried to play with it for a while, but 
-had to give up due to other musb tasks. So if someone wants to step up 
-and code that part, I'd be glad
+This is clearly a hack, so what's the plan to fix this in a proper way?
 
--- 
-balbi
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
