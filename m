@@ -1,41 +1,47 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [RFC/PATCH 0/4] twl4030 threaded_irq support
-Date: Tue, 26 Jan 2010 04:18:42 -0800
-Message-ID: <201001260418.43107.david-b@pacbell.net>
-References: <20091212183410.GF3092@sirena.org.uk> <201001252306.55625.david-b@pacbell.net> <20100126110247.GB13062@nokia.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC/PATCH 1/5] usb: otg: add notifier support
+Date: Tue, 26 Jan 2010 13:11:47 +0000
+Message-ID: <20100126131146.GC32291@sirena.org.uk>
+References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com> <1260531086-23857-2-git-send-email-felipe.balbi@nokia.com> <201001260316.20529.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753406Ab0AZMSz@vger.kernel.org>
-In-Reply-To: <20100126110247.GB13062@nokia.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:59097 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753733Ab0AZNL7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 08:11:59 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Koskinen Aaro (Nokia-D/Helsinki)" <aaro.koskinen@nokia.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@openedhand.com>
+In-Reply-To: <201001260316.20529.david-b@pacbell.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Anton Vorontsov <avorontsov@ru.mvista.com>, Grazvydas Ignotas <notasas@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>
 
-On Tuesday 26 January 2010, Felipe Balbi wrote:
-> >But nothing in drivers/mfd ... the entry to the whole stack?
-> >...
-> 
-> correct, that's still missing. I tried to play with it for a while, but 
-> had to give up due to other musb tasks. So if someone wants to step up 
-> and code that part, I'd be glad
+On Tue, Jan 26, 2010 at 03:16:20AM -0800, David Brownell wrote:
 
-I'm quite sure I sent a patch doing that ... sometime early last
-summer, when the threaded IRQ stuff was being thrashed out!  (To
-show what it'd look like, and see what problems remained.)  That
-interface hasn't changed much since then, except for addition of
-a stuff like ONESHOT support, set_irq_nested_thread(), and the
-bus_lock stuff.  It's surely in LKML archives.  :)
+> I'd vote to convert all the USB-to-charger interfaces so
+> they use notifiers.  After fixing the events ... see
+> comments below.  :)
 
-My point here was more like:  these patches shouldn't merge without
-that top-level change.  Just switch the whole current structure
-(one thread, nesting) over to the now-standard interfaces at the
-same time, not incrementally.  Later, the bus_lock stuff can switch
-over too (for cleaner mask/unmask).
+Yes please - it's not just chargers either, this can also be used by
+PMICs which do power path management that includes USB.
 
-That's clearly material for 2.6.34 though ...
+> Those seem like the wrong events.  The right events for a charger
+> would be more along the lines of:
 
-- Dave
+>  - For peripheral:  "you may use N milliAmperes now".
+>  - General:  "Don't Charge" (a.k.a. "use 0 mA").
+
+> I don't see how "N" would be passed with those events ...
+
+These are good for the peripheral side.  You do get to pass a void *
+along with the notifier value, that could be used to pass data like the
+current limit.
+
+> A host *might* want to be able to say things like "supply
+> up to N milliAmperes now", e.g. to let a regulator choose
+> the most efficient mode.
+
+Yes, they definitely want this - not just for efficiency but also to
+allow current limiting to protect the system from excessive current
+drain.
