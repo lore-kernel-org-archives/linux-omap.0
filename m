@@ -1,62 +1,51 @@
-From: <mika.kukkonen@nokia.com>
-Subject: RE: [PATCH] DSPBRIDGE: Various compile warning fixes
-Date: Tue, 26 Jan 2010 07:03:59 +0100
-Message-ID: <20D73E2631F7914F868646E119DEC1CE2102582DE0@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>,<4B5DCDDB.10409@ti.com>
- <DDE834F1D8D96540B7373DFF675BF56C1B8A2B5AA0@NOK-EUMSG-03.mgdnok.nokia.com>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Subject: Re: [RFC/PATCH 0/4] twl4030 threaded_irq support
+Date: Mon, 25 Jan 2010 23:06:55 -0800
+Message-ID: <201001252306.55625.david-b@pacbell.net>
+References: <20091212183410.GF3092@sirena.org.uk> <1260786654-13294-1-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:46931 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258Ab0AZGEM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 01:04:12 -0500
-In-Reply-To: <DDE834F1D8D96540B7373DFF675BF56C1B8A2B5AA0@NOK-EUMSG-03.mgdnok.nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1260786654-13294-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Samuel Ortiz <sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ameya.palande@nokia.com, omar.ramirez@ti.com
-Cc: linux-omap@vger.kernel.org, nm@ti.com, deepak.chitriki@ti.com
 
- 
+On Monday 14 December 2009, Felipe Balbi wrote:
+> move twl4030 children to threaded irq.
+> 
+> Felipe Balbi (4):
+>   input: keyboard: twl4030: move to request_threaded_irq
+>   input: misc: twl4030: move to request_threaded_irq
+>   rtc: twl4030: move to request_threaded_irq
+>   usb: otg: twl4030: move to request_threaded_irq
 
->-----Original Message-----
->From: Palande Ameya (Nokia-D/Helsinki) 
->Sent: 25 January, 2010 19:03
->To: ext Omar Ramirez Luna
->Cc: linux-omap@vger.kernel.org; Menon, Nishanth; Chitriki 
->Rudramuni, Deepak; Kukkonen Mika (Nokia-D/Helsinki)
->Subject: RE: [PATCH] DSPBRIDGE: Various compile warning fixes
->
->Hi Omar,
->
->Sorry for the top posthing :(
->I guess the original patch had empty if() bodies. 
->That comment can be removed :)
+But nothing in drivers/mfd ... the entry to the whole stack?
 
-No, the empty if() bodies fix is the chunk that modifies
-those macros:
+Did the threaded IRQ stuff ever get set up so that the top
+level IRQ thread didn't have to hand off to another thread
+each time?  (That's how the current stuff works.  One thread
+calling out to each handler.)
 
->> -#define DBC_Assert(exp)
->> -#define DBC_Require(exp)
->> -#define DBC_Ensure(exp)
->> +#define DBC_Assert(exp) {}
->> +#define DBC_Require(exp) {}
->> +#define DBC_Ensure(exp) {}
-(...)
->> -#define DBG_Exit(void)
->> +#define DBG_Exit(void) do {} while (0)
+If so, I'd like to see that be used here, rather than needlessly
+spend all those pages on mostly-unused stacks.  
 
-etc. Those are used in code as
 
-if (whatever)
-   do_stuff();
-else
-   DBC_Assert(exp);
-do_something_else();
+> 
+>  drivers/input/keyboard/twl4030_keypad.c |   11 ++---------
+>  drivers/input/misc/twl4030-pwrbutton.c  |   12 +-----------
+>  drivers/rtc/rtc-twl4030.c               |   10 +---------
+>  drivers/usb/otg/twl4030-usb.c           |   10 +---------
+>  4 files changed, 5 insertions(+), 38 deletions(-)
+> 
+> 
 
-and you really want to DBC_Assert() not to be totally
-empty, but instead evaluate to an empty statement block.
 
---MiKu
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
