@@ -1,58 +1,94 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC/PATCH 1/5] usb: otg: add notifier support
-Date: Tue, 26 Jan 2010 21:15:06 +0200
-Message-ID: <20100126191506.GD20049@nokia.com>
-References: <6ed0b2680912101251jeec28e6i216dfc51caab13aa@mail.gmail.com>
- <201001260316.20529.david-b@pacbell.net>
- <20100126141016.GD10690@nokia.com>
- <201001260707.23339.david-b@pacbell.net>
- <20100126190934.GC20049@nokia.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/3] Add tmp register for debug-macro.S,
+	do not select CPU_32v6K for omap2
+Date: Tue, 26 Jan 2010 11:37:34 -0800
+Message-ID: <20100126193311.15134.24078.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100126190934.GC20049-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: ext David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Madhusudhan Chikkature <madhu.cr-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50753 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754712Ab0AZThU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 14:37:20 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
 Hi,
 
-On Tue, Jan 26, 2010 at 08:09:34PM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
->well, if you have access to twl5031 docs you'd understand what I'm
->talking about, the charger detection involves at least 3 blocks on
->twl5031 plus musb to enable/disable pullups. The sequence is pretty much
->as below:
+Here are three patches for review to allow more complicated
+DEBUG_LL port handling by adding a tmp register for addruart.
 
-there's more which I forgot:
+The third patch makes it possible to boot mach-omap2 kernels with 
+omap2420 (v6) and omap34xx (v7) compiled in.
 
->1. vbus irq
->2. usb_gadget_disconnect()
->3. disable usb ldos
+These are needed for the following omap specific patch series.
 
-3.1 put transceiver in non-drivig mode
+Regards,
 
->4. switch usb3v1 supply from vbat to vbus (to let charger detection work
->on low bat)
->5. enable usb3v1 *only*
->6. call the notifier chain
->7. BCC module kicks charger detection
->8. disable usb3v1
->9. switch usb3v1 supply back to vbat
+Tony
 
-9.1 put transceiver back to normal mode
 
->10. enable usb ldos
->11. usb_gadget_connect() (necessary since we might be connected to
->charging port)
+---
 
-now it should be all fine.
+Tony Lindgren (3):
+      ARM: Add tmp register for addruart and loadsp
+      ARM: Add tmp register for debug-macro.S files
+      ARM: Select CPU_32v6K for CPU_V7 only if ARCH_OMAP2 is not selected
+
+
+ arch/arm/boot/compressed/head.S                    |   20 ++++++++++----------
+ arch/arm/kernel/debug.S                            |   12 ++++++------
+ arch/arm/mach-aaec2000/include/mach/debug-macro.S  |    2 +-
+ arch/arm/mach-at91/include/mach/debug-macro.S      |    2 +-
+ arch/arm/mach-clps711x/include/mach/debug-macro.S  |    2 +-
+ arch/arm/mach-davinci/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-dove/include/mach/debug-macro.S      |    2 +-
+ arch/arm/mach-ebsa110/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-ep93xx/include/mach/debug-macro.S    |    2 +-
+ .../arm/mach-footbridge/include/mach/debug-macro.S |    4 ++--
+ arch/arm/mach-gemini/include/mach/debug-macro.S    |    2 +-
+ arch/arm/mach-h720x/include/mach/debug-macro.S     |    2 +-
+ .../arm/mach-integrator/include/mach/debug-macro.S |    2 +-
+ arch/arm/mach-iop13xx/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-iop32x/include/mach/debug-macro.S    |    2 +-
+ arch/arm/mach-iop33x/include/mach/debug-macro.S    |    2 +-
+ arch/arm/mach-ixp2000/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-ixp23xx/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-ixp4xx/include/mach/debug-macro.S    |    2 +-
+ arch/arm/mach-kirkwood/include/mach/debug-macro.S  |    2 +-
+ arch/arm/mach-ks8695/include/mach/debug-macro.S    |    2 +-
+ arch/arm/mach-l7200/include/mach/debug-macro.S     |    2 +-
+ arch/arm/mach-lh7a40x/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-loki/include/mach/debug-macro.S      |    2 +-
+ arch/arm/mach-mmp/include/mach/debug-macro.S       |    2 +-
+ arch/arm/mach-msm/include/mach/debug-macro.S       |    4 ++--
+ arch/arm/mach-mv78xx0/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-netx/include/mach/debug-macro.S      |    2 +-
+ arch/arm/mach-nomadik/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-ns9xxx/include/mach/debug-macro.S    |    2 +-
+ arch/arm/mach-omap1/include/mach/debug-macro.S     |    2 +-
+ arch/arm/mach-omap2/include/mach/debug-macro.S     |    2 +-
+ arch/arm/mach-orion5x/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-pnx4008/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-pxa/include/mach/debug-macro.S       |    2 +-
+ arch/arm/mach-realview/include/mach/debug-macro.S  |    2 +-
+ arch/arm/mach-rpc/include/mach/debug-macro.S       |    2 +-
+ arch/arm/mach-s3c2410/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-s3c24a0/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-s3c6400/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-s5pc100/include/mach/debug-macro.S   |    2 +-
+ arch/arm/mach-sa1100/include/mach/debug-macro.S    |    2 +-
+ arch/arm/mach-shark/include/mach/debug-macro.S     |    2 +-
+ arch/arm/mach-u300/include/mach/debug-macro.S      |    2 +-
+ arch/arm/mach-ux500/include/mach/debug-macro.S     |    2 +-
+ arch/arm/mach-versatile/include/mach/debug-macro.S |    2 +-
+ arch/arm/mm/Kconfig                                |    4 ++--
+ arch/arm/plat-mxc/include/mach/debug-macro.S       |    2 +-
+ arch/arm/plat-stmp3xxx/include/mach/debug-macro.S  |    2 +-
+ 49 files changed, 66 insertions(+), 66 deletions(-)
 
 -- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signature
