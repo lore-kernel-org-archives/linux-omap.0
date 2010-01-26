@@ -1,94 +1,173 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/3] Add tmp register for debug-macro.S,
-	do not select CPU_32v6K for omap2
-Date: Tue, 26 Jan 2010 11:37:34 -0800
-Message-ID: <20100126193311.15134.24078.stgit@baageli.muru.com>
+Subject: [PATCH 1/3] ARM: Add tmp register for addruart and loadsp
+Date: Tue, 26 Jan 2010 11:37:41 -0800
+Message-ID: <20100126193741.15134.16101.stgit@baageli.muru.com>
+References: <20100126193311.15134.24078.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50753 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754712Ab0AZThU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 14:37:20 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63164 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754733Ab0AZThY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 14:37:24 -0500
+In-Reply-To: <20100126193311.15134.24078.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Hi,
+Otherwise more complicated uart configuration won't be possible.
+We can use r1 for tmp register for both head.S and debug.S.
 
-Here are three patches for review to allow more complicated
-DEBUG_LL port handling by adding a tmp register for addruart.
+NOTE: This patch depends on another patch to add the the \tmp register
+into all debug-macro.S files. That can be done with:
 
-The third patch makes it possible to boot mach-omap2 kernels with 
-omap2420 (v6) and omap34xx (v7) compiled in.
+$ sed -i -e "s/addruart,rx\|addruart, rx/addruart, rx, tmp/" \
+	arch/arm/*/include/*/debug-macro.S
 
-These are needed for the following omap specific patch series.
-
-Regards,
-
-Tony
-
-
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/boot/compressed/head.S |   20 ++++++++++----------
+ arch/arm/kernel/debug.S         |   12 ++++++------
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
-Tony Lindgren (3):
-      ARM: Add tmp register for addruart and loadsp
-      ARM: Add tmp register for debug-macro.S files
-      ARM: Select CPU_32v6K for CPU_V7 only if ARCH_OMAP2 is not selected
+diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
+index 4fddc50..99b75aa 100644
+--- a/arch/arm/boot/compressed/head.S
++++ b/arch/arm/boot/compressed/head.S
+@@ -22,13 +22,13 @@
+ #if defined(CONFIG_DEBUG_ICEDCC)
+ 
+ #ifdef CONFIG_CPU_V6
+-		.macro	loadsp, rb
++		.macro	loadsp, rb, tmp
+ 		.endm
+ 		.macro	writeb, ch, rb
+ 		mcr	p14, 0, \ch, c0, c5, 0
+ 		.endm
+ #elif defined(CONFIG_CPU_V7)
+-		.macro	loadsp, rb
++		.macro	loadsp, rb, tmp
+ 		.endm
+ 		.macro	writeb, ch, rb
+ wait:		mrc	p14, 0, pc, c0, c1, 0
+@@ -36,13 +36,13 @@ wait:		mrc	p14, 0, pc, c0, c1, 0
+ 		mcr	p14, 0, \ch, c0, c5, 0
+ 		.endm
+ #elif defined(CONFIG_CPU_XSCALE)
+-		.macro	loadsp, rb
++		.macro	loadsp, rb, tmp
+ 		.endm
+ 		.macro	writeb, ch, rb
+ 		mcr	p14, 0, \ch, c8, c0, 0
+ 		.endm
+ #else
+-		.macro	loadsp, rb
++		.macro	loadsp, rb, tmp
+ 		.endm
+ 		.macro	writeb, ch, rb
+ 		mcr	p14, 0, \ch, c1, c0, 0
+@@ -58,7 +58,7 @@ wait:		mrc	p14, 0, pc, c0, c1, 0
+ 		.endm
+ 
+ #if defined(CONFIG_ARCH_SA1100)
+-		.macro	loadsp, rb
++		.macro	loadsp, rb, tmp
+ 		mov	\rb, #0x80000000	@ physical base address
+ #ifdef CONFIG_DEBUG_LL_SER3
+ 		add	\rb, \rb, #0x00050000	@ Ser3
+@@ -67,13 +67,13 @@ wait:		mrc	p14, 0, pc, c0, c1, 0
+ #endif
+ 		.endm
+ #elif defined(CONFIG_ARCH_S3C2410)
+-		.macro loadsp, rb
++		.macro loadsp, rb, tmp
+ 		mov	\rb, #0x50000000
+ 		add	\rb, \rb, #0x4000 * CONFIG_S3C_LOWLEVEL_UART_PORT
+ 		.endm
+ #else
+-		.macro	loadsp,	rb
+-		addruart \rb
++		.macro	loadsp,	rb, tmp
++		addruart \rb, \tmp
+ 		.endm
+ #endif
+ #endif
+@@ -1025,7 +1025,7 @@ phex:		adr	r3, phexbuf
+ 		strb	r2, [r3, r1]
+ 		b	1b
+ 
+-puts:		loadsp	r3
++puts:		loadsp	r3, r1
+ 1:		ldrb	r2, [r0], #1
+ 		teq	r2, #0
+ 		moveq	pc, lr
+@@ -1042,7 +1042,7 @@ puts:		loadsp	r3
+ putc:
+ 		mov	r2, r0
+ 		mov	r0, #0
+-		loadsp	r3
++		loadsp	r3, r1
+ 		b	2b
+ 
+ memdump:	mov	r12, r0
+diff --git a/arch/arm/kernel/debug.S b/arch/arm/kernel/debug.S
+index 5c91add..a38b487 100644
+--- a/arch/arm/kernel/debug.S
++++ b/arch/arm/kernel/debug.S
+@@ -24,7 +24,7 @@
+ 
+ #if defined(CONFIG_CPU_V6)
+ 
+-		.macro	addruart, rx
++		.macro	addruart, rx, tmp
+ 		.endm
+ 
+ 		.macro	senduart, rd, rx
+@@ -51,7 +51,7 @@
+ 
+ #elif defined(CONFIG_CPU_V7)
+ 
+-		.macro	addruart, rx
++		.macro	addruart, rx, tmp
+ 		.endm
+ 
+ 		.macro	senduart, rd, rx
+@@ -71,7 +71,7 @@ wait:		mrc	p14, 0, pc, c0, c1, 0
+ 
+ #elif defined(CONFIG_CPU_XSCALE)
+ 
+-		.macro	addruart, rx
++		.macro	addruart, rx, tmp
+ 		.endm
+ 
+ 		.macro	senduart, rd, rx
+@@ -98,7 +98,7 @@ wait:		mrc	p14, 0, pc, c0, c1, 0
+ 
+ #else
+ 
+-		.macro	addruart, rx
++		.macro	addruart, rx, tmp
+ 		.endm
+ 
+ 		.macro	senduart, rd, rx
+@@ -164,7 +164,7 @@ ENDPROC(printhex2)
+ 		.ltorg
+ 
+ ENTRY(printascii)
+-		addruart r3
++		addruart r3, r1
+ 		b	2f
+ 1:		waituart r2, r3
+ 		senduart r1, r3
+@@ -180,7 +180,7 @@ ENTRY(printascii)
+ ENDPROC(printascii)
+ 
+ ENTRY(printch)
+-		addruart r3
++		addruart r3, r1
+ 		mov	r1, r0
+ 		mov	r0, #0
+ 		b	1b
 
-
- arch/arm/boot/compressed/head.S                    |   20 ++++++++++----------
- arch/arm/kernel/debug.S                            |   12 ++++++------
- arch/arm/mach-aaec2000/include/mach/debug-macro.S  |    2 +-
- arch/arm/mach-at91/include/mach/debug-macro.S      |    2 +-
- arch/arm/mach-clps711x/include/mach/debug-macro.S  |    2 +-
- arch/arm/mach-davinci/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-dove/include/mach/debug-macro.S      |    2 +-
- arch/arm/mach-ebsa110/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-ep93xx/include/mach/debug-macro.S    |    2 +-
- .../arm/mach-footbridge/include/mach/debug-macro.S |    4 ++--
- arch/arm/mach-gemini/include/mach/debug-macro.S    |    2 +-
- arch/arm/mach-h720x/include/mach/debug-macro.S     |    2 +-
- .../arm/mach-integrator/include/mach/debug-macro.S |    2 +-
- arch/arm/mach-iop13xx/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-iop32x/include/mach/debug-macro.S    |    2 +-
- arch/arm/mach-iop33x/include/mach/debug-macro.S    |    2 +-
- arch/arm/mach-ixp2000/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-ixp23xx/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-ixp4xx/include/mach/debug-macro.S    |    2 +-
- arch/arm/mach-kirkwood/include/mach/debug-macro.S  |    2 +-
- arch/arm/mach-ks8695/include/mach/debug-macro.S    |    2 +-
- arch/arm/mach-l7200/include/mach/debug-macro.S     |    2 +-
- arch/arm/mach-lh7a40x/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-loki/include/mach/debug-macro.S      |    2 +-
- arch/arm/mach-mmp/include/mach/debug-macro.S       |    2 +-
- arch/arm/mach-msm/include/mach/debug-macro.S       |    4 ++--
- arch/arm/mach-mv78xx0/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-netx/include/mach/debug-macro.S      |    2 +-
- arch/arm/mach-nomadik/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-ns9xxx/include/mach/debug-macro.S    |    2 +-
- arch/arm/mach-omap1/include/mach/debug-macro.S     |    2 +-
- arch/arm/mach-omap2/include/mach/debug-macro.S     |    2 +-
- arch/arm/mach-orion5x/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-pnx4008/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-pxa/include/mach/debug-macro.S       |    2 +-
- arch/arm/mach-realview/include/mach/debug-macro.S  |    2 +-
- arch/arm/mach-rpc/include/mach/debug-macro.S       |    2 +-
- arch/arm/mach-s3c2410/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-s3c24a0/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-s3c6400/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-s5pc100/include/mach/debug-macro.S   |    2 +-
- arch/arm/mach-sa1100/include/mach/debug-macro.S    |    2 +-
- arch/arm/mach-shark/include/mach/debug-macro.S     |    2 +-
- arch/arm/mach-u300/include/mach/debug-macro.S      |    2 +-
- arch/arm/mach-ux500/include/mach/debug-macro.S     |    2 +-
- arch/arm/mach-versatile/include/mach/debug-macro.S |    2 +-
- arch/arm/mm/Kconfig                                |    4 ++--
- arch/arm/plat-mxc/include/mach/debug-macro.S       |    2 +-
- arch/arm/plat-stmp3xxx/include/mach/debug-macro.S  |    2 +-
- 49 files changed, 66 insertions(+), 66 deletions(-)
-
--- 
-Signature
