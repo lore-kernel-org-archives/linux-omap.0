@@ -1,123 +1,109 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: PM: VDD2 OPPs
-Date: Tue, 26 Jan 2010 23:02:43 +0100
-Message-ID: <74583B8642AB8841B30447520659FCA9E761EEC1@dnce01.ent.ti.com>
-References: <0C997DD87CC88A4F86C897F52650B52B02807701@MOLSON.mpc-data.co.uk>
- <4B5F5378.9020800@ti.com>
- <0C997DD87CC88A4F86C897F52650B52B02807703@MOLSON.mpc-data.co.uk>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH 1/2] DSPBRIDGE: Use enable_off_mode variable instead of
+ dsp_test_sleepstate
+Date: Tue, 26 Jan 2010 16:23:13 -0600
+Message-ID: <4B5F6B51.6050607@ti.com>
+References: <1264241986-29071-1-git-send-email-felipe.contreras@gmail.com> <1264241986-29071-2-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51080 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37169 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754836Ab0AZWDB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 17:03:01 -0500
-Content-Class: urn:content-classes:message
-In-Reply-To: <0C997DD87CC88A4F86C897F52650B52B02807703@MOLSON.mpc-data.co.uk>
-Content-Language: en-US
+	id S1751788Ab0AZWXW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Jan 2010 17:23:22 -0500
+In-Reply-To: <1264241986-29071-2-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Murray <amurray@mpc-data.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Jouni Hogander <jouni.hogander@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Andrew Murray
->
->Thanks for the pointer to the pm-wip-opp branch - I'm not familiar with
->the new opp layer so I'll take a look.
->
->I currently have no need to directly control the VDD2 frequency - though
->after browsing the code I was interested to find out if my understanding
->was correct or if I was missing something. I guess if there was a need
->the framework is already in place such that a kernel module could simply
->use the API.
->
->I apologise for all these questions - I've spent the past couple of
->weeks getting to grips with power management in the OMAP and wanted to
->understand the level of kernel support for the various features. Though
->I do have a final question: I understood OPP's to be pairs of voltage
->and frequency and there were only a certain number of discrete OPP steps
->for each domain, i.e. 5 for VDD1, 2/3 for VDD2. However from reading the
->TPM (and the fact that the L3 frequency differs to the white paper
->documentation) it suggests that voltage/frequency can be set to any
->value. Thus leading me to wonder why there aren't more OPP sets? Or is
->it the case that the chosen sets represent a broad range of
->power-efficient OPPs?
+Hi,
 
-The OPP sets in the TRM are the one that were characterized and validated by TI. They provide you the max frequency you can achieve at a certain voltage.
-As soon as the frequency is below the one defined in the OPP, you can do whatever you want.
+On 1/23/2010 4:19 AM, Felipe Contreras wrote:
+> From: Jouni Hogander<jouni.hogander@nokia.com>
+>
+> Signed-off-by: Jouni Hogander<jouni.hogander@nokia.com>
+> Signed-off-by: Hiroshi DOYU<Hiroshi.DOYU@nokia.com>
 
-Concerning the 41.5MHz for the core, the issue is that the voltage for that OPP is almost the same than the one at 83MHz thus providing very little gain for the power point of view. In term of energy it will even increase the consumption due to the very negative performance impact that frequency will do to the MPU and the whole system in general.
+This patch is missing to export enable_off_mode otherwise it will fail 
+while linking.
 
-Regards,
-Benoit
+FTR, I don't like to be exporting symbols of other subsystems, guess the 
+same applies to:
 
+http://marc.info/?l=linux-omap&m=126450677527042&w=2
 
->I've noticed that other than using the debugfs there is no way for a
->user to configure sleep_when_idle, enable_off_mode,
->voltage_off_when_idle. Do you think it would be worthwhile to add these
->options to the KConfigs? I'd be happy to make these modifications if so.
->:)
+> ---
+>   drivers/dsp/bridge/rmgr/drv_interface.c |    5 -----
+>   drivers/dsp/bridge/wmd/tiomap3430_pwr.c |    9 ++++-----
+>   2 files changed, 4 insertions(+), 10 deletions(-)
 >
->Many Thanks,
+> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+> index a02a32a..b20f77e 100644
+> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
+> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+> @@ -78,8 +78,6 @@ s32 dsp_debug;
 >
->Andrew Murray
+>   struct platform_device *omap_dspbridge_dev;
 >
+> -/* This is a test variable used by Bridge to test different sleep states */
+> -s32 dsp_test_sleepstate;
+>   struct bridge_dev {
+>   	struct cdev cdev;
+>   };
+> @@ -129,9 +127,6 @@ module_param(dsp_debug, int, 0);
+>   MODULE_PARM_DESC(dsp_debug, "Wait after loading DSP image. default = false");
+>   #endif
 >
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+> -module_param(dsp_test_sleepstate, int, 0);
+> -MODULE_PARM_DESC(dsp_test_sleepstate, "DSP Sleep state = 0");
+> -
+>   module_param(base_img, charp, 0);
+>   MODULE_PARM_DESC(base_img, "DSP base image, default = NULL");
+>
+> diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+> index 084f406..c0e0994 100644
+> --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+> +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+> @@ -54,10 +54,9 @@
+>   #include<mach-omap2/cm-regbits-34xx.h>
+>
+>   #ifdef CONFIG_PM
+> -extern s32 dsp_test_sleepstate;
+> +extern unsigned short enable_off_mode;
+>   #endif
+>   extern struct MAILBOX_CONTEXT mboxsetting;
+> -
+>   /*
+>    *  ======== handle_constraints_set ========
+>    *  	Sets new DSP constraint
+> @@ -196,7 +195,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+>   	switch (pDevContext->dwBrdState) {
+>   	case BRD_RUNNING:
+>   		status = HW_MBOX_saveSettings(resources.dwMboxBase);
+> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
+> +		if (enable_off_mode) {
+>   			CHNLSM_InterruptDSP2(pDevContext,
+>   					     MBX_PM_DSPHIBERNATE);
+>   			DBG_Trace(DBG_LEVEL7,
+> @@ -211,7 +210,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+>   		break;
+>   	case BRD_RETENTION:
+>   		status = HW_MBOX_saveSettings(resources.dwMboxBase);
+> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
+> +		if (enable_off_mode) {
+>   			CHNLSM_InterruptDSP2(pDevContext,
+>   					     MBX_PM_DSPHIBERNATE);
+>   			targetPwrState = HW_PWR_STATE_OFF;
+> @@ -261,7 +260,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+>   			 pwrState);
+>
+>   		/* Update the Bridger Driver state */
+> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF)
+> +		if (enable_off_mode)
+>   			pDevContext->dwBrdState = BRD_HIBERNATION;
+>   		else
+>   			pDevContext->dwBrdState = BRD_RETENTION;
 
------Original Message-----
-
->From: Nishanth Menon [mailto:nm@ti.com]
->Sent: 26 January 2010 20:41
->To: Andrew Murray
->Cc: linux-omap@vger.kernel.org
->Subject: Re: PM: VDD2 OPPs
->
->Andrew Murray had written, on 01/26/2010 02:34 PM, the following:
->> Hello,
->>
->> With regards to the OMAP2 (or at least the 3530 EVM) -the TRM and
->> various whitepapers suggest that they are 3 OPP levels available for
->> VDD2 (L3). However, from looking at the sources (linux-omap-pm / pm
->> branch) it seems that only 2 OPP levels are supported (@166Mhz and
->> @83Mhz) and used. I also notice that these rates are different to
->those
->> in a whitepaper (166, 100 and 41.5). Is there any particular reason
->why
->on OMAP34/35xx, I believe it should be s/100/83/.
->> only 2 OPPs are used?
->to my knowledge 41.5Mhz is not known to provide any performance
->benefits. you can also see [1] and add 41.5 (pm-wip-opp is the new
->branch where we are introducing opp layer.
->
->>
->> I understand that the OPP level of VDD2 may be set by changes to the
->OPP
->> level of VDD1 (i.e. resource34xx.c:set_opp) - and modifying VDD1's OPP
->> via cpufreq seems to be the only way to adjust the VDD2 OPP from
->> user-land - is this correct?
->The old /sys/power/vdd2_[opp|lock] was deprecated out. currently the
->control is for vdd1 OPP using cpufreq and indirect dependency for VDD2,
->is there a need for direct control of VDD2 freq?
->--
->Regards,
->Nishanth Menon
->
->Ref:
->[1]
->http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=bl
->ob;f=arch/arm/mach-omap2/cpufreq34xx.c;h=07873e87ffc0fef97b4554efc3f17dc
->696cb25e3;hb=4f54a09e0ed9b2ee8e1adfe1716297792310d1c6#l46
->
->
->No virus found in this incoming message.
->Checked by AVG - www.avg.com
->Version: 8.5.432 / Virus Database: 271.1.1/2641 - Release Date: 01/25/10
->19:36:00
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+- omar
