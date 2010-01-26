@@ -1,163 +1,145 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: PM: VDD2 OPPs
-Date: Tue, 26 Jan 2010 15:47:09 -0800
-Message-ID: <87fx5szawy.fsf@deeprootsystems.com>
-References: <0C997DD87CC88A4F86C897F52650B52B02807701@MOLSON.mpc-data.co.uk>
-	<4B5F5378.9020800@ti.com>
-	<0C997DD87CC88A4F86C897F52650B52B02807703@MOLSON.mpc-data.co.uk>
-	<87636o1ocq.fsf@deeprootsystems.com>
-	<0C997DD87CC88A4F86C897F52650B52B0280770D@MOLSON.mpc-data.co.uk>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH] DSPBRIDGE: Various compile warning fixes
+Date: Tue, 26 Jan 2010 17:52:28 -0600
+Message-ID: <4B5F803C.50401@ti.com>
+References: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f182.google.com ([209.85.216.182]:39618 "EHLO
-	mail-px0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755081Ab0AZXrM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 18:47:12 -0500
-Received: by pxi12 with SMTP id 12so3925356pxi.33
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jan 2010 15:47:11 -0800 (PST)
-In-Reply-To: <0C997DD87CC88A4F86C897F52650B52B0280770D@MOLSON.mpc-data.co.uk> (Andrew Murray's message of "Tue\, 26 Jan 2010 23\:22\:03 -0000")
+Received: from bear.ext.ti.com ([192.94.94.41]:42627 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754905Ab0AZXwc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Jan 2010 18:52:32 -0500
+In-Reply-To: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Murray <amurray@mpc-data.co.uk>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "mika.kukkonen@nokia.com" <mika.kukkonen@nokia.com>
 
-"Andrew Murray" <amurray@mpc-data.co.uk> writes:
+On 1/21/2010 7:40 AM, Ameya Palande wrote:
+> This patch contains indentation fixes and cleans up various warnings
+> uncovered with extra warning flags:
+>
+>    - empty if() bodies
+>    - incorrect use of unsigned variables
+>    - bad comparison of pointer value
+>    - pointless check of unsigned value being smaller than zero
+>    - keyword 'extern' has to be first one in variable declaration
+>
+> Signed-off-by: Mika Kukkonen<mika.kukkonen@nokia.com>
+> Signed-off-by: Ameya Palande<ameya.palande@nokia.com>
 
-> For some reason I thought that enable_off_mode, voltage_off_when_idle
-> and sleep_when_idle are disabled by default - thus the only way to make
-> use of these features in a production system would be to mount debugfs
-> and use the controls.
->
-> The documentation on the elinux wiki suggests this is the case
-> (http://elinux.org/OMAP_Power_Management#Features_2). Also the
-> corresponding u32 variables for these properties don't appear to be
-> initialised anywhere in the kernel. Unless I've missed something?
+Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Yes, they are disabled by default because current linux-omap PM branch
-does not have full off-mode support, so if they were enabled by
-default there would likely be more complaints due to drivers without
-off-mode support etc.
+Pushed to dspbridge
 
-As we approach a kernel that has full off-mode support, we will likely
-change the defaults to enabled and eventually remove the options
-completely.
+> ---
+>   arch/arm/plat-omap/include/dspbridge/dbc.h |    6 +++---
+>   arch/arm/plat-omap/include/dspbridge/dbg.h |    4 ++--
+>   arch/arm/plat-omap/include/dspbridge/gt.h  |   16 +++++++++-------
+>   arch/arm/plat-omap/include/dspbridge/mem.h |    2 +-
+>   drivers/dsp/bridge/wmd/io_sm.c             |    2 +-
+>   drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
+>   6 files changed, 17 insertions(+), 15 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/dspbridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
+> index ac5d178..1b3ac44 100644
+> --- a/arch/arm/plat-omap/include/dspbridge/dbc.h
+> +++ b/arch/arm/plat-omap/include/dspbridge/dbc.h
+> @@ -43,9 +43,9 @@
+>
+>   #else
+>
+> -#define DBC_Assert(exp)
+> -#define DBC_Require(exp)
+> -#define DBC_Ensure(exp)
+> +#define DBC_Assert(exp) {}
+> +#define DBC_Require(exp) {}
+> +#define DBC_Ensure(exp) {}
+>
+>   #endif				/* DEBUG */
+>
+> diff --git a/arch/arm/plat-omap/include/dspbridge/dbg.h b/arch/arm/plat-omap/include/dspbridge/dbg.h
+> index 2f61dab..4d01eca 100644
+> --- a/arch/arm/plat-omap/include/dspbridge/dbg.h
+> +++ b/arch/arm/plat-omap/include/dspbridge/dbg.h
+> @@ -80,9 +80,9 @@
+>   	extern DSP_STATUS DBG_Trace(IN u8 bLevel, IN char *pstrFormat, ...);
+>   #else
+>
+> -#define DBG_Exit(void)
+> +#define DBG_Exit(void) do {} while (0)
+>   #define DBG_Init(void) true
+> -#define DBG_Trace(bLevel, pstrFormat, args...)
+> +#define DBG_Trace(bLevel, pstrFormat, args...) do {} while (0)
+>
+>   #endif	/* (CONFIG_BRIDGE_DEBUG || DDSP_DEBUG_PRODUCT)&&  GT_TRACE */
+>
+> diff --git a/arch/arm/plat-omap/include/dspbridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
+> index 6082d15..9097910 100644
+> --- a/arch/arm/plat-omap/include/dspbridge/gt.h
+> +++ b/arch/arm/plat-omap/include/dspbridge/gt.h
+> @@ -252,13 +252,15 @@ extern struct GT_Config _GT_params;
+>
+>   #define GT_query(mask, class)     false
+>
+> -#define GT_0trace(mask, class, format)
+> -#define GT_1trace(mask, class, format, arg1)
+> -#define GT_2trace(mask, class, format, arg1, arg2)
+> -#define GT_3trace(mask, class, format, arg1, arg2, arg3)
+> -#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4)
+> -#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5)
+> -#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6)
+> +#define GT_0trace(mask, class, format) do {} while (0)
+> +#define GT_1trace(mask, class, format, arg1) do {} while (0)
+> +#define GT_2trace(mask, class, format, arg1, arg2) do {} while (0)
+> +#define GT_3trace(mask, class, format, arg1, arg2, arg3) do {} while (0)
+> +#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4) do {} while (0)
+> +#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5) \
+> +	do {} while (0)
+> +#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6) \
+> +	do {} while (0)
+>
+>   #else				/* GT_TRACE == 1 */
+>
+> diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
+> index 03b419a..353ffb0 100644
+> --- a/arch/arm/plat-omap/include/dspbridge/mem.h
+> +++ b/arch/arm/plat-omap/include/dspbridge/mem.h
+> @@ -286,7 +286,7 @@
+>    *  Ensures:
+>    *      - pBaseAddr no longer points to a valid linear address.
+>    */
+> -#define MEM_UnmapLinearAddress(pBaseAddr)
+> +#define MEM_UnmapLinearAddress(pBaseAddr) {}
+>
+>   /*
+>    *  ======== MEM_ExtPhysPoolInit ========
+> diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+> index e35ce57..64eba5a 100644
+> --- a/drivers/dsp/bridge/wmd/io_sm.c
+> +++ b/drivers/dsp/bridge/wmd/io_sm.c
+> @@ -1210,7 +1210,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+>   			    pChnlMgr->uWordSize;
+>   	chnlId = IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputId);
+>   	dwArg = IO_GetLong(pIOMgr->hWmdContext, struct SHM, sm, arg);
+> -	if (!(chnlId>= 0) || !(chnlId<  CHNL_MAXCHANNELS)) {
+> +	if (chnlId>= CHNL_MAXCHANNELS) {
+>   		/* Shouldn't be here: would indicate corrupted SHM. */
+>   		DBC_Assert(chnlId);
+>   		goto func_end;
+> diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
+> index 6166d97..2c3a2cd 100644
+> --- a/drivers/dsp/bridge/wmd/ue_deh.c
+> +++ b/drivers/dsp/bridge/wmd/ue_deh.c
+> @@ -189,7 +189,7 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
+>   	DSP_STATUS status = DSP_SOK;
+>   	u32 memPhysical = 0;
+>   	u32 HW_MMU_MAX_TLB_COUNT = 31;
+> -	u32 extern faultAddr;
+> +	extern u32 faultAddr;
+>   	struct CFG_HOSTRES resources;
+>   	HW_STATUS hwStatus;
+>
 
-Kevin
-
->
-> Many Thanks,
-> 	
-> Andrew Murray
->
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: 26 January 2010 22:41
-> To: Andrew Murray
-> Cc: Nishanth Menon; linux-omap@vger.kernel.org
-> Subject: Re: PM: VDD2 OPPs
->
-> "Andrew Murray" <amurray@mpc-data.co.uk> writes:
->
-> [...]
->
->> I've noticed that other than using the debugfs there is no way for a
->> user to configure sleep_when_idle, enable_off_mode,
->> voltage_off_when_idle. Do you think it would be worthwhile to add
->> these options to the KConfigs? I'd be happy to make these
->> modifications if so.  :)
->
-> Hi Andrew,
->
-> I'm curious what benefit you to having them as compile-time options
-> instead of run-time?
->
-> In general, these options are all under debugfs for debug during PM
-> development, but they should not be considered as PM knobs for a
-> production system.
->
-> For a production system, the assumption is that the kernel is *always*
-> trying to sleep-while-idle and enter off-mode.  Preventing low-power
-> states is intended to be directed by drivers using constraints
-> (latency, throughput, etc.)  When using constraints, the deeper sleep
-> states are prevented while the constraints are in place and then
-> (re)allowed after the constraints are removed.
->
-> Kevin
->
->
->
->>
->> Many Thanks,
->>
->> Andrew Murray
->> 	
->> -----Original Message-----
->> From: Nishanth Menon [mailto:nm@ti.com] 
->> Sent: 26 January 2010 20:41
->> To: Andrew Murray
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: PM: VDD2 OPPs
->>
->> Andrew Murray had written, on 01/26/2010 02:34 PM, the following:
->>> Hello,
->>> 
->>> With regards to the OMAP2 (or at least the 3530 EVM) -the TRM and
->>> various whitepapers suggest that they are 3 OPP levels available for
->>> VDD2 (L3). However, from looking at the sources (linux-omap-pm / pm
->>> branch) it seems that only 2 OPP levels are supported (@166Mhz and
->>> @83Mhz) and used. I also notice that these rates are different to
->> those
->>> in a whitepaper (166, 100 and 41.5). Is there any particular reason
->> why
->> on OMAP34/35xx, I believe it should be s/100/83/.
->>> only 2 OPPs are used? 
->> to my knowledge 41.5Mhz is not known to provide any performance 
->> benefits. you can also see [1] and add 41.5 (pm-wip-opp is the new 
->> branch where we are introducing opp layer.
->>
->>> 
->>> I understand that the OPP level of VDD2 may be set by changes to the
->> OPP
->>> level of VDD1 (i.e. resource34xx.c:set_opp) - and modifying VDD1's
-> OPP
->>> via cpufreq seems to be the only way to adjust the VDD2 OPP from
->>> user-land - is this correct?
->> The old /sys/power/vdd2_[opp|lock] was deprecated out. currently the 
->> control is for vdd1 OPP using cpufreq and indirect dependency for
-> VDD2, 
->> is there a need for direct control of VDD2 freq?
->> -- 
->> Regards,
->> Nishanth Menon
->>
->> Ref:
->> [1] 
->>
-> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=bl
->>
-> ob;f=arch/arm/mach-omap2/cpufreq34xx.c;h=07873e87ffc0fef97b4554efc3f17dc
->> 696cb25e3;hb=4f54a09e0ed9b2ee8e1adfe1716297792310d1c6#l46
->>
->>
->> No virus found in this incoming message.
->> Checked by AVG - www.avg.com 
->> Version: 8.5.432 / Virus Database: 271.1.1/2641 - Release Date:
-> 01/25/10
->> 19:36:00
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-> No virus found in this incoming message.
-> Checked by AVG - www.avg.com 
-> Version: 8.5.432 / Virus Database: 271.1.1/2641 - Release Date: 01/25/10
-> 19:36:00
