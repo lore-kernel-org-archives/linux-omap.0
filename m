@@ -1,288 +1,62 @@
 From: adharmap@codeaurora.org
-Subject: [RFC PATCH 5/5] gic: initialize interrupts as per argument
-Date: Wed, 27 Jan 2010 11:32:29 -0800
-Message-ID: <1264620749-24527-6-git-send-email-adharmap@codeaurora.org>
+Subject: [PATCH 2/5] gic: add callback for mask_ack
+Date: Wed, 27 Jan 2010 11:32:26 -0800
+Message-ID: <1264620749-24527-3-git-send-email-adharmap@codeaurora.org>
 References: <1264620749-24527-1-git-send-email-adharmap@codeaurora.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754617Ab0A0Tck@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1264620749-24527-1-git-send-email-adharmap@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Russell King <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Catalin Marinas <catalin.marinas@arm.com>, Yinghai Lu <yinghai@kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Kalle Valo <kalle.valo@iki.fi>, Jean Pihet <jpihet@mvista.com>, Linus Walleij <linus.walleij@stericsson.com>, Colin Tuckley <colin.tuckley@arm.com>, Philby John <pjohn@in.mvista.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Alessandro Rubini <rubini@unipv.it>, Andrea Gallo <andrea.gallo@stericsson.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Abhijeet Dharmapurikar <adharmap@quicinc.com>
+Cc: Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Linus Walleij <linus.walleij@stericsson.com>, Jean Pihet <jpihet@mvista.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Abhijeet Dharmapurikar <adharmap@quicinc.com>, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Andrea Gallo <andrea.gallo@stericsson.com>, Colin Tuckley <colin.tuckley@arm.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Philby John <pjohn@in.mvista.com>, Alessandro Rubini <rubini@unipv.it>
 List-Id: linux-omap@vger.kernel.org
 
 From: Abhijeet Dharmapurikar <adharmap@quicinc.com>
 
-Initialize interrupts as per an argument passed instead of initializing
-them as active level low triggered interrupts.
+add gic_mask_ack for faster processing of interrupts.
 
 Signed-off-by: Abhijeet Dharmapurikar <adharmap@quicinc.com>
 ---
- Configuring level triggered interrupts as default may not be correct on
- some platforms, this changes the default behaviour of the gic_dist_init 
- function and also adds a flag to indicate whether the default should be level
- or edge.
-
- an argument. 
- arch/arm/common/gic.c                    |   25 ++++++++++++++++++-------
- arch/arm/include/asm/hardware/gic.h      |    3 ++-
- arch/arm/mach-omap2/board-4430sdp.c      |    3 ++-
- arch/arm/mach-realview/realview_eb.c     |   10 +++++++---
- arch/arm/mach-realview/realview_pb1176.c |    7 +++++--
- arch/arm/mach-realview/realview_pb11mp.c |    7 +++++--
- arch/arm/mach-realview/realview_pba8.c   |    4 +++-
- arch/arm/mach-realview/realview_pbx.c    |    5 +++--
- arch/arm/mach-ux500/cpu-u8500.c          |    2 +-
- 9 files changed, 46 insertions(+), 20 deletions(-)
+ arch/arm/common/gic.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/common/gic.c b/arch/arm/common/gic.c
-index d47a1d7..1437f8e 100644
+index e763c4c..00172c4 100644
 --- a/arch/arm/common/gic.c
 +++ b/arch/arm/common/gic.c
-@@ -236,10 +236,11 @@ void __init gic_cascade_irq(unsigned int gic_nr, unsigned int irq)
- /*
-  * In case of multiple cascaded GICs, order calls to gic_dist_init with
-  * ascending irq_start
-+ * flags are checked to initialize the config registers to level or edge
-  */
+@@ -108,6 +108,15 @@ static void gic_unmask_irq(unsigned int irq)
+ 	spin_unlock(&irq_controller_lock);
+ }
  
- void __init gic_dist_init(unsigned int gic_nr, void __iomem *base,
--			  unsigned int irq_start)
-+			  unsigned int irq_start, unsigned int flags)
- {
- 	unsigned int max_irq, i;
- 	u32 cpumask = 1 << smp_processor_id();
-@@ -269,11 +270,17 @@ void __init gic_dist_init(unsigned int gic_nr, void __iomem *base,
- 	if (max_irq > max(1020, NR_IRQS))
- 		max_irq = max(1020, NR_IRQS);
- 
--	/*
--	 * Set all global interrupts to be level triggered, active low.
--	 */
--	for (i = 32; i < max_irq; i += 16)
--		writel(0, base + GIC_DIST_CONFIG + i * 4 / 16);
-+	/* default to level trigger if nothing specified */
-+	if ((flags & IRQ_TYPE_SENSE_MASK) == 0)
-+		flags |= IRQ_TYPE_LEVEL_LOW;
++static void gic_mask_ack_irq(unsigned int irq)
++{
++	u32 mask = 1 << (irq % 32);
++	spin_lock(&irq_controller_lock);
++	writel(mask, gic_dist_base(irq) + GIC_DIST_ENABLE_CLEAR + (gic_irq(irq) / 32) * 4);
++	writel(gic_irq(irq), gic_cpu_base(irq) + GIC_CPU_EOI);
++	spin_unlock(&irq_controller_lock);
++}
 +
-+	if (flags & (IRQ_TYPE_LEVEL_HIGH|IRQ_TYPE_LEVEL_LOW)) {
-+		for (i = 32; i < max_irq; i += 16)
-+			writel(0, base + GIC_DIST_CONFIG + i * 4 / 16);
-+	} else {
-+		for (i = 16; i < max_irq; i += 16)
-+			writel(0xFFFFFFFF, base + GIC_DIST_CONFIG + i * 4 / 16);
-+	}
- 
- 	/*
- 	 * Set all global interrupts to this CPU only.
-@@ -293,13 +300,17 @@ void __init gic_dist_init(unsigned int gic_nr, void __iomem *base,
- 	for (i = 0; i < max_irq; i += 32)
- 		writel(0xffffffff, base + GIC_DIST_ENABLE_CLEAR + i * 4 / 32);
- 
-+
- 	/*
- 	 * Setup the Linux IRQ subsystem.
- 	 */
- 	for (i = irq_start; i < NR_IRQS && i < gic_data[gic_nr].irq_offset + max_irq; i++) {
- 		set_irq_chip(i, &gic_chip);
- 		set_irq_chip_data(i, &gic_data[gic_nr]);
--		set_irq_handler(i, handle_level_irq);
-+		if (flags & (IRQ_TYPE_LEVEL_HIGH|IRQ_TYPE_LEVEL_LOW))
-+			set_irq_handler(i, handle_level_irq);
-+		else
-+			set_irq_handler(i, handle_edge_irq);
- 		set_irq_flags(i, IRQF_VALID | IRQF_PROBE);
- 	}
- 
-diff --git a/arch/arm/include/asm/hardware/gic.h b/arch/arm/include/asm/hardware/gic.h
-index 7f34333..7ebccdc 100644
---- a/arch/arm/include/asm/hardware/gic.h
-+++ b/arch/arm/include/asm/hardware/gic.h
-@@ -33,7 +33,8 @@
- #define GIC_DIST_SOFTINT		0xf00
- 
- #ifndef __ASSEMBLY__
--void gic_dist_init(unsigned int gic_nr, void __iomem *base, unsigned int irq_start);
-+void gic_dist_init(unsigned int gic_nr, void __iomem *base,
-+			unsigned int irq_start, unsigned int flags);
- void gic_cpu_init(unsigned int gic_nr, void __iomem *base);
- void gic_cascade_irq(unsigned int gic_nr, unsigned int irq);
- void gic_raise_softirq(const struct cpumask *mask, unsigned int irq);
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 0c6be6b..1f895e9 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -17,6 +17,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/gpio.h>
-+#include <linux/irq.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -57,7 +58,7 @@ static void __init gic_init_irq(void)
- 	/* Static mapping, never released */
- 	base = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
- 	BUG_ON(!base);
--	gic_dist_init(0, base, 29);
-+	gic_dist_init(0, base, 29, IRQ_TYPE_LEVEL_LOW);
- 
- 	/* Static mapping, never released */
- 	gic_cpu_base_addr = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
-diff --git a/arch/arm/mach-realview/realview_eb.c b/arch/arm/mach-realview/realview_eb.c
-index 7d857d3..cb119f9 100644
---- a/arch/arm/mach-realview/realview_eb.c
-+++ b/arch/arm/mach-realview/realview_eb.c
-@@ -26,6 +26,7 @@
- #include <linux/amba/pl061.h>
- #include <linux/amba/mmci.h>
- #include <linux/io.h>
-+#include <linux/irq.h>
- 
- #include <mach/hardware.h>
- #include <asm/irq.h>
-@@ -308,19 +309,22 @@ static void __init gic_init_irq(void)
- 
- 		/* core tile GIC, primary */
- 		gic_cpu_base_addr = __io_address(REALVIEW_EB11MP_GIC_CPU_BASE);
--		gic_dist_init(0, __io_address(REALVIEW_EB11MP_GIC_DIST_BASE), 29);
-+		gic_dist_init(0, __io_address(REALVIEW_EB11MP_GIC_DIST_BASE),
-+			29, IRQ_TYPE_LEVEL_LOW);
- 		gic_cpu_init(0, gic_cpu_base_addr);
- 
- #ifndef CONFIG_REALVIEW_EB_ARM11MP_REVB
- 		/* board GIC, secondary */
--		gic_dist_init(1, __io_address(REALVIEW_EB_GIC_DIST_BASE), 64);
-+		gic_dist_init(1, __io_address(REALVIEW_EB_GIC_DIST_BASE),
-+			64, IRQ_TYPE_LEVEL_LOW);
- 		gic_cpu_init(1, __io_address(REALVIEW_EB_GIC_CPU_BASE));
- 		gic_cascade_irq(1, IRQ_EB11MP_EB_IRQ1);
- #endif
- 	} else {
- 		/* board GIC, primary */
- 		gic_cpu_base_addr = __io_address(REALVIEW_EB_GIC_CPU_BASE);
--		gic_dist_init(0, __io_address(REALVIEW_EB_GIC_DIST_BASE), 29);
-+		gic_dist_init(0, __io_address(REALVIEW_EB_GIC_DIST_BASE),
-+			29, IRQ_TYPE_LEVEL_LOW);
- 		gic_cpu_init(0, gic_cpu_base_addr);
- 	}
- }
-diff --git a/arch/arm/mach-realview/realview_pb1176.c b/arch/arm/mach-realview/realview_pb1176.c
-index 44392e5..1e218f2 100644
---- a/arch/arm/mach-realview/realview_pb1176.c
-+++ b/arch/arm/mach-realview/realview_pb1176.c
-@@ -26,6 +26,7 @@
- #include <linux/amba/pl061.h>
- #include <linux/amba/mmci.h>
- #include <linux/io.h>
-+#include <linux/irq.h>
- 
- #include <mach/hardware.h>
- #include <asm/irq.h>
-@@ -267,11 +268,13 @@ static void __init gic_init_irq(void)
+ #ifdef CONFIG_SMP
+ static int gic_set_cpu(unsigned int irq, const struct cpumask *mask_val)
  {
- 	/* ARM1176 DevChip GIC, primary */
- 	gic_cpu_base_addr = __io_address(REALVIEW_DC1176_GIC_CPU_BASE);
--	gic_dist_init(0, __io_address(REALVIEW_DC1176_GIC_DIST_BASE), IRQ_DC1176_GIC_START);
-+	gic_dist_init(0, __io_address(REALVIEW_DC1176_GIC_DIST_BASE),
-+		IRQ_DC1176_GIC_START, IRQ_TYPE_LEVEL_LOW);
- 	gic_cpu_init(0, gic_cpu_base_addr);
- 
- 	/* board GIC, secondary */
--	gic_dist_init(1, __io_address(REALVIEW_PB1176_GIC_DIST_BASE), IRQ_PB1176_GIC_START);
-+	gic_dist_init(1, __io_address(REALVIEW_PB1176_GIC_DIST_BASE),
-+		IRQ_PB1176_GIC_START, IRQ_TYPE_LEVEL_LOW);
- 	gic_cpu_init(1, __io_address(REALVIEW_PB1176_GIC_CPU_BASE));
- 	gic_cascade_irq(1, IRQ_DC1176_PB_IRQ1);
- }
-diff --git a/arch/arm/mach-realview/realview_pb11mp.c b/arch/arm/mach-realview/realview_pb11mp.c
-index 3e02731..2d45f9f 100644
---- a/arch/arm/mach-realview/realview_pb11mp.c
-+++ b/arch/arm/mach-realview/realview_pb11mp.c
-@@ -26,6 +26,7 @@
- #include <linux/amba/pl061.h>
- #include <linux/amba/mmci.h>
- #include <linux/io.h>
-+#include <linux/irq.h>
- 
- #include <mach/hardware.h>
- #include <asm/irq.h>
-@@ -273,11 +274,13 @@ static void __init gic_init_irq(void)
- 
- 	/* ARM11MPCore test chip GIC, primary */
- 	gic_cpu_base_addr = __io_address(REALVIEW_TC11MP_GIC_CPU_BASE);
--	gic_dist_init(0, __io_address(REALVIEW_TC11MP_GIC_DIST_BASE), 29);
-+	gic_dist_init(0, __io_address(REALVIEW_TC11MP_GIC_DIST_BASE),
-+		 29, IRQ_TYPE_LEVEL_LOW);
- 	gic_cpu_init(0, gic_cpu_base_addr);
- 
- 	/* board GIC, secondary */
--	gic_dist_init(1, __io_address(REALVIEW_PB11MP_GIC_DIST_BASE), IRQ_PB11MP_GIC_START);
-+	gic_dist_init(1, __io_address(REALVIEW_PB11MP_GIC_DIST_BASE),
-+		IRQ_PB11MP_GIC_START, IRQ_TYPE_LEVEL_LOW);
- 	gic_cpu_init(1, __io_address(REALVIEW_PB11MP_GIC_CPU_BASE));
- 	gic_cascade_irq(1, IRQ_TC11MP_PB_IRQ1);
- }
-diff --git a/arch/arm/mach-realview/realview_pba8.c b/arch/arm/mach-realview/realview_pba8.c
-index fe4e25c..efdebcf 100644
---- a/arch/arm/mach-realview/realview_pba8.c
-+++ b/arch/arm/mach-realview/realview_pba8.c
-@@ -26,6 +26,7 @@
- #include <linux/amba/pl061.h>
- #include <linux/amba/mmci.h>
- #include <linux/io.h>
-+#include <linux/irq.h>
- 
- #include <asm/irq.h>
- #include <asm/leds.h>
-@@ -254,7 +255,8 @@ static void __init gic_init_irq(void)
- {
- 	/* ARM PB-A8 on-board GIC */
- 	gic_cpu_base_addr = __io_address(REALVIEW_PBA8_GIC_CPU_BASE);
--	gic_dist_init(0, __io_address(REALVIEW_PBA8_GIC_DIST_BASE), IRQ_PBA8_GIC_START);
-+	gic_dist_init(0, __io_address(REALVIEW_PBA8_GIC_DIST_BASE),
-+		IRQ_PBA8_GIC_START, IRQ_TYPE_LEVEL_LOW);
- 	gic_cpu_init(0, __io_address(REALVIEW_PBA8_GIC_CPU_BASE));
- }
- 
-diff --git a/arch/arm/mach-realview/realview_pbx.c b/arch/arm/mach-realview/realview_pbx.c
-index a21a4b3..f1aa686 100644
---- a/arch/arm/mach-realview/realview_pbx.c
-+++ b/arch/arm/mach-realview/realview_pbx.c
-@@ -25,6 +25,7 @@
- #include <linux/amba/pl061.h>
- #include <linux/amba/mmci.h>
- #include <linux/io.h>
-+#include <linux/irq.h>
- 
- #include <asm/irq.h>
- #include <asm/leds.h>
-@@ -276,12 +277,12 @@ static void __init gic_init_irq(void)
- 	if (core_tile_pbx11mp() || core_tile_pbxa9mp()) {
- 		gic_cpu_base_addr = __io_address(REALVIEW_PBX_TILE_GIC_CPU_BASE);
- 		gic_dist_init(0, __io_address(REALVIEW_PBX_TILE_GIC_DIST_BASE),
--			      29);
-+			      29, IRQ_TYPE_LEVEL_LOW);
- 		gic_cpu_init(0, __io_address(REALVIEW_PBX_TILE_GIC_CPU_BASE));
- 	} else {
- 		gic_cpu_base_addr = __io_address(REALVIEW_PBX_GIC_CPU_BASE);
- 		gic_dist_init(0, __io_address(REALVIEW_PBX_GIC_DIST_BASE),
--			      IRQ_PBX_GIC_START);
-+			      IRQ_PBX_GIC_START, IRQ_TYPE_LEVEL_LOW);
- 		gic_cpu_init(0, __io_address(REALVIEW_PBX_GIC_CPU_BASE));
- 	}
- }
-diff --git a/arch/arm/mach-ux500/cpu-u8500.c b/arch/arm/mach-ux500/cpu-u8500.c
-index 5f05e58..68028fe 100644
---- a/arch/arm/mach-ux500/cpu-u8500.c
-+++ b/arch/arm/mach-ux500/cpu-u8500.c
-@@ -48,7 +48,7 @@ void __init u8500_map_io(void)
- 
- void __init u8500_init_irq(void)
- {
--	gic_dist_init(0, __io_address(U8500_GIC_DIST_BASE), 29);
-+	gic_dist_init(0, __io_address(U8500_GIC_DIST_BASE), 29, IRQ_TYPE_LEVEL_LOW);
- 	gic_cpu_init(0, __io_address(U8500_GIC_CPU_BASE));
- }
- 
+@@ -160,6 +169,7 @@ static struct irq_chip gic_chip = {
+ 	.name		= "GIC",
+ 	.ack		= gic_ack_irq,
+ 	.mask		= gic_mask_irq,
++	.mask_ack	= gic_mask_ack_irq,
+ 	.unmask		= gic_unmask_irq,
+ #ifdef CONFIG_SMP
+ 	.set_affinity	= gic_set_cpu,
 -- 
 1.5.6.3
