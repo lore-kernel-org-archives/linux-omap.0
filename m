@@ -1,13 +1,13 @@
 From: adharmap@codeaurora.org
-Subject: [PATCH 1/5] gic: prevent gic from crossing NR_IRQ
-Date: Wed, 27 Jan 2010 11:32:25 -0800
-Message-ID: <1264620749-24527-2-git-send-email-adharmap@codeaurora.org>
+Subject: [PATCH 3/5] gic: Add set_type callback
+Date: Wed, 27 Jan 2010 11:32:27 -0800
+Message-ID: <1264620749-24527-4-git-send-email-adharmap@codeaurora.org>
 References: <1264620749-24527-1-git-send-email-adharmap@codeaurora.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from wolverine02.qualcomm.com ([199.106.114.251]:12510 "EHLO
 	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754332Ab0A0Tcf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2010 14:32:35 -0500
+	with ESMTP id S1754383Ab0A0Tch (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2010 14:32:37 -0500
 In-Reply-To: <1264620749-24527-1-git-send-email-adharmap@codeaurora.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,39 +16,74 @@ Cc: Russell King <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Catalin 
 
 From: Abhijeet Dharmapurikar <adharmap@quicinc.com>
 
-The gic code tries to initialize interrupts beyond NR_IRQ. Prevent
-code from doing that.
+Add gic_set_type callback to set an irq as level or edge triggered type
 
 Signed-off-by: Abhijeet Dharmapurikar <adharmap@quicinc.com>
 ---
- arch/arm/common/gic.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ arch/arm/common/gic.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/common/gic.c b/arch/arm/common/gic.c
-index 337741f..e763c4c 100644
+index 00172c4..709cf53 100644
 --- a/arch/arm/common/gic.c
 +++ b/arch/arm/common/gic.c
-@@ -175,6 +175,11 @@ void __init gic_cascade_irq(unsigned int gic_nr, unsigned int irq)
- 	set_irq_chained_handler(irq, gic_handle_cascade_irq);
+@@ -165,6 +165,48 @@ static void gic_handle_cascade_irq(unsigned int irq, struct irq_desc *desc)
+ 	chip->unmask(irq);
  }
  
-+/*
-+ * In case of multiple cascaded GICs, order calls to gic_dist_init with
-+ * ascending irq_start
-+ */
++static int gic_set_type(unsigned int irq, unsigned int flow_type)
++{
++	unsigned int register_index;
++	unsigned int bit_index;
++	unsigned int reg_value;
 +
- void __init gic_dist_init(unsigned int gic_nr, void __iomem *base,
- 			  unsigned int irq_start)
- {
-@@ -233,7 +238,7 @@ void __init gic_dist_init(unsigned int gic_nr, void __iomem *base,
- 	/*
- 	 * Setup the Linux IRQ subsystem.
- 	 */
--	for (i = irq_start; i < gic_data[gic_nr].irq_offset + max_irq; i++) {
-+	for (i = irq_start; i < NR_IRQS && i < gic_data[gic_nr].irq_offset + max_irq; i++) {
- 		set_irq_chip(i, &gic_chip);
- 		set_irq_chip_data(i, &gic_data[gic_nr]);
- 		set_irq_handler(i, handle_level_irq);
++	if (irq > 1020)
++		return -1;
++
++	/*
++	* Two bits each, calc the register and bit, 16 per 32 bit register
++	* accessible long word only
++	* But the field is NxN 1xN and rising/falling
++	*/
++	register_index = (irq/16)<<2;
++	bit_index = (irq & 0xF)<<1;
++
++	spin_lock(&irq_controller_lock);
++	reg_value = readl(gic_dist_base(irq) + GIC_DIST_CONFIG +
++						register_index);
++	/*
++	* keep the nxn and 1xn , mask the edge level
++	* Edge is 1, level 0
++	*/
++	reg_value = (reg_value & ~(2<<bit_index));
++	if (flow_type & (IRQ_TYPE_EDGE_RISING|IRQ_TYPE_EDGE_FALLING)) {
++		reg_value |= (2<<bit_index);
++		writel(reg_value, gic_dist_base(irq) + GIC_DIST_CONFIG
++							+ register_index);
++		__set_irq_handler_unlocked(irq, handle_edge_irq);
++	}
++
++	if (flow_type & (IRQ_TYPE_LEVEL_HIGH|IRQ_TYPE_LEVEL_LOW)) {
++		writel(reg_value, gic_dist_base(irq) + GIC_DIST_CONFIG
++							+ register_index);
++		__set_irq_handler_unlocked(irq, handle_level_irq);
++	}
++
++	spin_unlock(&irq_controller_lock);
++	return 0;
++}
++
+ static struct irq_chip gic_chip = {
+ 	.name		= "GIC",
+ 	.ack		= gic_ack_irq,
+@@ -174,6 +216,7 @@ static struct irq_chip gic_chip = {
+ #ifdef CONFIG_SMP
+ 	.set_affinity	= gic_set_cpu,
+ #endif
++	.set_type	= gic_set_type,
+ };
+ 
+ void __init gic_cascade_irq(unsigned int gic_nr, unsigned int irq)
 -- 
 1.5.6.3
 
