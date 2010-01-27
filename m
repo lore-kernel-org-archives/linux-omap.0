@@ -1,45 +1,66 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH 5/5] gic: initialize interrupts as per argument
-Date: Wed, 27 Jan 2010 23:29:55 +0000
-Message-ID: <20100127232955.GG29665@n2100.arm.linux.org.uk>
-References: <1264620749-24527-1-git-send-email-adharmap@codeaurora.org>
-	<1264620749-24527-6-git-send-email-adharmap@codeaurora.org>
+From: John Rigby <jcrigby@gmail.com>
+Subject: Re: sdio irq hack for omap_hsmmc.c (was: Re: [PATCH] OMAP35xx:SDIO
+	IRQ Support for OMAP35xx)
+Date: Wed, 27 Jan 2010 16:56:28 -0700
+Message-ID: <4b73d43f1001271556m5945d358v2ca5bea5862b0080@mail.gmail.com>
+References: <4b73d43f1001260904m212d2c53gde6328ad9b9bb14e@mail.gmail.com>
+	 <008001ca9fa6$87dc26e0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1264620749-24527-6-git-send-email-adharmap@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: adharmap@codeaurora.org
-Cc: Kalle Valo <kalle.valo@iki.fi>, Linus Walleij <linus.walleij@stericsson.com>, Jean Pihet <jpihet@mvista.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Abhijeet Dharmapurikar <adharmap@quicinc.com>, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Andrea Gallo <andrea.gallo@stericsson.com>, Colin Tuckley <colin.tuckley@arm.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Philby John <pjohn@in.mvista.com>, linux-arm-kernel@lists.infradead.org, Alessandro Rubini <rubini@unipv.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.25]:60252 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754627Ab0A0X43 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2010 18:56:29 -0500
+In-Reply-To: <008001ca9fa6$87dc26e0$544ff780@am.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: Mike Rapoport <mike@compulab.co.il>, Dirk Behme <dirk.behme@googlemail.com>, Phaneendra Kumar Alapati <phani@embwise.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, "Paasikivi Teemu.3 (EXT-Ixonos/Tampere)" <ext-teemu.3.paasikivi@nokia.com>
 
-On Wed, Jan 27, 2010 at 11:32:29AM -0800, adharmap@codeaurora.org wrote:
-> From: Abhijeet Dharmapurikar <adharmap@quicinc.com>
-> 
-> Initialize interrupts as per an argument passed instead of initializing
-> them as active level low triggered interrupts.
-> 
-> Signed-off-by: Abhijeet Dharmapurikar <adharmap@quicinc.com>
-> ---
->  Configuring level triggered interrupts as default may not be correct on
->  some platforms, this changes the default behaviour of the gic_dist_init 
->  function and also adds a flag to indicate whether the default should be level
->  or edge.
+Just to be clear, my post was in response to the reported problems
+with enabling sdio irqs with this patch:
+http://patchwork.kernel.org/patch/69122/
 
-Changing the interrupt type for all interrupts is just wrong.  For on-chip
-peripherals, you generally want to use level based interrupts as they're
-the most efficient and simplest way to signal interrupts.
+The patch originator reported good results but others reported
+complete failure.  My hack fixed the problem for me.  I believe this
+much more modest patch will also fix the problem but it is untested
+because I don't have a board running right now.  Beware, I'm sending
+this from gmail so it may get line wrapped but it is a trivial patch
+so I think it is understandable.
 
-It should be a per-interrupt thing, and we already have that through
-request_irq() etc.  Other platforms manage this just fine without having
-to have special configuration like this.
+John
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index fa94580..7af970e 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1727,10 +1727,16 @@ static int __init omap_hsmmc_probe
+
+ 	omap_hsmmc_context_save(host);
+
++#if 0
+ 	mmc->caps |= MMC_CAP_DISABLE;
+ 	mmc_set_disable_delay(mmc, OMAP_MMC_DISABLED_TIMEOUT);
+ 	/* we start off in DISABLED state */
+ 	host->dpm_state = DISABLED;
++#else
++	/* we start off in ENABLED state */
++	host->dpm_state = ENABLED;
++	clk_enable(host->fclk);
++#endif
+
+ 	if (mmc_host_enable(host->mmc) != 0) {
+ 		clk_put(host->iclk);
+
+
+On Wed, Jan 27, 2010 at 4:14 PM, Madhusudhan <madhu.cr@ti.com> wrote:
+> It is hard to comment on what is happening here without a patch. Is it a
+> performance issue or that SDIO functionality failure with PM enabled?
+>
+> The MMC controller supports wakeup capability on the dat1 line using a GPIO
+> for a SDIO interrupt. I guess that should help.
+>
+> Regards,
+> Madhu
+>
