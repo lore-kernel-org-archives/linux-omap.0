@@ -1,59 +1,84 @@
-From: andy.shevchenko@gmail.com
-Subject: [PATCH] dspbridge: minor clean up in memdefs.h
-Date: Wed, 27 Jan 2010 14:39:11 +0200
-Message-ID: <1264595951-11572-1-git-send-email-andy.shevchenko@gmail.com>
+From: "Hebbar, Shivananda" <x0hebbar@ti.com>
+Subject: RE: [PATCH] DSPBRIDGE: Remove conditional check from the InputMsg
+ function
+Date: Wed, 27 Jan 2010 22:34:11 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A542EDF@dbde02.ent.ti.com>
+References: <1264556672-27492-1-git-send-email-omar.ramirez@ti.com>
+ <1264585443.2100.2.camel@sanganak>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:17701 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055Ab0A0MlJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2010 07:41:09 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o0RCe9j2006597
-	for <linux-omap@vger.kernel.org>; Wed, 27 Jan 2010 06:41:07 -0600
+Received: from comal.ext.ti.com ([198.47.26.152]:52649 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755731Ab0A0RET convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2010 12:04:19 -0500
+In-Reply-To: <1264585443.2100.2.camel@sanganak>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+To: Ameya Palande <ameya.palande@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+> -----Original Message-----
+> From: Ameya Palande [mailto:ameya.palande@nokia.com] 
+> Sent: Wednesday, January 27, 2010 3:44 AM
+> To: Ramirez Luna, Omar
+> Cc: linux-omap; Doyu Hiroshi (Nokia-D/Helsinki); Contreras Felipe (Nokia-> >D/Helsinki); Menon, Nishanth; Hebbar, Shivananda
+>Subject: Re: [PATCH] DSPBRIDGE: Remove conditional check from the InputMsg >function
 
-Remove useless macroses. They were doing nothing, so it's clear to just get rid
-of them.
+>Hi Shivananda,
 
-Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
----
- arch/arm/plat-omap/include/dspbridge/memdefs.h |    3 ---
- drivers/dsp/bridge/wmd/tiomap_io.c             |    5 ++---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+On Wed, 2010-01-27 at 02:44 +0100, ext Omar Ramirez Luna wrote:
+> From: Shivananda Hebbar <x0hebbar@ti.com>
+> 
+> This patch removes the conditional check which can result in
+> message skip.
+> 
+> Discovered-by: Bhavin Shah <bshah@ti.com>
+> Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
+> ---
+>  drivers/dsp/bridge/wmd/io_sm.c |    5 +----
+>  1 files changed, 1 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+> index 39b37a6..b2092a2 100644
+> --- a/drivers/dsp/bridge/wmd/io_sm.c
+> +++ b/drivers/dsp/bridge/wmd/io_sm.c
+> @@ -1328,7 +1328,7 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+>  	fInputEmpty = IO_GetValue(pIOMgr->hWmdContext, struct MSG, pCtrl,
+>  				 bufEmpty);
+>  	uMsgs = IO_GetValue(pIOMgr->hWmdContext, struct MSG, pCtrl, size);
+> -	if (fInputEmpty || uMsgs >= hMsgMgr->uMaxMsgs)
+> +	if (fInputEmpty)
+>  		goto func_end;
+>  
+>  	pMsgInput = pIOMgr->pMsgInput;
+> @@ -1356,9 +1356,6 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+>  		 * input locations have been set up. If all nodes were
+>  		 * cleaned up, hMsgMgr->uMaxMsgs should be 0.
+>  		 */
+> -		if (hMsgQueue && uMsgs > hMsgMgr->uMaxMsgs)
+> -			goto func_end;
+> -
+>  		while (hMsgQueue != NULL) {
+>  			if (msg.dwId == hMsgQueue->dwId) {
+>  				/* Found it */
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/memdefs.h b/arch/arm/plat-omap/include/dspbridge/memdefs.h
-index e70225e..2e44f5c 100644
---- a/arch/arm/plat-omap/include/dspbridge/memdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/memdefs.h
-@@ -34,7 +34,4 @@
- #define MEM_GETVIRTUALSEGID     0x20000000
- #define MEM_MASKVIRTUALSEGID    (MEM_SETVIRTUALSEGID | MEM_GETVIRTUALSEGID)
- 
--#define TO_VIRTUAL_UNCACHED(x) x
--#define INTREG_TO_VIRTUAL_UNCACHED(x) x
--
- #endif				/* MEMDEFS_ */
-diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/wmd/tiomap_io.c
-index f60b8db..4e85efd 100644
---- a/drivers/dsp/bridge/wmd/tiomap_io.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_io.c
-@@ -366,9 +366,8 @@ DSP_STATUS WriteExtDspData(struct WMD_DEV_CONTEXT *pDevContext,
- 				 dwExtProgVirtMem);
- 
- 			pDevContext->dwDspExtBaseAddr =
--				(u32)MEM_LinearAddress((void *)
--				TO_VIRTUAL_UNCACHED(dwExtProgVirtMem), ulExtEnd
--				- ulExtBase);
-+				(u32)MEM_LinearAddress((void *)dwExtProgVirtMem,
-+					ulExtEnd - ulExtBase);
- 			dwBaseAddr += pDevContext->dwDspExtBaseAddr;
- 			/* This dwDspExtBaseAddr will get cleared only when
- 			 * the board is stopped.  */
--- 
-1.5.6.5
+>Forgive me for the stupid question, but now since uMsgs >=
+>hMsgMgr->uMaxMsgs condition is removed, what is the side effect of that?
+>At least I am not able to understand how it affects the logic just by
+>seeing your patch. I guess if you can modify the patch description to
+>reflect the logic behind this then it will be nice :)
+
+I don't see any side effects with the removal of this conditional check.
+Intention of the patch was to remove the redundant check on uMaxMsgs as the DSP side of the bridge code check will ensure that uMsgs can't exceed uMaxMsgs.
+If you are ok with this explanation, I will update the description and resend it.
+
+And the initial patch description was written with the intention that in case the uMsgs exceeds the uMaxMessages (), then we shouldn't discard it by returning from function but process it. 
+
+
+Regards,
+Shivananda
+
 
