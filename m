@@ -1,145 +1,334 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH] DSPBRIDGE: Various compile warning fixes
-Date: Tue, 26 Jan 2010 17:52:28 -0600
-Message-ID: <4B5F803C.50401@ti.com>
-References: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH v3] OMAP3 clock: split out DPLL3 M2 divider functions into
+ mach-omap2/clkt34xx_dpll3m2.c
+Date: Tue, 26 Jan 2010 17:19:57 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001261703450.13835@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1891167208-1264551597=:13835"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42627 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754905Ab0AZXwc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jan 2010 18:52:32 -0500
-In-Reply-To: <e237d5197c6847e669ff873a432a387b5c4dd2f6.1264080558.git.ameya.palande@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40055 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753346Ab0A0AT6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 19:19:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "mika.kukkonen@nokia.com" <mika.kukkonen@nokia.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: jouni.hogander@nokia.com, virtuoso@slind.org, ranjithl@ti.com
 
-On 1/21/2010 7:40 AM, Ameya Palande wrote:
-> This patch contains indentation fixes and cleans up various warnings
-> uncovered with extra warning flags:
->
->    - empty if() bodies
->    - incorrect use of unsigned variables
->    - bad comparison of pointer value
->    - pointless check of unsigned value being smaller than zero
->    - keyword 'extern' has to be first one in variable declaration
->
-> Signed-off-by: Mika Kukkonen<mika.kukkonen@nokia.com>
-> Signed-off-by: Ameya Palande<ameya.palande@nokia.com>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+--155748971-1891167208-1264551597=:13835
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Pushed to dspbridge
 
-> ---
->   arch/arm/plat-omap/include/dspbridge/dbc.h |    6 +++---
->   arch/arm/plat-omap/include/dspbridge/dbg.h |    4 ++--
->   arch/arm/plat-omap/include/dspbridge/gt.h  |   16 +++++++++-------
->   arch/arm/plat-omap/include/dspbridge/mem.h |    2 +-
->   drivers/dsp/bridge/wmd/io_sm.c             |    2 +-
->   drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
->   6 files changed, 17 insertions(+), 15 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/dspbridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
-> index ac5d178..1b3ac44 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/dbc.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/dbc.h
-> @@ -43,9 +43,9 @@
->
->   #else
->
-> -#define DBC_Assert(exp)
-> -#define DBC_Require(exp)
-> -#define DBC_Ensure(exp)
-> +#define DBC_Assert(exp) {}
-> +#define DBC_Require(exp) {}
-> +#define DBC_Ensure(exp) {}
->
->   #endif				/* DEBUG */
->
-> diff --git a/arch/arm/plat-omap/include/dspbridge/dbg.h b/arch/arm/plat-omap/include/dspbridge/dbg.h
-> index 2f61dab..4d01eca 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/dbg.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/dbg.h
-> @@ -80,9 +80,9 @@
->   	extern DSP_STATUS DBG_Trace(IN u8 bLevel, IN char *pstrFormat, ...);
->   #else
->
-> -#define DBG_Exit(void)
-> +#define DBG_Exit(void) do {} while (0)
->   #define DBG_Init(void) true
-> -#define DBG_Trace(bLevel, pstrFormat, args...)
-> +#define DBG_Trace(bLevel, pstrFormat, args...) do {} while (0)
->
->   #endif	/* (CONFIG_BRIDGE_DEBUG || DDSP_DEBUG_PRODUCT)&&  GT_TRACE */
->
-> diff --git a/arch/arm/plat-omap/include/dspbridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
-> index 6082d15..9097910 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/gt.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/gt.h
-> @@ -252,13 +252,15 @@ extern struct GT_Config _GT_params;
->
->   #define GT_query(mask, class)     false
->
-> -#define GT_0trace(mask, class, format)
-> -#define GT_1trace(mask, class, format, arg1)
-> -#define GT_2trace(mask, class, format, arg1, arg2)
-> -#define GT_3trace(mask, class, format, arg1, arg2, arg3)
-> -#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4)
-> -#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5)
-> -#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6)
-> +#define GT_0trace(mask, class, format) do {} while (0)
-> +#define GT_1trace(mask, class, format, arg1) do {} while (0)
-> +#define GT_2trace(mask, class, format, arg1, arg2) do {} while (0)
-> +#define GT_3trace(mask, class, format, arg1, arg2, arg3) do {} while (0)
-> +#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4) do {} while (0)
-> +#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5) \
-> +	do {} while (0)
-> +#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6) \
-> +	do {} while (0)
->
->   #else				/* GT_TRACE == 1 */
->
-> diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
-> index 03b419a..353ffb0 100644
-> --- a/arch/arm/plat-omap/include/dspbridge/mem.h
-> +++ b/arch/arm/plat-omap/include/dspbridge/mem.h
-> @@ -286,7 +286,7 @@
->    *  Ensures:
->    *      - pBaseAddr no longer points to a valid linear address.
->    */
-> -#define MEM_UnmapLinearAddress(pBaseAddr)
-> +#define MEM_UnmapLinearAddress(pBaseAddr) {}
->
->   /*
->    *  ======== MEM_ExtPhysPoolInit ========
-> diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-> index e35ce57..64eba5a 100644
-> --- a/drivers/dsp/bridge/wmd/io_sm.c
-> +++ b/drivers/dsp/bridge/wmd/io_sm.c
-> @@ -1210,7 +1210,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
->   			    pChnlMgr->uWordSize;
->   	chnlId = IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputId);
->   	dwArg = IO_GetLong(pIOMgr->hWmdContext, struct SHM, sm, arg);
-> -	if (!(chnlId>= 0) || !(chnlId<  CHNL_MAXCHANNELS)) {
-> +	if (chnlId>= CHNL_MAXCHANNELS) {
->   		/* Shouldn't be here: would indicate corrupted SHM. */
->   		DBC_Assert(chnlId);
->   		goto func_end;
-> diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-> index 6166d97..2c3a2cd 100644
-> --- a/drivers/dsp/bridge/wmd/ue_deh.c
-> +++ b/drivers/dsp/bridge/wmd/ue_deh.c
-> @@ -189,7 +189,7 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
->   	DSP_STATUS status = DSP_SOK;
->   	u32 memPhysical = 0;
->   	u32 HW_MMU_MAX_TLB_COUNT = 31;
-> -	u32 extern faultAddr;
-> +	extern u32 faultAddr;
->   	struct CFG_HOSTRES resources;
->   	HW_STATUS hwStatus;
->
+Hi,=20
 
+just FYI, one minor tweak to this patch (updated version below). The file=
+=20
+"mach-omap2/clkt3xxx_dpll3m2.c" has been renamed to=20
+"mach-omap2/clkt34xx_dpll3m2.c" to reflect the fact that it is not=20
+available on AM35xx chips.
+
+
+- Paul
+
+
+From: Paul Walmsley <paul@pwsan.com>
+
+Split the DPLL3 M2 divider clock functions out of clock34xx.c and move
+them into mach-omap2/clkt34xx_dpll3m2.c. This is intended to make the
+clock code easier to understand, since all of the functions needed to
+manage the OMAP3 DPLL3 M2 divider are now located in their own file,
+rather than being mixed with other, unrelated functions.
+
+Clock debugging is also now more finely-grained, since the DEBUG macro
+can now be defined for the DPLL3 M2 clock alone.  This should reduce
+unnecessary console noise when debugging DVFS.
+
+Also, if at some future point the mach-omap2/ directory is split
+into OMAP2/3/4 variants, this clkt file can be placed in the mach-omap34xx/
+directory, rather than shared with other chip types that don't use this
+clock type.
+
+This patch also lays the groundwork to skip compilation of this
+code on OMAP3 chips that don't support DVFS (e.g., AM35xx) via
+the Makefile, rather than via #ifdefs.
+
+Thanks to Alexander Shishkin <virtuoso@slind.org> for his comments to
+improve the patch description.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Jouni H=F6gander <jouni.hogander@nokia.com>
+Cc: Alexander Shishkin <virtuoso@slind.org>
+---
+ arch/arm/mach-omap2/Makefile           |    3 +-
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c |  120 ++++++++++++++++++++++++++++=
+++++
+ arch/arm/mach-omap2/clock34xx.c        |   90 ------------------------
+ 3 files changed, 122 insertions(+), 91 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 7ce5fea..b7b7d7e 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -15,11 +15,12 @@ clock-omap2xxx=09=09=09=09=3D clkt2xxx_dpllcore.o \
+ =09=09=09=09=09  clkt2xxx_virt_prcm_set.o \
+ =09=09=09=09=09  clkt2xxx_apll.o clkt2xxx_osc.o \
+ =09=09=09=09=09  clkt2xxx_sys.o
++clock-omap34xx=09=09=09=09=3D clkt34xx_dpll3m2.o
+=20
+ obj-$(CONFIG_ARCH_OMAP2) +=3D $(omap-2-3-common) $(prcm-common) $(clock-co=
+mmon) \
+ =09=09=09    $(clock-omap2xxx)
+ obj-$(CONFIG_ARCH_OMAP3) +=3D $(omap-2-3-common) $(prcm-common) $(clock-co=
+mmon) \
+-=09=09=09    $(omap-3-4-common)
++=09=09=09    $(omap-3-4-common) $(clock-omap34xx)
+ obj-$(CONFIG_ARCH_OMAP4) +=3D $(omap-3-4-common) $(prcm-common) $(clock-co=
+mmon)
+=20
+ obj-$(CONFIG_OMAP_MCBSP) +=3D mcbsp.o
+diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/c=
+lkt34xx_dpll3m2.c
+new file mode 100644
+index 0000000..14f1a4b
+--- /dev/null
++++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+@@ -0,0 +1,120 @@
++/*
++ * OMAP3 M2 divider clock code
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2010 Nokia Corporation
++ *
++ * Paul Walmsley
++ * Jouni H=F6gander
++ *
++ * Parts of this code are based on code written by
++ * Richard Woodruff, Tony Lindgren, Tuukka Tikkanen, Karthik Dasu
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#undef DEBUG
++
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++
++#include <plat/clock.h>
++#include <plat/sram.h>
++#include <plat/sdrc.h>
++
++#include "clock.h"
++#include "clock34xx.h"
++#include "sdrc.h"
++
++#define CYCLES_PER_MHZ=09=09=091000000
++
++/*
++ * CORE DPLL (DPLL3) M2 divider rate programming functions
++ *
++ * These call into SRAM code to do the actual CM writes, since the SDRAM
++ * is clocked from DPLL3.
++ */
++
++/**
++ * omap3_core_dpll_m2_set_rate - set CORE DPLL M2 divider
++ * @clk: struct clk * of DPLL to set
++ * @rate: rounded target rate
++ *
++ * Program the DPLL M2 divider with the rounded target rate.  Returns
++ * -EINVAL upon error, or 0 upon success.
++ */
++int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
++{
++=09u32 new_div =3D 0;
++=09u32 unlock_dll =3D 0;
++=09u32 c;
++=09unsigned long validrate, sdrcrate, _mpurate;
++=09struct omap_sdrc_params *sdrc_cs0;
++=09struct omap_sdrc_params *sdrc_cs1;
++=09int ret;
++
++=09if (!clk || !rate)
++=09=09return -EINVAL;
++
++=09validrate =3D omap2_clksel_round_rate_div(clk, rate, &new_div);
++=09if (validrate !=3D rate)
++=09=09return -EINVAL;
++
++=09sdrcrate =3D sdrc_ick_p->rate;
++=09if (rate > clk->rate)
++=09=09sdrcrate <<=3D ((rate / clk->rate) >> 1);
++=09else
++=09=09sdrcrate >>=3D ((clk->rate / rate) >> 1);
++
++=09ret =3D omap2_sdrc_get_params(sdrcrate, &sdrc_cs0, &sdrc_cs1);
++=09if (ret)
++=09=09return -EINVAL;
++
++=09if (sdrcrate < MIN_SDRC_DLL_LOCK_FREQ) {
++=09=09pr_debug("clock: will unlock SDRC DLL\n");
++=09=09unlock_dll =3D 1;
++=09}
++
++=09/*
++=09 * XXX This only needs to be done when the CPU frequency changes
++=09 */
++=09_mpurate =3D arm_fck_p->rate / CYCLES_PER_MHZ;
++=09c =3D (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
++=09c +=3D 1;  /* for safety */
++=09c *=3D SDRC_MPURATE_LOOPS;
++=09c >>=3D SDRC_MPURATE_SCALE;
++=09if (c =3D=3D 0)
++=09=09c =3D 1;
++
++=09pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
++=09=09 validrate);
++=09pr_debug("clock: SDRC CS0 timing params used:"
++=09=09 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
++=09=09 sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
++=09=09 sdrc_cs0->actim_ctrlb, sdrc_cs0->mr);
++=09if (sdrc_cs1)
++=09=09pr_debug("clock: SDRC CS1 timing params used: "
++=09=09 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
++=09=09 sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
++=09=09 sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
++
++=09if (sdrc_cs1)
++=09=09omap3_configure_core_dpll(
++=09=09=09=09  new_div, unlock_dll, c, rate > clk->rate,
++=09=09=09=09  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
++=09=09=09=09  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
++=09=09=09=09  sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
++=09=09=09=09  sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
++=09else
++=09=09omap3_configure_core_dpll(
++=09=09=09=09  new_div, unlock_dll, c, rate > clk->rate,
++=09=09=09=09  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
++=09=09=09=09  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
++=09=09=09=09  0, 0, 0, 0);
++
++=09return 0;
++}
++
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34x=
+x.c
+index 4c4bb3c..552ad30 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -42,8 +42,6 @@
+ #include "cm.h"
+ #include "cm-regbits-34xx.h"
+=20
+-#define CYCLES_PER_MHZ=09=09=091000000
+-
+ /*
+  * DPLL5_FREQ_FOR_USBHOST: USBHOST and USBTLL are the only clocks
+  * that are sourced by DPLL5, and both of these require this clock
+@@ -162,94 +160,6 @@ int omap3_dpll4_set_rate(struct clk *clk, unsigned lon=
+g rate)
+ =09return omap3_noncore_dpll_set_rate(clk, rate);
+ }
+=20
+-
+-/*
+- * CORE DPLL (DPLL3) rate programming functions
+- *
+- * These call into SRAM code to do the actual CM writes, since the SDRAM
+- * is clocked from DPLL3.
+- */
+-
+-/**
+- * omap3_core_dpll_m2_set_rate - set CORE DPLL M2 divider
+- * @clk: struct clk * of DPLL to set
+- * @rate: rounded target rate
+- *
+- * Program the DPLL M2 divider with the rounded target rate.  Returns
+- * -EINVAL upon error, or 0 upon success.
+- */
+-int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+-{
+-=09u32 new_div =3D 0;
+-=09u32 unlock_dll =3D 0;
+-=09u32 c;
+-=09unsigned long validrate, sdrcrate, _mpurate;
+-=09struct omap_sdrc_params *sdrc_cs0;
+-=09struct omap_sdrc_params *sdrc_cs1;
+-=09int ret;
+-
+-=09if (!clk || !rate)
+-=09=09return -EINVAL;
+-
+-=09validrate =3D omap2_clksel_round_rate_div(clk, rate, &new_div);
+-=09if (validrate !=3D rate)
+-=09=09return -EINVAL;
+-
+-=09sdrcrate =3D sdrc_ick_p->rate;
+-=09if (rate > clk->rate)
+-=09=09sdrcrate <<=3D ((rate / clk->rate) >> 1);
+-=09else
+-=09=09sdrcrate >>=3D ((clk->rate / rate) >> 1);
+-
+-=09ret =3D omap2_sdrc_get_params(sdrcrate, &sdrc_cs0, &sdrc_cs1);
+-=09if (ret)
+-=09=09return -EINVAL;
+-
+-=09if (sdrcrate < MIN_SDRC_DLL_LOCK_FREQ) {
+-=09=09pr_debug("clock: will unlock SDRC DLL\n");
+-=09=09unlock_dll =3D 1;
+-=09}
+-
+-=09/*
+-=09 * XXX This only needs to be done when the CPU frequency changes
+-=09 */
+-=09_mpurate =3D arm_fck_p->rate / CYCLES_PER_MHZ;
+-=09c =3D (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
+-=09c +=3D 1;  /* for safety */
+-=09c *=3D SDRC_MPURATE_LOOPS;
+-=09c >>=3D SDRC_MPURATE_SCALE;
+-=09if (c =3D=3D 0)
+-=09=09c =3D 1;
+-
+-=09pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+-=09=09 validrate);
+-=09pr_debug("clock: SDRC CS0 timing params used:"
+-=09=09 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
+-=09=09 sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
+-=09=09 sdrc_cs0->actim_ctrlb, sdrc_cs0->mr);
+-=09if (sdrc_cs1)
+-=09=09pr_debug("clock: SDRC CS1 timing params used: "
+-=09=09 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
+-=09=09 sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
+-=09=09 sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
+-
+-=09if (sdrc_cs1)
+-=09=09omap3_configure_core_dpll(
+-=09=09=09=09  new_div, unlock_dll, c, rate > clk->rate,
+-=09=09=09=09  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
+-=09=09=09=09  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
+-=09=09=09=09  sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
+-=09=09=09=09  sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
+-=09else
+-=09=09omap3_configure_core_dpll(
+-=09=09=09=09  new_div, unlock_dll, c, rate > clk->rate,
+-=09=09=09=09  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
+-=09=09=09=09  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
+-=09=09=09=09  0, 0, 0, 0);
+-
+-=09return 0;
+-}
+-
+ /* Common clock code */
+=20
+ /*
+--=20
+1.6.6.rc2.5.g49666
+
+--155748971-1891167208-1264551597=:13835--
