@@ -1,107 +1,59 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] OMAP: UART: fix full-fifo write abort
-Date: Wed, 27 Jan 2010 16:06:24 +0530
-Message-ID: <1264588584-13301-1-git-send-email-santosh.shilimkar@ti.com>
+From: andy.shevchenko@gmail.com
+Subject: [PATCH] dspbridge: minor clean up in memdefs.h
+Date: Wed, 27 Jan 2010 14:39:11 +0200
+Message-ID: <1264595951-11572-1-git-send-email-andy.shevchenko@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48424 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752713Ab0A0Kgc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jan 2010 05:36:32 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0RAaSYl009414
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 27 Jan 2010 04:36:31 -0600
+Received: from smtp.nokia.com ([192.100.105.134]:17701 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055Ab0A0MlJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2010 07:41:09 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o0RCe9j2006597
+	for <linux-omap@vger.kernel.org>; Wed, 27 Jan 2010 06:41:07 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Woodruff Richard <r-woodruff2@ti.com>, Ghorai Sukumar <s-ghorai@ti.com>
+Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-This patch is addition to the already merged commit on non-empty
-uart fifo read abort. "ce13d4716a276f4331d78ba28a5093a63822ab95"
+From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-OMAP3630 and OMAP4430 UART IP blocks have a restriction on TX FIFO
-too. If you try to write to the tx fifo when it is full, the system aborts.
+Remove useless macroses. They were doing nothing, so it's clear to just get rid
+of them.
 
-This can be easily reproducible by not suppressing interconnect errors or
-long duartion testing where continous prints over console from multiple
-threads . This patch is addressing the issue by ensuring that write is
-not issued while fifo is full. A timeout is added to avoid any hang
-on fifo-full for 10 mS which is unlikely case.
-
-Patch is validated on OMAP3630 and OMAP4 SDP.
-
-Signed-off-by: Woodruff Richard <r-woodruff2@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-CC: Ghorai Sukumar <s-ghorai@ti.com>
+Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 ---
- arch/arm/mach-omap2/serial.c |   30 ++++++++++++++++++++++++++++--
- 1 files changed, 28 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/memdefs.h |    3 ---
+ drivers/dsp/bridge/wmd/tiomap_io.c             |    5 ++---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 8c964be..ad4d282 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -23,6 +23,7 @@
- #include <linux/serial_reg.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/delay.h>
+diff --git a/arch/arm/plat-omap/include/dspbridge/memdefs.h b/arch/arm/plat-omap/include/dspbridge/memdefs.h
+index e70225e..2e44f5c 100644
+--- a/arch/arm/plat-omap/include/dspbridge/memdefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/memdefs.h
+@@ -34,7 +34,4 @@
+ #define MEM_GETVIRTUALSEGID     0x20000000
+ #define MEM_MASKVIRTUALSEGID    (MEM_SETVIRTUALSEGID | MEM_GETVIRTUALSEGID)
  
- #include <plat/common.h>
- #include <plat/board.h>
-@@ -139,6 +140,13 @@ static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
- 	return (unsigned int)__raw_readb(up->membase + offset);
- }
+-#define TO_VIRTUAL_UNCACHED(x) x
+-#define INTREG_TO_VIRTUAL_UNCACHED(x) x
+-
+ #endif				/* MEMDEFS_ */
+diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/wmd/tiomap_io.c
+index f60b8db..4e85efd 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_io.c
++++ b/drivers/dsp/bridge/wmd/tiomap_io.c
+@@ -366,9 +366,8 @@ DSP_STATUS WriteExtDspData(struct WMD_DEV_CONTEXT *pDevContext,
+ 				 dwExtProgVirtMem);
  
-+static inline void __serial_write_reg(struct uart_port *up, int offset,
-+		int value)
-+{
-+	offset <<= up->regshift;
-+	__raw_writeb(value, up->membase + offset);
-+}
-+
- static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
- 				    int value)
- {
-@@ -598,6 +606,20 @@ static unsigned int serial_in_override(struct uart_port *up, int offset)
- 	return __serial_read_reg(up, offset);
- }
- 
-+static void serial_out_override(struct uart_port *up, int offset, int value)
-+{
-+	unsigned int status, tmout = 10000;
-+
-+	/* Wait up to 10ms for the character(s) to be sent. */
-+	do {
-+		status = __serial_read_reg(up, UART_LSR);
-+		if (--tmout == 0)
-+			break;
-+		udelay(1);
-+	} while (!(status & UART_LSR_THRE));
-+
-+	__serial_write_reg(up, offset, value);
-+}
- void __init omap_serial_early_init(void)
- {
- 	int i;
-@@ -698,11 +720,15 @@ void __init omap_serial_init_port(int port)
- 		 * omap3xxx: Never read empty UART fifo on UARTs
- 		 * with IP rev >=0x52
- 		 */
--		if (cpu_is_omap44xx())
-+		if (cpu_is_omap44xx()) {
- 			uart->p->serial_in = serial_in_override;
-+			uart->p->serial_out = serial_out_override;
-+		}
- 		else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
--				>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
-+				>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV) {
- 			uart->p->serial_in = serial_in_override;
-+			uart->p->serial_out = serial_out_override;
-+		}
- }
- 
- /**
+ 			pDevContext->dwDspExtBaseAddr =
+-				(u32)MEM_LinearAddress((void *)
+-				TO_VIRTUAL_UNCACHED(dwExtProgVirtMem), ulExtEnd
+-				- ulExtBase);
++				(u32)MEM_LinearAddress((void *)dwExtProgVirtMem,
++					ulExtEnd - ulExtBase);
+ 			dwBaseAddr += pDevContext->dwDspExtBaseAddr;
+ 			/* This dwDspExtBaseAddr will get cleared only when
+ 			 * the board is stopped.  */
 -- 
-1.6.0.4
+1.5.6.5
 
