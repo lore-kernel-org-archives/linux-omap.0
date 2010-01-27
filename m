@@ -1,334 +1,238 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v3] OMAP3 clock: split out DPLL3 M2 divider functions into
- mach-omap2/clkt34xx_dpll3m2.c
-Date: Tue, 26 Jan 2010 17:19:57 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001261703450.13835@utopia.booyaka.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [PATCH v2 4/6] omap3: pm: Generic TRITON power scripts for OMAP3
+ based boards
+Date: Tue, 26 Jan 2010 18:23:35 -0600
+Message-ID: <4B5F8787.9090100@ti.com>
+References: <1263922577-13830-1-git-send-email-x0080970@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1891167208-1264551597=:13835"
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40055 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753346Ab0A0AT6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jan 2010 19:19:58 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58687 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751673Ab0A0AXj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Jan 2010 19:23:39 -0500
+In-Reply-To: <1263922577-13830-1-git-send-email-x0080970@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: jouni.hogander@nokia.com, virtuoso@slind.org, ranjithl@ti.com
+To: "x0080970@ti.com" <x0080970@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Derrick, David" <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+x0080970@ti.com wrote:
+> From: Lesly A M <x0080970@ti.com>
+> 
+> omap3: pm: Generic TRITON power scripts for OMAP3 based boards
+> 
+> Copying the sleep/wakeup/warm_rest sequence & voltsetup_time to a new
+> twl430 script file, since these changes are specific to the power companion chip.
+> This can be used by different OMAP3 boards with the same power companion chip
+> (TWL4030 series).
+> 
+> Added the api(use_generic_twl4030_script) to update
+> the sleep/wakeup/warm_rest sequence & voltsetup_time in the board file.
 
---155748971-1891167208-1264551597=:13835
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Lesly,
 
+I backported this change to Android 2.6.29, enabled CONFIG_TWL4030_POWER 
+and tested on a Zoom2.
 
-Hi,=20
+I found that running "reboot" introduced a hang of a few seconds between 
+"Restarting System" and U-boot output.  Digging in a little it seems 
+that for every single reboot with T2 power scripts enabled the MPU 
+watchdog is the cause of the reboot.  After every warm reset 
+PRM_RSTST[MPU_WD_RST] is high.
 
-just FYI, one minor tweak to this patch (updated version below). The file=
-=20
-"mach-omap2/clkt3xxx_dpll3m2.c" has been renamed to=20
-"mach-omap2/clkt34xx_dpll3m2.c" to reflect the fact that it is not=20
-available on AM35xx chips.
+To be sure I applied your 6 patches to the latest pm branch and the 
+issue was consistent.  Have you experienced such behavior on your board? 
+  I also get this behavior with the old T2 power scripts in the 2.6.29 
+code but didn't bother to test the old scripts in the PM branch that 
+this patch replaces.
 
+Thanks,
+Mike
 
-- Paul
+> Signed-off-by: Lesly A M <x0080970@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: David Derrick <dderrick@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> 
+> ---
+>  arch/arm/mach-omap2/twl4030-script.c |  143 +++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/twl4030-script.h |   17 ++++
+>  2 files changed, 160 insertions(+)
+> 
+> Index: linux-omap-pm/arch/arm/mach-omap2/twl4030-script.c
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ linux-omap-pm/arch/arm/mach-omap2/twl4030-script.c	2010-01-19 21:42:57.000000000 +0530
+> @@ -0,0 +1,143 @@
+> +/*
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + * Lesly A M <x0080970@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifdef CONFIG_TWL4030_POWER
+> +
+> +#include "twl4030-script.h"
+> +
+> +static struct prm_setup_vc twl4030_voltsetup_time = {
+> +	/* VOLT SETUPTIME for RET & OFF */
+> +	.voltsetup_time1_ret = 0x005B,
+> +	.voltsetup_time2_ret = 0x0055,
+> +	.voltsetup_time1_off = 0x00B3,
+> +	.voltsetup_time2_off = 0x00A0,
+> +	.voltoffset = 0x118,
+> +	.voltsetup2 = 0x32,
+> +};
+> +
+> +/*
+> + * Sequence to control the TRITON Power resources,
+> + * when the system goes into sleep.
+> + * Executed upon P1_P2/P3 transition for sleep.
+> + */
+> +static struct twl4030_ins __initdata sleep_on_seq[] = {
+> +	/* Broadcast message to put res to sleep */
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
+> +							RES_STATE_SLEEP), 2},
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
+> +							RES_STATE_SLEEP), 2},
+> +};
+> +
+> +static struct twl4030_script sleep_on_script __initdata = {
+> +	.script	= sleep_on_seq,
+> +	.size	= ARRAY_SIZE(sleep_on_seq),
+> +	.flags	= TWL4030_SLEEP_SCRIPT,
+> +};
+> +
+> +/*
+> + * Sequence to control the TRITON Power resources,
+> + * when the system wakeup from sleep.
+> + * Executed upon P1_P2 transition for wakeup.
+> + */
+> +static struct twl4030_ins wakeup_p12_seq[] __initdata = {
+> +	/* Broadcast message to put res to active */
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
+> +							RES_STATE_ACTIVE), 2},
+> +};
+> +
+> +static struct twl4030_script wakeup_p12_script __initdata = {
+> +	.script	= wakeup_p12_seq,
+> +	.size	= ARRAY_SIZE(wakeup_p12_seq),
+> +	.flags	= TWL4030_WAKEUP12_SCRIPT,
+> +};
+> +
+> +/*
+> + * Sequence to control the TRITON Power resources,
+> + * when the system wakeup from sleep.
+> + * Executed upon P3 transition for wakeup.
+> + */
+> +static struct twl4030_ins wakeup_p3_seq[] __initdata = {
+> +	/* Broadcast message to put res to active */
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
+> +							RES_STATE_ACTIVE), 2},
+> +};
+> +
+> +static struct twl4030_script wakeup_p3_script __initdata = {
+> +	.script = wakeup_p3_seq,
+> +	.size   = ARRAY_SIZE(wakeup_p3_seq),
+> +	.flags  = TWL4030_WAKEUP3_SCRIPT,
+> +};
+> +
+> +/*
+> + * Sequence to reset the TRITON Power resources,
+> + * when the system gets warm reset.
+> + * Executed upon warm reset signal.
+> + */
+> +static struct twl4030_ins wrst_seq[] __initdata = {
+> +/*
+> + * Reset twl4030.
+> + * Reset Main_Ref.
+> + * Reset All type2_group2.
+> + * Reset VUSB_3v1.
+> + * Reset All type2_group1.
+> + * Reset RC.
+> + * Reenable twl4030.
+> + */
+> +	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
+> +	{MSG_SINGULAR(DEV_GRP_NULL, RES_Main_Ref, RES_STATE_WRST), 2},
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
+> +							RES_STATE_WRST), 2},
+> +	{MSG_SINGULAR(DEV_GRP_NULL, RES_VUSB_3V1, RES_STATE_WRST), 2},
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
+> +							RES_STATE_WRST), 2},
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
+> +							RES_STATE_WRST), 2},
+> +	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
+> +};
+> +
+> +static struct twl4030_script wrst_script __initdata = {
+> +	.script = wrst_seq,
+> +	.size   = ARRAY_SIZE(wrst_seq),
+> +	.flags  = TWL4030_WRST_SCRIPT,
+> +};
+> +
+> +/* TRITON script for sleep, wakeup & warm_reset */
+> +static struct twl4030_script *twl4030_scripts[] __initdata = {
+> +	&sleep_on_script,
+> +	&wakeup_p12_script,
+> +	&wakeup_p3_script,
+> +	&wrst_script,
+> +};
+> +
+> +static struct twl4030_power_data twl4030_generic_script __initdata = {
+> +	.scripts	= twl4030_scripts,
+> +	.num		= ARRAY_SIZE(twl4030_scripts),
+> +};
+> +
+> +void use_generic_twl4030_script(
+> +		struct twl4030_power_data *t2scripts_data,
+> +		struct prm_setup_vc *setup_vc)
+> +{
+> +	setup_vc->voltsetup_time1_ret =
+> +				twl4030_voltsetup_time.voltsetup_time1_ret;
+> +	setup_vc->voltsetup_time2_ret =
+> +				twl4030_voltsetup_time.voltsetup_time2_ret;
+> +	setup_vc->voltsetup_time1_off =
+> +				twl4030_voltsetup_time.voltsetup_time1_off;
+> +	setup_vc->voltsetup_time2_off =
+> +				twl4030_voltsetup_time.voltsetup_time1_off;
+> +
+> +	setup_vc->voltoffset = twl4030_voltsetup_time.voltoffset;
+> +	setup_vc->voltsetup2 = twl4030_voltsetup_time.voltsetup2;
+> +
+> +	t2scripts_data->scripts = twl4030_generic_script.scripts;
+> +	t2scripts_data->num = twl4030_generic_script.num;
+> +}
+> +
+> +#endif
+> Index: linux-omap-pm/arch/arm/mach-omap2/twl4030-script.h
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ linux-omap-pm/arch/arm/mach-omap2/twl4030-script.h	2010-01-19 21:41:57.000000000 +0530
+> @@ -0,0 +1,17 @@
+> +#ifndef __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
+> +#define __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
+> +
+> +#include <linux/i2c/twl.h>
+> +#include "pm.h"
+> +
+> +#ifdef CONFIG_TWL4030_POWER
+> +extern void use_generic_twl4030_script(
+> +		struct twl4030_power_data *t2scripts_data,
+> +		struct prm_setup_vc *setup_vc);
+> +#else
+> +static inline void use_generic_twl4030_script(
+> +		struct twl4030_power_data *t2scripts_data,
+> +		struct prm_setup_vc *setup_vc) {}
+> +#endif
+> +
+> +#endif
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-
-From: Paul Walmsley <paul@pwsan.com>
-
-Split the DPLL3 M2 divider clock functions out of clock34xx.c and move
-them into mach-omap2/clkt34xx_dpll3m2.c. This is intended to make the
-clock code easier to understand, since all of the functions needed to
-manage the OMAP3 DPLL3 M2 divider are now located in their own file,
-rather than being mixed with other, unrelated functions.
-
-Clock debugging is also now more finely-grained, since the DEBUG macro
-can now be defined for the DPLL3 M2 clock alone.  This should reduce
-unnecessary console noise when debugging DVFS.
-
-Also, if at some future point the mach-omap2/ directory is split
-into OMAP2/3/4 variants, this clkt file can be placed in the mach-omap34xx/
-directory, rather than shared with other chip types that don't use this
-clock type.
-
-This patch also lays the groundwork to skip compilation of this
-code on OMAP3 chips that don't support DVFS (e.g., AM35xx) via
-the Makefile, rather than via #ifdefs.
-
-Thanks to Alexander Shishkin <virtuoso@slind.org> for his comments to
-improve the patch description.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Jouni H=F6gander <jouni.hogander@nokia.com>
-Cc: Alexander Shishkin <virtuoso@slind.org>
----
- arch/arm/mach-omap2/Makefile           |    3 +-
- arch/arm/mach-omap2/clkt34xx_dpll3m2.c |  120 ++++++++++++++++++++++++++++=
-++++
- arch/arm/mach-omap2/clock34xx.c        |   90 ------------------------
- 3 files changed, 122 insertions(+), 91 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 7ce5fea..b7b7d7e 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -15,11 +15,12 @@ clock-omap2xxx=09=09=09=09=3D clkt2xxx_dpllcore.o \
- =09=09=09=09=09  clkt2xxx_virt_prcm_set.o \
- =09=09=09=09=09  clkt2xxx_apll.o clkt2xxx_osc.o \
- =09=09=09=09=09  clkt2xxx_sys.o
-+clock-omap34xx=09=09=09=09=3D clkt34xx_dpll3m2.o
-=20
- obj-$(CONFIG_ARCH_OMAP2) +=3D $(omap-2-3-common) $(prcm-common) $(clock-co=
-mmon) \
- =09=09=09    $(clock-omap2xxx)
- obj-$(CONFIG_ARCH_OMAP3) +=3D $(omap-2-3-common) $(prcm-common) $(clock-co=
-mmon) \
--=09=09=09    $(omap-3-4-common)
-+=09=09=09    $(omap-3-4-common) $(clock-omap34xx)
- obj-$(CONFIG_ARCH_OMAP4) +=3D $(omap-3-4-common) $(prcm-common) $(clock-co=
-mmon)
-=20
- obj-$(CONFIG_OMAP_MCBSP) +=3D mcbsp.o
-diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/c=
-lkt34xx_dpll3m2.c
-new file mode 100644
-index 0000000..14f1a4b
---- /dev/null
-+++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-@@ -0,0 +1,120 @@
-+/*
-+ * OMAP3 M2 divider clock code
-+ *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Copyright (C) 2007-2010 Nokia Corporation
-+ *
-+ * Paul Walmsley
-+ * Jouni H=F6gander
-+ *
-+ * Parts of this code are based on code written by
-+ * Richard Woodruff, Tony Lindgren, Tuukka Tikkanen, Karthik Dasu
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#undef DEBUG
-+
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+
-+#include <plat/clock.h>
-+#include <plat/sram.h>
-+#include <plat/sdrc.h>
-+
-+#include "clock.h"
-+#include "clock34xx.h"
-+#include "sdrc.h"
-+
-+#define CYCLES_PER_MHZ=09=09=091000000
-+
-+/*
-+ * CORE DPLL (DPLL3) M2 divider rate programming functions
-+ *
-+ * These call into SRAM code to do the actual CM writes, since the SDRAM
-+ * is clocked from DPLL3.
-+ */
-+
-+/**
-+ * omap3_core_dpll_m2_set_rate - set CORE DPLL M2 divider
-+ * @clk: struct clk * of DPLL to set
-+ * @rate: rounded target rate
-+ *
-+ * Program the DPLL M2 divider with the rounded target rate.  Returns
-+ * -EINVAL upon error, or 0 upon success.
-+ */
-+int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
-+{
-+=09u32 new_div =3D 0;
-+=09u32 unlock_dll =3D 0;
-+=09u32 c;
-+=09unsigned long validrate, sdrcrate, _mpurate;
-+=09struct omap_sdrc_params *sdrc_cs0;
-+=09struct omap_sdrc_params *sdrc_cs1;
-+=09int ret;
-+
-+=09if (!clk || !rate)
-+=09=09return -EINVAL;
-+
-+=09validrate =3D omap2_clksel_round_rate_div(clk, rate, &new_div);
-+=09if (validrate !=3D rate)
-+=09=09return -EINVAL;
-+
-+=09sdrcrate =3D sdrc_ick_p->rate;
-+=09if (rate > clk->rate)
-+=09=09sdrcrate <<=3D ((rate / clk->rate) >> 1);
-+=09else
-+=09=09sdrcrate >>=3D ((clk->rate / rate) >> 1);
-+
-+=09ret =3D omap2_sdrc_get_params(sdrcrate, &sdrc_cs0, &sdrc_cs1);
-+=09if (ret)
-+=09=09return -EINVAL;
-+
-+=09if (sdrcrate < MIN_SDRC_DLL_LOCK_FREQ) {
-+=09=09pr_debug("clock: will unlock SDRC DLL\n");
-+=09=09unlock_dll =3D 1;
-+=09}
-+
-+=09/*
-+=09 * XXX This only needs to be done when the CPU frequency changes
-+=09 */
-+=09_mpurate =3D arm_fck_p->rate / CYCLES_PER_MHZ;
-+=09c =3D (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
-+=09c +=3D 1;  /* for safety */
-+=09c *=3D SDRC_MPURATE_LOOPS;
-+=09c >>=3D SDRC_MPURATE_SCALE;
-+=09if (c =3D=3D 0)
-+=09=09c =3D 1;
-+
-+=09pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
-+=09=09 validrate);
-+=09pr_debug("clock: SDRC CS0 timing params used:"
-+=09=09 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
-+=09=09 sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
-+=09=09 sdrc_cs0->actim_ctrlb, sdrc_cs0->mr);
-+=09if (sdrc_cs1)
-+=09=09pr_debug("clock: SDRC CS1 timing params used: "
-+=09=09 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
-+=09=09 sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
-+=09=09 sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
-+
-+=09if (sdrc_cs1)
-+=09=09omap3_configure_core_dpll(
-+=09=09=09=09  new_div, unlock_dll, c, rate > clk->rate,
-+=09=09=09=09  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
-+=09=09=09=09  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
-+=09=09=09=09  sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
-+=09=09=09=09  sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
-+=09else
-+=09=09omap3_configure_core_dpll(
-+=09=09=09=09  new_div, unlock_dll, c, rate > clk->rate,
-+=09=09=09=09  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
-+=09=09=09=09  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
-+=09=09=09=09  0, 0, 0, 0);
-+
-+=09return 0;
-+}
-+
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34x=
-x.c
-index 4c4bb3c..552ad30 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -42,8 +42,6 @@
- #include "cm.h"
- #include "cm-regbits-34xx.h"
-=20
--#define CYCLES_PER_MHZ=09=09=091000000
--
- /*
-  * DPLL5_FREQ_FOR_USBHOST: USBHOST and USBTLL are the only clocks
-  * that are sourced by DPLL5, and both of these require this clock
-@@ -162,94 +160,6 @@ int omap3_dpll4_set_rate(struct clk *clk, unsigned lon=
-g rate)
- =09return omap3_noncore_dpll_set_rate(clk, rate);
- }
-=20
--
--/*
-- * CORE DPLL (DPLL3) rate programming functions
-- *
-- * These call into SRAM code to do the actual CM writes, since the SDRAM
-- * is clocked from DPLL3.
-- */
--
--/**
-- * omap3_core_dpll_m2_set_rate - set CORE DPLL M2 divider
-- * @clk: struct clk * of DPLL to set
-- * @rate: rounded target rate
-- *
-- * Program the DPLL M2 divider with the rounded target rate.  Returns
-- * -EINVAL upon error, or 0 upon success.
-- */
--int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
--{
--=09u32 new_div =3D 0;
--=09u32 unlock_dll =3D 0;
--=09u32 c;
--=09unsigned long validrate, sdrcrate, _mpurate;
--=09struct omap_sdrc_params *sdrc_cs0;
--=09struct omap_sdrc_params *sdrc_cs1;
--=09int ret;
--
--=09if (!clk || !rate)
--=09=09return -EINVAL;
--
--=09validrate =3D omap2_clksel_round_rate_div(clk, rate, &new_div);
--=09if (validrate !=3D rate)
--=09=09return -EINVAL;
--
--=09sdrcrate =3D sdrc_ick_p->rate;
--=09if (rate > clk->rate)
--=09=09sdrcrate <<=3D ((rate / clk->rate) >> 1);
--=09else
--=09=09sdrcrate >>=3D ((clk->rate / rate) >> 1);
--
--=09ret =3D omap2_sdrc_get_params(sdrcrate, &sdrc_cs0, &sdrc_cs1);
--=09if (ret)
--=09=09return -EINVAL;
--
--=09if (sdrcrate < MIN_SDRC_DLL_LOCK_FREQ) {
--=09=09pr_debug("clock: will unlock SDRC DLL\n");
--=09=09unlock_dll =3D 1;
--=09}
--
--=09/*
--=09 * XXX This only needs to be done when the CPU frequency changes
--=09 */
--=09_mpurate =3D arm_fck_p->rate / CYCLES_PER_MHZ;
--=09c =3D (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
--=09c +=3D 1;  /* for safety */
--=09c *=3D SDRC_MPURATE_LOOPS;
--=09c >>=3D SDRC_MPURATE_SCALE;
--=09if (c =3D=3D 0)
--=09=09c =3D 1;
--
--=09pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
--=09=09 validrate);
--=09pr_debug("clock: SDRC CS0 timing params used:"
--=09=09 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
--=09=09 sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
--=09=09 sdrc_cs0->actim_ctrlb, sdrc_cs0->mr);
--=09if (sdrc_cs1)
--=09=09pr_debug("clock: SDRC CS1 timing params used: "
--=09=09 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
--=09=09 sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
--=09=09 sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
--
--=09if (sdrc_cs1)
--=09=09omap3_configure_core_dpll(
--=09=09=09=09  new_div, unlock_dll, c, rate > clk->rate,
--=09=09=09=09  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
--=09=09=09=09  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
--=09=09=09=09  sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
--=09=09=09=09  sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
--=09else
--=09=09omap3_configure_core_dpll(
--=09=09=09=09  new_div, unlock_dll, c, rate > clk->rate,
--=09=09=09=09  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
--=09=09=09=09  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
--=09=09=09=09  0, 0, 0, 0);
--
--=09return 0;
--}
--
- /* Common clock code */
-=20
- /*
---=20
-1.6.6.rc2.5.g49666
-
---155748971-1891167208-1264551597=:13835--
