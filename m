@@ -1,66 +1,128 @@
-From: John Rigby <jcrigby@gmail.com>
-Subject: Re: sdio irq hack for omap_hsmmc.c (was: Re: [PATCH] OMAP35xx:SDIO
-	IRQ Support for OMAP35xx)
-Date: Wed, 27 Jan 2010 16:56:28 -0700
-Message-ID: <4b73d43f1001271556m5945d358v2ca5bea5862b0080@mail.gmail.com>
-References: <4b73d43f1001260904m212d2c53gde6328ad9b9bb14e@mail.gmail.com>
-	 <008001ca9fa6$87dc26e0$544ff780@am.dhcp.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/2] OMAP: omap_device: add omap_device_is_valid()
+Date: Wed, 27 Jan 2010 17:30:37 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1001271727450.1248@utopia.booyaka.com>
+References: <1264532444-22706-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:60252 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754627Ab0A0X43 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2010 18:56:29 -0500
-In-Reply-To: <008001ca9fa6$87dc26e0$544ff780@am.dhcp.ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:34838 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753716Ab0A1Aai (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2010 19:30:38 -0500
+In-Reply-To: <1264532444-22706-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: Mike Rapoport <mike@compulab.co.il>, Dirk Behme <dirk.behme@googlemail.com>, Phaneendra Kumar Alapati <phani@embwise.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, "Paasikivi Teemu.3 (EXT-Ixonos/Tampere)" <ext-teemu.3.paasikivi@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-Just to be clear, my post was in response to the reported problems
-with enabling sdio irqs with this patch:
-http://patchwork.kernel.org/patch/69122/
+Hi Kevin,
 
-The patch originator reported good results but others reported
-complete failure.  My hack fixed the problem for me.  I believe this
-much more modest patch will also fix the problem but it is untested
-because I don't have a board running right now.  Beware, I'm sending
-this from gmail so it may get line wrapped but it is a trivial patch
-so I think it is understandable.
+this looks fine.  Two quick comments:
 
-John
+On Tue, 26 Jan 2010, Kevin Hilman wrote:
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index fa94580..7af970e 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1727,10 +1727,16 @@ static int __init omap_hsmmc_probe
+> The omap_device struct contains a 'struct platform_device'.  Normally,
+> converting a platform_device pointer to an omap_device pointer
+> consists of simply doing a container_of(), as is done currently by the
+> to_omap_device() macro.
+> 
+> However, if this is attempted when using platform_device that has not
+> been created as part of the omap_device creation, the container_of()
+> will point to a memory location before the platform_device pointer
+> which will contain random data.
+> 
+> Therefore, we need a way to detect valid omap_device pointers.  This
+> patch solves this by using the simple magic number approach.
 
- 	omap_hsmmc_context_save(host);
+Sounds okay; just FYI at some point in the future, it would be good for 
+one of us to take a whack at converting omap_device to contain 
+platform_device, the same way that platform_device contains struct device, 
+etc..
 
-+#if 0
- 	mmc->caps |= MMC_CAP_DISABLE;
- 	mmc_set_disable_delay(mmc, OMAP_MMC_DISABLED_TIMEOUT);
- 	/* we start off in DISABLED state */
- 	host->dpm_state = DISABLED;
-+#else
-+	/* we start off in ENABLED state */
-+	host->dpm_state = ENABLED;
-+	clk_enable(host->fclk);
-+#endif
+> 
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+> Changes from original version:
+> - set magic value before omap_device_register()
+> 
+>  arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
+>  arch/arm/plat-omap/omap_device.c              |   16 ++++++++++++++++
+>  2 files changed, 18 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index 76d4917..4677ff7 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -62,6 +62,7 @@
+>   *
+>   */
+>  struct omap_device {
+> +	u32                             magic;
+>  	struct platform_device		pdev;
+>  	struct omap_hwmod		**hwmods;
+>  	struct omap_device_pm_latency	*pm_lats;
+> @@ -81,6 +82,7 @@ int omap_device_shutdown(struct platform_device *pdev);
+>  
+>  /* Core code interface */
+>  
+> +bool omap_device_is_valid(struct omap_device *od);
+>  int omap_device_count_resources(struct omap_device *od);
+>  int omap_device_fill_resources(struct omap_device *od, struct resource *res);
+>  
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index d8c75c8..187a08f 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -100,6 +100,8 @@
+>  # error Unknown OMAP device
+>  #endif
+>  
+> +#define OMAP_DEVICE_MAGIC 0xf00dcafe
+> +
+>  /* Private functions */
+>  
+>  /**
+> @@ -413,6 +415,8 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+>  	od->pm_lats = pm_lats;
+>  	od->pm_lats_cnt = pm_lats_cnt;
+>  
+> +	od->magic = OMAP_DEVICE_MAGIC;
+> +
+>  	ret = omap_device_register(od);
+>  	if (ret)
+>  		goto odbs_exit4;
+> @@ -599,6 +603,18 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
+>  }
+>  
+>  /**
+> + * omap_device_is_valid()
 
- 	if (mmc_host_enable(host->mmc) != 0) {
- 		clk_put(host->iclk);
+I think kerneldoc will want a short description after the function name.  
+Can plug this in here during the merge process if you want...
+
+> + * @od: struct omap_device *
+> + *
+> + * Return whether struct omap_device pointer @od points to a valid
+> + * omap_device.
+> + */
+> +bool omap_device_is_valid(struct omap_device *od)
+> +{
+> +	return (od && od->magic == OMAP_DEVICE_MAGIC);
+> +}
+> +
+> +/**
+>   * omap_device_get_pwrdm - return the powerdomain * associated with @od
+>   * @od: struct omap_device *
+>   *
+> -- 
+> 1.6.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
-On Wed, Jan 27, 2010 at 4:14 PM, Madhusudhan <madhu.cr@ti.com> wrote:
-> It is hard to comment on what is happening here without a patch. Is it a
-> performance issue or that SDIO functionality failure with PM enabled?
->
-> The MMC controller supports wakeup capability on the dat1 line using a GPIO
-> for a SDIO interrupt. I guess that should help.
->
-> Regards,
-> Madhu
->
+- Paul
