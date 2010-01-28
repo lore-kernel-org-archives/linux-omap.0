@@ -1,90 +1,218 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] omap3: pm: cpufreq: populate l3 opp1 again
-Date: Thu, 28 Jan 2010 09:23:16 -0800
-Message-ID: <87fx5qrvnf.fsf@deeprootsystems.com>
-References: <1264657260-12310-1-git-send-email-nm@ti.com>
-	<4B6134EB.8040202@ti.com>
-	<74583B8642AB8841B30447520659FCA9E768536D@dnce01.ent.ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E22B41EC@dbde02.ent.ti.com>
-	<74583B8642AB8841B30447520659FCA9E76853B4@dnce01.ent.ti.com>
-	<0C997DD87CC88A4F86C897F52650B52B02807801@MOLSON.mpc-data.co.uk>
-	<4B61AAB2.6050003@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCHv3] omap3: cpuidle: Update statistics for correct state
+Date: Thu, 28 Jan 2010 23:16:43 +0530
+Message-ID: <1264700803-23625-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:50276 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756345Ab0A1RXX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 12:23:23 -0500
-Received: by fxm20 with SMTP id 20so915625fxm.21
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 09:23:21 -0800 (PST)
-In-Reply-To: <4B61AAB2.6050003@ti.com> (Nishanth Menon's message of "Thu\, 28 Jan 2010 09\:18\:10 -0600")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54114 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756367Ab0A1Rqx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jan 2010 12:46:53 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0SHkkFg021286
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 11:46:48 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Andrew Murray <amurray@mpc-data.co.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Dasgupta, Romit" <romit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Nishanth Menon <nm@ti.com> writes:
+When 'enable_off_mode' is 0, the target power state for MPU
+and CORE was locally changed to PWRDM_POWER_RET but, the
+statistics are updated for idle state originally selected
+by the governor.
 
-> Hi,
-> Thanks for all the comments.
-> Andrew Murray had written, on 01/28/2010 08:00 AM, the following:
->>> From: Cousson, Benoit [mailto:b-cousson@ti.com]
->>> Sent: 28 January 2010 13:48
->>> To: Dasgupta, Romit; Menon, Nishanth
->>> Cc: linux-omap; Andrew Murray; Kevin Hilman
->>> Subject: RE: [PATCH] omap3: pm: cpufreq: populate l3 opp1 again
->>
->>> I don't want to keep it. I just want to document it in order to
->> explain
->>> why the code is not aligned with the public doc.
->>>
->>> Andrew did ask the question so the answer might be useful for others
->> as
->>> well, hence a small comment on top of the CORE OPP list.
->>>
->>> Benoit
->>
->> I agree. 
->>
->> I don't think it matters if the OPP 'OMAP_OPP_DEF' is there or not.
->> Though as the OPPs differ to the hardware descriptions it should be
->> documented - perhaps as suggested, by a comment.
->>
->> It is confusing when validating the power management software support -
->> and the best place to look for the rationale is in the code. 
->>
->> Andrew Murray
-> I did consider removing it, till i did a git grep...
->> $ git grep VDD2_OPP
->> arch/arm/mach-omap2/pm34xx.c:   resource_lock_opp(VDD2_OPP);
->> arch/arm/mach-omap2/pm34xx.c:   resource_unlock_opp(VDD2_OPP);
->> arch/arm/mach-omap2/resource34xx.c:     } else if (res == VDD2_OPP) {
->> arch/arm/mach-omap2/resource34xx.c:     else if (res == VDD2_OPP)
->> arch/arm/mach-omap2/resource34xx.c:             ret = resource_set_opp_level(VDD2_OPP, target_level, 0);
->> arch/arm/mach-omap2/smartreflex.c:                      target_opp_no = VDD2_OPP3;
-> Grrrr... SR is going to break if I were to do that OR my patch can
-> renumber them.
->
->> arch/arm/mach-omap2/smartreflex.c:      } else if (vdd == VDD2_OPP) {
->> arch/arm/mach-omap2/smartreflex.c:              else if (vdd == VDD2_OPP)
->> arch/arm/mach-omap2/smartreflex.h:#define PRCM_VDD2_OPP1                (OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
->> arch/arm/mach-omap2/smartreflex.h:#define PRCM_VDD2_OPP2                (OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
->> arch/arm/mach-omap2/smartreflex.h:#define PRCM_VDD2_OPP3                (OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
->> arch/arm/mach-omap2/smartreflex.h:#define PRCM_NO_VDD2_OPPS     3
->> arch/arm/plat-omap/include/plat/omap34xx.h:#define VDD2_OPP     0x2
->> arch/arm/plat-omap/include/plat/omap34xx.h:#define VDD2_OPP1    0x1
->> arch/arm/plat-omap/include/plat/omap34xx.h:#define VDD2_OPP2    0x2
->> arch/arm/plat-omap/include/plat/omap34xx.h:#define VDD2_OPP3    0x3
-> All these should go away as well.. I missed these in my pm-wip-opp
-> patchset..
->
-> Do we want to do this now(DISCLAIMER: I am not volunteering{yet} ;) )?
-> OR do we want to wait till the current planned SR/SRF cleanups are
-> complete?
+This patch 'invalidates' the idle states that lead either of
+MPU or Core to PWRDM_POWER_OFF state when 'enable_off_mode'
+is '0'. The states are valid once 'enable_off_mode' is set
+to '1'.
 
-I suggest that for now we just add the value back as your original patch,
-and add a comment as suggested by Benoit as well.  After the SR rework
-is done, we can remove the OPP and leave the comment.
+Added function next_valid_state() to check if current state
+is valid; else get the next valid state. It is called from
+omap3_enter_idle_bm().
 
-Kevin
+This revision takes in changes suggested by Kevin Hilman.
+
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |   98 ++++++++++++++++++++++++++++++++++---
+ arch/arm/mach-omap2/pm.h          |    4 ++
+ arch/arm/mach-omap2/pm34xx.c      |    4 ++
+ 3 files changed, 98 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 12f0cbf..ff1ad3d 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -45,6 +45,8 @@
+ #define OMAP3_STATE_C6 5 /* C6 - MPU OFF + Core RET */
+ #define OMAP3_STATE_C7 6 /* C7 - MPU OFF + Core OFF */
+ 
++#define OMAP3_STATE_MAX OMAP3_STATE_C7
++
+ struct omap3_processor_cx {
+ 	u8 valid;
+ 	u8 type;
+@@ -104,13 +106,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+ 	local_irq_disable();
+ 	local_fiq_disable();
+ 
+-	if (!enable_off_mode) {
+-		if (mpu_state < PWRDM_POWER_RET)
+-			mpu_state = PWRDM_POWER_RET;
+-		if (core_state < PWRDM_POWER_RET)
+-			core_state = PWRDM_POWER_RET;
+-	}
+-
+ 	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
+ 	pwrdm_set_next_pwrst(core_pd, core_state);
+ 
+@@ -141,6 +136,67 @@ return_sleep_time:
+ }
+ 
+ /**
++ * next_valid_state - Find next valid c-state
++ * @dev: cpuidle device
++ * @state: Currently selected c-state
++ *
++ * If the current state is valid, it is returned back to the caller.
++ * Else, this function searches for a lower c-state which is still
++ * valid (as defined in omap3_power_states[]).
++ */
++static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
++						struct cpuidle_state *curr)
++{
++	struct cpuidle_state *next = NULL;
++	struct omap3_processor_cx *cx;
++
++	cx = (struct omap3_processor_cx *)cpuidle_get_statedata(curr);
++
++	/* Check if current state is valid */
++	if (cx->valid) {
++		return curr;
++	} else {
++		u8 idx = OMAP3_STATE_MAX;
++
++		/*
++		 * Reach the current state starting at highest C-state
++		 */
++		for (; idx >= OMAP3_STATE_C1; idx--) {
++			if (&dev->states[idx] == curr) {
++				next = &dev->states[idx];
++				break;
++			}
++		}
++
++		/*
++		 * Should never hit this condition.
++		 */
++		WARN_ON(next == NULL);
++
++		/*
++		 * Drop to next valid state.
++		 * Start search from the next (lower) state.
++		 */
++		idx--;
++		for (; idx >= OMAP3_STATE_C1; idx--) {
++			struct omap3_processor_cx *cx;
++
++			cx = cpuidle_get_statedata(&dev->states[idx]);
++			if (cx->valid) {
++				next = &dev->states[idx];
++				break;
++			}
++		}
++		/*
++		 * C1 and C2 are always valid.
++		 * So, no need to check for 'next==NULL' outside this loop.
++		 */
++	}
++
++	return next;
++}
++
++/**
+  * omap3_enter_idle_bm - Checks for any bus activity
+  * @dev: cpuidle device
+  * @state: The target state to be programmed
+@@ -152,7 +208,7 @@ return_sleep_time:
+ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 			       struct cpuidle_state *state)
+ {
+-	struct cpuidle_state *new_state = state;
++	struct cpuidle_state *new_state = next_valid_state(dev, state);
+ 
+ 	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
+ 		BUG_ON(!dev->safe_state);
+@@ -165,6 +221,30 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 
+ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+ 
++/**
++ * omap3_cpuidle_update_states - Update the cpuidle states.
++ *
++ * Currently, this function toggles the validity of idle states based upon
++ * the flag 'enable_off_mode'. When the flag is set all states are valid.
++ * Else, states leading to OFF state set to be invalid.
++ */
++void omap3_cpuidle_update_states(void)
++{
++	int i;
++
++	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
++		struct omap3_processor_cx *cx = &omap3_power_states[i];
++
++		if (enable_off_mode) {
++			cx->valid = 1;
++		} else {
++			if ((cx->mpu_state == PWRDM_POWER_OFF) ||
++				(cx->core_state	== PWRDM_POWER_OFF))
++				cx->valid = 0;
++		}
++	}
++}
++
+ /* omap3_init_power_states - Initialises the OMAP3 specific C states.
+  *
+  * Below is the desciption of each C state.
+@@ -302,6 +382,8 @@ int __init omap3_idle_init(void)
+ 		return -EINVAL;
+ 	dev->state_count = count;
+ 
++	omap3_cpuidle_update_states();
++
+ 	if (cpuidle_register_device(dev)) {
+ 		printk(KERN_ERR "%s: CPUidle register device failed\n",
+ 		       __func__);
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 7a9c2d0..09c0144 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -37,6 +37,10 @@ extern int omap2_pm_debug;
+ #define omap2_pm_debug				0
+ #endif
+ 
++#if defined(CONFIG_CPU_IDLE)
++extern void omap3_cpuidle_update_states(void);
++#endif
++
+ #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+ extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+ extern int pm_dbg_regset_save(int reg_set);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 5087b15..5320229 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -941,6 +941,10 @@ void omap3_pm_off_mode_enable(int enable)
+ 	else
+ 		state = PWRDM_POWER_RET;
+ 
++#ifdef CONFIG_CPU_IDLE
++	omap3_cpuidle_update_states();
++#endif
++
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
+ 		pwrst->next_state = state;
+ 		set_pwrdm_state(pwrst->pwrdm, state);
+-- 
+1.6.2.2
+
