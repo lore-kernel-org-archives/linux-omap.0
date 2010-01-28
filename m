@@ -1,79 +1,79 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: Remove DRV_ProcUpdatestate function
-Date: Thu, 28 Jan 2010 10:50:27 +0200
-Message-ID: <1264668627.2098.0.camel@sanganak>
-References: <818EF96F5A7CC84789DD014773DB095484859F57@dlee01.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [RFC] [PATCH] omapfb: Fix 12-bit display (RGB444 color mode)
+ handling
+Date: Thu, 28 Jan 2010 11:24:44 +0200
+Message-ID: <1264670684.2701.216.camel@tubuntu.research.nokia.com>
+References: <201001142125.45468.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:53065 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637Ab0A1IvS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 03:51:18 -0500
-In-Reply-To: <818EF96F5A7CC84789DD014773DB095484859F57@dlee01.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:30104 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755574Ab0A1JWs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 04:22:48 -0500
+In-Reply-To: <201001142125.45468.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
+To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
 
-On Wed, 2010-01-27 at 19:13 +0100, ext Gomez Castellanos, Ivan wrote:
-> From fe755ce32e6bbbcc0e99d5a06440bed6257b1a23 Mon Sep 17 00:00:00 2001
-> From: Ivan Gomez <ivan.gomez@ti.com>
-> Date: Wed, 20 Jan 2010 17:45:43 -0600
-> Subject: [PATCH] DSPBRIDGE: Remove DRV_ProcUpdatestate function
+On Thu, 2010-01-14 at 21:25 +0100, ext Janusz Krzysztofik wrote:
+> Support for RGB444 (12-bit) pixel format has been introduced into omapfb/lcdc 
+> by Mark Underwood on 2006-05-26 (commit 
+> f74edb6668aad9fc8e81585861b18f996c78a574) in preparation for Amstrad Delta 
+> (E3) videophone LCD display support.
+
+I haven't seen any comments on this. Shall I apply it to my tree?
+
+ Tomi
+
+
 > 
-> The DRV_ProcUpdatestate function was only used in two places and
-> it only assigned a value.
+> Before the Amstrad Delta LCD patch by Jonathan McDowell was applied (on 
+> 2006-08-04, commit 8d22fb2ea004cdb6379b54c1a8fd1546cfe40ed7), omapfb and lcdc 
+> code was changed substantially (commit 
+> e563dc81aa01bd8bbb01bc53975a15c398715f62 dated 2006-06-26) in a way that broke 
+> Mark's 12-bit display support. Than, a patch by Jonathan, that supposed to 
+> correct the problem, was introduced immediatelly (on 2006-08-04, commit 
+> e10a75b49e7a57ae17c28b705153c70eba15a8ef).
 > 
-> Signed-off-by: Ivan Gomez <ivan.gomez@ti.com>
+> As a result, the Amstrad Delta display was working correctly at boot time, 
+> with fbset reporting:
+> 
+> 	geometry 480 320 480 320 16
+> 	...
+> 	rgba 4/8,4/4,4/0,0/0
+> 
+> However, after first framebuffer reinitialization, colors were no longer being 
+> displayed correctly and fbset was reporting:
+> 
+>         rgba 5/11,6/5,5/0,0/0
+> 
+> The patch tries to correct the issue by setting plane->color_mode depending on 
+> panel->bpp, not var->bits_per_pixel.
+> 
+> Created and tested on Amstrad Delta against linux-2.6.33-rc3.
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzysz@tis.icnet.pl>
+> 
 > ---
->  drivers/dsp/bridge/rmgr/drv.c           |    9 ---------
->  drivers/dsp/bridge/rmgr/drv_interface.c |    4 ++--
->  2 files changed, 2 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-> index fd09a83..b7817aa 100644
-> --- a/drivers/dsp/bridge/rmgr/drv.c
-> +++ b/drivers/dsp/bridge/rmgr/drv.c
-> @@ -83,15 +83,6 @@ static DSP_STATUS DRV_ProcFreeNodeRes(HANDLE hPCtxt);
->  static DSP_STATUS  DRV_ProcFreeSTRMRes(HANDLE hPCtxt);
->  extern enum NODE_STATE NODE_GetState(HANDLE hNode);
->  
-> -/* Update the state of process context */
-> -DSP_STATUS DRV_ProcUpdatestate(HANDLE hPCtxt, enum GPP_PROC_RES_STATE status)
-> -{
-> -	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
-> -	DSP_STATUS status1 = DSP_SOK;
-> -	pCtxt->resState = status;
-> -	return status1;
-> -}
-> -
->  /* Allocate and add a node resource element
->  * This function is called from .Node_Allocate.  */
->  DSP_STATUS DRV_InsertNodeResElement(HANDLE hNode, HANDLE hNodeRes,
-> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-> index 6d293bf..af8c6ad 100644
-> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
-> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-> @@ -503,7 +503,7 @@ static int bridge_open(struct inode *ip, struct file *filp)
->  	 */
->  	pr_ctxt = MEM_Calloc(sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
->  	if (pr_ctxt)
-> -		DRV_ProcUpdatestate(pr_ctxt, PROC_RES_ALLOCATED);
-> +		pr_ctxt->resSatate = PROC_RES_ALLOCATED;
->  	else
->  		status = -ENOMEM;
->  
-> @@ -619,7 +619,7 @@ DSP_STATUS DRV_RemoveAllResources(HANDLE hPCtxt)
->  	DRV_RemoveAllSTRMResElements(pCtxt);
->  	DRV_RemoveAllNodeResElements(pCtxt);
->  	DRV_RemoveAllDMMResElements(pCtxt);
-> -	DRV_ProcUpdatestate(pCtxt, PROC_RES_FREED);
-> +	pCtxt->resState = PROC_RES_FREED;
->  	return status;
->  }
->  #endif
+> --- git/drivers/video/omap/omapfb_main.c.orig	2010-01-14 19:30:23.000000000 +0100
+> +++ git/drivers/video/omap/omapfb_main.c	2010-01-14 20:31:18.000000000 +0100
+> @@ -473,10 +473,11 @@ static int set_color_mode(struct omapfb_
+>  		return 0;
+>  	case 12:
+>  		var->bits_per_pixel = 16;
+> -		plane->color_mode = OMAPFB_COLOR_RGB444;
+> -		return 0;
+>  	case 16:
+> -		plane->color_mode = OMAPFB_COLOR_RGB565;
+> +		if (plane->fbdev->panel->bpp == 12)
+> +			plane->color_mode = OMAPFB_COLOR_RGB444;
+> +		else
+> +			plane->color_mode = OMAPFB_COLOR_RGB565;
+>  		return 0;
+>  	default:
+>  		return -EINVAL;
 
-Acked-by: Ameya Palande <ameya.palande@nokia.com>
 
