@@ -1,218 +1,83 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCHv3] omap3: cpuidle: Update statistics for correct state
-Date: Thu, 28 Jan 2010 23:16:43 +0530
-Message-ID: <1264700803-23625-1-git-send-email-premi@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: omap3: pm: AVS enabled by default?
+Date: Thu, 28 Jan 2010 09:47:56 -0800
+Message-ID: <87y6jiqfxv.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E22B429F@dbde02.ent.ti.com>
+	<4B61AD77.6070601@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54114 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756367Ab0A1Rqx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jan 2010 12:46:53 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0SHkkFg021286
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 11:46:48 -0600
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:50990 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756324Ab0A1RsC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 12:48:02 -0500
+Received: by fxm20 with SMTP id 20so942610fxm.21
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 09:48:01 -0800 (PST)
+In-Reply-To: <4B61AD77.6070601@ti.com> (Nishanth Menon's message of "Thu\, 28 Jan 2010 09\:29\:59 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, Andrew Murray <amurray@mpc-data.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-When 'enable_off_mode' is 0, the target power state for MPU
-and CORE was locally changed to PWRDM_POWER_RET but, the
-statistics are updated for idle state originally selected
-by the governor.
+Nishanth Menon <nm@ti.com> writes:
 
-This patch 'invalidates' the idle states that lead either of
-MPU or Core to PWRDM_POWER_OFF state when 'enable_off_mode'
-is '0'. The states are valid once 'enable_off_mode' is set
-to '1'.
+> Premi, Sanjeev had written, on 01/28/2010 09:21 AM, the following:
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org
+>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Andrew
+>>> Murray
+>>> Sent: Thursday, January 28, 2010 7:53 PM
+>>> To: linux-omap@vger.kernel.org
+>>> Subject: omap3: pm: AVS enabled by default?
+>>>
+>>> Hello,
+>>>
+>>> I noticed that Smart Reflex AVS is not turned on by default - and must
+>>> be manually enabled from user-land through the sr_vddX_autocomp
+>>> controls.
+>>>
+>>> Are there any plans to enable this by default, or perhaps via a
+>>> KConfig
+>>> option in the future?
+>>>
+>>> I ask because the longer a boot time, the longer the device is running
+>>> without AVS (assuming it's not enabled by a boot loader) - and on a
+>>> mobile device with frequent power on/offs this duration could add up
+>>> leading to a potential missed power saving? I appreciate the saving
+>>> may
+>>> be small - but would it be worthwhile?
+> you may want to consider upstart and move most of your drivers into
+> modules rather than a static binary ;)
+>
+> But your point is valid, some folks prefer to have AVS disabled in the
+> system during boot  for couple of reasons I know of:
+> a) during system boot, OMAP is busy, avs comes into play during
+> late_init and not early_init as it needs pm configurations, pmic setup
+> all other stuff to be done.. so the delay between late_init and
+> completion of boot is pretty minimal
+> b) few folks would like to start the boot without avs and enable it
+> from userspace applications to allow debug of issues when avs is
+> enabled (even if avs is enabled during that little time it is
+> on.. they'd want to avoid it)..
+>
+>> Some of the initial silicon revisions did not have the efuse data to
+>> Required for AVS. I believe AVS is disabled - by default - to ensure
+>> compatibility with these devices.
+> this should not be a problem - SR driver is smart and will look at
+> it's data structures and say - oh, this device does not have efuse, so
+> it will crib back saying - good try - but sorry, I cant enable avs at
+> this OPP frequency because I dont have efuse data to program the SR
+> AVS module..
+>
+>
+> All said and done, there are configurations which enable avs by
+> default at boot - the corresponding variable is initialized as one in
+> thier private trees..
 
-Added function next_valid_state() to check if current state
-is valid; else get the next valid state. It is called from
-omap3_enter_idle_bm().
+We should probably consider having the SR enable/disable default as
+an option availble to platform code.
 
-This revision takes in changes suggested by Kevin Hilman.
+As part of the SR rewrite, Thara has converted this to a stadard
+platform_device/platform_driver model so should be easier then.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   98 ++++++++++++++++++++++++++++++++++---
- arch/arm/mach-omap2/pm.h          |    4 ++
- arch/arm/mach-omap2/pm34xx.c      |    4 ++
- 3 files changed, 98 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 12f0cbf..ff1ad3d 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -45,6 +45,8 @@
- #define OMAP3_STATE_C6 5 /* C6 - MPU OFF + Core RET */
- #define OMAP3_STATE_C7 6 /* C7 - MPU OFF + Core OFF */
- 
-+#define OMAP3_STATE_MAX OMAP3_STATE_C7
-+
- struct omap3_processor_cx {
- 	u8 valid;
- 	u8 type;
-@@ -104,13 +106,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	local_irq_disable();
- 	local_fiq_disable();
- 
--	if (!enable_off_mode) {
--		if (mpu_state < PWRDM_POWER_RET)
--			mpu_state = PWRDM_POWER_RET;
--		if (core_state < PWRDM_POWER_RET)
--			core_state = PWRDM_POWER_RET;
--	}
--
- 	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
- 	pwrdm_set_next_pwrst(core_pd, core_state);
- 
-@@ -141,6 +136,67 @@ return_sleep_time:
- }
- 
- /**
-+ * next_valid_state - Find next valid c-state
-+ * @dev: cpuidle device
-+ * @state: Currently selected c-state
-+ *
-+ * If the current state is valid, it is returned back to the caller.
-+ * Else, this function searches for a lower c-state which is still
-+ * valid (as defined in omap3_power_states[]).
-+ */
-+static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
-+						struct cpuidle_state *curr)
-+{
-+	struct cpuidle_state *next = NULL;
-+	struct omap3_processor_cx *cx;
-+
-+	cx = (struct omap3_processor_cx *)cpuidle_get_statedata(curr);
-+
-+	/* Check if current state is valid */
-+	if (cx->valid) {
-+		return curr;
-+	} else {
-+		u8 idx = OMAP3_STATE_MAX;
-+
-+		/*
-+		 * Reach the current state starting at highest C-state
-+		 */
-+		for (; idx >= OMAP3_STATE_C1; idx--) {
-+			if (&dev->states[idx] == curr) {
-+				next = &dev->states[idx];
-+				break;
-+			}
-+		}
-+
-+		/*
-+		 * Should never hit this condition.
-+		 */
-+		WARN_ON(next == NULL);
-+
-+		/*
-+		 * Drop to next valid state.
-+		 * Start search from the next (lower) state.
-+		 */
-+		idx--;
-+		for (; idx >= OMAP3_STATE_C1; idx--) {
-+			struct omap3_processor_cx *cx;
-+
-+			cx = cpuidle_get_statedata(&dev->states[idx]);
-+			if (cx->valid) {
-+				next = &dev->states[idx];
-+				break;
-+			}
-+		}
-+		/*
-+		 * C1 and C2 are always valid.
-+		 * So, no need to check for 'next==NULL' outside this loop.
-+		 */
-+	}
-+
-+	return next;
-+}
-+
-+/**
-  * omap3_enter_idle_bm - Checks for any bus activity
-  * @dev: cpuidle device
-  * @state: The target state to be programmed
-@@ -152,7 +208,7 @@ return_sleep_time:
- static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 			       struct cpuidle_state *state)
- {
--	struct cpuidle_state *new_state = state;
-+	struct cpuidle_state *new_state = next_valid_state(dev, state);
- 
- 	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
- 		BUG_ON(!dev->safe_state);
-@@ -165,6 +221,30 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 
- DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
- 
-+/**
-+ * omap3_cpuidle_update_states - Update the cpuidle states.
-+ *
-+ * Currently, this function toggles the validity of idle states based upon
-+ * the flag 'enable_off_mode'. When the flag is set all states are valid.
-+ * Else, states leading to OFF state set to be invalid.
-+ */
-+void omap3_cpuidle_update_states(void)
-+{
-+	int i;
-+
-+	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
-+		struct omap3_processor_cx *cx = &omap3_power_states[i];
-+
-+		if (enable_off_mode) {
-+			cx->valid = 1;
-+		} else {
-+			if ((cx->mpu_state == PWRDM_POWER_OFF) ||
-+				(cx->core_state	== PWRDM_POWER_OFF))
-+				cx->valid = 0;
-+		}
-+	}
-+}
-+
- /* omap3_init_power_states - Initialises the OMAP3 specific C states.
-  *
-  * Below is the desciption of each C state.
-@@ -302,6 +382,8 @@ int __init omap3_idle_init(void)
- 		return -EINVAL;
- 	dev->state_count = count;
- 
-+	omap3_cpuidle_update_states();
-+
- 	if (cpuidle_register_device(dev)) {
- 		printk(KERN_ERR "%s: CPUidle register device failed\n",
- 		       __func__);
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 7a9c2d0..09c0144 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -37,6 +37,10 @@ extern int omap2_pm_debug;
- #define omap2_pm_debug				0
- #endif
- 
-+#if defined(CONFIG_CPU_IDLE)
-+extern void omap3_cpuidle_update_states(void);
-+#endif
-+
- #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
- extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
- extern int pm_dbg_regset_save(int reg_set);
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 5087b15..5320229 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -941,6 +941,10 @@ void omap3_pm_off_mode_enable(int enable)
- 	else
- 		state = PWRDM_POWER_RET;
- 
-+#ifdef CONFIG_CPU_IDLE
-+	omap3_cpuidle_update_states();
-+#endif
-+
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		pwrst->next_state = state;
- 		set_pwrdm_state(pwrst->pwrdm, state);
--- 
-1.6.2.2
-
+Kevin
