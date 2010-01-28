@@ -1,62 +1,161 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 0/2] McBSP: OMAP3: Add sidetone feature
-Date: Thu, 28 Jan 2010 18:57:02 +0200
-Message-ID: <20100128185702.6c1c0f04.jhnikula@gmail.com>
-References: <1264693587-4764-1-git-send-email-ilkka.koskinen@nokia.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH 1/2] DSPBRIDGE: Use enable_off_mode variable instead of
+ dsp_test_sleepstate
+Date: Thu, 28 Jan 2010 10:58:15 -0600
+Message-ID: <4B61C227.4040709@ti.com>
+References: <1264241986-29071-1-git-send-email-felipe.contreras@gmail.com> <1264241986-29071-2-git-send-email-felipe.contreras@gmail.com> <4B5F6B51.6050607@ti.com> <4B60DE5D.1090101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1264693587-4764-1-git-send-email-ilkka.koskinen@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Cc: alsa-devel@alsa-project.org, tony@atomide.com, peter.ujfalusi@nokia.com, broonie@opensource.wolfsonmicro.com, eduardo.valentin@nokia.com, ext-eero.nurkkala@nokia.com, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:40035 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108Ab0A1Q6S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 11:58:18 -0500
+In-Reply-To: <4B60DE5D.1090101@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Jouni Hogander <jouni.hogander@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-On Thu, 28 Jan 2010 17:46:25 +0200
-Ilkka Koskinen <ilkka.koskinen@nokia.com> wrote:
+On 1/27/2010 6:46 PM, Menon, Nishanth wrote:
+> Omar Ramirez Luna had written, on 01/26/2010 04:23 PM, the following:
+>> Hi,
+>>
+>> On 1/23/2010 4:19 AM, Felipe Contreras wrote:
+>>> From: Jouni Hogander<jouni.hogander@nokia.com>
+>>>
+>>> Signed-off-by: Jouni Hogander<jouni.hogander@nokia.com>
+>>> Signed-off-by: Hiroshi DOYU<Hiroshi.DOYU@nokia.com>
+>>
+>> This patch is missing to export enable_off_mode otherwise it will fail
+>> while linking.
+>>
+>> FTR, I don't like to be exporting symbols of other subsystems, guess the
+>> same applies to:
+>>
+>> http://marc.info/?l=linux-omap&m=126450677527042&w=2
+> looking at the patch itself few questions arise:
+>
+>>
+>>> ---
+>>>    drivers/dsp/bridge/rmgr/drv_interface.c |    5 -----
+>>>    drivers/dsp/bridge/wmd/tiomap3430_pwr.c |    9 ++++-----
+>>>    2 files changed, 4 insertions(+), 10 deletions(-)
+>>>
+>>> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+>>> index a02a32a..b20f77e 100644
+>>> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
+>>> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+>>> @@ -78,8 +78,6 @@ s32 dsp_debug;
+>>>
+>>>    struct platform_device *omap_dspbridge_dev;
+>>>
+>>> -/* This is a test variable used by Bridge to test different sleep states */
+>>> -s32 dsp_test_sleepstate;
+>>>    struct bridge_dev {
+>>>    	struct cdev cdev;
+>>>    };
+>>> @@ -129,9 +127,6 @@ module_param(dsp_debug, int, 0);
+>>>    MODULE_PARM_DESC(dsp_debug, "Wait after loading DSP image. default = false");
+>>>    #endif
+>>>
+>>> -module_param(dsp_test_sleepstate, int, 0);
+>>> -MODULE_PARM_DESC(dsp_test_sleepstate, "DSP Sleep state = 0");
+>>> -
+>>>    module_param(base_img, charp, 0);
+>>>    MODULE_PARM_DESC(base_img, "DSP base image, default = NULL");
+>>>
+>>> diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+>>> index 084f406..c0e0994 100644
+>>> --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+>>> +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+>>> @@ -54,10 +54,9 @@
+>>>    #include<mach-omap2/cm-regbits-34xx.h>
+>>>
+>>>    #ifdef CONFIG_PM
+>>> -extern s32 dsp_test_sleepstate;
+>>> +extern unsigned short enable_off_mode;
+>>>    #endif
+>>>    extern struct MAILBOX_CONTEXT mboxsetting;
+>>> -
+>>>    /*
+>>>     *  ======== handle_constraints_set ========
+>>>     *  	Sets new DSP constraint
+>>> @@ -196,7 +195,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+>>>    	switch (pDevContext->dwBrdState) {
+>>>    	case BRD_RUNNING:
+>>>    		status = HW_MBOX_saveSettings(resources.dwMboxBase);
+>>> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
+>>> +		if (enable_off_mode) {
+>>>    			CHNLSM_InterruptDSP2(pDevContext,
+>>>    					     MBX_PM_DSPHIBERNATE);
+>>>    			DBG_Trace(DBG_LEVEL7,
+>>> @@ -211,7 +210,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+>>>    		break;
+>>>    	case BRD_RETENTION:
+>>>    		status = HW_MBOX_saveSettings(resources.dwMboxBase);
+>>> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
+>>> +		if (enable_off_mode) {
+>>>    			CHNLSM_InterruptDSP2(pDevContext,
+>>>    					     MBX_PM_DSPHIBERNATE);
+>>>    			targetPwrState = HW_PWR_STATE_OFF;
+>>> @@ -261,7 +260,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+>>>    			 pwrState);
+>>>
+>>>    		/* Update the Bridger Driver state */
+>>> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF)
+>>> +		if (enable_off_mode)
+>>>    			pDevContext->dwBrdState = BRD_HIBERNATION;
+>>>    		else
+>>>    			pDevContext->dwBrdState = BRD_RETENTION;
+> IMHO it changes behavior:
+> before:
+> IF dsp_test_sleepstate was set to HW_PWR_STATE_OFF DSP was told to go to
+> hibernate every time SleepDSP is called else the mbox event
+> default behavior is to ask BIOS for retention.
 
-> The first patch implements McBSP sidetone feature on OMAP3 while the second one
-> provides ALSA interface for using it.
-> 
-> The patch set is based on the patch Eduardo Valentin sent to alsa-devel
-> mailing list in October 2009. Channel gain control and enabling the sidetone
-> have been moved to ALSA interface as suggested in comments. 
-> 
-> Eero Nurkkala (1):
->   McBSP: OMAP3: Add sidetone feature
-> 
-> Ilkka Koskinen (1):
->   ASoC: OMAP-McBSP: ASoC interface for McBSP sidetone
-> 
->  arch/arm/mach-omap2/mcbsp.c             |    2 +
->  arch/arm/plat-omap/include/plat/mcbsp.h |   63 +++++
->  arch/arm/plat-omap/mcbsp.c              |  402 ++++++++++++++++++++++++++++++-
->  sound/soc/omap/omap-mcbsp.c             |  187 ++++++++++++++
->  sound/soc/omap/omap-mcbsp.h             |    2 +
->  5 files changed, 655 insertions(+), 1 deletions(-)
-> 
-For me the separation between arch/arm/plat-omap/mcbsp.c and
-sound/soc/omap/omap-mcbsp.c and board specific control registration
-function omap_mcbsp_st_add_controls looks ok.
+dsp_test_sleepstate is initialized always to 0
 
-Set applies well on top of vanilla but the patch 1 doesn't apply on
-linux-omap due commit bcbb73c6fe8544bb50cddb8b5df0e2fcbb08b4b0.
+>
+> with the patch:
+> If sysfs entry(meant for MPU) has enabled off mode, THEN DSP will be
+> send to off mode every time we get message to SleepDSP. In other words
+> MPU and DSP retention/OFF are tied together.
 
-I was thinking that it makes sense to base the patch 1 on top of McBSP
-register cache patches from Janusz Krzysztofik after Tony applies
-them (+ having cache for ST regs). That avoid conflicts in mainline
-and makes the sidetone also ready for McBSP context save/restore
-functionality.
+(-->) means mbx bridge to dsp
+(...) means do not disturb dsp while sleeping
 
+Suspend coming for this scenarios:
 
--- 
-Jarkko
+if DSP = ON, enable_off_mode = 1 --> OFF (HIB)
+if DSP = ON, enable_off_mode = 0 --> RET
+if DSP = OFF, enable_off_mode = 1 ...
+if DSP = OFF, enable_off_mode = 0 ...
+
+>
+> The questions then are:
+> a) why was this done so?
+
+always target the next lower state (according to the specified), but DO 
+NOT disturb the dsp if it already went to sleep
+
+> b) is the intention of test_sleepstate param meant only as a test?
+
+should be clear enough:
+/* This is a test variable used by Bridge to test different sleep states */
+
+> c) was it intended that SleepDSP should put IVA to sleep no matter what
+> MPU decisions are?
+
+if the DSP is already OFF and MPU wants to be in RET why MPU can be 
+smart enough to tell ok this guy went down, print a message like "this 
+might be wrong" but it is acceptable.
+
+the other tendency claims that the dsp should be woken and then told to 
+go to next-power-state (if OFF not enabled).
+
+bottom line is that we listen to what mpu wants if the dsp is awake but 
+ignore if the dsp has gone to off.
+
+- omar
