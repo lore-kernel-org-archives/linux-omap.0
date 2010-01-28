@@ -1,161 +1,50 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 1/2] DSPBRIDGE: Use enable_off_mode variable instead of
- dsp_test_sleepstate
-Date: Thu, 28 Jan 2010 10:58:15 -0600
-Message-ID: <4B61C227.4040709@ti.com>
-References: <1264241986-29071-1-git-send-email-felipe.contreras@gmail.com> <1264241986-29071-2-git-send-email-felipe.contreras@gmail.com> <4B5F6B51.6050607@ti.com> <4B60DE5D.1090101@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 1/4] OMAP2/3: IRQ: ensure valid base address
+Date: Thu, 28 Jan 2010 09:17:13 -0800
+Message-ID: <1264699036-5491-2-git-send-email-khilman@deeprootsystems.com>
+References: <1264699036-5491-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40035 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108Ab0A1Q6S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 11:58:18 -0500
-In-Reply-To: <4B60DE5D.1090101@ti.com>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:54167 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756173Ab0A1RRV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 12:17:21 -0500
+Received: by mail-pw0-f42.google.com with SMTP id 21so625474pwi.21
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 09:17:20 -0800 (PST)
+In-Reply-To: <1264699036-5491-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Jouni Hogander <jouni.hogander@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: linux-omap@vger.kernel.org
 
-On 1/27/2010 6:46 PM, Menon, Nishanth wrote:
-> Omar Ramirez Luna had written, on 01/26/2010 04:23 PM, the following:
->> Hi,
->>
->> On 1/23/2010 4:19 AM, Felipe Contreras wrote:
->>> From: Jouni Hogander<jouni.hogander@nokia.com>
->>>
->>> Signed-off-by: Jouni Hogander<jouni.hogander@nokia.com>
->>> Signed-off-by: Hiroshi DOYU<Hiroshi.DOYU@nokia.com>
->>
->> This patch is missing to export enable_off_mode otherwise it will fail
->> while linking.
->>
->> FTR, I don't like to be exporting symbols of other subsystems, guess the
->> same applies to:
->>
->> http://marc.info/?l=linux-omap&m=126450677527042&w=2
-> looking at the patch itself few questions arise:
->
->>
->>> ---
->>>    drivers/dsp/bridge/rmgr/drv_interface.c |    5 -----
->>>    drivers/dsp/bridge/wmd/tiomap3430_pwr.c |    9 ++++-----
->>>    2 files changed, 4 insertions(+), 10 deletions(-)
->>>
->>> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
->>> index a02a32a..b20f77e 100644
->>> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
->>> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
->>> @@ -78,8 +78,6 @@ s32 dsp_debug;
->>>
->>>    struct platform_device *omap_dspbridge_dev;
->>>
->>> -/* This is a test variable used by Bridge to test different sleep states */
->>> -s32 dsp_test_sleepstate;
->>>    struct bridge_dev {
->>>    	struct cdev cdev;
->>>    };
->>> @@ -129,9 +127,6 @@ module_param(dsp_debug, int, 0);
->>>    MODULE_PARM_DESC(dsp_debug, "Wait after loading DSP image. default = false");
->>>    #endif
->>>
->>> -module_param(dsp_test_sleepstate, int, 0);
->>> -MODULE_PARM_DESC(dsp_test_sleepstate, "DSP Sleep state = 0");
->>> -
->>>    module_param(base_img, charp, 0);
->>>    MODULE_PARM_DESC(base_img, "DSP base image, default = NULL");
->>>
->>> diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
->>> index 084f406..c0e0994 100644
->>> --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
->>> +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
->>> @@ -54,10 +54,9 @@
->>>    #include<mach-omap2/cm-regbits-34xx.h>
->>>
->>>    #ifdef CONFIG_PM
->>> -extern s32 dsp_test_sleepstate;
->>> +extern unsigned short enable_off_mode;
->>>    #endif
->>>    extern struct MAILBOX_CONTEXT mboxsetting;
->>> -
->>>    /*
->>>     *  ======== handle_constraints_set ========
->>>     *  	Sets new DSP constraint
->>> @@ -196,7 +195,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
->>>    	switch (pDevContext->dwBrdState) {
->>>    	case BRD_RUNNING:
->>>    		status = HW_MBOX_saveSettings(resources.dwMboxBase);
->>> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
->>> +		if (enable_off_mode) {
->>>    			CHNLSM_InterruptDSP2(pDevContext,
->>>    					     MBX_PM_DSPHIBERNATE);
->>>    			DBG_Trace(DBG_LEVEL7,
->>> @@ -211,7 +210,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
->>>    		break;
->>>    	case BRD_RETENTION:
->>>    		status = HW_MBOX_saveSettings(resources.dwMboxBase);
->>> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
->>> +		if (enable_off_mode) {
->>>    			CHNLSM_InterruptDSP2(pDevContext,
->>>    					     MBX_PM_DSPHIBERNATE);
->>>    			targetPwrState = HW_PWR_STATE_OFF;
->>> @@ -261,7 +260,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
->>>    			 pwrState);
->>>
->>>    		/* Update the Bridger Driver state */
->>> -		if (dsp_test_sleepstate == HW_PWR_STATE_OFF)
->>> +		if (enable_off_mode)
->>>    			pDevContext->dwBrdState = BRD_HIBERNATION;
->>>    		else
->>>    			pDevContext->dwBrdState = BRD_RETENTION;
-> IMHO it changes behavior:
-> before:
-> IF dsp_test_sleepstate was set to HW_PWR_STATE_OFF DSP was told to go to
-> hibernate every time SleepDSP is called else the mbox event
-> default behavior is to ask BIOS for retention.
+Ensure valid base address during IRQ init.  Fixes compiler warning
+about potential use of uninitialized variable.
 
-dsp_test_sleepstate is initialized always to 0
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/irq.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
->
-> with the patch:
-> If sysfs entry(meant for MPU) has enabled off mode, THEN DSP will be
-> send to off mode every time we get message to SleepDSP. In other words
-> MPU and DSP retention/OFF are tied together.
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 2705402..26aeef5 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -194,7 +194,7 @@ void __init omap_init_irq(void)
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
+-		unsigned long base;
++		unsigned long base = 0;
+ 		struct omap_irq_bank *bank = irq_banks + i;
+ 
+ 		if (cpu_is_omap24xx())
+@@ -202,6 +202,8 @@ void __init omap_init_irq(void)
+ 		else if (cpu_is_omap34xx())
+ 			base = OMAP34XX_IC_BASE;
+ 
++		BUG_ON(!base);
++
+ 		/* Static mapping, never released */
+ 		bank->base_reg = ioremap(base, SZ_4K);
+ 		if (!bank->base_reg) {
+-- 
+1.6.6
 
-(-->) means mbx bridge to dsp
-(...) means do not disturb dsp while sleeping
-
-Suspend coming for this scenarios:
-
-if DSP = ON, enable_off_mode = 1 --> OFF (HIB)
-if DSP = ON, enable_off_mode = 0 --> RET
-if DSP = OFF, enable_off_mode = 1 ...
-if DSP = OFF, enable_off_mode = 0 ...
-
->
-> The questions then are:
-> a) why was this done so?
-
-always target the next lower state (according to the specified), but DO 
-NOT disturb the dsp if it already went to sleep
-
-> b) is the intention of test_sleepstate param meant only as a test?
-
-should be clear enough:
-/* This is a test variable used by Bridge to test different sleep states */
-
-> c) was it intended that SleepDSP should put IVA to sleep no matter what
-> MPU decisions are?
-
-if the DSP is already OFF and MPU wants to be in RET why MPU can be 
-smart enough to tell ok this guy went down, print a message like "this 
-might be wrong" but it is acceptable.
-
-the other tendency claims that the dsp should be woken and then told to 
-go to next-power-state (if OFF not enabled).
-
-bottom line is that we listen to what mpu wants if the dsp is awake but 
-ignore if the dsp has gone to off.
-
-- omar
