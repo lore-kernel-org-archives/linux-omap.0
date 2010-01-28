@@ -1,45 +1,46 @@
-From: jassi brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: McSPI questions pertaining to GPIO chip
-	select support
-Date: Thu, 28 Jan 2010 13:33:20 +0900
-Message-ID: <1b68c6791001272033q60dd31dbif4de285cd9bac83d@mail.gmail.com>
-References: <1264016711-sup-309@ben-laptop> <1264651770-sup-5197@ben-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1264651770-sup-5197@ben-laptop>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Michael Hennerich <michael.hennerich-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>, beagleboard <beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, Eric Miao <eric.miao-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, spi-devel-general <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] omap3: pm: cpufreq: populate l3 opp1 again
+Date: Wed, 27 Jan 2010 23:41:00 -0600
+Message-ID: <1264657260-12310-1-git-send-email-nm@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38831 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750875Ab0A1FlR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jan 2010 00:41:17 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Andrew Murray <amurray@mpc-data.co.uk>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Thu, Jan 28, 2010 at 1:10 PM, Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hey all!
->
-> Recently I've been thinking about adding support to the McSPI driver for
-> using GPIO pins as chip selects. As a starting point, I've browsed the
-> driver source trying to identify what changes would be necessary to add
-> this support. It seems like the rough idea is,
-You may loot at drivers/spi/spi_s3c64xx.c in Grant Likely's tree.
+We had removed the frequency for OPP1 L3 when we used to use frequency
+to enable/disable frequencies. It is better to populate the same
+instead of confusing future readers of the code. The OPP1 remains
+disabled as explained in the discussion.
 
-It doesn't put limit on the number of CS and not even on whether
-the CS mechanism is simple GPIO toggling(though the callback
-type is defined to match gpio_set_value).
-For platform side of it, you need to look in to Ben Dooks' tree.
+Discussion: http://marc.info/?t=126453821900001&r=1&w=2
 
-hth
+Cc: Andrew Murray <amurray@mpc-data.co.uk>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-------------------------------------------------------------------------------
-The Planet: dedicated and managed hosting, cloud storage, colocation
-Stay online with enterprise data centers and the best network in the business
-Choose flexible plans and management services without long-term contracts
-Personal 24x7 support from experience hosting pros just a phone call away.
-http://p.sf.net/sfu/theplanet-com
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/cpufreq34xx.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
+index 209af2b..aec1ffe 100644
+--- a/arch/arm/mach-omap2/cpufreq34xx.c
++++ b/arch/arm/mach-omap2/cpufreq34xx.c
+@@ -43,7 +43,7 @@ static struct omap_opp_def __initdata omap34xx_mpu_rate_table[] = {
+ 
+ static struct omap_opp_def __initdata omap34xx_l3_rate_table[] = {
+ 	/* OPP1 */
+-	OMAP_OPP_DEF(false, 0, 975000),
++	OMAP_OPP_DEF(false, 41500000, 975000),
+ 	/* OPP2 */
+ 	OMAP_OPP_DEF(true, 83000000, 1050000),
+ 	/* OPP3 */
+-- 
+1.6.3.3
+
