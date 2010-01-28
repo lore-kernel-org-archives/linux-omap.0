@@ -1,30 +1,49 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [OFF TOPIC] time off
-Date: Thu, 28 Jan 2010 19:00:23 +0200
-Message-ID: <20100128170023.GA26488@nokia.com>
-Reply-To: felipe.balbi@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 4/4] OMAP2/3: PRCM: fix misc. compiler warnings
+Date: Thu, 28 Jan 2010 09:17:16 -0800
+Message-ID: <1264699036-5491-5-git-send-email-khilman@deeprootsystems.com>
+References: <1264699036-5491-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:45889 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752925Ab0A1REJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 12:04:09 -0500
-Content-Disposition: inline
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:54167 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756325Ab0A1RR1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 12:17:27 -0500
+Received: by mail-pw0-f42.google.com with SMTP id 21so625474pwi.21
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 09:17:27 -0800 (PST)
+In-Reply-To: <1264699036-5491-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Greg KH <greg@kroah.com>, Yauheni Kaliuta <yauheni.kaliuta@nokia.com>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi all,
+- missing return in omap_prcm_get_reset_sources()
+- potential use of uninitialized variable in omap_prcm_arch_reset()
 
-I'll be taking some time off (1 month) during february, at least the 
-first two weeks I won't have internet access so I won't be able to take 
-a look at any MUSB related stuff. I'm flushing my musb queue since Greg 
-took the latest patches I sent, when I'm back I'll start queueing stuff 
-again.
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/prcm.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-See you guys.
-
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index e8e121a..4b7286f 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -127,13 +127,15 @@ u32 omap_prcm_get_reset_sources(void)
+ 		return prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTST) & 0x7f;
+ 	if (cpu_is_omap44xx())
+ 		return prm_read_mod_reg(WKUP_MOD, OMAP4_RM_RSTST) & 0x7f;
++
++	return 0;
+ }
+ EXPORT_SYMBOL(omap_prcm_get_reset_sources);
+ 
+ /* Resets clock rates and reboots the system. Only called from system.h */
+ void omap_prcm_arch_reset(char mode)
+ {
+-	s16 prcm_offs;
++	s16 prcm_offs = 0;
+ 
+ 	if (cpu_is_omap24xx()) {
+ 		omap2xxx_clk_prepare_for_reboot();
 -- 
-balbi
+1.6.6
+
