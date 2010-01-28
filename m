@@ -1,83 +1,83 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: omap3: pm: AVS enabled by default?
-Date: Thu, 28 Jan 2010 09:47:56 -0800
-Message-ID: <87y6jiqfxv.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E22B429F@dbde02.ent.ti.com>
-	<4B61AD77.6070601@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: Select CPU_32v6K for CPU_V7 only if
+ ARCH_OMAP2 isnot selected
+Date: Thu, 28 Jan 2010 09:47:42 -0800
+Message-ID: <20100128174741.GN23505@atomide.com>
+References: <20100126193748.15134.4837.stgit@baageli.muru.com>
+ <1264676451.7064.40.camel@pc1117.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:50990 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756324Ab0A1RsC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 12:48:02 -0500
-Received: by fxm20 with SMTP id 20so942610fxm.21
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 09:48:01 -0800 (PST)
-In-Reply-To: <4B61AD77.6070601@ti.com> (Nishanth Menon's message of "Thu\, 28 Jan 2010 09\:29\:59 -0600")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64423 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753267Ab0A1Rr3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 12:47:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1264676451.7064.40.camel@pc1117.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, Andrew Murray <amurray@mpc-data.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+* Catalin Marinas <catalin.marinas@arm.com> [100128 02:58]:
+> On Tue, 2010-01-26 at 19:37 +0000, Tony Lindgren wrote:
+> > Otherwise the kernel built with both CPU_V6 and CPU_V7 will not
+> > boot on omap2.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/mm/Kconfig |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+> > index baf6384..4c2e90d 100644
+> > --- a/arch/arm/mm/Kconfig
+> > +++ b/arch/arm/mm/Kconfig
+> > @@ -399,7 +399,7 @@ config CPU_V6
+> >  config CPU_32v6K
+> >         bool "Support ARM V6K processor extensions" if !SMP
+> >         depends on CPU_V6
+> > -       default y if SMP && !ARCH_MX3
+> > +       default y if SMP && !(ARCH_MX3 || ARCH_OMAP2)
+> >         help
+> >           Say Y here if your ARMv6 processor supports the 'K' extension.
+> >           This enables the kernel to use some instructions not present
+> > @@ -410,7 +410,7 @@ config CPU_32v6K
+> >  # ARMv7
+> >  config CPU_V7
+> >         bool "Support ARM V7 processor" if ARCH_INTEGRATOR || MACH_REALVIEW_EB || MACH_REALVIEW_PBX
+> > -       select CPU_32v6K
+> > +       select CPU_32v6K if !ARCH_OMAP2
+> 
+> I suspect that would be an issue for all ARMv6 platforms without the MP
+> extensions (v6K). Could we do something like:
+> 
+> 	select CPU_32v6K if SMP || !CPU_V6
 
-> Premi, Sanjeev had written, on 01/28/2010 09:21 AM, the following:
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org
->>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Andrew
->>> Murray
->>> Sent: Thursday, January 28, 2010 7:53 PM
->>> To: linux-omap@vger.kernel.org
->>> Subject: omap3: pm: AVS enabled by default?
->>>
->>> Hello,
->>>
->>> I noticed that Smart Reflex AVS is not turned on by default - and must
->>> be manually enabled from user-land through the sr_vddX_autocomp
->>> controls.
->>>
->>> Are there any plans to enable this by default, or perhaps via a
->>> KConfig
->>> option in the future?
->>>
->>> I ask because the longer a boot time, the longer the device is running
->>> without AVS (assuming it's not enabled by a boot loader) - and on a
->>> mobile device with frequent power on/offs this duration could add up
->>> leading to a potential missed power saving? I appreciate the saving
->>> may
->>> be small - but would it be worthwhile?
-> you may want to consider upstart and move most of your drivers into
-> modules rather than a static binary ;)
->
-> But your point is valid, some folks prefer to have AVS disabled in the
-> system during boot  for couple of reasons I know of:
-> a) during system boot, OMAP is busy, avs comes into play during
-> late_init and not early_init as it needs pm configurations, pmic setup
-> all other stuff to be done.. so the delay between late_init and
-> completion of boot is pretty minimal
-> b) few folks would like to start the boot without avs and enable it
-> from userspace applications to allow debug of issues when avs is
-> enabled (even if avs is enabled during that little time it is
-> on.. they'd want to avoid it)..
->
->> Some of the initial silicon revisions did not have the efuse data to
->> Required for AVS. I believe AVS is disabled - by default - to ensure
->> compatibility with these devices.
-> this should not be a problem - SR driver is smart and will look at
-> it's data structures and say - oh, this device does not have efuse, so
-> it will crib back saying - good try - but sorry, I cant enable avs at
-> this OPP frequency because I dont have efuse data to program the SR
-> AVS module..
->
->
-> All said and done, there are configurations which enable avs by
-> default at boot - the corresponding variable is initialized as one in
-> thier private trees..
+Hmm, but then we can't compile in SMP for single core systems and
+keep it bootable on single core v6?
 
-We should probably consider having the SR enable/disable default as
-an option availble to platform code.
+> As for the CPU_32v6K config entry, do any of ARCH_MX3 or ARCH_OMAP2
+> support SMP? We could remove them.
 
-As part of the SR rewrite, Thara has converted this to a stadard
-platform_device/platform_driver model so should be easier then.
+There's no hardware SMP support for omap2 or 3. But I may take a look
+at trying to compile in also unoptimized omap4 support with some dummy
+SMP support for omap2 and omap3 :)
 
-Kevin
+The bloated kernel I'm after would have:
+
+ARCH_OMAP2	v6, no hardware SMP support, can't use CPU_32v6K
+ARCH_OMAP3	v7, no hardware SMP support
+ARCH_OMAP4	v7, hardware SMP support, so need SMP selected
+
+In this case it should be OK to have SMP set and CPU_32v6K
+not set. Sure the kernel would not be bootable if there was
+some real v6 with hardware SMP support, but in this case there
+is no such hardware.
+
+Why is this needed? It avoids many unnecessary compiles to test
+the common code. It's also handy for distro install kernels.
+
+Regards,
+
+Tony
