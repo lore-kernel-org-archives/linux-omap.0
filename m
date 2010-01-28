@@ -1,48 +1,43 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH v3 2/2] ARM : OMAP4 : MUSB : Add USB support to 4430
- SDP board file
-Date: Thu, 28 Jan 2010 21:46:27 +0200
-Message-ID: <20100128194627.GH6647@nokia.com>
-References: <1262265782-17672-1-git-send-email-x0082077@ti.com>
+Subject: Re: [PATCH v3 1/2] ARM : OMAP: MUSB : Pass board specific data
+ using a structure
+Date: Thu, 28 Jan 2010 21:46:58 +0200
+Message-ID: <20100128194658.GI6647@nokia.com>
+References: <1262265756-17634-1-git-send-email-x0082077@ti.com>
 Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:56639 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400Ab0A1Ts4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 14:48:56 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:39253 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab0A1TtV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 14:49:21 -0500
 Content-Disposition: inline
-In-Reply-To: <1262265782-17672-1-git-send-email-x0082077@ti.com>
+In-Reply-To: <1262265756-17634-1-git-send-email-x0082077@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Maulik Mankad <x0082077@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, David Brownell <david-b@pacbell.net>, Greg Kroah-Hartman <gregkh@suse.de>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, Olof Johansson <olof@lixom.net>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, David Brownell <david-b@pacbell.net>, Greg Kroah-Hartman <gregkh@suse.de>, Gupta Ajay Kumar <ajay.gupta@ti.com>
 
-On Thu, Dec 31, 2009 at 02:23:02PM +0100, ext Maulik Mankad wrote:
->ARM : OMAP4 : Add USB support to 4430 SDP board file
+On Thu, Dec 31, 2009 at 02:22:36PM +0100, ext Maulik Mankad wrote:
+>ARM : OMAP: MUSB :Pass board specific data from board file
 >
->This patch adds support for Mentor USB to 4430 SDP board
->file.
+>This patch proposes to pass board specific data for MUSB
+>(like interface_type, mode etc) from board file by defining
+>board specific structure.
 >
->It also defines the base address for HS USB OTG controller
->in OMAP4.
->
->Also updates platform specfic structure with base address
->and IRQ details.
+>Each board file can define this structure based on
+>its requirement and pass this information to the
+>driver.
 >
 >Signed-off-by: Maulik Mankad <x0082077@ti.com>
 >Cc: Tony Lindgren <tony@atomide.com>
 >Cc: Felipe Balbi <felipe.balbi@nokia.com>
 >Cc: David Brownell <david-b@pacbell.net>
 >Cc: Greg Kroah-Hartman <gregkh@suse.de>
->Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
->Cc: Olof Johansson <olof@lixom.net>
+>Cc: Gupta Ajay Kumar <ajay.gupta@ti.com>
 
-I'm ok with this patch, want to hear from Tony.
-
-Tony do you have any comment for this patch ? Will you take it or should 
-Greg take it ? I believe it's better to come through your tree.
+Fine by me, Tony, any comments ?
 
 -- 
 balbi
