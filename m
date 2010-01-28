@@ -1,644 +1,514 @@
-From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Subject: [PATCH 1/2] McBSP: OMAP3: Add sidetone feature
-Date: Thu, 28 Jan 2010 17:46:26 +0200
-Message-ID: <1264693587-4764-2-git-send-email-ilkka.koskinen@nokia.com>
-References: <1264693587-4764-1-git-send-email-ilkka.koskinen@nokia.com>
+From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: [PATCH] DSPBRIDGE: Resource clean up always enabled.
+Date: Thu, 28 Jan 2010 10:05:40 -0600
+Message-ID: <B852767254C5C94EBB1040EE0EFA06008C4CFA72@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1264693587-4764-1-git-send-email-ilkka.koskinen@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@nokia.com, jhnikula@gmail.com, broonie@opensource.wolfsonmicro.com, tony@atomide.com
-Cc: eduardo.valentin@nokia.com, ext-eero.nurkkala@nokia.com
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45743 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755918Ab0A1QFp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 11:05:45 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o0SG5heH020304
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 10:05:44 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id o0SG5hP4010287
+	for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 10:05:43 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o0SG5hvQ013708
+	for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 10:05:43 -0600 (CST)
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+>From 30b0f99526350abe2bf93c2a9729f8fa5f9bafc7 Mon Sep 17 00:00:00 2001
+From: Ernesto Ramos <ernesto@ti.com>
+Date: Thu, 21 Jan 2010 14:36:07 -0600
+Subject: [PATCH] DSPBRIDGE: Resource clean up always enabled.
 
-Add sidetone feature to McBSP instances 2 and 3 on OMAP3 based devices.
+Remove flag RES_CLEANUP_DISABLE to have dspbridge
+resource cleanup always enabled.
 
-Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Signed-off-by: Ernesto Ramos <ernesto@ti.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |    2 +
- arch/arm/plat-omap/include/plat/mcbsp.h |   63 +++++
- arch/arm/plat-omap/mcbsp.c              |  402 ++++++++++++++++++++++++++++++-
- 3 files changed, 466 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/_dcd.h        |    3 --
+ arch/arm/plat-omap/include/dspbridge/drv.h         |    3 +-
+ .../plat-omap/include/dspbridge/resourcecleanup.h  |    2 -
+ arch/arm/plat-omap/include/dspbridge/wcdioctl.h    |    5 +---
+ drivers/dsp/bridge/pmgr/wcd.c                      |    8 ------
+ drivers/dsp/bridge/rmgr/drv.c                      |    4 ---
+ drivers/dsp/bridge/rmgr/drv_interface.c            |    4 ---
+ drivers/dsp/bridge/rmgr/node.c                     |   15 ++---------
+ drivers/dsp/bridge/rmgr/proc.c                     |   12 +-------
+ drivers/dsp/bridge/rmgr/strm.c                     |   27 ++++++--------------
+ drivers/dsp/bridge/wmd/chnl_sm.c                   |    2 -
+ 11 files changed, 15 insertions(+), 70 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index baa4517..b6dbd65 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -132,6 +132,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP2_BASE,
-+		.phys_base_st	= OMAP34XX_MCBSP2_ST_BASE,
- 		.dma_rx_sync	= OMAP24XX_DMA_MCBSP2_RX,
- 		.dma_tx_sync	= OMAP24XX_DMA_MCBSP2_TX,
- 		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
-@@ -141,6 +142,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP3_BASE,
-+		.phys_base_st	= OMAP34XX_MCBSP3_ST_BASE,
- 		.dma_rx_sync	= OMAP24XX_DMA_MCBSP3_RX,
- 		.dma_tx_sync	= OMAP24XX_DMA_MCBSP3_TX,
- 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
-diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 4f22e5b..563484a 100644
---- a/arch/arm/plat-omap/include/plat/mcbsp.h
-+++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -49,6 +49,9 @@
- 
- #define OMAP34XX_MCBSP1_BASE	0x48074000
- #define OMAP34XX_MCBSP2_BASE	0x49022000
-+#define OMAP34XX_MCBSP2_ST_BASE	0x49028000
-+#define OMAP34XX_MCBSP3_BASE	0x49024000
-+#define OMAP34XX_MCBSP3_ST_BASE	0x4902A000
- #define OMAP34XX_MCBSP3_BASE	0x49024000
- #define OMAP34XX_MCBSP4_BASE	0x49026000
- #define OMAP34XX_MCBSP5_BASE	0x48096000
-@@ -147,6 +150,15 @@
- #define OMAP_MCBSP_REG_WAKEUPEN	0xA8
- #define OMAP_MCBSP_REG_XCCR	0xAC
- #define OMAP_MCBSP_REG_RCCR	0xB0
-+#define OMAP_MCBSP_REG_SSELCR	0xBC
+diff --git a/arch/arm/plat-omap/include/dspbridge/_dcd.h b/arch/arm/plat-omap/include/dspbridge/_dcd.h
+index 160c873..c6bc61d 100644
+--- a/arch/arm/plat-omap/include/dspbridge/_dcd.h
++++ b/arch/arm/plat-omap/include/dspbridge/_dcd.h
+@@ -96,11 +96,8 @@
+        extern u32 MGRWRAP_WaitForBridgeEvents(union Trapped_Args *args,
+                        void *pr_ctxt);
+
+-#ifndef RES_CLEANUP_DISABLE
+        extern u32 MGRWRAP_GetProcessResourcesInfo(union Trapped_Args *args,
+                        void *pr_ctxt);
+-#endif
+-
+
+ /* CPRC (Processor) wrapper Functions */
+        extern u32 PROCWRAP_Attach(union Trapped_Args *args, void *pr_ctxt);
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index e4e91f3..b6a5fd2 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -78,7 +78,6 @@
+ #define OMAP_PRCM_VDD1_DOMAIN 1
+ #define OMAP_PRCM_VDD2_DOMAIN 2
+
+-#ifndef RES_CLEANUP_DISABLE
+
+ /* GPP PROCESS CLEANUP Data structures */
+
+@@ -148,7 +147,7 @@ struct PROCESS_CONTEXT{
+        /* Stream resources */
+        struct STRM_RES_OBJECT *pSTRMList;
+ } ;
+-#endif
 +
-+#define OMAP_ST_REG_REV		0x00
-+#define OMAP_ST_REG_SYSCONFIG	0x10
-+#define OMAP_ST_REG_IRQSTATUS	0x18
-+#define OMAP_ST_REG_IRQENABLE	0x1C
-+#define OMAP_ST_REG_SGAINCR	0x24
-+#define OMAP_ST_REG_SFIRCR	0x28
-+#define OMAP_ST_REG_SSELCR	0x2C
- 
- #define AUDIO_MCBSP_DATAWRITE	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1)
- #define AUDIO_MCBSP_DATAREAD	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1)
-@@ -265,6 +277,24 @@
- #define ENAWAKEUP		0x0004
- #define SOFTRST			0x0002
- 
-+/********************** McBSP SSELCR bit definitions ***********************/
-+#define SIDETONEEN		0x0400
-+
-+/********************** McBSP Sidetone SYSCONFIG bit definitions ***********/
-+#define ST_AUTOIDLE		0x0001
-+
-+/********************** McBSP Sidetone SGAINCR bit definitions *************/
-+#define ST_CH1GAIN(value)	((value<<16))	/* Bits 16:31 */
-+#define ST_CH0GAIN(value)	(value)		/* Bits 0:15 */
-+
-+/********************** McBSP Sidetone SFIRCR bit definitions **************/
-+#define ST_FIRCOEFF(value)	(value)		/* Bits 0:15 */
-+
-+/********************** McBSP Sidetone SSELCR bit definitions **************/
-+#define ST_COEFFWRDONE		0x0004
-+#define ST_COEFFWREN		0x0002
-+#define ST_SIDETONEEN		0x0001
-+
- /********************** McBSP DMA operating modes **************************/
- #define MCBSP_DMA_MODE_ELEMENT		0
- #define MCBSP_DMA_MODE_THRESHOLD	1
-@@ -375,10 +405,25 @@ struct omap_mcbsp_platform_data {
- 	u16 rx_irq, tx_irq;
- 	struct omap_mcbsp_ops *ops;
- #ifdef CONFIG_ARCH_OMAP34XX
-+	/* Sidetone block for McBSP 2 and 3 */
-+	unsigned long phys_base_st;
- 	u16 buffer_size;
- #endif
+
+ /*
+  *  ======== DRV_Create ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
+index 4ded5aa..e44f1f0 100644
+--- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
++++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
+@@ -14,7 +14,6 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+
+-#ifndef RES_CLEANUP_DISABLE
+
+ #include <dspbridge/nodepriv.h>
+ #include <dspbridge/drv.h>
+@@ -77,4 +76,3 @@ extern DSP_STATUS DRV_RemoveAllSTRMResElements(HANDLE pCtxt);
+
+ extern enum NODE_STATE NODE_GetState(HANDLE hNode);
+
+-#endif
+diff --git a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h b/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
+index 0dcbef7..b88508e 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
++++ b/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
+@@ -101,10 +101,7 @@ union Trapped_Args {
+        struct {
+                DSP_HPROCESSOR hProcessor;
+                u8 __user *pBuf;
+-
+-       #ifndef RES_CLEANUP_DISABLE
+-           u8 __user *pSize;
+-    #endif
++               u8 __user *pSize;
+                u32 uMaxSize;
+        } ARGS_PROC_GETTRACE;
+
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index 962cac6..88192ae 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -59,9 +59,7 @@
+ #include <dspbridge/_dcd.h>
+ #include <dspbridge/dbdcd.h>
+
+-#ifndef RES_CLEANUP_DISABLE
+ #include <dspbridge/resourcecleanup.h>
+-#endif
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define MAX_TRACEBUFLEN 255
+@@ -99,11 +97,7 @@ static struct WCD_Cmd mgr_cmd[] = {
+        {MGRWRAP_RegisterObject},               /* MGR_REGISTEROBJECT */
+        {MGRWRAP_UnregisterObject},             /* MGR_UNREGISTEROBJECT */
+        {MGRWRAP_WaitForBridgeEvents},          /* MGR_WAIT */
+-#ifndef RES_CLEANUP_DISABLE
+        {MGRWRAP_GetProcessResourcesInfo},      /* MGR_GET_PROC_RES */
+-#else
+-       {NULL},
+-#endif
  };
- 
-+#define OMAP_MCBSP_ST_CHANNEL_0 (1 << 0)
-+#define OMAP_MCBSP_ST_CHANNEL_1 (1 << 1)
-+
-+struct omap_mcbsp_st_data {
-+	void __iomem *io_base_st;
-+	bool running;
-+	bool enabled;
-+	s16 taps[128];	/* Sidetone filter coefficients */
-+	int nr_taps;	/* Number of filter coefficients in use */
-+	s16 ch0gain;
-+	s16 ch1gain;
-+};
-+
- struct omap_mcbsp {
- 	struct device *dev;
- 	unsigned long phys_base;
-@@ -411,6 +456,7 @@ struct omap_mcbsp {
- 	struct clk *iclk;
- 	struct clk *fclk;
- #ifdef CONFIG_ARCH_OMAP34XX
-+	struct omap_mcbsp_st_data *st_data;
- 	int dma_op_mode;
- 	u16 max_tx_thres;
- 	u16 max_rx_thres;
-@@ -459,4 +505,21 @@ int omap_mcbsp_pollread(unsigned int id, u16 * buf);
- int omap_mcbsp_pollwrite(unsigned int id, u16 buf);
- int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type);
- 
-+#ifdef CONFIG_ARCH_OMAP34XX
-+/* Sidetone specific API */
-+int omap_st_set_chgain(unsigned int id, s16 ch0gain, s16 ch1gain, int channels);
-+int omap_st_get_chgain(unsigned int id, s16 *ch0gain, s16 *ch1gain);
-+int omap_st_enable(unsigned int id);
-+int omap_st_disable(unsigned int id);
-+int omap_st_is_enabled(unsigned int id);
-+#else
-+static inline int omap_st_set_chgain(unsigned int id, s16 ch0gain,
-+				     s16 ch1gain, int channels) { return 0; }
-+static inline int omap_st_get_chgain(unsigned int id, s16 *ch0gain,
-+				     s16 *ch1gain) { return 0; }
-+static inline int omap_st_enable(unsigned int id) { return 0; }
-+static inline int omap_st_disable(unsigned int id) { return 0; }
-+static inline int omap_st_is_enabled(unsigned int id) {  return 0; }
-+#endif
-+
- #endif
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index f757672..30ab2ba 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -26,6 +26,9 @@
- 
- #include <plat/dma.h>
- #include <plat/mcbsp.h>
-+#ifdef CONFIG_ARCH_OMAP34XX
-+#include "../mach-omap2/cm-regbits-34xx.h"
-+#endif
- 
- struct omap_mcbsp **mcbsp_ptr;
- int omap_mcbsp_count;
-@@ -54,6 +57,11 @@ int omap_mcbsp_read(void __iomem *io_base, u16 reg)
- #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
- #define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
- 
-+#define OMAP_ST_READ(base, reg) \
-+			omap_mcbsp_read(base, OMAP_ST_REG_##reg)
-+#define OMAP_ST_WRITE(base, reg, val) \
-+			omap_mcbsp_write(base, OMAP_ST_REG_##reg, val)
-+
- static void omap_mcbsp_dump_reg(u8 id)
- {
- 	struct omap_mcbsp *mcbsp = id_to_mcbsp_ptr(id);
-@@ -199,6 +207,268 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
- EXPORT_SYMBOL(omap_mcbsp_config);
- 
- #ifdef CONFIG_ARCH_OMAP34XX
-+static void omap_st_on(struct omap_mcbsp *mcbsp)
-+{
-+	void __iomem *io_base_mcbsp;
-+	void __iomem *io_base_st;
-+	unsigned int w;
-+
-+	io_base_mcbsp = mcbsp->io_base;
-+	io_base_st = mcbsp->st_data->io_base_st;
-+
-+	/*
-+	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
-+	 * are enabled or sidetones start sounding ugly.
-+	 */
-+	w = cm_read_mod_reg(OMAP3430_PER_MOD, CM_AUTOIDLE);
-+	w &= ~(1 << (mcbsp->id - 2));
-+	cm_write_mod_reg(w, OMAP3430_PER_MOD, CM_AUTOIDLE);
-+
-+	/* Enable McBSP Sidetone */
-+	w = OMAP_MCBSP_READ(io_base_mcbsp, SSELCR);
-+	OMAP_MCBSP_WRITE(io_base_mcbsp, SSELCR, w | SIDETONEEN);
-+
-+	w = OMAP_ST_READ(io_base_st, SYSCONFIG);
-+	OMAP_ST_WRITE(io_base_st, SYSCONFIG, w & ~(ST_AUTOIDLE));
-+
-+	/* Enable Sidetone from Sidetone Core */
-+	w = OMAP_ST_READ(io_base_st, SSELCR);
-+	OMAP_ST_WRITE(io_base_st, SSELCR, w | ST_SIDETONEEN);
-+}
-+
-+static void omap_st_off(struct omap_mcbsp *mcbsp)
-+{
-+	struct omap_mcbsp_st_data *st_data;
-+	void __iomem *io_base_mcbsp;
-+	void __iomem *io_base_st;
-+	unsigned int w;
-+
-+	st_data = mcbsp->st_data;
-+	io_base_mcbsp = mcbsp->io_base;
-+	io_base_st = mcbsp->st_data->io_base_st;
-+
-+	w = OMAP_ST_READ(io_base_st, SSELCR);
-+	OMAP_ST_WRITE(io_base_st, SSELCR, w & ~(ST_SIDETONEEN));
-+
-+	w = OMAP_ST_READ(io_base_st, SYSCONFIG);
-+	OMAP_ST_WRITE(io_base_st, SYSCONFIG, w | ST_AUTOIDLE);
-+
-+	w = OMAP_MCBSP_READ(io_base_mcbsp, SSELCR);
-+	OMAP_MCBSP_WRITE(io_base_mcbsp, SSELCR, w & ~(SIDETONEEN));
-+
-+	w = cm_read_mod_reg(OMAP3430_PER_MOD, CM_AUTOIDLE);
-+	w |= 1 << (mcbsp->id - 2);
-+	cm_write_mod_reg(w, OMAP3430_PER_MOD, CM_AUTOIDLE);
-+}
-+
-+static void omap_st_fir_write(struct omap_mcbsp *mcbsp, s16 *fir)
-+{
-+	void __iomem *io_base;
-+	u16 val, i;
-+
-+	io_base = mcbsp->st_data->io_base_st;
-+
-+	val = OMAP_ST_READ(io_base, SYSCONFIG);
-+	OMAP_ST_WRITE(io_base, SYSCONFIG, val & ~(ST_AUTOIDLE));
-+
-+	val = OMAP_ST_READ(io_base, SSELCR);
-+
-+	if (val & ST_COEFFWREN)
-+		OMAP_ST_WRITE(io_base, SSELCR, val & ~(ST_COEFFWREN));
-+
-+	OMAP_ST_WRITE(io_base, SSELCR, val | ST_COEFFWREN);
-+
-+	for (i = 0; i < 128; i++)
-+		OMAP_ST_WRITE(io_base, SFIRCR, fir[i]);
-+
-+	i = 0;
-+
-+	val = OMAP_ST_READ(io_base, SSELCR);
-+	while (!(val & ST_COEFFWRDONE) && (++i < 1000))
-+		val = OMAP_ST_READ(io_base, SSELCR);
-+
-+	OMAP_ST_WRITE(io_base, SSELCR, val & ~(ST_COEFFWREN));
-+
-+	if (i == 1000)
-+		dev_err(mcbsp->dev, "McBSP FIR load error!\n");
-+}
-+
-+static void omap_st_chgain(struct omap_mcbsp_st_data *st_data)
-+{
-+	void __iomem *io_base;
-+	u16 w;
-+
-+	io_base = st_data->io_base_st;
-+
-+	w = OMAP_ST_READ(io_base, SYSCONFIG);
-+	OMAP_ST_WRITE(io_base, SYSCONFIG, w & ~(ST_AUTOIDLE));
-+
-+	w = OMAP_ST_READ(io_base, SSELCR);
-+
-+	OMAP_ST_WRITE(io_base, SGAINCR, ST_CH0GAIN(st_data->ch0gain) | \
-+		      ST_CH1GAIN(st_data->ch1gain));
-+}
-+
-+int omap_st_set_chgain(unsigned int id, s16 ch0gain, s16 ch1gain,
-+		       int channels)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	struct omap_mcbsp_st_data *st_data;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+
-+	mcbsp = id_to_mcbsp_ptr(id);
-+	st_data = mcbsp->st_data;
-+
-+	if (!st_data)
-+		return -ENOENT;
-+
-+	spin_lock_irq(&mcbsp->lock);
-+	if (channels & OMAP_MCBSP_ST_CHANNEL_0)
-+		st_data->ch0gain = ch0gain;
-+
-+	if (channels &  OMAP_MCBSP_ST_CHANNEL_1)
-+		st_data->ch1gain = ch1gain;
-+
-+	if (st_data->enabled)
-+		omap_st_chgain(st_data);
-+	spin_unlock_irq(&mcbsp->lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_st_set_chgain);
-+
-+int omap_st_get_chgain(unsigned int id, s16 *ch0gain, s16 *ch1gain)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	struct omap_mcbsp_st_data *st_data;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+
-+	mcbsp = id_to_mcbsp_ptr(id);
-+	st_data = mcbsp->st_data;
-+
-+	if (!st_data)
-+		return -ENOENT;
-+
-+	spin_lock_irq(&mcbsp->lock);
-+	*ch0gain = st_data->ch0gain;
-+	*ch1gain = st_data->ch1gain;
-+	spin_unlock_irq(&mcbsp->lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_st_get_chgain);
-+
-+static int omap_st_start(struct omap_mcbsp *mcbsp)
-+{
-+	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
-+
-+	if (st_data && st_data->enabled && !st_data->running) {
-+		omap_st_fir_write(mcbsp, st_data->taps);
-+		omap_st_chgain(st_data);
-+
-+		if (!mcbsp->free) {
-+			omap_st_on(mcbsp);
-+			st_data->running = 1;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+int omap_st_enable(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	struct omap_mcbsp_st_data *st_data;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+
-+	mcbsp = id_to_mcbsp_ptr(id);
-+	st_data = mcbsp->st_data;
-+
-+	if (!st_data)
-+		return -ENODEV;
-+
-+	spin_lock_irq(&mcbsp->lock);
-+	st_data->enabled = 1;
-+	omap_st_start(mcbsp);
-+	spin_unlock_irq(&mcbsp->lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_st_enable);
-+
-+static int omap_st_stop(struct omap_mcbsp *mcbsp)
-+{
-+	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
-+
-+	if (st_data && st_data->running) {
-+		if (!mcbsp->free) {
-+			omap_st_off(mcbsp);
-+			st_data->running = 0;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+int omap_st_disable(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	struct omap_mcbsp_st_data *st_data;
-+	int ret = 0;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+
-+	mcbsp = id_to_mcbsp_ptr(id);
-+	st_data = mcbsp->st_data;
-+
-+	if (!st_data)
-+		return -ENODEV;
-+
-+	spin_lock_irq(&mcbsp->lock);
-+	omap_st_stop(mcbsp);
-+	st_data->enabled = 0;
-+	spin_unlock_irq(&mcbsp->lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(omap_st_disable);
-+
-+int omap_st_is_enabled(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	struct omap_mcbsp_st_data *st_data;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+
-+	mcbsp = id_to_mcbsp_ptr(id);
-+	st_data = mcbsp->st_data;
-+
-+	if (!st_data)
-+		return -ENODEV;
-+
-+
-+	return st_data->enabled;
-+}
-+EXPORT_SYMBOL(omap_st_is_enabled);
-+
+
+ /* PROC wrapper functions */
+@@ -635,7 +629,6 @@ u32 MGRWRAP_WaitForBridgeEvents(union Trapped_Args *args, void *pr_ctxt)
+ }
+
+
+-#ifndef RES_CLEANUP_DISABLE
  /*
-  * omap_mcbsp_set_tx_threshold configures how to deal
-  * with transmit threshold. the threshold value and handler can be
-@@ -356,6 +626,8 @@ static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
- #else
- static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp) {}
- static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp) {}
-+static inline void omap_st_start(struct omap_mcbsp *mcbsp) {}
-+static inline void omap_st_stop(struct omap_mcbsp *mcbsp) {}
- #endif
- 
+  * ======== MGRWRAP_GetProcessResourceInfo ========
+  */
+@@ -645,7 +638,6 @@ u32 __deprecated MGRWRAP_GetProcessResourcesInfo(union Trapped_Args *args,
+        pr_err("%s: deprecated dspbridge ioctl\n", __func__);
+        return DSP_SOK;
+ }
+-#endif
+
+
  /*
-@@ -526,6 +798,9 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
- 	mcbsp = id_to_mcbsp_ptr(id);
- 	io_base = mcbsp->io_base;
- 
-+	if (cpu_is_omap34xx())
-+		omap_st_start(mcbsp);
-+
- 	mcbsp->rx_word_length = (OMAP_MCBSP_READ(io_base, RCR1) >> 5) & 0x7;
- 	mcbsp->tx_word_length = (OMAP_MCBSP_READ(io_base, XCR1) >> 5) & 0x7;
- 
-@@ -619,6 +894,9 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
- 		w = OMAP_MCBSP_READ(io_base, SPCR2);
- 		OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
- 	}
-+
-+	if (cpu_is_omap34xx())
-+		omap_st_stop(mcbsp);
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 96314a2..50b52e6 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -38,14 +38,12 @@
+ #include <dspbridge/drv.h>
+ #include <dspbridge/dev.h>
+
+-#ifndef RES_CLEANUP_DISABLE
+ #include <dspbridge/node.h>
+ #include <dspbridge/proc.h>
+ #include <dspbridge/strm.h>
+ #include <dspbridge/nodepriv.h>
+ #include <dspbridge/wmdchnl.h>
+ #include <dspbridge/resourcecleanup.h>
+-#endif
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define SIGNATURE   0x5f52474d /* "DRV_" (in reverse) */
+@@ -76,7 +74,6 @@ extern struct GT_Mask curTrace;
+ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 fRequest);
+ static DSP_STATUS RequestBridgeResourcesDSP(u32 dwContext, s32 fRequest);
+
+-#ifndef RES_CLEANUP_DISABLE
+ /* GPP PROCESS CLEANUP CODE */
+
+ static DSP_STATUS DRV_ProcFreeNodeRes(HANDLE hPCtxt);
+@@ -587,7 +584,6 @@ DSP_STATUS DRV_ProcUpdateSTRMRes(u32 uNumBufs, HANDLE hSTRMRes)
  }
- EXPORT_SYMBOL(omap_mcbsp_stop);
- 
-@@ -1198,6 +1476,64 @@ unlock:
- 
- static DEVICE_ATTR(dma_op_mode, 0644, dma_op_mode_show, dma_op_mode_store);
- 
-+static ssize_t st_taps_show(struct device *dev,
-+			    struct device_attribute *attr, char *buf)
-+{
-+	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
-+	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
-+	ssize_t status = 0;
-+	int i;
-+
-+	spin_lock_irq(&mcbsp->lock);
-+	for (i = 0; i < st_data->nr_taps; i++)
-+		status += sprintf(&buf[status], (i ? ", %d" : "%d"),
-+				  st_data->taps[i]);
-+	if (i)
-+		status += sprintf(&buf[status], "\n");
-+	spin_unlock_irq(&mcbsp->lock);
-+
-+	return status;
-+}
-+
-+static ssize_t st_taps_store(struct device *dev,
-+			     struct device_attribute *attr,
-+			     const char *buf, size_t size)
-+{
-+	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
-+	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
-+	int val, tmp, status, i = 0;
-+
-+	spin_lock_irq(&mcbsp->lock);
-+	memset(st_data->taps, 0, sizeof(st_data->taps));
-+	st_data->nr_taps = 0;
-+
-+	do {
-+		status = sscanf(buf, "%d%n", &val, &tmp);
-+		if (status < 0 || status == 0) {
-+			size = -EINVAL;
-+			goto out;
-+		}
-+		if (val < -32768 || val > 32767) {
-+			size = -EINVAL;
-+			goto out;
-+		}
-+		st_data->taps[i++] = val;
-+		buf += tmp;
-+		if (*buf != ',')
-+			break;
-+		buf++;
-+	} while (1);
-+
-+	st_data->nr_taps = i;
-+
-+out:
-+	spin_unlock_irq(&mcbsp->lock);
-+
-+	return size;
-+}
-+
-+static DEVICE_ATTR(st_taps, 0644, st_taps_show, st_taps_store);
-+
- static const struct attribute *additional_attrs[] = {
- 	&dev_attr_max_tx_thres.attr,
- 	&dev_attr_max_rx_thres.attr,
-@@ -1219,6 +1555,60 @@ static inline void __devexit omap_additional_remove(struct device *dev)
- 	sysfs_remove_group(&dev->kobj, &additional_attr_group);
+
+ /* GPP PROCESS CLEANUP CODE END */
+-#endif
+
+ /*
+  *  ======== = DRV_Create ======== =
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 301aea1..8a294d6 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -56,7 +56,6 @@
+ /*  ----------------------------------- This */
+ #include <drv_interface.h>
+
+-#ifndef RES_CLEANUP_DISABLE
+ #include <dspbridge/cfg.h>
+ #include <dspbridge/resourcecleanup.h>
+ #include <dspbridge/chnl.h>
+@@ -64,7 +63,6 @@
+ #include <dspbridge/dev.h>
+ #include <dspbridge/drvdefs.h>
+ #include <dspbridge/drv.h>
+-#endif
+
+ #ifdef CONFIG_BRIDGE_DVFS
+ #include <mach-omap2/omap3-opp.h>
+@@ -607,7 +605,6 @@ static int bridge_mmap(struct file *filp, struct vm_area_struct *vma)
+        return status;
  }
- 
-+static const struct attribute *sidetone_attrs[] = {
-+	&dev_attr_st_taps.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group sidetone_attr_group = {
-+	.attrs = (struct attribute **)sidetone_attrs,
-+};
-+
-+int __devinit omap_st_add(struct omap_mcbsp *mcbsp)
-+{
-+	struct omap_mcbsp_platform_data *pdata = mcbsp->pdata;
-+	struct omap_mcbsp_st_data *st_data;
-+	int err;
-+
-+	st_data = kzalloc(sizeof(*mcbsp->st_data), GFP_KERNEL);
-+	if (!st_data) {
-+		err = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	st_data->io_base_st = ioremap(pdata->phys_base_st, SZ_4K);
-+	if (!st_data->io_base_st) {
-+		err = -ENOMEM;
-+		goto err2;
-+	}
-+
-+	err = sysfs_create_group(&mcbsp->dev->kobj, &sidetone_attr_group);
-+	if (err)
-+		goto err3;
-+
-+	mcbsp->st_data = st_data;
-+	return 0;
-+
-+err3:
-+	iounmap(st_data->io_base_st);
-+err2:
-+	kfree(st_data);
-+err1:
-+	return err;
-+
-+}
-+
-+static void __devexit omap_st_remove(struct omap_mcbsp *mcbsp)
-+{
-+	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
-+
-+	if (st_data) {
-+		sysfs_remove_group(&mcbsp->dev->kobj, &sidetone_attr_group);
-+		iounmap(st_data->io_base_st);
-+		kfree(st_data);
-+	}
-+}
-+
- static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
- {
- 	mcbsp->dma_op_mode = MCBSP_DMA_MODE_ELEMENT;
-@@ -1232,6 +1622,12 @@ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
- 		if (omap_additional_add(mcbsp->dev))
- 			dev_warn(mcbsp->dev,
- 				"Unable to create additional controls\n");
-+
-+		if (mcbsp->id == 2 || mcbsp->id == 3)
-+			if (omap_st_add(mcbsp))
-+				dev_warn(mcbsp->dev,
-+				 "Unable to create sidetone controls\n");
-+
- 	} else {
- 		mcbsp->max_tx_thres = -EINVAL;
- 		mcbsp->max_rx_thres = -EINVAL;
-@@ -1240,8 +1636,12 @@ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
- 
- static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp)
- {
--	if (cpu_is_omap34xx())
-+	if (cpu_is_omap34xx()) {
- 		omap_additional_remove(mcbsp->dev);
-+
-+		if (mcbsp->id == 2 || mcbsp->id == 3)
-+			omap_st_remove(mcbsp);
-+	}
+
+-#ifndef RES_CLEANUP_DISABLE
+ /* To remove all process resources before removing the process from the
+  * process context list*/
+ DSP_STATUS DRV_RemoveAllResources(HANDLE hPCtxt)
+@@ -622,7 +619,6 @@ DSP_STATUS DRV_RemoveAllResources(HANDLE hPCtxt)
+        }
+        return status;
  }
- #else
- static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp) {}
--- 
-1.6.0.4
+-#endif
+
+ /* Bridge driver initialization and de-initialization functions */
+ module_init(bridge_init);
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 336abea..a1f1ee7 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -67,11 +67,9 @@
+ #include <dspbridge/dbll.h>
+ #include <dspbridge/nldr.h>
+
+-#ifndef RES_CLEANUP_DISABLE
+ #include <dspbridge/drv.h>
+ #include <dspbridge/drvdefs.h>
+ #include <dspbridge/resourcecleanup.h>
+-#endif
+
+
+ #define NODE_SIGNATURE      0x45444f4e /* "EDON" */
+@@ -338,9 +336,7 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
+        struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
+ #endif
+
+-#ifndef RES_CLEANUP_DISABLE
+        HANDLE nodeRes;
+-#endif
+
+        DBC_Require(cRefs > 0);
+        DBC_Require(hProcessor != NULL);
+@@ -696,13 +692,11 @@ func_cont:
+
+        }
+
+-#ifndef RES_CLEANUP_DISABLE
+        if (DSP_SUCCEEDED(status)) {
+                DRV_InsertNodeResElement(*phNode, &nodeRes, pr_ctxt);
+                DRV_ProcNodeUpdateHeapStatus(nodeRes, true);
+                DRV_ProcNodeUpdateStatus(nodeRes, true);
+        }
+-#endif
+        DBC_Ensure((DSP_FAILED(status) && (*phNode == NULL)) ||
+                  (DSP_SUCCEEDED(status)
+                    && MEM_IsValidHandle((*phNode), NODE_SIGNATURE)));
+@@ -1514,9 +1508,8 @@ DSP_STATUS NODE_Delete(struct NODE_OBJECT *hNode,
+        u32 procId;
+        struct WMD_DRV_INTERFACE *pIntfFxns;
+
+-#ifndef RES_CLEANUP_DISABLE
+        HANDLE          nodeRes;
+-#endif
++
+        struct DSP_PROCESSORSTATE procStatus;
+        DBC_Require(cRefs > 0);
+        GT_1trace(NODE_debugMask, GT_ENTER, "NODE_Delete: hNode: 0x%x\n",
+@@ -1640,22 +1633,20 @@ func_cont1:
+                hNodeMgr->uNumCreated--;
+         /*  Free host-side resources allocated by NODE_Create()
+         *  DeleteNode() fails if SM buffers not freed by client!  */
+-#ifndef RES_CLEANUP_DISABLE
+        if (!pr_ctxt)
+                goto func_cont;
+        if (DRV_GetNodeResElement(hNode, &nodeRes, pr_ctxt) != DSP_ENOTFOUND) {
+                GT_0trace(NODE_debugMask, GT_5CLASS, "\nNODE_Delete12:\n");
+                DRV_ProcNodeUpdateStatus(nodeRes, false);
+        }
+-#endif
+ func_cont:
+        GT_0trace(NODE_debugMask, GT_ENTER, "\nNODE_Delete13:\n ");
+        DeleteNode(hNode, pr_ctxt);
+-#ifndef RES_CLEANUP_DISABLE
++
+        GT_0trace(NODE_debugMask, GT_5CLASS, "\nNODE_Delete2:\n ");
+        if (pr_ctxt)
+                DRV_RemoveNodeResElement(nodeRes, pr_ctxt);
+-#endif
++
+        GT_0trace(NODE_debugMask, GT_ENTER, "\nNODE_Delete3:\n ");
+        /* Exit critical section */
+        (void)SYNC_LeaveCS(hNodeMgr->hSync);
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index cd32561..010f324 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -59,9 +59,7 @@
+ #include <dspbridge/proc.h>
+ #include <dspbridge/pwr.h>
+
+-#ifndef RES_CLEANUP_DISABLE
+ #include <dspbridge/resourcecleanup.h>
+-#endif
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define PROC_SIGNATURE    0x434F5250   /* "PROC" (in reverse). */
+ #define MAXCMDLINELEN       255
+@@ -1253,9 +1251,7 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
+        DSP_STATUS status = DSP_SOK;
+        struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
+
+-#ifndef RES_CLEANUP_DISABLE
+        HANDLE        dmmRes;
+-#endif
+
+        GT_6trace(PROC_DebugMask, GT_ENTER, "Entered PROC_Map, args:\n\t"
+                 "hProcessor %x, pMpuAddr %x, ulSize %x, pReqAddr %x, "
+@@ -1302,13 +1298,11 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
+        }
+        (void)SYNC_LeaveCS(hProcLock);
+
+-#ifndef RES_CLEANUP_DISABLE
+        if (DSP_SUCCEEDED(status)) {
+                DRV_InsertDMMResElement(&dmmRes, pr_ctxt);
+                DRV_UpdateDMMResElement(dmmRes, (u32)pMpuAddr, ulSize,
+                                (u32)pReqAddr, (u32)*ppMapAddr, hProcessor);
+        }
+-#endif
+ func_end:
+        GT_1trace(PROC_DebugMask, GT_ENTER, "Leaving PROC_Map [0x%x]", status);
+        return status;
+@@ -1620,9 +1614,9 @@ DSP_STATUS PROC_UnMap(DSP_HPROCESSOR hProcessor, void *pMapAddr,
+        struct DMM_OBJECT *hDmmMgr;
+        u32 vaAlign;
+        u32 sizeAlign;
+-#ifndef RES_CLEANUP_DISABLE
++
+        HANDLE        dmmRes;
+-#endif
++
+        GT_2trace(PROC_DebugMask, GT_ENTER,
+                 "Entered PROC_UnMap, args:\n\thProcessor:"
+                 "0x%x pMapAddr: 0x%x\n", hProcessor, pMapAddr);
+@@ -1655,7 +1649,6 @@ DSP_STATUS PROC_UnMap(DSP_HPROCESSOR hProcessor, void *pMapAddr,
+                         (pProcObject->hWmdContext, vaAlign, sizeAlign);
+        }
+        (void)SYNC_LeaveCS(hProcLock);
+-#ifndef RES_CLEANUP_DISABLE
+        GT_1trace(PROC_DebugMask, GT_ENTER,
+                   "PROC_UnMap DRV_GetDMMResElement "
+                   "pMapAddr:[0x%x]", pMapAddr);
+@@ -1665,7 +1658,6 @@ DSP_STATUS PROC_UnMap(DSP_HPROCESSOR hProcessor, void *pMapAddr,
+        if (pr_ctxt && DRV_GetDMMResElement((u32)pMapAddr, &dmmRes, pr_ctxt)
+                                                        != DSP_ENOTFOUND)
+                DRV_RemoveDMMResElement(dmmRes, pr_ctxt);
+-#endif
+ func_end:
+        GT_1trace(PROC_DebugMask, GT_ENTER,
+                 "Leaving PROC_UnMap [0x%x]", status);
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index febb6c2..6be8083 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -44,10 +44,8 @@
+ /*  ----------------------------------- This */
+ #include <dspbridge/strm.h>
+
+-#ifndef RES_CLEANUP_DISABLE
+ #include <dspbridge/cfg.h>
+ #include <dspbridge/resourcecleanup.h>
+-#endif
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define STRM_SIGNATURE      0x4d525453 /* "MRTS" */
+@@ -114,9 +112,9 @@ DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
+        DSP_STATUS status = DSP_SOK;
+        u32 uAllocated = 0;
+        u32 i;
+-#ifndef RES_CLEANUP_DISABLE
++
+        HANDLE hSTRMRes;
+-#endif
++
+        DBC_Require(cRefs > 0);
+        DBC_Require(apBuffer != NULL);
+
+@@ -152,14 +150,13 @@ DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
+        if (DSP_FAILED(status))
+                STRM_FreeBuffer(hStrm, apBuffer, uAllocated, pr_ctxt);
+
+-#ifndef RES_CLEANUP_DISABLE
+        if (DSP_FAILED(status))
+                goto func_end;
+
+        if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pr_ctxt) !=
+                        DSP_ENOTFOUND)
+                DRV_ProcUpdateSTRMRes(uNumBufs, hSTRMRes);
+-#endif
++
+ func_end:
+        return status;
+ }
+@@ -176,9 +173,7 @@ DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm,
+        struct CHNL_INFO chnlInfo;
+        DSP_STATUS status = DSP_SOK;
+
+-#ifndef RES_CLEANUP_DISABLE
+-    HANDLE           hSTRMRes;
+-#endif
++       HANDLE        hSTRMRes;
+
+        DBC_Require(cRefs > 0);
+
+@@ -198,7 +193,7 @@ DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm,
+                else
+                        status = DeleteStrm(hStrm);
+        }
+-#ifndef RES_CLEANUP_DISABLE
++
+        if (DSP_FAILED(status))
+                goto func_end;
+
+@@ -206,7 +201,6 @@ DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm,
+                        DSP_ENOTFOUND)
+                DRV_ProcRemoveSTRMResElement(hSTRMRes, pr_ctxt);
+ func_end:
+-#endif
+        DBC_Ensure(status == DSP_SOK || status == DSP_EHANDLE ||
+                  status == DSP_EPENDING || status == DSP_EFAIL);
+
+@@ -312,9 +306,8 @@ DSP_STATUS STRM_FreeBuffer(struct STRM_OBJECT *hStrm, u8 **apBuffer,
+        DSP_STATUS status = DSP_SOK;
+        u32 i = 0;
+
+-#ifndef RES_CLEANUP_DISABLE
+        HANDLE hSTRMRes = NULL;
+-#endif
++
+        DBC_Require(cRefs > 0);
+        DBC_Require(apBuffer != NULL);
+
+@@ -337,11 +330,10 @@ DSP_STATUS STRM_FreeBuffer(struct STRM_OBJECT *hStrm, u8 **apBuffer,
+                        apBuffer[i] = NULL;
+                }
+        }
+-#ifndef RES_CLEANUP_DISABLE
+        if (DRV_GetSTRMResElement(hStrm, hSTRMRes, pr_ctxt) !=
+                        DSP_ENOTFOUND)
+                DRV_ProcUpdateSTRMRes(uNumBufs-i, hSTRMRes);
+-#endif
++
+        return status;
+ }
+
+@@ -529,9 +521,8 @@ DSP_STATUS STRM_Open(struct NODE_OBJECT *hNode, u32 uDir, u32 uIndex,
+        DSP_STATUS status = DSP_SOK;
+        struct CMM_OBJECT *hCmmMgr = NULL;      /* Shared memory manager hndl */
+
+-#ifndef RES_CLEANUP_DISABLE
+        HANDLE hSTRMRes;
+-#endif
++
+        DBC_Require(cRefs > 0);
+        DBC_Require(phStrm != NULL);
+        DBC_Require(pAttr != NULL);
+@@ -666,9 +657,7 @@ func_cont:
+        else
+                (void)DeleteStrm(pStrm);
+
+-#ifndef RES_CLEANUP_DISABLE
+        DRV_ProcInsertSTRMResElement(*phStrm, &hSTRMRes, pr_ctxt);
+-#endif
+
+         /* ensure we return a documented error code */
+        DBC_Ensure((DSP_SUCCEEDED(status) &&
+diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
+index ca5662d..1461320 100644
+--- a/drivers/dsp/bridge/wmd/chnl_sm.c
++++ b/drivers/dsp/bridge/wmd/chnl_sm.c
+@@ -684,7 +684,6 @@ DSP_STATUS WMD_CHNL_GetIOC(struct CHNL_OBJECT *hChnl, u32 dwTimeOut,
+
+                /*pHostUserBuf */
+                status = copy_to_user(ioc.pBuf, pHostSysBuf, ioc.cBytes);
+-#ifndef RES_CLEANUP_DISABLE
+                if (status) {
+                        if (current->flags & PF_EXITING) {
+                                DBG_Trace(DBG_LEVEL7,
+@@ -699,7 +698,6 @@ DSP_STATUS WMD_CHNL_GetIOC(struct CHNL_OBJECT *hChnl, u32 dwTimeOut,
+                                         current->flags);
+                        }
+                }
+-#endif
+                if (status) {
+                        DBG_Trace(DBG_LEVEL7,
+                                 "Error copying kernel buffer to user, %d"
+--
+1.5.4.5
+
