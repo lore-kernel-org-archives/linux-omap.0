@@ -1,79 +1,61 @@
-From: jung songtan <jungsongtan@gmail.com>
-Subject: Re: Mini USB to Host convertor on OMAP3530
-Date: Thu, 28 Jan 2010 18:16:15 +0800
-Message-ID: <c27069991001280216m4c7e53efua61b1c80e7df21c@mail.gmail.com>
-References: <c27069991001280031h28439cdeqb0ac84e0122a939a@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 3/3] ARM: Select CPU_32v6K for CPU_V7 only if
+	ARCH_OMAP2 isnot selected
+Date: Thu, 28 Jan 2010 11:00:50 +0000
+Message-ID: <1264676451.7064.40.camel@pc1117.cambridge.arm.com>
+References: <20100126193748.15134.4837.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:48464 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833Ab0A1KQQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 05:16:16 -0500
-Received: by vws12 with SMTP id 12so140300vws.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jan 2010 02:16:15 -0800 (PST)
-In-Reply-To: <c27069991001280031h28439cdeqb0ac84e0122a939a@mail.gmail.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:54205 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932204Ab0A1LBG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jan 2010 06:01:06 -0500
+In-Reply-To: <20100126193748.15134.4837.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: jungsongtan <jungsongtan@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-I am trying to make the issue more clear and heve more test,
+On Tue, 2010-01-26 at 19:37 +0000, Tony Lindgren wrote:
+> Otherwise the kernel built with both CPU_V6 and CPU_V7 will not
+> boot on omap2.
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mm/Kconfig |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+> index baf6384..4c2e90d 100644
+> --- a/arch/arm/mm/Kconfig
+> +++ b/arch/arm/mm/Kconfig
+> @@ -399,7 +399,7 @@ config CPU_V6
+>  config CPU_32v6K
+>         bool "Support ARM V6K processor extensions" if !SMP
+>         depends on CPU_V6
+> -       default y if SMP && !ARCH_MX3
+> +       default y if SMP && !(ARCH_MX3 || ARCH_OMAP2)
+>         help
+>           Say Y here if your ARMv6 processor supports the 'K' extension.
+>           This enables the kernel to use some instructions not present
+> @@ -410,7 +410,7 @@ config CPU_32v6K
+>  # ARMv7
+>  config CPU_V7
+>         bool "Support ARM V7 processor" if ARCH_INTEGRATOR || MACH_REALVIEW_EB || MACH_REALVIEW_PBX
+> -       select CPU_32v6K
+> +       select CPU_32v6K if !ARCH_OMAP2
 
-There is Omap3530 , DM6xx, and Convertor (Type A) , convertor (Type B),
+I suspect that would be an issue for all ARMv6 platforms without the MP
+extensions (v6K). Could we do something like:
 
-Both A type and B type convertor can  work on Dm6xx,
+	select CPU_32v6K if SMP || !CPU_V6
 
-A type convertor can work on Omap3530.
+As for the CPU_32v6K config entry, do any of ARCH_MX3 or ARCH_OMAP2
+support SMP? We could remove them.
 
-If B type convertor plugging on Omap while the board bootup, no device
-can detected.
-It seems there is no power supply under B type, or there must be
-unsuccessfully session happened.
+-- 
+Catalin
 
-
-If using A type first , then plug B type, the B type can be used too.
-
-But why, is the power supply weeker under Omap35x than Dm6xx? That
-seems not possible,
-I use Rev G and with external powered hub.
-
-Is there any thing I missed in the hardware configuration on Omap board=
-?
-
-Thanks,
-Jung
-
-
-
-2010/1/28 jung songtan <jungsongtan@gmail.com>:
-> Hi experts,
->
-> What kind of convertor are you using? or do you have any recommended?
->
-> I am using one kind of such convertor to connect the Musb OTG port to=
- device.
-> But no devices can be detected.
->
-> =A0if I change another kind of convertor, It works.
-> I check the convertor on other board such as DM6xx, it works fine.
->
-> Has anyone met such issue before?
-> or I have any thing missing to configure the usb?
->
-> Thanks very much,
->
-> --
-> K T Jung
->
-
-
-
---=20
-K T Jung
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
