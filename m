@@ -1,128 +1,65 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] OMAP: omap_device: add omap_device_is_valid()
-Date: Wed, 27 Jan 2010 17:30:37 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1001271727450.1248@utopia.booyaka.com>
-References: <1264532444-22706-1-git-send-email-khilman@deeprootsystems.com>
+From: Ben Dooks <ben-linux@fluff.org>
+Subject: Re: [PATCH 0/5] Arm Gic Changes
+Date: Thu, 28 Jan 2010 00:39:14 +0000
+Message-ID: <20100128003914.GM9153@trinity.fluff.org>
+References: <1264620749-24527-1-git-send-email-adharmap@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34838 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753716Ab0A1Aai (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jan 2010 19:30:38 -0500
-In-Reply-To: <1264532444-22706-1-git-send-email-khilman@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1264620749-24527-1-git-send-email-adharmap@codeaurora.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: adharmap@codeaurora.org
+Cc: Kalle Valo <kalle.valo@iki.fi>, Alessandro Rubini <rubini@unipv.it>, Russell King <linux@arm.linux.org.uk>, Linus Walleij <linus.walleij@stericsson.com>, Jean Pihet <jpihet@mvista.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Andrea Gallo <andrea.gallo@stericsson.com>, Colin Tuckley <colin.tuckley@arm.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Philby John <pjohn@in.mvista.com>, linux-arm-kernel@lists.infradead.org, Abhijeet Dharmapurikar <adharmap@quicinc.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
 
-Hi Kevin,
-
-this looks fine.  Two quick comments:
-
-On Tue, 26 Jan 2010, Kevin Hilman wrote:
-
-> The omap_device struct contains a 'struct platform_device'.  Normally,
-> converting a platform_device pointer to an omap_device pointer
-> consists of simply doing a container_of(), as is done currently by the
-> to_omap_device() macro.
+On Wed, Jan 27, 2010 at 11:32:24AM -0800, adharmap@codeaurora.org wrote:
+> From: Abhijeet Dharmapurikar <adharmap@quicinc.com>
 > 
-> However, if this is attempted when using platform_device that has not
-> been created as part of the omap_device creation, the container_of()
-> will point to a memory location before the platform_device pointer
-> which will contain random data.
-> 
-> Therefore, we need a way to detect valid omap_device pointers.  This
-> patch solves this by using the simple magic number approach.
+> Few fixes and improvements to arch/arm/common/gic.c file.
 
-Sounds okay; just FYI at some point in the future, it would be good for 
-one of us to take a whack at converting omap_device to contain 
-platform_device, the same way that platform_device contains struct device, 
-etc..
+both ARM and GIC in the title should be all in capitals, they are
+abbreviations of something longer.
 
+I think it would be nicer to make GIC in all the patch titles all capital
+instead of all lower case.
+ 
+> Abhijeet Dharmapurikar (5):
+>   gic: prevent gic from crossing NR_IRQ
+>   gic: add callback for mask_ack
+>   gic: Add set_type callback
+>   gic: dont disable INT in ack callback
+>   gic: initialize interrupts as per argument
 > 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-> Changes from original version:
-> - set magic value before omap_device_register()
+>  arch/arm/common/gic.c                    |  114 ++++++++++++++++++++++++-----
+>  arch/arm/include/asm/hardware/gic.h      |    3 +-
+>  arch/arm/mach-omap2/board-4430sdp.c      |    3 +-
+>  arch/arm/mach-realview/realview_eb.c     |   10 ++-
+>  arch/arm/mach-realview/realview_pb1176.c |    7 ++-
+>  arch/arm/mach-realview/realview_pb11mp.c |    7 ++-
+>  arch/arm/mach-realview/realview_pba8.c   |    4 +-
+>  arch/arm/mach-realview/realview_pbx.c    |    5 +-
+>  arch/arm/mach-ux500/cpu-u8500.c          |    2 +-
+>  9 files changed, 122 insertions(+), 33 deletions(-)
 > 
->  arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
->  arch/arm/plat-omap/omap_device.c              |   16 ++++++++++++++++
->  2 files changed, 18 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index 76d4917..4677ff7 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -62,6 +62,7 @@
->   *
->   */
->  struct omap_device {
-> +	u32                             magic;
->  	struct platform_device		pdev;
->  	struct omap_hwmod		**hwmods;
->  	struct omap_device_pm_latency	*pm_lats;
-> @@ -81,6 +82,7 @@ int omap_device_shutdown(struct platform_device *pdev);
->  
->  /* Core code interface */
->  
-> +bool omap_device_is_valid(struct omap_device *od);
->  int omap_device_count_resources(struct omap_device *od);
->  int omap_device_fill_resources(struct omap_device *od, struct resource *res);
->  
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index d8c75c8..187a08f 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -100,6 +100,8 @@
->  # error Unknown OMAP device
->  #endif
->  
-> +#define OMAP_DEVICE_MAGIC 0xf00dcafe
-> +
->  /* Private functions */
->  
->  /**
-> @@ -413,6 +415,8 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
->  	od->pm_lats = pm_lats;
->  	od->pm_lats_cnt = pm_lats_cnt;
->  
-> +	od->magic = OMAP_DEVICE_MAGIC;
-> +
->  	ret = omap_device_register(od);
->  	if (ret)
->  		goto odbs_exit4;
-> @@ -599,6 +603,18 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
->  }
->  
->  /**
-> + * omap_device_is_valid()
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-I think kerneldoc will want a short description after the function name.  
-Can plug this in here during the merge process if you want...
+-- 
+-- 
+Ben
 
-> + * @od: struct omap_device *
-> + *
-> + * Return whether struct omap_device pointer @od points to a valid
-> + * omap_device.
-> + */
-> +bool omap_device_is_valid(struct omap_device *od)
-> +{
-> +	return (od && od->magic == OMAP_DEVICE_MAGIC);
-> +}
-> +
-> +/**
->   * omap_device_get_pwrdm - return the powerdomain * associated with @od
->   * @od: struct omap_device *
->   *
-> -- 
-> 1.6.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-- Paul
+Q:      What's a light-year?
+A:      One-third less calories than a regular year.
