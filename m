@@ -1,77 +1,46 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: sdio irq hack for omap_hsmmc.c (was: Re: [PATCH] OMAP35xx:SDIO  IRQ Support for OMAP35xx)
-Date: Thu, 28 Jan 2010 16:13:03 -0800
-Message-ID: <87fx5prcog.fsf@deeprootsystems.com>
-References: <4b73d43f1001260904m212d2c53gde6328ad9b9bb14e@mail.gmail.com>
-	<008001ca9fa6$87dc26e0$544ff780@am.dhcp.ti.com>
-	<4b73d43f1001271556m5945d358v2ca5bea5862b0080@mail.gmail.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH v2 0/5] DSPBRIDGE: centralized services initialization
+Date: Thu, 28 Jan 2010 18:32:39 -0600
+Message-ID: <4B622CA7.5000605@ti.com>
+References: <1264553848-23555-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f198.google.com ([209.85.221.198]:45417 "EHLO
-	mail-qy0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408Ab0A2ASp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 19:18:45 -0500
-In-Reply-To: <4b73d43f1001271556m5945d358v2ca5bea5862b0080@mail.gmail.com> (John Rigby's message of "Wed\, 27 Jan 2010 16\:56\:28 -0700")
+Received: from devils.ext.ti.com ([198.47.26.153]:46222 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752424Ab0A2Aco (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 19:32:44 -0500
+In-Reply-To: <1264553848-23555-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: John Rigby <jcrigby@gmail.com>
-Cc: Madhusudhan <madhu.cr@ti.com>, Mike Rapoport <mike@compulab.co.il>, Dirk Behme <dirk.behme@googlemail.com>, Phaneendra Kumar Alapati <phani@embwise.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, "Paasikivi Teemu.3 (EXT-Ixonos/Tampere)" <ext-teemu.3.paasikivi@nokia.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-John Rigby <jcrigby@gmail.com> writes:
+On 1/26/2010 6:57 PM, Ramirez Luna, Omar wrote:
+> It is more logic to initialize services related modules inside
+> services layer, even if we are planning to remove it.
+>
+> v2:
+> - Fixed crefs build issue (patch 2) if enabling debug
+>
+> Omar Ramirez Luna (5):
+>    DSPBRIDGE: Avoid multiple calls to SERVICES_[Init|Exit]
+>    DSPBRIDGE: remove crefs for SERVICES[Init|Exit]
+>    DSPBRIDGE: Remove multiple initializations of MEM module
+>    DSPBRIDGE: Remove multiple initializations of REG module
+>    DSPBRIDGE: Remove multiple initializations of NTFY module
+>
+>   drivers/dsp/bridge/gen/gs.c            |    8 +--
+>   drivers/dsp/bridge/pmgr/dbll.c         |   15 +----
+>   drivers/dsp/bridge/pmgr/wcd.c          |   17 +-----
+>   drivers/dsp/bridge/rmgr/dbdcd.c        |   15 +-----
+>   drivers/dsp/bridge/rmgr/rmm.c          |   17 +-----
+>   drivers/dsp/bridge/services/mem.c      |   36 ++----------
+>   drivers/dsp/bridge/services/services.c |  100 ++++++++++++--------------------
+>   7 files changed, 53 insertions(+), 155 deletions(-)
+>
 
-> Just to be clear, my post was in response to the reported problems
-> with enabling sdio irqs with this patch:
-> http://patchwork.kernel.org/patch/69122/
->
-> The patch originator reported good results but others reported
-> complete failure.  My hack fixed the problem for me.  I believe this
-> much more modest patch will also fix the problem but it is untested
-> because I don't have a board running right now.  Beware, I'm sending
-> this from gmail so it may get line wrapped but it is a trivial patch
-> so I think it is understandable.
->
-> John
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index fa94580..7af970e 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1727,10 +1727,16 @@ static int __init omap_hsmmc_probe
->
->  	omap_hsmmc_context_save(host);
->
-> +#if 0
->  	mmc->caps |= MMC_CAP_DISABLE;
->  	mmc_set_disable_delay(mmc, OMAP_MMC_DISABLED_TIMEOUT);
->  	/* we start off in DISABLED state */
->  	host->dpm_state = DISABLED;
-> +#else
-> +	/* we start off in ENABLED state */
-> +	host->dpm_state = ENABLED;
-> +	clk_enable(host->fclk);
-> +#endif
+Pushed to dspbridge.
 
-I'm guessing this simply causes the clock usage count to never hit zero
-thus never disabling clocks.
-
-Kevin
-
->  	if (mmc_host_enable(host->mmc) != 0) {
->  		clk_put(host->iclk);
->
->
-> On Wed, Jan 27, 2010 at 4:14 PM, Madhusudhan <madhu.cr@ti.com> wrote:
->> It is hard to comment on what is happening here without a patch. Is it a
->> performance issue or that SDIO functionality failure with PM enabled?
->>
->> The MMC controller supports wakeup capability on the dat1 line using a GPIO
->> for a SDIO interrupt. I guess that should help.
->>
->> Regards,
->> Madhu
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- omar
