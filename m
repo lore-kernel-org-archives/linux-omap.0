@@ -1,154 +1,65 @@
-From: <ilkka.koskinen@nokia.com>
-Subject: Re: [PATCH 2/2] ASoC: OMAP-McBSP: ASoC interface for
- McBSP sidetone
-Date: Fri, 29 Jan 2010 13:06:24 +0100
-Message-ID: <F80267346F10C541946CBE8909F1C39E24928B7EE8@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1264693587-4764-1-git-send-email-ilkka.koskinen@nokia.com>
-	<1264693587-4764-2-git-send-email-ilkka.koskinen@nokia.com>
-	<1264693587-4764-3-git-send-email-ilkka.koskinen@nokia.com>
-	<1264695703.3044.244.camel@odin>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 1/3] OMAP4: Add L2 Cache support
+Date: Fri, 29 Jan 2010 12:16:05 +0000
+Message-ID: <1264767365.4242.54.camel@pc1117.cambridge.arm.com>
+References: <1264765589-18353-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1264695703.3044.244.camel@odin>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: lrg@slimlogic.co.uk
-Cc: alsa-devel@alsa-project.org, tony@atomide.com, eduardo.valentin@nokia.com, broonie@opensource.wolfsonmicro.com, peter.ujfalusi@nokia.com, ext-Eero.Nurkkala@nokia.com, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:37479 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753412Ab0A2MQZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jan 2010 07:16:25 -0500
+In-Reply-To: <1264765589-18353-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, rmk@arm.linux.org.uk, linux-omap@vger.kernel.org
 
+On Fri, 2010-01-29 at 11:46 +0000, Santosh Shilimkar wrote:
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -28,6 +28,7 @@
+>  #include <plat/control.h>
+>  #include <plat/timer-gp.h>
+>  #include <asm/hardware/gic.h>
+> +#include <asm/hardware/cache-l2x0.h>
+> 
+>  static struct platform_device sdp4430_lcd_device = {
+>         .name           = "sdp4430_lcd",
+> @@ -49,6 +50,38 @@ static struct omap_lcd_config sdp4430_lcd_config __initdata = {
+>  static struct omap_board_config_kernel sdp4430_config[] __initdata = {
+>         { OMAP_TAG_LCD,         &sdp4430_lcd_config },
+>  };
+> +#ifdef CONFIG_CACHE_L2X0
+> +static int __init omap_l2_cache_init(void)
+> +{
+> +       void __iomem *l2cache_base;
+> +
+> +       /* Static mapping, never released */
+> +       l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
+> +       BUG_ON(!l2cache_base);
+> +
+> +       /* Enable L2 Cache using secure api
+> +        * r0 contains the value to be modified and "r12" contains
+> +        * the monitor API number. This API uses few CPU registers
+> +        * internally and hence they need be backed up including
+> +        * link register "lr".
+> +        */
+> +       __asm__ __volatile__(
+> +               "stmfd r13!, {r0-r12, r14}\n"
+> +               "mov r0, #1\n"
+> +               "ldr r12, =0x102\n"
+> +               "dsb\n"
+> +               "smc\n"
+> +               "ldmfd r13!, {r0-r12, r14}");
 
-Hi,
+Same comments as on the cache-l2x0.c changes - can you not let the
+compiler choose what to saved by declaring the clobbered register in the
+asm directive?
 
->From: ext Liam Girdwood [mailto:lrg@slimlogic.co.uk] 
->Sent: 28 January, 2010 18:22
->On Thu, 2010-01-28 at 17:46 +0200, Ilkka Koskinen wrote:
->> Add ASoC interface for OMAP McBSP2 and McBSP3 sidetones.
->> 
->> Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
->> ---
->>  sound/soc/omap/omap-mcbsp.c |  187 
->+++++++++++++++++++++++++++++++++++++++++++
->>  sound/soc/omap/omap-mcbsp.h |    2 +
->>  2 files changed, 189 insertions(+), 0 deletions(-)
->> 
->> diff --git a/sound/soc/omap/omap-mcbsp.c 
->b/sound/soc/omap/omap-mcbsp.c
->> index 6bbbd2a..295620b 100644
->> --- a/sound/soc/omap/omap-mcbsp.c
->> +++ b/sound/soc/omap/omap-mcbsp.c
->> @@ -39,6 +39,14 @@
->
->snip
->
->> +/* McBSP Sidetone Switch */
->> +static const char *omap_mcbsp_st_status[] = {
->> +	"off",
->> +	"on",
->> +};
->> +
->
->Should this not be a switch (like a mute switch) rather than an enum
->kcontrol ?
+-- 
+Catalin
 
-Makes sense. I'll change it.
-
->> +static const struct soc_enum omap_mcbsp_st_status_enum[] = {
->> +	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(omap_mcbsp_st_status),
->> +			    omap_mcbsp_st_status),
->> +};
->> +
->> +static const struct snd_kcontrol_new omap_mcbsp2_st_controls[] = {
->> +	SOC_ENUM_EXT("McBSP2 Sidetone Switch", 
->omap_mcbsp_st_status_enum[0],
->> +			omap_mcbsp2_st_get_mode, 
->omap_mcbsp2_st_set_mode),
->> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 
->0 Volume",
->> +				      -32768, 32767,
->> +				      omap_mcbsp2_get_st_ch0_volume,
->> +				      omap_mcbsp2_set_st_ch0_volume),
->> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 
->1 Volume",
->> +				      -32768, 32767,
->> +				      omap_mcbsp2_get_st_ch1_volume,
->> +				      omap_mcbsp2_set_st_ch1_volume),
->> +};
->> +
->> +static const struct snd_kcontrol_new omap_mcbsp3_st_controls[] = {
->> +	SOC_ENUM_EXT("McBSP3 Sidetone Switch", 
->omap_mcbsp_st_status_enum[0],
->> +			omap_mcbsp3_st_get_mode, 
->omap_mcbsp3_st_set_mode),
->> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 
->0 Volume",
->> +				      -32768, 32767,
->> +				      omap_mcbsp3_get_st_ch0_volume,
->> +				      omap_mcbsp3_set_st_ch0_volume),
->> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 
->1 Volume",
->> +				      -32768, 32767,
->> +				      omap_mcbsp3_get_st_ch1_volume,
->> +				      omap_mcbsp3_set_st_ch1_volume),
->> +};
->> +
->> +int omap_mcbsp_st_add_controls(struct snd_soc_codec *codec, 
->int mcbsp_id)
->> +{
->> +	if (!cpu_is_omap34xx())
->> +		return -ENODEV;
->> +
->> +	switch (mcbsp_id) {
->> +	case 2: /* McBSP 2 */
->> +		return snd_soc_add_controls(codec, 
->omap_mcbsp2_st_controls,
->> +					
->ARRAY_SIZE(omap_mcbsp2_st_controls));
->> +	case 3: /* McBSP 3 */
->> +		return snd_soc_add_controls(codec, 
->omap_mcbsp3_st_controls,
->> +					
->ARRAY_SIZE(omap_mcbsp3_st_controls));
->> +	default:
->> +		break;
->> +	}
->> +
->> +	return -1;
->
->-EINVAL;
-
-Oops, thanks.
-
-Cheers, Ilkka
-
->> +}
->> +EXPORT_SYMBOL_GPL(omap_mcbsp_st_add_controls);
->> +
->>  static int __init snd_omap_mcbsp_init(void)
->>  {
->>  	return snd_soc_register_dais(omap_mcbsp_dai,
->> diff --git a/sound/soc/omap/omap-mcbsp.h 
->b/sound/soc/omap/omap-mcbsp.h
->> index 647d2f9..7537435 100644
->> --- a/sound/soc/omap/omap-mcbsp.h
->> +++ b/sound/soc/omap/omap-mcbsp.h
->> @@ -57,4 +57,6 @@ enum omap_mcbsp_div {
->>  
->>  extern struct snd_soc_dai omap_mcbsp_dai[NUM_LINKS];
->>  
->> +int omap_mcbsp_st_add_controls(struct snd_soc_codec *codec, 
->int mcbsp_id);
->> +
->>  #endif
->
->
->
