@@ -1,32 +1,54 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [alsa-devel] [PATCH 1/1] ASoC: AIC23: Fixing writes to
- non-existing registers in resume function
-Date: Fri, 29 Jan 2010 11:00:04 +0000
-Message-ID: <1264762804.3080.23.camel@odin>
-References: <1264753735-7190-1-git-send-email-anuj.aggarwal@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: AM3517 EVM defconfig
+Date: Fri, 29 Jan 2010 16:41:48 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A6B8E37@dbde02.ent.ti.com>
+References: <722156.93716.qm@web52008.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:29053 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247Ab0A2LAI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jan 2010 06:00:08 -0500
-Received: by ey-out-2122.google.com with SMTP id d26so428853eyd.19
-        for <linux-omap@vger.kernel.org>; Fri, 29 Jan 2010 03:00:06 -0800 (PST)
-In-Reply-To: <1264753735-7190-1-git-send-email-anuj.aggarwal@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51412 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753670Ab0A2LL4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jan 2010 06:11:56 -0500
+In-Reply-To: <722156.93716.qm@web52008.mail.re2.yahoo.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com
+To: Doug Kehn <rdkehn@yahoo.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, 2010-01-29 at 13:58 +0530, Anuj Aggarwal wrote:
-> Commit e9ff5eb2 (Fixing infinite loop in resume path) uses wrong AIC23
-> register in resume function because of which register writes happen
-> on some non-existing registers.
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Doug Kehn
+> Sent: Friday, January 29, 2010 2:57 AM
+> To: linux-omap@vger.kernel.org
+> Subject: AM3517 EVM defconfig
 > 
-> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> Hi All,
+> 
+> I received my AM3517 EVM.  It came with kernel 2.6.31-rc7 that looks
+> to have been built with omap3517_evm_defconfig.  linux-omap appears
+> to be at 2.6.33-rc5.  However, I don't see an
+> omap3517_evm_defconfig.
+> 
+> Does linux-omap contain a default config for the AM3517 EVM?  Does
+> omap_evm_defconfig, or omap_zoom3_defconfig correlate to
+> omap3517_evm_defconfig?
+> 
+[Hiremath, Vaibhav] Please use am3517_evm_defconfig.
 
-Acked-by: Liam Girdwood <lrg@slimlogic.co.uk>
+Thanks,
+Vaibhav
 
-
+> Thanks,
+> ...doug
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
