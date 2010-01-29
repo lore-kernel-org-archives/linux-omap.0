@@ -1,93 +1,114 @@
-From: "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
-Subject: [PATCH v2 2/2] DSPBRIDGE: Remove DRV_ProcUpdatestate function
-Date: Thu, 28 Jan 2010 19:18:56 -0600
-Message-ID: <818EF96F5A7CC84789DD014773DB095484859F64@dlee01.ent.ti.com>
+From: Ben Dooks <ben-linux@fluff.org>
+Subject: Re: [PATCH RE-SEND-2] ARM: MM: Add ARM_L1_CACHE_SHIFT_6 for handle
+	inside each ARCH Kconfig
+Date: Fri, 29 Jan 2010 04:29:45 +0000
+Message-ID: <20100129042945.GO9153@trinity.fluff.org>
+References: <1264641332-30800-1-git-send-email-kgene.kim@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51467 "EHLO arroyo.ext.ti.com"
+Received: from trinity.fluff.org ([89.16.178.74]:37672 "EHLO trinity.fluff.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755253Ab0A2BTD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jan 2010 20:19:03 -0500
-Content-Language: en-US
+	id S1756613Ab0A2E3t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jan 2010 23:29:49 -0500
+Content-Disposition: inline
+In-Reply-To: <1264641332-30800-1-git-send-email-kgene.kim@samsung.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Ameya.Palande@nokia.com" <Ameya.Palande@nokia.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
+To: Kukjin Kim <kgene.kim@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ben-linux@fluff.org
 
-In the previous patch, the function prototype was not removed.
+On Thu, Jan 28, 2010 at 10:15:32AM +0900, Kukjin Kim wrote:
+> This patch adds ARM_L1_CACHE_SHIFT_6 into arch/arm/Kconfig. Basically,
+> ARM L1 cache line size is 32Bytes. Therefore, whenever new ARCH which
+> has 64Bytes L1 cache line size is added, have to set ARM_L1_CACHE_SHIFT
+> to 6. That is, have to add/modify arch/arm/mm/Kconfig.
+> This patch is for handle it in each ARCH such as ARCH_OMAP3, ARCH_S5PC1XX,
+> and ARCH_S5PV210 which is in review.
+> This patch also adds selecting ARM_L1_CACHE_SHIFT_6 into Kconfig of
+> ARCH_OMAP3 and ARCH_S5PC1XX.
 
->From 22a3646710806c9390a48556ded889e19178db9e Mon Sep 17 00:00:00 2001
-From: Ivan Gomez <ivan.gomez@ti.com>
-Date: Thu, 28 Jan 2010 18:53:45 -0600
-Subject: [PATCH] DSPBRIDGE: Remove DRV_ProcUpdatestate function
+Note, 'this patch' is pretty much redudant, it is common knowledege and
+self-evident that this is a patch.
 
-The DRV_ProcUpdatestate function was only used in two places and
-it only assigned a value.
+I think the only problem with this patch is that the description could
+do with a re-write, as so:
 
-Signed-off-by: Ivan Gomez <ivan.gomez@ti.com>
----
- .../plat-omap/include/dspbridge/resourcecleanup.h  |    3 ---
- drivers/dsp/bridge/rmgr/drv.c                      |    9 ---------
- drivers/dsp/bridge/rmgr/drv_interface.c            |    4 ++--
- 3 files changed, 2 insertions(+), 14 deletions(-)
+   Add ARM_L1_CACHE_SHIFT_6 to arch/arm/Kconfig to allow CPUs with
+   L1 cache lines which are 64bytes to indicate this without having to
+   alter the arch/arm/mm/Kconfig entry each time.
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-index 4ded5aa..9e78170 100644
---- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-+++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-@@ -30,9 +30,6 @@ extern DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE pCtxt);
+   Update the mm Kconfig so that  ARM_L1_CACHE_SHIFT default value
+   uses this and change OMAP3 and SPC1XX to select ARM_L1_CACHE_SHIFT_6.
+
  
- extern DSP_STATUS DRV_RemoveAllNodeResElements(HANDLE pCtxt);
- 
--extern DSP_STATUS DRV_ProcUpdatestate(HANDLE pCtxt,
--				      enum GPP_PROC_RES_STATE resState);
--
- extern DSP_STATUS DRV_ProcSetPID(HANDLE pCtxt, s32 hProcess);
- 
- extern DSP_STATUS DRV_RemoveAllResources(HANDLE pPctxt);
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index fd09a83..b7817aa 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -83,15 +83,6 @@ static DSP_STATUS DRV_ProcFreeNodeRes(HANDLE hPCtxt);
- static DSP_STATUS  DRV_ProcFreeSTRMRes(HANDLE hPCtxt);
- extern enum NODE_STATE NODE_GetState(HANDLE hNode);
- 
--/* Update the state of process context */
--DSP_STATUS DRV_ProcUpdatestate(HANDLE hPCtxt, enum GPP_PROC_RES_STATE status)
--{
--	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
--	DSP_STATUS status1 = DSP_SOK;
--	pCtxt->resState = status;
--	return status1;
--}
--
- /* Allocate and add a node resource element
- * This function is called from .Node_Allocate.  */
- DSP_STATUS DRV_InsertNodeResElement(HANDLE hNode, HANDLE hNodeRes,
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index f3a67e2..09365bc 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -503,7 +503,7 @@ static int bridge_open(struct inode *ip, struct file *filp)
- 	 */
- 	pr_ctxt = MEM_Calloc(sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
- 	if (pr_ctxt)
--		DRV_ProcUpdatestate(pr_ctxt, PROC_RES_ALLOCATED);
-+		pr_ctxt->resSatate = PROC_RES_ALLOCATED;
- 	else
- 		status = -ENOMEM;
- 
-@@ -622,7 +622,7 @@ DSP_STATUS DRV_RemoveAllResources(HANDLE hPCtxt)
- 	DRV_RemoveAllSTRMResElements(pCtxt);
- 	DRV_RemoveAllNodeResElements(pCtxt);
- 	DRV_RemoveAllDMMResElements(pCtxt);
--	DRV_ProcUpdatestate(pCtxt, PROC_RES_FREED);
-+	pCtxt->resState = PROC_RES_FREED;
- 	return status;
- }
- #endif
+> Signed-off-by: Kukjin Kim <kgene.kim@samsung.com>
+> ---
+>  arch/arm/Kconfig           |    6 ++++++
+>  arch/arm/mm/Kconfig        |    2 +-
+>  arch/arm/plat-omap/Kconfig |    1 +
+>  3 files changed, 8 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> index a5602ec..13c07a6 100644
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -161,6 +161,11 @@ config ARCH_MTD_XIP
+>  config GENERIC_HARDIRQS_NO__DO_IRQ
+>  	def_bool y
+>  
+> +config ARM_L1_CACHE_SHIFT_6
+> +	bool
+> +	help
+> +	  Setting ARM L1 cache line size to 64 Bytes.
+> +
+>  if OPROFILE
+>  
+>  config OPROFILE_ARMV6
+> @@ -646,6 +651,7 @@ config ARCH_S5PC1XX
+>  	select GENERIC_GPIO
+>  	select HAVE_CLK
+>  	select CPU_V7
+> +	select ARM_L1_CACHE_SHIFT_6
+>  	help
+>  	  Samsung S5PC1XX series based systems
+>  
+> diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+> index 91617f7..8ca9fb7 100644
+> --- a/arch/arm/mm/Kconfig
+> +++ b/arch/arm/mm/Kconfig
+> @@ -779,5 +779,5 @@ config CACHE_XSC3L2
+>  
+>  config ARM_L1_CACHE_SHIFT
+>  	int
+> -	default 6 if ARCH_OMAP3 || ARCH_S5PC1XX
+> +	default 6 if ARM_L1_CACHE_SHIFT_6
+>  	default 5
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index e2ea04a..2e3eec6 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -22,6 +22,7 @@ config ARCH_OMAP3
+>  	bool "TI OMAP3"
+>  	select CPU_V7
+>  	select COMMON_CLKDEV
+> +	select ARM_L1_CACHE_SHIFT_6
+>  
+>  config ARCH_OMAP4
+>  	bool "TI OMAP4"
+> -- 
+> 1.6.2.5
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
 -- 
-1.5.4.3
+-- 
+Ben
+
+Q:      What's a light-year?
+A:      One-third less calories than a regular year.
+
