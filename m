@@ -1,48 +1,36 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/3] OMAP4: Enable L2 cache
-Date: Fri, 29 Jan 2010 17:00:30 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C09C67F9@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52110 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754549Ab0A2La7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jan 2010 06:30:59 -0500
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 0/2] Get rid of ifdef in board file
+Date: Fri, 29 Jan 2010 17:05:05 +0530
+Message-ID: <1264764905-16647-1-git-send-email-x0082077@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <rmk@arm.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Tony,
+Here is the Version 4 of the 2 patch series based 
+on top of Felipe's for-tony branch at [1].
 
-Here is the rebased series against 2.6.33-rc5 which adds L2 cache support 
-on OMAP4430. I have dropped the l2 errata patch from earlier post [1] in
-this series since it will go through Russell's patch system. The link
-for patches is [2]
+[1] git://gitorious.org/usb/usb.git for-tony
 
-The following changes since commit 92dcffb916d309aa01778bf8963a6932e4014d07:
-  Linus Torvalds (1):
-        Linux 2.6.33-rc5
+Maulik Mankad (2):
+[PATCH 1/2] USB : Add empty functions in otg.h
+[PATCH 2/2] ARM : OMAP : Remove #ifdef from board-omap3evm.c
 
-Santosh Shilimkar (3):
-      OMAP4: Add L2 Cache support
-      OMAP4: Clean the secondary_data from L2
-      OMAP4: Enable L2 Cache
+The Version 4 of the patch set fixes the build break 
+issue with Version 3 at [2]
 
- arch/arm/configs/omap_4430sdp_defconfig    |    2 +
- arch/arm/mach-omap2/board-4430sdp.c        |   33 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap-smp.c             |    2 +
- arch/arm/mm/Kconfig                        |    2 +-
- arch/arm/plat-omap/include/plat/omap44xx.h |    1 +
- 5 files changed, 39 insertions(+), 1 deletions(-)
+[2] http://patchwork.kernel.org/patch/70950/
 
-Regards,
-Santosh
+Patch 2/2 depends on Patch 1/2. 
 
-[1]	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg20553.html
-[2]	http://www.spinics.net/lists/arm-kernel/msg81122.html
+The patches are compile tested and do not report
+any checkpatch warnings.
 
+Thanks,
+Maulik
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
