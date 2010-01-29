@@ -1,7 +1,7 @@
 From: adharmap@codeaurora.org
-Subject: [PATCH v2 4/4] GIC: Dont disable INT in ack callback
-Date: Thu, 28 Jan 2010 23:06:04 -0800
-Message-ID: <1264748764-5319-5-git-send-email-adharmap@codeaurora.org>
+Subject: [PATCH v2 2/4] GIC: Prevent gic from crossing NR_IRQS
+Date: Thu, 28 Jan 2010 23:06:02 -0800
+Message-ID: <1264748764-5319-3-git-send-email-adharmap@codeaurora.org>
 References: <1264748764-5319-1-git-send-email-adharmap@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,62 +23,26 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Abhijeet Dharmapurikar <adharmap@quicinc.com>
 
-Unless gic_ack_irq is called from __do_IRQ, interrupt should not
-be disabled in the ack function. Disabling the interrupt causes
-handle_edge_irq to never enable it again.
+Prevent gic code from initializing interrupts beyon NR_IRQS.
 
 Signed-off-by: Abhijeet Dharmapurikar <adharmap@quicinc.com>
 ---
- arch/arm/common/gic.c |   31 ++++++++++++++++++-------------
- 1 files changed, 18 insertions(+), 13 deletions(-)
+ arch/arm/common/gic.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/common/gic.c b/arch/arm/common/gic.c
-index 240f6b6..f44167c 100644
+index cd92ce0..8a2bfae 100644
 --- a/arch/arm/common/gic.c
 +++ b/arch/arm/common/gic.c
-@@ -67,25 +67,30 @@ static inline unsigned int gic_irq(unsigned int irq)
- 
- /*
-  * Routines to acknowledge, disable and enable interrupts
-- *
-- * Linux assumes that when we're done with an interrupt we need to
-- * unmask it, in the same way we need to unmask an interrupt when
-- * we first enable it.
-- *
-- * The GIC has a separate notion of "end of interrupt" to re-enable
-- * an interrupt after handling, in order to support hardware
-- * prioritisation.
-- *
-- * We can make the GIC behave in the way that Linux expects by making
-- * our "acknowledge" routine disable the interrupt, then mark it as
-- * complete.
-  */
- static void gic_ack_irq(unsigned int irq)
- {
--	u32 mask = 1 << (irq % 32);
- 
- 	spin_lock(&irq_controller_lock);
-+
-+#ifndef CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ
-+	u32 mask = 1 << (irq % 32);
-+
-+	 /*
-+	  * Linux assumes that when we're done with an interrupt we need to
-+	  * unmask it, in the same way we need to unmask an interrupt when
-+	  * we first enable it.
-+	  *
-+	  * The GIC has a separate notion of "end of interrupt" to re-enable
-+	  * an interrupt after handling, in order to support hardware
-+	  * prioritisation.
-+	  *
-+	  * We can make the GIC behave in the way that Linux expects by making
-+	  * our "acknowledge" routine disable the interrupt, then mark it as
-+	  * complete.
-+	  */
- 	writel(mask, gic_dist_base(irq) + GIC_DIST_ENABLE_CLEAR + (gic_irq(irq) / 32) * 4);
-+#endif
- 	writel(gic_irq(irq), gic_cpu_base(irq) + GIC_CPU_EOI);
- 	spin_unlock(&irq_controller_lock);
- }
+@@ -237,7 +237,8 @@ void __init gic_dist_init(unsigned int gic_nr, void __iomem *base,
+ 	/*
+ 	 * Setup the Linux IRQ subsystem.
+ 	 */
+-	for (i = irq_start; i < gic_data[gic_nr].irq_offset + max_irq; i++) {
++	for (i = irq_start;
++		i < NR_IRQS && i < gic_data[gic_nr].irq_offset + max_irq; i++) {
+ 		set_irq_chip(i, &gic_chip);
+ 		set_irq_chip_data(i, &gic_data[gic_nr]);
+ 		set_irq_handler(i, handle_level_irq);
 -- 
 1.5.6.3
