@@ -1,52 +1,55 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 0/9] Initial multi-omap support for omap4
-Date: Sat, 30 Jan 2010 18:21:28 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C0A68EC6@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/9] Initial multi-omap support for omap4
+Date: Sat, 30 Jan 2010 08:18:13 -0800
+Message-ID: <20100130161813.GP23505@atomide.com>
 References: <20100130020036.10590.78028.stgit@baageli.muru.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C0A68EB3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51442 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751786Ab0A3Mvm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 30 Jan 2010 07:51:42 -0500
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50344 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751309Ab0A3QRx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Jan 2010 11:17:53 -0500
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C0A68EB3@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-PiA+IEhpIGFsbCwNCj4gPg0KPiA+IFRoZXNlIHBhdGNoZXMgYWxsb3cgY29tcGlsaW5nIGluIGFs
-c28gb21hcDQgaW50byB0aGUgbXVsdGktb21hcA0KPiA+IGNvbmZpZ3VyYXRpb24uIEFzIEkgZG9u
-J3QgeWV0IGhhdmUgb21hcDQsIEkndmUgb25seSBib290IHRlc3RlZA0KPiA+IHRoZXNlIG9uIG9t
-YXAyIGFuZCBvbWFwMy4NCj4gPg0KPiA+IFNvbWVib2R5IHdpdGggYW4gb21hcDQgYm9hcmQgcGxl
-YXNlIGJvb3QgdGVzdCB0aGVzZSB3aXRoIHRoZQ0KPiA+IG9tYXAzX2RlZmNvbmZpZyBhbmQgc2Vl
-IHdoYXQgaGFwcGVucy4uIFlvdSBtaWdodCB3YW50IHRvIGVuYWJsZQ0KPiA+IERFQlVHX0xMIGFu
-ZCBFQVJMWV9QUklOVEsgd2l0aCBlYXJseXByaW50ayBvbiB0aGUgY21kbGluZSB0b28uDQo+IExv
-b2tzIGxpa2UgdGhpcyBzZXJpZXMgaGF2ZSBzb21lIGRlcGVuZGVudCBzZXJpZXMgYmVjYXVzZSBp
-dCBkb2Vzbid0DQo+IGFwcGx5IG9uIG1haW5saW5lLg0KPiANCj4gU28gSSB0ZXN0ZWQgdGhpcyBk
-aXJlY3RseSBvbiBsaW51eC1vbWFwICJtdWx0aS1vbWFwNCIgYnJhbmNoLiBJdCBib290cyBzdWZm
-aWNpZW50bHkNCj4gYnV0IGRvZXNuJ3QgcHJvY2VlZCBhZnRlciAiYnJkX2luaXQiLiBEaWRuJ3Qg
-Z2V0IG11Y2ggdGltZSB0byBkZWJ1ZyBzbyBhdHRhY2hlZCBsb2cNCg0KU3RhbmQgYWxvbmUgb21h
-cF80NDMwc2RwX2RlZmNvbmZpZyBhbHNvIGRpZG4ndCBmdWxseSBib290IG9uIHRoZSBsaW51eC1v
-bWFwICJtdWx0aS1vbWFwNCIuDQpUaGUgbG9nIGJlbG93IHNob3dzIHRoYXQgdGhlIHNlcmlhbCBw
-bGF0Zm9ybSBkYXRhIGlzbid0IGNvbmZpZ3VyZWQgY29ycmVjdGx5LiANCg0KPDY+aW8gc2NoZWR1
-bGVyIGRlYWRsaW5lIHJlZ2lzdGVyZWQNCjw2PmlvIHNjaGVkdWxlciBjZnEgcmVnaXN0ZXJlZCAo
-ZGVmYXVsdCkNCjw2PlNlcmlhbDogODI1MC8xNjU1MCBkcml2ZXIsIDQgcG9ydHMsIElSUSBzaGFy
-aW5nIGVuYWJsZWQNCjw2PnNlcmlhbDgyNTAuMDogdHR5UzAgYXQgTU1JTyAweDQ4MDZhMDAwIChp
-cnEgPSAxMDQpIGlzIGEgU1QxNjY1NA0KPDY+c2VyaWFsODI1MC4xOiB0dHlTMCBhdCBNTUlPIDB4
-NDgwNmEwMDAgKGlycSA9IDEwNSkgaXMgYSBTVDE2NjU0DQoNCkJlbG93IHBhdGNoIHRvIGZpeCB0
-aGUgYm9vdCBmb3Igb21hcF80NDMwc2RwX2RlZmNvbmZpZy4gU21hbGwgdHlwbyByZWFsbHkuDQoN
-CmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L3NlcmlhbC5oIGIv
-YXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1DQppbmRleCA2N2ZmYTA4Li44M2RjZTRjIDEwMDY0NA0K
-LS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9zZXJpYWwuaA0KKysrIGIvYXJj
-aC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9zZXJpYWwuaA0KQEAgLTMzLDcgKzMzLDcgQEAN
-Cg0KIC8qIE9NQVA0IHNlcmlhbCBwb3J0cyAqLw0KICNkZWZpbmUgT01BUDRfVUFSVDFfQkFTRSAg
-ICAgICBPTUFQMl9VQVJUMV9CQVNFDQotI2RlZmluZSBPTUFQNF9VQVJUMl9CQVNFICAgICAgIE9N
-QVAyX1VBUlQxX0JBU0UNCisjZGVmaW5lIE9NQVA0X1VBUlQyX0JBU0UgICAgICAgT01BUDJfVUFS
-VDJfQkFTRQ0KICNkZWZpbmUgT01BUDRfVUFSVDNfQkFTRSAgICAgICAweDQ4MDIwMDAwDQogI2Rl
-ZmluZSBPTUFQNF9VQVJUNF9CQVNFICAgICAgIDB4NDgwNmUwMDANCg0KDQpGb3IgbXVsdGktb21h
-cCBidWlsZCwgZm9yIG5vdyBJIG5lZWQgdG8gZGlzYWJsZSANClsqXSBSZXNldCB1bnVzZWQgY2xv
-Y2tzIGR1cmluZyBib290DQoNCldpdGggdGhpcyBPTUFQNDQzMCBib290cyB3aXRoIG9tYXAzX2Rl
-ZmNvbmZpZyA6KQ0KDQpSZWdhcmRzLA0KU2FudG9zaA0KDQo=
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100130 03:07]:
+> Tony,
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
+> > Lindgren
+> > Sent: Saturday, January 30, 2010 7:31 AM
+> > To: linux-arm-kernel@lists.infradead.org
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: [PATCH 0/9] Initial multi-omap support for omap4
+> > 
+> > Hi all,
+> > 
+> > These patches allow compiling in also omap4 into the multi-omap
+> > configuration. As I don't yet have omap4, I've only boot tested
+> > these on omap2 and omap3.
+> > 
+> > Somebody with an omap4 board please boot test these with the
+> > omap3_defconfig and see what happens.. You might want to enable
+> > DEBUG_LL and EARLY_PRINTK with earlyprintk on the cmdline too.
+> Looks like this series have some dependent series because it doesn't
+> apply on mainline.
+
+Sorry, forgot to mention that these are against the earlier
+multi-omap patches. Basically stuff that's now queued for the
+merge window in the omap-for-linus branch.
+
+> So I tested this directly on linux-omap "multi-omap4" branch. It boots sufficiently
+> but doesn't proceed after "brd_init". Didn't get much time to debug so attached log
+
+Thanks for testing. Yeah these same are in the multi-omap4
+branch also.
+
+Regards,
+
+Tony
