@@ -1,304 +1,298 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 1/2 v2] DSPBRIDGE: remove dependency of mpu freq
-Date: Tue,  2 Feb 2010 01:17:25 -0600
-Message-ID: <1265095046-25253-2-git-send-email-nm@ti.com>
-References: <1265095046-25253-1-git-send-email-nm@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv4 2/8] OMAP: Powerdomains: Add support for INACTIVE state
+ on pwrdm level
+Date: Tue, 2 Feb 2010 01:03:52 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002020027130.19652@utopia.booyaka.com>
+References: <> <1264182951-9205-1-git-send-email-tero.kristo@nokia.com> <1264182951-9205-2-git-send-email-tero.kristo@nokia.com> <1264182951-9205-3-git-send-email-tero.kristo@nokia.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42809 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755038Ab0BBHRe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 02:17:34 -0500
-In-Reply-To: <1265095046-25253-1-git-send-email-nm@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39469 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755274Ab0BBIDy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 03:03:54 -0500
+In-Reply-To: <1264182951-9205-3-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Deepak Chitriki <deepak.chitriki@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Romit Dasgupta <romit@ti.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Current DSPBridge uses hardcoded logic which is not scalable
-across OMAP3 silicons. introduce a structure based implementation
-this allows for dsp frequency table indices to be generated runtime
-instead of being compile time.
+Hello Tero,
 
-Cc: Ameya Palande <ameya.palande@nokia.com>
-Cc: Deepak Chitriki <deepak.chitriki@ti.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Romit Dasgupta <romit@ti.com>
+On Fri, 22 Jan 2010, Tero Kristo wrote:
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Ref:
-v1: http://marc.info/?t=126402609100008&r=1&w=2
-v2: comment fixes from v1
+> Currently only ON, RET and OFF are supported, and ON is arguably broken as it
+> allows the powerdomain to enter INACTIVE state unless idle is prevented.
+> Now, pwrdm code prevents idle if ON is selected and hardware supervised
+> mode for the underlying clockdomain is enabled, and also adds support for
+> INACTIVE. This simplifies the control needed inside sleep code.
+> 
+> This patch also requires caching of next power state inside powerdomain code,
+> as INACTIVE is not directly supported by hardware. Next powerstate is thus
+> now stored for each powerdomain in next_state.
 
- arch/arm/mach-omap2/dspbridge.c                |   30 +++++++++++++++++++
- arch/arm/plat-omap/include/dspbridge/host_os.h |   13 +++++++-
- drivers/dsp/bridge/rmgr/drv_interface.c        |   38 ------------------------
- drivers/dsp/bridge/rmgr/node.c                 |    4 +-
- drivers/dsp/bridge/rmgr/proc.c                 |    4 +-
- drivers/dsp/bridge/wmd/io_sm.c                 |   20 ++++--------
- 6 files changed, 53 insertions(+), 56 deletions(-)
+Still thinking about this patch.  Am not sure it makes sense, or at least, 
+it is incomplete.  Consider:
 
-diff --git a/arch/arm/mach-omap2/dspbridge.c b/arch/arm/mach-omap2/dspbridge.c
-index ea109a3..8b71e5f 100644
---- a/arch/arm/mach-omap2/dspbridge.c
-+++ b/arch/arm/mach-omap2/dspbridge.c
-@@ -30,6 +30,23 @@ static struct dspbridge_platform_data dspbridge_pdata __initdata = {
- #endif
- };
- 
-+/**
-+ * get_opp_table() - populate the pdata with opp info
-+ * @pdata: pointer to pdata
-+ *
-+ * OPP table implementation is a variant b/w platforms.
-+ * the platform file now incorporates this into the build
-+ * itself and uses the interface to talk to platform specific
-+ * functions
-+ */
-+static int get_opp_table(struct dspbridge_platform_data *pdata)
-+{
-+#ifdef CONFIG_BRIDGE_DVFS
-+	/* Do nothing now  - fill based on PM implementation */
-+#endif
-+	return 0;
-+}
-+
- static int __init dspbridge_init(void)
- {
- 	struct platform_device *pdev;
-@@ -48,6 +65,10 @@ static int __init dspbridge_init(void)
- 	if (!pdev)
- 		goto err_out;
- 
-+	err = get_opp_table(pdata);
-+	if (err)
-+		goto err_out;
-+
- 	err = platform_device_add_data(pdev, pdata, sizeof(*pdata));
- 	if (err)
- 		goto err_out;
-@@ -60,6 +81,10 @@ static int __init dspbridge_init(void)
- 	return 0;
- 
- err_out:
-+	kfree(pdata->mpu_speeds);
-+	kfree(pdata->dsp_freq_table);
-+	pdata->mpu_speeds = NULL;
-+	pdata->dsp_freq_table = NULL;
- 	platform_device_put(pdev);
- 	return err;
- }
-@@ -67,6 +92,11 @@ module_init(dspbridge_init);
- 
- static void __exit dspbridge_exit(void)
- {
-+	struct dspbridge_platform_data *pdata = &dspbridge_pdata;
-+	kfree(pdata->mpu_speeds);
-+	kfree(pdata->dsp_freq_table);
-+	pdata->mpu_speeds = NULL;
-+	pdata->dsp_freq_table = NULL;
- 	platform_device_unregister(dspbridge_pdev);
- }
- module_exit(dspbridge_exit);
-diff --git a/arch/arm/plat-omap/include/dspbridge/host_os.h b/arch/arm/plat-omap/include/dspbridge/host_os.h
-index 066c4d7..ebf6a80 100644
---- a/arch/arm/plat-omap/include/dspbridge/host_os.h
-+++ b/arch/arm/plat-omap/include/dspbridge/host_os.h
-@@ -54,12 +54,23 @@
- #define INT_MAIL_MPU_IRQ        26
- #define INT_DSP_MMU_IRQ        28
- 
-+struct dsp_shm_freq_table {
-+	unsigned long u_volts;
-+	unsigned long dsp_freq;
-+	unsigned long thresh_min_freq;
-+	unsigned long thresh_max_freq;
-+};
- struct dspbridge_platform_data {
- 	void 	(*dsp_set_min_opp)(u8 opp_id);
- 	u8 	(*dsp_get_opp)(void);
- 	void 	(*cpu_set_freq)(unsigned long f);
- 	unsigned long (*cpu_get_freq)(void);
--	unsigned long mpu_speed[6];
-+	unsigned long *mpu_speeds;
-+	u8 mpu_num_speeds;
-+	unsigned long mpu_min_speed;
-+	unsigned long mpu_max_speed;
-+	struct dsp_shm_freq_table *dsp_freq_table;
-+	u8 dsp_num_speeds;
- 
- 	u32 phys_mempool_base;
- 	u32 phys_mempool_size;
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index a02a32a..5f75d49 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -169,44 +169,12 @@ static struct file_operations bridge_fops = {
- static u32 timeOut = 1000;
- #ifdef CONFIG_BRIDGE_DVFS
- static struct clk *clk_handle;
--s32 dsp_max_opps = VDD1_OPP5;
- #endif
- 
--/* Maximum Opps that can be requested by IVA*/
--/*vdd1 rate table*/
--#ifdef CONFIG_BRIDGE_DVFS
--const struct omap_opp  vdd1_rate_table_bridge[] = {
--	{0, 0, 0},
--	/*OPP1*/
--	{S125M, VDD1_OPP1, 0},
--	/*OPP2*/
--	{S250M, VDD1_OPP2, 0},
--	/*OPP3*/
--	{S500M, VDD1_OPP3, 0},
--	/*OPP4*/
--	{S550M, VDD1_OPP4, 0},
--	/*OPP5*/
--	{S600M, VDD1_OPP5, 0},
--};
--#endif
- #endif
- 
- struct dspbridge_platform_data *omap_dspbridge_pdata;
- 
--u32 vdd1_dsp_freq[6][4] = {
--	{0, 0, 0, 0},
--	/*OPP1*/
--	{0, 90000, 0, 86000},
--	/*OPP2*/
--	{0, 180000, 80000, 170000},
--	/*OPP3*/
--	{0, 360000, 160000, 340000},
--	/*OPP4*/
--	{0, 396000, 325000, 376000},
--	/*OPP5*/
--	{0, 430000, 355000, 430000},
--};
--
- #ifdef CONFIG_BRIDGE_DVFS
- static int dspbridge_post_scale(struct notifier_block *op, unsigned long level,
- 				void *ptr)
-@@ -228,9 +196,6 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
- 	u32 temp;
- 	dev_t   dev = 0 ;
- 	int     result;
--#ifdef CONFIG_BRIDGE_DVFS
--	int i = 0;
--#endif
- 	struct dspbridge_platform_data *pdata = pdev->dev.platform_data;
- 
- 	omap_dspbridge_dev = pdev;
-@@ -341,9 +306,6 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
- 	}
- 	if (DSP_SUCCEEDED(initStatus)) {
- #ifdef CONFIG_BRIDGE_DVFS
--		for (i = 0; i < 6; i++)
--			pdata->mpu_speed[i] = vdd1_rate_table_bridge[i].rate;
--
- 		clk_handle = clk_get(NULL, "iva2_ck");
- 		if (!clk_handle) {
- 			GT_0trace(driverTrace, GT_7CLASS,
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 5cbe161..2eee9db 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -1257,7 +1257,7 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
- 		/* Boost the OPP level to max level that DSP can be requested */
- #if defined(CONFIG_BRIDGE_DVFS) && !defined(CONFIG_CPU_FREQ)
- 		if (pdata->cpu_set_freq) {
--			(*pdata->cpu_set_freq)(pdata->mpu_speed[VDD1_OPP3]);
-+			(*pdata->cpu_set_freq)(pdata->mpu_max_speed);
- 
- 			if (pdata->dsp_get_opp) {
- 				GT_1trace(NODE_debugMask, GT_4CLASS, "opp level"
-@@ -1283,7 +1283,7 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
- 		/* Request the lowest OPP level*/
- #if defined(CONFIG_BRIDGE_DVFS) && !defined(CONFIG_CPU_FREQ)
- 		if (pdata->cpu_set_freq) {
--			(*pdata->cpu_set_freq)(pdata->mpu_speed[VDD1_OPP1]);
-+			(*pdata->cpu_set_freq)(pdata->mpu_min_speed);
- 
- 			if (pdata->dsp_get_opp) {
- 				GT_1trace(NODE_debugMask, GT_4CLASS, "opp level"
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 491661f..22dc743 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -1128,7 +1128,7 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
- 	/* Boost the OPP level to Maximum level supported by baseport*/
- #if defined(CONFIG_BRIDGE_DVFS) && !defined(CONFIG_CPU_FREQ)
- 	if (pdata->cpu_set_freq)
--		(*pdata->cpu_set_freq)(pdata->mpu_speed[VDD1_OPP5]);
-+		(*pdata->cpu_set_freq)(pdata->mpu_max_speed);
- #endif
- 		status = COD_LoadBase(hCodMgr, iArgc, (char **)aArgv,
- 				     DEV_BrdWriteFxn,
-@@ -1150,7 +1150,7 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
- 	/* Requesting the lowest opp supported*/
- #if defined(CONFIG_BRIDGE_DVFS) && !defined(CONFIG_CPU_FREQ)
- 	if (pdata->cpu_set_freq)
--		(*pdata->cpu_set_freq)(pdata->mpu_speed[VDD1_OPP1]);
-+		(*pdata->cpu_set_freq)(pdata->mpu_min_speed);
- #endif
- 
- 	}
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 39b37a6..7630057 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -159,13 +159,6 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
- 				  struct COD_MANAGER *hCodMan,
- 				  u32 dwGPPBasePA);
- 
--#ifdef CONFIG_BRIDGE_DVFS
--/* The maximum number of OPPs that are supported */
--extern s32 dsp_max_opps;
--/* The Vdd1 opp table information */
--extern u32 vdd1_dsp_freq[6][4] ;
--#endif
--
- #if GT_TRACE
- static struct GT_Mask dsp_trace_mask = { NULL, NULL }; /* GT trace variable */
- #endif
-@@ -1812,29 +1805,30 @@ DSP_STATUS IO_SHMsetting(struct IO_MGR *hIOMgr, u8 desc, void *pArgs)
- 		 * Update the shared memory with the voltage, frequency,
- 		 * min and max frequency values for an OPP.
- 		 */
--		for (i = 0; i <= dsp_max_opps; i++) {
-+		for (i = 0; i <= pdata->dsp_num_speeds; i++) {
- 			hIOMgr->pSharedMem->oppTableStruct.oppPoint[i].voltage =
--				vdd1_dsp_freq[i][0];
-+				pdata->dsp_freq_table[i].u_volts;
- 			DBG_Trace(DBG_LEVEL5, "OPP shared memory -voltage: "
- 				 "%d\n", hIOMgr->pSharedMem->oppTableStruct.
- 				 oppPoint[i].voltage);
- 			hIOMgr->pSharedMem->oppTableStruct.oppPoint[i].
--				frequency = vdd1_dsp_freq[i][1];
-+				frequency = pdata->dsp_freq_table[i].dsp_freq;
- 			DBG_Trace(DBG_LEVEL5, "OPP shared memory -frequency: "
- 				 "%d\n", hIOMgr->pSharedMem->oppTableStruct.
- 				 oppPoint[i].frequency);
- 			hIOMgr->pSharedMem->oppTableStruct.oppPoint[i].minFreq =
--				vdd1_dsp_freq[i][2];
-+				pdata->dsp_freq_table[i].thresh_min_freq;
- 			DBG_Trace(DBG_LEVEL5, "OPP shared memory -min value: "
- 				 "%d\n", hIOMgr->pSharedMem->oppTableStruct.
- 				  oppPoint[i].minFreq);
- 			hIOMgr->pSharedMem->oppTableStruct.oppPoint[i].maxFreq =
--				vdd1_dsp_freq[i][3];
-+				pdata->dsp_freq_table[i].thresh_max_freq;
- 			DBG_Trace(DBG_LEVEL5, "OPP shared memory -max value: "
- 				 "%d\n", hIOMgr->pSharedMem->oppTableStruct.
- 				 oppPoint[i].maxFreq);
- 		}
--		hIOMgr->pSharedMem->oppTableStruct.numOppPts = dsp_max_opps;
-+		hIOMgr->pSharedMem->oppTableStruct.numOppPts =
-+			pdata->dsp_num_speeds;
- 		DBG_Trace(DBG_LEVEL5, "OPP shared memory - max OPP number: "
- 			 "%d\n", hIOMgr->pSharedMem->oppTableStruct.numOppPts);
- 		/* Update the current OPP number */
--- 
-1.6.3.3
+1. In the current code, pwrdm->next_state can never be initialized to 
+INACTIVE during pwrdm_register(), but this should be possible.  To do 
+this, the code needs to iterate through the powerdomain's clockdomains and 
+determine whether they are in hardware-supervised idle or 
+software-supervised idle.
 
+2. What should happen to pwrdm->next_state if someone calls 
+omap2_clkdm_allow_idle(), omap2_clkdm_deny_idle(), omap2_clkdm_sleep(), or 
+omap2_clkdm_wakeup()?  Right now, nothing will happen, which is a problem 
+since calling one of these functions could mean that the powerdomain's 
+possible next state may change from ON to INACTIVE or vice-versa.  A 
+similar problem appears to exist with hwsup_changed: other code may have 
+changed the clockdomain autoidle state, which may cause hwsup_changed to 
+not reflect reality any longer.
+
+...
+
+I am still not sure that the idea of setting the powerdomain's next power 
+state to INACTIVE makes sense.  The TRM claims that a powerdomain can be 
+"inactive," but this seems to be just poor documentation.  To say that a 
+powerdomain can be inactive is really just to say that the powerdomain is 
+'ON' -- powered -- but all of its subsidiary clockdomain activity states 
+are INACTIVE.  Between ON and INACTIVE, the power state of the powerdomain 
+is the same from the hardware's point of view -- but the differences 
+between the OFF, RET, and ON power states are distinct.  And from the PRCM 
+point of view, the only place that an INACTIVE power domain state shows up 
+is in the powerdomain current power state register.
+
+Perhaps a separate code layer that incorporates your ideas is worthwhile 
+for use by pm*.c and cpuidle*.c, in order to simplify that code.  But in 
+the current powerdomain and clockdomain code, when we depart from what the 
+hardware is capable of, the code needs to cover all of the software corner 
+cases that can affect state transitions.  Otherwise we probably should 
+stick with the simplicity of following the hardware's registers and 
+capabilities.
+
+Let's discuss further if you are interested.  Perhaps I simply don't 
+understand the patches sufficiently...
+
+A few other thoughts below:
+
+> 
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> ---
+>  arch/arm/mach-omap2/powerdomain.c             |   37 +++++++++++++++++++++----
+>  arch/arm/mach-omap2/powerdomains34xx.h        |   18 ++++++------
+>  arch/arm/plat-omap/include/plat/powerdomain.h |    5 +++
+>  3 files changed, 45 insertions(+), 15 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 26b3f3e..bdfbbea 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -110,8 +110,8 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
+>  static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>  {
+>  
+> -	int prev;
+> -	int state;
+> +	u8 prev;
+> +	u8 state;
+>  
+>  	if (pwrdm == NULL)
+>  		return -EINVAL;
+> @@ -218,7 +218,9 @@ int pwrdm_register(struct powerdomain *pwrdm)
+>  
+>  	pr_debug("powerdomain: registered %s\n", pwrdm->name);
+>  	ret = 0;
+> -
+> +	pwrdm->next_state =
+> +		prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
+> +			OMAP_POWERSTATE_MASK);
+
+(see above)
+
+>  pr_unlock:
+>  	write_unlock_irqrestore(&pwrdm_rwlock, flags);
+>  
+> @@ -699,19 +701,43 @@ int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm)
+>   */
+>  int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>  {
+> +	u8 prg_pwrst;
+> +
+>  	if (!pwrdm)
+>  		return -EINVAL;
+>  
+> +	if (pwrdm->next_state == pwrst)
+> +		return 0;
+> +
+>  	if (!(pwrdm->pwrsts & (1 << pwrst)))
+>  		return -EINVAL;
+>  
+>  	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
+>  		 pwrdm->name, pwrst);
+>  
+> +	/* INACTIVE is reserved, so we program pwrdm as ON */
+> +	if (pwrst == PWRDM_POWER_INACTIVE)
+> +		prg_pwrst = PWRDM_POWER_ON;
+> +	else
+> +		prg_pwrst = pwrst;
+> +
+>  	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
+> -			     (pwrst << OMAP_POWERSTATE_SHIFT),
+> +			     (prg_pwrst << OMAP_POWERSTATE_SHIFT),
+>  			     pwrdm->prcm_offs, PM_PWSTCTRL);
+>  
+> +	/* If next state is ON, prevent idle */
+> +	if (pwrst == PWRDM_POWER_ON) {
+> +		if (omap2_clkdm_get_hwsup(pwrdm->pwrdm_clkdms[0])) {
+> +			omap2_clkdm_deny_idle(pwrdm->pwrdm_clkdms[0]);
+> +			pwrdm->hwsup_changed = 1;
+> +		}
+> +	} else if (pwrdm->hwsup_changed) {
+> +		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+> +		pwrdm->hwsup_changed = 0;
+> +	}
+
+For completeness, since this is code that is intended to be chip-agnostic, 
+this code should probably iterate over all of the clockdomains in the 
+powerdomains above, rather than assume that there is only one clockdomain 
+in each powerdomain that is important.
+
+> +
+> +	pwrdm->next_state = pwrst;
+> +
+>  	return 0;
+>  }
+>  
+> @@ -728,8 +754,7 @@ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
+>  	if (!pwrdm)
+>  		return -EINVAL;
+>  
+> -	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
+> -					OMAP_POWERSTATE_MASK);
+> +	return pwrdm->next_state;
+>  }
+>  
+>  /**
+> diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+> index 588f7e0..7a7d8d3 100644
+> --- a/arch/arm/mach-omap2/powerdomains34xx.h
+> +++ b/arch/arm/mach-omap2/powerdomains34xx.h
+> @@ -165,7 +165,7 @@ static struct powerdomain iva2_pwrdm = {
+>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+>  	.dep_bit	  = OMAP3430_PM_WKDEP_MPU_EN_IVA2_SHIFT,
+>  	.wkdep_srcs	  = iva2_wkdeps,
+> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
+> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+>  	.banks		  = 4,
+>  	.pwrsts_mem_ret	  = {
+> @@ -188,7 +188,7 @@ static struct powerdomain mpu_34xx_pwrdm = {
+>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+>  	.dep_bit	  = OMAP3430_EN_MPU_SHIFT,
+>  	.wkdep_srcs	  = mpu_34xx_wkdeps,
+> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
+> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+>  	.flags		  = PWRDM_HAS_MPU_QUIRK,
+>  	.banks		  = 1,
+> @@ -207,7 +207,7 @@ static struct powerdomain core_34xx_pre_es3_1_pwrdm = {
+>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
+>  					   CHIP_IS_OMAP3430ES2 |
+>  					   CHIP_IS_OMAP3430ES3_0),
+> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
+> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+>  	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
+>  	.banks		  = 2,
+>  	.pwrsts_mem_ret	  = {
+> @@ -225,7 +225,7 @@ static struct powerdomain core_34xx_es3_1_pwrdm = {
+>  	.name		  = "core_pwrdm",
+>  	.prcm_offs	  = CORE_MOD,
+>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
+> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
+> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+>  	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
+>  	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
+>  	.banks		  = 2,
+> @@ -247,7 +247,7 @@ static struct powerdomain dss_pwrdm = {
+>  	.dep_bit	  = OMAP3430_PM_WKDEP_MPU_EN_DSS_SHIFT,
+>  	.wkdep_srcs	  = cam_dss_wkdeps,
+>  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
+> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
+> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
+>  	.banks		  = 1,
+>  	.pwrsts_mem_ret	  = {
+
+Is the SGX power domain missing here - shouldn't it also be capable of 
+entering INACTIVE?
+
+> @@ -287,7 +287,7 @@ static struct powerdomain cam_pwrdm = {
+>  	.prcm_offs	  = OMAP3430_CAM_MOD,
+>  	.wkdep_srcs	  = cam_dss_wkdeps,
+>  	.sleepdep_srcs	  = cam_gfx_sleepdeps,
+> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
+> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
+>  	.banks		  = 1,
+>  	.pwrsts_mem_ret	  = {
+> @@ -305,7 +305,7 @@ static struct powerdomain per_pwrdm = {
+>  	.dep_bit	  = OMAP3430_EN_PER_SHIFT,
+>  	.wkdep_srcs	  = per_usbhost_wkdeps,
+>  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
+> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
+> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+>  	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+>  	.banks		  = 1,
+>  	.pwrsts_mem_ret	  = {
+> @@ -327,7 +327,7 @@ static struct powerdomain neon_pwrdm = {
+>  	.prcm_offs	  = OMAP3430_NEON_MOD,
+>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+>  	.wkdep_srcs	  = neon_wkdeps,
+> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
+> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
+>  };
+>  
+> @@ -337,7 +337,7 @@ static struct powerdomain usbhost_pwrdm = {
+>  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+>  	.wkdep_srcs	  = per_usbhost_wkdeps,
+>  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
+> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
+> +	.pwrsts		  = PWRSTS_OFF_RET_INA_ON,
+>  	.pwrsts_logic_ret = PWRDM_POWER_RET,
+>  	/*
+>  	 * REVISIT: Enabling usb host save and restore mechanism seems to
+> diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+> index 0b96005..17377c3 100644
+> --- a/arch/arm/plat-omap/include/plat/powerdomain.h
+> +++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+> @@ -39,6 +39,9 @@
+>  
+>  #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
+>  
+> +#define PWRSTS_OFF_RET_INA_ON	(PWRSTS_OFF_RET_ON | \
+> +				 (1 << PWRDM_POWER_INACTIVE))
+> +
+>  
+>  /* Powerdomain flags */
+>  #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
+> @@ -123,6 +126,8 @@ struct powerdomain {
+>  	struct list_head node;
+>  
+>  	int state;
+> +	int next_state;
+> +	int hwsup_changed;
+
+Both of these variables can be u8.  Also it would be good to have the 
+kerneldoc documentation for struct powerdomain updated when patches change 
+the structure.
+
+>  	unsigned state_counter[PWRDM_MAX_PWRSTS];
+>  
+>  #ifdef CONFIG_PM_DEBUG
+> -- 
+> 1.5.4.3
+
+regards,
+
+- Paul
