@@ -1,359 +1,120 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv5 6/9] OMAP: Powerdomains: Add support for checking if pwrdm/clkdm can idle
-Date: Tue,  2 Feb 2010 16:52:24 +0200
-Message-ID: <1265122347-2233-7-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCHv5 3/9] OMAP3: CPUidle: Fixed support for ON / INACTIVE states
+Date: Tue,  2 Feb 2010 16:52:21 +0200
+Message-ID: <1265122347-2233-4-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1265122347-2233-1-git-send-email-tero.kristo@nokia.com>
  <1265122347-2233-2-git-send-email-tero.kristo@nokia.com>
  <1265122347-2233-3-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-4-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-5-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-6-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56653 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755893Ab0BBNDP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 08:03:15 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D36Gx003147
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:03:12 +0200
+Received: from smtp.nokia.com ([192.100.122.233]:52305 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754820Ab0BBNDR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 08:03:17 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D2nq2028244
+	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:03:14 +0200
 Received: from localhost.localdomain (sokoban.nmp.nokia.com [172.22.215.13])
-	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D2wJh029178
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:03:05 +0200
-In-Reply-To: <1265122347-2233-6-git-send-email-tero.kristo@nokia.com>
+	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D2wJe029178
+	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:03:02 +0200
+In-Reply-To: <1265122347-2233-3-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Tero Kristo <tero.kristo@nokia.com>
 
-pwrdm_can_idle(pwrdm) will check if the specified powerdomain can enter
-idle. This is done by checking all clockdomains under the powerdomain
-if they can idle also.
-
-omap2_clkdm_can_idle(clkdm) will check if the specified clockdomain can
-enter idle. This checks the functional clocks and idle status bits of the
-domain according to following rules:
-1) functional clock check
-  * get FCLK register content
-  * ignore all clocks defined in idle_def.fclk_ignore
-  * if any active functional clocks remain, domain can't idle
-2) idle status check
-  * get IDLEST register content
-  * inverse it (any non-idle blocks are now as 1)
-  * mask against idle_def.idlest_mask
-  * if any bits remain high, domain can't idle
-
-These calls can be used e.g. inside cpuidle to decide which power states
-core and mpu should enter during idle, as there are certain dependencies
-between wakeup capabilities and reset logic.
+New powerdomain support code for INACTIVE state removes the need to control
+clockdomains directly from cpuidle. Also, cpuidle state definitions can now
+directly support ON / INACTIVE simplifying the implementation.
 
 Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/clockdomain.c             |   32 ++++++++
- arch/arm/mach-omap2/clockdomains.h            |  106 +++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.c             |   25 ++++++
- arch/arm/plat-omap/include/plat/clockdomain.h |   17 ++++
- arch/arm/plat-omap/include/plat/powerdomain.h |    1 +
- 5 files changed, 181 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   36 ++++++------------------------------
+ 1 files changed, 6 insertions(+), 30 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index dd285f0..63020d4 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -472,6 +472,38 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 1cfa5a6..86f580b 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -91,20 +91,6 @@ static int omap3_idle_bm_check(void)
  	return 0;
  }
  
-+
-+/**
-+ * omap2_clkdm_can_idle - check if clockdomain has any active clocks or not
-+ * @clkdm: struct clockdomain *
-+ *
-+ * Checks if the clockdomain has any active clock or not, i.e. whether it
-+ * can enter idle. Returns -EINVAL if clkdm is NULL; 0 if unable to idle;
-+ * 1 if can idle.
-+ */
-+int omap2_clkdm_can_idle(struct clockdomain *clkdm)
-+{
-+	int i;
-+
-+	if (!clkdm)
-+		return -EINVAL;
-+
-+	for (i = 0; i < clkdm->clk_reg_num; i++) {
-+		u32 idlest, fclk;
-+
-+		fclk = cm_read_mod_reg(clkdm->pwrdm.ptr->prcm_offs,
-+				CM_FCLKEN + 4 * i);
-+		if (fclk & ~clkdm->idle_def[i].fclk_ignore)
-+			return 0;
-+
-+		idlest = cm_read_mod_reg(clkdm->pwrdm.ptr->prcm_offs,
-+				CM_IDLEST + 4 * i);
-+		if (~idlest & clkdm->idle_def[i].idlest_mask)
-+			return 0;
-+	}
-+	return 1;
-+}
-+
+-static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
+-				struct clockdomain *clkdm)
+-{
+-	omap2_clkdm_allow_idle(clkdm);
+-	return 0;
+-}
+-
+-static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
+-				struct clockdomain *clkdm)
+-{
+-	omap2_clkdm_deny_idle(clkdm);
+-	return 0;
+-}
+-
  /**
-  * omap2_clkdm_allow_idle - enable hwsup idle transitions for clkdm
-  * @clkdm: struct clockdomain *
-diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
-index c4ee076..65e2f69 100644
---- a/arch/arm/mach-omap2/clockdomains.h
-+++ b/arch/arm/mach-omap2/clockdomains.h
-@@ -167,6 +167,12 @@ static struct clockdomain iva2_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_IVA2_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.clk_reg_num	= 1,
-+	.idle_def	= {
-+		[0] = {
-+			.idlest_mask = OMAP3430_ST_IVA2,
-+		},
-+	},
- };
+  * omap3_enter_idle - Programs OMAP3 to enter the specified state
+  * @dev: cpuidle device
+@@ -135,25 +121,15 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+ 			core_state = PWRDM_POWER_RET;
+ 	}
  
- static struct clockdomain gfx_3430es1_clkdm = {
-@@ -183,6 +189,12 @@ static struct clockdomain sgx_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
-+	.clk_reg_num	= 1,
-+	.idle_def	= {
-+		[0] = {
-+			.idlest_mask = OMAP3430ES2_ST_SGX_SHIFT,
-+		},
-+	},
- };
+-	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
+-	pwrdm_set_next_pwrst(core_pd, core_state);
++	omap3_pwrdm_set_next_pwrst(mpu_pd, mpu_state);
++	omap3_pwrdm_set_next_pwrst(core_pd, core_state);
  
- /*
-@@ -206,6 +218,57 @@ static struct clockdomain core_l3_34xx_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L3_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.clk_reg_num	= 3,
-+	.idle_def	= {
-+		[0] = {
-+			/* UARTs are controlled by idle loop so ignore */
-+			.fclk_ignore = OMAP3430_EN_UART2 |
-+				OMAP3430_EN_UART1,
-+			/*
-+			 * Reason for IDLEST ignores:
-+			 * - SDRC and OMAPCTRL controlled by HW
-+			 * - HSOTGUSB_IDLE bit is autoidled by HW
-+			 * - MAILBOX is controlled by HW
-+			 */
-+			.idlest_mask =
-+				OMAP3430ES2_ST_MMC3_MASK |
-+				OMAP3430_ST_ICR_MASK |
-+				OMAP3430_ST_AES2_MASK |
-+				OMAP3430_ST_SHA12_MASK |
-+				OMAP3430_ST_DES2_MASK |
-+				OMAP3430_ST_MMC2_MASK |
-+				OMAP3430_ST_MMC1_MASK |
-+				OMAP3430_ST_MSPRO_MASK |
-+				OMAP3430_ST_HDQ_MASK |
-+				OMAP3430_ST_MCSPI4_MASK |
-+				OMAP3430_ST_MCSPI3_MASK |
-+				OMAP3430_ST_MCSPI2_MASK |
-+				OMAP3430_ST_MCSPI1_MASK |
-+				OMAP3430_ST_I2C3_MASK |
-+				OMAP3430_ST_I2C2_MASK |
-+				OMAP3430_ST_I2C1_MASK |
-+				OMAP3430_ST_GPT11_MASK |
-+				OMAP3430_ST_GPT10_MASK |
-+				OMAP3430_ST_MCBSP5_MASK |
-+				OMAP3430_ST_MCBSP1_MASK |
-+				OMAP3430ES2_ST_SSI_IDLE_MASK |
-+				OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK |
-+				OMAP3430_ST_D2D_MASK |
-+				OMAP3430_ST_SDMA_MASK |
-+				OMAP3430_ST_SSI_STDBY_MASK,
-+		},
-+		[1] = {
-+			.idlest_mask = OMAP3430_ST_PKA_MASK |
-+				OMAP3430_ST_AES1_MASK |
-+				OMAP3430_ST_RNG_MASK |
-+				OMAP3430_ST_SHA11_MASK |
-+				OMAP3430_ST_DES1_MASK,
-+		},
-+		[2] = {
-+			.idlest_mask = OMAP3430ES2_ST_USBTLL_MASK |
-+				OMAP3430ES2_ST_CPEFUSE_MASK,
-+		},
-+	},
- };
+ 	if (omap_irq_pending() || need_resched())
+ 		goto return_sleep_time;
  
- static struct clockdomain core_l4_34xx_clkdm = {
-@@ -222,6 +285,13 @@ static struct clockdomain dss_34xx_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.clk_reg_num	= 1,
-+	.idle_def	= {
-+		[0] = {
-+			.idlest_mask = OMAP3430ES2_ST_DSS_IDLE_MASK |
-+				OMAP3430ES2_ST_DSS_STDBY_MASK,
-+		},
-+	},
- };
+-	if (cx->type == OMAP3_STATE_C1) {
+-		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
+-		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
+-	}
+-
+ 	/* Execute ARM wfi */
+ 	omap_sram_idle();
  
- static struct clockdomain cam_clkdm = {
-@@ -230,6 +300,12 @@ static struct clockdomain cam_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_CAM_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.clk_reg_num	= 1,
-+	.idle_def	= {
-+		[0] = {
-+			.idlest_mask = OMAP3430_ST_CAM,
-+		},
-+	},
- };
+-	if (cx->type == OMAP3_STATE_C1) {
+-		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
+-		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
+-	}
+-
+ return_sleep_time:
+ 	getnstimeofday(&ts_postidle);
+ 	ts_idle = timespec_sub(ts_postidle, ts_preidle);
+@@ -246,8 +222,8 @@ void omap_init_power_states(void)
+ 			cpuidle_params_table[OMAP3_STATE_C2].wake_latency;
+ 	omap3_power_states[OMAP3_STATE_C2].threshold =
+ 			cpuidle_params_table[OMAP3_STATE_C2].threshold;
+-	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_ON;
+-	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_INACTIVE;
++	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_INACTIVE;
+ 	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID;
  
- static struct clockdomain usbhost_clkdm = {
-@@ -238,6 +314,13 @@ static struct clockdomain usbhost_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
- 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
-+	.clk_reg_num	= 1,
-+	.idle_def	= {
-+		[0] = {
-+			.idlest_mask = OMAP3430ES2_ST_USBHOST_IDLE_MASK |
-+				OMAP3430ES2_ST_USBHOST_STDBY_MASK,
-+		},
-+	},
- };
+ 	/* C3 . MPU CSWR + Core inactive */
+@@ -261,7 +237,7 @@ void omap_init_power_states(void)
+ 	omap3_power_states[OMAP3_STATE_C3].threshold =
+ 			cpuidle_params_table[OMAP3_STATE_C3].threshold;
+ 	omap3_power_states[OMAP3_STATE_C3].mpu_state = PWRDM_POWER_RET;
+-	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_INACTIVE;
+ 	omap3_power_states[OMAP3_STATE_C3].flags = CPUIDLE_FLAG_TIME_VALID |
+ 				CPUIDLE_FLAG_CHECK_BM;
  
- static struct clockdomain per_clkdm = {
-@@ -246,6 +329,29 @@ static struct clockdomain per_clkdm = {
- 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.clk_reg_num	= 1,
-+	.idle_def	= {
-+		[0] = {
-+			.fclk_ignore = OMAP3430_ST_UART3_MASK,
-+			/*
-+			 * GPIO2...6 are dropped out from this mask
-+			 * as they are always non-idle, UART3 is also
-+			 * out as it is handled by idle loop
-+			 * */
-+			.idlest_mask = OMAP3430_ST_WDT3_MASK |
-+				OMAP3430_ST_GPT9_MASK |
-+				OMAP3430_ST_GPT8_MASK |
-+				OMAP3430_ST_GPT7_MASK |
-+				OMAP3430_ST_GPT6_MASK |
-+				OMAP3430_ST_GPT5_MASK |
-+				OMAP3430_ST_GPT4_MASK |
-+				OMAP3430_ST_GPT3_MASK |
-+				OMAP3430_ST_GPT2_MASK |
-+				OMAP3430_ST_MCBSP4_MASK |
-+				OMAP3430_ST_MCBSP3_MASK |
-+				OMAP3430_ST_MCBSP2_MASK,
-+		},
-+	},
- };
+@@ -276,7 +252,7 @@ void omap_init_power_states(void)
+ 	omap3_power_states[OMAP3_STATE_C4].threshold =
+ 			cpuidle_params_table[OMAP3_STATE_C4].threshold;
+ 	omap3_power_states[OMAP3_STATE_C4].mpu_state = PWRDM_POWER_OFF;
+-	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_INACTIVE;
+ 	omap3_power_states[OMAP3_STATE_C4].flags = CPUIDLE_FLAG_TIME_VALID |
+ 				CPUIDLE_FLAG_CHECK_BM;
  
- /*
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 26b3f3e..cdbe7a9 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -1199,6 +1199,31 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
- 	return 0;
- }
- 
-+/**
-+ * pwrdm_can_idle - check if the powerdomain can enter idle
-+ * @pwrdm: struct powerdomain * the powerdomain to check status of
-+ *
-+ * Checks all associated clockdomains if they can idle or not.
-+ * Returns 1 if the powerdomain can idle, 0 if not.
-+ */
-+int pwrdm_can_idle(struct powerdomain *pwrdm)
-+{
-+	unsigned long flags;
-+	int i;
-+	int ret = 1;
-+
-+	read_lock_irqsave(&pwrdm_rwlock, flags);
-+
-+	for (i = 0; i < PWRDM_MAX_CLKDMS; i++)
-+		if (pwrdm->pwrdm_clkdms[i] &&
-+		    !omap2_clkdm_can_idle(pwrdm->pwrdm_clkdms[i]))
-+			ret = 0;
-+
-+	read_unlock_irqrestore(&pwrdm_rwlock, flags);
-+
-+	return ret;
-+}
-+
- int pwrdm_state_switch(struct powerdomain *pwrdm)
- {
- 	return _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-diff --git a/arch/arm/plat-omap/include/plat/clockdomain.h b/arch/arm/plat-omap/include/plat/clockdomain.h
-index eb73482..4ccb8c0 100644
---- a/arch/arm/plat-omap/include/plat/clockdomain.h
-+++ b/arch/arm/plat-omap/include/plat/clockdomain.h
-@@ -30,6 +30,12 @@
- #define CLKDM_CAN_SWSUP		(CLKDM_CAN_FORCE_SLEEP | CLKDM_CAN_FORCE_WAKEUP)
- #define CLKDM_CAN_HWSUP_SWSUP	(CLKDM_CAN_SWSUP | CLKDM_CAN_HWSUP)
- 
-+/*
-+ * Maximum number of FCLK register masks that can be associated with a
-+ * clockdomain. CORE powerdomain on OMAP3 is the worst case
-+ */
-+#define CLKDM_MAX_CLK_REGS			3
-+
- /* OMAP24XX CM_CLKSTCTRL_*.AUTOSTATE_* register bit values */
- #define OMAP24XX_CLKSTCTRL_DISABLE_AUTO		0x0
- #define OMAP24XX_CLKSTCTRL_ENABLE_AUTO		0x1
-@@ -61,6 +67,11 @@ struct clkdm_pwrdm_autodep {
- 
- };
- 
-+struct clkdm_idle_def {
-+	u32 fclk_ignore;
-+	u32 idlest_mask;
-+};
-+
- struct clockdomain {
- 
- 	/* Clockdomain name */
-@@ -83,6 +94,10 @@ struct clockdomain {
- 	/* OMAP chip types that this clockdomain is valid on */
- 	const struct omap_chip_id omap_chip;
- 
-+	/* For idle checks */
-+	u8 clk_reg_num;
-+	struct clkdm_idle_def idle_def[CLKDM_MAX_CLK_REGS];
-+
- 	/* Usecount tracking */
- 	atomic_t usecount;
- 
-@@ -108,4 +123,6 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm);
- int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
- int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
- 
-+int omap2_clkdm_can_idle(struct clockdomain *clkdm);
-+
- #endif
-diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
-index 0b96005..ebac4e1 100644
---- a/arch/arm/plat-omap/include/plat/powerdomain.h
-+++ b/arch/arm/plat-omap/include/plat/powerdomain.h
-@@ -178,6 +178,7 @@ int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
- bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
- 
- int pwrdm_wait_transition(struct powerdomain *pwrdm);
-+int pwrdm_can_idle(struct powerdomain *pwrdm);
- 
- int pwrdm_state_switch(struct powerdomain *pwrdm);
- int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
 -- 
 1.5.4.3
 
