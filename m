@@ -1,81 +1,50 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] OMAP3: Serial: Improved sleep logic
-Date: Tue,  2 Feb 2010 13:30:24 +0200
-Message-ID: <1265110224-29473-1-git-send-email-tero.kristo@nokia.com>
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: Re: [PATCH] DSPBRIDGE: Get rid of driver_minor global variable
+Date: Tue, 02 Feb 2010 12:03:17 +0200
+Message-ID: <1265104997.3068.10.camel@chotu.research.nokia.com>
+References: <8a14e4992a92e3bc31d518ca71b14f214cf0f764.1265048264.git.ameya.palande@nokia.com>
+	 <4B67301B.10900@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:55821 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755172Ab0BBJlJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 04:41:09 -0500
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o129ciWP016351
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 03:41:08 -0600
-Received: from localhost.localdomain (sokoban.nmp.nokia.com [172.22.215.13])
-	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o129erTd021611
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 11:40:53 +0200
-In-Reply-To: <>
-References: <>
+Received: from smtp.nokia.com ([192.100.122.233]:38526 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753292Ab0BBKD6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 05:03:58 -0500
+In-Reply-To: <4B67301B.10900@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "nm@ti.com" <nm@ti.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+Hi Nishanth,
 
-Only RX interrupt will now kick the sleep prevent timer. In addition, TX
-fifo status is checked before disabling clocks, this will prevent occasional
-garbage being printed on serial line. Smartidle is also disabled while
-entering idle if we have data in the transmit buffer, because having this
-enabled will prevent wakeups from the TX interrupt, and this causes
-pauses while sending large blocks of data.
+On Mon, 2010-02-01 at 20:48 +0100, ext Menon, Nishanth wrote:
+> Ameya Palande said the following on 02/01/2010 08:18 PM:
+> > Since there is only 1 device there is no need of driver_minor global variable.
+> i am a little skeptical about this change - mainly coz, it might be a good idea for a userspace option
+> to be able to define what the minor id could be -> maybe an example could be /dev/mem which has a minor
+> id of 1, not 0. having a module_param might be better as such.. just my 2 cents..
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/serial.c |   19 +++++++++++++++----
- 1 files changed, 15 insertions(+), 4 deletions(-)
+I do not agree with user space having control of defining minor id.
+I would like to rephrase this sentence as: userspace should have control
+of defining name (string) for the device file. I guess udev takes care
+of that already!
+ 
+Ideally userspace should just deal with device
+names: /dev/device1, /dev/device2 etc. Why it interprets (and that way
+creates a dependency on) major/minor number?
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 777e802..e11dfe9 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -317,7 +317,8 @@ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
- 	if (!uart->clocked)
- 		return;
- 
--	omap_uart_smart_idle_enable(uart, 1);
-+	if (serial_read_reg(uart->p, UART_LSR) & UART_LSR_TEMT)
-+		omap_uart_smart_idle_enable(uart, 1);
- 	uart->can_sleep = 1;
- 	del_timer(&uart->timer);
- }
-@@ -335,7 +336,11 @@ void omap_uart_prepare_idle(int num)
- 
- 	list_for_each_entry(uart, &uart_list, node) {
- 		if (num == uart->num && uart->can_sleep) {
--			omap_uart_disable_clocks(uart);
-+			if (serial_read_reg(uart->p, UART_LSR) &
-+					UART_LSR_TEMT)
-+				omap_uart_disable_clocks(uart);
-+			else
-+				omap_uart_smart_idle_enable(uart, 0);
- 			return;
- 		}
- 	}
-@@ -407,8 +412,14 @@ int omap_uart_can_sleep(void)
- static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
- {
- 	struct omap_uart_state *uart = dev_id;
-+	u8 lsr;
- 
--	omap_uart_block_sleep(uart);
-+	lsr = serial_read_reg(uart->p, UART_LSR);
-+	/* Check for receive interrupt */
-+	if (lsr & UART_LSR_DR)
-+		omap_uart_block_sleep(uart);
-+	if (lsr & UART_LSR_TEMT && uart->can_sleep)
-+		omap_uart_smart_idle_enable(uart, 1);
- 
- 	return IRQ_NONE;
- }
--- 
-1.5.4.3
+I am in favor of saving 4 bytes and less global namespace pollution :)
+
+/dev/mem has minor id of 1 because it shares its major id with ramdisk.
+
+file: include/linux/major.h
+
+#define MEM_MAJOR               1
+#define RAMDISK_MAJOR           1
+
+Cheers,
+Ameya.
 
