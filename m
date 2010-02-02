@@ -1,27 +1,55 @@
-From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 0/4] OMAP USB patches
-Date: Tue,  2 Feb 2010 17:08:11 +0530
-Message-ID: <1265110691-26473-1-git-send-email-x0082077@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+From: Maulik Mankad <x0082077@ti.com>
+Subject: [PATCH v4 1/4] USB : Add empty functions in otg.h
+Date: Tue,  2 Feb 2010 17:10:01 +0530
+Message-ID: <1265110801-26986-1-git-send-email-x0082077@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:34359 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751546Ab0BBLkM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Feb 2010 06:40:12 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, Maulik Mankad <x0082077@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, Olof Johansson <olof@lixom.net>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
 
-Here is the 4 patch series based on top of 2.6.33-rc6.
+USB : Add empty functions in otg.h
 
-Maulik Mankad (4):
-[PATCH 1/4] USB : Add empty functions in otg.h
-[PATCH 2/4] ARM : OMAP : Remove #ifdef from board-omap3evm.c
-[PATCH 3/4] ARM : OMAP: MUSB : Pass board specific data using a structure
-[PATCH 4/4] ARM : OMAP4 : MUSB : Add USB support to 4430 SDP board file
+Add empty functions for usb_nop_xceiv_register()
+and usb_nop_xceiv_unregister() in otg.h so that
+these functions can be called even when
+CONFIG_NOP_USB_XCEIV is not enabled.
 
-The patches are compile tested and do not report 
-any checkpatch warnings.
+It allows to remove ifdef's from board file.
 
-Thanks,
-Maulik
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Maulik Mankad <x0082077@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Gupta, Ajay Kumar <ajay.gupta@ti.com>
+---
+Index: linux-2.6/include/linux/usb/otg.h
+===================================================================
+--- linux-2.6.orig/include/linux/usb/otg.h
++++ linux-2.6/include/linux/usb/otg.h
+@@ -110,9 +110,19 @@ struct otg_transceiver {
+ /* for board-specific init logic */
+ extern int otg_set_transceiver(struct otg_transceiver *);
+ 
++#if defined(CONFIG_NOP_USB_XCEIV) || defined(CONFIG_NOP_USB_XCEIV_MODULE)
+ /* sometimes transceivers are accessed only through e.g. ULPI */
+ extern void usb_nop_xceiv_register(void);
+ extern void usb_nop_xceiv_unregister(void);
++#else
++static inline void usb_nop_xceiv_register(void)
++{
++}
++
++static inline void usb_nop_xceiv_unregister(void)
++{
++}
++#endif
+ 
+ /* helpers for direct access thru low-level io interface */
+ static inline int otg_io_read(struct otg_transceiver *otg, u32 reg)
