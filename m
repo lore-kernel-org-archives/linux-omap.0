@@ -1,244 +1,122 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] [I2C-OMAP] Add support for 16-bit registers
-Date: Mon, 1 Feb 2010 16:07:36 -0800
-Message-ID: <20100202000736.GM22747@atomide.com>
-References: <1260669242-29865-1-git-send-email-darkstar6262@gmail.com>
- <6cb013311001090947m2268833cv3784f469dc8b861d@mail.gmail.com>
- <20100109183321.GH2879@atomide.com>
- <6cb013311001091035x54321b3aqb814f476200980af@mail.gmail.com>
- <20100112012814.GK5055@atomide.com>
- <6cb013311001111750m17430092p8d9bd1102152db8b@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] omap: Disable GAIA I2C1/I2C4 internal pull-ups
+Date: Mon, 1 Feb 2010 17:53:37 -0800
+Message-ID: <20100202015336.GN22747@atomide.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026B4CBDEA@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60218 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241Ab0BBBxL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Feb 2010 20:53:11 -0500
 Content-Disposition: inline
-In-Reply-To: <6cb013311001111750m17430092p8d9bd1102152db8b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026B4CBDEA@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Pais, Allen" <allen.pais@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [100111 17:49]:
-> On Mon, Jan 11, 2010 at 5:28 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> >
-> > Applied to omap-testing with the following fix. Can you please merge
-> > it into your original patch?
-> >
-> 
-> Done, I've attached the new patch to here.  I've tested it and it
-> works perfectly.
+Hi,
 
-Here's my ack for this patch:
+* Pais, Allen <allen.pais@ti.com> [100121 02:31]:
+> From 4044fcc9c517e86fbea9f7d3b15d5cf75a767476 Mon Sep 17 00:00:00 2001
+> From: Allen Pais <allen.pais@ti.com>
+> Date: Thu, 21 Jan 2010 21:00:04 +0530
+> Subject: [PATCH 1/2] omap: Disable GAIA I2C1/I2C4 internal pull-ups
+> 
+> This patch disables GAIA I2C1 adn I2C4(SR) internal pull-up, to
+> use only the external HW resistor >=470 Ohm for the assured
+> functionality in HS mode.
+> 
+> While testing the I2C in High Speed mode, it was discovered that
+> without a proper pull-up resistor, there is data corruption during
+> multi-byte transfer. RTC(time_set) test case was used for testing.
+> 
+> From the analysis done, it was concluded that ideally we need a
+> pull-up of 1.6k Ohm(recomended) or atleast 470 Ohm or greater for
+> assured performance in HS mode.
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Does this apply to 3630 only, or also 34xx? Is this safe to do
+always?
 
-> 
-> - Cory
-> 
-> 
-> From 7c693afce8ffa3978b4fcecc56cd7d4a9d9d3b75 Mon Sep 17 00:00:00 2001
-> From: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Date: Sat, 5 Dec 2009 22:00:25 -0800
-> Subject: [PATCH] [I2C-OMAP] Add support for 16-bit registers
-> 
-> The current i2c-omap driver is set up for 32-bit registers, which
-> corresponds to most OMAP devices.  However, OMAP730/850 based
-> devices use a 16-bit register size.
-> 
-> This change modifies the driver to perform a runtime CPU type check
-> to determine the register sizes, and uses a bit shift of either 1
-> or 2 bits to compute the proper register sizes for all registers.
-> 
-> Signed-off-by: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+BTW, once ready it hould be sent to Samuel Ortiz with linux-omap
+list Cc'd:
+
+$ grep -A4 MFD MAINTAINERS 
+MULTIFUNCTION DEVICES (MFD)
+M:      Samuel Ortiz <sameo@linux.intel.com>
+T:      git git://git.kernel.org/pub/scm/linux/kernel/git/sameo/mfd-2.6.git
+S:      Supported
+F:      drivers/mfd/
+
+Regards,
+
+Tony
+
+ 
+> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
+> Signed-off-by: Allen Pais <allen.pais@ti.com>
 > ---
->  drivers/i2c/busses/i2c-omap.c |   45 +++++++++++++++++++++++-----------------
->  1 files changed, 26 insertions(+), 19 deletions(-)
+>  drivers/mfd/twl-core.c  |   10 ++++++++++
+>  include/linux/i2c/twl.h |   13 +++++++++++++
+>  2 files changed, 23 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 0037e31..9c3ce4d 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -49,24 +49,24 @@
->  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
-> 
->  #define OMAP_I2C_REV_REG		0x00
-> -#define OMAP_I2C_IE_REG			0x04
-> -#define OMAP_I2C_STAT_REG		0x08
-> -#define OMAP_I2C_IV_REG			0x0c
-> +#define OMAP_I2C_IE_REG			0x01
-> +#define OMAP_I2C_STAT_REG		0x02
-> +#define OMAP_I2C_IV_REG			0x03
->  /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
-> -#define OMAP_I2C_WE_REG			0x0c
-> -#define OMAP_I2C_SYSS_REG		0x10
-> -#define OMAP_I2C_BUF_REG		0x14
-> -#define OMAP_I2C_CNT_REG		0x18
-> -#define OMAP_I2C_DATA_REG		0x1c
-> -#define OMAP_I2C_SYSC_REG		0x20
-> -#define OMAP_I2C_CON_REG		0x24
-> -#define OMAP_I2C_OA_REG			0x28
-> -#define OMAP_I2C_SA_REG			0x2c
-> -#define OMAP_I2C_PSC_REG		0x30
-> -#define OMAP_I2C_SCLL_REG		0x34
-> -#define OMAP_I2C_SCLH_REG		0x38
-> -#define OMAP_I2C_SYSTEST_REG		0x3c
-> -#define OMAP_I2C_BUFSTAT_REG		0x40
-> +#define OMAP_I2C_WE_REG			0x03
-> +#define OMAP_I2C_SYSS_REG		0x04
-> +#define OMAP_I2C_BUF_REG		0x05
-> +#define OMAP_I2C_CNT_REG		0x06
-> +#define OMAP_I2C_DATA_REG		0x07
-> +#define OMAP_I2C_SYSC_REG		0x08
-> +#define OMAP_I2C_CON_REG		0x09
-> +#define OMAP_I2C_OA_REG			0x0a
-> +#define OMAP_I2C_SA_REG			0x0b
-> +#define OMAP_I2C_PSC_REG		0x0c
-> +#define OMAP_I2C_SCLL_REG		0x0d
-> +#define OMAP_I2C_SCLH_REG		0x0e
-> +#define OMAP_I2C_SYSTEST_REG		0x0f
-> +#define OMAP_I2C_BUFSTAT_REG		0x10
-> 
->  /* I2C Interrupt Enable Register (OMAP_I2C_IE): */
->  #define OMAP_I2C_IE_XDR		(1 << 14)	/* TX Buffer drain int enable */
-> @@ -161,6 +161,7 @@ struct omap_i2c_dev {
->  	struct device		*dev;
->  	void __iomem		*base;		/* virtual */
->  	int			irq;
-> +	int			reg_shift;      /* bit shift for I2C register addresses */
->  	struct clk		*iclk;		/* Interface clock */
->  	struct clk		*fclk;		/* Functional clock */
->  	struct completion	cmd_complete;
-> @@ -189,12 +190,12 @@ struct omap_i2c_dev {
->  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
->  				      int reg, u16 val)
->  {
-> -	__raw_writew(val, i2c_dev->base + reg);
-> +	__raw_writew(val, i2c_dev->base + (reg << i2c_dev->reg_shift));
->  }
-> 
->  static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
->  {
-> -	return __raw_readw(i2c_dev->base + reg);
-> +	return __raw_readw(i2c_dev->base + (reg << i2c_dev->reg_shift));
->  }
-> 
->  static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-> @@ -893,6 +894,12 @@ omap_i2c_probe(struct platform_device *pdev)
->  	dev->idle = 1;
->  	dev->dev = &pdev->dev;
->  	dev->irq = irq->start;
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 2a76065..7dcb5e9 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -965,6 +965,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  	int				status;
+>  	unsigned			i;
+>  	struct twl4030_platform_data	*pdata = client->dev.platform_data;
+> +	u8 temp;
+>  
+>  	if (!pdata) {
+>  		dev_dbg(&client->dev, "no platform data?\n");
+> @@ -1031,6 +1032,15 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  		if (status < 0)
+>  			goto fail;
+>  	}
+> +	/* Disable GAIA I2C Pull-up on I2C1 and I2C4(SR) interface
+> +	 * program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
+> +	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
+> +	 */
 > +
-> +	if (cpu_is_omap7xx())
-> +		dev->reg_shift = 1;
-> +	else
-> +		dev->reg_shift = 2;
+> +	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &temp, REG_GPPUPDCTR1);
+> +	temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
+> +				I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
+> +	twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
+>  
+>  	status = add_children(pdata, id->driver_data);
+>  fail:
+> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> index bf1c5be..2f4faf9 100644
+> --- a/include/linux/i2c/twl.h
+> +++ b/include/linux/i2c/twl.h
+> @@ -168,6 +168,19 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
+>  int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
+>  int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+>  
+> +/*Interface Bit Register (INTBR) offsets
+> + *(Use TWL_4030_MODULE_INTBR)
+> + */
 > +
->  	dev->base = ioremap(mem->start, resource_size(mem));
->  	if (!dev->base) {
->  		r = -ENOMEM;
+> +#define REG_GPPUPDCTR1			0x0F
+> +
+> +/*I2C1 and I2C4(SR) SDA/SCL pull-up control bits */
+> +
+> +#define I2C_SCL_CTRL_PU			BIT(0)
+> +#define I2C_SDA_CTRL_PU			BIT(2)
+> +#define SR_I2C_SCL_CTRL_PU		BIT(4)
+> +#define SR_I2C_SDA_CTRL_PU		BIT(6)
+> +
+>  /*----------------------------------------------------------------------*/
+>  
+>  /*
 > -- 
 > 1.6.3.3
-
-> From 7c693afce8ffa3978b4fcecc56cd7d4a9d9d3b75 Mon Sep 17 00:00:00 2001
-> From: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Date: Sat, 5 Dec 2009 22:00:25 -0800
-> Subject: [PATCH] [I2C-OMAP] Add support for 16-bit registers
-> 
-> The current i2c-omap driver is set up for 32-bit registers, which
-> corresponds to most OMAP devices.  However, OMAP730/850 based
-> devices use a 16-bit register size.
-> 
-> This change modifies the driver to perform a runtime CPU type check
-> to determine the register sizes, and uses a bit shift of either 1
-> or 2 bits to compute the proper register sizes for all registers.
-> 
-> Signed-off-by: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |   45 +++++++++++++++++++++++-----------------
->  1 files changed, 26 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 0037e31..9c3ce4d 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -49,24 +49,24 @@
->  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
->  
->  #define OMAP_I2C_REV_REG		0x00
-> -#define OMAP_I2C_IE_REG			0x04
-> -#define OMAP_I2C_STAT_REG		0x08
-> -#define OMAP_I2C_IV_REG			0x0c
-> +#define OMAP_I2C_IE_REG			0x01
-> +#define OMAP_I2C_STAT_REG		0x02
-> +#define OMAP_I2C_IV_REG			0x03
->  /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
-> -#define OMAP_I2C_WE_REG			0x0c
-> -#define OMAP_I2C_SYSS_REG		0x10
-> -#define OMAP_I2C_BUF_REG		0x14
-> -#define OMAP_I2C_CNT_REG		0x18
-> -#define OMAP_I2C_DATA_REG		0x1c
-> -#define OMAP_I2C_SYSC_REG		0x20
-> -#define OMAP_I2C_CON_REG		0x24
-> -#define OMAP_I2C_OA_REG			0x28
-> -#define OMAP_I2C_SA_REG			0x2c
-> -#define OMAP_I2C_PSC_REG		0x30
-> -#define OMAP_I2C_SCLL_REG		0x34
-> -#define OMAP_I2C_SCLH_REG		0x38
-> -#define OMAP_I2C_SYSTEST_REG		0x3c
-> -#define OMAP_I2C_BUFSTAT_REG		0x40
-> +#define OMAP_I2C_WE_REG			0x03
-> +#define OMAP_I2C_SYSS_REG		0x04
-> +#define OMAP_I2C_BUF_REG		0x05
-> +#define OMAP_I2C_CNT_REG		0x06
-> +#define OMAP_I2C_DATA_REG		0x07
-> +#define OMAP_I2C_SYSC_REG		0x08
-> +#define OMAP_I2C_CON_REG		0x09
-> +#define OMAP_I2C_OA_REG			0x0a
-> +#define OMAP_I2C_SA_REG			0x0b
-> +#define OMAP_I2C_PSC_REG		0x0c
-> +#define OMAP_I2C_SCLL_REG		0x0d
-> +#define OMAP_I2C_SCLH_REG		0x0e
-> +#define OMAP_I2C_SYSTEST_REG		0x0f
-> +#define OMAP_I2C_BUFSTAT_REG		0x10
->  
->  /* I2C Interrupt Enable Register (OMAP_I2C_IE): */
->  #define OMAP_I2C_IE_XDR		(1 << 14)	/* TX Buffer drain int enable */
-> @@ -161,6 +161,7 @@ struct omap_i2c_dev {
->  	struct device		*dev;
->  	void __iomem		*base;		/* virtual */
->  	int			irq;
-> +	int			reg_shift;      /* bit shift for I2C register addresses */
->  	struct clk		*iclk;		/* Interface clock */
->  	struct clk		*fclk;		/* Functional clock */
->  	struct completion	cmd_complete;
-> @@ -189,12 +190,12 @@ struct omap_i2c_dev {
->  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
->  				      int reg, u16 val)
->  {
-> -	__raw_writew(val, i2c_dev->base + reg);
-> +	__raw_writew(val, i2c_dev->base + (reg << i2c_dev->reg_shift));
->  }
->  
->  static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
->  {
-> -	return __raw_readw(i2c_dev->base + reg);
-> +	return __raw_readw(i2c_dev->base + (reg << i2c_dev->reg_shift));
->  }
->  
->  static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-> @@ -893,6 +894,12 @@ omap_i2c_probe(struct platform_device *pdev)
->  	dev->idle = 1;
->  	dev->dev = &pdev->dev;
->  	dev->irq = irq->start;
-> +
-> +	if (cpu_is_omap7xx())
-> +		dev->reg_shift = 1;
-> +	else
-> +		dev->reg_shift = 2;
-> +
->  	dev->base = ioremap(mem->start, resource_size(mem));
->  	if (!dev->base) {
->  		r = -ENOMEM;
-> -- 
-> 1.6.3.3
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
