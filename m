@@ -1,97 +1,54 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv5 8/9] OMAP3: CPUidle: Fixed off-mode support to fall-back to proper C state
-Date: Tue,  2 Feb 2010 16:52:26 +0200
-Message-ID: <1265122347-2233-9-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1265122347-2233-1-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-2-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-3-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-4-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-5-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-6-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-7-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-8-git-send-email-tero.kristo@nokia.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH 1/2 v2] DSPBRIDGE: remove dependency of mpu freq
+Date: Tue, 2 Feb 2010 07:41:51 -0600
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012E98E8B9@dlee02.ent.ti.com>
+References: <1265095046-25253-1-git-send-email-nm@ti.com>
+ <1265095046-25253-2-git-send-email-nm@ti.com>
+ <20100202130044.GB4048@annwn.felipec.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:52494 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755955Ab0BBNFD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 08:05:03 -0500
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D4v5p029899
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:05:01 +0200
-Received: from localhost.localdomain (sokoban.nmp.nokia.com [172.22.215.13])
-	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D2wJj029178
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:03:08 +0200
-In-Reply-To: <1265122347-2233-8-git-send-email-tero.kristo@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38796 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755790Ab0BBNl7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 08:41:59 -0500
+In-Reply-To: <20100202130044.GB4048@annwn.felipec.org>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Romit Dasgupta <romit@ti.com>
 
-From: Tero Kristo <tero.kristo@nokia.com>
 
-If off-mode is disabled, cpuidle now falls back to proper C state. Previously
-the state was just simply hacked inside omap3_enter_idle which resulted
-in wrong state residencies to be reported.
+> From: Felipe Contreras [mailto:felipe.contreras@nokia.com]
+> Sent: Tuesday, February 02, 2010 3:01 PM
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   22 ++++++++++++----------
- 1 files changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 38bd70c..dbb7315 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -115,13 +115,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	local_irq_disable();
- 	local_fiq_disable();
- 
--	if (!enable_off_mode) {
--		if (mpu_state < PWRDM_POWER_RET)
--			mpu_state = PWRDM_POWER_RET;
--		if (core_state < PWRDM_POWER_RET)
--			core_state = PWRDM_POWER_RET;
--	}
--
- 	omap3_pwrdm_set_next_pwrst(mpu_pd, mpu_state);
- 	omap3_pwrdm_set_next_pwrst(core_pd, core_state);
- 
-@@ -155,7 +148,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- {
- 	struct cpuidle_state *new_state = state;
- 	u32 per_state = 0, saved_per_state = 0, cam_state, usb_state;
--	u32 iva2_state, sgx_state, dss_state, new_core_state;
-+	u32 iva2_state, sgx_state, dss_state, new_core_state, new_mpu_state;
- 	struct omap3_processor_cx *cx;
- 	int ret;
- 
-@@ -167,6 +160,14 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 		}
- 		cx = cpuidle_get_statedata(state);
- 		new_core_state = cx->core_state;
-+		new_mpu_state = cx->mpu_state;
-+
-+		if (!enable_off_mode) {
-+			if (new_mpu_state < PWRDM_POWER_RET)
-+				new_mpu_state = PWRDM_POWER_RET;
-+			if (new_core_state < PWRDM_POWER_RET)
-+				new_core_state = PWRDM_POWER_RET;
-+		}
- 
- 		/* Check if CORE is active, if yes, fallback to inactive */
- 		if (!pwrdm_can_idle(core_pd))
-@@ -221,8 +222,9 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 				new_core_state = PWRDM_POWER_RET;
- 		}
- 
--		/* Fallback to new target core state */
--		while (cx->core_state < new_core_state) {
-+		/* Fallback to new target core/mpu state */
-+		while (cx->core_state < new_core_state ||
-+		       cx->mpu_state < new_mpu_state) {
- 			state--;
- 			cx = cpuidle_get_statedata(state);
- 		}
--- 
-1.5.4.3
+> 
+> On Tue, Feb 02, 2010 at 08:17:25AM +0100, Nishanth Menon wrote:
+> > Current DSPBridge uses hardcoded logic which is not scalable
+> > across OMAP3 silicons. introduce a structure based implementation
+> > this allows for dsp frequency table indices to be generated runtime
+> > instead of being compile time.
+> 
+> You forgot to mention the impact of this patch: DVFS is effectively
+> disabled until the next patch is applied. Right?
+
+That is the reason why it is a patch series 2/2 is the last of the series ;) I don't mind merging it as part of this patch though..
+
+> 
+> > +static int get_opp_table(struct dspbridge_platform_data *pdata)
+> > +{
+> > +#ifdef CONFIG_BRIDGE_DVFS
+> > +	/* Do nothing now  - fill based on PM implementation */
+> > +#endif
+> > +	return 0;
+> > +}
+> 
+> --
+> Felipe Contreras
+
+Regards,
+Nishanth Menon
 
