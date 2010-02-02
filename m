@@ -1,107 +1,61 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH] DSPBRIDGE: MEM_VFree() cleanup
-Date: Tue, 02 Feb 2010 20:44:25 +0200
-Message-ID: <1265136265.26885.1.camel@sanganak>
-References: <48172f2f93a66f4d34c79aa6164236b01e706e3e.1265046944.git.ameya.palande@nokia.com>
-	 <4B6732F8.1010809@ti.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH v2 2/2] DSPBRIDGE: Remove DRV_ProcUpdatestate function
+Date: Tue, 2 Feb 2010 13:19:45 -0600
+Message-ID: <4B687AD1.10903@ti.com>
+References: <818EF96F5A7CC84789DD014773DB095484859F64@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:49153 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756794Ab0BBSo4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 13:44:56 -0500
-In-Reply-To: <4B6732F8.1010809@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54150 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756313Ab0BBTTu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 14:19:50 -0500
+In-Reply-To: <818EF96F5A7CC84789DD014773DB095484859F64@dlee01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "nm@ti.com" <nm@ti.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>
+To: "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ameya.Palande@nokia.com" <Ameya.Palande@nokia.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-On Mon, 2010-02-01 at 21:00 +0100, ext Menon, Nishanth wrote:
-> Ameya Palande said the following on 02/01/2010 07:56 PM:
-> > Since vfree() checks for null pointer, there is no need to check is again in
-> > MEM_VFree(). This patch also reorganizes the function to make it more readable.
-> > 
-> > Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-> > ---
-> >  drivers/dsp/bridge/services/mem.c |   42 +++++++++++++++----------------------
-> >  1 files changed, 17 insertions(+), 25 deletions(-)
-> > 
-> > diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
-> > index dfe352d..c2887b3 100644
-> > --- a/drivers/dsp/bridge/services/mem.c
-> > +++ b/drivers/dsp/bridge/services/mem.c
-> > @@ -456,35 +456,27 @@ void MEM_FlushCache(void *pMemBuf, u32 cBytes, s32 FlushType)
-> >  void MEM_VFree(IN void *pMemBuf)
-> >  {
-> >  #ifdef MEM_CHECK
-> > -	struct memInfo *pMem = (void *)((u32)pMemBuf - sizeof(struct memInfo));
-> > +	struct memInfo *pMem;
-> >  #endif
-> > -
-> > -	DBC_Require(pMemBuf != NULL);
-> does'nt this remove a warning for us?
-> > -
-> >  	GT_1trace(MEM_debugMask, GT_ENTER, "MEM_VFree: pMemBufs 0x%x\n",
-> > -		  pMemBuf);
-> > -
-> > -	if (pMemBuf) {
-> > -#ifndef MEM_CHECK
-> > -		vfree(pMemBuf);
-> > +			pMemBuf);
-> probably an un-needed formattig change -> messed the diff a little bit 
-> here
-> 
-> > +#ifdef MEM_CHECK
-> > +	if (!pMemBuf) {
-> > +		GT_1trace(MEM_debugMask, GT_7CLASS,
-> > +			"Invalid allocation or Buffer underflow\n");
-> > +		return;
-> > +	}
-> > +	pMem = (void *)((u32)pMemBuf - sizeof(struct memInfo));
-> > +	if (pMem && pMem->dwSignature == memInfoSign) {
-> > +		spin_lock(&mMan.lock);
-> > +		MLST_RemoveElem(&mMan.lst, (struct list_head *)pMem);
-> > +		spin_unlock(&mMan.lock);
-> > +		pMem->dwSignature = 0;
-> ^^^^^^^^^^^^^ Dumb question: signature should be locked? (yep the prev 
-> code was as such)..
-> > +		vfree(pMem);
-> > +	}
-> >  #else
-> > -		if (pMem) {
-> > -			if (pMem->dwSignature == memInfoSign) {
-> > -				spin_lock(&mMan.lock);
-> > -				MLST_RemoveElem(&mMan.lst,
-> > -						(struct list_head *)pMem);
-> > -				spin_unlock(&mMan.lock);
-> > -				pMem->dwSignature = 0;
-> > -				vfree(pMem);
-> > -			} else {
-> > -				GT_1trace(MEM_debugMask, GT_7CLASS,
-> > -					"Invalid allocation or "
-> > -					"Buffer underflow at %x\n",
-> > -					(u32) pMem + sizeof(struct memInfo));
-> > -			}
-> > -		}
-> > +	vfree(pMemBuf);
-> ^^^^^^^^^^ it looks to me that if you put pMemBuf = pMem in the #ifdef 
-> case, you could probably move vfree out of the #ifdef altogether..
-> >  #endif
-> > -	}
-> >  }
-> >  
-> >  /*
-> 
-> Regards,
-> Nishanth Menon
+On 1/28/2010 7:18 PM, Gomez Castellanos, Ivan wrote:
+> In the previous patch, the function prototype was not removed.
+>
+>  From 22a3646710806c9390a48556ded889e19178db9e Mon Sep 17 00:00:00 2001
+> From: Ivan Gomez<ivan.gomez@ti.com>
+> Date: Thu, 28 Jan 2010 18:53:45 -0600
+> Subject: [PATCH] DSPBRIDGE: Remove DRV_ProcUpdatestate function
+>
+> The DRV_ProcUpdatestate function was only used in two places and
+> it only assigned a value.
+>
+> Signed-off-by: Ivan Gomez<ivan.gomez@ti.com>
+> ---
 
-NACK!
+[...]
 
-Nishanth, thanks for the review :)
-I found a better solution, will send patches soon.
+> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+> index f3a67e2..09365bc 100644
+> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
+> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+> @@ -503,7 +503,7 @@ static int bridge_open(struct inode *ip, struct file *filp)
+>   	 */
+>   	pr_ctxt = MEM_Calloc(sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
+>   	if (pr_ctxt)
+> -		DRV_ProcUpdatestate(pr_ctxt, PROC_RES_ALLOCATED);
+> +		pr_ctxt->resSatate = PROC_RES_ALLOCATED;
 
-Cheers,
-Ameya.
+should be resState
+
+>   	else
+>   		status = -ENOMEM;
+>
+> @@ -622,7 +622,7 @@ DSP_STATUS DRV_RemoveAllResources(HANDLE hPCtxt)
+>   	DRV_RemoveAllSTRMResElements(pCtxt);
+>   	DRV_RemoveAllNodeResElements(pCtxt);
+>   	DRV_RemoveAllDMMResElements(pCtxt);
+> -	DRV_ProcUpdatestate(pCtxt, PROC_RES_FREED);
+> +	pCtxt->resState = PROC_RES_FREED;
+>   	return status;
+>   }
+>   #endif
 
