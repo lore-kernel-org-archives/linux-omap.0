@@ -1,161 +1,196 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCHv4 1/8] OMAP3: Clockdomain: Added API for checking if
- HWSUP is enabled
-Date: Tue, 2 Feb 2010 09:39:58 +0100
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A22372771BB7@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <> <1264182951-9205-1-git-send-email-tero.kristo@nokia.com>
- <1264182951-9205-2-git-send-email-tero.kristo@nokia.com>
- <alpine.DEB.2.00.1002011502070.20004@utopia.booyaka.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH V2 0/10] omap_hsmmc changes V2
+Date: Tue, 02 Feb 2010 11:22:31 +0200
+Message-ID: <4B67EED7.8040801@nokia.com>
+References: <1264149200.1920.11.camel@Nokia-N900-51-1> <20100122171427.GQ23467@atomide.com> <20100202031241.GP22747@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:50171 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753799Ab0BBIkk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 03:40:40 -0500
-In-Reply-To: <alpine.DEB.2.00.1002011502070.20004@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100202031241.GP22747@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "madhu.cr@ti.com" <madhu.cr@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org
 
+>From 10920ef5efbfced940eea0932e314b5a63ac706c Mon Sep 17 00:00:00 2001
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Date: Tue, 2 Feb 2010 10:53:38 +0200
+Subject: [PATCH] omap_hsmmc: allow compile without regulator framework
+
+It is still possible to use the omap_hsmmc module
+without the regulator framework.  Accordingly, ifdef
+out regulator-specific functions.
+
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |  133 ++++++++++++++++++++++++-----------------
+ 1 files changed, 79 insertions(+), 54 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index af37477..83f0aff 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -236,6 +236,8 @@ static int omap_hsmmc_resume_cdirq(struct device *dev, int slot)
  
-
->-----Original Message-----
->From: ext Paul Walmsley [mailto:paul@pwsan.com] 
->Sent: 02 February, 2010 00:11
->To: Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCHv4 1/8] OMAP3: Clockdomain: Added API for 
->checking if HWSUP is enabled
->
->Hi Tero,
->
->On Fri, 22 Jan 2010, Tero Kristo wrote:
->
->> From: Tero Kristo <tero.kristo@nokia.com>
->> 
->> omap2_clkdm_get_hwsup(clkdm) can be used to check if automatic HW
->> transitions for the domain are enabled or not. This is needed for the
->> powerdomain code that adds support for INACTIVE state, as it needs to
->> disable HWSUP on the fly for ON state, and re-enable it 
->after returning
->> to some other state.
->> 
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->
->An updated patch with some revisions is below.  Please let me know if 
->there's something that still should be changed.  The revisions are:
-
-Your changes look okay to me.
-
->
->1. Split the if-statement expressions up into separate lines per 
->CodingStyle
->
->2. Rename omap2_clkdm_get_hwsup() to omap2_clkdm_read_hwsup() 
->to follow 
->the general practice in this file and powerdomain.c that 
->functions with 
->'_get_' in the name read configuration data, and functions 
->with '_read_' 
->read from the hardware (or a cache of the hardware register)
->
->3. Add OMAP4 support
->
->4. Added the extra asterisk in the comment body to indicate 
->kerneldoc-format comment
->
->5. Updated patch to apply after the current round of 2.6.34 changes
->
->
->regards,
->
->- Paul
->
->From fc2f8ad184e012a5574e1110c359354d247a1709 Mon Sep 17 00:00:00 2001
->From: Tero Kristo <tero.kristo@nokia.com>
->Date: Mon, 1 Feb 2010 13:41:26 -0700
->Subject: [PATCH] OMAP3: Clockdomain: Added API for checking if 
->HWSUP is enabled
->
->omap2_clkdm_read_hwsup(clkdm) can be used to check if automatic HW
->transitions for the domain are enabled or not. This is needed for the
->powerdomain code that adds support for INACTIVE state, as it needs to
->disable HWSUP on the fly for ON state, and re-enable it after returning
->to some other state.
->
->Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->[paul@pwsan.com: added kerneldoc comment magic start; changed function
-> name to omap2_clkdm_read_hwsup(); broke up expressions in function
-> body; added OMAP4 support]
->Signed-off-by: Paul Walmsley <paul@pwsan.com>
->---
-> arch/arm/mach-omap2/clockdomain.c             |   30 
->+++++++++++++++++++++++++
-> arch/arm/plat-omap/include/plat/clockdomain.h |    1 +
-> 2 files changed, 31 insertions(+), 0 deletions(-)
->
->diff --git a/arch/arm/mach-omap2/clockdomain.c 
->b/arch/arm/mach-omap2/clockdomain.c
->index a38a615..8dce3c9 100644
->--- a/arch/arm/mach-omap2/clockdomain.c
->+++ b/arch/arm/mach-omap2/clockdomain.c
->@@ -868,6 +868,36 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
-> }
-> 
-> /**
->+ * omap2_clkdm_read_hwsup - read the hwsup idle transition bit
->+ * @clkdm: struct clockdomain *
->+ *
->+ * Checks whether hardware is allowed to switch the clockdomain @clkdm
->+ * automatically into active or idle states. Returns -EINVAL if @clkdm
->+ * is NULL; otherwise, 1 if hardware auto-idle is enabled, 0 if not.
->+ */
->+int omap2_clkdm_read_hwsup(struct clockdomain *clkdm)
->+{
->+	u32 u, v;
->+
->+	if (!clkdm)
->+		return -EINVAL;
->+
->+	u = cm_read_mod_reg(clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
->+	u &= clkdm->clktrctrl_mask;
->+
->+	if (cpu_is_omap24xx())
->+		v = OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
->+	else if (cpu_is_omap34xx() || cpu_is_omap44xx())
->+		v = OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
->+	else
->+		BUG();
->+
->+	v <<= __ffs(clkdm->clktrctrl_mask);
->+
->+	return (u == v) ? 1 : 0;
->+}
->+
->+/**
->  * omap2_clkdm_allow_idle - enable hwsup idle transitions for clkdm
->  * @clkdm: struct clockdomain *
->  *
->diff --git a/arch/arm/plat-omap/include/plat/clockdomain.h 
->b/arch/arm/plat-omap/include/plat/clockdomain.h
->index ba0a6c0..9d25f4e 100644
->--- a/arch/arm/plat-omap/include/plat/clockdomain.h
->+++ b/arch/arm/plat-omap/include/plat/clockdomain.h
->@@ -129,6 +129,7 @@ int clkdm_del_sleepdep(struct clockdomain 
->*clkdm1, struct clockdomain *clkdm2);
-> int clkdm_read_sleepdep(struct clockdomain *clkdm1, struct 
->clockdomain *clkdm2);
-> int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm);
-> 
->+int omap2_clkdm_read_hwsup(struct clockdomain *clkdm);
-> void omap2_clkdm_allow_idle(struct clockdomain *clkdm);
-> void omap2_clkdm_deny_idle(struct clockdomain *clkdm);
-> 
->-- 
->1.6.6.rc2.5.g49666
->
->
+ #endif
+ 
++#ifdef CONFIG_REGULATOR
++
+ static int omap_hsmmc_1_set_power(struct device *dev, int slot, int power_on,
+ 				  int vdd)
+ {
+@@ -357,59 +359,6 @@ static int omap_hsmmc_23_set_sleep(struct device *dev, int slot, int sleep,
+ 		return regulator_enable(host->vcc_aux);
+ }
+ 
+-static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
+-{
+-	int ret;
+-
+-	if (gpio_is_valid(pdata->slots[0].switch_pin)) {
+-		pdata->suspend = omap_hsmmc_suspend_cdirq;
+-		pdata->resume = omap_hsmmc_resume_cdirq;
+-		if (pdata->slots[0].cover)
+-			pdata->slots[0].get_cover_state =
+-					omap_hsmmc_get_cover_state;
+-		else
+-			pdata->slots[0].card_detect = omap_hsmmc_card_detect;
+-		pdata->slots[0].card_detect_irq =
+-				gpio_to_irq(pdata->slots[0].switch_pin);
+-		ret = gpio_request(pdata->slots[0].switch_pin, "mmc_cd");
+-		if (ret)
+-			return ret;
+-		ret = gpio_direction_input(pdata->slots[0].switch_pin);
+-		if (ret)
+-			goto err_free_sp;
+-	} else
+-		pdata->slots[0].switch_pin = -EINVAL;
+-
+-	if (gpio_is_valid(pdata->slots[0].gpio_wp)) {
+-		pdata->slots[0].get_ro = omap_hsmmc_get_wp;
+-		ret = gpio_request(pdata->slots[0].gpio_wp, "mmc_wp");
+-		if (ret)
+-			goto err_free_cd;
+-		ret = gpio_direction_input(pdata->slots[0].gpio_wp);
+-		if (ret)
+-			goto err_free_wp;
+-	} else
+-		pdata->slots[0].gpio_wp = -EINVAL;
+-
+-	return 0;
+-
+-err_free_wp:
+-	gpio_free(pdata->slots[0].gpio_wp);
+-err_free_cd:
+-	if (gpio_is_valid(pdata->slots[0].switch_pin))
+-err_free_sp:
+-		gpio_free(pdata->slots[0].switch_pin);
+-	return ret;
+-}
+-
+-static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
+-{
+-	if (gpio_is_valid(pdata->slots[0].gpio_wp))
+-		gpio_free(pdata->slots[0].gpio_wp);
+-	if (gpio_is_valid(pdata->slots[0].switch_pin))
+-		gpio_free(pdata->slots[0].switch_pin);
+-}
+-
+ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+ {
+ 	struct regulator *reg;
+@@ -488,6 +437,82 @@ static void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
+ 	mmc_slot(host).set_sleep = NULL;
+ }
+ 
++static inline int omap_hsmmc_have_reg(void)
++{
++	return 1;
++}
++
++#else
++
++static inline int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
++{
++	return -EINVAL;
++}
++
++static inline void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
++{
++}
++
++static inline int omap_hsmmc_have_reg(void)
++{
++	return 0;
++}
++
++#endif
++
++static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
++{
++	int ret;
++
++	if (gpio_is_valid(pdata->slots[0].switch_pin)) {
++		pdata->suspend = omap_hsmmc_suspend_cdirq;
++		pdata->resume = omap_hsmmc_resume_cdirq;
++		if (pdata->slots[0].cover)
++			pdata->slots[0].get_cover_state =
++					omap_hsmmc_get_cover_state;
++		else
++			pdata->slots[0].card_detect = omap_hsmmc_card_detect;
++		pdata->slots[0].card_detect_irq =
++				gpio_to_irq(pdata->slots[0].switch_pin);
++		ret = gpio_request(pdata->slots[0].switch_pin, "mmc_cd");
++		if (ret)
++			return ret;
++		ret = gpio_direction_input(pdata->slots[0].switch_pin);
++		if (ret)
++			goto err_free_sp;
++	} else
++		pdata->slots[0].switch_pin = -EINVAL;
++
++	if (gpio_is_valid(pdata->slots[0].gpio_wp)) {
++		pdata->slots[0].get_ro = omap_hsmmc_get_wp;
++		ret = gpio_request(pdata->slots[0].gpio_wp, "mmc_wp");
++		if (ret)
++			goto err_free_cd;
++		ret = gpio_direction_input(pdata->slots[0].gpio_wp);
++		if (ret)
++			goto err_free_wp;
++	} else
++		pdata->slots[0].gpio_wp = -EINVAL;
++
++	return 0;
++
++err_free_wp:
++	gpio_free(pdata->slots[0].gpio_wp);
++err_free_cd:
++	if (gpio_is_valid(pdata->slots[0].switch_pin))
++err_free_sp:
++		gpio_free(pdata->slots[0].switch_pin);
++	return ret;
++}
++
++static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
++{
++	if (gpio_is_valid(pdata->slots[0].gpio_wp))
++		gpio_free(pdata->slots[0].gpio_wp);
++	if (gpio_is_valid(pdata->slots[0].switch_pin))
++		gpio_free(pdata->slots[0].switch_pin);
++}
++
+ /*
+  * Stop clock to the card
+  */
+@@ -2119,7 +2144,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	if (!mmc_slot(host).set_power) {
++	if (omap_hsmmc_have_reg() && !mmc_slot(host).set_power) {
+ 		ret = omap_hsmmc_reg_get(host);
+ 		if (ret)
+ 			goto err_reg;
+-- 
+1.6.0.4
