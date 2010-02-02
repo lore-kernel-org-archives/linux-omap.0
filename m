@@ -1,111 +1,97 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv5 4/9] OMAP3: PM: Removed pwrdm state hacking from omap_sram_idle
-Date: Tue,  2 Feb 2010 16:52:22 +0200
-Message-ID: <1265122347-2233-5-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCHv5 8/9] OMAP3: CPUidle: Fixed off-mode support to fall-back to proper C state
+Date: Tue,  2 Feb 2010 16:52:26 +0200
+Message-ID: <1265122347-2233-9-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1265122347-2233-1-git-send-email-tero.kristo@nokia.com>
  <1265122347-2233-2-git-send-email-tero.kristo@nokia.com>
  <1265122347-2233-3-git-send-email-tero.kristo@nokia.com>
  <1265122347-2233-4-git-send-email-tero.kristo@nokia.com>
+ <1265122347-2233-5-git-send-email-tero.kristo@nokia.com>
+ <1265122347-2233-6-git-send-email-tero.kristo@nokia.com>
+ <1265122347-2233-7-git-send-email-tero.kristo@nokia.com>
+ <1265122347-2233-8-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:52465 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:52494 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755931Ab0BBNEn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 08:04:43 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D4K37029468
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:04:40 +0200
+	with ESMTP id S1755955Ab0BBNFD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 08:05:03 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D4v5p029899
+	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:05:01 +0200
 Received: from localhost.localdomain (sokoban.nmp.nokia.com [172.22.215.13])
-	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D2wJf029178
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:03:03 +0200
-In-Reply-To: <1265122347-2233-4-git-send-email-tero.kristo@nokia.com>
+	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o12D2wJj029178
+	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 15:03:08 +0200
+In-Reply-To: <1265122347-2233-8-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Tero Kristo <tero.kristo@nokia.com>
 
-Following hacks will be moved inside cpuidle in subsequent patch:
-
- - CAM domain prevents idle completely
- - PER should not go OFF if core remains active
-
-This simplifies the design and allows cpuidle to keep better track of which
-power states system will actually enter.
+If off-mode is disabled, cpuidle now falls back to proper C state. Previously
+the state was just simply hacked inside omap3_enter_idle which resulted
+in wrong state residencies to be reported.
 
 Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   19 ++-----------------
- 1 files changed, 2 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   22 ++++++++++++----------
+ 1 files changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index fa9ff9b..7946b70 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -93,7 +93,6 @@ static int (*_omap_save_secure_sram)(u32 *addr);
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 38bd70c..dbb7315 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -115,13 +115,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+ 	local_irq_disable();
+ 	local_fiq_disable();
  
- static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
--static struct powerdomain *cam_pwrdm;
- 
- static struct prm_setup_vc prm_setup = {
- 	.clksetup = 0xff,
-@@ -373,7 +372,6 @@ void omap_sram_idle(void)
- 	int core_next_state = PWRDM_POWER_ON;
- 	int core_prev_state, per_prev_state;
- 	u32 sdrc_pwr = 0;
--	int per_state_modified = 0;
- 
- 	if (!_omap_sram_idle)
- 		return;
-@@ -411,20 +409,11 @@ void omap_sram_idle(void)
- 	core_next_state = omap3_pwrdm_read_next_pwrst(core_pwrdm);
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		omap2_gpio_prepare_for_idle(per_next_state);
--		if (per_next_state == PWRDM_POWER_OFF) {
--			if (core_next_state == PWRDM_POWER_ON) {
--				per_next_state = PWRDM_POWER_RET;
--				pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
--				per_state_modified = 1;
--			} else
--				omap3_per_save_context();
--		}
-+		if (per_next_state == PWRDM_POWER_OFF)
-+			omap3_per_save_context();
- 		omap_uart_prepare_idle(2);
- 	}
- 
--	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
--		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+-	if (!enable_off_mode) {
+-		if (mpu_state < PWRDM_POWER_RET)
+-			mpu_state = PWRDM_POWER_RET;
+-		if (core_state < PWRDM_POWER_RET)
+-			core_state = PWRDM_POWER_RET;
+-	}
 -
- 	/*
- 	 * Disable smartreflex before entering WFI.
- 	 * Only needed if we are going to enter retention or off.
-@@ -554,8 +543,6 @@ void omap_sram_idle(void)
+ 	omap3_pwrdm_set_next_pwrst(mpu_pd, mpu_state);
+ 	omap3_pwrdm_set_next_pwrst(core_pd, core_state);
+ 
+@@ -155,7 +148,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ {
+ 	struct cpuidle_state *new_state = state;
+ 	u32 per_state = 0, saved_per_state = 0, cam_state, usb_state;
+-	u32 iva2_state, sgx_state, dss_state, new_core_state;
++	u32 iva2_state, sgx_state, dss_state, new_core_state, new_mpu_state;
+ 	struct omap3_processor_cx *cx;
+ 	int ret;
+ 
+@@ -167,6 +160,14 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
  		}
- 		omap2_gpio_resume_after_idle();
- 		omap_uart_resume_idle(2);
--		if (per_state_modified)
--			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
- 	}
+ 		cx = cpuidle_get_statedata(state);
+ 		new_core_state = cx->core_state;
++		new_mpu_state = cx->mpu_state;
++
++		if (!enable_off_mode) {
++			if (new_mpu_state < PWRDM_POWER_RET)
++				new_mpu_state = PWRDM_POWER_RET;
++			if (new_core_state < PWRDM_POWER_RET)
++				new_core_state = PWRDM_POWER_RET;
++		}
  
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
-@@ -564,7 +551,6 @@ void omap_sram_idle(void)
- 		omap3_disable_io_chain();
- 	}
+ 		/* Check if CORE is active, if yes, fallback to inactive */
+ 		if (!pwrdm_can_idle(core_pd))
+@@ -221,8 +222,9 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 				new_core_state = PWRDM_POWER_RET;
+ 		}
  
--
- 	pwrdm_post_transition();
- }
- 
-@@ -1235,7 +1221,6 @@ static int __init omap3_pm_init(void)
- 	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
- 	per_pwrdm = pwrdm_lookup("per_pwrdm");
- 	core_pwrdm = pwrdm_lookup("core_pwrdm");
--	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
- 
- 	omap_push_sram_idle();
- #ifdef CONFIG_SUSPEND
+-		/* Fallback to new target core state */
+-		while (cx->core_state < new_core_state) {
++		/* Fallback to new target core/mpu state */
++		while (cx->core_state < new_core_state ||
++		       cx->mpu_state < new_mpu_state) {
+ 			state--;
+ 			cx = cpuidle_get_statedata(state);
+ 		}
 -- 
 1.5.4.3
 
