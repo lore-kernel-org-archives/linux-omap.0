@@ -1,55 +1,46 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 1/9] omap: define _toggle_gpio_edge_triggering only for
-	OMAP1
-Date: Wed, 3 Feb 2010 18:10:26 +0100
-Message-ID: <20100203171026.GO11354@pengutronix.de>
-References: <20100203022318.26347.34734.stgit@baageli.muru.com> <20100203022555.26347.62876.stgit@baageli.muru.com> <20100203081313.GB11354@pengutronix.de> <20100203165754.GA22747@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
+ tree
+Date: Wed, 3 Feb 2010 09:12:28 -0800
+Message-ID: <20100203171227.GD22747@atomide.com>
+References: <20100203152947.f4955d91.sfr@canb.auug.org.au>
+ <6ed0b2681002030429t1f6b33e9r3b6ea667fffb0f6a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38714 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932609Ab0BCRK2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:10:28 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20100203165754.GA22747@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <6ed0b2681002030429t1f6b33e9r3b6ea667fffb0f6a@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello Tony,
+* Grazvydas Ignotas <notasas@gmail.com> [100203 04:27]:
+> hi,
+> 
+> On Wed, Feb 3, 2010 at 6:29 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> > Hi Tomi,
+> >
+> > Today's linux-next merge of the omap_dss2 tree got a conflict in
+> > arch/arm/mach-omap2/board-omap3pandora.c between commit
+> > f8b6f704105164eac7c043a48f79c4234e03e4b2 ("omap: Rename hsmmc symbols to
+> > reflect independence from twl4030") from the omap tree and commit
+> > aacb4387a1e6f3b57977375532c6d8e47fcd5652 ("OMAP: pandora: add DSS2
+> > support and related regulators") from the omap_dss2 tree.
+> 
+> I've rebased my patch against linux-omap/for-next (attached). To fix
+> the conflict, Tomi can rebase his queue on linux-omap/for-next, or
+> Tony can simply take this to his queue - this has no "hard"
+> dependencies on other queued DSS2 changes, has only board file changes
+> and builds fine in linux-omap/for-next. I would prefer the second
+> option, as I plan sending more boardfile changes to linux-omap.
 
-On Wed, Feb 03, 2010 at 08:57:55AM -0800, Tony Lindgren wrote:
-> BTW, looks like with "git show --pretty=3Demail" the From: field gets
-> messed up in the patch below. Author name shows OK in git though.
->=20
-> I wonder if that's a git bug for --pretty=3Demail? Using version
-> 1.6.6.1 it seems.
-That's not a bug, but a feature.  This is normal rfcforgotthenumber mai=
-l
-header quoting.  (2822?)
+Thanks Stephen and Grazvydas.
 
->=20
-> Tony
+This sounds good to me, I've added this patch into omap for-next.
 
-> From 9198bcd39f558dd56823f1c9983e2252fc99a501 Mon Sep 17 00:00:00 200=
-1
-> From: =3D?UTF-8?q?Uwe=3D20Kleine-K=3DC3=3DB6nig?=3D <u.kleine-koenig@=
-pengutronix.de>
+Tomi can you please drop the earlier version from your branch?
 
-Thanks
-Uwe
+Regards,
 
---=20
-Pengutronix e.K.                              | Uwe Kleine-K=F6nig     =
-       |
-Industrial Linux Solutions                    | http://www.pengutronix.=
-de/  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
