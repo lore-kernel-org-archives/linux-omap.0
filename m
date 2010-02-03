@@ -1,77 +1,93 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: dspbridge patches in patchwork
-Date: Wed, 03 Feb 2010 19:29:21 +0200
-Message-ID: <1265218161.10175.2.camel@sanganak>
-References: <1265199981.2740.8.camel@sanganak>
-	 <20100203170314.GB22747@atomide.com>  <20100203170815.GC22747@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP3: Serial: Improved sleep logic
+Date: Wed, 3 Feb 2010 09:50:00 -0800
+Message-ID: <20100203175000.GF22747@atomide.com>
+References: <>
+ <1265110224-29473-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:43604 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932706Ab0BCRae (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:30:34 -0500
-In-Reply-To: <20100203170815.GC22747@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63968 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932692Ab0BCRtd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:49:33 -0500
+Content-Disposition: inline
+In-Reply-To: <1265110224-29473-1-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "omar.ramirez@ti.com" <omar.ramirez@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "nm@ti.com" <nm@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Omar,
+* Tero Kristo <tero.kristo@nokia.com> [100202 01:38]:
+> From: Tero Kristo <tero.kristo@nokia.com>
+> 
+> Only RX interrupt will now kick the sleep prevent timer. In addition, TX
+> fifo status is checked before disabling clocks, this will prevent occasional
+> garbage being printed on serial line. Smartidle is also disabled while
+> entering idle if we have data in the transmit buffer, because having this
+> enabled will prevent wakeups from the TX interrupt, and this causes
+> pauses while sending large blocks of data.
 
-On Wed, 2010-02-03 at 18:08 +0100, ext Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [100203 09:00]:
-> > * Ameya Palande <ameya.palande@nokia.com> [100203 04:24]:
-> > > Hi Tony,
-> > > 
-> > > As more and more people start contributing to dspbridge code (as we have
-> > > seen recently) tracking patches is becoming difficult.
-> > > 
-> > > Is it possible to delegate dspbridge patches to dspbridge maintainer in
-> > > patchwork?
-> > 
-> > Yeh sure. All it takes is registering a user for pw.k.o and selecting
-> > linux-omap as the project.
-> > 
-> > Then I need send an email with the pw.k.o user name to allow changing
-> > the omap patch status.
-> 
-> If you just want to follow the dspbridge patches, you can configure
-> your pwclient:
-> 
-> $ cat /home/tmlind/.pwclientrc 
-> # Sample .pwclientrc file for the linux-omap project,
-> # running on patchwork.kernel.org.
-> #
-> # Save this file to ~/.pwclientrc
-> #
-> [base]
-> url: http://patchwork.kernel.org/xmlrpc/
-> project: linux-omap
-> 
-> # Adding authentication parameters will allow you to use the 'update'
-> # command on patches that you are allowed to edit.
-> # [auth]
-> # username: yourusername
-> # password: yourpassword
-> 
-> Then to see all the dspbridge patches, just do:
-> 
-> $ pwclient search dspbridge
-> ID    State        Name
-> --    -----        ----
-> 6777  Not Applicable [1/3] DSPBRIDGE Offmode and DVFS Support
-> 6778  Not Applicable [2/3] DSPBRIDGE DVFS and OFF mode support with OPP2
-> 6814  Not Applicable [1/1] DSPBRIDGE Fix condition statement for Global Flush
-> ...
-> 
-> Regards,
-> 
-> Tony
+Sounds this is for 2.6.34 merge window and does not contain anything
+that needs to be fixed for 2.6.33. 
 
-Will you maintain dspbridge patches in patchwork?
+Regards,
 
-Cheers,
-Ameya.
+Tony
 
+ 
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> ---
+>  arch/arm/mach-omap2/serial.c |   19 +++++++++++++++----
+>  1 files changed, 15 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 777e802..e11dfe9 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -317,7 +317,8 @@ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+>  	if (!uart->clocked)
+>  		return;
+>  
+> -	omap_uart_smart_idle_enable(uart, 1);
+> +	if (serial_read_reg(uart->p, UART_LSR) & UART_LSR_TEMT)
+> +		omap_uart_smart_idle_enable(uart, 1);
+>  	uart->can_sleep = 1;
+>  	del_timer(&uart->timer);
+>  }
+> @@ -335,7 +336,11 @@ void omap_uart_prepare_idle(int num)
+>  
+>  	list_for_each_entry(uart, &uart_list, node) {
+>  		if (num == uart->num && uart->can_sleep) {
+> -			omap_uart_disable_clocks(uart);
+> +			if (serial_read_reg(uart->p, UART_LSR) &
+> +					UART_LSR_TEMT)
+> +				omap_uart_disable_clocks(uart);
+> +			else
+> +				omap_uart_smart_idle_enable(uart, 0);
+>  			return;
+>  		}
+>  	}
+> @@ -407,8 +412,14 @@ int omap_uart_can_sleep(void)
+>  static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+>  {
+>  	struct omap_uart_state *uart = dev_id;
+> +	u8 lsr;
+>  
+> -	omap_uart_block_sleep(uart);
+> +	lsr = serial_read_reg(uart->p, UART_LSR);
+> +	/* Check for receive interrupt */
+> +	if (lsr & UART_LSR_DR)
+> +		omap_uart_block_sleep(uart);
+> +	if (lsr & UART_LSR_TEMT && uart->can_sleep)
+> +		omap_uart_smart_idle_enable(uart, 1);
+>  
+>  	return IRQ_NONE;
+>  }
+> -- 
+> 1.5.4.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
