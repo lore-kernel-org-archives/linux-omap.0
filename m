@@ -1,136 +1,147 @@
 From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: [Patch 7/8] DSPBRIDGE: typedef cleanup -BRD_STATUS
-Date: Wed, 3 Feb 2010 06:14:07 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A6B9677@dbde02.ent.ti.com>
+Subject: [Patch 8/8] DSPBRIDGE: typedef cleanup -CHNL_MODE
+Date: Wed, 3 Feb 2010 06:14:11 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A6B9678@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44198 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:44204 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756056Ab0BCAoN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 19:44:13 -0500
+	with ESMTP id S1756056Ab0BCAoQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 19:44:16 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o130iAqu025819
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o130iDVU025826
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 18:44:12 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o130i9Zl009274
-	for <linux-omap@vger.kernel.org>; Wed, 3 Feb 2010 06:14:09 +0530 (IST)
+	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 18:44:15 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o130iC86009278
+	for <linux-omap@vger.kernel.org>; Wed, 3 Feb 2010 06:14:12 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 
->From 9c41e6639d93696cf92c740c026d887ab77f16a9 Mon Sep 17 00:00:00 2001
+>From 23b8b63a9f57c20b3f87ac886623d227d5448e8f Mon Sep 17 00:00:00 2001
 From: Shivananda Hebbar <x0hebbar@ti.com>
-Date: Thu, 28 Jan 2010 20:40:48 -0600
-Subject: [PATCH] DSPBRIDGE: Remove typedef BRD_STATUS and replace it with
+Date: Thu, 28 Jan 2010 20:53:48 -0600
+Subject: [PATCH] DSPBRIDGE: Remove typedef CHNL_MODE and replace it with
  	   normal C type
 
-This patch removes the typedef BRD_STATUS and replaces it with the normal C type. Here BRD_STATUS need not be u32 type.
-So replacing it with a short int type.
+This patch removes the typedef CHNL_MODE.
+CHNL_MODE values are well within the range of short int.
+Hence changing it from u32 type to short int.
 
 Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/brddefs.h |    1 -
- arch/arm/plat-omap/include/dspbridge/wmd.h     |    2 +-
- drivers/dsp/bridge/rmgr/proc.c                 |   10 +++++-----
- drivers/dsp/bridge/wmd/tiomap3430.c            |    4 ++--
- 4 files changed, 8 insertions(+), 9 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/chnldefs.h |    2 --
+ arch/arm/plat-omap/include/dspbridge/wmd.h      |    2 +-
+ arch/arm/plat-omap/include/dspbridge/wmdchnl.h  |    2 +-
+ drivers/dsp/bridge/rmgr/node.c                  |    2 +-
+ drivers/dsp/bridge/rmgr/strm.c                  |    2 +-
+ drivers/dsp/bridge/wmd/chnl_sm.c                |    8 ++++----
+ 6 files changed, 8 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/brddefs.h b/arch/arm/plat-omap/include/dspbridge/brddefs.h
-index ca503e2..ff83166 100644
---- a/arch/arm/plat-omap/include/dspbridge/brddefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/brddefs.h
-@@ -32,7 +32,6 @@
- #define BRD_RETENTION     0x8       /* Retention mode */
- #define BRD_DSP_HIBERNATION     0x9       /* DSP initiated hibernation */
- #define BRD_ERROR		0xA       /* Board state is Error */
--	typedef u32 BRD_STATUS;
+diff --git a/arch/arm/plat-omap/include/dspbridge/chnldefs.h b/arch/arm/plat-omap/include/dspbridge/chnldefs.h
+index be405ba..43df8b7 100644
+--- a/arch/arm/plat-omap/include/dspbridge/chnldefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/chnldefs.h
+@@ -45,8 +45,6 @@
+ #define CHNL_IsIOCancelled(ioc) (ioc.status & CHNL_IOCSTATCANCEL)
+ #define CHNL_IsTimedOut(ioc)    (ioc.status & CHNL_IOCSTATTIMEOUT)
  
- /* BRD Object */
- 	struct BRD_OBJECT;
+-/* CHNL types: */
+-	typedef u32 CHNL_MODE;	/* Channel transfer mode.         */
+ 
+ /* Channel attributes: */
+ 	struct CHNL_ATTRS {
 diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
-index 748b1c6..70f3970 100644
+index 70f3970..95c79f2 100644
 --- a/arch/arm/plat-omap/include/dspbridge/wmd.h
 +++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
-@@ -244,7 +244,7 @@
-  */
-        typedef DSP_STATUS(*
- 			   WMD_BRD_STATUS) (struct WMD_DEV_CONTEXT *hDevContext,
--					    OUT BRD_STATUS * pdwState);
-+					    int *pdwState);
+@@ -418,7 +418,7 @@ typedef DSP_STATUS(*WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+        typedef DSP_STATUS(*WMD_CHNL_OPEN) (OUT struct CHNL_OBJECT
+ 						   **phChnl,
+ 						   struct CHNL_MGR *hChnlMgr,
+-						   CHNL_MODE uMode,
++						   short int chnlMode,
+ 						   u32 uChnlId,
+ 						   CONST IN OPTIONAL struct
+ 						   CHNL_ATTRS *pAttrs);
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmdchnl.h b/arch/arm/plat-omap/include/dspbridge/wmdchnl.h
+index 4b733d8..9e73516 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmdchnl.h
++++ b/arch/arm/plat-omap/include/dspbridge/wmdchnl.h
+@@ -33,7 +33,7 @@
  
- /*
-  *  ======== WMD_BRD_Read ========
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c index 84f4cb5..a4bd721 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -808,7 +808,7 @@ DSP_STATUS PROC_GetState(DSP_HPROCESSOR hProcessor,  {
+ 	extern DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
+ 					struct CHNL_MGR *hChnlMgr,
+-					CHNL_MODE uMode,
++					short int chnlMode,
+ 					u32 uChnlId,
+ 					CONST IN OPTIONAL struct CHNL_ATTRS
+ 					*pAttrs);
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c index 5352923..538c806 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -895,7 +895,7 @@ DSP_STATUS NODE_Connect(struct NODE_OBJECT *hNode1, u32 uStream1,
+ 	struct STREAM *pStream;
+ 	GB_BitNum pipeId = GB_NOBITS;
+ 	GB_BitNum chnlId = GB_NOBITS;
+-	CHNL_MODE uMode;
++	short int uMode;
+ 	u32 dwLength;
  	DSP_STATUS status = DSP_SOK;
- 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
--	BRD_STATUS brdStatus;
-+	int brdStatus;
- 	struct DEH_MGR *hDehMgr;
- 
  	DBC_Require(cRefs > 0);
-@@ -949,7 +949,7 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
- 	u32 dwExtEnd;
- 	u32 uProcId;
- #ifdef CONFIG_BRIDGE_DEBUG
--	BRD_STATUS uBrdState;
-+	int uBrdState;
- #endif
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c index febb6c2..f03064e 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -524,7 +524,7 @@ DSP_STATUS STRM_Open(struct NODE_OBJECT *hNode, u32 uDir, u32 uIndex,
+ 	struct WMD_DRV_INTERFACE *pIntfFxns;
+ 	u32 ulChnlId;
+ 	struct STRM_OBJECT *pStrm = NULL;
+-	CHNL_MODE uMode;
++	short int uMode;
+ 	struct CHNL_ATTRS chnlAttrs;
+ 	DSP_STATUS status = DSP_SOK;
+ 	struct CMM_OBJECT *hCmmMgr = NULL;	/* Shared memory manager hndl */
+diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
+index ca5662d..5d3f71e 100644
+--- a/drivers/dsp/bridge/wmd/chnl_sm.c
++++ b/drivers/dsp/bridge/wmd/chnl_sm.c
+@@ -253,7 +253,7 @@ DSP_STATUS WMD_CHNL_CancelIO(struct CHNL_OBJECT *hChnl)
+ 	DSP_STATUS status = DSP_SOK;
+ 	struct CHNL_OBJECT *pChnl = (struct CHNL_OBJECT *)hChnl;
+ 	u32 iChnl = -1;
+-	CHNL_MODE uMode;
++	short int chnlMode;
+ 	struct CHNL_IRP *pChirp;
+ 	struct CHNL_MGR *pChnlMgr = NULL;
  
- #ifdef OPT_LOAD_TIME_INSTRUMENTATION
-@@ -1442,7 +1442,7 @@ DSP_STATUS PROC_Start(DSP_HPROCESSOR hProcessor)
- 	struct COD_MANAGER *hCodMgr;	/* Code manager handle    */
- 	u32 dwDspAddr;	/* Loaded code's entry point.    */
- #ifdef CONFIG_BRIDGE_DEBUG
--	BRD_STATUS uBrdState;
-+	int uBrdState;
- #endif
- 	DBC_Require(cRefs > 0);
- 	GT_1trace(PROC_DebugMask, GT_ENTER, "Entered PROC_Start, args:\n\t"
-@@ -1538,7 +1538,7 @@ DSP_STATUS PROC_Stop(DSP_HPROCESSOR hProcessor)
- 	u32 uNodeTabSize = 1;
- 	u32 uNumNodes = 0;
- 	u32 uNodesAllocated = 0;
--	BRD_STATUS uBrdState;
-+	int uBrdState;
- 
- 	DBC_Require(cRefs > 0);
- 	GT_1trace(PROC_DebugMask, GT_ENTER, "Entered PROC_Stop, args:\n\t"
-@@ -1730,7 +1730,7 @@ static DSP_STATUS PROC_Monitor(struct PROC_OBJECT *hProcObject)
- 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcObject;
- 	struct MSG_MGR *hMsgMgr;
- #ifdef CONFIG_BRIDGE_DEBUG
--	BRD_STATUS uBrdState;
-+	int uBrdState;
- #endif
- 
- 	DBC_Require(cRefs > 0);
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index 3b9052e..a17a9ff 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -93,7 +93,7 @@ static DSP_STATUS WMD_BRD_Read(struct WMD_DEV_CONTEXT *pDevContext,  static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *pDevContext,
- 			u32 dwDSPAddr);
- static DSP_STATUS WMD_BRD_Status(struct WMD_DEV_CONTEXT *pDevContext,
--			OUT BRD_STATUS *pdwState);
-+			int *pdwState);
- static DSP_STATUS WMD_BRD_Stop(struct WMD_DEV_CONTEXT *pDevContext);  static DSP_STATUS WMD_BRD_Write(struct WMD_DEV_CONTEXT *pDevContext,
- 			IN u8 *pbHostBuf,
-@@ -926,7 +926,7 @@ static DSP_STATUS WMD_BRD_Delete(struct WMD_DEV_CONTEXT *hDevContext)
-  *      Returns the board status.
-  */
- static DSP_STATUS WMD_BRD_Status(struct WMD_DEV_CONTEXT *hDevContext,
--				 OUT BRD_STATUS *pdwState)
-+				 int *pdwState)
+@@ -483,7 +483,7 @@ DSP_STATUS WMD_CHNL_FlushIO(struct CHNL_OBJECT *hChnl, u32 dwTimeOut)  {
+ 	DSP_STATUS status = DSP_SOK;
+ 	struct CHNL_OBJECT *pChnl = (struct CHNL_OBJECT *)hChnl;
+-	CHNL_MODE uMode = -1;
++	short int chnlMode = -1;
+ 	struct CHNL_MGR *pChnlMgr;
+ 	struct CHNL_IOC chnlIOC;
+ 	/* Check args:  */
+@@ -758,7 +758,7 @@ DSP_STATUS WMD_CHNL_GetMgrInfo(struct CHNL_MGR *hChnlMgr, u32 uChnlID,  DSP_STATUS WMD_CHNL_Idle(struct CHNL_OBJECT *hChnl, u32 dwTimeOut,
+ 			 bool fFlush)
  {
- 	struct WMD_DEV_CONTEXT *pDevContext = hDevContext;
- 	*pdwState = pDevContext->dwBrdState;
+-	CHNL_MODE uMode;
++	short int uMode;
+ 	struct CHNL_MGR *pChnlMgr;
+ 	DSP_STATUS status = DSP_SOK;
+ 
+@@ -786,7 +786,7 @@ DSP_STATUS WMD_CHNL_Idle(struct CHNL_OBJECT *hChnl, u32 dwTimeOut,
+  *      Open a new half-duplex channel to the DSP board.
+  */
+ DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
+-			 struct CHNL_MGR *hChnlMgr, CHNL_MODE uMode,
++			 struct CHNL_MGR *hChnlMgr, short int chnlMode,
+ 			 u32 uChnlId, CONST IN struct CHNL_ATTRS *pAttrs)  {
+ 	DSP_STATUS status = DSP_SOK;
 --
 1.6.0.4
 
