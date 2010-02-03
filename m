@@ -1,116 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/9] omap: define _toggle_gpio_edge_triggering only for
- OMAP1
-Date: Wed, 3 Feb 2010 08:57:55 -0800
-Message-ID: <20100203165754.GA22747@atomide.com>
-References: <20100203022318.26347.34734.stgit@baageli.muru.com>
- <20100203022555.26347.62876.stgit@baageli.muru.com>
- <20100203081313.GB11354@pengutronix.de>
+Subject: Re: dspbridge patches in patchwork
+Date: Wed, 3 Feb 2010 09:03:15 -0800
+Message-ID: <20100203170314.GB22747@atomide.com>
+References: <1265199981.2740.8.camel@sanganak>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Il7n/DHsA0sMLmDu"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64178 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932557Ab0BCQ5h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 11:57:37 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58817 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932561Ab0BCRCv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:02:51 -0500
 Content-Disposition: inline
-In-Reply-To: <20100203081313.GB11354@pengutronix.de>
+In-Reply-To: <1265199981.2740.8.camel@sanganak>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: omar.ramirez@ti.com, linux-omap@vger.kernel.org, Contreras Felipe <felipe.contreras@nokia.com>, nm@ti.com
 
-
---Il7n/DHsA0sMLmDu
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-* Uwe Kleine-König <u.kleine-koenig@pengutronix.de> [100203 00:10]:
+* Ameya Palande <ameya.palande@nokia.com> [100203 04:24]:
 > Hi Tony,
 > 
-> On Tue, Feb 02, 2010 at 06:25:55PM -0800, Tony Lindgren wrote:
-> > From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-> > 
-> > The only usage of _toggle_gpio_edge_triggering is in an
-> > CONFIG_ARCH_OMAP1 is defined, too.
-> This sentence is broken, isn't it?  I guess git commit played tricks on
-> me here and removed a line, something like:
+> As more and more people start contributing to dspbridge code (as we have
+> seen recently) tracking patches is becoming difficult.
 > 
-> 	#ifdef CONFIG_ARCH_OMAP1 block, so only provide it if
-> 
-> Can you add it back?  I'd recommend doing the line break before the "an"
-> in the first line instead of behind it.
+> Is it possible to delegate dspbridge patches to dspbridge maintainer in
+> patchwork?
 
-Sure, updated patch below. The description makes more sense now :)
+Yeh sure. All it takes is registering a user for pw.k.o and selecting
+linux-omap as the project.
 
-BTW, looks like with "git show --pretty=email" the From: field gets
-messed up in the patch below. Author name shows OK in git though.
+Then I need send an email with the pw.k.o user name to allow changing
+the omap patch status.
 
-I wonder if that's a git bug for --pretty=email? Using version
-1.6.6.1 it seems.
+Regards,
 
 Tony
-
---Il7n/DHsA0sMLmDu
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: inline; filename="fix-gpio-warning-v2.patch"
-Content-Transfer-Encoding: 8bit
-
->From 9198bcd39f558dd56823f1c9983e2252fc99a501 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Date: Fri, 29 Jan 2010 14:20:05 -0800
-Subject: [PATCH] omap: define _toggle_gpio_edge_triggering only for OMAP1
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-The only usage of _toggle_gpio_edge_triggering is in
-an #ifdef CONFIG_ARCH_OMAP1 block, so only provide it if
-CONFIG_ARCH_OMAP1 is defined, too.
-
-This fixes a compiler warning:
-
-	arch/arm/plat-omap/gpio.c:758: warning: '_toggle_gpio_edge_triggering' defined but not used
-
-when compiling for ARCH_OMAP2, ARCH_OMAP3 or ARCH_OMAP4.
-
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index d17620c..d2422c7 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -750,6 +750,7 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
- }
- #endif
- 
-+#ifdef CONFIG_ARCH_OMAP1
- /*
-  * This only applies to chips that can't do both rising and falling edge
-  * detection at once.  For all other chips, this function is a noop.
-@@ -760,11 +761,9 @@ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
- 	u32 l = 0;
- 
- 	switch (bank->method) {
--#ifdef CONFIG_ARCH_OMAP1
- 	case METHOD_MPUIO:
- 		reg += OMAP_MPUIO_GPIO_INT_EDGE;
- 		break;
--#endif
- #ifdef CONFIG_ARCH_OMAP15XX
- 	case METHOD_GPIO_1510:
- 		reg += OMAP1510_GPIO_INT_CONTROL;
-@@ -787,6 +786,7 @@ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
- 
- 	__raw_writel(l, reg);
- }
-+#endif
- 
- static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
- {
-
---Il7n/DHsA0sMLmDu--
