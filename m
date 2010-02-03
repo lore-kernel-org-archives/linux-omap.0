@@ -1,15 +1,15 @@
 From: "Hemanth V" <hemanthv@ti.com>
-Subject: PATCH[V2 1/3]: Update Platform files for SPI
-Date: Wed, 3 Feb 2010 15:51:45 +0530 (IST)
-Message-ID: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH V2 3/3] Add support for Slave mode
+Date: Wed, 3 Feb 2010 15:52:06 +0530 (IST)
+Message-ID: <9735.10.24.255.17.1265192526.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39021 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932276Ab0BCKVy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 05:21:54 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:45899 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932276Ab0BCKWQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Feb 2010 05:22:16 -0500
 References: 
 In-Reply-To: 
 Sender: linux-omap-owner@vger.kernel.org
@@ -17,84 +17,86 @@ List-Id: linux-omap@vger.kernel.org
 To: spi-devel-general@lists.sourceforge.net
 Cc: linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca
 
->From ee48142ddc43129a21676dbb56a83e3e7d8063de Mon Sep 17 00:00:00 2001
+>From c13e2181154c793a71e132ab374bba1720ca421c Mon Sep 17 00:00:00 2001
 From: Hemanth V <hemanthv@ti.com>
-Date: Fri, 27 Nov 2009 14:22:30 +0530
-Subject: [PATCH] Update platform files
+Date: Fri, 27 Nov 2009 14:37:20 +0530
+Subject: [PATCH] Add McSPI slave support.
 
-This patch updates platform files for
-fifo, slave support
+This patch adds support for mcspi slave mode.
 
 Signed-off-by: Hemanth V <hemanthv@ti.com>
 ---
- arch/arm/mach-omap2/devices.c           |    5 +++++
- arch/arm/plat-omap/include/plat/mcspi.h |   29 ++++++++++++++++++++++++++++- 2
-files changed, 33 insertions(+), 1 deletions(-)
+ drivers/spi/omap2_mcspi.c |   22 ++++++++++++++++------
+ 1 files changed, 16 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 733d3dc..79b5396 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -282,6 +282,7 @@ static inline void omap_init_sti(void) {}
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c index
+d8e8ea0..f6041bf 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -428,6 +428,16 @@ static void omap2_mcspi_set_master_mode(struct spi_master
+*master)
+ 	omap2_mcspi_ctx[master->bus_num - 1].modulctrl = l;
+ }
 
- static struct omap2_mcspi_platform_config omap2_mcspi1_config = {
- 	.num_cs		= 4,
-+	.force_cs_mode	= 1,
- };
-
- static struct resource omap2_mcspi1_resources[] = {
-@@ -304,6 +305,10 @@ static struct platform_device omap2_mcspi1 = {
-
- static struct omap2_mcspi_platform_config omap2_mcspi2_config = {
- 	.num_cs		= 2,
-+	.mode		= OMAP2_MCSPI_MASTER,
-+	.dma_mode	= 0,
-+	.force_cs_mode	= 0,
-+	.fifo_depth	= 0,
- };
-
- static struct resource omap2_mcspi2_resources[] = {
-diff --git a/arch/arm/plat-omap/include/plat/mcspi.h
-b/arch/arm/plat-omap/include/plat/mcspi.h
-index 1254e49..ffda0a1 100644
---- a/arch/arm/plat-omap/include/plat/mcspi.h
-+++ b/arch/arm/plat-omap/include/plat/mcspi.h
-@@ -1,8 +1,35 @@
- #ifndef _OMAP2_MCSPI_H
- #define _OMAP2_MCSPI_H
-
-+#define OMAP2_MCSPI_MASTER		0
-+#define OMAP2_MCSPI_SLAVE		1
++static void omap2_mcspi_set_slave_mode(struct spi_master *master) +{
++	u32 l;
 +
-+/**
-+ * struct omap2_mcspi_platform_config - McSPI controller configuration + *
-@num_cs: Number of chip selects or channels supported
-+ * @mode: SPI is master or slave
-+ * @dma_mode: Use only DMA for data transfers
-+ * @force_cs_mode: Use force chip select mode or auto chip select mode + *
-@fifo_depth: FIFO depth in bytes, max value 64
-+ *
-+ * @dma_mode when set to 1 uses only dma for data transfers
-+ * else the default behaviour is to use PIO mode for transfer
-+ * size of 8 bytes or less. This mode is useful when mcspi
-+ * is configured as slave
-+ *
-+ * @force_cs_mode when set to 1 allows continuous transfer of multiple + * spi
-words without toggling the chip select line.
-+ *
-+ * @fifo_depth when set to non zero values enables FIFO. fifo_depth + * should
-be set as a multiple of buffer size used for read/write. + */
++	l = mcspi_read_reg(master, OMAP2_MCSPI_MODULCTRL);
++	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_STEST, 0);
++	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_MS, 1);
++	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
++}
 +
- struct omap2_mcspi_platform_config {
--	unsigned short	num_cs;
-+	u8	num_cs;
-+	u8	mode;
-+	u8	dma_mode;
-+	u8	force_cs_mode;
-+	unsigned short fifo_depth;
- };
+ static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit) {
+ 	unsigned long timeout;
+@@ -827,10 +837,11 @@ static int omap2_mcspi_setup_transfer(struct spi_device
+*spi,
+ 		l &= ~(OMAP2_MCSPI_CHCONF_IS|OMAP2_MCSPI_CHCONF_DPE1);
+ 		l |= OMAP2_MCSPI_CHCONF_DPE0;
+ 	} else {
+-		return -EINVAL;
++		l |= OMAP2_MCSPI_CHCONF_IS;
++		l |= OMAP2_MCSPI_CHCONF_DPE1;
++		l &= ~OMAP2_MCSPI_CHCONF_DPE0;
+ 	}
 
- struct omap2_mcspi_device_config {
+-
+ 	/* wordlength */
+ 	l &= ~OMAP2_MCSPI_CHCONF_WL_MASK;
+ 	l |= (word_len - 1) << 7;
+@@ -1216,7 +1227,6 @@ static int __init omap2_mcspi_reset(struct omap2_mcspi
+*mcspi)
+ {
+ 	struct spi_master	*master = mcspi->master;
+ 	u32			tmp;
+-	u32			error = 0;
+
+ 	if (omap2_mcspi_enable_clocks(mcspi))
+ 		return -1;
+@@ -1240,10 +1250,10 @@ static int __init omap2_mcspi_reset(struct omap2_mcspi
+*mcspi)
+ 	if (mcspi->mcspi_mode == OMAP2_MCSPI_MASTER)
+ 		omap2_mcspi_set_master_mode(master);
+ 	else
+-		error = -EINVAL;
++		omap2_mcspi_set_slave_mode(master);
+
+ 	omap2_mcspi_disable_clocks(mcspi);
+-	return error;
++	return 0;
+ }
+
+ static u8 __initdata spi1_rxdma_id [] = {
+@@ -1355,7 +1365,7 @@ static int __init omap2_mcspi_probe(struct
+platform_device *pdev)
+
+ 	mcspi = spi_master_get_devdata(master);
+ 	mcspi->master = master;
+-	mcspi->mcspi_mode = OMAP2_MCSPI_MASTER;
++	mcspi->mcspi_mode = pdata->mode;
+ 	mcspi->dma_mode = pdata->dma_mode;
+ 	mcspi->force_cs_mode = pdata->force_cs_mode;
+
 -- 
 1.5.6.3
 
