@@ -1,73 +1,43 @@
-From: Mike Turquette <mturquette@gmail.com>
-Subject: [PATCH 2/2] OMAP3: PM: remove TWL4030 A2S script before reboot
-Date: Wed,  3 Feb 2010 13:43:27 -0600
-Message-ID: <1265226207-22971-3-git-send-email-mturquette@ti.com>
-References: <1265226207-22971-1-git-send-email-mturquette@ti.com>
- <1265226207-22971-2-git-send-email-mturquette@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v9 0/4] OMAP: McBSP: Use register cache
+Date: Wed, 3 Feb 2010 11:49:10 -0800
+Message-ID: <20100203194910.GI22747@atomide.com>
+References: <201001141658.32034.jkrzyszt@tis.icnet.pl>
+ <201001181007.36436.peter.ujfalusi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f198.google.com ([209.85.211.198]:33713 "EHLO
-	mail-yw0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473Ab0BCToA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 14:44:00 -0500
-Received: by mail-yw0-f198.google.com with SMTP id 36so1626263ywh.15
-        for <linux-omap@vger.kernel.org>; Wed, 03 Feb 2010 11:43:59 -0800 (PST)
-In-Reply-To: <1265226207-22971-2-git-send-email-mturquette@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64633 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932289Ab0BCTsx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 14:48:53 -0500
+Content-Disposition: inline
+In-Reply-To: <201001181007.36436.peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Mike Turquette <mturquette@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Removes TWL4030 sleep script prior to rebooting, only on OMAP3. This is
-necessary since DPLL3 reset causes SYS_OFFMODE pin to go low, resulting
-in the sleep script being executed on TWL4030. This usually results in
-VDD1 & VDD2 voltage collapse while ROM code is executing, followed by an
-MPU Watch Dog reset or worse, an irrecoverable hang.
+* Peter Ujfalusi <peter.ujfalusi@nokia.com> [100118 00:05]:
+> Hello,
+> 
+> On Thursday 14 January 2010 17:58:29 ext Janusz Krzysztofik wrote:
+> > Change the way McBSP registers are maintained: store values written to the
+> > device in a cache in order to make use of those cached values when
+> > convenient.
+> > 
+> > This could help for developing the McBSP context save/restore features, as
+> > well as solve the problem of possible register corruption, experienced on
+> > OMAP1510 based Amstrad Delta board at least.
+> > 
+> 
+> Please make a followup patch for the unneeded masking of status bits as we 
+> discussed regarding to patch 4.
 
-Signed-off-by: Mike Turquette <mturquette@ti.com>
----
- arch/arm/mach-omap2/clock34xx.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+Thanks for sorting out this issue Janusz.
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 0d30e53..0d6d1d6 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -28,6 +28,7 @@
- #include <linux/bitops.h>
- #include <linux/err.h>
- #include <linux/cpufreq.h>
-+#include <linux/i2c/twl.h>
- 
- #include <plat/cpu.h>
- #include <plat/clock.h>
-@@ -311,6 +312,8 @@ struct clk_functions omap2_clk_functions = {
-  */
- void omap2_clk_prepare_for_reboot(void)
- {
-+	int err = 0;
-+
- 	/* REVISIT: Not ready for 343x */
- #if 0
- 	u32 rate;
-@@ -321,6 +324,18 @@ void omap2_clk_prepare_for_reboot(void)
- 	rate = clk_get_rate(sclk);
- 	clk_set_rate(vclk, rate);
- #endif
-+
-+	/*
-+	 * PRCM on OMAP3 will drive SYS_OFFMODE low during DPLL3 warm reset.
-+	 * This causes Gaia sleep script to execute, usually killing VDD1 and
-+	 * VDD2 while code is running.  WA is to disable the sleep script
-+	 * before warm reset.
-+	 */
-+#ifdef CONFIG_TWL4030_POWER
-+	err = twl4030_remove_script(TWL4030_SLEEP_SCRIPT);
-+	if (err)
-+		pr_err("twl4030: error trying to disable sleep script!\n");
-+#endif
- }
- 
- void omap3_clk_lock_dpll5(void)
--- 
-1.6.3.2
+I've applied this series into omap for-next with Acks from Jarkko and Peter.
 
+Regards,
+
+Tony
