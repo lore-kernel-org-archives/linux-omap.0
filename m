@@ -1,107 +1,99 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 9/9] omap: Disable serial port autoidle by default
-Date: Tue, 2 Feb 2010 19:43:22 -0800
-Message-ID: <20100203034322.GZ22747@atomide.com>
-References: <20100203022318.26347.34734.stgit@baageli.muru.com>
- <20100203022618.26347.51428.stgit@baageli.muru.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the omap_dss2 tree with the omap tree
+Date: Wed, 3 Feb 2010 15:29:47 +1100
+Message-ID: <20100203152947.f4955d91.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="FN+gV9K+162wdwwF"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58550 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140Ab0BCDm5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 22:42:57 -0500
-Content-Disposition: inline
-In-Reply-To: <20100203022618.26347.51428.stgit@baageli.muru.com>
+Received: from chilli.pcug.org.au ([203.10.76.44]:45542 "EHLO smtps.tip.net.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753725Ab0BCE3u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Feb 2010 23:29:50 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>, Adrian Hunter <adrian.hunter@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
+Hi Tomi,
 
---FN+gV9K+162wdwwF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Today's linux-next merge of the omap_dss2 tree got a conflict in
+arch/arm/mach-omap2/board-omap3pandora.c between commit
+f8b6f704105164eac7c043a48f79c4234e03e4b2 ("omap: Rename hsmmc symbols to
+reflect independence from twl4030") from the omap tree and commit
+aacb4387a1e6f3b57977375532c6d8e47fcd5652 ("OMAP: pandora: add DSS2
+support and related regulators") from the omap_dss2 tree.
 
-* Tony Lindgren <tony@atomide.com> [100202 18:23]:
-> Currently the omap serial clocks are autoidled after 5 seconds.
-> However, this causes lost characters on the serial ports. As this
-> is considered non-standard behaviour for Linux, disable the timeout.
-> 
-> Note that this will also cause blocking of any deeper omap sleep
-> states.
-> 
-> To enable the autoidling of the serial ports, do something like
-> this for each serial port:
-> 
-> # echo 5 > /sys/devices/platform/serial8250.0/sleep_timeout
-> # echo 5 > /sys/devices/platform/serial8250.1/sleep_timeout
-> ...
+I fixed it up (see below) and can carry the fix as necessary.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-Turns out we also need to disable the timer in init, otherwise
-the very first character after boot can get corrupt.
-
-Updated version below, Kevin can you take one more look and see
-if your S-O-B is still valid? :)
-
-Regards,
-
-Tony
-
---FN+gV9K+162wdwwF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename=fix-8250-timeout
-
->From ff7ce25ec59223bf987ad209c1eb183031811c07 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 1 Feb 2010 12:34:31 -0800
-Subject: [PATCH] omap: Disable serial port autoidle by default
-
-Currently the omap serial clocks are autoidled after 5 seconds.
-However, this causes lost characters on the serial ports. As this
-is considered non-standard behaviour for Linux, disable the timeout.
-
-Note that this will also cause blocking of any deeper omap sleep
-states.
-
-To enable the autoidling of the serial ports, do something like
-this for each serial port:
-
-# echo 5 > /sys/devices/platform/serial8250.0/sleep_timeout
-# echo 5 > /sys/devices/platform/serial8250.1/sleep_timeout
-...
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 8c964be..e10a02d 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -36,7 +36,13 @@
- #define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
- #define UART_OMAP_WER		0x17	/* Wake-up enable register */
- 
--#define DEFAULT_TIMEOUT (5 * HZ)
-+/*
-+ * NOTE: By default the serial timeout is disabled as it causes lost characters
-+ * over the serial ports. This means that the UART clocks will stay on until
-+ * disabled via sysfs. This also causes that any deeper omap sleep states are
-+ * blocked. 
-+ */
-+#define DEFAULT_TIMEOUT 0
- 
- struct omap_uart_state {
- 	int num;
-@@ -422,7 +428,8 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 	uart->timeout = DEFAULT_TIMEOUT;
- 	setup_timer(&uart->timer, omap_uart_idle_timer,
- 		    (unsigned long) uart);
--	mod_timer(&uart->timer, jiffies + uart->timeout);
-+	if (uart->timeout)
-+		mod_timer(&uart->timer, jiffies + uart->timeout);
- 	omap_uart_smart_idle_enable(uart, 0);
- 
- 	if (cpu_is_omap34xx()) {
-
---FN+gV9K+162wdwwF--
+diff --cc arch/arm/mach-omap2/board-omap3pandora.c
+index 9967b5d,bd3e577..0000000
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@@ -192,7 -193,62 +193,62 @@@ static struct twl4030_keypad_data pando
+  	.rep		= 1,
+  };
+  
++ static struct omap_dss_device pandora_lcd_device = {
++ 	.name			= "lcd",
++ 	.driver_name		= "tpo_td043mtea1_panel",
++ 	.type			= OMAP_DISPLAY_TYPE_DPI,
++ 	.phy.dpi.data_lines	= 24,
++ 	.reset_gpio		= 157,
++ };
++ 
++ static struct omap_dss_device pandora_tv_device = {
++ 	.name			= "tv",
++ 	.driver_name		= "venc",
++ 	.type			= OMAP_DISPLAY_TYPE_VENC,
++ 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
++ };
++ 
++ static struct omap_dss_device *pandora_dss_devices[] = {
++ 	&pandora_lcd_device,
++ 	&pandora_tv_device,
++ };
++ 
++ static struct omap_dss_board_info pandora_dss_data = {
++ 	.num_devices	= ARRAY_SIZE(pandora_dss_devices),
++ 	.devices	= pandora_dss_devices,
++ 	.default_device	= &pandora_lcd_device,
++ };
++ 
++ static struct platform_device pandora_dss_device = {
++ 	.name		= "omapdss",
++ 	.id		= -1,
++ 	.dev		= {
++ 		.platform_data = &pandora_dss_data,
++ 	},
++ };
++ 
++ static struct regulator_consumer_supply pandora_vcc_lcd_supply = {
++ 	.supply		= "vcc",
++ 	.dev		= &pandora_lcd_device.dev,
++ };
++ 
++ static struct regulator_consumer_supply pandora_vdda_dac_supply = {
++ 	.supply		= "vdda_dac",
++ 	.dev		= &pandora_dss_device.dev,
++ };
++ 
++ static struct regulator_consumer_supply pandora_vdds_supplies[] = {
++ 	{
++ 		.supply		= "vdds_sdi",
++ 		.dev		= &pandora_dss_device.dev,
++ 	},
++ 	{
++ 		.supply		= "vdds_dsi",
++ 		.dev		= &pandora_dss_device.dev,
++ 	},
++ };
++ 
+ -static struct twl4030_hsmmc_info omap3pandora_mmc[] = {
+ +static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+  	{
+  		.mmc		= 1,
+  		.wires		= 4,
