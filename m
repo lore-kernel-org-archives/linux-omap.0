@@ -1,105 +1,73 @@
 From: Mike Turquette <mturquette@gmail.com>
-Subject: [PATCH 1/2] MFD: TWL4030: introduce remove_script function
-Date: Wed,  3 Feb 2010 13:43:26 -0600
-Message-ID: <1265226207-22971-2-git-send-email-mturquette@ti.com>
+Subject: [PATCH 2/2] OMAP3: PM: remove TWL4030 A2S script before reboot
+Date: Wed,  3 Feb 2010 13:43:27 -0600
+Message-ID: <1265226207-22971-3-git-send-email-mturquette@ti.com>
 References: <1265226207-22971-1-git-send-email-mturquette@ti.com>
+ <1265226207-22971-2-git-send-email-mturquette@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f224.google.com ([209.85.217.224]:54384 "EHLO
-	mail-gx0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473Ab0BCTny (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 14:43:54 -0500
-Received: by gxk24 with SMTP id 24so2170974gxk.1
-        for <linux-omap@vger.kernel.org>; Wed, 03 Feb 2010 11:43:54 -0800 (PST)
-In-Reply-To: <1265226207-22971-1-git-send-email-mturquette@ti.com>
+Received: from mail-yw0-f198.google.com ([209.85.211.198]:33713 "EHLO
+	mail-yw0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932473Ab0BCToA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 14:44:00 -0500
+Received: by mail-yw0-f198.google.com with SMTP id 36so1626263ywh.15
+        for <linux-omap@vger.kernel.org>; Wed, 03 Feb 2010 11:43:59 -0800 (PST)
+In-Reply-To: <1265226207-22971-2-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Mike Turquette <mturquette@ti.com>
 
-New function twl4030_remove_script(u8 flags) takes a script type as
-defined in twl.h and prevents any script already loaded in that position
-from running.  This is accomplished by programming SEQ_ADD_* to 0x3f,
-the END_OF_SCRIPT value, where SEQ_ADD_* is determined by flags.
+Removes TWL4030 sleep script prior to rebooting, only on OMAP3. This is
+necessary since DPLL3 reset causes SYS_OFFMODE pin to go low, resulting
+in the sleep script being executed on TWL4030. This usually results in
+VDD1 & VDD2 voltage collapse while ROM code is executing, followed by an
+MPU Watch Dog reset or worse, an irrecoverable hang.
 
 Signed-off-by: Mike Turquette <mturquette@ti.com>
 ---
- drivers/mfd/twl4030-power.c |   50 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/i2c/twl.h     |    1 +
- 2 files changed, 51 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index af6f60c..cf1042e 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -477,6 +477,56 @@ out:
- 	return err;
- }
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 0d30e53..0d6d1d6 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -28,6 +28,7 @@
+ #include <linux/bitops.h>
+ #include <linux/err.h>
+ #include <linux/cpufreq.h>
++#include <linux/i2c/twl.h>
  
-+int twl4030_remove_script(u8 flags)
-+{
+ #include <plat/cpu.h>
+ #include <plat/clock.h>
+@@ -311,6 +312,8 @@ struct clk_functions omap2_clk_functions = {
+  */
+ void omap2_clk_prepare_for_reboot(void)
+ {
 +	int err = 0;
 +
-+	err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, R_KEY_1,
-+			R_PROTECT_KEY);
-+	if (err) {
-+		pr_err("twl4030: unable to unlock PROTECT_KEY\n");
-+		return err;
-+	}
+ 	/* REVISIT: Not ready for 343x */
+ #if 0
+ 	u32 rate;
+@@ -321,6 +324,18 @@ void omap2_clk_prepare_for_reboot(void)
+ 	rate = clk_get_rate(sclk);
+ 	clk_set_rate(vclk, rate);
+ #endif
 +
-+	err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, R_KEY_2,
-+			R_PROTECT_KEY);
-+	if (err) {
-+		pr_err("twl4030: unable to unlock PROTECT_KEY\n");
-+		return err;
-+	}
-+
-+	if (flags & TWL4030_WRST_SCRIPT) {
-+		err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, END_OF_SCRIPT,
-+				R_SEQ_ADD_WARM);
-+		if (err)
-+			return err;
-+	}
-+	if (flags & TWL4030_WAKEUP12_SCRIPT) {
-+		if (err)
-+		err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, END_OF_SCRIPT,
-+				R_SEQ_ADD_S2A12);
-+			return err;
-+	}
-+	if (flags & TWL4030_WAKEUP3_SCRIPT) {
-+		err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, END_OF_SCRIPT,
-+				R_SEQ_ADD_S2A3);
-+		if (err)
-+			return err;
-+	}
-+	if (flags & TWL4030_SLEEP_SCRIPT) {
-+		err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, END_OF_SCRIPT,
-+				R_SEQ_ADD_A2S);
-+		if (err)
-+			return err;
-+	}
-+
-+	err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, R_PROTECT_KEY);
++	/*
++	 * PRCM on OMAP3 will drive SYS_OFFMODE low during DPLL3 warm reset.
++	 * This causes Gaia sleep script to execute, usually killing VDD1 and
++	 * VDD2 while code is running.  WA is to disable the sleep script
++	 * before warm reset.
++	 */
++#ifdef CONFIG_TWL4030_POWER
++	err = twl4030_remove_script(TWL4030_SLEEP_SCRIPT);
 +	if (err)
-+		pr_err("TWL4030 Unable to relock registers\n");
-+
-+	return err;
-+}
-+
- void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
- {
- 	int err = 0;
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index f9202ad..fbe8554 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -534,6 +534,7 @@ struct twl4030_power_data {
- };
++		pr_err("twl4030: error trying to disable sleep script!\n");
++#endif
+ }
  
- extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
-+extern int twl4030_remove_script(u8 flags);
- 
- struct twl4030_codec_audio_data {
- 	unsigned int	audio_mclk;
+ void omap3_clk_lock_dpll5(void)
 -- 
 1.6.3.2
 
