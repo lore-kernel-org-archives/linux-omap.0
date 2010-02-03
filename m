@@ -1,69 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/9] omap: define _toggle_gpio_edge_triggering only for
- OMAP1
-Date: Wed, 3 Feb 2010 09:25:57 -0800
-Message-ID: <20100203172557.GE22747@atomide.com>
-References: <20100203022318.26347.34734.stgit@baageli.muru.com>
- <20100203022555.26347.62876.stgit@baageli.muru.com>
- <20100203081313.GB11354@pengutronix.de>
- <20100203165754.GA22747@atomide.com>
- <20100203171026.GO11354@pengutronix.de>
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: Re: dspbridge patches in patchwork
+Date: Wed, 03 Feb 2010 19:27:20 +0200
+Message-ID: <1265218040.10175.0.camel@sanganak>
+References: <1265199981.2740.8.camel@sanganak>
+	 <20100203170314.GB22747@atomide.com>  <20100203170815.GC22747@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63221 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932656Ab0BCR0K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:26:10 -0500
-Content-Disposition: inline
-In-Reply-To: <20100203171026.GO11354@pengutronix.de>
+Received: from smtp.nokia.com ([192.100.122.230]:33846 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932688Ab0BCR1t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:27:49 -0500
+In-Reply-To: <20100203170815.GC22747@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: "omar.ramirez@ti.com" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "nm@ti.com" <nm@ti.com>
 
-* Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [100203 09:07]=
-:
-> Hello Tony,
->=20
-> On Wed, Feb 03, 2010 at 08:57:55AM -0800, Tony Lindgren wrote:
-> > BTW, looks like with "git show --pretty=3Demail" the From: field ge=
-ts
-> > messed up in the patch below. Author name shows OK in git though.
-> >=20
-> > I wonder if that's a git bug for --pretty=3Demail? Using version
-> > 1.6.6.1 it seems.
-> That's not a bug, but a feature.  This is normal rfcforgotthenumber m=
-ail
-> header quoting.  (2822?)
+On Wed, 2010-02-03 at 18:08 +0100, ext Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [100203 09:00]:
+> > * Ameya Palande <ameya.palande@nokia.com> [100203 04:24]:
+> > > Hi Tony,
+> > > 
+> > > As more and more people start contributing to dspbridge code (as we have
+> > > seen recently) tracking patches is becoming difficult.
+> > > 
+> > > Is it possible to delegate dspbridge patches to dspbridge maintainer in
+> > > patchwork?
+> > 
+> > Yeh sure. All it takes is registering a user for pw.k.o and selecting
+> > linux-omap as the project.
+> > 
+> > Then I need send an email with the pw.k.o user name to allow changing
+> > the omap patch status.
+> 
+> If you just want to follow the dspbridge patches, you can configure
+> your pwclient:
+> 
+> $ cat /home/tmlind/.pwclientrc 
+> # Sample .pwclientrc file for the linux-omap project,
+> # running on patchwork.kernel.org.
+> #
+> # Save this file to ~/.pwclientrc
+> #
+> [base]
+> url: http://patchwork.kernel.org/xmlrpc/
+> project: linux-omap
+> 
+> # Adding authentication parameters will allow you to use the 'update'
+> # command on patches that you are allowed to edit.
+> # [auth]
+> # username: yourusername
+> # password: yourpassword
+> 
+> Then to see all the dspbridge patches, just do:
+> 
+> $ pwclient search dspbridge
+> ID    State        Name
+> --    -----        ----
+> 6777  Not Applicable [1/3] DSPBRIDGE Offmode and DVFS Support
+> 6778  Not Applicable [2/3] DSPBRIDGE DVFS and OFF mode support with OPP2
+> 6814  Not Applicable [1/1] DSPBRIDGE Fix condition statement for Global Flush
+> ...
+> 
+> Regards,
+> 
+> Tony
 
-Oh right, the email headers need to be ASCII still. Was not aware of
-how umlauts should be encoded into the name though. It seems that
-all my fellow Finns have erased the umlauts from their email addresses,
-at least in my aliases file.
+Thanks! :)
 
-Tony
+Cheers,
+Ameya.
 
->=20
-> >=20
-> > Tony
->=20
-> > From 9198bcd39f558dd56823f1c9983e2252fc99a501 Mon Sep 17 00:00:00 2=
-001
-> > From: =3D?UTF-8?q?Uwe=3D20Kleine-K=3DC3=3DB6nig?=3D <u.kleine-koeni=
-g@pengutronix.de>
->=20
-> Thanks
-> Uwe
->=20
-> --=20
-> Pengutronix e.K.                              | Uwe Kleine-K=C3=B6nig=
-            |
-> Industrial Linux Solutions                    | http://www.pengutroni=
-x.de/  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
