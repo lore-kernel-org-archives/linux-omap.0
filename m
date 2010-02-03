@@ -1,147 +1,110 @@
-From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: [Patch 8/8] DSPBRIDGE: typedef cleanup -CHNL_MODE
-Date: Wed, 3 Feb 2010 06:14:11 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A6B9678@dbde02.ent.ti.com>
+From: "Pais, Allen" <allen.pais@ti.com>
+Subject: RE: [PATCH 1/2] omap: Disable GAIA I2C1/I2C4 internal pull-ups
+Date: Wed, 3 Feb 2010 06:46:38 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026AFAA400@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026B4CBDEA@dbde02.ent.ti.com>
+ <20100202015336.GN22747@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94026AFAA3F2@dbde02.ent.ti.com>
+ <20100202165629.GS22747@atomide.com>,<CD8CC2B65FEE304DA95744A5472698F202AA321E31@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44204 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756056Ab0BCAoQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 19:44:16 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o130iDVU025826
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 2 Feb 2010 18:44:15 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o130iC86009278
-	for <linux-omap@vger.kernel.org>; Wed, 3 Feb 2010 06:14:12 +0530 (IST)
+Received: from comal.ext.ti.com ([198.47.26.152]:52897 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756905Ab0BCBR0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Feb 2010 20:17:26 -0500
+In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F202AA321E31@dlee06.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: "Sonasath, Moiz" <m-sonasath@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 23b8b63a9f57c20b3f87ac886623d227d5448e8f Mon Sep 17 00:00:00 2001
-From: Shivananda Hebbar <x0hebbar@ti.com>
-Date: Thu, 28 Jan 2010 20:53:48 -0600
-Subject: [PATCH] DSPBRIDGE: Remove typedef CHNL_MODE and replace it with
- 	   normal C type
 
-This patch removes the typedef CHNL_MODE.
-CHNL_MODE values are well within the range of short int.
-Hence changing it from u32 type to short int.
+________________________________________
+From: Sonasath, Moiz
+Sent: Tuesday, February 02, 2010 3:40 PM
+To: Tony Lindgren; Pais, Allen
+Cc: linux-omap@vger.kernel.org
+Subject: RE: [PATCH 1/2] omap: Disable GAIA I2C1/I2C4 internal pull-ups
 
-Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
----
- arch/arm/plat-omap/include/dspbridge/chnldefs.h |    2 --
- arch/arm/plat-omap/include/dspbridge/wmd.h      |    2 +-
- arch/arm/plat-omap/include/dspbridge/wmdchnl.h  |    2 +-
- drivers/dsp/bridge/rmgr/node.c                  |    2 +-
- drivers/dsp/bridge/rmgr/strm.c                  |    2 +-
- drivers/dsp/bridge/wmd/chnl_sm.c                |    8 ++++----
- 6 files changed, 8 insertions(+), 10 deletions(-)
+Tony/Allen/Paul,
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/chnldefs.h b/arch/arm/plat-omap/include/dspbridge/chnldefs.h
-index be405ba..43df8b7 100644
---- a/arch/arm/plat-omap/include/dspbridge/chnldefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/chnldefs.h
-@@ -45,8 +45,6 @@
- #define CHNL_IsIOCancelled(ioc) (ioc.status & CHNL_IOCSTATCANCEL)
- #define CHNL_IsTimedOut(ioc)    (ioc.status & CHNL_IOCSTATTIMEOUT)
- 
--/* CHNL types: */
--	typedef u32 CHNL_MODE;	/* Channel transfer mode.         */
- 
- /* Channel attributes: */
- 	struct CHNL_ATTRS {
-diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
-index 70f3970..95c79f2 100644
---- a/arch/arm/plat-omap/include/dspbridge/wmd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
-@@ -418,7 +418,7 @@ typedef DSP_STATUS(*WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-        typedef DSP_STATUS(*WMD_CHNL_OPEN) (OUT struct CHNL_OBJECT
- 						   **phChnl,
- 						   struct CHNL_MGR *hChnlMgr,
--						   CHNL_MODE uMode,
-+						   short int chnlMode,
- 						   u32 uChnlId,
- 						   CONST IN OPTIONAL struct
- 						   CHNL_ATTRS *pAttrs);
-diff --git a/arch/arm/plat-omap/include/dspbridge/wmdchnl.h b/arch/arm/plat-omap/include/dspbridge/wmdchnl.h
-index 4b733d8..9e73516 100644
---- a/arch/arm/plat-omap/include/dspbridge/wmdchnl.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmdchnl.h
-@@ -33,7 +33,7 @@
- 
- 	extern DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
- 					struct CHNL_MGR *hChnlMgr,
--					CHNL_MODE uMode,
-+					short int chnlMode,
- 					u32 uChnlId,
- 					CONST IN OPTIONAL struct CHNL_ATTRS
- 					*pAttrs);
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c index 5352923..538c806 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -895,7 +895,7 @@ DSP_STATUS NODE_Connect(struct NODE_OBJECT *hNode1, u32 uStream1,
- 	struct STREAM *pStream;
- 	GB_BitNum pipeId = GB_NOBITS;
- 	GB_BitNum chnlId = GB_NOBITS;
--	CHNL_MODE uMode;
-+	short int uMode;
- 	u32 dwLength;
- 	DSP_STATUS status = DSP_SOK;
- 	DBC_Require(cRefs > 0);
-diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c index febb6c2..f03064e 100644
---- a/drivers/dsp/bridge/rmgr/strm.c
-+++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -524,7 +524,7 @@ DSP_STATUS STRM_Open(struct NODE_OBJECT *hNode, u32 uDir, u32 uIndex,
- 	struct WMD_DRV_INTERFACE *pIntfFxns;
- 	u32 ulChnlId;
- 	struct STRM_OBJECT *pStrm = NULL;
--	CHNL_MODE uMode;
-+	short int uMode;
- 	struct CHNL_ATTRS chnlAttrs;
- 	DSP_STATUS status = DSP_SOK;
- 	struct CMM_OBJECT *hCmmMgr = NULL;	/* Shared memory manager hndl */
-diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index ca5662d..5d3f71e 100644
---- a/drivers/dsp/bridge/wmd/chnl_sm.c
-+++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -253,7 +253,7 @@ DSP_STATUS WMD_CHNL_CancelIO(struct CHNL_OBJECT *hChnl)
- 	DSP_STATUS status = DSP_SOK;
- 	struct CHNL_OBJECT *pChnl = (struct CHNL_OBJECT *)hChnl;
- 	u32 iChnl = -1;
--	CHNL_MODE uMode;
-+	short int chnlMode;
- 	struct CHNL_IRP *pChirp;
- 	struct CHNL_MGR *pChnlMgr = NULL;
- 
-@@ -483,7 +483,7 @@ DSP_STATUS WMD_CHNL_FlushIO(struct CHNL_OBJECT *hChnl, u32 dwTimeOut)  {
- 	DSP_STATUS status = DSP_SOK;
- 	struct CHNL_OBJECT *pChnl = (struct CHNL_OBJECT *)hChnl;
--	CHNL_MODE uMode = -1;
-+	short int chnlMode = -1;
- 	struct CHNL_MGR *pChnlMgr;
- 	struct CHNL_IOC chnlIOC;
- 	/* Check args:  */
-@@ -758,7 +758,7 @@ DSP_STATUS WMD_CHNL_GetMgrInfo(struct CHNL_MGR *hChnlMgr, u32 uChnlID,  DSP_STATUS WMD_CHNL_Idle(struct CHNL_OBJECT *hChnl, u32 dwTimeOut,
- 			 bool fFlush)
- {
--	CHNL_MODE uMode;
-+	short int uMode;
- 	struct CHNL_MGR *pChnlMgr;
- 	DSP_STATUS status = DSP_SOK;
- 
-@@ -786,7 +786,7 @@ DSP_STATUS WMD_CHNL_Idle(struct CHNL_OBJECT *hChnl, u32 dwTimeOut,
-  *      Open a new half-duplex channel to the DSP board.
-  */
- DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
--			 struct CHNL_MGR *hChnlMgr, CHNL_MODE uMode,
-+			 struct CHNL_MGR *hChnlMgr, short int chnlMode,
- 			 u32 uChnlId, CONST IN struct CHNL_ATTRS *pAttrs)  {
- 	DSP_STATUS status = DSP_SOK;
---
-1.6.0.4
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Tuesday, February 02, 2010 10:56 AM
+> To: Pais, Allen
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 1/2] omap: Disable GAIA I2C1/I2C4 internal pull-ups
+>
+> * Pais, Allen <allen.pais@ti.com> [100201 18:56]:
+> >
+> > ________________________________________
+> > From: Tony Lindgren [tony@atomide.com]
+> > Sent: Monday, February 01, 2010 7:53 PM
+> > To: Pais, Allen
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH 1/2] omap: Disable GAIA I2C1/I2C4 internal pull-ups
+> >
+> > Hi,
+> >
+> > * Pais, Allen <allen.pais@ti.com> [100121 02:31]:
+> > > From 4044fcc9c517e86fbea9f7d3b15d5cf75a767476 Mon Sep 17 00:00:00 2001
+> > > From: Allen Pais <allen.pais@ti.com>
+> > > Date: Thu, 21 Jan 2010 21:00:04 +0530
+> > > Subject: [PATCH 1/2] omap: Disable GAIA I2C1/I2C4 internal pull-ups
+> > >
+> > > This patch disables GAIA I2C1 adn I2C4(SR) internal pull-up, to
+> > > use only the external HW resistor >=470 Ohm for the assured
+> > > functionality in HS mode.
+> > >
+> > > While testing the I2C in High Speed mode, it was discovered that
+> > > without a proper pull-up resistor, there is data corruption during
+> > > multi-byte transfer. RTC(time_set) test case was used for testing.
+> > >
+> > > From the analysis done, it was concluded that ideally we need a
+> > > pull-up of 1.6k Ohm(recomended) or atleast 470 Ohm or greater for
+> > > assured performance in HS mode.
+> >
+> > Does this apply to 3630 only, or also 34xx? Is this safe to do
+> > always?
+> >
+> > [Allen] Yes, it does apply to 36xx only.
 
+There is some confusion, this patch holds true for all OMAP34XX, 36XX as well as 44XX. The idea was to rely on only external Pull-up for I2C operation and disable any internal pull-up on any of the connected power IC's: Triton(TWL4030)/GAIA(TWL5030)/Phoenix(TWL6030)
+
+[Allen] sorry about the confusion. I mistook it for the other patch. 
+
+I did verify, the register 'REG_GPPUPDCTR1' holds true for Triton(TWL4030)/GAIA(TWL5030), hence for OMAP34XX/36XX.
+But there is a register change for this PU/PD control on Phoenix(TWL6030) which is used with OMAP44XX. So I might have to modify this patch a little as this code will apply for TWL4030/5030 and have to introduce new code to achieve the intended fix for TWL6030.
+
+The second patch of the series: 'omap: 3630: Disable internal pull-ups'
+applies only for OMAP36XX as it is a new feature introduced in OMAP3630.
+
+I have to check if that feature is available on OMAP44XX as well, if so I will modify that patch to extend to OMAP44XX in future.
+
+Although
+>
+> Sounds like then this configuration should be passed from the
+> board-*.c file in platform_data as the external pulls depend
+> on the board.
+>
+> > BTW, once ready it hould be sent to Samuel Ortiz with linux-omap
+> > list Cc'd:
+> >
+> > [Allen] i'll have it sent to Samuel also.
+>
+> Thanks, we can't merge it yet though, see above.
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards
+Moiz Sonasath
