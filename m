@@ -1,68 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: dspbridge patches in patchwork
-Date: Wed, 3 Feb 2010 09:08:16 -0800
-Message-ID: <20100203170815.GC22747@atomide.com>
-References: <1265199981.2740.8.camel@sanganak>
- <20100203170314.GB22747@atomide.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 1/9] omap: define _toggle_gpio_edge_triggering only for
+	OMAP1
+Date: Wed, 3 Feb 2010 18:10:26 +0100
+Message-ID: <20100203171026.GO11354@pengutronix.de>
+References: <20100203022318.26347.34734.stgit@baageli.muru.com> <20100203022555.26347.62876.stgit@baageli.muru.com> <20100203081313.GB11354@pengutronix.de> <20100203165754.GA22747@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50078 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932563Ab0BCRHv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:07:51 -0500
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38714 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932609Ab0BCRK2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:10:28 -0500
 Content-Disposition: inline
-In-Reply-To: <20100203170314.GB22747@atomide.com>
+In-Reply-To: <20100203165754.GA22747@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: omar.ramirez@ti.com, linux-omap@vger.kernel.org, Contreras Felipe <felipe.contreras@nokia.com>, nm@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [100203 09:00]:
-> * Ameya Palande <ameya.palande@nokia.com> [100203 04:24]:
-> > Hi Tony,
-> > 
-> > As more and more people start contributing to dspbridge code (as we have
-> > seen recently) tracking patches is becoming difficult.
-> > 
-> > Is it possible to delegate dspbridge patches to dspbridge maintainer in
-> > patchwork?
-> 
-> Yeh sure. All it takes is registering a user for pw.k.o and selecting
-> linux-omap as the project.
-> 
-> Then I need send an email with the pw.k.o user name to allow changing
-> the omap patch status.
+Hello Tony,
 
-If you just want to follow the dspbridge patches, you can configure
-your pwclient:
+On Wed, Feb 03, 2010 at 08:57:55AM -0800, Tony Lindgren wrote:
+> BTW, looks like with "git show --pretty=3Demail" the From: field gets
+> messed up in the patch below. Author name shows OK in git though.
+>=20
+> I wonder if that's a git bug for --pretty=3Demail? Using version
+> 1.6.6.1 it seems.
+That's not a bug, but a feature.  This is normal rfcforgotthenumber mai=
+l
+header quoting.  (2822?)
 
-$ cat /home/tmlind/.pwclientrc 
-# Sample .pwclientrc file for the linux-omap project,
-# running on patchwork.kernel.org.
-#
-# Save this file to ~/.pwclientrc
-#
-[base]
-url: http://patchwork.kernel.org/xmlrpc/
-project: linux-omap
+>=20
+> Tony
 
-# Adding authentication parameters will allow you to use the 'update'
-# command on patches that you are allowed to edit.
-# [auth]
-# username: yourusername
-# password: yourpassword
+> From 9198bcd39f558dd56823f1c9983e2252fc99a501 Mon Sep 17 00:00:00 200=
+1
+> From: =3D?UTF-8?q?Uwe=3D20Kleine-K=3DC3=3DB6nig?=3D <u.kleine-koenig@=
+pengutronix.de>
 
-Then to see all the dspbridge patches, just do:
+Thanks
+Uwe
 
-$ pwclient search dspbridge
-ID    State        Name
---    -----        ----
-6777  Not Applicable [1/3] DSPBRIDGE Offmode and DVFS Support
-6778  Not Applicable [2/3] DSPBRIDGE DVFS and OFF mode support with OPP2
-6814  Not Applicable [1/1] DSPBRIDGE Fix condition statement for Global Flush
-...
-
-Regards,
-
-Tony
+--=20
+Pengutronix e.K.                              | Uwe Kleine-K=F6nig     =
+       |
+Industrial Linux Solutions                    | http://www.pengutronix.=
+de/  |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
