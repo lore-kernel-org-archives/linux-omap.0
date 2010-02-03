@@ -1,22 +1,24 @@
 From: Ameya Palande <ameya.palande@nokia.com>
 Subject: Re: dspbridge patches in patchwork
-Date: Wed, 03 Feb 2010 19:27:20 +0200
-Message-ID: <1265218040.10175.0.camel@sanganak>
+Date: Wed, 03 Feb 2010 19:29:21 +0200
+Message-ID: <1265218161.10175.2.camel@sanganak>
 References: <1265199981.2740.8.camel@sanganak>
 	 <20100203170314.GB22747@atomide.com>  <20100203170815.GC22747@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:33846 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932688Ab0BCR1t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:27:49 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:43604 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932706Ab0BCRae (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 12:30:34 -0500
 In-Reply-To: <20100203170815.GC22747@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "omar.ramirez@ti.com" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "nm@ti.com" <nm@ti.com>
+To: "omar.ramirez@ti.com" <omar.ramirez@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "nm@ti.com" <nm@ti.com>, Tony Lindgren <tony@atomide.com>
+
+Hi Omar,
 
 On Wed, 2010-02-03 at 18:08 +0100, ext Tony Lindgren wrote:
 > * Tony Lindgren <tony@atomide.com> [100203 09:00]:
@@ -68,7 +70,7 @@ On Wed, 2010-02-03 at 18:08 +0100, ext Tony Lindgren wrote:
 > 
 > Tony
 
-Thanks! :)
+Will you maintain dspbridge patches in patchwork?
 
 Cheers,
 Ameya.
