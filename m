@@ -1,43 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v9 0/4] OMAP: McBSP: Use register cache
-Date: Wed, 3 Feb 2010 11:49:10 -0800
-Message-ID: <20100203194910.GI22747@atomide.com>
-References: <201001141658.32034.jkrzyszt@tis.icnet.pl>
- <201001181007.36436.peter.ujfalusi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCH 0/3] DSPBRIDGE: MEM Module cleanup series
+Date: Thu,  4 Feb 2010 01:32:23 +0200
+Message-ID: <cover.1265239075.git.ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64633 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932289Ab0BCTsx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 14:48:53 -0500
-Content-Disposition: inline
-In-Reply-To: <201001181007.36436.peter.ujfalusi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:23026 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756225Ab0BCXcg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 18:32:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: omar.ramirez@ti.com, nm@ti.com, deepak.chitriki@ti.com
 
-* Peter Ujfalusi <peter.ujfalusi@nokia.com> [100118 00:05]:
-> Hello,
-> 
-> On Thursday 14 January 2010 17:58:29 ext Janusz Krzysztofik wrote:
-> > Change the way McBSP registers are maintained: store values written to the
-> > device in a cache in order to make use of those cached values when
-> > convenient.
-> > 
-> > This could help for developing the McBSP context save/restore features, as
-> > well as solve the problem of possible register corruption, experienced on
-> > OMAP1510 based Amstrad Delta board at least.
-> > 
-> 
-> Please make a followup patch for the unneeded masking of status bits as we 
-> discussed regarding to patch 4.
+This series contains patches which remove following things from the MEM module:
+1. MEM_CHECK memory leak debugging mechanism
+2. MEM_Free() function
+3. MEM_VFree() function
 
-Thanks for sorting out this issue Janusz.
+Ameya Palande (3):
+  DSPBRIDGE: Get rid of MEM_CHECK mechanism
+  DSPBRIDGE: Get rid of MEM_Free()
+  DSPBRIDGE: Get rid of MEM_VFree()
 
-I've applied this series into omap for-next with Acks from Jarkko and Peter.
+ arch/arm/plat-omap/include/dspbridge/mem.h |   36 +----
+ drivers/dsp/bridge/gen/gs.c                |    4 +-
+ drivers/dsp/bridge/pmgr/cmm.c              |   12 +-
+ drivers/dsp/bridge/pmgr/cod.c              |    4 +-
+ drivers/dsp/bridge/pmgr/dbll.c             |   15 +-
+ drivers/dsp/bridge/pmgr/dev.c              |   11 +-
+ drivers/dsp/bridge/pmgr/dmm.c              |    3 +-
+ drivers/dsp/bridge/pmgr/wcd.c              |   46 ++---
+ drivers/dsp/bridge/rmgr/dbdcd.c            |   13 +-
+ drivers/dsp/bridge/rmgr/disp.c             |    3 +-
+ drivers/dsp/bridge/rmgr/drv.c              |   32 ++--
+ drivers/dsp/bridge/rmgr/drv_interface.c    |    2 +-
+ drivers/dsp/bridge/rmgr/nldr.c             |   52 ++----
+ drivers/dsp/bridge/rmgr/node.c             |   77 +++------
+ drivers/dsp/bridge/rmgr/proc.c             |   11 +-
+ drivers/dsp/bridge/rmgr/rmm.c              |   18 +-
+ drivers/dsp/bridge/rmgr/strm.c             |    3 +-
+ drivers/dsp/bridge/services/mem.c          |  246 +---------------------------
+ drivers/dsp/bridge/services/ntfy.c         |    7 +-
+ drivers/dsp/bridge/services/regsup.c       |   10 +-
+ drivers/dsp/bridge/services/sync.c         |    3 +-
+ drivers/dsp/bridge/wmd/chnl_sm.c           |   11 +-
+ drivers/dsp/bridge/wmd/io_sm.c             |   12 +-
+ drivers/dsp/bridge/wmd/msg_sm.c            |    8 +-
+ drivers/dsp/bridge/wmd/tiomap3430.c        |   17 +--
+ drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
+ 26 files changed, 159 insertions(+), 499 deletions(-)
 
-Regards,
-
-Tony
