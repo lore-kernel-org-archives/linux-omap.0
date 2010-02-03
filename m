@@ -1,103 +1,231 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 9/9] omap: Disable serial port autoidle by default
-Date: Wed, 03 Feb 2010 06:40:09 -0800
-Message-ID: <87aavq9yd2.fsf@deeprootsystems.com>
-References: <20100203022318.26347.34734.stgit@baageli.muru.com>
-	<20100203022618.26347.51428.stgit@baageli.muru.com>
-	<20100203034322.GZ22747@atomide.com>
+Subject: Re: [PATCHv3] omap3: cpuidle: Update statistics for correct state
+Date: Wed, 03 Feb 2010 07:00:17 -0800
+Message-ID: <87636e9xfi.fsf@deeprootsystems.com>
+References: <1264700803-23625-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f189.google.com ([209.85.210.189]:56214 "EHLO
-	mail-yx0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754994Ab0BCOkO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 09:40:14 -0500
-Received: by yxe27 with SMTP id 27so1160082yxe.4
-        for <linux-omap@vger.kernel.org>; Wed, 03 Feb 2010 06:40:13 -0800 (PST)
-In-Reply-To: <20100203034322.GZ22747@atomide.com> (Tony Lindgren's message of "Tue\, 2 Feb 2010 19\:43\:22 -0800")
+Received: from mail-yw0-f198.google.com ([209.85.211.198]:46583 "EHLO
+	mail-yw0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753752Ab0BCPAY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 10:00:24 -0500
+Received: by ywh36 with SMTP id 36so1314928ywh.15
+        for <linux-omap@vger.kernel.org>; Wed, 03 Feb 2010 07:00:23 -0800 (PST)
+In-Reply-To: <1264700803-23625-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Thu\, 28 Jan 2010 23\:16\:43 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Sanjeev Premi <premi@ti.com> writes:
 
-> * Tony Lindgren <tony@atomide.com> [100202 18:23]:
->> Currently the omap serial clocks are autoidled after 5 seconds.
->> However, this causes lost characters on the serial ports. As this
->> is considered non-standard behaviour for Linux, disable the timeout.
->> 
->> Note that this will also cause blocking of any deeper omap sleep
->> states.
->> 
->> To enable the autoidling of the serial ports, do something like
->> this for each serial port:
->> 
->> # echo 5 > /sys/devices/platform/serial8250.0/sleep_timeout
->> # echo 5 > /sys/devices/platform/serial8250.1/sleep_timeout
->> ...
+> When 'enable_off_mode' is 0, the target power state for MPU
+> and CORE was locally changed to PWRDM_POWER_RET but, the
+> statistics are updated for idle state originally selected
+> by the governor.
 >
-> Turns out we also need to disable the timer in init, otherwise
-> the very first character after boot can get corrupt.
+> This patch 'invalidates' the idle states that lead either of
+> MPU or Core to PWRDM_POWER_OFF state when 'enable_off_mode'
+> is '0'. The states are valid once 'enable_off_mode' is set
+> to '1'.
 >
-> Updated version below, Kevin can you take one more look and see
-> if your S-O-B is still valid? :)
+> Added function next_valid_state() to check if current state
+> is valid; else get the next valid state. It is called from
+> omap3_enter_idle_bm().
+>
+> This revision takes in changes suggested by Kevin Hilman.
+>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
 
-Yeah, looks right.  s-o-b still valid.
+Thanks, pulling this into PM branch.
 
 Kevin
 
-> Regards,
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |   98 ++++++++++++++++++++++++++++++++++---
+>  arch/arm/mach-omap2/pm.h          |    4 ++
+>  arch/arm/mach-omap2/pm34xx.c      |    4 ++
+>  3 files changed, 98 insertions(+), 8 deletions(-)
 >
-> Tony
-> From ff7ce25ec59223bf987ad209c1eb183031811c07 Mon Sep 17 00:00:00 2001
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Mon, 1 Feb 2010 12:34:31 -0800
-> Subject: [PATCH] omap: Disable serial port autoidle by default
->
-> Currently the omap serial clocks are autoidled after 5 seconds.
-> However, this causes lost characters on the serial ports. As this
-> is considered non-standard behaviour for Linux, disable the timeout.
->
-> Note that this will also cause blocking of any deeper omap sleep
-> states.
->
-> To enable the autoidling of the serial ports, do something like
-> this for each serial port:
->
-> # echo 5 > /sys/devices/platform/serial8250.0/sleep_timeout
-> # echo 5 > /sys/devices/platform/serial8250.1/sleep_timeout
-> ...
->
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 8c964be..e10a02d 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -36,7 +36,13 @@
->  #define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
->  #define UART_OMAP_WER		0x17	/* Wake-up enable register */
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+> index 12f0cbf..ff1ad3d 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -45,6 +45,8 @@
+>  #define OMAP3_STATE_C6 5 /* C6 - MPU OFF + Core RET */
+>  #define OMAP3_STATE_C7 6 /* C7 - MPU OFF + Core OFF */
 >  
-> -#define DEFAULT_TIMEOUT (5 * HZ)
-> +/*
-> + * NOTE: By default the serial timeout is disabled as it causes lost characters
-> + * over the serial ports. This means that the UART clocks will stay on until
-> + * disabled via sysfs. This also causes that any deeper omap sleep states are
-> + * blocked. 
+> +#define OMAP3_STATE_MAX OMAP3_STATE_C7
+> +
+>  struct omap3_processor_cx {
+>  	u8 valid;
+>  	u8 type;
+> @@ -104,13 +106,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+>  	local_irq_disable();
+>  	local_fiq_disable();
+>  
+> -	if (!enable_off_mode) {
+> -		if (mpu_state < PWRDM_POWER_RET)
+> -			mpu_state = PWRDM_POWER_RET;
+> -		if (core_state < PWRDM_POWER_RET)
+> -			core_state = PWRDM_POWER_RET;
+> -	}
+> -
+>  	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
+>  	pwrdm_set_next_pwrst(core_pd, core_state);
+>  
+> @@ -141,6 +136,67 @@ return_sleep_time:
+>  }
+>  
+>  /**
+> + * next_valid_state - Find next valid c-state
+> + * @dev: cpuidle device
+> + * @state: Currently selected c-state
+> + *
+> + * If the current state is valid, it is returned back to the caller.
+> + * Else, this function searches for a lower c-state which is still
+> + * valid (as defined in omap3_power_states[]).
 > + */
-> +#define DEFAULT_TIMEOUT 0
+> +static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
+> +						struct cpuidle_state *curr)
+> +{
+> +	struct cpuidle_state *next = NULL;
+> +	struct omap3_processor_cx *cx;
+> +
+> +	cx = (struct omap3_processor_cx *)cpuidle_get_statedata(curr);
+> +
+> +	/* Check if current state is valid */
+> +	if (cx->valid) {
+> +		return curr;
+> +	} else {
+> +		u8 idx = OMAP3_STATE_MAX;
+> +
+> +		/*
+> +		 * Reach the current state starting at highest C-state
+> +		 */
+> +		for (; idx >= OMAP3_STATE_C1; idx--) {
+> +			if (&dev->states[idx] == curr) {
+> +				next = &dev->states[idx];
+> +				break;
+> +			}
+> +		}
+> +
+> +		/*
+> +		 * Should never hit this condition.
+> +		 */
+> +		WARN_ON(next == NULL);
+> +
+> +		/*
+> +		 * Drop to next valid state.
+> +		 * Start search from the next (lower) state.
+> +		 */
+> +		idx--;
+> +		for (; idx >= OMAP3_STATE_C1; idx--) {
+> +			struct omap3_processor_cx *cx;
+> +
+> +			cx = cpuidle_get_statedata(&dev->states[idx]);
+> +			if (cx->valid) {
+> +				next = &dev->states[idx];
+> +				break;
+> +			}
+> +		}
+> +		/*
+> +		 * C1 and C2 are always valid.
+> +		 * So, no need to check for 'next==NULL' outside this loop.
+> +		 */
+> +	}
+> +
+> +	return next;
+> +}
+> +
+> +/**
+>   * omap3_enter_idle_bm - Checks for any bus activity
+>   * @dev: cpuidle device
+>   * @state: The target state to be programmed
+> @@ -152,7 +208,7 @@ return_sleep_time:
+>  static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  			       struct cpuidle_state *state)
+>  {
+> -	struct cpuidle_state *new_state = state;
+> +	struct cpuidle_state *new_state = next_valid_state(dev, state);
 >  
->  struct omap_uart_state {
->  	int num;
-> @@ -422,7 +428,8 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
->  	uart->timeout = DEFAULT_TIMEOUT;
->  	setup_timer(&uart->timer, omap_uart_idle_timer,
->  		    (unsigned long) uart);
-> -	mod_timer(&uart->timer, jiffies + uart->timeout);
-> +	if (uart->timeout)
-> +		mod_timer(&uart->timer, jiffies + uart->timeout);
->  	omap_uart_smart_idle_enable(uart, 0);
+>  	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
+>  		BUG_ON(!dev->safe_state);
+> @@ -165,6 +221,30 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
 >  
->  	if (cpu_is_omap34xx()) {
+>  DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+>  
+> +/**
+> + * omap3_cpuidle_update_states - Update the cpuidle states.
+> + *
+> + * Currently, this function toggles the validity of idle states based upon
+> + * the flag 'enable_off_mode'. When the flag is set all states are valid.
+> + * Else, states leading to OFF state set to be invalid.
+> + */
+> +void omap3_cpuidle_update_states(void)
+> +{
+> +	int i;
+> +
+> +	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
+> +		struct omap3_processor_cx *cx = &omap3_power_states[i];
+> +
+> +		if (enable_off_mode) {
+> +			cx->valid = 1;
+> +		} else {
+> +			if ((cx->mpu_state == PWRDM_POWER_OFF) ||
+> +				(cx->core_state	== PWRDM_POWER_OFF))
+> +				cx->valid = 0;
+> +		}
+> +	}
+> +}
+> +
+>  /* omap3_init_power_states - Initialises the OMAP3 specific C states.
+>   *
+>   * Below is the desciption of each C state.
+> @@ -302,6 +382,8 @@ int __init omap3_idle_init(void)
+>  		return -EINVAL;
+>  	dev->state_count = count;
+>  
+> +	omap3_cpuidle_update_states();
+> +
+>  	if (cpuidle_register_device(dev)) {
+>  		printk(KERN_ERR "%s: CPUidle register device failed\n",
+>  		       __func__);
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index 7a9c2d0..09c0144 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -37,6 +37,10 @@ extern int omap2_pm_debug;
+>  #define omap2_pm_debug				0
+>  #endif
+>  
+> +#if defined(CONFIG_CPU_IDLE)
+> +extern void omap3_cpuidle_update_states(void);
+> +#endif
+> +
+>  #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+>  extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+>  extern int pm_dbg_regset_save(int reg_set);
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 5087b15..5320229 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -941,6 +941,10 @@ void omap3_pm_off_mode_enable(int enable)
+>  	else
+>  		state = PWRDM_POWER_RET;
+>  
+> +#ifdef CONFIG_CPU_IDLE
+> +	omap3_cpuidle_update_states();
+> +#endif
+> +
+>  	list_for_each_entry(pwrst, &pwrst_list, node) {
+>  		pwrst->next_state = state;
+>  		set_pwrdm_state(pwrst->pwrdm, state);
+> -- 
+> 1.6.2.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
