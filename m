@@ -1,44 +1,48 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 3/3] omap3evm: Configure GPIO175 for touchscreen PEN_IRQ
-Date: Thu,  4 Feb 2010 14:24:50 +0530
-Message-ID: <1265273690-30039-1-git-send-email-premi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56412 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755590Ab0BDIyy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Feb 2010 03:54:54 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o148spbs009847
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 4 Feb 2010 02:54:54 -0600
-Sender: linux-omap-owner@vger.kernel.org
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
+ tree
+Date: Thu, 04 Feb 2010 11:42:55 +0200
+Message-ID: <1265276575.17836.10.camel@tubuntu.research.nokia.com>
+References: <20100203152947.f4955d91.sfr@canb.auug.org.au>
+	 <6ed0b2681002030429t1f6b33e9r3b6ea667fffb0f6a@mail.gmail.com>
+	 <20100203171227.GD22747@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20100203171227.GD22747@atomide.com>
+Sender: linux-next-owner@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hunter Adrian (Nokia-D/Helsinki)" <adrian.hunter@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
 
-GPIO175 is used for PEN_IRQ on the EVM. This patch
-sets the mux settings for the same.
+On Wed, 2010-02-03 at 18:12 +0100, ext Tony Lindgren wrote:
+> * Grazvydas Ignotas <notasas@gmail.com> [100203 04:27]:
+> > hi,
+> > 
+> > On Wed, Feb 3, 2010 at 6:29 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> > > Hi Tomi,
+> > >
+> > > Today's linux-next merge of the omap_dss2 tree got a conflict in
+> > > arch/arm/mach-omap2/board-omap3pandora.c between commit
+> > > f8b6f704105164eac7c043a48f79c4234e03e4b2 ("omap: Rename hsmmc symbols to
+> > > reflect independence from twl4030") from the omap tree and commit
+> > > aacb4387a1e6f3b57977375532c6d8e47fcd5652 ("OMAP: pandora: add DSS2
+> > > support and related regulators") from the omap_dss2 tree.
+> > 
+> > I've rebased my patch against linux-omap/for-next (attached). To fix
+> > the conflict, Tomi can rebase his queue on linux-omap/for-next, or
+> > Tony can simply take this to his queue - this has no "hard"
+> > dependencies on other queued DSS2 changes, has only board file changes
+> > and builds fine in linux-omap/for-next. I would prefer the second
+> > option, as I plan sending more boardfile changes to linux-omap.
+> 
+> Thanks Stephen and Grazvydas.
+> 
+> This sounds good to me, I've added this patch into omap for-next.
+> 
+> Tomi can you please drop the earlier version from your branch?
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+Sounds good to me. I dropped the patch from my tree.
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 0b3b65a..4f60d60 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -430,7 +430,9 @@ static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
- 				OMAP_PIN_OFF_INPUT_PULLUP |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
--
-+	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-+				OMAP_PIN_OFF_INPUT_PULLUP |
-+				OMAP_PIN_OFF_WAKEUPENABLE),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #else
--- 
-1.6.2.2
-
+ Tomi
