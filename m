@@ -1,58 +1,210 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
-Date: Thu, 04 Feb 2010 14:51:42 -0800
-Message-ID: <87hbpw1uo1.fsf@deeprootsystems.com>
-References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the omap tree with the arm tree
+Date: Fri, 5 Feb 2010 10:20:30 +1100
+Message-ID: <20100205102030.c8b139a1.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f182.google.com ([209.85.216.182]:40114 "EHLO
-	mail-px0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411Ab0BDWvp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 17:51:45 -0500
-Received: by pxi12 with SMTP id 12so3428111pxi.33
-        for <linux-omap@vger.kernel.org>; Thu, 04 Feb 2010 14:51:44 -0800 (PST)
-In-Reply-To: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Wed\,  3 Feb 2010 16\:51\:24 -0800")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Hi all,
 
-> This series converts the OMAP HS-MMC driver to use omap_hwmod +
-> runtime PM API.
->
-> Depends on MMC hwmods available in 'pm-wip/hwmods' branch of
-> my git tree[1] as well as previously posted runtime PM series:
->
->    [PATCH/RFC 0/2] initial runtime PM layer for OMAP
->
-> The easies way to experiment/test is to use my 'pm-wip/mmc' branch
-> which has all the dependencies, and is based on omap/for-next'.
-> It has been tested by merging with current PM branch.
+Today's linux-next merge of the omap tree got a conflict in
+arch/arm/mach-omap1/include/mach/debug-macro.S
+arch/arm/mach-omap2/include/mach/debug-macro.S between commit
+7f62dc4756eaf761570b96250630d48f80397d64 ("ARM: 5910/1: ARM: Add tmp
+register for addruart and loadsp") from the arm tree and commit 209f5d2d2c8e385834d138ac593df86504a28ffe ("omap: Make
+uncompress code and DEBUG_LL code generic") from the omap tree.
 
-One more thing for those wanting to test this:
+I fixed it up (see below) and can carry the fix as necessary.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-You can start from omap3_pm_defconfig and then CONFIG_PM_RUNTIME needs
-to be enabled.
-
-Kevin
-
-> [1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
->
-> Kevin Hilman (3):
->   MMC: OMAP HS-MMC: convert to dev_pm_ops
->   OMAP3EVM: MMC: enable power-saving mode
->   OMAP2/3 MMC: initial conversion to runtime PM
->
-> Paul Walmsley (1):
->   OMAP: MMC (core): split device registration by OMAP
->
->  arch/arm/mach-omap1/devices.c         |   45 ++++++-
->  arch/arm/mach-omap2/board-omap3evm.c  |    1 +
->  arch/arm/mach-omap2/devices.c         |  111 ++++++++-------
->  arch/arm/mach-omap2/hsmmc.c           |   12 +-
->  arch/arm/plat-omap/devices.c          |   50 -------
->  arch/arm/plat-omap/include/plat/mmc.h |    5 +
->  drivers/mmc/host/omap_hsmmc.c         |  241 ++++++++++++++++-----------------
->  7 files changed, 233 insertions(+), 232 deletions(-)
+diff --cc arch/arm/mach-omap1/include/mach/debug-macro.S
+index 8c74cab,0187391..0000000
+--- a/arch/arm/mach-omap1/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
+@@@ -11,7 -11,43 +11,43 @@@
+   *
+  */
+  
++ #include <linux/serial_reg.h>
++ 
++ #include <plat/serial.h>
++ 
++ 		.pushsection .data
++ omap_uart_phys:	.word	0x0
++ omap_uart_virt:	.word	0x0
++ 		.popsection
++ 
++ 		/*
++ 		 * Note that this code won't work if the bootloader passes
++ 		 * a wrong machine ID number in r1. To debug, just hardcode
++ 		 * the desired UART phys and virt addresses temporarily into
++ 		 * the omap_uart_phys and omap_uart_virt above.
++ 		 */
+ -		.macro	addruart,rx
+ +		.macro	addruart, rx, tmp
++ 
++ 		/* Use omap_uart_phys/virt if already configured */
++ 9:		mrc	p15, 0, \rx, c1, c0
++ 		tst	\rx, #1			@ MMU enabled?
++ 		ldreq	\rx, =omap_uart_phys	@ physical base address
++ 		ldrne	\rx, =omap_uart_virt	@ virtual base
++ 		ldr	\rx, [\rx, #0]
++ 		cmp	\rx, #0			@ is port configured?
++ 		bne	99f			@ already configured
++ 
++ 		/* Check 7XX UART1 scratchpad register for uart to use */
++ 		mrc	p15, 0, \rx, c1, c0
++ 		tst	\rx, #1			@ MMU enabled?
++ 		moveq	\rx, #0xff000000	@ physical base address
++ 		movne	\rx, #0xfe000000	@ virtual base
++ 		orr	\rx, \rx, #0x00fb0000	@ OMAP1UART1
++ 		ldrb	\rx, [\rx, #(UART_SCR << OMAP7XX_PORT_SHIFT)]
++ 		cmp	\rx, #0			@ anything in 7XX scratchpad?
++ 		bne	10f			@ found 7XX uart
++ 
++ 		/* Check 15xx/16xx UART1 scratchpad register for uart to use */
+  		mrc	p15, 0, \rx, c1, c0
+  		tst	\rx, #1			@ MMU enabled?
+  		moveq	\rx, #0xff000000	@ physical base address
+diff --cc arch/arm/mach-omap2/include/mach/debug-macro.S
+index 86979d7,eb05a22..0000000
+--- a/arch/arm/mach-omap2/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
+@@@ -11,32 -11,107 +11,107 @@@
+   *
+  */
+  
++ #include <linux/serial_reg.h>
++ 
++ #include <plat/serial.h>
++ 
++ #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
++ 
++ 		.pushsection .data
++ omap_uart_phys:	.word	0
++ omap_uart_virt:	.word	0
++ omap_uart_lsr:	.word	0
++ 		.popsection
++ 
++ 		/*
++ 		 * Note that this code won't work if the bootloader passes
++ 		 * a wrong machine ID number in r1. To debug, just hardcode
++ 		 * the desired UART phys and virt addresses temporarily into
++ 		 * the omap_uart_phys and omap_uart_virt above.
++ 		 */
+ -		.macro	addruart,rx
+ +		.macro	addruart, rx, tmp
++ 
++ 		/* Use omap_uart_phys/virt if already configured */
++ 10:		mrc	p15, 0, \rx, c1, c0
++ 		tst	\rx, #1			@ MMU enabled?
++ 		ldreq	\rx, =omap_uart_phys	@ physical base address
++ 		ldrne	\rx, =omap_uart_virt	@ virtual base address
++ 		ldr	\rx, [\rx, #0]
++ 		cmp	\rx, #0			@ is port configured?
++ 		bne	99f			@ already configured
++ 
++ 		/* Check UART1 scratchpad register for uart to use */
+  		mrc	p15, 0, \rx, c1, c0
+  		tst	\rx, #1			@ MMU enabled?
+- #ifdef  CONFIG_ARCH_OMAP2
+  		moveq	\rx, #0x48000000	@ physical base address
+  		movne	\rx, #0xfa000000	@ virtual base
+- 		orr	\rx, \rx, #0x0006a000
+- #ifdef CONFIG_OMAP_LL_DEBUG_UART2
+- 		add	\rx, \rx, #0x00002000	@ UART 2
+- #endif
+- #ifdef CONFIG_OMAP_LL_DEBUG_UART3
+- 		add	\rx, \rx, #0x00004000	@ UART 3
+- #endif
+- 
+- #elif defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+- 		moveq	\rx, #0x48000000	@ physical base address
+- 		movne	\rx, #0xfa000000	@ virtual base
+- 		orr	\rx, \rx, #0x0006a000
+- #ifdef CONFIG_OMAP_LL_DEBUG_UART2
+- 		add	\rx, \rx, #0x00002000	@ UART 2
+- #endif
+- #ifdef CONFIG_OMAP_LL_DEBUG_UART3
+- 		add	\rx, \rx, #0x00fb0000	@ UART 3
+- 		add	\rx, \rx, #0x00006000
+- #endif
+- #endif
++ 		orr	\rx, \rx, #0x0006a000	@ uart1 on omap2/3/4
++ 		ldrb	\rx, [\rx, #(UART_SCR << OMAP_PORT_SHIFT)] @ scratchpad
++ 
++ 		/* Select the UART to use based on the UART1 scratchpad value */
++ 		cmp	\rx, #0			@ no port configured?
++ 		beq	21f			@ if none, try to use UART1
++ 		cmp	\rx, #OMAP2UART1	@ OMAP2/3/4UART1
++ 		beq	21f			@ configure OMAP2/3/4UART1
++ 		cmp	\rx, #OMAP2UART2	@ OMAP2/3/4UART2
++ 		beq	22f			@ configure OMAP2/3/4UART2
++ 		cmp	\rx, #OMAP2UART3	@ only on 24xx
++ 		beq	23f			@ configure OMAP2UART3
++ 		cmp	\rx, #OMAP3UART3	@ only on 34xx
++ 		beq	33f			@ configure OMAP3UART3
++ 		cmp	\rx, #OMAP4UART3	@ only on 44xx
++ 		beq	43f			@ configure OMAP4UART3
++ 		cmp	\rx, #OMAP3UART4	@ only on 36xx
++ 		beq	34f			@ configure OMAP3UART4
++ 		cmp	\rx, #OMAP4UART4	@ only on 44xx
++ 		beq	44f			@ configure OMAP4UART4
++ 		cmp	\rx, #ZOOM_UART		@ only on zoom2/3
++ 		beq	95f			@ configure ZOOM_UART
++ 
++ 		/* Configure the UART offset from the phys/virt base */
++ 21:		mov	\rx, #UART_OFFSET(OMAP2_UART1_BASE)	@ omap2/3/4
++ 		b	98f
++ 22:		mov	\rx, #UART_OFFSET(OMAP2_UART2_BASE)	@ omap2/3/4
++ 		b	98f
++ 23:		mov	\rx, #UART_OFFSET(OMAP2_UART3_BASE)
++ 		b	98f
++ 33:		mov	\rx, #UART_OFFSET(OMAP3_UART1_BASE)
++ 		add	\rx, \rx, #0x00fb0000
++ 		add	\rx, \rx, #0x00006000		@ OMAP3_UART3_BASE
++ 		b	98f
++ 34:		mov	\rx, #UART_OFFSET(OMAP3_UART1_BASE)
++ 		add	\rx, \rx, #0x00fb0000
++ 		add	\rx, \rx, #0x00028000		@ OMAP3_UART4_BASE
++ 		b	98f
++ 43:		mov	\rx, #UART_OFFSET(OMAP4_UART3_BASE)
++ 		b	98f
++ 44:		mov	\rx, #UART_OFFSET(OMAP4_UART4_BASE)
++ 		b	98f
++ 95:		mov	\rx, #ZOOM_UART_BASE
++ 		ldr	r1, =omap_uart_phys
++ 		str	\rx, [r1, #0]
++ 		mov	\rx, #ZOOM_UART_VIRT
++ 		ldr	r1, =omap_uart_virt
++ 		str	\rx, [r1, #0]
++ 		mov	\rx, #(UART_LSR << ZOOM_PORT_SHIFT)
++ 		ldr	r1, =omap_uart_lsr
++ 		str	\rx, [r1, #0]
++ 		b	10b
++ 
++ 		/* Store both phys and virt address for the uart */
++ 98:		add	\rx, \rx, #0x48000000	@ phys base
++ 		ldr	r1, =omap_uart_phys
++ 		str	\rx, [r1, #0]
++ 		sub	\rx, \rx, #0x48000000	@ phys base
++ 		add	\rx, \rx, #0xfa000000	@ virt base
++ 		ldr	r1, =omap_uart_virt
++ 		str	\rx, [r1, #0]
++ 		mov	\rx, #(UART_LSR << OMAP_PORT_SHIFT)
++ 		ldr	r1, =omap_uart_lsr
++ 		str	\rx, [r1, #0]
++ 
++ 		b	10b
++ 99:
+  		.endm
+  
+  		.macro	senduart,rd,rx
