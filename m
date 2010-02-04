@@ -1,116 +1,47 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] Input: ads7846: add regulator support
-Date: Thu,  4 Feb 2010 15:39:18 +0200
-Message-ID: <1265290758-2035-1-git-send-email-notasas@gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/5] cache-l2x0 and omap4 l2 support
+Date: Thu, 4 Feb 2010 19:52:52 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C0B425F9@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:10440 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758074Ab0BDNjc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 08:39:32 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40045 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752219Ab0BDOXo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 09:23:44 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
+To: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The ADS7846/TSC2046 touchscreen controllers can (and usually are)
-connected to various regulators for power, so add regulator support.
-Make it optional for now to avoid breaking all current users of this
-driver.
+Russell / Tony,
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- drivers/input/touchscreen/ads7846.c |   29 +++++++++++++++++++++++++++--
- 1 files changed, 27 insertions(+), 2 deletions(-)
+Here is the series which combines earlier two series because of dependency and 
+rebased against 2.6.33-rc2. This series also implements Russell's suggested
+combined monitor API. Tested on OMAP4430 SDP 
 
-diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-index 52d2ca1..5da902a 100644
---- a/drivers/input/touchscreen/ads7846.c
-+++ b/drivers/input/touchscreen/ads7846.c
-@@ -27,6 +27,7 @@
- #include <linux/gpio.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
-+#include <linux/regulator/consumer.h>
- #include <asm/irq.h>
- 
- /*
-@@ -85,6 +86,7 @@ struct ads7846 {
- 	char			name[32];
- 
- 	struct spi_device	*spi;
-+	struct regulator	*reg;
- 
- #if defined(CONFIG_HWMON) || defined(CONFIG_HWMON_MODULE)
- 	struct attribute_group	*attr_group;
-@@ -788,6 +790,9 @@ static void ads7846_disable(struct ads7846 *ts)
- 		}
- 	}
- 
-+	if (!IS_ERR(ts->reg))
-+		regulator_disable(ts->reg);
-+
- 	/* we know the chip's in lowpower mode since we always
- 	 * leave it that way after every request
- 	 */
-@@ -799,6 +804,9 @@ static void ads7846_enable(struct ads7846 *ts)
- 	if (!ts->disabled)
- 		return;
- 
-+	if (!IS_ERR(ts->reg))
-+		regulator_enable(ts->reg);
-+
- 	ts->disabled = 0;
- 	ts->irq_disabled = 0;
- 	enable_irq(ts->spi->irq);
-@@ -1139,6 +1147,13 @@ static int __devinit ads7846_probe(struct spi_device *spi)
- 
- 	ts->last_msg = m;
- 
-+	ts->reg = regulator_get(&spi->dev, "vcc");
-+	if (!IS_ERR(ts->reg)) {
-+		err = regulator_enable(ts->reg);
-+		if (err)
-+			goto err_put_regulator;
-+	}
-+
- 	if (request_irq(spi->irq, ads7846_irq, IRQF_TRIGGER_FALLING,
- 			spi->dev.driver->name, ts)) {
- 		dev_info(&spi->dev,
-@@ -1148,7 +1163,7 @@ static int __devinit ads7846_probe(struct spi_device *spi)
- 				  spi->dev.driver->name, ts);
- 		if (err) {
- 			dev_dbg(&spi->dev, "irq %d busy?\n", spi->irq);
--			goto err_free_gpio;
-+			goto err_disable_regulator;
- 		}
- 	}
- 
-@@ -1180,7 +1195,12 @@ static int __devinit ads7846_probe(struct spi_device *spi)
- 	ads784x_hwmon_unregister(spi, ts);
-  err_free_irq:
- 	free_irq(spi->irq, ts);
-- err_free_gpio:
-+ err_disable_regulator:
-+	if (!IS_ERR(ts->reg))
-+		regulator_disable(ts->reg);
-+ err_put_regulator:
-+	if (!IS_ERR(ts->reg))
-+		regulator_put(ts->reg);
- 	if (ts->gpio_pendown != -1)
- 		gpio_free(ts->gpio_pendown);
-  err_cleanup_filter:
-@@ -1208,6 +1228,11 @@ static int __devexit ads7846_remove(struct spi_device *spi)
- 	/* suspend left the IRQ disabled */
- 	enable_irq(ts->spi->irq);
- 
-+	if (!IS_ERR(ts->reg)) {
-+		regulator_disable(ts->reg);
-+		regulator_put(ts->reg);
-+	}
-+
- 	if (ts->gpio_pendown != -1)
- 		gpio_free(ts->gpio_pendown);
- 
--- 
-1.6.3.3
 
+The following changes since commit abe94c756c08d50566c09a65b9c7fe72f83071c5:
+  Linus Torvalds (1):
+        Linux 2.6.33-rc6
+
+Santosh Shilimkar (5):
+      ARM: L2 : Add maintainace by line helper functions
+      OMAP4: Add L2 Cache support
+      OMAP4: Clean the secondary_data from L2
+      ARM: L2 : Errata 588369: Clean & Invalidate do not invalidate clean lines
+      OMAP4: Enable L2 Cache
+
+ arch/arm/Kconfig                           |   13 +++++
+ arch/arm/configs/omap_4430sdp_defconfig    |    3 +
+ arch/arm/mach-omap2/board-4430sdp.c        |   53 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap-smp.c             |    2 +
+ arch/arm/mm/Kconfig                        |    2 +-
+ arch/arm/mm/cache-l2x0.c                   |   71 ++++++++++++++++++++++++----
+ arch/arm/plat-omap/include/plat/omap44xx.h |    1 +
+ 7 files changed, 134 insertions(+), 11 deletions(-)
+
+Regards,
+Santosh
