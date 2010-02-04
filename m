@@ -1,34 +1,40 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] Input: ads7846: add regulator support
-Date: Thu, 4 Feb 2010 16:03:26 +0000
-Message-ID: <20100204160325.GA29982@rakim.wolfsonmicro.main>
-References: <1265290758-2035-1-git-send-email-notasas@gmail.com>
- <20100204142439.GA1139@sirena.org.uk>
- <4B6AE2DB.90809@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH 0/3] twl4030: keypad: Support for suspend-resume
+Date: Thu,  4 Feb 2010 21:36:29 +0530
+Message-ID: <1265299589-29998-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:36769 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933185Ab0BDQD3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 11:03:29 -0500
-Content-Disposition: inline
-In-Reply-To: <4B6AE2DB.90809@compulab.co.il>
+Received: from bear.ext.ti.com ([192.94.94.41]:57171 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758122Ab0BDQGf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Feb 2010 11:06:35 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o14G6V4C001297
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 4 Feb 2010 10:06:34 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On Thu, Feb 04, 2010 at 05:08:11PM +0200, Mike Rapoport wrote:
-> Mark Brown wrote:
+This set adds suspend-resume functionality to the TWL4030
+keypad driver. It also adds the capability to wakeup from
+the OFF mode.
 
-> > This should not be required.  The regulator API stubs itself out when it
-> > is not built so all API calls report as successful.
+These 2 patches don't depend upon the code in pm branch. And
+have been tested on linux-omap/master (c6348aa):
+  twl4030: keypad: Add suspend-resume functions
+  twl4030: keypad: Hooks for board specific suspend-resume
 
-> And what about boards that have the ads7846 tied to power rail and still
-> want to use regulator API for other staff?
+The complete set has been tested on linux-omap/pm (c6348aa).
 
-That's one of the use cases the fixed voltage regulator is there for
-(it's the one that originally caused me to write the driver) - just
-define one or more fixed voltage regulators representing the fixed power
-rails and hook up the device to that/those.
+All testing done on OMAP3EVM.
+
+Sanjeev Premi (3):
+  twl4030: keypad: Add suspend-resume functions
+  twl4030: keypad: Hooks for board specific suspend-resume
+  OMAP3: PM: Wakeup from TWL4030 keypad with OFF mode
+
+ arch/arm/mach-omap2/board-omap3evm.c    |   86 +++++++++++++++++++++++++++++++
+ drivers/input/keyboard/twl4030_keypad.c |   28 ++++++++++
+ include/linux/i2c/twl.h                 |   12 ++++
+ 3 files changed, 126 insertions(+), 0 deletions(-)
