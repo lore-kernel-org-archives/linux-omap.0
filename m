@@ -1,41 +1,46 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [Patch 1/8] DSPBRIDGE: typedef cleanup -DSP RTOS
-Date: Thu, 4 Feb 2010 02:28:19 +0200
-Message-ID: <94a0d4531002031628o3a38fb28n46c800b06b742472@mail.gmail.com>
-References: <19F8576C6E063C45BE387C64729E7394044A6B9671@dbde02.ent.ti.com>
-	 <496565EC904933469F292DDA3F1663E602AA5737A9@dlee06.ent.ti.com>
-	 <19F8576C6E063C45BE387C64729E7394044A775BE9@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
+Date: Wed,  3 Feb 2010 16:51:24 -0800
+Message-ID: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f201.google.com ([209.85.223.201]:52399 "EHLO
-	mail-iw0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932910Ab0BDA2T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 19:28:19 -0500
-Received: by iwn39 with SMTP id 39so2332399iwn.1
-        for <linux-omap@vger.kernel.org>; Wed, 03 Feb 2010 16:28:19 -0800 (PST)
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A775BE9@dbde02.ent.ti.com>
+Received: from mail-yw0-f189.google.com ([209.85.211.189]:49225 "EHLO
+	mail-yw0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932716Ab0BDAvg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Feb 2010 19:51:36 -0500
+Received: by ywh27 with SMTP id 27so1788686ywh.1
+        for <linux-omap@vger.kernel.org>; Wed, 03 Feb 2010 16:51:35 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Cc: "Guzman Lugo, Fernando" <x0095840@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Thu, Feb 4, 2010 at 2:24 AM, Hebbar, Shivananda <x0hebbar@ti.com> wr=
-ote:
->> Why was it changed to long and not to unsigned int as it as defined =
-before
->> (u32) or int which is the tiye return by Atoi?
-> I didn't understand your question here.
-> =C2=A0Long and int are both signed 32 bit type.
+This series converts the OMAP HS-MMC driver to use omap_hwmod +
+runtime PM API.
 
-Not on all platforms. I guess this code is not going to be used on
-some 64 bit OMAP, but one can never know :P
+Depends on MMC hwmods available in 'pm-wip/hwmods' branch of
+my git tree[1] as well as previously posted runtime PM series:
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+   [PATCH/RFC 0/2] initial runtime PM layer for OMAP
+
+The easies way to experiment/test is to use my 'pm-wip/mmc' branch
+which has all the dependencies, and is based on omap/for-next'.
+It has been tested by merging with current PM branch.
+
+[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
+
+Kevin Hilman (3):
+  MMC: OMAP HS-MMC: convert to dev_pm_ops
+  OMAP3EVM: MMC: enable power-saving mode
+  OMAP2/3 MMC: initial conversion to runtime PM
+
+Paul Walmsley (1):
+  OMAP: MMC (core): split device registration by OMAP
+
+ arch/arm/mach-omap1/devices.c         |   45 ++++++-
+ arch/arm/mach-omap2/board-omap3evm.c  |    1 +
+ arch/arm/mach-omap2/devices.c         |  111 ++++++++-------
+ arch/arm/mach-omap2/hsmmc.c           |   12 +-
+ arch/arm/plat-omap/devices.c          |   50 -------
+ arch/arm/plat-omap/include/plat/mmc.h |    5 +
+ drivers/mmc/host/omap_hsmmc.c         |  241 ++++++++++++++++-----------------
+ 7 files changed, 233 insertions(+), 232 deletions(-)
+
