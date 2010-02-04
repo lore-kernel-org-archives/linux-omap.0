@@ -1,219 +1,153 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next: manual merge of the omap tree with the arm tree
-Date: Thu, 4 Feb 2010 15:30:19 -0800
-Message-ID: <20100204233019.GY22747@atomide.com>
-References: <20100205102030.c8b139a1.sfr@canb.auug.org.au>
+Subject: Re: [PATCH 1/3] Introducing 'gpmc-nand.c' for GPMC specific NAND
+ init
+Date: Thu, 4 Feb 2010 15:47:53 -0800
+Message-ID: <20100204234753.GZ22747@atomide.com>
+References: <ce9ab5791001122250m5daa723y6f084c83ce25fb5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52881 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932660Ab0BDXrX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 18:47:23 -0500
 Content-Disposition: inline
-In-Reply-To: <20100205102030.c8b139a1.sfr@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
+In-Reply-To: <ce9ab5791001122250m5daa723y6f084c83ce25fb5@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: linux-omap@vger.kernel.org, Linux MTD <linux-mtd@lists.infradead.org>
 
-* Stephen Rothwell <sfr@canb.auug.org.au> [100204 15:17]:
-> Hi all,
-> 
-> Today's linux-next merge of the omap tree got a conflict in
-> arch/arm/mach-omap1/include/mach/debug-macro.S
-> arch/arm/mach-omap2/include/mach/debug-macro.S between commit
-> 7f62dc4756eaf761570b96250630d48f80397d64 ("ARM: 5910/1: ARM: Add tmp
-> register for addruart and loadsp") from the arm tree and commit 209f5d2d2c8e385834d138ac593df86504a28ffe ("omap: Make
-> uncompress code and DEBUG_LL code generic") from the omap tree.
-> 
-> I fixed it up (see below) and can carry the fix as necessary.
+Hi,
 
-Thanks, I'll sort it out in omap for-next tree so they merge
-cleanly.
+Almost there.. Few more comments below.
+
+* Vimal Singh <vimal.newwork@gmail.com> [100112 22:48]:
+> From 89eaa5d55e04f65e76ad49ed8b010cba578d91ca Mon Sep 17 00:00:00 2001
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Mon, 11 Jan 2010 16:01:29 +0530
+> Subject: [PATCH] Introducing 'gpmc-nand.c' for GPMC specific NAND init
+> 
+> Introducing 'gpmc-nand.c' for GPMC specific NAND init.
+> For example: GPMC timing parameters and all.
+> This patch also migrates gpmc related calls from 'nand/omap2.c'
+> to 'gpmc-nand.c'.
+> 
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile           |    3 +
+>  arch/arm/mach-omap2/gpmc-nand.c        |  139 ++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/nand.h |    8 ++
+>  drivers/mtd/nand/omap2.c               |   35 +-------
+>  4 files changed, 154 insertions(+), 31 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
+
+<snip>
+ 
+> +static int omap2_nand_gpmc_config(void __iomem *nand_base)
+> +{
+> +	struct gpmc_timings t;
+> +	int err;
+> +
+> +	memset(&t, 0, sizeof(t));
+> +	t.sync_clk = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->sync_clk);
+> +	t.cs_on = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->cs_on);
+> +	t.adv_on = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->adv_on);
+> +
+> +	/* Read */
+> +	t.adv_rd_off = gpmc_round_ns_to_ticks(
+> +				gpmc_nand_data->gpmc_t->adv_rd_off);
+> +	t.oe_on  = t.adv_on;
+> +	t.access = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->access);
+> +	t.oe_off = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->oe_off);
+> +	t.cs_rd_off = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->cs_rd_off);
+> +	t.rd_cycle  = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->rd_cycle);
+> +
+> +	/* Write */
+> +	t.adv_wr_off = gpmc_round_ns_to_ticks(
+> +				gpmc_nand_data->gpmc_t->adv_wr_off);
+> +	t.we_on  = t.oe_on;
+> +	if (cpu_is_omap34xx()) {
+> +	    t.wr_data_mux_bus =	gpmc_round_ns_to_ticks(
+> +				gpmc_nand_data->gpmc_t->wr_data_mux_bus);
+> +	    t.wr_access = gpmc_round_ns_to_ticks(
+> +				gpmc_nand_data->gpmc_t->wr_access);
+> +	}
+> +	t.we_off = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->we_off);
+> +	t.cs_wr_off = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->cs_wr_off);
+> +	t.wr_cycle  = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->wr_cycle);
+> +
+> +	/* Configure GPMC */
+> +	gpmc_cs_write_reg(gpmc_nand_data->cs, GPMC_CS_CONFIG1,
+> +			GPMC_CONFIG1_DEVICESIZE(gpmc_nand_data->devsize) |
+> +			GPMC_CONFIG1_DEVICETYPE_NAND);
+> +
+> +	err = gpmc_cs_set_timings(gpmc_nand_data->cs, &t);
+> +	if (err)
+> +		return err;
+> +
+> +	return 0;
+> +}
+
+The nand_base is unused in omap2_nand_gpmc_config. And it's not needed there,
+see below.
+
+Also, maybe rename it to omap2_nand_gpmc_retime() instead? It should get
+get called dynamically based on the cpufreq notifications from the driver
+whenever the L3 frequency is being scaled. Otherwise NAND will stop working :)
+
+> +
+> +static int gpmc_nand_setup(void __iomem *nand_base)
+> +{
+> +	struct device *dev = &gpmc_nand_device.dev;
+> +
+> +	/* Set timings in GPMC */
+> +	if (omap2_nand_gpmc_config(nand_base) < 0) {
+> +		dev_err(dev, "Unable to set gpmc timings\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+
+Here too nand_base is not needed. You can now get rid of this function.
+
+> +
+> +int __init gpmc_nand_init(struct omap_nand_platform_data *_nand_data)
+> +{
+> +	unsigned int val;
+> +	int err	= 0;
+> +	struct device *dev = &gpmc_nand_device.dev;
+> +
+> +	gpmc_nand_data = _nand_data;
+> +	gpmc_nand_data->nand_setup = gpmc_nand_setup;
+> +	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
+> +
+> +	err = gpmc_nand_setup(gpmc_nand_data->gpmc_cs_baseaddr);
+> +	if (err < 0) {
+> +		dev_err(dev, "NAND platform setup failed: %d\n", err);
+> +		return err;
+> +	}
+
+And this ordering must be changed around. You need to first call
+gpmc_cs_request to allocate the GPMC area based on the chip select
+and size from the gpmc_nand_data.
+
+Only then you can call the timing function.
+
+> +	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
+> +				&gpmc_nand_data->phys_base);
+> +	if (err < 0) {
+> +		dev_err(dev, "Cannot request GPMC CS\n");
+> +		return err;
+> +	}
+
+So please do the gpmc_cs_request first.
+
+Should be easy to fix for the whole series. Then let's plan on
+merging it, it will be a nice improvment for all omaps using
+NAND.
+
+Cheers,
 
 Tony
-
-> -- 
-> Cheers,
-> Stephen Rothwell                    sfr@canb.auug.org.au
-> 
-> diff --cc arch/arm/mach-omap1/include/mach/debug-macro.S
-> index 8c74cab,0187391..0000000
-> --- a/arch/arm/mach-omap1/include/mach/debug-macro.S
-> +++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
-> @@@ -11,7 -11,43 +11,43 @@@
->    *
->   */
->   
-> + #include <linux/serial_reg.h>
-> + 
-> + #include <plat/serial.h>
-> + 
-> + 		.pushsection .data
-> + omap_uart_phys:	.word	0x0
-> + omap_uart_virt:	.word	0x0
-> + 		.popsection
-> + 
-> + 		/*
-> + 		 * Note that this code won't work if the bootloader passes
-> + 		 * a wrong machine ID number in r1. To debug, just hardcode
-> + 		 * the desired UART phys and virt addresses temporarily into
-> + 		 * the omap_uart_phys and omap_uart_virt above.
-> + 		 */
->  -		.macro	addruart,rx
->  +		.macro	addruart, rx, tmp
-> + 
-> + 		/* Use omap_uart_phys/virt if already configured */
-> + 9:		mrc	p15, 0, \rx, c1, c0
-> + 		tst	\rx, #1			@ MMU enabled?
-> + 		ldreq	\rx, =omap_uart_phys	@ physical base address
-> + 		ldrne	\rx, =omap_uart_virt	@ virtual base
-> + 		ldr	\rx, [\rx, #0]
-> + 		cmp	\rx, #0			@ is port configured?
-> + 		bne	99f			@ already configured
-> + 
-> + 		/* Check 7XX UART1 scratchpad register for uart to use */
-> + 		mrc	p15, 0, \rx, c1, c0
-> + 		tst	\rx, #1			@ MMU enabled?
-> + 		moveq	\rx, #0xff000000	@ physical base address
-> + 		movne	\rx, #0xfe000000	@ virtual base
-> + 		orr	\rx, \rx, #0x00fb0000	@ OMAP1UART1
-> + 		ldrb	\rx, [\rx, #(UART_SCR << OMAP7XX_PORT_SHIFT)]
-> + 		cmp	\rx, #0			@ anything in 7XX scratchpad?
-> + 		bne	10f			@ found 7XX uart
-> + 
-> + 		/* Check 15xx/16xx UART1 scratchpad register for uart to use */
->   		mrc	p15, 0, \rx, c1, c0
->   		tst	\rx, #1			@ MMU enabled?
->   		moveq	\rx, #0xff000000	@ physical base address
-> diff --cc arch/arm/mach-omap2/include/mach/debug-macro.S
-> index 86979d7,eb05a22..0000000
-> --- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-> +++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-> @@@ -11,32 -11,107 +11,107 @@@
->    *
->   */
->   
-> + #include <linux/serial_reg.h>
-> + 
-> + #include <plat/serial.h>
-> + 
-> + #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
-> + 
-> + 		.pushsection .data
-> + omap_uart_phys:	.word	0
-> + omap_uart_virt:	.word	0
-> + omap_uart_lsr:	.word	0
-> + 		.popsection
-> + 
-> + 		/*
-> + 		 * Note that this code won't work if the bootloader passes
-> + 		 * a wrong machine ID number in r1. To debug, just hardcode
-> + 		 * the desired UART phys and virt addresses temporarily into
-> + 		 * the omap_uart_phys and omap_uart_virt above.
-> + 		 */
->  -		.macro	addruart,rx
->  +		.macro	addruart, rx, tmp
-> + 
-> + 		/* Use omap_uart_phys/virt if already configured */
-> + 10:		mrc	p15, 0, \rx, c1, c0
-> + 		tst	\rx, #1			@ MMU enabled?
-> + 		ldreq	\rx, =omap_uart_phys	@ physical base address
-> + 		ldrne	\rx, =omap_uart_virt	@ virtual base address
-> + 		ldr	\rx, [\rx, #0]
-> + 		cmp	\rx, #0			@ is port configured?
-> + 		bne	99f			@ already configured
-> + 
-> + 		/* Check UART1 scratchpad register for uart to use */
->   		mrc	p15, 0, \rx, c1, c0
->   		tst	\rx, #1			@ MMU enabled?
-> - #ifdef  CONFIG_ARCH_OMAP2
->   		moveq	\rx, #0x48000000	@ physical base address
->   		movne	\rx, #0xfa000000	@ virtual base
-> - 		orr	\rx, \rx, #0x0006a000
-> - #ifdef CONFIG_OMAP_LL_DEBUG_UART2
-> - 		add	\rx, \rx, #0x00002000	@ UART 2
-> - #endif
-> - #ifdef CONFIG_OMAP_LL_DEBUG_UART3
-> - 		add	\rx, \rx, #0x00004000	@ UART 3
-> - #endif
-> - 
-> - #elif defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-> - 		moveq	\rx, #0x48000000	@ physical base address
-> - 		movne	\rx, #0xfa000000	@ virtual base
-> - 		orr	\rx, \rx, #0x0006a000
-> - #ifdef CONFIG_OMAP_LL_DEBUG_UART2
-> - 		add	\rx, \rx, #0x00002000	@ UART 2
-> - #endif
-> - #ifdef CONFIG_OMAP_LL_DEBUG_UART3
-> - 		add	\rx, \rx, #0x00fb0000	@ UART 3
-> - 		add	\rx, \rx, #0x00006000
-> - #endif
-> - #endif
-> + 		orr	\rx, \rx, #0x0006a000	@ uart1 on omap2/3/4
-> + 		ldrb	\rx, [\rx, #(UART_SCR << OMAP_PORT_SHIFT)] @ scratchpad
-> + 
-> + 		/* Select the UART to use based on the UART1 scratchpad value */
-> + 		cmp	\rx, #0			@ no port configured?
-> + 		beq	21f			@ if none, try to use UART1
-> + 		cmp	\rx, #OMAP2UART1	@ OMAP2/3/4UART1
-> + 		beq	21f			@ configure OMAP2/3/4UART1
-> + 		cmp	\rx, #OMAP2UART2	@ OMAP2/3/4UART2
-> + 		beq	22f			@ configure OMAP2/3/4UART2
-> + 		cmp	\rx, #OMAP2UART3	@ only on 24xx
-> + 		beq	23f			@ configure OMAP2UART3
-> + 		cmp	\rx, #OMAP3UART3	@ only on 34xx
-> + 		beq	33f			@ configure OMAP3UART3
-> + 		cmp	\rx, #OMAP4UART3	@ only on 44xx
-> + 		beq	43f			@ configure OMAP4UART3
-> + 		cmp	\rx, #OMAP3UART4	@ only on 36xx
-> + 		beq	34f			@ configure OMAP3UART4
-> + 		cmp	\rx, #OMAP4UART4	@ only on 44xx
-> + 		beq	44f			@ configure OMAP4UART4
-> + 		cmp	\rx, #ZOOM_UART		@ only on zoom2/3
-> + 		beq	95f			@ configure ZOOM_UART
-> + 
-> + 		/* Configure the UART offset from the phys/virt base */
-> + 21:		mov	\rx, #UART_OFFSET(OMAP2_UART1_BASE)	@ omap2/3/4
-> + 		b	98f
-> + 22:		mov	\rx, #UART_OFFSET(OMAP2_UART2_BASE)	@ omap2/3/4
-> + 		b	98f
-> + 23:		mov	\rx, #UART_OFFSET(OMAP2_UART3_BASE)
-> + 		b	98f
-> + 33:		mov	\rx, #UART_OFFSET(OMAP3_UART1_BASE)
-> + 		add	\rx, \rx, #0x00fb0000
-> + 		add	\rx, \rx, #0x00006000		@ OMAP3_UART3_BASE
-> + 		b	98f
-> + 34:		mov	\rx, #UART_OFFSET(OMAP3_UART1_BASE)
-> + 		add	\rx, \rx, #0x00fb0000
-> + 		add	\rx, \rx, #0x00028000		@ OMAP3_UART4_BASE
-> + 		b	98f
-> + 43:		mov	\rx, #UART_OFFSET(OMAP4_UART3_BASE)
-> + 		b	98f
-> + 44:		mov	\rx, #UART_OFFSET(OMAP4_UART4_BASE)
-> + 		b	98f
-> + 95:		mov	\rx, #ZOOM_UART_BASE
-> + 		ldr	r1, =omap_uart_phys
-> + 		str	\rx, [r1, #0]
-> + 		mov	\rx, #ZOOM_UART_VIRT
-> + 		ldr	r1, =omap_uart_virt
-> + 		str	\rx, [r1, #0]
-> + 		mov	\rx, #(UART_LSR << ZOOM_PORT_SHIFT)
-> + 		ldr	r1, =omap_uart_lsr
-> + 		str	\rx, [r1, #0]
-> + 		b	10b
-> + 
-> + 		/* Store both phys and virt address for the uart */
-> + 98:		add	\rx, \rx, #0x48000000	@ phys base
-> + 		ldr	r1, =omap_uart_phys
-> + 		str	\rx, [r1, #0]
-> + 		sub	\rx, \rx, #0x48000000	@ phys base
-> + 		add	\rx, \rx, #0xfa000000	@ virt base
-> + 		ldr	r1, =omap_uart_virt
-> + 		str	\rx, [r1, #0]
-> + 		mov	\rx, #(UART_LSR << OMAP_PORT_SHIFT)
-> + 		ldr	r1, =omap_uart_lsr
-> + 		str	\rx, [r1, #0]
-> + 
-> + 		b	10b
-> + 99:
->   		.endm
->   
->   		.macro	senduart,rd,rx
