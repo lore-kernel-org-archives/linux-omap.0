@@ -1,64 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [RFC] [PATCH] omapfb: Fix 12-bit display (RGB444 color mode)
- handling
-Date: Thu, 04 Feb 2010 16:47:51 +0200
-Message-ID: <1265294871.17836.139.camel@tubuntu.research.nokia.com>
-References: <201001142125.45468.jkrzyszt@tis.icnet.pl>
-	 <4B69A292.5050304@tis.icnet.pl>
-	 <1265277492.17836.16.camel@tubuntu.research.nokia.com>
-	 <201002041540.27034.jkrzyszt@tis.icnet.pl>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] Input: ads7846: add regulator support
+Date: Thu, 4 Feb 2010 16:52:26 +0200
+Message-ID: <6ed0b2681002040652r722e3df2s3f032a9fe0d0c0fe@mail.gmail.com>
+References: <1265290758-2035-1-git-send-email-notasas@gmail.com>
+	 <20100204142439.GA1139@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:31106 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933215Ab0BDOqB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 09:46:01 -0500
-In-Reply-To: <201002041540.27034.jkrzyszt@tis.icnet.pl>
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:42269 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758005Ab0BDOw3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 09:52:29 -0500
+In-Reply-To: <20100204142439.GA1139@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org
 
-On Thu, 2010-02-04 at 15:40 +0100, ext Janusz Krzysztofik wrote:
-> Thursday 04 February 2010 10:58:12 Tomi Valkeinen wrote:
-> > Hi,
-> >
-> > On Wed, 2010-02-03 at 17:21 +0100, ext Janusz Krzysztofik wrote:
-> > > Tomi Valkeinen wrote:
-> > > > On Thu, 2010-01-14 at 21:25 +0100, ext Janusz Krzysztofik wrote:
-> > > >> Support for RGB444 (12-bit) pixel format has been introduced into
-> > > >> omapfb/lcdc by Mark Underwood on 2006-05-26 (commit
-> > > >> f74edb6668aad9fc8e81585861b18f996c78a574) in preparation for Amstrad
-> > > >> Delta (E3) videophone LCD display support.
-> > > >
-> > > > I haven't seen any comments on this. Shall I apply it to my tree?
-> > > >
-> > > >  Tomi
-> > >
-> > > Tomi,
-> > >
-> > > I'm not sure if I am the right person to decide whether my patch should
-> > > be accepted or not and what tree it should be applied to, but if you are
-> > > willing to take it than I'm happy.
-> > >
-> > > BTW, could you also consider taking my other long waiting patch that
-> > > touches drivers/video/omap: http://patchwork.kernel.org/patch/66649/ ?
-> >
-> > Your patch was marked as RFC, so I thought it wasn't the final version.
-> 
-> Tomi,
-> 
-> Thanks for your explanation. It looks like I might not understand exactly how 
-> a patch with an RFC tag is supposed to be processed. Can I assmue that next 
-> time, when there are no comments to my RFC, I should just resubmit without 
-> RFC tag?
+On Thu, Feb 4, 2010 at 4:24 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Thu, Feb 04, 2010 at 03:39:18PM +0200, Grazvydas Ignotas wrote:
+>
+>> The ADS7846/TSC2046 touchscreen controllers can (and usually are)
+>> connected to various regulators for power, so add regulator support.
+>> Make it optional for now to avoid breaking all current users of this
+>> driver.
+>
+> This should not be required. =A0The regulator API stubs itself out wh=
+en it
+> is not built so all API calls report as successful.
 
-I don't know if there's any rule for it, I'm just speaking for myself.
-I've used RFC when my patch is still under development, but I'm
-interested in other people's comments.
+ok
 
- Tomi
+>
+>> + =A0 =A0 ts->reg =3D regulator_get(&spi->dev, "vcc");
+>> + =A0 =A0 if (!IS_ERR(ts->reg)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 err =3D regulator_enable(ts->reg);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (err)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_put_regulator;
+>> + =A0 =A0 }
+>
+> If the regulator API is not compiled in then the regulator_get() will
+> return succesfully. =A0If the regulator API is in use then failure to
+> acquire the regulator is a serious problem which really should be at =
+a
+> minimium be being communicated to the user. =A0For example, the regul=
+ator
+> API may end up powering down regulators which it believes are unused =
+or
+> the regulator may not be powered by default and needs to be enabled.
+>
+> The updates to fix up the boards that need this are fairly
+> straightforward and given that it's fairly easy to identify systems
+> which are using the driver in mainline so I'd really prefer not to go
+> down the route of trying to carry on in the face of error, it papers
+> over stuff now but is not robust in the face of future changes.
 
-
+What about warning and continuing only on ENODEV then? I really don't
+want to be responsible for potentially breaking touchscreen on ~30
+boards, where I have no idea about how things are wired up and how the
+regulators should be set up.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
