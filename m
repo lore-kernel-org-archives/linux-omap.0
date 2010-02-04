@@ -1,248 +1,99 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: [PATCH] OMAP2/3/4: ioremap address space
-Date: Fri, 5 Feb 2010 01:18:04 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C0B426A2@dbde02.ent.ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH v5] OMAP UART: Add omap-serial driver support.
+Date: Thu, 4 Feb 2010 14:33:13 -0600
+Message-ID: <20100204203313.GB711@lixom.net>
+References: <63111.192.168.10.88.1264586216.squirrel@dbdmail.itg.ti.com> <20100128032242.GA9070@lixom.net> <50326.192.168.10.89.1265296150.squirrel@dbdmail.itg.ti.com> <20100204152847.GA711@lixom.net> <40204.192.168.10.88.1265298323.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_EAF47CD23C76F840A9E7FCE10091EFAB02C0B426A2dbde02enttico_"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48565 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932572Ab0BDTsO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 14:48:14 -0500
-Content-Language: en-US
+Received: from lixom.net ([66.141.50.11]:50544 "EHLO mail.lixom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933389Ab0BDU3z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Feb 2010 15:29:55 -0500
+Content-Disposition: inline
+In-Reply-To: <40204.192.168.10.88.1265298323.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C0B426A2dbde02enttico_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On Thu, Feb 04, 2010 at 09:15:23PM +0530, Govindraj.R wrote:
 
-Tony,
+> > Ah. Care to update the comment to mention that? I guess the case above is similar.
+> 
+> 
+> Before accessing FCR we need to write 0x00 to LCR,
+> 
+> I will correct it as,
+> 
+> /**** Access to FCR requires writing Ox00 to LCR *****/
 
------Original Message-----
-From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel=
-.org] On Behalf Of Shilimkar, Santosh
-Sent: Wednesday, January 27, 2010 11:14 AM
-To: Tony Lindgren
-Cc: linux-omap@vger.kernel.org; Kevin Hilman
-Subject: RE: [PATCH] OMAP2/3/4: ioremap address space
+Sounds good (but please use standard comment format, no extra *:s).
 
-<snip>
-
-> > >  void __iomem *omap_ctrl_base_get(void)
-> > > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > > index a091b53..fb5921b 100644
-> > > --- a/arch/arm/mach-omap2/id.c
-> > > +++ b/arch/arm/mach-omap2/id.c
-> > > @@ -407,7 +407,12 @@ void __init omap2_check_revision(void)
-> > >  void __init omap2_set_globals_tap(struct omap_globals *omap2_globals=
-)
-> > >  {
-> > >  	omap_revision =3D omap2_globals->class;
-> > > -	tap_base =3D omap2_globals->tap;
-> > > +
-> > > +	/* Static mapping, never released */
-> > > +	if (omap2_globals->tap) {
-> > > +		tap_base =3D ioremap(omap2_globals->tap, SZ_4K);
-> > > +		WARN_ON(!tap_base);
-> > > +	}
-> > >
-> > >  	if (cpu_is_omap34xx())
-> > >  		tap_prod_id =3D 0x0210;
 > >
-> > Nice clean-up.
+> >> > Nearly every OMAP setup seems to prefer 115200 as default baudrate, right?
+> >>
+> >> Yes, but shouldn't we initialize to lowest possible baud?
 > >
-> > We need to check carefully that the cpu detection is done by the time
-> > we do the ioremap.. Initially we only know the machine class such as
-> > 34xx/24xx.
-> Machine class is good enough to select the correct omap_global descriptor=
-.
-> Isn't it ?
-> > We have at least cpu_is_omap2420 and cpu_is_omap2430 being used in io.c=
-,
-> > so all these mappings may not work properly.
+> > I don't see why that should be done. It's easiest if it's initialized
+> > to the most commonly used speed, that way people can drop the annoying
+> > ",115200" from the console bootarg string.
 > >
-> > Also, we should merge this as one patch to keep the system booting
-> > between the patches.
-> Git bisect would be problem. We can merge them together.
-Merged patch attached.
+> >> >> +static
+> >> >> +int serial_omap_suspend(struct platform_device *pdev, pm_message_t state)
+> >> >
+> >> > No linewrap (checkpatch should have caught this)
+> >>
+> >> I use checkpatch --strict,
+> >> don't know how this passed
+> >
+> >
+> > Yeah, seems like it doesn't check for it. :-) No big deal but since I was already
+> > commenting on other things in the patch I mentioned it.
+> >
+> >> >> + ? ? ? ? ? ? ? ? ? ? up->uart_dma.tx_buf_dma_phys + UART_XMIT_SIZE)
+> >> >> + ? ? ? ? ? ? up->uart_dma.tx_buf_size =
+> >> >> + ? ? ? ? ? ? ? ? ? ? (up->uart_dma.tx_buf_dma_phys + UART_XMIT_SIZE) - start;
+> >> >> + ? ? omap_set_dma_dest_params(up->uart_dma.tx_dma_channel, 0,
+> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? OMAP_DMA_AMODE_CONSTANT,
+> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? up->uart_dma.uart_base, 0, 0);
+> >> >> + ? ? omap_set_dma_src_params(up->uart_dma.tx_dma_channel, 0,
+> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? OMAP_DMA_AMODE_POST_INC, start, 0, 0);
+> >> >> + ? ? omap_set_dma_transfer_params(up->uart_dma.tx_dma_channel,
+> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? OMAP_DMA_DATA_TYPE_S8,
+> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? up->uart_dma.tx_buf_size, 1,
+> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? OMAP_DMA_SYNC_ELEMENT,
+> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? up->uart_dma.uart_dma_tx, 0);
+> >> >
+> >> >
+> >> > Isn't there a dma_sync call missing somewhere around here? Same for
+> >> > the similar RX setup (both before DMA is started, as well as once it is
+> >> > completed on the RX side).
+> >>
+> >> Sorry i didn't get you here as don't see any such dma_sync call
+> >> in arch/arm/plat-omap/dma.c.
+> >
+> > It's not part of the OMAP dma driver, but instead it's part of the
+> > DMA mapping API.  You have to make sure that the buffers (as well as
+> > descriptors) that the DMA engine are going to access will be written to
+> > the level of coherency (i.e. memory) before the operation begins (for
+> > dma-from-memory), and you have to make sure any caches are invalidated
+> > after the operation completes and you wish to read the resulting data
+> > (for dma-to-memory).
+> >
+> 
+> Could you refer me to any omap driver that currently use dma_sync?
 
-How do we proceed with this? I can test this patch with omap3_defconfig and=
- see if
-the Image works on OMAP3430, OMAP3630 and OMAP4430 SDPs.
+Actually, I think this is an issue that most of them have to date, and
+that something that will sting and burn and need fixing. It'll cause
+weird and hard to diagnose problems for down the road.
 
-Please suggest.
+So, while it's something that needs fixing, a clear FIXME comment might
+be sufficient for now while the rest is cleaned up as well.
 
-Regards,
-Santosh
+/* FIXME: Cache maintenance needed here? */
 
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C0B426A2dbde02enttico_
-Content-Type: application/octet-stream;
-	name="0001-OMAP2-3-4-ioremap-omap_globals-modules.patch"
-Content-Description: 0001-OMAP2-3-4-ioremap-omap_globals-modules.patch
-Content-Disposition: attachment;
-	filename="0001-OMAP2-3-4-ioremap-omap_globals-modules.patch"; size=8825;
-	creation-date="Wed, 27 Jan 2010 16:45:27 GMT";
-	modification-date="Wed, 27 Jan 2010 16:45:27 GMT"
-Content-Transfer-Encoding: base64
+Or similar.
 
-RnJvbSA0NTBiZTE0ZDE1MjYzZTk0NDNjZmE3ZDlkOTAyZThmZGU2ZjA4ZThiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPgpEYXRlOiBXZWQsIDI3IEphbiAyMDEwIDExOjEyOjU0ICswNTMwClN1YmplY3Q6IFtQ
-QVRDSF0gT01BUDIvMy80OiBpb3JlbWFwIG9tYXBfZ2xvYmFscyBtb2R1bGVzCgpUaGlzIGlzIGEg
-Y2xlYW4tdXAgcGF0Y2ggdG93YXJkcyBkeW5hbWljIGFsbG9jYXRpb24gb2YgSU8gc3BhY2UKaW5z
-dGVhZCBvZiB1c2luZyBoYXJjb2RlZCBtYWNyb3MgdG8gY2FsY3VsYXRlIHZpcnR1YWwgYWRkcmVz
-c2VzLgoKQWxzbyB1cGRhdGUgdGhlIHNkcmMsIHByY20sIHRhcCBhbmQgY29udHJvbCBtb2R1bGUg
-dG8KYWxsb2NhdGUgaW9zcGFjZSBkeW5hbWljYWxseQoKU2lnbmVkLW9mZi1ieTogU2FudG9zaCBT
-aGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4KQ0M6IEtldmluIEhpbG1hbiA8a2hp
-bG1hbkBkZWVwcm9vdHN5c3RlbXMuY29tPgpDQzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRl
-LmNvbT4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2NvbnRyb2wuYyAgICAgICAgICAgICAgfCAg
-ICA2ICsrKy0KIGFyY2gvYXJtL21hY2gtb21hcDIvaWQuYyAgICAgICAgICAgICAgICAgICB8ICAg
-IDcgKysrKy0KIGFyY2gvYXJtL21hY2gtb21hcDIvcHJjbS5jICAgICAgICAgICAgICAgICB8ICAg
-MTYgKysrKysrKystLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9zZHJjLmMgICAgICAgICAgICAgICAg
-IHwgICAxMSArKysrKy0KIGFyY2gvYXJtL3BsYXQtb21hcC9jb21tb24uYyAgICAgICAgICAgICAg
-ICB8ICAgNDYgKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLQogYXJjaC9hcm0vcGxhdC1vbWFw
-L2luY2x1ZGUvcGxhdC9jb21tb24uaCAgIHwgICAxNCArKysrLS0tLQogYXJjaC9hcm0vcGxhdC1v
-bWFwL2luY2x1ZGUvcGxhdC9vbWFwMjR4eC5oIHwgICAgMiArCiBhcmNoL2FybS9wbGF0LW9tYXAv
-aW5jbHVkZS9wbGF0L29tYXAzNHh4LmggfCAgICAxICsKIDggZmlsZXMgY2hhbmdlZCwgNjYgaW5z
-ZXJ0aW9ucygrKSwgMzcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1v
-bWFwMi9jb250cm9sLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2NvbnRyb2wuYwppbmRleCBjZGQx
-ZjM1Li40M2Y4YTMzIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2NvbnRyb2wuYwor
-KysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2NvbnRyb2wuYwpAQCAtMTQwLDcgKzE0MCwxMSBAQCBz
-dGF0aWMgc3RydWN0IG9tYXAzX2NvbnRyb2xfcmVncyBjb250cm9sX2NvbnRleHQ7CiAKIHZvaWQg
-X19pbml0IG9tYXAyX3NldF9nbG9iYWxzX2NvbnRyb2woc3RydWN0IG9tYXBfZ2xvYmFscyAqb21h
-cDJfZ2xvYmFscykKIHsKLQlvbWFwMl9jdHJsX2Jhc2UgPSBvbWFwMl9nbG9iYWxzLT5jdHJsOwor
-CS8qIFN0YXRpYyBtYXBwaW5nLCBuZXZlciByZWxlYXNlZCAqLworCWlmIChvbWFwMl9nbG9iYWxz
-LT5jdHJsKSB7CisJCW9tYXAyX2N0cmxfYmFzZSA9IGlvcmVtYXAob21hcDJfZ2xvYmFscy0+Y3Ry
-bCwgU1pfNEspOworCQlXQVJOX09OKCFvbWFwMl9jdHJsX2Jhc2UpOworCX0KIH0KIAogdm9pZCBf
-X2lvbWVtICpvbWFwX2N0cmxfYmFzZV9nZXQodm9pZCkKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21h
-Y2gtb21hcDIvaWQuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvaWQuYwppbmRleCBhMDkxYjUzLi5m
-YjU5MjFiIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2lkLmMKKysrIGIvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9pZC5jCkBAIC00MDcsNyArNDA3LDEyIEBAIHZvaWQgX19pbml0IG9tYXAy
-X2NoZWNrX3JldmlzaW9uKHZvaWQpCiB2b2lkIF9faW5pdCBvbWFwMl9zZXRfZ2xvYmFsc190YXAo
-c3RydWN0IG9tYXBfZ2xvYmFscyAqb21hcDJfZ2xvYmFscykKIHsKIAlvbWFwX3JldmlzaW9uID0g
-b21hcDJfZ2xvYmFscy0+Y2xhc3M7Ci0JdGFwX2Jhc2UgPSBvbWFwMl9nbG9iYWxzLT50YXA7CisK
-KwkvKiBTdGF0aWMgbWFwcGluZywgbmV2ZXIgcmVsZWFzZWQgKi8KKwlpZiAob21hcDJfZ2xvYmFs
-cy0+dGFwKSB7CisJCXRhcF9iYXNlID0gaW9yZW1hcChvbWFwMl9nbG9iYWxzLT50YXAsIFNaXzRL
-KTsKKwkJV0FSTl9PTighdGFwX2Jhc2UpOworCX0KIAogCWlmIChjcHVfaXNfb21hcDM0eHgoKSkK
-IAkJdGFwX3Byb2RfaWQgPSAweDAyMTA7CmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAy
-L3ByY20uYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcHJjbS5jCmluZGV4IDNlYTgxNzcuLjU2Njgy
-YjggMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvcHJjbS5jCisrKyBiL2FyY2gvYXJt
-L21hY2gtb21hcDIvcHJjbS5jCkBAIC0yNTcsOSArMjU3LDE5IEBAIGludCBvbWFwMl9jbV93YWl0
-X2lkbGVzdCh2b2lkIF9faW9tZW0gKnJlZywgdTMyIG1hc2ssIGNvbnN0IGNoYXIgKm5hbWUpCiAK
-IHZvaWQgX19pbml0IG9tYXAyX3NldF9nbG9iYWxzX3ByY20oc3RydWN0IG9tYXBfZ2xvYmFscyAq
-b21hcDJfZ2xvYmFscykKIHsKLQlwcm1fYmFzZSA9IG9tYXAyX2dsb2JhbHMtPnBybTsKLQljbV9i
-YXNlID0gb21hcDJfZ2xvYmFscy0+Y207Ci0JY20yX2Jhc2UgPSBvbWFwMl9nbG9iYWxzLT5jbTI7
-CisJLyogU3RhdGljIG1hcHBpbmcsIG5ldmVyIHJlbGVhc2VkICovCisJaWYgKG9tYXAyX2dsb2Jh
-bHMtPnBybSkgeworCQlwcm1fYmFzZSA9IGlvcmVtYXAob21hcDJfZ2xvYmFscy0+cHJtLCBTWl84
-Syk7CisJCVdBUk5fT04oIXBybV9iYXNlKTsKKwl9CisJaWYgKG9tYXAyX2dsb2JhbHMtPmNtKSB7
-CisJCWNtX2Jhc2UgPSBpb3JlbWFwKG9tYXAyX2dsb2JhbHMtPmNtLCBTWl84Syk7CisJCVdBUk5f
-T04oIWNtX2Jhc2UpOworCX0KKwlpZiAob21hcDJfZ2xvYmFscy0+Y20yKSB7CisJCWNtMl9iYXNl
-ID0gaW9yZW1hcChvbWFwMl9nbG9iYWxzLT5jbTIsIFNaXzhLKTsKKwkJV0FSTl9PTighY20yX2Jh
-c2UpOworCX0KIH0KIAogI2lmZGVmIENPTkZJR19BUkNIX09NQVAzCmRpZmYgLS1naXQgYS9hcmNo
-L2FybS9tYWNoLW9tYXAyL3NkcmMuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvc2RyYy5jCmluZGV4
-IGNiZmJkMTQuLjRjNjVmNTYgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvc2RyYy5j
-CisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvc2RyYy5jCkBAIC0xMTksOCArMTE5LDE1IEBAIGlu
-dCBvbWFwMl9zZHJjX2dldF9wYXJhbXModW5zaWduZWQgbG9uZyByLAogCiB2b2lkIF9faW5pdCBv
-bWFwMl9zZXRfZ2xvYmFsc19zZHJjKHN0cnVjdCBvbWFwX2dsb2JhbHMgKm9tYXAyX2dsb2JhbHMp
-CiB7Ci0Jb21hcDJfc2RyY19iYXNlID0gb21hcDJfZ2xvYmFscy0+c2RyYzsKLQlvbWFwMl9zbXNf
-YmFzZSA9IG9tYXAyX2dsb2JhbHMtPnNtczsKKwkvKiBTdGF0aWMgbWFwcGluZywgbmV2ZXIgcmVs
-ZWFzZWQgKi8KKwlpZiAob21hcDJfZ2xvYmFscy0+c2RyYykgeworCQlvbWFwMl9zZHJjX2Jhc2Ug
-PSBpb3JlbWFwKG9tYXAyX2dsb2JhbHMtPnNkcmMsIFNaXzY0Syk7CisJCVdBUk5fT04oIW9tYXAy
-X3NkcmNfYmFzZSk7CisJfQorCWlmIChvbWFwMl9nbG9iYWxzLT5zbXMpIHsKKwkJb21hcDJfc21z
-X2Jhc2UgPSBpb3JlbWFwKG9tYXAyX2dsb2JhbHMtPnNtcywgU1pfNjRLKTsKKwkJV0FSTl9PTigh
-b21hcDJfc21zX2Jhc2UpOworCX0KIH0KIAogLyoqCmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0
-LW9tYXAvY29tbW9uLmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvY29tbW9uLmMKaW5kZXggYmYxZWFm
-My4uZDFlZDY5YyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2NvbW1vbi5jCisrKyBi
-L2FyY2gvYXJtL3BsYXQtb21hcC9jb21tb24uYwpAQCAtMjI3LDEyICsyMjcsMTIgQEAgc3RhdGlj
-IHZvaWQgX19pbml0IF9fb21hcDJfc2V0X2dsb2JhbHMoc3RydWN0IG9tYXBfZ2xvYmFscyAqb21h
-cDJfZ2xvYmFscykKIAogc3RhdGljIHN0cnVjdCBvbWFwX2dsb2JhbHMgb21hcDI0MnhfZ2xvYmFs
-cyA9IHsKIAkuY2xhc3MJPSBPTUFQMjQyWF9DTEFTUywKLQkudGFwCT0gT01BUDJfTDRfSU9fQURE
-UkVTUygweDQ4MDE0MDAwKSwKLQkuc2RyYwk9IE9NQVAyX0wzX0lPX0FERFJFU1MoT01BUDI0MjBf
-U0RSQ19CQVNFKSwKLQkuc21zCT0gT01BUDJfTDNfSU9fQUREUkVTUyhPTUFQMjQyMF9TTVNfQkFT
-RSksCi0JLmN0cmwJPSBPTUFQMl9MNF9JT19BRERSRVNTKE9NQVAyNDIwX0NUUkxfQkFTRSksCi0J
-LnBybQk9IE9NQVAyX0w0X0lPX0FERFJFU1MoT01BUDI0MjBfUFJNX0JBU0UpLAotCS5jbQk9IE9N
-QVAyX0w0X0lPX0FERFJFU1MoT01BUDI0MjBfQ01fQkFTRSksCisJLnRhcAk9IE9NQVAyNDIwX0lE
-Q09ERV9CQVNFLAorCS5zZHJjCT0gT01BUDI0MjBfU0RSQ19CQVNFLAorCS5zbXMJPSBPTUFQMjQy
-MF9TTVNfQkFTRSwKKwkuY3RybAk9IE9NQVAyNDIwX0NUUkxfQkFTRSwKKwkucHJtCT0gT01BUDI0
-MjBfUFJNX0JBU0UsCisJLmNtCT0gT01BUDI0MjBfQ01fQkFTRSwKIH07CiAKIHZvaWQgX19pbml0
-IG9tYXAyX3NldF9nbG9iYWxzXzI0Mngodm9pZCkKQEAgLTI0NSwxMiArMjQ1LDEyIEBAIHZvaWQg
-X19pbml0IG9tYXAyX3NldF9nbG9iYWxzXzI0Mngodm9pZCkKIAogc3RhdGljIHN0cnVjdCBvbWFw
-X2dsb2JhbHMgb21hcDI0M3hfZ2xvYmFscyA9IHsKIAkuY2xhc3MJPSBPTUFQMjQzWF9DTEFTUywK
-LQkudGFwCT0gT01BUDJfTDRfSU9fQUREUkVTUygweDQ5MDBhMDAwKSwKLQkuc2RyYwk9IE9NQVAy
-X0wzX0lPX0FERFJFU1MoT01BUDI0M1hfU0RSQ19CQVNFKSwKLQkuc21zCT0gT01BUDJfTDNfSU9f
-QUREUkVTUyhPTUFQMjQzWF9TTVNfQkFTRSksCi0JLmN0cmwJPSBPTUFQMl9MNF9JT19BRERSRVNT
-KE9NQVAyNDNYX0NUUkxfQkFTRSksCi0JLnBybQk9IE9NQVAyX0w0X0lPX0FERFJFU1MoT01BUDI0
-MzBfUFJNX0JBU0UpLAotCS5jbQk9IE9NQVAyX0w0X0lPX0FERFJFU1MoT01BUDI0MzBfQ01fQkFT
-RSksCisJLnRhcAk9IE9NQVAyNDNYX0lEQ09ERV9CQVNFLAorCS5zZHJjCT0gT01BUDI0M1hfU0RS
-Q19CQVNFLAorCS5zbXMJPSBPTUFQMjQzWF9TTVNfQkFTRSwKKwkuY3RybAk9IE9NQVAyNDNYX0NU
-UkxfQkFTRSwKKwkucHJtCT0gT01BUDI0MzBfUFJNX0JBU0UsCisJLmNtCT0gT01BUDI0MzBfQ01f
-QkFTRSwKIH07CiAKIHZvaWQgX19pbml0IG9tYXAyX3NldF9nbG9iYWxzXzI0M3godm9pZCkKQEAg
-LTI2MywxMiArMjYzLDEyIEBAIHZvaWQgX19pbml0IG9tYXAyX3NldF9nbG9iYWxzXzI0M3godm9p
-ZCkKIAogc3RhdGljIHN0cnVjdCBvbWFwX2dsb2JhbHMgb21hcDM0M3hfZ2xvYmFscyA9IHsKIAku
-Y2xhc3MJPSBPTUFQMzQzWF9DTEFTUywKLQkudGFwCT0gT01BUDJfTDRfSU9fQUREUkVTUygweDQ4
-MzBBMDAwKSwKLQkuc2RyYwk9IE9NQVAyX0wzX0lPX0FERFJFU1MoT01BUDM0M1hfU0RSQ19CQVNF
-KSwKLQkuc21zCT0gT01BUDJfTDNfSU9fQUREUkVTUyhPTUFQMzQzWF9TTVNfQkFTRSksCi0JLmN0
-cmwJPSBPTUFQMl9MNF9JT19BRERSRVNTKE9NQVAzNDNYX0NUUkxfQkFTRSksCi0JLnBybQk9IE9N
-QVAyX0w0X0lPX0FERFJFU1MoT01BUDM0MzBfUFJNX0JBU0UpLAotCS5jbQk9IE9NQVAyX0w0X0lP
-X0FERFJFU1MoT01BUDM0MzBfQ01fQkFTRSksCisJLnRhcAk9IE9NQVAzNDNYX0lEQ09ERV9CQVNF
-LAorCS5zZHJjCT0gT01BUDM0M1hfU0RSQ19CQVNFLAorCS5zbXMJPSBPTUFQMzQzWF9TTVNfQkFT
-RSwKKwkuY3RybAk9IE9NQVAzNDNYX0NUUkxfQkFTRSwKKwkucHJtCT0gT01BUDM0MzBfUFJNX0JB
-U0UsCisJLmNtCT0gT01BUDM0MzBfQ01fQkFTRSwKIH07CiAKIHZvaWQgX19pbml0IG9tYXAyX3Nl
-dF9nbG9iYWxzXzM0M3godm9pZCkKQEAgLTI4MCwxMSArMjgwLDExIEBAIHZvaWQgX19pbml0IG9t
-YXAyX3NldF9nbG9iYWxzXzM0M3godm9pZCkKICNpZiBkZWZpbmVkKENPTkZJR19BUkNIX09NQVA0
-KQogc3RhdGljIHN0cnVjdCBvbWFwX2dsb2JhbHMgb21hcDRfZ2xvYmFscyA9IHsKIAkuY2xhc3MJ
-PSBPTUFQNDQzWF9DTEFTUywKLQkudGFwCT0gT01BUDJfTDRfSU9fQUREUkVTUyhPTUFQNDQzWF9T
-Q01fQkFTRSksCi0JLmN0cmwJPSBPTUFQMl9MNF9JT19BRERSRVNTKE9NQVA0NDNYX0NUUkxfQkFT
-RSksCi0JLnBybQk9IE9NQVAyX0w0X0lPX0FERFJFU1MoT01BUDQ0MzBfUFJNX0JBU0UpLAotCS5j
-bQk9IE9NQVAyX0w0X0lPX0FERFJFU1MoT01BUDQ0MzBfQ01fQkFTRSksCi0JLmNtMgk9IE9NQVAy
-X0w0X0lPX0FERFJFU1MoT01BUDQ0MzBfQ00yX0JBU0UpLAorCS50YXAJPSBPTUFQNDQzWF9TQ01f
-QkFTRSwKKwkuY3RybAk9IE9NQVA0NDNYX0NUUkxfQkFTRSwKKwkucHJtCT0gT01BUDQ0MzBfUFJN
-X0JBU0UsCisJLmNtCT0gT01BUDQ0MzBfQ01fQkFTRSwKKwkuY20yCT0gT01BUDQ0MzBfQ00yX0JB
-U0UsCiB9OwogCiB2b2lkIF9faW5pdCBvbWFwMl9zZXRfZ2xvYmFsc180NDN4KHZvaWQpCmRpZmYg
-LS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5oIGIvYXJjaC9h
-cm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9jb21tb24uaAppbmRleCAzMmMyMjI3Li5jNDg2ZmRh
-IDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5oCisr
-KyBiL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvY29tbW9uLmgKQEAgLTQwLDEzICs0
-MCwxMyBAQCBleHRlcm4gc3RydWN0IHN5c190aW1lciBvbWFwX3RpbWVyOwogLyogSU8gYmFzZXMg
-Zm9yIHZhcmlvdXMgT01BUCBwcm9jZXNzb3JzICovCiBzdHJ1Y3Qgb21hcF9nbG9iYWxzIHsKIAl1
-MzIJCWNsYXNzOwkJLyogT01BUCBjbGFzcyB0byBkZXRlY3QgKi8KLQl2b2lkIF9faW9tZW0JKnRh
-cDsJCS8qIENvbnRyb2wgbW9kdWxlIElEIGNvZGUgKi8KLQl2b2lkIF9faW9tZW0JKnNkcmM7CQkv
-KiBTRFJBTSBDb250cm9sbGVyICovCi0Jdm9pZCBfX2lvbWVtCSpzbXM7CQkvKiBTRFJBTSBNZW1v
-cnkgU2NoZWR1bGVyICovCi0Jdm9pZCBfX2lvbWVtCSpjdHJsOwkJLyogU3lzdGVtIENvbnRyb2wg
-TW9kdWxlICovCi0Jdm9pZCBfX2lvbWVtCSpwcm07CQkvKiBQb3dlciBhbmQgUmVzZXQgTWFuYWdl
-bWVudCAqLwotCXZvaWQgX19pb21lbQkqY207CQkvKiBDbG9jayBNYW5hZ2VtZW50ICovCi0Jdm9p
-ZCBfX2lvbWVtCSpjbTI7CisJdW5zaWduZWQgbG9uZwl0YXA7CQkvKiBDb250cm9sIG1vZHVsZSBJ
-RCBjb2RlICovCisJdW5zaWduZWQgbG9uZwlzZHJjOwkJLyogU0RSQU0gQ29udHJvbGxlciAqLwor
-CXVuc2lnbmVkIGxvbmcJc21zOwkJLyogU0RSQU0gTWVtb3J5IFNjaGVkdWxlciAqLworCXVuc2ln
-bmVkIGxvbmcJY3RybDsJCS8qIFN5c3RlbSBDb250cm9sIE1vZHVsZSAqLworCXVuc2lnbmVkIGxv
-bmcJcHJtOwkJLyogUG93ZXIgYW5kIFJlc2V0IE1hbmFnZW1lbnQgKi8KKwl1bnNpZ25lZCBsb25n
-CWNtOwkJLyogQ2xvY2sgTWFuYWdlbWVudCAqLworCXVuc2lnbmVkIGxvbmcJY20yOwogfTsKIAog
-dm9pZCBvbWFwMl9zZXRfZ2xvYmFsc18yNDJ4KHZvaWQpOwpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0v
-cGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9vbWFwMjR4eC5oIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2lu
-Y2x1ZGUvcGxhdC9vbWFwMjR4eC5oCmluZGV4IDY5NmVkZmMuLmMwNGE1ZDcgMTAwNjQ0Ci0tLSBh
-L2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvb21hcDI0eHguaAorKysgYi9hcmNoL2Fy
-bS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L29tYXAyNHh4LmgKQEAgLTQ4LDYgKzQ4LDcgQEAKICNk
-ZWZpbmUgT01BUDI0MjBfU0RSQ19CQVNFCShMM18yNFhYX0JBU0UgKyAweDkwMDApCiAjZGVmaW5l
-IE9NQVAyNDIwX1NNU19CQVNFCTB4NjgwMDgwMDAKICNkZWZpbmUgT01BUDI0MjBfR1BNQ19CQVNF
-CTB4NjgwMGEwMDAKKyNkZWZpbmUgT01BUDI0MjBfSURDT0RFX0JBU0UJMHg0ODAxNDAwMAogCiAj
-ZGVmaW5lIE9NQVAyNDMwXzMyS1NZTkNUX0JBU0UJKEw0X1dLXzI0M1hfQkFTRSArIDB4MjAwMDAp
-CiAjZGVmaW5lIE9NQVAyNDMwX1BSQ01fQkFTRQkoTDRfV0tfMjQzWF9CQVNFICsgMHg2MDAwKQpA
-QCAtNjAsNiArNjEsNyBAQAogI2RlZmluZSBPTUFQMjQzWF9TQ01fQkFTRQkoTDRfV0tfMjQzWF9C
-QVNFICsgMHgyMDAwKQogI2RlZmluZSBPTUFQMjQzWF9DVFJMX0JBU0UJT01BUDI0M1hfU0NNX0JB
-U0UKICNkZWZpbmUgT01BUDI0M1hfSFNfQkFTRQkoTDRfMjRYWF9CQVNFICsgMHgwMDBhYzAwMCkK
-KyNkZWZpbmUgT01BUDI0M1hfSURDT0RFX0JBU0UJMHg0OTAwYTAwMAogCiAvKiBEU1AgU1MgKi8K
-ICNkZWZpbmUgT01BUDI0MjBfRFNQX0JBU0UJMHg1ODAwMDAwMApkaWZmIC0tZ2l0IGEvYXJjaC9h
-cm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9vbWFwMzR4eC5oIGIvYXJjaC9hcm0vcGxhdC1vbWFw
-L2luY2x1ZGUvcGxhdC9vbWFwMzR4eC5oCmluZGV4IDA3N2YwNTkuLmU1Y2M4ZDIgMTAwNjQ0Ci0t
-LSBhL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvb21hcDM0eHguaAorKysgYi9hcmNo
-L2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L29tYXAzNHh4LmgKQEAgLTQzLDYgKzQzLDcgQEAK
-ICNkZWZpbmUgT01BUDM0WFhfR1BNQ19CQVNFCTB4NkUwMDAwMDAKICNkZWZpbmUgT01BUDM0M1hf
-U0NNX0JBU0UJMHg0ODAwMjAwMAogI2RlZmluZSBPTUFQMzQzWF9DVFJMX0JBU0UJT01BUDM0M1hf
-U0NNX0JBU0UKKyNkZWZpbmUgT01BUDM0M1hfSURDT0RFX0JBU0UJMHg0ODMwYTAwMAogCiAjZGVm
-aW5lIE9NQVAzNFhYX0lDX0JBU0UJMHg0ODIwMDAwMAogCi0tIAoxLjYuMC40Cgo=
 
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C0B426A2dbde02enttico_--
+-Olof
