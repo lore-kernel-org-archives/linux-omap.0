@@ -1,48 +1,52 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
- tree
-Date: Thu, 04 Feb 2010 11:42:55 +0200
-Message-ID: <1265276575.17836.10.camel@tubuntu.research.nokia.com>
-References: <20100203152947.f4955d91.sfr@canb.auug.org.au>
-	 <6ed0b2681002030429t1f6b33e9r3b6ea667fffb0f6a@mail.gmail.com>
-	 <20100203171227.GD22747@atomide.com>
+Subject: Re: [RFC] [PATCH] omapfb: Fix 12-bit display (RGB444 color mode)
+ handling
+Date: Thu, 04 Feb 2010 11:58:12 +0200
+Message-ID: <1265277492.17836.16.camel@tubuntu.research.nokia.com>
+References: <201001142125.45468.jkrzyszt@tis.icnet.pl>
+	 <1264670684.2701.216.camel@tubuntu.research.nokia.com>
+	 <4B69A292.5050304@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20100203171227.GD22747@atomide.com>
-Sender: linux-next-owner@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hunter Adrian (Nokia-D/Helsinki)" <adrian.hunter@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:56059 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756426Ab0BDJ43 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 04:56:29 -0500
+In-Reply-To: <4B69A292.5050304@tis.icnet.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-On Wed, 2010-02-03 at 18:12 +0100, ext Tony Lindgren wrote:
-> * Grazvydas Ignotas <notasas@gmail.com> [100203 04:27]:
-> > hi,
-> > 
-> > On Wed, Feb 3, 2010 at 6:29 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> > > Hi Tomi,
-> > >
-> > > Today's linux-next merge of the omap_dss2 tree got a conflict in
-> > > arch/arm/mach-omap2/board-omap3pandora.c between commit
-> > > f8b6f704105164eac7c043a48f79c4234e03e4b2 ("omap: Rename hsmmc symbols to
-> > > reflect independence from twl4030") from the omap tree and commit
-> > > aacb4387a1e6f3b57977375532c6d8e47fcd5652 ("OMAP: pandora: add DSS2
-> > > support and related regulators") from the omap_dss2 tree.
-> > 
-> > I've rebased my patch against linux-omap/for-next (attached). To fix
-> > the conflict, Tomi can rebase his queue on linux-omap/for-next, or
-> > Tony can simply take this to his queue - this has no "hard"
-> > dependencies on other queued DSS2 changes, has only board file changes
-> > and builds fine in linux-omap/for-next. I would prefer the second
-> > option, as I plan sending more boardfile changes to linux-omap.
-> 
-> Thanks Stephen and Grazvydas.
-> 
-> This sounds good to me, I've added this patch into omap for-next.
-> 
-> Tomi can you please drop the earlier version from your branch?
+Hi,
 
-Sounds good to me. I dropped the patch from my tree.
+On Wed, 2010-02-03 at 17:21 +0100, ext Janusz Krzysztofik wrote:
+> Tomi Valkeinen wrote:
+> > On Thu, 2010-01-14 at 21:25 +0100, ext Janusz Krzysztofik wrote:
+> >> Support for RGB444 (12-bit) pixel format has been introduced into omapfb/lcdc 
+> >> by Mark Underwood on 2006-05-26 (commit 
+> >> f74edb6668aad9fc8e81585861b18f996c78a574) in preparation for Amstrad Delta 
+> >> (E3) videophone LCD display support.
+> > 
+> > I haven't seen any comments on this. Shall I apply it to my tree?
+> > 
+> >  Tomi
+> 
+> Tomi,
+> 
+> I'm not sure if I am the right person to decide whether my patch should 
+> be accepted or not and what tree it should be applied to, but if you are 
+> willing to take it than I'm happy.
+> 
+> BTW, could you also consider taking my other long waiting patch that 
+> touches drivers/video/omap: http://patchwork.kernel.org/patch/66649/ ?
+
+Your patch was marked as RFC, so I thought it wasn't the final version.
+Both patches seem to apply cleanly to my tree, and look fine to me, so
+I'll take them both.
 
  Tomi
+
+
