@@ -1,52 +1,116 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [RFC] [PATCH] omapfb: Fix 12-bit display (RGB444 color mode)
- handling
-Date: Thu, 04 Feb 2010 11:58:12 +0200
-Message-ID: <1265277492.17836.16.camel@tubuntu.research.nokia.com>
-References: <201001142125.45468.jkrzyszt@tis.icnet.pl>
-	 <1264670684.2701.216.camel@tubuntu.research.nokia.com>
-	 <4B69A292.5050304@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] Input: ads7846: add regulator support
+Date: Thu,  4 Feb 2010 15:39:18 +0200
+Message-ID: <1265290758-2035-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:56059 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756426Ab0BDJ43 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 04:56:29 -0500
-In-Reply-To: <4B69A292.5050304@tis.icnet.pl>
+Received: from ey-out-2122.google.com ([74.125.78.27]:10440 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758074Ab0BDNjc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 08:39:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: linux-input@vger.kernel.org
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 
-Hi,
+The ADS7846/TSC2046 touchscreen controllers can (and usually are)
+connected to various regulators for power, so add regulator support.
+Make it optional for now to avoid breaking all current users of this
+driver.
 
-On Wed, 2010-02-03 at 17:21 +0100, ext Janusz Krzysztofik wrote:
-> Tomi Valkeinen wrote:
-> > On Thu, 2010-01-14 at 21:25 +0100, ext Janusz Krzysztofik wrote:
-> >> Support for RGB444 (12-bit) pixel format has been introduced into omapfb/lcdc 
-> >> by Mark Underwood on 2006-05-26 (commit 
-> >> f74edb6668aad9fc8e81585861b18f996c78a574) in preparation for Amstrad Delta 
-> >> (E3) videophone LCD display support.
-> > 
-> > I haven't seen any comments on this. Shall I apply it to my tree?
-> > 
-> >  Tomi
-> 
-> Tomi,
-> 
-> I'm not sure if I am the right person to decide whether my patch should 
-> be accepted or not and what tree it should be applied to, but if you are 
-> willing to take it than I'm happy.
-> 
-> BTW, could you also consider taking my other long waiting patch that 
-> touches drivers/video/omap: http://patchwork.kernel.org/patch/66649/ ?
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+ drivers/input/touchscreen/ads7846.c |   29 +++++++++++++++++++++++++++--
+ 1 files changed, 27 insertions(+), 2 deletions(-)
 
-Your patch was marked as RFC, so I thought it wasn't the final version.
-Both patches seem to apply cleanly to my tree, and look fine to me, so
-I'll take them both.
-
- Tomi
-
+diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+index 52d2ca1..5da902a 100644
+--- a/drivers/input/touchscreen/ads7846.c
++++ b/drivers/input/touchscreen/ads7846.c
+@@ -27,6 +27,7 @@
+ #include <linux/gpio.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
++#include <linux/regulator/consumer.h>
+ #include <asm/irq.h>
+ 
+ /*
+@@ -85,6 +86,7 @@ struct ads7846 {
+ 	char			name[32];
+ 
+ 	struct spi_device	*spi;
++	struct regulator	*reg;
+ 
+ #if defined(CONFIG_HWMON) || defined(CONFIG_HWMON_MODULE)
+ 	struct attribute_group	*attr_group;
+@@ -788,6 +790,9 @@ static void ads7846_disable(struct ads7846 *ts)
+ 		}
+ 	}
+ 
++	if (!IS_ERR(ts->reg))
++		regulator_disable(ts->reg);
++
+ 	/* we know the chip's in lowpower mode since we always
+ 	 * leave it that way after every request
+ 	 */
+@@ -799,6 +804,9 @@ static void ads7846_enable(struct ads7846 *ts)
+ 	if (!ts->disabled)
+ 		return;
+ 
++	if (!IS_ERR(ts->reg))
++		regulator_enable(ts->reg);
++
+ 	ts->disabled = 0;
+ 	ts->irq_disabled = 0;
+ 	enable_irq(ts->spi->irq);
+@@ -1139,6 +1147,13 @@ static int __devinit ads7846_probe(struct spi_device *spi)
+ 
+ 	ts->last_msg = m;
+ 
++	ts->reg = regulator_get(&spi->dev, "vcc");
++	if (!IS_ERR(ts->reg)) {
++		err = regulator_enable(ts->reg);
++		if (err)
++			goto err_put_regulator;
++	}
++
+ 	if (request_irq(spi->irq, ads7846_irq, IRQF_TRIGGER_FALLING,
+ 			spi->dev.driver->name, ts)) {
+ 		dev_info(&spi->dev,
+@@ -1148,7 +1163,7 @@ static int __devinit ads7846_probe(struct spi_device *spi)
+ 				  spi->dev.driver->name, ts);
+ 		if (err) {
+ 			dev_dbg(&spi->dev, "irq %d busy?\n", spi->irq);
+-			goto err_free_gpio;
++			goto err_disable_regulator;
+ 		}
+ 	}
+ 
+@@ -1180,7 +1195,12 @@ static int __devinit ads7846_probe(struct spi_device *spi)
+ 	ads784x_hwmon_unregister(spi, ts);
+  err_free_irq:
+ 	free_irq(spi->irq, ts);
+- err_free_gpio:
++ err_disable_regulator:
++	if (!IS_ERR(ts->reg))
++		regulator_disable(ts->reg);
++ err_put_regulator:
++	if (!IS_ERR(ts->reg))
++		regulator_put(ts->reg);
+ 	if (ts->gpio_pendown != -1)
+ 		gpio_free(ts->gpio_pendown);
+  err_cleanup_filter:
+@@ -1208,6 +1228,11 @@ static int __devexit ads7846_remove(struct spi_device *spi)
+ 	/* suspend left the IRQ disabled */
+ 	enable_irq(ts->spi->irq);
+ 
++	if (!IS_ERR(ts->reg)) {
++		regulator_disable(ts->reg);
++		regulator_put(ts->reg);
++	}
++
+ 	if (ts->gpio_pendown != -1)
+ 		gpio_free(ts->gpio_pendown);
+ 
+-- 
+1.6.3.3
 
