@@ -1,57 +1,66 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] Input: ads7846: add regulator support
-Date: Thu, 4 Feb 2010 18:59:22 +0000
-Message-ID: <583BCA92-EE63-48E7-B2EF-D0281E7F676C@opensource.wolfsonmicro.com>
-References: <1265290758-2035-1-git-send-email-notasas@gmail.com> <20100204142439.GA1139@sirena.org.uk> <6ed0b2681002040652r722e3df2s3f032a9fe0d0c0fe@mail.gmail.com> <20100204162155.GB29982@rakim.wolfsonmicro.main> <20100204180807.GB10965@core.coreip.homeip.net> (sfid-20100204_180836_896233_FC3A8E05)
-Mime-Version: 1.0 (iPhone Mail 7E18)
-Content-Type: text/plain;
-	charset=us-ascii;
-	format=flowed;
-	delsp=yes
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20100204180807.GB10965@core.coreip.homeip.net> (sfid-20100204_180836_896233_FC3A8E05)
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] twl4030: keypad: Support for suspend-resume
+Date: Thu, 4 Feb 2010 11:00:17 -0800
+Message-ID: <20100204190017.GS22747@atomide.com>
+References: <1265299589-29998-1-git-send-email-premi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62174 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757832Ab0BDS7r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 13:59:47 -0500
+Content-Disposition: inline
+In-Reply-To: <1265299589-29998-1-git-send-email-premi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On 4 Feb 2010, at 18:08, Dmitry Torokhov <dmitry.torokhov@gmail.com>  
-wrote:
+Hi,
 
-> On Thu, Feb 04, 2010 at 04:21:55PM +0000, Mark Brown wrote:
->> On Thu, Feb 04, 2010 at 04:52:26PM +0200, Grazvydas Ignotas wrote:
->>> On Thu, Feb 4, 2010 at 4:24 PM, Mark Brown
->>
->>>> The updates to fix up the boards that need this are fairly
->>>> straightforward and given that it's fairly easy to identify systems
->>>> which are using the driver in mainline so I'd really prefer not  
->>>> to go
->>>> down the route of trying to carry on in the face of error, it  
->>>> papers
->>>> over stuff now but is not robust in the face of future changes.
->>
->>> What about warning and continuing only on ENODEV then? I really  
->>> don't
->>> want to be responsible for potentially breaking touchscreen on ~30
->>> boards, where I have no idea about how things are wired up and how  
->>> the
->>> regulators should be set up.
->>
->> I'm really not terribly enthusiastic about that approach - like I  
->> say,
->> it just moves the problem about a bit and postpones the breakage in a
->> potentially more obscure fashion.
->>
->
-> Maybe we should rely on platform data to tell us whether we need to  
-> plug
-> into regulator framework and in this case fail hard on any error?
+* Sanjeev Premi <premi@ti.com> [100204 08:04]:
+> This set adds suspend-resume functionality to the TWL4030
+> keypad driver. It also adds the capability to wakeup from
+> the OFF mode.
+> 
+> These 2 patches don't depend upon the code in pm branch. And
+> have been tested on linux-omap/master (c6348aa):
+>   twl4030: keypad: Add suspend-resume functions
+>   twl4030: keypad: Hooks for board specific suspend-resume
+> 
+> The complete set has been tested on linux-omap/pm (c6348aa).
+> 
+> All testing done on OMAP3EVM.
 
-That doesn't really help - it requres per driver code for the platform  
-data and for conditionalising all the regulator API calls, results in  
-inconsistent behaviour between drivers (does this driver have a no  
-regulator switch?) and is looking a bit like the situation where  
-you're passing around the regulator name to match device and supply.  
-It seems like more work overall for users. 
-  
+Looks OK to me. We should get an ack from linux-input and Dmitry
+to merge these via linux-omap:
+
+INPUT (KEYBOARD, MOUSE, JOYSTICK, TOUCHSCREEN) DRIVERS
+M:      Dmitry Torokhov <dmitry.torokhov@gmail.com>
+M:      Dmitry Torokhov <dtor@mail.ru>
+L:      linux-input@vger.kernel.org
+T:      git git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input.git
+S:      Maintained
+F:      drivers/input/
+
+Can you please send the series again with linux-input Cc'd?
+
+Regards,
+
+Tony
+
+ 
+> Sanjeev Premi (3):
+>   twl4030: keypad: Add suspend-resume functions
+>   twl4030: keypad: Hooks for board specific suspend-resume
+>   OMAP3: PM: Wakeup from TWL4030 keypad with OFF mode
+> 
+>  arch/arm/mach-omap2/board-omap3evm.c    |   86 +++++++++++++++++++++++++++++++
+>  drivers/input/keyboard/twl4030_keypad.c |   28 ++++++++++
+>  include/linux/i2c/twl.h                 |   12 ++++
+>  3 files changed, 126 insertions(+), 0 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
