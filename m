@@ -1,44 +1,34 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 0/5] cache-l2x0 and omap4 l2 support
-Date: Thu, 4 Feb 2010 21:31:26 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C0B42645@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02C0B425F9@dbde02.ent.ti.com>
- <20100204144344.GC27344@n2100.arm.linux.org.uk>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] Input: ads7846: add regulator support
+Date: Thu, 4 Feb 2010 16:03:26 +0000
+Message-ID: <20100204160325.GA29982@rakim.wolfsonmicro.main>
+References: <1265290758-2035-1-git-send-email-notasas@gmail.com>
+ <20100204142439.GA1139@sirena.org.uk>
+ <4B6AE2DB.90809@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56751 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932587Ab0BDQBy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 11:01:54 -0500
-In-Reply-To: <20100204144344.GC27344@n2100.arm.linux.org.uk>
-Content-Language: en-US
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:36769 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933185Ab0BDQD3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 11:03:29 -0500
+Content-Disposition: inline
+In-Reply-To: <4B6AE2DB.90809@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org
 
-Tony,
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Thursday, February 04, 2010 8:14 PM
-> To: Shilimkar, Santosh
-> Cc: Tony Lindgren; Catalin Marinas; linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 0/5] cache-l2x0 and omap4 l2 support
-> 
-> On Thu, Feb 04, 2010 at 07:52:52PM +0530, Shilimkar, Santosh wrote:
-> > Russell / Tony,
-> >
-> > Here is the series which combines earlier two series because of dependency and
-> > rebased against 2.6.33-rc2. This series also implements Russell's suggested
-> > combined monitor API. Tested on OMAP4430 SDP
-> 
-> If you fix up those two patches, I think it can to into the patch system
-> when some acks have been received.
+On Thu, Feb 04, 2010 at 05:08:11PM +0200, Mike Rapoport wrote:
+> Mark Brown wrote:
 
-Can you check this series and provide your ack. Will you be ok if this series
-gets merged through Russell's patch system ?
+> > This should not be required.  The regulator API stubs itself out when it
+> > is not built so all API calls report as successful.
 
-Regards,
-Santosh
+> And what about boards that have the ads7846 tied to power rail and still
+> want to use regulator API for other staff?
+
+That's one of the use cases the fixed voltage regulator is there for
+(it's the one that originally caused me to write the driver) - just
+define one or more fixed voltage regulators representing the fixed power
+rails and hook up the device to that/those.
