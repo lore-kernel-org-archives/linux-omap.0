@@ -1,148 +1,127 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 3/3] OMAP3: PM: Wakeup from TWL4030 keypad with OFF mode
-Date: Thu,  4 Feb 2010 21:37:03 +0530
-Message-ID: <1265299623-30124-1-git-send-email-premi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP3: Serial: Improved sleep logic
+Date: Thu, 4 Feb 2010 08:10:34 -0800
+Message-ID: <20100204161033.GP22747@atomide.com>
+References: <>
+ <1265110224-29473-1-git-send-email-tero.kristo@nokia.com>
+ <20100203175000.GF22747@atomide.com>
+ <1F18D6510CF0474A8C9500565A7E41A223727D496C@NOK-EUMSG-02.mgdnok.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40741 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758266Ab0BDQHH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Feb 2010 11:07:07 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o14G747D023511
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 4 Feb 2010 10:07:06 -0600
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57413 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932504Ab0BDQKD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 11:10:03 -0500
+Content-Disposition: inline
+In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A223727D496C@NOK-EUMSG-02.mgdnok.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Tero.Kristo@nokia.com
+Cc: linux-omap@vger.kernel.org
 
-This patch allows wakeup from TWL4030 keypad when
-OFF mode is hit during suspend.
+* Tero.Kristo@nokia.com <Tero.Kristo@nokia.com> [100203 23:59]:
+>  
+> 
+> >-----Original Message-----
+> >From: ext Tony Lindgren [mailto:tony@atomide.com] 
+> >Sent: 03 February, 2010 19:50
+> >To: Kristo Tero (Nokia-D/Tampere)
+> >Cc: linux-omap@vger.kernel.org
+> >Subject: Re: [PATCH] OMAP3: Serial: Improved sleep logic
+> >
+> >* Tero Kristo <tero.kristo@nokia.com> [100202 01:38]:
+> >> From: Tero Kristo <tero.kristo@nokia.com>
+> >> 
+> >> Only RX interrupt will now kick the sleep prevent timer. In 
+> >addition, TX
+> >> fifo status is checked before disabling clocks, this will 
+> >prevent occasional
+> >> garbage being printed on serial line. Smartidle is also 
+> >disabled while
+> >> entering idle if we have data in the transmit buffer, 
+> >because having this
+> >> enabled will prevent wakeups from the TX interrupt, and this causes
+> >> pauses while sending large blocks of data.
+> >
+> >Sounds this is for 2.6.34 merge window and does not contain anything
+> >that needs to be fixed for 2.6.33. 
+> 
+> Yeah, this only fixes a couple of annoying issues, but nothing fatal. Also improves power efficiency in some cases which is a nice to have feature, and basically eases the development of PM code as the UART does not block the system from sleeping always.
 
-Tested on OMAP3EVM.
+Yeah cool. Separate issue, but I wonder if we should also clear
+the the first rx character from the fifo to avoid corrupting
+the console. Only when the uart clocks are off and and
+we get a key press. Would be easy to do just do with one
+serial_read_reg(uart->p, UART_RX)..
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |   86 ++++++++++++++++++++++++++++++++++
- 1 files changed, 86 insertions(+), 0 deletions(-)
+Tony
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 00bfe9b..b89fa29 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -40,12 +40,15 @@
- #include <plat/board.h>
- #include <plat/usb.h>
- #include <plat/common.h>
-+#include <plat/control.h>
- #include <plat/mcspi.h>
- 
- #include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "mmc-twl4030.h"
- 
-+#include "prm-regbits-34xx.h"
-+
- #define OMAP3_EVM_TS_GPIO	175
- #define OMAP3_EVM_EHCI_VBUS	22
- #define OMAP3_EVM_EHCI_SELECT	61
-@@ -218,6 +221,84 @@ static struct platform_device leds_gpio = {
- 	},
- };
- 
-+#ifdef CONFIG_PM
-+/*
-+ * Save the state of keypad
-+ *
-+ * TODO: This definition should ideally be in a header file, but
-+ *       matrix_keypad.h is not the right one. Also, plat/keypad.h
-+ *       is no longer used.
-+ */
-+struct omap_keypad_pm_state {
-+	void __iomem *wk_st;
-+	void __iomem *wk_en;
-+	u32 wk_mask;
-+	u32 padconf;
-+};
-+
-+/*
-+ * Board specific hook for keypad suspend
-+ */
-+void omap3_evm_kp_suspend(void *ptr)
-+{
-+	struct omap_keypad_pm_state *pstate =
-+			(struct omap_keypad_pm_state *)ptr;
-+
-+	if (pstate) {
-+		/*
-+		 * Set wake-enable bit
-+		 */
-+		if (pstate->wk_en && pstate->wk_mask) {
-+			u32 v = __raw_readl(pstate->wk_en);
-+			v |= pstate->wk_mask;
-+			__raw_writel(v, pstate->wk_en);
-+		}
-+		/*
-+		 * Set corresponding IOPAD wakeup-enable
-+		 */
-+		if (cpu_is_omap34xx() && pstate->padconf) {
-+			u16 v = omap_ctrl_readw(pstate->padconf);
-+			v |= OMAP3_PADCONF_WAKEUPENABLE0;
-+			omap_ctrl_writew(v, pstate->padconf);
-+		}
-+	}
-+}
-+
-+/*
-+ * Board specific hook for keypad resume
-+ */
-+void omap3_evm_kp_resume(void *ptr)
-+{
-+	struct omap_keypad_pm_state *pstate =
-+			(struct omap_keypad_pm_state *)ptr;
-+
-+	if (pstate) {
-+		/*
-+		 * Clear wake-enable bit
-+		 */
-+		if (pstate->wk_en && pstate->wk_mask) {
-+			u32 v = __raw_readl(pstate->wk_en);
-+			v &= ~pstate->wk_mask;
-+			__raw_writel(v, pstate->wk_en);
-+		}
-+		/*
-+		 * Clear corresponding IOPAD wakeup-enable
-+		 */
-+		if (cpu_is_omap34xx() && pstate->padconf) {
-+			u16 v = omap_ctrl_readw(pstate->padconf);
-+			v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
-+			omap_ctrl_writew(v, pstate->padconf);
-+		}
-+	}
-+}
-+
-+static struct omap_keypad_pm_state omap3evm_kp_pm_state = {
-+	.wk_st		= OMAP34XX_PRM_REGADDR(WKUP_MOD, PM_WKEN1),
-+	.wk_en		= OMAP34XX_PRM_REGADDR(WKUP_MOD, PM_WKST1),
-+	.wk_mask	= OMAP3430_EN_GPIO1,
-+	.padconf	= 0x1e0,
-+};
-+#endif	/* CONFIG_PM */
- 
- static int omap3evm_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
-@@ -288,6 +369,11 @@ static struct twl4030_keypad_data omap3evm_kp_data = {
- 	.rows		= 4,
- 	.cols		= 4,
- 	.rep		= 1,
-+#ifdef CONFIG_PM
-+	.pm_state	= (void *)&omap3evm_kp_pm_state,
-+	.on_suspend	= omap3_evm_kp_suspend,
-+	.on_resume	= omap3_evm_kp_resume,
-+#endif	/* CONFIG_PM */
- };
- 
- static struct twl4030_madc_platform_data omap3evm_madc_data = {
--- 
-1.6.2.2
-
+> 
+> -Tero
+> 
+> >
+> >Regards,
+> >
+> >Tony
+> >
+> > 
+> >> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> >> ---
+> >>  arch/arm/mach-omap2/serial.c |   19 +++++++++++++++----
+> >>  1 files changed, 15 insertions(+), 4 deletions(-)
+> >> 
+> >> diff --git a/arch/arm/mach-omap2/serial.c 
+> >b/arch/arm/mach-omap2/serial.c
+> >> index 777e802..e11dfe9 100644
+> >> --- a/arch/arm/mach-omap2/serial.c
+> >> +++ b/arch/arm/mach-omap2/serial.c
+> >> @@ -317,7 +317,8 @@ static void omap_uart_allow_sleep(struct 
+> >omap_uart_state *uart)
+> >>  	if (!uart->clocked)
+> >>  		return;
+> >>  
+> >> -	omap_uart_smart_idle_enable(uart, 1);
+> >> +	if (serial_read_reg(uart->p, UART_LSR) & UART_LSR_TEMT)
+> >> +		omap_uart_smart_idle_enable(uart, 1);
+> >>  	uart->can_sleep = 1;
+> >>  	del_timer(&uart->timer);
+> >>  }
+> >> @@ -335,7 +336,11 @@ void omap_uart_prepare_idle(int num)
+> >>  
+> >>  	list_for_each_entry(uart, &uart_list, node) {
+> >>  		if (num == uart->num && uart->can_sleep) {
+> >> -			omap_uart_disable_clocks(uart);
+> >> +			if (serial_read_reg(uart->p, UART_LSR) &
+> >> +					UART_LSR_TEMT)
+> >> +				omap_uart_disable_clocks(uart);
+> >> +			else
+> >> +				omap_uart_smart_idle_enable(uart, 0);
+> >>  			return;
+> >>  		}
+> >>  	}
+> >> @@ -407,8 +412,14 @@ int omap_uart_can_sleep(void)
+> >>  static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+> >>  {
+> >>  	struct omap_uart_state *uart = dev_id;
+> >> +	u8 lsr;
+> >>  
+> >> -	omap_uart_block_sleep(uart);
+> >> +	lsr = serial_read_reg(uart->p, UART_LSR);
+> >> +	/* Check for receive interrupt */
+> >> +	if (lsr & UART_LSR_DR)
+> >> +		omap_uart_block_sleep(uart);
+> >> +	if (lsr & UART_LSR_TEMT && uart->can_sleep)
+> >> +		omap_uart_smart_idle_enable(uart, 1);
+> >>  
+> >>  	return IRQ_NONE;
+> >>  }
+> >> -- 
+> >> 1.5.4.3
+> >> 
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe 
+> >linux-omap" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
