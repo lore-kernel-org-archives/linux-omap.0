@@ -1,99 +1,68 @@
 From: Olof Johansson <olof@lixom.net>
 Subject: Re: [PATCH v5] OMAP UART: Add omap-serial driver support.
-Date: Thu, 4 Feb 2010 14:33:13 -0600
-Message-ID: <20100204203313.GB711@lixom.net>
-References: <63111.192.168.10.88.1264586216.squirrel@dbdmail.itg.ti.com> <20100128032242.GA9070@lixom.net> <50326.192.168.10.89.1265296150.squirrel@dbdmail.itg.ti.com> <20100204152847.GA711@lixom.net> <40204.192.168.10.88.1265298323.squirrel@dbdmail.itg.ti.com>
+Date: Thu, 4 Feb 2010 14:37:45 -0600
+Message-ID: <20100204203744.GC711@lixom.net>
+References: <63111.192.168.10.88.1264586216.squirrel@dbdmail.itg.ti.com> <20100128032242.GA9070@lixom.net> <50326.192.168.10.89.1265296150.squirrel@dbdmail.itg.ti.com> <20100204152847.GA711@lixom.net> <40204.192.168.10.88.1265298323.squirrel@dbdmail.itg.ti.com> <87iqac51xb.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lixom.net ([66.141.50.11]:50544 "EHLO mail.lixom.net"
+Received: from lixom.net ([66.141.50.11]:53003 "EHLO mail.lixom.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933389Ab0BDU3z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Feb 2010 15:29:55 -0500
+	id S933345Ab0BDUe0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Feb 2010 15:34:26 -0500
 Content-Disposition: inline
-In-Reply-To: <40204.192.168.10.88.1265298323.squirrel@dbdmail.itg.ti.com>
+In-Reply-To: <87iqac51xb.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org
 
-On Thu, Feb 04, 2010 at 09:15:23PM +0530, Govindraj.R wrote:
-
-> > Ah. Care to update the comment to mention that? I guess the case above is similar.
+On Thu, Feb 04, 2010 at 09:46:40AM -0800, Kevin Hilman wrote:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
 > 
+> [...]
 > 
-> Before accessing FCR we need to write 0x00 to LCR,
-> 
-> I will correct it as,
-> 
-> /**** Access to FCR requires writing Ox00 to LCR *****/
-
-Sounds good (but please use standard comment format, no extra *:s).
-
-> >
-> >> > Nearly every OMAP setup seems to prefer 115200 as default baudrate, right?
+> >>> >> + * @baud: baudrate for which divisor needs to be calculated.
+> >>> >> + *
+> >>> >> + * We have written our own function to get the divisor so as to support
+> >>> >> + * 13x mode.
+> >>> >> + */
+> >>> >
+> >>> > Again, the why, not the how. Why do you need the 13x divisor? What's
+> >>> > magic about 3Mbaud?
+> >>> >
+> >>>
+> >>> Refering to TRM UART chapter 17:
+> >>>
+> >>> Table 17-1. UART Mode Baud Rates, Divisor Values, and Error Rates
+> >>>
+> >>> referring to oversampling - divisor value
+> >>>
+> >>> baudrate 460,800 to 3,686,400 all have divisor 13
+> >>>
+> >>> except 3,000,000 which has divisor value 16
+> >>>
+> >>> thus we are checking if baud != 3000000
 > >>
-> >> Yes, but shouldn't we initialize to lowest possible baud?
-> >
-> > I don't see why that should be done. It's easiest if it's initialized
-> > to the most commonly used speed, that way people can drop the annoying
-> > ",115200" from the console bootarg string.
-> >
-> >> >> +static
-> >> >> +int serial_omap_suspend(struct platform_device *pdev, pm_message_t state)
-> >> >
-> >> > No linewrap (checkpatch should have caught this)
+> >> Ok. It's always useful to have just a bit of information in the driver
+> >> so you don't have to search around the manual when trying to figure out
+> >> why something was done.
 > >>
-> >> I use checkpatch --strict,
-> >> don't know how this passed
+> >> Maybe something simple: "3Mbaud is unique in that it requires a divisor
+> >> of 13. See the TRM for full details".
 > >
-> >
-> > Yeah, seems like it doesn't check for it. :-) No big deal but since I was already
-> > commenting on other things in the patch I mentioned it.
-> >
-> >> >> + ? ? ? ? ? ? ? ? ? ? up->uart_dma.tx_buf_dma_phys + UART_XMIT_SIZE)
-> >> >> + ? ? ? ? ? ? up->uart_dma.tx_buf_size =
-> >> >> + ? ? ? ? ? ? ? ? ? ? (up->uart_dma.tx_buf_dma_phys + UART_XMIT_SIZE) - start;
-> >> >> + ? ? omap_set_dma_dest_params(up->uart_dma.tx_dma_channel, 0,
-> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? OMAP_DMA_AMODE_CONSTANT,
-> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? up->uart_dma.uart_base, 0, 0);
-> >> >> + ? ? omap_set_dma_src_params(up->uart_dma.tx_dma_channel, 0,
-> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? OMAP_DMA_AMODE_POST_INC, start, 0, 0);
-> >> >> + ? ? omap_set_dma_transfer_params(up->uart_dma.tx_dma_channel,
-> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? OMAP_DMA_DATA_TYPE_S8,
-> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? up->uart_dma.tx_buf_size, 1,
-> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? OMAP_DMA_SYNC_ELEMENT,
-> >> >> + ? ? ? ? ? ? ? ? ? ? ? ? ? ? up->uart_dma.uart_dma_tx, 0);
-> >> >
-> >> >
-> >> > Isn't there a dma_sync call missing somewhere around here? Same for
-> >> > the similar RX setup (both before DMA is started, as well as once it is
-> >> > completed on the RX side).
-> >>
-> >> Sorry i didn't get you here as don't see any such dma_sync call
-> >> in arch/arm/plat-omap/dma.c.
-> >
-> > It's not part of the OMAP dma driver, but instead it's part of the
-> > DMA mapping API.  You have to make sure that the buffers (as well as
-> > descriptors) that the DMA engine are going to access will be written to
-> > the level of coherency (i.e. memory) before the operation begins (for
-> > dma-from-memory), and you have to make sure any caches are invalidated
-> > after the operation completes and you wish to read the resulting data
-> > (for dma-to-memory).
-> >
+> > ok. will add that comments.
 > 
-> Could you refer me to any omap driver that currently use dma_sync?
+> Referncing TRM Chapter and Section names (and/or numbers) is very
+> helpful too.  Usually section names are more helpful since numbers
+> change w/TRM versions.
 
-Actually, I think this is an issue that most of them have to date, and
-that something that will sting and burn and need fixing. It'll cause
-weird and hard to diagnose problems for down the road.
+Yep!  Rule of thumb: Put yourself in the seat of someone that has to debug this
+driver without having memorized the TRM for the module, and try to make their
+work as simple as possible (to certain limits).
 
-So, while it's something that needs fixing, a clear FIXME comment might
-be sufficient for now while the rest is cleaned up as well.
-
-/* FIXME: Cache maintenance needed here? */
-
-Or similar.
+Which in other words means reducing the number of "Huh? Why is that
+there?" questions to a minimum. :)
 
 
 -Olof
