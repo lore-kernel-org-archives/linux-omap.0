@@ -1,103 +1,157 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH 2/3] OMAP: SDP: Introducing 'board-sdp-flash.c' for flash
-	init
-Date: Fri, 5 Feb 2010 14:22:42 +0530
-Message-ID: <ce9ab5791002050052w75ae4dbbjf6328320c70a3221@mail.gmail.com>
-References: <ce9ab5791001122253u6b431290o136b2586d90ca92b@mail.gmail.com>
-	<20100204235024.GA22747@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/3] OMAP3 PM: Adding counters for power domain logic
+ off and mem off during retention.
+Date: Fri, 5 Feb 2010 01:29:03 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002050122410.26033@utopia.booyaka.com>
+References: <1265302071-7624-1-git-send-email-thara@ti.com> <1265302071-7624-2-git-send-email-thara@ti.com> <1265302071-7624-3-git-send-email-thara@ti.com> <1265302071-7624-4-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:45860 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932402Ab0BEIxF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 03:53:05 -0500
-Received: by bwz19 with SMTP id 19so1215319bwz.28
-        for <linux-omap@vger.kernel.org>; Fri, 05 Feb 2010 00:53:02 -0800 (PST)
-In-Reply-To: <20100204235024.GA22747@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:36989 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754496Ab0BEI3D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 03:29:03 -0500
+In-Reply-To: <1265302071-7624-4-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Thara Gopinath <thara@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-On Fri, Feb 5, 2010 at 5:20 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Vimal Singh <vimal.newwork@gmail.com> [100112 22:51]:
->> From 994785b066a9bd4fbaf7753cb6ab7317440afd36 Mon Sep 17 00:00:00 20=
-01
->> From: Vimal Singh <vimalsingh@ti.com>
->> Date: Tue, 12 Jan 2010 17:22:42 +0530
->> Subject: [PATCH] OMAP: SDP: Introducing 'board-sdp-flash.c' for flas=
-h init
->>
->> This patch adds 'board-sdp-flash.c', which could be utilized
->> by boards similar to 3430SDP. (For ex: 2430sdp, 36030sdp).
->>
->> This file does initialization for all three flash devices present
->> in SDP boards (NOR, NAND, OneNAND), by finding there 'cs' number
->> dynamically using switch setting information (S8: 1-4).
->> This also expects partition information from core board files (for
->> ex: board-3430sdp.c). Which allows to choose different default
->> partitions for different boards.
->>
->> A new structure is created for this purpose: 'flash_partitions'
->> in 'mach/board-sdp.h'. This has two members:
->> 1. struct mtd_partition *parts
->> 2. int nr_parts
->>
->> A board file is expected to fill this structure and pass it to
->> 'sdp-flsash-init'. Partition information should be passed in
->> structure array of 'flash_partitions'. Partition information should
->> be passed in below sequence in array:
->> NOR
->> OneNAND
->> NAND
->
-> <snip>
->
->> +__init board_nand_init(struct flash_partitions sdp_nand_parts, u8 c=
-s)
->> +{
->> + =A0 =A0 sdp_nand_data.cs =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D cs;
->> + =A0 =A0 sdp_nand_data.parts =A0 =A0 =A0 =A0 =A0 =A0 =3D sdp_nand_p=
-arts.parts;
->> + =A0 =A0 sdp_nand_data.nr_parts =A0 =A0 =A0 =A0 =A0=3D sdp_nand_par=
-ts.nr_parts;
->> +
->> + =A0 =A0 sdp_nand_data.gpmc_cs_baseaddr =A0=3D (void *)(OMAP34XX_GP=
-MC_VIRT +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 GPMC_CS0_BASE +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cs * GPMC_CS_SIZE);
->> + =A0 =A0 sdp_nand_data.gpmc_baseaddr =A0 =A0 =A0=3D (void *) (OMAP3=
-4XX_GPMC_VIRT);
->> +
->> + =A0 =A0 gpmc_nand_init(&sdp_nand_data);
->> +}
->
-> Related to the comments for gpmc-nand.c, you can now get rid of the
-> gpmc_cs_baseaddr hardcoding in the board-*.c files. The address gets
-> assigned by gpmc_cs_request based on the chip select and size.
+Hi Thara,
 
-This (gpmc_cs_baseaddr) is passed to OMAP NAND driver (nand/omap2.c)
-for its uses.
-This is base address to GPMC Registers for CS where NAND is present.
-And this will be used by functions like "omap_hwcontrol" to access
-GPMC NAND COMMAND, GPMC NAND ADDRESS and GPMC NAND DATA etc CS
-specific registers.
+On Thu, 4 Feb 2010, Thara Gopinath wrote:
 
-And of course, nand driver should not know at which 'cs' nand device
-is connected, correct?
-So, this information is passed from board.
+> This patch adds counters to keep track of whether the powerdomain
+> logic or software controllable memory banks are turned off when
+> the power domain enters retention. During power domain retention
+> if logic gets turned off, the scenario is known as Open Switch Retention.
+> Also during retention s/w controllable memory banks of a power
+> domain can be chosen to be kept in retention or off.
+> 
+> This patch adds one counter per powerdomain to track the power domain
+> logic state during retention. Number of memory bank state counters
+> added depends on the number of software controllable memory banks
+> of the powerdomain. To view these counters do
+> 	cat ../debug/pm_debug/count
+> 
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+
+I've moved the OSWR counter incrementing code out into its own function, 
+and simplified the conditionals, both per Documentation/CodingStyle.  
+Revised patch attached below.  Could you please check this to confirm that 
+it works as intended?
 
 
+- Paul
 
---=20
-Regards,
-Vimal Singh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>From 3fe59666447821406068ee7f48aa7f1698e51a72 Mon Sep 17 00:00:00 2001
+From: Thara Gopinath <thara@ti.com>
+Date: Thu, 4 Feb 2010 22:17:51 +0530
+Subject: [PATCH] OMAP3 PM: Adding counters for power domain logic off and mem off during retention.
+
+This patch adds counters to keep track of whether the powerdomain
+logic or software controllable memory banks are turned off when
+the power domain enters retention. During power domain retention
+if logic gets turned off, the scenario is known as Open Switch Retention.
+Also during retention s/w controllable memory banks of a power
+domain can be chosen to be kept in retention or off.
+
+This patch adds one counter per powerdomain to track the power domain
+logic state during retention. Number of memory bank state counters
+added depends on the number of software controllable memory banks
+of the powerdomain. To view these counters do
+	cat ../debug/pm_debug/count
+
+Signed-off-by: Thara Gopinath <thara@ti.com>
+[paul@pwsan.com: conditional expressions simplified; counter increment
+ code moved to its own function]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/pm-debug.c                |    5 +++++
+ arch/arm/mach-omap2/powerdomain.c             |   25 +++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/powerdomain.h |    2 ++
+ 3 files changed, 32 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 0ce356f..c18f7f2 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -385,6 +385,11 @@ static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
+ 		seq_printf(s, ",%s:%d", pwrdm_state_names[i],
+ 			pwrdm->state_counter[i]);
+ 
++	seq_printf(s, ",RET-LOGIC-OFF:%d", pwrdm->ret_logic_off_counter);
++	for (i = 0; i < pwrdm->banks; i++)
++		seq_printf(s, ",RET-MEMBANK%d-OFF:%d", i + 1,
++				pwrdm->ret_mem_off_counter[i]);
++
+ 	seq_printf(s, "\n");
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index e9eeaa4..9a0fb38 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -125,6 +125,10 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
+ 		pwrdm->state_counter[i] = 0;
+ 
++	pwrdm->ret_logic_off_counter = 0;
++	for (i = 0; i < pwrdm->banks; i++)
++		pwrdm->ret_mem_off_counter[i] = 0;
++
+ 	pwrdm_wait_transition(pwrdm);
+ 	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+ 	pwrdm->state_counter[pwrdm->state] = 1;
+@@ -134,6 +138,25 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	return 0;
+ }
+ 
++static void _update_logic_membank_counters(struct powerdomain *pwrdm)
++{
++	int i;
++	u8 prev_logic_pwrst, prev_mem_pwrst;
++
++	prev_logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
++	if ((pwrdm->pwrsts_logic_ret == PWRSTS_OFF_RET) &&
++	    (prev_logic_pwrst == PWRDM_POWER_OFF))
++		pwrdm->ret_logic_off_counter++;
++
++	for (i = 0; i < pwrdm->banks; i++) {
++		prev_mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
++
++		if ((pwrdm->pwrsts_mem_ret[i] == PWRSTS_OFF_RET) &&
++		    (prev_mem_pwrst == PWRDM_POWER_OFF))
++			pwrdm->ret_mem_off_counter[i]++;
++	}
++}
++
+ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ {
+ 
+@@ -153,6 +176,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ 		prev = pwrdm_read_prev_pwrst(pwrdm);
+ 		if (pwrdm->state != prev)
+ 			pwrdm->state_counter[prev]++;
++		if (prev == PWRDM_POWER_RET)
++			_update_logic_membank_counters(pwrdm);
+ 		break;
+ 	default:
+ 		return -EINVAL;
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+index 6657ff2..d82b2c0 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -100,6 +100,8 @@ struct powerdomain {
+ 	struct list_head node;
+ 	int state;
+ 	unsigned state_counter[PWRDM_MAX_PWRSTS];
++	unsigned ret_logic_off_counter;
++	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
+ 
+ #ifdef CONFIG_PM_DEBUG
+ 	s64 timer;
+-- 
+1.6.6.rc2.5.g49666
+
