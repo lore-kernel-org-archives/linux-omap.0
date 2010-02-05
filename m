@@ -1,47 +1,37 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: manual merge of the omap tree with the arm tree
-Date: Fri, 5 Feb 2010 11:16:17 +1100
-Message-ID: <20100205111617.c602983f.sfr@canb.auug.org.au>
-References: <20100205102030.c8b139a1.sfr@canb.auug.org.au>
-	<20100204233019.GY22747@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCHv2 6/8] ARM: OMAP3: SDRC: add timing data for Numonyx
+Date: Thu, 4 Feb 2010 19:22:47 -0500
+Message-ID: <notify-1265329398@atomide.com>
+References: <1258575640-8169-7-git-send-email-eballetbo@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__5_Feb_2010_11_16_17_+1100_vuToXvntX+XmYF5n"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100204233019.GY22747@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
-List-Id: linux-omap@vger.kernel.org
-
---Signature=_Fri__5_Feb_2010_11_16_17_+1100_vuToXvntX+XmYF5n
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57947 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933495Ab0BEAWr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 19:22:47 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NdByA-000Mns-Ve
+	for linux-omap@vger.kernel.org; Fri, 05 Feb 2010 00:22:47 +0000
+In-Reply-To: <1258575640-8169-7-git-send-email-eballetbo@gmail.com>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Tony,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-On Thu, 4 Feb 2010 15:30:19 -0800 Tony Lindgren <tony@atomide.com> wrote:
->
-> Thanks, I'll sort it out in omap for-next tree so they merge
-> cleanly.
+Branch in linux-omap: for-next
 
-Thanks
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+Initial commit ID (Likely to change): ba8e34c19167d929b32fff4ae007452ba0f4ee81
 
---Signature=_Fri__5_Feb_2010_11_16_17_+1100_vuToXvntX+XmYF5n
-Content-Type: application/pgp-signature
+PatchWorks
+http://patchwork.kernel.org/patch/72592/
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=ba8e34c19167d929b32fff4ae007452ba0f4ee81
 
-iEYEARECAAYFAktrY1EACgkQjjKRsyhoI8zc7wCfSkDBBce45/ZYgUqEuY+6kG0M
-C1AAn39yKkTQmxPv5uPckvIedJZ3L2j6
-=SQnr
------END PGP SIGNATURE-----
 
---Signature=_Fri__5_Feb_2010_11_16_17_+1100_vuToXvntX+XmYF5n--
