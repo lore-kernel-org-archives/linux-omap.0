@@ -1,32 +1,36 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv5 5/9] OMAP3: Clock: Added IDLEST definitions for SGX
-Date: Fri, 5 Feb 2010 00:45:41 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1002050045290.26033@utopia.booyaka.com>
-References: <> <1265122347-2233-1-git-send-email-tero.kristo@nokia.com> <1265122347-2233-2-git-send-email-tero.kristo@nokia.com> <1265122347-2233-3-git-send-email-tero.kristo@nokia.com> <1265122347-2233-4-git-send-email-tero.kristo@nokia.com>
- <1265122347-2233-5-git-send-email-tero.kristo@nokia.com> <1265122347-2233-6-git-send-email-tero.kristo@nokia.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48773 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780Ab0BEHpn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 02:45:43 -0500
-In-Reply-To: <1265122347-2233-6-git-send-email-tero.kristo@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH 1/3] omap3evm: Add mux settings for keypad
+Date: Fri,  5 Feb 2010 14:13:33 +0530
+Message-ID: <1265359413-15842-1-git-send-email-premi@ti.com>
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
-On Tue, 2 Feb 2010, Tero Kristo wrote:
+This patch sets SYS_NIRQ for keypad input. It also
+sets the same as a wakeup event from OFF mode.
 
-> From: Tero Kristo <tero.kristo@nokia.com>
-> 
-> Added definitions for OMAP3430ES2_ST_SGX_SHIFT and OMAP3430ES2_ST_SGX_MASK
-> as these were missing.
-> 
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Thanks, queued for 2.6.34.
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index fde27cf..19363bd 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -424,6 +424,10 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
++				OMAP_PIN_OFF_INPUT_PULLUP |
++				OMAP_PIN_OFF_WAKEUPENABLE),
++
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
+-- 
+1.6.2.2
 
-
-- Paul
