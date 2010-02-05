@@ -1,21 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH V2 1/4] Add minimal support for DevKit8000
-Date: Thu, 4 Feb 2010 20:46:14 -0500
-Message-ID: <notify-1265334405@atomide.com>
-References: <1265300365-1820-1-git-send-email-weber@corscience.de>
+Subject: [APPLIED] [PATCH V2 2/4] Add devkit8000_defconfig
+Date: Thu, 4 Feb 2010 20:46:45 -0500
+Message-ID: <notify-1265334435@atomide.com>
+References: <1265300391-1856-1-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64592 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932600Ab0BEBqO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 20:46:14 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58453 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933088Ab0BEBqp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 20:46:45 -0500
 Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
 	(envelope-from <tony@atomide.com>)
-	id 1NdDGv-000901-LY
-	for linux-omap@vger.kernel.org; Fri, 05 Feb 2010 01:46:13 +0000
-In-Reply-To: <1265300365-1820-1-git-send-email-weber@corscience.de>
+	id 1NdDHQ-000BCc-7v
+	for linux-omap@vger.kernel.org; Fri, 05 Feb 2010 01:46:44 +0000
+In-Reply-To: <1265300391-1856-1-git-send-email-weber@corscience.de>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -26,12 +26,12 @@ by youw fwiendly patch wobot.
 
 Branch in linux-omap: for-next
 
-Initial commit ID (Likely to change): 2c3dc8e6bc77782f3d855653b9df4445572c1914
+Initial commit ID (Likely to change): d9b7514e22a429d82652c7ca40afba2bed530f7a
 
 PatchWorks
-http://patchwork.kernel.org/patch/77078/
+http://patchwork.kernel.org/patch/77080/
 
 Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=2c3dc8e6bc77782f3d855653b9df4445572c1914
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=d9b7514e22a429d82652c7ca40afba2bed530f7a
 
 
