@@ -1,64 +1,87 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH/RFC 4/4] OMAP2/3 MMC: initial conversion to runtime PM
-Date: Fri, 05 Feb 2010 10:12:47 +0200
-Message-ID: <4B6BD2FF.6050806@nokia.com>
-References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com> <1265244688-4055-5-git-send-email-khilman@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP3 migrating: partition / clock
+Date: Fri, 5 Feb 2010 01:05:03 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002050051250.26033@utopia.booyaka.com>
+References: <804f0d21002032306h6a61070bof03bec78a6e4364a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:33279 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752314Ab0BEINI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 03:13:08 -0500
-In-Reply-To: <1265244688-4055-5-git-send-email-khilman@deeprootsystems.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:46772 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750720Ab0BEIFE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 03:05:04 -0500
+In-Reply-To: <804f0d21002032306h6a61070bof03bec78a6e4364a@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: Arno Steffen <arno.steffen@googlemail.com>
+Cc: linux-omap@vger.kernel.org
 
-Kevin Hilman wrote:
-> Convert the HSMMC driver to use the runtime PM layer.  A notable
-> aspect of this is that the use of the dev_attr data from the
-> omap_hwmod allows the redaction of all of the integration-specific
-> hacks inside this driver.  Regulator control has not yet been
-> converted; the driver still uses the platform_data set_power hook.
-> 
-> In converting to runtime PM layer, the clock frameworks is no longer
-> used for fclk and iclk.  Instead, the runtime PM get and put functions
-> are used.  These result in calls into the OMAP runtime PM core which
-> internally uses the omap_device API to disable/re-enable the device.
-> (Note that the 2430 debounce clock is not currently handled here,
-> only the fclk and iclk are managed.)
-> 
-> In addition, the context_loss tracking has been removed from the
-> driver and is now handled by omap_device + runtime PM core.  The
-> driver's ->runtime_suspend() hook will be called before device is
-> disabled, and the driver's ->runtime_resume() hook will be called if
-> context has been lost.
-> 
-> Based on an initial conversion of this driver to use omap_device by
-> by Paul Walmsely: http://marc.info/?l=linux-omap&m=124419789124570&w=2
-> and then converted to use runtime PM API instead of omap_device API.
-> 
-> The omap_hsmmc driver has some hacks in this version to compensate for
-> the fact that the main runtime PM core prevents runtime transitions
-> during suspend.  This prevens us from using common hooks for runtime
-> PM and static PM.  Current workaround is to hack in some extra put/get
-> calls in the suspend/resume path while this issue is being discussed
-> on linux-pm.
-> 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/mach-omap2/devices.c         |  152 +++++++++--------------
->  arch/arm/mach-omap2/hsmmc.c           |   12 +-
->  arch/arm/plat-omap/include/plat/mmc.h |    5 +
->  drivers/mmc/host/omap_hsmmc.c         |  226 +++++++++++++++------------------
->  4 files changed, 176 insertions(+), 219 deletions(-)
+Hello Arno,
 
-Why is PM runtime not simply PM?
+On Thu, 4 Feb 2010, Arno Steffen wrote:
 
-Can pm_runtime_put_sync() and pm_runtime_get_sync() have less obscure names?
+> I am trying to migrate from kernel 28 to 32 on  TI OMA3. Our board is
+> derived from EVM board.
 
-<snip>
+...
+
+> Also I do get this warning now while boot:
+> 
+> Hierarchical RCU implementation.
+> NR_IRQS:368
+> Clocking rate (Crystal/Core/MPU): 12.0/332/500 MHz
+
+I don't have an 3530 EVM here, but I'd assume this is one difference 
+between your board and the EVM, since TI usually seems to 
+build boards with 26MHz HF clock (resulting in a 13MHz sys_clk).
+
+> ------------[ cut here ]------------
+> WARNING: at arch/arm/mach-omap2/clock34xx.c:773
+> omap3_noncore_dpll_set_rate+0x280/0x2c4()
+
+The above lines tell you exactly where to find the code that's emitting 
+the warning.  In this case, the problem is that the DPLL rate rounding 
+code picked DPLL parameters that resulted in an invalid jitter correction 
+value (from _omap3_dpll_compute_freqsel()).  The caller is presumably 
+omap3_clk_lock_dpll5() in clock34xx.c, which probably got inlined which is 
+why it isn't showing up specifically in the backtrace.
+
+I'd first suggest confirming this by changing the '#undef DEBUG' to 
+'#define DEBUG' in clock34xx.c and mach-omap2/clock.c, rebuilding, and 
+sending along the output.
+
+If the above hypothesis is confirmed, and the problem is not due to some 
+other bug in the code, it might be necessary to call 
+_omap3_dpll_compute_freqsel() to test the freqsel value in 
+_dpll_test_mult(), and reject values that result in an invalid freqsel.
+
+
+> Modules linked in:
+> [<c002a924>] (unwind_backtrace+0x0/0xdc) from [<c0049e74>]
+> (warn_slowpath_common+0x48/0x60)
+> [<c0049e74>] (warn_slowpath_common+0x48/0x60) from [<c0033d30>]
+> (omap3_noncore_dpll_set_rate+0x280/0x2c4)
+> [<c0033d30>] (omap3_noncore_dpll_set_rate+0x280/0x2c4) from
+> [<c0031674>] (omap2_clk_set_rate+0x20/0x2c)
+> [<c0031674>] (omap2_clk_set_rate+0x20/0x2c) from [<c003494c>]
+> (clk_set_rate+0x4c/0xb0)
+> [<c003494c>] (clk_set_rate+0x4c/0xb0) from [<c000e980>]
+> (omap2_clk_init+0x124/0x1a0)
+> [<c000e980>] (omap2_clk_init+0x124/0x1a0) from [<c000d6ec>]
+> (omap2_init_common_hw+0x4c/0xe0)
+> [<c000d6ec>] (omap2_init_common_hw+0x4c/0xe0) from [<c000ead8>]
+> (omap3_evm_init_irq+0x28/0x94)
+> [<c000ead8>] (omap3_evm_init_irq+0x28/0x94) from [<c000b1b0>]
+> (init_IRQ+0x30/0x40)
+> [<c000b1b0>] (init_IRQ+0x30/0x40) from [<c0008978>] (start_kernel+0x140/0x29c)
+> [<c0008978>] (start_kernel+0x140/0x29c) from [<80008034>] (0x80008034)
+> ---[ end trace 1b75b31a2719ed1c ]---
+> Reprogramming SDRC clock to 332000000 Hz
+> GPMC revision 5.0
+> 
+> Do you know the reason and how to solve it?
+> Thanks & regards
+> Arno
+
+
+- Paul
