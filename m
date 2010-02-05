@@ -1,40 +1,286 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 3/3] omap3evm: Configure GPIO175 for touchscreen PEN_IRQ
-Date: Fri,  5 Feb 2010 14:14:12 +0530
-Message-ID: <1265359452-18718-1-git-send-email-premi@ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv2 1/4] Regulator: OMAP: Creating TWL4030 file having
+ supplies & init data
+Date: Fri, 5 Feb 2010 10:45:01 +0200
+Message-ID: <20100205084501.GA30421@esdhcp037198.research.nokia.com>
+References: <1263287632-10135-1-git-send-email-anuj.aggarwal@ti.com>
+Reply-To: eduardo.valentin@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49805 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756302Ab0BEIoR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Feb 2010 03:44:17 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:33514 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754442Ab0BEIpi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 03:45:38 -0500
+Content-Disposition: inline
+In-Reply-To: <1263287632-10135-1-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: ext Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 
-GPIO175 is used for PEN_IRQ on the EVM. This patch
-sets the mux settings for the same.
+Hello Anuj,
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+First of all, I liked the idea of unifying the regulator definitions
+for boards that use twl regulators.
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index c8e1208..00bfe9b 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -430,7 +430,9 @@ static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
- 				OMAP_PIN_OFF_INPUT_PULLUP |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
--
-+	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-+				OMAP_PIN_OFF_INPUT_PULLUP |
-+				OMAP_PIN_OFF_WAKEUPENABLE),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #else
+But I guess we need to improve a little bit.
+
+See following comments.
+
+On Tue, Jan 12, 2010 at 10:13:52AM +0100, ext Anuj Aggarwal wrote:
+> A new file for TWL4030/TPS65950 is created which has common supplies
+> and regulator init data structures. They will be referenced from the
+> various board-evm files depending upon the EVM requirements, using
+> the twl4030-pmic.h header file.
+> 
+> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> ---
+>  arch/arm/mach-omap2/twl4030-pmic.c |  175 ++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/twl4030-pmic.h |   34 +++++++
+>  2 files changed, 209 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/twl4030-pmic.c
+>  create mode 100644 arch/arm/mach-omap2/twl4030-pmic.h
+> 
+> diff --git a/arch/arm/mach-omap2/twl4030-pmic.c b/arch/arm/mach-omap2/twl4030-pmic.c
+> new file mode 100644
+> index 0000000..0c0a860
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/twl4030-pmic.c
+> @@ -0,0 +1,175 @@
+> +/*
+> + * twl4030-pmic.c
+> + *
+> + * Common regulator supplies and init data structs for TWL4030/TPS65950
+> + * PMIC for OMAP3 based EVMs. They can be used in various board-evm
+> + * files for OMAP3 based platforms using TWL4030.
+> + *
+> + * Copyright (C) 2010 Texas Instrument Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation version 2.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
+> + * whether express or implied; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +#include <linux/regulator/machine.h>
+> +
+> +/* VDAC */
+> +struct regulator_consumer_supply twl4030_vdac_supply = {
+> +	.supply	= "vdac",
+> +};
+> +
+> +/* VMMC1 */
+> +struct regulator_consumer_supply twl4030_vmmc1_supply = {
+> +	.supply	= "vmmc",
+> +};
+> +
+> +/* VMMC2 */
+> +struct regulator_consumer_supply twl4030_vmmc2_supply = {
+> +	.supply	= "vmmc",
+> +};
+> +
+> +/* VSIM */
+> +struct regulator_consumer_supply twl4030_vsim_supply = {
+> +	.supply	= "vmmc_aux",
+> +};
+> +
+> +/* VPLL2 for digital video outputs */
+> +struct regulator_consumer_supply twl4030_vpll2_supply = {
+> +	.supply	= "vdvi",
+> +};
+
+
+Ohh no! This is not good! Defining here the supply list would make things harder.
+Because from board to board the supply list will change! That's the
+whole point of having the supply list. We can't share them for all boards
+definitions.
+
+> +
+> +/* Regulator initialization data */
+> +/* VAUX1 */
+> +struct regulator_init_data twl4030_vaux1_data = {
+> +	.constraints = {
+> +		.min_uV			= 2800000,
+> +		.max_uV			= 2800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +};
+> +
+> +/* VAUX2 */
+> +struct regulator_init_data twl4030_vaux2_data = {
+> +	.constraints = {
+> +		.min_uV			= 2800000,
+> +		.max_uV			= 2800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +};
+> +
+> +/* VAUX3 */
+> +struct regulator_init_data twl4030_vaux3_data = {
+> +	.constraints = {
+> +		.min_uV			= 2800000,
+> +		.max_uV			= 2800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +};
+> +
+> +/* VAUX4 */
+> +struct regulator_init_data twl4030_vaux4_data = {
+> +	.constraints = {
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 1800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +};
+> +
+> +/* VMMC1 */
+> +struct regulator_init_data twl4030_vmmc1_data = {
+> +	.constraints = {
+> +		.min_uV			= 1850000,
+> +		.max_uV			= 3150000,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+> +					| REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &twl4030_vmmc1_supply,
+> +};
+> +
+> +/* VMMC2 */
+> +struct regulator_init_data twl4030_vmmc2_data = {
+> +	.constraints = {
+> +		.min_uV			= 1850000,
+> +		.max_uV			= 1850000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &twl4030_vmmc2_supply,
+> +};
+> +
+> +/* VSIM */
+> +struct regulator_init_data twl4030_vsim_data = {
+> +	.constraints = {
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 3000000,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+> +					| REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &twl4030_vsim_supply,
+> +};
+> +
+> +/* VDAC */
+> +struct regulator_init_data twl4030_vdac_data = {
+> +	.constraints = {
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 1800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &twl4030_vdac_supply,
+> +};
+> +
+> +/* VPLL2 */
+> +struct regulator_init_data twl4030_vpll2_data = {
+> +	.constraints = {
+> +		.name			= "VDVI",
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 1800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &twl4030_vpll2_supply,
+> +};
+
+
+Defining the regulators should be fine.
+
+> +
+> diff --git a/arch/arm/mach-omap2/twl4030-pmic.h b/arch/arm/mach-omap2/twl4030-pmic.h
+> new file mode 100644
+> index 0000000..7a863d6
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/twl4030-pmic.h
+> @@ -0,0 +1,34 @@
+> +/*
+> + * twl4030-pmic.h
+> + *
+> + * Header for common regulator supplies and init data structs for
+> + * TWL4030/TPS65950 PMIC for OMAP3 based EVMs.
+> + *
+> + * Copyright (C) 2010 Texas Instrument Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation version 2.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
+> + * whether express or implied; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +extern struct regulator_consumer_supply twl4030_vdac_supply;
+> +extern struct regulator_consumer_supply twl4030_vmmc1_supply;
+> +extern struct regulator_consumer_supply twl4030_vmmc2_supply;
+> +extern struct regulator_consumer_supply twl4030_vsim_supply;
+> +extern struct regulator_consumer_supply twl4030_vpll2_supply;
+> +
+> +extern struct regulator_init_data twl4030_vaux1_data;
+> +extern struct regulator_init_data twl4030_vaux2_data;
+> +extern struct regulator_init_data twl4030_vaux3_data;
+> +extern struct regulator_init_data twl4030_vaux4_data;
+> +extern struct regulator_init_data twl4030_vmmc1_data;
+> +extern struct regulator_init_data twl4030_vmmc2_data;
+> +extern struct regulator_init_data twl4030_vsim_data;
+> +extern struct regulator_init_data twl4030_vdac_data;
+> +extern struct regulator_init_data twl4030_vpll2_data;
+> +
+> -- 
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-1.6.2.2
-
+Eduardo Valentin
