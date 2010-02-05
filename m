@@ -1,39 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 1/4] Regulator: OMAP: Creating TWL4030 file having
- supplies & init data
-Date: Thu, 4 Feb 2010 17:39:59 -0800
-Message-ID: <20100205013959.GF22747@atomide.com>
-References: <1263287632-10135-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [APPLIED] [PATCHv2 2/6] OMAP4: IRQ: Add McPDM IRQ definition.
+Date: Thu, 4 Feb 2010 20:41:22 -0500
+Message-ID: <notify-1265334114@atomide.com>
+References: <2256F256009DAA4CBE661E9F41EAC84B8C43A8B0@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56245 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754839Ab0BEBja (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 20:39:30 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54832 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756001Ab0BEBlW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Feb 2010 20:41:22 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NdDCD-0009Nr-RO
+	for linux-omap@vger.kernel.org; Fri, 05 Feb 2010 01:41:22 +0000
+In-Reply-To: <2256F256009DAA4CBE661E9F41EAC84B8C43A8B0@dlee01.ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <1263287632-10135-1-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
+To: linux-omap@vger.kernel.org
 
-Hi,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-* Anuj Aggarwal <anuj.aggarwal@ti.com> [100112 01:12]:
-> A new file for TWL4030/TPS65950 is created which has common supplies
-> and regulator init data structures. They will be referenced from the
-> various board-evm files depending upon the EVM requirements, using
-> the twl4030-pmic.h header file.
+Branch in linux-omap: for-next
 
-Looks like this series needs to be rebased on omap-for-linus branch
-in the linux-omap tree. Please also check that the patches apply
-against the current for-next branch in the linux-omap tree.
+Initial commit ID (Likely to change): badd13ec074ac5ed97035916a97530c590c179d5
 
-Also, please check that each patch in the series builds (and boots)
-with arch/arm/config/omap3_defconfig.
+PatchWorks
+http://patchwork.kernel.org/patch/74769/
 
-Regards,
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=badd13ec074ac5ed97035916a97530c590c179d5
 
-Tony
 
