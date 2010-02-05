@@ -1,87 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP3 migrating: partition / clock
-Date: Fri, 5 Feb 2010 01:05:03 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1002050051250.26033@utopia.booyaka.com>
-References: <804f0d21002032306h6a61070bof03bec78a6e4364a@mail.gmail.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 3/3] OMAP3: PM: Wakeup from TWL4030 keypad with OFF mode
+Date: Fri, 5 Feb 2010 13:36:59 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E259DEEC@dbde02.ent.ti.com>
+References: <87r5p01xg2.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46772 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab0BEIFE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 03:05:04 -0500
-In-Reply-To: <804f0d21002032306h6a61070bof03bec78a6e4364a@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53290 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750720Ab0BEIHH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 03:07:07 -0500
+In-Reply-To: <87r5p01xg2.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arno Steffen <arno.steffen@googlemail.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Arno,
-
-On Thu, 4 Feb 2010, Arno Steffen wrote:
-
-> I am trying to migrate from kernel 28 to 32 on  TI OMA3. Our board is
-> derived from EVM board.
-
-...
-
-> Also I do get this warning now while boot:
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Friday, February 05, 2010 3:22 AM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 3/3] OMAP3: PM: Wakeup from TWL4030 
+> keypad with OFF mode
 > 
-> Hierarchical RCU implementation.
-> NR_IRQS:368
-> Clocking rate (Crystal/Core/MPU): 12.0/332/500 MHz
-
-I don't have an 3530 EVM here, but I'd assume this is one difference 
-between your board and the EVM, since TI usually seems to 
-build boards with 26MHz HF clock (resulting in a 13MHz sys_clk).
-
-> ------------[ cut here ]------------
-> WARNING: at arch/arm/mach-omap2/clock34xx.c:773
-> omap3_noncore_dpll_set_rate+0x280/0x2c4()
-
-The above lines tell you exactly where to find the code that's emitting 
-the warning.  In this case, the problem is that the DPLL rate rounding 
-code picked DPLL parameters that resulted in an invalid jitter correction 
-value (from _omap3_dpll_compute_freqsel()).  The caller is presumably 
-omap3_clk_lock_dpll5() in clock34xx.c, which probably got inlined which is 
-why it isn't showing up specifically in the backtrace.
-
-I'd first suggest confirming this by changing the '#undef DEBUG' to 
-'#define DEBUG' in clock34xx.c and mach-omap2/clock.c, rebuilding, and 
-sending along the output.
-
-If the above hypothesis is confirmed, and the problem is not due to some 
-other bug in the code, it might be necessary to call 
-_omap3_dpll_compute_freqsel() to test the freqsel value in 
-_dpll_test_mult(), and reject values that result in an invalid freqsel.
-
-
-> Modules linked in:
-> [<c002a924>] (unwind_backtrace+0x0/0xdc) from [<c0049e74>]
-> (warn_slowpath_common+0x48/0x60)
-> [<c0049e74>] (warn_slowpath_common+0x48/0x60) from [<c0033d30>]
-> (omap3_noncore_dpll_set_rate+0x280/0x2c4)
-> [<c0033d30>] (omap3_noncore_dpll_set_rate+0x280/0x2c4) from
-> [<c0031674>] (omap2_clk_set_rate+0x20/0x2c)
-> [<c0031674>] (omap2_clk_set_rate+0x20/0x2c) from [<c003494c>]
-> (clk_set_rate+0x4c/0xb0)
-> [<c003494c>] (clk_set_rate+0x4c/0xb0) from [<c000e980>]
-> (omap2_clk_init+0x124/0x1a0)
-> [<c000e980>] (omap2_clk_init+0x124/0x1a0) from [<c000d6ec>]
-> (omap2_init_common_hw+0x4c/0xe0)
-> [<c000d6ec>] (omap2_init_common_hw+0x4c/0xe0) from [<c000ead8>]
-> (omap3_evm_init_irq+0x28/0x94)
-> [<c000ead8>] (omap3_evm_init_irq+0x28/0x94) from [<c000b1b0>]
-> (init_IRQ+0x30/0x40)
-> [<c000b1b0>] (init_IRQ+0x30/0x40) from [<c0008978>] (start_kernel+0x140/0x29c)
-> [<c0008978>] (start_kernel+0x140/0x29c) from [<80008034>] (0x80008034)
-> ---[ end trace 1b75b31a2719ed1c ]---
-> Reprogramming SDRC clock to 332000000 Hz
-> GPMC revision 5.0
+> Sanjeev Premi <premi@ti.com> writes:
 > 
-> Do you know the reason and how to solve it?
-> Thanks & regards
-> Arno
+> > This patch allows wakeup from TWL4030 keypad when
+> > OFF mode is hit during suspend.
+> >
+> > Tested on OMAP3EVM.
+> >
+> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> 
+> The idea here looks good, but there is nothing realy EVM specific here
+> AFAICT, and this exact code could be used on any other board using
+> the T2 keypad, right?  How about a common location?
 
+[sp] The EVM uses SYS_NIRQ for hooking up with the T2 keypad. Not
+     sure of everyone would be doing so. Also, PADCONFs are more
+     applicable for OMAP3, but T2 can be used with other processors
+     as well...
 
-- Paul
+     I did initially inplement these functions in:
+     drivers/input/keyboard/twl4030_keypad.c
+
+     ...but then moved to board specific file.
+
+> 
+> Also, after looking at this patch, I think the 'void *pstate' member
+> of struct twl4030_keypad_data should be renamed to 'void *data' to
+> be more clear that it's just a pointer.
+
+[sp] Will make the change. However, will wait for your response on the
+     earlier comment before re-submit.
+
+~sanjeev
+
+> 
+> Kevin
+> 
+> 
+
+[snip]--[snip]
