@@ -1,76 +1,62 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH] DSPBRIDGE: Fix memory leak in PROC_AutoStart()
-Date: Fri, 5 Feb 2010 18:58:50 -0600
-Message-ID: <4B6CBECA.4080603@ti.com>
-References: <1264078990-4829-1-git-send-email-ameya.palande@nokia.com>	 <4B5DEF3D.4080701@ti.com> <1265045493.1997.26.camel@sanganak>
+From: "Hebbar, Shivananda" <x0hebbar@ti.com>
+Subject: [Patchv2 0/8] DSPBRIDGE: typedef cleanup
+Date: Sat, 6 Feb 2010 06:51:15 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A776231@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50672 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932285Ab0BFA66 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 19:58:58 -0500
-In-Reply-To: <1265045493.1997.26.camel@sanganak>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57591 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933223Ab0BFBVV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 20:21:21 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o161LIx5007692
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 5 Feb 2010 19:21:20 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o161LHmB001354
+	for <linux-omap@vger.kernel.org>; Sat, 6 Feb 2010 06:51:17 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "omap.ramirez@ti.com" <omap.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
+Resending the patches after updating review comments and also 
+Fixing some compilation breaks.
 
-On 2/1/2010 11:31 AM, Ameya Palande wrote:
-> Hi Omar,
->
-> On Mon, 2010-01-25 at 20:21 +0100, ext Omar Ramirez Luna wrote:
->> Hi,
->>
->> On 1/21/2010 7:03 AM, Ameya Palande wrote:
->>> Signed-off-by: Ameya Palande<ameya.palande@nokia.com>
->>> ---
->>>    drivers/dsp/bridge/rmgr/proc.c |    4 ++++
->>>    1 files changed, 4 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
->>> index a75b64a..91ab64f 100644
->>> --- a/drivers/dsp/bridge/rmgr/proc.c
->>> +++ b/drivers/dsp/bridge/rmgr/proc.c
->>> @@ -512,6 +512,10 @@ DSP_STATUS PROC_AutoStart(struct CFG_DEVNODE *hDevNode,
->>>    			 "No Exec file found \n");
->>>    	}
->>>    func_cont:
->>> +	if (hProcObject->g_pszLastCoff) {
->>> +		MEM_Free(hProcObject->g_pszLastCoff);
->>> +		hProcObject->g_pszLastCoff = NULL;
->>> +	}
->>
->> Wouldn't be better to keep this inside PROC_Load in case of error?
->
-> PROC_Load allocates the memory to hProcObject->g_pszLastCoff which gets
-> freed in PROC_Detach. But PROC_AutoStart is a special case. It creates a
-> dummy ProcObject and after it is done with it, it frees it. And there it
-> leaks the memory. So IMO this is the correct place.
+These patches remove the typedefs and replace it with normal C types:
 
-Ok, agree.
+Shivananda Hebbar (8)
 
->
->> Also MEM_Free checks for NULL.
->
-> Agreed! I will send a V2 of the patch with without the check.
->
->>
->>>    	MEM_FreeObject(hProcObject);
->>>    func_end:
->>>    	GT_1trace(PROC_DebugMask, GT_ENTER,
->>
->> Regards,
->>
->> Omar
->
-> Thanks for your review!
->
-> Cheers,
-> Ameya.
->
+DSPBRIDGE: typedef cleanup -DSP RTOS
+DSPBRIDGE: typedef cleanup -PROCTYPE
+DSPBRIDGE: typedef cleanup -PROCFAMILY
+DSPBRIDGE: typedef cleanup -DSP_HSTREAM
+DSPBRIDGE: typedef cleanup -DSP_HPROCESSOR
+DSPBRIDGE: typedef cleanup -DSP_HNODE
+DSPBRIDGE: typedef cleanup -BRD_STATUS
+DSPBRIDGE: typedef cleanup -CHNL_MODE
 
-- omar
+ arch/arm/plat-omap/include/dspbridge/brddefs.h  |    1 -
+ arch/arm/plat-omap/include/dspbridge/chnldefs.h |    2 -
+ arch/arm/plat-omap/include/dspbridge/cmm.h      |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dbdefs.h   |   18 +---
+ arch/arm/plat-omap/include/dspbridge/dispdefs.h |    4 +-
+ arch/arm/plat-omap/include/dspbridge/dmm.h      |    2 +-
+ arch/arm/plat-omap/include/dspbridge/drv.h      |    6 +-
+ arch/arm/plat-omap/include/dspbridge/node.h     |    4 +-
+ arch/arm/plat-omap/include/dspbridge/proc.h     |   43 +++++-----
+ arch/arm/plat-omap/include/dspbridge/wcdioctl.h |   96 +++++++++++-----------
+ arch/arm/plat-omap/include/dspbridge/wmd.h      |    4 +-
+ arch/arm/plat-omap/include/dspbridge/wmdchnl.h  |    2 +-
+ drivers/dsp/bridge/pmgr/cmm.c                   |    2 +-
+ drivers/dsp/bridge/pmgr/dev.c                   |    6 +-
+ drivers/dsp/bridge/pmgr/dmm.c                   |    2 +-
+ drivers/dsp/bridge/pmgr/wcd.c                   |    4 +-
+ drivers/dsp/bridge/rmgr/node.c                  |   12 ++--
+ drivers/dsp/bridge/rmgr/proc.c                  |   56 +++++++-------
+ drivers/dsp/bridge/rmgr/strm.c                  |    2 +-
+ drivers/dsp/bridge/wmd/chnl_sm.c                |    8 +-
+ drivers/dsp/bridge/wmd/tiomap3430.c             |    4 +-
+ 21 files changed, 134 insertions(+), 146 deletions(-)
