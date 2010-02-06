@@ -1,72 +1,76 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [Patch 5/8] DSPBRIDGE: typedef cleanup -DSP_HPROCESSOR
-Date: Fri, 5 Feb 2010 16:39:51 -0600
-Message-ID: <4B6C9E37.9060705@ti.com>
-References: <19F8576C6E063C45BE387C64729E7394044A6B9675@dbde02.ent.ti.com>
+Subject: Re: [PATCH] DSPBRIDGE: Fix memory leak in PROC_AutoStart()
+Date: Fri, 5 Feb 2010 18:58:50 -0600
+Message-ID: <4B6CBECA.4080603@ti.com>
+References: <1264078990-4829-1-git-send-email-ameya.palande@nokia.com>	 <4B5DEF3D.4080701@ti.com> <1265045493.1997.26.camel@sanganak>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38790 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934004Ab0BEWjw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:39:52 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o15MdqlC021491
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 5 Feb 2010 16:39:52 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id o15MdptU016427
-	for <linux-omap@vger.kernel.org>; Fri, 5 Feb 2010 16:39:51 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o15Mdpgf025816
-	for <linux-omap@vger.kernel.org>; Fri, 5 Feb 2010 16:39:51 -0600 (CST)
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A6B9675@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50672 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932285Ab0BFA66 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 19:58:58 -0500
+In-Reply-To: <1265045493.1997.26.camel@sanganak>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "omap.ramirez@ti.com" <omap.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>
 
 Hi,
 
-On 2/2/2010 6:44 PM, Hebbar, Shivananda wrote:
->  From 82f402b577d1afb535b319eed4a18087010ef679 Mon Sep 17 00:00:00 2001
-> From: Shivananda Hebbar<x0hebbar@ti.com>
-> Date: Thu, 28 Jan 2010 20:06:40 -0600
-> Subject: [PATCH] DSPBRIDGE: Remove typdef used for Processor type replace it with standard C type
+On 2/1/2010 11:31 AM, Ameya Palande wrote:
+> Hi Omar,
 >
-> Signed-off-by: Shivananda Hebbar<x0hebbar@ti.com>
-> ---
->   arch/arm/plat-omap/include/dspbridge/cmm.h      |    2 +-
->   arch/arm/plat-omap/include/dspbridge/dbdefs.h   |    2 -
->   arch/arm/plat-omap/include/dspbridge/dmm.h      |    2 +-
->   arch/arm/plat-omap/include/dspbridge/drv.h      |    2 +-
->   arch/arm/plat-omap/include/dspbridge/node.h     |    2 +-
->   arch/arm/plat-omap/include/dspbridge/proc.h     |   41 +++++++++++-----------
->   arch/arm/plat-omap/include/dspbridge/wcdioctl.h |   40 +++++++++++-----------
->   drivers/dsp/bridge/pmgr/cmm.c                   |    2 +-
->   drivers/dsp/bridge/pmgr/dev.c                   |    6 ++--
->   drivers/dsp/bridge/pmgr/dmm.c                   |    2 +-
->   drivers/dsp/bridge/pmgr/wcd.c                   |    2 +-
->   drivers/dsp/bridge/rmgr/node.c                  |    2 +-
->   drivers/dsp/bridge/rmgr/proc.c                  |   42 +++++++++++-----------
->   13 files changed, 72 insertions(+), 75 deletions(-)
+> On Mon, 2010-01-25 at 20:21 +0100, ext Omar Ramirez Luna wrote:
+>> Hi,
+>>
+>> On 1/21/2010 7:03 AM, Ameya Palande wrote:
+>>> Signed-off-by: Ameya Palande<ameya.palande@nokia.com>
+>>> ---
+>>>    drivers/dsp/bridge/rmgr/proc.c |    4 ++++
+>>>    1 files changed, 4 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+>>> index a75b64a..91ab64f 100644
+>>> --- a/drivers/dsp/bridge/rmgr/proc.c
+>>> +++ b/drivers/dsp/bridge/rmgr/proc.c
+>>> @@ -512,6 +512,10 @@ DSP_STATUS PROC_AutoStart(struct CFG_DEVNODE *hDevNode,
+>>>    			 "No Exec file found \n");
+>>>    	}
+>>>    func_cont:
+>>> +	if (hProcObject->g_pszLastCoff) {
+>>> +		MEM_Free(hProcObject->g_pszLastCoff);
+>>> +		hProcObject->g_pszLastCoff = NULL;
+>>> +	}
+>>
+>> Wouldn't be better to keep this inside PROC_Load in case of error?
 >
+> PROC_Load allocates the memory to hProcObject->g_pszLastCoff which gets
+> freed in PROC_Detach. But PROC_AutoStart is a special case. It creates a
+> dummy ProcObject and after it is done with it, it frees it. And there it
+> leaks the memory. So IMO this is the correct place.
 
-missing this hunk for proc.c
+Ok, agree.
 
-@@ -246,7 +246,7 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct 
-DSP_PROCESSORATTRIN *pAttrIn,
-  				 "Proc Object into DEV, 0x%x!\n", status);
-  		}
-  		if (DSP_SUCCEEDED(status)) {
--			*phProcessor = (DSP_HPROCESSOR)pProcObject;
-+			*phProcessor = (void *)pProcObject;
-  			pr_ctxt->hProcessor = *phProcessor;
-  			(void)PROC_NotifyClients(pProcObject,
-  						 DSP_PROCESSORATTACH);
-
-
-[...]
+>
+>> Also MEM_Free checks for NULL.
+>
+> Agreed! I will send a V2 of the patch with without the check.
+>
+>>
+>>>    	MEM_FreeObject(hProcObject);
+>>>    func_end:
+>>>    	GT_1trace(PROC_DebugMask, GT_ENTER,
+>>
+>> Regards,
+>>
+>> Omar
+>
+> Thanks for your review!
+>
+> Cheers,
+> Ameya.
+>
 
 - omar
