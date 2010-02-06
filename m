@@ -1,90 +1,150 @@
 From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: [Patch 3/8] DSPBRIDGE: typedef cleanup -PROCFAMILY
-Date: Sat, 6 Feb 2010 06:52:21 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A776234@dbde02.ent.ti.com>
+Subject: [Patch 4/8] DSPBRIDGE: typedef cleanup -DSP_HSTREAM
+Date: Sat, 6 Feb 2010 06:52:42 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A776235@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51482 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933223Ab0BFBW0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 20:22:26 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57611 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933223Ab0BFBWr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Feb 2010 20:22:47 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o161MN1J005527
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o161MiuN008481
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 5 Feb 2010 19:22:25 -0600
+	for <linux-omap@vger.kernel.org>; Fri, 5 Feb 2010 19:22:46 -0600
 Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o161MM61001472
-	for <linux-omap@vger.kernel.org>; Sat, 6 Feb 2010 06:52:22 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o161MhZf001494
+	for <linux-omap@vger.kernel.org>; Sat, 6 Feb 2010 06:52:43 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 
->From 108329666e2bf829915c7de4a693fd83c00581a3 Mon Sep 17 00:00:00 2001
+>From d3edb20499a7b084a7510d9930264ff2935a6048 Mon Sep 17 00:00:00 2001
 From: Shivananda Hebbar <x0hebbar@ti.com>
-Date: Fri, 29 Jan 2010 15:03:02 -0600
-Subject: [PATCH] DSPBRIDGE: typedef cleanup -PROCFAMILY
+Date: Fri, 29 Jan 2010 15:32:44 -0600
+Subject: [PATCH] DSPBRIDGE :typedef cleanup -DSP_HSTREAM
 
-This patch removes the typdef used for PROCFAMILY and
-replaces it with normal C type.
+This patch removes typedef used for stream handle and replaces
+it with the normal C types.
 
 Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/dbdefs.h   |    4 +---
- arch/arm/plat-omap/include/dspbridge/dispdefs.h |    2 +-
- drivers/dsp/bridge/rmgr/node.c                  |    2 +-
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/dbdefs.h   |    1 -
+ arch/arm/plat-omap/include/dspbridge/drv.h      |    2 +-
+ arch/arm/plat-omap/include/dspbridge/wcdioctl.h |   22 +++++++++++-----------
+ 3 files changed, 12 insertions(+), 13 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/dbdefs.h b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-index 37ac1dd..36cd569 100644
+index 36cd569..c0d4c1d 100644
 --- a/arch/arm/plat-omap/include/dspbridge/dbdefs.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-@@ -113,8 +113,6 @@
- 	typedef HANDLE DSP_HPROCESSOR;	/* Handle to a Processor object */
- 	typedef HANDLE DSP_HSTREAM;	/* Handle to a Stream object    */
+@@ -111,7 +111,6 @@
  
--	typedef u32 DSP_PROCFAMILY;	/* Processor family             */
--
+ 	typedef HANDLE DSP_HNODE;	/* Handle to a DSP Node object  */
+ 	typedef HANDLE DSP_HPROCESSOR;	/* Handle to a Processor object */
+-	typedef HANDLE DSP_HSTREAM;	/* Handle to a Stream object    */
+ 
  /* Handy Macros */
  #define IsValidProcEvent(x) (((x) == 0) || (((x) & (DSP_PROCESSORSTATECHANGE | \
- 				    DSP_PROCESSORATTACH | \
-@@ -414,7 +412,7 @@
-  */
- 	struct DSP_PROCESSORINFO {
- 		u32 cbStruct;
--		DSP_PROCFAMILY uProcessorFamily;
-+		int uProcessorFamily;
- 		int uProcessorType;
- 		u32 uClockRate;
- 		u32 ulInternalMemSize;
-diff --git a/arch/arm/plat-omap/include/dspbridge/dispdefs.h b/arch/arm/plat-omap/include/dspbridge/dispdefs.h
-index f60b351..a9a2961 100644
---- a/arch/arm/plat-omap/include/dspbridge/dispdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dispdefs.h
-@@ -26,7 +26,7 @@
- 		u32 ulChnlOffset; /* Offset of channel ids reserved for RMS */
- 		/* Size of buffer for sending data to RMS */
- 		u32 ulChnlBufSize;
--		DSP_PROCFAMILY procFamily;	/* eg, 5000 */
-+		int procFamily;	/* eg, 5000 */
- 		int procType;		/* eg, 5510 */
- 		HANDLE hReserved1;	/* Reserved for future use. */
- 		u32 hReserved2;	/* Reserved for future use. */
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 92d51d1..4bc0435 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -152,7 +152,7 @@ struct NODE_MGR {
- 	u32 ulNumChnls;	/* Total number of channels */
- 	u32 ulChnlOffset;	/* Offset of chnl ids rsvd for RMS */
- 	u32 ulChnlBufSize;	/* Buffer size for data to RMS */
--	DSP_PROCFAMILY procFamily;	/* eg, 5000 */
-+	int procFamily;	/* eg, 5000 */
- 	int procType;	/* eg, 5510 */
- 	u32 uDSPWordSize;	/* Size of DSP word on host bytes */
- 	u32 uDSPDataMauSize;	/* Size of DSP data MAU */
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index e4e91f3..3eb1abd 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -116,7 +116,7 @@ struct DSPHEAP_RES_OBJECT {
+ /* New structure (member of process context) abstracts stream resource info */
+ struct STRM_RES_OBJECT {
+ 	s32                    streamAllocated; /* Stream status */
+-	DSP_HSTREAM             hStream;
++	void *hStream;
+ 	u32                    uNumBufs;
+ 	u32                    uDir;
+ 	struct STRM_RES_OBJECT         *next;
+diff --git a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h b/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
+index 0dcbef7..9d1cdb3 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
++++ b/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
+@@ -262,40 +262,40 @@ union Trapped_Args {
+ 	/* STRM module */
+ 
+ 	struct {
+-		DSP_HSTREAM hStream;
++		void *hStream;
+ 		u32 uSize;
+ 		u8 *__user *apBuffer;
+ 		u32 uNumBufs;
+ 	} ARGS_STRM_ALLOCATEBUFFER;
+ 
+ 	struct {
+-		DSP_HSTREAM hStream;
++		void *hStream;
+ 	} ARGS_STRM_CLOSE;
+ 
+ 	struct {
+-		DSP_HSTREAM hStream;
++		void *hStream;
+ 		u8 *__user *apBuffer;
+ 		u32 uNumBufs;
+ 	} ARGS_STRM_FREEBUFFER;
+ 
+ 	struct {
+-		DSP_HSTREAM hStream;
++		void *hStream;
+ 		HANDLE *phEvent;
+ 	} ARGS_STRM_GETEVENTHANDLE;
+ 
+ 	struct {
+-		DSP_HSTREAM hStream;
++		void *hStream;
+ 		struct STRM_INFO __user *pStreamInfo;
+ 		u32 uStreamInfoSize;
+ 	} ARGS_STRM_GETINFO;
+ 
+ 	struct {
+-		DSP_HSTREAM hStream;
++		void *hStream;
+ 		bool bFlush;
+ 	} ARGS_STRM_IDLE;
+ 
+ 	struct {
+-		DSP_HSTREAM hStream;
++		void *hStream;
+ 		u8 *pBuffer;
+ 		u32 dwBytes;
+ 		u32 dwBufSize;
+@@ -307,11 +307,11 @@ union Trapped_Args {
+ 		u32 uDirection;
+ 		u32 uIndex;
+ 		struct STRM_ATTR __user *pAttrIn;
+-		DSP_HSTREAM __user *phStream;
++		void *__user *phStream;
+ 	} ARGS_STRM_OPEN;
+ 
+ 	struct {
+-		DSP_HSTREAM hStream;
++		void *hStream;
+ 		u8 *__user *pBufPtr;
+ 		u32 __user *pBytes;
+ 		u32 __user *pBufSize;
+@@ -319,14 +319,14 @@ union Trapped_Args {
+ 	} ARGS_STRM_RECLAIM;
+ 
+ 	struct {
+-		DSP_HSTREAM hStream;
++		void *hStream;
+ 		u32 uEventMask;
+ 		u32 uNotifyType;
+ 		struct DSP_NOTIFICATION __user *hNotification;
+ 	} ARGS_STRM_REGISTERNOTIFY;
+ 
+ 	struct {
+-		DSP_HSTREAM __user *aStreamTab;
++		void *__user *aStreamTab;
+ 		u32 nStreams;
+ 		u32 __user *pMask;
+ 		u32 uTimeout;
 -- 
 1.6.0.4
 
