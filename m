@@ -1,63 +1,73 @@
 From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: [PATCH v2 1/3] Introducing 'gpmc-nand.c' for GPMC specific NAND init
-Date: Mon, 8 Feb 2010 17:15:41 +0530
-Message-ID: <ce9ab5791002080345g469122e7rf930a87cf3e7158a@mail.gmail.com>
+Subject: [PATCH v2 2/3] OMAP: SDP: Introducing 'board-sdp-flash.c' for flash
+	init
+Date: Mon, 8 Feb 2010 17:17:50 +0530
+Message-ID: <ce9ab5791002080347q3c8a73bvf80736b125cfac1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f223.google.com ([209.85.218.223]:55920 "EHLO
+Received: from mail-bw0-f223.google.com ([209.85.218.223]:53202 "EHLO
 	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750946Ab0BHLqD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 06:46:03 -0500
-Received: by bwz23 with SMTP id 23so1008328bwz.1
-        for <linux-omap@vger.kernel.org>; Mon, 08 Feb 2010 03:46:01 -0800 (PST)
+	with ESMTP id S1751032Ab0BHLsM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 06:48:12 -0500
+Received: by bwz23 with SMTP id 23so1009869bwz.1
+        for <linux-omap@vger.kernel.org>; Mon, 08 Feb 2010 03:48:10 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Linux MTD <linux-mtd@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
->From 35da04834f4b0363e90a628bdb369318d80b7a6c Mon Sep 17 00:00:00 2001
+>From e586d2fbbecc60bc66687c4e6d4798913bb33b7a Mon Sep 17 00:00:00 2001
 From: Vimal Singh <vimalsingh@ti.com>
-Date: Fri, 5 Feb 2010 05:56:18 +0530
-Subject: [PATCH 1/3] Introducing 'gpmc-nand.c' for GPMC specific NAND init
+Date: Mon, 8 Feb 2010 05:02:45 +0530
+Subject: [PATCH 2/3] OMAP: SDP: Introducing 'board-sdp-flash.c' for flash init
 
-Introducing 'gpmc-nand.c' for GPMC specific NAND init.
-For example: GPMC timing parameters and all.
-This patch also migrates gpmc related calls from 'nand/omap2.c'
-to 'gpmc-nand.c'.
+This patch adds 'board-sdp-flash.c', which could be utilized
+by boards similar to 3430SDP. (For ex: 2430sdp, 36030sdp).
+
+This file does initialization for all three flash devices present
+in SDP boards (NOR, NAND, OneNAND), by finding there 'cs' number
+dynamically using switch setting information (S8: 1-4).
+This also expects partition information from core board files (for
+ex: board-3430sdp.c). Which allows to choose different default
+partitions for different boards.
+
+A new structure is created for this purpose: 'flash_partitions'
+in 'mach/board-sdp.h'. This has two members:
+1. struct mtd_partition *parts
+2. int nr_parts
+
+A board file is expected to fill this structure and pass it to
+'sdp-flsash-init'. Partition information should be passed in
+structure array of 'flash_partitions'. Partition information should
+be passed in below sequence in array:
+NOR
+OneNAND
+NAND
 
 Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 ---
- arch/arm/mach-omap2/Makefile           |    3 +
- arch/arm/mach-omap2/gpmc-nand.c        |  139 ++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/nand.h |   10 ++-
- drivers/mtd/nand/omap2.c               |   35 +-------
- 4 files changed, 155 insertions(+), 32 deletions(-)
- create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
+ arch/arm/mach-omap2/board-sdp-flash.c        |  295 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/include/mach/board-sdp.h |   22 ++
+ arch/arm/plat-omap/include/plat/gpmc.h       |    2 +
+ 3 files changed, 319 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-sdp-flash.c
+ create mode 100644 arch/arm/mach-omap2/include/mach/board-sdp.h
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index dba44a1..c012dd1 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -135,5 +135,8 @@ obj-y					+= usb-ehci.o
- onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
- obj-y					+= $(onenand-m) $(onenand-y)
-
-+nand-$(CONFIG_MTD_NAND_OMAP2)		:= gpmc-nand.o
-+obj-y					+= $(nand-m) $(nand-y)
-+
- smc91x-$(CONFIG_SMC91X)			:= gpmc-smc91x.o
- obj-y					+= $(smc91x-m) $(smc91x-y)
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+diff --git a/arch/arm/mach-omap2/board-sdp-flash.c
+b/arch/arm/mach-omap2/board-sdp-flash.c
 new file mode 100644
-index 0000000..64d74f0
+index 0000000..54ef19f
 --- /dev/null
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -0,0 +1,139 @@
++++ b/arch/arm/mach-omap2/board-sdp-flash.c
+@@ -0,0 +1,295 @@
 +/*
-+ * gpmc-nand.c
++ * board-sdp-flash.c
++ * Modified from mach-omap2/board-3430sdp-flash.c
 + *
++ * Copyright (C) 2009 Nokia Corporation
 + * Copyright (C) 2009 Texas Instruments
++ *
 + * Vimal Singh <vimalsingh@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
@@ -67,244 +77,327 @@ index 0000000..64d74f0
 +
 +#include <linux/kernel.h>
 +#include <linux/platform_device.h>
++#include <linux/mtd/physmap.h>
 +#include <linux/io.h>
 +
-+#include <asm/mach/flash.h>
-+
-+#include <plat/nand.h>
-+#include <plat/board.h>
 +#include <plat/gpmc.h>
++#include <plat/nand.h>
++#include <plat/onenand.h>
++#include <plat/tc.h>
++#include <mach/board-sdp.h>
 +
-+#define WR_RD_PIN_MONITORING	0x00600000
++#define REG_FPGA_REV			0x10
++#define REG_FPGA_DIP_SWITCH_INPUT2	0x60
++#define MAX_SUPPORTED_GPMC_CONFIG	3
 +
-+static struct omap_nand_platform_data *gpmc_nand_data;
++#define DEBUG_BASE		0x08000000 /* debug board */
 +
-+static struct resource gpmc_nand_resource = {
++#define PDC_NOR		1
++#define PDC_NAND	2
++#define PDC_ONENAND	3
++#define DBG_MPDB	4
++
++/* various memory sizes */
++#define FLASH_SIZE_SDPV1	SZ_64M	/* NOR flash (64 Meg aligned) */
++#define FLASH_SIZE_SDPV2	SZ_128M	/* NOR flash (256 Meg aligned) */
++
++/*
++ * SDP3430 V2 Board CS organization
++ * Different from SDP3430 V1. Now 4 switches used to specify CS
++ *
++ * See also the Switch S8 settings in the comments.
++ *
++ * REVISIT: Add support for 2430 SDP
++ */
++static const unsigned char chip_sel_sdp[][GPMC_CS_NUM] = {
++	{PDC_NOR, PDC_NAND, PDC_ONENAND, DBG_MPDB, 0, 0, 0, 0}, /* S8:1111 */
++	{PDC_ONENAND, PDC_NAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0}, /* S8:1110 */
++	{PDC_NAND, PDC_ONENAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0}, /* S8:1101 */
++};
++
++static void omap_set_vpp(struct map_info *map, int enable)
++{
++	static int      count;
++	u32 l;
++
++	if (cpu_class_is_omap1()) {
++		if (enable) {
++			if (count++ == 0) {
++				l = omap_readl(EMIFS_CONFIG);
++				l |= OMAP_EMIFS_CONFIG_WP;
++				omap_writel(l, EMIFS_CONFIG);
++			}
++		} else {
++			if (count && (--count == 0)) {
++				l = omap_readl(EMIFS_CONFIG);
++				l &= ~OMAP_EMIFS_CONFIG_WP;
++				omap_writel(l, EMIFS_CONFIG);
++			}
++		}
++	}
++}
++
++static struct physmap_flash_data sdp_nor_data = {
++	.width		= 2,
++	.set_vpp	= omap_set_vpp,
++};
++
++static struct resource sdp_nor_resource = {
 +	.flags		= IORESOURCE_MEM,
 +};
 +
-+static struct platform_device gpmc_nand_device = {
-+	.name		= "omap2-nand",
++static struct platform_device sdp_nor_device = {
++	.name		= "physmap-flash",
 +	.id		= 0,
++	.dev		= {
++			.platform_data = &sdp_nor_data,
++	},
 +	.num_resources	= 1,
-+	.resource	= &gpmc_nand_resource,
++	.resource	= &sdp_nor_resource,
 +};
 +
-+static int omap2_nand_gpmc_retime(void)
++static void
++__init board_nor_init(struct flash_partitions sdp_nor_parts, u8 cs)
 +{
-+	struct gpmc_timings t;
 +	int err;
 +
-+	memset(&t, 0, sizeof(t));
-+	t.sync_clk = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->sync_clk);
-+	t.cs_on = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->cs_on);
-+	t.adv_on = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->adv_on);
++	sdp_nor_data.parts	= sdp_nor_parts.parts;
++	sdp_nor_data.nr_parts	= sdp_nor_parts.nr_parts;
 +
-+	/* Read */
-+	t.adv_rd_off = gpmc_round_ns_to_ticks(
-+				gpmc_nand_data->gpmc_t->adv_rd_off);
-+	t.oe_on  = t.adv_on;
-+	t.access = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->access);
-+	t.oe_off = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->oe_off);
-+	t.cs_rd_off = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->cs_rd_off);
-+	t.rd_cycle  = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->rd_cycle);
-+
-+	/* Write */
-+	t.adv_wr_off = gpmc_round_ns_to_ticks(
-+				gpmc_nand_data->gpmc_t->adv_wr_off);
-+	t.we_on  = t.oe_on;
-+	if (cpu_is_omap34xx()) {
-+	    t.wr_data_mux_bus =	gpmc_round_ns_to_ticks(
-+				gpmc_nand_data->gpmc_t->wr_data_mux_bus);
-+	    t.wr_access = gpmc_round_ns_to_ticks(
-+				gpmc_nand_data->gpmc_t->wr_access);
++	/* Configure start address and size of NOR device */
++	if (omap_rev() >= OMAP3430_REV_ES1_0) {
++		err = gpmc_cs_request(cs, FLASH_SIZE_SDPV2 - 1,
++				(unsigned long *)&sdp_nor_resource.start);
++		sdp_nor_resource.end = sdp_nor_resource.start
++					+ FLASH_SIZE_SDPV2 - 1;
++	} else {
++		err = gpmc_cs_request(cs, FLASH_SIZE_SDPV1 - 1,
++				(unsigned long *)&sdp_nor_resource.start);
++		sdp_nor_resource.end = sdp_nor_resource.start
++					+ FLASH_SIZE_SDPV1 - 1;
 +	}
-+	t.we_off = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->we_off);
-+	t.cs_wr_off = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->cs_wr_off);
-+	t.wr_cycle  = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->wr_cycle);
-+
-+	/* Configure GPMC */
-+	gpmc_cs_write_reg(gpmc_nand_data->cs, GPMC_CS_CONFIG1,
-+			GPMC_CONFIG1_DEVICESIZE(gpmc_nand_data->devsize) |
-+			GPMC_CONFIG1_DEVICETYPE_NAND);
-+
-+	err = gpmc_cs_set_timings(gpmc_nand_data->cs, &t);
-+	if (err)
-+		return err;
-+
-+	return 0;
++	if (err < 0) {
++		printk(KERN_ERR "NOR: Can't request GPMC CS\n");
++		return;
++	}
++	if (platform_device_register(&sdp_nor_device) < 0)
++		printk(KERN_ERR	"Unable to register NOR device\n");
 +}
 +
-+static int gpmc_nand_setup(void)
++#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
++		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++static struct omap_onenand_platform_data board_onenand_data = {
++	.dma_channel	= -1,   /* disable DMA in OMAP OneNAND driver */
++};
++
++static void
++__init board_onenand_init(struct flash_partitions sdp_onenand_parts, u8 cs)
 +{
-+	struct device *dev = &gpmc_nand_device.dev;
++	board_onenand_data.cs		= cs;
++	board_onenand_data.parts	= sdp_onenand_parts.parts;
++	board_onenand_data.nr_parts	= sdp_onenand_parts.nr_parts;
 +
-+	/* Set timings in GPMC */
-+	if (omap2_nand_gpmc_retime() < 0) {
-+		dev_err(dev, "Unable to set gpmc timings\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
++	gpmc_onenand_init(&board_onenand_data);
 +}
-+
-+int __init gpmc_nand_init(struct omap_nand_platform_data *_nand_data)
++#else
++static void
++__init board_onenand_init(struct flash_partitions sdp_onenand_parts, u8 cs)
 +{
-+	unsigned int val;
-+	int err	= 0;
-+	struct device *dev = &gpmc_nand_device.dev;
-+
-+	gpmc_nand_data = _nand_data;
-+	gpmc_nand_data->nand_setup = gpmc_nand_setup;
-+	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
-+
-+	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
-+				&gpmc_nand_data->phys_base);
-+	if (err < 0) {
-+		dev_err(dev, "Cannot request GPMC CS\n");
-+		return err;
-+	}
-+
-+	err = gpmc_nand_setup();
-+	if (err < 0) {
-+		dev_err(dev, "NAND platform setup failed: %d\n", err);
-+		return err;
-+	}
-+
-+	/* Enable RD PIN Monitoring Reg */
-+	if (gpmc_nand_data->dev_ready) {
-+		val  = gpmc_cs_read_reg(gpmc_nand_data->cs,
-+						 GPMC_CS_CONFIG1);
-+		val |= WR_RD_PIN_MONITORING;
-+		gpmc_cs_write_reg(gpmc_nand_data->cs,
-+						GPMC_CS_CONFIG1, val);
-+	}
-+
-+	err = platform_device_register(&gpmc_nand_device);
-+	if (err < 0) {
-+		dev_err(dev, "Unable to register NAND device\n");
-+		goto out_free_cs;
-+	}
-+
-+	return 0;
-+
-+out_free_cs:
-+	gpmc_cs_free(gpmc_nand_data->cs);
-+
-+	return err;
 +}
-diff --git a/arch/arm/plat-omap/include/plat/nand.h
-b/arch/arm/plat-omap/include/plat/nand.h
-index 631a7be..6ba88d2 100644
---- a/arch/arm/plat-omap/include/plat/nand.h
-+++ b/arch/arm/plat-omap/include/plat/nand.h
-@@ -15,10 +15,18 @@ struct omap_nand_platform_data {
- 	int			cs;
- 	int			gpio_irq;
- 	struct mtd_partition	*parts;
-+	struct gpmc_timings	*gpmc_t;
- 	int			nr_parts;
--	int			(*nand_setup)(void __iomem *);
-+	int			(*nand_setup)(void);
- 	int			(*dev_ready)(struct omap_nand_platform_data *);
- 	int			dma_channel;
-+	unsigned long		phys_base;
- 	void __iomem		*gpmc_cs_baseaddr;
- 	void __iomem		*gpmc_baseaddr;
-+	int			devsize;
- };
++#endif /* CONFIG_MTD_ONENAND_OMAP2 || CONFIG_MTD_ONENAND_OMAP2_MODULE */
 +
-+/* size (4 KiB) for IO mapping */
-+#define	NAND_IO_SIZE	SZ_4K
++#if defined(CONFIG_MTD_NAND_OMAP2) || \
++		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
 +
-+extern int gpmc_nand_init(struct omap_nand_platform_data *d);
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 7df303a..ad07d39 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -30,12 +30,8 @@
++/* Note that all values in this struct are in nanoseconds */
++static struct gpmc_timings nand_timings = {
++
++	.sync_clk = 0,
++
++	.cs_on = 0,
++	.cs_rd_off = 36,
++	.cs_wr_off = 36,
++
++	.adv_on = 6,
++	.adv_rd_off = 24,
++	.adv_wr_off = 36,
++
++	.we_off = 30,
++	.oe_off = 48,
++
++	.access = 54,
++	.rd_cycle = 72,
++	.wr_cycle = 72,
++
++	.wr_access = 30,
++	.wr_data_mux_bus = 0,
++};
++
++static struct omap_nand_platform_data sdp_nand_data = {
++	.nand_setup	= NULL,
++	.gpmc_t		= &nand_timings,
++	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
++	.dev_ready	= NULL,
++	.devsize	= 0,	/* '0' for 8-bit, '1' for 16-bit device */
++};
++
++static void
++__init board_nand_init(struct flash_partitions sdp_nand_parts, u8 cs)
++{
++	sdp_nand_data.cs		= cs;
++	sdp_nand_data.parts		= sdp_nand_parts.parts;
++	sdp_nand_data.nr_parts		= sdp_nand_parts.nr_parts;
++
++	sdp_nand_data.gpmc_cs_baseaddr	= (void *)(OMAP34XX_GPMC_VIRT +
++							GPMC_CS0_BASE +
++							cs * GPMC_CS_SIZE);
++	sdp_nand_data.gpmc_baseaddr	 = (void *) (OMAP34XX_GPMC_VIRT);
++
++	gpmc_nand_init(&sdp_nand_data);
++}
++#else
++static void
++__init board_nand_init(struct flash_partitions sdp_nand_parts, u8 cs)
++{
++}
++#endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
++
++/**
++ * get_gpmc0_type - Reads the FPGA DIP_SWITCH_INPUT_REGISTER2 to get
++ * the various cs values.
++ */
++static u8 get_gpmc0_type(void)
++{
++	u8 cs = 0;
++	void __iomem *fpga_map_addr;
++
++	fpga_map_addr = ioremap(DEBUG_BASE, 4096);
++	if (!fpga_map_addr)
++		return -ENOMEM;
++
++	if (!(__raw_readw(fpga_map_addr + REG_FPGA_REV)))
++		/* we dont have an DEBUG FPGA??? */
++		/* Depend on #defines!! default to strata boot return param */
++		goto unmap;
++
++	/* S8-DIP-OFF = 1, S8-DIP-ON = 0 */
++	cs = __raw_readw(fpga_map_addr + REG_FPGA_DIP_SWITCH_INPUT2) & 0xf;
++
++	/* ES2.0 SDP's onwards 4 dip switches are provided for CS */
++	if (omap_rev() >= OMAP3430_REV_ES1_0)
++		/* change (S8-1:4=DS-2:0) to (S8-4:1=DS-2:0) */
++		cs = ((cs & 8) >> 3) | ((cs & 4) >> 1) |
++			((cs & 2) << 1) | ((cs & 1) << 3);
++	else
++		/* change (S8-1:3=DS-2:0) to (S8-3:1=DS-2:0) */
++		cs = ((cs & 4) >> 2) | (cs & 2) | ((cs & 1) << 2);
++unmap:
++	iounmap(fpga_map_addr);
++	return cs;
++}
++
++/**
++ * sdp3430_flash_init - Identify devices connected to GPMC and register.
++ *
++ * @return - void.
++ */
++void __init sdp_flash_init(struct flash_partitions sdp_partition_info[])
++{
++	u8		cs = 0;
++	u8		norcs = GPMC_CS_NUM + 1;
++	u8		nandcs = GPMC_CS_NUM + 1;
++	u8		onenandcs = GPMC_CS_NUM + 1;
++	u8		idx;
++	unsigned char	*config_sel = NULL;
++
++	/* REVISIT: Is this return correct idx for 2430 SDP?
++	 * for which cs configuration matches for 2430 SDP?
++	 */
++	idx = get_gpmc0_type();
++	if (idx >= MAX_SUPPORTED_GPMC_CONFIG) {
++		printk(KERN_ERR "%s: Invalid chip select: %d\n", __func__, cs);
++		return;
++	}
++	config_sel = (unsigned char *)(chip_sel_sdp[idx]);
++
++	while (cs < GPMC_CS_NUM) {
++		switch (config_sel[cs]) {
++		case PDC_NOR:
++			if (norcs > GPMC_CS_NUM)
++				norcs = cs;
++			break;
++		case PDC_NAND:
++			if (nandcs > GPMC_CS_NUM)
++				nandcs = cs;
++			break;
++		case PDC_ONENAND:
++			if (onenandcs > GPMC_CS_NUM)
++				onenandcs = cs;
++			break;
++		};
++		cs++;
++	}
++
++	if (norcs > GPMC_CS_NUM)
++		printk(KERN_INFO "OneNAND: Unable to find configuration "
++				" in GPMC\n ");
++	else
++		board_nor_init(sdp_partition_info[0], norcs);
++
++	if (onenandcs > GPMC_CS_NUM)
++		printk(KERN_INFO "OneNAND: Unable to find configuration "
++				" in GPMC\n ");
++	else
++		board_onenand_init(sdp_partition_info[1], onenandcs);
++
++	if (nandcs > GPMC_CS_NUM)
++		printk(KERN_INFO "NAND: Unable to find configuration "
++				" in GPMC\n ");
++	else
++		board_nand_init(sdp_partition_info[2], nandcs);
++}
+diff --git a/arch/arm/mach-omap2/include/mach/board-sdp.h
+b/arch/arm/mach-omap2/include/mach/board-sdp.h
+new file mode 100644
+index 0000000..a2f7ba2
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/board-sdp.h
+@@ -0,0 +1,22 @@
++/*
++ *  board-sdp.h
++ *
++ *  Information structures for SDP-specific board config data
++ *
++ *  Copyright (C) 2009 Nokia Corporation
++ *  Copyright (C) 2009 Texas Instruments
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/partitions.h>
++
++struct flash_partitions {
++	struct mtd_partition *parts;
++	int nr_parts;
++};
++
++extern void sdp_flash_init(struct flash_partitions []);
++
+diff --git a/arch/arm/plat-omap/include/plat/gpmc.h
+b/arch/arm/plat-omap/include/plat/gpmc.h
+index e081338..4090749 100644
+--- a/arch/arm/plat-omap/include/plat/gpmc.h
++++ b/arch/arm/plat-omap/include/plat/gpmc.h
+@@ -27,6 +27,8 @@
 
- #define	DRIVER_NAME	"omap2-nand"
+ #define GPMC_CONFIG		0x50
+ #define GPMC_STATUS		0x54
++#define GPMC_CS0_BASE		0x60
++#define GPMC_CS_SIZE		0x30
 
--/* size (4 KiB) for IO mapping */
--#define	NAND_IO_SIZE	SZ_4K
--
- #define	NAND_WP_OFF	0
- #define NAND_WP_BIT	0x00000010
--#define WR_RD_PIN_MONITORING	0x00600000
-
- #define	GPMC_BUF_FULL	0x00000001
- #define	GPMC_BUF_EMPTY	0x00000000
-@@ -885,8 +881,6 @@ static int __devinit omap_nand_probe(struct
- 	struct omap_nand_info		*info;
- 	struct omap_nand_platform_data	*pdata;
- 	int				err;
--	unsigned long 			val;
--
-
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -908,28 +902,14 @@ static int __devinit omap_nand_probe(struct
- 	info->gpmc_cs		= pdata->cs;
- 	info->gpmc_baseaddr	= pdata->gpmc_baseaddr;
- 	info->gpmc_cs_baseaddr	= pdata->gpmc_cs_baseaddr;
-+	info->phys_base		= pdata->phys_base;
-
- 	info->mtd.priv		= &info->nand;
- 	info->mtd.name		= dev_name(&pdev->dev);
- 	info->mtd.owner		= THIS_MODULE;
-
--	err = gpmc_cs_request(info->gpmc_cs, NAND_IO_SIZE, &info->phys_base);
--	if (err < 0) {
--		dev_err(&pdev->dev, "Cannot request GPMC CS\n");
--		goto out_free_info;
--	}
--
--	/* Enable RD PIN Monitoring Reg */
--	if (pdata->dev_ready) {
--		val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1);
--		val |= WR_RD_PIN_MONITORING;
--		gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG1, val);
--	}
--
--	val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG7);
--	val &= ~(0xf << 8);
--	val |=  (0xc & 0xf) << 8;
--	gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG7, val);
-+	info->nand.options	|= pdata->devsize ? NAND_BUSWIDTH_16 : 0;
-+	info->nand.options	|= NAND_SKIP_BBTSCAN;
-
- 	/* NAND write protect off */
- 	omap_nand_wp(&info->mtd, NAND_WP_OFF);
-@@ -937,7 +917,7 @@ static int __devinit omap_nand_probe(struct
- 	if (!request_mem_region(info->phys_base, NAND_IO_SIZE,
- 				pdev->dev.driver->name)) {
- 		err = -EBUSY;
--		goto out_free_cs;
-+		goto out_free_info;
- 	}
-
- 	info->nand.IO_ADDR_R = ioremap(info->phys_base, NAND_IO_SIZE);
-@@ -966,11 +946,6 @@ static int __devinit omap_nand_probe(struct
- 		info->nand.chip_delay = 50;
- 	}
-
--	info->nand.options  |= NAND_SKIP_BBTSCAN;
--	if ((gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1) & 0x3000)
--								== 0x1000)
--		info->nand.options  |= NAND_BUSWIDTH_16;
--
- 	if (use_prefetch) {
- 		/* copy the virtual address of nand base for fifo access */
- 		info->nand_pref_fifo_add = info->nand.IO_ADDR_R;
-@@ -1046,8 +1021,6 @@ static int __devinit omap_nand_probe(struct
-
- out_release_mem_region:
- 	release_mem_region(info->phys_base, NAND_IO_SIZE);
--out_free_cs:
--	gpmc_cs_free(info->gpmc_cs);
- out_free_info:
- 	kfree(info);
-
+ #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+ #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
 -- 
 1.6.3.3
