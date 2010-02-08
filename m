@@ -1,7 +1,7 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 11/17] OMAP: DSS2: move enable/get_te()
-Date: Mon,  8 Feb 2010 17:57:35 +0200
-Message-ID: <1265644661-3694-12-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 16/17] OMAP: DSS2: move timing functions
+Date: Mon,  8 Feb 2010 17:57:40 +0200
+Message-ID: <1265644661-3694-17-git-send-email-tomi.valkeinen@nokia.com>
 References: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
  <1265644661-3694-2-git-send-email-tomi.valkeinen@nokia.com>
  <1265644661-3694-3-git-send-email-tomi.valkeinen@nokia.com>
@@ -13,300 +13,358 @@ References: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
  <1265644661-3694-9-git-send-email-tomi.valkeinen@nokia.com>
  <1265644661-3694-10-git-send-email-tomi.valkeinen@nokia.com>
  <1265644661-3694-11-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644661-3694-12-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644661-3694-13-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644661-3694-14-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644661-3694-15-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644661-3694-16-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45837 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753559Ab0BHPzW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:55:22 -0500
-In-Reply-To: <1265644661-3694-11-git-send-email-tomi.valkeinen@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:26959 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753713Ab0BHPzs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:55:48 -0500
+In-Reply-To: <1265644661-3694-16-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Move enable/get_te() from omap_dss_device to omap_dss_driver.
+Move check/set/get_timings() from omap_dss_device to omap_dss_driver.
 
 This is part of a larger patch-set, which moves the control from omapdss
 driver to the display driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/plat-omap/include/plat/display.h |    5 +--
- drivers/video/omap2/displays/panel-taal.c |   18 ++++++++++
- drivers/video/omap2/dss/display.c         |    7 ++--
- drivers/video/omap2/dss/dsi.c             |   53 ++---------------------------
- drivers/video/omap2/dss/rfbi.c            |    7 ----
- drivers/video/omap2/omapfb/omapfb-ioctl.c |    5 ++-
- drivers/video/omap2/omapfb/omapfb-main.c  |    4 +-
- 7 files changed, 32 insertions(+), 67 deletions(-)
+ arch/arm/plat-omap/include/plat/display.h |   18 ++++---
+ drivers/video/omap2/displays/panel-taal.c |    4 +-
+ drivers/video/omap2/dss/display.c         |   10 ++--
+ drivers/video/omap2/dss/dpi.c             |   16 ++----
+ drivers/video/omap2/dss/sdi.c             |    8 ---
+ drivers/video/omap2/dss/venc.c            |   82 ++++++++++++++--------------
+ drivers/video/omap2/omapfb/omapfb-main.c  |   10 ++--
+ 7 files changed, 68 insertions(+), 80 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 950d781..d9829f1 100644
+index e2d785c..ccf35a8 100644
 --- a/arch/arm/plat-omap/include/plat/display.h
 +++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -486,9 +486,6 @@ struct omap_dss_device {
- 	enum omap_dss_update_mode (*get_update_mode)
- 		(struct omap_dss_device *dssdev);
+@@ -465,13 +465,6 @@ struct omap_dss_device {
  
--	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
--	int (*get_te)(struct omap_dss_device *dssdev);
+ 	enum omap_dss_display_state state;
+ 
+-	int (*check_timings)(struct omap_dss_device *dssdev,
+-			struct omap_video_timings *timings);
+-	void (*set_timings)(struct omap_dss_device *dssdev,
+-			struct omap_video_timings *timings);
+-	void (*get_timings)(struct omap_dss_device *dssdev,
+-			struct omap_video_timings *timings);
 -
+ 	/* platform specific  */
+ 	int (*platform_enable)(struct omap_dss_device *dssdev);
+ 	void (*platform_disable)(struct omap_dss_device *dssdev);
+@@ -517,6 +510,13 @@ struct omap_dss_driver {
+ 			u16 *xres, u16 *yres);
+ 	int (*get_recommended_bpp)(struct omap_dss_device *dssdev);
+ 
++	int (*check_timings)(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings);
++	void (*set_timings)(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings);
++	void (*get_timings)(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings);
++
  	int (*set_wss)(struct omap_dss_device *dssdev, u32 wss);
  	u32 (*get_wss)(struct omap_dss_device *dssdev);
+ };
+@@ -572,6 +572,10 @@ void omapdss_dsi_display_disable(struct omap_dss_device *dssdev);
  
-@@ -516,6 +513,7 @@ struct omap_dss_driver {
+ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev);
++void dpi_set_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings);
++int dpi_check_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings);
  
- 	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
- 	int (*wait_for_te)(struct omap_dss_device *dssdev);
-+	int (*get_te)(struct omap_dss_device *dssdev);
- 
- 	u8 (*get_rotate)(struct omap_dss_device *dssdev);
- 	int (*set_rotate)(struct omap_dss_device *dssdev, u8 rotate);
-@@ -570,5 +568,6 @@ int omap_dispc_wait_for_irq_interruptible_timeout(u32 irqmask,
- #define to_dss_device(x) container_of((x), struct omap_dss_device, dev)
- 
- void omapdss_dsi_vc_enable_hs(int channel, bool enable);
-+int omapdss_dsi_enable_te(struct omap_dss_device *dssdev, bool enable);
- 
- #endif
+ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev);
 diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index e00502e..af4b0b0 100644
+index cdb7617..e0f1c9e 100644
 --- a/drivers/video/omap2/displays/panel-taal.c
 +++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -736,6 +736,8 @@ static int taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
- 	int r;
+@@ -516,8 +516,6 @@ static int taal_probe(struct omap_dss_device *dssdev)
  
-+	dsi_bus_lock();
-+
- 	td->te_enabled = enable;
+ 	dev_set_drvdata(&dssdev->dev, td);
  
- 	if (enable)
-@@ -743,9 +745,23 @@ static int taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- 	else
- 		r = taal_dcs_write_0(DCS_TEAR_OFF);
+-	dssdev->get_timings = taal_get_timings;
+-
+ 	/* if no platform set_backlight() defined, presume DSI backlight
+ 	 * control */
+ 	if (!dssdev->set_backlight)
+@@ -1108,6 +1106,8 @@ static struct omap_dss_driver taal_driver = {
+ 	.run_test	= taal_run_test,
+ 	.memory_read	= taal_memory_read,
  
-+	omapdss_dsi_enable_te(dssdev, enable);
++	.get_timings	= taal_get_timings,
 +
-+	/* XXX for some reason, DSI TE breaks if we don't wait here.
-+	 * Panel bug? Needs more studying */
-+	msleep(100);
-+
-+	dsi_bus_unlock();
-+
- 	return r;
- }
- 
-+static int taal_get_te(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	return td->te_enabled;
-+}
-+
- static int taal_wait_te(struct omap_dss_device *dssdev)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-@@ -993,7 +1009,9 @@ static struct omap_dss_driver taal_driver = {
- 	.get_recommended_bpp = omapdss_default_get_recommended_bpp,
- 
- 	.enable_te	= taal_enable_te,
-+	.get_te		= taal_get_te,
- 	.wait_for_te	= taal_wait_te,
-+
- 	.set_rotate	= taal_rotate,
- 	.get_rotate	= taal_get_rotate,
- 	.set_mirror	= taal_mirror,
+ 	.driver         = {
+ 		.name   = "taal",
+ 		.owner  = THIS_MODULE,
 diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index c5fecee..4c40300 100644
+index 3194f21..74b923a 100644
 --- a/drivers/video/omap2/dss/display.c
 +++ b/drivers/video/omap2/dss/display.c
-@@ -106,7 +106,8 @@ static ssize_t display_tear_show(struct device *dev,
- {
+@@ -135,10 +135,10 @@ static ssize_t display_timings_show(struct device *dev,
  	struct omap_dss_device *dssdev = to_dss_device(dev);
- 	return snprintf(buf, PAGE_SIZE, "%d\n",
--			dssdev->get_te ? dssdev->get_te(dssdev) : 0);
-+			dssdev->driver->get_te ?
-+			dssdev->driver->get_te(dssdev) : 0);
- }
+ 	struct omap_video_timings t;
  
- static ssize_t display_tear_store(struct device *dev,
-@@ -116,12 +117,12 @@ static ssize_t display_tear_store(struct device *dev,
- 	unsigned long te;
- 	int r;
- 
--	if (!dssdev->enable_te || !dssdev->get_te)
-+	if (!dssdev->driver->enable_te || !dssdev->driver->get_te)
+-	if (!dssdev->get_timings)
++	if (!dssdev->driver->get_timings)
  		return -ENOENT;
  
- 	te = simple_strtoul(buf, NULL, 0);
+-	dssdev->get_timings(dssdev, &t);
++	dssdev->driver->get_timings(dssdev, &t);
  
--	r = dssdev->enable_te(dssdev, te);
-+	r = dssdev->driver->enable_te(dssdev, te);
+ 	return snprintf(buf, PAGE_SIZE, "%u,%u/%u/%u/%u,%u/%u/%u/%u\n",
+ 			t.pixel_clock,
+@@ -153,7 +153,7 @@ static ssize_t display_timings_store(struct device *dev,
+ 	struct omap_video_timings t;
+ 	int r, found;
+ 
+-	if (!dssdev->set_timings || !dssdev->check_timings)
++	if (!dssdev->driver->set_timings || !dssdev->driver->check_timings)
+ 		return -ENOENT;
+ 
+ 	found = 0;
+@@ -172,11 +172,11 @@ static ssize_t display_timings_store(struct device *dev,
+ 				&t.y_res, &t.vfp, &t.vbp, &t.vsw) != 9)
+ 		return -EINVAL;
+ 
+-	r = dssdev->check_timings(dssdev, &t);
++	r = dssdev->driver->check_timings(dssdev, &t);
  	if (r)
  		return r;
  
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index eab45b8..4b885a4 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -2877,20 +2877,6 @@ static int dsi_set_update_mode(struct omap_dss_device *dssdev,
- 	return r;
- }
+-	dssdev->set_timings(dssdev, &t);
++	dssdev->driver->set_timings(dssdev, &t);
  
--static int dsi_set_te(struct omap_dss_device *dssdev, bool enable)
--{
--	int r = 0;
--
--	if (dssdev->driver->enable_te) {
--		r = dssdev->driver->enable_te(dssdev, enable);
--		/* XXX for some reason, DSI TE breaks if we don't wait here.
--		 * Panel bug? Needs more studying */
--		msleep(100);
--	}
--
--	return r;
--}
--
- static void dsi_handle_framedone(void)
+ 	return size;
+ }
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 1eef8b7..960e977 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -227,7 +227,7 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+ }
+ EXPORT_SYMBOL(omapdss_dpi_display_disable);
+ 
+-static void dpi_set_timings(struct omap_dss_device *dssdev,
++void dpi_set_timings(struct omap_dss_device *dssdev,
+ 			struct omap_video_timings *timings)
  {
- 	int r;
-@@ -3265,9 +3251,6 @@ static int dsi_display_enable(struct omap_dss_device *dssdev)
- 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
- 
- 	dsi.use_ext_te = dssdev->phy.dsi.ext_te;
--	r = dsi_set_te(dssdev, dsi.te_enabled);
--	if (r)
--		goto err4;
- 
- 	dsi_set_update_mode(dssdev, dsi.user_update_mode);
- 
-@@ -3276,9 +3259,6 @@ static int dsi_display_enable(struct omap_dss_device *dssdev)
- 
- 	return 0;
- 
--err4:
--
--	dsi_display_uninit_dsi(dssdev);
- err3:
- 	dsi_display_uninit_dispc(dssdev);
- err2:
-@@ -3381,10 +3361,6 @@ static int dsi_display_resume(struct omap_dss_device *dssdev)
- 
- 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
- 
--	r = dsi_set_te(dssdev, dsi.te_enabled);
--	if (r)
--		goto err2;
--
- 	dsi_set_update_mode(dssdev, dsi.user_update_mode);
- 
- 	dsi_bus_unlock();
-@@ -3502,33 +3478,12 @@ static enum omap_dss_update_mode dsi_display_get_update_mode(
- }
- 
- 
--static int dsi_display_enable_te(struct omap_dss_device *dssdev, bool enable)
-+int omapdss_dsi_enable_te(struct omap_dss_device *dssdev, bool enable)
- {
--	int r = 0;
--
--	DSSDBGF("%d", enable);
--
--	if (!dssdev->driver->enable_te)
--		return -ENOENT;
--
--	dsi_bus_lock();
--
- 	dsi.te_enabled = enable;
--
--	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
--		goto end;
--
--	r = dsi_set_te(dssdev, enable);
--end:
--	dsi_bus_unlock();
--
--	return r;
--}
--
--static int dsi_display_get_te(struct omap_dss_device *dssdev)
--{
--	return dsi.te_enabled;
-+	return 0;
- }
-+EXPORT_SYMBOL(omapdss_dsi_enable_te);
- 
- void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
- 		u32 fifo_size, enum omap_burst_size *burst_size,
-@@ -3555,8 +3510,6 @@ int dsi_init_display(struct omap_dss_device *dssdev)
- 	dssdev->sync = dsi_display_sync;
- 	dssdev->set_update_mode = dsi_display_set_update_mode;
- 	dssdev->get_update_mode = dsi_display_get_update_mode;
--	dssdev->enable_te = dsi_display_enable_te;
--	dssdev->get_te = dsi_display_get_te;
- 
- 	/* XXX these should be figured out dynamically */
- 	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 6b9cd76..7129387 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -1232,12 +1232,6 @@ static int rfbi_display_sync(struct omap_dss_device *dssdev)
- 	return 0;
- }
- 
--static int rfbi_display_enable_te(struct omap_dss_device *dssdev, bool enable)
--{
--	dssdev->driver->enable_te(dssdev, enable);
--	return 0;
--}
--
- static int rfbi_display_enable(struct omap_dss_device *dssdev)
- {
- 	int r;
-@@ -1299,7 +1293,6 @@ int rfbi_init_display(struct omap_dss_device *dssdev)
- 	dssdev->disable = rfbi_display_disable;
- 	dssdev->update = rfbi_display_update;
- 	dssdev->sync = rfbi_display_sync;
--	dssdev->enable_te = rfbi_display_enable_te;
- 
- 	rfbi.dssdev[dssdev->phy.rfbi.channel] = dssdev;
- 
-diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-index e18a723..86467f8 100644
---- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
-+++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-@@ -783,12 +783,13 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg)
- 			break;
- 		}
- 
--		if (!display->enable_te) {
-+		if (!display->driver->enable_te) {
- 			r = -ENODEV;
- 			break;
- 		}
- 
--		r = display->enable_te(display, !!p.tearsync_info.enabled);
-+		r = display->driver->enable_te(display,
-+				!!p.tearsync_info.enabled);
- 
- 		break;
+ 	DSSDBG("dpi_set_timings\n");
+@@ -237,8 +237,9 @@ static void dpi_set_timings(struct omap_dss_device *dssdev,
+ 		dispc_go(OMAP_DSS_CHANNEL_LCD);
  	}
+ }
++EXPORT_SYMBOL(dpi_set_timings);
+ 
+-static int dpi_check_timings(struct omap_dss_device *dssdev,
++int dpi_check_timings(struct omap_dss_device *dssdev,
+ 			struct omap_video_timings *timings)
+ {
+ 	bool is_tft;
+@@ -292,21 +293,12 @@ static int dpi_check_timings(struct omap_dss_device *dssdev,
+ 
+ 	return 0;
+ }
+-
+-static void dpi_get_timings(struct omap_dss_device *dssdev,
+-			struct omap_video_timings *timings)
+-{
+-	*timings = dssdev->panel.timings;
+-}
++EXPORT_SYMBOL(dpi_check_timings);
+ 
+ int dpi_init_display(struct omap_dss_device *dssdev)
+ {
+ 	DSSDBG("init_display\n");
+ 
+-	dssdev->set_timings = dpi_set_timings;
+-	dssdev->check_timings = dpi_check_timings;
+-	dssdev->get_timings = dpi_get_timings;
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index 929ceb3..12eb404 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -150,18 +150,10 @@ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
+ }
+ EXPORT_SYMBOL(omapdss_sdi_display_disable);
+ 
+-static void sdi_get_timings(struct omap_dss_device *dssdev,
+-			struct omap_video_timings *timings)
+-{
+-	*timings = dssdev->panel.timings;
+-}
+-
+ int sdi_init_display(struct omap_dss_device *dssdev)
+ {
+ 	DSSDBG("SDI init\n");
+ 
+-	dssdev->get_timings = sdi_get_timings;
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 5c6e98b..f0ba573 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -557,6 +557,43 @@ static int venc_set_update_mode(struct omap_dss_device *dssdev,
+ 	return 0;
+ }
+ 
++static void venc_get_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
++{
++	*timings = dssdev->panel.timings;
++}
++
++static void venc_set_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
++{
++	DSSDBG("venc_set_timings\n");
++
++	/* Reset WSS data when the TV standard changes. */
++	if (memcmp(&dssdev->panel.timings, timings, sizeof(*timings)))
++		venc.wss_data = 0;
++
++	dssdev->panel.timings = *timings;
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
++		/* turn the venc off and on to get new timings to use */
++		venc_panel_disable(dssdev);
++		venc_panel_enable(dssdev);
++	}
++}
++
++static int venc_check_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
++{
++	DSSDBG("venc_check_timings\n");
++
++	if (memcmp(&omap_dss_pal_timings, timings, sizeof(*timings)) == 0)
++		return 0;
++
++	if (memcmp(&omap_dss_ntsc_timings, timings, sizeof(*timings)) == 0)
++		return 0;
++
++	return -EINVAL;
++}
++
+ static u32 venc_get_wss(struct omap_dss_device *dssdev)
+ {
+ 	/* Invert due to VENC_L21_WC_CTL:INV=1 */
+@@ -603,6 +640,10 @@ static struct omap_dss_driver venc_driver = {
+ 	.set_update_mode = venc_set_update_mode,
+ 	.get_update_mode = venc_get_update_mode,
+ 
++	.get_timings	= venc_get_timings,
++	.set_timings	= venc_set_timings,
++	.check_timings	= venc_check_timings,
++
+ 	.get_wss	= venc_get_wss,
+ 	.set_wss	= venc_set_wss,
+ 
+@@ -653,51 +694,10 @@ void venc_exit(void)
+ 	iounmap(venc.base);
+ }
+ 
+-static void venc_get_timings(struct omap_dss_device *dssdev,
+-			struct omap_video_timings *timings)
+-{
+-	*timings = dssdev->panel.timings;
+-}
+-
+-static void venc_set_timings(struct omap_dss_device *dssdev,
+-			struct omap_video_timings *timings)
+-{
+-	DSSDBG("venc_set_timings\n");
+-
+-	/* Reset WSS data when the TV standard changes. */
+-	if (memcmp(&dssdev->panel.timings, timings, sizeof(*timings)))
+-		venc.wss_data = 0;
+-
+-	dssdev->panel.timings = *timings;
+-	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
+-		/* turn the venc off and on to get new timings to use */
+-		venc_panel_disable(dssdev);
+-		venc_panel_enable(dssdev);
+-	}
+-}
+-
+-static int venc_check_timings(struct omap_dss_device *dssdev,
+-			struct omap_video_timings *timings)
+-{
+-	DSSDBG("venc_check_timings\n");
+-
+-	if (memcmp(&omap_dss_pal_timings, timings, sizeof(*timings)) == 0)
+-		return 0;
+-
+-	if (memcmp(&omap_dss_ntsc_timings, timings, sizeof(*timings)) == 0)
+-		return 0;
+-
+-	return -EINVAL;
+-}
+-
+ int venc_init_display(struct omap_dss_device *dssdev)
+ {
+ 	DSSDBG("init_display\n");
+ 
+-	dssdev->get_timings = venc_get_timings;
+-	dssdev->set_timings = venc_set_timings;
+-	dssdev->check_timings = venc_check_timings;
+-
+ 	return 0;
+ }
+ 
 diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-index f77256f..fff687b 100644
+index f0b304d..5b2e269 100644
 --- a/drivers/video/omap2/omapfb/omapfb-main.c
 +++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -2205,8 +2205,8 @@ static int omapfb_probe(struct platform_device *pdev)
- 				def_display->set_update_mode(def_display,
- 						OMAP_DSS_UPDATE_AUTO);
- #else /* MANUAL_UPDATE */
--			if (def_display->enable_te)
--				def_display->enable_te(def_display, 0);
-+			if (def_display->driver->enable_te)
-+				def_display->driver->enable_te(def_display, 0);
- 			if (def_display->set_update_mode)
- 				def_display->set_update_mode(def_display,
- 						OMAP_DSS_UPDATE_MANUAL);
+@@ -705,9 +705,9 @@ int check_fb_var(struct fb_info *fbi, struct fb_var_screeninfo *var)
+ 	var->width              = -1;
+ 	var->grayscale          = 0;
+ 
+-	if (display && display->get_timings) {
++	if (display && display->driver->get_timings) {
+ 		struct omap_video_timings timings;
+-		display->get_timings(display, &timings);
++		display->driver->get_timings(display, &timings);
+ 
+ 		/* pixclock in ps, the rest in pixclock */
+ 		var->pixclock = timings.pixel_clock != 0 ?
+@@ -2029,14 +2029,14 @@ static int omapfb_set_def_mode(struct omapfb2_device *fbdev,
+ 	fbdev->bpp_overrides[fbdev->num_bpp_overrides].bpp = bpp;
+ 	++fbdev->num_bpp_overrides;
+ 
+-	if (!display->check_timings || !display->set_timings)
++	if (!display->driver->check_timings || !display->driver->set_timings)
+ 		return -EINVAL;
+ 
+-	r = display->check_timings(display, &timings);
++	r = display->driver->check_timings(display, &timings);
+ 	if (r)
+ 		return r;
+ 
+-	display->set_timings(display, &timings);
++	display->driver->set_timings(display, &timings);
+ 
+ 	return 0;
+ }
 -- 
 1.6.5
 
