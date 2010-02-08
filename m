@@ -1,170 +1,367 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 04/13] OMAP: DSS2: OMAPFB: implement OMAPFB_RESERVE_BUFFER
-Date: Mon,  8 Feb 2010 17:56:03 +0200
-Message-ID: <1265644572-3578-5-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 01/13] OMAP: DSS2: enable VDDS_DSI when using DPI
+Date: Mon,  8 Feb 2010 17:56:00 +0200
+Message-ID: <1265644572-3578-2-git-send-email-tomi.valkeinen@nokia.com>
 References: <1265644572-3578-1-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-2-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-3-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-4-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45699 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:45704 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753348Ab0BHPxs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:53:48 -0500
-In-Reply-To: <1265644572-3578-4-git-send-email-tomi.valkeinen@nokia.com>
+	with ESMTP id S1753363Ab0BHPxt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:53:49 -0500
+In-Reply-To: <1265644572-3578-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Currently applications can reserve fb memory with OMAPFB_SETUP_MEM
-ioctl, which takes the size in bytes as an argument. This falls apart
-when using VRFB, as the memory need for VRFB is not trivial
+It looks like on OMAP3 some DSS pins need VDDS_DSI to function properly.
 
-This patch implements OMAPFB_RESERVE_BUFFER ioctl, which reserves memory
-just like SETUP_MEM, but takes width, height and bytes per pixel as
-arguments. This will let omapfb driver allocate the memory more
-intelligently.
+This has not been confirmed from TI, but looking at figure 15-1 "Display
+subsystem highlight" from the TRM, some data pins come near the DSI and SDI
+blocks. This is not very hard evidence, but the fact remains that with the
+power on, pixels are ok, and with the power off, pixels are not ok.
 
-The "size" entry in sysfs now also supports writing the size in
-"width,height,bytespp" format.
+It may also be that VDDS_SDI is needed to power some pins, but as normally
+both VDDS_SDI and VDDS_DSI come from the same power source, this hasn't
+been shown.
+
+It seems that a single driver can only get a regulator once. This patch
+solves it by getting all the required regulators in one place, and from
+which the submodules then get the regulators they need.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- drivers/video/omap2/omapfb/omapfb-ioctl.c |   51 +++++++++++++++++++++++++++++
- drivers/video/omap2/omapfb/omapfb-sysfs.c |   13 +++++++-
- include/linux/omapfb.h                    |   10 ++++++
- 3 files changed, 73 insertions(+), 1 deletions(-)
+ drivers/video/omap2/dss/core.c |   66 +++++++++++++++++++++++++++++++++++++++-
+ drivers/video/omap2/dss/dpi.c  |   55 ++++++++++++++++++++++++++++-----
+ drivers/video/omap2/dss/dsi.c  |    4 +--
+ drivers/video/omap2/dss/dss.h  |    5 ++-
+ drivers/video/omap2/dss/venc.c |    4 +--
+ 5 files changed, 117 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-index 4c4bafd..5562a76 100644
---- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
-+++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-@@ -155,6 +155,47 @@ static int omapfb_query_mem(struct fb_info *fbi, struct omapfb_mem_info *mi)
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 82918ee..791e1cb 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -31,6 +31,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/io.h>
+ #include <linux/device.h>
++#include <linux/regulator/consumer.h>
+ 
+ #include <plat/display.h>
+ #include <plat/clock.h>
+@@ -47,6 +48,10 @@ static struct {
+ 	struct clk      *dss_54m_fck;
+ 	struct clk	*dss_96m_fck;
+ 	unsigned	num_clks_enabled;
++
++	struct regulator *vdds_dsi_reg;
++	struct regulator *vdds_sdi_reg;
++	struct regulator *vdda_dac_reg;
+ } core;
+ 
+ static void dss_clk_enable_all_no_ctx(void);
+@@ -352,6 +357,50 @@ static void dss_clk_disable_all(void)
+ 	dss_clk_disable(clks);
+ }
+ 
++/* REGULATORS */
++
++struct regulator *dss_get_vdds_dsi(void)
++{
++	struct regulator *reg;
++
++	if (core.vdds_dsi_reg != NULL)
++		return core.vdds_dsi_reg;
++
++	reg = regulator_get(&core.pdev->dev, "vdds_dsi");
++	if (!IS_ERR(reg))
++		core.vdds_dsi_reg = reg;
++
++	return reg;
++}
++
++struct regulator *dss_get_vdds_sdi(void)
++{
++	struct regulator *reg;
++
++	if (core.vdds_sdi_reg != NULL)
++		return core.vdds_sdi_reg;
++
++	reg = regulator_get(&core.pdev->dev, "vdds_sdi");
++	if (!IS_ERR(reg))
++		core.vdds_sdi_reg = reg;
++
++	return reg;
++}
++
++struct regulator *dss_get_vdda_dac(void)
++{
++	struct regulator *reg;
++
++	if (core.vdda_dac_reg != NULL)
++		return core.vdda_dac_reg;
++
++	reg = regulator_get(&core.pdev->dev, "vdda_dac");
++	if (!IS_ERR(reg))
++		core.vdda_dac_reg = reg;
++
++	return reg;
++}
++
+ /* DEBUGFS */
+ #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
+ static void dss_debug_dump_clocks(struct seq_file *s)
+@@ -473,7 +522,7 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 	}
+ #endif
+ 
+-	r = dpi_init();
++	r = dpi_init(pdev);
+ 	if (r) {
+ 		DSSERR("Failed to initialize dpi\n");
+ 		goto fail0;
+@@ -901,6 +950,21 @@ static int __init omap_dss_init(void)
+ 
+ static void __exit omap_dss_exit(void)
+ {
++	if (core.vdds_dsi_reg != NULL) {
++		regulator_put(core.vdds_dsi_reg);
++		core.vdds_dsi_reg = NULL;
++	}
++
++	if (core.vdds_sdi_reg != NULL) {
++		regulator_put(core.vdds_sdi_reg);
++		core.vdds_sdi_reg = NULL;
++	}
++
++	if (core.vdda_dac_reg != NULL) {
++		regulator_put(core.vdda_dac_reg);
++		core.vdda_dac_reg = NULL;
++	}
++
+ 	platform_driver_unregister(&omap_dss_driver);
+ 
+ 	omap_dss_bus_unregister();
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 2d71031..69ce31a 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -25,7 +25,10 @@
+ #include <linux/kernel.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
++#include <linux/err.h>
+ #include <linux/errno.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/consumer.h>
+ 
+ #include <plat/display.h>
+ #include <plat/cpu.h>
+@@ -34,6 +37,7 @@
+ 
+ static struct {
+ 	int update_enabled;
++	struct regulator *vdds_dsi_reg;
+ } dpi;
+ 
+ #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+@@ -166,21 +170,27 @@ static int dpi_display_enable(struct omap_dss_device *dssdev)
+ 		goto err1;
+ 	}
+ 
++	if (cpu_is_omap34xx()) {
++		r = regulator_enable(dpi.vdds_dsi_reg);
++		if (r)
++			goto err2;
++	}
++
+ 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
+ 
+ 	r = dpi_basic_init(dssdev);
+ 	if (r)
+-		goto err2;
++		goto err3;
+ 
+ #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+ 	dss_clk_enable(DSS_CLK_FCK2);
+ 	r = dsi_pll_init(dssdev, 0, 1);
+ 	if (r)
+-		goto err3;
++		goto err4;
+ #endif
+ 	r = dpi_set_mode(dssdev);
+ 	if (r)
+-		goto err4;
++		goto err5;
+ 
+ 	mdelay(2);
+ 
+@@ -188,22 +198,25 @@ static int dpi_display_enable(struct omap_dss_device *dssdev)
+ 
+ 	r = dssdev->driver->enable(dssdev);
+ 	if (r)
+-		goto err5;
++		goto err6;
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+ 
+ 	return 0;
+ 
+-err5:
++err6:
+ 	dispc_enable_lcd_out(0);
+-err4:
++err5:
+ #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+ 	dsi_pll_uninit();
+-err3:
++err4:
+ 	dss_clk_disable(DSS_CLK_FCK2);
+ #endif
+-err2:
++err3:
+ 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++err2:
++	if (cpu_is_omap34xx())
++		regulator_disable(dpi.vdds_dsi_reg);
+ err1:
+ 	omap_dss_stop_device(dssdev);
+ err0:
+@@ -232,6 +245,9 @@ static void dpi_display_disable(struct omap_dss_device *dssdev)
+ 
+ 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
+ 
++	if (cpu_is_omap34xx())
++		regulator_disable(dpi.vdds_dsi_reg);
++
+ 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+ 
+ 	omap_dss_stop_device(dssdev);
+@@ -251,6 +267,9 @@ static int dpi_display_suspend(struct omap_dss_device *dssdev)
+ 
+ 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
+ 
++	if (cpu_is_omap34xx())
++		regulator_disable(dpi.vdds_dsi_reg);
++
+ 	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
+ 
+ 	return 0;
+@@ -258,11 +277,19 @@ static int dpi_display_suspend(struct omap_dss_device *dssdev)
+ 
+ static int dpi_display_resume(struct omap_dss_device *dssdev)
+ {
++	int r;
++
+ 	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
+ 		return -EINVAL;
+ 
+ 	DSSDBG("dpi_display_resume\n");
+ 
++	if (cpu_is_omap34xx()) {
++		r = regulator_enable(dpi.vdds_dsi_reg);
++		if (r)
++			goto err0;
++	}
++
+ 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
+ 
+ 	dispc_enable_lcd_out(1);
+@@ -273,6 +300,8 @@ static int dpi_display_resume(struct omap_dss_device *dssdev)
+ 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+ 
+ 	return 0;
++err0:
++	return r;
+ }
+ 
+ static void dpi_set_timings(struct omap_dss_device *dssdev,
+@@ -388,8 +417,16 @@ int dpi_init_display(struct omap_dss_device *dssdev)
  	return 0;
  }
  
-+static int omapfb_reserve_buffer(struct fb_info *fbi,
-+		struct omapfb_res_buf_info *bi)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omapfb2_mem_region *rg;
-+	int r, i;
-+	size_t size;
-+	unsigned w = bi->width;
-+	unsigned h = bi->height;
-+
-+	if (bi->type > OMAPFB_MEMTYPE_MAX)
-+		return -EINVAL;
-+
-+	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB) {
-+		size = max(omap_vrfb_min_phys_size(w, h, bi->bytespp),
-+				omap_vrfb_min_phys_size(h, w, bi->bytespp));
-+	} else {
-+		size = w * h * bi->bytespp;
-+	}
-+
-+	size = PAGE_ALIGN(size);
-+
-+	rg = &ofbi->region;
-+
-+	for (i = 0; i < ofbi->num_overlays; i++) {
-+		if (ofbi->overlays[i]->info.enabled)
-+			return -EBUSY;
-+	}
-+
-+	if (rg->size != size || rg->type != bi->type) {
-+		r = omapfb_realloc_fbmem(fbi, size, bi->type);
-+		if (r) {
-+			dev_err(fbdev->dev, "realloc fbmem failed\n");
-+			return r;
+-int dpi_init(void)
++int dpi_init(struct platform_device *pdev)
+ {
++	if (cpu_is_omap34xx()) {
++		dpi.vdds_dsi_reg = dss_get_vdds_dsi();
++		if (IS_ERR(dpi.vdds_dsi_reg)) {
++			DSSERR("can't get VDDS_DSI regulator\n");
++			return PTR_ERR(dpi.vdds_dsi_reg);
 +		}
 +	}
 +
-+	return 0;
-+}
-+
- static int omapfb_update_window_nolock(struct fb_info *fbi,
- 		u32 x, u32 y, u32 w, u32 h)
+ 	return 0;
+ }
+ 
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 6122178..036f422 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -3799,7 +3799,7 @@ int dsi_init(struct platform_device *pdev)
+ 		goto err1;
+ 	}
+ 
+-	dsi.vdds_dsi_reg = regulator_get(&pdev->dev, "vdds_dsi");
++	dsi.vdds_dsi_reg = dss_get_vdds_dsi();
+ 	if (IS_ERR(dsi.vdds_dsi_reg)) {
+ 		iounmap(dsi.base);
+ 		DSSERR("can't get VDDS_DSI regulator\n");
+@@ -3830,8 +3830,6 @@ void dsi_exit(void)
  {
-@@ -476,6 +517,7 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg)
- 		struct omapfb_plane_info	plane_info;
- 		struct omapfb_caps		caps;
- 		struct omapfb_mem_info          mem_info;
-+		struct omapfb_res_buf_info	res_buf_info;
- 		struct omapfb_color_key		color_key;
- 		struct omapfb_ovl_colormode	ovl_colormode;
- 		enum omapfb_update_mode		update_mode;
-@@ -572,6 +614,15 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg)
- 			r = -EFAULT;
- 		break;
+ 	kthread_stop(dsi.thread);
  
-+	case OMAPFB_RESERVE_BUFFER:
-+		DBG("ioctl RESERVE_BUFFER\n");
-+		if (copy_from_user(&p.res_buf_info, (void __user *)arg,
-+					sizeof(p.res_buf_info)))
-+			r = -EFAULT;
-+		else
-+			r = omapfb_reserve_buffer(fbi, &p.res_buf_info);
-+		break;
-+
- 	case OMAPFB_GET_CAPS:
- 		DBG("ioctl GET_CAPS\n");
- 		if (!display) {
-diff --git a/drivers/video/omap2/omapfb/omapfb-sysfs.c b/drivers/video/omap2/omapfb/omapfb-sysfs.c
-index 62bb88f..9cd7957 100644
---- a/drivers/video/omap2/omapfb/omapfb-sysfs.c
-+++ b/drivers/video/omap2/omapfb/omapfb-sysfs.c
-@@ -413,8 +413,19 @@ static ssize_t store_size(struct device *dev, struct device_attribute *attr,
- 	unsigned long size;
- 	int r;
- 	int i;
-+	unsigned w, h, bytespp;
-+
-+	if (sscanf(buf, "%u,%u,%u", &w, &h, &bytespp) == 3) {
-+		if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
-+			size = max(omap_vrfb_min_phys_size(w, h, bytespp),
-+					omap_vrfb_min_phys_size(h, w, bytespp));
-+		else
-+			size = w * h * bytespp;
-+	} else {
-+		size = simple_strtoul(buf, NULL, 0);
-+	}
+-	regulator_put(dsi.vdds_dsi_reg);
+-
+ 	iounmap(dsi.base);
  
--	size = PAGE_ALIGN(simple_strtoul(buf, NULL, 0));
-+	size = PAGE_ALIGN(size);
+ 	DSSDBG("omap_dsi_exit\n");
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 2bcb124..41145af 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -169,6 +169,9 @@ unsigned long dss_clk_get_rate(enum dss_clock clk);
+ int dss_need_ctx_restore(void);
+ void dss_dump_clocks(struct seq_file *s);
+ struct bus_type *dss_get_bus(void);
++struct regulator *dss_get_vdds_dsi(void);
++struct regulator *dss_get_vdds_sdi(void);
++struct regulator *dss_get_vdda_dac(void);
  
- 	lock_fb_info(fbi);
+ /* display */
+ int dss_suspend_all_devices(void);
+@@ -261,7 +264,7 @@ void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
+ 		u32 *fifo_low, u32 *fifo_high);
  
-diff --git a/include/linux/omapfb.h b/include/linux/omapfb.h
-index f46c40a..ef4c2cf 100644
---- a/include/linux/omapfb.h
-+++ b/include/linux/omapfb.h
-@@ -57,6 +57,7 @@
- #define OMAPFB_WAITFORGO	OMAP_IO(60)
- #define OMAPFB_GET_VRAM_INFO	OMAP_IOR(61, struct omapfb_vram_info)
- #define OMAPFB_SET_TEARSYNC	OMAP_IOW(62, struct omapfb_tearsync_info)
-+#define OMAPFB_RESERVE_BUFFER	OMAP_IOW(63, struct omapfb_res_buf_info)
+ /* DPI */
+-int dpi_init(void);
++int dpi_init(struct platform_device *pdev);
+ void dpi_exit(void);
+ int dpi_init_display(struct omap_dss_device *dssdev);
  
- #define OMAPFB_CAPS_GENERIC_MASK	0x00000fff
- #define OMAPFB_CAPS_LCDC_MASK		0x00fff000
-@@ -147,6 +148,15 @@ struct omapfb_mem_info {
- 	__u8  reserved[3];
- };
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 749a5a0..44b4998 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -482,7 +482,7 @@ int venc_init(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
  
-+struct omapfb_res_buf_info {
-+	__u16	width;
-+	__u16	height;
-+	__u8	bytespp;
-+	__u8	type;
-+	__u8	reserved[2];
-+	__u32	reserved2[6];
-+};
-+
- struct omapfb_caps {
- 	__u32 ctrl;
- 	__u32 plane_color;
+-	venc.vdda_dac_reg = regulator_get(&pdev->dev, "vdda_dac");
++	venc.vdda_dac_reg = dss_get_vdda_dac();
+ 	if (IS_ERR(venc.vdda_dac_reg)) {
+ 		iounmap(venc.base);
+ 		DSSERR("can't get VDDA_DAC regulator\n");
+@@ -503,8 +503,6 @@ void venc_exit(void)
+ {
+ 	omap_dss_unregister_driver(&venc_driver);
+ 
+-	regulator_put(venc.vdda_dac_reg);
+-
+ 	iounmap(venc.base);
+ }
+ 
 -- 
 1.6.5
 
