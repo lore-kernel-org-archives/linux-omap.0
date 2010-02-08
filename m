@@ -1,436 +1,358 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH V4] OMAP3: hwmod: support to specify the offset position of various SYSCONFIG register bits.
-Date: Mon,  8 Feb 2010 21:33:10 +0530
-Message-ID: <1265644990-14589-1-git-send-email-thara@ti.com>
+From: Ranjith Lohithakshan <ranjithl@ti.com>
+Subject: Re: [PATCH 1/2] OMAP2/3 clock: Extend find_idlest() to pass back
+ idle state value
+Date: Mon, 08 Feb 2010 23:04:43 +0530
+Message-ID: <4B704B33.7010906@ti.com>
+References: <1263892819-2330-1-git-send-email-ranjithl@ti.com> <alpine.DEB.2.00.1002051315020.18110@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54390 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38494 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752628Ab0BHQDT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Feb 2010 11:03:19 -0500
+	id S1751340Ab0BHReu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Feb 2010 12:34:50 -0500
+In-Reply-To: <alpine.DEB.2.00.1002051315020.18110@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thara Gopinath <thara@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-In OMAP3 Some modules like Smartreflex do not have the regular sysconfig
-register.Instead clockactivity bits are part of another register at a
-different bit position than the usual bit positions 8 and 9.
+Hi Paul,
 
-In OMAP4, a new scheme is available  due to the new protocol
-between the PRCM and the IPs. Depending of the scheme, the SYSCONFIG
-bitfields position will be different.
-The IP_REVISION register should be at offset 0x00.
-It should contain a SCHEME field. From this we can determine whether
-the IP follows legacy scheme or the new scheme.
+On Sat, 06-Feb-10 1:46 AM +0530, Paul Walmsley wrote:
+> Hi Ranjith,
+> 
+> On Tue, 19 Jan 2010, Ranjith Lohithakshan wrote:
+> 
+>> Current implementation defines clock idle state indicators based on the
+>> cpu information (cpu_is_omap24xx() or cpu_is_omap34xx()) in a system wide
+>> manner. This patch extends the find_idlest() function in clkops to pass
+>> back the idle state indicator for that clock, thus allowing idle state
+>> indicators to be defined on a per clock basis if required.
+>>
+>> This is specifically needed on AM35xx devices as the new IPSS clocks
+>> indicates the idle status (0 is idle, 1 is ready) in a way just
+>> opposite to how its handled in OMAP3 (0 is ready, 1 is idle).
+>>
+>> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+> 
+> I had to make some changes to this patch for it to apply after the recent
+> clock split patches.  Could you please check this patch and make sure it
+> is okay?
 
-31:30 SCHEME  Used to distinguish between old scheme and current.
- Read 0x0:  Legacy protocol.
- Read 0x1:  New PRCM protocol defined for new OMAP4 IPs
+It looks good to me. I have verified these latest changes on AM3517 EVM
 
-For legacy IP
- 13:12 MIDLEMODE
- 11:8  CLOCKACTIVITY
- 6     EMUSOFT
- 5     EMUFREE
- 4:3   SIDLEMODE
- 2     ENAWAKEUP
- 1     SOFTRESET
- 0     AUTOIDLE
+ - Ranjith
 
-For new OMAP4 IP's, the bit position in SYSCONFIG is (for simple target):
- 5:4   STANDBYMODE (Ex MIDLEMODE)
- 3:2   IDLEMODE (Ex SIDLEMODE)
- 1     FREEEMU (Ex EMUFREE)
- 0     SOFTRESET
-
-Unfortunately In OMAP4 also some IPs will not follow any of these
-two schemes. This is the case at least for McASP, SmartReflex
-and some security IPs.
-
-This patch introduces a new field sysc_fields in omap_hwmod_sysconfig which
-can be used by the hwmod structures to specify the offsets for the
-sysconfig register of the IP.Also two static structures
-omap_hwmod_sysc_type1 and omap_hwmod_sysc_type2 are defined
-which can be used directly to populate the sysc_fields if the IP follows
-legacy or new OMAP4 scheme. If the IP follows none of these two schemes
-a new omap_hwmod_sysc_fields structure has to be defined and
-passed as part of omap_hwmod_sysconfig.
-
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/Makefile                 |    3 +-
- arch/arm/mach-omap2/omap_hwmod.c             |  100 ++++++++++++++++++++++----
- arch/arm/mach-omap2/omap_hwmod_common_data.c |   46 ++++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |   74 +++++++++++++++----
- 4 files changed, 195 insertions(+), 28 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_common_data.c
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index d0a19ec..e31122f 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -5,7 +5,8 @@
- # Common support
- obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
- 
--omap-2-3-common				= irq.o sdrc.o omap_hwmod.o
-+omap-2-3-common				= irq.o sdrc.o omap_hwmod.o \
-+					  omap_hwmod_common_data.o
- omap-3-4-common				= dpll3xxx.o
- prcm-common				= prcm.o powerdomain.o
- clock-common				= clock.o clock_common_data.o \
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 70912d1..904dce5 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -137,12 +137,24 @@ static void _write_sysconfig(u32 v, struct omap_hwmod *oh)
- static int _set_master_standbymode(struct omap_hwmod *oh, u8 standbymode,
- 				   u32 *v)
- {
-+	u32 mstandby_mask;
-+	u8 mstandby_shift;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_MIDLEMODE))
- 		return -EINVAL;
- 
--	*v &= ~SYSC_MIDLEMODE_MASK;
--	*v |= __ffs(standbymode) << SYSC_MIDLEMODE_SHIFT;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	mstandby_shift = oh->sysconfig->sysc_fields->midle_shift;
-+	mstandby_mask = (0x3 << mstandby_shift);
-+
-+	*v &= ~mstandby_mask;
-+	*v |= __ffs(standbymode) << mstandby_shift;
- 
- 	return 0;
- }
-@@ -159,12 +171,24 @@ static int _set_master_standbymode(struct omap_hwmod *oh, u8 standbymode,
-  */
- static int _set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode, u32 *v)
- {
-+	u32 sidle_mask;
-+	u8 sidle_shift;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_SIDLEMODE))
- 		return -EINVAL;
- 
--	*v &= ~SYSC_SIDLEMODE_MASK;
--	*v |= __ffs(idlemode) << SYSC_SIDLEMODE_SHIFT;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	sidle_shift = oh->sysconfig->sysc_fields->sidle_shift;
-+	sidle_mask = (0x3 << sidle_shift);
-+
-+	*v &= ~sidle_mask;
-+	*v |= __ffs(idlemode) << sidle_shift;
- 
- 	return 0;
- }
-@@ -182,12 +206,24 @@ static int _set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode, u32 *v)
-  */
- static int _set_clockactivity(struct omap_hwmod *oh, u8 clockact, u32 *v)
- {
-+	u32 clkact_mask;
-+	u8  clkact_shift;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_CLOCKACTIVITY))
- 		return -EINVAL;
- 
--	*v &= ~SYSC_CLOCKACTIVITY_MASK;
--	*v |= clockact << SYSC_CLOCKACTIVITY_SHIFT;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	clkact_shift = oh->sysconfig->sysc_fields->clkact_shift;
-+	clkact_mask = (0x3 << clkact_shift);
-+
-+	*v &= ~clkact_mask;
-+	*v |= clockact << clkact_shift;
- 
- 	return 0;
- }
-@@ -202,11 +238,21 @@ static int _set_clockactivity(struct omap_hwmod *oh, u8 clockact, u32 *v)
-  */
- static int _set_softreset(struct omap_hwmod *oh, u32 *v)
- {
-+	u32 softrst_mask;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_SOFTRESET))
- 		return -EINVAL;
- 
--	*v |= SYSC_SOFTRESET_MASK;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	softrst_mask = (0x1 << oh->sysconfig->sysc_fields->srst_shift);
-+
-+	*v |= softrst_mask;
- 
- 	return 0;
- }
-@@ -227,12 +273,24 @@ static int _set_softreset(struct omap_hwmod *oh, u32 *v)
- static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
- 				u32 *v)
- {
-+	u32 autoidle_mask;
-+	u8 autoidle_shift;
-+
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_AUTOIDLE))
- 		return -EINVAL;
- 
--	*v &= ~SYSC_AUTOIDLE_MASK;
--	*v |= autoidle << SYSC_AUTOIDLE_SHIFT;
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	autoidle_shift = oh->sysconfig->sysc_fields->autoidle_shift;
-+	autoidle_mask = (0x3 << autoidle_shift);
-+
-+	*v &= ~autoidle_mask;
-+	*v |= autoidle << autoidle_shift;
- 
- 	return 0;
- }
-@@ -246,14 +304,22 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
-  */
- static int _enable_wakeup(struct omap_hwmod *oh)
- {
--	u32 v;
-+	u32 v, wakeup_mask;
- 
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	wakeup_mask = (0x1 << oh->sysconfig->sysc_fields->enwkup_shift);
-+
- 	v = oh->_sysc_cache;
--	v |= SYSC_ENAWAKEUP_MASK;
-+	v |= wakeup_mask;
- 	_write_sysconfig(v, oh);
- 
- 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
-@@ -272,14 +338,22 @@ static int _enable_wakeup(struct omap_hwmod *oh)
-  */
- static int _disable_wakeup(struct omap_hwmod *oh)
- {
--	u32 v;
-+	u32 v, wakeup_mask;
- 
- 	if (!oh->sysconfig ||
- 	    !(oh->sysconfig->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
-+	if (!oh->sysconfig->sysc_fields) {
-+		WARN(!oh->sysconfig->sysc_fields, "offset struct for "
-+			"sysconfig not provided!!!!\n");
-+		return -EINVAL;
-+	}
-+
-+	wakeup_mask = (0x1 << oh->sysconfig->sysc_fields->enwkup_shift);
-+
- 	v = oh->_sysc_cache;
--	v &= ~SYSC_ENAWAKEUP_MASK;
-+	v &= ~wakeup_mask;
- 	_write_sysconfig(v, oh);
- 
- 	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
-diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.c b/arch/arm/mach-omap2/omap_hwmod_common_data.c
-new file mode 100644
-index 0000000..e6ca6f0
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
-@@ -0,0 +1,46 @@
-+/*
-+ * omap_hwmod common data structures
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Thara Gopinath <thara@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This data/structures are to be used while defining OMAP on-chip module
-+ * data and their integration with other OMAP modules and Linux.
-+ */
-+
-+#include <linux/list.h>
-+
-+#include <plat/omap_hwmod.h>
-+
-+/**
-+ * struct omap_hwmod_sysc_type1 - TYPE1 sysconfig scheme.
-+ *
-+ * To be used by hwmod structure to specify the sysconfig offsets
-+ * if the device ip is compliant with the original PRCM protocol
-+ * defined for OMAP2420.
-+ */
-+struct omap_hwmod_sysc_fields omap_hwmod_sysc_type1 = {
-+	.midle_shift	= SYSC_TYPE1_MIDLEMODE_SHIFT,
-+	.clkact_shift	= SYSC_TYPE1_CLOCKACTIVITY_SHIFT,
-+	.sidle_shift	= SYSC_TYPE1_SIDLEMODE_SHIFT,
-+	.enwkup_shift	= SYSC_TYPE1_ENAWAKEUP_SHIFT,
-+	.srst_shift	= SYSC_TYPE1_SOFTRESET_SHIFT,
-+	.autoidle_shift	= SYSC_TYPE1_AUTOIDLE_SHIFT,
-+};
-+
-+/**
-+ * struct omap_hwmod_sysc_type2 - TYPE2 sysconfig scheme.
-+ *
-+ * To be used by hwmod structure to specify the sysconfig offsets if the
-+ * device ip is compliant with the new PRCM protocol defined for new
-+ * OMAP4 IPs.
-+ */
-+struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2 = {
-+	.midle_shift	= SYSC_TYPE2_MIDLEMODE_SHIFT,
-+	.sidle_shift	= SYSC_TYPE2_SIDLEMODE_SHIFT,
-+	.srst_shift	= SYSC_TYPE2_SOFTRESET_SHIFT,
-+};
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 921990e..7714caf 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -39,19 +39,39 @@
- 
- struct omap_device;
- 
--/* OCP SYSCONFIG bit shifts/masks */
--#define SYSC_MIDLEMODE_SHIFT		12
--#define SYSC_MIDLEMODE_MASK		(0x3 << SYSC_MIDLEMODE_SHIFT)
--#define SYSC_CLOCKACTIVITY_SHIFT	8
--#define SYSC_CLOCKACTIVITY_MASK		(0x3 << SYSC_CLOCKACTIVITY_SHIFT)
--#define SYSC_SIDLEMODE_SHIFT		3
--#define SYSC_SIDLEMODE_MASK		(0x3 << SYSC_SIDLEMODE_SHIFT)
--#define SYSC_ENAWAKEUP_SHIFT		2
--#define SYSC_ENAWAKEUP_MASK		(1 << SYSC_ENAWAKEUP_SHIFT)
--#define SYSC_SOFTRESET_SHIFT		1
--#define SYSC_SOFTRESET_MASK		(1 << SYSC_SOFTRESET_SHIFT)
--#define SYSC_AUTOIDLE_SHIFT		0
--#define SYSC_AUTOIDLE_MASK		(1 << SYSC_AUTOIDLE_SHIFT)
-+extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type1;
-+extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2;
-+
-+/*
-+ * OCP SYSCONFIG bit shifts/masks TYPE1. These are for IPs compliant
-+ * with the original PRCM protocol defined for OMAP2420
-+ */
-+#define SYSC_TYPE1_MIDLEMODE_SHIFT		12
-+#define SYSC_TYPE1_MIDLEMODE_MASK		(0x3 << SYSC_MIDLEMODE_SHIFT)
-+#define SYSC_TYPE1_CLOCKACTIVITY_SHIFT		8
-+#define SYSC_TYPE1_CLOCKACTIVITY_MASK 		\
-+					(0x3 << SYSC_CLOCKACTIVITY_SHIFT)
-+#define SYSC_TYPE1_SIDLEMODE_SHIFT		3
-+#define SYSC_TYPE1_SIDLEMODE_MASK		(0x3 << SYSC_SIDLEMODE_SHIFT)
-+#define SYSC_TYPE1_ENAWAKEUP_SHIFT		2
-+#define SYSC_TYPE1_ENAWAKEUP_MASK		(1 << SYSC_ENAWAKEUP_SHIFT)
-+#define SYSC_TYPE1_SOFTRESET_SHIFT		1
-+#define SYSC_TYPE1_SOFTRESET_MASK		(1 << SYSC_SOFTRESET_SHIFT)
-+#define SYSC_TYPE1_AUTOIDLE_SHIFT		0
-+#define SYSC_TYPE1_AUTOIDLE_MASK		(1 << SYSC_AUTOIDLE_SHIFT)
-+
-+/* OCP SYSCONFIG bit shifts/masks TYPE2. These are for IPs compliant
-+ * with the new PRCM protocol defined for new OMAP4 IPs.
-+ */
-+#define SYSC_TYPE2_SOFTRESET_SHIFT		0
-+#define SYSC_TYPE2_SOFTRESET_MASK		\
-+					(1 << SYSC_TYPE2_SOFTRESET_SHIFT)
-+#define SYSC_TYPE2_SIDLEMODE_SHIFT		2
-+#define SYSC_TYPE2_SIDLEMODE_MASK		\
-+					(0x3 << SYSC_TYPE2_SIDLEMODE_SHIFT)
-+#define SYSC_TYPE2_MIDLEMODE_SHIFT		4
-+#define SYSC_TYPE2_MIDLEMODE_MASK		\
-+					(0x3 << SYSC_TYPE2_MIDLEMODE_SHIFT)
- 
- /* OCP SYSSTATUS bit shifts/masks */
- #define SYSS_RESETDONE_SHIFT		0
-@@ -62,7 +82,6 @@ struct omap_device;
- #define HWMOD_IDLEMODE_NO		(1 << 1)
- #define HWMOD_IDLEMODE_SMART		(1 << 2)
- 
--
- /**
-  * struct omap_hwmod_irq_info - MPU IRQs used by the hwmod
-  * @name: name of the IRQ channel (module local name)
-@@ -236,6 +255,24 @@ struct omap_hwmod_ocp_if {
- #define CLOCKACT_TEST_NONE	0x3
- 
- /**
-+ * struct omap_hwmod_sysc_fields - hwmod OCP_SYSCONFIG register field offsets.
-+ * @midle_shift: Offset of the midle bit
-+ * @clkact_shift: Offset of the clockactivity bit
-+ * @sidle_shift: Offset of the sidle bit
-+ * @enawkup_shift: Offset of the enawakeup bit
-+ * @sreset_shift: Offset of the softreset bit
-+ * @autoidle_shift: Offset of the autoidle bit.
-+ */
-+struct omap_hwmod_sysc_fields {
-+	u8 midle_shift;
-+	u8 clkact_shift;
-+	u8 sidle_shift;
-+	u8 enwkup_shift;
-+	u8 srst_shift;
-+	u8 autoidle_shift;
-+};
-+
-+/**
-  * struct omap_hwmod_sysconfig - hwmod OCP_SYSCONFIG/OCP_SYSSTATUS data
-  * @rev_offs: IP block revision register offset (from module base addr)
-  * @sysc_offs: OCP_SYSCONFIG register offset (from module base addr)
-@@ -252,6 +289,14 @@ struct omap_hwmod_ocp_if {
-  * been associated with the clocks marked in @clockact.  This field is
-  * only used if HWMOD_SET_DEFAULT_CLOCKACT is set (see below)
-  *
-+ *
-+ * @sysc_fields: structure containing the offset positions of various bits in
-+ * SYSCONFIG register. This can be populated using omap_hwmod_sysc_type1 or
-+ * omap_hwmod_sysc_type2 defined in omap_hwmod_common_data.c depending on
-+ * whether the device ip is compliant with the original PRCM protocol
-+ * defined for OMAP2420 or the new  PRCM protocol for new OMAP4 IPs.
-+ * If the device follows a differnt scheme for the sysconfig register ,
-+ * then this field has to be populated with the correct offset structure.
-  */
- struct omap_hwmod_sysconfig {
- 	u16 rev_offs;
-@@ -260,6 +305,7 @@ struct omap_hwmod_sysconfig {
- 	u8 idlemodes;
- 	u8 sysc_flags;
- 	u8 clockact;
-+	struct omap_hwmod_sysc_fields *sysc_fields;
- };
- 
- /**
--- 
-1.7.0.rc1.33.g07cf0f
-
+> - Paul
+> 
+> 
+> From: Ranjith Lohithakshan <ranjithl@ti.com>
+> Date: Fri, 5 Feb 2010 12:55:21 -0700
+> Subject: [PATCH] OMAP2/3 clock: Extend find_idlest() to pass back idle state value
+> 
+> Current implementation defines clock idle state indicators based on the
+> cpu information (cpu_is_omap24xx() or cpu_is_omap34xx()) in a system wide
+> manner. This patch extends the find_idlest() function in clkops to pass
+> back the idle state indicator for that clock, thus allowing idle state
+> indicators to be defined on a per clock basis if required.
+> 
+> This is specifically needed on AM35xx devices as the new IPSS clocks
+> indicates the idle status (0 is idle, 1 is ready) in a way just
+> opposite to how its handled in OMAP3 (0 is ready, 1 is idle).
+> 
+> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+> [paul@pwsan.com: updated to apply after commit 98c45457 et seq.]
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/clkt2xxx_apll.c     |    2 +-
+>  arch/arm/mach-omap2/clock.c             |   25 ++++++++++++++++++++-----
+>  arch/arm/mach-omap2/clock.h             |    2 +-
+>  arch/arm/mach-omap2/clock2xxx.c         |    5 ++++-
+>  arch/arm/mach-omap2/clock34xx.c         |   15 ++++++++++++---
+>  arch/arm/mach-omap2/cm.h                |    3 +++
+>  arch/arm/mach-omap2/prcm.c              |   14 +++++---------
+>  arch/arm/plat-omap/include/plat/clock.h |    6 ++++--
+>  arch/arm/plat-omap/include/plat/prcm.h  |    3 ++-
+>  9 files changed, 52 insertions(+), 23 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clkt2xxx_apll.c b/arch/arm/mach-omap2/clkt2xxx_apll.c
+> index fc32ff8..d5b8b2b 100644
+> --- a/arch/arm/mach-omap2/clkt2xxx_apll.c
+> +++ b/arch/arm/mach-omap2/clkt2xxx_apll.c
+> @@ -57,7 +57,7 @@ static int omap2_clk_apll_enable(struct clk *clk, u32 status_mask)
+>         cm_write_mod_reg(cval, PLL_MOD, CM_CLKEN);
+> 
+>         omap2_cm_wait_idlest(OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST), status_mask,
+> -                            clk->name);
+> +                            OMAP24XX_CM_IDLEST_VAL, clk->name);
+> 
+>         /*
+>          * REVISIT: Should we return an error code if omap2_wait_clock_ready()
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index 999b91e..3bb3292 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -57,7 +57,7 @@ u8 cpu_mask;
+>  static void _omap2_module_wait_ready(struct clk *clk)
+>  {
+>         void __iomem *companion_reg, *idlest_reg;
+> -       u8 other_bit, idlest_bit;
+> +       u8 other_bit, idlest_bit, idlest_val;
+> 
+>         /* Not all modules have multiple clocks that their IDLEST depends on */
+>         if (clk->ops->find_companion) {
+> @@ -66,9 +66,10 @@ static void _omap2_module_wait_ready(struct clk *clk)
+>                         return;
+>         }
+> 
+> -       clk->ops->find_idlest(clk, &idlest_reg, &idlest_bit);
+> +       clk->ops->find_idlest(clk, &idlest_reg, &idlest_bit, &idlest_val);
+> 
+> -       omap2_cm_wait_idlest(idlest_reg, (1 << idlest_bit), clk->name);
+> +       omap2_cm_wait_idlest(idlest_reg, (1 << idlest_bit), idlest_val,
+> +                            clk->name);
+>  }
+> 
+>  /* Enables clock without considering parent dependencies or use count
+> @@ -175,7 +176,8 @@ void omap2_clk_dflt_find_companion(struct clk *clk, void __iomem **other_reg,
+>   * omap2_clk_dflt_find_idlest - find CM_IDLEST reg va, bit shift for @clk
+>   * @clk: struct clk * to find IDLEST info for
+>   * @idlest_reg: void __iomem ** to return the CM_IDLEST va in
+> - * @idlest_bit: u8 ** to return the CM_IDLEST bit shift in
+> + * @idlest_bit: u8 * to return the CM_IDLEST bit shift in
+> + * @idlest_val: u8 * to return the idle status indicator
+>   *
+>   * Return the CM_IDLEST register address and bit shift corresponding
+>   * to the module that "owns" this clock.  This default code assumes
+> @@ -185,13 +187,26 @@ void omap2_clk_dflt_find_companion(struct clk *clk, void __iomem **other_reg,
+>   * CM_IDLEST2).  This is not true for all modules.  No return value.
+>   */
+>  void omap2_clk_dflt_find_idlest(struct clk *clk, void __iomem **idlest_reg,
+> -                               u8 *idlest_bit)
+> +                               u8 *idlest_bit, u8 *idlest_val)
+>  {
+>         u32 r;
+> 
+>         r = (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
+>         *idlest_reg = (__force void __iomem *)r;
+>         *idlest_bit = clk->enable_bit;
+> +
+> +       /*
+> +        * 24xx uses 0 to indicate not ready, and 1 to indicate ready.
+> +        * 34xx reverses this, just to keep us on our toes
+> +        * AM35xx uses both, depending on the module.
+> +        */
+> +       if (cpu_is_omap24xx())
+> +               *idlest_val = OMAP24XX_CM_IDLEST_VAL;
+> +       else if (cpu_is_omap34xx())
+> +               *idlest_val = OMAP34XX_CM_IDLEST_VAL;
+> +       else
+> +               BUG();
+> +
+>  }
+> 
+>  int omap2_dflt_clk_enable(struct clk *clk)
+> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+> index 7bc344b..c500a5f 100644
+> --- a/arch/arm/mach-omap2/clock.h
+> +++ b/arch/arm/mach-omap2/clock.h
+> @@ -88,7 +88,7 @@ void omap2_dflt_clk_disable(struct clk *clk);
+>  void omap2_clk_dflt_find_companion(struct clk *clk, void __iomem **other_reg,
+>                                    u8 *other_bit);
+>  void omap2_clk_dflt_find_idlest(struct clk *clk, void __iomem **idlest_reg,
+> -                               u8 *idlest_bit);
+> +                               u8 *idlest_bit, u8 *idlest_val);
+>  void omap2xxx_clk_commit(struct clk *clk);
+> 
+>  extern u8 cpu_mask;
+> diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
+> index a48b01a..94fb8a6 100644
+> --- a/arch/arm/mach-omap2/clock2xxx.c
+> +++ b/arch/arm/mach-omap2/clock2xxx.c
+> @@ -42,6 +42,7 @@ struct clk *vclk, *sclk, *dclk;
+>   * @clk: struct clk * being enabled
+>   * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
+>   * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+> + * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+>   *
+>   * OMAP2430 I2CHS CM_IDLEST bits are in CM_IDLEST1_CORE, but the
+>   * CM_*CLKEN bits are in CM_{I,F}CLKEN2_CORE.  This custom function
+> @@ -50,10 +51,12 @@ struct clk *vclk, *sclk, *dclk;
+>   */
+>  static void omap2430_clk_i2chs_find_idlest(struct clk *clk,
+>                                            void __iomem **idlest_reg,
+> -                                          u8 *idlest_bit)
+> +                                          u8 *idlest_bit,
+> +                                          u8 *idlest_val)
+>  {
+>         *idlest_reg = OMAP_CM_REGADDR(CORE_MOD, CM_IDLEST);
+>         *idlest_bit = clk->enable_bit;
+> +       *idlest_val = OMAP24XX_CM_IDLEST_VAL;
+>  }
+> 
+>  #else
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index 1f1b5a6..d339d2b 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -47,6 +47,7 @@ struct clk *sdrc_ick_p, *arm_fck_p;
+>   * @clk: struct clk * being enabled
+>   * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
+>   * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+> + * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+>   *
+>   * The OMAP3430ES2 SSI target CM_IDLEST bit is at a different shift
+>   * from the CM_{I,F}CLKEN bit.  Pass back the correct info via
+> @@ -54,13 +55,15 @@ struct clk *sdrc_ick_p, *arm_fck_p;
+>   */
+>  static void omap3430es2_clk_ssi_find_idlest(struct clk *clk,
+>                                             void __iomem **idlest_reg,
+> -                                           u8 *idlest_bit)
+> +                                           u8 *idlest_bit,
+> +                                           u8 *idlest_val)
+>  {
+>         u32 r;
+> 
+>         r = (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
+>         *idlest_reg = (__force void __iomem *)r;
+>         *idlest_bit = OMAP3430ES2_ST_SSI_IDLE_SHIFT;
+> +       *idlest_val = OMAP34XX_CM_IDLEST_VAL;
+>  }
+> 
+>  const struct clkops clkops_omap3430es2_ssi_wait = {
+> @@ -75,6 +78,7 @@ const struct clkops clkops_omap3430es2_ssi_wait = {
+>   * @clk: struct clk * being enabled
+>   * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
+>   * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+> + * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+>   *
+>   * Some OMAP modules on OMAP3 ES2+ chips have both initiator and
+>   * target IDLEST bits.  For our purposes, we are concerned with the
+> @@ -85,7 +89,8 @@ const struct clkops clkops_omap3430es2_ssi_wait = {
+>   */
+>  static void omap3430es2_clk_dss_usbhost_find_idlest(struct clk *clk,
+>                                                     void __iomem **idlest_reg,
+> -                                                   u8 *idlest_bit)
+> +                                                   u8 *idlest_bit,
+> +                                                   u8 *idlest_val)
+>  {
+>         u32 r;
+> 
+> @@ -93,6 +98,7 @@ static void omap3430es2_clk_dss_usbhost_find_idlest(struct clk *clk,
+>         *idlest_reg = (__force void __iomem *)r;
+>         /* USBHOST_IDLE has same shift */
+>         *idlest_bit = OMAP3430ES2_ST_DSS_IDLE_SHIFT;
+> +       *idlest_val = OMAP34XX_CM_IDLEST_VAL;
+>  }
+> 
+>  const struct clkops clkops_omap3430es2_dss_usbhost_wait = {
+> @@ -107,6 +113,7 @@ const struct clkops clkops_omap3430es2_dss_usbhost_wait = {
+>   * @clk: struct clk * being enabled
+>   * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
+>   * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+> + * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+>   *
+>   * The OMAP3430ES2 HSOTGUSB target CM_IDLEST bit is at a different
+>   * shift from the CM_{I,F}CLKEN bit.  Pass back the correct info via
+> @@ -114,13 +121,15 @@ const struct clkops clkops_omap3430es2_dss_usbhost_wait = {
+>   */
+>  static void omap3430es2_clk_hsotgusb_find_idlest(struct clk *clk,
+>                                                  void __iomem **idlest_reg,
+> -                                                u8 *idlest_bit)
+> +                                                u8 *idlest_bit,
+> +                                                u8 *idlest_val)
+>  {
+>         u32 r;
+> 
+>         r = (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
+>         *idlest_reg = (__force void __iomem *)r;
+>         *idlest_bit = OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT;
+> +       *idlest_val = OMAP34XX_CM_IDLEST_VAL;
+>  }
+> 
+>  const struct clkops clkops_omap3430es2_hsotgusb_wait = {
+> diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+> index 4e4ac8c..94728b1 100644
+> --- a/arch/arm/mach-omap2/cm.h
+> +++ b/arch/arm/mach-omap2/cm.h
+> @@ -139,5 +139,8 @@ static inline u32 cm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
+>  /* CM_IDLEST_GFX */
+>  #define OMAP_ST_GFX                                    (1 << 0)
+> 
+> +/* CM_IDLEST indicator */
+> +#define OMAP24XX_CM_IDLEST_VAL         0
+> +#define OMAP34XX_CM_IDLEST_VAL         1
+> 
+>  #endif
+> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+> index e8e121a..0f87fdc 100644
+> --- a/arch/arm/mach-omap2/prcm.c
+> +++ b/arch/arm/mach-omap2/prcm.c
+> @@ -242,26 +242,22 @@ u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx)
+>   * omap2_cm_wait_idlest - wait for IDLEST bit to indicate module readiness
+>   * @reg: physical address of module IDLEST register
+>   * @mask: value to mask against to determine if the module is active
+> + * @idlest: idle state indicator (0 or 1) for the clock
+>   * @name: name of the clock (for printk)
+>   *
+>   * Returns 1 if the module indicated readiness in time, or 0 if it
+>   * failed to enable in roughly MAX_MODULE_ENABLE_WAIT microseconds.
+>   */
+> -int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, const char *name)
+> +int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
+> +                               const char *name)
+>  {
+>         int i = 0;
+>         int ena = 0;
+> 
+> -       /*
+> -        * 24xx uses 0 to indicate not ready, and 1 to indicate ready.
+> -        * 34xx reverses this, just to keep us on our toes
+> -        */
+> -       if (cpu_is_omap24xx())
+> -               ena = mask;
+> -       else if (cpu_is_omap34xx())
+> +       if (idlest)
+>                 ena = 0;
+>         else
+> -               BUG();
+> +               ena = mask;
+> 
+>         /* Wait for lock */
+>         omap_test_timeout(((__raw_readl(reg) & mask) == ena),
+> diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+> index e413132..9042dab 100644
+> --- a/arch/arm/plat-omap/include/plat/clock.h
+> +++ b/arch/arm/plat-omap/include/plat/clock.h
+> @@ -22,8 +22,10 @@ struct clockdomain;
+>  struct clkops {
+>         int                     (*enable)(struct clk *);
+>         void                    (*disable)(struct clk *);
+> -       void                    (*find_idlest)(struct clk *, void __iomem **, u8 *);
+> -       void                    (*find_companion)(struct clk *, void __iomem **, u8 *);
+> +       void                    (*find_idlest)(struct clk *, void __iomem **,
+> +                                              u8 *, u8 *);
+> +       void                    (*find_companion)(struct clk *, void __iomem **,
+> +                                                 u8 *);
+>  };
+> 
+>  #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
+> diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
+> index 66938a9..d6a0e27 100644
+> --- a/arch/arm/plat-omap/include/plat/prcm.h
+> +++ b/arch/arm/plat-omap/include/plat/prcm.h
+> @@ -25,7 +25,8 @@
+> 
+>  u32 omap_prcm_get_reset_sources(void);
+>  void omap_prcm_arch_reset(char mode);
+> -int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, const char *name);
+> +int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
+> +                        const char *name);
+> 
+>  #define START_PADCONF_SAVE 0x2
+>  #define PADCONF_SAVE_DONE  0x1
+> --
+> 1.6.6.rc2.5.g49666
+> 
