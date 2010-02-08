@@ -1,68 +1,62 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: [PATCH v2 0/3] OMAP: NAND: support flashes on sdp boards
-Date: Mon, 8 Feb 2010 16:51:54 +0530
-Message-ID: <ce9ab5791002080321k459c159wbe843376a129528e@mail.gmail.com>
-References: <ce9ab5791001122246v254bb721p68c58607a292fb8e@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] Input: ads7846: add regulator support
+Date: Mon, 8 Feb 2010 11:30:29 +0000
+Message-ID: <20100208113028.GA15630@rakim.wolfsonmicro.main>
+References: <1265290758-2035-1-git-send-email-notasas@gmail.com>
+ <20100204142439.GA1139@sirena.org.uk>
+ <6ed0b2681002040652r722e3df2s3f032a9fe0d0c0fe@mail.gmail.com>
+ <20100204162155.GB29982@rakim.wolfsonmicro.main>
+ <f870da181002051245t2f37065duae595fee391e7fd9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f223.google.com ([209.85.218.223]:39563 "EHLO
-	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750722Ab0BHLWQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 06:22:16 -0500
-Received: by bwz23 with SMTP id 23so991407bwz.1
-        for <linux-omap@vger.kernel.org>; Mon, 08 Feb 2010 03:22:14 -0800 (PST)
-In-Reply-To: <ce9ab5791001122246v254bb721p68c58607a292fb8e@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <f870da181002051245t2f37065duae595fee391e7fd9@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Mike Rapoport <mike.rapoport@gmail.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Linux MTD <linux-mtd@lists.infradead.org>
 
-On Wed, Jan 13, 2010 at 12:16 PM, Vimal Singh <vimal.newwork@gmail.com> wrote:
-> From 4fbddd880c7a0da61fb66ae1d2c2553e3fbc82cb Mon Sep 17 00:00:00 2001
-> From: Vimal Singh <vimalsingh@ti.com>
-> Date: Tue, 12 Jan 2010 18:14:14 +0530
-> Subject: [PATCH] OMAP: NAND: support flashes on sdp boards
+On Fri, Feb 05, 2010 at 10:45:09PM +0200, Mike Rapoport wrote:
+> On Thu, Feb 4, 2010 at 6:21 PM, Mark Brown
 
+> > The bodge I'm thinking of would do something like log an error and
+> > substitute in a dummy regulator when regulator_get() would have fai=
+led
+> > so that the driver sees behaviour equivalent to the stubbed regulat=
+or
+> > API if the bodge is active. =A0A central thing seems much more sens=
+ible
+> > here - there's nothing specific to this driver going on here and ha=
+ving
+> > the API behave in a consistent manner seems good.
 
-Reposting this patch set again after fixes in 1st patch as per
-comments from Tony:
-- Removing 'nand_base' from functions specified and correcting
-prototype in header file too
-- calling gpmc_cs_request first
+> I agree that such approach have more sense than checking for -ENODEV
+> in each and every driver that uses the regulator framework. I just
+> wonder, if there should be some mechanism that  can switch the
+> substitution of the dummy regulators on and off. And if yes, how
+> should the platform code communicate with the regulator core the need
+> for such dummy regulators...
 
-Rest of the patches in the series are untouched and just have been
-re-based on LO master branch.
+So, having thought about this a bit more we actually have two different
+use cases here.  One is where you've got a system which has software
+controllable regulators for everything but may not have plumbed in all
+the supplies, the other is for systems where only a very few supplies
+are on software controlled regulators which are just trying to save the
+hassle of hooking up the bulk of the supplies to fixed voltage
+regulators.  These two use cases should probably be handled differently
+- the first one is really expected to have all the supplies hooked up
+and so should warn when using the bodge regulator but the warning isn't
+helpful in the second case.
 
+We already have some support for boards to set up the API in the form o=
+f
+regulator_set_full_constraints() so we could do something similar for
+dummy regulators, or create a new single API to set a bunch of options
+via a struct which is probably less hassle going forward.
 --
-Vimal
-
-
->From d3e5ee6d8a6449aee01fbc93313201a4674f5577 Mon Sep 17 00:00:00 2001
-From: Vimal Singh <vimalsingh@ti.com>
-Date: Mon, 8 Feb 2010 05:19:20 +0530
-Subject: [PATCH] OMAP: NAND: support flashes on sdp boards
-
-1st patch introduces 'gpmc-nand.c' for generic gpmc stuffs. Which may be
-used by any omap board.
-
-2nd and 3rd patches are to show up how to use 'gpmc-nand.c' with example
-of 3430sdp board.
-
-Vimal Singh (3):
-  Introducing 'gpmc-nand.c' for GPMC specific NAND init
-  OMAP: SDP: Introducing 'board-sdp-flash.c' for flash init
-  OMAP3: Add support for flash on 3430SDP board
-
- arch/arm/mach-omap2/Makefile                 |    4 +
- arch/arm/mach-omap2/board-3430sdp.c          |  111 ++++++++++
- arch/arm/mach-omap2/board-sdp-flash.c        |  295 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/gpmc-nand.c              |  139 ++++++++++++
- arch/arm/mach-omap2/include/mach/board-sdp.h |   22 ++
- arch/arm/plat-omap/include/plat/gpmc.h       |    2 +
- arch/arm/plat-omap/include/plat/nand.h       |   10 +-
- drivers/mtd/nand/omap2.c                     |   35 +---
- 8 files changed, 586 insertions(+), 32 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-sdp-flash.c
- create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
- create mode 100644 arch/arm/mach-omap2/include/mach/board-sdp.h
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
