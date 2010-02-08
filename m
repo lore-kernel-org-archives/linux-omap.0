@@ -1,190 +1,58 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: [PATCH v2 3/3] OMAP3: Add support for flash on 3430SDP board
-Date: Mon, 8 Feb 2010 17:18:40 +0530
-Message-ID: <ce9ab5791002080348r499bcbdep9b47bcbc786058c1@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] OMAP: hsmmc: fix memory leak
+Date: Mon,  8 Feb 2010 14:33:05 +0200
+Message-ID: <1265632385-27448-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f223.google.com ([209.85.218.223]:40388 "EHLO
-	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032Ab0BHLtB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 06:49:01 -0500
-Received: by bwz23 with SMTP id 23so1010438bwz.1
-        for <linux-omap@vger.kernel.org>; Mon, 08 Feb 2010 03:49:00 -0800 (PST)
+Received: from smtp.nokia.com ([192.100.105.134]:28306 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750865Ab0BHMcG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 07:32:06 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: adrian.hunter@nokia.com, jarkko.lavinen@nokia.com
 
->From d3e5ee6d8a6449aee01fbc93313201a4674f5577 Mon Sep 17 00:00:00 2001
-From: Vimal Singh <vimalsingh@ti.com>
-Date: Mon, 8 Feb 2010 05:06:33 +0530
-Subject: [PATCH 3/3] OMAP3: Add support for flash on 3430SDP board
+The platform data allocated with kmalloc() will become unreachable once
+the init is complete, so it should be freed. The problem was discovered
+by kmemleak.
 
-This patch adds support for flashes on 3430SDP boards. All three
-NAND, NOR and OneNAND are supported. I have tested it on
-3430SDP (ES2 and ES3.1).
-
-This patch can be treated as an example to "how to utilize":
-'gpmc-nand.c' and 'board-sdp-flash.c'.
-
-Similar patches can be created for 2430sdp and 3630sdp or any other
-similar board.
-
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 ---
- arch/arm/mach-omap2/Makefile        |    1 +
- arch/arm/mach-omap2/board-3430sdp.c |  111 +++++++++++++++++++++++++++++++++++
- 2 files changed, 112 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/hsmmc.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index c012dd1..9454a92 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -100,6 +100,7 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
- obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
-+					   board-sdp-flash.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c
-b/arch/arm/mach-omap2/board-3430sdp.c
-index 854b6f4..5adef51 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -41,6 +41,8 @@
- #include <plat/control.h>
- #include <plat/gpmc-smc91x.h>
-
-+#include <mach/board-sdp.h>
-+
- #include "mux.h"
- #include "sdram-qimonda-hyb18m512160af-6.h"
- #include "hsmmc.h"
-@@ -650,6 +652,114 @@ static struct omap_board_mux board_mux[] __initdata = {
- #define board_mux	NULL
- #endif
-
-+static struct mtd_partition sdp_nor_partitions[] = {
-+	/* bootloader (U-Boot, etc) in first sector */
-+	{
-+		.name		= "Bootloader-NOR",
-+		.offset		= 0,
-+		.size		= SZ_256K,
-+		.mask_flags	= MTD_WRITEABLE, /* force read-only */
-+	},
-+	/* bootloader params in the next sector */
-+	{
-+		.name		= "Params-NOR",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= SZ_256K,
-+		.mask_flags	= 0,
-+	},
-+	/* kernel */
-+	{
-+		.name		= "Kernel-NOR",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= SZ_2M,
-+		.mask_flags	= 0
-+	},
-+	/* file system */
-+	{
-+		.name		= "Filesystem-NOR",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= MTDPART_SIZ_FULL,
-+		.mask_flags	= 0
-+	}
-+};
-+
-+static struct mtd_partition sdp_onenand_partitions[] = {
-+	{
-+		.name		= "X-Loader-OneNAND",
-+		.offset		= 0,
-+		.size		= 4 * (64 * 2048),
-+		.mask_flags	= MTD_WRITEABLE  /* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot-OneNAND",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 2 * (64 * 2048),
-+		.mask_flags	= MTD_WRITEABLE  /* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot Environment-OneNAND",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 1 * (64 * 2048),
-+	},
-+	{
-+		.name		= "Kernel-OneNAND",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 16 * (64 * 2048),
-+	},
-+	{
-+		.name		= "File System-OneNAND",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= MTDPART_SIZ_FULL,
-+	},
-+};
-+
-+static struct mtd_partition sdp_nand_partitions[] = {
-+	/* All the partition sizes are listed in terms of NAND block size */
-+	{
-+		.name		= "X-Loader-NAND",
-+		.offset		= 0,
-+		.size		= 4 * (64 * 2048),
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-+		.size		= 10 * (64 * 2048),
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "Boot Env-NAND",
-+
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1c0000 */
-+		.size		= 6 * (64 * 2048),
-+	},
-+	{
-+		.name		= "Kernel-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
-+		.size		= 40 * (64 * 2048),
-+	},
-+	{
-+		.name		= "File System - NAND",
-+		.size		= MTDPART_SIZ_FULL,
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x780000 */
-+	},
-+};
-+
-+static struct flash_partitions sdp_flash_partitions[] = {
-+	{
-+		.parts = sdp_nor_partitions,
-+		.nr_parts = ARRAY_SIZE(sdp_nor_partitions),
-+	},
-+	{
-+		.parts = sdp_onenand_partitions,
-+		.nr_parts = ARRAY_SIZE(sdp_onenand_partitions),
-+	},
-+	{
-+		.parts = sdp_nand_partitions,
-+		.nr_parts = ARRAY_SIZE(sdp_nand_partitions),
-+	},
-+};
-+
- static void __init omap_3430sdp_init(void)
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index 1156b28..9ad2295 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -145,6 +145,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
  {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-@@ -666,6 +776,7 @@ static void __init omap_3430sdp_init(void)
- 	omap_serial_init();
- 	usb_musb_init();
- 	board_smc91x_init();
-+	sdp_flash_init(sdp_flash_partitions);
- 	sdp3430_display_init();
- 	enable_board_wakeup_source();
- 	usb_ehci_init(&ehci_pdata);
+ 	struct omap2_hsmmc_info *c;
+ 	int nr_hsmmc = ARRAY_SIZE(hsmmc_data);
++	int i;
+ 
+ 	if (cpu_is_omap2430()) {
+ 		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
+@@ -171,7 +172,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 			      GFP_KERNEL);
+ 		if (!mmc) {
+ 			pr_err("Cannot allocate memory for mmc device!\n");
+-			return;
++			goto done;
+ 		}
+ 
+ 		if (c->name)
+@@ -256,6 +257,10 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 			continue;
+ 		c->dev = mmc->dev;
+ 	}
++
++done:
++	for (i = 0; i < nr_hsmmc; i++)
++		kfree(hsmmc_data[i]);
+ }
+ 
+ #endif
 -- 
-1.6.3.3
+1.5.6.5
+
