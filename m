@@ -1,58 +1,61 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH] OMAP: hsmmc: fix memory leak
-Date: Mon,  8 Feb 2010 14:33:05 +0200
-Message-ID: <1265632385-27448-1-git-send-email-aaro.koskinen@nokia.com>
+From: Ladislav Michl <Ladislav.Michl@seznam.cz>
+Subject: Re: [PATCH v2 2/3] OMAP: SDP: Introducing 'board-sdp-flash.c' for
+	flash init
+Date: Mon, 8 Feb 2010 14:52:09 +0100
+Message-ID: <20100208135209.GA11847@localhost.localdomain>
+References: <ce9ab5791002080347q3c8a73bvf80736b125cfac1@mail.gmail.com>
+Reply-To: Ladislav Michl <ladis@linux-mips.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28306 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865Ab0BHMcG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 07:32:06 -0500
+Received: from smtp.seznam.cz ([77.75.76.43]:59525 "EHLO smtp.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751283Ab0BHMwO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Feb 2010 07:52:14 -0500
+Content-Disposition: inline
+In-Reply-To: <ce9ab5791002080347q3c8a73bvf80736b125cfac1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: adrian.hunter@nokia.com, jarkko.lavinen@nokia.com
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-The platform data allocated with kmalloc() will become unreachable once
-the init is complete, so it should be freed. The problem was discovered
-by kmemleak.
+> diff --git a/arch/arm/mach-omap2/board-sdp-flash.c
+> b/arch/arm/mach-omap2/board-sdp-flash.c
+> new file mode 100644
+> index 0000000..54ef19f
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-sdp-flash.c
+[snip]
+> +static void omap_set_vpp(struct map_info *map, int enable)
+> +{
+> +	static int      count;
+> +	u32 l;
+> +
+> +	if (cpu_class_is_omap1()) {
+> +		if (enable) {
+> +			if (count++ == 0) {
+> +				l = omap_readl(EMIFS_CONFIG);
+> +				l |= OMAP_EMIFS_CONFIG_WP;
+> +				omap_writel(l, EMIFS_CONFIG);
+> +			}
+> +		} else {
+> +			if (count && (--count == 0)) {
+> +				l = omap_readl(EMIFS_CONFIG);
+> +				l &= ~OMAP_EMIFS_CONFIG_WP;
+> +				omap_writel(l, EMIFS_CONFIG);
+> +			}
+> +		}
+> +	}
+> +}
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- arch/arm/mach-omap2/hsmmc.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+Hmm, as you are adding files into arch/arm/mach-omap2 directory, is there
+a chance cpu_class_is_omap1() ever returns non-zero?
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index 1156b28..9ad2295 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -145,6 +145,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- {
- 	struct omap2_hsmmc_info *c;
- 	int nr_hsmmc = ARRAY_SIZE(hsmmc_data);
-+	int i;
- 
- 	if (cpu_is_omap2430()) {
- 		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
-@@ -171,7 +172,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 			      GFP_KERNEL);
- 		if (!mmc) {
- 			pr_err("Cannot allocate memory for mmc device!\n");
--			return;
-+			goto done;
- 		}
- 
- 		if (c->name)
-@@ -256,6 +257,10 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 			continue;
- 		c->dev = mmc->dev;
- 	}
-+
-+done:
-+	for (i = 0; i < nr_hsmmc; i++)
-+		kfree(hsmmc_data[i]);
- }
- 
- #endif
--- 
-1.5.6.5
+> +static struct physmap_flash_data sdp_nor_data = {
+> +	.width		= 2,
+> +	.set_vpp	= omap_set_vpp,
+> +};
+
+... and in case there is not, just leave set_vpp set to NULL and delete this
+incarnation of omap_set_vpp.
 
