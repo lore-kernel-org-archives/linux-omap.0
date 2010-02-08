@@ -1,77 +1,191 @@
-From: Tiago Maluta <tiago.maluta@gmail.com>
-Subject: [RFC][PATCH] Allow change timing values to wait slow devices bring up
-	before try register an interface to IP-Config (used on some drivers using
-	Multi-purpose USB Networking Framework)
-Date: Sat, 6 Feb 2010 23:30:35 +0000
-Message-ID: <600adaf51002061530o700378aaq75ff83b04d977958@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the omap_dss2 tree with the omap tree
+Date: Mon, 8 Feb 2010 17:25:21 +1100
+Message-ID: <20100208172521.abb500b4.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f228.google.com ([209.85.219.228]:47128 "EHLO
-	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756528Ab0BFXah (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Feb 2010 18:30:37 -0500
-Received: by ewy28 with SMTP id 28so1310232ewy.28
-        for <linux-omap@vger.kernel.org>; Sat, 06 Feb 2010 15:30:36 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-I'd like to know if this patch could be considered an general use or
-an particular case.
+Hi Tomi,
 
---tm
+Today's linux-next merge of the omap_dss2 tree got a conflict in
+arch/arm/mach-omap2/board-am3517evm.c between commit
+13560d875d67c06239c82a6148c1b87075701fe9 ("AM3517: Enable basic I2C
+Support") from the omap tree and commit
+56a3d0235cd50d14d7bd4d45e55d192aa0e78cac ("OMAP: AM3517: Enable DSS2 for
+AM3517EVM board") from the omap_dss2 tree.
 
-Signed-off-by: Tiago Maluta <maluta@unifei.edu.br>
----
- drivers/net/usb/Kconfig |   17 +++++++++++++++++
- net/ipv4/ipconfig.c     |    4 ++--
- 2 files changed, 19 insertions(+), 2 deletions(-)
+Juts overlapping additions.   I fixed it up (see below) and can carry the
+fix as necessary.
 
-diff --git a/drivers/net/usb/Kconfig b/drivers/net/usb/Kconfig
-index 32d9356..5b84e57 100644
---- a/drivers/net/usb/Kconfig
-+++ b/drivers/net/usb/Kconfig
-@@ -127,6 +127,23 @@ config USB_USBNET
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called usbnet.
-
-+
-+config USB_USBNETDEVICE_DELAY_PRE
-+	int "Define the friendly delay before opening net devices "
-+	depends on USB_USBNET
-+	default 500
-+	help
-+	    Some devices may not work due to a delay from hardware bring the interface
-+	    up. This value added a delay before search and register the interface.
-+
-+config USB_USBNETDEVICE_DELAY_POST
-+	int "Define the friendly delay after opening net devices "
-+	depends on USB_USBNET
-+	default 1
-+	help
-+	    Some devices may not work due to a delay from hardware bring the interface
-+	    up. This value added a delay before search and register the interface.
-+
- config USB_NET_AX8817X
- 	tristate "ASIX AX88xxx Based USB 2.0 Ethernet Adapters"
- 	depends on USB_USBNET
-diff --git a/net/ipv4/ipconfig.c b/net/ipv4/ipconfig.c
-index 10a6a60..3faac07 100644
---- a/net/ipv4/ipconfig.c
-+++ b/net/ipv4/ipconfig.c
-@@ -86,8 +86,8 @@
- #endif
-
- /* Define the friendly delay before and after opening net devices */
--#define CONF_PRE_OPEN		500	/* Before opening: 1/2 second */
--#define CONF_POST_OPEN		1	/* After opening: 1 second */
-+#define CONF_PRE_OPEN		CONFIG_USB_USBNETDEVICE_DELAY_PRE	/* Before
-opening. Default 1/2 second */
-+#define CONF_POST_OPEN		CONFIG_USB_USBNETDEVICE_DELAY_POST	/* After
-opening. Default 1 second */
-
- /* Define the timeout for waiting for a DHCP/BOOTP/RARP reply */
- #define CONF_OPEN_RETRIES 	2	/* (Re)open devices twice */
+P.S. Tomi, this omap_dss2 commit only has your Acked-by not Signed-off-by.
 -- 
-1.6.4.2
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+diff --cc arch/arm/mach-omap2/board-am3517evm.c
+index a166bcc,54af5f8..0000000
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@@ -33,15 -33,147 +34,156 @@@
+  
+  #include "mux.h"
+  
++ #define LCD_PANEL_PWR		176
++ #define LCD_PANEL_BKLIGHT_PWR	182
++ #define LCD_PANEL_PWM		181
++ 
++ static int lcd_enabled;
++ static int dvi_enabled;
++ 
++ static void __init am3517_evm_display_init(void)
++ {
++ 	int r;
++ 
++ 	omap_mux_init_gpio(LCD_PANEL_PWR, OMAP_PIN_INPUT_PULLUP);
++ 	omap_mux_init_gpio(LCD_PANEL_BKLIGHT_PWR, OMAP_PIN_INPUT_PULLDOWN);
++ 	omap_mux_init_gpio(LCD_PANEL_PWM, OMAP_PIN_INPUT_PULLDOWN);
++ 	/*
++ 	 * Enable GPIO 182 = LCD Backlight Power
++ 	 */
++ 	r = gpio_request(LCD_PANEL_BKLIGHT_PWR, "lcd_backlight_pwr");
++ 	if (r) {
++ 		printk(KERN_ERR "failed to get lcd_backlight_pwr\n");
++ 		return;
++ 	}
++ 	gpio_direction_output(LCD_PANEL_BKLIGHT_PWR, 1);
++ 	/*
++ 	 * Enable GPIO 181 = LCD Panel PWM
++ 	 */
++ 	r = gpio_request(LCD_PANEL_PWM, "lcd_pwm");
++ 	if (r) {
++ 		printk(KERN_ERR "failed to get lcd_pwm\n");
++ 		goto err_1;
++ 	}
++ 	gpio_direction_output(LCD_PANEL_PWM, 1);
++ 	/*
++ 	 * Enable GPIO 176 = LCD Panel Power enable pin
++ 	 */
++ 	r = gpio_request(LCD_PANEL_PWR, "lcd_panel_pwr");
++ 	if (r) {
++ 		printk(KERN_ERR "failed to get lcd_panel_pwr\n");
++ 		goto err_2;
++ 	}
++ 	gpio_direction_output(LCD_PANEL_PWR, 1);
++ 
++ 	printk(KERN_INFO "Display initialized successfully\n");
++ 	return;
++ 
++ err_2:
++ 	gpio_free(LCD_PANEL_PWM);
++ err_1:
++ 	gpio_free(LCD_PANEL_BKLIGHT_PWR);
++ }
++ 
++ static int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
++ {
++ 	if (dvi_enabled) {
++ 		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
++ 		return -EINVAL;
++ 	}
++ 	gpio_set_value(LCD_PANEL_PWR, 1);
++ 	lcd_enabled = 1;
++ 
++ 	return 0;
++ }
++ 
++ static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
++ {
++ 	gpio_set_value(LCD_PANEL_PWR, 0);
++ 	lcd_enabled = 0;
++ }
++ 
++ static struct omap_dss_device am3517_evm_lcd_device = {
++ 	.type			= OMAP_DISPLAY_TYPE_DPI,
++ 	.name			= "lcd",
++ 	.driver_name		= "sharp_lq_panel",
++ 	.phy.dpi.data_lines 	= 16,
++ 	.platform_enable	= am3517_evm_panel_enable_lcd,
++ 	.platform_disable	= am3517_evm_panel_disable_lcd,
++ };
++ 
++ static int am3517_evm_panel_enable_tv(struct omap_dss_device *dssdev)
++ {
++ 	return 0;
++ }
++ 
++ static void am3517_evm_panel_disable_tv(struct omap_dss_device *dssdev)
++ {
++ }
++ 
++ static struct omap_dss_device am3517_evm_tv_device = {
++ 	.type 			= OMAP_DISPLAY_TYPE_VENC,
++ 	.name 			= "tv",
++ 	.driver_name		= "venc",
++ 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
++ 	.platform_enable	= am3517_evm_panel_enable_tv,
++ 	.platform_disable	= am3517_evm_panel_disable_tv,
++ };
++ 
++ static int am3517_evm_panel_enable_dvi(struct omap_dss_device *dssdev)
++ {
++ 	if (lcd_enabled) {
++ 		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
++ 		return -EINVAL;
++ 	}
++ 	dvi_enabled = 1;
++ 
++ 	return 0;
++ }
++ 
++ static void am3517_evm_panel_disable_dvi(struct omap_dss_device *dssdev)
++ {
++ 	dvi_enabled = 0;
++ }
++ 
++ static struct omap_dss_device am3517_evm_dvi_device = {
++ 	.type			= OMAP_DISPLAY_TYPE_DPI,
++ 	.name			= "dvi",
++ 	.driver_name		= "generic_panel",
++ 	.phy.dpi.data_lines	= 24,
++ 	.platform_enable	= am3517_evm_panel_enable_dvi,
++ 	.platform_disable	= am3517_evm_panel_disable_dvi,
++ };
++ 
++ static struct omap_dss_device *am3517_evm_dss_devices[] = {
++ 	&am3517_evm_lcd_device,
++ 	&am3517_evm_tv_device,
++ 	&am3517_evm_dvi_device,
++ };
++ 
++ static struct omap_dss_board_info am3517_evm_dss_data = {
++ 	.num_devices	= ARRAY_SIZE(am3517_evm_dss_devices),
++ 	.devices	= am3517_evm_dss_devices,
++ 	.default_device	= &am3517_evm_lcd_device,
++ };
++ 
++ struct platform_device am3517_evm_dss_device = {
++ 	.name		= "omapdss",
++ 	.id		= -1,
++ 	.dev		= {
++ 		.platform_data	= &am3517_evm_dss_data,
++ 	},
++ };
++ 
+ +static int __init am3517_evm_i2c_init(void)
+ +{
+ +	omap_register_i2c_bus(1, 400, NULL, 0);
+ +	omap_register_i2c_bus(2, 400, NULL, 0);
+ +	omap_register_i2c_bus(3, 400, NULL, 0);
+ +
+ +	return 0;
+ +}
+ +
+  /*
+   * Board initialization
+   */
