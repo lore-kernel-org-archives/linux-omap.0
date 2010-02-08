@@ -1,168 +1,86 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 04/17] OMAP: DSS2: move memory_read()
-Date: Mon,  8 Feb 2010 17:57:28 +0200
-Message-ID: <1265644661-3694-5-git-send-email-tomi.valkeinen@nokia.com>
-References: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
- <1265644661-3694-2-git-send-email-tomi.valkeinen@nokia.com>
- <1265644661-3694-3-git-send-email-tomi.valkeinen@nokia.com>
- <1265644661-3694-4-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 09/13] OMAP: DSS2: DSI: add dsi_bus_is_locked()
+Date: Mon,  8 Feb 2010 17:56:08 +0200
+Message-ID: <1265644572-3578-10-git-send-email-tomi.valkeinen@nokia.com>
+References: <1265644572-3578-1-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-2-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-3-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-4-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-5-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-6-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-7-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-8-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-9-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:26877 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753499Ab0BHPzN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:55:13 -0500
-In-Reply-To: <1265644661-3694-4-git-send-email-tomi.valkeinen@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:65035 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752937Ab0BHPyJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:54:09 -0500
+In-Reply-To: <1265644572-3578-9-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Move memory_read() from omap_dss_device to omap_dss_driver.
-
-This is part of a larger patch-set, which moves the control from omapdss
-driver to the display driver.
+Helper function to clean up the checking of the bus lock.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/plat-omap/include/plat/display.h |    4 ---
- drivers/video/omap2/displays/panel-taal.c |   13 +++++++++--
- drivers/video/omap2/dss/dsi.c             |   30 -----------------------------
- drivers/video/omap2/omapfb/omapfb-ioctl.c |    4 +-
- 4 files changed, 12 insertions(+), 39 deletions(-)
+ drivers/video/omap2/dss/dsi.c |   13 +++++++++----
+ 1 files changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 7c6413a..37be8bc 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -498,10 +498,6 @@ struct omap_dss_device {
- 	bool (*get_mirror)(struct omap_dss_device *dssdev);
- 	int (*set_mirror)(struct omap_dss_device *dssdev, bool enable);
- 
--	int (*memory_read)(struct omap_dss_device *dssdev,
--			void *buf, size_t size,
--			u16 x, u16 y, u16 w, u16 h);
--
- 	int (*set_wss)(struct omap_dss_device *dssdev, u32 wss);
- 	u32 (*get_wss)(struct omap_dss_device *dssdev);
- 
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index e6d0954..5f78d38 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -847,6 +847,10 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 	int first = 1;
- 	int plen;
- 	unsigned buf_used = 0;
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+
-+	if (!td->enabled)
-+		return -ENODEV;
- 
- 	if (size < w * h * 3)
- 		return -ENOMEM;
-@@ -855,6 +859,8 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 			dssdev->panel.timings.x_res *
- 			dssdev->panel.timings.y_res * 3);
- 
-+	dsi_bus_lock();
-+
- 	/* plen 1 or 2 goes into short packet. until checksum error is fixed,
- 	 * use short packets. plen 32 works, but bigger packets seem to cause
- 	 * an error. */
-@@ -863,11 +869,11 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 	else
- 		plen = 2;
- 
--	taal_setup_update(dssdev, x, y, w, h);
-+	taal_set_update_window(x, y, w, h);
- 
- 	r = dsi_vc_set_max_rx_packet_size(TCH, plen);
- 	if (r)
--		return r;
-+		goto err0;
- 
- 	while (buf_used < size) {
- 		u8 dcs_cmd = first ? 0x2e : 0x3e;
-@@ -900,7 +906,8 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 
- err:
- 	dsi_vc_set_max_rx_packet_size(TCH, 1);
--
-+err0:
-+	dsi_bus_unlock();
- 	return r;
- }
- 
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index f7d494e..ecb15d6 100644
+index 4fdb628..b389745 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -3582,34 +3582,6 @@ static bool dsi_display_get_mirror(struct omap_dss_device *dssdev)
- 	return dssdev->driver->get_mirror(dssdev);
+@@ -309,6 +309,11 @@ void dsi_bus_unlock(void)
  }
+ EXPORT_SYMBOL(dsi_bus_unlock);
  
--static int dsi_display_memory_read(struct omap_dss_device *dssdev,
--		void *buf, size_t size,
--		u16 x, u16 y, u16 w, u16 h)
--{
--	int r;
--
--	DSSDBGF("");
--
--	if (!dssdev->driver->memory_read)
--		return -EINVAL;
--
--	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
--		return -EIO;
--
--	dsi_bus_lock();
--
--	r = dssdev->driver->memory_read(dssdev, buf, size,
--			x, y, w, h);
--
--	/* Memory read usually changes the update area. This will
--	 * force the next update to re-set the update area */
--	dsi.active_update_region.dirty = true;
--
--	dsi_bus_unlock();
--
--	return r;
--}
--
- void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
- 		u32 fifo_size, enum omap_burst_size *burst_size,
- 		u32 *fifo_low, u32 *fifo_high)
-@@ -3644,8 +3616,6 @@ int dsi_init_display(struct omap_dss_device *dssdev)
- 	dssdev->get_mirror = dsi_display_get_mirror;
- 	dssdev->set_mirror = dsi_display_set_mirror;
++static bool dsi_bus_is_locked(void)
++{
++	return mutex_is_locked(&dsi.bus_lock);
++}
++
+ static inline int wait_for_bit_change(const struct dsi_reg idx, int bitnum,
+ 		int value)
+ {
+@@ -1959,7 +1964,7 @@ static int dsi_vc_send_bta(int channel)
+ 			(dsi.debug_write || dsi.debug_read))
+ 		DSSDBG("dsi_vc_send_bta %d\n", channel);
  
--	dssdev->memory_read = dsi_display_memory_read;
--
- 	/* XXX these should be figured out dynamically */
- 	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
- 		OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
-diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-index b5657be..f3c9c80 100644
---- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
-+++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-@@ -415,7 +415,7 @@ static int omapfb_memory_read(struct fb_info *fbi,
- 	void *buf;
- 	int r;
+-	WARN_ON(!mutex_is_locked(&dsi.bus_lock));
++	WARN_ON(!dsi_bus_is_locked());
  
--	if (!display || !display->memory_read)
-+	if (!display || !display->driver->memory_read)
- 		return -ENOENT;
+ 	if (REG_GET(DSI_VC_CTRL(channel), 20, 20)) {	/* RX_FIFO_NOT_EMPTY */
+ 		DSSERR("rx fifo not empty when sending BTA, dumping data:\n");
+@@ -2010,7 +2015,7 @@ static inline void dsi_vc_write_long_header(int channel, u8 data_type,
+ 	u32 val;
+ 	u8 data_id;
  
- 	if (!access_ok(VERIFY_WRITE, mr->buffer, mr->buffer_size))
-@@ -430,7 +430,7 @@ static int omapfb_memory_read(struct fb_info *fbi,
- 		return -ENOMEM;
- 	}
+-	WARN_ON(!mutex_is_locked(&dsi.bus_lock));
++	WARN_ON(!dsi_bus_is_locked());
  
--	r = display->memory_read(display, buf, mr->buffer_size,
-+	r = display->driver->memory_read(display, buf, mr->buffer_size,
- 			mr->x, mr->y, mr->w, mr->h);
+ 	/*data_id = data_type | channel << 6; */
+ 	data_id = data_type | dsi.vc[channel].dest_per << 6;
+@@ -2105,7 +2110,7 @@ static int dsi_vc_send_short(int channel, u8 data_type, u16 data, u8 ecc)
+ 	u32 r;
+ 	u8 data_id;
  
- 	if (r > 0) {
+-	WARN_ON(!mutex_is_locked(&dsi.bus_lock));
++	WARN_ON(!dsi_bus_is_locked());
+ 
+ 	if (dsi.debug_write)
+ 		DSSDBG("dsi_vc_send_short(ch%d, dt %#x, b1 %#x, b2 %#x)\n",
+@@ -2895,7 +2900,7 @@ static int dsi_set_update_mode(struct omap_dss_device *dssdev,
+ 	int r = 0;
+ 	int i;
+ 
+-	WARN_ON(!mutex_is_locked(&dsi.bus_lock));
++	WARN_ON(!dsi_bus_is_locked());
+ 
+ 	if (dsi.update_mode != mode) {
+ 		dsi.update_mode = mode;
 -- 
 1.6.5
 
