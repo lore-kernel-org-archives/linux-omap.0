@@ -1,161 +1,197 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 06/17] OMAP: DSS2: move get/set_rotate()
-Date: Mon,  8 Feb 2010 17:57:30 +0200
-Message-ID: <1265644661-3694-7-git-send-email-tomi.valkeinen@nokia.com>
-References: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
- <1265644661-3694-2-git-send-email-tomi.valkeinen@nokia.com>
- <1265644661-3694-3-git-send-email-tomi.valkeinen@nokia.com>
- <1265644661-3694-4-git-send-email-tomi.valkeinen@nokia.com>
- <1265644661-3694-5-git-send-email-tomi.valkeinen@nokia.com>
- <1265644661-3694-6-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 08/13] OMAP: DSS2: improve DSS clk src selection
+Date: Mon,  8 Feb 2010 17:56:07 +0200
+Message-ID: <1265644572-3578-9-git-send-email-tomi.valkeinen@nokia.com>
+References: <1265644572-3578-1-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-2-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-3-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-4-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-5-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-6-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-7-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-8-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45832 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:45749 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753409Ab0BHPzO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:55:14 -0500
-In-Reply-To: <1265644661-3694-6-git-send-email-tomi.valkeinen@nokia.com>
+	with ESMTP id S1752937Ab0BHPyN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:54:13 -0500
+In-Reply-To: <1265644572-3578-8-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Move get/set_rotate() from omap_dss_device to omap_dss_driver.
+dss_select_clk_source() was rather confusing. Selecting the source with
+enums is much clearer.
 
-This is part of a larger patch-set, which moves the control from omapdss
-driver to the display driver.
+The clk source selection is also stored into memory, so that we know what
+is the selected source, even when clocks are off. This is important during
+setup, as we need to what clocks to turn on before the clocks are turned
+on.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/plat-omap/include/plat/display.h |    3 --
- drivers/video/omap2/displays/panel-taal.c |    9 ++++++-
- drivers/video/omap2/dss/display.c         |    8 +++---
- drivers/video/omap2/dss/dsi.c             |   33 -----------------------------
- 4 files changed, 11 insertions(+), 42 deletions(-)
+ drivers/video/omap2/dss/dpi.c |    4 +-
+ drivers/video/omap2/dss/dsi.c |    9 +++++--
+ drivers/video/omap2/dss/dss.c |   42 +++++++++++++++++++++++++++++++---------
+ drivers/video/omap2/dss/dss.h |   14 ++++++++++--
+ 4 files changed, 51 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 4730e71..2fd3c10 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -492,9 +492,6 @@ struct omap_dss_device {
- 	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
- 	int (*get_te)(struct omap_dss_device *dssdev);
- 
--	u8 (*get_rotate)(struct omap_dss_device *dssdev);
--	int (*set_rotate)(struct omap_dss_device *dssdev, u8 rotate);
--
- 	int (*set_wss)(struct omap_dss_device *dssdev, u32 wss);
- 	u32 (*get_wss)(struct omap_dss_device *dssdev);
- 
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 4d64449..8f90de0 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -772,16 +772,21 @@ static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
- 
- 	dev_dbg(&dssdev->dev, "rotate %d\n", rotate);
- 
-+	dsi_bus_lock();
-+
- 	if (td->enabled) {
- 		r = taal_set_addr_mode(rotate, td->mirror);
--
- 		if (r)
--			return r;
-+			goto err;
- 	}
- 
- 	td->rotate = rotate;
- 
-+	dsi_bus_unlock();
- 	return 0;
-+err:
-+	dsi_bus_unlock();
-+	return r;
- }
- 
- static u8 taal_get_rotate(struct omap_dss_device *dssdev)
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index ec82f5a..5989afb 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -185,9 +185,9 @@ static ssize_t display_rotate_show(struct device *dev,
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
- 	int rotate;
--	if (!dssdev->get_rotate)
-+	if (!dssdev->driver->get_rotate)
- 		return -ENOENT;
--	rotate = dssdev->get_rotate(dssdev);
-+	rotate = dssdev->driver->get_rotate(dssdev);
- 	return snprintf(buf, PAGE_SIZE, "%u\n", rotate);
- }
- 
-@@ -198,12 +198,12 @@ static ssize_t display_rotate_store(struct device *dev,
- 	unsigned long rot;
- 	int r;
- 
--	if (!dssdev->set_rotate || !dssdev->get_rotate)
-+	if (!dssdev->driver->set_rotate || !dssdev->driver->get_rotate)
- 		return -ENOENT;
- 
- 	rot = simple_strtoul(buf, NULL, 0);
- 
--	r = dssdev->set_rotate(dssdev, rot);
-+	r = dssdev->driver->set_rotate(dssdev, rot);
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 69ce31a..c5091ed 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -57,7 +57,7 @@ static int dpi_set_dsi_clk(bool is_tft, unsigned long pck_req,
  	if (r)
  		return r;
  
+-	dss_select_clk_source(0, 1);
++	dss_select_dispc_clk_source(DSS_SRC_DSI1_PLL_FCLK);
+ 
+ 	r = dispc_set_clock_div(&dispc_cinfo);
+ 	if (r)
+@@ -238,7 +238,7 @@ static void dpi_display_disable(struct omap_dss_device *dssdev)
+ 	dispc_enable_lcd_out(0);
+ 
+ #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+-	dss_select_clk_source(0, 0);
++	dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
+ 	dsi_pll_uninit();
+ 	dss_clk_disable(DSS_CLK_FCK2);
+ #endif
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 8f4f28d..8d6a436 100644
+index 036f422..4fdb628 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -3530,36 +3530,6 @@ static int dsi_display_get_te(struct omap_dss_device *dssdev)
- 	return dsi.te_enabled;
+@@ -3203,7 +3203,8 @@ static int dsi_display_init_dsi(struct omap_dss_device *dssdev)
+ 	if (r)
+ 		goto err1;
+ 
+-	dss_select_clk_source(true, true);
++	dss_select_dispc_clk_source(DSS_SRC_DSI1_PLL_FCLK);
++	dss_select_dsi_clk_source(DSS_SRC_DSI2_PLL_FCLK);
+ 
+ 	DSSDBG("PLL OK\n");
+ 
+@@ -3247,7 +3248,8 @@ err4:
+ err3:
+ 	dsi_complexio_uninit();
+ err2:
+-	dss_select_clk_source(false, false);
++	dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
++	dss_select_dsi_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
+ err1:
+ 	dsi_pll_uninit();
+ err0:
+@@ -3259,7 +3261,8 @@ static void dsi_display_uninit_dsi(struct omap_dss_device *dssdev)
+ 	if (dssdev->driver->disable)
+ 		dssdev->driver->disable(dssdev);
+ 
+-	dss_select_clk_source(false, false);
++	dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
++	dss_select_dsi_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
+ 	dsi_complexio_uninit();
+ 	dsi_pll_uninit();
+ }
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 0a26b7d..8254a42 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -68,6 +68,9 @@ static struct {
+ 	struct dss_clock_info cache_dss_cinfo;
+ 	struct dispc_clock_info cache_dispc_cinfo;
+ 
++	enum dss_clk_source dsi_clk_source;
++	enum dss_clk_source dispc_clk_source;
++
+ 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
+ } dss;
+ 
+@@ -247,23 +250,42 @@ void dss_dump_regs(struct seq_file *s)
+ #undef DUMPREG
  }
  
--static int dsi_display_set_rotate(struct omap_dss_device *dssdev, u8 rotate)
--{
--
--	DSSDBGF("%d", rotate);
--
--	if (!dssdev->driver->set_rotate || !dssdev->driver->get_rotate)
--		return -EINVAL;
--
--	dsi_bus_lock();
--	dssdev->driver->set_rotate(dssdev, rotate);
--	if (dsi.update_mode == OMAP_DSS_UPDATE_AUTO) {
--		u16 w, h;
--		/* the display dimensions may have changed, so set a new
--		 * update region */
--		dssdev->get_resolution(dssdev, &w, &h);
--		dsi_set_update_region(dssdev, 0, 0, w, h);
--	}
--	dsi_bus_unlock();
--
--	return 0;
--}
--
--static u8 dsi_display_get_rotate(struct omap_dss_device *dssdev)
--{
--	if (!dssdev->driver->set_rotate || !dssdev->driver->get_rotate)
--		return 0;
--
--	return dssdev->driver->get_rotate(dssdev);
--}
--
- void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
- 		u32 fifo_size, enum omap_burst_size *burst_size,
- 		u32 *fifo_low, u32 *fifo_high)
-@@ -3588,9 +3558,6 @@ int dsi_init_display(struct omap_dss_device *dssdev)
- 	dssdev->enable_te = dsi_display_enable_te;
- 	dssdev->get_te = dsi_display_get_te;
+-void dss_select_clk_source(bool dsi, bool dispc)
++void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
++{
++	int b;
++
++	BUG_ON(clk_src != DSS_SRC_DSI1_PLL_FCLK &&
++			clk_src != DSS_SRC_DSS1_ALWON_FCLK);
++
++	b = clk_src == DSS_SRC_DSS1_ALWON_FCLK ? 0 : 1;
++
++	REG_FLD_MOD(DSS_CONTROL, b, 0, 0);	/* DISPC_CLK_SWITCH */
++
++	dss.dispc_clk_source = clk_src;
++}
++
++void dss_select_dsi_clk_source(enum dss_clk_source clk_src)
+ {
+-	u32 r;
+-	r = dss_read_reg(DSS_CONTROL);
+-	r = FLD_MOD(r, dsi, 1, 1);	/* DSI_CLK_SWITCH */
+-	r = FLD_MOD(r, dispc, 0, 0);	/* DISPC_CLK_SWITCH */
+-	dss_write_reg(DSS_CONTROL, r);
++	int b;
++
++	BUG_ON(clk_src != DSS_SRC_DSI2_PLL_FCLK &&
++			clk_src != DSS_SRC_DSS1_ALWON_FCLK);
++
++	b = clk_src == DSS_SRC_DSS1_ALWON_FCLK ? 0 : 1;
++
++	REG_FLD_MOD(DSS_CONTROL, b, 1, 1);	/* DSI_CLK_SWITCH */
++
++	dss.dsi_clk_source = clk_src;
+ }
  
--	dssdev->get_rotate = dsi_display_get_rotate;
--	dssdev->set_rotate = dsi_display_set_rotate;
--
- 	/* XXX these should be figured out dynamically */
- 	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
- 		OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
+-int dss_get_dsi_clk_source(void)
++enum dss_clk_source dss_get_dispc_clk_source(void)
+ {
+-	return FLD_GET(dss_read_reg(DSS_CONTROL), 1, 1);
++	return dss.dispc_clk_source;
+ }
+ 
+-int dss_get_dispc_clk_source(void)
++enum dss_clk_source dss_get_dsi_clk_source(void)
+ {
+-	return FLD_GET(dss_read_reg(DSS_CONTROL), 0, 0);
++	return dss.dsi_clk_source;
+ }
+ 
+ /* calculate clock rates using dividers in cinfo */
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 41145af..3713dc6 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -119,6 +119,12 @@ enum dss_clock {
+ 	DSS_CLK_96M	= 1 << 4,
+ };
+ 
++enum dss_clk_source {
++	DSS_SRC_DSI1_PLL_FCLK,
++	DSS_SRC_DSI2_PLL_FCLK,
++	DSS_SRC_DSS1_ALWON_FCLK,
++};
++
+ struct dss_clock_info {
+ 	/* rates that we get with dividers below */
+ 	unsigned long fck;
+@@ -219,9 +225,11 @@ void dss_sdi_init(u8 datapairs);
+ int dss_sdi_enable(void);
+ void dss_sdi_disable(void);
+ 
+-void dss_select_clk_source(bool dsi, bool dispc);
+-int dss_get_dsi_clk_source(void);
+-int dss_get_dispc_clk_source(void);
++void dss_select_dispc_clk_source(enum dss_clk_source clk_src);
++void dss_select_dsi_clk_source(enum dss_clk_source clk_src);
++enum dss_clk_source dss_get_dispc_clk_source(void);
++enum dss_clk_source dss_get_dsi_clk_source(void);
++
+ void dss_set_venc_output(enum omap_dss_venc_type type);
+ void dss_set_dac_pwrdn_bgz(bool enable);
+ 
 -- 
 1.6.5
 
