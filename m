@@ -1,111 +1,149 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 11/13] OMAP: DSS2: DSI: export dsi_vc_enable_hs()
-Date: Mon,  8 Feb 2010 17:56:10 +0200
-Message-ID: <1265644572-3578-12-git-send-email-tomi.valkeinen@nokia.com>
-References: <1265644572-3578-1-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-2-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-3-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-4-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-5-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-6-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-7-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-8-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-9-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-10-git-send-email-tomi.valkeinen@nokia.com>
- <1265644572-3578-11-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 02/17] OMAP: DSS2: DSI: remove auto-update perf measurement
+Date: Mon,  8 Feb 2010 17:57:26 +0200
+Message-ID: <1265644661-3694-3-git-send-email-tomi.valkeinen@nokia.com>
+References: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644661-3694-2-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45714 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363Ab0BHPxw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:53:52 -0500
-In-Reply-To: <1265644572-3578-11-git-send-email-tomi.valkeinen@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:26866 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753499Ab0BHPzK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:55:10 -0500
+In-Reply-To: <1265644661-3694-2-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Rename and export dsi_vc_enable_hs() so that the display drivers can
-control the mode of the DSI link.
+Remove performance measurement for auto-update. Auto-update and thus
+performance measurement cannot be supported after the driver change where
+the control is moved to display drivers.
+
+This is part of a larger patch-set, which moves the control from omapdss
+driver to the display driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/plat-omap/include/plat/display.h |    2 ++
- drivers/video/omap2/dss/dsi.c             |   13 ++++++++-----
- 2 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/video/omap2/dss/dsi.c |   81 +++++------------------------------------
+ 1 files changed, 9 insertions(+), 72 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 47df5f6..8c3688b 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -575,4 +575,6 @@ int omap_dispc_wait_for_irq_interruptible_timeout(u32 irqmask,
- #define to_dss_driver(x) container_of((x), struct omap_dss_driver, driver)
- #define to_dss_device(x) container_of((x), struct omap_dss_device, dev)
- 
-+void omapdss_dsi_vc_enable_hs(int channel, bool enable);
-+
- #endif
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index e49f063..e003fe9 100644
+index 74df72b..a6ea8c8 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -1864,10 +1864,12 @@ static void dsi_vc_config_vp(int channel)
+@@ -261,8 +261,6 @@ static struct
+ #ifdef DEBUG
+ 	ktime_t perf_setup_time;
+ 	ktime_t perf_start_time;
+-	ktime_t perf_start_time_auto;
+-	int perf_measure_frames;
+ #endif
+ 	int debug_read;
+ 	int debug_write;
+@@ -338,12 +336,6 @@ static void dsi_perf_mark_start(void)
+ 	dsi.perf_start_time = ktime_get();
  }
  
- 
--static void dsi_vc_enable_hs(int channel, bool enable)
-+void omapdss_dsi_vc_enable_hs(int channel, bool enable)
+-static void dsi_perf_mark_start_auto(void)
+-{
+-	dsi.perf_measure_frames = 0;
+-	dsi.perf_start_time_auto = ktime_get();
+-}
+-
+ static void dsi_perf_show(const char *name)
  {
- 	DSSDBG("dsi_vc_enable_hs(%d, %d)\n", channel, enable);
+ 	ktime_t t, setup_time, trans_time;
+@@ -374,72 +366,19 @@ static void dsi_perf_show(const char *name)
+ 		dsi.active_update_region.h *
+ 		dsi.active_update_region.device->ctrl.pixel_size / 8;
  
-+	WARN_ON(!dsi_bus_is_locked());
-+
- 	dsi_vc_enable(channel, 0);
- 	dsi_if_enable(0);
- 
-@@ -1878,6 +1880,7 @@ static void dsi_vc_enable_hs(int channel, bool enable)
- 
- 	dsi_force_tx_stop_mode_io();
+-	if (dsi.update_mode == OMAP_DSS_UPDATE_AUTO) {
+-		static u32 s_total_trans_us, s_total_setup_us;
+-		static u32 s_min_trans_us = 0xffffffff, s_min_setup_us;
+-		static u32 s_max_trans_us, s_max_setup_us;
+-		const int numframes = 100;
+-		ktime_t total_time_auto;
+-		u32 total_time_auto_us;
+-
+-		dsi.perf_measure_frames++;
+-
+-		if (setup_us < s_min_setup_us)
+-			s_min_setup_us = setup_us;
+-
+-		if (setup_us > s_max_setup_us)
+-			s_max_setup_us = setup_us;
+-
+-		s_total_setup_us += setup_us;
+-
+-		if (trans_us < s_min_trans_us)
+-			s_min_trans_us = trans_us;
+-
+-		if (trans_us > s_max_trans_us)
+-			s_max_trans_us = trans_us;
+-
+-		s_total_trans_us += trans_us;
+-
+-		if (dsi.perf_measure_frames < numframes)
+-			return;
+-
+-		total_time_auto = ktime_sub(t, dsi.perf_start_time_auto);
+-		total_time_auto_us = (u32)ktime_to_us(total_time_auto);
+-
+-		printk(KERN_INFO "DSI(%s): %u fps, setup %u/%u/%u, "
+-				"trans %u/%u/%u\n",
+-				name,
+-				1000 * 1000 * numframes / total_time_auto_us,
+-				s_min_setup_us,
+-				s_max_setup_us,
+-				s_total_setup_us / numframes,
+-				s_min_trans_us,
+-				s_max_trans_us,
+-				s_total_trans_us / numframes);
+-
+-		s_total_setup_us = 0;
+-		s_min_setup_us = 0xffffffff;
+-		s_max_setup_us = 0;
+-		s_total_trans_us = 0;
+-		s_min_trans_us = 0xffffffff;
+-		s_max_trans_us = 0;
+-		dsi_perf_mark_start_auto();
+-	} else {
+-		printk(KERN_INFO "DSI(%s): %u us + %u us = %u us (%uHz), "
+-				"%u bytes, %u kbytes/sec\n",
+-				name,
+-				setup_us,
+-				trans_us,
+-				total_us,
+-				1000*1000 / total_us,
+-				total_bytes,
+-				total_bytes * 1000 / total_us);
+-	}
++	printk(KERN_INFO "DSI(%s): %u us + %u us = %u us (%uHz), "
++			"%u bytes, %u kbytes/sec\n",
++			name,
++			setup_us,
++			trans_us,
++			total_us,
++			1000*1000 / total_us,
++			total_bytes,
++			total_bytes * 1000 / total_us);
  }
-+EXPORT_SYMBOL(omapdss_dsi_vc_enable_hs);
+ #else
+ #define dsi_perf_mark_setup()
+ #define dsi_perf_mark_start()
+-#define dsi_perf_mark_start_auto()
+ #define dsi_perf_show(x)
+ #endif
  
- static void dsi_vc_flush_long_data(int channel)
- {
-@@ -3275,7 +3278,7 @@ static int dsi_display_init_dsi(struct omap_dss_device *dssdev)
+@@ -2931,8 +2870,6 @@ static int dsi_set_update_mode(struct omap_dss_device *dssdev,
+ 
+ 			dsi_set_update_region(dssdev, 0, 0, w, h);
+ 
+-			dsi_perf_mark_start_auto();
+-
+ 			wake_up(&dsi.waitqueue);
+ 		}
  	}
- 
- 	/* enable high-speed after initial config */
--	dsi_vc_enable_hs(0, 1);
-+	omapdss_dsi_vc_enable_hs(0, 1);
- 
- 	return 0;
- err4:
-@@ -3688,7 +3691,7 @@ static int dsi_display_run_test(struct omap_dss_device *dssdev, int test_num)
- 	dsi_bus_lock();
- 
- 	/* run test first in low speed mode */
--	dsi_vc_enable_hs(0, 0);
-+	omapdss_dsi_vc_enable_hs(0, 0);
- 
- 	if (dssdev->driver->run_test) {
- 		r = dssdev->driver->run_test(dssdev, test_num);
-@@ -3697,7 +3700,7 @@ static int dsi_display_run_test(struct omap_dss_device *dssdev, int test_num)
- 	}
- 
- 	/* then in high speed */
--	dsi_vc_enable_hs(0, 1);
-+	omapdss_dsi_vc_enable_hs(0, 1);
- 
- 	if (dssdev->driver->run_test) {
- 		r = dssdev->driver->run_test(dssdev, test_num);
-@@ -3706,7 +3709,7 @@ static int dsi_display_run_test(struct omap_dss_device *dssdev, int test_num)
- 	}
- 
- end:
--	dsi_vc_enable_hs(0, 1);
-+	omapdss_dsi_vc_enable_hs(0, 1);
- 
- 	dsi_bus_unlock();
- 
 -- 
 1.6.5
 
