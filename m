@@ -1,367 +1,98 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 01/13] OMAP: DSS2: enable VDDS_DSI when using DPI
-Date: Mon,  8 Feb 2010 17:56:00 +0200
-Message-ID: <1265644572-3578-2-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 05/13] OMAP: DSS2: OMAPFB: implement OMAPFB_GET_DISPLAY_INFO
+Date: Mon,  8 Feb 2010 17:56:04 +0200
+Message-ID: <1265644572-3578-6-git-send-email-tomi.valkeinen@nokia.com>
 References: <1265644572-3578-1-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-2-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-3-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-4-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-5-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45704 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:45698 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363Ab0BHPxt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:53:49 -0500
-In-Reply-To: <1265644572-3578-1-git-send-email-tomi.valkeinen@nokia.com>
+	with ESMTP id S1753347Ab0BHPxs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:53:48 -0500
+In-Reply-To: <1265644572-3578-5-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-It looks like on OMAP3 some DSS pins need VDDS_DSI to function properly.
-
-This has not been confirmed from TI, but looking at figure 15-1 "Display
-subsystem highlight" from the TRM, some data pins come near the DSI and SDI
-blocks. This is not very hard evidence, but the fact remains that with the
-power on, pixels are ok, and with the power off, pixels are not ok.
-
-It may also be that VDDS_SDI is needed to power some pins, but as normally
-both VDDS_SDI and VDDS_DSI come from the same power source, this hasn't
-been shown.
-
-It seems that a single driver can only get a regulator once. This patch
-solves it by getting all the required regulators in one place, and from
-which the submodules then get the regulators they need.
+Previously the only place to get the size of the display was from the
+DSS's sysfs interface, making, for example, configuring overlays and doing
+updates on manual displays more difficult.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- drivers/video/omap2/dss/core.c |   66 +++++++++++++++++++++++++++++++++++++++-
- drivers/video/omap2/dss/dpi.c  |   55 ++++++++++++++++++++++++++++-----
- drivers/video/omap2/dss/dsi.c  |    4 +--
- drivers/video/omap2/dss/dss.h  |    5 ++-
- drivers/video/omap2/dss/venc.c |    4 +--
- 5 files changed, 117 insertions(+), 17 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-ioctl.c |   20 ++++++++++++++++++++
+ include/linux/omapfb.h                    |    9 +++++++++
+ 2 files changed, 29 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 82918ee..791e1cb 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -31,6 +31,7 @@
- #include <linux/debugfs.h>
- #include <linux/io.h>
- #include <linux/device.h>
-+#include <linux/regulator/consumer.h>
+diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+index 5562a76..56e3ec2 100644
+--- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
++++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+@@ -525,6 +525,7 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg)
+ 		struct omapfb_memory_read	memory_read;
+ 		struct omapfb_vram_info		vram_info;
+ 		struct omapfb_tearsync_info	tearsync_info;
++		struct omapfb_display_info	display_info;
+ 	} p;
  
- #include <plat/display.h>
- #include <plat/clock.h>
-@@ -47,6 +48,10 @@ static struct {
- 	struct clk      *dss_54m_fck;
- 	struct clk	*dss_96m_fck;
- 	unsigned	num_clks_enabled;
-+
-+	struct regulator *vdds_dsi_reg;
-+	struct regulator *vdds_sdi_reg;
-+	struct regulator *vdda_dac_reg;
- } core;
- 
- static void dss_clk_enable_all_no_ctx(void);
-@@ -352,6 +357,50 @@ static void dss_clk_disable_all(void)
- 	dss_clk_disable(clks);
- }
- 
-+/* REGULATORS */
-+
-+struct regulator *dss_get_vdds_dsi(void)
-+{
-+	struct regulator *reg;
-+
-+	if (core.vdds_dsi_reg != NULL)
-+		return core.vdds_dsi_reg;
-+
-+	reg = regulator_get(&core.pdev->dev, "vdds_dsi");
-+	if (!IS_ERR(reg))
-+		core.vdds_dsi_reg = reg;
-+
-+	return reg;
-+}
-+
-+struct regulator *dss_get_vdds_sdi(void)
-+{
-+	struct regulator *reg;
-+
-+	if (core.vdds_sdi_reg != NULL)
-+		return core.vdds_sdi_reg;
-+
-+	reg = regulator_get(&core.pdev->dev, "vdds_sdi");
-+	if (!IS_ERR(reg))
-+		core.vdds_sdi_reg = reg;
-+
-+	return reg;
-+}
-+
-+struct regulator *dss_get_vdda_dac(void)
-+{
-+	struct regulator *reg;
-+
-+	if (core.vdda_dac_reg != NULL)
-+		return core.vdda_dac_reg;
-+
-+	reg = regulator_get(&core.pdev->dev, "vdda_dac");
-+	if (!IS_ERR(reg))
-+		core.vdda_dac_reg = reg;
-+
-+	return reg;
-+}
-+
- /* DEBUGFS */
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
- static void dss_debug_dump_clocks(struct seq_file *s)
-@@ -473,7 +522,7 @@ static int omap_dss_probe(struct platform_device *pdev)
- 	}
- #endif
- 
--	r = dpi_init();
-+	r = dpi_init(pdev);
- 	if (r) {
- 		DSSERR("Failed to initialize dpi\n");
- 		goto fail0;
-@@ -901,6 +950,21 @@ static int __init omap_dss_init(void)
- 
- static void __exit omap_dss_exit(void)
- {
-+	if (core.vdds_dsi_reg != NULL) {
-+		regulator_put(core.vdds_dsi_reg);
-+		core.vdds_dsi_reg = NULL;
-+	}
-+
-+	if (core.vdds_sdi_reg != NULL) {
-+		regulator_put(core.vdds_sdi_reg);
-+		core.vdds_sdi_reg = NULL;
-+	}
-+
-+	if (core.vdda_dac_reg != NULL) {
-+		regulator_put(core.vdda_dac_reg);
-+		core.vdda_dac_reg = NULL;
-+	}
-+
- 	platform_driver_unregister(&omap_dss_driver);
- 
- 	omap_dss_bus_unregister();
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 2d71031..69ce31a 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -25,7 +25,10 @@
- #include <linux/kernel.h>
- #include <linux/clk.h>
- #include <linux/delay.h>
-+#include <linux/err.h>
- #include <linux/errno.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/consumer.h>
- 
- #include <plat/display.h>
- #include <plat/cpu.h>
-@@ -34,6 +37,7 @@
- 
- static struct {
- 	int update_enabled;
-+	struct regulator *vdds_dsi_reg;
- } dpi;
- 
- #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
-@@ -166,21 +170,27 @@ static int dpi_display_enable(struct omap_dss_device *dssdev)
- 		goto err1;
+ 	int r = 0;
+@@ -792,6 +793,25 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg)
+ 		break;
  	}
  
-+	if (cpu_is_omap34xx()) {
-+		r = regulator_enable(dpi.vdds_dsi_reg);
-+		if (r)
-+			goto err2;
-+	}
++	case OMAPFB_GET_DISPLAY_INFO: {
++		DBG("ioctl GET_DISPLAY_INFO\n");
 +
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
- 
- 	r = dpi_basic_init(dssdev);
- 	if (r)
--		goto err2;
-+		goto err3;
- 
- #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
- 	dss_clk_enable(DSS_CLK_FCK2);
- 	r = dsi_pll_init(dssdev, 0, 1);
- 	if (r)
--		goto err3;
-+		goto err4;
- #endif
- 	r = dpi_set_mode(dssdev);
- 	if (r)
--		goto err4;
-+		goto err5;
- 
- 	mdelay(2);
- 
-@@ -188,22 +198,25 @@ static int dpi_display_enable(struct omap_dss_device *dssdev)
- 
- 	r = dssdev->driver->enable(dssdev);
- 	if (r)
--		goto err5;
-+		goto err6;
- 
- 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
- 
- 	return 0;
- 
--err5:
-+err6:
- 	dispc_enable_lcd_out(0);
--err4:
-+err5:
- #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
- 	dsi_pll_uninit();
--err3:
-+err4:
- 	dss_clk_disable(DSS_CLK_FCK2);
- #endif
--err2:
-+err3:
- 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+err2:
-+	if (cpu_is_omap34xx())
-+		regulator_disable(dpi.vdds_dsi_reg);
- err1:
- 	omap_dss_stop_device(dssdev);
- err0:
-@@ -232,6 +245,9 @@ static void dpi_display_disable(struct omap_dss_device *dssdev)
- 
- 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
- 
-+	if (cpu_is_omap34xx())
-+		regulator_disable(dpi.vdds_dsi_reg);
-+
- 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
- 
- 	omap_dss_stop_device(dssdev);
-@@ -251,6 +267,9 @@ static int dpi_display_suspend(struct omap_dss_device *dssdev)
- 
- 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
- 
-+	if (cpu_is_omap34xx())
-+		regulator_disable(dpi.vdds_dsi_reg);
-+
- 	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
- 
- 	return 0;
-@@ -258,11 +277,19 @@ static int dpi_display_suspend(struct omap_dss_device *dssdev)
- 
- static int dpi_display_resume(struct omap_dss_device *dssdev)
- {
-+	int r;
-+
- 	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
- 		return -EINVAL;
- 
- 	DSSDBG("dpi_display_resume\n");
- 
-+	if (cpu_is_omap34xx()) {
-+		r = regulator_enable(dpi.vdds_dsi_reg);
-+		if (r)
-+			goto err0;
-+	}
-+
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
- 
- 	dispc_enable_lcd_out(1);
-@@ -273,6 +300,8 @@ static int dpi_display_resume(struct omap_dss_device *dssdev)
- 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
- 
- 	return 0;
-+err0:
-+	return r;
- }
- 
- static void dpi_set_timings(struct omap_dss_device *dssdev,
-@@ -388,8 +417,16 @@ int dpi_init_display(struct omap_dss_device *dssdev)
- 	return 0;
- }
- 
--int dpi_init(void)
-+int dpi_init(struct platform_device *pdev)
- {
-+	if (cpu_is_omap34xx()) {
-+		dpi.vdds_dsi_reg = dss_get_vdds_dsi();
-+		if (IS_ERR(dpi.vdds_dsi_reg)) {
-+			DSSERR("can't get VDDS_DSI regulator\n");
-+			return PTR_ERR(dpi.vdds_dsi_reg);
++		if (display == NULL) {
++			r = -ENODEV;
++			break;
 +		}
++
++		p.display_info.xres = display->panel.timings.x_res;
++		p.display_info.yres = display->panel.timings.y_res;
++		p.display_info.width = 0;
++		p.display_info.height = 0;
++
++		if (copy_to_user((void __user *)arg, &p.display_info,
++					sizeof(p.display_info)))
++			r = -EFAULT;
++		break;
 +	}
 +
- 	return 0;
- }
+ 	default:
+ 		dev_err(fbdev->dev, "Unknown ioctl 0x%x\n", cmd);
+ 		r = -EINVAL;
+diff --git a/include/linux/omapfb.h b/include/linux/omapfb.h
+index ef4c2cf..0381436 100644
+--- a/include/linux/omapfb.h
++++ b/include/linux/omapfb.h
+@@ -58,6 +58,7 @@
+ #define OMAPFB_GET_VRAM_INFO	OMAP_IOR(61, struct omapfb_vram_info)
+ #define OMAPFB_SET_TEARSYNC	OMAP_IOW(62, struct omapfb_tearsync_info)
+ #define OMAPFB_RESERVE_BUFFER	OMAP_IOW(63, struct omapfb_res_buf_info)
++#define OMAPFB_GET_DISPLAY_INFO	OMAP_IOR(64, struct omapfb_display_info)
  
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 6122178..036f422 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -3799,7 +3799,7 @@ int dsi_init(struct platform_device *pdev)
- 		goto err1;
- 	}
+ #define OMAPFB_CAPS_GENERIC_MASK	0x00000fff
+ #define OMAPFB_CAPS_LCDC_MASK		0x00fff000
+@@ -216,6 +217,14 @@ struct omapfb_tearsync_info {
+ 	__u16 reserved2;
+ };
  
--	dsi.vdds_dsi_reg = regulator_get(&pdev->dev, "vdds_dsi");
-+	dsi.vdds_dsi_reg = dss_get_vdds_dsi();
- 	if (IS_ERR(dsi.vdds_dsi_reg)) {
- 		iounmap(dsi.base);
- 		DSSERR("can't get VDDS_DSI regulator\n");
-@@ -3830,8 +3830,6 @@ void dsi_exit(void)
- {
- 	kthread_stop(dsi.thread);
++struct omapfb_display_info {
++	__u16 xres;
++	__u16 yres;
++	__u32 width;	/* phys width of the display in micrometers */
++	__u32 height;	/* phys height of the display in micrometers */
++	__u32 reserved[5];
++};
++
+ #ifdef __KERNEL__
  
--	regulator_put(dsi.vdds_dsi_reg);
--
- 	iounmap(dsi.base);
- 
- 	DSSDBG("omap_dsi_exit\n");
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 2bcb124..41145af 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -169,6 +169,9 @@ unsigned long dss_clk_get_rate(enum dss_clock clk);
- int dss_need_ctx_restore(void);
- void dss_dump_clocks(struct seq_file *s);
- struct bus_type *dss_get_bus(void);
-+struct regulator *dss_get_vdds_dsi(void);
-+struct regulator *dss_get_vdds_sdi(void);
-+struct regulator *dss_get_vdda_dac(void);
- 
- /* display */
- int dss_suspend_all_devices(void);
-@@ -261,7 +264,7 @@ void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
- 		u32 *fifo_low, u32 *fifo_high);
- 
- /* DPI */
--int dpi_init(void);
-+int dpi_init(struct platform_device *pdev);
- void dpi_exit(void);
- int dpi_init_display(struct omap_dss_device *dssdev);
- 
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 749a5a0..44b4998 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -482,7 +482,7 @@ int venc_init(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 
--	venc.vdda_dac_reg = regulator_get(&pdev->dev, "vdda_dac");
-+	venc.vdda_dac_reg = dss_get_vdda_dac();
- 	if (IS_ERR(venc.vdda_dac_reg)) {
- 		iounmap(venc.base);
- 		DSSERR("can't get VDDA_DAC regulator\n");
-@@ -503,8 +503,6 @@ void venc_exit(void)
- {
- 	omap_dss_unregister_driver(&venc_driver);
- 
--	regulator_put(venc.vdda_dac_reg);
--
- 	iounmap(venc.base);
- }
- 
+ #include <plat/board.h>
 -- 
 1.6.5
 
