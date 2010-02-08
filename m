@@ -1,88 +1,111 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 00/17] OMAP DSS2 model restructuring
-Date: Mon,  8 Feb 2010 17:57:24 +0200
-Message-ID: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 01/17] OMAP: DSS2: DSI: change DSI bus_lock to semaphore
+Date: Mon,  8 Feb 2010 17:57:25 +0200
+Message-ID: <1265644661-3694-2-git-send-email-tomi.valkeinen@nokia.com>
+References: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45816 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:45827 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643Ab0BHPzF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:55:05 -0500
+	with ESMTP id S1753506Ab0BHPzK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 10:55:10 -0500
+In-Reply-To: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Here are a bunch of patches that change the DSS2 driver's driver model a bit.
-This change was triggered by trying to support new hardware, and realizing that
-the current model just won't work.
+Physical DSI bus is protected by a mutex. This patch changed the mutex to
+a semaphore, so that we can lock and unlock the bus_lock from different
+threads.
 
-Currently the omapdss driver is in control of most aspects of the DSS, and
-omapdss calls necessary functions in display drivers. I made it that way to
-keep the display drivers simple, and I, naively, thought that it will work
-because the display panels are using standard bus interfaces and thus will be
-very similar. I was so wrong =).
+This is needed as the update process is started by user space program, and
+thus the lock is acquired in that context, but the lock can be released in
+different context, a work thread via irq.
 
-This patch set moves the control to the display driver. The display driver then
-calls omapdss functions to perform whatever deed is needed at that time. This
-will make display drivers slightly more complex, but it will be easier to
-control the hardware properly with strange or complex display devices.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ drivers/video/omap2/dss/dsi.c |   20 ++++++--------------
+ 1 files changed, 6 insertions(+), 14 deletions(-)
 
-As a simple example, let's look at the update function.
-
-Currently user space app issues OMAPFB_UPDATE_WINDOW ioctl, and omapfb driver
-then calls update() in corresponding dss device struct, which goes to omapdss.
-omapdss will configure the update, calling the panel driver if needed.
-
-After these patches, omapfb will call update() in the panel driver. The panel
-driver will then call functions in omapdss to setup the update, start the
-update, and the panel driver will eventually get a callback informing that the
-update is done.
-
-These patches are still under work, but my basic tests on 3430SDP board seems
-to work ok.
-
-The patches can also be found from
-http://gitorious.org/linux-omap-dss2/linux work branch
-
-Tomi Valkeinen (17):
-  OMAP: DSS2: DSI: change DSI bus_lock to semaphore
-  OMAP: DSS2: DSI: remove auto-update perf measurement
-  OMAP: DSS2: move run_test()
-  OMAP: DSS2: move memory_read()
-  OMAP: DSS2: move set/get_mirror()
-  OMAP: DSS2: move get/set_rotate()
-  OMAP: DSS2: move wait_vsync()
-  OMAP: DSS2: move enable/disable_channel to overlay manager
-  OMAP: DSS2: move get_resolution()
-  OMAP: DSS2: move get_recommended_bpp()
-  OMAP: DSS2: move enable/get_te()
-  OMAP: DSS2: move set/get_update_mode()
-  OMAP: DSS2: move update() and sync()
-  OMAP: DSS2: move enable/disable/suspend/resume
-  OMAP: DSS2: move set/get_wss()
-  OMAP: DSS2: move timing functions
-  OMAP: DSS2: DSI: Add VC support for update
-
- arch/arm/plat-omap/include/plat/display.h          |  108 ++--
- drivers/video/omap2/displays/panel-generic.c       |   56 ++-
- .../video/omap2/displays/panel-sharp-lq043t1dg01.c |   67 ++-
- .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   42 +-
- drivers/video/omap2/displays/panel-taal.c          |  221 +++++--
- .../video/omap2/displays/panel-toppoly-tdo35s.c    |   56 ++-
- .../video/omap2/displays/panel-tpo-td043mtea1.c    |   61 ++-
- drivers/video/omap2/dss/core.c                     |    7 +
- drivers/video/omap2/dss/dispc.c                    |   36 +-
- drivers/video/omap2/dss/display.c                  |   87 +--
- drivers/video/omap2/dss/dpi.c                      |  149 +----
- drivers/video/omap2/dss/dsi.c                      |  829 ++++----------------
- drivers/video/omap2/dss/dss.h                      |    4 +-
- drivers/video/omap2/dss/manager.c                  |   48 +-
- drivers/video/omap2/dss/overlay.c                  |    2 +-
- drivers/video/omap2/dss/rfbi.c                     |  321 +-------
- drivers/video/omap2/dss/sdi.c                      |  115 +---
- drivers/video/omap2/dss/venc.c                     |  294 +++----
- drivers/video/omap2/omapfb/omapfb-ioctl.c          |   44 +-
- drivers/video/omap2/omapfb/omapfb-main.c           |   89 ++-
- drivers/video/omap2/omapfb/omapfb.h                |    6 +
- 21 files changed, 1004 insertions(+), 1638 deletions(-)
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 4b85ed2..74df72b 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -27,6 +27,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
++#include <linux/semaphore.h>
+ #include <linux/seq_file.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
+@@ -227,7 +228,7 @@ static struct
+ 	} vc[4];
+ 
+ 	struct mutex lock;
+-	struct mutex bus_lock;
++	struct semaphore bus_lock;
+ 
+ 	unsigned pll_locked;
+ 
+@@ -298,19 +299,19 @@ void dsi_restore_context(void)
+ 
+ void dsi_bus_lock(void)
+ {
+-	mutex_lock(&dsi.bus_lock);
++	down(&dsi.bus_lock);
+ }
+ EXPORT_SYMBOL(dsi_bus_lock);
+ 
+ void dsi_bus_unlock(void)
+ {
+-	mutex_unlock(&dsi.bus_lock);
++	up(&dsi.bus_lock);
+ }
+ EXPORT_SYMBOL(dsi_bus_unlock);
+ 
+ static bool dsi_bus_is_locked(void)
+ {
+-	return mutex_is_locked(&dsi.bus_lock);
++	return dsi.bus_lock.count == 0;
+ }
+ 
+ static inline int wait_for_bit_change(const struct dsi_reg idx, int bitnum,
+@@ -3000,8 +3001,6 @@ static int dsi_update_thread(void *data)
+ 	u16 x, y, w, h;
+ 
+ 	while (1) {
+-		bool sched;
+-
+ 		wait_event_interruptible(dsi.waitqueue,
+ 				dsi.update_mode == OMAP_DSS_UPDATE_AUTO ||
+ 				(dsi.update_mode == OMAP_DSS_UPDATE_MANUAL &&
+@@ -3087,16 +3086,9 @@ static int dsi_update_thread(void *data)
+ 			dsi_perf_show("L4");
+ 		}
+ 
+-		sched = atomic_read(&dsi.bus_lock.count) < 0;
+-
+ 		complete_all(&dsi.update_completion);
+ 
+ 		dsi_bus_unlock();
+-
+-		/* XXX We need to give others chance to get the bus lock. Is
+-		 * there a better way for this? */
+-		if (dsi.update_mode == OMAP_DSS_UPDATE_AUTO && sched)
+-			schedule_timeout_interruptible(1);
+ 	}
+ 
+ 	DSSDBG("update thread exiting\n");
+@@ -3796,7 +3788,7 @@ int dsi_init(struct platform_device *pdev)
+ 	spin_lock_init(&dsi.update_lock);
+ 
+ 	mutex_init(&dsi.lock);
+-	mutex_init(&dsi.bus_lock);
++	sema_init(&dsi.bus_lock, 1);
+ 
+ #ifdef DSI_CATCH_MISSING_TE
+ 	init_timer(&dsi.te_timer);
+-- 
+1.6.5
 
