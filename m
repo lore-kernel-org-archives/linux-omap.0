@@ -1,59 +1,68 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
- tree
-Date: Mon, 8 Feb 2010 21:57:15 +1100
-Message-ID: <20100208215715.c78b2a9c.sfr@canb.auug.org.au>
-References: <20100208172521.abb500b4.sfr@canb.auug.org.au>
-	<1265621346.2433.27.camel@tubuntu.research.nokia.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: [PATCH v2 0/3] OMAP: NAND: support flashes on sdp boards
+Date: Mon, 8 Feb 2010 16:51:54 +0530
+Message-ID: <ce9ab5791002080321k459c159wbe843376a129528e@mail.gmail.com>
+References: <ce9ab5791001122246v254bb721p68c58607a292fb8e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Mon__8_Feb_2010_21_57_15_+1100_bL=DquwXhwRRBvGS"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:36929 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750856Ab0BHK5W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Feb 2010 05:57:22 -0500
-In-Reply-To: <1265621346.2433.27.camel@tubuntu.research.nokia.com>
+Received: from mail-bw0-f223.google.com ([209.85.218.223]:39563 "EHLO
+	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722Ab0BHLWQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 06:22:16 -0500
+Received: by bwz23 with SMTP id 23so991407bwz.1
+        for <linux-omap@vger.kernel.org>; Mon, 08 Feb 2010 03:22:14 -0800 (PST)
+In-Reply-To: <ce9ab5791001122246v254bb721p68c58607a292fb8e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Vaibhav Hiremath <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Linux MTD <linux-mtd@lists.infradead.org>
 
---Signature=_Mon__8_Feb_2010_21_57_15_+1100_bL=DquwXhwRRBvGS
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Jan 13, 2010 at 12:16 PM, Vimal Singh <vimal.newwork@gmail.com> wrote:
+> From 4fbddd880c7a0da61fb66ae1d2c2553e3fbc82cb Mon Sep 17 00:00:00 2001
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Tue, 12 Jan 2010 18:14:14 +0530
+> Subject: [PATCH] OMAP: NAND: support flashes on sdp boards
 
-Hi Tomi,
 
-On Mon, 08 Feb 2010 11:29:06 +0200 Tomi Valkeinen <tomi.valkeinen@nokia.com=
-> wrote:
->
-> > P.S. Tomi, this omap_dss2 commit only has your Acked-by not Signed-off-=
-by.
->=20
-> Hmm, do you mean there's something wrong with that, or "jfyi"? Aren't I,
-> as a subsys maintainer, supposed to ack the patches?
+Reposting this patch set again after fixes in 1st patch as per
+comments from Tony:
+- Removing 'nand_base' from functions specified and correcting
+prototype in header file too
+- calling gpmc_cs_request first
 
-If a patch goes through your tree, you are supposed to add a Signed-off-by
-line.  See Documentation/SubmittingPatches section called "Sign your
-work".
+Rest of the patches in the series are untouched and just have been
+re-based on LO master branch.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+--
+Vimal
 
---Signature=_Mon__8_Feb_2010_21_57_15_+1100_bL=DquwXhwRRBvGS
-Content-Type: application/pgp-signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+>From d3e5ee6d8a6449aee01fbc93313201a4674f5577 Mon Sep 17 00:00:00 2001
+From: Vimal Singh <vimalsingh@ti.com>
+Date: Mon, 8 Feb 2010 05:19:20 +0530
+Subject: [PATCH] OMAP: NAND: support flashes on sdp boards
 
-iEYEARECAAYFAktv7gsACgkQjjKRsyhoI8x1NQCfRYoTrsBeCJ5ys0+sjstkNKz6
-CK8AnRXsHPHm3509JVoh1/hhRNVTZsha
-=Oiqi
------END PGP SIGNATURE-----
+1st patch introduces 'gpmc-nand.c' for generic gpmc stuffs. Which may be
+used by any omap board.
 
---Signature=_Mon__8_Feb_2010_21_57_15_+1100_bL=DquwXhwRRBvGS--
+2nd and 3rd patches are to show up how to use 'gpmc-nand.c' with example
+of 3430sdp board.
+
+Vimal Singh (3):
+  Introducing 'gpmc-nand.c' for GPMC specific NAND init
+  OMAP: SDP: Introducing 'board-sdp-flash.c' for flash init
+  OMAP3: Add support for flash on 3430SDP board
+
+ arch/arm/mach-omap2/Makefile                 |    4 +
+ arch/arm/mach-omap2/board-3430sdp.c          |  111 ++++++++++
+ arch/arm/mach-omap2/board-sdp-flash.c        |  295 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc-nand.c              |  139 ++++++++++++
+ arch/arm/mach-omap2/include/mach/board-sdp.h |   22 ++
+ arch/arm/plat-omap/include/plat/gpmc.h       |    2 +
+ arch/arm/plat-omap/include/plat/nand.h       |   10 +-
+ drivers/mtd/nand/omap2.c                     |   35 +---
+ 8 files changed, 586 insertions(+), 32 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-sdp-flash.c
+ create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
+ create mode 100644 arch/arm/mach-omap2/include/mach/board-sdp.h
