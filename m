@@ -1,39 +1,52 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 3/3] DSPBRIDGE: Get rid of MEM_VFree()
-Date: Mon, 8 Feb 2010 16:47:59 -0600
-Message-ID: <4B70949F.20306@ti.com>
-References: <cover.1265296743.git.ameya.palande@nokia.com>  <ad25763f4a3358893208d591f5a055ac6f8c85ea.1265296743.git.ameya.palande@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] OMAP3: PM: Dynamic calculation of SDRC clock stabilization
+ delay
+Date: Mon, 8 Feb 2010 15:52:14 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002081549180.22923@utopia.booyaka.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031DF2E2C2@dbde02.ent.ti.com> <87vdfebzqa.fsf@deeprootsystems.com> <alpine.DEB.2.00.1001202232320.24456@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0C44@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53023 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751341Ab0BHWsD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Feb 2010 17:48:03 -0500
-In-Reply-To: <ad25763f4a3358893208d591f5a055ac6f8c85ea.1265296743.git.ameya.palande@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:53700 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751831Ab0BHWwP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Feb 2010 17:52:15 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E3F0C44@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 2/4/2010 9:33 AM, Ameya Palande wrote:
-> vfree() is NULL safe so MEM_VFree() doesn't provide any significant
-> advantage. By getting rid of MEM_VFree() and the NULL pointer check
-> associated with it, we can save on:
-> 1. One level of indirection which translates to a function call cost.
-> 2. NULL pointer checking cost.
->
-> Signed-off-by: Ameya Palande<ameya.palande@nokia.com>
-> ---
->   arch/arm/plat-omap/include/dspbridge/mem.h |   17 -----------------
->   drivers/dsp/bridge/pmgr/dmm.c              |    3 +--
->   drivers/dsp/bridge/services/mem.c          |   17 -----------------
->   3 files changed, 1 insertions(+), 36 deletions(-)
->
+Hello Teerth,
 
-Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+On Thu, 21 Jan 2010, Reddy, Teerth wrote:
 
-Pushed to dspbridge.
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Thursday, January 21, 2010 11:05 AM
+> > To: Reddy, Teerth
+> > Cc: Kevin Hilman; linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH] OMAP3: PM: Dynamic calculation of SDRC clock
+> > stabilization delay
+> > 
+> > Hi Teerth,
+> > 
+> > any update on Kevin's comments?
+> > 
+> > This patch shouldn't use a hardcoded value.  Please explain further why
+> > that formula can't be included...
+> 
+> Time required to switch clocks - 4 REFCLKS + 2 CLKOUTX2 Gives a small 
+> number which doesn't seem to work and causes instability during DVFS. I 
+> found that the value of 6us is safe and stable for the DVFS.I tried this 
+> value on OMAP3430 sdp, zoom2 and zoom3 and it worked fine. I will let 
+> you know more about the formula once I get the updates.
 
-- omar
+Any update on this?  Still waiting.  I don't see any reason why this 
+formula couldn't be encoded.  If you can't get your implementation of 
+the formula to work, please post the code for us to examine.  6 
+microseconds is definitely too long for some cases and too short for 
+others, so hardcoding that value is not correct.
+
+
+- Paul
