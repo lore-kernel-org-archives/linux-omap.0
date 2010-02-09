@@ -1,102 +1,94 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE: Prevent memory corruption in
- 	DRV_ProcFreeDMMRes
-Date: Tue, 9 Feb 2010 14:22:40 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602AA725BDE@dlee06.ent.ti.com>
-References: <441be695a293805f9de42ad5ce5bf6bca21434fc.1265660264.git.ameya.palande@nokia.com>
- <94a0d4531002090429n77e65230r4cb426e92384595c@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC][PATCH] Allow change timing values to wait slow devices
+ bring up before try register an interface to IP-Config (used on some
+ drivers using Multi-purpose USB Networking Framework)
+Date: Tue, 9 Feb 2010 14:20:35 -0800
+Message-ID: <20100209222035.GI21755@atomide.com>
+References: <600adaf51002061530o700378aaq75ff83b04d977958@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55366 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751834Ab0BIUWt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 15:22:49 -0500
-In-Reply-To: <94a0d4531002090429n77e65230r4cb426e92384595c@mail.gmail.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49457 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753861Ab0BIWT6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 17:19:58 -0500
+Content-Disposition: inline
+In-Reply-To: <600adaf51002061530o700378aaq75ff83b04d977958@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ext-phil.2.carmody@nokia.com" <ext-phil.2.carmody@nokia.com>
-
+To: Tiago Maluta <tiago.maluta@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
 Hi,
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Felipe Contreras
->Sent: Tuesday, February 09, 2010 6:30 AM
->To: Ameya Palande
->Cc: linux-omap@vger.kernel.org; Ramirez Luna, Omar; Menon, Nishanth;
->Chitriki Rudramuni, Deepak; felipe.contreras@nokia.com; ext-
->phil.2.carmody@nokia.com
->Subject: Re: [PATCH] DSPBRIDGE: Prevent memory corruption in
->DRV_ProcFreeDMMRes
->
->On Mon, Feb 8, 2010 at 10:25 PM, Ameya Palande <ameya.palande@nokia.com>
->wrote:
->> Background: bridge_close() has the responsibility to cleanup all the
->> resources allocated by user space process. One of those resources is
->> DMMRes which is used for tracking DMM resource allocation done in
->> PROC_Map() and PROC_UnMap().
->>
->> DRV_ProcFreeDMMRes() function was used for cleaning up DMMRes has
->following
->> problems which are fixed by this patch:
->>
->> 1. It access and modifies pDMMRes pointer when it is already freed by
->> PROC_UnMap()
->> 2. Instead of passing ulDSPAddr it passes ulDSPResAddr to PROC_UnMap()
->which
->> will not retrive correct DMMRes element.
->
->This patch is doing the right thing to me, however, it's a bit
->difficult to review because it's doing many changes at once.
->
->Personally I would
-> 1) Fix the wrong dereferences in DRV_ProcFreeDMMRes
->[at this point the bug should be fixed]
->[the leaks would be freed by the outer loop]
->
-> 2) Fix the wrong PROC_UnMap address passed in DRV_ProcFreeDMMRes
-> 3) Remove the unnecessary outer loop in DRV_RemoveAllDMMResElements
->[at this point the code would actually make sense]
->
-> 4) Merge DRV_ProcFreeDMMRes into DRV_RemoveAllDMMResElements
-> 5) Improve coding style
->
->The end result would be the same, but easier to see what's going on :)
->
->Cheers.
->
->--
->Felipe Contreras
+* Tiago Maluta <tiago.maluta@gmail.com> [100206 15:28]:
+> I'd like to know if this patch could be considered an general use or
+> an particular case.
 
-The root problem here is that remove the DMM element should be in PROC_UnMap but in PROC_UnReserveMemory, because apart of the problem your are seeing about memory corruption if the application does a PROC_ReserveMemory and then it finished unexpectedly the resource cleanup wont be able to unreserved the memory because there is no a DMMres element in process context struct, the same applies in the case of application calls  PROC_ReserveMemory, PROC_Map, PROC_UnMap but fails to do the PROC_UnReserveMemory.
-
-
-So the right solution should be:
-
-1 .- Remove DRV_InsertDMMResElement function from PROC_Map and put it on PROC_ReserveMemory.
-
-2.- Keep DRV_UpdateDMMResElement function in PROC_Map.
-
-3.- Remove DRV_RemoveDMMResElement function from PROC_UnMap and put it on ROC_UnReserveMemory function.
-
-4.- Clear dmmAllocated flag in PROC_UnMap:
-
-pDMMRes->dmmAllocated = 0;
-
-5 .- in the function DRV_ProcFreeDMMRes, call PROC_UnMap "if (pDMMRes->dmmAllocated)" and always call PROC_UnReserveMemory not in this point is not needed the save hProcessor nor ulDSPResAddr addresses.
-
-6 .- cleanup DRV_RemoveAllDMMResElements function (while loop is not needed).
+This is Linux generic, so it should get sent to linux-usb and net
+lists instead.
 
 Regards,
-Fernando.
 
+Tony
 
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --tm
+> 
+> Signed-off-by: Tiago Maluta <maluta@unifei.edu.br>
+> ---
+>  drivers/net/usb/Kconfig |   17 +++++++++++++++++
+>  net/ipv4/ipconfig.c     |    4 ++--
+>  2 files changed, 19 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/net/usb/Kconfig b/drivers/net/usb/Kconfig
+> index 32d9356..5b84e57 100644
+> --- a/drivers/net/usb/Kconfig
+> +++ b/drivers/net/usb/Kconfig
+> @@ -127,6 +127,23 @@ config USB_USBNET
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called usbnet.
+> 
+> +
+> +config USB_USBNETDEVICE_DELAY_PRE
+> +	int "Define the friendly delay before opening net devices "
+> +	depends on USB_USBNET
+> +	default 500
+> +	help
+> +	    Some devices may not work due to a delay from hardware bring the interface
+> +	    up. This value added a delay before search and register the interface.
+> +
+> +config USB_USBNETDEVICE_DELAY_POST
+> +	int "Define the friendly delay after opening net devices "
+> +	depends on USB_USBNET
+> +	default 1
+> +	help
+> +	    Some devices may not work due to a delay from hardware bring the interface
+> +	    up. This value added a delay before search and register the interface.
+> +
+>  config USB_NET_AX8817X
+>  	tristate "ASIX AX88xxx Based USB 2.0 Ethernet Adapters"
+>  	depends on USB_USBNET
+> diff --git a/net/ipv4/ipconfig.c b/net/ipv4/ipconfig.c
+> index 10a6a60..3faac07 100644
+> --- a/net/ipv4/ipconfig.c
+> +++ b/net/ipv4/ipconfig.c
+> @@ -86,8 +86,8 @@
+>  #endif
+> 
+>  /* Define the friendly delay before and after opening net devices */
+> -#define CONF_PRE_OPEN		500	/* Before opening: 1/2 second */
+> -#define CONF_POST_OPEN		1	/* After opening: 1 second */
+> +#define CONF_PRE_OPEN		CONFIG_USB_USBNETDEVICE_DELAY_PRE	/* Before
+> opening. Default 1/2 second */
+> +#define CONF_POST_OPEN		CONFIG_USB_USBNETDEVICE_DELAY_POST	/* After
+> opening. Default 1 second */
+> 
+>  /* Define the timeout for waiting for a DHCP/BOOTP/RARP reply */
+>  #define CONF_OPEN_RETRIES 	2	/* (Re)open devices twice */
+> -- 
+> 1.6.4.2
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
