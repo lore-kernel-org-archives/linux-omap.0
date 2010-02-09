@@ -1,67 +1,44 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH] Input: ads7846: add regulator support
-Date: Tue, 09 Feb 2010 10:55:41 +0200
-Message-ID: <4B71230D.1000900@compulab.co.il>
-References: <1265290758-2035-1-git-send-email-notasas@gmail.com> <20100204142439.GA1139@sirena.org.uk> <6ed0b2681002040652r722e3df2s3f032a9fe0d0c0fe@mail.gmail.com> <20100204162155.GB29982@rakim.wolfsonmicro.main> <f870da181002051245t2f37065duae595fee391e7fd9@mail.gmail.com> <20100208113028.GA15630@rakim.wolfsonmicro.main>
+From: "Talis, Gilles" <g-talis@ti.com>
+Subject: OMAP3 Slave McSPI driver
+Date: Tue, 9 Feb 2010 10:36:02 +0100
+Message-ID: <74583B8642AB8841B30447520659FCA9E782241C@dnce01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:40124 "EHLO compulab.co.il"
+Received: from bear.ext.ti.com ([192.94.94.41]:49163 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752573Ab0BII4j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Feb 2010 03:56:39 -0500
-In-Reply-To: <20100208113028.GA15630@rakim.wolfsonmicro.main>
+	id S1751674Ab0BIJgJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 04:36:09 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o199a6AQ028469
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 03:36:06 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id o199a6bj007365
+	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 03:36:06 -0600 (CST)
+Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o199ZsIJ027753
+	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 03:36:06 -0600 (CST)
+Content-Class: urn:content-classes:message
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Mike Rapoport <mike.rapoport@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Mark Brown wrote:
-> On Fri, Feb 05, 2010 at 10:45:09PM +0200, Mike Rapoport wrote:
->> On Thu, Feb 4, 2010 at 6:21 PM, Mark Brown
-> 
->>> The bodge I'm thinking of would do something like log an error and
->>> substitute in a dummy regulator when regulator_get() would have failed
->>> so that the driver sees behaviour equivalent to the stubbed regulator
->>> API if the bodge is active.  A central thing seems much more sensible
->>> here - there's nothing specific to this driver going on here and having
->>> the API behave in a consistent manner seems good.
-> 
->> I agree that such approach have more sense than checking for -ENODEV
->> in each and every driver that uses the regulator framework. I just
->> wonder, if there should be some mechanism that  can switch the
->> substitution of the dummy regulators on and off. And if yes, how
->> should the platform code communicate with the regulator core the need
->> for such dummy regulators...
-> 
-> So, having thought about this a bit more we actually have two different
-> use cases here.  One is where you've got a system which has software
-> controllable regulators for everything but may not have plumbed in all
-> the supplies, the other is for systems where only a very few supplies
-> are on software controlled regulators which are just trying to save the
-> hassle of hooking up the bulk of the supplies to fixed voltage
-> regulators.  These two use cases should probably be handled differently
-> - the first one is really expected to have all the supplies hooked up
-> and so should warn when using the bodge regulator but the warning isn't
-> helpful in the second case.
+Hi,
 
-Sounds right to me.
+My customer is using Android 2.6.29 kernel from OMAPZOOM and is looking for support for slave mode on the SPI driver.
+I saw there were patches for this feature sent to this list, but I was wondering if those patches were tested on 2.6.29.
 
-> We already have some support for boards to set up the API in the form of
-> regulator_set_full_constraints() so we could do something similar for
-> dummy regulators, or create a new single API to set a bunch of options
-> via a struct which is probably less hassle going forward.
+I am also looking for some kind of API usage guidelines. How to setup the slave mode and how is OMAP notified that data have been received from external master device? My customer plans to use this driver in interrupt mode (no DMA needed).
 
-Struct sounds more reasonable that just a call to e.g.
-regulator_warn_dummy_fixed_regulator :)
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-input" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Gilels.
 
 
--- 
-Sincerely yours,
-Mike.
+
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+
+
+
