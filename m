@@ -1,53 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
- tree
-Date: Tue, 9 Feb 2010 08:52:00 -0800
-Message-ID: <20100209165200.GH21755@atomide.com>
-References: <20100208172521.abb500b4.sfr@canb.auug.org.au>
- <1265621346.2433.27.camel@tubuntu.research.nokia.com>
+From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: DSPBRIDGE: Add BRD_SLEEP_TRANSITION in PROC_GetState
+Date: Tue, 9 Feb 2010 10:59:05 -0600
+Message-ID: <B852767254C5C94EBB1040EE0EFA06008C89E925@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1265621346.2433.27.camel@tubuntu.research.nokia.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: ext Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Vaibhav Hiremath <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50283 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755004Ab0BIQ7M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 11:59:12 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o19Gx75B016303
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 10:59:07 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id o19Gx6ko019428
+	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 10:59:07 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o19Gx6Ts021848
+	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 10:59:06 -0600 (CST)
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tomi Valkeinen <tomi.valkeinen@nokia.com> [100208 01:23]:
-> On Mon, 2010-02-08 at 07:25 +0100, ext Stephen Rothwell wrote:
-> > Hi Tomi,
-> > 
-> > Today's linux-next merge of the omap_dss2 tree got a conflict in
-> > arch/arm/mach-omap2/board-am3517evm.c between commit
-> > 13560d875d67c06239c82a6148c1b87075701fe9 ("AM3517: Enable basic I2C
-> > Support") from the omap tree and commit
-> > 56a3d0235cd50d14d7bd4d45e55d192aa0e78cac ("OMAP: AM3517: Enable DSS2 for
-> > AM3517EVM board") from the omap_dss2 tree.
-> > 
-> > Juts overlapping additions.   I fixed it up (see below) and can carry the
-> > fix as necessary.
-> 
-> Thanks. I guess we can't properly fix this until the patch from omap
-> tree goes into mainline.
+>From 40d5863c3d3f4091761fef8bff581d2a7b1f32fa Mon Sep 17 00:00:00 2001
+From: Ernesto Ramos <ernesto@ti.com>
+Date: Tue, 2 Feb 2010 20:30:19 -0600
+Subject: [PATCH] DSPBRIDGE: Add BRD_SLEEP_TRANSITION in PROC_GetState.
 
-Let's move the AM3517 DSS2 board patch from Tomi's tree to omap for-next
-tree.
- 
-> Tony, do you think this current way, in which we have board file changes
-> in both linux-omap and the dss tree, is best we can do? Or should all
-> the board file changes go through linux-omap? I fear that we will have
-> conflicts with every new board.
+When PROC_GetState checks for BRD status it is not taking into account
+the state BRD_SLEEP_TRANSITION and it is returning DSP_EFAIL when this
+happens, which is wrong. This fix adds this check to return ProcStatus as
+PROC_RUNNING and status DSP_SOK when this happens.
 
-Yeah we should just move the conflicting files into omap for-next. The board
-file changes conflict easily when new platform device init code is being
-added.
+Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+---
+ drivers/dsp/bridge/rmgr/proc.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Tomi, how about you ack and let me know about the patches (or git branch)
-you want me to add into omap for-next? Otherwise I'll assume anything
-DSS2 related is yours.
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index a1d06dc..553c9a7 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -802,6 +802,7 @@ DSP_STATUS PROC_GetState(DSP_HPROCESSOR hProcessor,
+ 		case BRD_STOPPED:
+ 			pProcStatus->iState = PROC_STOPPED;
+ 			break;
++		case BRD_SLEEP_TRANSITION:
+ 		case BRD_DSP_HIBERNATION:
+ 			/* Fall through */
+ 		case BRD_RUNNING:
+-- 
+1.5.4.5
 
-Regards,
-
-Tony
