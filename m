@@ -1,93 +1,114 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][PATCH] Allow change timing values to wait slow devices
- bring up before try register an interface to IP-Config (used on some
- drivers using Multi-purpose USB Networking Framework)
-Date: Tue, 9 Feb 2010 14:20:35 -0800
-Message-ID: <20100209222035.GI21755@atomide.com>
-References: <600adaf51002061530o700378aaq75ff83b04d977958@mail.gmail.com>
+Subject: Re: PATCH[V2 1/3]: Update Platform files for SPI
+Date: Tue, 9 Feb 2010 14:25:13 -0800
+Message-ID: <20100209222513.GJ21755@atomide.com>
+References: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49457 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753861Ab0BIWT6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 17:19:58 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63955 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751987Ab0BIWYi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 17:24:38 -0500
 Content-Disposition: inline
-In-Reply-To: <600adaf51002061530o700378aaq75ff83b04d977958@mail.gmail.com>
+In-Reply-To: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tiago Maluta <tiago.maluta@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Hemanth V <hemanthv@ti.com>
+Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca
 
-Hi,
-
-* Tiago Maluta <tiago.maluta@gmail.com> [100206 15:28]:
-> I'd like to know if this patch could be considered an general use or
-> an particular case.
-
-This is Linux generic, so it should get sent to linux-usb and net
-lists instead.
-
-Regards,
-
-Tony
-
+* Hemanth V <hemanthv@ti.com> [100203 02:19]:
+> From ee48142ddc43129a21676dbb56a83e3e7d8063de Mon Sep 17 00:00:00 2001
+> From: Hemanth V <hemanthv@ti.com>
+> Date: Fri, 27 Nov 2009 14:22:30 +0530
+> Subject: [PATCH] Update platform files
 > 
-> --tm
+> This patch updates platform files for
+> fifo, slave support
 > 
-> Signed-off-by: Tiago Maluta <maluta@unifei.edu.br>
+> Signed-off-by: Hemanth V <hemanthv@ti.com>
+
+This should get merged via the spi-devel list with the other patches.
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+
 > ---
->  drivers/net/usb/Kconfig |   17 +++++++++++++++++
->  net/ipv4/ipconfig.c     |    4 ++--
->  2 files changed, 19 insertions(+), 2 deletions(-)
+>  arch/arm/mach-omap2/devices.c           |    5 +++++
+>  arch/arm/plat-omap/include/plat/mcspi.h |   29 ++++++++++++++++++++++++++++- 2
+> files changed, 33 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/net/usb/Kconfig b/drivers/net/usb/Kconfig
-> index 32d9356..5b84e57 100644
-> --- a/drivers/net/usb/Kconfig
-> +++ b/drivers/net/usb/Kconfig
-> @@ -127,6 +127,23 @@ config USB_USBNET
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called usbnet.
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 733d3dc..79b5396 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -282,6 +282,7 @@ static inline void omap_init_sti(void) {}
 > 
+>  static struct omap2_mcspi_platform_config omap2_mcspi1_config = {
+>  	.num_cs		= 4,
+> +	.force_cs_mode	= 1,
+>  };
+> 
+>  static struct resource omap2_mcspi1_resources[] = {
+> @@ -304,6 +305,10 @@ static struct platform_device omap2_mcspi1 = {
+> 
+>  static struct omap2_mcspi_platform_config omap2_mcspi2_config = {
+>  	.num_cs		= 2,
+> +	.mode		= OMAP2_MCSPI_MASTER,
+> +	.dma_mode	= 0,
+> +	.force_cs_mode	= 0,
+> +	.fifo_depth	= 0,
+>  };
+> 
+>  static struct resource omap2_mcspi2_resources[] = {
+> diff --git a/arch/arm/plat-omap/include/plat/mcspi.h
+> b/arch/arm/plat-omap/include/plat/mcspi.h
+> index 1254e49..ffda0a1 100644
+> --- a/arch/arm/plat-omap/include/plat/mcspi.h
+> +++ b/arch/arm/plat-omap/include/plat/mcspi.h
+> @@ -1,8 +1,35 @@
+>  #ifndef _OMAP2_MCSPI_H
+>  #define _OMAP2_MCSPI_H
+> 
+> +#define OMAP2_MCSPI_MASTER		0
+> +#define OMAP2_MCSPI_SLAVE		1
 > +
-> +config USB_USBNETDEVICE_DELAY_PRE
-> +	int "Define the friendly delay before opening net devices "
-> +	depends on USB_USBNET
-> +	default 500
-> +	help
-> +	    Some devices may not work due to a delay from hardware bring the interface
-> +	    up. This value added a delay before search and register the interface.
+> +/**
+> + * struct omap2_mcspi_platform_config - McSPI controller configuration + *
+> @num_cs: Number of chip selects or channels supported
+> + * @mode: SPI is master or slave
+> + * @dma_mode: Use only DMA for data transfers
+> + * @force_cs_mode: Use force chip select mode or auto chip select mode + *
+> @fifo_depth: FIFO depth in bytes, max value 64
+> + *
+> + * @dma_mode when set to 1 uses only dma for data transfers
+> + * else the default behaviour is to use PIO mode for transfer
+> + * size of 8 bytes or less. This mode is useful when mcspi
+> + * is configured as slave
+> + *
+> + * @force_cs_mode when set to 1 allows continuous transfer of multiple + * spi
+> words without toggling the chip select line.
+> + *
+> + * @fifo_depth when set to non zero values enables FIFO. fifo_depth + * should
+> be set as a multiple of buffer size used for read/write. + */
 > +
-> +config USB_USBNETDEVICE_DELAY_POST
-> +	int "Define the friendly delay after opening net devices "
-> +	depends on USB_USBNET
-> +	default 1
-> +	help
-> +	    Some devices may not work due to a delay from hardware bring the interface
-> +	    up. This value added a delay before search and register the interface.
-> +
->  config USB_NET_AX8817X
->  	tristate "ASIX AX88xxx Based USB 2.0 Ethernet Adapters"
->  	depends on USB_USBNET
-> diff --git a/net/ipv4/ipconfig.c b/net/ipv4/ipconfig.c
-> index 10a6a60..3faac07 100644
-> --- a/net/ipv4/ipconfig.c
-> +++ b/net/ipv4/ipconfig.c
-> @@ -86,8 +86,8 @@
->  #endif
+>  struct omap2_mcspi_platform_config {
+> -	unsigned short	num_cs;
+> +	u8	num_cs;
+> +	u8	mode;
+> +	u8	dma_mode;
+> +	u8	force_cs_mode;
+> +	unsigned short fifo_depth;
+>  };
 > 
->  /* Define the friendly delay before and after opening net devices */
-> -#define CONF_PRE_OPEN		500	/* Before opening: 1/2 second */
-> -#define CONF_POST_OPEN		1	/* After opening: 1 second */
-> +#define CONF_PRE_OPEN		CONFIG_USB_USBNETDEVICE_DELAY_PRE	/* Before
-> opening. Default 1/2 second */
-> +#define CONF_POST_OPEN		CONFIG_USB_USBNETDEVICE_DELAY_POST	/* After
-> opening. Default 1 second */
-> 
->  /* Define the timeout for waiting for a DHCP/BOOTP/RARP reply */
->  #define CONF_OPEN_RETRIES 	2	/* (Re)open devices twice */
+>  struct omap2_mcspi_device_config {
 > -- 
-> 1.6.4.2
+> 1.5.6.3
+> 
+> 
+> 
+> 
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
