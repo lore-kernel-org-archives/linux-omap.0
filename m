@@ -1,115 +1,87 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PATCH[V2 1/3]: Update Platform files for SPI
-Date: Tue, 9 Feb 2010 14:25:13 -0800
-Message-ID: <20100209222513.GJ21755@atomide.com>
-References: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [PATCH 2/2] OMAP3: PM: remove TWL4030 A2S script before reboot
+Date: Tue, 9 Feb 2010 14:35:29 -0800
+Message-ID: <20100209223529.GK21755@atomide.com>
+References: <1265226207-22971-1-git-send-email-mturquette@ti.com>
+ <1265226207-22971-2-git-send-email-mturquette@ti.com>
+ <1265226207-22971-3-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63955 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751987Ab0BIWYi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 17:24:38 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62220 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751596Ab0BIWex (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 17:34:53 -0500
 Content-Disposition: inline
-In-Reply-To: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
+In-Reply-To: <1265226207-22971-3-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca
+To: Mike Turquette <mturquette@gmail.com>
+Cc: linux-omap@vger.kernel.org, Mike Turquette <mturquette@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-* Hemanth V <hemanthv@ti.com> [100203 02:19]:
-> From ee48142ddc43129a21676dbb56a83e3e7d8063de Mon Sep 17 00:00:00 2001
-> From: Hemanth V <hemanthv@ti.com>
-> Date: Fri, 27 Nov 2009 14:22:30 +0530
-> Subject: [PATCH] Update platform files
-> 
-> This patch updates platform files for
-> fifo, slave support
-> 
-> Signed-off-by: Hemanth V <hemanthv@ti.com>
+Hi,
 
-This should get merged via the spi-devel list with the other patches.
+* Mike Turquette <mturquette@gmail.com> [100203 11:42]:
+> Removes TWL4030 sleep script prior to rebooting, only on OMAP3. This is
+> necessary since DPLL3 reset causes SYS_OFFMODE pin to go low, resulting
+> in the sleep script being executed on TWL4030. This usually results in
+> VDD1 & VDD2 voltage collapse while ROM code is executing, followed by an
+> MPU Watch Dog reset or worse, an irrecoverable hang.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-
+The first patch is OK is for Samuel, but this needs to be updated
+against Paul's clock changes. One comment below too.
+ 
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
 > ---
->  arch/arm/mach-omap2/devices.c           |    5 +++++
->  arch/arm/plat-omap/include/plat/mcspi.h |   29 ++++++++++++++++++++++++++++- 2
-> files changed, 33 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/clock34xx.c |   15 +++++++++++++++
+>  1 files changed, 15 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 733d3dc..79b5396 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -282,6 +282,7 @@ static inline void omap_init_sti(void) {}
-> 
->  static struct omap2_mcspi_platform_config omap2_mcspi1_config = {
->  	.num_cs		= 4,
-> +	.force_cs_mode	= 1,
->  };
-> 
->  static struct resource omap2_mcspi1_resources[] = {
-> @@ -304,6 +305,10 @@ static struct platform_device omap2_mcspi1 = {
-> 
->  static struct omap2_mcspi_platform_config omap2_mcspi2_config = {
->  	.num_cs		= 2,
-> +	.mode		= OMAP2_MCSPI_MASTER,
-> +	.dma_mode	= 0,
-> +	.force_cs_mode	= 0,
-> +	.fifo_depth	= 0,
->  };
-> 
->  static struct resource omap2_mcspi2_resources[] = {
-> diff --git a/arch/arm/plat-omap/include/plat/mcspi.h
-> b/arch/arm/plat-omap/include/plat/mcspi.h
-> index 1254e49..ffda0a1 100644
-> --- a/arch/arm/plat-omap/include/plat/mcspi.h
-> +++ b/arch/arm/plat-omap/include/plat/mcspi.h
-> @@ -1,8 +1,35 @@
->  #ifndef _OMAP2_MCSPI_H
->  #define _OMAP2_MCSPI_H
-> 
-> +#define OMAP2_MCSPI_MASTER		0
-> +#define OMAP2_MCSPI_SLAVE		1
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index 0d30e53..0d6d1d6 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/bitops.h>
+>  #include <linux/err.h>
+>  #include <linux/cpufreq.h>
+> +#include <linux/i2c/twl.h>
+>  
+>  #include <plat/cpu.h>
+>  #include <plat/clock.h>
+> @@ -311,6 +312,8 @@ struct clk_functions omap2_clk_functions = {
+>   */
+>  void omap2_clk_prepare_for_reboot(void)
+>  {
+> +	int err = 0;
 > +
-> +/**
-> + * struct omap2_mcspi_platform_config - McSPI controller configuration + *
-> @num_cs: Number of chip selects or channels supported
-> + * @mode: SPI is master or slave
-> + * @dma_mode: Use only DMA for data transfers
-> + * @force_cs_mode: Use force chip select mode or auto chip select mode + *
-> @fifo_depth: FIFO depth in bytes, max value 64
-> + *
-> + * @dma_mode when set to 1 uses only dma for data transfers
-> + * else the default behaviour is to use PIO mode for transfer
-> + * size of 8 bytes or less. This mode is useful when mcspi
-> + * is configured as slave
-> + *
-> + * @force_cs_mode when set to 1 allows continuous transfer of multiple + * spi
-> words without toggling the chip select line.
-> + *
-> + * @fifo_depth when set to non zero values enables FIFO. fifo_depth + * should
-> be set as a multiple of buffer size used for read/write. + */
+>  	/* REVISIT: Not ready for 343x */
+>  #if 0
+>  	u32 rate;
+> @@ -321,6 +324,18 @@ void omap2_clk_prepare_for_reboot(void)
+>  	rate = clk_get_rate(sclk);
+>  	clk_set_rate(vclk, rate);
+>  #endif
 > +
->  struct omap2_mcspi_platform_config {
-> -	unsigned short	num_cs;
-> +	u8	num_cs;
-> +	u8	mode;
-> +	u8	dma_mode;
-> +	u8	force_cs_mode;
-> +	unsigned short fifo_depth;
->  };
-> 
->  struct omap2_mcspi_device_config {
-> -- 
-> 1.5.6.3
-> 
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	/*
+> +	 * PRCM on OMAP3 will drive SYS_OFFMODE low during DPLL3 warm reset.
+> +	 * This causes Gaia sleep script to execute, usually killing VDD1 and
+> +	 * VDD2 while code is running.  WA is to disable the sleep script
+> +	 * before warm reset.
+> +	 */
+> +#ifdef CONFIG_TWL4030_POWER
+> +	err = twl4030_remove_script(TWL4030_SLEEP_SCRIPT);
+> +	if (err)
+> +		pr_err("twl4030: error trying to disable sleep script!\n");
+> +#endif
+
+This needs to work in cases where we have multiple companion chips
+compiled in. You may have twl4030 support compiled in, but no twl4030
+hardware on the board. It needs to be based on I2C detected chips during
+init somehow.
+
+In the omap for-next branch we already support booting 2420, 34xx, 36xx
+and 4430 with the same kernel binary. So please update accordingly.
+
+Regards,
+
+Tony
