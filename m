@@ -1,64 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 14/17] OMAP: DSS2: move enable/disable/suspend/resume
-Date: Tue, 09 Feb 2010 14:12:57 +0200
-Message-ID: <1265717577.2433.73.camel@tubuntu.research.nokia.com>
-References: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
-	 <1265644661-3694-7-git-send-email-tomi.valkeinen@nokia.com>
-	 <1265644661-3694-8-git-send-email-tomi.valkeinen@nokia.com>
-	 <1265644661-3694-9-git-send-email-tomi.valkeinen@nokia.com>
-	 <1265644661-3694-10-git-send-email-tomi.valkeinen@nokia.com>
-	 <1265644661-3694-11-git-send-email-tomi.valkeinen@nokia.com>
-	 <1265644661-3694-12-git-send-email-tomi.valkeinen@nokia.com>
-	 <1265644661-3694-13-git-send-email-tomi.valkeinen@nokia.com>
-	 <1265644661-3694-14-git-send-email-tomi.valkeinen@nokia.com>
-	 <1265644661-3694-15-git-send-email-tomi.valkeinen@nokia.com>
-	 <6ed0b2681002090215g4e53851bgb11c5a507bdf6dff@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] DSPBRIDGE: Prevent memory corruption in
+	DRV_ProcFreeDMMRes
+Date: Tue, 9 Feb 2010 14:29:32 +0200
+Message-ID: <94a0d4531002090429n77e65230r4cb426e92384595c@mail.gmail.com>
+References: <441be695a293805f9de42ad5ce5bf6bca21434fc.1265660264.git.ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:34855 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751979Ab0BIMK0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 07:10:26 -0500
-In-Reply-To: <6ed0b2681002090215g4e53851bgb11c5a507bdf6dff@mail.gmail.com>
+Received: from mail-iw0-f181.google.com ([209.85.223.181]:52761 "EHLO
+	mail-iw0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753834Ab0BIMhi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 07:37:38 -0500
+Received: by iwn11 with SMTP id 11so30259iwn.17
+        for <linux-omap@vger.kernel.org>; Tue, 09 Feb 2010 04:37:37 -0800 (PST)
+In-Reply-To: <441be695a293805f9de42ad5ce5bf6bca21434fc.1265660264.git.ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap@vger.kernel.org, omar.ramirez@ti.com, nm@ti.com, deepak.chitriki@ti.com, felipe.contreras@nokia.com, ext-phil.2.carmody@nokia.com
 
-On Tue, 2010-02-09 at 11:15 +0100, ext Grazvydas Ignotas wrote:
-> On Mon, Feb 8, 2010 at 5:57 PM, Tomi Valkeinen <tomi.valkeinen@nokia.com> wrote:
-> > Move enable/disable/suspend/resume from omap_dss_device to
-> > omap_dss_driver.
-> >
-> > This is part of a larger patch-set, which moves the control from omapdss
-> > driver to the display driver.
-> >
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> > ---
-> 
-> <snip>
-> 
-> > diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-> > index f297a46..c6e4a7e 100644
-> > --- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-> > +++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-> > @@ -262,18 +262,20 @@ static const struct omap_video_timings tpo_td043_timings = {
-> >        .vbp            = 34,
-> >  };
-> >
-> > -static int tpo_td043_enable(struct omap_dss_device *dssdev)
-> > +static int generic_panel_power_on(struct omap_dss_device *dssdev)
-> 
-> I guess you meant tpo_td043_power_on/tpo_td043_power_off?
+On Mon, Feb 8, 2010 at 10:25 PM, Ameya Palande <ameya.palande@nokia.com> wrote:
+> Background: bridge_close() has the responsibility to cleanup all the
+> resources allocated by user space process. One of those resources is
+> DMMRes which is used for tracking DMM resource allocation done in
+> PROC_Map() and PROC_UnMap().
+>
+> DRV_ProcFreeDMMRes() function was used for cleaning up DMMRes has following
+> problems which are fixed by this patch:
+>
+> 1. It access and modifies pDMMRes pointer when it is already freed by
+> PROC_UnMap()
+> 2. Instead of passing ulDSPAddr it passes ulDSPResAddr to PROC_UnMap() which
+> will not retrive correct DMMRes element.
 
-Yes, copy paste error =)
+This patch is doing the right thing to me, however, it's a bit
+difficult to review because it's doing many changes at once.
 
-> I'll try to test your both series later this week.
+Personally I would
+ 1) Fix the wrong dereferences in DRV_ProcFreeDMMRes
+[at this point the bug should be fixed]
+[the leaks would be freed by the outer loop]
 
-Thanks.
+ 2) Fix the wrong PROC_UnMap address passed in DRV_ProcFreeDMMRes
+ 3) Remove the unnecessary outer loop in DRV_RemoveAllDMMResElements
+[at this point the code would actually make sense]
 
- Tomi
+ 4) Merge DRV_ProcFreeDMMRes into DRV_RemoveAllDMMResElements
+ 5) Improve coding style
 
+The end result would be the same, but easier to see what's going on :)
 
+Cheers.
+
+-- 
+Felipe Contreras
