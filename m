@@ -1,73 +1,53 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: omap3evm: Doesn't boot at 4fa42e46
-Date: Tue, 9 Feb 2010 21:33:53 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E263A697@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E263A671@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
+ tree
+Date: Tue, 9 Feb 2010 08:52:00 -0800
+Message-ID: <20100209165200.GH21755@atomide.com>
+References: <20100208172521.abb500b4.sfr@canb.auug.org.au>
+ <1265621346.2433.27.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46766 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754411Ab0BIQD6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 11:03:58 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o19G3t7t014439
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 10:03:57 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o19G3s20005844
-	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 21:33:54 +0530 (IST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E263A671@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1265621346.2433.27.camel@tubuntu.research.nokia.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Vaibhav Hiremath <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
-> Sent: Tuesday, February 09, 2010 9:02 PM
-> To: linux-omap@vger.kernel.org
-> Subject: omap3evm: Doesn't boot at 4fa42e46
+* Tomi Valkeinen <tomi.valkeinen@nokia.com> [100208 01:23]:
+> On Mon, 2010-02-08 at 07:25 +0100, ext Stephen Rothwell wrote:
+> > Hi Tomi,
+> > 
+> > Today's linux-next merge of the omap_dss2 tree got a conflict in
+> > arch/arm/mach-omap2/board-am3517evm.c between commit
+> > 13560d875d67c06239c82a6148c1b87075701fe9 ("AM3517: Enable basic I2C
+> > Support") from the omap tree and commit
+> > 56a3d0235cd50d14d7bd4d45e55d192aa0e78cac ("OMAP: AM3517: Enable DSS2 for
+> > AM3517EVM board") from the omap_dss2 tree.
+> > 
+> > Juts overlapping additions.   I fixed it up (see below) and can carry the
+> > fix as necessary.
 > 
-> Hi all,
-> 
-> Just updated my repo to the commit:
-> 
-> commit 4fa42e4679324b0e3c54fb509535eea3923ccb63
-> Merge: e599f12 c446167
-> Author: Tony Lindgren <tony@atomide.com>
-> Date:   Thu Feb 4 20:07:44 2010 -0800
-> 
-> The kernel builds fine; but doesn't boot on the OMAP3EVM.
-> 
-> I have been able to trace the code until rest_init(); but 
-> will need to restart debugging.
-> There seems to be an exception during execution.
-> 
-> Will continue to dig further. This is just an FYI.
-> 
+> Thanks. I guess we can't properly fix this until the patch from omap
+> tree goes into mainline.
 
-The kernel panics during I2C init in function omap3_evm_i2c_init()
-during this call:
+Let's move the AM3517 DSS2 board patch from Tomi's tree to omap for-next
+tree.
+ 
+> Tony, do you think this current way, in which we have board file changes
+> in both linux-omap and the dss tree, is best we can do? Or should all
+> the board file changes go through linux-omap? I fear that we will have
+> conflicts with every new board.
 
-    omap_register_i2c_bus(2, 400, NULL, 0);
+Yeah we should just move the conflicting files into omap for-next. The board
+file changes conflict easily when new platform device init code is being
+added.
 
-I see that there isn't any difference between omap3_evm_i2c_init()
-and omap3430_i2c_init(). Has anyone tried the booting 3430SDP at
-this commit?
+Tomi, how about you ack and let me know about the patches (or git branch)
+you want me to add into omap for-next? Otherwise I'll assume anything
+DSS2 related is yours.
 
-...just trying to understand if this is a board specific issue
-OR is it a generic OMAP3 issue before I try bisect.
+Regards,
 
-~sanjeev
-
-> Best regards,
-> Sanjeev
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Tony
