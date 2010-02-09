@@ -1,42 +1,146 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: omap3evm: Doesn't boot at 4fa42e46
-Date: Tue, 9 Feb 2010 21:01:53 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E263A671@dbde02.ent.ti.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] OMAP3: Serial: Improved sleep logic
+Date: Tue, 9 Feb 2010 16:32:38 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A224BA884E07@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <> <1265110224-29473-1-git-send-email-tero.kristo@nokia.com>
+ <20100203175000.GF22747@atomide.com>
+ <1F18D6510CF0474A8C9500565A7E41A223727D496C@NOK-EUMSG-02.mgdnok.nokia.com>
+ <20100204161033.GP22747@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45594 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754255Ab0BIPb6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 10:31:58 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o19FVt69031744
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 09:31:58 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o19FVtUD000129
-	for <linux-omap@vger.kernel.org>; Tue, 9 Feb 2010 21:01:55 +0530 (IST)
+Received: from smtp.nokia.com ([192.100.122.233]:62161 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754501Ab0BIPcv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 10:32:51 -0500
+In-Reply-To: <20100204161033.GP22747@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org
 
-Hi all,
+ 
 
-Just updated my repo to the commit:
+>-----Original Message-----
+>From: ext Tony Lindgren [mailto:tony@atomide.com] 
+>Sent: 04 February, 2010 18:11
+>To: Kristo Tero (Nokia-D/Tampere)
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCH] OMAP3: Serial: Improved sleep logic
+>
+>* Tero.Kristo@nokia.com <Tero.Kristo@nokia.com> [100203 23:59]:
+>>  
+>> 
+>> >-----Original Message-----
+>> >From: ext Tony Lindgren [mailto:tony@atomide.com] 
+>> >Sent: 03 February, 2010 19:50
+>> >To: Kristo Tero (Nokia-D/Tampere)
+>> >Cc: linux-omap@vger.kernel.org
+>> >Subject: Re: [PATCH] OMAP3: Serial: Improved sleep logic
+>> >
+>> >* Tero Kristo <tero.kristo@nokia.com> [100202 01:38]:
+>> >> From: Tero Kristo <tero.kristo@nokia.com>
+>> >> 
+>> >> Only RX interrupt will now kick the sleep prevent timer. In 
+>> >addition, TX
+>> >> fifo status is checked before disabling clocks, this will 
+>> >prevent occasional
+>> >> garbage being printed on serial line. Smartidle is also 
+>> >disabled while
+>> >> entering idle if we have data in the transmit buffer, 
+>> >because having this
+>> >> enabled will prevent wakeups from the TX interrupt, and 
+>this causes
+>> >> pauses while sending large blocks of data.
+>> >
+>> >Sounds this is for 2.6.34 merge window and does not contain anything
+>> >that needs to be fixed for 2.6.33. 
+>> 
+>> Yeah, this only fixes a couple of annoying issues, but 
+>nothing fatal. Also improves power efficiency in some cases 
+>which is a nice to have feature, and basically eases the 
+>development of PM code as the UART does not block the system 
+>from sleeping always.
+>
+>Yeah cool. Separate issue, but I wonder if we should also clear
+>the the first rx character from the fifo to avoid corrupting
+>the console. Only when the uart clocks are off and and
+>we get a key press. Would be easy to do just do with one
+>serial_read_reg(uart->p, UART_RX)..
 
-commit 4fa42e4679324b0e3c54fb509535eea3923ccb63
-Merge: e599f12 c446167
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Thu Feb 4 20:07:44 2010 -0800
+Yeah, I can try to add this change to the code and see what happens.
 
-The kernel builds fine; but doesn't boot on the OMAP3EVM.
-
-I have been able to trace the code until rest_init(); but will need to restart debugging.
-There seems to be an exception during execution.
-
-Will continue to dig further. This is just an FYI.
-
-Best regards,
-Sanjeev
+>
+>Tony
+>
+>> 
+>> -Tero
+>> 
+>> >
+>> >Regards,
+>> >
+>> >Tony
+>> >
+>> > 
+>> >> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>> >> ---
+>> >>  arch/arm/mach-omap2/serial.c |   19 +++++++++++++++----
+>> >>  1 files changed, 15 insertions(+), 4 deletions(-)
+>> >> 
+>> >> diff --git a/arch/arm/mach-omap2/serial.c 
+>> >b/arch/arm/mach-omap2/serial.c
+>> >> index 777e802..e11dfe9 100644
+>> >> --- a/arch/arm/mach-omap2/serial.c
+>> >> +++ b/arch/arm/mach-omap2/serial.c
+>> >> @@ -317,7 +317,8 @@ static void omap_uart_allow_sleep(struct 
+>> >omap_uart_state *uart)
+>> >>  	if (!uart->clocked)
+>> >>  		return;
+>> >>  
+>> >> -	omap_uart_smart_idle_enable(uart, 1);
+>> >> +	if (serial_read_reg(uart->p, UART_LSR) & UART_LSR_TEMT)
+>> >> +		omap_uart_smart_idle_enable(uart, 1);
+>> >>  	uart->can_sleep = 1;
+>> >>  	del_timer(&uart->timer);
+>> >>  }
+>> >> @@ -335,7 +336,11 @@ void omap_uart_prepare_idle(int num)
+>> >>  
+>> >>  	list_for_each_entry(uart, &uart_list, node) {
+>> >>  		if (num == uart->num && uart->can_sleep) {
+>> >> -			omap_uart_disable_clocks(uart);
+>> >> +			if (serial_read_reg(uart->p, UART_LSR) &
+>> >> +					UART_LSR_TEMT)
+>> >> +				omap_uart_disable_clocks(uart);
+>> >> +			else
+>> >> +				omap_uart_smart_idle_enable(uart, 0);
+>> >>  			return;
+>> >>  		}
+>> >>  	}
+>> >> @@ -407,8 +412,14 @@ int omap_uart_can_sleep(void)
+>> >>  static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+>> >>  {
+>> >>  	struct omap_uart_state *uart = dev_id;
+>> >> +	u8 lsr;
+>> >>  
+>> >> -	omap_uart_block_sleep(uart);
+>> >> +	lsr = serial_read_reg(uart->p, UART_LSR);
+>> >> +	/* Check for receive interrupt */
+>> >> +	if (lsr & UART_LSR_DR)
+>> >> +		omap_uart_block_sleep(uart);
+>> >> +	if (lsr & UART_LSR_TEMT && uart->can_sleep)
+>> >> +		omap_uart_smart_idle_enable(uart, 1);
+>> >>  
+>> >>  	return IRQ_NONE;
+>> >>  }
+>> >> -- 
+>> >> 1.5.4.3
+>> >> 
+>> >> --
+>> >> To unsubscribe from this list: send the line "unsubscribe 
+>> >linux-omap" in
+>> >> the body of a message to majordomo@vger.kernel.org
+>> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >
+>
