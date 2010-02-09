@@ -1,75 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: hsmmc: fix memory leak
-Date: Tue, 9 Feb 2010 15:17:32 -0800
-Message-ID: <20100209231732.GM21755@atomide.com>
-References: <1265632385-27448-1-git-send-email-aaro.koskinen@nokia.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] DSPBRIDGE: Prevent memory corruption in
+	DRV_ProcFreeDMMRes
+Date: Wed, 10 Feb 2010 01:48:28 +0200
+Message-ID: <94a0d4531002091548n18897915kd236f9f7b332c1eb@mail.gmail.com>
+References: <441be695a293805f9de42ad5ce5bf6bca21434fc.1265660264.git.ameya.palande@nokia.com>
+	 <94a0d4531002090429n77e65230r4cb426e92384595c@mail.gmail.com>
+	 <496565EC904933469F292DDA3F1663E602AA725BDE@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53721 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754695Ab0BIXQ4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 18:16:56 -0500
-Content-Disposition: inline
-In-Reply-To: <1265632385-27448-1-git-send-email-aaro.koskinen@nokia.com>
+Received: from mail-iw0-f183.google.com ([209.85.223.183]:40594 "EHLO
+	mail-iw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754469Ab0BIXs3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 18:48:29 -0500
+Received: by iwn13 with SMTP id 13so9057765iwn.25
+        for <linux-omap@vger.kernel.org>; Tue, 09 Feb 2010 15:48:28 -0800 (PST)
+In-Reply-To: <496565EC904933469F292DDA3F1663E602AA725BDE@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: linux-omap@vger.kernel.org, adrian.hunter@nokia.com, jarkko.lavinen@nokia.com
+To: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ext-phil.2.carmody@nokia.com" <ext-phil.2.carmody@nokia.com>
 
-* Aaro Koskinen <aaro.koskinen@nokia.com> [100208 04:29]:
-> The platform data allocated with kmalloc() will become unreachable once
-> the init is complete, so it should be freed. The problem was discovered
-> by kmemleak.
+On Tue, Feb 9, 2010 at 10:22 PM, Guzman Lugo, Fernando <x0095840@ti.com=
+> wrote:
+> The root problem here is that remove the DMM element should be in PRO=
+C_UnMap but in PROC_UnReserveMemory, because apart of the problem your =
+are seeing about memory corruption if the application does a PROC_Reser=
+veMemory and then it finished unexpectedly the resource cleanup wont be=
+ able to unreserved the memory because there is no a DMMres element in =
+process context struct, the same applies in the case of application cal=
+ls =C2=A0PROC_ReserveMemory, PROC_Map, PROC_UnMap but fails to do the P=
+ROC_UnReserveMemory.
 
-Looks like this is safe to do as platform_device_add_data does kmemdup
-on the data.
+No, that's a completely different issue, but also valid.
 
-BTW, if you want to create a version for 2.6.33, we should still have
-enough time to queue it as a fix. It's a very limited size leak though,
-but still a leak.
+> So the right solution should be:
+>
+> 1 .- Remove DRV_InsertDMMResElement function from PROC_Map and put it=
+ on PROC_ReserveMemory.
+>
+> 2.- Keep DRV_UpdateDMMResElement function in PROC_Map.
+>
+> 3.- Remove DRV_RemoveDMMResElement function from PROC_UnMap and put i=
+t on ROC_UnReserveMemory function.
+>
+> 4.- Clear dmmAllocated flag in PROC_UnMap:
+>
+> pDMMRes->dmmAllocated =3D 0;
 
-Regards,
+At this point there's an obvious question; what's the point of
+reserving a memory region and not mapping it?
 
-Tony
- 
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-> ---
->  arch/arm/mach-omap2/hsmmc.c |    7 ++++++-
->  1 files changed, 6 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index 1156b28..9ad2295 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -145,6 +145,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
->  {
->  	struct omap2_hsmmc_info *c;
->  	int nr_hsmmc = ARRAY_SIZE(hsmmc_data);
-> +	int i;
->  
->  	if (cpu_is_omap2430()) {
->  		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
-> @@ -171,7 +172,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
->  			      GFP_KERNEL);
->  		if (!mmc) {
->  			pr_err("Cannot allocate memory for mmc device!\n");
-> -			return;
-> +			goto done;
->  		}
->  
->  		if (c->name)
-> @@ -256,6 +257,10 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
->  			continue;
->  		c->dev = mmc->dev;
->  	}
-> +
-> +done:
-> +	for (i = 0; i < nr_hsmmc; i++)
-> +		kfree(hsmmc_data[i]);
->  }
->  
->  #endif
-> -- 
-> 1.5.6.5
-> 
+I remember the answer from Hari was: some clients prefer to reserve a
+big region once, and map parts of it continuously. I have my doubts
+that the use-case even works with the current code-base. But assuming
+it does work, your proposed changes would break it.
+
+It would be much easier to merge the two functions into one.
+
+Anyway, please re-read Ameya's description carefully.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
