@@ -1,58 +1,82 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: Trying to understand how to use regulator supplies
-Date: Wed, 10 Feb 2010 19:21:06 +0000
-Message-ID: <20100210192106.GG27173@sirena.org.uk>
-References: <738b3f7e1002101107k4deaeec9ka6c2bc91348289a8@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Thomas Weber <swirl@gmx.li>
+Subject: [PATCHv3 3/4] Add ASoC support for DevKit8000
+Date: Wed, 10 Feb 2010 20:23:04 +0100
+Message-ID: <1265829784-19224-1-git-send-email-swirl@gmx.li>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:50985 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890Ab0BJTVI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 14:21:08 -0500
-Content-Disposition: inline
-In-Reply-To: <738b3f7e1002101107k4deaeec9ka6c2bc91348289a8@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:40600 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751324Ab0BJTWx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Feb 2010 14:22:53 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peter.barada@gmail.com>
-Cc: linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
+To: alsa-devel@alsa-project.org
+Cc: linux-omap@vger.kernel.org, Thomas Weber <swirl@gmx.li>, felipe.balbi@nokia.com, tony@atomride.com, Tomi.Valkeinen@nokia.com, jhnikula@gmail.com, weber@corscience.de
 
-On Wed, Feb 10, 2010 at 02:07:04PM -0500, Peter Barada wrote:
-> I've got a OMAP3530 board with a tsc2004 touch controller that is
-> powered off of VAUX1(VAUX1_30 on my schematic) at 3V, and I'm trying to
-> understand how to code it up so that vaux1 power comes up before the i2c
-> code tries to probe for the touch controller.
+This patch expands the omap3beagle sound soc for the
+beagle board clone Devkit8000.
 
-You really should ask this question on linux-kernel and/or CC the
-regulator API maintainers - there's nothing OMAP specific here.
+Change log
+V2
+	Expand omap3beagle sound soc for DevKit8000 support.
+V3 
+	Separate Kconfig for Devkit8000.
 
-> static struct regulator_init_data omap3logic_vaux1 = {
->         .constraints = {
->                 .min_uV                 = 3000000,
->                 .max_uV                 = 3000000,
->                 .name                   = "VAUX1_30"
->                 .apply_uV               = true,
->                 .valid_modes_mask       = REGULATOR_MODE_NORMAL
->                                         | REGULATOR_MODE_STANDBY,
->                 .valid_ops_mask         = REGULATOR_CHANGE_MODE
->                                         | REGULATOR_CHANGE_STATUS,
->         },
-> };
+Signed-off-by: Thomas Weber <swirl@gmx.li>
+---
+ sound/soc/omap/Kconfig       |    8 ++++++++
+ sound/soc/omap/Makefile      |    1 +
+ sound/soc/omap/omap3beagle.c |    6 +++---
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-> as well as a corresponding:
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 61952aa..8520b75 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -101,6 +101,14 @@ config SND_OMAP_SOC_OMAP3_BEAGLE
+ 	help
+ 	  Say Y if you want to add support for SoC audio on the Beagleboard.
+ 
++config SND_OMAP_SOC_DEVKIT8000
++	tristate "SoC Audio support for DevKit8000"
++	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_DEVKIT8000
++	select SND_OMAP_SOC_MCBSP
++	select SND_SOC_TWL4030
++	help
++	  Say Y if you want to add support for SoC audio on the DevKit8000
++
+ config SND_OMAP_SOC_ZOOM2
+ 	tristate "SoC Audio support for Zoom2"
+ 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_ZOOM2
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index 19283e5..c8195c9 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -29,5 +29,6 @@ obj-$(CONFIG_SND_OMAP_SOC_AM3517EVM) += snd-soc-am3517evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
++obj-$(CONFIG_SND_OMAP_SOC_DEVKIT8000) += snd-soc-omap3beagle.o
+ obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
+ obj-$(CONFIG_SND_OMAP_SOC_IGEP0020) += snd-soc-igep0020.o
+diff --git a/sound/soc/omap/omap3beagle.c b/sound/soc/omap/omap3beagle.c
+index d88ad5c..240e097 100644
+--- a/sound/soc/omap/omap3beagle.c
++++ b/sound/soc/omap/omap3beagle.c
+@@ -117,11 +117,11 @@ static int __init omap3beagle_soc_init(void)
+ {
+ 	int ret;
+ 
+-	if (!machine_is_omap3_beagle()) {
+-		pr_debug("Not OMAP3 Beagle!\n");
++	if (!(machine_is_omap3_beagle() || machine_is_devkit8000())) {
++		pr_debug("Not OMAP3 Beagle or Devkit8000!\n");
+ 		return -ENODEV;
+ 	}
+-	pr_info("OMAP3 Beagle SoC init\n");
++	pr_info("OMAP3 Beagle/Devkit8000 SoC init\n");
+ 
+ 	omap3beagle_snd_device = platform_device_alloc("soc-audio", -1);
+ 	if (!omap3beagle_snd_device) {
+-- 
+1.6.4.4
 
->         .vaux1          = &omap3logic_vaux1,
-
-> in the twl4030_platform_data structure, but the voltage doesn't come up.
-> How do I tell the kernel to turn on vaux1 so I can detect the tsc2004
-> chip?
-
-If you want to do it purely via constraints set always_on (and drop the
-CHANGE_STATUS option) though ideally the driver for the chip would have
-regulator support and be set as a consumer, in which case it would get()
-and enable() the supplies it needs before interacting with the chip.
-The constraints you have set above allow drivers to turn on the power
-but will leave it in the default state unless any of them do so.
-
-Explicit support in the driver would allow it to disable the supplies
-while the touchscreen is not in use, saving some power.
