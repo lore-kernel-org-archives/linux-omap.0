@@ -1,138 +1,104 @@
-From: Niamathullah sharief <omapsha@gmail.com>
-Subject: Re: Ubuntu installation on omap
-Date: Wed, 10 Feb 2010 20:03:07 +0530
-Message-ID: <4ad3b6301002100633u5e8edff9x89ee543cdd27d3bc@mail.gmail.com>
-References: <4ad3b6301002090141j3a57c223ib50c254b656239fc@mail.gmail.com>
-	 <4551feaf1002090707r1069f25esc2582245057f236@mail.gmail.com>
-	 <4ad3b6301002092130x7ea28ed8l9be0cfefc265684d@mail.gmail.com>
-	 <7A436F7769CA33409C6B44B358BFFF0C012EBD13D9@dlee02.ent.ti.com>
-	 <4ad3b6301002100434n74910f7csf736b92f957f4555@mail.gmail.com>
-	 <4ad3b6301002100435k301e79f3rf8213cf65fd37ff7@mail.gmail.com>
-	 <4ad3b6301002100438l6fcd5e35qb50312199eca03d8@mail.gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v5] OMAP UART: Add omap-serial driver support.
+Date: Wed, 10 Feb 2010 20:09:07 +0530
+Message-ID: <d6a0f7aa1002100639n721d86fdn63520aecb056dd59@mail.gmail.com>
+References: <63111.192.168.10.88.1264586216.squirrel@dbdmail.itg.ti.com>
+	 <20100127172526.GB23505@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f202.google.com ([209.85.216.202]:34633 "EHLO
-	mail-px0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291Ab0BJOdM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 09:33:12 -0500
-Received: by pxi40 with SMTP id 40so21535pxi.21
-        for <linux-omap@vger.kernel.org>; Wed, 10 Feb 2010 06:33:10 -0800 (PST)
-In-Reply-To: <4ad3b6301002100438l6fcd5e35qb50312199eca03d8@mail.gmail.com>
+Received: from qw-out-2122.google.com ([74.125.92.26]:41063 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753264Ab0BJOjI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 09:39:08 -0500
+Received: by qw-out-2122.google.com with SMTP id 9so10854qwb.37
+        for <linux-omap@vger.kernel.org>; Wed, 10 Feb 2010 06:39:07 -0800 (PST)
+In-Reply-To: <20100127172526.GB23505@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Robert Nelson <robertcnelson@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-still i am getting my kernel booting
-i am using "bootcmd=3Dmmcinit;fatload mmc 0:1 0x80000000 uImage;bootm
-0x80000000". But i am creating uImage using "mkimage -A arm -O linux
--T kernel -C none -a 0x80008000 -e 0x80008000 -n "Linux" -d
-=2E/vmlinuz-* ./uImage"
-is this ok?i think the problem might be here. Please help me
+Tony,
 
-On Wed, Feb 10, 2010 at 6:08 PM, Niamathullah sharief <omapsha@gmail.co=
-m> wrote:
-> sorry i followed this link to create uImage
-> "http://elinux.org/BeagleBoardUbuntu#Create_uImage_for_U-Boot" now
-> whether my "bootm" env is correct?
 >
-> On Wed, Feb 10, 2010 at 6:05 PM, Niamathullah sharief <omapsha@gmail.=
-com> wrote:
->> Now i have the new problem. My env has changed and my uImage is not =
-booting. see
->> reading uImage
->>
->> 3610172 bytes read
->> ## Booting kernel from Legacy Image at 80000000 ...
->> =A0Image Name: =A0 2.6.32.7-x7.1
->> =A0Image Type: =A0 ARM Linux Kernel Image (uncompressed)
->> =A0Data Size: =A0 =A03610108 Bytes =3D =A03.4 MB
->> =A0Load Address: 80008000
->> =A0Entry Point: =A080008000
->> =A0Verifying Checksum ... OK
->> =A0Loading Kernel Image ... OK
->> OK
->>
->> Starting kernel ...
->>
->> After this it is not going. I followed the link
->> http://elinux.org/BeagleBoardUbuntu#Create_U-Boot_boot_image to crea=
-te
->> the uImage. whether my env setting are correct? i mean "## Booting
->> kernel from Legacy Image at 80000000 ..." is correct when i followed
->> the above link to create uImage?
->>
->> On Wed, Feb 10, 2010 at 6:04 PM, Niamathullah sharief <omapsha@gmail=
-=2Ecom> wrote:
->>>
->>> Now i have the new problem. My env has changed and my uImage is not=
- booting. see
->>> reading uImage
->>>
->>>> 3610172 bytes read
->>>>
->>>> ## Booting kernel from Legacy Image at 80000000 ...
->>>>
->>>> =A0 Image Name: =A0 2.6.32.7-x7.1
->>>>
->>>> =A0 Image Type: =A0 ARM Linux Kernel Image (uncompressed)
->>>>
->>>> =A0 Data Size: =A0 =A03610108 Bytes =3D =A03.4 MB
->>>>
->>>> =A0 Load Address: 80008000
->>>>
->>>> =A0 Entry Point: =A080008000
->>>>
->>>> =A0 Verifying Checksum ... OK
->>>>
->>>> =A0 Loading Kernel Image ... OK
->>>>
->>>> OK
->>>>
->>>> Starting kernel ...
->>>
->>> After this it is not going. I followed the link http://elinux.org/B=
-eagleBoardUbuntu#Create_U-Boot_boot_image to create the uImage. whether=
- my env setting are correct? i mean "## Booting kernel from Legacy Imag=
-e at 80000000 ..." is correct when i followed the above link to create =
-uImage?
->>>
->>>
->>> On Wed, Feb 10, 2010 at 11:20 AM, Menon, Nishanth <nm@ti.com> wrote=
-:
->>> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>> >> owner@vger.kernel.org] On Behalf Of Niamathullah sharief
->>> >> Sent: Wednesday, February 10, 2010 7:30 AM
->>> >>
->>> >> On Tue, Feb 9, 2010 at 8:37 PM, Robert Nelson <robertcnelson@gma=
-il.com>
->>> >> wrote:
->>> >> > On Tue, Feb 9, 2010 at 3:41 AM, Niamathullah sharief <omapsha@=
-gmail.com>
->>> >> wrote:
->>> >> >> Hi,
->>> >> >> =A0 I am trying to install ubuntu on my beagleboard. i instal=
-led
->>> >> >> successfully and it is booting fine. But after booting the gr=
-aphics
->>> >> >> which i get is not good. It has some graphics problem.
->>> >> >
->>> >> > Ahh, what kind of graphic problems?
->>> >> it is like working without graphics driver
->>> > Is'nt http://groups.google.com/group/beagleboard/ having more fol=
-ks
->>> > Who can specifically help on beagleboard? Could we take the discu=
-ssion
->>> > there?
->>> >
->>> > Regards,
->>> > Nishanth Menon
->>> >
->>>
->>
+>> +static void serial_omap_start_tx(struct uart_port *port)
+>> +{
+>> + =A0 =A0 struct uart_omap_port *up =3D (struct uart_omap_port *)por=
+t;
+>> +
+>> + =A0 =A0 if (up->use_dma && !(up->port.x_char)) {
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 struct circ_buf *xmit =3D &up->port.state-=
+>xmit;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 unsigned int start =3D up->uart_dma.tx_buf=
+_dma_phys +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (xmit->tai=
+l & (UART_XMIT_SIZE - 1));
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (uart_circ_empty(xmit) || up->uart_dma.=
+tx_dma_state)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 spin_lock(&(up->uart_dma.tx_lock));
+>> + =A0 =A0 =A0 =A0 =A0 =A0 up->uart_dma.tx_dma_state =3D 1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&(up->uart_dma.tx_lock));
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 up->uart_dma.tx_buf_size =3D uart_circ_cha=
+rs_pending(xmit);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 /*
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* It is a circular buffer. See if the b=
+uffer has wounded back.
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* If yes it will have to be transferred=
+ in two separate dma
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* transfers
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (start + up->uart_dma.tx_buf_size >=3D
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->uart_d=
+ma.tx_buf_dma_phys + UART_XMIT_SIZE)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->uart_dma.tx_buf_size =3D
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (up->uart_=
+dma.tx_buf_dma_phys +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 UART_XMIT_=
+SIZE) - start;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (up->uart_dma.tx_dma_channel =3D=3D 0xF=
+=46)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_request_dma(up->uart_=
+dma.uart_dma_tx,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 "UART Tx DMA",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 (void *)uart_tx_dma_callback, up,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 &(up->uart_dma.tx_dma_channel));
 >
+> You need to check the result from omap_request_dma. On a busy system
+> it's quite possible that all DMA channels are taken and you need to
+> dynamically fall back to PIO transfer instead.
+>
+> Looks like this function is easy to fix for that. Maybe you also
+> need to reprogram something in the UART for switching between DMA
+> and PIO?
+
+I explored the possibility of falling back to to Interrupt mode when we=
+ get an
+-EBUSY signal from request dma.
+
+It is quite complex, as we set DMA mode in FCR [Fifo control register]
+and FCR can be configured only when "the baud clock is not running
+(DLL_REG and DLH_REG set to 0)."
+
+So we need to reconfigure complete register set since setting DLL and
+DLH to zero means
+we need to reconfigure for baudrate again this would affect the mcr
+configuration and other
+flow control configuration which is set. Thus increasing the
+complexity of switching
+to interrupt mode.
+
+---
+Regards,
+Govindraj.R
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
