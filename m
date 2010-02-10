@@ -1,192 +1,48 @@
-From: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
-Subject: RE: [PATCHV3] OMAP3630: Clock: Workaround for DPLL HS divider
- limitation
-Date: Wed, 10 Feb 2010 12:13:02 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B7E832F@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.1002092337380.28188@utopia.booyaka.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] dspbridge: Simplify Atoi() method
+Date: Wed, 10 Feb 2010 09:59:23 +0200
+Message-ID: <5ec8ebd51002092359v740d4e6asb0b6bab0d069c687@mail.gmail.com>
+References: <1265192086-15633-1-git-send-email-andy.shevchenko@gmail.com>
+	 <4B7213C1.1040300@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52046 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752194Ab0BJGni convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 01:43:38 -0500
-In-Reply-To: <alpine.DEB.2.00.1002092337380.28188@utopia.booyaka.com>
-Content-Language: en-US
+Received: from mail-ew0-f228.google.com ([209.85.219.228]:58918 "EHLO
+	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750892Ab0BJH7Z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 02:59:25 -0500
+Received: by ewy28 with SMTP id 28so4714786ewy.28
+        for <linux-omap@vger.kernel.org>; Tue, 09 Feb 2010 23:59:23 -0800 (PST)
+In-Reply-To: <4B7213C1.1040300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Turquette, Mike" <mturquette@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-No Comments.
+On Wed, Feb 10, 2010 at 4:02 AM, Omar Ramirez Luna <omar.ramirez@ti.com=
+> wrote:
+>> Try to use simple_strtol() kernel native method instead.
+> strtol or strtoul?
+I don't know for sure, see below.
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Wednesday, February 10, 2010 12:09 PM
-> To: G.N, Vijayakumar
-> Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath; Turquette, Mike;
-> khilman@deeprootsystems.com
-> Subject: RE: [PATCHV3] OMAP3630: Clock: Workaround for DPLL HS divider
-> limitation
-> 
-> On Wed, 10 Feb 2010, G.N, Vijayakumar wrote:
-> 
-> > Thanks :)
-> 
-> I had to fix a few minor issues with the patch.  Here's the patch as
-> applied.  Please advise if there are any further comments.
-> 
-> 
-> - Paul
-> 
-> From d88ef2155dce7a7d995e6dea37433d1643827553 Mon Sep 17 00:00:00 2001
-> From: Mike Turquette <mturquette@ti.com>
-> Date: Tue, 9 Feb 2010 23:26:45 -0700
-> Subject: [PATCH] OMAP3630: Clock: Workaround for DPLL HS divider limitation
-> 
-> This patch implements a workaround for the DPLL HS divider limitation
-> in OMAP3630 as given by Errata ID: i556.
-> 
-> Errata:
-> When PWRDN bit is set, it resets the internal HSDIVIDER divide-by value (Mx).
-> The reset value gets loaded instead of the previous value.
-> The following HSDIVIDERs exhibit above behavior:
-> . DPLL4 : M6 / M5 / M4 / M3 / M2 (CM_CLKEN_PLL[31:26] register bits)
-> . DPLL3 : M3 (CM_CLKEN_PLL[12] register bit).
-> 
-> Work Around:
-> It is mandatory to apply the following sequence to ensure the write
-> value will
-> be loaded in DPLL HSDIVIDER FSM:
-> The global sequence when using PWRDN bit is the following:
-> . Disable Mx HSDIVIDER clock output related functional clock enable bits
->         (in CM_FCLKEN_xxx / CM_ICLKEN_xxx)
-> . Enable PWRDN bit of HSDIVIDER
-> . Disable PWRDN bit of HSDIVIDER
-> . Read current HSDIVIDER register value
-> . Write different value in HSDIVIDER register
-> . Write expected value in HSDIVIDER register
-> . Enable Mx HSDIVIDER clock output related functional clocks
->         (CM_FCLKEN_xxx / CM_ICLKEN_xxx)
-> 
-> Signed-off-by: Mike Turquette <mturquette@ti.com>
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> Signed-off-by: Vijaykumar GN <vijaykumar.gn@ti.com>
-> [paul@pwsan.com: updated patch to apply; made workaround function static;
->  marked as being 36xx-specific]
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/clock34xx.c      |   42
-> ++++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/clock34xx.h      |    3 ++
->  arch/arm/mach-omap2/clock34xx_data.c |   19 +++++++++++++++
->  3 files changed, 64 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index 37da629..ea6c2d6 100644
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -150,6 +150,48 @@ const struct clkops clkops_omap3430es2_hsotgusb_wait
-> = {
->  	.find_companion = omap2_clk_dflt_find_companion,
->  };
-> 
-> +/**
-> + * omap36xx_pwrdn_clk_enable_with_hsdiv_restore - enable clocks suffering
-> + *         from HSDivider PWRDN problem Implements Errata ID: i556.
-> + * @clk: DPLL output struct clk
-> + *
-> + * 3630 only: dpll3_m3_ck, dpll4_m2_ck, dpll4_m3_ck, dpll4_m4_ck,
-> + * dpll4_m5_ck & dpll4_m6_ck dividers gets loaded with reset
-> + * valueafter their respective PWRDN bits are set.  Any dummy write
-> + * (Any other value different from the Read value) to the
-> + * corresponding CM_CLKSEL register will refresh the dividers.
-> + */
-> +static int omap36xx_pwrdn_clk_enable_with_hsdiv_restore(struct clk *clk)
-> +{
-> +	u32 dummy_v, orig_v, clksel_shift;
-> +	int ret;
-> +
-> +	/* Clear PWRDN bit of HSDIVIDER */
-> +	ret = omap2_dflt_clk_enable(clk);
-> +
-> +	/* Restore the dividers */
-> +	if (!ret) {
-> +		clksel_shift = __ffs(clk->parent->clksel_mask);
-> +		orig_v = dummy_v = __raw_readl(clk->parent->clksel_reg);
-> +
-> +		/* Write any other value different from the Read value */
-> +		dummy_v ^= (1 << clksel_shift);
-> +		__raw_writel(dummy_v, clk->parent->clksel_reg);
-> +
-> +		/* Write the original divider */
-> +		__raw_writel(orig_v, clk->parent->clksel_reg);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +const struct clkops clkops_omap36xx_pwrdn_with_hsdiv_wait_restore = {
-> +	.enable		= omap36xx_pwrdn_clk_enable_with_hsdiv_restore,
-> +	.disable	= omap2_dflt_clk_disable,
-> +	.find_companion	= omap2_clk_dflt_find_companion,
-> +	.find_idlest	= omap2_clk_dflt_find_idlest,
-> +};
-> +
->  const struct clkops clkops_noncore_dpll_ops = {
->  	.enable		= omap3_noncore_dpll_enable,
->  	.disable	= omap3_noncore_dpll_disable,
-> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-> index e61e653..b9c65f5 100644
-> --- a/arch/arm/mach-omap2/clock34xx.h
-> +++ b/arch/arm/mach-omap2/clock34xx.h
-> @@ -26,4 +26,7 @@ extern const struct clkops clkops_noncore_dpll_ops;
->  extern const struct clkops clkops_am35xx_ipss_module_wait;
->  extern const struct clkops clkops_am35xx_ipss_wait;
-> 
-> +/* OMAP36xx-specific clkops */
-> +extern const struct clkops clkops_omap36xx_pwrdn_with_hsdiv_wait_restore;
-> +
->  #endif
-> diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-
-> omap2/clock34xx_data.c
-> index d9d5b2e..caa6a41 100644
-> --- a/arch/arm/mach-omap2/clock34xx_data.c
-> +++ b/arch/arm/mach-omap2/clock34xx_data.c
-> @@ -3358,6 +3358,25 @@ int __init omap3xxx_clk_init(void)
->  		}
->  	}
-> 
-> +	if (cpu_is_omap3630()) {
-> +		/*
-> +		 * For 3630: override clkops_omap2_dflt_wait for the
-> +		 * clocks affected from PWRDN reset Limitation
-> +		 */
-> +		dpll3_m3x2_ck.ops =
-> +
-> 	&clkops_omap36xx_pwrdn_with_hsdiv_wait_restore;
-> +		dpll4_m2x2_ck.ops =
-> +
-> 	&clkops_omap36xx_pwrdn_with_hsdiv_wait_restore;
-> +		dpll4_m3x2_ck.ops =
-> +
-> 	&clkops_omap36xx_pwrdn_with_hsdiv_wait_restore;
-> +		dpll4_m4x2_ck.ops =
-> +
-> 	&clkops_omap36xx_pwrdn_with_hsdiv_wait_restore;
-> +		dpll4_m5x2_ck.ops =
-> +
-> 	&clkops_omap36xx_pwrdn_with_hsdiv_wait_restore;
-> +		dpll4_m6x2_ck.ops =
-> +
-> 	&clkops_omap36xx_pwrdn_with_hsdiv_wait_restore;
-> +	}
-> +
->  	clk_init(&omap2_clk_functions);
-> 
->  	for (c = omap3xxx_clks; c < omap3xxx_clks +
-> ARRAY_SIZE(omap3xxx_clks); c++)
-> --
-> 1.6.6.GIT
+>> However, there are opened questions:
+>> =C2=A0- why type of Atoi() is s32 if the sign is used only to detect=
+ base?
+This is the question about l vs ul.
 
+>> + =C2=A0 =C2=A0 =C2=A0 } else if (*pch&& =C2=A0(pch[strlen(pch) - 1]=
+ | 0x20 =3D=3D 'h')) {
+>
+> perhaps tolower(x)
+Yep, I saw only internal macro in lib/vsprintf.c, but totally forgot
+about ctype.h.
+
+--=20
+With Best Regards,
+Andy Shevchenko
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
