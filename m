@@ -1,227 +1,86 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: linux-next: manual merge of the omap_dss2 tree with the omap
- tree
-Date: Wed, 10 Feb 2010 15:22:08 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A96D552@dbde02.ent.ti.com>
-References: <20100208172521.abb500b4.sfr@canb.auug.org.au>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: PATCH[V2 1/3]: Update Platform files for SPI
+Date: Wed, 10 Feb 2010 15:33:51 +0530 (IST)
+Message-ID: <34696.10.24.255.18.1265796231.squirrel@dbdmail.itg.ti.com>
+References: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
+    <20100209222513.GJ21755@atomide.com>
+    <fa686aa41002091440p588ad328i14d0fb28390b2672@mail.gmail.com>
+    <20100209230710.GL21755@atomide.com>
+    <fa686aa41002091610y59d55626nf783fa2f5b8171e9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20100208172521.abb500b4.sfr@canb.auug.org.au>
-Content-Language: en-US
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:36445 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753536Ab0BJKEE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Feb 2010 05:04:04 -0500
+In-Reply-To: <fa686aa41002091610y59d55626nf783fa2f5b8171e9@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Tony Lindgren <tony@atomide.com>, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
 
+> On Tue, Feb 9, 2010 at 4:07 PM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+>> * Grant Likely <grant.likely@secretlab.ca> [100209 14:38]:
+>>> On Tue, Feb 9, 2010 at 3:25 PM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+>>> > * Hemanth V <hemanthv@ti.com> [100203 02:19]:
+>>> >> From ee48142ddc43129a21676dbb56a83e3e7d8063de Mon Sep 17 00:00:0=
+0 2001
+>>> >> From: Hemanth V <hemanthv@ti.com>
+>>> >> Date: Fri, 27 Nov 2009 14:22:30 +0530
+>>> >> Subject: [PATCH] Update platform files
+>>> >>
+>>> >> This patch updates platform files for
+>>> >> fifo, slave support
+>>> >>
+>>> >> Signed-off-by: Hemanth V <hemanthv@ti.com>
+>>> >
+>>> > This should get merged via the spi-devel list with the other patc=
+hes.
+>>> >
+>>> > Acked-by: Tony Lindgren <tony@atomide.com>
+>>>
+>>> Personally, I prefer not to carry arch/* changes in my next-spi
+>>> branch, since it means that my pull requests are less obvious for
+>>> Linus and there is greater chance of conflict.
+>>>
+>>> But if you still really want me to merge it through my tree, (or if
+>>> getting the patches out of order will break things) then I'll pick =
+it
+>>> up. =A0Just let me know.
+>>
+>> OK, if you ack it, I'll add the header into omap for-next. That
+>> might break git bisect for some configurations depending in which
+>> order the patches get pulled by Linus..
+>
+> git bisect breakage is breakage enough.  :-)  You're right.  I should
+> pick this one up.  I can see that now that I've had my tea and I'm no
+> longer grumpy.
+>
+>> I guess eventually this header should not live under plat.
+>
+> Any reason the header cannot be moved to include/linux/spi/ now?
 
+Quite a few board files use this header file, which would also require =
+changes.
+Tony, are you ok with accepting changes to board files.
 
-Thanks,
-Vaibhav Hiremath
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
-
-> -----Original Message-----
-> From: Stephen Rothwell [mailto:sfr@canb.auug.org.au]
-> Sent: Monday, February 08, 2010 11:55 AM
-> To: Tomi Valkeinen
-> Cc: linux-next@vger.kernel.org; linux-kernel@vger.kernel.org;
-> Hiremath, Vaibhav; Tony Lindgren; linux-omap@vger.kernel.org
-> Subject: linux-next: manual merge of the omap_dss2 tree with the
-> omap tree
-> 
-> Hi Tomi,
-> 
-> Today's linux-next merge of the omap_dss2 tree got a conflict in
-> arch/arm/mach-omap2/board-am3517evm.c between commit
-> 13560d875d67c06239c82a6148c1b87075701fe9 ("AM3517: Enable basic I2C
-> Support") from the omap tree and commit
-> 56a3d0235cd50d14d7bd4d45e55d192aa0e78cac ("OMAP: AM3517: Enable DSS2
-> for
-> AM3517EVM board") from the omap_dss2 tree.
-> 
-> Juts overlapping additions.   I fixed it up (see below) and can
-> carry the
-> fix as necessary.
-> 
-> P.S. Tomi, this omap_dss2 commit only has your Acked-by not Signed-
-> off-by.
+Thanks
+Hemanth
+>
+> g.
+>
 > --
-> Cheers,
-> Stephen Rothwell                    sfr@canb.auug.org.au
-> 
-> diff --cc arch/arm/mach-omap2/board-am3517evm.c
-> index a166bcc,54af5f8..0000000
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@@ -33,15 -33,147 +34,156 @@@
-> 
->   #include "mux.h"
-> 
-[Hiremath, Vaibhav] I don't see display.h being added here, but when I looked into linux-next repo, I could see that. I think the following commit only shows for the conflicted part, so should be ok.
+> Grant Likely, B.Sc., P.Eng.
+> Secret Lab Technologies Ltd.
+>
 
-Thanks,
-Vaibhav
 
-> + #define LCD_PANEL_PWR		176
-> + #define LCD_PANEL_BKLIGHT_PWR	182
-> + #define LCD_PANEL_PWM		181
-> +
-> + static int lcd_enabled;
-> + static int dvi_enabled;
-> +
-> + static void __init am3517_evm_display_init(void)
-> + {
-> + 	int r;
-> +
-> + 	omap_mux_init_gpio(LCD_PANEL_PWR, OMAP_PIN_INPUT_PULLUP);
-> + 	omap_mux_init_gpio(LCD_PANEL_BKLIGHT_PWR,
-> OMAP_PIN_INPUT_PULLDOWN);
-> + 	omap_mux_init_gpio(LCD_PANEL_PWM, OMAP_PIN_INPUT_PULLDOWN);
-> + 	/*
-> + 	 * Enable GPIO 182 = LCD Backlight Power
-> + 	 */
-> + 	r = gpio_request(LCD_PANEL_BKLIGHT_PWR, "lcd_backlight_pwr");
-> + 	if (r) {
-> + 		printk(KERN_ERR "failed to get lcd_backlight_pwr\n");
-> + 		return;
-> + 	}
-> + 	gpio_direction_output(LCD_PANEL_BKLIGHT_PWR, 1);
-> + 	/*
-> + 	 * Enable GPIO 181 = LCD Panel PWM
-> + 	 */
-> + 	r = gpio_request(LCD_PANEL_PWM, "lcd_pwm");
-> + 	if (r) {
-> + 		printk(KERN_ERR "failed to get lcd_pwm\n");
-> + 		goto err_1;
-> + 	}
-> + 	gpio_direction_output(LCD_PANEL_PWM, 1);
-> + 	/*
-> + 	 * Enable GPIO 176 = LCD Panel Power enable pin
-> + 	 */
-> + 	r = gpio_request(LCD_PANEL_PWR, "lcd_panel_pwr");
-> + 	if (r) {
-> + 		printk(KERN_ERR "failed to get lcd_panel_pwr\n");
-> + 		goto err_2;
-> + 	}
-> + 	gpio_direction_output(LCD_PANEL_PWR, 1);
-> +
-> + 	printk(KERN_INFO "Display initialized successfully\n");
-> + 	return;
-> +
-> + err_2:
-> + 	gpio_free(LCD_PANEL_PWM);
-> + err_1:
-> + 	gpio_free(LCD_PANEL_BKLIGHT_PWR);
-> + }
-> +
-> + static int am3517_evm_panel_enable_lcd(struct omap_dss_device
-> *dssdev)
-> + {
-> + 	if (dvi_enabled) {
-> + 		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
-> + 		return -EINVAL;
-> + 	}
-> + 	gpio_set_value(LCD_PANEL_PWR, 1);
-> + 	lcd_enabled = 1;
-> +
-> + 	return 0;
-> + }
-> +
-> + static void am3517_evm_panel_disable_lcd(struct omap_dss_device
-> *dssdev)
-> + {
-> + 	gpio_set_value(LCD_PANEL_PWR, 0);
-> + 	lcd_enabled = 0;
-> + }
-> +
-> + static struct omap_dss_device am3517_evm_lcd_device = {
-> + 	.type			= OMAP_DISPLAY_TYPE_DPI,
-> + 	.name			= "lcd",
-> + 	.driver_name		= "sharp_lq_panel",
-> + 	.phy.dpi.data_lines 	= 16,
-> + 	.platform_enable	= am3517_evm_panel_enable_lcd,
-> + 	.platform_disable	= am3517_evm_panel_disable_lcd,
-> + };
-> +
-> + static int am3517_evm_panel_enable_tv(struct omap_dss_device
-> *dssdev)
-> + {
-> + 	return 0;
-> + }
-> +
-> + static void am3517_evm_panel_disable_tv(struct omap_dss_device
-> *dssdev)
-> + {
-> + }
-> +
-> + static struct omap_dss_device am3517_evm_tv_device = {
-> + 	.type 			= OMAP_DISPLAY_TYPE_VENC,
-> + 	.name 			= "tv",
-> + 	.driver_name		= "venc",
-> + 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-> + 	.platform_enable	= am3517_evm_panel_enable_tv,
-> + 	.platform_disable	= am3517_evm_panel_disable_tv,
-> + };
-> +
-> + static int am3517_evm_panel_enable_dvi(struct omap_dss_device
-> *dssdev)
-> + {
-> + 	if (lcd_enabled) {
-> + 		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
-> + 		return -EINVAL;
-> + 	}
-> + 	dvi_enabled = 1;
-> +
-> + 	return 0;
-> + }
-> +
-> + static void am3517_evm_panel_disable_dvi(struct omap_dss_device
-> *dssdev)
-> + {
-> + 	dvi_enabled = 0;
-> + }
-> +
-> + static struct omap_dss_device am3517_evm_dvi_device = {
-> + 	.type			= OMAP_DISPLAY_TYPE_DPI,
-> + 	.name			= "dvi",
-> + 	.driver_name		= "generic_panel",
-> + 	.phy.dpi.data_lines	= 24,
-> + 	.platform_enable	= am3517_evm_panel_enable_dvi,
-> + 	.platform_disable	= am3517_evm_panel_disable_dvi,
-> + };
-> +
-> + static struct omap_dss_device *am3517_evm_dss_devices[] = {
-> + 	&am3517_evm_lcd_device,
-> + 	&am3517_evm_tv_device,
-> + 	&am3517_evm_dvi_device,
-> + };
-> +
-> + static struct omap_dss_board_info am3517_evm_dss_data = {
-> + 	.num_devices	= ARRAY_SIZE(am3517_evm_dss_devices),
-> + 	.devices	= am3517_evm_dss_devices,
-> + 	.default_device	= &am3517_evm_lcd_device,
-> + };
-> +
-> + struct platform_device am3517_evm_dss_device = {
-> + 	.name		= "omapdss",
-> + 	.id		= -1,
-> + 	.dev		= {
-> + 		.platform_data	= &am3517_evm_dss_data,
-> + 	},
-> + };
-> +
->  +static int __init am3517_evm_i2c_init(void)
->  +{
->  +	omap_register_i2c_bus(1, 400, NULL, 0);
->  +	omap_register_i2c_bus(2, 400, NULL, 0);
->  +	omap_register_i2c_bus(3, 400, NULL, 0);
->  +
->  +	return 0;
->  +}
->  +
->   /*
->    * Board initialization
->    */
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
