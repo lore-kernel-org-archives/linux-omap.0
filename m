@@ -1,70 +1,227 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [APPLIED] [PATCH 2/4-V1] AM3517: Enable TSC2004 driver support
- for AM3517EVM
-Date: Wed, 10 Feb 2010 14:50:34 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A96D51E@dbde02.ent.ti.com>
-References: <1263190802-1101-3-git-send-email-hvaibhav@ti.com>
- <notify-1265331939@atomide.com>
- <19F8576C6E063C45BE387C64729E7394044A775FEA@dbde02.ent.ti.com>
- <20100205163857.GJ22747@atomide.com>
+Subject: RE: linux-next: manual merge of the omap_dss2 tree with the omap
+ tree
+Date: Wed, 10 Feb 2010 15:22:08 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A96D552@dbde02.ent.ti.com>
+References: <20100208172521.abb500b4.sfr@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58899 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752657Ab0BJJUl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 04:20:41 -0500
-In-Reply-To: <20100205163857.GJ22747@atomide.com>
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20100208172521.abb500b4.sfr@canb.auug.org.au>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+
+
+Thanks,
+Vaibhav Hiremath
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
 
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, February 05, 2010 10:09 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [APPLIED] [PATCH 2/4-V1] AM3517: Enable TSC2004 driver
-> support for AM3517EVM
+> From: Stephen Rothwell [mailto:sfr@canb.auug.org.au]
+> Sent: Monday, February 08, 2010 11:55 AM
+> To: Tomi Valkeinen
+> Cc: linux-next@vger.kernel.org; linux-kernel@vger.kernel.org;
+> Hiremath, Vaibhav; Tony Lindgren; linux-omap@vger.kernel.org
+> Subject: linux-next: manual merge of the omap_dss2 tree with the
+> omap tree
 > 
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [100204 21:31]:
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> > > Sent: Friday, February 05, 2010 6:35 AM
-> > > To: linux-omap@vger.kernel.org
-> > > Subject: [APPLIED] [PATCH 2/4-V1] AM3517: Enable TSC2004 driver
-> > > support for AM3517EVM
-> > >
-> > > This patch has been applied to the linux-omap
-> > > by youw fwiendly patch wobot.
-> > >
-> > [Hiremath, Vaibhav] Tony,
-> >
-> > Please revert this single commit. Actually I had a discussion with
-> Dmitry Torokhov and the conclusion is, as of now for TSC2004 we can
-> reuse TSC2007, and once they start diverging we can split them. I
-> will be submitting patches for this support shortly.
+> Hi Tomi,
 > 
-> >
-> > So please revert hits commit.
+> Today's linux-next merge of the omap_dss2 tree got a conflict in
+> arch/arm/mach-omap2/board-am3517evm.c between commit
+> 13560d875d67c06239c82a6148c1b87075701fe9 ("AM3517: Enable basic I2C
+> Support") from the omap tree and commit
+> 56a3d0235cd50d14d7bd4d45e55d192aa0e78cac ("OMAP: AM3517: Enable DSS2
+> for
+> AM3517EVM board") from the omap_dss2 tree.
 > 
-> Yeah noticed that as they did not compile with omap3_defconfig.
+> Juts overlapping additions.   I fixed it up (see below) and can
+> carry the
+> fix as necessary.
 > 
-> Reverted all of them except patch "AM3517: Enable basic I2C
-> Support".
+> P.S. Tomi, this omap_dss2 commit only has your Acked-by not Signed-
+> off-by.
+> --
+> Cheers,
+> Stephen Rothwell                    sfr@canb.auug.org.au
 > 
-[Hiremath, Vaibhav] Tony,
-The issue was only with TSC2004 support patch, all other patches should go in, since the driver is already being supported in Linux kernel, it was just hookup part.
-
-So can you please merge all other patches expect TSC2004 support?
+> diff --cc arch/arm/mach-omap2/board-am3517evm.c
+> index a166bcc,54af5f8..0000000
+> --- a/arch/arm/mach-omap2/board-am3517evm.c
+> +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> @@@ -33,15 -33,147 +34,156 @@@
+> 
+>   #include "mux.h"
+> 
+[Hiremath, Vaibhav] I don't see display.h being added here, but when I looked into linux-next repo, I could see that. I think the following commit only shows for the conflicted part, so should be ok.
 
 Thanks,
 Vaibhav
-> Regards,
-> 
-> Tony
+
+> + #define LCD_PANEL_PWR		176
+> + #define LCD_PANEL_BKLIGHT_PWR	182
+> + #define LCD_PANEL_PWM		181
+> +
+> + static int lcd_enabled;
+> + static int dvi_enabled;
+> +
+> + static void __init am3517_evm_display_init(void)
+> + {
+> + 	int r;
+> +
+> + 	omap_mux_init_gpio(LCD_PANEL_PWR, OMAP_PIN_INPUT_PULLUP);
+> + 	omap_mux_init_gpio(LCD_PANEL_BKLIGHT_PWR,
+> OMAP_PIN_INPUT_PULLDOWN);
+> + 	omap_mux_init_gpio(LCD_PANEL_PWM, OMAP_PIN_INPUT_PULLDOWN);
+> + 	/*
+> + 	 * Enable GPIO 182 = LCD Backlight Power
+> + 	 */
+> + 	r = gpio_request(LCD_PANEL_BKLIGHT_PWR, "lcd_backlight_pwr");
+> + 	if (r) {
+> + 		printk(KERN_ERR "failed to get lcd_backlight_pwr\n");
+> + 		return;
+> + 	}
+> + 	gpio_direction_output(LCD_PANEL_BKLIGHT_PWR, 1);
+> + 	/*
+> + 	 * Enable GPIO 181 = LCD Panel PWM
+> + 	 */
+> + 	r = gpio_request(LCD_PANEL_PWM, "lcd_pwm");
+> + 	if (r) {
+> + 		printk(KERN_ERR "failed to get lcd_pwm\n");
+> + 		goto err_1;
+> + 	}
+> + 	gpio_direction_output(LCD_PANEL_PWM, 1);
+> + 	/*
+> + 	 * Enable GPIO 176 = LCD Panel Power enable pin
+> + 	 */
+> + 	r = gpio_request(LCD_PANEL_PWR, "lcd_panel_pwr");
+> + 	if (r) {
+> + 		printk(KERN_ERR "failed to get lcd_panel_pwr\n");
+> + 		goto err_2;
+> + 	}
+> + 	gpio_direction_output(LCD_PANEL_PWR, 1);
+> +
+> + 	printk(KERN_INFO "Display initialized successfully\n");
+> + 	return;
+> +
+> + err_2:
+> + 	gpio_free(LCD_PANEL_PWM);
+> + err_1:
+> + 	gpio_free(LCD_PANEL_BKLIGHT_PWR);
+> + }
+> +
+> + static int am3517_evm_panel_enable_lcd(struct omap_dss_device
+> *dssdev)
+> + {
+> + 	if (dvi_enabled) {
+> + 		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
+> + 		return -EINVAL;
+> + 	}
+> + 	gpio_set_value(LCD_PANEL_PWR, 1);
+> + 	lcd_enabled = 1;
+> +
+> + 	return 0;
+> + }
+> +
+> + static void am3517_evm_panel_disable_lcd(struct omap_dss_device
+> *dssdev)
+> + {
+> + 	gpio_set_value(LCD_PANEL_PWR, 0);
+> + 	lcd_enabled = 0;
+> + }
+> +
+> + static struct omap_dss_device am3517_evm_lcd_device = {
+> + 	.type			= OMAP_DISPLAY_TYPE_DPI,
+> + 	.name			= "lcd",
+> + 	.driver_name		= "sharp_lq_panel",
+> + 	.phy.dpi.data_lines 	= 16,
+> + 	.platform_enable	= am3517_evm_panel_enable_lcd,
+> + 	.platform_disable	= am3517_evm_panel_disable_lcd,
+> + };
+> +
+> + static int am3517_evm_panel_enable_tv(struct omap_dss_device
+> *dssdev)
+> + {
+> + 	return 0;
+> + }
+> +
+> + static void am3517_evm_panel_disable_tv(struct omap_dss_device
+> *dssdev)
+> + {
+> + }
+> +
+> + static struct omap_dss_device am3517_evm_tv_device = {
+> + 	.type 			= OMAP_DISPLAY_TYPE_VENC,
+> + 	.name 			= "tv",
+> + 	.driver_name		= "venc",
+> + 	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
+> + 	.platform_enable	= am3517_evm_panel_enable_tv,
+> + 	.platform_disable	= am3517_evm_panel_disable_tv,
+> + };
+> +
+> + static int am3517_evm_panel_enable_dvi(struct omap_dss_device
+> *dssdev)
+> + {
+> + 	if (lcd_enabled) {
+> + 		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
+> + 		return -EINVAL;
+> + 	}
+> + 	dvi_enabled = 1;
+> +
+> + 	return 0;
+> + }
+> +
+> + static void am3517_evm_panel_disable_dvi(struct omap_dss_device
+> *dssdev)
+> + {
+> + 	dvi_enabled = 0;
+> + }
+> +
+> + static struct omap_dss_device am3517_evm_dvi_device = {
+> + 	.type			= OMAP_DISPLAY_TYPE_DPI,
+> + 	.name			= "dvi",
+> + 	.driver_name		= "generic_panel",
+> + 	.phy.dpi.data_lines	= 24,
+> + 	.platform_enable	= am3517_evm_panel_enable_dvi,
+> + 	.platform_disable	= am3517_evm_panel_disable_dvi,
+> + };
+> +
+> + static struct omap_dss_device *am3517_evm_dss_devices[] = {
+> + 	&am3517_evm_lcd_device,
+> + 	&am3517_evm_tv_device,
+> + 	&am3517_evm_dvi_device,
+> + };
+> +
+> + static struct omap_dss_board_info am3517_evm_dss_data = {
+> + 	.num_devices	= ARRAY_SIZE(am3517_evm_dss_devices),
+> + 	.devices	= am3517_evm_dss_devices,
+> + 	.default_device	= &am3517_evm_lcd_device,
+> + };
+> +
+> + struct platform_device am3517_evm_dss_device = {
+> + 	.name		= "omapdss",
+> + 	.id		= -1,
+> + 	.dev		= {
+> + 		.platform_data	= &am3517_evm_dss_data,
+> + 	},
+> + };
+> +
+>  +static int __init am3517_evm_i2c_init(void)
+>  +{
+>  +	omap_register_i2c_bus(1, 400, NULL, 0);
+>  +	omap_register_i2c_bus(2, 400, NULL, 0);
+>  +	omap_register_i2c_bus(3, 400, NULL, 0);
+>  +
+>  +	return 0;
+>  +}
+>  +
+>   /*
+>    * Board initialization
+>    */
