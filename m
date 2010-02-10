@@ -1,97 +1,54 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH] dspbridge: Simplify Atoi() method (v2)
-Date: Wed, 10 Feb 2010 09:58:58 +0200
-Message-ID: <1265788738-27123-1-git-send-email-andy.shevchenko@gmail.com>
-References: <4B7213C1.1040300@ti.com>
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCHV6 0/3] OMAP3630 Clock changes
+Date: Wed, 10 Feb 2010 13:41:51 +0530
+Message-ID: <1265789514-4329-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32620 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752003Ab0BJIAh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 03:00:37 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o1A80Xe1012492
-	for <linux-omap@vger.kernel.org>; Wed, 10 Feb 2010 10:00:34 +0200
-In-Reply-To: <4B7213C1.1040300@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32924 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751531Ab0BJIHR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Feb 2010 03:07:17 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1A87ExG022115
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 10 Feb 2010 02:07:16 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath BS <vishwanath.bs@ti.com>
 
-From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+THis patch series has Clock changes related to OMAP3630. The major Clock releated changes are 
+1. DPLL4 type has changed to j type. 
+2. CLKSEL field width is increased for DPLL4 M2, M3, M4, M5 and M6 
+3. DPLL4 M2 o/p can be either 96MHz or 192 Mhz (to support SGX@192). 
 
-Try to use simple_strtoul() kernel native method instead.
+All the patches have been tested on OMAP3630 ZOOM3 and OMAP3430 ZOOM2 platforms.
+Comments adressed in V4:
+1. Remove sd_div_mask and dco_sel_mask
+2. Remove reference to FREQSEL for 3630
+3. Avoid dynamically overwriting Fields in Clock nodes
 
-However, there are opened questions:
- - why type of Atoi() is s32 if the sign is used only to detect base?
- - should we really to check hex integers like DEAD0123h?
- - how many spaces could lead token?
+Comments Addressed in V5:
+1. Comments from Eduardo Valentin, cosmetic changes and splitting of the patch for freqsel changes
+2. Comments from Paul regarding updation of Clock nodes 
 
-Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
----
- drivers/dsp/bridge/rmgr/dbdcd.c |   42 +++++---------------------------------
- 1 files changed, 6 insertions(+), 36 deletions(-)
+Comments Addressed in V6:
+1. Cosmetic changes based on Comments from Alex and Paul
+2. Added DPLL MULT Mask for 3630 based on Paul's comments
 
-diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
-index 9efb7dc..a460d1a 100644
---- a/drivers/dsp/bridge/rmgr/dbdcd.c
-+++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -1001,50 +1001,20 @@ DSP_STATUS DCD_UnregisterObject(IN struct DSP_UUID *pUuid,
-  */
- static s32 Atoi(char *pszBuf)
- {
--	s32 result = 0;
- 	char *pch = pszBuf;
--	char c;
--	char first;
--	s32 base = 10;
--	s32 len;
-+	s32 base = 0;
- 
- 	while (isspace(*pch))
- 		pch++;
- 
--	first = *pch;
--	if (first == '-' || first == '+') {
-+	if (*pch == '-' || *pch == '+') {
-+		base = 10;
- 		pch++;
--	} else {
--		/* Determine if base 10 or base 16 */
--		len = strlen(pch);
--		if (len  > 1) {
--			c = pch[1];
--			if ((*pch == '0' && (c == 'x' || c == 'X'))) {
--				base = 16;
--				pch += 2;
--			}
--			c = pch[len - 1];
--			if (c == 'h' || c == 'H')
--				base = 16;
--
--		}
--	}
--
--	while (isdigit(c = *pch) || ((base == 16) && isxdigit(c))) {
--		result *= base;
--		if ('A' <= c && c <= 'F') {
--			c = c - 'A' + 10;
--		} else {
--			if ('a' <= c && c <= 'f')
--				c = c - 'a' + 10;
--			else
--				c -= '0';
--		}
--		result += c;
--		++pch;
-+	} else if (*pch && tolower(pch[strlen(pch) - 1]) == 'h') {
-+		base = 16;
- 	}
- 
--	return result;
-+	return simple_strtoul(pch, NULL, base);
- }
- 
- /*
--- 
-1.5.6.5
+Richard Woodruff  (1):
+  OMAP3: introduce DPLL4 Jtype
+
+Vishwanath BS (3):
+  OMAP3: Introduce 3630 DPLL4 HSDivider changes
+  OMAP3: add support for 192Mhz DPLL4M2 output
+
+ arch/arm/mach-omap2/clock.h             |    4 +
+ arch/arm/mach-omap2/clock34xx_data.c    |  240 ++++++++++++++++++++++++++++---
+ arch/arm/mach-omap2/clock44xx_data.c    |    1 +
+ arch/arm/mach-omap2/cm-regbits-34xx.h   |   12 ++
+ arch/arm/mach-omap2/dpll3xxx.c          |   47 ++++++-
+ arch/arm/mach-omap2/id.c                |    3 +
+ arch/arm/plat-omap/include/plat/clock.h |   10 +-
+ arch/arm/plat-omap/include/plat/cpu.h   |    2 +
+ 8 files changed, 299 insertions(+), 20 deletions(-)
 
