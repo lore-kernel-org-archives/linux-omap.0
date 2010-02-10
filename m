@@ -1,68 +1,73 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] DSPBRIDGE: Prevent memory corruption in
-	DRV_ProcFreeDMMRes
-Date: Wed, 10 Feb 2010 01:48:28 +0200
-Message-ID: <94a0d4531002091548n18897915kd236f9f7b332c1eb@mail.gmail.com>
-References: <441be695a293805f9de42ad5ce5bf6bca21434fc.1265660264.git.ameya.palande@nokia.com>
-	 <94a0d4531002090429n77e65230r4cb426e92384595c@mail.gmail.com>
-	 <496565EC904933469F292DDA3F1663E602AA725BDE@dlee06.ent.ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: PATCH[V2 1/3]: Update Platform files for SPI
+Date: Tue, 9 Feb 2010 17:10:21 -0700
+Message-ID: <fa686aa41002091610y59d55626nf783fa2f5b8171e9@mail.gmail.com>
+References: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
+	<20100209222513.GJ21755@atomide.com> <fa686aa41002091440p588ad328i14d0fb28390b2672@mail.gmail.com>
+	<20100209230710.GL21755@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f183.google.com ([209.85.223.183]:40594 "EHLO
+Received: from mail-iw0-f183.google.com ([209.85.223.183]:52097 "EHLO
 	mail-iw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754469Ab0BIXs3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 18:48:29 -0500
-Received: by iwn13 with SMTP id 13so9057765iwn.25
-        for <linux-omap@vger.kernel.org>; Tue, 09 Feb 2010 15:48:28 -0800 (PST)
-In-Reply-To: <496565EC904933469F292DDA3F1663E602AA725BDE@dlee06.ent.ti.com>
+	with ESMTP id S1751167Ab0BJAKm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Feb 2010 19:10:42 -0500
+Received: by iwn13 with SMTP id 13so9084088iwn.25
+        for <linux-omap@vger.kernel.org>; Tue, 09 Feb 2010 16:10:41 -0800 (PST)
+In-Reply-To: <20100209230710.GL21755@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ext-phil.2.carmody@nokia.com" <ext-phil.2.carmody@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Hemanth V <hemanthv@ti.com>, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
 
-On Tue, Feb 9, 2010 at 10:22 PM, Guzman Lugo, Fernando <x0095840@ti.com=
-> wrote:
-> The root problem here is that remove the DMM element should be in PRO=
-C_UnMap but in PROC_UnReserveMemory, because apart of the problem your =
-are seeing about memory corruption if the application does a PROC_Reser=
-veMemory and then it finished unexpectedly the resource cleanup wont be=
- able to unreserved the memory because there is no a DMMres element in =
-process context struct, the same applies in the case of application cal=
-ls =C2=A0PROC_ReserveMemory, PROC_Map, PROC_UnMap but fails to do the P=
-ROC_UnReserveMemory.
-
-No, that's a completely different issue, but also valid.
-
-> So the right solution should be:
+On Tue, Feb 9, 2010 at 4:07 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Grant Likely <grant.likely@secretlab.ca> [100209 14:38]:
+>> On Tue, Feb 9, 2010 at 3:25 PM, Tony Lindgren <tony@atomide.com> wro=
+te:
+>> > * Hemanth V <hemanthv@ti.com> [100203 02:19]:
+>> >> From ee48142ddc43129a21676dbb56a83e3e7d8063de Mon Sep 17 00:00:00=
+ 2001
+>> >> From: Hemanth V <hemanthv@ti.com>
+>> >> Date: Fri, 27 Nov 2009 14:22:30 +0530
+>> >> Subject: [PATCH] Update platform files
+>> >>
+>> >> This patch updates platform files for
+>> >> fifo, slave support
+>> >>
+>> >> Signed-off-by: Hemanth V <hemanthv@ti.com>
+>> >
+>> > This should get merged via the spi-devel list with the other patch=
+es.
+>> >
+>> > Acked-by: Tony Lindgren <tony@atomide.com>
+>>
+>> Personally, I prefer not to carry arch/* changes in my next-spi
+>> branch, since it means that my pull requests are less obvious for
+>> Linus and there is greater chance of conflict.
+>>
+>> But if you still really want me to merge it through my tree, (or if
+>> getting the patches out of order will break things) then I'll pick i=
+t
+>> up. =A0Just let me know.
 >
-> 1 .- Remove DRV_InsertDMMResElement function from PROC_Map and put it=
- on PROC_ReserveMemory.
->
-> 2.- Keep DRV_UpdateDMMResElement function in PROC_Map.
->
-> 3.- Remove DRV_RemoveDMMResElement function from PROC_UnMap and put i=
-t on ROC_UnReserveMemory function.
->
-> 4.- Clear dmmAllocated flag in PROC_UnMap:
->
-> pDMMRes->dmmAllocated =3D 0;
+> OK, if you ack it, I'll add the header into omap for-next. That
+> might break git bisect for some configurations depending in which
+> order the patches get pulled by Linus..
 
-At this point there's an obvious question; what's the point of
-reserving a memory region and not mapping it?
+git bisect breakage is breakage enough.  :-)  You're right.  I should
+pick this one up.  I can see that now that I've had my tea and I'm no
+longer grumpy.
 
-I remember the answer from Hari was: some clients prefer to reserve a
-big region once, and map parts of it continuously. I have my doubts
-that the use-case even works with the current code-base. But assuming
-it does work, your proposed changes would break it.
+> I guess eventually this header should not live under plat.
 
-It would be much easier to merge the two functions into one.
+Any reason the header cannot be moved to include/linux/spi/ now?
 
-Anyway, please re-read Ameya's description carefully.
+g.
 
 --=20
-=46elipe Contreras
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
