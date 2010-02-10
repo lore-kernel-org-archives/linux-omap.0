@@ -1,43 +1,61 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH] OMAP: hsmmc: fix memory leak
-Date: Wed, 10 Feb 2010 15:28:11 +0200
-Message-ID: <1265808491.2006.226.camel@localhost>
-References: <1265632385-27448-1-git-send-email-aaro.koskinen@nokia.com>
-Reply-To: dedekind1@gmail.com
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: Re: [PATCH] DSPBRIDGE: check pointer before calling Proc_Detach
+Date: Wed, 10 Feb 2010 15:47:39 +0200
+Message-ID: <1265809659.30481.52.camel@sanganak>
+References: <1265318253-20308-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:23343 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213Ab0BJN26 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 08:28:58 -0500
-In-Reply-To: <1265632385-27448-1-git-send-email-aaro.koskinen@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:28399 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435Ab0BJNsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 08:48:42 -0500
+In-Reply-To: <1265318253-20308-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, adrian.hunter@nokia.com, jarkko.lavinen@nokia.com
+To: ext Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Ernest Ramos Falcon <ernesto@ti.com>
 
-On Mon, 2010-02-08 at 14:33 +0200, Aaro Koskinen wrote:
-> The platform data allocated with kmalloc() will become unreachable on=
-ce
-> the init is complete, so it should be freed. The problem was discover=
-ed
-> by kmemleak.
->=20
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+Hi,
 
-You forgot to add:
+On Thu, 2010-02-04 at 22:17 +0100, ext Omar Ramirez Luna wrote:
+> From: Ernest Ramos Falcon <ernesto@ti.com>
+> 
+> This patch adds a check before calling Proc_Detach, otherwise
+> in case a failure occurs on PROC_Attach and hProcessor is
+> invalid when the userspace task closes its handle, unexpected
+> behavior might be seen as this pointer is dereferenced in
+> PROC_Detach.
+> 
+> Signed-off-by: Ernest Ramos Falcon <ernesto@ti.com>
+> ---
+>  drivers/dsp/bridge/rmgr/drv_interface.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+> index 32aff66..b0f0d93 100644
+> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
+> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+> @@ -539,7 +539,8 @@ static int bridge_release(struct inode *ip, struct file *filp)
+>  	pr_ctxt = filp->private_data;
+>  	flush_signals(current);
+>  	DRV_RemoveAllResources(pr_ctxt);
+> -	PROC_Detach(pr_ctxt);
+> +	if (pr_ctxt->hProcessor)
+> +		PROC_Detach(pr_ctxt);
+>  	MEM_Free(pr_ctxt);
+>  
+>  	filp->private_data = NULL;
 
-Acked-by: Adrian Hunter <adrian.hunter@nokia.com>
+I guess PROC_Detach already checks for a valid hProcessor handle!
+Why we need this check here again?
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+Also if you go ahead with this patch, then how are you going to cover a
+use case where userspace application calls PROC_Attach() which fails,
+but without checking the failure userspace application calls
+PROC_Detach()!
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+Ameya.
+
