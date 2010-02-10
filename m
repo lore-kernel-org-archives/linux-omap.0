@@ -1,265 +1,135 @@
-From: David Vrabel <david.vrabel@csr.com>
-Subject: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Wed, 10 Feb 2010 11:52:00 +0000
-Message-ID: <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com>
-References: <cover.1265801967.git.david.vrabel@csr.com>
- <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com>
- <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com>
-In-Reply-To: <cover.1265801967.git.david.vrabel@csr.com>
-References: <cover.1265801967.git.david.vrabel@csr.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org
-Cc: David Vrabel <david.vrabel@csr.com>, linux-omap@vger.kernel.org, madhu.cr@ti.com
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [PATCH] OMAP: hsmmc: fix memory leak
+Date: Wed, 10 Feb 2010 14:28:00 +0200 (EET)
+Message-ID: <alpine.DEB.2.00.1002101419540.20129@ak-desktop>
+References: <1265632385-27448-1-git-send-email-aaro.koskinen@nokia.com> <20100209231732.GM21755@atomide.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-2137807480-1265804884=:20129"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:29623 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755219Ab0BJM2U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 07:28:20 -0500
+In-Reply-To: <20100209231732.GM21755@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: "Koskinen Aaro (Nokia-D/Helsinki)" <aaro.koskinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter Adrian (Nokia-D/Helsinki)" <adrian.hunter@nokia.com>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
 
-Enable the use of SDIO card interrupts.  This requires setting ENAWAKEUP
-in SYSCONFIG and IWE in HTCL to allow the MMC block to wake-up when in
-smart-idle mode.
 
-FCLK must be enabled while SDIO interrupts are enabled or the MMC block
-won't wake-up.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The writes to STAT and ISE when starting a command are unnecessary and
-have been removed.
+--8323329-2137807480-1265804884=:20129
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 
-Signed-off-by: David Vrabel <david.vrabel@csr.com>
+Hi,
+
+On Wed, 10 Feb 2010, Tony Lindgren wrote:
+> * Aaro Koskinen <aaro.koskinen@nokia.com> [100208 04:29]:
+>> The platform data allocated with kmalloc() will become unreachable once
+>> the init is complete, so it should be freed. The problem was discovered
+>> by kmemleak.
+>
+> Looks like this is safe to do as platform_device_add_data does kmemdup
+> on the data.
+>
+> BTW, if you want to create a version for 2.6.33, we should still have
+> enough time to queue it as a fix. It's a very limited size leak though,
+> but still a leak.
+
+The version for 2.6.33 is below (also attached).
+
+...
+
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Date: Thu, 4 Feb 2010 13:06:59 +0200
+Subject: [PATCH] OMAP: hsmmc: fix memory leak
+
+The platform data allocated with kmalloc() will become unreachable once
+the init is complete, so it should be freed. The problem was discovered
+by kmemleak.
+
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 ---
-As noted in the FIXME comment, I think the correct thing to do is to
-always leave FCLK enabled.  The clock/clockdomain subsystems should be
-configuring smart-idle mode making explicit calls to disable FCLK
-unnecessary.  I couldn't follow the clock subsystem to see if it was
-actually doing this, though.
----
- drivers/mmc/host/omap_hsmmc.c |   94 ++++++++++++++++++++++++++++-------------
- 1 files changed, 65 insertions(+), 29 deletions(-)
+  arch/arm/mach-omap2/mmc-twl4030.c |    7 ++++++-
+  1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index e6d8cb3..ad0f867 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -64,6 +64,7 @@
- #define SDVS_MASK		0x00000E00
- #define SDVSCLR			0xFFFFF1FF
- #define SDVSDET			0x00000400
-+#define ENAWAKEUP		(1 << 2)
- #define AUTOIDLE		0x1
- #define SDBP			(1 << 8)
- #define DTO			0xe
-@@ -74,9 +75,11 @@
- #define CLKD_SHIFT		6
- #define DTO_MASK		0x000F0000
- #define DTO_SHIFT		16
-+#define CIRQ_ENABLE		(1 << 8)
- #define INT_EN_MASK		0x307F0033
- #define BWR_ENABLE		(1 << 4)
- #define BRR_ENABLE		(1 << 5)
-+#define CTPL			(1 << 11)
- #define INIT_STREAM		(1 << 1)
- #define DP_SELECT		(1 << 21)
- #define DDIR			(1 << 4)
-@@ -84,10 +87,12 @@
- #define MSBS			(1 << 5)
- #define BCE			(1 << 1)
- #define FOUR_BIT		(1 << 1)
-+#define IWE			(1 << 24)
- #define DW8			(1 << 5)
- #define CC			0x1
- #define TC			0x02
- #define OD			0x1
-+#define CIRQ			(1 << 8)
- #define ERR			(1 << 15)
- #define CMD_TIMEOUT		(1 << 16)
- #define DATA_TIMEOUT		(1 << 20)
-@@ -228,7 +233,7 @@ static int omap_hsmmc_context_restore(struct omap_hsmmc_host *host)
- 		;
- 
- 	OMAP_HSMMC_WRITE(host->base, SYSCONFIG,
--			OMAP_HSMMC_READ(host->base, SYSCONFIG) | AUTOIDLE);
-+			OMAP_HSMMC_READ(host->base, SYSCONFIG) | AUTOIDLE | ENAWAKEUP);
- 
- 	if (host->id == OMAP_MMC1_DEVID) {
- 		if (host->power_mode != MMC_POWER_OFF &&
-@@ -243,7 +248,7 @@ static int omap_hsmmc_context_restore(struct omap_hsmmc_host *host)
- 	}
- 
- 	OMAP_HSMMC_WRITE(host->base, HCTL,
--			OMAP_HSMMC_READ(host->base, HCTL) | hctl);
-+			OMAP_HSMMC_READ(host->base, HCTL) | hctl | IWE);
- 
- 	OMAP_HSMMC_WRITE(host->base, CAPA,
- 			OMAP_HSMMC_READ(host->base, CAPA) | capa);
-@@ -257,7 +262,7 @@ static int omap_hsmmc_context_restore(struct omap_hsmmc_host *host)
- 		;
- 
- 	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
--	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-+	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK | CIRQ);
- 	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
- 
- 	/* Do not initialize card-specific things if the power is off */
-@@ -426,12 +431,6 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
- 		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
- 	host->cmd = cmd;
- 
--	/*
--	 * Clear status bits and enable interrupts
--	 */
--	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
--	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
--
- 	if (host->use_dma)
- 		OMAP_HSMMC_WRITE(host->base, IE,
- 				 INT_EN_MASK & ~(BRR_ENABLE | BWR_ENABLE));
-@@ -638,18 +637,21 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
- {
- 	struct omap_hsmmc_host *host = dev_id;
- 	struct mmc_data *data;
--	int end_cmd = 0, end_trans = 0, status;
-+	u32 status;
-+	int end_cmd = 0, end_trans = 0;
-+	bool card_irq = false;
- 
- 	spin_lock(&host->irq_lock);
- 
--	if (host->mrq == NULL) {
--		OMAP_HSMMC_WRITE(host->base, STAT,
--			OMAP_HSMMC_READ(host->base, STAT));
--		/* Flush posted write */
--		OMAP_HSMMC_READ(host->base, STAT);
--		spin_unlock(&host->irq_lock);
--		return IRQ_HANDLED;
--	}
-+	status = OMAP_HSMMC_READ(host->base, STAT);
-+	OMAP_HSMMC_WRITE(host->base, STAT, status);
-+	OMAP_HSMMC_READ(host->base, STAT); /* Flush posted write. */
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 0c3c72d..8afe9dd 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -408,6 +408,7 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
+  {
+  	struct twl4030_hsmmc_info *c;
+  	int nr_hsmmc = ARRAY_SIZE(hsmmc_data);
++	int i;
+
+  	if (cpu_is_omap2430()) {
+  		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
+@@ -434,7 +435,7 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
+  		mmc = kzalloc(sizeof(struct omap_mmc_platform_data), GFP_KERNEL);
+  		if (!mmc) {
+  			pr_err("Cannot allocate memory for mmc device!\n");
+-			return;
++			goto done;
+  		}
+
+  		if (c->name)
+@@ -532,6 +533,10 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
+  			continue;
+  		c->dev = mmc->dev;
+  	}
 +
-+	if (status & CIRQ)
-+		card_irq = true;
-+
-+	if (host->mrq == NULL)
-+		goto out;
- 
- 	data = host->data;
- 	status = OMAP_HSMMC_READ(host->base, STAT);
-@@ -704,17 +706,16 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
- 		}
- 	}
- 
--	OMAP_HSMMC_WRITE(host->base, STAT, status);
--	/* Flush posted write */
--	OMAP_HSMMC_READ(host->base, STAT);
--
- 	if (end_cmd || ((status & CC) && host->cmd))
- 		omap_hsmmc_cmd_done(host, host->cmd);
- 	if ((end_trans || (status & TC)) && host->mrq)
- 		omap_hsmmc_xfer_done(host, data);
--
-+out:
- 	spin_unlock(&host->irq_lock);
- 
-+	if (card_irq)
-+		mmc_signal_sdio_irq(host->mmc);
-+
- 	return IRQ_HANDLED;
- }
- 
-@@ -1248,6 +1249,41 @@ static int omap_hsmmc_get_ro(struct mmc_host *mmc)
- 	return mmc_slot(host).get_ro(host->dev, 0);
- }
- 
-+static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
-+{
-+	struct omap_hsmmc_host *host = mmc_priv(mmc);
-+	u32 ie, con;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&host->irq_lock, flags);
-+
-+	/*
-+	 * When interrupts are enabled, CTPL must be set to enable
-+	 * DAT1 input buffer (or the card interrupt is always
-+	 * asserted) and FCLK must be enabled else wakeup does not
-+	 * work.
-+	 *
-+	 * FIXME: the power save code probably shouldn't be playing
-+	 * with FCLK and allow the clock subsystem to put it into
-+	 * smart-idle mode instead.
-+	 */
-+	con = OMAP_HSMMC_READ(host->base, CON);
-+	ie = OMAP_HSMMC_READ(host->base, IE);
-+	if (enable) {
-+		clk_enable(host->fclk);
-+		ie |= CIRQ_ENABLE;
-+		con |= CTPL;
-+	} else {
-+		clk_disable(host->fclk);
-+		ie &= ~CIRQ_ENABLE;
-+		con &= ~CTPL;
-+	}
-+	OMAP_HSMMC_WRITE(host->base, CON, con);
-+	OMAP_HSMMC_WRITE(host->base, IE, ie);
-+
-+	spin_unlock_irqrestore(&host->irq_lock, flags);
-+}
-+
- static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
- {
- 	u32 hctl, capa, value;
-@@ -1262,14 +1298,14 @@ static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
- 	}
- 
- 	value = OMAP_HSMMC_READ(host->base, HCTL) & ~SDVS_MASK;
--	OMAP_HSMMC_WRITE(host->base, HCTL, value | hctl);
-+	OMAP_HSMMC_WRITE(host->base, HCTL, value | hctl | IWE);
- 
- 	value = OMAP_HSMMC_READ(host->base, CAPA);
- 	OMAP_HSMMC_WRITE(host->base, CAPA, value | capa);
- 
- 	/* Set the controller to AUTO IDLE mode */
- 	value = OMAP_HSMMC_READ(host->base, SYSCONFIG);
--	OMAP_HSMMC_WRITE(host->base, SYSCONFIG, value | AUTOIDLE);
-+	OMAP_HSMMC_WRITE(host->base, SYSCONFIG, value | AUTOIDLE | ENAWAKEUP);
- 
- 	/* Set SD bus power bit */
- 	set_sd_bus_power(host);
-@@ -1516,7 +1552,7 @@ static const struct mmc_host_ops omap_hsmmc_ops = {
- 	.set_ios = omap_hsmmc_set_ios,
- 	.get_cd = omap_hsmmc_get_cd,
- 	.get_ro = omap_hsmmc_get_ro,
--	/* NYET -- enable_sdio_irq */
-+	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
- };
- 
- static const struct mmc_host_ops omap_hsmmc_ps_ops = {
-@@ -1526,7 +1562,7 @@ static const struct mmc_host_ops omap_hsmmc_ps_ops = {
- 	.set_ios = omap_hsmmc_set_ios,
- 	.get_cd = omap_hsmmc_get_cd,
- 	.get_ro = omap_hsmmc_get_ro,
--	/* NYET -- enable_sdio_irq */
-+	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
- };
- 
- #ifdef CONFIG_DEBUG_FS
-@@ -1731,7 +1767,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 	mmc->max_seg_size = mmc->max_req_size;
- 
- 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
--		     MMC_CAP_WAIT_WHILE_BUSY;
-+		     MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_SDIO_IRQ;
- 
- 	if (mmc_slot(host).wires >= 8)
- 		mmc->caps |= MMC_CAP_8_BIT_DATA;
-@@ -1802,7 +1838,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-+	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK | CIRQ);
- 	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
- 
- 	mmc_host_lazy_disable(host->mmc);
++done:
++	for (i = 0; i < nr_hsmmc; i++)
++		kfree(hsmmc_data[i]);
+  }
+
+  #endif
 -- 
-1.6.3.3
+1.5.6.5
 
+--8323329-2137807480-1265804884=:20129
+Content-Type: TEXT/x-diff; name=0001-OMAP-hsmmc-fix-memory-leak.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <alpine.DEB.2.00.1002101428000.20129@ak-desktop>
+Content-Description: patch
+Content-Disposition: attachment; filename=0001-OMAP-hsmmc-fix-memory-leak.patch
+
+RnJvbSA2ZDE1ZjQ4ZWNjMTc3YmRlMTgwMzNhZjI4ODRlYjJjNWNlNTNiZmQ3
+IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQ0KRnJvbTogQWFybyBLb3NraW5l
+biA8YWFyby5rb3NraW5lbkBub2tpYS5jb20+DQpEYXRlOiBUaHUsIDQgRmVi
+IDIwMTAgMTM6MDY6NTkgKzAyMDANClN1YmplY3Q6IFtQQVRDSF0gT01BUDog
+aHNtbWM6IGZpeCBtZW1vcnkgbGVhaw0KDQpUaGUgcGxhdGZvcm0gZGF0YSBh
+bGxvY2F0ZWQgd2l0aCBrbWFsbG9jKCkgd2lsbCBiZWNvbWUgdW5yZWFjaGFi
+bGUgb25jZQ0KdGhlIGluaXQgaXMgY29tcGxldGUsIHNvIGl0IHNob3VsZCBi
+ZSBmcmVlZC4gVGhlIHByb2JsZW0gd2FzIGRpc2NvdmVyZWQNCmJ5IGttZW1s
+ZWFrLg0KDQpTaWduZWQtb2ZmLWJ5OiBBYXJvIEtvc2tpbmVuIDxhYXJvLmtv
+c2tpbmVuQG5va2lhLmNvbT4NCi0tLQ0KIGFyY2gvYXJtL21hY2gtb21hcDIv
+bW1jLXR3bDQwMzAuYyB8ICAgIDcgKysrKysrLQ0KIDEgZmlsZXMgY2hhbmdl
+ZCwgNiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9tbWMtdHdsNDAzMC5jIGIvYXJj
+aC9hcm0vbWFjaC1vbWFwMi9tbWMtdHdsNDAzMC5jDQppbmRleCAwYzNjNzJk
+Li44YWZlOWRkIDEwMDY0NA0KLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9t
+bWMtdHdsNDAzMC5jDQorKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL21tYy10
+d2w0MDMwLmMNCkBAIC00MDgsNiArNDA4LDcgQEAgdm9pZCBfX2luaXQgdHds
+NDAzMF9tbWNfaW5pdChzdHJ1Y3QgdHdsNDAzMF9oc21tY19pbmZvICpjb250
+cm9sbGVycykNCiB7DQogCXN0cnVjdCB0d2w0MDMwX2hzbW1jX2luZm8gKmM7
+DQogCWludCBucl9oc21tYyA9IEFSUkFZX1NJWkUoaHNtbWNfZGF0YSk7DQor
+CWludCBpOw0KIA0KIAlpZiAoY3B1X2lzX29tYXAyNDMwKCkpIHsNCiAJCWNv
+bnRyb2xfcGJpYXNfb2Zmc2V0ID0gT01BUDI0M1hfQ09OVFJPTF9QQklBU19M
+SVRFOw0KQEAgLTQzNCw3ICs0MzUsNyBAQCB2b2lkIF9faW5pdCB0d2w0MDMw
+X21tY19pbml0KHN0cnVjdCB0d2w0MDMwX2hzbW1jX2luZm8gKmNvbnRyb2xs
+ZXJzKQ0KIAkJbW1jID0ga3phbGxvYyhzaXplb2Yoc3RydWN0IG9tYXBfbW1j
+X3BsYXRmb3JtX2RhdGEpLCBHRlBfS0VSTkVMKTsNCiAJCWlmICghbW1jKSB7
+DQogCQkJcHJfZXJyKCJDYW5ub3QgYWxsb2NhdGUgbWVtb3J5IGZvciBtbWMg
+ZGV2aWNlIVxuIik7DQotCQkJcmV0dXJuOw0KKwkJCWdvdG8gZG9uZTsNCiAJ
+CX0NCiANCiAJCWlmIChjLT5uYW1lKQ0KQEAgLTUzMiw2ICs1MzMsMTAgQEAg
+dm9pZCBfX2luaXQgdHdsNDAzMF9tbWNfaW5pdChzdHJ1Y3QgdHdsNDAzMF9o
+c21tY19pbmZvICpjb250cm9sbGVycykNCiAJCQljb250aW51ZTsNCiAJCWMt
+PmRldiA9IG1tYy0+ZGV2Ow0KIAl9DQorDQorZG9uZToNCisJZm9yIChpID0g
+MDsgaSA8IG5yX2hzbW1jOyBpKyspDQorCQlrZnJlZShoc21tY19kYXRhW2ld
+KTsNCiB9DQogDQogI2VuZGlmDQotLSANCjEuNS42LjUNCg0K
+
+--8323329-2137807480-1265804884=:20129--
