@@ -1,24 +1,31 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH] DSPBRIDGE: Adding protection Resource cleanup linked lists
-Date: Wed, 10 Feb 2010 02:29:17 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602AA725DC4@dlee06.ent.ti.com>
+Subject: [RESEND] [PATCH] DSPBRIDGE: Adding protection Resource cleanup
+ linked lists
+Date: Wed, 10 Feb 2010 02:32:58 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602AA725DC6@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60520 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750892Ab0BJI3Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 03:29:24 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:44614 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751849Ab0BJIdC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 03:33:02 -0500
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
->From bf2ca8fc8f02b94119efd69c0a4eb9621120f064 Mon Sep 17 00:00:00 2001
+
+Please discard previous one.
+
+Regards,
+Fernando.
+
+>From 6bcdc02f6265246e385194433775e75db7ad44cf Mon Sep 17 00:00:00 2001
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Wed, 10 Feb 2010 02:26:13 -0600
+Date: Wed, 10 Feb 2010 02:31:40 -0600
 Subject: [PATCH] DSPBRIDGE: Adding protection Resource cleanup linked lists
 
 This patch protects the Resorce cleanup lists from
@@ -26,11 +33,35 @@ concurrent access
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- drivers/dsp/bridge/pmgr/wcd.c           |   16 ++++++-
- drivers/dsp/bridge/rmgr/drv.c           |   71 ++++++++++++++++++++++++++-----
- drivers/dsp/bridge/rmgr/drv_interface.c |    8 +++-
- 3 files changed, 80 insertions(+), 15 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/drv.h |    3 +
+ drivers/dsp/bridge/pmgr/wcd.c              |   16 ++++++-
+ drivers/dsp/bridge/rmgr/drv.c              |   71 +++++++++++++++++++++++----
+ drivers/dsp/bridge/rmgr/drv_interface.c    |    8 ++-
+ 4 files changed, 83 insertions(+), 15 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index b6a5fd2..b044291 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -137,15 +137,18 @@ struct PROCESS_CONTEXT{
+ 
+ 	/* DSP Node resources */
+ 	struct NODE_RES_OBJECT *pNodeList;
++	struct mutex node_mutex;
+ 
+ 	/* DMM resources */
+ 	struct DMM_RES_OBJECT *pDMMList;
++	struct mutex dmm_mutex;
+ 
+ 	/* DSP Heap resources */
+ 	struct DSPHEAP_RES_OBJECT *pDSPHEAPList;
+ 
+ 	/* Stream resources */
+ 	struct STRM_RES_OBJECT *pSTRMList;
++	struct mutex strm_mutex;
+ } ;
+ 
+ 
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
 index b086c0f..bd2bfa3 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
@@ -83,7 +114,7 @@ index b086c0f..bd2bfa3 100644
  }
  
 diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 36bab9f..3def337 100644
+index 36bab9f..e8b2c58 100644
 --- a/drivers/dsp/bridge/rmgr/drv.c
 +++ b/drivers/dsp/bridge/rmgr/drv.c
 @@ -97,6 +97,10 @@ DSP_STATUS DRV_InsertNodeResElement(HANDLE hNode, HANDLE hNodeRes,
@@ -91,7 +122,7 @@ index 36bab9f..3def337 100644
  	}
  	if (DSP_SUCCEEDED(status)) {
 +		if (mutex_lock_interruptible(&pCtxt->node_mutex)) {
-+			MEM_Free(*pNodeRes);
++			kfree(*pNodeRes);
 +			return DSP_EFAIL;
 +		}
  		(*pNodeRes)->hNode = hNode;
@@ -138,7 +169,7 @@ index 36bab9f..3def337 100644
  	}
  	if (DSP_SUCCEEDED(status)) {
 +		if (mutex_lock_interruptible(&pCtxt->dmm_mutex)) {
-+			MEM_Free(*pDMMRes);
++			kfree(*pDMMRes);
 +			return DSP_EFAIL;
 +		}
 +
@@ -225,7 +256,7 @@ index 36bab9f..3def337 100644
  	}
  	if (DSP_SUCCEEDED(status)) {
 +		if (mutex_lock_interruptible(&pCtxt->strm_mutex)) {
-+			MEM_Free(*pSTRMRes);
++			kfree(*pSTRMRes);
 +			return DSP_EFAIL;
 +		}
  		(*pSTRMRes)->hStream = hStreamHandle;
