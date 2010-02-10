@@ -1,128 +1,64 @@
-From: Niamathullah sharief <omapsha@gmail.com>
-Subject: Re: Ubuntu installation on omap
-Date: Wed, 10 Feb 2010 18:08:16 +0530
-Message-ID: <4ad3b6301002100438l6fcd5e35qb50312199eca03d8@mail.gmail.com>
-References: <4ad3b6301002090141j3a57c223ib50c254b656239fc@mail.gmail.com>
-	 <4551feaf1002090707r1069f25esc2582245057f236@mail.gmail.com>
-	 <4ad3b6301002092130x7ea28ed8l9be0cfefc265684d@mail.gmail.com>
-	 <7A436F7769CA33409C6B44B358BFFF0C012EBD13D9@dlee02.ent.ti.com>
-	 <4ad3b6301002100434n74910f7csf736b92f957f4555@mail.gmail.com>
-	 <4ad3b6301002100435k301e79f3rf8213cf65fd37ff7@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: USB lockup on OMAP3530
+Date: Wed, 10 Feb 2010 18:10:49 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E80D1A1@dbde02.ent.ti.com>
+References: <f3642e6b1001261430n32d55can502931fc93271f67@mail.gmail.com>
+ <4551feaf1001261513vf8ba655ua1c050a28f1d57eb@mail.gmail.com>
+ <201001272046.42946.ahartmetz@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f187.google.com ([209.85.222.187]:39802 "EHLO
-	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750868Ab0BJMiQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 07:38:16 -0500
-Received: by pzk17 with SMTP id 17so1252275pzk.4
-        for <linux-omap@vger.kernel.org>; Wed, 10 Feb 2010 04:38:16 -0800 (PST)
-In-Reply-To: <4ad3b6301002100435k301e79f3rf8213cf65fd37ff7@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:37367 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750914Ab0BJMky convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 07:40:54 -0500
+In-Reply-To: <201001272046.42946.ahartmetz@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Robert Nelson <robertcnelson@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Andreas Hartmetz <ahartmetz@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-sorry i followed this link to create uImage
-"http://elinux.org/BeagleBoardUbuntu#Create_uImage_for_U-Boot" now
-whether my "bootm" env is correct?
+<snip>
 
-On Wed, Feb 10, 2010 at 6:05 PM, Niamathullah sharief <omapsha@gmail.co=
-m> wrote:
-> Now i have the new problem. My env has changed and my uImage is not b=
-ooting. see
-> reading uImage
->
-> 3610172 bytes read
-> ## Booting kernel from Legacy Image at 80000000 ...
-> =A0Image Name: =A0 2.6.32.7-x7.1
-> =A0Image Type: =A0 ARM Linux Kernel Image (uncompressed)
-> =A0Data Size: =A0 =A03610108 Bytes =3D =A03.4 MB
-> =A0Load Address: 80008000
-> =A0Entry Point: =A080008000
-> =A0Verifying Checksum ... OK
-> =A0Loading Kernel Image ... OK
-> OK
->
-> Starting kernel ...
->
-> After this it is not going. I followed the link
-> http://elinux.org/BeagleBoardUbuntu#Create_U-Boot_boot_image to creat=
-e
-> the uImage. whether my env setting are correct? i mean "## Booting
-> kernel from Legacy Image at 80000000 ..." is correct when i followed
-> the above link to create uImage?
->
-> On Wed, Feb 10, 2010 at 6:04 PM, Niamathullah sharief <omapsha@gmail.=
-com> wrote:
->>
->> Now i have the new problem. My env has changed and my uImage is not =
-booting. see
->> reading uImage
->>
->>> 3610172 bytes read
->>>
->>> ## Booting kernel from Legacy Image at 80000000 ...
->>>
->>> =A0 Image Name: =A0 2.6.32.7-x7.1
->>>
->>> =A0 Image Type: =A0 ARM Linux Kernel Image (uncompressed)
->>>
->>> =A0 Data Size: =A0 =A03610108 Bytes =3D =A03.4 MB
->>>
->>> =A0 Load Address: 80008000
->>>
->>> =A0 Entry Point: =A080008000
->>>
->>> =A0 Verifying Checksum ... OK
->>>
->>> =A0 Loading Kernel Image ... OK
->>>
->>> OK
->>>
->>> Starting kernel ...
->>
->> After this it is not going. I followed the link http://elinux.org/Be=
-agleBoardUbuntu#Create_U-Boot_boot_image to create the uImage. whether =
-my env setting are correct? i mean "## Booting kernel from Legacy Image=
- at 80000000 ..." is correct when i followed the above link to create u=
-Image?
->>
->>
->> On Wed, Feb 10, 2010 at 11:20 AM, Menon, Nishanth <nm@ti.com> wrote:
->> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> >> owner@vger.kernel.org] On Behalf Of Niamathullah sharief
->> >> Sent: Wednesday, February 10, 2010 7:30 AM
->> >>
->> >> On Tue, Feb 9, 2010 at 8:37 PM, Robert Nelson <robertcnelson@gmai=
-l.com>
->> >> wrote:
->> >> > On Tue, Feb 9, 2010 at 3:41 AM, Niamathullah sharief <omapsha@g=
-mail.com>
->> >> wrote:
->> >> >> Hi,
->> >> >> =A0 I am trying to install ubuntu on my beagleboard. i install=
-ed
->> >> >> successfully and it is booting fine. But after booting the gra=
-phics
->> >> >> which i get is not good. It has some graphics problem.
->> >> >
->> >> > Ahh, what kind of graphic problems?
->> >> it is like working without graphics driver
->> > Is'nt http://groups.google.com/group/beagleboard/ having more folk=
-s
->> > Who can specifically help on beagleboard? Could we take the discus=
-sion
->> > there?
->> >
->> > Regards,
->> > Nishanth Menon
->> >
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > 
+> > > So far I have tried many versions of the linux-omap and linux-omap-pm
+> > > kernel, from about 2.6.30 to the latest git version. They all exhibit
+> > > the USB OTG death bug.
+> > > I've used kernels with openembedded patches and without, currently
+> > > without. Yesterday I discovered the musb_hdrc.fifo_mode parameter and
+> > > played around with it. I also modified the given configurations. Result:
+> > > - FIFO configurations including .mode = BUF_DOUBLE don't work at all - no
+> > >  devices work.
+> > > - the USB death bug is not fixed by:
+> > >  - using only one endpoint
+> > >  - using no TXRX entries but only separate RX and TX
+> > >    (every endpoint gets a TX and an RX entry though)
+> > >  - using a large number of endpoints with same maxpacket value
+> > > ... still no solution.
+> > > 
+> > > Enabling debug output of the musb_hdrc driver (yes I've also compiled in
+> > > debug messages) is not very practical due to the high volume of
+> > > messages; also, when the bug occurs nothing special is printed. The
+> > > first error usually comes from the memory manager / filesystem
+> > > complaining that it can't do "IO to offline device", i.e. the
+> > > disappeared external harddisk (which contains the swapfile).
+> > > 
+> > > I would *really* appreciate somebody looking into this because this
+> > > currently makes the hardware as useful as a brick for me. I can supply
+> > > debug output and test patches.
+
+Would you care to try these two patches please?
+
+http://marc.info/?l=linux-usb&m=125957336716915&w=2
+
+And
+
+The dependency patch:
+http://marc.info/?l=linux-usb&m=125879861004131&w=2
+
+
+Let me know if these fix the bug for you.
+
+- Anand
