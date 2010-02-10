@@ -1,51 +1,171 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: Ubuntu installation on omap
-Date: Tue, 9 Feb 2010 23:50:56 -0600
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012EBD13D9@dlee02.ent.ti.com>
-References: <4ad3b6301002090141j3a57c223ib50c254b656239fc@mail.gmail.com>
-	 <4551feaf1002090707r1069f25esc2582245057f236@mail.gmail.com>
- <4ad3b6301002092130x7ea28ed8l9be0cfefc265684d@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHV3] OMAP3630: Clock: Workaround for DPLL HS divider
+ limitation
+Date: Tue, 9 Feb 2010 23:03:29 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002092301190.28188@utopia.booyaka.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026B757441@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37777 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751273Ab0BJFvB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 00:51:01 -0500
-In-Reply-To: <4ad3b6301002092130x7ea28ed8l9be0cfefc265684d@mail.gmail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:49112 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141Ab0BJGDa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 01:03:30 -0500
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026B757441@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Niamathullah sharief <omapsha@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "G.N, Vijayakumar" <vijaykumar.gn@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Turquette, Mike" <mturquette@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Niamathullah sharief
-> Sent: Wednesday, February 10, 2010 7:30 AM
->=20
-> On Tue, Feb 9, 2010 at 8:37 PM, Robert Nelson <robertcnelson@gmail.co=
-m>
-> wrote:
-> > On Tue, Feb 9, 2010 at 3:41 AM, Niamathullah sharief <omapsha@gmail=
-=2Ecom>
-> wrote:
-> >> Hi,
-> >> =A0 I am trying to install ubuntu on my beagleboard. i installed
-> >> successfully and it is booting fine. But after booting the graphic=
-s
-> >> which i get is not good. It has some graphics problem.
-> >
-> > Ahh, what kind of graphic problems?
-> it is like working without graphics driver
-Is'nt http://groups.google.com/group/beagleboard/ having more folks
-Who can specifically help on beagleboard? Could we take the discussion=20
-there?
+Hello Mike, Vijayakumar,
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+one comment below.
+
+
+On Tue, 9 Feb 2010, G.N, Vijayakumar wrote:
+
+> From: Mike Turquette <mturquette@ti.com>
+> Date: Fri, 5 Feb 2010 19:09:52 +0530
+> Subject: [PATCH] OMAP3630: Clock: Workaround for DPLL HS divider limitation
+> 
+> This patch implements a workaround for the DPLL HS divider limitation
+> in OMAP3630 as given by Errata ID: i556.
+> 
+> Errata:
+> When PWRDN bit is set, it resets the internal HSDIVIDER divide-by value (Mx).
+> The reset value gets loaded instead of the previous value.
+> The following HSDIVIDERs exhibit above behavior:
+> . DPLL4 : M6 / M5 / M4 / M3 / M2 (CM_CLKEN_PLL[31:26] register bits)
+> . DPLL3 : M3 (CM_CLKEN_PLL[12] register bit).
+> 
+> Work Around:
+> It is mandatory to apply the following sequence to ensure the write
+> value will
+> be loaded in DPLL HSDIVIDER FSM:
+> The global sequence when using PWRDN bit is the following:
+> . Disable Mx HSDIVIDER clock output related functional clock enable bits
+> 	(in CM_FCLKEN_xxx / CM_ICLKEN_xxx)
+> . Enable PWRDN bit of HSDIVIDER
+> . Disable PWRDN bit of HSDIVIDER
+> . Read current HSDIVIDER register value
+> . Write different value in HSDIVIDER register
+> . Write expected value in HSDIVIDER register
+> . Enable Mx HSDIVIDER clock output related functional clocks
+> 	(CM_FCLKEN_xxx / CM_ICLKEN_xxx)
+> 
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> Signed-off-by: Vijaykumar GN <vijaykumar.gn@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock34xx.c      |   41 ++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/clock34xx.h      |    1 +
+>  arch/arm/mach-omap2/clock34xx_data.c |   20 ++++++++++++++++
+>  3 files changed, 62 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index c1c1b93..1e6297f 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -133,6 +133,47 @@ const struct clkops clkops_omap3430es2_hsotgusb_wait = {
+>  	.find_companion = omap2_clk_dflt_find_companion,
+>  };
+>  
+> +/**
+> + * omap3_pwrdn_clk_enable_with_hsdiv_restore - enable clocks suffering
+> + *         from HSDivider PWRDN problem Implements Errata ID: i556.
+> + * @clk: DPLL output struct clk
+> + *
+> + * 3630 only: dpll3_m3_ck, dpll4_m2_ck, dpll4_m3_ck, dpll4_m4_ck, dpll4_m5_ck
+> + * & dpll4_m6_ck dividers gets loaded with reset valueafter their respective
+> + * PWRDN bits are set.
+> + * Any dummy write (Any other value different from the Read value) to the
+> + * corresponding CM_CLKSEL register will refresh the dividers.
+> + */
+> +int omap3_pwrdn_clk_enable_with_hsdiv_restore(struct clk *clk)
+> +{
+> +	u32 dummy_v, orig_v, clksel_shift;
+> +	int ret;
+> +
+> +	/* Enable PWRDN bit of HSDIVIDER */
+> +	ret = omap2_dflt_clk_enable(clk);
+> +
+> +	/* Restore the dividers */
+> +	if (!ret) {
+> +		clksel_shift = __ffs(clk->parent->clksel_mask);
+> +		orig_v = dummy_v = __raw_readl(clk->parent->clksel_reg);
+> +
+> +		/* Write any other value different from the Read value */
+> +		dummy_v ^= (1 << clksel_shift);
+
+Shouldn't there also be a:
+
+dummy_v &= clk->parent->clksel_mask;
+
+here to avoid writing to reserved bits?
+
+> +		__raw_writel(dummy_v, clk->parent->clksel_reg);
+> +
+> +		/* Write the original divider */
+> +		__raw_writel(orig_v, clk->parent->clksel_reg);
+> +	}
+> +	return ret;
+> +}
+> +
+> +const struct clkops clkops_omap3_pwrdn_with_hsdiv_wait_restore = {
+> +	.enable		= omap3_pwrdn_clk_enable_with_hsdiv_restore,
+> +	.disable	= omap2_dflt_clk_disable,
+> +	.find_companion	= omap2_clk_dflt_find_companion,
+> +	.find_idlest	= omap2_clk_dflt_find_idlest,
+> +};
+> +
+>  const struct clkops omap3_clkops_noncore_dpll_ops = {
+>  	.enable		= omap3_noncore_dpll_enable,
+>  	.disable	= omap3_noncore_dpll_disable,
+> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+> index 313efc0..29ef390 100644
+> --- a/arch/arm/mach-omap2/clock34xx.h
+> +++ b/arch/arm/mach-omap2/clock34xx.h
+> @@ -21,5 +21,6 @@ extern const struct clkops clkops_omap3430es2_ssi_wait;
+>  extern const struct clkops clkops_omap3430es2_hsotgusb_wait;
+>  extern const struct clkops clkops_omap3430es2_dss_usbhost_wait;
+>  extern const struct clkops omap3_clkops_noncore_dpll_ops;
+> +extern const struct clkops clkops_omap3_pwrdn_with_hsdiv_wait_restore;
+>  
+>  #endif
+> diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
+> index 8728f1f..9d11d53 100644
+> --- a/arch/arm/mach-omap2/clock34xx_data.c
+> +++ b/arch/arm/mach-omap2/clock34xx_data.c
+> @@ -3240,6 +3240,26 @@ int __init omap3xxx_clk_init(void)
+>  		}
+>  	}
+>  
+> +	if (cpu_is_omap3630()) {
+> +
+> +		/*
+> +		 * For 3630: override clkops_omap2_dflt_wait for the
+> +		 * clocks affected from PWRDN reset Limitation
+> +		 */
+> +		dpll3_m3x2_ck.ops =
+> +				&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
+> +		dpll4_m2x2_ck.ops =
+> +				&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
+> +		dpll4_m3x2_ck.ops =
+> +				&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
+> +		dpll4_m4x2_ck.ops =
+> +				&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
+> +		dpll4_m5x2_ck.ops =
+> +				&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
+> +		dpll4_m6x2_ck.ops =
+> +				&clkops_omap3_pwrdn_with_hsdiv_wait_restore;
+> +	}
+> +
+>  	clk_init(&omap2_clk_functions);
+>  
+>  	for (c = omap3xxx_clks; c < omap3xxx_clks + ARRAY_SIZE(omap3xxx_clks); c++)
+> -- 
+> 1.5.6.3
+> 
+
+
+- Paul
