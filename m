@@ -1,64 +1,65 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: USB lockup on OMAP3530
-Date: Wed, 10 Feb 2010 18:10:49 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB031E80D1A1@dbde02.ent.ti.com>
-References: <f3642e6b1001261430n32d55can502931fc93271f67@mail.gmail.com>
- <4551feaf1001261513vf8ba655ua1c050a28f1d57eb@mail.gmail.com>
- <201001272046.42946.ahartmetz@gmail.com>
+From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: Re: [PATCH] DSPBRIDGE: Prevent memory corruption in
+ DRV_ProcFreeDMMRes
+Date: Wed, 10 Feb 2010 15:07:59 +0200
+Message-ID: <20100210130759.GC9214@annwn.felipec.org>
+References: <441be695a293805f9de42ad5ce5bf6bca21434fc.1265660264.git.ameya.palande@nokia.com>
+ <94a0d4531002090429n77e65230r4cb426e92384595c@mail.gmail.com>
+ <496565EC904933469F292DDA3F1663E602AA725BDE@dlee06.ent.ti.com>
+ <94a0d4531002091548n18897915kd236f9f7b332c1eb@mail.gmail.com>
+ <496565EC904933469F292DDA3F1663E602AA725D82@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37367 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750914Ab0BJMky convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 07:40:54 -0500
-In-Reply-To: <201001272046.42946.ahartmetz@gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:32911 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752327Ab0BJNIo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 08:08:44 -0500
+Content-Disposition: inline
+In-Reply-To: <496565EC904933469F292DDA3F1663E602AA725D82@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Hartmetz <ahartmetz@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-<snip>
+On Wed, Feb 10, 2010 at 05:06:26AM +0100, ext Guzman Lugo, Fernando wrote:
+> >At this point there's an obvious question; what's the point of
+> >reserving a memory region and not mapping it?
+> >
+> >I remember the answer from Hari was: some clients prefer to reserve a
+> >big region once, and map parts of it continuously. I have my doubts
+> >that the use-case even works with the current code-base. But assuming
+> >it does work, your proposed changes would break it.
+> 
+> Resource cleanup does not support that even without my proposed changes.
 
-> > > 
-> > > So far I have tried many versions of the linux-omap and linux-omap-pm
-> > > kernel, from about 2.6.30 to the latest git version. They all exhibit
-> > > the USB OTG death bug.
-> > > I've used kernels with openembedded patches and without, currently
-> > > without. Yesterday I discovered the musb_hdrc.fifo_mode parameter and
-> > > played around with it. I also modified the given configurations. Result:
-> > > - FIFO configurations including .mode = BUF_DOUBLE don't work at all - no
-> > >  devices work.
-> > > - the USB death bug is not fixed by:
-> > >  - using only one endpoint
-> > >  - using no TXRX entries but only separate RX and TX
-> > >    (every endpoint gets a TX and an RX entry though)
-> > >  - using a large number of endpoints with same maxpacket value
-> > > ... still no solution.
-> > > 
-> > > Enabling debug output of the musb_hdrc driver (yes I've also compiled in
-> > > debug messages) is not very practical due to the high volume of
-> > > messages; also, when the bug occurs nothing special is printed. The
-> > > first error usually comes from the memory manager / filesystem
-> > > complaining that it can't do "IO to offline device", i.e. the
-> > > disappeared external harddisk (which contains the swapfile).
-> > > 
-> > > I would *really* appreciate somebody looking into this because this
-> > > currently makes the hardware as useful as a brick for me. I can supply
-> > > debug output and test patches.
+Aha! I suspected it :P
 
-Would you care to try these two patches please?
+> I just proposed a solution which fixes two issues in one patch.
+> Moreover if this change is merged when the second issue be fixed this
+> patch will not needed anymore, so why don't merge the patch which
+> fixes both errors at this moment?
 
-http://marc.info/?l=linux-usb&m=125957336716915&w=2
+simple patches > complicated patches
 
-And
+Personally I think your patches should be a continuation to the patches
+I just proposed.
 
-The dependency patch:
-http://marc.info/?l=linux-usb&m=125879861004131&w=2
+If nobody wants to split these patches, I'll gladly do so.
 
+> >+			u32 dsp_res_addr = p_cur_res->ulDSPResAddr;
+> >+
+> >+			status = PROC_UnMap(p_cur_res->hProcessor,
+> >+				 (void *)p_cur_res->ulDSPAddr, p_ctxt);
+> >
+> >It would be much easier to merge the two functions into one.
+> 
+> Yes, I am agreed.
 
-Let me know if these fix the bug for you.
+Good. Perhaps we can start moving reserve/unreserve functionality to
+map/unmap, and eventually depreate the former.
 
-- Anand
+Cheers.
+
+-- 
+Felipe Contreras
