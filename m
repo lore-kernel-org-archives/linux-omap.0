@@ -1,61 +1,60 @@
-From: Abhijit Pagare <abhijitpagare@ti.com>
-Subject: [PATCH] ARM: OMAP4 clock domain: Add check for avoiding dependency related update.
-Date: Wed, 10 Feb 2010 13:42:03 +0530
-Message-ID: <1265789523-6413-1-git-send-email-abhijitpagare@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43639 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752514Ab0BJIMS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 03:12:18 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
+ tree
+Date: Wed, 10 Feb 2010 10:20:33 +0200
+Message-ID: <1265790033.2433.98.camel@tubuntu.research.nokia.com>
+References: <20100208172521.abb500b4.sfr@canb.auug.org.au>
+	 <1265621346.2433.27.camel@tubuntu.research.nokia.com>
+	 <20100209165200.GH21755@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20100209165200.GH21755@atomide.com>
+Sender: linux-next-owner@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: ext Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Vaibhav Hiremath <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Abhijit Pagare <abhijitpagare@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-A check is added for avoiding the sleep/wakeup dependency updates
-for OMAP4 as the structures for the dependencies are currently absent.
+On Tue, 2010-02-09 at 17:52 +0100, ext Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [100208 01:23]:
+> > On Mon, 2010-02-08 at 07:25 +0100, ext Stephen Rothwell wrote:
+> > > Hi Tomi,
+> > > 
+> > > Today's linux-next merge of the omap_dss2 tree got a conflict in
+> > > arch/arm/mach-omap2/board-am3517evm.c between commit
+> > > 13560d875d67c06239c82a6148c1b87075701fe9 ("AM3517: Enable basic I2C
+> > > Support") from the omap tree and commit
+> > > 56a3d0235cd50d14d7bd4d45e55d192aa0e78cac ("OMAP: AM3517: Enable DSS2 for
+> > > AM3517EVM board") from the omap_dss2 tree.
+> > > 
+> > > Juts overlapping additions.   I fixed it up (see below) and can carry the
+> > > fix as necessary.
+> > 
+> > Thanks. I guess we can't properly fix this until the patch from omap
+> > tree goes into mainline.
+> 
+> Let's move the AM3517 DSS2 board patch from Tomi's tree to omap for-next
+> tree.
+>  
+> > Tony, do you think this current way, in which we have board file changes
+> > in both linux-omap and the dss tree, is best we can do? Or should all
+> > the board file changes go through linux-omap? I fear that we will have
+> > conflicts with every new board.
+> 
+> Yeah we should just move the conflicting files into omap for-next. The board
+> file changes conflict easily when new platform device init code is being
+> added.
+> 
+> Tomi, how about you ack and let me know about the patches (or git branch)
+> you want me to add into omap for-next? Otherwise I'll assume anything
+> DSS2 related is yours.
 
-Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
-Re-submitting
+This sounds good. However, we need to be careful that there are no
+dependencies from the board file patches to the DSS patches (like panel
+drivers).
 
-Compiled and Boot Tested on OMAP4430 simulator, ES1 Chip & OMAP3430 SDP.
-And also Compiled for OMAP2430 and OMAP2420
+But this is getting out of topic for this mail thread, let's deal with
+this separately =).
 
-This patch has a dependency on the earlier set of OMAP4 clock-domain patches.
-
- arch/arm/mach-omap2/clockdomain.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 8c9e78c..6ec25ee 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -507,8 +507,9 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
- 	pr_debug("clockdomain: enabling automatic idle transitions for %s\n",
- 		 clkdm->name);
- 
--	if (atomic_read(&clkdm->usecount) > 0)
--		_clkdm_add_autodeps(clkdm);
-+	if (!cpu_is_omap44xx())
-+		if (atomic_read(&clkdm->usecount) > 0)
-+			_clkdm_add_autodeps(clkdm);
- 
- 	_omap2_clkdm_set_hwsup(clkdm, 1);
- 
-@@ -540,8 +541,9 @@ void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
- 
- 	_omap2_clkdm_set_hwsup(clkdm, 0);
- 
--	if (atomic_read(&clkdm->usecount) > 0)
--		_clkdm_del_autodeps(clkdm);
-+	if (!cpu_is_omap44xx())
-+		if (atomic_read(&clkdm->usecount) > 0)
-+			_clkdm_del_autodeps(clkdm);
- }
- 
- 
--- 
-1.5.4.7
-
+ Tomi
