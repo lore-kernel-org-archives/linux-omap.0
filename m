@@ -1,37 +1,105 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: installing miro
-Date: Thu, 11 Feb 2010 22:08:42 +0200
-Message-ID: <94a0d4531002111208h42f934d1yf5b11f5e07791e46@mail.gmail.com>
-References: <4ad3b6301002110609w1194963bt7860feae2635a3aa@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2-V2] AM3517: Enable RTC driver support for AM3517EVM
+Date: Thu, 11 Feb 2010 12:32:43 -0800
+Message-ID: <20100211203243.GH21755@atomide.com>
+References: <hvaibhav@ti.com>
+ <1265875947-12306-2-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f185.google.com ([209.85.223.185]:39562 "EHLO
-	mail-iw0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756871Ab0BKUIo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 15:08:44 -0500
-Received: by iwn15 with SMTP id 15so1671521iwn.19
-        for <linux-omap@vger.kernel.org>; Thu, 11 Feb 2010 12:08:43 -0800 (PST)
-In-Reply-To: <4ad3b6301002110609w1194963bt7860feae2635a3aa@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57894 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756486Ab0BKUcG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 15:32:06 -0500
+Content-Disposition: inline
+In-Reply-To: <1265875947-12306-2-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Niamathullah sharief <omapsha@gmail.com>
+To: hvaibhav@ti.com
 Cc: linux-omap@vger.kernel.org
 
-On Thu, Feb 11, 2010 at 4:09 PM, Niamathullah sharief <omapsha@gmail.co=
-m> wrote:
-> =C2=A0 I am using omap processor board. In that i want to install "mi=
-ro"
-> software. is it possible?if yes how to do that? please help me
+* hvaibhav@ti.com <hvaibhav@ti.com> [100211 00:09]:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Add platform hook-up interface to support RTC driver (S35390A).
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-am3517evm.c |   25 +++++++++++++++++++++++++
+>  1 files changed, 25 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+> index 247c700..d9f487f 100644
+> --- a/arch/arm/mach-omap2/board-am3517evm.c
+> +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> @@ -174,6 +174,18 @@ struct platform_device am3517_evm_dss_device = {
+>  		.platform_data	= &am3517_evm_dss_data,
+>  	},
+>  };
+> +/*
+> + * RTC - S35390A
+> + */
+> +#define	GPIO_RTCS35390A_IRQ	55
 
-linux-omap is a kernel mailing list. I'm not sure what would be the
-appropriate user-space alternative.
+Please change this into standard
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+#define GPIO_RTCS35390A_IRQ     55
+
+instead of having a tab between #define and GPIO...
+
+> +static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
+> +	{
+> +		I2C_BOARD_INFO("s35390a", 0x30),
+> +		.type		= "s35390a",
+> +	},
+> +};
+> +
+> 
+>  static int __init am3517_evm_i2c_init(void)
+>  {
+> @@ -235,6 +247,19 @@ static void __init am3517_evm_init(void)
+>  	usb_ehci_init(&ehci_pdata);
+>  	/* DSS */
+>  	am3517_evm_display_init();
+> +
+> +	/* RTC - S35390A */
+> +	omap_mux_init_gpio(55, OMAP_PIN_INPUT_PULLUP);
+> +	if (gpio_request(GPIO_RTCS35390A_IRQ, "rtcs35390a-irq") < 0)
+> +		printk(KERN_WARNING "failed to request GPIO#%d\n",
+> +				GPIO_RTCS35390A_IRQ);
+
+Here you need to check the return value before trying to change
+the GPIO value. In general it's preferred to use:
+
+	int err;
+
+	err = gpio_request()
+	if (err < 0)
+		return err;
+	...
+
+
+> +	if (gpio_direction_input(GPIO_RTCS35390A_IRQ))
+> +		printk(KERN_WARNING "GPIO#%d cannot be configured as "
+> +				"input\n", GPIO_RTCS35390A_IRQ);
+
+And only after that call gpio_direction_input.
+
+Regards,
+
+Tony
+
+> +	am3517evm_i2c_boardinfo[0].irq = gpio_to_irq(GPIO_RTCS35390A_IRQ);
+> +
+> +	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
+> +				ARRAY_SIZE(am3517evm_i2c_boardinfo));
+>  }
+> 
+>  static void __init am3517_evm_map_io(void)
+> --
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
