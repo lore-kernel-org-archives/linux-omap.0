@@ -1,55 +1,37 @@
-From: Deepak Chitriki <deepak.chitriki@ti.com>
-Subject: [PATCHv1] DSPBRIDGE: Fix to avoid possible recursive locking
-Date: Wed, 10 Feb 2010 18:29:49 -0600
-Message-ID: <1265848189-10697-1-git-send-email-deepak.chitriki@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH -next] omap3: pandora: update regulator setup
+Date: Wed, 10 Feb 2010 19:30:19 -0500
+Message-ID: <notify-1265848248@atomide.com>
+References: <1265481982-26357-1-git-send-email-notasas@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39869 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753942Ab0BKAaR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 19:30:17 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59708 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755768Ab0BKAaT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 19:30:19 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NfMwl-000K7G-0U
+	for linux-omap@vger.kernel.org; Thu, 11 Feb 2010 00:30:19 +0000
+In-Reply-To: <1265481982-26357-1-git-send-email-notasas@gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Deepak Chitriki <deepak.chitriki@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>
+To: linux-omap@vger.kernel.org
 
-Removed NTFY_Notify() in WMD_MSG_Get() to avoid locking contention
-as NTFY_Notify() is already invoked in InputMsg().
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Cc: Ameya Palande <ameya.palande@nokia.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
+Branch in linux-omap: for-next
 
-Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
+Initial commit ID (Likely to change): 41b822083600f1e20266577730289d5cc26cb6dd
 
-Ref:
-v0:http://marc.info/?l=linux-omap&m=126584779011493&w=2
-v1:Comment fixes from v0
----
- drivers/dsp/bridge/wmd/msg_sm.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+PatchWorks
+http://patchwork.kernel.org/patch/77552/
 
-diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-index 3a275f1..7de3705 100644
---- a/drivers/dsp/bridge/wmd/msg_sm.c
-+++ b/drivers/dsp/bridge/wmd/msg_sm.c
-@@ -296,8 +296,6 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
- 			if (LST_IsEmpty(hMsgQueue->msgUsedList))
- 				SYNC_ResetEvent(hMsgQueue->hSyncEvent);
- 			else {
--				NTFY_Notify(hMsgQueue->hNtfy,
--					DSP_NODEMESSAGEREADY);
- 				SYNC_SetEvent(hMsgQueue->hSyncEvent);
- 			}
- 
-@@ -348,8 +346,6 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
- 			hMsgQueue->refCount--;
- 			/* Reset the event if there are still queued messages */
- 			if (!LST_IsEmpty(hMsgQueue->msgUsedList)) {
--				NTFY_Notify(hMsgQueue->hNtfy,
--					DSP_NODEMESSAGEREADY);
- 				SYNC_SetEvent(hMsgQueue->hSyncEvent);
- 			}
- 			/* Exit critical section */
--- 
-1.6.3.3
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=41b822083600f1e20266577730289d5cc26cb6dd
+
 
