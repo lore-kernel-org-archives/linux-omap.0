@@ -1,123 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/17] omap iommu: cleanup iommu page address mask and
-	definitions
-Date: Wed, 10 Feb 2010 19:35:39 -0800
-Message-ID: <20100211033539.1624.87169.stgit@baageli.muru.com>
+Subject: [PATCH 04/17] omap: iommu: fix incorrect address for supersection 1st
+	entry
+Date: Wed, 10 Feb 2010 19:35:41 -0800
+Message-ID: <20100211033541.1624.42854.stgit@baageli.muru.com>
 References: <20100211033310.1624.80025.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49273 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753306Ab0BKDe7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 22:34:59 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58138 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753306Ab0BKDfB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 22:35:01 -0500
 In-Reply-To: <20100211033310.1624.80025.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Hari Nagalla <hnagalla@ti.com>
 
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-This is just a cleanup, but adds a few macros here, which can be used
-in the proceeding patches.
+There was a potential risk that the following "memset" could override
+its range if a given address was not the 1st entry of a
+supersection. This is not the case for "iovmm".
 
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Hari Nagalla <hnagalla@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/iopgtable.h |   50 +++++++++++++++++++++++++++++++---------
- 1 files changed, 39 insertions(+), 11 deletions(-)
+ arch/arm/plat-omap/iommu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/iopgtable.h b/arch/arm/plat-omap/iopgtable.h
-index 37dac43..ab23b6a 100644
---- a/arch/arm/plat-omap/iopgtable.h
-+++ b/arch/arm/plat-omap/iopgtable.h
-@@ -1,7 +1,7 @@
- /*
-  * omap iommu: pagetable definitions
-  *
-- * Copyright (C) 2008-2009 Nokia Corporation
-+ * Copyright (C) 2008-2010 Nokia Corporation
-  *
-  * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-  *
-@@ -13,26 +13,52 @@
- #ifndef __PLAT_OMAP_IOMMU_H
- #define __PLAT_OMAP_IOMMU_H
- 
-+/*
-+ * "L2 table" address mask and size definitions.
-+ */
- #define IOPGD_SHIFT		20
--#define IOPGD_SIZE		(1 << IOPGD_SHIFT)
-+#define IOPGD_SIZE		(1UL << IOPGD_SHIFT)
- #define IOPGD_MASK		(~(IOPGD_SIZE - 1))
--#define IOSECTION_MASK		IOPGD_MASK
--#define PTRS_PER_IOPGD		(1 << (32 - IOPGD_SHIFT))
--#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
- 
--#define IOSUPER_SIZE		(IOPGD_SIZE << 4)
-+/*
-+ * "section" address mask and size definitions.
-+ */
-+#define IOSECTION_SHIFT		20
-+#define IOSECTION_SIZE		(1UL << IOSECTION_SHIFT)
-+#define IOSECTION_MASK		(~(IOSECTION_SIZE - 1))
-+
-+/*
-+ * "supersection" address mask and size definitions.
-+ */
-+#define IOSUPER_SHIFT		24
-+#define IOSUPER_SIZE		(1UL << IOSUPER_SHIFT)
- #define IOSUPER_MASK		(~(IOSUPER_SIZE - 1))
- 
-+#define PTRS_PER_IOPGD		(1UL << (32 - IOPGD_SHIFT))
-+#define IOPGD_TABLE_SIZE	(PTRS_PER_IOPGD * sizeof(u32))
-+
-+/*
-+ * "small page" address mask and size definitions.
-+ */
- #define IOPTE_SHIFT		12
--#define IOPTE_SIZE		(1 << IOPTE_SHIFT)
-+#define IOPTE_SIZE		(1UL << IOPTE_SHIFT)
- #define IOPTE_MASK		(~(IOPTE_SIZE - 1))
--#define IOPAGE_MASK		IOPTE_MASK
--#define PTRS_PER_IOPTE		(1 << (IOPGD_SHIFT - IOPTE_SHIFT))
--#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
- 
--#define IOLARGE_SIZE		(IOPTE_SIZE << 4)
-+/*
-+ * "large page" address mask and size definitions.
-+ */
-+#define IOLARGE_SHIFT		16
-+#define IOLARGE_SIZE		(1UL << IOLARGE_SHIFT)
- #define IOLARGE_MASK		(~(IOLARGE_SIZE - 1))
- 
-+#define PTRS_PER_IOPTE		(1UL << (IOPGD_SHIFT - IOPTE_SHIFT))
-+#define IOPTE_TABLE_SIZE	(PTRS_PER_IOPTE * sizeof(u32))
-+
-+#define IOPAGE_MASK		IOPTE_MASK
-+
-+/*
-+ * some descriptor attributes.
-+ */
- #define IOPGD_TABLE		(1 << 0)
- #define IOPGD_SECTION		(2 << 0)
- #define IOPGD_SUPER		(1 << 18 | 2 << 0)
-@@ -40,12 +66,14 @@
- #define IOPTE_SMALL		(2 << 0)
- #define IOPTE_LARGE		(1 << 0)
- 
-+/* to find an entry in a page-table-directory */
- #define iopgd_index(da)		(((da) >> IOPGD_SHIFT) & (PTRS_PER_IOPGD - 1))
- #define iopgd_offset(obj, da)	((obj)->iopgd + iopgd_index(da))
- 
- #define iopte_paddr(iopgd)	(*iopgd & ~((1 << 10) - 1))
- #define iopte_vaddr(iopgd)	((u32 *)phys_to_virt(iopte_paddr(iopgd)))
- 
-+/* to find an entry in the second-level page table. */
- #define iopte_index(da)		(((da) >> IOPTE_SHIFT) & (PTRS_PER_IOPTE - 1))
- #define iopte_offset(iopgd, da)	(iopte_vaddr(iopgd) + iopte_index(da))
- 
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index 463d638..e748119 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -667,7 +667,7 @@ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
+ 		if ((*iopgd & IOPGD_SUPER) == IOPGD_SUPER) {
+ 			nent *= 16;
+ 			/* rewind to the 1st entry */
+-			iopgd = (u32 *)((u32)iopgd & IOSUPER_MASK);
++			iopgd = iopgd_offset(obj, (da & IOSUPER_MASK));
+ 		}
+ 		bytes *= nent;
+ 	}
 
