@@ -1,140 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/3] OMAP: ZOOM: Introducing 'board-zoom-flash.c'
-Date: Thu, 11 Feb 2010 13:19:14 -0800
-Message-ID: <20100211211914.GJ21755@atomide.com>
-References: <ce9ab5791002102119k6eb32e97gfac21762a71843f3@mail.gmail.com>
- <20100211204703.GI21755@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Deepak Chitriki <deepak.chitriki@ti.com>
+Subject: [PATCH v4] DSPBRIDGE: Fix to avoid possible recursive locking
+Date: Thu, 11 Feb 2010 15:54:44 -0600
+Message-ID: <1265925284-7536-1-git-send-email-deepak.chitriki@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63195 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757111Ab0BKVSi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 16:18:38 -0500
-Content-Disposition: inline
-In-Reply-To: <20100211204703.GI21755@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43100 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757058Ab0BKVyw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 16:54:52 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Deepak Chitriki <deepak.chitriki@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [100211 12:43]:
-> * Vimal Singh <vimal.newwork@gmail.com> [100210 21:16]:
-> > From: Vimal Singh <vimalsingh@ti.com>
-> > 
-> > This patch adds 'board-zoom-flash.c', which could be utilized
-> > by boards similar to ZOOM2. (For ex: LDP, ZOOM2, ZOOM3).
-> > 
-> > This does initialization for NAND device based on the 'cs' number
-> > and partition information passed from board file (ex: board-zoom2.c).
-> > 
-> > Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/board-zoom-flash.c        |   85 +++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/include/mach/board-zoom.h |   11 +++
-> >  2 files changed, 96 insertions(+), 0 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/board-zoom-flash.c
-> > 
-> > diff --git a/arch/arm/mach-omap2/board-zoom-flash.c
-> > b/arch/arm/mach-omap2/board-zoom-flash.c
-> > new file mode 100644
-> > index 0000000..f2328a4
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/board-zoom-flash.c
-> > @@ -0,0 +1,85 @@
-> > +/*
-> > + * board-zoom-flash.c
-> > + *
-> > + * Copyright (C) 2009 Texas Instruments Inc.
-> > + * Vimal Singh <vimalsingh@ti.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/kernel.h>
-> > +#include <linux/delay.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/mtd/nand.h>
-> > +#include <linux/types.h>
-> > +#include <linux/io.h>
-> > +
-> > +#include <asm/mach/flash.h>
-> > +#include <plat/board.h>
-> > +#include <plat/gpmc.h>
-> > +#include <plat/nand.h>
-> > +
-> > +#include <mach/board-zoom.h>
-> > +
-> > +#if defined(CONFIG_MTD_NAND_OMAP2) || \
-> > +		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
-> > +
-> > +/* Note that all values in this struct are in nanoseconds */
-> > +static struct gpmc_timings nand_timings = {
-> > +
-> > +	.sync_clk = 0,
-> > +
-> > +	.cs_on = 0,
-> > +	.cs_rd_off = 36,
-> > +	.cs_wr_off = 36,
-> > +
-> > +	.adv_on = 6,
-> > +	.adv_rd_off = 24,
-> > +	.adv_wr_off = 36,
-> > +
-> > +	.we_off = 30,
-> > +	.oe_off = 48,
-> > +
-> > +	.access = 54,
-> > +	.rd_cycle = 72,
-> > +	.wr_cycle = 72,
-> > +
-> > +	.wr_access = 30,
-> > +	.wr_data_mux_bus = 0,
-> > +};
-> > +
-> > +/* NAND chip access: 16 bit */
-> > +static struct omap_nand_platform_data zoom_nand_data = {
-> > +	.nand_setup	= NULL,
-> > +	.gpmc_t		= &nand_timings,
-> > +	.dma_channel	= -1,	/* disable DMA in OMAP NAND driver */
-> > +	.dev_ready	= NULL,
-> > +	.devsize	= 1,	/* '0' for 8-bit, '1' for 16-bit device */
-> > +};
-> > +
-> > +/**
-> > + * zoom_flash_init - Identify devices connected to GPMC and register.
-> > + *
-> > + * @return - void.
-> > + */
-> > +void __init zoom_flash_init(struct flash_partitions zoom_nand_parts[], int cs)
-> > +{
-> > +	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
-> > +
-> > +	zoom_nand_data.cs		= cs;
-> > +	zoom_nand_data.parts		= zoom_nand_parts[0].parts;
-> > +	zoom_nand_data.nr_parts		= zoom_nand_parts[0].nr_parts;
-> > +	zoom_nand_data.gpmc_baseaddr	= (void *)(gpmc_base_add);
-> > +	zoom_nand_data.gpmc_cs_baseaddr	= (void *)(gpmc_base_add +
-> > +						GPMC_CS0_BASE +
-> > +						cs * GPMC_CS_SIZE);
-> 
-> The gpmc_baseaddr and gpmc_cs_baseaddr should no longer be
-> needed with gpmc-nand.c, right?
+Removed NTFY_Notify() in WMD_MSG_Get() to avoid locking contention
+as NTFY_Notify() is already invoked in InputMsg().
 
-Yeah.. For now, I suggest you set the gpmc_baseaddr and
-gpmc_cs_baseaddr in gpmc_nand_init() based on the results from
-gpmc_cs_request.
+Cc: Ameya Palande <ameya.palande@nokia.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
 
-That will allow us to remove the insane hardcoded gpmc virtual
-addresses from all board-*.c files.
+Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
 
-And then we can finally fix gpmc-nand.c driver not to go tinker
-with the GPMC registers directly. All of that should be in
-gpmc-nand.c using gpmc.c. The driver should be just a generic
-NAND driver.
+---
+Ref:
+v0:http://marc.info/?l=linux-omap&m=126584779011493&w=2
+v1:http://marc.info/?l=linux-omap&m=126586224627725&w=2
+v2:http://marc.info/?l=linux-omap&m=126591341909124&w=2
+v3:http://marc.info/?l=linux-omap&m=126591743315572&w=2
+v4:Comment fixes from v3
 
-Regards,
+ drivers/dsp/bridge/wmd/msg_sm.c |   10 ++--------
+ 1 files changed, 2 insertions(+), 8 deletions(-)
 
-Tony
+diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
+index 3a275f1..8475e20 100644
+--- a/drivers/dsp/bridge/wmd/msg_sm.c
++++ b/drivers/dsp/bridge/wmd/msg_sm.c
+@@ -295,11 +295,8 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
+ 				   (struct list_head *)pMsgFrame);
+ 			if (LST_IsEmpty(hMsgQueue->msgUsedList))
+ 				SYNC_ResetEvent(hMsgQueue->hSyncEvent);
+-			else {
+-				NTFY_Notify(hMsgQueue->hNtfy,
+-					DSP_NODEMESSAGEREADY);
++			else
+ 				SYNC_SetEvent(hMsgQueue->hSyncEvent);
+-			}
+ 
+ 			fGotMsg = true;
+ 		}
+@@ -347,11 +344,8 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
+ 			}
+ 			hMsgQueue->refCount--;
+ 			/* Reset the event if there are still queued messages */
+-			if (!LST_IsEmpty(hMsgQueue->msgUsedList)) {
+-				NTFY_Notify(hMsgQueue->hNtfy,
+-					DSP_NODEMESSAGEREADY);
++			if (!LST_IsEmpty(hMsgQueue->msgUsedList))
+ 				SYNC_SetEvent(hMsgQueue->hSyncEvent);
+-			}
+ 			/* Exit critical section */
+ 			(void)SYNC_LeaveCS(hMsgMgr->hSyncCS);
+ 		}
+-- 
+1.6.3.3
+
