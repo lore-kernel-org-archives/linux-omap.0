@@ -1,79 +1,142 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCHv1] DSPBRIDGE: Fix to avoid possible recursive locking
-Date: Wed, 10 Feb 2010 22:23:53 -0600
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012EC4DA91@dlee02.ent.ti.com>
-References: <1265848189-10697-1-git-send-email-deepak.chitriki@ti.com>
+From: "Pagare, Abhijit" <abhijitpagare@ti.com>
+Subject: RE: [PATCH] ARM: OMAP4 clock domain: Add check for avoiding
+ dependency related update.
+Date: Thu, 11 Feb 2010 10:32:11 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C0CD3DDD@dbde02.ent.ti.com>
+References: <1265789523-6413-1-git-send-email-abhijitpagare@ti.com>
+ <alpine.DEB.2.00.1002101711170.28188@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48999 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755719Ab0BKEYD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Feb 2010 23:24:03 -0500
-In-Reply-To: <1265848189-10697-1-git-send-email-deepak.chitriki@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34420 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750710Ab0BKFCZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 00:02:25 -0500
+In-Reply-To: <alpine.DEB.2.00.1002101711170.28188@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+Paul,
 
-> From: Chitriki Rudramuni, Deepak
-> Sent: Thursday, February 11, 2010 2:30 AM
+>-----Original Message-----
+>From: Paul Walmsley [mailto:paul@pwsan.com]
+>Sent: Thursday, February 11, 2010 5:44 AM
+>To: Pagare, Abhijit
+>Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+>Subject: Re: [PATCH] ARM: OMAP4 clock domain: Add check for avoiding
+>dependency related update.
+>
+>Hi Abhijit,
+>
+>On Wed, 10 Feb 2010, Abhijit Pagare wrote:
+>
+>> A check is added for avoiding the sleep/wakeup dependency updates
+>> for OMAP4 as the structures for the dependencies are currently absen=
+t.
+>>
+>> Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>
+>Thanks, I've made the following changes to the patch to try to ensure =
+that
+>this doesn't slip through the cracks, and queued it for 2.6.34.  If yo=
+u
+>have any comments on the revised patch, please let me know.
 
+Looks neat. Thanks.
 
-> 
-> Removed NTFY_Notify() in WMD_MSG_Get() to avoid locking contention
-> as NTFY_Notify() is already invoked in InputMsg().
-> 
-> Cc: Ameya Palande <ameya.palande@nokia.com>
-> Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> 
-> Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
-> 
-> Ref:
-> v0:http://marc.info/?l=linux-omap&m=126584779011493&w=2
-> v1:Comment fixes from v0
-Please move the Ref into the diff stat section (below ---
-In the next line).
+-Abhijit
 
-> ---
->  drivers/dsp/bridge/wmd/msg_sm.c |    4 ----
->  1 files changed, 0 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/dsp/bridge/wmd/msg_sm.c
-> b/drivers/dsp/bridge/wmd/msg_sm.c
-> index 3a275f1..7de3705 100644
-> --- a/drivers/dsp/bridge/wmd/msg_sm.c
-> +++ b/drivers/dsp/bridge/wmd/msg_sm.c
-> @@ -296,8 +296,6 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
->  			if (LST_IsEmpty(hMsgQueue->msgUsedList))
->  				SYNC_ResetEvent(hMsgQueue->hSyncEvent);
->  			else {
-> -				NTFY_Notify(hMsgQueue->hNtfy,
-> -					DSP_NODEMESSAGEREADY);
->  				SYNC_SetEvent(hMsgQueue->hSyncEvent);
->  			}
-> 
-One line code does not need {} - please remove it as well.
-
-> @@ -348,8 +346,6 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
->  			hMsgQueue->refCount--;
->  			/* Reset the event if there are still queued messages */
->  			if (!LST_IsEmpty(hMsgQueue->msgUsedList)) {
-> -				NTFY_Notify(hMsgQueue->hNtfy,
-> -					DSP_NODEMESSAGEREADY);
->  				SYNC_SetEvent(hMsgQueue->hSyncEvent);
->  			}
-One line code does not need {} - please remove it as well.
-
->  			/* Exit critical section */
-> --
-> 1.6.3.3
-
-
-Regards,
-Nishanth Menon
-
+>
+>
+>- Paul
+>
+>From: Abhijit Pagare <abhijitpagare@ti.com>
+>Date: Wed, 10 Feb 2010 13:42:03 +0530
+>Subject: [PATCH] ARM: OMAP4 clock domain: Add check for avoiding depen=
+dency
+>related update.
+>
+>A check is added for avoiding the sleep/wakeup dependency updates
+>for OMAP4 as the structures for the dependencies are currently absent.
+>
+>Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+>[paul@pwsan.com: added warnings, explanatory comment, copyright update=
+]
+>Signed-off-by: Paul Walmsley <paul@pwsan.com>
+>---
+> arch/arm/mach-omap2/clockdomain.c |   30 ++++++++++++++++++++++++----=
+--
+> 1 files changed, 24 insertions(+), 6 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-
+>omap2/clockdomain.c
+>index a38a615..de4278c 100644
+>--- a/arch/arm/mach-omap2/clockdomain.c
+>+++ b/arch/arm/mach-omap2/clockdomain.c
+>@@ -1,8 +1,8 @@
+> /*
+>  * OMAP2/3/4 clockdomain framework functions
+>  *
+>- * Copyright (C) 2008-2009 Texas Instruments, Inc.
+>- * Copyright (C) 2008-2009 Nokia Corporation
+>+ * Copyright (C) 2008-2010 Texas Instruments, Inc.
+>+ * Copyright (C) 2008-2010 Nokia Corporation
+>  *
+>  * Written by Paul Walmsley and Jouni H=F6gander
+>  * Added OMAP4 specific support by Abhijit Pagare <abhijitpagare@ti.c=
+om>
+>@@ -891,8 +891,17 @@ void omap2_clkdm_allow_idle(struct clockdomain *c=
+lkdm)
+> 	pr_debug("clockdomain: enabling automatic idle transitions for %s\n"=
+,
+> 		 clkdm->name);
+>
+>-	if (atomic_read(&clkdm->usecount) > 0)
+>-		_clkdm_add_autodeps(clkdm);
+>+	/*
+>+	 * XXX This should be removed once TI adds wakeup/sleep
+>+	 * dependency code and data for OMAP4.
+>+	 */
+>+	if (cpu_is_omap44xx()) {
+>+		WARN_ONCE(1, "clockdomain: OMAP4 wakeup/sleep dependency "
+>+			  "support is not yet implemented\n");
+>+	} else {
+>+		if (atomic_read(&clkdm->usecount) > 0)
+>+			_clkdm_add_autodeps(clkdm);
+>+	}
+>
+> 	_omap2_clkdm_set_hwsup(clkdm, 1);
+>
+>@@ -924,8 +933,17 @@ void omap2_clkdm_deny_idle(struct clockdomain *cl=
+kdm)
+>
+> 	_omap2_clkdm_set_hwsup(clkdm, 0);
+>
+>-	if (atomic_read(&clkdm->usecount) > 0)
+>-		_clkdm_del_autodeps(clkdm);
+>+	/*
+>+	 * XXX This should be removed once TI adds wakeup/sleep
+>+	 * dependency code and data for OMAP4.
+>+	 */
+>+	if (cpu_is_omap44xx()) {
+>+		WARN_ONCE(1, "clockdomain: OMAP4 wakeup/sleep dependency "
+>+			  "support is not yet implemented\n");
+>+	} else {
+>+		if (atomic_read(&clkdm->usecount) > 0)
+>+			_clkdm_del_autodeps(clkdm);
+>+	}
+> }
+>
+>
+>--
+>1.6.6.GIT
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
