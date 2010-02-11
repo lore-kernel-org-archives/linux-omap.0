@@ -1,67 +1,76 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH v2] DSPBRIDGE: Fix to avoid possible recursive locking
-Date: Thu, 11 Feb 2010 20:36:18 +0200
-Message-ID: <1265913378.4084.6.camel@sanganak>
-References: <1265909597-4436-1-git-send-email-deepak.chitriki@ti.com>
+Subject: Re: [PATCH] DSPBRIDGE: Prevent memory corruption in
+ DRV_ProcFreeDMMRes
+Date: Thu, 11 Feb 2010 20:44:05 +0200
+Message-ID: <1265913845.26446.3.camel@sanganak>
+References: <441be695a293805f9de42ad5ce5bf6bca21434fc.1265660264.git.ameya.palande@nokia.com>
+	 <94a0d4531002090429n77e65230r4cb426e92384595c@mail.gmail.com>
+	 <496565EC904933469F292DDA3F1663E602AA725BDE@dlee06.ent.ti.com>
+	 <94a0d4531002091548n18897915kd236f9f7b332c1eb@mail.gmail.com>
+	 <496565EC904933469F292DDA3F1663E602AA725D82@dlee06.ent.ti.com>
+	 <20100210130759.GC9214@annwn.felipec.org>
+	 <496565EC904933469F292DDA3F1663E602AA725F61@dlee06.ent.ti.com>
+	 <20100211155322.GE4673@annwn.felipec.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:36084 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756251Ab0BKSg6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 13:36:58 -0500
-In-Reply-To: <1265909597-4436-1-git-send-email-deepak.chitriki@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:17081 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756785Ab0BKSop (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 13:44:45 -0500
+In-Reply-To: <20100211155322.GE4673@annwn.felipec.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Deepak Chitriki <deepak.chitriki@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>
+To: "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
+Cc: "ext Guzman Lugo, Fernando" <x0095840@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>
 
-Hi Deepak,
+Hi all,
 
-On Thu, 2010-02-11 at 18:33 +0100, ext Deepak Chitriki wrote:
-> Removed NTFY_Notify() in WMD_MSG_Get() to avoid locking contention
-> as NTFY_Notify() is already invoked in InputMsg().
+On Thu, 2010-02-11 at 16:53 +0100, Contreras Felipe (Nokia-D/Helsinki)
+wrote:
+> On Wed, Feb 10, 2010 at 06:31:35PM +0100, ext Guzman Lugo, Fernando wrote:
+> > >-----Original Message-----
+> > >From: Felipe Contreras [mailto:felipe.contreras@nokia.com]
+> > >> Resource cleanup does not support that even without my proposed changes.
+> > >
+> > >Aha! I suspected it :P
+> > >
+> > Resource cleanup does not support that because it tries to unreserved
+> > every chunk mapped. However it does not means the dspbridge does not
+> > support reserving a big chunk of memory and mapping small parts of
+> > that memory, but I have not tested it to confirm if it works.
 > 
-> Cc: Ameya Palande <ameya.palande@nokia.com>
-> Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
+> I think I did once and it didn't work, but I thought the problem was in
+> my app. Anyway I think we should either forget about this use-case or
+> fix the resource cleaning.
 > 
-> Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
+> > >> I just proposed a solution which fixes two issues in one patch.
+> > >> Moreover if this change is merged when the second issue be fixed this
+> > >> patch will not needed anymore, so why don't merge the patch which
+> > >> fixes both errors at this moment?
+> > >
+> > >simple patches > complicated patches
+> > The patch is more simple than it looks.
 > 
-> ---
-> Ref:
-> v0:http://marc.info/?l=linux-omap&m=126584779011493&w=2
-> v1:http://marc.info/?l=linux-omap&m=126586224627725&w=2
-> v2:Comment fixes from v1
+> Only one way to know :)
 > 
->  drivers/dsp/bridge/wmd/msg_sm.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+> > >Personally I think your patches should be a continuation to the patches
+> > >I just proposed.
+> > Yes, I think it would be better.
 > 
-> diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-> index d778cbc..7414113 100644
-> --- a/drivers/dsp/bridge/wmd/msg_sm.c
-> +++ b/drivers/dsp/bridge/wmd/msg_sm.c
-> @@ -295,7 +295,7 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
->  				   (struct list_head *)pMsgFrame);
->  			if (LST_IsEmpty(hMsgQueue->msgUsedList))
->  				SYNC_ResetEvent(hMsgQueue->hSyncEvent);
-> -			else 
-> +			else
->  				SYNC_SetEvent(hMsgQueue->hSyncEvent);
->  
->  			fGotMsg = true;
-> @@ -344,7 +344,7 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
->  			}
->  			hMsgQueue->refCount--;
->  			/* Reset the event if there are still queued messages */
-> -			if (!LST_IsEmpty(hMsgQueue->msgUsedList)) 
-> +			if (!LST_IsEmpty(hMsgQueue->msgUsedList))
->  				SYNC_SetEvent(hMsgQueue->hSyncEvent);
->  
->  			/* Exit critical section */
+> Cool.
+> 
 
-Is this the correct change?
+Thanks for reviewing the patch!
+
+After going through your comments I feel the current patch is inadequate
+to do proper resource cleanup :(
+
+I am working on something which should take care of map and reserve
+both. Basically I am working on separating current DMM resource
+accounting for map and reserve, which should fix all the problems. Will
+post the patchset soon!
 
 Cheers,
 Ameya.
