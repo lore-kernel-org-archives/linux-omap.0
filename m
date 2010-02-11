@@ -1,77 +1,111 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH] DSPBRIDGE: Prevent memory corruption in
- DRV_ProcFreeDMMRes
-Date: Thu, 11 Feb 2010 20:44:05 +0200
-Message-ID: <1265913845.26446.3.camel@sanganak>
-References: <441be695a293805f9de42ad5ce5bf6bca21434fc.1265660264.git.ameya.palande@nokia.com>
-	 <94a0d4531002090429n77e65230r4cb426e92384595c@mail.gmail.com>
-	 <496565EC904933469F292DDA3F1663E602AA725BDE@dlee06.ent.ti.com>
-	 <94a0d4531002091548n18897915kd236f9f7b332c1eb@mail.gmail.com>
-	 <496565EC904933469F292DDA3F1663E602AA725D82@dlee06.ent.ti.com>
-	 <20100210130759.GC9214@annwn.felipec.org>
-	 <496565EC904933469F292DDA3F1663E602AA725F61@dlee06.ent.ti.com>
-	 <20100211155322.GE4673@annwn.felipec.org>
+From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: RE: [PATCH] DSPBRIDGE: Validate node handle from user
+Date: Thu, 11 Feb 2010 12:44:54 -0600
+Message-ID: <B852767254C5C94EBB1040EE0EFA06008C992901@dlee01.ent.ti.com>
+References: <B852767254C5C94EBB1040EE0EFA06008C89E95B@dlee01.ent.ti.com>
+	 <1265736734.2832.11.camel@sanganak>
+	 <B852767254C5C94EBB1040EE0EFA06008C89EA24@dlee01.ent.ti.com>
+ <1265896260.4084.5.camel@sanganak>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:17081 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756785Ab0BKSop (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 13:44:45 -0500
-In-Reply-To: <20100211155322.GE4673@annwn.felipec.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:32944 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756767Ab0BKSpA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 13:45:00 -0500
+In-Reply-To: <1265896260.4084.5.camel@sanganak>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
-Cc: "ext Guzman Lugo, Fernando" <x0095840@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
 
-Hi all,
 
-On Thu, 2010-02-11 at 16:53 +0100, Contreras Felipe (Nokia-D/Helsinki)
-wrote:
-> On Wed, Feb 10, 2010 at 06:31:35PM +0100, ext Guzman Lugo, Fernando wrote:
-> > >-----Original Message-----
-> > >From: Felipe Contreras [mailto:felipe.contreras@nokia.com]
-> > >> Resource cleanup does not support that even without my proposed changes.
-> > >
-> > >Aha! I suspected it :P
-> > >
-> > Resource cleanup does not support that because it tries to unreserved
-> > every chunk mapped. However it does not means the dspbridge does not
-> > support reserving a big chunk of memory and mapping small parts of
-> > that memory, but I have not tested it to confirm if it works.
-> 
-> I think I did once and it didn't work, but I thought the problem was in
-> my app. Anyway I think we should either forget about this use-case or
-> fix the resource cleaning.
-> 
-> > >> I just proposed a solution which fixes two issues in one patch.
-> > >> Moreover if this change is merged when the second issue be fixed this
-> > >> patch will not needed anymore, so why don't merge the patch which
-> > >> fixes both errors at this moment?
-> > >
-> > >simple patches > complicated patches
-> > The patch is more simple than it looks.
-> 
-> Only one way to know :)
-> 
-> > >Personally I think your patches should be a continuation to the patches
-> > >I just proposed.
-> > Yes, I think it would be better.
-> 
-> Cool.
-> 
 
-Thanks for reviewing the patch!
+>-----Original Message-----
+>From: Ameya Palande [mailto:ameya.palande@nokia.com]
+>Sent: Thursday, February 11, 2010 7:51 AM
+>To: Ramos Falcon, Ernesto
+>Cc: linux-omap@vger.kernel.org; Contreras Felipe (Nokia-D/Helsinki); Doyu
+>Hiroshi (Nokia-D/Helsinki)
+>Subject: RE: [PATCH] DSPBRIDGE: Validate node handle from user
+>
+>On Tue, 2010-02-09 at 18:52 +0100, ext Ramos Falcon, Ernesto wrote:
+>>
+>> >-----Original Message-----
+>> >From: Ameya Palande [mailto:ameya.palande@nokia.com]
+>> >Sent: Tuesday, February 09, 2010 11:32 AM
+>> >To: Ramos Falcon, Ernesto
+>> >Cc: linux-omap@vger.kernel.org; Contreras Felipe (Nokia-D/Helsinki);
+>Doyu
+>> >Hiroshi (Nokia-D/Helsinki)
+>> >Subject: Re: [PATCH] DSPBRIDGE: Validate node handle from user
+>> >
+>> >Hi Ernesto,
+>> >
+>> >On Tue, 2010-02-09 at 18:08 +0100, ext Ramos Falcon, Ernesto wrote:
+>> >> From 8310b586b025b0703c3951560849c4ea0250b6e1 Mon Sep 17 00:00:00 2001
+>> >> From: Ernesto Ramos <ernesto@ti.com>
+>> >> Date: Fri, 29 Jan 2010 16:21:59 -0600
+>> >> Subject: [PATCH] DSPBRIDGE: Validate node handle from user.
+>> >>
+>> >> Add checks to validate the node handles received from user.
+>> >>
+>> >> Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+>> >> ---
+>> >>  drivers/dsp/bridge/pmgr/wcd.c  |   91 ++++++++++++++++++++-
+>> >>  drivers/dsp/bridge/rmgr/node.c |  174 +++++++++++++------------------
+>---
+>> >-----
+>> >>  2 files changed, 146 insertions(+), 119 deletions(-)
+>> >>
+>> >> diff --git a/drivers/dsp/bridge/pmgr/wcd.c
+>> >b/drivers/dsp/bridge/pmgr/wcd.c
+>> >> index 74654dc..2e6eeb0 100644
+>> >> --- a/drivers/dsp/bridge/pmgr/wcd.c
+>> >> +++ b/drivers/dsp/bridge/pmgr/wcd.c
+>> >> @@ -1066,6 +1066,24 @@ u32 PROCWRAP_Stop(union Trapped_Args *args,
+>void
+>> >*pr_ctxt)
+>> >>         return retVal;
+>> >>  }
+>> >>
+>> >> +bool validate_node_handle(struct NODE_OBJECT *hNode, void *pr_ctxt)
+>> >> +{
+>> >> +       bool retVal = false;
+>> >> +       struct PROCESS_CONTEXT *pCtxt = pr_ctxt;
+>> >> +       struct NODE_RES_OBJECT *pNode = pCtxt->pNodeList;
+>> >> +
+>> >> +       if (hNode == (struct NODE_OBJECT *) DSP_HGPPNODE)
+>> >> +               retVal = true;
+>> >> +
+>> >> +       while (pNode && !retVal) {
+>> >> +               if (hNode == pNode->hNode)
+>> >
+>> >If you have several nodes allocated by user space, then what you are
+>> >validating here is for any node! Is that ok?
+>> >
+>> >This validation and design itself doesn't look good to me. If we don't
+>> >want to trust user space, then instead of checking the node handle in
+>> >every function it is better to store all user space specific date inside
+>> >pr_context and use it from there.
+>> >
+>>
+>> The user can launch several nodes, how are we going to know which node
+>handle to use?
+>> I think we may need to receive at least one index or id to the node
+>handle.
+>
+>Yes, I guess thats the correct way! We need to maintain how many nodes
+>are allocated for a user process, and just make sure that this id /
+>index is <= number of allocated nodes.
+>
 
-After going through your comments I feel the current patch is inadequate
-to do proper resource cleanup :(
+This comparison (<=) won't work because the user can eliminate nodes in the middle of the list in which case we may need to maintain a list of valid indexes. So I don't see any improvement with this way to validate the handles. 
 
-I am working on something which should take care of map and reserve
-both. Basically I am working on separating current DMM resource
-accounting for map and reserve, which should fix all the problems. Will
-post the patchset soon!
+I was thinking in an array an based on the index verify that the handle is valid, independently of the number of nodes this would be very quick, but the disadvantage would be that the number per process will be limited to the size of the array.
 
-Cheers,
-Ameya.
+>Cheers,
+>Ameya.
 
