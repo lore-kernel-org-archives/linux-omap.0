@@ -1,119 +1,240 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH 0/3] mmc: omap_hsmmc: support SDIO cards
-Date: Thu, 11 Feb 2010 13:42:52 +0200
-Message-ID: <4B73ED3C.9010107@compulab.co.il>
-References: <cover.1265801967.git.david.vrabel@csr.com> <4B73BFD3.8090106@compulab.co.il> <4B73E59F.3020400@csr.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] OMAP3: Serial: Improved sleep logic
+Date: Thu, 11 Feb 2010 12:50:10 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A224BA969B90@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <> <1265819310-11045-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4B73E59F.3020400@csr.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: David Vrabel <david.vrabel@csr.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:52883 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643Ab0BKLup convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 06:50:45 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o1BBoZ9i029417
+	for <linux-omap@vger.kernel.org>; Thu, 11 Feb 2010 05:50:44 -0600
+In-Reply-To: <1265819310-11045-1-git-send-email-tero.kristo@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-David Vrabel wrote:
-> Mike Rapoport wrote:
->> Hi David,
->>
->> David Vrabel wrote:
->>> These patches add support for SDIO cards to the omap_hsmmc driver.  Less
->>> restrictions on the sizes of transfers, power management changes to 
->>> prevent SDIO cards from being turned off and losing all state, and card
->>> interrupts.
->>>
->>> I've been unable to test these exact patches as I only have an N900 for 
->>> testing and the N900 support in mainline is incomplete.
->> I've tried your patches on CM-T35 that has 8686 SDIO and the result was
->> absence of MMC/SDIO devices at all :( Morover, kmmcd hangs:
->>
->> [  399.427764] INFO: task kmmcd:149 blocked for more than 120 seconds.
->> [...]
->> [  399.485290] [<c01e6264>] (mmc_wait_for_cmd+0x64/0x74) from
->> [<c01e86b0>] (mmc_go_idle+0x60/0xac)
+This patch can be ignored. The RX fifo clear logic did not really work for low C states (C1 / C2) and you would still get garbage. I'll send an updated patch where I have replaced the logic by an ignore timer for the first millisecond after clocks are enabled. Also, I forgot v2 out from this.
+
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org 
+>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kristo 
+>Tero (Nokia-D/Tampere)
+>Sent: 10 February, 2010 18:29
+>To: linux-omap@vger.kernel.org
+>Subject: [PATCH] OMAP3: Serial: Improved sleep logic
+>
+>From: Tero Kristo <tero.kristo@nokia.com>
+>
+>This patch contains following improvements:
+>- Only RX interrupt will now kick the sleep prevent timer
+>- TX fifo status is checked before disabling clocks, this will prevent
+>  on-going transmission to be cut
+>- Smartidle is disabled while entering idle if we have data in 
+>the transmit
+>  buffer because having this enabled would prevent wakeups from the TX
+>  interrupt and this would cause pauses while sending large 
+>blocks of data
+>- Sleep prevent timer is changed to use ktime_get() instead of 
+>a jiffy timer
+>  as jiffy timers are not valid within idle loop (tick 
+>scheduler is stopped)
+>- RX and TX fifos are cleared when clocks are enabled, this 
+>will purge the
+>  first character from RX fifo, which is most likely garbage
+>
+>Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>---
+> arch/arm/mach-omap2/serial.c |   70 
+>+++++++++++++++++++++++++++---------------
+> 1 files changed, 45 insertions(+), 25 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/serial.c 
+>b/arch/arm/mach-omap2/serial.c
+>index 837b347..d7d96ba 100644
+>--- a/arch/arm/mach-omap2/serial.c
+>+++ b/arch/arm/mach-omap2/serial.c
+>@@ -23,12 +23,15 @@
+> #include <linux/serial_reg.h>
+> #include <linux/clk.h>
+> #include <linux/io.h>
+>+#include <linux/delay.h>
 > 
-> I suspect interrupts aren't enabled correctly as this command does not
-> complete.  Try reverting this hunk.
-
-I did. No changes...
-
-I've started to apply the patches one by one and after the first patch
-is applied, the SD card works Ok, but libertas fails to initialize with
-the following messages:
-
-> modprobe libertas_sdio
-[   82.233489] lib80211: common routines for IEEE802.11 drivers
-[   82.833251] cfg80211: Calling CRDA to update world regulatory domain
-[   83.327911] libertas_sdio: Libertas SDIO driver
-[   83.332489] libertas_sdio: Copyright Pierre Ossman
-[   83.348510] libertas_sdio mmc1:0001:1: firmware: requesting
-sd8686_helper.bin
-[   83.497619] libertas_sdio mmc1:0001:1: firmware: requesting sd8686.bin
-[   83.679229] DMA synchronization event drop occurred with device 47
-
-And then modprobe hangs:
-
-[  258.700561] INFO: task modprobe:1191 blocked for more than 120
-seconds.
-[  258.707336] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  258.715270] modprobe      D c027f794     0  1191   1182 0x00000003
-[  258.721588] [<c027f794>] (schedule+0x274/0x2ac) from [<c027f998>]
-(schedule_timeout+0x18/0x17c)
-[  258.730377] [<c027f998>] (schedule_timeout+0x18/0x17c) from
-[<c027f414>] (wait_for_common+0xc0/0x14c)
-[  258.739746] [<c027f414>] (wait_for_common+0xc0/0x14c) from
-[<c01e61e0>] (mmc_wait_for_req+0x1f4/0x214)
-[  258.749145] [<c01e61e0>] (mmc_wait_for_req+0x1f4/0x214) from
-[<c01ea2a0>] (mmc_io_rw_extended+0x188/0x1f0)
-[  258.758911] [<c01ea2a0>] (mmc_io_rw_extended+0x188/0x1f0) from
-[<c01eb1c4>] (sdio_io_rw_ext_helper+0xc4/0x184)
-[  258.769012] [<c01eb1c4>] (sdio_io_rw_ext_helper+0xc4/0x184) from
-[<c01eb29c>] (sdio_writesb+0x18/0x1c)
-[  258.778442] [<c01eb29c>] (sdio_writesb+0x18/0x1c) from [<bf0638dc>]
-(if_sdio_probe+0x63c/0x938 [libertas_sdio])
-[  258.788665] [<bf0638dc>] (if_sdio_probe+0x63c/0x938 [libertas_sdio])
-from [<c01ea724>] (sdio_bus_probe+0x5c/0x68)
-[  258.799041] [<c01ea724>] (sdio_bus_probe+0x5c/0x68) from [<c01a67a4>]
-(driver_probe_device+0xa0/0x14c)
-[  258.808441] [<c01a67a4>] (driver_probe_device+0xa0/0x14c) from
-[<c01a68b0>] (__driver_attach+0x60/0x84)
-[  258.817932] [<c01a68b0>] (__driver_attach+0x60/0x84) from
-[<c01a5c8c>] (bus_for_each_dev+0x44/0x78)
-[  258.827087] [<c01a5c8c>] (bus_for_each_dev+0x44/0x78) from
-[<c01a6224>] (bus_add_driver+0x9c/0x224)
-[  258.836212] [<c01a6224>] (bus_add_driver+0x9c/0x224) from
-[<c01a6c08>] (driver_register+0xa8/0x130)
-[  258.845367] [<c01a6c08>] (driver_register+0xa8/0x130) from
-[<bf06701c>] (if_sdio_init_module+0x1c/0x3c [libertas_sdio])
-[  258.856292] [<bf06701c>] (if_sdio_init_module+0x1c/0x3c
-[libertas_sdio]) from [<c0029344>] (do_one_initcall+0x54/0x190)
-[  258.867187] [<c0029344>] (do_one_initcall+0x54/0x190) from
-[<c0073130>] (sys_init_module+0xb8/0x1e4)
-[  258.876403] [<c0073130>] (sys_init_module+0xb8/0x1e4) from
-[<c0029e80>] (ret_fast_syscall+0x0/0x2c)
-
-
-> @@ -426,12 +431,6 @@ omap_hsmmc_start_command(struct omap_hsmmc_host
-> *host, struct mmc_command *cmd,
->                 mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
->         host->cmd = cmd;
+> #include <plat/common.h>
+> #include <plat/board.h>
+> #include <plat/clock.h>
+> #include <plat/control.h>
 > 
-> -       /*
-> -        * Clear status bits and enable interrupts
-> -        */
-> -       OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> -       OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-> -
->         if (host->use_dma)
->                 OMAP_HSMMC_WRITE(host->base, IE,
->                                  INT_EN_MASK & ~(BRR_ENABLE | BWR_ENABLE));
+>+#include <asm/div64.h>
+>+
+> #include "prm.h"
+> #include "pm.h"
+> #include "prm-regbits-34xx.h"
+>@@ -36,13 +39,13 @@
+> #define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
+> #define UART_OMAP_WER		0x17	/* Wake-up enable register */
 > 
-> David
-
-
--- 
-Sincerely yours,
-Mike.
-
+>-#define DEFAULT_TIMEOUT (5 * HZ)
+>+#define DEFAULT_TIMEOUT (5LL * NSEC_PER_SEC)
+> 
+> struct omap_uart_state {
+> 	int num;
+> 	int can_sleep;
+>-	struct timer_list timer;
+>-	u32 timeout;
+>+	ktime_t expire_time;
+>+	u64 timeout;
+> 
+> 	void __iomem *wk_st;
+> 	void __iomem *wk_en;
+>@@ -231,6 +234,9 @@ static inline void 
+>omap_uart_enable_clocks(struct omap_uart_state *uart)
+> 	clk_enable(uart->fck);
+> 	uart->clocked = 1;
+> 	omap_uart_restore_context(uart);
+>+
+>+	/* Clear RX and TX fifos, as they contain garbage at 
+>this point */
+>+	serial_write_reg(uart->p, UART_FCR, 0xa7);
+> }
+> 
+> #ifdef CONFIG_PM
+>@@ -302,9 +308,7 @@ static void omap_uart_block_sleep(struct 
+>omap_uart_state *uart)
+> 	omap_uart_smart_idle_enable(uart, 0);
+> 	uart->can_sleep = 0;
+> 	if (uart->timeout)
+>-		mod_timer(&uart->timer, jiffies + uart->timeout);
+>-	else
+>-		del_timer(&uart->timer);
+>+		uart->expire_time = ktime_add_ns(ktime_get(), 
+>uart->timeout);
+> }
+> 
+> static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+>@@ -317,25 +321,28 @@ static void omap_uart_allow_sleep(struct 
+>omap_uart_state *uart)
+> 	if (!uart->clocked)
+> 		return;
+> 
+>-	omap_uart_smart_idle_enable(uart, 1);
+>+	if (serial_read_reg(uart->p, UART_LSR) & UART_LSR_TEMT)
+>+		omap_uart_smart_idle_enable(uart, 1);
+> 	uart->can_sleep = 1;
+>-	del_timer(&uart->timer);
+>-}
+>-
+>-static void omap_uart_idle_timer(unsigned long data)
+>-{
+>-	struct omap_uart_state *uart = (struct omap_uart_state *)data;
+>-
+>-	omap_uart_allow_sleep(uart);
+> }
+> 
+> void omap_uart_prepare_idle(int num)
+> {
+> 	struct omap_uart_state *uart;
+>+	ktime_t t;
+> 
+> 	list_for_each_entry(uart, &uart_list, node) {
+>+		if (num == uart->num && !uart->can_sleep) {
+>+			t = ktime_get();
+>+			if (t.tv64 > uart->expire_time.tv64)
+>+				uart->can_sleep = 1;
+>+		}
+> 		if (num == uart->num && uart->can_sleep) {
+>-			omap_uart_disable_clocks(uart);
+>+			if (serial_read_reg(uart->p, UART_LSR) &
+>+					UART_LSR_TEMT)
+>+				omap_uart_disable_clocks(uart);
+>+			else
+>+				omap_uart_smart_idle_enable(uart, 0);
+> 			return;
+> 		}
+> 	}
+>@@ -360,6 +367,7 @@ void omap_uart_resume_idle(int num)
+> 			/* Check for normal UART wakeup */
+> 			if (__raw_readl(uart->wk_st) & uart->wk_mask)
+> 				omap_uart_block_sleep(uart);
+>+
+> 			return;
+> 		}
+> 	}
+>@@ -407,8 +415,14 @@ int omap_uart_can_sleep(void)
+> static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+> {
+> 	struct omap_uart_state *uart = dev_id;
+>+	u8 lsr;
+> 
+>-	omap_uart_block_sleep(uart);
+>+	lsr = serial_read_reg(uart->p, UART_LSR);
+>+	/* Check for receive interrupt */
+>+	if (lsr & UART_LSR_DR)
+>+		omap_uart_block_sleep(uart);
+>+	if (lsr & UART_LSR_TEMT && uart->can_sleep)
+>+		omap_uart_smart_idle_enable(uart, 1);
+> 
+> 	return IRQ_NONE;
+> }
+>@@ -420,9 +434,9 @@ static void omap_uart_idle_init(struct 
+>omap_uart_state *uart)
+> 
+> 	uart->can_sleep = 0;
+> 	uart->timeout = DEFAULT_TIMEOUT;
+>-	setup_timer(&uart->timer, omap_uart_idle_timer,
+>-		    (unsigned long) uart);
+>-	mod_timer(&uart->timer, jiffies + uart->timeout);
+>+
+>+	uart->expire_time = ktime_add_ns(ktime_get(), uart->timeout);
+>+
+> 	omap_uart_smart_idle_enable(uart, 0);
+> 
+> 	if (cpu_is_omap34xx()) {
+>@@ -505,8 +519,12 @@ static ssize_t sleep_timeout_show(struct 
+>device *dev,
+> 					struct platform_device, dev);
+> 	struct omap_uart_state *uart = container_of(pdev,
+> 					struct omap_uart_state, pdev);
+>+	u64 val;
+> 
+>-	return sprintf(buf, "%u\n", uart->timeout / HZ);
+>+	val = uart->timeout;
+>+
+>+	do_div(val, NSEC_PER_SEC);
+>+	return sprintf(buf, "%llu\n", val);
+> }
+> 
+> static ssize_t sleep_timeout_store(struct device *dev,
+>@@ -524,10 +542,12 @@ static ssize_t 
+>sleep_timeout_store(struct device *dev,
+> 		return -EINVAL;
+> 	}
+> 
+>-	uart->timeout = value * HZ;
+>-	if (uart->timeout)
+>-		mod_timer(&uart->timer, jiffies + uart->timeout);
+>-	else
+>+	uart->timeout = (u64)value * NSEC_PER_SEC;
+>+	if (uart->timeout) {
+>+		uart->expire_time = ktime_get();
+>+		uart->expire_time =
+>+			ktime_add_ns(uart->expire_time, uart->timeout);
+>+	} else
+> 		/* A zero value means disable timeout feature */
+> 		omap_uart_block_sleep(uart);
+> 
+>-- 
+>1.5.4.3
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe 
+>linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
