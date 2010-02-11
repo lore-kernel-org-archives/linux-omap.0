@@ -1,105 +1,156 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2-V2] AM3517: Enable RTC driver support for AM3517EVM
-Date: Thu, 11 Feb 2010 12:32:43 -0800
-Message-ID: <20100211203243.GH21755@atomide.com>
-References: <hvaibhav@ti.com>
- <1265875947-12306-2-git-send-email-hvaibhav@ti.com>
+Subject: Re: [PATCH v2 1/3] OMAP: ZOOM: Introducing 'board-zoom-flash.c'
+Date: Thu, 11 Feb 2010 12:47:03 -0800
+Message-ID: <20100211204703.GI21755@atomide.com>
+References: <ce9ab5791002102119k6eb32e97gfac21762a71843f3@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57894 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63081 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756486Ab0BKUcG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 15:32:06 -0500
+	with ESMTP id S1756853Ab0BKUq0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 15:46:26 -0500
 Content-Disposition: inline
-In-Reply-To: <1265875947-12306-2-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <ce9ab5791002102119k6eb32e97gfac21762a71843f3@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
+To: Vimal Singh <vimal.newwork@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-* hvaibhav@ti.com <hvaibhav@ti.com> [100211 00:09]:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
+* Vimal Singh <vimal.newwork@gmail.com> [100210 21:16]:
+> From: Vimal Singh <vimalsingh@ti.com>
 > 
-> Add platform hook-up interface to support RTC driver (S35390A).
+> This patch adds 'board-zoom-flash.c', which could be utilized
+> by boards similar to ZOOM2. (For ex: LDP, ZOOM2, ZOOM3).
 > 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> This does initialization for NAND device based on the 'cs' number
+> and partition information passed from board file (ex: board-zoom2.c).
+> 
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 > ---
->  arch/arm/mach-omap2/board-am3517evm.c |   25 +++++++++++++++++++++++++
->  1 files changed, 25 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/board-zoom-flash.c        |   85 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/include/mach/board-zoom.h |   11 +++
+>  2 files changed, 96 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-zoom-flash.c
 > 
-> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-> index 247c700..d9f487f 100644
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@ -174,6 +174,18 @@ struct platform_device am3517_evm_dss_device = {
->  		.platform_data	= &am3517_evm_dss_data,
->  	},
->  };
+> diff --git a/arch/arm/mach-omap2/board-zoom-flash.c
+> b/arch/arm/mach-omap2/board-zoom-flash.c
+> new file mode 100644
+> index 0000000..f2328a4
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-zoom-flash.c
+> @@ -0,0 +1,85 @@
 > +/*
-> + * RTC - S35390A
+> + * board-zoom-flash.c
+> + *
+> + * Copyright (C) 2009 Texas Instruments Inc.
+> + * Vimal Singh <vimalsingh@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
 > + */
-> +#define	GPIO_RTCS35390A_IRQ	55
-
-Please change this into standard
-
-#define GPIO_RTCS35390A_IRQ     55
-
-instead of having a tab between #define and GPIO...
-
-> +static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
-> +	{
-> +		I2C_BOARD_INFO("s35390a", 0x30),
-> +		.type		= "s35390a",
-> +	},
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/delay.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/mtd/nand.h>
+> +#include <linux/types.h>
+> +#include <linux/io.h>
+> +
+> +#include <asm/mach/flash.h>
+> +#include <plat/board.h>
+> +#include <plat/gpmc.h>
+> +#include <plat/nand.h>
+> +
+> +#include <mach/board-zoom.h>
+> +
+> +#if defined(CONFIG_MTD_NAND_OMAP2) || \
+> +		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
+> +
+> +/* Note that all values in this struct are in nanoseconds */
+> +static struct gpmc_timings nand_timings = {
+> +
+> +	.sync_clk = 0,
+> +
+> +	.cs_on = 0,
+> +	.cs_rd_off = 36,
+> +	.cs_wr_off = 36,
+> +
+> +	.adv_on = 6,
+> +	.adv_rd_off = 24,
+> +	.adv_wr_off = 36,
+> +
+> +	.we_off = 30,
+> +	.oe_off = 48,
+> +
+> +	.access = 54,
+> +	.rd_cycle = 72,
+> +	.wr_cycle = 72,
+> +
+> +	.wr_access = 30,
+> +	.wr_data_mux_bus = 0,
 > +};
 > +
-> 
->  static int __init am3517_evm_i2c_init(void)
->  {
-> @@ -235,6 +247,19 @@ static void __init am3517_evm_init(void)
->  	usb_ehci_init(&ehci_pdata);
->  	/* DSS */
->  	am3517_evm_display_init();
+> +/* NAND chip access: 16 bit */
+> +static struct omap_nand_platform_data zoom_nand_data = {
+> +	.nand_setup	= NULL,
+> +	.gpmc_t		= &nand_timings,
+> +	.dma_channel	= -1,	/* disable DMA in OMAP NAND driver */
+> +	.dev_ready	= NULL,
+> +	.devsize	= 1,	/* '0' for 8-bit, '1' for 16-bit device */
+> +};
 > +
-> +	/* RTC - S35390A */
-> +	omap_mux_init_gpio(55, OMAP_PIN_INPUT_PULLUP);
-> +	if (gpio_request(GPIO_RTCS35390A_IRQ, "rtcs35390a-irq") < 0)
-> +		printk(KERN_WARNING "failed to request GPIO#%d\n",
-> +				GPIO_RTCS35390A_IRQ);
+> +/**
+> + * zoom_flash_init - Identify devices connected to GPMC and register.
+> + *
+> + * @return - void.
+> + */
+> +void __init zoom_flash_init(struct flash_partitions zoom_nand_parts[], int cs)
+> +{
+> +	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
+> +
+> +	zoom_nand_data.cs		= cs;
+> +	zoom_nand_data.parts		= zoom_nand_parts[0].parts;
+> +	zoom_nand_data.nr_parts		= zoom_nand_parts[0].nr_parts;
+> +	zoom_nand_data.gpmc_baseaddr	= (void *)(gpmc_base_add);
+> +	zoom_nand_data.gpmc_cs_baseaddr	= (void *)(gpmc_base_add +
+> +						GPMC_CS0_BASE +
+> +						cs * GPMC_CS_SIZE);
 
-Here you need to check the return value before trying to change
-the GPIO value. In general it's preferred to use:
-
-	int err;
-
-	err = gpio_request()
-	if (err < 0)
-		return err;
-	...
-
-
-> +	if (gpio_direction_input(GPIO_RTCS35390A_IRQ))
-> +		printk(KERN_WARNING "GPIO#%d cannot be configured as "
-> +				"input\n", GPIO_RTCS35390A_IRQ);
-
-And only after that call gpio_direction_input.
-
-Regards,
+The gpmc_baseaddr and gpmc_cs_baseaddr should no longer be
+needed with gpmc-nand.c, right?
 
 Tony
 
-> +	am3517evm_i2c_boardinfo[0].irq = gpio_to_irq(GPIO_RTCS35390A_IRQ);
+> +	gpmc_nand_init(&zoom_nand_data);
+> +}
+> +#else
+> +void __init zoom_flash_init(struct flash_partitions zoom_nand_parts[], int cs)
+> +{
+> +}
+> +#endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
 > +
-> +	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
-> +				ARRAY_SIZE(am3517evm_i2c_boardinfo));
->  }
-> 
->  static void __init am3517_evm_map_io(void)
-> --
-> 1.6.2.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap2/include/mach/board-zoom.h
+> b/arch/arm/mach-omap2/include/mach/board-zoom.h
+> index c93b29e..f4469d3 100644
+> --- a/arch/arm/mach-omap2/include/mach/board-zoom.h
+> +++ b/arch/arm/mach-omap2/include/mach/board-zoom.h
+> @@ -1,5 +1,16 @@
+>  /*
+>   * Defines for zoom boards
+>   */
+> +#include <linux/mtd/mtd.h>
+> +#include <linux/mtd/partitions.h>
+> +
+> +struct flash_partitions {
+> +	struct mtd_partition *parts;
+> +	int nr_parts;
+> +};
+> +
+> +#define ZOOM_NAND_CS	0
+> +
+> +extern void __init zoom_flash_init(struct flash_partitions [], int); >  extern int __init zoom_debugboard_init(void);
+>  extern void __init zoom_peripherals_init(void);
+> -- 
+> 1.6.3.3
