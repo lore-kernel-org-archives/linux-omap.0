@@ -1,92 +1,67 @@
-From: "kishore kadiyala" <kishore.kadiyala@ti.com>
-Subject: [PATCH] OMAP: Fix for bus width which improves SD card's
-     peformance.
-Date: Thu, 11 Feb 2010 19:50:23 +0530 (IST)
-Message-ID: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCHv3 3/4] Add ASoC support for DevKit8000
+Date: Thu, 11 Feb 2010 17:02:54 +0200
+Message-ID: <201002111702.54783.peter.ujfalusi@nokia.com>
+References: <1265829784-19224-1-git-send-email-swirl@gmx.li>
+	<1265885388.3179.8.camel@odin>
+	<20100211131418.9521c603.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;boundary="----=_20100211195023_58080"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53207 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754640Ab0BKOUa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Feb 2010 09:20:30 -0500
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: jarkko.lavinen@nokia.com, madhu.cr@ti.com
-
-------=_20100211195023_58080
 Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20100211131418.9521c603.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, Thomas Weber <swirl@gmx.li>, "weber@corscience.de" <weber@corscience.de>, "tony@atomride.com" <tony@atomride.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
+List-Id: linux-omap@vger.kernel.org
 
-This patch improves low speeds for SD cards.
-OMAP-MMC controller's can support maximum bus width of '8'.
-when bus width is mentioned as "8" in controller data,the SD
-stack will check whether bus width is "4" and if not it will
-set bus width to "1" and there by degrading peformance.
-This patch fixes the issue and improves the performance of
-SD cards.
+On Thursday 11 February 2010 13:14:18 ext Jarkko Nikula wrote:
+> On Thu, 11 Feb 2010 10:49:48 +0000
+> =
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
----
- Here are my experiment numbers, on a Class 6 SDHC card:
- Read peformance is increased by 220%
- Write Performance is increased by 52%
+> Liam Girdwood <lrg@slimlogic.co.uk> wrote:
+> > I do agree this makes good sense for boards that are very similar and
+> > have different audio options/config, but in this case the ASoC mach
+> > drivers are identical (atm). Imo it just makes more sense to keep the
+> > one Kconfig.
+> =
 
- drivers/mmc/host/omap_hsmmc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> Yeah, after thinking twice, we don't have zillions of options for e.g.
+> Intel HDA either. If we ever figure out some common OMAP+TWL4030
+> driver, the defconfigs are anyway have to modify so it's better stay
+> with the original patch:
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 83f0aff..8c97c22 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2092,7 +2092,7 @@ static int __init omap_hsmmc_probe(struct platform_device
-*pdev)
- 		     MMC_CAP_WAIT_WHILE_BUSY;
+Well, I really doubt that we can find a way to have a common driver for thi=
+s =
 
- 	if (mmc_slot(host).wires >= 8)
--		mmc->caps |= MMC_CAP_8_BIT_DATA;
-+		mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
- 	else if (mmc_slot(host).wires >= 4)
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+combination. You can attach quite a big variety of amps to the outputs (som=
+e =
 
--- 
-1.6.3.3
+controlled with GPIO, some like the tpa6130 has i2c interface, etc).
+To have some kind of "infrastructure" to support all of the possible scenar=
+ios =
 
-------=_20100211195023_58080
-Content-Type: application/octet-stream;
-      name=
-     "0001-Fix-for-bus-width-which-optimizes-SD-card-s-peforman.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-      filename=
-     "0001-Fix-for-bus-width-which-optimizes-SD-card-s-peforman.patch"
+is just does not worth the effort IMHO.
 
-RnJvbSAzNGIwMDg3MjUzMGU2MDY2NzhmODYwNzJkNDZkOGNhODliZWFhMTliIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBLaXNob3JlIEthZGl5YWxhIDxraXNob3JlLmthZGl5YWxhQHRp
-LmNvbT4KRGF0ZTogVGh1LCAxMSBGZWIgMjAxMCAxNjo0MjoyMyArMDUzMApTdWJqZWN0OiBbUEFU
-Q0hdIEZpeCBmb3IgYnVzIHdpZHRoIHdoaWNoIGltcHJvdmVzIFNEIGNhcmQncyBwZWZvcm1hbmNl
-LgoKVGhpcyBwYXRjaCBpbXByb3ZlcyBsb3cgc3BlZWRzIGZvciBTRCBjYXJkcy4KT01BUC1NTUMg
-Y29udHJvbGxlcidzIGNhbiBzdXBwb3J0IG1heGltdW0gYnVzIHdpZHRoIG9mICc4Jy4Kd2hlbiBi
-dXMgd2lkdGggaXMgbWVudGlvbmVkIGFzICI4IiBpbiBjb250cm9sbGVyIGRhdGEsdGhlIFNECnN0
-YWNrIHdpbGwgY2hlY2sgd2hldGhlciBidXMgd2lkdGggaXMgIjQiIGFuZCBpZiBub3QgaXQgd2ls
-bApzZXQgYnVzIHdpZHRoIHRvICIxIiBhbmQgdGhlcmUgYnkgZGVncmFkaW5nIHBlZm9ybWFuY2Uu
-ClRoaXMgcGF0Y2ggZml4ZXMgdGhlIGlzc3VlIGFuZCBpbXByb3ZlcyB0aGUgcGVyZm9ybWFuY2Ug
-b2YKU0QgY2FyZHMuCgpTaWduZWQtb2ZmLWJ5OiBLaXNob3JlIEthZGl5YWxhIDxraXNob3JlLmth
-ZGl5YWxhQHRpLmNvbT4KLS0tCiBIZXJlIGFyZSBteSBleHBlcmltZW50IG51bWJlcnMsIG9uIGEg
-Q2xhc3MgNiBTREhDIGNhcmQ6CiBSZWFkIHBlZm9ybWFuY2UgaXMgaW5jcmVhc2VkIGJ5IDIyMCUK
-IFdyaXRlIFBlcmZvcm1hbmNlIGlzIGluY3JlYXNlZCBieSA1MiUKCQkKIGRyaXZlcnMvbW1jL2hv
-c3Qvb21hcF9oc21tYy5jIHwgICAgMiArLQogMSBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbnMo
-KyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tbWMvaG9zdC9vbWFwX2hz
-bW1jLmMgYi9kcml2ZXJzL21tYy9ob3N0L29tYXBfaHNtbWMuYwppbmRleCA4M2YwYWZmLi44Yzk3
-YzIyIDEwMDY0NAotLS0gYS9kcml2ZXJzL21tYy9ob3N0L29tYXBfaHNtbWMuYworKysgYi9kcml2
-ZXJzL21tYy9ob3N0L29tYXBfaHNtbWMuYwpAQCAtMjA5Miw3ICsyMDkyLDcgQEAgc3RhdGljIGlu
-dCBfX2luaXQgb21hcF9oc21tY19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQog
-CQkgICAgIE1NQ19DQVBfV0FJVF9XSElMRV9CVVNZOwogCiAJaWYgKG1tY19zbG90KGhvc3QpLndp
-cmVzID49IDgpCi0JCW1tYy0+Y2FwcyB8PSBNTUNfQ0FQXzhfQklUX0RBVEE7CisJCW1tYy0+Y2Fw
-cyB8PSAoTU1DX0NBUF84X0JJVF9EQVRBIHwgTU1DX0NBUF80X0JJVF9EQVRBKTsKIAllbHNlIGlm
-IChtbWNfc2xvdChob3N0KS53aXJlcyA+PSA0KQogCQltbWMtPmNhcHMgfD0gTU1DX0NBUF80X0JJ
-VF9EQVRBOwogCi0tIAoxLjYuMy4zCgo=
-------=_20100211195023_58080--
+> =
+
+> http://mailman.alsa-project.org/pipermail/alsa-devel/2010-February/025129=
+.h
+> tml
+> =
+
+> Sorry about line noise, Thomas :-)
+> =
 
 
+-- =
+
+P=E9ter
