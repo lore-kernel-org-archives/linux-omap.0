@@ -1,308 +1,53 @@
-From: "Y, Kishore" <kishore.y@ti.com>
-Subject: [PATCH 2/2 V2] OMAP: DSS: Enable display on ZOOM2/3 & 3630SDP
-Date: Thu, 11 Feb 2010 15:32:56 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B7E8B95@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Moving board patches from DSS2 to linux-omap
+Date: Thu, 11 Feb 2010 12:29:45 +0200
+Message-ID: <1265884185.2433.239.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45199 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753009Ab0BKKCW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 05:02:22 -0500
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:45618 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751905Ab0BKK1T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 05:27:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, mike@compulab.co.il
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Kishore Y <kishore.y@ti.com>
+Hi,
 
-Enable dss and framebuffer on zoom2, zoom3 and 3630sdp boards.
+As discussed previously, board file changes in DSS2 tree cause conflicts
+with linux-omap easily. There are currently three board file patches in
+DSS2's for-next branch:
 
-Signed-off-by: Mukund Mittal <mmittal@ti.com>
-Signed-off-by: Kishore Y <kishore.y@ti.com>
----
- arch/arm/configs/omap_3630sdp_defconfig |   60 ++++++++++++++++++++++++++++++-
- arch/arm/configs/omap_zoom2_defconfig   |   60 ++++++++++++++++++++++++++++++-
- arch/arm/configs/omap_zoom3_defconfig   |   60 ++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/board-3630sdp.c     |    1 +
- arch/arm/mach-omap2/board-zoom2.c       |    1 +
- arch/arm/mach-omap2/board-zoom3.c       |    1 +
- 6 files changed, 180 insertions(+), 3 deletions(-)
+722a97e4594b2041bbf18d95a913ba6dfaca87f2 omap3: cm-t35: add DSS2 display support
+7a56267e775e469c64521179ccc958c8bb661dbf OMAP: AM3517: Enable DSS2 for AM3517EVM board
+40e4e67c6dabcb9897b6823cce2297d6c3e78bbd OMAP: Enable DSS2 for OMAP3EVM board
 
-diff --git a/arch/arm/configs/omap_3630sdp_defconfig b/arch/arm/configs/omap_3630sdp_defconfig
-index d25c3d4..df37108 100644
---- a/arch/arm/configs/omap_3630sdp_defconfig
-+++ b/arch/arm/configs/omap_3630sdp_defconfig
-@@ -886,7 +886,57 @@ CONFIG_REGULATOR_TWL4030=y
- #
- # CONFIG_VGASTATE is not set
- CONFIG_VIDEO_OUTPUT_CONTROL=m
--# CONFIG_FB is not set
-+CONFIG_FB=y
-+# CONFIG_FIRMWARE_EDID is not set
-+# CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-+CONFIG_FB_CFB_FILLRECT=y
-+CONFIG_FB_CFB_COPYAREA=y
-+CONFIG_FB_CFB_IMAGEBLIT=y
-+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-+# CONFIG_FB_SYS_FILLRECT is not set
-+# CONFIG_FB_SYS_COPYAREA is not set
-+# CONFIG_FB_SYS_IMAGEBLIT is not set
-+# CONFIG_FB_FOREIGN_ENDIAN is not set
-+# CONFIG_FB_SYS_FOPS is not set
-+# CONFIG_FB_SVGALIB is not set
-+# CONFIG_FB_MACMODES is not set
-+# CONFIG_FB_BACKLIGHT is not set
-+# CONFIG_FB_MODE_HELPERS is not set
-+# CONFIG_FB_TILEBLITTING is not set
-+
-+#
-+# Frame buffer hardware drivers
-+#
-+# CONFIG_FB_UVESA is not set
-+# CONFIG_FB_S1D13XXX is not set
-+# CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
-+# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-+CONFIG_OMAP2_VRAM=y
-+CONFIG_OMAP2_VRFB=y
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=4
-+# CONFIG_OMAP2_DSS_DEBUG_SUPPORT is not set
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
-+CONFIG_FB_OMAP2=y
-+# CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=1
-+
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+# CONFIG_PANEL_GENERIC is not set
-+# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-+CONFIG_PANEL_NEC_NL8048HL11_01B=y
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
- 
- #
-@@ -899,6 +949,14 @@ CONFIG_VIDEO_OUTPUT_CONTROL=m
- #
- # CONFIG_VGA_CONSOLE is not set
- CONFIG_DUMMY_CONSOLE=y
-+CONFIG_FRAMEBUFFER_CONSOLE=y
-+# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
-+# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
-+# CONFIG_FONTS is not set
-+CONFIG_LOGO=y
-+CONFIG_LOGO_LINUX_MONO=y
-+CONFIG_LOGO_LINUX_VGA16=y
-+CONFIG_LOGO_LINUX_CLUT224=y
- CONFIG_SOUND=y
- # CONFIG_SOUND_OSS_CORE is not set
- CONFIG_SND=y
-diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
-index a82e813..66bde4d 100644
---- a/arch/arm/configs/omap_zoom2_defconfig
-+++ b/arch/arm/configs/omap_zoom2_defconfig
-@@ -859,7 +859,57 @@ CONFIG_DAB=y
- #
- # CONFIG_VGASTATE is not set
- CONFIG_VIDEO_OUTPUT_CONTROL=m
--# CONFIG_FB is not set
-+CONFIG_FB=y
-+# CONFIG_FIRMWARE_EDID is not set
-+# CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-+CONFIG_FB_CFB_FILLRECT=y
-+CONFIG_FB_CFB_COPYAREA=y
-+CONFIG_FB_CFB_IMAGEBLIT=y
-+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-+# CONFIG_FB_SYS_FILLRECT is not set
-+# CONFIG_FB_SYS_COPYAREA is not set
-+# CONFIG_FB_SYS_IMAGEBLIT is not set
-+# CONFIG_FB_FOREIGN_ENDIAN is not set
-+# CONFIG_FB_SYS_FOPS is not set
-+# CONFIG_FB_SVGALIB is not set
-+# CONFIG_FB_MACMODES is not set
-+# CONFIG_FB_BACKLIGHT is not set
-+# CONFIG_FB_MODE_HELPERS is not set
-+# CONFIG_FB_TILEBLITTING is not set
-+
-+#
-+# Frame buffer hardware drivers
-+#
-+# CONFIG_FB_UVESA is not set
-+# CONFIG_FB_S1D13XXX is not set
-+# CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
-+# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-+CONFIG_OMAP2_VRAM=y
-+CONFIG_OMAP2_VRFB=y
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=4
-+# CONFIG_OMAP2_DSS_DEBUG_SUPPORT is not set
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
-+CONFIG_FB_OMAP2=y
-+# CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=1
-+
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+# CONFIG_PANEL_GENERIC is not set
-+# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-+CONFIG_PANEL_NEC_NL8048HL11_01B=y
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
- 
- #
-@@ -872,6 +922,14 @@ CONFIG_VIDEO_OUTPUT_CONTROL=m
- #
- # CONFIG_VGA_CONSOLE is not set
- CONFIG_DUMMY_CONSOLE=y
-+CONFIG_FRAMEBUFFER_CONSOLE=y
-+# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
-+# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
-+# CONFIG_FONTS is not set
-+CONFIG_LOGO=y
-+CONFIG_LOGO_LINUX_MONO=y
-+CONFIG_LOGO_LINUX_VGA16=y
-+CONFIG_LOGO_LINUX_CLUT224=y
- CONFIG_SOUND=y
- # CONFIG_SOUND_OSS_CORE is not set
- CONFIG_SND=y
-diff --git a/arch/arm/configs/omap_zoom3_defconfig b/arch/arm/configs/omap_zoom3_defconfig
-index a3e3c82..91c5613 100644
---- a/arch/arm/configs/omap_zoom3_defconfig
-+++ b/arch/arm/configs/omap_zoom3_defconfig
-@@ -887,7 +887,57 @@ CONFIG_REGULATOR_TWL4030=y
- #
- # CONFIG_VGASTATE is not set
- CONFIG_VIDEO_OUTPUT_CONTROL=m
--# CONFIG_FB is not set
-+CONFIG_FB=y
-+# CONFIG_FIRMWARE_EDID is not set
-+# CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-+CONFIG_FB_CFB_FILLRECT=y
-+CONFIG_FB_CFB_COPYAREA=y
-+CONFIG_FB_CFB_IMAGEBLIT=y
-+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-+# CONFIG_FB_SYS_FILLRECT is not set
-+# CONFIG_FB_SYS_COPYAREA is not set
-+# CONFIG_FB_SYS_IMAGEBLIT is not set
-+# CONFIG_FB_FOREIGN_ENDIAN is not set
-+# CONFIG_FB_SYS_FOPS is not set
-+# CONFIG_FB_SVGALIB is not set
-+# CONFIG_FB_MACMODES is not set
-+# CONFIG_FB_BACKLIGHT is not set
-+# CONFIG_FB_MODE_HELPERS is not set
-+# CONFIG_FB_TILEBLITTING is not set
-+
-+#
-+# Frame buffer hardware drivers
-+#
-+# CONFIG_FB_UVESA is not set
-+# CONFIG_FB_S1D13XXX is not set
-+# CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
-+# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-+CONFIG_OMAP2_VRAM=y
-+CONFIG_OMAP2_VRFB=y
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=4
-+# CONFIG_OMAP2_DSS_DEBUG_SUPPORT is not set
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
-+CONFIG_FB_OMAP2=y
-+# CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=1
-+
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+# CONFIG_PANEL_GENERIC is not set
-+# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-+CONFIG_PANEL_NEC_NL8048HL11_01B=y
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
- 
- #
-@@ -900,6 +950,14 @@ CONFIG_VIDEO_OUTPUT_CONTROL=m
- #
- # CONFIG_VGA_CONSOLE is not set
- CONFIG_DUMMY_CONSOLE=y
-+CONFIG_FRAMEBUFFER_CONSOLE=y
-+# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
-+# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
-+# CONFIG_FONTS is not set
-+CONFIG_LOGO=y
-+CONFIG_LOGO_LINUX_MONO=y
-+CONFIG_LOGO_LINUX_VGA16=y
-+CONFIG_LOGO_LINUX_CLUT224=y
- CONFIG_SOUND=y
- # CONFIG_SOUND_OSS_CORE is not set
- CONFIG_SND=y
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 7390596..2724711 100755
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -97,6 +97,7 @@ static void __init omap_sdp_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
- 	zoom_peripherals_init();
-+	zoom_display_init(OMAP_DSS_VENC_TYPE_SVIDEO);
- 	board_smc91x_init();
- 	enable_board_wakeup_source();
- 	usb_ehci_init(&ehci_pdata);
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index bb87cf7..5fedd66 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -82,6 +82,7 @@ static void __init omap_zoom2_init(void)
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	zoom_peripherals_init();
- 	zoom_debugboard_init();
-+	zoom_display_init(OMAP_DSS_VENC_TYPE_COMPOSITE);
- }
- 
- static void __init omap_zoom2_map_io(void)
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index a9fe918..47ad224 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -56,6 +56,7 @@ static void __init omap_zoom_init(void)
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
- 	zoom_peripherals_init();
- 	zoom_debugboard_init();
-+	zoom_display_init(OMAP_DSS_VENC_TYPE_COMPOSITE);
- }
- 
- MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
--- 
-1.5.6.3
+The problem here is of course that DSS2 tree may contain unmerged panel
+drivers, and those board file changes try to use these new panel
+drivers.
 
-Regards,
-Kishore Y
+Now, I don't think there's a perfect solution for this, but I think a
+working solution would be to put all board file changes to linux-omap
+tree (with the exception of some rare changes that don't compile without
+new DSS2 patches), but leave the kernel config unchanged.
+
+This way the board file contains references to new panel drivers, but as
+DSS2 nor the panel drivers are enabled in the Kconfig, the board file
+code is not used and everything should work as before.
+
+Then either I can have Kconfig patches in my tree, which are less likely
+to conflict, or the Kconfig changes can be done after both linux-omap
+and dss2 patches have been merged.
+
+How does this sound?
+
+ Tomi
+
+Ps. I haven't actually tried those board file patches on top of
+linux-omap, but I don't see anything there that would cause compilation
+to fail.
+
+
