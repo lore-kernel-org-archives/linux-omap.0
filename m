@@ -1,221 +1,66 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv3] OMAP3: Serial: Improved sleep logic
-Date: Thu, 11 Feb 2010 15:39:01 +0200
-Message-ID: <1265895541-12300-1-git-send-email-tero.kristo@nokia.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: Moving board patches from DSS2 to linux-omap
+Date: Thu, 11 Feb 2010 13:50:37 +0200
+Message-ID: <4B73EF0D.8080904@compulab.co.il>
+References: <1265884185.2433.239.camel@tubuntu.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58391 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643Ab0BKLu7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 06:50:59 -0500
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o1BBos0o028929
-	for <linux-omap@vger.kernel.org>; Thu, 11 Feb 2010 13:50:57 +0200
-Received: from localhost.localdomain (sokoban.nmp.nokia.com [172.22.215.13])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o1BBocTH009076
-	for <linux-omap@vger.kernel.org>; Thu, 11 Feb 2010 13:50:39 +0200
-In-Reply-To: <>
-References: <>
+Received: from compulab.co.il ([67.18.134.219]:58723 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751643Ab0BKLvi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Feb 2010 06:51:38 -0500
+In-Reply-To: <1265884185.2433.239.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+Tomi Valkeinen wrote:
+> Hi,
+> 
+> As discussed previously, board file changes in DSS2 tree cause conflicts
+> with linux-omap easily. There are currently three board file patches in
+> DSS2's for-next branch:
+> 
+> 722a97e4594b2041bbf18d95a913ba6dfaca87f2 omap3: cm-t35: add DSS2 display support
+> 7a56267e775e469c64521179ccc958c8bb661dbf OMAP: AM3517: Enable DSS2 for AM3517EVM board
+> 40e4e67c6dabcb9897b6823cce2297d6c3e78bbd OMAP: Enable DSS2 for OMAP3EVM board
+> 
+> The problem here is of course that DSS2 tree may contain unmerged panel
+> drivers, and those board file changes try to use these new panel
+> drivers.
 
-This patch contains following improvements:
-- Only RX interrupt will now kick the sleep prevent timer
-- TX fifo status is checked before disabling clocks, this will prevent
-  on-going transmission to be cut
-- Smartidle is disabled while entering idle if we have data in the transmit
-  buffer because having this enabled would prevent wakeups from the TX
-  interrupt and this would cause pauses while sending large blocks of data
-- Sleep prevent timer is changed to use ktime_get() instead of a jiffy timer
-  as jiffy timers are not valid within idle loop (tick scheduler is stopped)
-- Added RX ignore timer for ignoring the first character received during
-  first millisecond of wakeup, this prevents garbage character to be received
-  in low sleep states
+Well, the panel drivers are referenced by name in the board files, so merging board
+file changes through linux-omap tree should not create merge conflicts and compile
+problems. There just won't be display until DSS2 tree is merged. Or am I missing
+something?
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/serial.c |   81 ++++++++++++++++++++++++++++-------------
- 1 files changed, 55 insertions(+), 26 deletions(-)
+> Now, I don't think there's a perfect solution for this, but I think a
+> working solution would be to put all board file changes to linux-omap
+> tree (with the exception of some rare changes that don't compile without
+> new DSS2 patches), but leave the kernel config unchanged.
+> 
+> This way the board file contains references to new panel drivers, but as
+> DSS2 nor the panel drivers are enabled in the Kconfig, the board file
+> code is not used and everything should work as before.
+> 
+> Then either I can have Kconfig patches in my tree, which are less likely
+> to conflict, or the Kconfig changes can be done after both linux-omap
+> and dss2 patches have been merged.
+> 
+> How does this sound?
+> 
+>  Tomi
+> 
+> Ps. I haven't actually tried those board file patches on top of
+> linux-omap, but I don't see anything there that would cause compilation
+> to fail.
+> 
+> 
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 837b347..75ce549 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -23,12 +23,15 @@
- #include <linux/serial_reg.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/delay.h>
- 
- #include <plat/common.h>
- #include <plat/board.h>
- #include <plat/clock.h>
- #include <plat/control.h>
- 
-+#include <asm/div64.h>
-+
- #include "prm.h"
- #include "pm.h"
- #include "prm-regbits-34xx.h"
-@@ -36,13 +39,14 @@
- #define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
- #define UART_OMAP_WER		0x17	/* Wake-up enable register */
- 
--#define DEFAULT_TIMEOUT (5 * HZ)
-+#define DEFAULT_TIMEOUT (5LL * NSEC_PER_SEC)
- 
- struct omap_uart_state {
- 	int num;
- 	int can_sleep;
--	struct timer_list timer;
--	u32 timeout;
-+	ktime_t expire_time;
-+	ktime_t garbage_time;
-+	u64 timeout;
- 
- 	void __iomem *wk_st;
- 	void __iomem *wk_en;
-@@ -231,6 +235,9 @@ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
- 	clk_enable(uart->fck);
- 	uart->clocked = 1;
- 	omap_uart_restore_context(uart);
-+
-+	/* Set up garbage timer to ignore RX during first 1ms */
-+	uart->garbage_time = ktime_add_ns(ktime_get(), NSEC_PER_MSEC);
- }
- 
- #ifdef CONFIG_PM
-@@ -302,9 +309,7 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
- 	omap_uart_smart_idle_enable(uart, 0);
- 	uart->can_sleep = 0;
- 	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
--	else
--		del_timer(&uart->timer);
-+		uart->expire_time = ktime_add_ns(ktime_get(), uart->timeout);
- }
- 
- static void omap_uart_allow_sleep(struct omap_uart_state *uart)
-@@ -317,25 +322,28 @@ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
- 	if (!uart->clocked)
- 		return;
- 
--	omap_uart_smart_idle_enable(uart, 1);
-+	if (serial_read_reg(uart->p, UART_LSR) & UART_LSR_TEMT)
-+		omap_uart_smart_idle_enable(uart, 1);
- 	uart->can_sleep = 1;
--	del_timer(&uart->timer);
--}
--
--static void omap_uart_idle_timer(unsigned long data)
--{
--	struct omap_uart_state *uart = (struct omap_uart_state *)data;
--
--	omap_uart_allow_sleep(uart);
- }
- 
- void omap_uart_prepare_idle(int num)
- {
- 	struct omap_uart_state *uart;
-+	ktime_t t;
- 
- 	list_for_each_entry(uart, &uart_list, node) {
-+		if (num == uart->num && !uart->can_sleep) {
-+			t = ktime_get();
-+			if (t.tv64 > uart->expire_time.tv64)
-+				uart->can_sleep = 1;
-+		}
- 		if (num == uart->num && uart->can_sleep) {
--			omap_uart_disable_clocks(uart);
-+			if (serial_read_reg(uart->p, UART_LSR) &
-+					UART_LSR_TEMT)
-+				omap_uart_disable_clocks(uart);
-+			else
-+				omap_uart_smart_idle_enable(uart, 0);
- 			return;
- 		}
- 	}
-@@ -360,6 +368,7 @@ void omap_uart_resume_idle(int num)
- 			/* Check for normal UART wakeup */
- 			if (__raw_readl(uart->wk_st) & uart->wk_mask)
- 				omap_uart_block_sleep(uart);
-+
- 			return;
- 		}
- 	}
-@@ -407,10 +416,24 @@ int omap_uart_can_sleep(void)
- static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
- {
- 	struct omap_uart_state *uart = dev_id;
-+	u8 lsr;
-+	int ret = IRQ_NONE;
- 
--	omap_uart_block_sleep(uart);
-+	lsr = serial_read_reg(uart->p, UART_LSR);
-+	/* Check for receive interrupt */
-+	if (lsr & UART_LSR_DR) {
-+		omap_uart_block_sleep(uart);
-+		if (uart->garbage_time.tv64 &&
-+		    ktime_get().tv64 < uart->garbage_time.tv64) {
-+			serial_read_reg(uart->p, UART_RX);
-+			uart->garbage_time.tv64 = 0;
-+			ret = IRQ_HANDLED;
-+		}
-+	}
-+	if (lsr & UART_LSR_TEMT && uart->can_sleep)
-+		omap_uart_smart_idle_enable(uart, 1);
- 
--	return IRQ_NONE;
-+	return ret;
- }
- 
- static void omap_uart_idle_init(struct omap_uart_state *uart)
-@@ -420,9 +443,9 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 
- 	uart->can_sleep = 0;
- 	uart->timeout = DEFAULT_TIMEOUT;
--	setup_timer(&uart->timer, omap_uart_idle_timer,
--		    (unsigned long) uart);
--	mod_timer(&uart->timer, jiffies + uart->timeout);
-+
-+	uart->expire_time = ktime_add_ns(ktime_get(), uart->timeout);
-+
- 	omap_uart_smart_idle_enable(uart, 0);
- 
- 	if (cpu_is_omap34xx()) {
-@@ -505,8 +528,12 @@ static ssize_t sleep_timeout_show(struct device *dev,
- 					struct platform_device, dev);
- 	struct omap_uart_state *uart = container_of(pdev,
- 					struct omap_uart_state, pdev);
-+	u64 val;
-+
-+	val = uart->timeout;
- 
--	return sprintf(buf, "%u\n", uart->timeout / HZ);
-+	do_div(val, NSEC_PER_SEC);
-+	return sprintf(buf, "%llu\n", val);
- }
- 
- static ssize_t sleep_timeout_store(struct device *dev,
-@@ -524,10 +551,12 @@ static ssize_t sleep_timeout_store(struct device *dev,
- 		return -EINVAL;
- 	}
- 
--	uart->timeout = value * HZ;
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
--	else
-+	uart->timeout = (u64)value * NSEC_PER_SEC;
-+	if (uart->timeout) {
-+		uart->expire_time = ktime_get();
-+		uart->expire_time =
-+			ktime_add_ns(uart->expire_time, uart->timeout);
-+	} else
- 		/* A zero value means disable timeout feature */
- 		omap_uart_block_sleep(uart);
- 
+
 -- 
-1.5.4.3
-
+Sincerely yours,
+Mike.
