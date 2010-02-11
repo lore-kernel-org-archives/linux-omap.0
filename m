@@ -1,57 +1,70 @@
-From: Deepak Chitriki <deepak.chitriki@ti.com>
-Subject: [PATCH v2] DSPBRIDGE: Fix to avoid possible recursive locking
-Date: Thu, 11 Feb 2010 11:33:17 -0600
-Message-ID: <1265909597-4436-1-git-send-email-deepak.chitriki@ti.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH] OMAP: Fix for bus width which improves SD card's      peformance.
+Date: Thu, 11 Feb 2010 11:34:05 -0600
+Message-ID: <004701caab40$68b576e0$544ff780@am.dhcp.ti.com>
+References: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56766 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755311Ab0BKRdn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 12:33:43 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:38766 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756365Ab0BKRef (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Feb 2010 12:34:35 -0500
+In-Reply-To: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Deepak Chitriki <deepak.chitriki@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>
+To: 'kishore kadiyala' <kishore.kadiyala@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: jarkko.lavinen@nokia.com
 
-Removed NTFY_Notify() in WMD_MSG_Get() to avoid locking contention
-as NTFY_Notify() is already invoked in InputMsg().
 
-Cc: Ameya Palande <ameya.palande@nokia.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
 
-Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
+> -----Original Message-----
+> From: kishore kadiyala [mailto:kishore.kadiyala@ti.com]
+> Sent: Thursday, February 11, 2010 8:20 AM
+> To: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org
+> Cc: jarkko.lavinen@nokia.com; madhu.cr@ti.com
+> Subject: [PATCH] OMAP: Fix for bus width which improves SD card's
+> peformance.
+> 
+> This patch improves low speeds for SD cards.
+> OMAP-MMC controller's can support maximum bus width of '8'.
+> when bus width is mentioned as "8" in controller data,the SD
+> stack will check whether bus width is "4" and if not it will
+> set bus width to "1" and there by degrading peformance.
+> This patch fixes the issue and improves the performance of
+> SD cards.
+> 
+> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
 
----
-Ref:
-v0:http://marc.info/?l=linux-omap&m=126584779011493&w=2
-v1:http://marc.info/?l=linux-omap&m=126586224627725&w=2
-v2:Comment fixes from v1
+ACK
 
- drivers/dsp/bridge/wmd/msg_sm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-index d778cbc..7414113 100644
---- a/drivers/dsp/bridge/wmd/msg_sm.c
-+++ b/drivers/dsp/bridge/wmd/msg_sm.c
-@@ -295,7 +295,7 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
- 				   (struct list_head *)pMsgFrame);
- 			if (LST_IsEmpty(hMsgQueue->msgUsedList))
- 				SYNC_ResetEvent(hMsgQueue->hSyncEvent);
--			else 
-+			else
- 				SYNC_SetEvent(hMsgQueue->hSyncEvent);
- 
- 			fGotMsg = true;
-@@ -344,7 +344,7 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
- 			}
- 			hMsgQueue->refCount--;
- 			/* Reset the event if there are still queued messages */
--			if (!LST_IsEmpty(hMsgQueue->msgUsedList)) 
-+			if (!LST_IsEmpty(hMsgQueue->msgUsedList))
- 				SYNC_SetEvent(hMsgQueue->hSyncEvent);
- 
- 			/* Exit critical section */
--- 
-1.6.3.3
+> ---
+>  Here are my experiment numbers, on a Class 6 SDHC card:
+>  Read peformance is increased by 220%
+>  Write Performance is increased by 52%
+> 
+>  drivers/mmc/host/omap_hsmmc.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 83f0aff..8c97c22 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2092,7 +2092,7 @@ static int __init omap_hsmmc_probe(struct
+> platform_device
+> *pdev)
+>  		     MMC_CAP_WAIT_WHILE_BUSY;
+> 
+>  	if (mmc_slot(host).wires >= 8)
+> -		mmc->caps |= MMC_CAP_8_BIT_DATA;
+> +		mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
+>  	else if (mmc_slot(host).wires >= 4)
+>  		mmc->caps |= MMC_CAP_4_BIT_DATA;
+> 
+> --
+> 1.6.3.3
 
