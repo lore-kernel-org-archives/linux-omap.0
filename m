@@ -1,68 +1,50 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [PATCHv3 3/4] Add ASoC support for DevKit8000
-Date: Thu, 11 Feb 2010 09:55:12 +0000
-Message-ID: <1265882112.3179.1.camel@odin>
-References: <1265829784-19224-1-git-send-email-swirl@gmx.li>
+From: "Y, Kishore" <kishore.y@ti.com>
+Subject: [PATCH 0/2] Enable DSS on zoom2/3 and 3630 sdp boards
+Date: Thu, 11 Feb 2010 15:32:32 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026B7E8B92@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1265829784-19224-1-git-send-email-swirl@gmx.li>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Thomas Weber <swirl@gmx.li>
-Cc: alsa-devel@alsa-project.org, weber@corscience.de, Tomi.Valkeinen@nokia.com, tony@atomride.com, felipe.balbi@nokia.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60533 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753009Ab0BKKCE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 05:02:04 -0500
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-On Wed, 2010-02-10 at 20:23 +0100, Thomas Weber wrote:
-> This patch expands the omap3beagle sound soc for the
-> beagle board clone Devkit8000.
-> 
-> Change log
-> V2
-> 	Expand omap3beagle sound soc for DevKit8000 support.
-> V3 
-> 	Separate Kconfig for Devkit8000.
-> 
-> Signed-off-by: Thomas Weber <swirl@gmx.li>
-> ---
->  sound/soc/omap/Kconfig       |    8 ++++++++
->  sound/soc/omap/Makefile      |    1 +
->  sound/soc/omap/omap3beagle.c |    6 +++---
->  3 files changed, 12 insertions(+), 3 deletions(-)
-> 
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index 61952aa..8520b75 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -101,6 +101,14 @@ config SND_OMAP_SOC_OMAP3_BEAGLE
->  	help
->  	  Say Y if you want to add support for SoC audio on the Beagleboard.
->  
-> +config SND_OMAP_SOC_DEVKIT8000
-> +	tristate "SoC Audio support for DevKit8000"
-> +	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_DEVKIT8000
-> +	select SND_OMAP_SOC_MCBSP
-> +	select SND_SOC_TWL4030
-> +	help
-> +	  Say Y if you want to add support for SoC audio on the DevKit8000
-> +
+From: Kishore Y <kishore.y@ti.com>
 
-Since this shares the same mach driver as beagle you should share the
-Kconfig option too (like the Overo).
+This patch series enables DSS and FB in zoom2, zoom3 and 3630sdp.
 
-Thanks
+Changes from version 1:
+  - removed regulator framework calls
+  - removed compiler warnings
 
-Liam
+OMAP: DSS: Enable display on ZOOM2/3 & 3630SDP
+	- Included display in boards and enabled in defconfig
+OMAP: DSS: Add display board file for zoom boards
+	- Display board file added common for all boards
 
--- 
-Freelance Developer, SlimLogic Ltd
-ASoC and Voltage Regulator Maintainer.
-http://www.slimlogic.co.uk
+ arch/arm/configs/omap_3630sdp_defconfig       |   60 ++++++++-
+ arch/arm/configs/omap_zoom2_defconfig         |   60 ++++++++-
+ arch/arm/configs/omap_zoom3_defconfig         |   60 ++++++++-
+ arch/arm/mach-omap2/Makefile                  |    3 +
+ arch/arm/mach-omap2/board-3630sdp.c           |    1 +
+ arch/arm/mach-omap2/board-zoom-display.c      |  188 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |   36 +++++
+ arch/arm/mach-omap2/board-zoom2.c             |    1 +
+ arch/arm/mach-omap2/board-zoom3.c             |    1 +
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    3 +
+ drivers/video/omap2/dss/dpi.c                 |    2 +-
+ 11 files changed, 411 insertions(+), 4 deletions(-)
+
+Tested on top of LO kernel on dss2 brnach
+commit id: 33b601093c6d5f5b18abcbd2de736d300d837f91
+OMAP: DSS2: DSI: remove dsi_vc_print_status()
+
+Regards,
+Kishore Y
