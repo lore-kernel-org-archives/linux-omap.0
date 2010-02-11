@@ -1,67 +1,66 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCHv3 3/4] Add ASoC support for DevKit8000
-Date: Thu, 11 Feb 2010 17:02:54 +0200
-Message-ID: <201002111702.54783.peter.ujfalusi@nokia.com>
-References: <1265829784-19224-1-git-send-email-swirl@gmx.li>
-	<1265885388.3179.8.camel@odin>
-	<20100211131418.9521c603.jhnikula@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20100211131418.9521c603.jhnikula@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, Thomas Weber <swirl@gmx.li>, "weber@corscience.de" <weber@corscience.de>, "tony@atomride.com" <tony@atomride.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
+From: Thomas Weber <weber@corscience.de>
+Subject: [RESEND][PATCHv2 3/4] Add ASoC support for Devkit8000
+Date: Thu, 11 Feb 2010 16:13:59 +0100
+Message-ID: <1265901239-31285-1-git-send-email-weber@corscience.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.186]:54425 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753428Ab0BKPOs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 10:14:48 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+Cc: Thomas Weber <weber@corscience.de>, jhnikula@gmail.com, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de, jkrzyszt@tis.icnet.pl, anuj.aggarwal@ti.com, x0052729@ti.com, peter.ujfalusi@nokia.com, tony@atomide.com, jy0922.shim@samsung.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
 
-On Thursday 11 February 2010 13:14:18 ext Jarkko Nikula wrote:
-> On Thu, 11 Feb 2010 10:49:48 +0000
-> =
+This patch expands the omap3beagle sound soc for the
+beagle board clone DevKit8000.
 
-> Liam Girdwood <lrg@slimlogic.co.uk> wrote:
-> > I do agree this makes good sense for boards that are very similar and
-> > have different audio options/config, but in this case the ASoC mach
-> > drivers are identical (atm). Imo it just makes more sense to keep the
-> > one Kconfig.
-> =
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ sound/soc/omap/Kconfig       |    8 +++++---
+ sound/soc/omap/omap3beagle.c |    6 +++---
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-> Yeah, after thinking twice, we don't have zillions of options for e.g.
-> Intel HDA either. If we ever figure out some common OMAP+TWL4030
-> driver, the defconfigs are anyway have to modify so it's better stay
-> with the original patch:
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 61952aa..18ebdc7 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -94,12 +94,14 @@ config SND_OMAP_SOC_OMAP3_PANDORA
+ 	  Say Y if you want to add support for SoC audio on the OMAP3 Pandora.
+ 
+ config SND_OMAP_SOC_OMAP3_BEAGLE
+-	tristate "SoC Audio support for OMAP3 Beagle"
+-	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_BEAGLE
++	tristate "SoC Audio support for OMAP3 Beagle and Devkit8000"
++	depends on TWL4030_CORE && SND_OMAP_SOC
++	depends on (MACH_OMAP3_BEAGLE || MACH_DEVKIT8000)
+ 	select SND_OMAP_SOC_MCBSP
+ 	select SND_SOC_TWL4030
+ 	help
+-	  Say Y if you want to add support for SoC audio on the Beagleboard.
++	  Say Y if you want to add support for SoC audio on the Beagleboard or
++	  the clone Devkit8000.
+ 
+ config SND_OMAP_SOC_ZOOM2
+ 	tristate "SoC Audio support for Zoom2"
+diff --git a/sound/soc/omap/omap3beagle.c b/sound/soc/omap/omap3beagle.c
+index d88ad5c..240e097 100644
+--- a/sound/soc/omap/omap3beagle.c
++++ b/sound/soc/omap/omap3beagle.c
+@@ -117,11 +117,11 @@ static int __init omap3beagle_soc_init(void)
+ {
+ 	int ret;
+ 
+-	if (!machine_is_omap3_beagle()) {
+-		pr_debug("Not OMAP3 Beagle!\n");
++	if (!(machine_is_omap3_beagle() || machine_is_devkit8000())) {
++		pr_debug("Not OMAP3 Beagle or Devkit8000!\n");
+ 		return -ENODEV;
+ 	}
+-	pr_info("OMAP3 Beagle SoC init\n");
++	pr_info("OMAP3 Beagle/Devkit8000 SoC init\n");
+ 
+ 	omap3beagle_snd_device = platform_device_alloc("soc-audio", -1);
+ 	if (!omap3beagle_snd_device) {
+-- 
+1.6.6.1
 
-Well, I really doubt that we can find a way to have a common driver for thi=
-s =
-
-combination. You can attach quite a big variety of amps to the outputs (som=
-e =
-
-controlled with GPIO, some like the tpa6130 has i2c interface, etc).
-To have some kind of "infrastructure" to support all of the possible scenar=
-ios =
-
-is just does not worth the effort IMHO.
-
-> =
-
-> http://mailman.alsa-project.org/pipermail/alsa-devel/2010-February/025129=
-.h
-> tml
-> =
-
-> Sorry about line noise, Thomas :-)
-> =
-
-
--- =
-
-P=E9ter
