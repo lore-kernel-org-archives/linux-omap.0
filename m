@@ -1,45 +1,57 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RESEND][PATCHv2 3/4] Add ASoC support for
-	Devkit8000
-Date: Thu, 11 Feb 2010 18:56:42 +0200
-Message-ID: <20100211185642.34eb234e.jhnikula@gmail.com>
-References: <1265901239-31285-1-git-send-email-weber@corscience.de>
-	<1265901628.3179.14.camel@odin>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1265901628.3179.14.camel@odin>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: alsa-devel@alsa-project.org, jy0922.shim@samsung.com, jkrzyszt@tis.icnet.pl, tiwai@suse.de, Thomas Weber <weber@corscience.de>, broonie@opensource.wolfsonmicro.com, peter.ujfalusi@nokia.com, linux-kernel@vger.kernel.org, tony@atomide.com, x0052729@ti.com, anuj.aggarwal@ti.com, linux-omap@vger.kernel.org
+From: Deepak Chitriki <deepak.chitriki@ti.com>
+Subject: [PATCH v2] DSPBRIDGE: Fix to avoid possible recursive locking
+Date: Thu, 11 Feb 2010 11:33:17 -0600
+Message-ID: <1265909597-4436-1-git-send-email-deepak.chitriki@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:56766 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755311Ab0BKRdn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 12:33:43 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Deepak Chitriki <deepak.chitriki@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>
 
-On Thu, 11 Feb 2010 15:20:28 +0000
-Liam Girdwood <lrg@slimlogic.co.uk> wrote:
+Removed NTFY_Notify() in WMD_MSG_Get() to avoid locking contention
+as NTFY_Notify() is already invoked in InputMsg().
 
-> On Thu, 2010-02-11 at 16:13 +0100, Thomas Weber wrote:
-> > This patch expands the omap3beagle sound soc for the
-> > beagle board clone DevKit8000.
-> > 
-> > Signed-off-by: Thomas Weber <weber@corscience.de>
-> 
-> Acked-by: Liam Girdwood <lrg@slimlogic.co.uk>
-> 
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
 
-Note, this is safe to push even if this goes to mainline before the
-basic board file and arch/arm/mach-omap2/Kconfig change from linux-omap.
-The machine type and so machine_is_devkit8000() are already there.
+Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
 
+---
+Ref:
+v0:http://marc.info/?l=linux-omap&m=126584779011493&w=2
+v1:http://marc.info/?l=linux-omap&m=126586224627725&w=2
+v2:Comment fixes from v1
 
+ drivers/dsp/bridge/wmd/msg_sm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
+index d778cbc..7414113 100644
+--- a/drivers/dsp/bridge/wmd/msg_sm.c
++++ b/drivers/dsp/bridge/wmd/msg_sm.c
+@@ -295,7 +295,7 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
+ 				   (struct list_head *)pMsgFrame);
+ 			if (LST_IsEmpty(hMsgQueue->msgUsedList))
+ 				SYNC_ResetEvent(hMsgQueue->hSyncEvent);
+-			else 
++			else
+ 				SYNC_SetEvent(hMsgQueue->hSyncEvent);
+ 
+ 			fGotMsg = true;
+@@ -344,7 +344,7 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
+ 			}
+ 			hMsgQueue->refCount--;
+ 			/* Reset the event if there are still queued messages */
+-			if (!LST_IsEmpty(hMsgQueue->msgUsedList)) 
++			if (!LST_IsEmpty(hMsgQueue->msgUsedList))
+ 				SYNC_SetEvent(hMsgQueue->hSyncEvent);
+ 
+ 			/* Exit critical section */
 -- 
-Jarkko
+1.6.3.3
+
