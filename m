@@ -1,93 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/19] omap3: Clean-up for omap_mux_init
-Date: Thu, 11 Feb 2010 16:51:33 -0800
-Message-ID: <20100212005133.24958.45495.stgit@baageli.muru.com>
+Subject: [PATCH 12/19] omap3: pm: Add T2 Keypad as a wakeup source
+Date: Thu, 11 Feb 2010 16:51:36 -0800
+Message-ID: <20100212005136.24958.20312.stgit@baageli.muru.com>
 References: <20100212004844.24958.29506.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53714 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757749Ab0BLAuw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 19:50:52 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51564 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757754Ab0BLAuy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 19:50:54 -0500
 In-Reply-To: <20100212004844.24958.29506.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: Lesly A M <x0080970@ti.com>, linux-omap@vger.kernel.org, Teerth Reddy <teerth@ti.com>
 
-Get rid of the ifdeffery in omap_mux_init by creating
-omap_mux_init_package and omap_mux_init_signals functions.
+From: Lesly A M <x0080970@ti.com>
 
+Changes for setting the padconf value for sys_nirq line which is
+connected to T2 INTR1. This will fix the T2 keypad wakeup.
+
+Signed-off-by: Lesly A M <x0080970@ti.com>
+Signed-off-by: Teerth Reddy <teerth@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mux.c |   46 +++++++++++++++++++++++++++++++++------------
- 1 files changed, 34 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 5ee2372..986077f 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -985,6 +985,38 @@ static void __init omap_mux_init_list(struct omap_mux *superset)
- 	}
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 4278d5e..9a0821f 100755
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -24,6 +24,7 @@
+ #include <plat/common.h>
+ #include <plat/usb.h>
+ 
++#include "mux.h"
+ #include "hsmmc.h"
+ 
+ /* Zoom2 has Qwerty keyboard*/
+@@ -263,9 +264,17 @@ static int __init omap_i2c_init(void)
+ 	return 0;
  }
  
-+#ifdef CONFIG_OMAP_MUX
-+
-+static void omap_mux_init_package(struct omap_mux *superset,
-+				  struct omap_mux *package_subset,
-+				  struct omap_ball *package_balls)
++static void enable_board_wakeup_source(void)
 +{
-+	if (package_subset)
-+		omap_mux_package_fixup(package_subset, superset);
-+	if (package_balls)
-+		omap_mux_package_init_balls(package_balls, superset);
++	/* T2 interrupt line (keypad) */
++	omap_mux_init_signal("sys_nirq",
++		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
 +}
 +
-+static void omap_mux_init_signals(struct omap_board_mux *board_mux)
-+{
-+	omap_mux_set_cmdline_signals();
-+	omap_mux_write_array(board_mux);
-+}
-+
-+#else
-+
-+static void omap_mux_init_package(struct omap_mux *superset,
-+				  struct omap_mux *package_subset,
-+				  struct omap_ball *package_balls)
-+{
-+}
-+
-+static void omap_mux_init_signals(struct omap_board_mux *board_mux)
-+{
-+}
-+
-+#endif
-+
- int __init omap_mux_init(u32 mux_pbase, u32 mux_size,
- 				struct omap_mux *superset,
- 				struct omap_mux *package_subset,
-@@ -1001,19 +1033,9 @@ int __init omap_mux_init(u32 mux_pbase, u32 mux_size,
- 		return -ENODEV;
- 	}
- 
--#ifdef CONFIG_OMAP_MUX
--	if (package_subset)
--		omap_mux_package_fixup(package_subset, superset);
--	if (package_balls)
--		omap_mux_package_init_balls(package_balls, superset);
--#endif
--
-+	omap_mux_init_package(superset, package_subset, package_balls);
- 	omap_mux_init_list(superset);
--
--#ifdef CONFIG_OMAP_MUX
--	omap_mux_set_cmdline_signals();
--	omap_mux_write_array(board_mux);
--#endif
-+	omap_mux_init_signals(board_mux);
- 
- 	return 0;
+ void __init zoom_peripherals_init(void)
+ {
+ 	omap_i2c_init();
+ 	omap_serial_init();
+ 	usb_musb_init();
++	enable_board_wakeup_source();
  }
 
