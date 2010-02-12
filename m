@@ -1,49 +1,41 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: compilation error
-Date: Fri, 12 Feb 2010 18:44:11 +0100
-Message-ID: <6D8C14D7-65BF-4335-B7B8-424DBA80E563@dominion.thruhere.net>
-References: <4ad3b6301002120213t21332383xb288befe7c821772@mail.gmail.com> <4B754770.3080703@mlbassoc.com>
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset=us-ascii
+From: "Hebbar, Shivananda" <x0hebbar@ti.com>
+Subject: RE: [Patchv2 0/8] DSPBRIDGE: typedef cleanup
+Date: Fri, 12 Feb 2010 23:24:37 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A96DBC1@dbde02.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E7394044A776231@dbde02.ent.ti.com>
+ <5ec8ebd51002060122ybc9d51dse224b6e88f53a109@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:34640 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755059Ab0BLRoR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Feb 2010 12:44:17 -0500
-Received: by fxm20 with SMTP id 20so2585996fxm.1
-        for <linux-omap@vger.kernel.org>; Fri, 12 Feb 2010 09:44:16 -0800 (PST)
-In-Reply-To: <4B754770.3080703@mlbassoc.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41413 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757290Ab0BLRyo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Feb 2010 12:54:44 -0500
+In-Reply-To: <5ec8ebd51002060122ybc9d51dse224b6e88f53a109@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Niamathullah sharief <omapsha@gmail.com>, linux-omap@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-
-Op 12 feb 2010, om 13:20 heeft Gary Thomas het volgende geschreven:
-
-> On 02/12/2010 03:13 AM, Niamathullah sharief wrote:
->> Hello,
->> can anyone tell me while compilaing "dbus-1.2.20" i am getting the
->> folllowing error
->> "checking for XML_ParserCreate_MM in -lexpat... no
->> configure: error: Could not find expat.h, check config.log for failed attempts"
->> what is wrong?what i should install?i installed libexpat also. still i
->> get the same error. please help me
+> -----Original Message-----
+> From: Andy Shevchenko [mailto:andy.shevchenko@gmail.com]
+> Sent: Saturday, February 06, 2010 3:23 AM
+> To: Hebbar, Shivananda
+> Cc: linux-omap
+> Subject: Re: [Patchv2 0/8] DSPBRIDGE: typedef cleanup
 > 
-> As previously mentioned, this list is for discussion of the
-> Linux kernel on OMAP, not user/support questions.  You should
-> take them to a more appropriate list.
+> On Sat, Feb 6, 2010 at 3:21 AM, Hebbar, Shivananda <x0hebbar@ti.com>
+> wrote:
+> > Resending the patches after updating review comments and also
+> > Fixing some compilation breaks.
 > 
-> What higher level of software are you trying to run on your
-> OMAP board (distribution, if you want to call it that)?
-> Some examples might be:
-> * OpenEmbedded, Poky, etc
+> Sorry for late question, however, I fully agree with HANDLE -> void *,
+> but why u32 is not normal type for those changes? What do I miss?
+> 
+  The idea was to remove typedef and while doing so thought int is sufficient to represent the DSPRTOS type hence changed it from u32 to int.
 
-I must point out that OpenEmbedded is not a distro, it's a tool to make distros (e.g. like 'make', 'deb-build', 'portage', etc).
+ I agree that u32 is a normal type.
 
-A distro that works well on OMAP3, built by OE, is angstrom.
-
-regards,
-
-Koen
+--Shivananda
