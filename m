@@ -1,63 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PATCH[V2 1/3]: Update Platform files for SPI
-Date: Fri, 12 Feb 2010 13:48:26 -0800
-Message-ID: <20100212214825.GV21755@atomide.com>
-References: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
- <20100209222513.GJ21755@atomide.com>
- <fa686aa41002091440p588ad328i14d0fb28390b2672@mail.gmail.com>
- <20100209230710.GL21755@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/2 RFC]OMAP3430: hwmod FW for GPIO
+Date: Fri, 12 Feb 2010 14:50:21 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002121449440.28188@utopia.booyaka.com>
+References: <1265981968-14696-1-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59020 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752514Ab0BLVrq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Feb 2010 16:47:46 -0500
-Content-Disposition: inline
-In-Reply-To: <20100209230710.GL21755@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:36953 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755657Ab0BLVuX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Feb 2010 16:50:23 -0500
+In-Reply-To: <1265981968-14696-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Hemanth V <hemanthv@ti.com>, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, tony@atomide.com, rnayak@ti.com
 
-* Tony Lindgren <tony@atomide.com> [100209 15:03]:
-> * Grant Likely <grant.likely@secretlab.ca> [100209 14:38]:
-> > On Tue, Feb 9, 2010 at 3:25 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > > * Hemanth V <hemanthv@ti.com> [100203 02:19]:
-> > >> From ee48142ddc43129a21676dbb56a83e3e7d8063de Mon Sep 17 00:00:00 2001
-> > >> From: Hemanth V <hemanthv@ti.com>
-> > >> Date: Fri, 27 Nov 2009 14:22:30 +0530
-> > >> Subject: [PATCH] Update platform files
-> > >>
-> > >> This patch updates platform files for
-> > >> fifo, slave support
-> > >>
-> > >> Signed-off-by: Hemanth V <hemanthv@ti.com>
-> > >
-> > > This should get merged via the spi-devel list with the other patches.
-> > >
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > Personally, I prefer not to carry arch/* changes in my next-spi
-> > branch, since it means that my pull requests are less obvious for
-> > Linus and there is greater chance of conflict.
-> > 
-> > But if you still really want me to merge it through my tree, (or if
-> > getting the patches out of order will break things) then I'll pick it
-> > up.  Just let me know.
+On Fri, 12 Feb 2010, Varadarajan, Charulatha wrote:
+
+> This patch series makes the OMAP3430 GPIO module
+> use hwmod framework.
 > 
-> OK, if you ack it, I'll add the header into omap for-next. That
-> might break git bisect for some configurations depending in which
-> order the patches get pulled by Linus..
+> This patch series applies on top of pm branch
+> and it requires my previous patch set which converts
+> GPIO into an early init device. 
 > 
-> I guess eventually this header should not live under plat.
+> They are boot tested on SDP 3430 and compile tested
+> for OMAP 2420 and 2430.
+> 
+> Charulatha V (2):
+>   OMAP3: hwmod: add GPIO hwmods for OMAP3430
+>   OMAP3: hwmod: Adapt HWMOD FW for GPIO OMAP3430
+> 
+>  arch/arm/mach-omap2/gpio.c             |  901 ++++----------------------------
+>  arch/arm/mach-omap2/omap_hwmod_34xx.h  |  410 +++++++++++++++
+>  arch/arm/plat-omap/include/plat/gpio.h |   25 +-
 
-Hemanth, the patch is missing line breaks so it won't apply:
+NAK.  Your series just broke GPIO for all non-OMAP3430 chips.
 
-http://patchwork.kernel.org/patch/76675/
 
-Please resend, I'm not editing patches manually any longer thanks.
-
-Regards,
-
-Tony
+- Paul
