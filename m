@@ -1,110 +1,95 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: RE: [PATCH] DSPBRIDGE: Validate node handle from user
-Date: Fri, 12 Feb 2010 01:31:43 +0200
-Message-ID: <1265931103.26484.71.camel@chotu.research.nokia.com>
-References: <B852767254C5C94EBB1040EE0EFA06008C89E95B@dlee01.ent.ti.com>
-	 <1265736734.2832.11.camel@sanganak>
-	 <B852767254C5C94EBB1040EE0EFA06008C89EA24@dlee01.ent.ti.com>
-	 <1265896260.4084.5.camel@sanganak>
-	 <B852767254C5C94EBB1040EE0EFA06008C992901@dlee01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 00/19] omap updates for 2.6.34 merge window, part 2
+Date: Thu, 11 Feb 2010 16:51:05 -0800
+Message-ID: <20100212004844.24958.29506.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:47790 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757374Ab0BKXcH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 18:32:07 -0500
-In-Reply-To: <B852767254C5C94EBB1040EE0EFA06008C992901@dlee01.ent.ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50946 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756462Ab0BLAuZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 19:50:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Ramos Falcon, Ernesto" <ernesto@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Hi Ernesto,
+Hi all,
 
-On Thu, 2010-02-11 at 19:44 +0100, ext Ramos Falcon, Ernesto wrote:
-> 
-> >-----Original Message-----
-> >From: Ameya Palande [mailto:ameya.palande@nokia.com]
-> >Sent: Thursday, February 11, 2010 7:51 AM
-> >To: Ramos Falcon, Ernesto
-> >Cc: linux-omap@vger.kernel.org; Contreras Felipe (Nokia-D/Helsinki); Doyu
-> >Hiroshi (Nokia-D/Helsinki)
-> >Subject: RE: [PATCH] DSPBRIDGE: Validate node handle from user
-> >
-> >On Tue, 2010-02-09 at 18:52 +0100, ext Ramos Falcon, Ernesto wrote:
-> >>
-> >> >-----Original Message-----
-> >> >From: Ameya Palande [mailto:ameya.palande@nokia.com]
-> >> >Sent: Tuesday, February 09, 2010 11:32 AM
-> >> >To: Ramos Falcon, Ernesto
-> >> >Cc: linux-omap@vger.kernel.org; Contreras Felipe (Nokia-D/Helsinki);
-> >Doyu
-> >> >Hiroshi (Nokia-D/Helsinki)
-> >> >Subject: Re: [PATCH] DSPBRIDGE: Validate node handle from user
-> >> >
-> >> >Hi Ernesto,
-> >> >
-> >> >On Tue, 2010-02-09 at 18:08 +0100, ext Ramos Falcon, Ernesto wrote:
-> >> >> From 8310b586b025b0703c3951560849c4ea0250b6e1 Mon Sep 17 00:00:00 2001
-> >> >> From: Ernesto Ramos <ernesto@ti.com>
-> >> >> Date: Fri, 29 Jan 2010 16:21:59 -0600
-> >> >> Subject: [PATCH] DSPBRIDGE: Validate node handle from user.
-> >> >>
-> >> >> Add checks to validate the node handles received from user.
-> >> >>
-> >> >> Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+Here is part 2 of the omap updates for 2.6.34. The MMC low-level
+init patches have been already posted to linux-omap and linux-mmc.
 
-<SNIP>
+Regards,
 
-> >> >If you have several nodes allocated by user space, then what you are
-> >> >validating here is for any node! Is that ok?
-> >> >
-> >> >This validation and design itself doesn't look good to me. If we don't
-> >> >want to trust user space, then instead of checking the node handle in
-> >> >every function it is better to store all user space specific date inside
-> >> >pr_context and use it from there.
-> >> >
-> >>
-> >> The user can launch several nodes, how are we going to know which node
-> >handle to use?
-> >> I think we may need to receive at least one index or id to the node
-> >handle.
-> >
-> >Yes, I guess thats the correct way! We need to maintain how many nodes
-> >are allocated for a user process, and just make sure that this id /
-> >index is <= number of allocated nodes.
-> >
-> 
-> This comparison (<=) won't work because the user can eliminate nodes in the middle of the list in which case we may need to maintain a list of valid indexes. So I don't see any improvement with this way to validate the handles. 
+Tony
 
-I agree :(
+---
 
-> I was thinking in an array an based on the index verify that the handle is valid, independently of the number of nodes this would be very quick, but the disadvantage would be that the number per process will be limited to the size of the array.
+Adrian Hunter (10):
+      omap_hsmmc: Move gpio and regulator control from board file
+      omap: Rename mmc-twl4030 files to hsmmc
+      omap: Rename hsmmc symbols to reflect independence from twl4030
+      omap: Reconnect hsmmc context loss count
+      omap: RX51: Remux to pull eMMC lines down when powering off
+      omap_hsmmc: Allow for power saving without going off
+      omap_hsmmc: Fix disable timeouts
+      omap_hsmmc: Ensure regulator enable / disable are paired
+      omap_hsmmc: Allow for a shared VccQ
+      omap_hsmmc: allow compile without regulator framework
 
-Yes, array has disadvantage of size, but Linux also uses initial array
-of 32 size for storing file pointers. 
+Felipe Balbi (1):
+      arm: omap: kill compile warning on board-4430-sdp.c
 
-On a second thought our problem looks similar to following use case:
+Jorge Eduardo Candelaria (3):
+      OMAP4: IRQ: Add McPDM IRQ definition
+      ARM: OMAP4: Add McPDM base address
+      OMAP4: MCPDM: Register McPDM platform device
 
-User space application opens several files using open() system call and
-receives handles for each. Now it passes handle to kernel using read(),
-write() system calls to identify the file to operate on. How does kernel
-validates the handle received from user space?
+Lesly A M (1):
+      omap3: pm: Add T2 Keypad as a wakeup source
 
-I guess we can base our solution on a bitmap to find next available
-slot:
+Tony Lindgren (1):
+      omap3: Clean-up for omap_mux_init
 
-DECLARE_BITMAP();
-find_first_zero_bit();
-set_bit();
-clear_bit();
+Vaibhav Hiremath (3):
+      AM35xx: Introduce am35xx.h file
+      AM35xx: Add AM35xx intr_clr & sw_rst cntrl reg bit definition
+      AM35xx: Update irq.h for AM35xx IPSS module interrupts
 
-And use array[free_slot] to store the pointer.
 
-With solution I guess we can get rid of these checks ;)
+ arch/arm/configs/rx51_defconfig              |    4 
+ arch/arm/mach-omap2/Makefile                 |   28 +
+ arch/arm/mach-omap2/board-2430sdp.c          |    6 
+ arch/arm/mach-omap2/board-3430sdp.c          |    6 
+ arch/arm/mach-omap2/board-4430sdp.c          |    4 
+ arch/arm/mach-omap2/board-am3517evm.c        |    1 
+ arch/arm/mach-omap2/board-cm-t35.c           |    6 
+ arch/arm/mach-omap2/board-igep0020.c         |    6 
+ arch/arm/mach-omap2/board-ldp.c              |    6 
+ arch/arm/mach-omap2/board-omap3beagle.c      |    6 
+ arch/arm/mach-omap2/board-omap3evm.c         |    6 
+ arch/arm/mach-omap2/board-omap3pandora.c     |    6 
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    6 
+ arch/arm/mach-omap2/board-overo.c            |    6 
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   63 ++-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   15 +
+ arch/arm/mach-omap2/hsmmc.c                  |  266 +++++++++++++
+ arch/arm/mach-omap2/hsmmc.h                  |   14 -
+ arch/arm/mach-omap2/include/mach/am35xx.h    |   26 +
+ arch/arm/mach-omap2/mmc-twl4030.c            |  542 --------------------------
+ arch/arm/mach-omap2/mux.c                    |   46 ++
+ arch/arm/plat-omap/devices.c                 |   37 ++
+ arch/arm/plat-omap/include/plat/control.h    |   17 +
+ arch/arm/plat-omap/include/plat/irqs.h       |   12 +
+ arch/arm/plat-omap/include/plat/mmc.h        |   35 +-
+ arch/arm/plat-omap/include/plat/omap44xx.h   |    2 
+ drivers/mmc/host/omap_hsmmc.c                |  400 ++++++++++++++++++-
+ 27 files changed, 920 insertions(+), 652 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/hsmmc.c
+ rename arch/arm/mach-omap2/{mmc-twl4030.h => hsmmc.h} (63%)
+ create mode 100644 arch/arm/mach-omap2/include/mach/am35xx.h
+ delete mode 100644 arch/arm/mach-omap2/mmc-twl4030.c
 
-Cheers,
-Ameya.
-
+-- 
+Signature
