@@ -1,17 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 14/19] AM35xx: Add AM35xx intr_clr & sw_rst cntrl reg bit
-	definition
-Date: Thu, 11 Feb 2010 16:51:41 -0800
-Message-ID: <20100212005140.24958.84990.stgit@baageli.muru.com>
+Subject: [PATCH 15/19] AM35xx: Update irq.h for AM35xx IPSS module interrupts
+Date: Thu, 11 Feb 2010 16:51:43 -0800
+Message-ID: <20100212005143.24958.92584.stgit@baageli.muru.com>
 References: <20100212004844.24958.29506.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53812 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757762Ab0BLAu7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 19:50:59 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51709 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757769Ab0BLAvB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 19:51:01 -0500
 In-Reply-To: <20100212004844.24958.29506.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,44 +19,31 @@ Cc: linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-AM3517/05 has few additional control module registers to control
-the new IP's, like VPFE, USBOTG, CPGMAC.
-
-This patch adds the bit defination for INTR_CLR and SW_RST control
-register.
-
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/include/plat/control.h |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/irqs.h |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-index fcdc71b..2074473 100644
---- a/arch/arm/plat-omap/include/plat/control.h
-+++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -274,6 +274,23 @@
- #define AM35XX_CPGMAC_FCLK_SHIFT        9
- #define AM35XX_VPFE_FCLK_SHIFT          10
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index c0ab7c8..90d8370 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -344,6 +344,16 @@
  
-+/*AM35XX CONTROL_LVL_INTR_CLEAR bits*/
-+#define AM35XX_CPGMAC_C0_MISC_PULSE_CLR	BIT(0)
-+#define AM35XX_CPGMAC_C0_RX_PULSE_CLR	BIT(1)
-+#define AM35XX_CPGMAC_C0_RX_THRESH_CLR	BIT(2)
-+#define AM35XX_CPGMAC_C0_TX_PULSE_CLR	BIT(3)
-+#define AM35XX_USBOTGSS_INT_CLR		BIT(4)
-+#define AM35XX_VPFE_CCDC_VD0_INT_CLR	BIT(5)
-+#define AM35XX_VPFE_CCDC_VD1_INT_CLR	BIT(6)
-+#define AM35XX_VPFE_CCDC_VD2_INT_CLR	BIT(7)
-+
-+/*AM35XX CONTROL_IP_SW_RESET bits*/
-+#define AM35XX_USBOTGSS_SW_RST		BIT(0)
-+#define AM35XX_CPGMACSS_SW_RST		BIT(1)
-+#define AM35XX_VPFE_VBUSP_SW_RST	BIT(2)
-+#define AM35XX_HECC_SW_RST		BIT(3)
-+#define AM35XX_VPFE_PCLK_SW_RST		BIT(4)
-+
- /*
-  * CONTROL OMAP STATUS register to identify OMAP3 features
-  */
+ #define	INT_34XX_BENCH_MPU_EMUL	3
+ 
++#define INT_35XX_HECC0_IRQ		24
++#define INT_35XX_HECC1_IRQ		28
++#define INT_35XX_EMAC_C0_RXTHRESH_IRQ	67
++#define INT_35XX_EMAC_C0_RX_PULSE_IRQ	68
++#define INT_35XX_EMAC_C0_TX_PULSE_IRQ	69
++#define INT_35XX_EMAC_C0_MISC_PULSE_IRQ	70
++#define INT_35XX_USBOTG_IRQ		71
++#define INT_35XX_CCDC_VD0_IRQ		88
++#define INT_35XX_CCDC_VD1_IRQ		92
++#define INT_35XX_CCDC_VD2_IRQ		93
+ 
+ #define IRQ_GIC_START		32
+ #define INT_44XX_LOCALTIMER_IRQ	29
 
