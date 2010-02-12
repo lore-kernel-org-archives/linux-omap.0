@@ -1,197 +1,81 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/19] omap_hsmmc: allow compile without regulator framework
-Date: Thu, 11 Feb 2010 16:51:31 -0800
-Message-ID: <20100212005131.24958.67879.stgit@baageli.muru.com>
+Subject: [PATCH 13/19] AM35xx: Introduce am35xx.h file
+Date: Thu, 11 Feb 2010 16:51:38 -0800
+Message-ID: <20100212005138.24958.89673.stgit@baageli.muru.com>
 References: <20100212004844.24958.29506.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51476 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757750Ab0BLAuu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 19:50:50 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53772 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757761Ab0BLAu5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Feb 2010 19:50:57 -0500
 In-Reply-To: <20100212004844.24958.29506.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Sriramakrishnan <srk@ti.com>, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-From: Adrian Hunter <adrian.hunter@nokia.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-It is still possible to use the omap_hsmmc module
-without the regulator framework.  Accordingly, ifdef
-out regulator-specific functions.
+Add base address definations for new AM35xx IPSS modules, like
+VPFE, USBOTG, CPGMAC.
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+Please note that the OMAP34xx IVA2 memory space is being used for
+AM35xx IPSS modules.
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Sriramakrishnan <srk@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |  133 ++++++++++++++++++++++++-----------------
- 1 files changed, 79 insertions(+), 54 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c     |    1 +
+ arch/arm/mach-omap2/include/mach/am35xx.h |   26 ++++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/am35xx.h
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index af37477..83f0aff 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -236,6 +236,8 @@ static int omap_hsmmc_resume_cdirq(struct device *dev, int slot)
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 3966846..aaa5c01 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -22,6 +22,7 @@
+ #include <linux/gpio.h>
  
- #endif
- 
-+#ifdef CONFIG_REGULATOR
+ #include <mach/hardware.h>
++#include <mach/am35xx.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+diff --git a/arch/arm/mach-omap2/include/mach/am35xx.h b/arch/arm/mach-omap2/include/mach/am35xx.h
+new file mode 100644
+index 0000000..a705f94
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/am35xx.h
+@@ -0,0 +1,26 @@
++/*:
++ * Address mappings and base address for AM35XX specific interconnects
++ * and peripherals.
++ *
++ * Copyright (C) 2009 Texas Instruments
++ *
++ * Author: Sriramakrishnan <srk@ti.com>
++ *	   Vaibhav Hiremath <hvaibhav@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef __ASM_ARCH_AM35XX_H
++#define __ASM_ARCH_AM35XX_H
 +
- static int omap_hsmmc_1_set_power(struct device *dev, int slot, int power_on,
- 				  int vdd)
- {
-@@ -357,59 +359,6 @@ static int omap_hsmmc_23_set_sleep(struct device *dev, int slot, int sleep,
- 		return regulator_enable(host->vcc_aux);
- }
- 
--static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
--{
--	int ret;
--
--	if (gpio_is_valid(pdata->slots[0].switch_pin)) {
--		pdata->suspend = omap_hsmmc_suspend_cdirq;
--		pdata->resume = omap_hsmmc_resume_cdirq;
--		if (pdata->slots[0].cover)
--			pdata->slots[0].get_cover_state =
--					omap_hsmmc_get_cover_state;
--		else
--			pdata->slots[0].card_detect = omap_hsmmc_card_detect;
--		pdata->slots[0].card_detect_irq =
--				gpio_to_irq(pdata->slots[0].switch_pin);
--		ret = gpio_request(pdata->slots[0].switch_pin, "mmc_cd");
--		if (ret)
--			return ret;
--		ret = gpio_direction_input(pdata->slots[0].switch_pin);
--		if (ret)
--			goto err_free_sp;
--	} else
--		pdata->slots[0].switch_pin = -EINVAL;
--
--	if (gpio_is_valid(pdata->slots[0].gpio_wp)) {
--		pdata->slots[0].get_ro = omap_hsmmc_get_wp;
--		ret = gpio_request(pdata->slots[0].gpio_wp, "mmc_wp");
--		if (ret)
--			goto err_free_cd;
--		ret = gpio_direction_input(pdata->slots[0].gpio_wp);
--		if (ret)
--			goto err_free_wp;
--	} else
--		pdata->slots[0].gpio_wp = -EINVAL;
--
--	return 0;
--
--err_free_wp:
--	gpio_free(pdata->slots[0].gpio_wp);
--err_free_cd:
--	if (gpio_is_valid(pdata->slots[0].switch_pin))
--err_free_sp:
--		gpio_free(pdata->slots[0].switch_pin);
--	return ret;
--}
--
--static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
--{
--	if (gpio_is_valid(pdata->slots[0].gpio_wp))
--		gpio_free(pdata->slots[0].gpio_wp);
--	if (gpio_is_valid(pdata->slots[0].switch_pin))
--		gpio_free(pdata->slots[0].switch_pin);
--}
--
- static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
- {
- 	struct regulator *reg;
-@@ -488,6 +437,82 @@ static void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
- 	mmc_slot(host).set_sleep = NULL;
- }
- 
-+static inline int omap_hsmmc_have_reg(void)
-+{
-+	return 1;
-+}
++/*
++ * Base addresses
++ *	Note: OMAP3430 IVA2 memory space is being used for AM35xx IPSS modules
++ */
++#define AM35XX_IPSS_EMAC_BASE		0x5C000000
++#define AM35XX_IPSS_USBOTGSS_BASE	0x5C040000
++#define AM35XX_IPSS_HECC_BASE		0x5C050000
++#define AM35XX_IPSS_VPFE_BASE		0x5C060000
 +
-+#else
-+
-+static inline int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
-+{
-+}
-+
-+static inline int omap_hsmmc_have_reg(void)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
-+static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
-+{
-+	int ret;
-+
-+	if (gpio_is_valid(pdata->slots[0].switch_pin)) {
-+		pdata->suspend = omap_hsmmc_suspend_cdirq;
-+		pdata->resume = omap_hsmmc_resume_cdirq;
-+		if (pdata->slots[0].cover)
-+			pdata->slots[0].get_cover_state =
-+					omap_hsmmc_get_cover_state;
-+		else
-+			pdata->slots[0].card_detect = omap_hsmmc_card_detect;
-+		pdata->slots[0].card_detect_irq =
-+				gpio_to_irq(pdata->slots[0].switch_pin);
-+		ret = gpio_request(pdata->slots[0].switch_pin, "mmc_cd");
-+		if (ret)
-+			return ret;
-+		ret = gpio_direction_input(pdata->slots[0].switch_pin);
-+		if (ret)
-+			goto err_free_sp;
-+	} else
-+		pdata->slots[0].switch_pin = -EINVAL;
-+
-+	if (gpio_is_valid(pdata->slots[0].gpio_wp)) {
-+		pdata->slots[0].get_ro = omap_hsmmc_get_wp;
-+		ret = gpio_request(pdata->slots[0].gpio_wp, "mmc_wp");
-+		if (ret)
-+			goto err_free_cd;
-+		ret = gpio_direction_input(pdata->slots[0].gpio_wp);
-+		if (ret)
-+			goto err_free_wp;
-+	} else
-+		pdata->slots[0].gpio_wp = -EINVAL;
-+
-+	return 0;
-+
-+err_free_wp:
-+	gpio_free(pdata->slots[0].gpio_wp);
-+err_free_cd:
-+	if (gpio_is_valid(pdata->slots[0].switch_pin))
-+err_free_sp:
-+		gpio_free(pdata->slots[0].switch_pin);
-+	return ret;
-+}
-+
-+static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
-+{
-+	if (gpio_is_valid(pdata->slots[0].gpio_wp))
-+		gpio_free(pdata->slots[0].gpio_wp);
-+	if (gpio_is_valid(pdata->slots[0].switch_pin))
-+		gpio_free(pdata->slots[0].switch_pin);
-+}
-+
- /*
-  * Stop clock to the card
-  */
-@@ -2119,7 +2144,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	if (!mmc_slot(host).set_power) {
-+	if (omap_hsmmc_have_reg() && !mmc_slot(host).set_power) {
- 		ret = omap_hsmmc_reg_get(host);
- 		if (ret)
- 			goto err_reg;
++#endif /*  __ASM_ARCH_AM35XX_H */
 
