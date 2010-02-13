@@ -1,26 +1,24 @@
-From: Russell King <rmk+lkml@arm.linux.org.uk>
-Subject: Re: linux-next: manual merge of the omap tree with the arm tree
-Date: Mon, 15 Feb 2010 15:03:12 +0000
-Message-ID: <20100215150312.GA11540@flint.arm.linux.org.uk>
-References: <20100205102030.c8b139a1.sfr@canb.auug.org.au> <20100204233019.GY22747@atomide.com> <20100205111617.c602983f.sfr@canb.auug.org.au> <20100205040444.GH22747@atomide.com>
+From: Western Union <classicalliance@bellnet.ca>
+Subject: Call (+234 802 972 9104)
+Date: Sat, 13 Feb 2010 0:03:11 -0500
+Message-ID: <20100213000311.OHSNY.34886.root@toroondcbfep01>
+Reply-To: wu.africawest@w.cn
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100205040444.GH22747@atomide.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from toroondcbque01-srv.bellnexxia.net ([207.236.237.45]:56168 "EHLO
+	toroondcbque01-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751653Ab0BOPGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Feb 2010 10:06:32 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 04, 2010 at 08:04:44PM -0800, Tony Lindgren wrote:
-> Russell, can you please let me know if you have some static
-> commit ID containing the patch above that I could use that as
-> base for my patches?
+Dear Western Union Customer,
+You have been awarded with the sum of $50,000 USD by our office.Please
+provide us with the following details listed below so that your funds can be remitted to you through Western Union.
 
-Right, when it eventually gets through linux-next, 4e6d488
-
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:
+1.Name:___ 2.Sex Gender:_____3.Age____4.Residential Address____5.Phone
+Number____6.Occupation:____
+wu.africawest@w.cn
