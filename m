@@ -1,108 +1,34 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: Moving board patches from DSS2 to linux-omap
-Date: Sat, 13 Feb 2010 16:13:11 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A96DC31@dbde02.ent.ti.com>
-References: <1265884185.2433.239.camel@tubuntu.research.nokia.com>
-	 <4B73EF0D.8080904@compulab.co.il>
-	 <1265889888.2433.245.camel@tubuntu.research.nokia.com>
-	 <20100211185253.GG21755@atomide.com>
- <1265971459.2433.285.camel@tubuntu.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: hvaibhav@ti.com
+Subject: [PATCH 0/2-V3] Add support for I2C based devices to AM3517EVM
+Date: Sat, 13 Feb 2010 17:17:55 +0530
+Message-ID: <1266061677-12681-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58995 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47237 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752392Ab0BMKnX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Feb 2010 05:43:23 -0500
-Content-Language: en-US
+	id S1753808Ab0BMLsG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 13 Feb 2010 06:48:06 -0500
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, ext Tony Lindgren <tony@atomide.com>
-Cc: ext Mike Rapoport <mike@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Saturday, February 13, 2010 4:04 PM
-> To: 'Tomi Valkeinen'; ext Tony Lindgren
-> Cc: ext Mike Rapoport; linux-omap@vger.kernel.org
-> Subject: RE: Moving board patches from DSS2 to linux-omap
-> 
-> 
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Friday, February 12, 2010 4:14 PM
-> > To: ext Tony Lindgren
-> > Cc: ext Mike Rapoport; Hiremath, Vaibhav; linux-
-> omap@vger.kernel.org
-> > Subject: Re: Moving board patches from DSS2 to linux-omap
-> >
-> > On Thu, 2010-02-11 at 19:52 +0100, ext Tony Lindgren wrote:
-> > > * Tomi Valkeinen <tomi.valkeinen@nokia.com> [100211 03:59]:
-> > > > On Thu, 2010-02-11 at 12:50 +0100, ext Mike Rapoport wrote:
-> > > > > Tomi Valkeinen wrote:
-> > > > > > Hi,
-> > > > > >
-> > > > > > As discussed previously, board file changes in DSS2 tree
-> > cause conflicts
-> > > > > > with linux-omap easily. There are currently three board
-> file
-> > patches in
-> > > > > > DSS2's for-next branch:
-> > > > > >
-> > > > > > 722a97e4594b2041bbf18d95a913ba6dfaca87f2 omap3: cm-t35:
-> add
-> > DSS2 display support
-> > > > > > 7a56267e775e469c64521179ccc958c8bb661dbf OMAP: AM3517:
-> > Enable DSS2 for AM3517EVM board
-> > > > > > 40e4e67c6dabcb9897b6823cce2297d6c3e78bbd OMAP: Enable DSS2
-> > for OMAP3EVM board
-> > > > > >
-> > > > > > The problem here is of course that DSS2 tree may contain
-> > unmerged panel
-> > > > > > drivers, and those board file changes try to use these new
-> > panel
-> > > > > > drivers.
-> > >
-> > > OK, Tomi, can you please set up a banch against mainline -rc7
-> with
-> > > whatever board-*.c dss2 patches you want me to pull? I'll pull
-> > them
-> > > into omap-for-linus, and rebase omap for-next on those.
-> >
-> > Here:
-> >
-> > git://gitorious.org/linux-omap-dss2/linux.git for-tony
-> >
-> > I removed the defconfig changes from the patches, and compile
-> > tested.
-> > I'll add the defconfig changes as separate patches in my tree, and
-> > I'll
-> > push them to Linus only after the board changes from Tony's tree
-> > have
-> > gone through.
-> >
-> [Hiremath, Vaibhav] Tomi,
-> 
-> I have pulled in for-tony branch and validated it on OAMP3EVM (with
-> omap3_defconfig) and AM3517EVM without any issues.
-> 
-[Hiremath, Vaibhav] Missed to mention one point, 
-Tomi,
-Probably you have not merged sharp LQ043T1DG01 panel support patch required for AM3517?
+This series of patchset adds platform hook-up interface for I2C based
+devices to AM3517 -
+        - Real Time Clock (S35390A)
+        - I2C GPIO Expander (TCA6416)
 
-Can you merge that patch also?
+Changes from last submission (V2) -
+	- Added seperate function for RTC init, to handle error return
+	properly (comment provided by Tony).
 
-Thanks,
-Vaibhav
+Vaibhav Hiremath (2):
+  AM3517: Enable RTC driver support for AM3517EVM
+  AM3517: Enable I2C-GPIO Expander driver support for AM3517EVM
 
-> Do you need any help here? Do you want me to separate defconfig
-> patches for you?
-> 
-> Thanks,
-> Vaibhav
-> 
-> >  Tomi
-> >
+ arch/arm/mach-omap2/board-am3517evm.c |   79 ++++++++++++++++++++++++++++++++-
+ 1 files changed, 77 insertions(+), 2 deletions(-)
 
