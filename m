@@ -1,23 +1,33 @@
-From: Roel Kluin <roel.kluin@gmail.com>
-Subject: Re: [PATCH] OMAP: Dereference of NULL autodep in _autodep_lookup()
-Date: Sun, 14 Feb 2010 17:48:42 +0100
-Message-ID: <4B78296A.10002@gmail.com>
-References: <4B781E05.9040502@gmail.com>
+From: Jonas Zetterberg <jozz@jozz.se>
+Subject: [PATCH 0/2] igepv2: Enable WiFi and Heartbeat LED
+Date: Sun, 14 Feb 2010 20:33:23 +0100
+Message-ID: <4B785003.1020002@jozz.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4B781E05.9040502@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roel Kluin <roel.kluin@gmail.com>
-Cc: paul@pwsan.com, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from proxy1.bredband.net ([195.54.101.71]:46283 "EHLO
+	proxy1.bredband.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752682Ab0BNTdZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Feb 2010 14:33:25 -0500
+Received: from ipb2.telenor.se (195.54.127.165) by proxy1.bredband.net (7.3.140.3)
+        id 4B62ECEA00A36427 for linux-omap@vger.kernel.org; Sun, 14 Feb 2010 20:33:24 +0100
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: =?UTF-8?B?RW5yaWMgQmFsbGV0YsOyIGkgU2VycmE=?= <eballetbo@iseebcn.com>, Anders Hedlund <anders.j.hedlund@gmail.com>
 
-Op 14-02-10 17:00, Roel Kluin schreef:
-> Don't dereference autodep when it's NULL. In _autodep_lookup() an
-> ERR_PTR(-ENOENT) is assigned to autodep->pwrdm.ptr if pwrdm_lookup() fails.
 
-I am not sure whether my patch was right, if indeed a dereference, then it
-appears to also occur in _clkdm_add_autodeps() and _clkdm_del_autodeps().
+Some patches for the IGEPv2 board to enable WiFi and Heartbeat LED. 
+Patches are completely contained within board configuration file.
 
-Roel
+Anders Hedlund (1):
+   IGEPv2: Added WIFI support
+
+Jonas Zetterberg (1):
+   IGEPv2: Use Red Led1 as Heartbeat if configured
+
+  arch/arm/mach-omap2/board-igep0020.c |   68 
++++++++++++++++++++++++++++++++++-
+  1 files changed, 67 insertions(+), 1 deletions(-)
+
