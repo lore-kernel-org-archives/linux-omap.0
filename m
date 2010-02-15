@@ -1,14 +1,15 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 1/2] DSPBRIDGE: Rename DMM_RES_OBJECT to DMM_MAP_OBJECT
-Date: Mon, 15 Feb 2010 17:35:07 +0200
-Message-ID: <150973fa33347d0729dc204f69657c58ac97be2f.1266246150.git.ameya.palande@nokia.com>
+Subject: [PATCH 2/2] DSPBRIDGE: New reserved memory accounting framework
+Date: Mon, 15 Feb 2010 17:35:08 +0200
+Message-ID: <984ee6f949a5b2e1df3fa8640bb75960042611cc.1266246150.git.ameya.palande@nokia.com>
 References: <cover.1266246150.git.ameya.palande@nokia.com>
+ <150973fa33347d0729dc204f69657c58ac97be2f.1266246150.git.ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:60594 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:60590 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755752Ab0BOPgK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 10:36:10 -0500
-In-Reply-To: <cover.1266246150.git.ameya.palande@nokia.com>
+	with ESMTP id S1755741Ab0BOPgG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 10:36:06 -0500
+In-Reply-To: <150973fa33347d0729dc204f69657c58ac97be2f.1266246150.git.ameya.palande@nokia.com>
 In-Reply-To: <cover.1266246150.git.ameya.palande@nokia.com>
 References: <cover.1266246150.git.ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,197 +17,301 @@ List-Id: linux-omap@vger.kernel.org
 To: omar.ramirez@ti.com
 Cc: nm@ti.com, deepak.chitriki@ti.com, linux-omap@vger.kernel.org, felipe.contreras@nokia.com, x0095840@ti.com
 
-In its current state DMM_RES_OBJECT is not correctly tracking reserve and
-unreserve but only map and unmap. So lets rename it to DMM_MAP_OBJECT to
-clarify what it is really doing!
-
-In addition to this, this patch also does some trivial code cleanup.
+DSP_RSV_OBJECT is introduced to track reserved memory accounting information.
+This will allow us to do proper cleanup for memory reserved using
+PROC_ReserveMemory().
 
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/drv.h |   12 +++---
- drivers/dsp/bridge/rmgr/drv.c              |   57 ++++++++++++++--------------
- 2 files changed, 35 insertions(+), 34 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/drv.h  |   13 ++++++++
+ arch/arm/plat-omap/include/dspbridge/proc.h |    5 ++-
+ drivers/dsp/bridge/pmgr/dmm.c               |    3 +-
+ drivers/dsp/bridge/pmgr/wcd.c               |    7 ++--
+ drivers/dsp/bridge/rmgr/drv.c               |   27 ++++++++++++----
+ drivers/dsp/bridge/rmgr/drv_interface.c     |    7 +++-
+ drivers/dsp/bridge/rmgr/node.c              |    5 ++-
+ drivers/dsp/bridge/rmgr/proc.c              |   44 +++++++++++++++++++++++---
+ 8 files changed, 89 insertions(+), 22 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-index b6a5fd2..3069e74 100644
+index 3069e74..6e8187d 100644
 --- a/arch/arm/plat-omap/include/dspbridge/drv.h
 +++ b/arch/arm/plat-omap/include/dspbridge/drv.h
-@@ -90,15 +90,15 @@ struct NODE_RES_OBJECT {
- 	struct NODE_RES_OBJECT         *next;
+@@ -101,6 +101,15 @@ struct DMM_MAP_OBJECT {
+ 	struct DMM_MAP_OBJECT  *next;
  } ;
  
--/* New structure (member of process context) abstracts DMM resource info */
--struct DMM_RES_OBJECT {
-+/* New structure (member of process context) abstracts DMM mapped memory info */
-+struct DMM_MAP_OBJECT {
- 	s32            dmmAllocated; /* DMM status */
- 	u32           ulMpuAddr;
- 	u32           ulDSPAddr;
- 	u32           ulDSPResAddr;
--	u32           dmmSize;
-+	u32           size;
- 	HANDLE          hProcessor;
--	struct DMM_RES_OBJECT  *next;
-+	struct DMM_MAP_OBJECT  *next;
- } ;
- 
++/*
++ * New structure (member of process context) used for accounting of DMM
++ * reserved memory information
++ */
++struct DMM_RSV_OBJECT {
++	struct	list_head	link;
++	u32	dsp_reserved_addr;
++};
++
  /* New structure (member of process context) abstracts DMM resource info */
-@@ -138,8 +138,8 @@ struct PROCESS_CONTEXT{
- 	/* DSP Node resources */
- 	struct NODE_RES_OBJECT *pNodeList;
+ struct DSPHEAP_RES_OBJECT {
+ 	s32            heapAllocated; /* DMM status */
+@@ -141,6 +150,10 @@ struct PROCESS_CONTEXT{
+ 	/* DMM mapped memory resources */
+ 	struct DMM_MAP_OBJECT *dmm_map_list;
  
--	/* DMM resources */
--	struct DMM_RES_OBJECT *pDMMList;
-+	/* DMM mapped memory resources */
-+	struct DMM_MAP_OBJECT *dmm_map_list;
- 
++	/* DMM reserved memory resources */
++	struct list_head dmm_rsv_list;
++	spinlock_t dmm_rsv_list_lock;
++
  	/* DSP Heap resources */
  	struct DSPHEAP_RES_OBJECT *pDSPHEAPList;
+ 
+diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
+index 8dbdaac..558c053 100644
+--- a/arch/arm/plat-omap/include/dspbridge/proc.h
++++ b/arch/arm/plat-omap/include/dspbridge/proc.h
+@@ -560,7 +560,7 @@
+  *  Details:
+  */
+ 	extern DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR hProcessor,
+-					     u32 ulSize, void **ppRsvAddr);
++		u32 ulSize, void **ppRsvAddr, struct PROCESS_CONTEXT *pr_ctxt);
+ 
+ /*
+  *  ======== PROC_UnMap ========
+@@ -604,6 +604,7 @@
+  *  Details:
+  */
+ 	extern DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor,
+-					       void *pRsvAddr);
++			void *pRsvAddr, struct PROCESS_CONTEXT *pr_ctxt,
++			int cleanup);
+ 
+ #endif				/* PROC_ */
+diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
+index 2425f0f..5160013 100644
+--- a/drivers/dsp/bridge/pmgr/dmm.c
++++ b/drivers/dsp/bridge/pmgr/dmm.c
+@@ -385,9 +385,10 @@ DSP_STATUS DMM_ReserveMemory(struct DMM_OBJECT *hDmmMgr, u32 size,
+ 		node->MappedSize = 0;
+ 		/* Return the chunk's starting address */
+ 		*pRsvAddr = rsvAddr;
+-	} else
++	} else {
+ 		/*dSP chunk of given size is not available */
+ 		status = DSP_EMEMORY;
++	}
+ 
+ 	SYNC_LeaveCS(pDmmObj->hDmmLock);
+ 	GT_3trace(DMM_debugMask, GT_4CLASS,
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index beea23b..747d069 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -1054,12 +1054,13 @@ u32 PROCWRAP_ReserveMemory(union Trapped_Args *args, void *pr_ctxt)
+ 
+ 	GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_ReserveMemory: entered\n");
+ 	status = PROC_ReserveMemory(args->ARGS_PROC_RSVMEM.hProcessor,
+-				   args->ARGS_PROC_RSVMEM.ulSize, &pRsvAddr);
++				   args->ARGS_PROC_RSVMEM.ulSize, &pRsvAddr,
++				   pr_ctxt);
+ 	if (DSP_SUCCEEDED(status)) {
+ 		if (put_user(pRsvAddr, args->ARGS_PROC_RSVMEM.ppRsvAddr)) {
+ 			status = DSP_EINVALIDARG;
+ 			PROC_UnReserveMemory(args->ARGS_PROC_RSVMEM.hProcessor,
+-				pRsvAddr);
++				pRsvAddr, pr_ctxt, 1);
+ 		}
+ 	}
+ 	return status;
+@@ -1100,7 +1101,7 @@ u32 PROCWRAP_UnReserveMemory(union Trapped_Args *args, void *pr_ctxt)
+ 	GT_0trace(WCD_debugMask, GT_ENTER,
+ 		 "PROCWRAP_UnReserveMemory: entered\n");
+ 	status = PROC_UnReserveMemory(args->ARGS_PROC_UNRSVMEM.hProcessor,
+-				     args->ARGS_PROC_UNRSVMEM.pRsvAddr);
++			args->ARGS_PROC_UNRSVMEM.pRsvAddr, pr_ctxt, 1);
+ 	return status;
+ }
+ 
 diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 36bab9f..3dc38d0 100644
+index 3dc38d0..9d5c077 100644
 --- a/drivers/dsp/bridge/rmgr/drv.c
 +++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -188,28 +188,28 @@ static DSP_STATUS DRV_ProcFreeNodeRes(HANDLE hPCtxt)
- DSP_STATUS DRV_InsertDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
- {
- 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
--	struct DMM_RES_OBJECT **pDMMRes = (struct DMM_RES_OBJECT **)hDMMRes;
-+	struct DMM_MAP_OBJECT **pDMMRes = (struct DMM_MAP_OBJECT **)hDMMRes;
- 	DSP_STATUS	status = DSP_SOK;
--	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
-+	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
- 
--	*pDMMRes = (struct DMM_RES_OBJECT *)
--		    MEM_Calloc(1 * sizeof(struct DMM_RES_OBJECT), MEM_PAGED);
-+	*pDMMRes = (struct DMM_MAP_OBJECT *)
-+		    MEM_Calloc(1 * sizeof(struct DMM_MAP_OBJECT), MEM_PAGED);
- 	GT_0trace(curTrace, GT_ENTER, "DRV_InsertDMMResElement: 1");
- 	if (*pDMMRes == NULL) {
- 		GT_0trace(curTrace, GT_5CLASS, "DRV_InsertDMMResElement: 2");
- 		status = DSP_EHANDLE;
- 	}
- 	if (DSP_SUCCEEDED(status)) {
--		if (pCtxt->pDMMList != NULL) {
-+		if (pCtxt->dmm_map_list) {
- 			GT_0trace(curTrace, GT_5CLASS,
- 				 "DRV_InsertDMMResElement: 3");
--			pTempDMMRes = pCtxt->pDMMList;
--			while (pTempDMMRes->next != NULL)
-+			pTempDMMRes = pCtxt->dmm_map_list;
-+			while (pTempDMMRes->next)
- 				pTempDMMRes = pTempDMMRes->next;
- 
- 			pTempDMMRes->next = *pDMMRes;
- 		} else {
--			pCtxt->pDMMList = *pDMMRes;
-+			pCtxt->dmm_map_list = *pDMMRes;
- 			GT_0trace(curTrace, GT_5CLASS,
- 				 "DRV_InsertDMMResElement: 4");
+@@ -277,25 +277,20 @@ DSP_STATUS  DRV_ProcFreeDMMRes(HANDLE hPCtxt)
+ 			if (DSP_FAILED(status))
+ 				pr_debug("%s: PROC_UnMap failed! status ="
+ 						" 0x%xn", __func__, status);
+-			status = PROC_UnReserveMemory(pDMMRes->hProcessor,
+-				 (void *)pDMMRes->ulDSPResAddr);
+-			if (DSP_FAILED(status))
+-				pr_debug("%s: PROC_UnReserveMemory failed!"
+-					" status = 0x%xn", __func__, status);
+ 			pDMMRes->dmmAllocated = 0;
  		}
-@@ -223,12 +223,12 @@ DSP_STATUS DRV_InsertDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
- DSP_STATUS DRV_RemoveDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
- {
- 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
--	struct DMM_RES_OBJECT *pDMMRes = (struct DMM_RES_OBJECT *)hDMMRes;
--	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
-+	struct DMM_MAP_OBJECT *pDMMRes = (struct DMM_MAP_OBJECT *)hDMMRes;
-+	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
+ 	}
+ 	return status;
+ }
  
--	pTempDMMRes = pCtxt->pDMMList;
--	if (pCtxt->pDMMList == pDMMRes) {
--		pCtxt->pDMMList = pDMMRes->next;
-+	pTempDMMRes = pCtxt->dmm_map_list;
-+	if (pCtxt->dmm_map_list == pDMMRes) {
-+		pCtxt->dmm_map_list = pDMMRes->next;
- 	} else {
- 		while (pTempDMMRes && pTempDMMRes->next != pDMMRes)
- 			pTempDMMRes = pTempDMMRes->next;
-@@ -245,14 +245,14 @@ DSP_STATUS DRV_UpdateDMMResElement(HANDLE hDMMRes, u32 pMpuAddr, u32 ulSize,
- 				  u32 pReqAddr, u32 pMapAddr,
- 				  HANDLE hProcessor)
- {
--	struct DMM_RES_OBJECT *pDMMRes = (struct DMM_RES_OBJECT *)hDMMRes;
-+	struct DMM_MAP_OBJECT *pDMMRes = (struct DMM_MAP_OBJECT *)hDMMRes;
- 	DSP_STATUS status = DSP_SOK;
- 
- 	DBC_Assert(hDMMRes != NULL);
- 	pDMMRes->ulMpuAddr = pMpuAddr;
- 	pDMMRes->ulDSPAddr = pMapAddr;
- 	pDMMRes->ulDSPResAddr = pReqAddr;
--	pDMMRes->dmmSize = ulSize;
-+	pDMMRes->size = ulSize;
- 	pDMMRes->hProcessor = hProcessor;
- 	pDMMRes->dmmAllocated = 1;
- 
-@@ -264,11 +264,11 @@ DSP_STATUS  DRV_ProcFreeDMMRes(HANDLE hPCtxt)
+-/* Release all DMM resources and its context
+-* This is called from .bridge_release. */
++/* Release all Mapped and Reserved DMM resources */
+ DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
  {
  	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
  	DSP_STATUS status = DSP_SOK;
--	struct DMM_RES_OBJECT *pDMMList = pCtxt->pDMMList;
--	struct DMM_RES_OBJECT *pDMMRes = NULL;
-+	struct DMM_MAP_OBJECT *pDMMList = pCtxt->dmm_map_list;
-+	struct DMM_MAP_OBJECT *pDMMRes = NULL;
- 
- 	GT_0trace(curTrace, GT_ENTER, "\nDRV_ProcFreeDMMRes: 1\n");
--	while (pDMMList != NULL) {
-+	while (pDMMList) {
- 		pDMMRes = pDMMList;
- 		pDMMList = pDMMList->next;
- 		if (pDMMRes->dmmAllocated) {
-@@ -294,41 +294,42 @@ DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
- {
- 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
- 	DSP_STATUS status = DSP_SOK;
--	struct DMM_RES_OBJECT *pTempDMMRes2 = NULL;
--	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
-+	struct DMM_MAP_OBJECT *pTempDMMRes2 = NULL;
-+	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
+ 	struct DMM_MAP_OBJECT *pTempDMMRes2 = NULL;
+ 	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
++	struct DMM_RSV_OBJECT *temp, *rsv_obj;
  
  	DRV_ProcFreeDMMRes(pCtxt);
--	pTempDMMRes = pCtxt->pDMMList;
-+	pTempDMMRes = pCtxt->dmm_map_list;
- 	while (pTempDMMRes != NULL) {
- 		pTempDMMRes2 = pTempDMMRes;
- 		pTempDMMRes = pTempDMMRes->next;
+ 	pTempDMMRes = pCtxt->dmm_map_list;
+@@ -305,6 +300,24 @@ DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
  		kfree(pTempDMMRes2);
  	}
--	pCtxt->pDMMList = NULL;
-+	pCtxt->dmm_map_list = NULL;
- 	return status;
- }
- 
- DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE hDMMRes, HANDLE hPCtxt)
- {
- 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
--	struct DMM_RES_OBJECT **pDMMRes = (struct DMM_RES_OBJECT **)hDMMRes;
-+	struct DMM_MAP_OBJECT **pDMMRes = (struct DMM_MAP_OBJECT **)hDMMRes;
- 	DSP_STATUS status = DSP_SOK;
--	struct DMM_RES_OBJECT *pTempDMM = NULL;
-+	struct DMM_MAP_OBJECT *pTempDMM = NULL;
- 
--	pTempDMM = pCtxt->pDMMList;
--	while ((pTempDMM != NULL) && (pTempDMM->ulDSPAddr != pMapAddr)) {
-+	pTempDMM = pCtxt->dmm_map_list;
-+	while (pTempDMM && (pTempDMM->ulDSPAddr != pMapAddr)) {
- 		GT_3trace(curTrace, GT_ENTER,
- 			 "DRV_GetDMMResElement: 2 pTempDMM:%x "
- 			 "pTempDMM->ulDSPAddr:%x pMapAddr:%x\n", pTempDMM,
- 			 pTempDMM->ulDSPAddr, pMapAddr);
- 		pTempDMM = pTempDMM->next;
- 	}
--	if (pTempDMM != NULL) {
-+	if (pTempDMM) {
- 		GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 3");
- 		*pDMMRes = pTempDMM;
- 	} else {
- 		status = DSP_ENOTFOUND;
--	} GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 4");
+ 	pCtxt->dmm_map_list = NULL;
++
++	/* Free DMM reserved memory resources */
++	spin_lock(&pCtxt->dmm_rsv_list_lock);
++	list_for_each_entry_safe(rsv_obj, temp, &pCtxt->dmm_rsv_list, link) {
++		/*
++		 * Since we have already acquired spin lock for dmm_rsv_list,
++		 * we don't want to perform cleanup in PROC_UnReserveMemory.
++		 */
++		status = PROC_UnReserveMemory(pCtxt->hProcessor,
++				(void *)rsv_obj->dsp_reserved_addr, pCtxt, 0);
++		if (DSP_FAILED(status))
++			pr_err("%s: PROC_UnReserveMemory failed!"
++					" status = 0x%xn", __func__, status);
++		list_del(&rsv_obj->link);
++		kfree(rsv_obj);
 +	}
-+	GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 4");
++	spin_unlock(&pCtxt->dmm_rsv_list_lock);
++
  	return status;
  }
  
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 0ce9a5f..ef078cf 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -497,10 +497,13 @@ static int bridge_open(struct inode *ip, struct file *filp)
+ 	 * process context list.
+ 	 */
+ 	pr_ctxt = MEM_Calloc(sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
+-	if (pr_ctxt)
++	if (pr_ctxt) {
+ 		pr_ctxt->resState = PROC_RES_ALLOCATED;
+-	else
++		spin_lock_init(&pr_ctxt->dmm_rsv_list_lock);
++		INIT_LIST_HEAD(&pr_ctxt->dmm_rsv_list);
++	} else {
+ 		status = -ENOMEM;
++	}
+ 
+ 	filp->private_data = pr_ctxt;
+ 
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index b60d1ed..f85b4b8 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -454,7 +454,7 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
+ 	status = PROC_ReserveMemory(hProcessor,
+ 			pNode->createArgs.asa.taskArgs.uHeapSize + PAGE_SIZE,
+ 			(void **)&(pNode->createArgs.asa.taskArgs.
+-				uDSPHeapResAddr));
++				uDSPHeapResAddr), pr_ctxt);
+ 	if (DSP_FAILED(status)) {
+ 		GT_1trace(NODE_debugMask, GT_5CLASS,
+ 			 "NODE_Allocate:Failed to reserve "
+@@ -2726,7 +2726,8 @@ static void DeleteNode(struct NODE_OBJECT *hNode,
+ 					 " Status = 0x%x\n", (u32)status);
+ 			}
+ 			status = PROC_UnReserveMemory(hNode->hProcessor,
+-					(void *)taskArgs.uDSPHeapResAddr);
++					(void *)taskArgs.uDSPHeapResAddr,
++					pr_ctxt, 1);
+ 			if (DSP_SUCCEEDED(status)) {
+ 				GT_0trace(NODE_debugMask, GT_5CLASS,
+ 					 "DSPProcessor_UnReserveMemory "
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 2ccbc9b..74c22cd 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -1430,7 +1430,7 @@ func_end:
+  *      Reserve a virtually contiguous region of DSP address space.
+  */
+ DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR hProcessor, u32 ulSize,
+-			     void **ppRsvAddr)
++		void **ppRsvAddr, struct PROCESS_CONTEXT *pr_ctxt)
+ {
+ 	struct DMM_OBJECT *hDmmMgr;
+ 	DSP_STATUS status = DSP_SOK;
+@@ -1450,8 +1450,21 @@ DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR hProcessor, u32 ulSize,
+ 	if (DSP_FAILED(status)) {
+ 		GT_1trace(PROC_DebugMask, GT_7CLASS, "PROC_ReserveMemory: "
+ 			 "Failed to get DMM Mgr handle: 0x%x\n", status);
+-	} else
++	} else {
+ 		status = DMM_ReserveMemory(hDmmMgr, ulSize, (u32 *)ppRsvAddr);
++		if (status == DSP_SOK) {
++			struct DMM_RSV_OBJECT *rsv_obj =
++				kmalloc(sizeof(struct DMM_RSV_OBJECT),
++						GFP_KERNEL);
++			if (rsv_obj) {
++				rsv_obj->dsp_reserved_addr = (u32) *ppRsvAddr;
++				spin_lock(&pr_ctxt->dmm_rsv_list_lock);
++				list_add(&rsv_obj->link,
++						&pr_ctxt->dmm_rsv_list);
++				spin_unlock(&pr_ctxt->dmm_rsv_list_lock);
++			}
++		}
++	}
+ 
+ 	GT_1trace(PROC_DebugMask, GT_ENTER, "Leaving PROC_ReserveMemory [0x%x]",
+ 		 status);
+@@ -1704,7 +1717,8 @@ func_end:
+  *  Purpose:
+  *      Frees a previously reserved region of DSP address space.
+  */
+-DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr)
++DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr,
++		struct PROCESS_CONTEXT *pr_ctxt, int cleanup)
+ {
+ 	struct DMM_OBJECT *hDmmMgr;
+ 	DSP_STATUS status = DSP_SOK;
+@@ -1720,12 +1734,32 @@ DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr)
+ 		goto func_end;
+ 	}
+ 	status = DMM_GetHandle(pProcObject, &hDmmMgr);
+-	if (DSP_FAILED(status))
++	if (DSP_FAILED(status)) {
+ 		GT_1trace(PROC_DebugMask, GT_7CLASS,
+ 			 "PROC_UnReserveMemory: Failed to get DMM Mgr "
+ 			 "handle: 0x%x\n", status);
+-	else
++	} else {
+ 		status = DMM_UnReserveMemory(hDmmMgr, (u32) pRsvAddr);
++		/*
++		 * cleanup flag handles the special case when this function
++		 * is called while doing clenaup from
++		 * DRV_RemoveAllDMMResElements
++		 */
++		if (status == DSP_SOK && cleanup) {
++			struct DMM_RSV_OBJECT *temp, *rsv_obj;
++			spin_lock(&pr_ctxt->dmm_rsv_list_lock);
++			list_for_each_entry_safe(rsv_obj, temp,
++					&pr_ctxt->dmm_rsv_list, link) {
++				if (rsv_obj->dsp_reserved_addr ==
++						(u32)pRsvAddr) {
++					list_del(&rsv_obj->link);
++					kfree(rsv_obj);
++					break;
++				}
++			}
++			spin_unlock(&pr_ctxt->dmm_rsv_list_lock);
++		}
++	}
+ 
+ 	GT_1trace(PROC_DebugMask, GT_ENTER,
+ 		 "Leaving PROC_UnReserveMemory [0x%x]",
 -- 
 1.6.3.3
 
