@@ -1,356 +1,433 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH RFC]OMAP3:PM:Dynamic Calculation of SDRC stall latency during DVFS
-Date: Mon, 15 Feb 2010 10:57:20 +0200
-Message-ID: <87bpfqkhan.fsf@trdhcp146196.ntc.nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB031E80D573@dbde02.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 01/13] OMAP: DSS2: enable VDDS_DSI when using DPI
+Date: Mon, 15 Feb 2010 15:52:01 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A96DE7B@dbde02.ent.ti.com>
+References: <1265644572-3578-1-git-send-email-tomi.valkeinen@nokia.com>
+ <1265644572-3578-2-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:46769 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752158Ab0BOI6E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 03:58:04 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E80D573@dbde02.ent.ti.com> (ext Reddy's message of "Thu\, 11 Feb 2010 12\:50\:39 +0100")
+Received: from bear.ext.ti.com ([192.94.94.41]:50303 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755371Ab0BOKWj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 05:22:39 -0500
+In-Reply-To: <1265644572-3578-2-git-send-email-tomi.valkeinen@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Reddy, Teerth" <teerth@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-"ext Reddy, Teerth" <teerth@ti.com> writes:
 
-> From: Teerth Reddy <teerth@ti.com>
->
-> Dynamic Calculation of SDRC stall latency during DVFS
->
-> The patch has the changes to calculate the dpll3 clock stabilization =
-delay dynamically. The SRAM delay is calibrated during bootup using the=
- gptimers and used while calculating the stabilization delay. By using =
-the dynamic method the dependency on the type of cache being used is re=
-moved. Hence there is no need of loop based calculation.
->
-> The wait time for L3 clock stabilization is calculated using the form=
-ula : 4*REFCLK + 8*CLKOUTX2, which uses the M, N and M2 read from the r=
-egisters.Since this value gives slightly less value, 2us is added as bu=
-ffer for safety.
-> This works fine for omap3.=20
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tomi Valkeinen
+> Sent: Monday, February 08, 2010 9:26 PM
+> To: linux-omap@vger.kernel.org; linux-fbdev@vger.kernel.org
+> Cc: Tomi Valkeinen
+> Subject: [PATCH 01/13] OMAP: DSS2: enable VDDS_DSI when using DPI
+> 
+> It looks like on OMAP3 some DSS pins need VDDS_DSI to function
+> properly.
+> 
+> This has not been confirmed from TI, but looking at figure 15-1
+> "Display
+> subsystem highlight" from the TRM, some data pins come near the DSI
+> and SDI
+> blocks. This is not very hard evidence, but the fact remains that
+> with the
+> power on, pixels are ok, and with the power off, pixels are not ok.
+> 
+[Hiremath, Vaibhav] Tomi, sorry for delayed response. As usual stuck with some other issues. Below are some quick comments -
 
-I think you could make a difference on 3630 in this patch. 3630 has
-different formula to calculate needed delay after setting m2 divider.
+I am not regulator expert, but as per my finding I believe it is nothing to do with pins position closure to each other. The actual root cause is TWL4030 Ownership bit. Please refer to the below mail-chain - 
 
->
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
-> Signed-off-by: Romit Dasgupta <romit@ti.com>
+http://marc.info/?l=linux-omap&m=126045146600334&w=2
+
+
+> It may also be that VDDS_SDI is needed to power some pins, but as
+> normally
+> both VDDS_SDI and VDDS_DSI come from the same power source, this
+> hasn't
+> been shown.
+> 
+> It seems that a single driver can only get a regulator once. This
+> patch
+> solves it by getting all the required regulators in one place, and
+> from
+> which the submodules then get the regulators they need.
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 > ---
->  arch/arm/mach-omap2/clkt34xx_dpll3m2.c    |   52 +++++++++++++++++++=
-+++++-----
->  arch/arm/mach-omap2/clock34xx.h           |    2 +
->  arch/arm/mach-omap2/clock34xx_data.c      |   11 ++++++
->  arch/arm/mach-omap2/sram34xx.S            |   17 +++++++++
->  arch/arm/plat-omap/dmtimer.c              |    6 +++
->  arch/arm/plat-omap/include/plat/dmtimer.h |    1 +
->  arch/arm/plat-omap/include/plat/sram.h    |    5 +++
->  arch/arm/plat-omap/sram.c                 |   51 +++++++++++++++++++=
-+++++++++
->  8 files changed, 136 insertions(+), 9 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-o=
-map2/clkt34xx_dpll3m2.c
-> index 8716a01..2e6d774 100644
-> --- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-> +++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-> @@ -24,13 +24,22 @@
+>  drivers/video/omap2/dss/core.c |   66
+> +++++++++++++++++++++++++++++++++++++++-
+>  drivers/video/omap2/dss/dpi.c  |   55 ++++++++++++++++++++++++++++-
+> ----
+>  drivers/video/omap2/dss/dsi.c  |    4 +--
+>  drivers/video/omap2/dss/dss.h  |    5 ++-
+>  drivers/video/omap2/dss/venc.c |    4 +--
+>  5 files changed, 117 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/dss/core.c
+> b/drivers/video/omap2/dss/core.c
+> index 82918ee..791e1cb 100644
+> --- a/drivers/video/omap2/dss/core.c
+> +++ b/drivers/video/omap2/dss/core.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/debugfs.h>
+>  #include <linux/io.h>
+>  #include <linux/device.h>
+> +#include <linux/regulator/consumer.h>
+> 
+>  #include <plat/display.h>
 >  #include <plat/clock.h>
->  #include <plat/sram.h>
->  #include <plat/sdrc.h>
-> +#include <plat/prcm.h>
-> =20
->  #include "clock.h"
->  #include "clock34xx.h"
->  #include "sdrc.h"
-> +#include "cm.h"
-> =20
->  #define CYCLES_PER_MHZ			1000000
-> =20
-> +#define	DPLL_M_MASK	0x7ff
-> +#define	DPLL_N_MASK	0x7f
-> +#define	DPLL_M2_MASK	0x1f
-> +#define	SHIFT_DPLL_M	16
-> +#define	SHIFT_DPLL_N	8
-> +#define	SHIFT_DPLL_M2	27
+> @@ -47,6 +48,10 @@ static struct {
+>  	struct clk      *dss_54m_fck;
+>  	struct clk	*dss_96m_fck;
+>  	unsigned	num_clks_enabled;
 > +
->  /*
->   * CORE DPLL (DPLL3) M2 divider rate programming functions
->   *
-> @@ -55,6 +64,11 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, u=
-nsigned long rate)
->  	struct omap_sdrc_params *sdrc_cs0;
->  	struct omap_sdrc_params *sdrc_cs1;
->  	int ret;
-> +	u32 clk_sel_regval;
-> +	u32 core_dpll_mul_m, core_dpll_div_n, core_dpll_clkoutdiv_m2;
-> +	u32 sys_clk_rate, sdrc_clk_stab;
-> +	u32 nr1, nr2, nr, dr;
-> +	unsigned int delay_sram;
-> =20
->  	if (!clk || !rate)
->  		return -EINVAL;
-> @@ -78,16 +92,36 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, =
-unsigned long rate)
->  		unlock_dll =3D 1;
+> +	struct regulator *vdds_dsi_reg;
+> +	struct regulator *vdds_sdi_reg;
+> +	struct regulator *vdda_dac_reg;
+>  } core;
+> 
+>  static void dss_clk_enable_all_no_ctx(void);
+> @@ -352,6 +357,50 @@ static void dss_clk_disable_all(void)
+>  	dss_clk_disable(clks);
+>  }
+> 
+> +/* REGULATORS */
+> +
+> +struct regulator *dss_get_vdds_dsi(void)
+> +{
+> +	struct regulator *reg;
+> +
+> +	if (core.vdds_dsi_reg != NULL)
+> +		return core.vdds_dsi_reg;
+> +
+> +	reg = regulator_get(&core.pdev->dev, "vdds_dsi");
+> +	if (!IS_ERR(reg))
+> +		core.vdds_dsi_reg = reg;
+> +
+> +	return reg;
+> +}
+> +
+> +struct regulator *dss_get_vdds_sdi(void)
+> +{
+> +	struct regulator *reg;
+> +
+> +	if (core.vdds_sdi_reg != NULL)
+> +		return core.vdds_sdi_reg;
+> +
+> +	reg = regulator_get(&core.pdev->dev, "vdds_sdi");
+> +	if (!IS_ERR(reg))
+> +		core.vdds_sdi_reg = reg;
+> +
+> +	return reg;
+> +}
+> +
+> +struct regulator *dss_get_vdda_dac(void)
+> +{
+> +	struct regulator *reg;
+> +
+> +	if (core.vdda_dac_reg != NULL)
+> +		return core.vdda_dac_reg;
+> +
+> +	reg = regulator_get(&core.pdev->dev, "vdda_dac");
+> +	if (!IS_ERR(reg))
+> +		core.vdda_dac_reg = reg;
+> +
+> +	return reg;
+> +}
+> +
+>  /* DEBUGFS */
+>  #if defined(CONFIG_DEBUG_FS) &&
+> defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
+>  static void dss_debug_dump_clocks(struct seq_file *s)
+> @@ -473,7 +522,7 @@ static int omap_dss_probe(struct platform_device
+> *pdev)
 >  	}
-> =20
-> -	/*
-> -	 * XXX This only needs to be done when the CPU frequency changes
-> -	 */
-> +	clk_sel_regval =3D cm_read_mod_reg(PLL_MOD, CM_CLKSEL);
-> +
-> +	/* Get the M, N and M2 values required for getting sdrc clk stab */
-> +	core_dpll_mul_m =3D (clk_sel_regval >> SHIFT_DPLL_M) & DPLL_M_MASK;
-> +	core_dpll_div_n =3D (clk_sel_regval >> SHIFT_DPLL_N) & DPLL_N_MASK;
-> +	core_dpll_clkoutdiv_m2 =3D (clk_sel_regval >> SHIFT_DPLL_M2) &
-> +								DPLL_M2_MASK;
-> +	sys_clk_rate =3D clk_get_rate(clk_get(NULL, "osc_sys_ck"));
-> +
-> +	sys_clk_rate =3D sys_clk_rate / 1000000;
-> +
-> +	/* wait time for L3 clk stabilization =3D 4*REFCLK + 8*CLKOUTX2 */
-> +	nr1 =3D (4 * (core_dpll_div_n + 1) * 2 * core_dpll_clkoutdiv_m2 *
-> +							 core_dpll_mul_m);
-> +	nr2 =3D 8 * (core_dpll_div_n + 1);
-> +	nr =3D nr1 + nr2;
-> +
-> +	dr =3D 2 * sys_clk_rate * core_dpll_mul_m * core_dpll_clkoutdiv_m2;
-> +
-> +	sdrc_clk_stab =3D nr / dr;
-> +
-> +	/* Adding 2us to sdrc clk stab */
-> +	sdrc_clk_stab =3D sdrc_clk_stab + 2;
-> +
-> +	delay_sram =3D delay_sram_val();
-> +
-> +	/* Calculate the number of MPU cycles to wait for SDRC to stabilize=
- */
->  	_mpurate =3D arm_fck_p->rate / CYCLES_PER_MHZ;
-> -	c =3D (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
-> -	c +=3D 1;  /* for safety */
-> -	c *=3D SDRC_MPURATE_LOOPS;
-> -	c >>=3D SDRC_MPURATE_SCALE;
-> -	if (c =3D=3D 0)
-> -		c =3D 1;
-> +
-> +	c =3D ((sdrc_clk_stab * _mpurate) / (delay_sram * 2));
-> =20
->  	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->r=
-ate,
->  		 validrate);
-> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cl=
-ock34xx.h index 313efc0..97afe34 100644
-> --- a/arch/arm/mach-omap2/clock34xx.h
-> +++ b/arch/arm/mach-omap2/clock34xx.h
-> @@ -22,4 +22,6 @@ extern const struct clkops clkops_omap3430es2_hsotg=
-usb_wait;  extern const struct clkops clkops_omap3430es2_dss_usbhost_wa=
-it;
->  extern const struct clkops omap3_clkops_noncore_dpll_ops;
-> =20
-> +unsigned int delay_sram_val(void);
-> +
 >  #endif
-> diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-oma=
-p2/clock34xx_data.c
-> index 8728f1f..cf7384b 100644
-> --- a/arch/arm/mach-omap2/clock34xx_data.c
-> +++ b/arch/arm/mach-omap2/clock34xx_data.c
-> @@ -22,6 +22,7 @@
-> =20
->  #include <plat/control.h>
->  #include <plat/clkdev_omap.h>
-> +#include <plat/sram.h>
-> =20
->  #include "clock.h"
->  #include "clock34xx.h"
-> @@ -52,6 +53,8 @@
->  static struct clk dpll1_fck;
->  static struct clk dpll2_fck;
-> =20
-> +unsigned int delay_sram;
+> 
+> -	r = dpi_init();
+> +	r = dpi_init(pdev);
+>  	if (r) {
+>  		DSSERR("Failed to initialize dpi\n");
+>  		goto fail0;
+> @@ -901,6 +950,21 @@ static int __init omap_dss_init(void)
+> 
+>  static void __exit omap_dss_exit(void)
+>  {
+> +	if (core.vdds_dsi_reg != NULL) {
+> +		regulator_put(core.vdds_dsi_reg);
+> +		core.vdds_dsi_reg = NULL;
+> +	}
 > +
->  /* PRM CLOCKS */
-> =20
->  /* According to timer32k.c, this is a 32768Hz clock, not a 32000Hz c=
-lock. */ @@ -3275,5 +3278,13 @@ int __init omap3xxx_clk_init(void)
->  	sdrc_ick_p =3D clk_get(NULL, "sdrc_ick");
->  	arm_fck_p =3D clk_get(NULL, "arm_fck");
-> =20
-> +	/* Measure sram delay */
-> +	delay_sram =3D measure_sram_delay(10000);
-> +	pr_debug("SRAM delay: %d\n", delay_sram);
+> +	if (core.vdds_sdi_reg != NULL) {
+> +		regulator_put(core.vdds_sdi_reg);
+> +		core.vdds_sdi_reg = NULL;
+> +	}
+> +
+> +	if (core.vdda_dac_reg != NULL) {
+> +		regulator_put(core.vdda_dac_reg);
+> +		core.vdda_dac_reg = NULL;
+> +	}
+> +
+>  	platform_driver_unregister(&omap_dss_driver);
+> 
+>  	omap_dss_bus_unregister();
+> diff --git a/drivers/video/omap2/dss/dpi.c
+> b/drivers/video/omap2/dss/dpi.c
+> index 2d71031..69ce31a 100644
+> --- a/drivers/video/omap2/dss/dpi.c
+> +++ b/drivers/video/omap2/dss/dpi.c
+> @@ -25,7 +25,10 @@
+>  #include <linux/kernel.h>
+>  #include <linux/clk.h>
+>  #include <linux/delay.h>
+> +#include <linux/err.h>
+>  #include <linux/errno.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/regulator/consumer.h>
+> 
+>  #include <plat/display.h>
+>  #include <plat/cpu.h>
+> @@ -34,6 +37,7 @@
+> 
+>  static struct {
+>  	int update_enabled;
+> +	struct regulator *vdds_dsi_reg;
+>  } dpi;
+> 
+>  #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+> @@ -166,21 +170,27 @@ static int dpi_display_enable(struct
+> omap_dss_device *dssdev)
+>  		goto err1;
+>  	}
+> 
+> +	if (cpu_is_omap34xx()) {
+> +		r = regulator_enable(dpi.vdds_dsi_reg);
+> +		if (r)
+> +			goto err2;
+> +	}
+> +
+>  	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
+> 
+>  	r = dpi_basic_init(dssdev);
+>  	if (r)
+> -		goto err2;
+> +		goto err3;
+> 
+>  #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+>  	dss_clk_enable(DSS_CLK_FCK2);
+>  	r = dsi_pll_init(dssdev, 0, 1);
+>  	if (r)
+> -		goto err3;
+> +		goto err4;
+>  #endif
+>  	r = dpi_set_mode(dssdev);
+>  	if (r)
+> -		goto err4;
+> +		goto err5;
+> 
+>  	mdelay(2);
+> 
+> @@ -188,22 +198,25 @@ static int dpi_display_enable(struct
+> omap_dss_device *dssdev)
+> 
+>  	r = dssdev->driver->enable(dssdev);
+>  	if (r)
+> -		goto err5;
+> +		goto err6;
+> 
+>  	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+> 
+>  	return 0;
+> 
+> -err5:
+> +err6:
+>  	dispc_enable_lcd_out(0);
+> -err4:
+> +err5:
+>  #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+>  	dsi_pll_uninit();
+> -err3:
+> +err4:
+>  	dss_clk_disable(DSS_CLK_FCK2);
+>  #endif
+> -err2:
+> +err3:
+>  	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
+> +err2:
+> +	if (cpu_is_omap34xx())
+> +		regulator_disable(dpi.vdds_dsi_reg);
+>  err1:
+>  	omap_dss_stop_device(dssdev);
+>  err0:
+> @@ -232,6 +245,9 @@ static void dpi_display_disable(struct
+> omap_dss_device *dssdev)
+> 
+>  	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
+> 
+> +	if (cpu_is_omap34xx())
+> +		regulator_disable(dpi.vdds_dsi_reg);
+> +
+>  	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+> 
+>  	omap_dss_stop_device(dssdev);
+> @@ -251,6 +267,9 @@ static int dpi_display_suspend(struct
+> omap_dss_device *dssdev)
+> 
+>  	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
+> 
+> +	if (cpu_is_omap34xx())
+> +		regulator_disable(dpi.vdds_dsi_reg);
+> +
+>  	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
+> 
+>  	return 0;
+> @@ -258,11 +277,19 @@ static int dpi_display_suspend(struct
+> omap_dss_device *dssdev)
+> 
+>  static int dpi_display_resume(struct omap_dss_device *dssdev)
+>  {
+> +	int r;
+> +
+>  	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
+>  		return -EINVAL;
+> 
+>  	DSSDBG("dpi_display_resume\n");
+> 
+> +	if (cpu_is_omap34xx()) {
+> +		r = regulator_enable(dpi.vdds_dsi_reg);
+> +		if (r)
+> +			goto err0;
+> +	}
+> +
+>  	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
+> 
+>  	dispc_enable_lcd_out(1);
+> @@ -273,6 +300,8 @@ static int dpi_display_resume(struct
+> omap_dss_device *dssdev)
+>  	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+> 
+>  	return 0;
+> +err0:
+> +	return r;
+[Hiremath, Vaibhav] if we initialize r = 0; and jump here in case of error, we can just use 
+
+return r;
+
+Or return from there itself 
+
+if (cpu_is_omap34xx()) {
+	r = regulator_enable(dpi.vdds_dsi_reg);
+	if (r)
+		return r;
+
+
+Thanks,
+Vaibhav
+
+>  }
+> 
+>  static void dpi_set_timings(struct omap_dss_device *dssdev,
+> @@ -388,8 +417,16 @@ int dpi_init_display(struct omap_dss_device
+> *dssdev)
 >  	return 0;
 >  }
-> +
-> +unsigned int delay_sram_val(void)
-> +{
-> +	return delay_sram;
-> +}
-> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sra=
-m34xx.S index de99ba2..bbeef26 100644
-> --- a/arch/arm/mach-omap2/sram34xx.S
-> +++ b/arch/arm/mach-omap2/sram34xx.S
-> @@ -313,3 +313,20 @@ core_m2_mask_val:
->  ENTRY(omap3_sram_configure_core_dpll_sz)
->  	.word	. - omap3_sram_configure_core_dpll
-> =20
-> +ENTRY(__sram_wait_delay)
-> +	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
-> +	ldr	r2, [r0]
-> +
-> +loop1:
-> +	subs 	r1, r1, #1
-> +	bne	loop1
-> +
-> +	isb
-> +	ldr	r3, [r0]
-> +	subs	r4, r3, r2
-> +
-> +	mov 	r0, r4 			@ return value
-> +	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
-> +
-> +ENTRY(__sram_wait_delay_sz)
-> +	.word	. - __sram_wait_delay
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtime=
-r.c index 24bf692..d00a44a 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -712,6 +712,12 @@ void omap_dm_timer_write_counter(struct omap_dm_=
-timer *timer, unsigned int value  }  EXPORT_SYMBOL_GPL(omap_dm_timer_wr=
-ite_counter);
-> =20
-> +unsigned int omap_dm_timer_get_phys_base(unsigned int gptimer) {
-> +	return dm_timers[gptimer - 1].phys_base; }=20
-> +EXPORT_SYMBOL_GPL(omap_dm_timer_get_phys_base);
-> +
->  int omap_dm_timers_active(void)
+> 
+> -int dpi_init(void)
+> +int dpi_init(struct platform_device *pdev)
 >  {
->  	int i;
-> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/pla=
-t-omap/include/plat/dmtimer.h
-> index 20f1054..f75d43e 100644
-> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
-> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-> @@ -55,6 +55,7 @@ void omap_dm_timer_free(struct omap_dm_timer *timer=
-);  void omap_dm_timer_enable(struct omap_dm_timer *timer);  void omap_=
-dm_timer_disable(struct omap_dm_timer *timer);
-> =20
-> +unsigned int omap_dm_timer_get_phys_base(unsigned int gptimer);
->  int omap_dm_timer_get_irq(struct omap_dm_timer *timer);
-> =20
->  u32 omap_dm_timer_modify_idlect_mask(u32 inputmask); diff --git a/ar=
-ch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/=
-sram.h
-> index 16a1b45..3ee366c 100644
-> --- a/arch/arm/plat-omap/include/plat/sram.h
-> +++ b/arch/arm/plat-omap/include/plat/sram.h
-> @@ -69,6 +69,11 @@ extern u32 omap3_sram_configure_core_dpll(
->  			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);  extern unsigned long om=
-ap3_sram_configure_core_dpll_sz;
-> =20
-> +extern unsigned int measure_sram_delay(unsigned int);
+> +	if (cpu_is_omap34xx()) {
+> +		dpi.vdds_dsi_reg = dss_get_vdds_dsi();
+> +		if (IS_ERR(dpi.vdds_dsi_reg)) {
+> +			DSSERR("can't get VDDS_DSI regulator\n");
+> +			return PTR_ERR(dpi.vdds_dsi_reg);
+> +		}
+> +	}
 > +
-> +extern u32 __sram_wait_delay(unsigned int, unsigned int); extern=20
-> +unsigned long __sram_wait_delay_sz;
-> +
->  #ifdef CONFIG_PM
->  extern void omap_push_sram_idle(void);
->  #else
-> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c in=
-dex 51f4dfb..e541e8f 100644
-> --- a/arch/arm/plat-omap/sram.c
-> +++ b/arch/arm/plat-omap/sram.c
-> @@ -30,6 +30,9 @@
->  #include <plat/cpu.h>
->  #include <plat/vram.h>
-> =20
-> +#include <linux/clk.h>
-> +#include <plat/dmtimer.h>
-> +#include <plat/io.h>
->  #include <plat/control.h>
-> =20
->  #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) @@ -74,=
-6 +77,9 @@
-> =20
->  #define ROUND_DOWN(value,boundary)	((value) & (~((boundary)-1)))
-> =20
-> +/* GPT10 TCRR register offset */
-> +#define OMAP_TIMER_COUNTER_OFFSET	0x28
-> +
->  static unsigned long omap_sram_start;
->  static unsigned long omap_sram_base;
->  static unsigned long omap_sram_size;
-> @@ -437,11 +443,56 @@ static inline int omap34xx_sram_init(void)  }  =
-#endif
-> =20
-> +
-> +#ifdef CONFIG_ARCH_OMAP3
-> +unsigned long (*_omap3_sram_delay)(void * __iomem, unsigned int);=20
-> +unsigned int  measure_sram_delay(unsigned int loop) {
-> +	static struct omap_dm_timer *gpt;
-> +	unsigned long flags, diff =3D 0, gt_rate, mpurate;
-> +	unsigned int delay_sram, error_gain;
-> +	void * __iomem gpt10_counter_reg;
-> +
-> +	omap_dm_timer_init();
-> +	gpt =3D omap_dm_timer_request_specific(10);
-> +	if (!gpt)
-> +		pr_err("Could not get the gptimer\n");
-> +	omap_dm_timer_set_source(gpt, OMAP_TIMER_SRC_SYS_CLK);
-> +
-> +	gpt10_counter_reg =3D
-> +			OMAP2_L4_IO_ADDRESS(omap_dm_timer_get_phys_base(10) +
-> +					OMAP_TIMER_COUNTER_OFFSET);
-> +
-> +	gt_rate =3D clk_get_rate(omap_dm_timer_get_fclk(gpt));
-> +	omap_dm_timer_set_load_start(gpt, 0, 0);
-> +
-> +	local_irq_save(flags);
-> +	diff =3D _omap3_sram_delay(gpt10_counter_reg, loop);
-> +	local_irq_restore(flags);
-> +
-> +	omap_dm_timer_stop(gpt);
-> +	omap_dm_timer_free(gpt);
-> +
-> +	mpurate =3D clk_get_rate(clk_get(NULL, "arm_fck"));
-> +
-> +	/* calculate the sram delay */
-> +	delay_sram =3D (((mpurate / gt_rate) * diff) / (loop * 2));
-> +
-> +	error_gain =3D mpurate / gt_rate;
-> +	delay_sram =3D delay_sram + error_gain;
-> +
-> +	return delay_sram;
-> +}
-> +#endif
-> +
->  int __init omap_sram_init(void)
+>  	return 0;
+>  }
+> 
+> diff --git a/drivers/video/omap2/dss/dsi.c
+> b/drivers/video/omap2/dss/dsi.c
+> index 6122178..036f422 100644
+> --- a/drivers/video/omap2/dss/dsi.c
+> +++ b/drivers/video/omap2/dss/dsi.c
+> @@ -3799,7 +3799,7 @@ int dsi_init(struct platform_device *pdev)
+>  		goto err1;
+>  	}
+> 
+> -	dsi.vdds_dsi_reg = regulator_get(&pdev->dev, "vdds_dsi");
+> +	dsi.vdds_dsi_reg = dss_get_vdds_dsi();
+>  	if (IS_ERR(dsi.vdds_dsi_reg)) {
+>  		iounmap(dsi.base);
+>  		DSSERR("can't get VDDS_DSI regulator\n");
+> @@ -3830,8 +3830,6 @@ void dsi_exit(void)
 >  {
->  	omap_detect_sram();
->  	omap_map_sram();
-> =20
-> +	_omap3_sram_delay =3D omap_sram_push(__sram_wait_delay,
-> +						__sram_wait_delay_sz);
-> +
->  	if (!(cpu_class_is_omap2()))
->  		omap1_sram_init();
->  	else if (cpu_is_omap242x())
+>  	kthread_stop(dsi.thread);
+> 
+> -	regulator_put(dsi.vdds_dsi_reg);
+> -
+>  	iounmap(dsi.base);
+> 
+>  	DSSDBG("omap_dsi_exit\n");
+> diff --git a/drivers/video/omap2/dss/dss.h
+> b/drivers/video/omap2/dss/dss.h
+> index 2bcb124..41145af 100644
+> --- a/drivers/video/omap2/dss/dss.h
+> +++ b/drivers/video/omap2/dss/dss.h
+> @@ -169,6 +169,9 @@ unsigned long dss_clk_get_rate(enum dss_clock
+> clk);
+>  int dss_need_ctx_restore(void);
+>  void dss_dump_clocks(struct seq_file *s);
+>  struct bus_type *dss_get_bus(void);
+> +struct regulator *dss_get_vdds_dsi(void);
+> +struct regulator *dss_get_vdds_sdi(void);
+> +struct regulator *dss_get_vdda_dac(void);
+> 
+>  /* display */
+>  int dss_suspend_all_devices(void);
+> @@ -261,7 +264,7 @@ void dsi_get_overlay_fifo_thresholds(enum
+> omap_plane plane,
+>  		u32 *fifo_low, u32 *fifo_high);
+> 
+>  /* DPI */
+> -int dpi_init(void);
+> +int dpi_init(struct platform_device *pdev);
+>  void dpi_exit(void);
+>  int dpi_init_display(struct omap_dss_device *dssdev);
+> 
+> diff --git a/drivers/video/omap2/dss/venc.c
+> b/drivers/video/omap2/dss/venc.c
+> index 749a5a0..44b4998 100644
+> --- a/drivers/video/omap2/dss/venc.c
+> +++ b/drivers/video/omap2/dss/venc.c
+> @@ -482,7 +482,7 @@ int venc_init(struct platform_device *pdev)
+>  		return -ENOMEM;
+>  	}
+> 
+> -	venc.vdda_dac_reg = regulator_get(&pdev->dev, "vdda_dac");
+> +	venc.vdda_dac_reg = dss_get_vdda_dac();
+>  	if (IS_ERR(venc.vdda_dac_reg)) {
+>  		iounmap(venc.base);
+>  		DSSERR("can't get VDDA_DAC regulator\n");
+> @@ -503,8 +503,6 @@ void venc_exit(void)
+>  {
+>  	omap_dss_unregister_driver(&venc_driver);
+> 
+> -	regulator_put(venc.vdda_dac_reg);
+> -
+>  	iounmap(venc.base);
+>  }
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> 1.6.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---=20
-Jouni H=C3=B6gander
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
