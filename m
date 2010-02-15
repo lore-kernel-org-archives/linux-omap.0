@@ -1,109 +1,64 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: Moving board patches from DSS2 to linux-omap
-Date: Mon, 15 Feb 2010 09:43:05 +0200
-Message-ID: <1266219785.2433.352.camel@tubuntu.research.nokia.com>
-References: <1265884185.2433.239.camel@tubuntu.research.nokia.com>
-	 <4B73EF0D.8080904@compulab.co.il>
-	 <1265889888.2433.245.camel@tubuntu.research.nokia.com>
-	 <20100211185253.GG21755@atomide.com>
-	 <1265971459.2433.285.camel@tubuntu.research.nokia.com>
-	 <19F8576C6E063C45BE387C64729E7394044A96DC31@dbde02.ent.ti.com>
+Subject: Re: [PATCH 00/17] OMAP DSS2 model restructuring
+Date: Mon, 15 Feb 2010 09:45:24 +0200
+Message-ID: <1266219924.2433.353.camel@tubuntu.research.nokia.com>
+References: <1265644661-3694-1-git-send-email-tomi.valkeinen@nokia.com>
+	 <6ed0b2681002130734k77de274fx5ceb169e0853b58d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:19263 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754696Ab0BOHkS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 02:40:18 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A96DC31@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:39899 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754164Ab0BOHm0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 02:42:26 -0500
+In-Reply-To: <6ed0b2681002130734k77de274fx5ceb169e0853b58d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, ext Mike Rapoport <mike@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Grazvydas Ignotas <notasas@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-On Sat, 2010-02-13 at 11:43 +0100, ext Hiremath, Vaibhav wrote:
-> > -----Original Message-----
-> > From: Hiremath, Vaibhav
-> > Sent: Saturday, February 13, 2010 4:04 PM
-> > To: 'Tomi Valkeinen'; ext Tony Lindgren
-> > Cc: ext Mike Rapoport; linux-omap@vger.kernel.org
-> > Subject: RE: Moving board patches from DSS2 to linux-omap
-> > 
-> > 
-> > > -----Original Message-----
-> > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > > Sent: Friday, February 12, 2010 4:14 PM
-> > > To: ext Tony Lindgren
-> > > Cc: ext Mike Rapoport; Hiremath, Vaibhav; linux-
-> > omap@vger.kernel.org
-> > > Subject: Re: Moving board patches from DSS2 to linux-omap
-> > >
-> > > On Thu, 2010-02-11 at 19:52 +0100, ext Tony Lindgren wrote:
-> > > > * Tomi Valkeinen <tomi.valkeinen@nokia.com> [100211 03:59]:
-> > > > > On Thu, 2010-02-11 at 12:50 +0100, ext Mike Rapoport wrote:
-> > > > > > Tomi Valkeinen wrote:
-> > > > > > > Hi,
-> > > > > > >
-> > > > > > > As discussed previously, board file changes in DSS2 tree
-> > > cause conflicts
-> > > > > > > with linux-omap easily. There are currently three board
-> > file
-> > > patches in
-> > > > > > > DSS2's for-next branch:
-> > > > > > >
-> > > > > > > 722a97e4594b2041bbf18d95a913ba6dfaca87f2 omap3: cm-t35:
-> > add
-> > > DSS2 display support
-> > > > > > > 7a56267e775e469c64521179ccc958c8bb661dbf OMAP: AM3517:
-> > > Enable DSS2 for AM3517EVM board
-> > > > > > > 40e4e67c6dabcb9897b6823cce2297d6c3e78bbd OMAP: Enable DSS2
-> > > for OMAP3EVM board
-> > > > > > >
-> > > > > > > The problem here is of course that DSS2 tree may contain
-> > > unmerged panel
-> > > > > > > drivers, and those board file changes try to use these new
-> > > panel
-> > > > > > > drivers.
-> > > >
-> > > > OK, Tomi, can you please set up a banch against mainline -rc7
-> > with
-> > > > whatever board-*.c dss2 patches you want me to pull? I'll pull
-> > > them
-> > > > into omap-for-linus, and rebase omap for-next on those.
-> > >
-> > > Here:
-> > >
-> > > git://gitorious.org/linux-omap-dss2/linux.git for-tony
-> > >
-> > > I removed the defconfig changes from the patches, and compile
-> > > tested.
-> > > I'll add the defconfig changes as separate patches in my tree, and
-> > > I'll
-> > > push them to Linus only after the board changes from Tony's tree
-> > > have
-> > > gone through.
-> > >
-> > [Hiremath, Vaibhav] Tomi,
-> > 
-> > I have pulled in for-tony branch and validated it on OAMP3EVM (with
-> > omap3_defconfig) and AM3517EVM without any issues.
-> > 
-> [Hiremath, Vaibhav] Missed to mention one point, 
-> Tomi,
-> Probably you have not merged sharp LQ043T1DG01 panel support patch required for AM3517?
+On Sat, 2010-02-13 at 16:34 +0100, ext Grazvydas Ignotas wrote:
+> On Mon, Feb 8, 2010 at 5:57 PM, Tomi Valkeinen <tomi.valkeinen@nokia.com> wrote:
+> > Here are a bunch of patches that change the DSS2 driver's driver model a bit.
+> > This change was triggered by trying to support new hardware, and realizing that
+> > the current model just won't work.
+> >
+> > Currently the omapdss driver is in control of most aspects of the DSS, and
+> > omapdss calls necessary functions in display drivers. I made it that way to
+> > keep the display drivers simple, and I, naively, thought that it will work
+> > because the display panels are using standard bus interfaces and thus will be
+> > very similar. I was so wrong =).
+> >
+> > This patch set moves the control to the display driver. The display driver then
+> > calls omapdss functions to perform whatever deed is needed at that time. This
+> > will make display drivers slightly more complex, but it will be easier to
+> > control the hardware properly with strange or complex display devices.
+> >
+> > As a simple example, let's look at the update function.
+> >
+> > Currently user space app issues OMAPFB_UPDATE_WINDOW ioctl, and omapfb driver
+> > then calls update() in corresponding dss device struct, which goes to omapdss.
+> > omapdss will configure the update, calling the panel driver if needed.
+> >
+> > After these patches, omapfb will call update() in the panel driver. The panel
+> > driver will then call functions in omapdss to setup the update, start the
+> > update, and the panel driver will eventually get a callback informing that the
+> > update is done.
+> >
+> > These patches are still under work, but my basic tests on 3430SDP board seems
+> > to work ok.
+> >
+> > The patches can also be found from
+> > http://gitorious.org/linux-omap-dss2/linux work branch
 > 
-> Can you merge that patch also?
+> Tested those along with the other series, seems to work fine on
+> pandora too. Panel callbacks like set_mirror
+> also work now, thanks.
+> 
+> Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 
-I have that patch in my tree. It's been there for some time. Perhaps I
-forgot to email back about that...
-
-> > Do you need any help here? Do you want me to separate defconfig
-> > patches for you?
-
-I separated the defconfig change from the board file changes, and made
-separate patches from them. They are in my master branch, and they apply
-cleanly, so I think everything is fine.
+Ok, thanks!
 
  Tomi
 
