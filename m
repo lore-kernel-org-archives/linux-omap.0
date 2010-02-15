@@ -1,128 +1,61 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: New reserved memory accounting framework
-Date: Mon, 15 Feb 2010 18:03:31 +0200
-Message-ID: <20100215160331.GB5458@annwn.felipec.org>
-References: <cover.1266246150.git.ameya.palande@nokia.com>
- <984ee6f949a5b2e1df3fa8640bb75960042611cc.1266246150.git.ameya.palande@nokia.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: [PATCH 0/3] DSPBRIDGE: Replace custom mailbox implementation
+ with kernel mailbox module
+Date: Mon, 15 Feb 2010 10:47:04 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602AA7C1B05@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602AA7C18E0@dlee06.ent.ti.com>
+	 <20100215150750.GA4512@annwn.felipec.org>
+ <1266249017.25508.1.camel@sanganak>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43258 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429Ab0BOQDl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 11:03:41 -0500
-Content-Disposition: inline
-In-Reply-To: <984ee6f949a5b2e1df3fa8640bb75960042611cc.1266246150.git.ameya.palande@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:36315 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755119Ab0BOQrL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 11:47:11 -0500
+In-Reply-To: <1266249017.25508.1.camel@sanganak>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>, "deepak.chitriki@ti.com" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "x0095840@ti.com" <x0095840@ti.com>
+To: Ameya Palande <ameya.palande@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
 
-On Mon, Feb 15, 2010 at 04:35:08PM +0100, Ameya Palande wrote:
-> DSP_RSV_OBJECT is introduced to track reserved memory accounting information.
-> This will allow us to do proper cleanup for memory reserved using
-> PROC_ReserveMemory().
-> 
-> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-> ---
 
-[...]
 
-> diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-> index 2ccbc9b..74c22cd 100644
-> --- a/drivers/dsp/bridge/rmgr/proc.c
-> +++ b/drivers/dsp/bridge/rmgr/proc.c
-> @@ -1430,7 +1430,7 @@ func_end:
->   *      Reserve a virtually contiguous region of DSP address space.
->   */
->  DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR hProcessor, u32 ulSize,
-> -			     void **ppRsvAddr)
-> +		void **ppRsvAddr, struct PROCESS_CONTEXT *pr_ctxt)
->  {
->  	struct DMM_OBJECT *hDmmMgr;
->  	DSP_STATUS status = DSP_SOK;
-> @@ -1450,8 +1450,21 @@ DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR hProcessor, u32 ulSize,
->  	if (DSP_FAILED(status)) {
->  		GT_1trace(PROC_DebugMask, GT_7CLASS, "PROC_ReserveMemory: "
->  			 "Failed to get DMM Mgr handle: 0x%x\n", status);
-> -	} else
-> +	} else {
->  		status = DMM_ReserveMemory(hDmmMgr, ulSize, (u32 *)ppRsvAddr);
-> +		if (status == DSP_SOK) {
+>-----Original Message-----
+>From: Ameya Palande [mailto:ameya.palande@nokia.com]
+>Sent: Monday, February 15, 2010 9:50 AM
+>To: Contreras Felipe (Nokia-D/Helsinki)
+>Cc: Guzman Lugo, Fernando; linux-omap; Doyu Hiroshi (Nokia-D/Helsinki)
+>Subject: Re: [PATCH 0/3] DSPBRIDGE: Replace custom mailbox implementation
+>with kernel mailbox module
+>
+>On Mon, 2010-02-15 at 16:07 +0100, Contreras Felipe (Nokia-D/Helsinki)
+>wrote:
+>> On Sat, Feb 13, 2010 at 03:01:57AM +0100, ext Guzman Lugo, Fernando
+>wrote:
+>> > >From d287e11cdb126f2c9b4be8d6d6f958ffdf7ff716 Mon Sep 17 00:00:00 2001
+>> > From: Fernando Guzman Lugo <x0095840@ti.com>
+>> > Date: Fri, 12 Feb 2010 19:55:55 -0600
+>> > Subject: [PATCH] DSPBRIDGE: Replace custom mailbox implementation with
+>> > kernel mailbox module
+>> >
+>> > This set of patches removes dspbridge mailbox implementation and
+>migrates to
+>> > use kernel mailbox module.
+>>
+>> Awesome! One big step on the right direction :)
+>>
+>
+>Yes, I agree!  Thanks a lot Fernando :)
+>
+>Is there any plan for replacement of custom iommu interface with iommu
+>module?
 
-More indentattion?
+Yes there is. At this moment I not working on that, but I hope it could be available in a near future.
 
-Can't we have instead:
+>
+>Cheers,
+>Ameya.
 
-if (status != DSP_SOK)
-	goto err:
-
-> +			struct DMM_RSV_OBJECT *rsv_obj =
-> +				kmalloc(sizeof(struct DMM_RSV_OBJECT),
-> +						GFP_KERNEL);
-> +			if (rsv_obj) {
-> +				rsv_obj->dsp_reserved_addr = (u32) *ppRsvAddr;
-> +				spin_lock(&pr_ctxt->dmm_rsv_list_lock);
-> +				list_add(&rsv_obj->link,
-> +						&pr_ctxt->dmm_rsv_list);
-> +				spin_unlock(&pr_ctxt->dmm_rsv_list_lock);
-> +			}
-> +		}
-> +	}
->  
->  	GT_1trace(PROC_DebugMask, GT_ENTER, "Leaving PROC_ReserveMemory [0x%x]",
->  		 status);
-> @@ -1704,7 +1717,8 @@ func_end:
->   *  Purpose:
->   *      Frees a previously reserved region of DSP address space.
->   */
-> -DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr)
-> +DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr,
-> +		struct PROCESS_CONTEXT *pr_ctxt, int cleanup)
->  {
->  	struct DMM_OBJECT *hDmmMgr;
->  	DSP_STATUS status = DSP_SOK;
-> @@ -1720,12 +1734,32 @@ DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr)
->  		goto func_end;
->  	}
->  	status = DMM_GetHandle(pProcObject, &hDmmMgr);
-> -	if (DSP_FAILED(status))
-> +	if (DSP_FAILED(status)) {
->  		GT_1trace(PROC_DebugMask, GT_7CLASS,
->  			 "PROC_UnReserveMemory: Failed to get DMM Mgr "
->  			 "handle: 0x%x\n", status);
-> -	else
-> +	} else {
->  		status = DMM_UnReserveMemory(hDmmMgr, (u32) pRsvAddr);
-> +		/*
-> +		 * cleanup flag handles the special case when this function
-> +		 * is called while doing clenaup from
-> +		 * DRV_RemoveAllDMMResElements
-> +		 */
-> +		if (status == DSP_SOK && cleanup) {
-
-Ditto here, although maybe the label should be 'leave' instead.
-
-> +			struct DMM_RSV_OBJECT *temp, *rsv_obj;
-> +			spin_lock(&pr_ctxt->dmm_rsv_list_lock);
-> +			list_for_each_entry_safe(rsv_obj, temp,
-> +					&pr_ctxt->dmm_rsv_list, link) {
-> +				if (rsv_obj->dsp_reserved_addr ==
-> +						(u32)pRsvAddr) {
-> +					list_del(&rsv_obj->link);
-> +					kfree(rsv_obj);
-> +					break;
-> +				}
-> +			}
-> +			spin_unlock(&pr_ctxt->dmm_rsv_list_lock);
-> +		}
-> +	}
->  
->  	GT_1trace(PROC_DebugMask, GT_ENTER,
->  		 "Leaving PROC_UnReserveMemory [0x%x]",
-> -- 
-
-Cheers.
-
--- 
-Felipe Contreras
