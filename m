@@ -1,24 +1,32 @@
-From: Peter Barada <peter.barada@gmail.com>
-Subject: Which ARM toolchain for OMAP35x?
-Date: Sun, 14 Feb 2010 16:47:31 -0500
-Message-ID: <738b3f7e1002141347y58bc0c57vc5ef060c5050cbb7@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/4 RFC]OMAP:GPIO: Make GPIO an early init device
+Date: Sun, 14 Feb 2010 18:38:53 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002141837240.28188@utopia.booyaka.com>
+References: <1265981851-11970-1-git-send-email-charu@ti.com> <alpine.DEB.2.00.1002121530340.28188@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f197.google.com ([209.85.222.197]:63642 "EHLO
-	mail-pz0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127Ab0BNVrd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Feb 2010 16:47:33 -0500
-Received: by pzk35 with SMTP id 35so753038pzk.33
-        for <linux-omap@vger.kernel.org>; Sun, 14 Feb 2010 13:47:32 -0800 (PST)
+Received: from utopia.booyaka.com ([72.9.107.138]:54236 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751908Ab0BOBiy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Feb 2010 20:38:54 -0500
+In-Reply-To: <alpine.DEB.2.00.1002121530340.28188@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-What's a known good toolcahin for linux-omap development?
+On Fri, 12 Feb 2010, Paul Walmsley wrote:
 
-I'm currently using CodeSroucery 2009q1-203 and wondering if there's a
-better toolchain or if people have had problems using the the
-2009q1-203 toolchain.
+> On Fri, 12 Feb 2010, Varadarajan, Charulatha wrote:
+> 
+> >   OMAP: Convert GPIO into a early driver
+> 
+> The above patch appears to be missing.  Could you please re-send?
 
-Thanks in advance!
+This patch was too big for the mailing list, so it's been posted here:
+
+http://www.pwsan.com/omap/patches/gpio/0002-OMAP-GPIO-split-omap1-and-omap2.patch
+
+
+- Paul
