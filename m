@@ -1,105 +1,87 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: [PATCH  0/24] omap4 for 2.6.34
-Date: Tue, 16 Feb 2010 21:06:13 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF80C3@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] omap4: add i2c1 peripherals data
+Date: Tue, 16 Feb 2010 21:11:33 +0530
+Message-ID: <1266334896-30686-21-git-send-email-santosh.shilimkar@ti.com>
+References: <1266334896-30686-1-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-2-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-3-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-5-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-6-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-7-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-8-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-9-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-10-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-11-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-12-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-13-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-14-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-15-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-16-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-17-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-18-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-19-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-20-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48377 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932197Ab0BPPgl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 10:36:41 -0500
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51861 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932772Ab0BPPmE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Feb 2010 10:42:04 -0500
+In-Reply-To: <1266334896-30686-20-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ben Dooks <ben@fluff.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Balaji T K <balajitk@ti.com>
 
-Tony,
-Here are some patches towards upcoming 34 merge window. They are generated against 
-linux-omap master as you suggested.
+From: Balaji T K <balajitk@ti.com>
 
-I am also copying Ben, Samuel, Liam, Paul and Kevin since some of the changes
-are in mfd, regulator, i2c and clocks.
+This patch adds i2c1 peripherals data to
+omap4 board file.
 
-The series enables most of the core driver like WDT, RTC, McBSP, Regulator,
-UART,DMA and I2C on omap4 platform. This series also has few fixes towards 
-multi-omap build. It would be nice development platform for
-upcoming peripheral drivers like MMC, Keyboard, Ethernet, DSS, touch screen,
-audio etc.
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletions(-)
 
-The series is boot tested with multi-omap build (omap3_defconfig) on omap3430 sdp
-and omap4430 sdp. Also regular omap_4430sdp_defconfig and omap_3430sdp_defconfig
-boot tested.
-
-The following changes since commit 301f2e037b161c79bf12f4194501c9ff9c12ced3:
-  Tony Lindgren (1):
-        Linux-omap rebuilt: dss board changes merged
-
-Abhijit Pagare (3):
-      omap4: clocks: Make Uart driver's clock calls OMAP4 compatible
-      omap4: clokcs: Make gpio driver's clock calls OMAP4 compatible
-      omap4: clocks: Make i2c driver's clock calls OMAP4 compatible
-
-Balaji T K (4):
-      twl6030: add base addr for ID0, ID1, ID2
-      omap4: add i2c1 peripherals data
-      omap4: add regulator board data for TWL6030
-      omap4: Enable RTC and regulator support
-
-Rajendra Nayak (1):
-      twl6030: Fix vsel calculations in set/get voltage api's
-
-Santosh Shilimkar (16):
-      omap 3/4: uart: fix full-fifo write abort
-      omap2/3/4: ioremap omap_globals module
-      omap4: sdma: Enable the idle modes on omap4
-      omap: sdma: Limit the secure reserve channel fix for omap3
-      omap4: Add needed IRQ line into irqs.h
-      omap4: Fix omap_type() for omap4
-      omap 3/4: Remove overlapping mapping of L4_WKUP io space
-      omap4: clocks: Make mcbsp driver's clock calls OMAP4 compatible
-      omap4: clocks: Make watchdog driver's clock calls OMAP4 compatible
-      omap4: clocks: Make dmtimer clocks calls OMAP4 compatible
-      omap4: clocks: Remove clock hacks from timer-gp.c
-      omap4: Enable WDT and McBSP support
-      omap4: clocks: Convert i2c clocks data to fclks
-      omap4: Add i2c support on omap4 platform
-      omap4: Add i2c board support for omap4 platform
-      omap4: multi-omap: Allow build to work
-
- arch/arm/configs/omap_4430sdp_defconfig   |   46 ++++++-
- arch/arm/mach-omap2/board-4430sdp.c       |  186 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clock44xx_data.c      |    8 +-
- arch/arm/mach-omap2/control.c             |    6 +-
- arch/arm/mach-omap2/id.c                  |    2 +
- arch/arm/mach-omap2/io.c                  |   12 --
- arch/arm/mach-omap2/prcm.c                |   16 ++-
- arch/arm/mach-omap2/sdrc.c                |   11 ++-
- arch/arm/mach-omap2/serial.c              |   55 +++++++--
- arch/arm/mach-omap2/timer-gp.c            |    5 -
- arch/arm/plat-omap/common.c               |   38 +++---
- arch/arm/plat-omap/dma.c                  |    5 +-
- arch/arm/plat-omap/dmtimer.c              |   25 +++-
- arch/arm/plat-omap/gpio.c                 |    7 +-
- arch/arm/plat-omap/i2c.c                  |   17 ++-
- arch/arm/plat-omap/include/plat/common.h  |   12 +-
- arch/arm/plat-omap/include/plat/control.h |    3 +
- arch/arm/plat-omap/include/plat/io.h      |    9 --
- arch/arm/plat-omap/include/plat/irqs.h    |    5 +
- arch/arm/plat-omap/io.c                   |    4 -
- arch/arm/plat-omap/mcbsp.c                |   13 ++-
- drivers/i2c/busses/i2c-omap.c             |  169 ++++++++++++++++++++------
- drivers/mfd/twl-core.c                    |    7 +-
- drivers/regulator/twl-regulator.c         |   23 +++-
- drivers/usb/musb/musb_core.c              |    4 +
- drivers/watchdog/Kconfig                  |    6 +-
- drivers/watchdog/omap_wdt.c               |   39 ++++--
- include/linux/i2c/twl.h                   |    5 +
- 28 files changed, 576 insertions(+), 162 deletions(-)
-
-
-Regards,
-Santsoh
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index a325ba5..ad0a9a5 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -18,6 +18,7 @@
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/usb/otg.h>
++#include <linux/i2c/twl.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -81,10 +82,25 @@ static struct omap_musb_board_data musb_board_data = {
+ 	.power			= 100,
+ };
+ 
++static struct twl4030_platform_data sdp4430_twldata = {
++	.irq_base	= TWL6030_IRQ_BASE,
++	.irq_end	= TWL6030_IRQ_END,
++};
++
++static struct i2c_board_info __initdata sdp4430_i2c_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("twl6030", 0x48),
++		.flags = I2C_CLIENT_WAKE,
++		.irq = INT_44XX_SYS_NIRQ,
++		.platform_data = &sdp4430_twldata,
++	},
++};
++
+ static int __init omap4_i2c_init(void)
+ {
+ 	/* Phoenix Audio IC needs I2C1 to start with 400 KHz and less */
+-	omap_register_i2c_bus(1, 400, NULL, 0);
++	omap_register_i2c_bus(1, 400, sdp4430_i2c_boardinfo,
++				ARRAY_SIZE(sdp4430_i2c_boardinfo));
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
+-- 
+1.6.0.4
 
