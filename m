@@ -1,7 +1,7 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] omap4: clocks: Make watchdog driver's clock calls OMAP4 compatible
-Date: Tue, 16 Feb 2010 21:11:23 +0530
-Message-ID: <1266334896-30686-11-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH] omap4: Add i2c board support for omap4 platform
+Date: Tue, 16 Feb 2010 21:11:29 +0530
+Message-ID: <1266334896-30686-17-git-send-email-santosh.shilimkar@ti.com>
 References: <1266334896-30686-1-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-2-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-3-git-send-email-santosh.shilimkar@ti.com>
@@ -12,117 +12,83 @@ References: <1266334896-30686-1-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-8-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-9-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-10-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-11-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-12-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-13-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-14-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-15-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-16-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51261 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51307 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932757Ab0BPPmE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Feb 2010 10:42:04 -0500
-In-Reply-To: <1266334896-30686-10-git-send-email-santosh.shilimkar@ti.com>
+	id S932807Ab0BPPmQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Feb 2010 10:42:16 -0500
+In-Reply-To: <1266334896-30686-16-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Abhijit Pagare <abhijitpagare@ti.com>
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-The watchdog driver has been adapted for the OMAP4 way of clock calls.
-In OMAP4, WDT iclk are hw controlled and no sw control is available
+This patch enables I2C driver for OMAP4430 SDP board file.
 
-Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/watchdog/omap_wdt.c |   39 +++++++++++++++++++++++++++------------
- 1 files changed, 27 insertions(+), 12 deletions(-)
+ arch/arm/configs/omap_4430sdp_defconfig |   19 +++++++++++++++++--
+ arch/arm/mach-omap2/board-4430sdp.c     |    9 +++++++++
+ 2 files changed, 26 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index c6aaf28..df9f714 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -145,7 +145,9 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
- 		return -EBUSY;
+diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
+index 7ac3fbf..d791e63 100644
+--- a/arch/arm/configs/omap_4430sdp_defconfig
++++ b/arch/arm/configs/omap_4430sdp_defconfig
+@@ -453,8 +453,23 @@ CONFIG_HW_RANDOM=y
+ # CONFIG_R3964 is not set
+ # CONFIG_RAW_DRIVER is not set
+ # CONFIG_TCG_TPM is not set
+-# CONFIG_I2C is not set
+-# CONFIG_SPI is not set
++CONFIG_I2C=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_HELPER_AUTO=y
++
++#
++# I2C Hardware Bus support
++#
++
++#
++# I2C system bus drivers (mostly embedded / system-on-chip)
++#
++# CONFIG_I2C_DESIGNWARE is not set
++# CONFIG_I2C_GPIO is not set
++# CONFIG_I2C_OCORES is not set
++CONFIG_I2C_OMAP=y
++# CONFIG_I2C_SIMTEC is not set
  
--	clk_enable(wdev->ick);    /* Enable the interface clock */
-+	/* OMAP4 iclk are hw controlled and no sw control is available */
-+	if (!cpu_is_omap44xx())
-+		clk_enable(wdev->ick);    /* Enable the interface clock */
- 	clk_enable(wdev->fck);    /* Enable the functional clock */
+ #
+ # PPS support
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 86b240e..a325ba5 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -81,8 +81,17 @@ static struct omap_musb_board_data musb_board_data = {
+ 	.power			= 100,
+ };
  
- 	/* initialize prescaler */
-@@ -176,7 +178,9 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
- 
- 	omap_wdt_disable(wdev);
- 
--	clk_disable(wdev->ick);
-+	/* OMAP4 iclk are hw controlled and no sw control is available */
-+	if (!cpu_is_omap44xx())
-+		clk_disable(wdev->ick);
- 	clk_disable(wdev->fck);
- #else
- 	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
-@@ -292,11 +296,14 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
- 	wdev->omap_wdt_users = 0;
- 	wdev->mem = mem;
- 
--	wdev->ick = clk_get(&pdev->dev, "ick");
--	if (IS_ERR(wdev->ick)) {
--		ret = PTR_ERR(wdev->ick);
--		wdev->ick = NULL;
--		goto err_clk;
-+	/* OMAP4 iclk are hw controlled and no sw control is available */
-+	if (!cpu_is_omap44xx()) {
-+		wdev->ick = clk_get(&pdev->dev, "ick");
-+		if (IS_ERR(wdev->ick)) {
-+			ret = PTR_ERR(wdev->ick);
-+			wdev->ick = NULL;
-+			goto err_clk;
-+		}
- 	}
- 	wdev->fck = clk_get(&pdev->dev, "fck");
- 	if (IS_ERR(wdev->fck)) {
-@@ -313,7 +320,9 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, wdev);
- 
--	clk_enable(wdev->ick);
-+	/* OMAP4 iclk are hw controlled and no sw control is available */
-+	if (!cpu_is_omap44xx())
-+		clk_enable(wdev->ick);
- 	clk_enable(wdev->fck);
- 
- 	omap_wdt_disable(wdev);
-@@ -335,7 +344,9 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
- 	/* autogate OCP interface clock */
- 	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
- 
--	clk_disable(wdev->ick);
-+	/* OMAP4 iclk are hw controlled and no sw control is available */
-+	if (!cpu_is_omap44xx())
-+		clk_disable(wdev->ick);
- 	clk_disable(wdev->fck);
- 
- 	omap_wdt_dev = pdev;
-@@ -350,8 +361,10 @@ err_ioremap:
- 	wdev->base = NULL;
- 
- err_clk:
--	if (wdev->ick)
--		clk_put(wdev->ick);
-+	/* OMAP4 iclk are hw controlled and no sw control is available */
-+	if (!cpu_is_omap44xx())
-+		if (wdev->ick)
-+			clk_put(wdev->ick);
- 	if (wdev->fck)
- 		clk_put(wdev->fck);
- 	kfree(wdev);
-@@ -385,7 +398,9 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
- 	release_mem_region(res->start, resource_size(res));
- 	platform_set_drvdata(pdev, NULL);
- 
--	clk_put(wdev->ick);
-+	/* OMAP4 iclk are hw controlled and no sw control is available */
-+	if (!cpu_is_omap44xx())
-+		clk_put(wdev->ick);
- 	clk_put(wdev->fck);
- 	iounmap(wdev->base);
- 
++static int __init omap4_i2c_init(void)
++{
++	/* Phoenix Audio IC needs I2C1 to start with 400 KHz and less */
++	omap_register_i2c_bus(1, 400, NULL, 0);
++	omap_register_i2c_bus(2, 400, NULL, 0);
++	omap_register_i2c_bus(3, 400, NULL, 0);
++	return 0;
++}
+ static void __init omap_4430sdp_init(void)
+ {
++	omap4_i2c_init();
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+ 	omap_serial_init();
+ 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
 -- 
 1.6.0.4
 
