@@ -1,64 +1,59 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] omap4: Add needed IRQ line into irqs.h
-Date: Tue, 16 Feb 2010 21:11:17 +0530
-Message-ID: <1266334896-30686-5-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH] omap4: Fix omap_type() for omap4
+Date: Tue, 16 Feb 2010 21:11:18 +0530
+Message-ID: <1266334896-30686-6-git-send-email-santosh.shilimkar@ti.com>
 References: <1266334896-30686-1-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-2-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-3-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266334896-30686-5-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49290 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932814Ab0BPPmR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 10:42:17 -0500
-In-Reply-To: <1266334896-30686-4-git-send-email-santosh.shilimkar@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51855 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932735Ab0BPPmE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Feb 2010 10:42:04 -0500
+In-Reply-To: <1266334896-30686-5-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds DSS, keyboard and ducati irq
-entries in irqs.h
-
-Ones omap4 hwmod is pushed on mainlie, all the
-irqs lines data would be availabe.
+This patch fixes the omap_type function to detect whether the device
+is GP or HS
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/plat-omap/include/plat/irqs.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/id.c                  |    2 ++
+ arch/arm/plat-omap/include/plat/control.h |    3 +++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index e8205c1..e2fbd74 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -385,6 +385,7 @@
- #define INT_44XX_GPTIMER11	(47 + IRQ_GIC_START)
- #define INT_44XX_GPTIMER12	(95 + IRQ_GIC_START)
- #define INT_44XX_SHA1MD5	(51 + IRQ_GIC_START)
-+#define INT_44XX_DSS_DSI1	(53 + IRQ_GIC_START)
- #define INT_44XX_I2C1_IRQ	(56 + IRQ_GIC_START)
- #define INT_44XX_I2C2_IRQ	(57 + IRQ_GIC_START)
- #define INT_44XX_HDQ_IRQ	(58 + IRQ_GIC_START)
-@@ -405,6 +406,7 @@
- #define INT_44XX_MCBSP4_IRQ_TX	(81 + IRQ_GIC_START)
- #define INT_44XX_MCBSP4_IRQ_RX	(82 + IRQ_GIC_START)
- #define INT_44XX_MMC_IRQ	(83 + IRQ_GIC_START)
-+#define INT_44XX_DSS_DSI2	(84 + IRQ_GIC_START)
- #define INT_44XX_MMC2_IRQ	(86 + IRQ_GIC_START)
- #define INT_44XX_MCBSP2_IRQ_TX	(89 + IRQ_GIC_START)
- #define INT_44XX_MCBSP2_IRQ_RX	(90 + IRQ_GIC_START)
-@@ -442,7 +444,10 @@
- #define INT_44XX_PARTHASH_IRQ	(79 + IRQ_GIC_START)
- #define INT_44XX_MMC3_IRQ	(94 + IRQ_GIC_START)
- #define INT_44XX_MMC4_IRQ	(96 + IRQ_GIC_START)
-+#define INT_44XX_DUCATI_MMU_IRQ	(100 + IRQ_GIC_START)
- #define INT_44XX_MCPDM_IRQ	(112 + IRQ_GIC_START)
-+#define INT_4XX_DSS_HDMI	(101 + IRQ_GIC_START)
-+#define INT_44XX_KBD_CTL	(120 + IRQ_GIC_START)
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 9e7c4ae..e73f7e4 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -57,6 +57,8 @@ int omap_type(void)
+ 		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
+ 	} else if (cpu_is_omap34xx()) {
+ 		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
++	} else if (cpu_is_omap44xx()) {
++		val = omap_ctrl_readl(OMAP44XX_CONTROL_STATUS);
+ 	} else {
+ 		pr_err("Cannot detect omap type!\n");
+ 		goto out;
+diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+index 2074473..a56deee 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -204,6 +204,9 @@
+ #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
+ #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
  
- /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730/850) and
-  * 16 MPUIO lines */
++/* 44xx control status register offset */
++#define OMAP44XX_CONTROL_STATUS		0x2c4
++
+ /*
+  * REVISIT: This list of registers is not comprehensive - there are more
+  * that should be added.
 -- 
 1.6.0.4
 
