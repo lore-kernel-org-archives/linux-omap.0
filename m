@@ -1,10 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 14/24] omap4: Enable WDT and McBSP support
-Date: Tue, 16 Feb 2010 10:42:55 -0800
-Message-ID: <20100216184254.GM21755@atomide.com>
-References: <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 16/24] omap4: Add i2c support on omap4 platform
+Date: Tue, 16 Feb 2010 10:50:50 -0800
+Message-ID: <20100216185050.GN21755@atomide.com>
+References: <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
@@ -12,89 +10,149 @@ References: <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50246 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60831 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755554Ab0BPSmK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 13:42:10 -0500
+	with ESMTP id S932757Ab0BPSuH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 13:50:07 -0500
 Content-Disposition: inline
-In-Reply-To: <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Syed Rafiuddin <rafiuddin.syed@ti.com>, Ben Dooks <ben-linux@fluff.org>
 
 * Santosh Shilimkar <santosh.shilimkar@ti.com> [100216 07:55]:
-> This patch enables watchdog timer and McBSP support on omap4430
-> sdp platform.
-> Additinaly the uart3 made as default console in the omap_4430sdp_defconfig
+> This patch is rebased version of earlier post to add I2C
+> driver support to OMAP4 platform. On OMAP4, all
+> I2C register address offsets are changed from OMAP1/2/3 I2C.
+> In order to not have #ifdef's at various places in code,
+> as well as to support multi-OMAP build, an array is created
+> to hold the register addresses with it's offset.
+> 
+> This patch was submitted, reviewed and acked on mailing list
+> already. For more details refer below link
+> http://www.mail-archive.com/linux-i2c@vger.kernel.org/msg02281.html
+> 
+> This version updated on top of 16 bit support added as part of
+> the commit "8bb209278e555a626f9637e844fe4c1b90e849f6"
+> 
+> Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> CC: Tony Lindgren <tony@atomide.com>
+> CC: Ben Dooks <ben-linux@fluff.org>
+> ---
+>  arch/arm/plat-omap/i2c.c      |   17 ++++-
+>  drivers/i2c/busses/i2c-omap.c |  148 ++++++++++++++++++++++++++++++++---------
+>  2 files changed, 131 insertions(+), 34 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+> index 96d2781..f18d757 100644
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+> @@ -53,9 +53,15 @@ static struct resource i2c_resources[][2] = {
+>  #if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+>  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_24XX_I2C2_IRQ) },
+>  #endif
+> +#if	defined(CONFIG_ARCH_OMAP4)
+> +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_44XX_I2C2_IRQ) },
+> +#endif
+>  #if	defined(CONFIG_ARCH_OMAP3)
+>  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_34XX_I2C3_IRQ) },
+>  #endif
+> +#if	defined(CONFIG_ARCH_OMAP4)
+> +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_44XX_I2C3_IRQ) },
+> +#endif
+>  };
 
-This probably cannot be applied until the dummy_ck handling is added
-for omap4.
+This is OK, but..
+  
+>  #define I2C_DEV_BUILDER(bus_id, res, data)		\
+> @@ -72,10 +78,11 @@ static struct resource i2c_resources[][2] = {
+>  static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
+>  static struct platform_device omap_i2c_devices[] = {
+>  	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
+> -#if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> +#if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
+> +	defined(CONFIG_ARCH_OMAP4)
+>  	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
+>  #endif
+> -#if	defined(CONFIG_ARCH_OMAP3)
+> +#if	defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+>  	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
+>  #endif
+>  };
+
+.. the ifdefs above can be simplified to ifdef CONFIG_ARCH_OMAP2PLUS.
+That is, with the patches already queued into omap for-next.
+
+
+> @@ -370,7 +434,11 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>  			internal_clk = 9600;
+>  		else
+>  			internal_clk = 4000;
+> -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
+> +		/* FIXME: Remove this once clock framework is available*/
+> +		if (dev->rev >= OMAP_I2C_REV_ON_4430)
+> +			fclk_rate = 96000;
+> +		else
+> +			fclk_rate = clk_get_rate(dev->fclk) / 1000;
+>  
+>  		/* Compute prescaler divisor */
+>  		psc = fclk_rate / internal_clk;
+
+Sounds like this part should no longer be needed?
+
+>  					*dev->buf++ = w;
+>  					dev->buf_len--;
+> -					/* Data reg from 2430 is 8 bit wide */
+> +					/* Data reg in 2430, omap3 and
+> +					 * omap4 is 8 bit wide
+> +					 */
+>  					if (!cpu_is_omap2430() &&
+> -							!cpu_is_omap34xx()) {
+> +							!cpu_is_omap34xx() &&
+> +							!cpu_is_omap44xx()) {
+>  						if (dev->buf_len) {
+>  							*dev->buf++ = w >> 8;
+>  							dev->buf_len--;
+
+How about change this to if (cpu_class_is_omap1() || cpu_is_omap2420())?
+That way it does not need to be patched for new omaps.
+
+> @@ -786,9 +857,12 @@ complete:
+>  				if (dev->buf_len) {
+>  					w = *dev->buf++;
+>  					dev->buf_len--;
+> -					/* Data reg from  2430 is 8 bit wide */
+> +					/* Data reg in 2430, omap3 and
+> +					 * omap4 is 8 bit wide
+> +					 */
+>  					if (!cpu_is_omap2430() &&
+> -							!cpu_is_omap34xx()) {
+> +							!cpu_is_omap34xx() &&
+> +							!cpu_is_omap44xx()) {
+>  						if (dev->buf_len) {
+>  							w |= *dev->buf++ << 8;
+>  							dev->buf_len--;
+
+Here too.
+
+>  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+>  
+> -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+> +	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+>  		u16 s;
+>  
+>  		/* Set up the fifo size - Get total size */
+
+And here too.
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/configs/omap_4430sdp_defconfig |    7 ++++---
->  drivers/watchdog/Kconfig                |    6 +++---
->  2 files changed, 7 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
-> index 3de640a..7ac3fbf 100644
-> --- a/arch/arm/configs/omap_4430sdp_defconfig
-> +++ b/arch/arm/configs/omap_4430sdp_defconfig
-> @@ -199,7 +199,7 @@ CONFIG_ARCH_OMAP4=y
->  #
->  # CONFIG_OMAP_RESET_CLOCKS is not set
->  # CONFIG_OMAP_MUX is not set
-> -# CONFIG_OMAP_MCBSP is not set
-> +CONFIG_OMAP_MCBSP=y
->  # CONFIG_OMAP_MBOX_FWK is not set
->  # CONFIG_OMAP_MPU_TIMER is not set
->  CONFIG_OMAP_32K_TIMER=y
-> @@ -304,7 +304,7 @@ CONFIG_ALIGNMENT_TRAP=y
->  #
->  CONFIG_ZBOOT_ROM_TEXT=0x0
->  CONFIG_ZBOOT_ROM_BSS=0x0
-> -CONFIG_CMDLINE="root=/dev/ram0 rw mem=128M console=ttyS0,115200n8 initrd=0x81600000,20M ramdisk_size=20480"
-> +CONFIG_CMDLINE="root=/dev/ram0 rw mem=128M console=ttyS2,115200n8 initrd=0x81600000,20M ramdisk_size=20480"
->  # CONFIG_XIP_KERNEL is not set
->  # CONFIG_KEXEC is not set
->  
-> @@ -488,7 +488,8 @@ CONFIG_GPIOLIB=y
->  # CONFIG_POWER_SUPPLY is not set
->  # CONFIG_HWMON is not set
->  # CONFIG_THERMAL is not set
-> -# CONFIG_WATCHDOG is not set
-> +CONFIG_WATCHDOG=y
-> +CONFIG_OMAP_WATCHDOG=y
->  CONFIG_SSB_POSSIBLE=y
->  
->  #
-> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-> index 3da3f48..1185f05 100644
-> --- a/drivers/watchdog/Kconfig
-> +++ b/drivers/watchdog/Kconfig
-> @@ -194,10 +194,10 @@ config EP93XX_WATCHDOG
->  
->  config OMAP_WATCHDOG
->  	tristate "OMAP Watchdog"
-> -	depends on ARCH_OMAP16XX || ARCH_OMAP2 || ARCH_OMAP3
-> +	depends on ARCH_OMAP16XX || ARCH_OMAP2 || ARCH_OMAP3 || ARCH_OMAP4
->  	help
-> -	  Support for TI OMAP1610/OMAP1710/OMAP2420/OMAP3430 watchdog.  Say 'Y'
-> -	  here to enable the OMAP1610/OMAP1710/OMAP2420/OMAP3430 watchdog timer.
-> +	  Support for TI OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog.  Say 'Y'
-> +	  here to enable the OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog timer.
->  
->  config PNX4008_WATCHDOG
->  	tristate "PNX4008 Watchdog"
-> -- 
-> 1.6.0.4
-> 
