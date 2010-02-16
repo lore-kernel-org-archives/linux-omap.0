@@ -1,55 +1,39 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 12/19] OMAP3 clock: Remove FreqSel for 3630
-Date: Tue, 16 Feb 2010 14:00:07 +0300
-Message-ID: <4B7A7AB7.90503@ru.mvista.com>
-References: <20100216011942.1101.14348.stgit@localhost.localdomain> <20100216012453.1101.96664.stgit@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv2 0/2] OMAP3: PM: CPUidle cstates names and descriptions
+Date: Tue, 16 Feb 2010 13:58:17 +0200
+Message-ID: <1266321499-11858-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:60704 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923Ab0BPLAh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 06:00:37 -0500
-Received: by ewy19 with SMTP id 19so4157853ewy.21
-        for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 03:00:35 -0800 (PST)
-In-Reply-To: <20100216012453.1101.96664.stgit@localhost.localdomain>
+Received: from smtp.nokia.com ([192.100.122.230]:46693 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754345Ab0BPL6i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 06:58:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "\\\"Kristo Tero (Nokia-D/Tampere)\\\"" <Tero.Kristo@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Hello.
+Hello all,
 
-Paul Walmsley wrote:
+Here is a patch set with minor changes to improve our current cpuidle
+name convention and also to add some description about them.
 
-> From: Vishwanath BS <vishwanath.bs@ti.com>
->
-> DPLL_FREQSEL field in CLKEN_PLL register is no longer valid for
-> OMAP3630. So remove references to that.
->
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/dpll3xxx.c |   11 +++++++----
->  1 files changed, 7 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-> index 2b559fc..84be81c 100644
-> --- a/arch/arm/mach-omap2/dpll3xxx.c
-> +++ b/arch/arm/mach-omap2/dpll3xxx.c
-> @@ -243,8 +243,11 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
->  	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
->  	_omap3_noncore_dpll_bypass(clk);
->  
-> -	/* Set jitter correction */
-> -	if (!cpu_is_omap44xx()) {
-> +	/*
-> +	 * Set jitter correction. No jitter correction for OMAP4 and 3630
-> +	 * since freqsel is field is no longer present
->   
+Currently, depending on which Cstates are enabled/disabled,
+there is a inconsistency between C-state name and what power domain
+states it is supposed to reach when that C-state is selected.
+Besides, there is no way to determine what each C-state is supposed to be,
+from user space point of view.
 
-   I can't parse that comment. I guess first "is" is not needed. :-)
+So, these two minor changes, first, reports the power domain states inside
+the desc node, and also uses a consistent name convention for each cstate,
+based on power domain states.
 
-WBR, Sergei
+
+BR,
+
+Eduardo Valentin (2):
+  OMAP3: PM: Add cpuidle C-state description information
+  OMAP3: PM: Consistently report cpuidle C-state's names
+
+ arch/arm/mach-omap2/cpuidle34xx.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
