@@ -1,130 +1,85 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: DSPBRIDGE: Reclaim all pending buffer on resource cleanup
-Date: Tue, 16 Feb 2010 13:57:31 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602CA2B94C0@dlee06.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602AA6587BF@dlee06.ent.ti.com>
- <4B7AE01E.4060100@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: PATCH[V2 1/3]: Update Platform files for SPI
+Date: Tue, 16 Feb 2010 14:02:19 -0700
+Message-ID: <fa686aa41002161302l4c15f034t4629dbac61c2ff29@mail.gmail.com>
+References: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
+	<20100209222513.GJ21755@atomide.com> <fa686aa41002091440p588ad328i14d0fb28390b2672@mail.gmail.com>
+	<20100209230710.GL21755@atomide.com> <20100212214825.GV21755@atomide.com>
+	<45106.10.24.255.18.1266331093.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52734 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933072Ab0BPT5g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 14:57:36 -0500
-In-Reply-To: <4B7AE01E.4060100@ti.com>
-Content-Language: en-US
+Received: from mail-iw0-f185.google.com ([209.85.223.185]:33635 "EHLO
+	mail-iw0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933294Ab0BPVCl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 16:02:41 -0500
+Received: by iwn15 with SMTP id 15so5704000iwn.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 13:02:39 -0800 (PST)
+In-Reply-To: <45106.10.24.255.18.1266331093.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
+To: Hemanth V <hemanthv@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
 
+On Tue, Feb 16, 2010 at 7:38 AM, Hemanth V <hemanthv@ti.com> wrote:
+>> * Tony Lindgren <tony@atomide.com> [100209 15:03]:
+>>> * Grant Likely <grant.likely@secretlab.ca> [100209 14:38]:
+>>> > On Tue, Feb 9, 2010 at 3:25 PM, Tony Lindgren <tony@atomide.com> =
+wrote:
+>>> > > * Hemanth V <hemanthv@ti.com> [100203 02:19]:
+>>> > >> From ee48142ddc43129a21676dbb56a83e3e7d8063de Mon Sep 17 00:00=
+:00 2001
+>>> > >> From: Hemanth V <hemanthv@ti.com>
+>>> > >> Date: Fri, 27 Nov 2009 14:22:30 +0530
+>>> > >> Subject: [PATCH] Update platform files
+>>> > >>
+>>> > >> This patch updates platform files for
+>>> > >> fifo, slave support
+>>> > >>
+>>> > >> Signed-off-by: Hemanth V <hemanthv@ti.com>
+>>> > >
+>>> > > This should get merged via the spi-devel list with the other pa=
+tches.
+>>> > >
+>>> > > Acked-by: Tony Lindgren <tony@atomide.com>
+>>> >
+>>> > Personally, I prefer not to carry arch/* changes in my next-spi
+>>> > branch, since it means that my pull requests are less obvious for
+>>> > Linus and there is greater chance of conflict.
+>>> >
+>>> > But if you still really want me to merge it through my tree, (or =
+if
+>>> > getting the patches out of order will break things) then I'll pic=
+k it
+>>> > up. =A0Just let me know.
+>>>
+>>> OK, if you ack it, I'll add the header into omap for-next. That
+>>> might break git bisect for some configurations depending in which
+>>> order the patches get pulled by Linus..
+>>>
+>>> I guess eventually this header should not live under plat.
+>>
+>> Hemanth, the patch is missing line breaks so it won't apply:
+>>
+>> http://patchwork.kernel.org/patch/76675/
+>>
+>> Please resend, I'm not editing patches manually any longer thanks.
+>>
+>> Regards,
+>>
+>> Tony
+>>
+> Pl find the patches attached, hopefully it doesnot get corrupted this
+> time
 
+This one is okay, and I've got it in my tree, but I need patches 2 and
+3 resent also.
 
->-----Original Message-----
->From: Ramirez Luna, Omar
->Sent: Tuesday, February 16, 2010 12:13 PM
->To: Guzman Lugo, Fernando
->Cc: linux-omap; Hiroshi Doyu; Ameya Palande; Felipe Contreras
->Subject: Re: DSPBRIDGE: Reclaim all pending buffer on resource cleanup
->
->Hi,
->
->On 2/8/2010 4:20 PM, Guzman Lugo, Fernando wrote:
->>  From 727c83cd8b7e4aca51b214412eaa1b95cde6e4ea Mon Sep 17 00:00:00 2001
->> From: Fernando Guzman Lugo<x0095840@ti.com>
->> Date: Tue, 2 Feb 2010 20:38:10 -0600
->> Subject: [PATCH] DSPBRIDGE: Reclaim all pending buffer on resource
->cleanup
->>
->> Before in case of pending buffer while we try to close
->> a stream, it was doing only one reclaim, in the case there
->> were more pending buffer the second STRM_Close would also
->> fail, now all the pending buffers are reclaim.
->>
->> Signed-off-by: Fernando Guzman Lugo<x0095840@ti.com>
->> ---
->
->Shouldn't this be like?
->Patch 1: Fix
->Patch 2: code enhancement
->
->that said, isn't this missing a STRM_Close? (look below)
-
-Yes, you re right, that is a mistake. I will send it again.
-
-Regards,
-Fernando.
->
->>   drivers/dsp/bridge/rmgr/drv.c |   37 ++++++++++++++++------------------
->---
->>   1 files changed, 16 insertions(+), 21 deletions(-)
->>
->> diff --git a/drivers/dsp/bridge/rmgr/drv.c
->b/drivers/dsp/bridge/rmgr/drv.c
->> index edd8e97..660f375 100644
->> --- a/drivers/dsp/bridge/rmgr/drv.c
->> +++ b/drivers/dsp/bridge/rmgr/drv.c
->> @@ -458,40 +458,35 @@ static DSP_STATUS  DRV_ProcFreeSTRMRes(HANDLE
->hPCtxt)
->>   {
->>   	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
->>   	DSP_STATUS status = DSP_SOK;
->> -	DSP_STATUS status1 = DSP_SOK;
->>   	u8 **apBuffer = NULL;
->> -	struct STRM_RES_OBJECT *pSTRMList = NULL;
->>   	struct STRM_RES_OBJECT *pSTRMRes = NULL;
->> +	struct STRM_INFO strm_info;
->> +	struct DSP_STREAMINFO user;
->>   	u8 *pBufPtr;
->>   	u32 ulBytes;
->>   	u32 dwArg;
->>   	s32 ulBufSize;
->>
->> -	pSTRMList = pCtxt->pSTRMList;
->> -	while (pSTRMList != NULL) {
->> -		pSTRMRes = pSTRMList;
->> -		pSTRMList = pSTRMList->next;
->> -		if (pSTRMRes->uNumBufs != 0) {
->> -			apBuffer = MEM_Alloc((pSTRMRes->uNumBufs *
->> -					    sizeof(u8 *)), MEM_NONPAGED);
->> +	pSTRMRes = pCtxt->pSTRMList;
->> +	while (pSTRMRes) {
->> +		if (pSTRMRes->uNumBufs) {
->> +			apBuffer = MEM_Alloc(pSTRMRes->uNumBufs *
->> +					    sizeof(u8 *), MEM_NONPAGED);
->> +			if (!apBuffer)
->> +				return DSP_EMEMORY;
->>   			status = STRM_FreeBuffer(pSTRMRes->hStream, apBuffer,
->>   						pSTRMRes->uNumBufs, pCtxt);
->>   			MEM_Free(apBuffer);
->>   		}
->> -		status = STRM_Close(pSTRMRes->hStream, pCtxt);
->> -		if (DSP_FAILED(status)) {
->> -			if (status == DSP_EPENDING) {
->> -				status = STRM_Reclaim(pSTRMRes->hStream,
->> -						&pBufPtr,&ulBytes,
->> -						     (u32 *)&ulBufSize,&dwArg);
->> -				if (DSP_SUCCEEDED(status))
->> -					status = STRM_Close(pSTRMRes->hStream,
->> -							pCtxt);
->> +		strm_info.pUser =&user;
->> +		user.uNumberBufsInStream = 0;
->> +		STRM_GetInfo(pSTRMRes->hStream,&strm_info, sizeof(strm_info));
->> +		while (strm_info.pUser->uNumberBufsInStream--)
->> +			STRM_Reclaim(pSTRMRes->hStream,&pBufPtr,&ulBytes,
->> +					     (u32 *)&ulBufSize,&dwArg);
->>
->
->Here.
->
->> -			}
->> -		}
->>   	}
->> -	return status1;
->> +	return status;
->>   }
->>
->>   /* Release all Stream resources and its context
->
->- omar
+Thanks,
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
