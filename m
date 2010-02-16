@@ -1,7 +1,7 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 22/24] omap4: add regulator board data for TWL6030
-Date: Tue, 16 Feb 2010 21:28:13 +0530
-Message-ID: <1266335895-32741-22-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 12/24] omap4: clocks: Make dmtimer clocks calls OMAP4 compatible
+Date: Tue, 16 Feb 2010 21:28:03 +0530
+Message-ID: <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
 References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com>
@@ -13,226 +13,75 @@ References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-20-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-21-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52040 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:52043 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757043Ab0BPP6g (ORCPT
+	with ESMTP id S1757019Ab0BPP6g (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 10:58:36 -0500
-In-Reply-To: <1266335895-32741-21-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Balaji T K <balajitk@ti.com>
+The gptimer library has been adapted for the OMAP4 way of clock calls.
+In OMAP4, the iclk are hw controlled and no sw control is available.
 
-add TWL6030 regulator board data in board-4430sdp.c
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |  161 +++++++++++++++++++++++++++++++++++
- 1 files changed, 161 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/dmtimer.c |   25 +++++++++++++++++++------
+ 1 files changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index ad0a9a5..cbdbfa4 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -19,6 +19,7 @@
- #include <linux/gpio.h>
- #include <linux/usb/otg.h>
- #include <linux/i2c/twl.h>
-+#include <linux/regulator/machine.h>
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 24bf692..e4bfeed 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -428,7 +428,9 @@ void omap_dm_timer_enable(struct omap_dm_timer *timer)
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ 	if (cpu_class_is_omap2()) {
+ 		clk_enable(timer->fclk);
+-		clk_enable(timer->iclk);
++		/* OMAP4 iclk are hw controlled and no sw control available */
++		if (!cpu_is_omap44xx())
++			clk_enable(timer->iclk);
+ 	}
+ #endif
  
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -49,6 +50,25 @@ static struct omap_board_config_kernel sdp4430_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&sdp4430_lcd_config },
- };
+@@ -443,7 +445,9 @@ void omap_dm_timer_disable(struct omap_dm_timer *timer)
  
-+
-+static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
-+	{
-+		.supply = "vmmc",
-+	},
-+	{
-+		.supply = "vmmc",
-+	},
-+	{
-+		.supply = "vmmc",
-+	},
-+	{
-+		.supply = "vmmc",
-+	},
-+	{
-+		.supply = "vmmc",
-+	},
-+};
-+
- static void __init gic_init_irq(void)
- {
- 	void __iomem *base;
-@@ -82,9 +102,150 @@ static struct omap_musb_board_data musb_board_data = {
- 	.power			= 100,
- };
- 
-+static struct regulator_init_data sdp4430_vaux1 = {
-+	.constraints = {
-+		.min_uV		 	= 1000000,
-+		.max_uV		 	= 3000000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
-+static struct regulator_init_data sdp4430_vaux2 = {
-+	.constraints = {
-+		.min_uV		 	= 1200000,
-+		.max_uV		 	= 2800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
-+static struct regulator_init_data sdp4430_vaux3 = {
-+	.constraints = {
-+		.min_uV		 	= 1000000,
-+		.max_uV		 	= 3000000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
-+/* VMMC1 for MMC1 card */
-+static struct regulator_init_data sdp4430_vmmc = {
-+	.constraints = {
-+		.min_uV		 	= 1200000,
-+		.max_uV		 	= 3000000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 5,
-+	.consumer_supplies      = sdp4430_vmmc_supply,
-+};
-+
-+static struct regulator_init_data sdp4430_vpp = {
-+	.constraints = {
-+		.min_uV		 	= 1800000,
-+		.max_uV		 	= 2500000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
-+static struct regulator_init_data sdp4430_vusim = {
-+	.constraints = {
-+		.min_uV		 	= 1200000,
-+		.max_uV		 	= 2900000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
-+static struct regulator_init_data sdp4430_vana = {
-+	.constraints = {
-+		.min_uV		 	= 2100000,
-+		.max_uV		 	= 2100000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
-+static struct regulator_init_data sdp4430_vcxio = {
-+	.constraints = {
-+		.min_uV		 	= 1800000,
-+		.max_uV		 	= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
-+static struct regulator_init_data sdp4430_vdac = {
-+	.constraints = {
-+		.min_uV		 	= 1800000,
-+		.max_uV		 	= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
-+static struct regulator_init_data sdp4430_vusb = {
-+	.constraints = {
-+		.min_uV		 	= 3300000,
-+		.max_uV		 	= 3300000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	 =	REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
- static struct twl4030_platform_data sdp4430_twldata = {
- 	.irq_base	= TWL6030_IRQ_BASE,
- 	.irq_end	= TWL6030_IRQ_END,
-+
-+	/* Regulators */
-+	.vmmc		= &sdp4430_vmmc,
-+	.vpp		= &sdp4430_vpp,
-+	.vusim		= &sdp4430_vusim,
-+	.vana		= &sdp4430_vana,
-+	.vcxio		= &sdp4430_vcxio,
-+	.vdac		= &sdp4430_vdac,
-+	.vusb		= &sdp4430_vusb,
-+	.vaux1		= &sdp4430_vaux1,
-+	.vaux2		= &sdp4430_vaux2,
-+	.vaux3		= &sdp4430_vaux3,
- };
- 
- static struct i2c_board_info __initdata sdp4430_i2c_boardinfo[] = {
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ 	if (cpu_class_is_omap2()) {
+-		clk_disable(timer->iclk);
++		/* OMAP4 iclk are hw controlled and no sw control available */
++		if (!cpu_is_omap44xx())
++			clk_disable(timer->iclk);
+ 		clk_disable(timer->fclk);
+ 	}
+ #endif
+@@ -781,10 +785,19 @@ int __init omap_dm_timer_init(void)
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ 		if (cpu_class_is_omap2()) {
+ 			char clk_name[16];
+-			sprintf(clk_name, "gpt%d_ick", i + 1);
+-			timer->iclk = clk_get(NULL, clk_name);
+-			sprintf(clk_name, "gpt%d_fck", i + 1);
+-			timer->fclk = clk_get(NULL, clk_name);
++			/*
++			 * OMAP4 iclks are hw controlled and no sw control
++			 * is available
++			 */
++			if (cpu_is_omap44xx()) {
++				sprintf(clk_name, "gptimer%d_ck", i + 1);
++				timer->fclk = clk_get(NULL, clk_name);
++			} else {
++				sprintf(clk_name, "gpt%d_ick", i + 1);
++				timer->iclk = clk_get(NULL, clk_name);
++				sprintf(clk_name, "gpt%d_fck", i + 1);
++				timer->fclk = clk_get(NULL, clk_name);
++			}
+ 		}
+ #endif
+ 	}
 -- 
 1.6.0.4
 
