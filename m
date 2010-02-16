@@ -1,79 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap3evm: Doesn't boot at 4fa42e46
-Date: Tue, 16 Feb 2010 10:27:43 -0800
-Message-ID: <20100216182743.GJ21755@atomide.com>
-References: <4B7A5C9A.40404@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E5774225@dbde02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 1/2] DSPBRIDGE: Rename DMM_RES_OBJECT to DMM_MAP_OBJECT
+Date: Tue, 16 Feb 2010 20:27:15 +0200
+Message-ID: <94a0d4531002161027k421304a3j80a7433363ab3a5d@mail.gmail.com>
+References: <cover.1266326009.git.ameya.palande@nokia.com>
+	 <f966f5c490999696e567486ded3b08c4c01f366f.1266326009.git.ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65374 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932771Ab0BPS0z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 13:26:55 -0500
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E5774225@dbde02.ent.ti.com>
+Received: from mail-yw0-f176.google.com ([209.85.211.176]:53026 "EHLO
+	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932771Ab0BPS1S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 13:27:18 -0500
+Received: by ywh6 with SMTP id 6so4774040ywh.4
+        for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 10:27:16 -0800 (PST)
+In-Reply-To: <f966f5c490999696e567486ded3b08c4c01f366f.1266326009.git.ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "Lohithakshan, Ranjith" <ranjithl@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap@vger.kernel.org, felipe.contreras@nokia.com, nm@ti.com, deepak.chitriki@ti.com, omar.ramirez@ti.com, x0095840@ti.com
 
-* Premi, Sanjeev <premi@ti.com> [100216 01:35]:
-> > -----Original Message-----
-> > From: Lohithakshan, Ranjith 
-> > Sent: Tuesday, February 16, 2010 2:22 PM
-> > To: Premi, Sanjeev
-> > Cc: Tony Lindgren; linux-omap@vger.kernel.org; Lohithakshan, Ranjith
-> > Subject: Re: omap3evm: Doesn't boot at 4fa42e46
-> > 
-> > This one line change seem to fix the issue on my end
-> > 
-> > --- a/arch/arm/mach-omap2/mux.c
-> > +++ b/arch/arm/mach-omap2/mux.c
-> > @@ -969,7 +969,7 @@ static void __init omap_mux_init_list(struct
-> > omap_mux *super
-> >                 }
-> >  #endif
-> > 
-> > -#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
-> > +#ifdef CONFIG_OMAP_MUX
-> >                 if (!superset->muxnames || !superset->muxnames[0]) {
-> >                         superset++;
-> >                         continue;
-> > 
-> > Not sure why DebugFS need to be defined for the muxname 
-> > check. omap3evm
-> > and zoom2/3 dont have DebugFS enabled by default in defconfig and that
-> > could explain why these platforms not booting up.
+On Tue, Feb 16, 2010 at 3:20 PM, Ameya Palande <ameya.palande@nokia.com> wrote:
+> In its current state DMM_RES_OBJECT is not correctly tracking reserve and
+> unreserve but only map and unmap. So lets rename it to DMM_MAP_OBJECT to
+> clarify what it is really doing!
+>
+> In addition to this, this patch also does some trivial code cleanup.
+>
+> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 
-Hmm sounds like that's a bug there. The muxnames are available only during
-__init, and optimized out if CONFIG_OMAP_MUX is not set. Initially the
-muxnames were there only if CONFIG_DEBUG_FS was set.
+Reviewed-by: Felipe Contreras <felipe.contreras@nokia.com>
 
-> > 
-> > A formal patch will follow once I get more confirmations that this
-> > change is working.
-
-Please send a formal patch ASAP so we can get it into 2.6.33.
- 
-> The git-bisect brings me here:
-> 
->   premi # g-log-10 78737ae
->   78737ae : omap: Fix arch/arm/mach-omap2/mux.c: Off by one error
->   9ecef43 : omap: Fix 3630 mux errors
->   8d08436 : OMAP2/3: GPMC: ensure valid clock pointer
->   74005a2 : OMAP2/3: IRQ: ensure valid base address
-> 
-> Kernel boots fine at "8d08436". There was earlier a discussion on "9ecef43" but
-> it 'seems' to be specific for 3630 only. 
-> 
-> But the condition you pointed is added at "9ecef43". So, this IS the problem.
-> 
-> I am also trying to check if "78737ae" could also lead to a potential error.
-
-The only concernd there AFAIK is that if  mode0 names for some yet unknown
-mux modes are longer than OMAP_MUX_DEFNAME_LEN.
-
-Regards,
-
-Tony
+-- 
+Felipe Contreras
