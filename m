@@ -1,157 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 16/24] omap4: Add i2c support on omap4 platform
-Date: Tue, 16 Feb 2010 10:50:50 -0800
-Message-ID: <20100216185050.GN21755@atomide.com>
-References: <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 24/24] omap4: multi-omap: Allow build to work
+Date: Tue, 16 Feb 2010 10:53:48 -0800
+Message-ID: <20100216185348.GO21755@atomide.com>
+References: <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-20-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-21-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-22-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-23-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-24-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60831 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932757Ab0BPSuH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 13:50:07 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59399 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab0BPSxE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 13:53:04 -0500
 Content-Disposition: inline
-In-Reply-To: <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <1266335895-32741-24-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Syed Rafiuddin <rafiuddin.syed@ti.com>, Ben Dooks <ben-linux@fluff.org>
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com
 
 * Santosh Shilimkar <santosh.shilimkar@ti.com> [100216 07:55]:
-> This patch is rebased version of earlier post to add I2C
-> driver support to OMAP4 platform. On OMAP4, all
-> I2C register address offsets are changed from OMAP1/2/3 I2C.
-> In order to not have #ifdef's at various places in code,
-> as well as to support multi-OMAP build, an array is created
-> to hold the register addresses with it's offset.
+> The musb support is enable to omap3 platforms. For omap4 only board
+> support is available and the driver still isn't supported.
+> Because of this build with omap3_defconfig used for multi-omap
+> doesn't work on omap4430 sdp.
 > 
-> This patch was submitted, reviewed and acked on mailing list
-> already. For more details refer below link
-> http://www.mail-archive.com/linux-i2c@vger.kernel.org/msg02281.html
+> This patch hacks the musb probe to keep the multi-omap build
+> working on omap4430 sdp
 > 
-> This version updated on top of 16 bit support added as part of
-> the commit "8bb209278e555a626f9637e844fe4c1b90e849f6"
-> 
-> Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
 > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> CC: Tony Lindgren <tony@atomide.com>
-> CC: Ben Dooks <ben-linux@fluff.org>
 > ---
->  arch/arm/plat-omap/i2c.c      |   17 ++++-
->  drivers/i2c/busses/i2c-omap.c |  148 ++++++++++++++++++++++++++++++++---------
->  2 files changed, 131 insertions(+), 34 deletions(-)
+>  drivers/usb/musb/musb_core.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-> index 96d2781..f18d757 100644
-> --- a/arch/arm/plat-omap/i2c.c
-> +++ b/arch/arm/plat-omap/i2c.c
-> @@ -53,9 +53,15 @@ static struct resource i2c_resources[][2] = {
->  #if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
->  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_24XX_I2C2_IRQ) },
->  #endif
-> +#if	defined(CONFIG_ARCH_OMAP4)
-> +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_44XX_I2C2_IRQ) },
-> +#endif
->  #if	defined(CONFIG_ARCH_OMAP3)
->  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_34XX_I2C3_IRQ) },
->  #endif
-> +#if	defined(CONFIG_ARCH_OMAP4)
-> +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_44XX_I2C3_IRQ) },
-> +#endif
->  };
-
-This is OK, but..
-  
->  #define I2C_DEV_BUILDER(bus_id, res, data)		\
-> @@ -72,10 +78,11 @@ static struct resource i2c_resources[][2] = {
->  static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
->  static struct platform_device omap_i2c_devices[] = {
->  	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
-> -#if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-> +#if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
-> +	defined(CONFIG_ARCH_OMAP4)
->  	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
->  #endif
-> -#if	defined(CONFIG_ARCH_OMAP3)
-> +#if	defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
->  	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
->  #endif
->  };
-
-.. the ifdefs above can be simplified to ifdef CONFIG_ARCH_OMAP2PLUS.
-That is, with the patches already queued into omap for-next.
-
-
-> @@ -370,7 +434,11 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			internal_clk = 9600;
->  		else
->  			internal_clk = 4000;
-> -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
-> +		/* FIXME: Remove this once clock framework is available*/
-> +		if (dev->rev >= OMAP_I2C_REV_ON_4430)
-> +			fclk_rate = 96000;
-> +		else
-> +			fclk_rate = clk_get_rate(dev->fclk) / 1000;
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index bcce8e8..13b1c4a 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -2124,6 +2124,10 @@ static int __init musb_probe(struct platform_device *pdev)
+>  	struct resource	*iomem;
+>  	void __iomem	*base;
 >  
->  		/* Compute prescaler divisor */
->  		psc = fclk_rate / internal_clk;
+> +	/* FIXME: multi-omap build to work on omap4 */
+> +	if (cpu_is_omap44xx())
+> +		return 0;
+> +
+>  	iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (!iomem || irq == 0)
+>  		return -ENODEV;
 
-Sounds like this part should no longer be needed?
-
->  					*dev->buf++ = w;
->  					dev->buf_len--;
-> -					/* Data reg from 2430 is 8 bit wide */
-> +					/* Data reg in 2430, omap3 and
-> +					 * omap4 is 8 bit wide
-> +					 */
->  					if (!cpu_is_omap2430() &&
-> -							!cpu_is_omap34xx()) {
-> +							!cpu_is_omap34xx() &&
-> +							!cpu_is_omap44xx()) {
->  						if (dev->buf_len) {
->  							*dev->buf++ = w >> 8;
->  							dev->buf_len--;
-
-How about change this to if (cpu_class_is_omap1() || cpu_is_omap2420())?
-That way it does not need to be patched for new omaps.
-
-> @@ -786,9 +857,12 @@ complete:
->  				if (dev->buf_len) {
->  					w = *dev->buf++;
->  					dev->buf_len--;
-> -					/* Data reg from  2430 is 8 bit wide */
-> +					/* Data reg in 2430, omap3 and
-> +					 * omap4 is 8 bit wide
-> +					 */
->  					if (!cpu_is_omap2430() &&
-> -							!cpu_is_omap34xx()) {
-> +							!cpu_is_omap34xx() &&
-> +							!cpu_is_omap44xx()) {
->  						if (dev->buf_len) {
->  							w |= *dev->buf++ << 8;
->  							dev->buf_len--;
-
-Here too.
-
->  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
->  
-> -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> +	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
->  		u16 s;
->  
->  		/* Set up the fifo size - Get total size */
-
-And here too.
+Should the comment here be "FIXME: allow multi-omap to boot until
+musb is updated for omap4" instead?
 
 Regards,
 
