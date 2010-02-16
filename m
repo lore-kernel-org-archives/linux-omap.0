@@ -1,59 +1,41 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] omap4: Fix omap_type() for omap4
-Date: Tue, 16 Feb 2010 21:11:18 +0530
-Message-ID: <1266334896-30686-6-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH] omap4: sdma: Enable the idle modes on omap4
+Date: Tue, 16 Feb 2010 21:11:15 +0530
+Message-ID: <1266334896-30686-3-git-send-email-santosh.shilimkar@ti.com>
 References: <1266334896-30686-1-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-2-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-3-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-4-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-5-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51855 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932735Ab0BPPmE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Feb 2010 10:42:04 -0500
-In-Reply-To: <1266334896-30686-5-git-send-email-santosh.shilimkar@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49318 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932765Ab0BPPm2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 10:42:28 -0500
+In-Reply-To: <1266334896-30686-2-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch fixes the omap_type function to detect whether the device
-is GP or HS
+This patch enables smart-idle idlemodes and autoidle for sDMA
+on OMAP4
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/id.c                  |    2 ++
- arch/arm/plat-omap/include/plat/control.h |    3 +++
- 2 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/dma.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 9e7c4ae..e73f7e4 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -57,6 +57,8 @@ int omap_type(void)
- 		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
- 	} else if (cpu_is_omap34xx()) {
- 		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
-+	} else if (cpu_is_omap44xx()) {
-+		val = omap_ctrl_readl(OMAP44XX_CONTROL_STATUS);
- 	} else {
- 		pr_err("Cannot detect omap type!\n");
- 		goto out;
-diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-index 2074473..a56deee 100644
---- a/arch/arm/plat-omap/include/plat/control.h
-+++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -204,6 +204,9 @@
- #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
- #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 30ff525..5ec96db 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -2138,7 +2138,7 @@ static int __init omap_init_dma(void)
+ 		setup_irq(irq, &omap24xx_dma_irq);
+ 	}
  
-+/* 44xx control status register offset */
-+#define OMAP44XX_CONTROL_STATUS		0x2c4
-+
- /*
-  * REVISIT: This list of registers is not comprehensive - there are more
-  * that should be added.
+-	if (cpu_is_omap34xx()) {
++	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		/* Enable smartidle idlemodes and autoidle */
+ 		u32 v = dma_read(OCP_SYSCONFIG);
+ 		v &= ~(DMA_SYSCONFIG_MIDLEMODE_MASK |
 -- 
 1.6.0.4
 
