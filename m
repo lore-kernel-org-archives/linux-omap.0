@@ -1,106 +1,94 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 01/24] omap 3/4: uart: fix full-fifo write abort
-Date: Tue, 16 Feb 2010 21:27:52 +0530
-Message-ID: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 17/24] omap4: Add i2c board support for omap4 platform
+Date: Tue, 16 Feb 2010 21:28:08 +0530
+Message-ID: <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com>
+References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54276 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54199 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757036Ab0BPP6f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1757018Ab0BPP6f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 16 Feb 2010 10:58:35 -0500
+In-Reply-To: <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Woodruff Richard <r-woodruff2@ti.com>, Ghorai Sukumar <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch is addition to the already merged commit on non-empty
-uart fifo read abort. "ce13d4716a276f4331d78ba28a5093a63822ab95"
+This patch enables I2C driver for OMAP4430 SDP board file.
 
-OMAP3630 and OMAP4430 UART IP blocks have a restriction on TX FIFO
-too. If you try to write to the tx fifo when it is full, the system aborts.
-
-This can be easily reproducible by not suppressing interconnect errors or
-long duration testing where continuous prints over console from multiple
-threads. This patch is addressing the issue by ensuring that write is
-not issued while fifo is full. A timeout is added to avoid any hang
-on fifo-full for 10 mS which is unlikely case.
-
-Patch is validated on OMAP3630 and OMAP4 SDP.
-
-V2 version removed the additional 1 uS on every TX as per
-Tony's suggestion
-
-Signed-off-by: Woodruff Richard <r-woodruff2@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-CC: Ghorai Sukumar <s-ghorai@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   31 ++++++++++++++++++++++++++++---
- 1 files changed, 28 insertions(+), 3 deletions(-)
+ arch/arm/configs/omap_4430sdp_defconfig |   19 +++++++++++++++++--
+ arch/arm/mach-omap2/board-4430sdp.c     |    9 +++++++++
+ 2 files changed, 26 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 5f3035e..b79bc89 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -23,6 +23,7 @@
- #include <linux/serial_reg.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/delay.h>
- 
- #include <plat/common.h>
- #include <plat/board.h>
-@@ -160,6 +161,13 @@ static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
- 	return (unsigned int)__raw_readb(up->membase + offset);
- }
- 
-+static inline void __serial_write_reg(struct uart_port *up, int offset,
-+		int value)
-+{
-+	offset <<= up->regshift;
-+	__raw_writeb(value, up->membase + offset);
-+}
+diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
+index 7ac3fbf..d791e63 100644
+--- a/arch/arm/configs/omap_4430sdp_defconfig
++++ b/arch/arm/configs/omap_4430sdp_defconfig
+@@ -453,8 +453,23 @@ CONFIG_HW_RANDOM=y
+ # CONFIG_R3964 is not set
+ # CONFIG_RAW_DRIVER is not set
+ # CONFIG_TCG_TPM is not set
+-# CONFIG_I2C is not set
+-# CONFIG_SPI is not set
++CONFIG_I2C=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_HELPER_AUTO=y
 +
- static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
- 				    int value)
- {
-@@ -620,6 +628,20 @@ static unsigned int serial_in_override(struct uart_port *up, int offset)
- 	return __serial_read_reg(up, offset);
- }
- 
-+static void serial_out_override(struct uart_port *up, int offset, int value)
-+{
-+	unsigned int status, tmout = 10000;
++#
++# I2C Hardware Bus support
++#
 +
-+	status = __serial_read_reg(up, UART_LSR);
-+	while (!(status & UART_LSR_THRE)) {
-+		/* Wait up to 10ms for the character(s) to be sent. */
-+		if (--tmout == 0)
-+			break;
-+		udelay(1);
-+		status = __serial_read_reg(up, UART_LSR);
-+	}
-+	__serial_write_reg(up, offset, value);
-+}
- void __init omap_serial_early_init(void)
- {
- 	int i;
-@@ -721,11 +743,14 @@ void __init omap_serial_init_port(int port)
- 	 * omap3xxx: Never read empty UART fifo on UARTs
- 	 * with IP rev >=0x52
- 	 */
--	if (cpu_is_omap44xx())
-+	if (cpu_is_omap44xx()) {
- 		uart->p->serial_in = serial_in_override;
--	else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
--			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
-+		uart->p->serial_out = serial_out_override;
-+	} else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
-+			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV) {
- 		uart->p->serial_in = serial_in_override;
-+		uart->p->serial_out = serial_out_override;
-+	}
- }
++#
++# I2C system bus drivers (mostly embedded / system-on-chip)
++#
++# CONFIG_I2C_DESIGNWARE is not set
++# CONFIG_I2C_GPIO is not set
++# CONFIG_I2C_OCORES is not set
++CONFIG_I2C_OMAP=y
++# CONFIG_I2C_SIMTEC is not set
  
- /**
+ #
+ # PPS support
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 86b240e..a325ba5 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -81,8 +81,17 @@ static struct omap_musb_board_data musb_board_data = {
+ 	.power			= 100,
+ };
+ 
++static int __init omap4_i2c_init(void)
++{
++	/* Phoenix Audio IC needs I2C1 to start with 400 KHz and less */
++	omap_register_i2c_bus(1, 400, NULL, 0);
++	omap_register_i2c_bus(2, 400, NULL, 0);
++	omap_register_i2c_bus(3, 400, NULL, 0);
++	return 0;
++}
+ static void __init omap_4430sdp_init(void)
+ {
++	omap4_i2c_init();
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+ 	omap_serial_init();
+ 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
 -- 
 1.6.0.4
 
