@@ -1,7 +1,7 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] omap4: clocks: Convert i2c clocks data to fclks
-Date: Tue, 16 Feb 2010 21:11:27 +0530
-Message-ID: <1266334896-30686-15-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH] omap4: clocks: Make mcbsp driver's clock calls OMAP4 compatible
+Date: Tue, 16 Feb 2010 21:11:21 +0530
+Message-ID: <1266334896-30686-9-git-send-email-santosh.shilimkar@ti.com>
 References: <1266334896-30686-1-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-2-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-3-git-send-email-santosh.shilimkar@ti.com>
@@ -10,53 +10,50 @@ References: <1266334896-30686-1-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-6-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-7-git-send-email-santosh.shilimkar@ti.com>
  <1266334896-30686-8-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-9-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-10-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-11-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-12-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-13-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-14-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51985 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51417 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932676Ab0BPPm7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Feb 2010 10:42:59 -0500
-In-Reply-To: <1266334896-30686-14-git-send-email-santosh.shilimkar@ti.com>
+	id S932569Ab0BPPm6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Feb 2010 10:42:58 -0500
+In-Reply-To: <1266334896-30686-8-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Abhijit Pagare <abhijitpagare@ti.com>
 
-In OMAP4 I2C module has only fclk control and iclks are controlled
-through hardware.(The OMAP4 clock tree autogeneration script has
-been updated accordingly.)
+The mcbsp driver has been adapted for the OMAP4 way of clock calls.
+In OMAP4, the iclk are hw controlled and no sw control is available
 
-CC:Paul Walmsley <paul@pwsan.com>
-CC:Benoit Cousson <b-cousson@ti.com)his patch>
+Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/mcbsp.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 86af31d..a69e8a0 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -2665,10 +2665,10 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"gptimer9_ck",			&gptimer9_ck,	CK_443X),
- 	CLK("omap2_hdq.0",	"ick",				&hdq1w_ck,	CK_443X),
- 	CLK(NULL,	"hsi_ck",			&hsi_ck,	CK_443X),
--	CLK("i2c_omap.1",	"ick",				&i2c1_ck,	CK_443X),
--	CLK("i2c_omap.2",	"ick",				&i2c2_ck,	CK_443X),
--	CLK("i2c_omap.3",	"ick",				&i2c3_ck,	CK_443X),
--	CLK("i2c_omap.4",	"ick",				&i2c4_ck,	CK_443X),
-+	CLK("i2c_omap.1",	"fck",				&i2c1_ck,	CK_443X),
-+	CLK("i2c_omap.2",	"fck",				&i2c2_ck,	CK_443X),
-+	CLK("i2c_omap.3",	"fck",				&i2c3_ck,	CK_443X),
-+	CLK("i2c_omap.4",	"fck",				&i2c4_ck,	CK_443X),
- 	CLK(NULL,	"iss_ck",			&iss_ck,	CK_443X),
- 	CLK(NULL,	"ivahd_ck",			&ivahd_ck,	CK_443X),
- 	CLK(NULL,	"keyboard_ck",			&keyboard_ck,	CK_443X),
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 473be3d..72b9694 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -1314,11 +1314,14 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
+ 	mcbsp->dma_rx_sync = pdata->dma_rx_sync;
+ 	mcbsp->dma_tx_sync = pdata->dma_tx_sync;
+ 
+-	mcbsp->iclk = clk_get(&pdev->dev, "ick");
+-	if (IS_ERR(mcbsp->iclk)) {
+-		ret = PTR_ERR(mcbsp->iclk);
+-		dev_err(&pdev->dev, "unable to get ick: %d\n", ret);
+-		goto err_iclk;
++	/* OMAP4 iclk are hw controlled and no sw control is available */
++	if (!cpu_is_omap44xx()) {
++		mcbsp->iclk = clk_get(&pdev->dev, "ick");
++		if (IS_ERR(mcbsp->iclk)) {
++			ret = PTR_ERR(mcbsp->iclk);
++			dev_err(&pdev->dev, "unable to get ick: %d\n", ret);
++			goto err_iclk;
++		}
+ 	}
+ 
+ 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
 -- 
 1.6.0.4
 
