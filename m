@@ -1,33 +1,42 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH] dspbridge: Simplify Atoi() method (v2)
-Date: Tue, 16 Feb 2010 17:49:04 -0600
-Message-ID: <4B7B2EF0.80002@ti.com>
-References: <4B7213C1.1040300@ti.com> <1265788738-27123-1-git-send-email-andy.shevchenko@gmail.com>
+Subject: Re: [RESEND] [PATCH] DSPBRIDGE: Adding protection Resource cleanup
+ linked lists
+Date: Tue, 16 Feb 2010 17:56:38 -0600
+Message-ID: <4B7B30B6.5040800@ti.com>
+References: <496565EC904933469F292DDA3F1663E602AA725DC6@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44045 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:44408 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933627Ab0BPXtJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 18:49:09 -0500
-In-Reply-To: <1265788738-27123-1-git-send-email-andy.shevchenko@gmail.com>
+	with ESMTP id S933636Ab0BPX4k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 18:56:40 -0500
+In-Reply-To: <496565EC904933469F292DDA3F1663E602AA725DC6@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+To: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-On 2/10/2010 1:58 AM, Andy Shevchenko wrote:
-> From: Andy Shevchenko<ext-andriy.shevchenko@nokia.com>
+On 2/10/2010 2:32 AM, Guzman Lugo, Fernando wrote:
 >
-> Try to use simple_strtoul() kernel native method instead.
+> Please discard previous one.
 >
-> However, there are opened questions:
->   - why type of Atoi() is s32 if the sign is used only to detect base?
->   - should we really to check hex integers like DEAD0123h?
->   - how many spaces could lead token?
+> Regards,
+> Fernando.
 >
-> Signed-off-by: Andy Shevchenko<ext-andriy.shevchenko@nokia.com>
+>  From 6bcdc02f6265246e385194433775e75db7ad44cf Mon Sep 17 00:00:00 2001
+> From: Fernando Guzman Lugo<x0095840@ti.com>
+> Date: Wed, 10 Feb 2010 02:31:40 -0600
+> Subject: [PATCH] DSPBRIDGE: Adding protection Resource cleanup linked lists
+>
+> This patch protects the Resorce cleanup lists from
+> concurrent access
+>
+> Signed-off-by: Fernando Guzman Lugo<x0095840@ti.com>
+
+
+Removed wcd.c changes as functions affected doesn't exist.
 
 Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 
