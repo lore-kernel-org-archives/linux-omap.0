@@ -1,583 +1,695 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 02/18] DSPBRIDGE: Remove entry point custom debug statements for wmd
-Date: Tue, 16 Feb 2010 02:42:12 -0600
-Message-ID: <1266309748-11714-3-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 06/18] DSPBRIDGE: Remove debug statements for success in wmd
+Date: Tue, 16 Feb 2010 02:42:16 -0600
+Message-ID: <1266309748-11714-7-git-send-email-omar.ramirez@ti.com>
 References: <1266309748-11714-1-git-send-email-omar.ramirez@ti.com>
  <1266309748-11714-2-git-send-email-omar.ramirez@ti.com>
+ <1266309748-11714-3-git-send-email-omar.ramirez@ti.com>
+ <1266309748-11714-4-git-send-email-omar.ramirez@ti.com>
+ <1266309748-11714-5-git-send-email-omar.ramirez@ti.com>
+ <1266309748-11714-6-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54450 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54406 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755846Ab0BPIaL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Feb 2010 03:30:11 -0500
-In-Reply-To: <1266309748-11714-2-git-send-email-omar.ramirez@ti.com>
+	id S1755600Ab0BPIaG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Feb 2010 03:30:06 -0500
+In-Reply-To: <1266309748-11714-6-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Remove statements using GT_ENTER custom bridge level which is
-used to print entry and exit points from functions. Few
-meaningful prints were left for reference when migrating to
-dev_dbg.
-
-This changes are split to touch wmd folder only.
+This patch removes debug statements used to print a successful
+status or printed during normal execution, as they just polute
+the logs if trying to look for a failure.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/wmd/chnl_sm.c        |   10 ------
- drivers/dsp/bridge/wmd/io_sm.c          |   17 +---------
- drivers/dsp/bridge/wmd/mmu_fault.c      |    4 --
- drivers/dsp/bridge/wmd/tiomap3430.c     |   49 ++----------------------------
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c |    5 ---
- drivers/dsp/bridge/wmd/tiomap_io.c      |    9 ------
- drivers/dsp/bridge/wmd/tiomap_sm.c      |    6 ----
- drivers/dsp/bridge/wmd/ue_deh.c         |   19 ++----------
- 8 files changed, 9 insertions(+), 110 deletions(-)
+ drivers/dsp/bridge/wmd/chnl_sm.c        |    4 --
+ drivers/dsp/bridge/wmd/io_sm.c          |   46 ++-----------------
+ drivers/dsp/bridge/wmd/mmu_fault.c      |    5 --
+ drivers/dsp/bridge/wmd/tiomap3430.c     |   74 +++++-------------------------
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   27 +----------
+ drivers/dsp/bridge/wmd/tiomap_io.c      |   22 +--------
+ drivers/dsp/bridge/wmd/ue_deh.c         |    7 ---
+ 7 files changed, 23 insertions(+), 162 deletions(-)
 
 diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index 585c004..11e3930 100644
+index 11e3930..08bd09d 100644
 --- a/drivers/dsp/bridge/wmd/chnl_sm.c
 +++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -104,11 +104,6 @@ DSP_STATUS WMD_CHNL_AddIOReq(struct CHNL_OBJECT *hChnl, void *pHostBuf,
- 	bool fSchedDPC = false;
- 	u16 wMbVal = 0;
- 
--	DBG_Trace(DBG_ENTER,
--		  "> WMD_CHNL_AddIOReq pChnl %p CHNL_IsOutput %x uChnlType "
--		  "%x Id %d\n", pChnl, CHNL_IsOutput(pChnl->uMode),
--		  pChnl->uChnlType, pChnl->uId);
--
- 	fIsEOS = (cBytes == 0);
- 
- 	/* Validate args */
-@@ -239,7 +234,6 @@ func_cont:
- 		IO_Schedule(pChnlMgr->hIOMgr);
- 
- func_end:
--	DBG_Trace(DBG_ENTER, "< WMD_CHNL_AddIOReq pChnl %p\n", pChnl);
- 	return status;
- }
- 
-@@ -580,9 +574,6 @@ DSP_STATUS WMD_CHNL_GetIOC(struct CHNL_OBJECT *hChnl, u32 dwTimeOut,
- 	struct CHNL_IOC ioc = { NULL, 0, 0, 0, 0 };
- 	u8 *pHostSysBuf = NULL;
- 
--	DBG_Trace(DBG_ENTER, "> WMD_CHNL_GetIOC pChnl %p CHNL_IsOutput %x "
--		 "uChnlType %x\n", pChnl, CHNL_IsOutput(pChnl->uMode),
--		 pChnl->uChnlType);
- 	/* Check args: */
- 	if (pIOC == NULL) {
- 		status = DSP_EPOINTER;
-@@ -716,7 +707,6 @@ func_cont:
- 	/* Update User's IOC block: */
- 	*pIOC = ioc;
- func_end:
--	DBG_Trace(DBG_ENTER, "< WMD_CHNL_GetIOC pChnl %p\n", pChnl);
- 	return status;
- }
- 
+@@ -681,10 +681,6 @@ DSP_STATUS WMD_CHNL_GetIOC(struct CHNL_OBJECT *hChnl, u32 dwTimeOut,
+ 		status = copy_to_user(ioc.pBuf, pHostSysBuf, ioc.cBytes);
+ 		if (status) {
+ 			if (current->flags & PF_EXITING) {
+-				DBG_Trace(DBG_LEVEL7,
+-					 "\n2current->flags ==  PF_EXITING, "
+-					 " current->flags;0x%x\n",
+-					 current->flags);
+ 				status = 0;
+ 			} else {
+ 				DBG_Trace(DBG_LEVEL7,
 diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index a25cfd6..046300b 100644
+index 046300b..55ec6ef 100644
 --- a/drivers/dsp/bridge/wmd/io_sm.c
 +++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -876,8 +876,6 @@ static void IO_DispatchChnl(IN struct IO_MGR *pIOMgr,
- 	if (!MEM_IsValidHandle(pIOMgr, IO_MGRSIGNATURE))
- 		goto func_end;
+@@ -276,10 +276,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+ 			HW_MBOX_initSettings(hostRes.dwMboxBase);
+ 			/* Plug the channel ISR */
+ 			if ((request_irq(INT_MAIL_MPU_IRQ, IO_ISR, 0,
+-			  "DspBridge\tmailbox", (void *)pIOMgr)) == 0)
+-				DBG_Trace(DBG_LEVEL1, "ISR_IRQ Object 0x%x \n",
+-						pIOMgr);
+-			else
++			  "DspBridge\tmailbox", (void *)pIOMgr)) != 0)
+ 				status = CHNL_E_ISR;
+ 		}
+ 	} else {
+@@ -320,7 +317,6 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
  
--	DBG_Trace(DBG_LEVEL3, "Entering IO_DispatchChnl \n");
--
- 	/* See if there is any data available for transfer */
- 	if (iMode != IO_SERVICE)
- 		goto func_end;
-@@ -898,8 +896,6 @@ static void IO_DispatchMsg(IN struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
- 	if (!MEM_IsValidHandle(pIOMgr, IO_MGRSIGNATURE))
- 		goto func_end;
+ 		/* Free IO DPC object */
+ 		tasklet_kill(&hIOMgr->dpc_tasklet);
+-		DBG_Trace(GT_2CLASS, "DPC_Destroy: SUCCESS\n");
  
--	DBG_Trace(DBG_LEVEL3, "Entering IO_DispatchMsg \n");
--
- 	/* We are performing both input and output processing. */
- 	InputMsg(pIOMgr, hMsgMgr);
- 	OutputMsg(pIOMgr, hMsgMgr);
-@@ -917,8 +913,6 @@ static void IO_DispatchPM(struct work_struct *work)
- 	DSP_STATUS status;
- 	u32 pArg[2];
+ #ifndef DSP_TRACEBUF_DISABLED
+ 		kfree(hIOMgr->pMsg);
+@@ -452,12 +448,9 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
+ 	if (DSP_SUCCEEDED(status)) {
+ #ifndef DSP_TRACEBUF_DISABLED
+ 		status = COD_GetSymValue(hCodMan, DSP_TRACESEC_END, &ulShm0End);
+-		DBG_Trace(DBG_LEVEL7, "_BRIDGE_TRACE_END value = %x \n",
+-			 ulShm0End);
+ #else
+ 		status = COD_GetSymValue(hCodMan, SHM0_SHARED_END_SYM,
+ 					 &ulShm0End);
+-		DBG_Trace(DBG_LEVEL7, "_SHM0_END = %x \n", ulShm0End);
+ #endif
+ 		if (DSP_FAILED(status))
+ 			status = CHNL_E_NOMEMMAP;
+@@ -713,8 +706,7 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
+ 	 */
+ 	hIOMgr->extProcInfo.tyTlb[0].ulGppPhys = (ulGppVa + ulSeg1Size +
+ 						 ulPadSize);
+-	DBG_Trace(DBG_LEVEL1, "*********extProcInfo *********%x \n",
+-		  hIOMgr->extProcInfo.tyTlb[0].ulGppPhys);
++
+ 	/*
+ 	 * Need SHM Phys addr. IO supports only one DSP for now:
+ 	 * uNumProcs = 1.
+@@ -742,8 +734,6 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
+ 		if (DSP_FAILED(status))
+ 			goto func_end;
+ 		ulShmBase = hIOMgr->extProcInfo.tyTlb[0].ulGppPhys;
+-		DBG_Trace(DBG_LEVEL1, "extProcInfo.tyTlb[0].ulGppPhys %x \n ",
+-				hIOMgr->extProcInfo.tyTlb[0].ulGppPhys);
+ 		ulShmBase += ulShmBaseOffset;
+ 		ulShmBase = (u32)MEM_LinearAddress((void *)ulShmBase,
+ 				    ulMemLength);
+@@ -760,10 +750,7 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
+ 	hIOMgr->pOutput = hIOMgr->pInput + (ulShmLength -
+ 						sizeof(struct SHM)) / 2;
+ 	hIOMgr->uSMBufSize = hIOMgr->pOutput - hIOMgr->pInput;
+-	DBG_Trace(DBG_LEVEL3, "hIOMgr: pInput %p pOutput %p ulShmLength %x\n",
+-				 hIOMgr->pInput, hIOMgr->pOutput, ulShmLength);
+-	DBG_Trace(DBG_LEVEL3, "pSharedMem %p uSMBufSize %x sizeof(SHM) %x\n",
+-		 hIOMgr->pSharedMem, hIOMgr->uSMBufSize, sizeof(struct SHM));
++
+ 	 /*  Set up Shared memory addresses for messaging. */
+ 	hIOMgr->pMsgInputCtrl = (struct MSG *)((u8 *)hIOMgr->pSharedMem
+ 							+ ulShmLength);
+@@ -822,7 +809,6 @@ DSP_STATUS WMD_IO_OnLoaded(struct IO_MGR *hIOMgr)
+ 	if (!hIOMgr->pMsg)
+ 		status = DSP_EMEMORY;
  
--	DBG_Trace(DBG_LEVEL7, "IO_DispatchPM: Entering IO_DispatchPM : \n");
--
- 	/* Perform Power message processing here */
+-	DBG_Trace(DBG_LEVEL1, "** hIOMgr->pMsg: 0x%x\n", hIOMgr->pMsg);
+ 	hIOMgr->ulDspVa = ulDspVa;
+ 	hIOMgr->ulGppVa = (ulGppVa + ulSeg1Size + ulPadSize);
+ 
+@@ -917,8 +903,7 @@ static void IO_DispatchPM(struct work_struct *work)
  	while (pIOMgr->iQuePowerHead != pIOMgr->iQuePowerTail) {
  		pArg[0] = *(u32 *)&(pIOMgr->dQuePowerMbxVal[pIOMgr->
-@@ -988,7 +982,6 @@ void IO_DPC(IN OUT unsigned long pRefData)
- 	DEV_GetDehMgr(pIOMgr->hDevObject, &hDehMgr);
- 	if (!MEM_IsValidHandle(pChnlMgr, CHNL_MGRSIGNATURE))
- 		goto func_end;
--	DBG_Trace(DBG_LEVEL7, "Entering IO_DPC(0x%x)\n", pRefData);
- 
- 	requested = pIOMgr->dpc_req;
- 	serviced = pIOMgr->dpc_sched;
-@@ -1039,7 +1032,6 @@ irqreturn_t IO_ISR(int irq, IN void *pRefData)
- 	if (irq != INT_MAIL_MPU_IRQ ||
- 	   !MEM_IsValidHandle(hIOMgr, IO_MGRSIGNATURE))
- 		return IRQ_NONE;
--	DBG_Trace(DBG_LEVEL3, "Entering IO_ISR(0x%x)\n", pRefData);
+ 			  iQuePowerTail]);
+-		DBG_Trace(DBG_LEVEL7, "IO_DispatchPM - pArg[0] - 0x%x: \n",
+-			 pArg[0]);
++
+ 		/* Send the command to the WMD clk/pwr manager to handle */
+ 		if (pArg[0] ==  MBX_PM_HIBERNATE_EN) {
+ 			DBG_Trace(DBG_LEVEL7, "IO_DispatchPM : Hibernate "
+@@ -1035,7 +1020,6 @@ irqreturn_t IO_ISR(int irq, IN void *pRefData)
  
  	/* Call WMD's CHNLSM_ISR() to see if interrupt is ours, and process. */
  	if (IO_CALLISR(hIOMgr->hWmdContext, &fSchedDPC, &hIOMgr->wIntrVal)) {
-@@ -1198,8 +1190,6 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 	sm = pIOMgr->pSharedMem;
- 	pChnlMgr = pIOMgr->hChnlMgr;
- 
--	DBG_Trace(DBG_LEVEL3, "> InputChnl\n");
--
- 	/* Attempt to perform input */
- 	if (!IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputFull))
- 		goto func_end;
-@@ -1302,7 +1292,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 		NotifyChnlComplete(pChnl, pChirp);
+-		DBG_Trace(DBG_LEVEL3, "IO_ISR %x\n", hIOMgr->wIntrVal);
+ 		if (hIOMgr->wIntrVal & MBX_PM_CLASS) {
+ 			hIOMgr->dQuePowerMbxVal[hIOMgr->iQuePowerHead] =
+ 				hIOMgr->wIntrVal;
+@@ -1046,7 +1030,6 @@ irqreturn_t IO_ISR(int irq, IN void *pRefData)
+ 			queue_work(bridge_workqueue, &hIOMgr->io_workq);
+ 		}
+ 		if (hIOMgr->wIntrVal == MBX_DEH_RESET) {
+-			DBG_Trace(DBG_LEVEL6, "*** DSP RESET ***\n");
+ 			hIOMgr->wIntrVal = 0;
+ 		} else if (fSchedDPC) {
+ 			/*
+@@ -1228,9 +1211,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+ 				pChirp->cBytes = uBytes;
+ 				pChirp->dwArg = dwArg;
+ 				pChirp->status = CHNL_IOCSTATCOMPLETE;
+-				DBG_Trace(DBG_LEVEL7, "Input Chnl:status= 0x%x "
+-					 "\n", *((RMS_WORD *)(pChirp->
+-					 pHostSysBuf)));
++
+ 				if (uBytes == 0) {
+ 					/*
+ 					 * This assertion fails if the DSP
+@@ -1252,8 +1233,6 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+ 					 */
+ 					NTFY_Notify(pChnl->hNtfy,
+ 						   DSP_STREAMDONE);
+-					DBG_Trace(DBG_LEVEL7, "Input Chnl NTFY "
+-						 "chnl = 0x%x\n", pChnl);
+ 				}
+ 				/* Tell DSP if no more I/O buffers available */
+ 				if (!pChnl->pIORequests)
+@@ -1660,8 +1639,6 @@ static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
+ 		/* Get start and length of message part of shared memory */
+ 		status = COD_GetSymValue(hCodMan, SHM0_SHARED_RESERVED_BASE_SYM,
+ 					&ulShm0_RsrvdStart);
+-		DBG_Trace(DBG_LEVEL1, "***ulShm0_RsrvdStart  0x%x \n",
+-			 ulShm0_RsrvdStart);
+ 		if (ulShm0_RsrvdStart == 0) {
+ 			status = DSP_EFAIL;
+ 			goto func_end;
+@@ -2027,9 +2004,6 @@ DSP_STATUS PrintDspTraceBuffer(struct WMD_DEV_CONTEXT *hWmdContext)
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/* Look for SYS_PUTCBEG/SYS_PUTCEND */
+ 		status = COD_GetSymValue(hCodMgr, COD_TRACEBEG, &ulTraceBegin);
+-		GT_1trace(dsp_trace_mask, GT_2CLASS,
+-			"PrintDspTraceBuffer: ulTraceBegin Value 0x%x\n",
+-			ulTraceBegin);
+ 		if (DSP_FAILED(status))
+ 			GT_0trace(dsp_trace_mask, GT_2CLASS,
+ 				"PrintDspTraceBuffer: Failed on "
+@@ -2037,9 +2011,6 @@ DSP_STATUS PrintDspTraceBuffer(struct WMD_DEV_CONTEXT *hWmdContext)
  	}
- func_end:
--	DBG_Trace(DBG_LEVEL3, "< InputChnl\n");
-+	return;
- }
+ 	if (DSP_SUCCEEDED(status)) {
+ 		status = COD_GetSymValue(hCodMgr, COD_TRACEEND, &ulTraceEnd);
+-		GT_1trace(dsp_trace_mask, GT_2CLASS,
+-			"PrintDspTraceBuffer: ulTraceEnd Value 0x%x\n",
+-			ulTraceEnd);
+ 		 if (DSP_FAILED(status))
+ 			GT_0trace(dsp_trace_mask, GT_2CLASS,
+ 				"PrintDspTraceBuffer: Failed on "
+@@ -2056,11 +2027,7 @@ DSP_STATUS PrintDspTraceBuffer(struct WMD_DEV_CONTEXT *hWmdContext)
  
- /*
-@@ -1471,7 +1461,6 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+ 		/* Make sure the data we request fits evenly */
+ 		ulNumBytes = (ulNumBytes / ulWordSize) * ulWordSize;
+-		GT_1trace(dsp_trace_mask, GT_2CLASS, "PrintDspTraceBuffer: "
+-			"ulNumBytes 0x%x\n", ulNumBytes);
+ 		ulNumWords = ulNumBytes * ulWordSize;
+-		GT_1trace(dsp_trace_mask, GT_2CLASS, "PrintDspTraceBuffer: "
+-			"ulNumWords 0x%x\n", ulNumWords);
+ 		status = DEV_GetIntfFxns(pDevObject, &pIntfFxns);
+ 	}
  
- 	pChnlMgr = pIOMgr->hChnlMgr;
- 	sm = pIOMgr->pSharedMem;
--	DBG_Trace(DBG_LEVEL3, "> OutputChnl\n");
- 	/* Attempt to perform output */
- 	if (IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, outputFull))
- 		goto func_end;
-@@ -1535,7 +1524,7 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 		NTFY_Notify(pChnl->hNtfy, DSP_STREAMDONE);
+@@ -2079,9 +2046,6 @@ DSP_STATUS PrintDspTraceBuffer(struct WMD_DEV_CONTEXT *hWmdContext)
  
- func_end:
--	DBG_Trace(DBG_LEVEL3, "< OutputChnl\n");
-+	return;
- }
- /*
-  *  ======== OutputMsg ========
-@@ -1877,8 +1866,6 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
- {
- 	u32 ulNewMessageLength = 0, ulGPPCurPointer;
- 
--	GT_0trace(dsp_trace_mask, GT_ENTER, "Entering PrintDSPDebugTrace\n");
--
- 	while (true) {
- 		/* Get the DSP current pointer */
- 		ulGPPCurPointer = *(u32 *) (hIOMgr->ulTraceBufferCurrent);
+ 			if (DSP_SUCCEEDED(status)) {
+ 				/* Pack and do newline conversion */
+-				GT_0trace(dsp_trace_mask, GT_2CLASS,
+-					"PrintDspTraceBuffer: "
+-					"before pack and unpack.\n");
+ 				PackTraceBuffer(pszBuf, ulNumBytes, ulNumWords);
+ 				GT_1trace(dsp_trace_mask, GT_1CLASS,
+ 					"DSP Trace Buffer:\n%s\n", pszBuf);
 diff --git a/drivers/dsp/bridge/wmd/mmu_fault.c b/drivers/dsp/bridge/wmd/mmu_fault.c
-index 14ca490..a3c8657 100644
+index a3c8657..14cfd62 100644
 --- a/drivers/dsp/bridge/wmd/mmu_fault.c
 +++ b/drivers/dsp/bridge/wmd/mmu_fault.c
-@@ -57,12 +57,9 @@ void MMU_FaultDpc(IN unsigned long pRefData)
- {
- 	struct DEH_MGR *hDehMgr = (struct DEH_MGR *)pRefData;
- 
--	DBG_Trace(DBG_LEVEL1, "MMU_FaultDpc Enter: 0x%x\n", pRefData);
--
- 	if (hDehMgr)
- 		WMD_DEH_Notify(hDehMgr, DSP_MMUFAULT, 0L);
- 
--	DBG_Trace(DBG_LEVEL1, "MMU_FaultDpc Exit: 0x%x\n", pRefData);
- }
- 
- /*
-@@ -76,7 +73,6 @@ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
- 	struct CFG_HOSTRES resources;
- 	DSP_STATUS status = DSP_SOK;
- 
--	DBG_Trace(DBG_LEVEL1, "Entering DEH_DspMmuIsr: 0x%x\n", pRefData);
- 	DBC_Require(irq == INT_DSP_MMU_IRQ);
- 	DBC_Require(MEM_IsValidHandle(pDehMgr, SIGNATURE));
- 
+@@ -108,9 +108,6 @@ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
+ 			HW_MMU_EventDisable(resources.dwDmmuBase,
+ 					    HW_MMU_TRANSLATION_FAULT);
+ 		} else {
+-			DBG_Trace(DBG_LEVEL7,
+-				 "***** MMU FAULT ***** faultcode 0x%x\n",
+-				 dmmuEventMask);
+ 			HW_MMU_EventDisable(resources.dwDmmuBase,
+ 					    HW_MMU_ALL_INTERRUPTS);
+ 		}
+@@ -141,8 +138,6 @@ static bool MMU_CheckIfFault(struct WMD_DEV_CONTEXT *pDevContext)
+ 	hwStatus = HW_MMU_EventStatus(resources.dwDmmuBase, &dmmuEventMask);
+ 	if (dmmuEventMask  ==  HW_MMU_TRANSLATION_FAULT) {
+ 		HW_MMU_FaultAddrRead(resources.dwDmmuBase, &faultAddr);
+-		DBG_Trace(DBG_LEVEL1, "WMD_DEH_Notify: DSP_MMUFAULT, fault "
+-			 "address = 0x%x\n", faultAddr);
+ 		retVal = true;
+ 	}
+ 	return retVal;
 diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index 7c1f59a..3598c2b 100644
+index 3598c2b..ce8e619 100644
 --- a/drivers/dsp/bridge/wmd/tiomap3430.c
 +++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -294,7 +294,6 @@ void WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
- {
- 
- 	DBC_Require(pstrWMDFileName != NULL);
--	DBG_Trace(DBG_ENTER, "In the WMD_DRV_Entry \n");
- 
- 	IO_SM_init(); /* Initialization of io_sm module */
- 
-@@ -322,7 +321,6 @@ static DSP_STATUS WMD_BRD_Monitor(struct WMD_DEV_CONTEXT *hDevContext)
- 	u32 temp;
- 	enum HW_PwrState_t    pwrState;
- 
--	DBG_Trace(DBG_ENTER, "Board in the monitor state  \n");
- 	status = CFG_GetHostResources(
- 		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
- 	if (DSP_FAILED(status))
-@@ -354,7 +352,6 @@ static DSP_STATUS WMD_BRD_Monitor(struct WMD_DEV_CONTEXT *hDevContext)
- 		pDevContext->dwBrdState = BRD_IDLE;
+@@ -342,7 +342,7 @@ static DSP_STATUS WMD_BRD_Monitor(struct WMD_DEV_CONTEXT *hDevContext)
+ 		/* Disable Automatic transition */
+ 		HW_PWR_CLKCTRL_IVA2RegSet(resources.dwCmBase, HW_AUTOTRANS_DIS);
  	}
- error_return:
--	DBG_Trace(DBG_LEVEL6, "WMD_BRD_Monitor - End ****** \n");
- 	GetHWRegs(resources.dwPrmBase, resources.dwCmBase);
- 	return status;
- }
-@@ -373,10 +370,6 @@ static DSP_STATUS WMD_BRD_Read(struct WMD_DEV_CONTEXT *hDevContext,
- 	u32 offset;
- 	u32 dspBaseAddr = hDevContext->dwDspBaseAddr;
- 
--	DBG_Trace(DBG_ENTER, "WMD_BRD_Read, pDevContext: 0x%x\n\t\tpbHostBuf:"
--		  " 0x%x\n\t\tdwDSPAddr:  0x%x\n\t\tulNumBytes:  0x%x\n\t\t"
--		  "ulMemType:  0x%x\n", pDevContext, pbHostBuf,
--		  dwDSPAddr, ulNumBytes, ulMemType);
- 	if (dwDSPAddr < pDevContext->dwDSPStartAdd) {
- 		DBG_Trace(DBG_LEVEL7,
- 			  "WMD_BRD_Read: DSP address < start address \n ");
-@@ -410,8 +403,6 @@ static DSP_STATUS WMD_BRD_SetState(struct WMD_DEV_CONTEXT *hDevContext,
- 	DSP_STATUS status = DSP_SOK;
- 	struct WMD_DEV_CONTEXT *pDevContext = hDevContext;
- 
--	DBG_Trace(DBG_ENTER, "WMD_BRD_SetState: Board State: 0x%x \n",
--		  ulBrdState);
- 	pDevContext->dwBrdState = ulBrdState;
- 	return status;
- }
-@@ -450,9 +441,6 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
- 	u32 tmpIndex;
- 	u32 clkIdIndex = MBX_PM_MAX_RESOURCES;
- 
--	DBG_Trace(DBG_ENTER, "Entering WMD_BRD_Start:\n hDevContext: 0x%x\n\t "
--			     "dwDSPAddr: 0x%x\n", hDevContext, dwDSPAddr);
--
- 	/* The device context contains all the mmu setup info from when the
- 	 * last dsp base image was loaded. The first entry is always
- 	 * SHMMEM base. */
-@@ -780,9 +768,6 @@ static DSP_STATUS WMD_BRD_Stop(struct WMD_DEV_CONTEXT *hDevContext)
- 	u32 dspPwrState;
- 	DSP_STATUS clk_status;
- 
--	DBG_Trace(DBG_ENTER, "Entering WMD_BRD_Stop:\nhDevContext: 0x%x\n",
--		  hDevContext);
--
- 	/* Disable the mail box interrupts */
- 	(void)CHNLSM_DisableInterrupt(pDevContext);
- 
-@@ -846,7 +831,6 @@ static DSP_STATUS WMD_BRD_Stop(struct WMD_DEV_CONTEXT *hDevContext)
- 		memset((u8 *) pPtAttrs->pgInfo, 0x00,
- 		       (pPtAttrs->L2NumPages * sizeof(struct PageInfo)));
- 	}
--	DBG_Trace(DBG_LEVEL6, "WMD_BRD_Stop - End ****** \n");
- 	HW_RST_Reset(resources.dwPrmBase, HW_RST1_IVA2);
- 	HW_RST_Reset(resources.dwPrmBase, HW_RST2_IVA2);
- 	HW_RST_Reset(resources.dwPrmBase, HW_RST3_IVA2);
-@@ -871,9 +855,6 @@ static DSP_STATUS WMD_BRD_Delete(struct WMD_DEV_CONTEXT *hDevContext)
- 	struct PgTableAttrs *pPtAttrs;
- 	DSP_STATUS clk_status;
- 
--	DBG_Trace(DBG_ENTER, "Entering WMD_BRD_Delete:\nhDevContext: 0x%x\n",
--		  hDevContext);
--
- 	/* Disable the mail box interrupts */
- 	(void) CHNLSM_DisableInterrupt(pDevContext);
- 
-@@ -913,7 +894,6 @@ static DSP_STATUS WMD_BRD_Delete(struct WMD_DEV_CONTEXT *hDevContext)
- 		memset((u8 *)pPtAttrs->pgInfo, 0x00,
- 			(pPtAttrs->L2NumPages * sizeof(struct PageInfo)));
- 	}
--	DBG_Trace(DBG_LEVEL6, "WMD_BRD_Delete - End ****** \n");
- 	HW_RST_Reset(resources.dwPrmBase, HW_RST1_IVA2);
- 	HW_RST_Reset(resources.dwPrmBase, HW_RST2_IVA2);
- 	HW_RST_Reset(resources.dwPrmBase, HW_RST3_IVA2);
-@@ -945,10 +925,6 @@ static DSP_STATUS WMD_BRD_Write(struct WMD_DEV_CONTEXT *hDevContext,
- 	DSP_STATUS status = DSP_SOK;
- 	struct WMD_DEV_CONTEXT *pDevContext = hDevContext;
- 
--	DBG_Trace(DBG_ENTER, "WMD_BRD_Write, pDevContext: 0x%x\n\t\t "
--		 "pbHostBuf: 0x%x\n\t\tdwDSPAddr: 0x%x\n\t\tulNumBytes: "
--		 "0x%x\n \t\t ulMemtype: 0x%x\n", pDevContext, pbHostBuf,
--		 dwDSPAddr, ulNumBytes, ulMemType);
- 	if (dwDSPAddr < pDevContext->dwDSPStartAdd) {
- 		DBG_Trace(DBG_LEVEL7,
- 			 "WMD_BRD_Write: DSP address < start address \n ");
-@@ -964,8 +940,6 @@ static DSP_STATUS WMD_BRD_Write(struct WMD_DEV_CONTEXT *hDevContext,
- 					 ulNumBytes, ulMemType, false);
- 	}
- 
--	DBG_Trace(DBG_ENTER, "WMD_BRD_Write, memcopy :  DspLogicAddr=0x%x \n",
--			pDevContext->dwDspBaseAddr);
- 	return status;
- }
- 
-@@ -989,9 +963,6 @@ static DSP_STATUS WMD_DEV_Create(OUT struct WMD_DEV_CONTEXT **ppDevContext,
- 	u32   pg_tbl_va;
- 	u32   align_size;
- 
--	DBG_Trace(DBG_ENTER, "WMD_DEV_Create, ppDevContext: 0x%x\n\t\t "
--		  "hDevObject: 0x%x\n\t\tpConfig: 0x%x\n\t\tpDspConfig: 0x%x\n",
--		  ppDevContext, hDevObject, pConfig, pDspConfig);
- 	 /* Allocate and initialize a data structure to contain the mini driver
- 	 *  state, which becomes the context for later calls into this WMD.  */
- 	pDevContext = MEM_Calloc(sizeof(struct WMD_DEV_CONTEXT), MEM_NONPAGED);
-@@ -1177,8 +1148,6 @@ static DSP_STATUS WMD_DEV_Ctrl(struct WMD_DEV_CONTEXT *pDevContext, u32 dwCmd,
- 	struct WMDIOCTL_EXTPROC *paExtProc = (struct WMDIOCTL_EXTPROC *)pArgs;
- 	s32 ndx;
- 
--	DBG_Trace(DBG_ENTER, "WMD_DEV_Ctrl, pDevContext:  0x%x\n\t\t dwCmd:  "
--		  "0x%x\n\t\tpArgs:  0x%x\n", pDevContext, dwCmd, pArgs);
- 	switch (dwCmd) {
- 	case WMDIOCTL_CHNLREAD:
- 		break;
-@@ -1245,8 +1214,6 @@ static DSP_STATUS WMD_DEV_Destroy(struct WMD_DEV_CONTEXT *hDevContext)
- 	if (!hDevContext)
- 		return DSP_EHANDLE;
- 
--	DBG_Trace(DBG_ENTER, "Entering WMD_DEV_Destroy:n hDevContext ::0x%x\n",
--		  hDevContext);
- 	/* first put the device to stop state */
- 	WMD_BRD_Delete(pDevContext);
- 	if (pDevContext->pPtAttrs) {
-@@ -1543,7 +1510,6 @@ func_cont:
- 	if (DSP_SUCCEEDED(status)) {
- 		status = DSP_SOK;
- 	} else {
--		DBG_Trace(DBG_LEVEL7, "< WMD_BRD_MemMap status %x\n", status);
- 		/*
- 		 * Roll out the mapped pages incase it failed in middle of
- 		 * mapping
-@@ -1816,8 +1782,7 @@ static DSP_STATUS PteUpdate(struct WMD_DEV_CONTEXT *hDevContext, u32 pa,
- 	DSP_STATUS status = DSP_SOK;
- 	u32 pgSize[] = { HW_PAGE_SIZE_16MB, HW_PAGE_SIZE_1MB,
- 			   HW_PAGE_SIZE_64KB, HW_PAGE_SIZE_4KB };
--	DBG_Trace(DBG_ENTER, "> PteUpdate hDevContext %x, pa %x, va %x, "
--		 "size %x, mapAttrs %x\n", hDevContext, pa, va, size, mapAttrs);
+-	DBG_Trace(DBG_LEVEL6, "WMD_BRD_Monitor - Middle ****** \n");
 +
- 	while (numBytes && DSP_SUCCEEDED(status)) {
+ 	GetHWRegs(resources.dwPrmBase, resources.dwCmBase);
+ 	HW_RST_UnReset(resources.dwPrmBase, HW_RST2_IVA2);
+ 	CLK_Enable(SERVICESCLK_iva2_ck);
+@@ -381,8 +381,6 @@ static DSP_STATUS WMD_BRD_Read(struct WMD_DEV_CONTEXT *hDevContext,
+ 	    pDevContext->dwInternalSize) {
+ 		offset = dwDSPAddr - pDevContext->dwDSPStartAdd;
+ 	} else {
+-		DBG_Trace(DBG_LEVEL1,
+-			  "**** Reading From external memory ****  \n ");
+ 		status = ReadExtDspData(pDevContext, pbHostBuf, dwDSPAddr,
+ 					ulNumBytes, ulMemType);
+ 		return status;
+@@ -499,7 +497,7 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 		udelay(100);
+ 		HW_RST_UnReset(resources.dwPrmBase, HW_RST2_IVA2);
+ 		udelay(100);
+-		DBG_Trace(DBG_LEVEL6, "WMD_BRD_Start 0 ****** \n");
++
+ 		GetHWRegs(resources.dwPrmBase, resources.dwCmBase);
+ 		/* Disbale the DSP MMU */
+ 		HW_MMU_Disable(resources.dwDmmuBase);
+@@ -553,21 +551,16 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 		/* Enable the BIOS clock  */
+ 		(void)DEV_GetSymbol(pDevContext->hDevObject,
+ 				BRIDGEINIT_BIOSGPTIMER, &ulBiosGpTimer);
+-		DBG_Trace(DBG_LEVEL7, "BIOS GPTimer : 0x%x\n", ulBiosGpTimer);
+ 		(void)DEV_GetSymbol(pDevContext->hDevObject,
+ 				BRIDGEINIT_LOADMON_GPTIMER,
+ 				&ulLoadMonitorTimer);
+-		DBG_Trace(DBG_LEVEL7, "Load Monitor Timer : 0x%x\n",
+-			  ulLoadMonitorTimer);
+ 	}
+ 
+ 	if (DSP_SUCCEEDED(status)) {
+ 		if (ulLoadMonitorTimer != 0xFFFF) {
+ 			uClkCmd = (BPWR_DisableClock << MBX_PM_CLK_CMDSHIFT) |
+ 						ulLoadMonitorTimer;
+-			DBG_Trace(DBG_LEVEL7,
+-			       "encoded LoadMonitor cmd for Disable: 0x%x\n",
+-			       uClkCmd);
++
+ 			DSPPeripheralClkCtrl(pDevContext, &uClkCmd);
+ 
+ 			extClkId = uClkCmd & MBX_PM_CLK_IDMASK;
+@@ -589,9 +582,7 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 			}
+ 			uClkCmd = (BPWR_EnableClock << MBX_PM_CLK_CMDSHIFT) |
+ 				  ulLoadMonitorTimer;
+-			DBG_Trace(DBG_LEVEL7,
+-				 "encoded LoadMonitor cmd for Enable : 0x%x\n",
+-				 uClkCmd);
++
+ 			DSPPeripheralClkCtrl(pDevContext, &uClkCmd);
+ 
+ 		} else {
+@@ -605,8 +596,7 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 		if (ulBiosGpTimer != 0xFFFF) {
+ 			uClkCmd = (BPWR_DisableClock << MBX_PM_CLK_CMDSHIFT) |
+ 								ulBiosGpTimer;
+-			DBG_Trace(DBG_LEVEL7, "encoded BIOS GPTimer cmd for"
+-					"Disable: 0x%x\n", uClkCmd);
++
+ 			DSPPeripheralClkCtrl(pDevContext, &uClkCmd);
+ 
+ 			extClkId = uClkCmd & MBX_PM_CLK_IDMASK;
+@@ -630,8 +620,7 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 
+ 			uClkCmd = (BPWR_EnableClock << MBX_PM_CLK_CMDSHIFT) |
+ 				   ulBiosGpTimer;
+-			DBG_Trace(DBG_LEVEL7, "encoded BIOS GPTimer cmd :"
+-						"0x%x\n", uClkCmd);
++
+ 			DSPPeripheralClkCtrl(pDevContext, &uClkCmd);
+ 
+ 		} else {
+@@ -650,8 +639,6 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 		temp = (temp & 0xFFFFFFFE) | 0x1;
+ 		*((REG_UWORD32 *) ((u32) (resources.dwCmBase) + 0x34)) =
+ 			(u32) temp;
+-		DBG_Trace(DBG_LEVEL5, "WMD_BRD_Start: _BRIDGE_DSP_FREQ Addr:"
+-				"0x%x \n", ulDspClkAddr);
+ 		if ((unsigned int *)ulDspClkAddr != NULL) {
+ 			/* Get the clock rate */
+ 			status = CLK_GetRate(SERVICESCLK_iva2_ck,
+@@ -693,13 +680,6 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 		 * stale messages */
+ 		(void)CHNLSM_EnableInterrupt(pDevContext);
+ 
+-		HW_RSTCTRL_RegGet(resources.dwPrmBase, HW_RST1_IVA2, &temp);
+-		DBG_Trace(DBG_LEVEL7, "BRD_Start: RM_RSTCTRL_DSP = 0x%x \n",
+-				temp);
+-		HW_RSTST_RegGet(resources.dwPrmBase, HW_RST1_IVA2, &temp);
+-		DBG_Trace(DBG_LEVEL7, "BRD_Start0: RM_RSTST_DSP = 0x%x \n",
+-				temp);
+-
+ 		/* Let DSP go */
+ 		DBG_Trace(DBG_LEVEL7, "Unreset, WMD_BRD_Start\n");
+ 		/* Enable DSP MMU Interrupts */
+@@ -708,12 +688,6 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 		/* release the RST1, DSP starts executing now .. */
+ 		HW_RST_UnReset(resources.dwPrmBase, HW_RST1_IVA2);
+ 
+-		HW_RSTST_RegGet(resources.dwPrmBase, HW_RST1_IVA2, &temp);
+-		DBG_Trace(DBG_LEVEL7, "BRD_Start: RM_RSTST_DSP = 0x%x \n",
+-				temp);
+-		HW_RSTCTRL_RegGet(resources.dwPrmBase, HW_RST1_IVA2, &temp);
+-		DBG_Trace(DBG_LEVEL5, "WMD_BRD_Start: CM_RSTCTRL_DSP: 0x%x \n",
+-				temp);
+ 		DBG_Trace(DBG_LEVEL7, "Driver waiting for Sync @ 0x%x \n",
+ 				dwSyncAddr);
+ 		DBG_Trace(DBG_LEVEL7, "DSP c_int00 Address =  0x%x \n",
+@@ -732,8 +706,6 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 		status = DEV_GetIOMgr(pDevContext->hDevObject, &hIOMgr);
+ 		if (DSP_SUCCEEDED(status)) {
+ 			IO_SHMsetting(hIOMgr, SHM_OPPINFO, NULL);
+-			DBG_Trace(DBG_LEVEL7,
+-			"WMD_BRD_Start: OPP information initialzed\n");
+ 			/* Write the synchronization bit to indicate the
+ 			 * completion of OPP table update to DSP
+ 			 */
+@@ -742,7 +714,6 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
+ 			/* update board state */
+ 			pDevContext->dwBrdState = BRD_RUNNING;
+ 			/* (void)CHNLSM_EnableInterrupt(pDevContext);*/
+-			DBG_Trace(DBG_LEVEL7, "Device Started \n ");
+ 		} else {
+ 			pDevContext->dwBrdState = BRD_UNKNOWN;
+ 			DBG_Trace(DBG_LEVEL7, "Device not Started \n ");
+@@ -822,7 +793,7 @@ static DSP_STATUS WMD_BRD_Stop(struct WMD_DEV_CONTEXT *hDevContext)
+ 		pDevContext->dwDspExtBaseAddr = 0;
+ 
+ 	pDevContext->dwBrdState = BRD_STOPPED;	/* update board state */
+-	DBG_Trace(DBG_LEVEL1, "Device Stopped \n ");
++
+ 	/* This is a good place to clear the MMU page tables as well */
+ 	if (pDevContext->pPtAttrs) {
+ 		pPtAttrs = pDevContext->pPtAttrs;
+@@ -885,7 +856,7 @@ static DSP_STATUS WMD_BRD_Delete(struct WMD_DEV_CONTEXT *hDevContext)
+ 		pDevContext->dwDspExtBaseAddr = 0;
+ 
+ 	pDevContext->dwBrdState = BRD_STOPPED;	/* update board state */
+-	DBG_Trace(DBG_LEVEL1, "Device Stopped \n ");
++
+ 	/* This is a good place to clear the MMU page tables as well */
+ 	if (pDevContext->pPtAttrs) {
+ 		pPtAttrs = pDevContext->pPtAttrs;
+@@ -1087,8 +1058,6 @@ static DSP_STATUS WMD_DEV_Create(OUT struct WMD_DEV_CONTEXT **ppDevContext,
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/* Set the Clock Divisor for the DSP module */
+-		DBG_Trace(DBG_LEVEL7, "WMD_DEV_create:Reset mail box and "
+-			  "enable the clock \n");
+ 		status = CLK_Enable(SERVICESCLK_mailbox_ick);
+ 		if (DSP_FAILED(status)) {
+ 			DBG_Trace(DBG_LEVEL7,
+@@ -1107,7 +1076,6 @@ static DSP_STATUS WMD_DEV_Create(OUT struct WMD_DEV_CONTEXT **ppDevContext,
+ 		pDevContext->dwBrdState = BRD_STOPPED;
+ 		/* Return this ptr to our device state to the WCD for storage:*/
+ 		*ppDevContext = pDevContext;
+-		DBG_Trace(DBG_ENTER, "Device Created \n");
+ 	} else {
+ 		if (pPtAttrs != NULL) {
+ 			if (pPtAttrs->hCSObj)
+@@ -1162,33 +1130,26 @@ static DSP_STATUS WMD_DEV_Ctrl(struct WMD_DEV_CONTEXT *pDevContext, u32 dwCmd,
+ 	case WMDIOCTL_EMERGENCYSLEEP:
+ 		/* Currently only DSP Idle is supported Need to update for
+ 		 * later releases */
+-		DBG_Trace(DBG_LEVEL5, "WMDIOCTL_DEEPSLEEP\n");
+ 		status = SleepDSP(pDevContext, PWR_DEEPSLEEP, pArgs);
+ 		break;
+ 	case WMDIOCTL_WAKEUP:
+-		DBG_Trace(DBG_LEVEL5, "WMDIOCTL_WAKEUP\n");
+ 		status = WakeDSP(pDevContext, pArgs);
+ 		break;
+ 	case WMDIOCTL_CLK_CTRL:
+-		DBG_Trace(DBG_LEVEL5, "WMDIOCTL_CLK_CTRL\n");
+ 		status = DSP_SOK;
+ 		/* Looking For Baseport Fix for Clocks */
+ 		status = DSPPeripheralClkCtrl(pDevContext, pArgs);
+ 		break;
+ 	case WMDIOCTL_PWR_HIBERNATE:
+-		DBG_Trace(DBG_LEVEL5, "WMDIOCTL_PWR_HIBERNATE\n");
+ 		status = handle_hibernation_fromDSP(pDevContext);
+ 		break;
+ 	case WMDIOCTL_PRESCALE_NOTIFY:
+-		DBG_Trace(DBG_LEVEL5, "WMDIOCTL_PRESCALE_NOTIFY\n");
+ 		status = PreScale_DSP(pDevContext, pArgs);
+ 		break;
+ 	case WMDIOCTL_POSTSCALE_NOTIFY:
+-		DBG_Trace(DBG_LEVEL5, "WMDIOCTL_POSTSCALE_NOTIFY\n");
+ 		status = PostScale_DSP(pDevContext, pArgs);
+ 		break;
+ 	case WMDIOCTL_CONSTRAINT_REQUEST:
+-		DBG_Trace(DBG_LEVEL5, "WMDIOCTL_CONSTRAINT_REQUEST\n");
+ 		status = handle_constraints_set(pDevContext, pArgs);
+ 		break;
+ 	default:
+@@ -1433,8 +1394,7 @@ static DSP_STATUS WMD_BRD_MemMap(struct WMD_DEV_CONTEXT *hDevContext,
+ 	if (vma->vm_flags & VM_IO) {
+ 		numUsrPgs =  ulNumBytes / PG_SIZE_4K;
+ 		mpuAddr = ulMpuAddr;
+-		DBG_Trace(DBG_LEVEL4, "WMD_BRD_MemMap:numOfActualTabEntries=%d,"
+-			  "ulNumBytes= %d\n",  numUsrPgs, ulNumBytes);
++
+ 		/* Get the physical addresses for user buffer */
+ 		for (pgI = 0; pgI < numUsrPgs; pgI++) {
+ 			pa = user_va2pa(mm, mpuAddr);
+@@ -1601,9 +1561,7 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
+ 		if (remBytes < (pteCount * PG_SIZE_4K))
+ 			pteCount = remBytes / PG_SIZE_4K;
+ 		remBytesL2 = pteCount * PG_SIZE_4K;
+-		DBG_Trace(DBG_LEVEL1, "WMD_BRD_MemUnMap L2BasePa %x, "
+-			  "L2BaseVa %x pteAddrL2 %x, remBytesL2 %x\n",
+-			  L2BasePa, L2BaseVa, pteAddrL2, remBytesL2);
++
+ 		/*
+ 		 * Unmap the VA space on this L2 PT. A quicker way
+ 		 * would be to clear pteCount entries starting from
+@@ -1676,10 +1634,7 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
+ 			remBytes -= pteCount * PG_SIZE_4K;
+ 		} else
+ 			status = DSP_EFAIL;
+-		DBG_Trace(DBG_LEVEL1, "WMD_BRD_MemUnMap L2PageNum %x, "
+-			  "numEntries %x, pteCount %x, status: 0x%x\n",
+-			  L2PageNum, pt->pgInfo[L2PageNum].numEntries,
+-			  pteCount, status);
++
+ 		SYNC_LeaveCS(pt->hCSObj);
+ 		continue;
+ skip_coarse_page:
+@@ -1787,12 +1742,10 @@ static DSP_STATUS PteUpdate(struct WMD_DEV_CONTEXT *hDevContext, u32 pa,
  		/* To find the max. page size with which both PA & VA are
  		 * aligned */
-@@ -1840,8 +1805,7 @@ static DSP_STATUS PteUpdate(struct WMD_DEV_CONTEXT *hDevContext, u32 pa,
- 			}
- 		}
- 	}
--	DBG_Trace(DBG_ENTER, "< PteUpdate status %x numBytes %x\n", status,
--		  numBytes);
+ 		allBits = paCurr | vaCurr;
+-		DBG_Trace(DBG_LEVEL1, "allBits %x, paCurr %x, vaCurr %x, "
+-			 "numBytes %x ", allBits, paCurr, vaCurr, numBytes);
 +
- 	return status;
- }
- 
-@@ -1866,8 +1830,7 @@ static DSP_STATUS PteSet(struct PgTableAttrs *pt, u32 pa, u32 va,
- 	u32 L2BasePa = 0;
- 	u32 L2PageNum = 0;
- 	DSP_STATUS status = DSP_SOK;
--	DBG_Trace(DBG_ENTER, "> PteSet pPgTableAttrs %x, pa %x, va %x, "
--		 "size %x, attrs %x\n", pt, pa, va, size, attrs);
+ 		for (i = 0; i < 4; i++) {
+ 			if ((numBytes >= pgSize[i]) && ((allBits &
+ 			   (pgSize[i] - 1)) == 0)) {
+-				DBG_Trace(DBG_LEVEL1, "pgSize %x\n", pgSize[i]);
+ 				status = PteSet(pDevContext->pPtAttrs, paCurr,
+ 						vaCurr, pgSize[i], mapAttrs);
+ 				paCurr += pgSize[i];
+@@ -1942,8 +1895,7 @@ static DSP_STATUS MemMapVmalloc(struct WMD_DEV_CONTEXT *pDevContext,
+ 		while (++i < numPages) {
+ 			pPage[0] = vmalloc_to_page((void *)(vaCurr + sizeCurr));
+ 			paNext = page_to_phys(pPage[0]);
+-			DBG_Trace(DBG_LEVEL5, "Xlate Vmalloc VA=0x%x , "
+-				 "PA=0x%x \n", (vaCurr + sizeCurr), paNext);
 +
- 	L1BaseVa = pt->L1BaseVa;
- 	pgTblVa = L1BaseVa;
- 	if ((size == HW_PAGE_SIZE_64KB) || (size == HW_PAGE_SIZE_4KB)) {
-@@ -1933,7 +1896,7 @@ static DSP_STATUS PteSet(struct PgTableAttrs *pt, u32 pa, u32 va,
- 			  attrs->elementSize, attrs->mixedSize);
- 		status = HW_MMU_PteSet(pgTblVa, pa, va, size, attrs);
- 	}
--	DBG_Trace(DBG_ENTER, "< PteSet status %x\n", status);
-+
- 	return status;
- }
- 
-@@ -1954,9 +1917,6 @@ static DSP_STATUS MemMapVmalloc(struct WMD_DEV_CONTEXT *pDevContext,
- 	u32 numOf4KPages;
- 	u32 temp = 0;
- 
--	DBG_Trace(DBG_ENTER, "> MemMapVmalloc hDevContext %x, pa %x, va %x, "
--		  "size %x\n", pDevContext, ulMpuAddr, ulVirtAddr, ulNumBytes);
--
- 	/*
- 	 * Do Kernel va to pa translation.
- 	 * Combine physically contiguous regions to reduce TLBs.
-@@ -2020,7 +1980,6 @@ static DSP_STATUS MemMapVmalloc(struct WMD_DEV_CONTEXT *pDevContext,
- 	 * region
- 	 */
- 	flush_all(pDevContext);
--	DBG_Trace(DBG_LEVEL7, "< WMD_BRD_MemMap at end status %x\n", status);
- 	return status;
- }
- 
+ 			if (paNext == (paCurr + sizeCurr))
+ 				sizeCurr += PAGE_SIZE;
+ 			else
 diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 084f406..193844d 100644
+index 193844d..5acaf44 100644
 --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
 +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -180,8 +180,6 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
- 	u16 timeout = PWRSTST_TIMEOUT / 10;
- 	enum HW_PwrState_t pwrState, targetPwrState;
+@@ -124,12 +124,7 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
  
--	DBG_Trace(DBG_LEVEL7, "SleepDSP- Enter function \n");
+ 		/* Save mailbox settings */
+ 		status = HW_MBOX_saveSettings(resources.dwMboxBase);
+-		DBG_Trace(DBG_LEVEL6, "MailBoxSettings: SYSCONFIG = 0x%x\n",
+-			 mboxsetting.sysconfig);
+-		DBG_Trace(DBG_LEVEL6, "MailBoxSettings: IRQENABLE0 = 0x%x\n",
+-			 mboxsetting.irqEnable0);
+-		DBG_Trace(DBG_LEVEL6, "MailBoxSettings: IRQENABLE1 = 0x%x\n",
+-			 mboxsetting.irqEnable1);
++
+ 		/* Turn off DSP Peripheral clocks and DSP Load monitor timer */
+ 		status = DSP_PeripheralClocks_Disable(pDevContext, NULL);
+ 
+@@ -141,12 +136,7 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
+ 			if (DSP_FAILED(status))
+ 				return status;
+ 			IO_SHMsetting(hIOMgr, SHM_GETOPP, &opplevel);
+-			if (opplevel != VDD1_OPP1) {
+-				DBG_Trace(DBG_LEVEL5,
+-					" DSP requested OPP = %d, MPU"
+-					" requesting low OPP %d instead\n",
+-					opplevel, VDD1_OPP1);
+-			}
++
+ 			/*
+ 			 * Set the OPP to low level before moving to OFF
+ 			 * mode
+@@ -255,9 +245,6 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+ #endif /* CONFIG_BRIDGE_NTFY_PWRERR */
+ 		return WMD_E_TIMEOUT;
+ 	} else {
+-		DBG_Trace(DBG_LEVEL7, "SleepDSP: DSP STANDBY Pwr state %x \n",
+-			 pwrState);
 -
- 	/* Check if sleep code is valid */
- 	if ((dwCmd != PWR_DEEPSLEEP) && (dwCmd != PWR_EMERGENCYDEEPSLEEP)) {
- 		DBG_Trace(DBG_LEVEL7, "SleepDSP- Illegal sleep command\n");
-@@ -350,10 +348,7 @@ DSP_STATUS DSPPeripheralClkCtrl(struct WMD_DEV_CONTEXT *pDevContext,
- 	struct CFG_HOSTRES resources;
- 	u32 value;
+ 		/* Update the Bridger Driver state */
+ 		if (dsp_test_sleepstate == HW_PWR_STATE_OFF)
+ 			pDevContext->dwBrdState = BRD_HIBERNATION;
+@@ -319,9 +306,6 @@ DSP_STATUS WakeDSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
+ #ifdef CONFIG_BRIDGE_DEBUG
+ 	HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
+ 			&pwrState);
+-	DBG_Trace(DBG_LEVEL7,
+-			"\nWakeDSP: Power State After sending Interrupt "
+-			"to DSP %x\n", pwrState);
+ #endif /* CONFIG_BRIDGE_DEBUG */
  
--	DBG_Trace(DBG_ENTER, "Entering DSPPeripheralClkCtrl \n");
- 	dspPerClksBefore = pDevContext->uDspPerClks;
--	DBG_Trace(DBG_ENTER, "DSPPeripheralClkCtrl : uDspPerClks = 0x%x \n",
--		  dspPerClksBefore);
+ 	/* Set the device state to RUNNIG */
+@@ -359,9 +343,6 @@ DSP_STATUS DSPPeripheralClkCtrl(struct WMD_DEV_CONTEXT *pDevContext,
+ 	if (DSP_FAILED(status))
+ 		return DSP_EFAIL;
  
- 	extClk = (u32)*((u32 *)pArgs);
+-	DBG_Trace(DBG_LEVEL3, "DSPPeripheralClkCtrl : extClk+Cmd = 0x%x \n",
+-		 extClk);
+-
+ 	extClkId = extClk & MBX_PM_CLK_IDMASK;
  
+ 	/* process the power message -- TODO, keep it in a separate function */
+@@ -385,8 +366,6 @@ DSP_STATUS DSPPeripheralClkCtrl(struct WMD_DEV_CONTEXT *pDevContext,
+ 	switch (extClkCmd) {
+ 	case BPWR_DisableClock:
+ 		/* Call BP to disable the needed clock */
+-		DBG_Trace(DBG_LEVEL3,
+-			 "DSPPeripheralClkCtrl : Disable CLK for \n");
+ 		status1 = CLK_Disable(BPWR_Clks[clkIdIndex].intClk);
+ 		status = CLK_Disable(BPWR_Clks[clkIdIndex].funClk);
+ 		if (BPWR_CLKID[clkIdIndex] == BPWR_MCBSP1) {
+@@ -410,8 +389,6 @@ DSP_STATUS DSPPeripheralClkCtrl(struct WMD_DEV_CONTEXT *pDevContext,
+ 		}
+ 		break;
+ 	case BPWR_EnableClock:
+-		DBG_Trace(DBG_LEVEL3,
+-			 "DSPPeripheralClkCtrl : Enable CLK for \n");
+ 		status1 = CLK_Enable(BPWR_Clks[clkIdIndex].intClk);
+ 		status = CLK_Enable(BPWR_Clks[clkIdIndex].funClk);
+ 		if (BPWR_CLKID[clkIdIndex] == BPWR_MCBSP1) {
 diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/wmd/tiomap_io.c
-index 4e85efd..4b6ee90 100644
+index 4b6ee90..2d32b26 100644
 --- a/drivers/dsp/bridge/wmd/tiomap_io.c
 +++ b/drivers/dsp/bridge/wmd/tiomap_io.c
-@@ -65,12 +65,6 @@ DSP_STATUS ReadExtDspData(struct WMD_DEV_CONTEXT *hDevContext,
- 	u32	dwBaseAddr = pDevContext->dwDspExtBaseAddr;
- 	bool	bTraceRead = false;
+@@ -86,11 +86,8 @@ DSP_STATUS ReadExtDspData(struct WMD_DEV_CONTEXT *hDevContext,
  
--	DBG_Trace(DBG_ENTER, "ReadExtDspData,"
--	"hDevContext: 0x%x\n\t\tpbHostBuf: 0x%x"
--	"\n\t\tdwDSPAddr:  0x%x\n\t\tulNumBytes:  0x%x\n\t\t"
--	"ulMemType:  0x%x\n", pDevContext, pbHostBuf, dwDSPAddr,
--	ulNumBytes, ulMemType);
--
- 	if (!ulShmBaseVirt) {
- 		status = DEV_GetSymbol(pDevContext->hDevObject,
- 		SHMBASENAME, &ulShmBaseVirt);
-@@ -207,7 +201,6 @@ DSP_STATUS WriteDspData(struct WMD_DEV_CONTEXT *hDevContext, IN u8 *pbHostBuf,
- 	base1 = OMAP_DSP_MEM1_SIZE;
- 	base2 = OMAP_DSP_MEM2_BASE - OMAP_DSP_MEM1_BASE;
- 	base3 = OMAP_DSP_MEM3_BASE - OMAP_DSP_MEM1_BASE;
--	DBG_Trace(DBG_ENTER, "Entered WriteDspData \n");
+ 	if (DSP_SUCCEEDED(status)) {
+ 		if ((dwDSPAddr <= ulTraceSecEnd) &&
+-			(dwDSPAddr >= ulTraceSecBeg)) {
+-			DBG_Trace(DBG_LEVEL5, "Reading from DSP Trace"
+-				 "section 0x%x \n", dwDSPAddr);
++			(dwDSPAddr >= ulTraceSecBeg))
+ 			bTraceRead = true;
+-		}
+ 	}
  
- 	status =  CFG_GetHostResources(
- 		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
-@@ -263,8 +256,6 @@ DSP_STATUS WriteExtDspData(struct WMD_DEV_CONTEXT *pDevContext,
- 	bTempByte1 = 0x0;
- 	bTempByte2 = 0x0;
+ 	/* If reading from TRACE, force remap/unmap */
+@@ -142,20 +139,13 @@ DSP_STATUS ReadExtDspData(struct WMD_DEV_CONTEXT *hDevContext,
+ 			DBC_Assert(ulTLBBaseVirt <= ulShmBaseVirt);
+ 			dwExtProgVirtMem = pDevContext->aTLBEntry[0].ulGppVa;
  
--	DBG_Trace(DBG_ENTER, "Entered WriteExtDspData dwDSPAddr 0x%x "
--		 "ulNumBytes 0x%x \n", dwDSPAddr, ulNumBytes);
- 	  if (bSymbolsReloaded) {
- 		/* Check if it is a load to Trace section */
- 		retVal = DEV_GetSymbol(pDevContext->hDevObject,
-diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
-index b04ed6d..50f54c2 100644
---- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-@@ -41,8 +41,6 @@ DSP_STATUS CHNLSM_EnableInterrupt(struct WMD_DEV_CONTEXT *pDevContext)
- 	struct CFG_HOSTRES resources;
- 	u32 devType;
+-			if (bTraceRead) {
+-				DBG_Trace(DBG_LEVEL7, "ReadExtDspData: "
+-				"GPP VA pointing to SHMMEMBASE 0x%x \n",
+-				 dwExtProgVirtMem);
+-			} else {
++			if (!bTraceRead) {
+ 				ulShmOffsetVirt = ulShmBaseVirt - ulTLBBaseVirt;
+ 				ulShmOffsetVirt += PG_ALIGN_HIGH(ulExtEnd -
+ 						ulDynExtBase + 1,
+ 						HW_PAGE_SIZE_64KB);
+ 				dwExtProgVirtMem -= ulShmOffsetVirt;
+ 				dwExtProgVirtMem += (ulExtBase - ulDynExtBase);
+-				DBG_Trace(DBG_LEVEL7, "ReadExtDspData: "
+-				"GPP VA pointing to EXTMEMBASE 0x%x \n",
+-				dwExtProgVirtMem);
+ 				pDevContext->dwDspExtBaseAddr =
+ 						dwExtProgVirtMem;
  
--	DBG_Trace(DBG_ENTER, "CHNLSM_EnableInterrupt(0x%x)\n", pDevContext);
--
- 	/* Read the messages in the mailbox until the message queue is empty */
+@@ -266,11 +256,8 @@ DSP_STATUS WriteExtDspData(struct WMD_DEV_CONTEXT *pDevContext,
+ 	}
+ 	if (DSP_SUCCEEDED(retVal)) {
+ 		if ((dwDSPAddr <= ulTraceSecEnd) &&
+-		   (dwDSPAddr >= ulTraceSecBeg)) {
+-			DBG_Trace(DBG_LEVEL5, "Writing to DSP Trace "
+-				 "section 0x%x \n", dwDSPAddr);
++		   (dwDSPAddr >= ulTraceSecBeg))
+ 			bTraceLoad = true;
+-		}
+ 	}
  
- 	CFG_GetHostResources((struct CFG_DEVNODE *)DRV_GetFirstDevExtension(),
-@@ -84,8 +82,6 @@ DSP_STATUS CHNLSM_DisableInterrupt(struct WMD_DEV_CONTEXT *pDevContext)
- {
- 	struct CFG_HOSTRES resources;
+ 	/* If dynamic, force remap/unmap */
+@@ -352,9 +339,6 @@ DSP_STATUS WriteExtDspData(struct WMD_DEV_CONTEXT *pDevContext,
+ 				dwExtProgVirtMem = hostRes.dwMemBase[1];
+ 				dwExtProgVirtMem += (ulExtBase - ulDynExtBase);
+ 			}
+-			DBG_Trace(DBG_LEVEL7, "WriteExtDspData: GPP VA "
+-				 "pointing to EXTMEMBASE 0x%x \n",
+-				 dwExtProgVirtMem);
  
--	DBG_Trace(DBG_ENTER, "CHNLSM_DisableInterrupt(0x%x)\n", pDevContext);
--
- 	CFG_GetHostResources((struct CFG_DEVNODE *)DRV_GetFirstDevExtension(),
- 			     &resources);
- 	HW_MBOX_EventDisable(resources.dwMboxBase, MBOX_DSP2ARM,
-@@ -171,8 +167,6 @@ bool CHNLSM_ISR(struct WMD_DEV_CONTEXT *pDevContext, bool *pfSchedDPC,
- 	u32 numMbxMsg;
- 	u32 mbxValue;
- 
--	DBG_Trace(DBG_ENTER, "CHNLSM_ISR(0x%x)\n", pDevContext);
--
- 	CFG_GetHostResources((struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
- 
- 	HW_MBOX_NumMsgGet(resources.dwMboxBase, MBOX_DSP2ARM, &numMbxMsg);
+ 			pDevContext->dwDspExtBaseAddr =
+ 				(u32)MEM_LinearAddress((void *)dwExtProgVirtMem,
 diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index 21d0b48..dd23387 100644
+index dd23387..032a6e3 100644
 --- a/drivers/dsp/bridge/wmd/ue_deh.c
 +++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -72,7 +72,6 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
- 	struct CFG_DEVNODE *hDevNode;
- 	struct WMD_DEV_CONTEXT *hWmdContext = NULL;
- 
--	DBG_Trace(DBG_LEVEL1, "Entering DEH_Create: 0x%x\n", phDehMgr);
- 	 /*  Message manager will be created when a file is loaded, since
- 	 *  size of message buffer in shared memory is configurable in
- 	 *  the base image.  */
-@@ -120,7 +119,7 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
+@@ -117,7 +117,6 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
+ 		*phDehMgr = NULL;
+ 	} else {
  		*phDehMgr = (struct DEH_MGR *)pDehMgr;
- 		DBG_Trace(DBG_LEVEL1, "ISR_IRQ Object 0x%x \n", pDehMgr);
+-		DBG_Trace(DBG_LEVEL1, "ISR_IRQ Object 0x%x \n", pDehMgr);
  	}
--	DBG_Trace(DBG_LEVEL1, "Exiting DEH_Create.\n");
-+
+ 
  	return status;
- }
+@@ -143,7 +142,6 @@ DSP_STATUS WMD_DEH_Destroy(struct DEH_MGR *hDehMgr)
  
-@@ -133,7 +132,6 @@ DSP_STATUS WMD_DEH_Destroy(struct DEH_MGR *hDehMgr)
- 	DSP_STATUS status = DSP_SOK;
- 	struct DEH_MGR *pDehMgr = (struct DEH_MGR *)hDehMgr;
+ 		/* Free DPC object */
+ 		tasklet_kill(&pDehMgr->dpc_tasklet);
+-		DBG_Trace(GT_2CLASS, "DPC_Destroy: SUCCESS\n");
  
--	DBG_Trace(DBG_LEVEL1, "Entering DEH_Destroy: 0x%x\n", pDehMgr);
- 	if (MEM_IsValidHandle(pDehMgr, SIGNATURE)) {
- 		/* Release dummy VA buffer */
- 		WMD_DEH_ReleaseDummyMem();
-@@ -150,7 +148,7 @@ DSP_STATUS WMD_DEH_Destroy(struct DEH_MGR *hDehMgr)
  		/* Deallocate the DEH manager object */
  		MEM_FreeObject(pDehMgr);
- 	}
--	DBG_Trace(DBG_LEVEL1, "Exiting DEH_Destroy.\n");
-+
- 	return status;
- }
- 
-@@ -165,14 +163,11 @@ DSP_STATUS WMD_DEH_RegisterNotify(struct DEH_MGR *hDehMgr, u32 uEventMask,
- 	DSP_STATUS status = DSP_SOK;
- 	struct DEH_MGR *pDehMgr = (struct DEH_MGR *)hDehMgr;
- 
--	DBG_Trace(DBG_LEVEL1, "Entering WMD_DEH_RegisterNotify: 0x%x\n",
--		 pDehMgr);
--
- 	if (MEM_IsValidHandle(pDehMgr, SIGNATURE)) {
- 		status = NTFY_Register(pDehMgr->hNtfy, hNotification,
- 			 uEventMask, uNotifyType);
- 	}
--	DBG_Trace(DBG_LEVEL1, "Exiting WMD_DEH_RegisterNotify.\n");
-+
- 	return status;
- }
- 
-@@ -200,8 +195,6 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
- 		DBG_Trace(DBG_LEVEL7,
- 			 "**Failed to get Host Resources in MMU ISR **\n");
- 
--	DBG_Trace(DBG_LEVEL1, "Entering WMD_DEH_Notify: 0x%x, 0x%x\n", pDehMgr,
--		 ulEventMask);
- 	if (MEM_IsValidHandle(pDehMgr, SIGNATURE)) {
- 		printk(KERN_INFO "WMD_DEH_Notify: ********** DEVICE EXCEPTION "
- 			"**********\n");
-@@ -296,8 +289,6 @@ DBG_Trace(DBG_LEVEL6, "WMD_DEH_Notify: DSP_MMUFAULT, "
- 		PrintDspTraceBuffer(hDehMgr->hWmdContext);
- 
- 	}
--	DBG_Trace(DBG_LEVEL1, "Exiting WMD_DEH_Notify\n");
--
- }
- 
- /*
-@@ -313,8 +304,6 @@ DSP_STATUS WMD_DEH_GetInfo(struct DEH_MGR *hDehMgr,
- 	DBC_Require(pDehMgr);
- 	DBC_Require(pErrInfo);
- 
--	DBG_Trace(DBG_LEVEL1, "Entering WMD_DEH_GetInfo: 0x%x\n", hDehMgr);
--
- 	if (MEM_IsValidHandle(pDehMgr, SIGNATURE)) {
- 		/* Copy DEH error info structure to PROC error info
- 		 * structure. */
-@@ -326,8 +315,6 @@ DSP_STATUS WMD_DEH_GetInfo(struct DEH_MGR *hDehMgr,
- 		status = DSP_EHANDLE;
- 	}
- 
--	DBG_Trace(DBG_LEVEL1, "Exiting WMD_DEH_GetInfo\n");
--
- 	return status;
- }
- 
+@@ -229,8 +227,6 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
+ 					MEM_PAGED);
+ 			memPhysical  = VirtToPhys(PG_ALIGN_LOW((u32)dummyVaAddr,
+ 								PG_SIZE_4K));
+-DBG_Trace(DBG_LEVEL6, "WMD_DEH_Notify: DSP_MMUFAULT, "
+-				 "mem Physical= 0x%x\n", memPhysical);
+ 			pDevContext = (struct WMD_DEV_CONTEXT *)
+ 						pDehMgr->hWmdContext;
+ 			/* Reset the dynamic mmu index to fixed count if it
+@@ -242,9 +238,6 @@ DBG_Trace(DBG_LEVEL6, "WMD_DEH_Notify: DSP_MMUFAULT, "
+ 				pDevContext->numTLBEntries = pDevContext->
+ 					fixedTLBEntries;
+ 			}
+-			DBG_Trace(DBG_LEVEL6, "Adding TLB Entry %d: VA: 0x%x, "
+-				 "PA: 0x%x\n", pDevContext->
+-				numTLBEntries, faultAddr, memPhysical);
+ 			if (DSP_SUCCEEDED(status)) {
+ 				hwStatus = HW_MMU_TLBAdd(resources.dwDmmuBase,
+ 					memPhysical, faultAddr,
 -- 
 1.6.2.4
 
