@@ -1,200 +1,92 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 02/24] omap2/3/4: ioremap omap_globals module
-Date: Tue, 16 Feb 2010 21:27:53 +0530
-Message-ID: <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 24/24] omap4: multi-omap: Allow build to work
+Date: Tue, 16 Feb 2010 21:45:32 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF80F0@dbde02.ent.ti.com>
 References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-20-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-21-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-22-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-23-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-24-git-send-email-santosh.shilimkar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52107 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:54884 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757109Ab0BPP7M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 10:59:12 -0500
-In-Reply-To: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
+	with ESMTP id S1757123Ab0BPQPt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 11:15:49 -0500
+In-Reply-To: <1266335895-32741-24-git-send-email-santosh.shilimkar@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "paul@pwsan.com" <paul@pwsan.com>
 
-This is a clean-up patch towards dynamic allocation of IO space
-instead of using harcoded macros to calculate virtual addresses.
-
-Also update the sdrc, prcm, tap and control module to
-allocate iospace dynamically
-
-As per Tony's suggestion V2 version drops tap changes
-becasue ioremap uses cpu_is_omap2420() and cpu_is_omap2430(),
-so we can't use that for setting tap_base. Hence ioremap()
-won't work for tap until omap2_check_revision() is done
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-CC: Kevin Hilman <khilman@deeprootsystems.com>
-CC: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/control.c            |    6 ++++-
- arch/arm/mach-omap2/prcm.c               |   16 ++++++++++--
- arch/arm/mach-omap2/sdrc.c               |   11 +++++++-
- arch/arm/plat-omap/common.c              |   38 +++++++++++++++---------------
- arch/arm/plat-omap/include/plat/common.h |   12 ++++----
- 5 files changed, 52 insertions(+), 31 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index cdd1f35..43f8a33 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -140,7 +140,11 @@ static struct omap3_control_regs control_context;
- 
- void __init omap2_set_globals_control(struct omap_globals *omap2_globals)
- {
--	omap2_ctrl_base = omap2_globals->ctrl;
-+	/* Static mapping, never released */
-+	if (omap2_globals->ctrl) {
-+		omap2_ctrl_base = ioremap(omap2_globals->ctrl, SZ_4K);
-+		WARN_ON(!omap2_ctrl_base);
-+	}
- }
- 
- void __iomem *omap_ctrl_base_get(void)
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index e8e121a..338d5f6 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -279,9 +279,19 @@ int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, const char *name)
- 
- void __init omap2_set_globals_prcm(struct omap_globals *omap2_globals)
- {
--	prm_base = omap2_globals->prm;
--	cm_base = omap2_globals->cm;
--	cm2_base = omap2_globals->cm2;
-+	/* Static mapping, never released */
-+	if (omap2_globals->prm) {
-+		prm_base = ioremap(omap2_globals->prm, SZ_8K);
-+		WARN_ON(!prm_base);
-+	}
-+	if (omap2_globals->cm) {
-+		cm_base = ioremap(omap2_globals->cm, SZ_8K);
-+		WARN_ON(!cm_base);
-+	}
-+	if (omap2_globals->cm2) {
-+		cm2_base = ioremap(omap2_globals->cm2, SZ_8K);
-+		WARN_ON(!cm2_base);
-+	}
- }
- 
- #ifdef CONFIG_ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-index cbfbd14..4c65f56 100644
---- a/arch/arm/mach-omap2/sdrc.c
-+++ b/arch/arm/mach-omap2/sdrc.c
-@@ -119,8 +119,15 @@ int omap2_sdrc_get_params(unsigned long r,
- 
- void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
- {
--	omap2_sdrc_base = omap2_globals->sdrc;
--	omap2_sms_base = omap2_globals->sms;
-+	/* Static mapping, never released */
-+	if (omap2_globals->sdrc) {
-+		omap2_sdrc_base = ioremap(omap2_globals->sdrc, SZ_64K);
-+		WARN_ON(!omap2_sdrc_base);
-+	}
-+	if (omap2_globals->sms) {
-+		omap2_sms_base = ioremap(omap2_globals->sms, SZ_64K);
-+		WARN_ON(!omap2_sms_base);
-+	}
- }
- 
- /**
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 4f29e8c..ee9499e 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -256,11 +256,11 @@ static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
- static struct omap_globals omap242x_globals = {
- 	.class	= OMAP242X_CLASS,
- 	.tap	= OMAP2_L4_IO_ADDRESS(0x48014000),
--	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP2420_SDRC_BASE),
--	.sms	= OMAP2_L3_IO_ADDRESS(OMAP2420_SMS_BASE),
--	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP2420_CTRL_BASE),
--	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE),
--	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE),
-+	.sdrc	= OMAP2420_SDRC_BASE,
-+	.sms	= OMAP2420_SMS_BASE,
-+	.ctrl	= OMAP2420_CTRL_BASE,
-+	.prm	= OMAP2420_PRM_BASE,
-+	.cm	= OMAP2420_CM_BASE,
- 	.uart1_phys	= OMAP2_UART1_BASE,
- 	.uart2_phys	= OMAP2_UART2_BASE,
- 	.uart3_phys	= OMAP2_UART3_BASE,
-@@ -277,11 +277,11 @@ void __init omap2_set_globals_242x(void)
- static struct omap_globals omap243x_globals = {
- 	.class	= OMAP243X_CLASS,
- 	.tap	= OMAP2_L4_IO_ADDRESS(0x4900a000),
--	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP243X_SDRC_BASE),
--	.sms	= OMAP2_L3_IO_ADDRESS(OMAP243X_SMS_BASE),
--	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE),
--	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE),
--	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE),
-+	.sdrc	= OMAP243X_SDRC_BASE,
-+	.sms	= (OMAP243X_SMS_BASE),
-+	.ctrl	= (OMAP243X_CTRL_BASE),
-+	.prm	= (OMAP2430_PRM_BASE),
-+	.cm	= (OMAP2430_CM_BASE),
- 	.uart1_phys	= OMAP2_UART1_BASE,
- 	.uart2_phys	= OMAP2_UART2_BASE,
- 	.uart3_phys	= OMAP2_UART3_BASE,
-@@ -298,11 +298,11 @@ void __init omap2_set_globals_243x(void)
- static struct omap_globals omap3_globals = {
- 	.class	= OMAP343X_CLASS,
- 	.tap	= OMAP2_L4_IO_ADDRESS(0x4830A000),
--	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP343X_SDRC_BASE),
--	.sms	= OMAP2_L3_IO_ADDRESS(OMAP343X_SMS_BASE),
--	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE),
--	.prm	= OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE),
--	.cm	= OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
-+	.sdrc	= (OMAP343X_SDRC_BASE),
-+	.sms	= (OMAP343X_SMS_BASE),
-+	.ctrl	= (OMAP343X_CTRL_BASE),
-+	.prm	= (OMAP3430_PRM_BASE),
-+	.cm	= (OMAP3430_CM_BASE),
- 	.uart1_phys	= OMAP3_UART1_BASE,
- 	.uart2_phys	= OMAP3_UART2_BASE,
- 	.uart3_phys	= OMAP3_UART3_BASE,
-@@ -325,10 +325,10 @@ void __init omap2_set_globals_36xx(void)
- static struct omap_globals omap4_globals = {
- 	.class	= OMAP443X_CLASS,
- 	.tap	= OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
--	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP443X_CTRL_BASE),
--	.prm	= OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE),
--	.cm	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
--	.cm2	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE),
-+	.ctrl	= (OMAP443X_CTRL_BASE),
-+	.prm	= (OMAP4430_PRM_BASE),
-+	.cm	= (OMAP4430_CM_BASE),
-+	.cm2	= (OMAP4430_CM2_BASE),
- 	.uart1_phys	= OMAP4_UART1_BASE,
- 	.uart2_phys	= OMAP4_UART2_BASE,
- 	.uart3_phys	= OMAP4_UART3_BASE,
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index e04a58e..dc8a897 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -41,12 +41,12 @@ extern struct sys_timer omap_timer;
- struct omap_globals {
- 	u32		class;		/* OMAP class to detect */
- 	void __iomem	*tap;		/* Control module ID code */
--	void __iomem	*sdrc;		/* SDRAM Controller */
--	void __iomem	*sms;		/* SDRAM Memory Scheduler */
--	void __iomem	*ctrl;		/* System Control Module */
--	void __iomem	*prm;		/* Power and Reset Management */
--	void __iomem	*cm;		/* Clock Management */
--	void __iomem	*cm2;
-+	unsigned long   sdrc;           /* SDRAM Controller */
-+	unsigned long   sms;            /* SDRAM Memory Scheduler */
-+	unsigned long   ctrl;           /* System Control Module */
-+	unsigned long   prm;            /* Power and Reset Management */
-+	unsigned long   cm;             /* Clock Management */
-+	unsigned long   cm2;
- 	unsigned long	uart1_phys;
- 	unsigned long	uart2_phys;
- 	unsigned long	uart3_phys;
--- 
-1.6.0.4
-
+Anand,
+> -----Original Message-----
+> From: Gadiyar, Anand
+> Sent: Tuesday, February 16, 2010 9:25 PM
+> To: Shilimkar, Santosh; tony@atomide.com
+> Cc: linux-omap@vger.kernel.org; ben@fluff.org.uk; sameo@linux.intel.com; lrg@slimlogic.co.uk;
+> paul@pwsan.com
+> Subject: RE: [PATCH] omap4: multi-omap: Allow build to work
+> 
+> Shilimkar, Santosh wrote:
+> > The musb support is enable to omap3 platforms. For omap4 only board
+> > support is available and the driver still isn't supported.
+> > Because of this build with omap3_defconfig used for multi-omap
+> > doesn't work on omap4430 sdp.
+> >
+> > This patch hacks the musb probe to keep the multi-omap build
+> > working on omap4430 sdp
+> >
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > ---
+> >  drivers/usb/musb/musb_core.c |    4 ++++
+> >  1 files changed, 4 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/drivers/usb/musb/musb_core.c
+> > b/drivers/usb/musb/musb_core.c
+> > index bcce8e8..13b1c4a 100644
+> > --- a/drivers/usb/musb/musb_core.c
+> > +++ b/drivers/usb/musb/musb_core.c
+> > @@ -2124,6 +2124,10 @@ static int __init musb_probe(struct
+> > platform_device *pdev)
+> >  	struct resource	*iomem;
+> >  	void __iomem	*base;
+> >
+> > +	/* FIXME: multi-omap build to work on omap4 */
+> > +	if (cpu_is_omap44xx())
+> > +		return 0;
+> > +
+> 
+> NAK. I'd prefer that we fix the driver issue correctly.
+> 
+> I would have expected the driver to at least load on OMAP4
+> even if it does not work. Could you please describe the
+> failure?
+> 
+The probe fails because the register bases aren't mapped 
+for omap4. This is because Tony has lined-up musb board support
+for omap4 but corresponding usb driver patches are not yet lined
+up.
+> Also, this will need to go through linux-usb.
