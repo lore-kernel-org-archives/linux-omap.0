@@ -1,142 +1,113 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH/RFC 4/4] OMAP2/3 MMC: initial conversion to runtime PM
-Date: Tue, 16 Feb 2010 16:27:53 -0600
-Message-ID: <004501caaf57$480e1b20$544ff780@am.dhcp.ti.com>
-References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com> <1265244688-4055-5-git-send-email-khilman@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 08/24] omap4: clocks: Make Uart driver's clock calls
+ OMAP4 compatible
+Date: Tue, 16 Feb 2010 15:32:38 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002161516080.10478@utopia.booyaka.com>
+References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33140 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756741Ab0BPW15 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Feb 2010 17:27:57 -0500
-In-Reply-To: <1265244688-4055-5-git-send-email-khilman@deeprootsystems.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:54601 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933126Ab0BPWcj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 17:32:39 -0500
+In-Reply-To: <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Kevin Hilman' <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
-Cc: 'Paul Walmsley' <paul@pwsan.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Abhijit Pagare <abhijitpagare@ti.com>
+Cc: tony@atomide.com, b-cousson@ti.com, linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk
 
-<snip>
+Hello Abhijit, Santosh,
 
->  err_irq:
->  	mmc_host_disable(host->mmc);
-> -	clk_disable(host->iclk);
-> +	pm_runtime_suspend(host->dev);
+On Tue, 16 Feb 2010, Santosh Shilimkar wrote:
 
-Why not pm_runtime_put_sync() here? It can replace the calls:
-mmc_host_disable(host->mmc);
-clk_disable(host->iclk);
-
-
->  	clk_put(host->fclk);
->  	clk_put(host->iclk);
-> +
->  	if (host->got_dbclk) {
->  		clk_disable(host->dbclk);
->  		clk_put(host->dbclk);
-> @@ -2216,7 +2164,8 @@ static int omap_hsmmc_remove(struct platform_device
-> *pdev)
->  		flush_scheduled_work();
+> From: Abhijit Pagare <abhijitpagare@ti.com>
 > 
->  		mmc_host_disable(host->mmc);
-> -		clk_disable(host->iclk);
-> +		pm_runtime_suspend(host->dev);
-> +
+> The uart driver has been adapted for the OMAP4 way of clock calls.
 
-Ditto
+This patch needs some revision.
+
+According to the 4430 TRM ES1.0 Rev A section 23.3.3 "UART/IrDA/CIR 
+Integration", and cross-referencing it with clock44xx_data.c, these clocks 
+which are marked as interface clocks should really be marked as functional 
+clocks.  For example, in the clock data, they descend from per_48_fclk, 
+which according to the TRM diagram, indicates that they are functional 
+clocks.  The TRM diagram also names these clocks "UARTx_FCLK" rather than 
+"UARTx_CK", perhaps this naming should be preserved? 
+
+Also, rather than adding an extra cpu_is_omap*() conditional in the code 
+for a missing clock, please use the dummy_ck functionality.  Santosh will 
+need this for OMAP4 I2C anyway; this appears to be another example where 
+this is needed.
 
 
->  		clk_put(host->fclk);
->  		clk_put(host->iclk);
->  		if (host->got_dbclk) {
-> @@ -2272,7 +2221,7 @@ static int omap_hsmmc_suspend(struct device *dev)
->  			OMAP_HSMMC_WRITE(host->base, HCTL,
->  				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
->  			mmc_host_disable(host->mmc);
-> -			clk_disable(host->iclk);
-> +
->  			if (host->got_dbclk)
->  				clk_disable(host->dbclk);
->  		} else {
-> @@ -2287,6 +2236,11 @@ static int omap_hsmmc_suspend(struct device *dev)
->  			mmc_host_disable(host->mmc);
->  		}
+- Paul
+
 > 
-> +		/*
-> +		 * HACK: "extra" put to compensate for DPM core keeping
-> +		 *       runtime PM disabled.  -- khilman
-> +		 */
-> +		pm_runtime_put_sync(host->dev);
->  	}
->  	return ret;
+> Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c |   24 ++++++++++++++++--------
+>  1 files changed, 16 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index b79bc89..97859b0 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -257,7 +257,8 @@ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
+>  		return;
+>  
+>  	clk_enable(uart->ick);
+> -	clk_enable(uart->fck);
+> +	if (!cpu_is_omap44xx())
+> +		clk_enable(uart->fck);
+>  	uart->clocked = 1;
+>  	omap_uart_restore_context(uart);
 >  }
-> @@ -2302,12 +2256,14 @@ static int omap_hsmmc_resume(struct device *dev)
->  		return 0;
-> 
->  	if (host) {
-> -		ret = clk_enable(host->iclk);
-> -		if (ret)
-> -			goto clk_en_err;
-> +		/*
-> +		 * HACK: "extra" get to compensate for DPM core keeping
-> +		 *       runtime PM disabled.  -- khilman
-> +		 */
-> +		pm_runtime_get_sync(host->dev);
-> 
->  		if (mmc_host_enable(host->mmc) != 0) {
-> -			clk_disable(host->iclk);
-> +			pm_runtime_suspend(host->dev);
->  			goto clk_en_err;
+> @@ -272,7 +273,8 @@ static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
+>  	omap_uart_save_context(uart);
+>  	uart->clocked = 0;
+>  	clk_disable(uart->ick);
+> -	clk_disable(uart->fck);
+> +	if (!cpu_is_omap44xx())
+> +		clk_disable(uart->fck);
+>  }
+>  
+>  static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
+> @@ -669,18 +671,24 @@ void __init omap_serial_early_init(void)
+>  			continue;
 >  		}
+>  
+> -		sprintf(name, "uart%d_ick", i+1);
+> +		if (!cpu_is_omap44xx())
+> +			sprintf(name, "uart%d_ick", i+1);
+> +		else
+> +			sprintf(name, "uart%d_ck", i+1);
+>  		uart->ick = clk_get(NULL, name);
+>  		if (IS_ERR(uart->ick)) {
+>  			printk(KERN_ERR "Could not get uart%d_ick\n", i+1);
+>  			uart->ick = NULL;
+>  		}
+>  
+> -		sprintf(name, "uart%d_fck", i+1);
+> -		uart->fck = clk_get(NULL, name);
+> -		if (IS_ERR(uart->fck)) {
+> -			printk(KERN_ERR "Could not get uart%d_fck\n", i+1);
+> -			uart->fck = NULL;
+> +		if (!cpu_is_omap44xx()) {
+> +			sprintf(name, "uart%d_fck", i+1);
+> +			uart->fck = clk_get(NULL, name);
+> +			if (IS_ERR(uart->fck)) {
+> +				printk(KERN_ERR "Could not get uart%d_fck\n",
+> +									 i+1);
+> +				uart->fck = NULL;
+> +			}
+>  		}
+>  
+>  		/* FIXME: Remove this once the clkdev is ready */
+> -- 
+> 1.6.0.4
 > 
-> @@ -2346,9 +2302,37 @@ clk_en_err:
->  #define omap_hsmmc_resume		NULL
->  #endif
-> 
-> +/* called just before device is disabled */
-> +static int omap_hsmmc_runtime_suspend(struct device *dev)
-> +{
-> +	struct omap_hsmmc_host *host;
-> +
-> +	dev_dbg(dev, "%s\n", __func__);
-> +
-> +	host = platform_get_drvdata(to_platform_device(dev));
-> +	omap_hsmmc_context_save(host);
 
-The context_save fn is now empty. How does it help here?
 
-> +
-> +	return 0;
-> +}
-> +
-> +/* called after device is (re)enabled, ONLY if context was lost */
-> +static int omap_hsmmc_runtime_resume(struct device *dev)
-> +{
-> +	struct omap_hsmmc_host *host;
-> +
-> +	dev_dbg(dev, "%s\n", __func__);
-> +
-> +	host = platform_get_drvdata(to_platform_device(dev));
-> +	omap_hsmmc_context_restore(host);
-> +
-> +	return 0;
-> +}
-> +
->  static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
->  	.suspend	= omap_hsmmc_suspend,
->  	.resume		= omap_hsmmc_resume,
-> +	.runtime_suspend = omap_hsmmc_runtime_suspend,
-> +	.runtime_resume = omap_hsmmc_runtime_resume,
->  };
-> 
->  static struct platform_driver omap_hsmmc_driver = {
-> --
-> 1.6.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+- Paul
