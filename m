@@ -1,29 +1,55 @@
-From: Romeo Enrico Alessio <romeo@korg.it>
-Subject: I2C Driver support for I2C_M_RECV_LEN
-Date: Tue, 16 Feb 2010 11:07:19 +0100
-Message-ID: <4B7A6E57.4010307@korg.it>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 12/19] OMAP3 clock: Remove FreqSel for 3630
+Date: Tue, 16 Feb 2010 14:00:07 +0300
+Message-ID: <4B7A7AB7.90503@ru.mvista.com>
+References: <20100216011942.1101.14348.stgit@localhost.localdomain> <20100216012453.1101.96664.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from linuxhost3.fastnet.it ([195.96.193.34]:34275 "EHLO
-	linuxhost3.fastnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932520Ab0BPKOC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 05:14:02 -0500
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:60704 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751923Ab0BPLAh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 06:00:37 -0500
+Received: by ewy19 with SMTP id 19so4157853ewy.21
+        for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 03:00:35 -0800 (PST)
+In-Reply-To: <20100216012453.1101.96664.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-Hi,
-To implement the communication between a Omap3530 configured as master 
-and a custom device configured as slave, I need to be able to configure 
-the size of readings dynamically according to the first byte sent by the 
-slave.
-Checking kernel I found that in include/linux/i2c.h is declared the 
-I2C_M_RECV_LEN flag for the "struct i2c_msg" which should be what I'm 
-looking for. But I have not found an implementation of this 
-functionality in the Omap I2c driver.
-Can anyone confirm that?
+Hello.
 
-Best Regards
-Enrico
+Paul Walmsley wrote:
+
+> From: Vishwanath BS <vishwanath.bs@ti.com>
+>
+> DPLL_FREQSEL field in CLKEN_PLL register is no longer valid for
+> OMAP3630. So remove references to that.
+>
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/dpll3xxx.c |   11 +++++++----
+>  1 files changed, 7 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+> index 2b559fc..84be81c 100644
+> --- a/arch/arm/mach-omap2/dpll3xxx.c
+> +++ b/arch/arm/mach-omap2/dpll3xxx.c
+> @@ -243,8 +243,11 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+>  	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
+>  	_omap3_noncore_dpll_bypass(clk);
+>  
+> -	/* Set jitter correction */
+> -	if (!cpu_is_omap44xx()) {
+> +	/*
+> +	 * Set jitter correction. No jitter correction for OMAP4 and 3630
+> +	 * since freqsel is field is no longer present
+>   
+
+   I can't parse that comment. I guess first "is" is not needed. :-)
+
+WBR, Sergei
+
