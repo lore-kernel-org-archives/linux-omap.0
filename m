@@ -1,144 +1,130 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4 RFC]OMAP:GPIO: Make GPIO an early init device
-Date: Tue, 16 Feb 2010 11:46:18 -0800
-Message-ID: <20100216194618.GR21755@atomide.com>
-References: <20100215174928.GC21755@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF809F@dbde02.ent.ti.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: DSPBRIDGE: Reclaim all pending buffer on resource cleanup
+Date: Tue, 16 Feb 2010 13:57:31 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602CA2B94C0@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602AA6587BF@dlee06.ent.ti.com>
+ <4B7AE01E.4060100@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51451 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757060Ab0BPTpa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 14:45:30 -0500
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF809F@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52734 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933072Ab0BPT5g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 14:57:36 -0500
+In-Reply-To: <4B7AE01E.4060100@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-* Varadarajan, Charulatha <charu@ti.com> [100216 07:03]:
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Monday, February 15, 2010 11:19 PM
-> > To: Paul Walmsley
-> > Cc: Varadarajan, Charulatha; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 0/4 RFC]OMAP:GPIO: Make GPIO an early init device
-> > 
-> > * Paul Walmsley <paul@pwsan.com> [100214 17:38]:
-> > > On Fri, 12 Feb 2010, Paul Walmsley wrote:
-> > >
-> > > > On Fri, 12 Feb 2010, Varadarajan, Charulatha wrote:
-> > > >
-> > > > >   OMAP: Convert GPIO into a early driver
-> > > >
-> > > > The above patch appears to be missing.  Could you please re-send?
-> > >
-> > > This patch was too big for the mailing list, so it's been posted here:
-> 
-> 
-> Thanks Paul.
-> 
-> > >
-> > > http://www.pwsan.com/omap/patches/gpio/0002-OMAP-GPIO-split-omap1-and-
-> > omap2.patch
-> > 
-> > What, make two almost identical copies of the shared code? No way!
-> > Instead, please keep the common code under plat-omap:
-> > 
-> > arch/arm/plat-omap/gpio.c
-> > 
-> > Then implement the processor specific functions:
-> > 
-> > arch/arm/mach-omap1/gpio.c
-> > arch/arm/mach-omap2/gpio.c
-> > arch/arm/mach-omap2/gpio24xx.c
-> > arch/arm/mach-omap2/gpio44xx.c
-> > 
-> > Then have a subsys_initcall in processor specific implementation
-> > that sets the function pointers in the common code.
-> > 
-> Tony,
-> 
-> The current gpio.c has functions with code similar as mentioned below:
-> {
-> 	#ifdef CONFIG_ARCH_OMAP1
-> 		Get the reg offset for OMAP1
-> 	#endif
-> 	#ifdef CONFIG_ARCH_OMAP15XX
-> 		Get the reg offset for OMAP15XX
-> 	#endif
-> 	#ifdef CONFIG_ARCH_OMAP16XX
-> 		Get the reg offset for OMAP16XX
-> 	#endif
-> 	#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-> 		Get the reg offset for this OMAP
-> 	#endif
-> 	#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-> 		Get the reg offset for OMAP2&3
-> 	#endif
-> 	#if defined(CONFIG_ARCH_OMAP4)
-> 		Get the reg offset for OMAP4
-> 	#endif
-> 
-> 	Read/write the register 
-> }
-> 
-> If function pointers are used in common code (plat-omap/gpio.c), the API's in this file would essentially do nothing but invoke these pointers. IMHO this is simply adding one unnecessary level of indirection. 
-> Please correct me if I am missing out something.
 
-For those you can just set the various reg offsets once
-during __init based on the omap type and then the function
-stays the same.
 
-For example, in arch/arm/mach-omap2/gpio44xx.c you could
-have something like the following (completely untested):
+>-----Original Message-----
+>From: Ramirez Luna, Omar
+>Sent: Tuesday, February 16, 2010 12:13 PM
+>To: Guzman Lugo, Fernando
+>Cc: linux-omap; Hiroshi Doyu; Ameya Palande; Felipe Contreras
+>Subject: Re: DSPBRIDGE: Reclaim all pending buffer on resource cleanup
+>
+>Hi,
+>
+>On 2/8/2010 4:20 PM, Guzman Lugo, Fernando wrote:
+>>  From 727c83cd8b7e4aca51b214412eaa1b95cde6e4ea Mon Sep 17 00:00:00 2001
+>> From: Fernando Guzman Lugo<x0095840@ti.com>
+>> Date: Tue, 2 Feb 2010 20:38:10 -0600
+>> Subject: [PATCH] DSPBRIDGE: Reclaim all pending buffer on resource
+>cleanup
+>>
+>> Before in case of pending buffer while we try to close
+>> a stream, it was doing only one reclaim, in the case there
+>> were more pending buffer the second STRM_Close would also
+>> fail, now all the pending buffers are reclaim.
+>>
+>> Signed-off-by: Fernando Guzman Lugo<x0095840@ti.com>
+>> ---
+>
+>Shouldn't this be like?
+>Patch 1: Fix
+>Patch 2: code enhancement
+>
+>that said, isn't this missing a STRM_Close? (look below)
 
-static const struct gpio_reg omap4_gpio_reg[] = {
-	...
-};
-
-static const struct gpio_bank omap4_gpio_bank[] = {
-	...
-};
-
-static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
-{
-	...
-}
-
-static int omap_gpio_resume(struct sys_device *dev)
-{
-	...
-}
-
-const struct omap_gpio omap4_gpio = {
-	.regs		= omap4_gpio_reg,
-	.banks		= omap4_gpio_bank,
-	.suspend	= omap4_gpio_suspend,
-	.resume		= omap4_gpio_resume,
-	...
-};
-
-...
-
-static int __init omap_gpio_init(void)
-{
-	if (!cpu_is_omap44xx())
-		return -ENODEV;
-
-	return omap_gpio_init(omap4_gpio);
-}
-arch_initcall(omap44xx_gpio_init);
-
-For some of them, you want to be able to implement the whole
-function depending on the omap type that you boot.
-
-We're already doing it like this in most places, the gpio.c code
-just needs to be updated for that.
+Yes, you re right, that is a mistake. I will send it again.
 
 Regards,
-
-Tony
-
+Fernando.
+>
+>>   drivers/dsp/bridge/rmgr/drv.c |   37 ++++++++++++++++------------------
+>---
+>>   1 files changed, 16 insertions(+), 21 deletions(-)
+>>
+>> diff --git a/drivers/dsp/bridge/rmgr/drv.c
+>b/drivers/dsp/bridge/rmgr/drv.c
+>> index edd8e97..660f375 100644
+>> --- a/drivers/dsp/bridge/rmgr/drv.c
+>> +++ b/drivers/dsp/bridge/rmgr/drv.c
+>> @@ -458,40 +458,35 @@ static DSP_STATUS  DRV_ProcFreeSTRMRes(HANDLE
+>hPCtxt)
+>>   {
+>>   	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+>>   	DSP_STATUS status = DSP_SOK;
+>> -	DSP_STATUS status1 = DSP_SOK;
+>>   	u8 **apBuffer = NULL;
+>> -	struct STRM_RES_OBJECT *pSTRMList = NULL;
+>>   	struct STRM_RES_OBJECT *pSTRMRes = NULL;
+>> +	struct STRM_INFO strm_info;
+>> +	struct DSP_STREAMINFO user;
+>>   	u8 *pBufPtr;
+>>   	u32 ulBytes;
+>>   	u32 dwArg;
+>>   	s32 ulBufSize;
+>>
+>> -	pSTRMList = pCtxt->pSTRMList;
+>> -	while (pSTRMList != NULL) {
+>> -		pSTRMRes = pSTRMList;
+>> -		pSTRMList = pSTRMList->next;
+>> -		if (pSTRMRes->uNumBufs != 0) {
+>> -			apBuffer = MEM_Alloc((pSTRMRes->uNumBufs *
+>> -					    sizeof(u8 *)), MEM_NONPAGED);
+>> +	pSTRMRes = pCtxt->pSTRMList;
+>> +	while (pSTRMRes) {
+>> +		if (pSTRMRes->uNumBufs) {
+>> +			apBuffer = MEM_Alloc(pSTRMRes->uNumBufs *
+>> +					    sizeof(u8 *), MEM_NONPAGED);
+>> +			if (!apBuffer)
+>> +				return DSP_EMEMORY;
+>>   			status = STRM_FreeBuffer(pSTRMRes->hStream, apBuffer,
+>>   						pSTRMRes->uNumBufs, pCtxt);
+>>   			MEM_Free(apBuffer);
+>>   		}
+>> -		status = STRM_Close(pSTRMRes->hStream, pCtxt);
+>> -		if (DSP_FAILED(status)) {
+>> -			if (status == DSP_EPENDING) {
+>> -				status = STRM_Reclaim(pSTRMRes->hStream,
+>> -						&pBufPtr,&ulBytes,
+>> -						     (u32 *)&ulBufSize,&dwArg);
+>> -				if (DSP_SUCCEEDED(status))
+>> -					status = STRM_Close(pSTRMRes->hStream,
+>> -							pCtxt);
+>> +		strm_info.pUser =&user;
+>> +		user.uNumberBufsInStream = 0;
+>> +		STRM_GetInfo(pSTRMRes->hStream,&strm_info, sizeof(strm_info));
+>> +		while (strm_info.pUser->uNumberBufsInStream--)
+>> +			STRM_Reclaim(pSTRMRes->hStream,&pBufPtr,&ulBytes,
+>> +					     (u32 *)&ulBufSize,&dwArg);
+>>
+>
+>Here.
+>
+>> -			}
+>> -		}
+>>   	}
+>> -	return status1;
+>> +	return status;
+>>   }
+>>
+>>   /* Release all Stream resources and its context
+>
+>- omar
