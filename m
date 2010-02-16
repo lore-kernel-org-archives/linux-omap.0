@@ -1,108 +1,59 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 18/24] omap4: clocks: Make i2c driver's clock calls OMAP4
- compatible
-Date: Tue, 16 Feb 2010 16:22:01 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1002161621490.10478@utopia.booyaka.com>
-References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 15/24] omap4: clocks: Convert i2c clocks data to fclks
+Date: Tue, 16 Feb 2010 16:22:47 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002161622310.10478@utopia.booyaka.com>
+References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39636 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:39646 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933129Ab0BPXWC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 18:22:02 -0500
-In-Reply-To: <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
+	with ESMTP id S1756741Ab0BPXWs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 18:22:48 -0500
+In-Reply-To: <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, Abhijit Pagare <abhijitpagare@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk
 
 On Tue, 16 Feb 2010, Santosh Shilimkar wrote:
 
-> From: Abhijit Pagare <abhijitpagare@ti.com>
+> In OMAP4 I2C module has only fclk control and iclks are controlled
+> through hardware.(The OMAP4 clock tree autogeneration script has
+> been updated accordingly.)
 > 
-> The i2c driver has been adapted for the OMAP4 way of clock calls.
-
-Please use dummy_ck here instead, etc. etc.
-
-
-> 
+> CC:Paul Walmsley <paul@pwsan.com>
+> CC:Benoit Cousson <b-cousson@ti.com)his patch>
 > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
 > ---
->  drivers/i2c/busses/i2c-omap.c |   29 ++++++++++++++++-------------
->  1 files changed, 16 insertions(+), 13 deletions(-)
+>  arch/arm/mach-omap2/clock44xx_data.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 89a156a..d4f6eda 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -260,11 +260,14 @@ static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
->  {
->  	int ret;
->  
-> -	dev->iclk = clk_get(dev->dev, "ick");
-> -	if (IS_ERR(dev->iclk)) {
-> -		ret = PTR_ERR(dev->iclk);
-> -		dev->iclk = NULL;
-> -		return ret;
-> +	/* OMAP4 iclk are hw controlled and no sw control is available */
-> +	if (!cpu_is_omap44xx()) {
-> +		dev->iclk = clk_get(dev->dev, "ick");
-> +		if (IS_ERR(dev->iclk)) {
-> +			ret = PTR_ERR(dev->iclk);
-> +			dev->iclk = NULL;
-> +			return ret;
-> +		}
->  	}
->  
->  	dev->fclk = clk_get(dev->dev, "fck");
-> @@ -285,15 +288,18 @@ static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
->  {
->  	clk_put(dev->fclk);
->  	dev->fclk = NULL;
-> -	clk_put(dev->iclk);
-> -	dev->iclk = NULL;
-> +	if (!cpu_is_omap44xx()) {
-> +		clk_put(dev->iclk);
-> +		dev->iclk = NULL;
-> +	}
->  }
->  
->  static void omap_i2c_unidle(struct omap_i2c_dev *dev)
->  {
->  	WARN_ON(!dev->idle);
->  
-> -	clk_enable(dev->iclk);
-> +	if (!cpu_is_omap44xx())
-> +		clk_enable(dev->iclk);
->  	clk_enable(dev->fclk);
->  	if (cpu_is_omap34xx()) {
->  		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-> @@ -337,7 +343,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
->  	}
->  	dev->idle = 1;
->  	clk_disable(dev->fclk);
-> -	clk_disable(dev->iclk);
-> +	if (!cpu_is_omap44xx())
-> +		clk_disable(dev->iclk);
->  }
->  
->  static int omap_i2c_init(struct omap_i2c_dev *dev)
-> @@ -434,10 +441,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			internal_clk = 9600;
->  		else
->  			internal_clk = 4000;
-> -		/* FIXME: Remove this once clock framework is available*/
-> -		if (dev->rev >= OMAP_I2C_REV_ON_4430)
-> -			fclk_rate = 96000;
-> -		else
->  			fclk_rate = clk_get_rate(dev->fclk) / 1000;
->  
->  		/* Compute prescaler divisor */
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index 86af31d..a69e8a0 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -2665,10 +2665,10 @@ static struct omap_clk omap44xx_clks[] = {
+>  	CLK(NULL,	"gptimer9_ck",			&gptimer9_ck,	CK_443X),
+>  	CLK("omap2_hdq.0",	"ick",				&hdq1w_ck,	CK_443X),
+>  	CLK(NULL,	"hsi_ck",			&hsi_ck,	CK_443X),
+> -	CLK("i2c_omap.1",	"ick",				&i2c1_ck,	CK_443X),
+> -	CLK("i2c_omap.2",	"ick",				&i2c2_ck,	CK_443X),
+> -	CLK("i2c_omap.3",	"ick",				&i2c3_ck,	CK_443X),
+> -	CLK("i2c_omap.4",	"ick",				&i2c4_ck,	CK_443X),
+
+You'll want to keep the above around, but use dummy_ck instead.
+
+> +	CLK("i2c_omap.1",	"fck",				&i2c1_ck,	CK_443X),
+> +	CLK("i2c_omap.2",	"fck",				&i2c2_ck,	CK_443X),
+> +	CLK("i2c_omap.3",	"fck",				&i2c3_ck,	CK_443X),
+> +	CLK("i2c_omap.4",	"fck",				&i2c4_ck,	CK_443X),
+>  	CLK(NULL,	"iss_ck",			&iss_ck,	CK_443X),
+>  	CLK(NULL,	"ivahd_ck",			&ivahd_ck,	CK_443X),
+>  	CLK(NULL,	"keyboard_ck",			&keyboard_ck,	CK_443X),
 > -- 
 > 1.6.0.4
 > 
