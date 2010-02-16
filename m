@@ -1,92 +1,105 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH 0/4 RFC]OMAP:GPIO: Make GPIO an early init device
-Date: Tue, 16 Feb 2010 20:36:37 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF809F@dbde02.ent.ti.com>
-References: <20100215174928.GC21755@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [PATCH  0/24] omap4 for 2.6.34
+Date: Tue, 16 Feb 2010 21:06:13 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF80C3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46243 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755165Ab0BPPGp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 10:06:45 -0500
-In-Reply-To: <20100215174928.GC21755@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48377 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932197Ab0BPPgl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 10:36:41 -0500
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ben Dooks <ben@fluff.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Monday, February 15, 2010 11:19 PM
-> To: Paul Walmsley
-> Cc: Varadarajan, Charulatha; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 0/4 RFC]OMAP:GPIO: Make GPIO an early init device
-> 
-> * Paul Walmsley <paul@pwsan.com> [100214 17:38]:
-> > On Fri, 12 Feb 2010, Paul Walmsley wrote:
-> >
-> > > On Fri, 12 Feb 2010, Varadarajan, Charulatha wrote:
-> > >
-> > > >   OMAP: Convert GPIO into a early driver
-> > >
-> > > The above patch appears to be missing.  Could you please re-send?
-> >
-> > This patch was too big for the mailing list, so it's been posted here:
-
-
-Thanks Paul.
-
-> >
-> > http://www.pwsan.com/omap/patches/gpio/0002-OMAP-GPIO-split-omap1-and-
-> omap2.patch
-> 
-> What, make two almost identical copies of the shared code? No way!
-> Instead, please keep the common code under plat-omap:
-> 
-> arch/arm/plat-omap/gpio.c
-> 
-> Then implement the processor specific functions:
-> 
-> arch/arm/mach-omap1/gpio.c
-> arch/arm/mach-omap2/gpio.c
-> arch/arm/mach-omap2/gpio24xx.c
-> arch/arm/mach-omap2/gpio44xx.c
-> 
-> Then have a subsys_initcall in processor specific implementation
-> that sets the function pointers in the common code.
-> 
 Tony,
+Here are some patches towards upcoming 34 merge window. They are generated against 
+linux-omap master as you suggested.
 
-The current gpio.c has functions with code similar as mentioned below:
-{
-	#ifdef CONFIG_ARCH_OMAP1
-		Get the reg offset for OMAP1
-	#endif
-	#ifdef CONFIG_ARCH_OMAP15XX
-		Get the reg offset for OMAP15XX
-	#endif
-	#ifdef CONFIG_ARCH_OMAP16XX
-		Get the reg offset for OMAP16XX
-	#endif
-	#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-		Get the reg offset for this OMAP
-	#endif
-	#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-		Get the reg offset for OMAP2&3
-	#endif
-	#if defined(CONFIG_ARCH_OMAP4)
-		Get the reg offset for OMAP4
-	#endif
+I am also copying Ben, Samuel, Liam, Paul and Kevin since some of the changes
+are in mfd, regulator, i2c and clocks.
 
-	Read/write the register 
-}
+The series enables most of the core driver like WDT, RTC, McBSP, Regulator,
+UART,DMA and I2C on omap4 platform. This series also has few fixes towards 
+multi-omap build. It would be nice development platform for
+upcoming peripheral drivers like MMC, Keyboard, Ethernet, DSS, touch screen,
+audio etc.
 
-If function pointers are used in common code (plat-omap/gpio.c), the API's in this file would essentially do nothing but invoke these pointers. IMHO this is simply adding one unnecessary level of indirection. 
-Please correct me if I am missing out something.
+The series is boot tested with multi-omap build (omap3_defconfig) on omap3430 sdp
+and omap4430 sdp. Also regular omap_4430sdp_defconfig and omap_3430sdp_defconfig
+boot tested.
 
-> Regards,
-> 
-> Tony
+The following changes since commit 301f2e037b161c79bf12f4194501c9ff9c12ced3:
+  Tony Lindgren (1):
+        Linux-omap rebuilt: dss board changes merged
+
+Abhijit Pagare (3):
+      omap4: clocks: Make Uart driver's clock calls OMAP4 compatible
+      omap4: clokcs: Make gpio driver's clock calls OMAP4 compatible
+      omap4: clocks: Make i2c driver's clock calls OMAP4 compatible
+
+Balaji T K (4):
+      twl6030: add base addr for ID0, ID1, ID2
+      omap4: add i2c1 peripherals data
+      omap4: add regulator board data for TWL6030
+      omap4: Enable RTC and regulator support
+
+Rajendra Nayak (1):
+      twl6030: Fix vsel calculations in set/get voltage api's
+
+Santosh Shilimkar (16):
+      omap 3/4: uart: fix full-fifo write abort
+      omap2/3/4: ioremap omap_globals module
+      omap4: sdma: Enable the idle modes on omap4
+      omap: sdma: Limit the secure reserve channel fix for omap3
+      omap4: Add needed IRQ line into irqs.h
+      omap4: Fix omap_type() for omap4
+      omap 3/4: Remove overlapping mapping of L4_WKUP io space
+      omap4: clocks: Make mcbsp driver's clock calls OMAP4 compatible
+      omap4: clocks: Make watchdog driver's clock calls OMAP4 compatible
+      omap4: clocks: Make dmtimer clocks calls OMAP4 compatible
+      omap4: clocks: Remove clock hacks from timer-gp.c
+      omap4: Enable WDT and McBSP support
+      omap4: clocks: Convert i2c clocks data to fclks
+      omap4: Add i2c support on omap4 platform
+      omap4: Add i2c board support for omap4 platform
+      omap4: multi-omap: Allow build to work
+
+ arch/arm/configs/omap_4430sdp_defconfig   |   46 ++++++-
+ arch/arm/mach-omap2/board-4430sdp.c       |  186 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock44xx_data.c      |    8 +-
+ arch/arm/mach-omap2/control.c             |    6 +-
+ arch/arm/mach-omap2/id.c                  |    2 +
+ arch/arm/mach-omap2/io.c                  |   12 --
+ arch/arm/mach-omap2/prcm.c                |   16 ++-
+ arch/arm/mach-omap2/sdrc.c                |   11 ++-
+ arch/arm/mach-omap2/serial.c              |   55 +++++++--
+ arch/arm/mach-omap2/timer-gp.c            |    5 -
+ arch/arm/plat-omap/common.c               |   38 +++---
+ arch/arm/plat-omap/dma.c                  |    5 +-
+ arch/arm/plat-omap/dmtimer.c              |   25 +++-
+ arch/arm/plat-omap/gpio.c                 |    7 +-
+ arch/arm/plat-omap/i2c.c                  |   17 ++-
+ arch/arm/plat-omap/include/plat/common.h  |   12 +-
+ arch/arm/plat-omap/include/plat/control.h |    3 +
+ arch/arm/plat-omap/include/plat/io.h      |    9 --
+ arch/arm/plat-omap/include/plat/irqs.h    |    5 +
+ arch/arm/plat-omap/io.c                   |    4 -
+ arch/arm/plat-omap/mcbsp.c                |   13 ++-
+ drivers/i2c/busses/i2c-omap.c             |  169 ++++++++++++++++++++------
+ drivers/mfd/twl-core.c                    |    7 +-
+ drivers/regulator/twl-regulator.c         |   23 +++-
+ drivers/usb/musb/musb_core.c              |    4 +
+ drivers/watchdog/Kconfig                  |    6 +-
+ drivers/watchdog/omap_wdt.c               |   39 ++++--
+ include/linux/i2c/twl.h                   |    5 +
+ 28 files changed, 576 insertions(+), 162 deletions(-)
+
+
+Regards,
+Santsoh
+
