@@ -1,79 +1,60 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 10/19] OMAP3 clock: Check return values for clk_get()
-Date: Mon, 15 Feb 2010 18:24:51 -0700
-Message-ID: <20100216012450.1101.88296.stgit@localhost.localdomain>
+Subject: [PATCH 03/19] OMAP3: clock: use std _MASK suffix for CM_FCLKEN_IVA2
+	defines
+Date: Mon, 15 Feb 2010 18:24:43 -0700
+Message-ID: <20100216012441.1101.85404.stgit@localhost.localdomain>
 References: <20100216011942.1101.14348.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57422 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:57401 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932495Ab0BPB07 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 20:26:59 -0500
+	with ESMTP id S932475Ab0BPB05 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 20:26:57 -0500
 In-Reply-To: <20100216011942.1101.14348.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Sanjeev Premi <premi@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-From: Sanjeev Premi <premi@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-This patch checks if clk_get() returned success for
-the clocks used in function omap2_clk_arch_init().
+Add _MASK suffix to CM_FCLKEN_IVA2 bitfieds to conform with the rest
+of the usage in cm-regbits-34xx.h of using _SHIFT and _MASK suffixes.
 
-This version incorporates review comments from
-Kevin Hilman and Paul Walmsley.
-
-Signed-off-by: Sanjeev Premi <premi@ti.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock34xx.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    2 +-
+ arch/arm/mach-omap2/pm34xx.c          |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 6180a03..37da629 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -21,6 +21,7 @@
- #include <linux/delay.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/err.h>
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index 6923deb..a76e835 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -55,7 +55,7 @@
+ /* Bits specific to each register */
  
- #include <plat/cpu.h>
- #include <plat/clock.h>
-@@ -286,6 +287,7 @@ static int __init omap3xxx_clk_arch_init(void)
- {
- 	struct clk *osc_sys_ck, *dpll1_ck, *arm_fck, *core_ck;
- 	unsigned long osc_sys_rate;
-+	bool err = 0;
+ /* CM_FCLKEN_IVA2 */
+-#define OMAP3430_CM_FCLKEN_IVA2_EN_IVA2			(1 << 0)
++#define OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_MASK		(1 << 0)
+ #define OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_SHIFT		0
  
- 	if (!cpu_is_omap34xx())
- 		return 0;
-@@ -295,9 +297,23 @@ static int __init omap3xxx_clk_arch_init(void)
+ /* CM_CLKEN_PLL_IVA2 */
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 5087b15..62e27aa 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -688,7 +688,7 @@ static void __init omap3_iva_idle(void)
+ 			  OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
  
- 	/* XXX test these for success */
- 	dpll1_ck = clk_get(NULL, "dpll1_ck");
-+	if (WARN(IS_ERR(dpll1_ck), "Failed to get dpll1_ck.\n"))
-+		err = 1;
-+
- 	arm_fck = clk_get(NULL, "arm_fck");
-+	if (WARN(IS_ERR(arm_fck), "Failed to get arm_fck.\n"))
-+		err = 1;
-+
- 	core_ck = clk_get(NULL, "core_ck");
-+	if (WARN(IS_ERR(core_ck), "Failed to get core_ck.\n"))
-+		err = 1;
-+
- 	osc_sys_ck = clk_get(NULL, "osc_sys_ck");
-+	if (WARN(IS_ERR(osc_sys_ck), "Failed to get osc_sys_ck.\n"))
-+		err = 1;
-+
-+	if (err)
-+		return -ENOENT;
+ 	/* Enable IVA2 clock */
+-	cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2,
++	cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_MASK,
+ 			 OMAP3430_IVA2_MOD, CM_FCLKEN);
  
- 	/* REVISIT: not yet ready for 343x */
- 	if (clk_set_rate(dpll1_ck, mpurate))
+ 	/* Set IVA2 boot mode to 'idle' */
 
 
