@@ -1,7 +1,7 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 20/24] twl6030: add base addr for ID0, ID1, ID2
-Date: Tue, 16 Feb 2010 21:28:11 +0530
-Message-ID: <1266335895-32741-20-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 19/24] twl6030: Fix vsel calculations in set/get voltage api's
+Date: Tue, 16 Feb 2010 21:28:10 +0530
+Message-ID: <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
 References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com>
@@ -20,73 +20,77 @@ References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54201 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54270 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757038Ab0BPP6g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Feb 2010 10:58:36 -0500
-In-Reply-To: <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
+	id S1757030Ab0BPP6f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Feb 2010 10:58:35 -0500
+In-Reply-To: <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>
 
-From: Balaji T K <balajitk@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
 
-Add base address for generic slave ID0, ID1, ID2
-and introduced one more entry to align RTC module number between
-twl4030 and twl6030
+TWL6030 has a formula to be used to calculate the vsel values
+to be programmed in the VREG_VOLTAGE registers.
 
+Voltage(in mV) = 1000mv + 100mv * (vsel - 1)
+
+Ex: if vsel = 0x9, mV = 1000 + 100 * (9 -1) = 1800mV.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
 ---
- drivers/mfd/twl-core.c  |    7 +++++--
- include/linux/i2c/twl.h |    5 +++++
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/regulator/twl-regulator.c |   23 +++++++++++++++++++----
+ 1 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 2a76065..d820e87 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -204,6 +204,7 @@
- /* subchip/slave 3 0x4B - AUDIO */
- #define TWL6030_BASEADD_AUDIO		0x0000
- #define TWL6030_BASEADD_RSV		0x0000
-+#define TWL6030_BASEADD_ZERO		0x0000
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 7e67485..a5ca794 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -367,11 +367,17 @@ twlldo_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV)
+ 		/* REVISIT for VAUX2, first match may not be best/lowest */
  
- /* Few power values */
- #define R_CFG_BOOT			0x05
-@@ -319,9 +320,11 @@ static struct twl_mapping twl6030_map[] = {
- 	{ SUB_CHIP_ID1, TWL6030_BASEADD_CHARGER },
- 	{ SUB_CHIP_ID1, TWL6030_BASEADD_GASGAUGE },
- 	{ SUB_CHIP_ID1, TWL6030_BASEADD_PWM },
--	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
--	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_ZERO },
-+	{ SUB_CHIP_ID1, TWL6030_BASEADD_ZERO },
+ 		/* use the first in-range value */
+-		if (min_uV <= uV && uV <= max_uV)
++		if (min_uV <= uV && uV <= max_uV) {
++			if (twl_class_is_6030())
++				/*
++				 * Use the below formula to calculate vsel
++				 * mV = 1000mv + 100mv * (vsel - 1)
++				 */
++				vsel = (mV - 1000)/100 + 1;
+ 			return twlreg_write(info, TWL_MODULE_PM_RECEIVER,
+ 							VREG_VOLTAGE, vsel);
++		}
+ 	}
+-
+ 	return -EDOM;
+ }
  
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
- 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
- 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
- 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index bf1c5be..fcf9286 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -80,6 +80,11 @@
- #define TWL_MODULE_PM_MASTER	TWL4030_MODULE_PM_MASTER
- #define TWL_MODULE_PM_RECEIVER	TWL4030_MODULE_PM_RECEIVER
- #define TWL_MODULE_RTC		TWL4030_MODULE_RTC
-+#define TWL_MODULE_PWM		TWL4030_MODULE_PWM0
-+
-+#define TWL6030_MODULE_ID0	0x0D
-+#define TWL6030_MODULE_ID1	0x0E
-+#define TWL6030_MODULE_ID2	0x0F
+@@ -384,8 +390,17 @@ static int twlldo_get_voltage(struct regulator_dev *rdev)
+ 	if (vsel < 0)
+ 		return vsel;
  
- #define GPIO_INTR_OFFSET	0
- #define KEYPAD_INTR_OFFSET	1
+-	vsel &= info->table_len - 1;
+-	return LDO_MV(info->table[vsel]) * 1000;
++	if (twl_class_is_4030()) {
++		vsel &= info->table_len - 1;
++		return LDO_MV(info->table[vsel]) * 1000;
++	} else if (twl_class_is_6030()) {
++		/*
++		 * Use the below formula to calculate vsel
++		 * mV = 1000mv + 100mv * (vsel - 1)
++		 */
++		return (1000 + (100 * (vsel - 1))) * 1000;
++	}
++	return -EDOM;
+ }
+ 
+ static struct regulator_ops twlldo_ops = {
 -- 
 1.6.0.4
 
