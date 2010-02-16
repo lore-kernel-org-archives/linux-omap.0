@@ -1,90 +1,121 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/4 RFC]OMAP2: Fix compile errors
-Date: Tue, 16 Feb 2010 17:15:11 -0600
-Message-ID: <87y6isixhc.fsf@deeprootsystems.com>
-References: <1265981851-11970-1-git-send-email-charu@ti.com>
-	<1265981851-11970-2-git-send-email-charu@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 16/24] omap4: Add i2c support on omap4 platform
+Date: Tue, 16 Feb 2010 16:21:18 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002161616550.10478@utopia.booyaka.com>
+References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f185.google.com ([209.85.223.185]:36088 "EHLO
-	mail-iw0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933531Ab0BPXPQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 18:15:16 -0500
-Received: by iwn15 with SMTP id 15so5820034iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 15:15:15 -0800 (PST)
-In-Reply-To: <1265981851-11970-2-git-send-email-charu@ti.com> (Charulatha Varadarajan's message of "Fri\, 12 Feb 2010 19\:07\:28 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:39611 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933513Ab0BPXVT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 18:21:19 -0500
+In-Reply-To: <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, rnayak@ti.com, Syed Rafiuddin <rafiuddin.syed@ti.com>, Ben Dooks <ben-linux@fluff.org>
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+Hello Santosh,
 
-> From: Rajendra Nayak <rnayak@ti.com>
->
-> There are few compile errors for OMAP2 which are fixed by this patch
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Charulatha V <charu@ti.com>
-> ---
->  arch/arm/mach-omap2/board-2430sdp.c |    2 +-
->  arch/arm/mach-omap2/serial.c        |    1 +
->  arch/arm/plat-omap/i2c.c            |    2 ++
->  3 files changed, 4 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-> index d6f55ef..3f45d4b 100644
-> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> @@ -146,7 +146,7 @@ static void __init omap_2430sdp_init_irq(void)
->  {
->  	omap_board_config = sdp2430_config;
->  	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
-> -	omap2_init_common_hw(NULL, NULL);
-> +	omap2_init_common_hw(NULL, NULL, NULL, NULL, NULL);
+one general comment on this patch, before the specific comments.  Rather 
+than adding more cpu_is_omap*() all over, please instead convert this code 
+to use flags passed in via platform_data.  The I2C hwmod conversion 
+patches are one attempt to do that via the hwmod mechanism; you can use 
+that as an example of one way to do that with this driver.
 
-This change is only needed in the PM branch.  Please base this series
-on mainline. 
+On Tue, 16 Feb 2010, Santosh Shilimkar wrote:
 
-With our new OPP layer, the changes to init_common_hw() will be dropped 
-so this change will no longer be necessary.
+> @@ -746,9 +814,12 @@ complete:
+>  				if (dev->buf_len) {
+>  					*dev->buf++ = w;
+>  					dev->buf_len--;
+> -					/* Data reg from 2430 is 8 bit wide */
+> +					/* Data reg in 2430, omap3 and
+> +					 * omap4 is 8 bit wide
+> +					 */
 
-Kevin
+The above comment needs to be fixed per CodingStyle.
 
+>  					if (!cpu_is_omap2430() &&
+> -							!cpu_is_omap34xx()) {
+> +							!cpu_is_omap34xx() &&
+> +							!cpu_is_omap44xx()) {
+>  						if (dev->buf_len) {
+>  							*dev->buf++ = w >> 8;
+>  							dev->buf_len--;
+> @@ -786,9 +857,12 @@ complete:
+>  				if (dev->buf_len) {
+>  					w = *dev->buf++;
+>  					dev->buf_len--;
+> -					/* Data reg from  2430 is 8 bit wide */
+> +					/* Data reg in 2430, omap3 and
+> +					 * omap4 is 8 bit wide
+> +					 */
 
->  	omap_init_irq();
->  	omap_gpio_init();
->  }
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index e7b874f..a686948 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -570,6 +570,7 @@ DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show, sleep_timeout_store);
->  #define DEV_CREATE_FILE(dev, attr) WARN_ON(device_create_file(dev, attr))
->  #else
->  static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
-> +static void omap_uart_block_sleep(struct omap_uart_state *uart) {}
->  #define DEV_CREATE_FILE(dev, attr)
->  #endif /* CONFIG_PM */
+The above comment needs to be fixed per CodingStyle.
+
+>  					if (!cpu_is_omap2430() &&
+> -							!cpu_is_omap34xx()) {
+> +							!cpu_is_omap34xx() &&
+> +							!cpu_is_omap44xx()) {
+>  						if (dev->buf_len) {
+>  							w |= *dev->buf++ << 8;
+>  							dev->buf_len--;
+> @@ -897,6 +971,8 @@ omap_i2c_probe(struct platform_device *pdev)
 >  
-> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-> index fcb515d..6a617ca 100644
-> --- a/arch/arm/plat-omap/i2c.c
-> +++ b/arch/arm/plat-omap/i2c.c
-> @@ -99,6 +99,8 @@ static void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int val)
->  {
->  	omap_pm_set_max_mpu_wakeup_lat(dev, val);
->  }
-> +#else
-> +static void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int val) {}
->  #endif
+>  	if (cpu_is_omap7xx())
+>  		dev->reg_shift = 1;
+> +	else if (cpu_is_omap44xx())
+> +		dev->reg_shift = 0;
+>  	else
+>  		dev->reg_shift = 2;
 >  
->  static void __init omap_set_i2c_constraint_func(
+> @@ -911,11 +987,16 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	if ((r = omap_i2c_get_clocks(dev)) != 0)
+>  		goto err_iounmap;
+>  
+> +	if (cpu_is_omap44xx())
+> +		dev->regs = (u8 *) omap4_reg_map;
+> +	else
+> +		dev->regs = (u8 *) reg_map;
+> +
+>  	omap_i2c_unidle(dev);
+>  
+>  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+>  
+> -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+> +	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+>  		u16 s;
+>  
+>  		/* Set up the fifo size - Get total size */
+> @@ -927,8 +1008,13 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		 * size. This is to ensure that we can handle the status on int
+>  		 * call back latencies.
+>  		 */
+> -		dev->fifo_size = (dev->fifo_size / 2);
+> -		dev->b_hw = 1; /* Enable hardware fixes */
+> +		if (dev->rev >= OMAP_I2C_REV_ON_4430) {
+> +			dev->fifo_size = 0;
+> +			dev->b_hw = 0; /* Enable hardware fixes */
+> +		} else {
+> +			dev->fifo_size = (dev->fifo_size / 2);
+> +			dev->b_hw = 1; /* Disable hardware fixes */
+
+You've got the comments backwards here.  b_hw = 1 means "enable hardware 
+fixes" as noted above.
+
+
+> +		}
+>  	}
+>  
+>  	/* reset ASAP, clearing any IRQs */
 > -- 
-> 1.6.3.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1.6.0.4
+> 
+
+
+- Paul
