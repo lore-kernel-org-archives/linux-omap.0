@@ -1,95 +1,104 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 00/19] OMAP: more clock/powerdomain/hwmod patches for 2.6.34
-Date: Mon, 15 Feb 2010 18:24:31 -0700
-Message-ID: <20100216011942.1101.14348.stgit@localhost.localdomain>
+Subject: [PATCH 01/19] OMAP: omap_device: add omap_device_is_valid()
+Date: Mon, 15 Feb 2010 18:24:37 -0700
+Message-ID: <20100216012431.1101.22805.stgit@localhost.localdomain>
+References: <20100216011942.1101.14348.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57393 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:57395 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932362Ab0BPB05 (ORCPT
+	with ESMTP id S932473Ab0BPB05 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Feb 2010 20:26:57 -0500
+In-Reply-To: <20100216011942.1101.14348.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Hello,
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-Here are some more OMAP clock, clockdomain, powerdomain, and hwmod
-patches intended for 2.6.34, posted in case anyone has any comments.
+The omap_device struct contains a 'struct platform_device'.  Normally,
+converting a platform_device pointer to an omap_device pointer
+consists of simply doing a container_of(), as is done currently by the
+to_omap_device() macro.
 
+However, if this is attempted when using platform_device that has not
+been created as part of the omap_device creation, the container_of()
+will point to a memory location before the platform_device pointer
+which will contain random data.
 
-- Paul
+Therefore, we need a way to detect valid omap_device pointers.  This
+patch solves this by using the simple magic number approach.
 
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
+ arch/arm/plat-omap/omap_device.c              |   16 ++++++++++++++++
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
-Abhijit Pagare (1):
-      ARM: OMAP4 clock domain: Add check for avoiding dependency related update.
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 76d4917..4677ff7 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -62,6 +62,7 @@
+  *
+  */
+ struct omap_device {
++	u32                             magic;
+ 	struct platform_device		pdev;
+ 	struct omap_hwmod		**hwmods;
+ 	struct omap_device_pm_latency	*pm_lats;
+@@ -81,6 +82,7 @@ int omap_device_shutdown(struct platform_device *pdev);
+ 
+ /* Core code interface */
+ 
++bool omap_device_is_valid(struct omap_device *od);
+ int omap_device_count_resources(struct omap_device *od);
+ int omap_device_fill_resources(struct omap_device *od, struct resource *res);
+ 
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 5195dbb..40289e0 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -90,6 +90,8 @@
+ #define IGNORE_WAKEUP_LAT		1
+ 
+ 
++#define OMAP_DEVICE_MAGIC 0xf00dcafe
++
+ /* Private functions */
+ 
+ /**
+@@ -403,6 +405,8 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	od->pm_lats = pm_lats;
+ 	od->pm_lats_cnt = pm_lats_cnt;
+ 
++	od->magic = OMAP_DEVICE_MAGIC;
++
+ 	ret = omap_device_register(od);
+ 	if (ret)
+ 		goto odbs_exit4;
+@@ -589,6 +593,18 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
+ }
+ 
+ /**
++ * omap_device_is_valid - Check if pointer is a valid omap_device
++ * @od: struct omap_device *
++ *
++ * Return whether struct omap_device pointer @od points to a valid
++ * omap_device.
++ */
++bool omap_device_is_valid(struct omap_device *od)
++{
++	return (od && od->magic == OMAP_DEVICE_MAGIC);
++}
++
++/**
+  * omap_device_get_pwrdm - return the powerdomain * associated with @od
+  * @od: struct omap_device *
+  *
 
-Kevin Hilman (4):
-      OMAP: omap_device: add omap_device_is_valid()
-      OMAP: omap_device: when 'called from invalid state', print state
-      OMAP3: clock: use std _MASK suffix for CM_FCLKEN_IVA2 defines
-      OMAP2/3: PRCM: fix misc. compiler warnings
-
-Mike Turquette (1):
-      OMAP3630: Clock: Workaround for DPLL HS divider limitation
-
-Ranjith Lohithakshan (2):
-      OMAP2/3 clock: Extend find_idlest() to pass back idle state value
-      AM35xx: Add clock support for new modules on AM35xx
-
-Richard Woodruff (1):
-      OMAP3 clock: introduce DPLL4 Jtype
-
-Sanjeev Premi (1):
-      OMAP3 clock: Check return values for clk_get()
-
-Tero Kristo (1):
-      OMAP3: Clock: Added IDLEST definitions for SGX
-
-Thara Gopinath (5):
-      OMAP2/3 PM: Adding powerdomain APIs for reading the next logic and mem state
-      OMAP3 PM: Defining .pwrsts_logic_ret field for core power domain structure
-      OMAP3 PM: Adding counters for power domain logic off and mem off during retention.
-      OMAP3: hwmod: support to specify the offset position of various SYSCONFIG register bits.
-      OMAP: HWMOD: Add support for early device register into omap device layer
-
-Vishwanath BS (3):
-      OMAP3 clock: Remove FreqSel for 3630
-      OMAP3 clock: Introduce 3630 DPLL4 HSDivider changes
-      OMAP3 clock: add support for 192Mhz DPLL4M2 output
-
-
- arch/arm/mach-omap2/Makefile                  |    3 
- arch/arm/mach-omap2/clkt2xxx_apll.c           |    2 
- arch/arm/mach-omap2/clock.c                   |   25 +-
- arch/arm/mach-omap2/clock.h                   |    6 
- arch/arm/mach-omap2/clock2xxx.c               |    5 
- arch/arm/mach-omap2/clock34xx.c               |  167 +++++++++++
- arch/arm/mach-omap2/clock34xx.h               |    7 
- arch/arm/mach-omap2/clock34xx_data.c          |  381 ++++++++++++++++++++++++-
- arch/arm/mach-omap2/clock44xx_data.c          |    1 
- arch/arm/mach-omap2/clockdomain.c             |   30 ++
- arch/arm/mach-omap2/cm-regbits-34xx.h         |   28 ++
- arch/arm/mach-omap2/cm.h                      |    3 
- arch/arm/mach-omap2/dpll3xxx.c                |   78 +++++
- arch/arm/mach-omap2/id.c                      |    3 
- arch/arm/mach-omap2/omap_hwmod.c              |  100 ++++++-
- arch/arm/mach-omap2/omap_hwmod_common_data.c  |   44 +++
- arch/arm/mach-omap2/pm-debug.c                |    5 
- arch/arm/mach-omap2/pm34xx.c                  |    2 
- arch/arm/mach-omap2/powerdomain.c             |   98 ++++++
- arch/arm/mach-omap2/powerdomains34xx.h        |    2 
- arch/arm/mach-omap2/prcm.c                    |   18 +
- arch/arm/plat-omap/include/plat/clock.h       |   16 +
- arch/arm/plat-omap/include/plat/cpu.h         |    2 
- arch/arm/plat-omap/include/plat/omap_device.h |    7 
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |   73 ++++-
- arch/arm/plat-omap/include/plat/powerdomain.h |    4 
- arch/arm/plat-omap/include/plat/prcm.h        |    3 
- arch/arm/plat-omap/omap_device.c              |   61 +++-
- 28 files changed, 1077 insertions(+), 97 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_common_data.c
 
