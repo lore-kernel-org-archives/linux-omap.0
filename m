@@ -1,34 +1,33 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH] DSPBRIDGE: Add BRD_SLEEP_TRANSITION in PROC_GetState
-Date: Tue, 16 Feb 2010 17:48:55 -0600
-Message-ID: <4B7B2EE7.5000505@ti.com>
-References: <B852767254C5C94EBB1040EE0EFA06008C89EB85@dlee01.ent.ti.com>
+Subject: Re: [PATCH] dspbridge: Simplify Atoi() method (v2)
+Date: Tue, 16 Feb 2010 17:49:04 -0600
+Message-ID: <4B7B2EF0.80002@ti.com>
+References: <4B7213C1.1040300@ti.com> <1265788738-27123-1-git-send-email-andy.shevchenko@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44038 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:44045 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933643Ab0BPXtB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 18:49:01 -0500
-In-Reply-To: <B852767254C5C94EBB1040EE0EFA06008C89EB85@dlee01.ent.ti.com>
+	with ESMTP id S933627Ab0BPXtJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 18:49:09 -0500
+In-Reply-To: <1265788738-27123-1-git-send-email-andy.shevchenko@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramos Falcon, Ernesto" <ernesto@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-On 2/9/2010 1:19 PM, Ramos Falcon, Ernesto wrote:
->  From 40d5863c3d3f4091761fef8bff581d2a7b1f32fa Mon Sep 17 00:00:00 2001
-> From: Ernesto Ramos<ernesto@ti.com>
-> Date: Tue, 2 Feb 2010 20:30:19 -0600
-> Subject: [PATCH] DSPBRIDGE: Add BRD_SLEEP_TRANSITION in PROC_GetState.
+On 2/10/2010 1:58 AM, Andy Shevchenko wrote:
+> From: Andy Shevchenko<ext-andriy.shevchenko@nokia.com>
 >
-> When PROC_GetState checks for BRD status it is not taking into account
-> the state BRD_SLEEP_TRANSITION and it is returning DSP_EFAIL when this
-> happens, which is wrong. This fix adds this check to return ProcStatus as
-> PROC_RUNNING and status DSP_SOK when this happens.
+> Try to use simple_strtoul() kernel native method instead.
 >
-> Signed-off-by: Ernesto Ramos<ernesto@ti.com>
+> However, there are opened questions:
+>   - why type of Atoi() is s32 if the sign is used only to detect base?
+>   - should we really to check hex integers like DEAD0123h?
+>   - how many spaces could lead token?
+>
+> Signed-off-by: Andy Shevchenko<ext-andriy.shevchenko@nokia.com>
 
 Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 
