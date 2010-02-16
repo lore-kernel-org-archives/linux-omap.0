@@ -1,72 +1,95 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] DSPBRIDGE: Fix memory corruption in DRV_ProcFreeDMMRes
-Date: Tue, 16 Feb 2010 19:47:23 +0200
-Message-ID: <94a0d4531002160947m863bfbepf46cd962e7753b42@mail.gmail.com>
-References: <018f9cad9a346b7a841268f4520a73a98c9cf7c9.1266246072.git.ameya.palande@nokia.com>
-	 <20100215155958.GA5458@annwn.felipec.org>
-	 <1266323923.3092.14.camel@sanganak>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 12/19] OMAP3 clock: Remove FreqSel for 3630
+Date: Tue, 16 Feb 2010 11:10:38 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002161108010.28188@utopia.booyaka.com>
+References: <20100216011942.1101.14348.stgit@localhost.localdomain> <20100216012453.1101.96664.stgit@localhost.localdomain> <4B7A7AB7.90503@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f200.google.com ([209.85.221.200]:35473 "EHLO
-	mail-qy0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755491Ab0BPRrZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 12:47:25 -0500
-Received: by qyk38 with SMTP id 38so1340494qyk.1
-        for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 09:47:24 -0800 (PST)
-In-Reply-To: <1266323923.3092.14.camel@sanganak>
+Received: from utopia.booyaka.com ([72.9.107.138]:45254 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932719Ab0BPSKj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 13:10:39 -0500
+In-Reply-To: <4B7A7AB7.90503@ru.mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>, "deepak.chitriki@ti.com" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "x0095840@ti.com" <x0095840@ti.com>
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-Hi,
+Hello Sergei,
 
-On Tue, Feb 16, 2010 at 2:38 PM, Ameya Palande <ameya.palande@nokia.com=
-> wrote:
-> Hi Felipe,
->
-> On Mon, 2010-02-15 at 16:59 +0100, Contreras Felipe (Nokia-D/Helsinki=
-)
-> wrote:
->> On Mon, Feb 15, 2010 at 04:36:31PM +0100, Ameya Palande wrote:
->> > --- a/drivers/dsp/bridge/rmgr/drv.c
->> > +++ b/drivers/dsp/bridge/rmgr/drv.c
->> > @@ -273,11 +273,14 @@ DSP_STATUS =C2=A0DRV_ProcFreeDMMRes(HANDLE h=
-PCtxt)
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pDMMList =3D pDMMList->n=
-ext;
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (pDMMRes->dmmAllocate=
-d) {
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 status =3D PROC_UnMap(pDMMRes->hProcessor,
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(void *)pDMMRes->ulDSPResAddr, pCtxt);
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(void *)pDMMRes->ulDSPAddr, pCtxt);
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /=
-*
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0* PROC_UnMap has freed pDMMRes pointer, so don't access
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0* it now
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0*/
->>
->> I don't see the need for this comment on the code.
->
-> In above code segment, just by looking at PROC_Unmap() it is not
-> apparent that it will deallocate "pDMMRes" thats why that comment is
-> present there! I guess this whole memory corruption could have been
-> easily avoided by presence of that comment ;)
+On Tue, 16 Feb 2010, Sergei Shtylyov wrote:
 
-Then the comment should be on PROC_Unmap() I guess.
+> Paul Walmsley wrote:
+> 
+> > From: Vishwanath BS <vishwanath.bs@ti.com>
+> > 
+> > diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+> > index 2b559fc..84be81c 100644
+> > --- a/arch/arm/mach-omap2/dpll3xxx.c
+> > +++ b/arch/arm/mach-omap2/dpll3xxx.c
+> > @@ -243,8 +243,11 @@ static int omap3_noncore_dpll_program(struct clk *clk,
+> > u16 m, u8 n, u16 freqsel)
+> >  	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
+> >  	_omap3_noncore_dpll_bypass(clk);
+> >  -	/* Set jitter correction */
+> > -	if (!cpu_is_omap44xx()) {
+> > +	/*
+> > +	 * Set jitter correction. No jitter correction for OMAP4 and 3630
+> > +	 * since freqsel is field is no longer present
+> >   
+> 
+>   I can't parse that comment. I guess first "is" is not needed. :-)
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks Sergei; fixed in the for_2.6.34_dev branch; revised branch below.
+
+
+- Paul
+
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Date: Fri, 12 Feb 2010 14:25:04 -0700
+Subject: [PATCH] OMAP3 clock: Remove FreqSel for 3630
+
+DPLL_FREQSEL field in CLKEN_PLL register is no longer valid for
+OMAP3630. So remove references to that.
+
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>
+[paul@pwsan.com: added comment fix from Sergei Shtylyov]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/dpll3xxx.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index 2b559fc..68268cd 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -243,8 +243,11 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+ 	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
+ 	_omap3_noncore_dpll_bypass(clk);
+ 
+-	/* Set jitter correction */
+-	if (!cpu_is_omap44xx()) {
++	/*
++	 * Set jitter correction. No jitter correction for OMAP4 and 3630
++	 * since freqsel field is no longer present
++	 */
++	if (!cpu_is_omap44xx() && !cpu_is_omap3630()) {
+ 		v = __raw_readl(dd->control_reg);
+ 		v &= ~dd->freqsel_mask;
+ 		v |= freqsel << __ffs(dd->freqsel_mask);
+@@ -387,8 +390,8 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+ 		if (dd->last_rounded_rate == 0)
+ 			return -EINVAL;
+ 
+-		/* No freqsel on OMAP4 */
+-		if (!cpu_is_omap44xx()) {
++		/* No freqsel on OMAP4 and OMAP3630 */
++		if (!cpu_is_omap44xx() && !cpu_is_omap3630()) {
+ 			freqsel = _omap3_dpll_compute_freqsel(clk,
+ 						dd->last_rounded_n);
+ 			if (!freqsel)
+-- 
+1.6.6.GIT
+
