@@ -1,96 +1,106 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 19/24] twl6030: Fix vsel calculations in set/get voltage api's
-Date: Tue, 16 Feb 2010 21:28:10 +0530
-Message-ID: <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
-References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 01/24] omap 3/4: uart: fix full-fifo write abort
+Date: Tue, 16 Feb 2010 21:27:52 +0530
+Message-ID: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54270 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54276 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757030Ab0BPP6f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1757036Ab0BPP6f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 16 Feb 2010 10:58:35 -0500
-In-Reply-To: <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Woodruff Richard <r-woodruff2@ti.com>, Ghorai Sukumar <s-ghorai@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+This patch is addition to the already merged commit on non-empty
+uart fifo read abort. "ce13d4716a276f4331d78ba28a5093a63822ab95"
 
-TWL6030 has a formula to be used to calculate the vsel values
-to be programmed in the VREG_VOLTAGE registers.
+OMAP3630 and OMAP4430 UART IP blocks have a restriction on TX FIFO
+too. If you try to write to the tx fifo when it is full, the system aborts.
 
-Voltage(in mV) = 1000mv + 100mv * (vsel - 1)
+This can be easily reproducible by not suppressing interconnect errors or
+long duration testing where continuous prints over console from multiple
+threads. This patch is addressing the issue by ensuring that write is
+not issued while fifo is full. A timeout is added to avoid any hang
+on fifo-full for 10 mS which is unlikely case.
 
-Ex: if vsel = 0x9, mV = 1000 + 100 * (9 -1) = 1800mV.
+Patch is validated on OMAP3630 and OMAP4 SDP.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+V2 version removed the additional 1 uS on every TX as per
+Tony's suggestion
+
+Signed-off-by: Woodruff Richard <r-woodruff2@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+CC: Ghorai Sukumar <s-ghorai@ti.com>
 ---
- drivers/regulator/twl-regulator.c |   23 +++++++++++++++++++----
- 1 files changed, 19 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/serial.c |   31 ++++++++++++++++++++++++++++---
+ 1 files changed, 28 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 7e67485..a5ca794 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -367,11 +367,17 @@ twlldo_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV)
- 		/* REVISIT for VAUX2, first match may not be best/lowest */
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 5f3035e..b79bc89 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -23,6 +23,7 @@
+ #include <linux/serial_reg.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/delay.h>
  
- 		/* use the first in-range value */
--		if (min_uV <= uV && uV <= max_uV)
-+		if (min_uV <= uV && uV <= max_uV) {
-+			if (twl_class_is_6030())
-+				/*
-+				 * Use the below formula to calculate vsel
-+				 * mV = 1000mv + 100mv * (vsel - 1)
-+				 */
-+				vsel = (mV - 1000)/100 + 1;
- 			return twlreg_write(info, TWL_MODULE_PM_RECEIVER,
- 							VREG_VOLTAGE, vsel);
-+		}
- 	}
--
- 	return -EDOM;
+ #include <plat/common.h>
+ #include <plat/board.h>
+@@ -160,6 +161,13 @@ static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
+ 	return (unsigned int)__raw_readb(up->membase + offset);
  }
  
-@@ -384,8 +390,17 @@ static int twlldo_get_voltage(struct regulator_dev *rdev)
- 	if (vsel < 0)
- 		return vsel;
++static inline void __serial_write_reg(struct uart_port *up, int offset,
++		int value)
++{
++	offset <<= up->regshift;
++	__raw_writeb(value, up->membase + offset);
++}
++
+ static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
+ 				    int value)
+ {
+@@ -620,6 +628,20 @@ static unsigned int serial_in_override(struct uart_port *up, int offset)
+ 	return __serial_read_reg(up, offset);
+ }
  
--	vsel &= info->table_len - 1;
--	return LDO_MV(info->table[vsel]) * 1000;
-+	if (twl_class_is_4030()) {
-+		vsel &= info->table_len - 1;
-+		return LDO_MV(info->table[vsel]) * 1000;
-+	} else if (twl_class_is_6030()) {
-+		/*
-+		 * Use the below formula to calculate vsel
-+		 * mV = 1000mv + 100mv * (vsel - 1)
-+		 */
-+		return (1000 + (100 * (vsel - 1))) * 1000;
++static void serial_out_override(struct uart_port *up, int offset, int value)
++{
++	unsigned int status, tmout = 10000;
++
++	status = __serial_read_reg(up, UART_LSR);
++	while (!(status & UART_LSR_THRE)) {
++		/* Wait up to 10ms for the character(s) to be sent. */
++		if (--tmout == 0)
++			break;
++		udelay(1);
++		status = __serial_read_reg(up, UART_LSR);
 +	}
-+	return -EDOM;
++	__serial_write_reg(up, offset, value);
++}
+ void __init omap_serial_early_init(void)
+ {
+ 	int i;
+@@ -721,11 +743,14 @@ void __init omap_serial_init_port(int port)
+ 	 * omap3xxx: Never read empty UART fifo on UARTs
+ 	 * with IP rev >=0x52
+ 	 */
+-	if (cpu_is_omap44xx())
++	if (cpu_is_omap44xx()) {
+ 		uart->p->serial_in = serial_in_override;
+-	else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
+-			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
++		uart->p->serial_out = serial_out_override;
++	} else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
++			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV) {
+ 		uart->p->serial_in = serial_in_override;
++		uart->p->serial_out = serial_out_override;
++	}
  }
  
- static struct regulator_ops twlldo_ops = {
+ /**
 -- 
 1.6.0.4
 
