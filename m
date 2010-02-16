@@ -1,81 +1,64 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] omap4: multi-omap: Allow build to work
-Date: Tue, 16 Feb 2010 21:25:06 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03215B0A32@dbde02.ent.ti.com>
-References: <1266334896-30686-1-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-2-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-3-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-4-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-5-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-6-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-7-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-8-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-9-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-10-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-11-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-12-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-13-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-14-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-15-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-16-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-17-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-18-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-19-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-20-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-21-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-22-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-23-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-24-git-send-email-santosh.shilimkar@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 05/24] omap4: Add needed IRQ line into irqs.h
+Date: Tue, 16 Feb 2010 21:27:56 +0530
+Message-ID: <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
+References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53681 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54297 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756625Ab0BPPzT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 10:55:19 -0500
-In-Reply-To: <1266334896-30686-24-git-send-email-santosh.shilimkar@ti.com>
-Content-Language: en-US
+	id S1756972Ab0BPP6d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Feb 2010 10:58:33 -0500
+In-Reply-To: <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "paul@pwsan.com" <paul@pwsan.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Shilimkar, Santosh wrote:
-> The musb support is enable to omap3 platforms. For omap4 only board
-> support is available and the driver still isn't supported.
-> Because of this build with omap3_defconfig used for multi-omap
-> doesn't work on omap4430 sdp.
-> 
-> This patch hacks the musb probe to keep the multi-omap build
-> working on omap4430 sdp
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  drivers/usb/musb/musb_core.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_core.c 
-> b/drivers/usb/musb/musb_core.c
-> index bcce8e8..13b1c4a 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -2124,6 +2124,10 @@ static int __init musb_probe(struct 
-> platform_device *pdev)
->  	struct resource	*iomem;
->  	void __iomem	*base;
->  
-> +	/* FIXME: multi-omap build to work on omap4 */
-> +	if (cpu_is_omap44xx())
-> +		return 0;
-> +
+This patch adds DSS, keyboard and ducati irq
+entries in irqs.h
 
-NAK. I'd prefer that we fix the driver issue correctly.
+Ones omap4 hwmod is pushed on mainlie, all the
+irqs lines data would be availabe.
 
-I would have expected the driver to at least load on OMAP4
-even if it does not work. Could you please describe the
-failure?
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/plat-omap/include/plat/irqs.h |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Also, this will need to go through linux-usb.
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index e8205c1..e2fbd74 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -385,6 +385,7 @@
+ #define INT_44XX_GPTIMER11	(47 + IRQ_GIC_START)
+ #define INT_44XX_GPTIMER12	(95 + IRQ_GIC_START)
+ #define INT_44XX_SHA1MD5	(51 + IRQ_GIC_START)
++#define INT_44XX_DSS_DSI1	(53 + IRQ_GIC_START)
+ #define INT_44XX_I2C1_IRQ	(56 + IRQ_GIC_START)
+ #define INT_44XX_I2C2_IRQ	(57 + IRQ_GIC_START)
+ #define INT_44XX_HDQ_IRQ	(58 + IRQ_GIC_START)
+@@ -405,6 +406,7 @@
+ #define INT_44XX_MCBSP4_IRQ_TX	(81 + IRQ_GIC_START)
+ #define INT_44XX_MCBSP4_IRQ_RX	(82 + IRQ_GIC_START)
+ #define INT_44XX_MMC_IRQ	(83 + IRQ_GIC_START)
++#define INT_44XX_DSS_DSI2	(84 + IRQ_GIC_START)
+ #define INT_44XX_MMC2_IRQ	(86 + IRQ_GIC_START)
+ #define INT_44XX_MCBSP2_IRQ_TX	(89 + IRQ_GIC_START)
+ #define INT_44XX_MCBSP2_IRQ_RX	(90 + IRQ_GIC_START)
+@@ -442,7 +444,10 @@
+ #define INT_44XX_PARTHASH_IRQ	(79 + IRQ_GIC_START)
+ #define INT_44XX_MMC3_IRQ	(94 + IRQ_GIC_START)
+ #define INT_44XX_MMC4_IRQ	(96 + IRQ_GIC_START)
++#define INT_44XX_DUCATI_MMU_IRQ	(100 + IRQ_GIC_START)
+ #define INT_44XX_MCPDM_IRQ	(112 + IRQ_GIC_START)
++#define INT_4XX_DSS_HDMI	(101 + IRQ_GIC_START)
++#define INT_44XX_KBD_CTL	(120 + IRQ_GIC_START)
+ 
+ /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730/850) and
+  * 16 MPUIO lines */
+-- 
+1.6.0.4
 
-- Anand
