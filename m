@@ -1,87 +1,52 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] omap4: add i2c1 peripherals data
-Date: Tue, 16 Feb 2010 21:11:33 +0530
-Message-ID: <1266334896-30686-21-git-send-email-santosh.shilimkar@ti.com>
-References: <1266334896-30686-1-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-2-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-3-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-4-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-5-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-6-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-7-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-8-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-9-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-10-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-11-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-12-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-13-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-14-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-15-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-16-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-17-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-18-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-19-git-send-email-santosh.shilimkar@ti.com>
- <1266334896-30686-20-git-send-email-santosh.shilimkar@ti.com>
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCH] DSPBRIDGE: Get rid of memset() from MEM_Calloc()
+Date: Tue, 16 Feb 2010 17:40:23 +0200
+Message-ID: <b487eb065323f57efcaea92d30f8cca5041589ee.1266334736.git.ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51861 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932772Ab0BPPmE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Feb 2010 10:42:04 -0500
-In-Reply-To: <1266334896-30686-20-git-send-email-santosh.shilimkar@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:48778 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932588Ab0BPPlq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 10:41:46 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o1GFexwx006926
+	for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 09:41:44 -0600
+Received: from localhost.localdomain (esdhcp040168.research.nokia.com [172.21.40.168])
+	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o1GFf23D028515
+	for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 17:41:02 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, paul@pwsan.com, Balaji T K <balajitk@ti.com>
+To: linux-omap@vger.kernel.org
 
-From: Balaji T K <balajitk@ti.com>
-
-This patch adds i2c1 peripherals data to
-omap4 board file.
-
-Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   18 +++++++++++++++++-
- 1 files changed, 17 insertions(+), 1 deletions(-)
+ drivers/dsp/bridge/services/mem.c |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index a325ba5..ad0a9a5 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -18,6 +18,7 @@
- #include <linux/io.h>
- #include <linux/gpio.h>
- #include <linux/usb/otg.h>
-+#include <linux/i2c/twl.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -81,10 +82,25 @@ static struct omap_musb_board_data musb_board_data = {
- 	.power			= 100,
- };
- 
-+static struct twl4030_platform_data sdp4430_twldata = {
-+	.irq_base	= TWL6030_IRQ_BASE,
-+	.irq_end	= TWL6030_IRQ_END,
-+};
-+
-+static struct i2c_board_info __initdata sdp4430_i2c_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("twl6030", 0x48),
-+		.flags = I2C_CLIENT_WAKE,
-+		.irq = INT_44XX_SYS_NIRQ,
-+		.platform_data = &sdp4430_twldata,
-+	},
-+};
-+
- static int __init omap4_i2c_init(void)
- {
- 	/* Phoenix Audio IC needs I2C1 to start with 400 KHz and less */
--	omap_register_i2c_bus(1, 400, NULL, 0);
-+	omap_register_i2c_bus(1, 400, sdp4430_i2c_boardinfo,
-+				ARRAY_SIZE(sdp4430_i2c_boardinfo));
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- 	omap_register_i2c_bus(3, 400, NULL, 0);
- 	return 0;
+diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
+index 614396e..2501eee 100644
+--- a/drivers/dsp/bridge/services/mem.c
++++ b/drivers/dsp/bridge/services/mem.c
+@@ -227,16 +227,13 @@ void *MEM_Calloc(u32 cBytes, enum MEM_POOLATTRS type)
+ 		case MEM_NONPAGED:
+ 		/* If non-paged memory required, see note at top of file. */
+ 		case MEM_PAGED:
+-			pMem = kmalloc(cBytes,
++			pMem = kzalloc(cBytes,
+ 				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
+-			if (pMem)
+-				memset(pMem, 0, cBytes);
+-
+ 			break;
+ 		case MEM_LARGEVIRTMEM:
+-			pMem = vmalloc(cBytes);
+-			if (pMem)
+-				memset(pMem, 0, cBytes);
++			pMem = __vmalloc(cBytes,
++				GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO,
++				PAGE_KERNEL);
+ 			break;
+ 		default:
+ 			GT_1trace(MEM_debugMask, GT_6CLASS,
 -- 
-1.6.0.4
+1.6.3.3
 
