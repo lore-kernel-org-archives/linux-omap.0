@@ -1,67 +1,77 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 09/24] omap4: clocks: Make mcbsp driver's clock calls
- OMAP4 compatible
-Date: Tue, 16 Feb 2010 15:34:11 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1002161533270.10478@utopia.booyaka.com>
-References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH/RFC 4/4] OMAP2/3 MMC: initial conversion to runtime PM
+Date: Tue, 16 Feb 2010 16:50:34 -0600
+Message-ID: <87d404kd6t.fsf@deeprootsystems.com>
+References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com>
+	<1265244688-4055-5-git-send-email-khilman@deeprootsystems.com>
+	<4B6BD2FF.6050806@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54625 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933126Ab0BPWeL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 17:34:11 -0500
-In-Reply-To: <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
+Received: from mail-iw0-f185.google.com ([209.85.223.185]:39668 "EHLO
+	mail-iw0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933181Ab0BPWuh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 17:50:37 -0500
+Received: by iwn15 with SMTP id 15so5800051iwn.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 14:50:36 -0800 (PST)
+In-Reply-To: <4B6BD2FF.6050806@nokia.com> (Adrian Hunter's message of "Fri\, 05 Feb 2010 10\:12\:47 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, ben@fluff.org.uk, sameo@linux.intel.com, lrg@slimlogic.co.uk, Abhijit Pagare <abhijitpagare@ti.com>
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-Hello Abhijit, Santosh,
+Adrian Hunter <adrian.hunter@nokia.com> writes:
 
-On Tue, 16 Feb 2010, Santosh Shilimkar wrote:
+> Kevin Hilman wrote:
+>> Convert the HSMMC driver to use the runtime PM layer.  A notable
+>> aspect of this is that the use of the dev_attr data from the
+>> omap_hwmod allows the redaction of all of the integration-specific
+>> hacks inside this driver.  Regulator control has not yet been
+>> converted; the driver still uses the platform_data set_power hook.
+>>
+>> In converting to runtime PM layer, the clock frameworks is no longer
+>> used for fclk and iclk.  Instead, the runtime PM get and put functions
+>> are used.  These result in calls into the OMAP runtime PM core which
+>> internally uses the omap_device API to disable/re-enable the device.
+>> (Note that the 2430 debounce clock is not currently handled here,
+>> only the fclk and iclk are managed.)
+>>
+>> In addition, the context_loss tracking has been removed from the
+>> driver and is now handled by omap_device + runtime PM core.  The
+>> driver's ->runtime_suspend() hook will be called before device is
+>> disabled, and the driver's ->runtime_resume() hook will be called if
+>> context has been lost.
+>>
+>> Based on an initial conversion of this driver to use omap_device by
+>> by Paul Walmsely: http://marc.info/?l=linux-omap&m=124419789124570&w=2
+>> and then converted to use runtime PM API instead of omap_device API.
+>>
+>> The omap_hsmmc driver has some hacks in this version to compensate for
+>> the fact that the main runtime PM core prevents runtime transitions
+>> during suspend.  This prevens us from using common hooks for runtime
+>> PM and static PM.  Current workaround is to hack in some extra put/get
+>> calls in the suspend/resume path while this issue is being discussed
+>> on linux-pm.
+>>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>> ---
+>>  arch/arm/mach-omap2/devices.c         |  152 +++++++++--------------
+>>  arch/arm/mach-omap2/hsmmc.c           |   12 +-
+>>  arch/arm/plat-omap/include/plat/mmc.h |    5 +
+>>  drivers/mmc/host/omap_hsmmc.c         |  226 +++++++++++++++------------------
+>>  4 files changed, 176 insertions(+), 219 deletions(-)
+>
+> Why is PM runtime not simply PM?
+>
+> Can pm_runtime_put_sync() and pm_runtime_get_sync() have less obscure names?
 
-> The mcbsp driver has been adapted for the OMAP4 way of clock calls.
-> In OMAP4, the iclk are hw controlled and no sw control is available
-> 
-> Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/plat-omap/mcbsp.c |   13 ++++++++-----
->  1 files changed, 8 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-> index 473be3d..72b9694 100644
-> --- a/arch/arm/plat-omap/mcbsp.c
-> +++ b/arch/arm/plat-omap/mcbsp.c
-> @@ -1314,11 +1314,14 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
->  	mcbsp->dma_rx_sync = pdata->dma_rx_sync;
->  	mcbsp->dma_tx_sync = pdata->dma_tx_sync;
->  
-> -	mcbsp->iclk = clk_get(&pdev->dev, "ick");
-> -	if (IS_ERR(mcbsp->iclk)) {
-> -		ret = PTR_ERR(mcbsp->iclk);
-> -		dev_err(&pdev->dev, "unable to get ick: %d\n", ret);
-> -		goto err_iclk;
-> +	/* OMAP4 iclk are hw controlled and no sw control is available */
-> +	if (!cpu_is_omap44xx()) {
+The runtime PM names are not my creation.  This is a new PM framework
+in mainline that I am taking advantage of.
 
-Please use dummy_ck for this, rather than modifying plat-omap/mcbsp.c.
+See:
 
-> +		mcbsp->iclk = clk_get(&pdev->dev, "ick");
-> +		if (IS_ERR(mcbsp->iclk)) {
-> +			ret = PTR_ERR(mcbsp->iclk);
-> +			dev_err(&pdev->dev, "unable to get ick: %d\n", ret);
-> +			goto err_iclk;
-> +		}
->  	}
->  
->  	mcbsp->fclk = clk_get(&pdev->dev, "fck");
-> -- 
-> 1.6.0.4
-> 
+  http://elinux.org/OMAP_Power_Management#Run-time_PM
 
+Kevin
 
-- Paul
