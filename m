@@ -1,32 +1,104 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/2] twl6030: regulator: Configure STATE register
- instead of REMAP
-Date: Wed, 17 Feb 2010 16:15:58 +0000
-Message-ID: <20100217161558.GB13324@rakim.wolfsonmicro.main>
-References: <1266420255-4307-1-git-send-email-rnayak@ti.com>
- <1266420255-4307-2-git-send-email-rnayak@ti.com>
+From: Ranjith Lohithakshan <ranjithl@ti.com>
+Subject: Re: [PATCH] omap: Remove DEBUGFS dependency for mux name checking
+Date: Wed, 17 Feb 2010 22:11:50 +0530
+Message-ID: <4B7C1C4E.2090709@ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E5774A31@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:49070 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751923Ab0BQQQA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Feb 2010 11:16:00 -0500
-Content-Disposition: inline
-In-Reply-To: <1266420255-4307-2-git-send-email-rnayak@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:38823 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751630Ab0BQQmF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Feb 2010 11:42:05 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E5774A31@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Samuel Ortiz <sameo@linux.intel.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On Wed, Feb 17, 2010 at 08:54:15PM +0530, Rajendra Nayak wrote:
-> This is no REMAP register on twl6030, instead there is a STATE register
-> to drive a resource to a given state.
-> The state register can be used to specify what state the resource should
-> enter when its associated with a GRP.
-> Register Bit field description is as below. The patch programmes the
-> corresponding STATE registers for all LDO's to turn ON when assocaited
-> with GRP_P1.
+Sanjeev,
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+On Wed, 17-Feb-10 3:46 PM +0530, Premi, Sanjeev wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+>> Lohithakshan, Ranjith
+>> Sent: Wednesday, February 17, 2010 11:48 AM
+>> To: linux-omap@vger.kernel.org
+>> Cc: tony@atomide.com; Lohithakshan, Ranjith
+>> Subject: [PATCH] omap: Remove DEBUGFS dependency for mux name checking
+>>
+>> The check for a valid mux name should be performed regardless 
+>> of whether
+>> DEBUGFS is enabled or not.
+>>
+>> This fixes the issue currently seen with boards not booting up
+>> if DEBUGFS is not enabled in defconfig.
+>>
+>> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/mux.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+> 
+> Ranjith,
+> 
+> For better readability, I suggest the following:
+> 
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 19001dd..7c0c4ad 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -960,16 +960,14 @@ static void __init omap_mux_init_list(struct omap_mux *sup
+>         while (superset->reg_offset !=  OMAP_MUX_TERMINATOR) {
+>                 struct omap_mux *entry;
+> 
+> -#ifndef CONFIG_OMAP_MUX
+> -               /* Skip pins that are not muxed as GPIO by bootloader */
+> -               if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
+> +#ifdef CONFIG_OMAP_MUX
+> +               if (!superset->muxnames || !superset->muxnames[0]) {
+>                         superset++;
+>                         continue;
+>                 }
+> -#endif
+> -
+> -#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
+> -               if (!superset->muxnames || !superset->muxnames[0]) {
+> +#else
+> +               /* Skip pins that are not muxed as GPIO by bootloader */
+> +               if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
+>                         superset++;
+>                         continue;
+
+Sounds good. I will issue an updated patch shortly.
+
+ - Ranjith
+
+> Best regards,
+> Sanjeev
+> 
+> 
+>> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+>> index 986077f..1a6ff8f 100644
+>> --- a/arch/arm/mach-omap2/mux.c
+>> +++ b/arch/arm/mach-omap2/mux.c
+>> @@ -969,7 +969,7 @@ static void __init 
+>> omap_mux_init_list(struct omap_mux *superset)
+>>  		}
+>>  #endif
+>>  
+>> -#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
+>> +#ifdef CONFIG_OMAP_MUX
+>>  		if (!superset->muxnames || !superset->muxnames[0]) {
+>>  			superset++;
+>>  			continue;
+>> -- 
+>> 1.6.2.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
