@@ -1,101 +1,179 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 3/3] OMAP3: PM: Wakeup from TWL4030 keypad with OFF mode
-Date: Wed, 17 Feb 2010 16:47:44 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E5774ADB@dbde02.ent.ti.com>
-References: <874olgkd12.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCH 1/4] OMAP: DSS2: remove sub-panel system
+Date: Wed, 17 Feb 2010 13:57:16 +0200
+Message-ID: <1266407839-14713-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48958 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751173Ab0BQLSV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 06:18:21 -0500
-In-Reply-To: <874olgkd12.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:65100 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752873Ab0BQLy1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 06:54:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
+The system to allow panel drivers to exists as attached to ctrl drivers
+did never work very well. It is not useed, and this patch removes it to
+make the driver cleaner.
+
+For now, controller drivers need to include also the panel driver code. In
+the future a proper mechanism for this should be developed, perhaps by
+creating busses for controllers.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ arch/arm/plat-omap/include/plat/display.h |    3 --
+ drivers/video/omap2/dss/core.c            |   35 ++--------------------------
+ drivers/video/omap2/dss/display.c         |   32 +------------------------
+ 3 files changed, 5 insertions(+), 65 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+index 8c3688b..0022f6c 100644
+--- a/arch/arm/plat-omap/include/plat/display.h
++++ b/arch/arm/plat-omap/include/plat/display.h
+@@ -431,14 +431,11 @@ struct omap_dss_device {
+ 		enum omap_panel_config config;
  
+ 		u8 recommended_bpp;
+-
+-		struct omap_dss_device *ctrl;
+ 	} panel;
+ 
+ 	struct {
+ 		u8 pixel_size;
+ 		struct rfbi_timings rfbi_timings;
+-		struct omap_dss_device *panel;
+ 	} ctrl;
+ 
+ 	int reset_gpio;
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 72547df..967cbda 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -771,11 +771,8 @@ static int dss_driver_probe(struct device *dev)
+ 
+ 	dss_init_device(core.pdev, dssdev);
+ 
+-	/* skip this if the device is behind a ctrl */
+-	if (!dssdev->panel.ctrl) {
+-		force = pdata->default_device == dssdev;
+-		dss_recheck_connections(dssdev, force);
+-	}
++	force = pdata->default_device == dssdev;
++	dss_recheck_connections(dssdev, force);
+ 
+ 	r = dssdrv->probe(dssdev);
+ 
+@@ -861,8 +858,6 @@ static void omap_dss_dev_release(struct device *dev)
+ int omap_dss_register_device(struct omap_dss_device *dssdev)
+ {
+ 	static int dev_num;
+-	static int panel_num;
+-	int r;
+ 
+ 	WARN_ON(!dssdev->driver_name);
+ 
+@@ -871,36 +866,12 @@ int omap_dss_register_device(struct omap_dss_device *dssdev)
+ 	dssdev->dev.parent = &dss_bus;
+ 	dssdev->dev.release = omap_dss_dev_release;
+ 	dev_set_name(&dssdev->dev, "display%d", dev_num++);
+-	r = device_register(&dssdev->dev);
+-	if (r)
+-		return r;
+-
+-	if (dssdev->ctrl.panel) {
+-		struct omap_dss_device *panel = dssdev->ctrl.panel;
+-
+-		panel->panel.ctrl = dssdev;
+-
+-		reset_device(&panel->dev, 1);
+-		panel->dev.bus = &dss_bus_type;
+-		panel->dev.parent = &dssdev->dev;
+-		panel->dev.release = omap_dss_dev_release;
+-		dev_set_name(&panel->dev, "panel%d", panel_num++);
+-		r = device_register(&panel->dev);
+-		if (r)
+-			return r;
+-	}
+-
+-	return 0;
++	return device_register(&dssdev->dev);
+ }
+ 
+ void omap_dss_unregister_device(struct omap_dss_device *dssdev)
+ {
+ 	device_unregister(&dssdev->dev);
+-
+-	if (dssdev->ctrl.panel) {
+-		struct omap_dss_device *panel = dssdev->ctrl.panel;
+-		device_unregister(&panel->dev);
+-	}
+ }
+ 
+ /* BUS */
+diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
+index 3b92b84..3f345b8 100644
+--- a/drivers/video/omap2/dss/display.c
++++ b/drivers/video/omap2/dss/display.c
+@@ -591,10 +591,6 @@ struct omap_dss_device *omap_dss_get_next_device(struct omap_dss_device *from)
+ 
+ 	int match(struct device *dev, void *data)
+ 	{
+-		/* skip panels connected to controllers */
+-		if (to_dss_device(dev)->panel.ctrl)
+-			return 0;
+-
+ 		return 1;
+ 	}
+ 
+@@ -626,45 +622,21 @@ EXPORT_SYMBOL(omap_dss_find_device);
+ 
+ int omap_dss_start_device(struct omap_dss_device *dssdev)
+ {
+-	int r;
+-
+ 	if (!dssdev->driver) {
+ 		DSSDBG("no driver\n");
+-		r = -ENODEV;
+-		goto err0;
+-	}
+-
+-	if (dssdev->ctrl.panel && !dssdev->ctrl.panel->driver) {
+-		DSSDBG("no panel driver\n");
+-		r = -ENODEV;
+-		goto err0;
++		return -ENODEV;
+ 	}
+ 
+ 	if (!try_module_get(dssdev->dev.driver->owner)) {
+-		r = -ENODEV;
+-		goto err0;
+-	}
+-
+-	if (dssdev->ctrl.panel) {
+-		if (!try_module_get(dssdev->ctrl.panel->dev.driver->owner)) {
+-			r = -ENODEV;
+-			goto err1;
+-		}
++		return -ENODEV;
+ 	}
+ 
+ 	return 0;
+-err1:
+-	module_put(dssdev->dev.driver->owner);
+-err0:
+-	return r;
+ }
+ EXPORT_SYMBOL(omap_dss_start_device);
+ 
+ void omap_dss_stop_device(struct omap_dss_device *dssdev)
+ {
+-	if (dssdev->ctrl.panel)
+-		module_put(dssdev->ctrl.panel->dev.driver->owner);
+-
+ 	module_put(dssdev->dev.driver->owner);
+ }
+ EXPORT_SYMBOL(omap_dss_stop_device);
+-- 
+1.6.5
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Wednesday, February 17, 2010 4:24 AM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 3/3] OMAP3: PM: Wakeup from TWL4030 
-> keypad with OFF mode
-> 
-> "Premi, Sanjeev" <premi@ti.com> writes:
-> 
-> >> -----Original Message-----
-> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> >> Sent: Friday, February 05, 2010 3:22 AM
-> >> To: Premi, Sanjeev
-> >> Cc: linux-omap@vger.kernel.org
-> >> Subject: Re: [PATCH 3/3] OMAP3: PM: Wakeup from TWL4030 
-> >> keypad with OFF mode
-> >> 
-> >> Sanjeev Premi <premi@ti.com> writes:
-> >> 
-> >> > This patch allows wakeup from TWL4030 keypad when
-> >> > OFF mode is hit during suspend.
-> >> >
-> >> > Tested on OMAP3EVM.
-> >> >
-> >> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> >> 
-> >> The idea here looks good, but there is nothing realy EVM 
-> specific here
-> >> AFAICT, and this exact code could be used on any other board using
-> >> the T2 keypad, right?  How about a common location?
-> >
-> > [sp] The EVM uses SYS_NIRQ for hooking up with the T2 keypad. Not
-> >      sure of everyone would be doing so. Also, PADCONFs are more
-> >      applicable for OMAP3, but T2 can be used with other processors
-> >      as well...
-> >
-> >      I did initially inplement these functions in:
-> >      drivers/input/keyboard/twl4030_keypad.c
-> >
-> >      ...but then moved to board specific file.
-> 
-> I know at least SDP and EVM have these hooked up identically, 
-> so some common
-> way to set them up would be preferred.  Maybe a 
-> mach-omap2/t2-keypad.c that
-> could be shared between various board files.  The board files 
-> would still
-> configure the IRQ line and the padconfs used.
-
-[sp] Yes. This can be done.
-
-Best regards,
-Sanjeev
-
-> 
-> Kevin
-> 
-> 
-> 
-> >> 
-> >> Also, after looking at this patch, I think the 'void 
-> *pstate' member
-> >> of struct twl4030_keypad_data should be renamed to 'void *data' to
-> >> be more clear that it's just a pointer.
-> >
-> > [sp] Will make the change. However, will wait for your 
-> response on the
-> >      earlier comment before re-submit.
-> >
-> > ~sanjeev
-> >
-> >> 
-> >> Kevin
-> >> 
-> >> 
-> >
-> > [snip]--[snip]
-> 
