@@ -1,41 +1,261 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: OMAP Audio
-Date: Wed, 17 Feb 2010 11:01:53 -0700
-Message-ID: <4B7C2F11.3010008@mlbassoc.com>
-References: <4B7AE1AD.7080400@mlbassoc.com> <201002171226.05108.peter.ujfalusi@nokia.com> <4B7BC86C.8040905@mlbassoc.com> <201002171317.27896.peter.ujfalusi@nokia.com> <4B7BDAB1.3020503@mlbassoc.com> <20100217194501.7e49ac0c.jhnikula@gmail.com> <4B7C2C8F.9040703@mlbassoc.com> <20100217175602.GG2032@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCHv4 1/4] DSPBRIDGE: Rename DMM_RES_OBJECT to DMM_MAP_OBJECT
+Date: Wed, 17 Feb 2010 20:05:38 +0200
+Message-ID: <ebee89889a45310eb63a19b133eba29801e9a519.1266429436.git.ameya.palande@nokia.com>
+References: <cover.1266429436.git.ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:40647 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753458Ab0BQSB6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 13:01:58 -0500
-In-Reply-To: <20100217175602.GG2032@sirena.org.uk>
+Received: from smtp.nokia.com ([192.100.122.230]:43159 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753396Ab0BQSGf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 13:06:35 -0500
+In-Reply-To: <cover.1266429436.git.ameya.palande@nokia.com>
+In-Reply-To: <cover.1266429436.git.ameya.palande@nokia.com>
+References: <cover.1266429436.git.ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, OMAP Linux discussion <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: felipe.contreras@nokia.com, nm@ti.com, deepak.chitriki@ti.com, x0095840@ti.com, omar.ramirez@ti.com
 
-On 02/17/2010 10:56 AM, Mark Brown wrote:
-> On Wed, Feb 17, 2010 at 10:51:11AM -0700, Gary Thomas wrote:
->
->> Thanks.  I'd really like to understand how to set things up to generate
->> the data I see in TRM:
->>    Figure 21-11 shows an example with 24 bits data (MSB first) and 8 padding bits at ?0?.
->>
->> This matches my CODEC.  Any clues?
->
-> Does your CODEC actually need the padding bits to be zero?  What you're
-> describing sounds an awful lot like 32 bit data that just has the LSB
-> ignored.
+In its current state DMM_RES_OBJECT is not correctly tracking reserve and
+unreserve but only map and unmap. So lets rename it to DMM_MAP_OBJECT to
+clarify what it is really doing!
 
-I don't think it matters.  The real problem is how to get 24 bits
-of data aligned to the right place in the 32 bit frame.  TRM implies
-that the hardware can do this, I've just not figured out the magic...
+In addition to this, this patch also does some trivial code cleanup.
 
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+Reviewed-by: Felipe Contreras <felipe.contreras@nokia.com>
+---
+ arch/arm/plat-omap/include/dspbridge/drv.h |   14 +++---
+ drivers/dsp/bridge/rmgr/drv.c              |   69 ++++++++++++++--------------
+ drivers/dsp/bridge/rmgr/drv_interface.c    |    2 +-
+ 3 files changed, 43 insertions(+), 42 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index b044291..d5f5277 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -90,15 +90,15 @@ struct NODE_RES_OBJECT {
+ 	struct NODE_RES_OBJECT         *next;
+ } ;
+ 
+-/* New structure (member of process context) abstracts DMM resource info */
+-struct DMM_RES_OBJECT {
++/* Abstracts DMM resource info */
++struct DMM_MAP_OBJECT {
+ 	s32            dmmAllocated; /* DMM status */
+ 	u32           ulMpuAddr;
+ 	u32           ulDSPAddr;
+ 	u32           ulDSPResAddr;
+-	u32           dmmSize;
++	u32           size;
+ 	HANDLE          hProcessor;
+-	struct DMM_RES_OBJECT  *next;
++	struct DMM_MAP_OBJECT  *next;
+ } ;
+ 
+ /* New structure (member of process context) abstracts DMM resource info */
+@@ -139,9 +139,9 @@ struct PROCESS_CONTEXT{
+ 	struct NODE_RES_OBJECT *pNodeList;
+ 	struct mutex node_mutex;
+ 
+-	/* DMM resources */
+-	struct DMM_RES_OBJECT *pDMMList;
+-	struct mutex dmm_mutex;
++	/* DMM mapped memory resources */
++	struct DMM_MAP_OBJECT *dmm_map_list;
++	struct mutex dmm_map_mutex;
+ 
+ 	/* DSP Heap resources */
+ 	struct DSPHEAP_RES_OBJECT *pDSPHEAPList;
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index e8b2c58..9b513e2 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -198,37 +198,37 @@ static DSP_STATUS DRV_ProcFreeNodeRes(HANDLE hPCtxt)
+ DSP_STATUS DRV_InsertDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
+ {
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+-	struct DMM_RES_OBJECT **pDMMRes = (struct DMM_RES_OBJECT **)hDMMRes;
++	struct DMM_MAP_OBJECT **pDMMRes = (struct DMM_MAP_OBJECT **)hDMMRes;
+ 	DSP_STATUS	status = DSP_SOK;
+-	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
++	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
+ 
+-	*pDMMRes = (struct DMM_RES_OBJECT *)
+-		    MEM_Calloc(1 * sizeof(struct DMM_RES_OBJECT), MEM_PAGED);
++	*pDMMRes = (struct DMM_MAP_OBJECT *)
++		    MEM_Calloc(1 * sizeof(struct DMM_MAP_OBJECT), MEM_PAGED);
+ 	GT_0trace(curTrace, GT_ENTER, "DRV_InsertDMMResElement: 1");
+ 	if (*pDMMRes == NULL) {
+ 		GT_0trace(curTrace, GT_5CLASS, "DRV_InsertDMMResElement: 2");
+ 		status = DSP_EHANDLE;
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+-		if (mutex_lock_interruptible(&pCtxt->dmm_mutex)) {
++		if (mutex_lock_interruptible(&pCtxt->dmm_map_mutex)) {
+ 			kfree(*pDMMRes);
+ 			return DSP_EFAIL;
+ 		}
+ 
+-		if (pCtxt->pDMMList != NULL) {
++		if (pCtxt->dmm_map_list) {
+ 			GT_0trace(curTrace, GT_5CLASS,
+ 				 "DRV_InsertDMMResElement: 3");
+-			pTempDMMRes = pCtxt->pDMMList;
+-			while (pTempDMMRes->next != NULL)
++			pTempDMMRes = pCtxt->dmm_map_list;
++			while (pTempDMMRes->next)
+ 				pTempDMMRes = pTempDMMRes->next;
+ 
+ 			pTempDMMRes->next = *pDMMRes;
+ 		} else {
+-			pCtxt->pDMMList = *pDMMRes;
++			pCtxt->dmm_map_list = *pDMMRes;
+ 			GT_0trace(curTrace, GT_5CLASS,
+ 				 "DRV_InsertDMMResElement: 4");
+ 		}
+-		mutex_unlock(&pCtxt->dmm_mutex);
++		mutex_unlock(&pCtxt->dmm_map_mutex);
+ 	}
+ 	GT_0trace(curTrace, GT_ENTER, "DRV_InsertDMMResElement: 5");
+ 	return status;
+@@ -239,15 +239,15 @@ DSP_STATUS DRV_InsertDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
+ DSP_STATUS DRV_RemoveDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
+ {
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+-	struct DMM_RES_OBJECT *pDMMRes = (struct DMM_RES_OBJECT *)hDMMRes;
+-	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
++	struct DMM_MAP_OBJECT *pDMMRes = (struct DMM_MAP_OBJECT *)hDMMRes;
++	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
+ 	DSP_STATUS status = DSP_SOK;
+ 
+-	if (mutex_lock_interruptible(&pCtxt->dmm_mutex))
++	if (mutex_lock_interruptible(&pCtxt->dmm_map_mutex))
+ 		return DSP_EFAIL;
+-	pTempDMMRes = pCtxt->pDMMList;
+-	if (pCtxt->pDMMList == pDMMRes) {
+-		pCtxt->pDMMList = pDMMRes->next;
++	pTempDMMRes = pCtxt->dmm_map_list;
++	if (pCtxt->dmm_map_list == pDMMRes) {
++		pCtxt->dmm_map_list = pDMMRes->next;
+ 	} else {
+ 		while (pTempDMMRes && pTempDMMRes->next != pDMMRes)
+ 			pTempDMMRes = pTempDMMRes->next;
+@@ -256,7 +256,7 @@ DSP_STATUS DRV_RemoveDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
+ 		else
+ 			pTempDMMRes->next = pDMMRes->next;
+ 	}
+-	mutex_unlock(&pCtxt->dmm_mutex);
++	mutex_unlock(&pCtxt->dmm_map_mutex);
+ 	kfree(pDMMRes);
+ 	return status;
+ }
+@@ -266,14 +266,14 @@ DSP_STATUS DRV_UpdateDMMResElement(HANDLE hDMMRes, u32 pMpuAddr, u32 ulSize,
+ 				  u32 pReqAddr, u32 pMapAddr,
+ 				  HANDLE hProcessor)
+ {
+-	struct DMM_RES_OBJECT *pDMMRes = (struct DMM_RES_OBJECT *)hDMMRes;
++	struct DMM_MAP_OBJECT *pDMMRes = (struct DMM_MAP_OBJECT *)hDMMRes;
+ 	DSP_STATUS status = DSP_SOK;
+ 
+ 	DBC_Assert(hDMMRes != NULL);
+ 	pDMMRes->ulMpuAddr = pMpuAddr;
+ 	pDMMRes->ulDSPAddr = pMapAddr;
+ 	pDMMRes->ulDSPResAddr = pReqAddr;
+-	pDMMRes->dmmSize = ulSize;
++	pDMMRes->size = ulSize;
+ 	pDMMRes->hProcessor = hProcessor;
+ 	pDMMRes->dmmAllocated = 1;
+ 
+@@ -285,11 +285,11 @@ DSP_STATUS  DRV_ProcFreeDMMRes(HANDLE hPCtxt)
+ {
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+ 	DSP_STATUS status = DSP_SOK;
+-	struct DMM_RES_OBJECT *pDMMList = pCtxt->pDMMList;
+-	struct DMM_RES_OBJECT *pDMMRes = NULL;
++	struct DMM_MAP_OBJECT *pDMMList = pCtxt->dmm_map_list;
++	struct DMM_MAP_OBJECT *pDMMRes = NULL;
+ 
+ 	GT_0trace(curTrace, GT_ENTER, "\nDRV_ProcFreeDMMRes: 1\n");
+-	while (pDMMList != NULL) {
++	while (pDMMList) {
+ 		pDMMRes = pDMMList;
+ 		pDMMList = pDMMList->next;
+ 		if (pDMMRes->dmmAllocated) {
+@@ -315,32 +315,32 @@ DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
+ {
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+ 	DSP_STATUS status = DSP_SOK;
+-	struct DMM_RES_OBJECT *pTempDMMRes2 = NULL;
+-	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
++	struct DMM_MAP_OBJECT *pTempDMMRes2 = NULL;
++	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
+ 
+ 	DRV_ProcFreeDMMRes(pCtxt);
+-	pTempDMMRes = pCtxt->pDMMList;
++	pTempDMMRes = pCtxt->dmm_map_list;
+ 	while (pTempDMMRes != NULL) {
+ 		pTempDMMRes2 = pTempDMMRes;
+ 		pTempDMMRes = pTempDMMRes->next;
+ 		kfree(pTempDMMRes2);
+ 	}
+-	pCtxt->pDMMList = NULL;
++	pCtxt->dmm_map_list = NULL;
+ 	return status;
+ }
+ 
+ DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE hDMMRes, HANDLE hPCtxt)
+ {
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+-	struct DMM_RES_OBJECT **pDMMRes = (struct DMM_RES_OBJECT **)hDMMRes;
++	struct DMM_MAP_OBJECT **pDMMRes = (struct DMM_MAP_OBJECT **)hDMMRes;
+ 	DSP_STATUS status = DSP_SOK;
+-	struct DMM_RES_OBJECT *pTempDMM = NULL;
++	struct DMM_MAP_OBJECT *pTempDMM = NULL;
+ 
+-	if (mutex_lock_interruptible(&pCtxt->dmm_mutex))
++	if (mutex_lock_interruptible(&pCtxt->dmm_map_mutex))
+ 		return DSP_EFAIL;
+ 
+-	pTempDMM = pCtxt->pDMMList;
+-	while ((pTempDMM != NULL) && (pTempDMM->ulDSPAddr != pMapAddr)) {
++	pTempDMM = pCtxt->dmm_map_list;
++	while (pTempDMM && (pTempDMM->ulDSPAddr != pMapAddr)) {
+ 		GT_3trace(curTrace, GT_ENTER,
+ 			 "DRV_GetDMMResElement: 2 pTempDMM:%x "
+ 			 "pTempDMM->ulDSPAddr:%x pMapAddr:%x\n", pTempDMM,
+@@ -348,14 +348,15 @@ DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE hDMMRes, HANDLE hPCtxt)
+ 		pTempDMM = pTempDMM->next;
+ 	}
+ 
+-	mutex_unlock(&pCtxt->dmm_mutex);
++	mutex_unlock(&pCtxt->dmm_map_mutex);
+ 
+-	if (pTempDMM != NULL) {
++	if (pTempDMM) {
+ 		GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 3");
+ 		*pDMMRes = pTempDMM;
+ 	} else {
+ 		status = DSP_ENOTFOUND;
+-	} GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 4");
++		GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 4");
++	}
+ 	return status;
+ }
+ 
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index f083ba7..e6a7eb7 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -499,7 +499,7 @@ static int bridge_open(struct inode *ip, struct file *filp)
+ 	pr_ctxt = MEM_Calloc(sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
+ 	if (pr_ctxt) {
+ 		pr_ctxt->resState = PROC_RES_ALLOCATED;
+-		mutex_init(&pr_ctxt->dmm_mutex);
++		mutex_init(&pr_ctxt->dmm_map_mutex);
+ 		mutex_init(&pr_ctxt->node_mutex);
+ 		mutex_init(&pr_ctxt->strm_mutex);
+ 	} else {
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+1.6.3.3
+
