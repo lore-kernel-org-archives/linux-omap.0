@@ -1,76 +1,48 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 1/2] twl6030: regulator: Fix vsel calculations in set/get voltage apis
-Date: Wed, 17 Feb 2010 20:54:14 +0530
-Message-ID: <1266420255-4307-1-git-send-email-rnayak@ti.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH  0/2] TWL6030 regulator fixes
+Date: Wed, 17 Feb 2010 21:00:53 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03215B0E7A@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB03215B0E71@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33922 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52810 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754154Ab0BQPY2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Feb 2010 10:24:28 -0500
+	id S1751271Ab0BQPf2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 10:35:28 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03215B0E71@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-TWL6030 has a formula to be used to calculate the vsel values
-to be programmed in the VREG_VOLTAGE registers.
+Forgot to mention, I have stripped the patches from the series
+here http://marc.info/?l=linux-omap&m=126633460408606&w=2 and
+posted them seperately.
 
-Voltage(in mV) = 1000mv + 100mv * (vsel - 1)
-
-Ex: if vsel = 0x9, mV = 1000 + 100 * (9 -1) = 1800mV.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
----
- drivers/regulator/twl-regulator.c |   23 +++++++++++++++++++----
- 1 files changed, 19 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 7e67485..e7871d6 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -367,11 +367,17 @@ twlldo_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV)
- 		/* REVISIT for VAUX2, first match may not be best/lowest */
- 
- 		/* use the first in-range value */
--		if (min_uV <= uV && uV <= max_uV)
-+		if (min_uV <= uV && uV <= max_uV) {
-+			if (twl_class_is_6030())
-+				/*
-+				 * Use the below formula to calculate vsel
-+				 * mV = 1000mv + 100mv * (vsel - 1)
-+				 */
-+				vsel = (LDO_MV(mV) - 1000)/100 + 1;
- 			return twlreg_write(info, TWL_MODULE_PM_RECEIVER,
- 							VREG_VOLTAGE, vsel);
-+		}
- 	}
--
- 	return -EDOM;
- }
- 
-@@ -384,8 +390,17 @@ static int twlldo_get_voltage(struct regulator_dev *rdev)
- 	if (vsel < 0)
- 		return vsel;
- 
--	vsel &= info->table_len - 1;
--	return LDO_MV(info->table[vsel]) * 1000;
-+	if (twl_class_is_4030()) {
-+		vsel &= info->table_len - 1;
-+		return LDO_MV(info->table[vsel]) * 1000;
-+	} else if (twl_class_is_6030()) {
-+		/*
-+		 * Use the below formula to calculate vsel
-+		 * mV = 1000mv + 100mv * (vsel - 1)
-+		 */
-+		return (1000 + (100 * (vsel - 1))) * 1000;
-+	}
-+	return -EDOM;
- }
- 
- static struct regulator_ops twlldo_ops = {
--- 
-1.5.4.7
-
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Nayak, Rajendra
+> Sent: Wednesday, February 17, 2010 8:54 PM
+> To: lrg@slimlogic.co.uk; sameo@linux.intel.com; 
+> broonie@opensource.wolfsonmicro.com
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH 0/2] TWL6030 regulator fixes
+> 
+> Hi,
+> 
+> This series contains fixes for the twl6030 regulator framework.
+> The series is generated against mainline kernel and the fixes
+> are validated on the OMAP4430sdp platform.
+> 
+> regards,
+> Rajendra
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
