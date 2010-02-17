@@ -1,123 +1,92 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 1/2] omap: Disable TWL4030/5030 I2C1/I2C4 internal
- pull-ups
-Date: Wed, 17 Feb 2010 09:45:39 +0200
-Message-ID: <20100217074539.GA22459@esdhcp037198.research.nokia.com>
-References: <1266368241-10459-1-git-send-email-m-sonasath@ti.com>
- <1266368241-10459-2-git-send-email-m-sonasath@ti.com>
-Reply-To: eduardo.valentin@nokia.com
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 24/24] omap4: multi-omap: Allow build to work
+Date: Wed, 17 Feb 2010 14:42:02 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03215B0CBD@dbde02.ent.ti.com>
+References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-20-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-21-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-22-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-23-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-24-git-send-email-santosh.shilimkar@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF80F0@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37408 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752034Ab0BQHqT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 02:46:19 -0500
-Content-Disposition: inline
-In-Reply-To: <1266368241-10459-2-git-send-email-m-sonasath@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42380 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934191Ab0BQJMU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 04:12:20 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF80F0@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Moiz Sonasath <m-sonasath@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, Allen Pais <allen.pais@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>"Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "paul@pwsan.com" <paul@pwsan.com>
 
-Hello Moiz,
+Shilimkar, Santosh wrote:
+> > From: Gadiyar, Anand
+> > Shilimkar, Santosh wrote:
+> > > The musb support is enable to omap3 platforms. For omap4 only board
+> > > support is available and the driver still isn't supported.
+> > > Because of this build with omap3_defconfig used for multi-omap
+> > > doesn't work on omap4430 sdp.
+> > >
+> > > This patch hacks the musb probe to keep the multi-omap build
+> > > working on omap4430 sdp
+> > >
+> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > > ---
+> > >  drivers/usb/musb/musb_core.c |    4 ++++
+> > >  1 files changed, 4 insertions(+), 0 deletions(-)
+> > >
+> > > diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> > > index bcce8e8..13b1c4a 100644
+> > > --- a/drivers/usb/musb/musb_core.c
+> > > +++ b/drivers/usb/musb/musb_core.c
+> > > @@ -2124,6 +2124,10 @@ static int __init musb_probe(struct platform_device *pdev)
+> > >  	struct resource	*iomem;
+> > >  	void __iomem	*base;
+> > >
+> > > +	/* FIXME: multi-omap build to work on omap4 */
+> > > +	if (cpu_is_omap44xx())
+> > > +		return 0;
+> > > +
+> > 
+> > NAK. I'd prefer that we fix the driver issue correctly.
+> > 
+> > I would have expected the driver to at least load on OMAP4
+> > even if it does not work. Could you please describe the
+> > failure?
+> > 
+> The probe fails because the register bases aren't mapped 
+> for omap4. This is because Tony has lined-up musb board support
+> for omap4 but corresponding usb driver patches are not yet lined
+> up.
 
-On Wed, Feb 17, 2010 at 01:57:21AM +0100, ext Moiz Sonasath wrote:
-> This patch disables TWL4030/5030 I2C1 adn I2C4(SR) internal pull-up, to
-> use only the external HW resistor >=470 Ohm for the assured
-> functionality in HS mode.
-> 
-> While testing the I2C in High Speed mode, it was discovered that
-> without a proper pull-up resistor, there is data corruption during
-> multi-byte transfer. RTC(time_set) test case was used for testing.
+I see the problem now - the platform support is lined up, but the
+driver is not queued up yet.
 
-Nice findings!
-
-> 
-> >From the analysis done, it was concluded that ideally we need a
-> pull-up of 1.6k Ohm(recomended) or atleast 470 Ohm or greater for
-> assured performance in HS mode.
-> 
-> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
-> Signed-off-by: Allen Pais <allen.pais@ti.com>
-> ---
->  drivers/mfd/twl-core.c  |   13 +++++++++++++
->  include/linux/i2c/twl.h |   15 +++++++++++++++
->  2 files changed, 28 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index 2a76065..35ae2ee 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -965,6 +965,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  	int				status;
->  	unsigned			i;
->  	struct twl4030_platform_data	*pdata = client->dev.platform_data;
-> +	u8 temp;
->  
->  	if (!pdata) {
->  		dev_dbg(&client->dev, "no platform data?\n");
-> @@ -1032,6 +1033,18 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  			goto fail;
->  	}
->  
-> +	/* Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
-> +	 * Program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
-> +	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
-> +	 */
-> +
-> +	if (twl_class_is_4030()) {
-
-Is this run time check sufficient enough to determine if this fix must be applied?
->From what you have described on you patch description, looks like it is supposed to be
-only for HS mode. I don't know, maybe if you bind this to a platform / board configuration
-flag would it be better? I mean, you create a flag inside the platform data to determine
-if this fix must be applied or not. At least for me, having an external pu resistor
-seams to be very board dependent.
+This is easy to fix by removing the call to usb_musb_init from
+the 4430sdp board. How about doing this?
 
 
-> +		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &temp, REG_GPPUPDCTR1);
-> +		temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
-> +		I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
-> +		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
-> +	}
-> +
->  	status = add_children(pdata, id->driver_data);
->  fail:
->  	if (status < 0)
-> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-> index bf1c5be..fd95eca 100644
-> --- a/include/linux/i2c/twl.h
-> +++ b/include/linux/i2c/twl.h
-> @@ -239,6 +239,21 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
->  
->  /*----------------------------------------------------------------------*/
->  
-> +/*Interface Bit Register (INTBR) offsets
-> + *(Use TWL_4030_MODULE_INTBR)
-> + */
-> +
-> +#define REG_GPPUPDCTR1			0x0F
-> +
-> +/*I2C1 and I2C4(SR) SDA/SCL pull-up control bits */
-> +
-> +#define I2C_SCL_CTRL_PU			BIT(0)
-> +#define I2C_SDA_CTRL_PU			BIT(2)
-> +#define SR_I2C_SCL_CTRL_PU		BIT(4)
-> +#define SR_I2C_SDA_CTRL_PU		BIT(6)
-> +
-> +/*----------------------------------------------------------------------*/
-> +
->  /*
->   * Keypad register offsets (use TWL4030_MODULE_KEYPAD)
->   * ... SIH/interrupt only
-> -- 
-> 1.5.6.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Eduardo Valentin
+- Anand
