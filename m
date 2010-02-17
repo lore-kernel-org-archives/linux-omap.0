@@ -1,60 +1,100 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: New reserved memory accounting framework
-Date: Wed, 17 Feb 2010 11:50:09 +0200
-Message-ID: <94a0d4531002170150s67ed6f5ara019fb1c06f6a241@mail.gmail.com>
-References: <cover.1266326009.git.ameya.palande@nokia.com>
-	 <f966f5c490999696e567486ded3b08c4c01f366f.1266326009.git.ameya.palande@nokia.com>
-	 <21ed5f939111b381f877fd335b3adc2e779ce8ac.1266326009.git.ameya.palande@nokia.com>
-	 <94a0d4531002161042r73c89d1crbc892e7f7de6771f@mail.gmail.com>
-	 <496565EC904933469F292DDA3F1663E602CA2B962A@dlee06.ent.ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] omap: Remove DEBUGFS dependency for mux name checking
+Date: Wed, 17 Feb 2010 15:46:14 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E5774A31@dbde02.ent.ti.com>
+References: <1266387487-27588-1-git-send-email-ranjithl@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:57740 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933067Ab0BQJuL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 04:50:11 -0500
-Received: by bwz19 with SMTP id 19so5299841bwz.28
-        for <linux-omap@vger.kernel.org>; Wed, 17 Feb 2010 01:50:09 -0800 (PST)
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CA2B962A@dlee06.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:46787 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753260Ab0BQKQW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 05:16:22 -0500
+In-Reply-To: <1266387487-27588-1-git-send-email-ranjithl@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+To: "Lohithakshan, Ranjith" <ranjithl@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>
 
-On Wed, Feb 17, 2010 at 4:05 AM, Guzman Lugo, Fernando <x0095840@ti.com=
-> wrote:
->>> =C2=A0struct DSPHEAP_RES_OBJECT {
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0s32 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0heapAllocated; /* DMM status */
->>> @@ -141,6 +150,10 @@ struct PROCESS_CONTEXT{
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* DMM mapped memory resources */
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct DMM_MAP_OBJECT *dmm_map_list;
->>>
->>> + =C2=A0 =C2=A0 =C2=A0 /* DMM reserved memory resources */
->>> + =C2=A0 =C2=A0 =C2=A0 struct list_head dmm_rsv_list;
->>> + =C2=A0 =C2=A0 =C2=A0 spinlock_t dmm_rsv_list_lock;
->>> +
->>
->>Why rsv requires a spinlock, but not map?
->>
->>I guess it would be needed if somehow PROC_UnReserveMemory() was
->>called by user-space at the same time than bridge_close, but is that
->>really possible? If it is, then the same danger is present with
->>PROC_UnMap() unless I'm missing something.
->
-> No, that's not possible. However protection is still needed for PROC_=
- ReserveMemory/UnReserveMemory and also for PROC_Map/UnMap.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Lohithakshan, Ranjith
+> Sent: Wednesday, February 17, 2010 11:48 AM
+> To: linux-omap@vger.kernel.org
+> Cc: tony@atomide.com; Lohithakshan, Ranjith
+> Subject: [PATCH] omap: Remove DEBUGFS dependency for mux name checking
+> 
+> The check for a valid mux name should be performed regardless 
+> of whether
+> DEBUGFS is enabled or not.
+> 
+> This fixes the issue currently seen with boards not booting up
+> if DEBUGFS is not enabled in defconfig.
+> 
+> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+> ---
+>  arch/arm/mach-omap2/mux.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
 
-Ok, then I guess it would make sense to have a patch for
-DMM_RSV_OBJECT, and another one to add the protection to both
-PROC_Map/UnMap/Reserve/UnReserve().
+Ranjith,
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For better readability, I suggest the following:
+
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 19001dd..7c0c4ad 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -960,16 +960,14 @@ static void __init omap_mux_init_list(struct omap_mux *sup
+        while (superset->reg_offset !=  OMAP_MUX_TERMINATOR) {
+                struct omap_mux *entry;
+
+-#ifndef CONFIG_OMAP_MUX
+-               /* Skip pins that are not muxed as GPIO by bootloader */
+-               if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
++#ifdef CONFIG_OMAP_MUX
++               if (!superset->muxnames || !superset->muxnames[0]) {
+                        superset++;
+                        continue;
+                }
+-#endif
+-
+-#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
+-               if (!superset->muxnames || !superset->muxnames[0]) {
++#else
++               /* Skip pins that are not muxed as GPIO by bootloader */
++               if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
+                        superset++;
+                        continue;
+                }
+
+Best regards,
+Sanjeev
+
+
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 986077f..1a6ff8f 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -969,7 +969,7 @@ static void __init 
+> omap_mux_init_list(struct omap_mux *superset)
+>  		}
+>  #endif
+>  
+> -#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
+> +#ifdef CONFIG_OMAP_MUX
+>  		if (!superset->muxnames || !superset->muxnames[0]) {
+>  			superset++;
+>  			continue;
+> -- 
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
