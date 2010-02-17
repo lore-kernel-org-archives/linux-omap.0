@@ -1,65 +1,67 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH  0/24] omap4 for 2.6.34
-Date: Wed, 17 Feb 2010 10:46:44 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF82A2@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF80C3@dbde02.ent.ti.com>
- <20100216190257.GP21755@atomide.com>
+Subject: RE: [PATCH 16/24] omap4: Add i2c support on omap4 platform
+Date: Wed, 17 Feb 2010 10:53:32 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF82BE@dbde02.ent.ti.com>
+References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
+ <alpine.DEB.2.00.1002161616550.10478@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54144 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34363 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750809Ab0BQFRF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 00:17:05 -0500
-In-Reply-To: <20100216190257.GP21755@atomide.com>
+	id S1750919Ab0BQFYB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 00:24:01 -0500
+In-Reply-To: <alpine.DEB.2.00.1002161616550.10478@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ben Dooks <ben@fluff.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "Nayak, Rajendra" <rnayak@ti.com>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, Ben Dooks <ben-linux@fluff.org>
 
-Tony,
+Thanks Paul,
 
+I am just summarizing all my responses in this email.
+<snip>
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Wednesday, February 17, 2010 12:33 AM
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Wednesday, February 17, 2010 4:51 AM
 > To: Shilimkar, Santosh
-> Cc: Ben Dooks; Samuel Ortiz; Kevin Hilman; Paul Walmsley; lrg@slimlogic.co.uk; linux-
-> omap@vger.kernel.org
-> Subject: Re: [PATCH 0/24] omap4 for 2.6.34
+> Cc: tony@atomide.com; linux-omap@vger.kernel.org; ben@fluff.org.uk; sameo@linux.intel.com;
+> lrg@slimlogic.co.uk; Nayak, Rajendra; Syed, Rafiuddin; Ben Dooks
+> Subject: Re: [PATCH 16/24] omap4: Add i2c support on omap4 platform
 > 
-> Hi,
+> Hello Santosh,
 > 
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [100216 07:33]:
-> > Tony,
-> > Here are some patches towards upcoming 34 merge window. They are generated against
-> > linux-omap master as you suggested.
-> >
-> > I am also copying Ben, Samuel, Liam, Paul and Kevin since some of the changes
-> > are in mfd, regulator, i2c and clocks.
-> 
-> Thanks. Can you please split this into several smaller sets?
-> 
-> 1. Core omap changes done against linux-omap master branch
->    Send to linux-omap list with linux-arm-kernel Cc'd.
-ok 
-> 2. Clock framework dummy_ck changes done against linux-omap master branch.
->    This should leave out most of the driver changes in your series.
->    Send to linux-omap list with linux-arm-kernel Cc'd.
-Will do. Some clock node names are changed and since we do clk_get based on clock node
-names, such drivers need to change. 
-> 3. I2C changes against done against 2.6.33-rc8 + "Add support for 16-bit registers"
->    Send to Ben and i2c list with linux-omap list Cc'd.
-ok
-> 4. MFD changes done against 2.6.33-rc8
->    Send to Samuel with linux-omap list Cc'd.
-Sounds good.
-I sent this series just to ensure that we all are aligned on
-dependancies and also just to highlight that all of these 
-should get merged together.
+> one general comment on this patch, before the specific comments.  Rather
+> than adding more cpu_is_omap*() all over, please instead convert this code
+> to use flags passed in via platform_data.  The I2C hwmod conversion
+> patches are one attempt to do that via the hwmod mechanism; you can use
+> that as an example of one way to do that with this driver.
 
-Thanks for feedback.
+1. As you suggested most of the driver clock related modifications can be avoided
+with dummy_nodes. Will do that. 
 
-Regards,
-Santosh
+2. Some drivers like gptimer, the clock node names
+chosen are different between omap4 and rest of the omaps. Since we do clk_get
+based on clk names, such cases, we need cpu check. Another way is to keep same 
+clock nodes which means need to change database scripts. 
+Which one you prefer ?
+
+3. I shall the possibility of passing flags via board-files instead of 
+cpu_is_xxxx() checks in  drivers. This is ofcourse much cleaner approach 
+if it's doable.
