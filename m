@@ -1,52 +1,34 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 2/2] dspbridge: proc: fix a double-free on 2 error paths
-Date: Tue, 16 Feb 2010 18:24:08 -0600
-Message-ID: <4B7B3728.60105@ti.com>
-References: <ad3238a4d6769760f2bdbd19b4cde68cd3c79acf.1265991379.git.ext-phil.2.carmody@nokia.com>  <a6ac4fad65b6e1498010962a06429be40aef5e70.1265991379.git.ext-phil.2.carmody@nokia.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [PATCH 0/2] DSPBRIDGE: fix and cleanup of stream resource cleanup
+Date: Tue, 16 Feb 2010 18:38:20 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9604@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45865 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933729Ab0BQAYN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 19:24:13 -0500
-In-Reply-To: <a6ac4fad65b6e1498010962a06429be40aef5e70.1265991379.git.ext-phil.2.carmody@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43686 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933615Ab0BQAiY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 19:38:24 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-On 2/12/2010 10:26 AM, Phil Carmody wrote:
-> From: Phil Carmody<ext-phil.2.carmody@nokia.com>
->
-> We free in the tail cleanup, so don't free before jumping there.
->
-> Signed-off-by: Phil Carmody<ext-phil.2.carmody@nokia.com>
-> ---
+>From 6ed51fea16df51e88a25bda2b9908f0a43b86303 Mon Sep 17 00:00:00 2001
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Tue, 16 Feb 2010 18:35:58 -0600
+Subject: [PATCH 0/2] DSPBRIDGE: fix and cleanup of stream resource cleanup
 
-[...]
->   	}
-> +
-> +	/* paranoid - must be able to kfree this on remaining error paths */
-> +	pProcObject->g_pszLastCoff = NULL;
-> +
+This patch fixes an issue when there are still pending buffers for a
+stream at cleanup time, and it also cleanups DRV_RemoveAllSTRMResElements
+function.
 
-do we need this? afaik it should be NULL at this point, because of 
-kmalloc + memset (which btw should be replaced by kzalloc).
+Fernando Guzman Lugo (2):
+  DSPBRIDGE: cleanup patch for DRV_RemoveAllSTRMResElements function
+  DSPBRIDGE: Reclaim all pending buffer on resource cleanup
 
-i.e:
-MEM_AllocObject(pProcObject, struct PROC_OBJECT, PROC_SIGNATURE);
--> MEM_Calloc(sizeof(Obj), MEM_NONPAGED);
-->	pMem = kmalloc(...)
-	if (pMem)
-		memset(pMem, 0, cBytes);
+ drivers/dsp/bridge/rmgr/drv.c |   72 ++++++++++++++--------------------------
+ 1 files changed, 25 insertions(+), 47 deletions(-)
 
->   	/* Get the default executable for this board... */
->   	DEV_GetDevType(hDevObject, (u32 *)&devType);
->   	pProcObject->uProcessor = devType;
-[...]
-
-Regards,
-
-Omar
