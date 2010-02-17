@@ -1,67 +1,64 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 2/2] dspbridge: proc: fix a double-free on 2 error paths
-Date: Wed, 17 Feb 2010 09:52:25 -0600
-Message-ID: <4B7C10B9.3050103@ti.com>
-References: <ad3238a4d6769760f2bdbd19b4cde68cd3c79acf.1265991379.git.ext-phil.2.carmody@nokia.com> <a6ac4fad65b6e1498010962a06429be40aef5e70.1265991379.git.ext-phil.2.carmody@nokia.com> <4B7B3728.60105@ti.com> <20100217131245.GE463@pcarmody-desktop>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH v4] DSPBRIDGE: Fix to avoid possible recursive locking
+Date: Wed, 17 Feb 2010 10:09:22 -0600
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0130998163@dlee02.ent.ti.com>
+References: <1265925284-7536-1-git-send-email-deepak.chitriki@ti.com>
+ <1265926841.26484.0.camel@chotu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35418 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55309 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751123Ab0BQPwa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Feb 2010 10:52:30 -0500
-In-Reply-To: <20100217131245.GE463@pcarmody-desktop>
+	id S1751109Ab0BQQJ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Feb 2010 11:09:26 -0500
+In-Reply-To: <1265926841.26484.0.camel@chotu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ameya Palande <ameya.palande@nokia.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-On 2/17/2010 7:12 AM, Phil Carmody wrote:
-> On 17/02/10 01:24 +0100, ext Omar Ramirez Luna wrote:
->> On 2/12/2010 10:26 AM, Phil Carmody wrote:
->>> From: Phil Carmody<ext-phil.2.carmody@nokia.com>
->>>
->>> We free in the tail cleanup, so don't free before jumping there.
->>>
->>> Signed-off-by: Phil Carmody<ext-phil.2.carmody@nokia.com>
->>> ---
->>
->> [...]
->>>    	}
->>> +
->>> +	/* paranoid - must be able to kfree this on remaining error paths */
->>> +	pProcObject->g_pszLastCoff = NULL;
->>> +
->>
->> do we need this? afaik it should be NULL at this point, because of
->> kmalloc + memset (which btw should be replaced by kzalloc).
->
-> I suspected it wasn't. I confess I was a little bit rushed when
-> looking at that.
->
->> i.e:
->> MEM_AllocObject(pProcObject, struct PROC_OBJECT, PROC_SIGNATURE);
->> ->  MEM_Calloc(sizeof(Obj), MEM_NONPAGED);
->> ->	pMem = kmalloc(...)
->> 	if (pMem)
->> 		memset(pMem, 0, cBytes);
->
-> i.e. kzalloc().
->
->>>    	/* Get the default executable for this board... */
->>>    	DEV_GetDevType(hDevObject, (u32 *)&devType);
->>>    	pProcObject->uProcessor = devType;
->> [...]
->>
->> Regards,
->
-> I can resend without, if you like, whatever's simplest for you.
->
-
-No worries, I'll remove from original.
-
-Regards,
-
-Omar
-
+SGksDQoNCj4gRnJvbTogQW1leWEgUGFsYW5kZSBbbWFpbHRvOmFtZXlhLnBhbGFuZGVAbm9raWEu
+Y29tXQ0KPiBTZW50OiBGcmlkYXksIEZlYnJ1YXJ5IDEyLCAyMDEwIDEyOjIxIEFNDQo+IFRvOiBD
+aGl0cmlraSBSdWRyYW11bmksIERlZXBhaw0KPiBDYzogbGludXgtb21hcDsgUmFtaXJleiBMdW5h
+LCBPbWFyOyBNZW5vbiwgTmlzaGFudGgNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2NF0gRFNQQlJJ
+REdFOiBGaXggdG8gYXZvaWQgcG9zc2libGUgcmVjdXJzaXZlIGxvY2tpbmcNCj4gDQo+IE9uIFRo
+dSwgMjAxMC0wMi0xMSBhdCAyMjo1NCArMDEwMCwgZXh0IERlZXBhayBDaGl0cmlraSB3cm90ZToN
+Cj4gPiBSZW1vdmVkIE5URllfTm90aWZ5KCkgaW4gV01EX01TR19HZXQoKSB0byBhdm9pZCBsb2Nr
+aW5nIGNvbnRlbnRpb24NCj4gPiBhcyBOVEZZX05vdGlmeSgpIGlzIGFscmVhZHkgaW52b2tlZCBp
+biBJbnB1dE1zZygpLg0KPiA+DQo+ID4gQ2M6IEFtZXlhIFBhbGFuZGUgPGFtZXlhLnBhbGFuZGVA
+bm9raWEuY29tPg0KPiA+IENjOiBPbWFyIFJhbWlyZXogTHVuYSA8b21hci5yYW1pcmV6QHRpLmNv
+bT4NCj4gPiBDYzogTmlzaGFudGggTWVub24gPG5tQHRpLmNvbT4NCj4gPg0KPiA+IFNpZ25lZC1v
+ZmYtYnk6IERlZXBhayBDaGl0cmlraSA8ZGVlcGFrLmNoaXRyaWtpQHRpLmNvbT4NCj4gDQo+IEFj
+a2VkLWJ5OiBBbWV5YSBQYWxhbmRlIDxhbWV5YS5wYWxhbmRlQG5va2lhLmNvbT4NCg0KQ291bGQg
+dGhpcyBwYXRjaCBiZSBwdXNoZWQgaWYgdGhlcmUgYXJlIG5vIG1vcmUgY29tbWVudHM/DQoNCj4g
+DQo+ID4gLS0tDQo+ID4gUmVmOg0KPiA+IHYwOmh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgtb21h
+cCZtPTEyNjU4NDc3OTAxMTQ5MyZ3PTINCj4gPiB2MTpodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4
+LW9tYXAmbT0xMjY1ODYyMjQ2Mjc3MjUmdz0yDQo+ID4gdjI6aHR0cDovL21hcmMuaW5mby8/bD1s
+aW51eC1vbWFwJm09MTI2NTkxMzQxOTA5MTI0Jnc9Mg0KPiA+IHYzOmh0dHA6Ly9tYXJjLmluZm8v
+P2w9bGludXgtb21hcCZtPTEyNjU5MTc0MzMxNTU3MiZ3PTINCj4gPiB2NDpDb21tZW50IGZpeGVz
+IGZyb20gdjMNCj4gPg0KPiA+ICBkcml2ZXJzL2RzcC9icmlkZ2Uvd21kL21zZ19zbS5jIHwgICAx
+MCArKy0tLS0tLS0tDQo+ID4gIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCA4IGRl
+bGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZHNwL2JyaWRnZS93bWQv
+bXNnX3NtLmMNCj4gYi9kcml2ZXJzL2RzcC9icmlkZ2Uvd21kL21zZ19zbS5jDQo+ID4gaW5kZXgg
+M2EyNzVmMS4uODQ3NWUyMCAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2RzcC9icmlkZ2Uvd21k
+L21zZ19zbS5jDQo+ID4gKysrIGIvZHJpdmVycy9kc3AvYnJpZGdlL3dtZC9tc2dfc20uYw0KPiA+
+IEBAIC0yOTUsMTEgKzI5NSw4IEBAIERTUF9TVEFUVVMgV01EX01TR19HZXQoc3RydWN0IE1TR19R
+VUVVRSAqaE1zZ1F1ZXVlLA0KPiA+ICAJCQkJICAgKHN0cnVjdCBsaXN0X2hlYWQgKilwTXNnRnJh
+bWUpOw0KPiA+ICAJCQlpZiAoTFNUX0lzRW1wdHkoaE1zZ1F1ZXVlLT5tc2dVc2VkTGlzdCkpDQo+
+ID4gIAkJCQlTWU5DX1Jlc2V0RXZlbnQoaE1zZ1F1ZXVlLT5oU3luY0V2ZW50KTsNCj4gPiAtCQkJ
+ZWxzZSB7DQo+ID4gLQkJCQlOVEZZX05vdGlmeShoTXNnUXVldWUtPmhOdGZ5LA0KPiA+IC0JCQkJ
+CURTUF9OT0RFTUVTU0FHRVJFQURZKTsNCj4gPiArCQkJZWxzZQ0KPiA+ICAJCQkJU1lOQ19TZXRF
+dmVudChoTXNnUXVldWUtPmhTeW5jRXZlbnQpOw0KPiA+IC0JCQl9DQo+ID4NCj4gPiAgCQkJZkdv
+dE1zZyA9IHRydWU7DQo+ID4gIAkJfQ0KPiA+IEBAIC0zNDcsMTEgKzM0NCw4IEBAIERTUF9TVEFU
+VVMgV01EX01TR19HZXQoc3RydWN0IE1TR19RVUVVRSAqaE1zZ1F1ZXVlLA0KPiA+ICAJCQl9DQo+
+ID4gIAkJCWhNc2dRdWV1ZS0+cmVmQ291bnQtLTsNCj4gPiAgCQkJLyogUmVzZXQgdGhlIGV2ZW50
+IGlmIHRoZXJlIGFyZSBzdGlsbCBxdWV1ZWQgbWVzc2FnZXMgKi8NCj4gPiAtCQkJaWYgKCFMU1Rf
+SXNFbXB0eShoTXNnUXVldWUtPm1zZ1VzZWRMaXN0KSkgew0KPiA+IC0JCQkJTlRGWV9Ob3RpZnko
+aE1zZ1F1ZXVlLT5oTnRmeSwNCj4gPiAtCQkJCQlEU1BfTk9ERU1FU1NBR0VSRUFEWSk7DQo+ID4g
+KwkJCWlmICghTFNUX0lzRW1wdHkoaE1zZ1F1ZXVlLT5tc2dVc2VkTGlzdCkpDQo+ID4gIAkJCQlT
+WU5DX1NldEV2ZW50KGhNc2dRdWV1ZS0+aFN5bmNFdmVudCk7DQo+ID4gLQkJCX0NCj4gPiAgCQkJ
+LyogRXhpdCBjcml0aWNhbCBzZWN0aW9uICovDQo+ID4gIAkJCSh2b2lkKVNZTkNfTGVhdmVDUyho
+TXNnTWdyLT5oU3luY0NTKTsNCj4gPiAgCQl9DQoNCg0KUmVnYXJkcywNCk5pc2hhbnRoIE1lbm9u
+DQoNCg==
