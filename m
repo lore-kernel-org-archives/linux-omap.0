@@ -1,95 +1,125 @@
 From: Moiz Sonasath <m-sonasath@ti.com>
-Subject: [PATCH 1/2] omap: Disable TWL4030/5030 I2C1/I2C4 internal pull-ups
-Date: Tue, 16 Feb 2010 18:57:21 -0600
-Message-ID: <1266368241-10459-2-git-send-email-m-sonasath@ti.com>
-References: <1266368241-10459-1-git-send-email-m-sonasath@ti.com>
+Subject: (unknown)
+Date: Tue, 16 Feb 2010 18:57:20 -0600
+Message-ID: <1266368241-10459-1-git-send-email-m-sonasath@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47366 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933760Ab0BQArB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 19:47:01 -0500
-In-Reply-To: <1266368241-10459-1-git-send-email-m-sonasath@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38062 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933804Ab0BQArG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Feb 2010 19:47:06 -0500
+Subject: 
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: sameo@linux.intel.com, tony@atomide.com, Moiz Sonasath <m-sonasath@ti.com>, Allen Pais <allen.pais@ti.com>
+Cc: sameo@linux.intel.com, tony@atomide.com, Moiz Sonasath <m-sonasath@ti.com>, Allen Pais <allen.pais@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
 
-This patch disables TWL4030/5030 I2C1 adn I2C4(SR) internal pull-up, to
-use only the external HW resistor >=470 Ohm for the assured
-functionality in HS mode.
+This patch disables the newly introduced internal pull-up feature in
+OMAP3630, to use only the external HW resitor >= 470 Ohm for the
+assured functionality in HS mode.
 
 While testing the I2C in High Speed mode, it was discovered that
-without a proper pull-up resistor, there is data corruption during
-multi-byte transfer. RTC(time_set) test case was used for testing.
+without a proper pull-up resitor, there is data corruption during
+multi-byte transfers. RTC(time_set) test case was used for testing.
 
->From the analysis done, it was concluded that ideally we need a
-pull-up of 1.6k Ohm(recomended) or atleast 470 Ohm or greater for
-assured performance in HS mode.
+>From the analysis done, it was concluded that ideally we need a pull-up
+of 1.6 K Ohm (recomended) or atleast 470 Ohm or greater for assured
+performance in HS mode.
 
 Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
 Signed-off-by: Allen Pais <allen.pais@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 ---
- drivers/mfd/twl-core.c  |   13 +++++++++++++
- include/linux/i2c/twl.h |   15 +++++++++++++++
- 2 files changed, 28 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/i2c.c                 |   24 ++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/control.h |   14 ++++++++++++++
+ 2 files changed, 38 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 2a76065..35ae2ee 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -965,6 +965,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	int				status;
- 	unsigned			i;
- 	struct twl4030_platform_data	*pdata = client->dev.platform_data;
-+	u8 temp;
+diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+index 789ca8c..2e6eb28 100644
+--- a/arch/arm/mach-omap2/i2c.c
++++ b/arch/arm/mach-omap2/i2c.c
+@@ -22,6 +22,7 @@
+ #include <plat/cpu.h>
+ #include <plat/i2c.h>
+ #include <plat/mux.h>
++#include <plat/control.h>
  
- 	if (!pdata) {
- 		dev_dbg(&client->dev, "no platform data?\n");
-@@ -1032,6 +1033,18 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 			goto fail;
+ #include "mux.h"
+ 
+@@ -52,5 +53,28 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 		omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
  	}
  
-+	/* Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
-+	 * Program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
-+	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
-+	 */
++	/* Disable OMAP 3630 internal pull-ups for all I2Ci */
++	if (cpu_is_omap3630() && !(omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1) & OMAP3630_PRG_I2C1_PULLUPRESX)) {
 +
-+	if (twl_class_is_4030()) {
-+		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &temp, REG_GPPUPDCTR1);
-+		temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
-+		I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
-+		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
++		u32 prog_io;
++
++		prog_io = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
++		/* Program (bit 19)=1 to disable internal pull-up on I2C1 */
++		prog_io |= OMAP3630_PRG_I2C1_PULLUPRESX;
++		/* Program (bit 0)=1 to disable internal pull-up on I2C2 */
++		prog_io |= OMAP3630_PRG_I2C2_PULLUPRESX;
++		omap_ctrl_writel(prog_io, OMAP343X_CONTROL_PROG_IO1);
++
++		prog_io = omap_ctrl_readl(OMAP36XX_CONTROL_PROG_IO2);
++		/* Program (bit 7)=1 to disable internal pull-up on I2C3 */
++		prog_io |= OMAP3630_PRG_I2C3_PULLUPRESX;
++		omap_ctrl_writel(prog_io, OMAP36XX_CONTROL_PROG_IO2);
++
++		prog_io = omap_ctrl_readl(OMAP36XX_CONTROL_PROG_IO_WKUP1);
++		/* Program (bit 5)=1 to disable internall pull-up on I2C4(SR) */
++		prog_io |= OMAP3630_PRG_SR_PULLUPRESX;
++		omap_ctrl_writel(prog_io, OMAP36XX_CONTROL_PROG_IO_WKUP1);
 +	}
 +
- 	status = add_children(pdata, id->driver_data);
- fail:
- 	if (status < 0)
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index bf1c5be..fd95eca 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -239,6 +239,21 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+ 	return omap_plat_register_i2c_bus(bus_id, clkrate, info, len);
+ }
+diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+index 2074473..9e58d8e 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -169,6 +169,9 @@
+ #define AM35XX_CONTROL_IP_SW_RESET      (OMAP2_CONTROL_GENERAL + 0x0328)
+ #define AM35XX_CONTROL_IPSS_CLK_CTRL    (OMAP2_CONTROL_GENERAL + 0x032C)
  
- /*----------------------------------------------------------------------*/
++/* 36xx-only CONTROL_GENERAL register offsets */
++#define OMAP36XX_CONTROL_PROG_IO2       (OMAP2_CONTROL_GENERAL + 0x0198)
++
+ /* 34xx PADCONF register offsets */
+ #define OMAP343X_PADCONF_ETK(i)		(OMAP2_CONTROL_PADCONFS + 0x5a8 + \
+ 						(i)*2)
+@@ -200,6 +203,9 @@
+ #define OMAP343X_CONTROL_WKUP_DEBOBS3 (OMAP343X_CONTROL_GENERAL_WKUP + 0x014)
+ #define OMAP343X_CONTROL_WKUP_DEBOBS4 (OMAP343X_CONTROL_GENERAL_WKUP + 0x018)
  
-+/*Interface Bit Register (INTBR) offsets
-+ *(Use TWL_4030_MODULE_INTBR)
-+ */
++/* 36xx-only GENERAL_WKUP register offsets */
++#define OMAP36XX_CONTROL_PROG_IO_WKUP1 (OMAP343X_CONTROL_GENERAL_WKUP + 0x020)
 +
-+#define REG_GPPUPDCTR1			0x0F
+ /* 34xx D2D idle-related pins, handled by PM core */
+ #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
+ #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
+@@ -250,6 +256,8 @@
+ #define OMAP2_PBIASLITEVMODE0		(1 << 0)
+ 
+ /* CONTROL_PROG_IO1 bits */
++#define OMAP3630_PRG_I2C2_PULLUPRESX    (1 << 0)
++#define OMAP3630_PRG_I2C1_PULLUPRESX	(1 << 19)
+ #define OMAP3630_PRG_SDMMC1_SPEEDCTRL	(1 << 20)
+ 
+ /* CONTROL_IVA2_BOOTMOD bits */
+@@ -257,6 +265,12 @@
+ #define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
+ #define OMAP3_IVA2_BOOTMOD_IDLE		(0x1 << 0)
+ 
++/* CONTROL_PROG_IO2 bits on omap3630 */
++#define OMAP3630_PRG_I2C3_PULLUPRESX    (1 << 7)
 +
-+/*I2C1 and I2C4(SR) SDA/SCL pull-up control bits */
++/* CONTROL_PROG_IO_WKUP1 bits on omap3630 */
++#define OMAP3630_PRG_SR_PULLUPRESX    (1 << 5)
 +
-+#define I2C_SCL_CTRL_PU			BIT(0)
-+#define I2C_SDA_CTRL_PU			BIT(2)
-+#define SR_I2C_SCL_CTRL_PU		BIT(4)
-+#define SR_I2C_SDA_CTRL_PU		BIT(6)
-+
-+/*----------------------------------------------------------------------*/
-+
- /*
-  * Keypad register offsets (use TWL4030_MODULE_KEYPAD)
-  * ... SIH/interrupt only
+ /* CONTROL_PADCONF_X bits */
+ #define OMAP3_PADCONF_WAKEUPEVENT0	(1 << 15)
+ #define OMAP3_PADCONF_WAKEUPENABLE0	(1 << 14)
 -- 
 1.5.6.3
 
