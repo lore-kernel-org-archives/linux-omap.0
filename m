@@ -1,32 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next: manual merge of the omap tree with the arm tree
-Date: Wed, 17 Feb 2010 11:33:26 -0800
-Message-ID: <20100217193326.GB21755@atomide.com>
-References: <20100205102030.c8b139a1.sfr@canb.auug.org.au>
- <20100204233019.GY22747@atomide.com>
- <20100205111617.c602983f.sfr@canb.auug.org.au>
- <20100205040444.GH22747@atomide.com>
- <20100215150312.GA11540@flint.arm.linux.org.uk>
+From: David Vrabel <david.vrabel@csr.com>
+Subject: Re: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
+Date: Wed, 17 Feb 2010 19:39:52 +0000
+Message-ID: <4B7C4608.5010008@csr.com>
+References: <cover.1265801967.git.david.vrabel@csr.com> <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com> <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com> <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com> <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100215150312.GA11540@flint.arm.linux.org.uk>
-Sender: linux-next-owner@vger.kernel.org
-To: Russell King <rmk+lkml@arm.linux.org.uk>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King <rmk+lkml@arm.linux.org.uk> [100215 07:00]:
-> On Thu, Feb 04, 2010 at 08:04:44PM -0800, Tony Lindgren wrote:
-> > Russell, can you please let me know if you have some static
-> > commit ID containing the patch above that I could use that as
-> > base for my patches?
+Madhusudhan wrote:
 > 
-> Right, when it eventually gets through linux-next, 4e6d488
+>> -----Original Message-----
+>> From: David Vrabel [mailto:david.vrabel@csr.com]
+>> Sent: Wednesday, February 10, 2010 5:52 AM
+>> To: linux-mmc@vger.kernel.org
+>> Cc: David Vrabel; linux-omap@vger.kernel.org; madhu.cr@ti.com
+>> Subject: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
+>>
+>> Enable the use of SDIO card interrupts.  This requires setting ENAWAKEUP
+>> in SYSCONFIG and IWE in HTCL to allow the MMC block to wake-up when in
+>> smart-idle mode.
+>>
+>> FCLK must be enabled while SDIO interrupts are enabled or the MMC block
+>> won't wake-up.
+>>
+> 
+> I am curious to know the system behavior with this patch. Does the FCLK
+> remain enabled forever if a SDIO card is detected on the bus?
 
-Thanks, I have updated omap for-next based on that.
+Only if card interrupts are enabled.  The card irq is disabled when the 
+sdio_irq_thread exits.
 
-Regards,
+This is why I think that smart-idle mode needs to be used (it's turned
+on by default on the MMC controller) but I don't understand the
+clock/clockdomain code to see if that's doing the right thing.
 
-Tony
+If smart-idle mode is used then we don't need to disable FCLK manually 
+to save power.  This will simplify the driver a bit.
+
+David
