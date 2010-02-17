@@ -1,60 +1,51 @@
-From: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Subject: Re: [PATCH 2/2] dspbridge: proc: fix a double-free on 2 error paths
-Date: Wed, 17 Feb 2010 15:12:45 +0200
-Message-ID: <20100217131245.GE463@pcarmody-desktop>
-References: <ad3238a4d6769760f2bdbd19b4cde68cd3c79acf.1265991379.git.ext-phil.2.carmody@nokia.com> <a6ac4fad65b6e1498010962a06429be40aef5e70.1265991379.git.ext-phil.2.carmody@nokia.com> <4B7B3728.60105@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] OMAP3EVM: PM: Update defconfig
+Date: Wed, 17 Feb 2010 18:55:42 +0530
+Message-ID: <1266413142-15532-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:25490 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215Ab0BQNKc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 08:10:32 -0500
-Content-Disposition: inline
-In-Reply-To: <4B7B3728.60105@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45025 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933189Ab0BQN1H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Feb 2010 08:27:07 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1HDR39u014417
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 17 Feb 2010 07:27:05 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On 17/02/10 01:24 +0100, ext Omar Ramirez Luna wrote:
-> On 2/12/2010 10:26 AM, Phil Carmody wrote:
-> > From: Phil Carmody<ext-phil.2.carmody@nokia.com>
-> >
-> > We free in the tail cleanup, so don't free before jumping there.
-> >
-> > Signed-off-by: Phil Carmody<ext-phil.2.carmody@nokia.com>
-> > ---
-> 
-> [...]
-> >   	}
-> > +
-> > +	/* paranoid - must be able to kfree this on remaining error paths */
-> > +	pProcObject->g_pszLastCoff = NULL;
-> > +
-> 
-> do we need this? afaik it should be NULL at this point, because of 
-> kmalloc + memset (which btw should be replaced by kzalloc).
+This patch updates the omap3_evm_defconfig to
+select CONFIG_PM_DEBUG and CONFIG_DEBUG_FS.
 
-I suspected it wasn't. I confess I was a little bit rushed when
-looking at that.
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/configs/omap3_evm_defconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> i.e:
-> MEM_AllocObject(pProcObject, struct PROC_OBJECT, PROC_SIGNATURE);
-> -> MEM_Calloc(sizeof(Obj), MEM_NONPAGED);
-> ->	pMem = kmalloc(...)
-> 	if (pMem)
-> 		memset(pMem, 0, cBytes);
+diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
+index 86cc4be..b938507 100644
+--- a/arch/arm/configs/omap3_evm_defconfig
++++ b/arch/arm/configs/omap3_evm_defconfig
+@@ -333,7 +333,7 @@ CONFIG_BINFMT_MISC=y
+ # Power management options
+ #
+ CONFIG_PM=y
+-# CONFIG_PM_DEBUG is not set
++CONFIG_PM_DEBUG=y
+ CONFIG_PM_SLEEP=y
+ CONFIG_SUSPEND=y
+ CONFIG_SUSPEND_FREEZER=y
+@@ -1339,7 +1339,7 @@ CONFIG_ENABLE_MUST_CHECK=y
+ CONFIG_FRAME_WARN=1024
+ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_UNUSED_SYMBOLS is not set
+-# CONFIG_DEBUG_FS is not set
++CONFIG_DEBUG_FS=y
+ # CONFIG_HEADERS_CHECK is not set
+ CONFIG_DEBUG_KERNEL=y
+ # CONFIG_DEBUG_SHIRQ is not set
+-- 
+1.6.6.1
 
-i.e. kzalloc().
-
-> >   	/* Get the default executable for this board... */
-> >   	DEV_GetDevType(hDevObject, (u32 *)&devType);
-> >   	pProcObject->uProcessor = devType;
-> [...]
-> 
-> Regards,
-
-I can resend without, if you like, whatever's simplest for you.
-
-Phil
