@@ -1,92 +1,60 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 24/24] omap4: multi-omap: Allow build to work
-Date: Wed, 17 Feb 2010 14:42:02 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03215B0CBD@dbde02.ent.ti.com>
-References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-20-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-21-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-22-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-23-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-24-git-send-email-santosh.shilimkar@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF80F0@dbde02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/2] DSPBRIDGE: New reserved memory accounting framework
+Date: Wed, 17 Feb 2010 11:50:09 +0200
+Message-ID: <94a0d4531002170150s67ed6f5ara019fb1c06f6a241@mail.gmail.com>
+References: <cover.1266326009.git.ameya.palande@nokia.com>
+	 <f966f5c490999696e567486ded3b08c4c01f366f.1266326009.git.ameya.palande@nokia.com>
+	 <21ed5f939111b381f877fd335b3adc2e779ce8ac.1266326009.git.ameya.palande@nokia.com>
+	 <94a0d4531002161042r73c89d1crbc892e7f7de6771f@mail.gmail.com>
+	 <496565EC904933469F292DDA3F1663E602CA2B962A@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42380 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934191Ab0BQJMU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 04:12:20 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF80F0@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:57740 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933067Ab0BQJuL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 04:50:11 -0500
+Received: by bwz19 with SMTP id 19so5299841bwz.28
+        for <linux-omap@vger.kernel.org>; Wed, 17 Feb 2010 01:50:09 -0800 (PST)
+In-Reply-To: <496565EC904933469F292DDA3F1663E602CA2B962A@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>"Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "paul@pwsan.com" <paul@pwsan.com>
+To: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-Shilimkar, Santosh wrote:
-> > From: Gadiyar, Anand
-> > Shilimkar, Santosh wrote:
-> > > The musb support is enable to omap3 platforms. For omap4 only board
-> > > support is available and the driver still isn't supported.
-> > > Because of this build with omap3_defconfig used for multi-omap
-> > > doesn't work on omap4430 sdp.
-> > >
-> > > This patch hacks the musb probe to keep the multi-omap build
-> > > working on omap4430 sdp
-> > >
-> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > ---
-> > >  drivers/usb/musb/musb_core.c |    4 ++++
-> > >  1 files changed, 4 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> > > index bcce8e8..13b1c4a 100644
-> > > --- a/drivers/usb/musb/musb_core.c
-> > > +++ b/drivers/usb/musb/musb_core.c
-> > > @@ -2124,6 +2124,10 @@ static int __init musb_probe(struct platform_device *pdev)
-> > >  	struct resource	*iomem;
-> > >  	void __iomem	*base;
-> > >
-> > > +	/* FIXME: multi-omap build to work on omap4 */
-> > > +	if (cpu_is_omap44xx())
-> > > +		return 0;
-> > > +
-> > 
-> > NAK. I'd prefer that we fix the driver issue correctly.
-> > 
-> > I would have expected the driver to at least load on OMAP4
-> > even if it does not work. Could you please describe the
-> > failure?
-> > 
-> The probe fails because the register bases aren't mapped 
-> for omap4. This is because Tony has lined-up musb board support
-> for omap4 but corresponding usb driver patches are not yet lined
-> up.
+On Wed, Feb 17, 2010 at 4:05 AM, Guzman Lugo, Fernando <x0095840@ti.com=
+> wrote:
+>>> =C2=A0struct DSPHEAP_RES_OBJECT {
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0s32 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0heapAllocated; /* DMM status */
+>>> @@ -141,6 +150,10 @@ struct PROCESS_CONTEXT{
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* DMM mapped memory resources */
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct DMM_MAP_OBJECT *dmm_map_list;
+>>>
+>>> + =C2=A0 =C2=A0 =C2=A0 /* DMM reserved memory resources */
+>>> + =C2=A0 =C2=A0 =C2=A0 struct list_head dmm_rsv_list;
+>>> + =C2=A0 =C2=A0 =C2=A0 spinlock_t dmm_rsv_list_lock;
+>>> +
+>>
+>>Why rsv requires a spinlock, but not map?
+>>
+>>I guess it would be needed if somehow PROC_UnReserveMemory() was
+>>called by user-space at the same time than bridge_close, but is that
+>>really possible? If it is, then the same danger is present with
+>>PROC_UnMap() unless I'm missing something.
+>
+> No, that's not possible. However protection is still needed for PROC_=
+ ReserveMemory/UnReserveMemory and also for PROC_Map/UnMap.
 
-I see the problem now - the platform support is lined up, but the
-driver is not queued up yet.
+Ok, then I guess it would make sense to have a patch for
+DMM_RSV_OBJECT, and another one to add the protection to both
+PROC_Map/UnMap/Reserve/UnReserve().
 
-This is easy to fix by removing the call to usb_musb_init from
-the 4430sdp board. How about doing this?
-
-
-- Anand
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
