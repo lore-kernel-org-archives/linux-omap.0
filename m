@@ -1,112 +1,169 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 13/24] omap4: clocks: Remove clock hacks from timer-gp.c
-Date: Wed, 17 Feb 2010 10:32:40 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF826F@dbde02.ent.ti.com>
-References: <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-6-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 16/24] omap4: Add i2c support on omap4 platform
+Date: Wed, 17 Feb 2010 10:34:20 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF8273@dbde02.ent.ti.com>
+References: <1266335895-32741-7-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-8-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-9-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-10-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-11-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
  <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
- <20100216184137.GL21755@atomide.com>
+ <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
+ <20100216185050.GN21755@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44165 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53716 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750773Ab0BQFC4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 00:02:56 -0500
-In-Reply-To: <20100216184137.GL21755@atomide.com>
+	id S1750703Ab0BQFEq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 00:04:46 -0500
+In-Reply-To: <20100216185050.GN21755@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "paul@pwsan.com" <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "paul@pwsan.com" <paul@pwsan.com>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, Ben Dooks <ben-linux@fluff.org>
 
 > -----Original Message-----
 > From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Wednesday, February 17, 2010 12:12 AM
+> Sent: Wednesday, February 17, 2010 12:21 AM
 > To: Shilimkar, Santosh
 > Cc: linux-omap@vger.kernel.org; ben@fluff.org.uk; sameo@linux.intel.com; lrg@slimlogic.co.uk;
-> paul@pwsan.com
-> Subject: Re: [PATCH 13/24] omap4: clocks: Remove clock hacks from timer-gp.c
+> paul@pwsan.com; Syed, Rafiuddin; Ben Dooks
+> Subject: Re: [PATCH 16/24] omap4: Add i2c support on omap4 platform
 > 
 > * Santosh Shilimkar <santosh.shilimkar@ti.com> [100216 07:55]:
-> > Now the omap4 clock framework is mainline and clk_get_rate()
-> > is functional. Hence reomve the hardcoded clock hacks.
+> > This patch is rebased version of earlier post to add I2C
+> > driver support to OMAP4 platform. On OMAP4, all
+> > I2C register address offsets are changed from OMAP1/2/3 I2C.
+> > In order to not have #ifdef's at various places in code,
+> > as well as to support multi-OMAP build, an array is created
+> > to hold the register addresses with it's offset.
+> >
+> > This patch was submitted, reviewed and acked on mailing list
+> > already. For more details refer below link
+> > http://www.mail-archive.com/linux-i2c@vger.kernel.org/msg02281.html
+> >
+> > This version updated on top of 16 bit support added as part of
+> > the commit "8bb209278e555a626f9637e844fe4c1b90e849f6"
+> >
+> > Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> > CC: Tony Lindgren <tony@atomide.com>
+> > CC: Ben Dooks <ben-linux@fluff.org>
+> > ---
+> >  arch/arm/plat-omap/i2c.c      |   17 ++++-
+> >  drivers/i2c/busses/i2c-omap.c |  148 ++++++++++++++++++++++++++++++++---------
+> >  2 files changed, 131 insertions(+), 34 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+> > index 96d2781..f18d757 100644
+> > --- a/arch/arm/plat-omap/i2c.c
+> > +++ b/arch/arm/plat-omap/i2c.c
+> > @@ -53,9 +53,15 @@ static struct resource i2c_resources[][2] = {
+> >  #if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> >  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_24XX_I2C2_IRQ) },
+> >  #endif
+> > +#if	defined(CONFIG_ARCH_OMAP4)
+> > +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_44XX_I2C2_IRQ) },
+> > +#endif
+> >  #if	defined(CONFIG_ARCH_OMAP3)
+> >  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_34XX_I2C3_IRQ) },
+> >  #endif
+> > +#if	defined(CONFIG_ARCH_OMAP4)
+> > +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_44XX_I2C3_IRQ) },
+> > +#endif
+> >  };
 > 
-> Should we send this as a fix for 2.6.33, or does this depend
-> on other patches not yet in 2.6.33?
-This needs the gptimer clocks updates in dmtimer.
+> This is OK, but..
+> 
+> >  #define I2C_DEV_BUILDER(bus_id, res, data)		\
+> > @@ -72,10 +78,11 @@ static struct resource i2c_resources[][2] = {
+> >  static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
+> >  static struct platform_device omap_i2c_devices[] = {
+> >  	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
+> > -#if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> > +#if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
+> > +	defined(CONFIG_ARCH_OMAP4)
+> >  	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
+> >  #endif
+> > -#if	defined(CONFIG_ARCH_OMAP3)
+> > +#if	defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+> >  	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
+> >  #endif
+> >  };
+> 
+> .. the ifdefs above can be simplified to ifdef CONFIG_ARCH_OMAP2PLUS.
+> That is, with the patches already queued into omap for-next.
+YEP
+> 
+> > @@ -370,7 +434,11 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> >  			internal_clk = 9600;
+> >  		else
+> >  			internal_clk = 4000;
+> > -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
+> > +		/* FIXME: Remove this once clock framework is available*/
+> > +		if (dev->rev >= OMAP_I2C_REV_ON_4430)
+> > +			fclk_rate = 96000;
+> > +		else
+> > +			fclk_rate = clk_get_rate(dev->fclk) / 1000;
+> >
+> >  		/* Compute prescaler divisor */
+> >  		psc = fclk_rate / internal_clk;
+> 
+> Sounds like this part should no longer be needed?
+> 
+Yes. I missed this
+> >  					*dev->buf++ = w;
+> >  					dev->buf_len--;
+> > -					/* Data reg from 2430 is 8 bit wide */
+> > +					/* Data reg in 2430, omap3 and
+> > +					 * omap4 is 8 bit wide
+> > +					 */
+> >  					if (!cpu_is_omap2430() &&
+> > -							!cpu_is_omap34xx()) {
+> > +							!cpu_is_omap34xx() &&
+> > +							!cpu_is_omap44xx()) {
+> >  						if (dev->buf_len) {
+> >  							*dev->buf++ = w >> 8;
+> >  							dev->buf_len--;
+> 
+> How about change this to if (cpu_class_is_omap1() || cpu_is_omap2420())?
+> That way it does not need to be patched for new omaps.
+> 
+> > @@ -786,9 +857,12 @@ complete:
+> >  				if (dev->buf_len) {
+> >  					w = *dev->buf++;
+> >  					dev->buf_len--;
+> > -					/* Data reg from  2430 is 8 bit wide */
+> > +					/* Data reg in 2430, omap3 and
+> > +					 * omap4 is 8 bit wide
+> > +					 */
+> >  					if (!cpu_is_omap2430() &&
+> > -							!cpu_is_omap34xx()) {
+> > +							!cpu_is_omap34xx() &&
+> > +							!cpu_is_omap44xx()) {
+> >  						if (dev->buf_len) {
+> >  							w |= *dev->buf++ << 8;
+> >  							dev->buf_len--;
+> 
+> Here too.
+> 
+> >  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+> >
+> > -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+> > +	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+> >  		u16 s;
+> >
+> >  		/* Set up the fifo size - Get total size */
+> 
+> And here too.
+> 
 > Regards,
 > 
 > Tony
-> 
-> > This patch also fixes
-> > Division by zero in kernel.
-> > Backtrace:
-> > [<c0025fb8>] (dump_backtrace+0x0/0x110) from [<c017febc>] (dump_stack+0x18/0x1c)
-> >  r7:60000093 r6:c0641050 r5:c0223e78 r4:c02126b4
-> > [<c017fea4>] (dump_stack+0x0/0x1c) from [<c00260fc>] (__div0+0x18/0x20)
-> > [<c00260e4>] (__div0+0x0/0x20) from [<c01431fc>] (Ldiv0+0x8/0x10)
-> > [<c00318d4>] (omap_dm_timer_stop+0x0/0xb0) from [<c002c148>] (omap2_gp_timer_set_mode+0x1c/0x68)
-> >  r5:c0223e78 r4:00000000
-> > [<c002c12c>] (omap2_gp_timer_set_mode+0x0/0x68) from [<c0063270>] (clockevents_set_mode+0x30/0x64)
-> >  r5:c020cae0 r4:00000000
-> > [<c0063240>] (clockevents_set_mode+0x0/0x64) from [<c00632fc>]
-> (clockevents_exchange_device+0x30/0x9c)
-> >  r5:c020cae0 r4:c02146e0
-> > [<c00632cc>] (clockevents_exchange_device+0x0/0x9c) from [<c00636e0>] (tick_notify+0x17c/0x404)
-> >  r7:00000000 r6:c0641050 r5:00000000 r4:c020cae0
-> > [<c0063564>] (tick_notify+0x0/0x404) from [<c005d5fc>] (notifier_call_chain+0x34/0x78)
-> > [<c005d5c8>] (notifier_call_chain+0x0/0x78) from [<c005d684>] (__raw_notifier_call_chain+0x1c/0x24)
-> > [<c005d668>] (__raw_notifier_call_chain+0x0/0x24) from [<c005d6ac>]
-> (raw_notifier_call_chain+0x20/0x28)
-> > [<c005d68c>] (raw_notifier_call_chain+0x0/0x28) from [<c0062e78>] (clockevents_do_notify+0x1c/0x24)
-> > [<c0062e5c>] (clockevents_do_notify+0x0/0x24) from [<c0062f18>]
-> (clockevents_register_device+0x98/0xd0)
-> > [<c0062e80>] (clockevents_register_device+0x0/0xd0) from [<c001a194>]
-> (percpu_timer_setup+0x80/0x9c)
-> >  r7:00000000 r6:00000002 r5:00000002 r4:00000003
-> > [<c001a114>] (percpu_timer_setup+0x0/0x9c) from [<c000e9f0>] (smp_prepare_cpus+0xb0/0xe8)
-> > [<c000e940>] (smp_prepare_cpus+0x0/0xe8) from [<c00084e8>] (kernel_init+0x5c/0x1fc)
-> >  r7:00000000 r6:00000000 r5:00000000 r4:c001b8a4
-> > [<c000848c>] (kernel_init+0x0/0x1fc) from [<c0046c50>] (do_exit+0x0/0x604)
-> >  r7:00000000 r6:00000000 r5:00000000 r4:00000000
-> >
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/timer-gp.c |    5 -----
-> >  1 files changed, 0 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-> > index cd04dea..74fbed8 100644
-> > --- a/arch/arm/mach-omap2/timer-gp.c
-> > +++ b/arch/arm/mach-omap2/timer-gp.c
-> > @@ -85,8 +85,6 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
-> >  	case CLOCK_EVT_MODE_PERIODIC:
-> >  		period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / HZ;
-> >  		period -= 1;
-> > -		if (cpu_is_omap44xx())
-> > -			period = 0xff;	/* FIXME: */
-> >  		omap_dm_timer_set_load_start(gptimer, 1, 0xffffffff - period);
-> >  		break;
-> >  	case CLOCK_EVT_MODE_ONESHOT:
-> > @@ -150,9 +148,6 @@ static void __init omap2_gp_clockevent_init(void)
-> >  		     "timer-gp: omap_dm_timer_set_source() failed\n");
-> >
-> >  	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer));
-> > -	if (cpu_is_omap44xx())
-> > -		/* Assuming 32kHz clk is driving GPT1 */
-> > -		tick_rate = 32768;	/* FIXME: */
-> >
-> >  	pr_info("OMAP clockevent source: GPTIMER%d at %u Hz\n",
-> >  		gptimer_id, tick_rate);
-> > --
-> > 1.6.0.4
-> >
