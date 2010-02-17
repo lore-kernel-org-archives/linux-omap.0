@@ -1,261 +1,261 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv5] OMAP3: Serial: Improved sleep logic
-Date: Wed, 17 Feb 2010 17:51:32 +0200
-Message-ID: <1266421892-1021-1-git-send-email-tero.kristo@nokia.com>
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCHv3 1/2] DSPBRIDGE: Rename DMM_RES_OBJECT to DMM_MAP_OBJECT
+Date: Wed, 17 Feb 2010 16:18:31 +0200
+Message-ID: <ebee89889a45310eb63a19b133eba29801e9a519.1266415372.git.ameya.palande@nokia.com>
+References: <cover.1266415372.git.ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:26456 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933526Ab0BQOEr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 09:04:47 -0500
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o1HE4PvR019483
-	for <linux-omap@vger.kernel.org>; Wed, 17 Feb 2010 08:04:45 -0600
-Received: from localhost.localdomain (sokoban.nmp.nokia.com [172.22.215.13])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o1HE3tYk003776
-	for <linux-omap@vger.kernel.org>; Wed, 17 Feb 2010 16:03:56 +0200
-In-Reply-To: <>
-References: <>
+Received: from smtp.nokia.com ([192.100.122.233]:54205 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934210Ab0BQOT1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 09:19:27 -0500
+In-Reply-To: <cover.1266415372.git.ameya.palande@nokia.com>
+In-Reply-To: <cover.1266415372.git.ameya.palande@nokia.com>
+References: <cover.1266415372.git.ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: felipe.contreras@nokia.com, x0095840@ti.com, nm@ti.com, deepak.chitriki@ti.com
 
-From: Tero Kristo <tero.kristo@nokia.com>
+In its current state DMM_RES_OBJECT is not correctly tracking reserve and
+unreserve but only map and unmap. So lets rename it to DMM_MAP_OBJECT to
+clarify what it is really doing!
 
-This patch contains following improvements:
-- Only RX interrupt will now kick the sleep prevent timer
-- TX fifo status is checked before disabling clocks, this will prevent
-  on-going transmission to be cut
-- Smartidle is now enabled/disabled only while switching clocks, as having
-  smartidle enabled while RX/TX prevents any interrupts from being
-  received from UART module
-- Sleep prevent timer is changed to use timespec instead of a jiffy timer
-  as jiffy timers are not valid within idle loop (tick scheduler is stopped)
-- Added RX ignore timer for ignoring the first character received during
-  first millisecond of wakeup, this prevents garbage character to be receive
-  in low sleep states
+In addition to this, this patch also does some trivial code cleanup.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+Reviewed-by: Felipe Contreras <felipe.contreras@nokia.com>
 ---
- arch/arm/mach-omap2/serial.c |   98 +++++++++++++++++++++++++++++------------
- 1 files changed, 69 insertions(+), 29 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/drv.h |   14 +++---
+ drivers/dsp/bridge/rmgr/drv.c              |   69 ++++++++++++++--------------
+ drivers/dsp/bridge/rmgr/drv_interface.c    |    2 +-
+ 3 files changed, 43 insertions(+), 42 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 5f3035e..f49c465 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -29,6 +29,8 @@
- #include <plat/clock.h>
- #include <plat/control.h>
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index b044291..d5f5277 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -90,15 +90,15 @@ struct NODE_RES_OBJECT {
+ 	struct NODE_RES_OBJECT         *next;
+ } ;
  
-+#include <asm/div64.h>
-+
- #include "prm.h"
- #include "pm.h"
- #include "prm-regbits-34xx.h"
-@@ -42,13 +44,14 @@
-  * disabled via sysfs. This also causes that any deeper omap sleep states are
-  * blocked. 
-  */
--#define DEFAULT_TIMEOUT 0
-+#define DEFAULT_TIMEOUT (0LL * NSEC_PER_SEC)
+-/* New structure (member of process context) abstracts DMM resource info */
+-struct DMM_RES_OBJECT {
++/* Abstracts DMM resource info */
++struct DMM_MAP_OBJECT {
+ 	s32            dmmAllocated; /* DMM status */
+ 	u32           ulMpuAddr;
+ 	u32           ulDSPAddr;
+ 	u32           ulDSPResAddr;
+-	u32           dmmSize;
++	u32           size;
+ 	HANDLE          hProcessor;
+-	struct DMM_RES_OBJECT  *next;
++	struct DMM_MAP_OBJECT  *next;
+ } ;
  
- struct omap_uart_state {
- 	int num;
- 	int can_sleep;
--	struct timer_list timer;
--	u32 timeout;
-+	struct timespec expire_time;
-+	struct timespec garbage_time;
-+	u64 timeout;
+ /* New structure (member of process context) abstracts DMM resource info */
+@@ -139,9 +139,9 @@ struct PROCESS_CONTEXT{
+ 	struct NODE_RES_OBJECT *pNodeList;
+ 	struct mutex node_mutex;
  
- 	void __iomem *wk_st;
- 	void __iomem *wk_en;
-@@ -243,6 +246,9 @@ static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
- static inline void omap_uart_restore_context(struct omap_uart_state *uart) {}
- #endif /* CONFIG_PM && CONFIG_ARCH_OMAP3 */
+-	/* DMM resources */
+-	struct DMM_RES_OBJECT *pDMMList;
+-	struct mutex dmm_mutex;
++	/* DMM mapped memory resources */
++	struct DMM_MAP_OBJECT *dmm_map_list;
++	struct mutex dmm_map_mutex;
  
-+static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
-+		int enable);
-+
- static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
+ 	/* DSP Heap resources */
+ 	struct DSPHEAP_RES_OBJECT *pDSPHEAPList;
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index e8b2c58..9b513e2 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -198,37 +198,37 @@ static DSP_STATUS DRV_ProcFreeNodeRes(HANDLE hPCtxt)
+ DSP_STATUS DRV_InsertDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
  {
- 	if (uart->clocked)
-@@ -250,8 +256,13 @@ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+-	struct DMM_RES_OBJECT **pDMMRes = (struct DMM_RES_OBJECT **)hDMMRes;
++	struct DMM_MAP_OBJECT **pDMMRes = (struct DMM_MAP_OBJECT **)hDMMRes;
+ 	DSP_STATUS	status = DSP_SOK;
+-	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
++	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
  
- 	clk_enable(uart->ick);
- 	clk_enable(uart->fck);
-+	omap_uart_smart_idle_enable(uart, 0);
- 	uart->clocked = 1;
- 	omap_uart_restore_context(uart);
-+
-+	/* Set up garbage timer to ignore RX during first 1ms */
-+	getrawmonotonic(&uart->garbage_time);
-+	timespec_add_ns(&uart->garbage_time, NSEC_PER_MSEC);
- }
- 
- #ifdef CONFIG_PM
-@@ -263,6 +274,7 @@ static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
- 
- 	omap_uart_save_context(uart);
- 	uart->clocked = 0;
-+	omap_uart_smart_idle_enable(uart, 1);
- 	clk_disable(uart->ick);
- 	clk_disable(uart->fck);
- }
-@@ -320,12 +332,11 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
- {
- 	omap_uart_enable_clocks(uart);
- 
--	omap_uart_smart_idle_enable(uart, 0);
- 	uart->can_sleep = 0;
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
--	else
--		del_timer(&uart->timer);
-+	if (uart->timeout) {
-+		getrawmonotonic(&uart->expire_time);
-+		timespec_add_ns(&uart->expire_time, uart->timeout);
-+	}
- }
- 
- static void omap_uart_allow_sleep(struct omap_uart_state *uart)
-@@ -338,25 +349,24 @@ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
- 	if (!uart->clocked)
- 		return;
- 
--	omap_uart_smart_idle_enable(uart, 1);
- 	uart->can_sleep = 1;
--	del_timer(&uart->timer);
--}
--
--static void omap_uart_idle_timer(unsigned long data)
--{
--	struct omap_uart_state *uart = (struct omap_uart_state *)data;
--
--	omap_uart_allow_sleep(uart);
- }
- 
- void omap_uart_prepare_idle(int num)
- {
- 	struct omap_uart_state *uart;
-+	struct timespec t;
- 
- 	list_for_each_entry(uart, &uart_list, node) {
-+		if (num == uart->num && !uart->can_sleep && uart->timeout) {
-+			getrawmonotonic(&t);
-+			if (timespec_compare(&t, &uart->expire_time) > 0)
-+				uart->can_sleep = 1;
-+		}
- 		if (num == uart->num && uart->can_sleep) {
--			omap_uart_disable_clocks(uart);
-+			if (serial_read_reg(uart->p, UART_LSR) &
-+					UART_LSR_TEMT)
-+				omap_uart_disable_clocks(uart);
- 			return;
+-	*pDMMRes = (struct DMM_RES_OBJECT *)
+-		    MEM_Calloc(1 * sizeof(struct DMM_RES_OBJECT), MEM_PAGED);
++	*pDMMRes = (struct DMM_MAP_OBJECT *)
++		    MEM_Calloc(1 * sizeof(struct DMM_MAP_OBJECT), MEM_PAGED);
+ 	GT_0trace(curTrace, GT_ENTER, "DRV_InsertDMMResElement: 1");
+ 	if (*pDMMRes == NULL) {
+ 		GT_0trace(curTrace, GT_5CLASS, "DRV_InsertDMMResElement: 2");
+ 		status = DSP_EHANDLE;
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+-		if (mutex_lock_interruptible(&pCtxt->dmm_mutex)) {
++		if (mutex_lock_interruptible(&pCtxt->dmm_map_mutex)) {
+ 			kfree(*pDMMRes);
+ 			return DSP_EFAIL;
  		}
- 	}
-@@ -381,6 +391,7 @@ void omap_uart_resume_idle(int num)
- 			/* Check for normal UART wakeup */
- 			if (__raw_readl(uart->wk_st) & uart->wk_mask)
- 				omap_uart_block_sleep(uart);
-+
- 			return;
+ 
+-		if (pCtxt->pDMMList != NULL) {
++		if (pCtxt->dmm_map_list) {
+ 			GT_0trace(curTrace, GT_5CLASS,
+ 				 "DRV_InsertDMMResElement: 3");
+-			pTempDMMRes = pCtxt->pDMMList;
+-			while (pTempDMMRes->next != NULL)
++			pTempDMMRes = pCtxt->dmm_map_list;
++			while (pTempDMMRes->next)
+ 				pTempDMMRes = pTempDMMRes->next;
+ 
+ 			pTempDMMRes->next = *pDMMRes;
+ 		} else {
+-			pCtxt->pDMMList = *pDMMRes;
++			pCtxt->dmm_map_list = *pDMMRes;
+ 			GT_0trace(curTrace, GT_5CLASS,
+ 				 "DRV_InsertDMMResElement: 4");
  		}
+-		mutex_unlock(&pCtxt->dmm_mutex);
++		mutex_unlock(&pCtxt->dmm_map_mutex);
  	}
-@@ -399,11 +410,18 @@ int omap_uart_can_sleep(void)
+ 	GT_0trace(curTrace, GT_ENTER, "DRV_InsertDMMResElement: 5");
+ 	return status;
+@@ -239,15 +239,15 @@ DSP_STATUS DRV_InsertDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
+ DSP_STATUS DRV_RemoveDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
  {
- 	struct omap_uart_state *uart;
- 	int can_sleep = 1;
-+	struct timespec t;
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+-	struct DMM_RES_OBJECT *pDMMRes = (struct DMM_RES_OBJECT *)hDMMRes;
+-	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
++	struct DMM_MAP_OBJECT *pDMMRes = (struct DMM_MAP_OBJECT *)hDMMRes;
++	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
+ 	DSP_STATUS status = DSP_SOK;
  
- 	list_for_each_entry(uart, &uart_list, node) {
- 		if (!uart->clocked)
- 			continue;
- 
-+		if (!uart->can_sleep && uart->timeout) {
-+			getrawmonotonic(&t);
-+			if (timespec_compare(&t, &uart->expire_time) > 0)
-+				uart->can_sleep = 1;
-+		}
-+
- 		if (!uart->can_sleep) {
- 			can_sleep = 0;
- 			continue;
-@@ -428,10 +446,25 @@ int omap_uart_can_sleep(void)
- static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+-	if (mutex_lock_interruptible(&pCtxt->dmm_mutex))
++	if (mutex_lock_interruptible(&pCtxt->dmm_map_mutex))
+ 		return DSP_EFAIL;
+-	pTempDMMRes = pCtxt->pDMMList;
+-	if (pCtxt->pDMMList == pDMMRes) {
+-		pCtxt->pDMMList = pDMMRes->next;
++	pTempDMMRes = pCtxt->dmm_map_list;
++	if (pCtxt->dmm_map_list == pDMMRes) {
++		pCtxt->dmm_map_list = pDMMRes->next;
+ 	} else {
+ 		while (pTempDMMRes && pTempDMMRes->next != pDMMRes)
+ 			pTempDMMRes = pTempDMMRes->next;
+@@ -256,7 +256,7 @@ DSP_STATUS DRV_RemoveDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
+ 		else
+ 			pTempDMMRes->next = pDMMRes->next;
+ 	}
+-	mutex_unlock(&pCtxt->dmm_mutex);
++	mutex_unlock(&pCtxt->dmm_map_mutex);
+ 	kfree(pDMMRes);
+ 	return status;
+ }
+@@ -266,14 +266,14 @@ DSP_STATUS DRV_UpdateDMMResElement(HANDLE hDMMRes, u32 pMpuAddr, u32 ulSize,
+ 				  u32 pReqAddr, u32 pMapAddr,
+ 				  HANDLE hProcessor)
  {
- 	struct omap_uart_state *uart = dev_id;
-+	u8 lsr;
-+	int ret = IRQ_NONE;
-+	struct timespec t;
+-	struct DMM_RES_OBJECT *pDMMRes = (struct DMM_RES_OBJECT *)hDMMRes;
++	struct DMM_MAP_OBJECT *pDMMRes = (struct DMM_MAP_OBJECT *)hDMMRes;
+ 	DSP_STATUS status = DSP_SOK;
  
--	omap_uart_block_sleep(uart);
-+	lsr = serial_read_reg(uart->p, UART_LSR);
-+	/* Check for receive interrupt */
-+	if (lsr & UART_LSR_DR) {
-+		omap_uart_block_sleep(uart);
-+		if (uart->garbage_time.tv_sec) {
-+			getrawmonotonic(&t);
-+			if (timespec_compare(&t, &uart->garbage_time) < 0) {
-+				serial_read_reg(uart->p, UART_RX);
-+				uart->garbage_time.tv_sec = 0;
-+				ret = IRQ_HANDLED;
-+			}
-+		}
-+	}
+ 	DBC_Assert(hDMMRes != NULL);
+ 	pDMMRes->ulMpuAddr = pMpuAddr;
+ 	pDMMRes->ulDSPAddr = pMapAddr;
+ 	pDMMRes->ulDSPResAddr = pReqAddr;
+-	pDMMRes->dmmSize = ulSize;
++	pDMMRes->size = ulSize;
+ 	pDMMRes->hProcessor = hProcessor;
+ 	pDMMRes->dmmAllocated = 1;
  
--	return IRQ_NONE;
-+	return ret;
+@@ -285,11 +285,11 @@ DSP_STATUS  DRV_ProcFreeDMMRes(HANDLE hPCtxt)
+ {
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+ 	DSP_STATUS status = DSP_SOK;
+-	struct DMM_RES_OBJECT *pDMMList = pCtxt->pDMMList;
+-	struct DMM_RES_OBJECT *pDMMRes = NULL;
++	struct DMM_MAP_OBJECT *pDMMList = pCtxt->dmm_map_list;
++	struct DMM_MAP_OBJECT *pDMMRes = NULL;
+ 
+ 	GT_0trace(curTrace, GT_ENTER, "\nDRV_ProcFreeDMMRes: 1\n");
+-	while (pDMMList != NULL) {
++	while (pDMMList) {
+ 		pDMMRes = pDMMList;
+ 		pDMMList = pDMMList->next;
+ 		if (pDMMRes->dmmAllocated) {
+@@ -315,32 +315,32 @@ DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
+ {
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+ 	DSP_STATUS status = DSP_SOK;
+-	struct DMM_RES_OBJECT *pTempDMMRes2 = NULL;
+-	struct DMM_RES_OBJECT *pTempDMMRes = NULL;
++	struct DMM_MAP_OBJECT *pTempDMMRes2 = NULL;
++	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
+ 
+ 	DRV_ProcFreeDMMRes(pCtxt);
+-	pTempDMMRes = pCtxt->pDMMList;
++	pTempDMMRes = pCtxt->dmm_map_list;
+ 	while (pTempDMMRes != NULL) {
+ 		pTempDMMRes2 = pTempDMMRes;
+ 		pTempDMMRes = pTempDMMRes->next;
+ 		kfree(pTempDMMRes2);
+ 	}
+-	pCtxt->pDMMList = NULL;
++	pCtxt->dmm_map_list = NULL;
+ 	return status;
  }
  
- static void omap_uart_idle_init(struct omap_uart_state *uart)
-@@ -441,10 +474,12 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE hDMMRes, HANDLE hPCtxt)
+ {
+ 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+-	struct DMM_RES_OBJECT **pDMMRes = (struct DMM_RES_OBJECT **)hDMMRes;
++	struct DMM_MAP_OBJECT **pDMMRes = (struct DMM_MAP_OBJECT **)hDMMRes;
+ 	DSP_STATUS status = DSP_SOK;
+-	struct DMM_RES_OBJECT *pTempDMM = NULL;
++	struct DMM_MAP_OBJECT *pTempDMM = NULL;
  
- 	uart->can_sleep = 0;
- 	uart->timeout = DEFAULT_TIMEOUT;
--	setup_timer(&uart->timer, omap_uart_idle_timer,
--		    (unsigned long) uart);
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
-+
-+	if (uart->timeout) {
-+		getrawmonotonic(&uart->expire_time);
-+		timespec_add_ns(&uart->expire_time, uart->timeout);
-+	}
-+
- 	omap_uart_smart_idle_enable(uart, 0);
+-	if (mutex_lock_interruptible(&pCtxt->dmm_mutex))
++	if (mutex_lock_interruptible(&pCtxt->dmm_map_mutex))
+ 		return DSP_EFAIL;
  
- 	if (cpu_is_omap34xx()) {
-@@ -527,8 +562,12 @@ static ssize_t sleep_timeout_show(struct device *dev,
- 					struct platform_device, dev);
- 	struct omap_uart_state *uart = container_of(pdev,
- 					struct omap_uart_state, pdev);
-+	u64 val;
-+
-+	val = uart->timeout;
- 
--	return sprintf(buf, "%u\n", uart->timeout / HZ);
-+	do_div(val, NSEC_PER_SEC);
-+	return sprintf(buf, "%llu\n", val);
- }
- 
- static ssize_t sleep_timeout_store(struct device *dev,
-@@ -546,10 +585,11 @@ static ssize_t sleep_timeout_store(struct device *dev,
- 		return -EINVAL;
+-	pTempDMM = pCtxt->pDMMList;
+-	while ((pTempDMM != NULL) && (pTempDMM->ulDSPAddr != pMapAddr)) {
++	pTempDMM = pCtxt->dmm_map_list;
++	while (pTempDMM && (pTempDMM->ulDSPAddr != pMapAddr)) {
+ 		GT_3trace(curTrace, GT_ENTER,
+ 			 "DRV_GetDMMResElement: 2 pTempDMM:%x "
+ 			 "pTempDMM->ulDSPAddr:%x pMapAddr:%x\n", pTempDMM,
+@@ -348,14 +348,15 @@ DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE hDMMRes, HANDLE hPCtxt)
+ 		pTempDMM = pTempDMM->next;
  	}
  
--	uart->timeout = value * HZ;
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
--	else
-+	uart->timeout = (u64)value * NSEC_PER_SEC;
-+	if (uart->timeout) {
-+		getrawmonotonic(&uart->expire_time);
-+		timespec_add_ns(&uart->expire_time, uart->timeout);
-+	} else
- 		/* A zero value means disable timeout feature */
- 		omap_uart_block_sleep(uart);
+-	mutex_unlock(&pCtxt->dmm_mutex);
++	mutex_unlock(&pCtxt->dmm_map_mutex);
  
+-	if (pTempDMM != NULL) {
++	if (pTempDMM) {
+ 		GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 3");
+ 		*pDMMRes = pTempDMM;
+ 	} else {
+ 		status = DSP_ENOTFOUND;
+-	} GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 4");
++		GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 4");
++	}
+ 	return status;
+ }
+ 
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index f083ba7..e6a7eb7 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -499,7 +499,7 @@ static int bridge_open(struct inode *ip, struct file *filp)
+ 	pr_ctxt = MEM_Calloc(sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
+ 	if (pr_ctxt) {
+ 		pr_ctxt->resState = PROC_RES_ALLOCATED;
+-		mutex_init(&pr_ctxt->dmm_mutex);
++		mutex_init(&pr_ctxt->dmm_map_mutex);
+ 		mutex_init(&pr_ctxt->node_mutex);
+ 		mutex_init(&pr_ctxt->strm_mutex);
+ 	} else {
 -- 
-1.5.4.3
+1.6.3.3
 
