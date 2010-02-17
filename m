@@ -1,70 +1,44 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCHv2] DSPBRIDGE: Fix memory corruption in DRV_ProcFreeDMMRes
-Date: Wed, 17 Feb 2010 16:24:57 +0200
-Message-ID: <5403b3fb5b4b426d50151571d68f332da03491be.1266416384.git.ameya.palande@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:54718 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751585Ab0BQOZs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 09:25:48 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Subject: [PATCHv2 0/2] McBSP: OMAP3: Add sidetone feature
+Date: Wed, 17 Feb 2010 16:45:58 +0200
+Message-ID: <1266417960-22787-1-git-send-email-ilkka.koskinen@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@nokia.com, jhnikula@gmail.com, broonie@opensource.wolfsonmicro.com, tony@atomide.com
+Cc: eduardo.valentin@nokia.com, ext-eero.nurkkala@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: felipe.contreras@nokia.com, nm@ti.com, deepak.chitriki@ti.com
 
-This patch fixes following issues:
-1. pDMMRes was dereferenced and modified when it was already freed by
-   PROC_Ummap(). This results in memory corruption.
-2. Instead of passing ulDSPAddr, ulDSPResAddr was passed to PROC_UnMap()
-   which will not retrieve correct DMMRes element.
+The first patch implements McBSP sidetone feature on OMAP3 while the second one
+provides ALSA interface for using it.
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
----
-Changes since V1:
-1. Rebased on top of:
-   [PATCHv3 0/2] DSPBRIDGE: Improved reserved memory cleanup
+The patch set is based on the patch Eduardo Valentin sent to alsa-devel
+mailing list in October 2009. Channel gain control and enabling the sidetone
+have been moved to ALSA interface as suggested in comments. 
 
- drivers/dsp/bridge/rmgr/drv.c |   12 ++----------
- 1 files changed, 2 insertions(+), 10 deletions(-)
+Since previous review round, I have corrected both the pointed issues in ASoC
+patch. In addition, I rebased this patch on top of Janusz Krzysztofik's McBSP
+register cache patches in linux-omap-2.6.git
 
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 12ba7e0..b88b5a3 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -293,12 +293,12 @@ DSP_STATUS  DRV_ProcFreeDMMRes(HANDLE hPCtxt)
- 		pDMMRes = pDMMList;
- 		pDMMList = pDMMList->next;
- 		if (pDMMRes->dmmAllocated) {
-+			/* PROC_UnMap will free pDMMRes pointer */
- 			status = PROC_UnMap(pDMMRes->hProcessor,
--				 (void *)pDMMRes->ulDSPResAddr, pCtxt);
-+				 (void *)pDMMRes->ulDSPAddr, pCtxt);
- 			if (DSP_FAILED(status))
- 				pr_debug("%s: PROC_UnMap failed! status ="
- 						" 0x%xn", __func__, status);
--			pDMMRes->dmmAllocated = 0;
- 		}
- 	}
- 	return status;
-@@ -309,17 +309,9 @@ DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
- {
- 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
- 	DSP_STATUS status = DSP_SOK;
--	struct DMM_MAP_OBJECT *pTempDMMRes2 = NULL;
--	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
- 	struct DMM_RSV_OBJECT *temp, *rsv_obj;
- 
- 	DRV_ProcFreeDMMRes(pCtxt);
--	pTempDMMRes = pCtxt->dmm_map_list;
--	while (pTempDMMRes != NULL) {
--		pTempDMMRes2 = pTempDMMRes;
--		pTempDMMRes = pTempDMMRes->next;
--		kfree(pTempDMMRes2);
--	}
- 	pCtxt->dmm_map_list = NULL;
- 
- 	/* Free DMM reserved memory resources */
--- 
-1.6.3.3
+Eero Nurkkala (1):
+  McBSP: OMAP3: Add sidetone feature
 
+Ilkka Koskinen (1):
+  ASoC: OMAP-McBSP: ASoC interface for McBSP sidetone
+
+ arch/arm/mach-omap2/mcbsp.c             |    2 +
+ arch/arm/plat-omap/include/plat/mcbsp.h |   63 +++++
+ arch/arm/plat-omap/mcbsp.c              |  394 ++++++++++++++++++++++++++++++-
+ sound/soc/omap/omap-mcbsp.c             |  176 ++++++++++++++
+ sound/soc/omap/omap-mcbsp.h             |    2 +
+ 5 files changed, 636 insertions(+), 1 deletions(-)
