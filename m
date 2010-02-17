@@ -1,43 +1,56 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 05/24] omap4: Add needed IRQ line into irqs.h
-Date: Tue, 16 Feb 2010 23:45:00 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1002162342290.1116@utopia.booyaka.com>
-References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1002161506030.10478@utopia.booyaka.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF826A@dbde02.ent.ti.com> <alpine.DEB.2.00.1002162218540.10478@utopia.booyaka.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF831B@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF8335@dbde02.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: OMAP Audio
+Date: Wed, 17 Feb 2010 09:03:39 +0200
+Message-ID: <20100217090339.c11d2e8a.jhnikula@gmail.com>
+References: <4B7AE1AD.7080400@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54361 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751104Ab0BQGpB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 01:45:01 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF8335@dbde02.ent.ti.com>
+Received: from mail-ew0-f228.google.com ([209.85.219.228]:57023 "EHLO
+	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933857Ab0BQG6d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 01:58:33 -0500
+Received: by ewy28 with SMTP id 28so2491519ewy.28
+        for <linux-omap@vger.kernel.org>; Tue, 16 Feb 2010 22:58:31 -0800 (PST)
+In-Reply-To: <4B7AE1AD.7080400@mlbassoc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: OMAP Linux discussion <linux-omap@vger.kernel.org>
 
-Hello Santosh,
+On Tue, 16 Feb 2010 11:19:25 -0700
+Gary Thomas <gary@mlbassoc.com> wrote:
 
-On Wed, 17 Feb 2010, Shilimkar, Santosh wrote:
-
-> Having said that, I think it's best time to changes this so that
-> the drivers getting up streamed can use correct names directly.
+> I need to connect the OMAP (3530) to a 24bit CODEC.  So far
+> my attempts at getting this to go have not gone well.  Then
+> I ran across this comment in sound/soc/omap/omap-pcm.c:
+> 	/*
+> 	 * Note: Regardless of interface data formats supported by OMAP McBSP
+> 	 * or EAC blocks, internal representation is always fixed 16-bit/sample
+> 	 */
 > 
-> Also irqs-44xx.h header inclusion can be avoided in each driver if plat/irqs.h 
-> include it.
+> Does this mean that this setup is just not supported?  even though
+> the hardware can handle it?
 > 
-> I can check this if this can go in the currunt series itself. At least USB
-> and MCPDM are the two drivers I know of, planned to be lined up which will
-> get affected.
+Yep, comment is bit misleading but true until some patch will remove
+it. IRCC, the EAC was limited to 16-bit and also there wasn't need and
+HW to test other formats than S16_LE in McBSP DAI.
+
+> Thanks for any pointers or ideas on how to get this going.
 > 
-> How about doing this in the .34-rc1 so that we don't break anybody ? 
+I would first start adding support for the S32_LE into omap-pcm.c (DMA
+part). Worth to look this thread:
 
-How about just submitting the auto-generated IRQ file, convert the 
-existing in-tree users, and leave the old macros there and mark them 
-deprecated with a comment?  Then for the next release, submit a patch to 
-change the newly-merged users and remove the deprecated macros?
+http://mailman.alsa-project.org/pipermail/alsa-devel/2010-January/024704.html
+
+Then add support for this format to the omap-mcbsp.c (link
+configuration part).
+
+Next step would be to add support for the S24_LE on 4-byte boundaries.
+I.e. the DMA is moving 32-bit samples between the memory and McBSP but
+only 24-bits are transferred over the McBSP and codec.
 
 
-- Paul
+-- 
+Jarkko
