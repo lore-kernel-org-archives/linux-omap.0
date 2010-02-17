@@ -1,143 +1,109 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 02/24] omap2/3/4: ioremap omap_globals module
-Date: Wed, 17 Feb 2010 11:00:10 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF82D0@dbde02.ent.ti.com>
-References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com>
- <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com>
- <alpine.DEB.2.00.1002161500180.10478@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 05/24] omap4: Add needed IRQ line into irqs.h
+Date: Tue, 16 Feb 2010 22:32:11 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002162218540.10478@utopia.booyaka.com>
+References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1002161506030.10478@utopia.booyaka.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF826A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54519 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751133Ab0BQFaY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 00:30:24 -0500
-In-Reply-To: <alpine.DEB.2.00.1002161500180.10478@utopia.booyaka.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:43172 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751133Ab0BQFcM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 00:32:12 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF826A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "Cousson, Benoit" <b-cousson@ti.com>
 
-< snip>
+On Wed, 17 Feb 2010, Shilimkar, Santosh wrote:
 
-> >  /**
-> > diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> > index 4f29e8c..ee9499e 100644
-> > --- a/arch/arm/plat-omap/common.c
-> > +++ b/arch/arm/plat-omap/common.c
-> > @@ -256,11 +256,11 @@ static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
-> >  static struct omap_globals omap242x_globals = {
-> >  	.class	= OMAP242X_CLASS,
-> >  	.tap	= OMAP2_L4_IO_ADDRESS(0x48014000),
-> > -	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP2420_SDRC_BASE),
-> > -	.sms	= OMAP2_L3_IO_ADDRESS(OMAP2420_SMS_BASE),
-> > -	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP2420_CTRL_BASE),
-> > -	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE),
-> > -	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE),
-> > +	.sdrc	= OMAP2420_SDRC_BASE,
-> > +	.sms	= OMAP2420_SMS_BASE,
-> > +	.ctrl	= OMAP2420_CTRL_BASE,
-> > +	.prm	= OMAP2420_PRM_BASE,
-> > +	.cm	= OMAP2420_CM_BASE,
-> >  	.uart1_phys	= OMAP2_UART1_BASE,
-> >  	.uart2_phys	= OMAP2_UART2_BASE,
-> >  	.uart3_phys	= OMAP2_UART3_BASE,
-> > @@ -277,11 +277,11 @@ void __init omap2_set_globals_242x(void)
-> >  static struct omap_globals omap243x_globals = {
-> >  	.class	= OMAP243X_CLASS,
-> >  	.tap	= OMAP2_L4_IO_ADDRESS(0x4900a000),
-> > -	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP243X_SDRC_BASE),
-> > -	.sms	= OMAP2_L3_IO_ADDRESS(OMAP243X_SMS_BASE),
-> > -	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE),
-> > -	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE),
-> > -	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE),
-> > +	.sdrc	= OMAP243X_SDRC_BASE,
-> > +	.sms	= (OMAP243X_SMS_BASE),
-> > +	.ctrl	= (OMAP243X_CTRL_BASE),
-> > +	.prm	= (OMAP2430_PRM_BASE),
-> > +	.cm	= (OMAP2430_CM_BASE),
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Wednesday, February 17, 2010 3:39 AM
+> > To: Shilimkar, Santosh
+> > Cc: tony@atomide.com; linux-omap@vger.kernel.org; ben@fluff.org.uk; sameo@linux.intel.com;
+> > lrg@slimlogic.co.uk
+> > Subject: Re: [PATCH 05/24] omap4: Add needed IRQ line into irqs.h
+> > 
+> > Hello Santosh,
+> > 
+> > On Tue, 16 Feb 2010, Santosh Shilimkar wrote:
+> > 
+> > > This patch adds DSS, keyboard and ducati irq
+> > > entries in irqs.h
+> > >
+> > > Ones omap4 hwmod is pushed on mainlie, all the
+> > > irqs lines data would be availabe.
+> > 
+> > Instead of this patch, why not just replace the current file with the one
+> > from the OMAP4 autogeneration scripts?  I don't see why the IRQ macros
+> > should depend on hwmod availability, and it would be better to have the
+> > correct IRQ data appear in one patch, rather than having to review and
+> > approve several smaller incremental patches over time.
+> We plan to do this but today the autogenrated file names and one in the 
+> kernel code is different.
+
+File names or macro names?
+
+> Autogenrated headers are kept in alignment
+> with TRM naming as you know.
+> e.g
+> --- autogenaretd
+> #define OMAP44XX_IRQ_MCBSP2   (22 + OMAP44XX_IRQ_GIC_START) 
 > 
-> Please drop the unnecessary parentheses above and elsewhere in this file.
-> If the parentheses are nececessary because the macro is a composite
-> expression and parentheses are missing around the expression, then the
-> parentheses should be added around the macro contents itself.
-> 
-No need of paran's. They just left out while cleaning it up.
-> >  	.uart1_phys	= OMAP2_UART1_BASE,
-> >  	.uart2_phys	= OMAP2_UART2_BASE,
-> >  	.uart3_phys	= OMAP2_UART3_BASE,
-> > @@ -298,11 +298,11 @@ void __init omap2_set_globals_243x(void)
-> >  static struct omap_globals omap3_globals = {
-> >  	.class	= OMAP343X_CLASS,
-> >  	.tap	= OMAP2_L4_IO_ADDRESS(0x4830A000),
-> > -	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP343X_SDRC_BASE),
-> > -	.sms	= OMAP2_L3_IO_ADDRESS(OMAP343X_SMS_BASE),
-> > -	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE),
-> > -	.prm	= OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE),
-> > -	.cm	= OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
-> > +	.sdrc	= (OMAP343X_SDRC_BASE),
-> > +	.sms	= (OMAP343X_SMS_BASE),
-> > +	.ctrl	= (OMAP343X_CTRL_BASE),
-> > +	.prm	= (OMAP3430_PRM_BASE),
-> > +	.cm	= (OMAP3430_CM_BASE),
-> 
-> As above.
-> 
-> >  	.uart1_phys	= OMAP3_UART1_BASE,
-> >  	.uart2_phys	= OMAP3_UART2_BASE,
-> >  	.uart3_phys	= OMAP3_UART3_BASE,
-> > @@ -325,10 +325,10 @@ void __init omap2_set_globals_36xx(void)
-> >  static struct omap_globals omap4_globals = {
-> >  	.class	= OMAP443X_CLASS,
-> >  	.tap	= OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
-> > -	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP443X_CTRL_BASE),
-> > -	.prm	= OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE),
-> > -	.cm	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
-> > -	.cm2	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE),
-> > +	.ctrl	= (OMAP443X_CTRL_BASE),
-> > +	.prm	= (OMAP4430_PRM_BASE),
-> > +	.cm	= (OMAP4430_CM_BASE),
-> > +	.cm2	= (OMAP4430_CM2_BASE),
-> 
-> As above.
-> 
-> >  	.uart1_phys	= OMAP4_UART1_BASE,
-> >  	.uart2_phys	= OMAP4_UART2_BASE,
-> >  	.uart3_phys	= OMAP4_UART3_BASE,
-> > diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-> > index e04a58e..dc8a897 100644
-> > --- a/arch/arm/plat-omap/include/plat/common.h
-> > +++ b/arch/arm/plat-omap/include/plat/common.h
-> > @@ -41,12 +41,12 @@ extern struct sys_timer omap_timer;
-> >  struct omap_globals {
-> >  	u32		class;		/* OMAP class to detect */
-> >  	void __iomem	*tap;		/* Control module ID code */
-> > -	void __iomem	*sdrc;		/* SDRAM Controller */
-> > -	void __iomem	*sms;		/* SDRAM Memory Scheduler */
-> > -	void __iomem	*ctrl;		/* System Control Module */
-> > -	void __iomem	*prm;		/* Power and Reset Management */
-> > -	void __iomem	*cm;		/* Clock Management */
-> > -	void __iomem	*cm2;
-> > +	unsigned long   sdrc;           /* SDRAM Controller */
-> > +	unsigned long   sms;            /* SDRAM Memory Scheduler */
-> > +	unsigned long   ctrl;           /* System Control Module */
-> > +	unsigned long   prm;            /* Power and Reset Management */
-> > +	unsigned long   cm;             /* Clock Management */
-> > +	unsigned long   cm2;
-> 
-> Please add comments above struct omap_globals to reinforce that these are
-> now physical addresses.
->
-ok
- 
-> >  	unsigned long	uart1_phys;
-> >  	unsigned long	uart2_phys;
-> >  	unsigned long	uart3_phys;
-> > --
-> > 1.6.0.4
-> >
+> --existing kernel
+> #define INT_44XX_MCBSP2_IRQ	(22 + IRQ_GIC_START)
 > 
 > 
-> - Paul
+> So instead of touching every driver file and changing it only for name changes ,
+> what we are doing
+> 1. Created local 44xx_dma.h and 44xx_irq.h mach-omap2 directory
+> 2. All the drivers getting converted in hwmods would use defines from above headers
+> 3. At one point of time all the drivers would use defines from above headers and then 
+>    from omap4 point of view there won't be dependency on the irqs.h and dma.h
+> 
+> While this is ongoing, we would like the mainline kernel to have most of the 
+> drivers supported. And Hence such a patch.
+
+I grepped through the code base for any instances of INT_44XX:
+
+[paul@twilight current]$ fgrep -r INT_44XX . | fgrep -v ./arch/arm/plat-omap/include/plat/irqs.h
+./arch/arm/mach-omap2/devices.c:		.start          = INT_44XX_MAIL_U0_MPU,
+./arch/arm/mach-omap2/devices.c:			irq = INT_44XX_MMC4_IRQ;
+./arch/arm/mach-omap2/devices.c:			irq = INT_44XX_MMC5_IRQ;
+./arch/arm/mach-omap2/timer-mpu.c:	evt->irq = INT_44XX_LOCALTIMER_IRQ;
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x4a318000, .irq = INT_44XX_GPTIMER1 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x48032000, .irq = INT_44XX_GPTIMER2 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x48034000, .irq = INT_44XX_GPTIMER3 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x48036000, .irq = INT_44XX_GPTIMER4 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x40138000, .irq = INT_44XX_GPTIMER5 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x4013a000, .irq = INT_44XX_GPTIMER6 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x4013a000, .irq = INT_44XX_GPTIMER7 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x4013e000, .irq = INT_44XX_GPTIMER8 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x4803e000, .irq = INT_44XX_GPTIMER9 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x48086000, .irq = INT_44XX_GPTIMER10 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x48088000, .irq = INT_44XX_GPTIMER11 },
+./arch/arm/plat-omap/dmtimer.c:	{ .phys_base = 0x4a320000, .irq = INT_44XX_GPTIMER12 },
+./arch/arm/plat-omap/gpio.c:	{ OMAP44XX_GPIO1_BASE, NULL, INT_44XX_GPIO_BANK1, IH_GPIO_BASE,
+./arch/arm/plat-omap/gpio.c:	{ OMAP44XX_GPIO2_BASE, NULL, INT_44XX_GPIO_BANK2, IH_GPIO_BASE + 32,
+./arch/arm/plat-omap/gpio.c:	{ OMAP44XX_GPIO3_BASE, NULL, INT_44XX_GPIO_BANK3, IH_GPIO_BASE + 64,
+./arch/arm/plat-omap/gpio.c:	{ OMAP44XX_GPIO4_BASE, NULL, INT_44XX_GPIO_BANK4, IH_GPIO_BASE + 96,
+./arch/arm/plat-omap/gpio.c:	{ OMAP44XX_GPIO5_BASE, NULL, INT_44XX_GPIO_BANK5, IH_GPIO_BASE + 128,
+./arch/arm/plat-omap/gpio.c:	{ OMAP44XX_GPIO6_BASE, NULL, INT_44XX_GPIO_BANK6, IH_GPIO_BASE + 160,
+./arch/arm/plat-omap/dma.c:			irq = INT_44XX_SDMA_IRQ0;
+[paul@twilight current]$
+
+
+There are only five files to change.  None of them are device
+driver files, so they can all be merged through linux-omap.  The
+changes could easily be done in a single patch.  So I see no
+reason to not use the autogenerated IRQ file.
+
+> > The same reasoning should apply the DMA data also, I'd think.
+> DMA file will get replaced soon with auto generated since naming
+> is aligned there.
+
+
+- Paul
