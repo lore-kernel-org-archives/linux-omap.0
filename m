@@ -1,177 +1,386 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH/RFC 1/2] OMAP: omap_device: add
- omap_device_has_lost_context()
-Date: Tue, 16 Feb 2010 18:05:18 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1002161754260.10478@utopia.booyaka.com>
-References: <1265242751-12199-1-git-send-email-khilman@deeprootsystems.com> <1265242751-12199-2-git-send-email-khilman@deeprootsystems.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: [PATCH 2/2] DSPBRIDGE: New reserved memory accounting framework
+Date: Tue, 16 Feb 2010 20:01:46 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9626@dlee06.ent.ti.com>
+References: <cover.1266326009.git.ameya.palande@nokia.com>
+ <21ed5f939111b381f877fd335b3adc2e779ce8ac.1266326009.git.ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43425 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933772Ab0BQBFT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 20:05:19 -0500
-In-Reply-To: <1265242751-12199-2-git-send-email-khilman@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51291 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933955Ab0BQCBx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Feb 2010 21:01:53 -0500
+In-Reply-To: <21ed5f939111b381f877fd335b3adc2e779ce8ac.1266326009.git.ameya.palande@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
-
-Hi Kevin,
-
-a few questions:
-
-On Wed, 3 Feb 2010, Kevin Hilman wrote:
-
-> Add new function omap_device_has_lost_context() as a simple check
-> to be used after omap_device_enable() to determine if device has
-> lost context (and thus needs context restore.)
-> 
-> Motivation: Currently, each driver needs to read the context-loss
-> count before suspend, and again upon resume to determine if
-> device context needs to be restored.  Rather than duplicating
-> this process across all drivers, move it into omap_device.  After
-> omap_device_enable(), omap_device_has_lost_context() can be called
-> to determine if context was lost.
-> 
-> This API is not intended for direct use by drivers.  Rather, the
-> OMAP runtime PM core will use this to determine whether or not
-> to call the drivers runtime_resume hook which can then be used to
-> restore context.
-> 
-> The goal is to only call drivers "restore" hook when necessary.
-> 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/plat-omap/include/plat/omap_device.h |    3 ++
->  arch/arm/plat-omap/omap_device.c              |   35 +++++++++++++++++++++++++
->  2 files changed, 38 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index 76d4917..ff98eb4 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -71,6 +71,8 @@ struct omap_device {
->  	s8				pm_lat_level;
->  	u8				hwmods_cnt;
->  	u8				_state;
-> +	u32                             activate_loss_cnt;
-> +	u32                             deactivate_loss_cnt;
-
-Would it be sufficient to just note the context loss count on a disable 
-and then compare it against the powerdomain's loss count during activate, 
-and if different, set a flag in _state ?  That way only one loss count 
-variable would be needed.
-
->  };
->  
->  /* Device driver interface (call via platform_data fn ptrs) */
-> @@ -78,6 +80,7 @@ struct omap_device {
->  int omap_device_enable(struct platform_device *pdev);
->  int omap_device_idle(struct platform_device *pdev);
->  int omap_device_shutdown(struct platform_device *pdev);
-> +bool omap_device_has_lost_context(struct platform_device *pdev);
->  
->  /* Core code interface */
->  
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index d8c75c8..aaa009d 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -84,6 +84,7 @@
->  
->  #include <plat/omap_device.h>
->  #include <plat/omap_hwmod.h>
-> +#include <plat/powerdomain.h>
->  
->  /* These parameters are passed to _omap_device_{de,}activate() */
->  #define USE_WAKEUP_LAT			0
-> @@ -119,6 +120,7 @@
->  static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
->  {
->  	struct timespec a, b, c;
-> +	struct powerdomain *pwrdm;
->  
->  	pr_debug("omap_device: %s: activating\n", od->pdev.name);
->  
-> @@ -168,6 +170,10 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
->  		od->dev_wakeup_lat -= odpl->activate_lat;
->  	}
->  
-> +	pwrdm = omap_device_get_pwrdm(od);
-> +	if (pwrdm)
-> +		od->activate_loss_cnt = pwrdm->state_counter[PWRDM_POWER_OFF];
-
-This probably will also depend on the powerdomain's logic_retst, 
-mem_retst, mem_onst bits, since context can be lost even when the 
-powerdomain is in RET or ON state.
+To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
 
-> +
->  	return 0;
->  }
->  
-> @@ -188,6 +194,7 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
->  static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
->  {
->  	struct timespec a, b, c;
-> +	struct powerdomain *pwrdm;
->  
->  	pr_debug("omap_device: %s: deactivating\n", od->pdev.name);
->  
-> @@ -239,6 +246,10 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
->  		od->pm_lat_level++;
->  	}
->  
-> +	pwrdm = omap_device_get_pwrdm(od);
-> +	if (pwrdm)
-> +		od->deactivate_loss_cnt = pwrdm->state_counter[PWRDM_POWER_OFF];
+Hi,
 
-Same comment as above.
+>-----Original Message-----
+>From: Ameya Palande [mailto:ameya.palande@nokia.com]
+>Sent: Tuesday, February 16, 2010 7:20 AM
+>To: linux-omap@vger.kernel.org
+>Cc: felipe.contreras@nokia.com; Menon, Nishanth; Chitriki Rudramuni,
+>Deepak; Ramirez Luna, Omar; Guzman Lugo, Fernando
+>Subject: [PATCH 2/2] DSPBRIDGE: New reserved memory accounting framework
+>
+>DSP_RSV_OBJECT is introduced to track reserved memory accounting
+>information.
+>This will allow us to do proper cleanup for memory reserved using
+>PROC_ReserveMemory().
+>
+>Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+>---
+> arch/arm/plat-omap/include/dspbridge/drv.h  |   13 ++++++
+> arch/arm/plat-omap/include/dspbridge/proc.h |    5 +-
+> drivers/dsp/bridge/pmgr/dmm.c               |    3 +-
+> drivers/dsp/bridge/pmgr/wcd.c               |    7 ++-
+> drivers/dsp/bridge/rmgr/drv.c               |   27 +++++++++---
+> drivers/dsp/bridge/rmgr/drv_interface.c     |    7 ++-
+> drivers/dsp/bridge/rmgr/node.c              |    5 +-
+> drivers/dsp/bridge/rmgr/proc.c              |   58 +++++++++++++++++++++--
+>---
+> 8 files changed, 97 insertions(+), 28 deletions(-)
+>
+>diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-
+>omap/include/dspbridge/drv.h
+>index 3069e74..6e8187d 100644
+>--- a/arch/arm/plat-omap/include/dspbridge/drv.h
+>+++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+>@@ -101,6 +101,15 @@ struct DMM_MAP_OBJECT {
+> 	struct DMM_MAP_OBJECT  *next;
+> } ;
+>
+>+/*
+>+ * New structure (member of process context) used for accounting of DMM
+>+ * reserved memory information
+>+ */
+>+struct DMM_RSV_OBJECT {
+>+	struct	list_head	link;
+>+	u32	dsp_reserved_addr;
+>+};
+>+
+> /* New structure (member of process context) abstracts DMM resource info
+>*/
+> struct DSPHEAP_RES_OBJECT {
+> 	s32            heapAllocated; /* DMM status */
+>@@ -141,6 +150,10 @@ struct PROCESS_CONTEXT{
+> 	/* DMM mapped memory resources */
+> 	struct DMM_MAP_OBJECT *dmm_map_list;
+>
+>+	/* DMM reserved memory resources */
+>+	struct list_head dmm_rsv_list;
+>+	spinlock_t dmm_rsv_list_lock;
+>+
+> 	/* DSP Heap resources */
+> 	struct DSPHEAP_RES_OBJECT *pDSPHEAPList;
+>
+>diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-
+>omap/include/dspbridge/proc.h
+>index 8dbdaac..558c053 100644
+>--- a/arch/arm/plat-omap/include/dspbridge/proc.h
+>+++ b/arch/arm/plat-omap/include/dspbridge/proc.h
+>@@ -560,7 +560,7 @@
+>  *  Details:
+>  */
+> 	extern DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR hProcessor,
+>-					     u32 ulSize, void **ppRsvAddr);
+>+		u32 ulSize, void **ppRsvAddr, struct PROCESS_CONTEXT *pr_ctxt);
+>
+> /*
+>  *  ======== PROC_UnMap ========
+>@@ -604,6 +604,7 @@
+>  *  Details:
+>  */
+> 	extern DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor,
+>-					       void *pRsvAddr);
+>+			void *pRsvAddr, struct PROCESS_CONTEXT *pr_ctxt,
+>+			int cleanup);
+>
+> #endif				/* PROC_ */
+>diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
+>index d5a7275..72aee60 100644
+>--- a/drivers/dsp/bridge/pmgr/dmm.c
+>+++ b/drivers/dsp/bridge/pmgr/dmm.c
+>@@ -386,9 +386,10 @@ DSP_STATUS DMM_ReserveMemory(struct DMM_OBJECT
+>*hDmmMgr, u32 size,
+> 		node->MappedSize = 0;
+> 		/* Return the chunk's starting address */
+> 		*pRsvAddr = rsvAddr;
+>-	} else
+>+	} else {
+> 		/*dSP chunk of given size is not available */
+> 		status = DSP_EMEMORY;
+>+	}
+>
+> 	SYNC_LeaveCS(pDmmObj->hDmmLock);
+> 	GT_3trace(DMM_debugMask, GT_4CLASS,
+>diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+>index beea23b..747d069 100644
+>--- a/drivers/dsp/bridge/pmgr/wcd.c
+>+++ b/drivers/dsp/bridge/pmgr/wcd.c
+>@@ -1054,12 +1054,13 @@ u32 PROCWRAP_ReserveMemory(union Trapped_Args
+>*args, void *pr_ctxt)
+>
+> 	GT_0trace(WCD_debugMask, GT_ENTER, "PROCWRAP_ReserveMemory:
+>entered\n");
+> 	status = PROC_ReserveMemory(args->ARGS_PROC_RSVMEM.hProcessor,
+>-				   args->ARGS_PROC_RSVMEM.ulSize, &pRsvAddr);
+>+				   args->ARGS_PROC_RSVMEM.ulSize, &pRsvAddr,
+>+				   pr_ctxt);
+> 	if (DSP_SUCCEEDED(status)) {
+> 		if (put_user(pRsvAddr, args->ARGS_PROC_RSVMEM.ppRsvAddr)) {
+> 			status = DSP_EINVALIDARG;
+> 			PROC_UnReserveMemory(args->ARGS_PROC_RSVMEM.hProcessor,
+>-				pRsvAddr);
+>+				pRsvAddr, pr_ctxt, 1);
+> 		}
+> 	}
+> 	return status;
+>@@ -1100,7 +1101,7 @@ u32 PROCWRAP_UnReserveMemory(union Trapped_Args
+>*args, void *pr_ctxt)
+> 	GT_0trace(WCD_debugMask, GT_ENTER,
+> 		 "PROCWRAP_UnReserveMemory: entered\n");
+> 	status = PROC_UnReserveMemory(args->ARGS_PROC_UNRSVMEM.hProcessor,
+>-				     args->ARGS_PROC_UNRSVMEM.pRsvAddr);
+>+			args->ARGS_PROC_UNRSVMEM.pRsvAddr, pr_ctxt, 1);
+> 	return status;
+> }
+>
+>diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+>index 3dc38d0..9d5c077 100644
+>--- a/drivers/dsp/bridge/rmgr/drv.c
+>+++ b/drivers/dsp/bridge/rmgr/drv.c
+>@@ -277,25 +277,20 @@ DSP_STATUS  DRV_ProcFreeDMMRes(HANDLE hPCtxt)
+> 			if (DSP_FAILED(status))
+> 				pr_debug("%s: PROC_UnMap failed! status ="
+> 						" 0x%xn", __func__, status);
+>-			status = PROC_UnReserveMemory(pDMMRes->hProcessor,
+>-				 (void *)pDMMRes->ulDSPResAddr);
+>-			if (DSP_FAILED(status))
+>-				pr_debug("%s: PROC_UnReserveMemory failed!"
+>-					" status = 0x%xn", __func__, status);
+> 			pDMMRes->dmmAllocated = 0;
+> 		}
+> 	}
+> 	return status;
+> }
+>
+>-/* Release all DMM resources and its context
+>-* This is called from .bridge_release. */
+>+/* Release all Mapped and Reserved DMM resources */
+> DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
+> {
+> 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
+> 	DSP_STATUS status = DSP_SOK;
+> 	struct DMM_MAP_OBJECT *pTempDMMRes2 = NULL;
+> 	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
+>+	struct DMM_RSV_OBJECT *temp, *rsv_obj;
+>
+> 	DRV_ProcFreeDMMRes(pCtxt);
+> 	pTempDMMRes = pCtxt->dmm_map_list;
+>@@ -305,6 +300,24 @@ DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
+> 		kfree(pTempDMMRes2);
+> 	}
+> 	pCtxt->dmm_map_list = NULL;
+>+
+>+	/* Free DMM reserved memory resources */
+>+	spin_lock(&pCtxt->dmm_rsv_list_lock);
+>+	list_for_each_entry_safe(rsv_obj, temp, &pCtxt->dmm_rsv_list, link) {
+>+		/*
+>+		 * Since we have already acquired spin lock for dmm_rsv_list,
+>+		 * we don't want to perform cleanup in PROC_UnReserveMemory.
+>+		 */
 
-> +
->  	return 0;
->  }
->  
-> @@ -560,6 +571,30 @@ int omap_device_shutdown(struct platform_device *pdev)
->  }
->  
->  /**
-> + * omap_device_has_lost_context() - check if omap_device has lost context
-> + * @od: struct omap_device *
-> + *
-> + * When an omap_device has been deactivated via omap_device_idle() or
-> + * omap_device_shutdown() and then (re)activated using omap_device_enable()
-> + * This function should be used to determine if the omap_device has
-> + * lost context (due to an off-mode transistion)
-> + */
-> +bool omap_device_has_lost_context(struct platform_device *pdev)
-> +{
-> +	struct omap_device *od;
-> +
-> +	od = _find_by_pdev(pdev);
-> +
-> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-> +		WARN(1, "omap_device: %s.%d: has_lost_context() called "
-> +		     "from invalid state\n", od->pdev.name, od->pdev.id);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return (od->activate_loss_cnt != od->deactivate_loss_cnt);
-> +}
-> +
-> +/**
->   * omap_device_align_pm_lat - activate/deactivate device to match wakeup lat lim
->   * @od: struct omap_device *
->   *
-> -- 
-> 1.6.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+DRV_ProcFreeDMMRes is only called from bridge_release and there is no other thread from the same process that can be executed concurrent. It is not needed lock at cleanup time.
 
+After removing the lock, I think you don't need cleanup flag in PROC_UnReserveMemory. Because the cleanup can be done in PROC_UnReserveMemory without problems.
 
-- Paul
+Regards,
+Fernando.
+
+>+		status = PROC_UnReserveMemory(pCtxt->hProcessor,
+>+				(void *)rsv_obj->dsp_reserved_addr, pCtxt, 0);
+>+		if (DSP_FAILED(status))
+>+			pr_err("%s: PROC_UnReserveMemory failed!"
+>+					" status = 0x%xn", __func__, status);
+>+		list_del(&rsv_obj->link);
+>+		kfree(rsv_obj);
+>+	}
+>+	spin_unlock(&pCtxt->dmm_rsv_list_lock);
+>+
+> 	return status;
+> }
+>
+>diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c
+>b/drivers/dsp/bridge/rmgr/drv_interface.c
+>index 0ce9a5f..ef078cf 100644
+>--- a/drivers/dsp/bridge/rmgr/drv_interface.c
+>+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+>@@ -497,10 +497,13 @@ static int bridge_open(struct inode *ip, struct file
+>*filp)
+> 	 * process context list.
+> 	 */
+> 	pr_ctxt = MEM_Calloc(sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
+>-	if (pr_ctxt)
+>+	if (pr_ctxt) {
+> 		pr_ctxt->resState = PROC_RES_ALLOCATED;
+>-	else
+>+		spin_lock_init(&pr_ctxt->dmm_rsv_list_lock);
+>+		INIT_LIST_HEAD(&pr_ctxt->dmm_rsv_list);
+>+	} else {
+> 		status = -ENOMEM;
+>+	}
+>
+> 	filp->private_data = pr_ctxt;
+>
+>diff --git a/drivers/dsp/bridge/rmgr/node.c
+>b/drivers/dsp/bridge/rmgr/node.c
+>index b60d1ed..f85b4b8 100644
+>--- a/drivers/dsp/bridge/rmgr/node.c
+>+++ b/drivers/dsp/bridge/rmgr/node.c
+>@@ -454,7 +454,7 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT
+>*hProcessor,
+> 	status = PROC_ReserveMemory(hProcessor,
+> 			pNode->createArgs.asa.taskArgs.uHeapSize + PAGE_SIZE,
+> 			(void **)&(pNode->createArgs.asa.taskArgs.
+>-				uDSPHeapResAddr));
+>+				uDSPHeapResAddr), pr_ctxt);
+> 	if (DSP_FAILED(status)) {
+> 		GT_1trace(NODE_debugMask, GT_5CLASS,
+> 			 "NODE_Allocate:Failed to reserve "
+>@@ -2726,7 +2726,8 @@ static void DeleteNode(struct NODE_OBJECT *hNode,
+> 					 " Status = 0x%x\n", (u32)status);
+> 			}
+> 			status = PROC_UnReserveMemory(hNode->hProcessor,
+>-					(void *)taskArgs.uDSPHeapResAddr);
+>+					(void *)taskArgs.uDSPHeapResAddr,
+>+					pr_ctxt, 1);
+> 			if (DSP_SUCCEEDED(status)) {
+> 				GT_0trace(NODE_debugMask, GT_5CLASS,
+> 					 "DSPProcessor_UnReserveMemory "
+>diff --git a/drivers/dsp/bridge/rmgr/proc.c
+>b/drivers/dsp/bridge/rmgr/proc.c
+>index 2ccbc9b..2ef2e37 100644
+>--- a/drivers/dsp/bridge/rmgr/proc.c
+>+++ b/drivers/dsp/bridge/rmgr/proc.c
+>@@ -1430,11 +1430,12 @@ func_end:
+>  *      Reserve a virtually contiguous region of DSP address space.
+>  */
+> DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR hProcessor, u32 ulSize,
+>-			     void **ppRsvAddr)
+>+		void **ppRsvAddr, struct PROCESS_CONTEXT *pr_ctxt)
+> {
+> 	struct DMM_OBJECT *hDmmMgr;
+> 	DSP_STATUS status = DSP_SOK;
+> 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
+>+	struct DMM_RSV_OBJECT *rsv_obj;
+>
+> 	GT_3trace(PROC_DebugMask, GT_ENTER,
+> 		 "Entered PROC_ReserveMemory, args:\n\t"
+>@@ -1446,16 +1447,29 @@ DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR
+>hProcessor, u32 ulSize,
+> 			 "InValid Processor Handle \n");
+> 		goto func_end;
+> 	}
+>+
+> 	status = DMM_GetHandle(pProcObject, &hDmmMgr);
+> 	if (DSP_FAILED(status)) {
+> 		GT_1trace(PROC_DebugMask, GT_7CLASS, "PROC_ReserveMemory: "
+> 			 "Failed to get DMM Mgr handle: 0x%x\n", status);
+>-	} else
+>-		status = DMM_ReserveMemory(hDmmMgr, ulSize, (u32 *)ppRsvAddr);
+>+		goto func_end;
+>+	}
+>+
+>+	status = DMM_ReserveMemory(hDmmMgr, ulSize, (u32 *)ppRsvAddr);
+>+	if (status != DSP_SOK)
+>+		goto func_end;
+>+
+>+	rsv_obj = kmalloc(sizeof(struct DMM_RSV_OBJECT), GFP_KERNEL);
+>+	if (rsv_obj) {
+>+		rsv_obj->dsp_reserved_addr = (u32) *ppRsvAddr;
+>+		spin_lock(&pr_ctxt->dmm_rsv_list_lock);
+>+		list_add(&rsv_obj->link, &pr_ctxt->dmm_rsv_list);
+>+		spin_unlock(&pr_ctxt->dmm_rsv_list_lock);
+>+	}
+>
+>+func_end:
+> 	GT_1trace(PROC_DebugMask, GT_ENTER, "Leaving PROC_ReserveMemory
+>[0x%x]",
+> 		 status);
+>-func_end:
+> 	return status;
+> }
+>
+>@@ -1704,11 +1718,13 @@ func_end:
+>  *  Purpose:
+>  *      Frees a previously reserved region of DSP address space.
+>  */
+>-DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr)
+>+DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr,
+>+		struct PROCESS_CONTEXT *pr_ctxt, int cleanup)
+> {
+> 	struct DMM_OBJECT *hDmmMgr;
+> 	DSP_STATUS status = DSP_SOK;
+> 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
+>+	struct DMM_RSV_OBJECT *temp, *rsv_obj;
+>
+> 	GT_2trace(PROC_DebugMask, GT_ENTER,
+> 		 "Entered PROC_UnReserveMemory, args:\n\t"
+>@@ -1719,18 +1735,38 @@ DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR
+>hProcessor, void *pRsvAddr)
+> 			 "InValid Processor Handle \n");
+> 		goto func_end;
+> 	}
+>+
+> 	status = DMM_GetHandle(pProcObject, &hDmmMgr);
+>-	if (DSP_FAILED(status))
+>+	if (DSP_FAILED(status)) {
+> 		GT_1trace(PROC_DebugMask, GT_7CLASS,
+> 			 "PROC_UnReserveMemory: Failed to get DMM Mgr "
+> 			 "handle: 0x%x\n", status);
+>-	else
+>-		status = DMM_UnReserveMemory(hDmmMgr, (u32) pRsvAddr);
+>+		goto func_end;
+>+	}
+>+
+>+	status = DMM_UnReserveMemory(hDmmMgr, (u32) pRsvAddr);
+>+
+>+	/*
+>+	 * cleanup flag handles the special case when this function
+>+	 * is called while doing clenaup from
+>+	 * DRV_RemoveAllDMMResElements
+>+	 */
+>+	if (status != DSP_SOK || !cleanup)
+>+		goto func_end;
+>+
+>+	spin_lock(&pr_ctxt->dmm_rsv_list_lock);
+>+	list_for_each_entry_safe(rsv_obj, temp, &pr_ctxt->dmm_rsv_list, link)
+>{
+>+		if (rsv_obj->dsp_reserved_addr == (u32)pRsvAddr) {
+>+			list_del(&rsv_obj->link);
+>+			kfree(rsv_obj);
+>+			break;
+>+		}
+>+	}
+>+	spin_unlock(&pr_ctxt->dmm_rsv_list_lock);
+>
+>-	GT_1trace(PROC_DebugMask, GT_ENTER,
+>-		 "Leaving PROC_UnReserveMemory [0x%x]",
+>-		 status);
+> func_end:
+>+	GT_1trace(PROC_DebugMask, GT_ENTER,
+>+		 "Leaving PROC_UnReserveMemory [0x%x]", status);
+> 	return status;
+> }
+>
+>--
+>1.6.3.3
+
