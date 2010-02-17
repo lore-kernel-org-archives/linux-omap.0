@@ -1,114 +1,58 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Wed, 17 Feb 2010 22:34:24 +0100
-Message-ID: <74583B8642AB8841B30447520659FCA9EB1A8634@dnce01.ent.ti.com>
-References: <cover.1265801967.git.david.vrabel@csr.com>
- <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com>
- <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com>
- <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com>
- <4B7C30F3.904@csr.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/2 RFC]OMAP3430: hwmod FW for GPIO
+Date: Wed, 17 Feb 2010 16:09:43 -0600
+Message-ID: <87mxz7tsyg.fsf@deeprootsystems.com>
+References: <1265981968-14696-1-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50853 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756763Ab0BQVff convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 16:35:35 -0500
-Content-Class: urn:content-classes:message
-In-Reply-To: <4B7C30F3.904@csr.com>
-Content-Language: en-US
+Received: from mail-yw0-f197.google.com ([209.85.211.197]:43735 "EHLO
+	mail-yw0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752509Ab0BQWJs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 17:09:48 -0500
+Received: by ywh35 with SMTP id 35so377436ywh.4
+        for <linux-omap@vger.kernel.org>; Wed, 17 Feb 2010 14:09:45 -0800 (PST)
+In-Reply-To: <1265981968-14696-1-git-send-email-charu@ti.com> (Charulatha Varadarajan's message of "Fri\, 12 Feb 2010 19\:09\:26 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Vrabel <david.vrabel@csr.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: linux-omap@vger.kernel.org
 
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of David Vrabel
->Sent: Wednesday, February 17, 2010 7:10 PM
+"Varadarajan, Charulatha" <charu@ti.com> writes:
+
+> From: Charulatha V <charu@ti.com>
 >
->David Vrabel wrote:
->>
->> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
->> +{
->> +    struct omap_hsmmc_host *host = mmc_priv(mmc);
->> +    u32 ie, con;
->> +    unsigned long flags;
->> +
->> +    spin_lock_irqsave(&host->irq_lock, flags);
->> +
->> +    /*
->> +     * When interrupts are enabled, CTPL must be set to enable
->> +     * DAT1 input buffer (or the card interrupt is always
->> +     * asserted) and FCLK must be enabled else wakeup does not
->> +     * work.
->> +     *
->> +     * FIXME: the power save code probably shouldn't be playing
->> +     * with FCLK and allow the clock subsystem to put it into
->> +     * smart-idle mode instead.
->> +     */
->> +    con = OMAP_HSMMC_READ(host->base, CON);
->> +    ie = OMAP_HSMMC_READ(host->base, IE);
->> +    if (enable) {
->> +            clk_enable(host->fclk);
->> +            ie |= CIRQ_ENABLE;
->> +            con |= CTPL;
->> +    } else {
->> +            clk_disable(host->fclk);
->> +            ie &= ~CIRQ_ENABLE;
->> +            con &= ~CTPL;
->> +    }
->> +    OMAP_HSMMC_WRITE(host->base, CON, con);
->> +    OMAP_HSMMC_WRITE(host->base, IE, ie);
->> +
->> +    spin_unlock_irqrestore(&host->irq_lock, flags);
->> +}
+> This patch series makes the OMAP3430 GPIO module
+> use hwmod framework.
 >
->This isn't doing a posted write flush but when it's added this ends up
->looking like:
+> This patch series applies on top of pm branch
+> and it requires my previous patch set which converts
+> GPIO into an early init device. 
+
+There's no reason this needs to depend on the PM branch.  
+
+I have a WIP branch on my tree named 'pm-wip/hwmod' which already has
+a set of hwmod updates (UART and MMC currently.)  This branch is based
+on Tony's omap-for-linus branch.  
+
+To best avoid conflicts with other hwmods, please base this series on
+my pm-wip/hwmod branch.
+
+Kevin
+
+> They are boot tested on SDP 3430 and compile tested
+> for OMAP 2420 and 2430.
 >
->       spin_lock_irqsave(&host->lock, flags);
+> Charulatha V (2):
+>   OMAP3: hwmod: add GPIO hwmods for OMAP3430
+>   OMAP3: hwmod: Adapt HWMOD FW for GPIO OMAP3430
 >
->       /*
->        * When interrupts are enabled, CTPL must be set to enable
->        * DAT1 input buffer (or the card interrupt is always
->        * asserted) and FCLK must be enabled else wakeup does not
->        * work.  Take care to disable FCLK after all the register
->        * accesses as they might not complete if FCLK is off.
->        *
->        * FIXME: the power save code probably shouldn't be playing
->        * with FCLK and allow the clock subsystem to put it into
->        * smart-idle mode instead.
->        */
->       con = OMAP_HSMMC_READ(host->base, CON);
->       ie = OMAP_HSMMC_READ(host->base, IE);
->       if (enable) {
->               clk_enable(host->fclk);
->               ie |= CIRQ_ENABLE;
->               con |= CTPL;
->       } else {
->               ie &= ~CIRQ_ENABLE;
->               con &= ~CTPL;
->       }
->       OMAP_HSMMC_WRITE(host->base, CON, con);
->       OMAP_HSMMC_WRITE(host->base, IE, ie);
->       OMAP_HSMMC_READ(host->base, IE); /* flush posted write */
->        if (!enable) {
->            clk_disable(host->fclk);
->        }
+>  arch/arm/mach-omap2/gpio.c             |  901 ++++----------------------------
+>  arch/arm/mach-omap2/omap_hwmod_34xx.h  |  410 +++++++++++++++
+>  arch/arm/plat-omap/include/plat/gpio.h |   25 +-
+>  3 files changed, 533 insertions(+), 803 deletions(-)
 >
->       spin_unlock_irqrestore(&host->lock, flags);
->
->Could someone from TI could comment on why disabling FCLK affects
->register read?
-
-Most IPs will require both iclk and fclk to be active in order to access them. Some simple IP can work with only an iclk.
-Otherwise, accessing a register while enabling only iclk will lead to unpredictable behavior.
-
-Regards,
-Benoit
-
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
-
-
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
