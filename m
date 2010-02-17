@@ -1,41 +1,43 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: [PATCH] omap: Remove DEBUGFS dependency for mux name checking
-Date: Wed, 17 Feb 2010 11:48:07 +0530
-Message-ID: <1266387487-27588-1-git-send-email-ranjithl@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 05/24] omap4: Add needed IRQ line into irqs.h
+Date: Tue, 16 Feb 2010 23:45:00 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002162342290.1116@utopia.booyaka.com>
+References: <1266335895-32741-1-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-2-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-3-git-send-email-santosh.shilimkar@ti.com> <1266335895-32741-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-5-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1002161506030.10478@utopia.booyaka.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF826A@dbde02.ent.ti.com> <alpine.DEB.2.00.1002162218540.10478@utopia.booyaka.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF831B@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF8335@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36755 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751104Ab0BQGSO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Feb 2010 01:18:14 -0500
+Received: from utopia.booyaka.com ([72.9.107.138]:54361 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751104Ab0BQGpB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 01:45:01 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C3CF8335@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, ranjithl@ti.com
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben@fluff.org.uk" <ben@fluff.org.uk>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "Cousson, Benoit" <b-cousson@ti.com>
 
-The check for a valid mux name should be performed regardless of whether
-DEBUGFS is enabled or not.
+Hello Santosh,
 
-This fixes the issue currently seen with boards not booting up
-if DEBUGFS is not enabled in defconfig.
+On Wed, 17 Feb 2010, Shilimkar, Santosh wrote:
 
-Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
----
- arch/arm/mach-omap2/mux.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> Having said that, I think it's best time to changes this so that
+> the drivers getting up streamed can use correct names directly.
+> 
+> Also irqs-44xx.h header inclusion can be avoided in each driver if plat/irqs.h 
+> include it.
+> 
+> I can check this if this can go in the currunt series itself. At least USB
+> and MCPDM are the two drivers I know of, planned to be lined up which will
+> get affected.
+> 
+> How about doing this in the .34-rc1 so that we don't break anybody ? 
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 986077f..1a6ff8f 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -969,7 +969,7 @@ static void __init omap_mux_init_list(struct omap_mux *superset)
- 		}
- #endif
- 
--#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
-+#ifdef CONFIG_OMAP_MUX
- 		if (!superset->muxnames || !superset->muxnames[0]) {
- 			superset++;
- 			continue;
--- 
-1.6.2.4
+How about just submitting the auto-generated IRQ file, convert the 
+existing in-tree users, and leave the old macros there and mark them 
+deprecated with a comment?  Then for the next release, submit a patch to 
+change the newly-merged users and remove the deprecated macros?
 
+
+- Paul
