@@ -1,69 +1,162 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: Patch[0/2]:DSPBRIDGE: Excessive u32 Cleanup
-Date: Thu, 18 Feb 2010 14:27:34 -0600
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0130EBC38D@dlee02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E7394044D71B418@dbde02.ent.ti.com>
-	 <7A436F7769CA33409C6B44B358BFFF0C0130EBC2DF@dlee02.ent.ti.com>
-	 <19F8576C6E063C45BE387C64729E7394044D71B420@dbde02.ent.ti.com>
- <5ec8ebd51002181217k420d0e90mfab40e8161cce25f@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fix for 2.6.33-rc8
+Date: Thu, 18 Feb 2010 12:29:11 -0800
+Message-ID: <20100218202911.GS21755@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47218 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750993Ab0BRU1h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Feb 2010 15:27:37 -0500
-In-Reply-To: <5ec8ebd51002181217k420d0e90mfab40e8161cce25f@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Hebbar, Shivananda" <x0hebbar@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEFuZHkgU2hldmNoZW5rbyBb
-bWFpbHRvOmFuZHkuc2hldmNoZW5rb0BnbWFpbC5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBGZWJy
-dWFyeSAxOCwgMjAxMCAxMDoxOCBQTQ0KPiBUbzogSGViYmFyLCBTaGl2YW5hbmRhDQo+IENjOiBN
-ZW5vbiwgTmlzaGFudGg7IGxpbnV4LW9tYXANCj4gU3ViamVjdDogUmU6IFBhdGNoWzAvMl06RFNQ
-QlJJREdFOiBFeGNlc3NpdmUgdTMyIENsZWFudXANCj4gDQo+IE9uIFRodSwgRmViIDE4LCAyMDEw
-IGF0IDEwOjEwIFBNLCBIZWJiYXIsIFNoaXZhbmFuZGEgPHgwaGViYmFyQHRpLmNvbT4NCj4gd3Jv
-dGU6DQo+ID4+IFdoYXQgaXMgdGhlIG1vdGl2YXRpb24gb2YgdGhpcyBjaGFuZ2U/DQo+ID4gU29t
-ZXRpbWUgYmFjayAsdGhlcmUgd2FzIGNvbW1lbnQgb24gZXhjZXNzaXZlIHUzMnlwZXMgdXNlZCBp
-biBicmlkZ2UuDQo+ID4gaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTIzOTk4MzM5
-MjEzNDE2Jnc9Mg0KPiBJIHJlc3BlY3QgQXJ0ZW0gZm9yIGhpcyB3b3JrLCBidXQgaGlzIHBlcnNv
-bmFsIGhhdGUgb2YgdSogdHlwZXMgbm90IGENCj4gcmVhc29uIHRvIGJyaW5nIHNvbWUgdXNlbGVz
-cyBwYXRjaGVzLg0KPiANCj4gTG9vazoNCj4gW2FuZHlAbG9jYWxob3N0IGxpbnV4LTIuNl0kIGdp
-dCBncmVwIC1uIC13IHUzMiB8IHdjDQo+ICAgNzYzMjcgIDM4ODA2MiA1MjUzMjAzDQo+IA0KPiBJ
-IGd1ZXNzIHlvdSBkb24ndCBuZWVkIGZ1cnRoZXIgZXhsYW5hdGlvbnMgaGVyZS4NCj4gDQpJIHBh
-cnRseSBhZ3JlZS4gdTMyIHVzYWdlIGNoYW5nZSB0byBpbnQgbmVlZHMgdG8gYmUgb24gYSBuZWVk
-IGJhc2lzLiBUaGlzIHNlcmllcyBpcyBJTUhPIGhhbGYgaGVhcnRlZCBpZiB5b3UgYXJlIGF0dGVt
-cHRpbmcgdG8gZG8gdGhhdC4NCmUuZyBzbmlwcGV0cyBmcm9tIHRoZSBwYXRjaDoNCg0KZnJvbSAx
-LzI6DQogCQl1MzIgdVdvcmRTaXplOwkvKiBTaXplIGluIGJ5dGVzIG9mIERTUCB3b3JkICovDQpo
-bW0uLiBsZXRzIHNlZSBoZXJlLi4gRFNQIHdvcmQgdXNlcyA0Mjk0OTY3Mjk1IGJ5ZXM/Pw0KLQkJ
-dTMyIGNDaGFubmVsczsJLyogVG90YWwgbnVtYmVyIG9mIGNoYW5uZWxzICovDQotCQl1MzIgY09w
-ZW5DaGFubmVsczsJLyogVG90YWwgbnVtYmVyIG9mIG9wZW4gY2hhbm5lbHMgKi8NCisJCXNob3J0
-IGludCBjQ2hhbm5lbHM7CQkvKiBUb3RhbCBudW1iZXIgb2YgY2hhbm5lbHMgKi8NCisJCXNob3J0
-IGludCBjT3BlbkNoYW5uZWxzOy8qIFRvdGFsIG51bWJlciBvZiBvcGVuIGNoYW5uZWxzICovDQpX
-ZWxsLi4gNDI5NDk2NzI5NSBvcGVuIGNoYW5uZWxzIGFuZCBzYW1lIG51bWJlciBvZiBvcGVuIGNo
-YW5uZWxzIG1lYmJlIGEgbGl0dGxlIHRvbyBhbWJpdGlvdXMgSSBjYW4gdW5kZXJzdGFuZC4uIGlz
-IDMyNzY3IGVub3VnaCBlaXRoZXI/IFRoZSBwYXRjaCBjb21taXQgZGlkIG5vdCB0ZWxsIG1lIGFi
-b3V0IHRoaXMuDQogDQogCQlzdHJ1Y3QgQ0hOTF9PQkpFQ1QgKiphcENoYW5uZWw7CS8qIEFycmF5
-IG9mIGNoYW5uZWxzICovDQotCQl1MzIgZHdUeXBlOwkvKiBUeXBlIG9mIGNoYW5uZWwgY2xhc3Mg
-bGlicmFyeSAqLw0KKwkJc2hvcnQgaW50IGR3VHlwZTsJLyogVHlwZSBvZiBjaGFubmVsIGNsYXNz
-IGxpYnJhcnkgKi8NCjMyNzY3PyBXaHkgdGhlIHNpZ25lZG5lc3MgY2hhbmdlPw0KDQpGcm9tIDIv
-MjoNCi0gICAgICAgICAgICAgICB1MzIgdUNoaXBUeXBlOyAgLyogRFNQIGNoaXAgdHlwZS4gICAg
-ICAgICAgICAgICAqLw0KKyAgICAgICAgICAgICAgIGludCB1Q2hpcFR5cGU7ICAvKiBEU1AgY2hp
-cCB0eXBlLiAgICAgICAgICAgICAgICovDQpXZWxsLi4gSSBhbSBzZXJpb3VzbHkgbG9zdCBoZXJl
-IHdoeSB0aGlzIGNoYW5nZS4NCg0KSW4gc2hvcnQsIEFydGVtJ3MgY29tbWVudCBpbjoNCj4gLSAg
-ICAgICB1MzIgdGVtcDsNCj4gKwl1MzIgdGVtcDsNCg0KSSdtIG5vdCAxMDAlIHN1cmUgYWJvdXQg
-dGhpcyBwYXJ0aWN1bGFyIGNhc2UsIGJ1dCBvdmVyYWxsLA0KdGhlIGNvZGUgZXhjZXNzaXZlbHkg
-dXNlcyB0aGVzZSB1MzIgdHlwZXMuIFRoaXMgbWFrc2UgZmV3DQpzZW5zZS4gVW5sZXNzIHlvdSB3
-b3JrIHdpdGggcmVnaXN0ZXJzLCBwYWNrZXRzLCBvciBzb21ldGhpbmcNCndoaWNoIG5lZWRzIHNv
-bWUgc3RyaWN0IHR5cGVzLCB1c2UgaW50IG9yIGxvbmcuIFVzZSBuYXR1cmFsDQpDIHR5cGVzLiBE
-byBub3QgdHJ5IHRvIGJlIHRvbyBzbWFydCwgZG8gbm90IHRyeSB0byBsaW1pdA0KQ1BVIGFuZCBj
-b21waWxlciBieSB1MzIsIGlmIGl0IGlzIG5vdCBuZWNlc3NhcnkuDQoNCg0KTWFrZXMgc2Vuc2Ug
-Zm9yIHRlbXAgdmFyaWFibGUsIHdoaWNoIHByb2JhYmx5IHNob3VsZCBoYXZlIGJlZW4gYW4gaW50
-IG9yIGV2ZW4gYSBjaGFyIGJhc2VkIG9uIG1heCB2YWx1ZSBpdCBtaWdodCB0YWtlLCBidXQgYSBO
-QUsgdG8gdGhpcyBzZXJpZXMgLSB3b3VsZCBwcmVmZXIgYW55IHNwZWNpZmljIHJlcGxhY2VtZW50
-cyB0byBiZSBhdmFpbGFibGUgd2l0aCByYXRpb25hbGUgd2h5IGl0IGlzIGRvbmUuLg0KDQpSZWdh
-cmRzLA0KTmlzaGFudGggTWVub24NCg==
+Hi Linus,
+
+Please pull one more omap fix from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Regards,
+
+Tony
+
+
+The following changes since commit 724e6d3fe8003c3f60bf404bf22e4e331327c596:
+  Linus Torvalds (1):
+        Linux 2.6.33-rc8
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Ranjith Lohithakshan (1):
+      omap: Remove DEBUG_FS dependency for mux name checking
+
+ arch/arm/mach-omap2/mux.c |   12 +++++-------
+ 1 files changed, 5 insertions(+), 7 deletions(-)
+
+
+From: Ranjith Lohithakshan <ranjithl@ti.com>
+Date: Wed, 17 Feb 2010 17:17:01 +0000
+Subject: [PATCH] omap: Remove DEBUG_FS dependency for mux name checking
+
+The check for a valid mux name should be performed regardless of whether
+DEBUG_FS is enabled or not. Otherwise without DEBUG_FS, we get:
+
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+pgd = c0004000
+[00000000] *pgd=00000000
+Internal error: Oops: 5 [#1]
+last sysfs file:
+Modules linked in:
+CPU: 0    Not tainted  (2.6.33-rc8 #10)
+PC is at strcmp+0x18/0x40
+LR is at omap_mux_init_signal+0x68/0x14c
+...
+
+This fixes the issue currently seen with boards not booting up
+if DEBUG_FS is not enabled in defconfig.
+
+Note that the earlier ifndef + ifdef now becomes simpler ifdef else:
+If CONFIG_OMAP_MUX is selected, we use pin names. If it's not selected,
+we only want the GPIO to mux register mapping.
+
+Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 5fedc50..5fef73f 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -961,16 +961,14 @@ static void __init omap_mux_init_list(struct omap_mux *superset)
+ 	while (superset->reg_offset !=  OMAP_MUX_TERMINATOR) {
+ 		struct omap_mux *entry;
+ 
+-#ifndef CONFIG_OMAP_MUX
+-		/* Skip pins that are not muxed as GPIO by bootloader */
+-		if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
++#ifdef CONFIG_OMAP_MUX
++		if (!superset->muxnames || !superset->muxnames[0]) {
+ 			superset++;
+ 			continue;
+ 		}
+-#endif
+-
+-#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
+-		if (!superset->muxnames || !superset->muxnames[0]) {
++#else
++		/* Skip pins that are not muxed as GPIO by bootloader */
++		if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
+ 			superset++;
+ 			continue;
+ 		}
+The following changes since commit 724e6d3fe8003c3f60bf404bf22e4e331327c596:
+  Linus Torvalds (1):
+        Linux 2.6.33-rc8
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Ranjith Lohithakshan (1):
+      omap: Remove DEBUG_FS dependency for mux name checking
+
+ arch/arm/mach-omap2/mux.c |   12 +++++-------
+ 1 files changed, 5 insertions(+), 7 deletions(-)
+
+
+From: Ranjith Lohithakshan <ranjithl@ti.com>
+Date: Wed, 17 Feb 2010 17:17:01 +0000
+Subject: [PATCH] omap: Remove DEBUG_FS dependency for mux name checking
+
+The check for a valid mux name should be performed regardless of whether
+DEBUG_FS is enabled or not. Otherwise without DEBUG_FS, we get:
+
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+pgd = c0004000
+[00000000] *pgd=00000000
+Internal error: Oops: 5 [#1]
+last sysfs file:
+Modules linked in:
+CPU: 0    Not tainted  (2.6.33-rc8 #10)
+PC is at strcmp+0x18/0x40
+LR is at omap_mux_init_signal+0x68/0x14c
+...
+
+This fixes the issue currently seen with boards not booting up
+if DEBUG_FS is not enabled in defconfig.
+
+Note that the earlier ifndef + ifdef now becomes simpler ifdef else:
+If CONFIG_OMAP_MUX is selected, we use pin names. If it's not selected,
+we only want the GPIO to mux register mapping.
+
+Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 5fedc50..5fef73f 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -961,16 +961,14 @@ static void __init omap_mux_init_list(struct omap_mux *superset)
+ 	while (superset->reg_offset !=  OMAP_MUX_TERMINATOR) {
+ 		struct omap_mux *entry;
+ 
+-#ifndef CONFIG_OMAP_MUX
+-		/* Skip pins that are not muxed as GPIO by bootloader */
+-		if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
++#ifdef CONFIG_OMAP_MUX
++		if (!superset->muxnames || !superset->muxnames[0]) {
+ 			superset++;
+ 			continue;
+ 		}
+-#endif
+-
+-#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
+-		if (!superset->muxnames || !superset->muxnames[0]) {
++#else
++		/* Skip pins that are not muxed as GPIO by bootloader */
++		if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
+ 			superset++;
+ 			continue;
+ 		}
