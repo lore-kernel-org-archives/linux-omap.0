@@ -1,52 +1,61 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 0/9] omap4 updates for 2.6.34
-Date: Thu, 18 Feb 2010 23:07:39 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C417F902@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02C417F61A@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1002181035240.24812@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Problem specifying which gpio_126 to use on omap353x
+Date: Thu, 18 Feb 2010 09:43:57 -0800
+Message-ID: <20100218174357.GR21755@atomide.com>
+References: <738b3f7e1002180839x62a17dct381eed020642b91d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36288 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754459Ab0BRRhy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 12:37:54 -0500
-In-Reply-To: <alpine.DEB.2.00.1002181035240.24812@utopia.booyaka.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50834 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757762Ab0BRRnH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 12:43:07 -0500
+Content-Disposition: inline
+In-Reply-To: <738b3f7e1002180839x62a17dct381eed020642b91d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Peter Barada <peter.barada@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Thanks Paul !!
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, February 18, 2010 11:06 PM
-> To: Shilimkar, Santosh
-> Cc: Tony Lindgren; linux-omap@vger.kernel.org; linux-arm-kernel
-> Subject: Re: [PATCH 0/9] omap4 updates for 2.6.34
+* Peter Barada <peter.barada@gmail.com> [100218 08:36]:
+> On my board I have an isp1760 hooked up using gpio_126 (pin P27 -
+> MMC1_DAT4/SIM_IO/GPIO_126).  From the schematics (and TRM), there is a
+> 2nd gpio_126 on pin D25 (CAM_STROBE/GPIO_126).
 > 
-> Hi Santosh,
+> I tried to use:
 > 
-> On Thu, 18 Feb 2010, Shilimkar, Santosh wrote:
+> #define ISP1760_IRQ 126
 > 
-> > This series have few omap4 updates and is based on Tony's
-> > 'omap-for-linus' branch. This series patches are part of the
-> > below series posted on linux-omap for review earlier this week.
-> >
-> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg23939.html
-> >
-> > >From the previous series, I have dropped all the clock and i2c patches
-> > because of few dependencies. The auto-generated dma and irq headers are
-> > included as per comments.
-> >
-> > The series is boot tested on omap4430 and omap4430 sdp's with multi-omap
-> > and regular defconfig builds.
+> omap_mux_init_gpio(ISP1760_IRQ, OMAP_PIN_INPUT_PULLUP);
+> if (gpio_request(ISP1760_IRQ, "isp1760 IRQ") < 0) {
+>     printk(KERN_ERR "Failed to request GPIO%d for isp1760IRQ\n", ISP1760_IRQ);
+>     return;
+> }
 > 
-> Aside from the two minor comments just sent, the rest of the patches are
+> And in the log I see:
 > 
-> Reviewed-by: Paul Walmsley <paul@pwsan.com>
+> mux: Multiple gpio paths for gpio126
+> mux: Multiple gpio paths for gpio126
+> Failed to request GPIO126 for isp1760 IRQ
+> 
+> How do I tell gpio_request()and friends that I want to use GPIO_126 on
+> pin P27, not GPIO_126 on pin D25?
+
+For omap_mux_init_signal you need to use the full signal name.
+So something like "sdmmc1_dat4.gpio_126" should work with
+omap_mux_init_signal.
+
+I guess at some point we could patch to omap_mux_init_gpio to call
+omap_mux_init_signal if the full path is specified.
+
+I guess you already know this, but you also need to check the packaging
+you're using as the pin numbering is package specific. If you have the
+system booting, it's easiest to look under omap_mux under debugfs. Or 
+search in mux34xx.c.
+
+Also, the data is generated from TRMs, and there may be some errors in
+the data too.
 
 Regards,
-Santosh
+
+Tony
