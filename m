@@ -1,64 +1,75 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
-Date: Thu, 18 Feb 2010 00:22:03 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9B1E@dlee06.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602AA7C18D9@dlee06.ent.ti.com>
- <20100217.171348.223468508.Hiroshi.DOYU@nokia.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 1/2] twl6030: regulator: Fix vsel calculations in
+ set/get voltage apis
+Date: Thu, 18 Feb 2010 12:02:49 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03215B1039@dbde02.ent.ti.com>
+References: <1266420255-4307-1-git-send-email-rnayak@ti.com>
+ <20100217161509.GA13324@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53902 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54296 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750728Ab0BRGWJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 01:22:09 -0500
-In-Reply-To: <20100217.171348.223468508.Hiroshi.DOYU@nokia.com>
+	id S1750728Ab0BRGdX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 01:33:23 -0500
+In-Reply-To: <20100217161509.GA13324@rakim.wolfsonmicro.main>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Samuel Ortiz <sameo@linux.intel.com>
 
+ 
 
+> -----Original Message-----
+> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com] 
+> Sent: Wednesday, February 17, 2010 9:45 PM
+> To: Nayak, Rajendra
+> Cc: linux-omap@vger.kernel.org; Liam Girdwood; Samuel Ortiz
+> Subject: Re: [PATCH 1/2] twl6030: regulator: Fix vsel 
+> calculations in set/get voltage apis
+> 
+> On Wed, Feb 17, 2010 at 08:54:14PM +0530, Rajendra Nayak wrote:
+> 
+> >  		/* use the first in-range value */
+> > -		if (min_uV <= uV && uV <= max_uV)
+> > +		if (min_uV <= uV && uV <= max_uV) {
+> > +			if (twl_class_is_6030())
+> > +				/*
+> > +				 * Use the below formula to 
+> calculate vsel
+> > +				 * mV = 1000mv + 100mv * (vsel - 1)
+> > +				 */
+> > +				vsel = (LDO_MV(mV) - 1000)/100 + 1;
+> >  			return twlreg_write(info, 
+> TWL_MODULE_PM_RECEIVER,
+> >  							
+> VREG_VOLTAGE, vsel);
+> 
+> This looks wrong - this code is inside a loop over vsel->voltage
+> mappings, if that mapping is wrong and needs to be ignored (which is
+> what this code is doing) then we shouldn't be looking at it at all.
 
->-----Original Message-----
->From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
->Sent: Wednesday, February 17, 2010 9:14 AM
->To: Guzman Lugo, Fernando
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
->
->Hi Fernand,
->
->From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
->Subject: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
->Date: Sat, 13 Feb 2010 02:40:41 +0100
->
->> From 60e21e76773de379deb41ff166f9679b7078276f Mon Sep 17 00:00:00 2001
->> From: Fernando Guzman Lugo <x0095840@ti.com>
->> Date: Wed, 10 Feb 2010 17:08:20 -0600
->> Subject: [PATCH] Mailbox: change mailbox version print to pr_debug
->>
->> it is not useful printing the version every time mailbox is used
->> instead change it to pr_debug in case someone needs to see the
->> version can enable the print.
->
->I just found that, if you put the line printing version into debug
->mode, then "mbox_read_reg(MAILBOX_REVISION)" should be also done only
->in debug mode. This value wouldn't be necessary if it didn't print.
->
->Considering this printing again, this prints a message only when H/W
->initialization is done correctly, most likely only *once* at
->booting. This informs us of the result that a mailbox H/W itself is
->set up and some mailbox related modules are loaded successfully. So
->keeping this makes sense a little bit more rather than shutting this
->completely silence.
+Mark,
 
-The thing was that the tests I ran does a lot of install and uninstall bridge module that why I saw a lot of this print, but yes you are right in normal operation it should be printed once. On the other hand if this is used to state loaded successfully maybe the print should be changed to more meaningfully like
-"mailbox revision4.0 running or loaded"
+Not sure if I understood your comment completely, but here's how I think
+it will work.
 
-But, let drop this patch in this moment. I will send all the patches again.
+The for loop runs through all the valid voltages supported by the regulator
+and and when it finds the first in-range value programs the VOLTAGE register.
+For twl4030 the VOLTAGE register can be programmed with just the index
+of the table since the mapping was something like
+1800mV = 0x0
+2800mV = 0x1
+2900mV = 0x2
+3000mV = 0x3
 
-Regards,
-Fernando.
+Now for twl6030 I just have added an additional vsel calulation part after
+the in-range value is found, since using the table index directly as vsel
+would not work.
 
+regards,
+Rajendra
+
+> 
