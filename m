@@ -1,71 +1,70 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH v4] DSPBRIDGE: Fix to avoid possible recursive locking
-Date: Thu, 18 Feb 2010 12:26:33 -0600
-Message-ID: <4B7D8659.5030609@ti.com>
-References: <1265925284-7536-1-git-send-email-deepak.chitriki@ti.com> <1265926841.26484.0.camel@chotu.research.nokia.com> <7A436F7769CA33409C6B44B358BFFF0C0130998163@dlee02.ent.ti.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
+Date: Thu, 18 Feb 2010 12:39:25 -0600
+Message-ID: <004001cab0c9$b208b2b0$544ff780@am.dhcp.ti.com>
+References: <cover.1265801967.git.david.vrabel@csr.com> <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com> <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com> <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com> <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com> <4B7C4608.5010008@csr.com> <alpine.DEB.2.00.1002171254040.24812@utopia.booyaka.com> <4B7D3EAE.1010908@csr.com> <alpine.DEB.2.00.1002180951330.24812@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39387 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751823Ab0BRS0k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Feb 2010 13:26:40 -0500
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C0130998163@dlee02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1002180951330.24812@utopia.booyaka.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: 'Paul Walmsley' <paul@pwsan.com>, 'David Vrabel' <david.vrabel@csr.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Guzman Lugo, Fernando" <x0095840@ti.com>
 
-On 2/17/2010 10:09 AM, Menon, Nishanth wrote:
-> Hi,
->
->> From: Ameya Palande [mailto:ameya.palande@nokia.com]
->> Sent: Friday, February 12, 2010 12:21 AM
->> To: Chitriki Rudramuni, Deepak
->> Cc: linux-omap; Ramirez Luna, Omar; Menon, Nishanth
->> Subject: Re: [PATCH v4] DSPBRIDGE: Fix to avoid possible recursive locking
->>
->> On Thu, 2010-02-11 at 22:54 +0100, ext Deepak Chitriki wrote:
->>> Removed NTFY_Notify() in WMD_MSG_Get() to avoid locking contention
->>> as NTFY_Notify() is already invoked in InputMsg().
->>>
->>> Cc: Ameya Palande<ameya.palande@nokia.com>
->>> Cc: Omar Ramirez Luna<omar.ramirez@ti.com>
->>> Cc: Nishanth Menon<nm@ti.com>
->>>
->>> Signed-off-by: Deepak Chitriki<deepak.chitriki@ti.com>
->>
->> Acked-by: Ameya Palande<ameya.palande@nokia.com>
->
-> Could this patch be pushed if there are no more comments?
 
-Instead of pushing this patch I'll be reverting this one:
 
-http://marc.info/?l=linux-omap&m=125694410627720&w=2
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Thursday, February 18, 2010 11:44 AM
+> To: David Vrabel
+> Cc: Madhusudhan; linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
+> 
+> On Thu, 18 Feb 2010, David Vrabel wrote:
+> 
+> > Paul Walmsley wrote:
+> > >
+> > > Perhaps I'm misunderstanding what you're referring to, but it seems
+> there
+> > > is some confusion as to what target smart-idle mode does.
+> >
+> > The TI OMAP 34xx TRM is the one of the most obtuse document I've had to
+> > read.  An even after multiple reads of relevant sections it still
+> > doesn't make sense.  Parts are contradictory, parts are poorly explained
+> > and some bit are just plain incorrect.
+> 
+> Yes.  TI needs to also release the functional specifications for each IP
+> block; the information in the current TRM is generally insufficient to
+> write high-quality drivers.
+> 
+> TI should also host a process, open to the public, to submit TRM revision
+> and clarification requests, and to track their disposition.
+> 
+Paul, David,
 
-Explanation:
+Not to add further confusion but as far as I understand SDIO should be able
+to asynchronously wakeup OMAP regardless of MMC clocks being OFF . As per
+the SDIO spec DAT1 line is used for signaling the card interrupt to the
+host. The TRM clearly shows a GPIO connected to DAT1 line for wakeup through
+the SDIO interrupt. Wouldn't this help?   
 
-After reviewing the scenario it seems that the patch "fixing a flood of 
-messages usecase" doesn't seem to be the proper way to fix it.
+> > I don't have time to sort out any of this properly -- it works well
+> > enough for me.
+> 
+> Thanks very much for the SDIO patches.  They are appreciated.
 
-If the dsp sends 10 messages in a shot for the same client and bridge 
-process them without interrupt, if the client is using 
-DSPManager_WaitForEvents, InputMsg function will notify of all of them 
-but "WaitForEvents" will only catch one notification, then client will 
-call GetMsg ioctl and pick one message from the queue leaving 9 of them 
-still there, whenever WaitForEvents is executed again there won't be a 
-Notification if the dsp stopped sending messages to the same queue, so 
-those 9 messages never will be retrieved because WaitForEvents will timeout.
+Definitely these are good features that are being added. Just that there are
+confusions around and not everyone has a setup to validate these features.
+If I look in the mainline kernel today there is only one SDIO card driver "
+sdio_uart.c". And at least I don't see a way I can test any of these
+features myself.
 
-The fix was only to re-notify the client that a message was still 
-available in its queue and that it needs to pick it up, all of this 
-during GetMsg, however this seems to be triggering a kernel warning 
-because of nested spinlocks called for separate objects.
+Regards,
+Madhu   
+> 
+> 
+> - Paul
 
-The reason to avoid pushing this patch is that it is leaving a part of 
-the code introduced by the "flooding" fix.
-
-Please let me know if anyone has comments.
-
-- omar
