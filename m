@@ -1,59 +1,47 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [PATCH 2/2] twl6030: regulator: Configure STATE register
- instead of REMAP
-Date: Thu, 18 Feb 2010 12:33:16 +0000
-Message-ID: <1266496396.3227.3.camel@odin>
-References: <1266420255-4307-1-git-send-email-rnayak@ti.com>
-	 <1266420255-4307-2-git-send-email-rnayak@ti.com>
+From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Subject: [PATCHv2 0/2] McBSP: OMAP3: Add sidetone feature
+Date: Thu, 18 Feb 2010 14:37:13 +0200
+Message-ID: <1266496635-31347-1-git-send-email-ilkka.koskinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:48470 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754651Ab0BRMdU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 07:33:20 -0500
-Received: by ewy19 with SMTP id 19so6777856ewy.21
-        for <linux-omap@vger.kernel.org>; Thu, 18 Feb 2010 04:33:18 -0800 (PST)
-In-Reply-To: <1266420255-4307-2-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@nokia.com, jhnikula@gmail.com, broonie@opensource.wolfsonmicro.com, tony@atomide.com
+Cc: eduardo.valentin@nokia.com, ext-Eero.Nurkkala@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-On Wed, 2010-02-17 at 20:54 +0530, Rajendra Nayak wrote:
-> This is no REMAP register on twl6030, instead there is a STATE register
-> to drive a resource to a given state.
-> The state register can be used to specify what state the resource should
-> enter when its associated with a GRP.
-> Register Bit field description is as below. The patch programmes the
-> corresponding STATE registers for all LDO's to turn ON when assocaited
-> with GRP_P1.
-> 
-> STATE REG:
-> Bit7   |Bit6   |Bit5   |Bit4  |Bit3  |Bit2  |Bit1   |Bit0
-> P3_GRP |P2_GRP |P1_GRP |RES   |RES   |RES   |State1 |State0
-> 
-> State can be specified as below
-> 00: OFF
-> 01: ON
-> 10: OFF
-> 11: SLEEP
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Cc: Liam Girdwood <lrg@slimlogic.co.uk>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> ---
+The first patch implements McBSP sidetone feature on OMAP3 while the second one
+provides ALSA interface for using it.
 
-Applied.
+The patch set is based on the patch Eduardo Valentin sent to alsa-devel
+mailing list in October 2009. Channel gain control and enabling the sidetone
+have been moved to ALSA interface as suggested in comments. 
 
-Thanks
+These patches apply on top of Janusz Krzysztofik's McBSP register cache patches
+in linux-omap-2.6.git
 
-Liam
+Since previous review round, I have combined McBSP port specific
+omap_mcbsp_st_set_mode() and omap_mcbsp_st_put_mode() functions to
+corresponding ones as suggested by Peter Ujfalusi.
 
--- 
-Freelance Developer, SlimLogic Ltd
-ASoC and Voltage Regulator Maintainer.
-http://www.slimlogic.co.uk
+Eero Nurkkala (1):
+  McBSP: OMAP3: Add sidetone feature
 
+Ilkka Koskinen (1):
+  ASoC: OMAP-McBSP: ASoC interface for McBSP sidetone
+
+ arch/arm/mach-omap2/mcbsp.c             |    2 +
+ arch/arm/plat-omap/include/plat/mcbsp.h |   63 +++++
+ arch/arm/plat-omap/mcbsp.c              |  394 ++++++++++++++++++++++++++++++-
+ sound/soc/omap/omap-mcbsp.c             |  176 ++++++++++++++
+ sound/soc/omap/omap-mcbsp.h             |    2 +
+ 5 files changed, 636 insertions(+), 1 deletions(-)
