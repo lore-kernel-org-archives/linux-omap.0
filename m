@@ -1,67 +1,94 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP: HWMOD: Bug fixes in hwmod structure definitions
-Date: Thu, 18 Feb 2010 13:49:46 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1002181348120.24812@utopia.booyaka.com>
-References: <1266483755-22878-1-git-send-email-thara@ti.com>
+From: "Anna, Suman" <s-anna@ti.com>
+Subject: [PATCH 2/5] omap: mailbox: correct OMAP4 reset logic
+Date: Thu, 18 Feb 2010 15:07:21 -0600
+Message-ID: <2C1563023E232C49B9F505633D57C2DA2640D0235C@dlee04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35206 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757699Ab0BRUtr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 15:49:47 -0500
-In-Reply-To: <1266483755-22878-1-git-send-email-thara@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45703 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753151Ab0BRVH1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 16:07:27 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "Clark, Rob" <rob@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>
 
-Hello Thara,
+>From 2488815a9facca29e2da3ddd279de441a5de6a58 Mon Sep 17 00:00:00 2001
+From: Suman Anna <s-anna@ti.com>
+Date: Tue, 26 Jan 2010 16:55:29 -0600
+Subject: [PATCH 2/5] omap: mailbox: correct OMAP4 reset logic
 
-some comments.
+OMAP4 mailbox has a different register set. There is
+no MAILBOX_SYSSTATUS register. The reset is indicated
+with the SOFTRESET bit of the MAILBOX_SYSCONFIG register
+itself. This bit should read 0 for a successful Reset.
+Also, the SOFTRESET bit occupies bit0 and not bit1 as with
+previous generations.
 
-On Thu, 18 Feb 2010, Thara Gopinath wrote:
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ arch/arm/mach-omap2/mailbox.c |   38 +++++++++++++++++++++++++++-----------
+ 1 files changed, 27 insertions(+), 11 deletions(-)
 
-> This patch corrects the width of some variables in hwmod structures
-> where the values to be stored in these variables exceed the current
-> field width.
-> 
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> index 921990e..06a7f20 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -258,7 +258,7 @@ struct omap_hwmod_sysconfig {
->  	u16 sysc_offs;
->  	u16 syss_offs;
->  	u8 idlemodes;
-> -	u8 sysc_flags;
-> +	u16 sysc_flags;
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index c970cf6..88e9043 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -40,6 +40,7 @@
+ #define AUTOIDLE	(1 << 0)
+ #define SOFTRESET	(1 << 1)
+ #define SMARTIDLE	(2 << 3)
++#define OMAP4_SOFTRESET	(1 << 0)
+ 
+ /* SYSSTATUS: register bit definition */
+ #define RESETDONE	(1 << 0)
+@@ -99,17 +100,32 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
+ 	}
+ 	clk_enable(mbox_ick_handle);
+ 
+-	mbox_write_reg(SOFTRESET, MAILBOX_SYSCONFIG);
+-	timeout = jiffies + msecs_to_jiffies(20);
+-	do {
+-		l = mbox_read_reg(MAILBOX_SYSSTATUS);
+-		if (l & RESETDONE)
+-			break;
+-	} while (!time_after(jiffies, timeout));
+-
+-	if (!(l & RESETDONE)) {
+-		pr_err("Can't take mmu out of reset\n");
+-		return -ENODEV;
++	if (cpu_is_omap44xx()) {
++		mbox_write_reg(OMAP4_SOFTRESET, MAILBOX_SYSCONFIG);
++		timeout = jiffies + msecs_to_jiffies(20);
++		do {
++			l = mbox_read_reg(MAILBOX_SYSCONFIG);
++			if (!(l & OMAP4_SOFTRESET))
++				break;
++		} while (!time_after(jiffies, timeout));
++
++		if (l & OMAP4_SOFTRESET) {
++			pr_err("Can't take mailbox out of reset\n");
++			return -ENODEV;
++		}
++	} else {
++		mbox_write_reg(SOFTRESET, MAILBOX_SYSCONFIG);
++		timeout = jiffies + msecs_to_jiffies(20);
++		do {
++			l = mbox_read_reg(MAILBOX_SYSSTATUS);
++			if (l & RESETDONE)
++				break;
++		} while (!time_after(jiffies, timeout));
++
++		if (!(l & RESETDONE)) {
++			pr_err("Can't take mailbox out of reset\n");
++			return -ENODEV;
++		}
+ 	}
+ 
+ 	l = mbox_read_reg(MAILBOX_REVISION);
+-- 
+1.6.6.2
 
-This part is fine.
-
->  	u8 clockact;
->  };
->  
-> @@ -280,9 +280,9 @@ struct omap_hwmod_sysconfig {
->  struct omap_hwmod_omap2_prcm {
->  	s16 module_offs;
->  	u8 prcm_reg_id;
-> -	u8 module_bit;
-> +	u32 module_bit;
->  	u8 idlest_reg_id;
-> -	u8 idlest_idle_bit;
-> +	u32 idlest_idle_bit;
->  	u8 idlest_stdby_bit;
->  };
-
-This part I don't understand.  These are bit shifts in a 32 bit register, 
-e.g., (1 << idlest_idle_bit), so how could these ever exceed 31?
-
-
-- Paul
