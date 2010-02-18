@@ -1,321 +1,129 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 06/12] DSPBRIDGE: Remove GT_trace variables for rmgr
-Date: Thu, 18 Feb 2010 15:37:57 -0600
-Message-ID: <1266529083-2358-7-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 05/12] DSPBRIDGE: Change custom GT_trace for dev_dbg in services
+Date: Thu, 18 Feb 2010 15:37:56 -0600
+Message-ID: <1266529083-2358-6-git-send-email-omar.ramirez@ti.com>
 References: <1266529083-2358-1-git-send-email-omar.ramirez@ti.com>
  <1266529083-2358-2-git-send-email-omar.ramirez@ti.com>
  <1266529083-2358-3-git-send-email-omar.ramirez@ti.com>
  <1266529083-2358-4-git-send-email-omar.ramirez@ti.com>
  <1266529083-2358-5-git-send-email-omar.ramirez@ti.com>
- <1266529083-2358-6-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54598 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755239Ab0BRVZ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 16:25:28 -0500
-In-Reply-To: <1266529083-2358-6-git-send-email-omar.ramirez@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46724 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757891Ab0BRVZb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Feb 2010 16:25:31 -0500
+In-Reply-To: <1266529083-2358-5-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-This patch removes variables used to store masks and flags
-used for the previous debug implementation.
+Remove GT_Trace custom debugging mechanism and use dev_dbg.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/rmgr/dbdcd.c         |    2 --
- drivers/dsp/bridge/rmgr/disp.c          |   10 ----------
- drivers/dsp/bridge/rmgr/drv.c           |    4 ----
- drivers/dsp/bridge/rmgr/drv_interface.c |    5 -----
- drivers/dsp/bridge/rmgr/dspdrv.c        |    5 -----
- drivers/dsp/bridge/rmgr/mgr.c           |    9 ---------
- drivers/dsp/bridge/rmgr/nldr.c          |   11 ++---------
- drivers/dsp/bridge/rmgr/node.c          |    9 ---------
- drivers/dsp/bridge/rmgr/proc.c          |   10 +---------
- drivers/dsp/bridge/rmgr/rmm.c           |   10 ----------
- drivers/dsp/bridge/rmgr/strm.c          |   10 ----------
- 11 files changed, 3 insertions(+), 82 deletions(-)
+ drivers/dsp/bridge/services/cfg.c    |    3 +--
+ drivers/dsp/bridge/services/clk.c    |    5 ++---
+ drivers/dsp/bridge/services/regsup.c |   21 +++++++++------------
+ 3 files changed, 12 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
-index 067f7a0..9fd05a0 100644
---- a/drivers/dsp/bridge/rmgr/dbdcd.c
-+++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -67,8 +67,6 @@ struct DCD_MANAGER {
- static u32 cRefs;
- static u32 cEnumRefs;
- 
--extern struct GT_Mask curTrace;
--
- /* Helper function prototypes. */
- static s32 Atoi(char *pszBuf);
- static DSP_STATUS GetAttrsFromBuf(char *pszBuf, u32 ulBufSize,
-diff --git a/drivers/dsp/bridge/rmgr/disp.c b/drivers/dsp/bridge/rmgr/disp.c
-index 8c05593..6ae3bcb 100644
---- a/drivers/dsp/bridge/rmgr/disp.c
-+++ b/drivers/dsp/bridge/rmgr/disp.c
-@@ -81,11 +81,6 @@ struct DISP_OBJECT {
- 
- static u32 cRefs;
- 
--/* Debug msgs: */
--#if GT_TRACE
--static struct GT_Mask DISP_DebugMask = { NULL, NULL };
--#endif
--
- static void DeleteDisp(struct DISP_OBJECT *hDisp);
- static DSP_STATUS FillStreamDef(RMS_WORD *pdwBuf, u32 *ptotal, u32 offset,
- 				struct NODE_STRMDEF strmDef, u32 max,
-@@ -219,11 +214,6 @@ bool DISP_Init(void)
- 
- 	DBC_Require(cRefs >= 0);
- 
--	if (cRefs == 0) {
--		DBC_Assert(!DISP_DebugMask.flags);
--		GT_create(&DISP_DebugMask, "DI");  /* "DI" for DIspatcher */
--	}
--
- 	if (fRetVal)
- 		cRefs++;
- 
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index f3e2632..177d676 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -66,10 +66,6 @@ struct DRV_EXT {
- /*  ----------------------------------- Globals */
- static s32 cRefs;
- 
--#if GT_TRACE
--extern struct GT_Mask curTrace;
--#endif
--
- /*  ----------------------------------- Function Prototypes */
- static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 fRequest);
- static DSP_STATUS RequestBridgeResourcesDSP(u32 dwContext, s32 fRequest);
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 4045784..24246d5 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -149,10 +149,6 @@ MODULE_VERSION(DSPBRIDGE_VERSION);
- 
- static char *driver_name = DRIVER_NAME;
- 
--#ifdef CONFIG_BRIDGE_DEBUG
--static struct GT_Mask driverTrace;
--#endif /* CONFIG_BRIDGE_DEBUG */
--
- static struct file_operations bridge_fops = {
- 	.open		= bridge_open,
- 	.release	= bridge_release,
-@@ -261,7 +257,6 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
- 			NULL, "DspBridge");
- 
- 	GT_init();
--	GT_create(&driverTrace, "LD");
- 
+diff --git a/drivers/dsp/bridge/services/cfg.c b/drivers/dsp/bridge/services/cfg.c
+index d26f8b9..295ff11 100644
+--- a/drivers/dsp/bridge/services/cfg.c
++++ b/drivers/dsp/bridge/services/cfg.c
+@@ -205,8 +205,7 @@ DSP_STATUS CFG_GetHostResources(struct CFG_DEVNODE *hDevNode,
+ 	}
  #ifdef CONFIG_BRIDGE_DEBUG
- 	if (GT_str)
-diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
-index 59c2ecb..0fdb150 100644
---- a/drivers/dsp/bridge/rmgr/dspdrv.c
-+++ b/drivers/dsp/bridge/rmgr/dspdrv.c
-@@ -44,9 +44,6 @@
- /*  ----------------------------------- This */
- #include <dspbridge/dspdrv.h>
- 
--/*  ----------------------------------- Globals */
--struct GT_Mask curTrace;
--
- /*
-  *  ======== DSP_Init ========
-  *  	Allocates bridge resources. Loads a base image onto DSP, if specified.
-@@ -59,8 +56,6 @@ u32 DSP_Init(OUT u32 *initStatus)
- 	u32 deviceNode;
- 	u32 deviceNodeString;
- 
--	GT_create(&curTrace, "DD");
--
- 	if (!WCD_Init())
- 		goto func_cont;
- 
-diff --git a/drivers/dsp/bridge/rmgr/mgr.c b/drivers/dsp/bridge/rmgr/mgr.c
-index 73d7a66..e63aaa1 100644
---- a/drivers/dsp/bridge/rmgr/mgr.c
-+++ b/drivers/dsp/bridge/rmgr/mgr.c
-@@ -50,10 +50,6 @@ struct MGR_OBJECT {
- };
- 
- /*  ----------------------------------- Globals */
--#if GT_TRACE
--static struct GT_Mask MGR_DebugMask = { NULL, NULL };
--#endif
--
- static u32 cRefs;
- 
- /*
-@@ -355,11 +351,6 @@ bool MGR_Init(void)
- 	DBC_Require(cRefs >= 0);
- 
- 	if (cRefs == 0) {
--
--		/* Set the Trace mask */
--		DBC_Assert(!MGR_DebugMask.flags);
--
--		GT_create(&MGR_DebugMask, "MG");	/* "MG" for Manager */
- 		fInitDCD = DCD_Init();	/*  DCD Module */
- 
- 		if (!fInitDCD)
-diff --git a/drivers/dsp/bridge/rmgr/nldr.c b/drivers/dsp/bridge/rmgr/nldr.c
-index fb5a788..5c1266d 100644
---- a/drivers/dsp/bridge/rmgr/nldr.c
-+++ b/drivers/dsp/bridge/rmgr/nldr.c
-@@ -292,7 +292,6 @@ static struct DBLL_Fxns dbllFxns = {
- 	(DBLL_UnloadSectFxn) DBLL_unloadSect,
- };
- 
--static struct GT_Mask NLDR_debugMask = { NULL, NULL };	/* GT trace variable */
- static u32 cRefs;		/* module reference count */
- 
- static DSP_STATUS AddOvlyInfo(void *handle, struct DBLL_SectInfo *sectInfo,
-@@ -679,10 +678,8 @@ void NLDR_Exit(void)
- 
- 	cRefs--;
- 
--	if (cRefs == 0) {
-+	if (cRefs == 0)
- 		RMM_exit();
--		NLDR_debugMask.flags = NULL;
--	}
- 
- 	DBC_Ensure(cRefs >= 0);
- }
-@@ -801,12 +798,8 @@ bool NLDR_Init(void)
- {
- 	DBC_Require(cRefs >= 0);
- 
--	if (cRefs == 0) {
--		DBC_Assert(!NLDR_debugMask.flags);
--		GT_create(&NLDR_debugMask, "NL");	/* "NL" for NLdr */
--
-+	if (cRefs == 0)
- 		RMM_init();
--	}
- 
- 	cRefs++;
- 
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 48a7728..cb3d324 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -266,10 +266,6 @@ static u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
- static u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
- 			u32 ulNumBytes, u32 nMemSpace);
- 
--#if GT_TRACE
--static struct GT_Mask NODE_debugMask = { NULL, NULL };  /* GT trace variable */
--#endif
--
- #ifdef DSP_DMM_DEBUG
- extern u32 DMM_MemMapDump(struct DMM_OBJECT *hDmmMgr);
+ 	if (DSP_FAILED(status))
+-		GT_0trace(CFG_debugMask, GT_6CLASS,
+-			  "CFG_GetHostResources Failed \n");
++		dev_dbg(bridge, "%s Failed, status 0x%x\n", __func__, status);
  #endif
-@@ -1930,11 +1926,6 @@ bool NODE_Init(void)
- {
- 	DBC_Require(cRefs >= 0);
+ 	return status;
+ }
+diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
+index f8c417a..04d49bd 100644
+--- a/drivers/dsp/bridge/services/clk.c
++++ b/drivers/dsp/bridge/services/clk.c
+@@ -275,9 +275,8 @@ DSP_STATUS CLK_GetRate(IN enum SERVICES_ClkId clk_id, u32 *speedKhz)
+ 	if (pClk) {
+ 		clkSpeedHz = clk_get_rate(pClk);
+ 		*speedKhz = clkSpeedHz / 1000;
+-		GT_2trace(CLK_debugMask, GT_6CLASS,
+-			  "CLK_GetRate: clkSpeedHz = %d , "
+-			 "speedinKhz=%d\n", clkSpeedHz, *speedKhz);
++		dev_dbg(bridge, "%s: clkSpeedHz = %d, speedinKhz = %d\n",
++					__func__, clkSpeedHz, *speedKhz);
+ 	} else {
+ 		pr_err("%s: failed to get %s, dev Id = %d\n", __func__,
+ 						SERVICES_Clks[clk_id].clk_name,
+diff --git a/drivers/dsp/bridge/services/regsup.c b/drivers/dsp/bridge/services/regsup.c
+index 0c77fb2..04f6b3a 100644
+--- a/drivers/dsp/bridge/services/regsup.c
++++ b/drivers/dsp/bridge/services/regsup.c
+@@ -105,12 +105,7 @@ DSP_STATUS regsupGetValue(char *valName, void *pBuf, u32 *dataSize)
+ 						(struct list_head *) rv);
+ 	}
  
--	if (cRefs == 0) {
--		DBC_Assert(!NODE_debugMask.flags);
--		GT_create(&NODE_debugMask, "NO");	/* "NO" for NOde */
+-	if (DSP_SUCCEEDED(retVal)) {
+-		GT_2trace(REG_debugMask, GT_2CLASS, "G %s DATA %x ", valName,
+-			  *(u32 *)pBuf);
+-	} else {
+-		GT_1trace(REG_debugMask, GT_3CLASS, "G %s FAILED\n", valName);
 -	}
++	dev_dbg(bridge, "REG: get %s, status = 0x%x\n", valName, retVal);
+ 
+ 	return retVal;
+ }
+@@ -125,9 +120,6 @@ DSP_STATUS regsupSetValue(char *valName, void *pBuf, u32 dataSize)
+ 	DSP_STATUS retVal = DSP_EFAIL;
+ 	struct RegValue *rv = (struct RegValue *) LST_First(pRegKey);
+ 
+-	GT_2trace(REG_debugMask, GT_2CLASS, "S %s DATA %x ", valName,
+-		  *(u32 *)pBuf);
 -
- 	cRefs++;
+ 	/*  Need to search through the entries looking for the right one.  */
+ 	while (rv) {
+ 		/*  See if the name matches.  */
+@@ -171,6 +163,8 @@ DSP_STATUS regsupSetValue(char *valName, void *pBuf, u32 dataSize)
+ 		}
+ 	}
  
- 	return true;
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index d8137c8..8489cd3 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -72,9 +72,6 @@
- extern char *iva_img;
++	dev_dbg(bridge, "REG: set %s, status = 0x%x", valName, retVal);
++
+ 	return retVal;
+ }
  
- /*  ----------------------------------- Globals */
--#if GT_TRACE
--static struct GT_Mask PROC_DebugMask = { NULL, NULL };	/* WCD MGR Mask */
--#endif
+@@ -203,9 +197,6 @@ DSP_STATUS regsupEnumValue(IN u32 dwIndex, IN CONST char *pstrKey,
+ 			*pdwValueSize = strlen(&(rv->name[dwKeyLen]));
+ 			strncpy(pstrValue, &(rv->name[dwKeyLen]),
+ 				    *pdwValueSize + 1);
+-			GT_3trace(REG_debugMask, GT_2CLASS,
+-				  "E Key %s, Value %s, Data %x ",
+-				  pstrKey, pstrValue, *(u32 *)pstrData);
+ 			/*  Set our status to good and exit.  */
+ 			retVal = DSP_SOK;
+ 			break;
+@@ -217,6 +208,9 @@ DSP_STATUS regsupEnumValue(IN u32 dwIndex, IN CONST char *pstrKey,
+ 	if (count && DSP_FAILED(retVal))
+ 		retVal = REG_E_NOMOREITEMS;
  
- /* The PROC_OBJECT structure.   */
- struct PROC_OBJECT {
-@@ -785,13 +782,8 @@ bool PROC_Init(void)
++	dev_dbg(bridge, "REG: enum Key %s, Value %s, status = 0x%x",
++					pstrKey, pstrValue, retVal);
++
+ 	return retVal;
+ }
  
- 	DBC_Require(cRefs >= 0);
+@@ -248,6 +242,9 @@ DSP_STATUS regsupDeleteValue(IN CONST char *pstrValue)
+ 		rv = (struct RegValue *)LST_Next(pRegKey,
+ 				(struct list_head *)rv);
+ 	}
++
++	dev_dbg(bridge, "REG: del %s, status = 0x%x", pstrValue, retVal);
++
+ 	return retVal;
  
--	if (cRefs == 0) {
--		/* Set the Trace mask */
--		DBC_Assert(!PROC_DebugMask.flags);
--		GT_create(&PROC_DebugMask, "PR");  /* "PR" for Processor */
--
-+	if (cRefs == 0)
- 		(void)SYNC_InitializeCS(&hProcLock);
--	}
- 
- 	if (fRetval)
- 		cRefs++;
-diff --git a/drivers/dsp/bridge/rmgr/rmm.c b/drivers/dsp/bridge/rmgr/rmm.c
-index 8cf66ce..188faba 100644
---- a/drivers/dsp/bridge/rmgr/rmm.c
-+++ b/drivers/dsp/bridge/rmgr/rmm.c
-@@ -87,10 +87,6 @@ struct RMM_TargetObj {
- 	struct LST_LIST *ovlyList;	/* List of overlay memory in use */
- };
- 
--#if GT_TRACE
--static struct GT_Mask RMM_debugMask = { NULL, NULL };	/* GT trace variable */
--#endif
--
- static u32 cRefs;		/* module reference count */
- 
- static bool allocBlock(struct RMM_TargetObj *target, u32 segid, u32 size,
-@@ -367,12 +363,6 @@ bool RMM_init(void)
- {
- 	DBC_Require(cRefs >= 0);
- 
--	if (cRefs == 0) {
--		DBC_Assert(!RMM_debugMask.flags);
--		GT_create(&RMM_debugMask, "RM");	/* "RM" for RMm */
--
--	}
--
- 	cRefs++;
- 
- 	return true;
-diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index 909a2b1..6b62e41 100644
---- a/drivers/dsp/bridge/rmgr/strm.c
-+++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -91,9 +91,6 @@ struct STRM_MGR {
- } ;
- 
- /*  ----------------------------------- Globals */
--#if GT_TRACE
--static struct GT_Mask STRM_debugMask = { NULL, NULL };	/* GT trace variable */
--#endif
- static u32 cRefs;		/* module reference count */
- 
- /*  ----------------------------------- Function Prototypes */
-@@ -412,13 +409,6 @@ bool STRM_Init(void)
- 
- 	DBC_Require(cRefs >= 0);
- 
--	if (cRefs == 0) {
--#if GT_TRACE
--		DBC_Assert(!STRM_debugMask.flags);
--		GT_create(&STRM_debugMask, "ST");	/* "ST" for STrm */
--#endif
--	}
--
- 	if (fRetVal)
- 		cRefs++;
- 
+ }
 -- 
 1.6.2.4
 
