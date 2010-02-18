@@ -1,1045 +1,1183 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 10/12] DSPBRIDGE: Remove custom debugging implementation
-Date: Thu, 18 Feb 2010 15:38:01 -0600
-Message-ID: <1266529083-2358-11-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 02/12] DSPBRIDGE: Change custom GT_trace for dev_dbg
+Date: Thu, 18 Feb 2010 15:37:53 -0600
+Message-ID: <1266529083-2358-3-git-send-email-omar.ramirez@ti.com>
 References: <1266529083-2358-1-git-send-email-omar.ramirez@ti.com>
  <1266529083-2358-2-git-send-email-omar.ramirez@ti.com>
- <1266529083-2358-3-git-send-email-omar.ramirez@ti.com>
- <1266529083-2358-4-git-send-email-omar.ramirez@ti.com>
- <1266529083-2358-5-git-send-email-omar.ramirez@ti.com>
- <1266529083-2358-6-git-send-email-omar.ramirez@ti.com>
- <1266529083-2358-7-git-send-email-omar.ramirez@ti.com>
- <1266529083-2358-8-git-send-email-omar.ramirez@ti.com>
- <1266529083-2358-9-git-send-email-omar.ramirez@ti.com>
- <1266529083-2358-10-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46722 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756070Ab0BRVZ3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Feb 2010 16:25:29 -0500
-In-Reply-To: <1266529083-2358-10-git-send-email-omar.ramirez@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54601 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755710Ab0BRVZ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 16:25:29 -0500
+In-Reply-To: <1266529083-2358-2-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Replace custom debug implementation with a friendly set
-of pr_err, pr_info and dev_dbg messages.
+Remove GT_Trace custom debugging mechanism and use dev_dbg.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/dbg.h |   65 ------
- arch/arm/plat-omap/include/dspbridge/gt.h  |  271 ----------------------
- drivers/dsp/bridge/Makefile                |    4 +-
- drivers/dsp/bridge/gen/_gt_para.c          |   95 --------
- drivers/dsp/bridge/gen/gt.c                |  336 ----------------------------
- drivers/dsp/bridge/rmgr/drv_interface.c    |   16 --
- drivers/dsp/bridge/services/dbg.c          |   81 -------
- drivers/dsp/bridge/services/services.c     |   13 +-
- 8 files changed, 4 insertions(+), 877 deletions(-)
- delete mode 100644 drivers/dsp/bridge/gen/_gt_para.c
- delete mode 100644 drivers/dsp/bridge/gen/gt.c
- delete mode 100644 drivers/dsp/bridge/services/dbg.c
+ drivers/dsp/bridge/rmgr/dbdcd.c         |   29 ++++-----
+ drivers/dsp/bridge/rmgr/disp.c          |   58 ++++++------------
+ drivers/dsp/bridge/rmgr/drv.c           |   91 ++++++++++++----------------
+ drivers/dsp/bridge/rmgr/drv_interface.c |   27 ++++-----
+ drivers/dsp/bridge/rmgr/dspdrv.c        |    8 +--
+ drivers/dsp/bridge/rmgr/mgr.c           |   21 ++-----
+ drivers/dsp/bridge/rmgr/nldr.c          |   26 +++-----
+ drivers/dsp/bridge/rmgr/node.c          |   97 ++++++++++++------------------
+ drivers/dsp/bridge/rmgr/proc.c          |   60 +++++++------------
+ drivers/dsp/bridge/rmgr/strm.c          |   34 ++++++------
+ 10 files changed, 182 insertions(+), 269 deletions(-)
+ create mode 100644 drivers/dsp/bridge/uTimeout
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbg.h b/arch/arm/plat-omap/include/dspbridge/dbg.h
-index 4d01eca..828fd71 100644
---- a/arch/arm/plat-omap/include/dspbridge/dbg.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbg.h
-@@ -21,69 +21,4 @@
- #include <dspbridge/host_os.h>
- #include <linux/types.h>
+diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
+index 5e07abd..067f7a0 100644
+--- a/drivers/dsp/bridge/rmgr/dbdcd.c
++++ b/drivers/dsp/bridge/rmgr/dbdcd.c
+@@ -473,8 +473,7 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
+ 		status = COD_ReadSection(lib, szSectName, pszCoffBuf, ulLen);
+ 	} else {
+ 		status = COD_ReadSection(lib, szSectName, pszCoffBuf, ulLen);
+-		GT_0trace(curTrace, GT_4CLASS,
+-			 "Skipped Byte swap for IVA !!\n");
++		dev_dbg(bridge, "%s: Skipped Byte swap for IVA!!\n", __func__);
+ 	}
+ #else
+ 	status = COD_ReadSection(lib, szSectName, pszCoffBuf, ulLen);
+@@ -485,8 +484,8 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
+ 			CompressBuf(pszCoffBuf, ulLen, DSPWORDSIZE);
+ 		} else {
+ 			CompressBuf(pszCoffBuf, ulLen, 1);
+-			GT_0trace(curTrace, GT_4CLASS, "Compressing IVA "
+-				 "COFF buffer by 1 for IVA !!\n");
++			dev_dbg(bridge, "%s: Compressing IVA COFF buffer by 1 "
++						"for IVA!!\n", __func__);
+ 		}
  
--/* Levels of trace debug messages: */
--#define DBG_ENTER   (u8)(0x01)	/* Function entry point. */
--#define DBG_LEVEL1  (u8)(0x02)	/* Display debugging state/varibles */
--#define DBG_LEVEL2  (u8)(0x04)	/* Display debugging state/varibles */
--#define DBG_LEVEL3  (u8)(0x08)	/* Display debugging state/varibles */
--#define DBG_LEVEL4  (u8)(0x10)	/* Display debugging state/varibles */
--#define DBG_LEVEL5  (u8)(0x20)	/* Module Init, Exit */
--#define DBG_LEVEL6  (u8)(0x40)	/* Warn SERVICES Failures */
--#define DBG_LEVEL7  (u8)(0x80)	/* Warn Critical Errors */
--
--#if (defined(CONFIG_BRIDGE_DEBUG) || defined(DDSP_DEBUG_PRODUCT)) && GT_TRACE
--
--/*
-- *  ======== DBG_Exit ========
-- *  Purpose:
-- *      Discontinue usage of module; free resources when reference count
-- *      reaches 0.
-- *  Parameters:
-- *  Returns:
-- *  Requires:
-- *      DBG initialized.
-- *  Ensures:
-- *      Resources used by module are freed when cRef reaches zero.
-- */
--	extern void DBG_Exit(void);
--
--/*
-- *  ======== DBG_Init ========
-- *  Purpose:
-- *      Initializes private state of DBG module.
-- *  Parameters:
-- *  Returns:
-- *      TRUE if initialized; FALSE if error occured.
-- *  Requires:
-- *  Ensures:
-- */
--	extern bool DBG_Init(void);
--
--/*
-- *  ======== DBG_Trace ========
-- *  Purpose:
-- *      Output a trace message to the debugger, if the given trace level
-- *      is unmasked.
-- *  Parameters:
-- *      bLevel:         Trace level.
-- *      pstrFormat:     sprintf-style format string.
-- *      ...:            Arguments for format string.
-- *  Returns:
-- *      DSP_SOK:        Success, or trace level masked.
-- *      DSP_EFAIL:      On Error.
-- *  Requires:
-- *      DBG initialized.
-- *  Ensures:
-- *      Debug message is printed to debugger output window, if trace level
-- *      is unmasked.
-- */
--	extern DSP_STATUS DBG_Trace(IN u8 bLevel, IN char *pstrFormat, ...);
--#else
--
--#define DBG_Exit(void) do {} while (0)
--#define DBG_Init(void) true
--#define DBG_Trace(bLevel, pstrFormat, args...) do {} while (0)
--
--#endif	/* (CONFIG_BRIDGE_DEBUG || DDSP_DEBUG_PRODUCT) && GT_TRACE */
--
- #endif				/* DBG_ */
-diff --git a/arch/arm/plat-omap/include/dspbridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
-index 9097910..116bb6f 100644
---- a/arch/arm/plat-omap/include/dspbridge/gt.h
-+++ b/arch/arm/plat-omap/include/dspbridge/gt.h
-@@ -34,275 +34,4 @@
+ 		/* Parse the content of the COFF buffer. */
+@@ -554,7 +553,7 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
+ 		status = COD_ReadSection(lib, DCD_REGISTER_SECTION,
+ 					pszCoffBuf, ulLen);
+ 	} else {
+-		GT_0trace(curTrace, GT_4CLASS, "Skipped Byte swap for IVA!!\n");
++		dev_dbg(bridge, "%s: Skipped Byte swap for IVA!!\n", __func__);
+ 		status = COD_ReadSection(lib, DCD_REGISTER_SECTION,
+ 					pszCoffBuf, ulLen);
+ 	}
+@@ -567,8 +566,8 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
+ 			CompressBuf(pszCoffBuf, ulLen, DSPWORDSIZE);
+ 		} else {
+ 			CompressBuf(pszCoffBuf, ulLen, 1);
+-			GT_0trace(curTrace, GT_4CLASS, "Compress COFF buffer "
+-				 "with 1 word for IVA !!\n");
++			dev_dbg(bridge, "%s: Compress COFF buffer with 1 word "
++						"for IVA!!\n", __func__);
+ 		}
  
- #include <dspbridge/host_os.h>
+ 		/* Read from buffer and register object in buffer. */
+@@ -633,10 +632,9 @@ DSP_STATUS DCD_GetLibraryName(IN struct DCD_MANAGER *hDcdMgr,
+ 	DBC_Require(pdwSize != NULL);
+ 	DBC_Require(IsValidHandle(hDcdMgr));
  
--#if !defined(GT_ASSERT) || GT_TRACE
--#define GT_ASSERT 1
--#endif
--
--struct GT_Config {
--	Fxn PRINTFXN;
--	Fxn PIDFXN;
--	Fxn TIDFXN;
--	Fxn ERRORFXN;
--};
--
--extern struct GT_Config *GT;
--
--struct GT_Mask {
--	char *modName;
--	u8 *flags;
--} ;
--
--/*
-- *  New GT Class defenitions.
-- *
-- *  The following are the explanations and how it could be used in the code
-- *
-- *  -   GT_ENTER    On Entry to Functions
-- *
-- *  -   GT_1CLASS   Display level of debugging status- Object/Automatic
-- *                  variables
-- *  -   GT_2CLASS   ---- do ----
-- *
-- *  -   GT_3CLASS   ---- do ---- + It can be used(recommended) for debug
-- *		    status in the ISR, IST
-- *  -   GT_4CLASS   ---- do ----
-- *
-- *  -   GT_5CLASS   Display entry for module init/exit functions
-- *
-- *  -   GT_6CLASS   Warn whenever SERVICES function fails
-- *
-- *  -   GT_7CLASS   Warn failure of Critical failures
-- *
-- */
--
--#define GT_ENTER	((u8)0x01)
--#define GT_1CLASS	((u8)0x02)
--#define GT_2CLASS	((u8)0x04)
--#define GT_3CLASS	((u8)0x08)
--#define GT_4CLASS	((u8)0x10)
--#define GT_5CLASS	((u8)0x20)
--#define GT_6CLASS	((u8)0x40)
--#define GT_7CLASS	((u8)0x80)
--
--#ifdef _LINT_
--
--/* LINTLIBRARY */
--
--/*
-- *  ======== GT_assert ========
-- */
--/* ARGSUSED */
--void GT_assert(struct GT_Mask mask, s32 expr)
--{
--}
--
--/*
-- *  ======== GT_config ========
-- */
--/* ARGSUSED */
--void GT_config(struct GT_Config config)
--{
--}
--
--/*
-- *  ======== GT_create ========
-- */
--/* ARGSUSED */
--void GT_create(struct GT_Mask *mask, char *modName)
--{
--}
--
--/*
-- *  ======== GT_curLine ========
-- *  Purpose:
-- *      Returns the current source code line number. Is useful for performing
-- *      branch testing using trace.  For example,
-- *
-- *      GT_1trace(curTrace, GT_1CLASS,
-- *          "in module XX_mod, executing line %u\n", GT_curLine());
-- */
--/* ARGSUSED */
--u16 GT_curLine(void)
--{
--	return (u16)NULL;
--}
--
--/*
-- *  ======== GT_exit ========
-- */
--/* ARGSUSED */
--void GT_exit(void)
--{
--}
--
--/*
-- *  ======== GT_init ========
-- */
--/* ARGSUSED */
--void GT_init(void)
--{
--}
--
--/*
-- *  ======== GT_query ========
-- */
--/* ARGSUSED */
--bool GT_query(struct GT_Mask mask, u8 class)
--{
--	return false;
--}
--
--/*
-- *  ======== GT_set ========
-- *  sets trace mask according to settings
-- */
--
--/* ARGSUSED */
--void GT_set(char *settings)
--{
--}
--
--/*
-- *  ======== GT_setprintf ========
-- *  sets printf function
-- */
--
--/* ARGSUSED */
--void GT_setprintf(Fxn fxn)
--{
--}
--
--/* ARGSUSED */
--void GT_0trace(struct GT_Mask mask, u8 class, char *format)
--{
--}
--
--/* ARGSUSED */
--void GT_1trace(struct GT_Mask mask, u8 class, char *format, ...)
--{
--}
--
--/* ARGSUSED */
--void GT_2trace(struct GT_Mask mask, u8 class, char *format, ...)
--{
--}
--
--/* ARGSUSED */
--void GT_3trace(struct GT_Mask mask, u8 class, char *format, ...)
--{
--}
--
--/* ARGSUSED */
--void GT_4trace(struct GT_Mask mask, u8 class, char *format, ...)
--{
--}
--
--/* ARGSUSED */
--void GT_5trace(struct GT_Mask mask, u8 class, char *format, ...)
--{
--}
--
--/* ARGSUSED */
--void GT_6trace(struct GT_Mask mask, u8 class, char *format, ...)
--{
--}
--
--#else
--
--#define	GT_BOUND    26		/* 26 letters in alphabet */
--
--extern void _GT_create(struct GT_Mask *mask, char *modName);
--
--#define GT_exit()
--
--extern void GT_init(void);
--extern void _GT_set(char *str);
--extern s32 _GT_trace(struct GT_Mask *mask, char *format, ...);
--
--#if GT_ASSERT == 0
--
--#define GT_assert(mask, expr)
--#define GT_config(config)
--#define GT_configInit(config)
--#define GT_seterror(fxn)
--
--#else
--
--extern struct GT_Config _GT_params;
--
--#define GT_assert(mask, expr) \
--	(!(expr) ? \
--	    pr_err("assertion violation: %s, line %d\n", \
--			    __FILE__, __LINE__), NULL : NULL)
--
--#define GT_config(config)     (_GT_params = *(config))
--#define GT_configInit(config) (*(config) = _GT_params)
--#define GT_seterror(fxn)      (_GT_params.ERRORFXN = (Fxn)(fxn))
--
--#endif
--
--#if GT_TRACE == 0
--
--#define GT_curLine()                ((u16)__LINE__)
--#define GT_create(mask, modName)
--#define GT_exit()
--#define GT_init()
--#define GT_set(settings)
--#define GT_setprintf(fxn)
--
--#define GT_query(mask, class)     false
--
--#define GT_0trace(mask, class, format) do {} while (0)
--#define GT_1trace(mask, class, format, arg1) do {} while (0)
--#define GT_2trace(mask, class, format, arg1, arg2) do {} while (0)
--#define GT_3trace(mask, class, format, arg1, arg2, arg3) do {} while (0)
--#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4) do {} while (0)
--#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5) \
--	do {} while (0)
--#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6) \
--	do {} while (0)
--
--#else				/* GT_TRACE == 1 */
--
--
--#define GT_create(mask, modName)    _GT_create((mask), (modName))
--#define GT_curLine()                ((u16)__LINE__)
--#define GT_set(settings)          _GT_set(settings)
--#define GT_setprintf(fxn)         (_GT_params.PRINTFXN = (Fxn)(fxn))
--
--#define GT_query(mask, class) ((*(mask).flags & (class)))
--
--#define GT_0trace(mask, class, format) \
--    ((*(mask).flags & (class)) ? \
--    _GT_trace(&(mask), (format)) : 0)
--
--#define GT_1trace(mask, class, format, arg1) \
--    ((*(mask).flags & (class)) ? \
--    _GT_trace(&(mask), (format), (arg1)) : 0)
--
--#define GT_2trace(mask, class, format, arg1, arg2) \
--    ((*(mask).flags & (class)) ? \
--    _GT_trace(&(mask), (format), (arg1), (arg2)) : 0)
--
--#define GT_3trace(mask, class, format, arg1, arg2, arg3) \
--    ((*(mask).flags & (class)) ? \
--    _GT_trace(&(mask), (format), (arg1), (arg2), (arg3)) : 0)
--
--#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4) \
--    ((*(mask).flags & (class)) ? \
--    _GT_trace(&(mask), (format), (arg1), (arg2), (arg3), (arg4)) : 0)
--
--#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5) \
--    ((*(mask).flags & (class)) ? \
--    _GT_trace(&(mask), (format), (arg1), (arg2), (arg3), (arg4), (arg5)) : 0)
--
--#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6) \
--    ((*(mask).flags & (class)) ? \
--    _GT_trace(&(mask), (format), (arg1), (arg2), (arg3), (arg4), (arg5), \
--	(arg6)) : 0)
--
--#endif				/* GT_TRACE */
--
--#endif				/* _LINT_ */
--
- #endif				/* GTCE_ */
-diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
-index 8aeb6a5..11d92cd 100644
---- a/drivers/dsp/bridge/Makefile
-+++ b/drivers/dsp/bridge/Makefile
-@@ -1,10 +1,10 @@
- obj-$(CONFIG_MPU_BRIDGE)	+= bridgedriver.o
+-	GT_4trace(curTrace, GT_ENTER,
+-		 "DCD_GetLibraryName: hDcdMgr 0x%x, pUuid 0x%x, "
+-		 " pstrLibName 0x%x, pdwSize 0x%x\n", hDcdMgr, pUuid,
+-		 pstrLibName, pdwSize);
++	dev_dbg(bridge, "%s: hDcdMgr %p, pUuid %p, pstrLibName %p, pdwSize "
++					"%p\n", __func__, hDcdMgr, pUuid,
++					pstrLibName, pdwSize);
  
--libgen = gen/gb.o gen/gt.o gen/gs.o gen/gh.o gen/_gt_para.o gen/uuidutil.o
-+libgen = gen/gb.o gen/gs.o gen/gh.o gen/uuidutil.o
- libservices = services/mem.o services/sync.o \
- 		services/clk.o services/cfg.o services/reg.o \
-                services/regsup.o services/ntfy.o \
--		services/dbg.o services/services.o
-+		services/services.o
- libwmd = wmd/chnl_sm.o wmd/msg_sm.o wmd/io_sm.o wmd/tiomap3430.o \
- 		wmd/tiomap3430_pwr.o wmd/tiomap_sm.o wmd/tiomap_io.o \
- 		wmd/mmu_fault.o wmd/ue_deh.o
-diff --git a/drivers/dsp/bridge/gen/_gt_para.c b/drivers/dsp/bridge/gen/_gt_para.c
-deleted file mode 100644
-index 1bb82b1..0000000
---- a/drivers/dsp/bridge/gen/_gt_para.c
-+++ /dev/null
-@@ -1,95 +0,0 @@
--/*
-- * _gt_para.c
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--/*
-- * Configuration parameters for GT.  This file is separated from
-- * gt.c so that GT_assert() can reference the error function without
-- * forcing the linker to include all the code for GT_set(), GT_init(),
-- * etc. into a fully bound image.  Thus, GT_assert() can be retained in
-- * a program for which GT_?trace() has been compiled out.
-- */
--
--/*  ----------------------------------- Host OS */
--#include <dspbridge/host_os.h>
--
--/*  ----------------------------------- DSP/BIOS Bridge */
--#include <dspbridge/std.h>
--
--/*  ----------------------------------- Trace & Debug */
--#include <dspbridge/gt.h>
--
--/*  ----------------------------------- Function Prototypes */
--static void error(char *msg, ...);
--static s32 GT_nop(void);
--
--/*  ----------------------------------- Defines, Data Structures, Typedefs */
--
--struct GT_Config _GT_params = {
--	(Fxn) printk,		/* printf */
--	(Fxn) NULL,		/* procid */
--	(Fxn) GT_nop,		/* taskid */
--	(Fxn) error,		/* error */
--};
--
--/*  ----------------------------------- Globals */
--struct GT_Config *GT = &_GT_params;
--
--/*
-- *  ======== GT_nop ========
-- */
--static s32 GT_nop(void)
--{
--	return 0;
--}
--
--/*
-- * ======== error ========
-- *  purpose:
-- *      Prints error onto the standard output.
-- */
--static void error(char *fmt, ...)
--{
--	s32 arg1, arg2, arg3, arg4, arg5, arg6;
--
--	va_list va;
--
--	va_start(va, fmt);
--
--	arg1 = va_arg(va, s32);
--	arg2 = va_arg(va, s32);
--	arg3 = va_arg(va, s32);
--	arg4 = va_arg(va, s32);
--	arg5 = va_arg(va, s32);
--	arg6 = va_arg(va, s32);
--
--	va_end(va);
--
--	pr_err("ERROR: ");
--	printk(fmt, arg1, arg2, arg3, arg4, arg5, arg6);
--
--#if defined(CONFIG_BRIDGE_DEBUG) || defined(DDSP_DEBUG_PRODUCT)
--	if (in_interrupt()) {
--		printk(KERN_INFO "Not stopping after error since ISR/DPC "
--			"are disabled\n");
--	} else {
--		set_current_state(TASK_INTERRUPTIBLE);
--		flush_signals(current);
--		schedule();
--		flush_signals(current);
--		printk(KERN_INFO "Signaled in error function\n");
--	}
--#endif
--}
-diff --git a/drivers/dsp/bridge/gen/gt.c b/drivers/dsp/bridge/gen/gt.c
-deleted file mode 100644
-index 40bed53..0000000
---- a/drivers/dsp/bridge/gen/gt.c
-+++ /dev/null
-@@ -1,336 +0,0 @@
--/*
-- * gt.c
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * This module implements the trace mechanism for bridge.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--/*  ----------------------------------- DSP/BIOS Bridge */
--#include <dspbridge/std.h>
--
--/*  ----------------------------------- This */
--#include <dspbridge/gt.h>
--
--#define GT_WILD	'*'
--
--#define GT_CLEAR	'='
--#define GT_ON		'+'
--#define GT_OFF		'-'
--
--enum GT_State {
--	GT_SEP,
--	GT_FIRST,
--	GT_SECOND,
--	GT_OP,
--	GT_DIGITS
--} ;
--
--#ifdef CONFIG_BRIDGE_DEBUG
--static char *GT_1format = "%s - %d: ";
--static char *GT_2format = "%s - %d(%d): ";
--#endif /* CONFIG_BRIDGE_DEBUG */
--
--static unsigned char *GT_tMask[GT_BOUND];
--
--static bool curInit;
--static char *separator;
--static unsigned char tabMem[GT_BOUND][sizeof(unsigned char) * GT_BOUND];
--
--static void error(char *string);
--static void setMask(s16 index1, s16 index2, char op, unsigned char mask);
--
--/*
-- *  ======== _GT_create ========
-- *  purpose:
-- *      Creates GT mask.
-- */
--void _GT_create(struct GT_Mask *mask, char *modName)
--{
--	mask->modName = modName;
--	mask->flags = &(GT_tMask[modName[0] - 'A'][modName[1] - 'A']);
--}
--
--/*
-- *  ======== GT_init ========
-- *  purpose:
-- *      Initializes GT module.
-- */
--#ifdef GT_init
--#undef GT_init
--#endif
--void GT_init(void)
--{
--	register unsigned char index1;
--	register unsigned char index2;
--
--	if (!curInit) {
--		curInit = true;
--
--		separator = " ,;/";
--
--		for (index1 = 0; index1 < GT_BOUND; index1++) {
--			GT_tMask[index1] = tabMem[index1];
--			for (index2 = 0; index2 < GT_BOUND; index2++) {
--				/* no tracing */
--				GT_tMask[index1][index2] = 0x00;
+ 	/*
+ 	 *  Pre-determine final key length. It's length of DCD_REGKEY +
+@@ -783,8 +781,8 @@ DSP_STATUS DCD_RegisterObject(IN struct DSP_UUID *pUuid,
+ 			(objType == DSP_DCDEXECUTELIBTYPE) ||
+ 			(objType == DSP_DCDDELETELIBTYPE));
+ 
+-	GT_3trace(curTrace, GT_ENTER, "DCD_RegisterObject: object UUID 0x%x, "
+-		 "objType %d, szPathName %s\n", pUuid, objType, pszPathName);
++	dev_dbg(bridge, "%s: object UUID %p, objType %d, szPathName %s\n",
++					__func__, pUuid, objType, pszPathName);
+ 
+ 	/*
+ 	 * Pre-determine final key length. It's length of DCD_REGKEY +
+@@ -832,9 +830,8 @@ DSP_STATUS DCD_RegisterObject(IN struct DSP_UUID *pUuid,
+ 		/* Add new reg value (UUID+objType) with COFF path info */
+ 		dwPathSize = strlen(pszPathName) + 1;
+ 		status = REG_SetValue(szRegKey, (u8 *)pszPathName, dwPathSize);
+-		GT_2trace(curTrace, GT_6CLASS, "REG_SetValue  "
+-			  "(u8 *)pszPathName=%s, dwPathSize=%d\n",
+-			  pszPathName, dwPathSize);
++		dev_dbg(bridge, "%s: pszPathName=%s, dwPathSize=%d\n", __func__,
++						pszPathName, dwPathSize);
+ 	} else {
+ 		/* Deregister an existing object */
+ 		status = REG_DeleteValue(szRegKey);
+diff --git a/drivers/dsp/bridge/rmgr/disp.c b/drivers/dsp/bridge/rmgr/disp.c
+index 795856b..8c05593 100644
+--- a/drivers/dsp/bridge/rmgr/disp.c
++++ b/drivers/dsp/bridge/rmgr/disp.c
+@@ -304,9 +304,8 @@ DSP_STATUS DISP_NodeCreate(struct DISP_OBJECT *hDisp, struct NODE_OBJECT *hNode,
+ 		goto func_end;
+ 
+ 	if (devType != DSP_UNIT) {
+-		GT_1trace(DISP_DebugMask, GT_7CLASS,
+-			 "DISP_NodeCreate unknown device "
+-			 "type = 0x%x\n", devType);
++		dev_dbg(bridge, "%s: unknown device type = 0x%x\n",
++							__func__, devType);
+ 		goto func_end;
+ 	}
+ 	DBC_Require(pArgs != NULL);
+@@ -323,10 +322,8 @@ DSP_STATUS DISP_NodeCreate(struct DISP_OBJECT *hDisp, struct NODE_OBJECT *hNode,
+ 		/ sizeof(RMS_WORD)  - 1 + dwLength;
+ 	if (total >= max) {
+ 		status = DSP_EFAIL;
+-		GT_2trace(DISP_DebugMask, GT_6CLASS,
+-			"DISP_NodeCreate: Message args too"
+-			" large for buffer! Message args size = %d, max = %d\n",
+-			total, max);
++		dev_dbg(bridge, "%s: Message args too large for buffer! size "
++				"= %d, max = %d\n", __func__, total, max);
+ 	}
+ 	/*
+ 	 *  Fill in buffer to send to RMS.
+@@ -423,10 +420,9 @@ DSP_STATUS DISP_NodeCreate(struct DISP_OBJECT *hDisp, struct NODE_OBJECT *hNode,
+ 			pMoreTaskArgs->numInputStreams = taskArgs.uNumInputs;
+ 			total +=
+ 			    sizeof(struct RMS_MoreTaskArgs) / sizeof(RMS_WORD);
+-			GT_2trace(DISP_DebugMask, GT_7CLASS,
+-				 "DISP::::uDSPHeapAddr %x, "
+-				 "uHeapSize %x\n", taskArgs.uDSPHeapAddr,
+-				 taskArgs.uHeapSize);
++			dev_dbg(bridge, "%s: uDSPHeapAddr %x, uHeapSize %x\n",
++					__func__, taskArgs.uDSPHeapAddr,
++					taskArgs.uHeapSize);
+ 			/* Keep track of pSIOInDef[] and pSIOOutDef[]
+ 			 * positions in the buffer, since this needs to be
+ 			 * filled in later.  */
+@@ -477,13 +473,9 @@ DSP_STATUS DISP_NodeCreate(struct DISP_OBJECT *hDisp, struct NODE_OBJECT *hNode,
+ 			 * on the DSP-side
+ 			 */
+ 			status = (((RMS_WORD *)(hDisp->pBuf))[0]);
+-			if (DSP_FAILED(status)) {
+-				GT_1trace(DISP_DebugMask, GT_6CLASS,
+-					 "DISP_NodeCreate, "
+-					 "DSP-side Node Create failed: 0x%x\n",
+-					 status);
 -			}
+-
++			if (DSP_FAILED(status))
++				dev_dbg(bridge, "%s: DSP-side failed: 0x%x\n",
++							__func__, status);
+ 		}
+ 	}
+ func_end:
+@@ -532,12 +524,9 @@ DSP_STATUS DISP_NodeDelete(struct DISP_OBJECT *hDisp, struct NODE_OBJECT *hNode,
+ 				 * function on the DSP-side
+ 				 */
+ 				status = (((RMS_WORD *)(hDisp->pBuf))[0]);
+-				if (DSP_FAILED(status)) {
+-					GT_1trace(DISP_DebugMask, GT_6CLASS,
+-					 "DISP_NodeDelete, "
+-					 "DSP-side Node Delete failed: 0x%x\n",
+-					 status);
+-				}
++				if (DSP_FAILED(status))
++					dev_dbg(bridge, "%s: DSP-side failed: "
++						"0x%x\n", __func__, status);
+ 			}
+ 
+ 
+@@ -587,12 +576,9 @@ DSP_STATUS DISP_NodeRun(struct DISP_OBJECT *hDisp, struct NODE_OBJECT *hNode,
+ 				 * function on the DSP-side
+ 				 */
+ 				status = (((RMS_WORD *)(hDisp->pBuf))[0]);
+-				if (DSP_FAILED(status)) {
+-					GT_1trace(DISP_DebugMask, GT_6CLASS,
+-						"DISP_NodeRun, DSP-side Node "
+-						"Execute failed: 0x%x\n",
+-						status);
 -		}
++				if (DSP_FAILED(status))
++					dev_dbg(bridge, "%s: DSP-side failed: "
++						"0x%x\n", __func__, status);
+ 		}
+ 
+ 	}
+@@ -621,19 +607,15 @@ static void DeleteDisp(struct DISP_OBJECT *hDisp)
+ 			status = (*pIntfFxns->pfnChnlClose)
+ 				 (hDisp->hChnlFromDsp);
+ 			if (DSP_FAILED(status)) {
+-				GT_1trace(DISP_DebugMask, GT_6CLASS,
+-					 "DISP_Delete: Failed to "
+-					 "close channel from RMS: 0x%x\n",
+-					 status);
++				dev_dbg(bridge, "%s: Failed to close channel "
++					"from RMS: 0x%x\n", __func__, status);
+ 			}
+ 		}
+ 		if (hDisp->hChnlToDsp) {
+ 			status = (*pIntfFxns->pfnChnlClose)(hDisp->hChnlToDsp);
+ 			if (DSP_FAILED(status)) {
+-				GT_1trace(DISP_DebugMask, GT_6CLASS,
+-					 "DISP_Delete: Failed to "
+-					 "close channel to RMS: 0x%x\n",
+-					 status);
++				dev_dbg(bridge, "%s: Failed to close channel to"
++					" RMS: 0x%x\n", __func__, status);
+ 			}
+ 		}
+ 		kfree(hDisp->pBuf);
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 44208b7..f3e2632 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -861,24 +861,23 @@ DSP_STATUS DRV_RequestResources(u32 dwContext, u32 *pDevNodeString)
+ 			*pDevNodeString = 0;
+ 		}
+ 	} else {
+-		GT_0trace(curTrace, GT_7CLASS,
+-			 "Failed to get Driver Object from Registry");
++		dev_dbg(bridge, "%s: Failed to get Driver Object from Registry",
++								__func__);
+ 		*pDevNodeString = 0;
+ 	}
+ 
+ 	if (!(strcmp((char *) dwContext, "TIOMAP1510"))) {
+-		GT_0trace(curTrace, GT_1CLASS,
+-			  " Allocating resources for UMA \n");
++		dev_dbg(bridge, "%s: Allocating resources for UMA\n", __func__);
+ 		status = RequestBridgeResourcesDSP(dwContext, DRV_ASSIGN);
+ 	} else {
+ 		status = DSP_EFAIL;
+-		GT_0trace(curTrace, GT_7CLASS, "Unknown Device ");
++		dev_dbg(bridge, "%s: Unknown Device\n", __func__);
+ 	}
+ 
+-	if (DSP_FAILED(status)) {
+-		GT_0trace(curTrace, GT_7CLASS,
+-			 "Failed to reserve bridge resources ");
 -	}
--}
--
--/*
-- *  ======== _GT_set ========
-- *  purpose:
-- *      Sets the trace string format.
-- */
--
--void _GT_set(char *str)
--{
--	enum GT_State state;
--	char *sep;
--	s16 index1 = GT_BOUND;	/* indicates all values */
--	s16 index2 = GT_BOUND;	/* indicates all values */
--	char op = GT_CLEAR;
--	bool maskValid;
--	s16 digit;
--	register unsigned char mask = 0x0;	/* no tracing */
--
--	if (str == NULL)
--		return;
--
--	maskValid = false;
--	state = GT_SEP;
--	while (*str != '\0') {
--		switch ((s32) state) {
--		case (s32) GT_SEP:
--			maskValid = false;
--			sep = separator;
--			while (*sep != '\0') {
--				if (*str == *sep) {
--					str++;
--					break;
--				} else {
--					sep++;
--				}
--			}
--			if (*sep == '\0')
--				state = GT_FIRST;
--
--			break;
--		case (s32) GT_FIRST:
--			if (*str == GT_WILD) {
--				/* indicates all values */
--				index1 = GT_BOUND;
--				/* indicates all values */
--				index2 = GT_BOUND;
--				state = GT_OP;
--			} else {
--				if (*str >= 'a')
--					index1 = (s16) (*str - 'a');
--				else
--					index1 = (s16) (*str - 'A');
--				if ((index1 >= 0) && (index1 < GT_BOUND))
--					state = GT_SECOND;
--				else
--					state = GT_SEP;
--			}
--			str++;
--			break;
--		case (s32) GT_SECOND:
--			if (*str == GT_WILD) {
--				index2 = GT_BOUND;   /* indicates all values */
--				state = GT_OP;
--				str++;
--			} else {
--				if (*str >= 'a')
--					index2 = (s16) (*str - 'a');
--				else
--					index2 = (s16) (*str - 'A');
--				if ((index2 >= 0) && (index2 < GT_BOUND)) {
--					state = GT_OP;
--					str++;
--				} else {
--					state = GT_SEP;
--				}
--			}
--			break;
--		case (s32) GT_OP:
--			op = *str;
--			mask = 0x0;	/* no tracing */
--			switch (op) {
--			case (s32) GT_CLEAR:
--				maskValid = true;
--			case (s32) GT_ON:
--			case (s32) GT_OFF:
--				state = GT_DIGITS;
--				str++;
--				break;
--			default:
--				state = GT_SEP;
--				break;
--			}
--			break;
--		case (s32) GT_DIGITS:
--			digit = (s16) (*str - '0');
--			if ((digit >= 0) && (digit <= 7)) {
--				mask |= (0x01 << digit);
--				maskValid = true;
--				str++;
--			} else {
--				if (maskValid == true) {
--					setMask(index1, index2, op, mask);
--					maskValid = false;
--				}
--				state = GT_SEP;
--			}
--			break;
--		default:
--			error("illegal trace mask");
--			break;
--		}
--	}
--
--	if (maskValid)
--		setMask(index1, index2, op, mask);
--}
--
--/*
-- *  ======== _GT_trace ========
-- *  purpose:
-- *      Prints the input string onto standard output
-- */
--
--s32 _GT_trace(struct GT_Mask *mask, char *format, ...)
--{
--	s32 arg1, arg2, arg3, arg4, arg5, arg6;
--	va_list va;
--
--	va_start(va, format);
--
--	arg1 = va_arg(va, s32);
--	arg2 = va_arg(va, s32);
--	arg3 = va_arg(va, s32);
--	arg4 = va_arg(va, s32);
--	arg5 = va_arg(va, s32);
--	arg6 = va_arg(va, s32);
--
--	va_end(va);
--#ifdef CONFIG_BRIDGE_DEBUG
--	if (GT->PIDFXN == NULL) {
--		printk(GT_1format, mask->modName, GT->TIDFXN ?
--		(*GT->TIDFXN)() : 0);
--	} else {
--		printk(GT_2format, mask->modName, (*GT->PIDFXN)(),
--		GT->TIDFXN ? (*GT->TIDFXN)() : 0);
--	}
--#endif
--	printk(format, arg1, arg2, arg3, arg4, arg5, arg6);
--
--	return 0;
--}
--
--/*
-- *  ======== error ========
-- *  purpose:
-- *      Prints errors onto the standard output.
-- */
--static void error(char *string)
--{
--	printk("GT: %s", string);
--}
--
--/*
-- *  ======== setmask ========
-- *  purpose:
-- *      Sets mask for the GT module.
-- */
--
--static void setMask(s16 index1, s16 index2, char op, u8 mask)
--{
--	register s16 index;
--
--	if (index1 < GT_BOUND) {
--		if (index2 < GT_BOUND) {
--			switch (op) {
--			case (s32) GT_CLEAR:
--				GT_tMask[index1][index2] = mask;
--				break;
--			case (s32) GT_ON:
--				GT_tMask[index1][index2] |= mask;
--				break;
--			case (s32) GT_OFF:
--				GT_tMask[index1][index2] &= ~mask;
--				break;
--			default:
--				error("illegal trace mask");
--				break;
--			}
--		} else {
--			for (index2--; index2 >= 0; index2--) {
--				switch (op) {
--				case (s32) GT_CLEAR:
--					GT_tMask[index1][index2] = mask;
--					break;
--				case (s32) GT_ON:
--					GT_tMask[index1][index2] |= mask;
--					break;
--				case (s32) GT_OFF:
--					GT_tMask[index1][index2] &= ~mask;
--					break;
--				default:
--					error("illegal trace mask");
--					break;
--				}
--			}
--		}
--	} else {
--		for (index1--; index1 >= 0; index1--) {
--			if (index2 < GT_BOUND) {
--				switch (op) {
--				case (s32) GT_CLEAR:
--					GT_tMask[index1][index2] = mask;
--					break;
--				case (s32) GT_ON:
--					GT_tMask[index1][index2] |= mask;
--					break;
--				case (s32) GT_OFF:
--					GT_tMask[index1][index2] &= ~mask;
--					break;
--				default:
--					error("illegal trace mask");
--					break;
--				}
--			} else {
--				index = GT_BOUND;
--				for (index--; index >= 0; index--) {
--					switch (op) {
--					case (s32) GT_CLEAR:
--						GT_tMask[index1][index] = mask;
--						break;
--					case (s32) GT_ON:
--						GT_tMask[index1][index] |= mask;
--						break;
--					case (s32) GT_OFF:
--						GT_tMask[index1][index] &=
--						    ~mask;
--						break;
--					default:
--						error("illegal trace mask");
--						break;
--					}
--				}
--			}
--		}
--	}
--}
++	if (DSP_FAILED(status))
++		dev_dbg(bridge, "%s: Failed to reserve bridge resources\n",
++								__func__);
++
+ 	DBC_Ensure((DSP_SUCCEEDED(status) && pDevNodeString != NULL &&
+ 		  !LST_IsEmpty(pDRVObject->devNodeString)) ||
+ 		  (DSP_FAILED(status) && *pDevNodeString == 0));
+@@ -901,11 +900,11 @@ DSP_STATUS DRV_ReleaseResources(u32 dwContext, struct DRV_OBJECT *hDrvObject)
+ 	   "TIOMAP1510")))
+ 		status = RequestBridgeResources(dwContext, DRV_RELEASE);
+ 	else
+-		GT_0trace(curTrace, GT_1CLASS, " Unknown device\n");
++		dev_dbg(bridge, "%s: Unknown device\n", __func__);
+ 
+ 	if (DSP_FAILED(status))
+-		GT_0trace(curTrace, GT_1CLASS,
+-			 "Failed to relese bridge resources\n");
++		dev_dbg(bridge, "%s: Failed to relese bridge resources\n",
++								__func__);
+ 
+ 	/*
+ 	 *  Irrespective of the status go ahead and clean it
+@@ -973,10 +972,9 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
+ 					shm_size);
+ 				}
+ 			} else {
+-				GT_1trace(curTrace, GT_7CLASS,
+-					"Error getting SHM size from registry: "
+-					"%x. Not calling MEM_FreePhysMem\n",
+-					status);
++				dev_dbg(bridge, "%s: Error getting SHM size "
++					"from registry: %x. Not calling "
++					"MEM_FreePhysMem\n", __func__, status);
+ 			}
+ 			pResources->dwMemBase[1] = 0;
+ 			pResources->dwMemPhys[1] = 0;
+@@ -1044,20 +1042,16 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
+ 							OMAP_MBOX_SIZE);
+ 		pResources->dwSysCtrlBase = ioremap(OMAP_SYSC_BASE,
+ 							OMAP_SYSC_SIZE);
+-		GT_1trace(curTrace, GT_2CLASS, "dwMemBase[0] 0x%x\n",
+-			 pResources->dwMemBase[0]);
+-		GT_1trace(curTrace, GT_2CLASS, "dwMemBase[3] 0x%x\n",
+-			 pResources->dwMemBase[3]);
+-		GT_1trace(curTrace, GT_2CLASS, "dwPrmBase 0x%x\n",
+-							pResources->dwPrmBase);
+-		GT_1trace(curTrace, GT_2CLASS, "dwCmBase 0x%x\n",
+-							pResources->dwCmBase);
+-		GT_1trace(curTrace, GT_2CLASS, "dwWdTimerDspBase 0x%x\n",
++		dev_dbg(bridge, "dwMemBase[0] 0x%x\n",
++						pResources->dwMemBase[0]);
++		dev_dbg(bridge, "dwMemBase[3] 0x%x\n",
++						pResources->dwMemBase[3]);
++		dev_dbg(bridge, "dwPrmBase %p\n", pResources->dwPrmBase);
++		dev_dbg(bridge, "dwCmBase %p\n", pResources->dwCmBase);
++		dev_dbg(bridge, "dwWdTimerDspBase %p\n",
+ 						pResources->dwWdTimerDspBase);
+-		GT_1trace(curTrace, GT_2CLASS, "dwMboxBase 0x%x\n",
+-						pResources->dwMboxBase);
+-		GT_1trace(curTrace, GT_2CLASS, "dwDmmuBase 0x%x\n",
+-						pResources->dwDmmuBase);
++		dev_dbg(bridge, "dwMboxBase %p\n", pResources->dwMboxBase);
++		dev_dbg(bridge, "dwDmmuBase %p\n", pResources->dwDmmuBase);
+ 
+ 		/* for 24xx base port is not mapping the mamory for DSP
+ 		 * internal memory TODO Do a ioremap here */
+@@ -1075,9 +1069,8 @@ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 bRequest)
+ 		status = REG_SetValue(CURRENTCONFIG, (u8 *)pResources,
+ 						sizeof(struct CFG_HOSTRES));
+ 		if (DSP_FAILED(status)) {
+-			GT_0trace(curTrace, GT_7CLASS,
+-				 " Failed to set the registry "
+-				 "value for CURRENTCONFIG\n");
++			dev_dbg(bridge, "%s: Failed to set the registry value "
++					"for CURRENTCONFIG\n", __func__);
+ 		}
+ 		kfree(pResources);
+ 	}
+@@ -1135,26 +1128,22 @@ static DSP_STATUS RequestBridgeResourcesDSP(u32 dwContext, s32 bRequest)
+ 							OMAP_DMMU_SIZE);
+ 		pResources->dwWdTimerDspBase = NULL;
+ 
+-		GT_1trace(curTrace, GT_2CLASS, "dwMemBase[0] 0x%x\n",
++		dev_dbg(bridge, "dwMemBase[0] 0x%x\n",
+ 						pResources->dwMemBase[0]);
+-		GT_1trace(curTrace, GT_2CLASS, "dwMemBase[1] 0x%x\n",
++		dev_dbg(bridge, "dwMemBase[1] 0x%x\n",
+ 						pResources->dwMemBase[1]);
+-		GT_1trace(curTrace, GT_2CLASS, "dwMemBase[2] 0x%x\n",
++		dev_dbg(bridge, "dwMemBase[2] 0x%x\n",
+ 						pResources->dwMemBase[2]);
+-		GT_1trace(curTrace, GT_2CLASS, "dwMemBase[3] 0x%x\n",
++		dev_dbg(bridge, "dwMemBase[3] 0x%x\n",
+ 						pResources->dwMemBase[3]);
+-		GT_1trace(curTrace, GT_2CLASS, "dwMemBase[4] 0x%x\n",
++		dev_dbg(bridge, "dwMemBase[4] 0x%x\n",
+ 						pResources->dwMemBase[4]);
+-		GT_1trace(curTrace, GT_2CLASS, "dwPrmBase 0x%x\n",
+-						pResources->dwPrmBase);
+-		GT_1trace(curTrace, GT_2CLASS, "dwCmBase 0x%x\n",
+-						pResources->dwCmBase);
+-		GT_1trace(curTrace, GT_2CLASS, "dwWdTimerDspBase 0x%x\n",
++		dev_dbg(bridge, "dwPrmBase %p\n", pResources->dwPrmBase);
++		dev_dbg(bridge, "dwCmBase %p\n", pResources->dwCmBase);
++		dev_dbg(bridge, "dwWdTimerDspBase %p\n",
+ 						pResources->dwWdTimerDspBase);
+-		GT_1trace(curTrace, GT_2CLASS, "dwMboxBase 0x%x\n",
+-						pResources->dwMboxBase);
+-		GT_1trace(curTrace, GT_2CLASS, "dwDmmuBase 0x%x\n",
+-						pResources->dwDmmuBase);
++		dev_dbg(bridge, "dwMboxBase %p\n", pResources->dwMboxBase);
++		dev_dbg(bridge, "dwDmmuBase %p\n", pResources->dwDmmuBase);
+ 		dwBuffSize = sizeof(shm_size);
+ 		status = REG_GetValue(SHMSIZE, (u8 *)&shm_size, &dwBuffSize);
+ 		if (DSP_SUCCEEDED(status)) {
+@@ -1170,9 +1159,8 @@ static DSP_STATUS RequestBridgeResourcesDSP(u32 dwContext, s32 bRequest)
+ 				pResources->dwMemLength[1] = shm_size;
+ 				pResources->dwMemPhys[1] = dmaAddr;
+ 
+-				GT_3trace(curTrace, GT_1CLASS,
+-					 "Bridge SHM address 0x%x dmaAddr"
+-					 " %x size %x\n",
++				dev_dbg(bridge, "%s: Bridge SHM address 0x%x "
++					"dmaAddr %x size %x\n", __func__,
+ 					 pResources->dwMemBase[1],
+ 					 dmaAddr, shm_size);
+ 			}
+@@ -1190,9 +1178,8 @@ static DSP_STATUS RequestBridgeResourcesDSP(u32 dwContext, s32 bRequest)
+ 			status = REG_SetValue(CURRENTCONFIG, (u8 *)pResources,
+ 					     sizeof(struct CFG_HOSTRES));
+ 			if (DSP_FAILED(status)) {
+-				GT_0trace(curTrace, GT_7CLASS,
+-					 " Failed to set the registry value"
+-					 " for CURRENTCONFIG\n");
++				dev_dbg(bridge, "%s: Failed to set the registry"
++					" value for CURRENTCONFIG\n", __func__);
+ 			}
+ 		}
+ 		kfree(pResources);
 diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 24246d5..1d09bb5 100644
+index cadb670..4045784 100644
 --- a/drivers/dsp/bridge/rmgr/drv_interface.c
 +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -85,9 +85,6 @@ static struct cdev bridge_cdev;
- static struct class *bridge_class;
+@@ -301,27 +301,26 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
+ 		status = -1;
+ 		pr_err("%s: SHM size must be at least 64 KB\n", __func__);
+ 	}
+-	GT_1trace(driverTrace, GT_7CLASS,
+-		 "requested shm_size = 0x%x\n", shm_size);
++	dev_dbg(bridge, "%s: requested shm_size = 0x%x\n", __func__, shm_size);
  
- static u32 driverContext;
--#ifdef CONFIG_BRIDGE_DEBUG
--static char *GT_str;
--#endif /* CONFIG_BRIDGE_DEBUG */
- static s32 driver_major;
- static char *base_img;
- char *iva_img;
-@@ -117,9 +114,6 @@ static int omap34xxbridge_suspend_lockout(
- #endif
+ 	if (pdata->phys_mempool_base && pdata->phys_mempool_size) {
+ 		phys_mempool_base = pdata->phys_mempool_base;
+ 		phys_mempool_size = pdata->phys_mempool_size;
+ 	}
  
+-	GT_1trace(driverTrace, GT_7CLASS, "phys_mempool_base = 0x%x \n",
+-		 phys_mempool_base);
++	dev_dbg(bridge, "%s: phys_mempool_base = 0x%x \n", __func__,
++							phys_mempool_base);
+ 
+-	GT_1trace(driverTrace, GT_7CLASS, "phys_mempool_size = 0x%x\n",
+-		 phys_mempool_base);
++	dev_dbg(bridge, "%s: phys_mempool_size = 0x%x\n", __func__,
++							phys_mempool_base);
+ 	if ((phys_mempool_base > 0x0) && (phys_mempool_size > 0x0))
+ 		MEM_ExtPhysPoolInit(phys_mempool_base, phys_mempool_size);
+ 	if (tc_wordswapon) {
+-		GT_0trace(driverTrace, GT_7CLASS, "TC Word Swap is enabled\n");
++		dev_dbg(bridge, "%s: TC Word Swap is enabled\n", __func__);
+ 		REG_SetValue(TCWORDSWAP, (u8 *)&tc_wordswapon,
+ 			    sizeof(tc_wordswapon));
+ 	} else {
+-		GT_0trace(driverTrace, GT_7CLASS, "TC Word Swap is disabled\n");
++		dev_dbg(bridge, "%s: TC Word Swap is disabled\n", __func__);
+ 		REG_SetValue(TCWORDSWAP, (u8 *)&tc_wordswapon,
+ 			    sizeof(tc_wordswapon));
+ 	}
+@@ -537,8 +536,8 @@ static long bridge_ioctl(struct file *filp, unsigned int code,
+ 		if (DSP_SUCCEEDED(status)) {
+ 			status = retval;
+ 		} else {
+-			GT_1trace(driverTrace, GT_7CLASS,
+-				 "IOCTL Failed, code : 0x%x\n", code);
++			dev_dbg(bridge, "%s: IOCTL Failed, code: 0x%x "
++				"status 0x%x\n", __func__, code, status);
+ 			status = -1;
+ 		}
+ 
+@@ -561,10 +560,10 @@ static int bridge_mmap(struct file *filp, struct vm_area_struct *vma)
+ 	vma->vm_flags |= VM_RESERVED | VM_IO;
+ 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+ 
+-	GT_6trace(driverTrace, GT_3CLASS,
+-		 "vm filp %p offset %lx start %lx end %lx"
+-		 " page_prot %lx flags %lx\n", filp, offset, vma->vm_start,
+-		 vma->vm_end, vma->vm_page_prot, vma->vm_flags);
++	dev_dbg(bridge, "%s: vm filp %p offset %x start %lx end %lx page_prot "
++				"%lx flags %lx\n", __func__, filp, offset,
++				vma->vm_start, vma->vm_end, vma->vm_page_prot,
++				vma->vm_flags);
+ 
+ 	status = remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
+ 				vma->vm_end - vma->vm_start, vma->vm_page_prot);
+diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
+index b6a9bc4..59c2ecb 100644
+--- a/drivers/dsp/bridge/rmgr/dspdrv.c
++++ b/drivers/dsp/bridge/rmgr/dspdrv.c
+@@ -80,8 +80,7 @@ u32 DSP_Init(OUT u32 *initStatus)
+ 			(void)DRV_ReleaseResources
+ 				((u32) deviceNodeString, drvObject);
+ 	} else {
+-		GT_0trace(curTrace, GT_7CLASS,
+-			 "DSP_Init:DRV_RequestResources Failed \r\n");
++		dev_dbg(bridge, "%s: DRV_RequestResources Failed\n", __func__);
+ 		status = DSP_EFAIL;
+ 	}
+ 
+@@ -102,8 +101,7 @@ u32 DSP_Init(OUT u32 *initStatus)
+ 		(void)DRV_Destroy(drvObject);
+ 		drvObject = NULL;
+ 		WCD_Exit();
+-		GT_0trace(curTrace, GT_7CLASS,
+-			 "DSP_Init:Logical device Failed to Load\n");
++		dev_dbg(bridge, "%s: Logical device failed init\n", __func__);
+ 	}	/* Unwinding the loaded drivers */
+ func_cont:
+ 	/* Attempt to Start the Board */
+@@ -113,7 +111,7 @@ func_cont:
+ 		 * into the device loader. */
+ 		(void)WCD_InitComplete2();
+ 	} else {
+-		GT_0trace(curTrace, GT_7CLASS, "DSP_Init Failed\n");
++		dev_dbg(bridge, "%s: Failed\n", __func__);
+ 	}			/* End WCD_InitComplete2 */
+ 	DBC_Ensure((DSP_SUCCEEDED(status) && drvObject != NULL) ||
+ 		  (DSP_FAILED(status) && drvObject == NULL));
+diff --git a/drivers/dsp/bridge/rmgr/mgr.c b/drivers/dsp/bridge/rmgr/mgr.c
+index b905906..73d7a66 100644
+--- a/drivers/dsp/bridge/rmgr/mgr.c
++++ b/drivers/dsp/bridge/rmgr/mgr.c
+@@ -238,9 +238,7 @@ DSP_STATUS MGR_EnumProcessorInfo(u32 uProcessor,
+ 	/* Get The Manager Object from the Registry */
+ 	if (DSP_FAILED(CFG_GetObject((u32 *)&pMgrObject,
+ 	   REG_MGR_OBJECT))) {
+-		GT_0trace(MGR_DebugMask, GT_7CLASS,
+-			 "Manager_EnumProcessorInfo: "
+-			 "Failed To Get MGR Object from Registry\r\n");
++		dev_dbg(bridge, "%s: Failed to get MGR Object\n", __func__);
+ 		goto func_end;
+ 	}
+ 	DBC_Assert(MEM_IsValidHandle(pMgrObject, SIGNATURE));
+@@ -274,10 +272,8 @@ DSP_STATUS MGR_EnumProcessorInfo(u32 uProcessor,
+ 						pProcessorInfo;
+ 				*pExtInfo = GenObj.objData.extProcObj;
+ 			}
+-			GT_1trace(MGR_DebugMask, GT_7CLASS,
+-				 "Manager_EnumProcessorInfo: Got"
+-				 " Proctype  from DCD %x \r\n",
+-				 pProcessorInfo->uProcessorType);
++			dev_dbg(bridge, "%s: Got proctype  from DCD %x\n",
++				__func__, pProcessorInfo->uProcessorType);
+ 			/* See if we got the needed processor */
+ 			if (devType == DSP_UNIT) {
+ 				if (pProcessorInfo->uProcessorType ==
+@@ -293,18 +289,15 @@ DSP_STATUS MGR_EnumProcessorInfo(u32 uProcessor,
+ 			pProcessorInfo->uProcessorType =
+ 					 chipResources.uChipType;
+ 		} else {
+-			GT_1trace(MGR_DebugMask, GT_7CLASS,
+-				 "Manager_EnumProcessorInfo: "
+-				 "Failed to Get DCD Processor Info %x \r\n",
+-				 status2);
++			dev_dbg(bridge, "%s: Failed to get DCD processor info "
++						"%x\n", __func__, status2);
+ 			status = DSP_EFAIL;
+ 		}
+ 	}
+ 	*puNumProcs = uProcIndex;
+ 	if (procDetect == false) {
+-		GT_0trace(MGR_DebugMask, GT_7CLASS,
+-			 "Manager_EnumProcessorInfo: Failed"
+-			 " to get Proc info from DCD , so use CFG registry\n");
++		dev_dbg(bridge, "%s: Failed to get proc info from DCD, so use "
++						"CFG registry\n", __func__);
+ 		pProcessorInfo->uProcessorType = chipResources.uChipType;
+ 	}
+ func_end:
+diff --git a/drivers/dsp/bridge/rmgr/nldr.c b/drivers/dsp/bridge/rmgr/nldr.c
+index e964d4b..fb5a788 100644
+--- a/drivers/dsp/bridge/rmgr/nldr.c
++++ b/drivers/dsp/bridge/rmgr/nldr.c
+@@ -509,10 +509,8 @@ DSP_STATUS NLDR_Create(OUT struct NLDR_OBJECT **phNldr,
+ 			/* Ok to not have dynamic loading memory */
+ 			status = DSP_SOK;
+ 			ulLen = 0;
+-			GT_1trace(NLDR_debugMask, GT_6CLASS,
+-				 "NLDR_Create: DBLL_getSect "
+-				 "failed (no dynamic loading mem segments): "
+-				 "0x%lx\n", status);
++			dev_dbg(bridge, "%s: failed - no dynamic loading mem "
++					"segments: 0x%x\n", __func__, status);
+ 		}
+ 	}
+ 	if (DSP_SUCCEEDED(status) && ulLen > 0) {
+@@ -543,10 +541,9 @@ DSP_STATUS NLDR_Create(OUT struct NLDR_OBJECT **phNldr,
+ 				rmmSegs[i].space = 0;
+ 				pNldr->segTable[i] = (pMemInfo + i)->type;
  #ifdef CONFIG_BRIDGE_DEBUG
--module_param(GT_str, charp, 0);
--MODULE_PARM_DESC(GT_str, "GT string, default = NULL");
--
- module_param(dsp_debug, int, 0);
- MODULE_PARM_DESC(dsp_debug, "Wait after loading DSP image. default = false");
+-				DBG_Trace(DBG_LEVEL7,
+-				    "** (proc) DLL MEMSEGMENT: %d, Base: 0x%x, "
+-				    "Length: 0x%x\n", i, rmmSegs[i].base,
+-				    rmmSegs[i].length);
++				dev_dbg(bridge, "(proc) DLL MEMSEGMENT: %d, "
++					"Base: 0x%x, Length: 0x%x\n", i,
++					rmmSegs[i].base, rmmSegs[i].length);
  #endif
-@@ -256,15 +250,6 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
- 	device_create(bridge_class, NULL, MKDEV(driver_major, 0),
- 			NULL, "DspBridge");
+ 			}
+ 		}
+@@ -1596,8 +1593,7 @@ static DSP_STATUS RemoteAlloc(void **pRef, u16 space, u32 size,
+ 	nWords = (size + hNldr->usDSPWordSize - 1) / hNldr->usDSPWordSize;
+ 	/* Modify memory 'align' to account for DSP cache line size */
+ 	align = findLcm(GEM_CACHE_LINE_SIZE, align);
+-	GT_1trace(NLDR_debugMask, GT_7CLASS,
+-		 "RemoteAlloc: memory align to 0x%x \n", align);
++	dev_dbg(bridge, "%s: memory align to 0x%x\n", __func__, align);
+ 	if (segmentId != -1) {
+ 		pRmmAddr->segid = segmentId;
+ 		segid = segmentId;
+@@ -1642,9 +1638,8 @@ static DSP_STATUS RemoteAlloc(void **pRef, u16 space, u32 size,
+ 		pRmmAddr->segid = segid;
+ 		status = RMM_alloc(rmm, segid, nWords, align, dspAddr, false);
+ 		if (DSP_FAILED(status)) {
+-			GT_1trace(NLDR_debugMask, GT_6CLASS,
+-				 "RemoteAlloc:Unable allocate "
+-				 "from segment %d.\n", segid);
++			dev_dbg(bridge, "%s: Unable allocate from segment %d\n",
++							__func__, segid);
+ 		}
+ 	} else {
+ 		/* segid > MAXSEGID ==> Internal or external memory */
+@@ -1669,9 +1664,8 @@ static DSP_STATUS RemoteAlloc(void **pRef, u16 space, u32 size,
+ func_cont:
+ 	/* Haven't found memory yet, attempt to find any segment that works */
+ 	if (status == DSP_EMEMORY && !fReq) {
+-		GT_0trace(NLDR_debugMask, GT_6CLASS,
+-			 "RemoteAlloc: Preferred segment "
+-			 "unavailable, trying another segment.\n");
++		dev_dbg(bridge, "%s: Preferred segment unavailable, trying "
++							"another\n", __func__);
+ 		for (i = 0; i < hNldr->nSegs; i++) {
+ 			/* All bits of memType must be set */
+ 			if ((hNldr->segTable[i] & memType) != memType)
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 1c8b4a5..48a7728 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -341,11 +341,6 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
+ 	DBC_Require(phNode != NULL);
+ 	DBC_Require(pNodeId != NULL);
  
--	GT_init();
+-	GT_5trace(NODE_debugMask, GT_ENTER, "NODE_Allocate: \thProcessor: "
+-		"0x%x\tpNodeId: 0x%x\tpArgs: 0x%x\tpAttrIn: "
+-		"0x%x\tphNode: 0x%x\n", hProcessor, pNodeId, pArgs, pAttrIn,
+-		phNode);
 -
--#ifdef CONFIG_BRIDGE_DEBUG
--	if (GT_str)
--		GT_set(GT_str);
--#elif defined(DDSP_DEBUG_PRODUCT) && GT_TRACE
--	GT_set("**=67");
--#endif
--
- #ifdef CONFIG_PM
- 	/* Initialize the wait queue */
- 	if (!status) {
-@@ -385,7 +370,6 @@ func_cont:
- 	MEM_ExtPhysPoolRelease();
+ 	*phNode = NULL;
  
- 	SERVICES_Exit();
--	GT_exit();
+ 	status = PROC_GetProcessorId(hProcessor, &procId);
+@@ -610,10 +605,9 @@ func_cont:
+ 			ulStackSegVal = (u32)*((REG_UWORD32 *)
+ 					((u32)(ulStackSegAddr)));
  
- 	devno = MKDEV(driver_major, 0);
- 	cdev_del(&bridge_cdev);
-diff --git a/drivers/dsp/bridge/services/dbg.c b/drivers/dsp/bridge/services/dbg.c
-deleted file mode 100644
-index 86c4628..0000000
---- a/drivers/dsp/bridge/services/dbg.c
-+++ /dev/null
-@@ -1,81 +0,0 @@
--/*
-- * dbg.c
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Provide debugging services for DSP/BIOS Bridge Mini Driver.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--/*  ----------------------------------- DSP/BIOS Bridge */
--#include <dspbridge/std.h>
--#include <dspbridge/dbdefs.h>
--#include <dspbridge/errbase.h>
--
--/*  ----------------------------------- Trace & Debug */
--#include <dspbridge/dbc.h>
--#include <dspbridge/gt.h>
--
--/*  ----------------------------------- This */
--#include <dspbridge/dbg.h>
--
--#if (defined(CONFIG_BRIDGE_DEBUG) || defined(DDSP_DEBUG_PRODUCT)) && GT_TRACE
--
--/*
-- *  ======== DBG_Init ========
-- *  Purpose:
-- *      Ensures trace capability is set up for link drivers.
-- */
--bool DBG_Init(void)
--{
--	return true;
--}
--
--/*
-- *  ======== DBG_Trace ========
-- *  Purpose:
-- *      Output a trace message to the debugger, if the given trace level
-- *      is unmasked.
-- */
--DSP_STATUS DBG_Trace(u8 bLevel, char *pstrFormat, ...)
--{
--	s32 arg1, arg2, arg3, arg4, arg5, arg6;
--	va_list va;
--
--	va_start(va, pstrFormat);
--
--	arg1 = va_arg(va, s32);
--	arg2 = va_arg(va, s32);
--	arg3 = va_arg(va, s32);
--	arg4 = va_arg(va, s32);
--	arg5 = va_arg(va, s32);
--	arg6 = va_arg(va, s32);
--
--	va_end(va);
--
--	if (bLevel)
--		printk(pstrFormat, arg1, arg2, arg3, arg4, arg5, arg6);
--
--	return DSP_SOK;
--}
--
--/*
-- *  ======== DBG_Exit ========
-- *  Purpose:
-- *      Discontinue usage of the DBG module.
-- */
--void DBG_Exit(void)
--{
--	/* Do nothing */
--}
--
--#endif	/* (CONFIG_BRIDGE_DEBUG || DDSP_DEBUG_PRODUCT) && GT_TRACE */
-diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
-index 87bb76b..f1a8fa8 100644
---- a/drivers/dsp/bridge/services/services.c
-+++ b/drivers/dsp/bridge/services/services.c
-@@ -51,11 +51,8 @@ void SERVICES_Exit(void)
- 	SYNC_Exit();
- 	CLK_Exit();
- 	REG_Exit();
--	DBG_Exit();
- 	CFG_Exit();
- 	MEM_Exit();
--
--	GT_exit();
+-			GT_1trace(NODE_debugMask, GT_5CLASS,
+-				 "StackSegVal =0x%x\n", ulStackSegVal);
+-			GT_1trace(NODE_debugMask, GT_5CLASS,
+-				 "ulStackSegAddr = 0x%x\n", ulStackSegAddr);
++			dev_dbg(bridge, "%s: StackSegVal = 0x%x, StackSegAddr ="
++					" 0x%x\n", __func__, ulStackSegVal,
++					ulStackSegAddr);
+ 
+ 			pNode->createArgs.asa.taskArgs.uStackSeg =
+ 				ulStackSegVal;
+@@ -665,6 +659,9 @@ func_cont:
+ 		  (DSP_SUCCEEDED(status)
+ 		    && MEM_IsValidHandle((*phNode), NODE_SIGNATURE)));
+ func_end:
++	dev_dbg(bridge, "%s: hProcessor: %p pNodeId: %p pArgs: %p pAttrIn: %p "
++			"phNode: %p status: 0x%x\n", __func__, hProcessor,
++			pNodeId, pArgs, pAttrIn, phNode, status);
+ 	return status;
  }
  
- /*
-@@ -66,21 +63,18 @@ void SERVICES_Exit(void)
- bool SERVICES_Init(void)
- {
- 	bool fInit = true;
--	bool fCFG, fDBG, fMEM;
-+	bool fCFG, fMEM;
- 	bool fREG, fSYNC, fCLK, fNTFY;
+@@ -841,10 +838,6 @@ DSP_STATUS NODE_Connect(struct NODE_OBJECT *hNode1, u32 uStream1,
+ 	u32 dwLength;
+ 	DSP_STATUS status = DSP_SOK;
+ 	DBC_Require(cRefs > 0);
+-	GT_5trace(NODE_debugMask, GT_ENTER,
+-		 "NODE_Connect: hNode1: 0x%x\tuStream1:"
+-		 " %d\thNode2: 0x%x\tuStream2: %d\tpAttrs: 0x%x\n", hNode1,
+-		 uStream1, hNode2, uStream2, pAttrs);
  
--	GT_init();
+ 	if ((hNode1 != (struct NODE_OBJECT *) DSP_HGPPNODE &&
+ 			!MEM_IsValidHandle(hNode1, NODE_SIGNATURE)) ||
+@@ -1116,6 +1109,9 @@ func_cont:
+ 	/* Exit critical section */
+ 	(void)SYNC_LeaveCS(hNodeMgr->hSync);
+ func_end:
++	dev_dbg(bridge, "%s: hNode1: %p uStream1: %d hNode2: %p uStream2: %d"
++				"pAttrs: %p status: 0x%x\n", __func__, hNode1,
++				uStream1, hNode2, uStream2, pAttrs, status);
+ 	return status;
+ }
+ 
+@@ -1143,8 +1139,6 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
+ #endif
+ 
+ 	DBC_Require(cRefs > 0);
+-	GT_1trace(NODE_debugMask, GT_ENTER, "NODE_Create: hNode: 0x%x\n",
+-		 hNode);
+ 	if (!MEM_IsValidHandle(pNode, NODE_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -1273,6 +1267,8 @@ func_end:
+ 		NTFY_Notify(hNode->hNtfy, DSP_NODESTATECHANGE);
+ 	}
+ 
++	dev_dbg(bridge, "%s: hNode: %p status: 0x%x\n", __func__,
++							hNode, status);
+ 	return status;
+ }
+ 
+@@ -1423,8 +1419,7 @@ DSP_STATUS NODE_Delete(struct NODE_OBJECT *hNode,
+ 
+ 	struct DSP_PROCESSORSTATE procStatus;
+ 	DBC_Require(cRefs > 0);
+-	GT_1trace(NODE_debugMask, GT_ENTER, "NODE_Delete: hNode: 0x%x\n",
+-		  hNode);
++
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -1542,6 +1537,7 @@ func_cont1:
+ 	(void)SYNC_LeaveCS(hNodeMgr->hSync);
+ 	PROC_NotifyClients(hProcessor, DSP_NODESTATECHANGE);
+ func_end:
++	dev_dbg(bridge, "%s: hNode: %p status 0x%x\n", __func__, hNode, status);
+ 	return status;
+ }
+ 
+@@ -1775,9 +1771,7 @@ DSP_STATUS NODE_GetMessage(struct NODE_OBJECT *hNode, OUT struct DSP_MSG *pMsg,
+ 
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(pMsg != NULL);
+-	GT_3trace(NODE_debugMask, GT_ENTER,
+-		 "NODE_GetMessage: hNode: 0x%x\tpMsg: "
+-		 "0x%x\tuTimeout: 0x%x\n", hNode, pMsg, uTimeout);
++
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -1830,6 +1824,8 @@ DSP_STATUS NODE_GetMessage(struct NODE_OBJECT *hNode, OUT struct DSP_MSG *pMsg,
+ 		status = DSP_ETRANSLATE;
+ 	}
+ func_end:
++	dev_dbg(bridge, "%s: hNode: %p pMsg: %p uTimeout: 0x%x\n", __func__,
++							hNode, pMsg, uTimeout);
+ 	return status;
+ }
+ 
+@@ -1881,9 +1877,7 @@ enum NLDR_LOADTYPE NODE_GetLoadType(struct NODE_OBJECT *hNode)
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(MEM_IsValidHandle(hNode, NODE_SIGNATURE));
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+-		GT_1trace(NODE_debugMask, GT_5CLASS,
+-			"NODE_GetLoadType: Failed. hNode:"
+-			" 0x%x\n", hNode);
++		dev_dbg(bridge, "%s: Failed. hNode: %p\n", __func__, hNode);
+ 		return -1;
+ 	} else {
+ 		return hNode->dcdProps.objData.nodeObj.usLoadType;
+@@ -1900,9 +1894,7 @@ u32 NODE_GetTimeout(struct NODE_OBJECT *hNode)
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(MEM_IsValidHandle(hNode, NODE_SIGNATURE));
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+-		GT_1trace(NODE_debugMask, GT_5CLASS,
+-			"NODE_GetTimeout: Failed. hNode:"
+-			" 0x%x\n", hNode);
++		dev_dbg(bridge, "%s: failed. hNode: %p\n", __func__, hNode);
+ 		return 0;
+ 	} else {
+ 		return hNode->uTimeout;
+@@ -1991,8 +1983,6 @@ DSP_STATUS NODE_Pause(struct NODE_OBJECT *hNode)
+ 
+ 	DBC_Require(cRefs > 0);
+ 
+-	GT_1trace(NODE_debugMask, GT_ENTER, "NODE_Pause: hNode: 0x%x\n", hNode);
 -
- 	/* Perform required initialization of SERVICES modules. */
- 	fMEM = MEM_Init();
- 	fREG = REG_Init();
- 	fCFG = CFG_Init();
--	fDBG = DBG_Init();
- 	fSYNC = SYNC_Init();
- 	fCLK  = CLK_Init();
- 	fNTFY = NTFY_Init();
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 	} else {
+@@ -2055,6 +2045,7 @@ func_cont:
+ 		}
+ 	}
+ func_end:
++	dev_dbg(bridge, "%s: hNode: %p status 0x%x\n", __func__, hNode, status);
+ 	return status;
+ }
  
--	fInit = fCFG && fDBG && fMEM && fREG && fSYNC && fCLK;
-+	fInit = fCFG && fMEM && fREG && fSYNC && fCLK;
+@@ -2080,9 +2071,7 @@ DSP_STATUS NODE_PutMessage(struct NODE_OBJECT *hNode,
  
- 	if (!fInit) {
- 		if (fNTFY)
-@@ -95,9 +89,6 @@ bool SERVICES_Init(void)
- 		if (fREG)
- 			REG_Exit();
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(pMsg != NULL);
+-	GT_3trace(NODE_debugMask, GT_ENTER,
+-		 "NODE_PutMessage: hNode: 0x%x\tpMsg: "
+-		 "0x%x\tuTimeout: 0x%x\n", hNode, pMsg, uTimeout);
++
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -2154,6 +2143,8 @@ DSP_STATUS NODE_PutMessage(struct NODE_OBJECT *hNode,
+ 			 &newMsg, uTimeout);
+ 	}
+ func_end:
++	dev_dbg(bridge, "%s: hNode: %p pMsg: %p uTimeout: 0x%x, "
++		"status 0x%x\n", __func__, hNode, pMsg, uTimeout, status);
+ 	return status;
+ }
  
--		if (fDBG)
--			DBG_Exit();
+@@ -2172,11 +2163,6 @@ DSP_STATUS NODE_RegisterNotify(struct NODE_OBJECT *hNode, u32 uEventMask,
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(hNotification != NULL);
+ 
+-	GT_4trace(NODE_debugMask, GT_ENTER,
+-		 "NODE_RegisterNotify: hNode: 0x%x\t"
+-		 "uEventMask: 0x%x\tuNotifyType: 0x%x\thNotification: 0x%x\n",
+-		 hNode, uEventMask, uNotifyType, hNotification);
 -
- 		if (fCFG)
- 			CFG_Exit();
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 	} else {
+@@ -2209,6 +2195,9 @@ DSP_STATUS NODE_RegisterNotify(struct NODE_OBJECT *hNode, u32 uEventMask,
+ 		}
  
+ 	}
++	dev_dbg(bridge, "%s: hNode: %p uEventMask: 0x%x uNotifyType: 0x%x "
++			"hNotification: %p status 0x%x\n", __func__, hNode,
++			uEventMask, uNotifyType, hNotification, status);
+ 	return status;
+ }
+ 
+@@ -2234,7 +2223,7 @@ DSP_STATUS NODE_Run(struct NODE_OBJECT *hNode)
+ 	struct PROC_OBJECT *hProcessor;
+ 
+ 	DBC_Require(cRefs > 0);
+-	GT_1trace(NODE_debugMask, GT_ENTER, "NODE_Run: hNode: 0x%x\n", hNode);
++
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -2330,6 +2319,7 @@ func_cont:
+ 		NTFY_Notify(hNode->hNtfy, DSP_NODESTATECHANGE);
+ 	}
+ func_end:
++	dev_dbg(bridge, "%s: hNode: %p status 0x%x\n", __func__, hNode, status);
+ 	return status;
+ }
+ 
+@@ -2355,8 +2345,6 @@ DSP_STATUS NODE_Terminate(struct NODE_OBJECT *hNode, OUT DSP_STATUS *pStatus)
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(pStatus != NULL);
+ 
+-	GT_1trace(NODE_debugMask, GT_ENTER,
+-		 "NODE_Terminate: hNode: 0x%x\n", hNode);
+ 	if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE) || !hNode->hNodeMgr) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -2470,9 +2458,8 @@ func_cont:
+ 			status = DSP_EFAIL;
+ 		} else {
+ 			*pStatus = hNode->nExitStatus;
+-			GT_1trace(NODE_debugMask, GT_ENTER,
+-				 "NODE_Terminate: env = 0x%x "
+-				 "succeeded.\n", hNode->nodeEnv);
++			dev_dbg(bridge, "%s: hNode: %p env 0x%x status 0x%x\n",
++				__func__, hNode, hNode->nodeEnv, status);
+ 		}
+ 		(void)SYNC_LeaveCS(hNodeMgr->hSync);
+ 	}		/*End of SYNC_EnterCS */
+@@ -2891,7 +2878,7 @@ static DSP_STATUS GetNodeProps(struct DCD_MANAGER *hDcdMgr,
+ 		/* Create UUID value to set in registry. */
+ 		UUID_UuidToString((struct DSP_UUID *)pNodeId, szUuid,
+ 				 MAXUUIDLEN);
+-		DBG_Trace(DBG_LEVEL7, "\n** (node) UUID: %s\n", szUuid);
++		dev_dbg(bridge, "(node) UUID: %s\n", szUuid);
+ #endif
+ 
+ 		/* Fill in message args that come from NDB */
+@@ -2902,8 +2889,7 @@ static DSP_STATUS GetNodeProps(struct DCD_MANAGER *hDcdMgr,
+ 						uMsgNotifyType;
+ 			pMsgArgs->uMaxMessages = pndbProps->uMessageDepth;
+ #ifdef CONFIG_BRIDGE_DEBUG
+-			DBG_Trace(DBG_LEVEL7,
+-				 "** (node) Max Number of Messages: 0x%x\n",
++			dev_dbg(bridge, "(node) Max Number of Messages: 0x%x\n",
+ 				 pMsgArgs->uMaxMessages);
+ #endif
+ 		} else {
+@@ -2929,12 +2915,9 @@ static DSP_STATUS GetNodeProps(struct DCD_MANAGER *hDcdMgr,
+ 			pTaskArgs->uSysStackSize = pndbProps->uSysStackSize;
+ 			pTaskArgs->uStackSeg = pndbProps->uStackSeg;
+ #ifdef CONFIG_BRIDGE_DEBUG
+-			DBG_Trace(DBG_LEVEL7,
+-				"** (node) Priority: 0x%x\n" "** (node) Stack"
+-				" Size: 0x%x words\n" "** (node) System Stack"
+-				" Size: 0x%x words\n" "** (node) Stack"
+-				" Segment: 0x%x\n\n",
+-				"** (node) profile count : 0x%x \n \n",
++			dev_dbg(bridge, "(node) Priority: 0x%x Stack Size: "
++				"0x%x words System Stack Size: 0x%x words "
++				"Stack Segment: 0x%x profile count : 0x%x\n",
+ 				pTaskArgs->nPriority, pTaskArgs->uStackSize,
+ 				pTaskArgs->uSysStackSize,
+ 				pTaskArgs->uStackSeg,
+@@ -3096,14 +3079,12 @@ static DSP_STATUS GetRMSFxns(struct NODE_MGR *hNodeMgr)
+ 				 *  May be loaded dynamically (in the future),
+ 				 *  but return an error for now.
+ 				 */
+-				GT_1trace(NODE_debugMask, GT_6CLASS,
+-					 "RMS function: %s "
+-					 "currently not loaded\n", pszFxns[i]);
++				dev_dbg(bridge, "%s: RMS function: %s currently"
++					 " not loaded\n", __func__, pszFxns[i]);
+ 			} else {
+-				GT_2trace(NODE_debugMask, GT_6CLASS,
+-					 "GetRMSFxns: Symbol not "
+-					 "found: %s\tstatus = 0x%x\n",
+-					 pszFxns[i], status);
++				dev_dbg(bridge, "%s: Symbol not found: %s "
++						"status = 0x%x\n", __func__,
++						pszFxns[i], status);
+ 				break;
+ 			}
+ 		}
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index f372059..d8137c8 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -750,10 +750,8 @@ DSP_STATUS PROC_GetState(DSP_HPROCESSOR hProcessor,
+ 	} else {
+ 		status = DSP_EHANDLE;
+ 	}
+-	GT_2trace(PROC_DebugMask, GT_ENTER,
+-		 "Exiting PROC_GetState, results:\n\t"
+-		 "status:  0x%x\n\tpProcStatus: 0x%x\n", status,
+-		 pProcStatus->iState);
++	dev_dbg(bridge, "%s, results: status: 0x%x pProcStatus: 0x%x\n",
++					__func__, status, pProcStatus->iState);
+ 	return status;
+ }
+ 
+@@ -877,8 +875,8 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
+ 		status = snprintf(szProcID, MAXPROCIDLEN, PROC_ENVPROCID,
+ 				    nProcID);
+ 		if (status == -1) {
+-			GT_0trace(PROC_DebugMask, GT_7CLASS, "PROC_Load: "
+-				 "Proc ID string overflow \n");
++			dev_dbg(bridge, "%s: Proc ID string overflow\n",
++								__func__);
+ 			status = DSP_EFAIL;
+ 		} else {
+ 			newEnvp = PrependEnvp(newEnvp, (char **)aEnvp, cEnvp,
+@@ -973,8 +971,8 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
+ 				     pProcObject->hDevObject, NULL);
+ 		if (DSP_FAILED(status)) {
+ 			if (status == COD_E_OPENFAILED) {
+-				GT_0trace(PROC_DebugMask, GT_7CLASS,
+-					"PROC_Load:Failure to Load the EXE\n");
++				dev_dbg(bridge,	"%s: Failure to Load the EXE\n",
++								__func__);
+ 			}
+ 			if (status == COD_E_SYMBOLNOTFOUND) {
+ 				pr_err("%s: Couldn't parse the file\n",
+@@ -1048,8 +1046,7 @@ func_end:
+ 		tv2.tv_usec += 1000000;
+ 		tv2.tv_sec--;
+ 	}
+-	GT_2trace(PROC_DebugMask, GT_1CLASS,
+-			"Proc_Load: time to load %d sec and %d usec \n",
++	dev_dbg(bridge, "%s: time to load %d sec and %d usec\n", __func__,
+ 		    tv2.tv_sec - tv1.tv_sec, tv2.tv_usec - tv1.tv_usec);
+ #endif
+ 	return status;
+@@ -1073,19 +1070,12 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
+ 
+        HANDLE        dmmRes;
+ 
+-	GT_6trace(PROC_DebugMask, GT_ENTER, "Entered PROC_Map, args:\n\t"
+-		 "hProcessor %x, pMpuAddr %x, ulSize %x, pReqAddr %x, "
+-		 "ulMapAttr %x, ppMapAddr %x\n", hProcessor, pMpuAddr, ulSize,
+-		 pReqAddr, ulMapAttr, ppMapAddr);
+ 	/* Calculate the page-aligned PA, VA and size */
+ 	vaAlign = PG_ALIGN_LOW((u32) pReqAddr, PG_SIZE_4K);
+ 	paAlign = PG_ALIGN_LOW((u32) pMpuAddr, PG_SIZE_4K);
+ 	sizeAlign = PG_ALIGN_HIGH(ulSize + (u32)pMpuAddr - paAlign,
+ 				 PG_SIZE_4K);
+ 
+-	GT_3trace(PROC_DebugMask, GT_ENTER, "PROC_Map: vaAlign %x, paAlign %x, "
+-		 "sizeAlign %x\n", vaAlign, paAlign, sizeAlign);
+-
+ 	if (!MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -1118,7 +1108,12 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
+ 				(u32)pReqAddr, (u32)*ppMapAddr, hProcessor);
+ 	}
+ func_end:
+-	GT_1trace(PROC_DebugMask, GT_ENTER, "Leaving PROC_Map [0x%x]", status);
++	dev_dbg(bridge, "%s: hProcessor %p, pMpuAddr %p, ulSize %x, "
++		"pReqAddr %p, ulMapAttr %x, ppMapAddr %p, vaAlign %x, "
++		"paAlign %x, sizeAlign %x status 0x%x\n", __func__, hProcessor,
++		pMpuAddr, ulSize, pReqAddr, ulMapAttr,  ppMapAddr, vaAlign,
++		paAlign, sizeAlign, status);
++
+ 	return status;
+ }
+ 
+@@ -1206,10 +1201,6 @@ DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR hProcessor, u32 ulSize,
+ 	DSP_STATUS status = DSP_SOK;
+ 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
+ 
+-	GT_3trace(PROC_DebugMask, GT_ENTER,
+-		 "Entered PROC_ReserveMemory, args:\n\t"
+-		 "hProcessor: 0x%x ulSize: 0x%x ppRsvAddr: 0x%x\n", hProcessor,
+-		 ulSize, ppRsvAddr);
+ 	if (!MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -1218,9 +1209,10 @@ DSP_STATUS PROC_ReserveMemory(DSP_HPROCESSOR hProcessor, u32 ulSize,
+ 	if (DSP_SUCCEEDED(status))
+ 		status = DMM_ReserveMemory(hDmmMgr, ulSize, (u32 *)ppRsvAddr);
+ 
+-	GT_1trace(PROC_DebugMask, GT_ENTER, "Leaving PROC_ReserveMemory [0x%x]",
+-		 status);
+ func_end:
++	dev_dbg(bridge, "%s: hProcessor: 0x%p ulSize: 0x%x ppRsvAddr: 0x%p "
++					"status 0x%x\n", __func__, hProcessor,
++					ulSize, ppRsvAddr, status);
+ 	return status;
+ }
+ 
+@@ -1341,9 +1333,7 @@ DSP_STATUS PROC_Stop(DSP_HPROCESSOR hProcessor)
+ 	status = (*pProcObject->pIntfFxns->pfnBrdStop)(pProcObject->
+ 		 hWmdContext);
+ 	if (DSP_SUCCEEDED(status)) {
+-		GT_0trace(PROC_DebugMask, GT_1CLASS,
+-			 "PROC_Stop: Processor Stopped, "
+-			 "i.e in standby mode \n");
++		dev_dbg(bridge, "%s: processor in standby mode\n", __func__);
+ 		pProcObject->sState = PROC_STOPPED;
+ 		/* Destory the Node Manager, MSG Manager */
+ 		if (DSP_SUCCEEDED(DEV_Destroy2(pProcObject->hDevObject))) {
+@@ -1384,10 +1374,6 @@ DSP_STATUS PROC_UnMap(DSP_HPROCESSOR hProcessor, void *pMapAddr,
+ 
+ 	HANDLE	      dmmRes;
+ 
+-	GT_2trace(PROC_DebugMask, GT_ENTER,
+-		 "Entered PROC_UnMap, args:\n\thProcessor:"
+-		 "0x%x pMapAddr: 0x%x\n", hProcessor, pMapAddr);
+-
+ 	vaAlign = PG_ALIGN_LOW((u32) pMapAddr, PG_SIZE_4K);
+ 	if (!MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+@@ -1418,8 +1404,8 @@ DSP_STATUS PROC_UnMap(DSP_HPROCESSOR hProcessor, void *pMapAddr,
+ 							!= DSP_ENOTFOUND)
+ 		DRV_RemoveDMMResElement(dmmRes, pr_ctxt);
+ func_end:
+-	GT_1trace(PROC_DebugMask, GT_ENTER,
+-		 "Leaving PROC_UnMap [0x%x]", status);
++	dev_dbg(bridge, "%s: hProcessor: 0x%p pMapAddr: 0x%p status: 0x%x\n",
++					__func__, hProcessor, pMapAddr, status);
+ 	return status;
+ }
+ 
+@@ -1434,9 +1420,6 @@ DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr)
+ 	DSP_STATUS status = DSP_SOK;
+ 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
+ 
+-	GT_2trace(PROC_DebugMask, GT_ENTER,
+-		 "Entered PROC_UnReserveMemory, args:\n\t"
+-		 "hProcessor: 0x%x pRsvAddr: 0x%x\n", hProcessor, pRsvAddr);
+ 	if (!MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -1445,10 +1428,9 @@ DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR hProcessor, void *pRsvAddr)
+ 	if (DSP_SUCCEEDED(status))
+ 		status = DMM_UnReserveMemory(hDmmMgr, (u32) pRsvAddr);
+ 
+-	GT_1trace(PROC_DebugMask, GT_ENTER,
+-		 "Leaving PROC_UnReserveMemory [0x%x]",
+-		 status);
+ func_end:
++	dev_dbg(bridge, "%s: hProcessor: 0x%p pRsvAddr: 0x%p status: 0x%x\n",
++					__func__, hProcessor, pRsvAddr, status);
+ 	return status;
+ }
+ 
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index 52b796f..909a2b1 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -171,8 +171,6 @@ DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm,
+ 
+ 	DBC_Require(cRefs > 0);
+ 
+-	GT_1trace(STRM_debugMask, GT_ENTER, "STRM_Close: hStrm: 0x%x\n", hStrm);
+-
+ 	if (!MEM_IsValidHandle(hStrm, STRM_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 	} else {
+@@ -198,6 +196,8 @@ func_end:
+ 	DBC_Ensure(status == DSP_SOK || status == DSP_EHANDLE ||
+ 		  status == DSP_EPENDING || status == DSP_EFAIL);
+ 
++	dev_dbg(bridge, "%s: hStrm: %p, status 0x%x\n", __func__,
++							hStrm, status);
+ 	return status;
+ }
+ 
+@@ -387,9 +387,6 @@ DSP_STATUS STRM_Idle(struct STRM_OBJECT *hStrm, bool fFlush)
+ 
+ 	DBC_Require(cRefs > 0);
+ 
+-	GT_2trace(STRM_debugMask, GT_ENTER, "STRM_Idle: hStrm: 0x%x\t"
+-		 "fFlush: 0x%x\n", hStrm, fFlush);
+-
+ 	if (!MEM_IsValidHandle(hStrm, STRM_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 	} else {
+@@ -398,6 +395,9 @@ DSP_STATUS STRM_Idle(struct STRM_OBJECT *hStrm, bool fFlush)
+ 		status = (*pIntfFxns->pfnChnlIdle) (hStrm->hChnl,
+ 			 hStrm->uTimeout, fFlush);
+ 	}
++
++	dev_dbg(bridge, "%s: hStrm: %p fFlush: 0x%x status: 0x%x\n",
++					__func__, hStrm, fFlush, status);
+ 	return status;
+ }
+ 
+@@ -442,9 +442,6 @@ DSP_STATUS STRM_Issue(struct STRM_OBJECT *hStrm, IN u8 *pBuf, u32 ulBytes,
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(pBuf != NULL);
+ 
+-	GT_4trace(STRM_debugMask, GT_ENTER, "STRM_Issue: hStrm: 0x%x\tpBuf: "
+-		 "0x%x\tulBytes: 0x%x\tdwArg: 0x%x\n", hStrm, pBuf, ulBytes,
+-		 dwArg);
+ 	if (!MEM_IsValidHandle(hStrm, STRM_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 	} else {
+@@ -465,6 +462,10 @@ DSP_STATUS STRM_Issue(struct STRM_OBJECT *hStrm, IN u8 *pBuf, u32 ulBytes,
+ 		if (status == CHNL_E_NOIORPS)
+ 			status = DSP_ESTREAMFULL;
+ 	}
++
++	dev_dbg(bridge, "%s: hStrm: %p pBuf: %p ulBytes: 0x%x dwArg: 0x%x "
++					"status: 0x%x\n", __func__, hStrm, pBuf,
++					ulBytes, dwArg, status);
+ 	return status;
+ }
+ 
+@@ -493,10 +494,6 @@ DSP_STATUS STRM_Open(struct NODE_OBJECT *hNode, u32 uDir, u32 uIndex,
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(phStrm != NULL);
+ 	DBC_Require(pAttr != NULL);
+-	GT_5trace(STRM_debugMask, GT_ENTER,
+-		 "STRM_Open: hNode: 0x%x\tuDir: 0x%x\t"
+-		 "uIndex: 0x%x\tpAttr: 0x%x\tphStrm: 0x%x\n",
+-		 hNode, uDir, uIndex, pAttr, phStrm);
+ 	*phStrm = NULL;
+ 	if (uDir != DSP_TONODE && uDir != DSP_FROMNODE) {
+ 		status = DSP_EDIRECTION;
+@@ -614,6 +611,10 @@ func_cont:
+ 		  (*phStrm == NULL && (status == DSP_EHANDLE ||
+ 		  status == DSP_EDIRECTION || status == DSP_EVALUE ||
+ 		  status == DSP_EFAIL)));
++
++	dev_dbg(bridge, "%s: hNode: %p uDir: 0x%x uIndex: 0x%x pAttr: %p "
++				"phStrm: %p status: 0x%x\n", __func__,
++				hNode, uDir, uIndex, pAttr, phStrm, status);
+ 	return status;
+ }
+ 
+@@ -635,11 +636,6 @@ DSP_STATUS STRM_Reclaim(struct STRM_OBJECT *hStrm, OUT u8 **pBufPtr,
+ 	DBC_Require(pulBytes != NULL);
+ 	DBC_Require(pdwArg != NULL);
+ 
+-	GT_4trace(STRM_debugMask, GT_ENTER,
+-		 "STRM_Reclaim: hStrm: 0x%x\tpBufPtr: 0x%x"
+-		 "\tpulBytes: 0x%x\tpdwArg: 0x%x\n", hStrm, pBufPtr, pulBytes,
+-		 pdwArg);
+-
+ 	if (!MEM_IsValidHandle(hStrm, STRM_SIGNATURE)) {
+ 		status = DSP_EHANDLE;
+ 		goto func_end;
+@@ -693,6 +689,10 @@ func_end:
+ 	DBC_Ensure(DSP_SUCCEEDED(status) || status == DSP_EHANDLE ||
+ 		  status == DSP_ETIMEOUT || status == DSP_ETRANSLATE ||
+ 		  status == DSP_EFAIL);
++
++	dev_dbg(bridge, "%s: hStrm: %p pBufPtr: %p pulBytes: %p pdwArg: %p "
++					"status 0x%x\n", __func__, hStrm,
++					pBufPtr, pulBytes, pdwArg, status);
+ 	return status;
+ }
+ 
+diff --git a/drivers/dsp/bridge/uTimeout b/drivers/dsp/bridge/uTimeout
+new file mode 100644
+index 0000000..e69de29
 -- 
 1.6.2.4
 
