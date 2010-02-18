@@ -1,162 +1,92 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fix for 2.6.33-rc8
-Date: Thu, 18 Feb 2010 12:29:11 -0800
-Message-ID: <20100218202911.GS21755@atomide.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH v4] DSPBRIDGE: Fix to avoid possible recursive locking
+Date: Thu, 18 Feb 2010 14:36:01 -0600
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0130EBC3B9@dlee02.ent.ti.com>
+References: <1265925284-7536-1-git-send-email-deepak.chitriki@ti.com>
+ <1265926841.26484.0.camel@chotu.research.nokia.com>
+ <7A436F7769CA33409C6B44B358BFFF0C0130998163@dlee02.ent.ti.com>
+ <4B7D8659.5030609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:40469 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752735Ab0BRUgJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 15:36:09 -0500
+In-Reply-To: <4B7D8659.5030609@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Guzman Lugo, Fernando" <x0095840@ti.com>
 
-Hi Linus,
 
-Please pull one more omap fix from:
+> -----Original Message-----
+> From: Ramirez Luna, Omar
+> Sent: Thursday, February 18, 2010 8:27 PM
+> To: Menon, Nishanth
+> Cc: Ameya Palande; Chitriki Rudramuni, Deepak; linux-omap; Guzman Lugo,
+> Fernando
+> Subject: Re: [PATCH v4] DSPBRIDGE: Fix to avoid possible recursive locking
+> 
+> On 2/17/2010 10:09 AM, Menon, Nishanth wrote:
+> > Hi,
+> >
+> >> From: Ameya Palande [mailto:ameya.palande@nokia.com]
+> >> Sent: Friday, February 12, 2010 12:21 AM
+> >> To: Chitriki Rudramuni, Deepak
+> >> Cc: linux-omap; Ramirez Luna, Omar; Menon, Nishanth
+> >> Subject: Re: [PATCH v4] DSPBRIDGE: Fix to avoid possible recursive
+> locking
+> >>
+> >> On Thu, 2010-02-11 at 22:54 +0100, ext Deepak Chitriki wrote:
+> >>> Removed NTFY_Notify() in WMD_MSG_Get() to avoid locking contention
+> >>> as NTFY_Notify() is already invoked in InputMsg().
+> >>>
+> >>> Cc: Ameya Palande<ameya.palande@nokia.com>
+> >>> Cc: Omar Ramirez Luna<omar.ramirez@ti.com>
+> >>> Cc: Nishanth Menon<nm@ti.com>
+> >>>
+> >>> Signed-off-by: Deepak Chitriki<deepak.chitriki@ti.com>
+> >>
+> >> Acked-by: Ameya Palande<ameya.palande@nokia.com>
+> >
+> > Could this patch be pushed if there are no more comments?
+> 
+> Instead of pushing this patch I'll be reverting this one:
+> 
+> http://marc.info/?l=linux-omap&m=125694410627720&w=2
+> 
+> Explanation:
+> 
+> After reviewing the scenario it seems that the patch "fixing a flood of
+> messages usecase" doesn't seem to be the proper way to fix it.
+> 
+> If the dsp sends 10 messages in a shot for the same client and bridge
+> process them without interrupt, if the client is using
+> DSPManager_WaitForEvents, InputMsg function will notify of all of them
+> but "WaitForEvents" will only catch one notification, then client will
+> call GetMsg ioctl and pick one message from the queue leaving 9 of them
+> still there, whenever WaitForEvents is executed again there won't be a
+> Notification if the dsp stopped sending messages to the same queue, so
+> those 9 messages never will be retrieved because WaitForEvents will
+> timeout.
+> 
+> The fix was only to re-notify the client that a message was still
+> available in its queue and that it needs to pick it up, all of this
+> during GetMsg, however this seems to be triggering a kernel warning
+> because of nested spinlocks called for separate objects.
+> 
+> The reason to avoid pushing this patch is that it is leaving a part of
+> the code introduced by the "flooding" fix.
+> 
+> Please let me know if anyone has comments.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+So, do we have a clean complete fix? Why not leave the partial fix which we have in place and incorporate the clean fix on top of that?  I would prefer to have something here instead of nothing at all.. but that is just me.
+
+> 
+> - omar
 
 Regards,
-
-Tony
-
-
-The following changes since commit 724e6d3fe8003c3f60bf404bf22e4e331327c596:
-  Linus Torvalds (1):
-        Linux 2.6.33-rc8
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Ranjith Lohithakshan (1):
-      omap: Remove DEBUG_FS dependency for mux name checking
-
- arch/arm/mach-omap2/mux.c |   12 +++++-------
- 1 files changed, 5 insertions(+), 7 deletions(-)
-
-
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Date: Wed, 17 Feb 2010 17:17:01 +0000
-Subject: [PATCH] omap: Remove DEBUG_FS dependency for mux name checking
-
-The check for a valid mux name should be performed regardless of whether
-DEBUG_FS is enabled or not. Otherwise without DEBUG_FS, we get:
-
-Unable to handle kernel NULL pointer dereference at virtual address 00000000
-pgd = c0004000
-[00000000] *pgd=00000000
-Internal error: Oops: 5 [#1]
-last sysfs file:
-Modules linked in:
-CPU: 0    Not tainted  (2.6.33-rc8 #10)
-PC is at strcmp+0x18/0x40
-LR is at omap_mux_init_signal+0x68/0x14c
-...
-
-This fixes the issue currently seen with boards not booting up
-if DEBUG_FS is not enabled in defconfig.
-
-Note that the earlier ifndef + ifdef now becomes simpler ifdef else:
-If CONFIG_OMAP_MUX is selected, we use pin names. If it's not selected,
-we only want the GPIO to mux register mapping.
-
-Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 5fedc50..5fef73f 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -961,16 +961,14 @@ static void __init omap_mux_init_list(struct omap_mux *superset)
- 	while (superset->reg_offset !=  OMAP_MUX_TERMINATOR) {
- 		struct omap_mux *entry;
- 
--#ifndef CONFIG_OMAP_MUX
--		/* Skip pins that are not muxed as GPIO by bootloader */
--		if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
-+#ifdef CONFIG_OMAP_MUX
-+		if (!superset->muxnames || !superset->muxnames[0]) {
- 			superset++;
- 			continue;
- 		}
--#endif
--
--#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
--		if (!superset->muxnames || !superset->muxnames[0]) {
-+#else
-+		/* Skip pins that are not muxed as GPIO by bootloader */
-+		if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
- 			superset++;
- 			continue;
- 		}
-The following changes since commit 724e6d3fe8003c3f60bf404bf22e4e331327c596:
-  Linus Torvalds (1):
-        Linux 2.6.33-rc8
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Ranjith Lohithakshan (1):
-      omap: Remove DEBUG_FS dependency for mux name checking
-
- arch/arm/mach-omap2/mux.c |   12 +++++-------
- 1 files changed, 5 insertions(+), 7 deletions(-)
-
-
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Date: Wed, 17 Feb 2010 17:17:01 +0000
-Subject: [PATCH] omap: Remove DEBUG_FS dependency for mux name checking
-
-The check for a valid mux name should be performed regardless of whether
-DEBUG_FS is enabled or not. Otherwise without DEBUG_FS, we get:
-
-Unable to handle kernel NULL pointer dereference at virtual address 00000000
-pgd = c0004000
-[00000000] *pgd=00000000
-Internal error: Oops: 5 [#1]
-last sysfs file:
-Modules linked in:
-CPU: 0    Not tainted  (2.6.33-rc8 #10)
-PC is at strcmp+0x18/0x40
-LR is at omap_mux_init_signal+0x68/0x14c
-...
-
-This fixes the issue currently seen with boards not booting up
-if DEBUG_FS is not enabled in defconfig.
-
-Note that the earlier ifndef + ifdef now becomes simpler ifdef else:
-If CONFIG_OMAP_MUX is selected, we use pin names. If it's not selected,
-we only want the GPIO to mux register mapping.
-
-Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 5fedc50..5fef73f 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -961,16 +961,14 @@ static void __init omap_mux_init_list(struct omap_mux *superset)
- 	while (superset->reg_offset !=  OMAP_MUX_TERMINATOR) {
- 		struct omap_mux *entry;
- 
--#ifndef CONFIG_OMAP_MUX
--		/* Skip pins that are not muxed as GPIO by bootloader */
--		if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
-+#ifdef CONFIG_OMAP_MUX
-+		if (!superset->muxnames || !superset->muxnames[0]) {
- 			superset++;
- 			continue;
- 		}
--#endif
--
--#if defined(CONFIG_OMAP_MUX) && defined(CONFIG_DEBUG_FS)
--		if (!superset->muxnames || !superset->muxnames[0]) {
-+#else
-+		/* Skip pins that are not muxed as GPIO by bootloader */
-+		if (!OMAP_MODE_GPIO(omap_mux_read(superset->reg_offset))) {
- 			superset++;
- 			continue;
- 		}
+Nishanth Menon
