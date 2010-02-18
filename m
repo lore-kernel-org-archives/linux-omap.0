@@ -1,58 +1,53 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/2 RFC]OMAP3430: hwmod FW for GPIO
-Date: Wed, 17 Feb 2010 16:09:43 -0600
-Message-ID: <87mxz7tsyg.fsf@deeprootsystems.com>
-References: <1265981968-14696-1-git-send-email-charu@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 0/7] OMAP PM updates for 2.6.34
+Date: Wed, 17 Feb 2010 18:02:23 -0600
+Message-ID: <1266451350-4480-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f197.google.com ([209.85.211.197]:43735 "EHLO
+Received: from mail-yw0-f197.google.com ([209.85.211.197]:37477 "EHLO
 	mail-yw0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509Ab0BQWJs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 17:09:48 -0500
-Received: by ywh35 with SMTP id 35so377436ywh.4
-        for <linux-omap@vger.kernel.org>; Wed, 17 Feb 2010 14:09:45 -0800 (PST)
-In-Reply-To: <1265981968-14696-1-git-send-email-charu@ti.com> (Charulatha Varadarajan's message of "Fri\, 12 Feb 2010 19\:09\:26 +0530")
+	with ESMTP id S1756767Ab0BRACd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 19:02:33 -0500
+Received: by ywh35 with SMTP id 35so478340ywh.4
+        for <linux-omap@vger.kernel.org>; Wed, 17 Feb 2010 16:02:32 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+Here's a small series of PM updates destined for 2.6.34.
 
-> From: Charulatha V <charu@ti.com>
->
-> This patch series makes the OMAP3430 GPIO module
-> use hwmod framework.
->
-> This patch series applies on top of pm branch
-> and it requires my previous patch set which converts
-> GPIO into an early init device. 
+This branch is also available as 'pm-2.6.34' in my tree and is based
+on Tony's omap-for-linus branch. This will be it for PM patches for
+2.6.34 as the rest of the PM branch is under more significant rework.
 
-There's no reason this needs to depend on the PM branch.  
+Yes, this is a bit late, but hopefully better late than never for
+these relatively minor changes.  Thes changes mainly affect CPUidle
+and off-mode support, neither of which are currently enbled in
+mainline default defconfigs.
 
-I have a WIP branch on my tree named 'pm-wip/hwmod' which already has
-a set of hwmod updates (UART and MMC currently.)  This branch is based
-on Tony's omap-for-linus branch.  
+Kalle Jokiniemi (2):
+  OMAP3: cpuidle: Add valid field into C-state parameter passing
+  OMAP3: RX-51: Pass cpu idle parameters
 
-To best avoid conflicts with other hwmods, please base this series on
-my pm-wip/hwmod branch.
+Kevin Hilman (2):
+  OMAP3: cpuidle: configure latencies/thresholds from board file
+  OMAP3: RX-51: support sleep indicator LEDs
 
-Kevin
+Rajendra Nayak (1):
+  OMAP3: PM: add scratchpad locking function
 
-> They are boot tested on SDP 3430 and compile tested
-> for OMAP 2420 and 2430.
->
-> Charulatha V (2):
->   OMAP3: hwmod: add GPIO hwmods for OMAP3430
->   OMAP3: hwmod: Adapt HWMOD FW for GPIO OMAP3430
->
->  arch/arm/mach-omap2/gpio.c             |  901 ++++----------------------------
->  arch/arm/mach-omap2/omap_hwmod_34xx.h  |  410 +++++++++++++++
->  arch/arm/plat-omap/include/plat/gpio.h |   25 +-
->  3 files changed, 533 insertions(+), 803 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sanjeev Premi (1):
+  OMAP3: cpuidle: Update statistics for correct state
+
+Tero Kristo (1):
+  OMAP3: PM: Added support for L2 aux ctrl register save and restore
+
+ arch/arm/mach-omap2/board-3430sdp.c |   20 +++
+ arch/arm/mach-omap2/board-rx51.c    |   44 +++++++
+ arch/arm/mach-omap2/cpuidle34xx.c   |  226 +++++++++++++++++++++++++++++------
+ arch/arm/mach-omap2/pm.h            |   20 +++
+ arch/arm/mach-omap2/pm34xx.c        |    4 +
+ arch/arm/mach-omap2/sleep34xx.S     |   59 +++++++++-
+ arch/arm/plat-omap/Kconfig          |   17 +++
+ 7 files changed, 352 insertions(+), 38 deletions(-)
+
