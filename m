@@ -1,78 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Thu, 18 Feb 2010 13:21:21 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1002181231520.24812@utopia.booyaka.com>
-References: <cover.1265801967.git.david.vrabel@csr.com> <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com> <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com> <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com>
- <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com> <4B7C4608.5010008@csr.com> <alpine.DEB.2.00.1002171254040.24812@utopia.booyaka.com> <4B7D3EAE.1010908@csr.com> <alpine.DEB.2.00.1002180951330.24812@utopia.booyaka.com>
- <004001cab0c9$b208b2b0$544ff780@am.dhcp.ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: Patch[0/2]:DSPBRIDGE: Excessive u32 Cleanup
+Date: Thu, 18 Feb 2010 14:27:34 -0600
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0130EBC38D@dlee02.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E7394044D71B418@dbde02.ent.ti.com>
+	 <7A436F7769CA33409C6B44B358BFFF0C0130EBC2DF@dlee02.ent.ti.com>
+	 <19F8576C6E063C45BE387C64729E7394044D71B420@dbde02.ent.ti.com>
+ <5ec8ebd51002181217k420d0e90mfab40e8161cce25f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44390 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752684Ab0BRUVW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 15:21:22 -0500
-In-Reply-To: <004001cab0c9$b208b2b0$544ff780@am.dhcp.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47218 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750993Ab0BRU1h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Feb 2010 15:27:37 -0500
+In-Reply-To: <5ec8ebd51002181217k420d0e90mfab40e8161cce25f@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'David Vrabel' <david.vrabel@csr.com>, sakoman@gmail.com, r-woodruff2@ti.com, sawant@ti.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Hebbar, Shivananda" <x0hebbar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
-
-(cc'ing Steve, Richard, Anand)
-
-On Thu, 18 Feb 2010, Madhusudhan wrote:
-
-> Not to add further confusion but as far as I understand SDIO should be 
-> able to asynchronously wakeup OMAP regardless of MMC clocks being OFF . 
-> As per the SDIO spec DAT1 line is used for signaling the card interrupt 
-> to the host. The TRM clearly shows a GPIO connected to DAT1 line for 
-> wakeup through the SDIO interrupt. Wouldn't this help?
-
-Is the integration code in arch/arm/*omap* set to enable wakeup on the 
-DAT1 ball on the OMAP?  I don't see any trace of that in the code.  That 
-would surely prevent wakeup from succeeding on an off-mode enabled kernel.  
-Sounds like there may be other problems.  Why not give it a try with an 
-SDIO card and see if you can get it to work?
-
-> Definitely these are good features that are being added. Just that there 
-> are confusions around and not everyone has a setup to validate these 
-> features.
-
-Hopefully someone inside TI is validating SDIO wakeup on Linux?
-
-> If I look in the mainline kernel today there is only one SDIO card 
-> driver " sdio_uart.c".
-
-[paul@twilight current]$ find . -name "*sdio*c" -print | fgrep -v /core/
-./drivers/ssb/sdio.c
-./drivers/bluetooth/btsdio.c
-./drivers/bluetooth/btmrvl_sdio.c
-./drivers/mmc/host/mvsdio.c
-./drivers/net/wimax/i2400m/sdio-rx.c
-./drivers/net/wimax/i2400m/sdio-tx.c
-./drivers/net/wimax/i2400m/sdio.c
-./drivers/net/wimax/i2400m/sdio-fw.c
-./drivers/net/wireless/iwmc3200wifi/sdio.c
-./drivers/net/wireless/libertas/if_sdio.c
-./drivers/net/wireless/wl12xx/wl1251_sdio.c
-./drivers/net/wireless/b43/sdio.c
-./drivers/media/dvb/siano/smssdio.c
-[paul@twilight current]$
-
-There appear to be least seven SDIO card drivers in 2.6.34-rc7. At least 
-one of these is for a TI chip - the wl1251.  I think some of the 
-Gumstix Overo OMAP3 boards are using an SDIO-connected Marvell Libertas:
-
-http://www.gumstix.com/store/catalog/product_info.php?products_id=252
-  
-David is probably testing with a Bluetooth card - maybe he can comment 
-further.
-
-> And at least I don't see a way I can test any of these features myself.
-
-Could you clarify?
-
-
-- Paul
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEFuZHkgU2hldmNoZW5rbyBb
+bWFpbHRvOmFuZHkuc2hldmNoZW5rb0BnbWFpbC5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBGZWJy
+dWFyeSAxOCwgMjAxMCAxMDoxOCBQTQ0KPiBUbzogSGViYmFyLCBTaGl2YW5hbmRhDQo+IENjOiBN
+ZW5vbiwgTmlzaGFudGg7IGxpbnV4LW9tYXANCj4gU3ViamVjdDogUmU6IFBhdGNoWzAvMl06RFNQ
+QlJJREdFOiBFeGNlc3NpdmUgdTMyIENsZWFudXANCj4gDQo+IE9uIFRodSwgRmViIDE4LCAyMDEw
+IGF0IDEwOjEwIFBNLCBIZWJiYXIsIFNoaXZhbmFuZGEgPHgwaGViYmFyQHRpLmNvbT4NCj4gd3Jv
+dGU6DQo+ID4+IFdoYXQgaXMgdGhlIG1vdGl2YXRpb24gb2YgdGhpcyBjaGFuZ2U/DQo+ID4gU29t
+ZXRpbWUgYmFjayAsdGhlcmUgd2FzIGNvbW1lbnQgb24gZXhjZXNzaXZlIHUzMnlwZXMgdXNlZCBp
+biBicmlkZ2UuDQo+ID4gaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTIzOTk4MzM5
+MjEzNDE2Jnc9Mg0KPiBJIHJlc3BlY3QgQXJ0ZW0gZm9yIGhpcyB3b3JrLCBidXQgaGlzIHBlcnNv
+bmFsIGhhdGUgb2YgdSogdHlwZXMgbm90IGENCj4gcmVhc29uIHRvIGJyaW5nIHNvbWUgdXNlbGVz
+cyBwYXRjaGVzLg0KPiANCj4gTG9vazoNCj4gW2FuZHlAbG9jYWxob3N0IGxpbnV4LTIuNl0kIGdp
+dCBncmVwIC1uIC13IHUzMiB8IHdjDQo+ICAgNzYzMjcgIDM4ODA2MiA1MjUzMjAzDQo+IA0KPiBJ
+IGd1ZXNzIHlvdSBkb24ndCBuZWVkIGZ1cnRoZXIgZXhsYW5hdGlvbnMgaGVyZS4NCj4gDQpJIHBh
+cnRseSBhZ3JlZS4gdTMyIHVzYWdlIGNoYW5nZSB0byBpbnQgbmVlZHMgdG8gYmUgb24gYSBuZWVk
+IGJhc2lzLiBUaGlzIHNlcmllcyBpcyBJTUhPIGhhbGYgaGVhcnRlZCBpZiB5b3UgYXJlIGF0dGVt
+cHRpbmcgdG8gZG8gdGhhdC4NCmUuZyBzbmlwcGV0cyBmcm9tIHRoZSBwYXRjaDoNCg0KZnJvbSAx
+LzI6DQogCQl1MzIgdVdvcmRTaXplOwkvKiBTaXplIGluIGJ5dGVzIG9mIERTUCB3b3JkICovDQpo
+bW0uLiBsZXRzIHNlZSBoZXJlLi4gRFNQIHdvcmQgdXNlcyA0Mjk0OTY3Mjk1IGJ5ZXM/Pw0KLQkJ
+dTMyIGNDaGFubmVsczsJLyogVG90YWwgbnVtYmVyIG9mIGNoYW5uZWxzICovDQotCQl1MzIgY09w
+ZW5DaGFubmVsczsJLyogVG90YWwgbnVtYmVyIG9mIG9wZW4gY2hhbm5lbHMgKi8NCisJCXNob3J0
+IGludCBjQ2hhbm5lbHM7CQkvKiBUb3RhbCBudW1iZXIgb2YgY2hhbm5lbHMgKi8NCisJCXNob3J0
+IGludCBjT3BlbkNoYW5uZWxzOy8qIFRvdGFsIG51bWJlciBvZiBvcGVuIGNoYW5uZWxzICovDQpX
+ZWxsLi4gNDI5NDk2NzI5NSBvcGVuIGNoYW5uZWxzIGFuZCBzYW1lIG51bWJlciBvZiBvcGVuIGNo
+YW5uZWxzIG1lYmJlIGEgbGl0dGxlIHRvbyBhbWJpdGlvdXMgSSBjYW4gdW5kZXJzdGFuZC4uIGlz
+IDMyNzY3IGVub3VnaCBlaXRoZXI/IFRoZSBwYXRjaCBjb21taXQgZGlkIG5vdCB0ZWxsIG1lIGFi
+b3V0IHRoaXMuDQogDQogCQlzdHJ1Y3QgQ0hOTF9PQkpFQ1QgKiphcENoYW5uZWw7CS8qIEFycmF5
+IG9mIGNoYW5uZWxzICovDQotCQl1MzIgZHdUeXBlOwkvKiBUeXBlIG9mIGNoYW5uZWwgY2xhc3Mg
+bGlicmFyeSAqLw0KKwkJc2hvcnQgaW50IGR3VHlwZTsJLyogVHlwZSBvZiBjaGFubmVsIGNsYXNz
+IGxpYnJhcnkgKi8NCjMyNzY3PyBXaHkgdGhlIHNpZ25lZG5lc3MgY2hhbmdlPw0KDQpGcm9tIDIv
+MjoNCi0gICAgICAgICAgICAgICB1MzIgdUNoaXBUeXBlOyAgLyogRFNQIGNoaXAgdHlwZS4gICAg
+ICAgICAgICAgICAqLw0KKyAgICAgICAgICAgICAgIGludCB1Q2hpcFR5cGU7ICAvKiBEU1AgY2hp
+cCB0eXBlLiAgICAgICAgICAgICAgICovDQpXZWxsLi4gSSBhbSBzZXJpb3VzbHkgbG9zdCBoZXJl
+IHdoeSB0aGlzIGNoYW5nZS4NCg0KSW4gc2hvcnQsIEFydGVtJ3MgY29tbWVudCBpbjoNCj4gLSAg
+ICAgICB1MzIgdGVtcDsNCj4gKwl1MzIgdGVtcDsNCg0KSSdtIG5vdCAxMDAlIHN1cmUgYWJvdXQg
+dGhpcyBwYXJ0aWN1bGFyIGNhc2UsIGJ1dCBvdmVyYWxsLA0KdGhlIGNvZGUgZXhjZXNzaXZlbHkg
+dXNlcyB0aGVzZSB1MzIgdHlwZXMuIFRoaXMgbWFrc2UgZmV3DQpzZW5zZS4gVW5sZXNzIHlvdSB3
+b3JrIHdpdGggcmVnaXN0ZXJzLCBwYWNrZXRzLCBvciBzb21ldGhpbmcNCndoaWNoIG5lZWRzIHNv
+bWUgc3RyaWN0IHR5cGVzLCB1c2UgaW50IG9yIGxvbmcuIFVzZSBuYXR1cmFsDQpDIHR5cGVzLiBE
+byBub3QgdHJ5IHRvIGJlIHRvbyBzbWFydCwgZG8gbm90IHRyeSB0byBsaW1pdA0KQ1BVIGFuZCBj
+b21waWxlciBieSB1MzIsIGlmIGl0IGlzIG5vdCBuZWNlc3NhcnkuDQoNCg0KTWFrZXMgc2Vuc2Ug
+Zm9yIHRlbXAgdmFyaWFibGUsIHdoaWNoIHByb2JhYmx5IHNob3VsZCBoYXZlIGJlZW4gYW4gaW50
+IG9yIGV2ZW4gYSBjaGFyIGJhc2VkIG9uIG1heCB2YWx1ZSBpdCBtaWdodCB0YWtlLCBidXQgYSBO
+QUsgdG8gdGhpcyBzZXJpZXMgLSB3b3VsZCBwcmVmZXIgYW55IHNwZWNpZmljIHJlcGxhY2VtZW50
+cyB0byBiZSBhdmFpbGFibGUgd2l0aCByYXRpb25hbGUgd2h5IGl0IGlzIGRvbmUuLg0KDQpSZWdh
+cmRzLA0KTmlzaGFudGggTWVub24NCg==
