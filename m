@@ -1,225 +1,86 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/9] omap2/3/4: ioremap omap_globals module
-Date: Thu, 18 Feb 2010 16:24:52 -0600
-Message-ID: <87wryaji6j.fsf@deeprootsystems.com>
-References: <1266483554-15044-1-git-send-email-santosh.shilimkar@ti.com>
-	<1266483554-15044-2-git-send-email-santosh.shilimkar@ti.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: [PATCHv5 0/4] DSPBRIDGE: Improved reserved and mapped resource
+ cleanup
+Date: Thu, 18 Feb 2010 16:46:54 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9EA6@dlee06.ent.ti.com>
+References: <cover.1266503387.git.ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f197.google.com ([209.85.211.197]:33761 "EHLO
-	mail-yw0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751788Ab0BRWYz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 17:24:55 -0500
-Received: by ywh35 with SMTP id 35so1512093ywh.4
-        for <linux-omap@vger.kernel.org>; Thu, 18 Feb 2010 14:24:54 -0800 (PST)
-In-Reply-To: <1266483554-15044-2-git-send-email-santosh.shilimkar@ti.com> (Santosh Shilimkar's message of "Thu\, 18 Feb 2010 14\:29\:07 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:48195 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750750Ab0BRWrA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 17:47:00 -0500
+In-Reply-To: <cover.1266503387.git.ameya.palande@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> This is a clean-up patch towards dynamic allocation of IO space
-> instead of using harcoded macros to calculate virtual addresses.
+Hi,
+
+>-----Original Message-----
+>From: Ameya Palande [mailto:ameya.palande@nokia.com]
+>Sent: Thursday, February 18, 2010 8:41 AM
+>To: linux-omap@vger.kernel.org
+>Cc: felipe.contreras@nokia.com; Menon, Nishanth; Chitriki Rudramuni,
+>Deepak; Guzman Lugo, Fernando; Ramirez Luna, Omar
+>Subject: [PATCHv5 0/4] DSPBRIDGE: Improved reserved and mapped resource
+>cleanup
 >
-> Also update the sdrc, prcm, tap and control module to
-> allocate iospace dynamically
-
-You should drop the referenece to the TAP here since it's dropped.
-
-> As per Tony's suggestion V2 version drops tap changes
-> becasue ioremap uses cpu_is_omap2420() and cpu_is_omap2430(),
-> so we can't use that for setting tap_base. Hence ioremap()
-> won't work for tap until omap2_check_revision() is done
-
-And this type of comment should come after the '---' since 
-it's relevant to the reviewers, but not to the final git history.
-
-
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> CC: Kevin Hilman <khilman@deeprootsystems.com>
-> CC: Tony Lindgren <tony@atomide.com>
-
-After that, you can change the CC for me to a Reviewed-by.
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/control.c            |    6 ++++-
->  arch/arm/mach-omap2/prcm.c               |   16 ++++++++++--
->  arch/arm/mach-omap2/sdrc.c               |   11 +++++++-
->  arch/arm/plat-omap/common.c              |   38 +++++++++++++++---------------
->  arch/arm/plat-omap/include/plat/common.h |   17 ++++++++-----
->  5 files changed, 56 insertions(+), 32 deletions(-)
+>This patch series splits DMM_RES_OBJECT into DMM_MAP_OBJECT and
+>DMM_RSV_OBJECT
+>which are used independently for mapped and reserved memory resources
+>accounting. This will help in cleanup of reserved memory resources which
+>was
+>not handled properly before. With these patches resource cleanup mechanism
+>will work perfectly in a use case where a big chunk of memory is reserved
+>and
+>then lot of mappings are created inside it.
 >
-> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> index cdd1f35..43f8a33 100644
-> --- a/arch/arm/mach-omap2/control.c
-> +++ b/arch/arm/mach-omap2/control.c
-> @@ -140,7 +140,11 @@ static struct omap3_control_regs control_context;
->  
->  void __init omap2_set_globals_control(struct omap_globals *omap2_globals)
->  {
-> -	omap2_ctrl_base = omap2_globals->ctrl;
-> +	/* Static mapping, never released */
-> +	if (omap2_globals->ctrl) {
-> +		omap2_ctrl_base = ioremap(omap2_globals->ctrl, SZ_4K);
-> +		WARN_ON(!omap2_ctrl_base);
-> +	}
->  }
->  
->  void __iomem *omap_ctrl_base_get(void)
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index e8e121a..338d5f6 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -279,9 +279,19 @@ int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, const char *name)
->  
->  void __init omap2_set_globals_prcm(struct omap_globals *omap2_globals)
->  {
-> -	prm_base = omap2_globals->prm;
-> -	cm_base = omap2_globals->cm;
-> -	cm2_base = omap2_globals->cm2;
-> +	/* Static mapping, never released */
-> +	if (omap2_globals->prm) {
-> +		prm_base = ioremap(omap2_globals->prm, SZ_8K);
-> +		WARN_ON(!prm_base);
-> +	}
-> +	if (omap2_globals->cm) {
-> +		cm_base = ioremap(omap2_globals->cm, SZ_8K);
-> +		WARN_ON(!cm_base);
-> +	}
-> +	if (omap2_globals->cm2) {
-> +		cm2_base = ioremap(omap2_globals->cm2, SZ_8K);
-> +		WARN_ON(!cm2_base);
-> +	}
->  }
->  
->  #ifdef CONFIG_ARCH_OMAP3
-> diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-> index cbfbd14..4c65f56 100644
-> --- a/arch/arm/mach-omap2/sdrc.c
-> +++ b/arch/arm/mach-omap2/sdrc.c
-> @@ -119,8 +119,15 @@ int omap2_sdrc_get_params(unsigned long r,
->  
->  void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
->  {
-> -	omap2_sdrc_base = omap2_globals->sdrc;
-> -	omap2_sms_base = omap2_globals->sms;
-> +	/* Static mapping, never released */
-> +	if (omap2_globals->sdrc) {
-> +		omap2_sdrc_base = ioremap(omap2_globals->sdrc, SZ_64K);
-> +		WARN_ON(!omap2_sdrc_base);
-> +	}
-> +	if (omap2_globals->sms) {
-> +		omap2_sms_base = ioremap(omap2_globals->sms, SZ_64K);
-> +		WARN_ON(!omap2_sms_base);
-> +	}
->  }
->  
->  /**
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> index 4f29e8c..088c1a0 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -256,11 +256,11 @@ static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
->  static struct omap_globals omap242x_globals = {
->  	.class	= OMAP242X_CLASS,
->  	.tap	= OMAP2_L4_IO_ADDRESS(0x48014000),
-> -	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP2420_SDRC_BASE),
-> -	.sms	= OMAP2_L3_IO_ADDRESS(OMAP2420_SMS_BASE),
-> -	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP2420_CTRL_BASE),
-> -	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE),
-> -	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE),
-> +	.sdrc	= OMAP2420_SDRC_BASE,
-> +	.sms	= OMAP2420_SMS_BASE,
-> +	.ctrl	= OMAP2420_CTRL_BASE,
-> +	.prm	= OMAP2420_PRM_BASE,
-> +	.cm	= OMAP2420_CM_BASE,
->  	.uart1_phys	= OMAP2_UART1_BASE,
->  	.uart2_phys	= OMAP2_UART2_BASE,
->  	.uart3_phys	= OMAP2_UART3_BASE,
-> @@ -277,11 +277,11 @@ void __init omap2_set_globals_242x(void)
->  static struct omap_globals omap243x_globals = {
->  	.class	= OMAP243X_CLASS,
->  	.tap	= OMAP2_L4_IO_ADDRESS(0x4900a000),
-> -	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP243X_SDRC_BASE),
-> -	.sms	= OMAP2_L3_IO_ADDRESS(OMAP243X_SMS_BASE),
-> -	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE),
-> -	.prm	= OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE),
-> -	.cm	= OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE),
-> +	.sdrc	= OMAP243X_SDRC_BASE,
-> +	.sms	= OMAP243X_SMS_BASE,
-> +	.ctrl	= OMAP243X_CTRL_BASE,
-> +	.prm	= OMAP2430_PRM_BASE,
-> +	.cm	= OMAP2430_CM_BASE,
->  	.uart1_phys	= OMAP2_UART1_BASE,
->  	.uart2_phys	= OMAP2_UART2_BASE,
->  	.uart3_phys	= OMAP2_UART3_BASE,
-> @@ -298,11 +298,11 @@ void __init omap2_set_globals_243x(void)
->  static struct omap_globals omap3_globals = {
->  	.class	= OMAP343X_CLASS,
->  	.tap	= OMAP2_L4_IO_ADDRESS(0x4830A000),
-> -	.sdrc	= OMAP2_L3_IO_ADDRESS(OMAP343X_SDRC_BASE),
-> -	.sms	= OMAP2_L3_IO_ADDRESS(OMAP343X_SMS_BASE),
-> -	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE),
-> -	.prm	= OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE),
-> -	.cm	= OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
-> +	.sdrc	= OMAP343X_SDRC_BASE,
-> +	.sms	= OMAP343X_SMS_BASE,
-> +	.ctrl	= OMAP343X_CTRL_BASE,
-> +	.prm	= OMAP3430_PRM_BASE,
-> +	.cm	= OMAP3430_CM_BASE,
->  	.uart1_phys	= OMAP3_UART1_BASE,
->  	.uart2_phys	= OMAP3_UART2_BASE,
->  	.uart3_phys	= OMAP3_UART3_BASE,
-> @@ -325,10 +325,10 @@ void __init omap2_set_globals_36xx(void)
->  static struct omap_globals omap4_globals = {
->  	.class	= OMAP443X_CLASS,
->  	.tap	= OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
-> -	.ctrl	= OMAP2_L4_IO_ADDRESS(OMAP443X_CTRL_BASE),
-> -	.prm	= OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE),
-> -	.cm	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
-> -	.cm2	= OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE),
-> +	.ctrl	= OMAP443X_CTRL_BASE,
-> +	.prm	= OMAP4430_PRM_BASE,
-> +	.cm	= OMAP4430_CM_BASE,
-> +	.cm2	= OMAP4430_CM2_BASE,
->  	.uart1_phys	= OMAP4_UART1_BASE,
->  	.uart2_phys	= OMAP4_UART2_BASE,
->  	.uart3_phys	= OMAP4_UART3_BASE,
-> diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-> index e04a58e..d0faff0 100644
-> --- a/arch/arm/plat-omap/include/plat/common.h
-> +++ b/arch/arm/plat-omap/include/plat/common.h
-> @@ -37,16 +37,19 @@ extern void __iomem *gic_cpu_base_addr;
->  extern void omap_map_common_io(void);
->  extern struct sys_timer omap_timer;
->  
-> -/* IO bases for various OMAP processors */
-> +/* IO bases for various OMAP processors
-> + * Except the tap base, rest all the io bases
-> + * listed are physical addresses.
-> + */
->  struct omap_globals {
->  	u32		class;		/* OMAP class to detect */
->  	void __iomem	*tap;		/* Control module ID code */
-> -	void __iomem	*sdrc;		/* SDRAM Controller */
-> -	void __iomem	*sms;		/* SDRAM Memory Scheduler */
-> -	void __iomem	*ctrl;		/* System Control Module */
-> -	void __iomem	*prm;		/* Power and Reset Management */
-> -	void __iomem	*cm;		/* Clock Management */
-> -	void __iomem	*cm2;
-> +	unsigned long   sdrc;           /* SDRAM Controller */
-> +	unsigned long   sms;            /* SDRAM Memory Scheduler */
-> +	unsigned long   ctrl;           /* System Control Module */
-> +	unsigned long   prm;            /* Power and Reset Management */
-> +	unsigned long   cm;             /* Clock Management */
-> +	unsigned long   cm2;
->  	unsigned long	uart1_phys;
->  	unsigned long	uart2_phys;
->  	unsigned long	uart3_phys;
-> -- 
-> 1.6.0.4
+>Changes since v4:
+>1. Replace unnecessary list_for_each_entry_safe to list_for_each_entry
+>   http://marc.info/?l=linux-omap&m=126645721715598&w=2
+>2. Comments at appropriate places to explain resource tracking objects
+>   insertion and removals.
+>   http://marc.info/?l=linux-omap&m=126649541624172&w=2
+>
+>Changes since v3:
+>1. Improved mapped memory resource cleanup
+>
+>Changes since v2:
+>1. Removed locking from DRV_RemoveAllDMMResElements()
+>2. Removed cleanup variable from PROC_UnReserveMemory()
+>   http://marc.info/?l=linux-omap&m=126637211831587&w=2
+>3. Rebased patchset on top of following commit:
+>   DSPBRIDGE: Remove conditional check from the InputMsg function
+>
+>Changed since v1:
+>1. Reduced indentation
+>   http://marc.info/?l=linux-omap&m=126624982331523&w=2
+>
+>Ameya Palande (4):
+>  DSPBRIDGE: Rename DMM_RES_OBJECT to DMM_MAP_OBJECT
+>  DSPBRIDGE: New reserved memory accounting framework
+>  DSPBRIDGE: Fix memory corruption in DRV_ProcFreeDMMRes
+>  DSPBRIDGE: Improved mapped memory cleanup
+>
+> arch/arm/plat-omap/include/dspbridge/drv.h         |   44 ++---
+> arch/arm/plat-omap/include/dspbridge/proc.h        |    4 +-
+> .../plat-omap/include/dspbridge/resourcecleanup.h  |   11 --
+> drivers/dsp/bridge/pmgr/wcd.c                      |    7 +-
+> drivers/dsp/bridge/rmgr/drv.c                      |  176 +++-------------
+>----
+> drivers/dsp/bridge/rmgr/drv_interface.c            |    5 +-
+> drivers/dsp/bridge/rmgr/node.c                     |    5 +-
+> drivers/dsp/bridge/rmgr/proc.c                     |  105 +++++++++---
+> 8 files changed, 134 insertions(+), 223 deletions(-)
+
+
+Just for the comment in "DSPBRIDGE: Improved mapped memory cleanup", now there is a comment that explain what the code does, however I still think that the resource cleanup related code should be in only one file (for example drv.h) to have a more organized code. Others things look good!
+
+Acked-by: Fernando Guzman Lugo <x0095840@ti.com>
+
