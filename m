@@ -1,15 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/23] omap updates for 2.6.34, part 3
-Date: Wed, 17 Feb 2010 17:17:20 -0800
-Message-ID: <20100218011311.30736.20436.stgit@baageli.muru.com>
+Subject: [PATCH 00/23] Series short description
+Date: Wed, 17 Feb 2010 17:31:44 -0800
+Message-ID: <20100218013012.32075.43788.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58457 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58372 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752359Ab0BRBQe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:16:34 -0500
+	with ESMTP id S1751801Ab0BRBa6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:30:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
@@ -17,9 +17,10 @@ Cc: linux-omap@vger.kernel.org
 
 Hi all,
 
-Sorry, was meaning to post these last week alread..
+Looks like stg mail choked on a bad email addres, here's a retry.
 
-Here are the omap board-*.c file changes for review.
+These patches are against what I have sitting in omap-for-linus
+branch in the linux-omap tree.
 
 Regards,
 
