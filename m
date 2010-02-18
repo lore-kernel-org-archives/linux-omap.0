@@ -1,96 +1,63 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH 5/6] Mailbox: sleeping function called from invalid
- context fix
-Date: Thu, 18 Feb 2010 00:16:36 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9B1D@dlee06.ent.ti.com>
-References: <20100215.154846.212385655.Hiroshi.DOYU@nokia.com>
-	<496565EC904933469F292DDA3F1663E602CA2B9285@dlee06.ent.ti.com>
-	<20100218010509.GK21755@atomide.com>
- <20100218.071127.133417907.Hiroshi.DOYU@nokia.com>
+Subject: RE: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
+Date: Thu, 18 Feb 2010 00:22:03 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9B1E@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602AA7C18D9@dlee06.ent.ti.com>
+ <20100217.171348.223468508.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37842 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53902 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751181Ab0BRGQm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 01:16:42 -0500
-In-Reply-To: <20100218.071127.133417907.Hiroshi.DOYU@nokia.com>
+	id S1750728Ab0BRGWJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 01:22:09 -0500
+In-Reply-To: <20100217.171348.223468508.Hiroshi.DOYU@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "tony@atomide.com" <tony@atomide.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-Hi,
 
 >-----Original Message-----
 >From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
->Sent: Wednesday, February 17, 2010 11:11 PM
->To: tony@atomide.com
->Cc: Guzman Lugo, Fernando; linux-omap@vger.kernel.org
->Subject: Re: [PATCH 5/6] Mailbox: sleeping function called from invalid
->context fix
+>Sent: Wednesday, February 17, 2010 9:14 AM
+>To: Guzman Lugo, Fernando
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
 >
->From: ext Tony Lindgren <tony@atomide.com>
->Subject: Re: [PATCH 5/6] Mailbox: sleeping function called from invalid
->context fix
->Date: Thu, 18 Feb 2010 02:05:10 +0100
+>Hi Fernand,
 >
->> * Guzman Lugo, Fernando <x0095840@ti.com> [100215 23:22]:
->>>
->>> Hi,
->>>
->>> >-----Original Message-----
->>> >From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
->>> >Sent: Monday, February 15, 2010 7:49 AM
->>> >To: Guzman Lugo, Fernando
->>> >Cc: linux-omap@vger.kernel.org
->>> >Subject: Re: [PATCH 5/6] Mailbox: sleeping function called from invalid
->>> >context fix
->>> >
->>> >Hi Fernando,
->>> >
->>> >From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
->>> >Subject: [PATCH 5/6] Mailbox: sleeping function called from invalid
->context
->>> >fix
->>> >Date: Sat, 13 Feb 2010 02:42:16 +0100
->>> >
->>> >> From e06b2716824f225747c4dc83ed2623d0160ae132 Mon Sep 17 00:00:00
->2001
->>> >> From: Fernando Guzman Lugo <x0095840@ti.com>
->>> >> Date: Fri, 29 Jan 2010 17:12:24 -0600
->>> >> Subject: [PATCH] Mailbox: sleeping function called from invalid
->context
->>> >fix
->>> >>
->>> >> This patch fixes this bug:
->>> >> BUG: sleeping function called from invalid context
->>> >> Inside omap2_mbox_startup is called clk_get_sys that can sleep,
->>> >> therefore omap2_mbox_startup can sleep but it is call in an atomic
->>> >> context . So the spinlock is change for a semaphore.
->>> >
->>> >"mboxes_lock" is used to maintain the global list of mailbox
->>> >instances, which belong to a single mailbox H/W module, but they are
->>> >logical channels from S/W perspective. Both "->ops->startup()" and
->>> >"->ops->shutdown()" are being executed against the above single H/W
->>> >module, and a mailbox H/W module is totally __independent__ of the
->>> >registration of logical mailboxes, which are (un)registered with
->>>
->>> Yes, they are independent of each other, and can be executed at the same
->time. I am agreed with your patch; that should be the right solution, so
->you can drop my patch.
+>From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
+>Subject: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
+>Date: Sat, 13 Feb 2010 02:40:41 +0100
+>
+>> From 60e21e76773de379deb41ff166f9679b7078276f Mon Sep 17 00:00:00 2001
+>> From: Fernando Guzman Lugo <x0095840@ti.com>
+>> Date: Wed, 10 Feb 2010 17:08:20 -0600
+>> Subject: [PATCH] Mailbox: change mailbox version print to pr_debug
 >>
->> Hiroshi & Fernando, if you want me to merge this series, please post
->> it one more time with right patches and ack's from Hiroshi. Please
->> Cc also linux-arm-kernel so it gets reviewed there. The merge window
->> is about to open, so we're running out of time..
+>> it is not useful printing the version every time mailbox is used
+>> instead change it to pr_debug in case someone needs to see the
+>> version can enable the print.
 >
->Ok, I'll take care of them.
+>I just found that, if you put the line printing version into debug
+>mode, then "mbox_read_reg(MAILBOX_REVISION)" should be also done only
+>in debug mode. This value wouldn't be necessary if it didn't print.
+>
+>Considering this printing again, this prints a message only when H/W
+>initialization is done correctly, most likely only *once* at
+>booting. This informs us of the result that a mailbox H/W itself is
+>set up and some mailbox related modules are loaded successfully. So
+>keeping this makes sense a little bit more rather than shutting this
+>completely silence.
 
-Let me send the set of patches again.
+The thing was that the tests I ran does a lot of install and uninstall bridge module that why I saw a lot of this print, but yes you are right in normal operation it should be printed once. On the other hand if this is used to state loaded successfully maybe the print should be changed to more meaningfully like
+"mailbox revision4.0 running or loaded"
+
+But, let drop this patch in this moment. I will send all the patches again.
 
 Regards,
 Fernando.
