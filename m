@@ -1,437 +1,97 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCHv4 4/4] DSPBRIDGE: Improved mapped memory cleanup
-Date: Wed, 17 Feb 2010 19:52:14 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9AD9@dlee06.ent.ti.com>
-References: <cover.1266429436.git.ameya.palande@nokia.com>
- <f57155cbfa5cca493333eff553f6887217273a3b.1266429437.git.ameya.palande@nokia.com>
+Subject: RE: [RESEND] [PATCH] DSPBRIDGE: Adding protection Resource cleanup
+ linked lists
+Date: Wed, 17 Feb 2010 19:56:02 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9ADB@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602AA725DC6@dlee06.ent.ti.com>
+ <1266404123.2063.2.camel@sanganak>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35996 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36171 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754310Ab0BRBwU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:52:20 -0500
-In-Reply-To: <f57155cbfa5cca493333eff553f6887217273a3b.1266429437.git.ameya.palande@nokia.com>
+	id S1753797Ab0BRB4F convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:56:05 -0500
+In-Reply-To: <1266404123.2063.2.camel@sanganak>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+To: Ameya Palande <ameya.palande@Nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@Nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@Nokia.com>
 
 
 Hi,
 
 >-----Original Message-----
->From: Ameya Palande [mailto:ameya.palande@nokia.com]
->Sent: Wednesday, February 17, 2010 12:06 PM
->To: linux-omap@vger.kernel.org
->Cc: felipe.contreras@nokia.com; Menon, Nishanth; Chitriki Rudramuni,
->Deepak; Guzman Lugo, Fernando; Ramirez Luna, Omar
->Subject: [PATCHv4 4/4] DSPBRIDGE: Improved mapped memory cleanup
+>From: Ameya Palande [mailto:ameya.palande@Nokia.com]
+>Sent: Wednesday, February 17, 2010 4:55 AM
+>To: Guzman Lugo, Fernando
+>Cc: linux-omap@vger.kernel.org; Doyu Hiroshi (Nokia-D/Helsinki); Contreras
+>Felipe (Nokia-D/Helsinki)
+>Subject: Re: [RESEND] [PATCH] DSPBRIDGE: Adding protection Resource cleanup
+>linked lists
 >
->This patch improves current mapped memory cleanup mechanism by using linux
->native list implementation. As a side effect we also get following
->benefits:
+>Hi Fernando,
 >
->1. Unnecessary data members in DMM_MAP_OBJECT are removed which results in
->   memory saving.
->
->2. Following functions are removed as they are not needed anymore:
->   DRV_ProcFreeDMMRes()
->   DRV_UpdateDMMResElement()
->   DRV_InsertDMMResElement()
->   DRV_GetDMMResElement()
->   DRV_RemoveDMMResElement()
->
->Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
->---
-> arch/arm/plat-omap/include/dspbridge/drv.h         |   30 +---
-> .../plat-omap/include/dspbridge/resourcecleanup.h  |   11 --
-> drivers/dsp/bridge/rmgr/drv.c                      |  161 ++--------------
->----
-> drivers/dsp/bridge/rmgr/drv_interface.c            |    3 +-
-> drivers/dsp/bridge/rmgr/proc.c                     |   33 +++--
-> 5 files changed, 44 insertions(+), 194 deletions(-)
->
->diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-
+>On Wed, 2010-02-10 at 09:32 +0100, ext Guzman Lugo, Fernando wrote:
+>> Please discard previous one.
+>>
+>> Regards,
+>> Fernando.
+>>
+>> From 6bcdc02f6265246e385194433775e75db7ad44cf Mon Sep 17 00:00:00 2001
+>> From: Fernando Guzman Lugo <x0095840@ti.com>
+>> Date: Wed, 10 Feb 2010 02:31:40 -0600
+>> Subject: [PATCH] DSPBRIDGE: Adding protection Resource cleanup linked
+>lists
+>>
+>> This patch protects the Resorce cleanup lists from
+>> concurrent access
+>>
+>> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+>> ---
+>>  arch/arm/plat-omap/include/dspbridge/drv.h |    3 +
+>>  drivers/dsp/bridge/pmgr/wcd.c              |   16 ++++++-
+>>  drivers/dsp/bridge/rmgr/drv.c              |   71
+>+++++++++++++++++++++++----
+>>  drivers/dsp/bridge/rmgr/drv_interface.c    |    8 ++-
+>>  4 files changed, 83 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-
 >omap/include/dspbridge/drv.h
->index f7d0e3e..854923a 100644
->--- a/arch/arm/plat-omap/include/dspbridge/drv.h
->+++ b/arch/arm/plat-omap/include/dspbridge/drv.h
->@@ -90,16 +90,11 @@ struct NODE_RES_OBJECT {
-> 	struct NODE_RES_OBJECT         *next;
-> } ;
+>> index b6a5fd2..b044291 100644
+>> --- a/arch/arm/plat-omap/include/dspbridge/drv.h
+>> +++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+>> @@ -137,15 +137,18 @@ struct PROCESS_CONTEXT{
+>>
+>>  	/* DSP Node resources */
+>>  	struct NODE_RES_OBJECT *pNodeList;
+>> +	struct mutex node_mutex;
+>>
+>>  	/* DMM resources */
+>>  	struct DMM_RES_OBJECT *pDMMList;
+>> +	struct mutex dmm_mutex;
+>>
+>>  	/* DSP Heap resources */
+>>  	struct DSPHEAP_RES_OBJECT *pDSPHEAPList;
+>>
+>>  	/* Stream resources */
+>>  	struct STRM_RES_OBJECT *pSTRMList;
+>> +	struct mutex strm_mutex;
+>>  } ;
 >
->-/* Abstracts DMM resource info */
->+/* Used for DMM mapped memory accounting */
-> struct DMM_MAP_OBJECT {
->-	s32            dmmAllocated; /* DMM status */
->-	u32           ulMpuAddr;
->-	u32           ulDSPAddr;
->-	u32           ulDSPResAddr;
->-	u32           size;
->-	HANDLE          hProcessor;
->-	struct DMM_MAP_OBJECT  *next;
->-} ;
->+	struct	list_head	link;
->+	u32	dsp_addr;
->+};
+>Is there a specific reason for using mutex instead of spin_lock?
 >
-> /* Used for DMM reserved memory accounting */
-> struct DMM_RSV_OBJECT {
->@@ -146,8 +141,8 @@ struct PROCESS_CONTEXT{
-> 	struct mutex node_mutex;
->
-> 	/* DMM mapped memory resources */
->-	struct DMM_MAP_OBJECT *dmm_map_list;
->-	struct mutex dmm_map_mutex;
->+	struct list_head dmm_map_list;
->+	spinlock_t dmm_map_lock;
->
-> 	/* DMM reserved memory resources */
-> 	struct list_head dmm_rsv_list;
->@@ -398,17 +393,4 @@ struct PROCESS_CONTEXT{
-> 	extern DSP_STATUS DRV_ReleaseResources(IN u32 dwContext,
-> 					       struct DRV_OBJECT *hDrvObject);
->
->-/*
->- *  ======== DRV_ProcFreeDMMRes ========
->- *  Purpose:
->- *       Actual DMM De-Allocation.
->- *  Parameters:
->- *      hPCtxt:      Path to the driver Registry Key.
->- *  Returns:
->- *      DSP_SOK if success;
->- */
->-
->-
->-	extern DSP_STATUS  DRV_ProcFreeDMMRes(HANDLE hPCtxt);
->-
-> #endif				/* DRV_ */
->diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
->b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
->index ffbcf5e..2bb756a 100644
->--- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
->+++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
->@@ -48,17 +48,6 @@ extern DSP_STATUS DRV_RemoveNodeResElement(HANDLE
->nodeRes, HANDLE status);
->
-> extern void DRV_ProcNodeUpdateStatus(HANDLE hNodeRes, s32 status);
->
->-extern DSP_STATUS DRV_UpdateDMMResElement(HANDLE dmmRes, u32 pMpuAddr,
->-					  u32 ulSize, u32 pReqAddr,
->-					  u32 ppMapAddr, HANDLE hProcesso);
->-
->-extern DSP_STATUS DRV_InsertDMMResElement(HANDLE dmmRes, HANDLE pCtxt);
->-
->-extern DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE dmmRes,
->-				       HANDLE pCtxt);
->-
->-extern DSP_STATUS DRV_RemoveDMMResElement(HANDLE dmmRes, HANDLE pCtxt);
->-
-> extern DSP_STATUS DRV_ProcUpdateSTRMRes(u32 uNumBufs, HANDLE STRMRes);
->
-> extern DSP_STATUS DRV_ProcInsertSTRMResElement(HANDLE hStrm, HANDLE
->STRMRes,
->diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
->index b88b5a3..bb6c246 100644
->--- a/drivers/dsp/bridge/rmgr/drv.c
->+++ b/drivers/dsp/bridge/rmgr/drv.c
->@@ -193,129 +193,27 @@ static DSP_STATUS DRV_ProcFreeNodeRes(HANDLE hPCtxt)
-> 	return status;
-> }
->
->-/* Allocate the DMM resource element
->-* This is called from Proc_Map. after the actual resource is allocated */
->-DSP_STATUS DRV_InsertDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
->-{
->-	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
->-	struct DMM_MAP_OBJECT **pDMMRes = (struct DMM_MAP_OBJECT **)hDMMRes;
->-	DSP_STATUS	status = DSP_SOK;
->-	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
->-
->-	*pDMMRes = (struct DMM_MAP_OBJECT *)
->-		    MEM_Calloc(1 * sizeof(struct DMM_MAP_OBJECT), MEM_PAGED);
->-	GT_0trace(curTrace, GT_ENTER, "DRV_InsertDMMResElement: 1");
->-	if (*pDMMRes == NULL) {
->-		GT_0trace(curTrace, GT_5CLASS, "DRV_InsertDMMResElement: 2");
->-		status = DSP_EHANDLE;
->-	}
->-	if (DSP_SUCCEEDED(status)) {
->-		if (mutex_lock_interruptible(&pCtxt->dmm_map_mutex)) {
->-			kfree(*pDMMRes);
->-			return DSP_EFAIL;
->-		}
->-
->-		if (pCtxt->dmm_map_list) {
->-			GT_0trace(curTrace, GT_5CLASS,
->-				 "DRV_InsertDMMResElement: 3");
->-			pTempDMMRes = pCtxt->dmm_map_list;
->-			while (pTempDMMRes->next)
->-				pTempDMMRes = pTempDMMRes->next;
->-
->-			pTempDMMRes->next = *pDMMRes;
->-		} else {
->-			pCtxt->dmm_map_list = *pDMMRes;
->-			GT_0trace(curTrace, GT_5CLASS,
->-				 "DRV_InsertDMMResElement: 4");
->-		}
->-		mutex_unlock(&pCtxt->dmm_map_mutex);
->-	}
->-	GT_0trace(curTrace, GT_ENTER, "DRV_InsertDMMResElement: 5");
->-	return status;
->-}
->-
->-/* Release DMM resource element context
->-* This is called from Proc_UnMap. after the actual resource is freed */
->-DSP_STATUS DRV_RemoveDMMResElement(HANDLE hDMMRes, HANDLE hPCtxt)
->-{
->-	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
->-	struct DMM_MAP_OBJECT *pDMMRes = (struct DMM_MAP_OBJECT *)hDMMRes;
->-	struct DMM_MAP_OBJECT *pTempDMMRes = NULL;
->-	DSP_STATUS status = DSP_SOK;
->-
->-	if (mutex_lock_interruptible(&pCtxt->dmm_map_mutex))
->-		return DSP_EFAIL;
->-	pTempDMMRes = pCtxt->dmm_map_list;
->-	if (pCtxt->dmm_map_list == pDMMRes) {
->-		pCtxt->dmm_map_list = pDMMRes->next;
->-	} else {
->-		while (pTempDMMRes && pTempDMMRes->next != pDMMRes)
->-			pTempDMMRes = pTempDMMRes->next;
->-		if (!pTempDMMRes)
->-			status = DSP_ENOTFOUND;
->-		else
->-			pTempDMMRes->next = pDMMRes->next;
->-	}
->-	mutex_unlock(&pCtxt->dmm_map_mutex);
->-	kfree(pDMMRes);
->-	return status;
->-}
->-
->-/* Update DMM resource status */
->-DSP_STATUS DRV_UpdateDMMResElement(HANDLE hDMMRes, u32 pMpuAddr, u32
->ulSize,
->-				  u32 pReqAddr, u32 pMapAddr,
->-				  HANDLE hProcessor)
->-{
->-	struct DMM_MAP_OBJECT *pDMMRes = (struct DMM_MAP_OBJECT *)hDMMRes;
->-	DSP_STATUS status = DSP_SOK;
->-
->-	DBC_Assert(hDMMRes != NULL);
->-	pDMMRes->ulMpuAddr = pMpuAddr;
->-	pDMMRes->ulDSPAddr = pMapAddr;
->-	pDMMRes->ulDSPResAddr = pReqAddr;
->-	pDMMRes->size = ulSize;
->-	pDMMRes->hProcessor = hProcessor;
->-	pDMMRes->dmmAllocated = 1;
->-
->-	return status;
->-}
->-
->-/* Actual DMM De-Allocation */
->-DSP_STATUS  DRV_ProcFreeDMMRes(HANDLE hPCtxt)
->-{
->-	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
->-	DSP_STATUS status = DSP_SOK;
->-	struct DMM_MAP_OBJECT *pDMMList = pCtxt->dmm_map_list;
->-	struct DMM_MAP_OBJECT *pDMMRes = NULL;
->-
->-	GT_0trace(curTrace, GT_ENTER, "\nDRV_ProcFreeDMMRes: 1\n");
->-	while (pDMMList) {
->-		pDMMRes = pDMMList;
->-		pDMMList = pDMMList->next;
->-		if (pDMMRes->dmmAllocated) {
->-			/* PROC_UnMap will free pDMMRes pointer */
->-			status = PROC_UnMap(pDMMRes->hProcessor,
->-				 (void *)pDMMRes->ulDSPAddr, pCtxt);
->-			if (DSP_FAILED(status))
->-				pr_debug("%s: PROC_UnMap failed! status ="
->-						" 0x%xn", __func__, status);
->-		}
->-	}
->-	return status;
->-}
->-
-> /* Release all Mapped and Reserved DMM resources */
-> DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
-> {
-> 	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
-> 	DSP_STATUS status = DSP_SOK;
->-	struct DMM_RSV_OBJECT *temp, *rsv_obj;
->-
->-	DRV_ProcFreeDMMRes(pCtxt);
->-	pCtxt->dmm_map_list = NULL;
->+	struct DMM_MAP_OBJECT *temp_map, *map_obj;
->+	struct DMM_RSV_OBJECT *temp_rsv, *rsv_obj;
->+
->+	/* Free DMM mapped memory resources */
->+	list_for_each_entry_safe(map_obj, temp_map, &pCtxt->dmm_map_list,
->+			link) {
->+		status = PROC_UnMap(pCtxt->hProcessor,
->+				(void *)map_obj->dsp_addr, pCtxt);
->+		if (DSP_FAILED(status))
->+			pr_err("%s: PROC_UnMap failed!"
->+					" status = 0x%xn", __func__, status);
->+	}
->
-> 	/* Free DMM reserved memory resources */
->-	list_for_each_entry_safe(rsv_obj, temp, &pCtxt->dmm_rsv_list, link) {
->+	list_for_each_entry_safe(rsv_obj, temp_rsv, &pCtxt->dmm_rsv_list,
->+			link) {
-> 		status = PROC_UnReserveMemory(pCtxt->hProcessor,
-> 				(void *)rsv_obj->dsp_reserved_addr, pCtxt);
-> 		if (DSP_FAILED(status))
->@@ -325,37 +223,6 @@ DSP_STATUS DRV_RemoveAllDMMResElements(HANDLE hPCtxt)
-> 	return status;
-> }
->
->-DSP_STATUS DRV_GetDMMResElement(u32 pMapAddr, HANDLE hDMMRes, HANDLE
->hPCtxt)
->-{
->-	struct PROCESS_CONTEXT *pCtxt = (struct PROCESS_CONTEXT *)hPCtxt;
->-	struct DMM_MAP_OBJECT **pDMMRes = (struct DMM_MAP_OBJECT **)hDMMRes;
->-	DSP_STATUS status = DSP_SOK;
->-	struct DMM_MAP_OBJECT *pTempDMM = NULL;
->-
->-	if (mutex_lock_interruptible(&pCtxt->dmm_map_mutex))
->-		return DSP_EFAIL;
->-
->-	pTempDMM = pCtxt->dmm_map_list;
->-	while (pTempDMM && (pTempDMM->ulDSPAddr != pMapAddr)) {
->-		GT_3trace(curTrace, GT_ENTER,
->-			 "DRV_GetDMMResElement: 2 pTempDMM:%x "
->-			 "pTempDMM->ulDSPAddr:%x pMapAddr:%x\n", pTempDMM,
->-			 pTempDMM->ulDSPAddr, pMapAddr);
->-		pTempDMM = pTempDMM->next;
->-	}
->-
->-	mutex_unlock(&pCtxt->dmm_map_mutex);
->-
->-	if (pTempDMM) {
->-		GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 3");
->-		*pDMMRes = pTempDMM;
->-	} else {
->-		status = DSP_ENOTFOUND;
->-		GT_0trace(curTrace, GT_ENTER, "DRV_GetDMMResElement: 4");
->-	}
->-	return status;
->-}
->-
-> /* Update Node allocation status */
-> void DRV_ProcNodeUpdateStatus(HANDLE hNodeRes, s32 status)
-> {
->diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c
->b/drivers/dsp/bridge/rmgr/drv_interface.c
->index 80b8c7e..800ed61 100644
->--- a/drivers/dsp/bridge/rmgr/drv_interface.c
->+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
->@@ -499,7 +499,8 @@ static int bridge_open(struct inode *ip, struct file
->*filp)
-> 	pr_ctxt = MEM_Calloc(sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
-> 	if (pr_ctxt) {
-> 		pr_ctxt->resState = PROC_RES_ALLOCATED;
->-		mutex_init(&pr_ctxt->dmm_map_mutex);
->+		spin_lock_init(&pr_ctxt->dmm_map_lock);
->+		INIT_LIST_HEAD(&pr_ctxt->dmm_map_list);
-> 		spin_lock_init(&pr_ctxt->dmm_rsv_lock);
-> 		INIT_LIST_HEAD(&pr_ctxt->dmm_rsv_list);
-> 		mutex_init(&pr_ctxt->node_mutex);
->diff --git a/drivers/dsp/bridge/rmgr/proc.c
->b/drivers/dsp/bridge/rmgr/proc.c
->index 6ce76cb..7fa3a16 100644
->--- a/drivers/dsp/bridge/rmgr/proc.c
->+++ b/drivers/dsp/bridge/rmgr/proc.c
->@@ -1286,8 +1286,7 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void
->*pMpuAddr, u32 ulSize,
-> 	u32 sizeAlign;
-> 	DSP_STATUS status = DSP_SOK;
-> 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
->-
->-       HANDLE        dmmRes;
->+	struct DMM_MAP_OBJECT *map_obj;
->
-> 	GT_6trace(PROC_DebugMask, GT_ENTER, "Entered PROC_Map, args:\n\t"
-> 		 "hProcessor %x, pMpuAddr %x, ulSize %x, pReqAddr %x, "
->@@ -1334,11 +1333,17 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void
->*pMpuAddr, u32 ulSize,
-> 	}
-> 	(void)SYNC_LeaveCS(hProcLock);
->
->-	if (DSP_SUCCEEDED(status)) {
->-		DRV_InsertDMMResElement(&dmmRes, pr_ctxt);
->-		DRV_UpdateDMMResElement(dmmRes, (u32)pMpuAddr, ulSize,
->-				(u32)pReqAddr, (u32)*ppMapAddr, hProcessor);
->+	if (DSP_FAILED(status))
->+		goto func_end;
->+
->+	map_obj = kmalloc(sizeof(struct DMM_MAP_OBJECT), GFP_KERNEL);
->+	if (map_obj) {
->+		map_obj->dsp_addr = (u32)*ppMapAddr;
->+		spin_lock(&pr_ctxt->dmm_map_lock);
->+		list_add(&map_obj->link, &pr_ctxt->dmm_map_list);
->+		spin_unlock(&pr_ctxt->dmm_map_lock);
-> 	}
+>AFAIU these locks are help for very short time, for inserting / removing
+>elements from linked list, or traversing a linked list.
 
-What do you think about it?
-Instead of removing DRV_InsertDMMResElement make it an inline function with your code inside:
-
-inline void DRV_InsertDMMResElement(u32 ppMapAddr)
-{
-	map_obj = kmalloc(sizeof(struct DMM_MAP_OBJECT), GFP_KERNEL);
-	if (map_obj) {
-		map_obj->dsp_addr = (u32)*ppMapAddr;
-		spin_lock(&pr_ctxt->dmm_map_lock);
-		list_add(&map_obj->link, &pr_ctxt->dmm_map_list);
-		spin_unlock(&pr_ctxt->dmm_map_lock);
-	}	
-}
-
-It could make the code more understandable about what it is actually doing. 
-It also applies to the functions which removes this patch.
+Yes, changing mutex to spinlocks would help in performance. Let me send a patch to change them.
 
 Regards,
-Fenando
+Fernando.
 
->+
-> func_end:
-> 	GT_1trace(PROC_DebugMask, GT_ENTER, "Leaving PROC_Map [0x%x]",
->status);
-> 	return status;
->@@ -1664,8 +1669,7 @@ DSP_STATUS PROC_UnMap(DSP_HPROCESSOR hProcessor, void
->*pMapAddr,
-> 	struct DMM_OBJECT *hDmmMgr;
-> 	u32 vaAlign;
-> 	u32 sizeAlign;
->-
->-	HANDLE	      dmmRes;
->+	struct DMM_MAP_OBJECT *temp, *map_obj;
 >
-> 	GT_2trace(PROC_DebugMask, GT_ENTER,
-> 		 "Entered PROC_UnMap, args:\n\thProcessor:"
->@@ -1705,9 +1709,16 @@ DSP_STATUS PROC_UnMap(DSP_HPROCESSOR hProcessor,
->void *pMapAddr,
-> 	if (DSP_FAILED(status))
-> 		goto func_end;
->
->-	if (DRV_GetDMMResElement((u32)pMapAddr, &dmmRes, pr_ctxt)
->-							!= DSP_ENOTFOUND)
->-		DRV_RemoveDMMResElement(dmmRes, pr_ctxt);
->+	spin_lock(&pr_ctxt->dmm_map_lock);
->+	list_for_each_entry_safe(map_obj, temp, &pr_ctxt->dmm_map_list, link)
->{
->+		if (map_obj->dsp_addr == (u32)pMapAddr) {
->+			list_del(&map_obj->link);
->+			kfree(map_obj);
->+			break;
->+		}
->+	}
->+	spin_unlock(&pr_ctxt->dmm_map_lock);
->+
-> func_end:
-> 	GT_1trace(PROC_DebugMask, GT_ENTER,
-> 		 "Leaving PROC_UnMap [0x%x]", status);
->--
->1.6.3.3
+>Cheers,
+>Ameya.
 
