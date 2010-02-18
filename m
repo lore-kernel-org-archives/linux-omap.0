@@ -1,190 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 06/23] omap3: pandora: update regulator setup
-Date: Wed, 17 Feb 2010 17:32:05 -0800
-Message-ID: <20100218013205.32075.22933.stgit@baageli.muru.com>
+Subject: [PATCH 08/23] omap3: Add platform data for the twl4030_codec MFD on
+	IGEP v2
+Date: Wed, 17 Feb 2010 17:32:10 -0800
+Message-ID: <20100218013210.32075.40017.stgit@baageli.muru.com>
 References: <20100218013012.32075.43788.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58734 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753840Ab0BRBbP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:31:15 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63233 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754209Ab0BRBbU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:31:20 -0500
 In-Reply-To: <20100218013012.32075.43788.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
+Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>, linux-omap@vger.kernel.org
 
-From: Grazvydas Ignotas <notasas@gmail.com>
+From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Update pandora's regulator setup:
-- add new regulators: VAUX2, VAUX4 and VSIM
-- add new consumers: ads7846, nub controllers, USB PHY, audio DAC
-- use dev names instead of struct device pointers
+Add platform data for the twl4030_codec MFD on IGEP v2
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-omap3pandora.c |  111 +++++++++++++++++++++---------
- 1 files changed, 78 insertions(+), 33 deletions(-)
+ arch/arm/mach-omap2/board-igep0020.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 7ea3894..a0acf8d 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -227,27 +227,6 @@ static struct platform_device pandora_dss_device = {
- 	},
- };
- 
--static struct regulator_consumer_supply pandora_vcc_lcd_supply = {
--	.supply		= "vcc",
--	.dev		= &pandora_lcd_device.dev,
--};
--
--static struct regulator_consumer_supply pandora_vdda_dac_supply = {
--	.supply		= "vdda_dac",
--	.dev		= &pandora_dss_device.dev,
--};
--
--static struct regulator_consumer_supply pandora_vdds_supplies[] = {
--	{
--		.supply		= "vdds_sdi",
--		.dev		= &pandora_dss_device.dev,
--	},
--	{
--		.supply		= "vdds_dsi",
--		.dev		= &pandora_dss_device.dev,
--	},
--};
--
- static struct omap2_hsmmc_info omap3pandora_mmc[] = {
- 	{
- 		.mmc		= 1,
-@@ -273,14 +252,6 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
- 	{}	/* Terminator */
- };
- 
--static struct regulator_consumer_supply pandora_vmmc1_supply = {
--	.supply			= "vmmc",
--};
--
--static struct regulator_consumer_supply pandora_vmmc2_supply = {
--	.supply			= "vmmc",
--};
--
- static int omap3pandora_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-@@ -289,10 +260,6 @@ static int omap3pandora_twl_gpio_setup(struct device *dev,
- 	omap3pandora_mmc[1].gpio_cd = gpio + 1;
- 	omap2_hsmmc_init(omap3pandora_mmc);
- 
--	/* link regulators to MMC adapters */
--	pandora_vmmc1_supply.dev = omap3pandora_mmc[0].dev;
--	pandora_vmmc2_supply.dev = omap3pandora_mmc[1].dev;
--
- 	return 0;
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index adc1b46..71488b2 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -173,12 +173,22 @@ static void __init igep2_init_irq(void)
+ 	omap_gpio_init();
  }
  
-@@ -303,6 +270,36 @@ static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
- 	.setup		= omap3pandora_twl_gpio_setup,
- };
++static struct twl4030_codec_audio_data igep2_audio_data = {
++	.audio_mclk = 26000000,
++};
++
++static struct twl4030_codec_data igep2_codec_data = {
++	.audio_mclk = 26000000,
++	.audio = &igep2_audio_data,
++};
++
+ static struct twl4030_platform_data igep2_twldata = {
+ 	.irq_base	= TWL4030_IRQ_BASE,
+ 	.irq_end	= TWL4030_IRQ_END,
  
-+static struct regulator_consumer_supply pandora_vmmc1_supply =
-+	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.0");
-+
-+static struct regulator_consumer_supply pandora_vmmc2_supply =
-+	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1");
-+
-+static struct regulator_consumer_supply pandora_vdda_dac_supply =
-+	REGULATOR_SUPPLY("vdda_dac", "omapdss");
-+
-+static struct regulator_consumer_supply pandora_vdds_supplies[] = {
-+	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
-+	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
-+};
-+
-+static struct regulator_consumer_supply pandora_vcc_lcd_supply =
-+	REGULATOR_SUPPLY("vcc", "display0");
-+
-+static struct regulator_consumer_supply pandora_usb_phy_supply =
-+	REGULATOR_SUPPLY("hsusb0", "ehci-omap.0");
-+
-+/* ads7846 on SPI and 2 nub controllers on I2C */
-+static struct regulator_consumer_supply pandora_vaux4_supplies[] = {
-+	REGULATOR_SUPPLY("vcc", "spi1.0"),
-+	REGULATOR_SUPPLY("vcc", "3-0066"),
-+	REGULATOR_SUPPLY("vcc", "3-0067"),
-+};
-+
-+static struct regulator_consumer_supply pandora_adac_supply =
-+	REGULATOR_SUPPLY("vcc", "soc-audio");
-+
- /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
- static struct regulator_init_data pandora_vmmc1 = {
- 	.constraints = {
-@@ -378,6 +375,51 @@ static struct regulator_init_data pandora_vaux1 = {
- 	.consumer_supplies	= &pandora_vcc_lcd_supply,
- };
- 
-+/* VAUX2 for USB host PHY */
-+static struct regulator_init_data pandora_vaux2 = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &pandora_usb_phy_supply,
-+};
-+
-+/* VAUX4 for ads7846 and nubs */
-+static struct regulator_init_data pandora_vaux4 = {
-+	.constraints = {
-+		.min_uV			= 2800000,
-+		.max_uV			= 2800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(pandora_vaux4_supplies),
-+	.consumer_supplies	= pandora_vaux4_supplies,
-+};
-+
-+/* VSIM for audio DAC */
-+static struct regulator_init_data pandora_vsim = {
-+	.constraints = {
-+		.min_uV			= 2800000,
-+		.max_uV			= 2800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &pandora_adac_supply,
-+};
-+
- static struct twl4030_usb_data omap3pandora_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
-@@ -402,6 +444,9 @@ static struct twl4030_platform_data omap3pandora_twldata = {
- 	.vdac		= &pandora_vdac,
- 	.vpll2		= &pandora_vpll2,
- 	.vaux1		= &pandora_vaux1,
-+	.vaux2		= &pandora_vaux2,
-+	.vaux4		= &pandora_vaux4,
-+	.vsim		= &pandora_vsim,
- 	.keypad		= &pandora_kp_data,
- };
+ 	/* platform_data for children goes here */
+ 	.usb		= &igep2_usb_data,
++	.codec		= &igep2_codec_data,
+ 	.gpio		= &igep2_gpio_data,
+ 	.vmmc1          = &igep2_vmmc1,
  
 
