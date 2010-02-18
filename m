@@ -1,96 +1,187 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
-Date: Thu, 18 Feb 2010 01:22:12 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9B32@dlee06.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602AA7C18D9@dlee06.ent.ti.com>
-	<20100217.171348.223468508.Hiroshi.DOYU@nokia.com>
-	<496565EC904933469F292DDA3F1663E602CA2B9B1E@dlee06.ent.ti.com>
- <20100218.091601.228961325.Hiroshi.DOYU@nokia.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCHv2 2/2] ASoC: OMAP-McBSP: ASoC interface for
+	McBSP sidetone
+Date: Thu, 18 Feb 2010 10:14:36 +0200
+Message-ID: <201002181014.36592.peter.ujfalusi@nokia.com>
+References: <1266417960-22787-1-git-send-email-ilkka.koskinen@nokia.com>
+	<1266417960-22787-2-git-send-email-ilkka.koskinen@nokia.com>
+	<1266417960-22787-3-git-send-email-ilkka.koskinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49304 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752010Ab0BRHWQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 02:22:16 -0500
-In-Reply-To: <20100218.091601.228961325.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1266417960-22787-3-git-send-email-ilkka.koskinen@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Koskinen Ilkka (Nokia-D/Tampere)" <ilkka.koskinen@nokia.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hello,
 
-Hi Hiroshi,
+Looks good, but I have one comment, you can consider if you like it...
 
->-----Original Message-----
->From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
->Sent: Thursday, February 18, 2010 1:16 AM
->To: Guzman Lugo, Fernando
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
->
->Hi Fernando,
->
->From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
->Subject: RE: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
->Date: Thu, 18 Feb 2010 07:22:03 +0100
->
->>
->>
->>>-----Original Message-----
->>>From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
->>>Sent: Wednesday, February 17, 2010 9:14 AM
->>>To: Guzman Lugo, Fernando
->>>Cc: linux-omap@vger.kernel.org
->>>Subject: Re: [PATCH 3/6] Mailbox: change mailbox version print to
->pr_debug
->>>
->>>Hi Fernand,
->>>
->>>From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
->>>Subject: [PATCH 3/6] Mailbox: change mailbox version print to pr_debug
->>>Date: Sat, 13 Feb 2010 02:40:41 +0100
->>>
->>>> From 60e21e76773de379deb41ff166f9679b7078276f Mon Sep 17 00:00:00 2001
->>>> From: Fernando Guzman Lugo <x0095840@ti.com>
->>>> Date: Wed, 10 Feb 2010 17:08:20 -0600
->>>> Subject: [PATCH] Mailbox: change mailbox version print to pr_debug
->>>>
->>>> it is not useful printing the version every time mailbox is used
->>>> instead change it to pr_debug in case someone needs to see the
->>>> version can enable the print.
->>>
->>>I just found that, if you put the line printing version into debug
->>>mode, then "mbox_read_reg(MAILBOX_REVISION)" should be also done only
->>>in debug mode. This value wouldn't be necessary if it didn't print.
->>>
->>>Considering this printing again, this prints a message only when H/W
->>>initialization is done correctly, most likely only *once* at
->>>booting. This informs us of the result that a mailbox H/W itself is
->>>set up and some mailbox related modules are loaded successfully. So
->>>keeping this makes sense a little bit more rather than shutting this
->>>completely silence.
->>
->> The thing was that the tests I ran does a lot of install and
->> uninstall bridge module that why I saw a lot of this print, but yes
->> you are right in normal operation it should be printed once. On the
->> other hand if this is used to state loaded successfully maybe the
->> print should be changed to more meaningfully like
->> "mailbox revision4.0 running or loaded"
->>
->> But, let drop this patch in this moment. I will send all the patches
->> again.
->
->Agreed.
->
->When you resend them again, then please include mine [5/6] attached
->too. It's much easier.
->
->I ack'ed all of them.
+...
 
-Oops, I have already send them, but let me send them again including your patch and description and your ack's
+> +static int omap_mcbsp2_st_set_mode(struct snd_kcontrol *kcontrol,
+> +				struct snd_ctl_elem_value *ucontrol)
+> +{
+> +	u8 value =3D ucontrol->value.integer.value[0];
+> +
+> +	if (value =3D=3D omap_st_is_enabled(1))
+> +		return 0;
+> +
+> +	if (value)
+> +		omap_st_enable(1);
+> +	else
+> +		omap_st_disable(1);
+> +
+> +	return 1;
+> +}
+> +
+> +static int omap_mcbsp2_st_get_mode(struct snd_kcontrol *kcontrol,
+> +				struct snd_ctl_elem_value *ucontrol)
+> +{
+> +	ucontrol->value.integer.value[0] =3D omap_st_is_enabled(1);
+> +	return 0;
+> +}
+> +
+> +static int omap_mcbsp3_st_set_mode(struct snd_kcontrol *kcontrol,
+> +				struct snd_ctl_elem_value *ucontrol)
+> +{
+> +	u8 value =3D ucontrol->value.integer.value[0];
+> +
+> +	if (value =3D=3D omap_st_is_enabled(2))
+> +		return 0;
+> +
+> +	if (value)
+> +		omap_st_enable(2);
+> +	else
+> +		omap_st_disable(2);
+> +
+> +	return 1;
+> +}
+> +
+> +static int omap_mcbsp3_st_get_mode(struct snd_kcontrol *kcontrol,
+> +				struct snd_ctl_elem_value *ucontrol)
+> +{
+> +
+> +	ucontrol->value.integer.value[0] =3D omap_st_is_enabled(2);
+> +	return 0;
+> +}
 
-Regards,
-Fernando.
+Instead of having these two set of function, I would have only one:
+
+static int omap_mcbsp_st_put_mode(struct snd_kcontrol *kcontrol,
+					struct snd_ctl_elem_value *ucontrol)
+{
+	struct soc_mixer_control *mc =3D
+			(struct soc_mixer_control *)kcontrol->private_value;
+	u8 value =3D ucontrol->value.integer.value[0];
+
+	if (value =3D=3D omap_st_is_enabled(mc->reg))
+		return 0;
+
+	if (value)
+		omap_st_enable(mc->reg);
+	else
+		omap_st_disable(mc->reg);
+
+	return 1;
+}
+
+static int omap_mcbsp_st_get_mode(struct snd_kcontrol *kcontrol,
+					struct snd_ctl_elem_value *ucontrol)
+{
+	struct soc_mixer_control *mc =3D
+			(struct soc_mixer_control *)kcontrol->private_value;
+
+	ucontrol->value.integer.value[0] =3D omap_st_is_enabled(mc->reg);
+
+	return 0;
+}
+
+Than
+
+> +static const struct snd_kcontrol_new omap_mcbsp2_st_controls[] =3D {
+> +	SOC_SINGLE_EXT("McBSP2 Sidetone Switch", 0, 0, 1, 0,
+> +			omap_mcbsp2_st_get_mode, omap_mcbsp2_st_set_mode),
+
+	SOC_SINGLE_EXT("McBSP2 Sidetone Switch", 1, 0, 1, 0,
+		omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mode),
+
+> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 0 Volume",
+> +				      -32768, 32767,
+> +				      omap_mcbsp2_get_st_ch0_volume,
+> +				      omap_mcbsp2_set_st_ch0_volume),
+> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 1 Volume",
+> +				      -32768, 32767,
+> +				      omap_mcbsp2_get_st_ch1_volume,
+> +				      omap_mcbsp2_set_st_ch1_volume),
+> +};
+> +
+> +static const struct snd_kcontrol_new omap_mcbsp3_st_controls[] =3D {
+> +	SOC_SINGLE_EXT("McBSP3 Sidetone Switch", 0, 0, 1, 0,
+> +			omap_mcbsp3_st_get_mode, omap_mcbsp3_st_set_mode),
+
+	SOC_SINGLE_EXT("McBSP3 Sidetone Switch", 2, 0, 1, 0,
+		omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mode),
+
+> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 0 Volume",
+> +				      -32768, 32767,
+> +				      omap_mcbsp3_get_st_ch0_volume,
+> +				      omap_mcbsp3_set_st_ch0_volume),
+> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 1 Volume",
+> +				      -32768, 32767,
+> +				      omap_mcbsp3_get_st_ch1_volume,
+> +				      omap_mcbsp3_set_st_ch1_volume),
+> +};
+> +
+> +int omap_mcbsp_st_add_controls(struct snd_soc_codec *codec, int mcbsp_id)
+> +{
+> +	if (!cpu_is_omap34xx())
+> +		return -ENODEV;
+> +
+> +	switch (mcbsp_id) {
+> +	case 2: /* McBSP 2 */
+> +		return snd_soc_add_controls(codec, omap_mcbsp2_st_controls,
+> +					ARRAY_SIZE(omap_mcbsp2_st_controls));
+> +	case 3: /* McBSP 3 */
+> +		return snd_soc_add_controls(codec, omap_mcbsp3_st_controls,
+> +					ARRAY_SIZE(omap_mcbsp3_st_controls));
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +EXPORT_SYMBOL_GPL(omap_mcbsp_st_add_controls);
+> +
+>  static int __init snd_omap_mcbsp_init(void)
+>  {
+>  	return snd_soc_register_dais(omap_mcbsp_dai,
+> diff --git a/sound/soc/omap/omap-mcbsp.h b/sound/soc/omap/omap-mcbsp.h
+> index 1968d03..6c363e5 100644
+> --- a/sound/soc/omap/omap-mcbsp.h
+> +++ b/sound/soc/omap/omap-mcbsp.h
+> @@ -57,4 +57,6 @@ enum omap_mcbsp_div {
+> =
+
+>  extern struct snd_soc_dai omap_mcbsp_dai[NUM_LINKS];
+> =
+
+> +int omap_mcbsp_st_add_controls(struct snd_soc_codec *codec, int mcbsp_id=
+);
+> +
+>  #endif
+
+-- =
+
+P=E9ter
