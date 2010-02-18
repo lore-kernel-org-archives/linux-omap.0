@@ -1,60 +1,37 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Thu, 18 Feb 2010 18:45:18 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002181841400.1946@xanadu.home>
-References: <cover.1265801967.git.david.vrabel@csr.com>
- <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com>
- <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com>
- <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com> <4B7C4608.5010008@csr.com>
- <alpine.DEB.2.00.1002171254040.24812@utopia.booyaka.com>
- <4B7D3EAE.1010908@csr.com>
- <alpine.DEB.2.00.1002180951330.24812@utopia.booyaka.com>
- <004001cab0c9$b208b2b0$544ff780@am.dhcp.ti.com>
- <alpine.DEB.2.00.1002181231520.24812@utopia.booyaka.com>
- <5e088bd91002181416l33dc2fe4u8d2a09d12ea0344e@mail.gmail.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH 1/2] dspbridge: proc: it's a pointer, not a handle
+Date: Thu, 18 Feb 2010 17:53:36 -0600
+Message-ID: <4B7DD300.2040700@ti.com>
+References: <1265992014-7917-1-git-send-email-ext-phil.2.carmody@nokia.com>  <ad3238a4d6769760f2bdbd19b4cde68cd3c79acf.1265991379.git.ext-phil.2.carmody@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_7P4RKl45WtjhNS5Je5FVKg)"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:50410 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751984Ab0BRXpU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 18:45:20 -0500
-In-reply-to: <5e088bd91002181416l33dc2fe4u8d2a09d12ea0344e@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51969 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751782Ab0BRXxk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Feb 2010 18:53:40 -0500
+In-Reply-To: <ad3238a4d6769760f2bdbd19b4cde68cd3c79acf.1265991379.git.ext-phil.2.carmody@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Madhusudhan <madhu.cr@ti.com>, David Vrabel <david.vrabel@csr.com>, r-woodruff2@ti.com, sawant@ti.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+To: Phil Carmody <ext-phil.2.carmody@Nokia.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 2/12/2010 10:26 AM, Phil Carmody wrote:
+> From: Phil Carmody<ext-phil.2.carmody@nokia.com>
+>
+> If there's one thing worse than systems hungarian notation,
+> it's misleading systems hungarian notation. And you don't
+> need 2 copies of the pointer.
+>
+> Signed-off-by: Phil Carmody<ext-phil.2.carmody@nokia.com>
+> ---
+>   drivers/dsp/bridge/rmgr/proc.c |   25 +++++++++++--------------
+>   1 files changed, 11 insertions(+), 14 deletions(-)
+>
 
---Boundary_(ID_7P4RKl45WtjhNS5Je5FVKg)
-Content-type: TEXT/PLAIN; charset=ISO-8859-1
-Content-transfer-encoding: 8BIT
+Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-On Thu, 18 Feb 2010, Steve Sakoman wrote:
+Pushed to dspbridge.
 
-> On Thu, Feb 18, 2010 at 12:21 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> 
-> > (cc'ing Steve, Richard, Anand)
-> 
-> > There appear to be least seven SDIO card drivers in 2.6.34-rc7. At least
-> > one of these is for a TI chip - the wl1251.  I think some of the
-> > Gumstix Overo OMAP3 boards are using an SDIO-connected Marvell Libertas:
-> >
-> > http://www.gumstix.com/store/catalog/product_info.php?products_id=252
-> 
-> That is correct, a Wi2Wi wifi module is connected via mmc2 on the
-> Overo Air and Fire products.
-> 
-> Data rates are pretty low with the existing OMAP SDIO driver.   Any
-> chance this patch would improve that situation?
-
-Without proper SDIO interrupt support at the controller level, the core 
-SDIO code does poll for pending SDIO interrupts periodically.  So yes, 
-this patch is certainly going to help throughput.
-
-
-Nicolas
-
---Boundary_(ID_7P4RKl45WtjhNS5Je5FVKg)--
+- omar
