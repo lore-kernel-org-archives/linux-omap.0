@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 6/7] OMAP3: PM: add scratchpad locking function
-Date: Wed, 17 Feb 2010 18:02:29 -0600
-Message-ID: <1266451350-4480-7-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 5/7] OMAP3: RX-51: Pass cpu idle parameters
+Date: Wed, 17 Feb 2010 18:02:28 -0600
+Message-ID: <1266451350-4480-6-git-send-email-khilman@deeprootsystems.com>
 References: <1266451350-4480-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,71 +18,65 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-This patch implements locking using the semaphore in scratchpad
-memory preventing any concurrent access to scratchpad from OMAP
-and Baseband/Modem processor.
+Pass cpuidle parameters for RX-51. Numbers based on
+measurements made in October 2009 for PM optimized
+kernel with CPU freq enabled. Assumes OPP2 (main
+idle OPP, and worst case latencies).
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/sleep34xx.S |   33 +++++++++++++++++++++++++++++++++
- 1 files changed, 33 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-rx51.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 22fcc14..12a8ba0 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -33,6 +33,8 @@
- #include "prm.h"
- #include "sdrc.h"
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 26b70da..acfb898 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -31,6 +31,7 @@
+ #include <plat/usb.h>
  
-+#define SDRC_SCRATCHPAD_SEM_V	0xfa00291c
-+
- #define PM_PREPWSTST_CORE_V	OMAP34XX_PRM_REGADDR(CORE_MOD, \
- 				OMAP3430_PM_PREPWSTST)
- #define PM_PREPWSTST_CORE_P	0x48306AE8
-@@ -57,6 +59,37 @@
- #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
- #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+ #include "mux.h"
++#include "pm.h"
  
-+        .text
-+/* Function to aquire the semaphore in scratchpad */
-+ENTRY(lock_scratchpad_sem)
-+	stmfd	sp!, {lr}	@ save registers on stack
-+wait_sem:
-+	mov	r0,#1
-+	ldr	r1, sdrc_scratchpad_sem
-+wait_loop:
-+	ldr	r2, [r1]	@ load the lock value
-+	cmp	r2, r0		@ is the lock free ?
-+	beq	wait_loop	@ not free...
-+	swp	r2, r0, [r1]	@ semaphore free so lock it and proceed
-+	cmp	r2, r0		@ did we succeed ?
-+	beq	wait_sem	@ no - try again
-+	ldmfd	sp!, {pc}	@ restore regs and return
-+sdrc_scratchpad_sem:
-+        .word SDRC_SCRATCHPAD_SEM_V
-+ENTRY(lock_scratchpad_sem_sz)
-+        .word   . - lock_scratchpad_sem
+ #define RX51_GPIO_SLEEP_IND 162
+ 
+@@ -56,6 +57,23 @@ static struct platform_device leds_gpio = {
+ 	},
+ };
+ 
++static struct cpuidle_params rx51_cpuidle_params[] = {
++	/* C1 */
++	{1, 110, 162, 5},
++	/* C2 */
++	{1, 106, 180, 309},
++	/* C3 */
++	{0, 107, 410, 46057},
++	/* C4 */
++	{0, 121, 3374, 46057},
++	/* C5 */
++	{1, 855, 1146, 46057},
++	/* C6 */
++	{0, 7580, 4134, 484329},
++	/* C7 */
++	{1, 7505, 15274, 484329},
++};
 +
-+        .text
-+/* Function to release the scratchpad semaphore */
-+ENTRY(unlock_scratchpad_sem)
-+	stmfd	sp!, {lr}	@ save registers on stack
-+	ldr	r3, sdrc_scratchpad_sem
-+	mov	r2,#0
-+	str	r2,[r3]
-+	ldmfd	sp!, {pc}	@ restore regs and return
-+ENTRY(unlock_scratchpad_sem_sz)
-+        .word   . - unlock_scratchpad_sem
-+
- 	.text
- /* Function call to get the restore pointer for resume from OFF */
- ENTRY(get_restore_pointer)
+ static struct omap_lcd_config rx51_lcd_config = {
+ 	.ctrl_name	= "internal",
+ };
+@@ -85,6 +103,7 @@ static void __init rx51_init_irq(void)
+ 
+ 	omap_board_config = rx51_config;
+ 	omap_board_config_size = ARRAY_SIZE(rx51_config);
++	omap3_pm_init_cpuidle(rx51_cpuidle_params);
+ 	sdrc_params = rx51_get_sdram_timings();
+ 	omap2_init_common_hw(sdrc_params, sdrc_params);
+ 	omap_init_irq();
 -- 
 1.6.6
