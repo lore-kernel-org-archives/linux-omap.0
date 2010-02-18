@@ -1,72 +1,71 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: Re: [PATCHv5 0/4] DSPBRIDGE: Improved reserved and mapped resource
- cleanup
-Date: Thu, 18 Feb 2010 20:16:15 +0200
-Message-ID: <20100218181615.GA9816@annwn.felipec.org>
-References: <cover.1266503387.git.ameya.palande@nokia.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH v4] DSPBRIDGE: Fix to avoid possible recursive locking
+Date: Thu, 18 Feb 2010 12:26:33 -0600
+Message-ID: <4B7D8659.5030609@ti.com>
+References: <1265925284-7536-1-git-send-email-deepak.chitriki@ti.com> <1265926841.26484.0.camel@chotu.research.nokia.com> <7A436F7769CA33409C6B44B358BFFF0C0130998163@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49672 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753789Ab0BRSQb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 13:16:31 -0500
-Content-Disposition: inline
-In-Reply-To: <cover.1266503387.git.ameya.palande@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39387 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751823Ab0BRS0k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Feb 2010 13:26:40 -0500
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C0130998163@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "nm@ti.com" <nm@ti.com>, "deepak.chitriki@ti.com" <deepak.chitriki@ti.com>, "x0095840@ti.com" <x0095840@ti.com>, "omar.ramirez@ti.com" <omar.ramirez@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Guzman Lugo, Fernando" <x0095840@ti.com>
 
-On Thu, Feb 18, 2010 at 03:40:49PM +0100, Ameya Palande wrote:
-> This patch series splits DMM_RES_OBJECT into DMM_MAP_OBJECT and DMM_RSV_OBJECT
-> which are used independently for mapped and reserved memory resources
-> accounting. This will help in cleanup of reserved memory resources which was
-> not handled properly before. With these patches resource cleanup mechanism
-> will work perfectly in a use case where a big chunk of memory is reserved and
-> then lot of mappings are created inside it.
-> 
-> Changes since v4:
-> 1. Replace unnecessary list_for_each_entry_safe to list_for_each_entry
->    http://marc.info/?l=linux-omap&m=126645721715598&w=2
-> 2. Comments at appropriate places to explain resource tracking objects
->    insertion and removals.
->    http://marc.info/?l=linux-omap&m=126649541624172&w=2
-> 
-> Changes since v3:
-> 1. Improved mapped memory resource cleanup
-> 
-> Changes since v2:
-> 1. Removed locking from DRV_RemoveAllDMMResElements()
-> 2. Removed cleanup variable from PROC_UnReserveMemory()
->    http://marc.info/?l=linux-omap&m=126637211831587&w=2
-> 3. Rebased patchset on top of following commit:
->    DSPBRIDGE: Remove conditional check from the InputMsg function
-> 
-> Changed since v1:
-> 1. Reduced indentation
->    http://marc.info/?l=linux-omap&m=126624982331523&w=2
-> 
-> Ameya Palande (4):
->   DSPBRIDGE: Rename DMM_RES_OBJECT to DMM_MAP_OBJECT
->   DSPBRIDGE: New reserved memory accounting framework
->   DSPBRIDGE: Fix memory corruption in DRV_ProcFreeDMMRes
->   DSPBRIDGE: Improved mapped memory cleanup
+On 2/17/2010 10:09 AM, Menon, Nishanth wrote:
+> Hi,
+>
+>> From: Ameya Palande [mailto:ameya.palande@nokia.com]
+>> Sent: Friday, February 12, 2010 12:21 AM
+>> To: Chitriki Rudramuni, Deepak
+>> Cc: linux-omap; Ramirez Luna, Omar; Menon, Nishanth
+>> Subject: Re: [PATCH v4] DSPBRIDGE: Fix to avoid possible recursive locking
+>>
+>> On Thu, 2010-02-11 at 22:54 +0100, ext Deepak Chitriki wrote:
+>>> Removed NTFY_Notify() in WMD_MSG_Get() to avoid locking contention
+>>> as NTFY_Notify() is already invoked in InputMsg().
+>>>
+>>> Cc: Ameya Palande<ameya.palande@nokia.com>
+>>> Cc: Omar Ramirez Luna<omar.ramirez@ti.com>
+>>> Cc: Nishanth Menon<nm@ti.com>
+>>>
+>>> Signed-off-by: Deepak Chitriki<deepak.chitriki@ti.com>
+>>
+>> Acked-by: Ameya Palande<ameya.palande@nokia.com>
+>
+> Could this patch be pushed if there are no more comments?
 
-I'm not entirely happy with this order, I generally prefer:
- 1) critical fixes (fix memory corruption)
- 2) reorganization
- 3) new feature (fix res object leakage)
+Instead of pushing this patch I'll be reverting this one:
 
-This way the critical fixes can be merged first, while the rest of the
-patches are worked on. And reorganization usually don't have much
-problem going in.
+http://marc.info/?l=linux-omap&m=125694410627720&w=2
 
-Currently in your patch #2 the spinlocks protection is not symmetrical
-between map and res.
+Explanation:
 
-But in general they look ok:
-Reviwed-by: Felipe Contreras <felipe.contreras@nokia.com>
+After reviewing the scenario it seems that the patch "fixing a flood of 
+messages usecase" doesn't seem to be the proper way to fix it.
 
--- 
-Felipe Contreras
+If the dsp sends 10 messages in a shot for the same client and bridge 
+process them without interrupt, if the client is using 
+DSPManager_WaitForEvents, InputMsg function will notify of all of them 
+but "WaitForEvents" will only catch one notification, then client will 
+call GetMsg ioctl and pick one message from the queue leaving 9 of them 
+still there, whenever WaitForEvents is executed again there won't be a 
+Notification if the dsp stopped sending messages to the same queue, so 
+those 9 messages never will be retrieved because WaitForEvents will timeout.
+
+The fix was only to re-notify the client that a message was still 
+available in its queue and that it needs to pick it up, all of this 
+during GetMsg, however this seems to be triggering a kernel warning 
+because of nested spinlocks called for separate objects.
+
+The reason to avoid pushing this patch is that it is leaving a part of 
+the code introduced by the "flooding" fix.
+
+Please let me know if anyone has comments.
+
+- omar
