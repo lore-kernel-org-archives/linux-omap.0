@@ -1,53 +1,72 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCHv4 4/4] DSPBRIDGE: Improved mapped memory cleanup
-Date: Thu, 18 Feb 2010 16:47:28 +0200
-Message-ID: <1266504448.2105.12.camel@sanganak>
+Subject: RE: [PATCHv4 2/4] DSPBRIDGE: New reserved memory accounting
+ framework
+Date: Thu, 18 Feb 2010 16:48:54 +0200
+Message-ID: <1266504534.2105.13.camel@sanganak>
 References: <cover.1266429436.git.ameya.palande@nokia.com>
-	 <f57155cbfa5cca493333eff553f6887217273a3b.1266429437.git.ameya.palande@nokia.com>
-	 <496565EC904933469F292DDA3F1663E602CA2B9AD9@dlee06.ent.ti.com>
-	 <1266495355.2105.5.camel@sanganak>
-	 <20100218142728.GD4097@annwn.felipec.org>
+	 <7b2296a1856ed89b24b63b978a15acfe675e12ce.1266429437.git.ameya.palande@nokia.com>
+	 <496565EC904933469F292DDA3F1663E602CA2B9AD0@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:38498 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757140Ab0BROsd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 09:48:33 -0500
-In-Reply-To: <20100218142728.GD4097@annwn.felipec.org>
+Received: from smtp.nokia.com ([192.100.105.134]:17918 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757556Ab0BROtj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 09:49:39 -0500
+In-Reply-To: <496565EC904933469F292DDA3F1663E602CA2B9AD0@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
-Cc: "ext Guzman Lugo, Fernando" <x0095840@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+To: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-Hi Felipe,
+Hi Fernando,
 
-On Thu, 2010-02-18 at 15:27 +0100, Contreras Felipe (Nokia-D/Helsinki)
-wrote:
-> On Thu, Feb 18, 2010 at 01:15:55PM +0100, Ameya Palande wrote:
-> > On Thu, 2010-02-18 at 02:52 +0100, ext Guzman Lugo, Fernando wrote:
-> > > What do you think about it?
-> > > Instead of removing DRV_InsertDMMResElement make it an inline function with your code inside:
-> > 
-> > Making DRV_InsertDMMResElement inline doesn't make sense since we are
-> > not calling it multiple times.
+On Thu, 2010-02-18 at 02:40 +0100, ext Guzman Lugo, Fernando wrote:
+> Hi,
 > 
-> I agree with Fernando; the code would be more readable. Even more if we
-> rename the function to instert_map_element().
+> >-----Original Message-----
+> >From: Ameya Palande [mailto:ameya.palande@nokia.com]
+> >Sent: Wednesday, February 17, 2010 12:06 PM
+> >To: linux-omap@vger.kernel.org
+> >Cc: felipe.contreras@nokia.com; Menon, Nishanth; Chitriki Rudramuni,
+> >Deepak; Guzman Lugo, Fernando; Ramirez Luna, Omar
+> >Subject: [PATCHv4 2/4] DSPBRIDGE: New reserved memory accounting framework
+> >
+> >DSP_RSV_OBJECT is introduced to track reserved memory accounting
+> >information.
+> >This will allow us to do proper cleanup for memory reserved using
+> >PROC_ReserveMemory().
+> >
+> >Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+> >---
+> >@@ -1720,18 +1736,32 @@ DSP_STATUS PROC_UnReserveMemory(DSP_HPROCESSOR
+> >hProcessor, void *pRsvAddr)
+> > 			 "InValid Processor Handle \n");
+> > 		goto func_end;
+> > 	}
+> >+
+> > 	status = DMM_GetHandle(pProcObject, &hDmmMgr);
+> >-	if (DSP_FAILED(status))
+> >+	if (DSP_FAILED(status)) {
+> > 		GT_1trace(PROC_DebugMask, GT_7CLASS,
+> > 			 "PROC_UnReserveMemory: Failed to get DMM Mgr "
+> > 			 "handle: 0x%x\n", status);
+> >-	else
+> >-		status = DMM_UnReserveMemory(hDmmMgr, (u32) pRsvAddr);
+> >+		goto func_end;
+> >+	}
+> >+
+> >+	status = DMM_UnReserveMemory(hDmmMgr, (u32) pRsvAddr);
+> >+	if (status != DSP_SOK)
+> >+		goto func_end;
+> >+
+> >+	spin_lock(&pr_ctxt->dmm_rsv_lock);
+> >+	list_for_each_entry_safe(rsv_obj, temp, &pr_ctxt->dmm_rsv_list, link)
+> 
+> list_for_each_entry_safe is used when you delete a element from the list and continue but this is not the case. You should use list_for_each_entry instead, which has simpler logic and we can get ride of temp variable.
 
-I guess the issue is about why this code is doing it rather than the
-readability of code. I have sent V5 of the patchset with comment
-explaining the purpose of doing this.
-
-If you think that by creating a new static inline function like
-insert_map_element(), we can understand it better then following comment
-also does the same thing:
-
-/* Following code inserts a map element ... and explain why */ 
-
-Anyways insert_map_element() function doesn't explain why it is
-required :(
+Thanks! V5 should take care of this :)
 
 Cheers,
 Ameya.
