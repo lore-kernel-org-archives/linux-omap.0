@@ -1,133 +1,87 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/6] Mailbox: sleeping function called from invalid
- context fix
-Date: Wed, 17 Feb 2010 17:05:10 -0800
-Message-ID: <20100218010509.GK21755@atomide.com>
-References: <496565EC904933469F292DDA3F1663E602AA7C18DB@dlee06.ent.ti.com>
- <20100215.154846.212385655.Hiroshi.DOYU@nokia.com>
- <496565EC904933469F292DDA3F1663E602CA2B9285@dlee06.ent.ti.com>
+Subject: [PATCH 00/23] omap updates for 2.6.34, part 3
+Date: Wed, 17 Feb 2010 17:17:20 -0800
+Message-ID: <20100218011311.30736.20436.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64021 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756189Ab0BRBEX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:04:23 -0500
-Content-Disposition: inline
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CA2B9285@dlee06.ent.ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58457 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752359Ab0BRBQe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:16:34 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Guzman Lugo, Fernando <x0095840@ti.com> [100215 23:22]:
-> 
-> Hi,
-> 
-> >-----Original Message-----
-> >From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> >Sent: Monday, February 15, 2010 7:49 AM
-> >To: Guzman Lugo, Fernando
-> >Cc: linux-omap@vger.kernel.org
-> >Subject: Re: [PATCH 5/6] Mailbox: sleeping function called from invalid
-> >context fix
-> >
-> >Hi Fernando,
-> >
-> >From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
-> >Subject: [PATCH 5/6] Mailbox: sleeping function called from invalid context
-> >fix
-> >Date: Sat, 13 Feb 2010 02:42:16 +0100
-> >
-> >> From e06b2716824f225747c4dc83ed2623d0160ae132 Mon Sep 17 00:00:00 2001
-> >> From: Fernando Guzman Lugo <x0095840@ti.com>
-> >> Date: Fri, 29 Jan 2010 17:12:24 -0600
-> >> Subject: [PATCH] Mailbox: sleeping function called from invalid context
-> >fix
-> >>
-> >> This patch fixes this bug:
-> >> BUG: sleeping function called from invalid context
-> >> Inside omap2_mbox_startup is called clk_get_sys that can sleep,
-> >> therefore omap2_mbox_startup can sleep but it is call in an atomic
-> >> context . So the spinlock is change for a semaphore.
-> >
-> >"mboxes_lock" is used to maintain the global list of mailbox
-> >instances, which belong to a single mailbox H/W module, but they are
-> >logical channels from S/W perspective. Both "->ops->startup()" and
-> >"->ops->shutdown()" are being executed against the above single H/W
-> >module, and a mailbox H/W module is totally __independent__ of the
-> >registration of logical mailboxes, which are (un)registered with
-> 
-> Yes, they are independent of each other, and can be executed at the same time. I am agreed with your patch; that should be the right solution, so you can drop my patch.
+Hi all,
 
-Hiroshi & Fernando, if you want me to merge this series, please post
-it one more time with right patches and ack's from Hiroshi. Please
-Cc also linux-arm-kernel so it gets reviewed there. The merge window
-is about to open, so we're running out of time..
+Sorry, was meaning to post these last week alread..
+
+Here are the omap board-*.c file changes for review.
 
 Regards,
 
 Tony
 
+---
 
- 
-> Thanks and regards,
-> Fernando.
-> 
-> >"omap_mbox_(un)register()". IOW, a mbox instance can be registered at
-> >anytime(before/after) H/W initialization. This H/W initialization is
-> >taken care of by "mbox_configured" variable. So I might think that the
-> >right solution is to introduce a new mutex lock __just for__ h/w
-> >configuration as below:
-> >
-> >	Modified arch/arm/plat-omap/mailbox.c
-> >diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-> >index 8e90633..19530de 100644
-> >--- a/arch/arm/plat-omap/mailbox.c
-> >+++ b/arch/arm/plat-omap/mailbox.c
-> >@@ -32,6 +32,7 @@ static struct omap_mbox *mboxes;
-> > static DEFINE_RWLOCK(mboxes_lock);
-> >
-> > static int mbox_configured;
-> >+static DEFINE_MUTEX(mbox_configured_lock);
-> >
-> > /* Mailbox FIFO handle functions */
-> > static inline mbox_msg_t mbox_fifo_read(struct omap_mbox *mbox)
-> >@@ -247,16 +248,16 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
-> > 	struct omap_mbox_queue *mq;
-> >
-> > 	if (likely(mbox->ops->startup)) {
-> >-		write_lock(&mboxes_lock);
-> >+		mutex_lock(&mbox_configured_lock);
-> > 		if (!mbox_configured)
-> > 			ret = mbox->ops->startup(mbox);
-> >
-> > 		if (unlikely(ret)) {
-> >-			write_unlock(&mboxes_lock);
-> >+			mutex_unlock(&mbox_configured_lock);
-> > 			return ret;
-> > 		}
-> > 		mbox_configured++;
-> >-		write_unlock(&mboxes_lock);
-> >+		mutex_unlock(&mbox_configured_lock);
-> > 	}
-> >
-> > 	ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
-> >@@ -302,12 +303,12 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
-> > 	free_irq(mbox->irq, mbox);
-> >
-> > 	if (unlikely(mbox->ops->shutdown)) {
-> >-		write_lock(&mboxes_lock);
-> >+		mutex_lock(&mbox_configured_lock);
-> > 		if (mbox_configured > 0)
-> > 			mbox_configured--;
-> > 		if (!mbox_configured)
-> > 			mbox->ops->shutdown(mbox);
-> >-		write_unlock(&mboxes_lock);
-> >+		mutex_unlock(&mbox_configured_lock);
-> > 	}
-> > }
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Enric Balletbo i Serra (8):
+      omap3: Add platform data for the twl4030_codec MFD on IGEP v2
+      omap3: Fix typo on IGEP v2 board
+      omap3: Add platform init code for EHCI driver on IGEP v2
+      omap3: Enable DSS2 for IGEP v2 board
+      omap3: Add support for flash on IGEP v2 board
+      ARM: OMAP3: SDRC: add timing data for Numonyx M65KxxxxAM
+      omap3: Use timing data for omap2_init_common_hw on IGEP v2
+      omap3: Update defconfig for IGEP v2 to allow new drivers andfeatures
+
+Grazvydas Ignotas (3):
+      OMAP: pandora: add DSS2 support and related regulators
+      omap3: pandora: update regulator setup
+      omap3: pandora: update defconfig
+
+Jonas Zetterberg (2):
+      IGEPv2: Added WIFI support
+      IGEPv2: Use Red Led1 as Heartbeat if configured
+
+Sanjeev Premi (4):
+      omap3evm: Add mux settings for keypad
+      omap3evm: Fixes after moving to matrix_keypad
+      omap3evm: Configure GPIO175 for touchscreen PEN_IRQ
+      OMAP3EVM: PM: Update defconfig
+
+Thomas Weber (2):
+      Add minimal support for DevKit8000
+      Add devkit8000_defconfig
+
+Vaibhav Hiremath (3):
+      AM3517: Enable basic I2C Support
+      AM3517: Enable RTC driver support for AM3517EVM
+      AM3517: Enable I2C-GPIO Expander driver support for AM3517EVM
+
+vikram pandita (1):
+      omap: zoom3: enable ehci support
+
+
+ arch/arm/configs/devkit8000_defconfig          | 1889 ++++++++++++++++++++++++
+ arch/arm/configs/igep0020_defconfig            |  525 ++++---
+ arch/arm/configs/omap3_evm_defconfig           |    6 
+ arch/arm/configs/omap3_pandora_defconfig       |  678 +++++++--
+ arch/arm/mach-omap2/Kconfig                    |    6 
+ arch/arm/mach-omap2/Makefile                   |    2 
+ arch/arm/mach-omap2/board-am3517evm.c          |   86 +
+ arch/arm/mach-omap2/board-devkit8000.c         |  691 +++++++++
+ arch/arm/mach-omap2/board-igep0020.c           |  269 +++
+ arch/arm/mach-omap2/board-omap3evm.c           |   33 
+ arch/arm/mach-omap2/board-omap3pandora.c       |  180 ++
+ arch/arm/mach-omap2/board-zoom3.c              |   14 
+ arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h |   51 +
+ 13 files changed, 4020 insertions(+), 410 deletions(-)
+ create mode 100644 arch/arm/configs/devkit8000_defconfig
+ create mode 100644 arch/arm/mach-omap2/board-devkit8000.c
+ create mode 100644 arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h
+
+-- 
+Signature
