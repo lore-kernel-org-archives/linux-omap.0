@@ -1,46 +1,189 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/23] omap3evm: Configure GPIO175 for touchscreen PEN_IRQ
-Date: Wed, 17 Feb 2010 17:31:59 -0800
-Message-ID: <20100218013159.32075.31197.stgit@baageli.muru.com>
+Subject: [PATCH 05/23] OMAP: pandora: add DSS2 support and related regulators
+Date: Wed, 17 Feb 2010 17:32:01 -0800
+Message-ID: <20100218013201.32075.60830.stgit@baageli.muru.com>
 References: <20100218013012.32075.43788.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63131 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63167 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533Ab0BRBbJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:31:09 -0500
+	with ESMTP id S1753840Ab0BRBbM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:31:12 -0500
 In-Reply-To: <20100218013012.32075.43788.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 
-From: Sanjeev Premi <premi@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
 
-GPIO175 is used for PEN_IRQ on the EVM. This patch
-sets the mux settings for the same.
+This patch adds configuration data for DSS2 and sets up
+display related regulators.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-omap3pandora.c |  111 ++++++++++++++++++++++++++++++
+ 1 files changed, 111 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 34655a6..fa1f9d5 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -653,7 +653,9 @@ static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
- 				OMAP_PIN_OFF_INPUT_PULLUP |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
--
-+	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-+				OMAP_PIN_OFF_INPUT_PULLUP |
-+				OMAP_PIN_OFF_WAKEUPENABLE),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 9967b5d..7ea3894 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -40,6 +40,7 @@
+ #include <mach/hardware.h>
+ #include <plat/mcspi.h>
+ #include <plat/usb.h>
++#include <plat/display.h>
+ 
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+@@ -192,6 +193,61 @@ static struct twl4030_keypad_data pandora_kp_data = {
+ 	.rep		= 1,
  };
- #else
+ 
++static struct omap_dss_device pandora_lcd_device = {
++	.name			= "lcd",
++	.driver_name		= "tpo_td043mtea1_panel",
++	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.phy.dpi.data_lines	= 24,
++	.reset_gpio		= 157,
++};
++
++static struct omap_dss_device pandora_tv_device = {
++	.name			= "tv",
++	.driver_name		= "venc",
++	.type			= OMAP_DISPLAY_TYPE_VENC,
++	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
++};
++
++static struct omap_dss_device *pandora_dss_devices[] = {
++	&pandora_lcd_device,
++	&pandora_tv_device,
++};
++
++static struct omap_dss_board_info pandora_dss_data = {
++	.num_devices	= ARRAY_SIZE(pandora_dss_devices),
++	.devices	= pandora_dss_devices,
++	.default_device	= &pandora_lcd_device,
++};
++
++static struct platform_device pandora_dss_device = {
++	.name		= "omapdss",
++	.id		= -1,
++	.dev		= {
++		.platform_data = &pandora_dss_data,
++	},
++};
++
++static struct regulator_consumer_supply pandora_vcc_lcd_supply = {
++	.supply		= "vcc",
++	.dev		= &pandora_lcd_device.dev,
++};
++
++static struct regulator_consumer_supply pandora_vdda_dac_supply = {
++	.supply		= "vdda_dac",
++	.dev		= &pandora_dss_device.dev,
++};
++
++static struct regulator_consumer_supply pandora_vdds_supplies[] = {
++	{
++		.supply		= "vdds_sdi",
++		.dev		= &pandora_dss_device.dev,
++	},
++	{
++		.supply		= "vdds_dsi",
++		.dev		= &pandora_dss_device.dev,
++	},
++};
++
+ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ 	{
+ 		.mmc		= 1,
+@@ -277,6 +333,51 @@ static struct regulator_init_data pandora_vmmc2 = {
+ 	.consumer_supplies	= &pandora_vmmc2_supply,
+ };
+ 
++/* VDAC for DSS driving S-Video */
++static struct regulator_init_data pandora_vdac = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &pandora_vdda_dac_supply,
++};
++
++/* VPLL2 for digital video outputs */
++static struct regulator_init_data pandora_vpll2 = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= ARRAY_SIZE(pandora_vdds_supplies),
++	.consumer_supplies	= pandora_vdds_supplies,
++};
++
++/* VAUX1 for LCD */
++static struct regulator_init_data pandora_vaux1 = {
++	.constraints = {
++		.min_uV			= 3000000,
++		.max_uV			= 3000000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &pandora_vcc_lcd_supply,
++};
++
+ static struct twl4030_usb_data omap3pandora_usb_data = {
+ 	.usb_mode	= T2_USB_MODE_ULPI,
+ };
+@@ -298,6 +399,9 @@ static struct twl4030_platform_data omap3pandora_twldata = {
+ 	.codec		= &omap3pandora_codec_data,
+ 	.vmmc1		= &pandora_vmmc1,
+ 	.vmmc2		= &pandora_vmmc2,
++	.vdac		= &pandora_vdac,
++	.vpll2		= &pandora_vpll2,
++	.vaux1		= &pandora_vaux1,
+ 	.keypad		= &pandora_kp_data,
+ };
+ 
+@@ -365,6 +469,12 @@ static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
+ 		.controller_data	= &ads7846_mcspi_config,
+ 		.irq			= OMAP_GPIO_IRQ(OMAP3_PANDORA_TS_GPIO),
+ 		.platform_data		= &ads7846_config,
++	}, {
++		.modalias		= "tpo_td043mtea1_panel_spi",
++		.bus_num		= 1,
++		.chip_select		= 1,
++		.max_speed_hz		= 375000,
++		.platform_data		= &pandora_lcd_device,
+ 	}
+ };
+ 
+@@ -379,6 +489,7 @@ static void __init omap3pandora_init_irq(void)
+ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 	&pandora_leds_gpio,
+ 	&pandora_keys_gpio,
++	&pandora_dss_device,
+ };
+ 
+ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
 
