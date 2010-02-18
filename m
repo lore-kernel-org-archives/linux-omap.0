@@ -1,97 +1,72 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [RESEND] [PATCH] DSPBRIDGE: Adding protection Resource cleanup
- linked lists
-Date: Wed, 17 Feb 2010 19:56:02 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602CA2B9ADB@dlee06.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602AA725DC6@dlee06.ent.ti.com>
- <1266404123.2063.2.camel@sanganak>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 5/6] Mailbox: sleeping function called from invalid
+ context fix
+Date: Thu, 18 Feb 2010 07:11:27 +0200 (EET)
+Message-ID: <20100218.071127.133417907.Hiroshi.DOYU@nokia.com>
+References: <20100215.154846.212385655.Hiroshi.DOYU@nokia.com>
+	<496565EC904933469F292DDA3F1663E602CA2B9285@dlee06.ent.ti.com>
+	<20100218010509.GK21755@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36171 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753797Ab0BRB4F convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Feb 2010 20:56:05 -0500
-In-Reply-To: <1266404123.2063.2.camel@sanganak>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:43591 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751115Ab0BRFLj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 00:11:39 -0500
+In-Reply-To: <20100218010509.GK21755@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@Nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@Nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@Nokia.com>
+To: tony@atomide.com
+Cc: x0095840@ti.com, linux-omap@vger.kernel.org
 
+From: ext Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/6] Mailbox: sleeping function called from invalid context fix
+Date: Thu, 18 Feb 2010 02:05:10 +0100
 
-Hi,
+> * Guzman Lugo, Fernando <x0095840@ti.com> [100215 23:22]:
+>> 
+>> Hi,
+>> 
+>> >-----Original Message-----
+>> >From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+>> >Sent: Monday, February 15, 2010 7:49 AM
+>> >To: Guzman Lugo, Fernando
+>> >Cc: linux-omap@vger.kernel.org
+>> >Subject: Re: [PATCH 5/6] Mailbox: sleeping function called from invalid
+>> >context fix
+>> >
+>> >Hi Fernando,
+>> >
+>> >From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
+>> >Subject: [PATCH 5/6] Mailbox: sleeping function called from invalid context
+>> >fix
+>> >Date: Sat, 13 Feb 2010 02:42:16 +0100
+>> >
+>> >> From e06b2716824f225747c4dc83ed2623d0160ae132 Mon Sep 17 00:00:00 2001
+>> >> From: Fernando Guzman Lugo <x0095840@ti.com>
+>> >> Date: Fri, 29 Jan 2010 17:12:24 -0600
+>> >> Subject: [PATCH] Mailbox: sleeping function called from invalid context
+>> >fix
+>> >>
+>> >> This patch fixes this bug:
+>> >> BUG: sleeping function called from invalid context
+>> >> Inside omap2_mbox_startup is called clk_get_sys that can sleep,
+>> >> therefore omap2_mbox_startup can sleep but it is call in an atomic
+>> >> context . So the spinlock is change for a semaphore.
+>> >
+>> >"mboxes_lock" is used to maintain the global list of mailbox
+>> >instances, which belong to a single mailbox H/W module, but they are
+>> >logical channels from S/W perspective. Both "->ops->startup()" and
+>> >"->ops->shutdown()" are being executed against the above single H/W
+>> >module, and a mailbox H/W module is totally __independent__ of the
+>> >registration of logical mailboxes, which are (un)registered with
+>> 
+>> Yes, they are independent of each other, and can be executed at the same time. I am agreed with your patch; that should be the right solution, so you can drop my patch.
+> 
+> Hiroshi & Fernando, if you want me to merge this series, please post
+> it one more time with right patches and ack's from Hiroshi. Please
+> Cc also linux-arm-kernel so it gets reviewed there. The merge window
+> is about to open, so we're running out of time..
 
->-----Original Message-----
->From: Ameya Palande [mailto:ameya.palande@Nokia.com]
->Sent: Wednesday, February 17, 2010 4:55 AM
->To: Guzman Lugo, Fernando
->Cc: linux-omap@vger.kernel.org; Doyu Hiroshi (Nokia-D/Helsinki); Contreras
->Felipe (Nokia-D/Helsinki)
->Subject: Re: [RESEND] [PATCH] DSPBRIDGE: Adding protection Resource cleanup
->linked lists
->
->Hi Fernando,
->
->On Wed, 2010-02-10 at 09:32 +0100, ext Guzman Lugo, Fernando wrote:
->> Please discard previous one.
->>
->> Regards,
->> Fernando.
->>
->> From 6bcdc02f6265246e385194433775e75db7ad44cf Mon Sep 17 00:00:00 2001
->> From: Fernando Guzman Lugo <x0095840@ti.com>
->> Date: Wed, 10 Feb 2010 02:31:40 -0600
->> Subject: [PATCH] DSPBRIDGE: Adding protection Resource cleanup linked
->lists
->>
->> This patch protects the Resorce cleanup lists from
->> concurrent access
->>
->> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
->> ---
->>  arch/arm/plat-omap/include/dspbridge/drv.h |    3 +
->>  drivers/dsp/bridge/pmgr/wcd.c              |   16 ++++++-
->>  drivers/dsp/bridge/rmgr/drv.c              |   71
->+++++++++++++++++++++++----
->>  drivers/dsp/bridge/rmgr/drv_interface.c    |    8 ++-
->>  4 files changed, 83 insertions(+), 15 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-
->omap/include/dspbridge/drv.h
->> index b6a5fd2..b044291 100644
->> --- a/arch/arm/plat-omap/include/dspbridge/drv.h
->> +++ b/arch/arm/plat-omap/include/dspbridge/drv.h
->> @@ -137,15 +137,18 @@ struct PROCESS_CONTEXT{
->>
->>  	/* DSP Node resources */
->>  	struct NODE_RES_OBJECT *pNodeList;
->> +	struct mutex node_mutex;
->>
->>  	/* DMM resources */
->>  	struct DMM_RES_OBJECT *pDMMList;
->> +	struct mutex dmm_mutex;
->>
->>  	/* DSP Heap resources */
->>  	struct DSPHEAP_RES_OBJECT *pDSPHEAPList;
->>
->>  	/* Stream resources */
->>  	struct STRM_RES_OBJECT *pSTRMList;
->> +	struct mutex strm_mutex;
->>  } ;
->
->Is there a specific reason for using mutex instead of spin_lock?
->
->AFAIU these locks are help for very short time, for inserting / removing
->elements from linked list, or traversing a linked list.
-
-Yes, changing mutex to spinlocks would help in performance. Let me send a patch to change them.
-
-Regards,
-Fernando.
-
->
->Cheers,
->Ameya.
-
+Ok, I'll take care of them.
