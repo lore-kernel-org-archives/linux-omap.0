@@ -1,63 +1,235 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH] PM-WIP-OPP: Fixing wrong target level being passed during Core DVFS.
-Date: Thu, 18 Feb 2010 14:01:06 +0530
-Message-ID: <1266481866-10875-1-git-send-email-thara@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58925 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752206Ab0BRIbP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Feb 2010 03:31:15 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: <ilkka.koskinen@nokia.com>
+Subject: Re: [PATCHv2 2/2] ASoC: OMAP-McBSP: ASoC interface for
+ McBSP sidetone
+Date: Thu, 18 Feb 2010 09:49:09 +0100
+Message-ID: <F80267346F10C541946CBE8909F1C39E26A47659A1@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1266417960-22787-1-git-send-email-ilkka.koskinen@nokia.com>
+	<1266417960-22787-2-git-send-email-ilkka.koskinen@nokia.com>
+	<1266417960-22787-3-git-send-email-ilkka.koskinen@nokia.com>
+	<201002181014.36592.peter.ujfalusi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <201002181014.36592.peter.ujfalusi@nokia.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: peter.ujfalusi@nokia.com
+Cc: alsa-devel@alsa-project.org, tony@atomide.com, broonie@opensource.wolfsonmicro.com, eduardo.valentin@nokia.com, ext-Eero.Nurkkala@nokia.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thara Gopinath <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-As per the current implementaion (u8*)&target_level is being passed
-to freq_to_opp in set_opp. This would result in updating just the first
-8 bits of a u32 variable. Later target_level is passed to
-resource_set_opp_level as a u32 parameter. This maens
-a. Initially target_level was 0xabcdefgh.
-b. freq_to_opp updates the lower eight bits of target_level
-to 0xXX. Now target_level = 0xabcdefXX.
-c. We pass 0xabcdefXX as target_level to resource_set_opp_level
-when we want to pass just 0xXX.
-This is leading to some corrupted bookkeeping later on in the
-dvfs path.
+ =
 
-This patch ensures that target_level passed to resource_set_opp_level
-is actually the level that is intended by freq_to_opp API.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/resource34xx.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+>From: Ujfalusi Peter (Nokia-D/Tampere) =
 
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index 3604a38..d2336d8 100644
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -463,6 +463,7 @@ int set_opp(struct shared_resource *resp, u32 target_level)
- 	} else if (resp == vdd2_resp) {
- 		unsigned long req_l3_freq;
- 		struct omap_opp *oppx = NULL;
-+		u8 opp;
- 
- 		/* Convert the tput in KiB/s to Bus frequency in MHz */
- 		req_l3_freq = (target_level * 1000)/4;
-@@ -478,10 +479,11 @@ int set_opp(struct shared_resource *resp, u32 target_level)
- 		/* uh uh.. no OPPs?? */
- 		BUG_ON(IS_ERR(oppx));
- 
--		ret = freq_to_opp((u8 *)&target_level, OPP_L3, req_l3_freq);
-+		ret = freq_to_opp(&opp, OPP_L3, req_l3_freq);
- 		/* we dont expect this to fail */
- 		BUG_ON(ret);
- 
-+		target_level = opp;
- 		ret = resource_set_opp_level(VDD2_OPP, target_level, 0);
- 	}
- 	return 0;
--- 
-1.5.4.7
+>Sent: 18 February, 2010 10:15
+>
+>Hello,
+>
+>Looks good, but I have one comment, you can consider if you like it...
+>
+>...
+>
+>> +static int omap_mcbsp2_st_set_mode(struct snd_kcontrol *kcontrol,
+>> +				struct snd_ctl_elem_value *ucontrol)
+>> +{
+>> +	u8 value =3D ucontrol->value.integer.value[0];
+>> +
+>> +	if (value =3D=3D omap_st_is_enabled(1))
+>> +		return 0;
+>> +
+>> +	if (value)
+>> +		omap_st_enable(1);
+>> +	else
+>> +		omap_st_disable(1);
+>> +
+>> +	return 1;
+>> +}
+>> +
+>> +static int omap_mcbsp2_st_get_mode(struct snd_kcontrol *kcontrol,
+>> +				struct snd_ctl_elem_value *ucontrol)
+>> +{
+>> +	ucontrol->value.integer.value[0] =3D omap_st_is_enabled(1);
+>> +	return 0;
+>> +}
+>> +
+>> +static int omap_mcbsp3_st_set_mode(struct snd_kcontrol *kcontrol,
+>> +				struct snd_ctl_elem_value *ucontrol)
+>> +{
+>> +	u8 value =3D ucontrol->value.integer.value[0];
+>> +
+>> +	if (value =3D=3D omap_st_is_enabled(2))
+>> +		return 0;
+>> +
+>> +	if (value)
+>> +		omap_st_enable(2);
+>> +	else
+>> +		omap_st_disable(2);
+>> +
+>> +	return 1;
+>> +}
+>> +
+>> +static int omap_mcbsp3_st_get_mode(struct snd_kcontrol *kcontrol,
+>> +				struct snd_ctl_elem_value *ucontrol)
+>> +{
+>> +
+>> +	ucontrol->value.integer.value[0] =3D omap_st_is_enabled(2);
+>> +	return 0;
+>> +}
+>
+>Instead of having these two set of function, I would have only one:
+>
+>static int omap_mcbsp_st_put_mode(struct snd_kcontrol *kcontrol,
+>					struct =
 
+>snd_ctl_elem_value *ucontrol)
+>{
+>	struct soc_mixer_control *mc =3D
+>			(struct soc_mixer_control =
+
+>*)kcontrol->private_value;
+>	u8 value =3D ucontrol->value.integer.value[0];
+>
+>	if (value =3D=3D omap_st_is_enabled(mc->reg))
+>		return 0;
+>
+>	if (value)
+>		omap_st_enable(mc->reg);
+>	else
+>		omap_st_disable(mc->reg);
+>
+>	return 1;
+>}
+>
+>static int omap_mcbsp_st_get_mode(struct snd_kcontrol *kcontrol,
+>					struct =
+
+>snd_ctl_elem_value *ucontrol)
+>{
+>	struct soc_mixer_control *mc =3D
+>			(struct soc_mixer_control =
+
+>*)kcontrol->private_value;
+>
+>	ucontrol->value.integer.value[0] =3D omap_st_is_enabled(mc->reg);
+>
+>	return 0;
+>}
+>
+>Than
+
+Makes sense - I'll change it.
+
+Cheers, Ilkka
+
+
+>> +static const struct snd_kcontrol_new omap_mcbsp2_st_controls[] =3D {
+>> +	SOC_SINGLE_EXT("McBSP2 Sidetone Switch", 0, 0, 1, 0,
+>> +			omap_mcbsp2_st_get_mode, =
+
+>omap_mcbsp2_st_set_mode),
+>
+>	SOC_SINGLE_EXT("McBSP2 Sidetone Switch", 1, 0, 1, 0,
+>		omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mode),
+>
+>> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel =
+
+>0 Volume",
+>> +				      -32768, 32767,
+>> +				      omap_mcbsp2_get_st_ch0_volume,
+>> +				      omap_mcbsp2_set_st_ch0_volume),
+>> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel =
+
+>1 Volume",
+>> +				      -32768, 32767,
+>> +				      omap_mcbsp2_get_st_ch1_volume,
+>> +				      omap_mcbsp2_set_st_ch1_volume),
+>> +};
+>> +
+>> +static const struct snd_kcontrol_new omap_mcbsp3_st_controls[] =3D {
+>> +	SOC_SINGLE_EXT("McBSP3 Sidetone Switch", 0, 0, 1, 0,
+>> +			omap_mcbsp3_st_get_mode, =
+
+>omap_mcbsp3_st_set_mode),
+>
+>	SOC_SINGLE_EXT("McBSP3 Sidetone Switch", 2, 0, 1, 0,
+>		omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mode),
+>
+>> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel =
+
+>0 Volume",
+>> +				      -32768, 32767,
+>> +				      omap_mcbsp3_get_st_ch0_volume,
+>> +				      omap_mcbsp3_set_st_ch0_volume),
+>> +	OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel =
+
+>1 Volume",
+>> +				      -32768, 32767,
+>> +				      omap_mcbsp3_get_st_ch1_volume,
+>> +				      omap_mcbsp3_set_st_ch1_volume),
+>> +};
+>> +
+>> +int omap_mcbsp_st_add_controls(struct snd_soc_codec *codec, =
+
+>int mcbsp_id)
+>> +{
+>> +	if (!cpu_is_omap34xx())
+>> +		return -ENODEV;
+>> +
+>> +	switch (mcbsp_id) {
+>> +	case 2: /* McBSP 2 */
+>> +		return snd_soc_add_controls(codec, =
+
+>omap_mcbsp2_st_controls,
+>> +					=
+
+>ARRAY_SIZE(omap_mcbsp2_st_controls));
+>> +	case 3: /* McBSP 3 */
+>> +		return snd_soc_add_controls(codec, =
+
+>omap_mcbsp3_st_controls,
+>> +					=
+
+>ARRAY_SIZE(omap_mcbsp3_st_controls));
+>> +	default:
+>> +		break;
+>> +	}
+>> +
+>> +	return -EINVAL;
+>> +}
+>> +EXPORT_SYMBOL_GPL(omap_mcbsp_st_add_controls);
+>> +
+>>  static int __init snd_omap_mcbsp_init(void)
+>>  {
+>>  	return snd_soc_register_dais(omap_mcbsp_dai,
+>> diff --git a/sound/soc/omap/omap-mcbsp.h =
+
+>b/sound/soc/omap/omap-mcbsp.h
+>> index 1968d03..6c363e5 100644
+>> --- a/sound/soc/omap/omap-mcbsp.h
+>> +++ b/sound/soc/omap/omap-mcbsp.h
+>> @@ -57,4 +57,6 @@ enum omap_mcbsp_div {
+>> =
+
+>>  extern struct snd_soc_dai omap_mcbsp_dai[NUM_LINKS];
+>> =
+
+>> +int omap_mcbsp_st_add_controls(struct snd_soc_codec *codec, =
+
+>int mcbsp_id);
+>> +
+>>  #endif
+>
+>-- =
+
+>P=E9ter
+>
