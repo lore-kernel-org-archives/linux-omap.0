@@ -1,122 +1,71 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH 0/3] mmc: omap_hsmmc: support SDIO cards
-Date: Thu, 18 Feb 2010 10:53:51 -0600
-Message-ID: <000901cab0ba$f30a8900$544ff780@am.dhcp.ti.com>
-References: <cover.1265801967.git.david.vrabel@csr.com> <4B73BFD3.8090106@compulab.co.il> <4B73E59F.3020400@csr.com> <4B73ED3C.9010107@compulab.co.il> <4B73F418.6070804@csr.com> <4B73F8B0.100@compulab.co.il> <4B7CE4EC.5090403@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4B7CE4EC.5090403@compulab.co.il>
-Sender: linux-mmc-owner@vger.kernel.org
-To: 'Mike Rapoport' <mike@compulab.co.il>, 'David Vrabel' <david.vrabel@csr.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+From: balajitk@ti.com
+Subject: [PATCH] twl6030: add base addr for ID0, ID1, ID2
+Date: Thu, 18 Feb 2010 22:30:19 +0530
+Message-ID: <1266512419-22566-1-git-send-email-balajitk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60992 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758537Ab0BRRAb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Feb 2010 12:00:31 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, sameo@linux.intel.com
+Cc: tony@atomide.com, santosh.shilimkar@ti.com, Balaji T K <balajitk@ti.com>
 
-<snip>
-> >
-> >> Also, keep in mind that the buffers for transfers must begin and end on
-> >> a word boundary.  The OMAP's DMA controller can only transfer whole
-> >> words to the MMC FIFO.
-> 
-> I've slightly modified your patch "mmc: omap_hsmmc: use packet sync'd DMA"
-> and it
-> seems to work now, at least with SD card and libertas_sdio:
-> 
+From: Balaji T K <balajitk@ti.com>
 
-Mike,
+Add base address for generic slave ID0, ID1, ID2
+and introduced one more entry to align RTC module number between
+twl4030 and twl6030
 
-As per the latest discussion, David replied that this patch is not needed
-and FRAME sync just works fine. So, without this patch does SDIO int
-functionality work for you?
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ drivers/mfd/twl-core.c  |    7 +++++--
+ include/linux/i2c/twl.h |    5 +++++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-Regards,
-Madhu
-
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   23 ++++++++---------------
->  1 files changed, 8 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 4b23225..5408bcb 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -114,6 +114,7 @@
-> 
->  #define MMC_TIMEOUT_MS		20
->  #define OMAP_MMC_MASTER_CLOCK	96000000
-> +#define OMAP_HSMMC_FIFO_WORDS	(512/4)
->  #define DRIVER_NAME		"mmci-omap-hs"
-> 
->  /* Timeouts for entering power saving states on inactivity, msec */
-> @@ -884,24 +885,24 @@ static void omap_hsmmc_config_dma_params(struct
-> omap_hsmmc_host *host,
->  {
->  	int blksz, nblk, dma_ch;
-> 
-> +	blksz = host->data->blksz;
-> +	nblk = sg_dma_len(sgl) / blksz;
-> +
->  	dma_ch = host->dma_ch;
->  	if (data->flags & MMC_DATA_WRITE) {
->  		omap_set_dma_dest_params(dma_ch, 0, OMAP_DMA_AMODE_CONSTANT,
-> -			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
-> +			(host->mapbase + OMAP_HSMMC_DATA), 0, blksz / 4);
->  		omap_set_dma_src_params(dma_ch, 0, OMAP_DMA_AMODE_POST_INC,
->  			sg_dma_address(sgl), 0, 0);
->  	} else {
->  		omap_set_dma_src_params(dma_ch, 0, OMAP_DMA_AMODE_CONSTANT,
-> -			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
-> +			(host->mapbase + OMAP_HSMMC_DATA), 0, blksz / 4);
->  		omap_set_dma_dest_params(dma_ch, 0, OMAP_DMA_AMODE_POST_INC,
->  			sg_dma_address(sgl), 0, 0);
->  	}
-> 
-> -	blksz = host->data->blksz;
-> -	nblk = sg_dma_len(sgl) / blksz;
-> -
->  	omap_set_dma_transfer_params(dma_ch, OMAP_DMA_DATA_TYPE_S32,
-> -			blksz / 4, nblk, OMAP_DMA_SYNC_FRAME,
-> +			blksz / 4, nblk, OMAP_DMA_SYNC_PACKET,
->  			omap_hsmmc_get_dma_sync_dev(host, data),
->  			!(data->flags & MMC_DATA_WRITE));
-> 
-> @@ -944,17 +945,9 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status,
-> void *data)
->  static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
->  					struct mmc_request *req)
->  {
-> -	int dma_ch = 0, ret = 0, err = 1, i;
-> +	int dma_ch = 0, ret = 0, err = 1;
->  	struct mmc_data *data = req->data;
-> 
-> -	/* Sanity check: all the SG entries must be aligned by block size.
-> */
-> -	for (i = 0; i < data->sg_len; i++) {
-> -		struct scatterlist *sgl;
-> -
-> -		sgl = data->sg + i;
-> -		if (sgl->length % data->blksz)
-> -			return -EINVAL;
-> -	}
->  	if ((data->blksz % 4) != 0)
->  		/* REVISIT: The MMC buffer increments only when MSB is
-> written.
->  		 * Return error for blksz which is non multiple of four.
-> --
-> 1.6.4.4
-> 
-> 
-> 
-> >> David
-> >
-> >
-> 
-> 
-> --
-> Sincerely yours,
-> Mike.
-> 
-
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 2a76065..d820e87 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -204,6 +204,7 @@
+ /* subchip/slave 3 0x4B - AUDIO */
+ #define TWL6030_BASEADD_AUDIO		0x0000
+ #define TWL6030_BASEADD_RSV		0x0000
++#define TWL6030_BASEADD_ZERO		0x0000
+ 
+ /* Few power values */
+ #define R_CFG_BOOT			0x05
+@@ -319,9 +320,11 @@ static struct twl_mapping twl6030_map[] = {
+ 	{ SUB_CHIP_ID1, TWL6030_BASEADD_CHARGER },
+ 	{ SUB_CHIP_ID1, TWL6030_BASEADD_GASGAUGE },
+ 	{ SUB_CHIP_ID1, TWL6030_BASEADD_PWM },
+-	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+-	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
++	{ SUB_CHIP_ID0, TWL6030_BASEADD_ZERO },
++	{ SUB_CHIP_ID1, TWL6030_BASEADD_ZERO },
+ 
++	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
++	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index bf1c5be..fcf9286 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -80,6 +80,11 @@
+ #define TWL_MODULE_PM_MASTER	TWL4030_MODULE_PM_MASTER
+ #define TWL_MODULE_PM_RECEIVER	TWL4030_MODULE_PM_RECEIVER
+ #define TWL_MODULE_RTC		TWL4030_MODULE_RTC
++#define TWL_MODULE_PWM		TWL4030_MODULE_PWM0
++
++#define TWL6030_MODULE_ID0	0x0D
++#define TWL6030_MODULE_ID1	0x0E
++#define TWL6030_MODULE_ID2	0x0F
+ 
+ #define GPIO_INTR_OFFSET	0
+ #define KEYPAD_INTR_OFFSET	1
+-- 
+1.6.0.4
 
