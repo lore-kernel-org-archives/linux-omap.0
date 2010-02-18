@@ -1,57 +1,58 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: Re: [PATCHv4 4/4] DSPBRIDGE: Improved mapped memory cleanup
-Date: Thu, 18 Feb 2010 16:27:28 +0200
-Message-ID: <20100218142728.GD4097@annwn.felipec.org>
-References: <cover.1266429436.git.ameya.palande@nokia.com>
- <f57155cbfa5cca493333eff553f6887217273a3b.1266429437.git.ameya.palande@nokia.com>
- <496565EC904933469F292DDA3F1663E602CA2B9AD9@dlee06.ent.ti.com>
- <1266495355.2105.5.camel@sanganak>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCHv5 0/4] DSPBRIDGE: Improved reserved and mapped resource cleanup
+Date: Thu, 18 Feb 2010 16:40:49 +0200
+Message-ID: <cover.1266503387.git.ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32433 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:36480 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753535Ab0BRO1m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 09:27:42 -0500
-Content-Disposition: inline
-In-Reply-To: <1266495355.2105.5.camel@sanganak>
+	with ESMTP id S1756799Ab0BROlp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 09:41:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
-Cc: "ext Guzman Lugo, Fernando" <x0095840@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: felipe.contreras@nokia.com, nm@ti.com, deepak.chitriki@ti.com, x0095840@ti.com, omar.ramirez@ti.com
 
-On Thu, Feb 18, 2010 at 01:15:55PM +0100, Ameya Palande wrote:
-> On Thu, 2010-02-18 at 02:52 +0100, ext Guzman Lugo, Fernando wrote:
-> > What do you think about it?
-> > Instead of removing DRV_InsertDMMResElement make it an inline function with your code inside:
-> 
-> Making DRV_InsertDMMResElement inline doesn't make sense since we are
-> not calling it multiple times.
+This patch series splits DMM_RES_OBJECT into DMM_MAP_OBJECT and DMM_RSV_OBJECT
+which are used independently for mapped and reserved memory resources
+accounting. This will help in cleanup of reserved memory resources which was
+not handled properly before. With these patches resource cleanup mechanism
+will work perfectly in a use case where a big chunk of memory is reserved and
+then lot of mappings are created inside it.
 
-I agree with Fernando; the code would be more readable. Even more if we
-rename the function to instert_map_element().
+Changes since v4:
+1. Replace unnecessary list_for_each_entry_safe to list_for_each_entry
+   http://marc.info/?l=linux-omap&m=126645721715598&w=2
+2. Comments at appropriate places to explain resource tracking objects
+   insertion and removals.
+   http://marc.info/?l=linux-omap&m=126649541624172&w=2
 
-note: should be 'static inline'
+Changes since v3:
+1. Improved mapped memory resource cleanup
 
-> > inline void DRV_InsertDMMResElement(u32 ppMapAddr)
-> > {
-> >         map_obj = kmalloc(sizeof(struct DMM_MAP_OBJECT), GFP_KERNEL);
-> >         if (map_obj) {
-> >                 map_obj->dsp_addr = (u32)*ppMapAddr;
-> >                 spin_lock(&pr_ctxt->dmm_map_lock);
-> >                 list_add(&map_obj->link, &pr_ctxt->dmm_map_list);
-> >                 spin_unlock(&pr_ctxt->dmm_map_lock);
-> >         }
-> > }
-> > 
-> > It could make the code more understandable about what it is actually doing.
-> > It also applies to the functions which removes this patch.
-> 
-> I can put a comment here to clarify what this code is doing ;)
+Changes since v2:
+1. Removed locking from DRV_RemoveAllDMMResElements()
+2. Removed cleanup variable from PROC_UnReserveMemory()
+   http://marc.info/?l=linux-omap&m=126637211831587&w=2
+3. Rebased patchset on top of following commit:
+   DSPBRIDGE: Remove conditional check from the InputMsg function
 
-AFAIK in linux, self-documenting code is preferred over comments.
+Changed since v1:
+1. Reduced indentation
+   http://marc.info/?l=linux-omap&m=126624982331523&w=2
 
-Cheers.
+Ameya Palande (4):
+  DSPBRIDGE: Rename DMM_RES_OBJECT to DMM_MAP_OBJECT
+  DSPBRIDGE: New reserved memory accounting framework
+  DSPBRIDGE: Fix memory corruption in DRV_ProcFreeDMMRes
+  DSPBRIDGE: Improved mapped memory cleanup
 
--- 
-Felipe Contreras
+ arch/arm/plat-omap/include/dspbridge/drv.h         |   44 ++---
+ arch/arm/plat-omap/include/dspbridge/proc.h        |    4 +-
+ .../plat-omap/include/dspbridge/resourcecleanup.h  |   11 --
+ drivers/dsp/bridge/pmgr/wcd.c                      |    7 +-
+ drivers/dsp/bridge/rmgr/drv.c                      |  176 +++-----------------
+ drivers/dsp/bridge/rmgr/drv_interface.c            |    5 +-
+ drivers/dsp/bridge/rmgr/node.c                     |    5 +-
+ drivers/dsp/bridge/rmgr/proc.c                     |  105 +++++++++---
+ 8 files changed, 134 insertions(+), 223 deletions(-)
+
