@@ -1,32 +1,59 @@
-From: David Vrabel <david.vrabel@csr.com>
-Subject: Re: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Thu, 18 Feb 2010 12:15:46 +0000
-Message-ID: <4B7D2F72.2070307@csr.com>
-References: <cover.1265801967.git.david.vrabel@csr.com> <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com> <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com> <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com> <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com> <4B7C4608.5010008@csr.com> <001b01cab031$0f34e010$544ff780@am.dhcp.ti.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [PATCH 2/2] twl6030: regulator: Configure STATE register
+ instead of REMAP
+Date: Thu, 18 Feb 2010 12:33:16 +0000
+Message-ID: <1266496396.3227.3.camel@odin>
+References: <1266420255-4307-1-git-send-email-rnayak@ti.com>
+	 <1266420255-4307-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <001b01cab031$0f34e010$544ff780@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:48470 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754651Ab0BRMdU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 07:33:20 -0500
+Received: by ewy19 with SMTP id 19so6777856ewy.21
+        for <linux-omap@vger.kernel.org>; Thu, 18 Feb 2010 04:33:18 -0800 (PST)
+In-Reply-To: <1266420255-4307-2-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Madhusudhan wrote:
+On Wed, 2010-02-17 at 20:54 +0530, Rajendra Nayak wrote:
+> This is no REMAP register on twl6030, instead there is a STATE register
+> to drive a resource to a given state.
+> The state register can be used to specify what state the resource should
+> enter when its associated with a GRP.
+> Register Bit field description is as below. The patch programmes the
+> corresponding STATE registers for all LDO's to turn ON when assocaited
+> with GRP_P1.
 > 
-> My question was more related to the idle path. In a scenario where
-> you start using the SDIO functionality and after some time you leave
-> the SDIO card idle, does the FCLK still remain enabled? Or do you see
-> that sdio_irq_thread exits and disables the FCLK?
+> STATE REG:
+> Bit7   |Bit6   |Bit5   |Bit4  |Bit3  |Bit2  |Bit1   |Bit0
+> P3_GRP |P2_GRP |P1_GRP |RES   |RES   |RES   |State1 |State0
+> 
+> State can be specified as below
+> 00: OFF
+> 01: ON
+> 10: OFF
+> 11: SLEEP
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> ---
 
-What do you mean by "leave the SDIO card idle"?
+Applied.
 
-David
+Thanks
+
+Liam
+
 -- 
-David Vrabel, Senior Software Engineer, Drivers
-CSR, Churchill House, Cambridge Business Park,  Tel: +44 (0)1223 692562
-Cowley Road, Cambridge, CB4 0WZ                 http://www.csr.com/
+Freelance Developer, SlimLogic Ltd
+ASoC and Voltage Regulator Maintainer.
+http://www.slimlogic.co.uk
 
-
-Member of the CSR plc group of companies. CSR plc registered in England and Wales, registered number 4187346, registered office Churchill House, Cambridge Business Park, Cowley Road, Cambridge, CB4 0WZ, United Kingdom
