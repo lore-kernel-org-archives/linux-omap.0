@@ -1,371 +1,321 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 04/12] DSPBRIDGE: Change custom GT_trace for dev_dbg in pmgr
-Date: Thu, 18 Feb 2010 15:37:55 -0600
-Message-ID: <1266529083-2358-5-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 06/12] DSPBRIDGE: Remove GT_trace variables for rmgr
+Date: Thu, 18 Feb 2010 15:37:57 -0600
+Message-ID: <1266529083-2358-7-git-send-email-omar.ramirez@ti.com>
 References: <1266529083-2358-1-git-send-email-omar.ramirez@ti.com>
  <1266529083-2358-2-git-send-email-omar.ramirez@ti.com>
  <1266529083-2358-3-git-send-email-omar.ramirez@ti.com>
  <1266529083-2358-4-git-send-email-omar.ramirez@ti.com>
+ <1266529083-2358-5-git-send-email-omar.ramirez@ti.com>
+ <1266529083-2358-6-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54599 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:54598 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755369Ab0BRVZ2 (ORCPT
+	with ESMTP id S1755239Ab0BRVZ2 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 16:25:28 -0500
-In-Reply-To: <1266529083-2358-4-git-send-email-omar.ramirez@ti.com>
+In-Reply-To: <1266529083-2358-6-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Remove GT_Trace custom debugging mechanism and use dev_dbg.
+This patch removes variables used to store masks and flags
+used for the previous debug implementation.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/pmgr/cmm.c  |    9 +++---
- drivers/dsp/bridge/pmgr/cod.c  |    5 +--
- drivers/dsp/bridge/pmgr/dbll.c |   59 +++++++++++++++++++---------------------
- drivers/dsp/bridge/pmgr/dmm.c  |   47 +++++++++++++-------------------
- drivers/dsp/bridge/pmgr/msg.c  |    4 +-
- 5 files changed, 55 insertions(+), 69 deletions(-)
+ drivers/dsp/bridge/rmgr/dbdcd.c         |    2 --
+ drivers/dsp/bridge/rmgr/disp.c          |   10 ----------
+ drivers/dsp/bridge/rmgr/drv.c           |    4 ----
+ drivers/dsp/bridge/rmgr/drv_interface.c |    5 -----
+ drivers/dsp/bridge/rmgr/dspdrv.c        |    5 -----
+ drivers/dsp/bridge/rmgr/mgr.c           |    9 ---------
+ drivers/dsp/bridge/rmgr/nldr.c          |   11 ++---------
+ drivers/dsp/bridge/rmgr/node.c          |    9 ---------
+ drivers/dsp/bridge/rmgr/proc.c          |   10 +---------
+ drivers/dsp/bridge/rmgr/rmm.c           |   10 ----------
+ drivers/dsp/bridge/rmgr/strm.c          |   10 ----------
+ 11 files changed, 3 insertions(+), 82 deletions(-)
 
-diff --git a/drivers/dsp/bridge/pmgr/cmm.c b/drivers/dsp/bridge/pmgr/cmm.c
-index 56f97a7..b30b724 100644
---- a/drivers/dsp/bridge/pmgr/cmm.c
-+++ b/drivers/dsp/bridge/pmgr/cmm.c
-@@ -562,11 +562,10 @@ DSP_STATUS CMM_RegisterGPPSMSeg(struct CMM_OBJECT *hCmmMgr, u32 dwGPPBasePA,
- 	DBC_Require(dwGPPBaseVA != 0);
- 	DBC_Require((cFactor <= CMM_ADDTODSPPA) &&
- 		   (cFactor >= CMM_SUBFROMDSPPA));
--	GT_6trace(CMM_debugMask, GT_ENTER,
--		  "CMM_RegisterGPPSMSeg dwGPPBasePA %x "
--		  "ulSize %x dwDSPAddrOffset %x dwDSPBase %x ulDSPSize %x "
--		  "dwGPPBaseVA %x\n", dwGPPBasePA, ulSize, dwDSPAddrOffset,
--		  dwDSPBase, ulDSPSize, dwGPPBaseVA);
-+	dev_dbg(bridge, "%s: dwGPPBasePA %x ulSize %x dwDSPAddrOffset %x "
-+			"dwDSPBase %x ulDSPSize %x dwGPPBaseVA %x\n", __func__,
-+			dwGPPBasePA, ulSize, dwDSPAddrOffset, dwDSPBase,
-+			ulDSPSize, dwGPPBaseVA);
- 	if (!MEM_IsValidHandle(hCmmMgr, CMMSIGNATURE)) {
- 		status = DSP_EHANDLE;
- 		return status;
-diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
-index 541503c..62629e1 100644
---- a/drivers/dsp/bridge/pmgr/cod.c
-+++ b/drivers/dsp/bridge/pmgr/cod.c
-@@ -449,9 +449,8 @@ DSP_STATUS COD_GetSymValue(struct COD_MANAGER *hMgr, char *pstrSym,
- 	DBC_Require(pstrSym != NULL);
- 	DBC_Require(pulValue != NULL);
+diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
+index 067f7a0..9fd05a0 100644
+--- a/drivers/dsp/bridge/rmgr/dbdcd.c
++++ b/drivers/dsp/bridge/rmgr/dbdcd.c
+@@ -67,8 +67,6 @@ struct DCD_MANAGER {
+ static u32 cRefs;
+ static u32 cEnumRefs;
  
--	GT_3trace(COD_debugMask, GT_ENTER, "Entered COD_GetSymValue Args \t\n"
--		  "hMgr: 0x%x\t\npstrSym: 0x%x\t\npulValue: 0x%x\n",
--		  hMgr, pstrSym, pulValue);
-+	dev_dbg(bridge, "%s: hMgr: %p pstrSym: %s pulValue: %p\n",
-+					__func__, hMgr, pstrSym, pulValue);
- 	if (hMgr->baseLib) {
- 		if (!hMgr->fxns.getAddrFxn(hMgr->baseLib, pstrSym, &pSym)) {
- 			if (!hMgr->fxns.getCAddrFxn(hMgr->baseLib, pstrSym,
-diff --git a/drivers/dsp/bridge/pmgr/dbll.c b/drivers/dsp/bridge/pmgr/dbll.c
-index 9b31f41..86832a3 100644
---- a/drivers/dsp/bridge/pmgr/dbll.c
-+++ b/drivers/dsp/bridge/pmgr/dbll.c
-@@ -328,14 +328,14 @@ bool DBLL_getAddr(struct DBLL_LibraryObj *zlLib, char *name,
- 	DBC_Require(ppSym != NULL);
- 	DBC_Require(zlLib->symTab != NULL);
- 
--	GT_3trace(DBLL_debugMask, GT_ENTER,
--		 "DBLL_getAddr: lib: 0x%x name: %s pAddr:"
--		 " 0x%x\n", zlLib, name, ppSym);
- 	sym = (struct Symbol *)GH_find(zlLib->symTab, name);
- 	if (sym != NULL) {
- 		*ppSym = &sym->value;
- 		status = true;
- 	}
-+
-+	dev_dbg(bridge, "%s: lib: %p name: %s pAddr: %p, status 0x%x\n",
-+					 __func__, zlLib, name, ppSym, status);
- 	return status;
- }
- 
-@@ -408,9 +408,6 @@ DSP_STATUS DBLL_getSect(struct DBLL_LibraryObj *lib, char *name, u32 *pAddr,
- 	DBC_Require(pSize != NULL);
- 	DBC_Require(MEM_IsValidHandle(zlLib, DBLL_LIBSIGNATURE));
- 
--	GT_4trace(DBLL_debugMask, GT_ENTER,
--		 "DBLL_getSect: lib: 0x%x name: %s pAddr:"
--		 " 0x%x pSize: 0x%x\n", lib, name, pAddr, pSize);
- 	/* If DOFF file is not open, we open it. */
- 	if (zlLib != NULL) {
- 		if (zlLib->fp == NULL) {
-@@ -445,6 +442,9 @@ DSP_STATUS DBLL_getSect(struct DBLL_LibraryObj *lib, char *name, u32 *pAddr,
- 		fOpenedDoff = false;
- 	}
- 
-+	dev_dbg(bridge, "%s: lib: %p name: %s pAddr: %p pSize: %p, "
-+		"status 0x%x\n", __func__, lib, name, pAddr, pSize, status);
-+
- 	return status;
- }
- 
-@@ -483,9 +483,6 @@ DSP_STATUS DBLL_load(struct DBLL_LibraryObj *lib, DBLL_Flags flags,
- 	DBC_Require(pEntry != NULL);
- 	DBC_Require(attrs != NULL);
- 
--	GT_4trace(DBLL_debugMask, GT_ENTER,
--		 "DBLL_load: lib: 0x%x flags: 0x%x pEntry:"
--		 " 0x%x\n", lib, flags, attrs, pEntry);
- 	/*
- 	 *  Load if not already loaded.
- 	 */
-@@ -579,6 +576,10 @@ DSP_STATUS DBLL_load(struct DBLL_LibraryObj *lib, DBLL_Flags flags,
- 		dofClose(zlLib);
- 
- 	DBC_Ensure(DSP_FAILED(status) || zlLib->loadRef > 0);
-+
-+	dev_dbg(bridge, "%s: lib: %p flags: 0x%x pEntry: %p, status 0x%x\n",
-+			__func__, lib, flags, pEntry, status);
-+
- 	return status;
- }
- 
-@@ -611,9 +612,6 @@ DSP_STATUS DBLL_open(struct DBLL_TarObj *target, char *file, DBLL_Flags flags,
- 	DBC_Require(file != NULL);
- 	DBC_Require(pLib != NULL);
- 
--	GT_3trace(DBLL_debugMask, GT_ENTER,
--		 "DBLL_open: target: 0x%x file: %s pLib:"
--		 " 0x%x\n", target, file, pLib);
- 	zlLib = zlTarget->head;
- 	while (zlLib != NULL) {
- 		if (strcmp(zlLib->fileName, file) == 0) {
-@@ -733,6 +731,10 @@ func_cont:
- 	DBC_Ensure((DSP_SUCCEEDED(status) && (zlLib->openRef > 0) &&
- 		  MEM_IsValidHandle(((struct DBLL_LibraryObj *)(*pLib)),
- 		  DBLL_LIBSIGNATURE)) || (DSP_FAILED(status) && *pLib == NULL));
-+
-+	dev_dbg(bridge, "%s: target: %p file: %s pLib: %p, status 0x%x\n",
-+					 __func__, target, file, pLib, status);
-+
- 	return status;
- }
- 
-@@ -756,9 +758,6 @@ DSP_STATUS DBLL_readSect(struct DBLL_LibraryObj *lib, char *name,
- 	DBC_Require(pContent != NULL);
- 	DBC_Require(size != 0);
- 
--	GT_4trace(DBLL_debugMask, GT_ENTER,
--		 "DBLL_readSect: lib: 0x%x name: %s "
--		 "pContent: 0x%x size: 0x%x\n", lib, name, pContent, size);
- 	/* If DOFF file is not open, we open it. */
- 	if (zlLib != NULL) {
- 		if (zlLib->fp == NULL) {
-@@ -804,6 +803,9 @@ func_cont:
- 		dofClose(zlLib);
- 		fOpenedDoff = false;
- 	}
-+
-+	dev_dbg(bridge, "%s: lib: %p name: %s pContent: %p size: 0x%x, "
-+		"status 0x%x\n", __func__, lib, name, pContent, size, status);
- 	return status;
- }
- 
-@@ -834,7 +836,7 @@ void DBLL_unload(struct DBLL_LibraryObj *lib, struct DBLL_Attrs *attrs)
- 	DBC_Require(cRefs > 0);
- 	DBC_Require(MEM_IsValidHandle(zlLib, DBLL_LIBSIGNATURE));
- 	DBC_Require(zlLib->loadRef > 0);
--	GT_1trace(DBLL_debugMask, GT_ENTER, "DBLL_unload: lib: 0x%x\n", lib);
-+	dev_dbg(bridge, "%s: lib: %p\n", __func__, lib);
- 	zlLib->loadRef--;
- 	/* Unload only if reference count is 0 */
- 	if (zlLib->loadRef != 0)
-@@ -846,8 +848,7 @@ void DBLL_unload(struct DBLL_LibraryObj *lib, struct DBLL_Attrs *attrs)
- 			&zlLib->symbol.dlSymbol,
- 			&zlLib->allocate.dlAlloc, &zlLib->init.dlInit);
- 		if (err != 0) {
--			GT_1trace(DBLL_debugMask, GT_5CLASS,
--				 "Dynamic_Unload_Module failed: 0x%x\n", err);
-+			dev_dbg(bridge, "%s: failed: 0x%x\n", __func__, err);
- 		}
- 	}
- 	/* remove symbols from symbol table */
-@@ -1062,8 +1063,7 @@ static struct dynload_symbol *findSymbol(struct Dynamic_Loader_Sym *this,
- 	}
- 
- 	if (!status && bGblSearch) {
--		GT_1trace(DBLL_debugMask, GT_6CLASS,
--			 "findSymbol: Symbol not found: %s\n", name);
-+		dev_dbg(bridge, "%s: Symbol not found: %s\n", __func__, name);
- 	}
- 
- 	DBC_Assert((status && (pSym != NULL)) || (!status && (pSym == NULL)));
-@@ -1121,9 +1121,8 @@ static struct dynload_symbol *addToSymbolTable(struct Dynamic_Loader_Sym *this,
- 		bGblSearch = true;
- 		if (pSym) {
- 			bRedefinedSymbol = true;
--			GT_1trace(DBLL_debugMask, GT_6CLASS,
--				 "Symbol already defined in "
--				 "symbol table: %s\n", name);
-+			dev_dbg(bridge, "%s already defined in symbol table\n",
-+									name);
- 			return NULL;
- 		}
- 	}
-@@ -1215,7 +1214,7 @@ static void errorReport(struct Dynamic_Loader_Sym *this, const char *errstr,
- 	lib = pSymbol->lib;
- 	DBC_Require(MEM_IsValidHandle(lib, DBLL_LIBSIGNATURE));
- 	vsnprintf((char *)tempBuf, MAXEXPR, (char *)errstr, args);
--	GT_1trace(DBLL_debugMask, GT_5CLASS, "%s\n", tempBuf);
-+	dev_dbg(bridge, "%s\n", tempBuf);
- }
- 
- /* Dynamic_Loader_Allocate */
-@@ -1324,13 +1323,11 @@ func_cont:
- 		if (!runAddrFlag)
- 			info->run_addr = info->load_addr;
- 		info->context = (u32)rmmAddr.segid;
--		GT_3trace(DBLL_debugMask, GT_5CLASS,
--			 "Remote alloc: %s  base = 0x%lx len"
--			 "= 0x%lx\n", info->name, info->load_addr / DSPWORDSIZE,
--			 info->size / DSPWORDSIZE);
--		GT_2trace(DBLL_debugMask, GT_5CLASS,
--			 "info->run_addr = 0x%x, info->load_addr= 0x%x\n",
--			 info->run_addr, info->load_addr);
-+		dev_dbg(bridge, "%s: %s base = 0x%x len = 0x%x, "
-+			"info->run_addr 0x%x, info->load_addr 0x%x\n",
-+			__func__, info->name, info->load_addr / DSPWORDSIZE,
-+			info->size / DSPWORDSIZE, info->run_addr,
-+			info->load_addr);
- 	}
- 	return retVal;
- }
-diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
-index 2840674..098743f 100644
---- a/drivers/dsp/bridge/pmgr/dmm.c
-+++ b/drivers/dsp/bridge/pmgr/dmm.c
-@@ -289,9 +289,6 @@ DSP_STATUS DMM_MapMemory(struct DMM_OBJECT *hDmmMgr, u32 addr, u32 size)
- 	struct MapPage *chunk;
- 	DSP_STATUS status = DSP_SOK;
- 
--	GT_3trace(DMM_debugMask, GT_ENTER,
--		 "Entered DMM_MapMemory () hDmmMgr %x, "
--		 "addr %x, size %x\n", hDmmMgr, addr, size);
- 	SYNC_EnterCS(pDmmObj->hDmmLock);
- 	/* Find the Reserved memory chunk containing the DSP block to
- 	 * be mapped */
-@@ -303,9 +300,10 @@ DSP_STATUS DMM_MapMemory(struct DMM_OBJECT *hDmmMgr, u32 addr, u32 size)
- 	} else
- 		status = DSP_ENOTFOUND;
- 	SYNC_LeaveCS(pDmmObj->hDmmLock);
--	GT_2trace(DMM_debugMask, GT_4CLASS,
--		 "Leaving DMM_MapMemory status %x, chunk %x\n",
--		status, chunk);
-+
-+	dev_dbg(bridge, "%s hDmmMgr %p, addr %x, size %x\n\tstatus %x, "
-+		"chunk %p", __func__, hDmmMgr, addr, size, status, chunk);
-+
- 	return status;
- }
- 
-@@ -323,9 +321,6 @@ DSP_STATUS DMM_ReserveMemory(struct DMM_OBJECT *hDmmMgr, u32 size,
- 	u32 rsvAddr = 0;
- 	u32 rsvSize = 0;
- 
--	GT_3trace(DMM_debugMask, GT_ENTER,
--		 "Entered DMM_ReserveMemory () hDmmMgr %x, "
--		 "size %x, pRsvAddr %x\n", hDmmMgr, size, pRsvAddr);
- 	SYNC_EnterCS(pDmmObj->hDmmLock);
- 
- 	/* Try to get a DSP chunk from the free list */
-@@ -355,9 +350,11 @@ DSP_STATUS DMM_ReserveMemory(struct DMM_OBJECT *hDmmMgr, u32 size,
- 		status = DSP_EMEMORY;
- 
- 	SYNC_LeaveCS(pDmmObj->hDmmLock);
--	GT_3trace(DMM_debugMask, GT_4CLASS,
--		 "Leaving ReserveMemory status %x, rsvAddr"
--		 " %x, rsvSize %x\n", status, rsvAddr, rsvSize);
-+
-+	dev_dbg(bridge, "%s hDmmMgr %p, size %x, pRsvAddr %p\n\tstatus %x, "
-+			"rsvAddr %x, rsvSize %x\n", __func__, hDmmMgr, size,
-+			pRsvAddr, status, rsvAddr, rsvSize);
-+
- 	return status;
- }
- 
-@@ -373,9 +370,6 @@ DSP_STATUS DMM_UnMapMemory(struct DMM_OBJECT *hDmmMgr, u32 addr, u32 *pSize)
- 	struct MapPage *chunk;
- 	DSP_STATUS status = DSP_SOK;
- 
--	GT_3trace(DMM_debugMask, GT_ENTER,
--		 "Entered DMM_UnMapMemory () hDmmMgr %x, "
--		 "addr %x, pSize %x\n", hDmmMgr, addr, pSize);
- 	SYNC_EnterCS(pDmmObj->hDmmLock);
- 	chunk = GetMappedRegion(addr) ;
- 	if (chunk == NULL)
-@@ -388,9 +382,9 @@ DSP_STATUS DMM_UnMapMemory(struct DMM_OBJECT *hDmmMgr, u32 addr, u32 *pSize)
- 		chunk->MappedSize = 0;
- 	}
- 	SYNC_LeaveCS(pDmmObj->hDmmLock);
--	GT_3trace(DMM_debugMask, GT_ENTER,
--		 "Leaving DMM_UnMapMemory status %x, chunk"
--		 " %x,  *pSize %x\n", status, chunk, *pSize);
-+
-+	dev_dbg(bridge, "%s: hDmmMgr %p, addr %x, pSize %p\n\tstatus %x, "
-+		"chunk %p\n", __func__, hDmmMgr, addr, pSize, status, chunk);
- 
- 	return status;
- }
-@@ -408,10 +402,6 @@ DSP_STATUS DMM_UnReserveMemory(struct DMM_OBJECT *hDmmMgr, u32 rsvAddr)
- 	DSP_STATUS status = DSP_SOK;
- 	u32 chunkSize;
- 
--	GT_2trace(DMM_debugMask, GT_ENTER,
--		 "Entered DMM_UnReserveMemory () hDmmMgr "
--		 "%x, rsvAddr %x\n", hDmmMgr, rsvAddr);
+-extern struct GT_Mask curTrace;
 -
- 	SYNC_EnterCS(pDmmObj->hDmmLock);
+ /* Helper function prototypes. */
+ static s32 Atoi(char *pszBuf);
+ static DSP_STATUS GetAttrsFromBuf(char *pszBuf, u32 ulBufSize,
+diff --git a/drivers/dsp/bridge/rmgr/disp.c b/drivers/dsp/bridge/rmgr/disp.c
+index 8c05593..6ae3bcb 100644
+--- a/drivers/dsp/bridge/rmgr/disp.c
++++ b/drivers/dsp/bridge/rmgr/disp.c
+@@ -81,11 +81,6 @@ struct DISP_OBJECT {
  
- 	/* Find the chunk containing the reserved address */
-@@ -441,9 +431,10 @@ DSP_STATUS DMM_UnReserveMemory(struct DMM_OBJECT *hDmmMgr, u32 rsvAddr)
- 		 */
- 	}
- 	SYNC_LeaveCS(pDmmObj->hDmmLock);
--	GT_2trace(DMM_debugMask, GT_ENTER,
--		 "Leaving DMM_UnReserveMemory status %x"
--		 " chunk %x\n", status, chunk);
-+
-+	dev_dbg(bridge, "%s: hDmmMgr %p, rsvAddr %x\n\tstatus %x chunk %p",
-+			__func__, hDmmMgr, rsvAddr, status, chunk);
-+
- 	return status;
- }
+ static u32 cRefs;
  
-@@ -464,9 +455,9 @@ static struct MapPage *GetRegion(u32 aAddr)
- 		if (i < TableSize)
- 			currRegion = pVirtualMappingTable + i;
- 	}
--	GT_3trace(DMM_debugMask, GT_4CLASS,
--	       "Leaving GetRegion currRegion %x, iFreeRegion %d\n,"
--	       "iFreeSize %d\n", currRegion, iFreeRegion, iFreeSize) ;
-+
-+	dev_dbg(bridge, "%s: currRegion %p, iFreeRegion %d, iFreeSize %d\n",
-+			__func__, currRegion, iFreeRegion, iFreeSize);
- 	return currRegion;
- }
+-/* Debug msgs: */
+-#if GT_TRACE
+-static struct GT_Mask DISP_DebugMask = { NULL, NULL };
+-#endif
+-
+ static void DeleteDisp(struct DISP_OBJECT *hDisp);
+ static DSP_STATUS FillStreamDef(RMS_WORD *pdwBuf, u32 *ptotal, u32 offset,
+ 				struct NODE_STRMDEF strmDef, u32 max,
+@@ -219,11 +214,6 @@ bool DISP_Init(void)
  
-diff --git a/drivers/dsp/bridge/pmgr/msg.c b/drivers/dsp/bridge/pmgr/msg.c
-index 69f39a8..34bac4e 100644
---- a/drivers/dsp/bridge/pmgr/msg.c
-+++ b/drivers/dsp/bridge/pmgr/msg.c
-@@ -106,8 +106,8 @@ void MSG_Delete(struct MSG_MGR *hMsgMgr)
- 	(*pIntfFxns->pfnMsgDelete)(hMsgMgr);
+ 	DBC_Require(cRefs >= 0);
  
- 	if (MEM_IsValidHandle(pMsgMgr, MSGMGR_SIGNATURE))
--		GT_1trace(MSG_debugMask, GT_7CLASS, "MSG_Delete: Error hMsgMgr "
--					"Valid Handle: 0x%x\n", hMsgMgr);
-+		dev_dbg(bridge, "%s: Error hMsgMgr handle: %p\n",
-+						__func__, hMsgMgr);
- }
+-	if (cRefs == 0) {
+-		DBC_Assert(!DISP_DebugMask.flags);
+-		GT_create(&DISP_DebugMask, "DI");  /* "DI" for DIspatcher */
+-	}
+-
+ 	if (fRetVal)
+ 		cRefs++;
+ 
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index f3e2632..177d676 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -66,10 +66,6 @@ struct DRV_EXT {
+ /*  ----------------------------------- Globals */
+ static s32 cRefs;
+ 
+-#if GT_TRACE
+-extern struct GT_Mask curTrace;
+-#endif
+-
+ /*  ----------------------------------- Function Prototypes */
+ static DSP_STATUS RequestBridgeResources(u32 dwContext, s32 fRequest);
+ static DSP_STATUS RequestBridgeResourcesDSP(u32 dwContext, s32 fRequest);
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 4045784..24246d5 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -149,10 +149,6 @@ MODULE_VERSION(DSPBRIDGE_VERSION);
+ 
+ static char *driver_name = DRIVER_NAME;
+ 
+-#ifdef CONFIG_BRIDGE_DEBUG
+-static struct GT_Mask driverTrace;
+-#endif /* CONFIG_BRIDGE_DEBUG */
+-
+ static struct file_operations bridge_fops = {
+ 	.open		= bridge_open,
+ 	.release	= bridge_release,
+@@ -261,7 +257,6 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
+ 			NULL, "DspBridge");
+ 
+ 	GT_init();
+-	GT_create(&driverTrace, "LD");
+ 
+ #ifdef CONFIG_BRIDGE_DEBUG
+ 	if (GT_str)
+diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
+index 59c2ecb..0fdb150 100644
+--- a/drivers/dsp/bridge/rmgr/dspdrv.c
++++ b/drivers/dsp/bridge/rmgr/dspdrv.c
+@@ -44,9 +44,6 @@
+ /*  ----------------------------------- This */
+ #include <dspbridge/dspdrv.h>
+ 
+-/*  ----------------------------------- Globals */
+-struct GT_Mask curTrace;
+-
+ /*
+  *  ======== DSP_Init ========
+  *  	Allocates bridge resources. Loads a base image onto DSP, if specified.
+@@ -59,8 +56,6 @@ u32 DSP_Init(OUT u32 *initStatus)
+ 	u32 deviceNode;
+ 	u32 deviceNodeString;
+ 
+-	GT_create(&curTrace, "DD");
+-
+ 	if (!WCD_Init())
+ 		goto func_cont;
+ 
+diff --git a/drivers/dsp/bridge/rmgr/mgr.c b/drivers/dsp/bridge/rmgr/mgr.c
+index 73d7a66..e63aaa1 100644
+--- a/drivers/dsp/bridge/rmgr/mgr.c
++++ b/drivers/dsp/bridge/rmgr/mgr.c
+@@ -50,10 +50,6 @@ struct MGR_OBJECT {
+ };
+ 
+ /*  ----------------------------------- Globals */
+-#if GT_TRACE
+-static struct GT_Mask MGR_DebugMask = { NULL, NULL };
+-#endif
+-
+ static u32 cRefs;
  
  /*
+@@ -355,11 +351,6 @@ bool MGR_Init(void)
+ 	DBC_Require(cRefs >= 0);
+ 
+ 	if (cRefs == 0) {
+-
+-		/* Set the Trace mask */
+-		DBC_Assert(!MGR_DebugMask.flags);
+-
+-		GT_create(&MGR_DebugMask, "MG");	/* "MG" for Manager */
+ 		fInitDCD = DCD_Init();	/*  DCD Module */
+ 
+ 		if (!fInitDCD)
+diff --git a/drivers/dsp/bridge/rmgr/nldr.c b/drivers/dsp/bridge/rmgr/nldr.c
+index fb5a788..5c1266d 100644
+--- a/drivers/dsp/bridge/rmgr/nldr.c
++++ b/drivers/dsp/bridge/rmgr/nldr.c
+@@ -292,7 +292,6 @@ static struct DBLL_Fxns dbllFxns = {
+ 	(DBLL_UnloadSectFxn) DBLL_unloadSect,
+ };
+ 
+-static struct GT_Mask NLDR_debugMask = { NULL, NULL };	/* GT trace variable */
+ static u32 cRefs;		/* module reference count */
+ 
+ static DSP_STATUS AddOvlyInfo(void *handle, struct DBLL_SectInfo *sectInfo,
+@@ -679,10 +678,8 @@ void NLDR_Exit(void)
+ 
+ 	cRefs--;
+ 
+-	if (cRefs == 0) {
++	if (cRefs == 0)
+ 		RMM_exit();
+-		NLDR_debugMask.flags = NULL;
+-	}
+ 
+ 	DBC_Ensure(cRefs >= 0);
+ }
+@@ -801,12 +798,8 @@ bool NLDR_Init(void)
+ {
+ 	DBC_Require(cRefs >= 0);
+ 
+-	if (cRefs == 0) {
+-		DBC_Assert(!NLDR_debugMask.flags);
+-		GT_create(&NLDR_debugMask, "NL");	/* "NL" for NLdr */
+-
++	if (cRefs == 0)
+ 		RMM_init();
+-	}
+ 
+ 	cRefs++;
+ 
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 48a7728..cb3d324 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -266,10 +266,6 @@ static u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
+ static u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
+ 			u32 ulNumBytes, u32 nMemSpace);
+ 
+-#if GT_TRACE
+-static struct GT_Mask NODE_debugMask = { NULL, NULL };  /* GT trace variable */
+-#endif
+-
+ #ifdef DSP_DMM_DEBUG
+ extern u32 DMM_MemMapDump(struct DMM_OBJECT *hDmmMgr);
+ #endif
+@@ -1930,11 +1926,6 @@ bool NODE_Init(void)
+ {
+ 	DBC_Require(cRefs >= 0);
+ 
+-	if (cRefs == 0) {
+-		DBC_Assert(!NODE_debugMask.flags);
+-		GT_create(&NODE_debugMask, "NO");	/* "NO" for NOde */
+-	}
+-
+ 	cRefs++;
+ 
+ 	return true;
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index d8137c8..8489cd3 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -72,9 +72,6 @@
+ extern char *iva_img;
+ 
+ /*  ----------------------------------- Globals */
+-#if GT_TRACE
+-static struct GT_Mask PROC_DebugMask = { NULL, NULL };	/* WCD MGR Mask */
+-#endif
+ 
+ /* The PROC_OBJECT structure.   */
+ struct PROC_OBJECT {
+@@ -785,13 +782,8 @@ bool PROC_Init(void)
+ 
+ 	DBC_Require(cRefs >= 0);
+ 
+-	if (cRefs == 0) {
+-		/* Set the Trace mask */
+-		DBC_Assert(!PROC_DebugMask.flags);
+-		GT_create(&PROC_DebugMask, "PR");  /* "PR" for Processor */
+-
++	if (cRefs == 0)
+ 		(void)SYNC_InitializeCS(&hProcLock);
+-	}
+ 
+ 	if (fRetval)
+ 		cRefs++;
+diff --git a/drivers/dsp/bridge/rmgr/rmm.c b/drivers/dsp/bridge/rmgr/rmm.c
+index 8cf66ce..188faba 100644
+--- a/drivers/dsp/bridge/rmgr/rmm.c
++++ b/drivers/dsp/bridge/rmgr/rmm.c
+@@ -87,10 +87,6 @@ struct RMM_TargetObj {
+ 	struct LST_LIST *ovlyList;	/* List of overlay memory in use */
+ };
+ 
+-#if GT_TRACE
+-static struct GT_Mask RMM_debugMask = { NULL, NULL };	/* GT trace variable */
+-#endif
+-
+ static u32 cRefs;		/* module reference count */
+ 
+ static bool allocBlock(struct RMM_TargetObj *target, u32 segid, u32 size,
+@@ -367,12 +363,6 @@ bool RMM_init(void)
+ {
+ 	DBC_Require(cRefs >= 0);
+ 
+-	if (cRefs == 0) {
+-		DBC_Assert(!RMM_debugMask.flags);
+-		GT_create(&RMM_debugMask, "RM");	/* "RM" for RMm */
+-
+-	}
+-
+ 	cRefs++;
+ 
+ 	return true;
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index 909a2b1..6b62e41 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -91,9 +91,6 @@ struct STRM_MGR {
+ } ;
+ 
+ /*  ----------------------------------- Globals */
+-#if GT_TRACE
+-static struct GT_Mask STRM_debugMask = { NULL, NULL };	/* GT trace variable */
+-#endif
+ static u32 cRefs;		/* module reference count */
+ 
+ /*  ----------------------------------- Function Prototypes */
+@@ -412,13 +409,6 @@ bool STRM_Init(void)
+ 
+ 	DBC_Require(cRefs >= 0);
+ 
+-	if (cRefs == 0) {
+-#if GT_TRACE
+-		DBC_Assert(!STRM_debugMask.flags);
+-		GT_create(&STRM_debugMask, "ST");	/* "ST" for STrm */
+-#endif
+-	}
+-
+ 	if (fRetVal)
+ 		cRefs++;
+ 
 -- 
 1.6.2.4
 
