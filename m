@@ -1,52 +1,52 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: RE: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Thu, 18 Feb 2010 14:27:02 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.1002181412590.1946@xanadu.home>
-References: <cover.1265801967.git.david.vrabel@csr.com>
- <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com>
- <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com>
- <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com>
- <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com> <4B7C4608.5010008@csr.com>
- <alpine.DEB.2.00.1002171254040.24812@utopia.booyaka.com>
- <4B7D3EAE.1010908@csr.com>
- <alpine.DEB.2.00.1002180951330.24812@utopia.booyaka.com>
- <004001cab0c9$b208b2b0$544ff780@am.dhcp.ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: Patch[0/2]:DSPBRIDGE: Excessive u32 Cleanup
+Date: Thu, 18 Feb 2010 13:46:31 -0600
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0130EBC2DF@dlee02.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E7394044D71B418@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:29975 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497Ab0BRT1I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 14:27:08 -0500
-In-reply-to: <004001cab0c9$b208b2b0$544ff780@am.dhcp.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47303 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758041Ab0BRTqe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Feb 2010 14:46:34 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1IJkXoi001894
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 18 Feb 2010 13:46:33 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id o1IJkXZj011393
+	for <linux-omap@vger.kernel.org>; Thu, 18 Feb 2010 13:46:33 -0600 (CST)
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o1IJkXuu001430
+	for <linux-omap@vger.kernel.org>; Thu, 18 Feb 2010 13:46:33 -0600 (CST)
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044D71B418@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Paul Walmsley' <paul@pwsan.com>, 'David Vrabel' <david.vrabel@csr.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Hebbar, Shivananda" <x0hebbar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, 18 Feb 2010, Madhusudhan wrote:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Hebbar, Shivananda
+> Sent: Thursday, February 18, 2010 9:24 PM
+> To: linux-omap
+> Subject: Patch[0/2]:DSPBRIDGE: Excessive u32 Cleanup
+> 
+> These patches remove excessive u32 type and replaces it with the Normal C
+> types.
+What is the motivation of this change?
+> 
+> Shivananda Hebbar (2)
+> 
+> DSPBRIDGE: Excessive u32 Cleanup (u32->short int)
+You are changing the signedness a) u16 might be a better option here. b) it might be enough to use short.
 
-> If I look in the mainline kernel today there is only one SDIO card driver "
-> sdio_uart.c". And at least I don't see a way I can test any of these
-> features myself.
+> DSPBRIDGE: Excessive u32 Cleanup (u32->int)
+Why is this needed? u32 is a standard kernel usage and you are changing the signedness of it's usage.
 
-There are many other SDIO drivers in the kernel today:
+ [...]
+Regards,
+Nishanth Menon
 
- - The libertas wireless driver supports many interfaces, including 
-   PCMCIA/CF, USB, SDIO and SPI.  Chips known to work with the SDIO 
-   interface are the Marvell 8686 and 8688.
-
- - There is a BlueTooth HCI SDIO driver implementing the standard SDIO
-   BlueTooth class.
-
- - The Marvell 8688 mentioned above is also a BlueTooth device through
-   an additional SDIO "function".
-
- - Intel Wireless WiMAX Connection 2400 over SDIO.
-
-And the sdio_uart.c driver can be used with SDIO GPS receivers for 
-example.
-
-
-Nicolas
