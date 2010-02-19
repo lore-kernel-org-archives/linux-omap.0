@@ -1,70 +1,86 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 1/2] twl6030: regulator: Fix vsel calculations in
- set/get voltage apis
-Date: Fri, 19 Feb 2010 12:09:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03215B13F5@dbde02.ent.ti.com>
-References: <1266420255-4307-1-git-send-email-rnayak@ti.com>
- <20100217161509.GA13324@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB03215B1039@dbde02.ent.ti.com>
- <20100218094814.GD3315@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB03215B1172@dbde02.ent.ti.com>
- <20100218104032.GA3542@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB03215B11D9@dbde02.ent.ti.com>
- <20100218114237.GE3542@rakim.wolfsonmicro.main>
+From: <ext-Eero.Nurkkala@nokia.com>
+Subject: RE: [PATCHv4 2/2] ASoC: OMAP-McBSP: ASoC interface for McBSP
+ sidetone
+Date: Fri, 19 Feb 2010 08:30:30 +0100
+Message-ID: <1FFEF31EBAA4F64B80D33027D42977602143ED8FED@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1266518549-23809-1-git-send-email-ilkka.koskinen@nokia.com>
+ <1266518549-23809-2-git-send-email-ilkka.koskinen@nokia.com>,<1266518549-23809-3-git-send-email-ilkka.koskinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47893 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752930Ab0BSGkL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 01:40:11 -0500
-In-Reply-To: <20100218114237.GE3542@rakim.wolfsonmicro.main>
+Received: from smtp.nokia.com ([192.100.122.230]:49358 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754631Ab0BSHax convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 02:30:53 -0500
+In-Reply-To: <1266518549-23809-3-git-send-email-ilkka.koskinen@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Samuel Ortiz <sameo@linux.intel.com>, "Kakela, Pekka" <p-kakela@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: ilkka.koskinen@nokia.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@nokia.com, jhnikula@gmail.com, broonie@opensource.wolfsonmicro.com, tony
+Cc: eduardo.valentin@nokia.com
 
- 
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com] 
-> Sent: Thursday, February 18, 2010 5:13 PM
-> To: Nayak, Rajendra
-> Cc: linux-omap@vger.kernel.org; Liam Girdwood; Samuel Ortiz
-> Subject: Re: [PATCH 1/2] twl6030: regulator: Fix vsel 
-> calculations in set/get voltage apis
-> 
-> On Thu, Feb 18, 2010 at 05:09:53PM +0530, Nayak, Rajendra wrote:
-> 
-> > Mark, I get your point. The table values were derived from 
-> what the spec
-> > suggests, but I agree that its confusing that in theory the formula
-> > suggests there could be more selectors than whats present 
-> in the table.
-> 
-> > I will check if its indeed possible to support all possible 
-> selectors
-> > between say a min/max range. And then have maybe seperate 
-> kind of tables
-> > for twl6030 which only specify min/max range and then use 
-> the formula to
-> > generate the right selector.
-> 
-> Another option if you do need the supported voltage list would be to
-> rename the table and have a separate function to do set on 
-> twl6030 which
-> makes the intended usage clear.
+> +
+> +static const struct snd_kcontrol_new omap_mcbsp2_st_controls[] =3D {
+> +       SOC_SINGLE_EXT("McBSP2 Sidetone Switch", 1, 0, 1, 0,
+> +                       omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mod=
+e),
+> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 0 Volu=
+me",
+> +                                     -32768, 32767,
+> +                                     omap_mcbsp2_get_st_ch0_volume,
+> +                                     omap_mcbsp2_set_st_ch0_volume),
+> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 1 Volu=
+me",
+> +                                     -32768, 32767,
+> +                                     omap_mcbsp2_get_st_ch1_volume,
+> +                                     omap_mcbsp2_set_st_ch1_volume),
+> +};
+> +
+> +static const struct snd_kcontrol_new omap_mcbsp3_st_controls[] =3D {
+> +       SOC_SINGLE_EXT("McBSP3 Sidetone Switch", 2, 0, 1, 0,
+> +                       omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mod=
+e),
+> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 0 Volu=
+me",
+> +                                     -32768, 32767,
+> +                                     omap_mcbsp3_get_st_ch0_volume,
+> +                                     omap_mcbsp3_set_st_ch0_volume),
+> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 1 Volu=
+me",
+> +                                     -32768, 32767,
+> +                                     omap_mcbsp3_get_st_ch1_volume,
+> +                                     omap_mcbsp3_set_st_ch1_volume),
+> +};
+> +
 
-Mark, It turns out, all twl6030 regulators can be programmed from
-1.0v to 3.3v with 100mV steps. The spec I was referring to was specfic
-to the OMAP4 platform I am working on. Hence, it does not prevent
-someone using the PMIC on a different platform to have different
-voltage requirements.
-So I was thinking of removing all the twl6030 tables and just use
-the formula to get the selector and make sure they fall in the
-allowed range (1.0v to 3.3v).
-If that sounds good then I can post a patch for this.
+Just a short note,
+"Gain values are in the interval (-2..2) in Q1.14 format, negative valu=
+es are expressed in
+2's complement."
 
-> 
+So, from:
+http://en.wikipedia.org/wiki/Q_(number_format)
+
+"
+The notation used is Qm.n, where:
+
+    * Q designates that the number is in Q format notation =97 the Texa=
+s Instruments representation for signed fixed-point numbers.
+    * m (optional; default=3D0) is the number of bits used to designate=
+ the two's complement integer portion of the number, exclusive of the s=
+ign bit.
+    * n is the number of bits used to designate the two's complement fr=
+actional portion of the number, i.e. the number of bits to the right of=
+ the binary point.
+"
+
+=2E.so if you do tests, and find out the gains behave "irrationally" oc=
+casionally, you can't possibly claim it isn't working as expected ;)
+
+- Eero--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
