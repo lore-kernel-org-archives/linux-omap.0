@@ -1,72 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 06/11] arm: omap: musb: we can use clk framework
-Date: Fri, 19 Feb 2010 15:30:27 -0800
-Message-ID: <20100219233027.10559.69690.stgit@baageli.muru.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 08/11] omap: musb: remove unused dma data
+Date: Fri, 19 Feb 2010 15:30:31 -0800
+Message-ID: <20100219233031.10559.39150.stgit@baageli.muru.com>
 References: <20100219232648.10559.380.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52189 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756290Ab0BSX3d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 18:29:33 -0500
-In-Reply-To: <20100219232648.10559.380.stgit@baageli.muru.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100219232648.10559.380.stgit-XB442sTQ5VIxQTnqJstS8Q@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-... in order to handle musb's clock. Let's start
-removing the old musb-only set_clock function.
+we don't use those anywhere on musb driver, so
+let's remove those old stuff.
 
-Cc: linux-usb@vger.kernel.org
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- arch/arm/mach-omap2/usb-musb.c |   22 ----------------------
- 1 files changed, 0 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 7e2ee01..c7d98a9 100644
+index 01d86e5..4dfb66a 100644
 --- a/arch/arm/mach-omap2/usb-musb.c
 +++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -47,27 +47,6 @@ static struct resource musb_resources[] = {
- 	},
- };
- 
--static int clk_on;
--
--static int musb_set_clock(struct clk *clk, int state)
--{
--	if (state) {
--		if (clk_on > 0)
--			return -ENODEV;
--
--		clk_enable(clk);
--		clk_on = 1;
--	} else {
--		if (clk_on == 0)
--			return -ENODEV;
--
--		clk_disable(clk);
--		clk_on = 0;
--	}
--
--	return 0;
--}
--
+@@ -50,10 +50,7 @@ static struct resource musb_resources[] = {
  static struct musb_hdrc_config musb_config = {
  	.multipoint	= 1,
  	.dyn_fifo	= 1,
-@@ -88,7 +67,6 @@ static struct musb_hdrc_platform_data musb_plat = {
- 	.mode		= MUSB_PERIPHERAL,
- #endif
- 	/* .clock is set dynamically */
--	.set_clock	= musb_set_clock,
- 	.config		= &musb_config,
+-	.dma		= 1,
+ 	.num_eps	= 16,
+-	.dma_channels	= 7,
+-	.dma_req_chan	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
+ 	.ram_bits	= 12,
+ };
  
- 	/* REVISIT charge pump on TWL4030 can supply up to
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
