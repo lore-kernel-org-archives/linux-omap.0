@@ -1,32 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] arm: Allow mounting root on omaps with CPU_V6 and
-	CPU_V7
-Date: Fri, 19 Feb 2010 08:35:56 +0000
-Message-ID: <20100219083556.GB19649@n2100.arm.linux.org.uk>
-References: <20100219002748.GB21755@atomide.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 0/5] Mailbox: Fix issues for OMAP4
+Date: Fri, 19 Feb 2010 10:36:04 +0200 (EET)
+Message-ID: <20100219.103604.116369681.Hiroshi.DOYU@nokia.com>
+References: <2C1563023E232C49B9F505633D57C2DA2640D0235A@dlee04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49833 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750902Ab0BSIgI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 03:36:08 -0500
-Content-Disposition: inline
-In-Reply-To: <20100219002748.GB21755@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.233]:35000 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751560Ab0BSIgO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 03:36:14 -0500
+In-Reply-To: <2C1563023E232C49B9F505633D57C2DA2640D0235A@dlee04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: s-anna@ti.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, rob@ti.com, h-kanigeri2@ti.com, subramaniam.ca@ti.com
 
-On Thu, Feb 18, 2010 at 04:27:48PM -0800, Tony Lindgren wrote:
-> @@ -779,5 +779,5 @@ config CACHE_XSC3L2
->  
->  config ARM_L1_CACHE_SHIFT
->  	int
-> -	default 6 if ARCH_OMAP3 || ARCH_S5PC1XX
-> +	default 6 if (ARCH_OMAP3 || ARCH_S5PC1XX) && !ARCH_OMAP2
->  	default 5
+Hi Suman,
 
-This one is definitely wrong.  Setting the L1 cache line size larger
-than it actually is should be safe; setting it smaller is definitely
-unsafe.
+From: "ext Anna, Suman" <s-anna@ti.com>
+Subject: [PATCH 0/5] Mailbox: Fix issues for OMAP4 
+Date: Thu, 18 Feb 2010 22:07:15 +0100
+
+> From f2e895f74544876572adbe3328aa27d20aa1aec4 Mon Sep 17 00:00:00 2001
+> From: Suman Anna <s-anna@ti.com>
+> Date: Thu, 18 Feb 2010 14:34:39 -0600
+> Subject: [PATCH 0/5] Mailbox: Fix issues for OMAP4 
+> 
+> This patchset has fixes for OMAP4 mailbox SYSCONFIG register.
+> Also included are patches for improving mailbox performance, and
+> other minor fixes.
+
+They look ok to me.
+
+
