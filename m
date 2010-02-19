@@ -1,90 +1,96 @@
-From: Ilkka Koskinen <ikoskine@nokia.com>
-Subject: RE: [PATCHv4 2/2] ASoC: OMAP-McBSP: ASoC interface for McBSP
- sidetone
-Date: Fri, 19 Feb 2010 14:04:38 +0200 (EET)
-Message-ID: <alpine.DEB.2.00.1002191355450.3039@tumpelo.nmp.nokia.com>
-References: <1266518549-23809-1-git-send-email-ilkka.koskinen@nokia.com> <1266518549-23809-2-git-send-email-ilkka.koskinen@nokia.com>,<1266518549-23809-3-git-send-email-ilkka.koskinen@nokia.com>
- <1FFEF31EBAA4F64B80D33027D42977602143ED8FED@NOK-EUMSG-02.mgdnok.nokia.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH] twl6030: add base addr for ID0, ID1, ID2
+Date: Fri, 19 Feb 2010 13:14:06 +0100
+Message-ID: <20100219121405.GH10255@sortiz.org>
+References: <1266512419-22566-1-git-send-email-balajitk@ti.com>
+ <19F8576C6E063C45BE387C64729E7394044D71B3E9@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1406685011-1266581079=:3039"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37467 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858Ab0BSMDX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 07:03:23 -0500
-In-Reply-To: <1FFEF31EBAA4F64B80D33027D42977602143ED8FED@NOK-EUMSG-02.mgdnok.nokia.com>
+Received: from mga05.intel.com ([192.55.52.89]:29235 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750945Ab0BSMMt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 07:12:49 -0500
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044D71B3E9@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
-Cc: "Koskinen Ilkka (Nokia-D/Tampere)" <ilkka.koskinen@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "tony@atomide.com" <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
+To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---8323328-1406685011-1266581079=:3039
-Content-Type: TEXT/PLAIN; charset=Windows-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-
-
-
-On Fri, 19 Feb 2010, Nurkkala Eero.An (EXT-Offcode/Oulu) wrote:
-
+On Thu, Feb 18, 2010 at 10:35:11PM +0530, Krishnamoorthy, Balaji T wrote:
+> Sending this as a separate patch which was earlier combined with the series http://marc.info/?l=linux-omap&m=126633460408606&w=2
 >
->> +
->> +static const struct snd_kcontrol_new omap_mcbsp2_st_controls[] = {
->> +       SOC_SINGLE_EXT("McBSP2 Sidetone Switch", 1, 0, 1, 0,
->> +                       omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mode),
->> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 0 Volume",
->> +                                     -32768, 32767,
->> +                                     omap_mcbsp2_get_st_ch0_volume,
->> +                                     omap_mcbsp2_set_st_ch0_volume),
->> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 1 Volume",
->> +                                     -32768, 32767,
->> +                                     omap_mcbsp2_get_st_ch1_volume,
->> +                                     omap_mcbsp2_set_st_ch1_volume),
->> +};
->> +
->> +static const struct snd_kcontrol_new omap_mcbsp3_st_controls[] = {
->> +       SOC_SINGLE_EXT("McBSP3 Sidetone Switch", 2, 0, 1, 0,
->> +                       omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mode),
->> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 0 Volume",
->> +                                     -32768, 32767,
->> +                                     omap_mcbsp3_get_st_ch0_volume,
->> +                                     omap_mcbsp3_set_st_ch0_volume),
->> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 1 Volume",
->> +                                     -32768, 32767,
->> +                                     omap_mcbsp3_get_st_ch1_volume,
->> +                                     omap_mcbsp3_set_st_ch1_volume),
->> +};
->> +
->
-> Just a short note, "Gain values are in the interval (-2..2) in Q1.14 
-> format, negative values are expressed in 2's complement."
->
-> So, from:
-> http://en.wikipedia.org/wiki/Q_(number_format)
->
-> "
-> The notation used is Qm.n, where:
->
->    * Q designates that the number is in Q format notation — the Texas 
-> Instruments representation for signed fixed-point numbers.
->    * m (optional; default=0) is the number of bits used to designate the 
-> two's complement integer portion of the number, exclusive of the sign 
-> bit.
->    * n is the number of bits used to designate the two's complement 
-> fractional portion of the number, i.e. the number of bits to the right 
-> of the binary point. "
->
-> ..so if you do tests, and find out the gains behave "irrationally" 
-> occasionally, you can't possibly claim it isn't working as expected ;)
+And it's been applied to my for-next branch, thanks.
 
-I'm a bit confused. What do you mean by that?
+Cheers,
+Samuel.
+ 
+> > -----Original Message-----
+> > From: Krishnamoorthy, Balaji T
+> > Sent: Thursday, February 18, 2010 10:30 PM
+> > To: linux-omap@vger.kernel.org; sameo@linux.intel.com
+> > Cc: tony@atomide.com; Shilimkar, Santosh; Krishnamoorthy, Balaji T
+> > Subject: [PATCH] twl6030: add base addr for ID0, ID1, ID2
+> > 
+> > From: Balaji T K <balajitk@ti.com>
+> > 
+> > Add base address for generic slave ID0, ID1, ID2
+> > and introduced one more entry to align RTC module number between
+> > twl4030 and twl6030
+> > 
+> > Signed-off-by: Balaji T K <balajitk@ti.com>
+> > ---
+> >  drivers/mfd/twl-core.c  |    7 +++++--
+> >  include/linux/i2c/twl.h |    5 +++++
+> >  2 files changed, 10 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> > index 2a76065..d820e87 100644
+> > --- a/drivers/mfd/twl-core.c
+> > +++ b/drivers/mfd/twl-core.c
+> > @@ -204,6 +204,7 @@
+> >  /* subchip/slave 3 0x4B - AUDIO */
+> >  #define TWL6030_BASEADD_AUDIO		0x0000
+> >  #define TWL6030_BASEADD_RSV		0x0000
+> > +#define TWL6030_BASEADD_ZERO		0x0000
+> > 
+> >  /* Few power values */
+> >  #define R_CFG_BOOT			0x05
+> > @@ -319,9 +320,11 @@ static struct twl_mapping twl6030_map[] = {
+> >  	{ SUB_CHIP_ID1, TWL6030_BASEADD_CHARGER },
+> >  	{ SUB_CHIP_ID1, TWL6030_BASEADD_GASGAUGE },
+> >  	{ SUB_CHIP_ID1, TWL6030_BASEADD_PWM },
+> > -	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> > -	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> > +	{ SUB_CHIP_ID0, TWL6030_BASEADD_ZERO },
+> > +	{ SUB_CHIP_ID1, TWL6030_BASEADD_ZERO },
+> > 
+> > +	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
+> > +	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
+> >  	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> >  	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> >  	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> > diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> > index bf1c5be..fcf9286 100644
+> > --- a/include/linux/i2c/twl.h
+> > +++ b/include/linux/i2c/twl.h
+> > @@ -80,6 +80,11 @@
+> >  #define TWL_MODULE_PM_MASTER	TWL4030_MODULE_PM_MASTER
+> >  #define TWL_MODULE_PM_RECEIVER	TWL4030_MODULE_PM_RECEIVER
+> >  #define TWL_MODULE_RTC		TWL4030_MODULE_RTC
+> > +#define TWL_MODULE_PWM		TWL4030_MODULE_PWM0
+> > +
+> > +#define TWL6030_MODULE_ID0	0x0D
+> > +#define TWL6030_MODULE_ID1	0x0E
+> > +#define TWL6030_MODULE_ID2	0x0F
+> > 
+> >  #define GPIO_INTR_OFFSET	0
+> >  #define KEYPAD_INTR_OFFSET	1
+> > --
+> > 1.6.0.4
+> 
 
-AFAICS, Q1.14 defines values [-16384.0, +16383.5], which are mapped in the 
-driver to integers [-32768, 32767], right? Moreover, those Q1.14 values in 
-registers are mapped to [-2, 2] in HW. So is there a problem somewhere?
-
-Cheers, Ilkka
---8323328-1406685011-1266581079=:3039--
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
