@@ -1,85 +1,42 @@
-From: Deepak Chitriki <deepak.chitriki@ti.com>
-Subject: Re: [RFC][PATCH 2/2] DSPBRIDGE: Distinguish between read or write
- buffers
-Date: Fri, 19 Feb 2010 15:44:32 +0200
-Message-ID: <4B7E95C0.3060308@ti.com>
-References: <1266532429-30927-1-git-send-email-omar.ramirez@ti.com> <1266532429-30927-2-git-send-email-omar.ramirez@ti.com> <1266532429-30927-3-git-send-email-omar.ramirez@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCHv4 0/2] McBSP: OMAP3: Add sidetone feature
+Date: Fri, 19 Feb 2010 15:54:37 +0200
+Message-ID: <20100219155437.66473141.jhnikula@gmail.com>
+References: <1266518549-23809-1-git-send-email-ilkka.koskinen@nokia.com>
+	<20100218222229.0f0eb3a9.jhnikula@gmail.com>
+	<201002191034.32391.peter.ujfalusi@nokia.com>
+	<20100219153916.a3dc4a77.jhnikula@gmail.com>
+	<1266586637.2044.2.camel@eenurkka-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36162 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751718Ab0BSNoq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Feb 2010 08:44:46 -0500
-In-Reply-To: <1266532429-30927-3-git-send-email-omar.ramirez@ti.com>
+Received: from ey-out-2122.google.com ([74.125.78.26]:20172 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752061Ab0BSNtN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 08:49:13 -0500
+Received: by ey-out-2122.google.com with SMTP id d26so46983eyd.19
+        for <linux-omap@vger.kernel.org>; Fri, 19 Feb 2010 05:49:11 -0800 (PST)
+In-Reply-To: <1266586637.2044.2.camel@eenurkka-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
+To: ext-eero.nurkkala@nokia.com
+Cc: "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Koskinen Ilkka (Nokia-D/Tampere)" <ilkka.koskinen@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "tony@atomide.com" <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
 
-Ramirez Luna, Omar wrote:
-> This patch introduces the check to differentiate the buffers
-> coming to the dsp through bridgedriver. So far they can be
-> input (read) or output (write) or rw (which are treated the
-> same way as an output buffer), this distinctions are made from
-> dsp perspective.
->
-> Since this needs to be checked on map function, unused
-> bits (16, 15) of flags were used to check for this argument.
->
-> As 128 byte alignment limitation doesn't affect input buffers
-> only writable buffers are checked. Default value for read buffers
-> is set to be 1, this will enforce that users of bridge will fill
-> the flags with significant values otherwise (if enabled) check
-> will reject buffers not aligned to 128 bytes (even if they fall in
-> the input category).
->
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-> ---
->  drivers/dsp/bridge/rmgr/proc.c |   16 ++++++++++++----
->  1 files changed, 12 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-> index 78a31ef..4fe20ed 100644
-> --- a/drivers/dsp/bridge/rmgr/proc.c
-> +++ b/drivers/dsp/bridge/rmgr/proc.c
-> @@ -71,6 +71,12 @@
->  
->  #define DSP_CACHE_LINE 128
->  
-> +#define BUFMODE_MASK	(3 << 14)
-> +
-> +/* Buffer modes from DSP perspective */
-> +#define RBUF		0x1	/* Input buffer */
-> +#define WBUF		0x2	/* Output Buffer */
-> +
->  extern char *iva_img;
->  
->  /*  ----------------------------------- Globals */
-> @@ -1297,11 +1303,13 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
->  		 pReqAddr, ulMapAttr, ppMapAddr);
->  
->  #ifdef CONFIG_BRIDGE_CACHE_LINE_CHECK
-> -	if (!IS_ALIGNED((u32)pMpuAddr, DSP_CACHE_LINE) ||
-> -	    !IS_ALIGNED(size, DSP_CACHE_LINE)) {
-> -		pr_err("%s: not aligned: 0x%x (%d)\n", __func__,
-> +	if ((ulMapAttr & BUFMODE_MASK) != RBUF) {
-What if the result of (ulMapAttr & BUFMODE_MASK) is invalid,still it enters the loop.Since the condition is for writable buffers only,Isn't it better to use "if ((ulMapAttr & BUFMODE_MASK) == WBUF)" condition?
+On Fri, 19 Feb 2010 15:37:17 +0200
+Eero Nurkkala <ext-eero.nurkkala@nokia.com> wrote:
 
-> +		if (!IS_ALIGNED((u32)pMpuAddr, DSP_CACHE_LINE) ||
-> +		    !IS_ALIGNED(ulSize, DSP_CACHE_LINE)) {
-> +			pr_err("%s: not aligned: 0x%x (%d)\n", __func__,
->  						(u32)pMpuAddr, ulSize);
-> -		return -EFAULT;
-> +			return -EFAULT;
-> +		}
->  	}
->  #endif
-Regards,
-Deepak
-
->  
->   
+> > It seems to work with I2S too.
+> > 
+> 
+> For both channels? I don't recall so.. and for the one channel only, the
+> FIR doesn't behave expectedly? (maybe this works [1,0,..0], but more
+> sophisticated ones may not..)
+> 
+Could be. At least the control 'McBSP2 Sidetone Channel 1' doesn't have
+any effect. But the control 0 is affecting both channels
+simultaneously. (I didn't check the meaning of those two controls)
 
 
+-- 
+Jarkko
