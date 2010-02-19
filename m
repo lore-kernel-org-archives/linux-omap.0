@@ -1,53 +1,122 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: [PATCH 0/6] Convert I2C driver to hwmod + omap-device
-Date: Fri, 19 Feb 2010 17:56:25 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03215B1582@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 1/6] OMAP2: hwmod: Fix MMC hwmod structs for 2430
+Date: Fri, 19 Feb 2010 17:57:12 +0530
+Message-ID: <1266582437-22398-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37274 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37305 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752371Ab0BSM0c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 07:26:32 -0500
-Content-Language: en-US
+	with ESMTP id S1753005Ab0BSM1Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 07:27:25 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1JCRMOd013468
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 19 Feb 2010 06:27:24 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org, khilman@ti.com
+Cc: Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+The existing MMC hwmod structs for 2430 are fixed based
+on the changes in hwmod framework structurs.
 
-This series converts I2C driver to use hwmod + omap_device api's.
-Patches apply on the pm-wip/hwmods branch from Kevin's tree.
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2430.h |   26 +++++++++++++++-----------
+ 1 files changed, 15 insertions(+), 11 deletions(-)
 
-I have tested the patches on the 3430sdp platform. For omap2 the
-patches are not boot tested, but only compile tested.
-
-regards,
-Rajendra
-
-Paul Walmsley (2):
-  OMAP2xxx: hwmod: add I2C hwmods for OMAP2420, 2430
-  OMAP: I2C: split device registration; convert OMAP2+ to omap_device
-
-Rajendra Nayak (4):
-  OMAP2: hwmod: Fix MMC hwmod structs for 2430
-  OMAP3: hwmod: add I2C hwmods for OMAP3430
-  OMAP: I2C: Convert i2c driver to use omap_device/omap_hwmod
-  OMAP: Fix compile break in serial with CONFIG_PM disabled
-
- arch/arm/mach-omap1/i2c.c                 |  103 +++++++++++++
- arch/arm/mach-omap2/i2c.c                 |   67 +++++++++
- arch/arm/mach-omap2/omap_hwmod_2420.h     |  134 +++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430.h     |  166 +++++++++++++++++++--
- arch/arm/mach-omap2/omap_hwmod_34xx.h     |  228 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm-regbits-34xx.h    |    9 +-
- arch/arm/mach-omap2/serial.c              |    7 +-
- arch/arm/plat-omap/i2c.c                  |  144 ++++++------------
- arch/arm/plat-omap/include/plat/i2c.h     |   37 +++++
- arch/arm/plat-omap/include/plat/l4_3xxx.h |    7 +
- drivers/i2c/busses/i2c-omap.c             |   75 ++++------
- 11 files changed, 814 insertions(+), 163 deletions(-)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430.h b/arch/arm/mach-omap2/omap_hwmod_2430.h
+index 0b6ca6f..2898749 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430.h
++++ b/arch/arm/mach-omap2/omap_hwmod_2430.h
+@@ -21,7 +21,7 @@
+ #include <plat/cpu.h>
+ #include <plat/dma.h>
+ 
+-#include <mach/mmc.h>
++#include <plat/mmc.h>
+ 
+ #include "cm-regbits-24xx.h"
+ #include "prm-regbits-24xx.h"
+@@ -87,7 +87,8 @@ static struct omap_hwmod_addr_space omap2430_mmc1_addr_space[] = {
+ static struct omap_hwmod_ocp_if omap2430_l4_core__mmc1 = {
+ 	.master		= &omap2430_l4_core_hwmod,
+ 	.slave		= &omap2430_mmc1_hwmod,
+-	.interface_clk	= { .name = "mmchs1_ick" },
++	.clkdev_dev_id	= "mmci-omap-hs.0",
++	.clkdev_con_id	= "ick",
+ 	.addr		= omap2430_mmc1_addr_space,
+ 	.addr_cnt	= ARRAY_SIZE(omap2430_mmc1_addr_space),
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+@@ -105,7 +106,8 @@ static struct omap_hwmod_addr_space omap2430_mmc2_addr_space[] = {
+ static struct omap_hwmod_ocp_if omap2430_l4_core__mmc2 = {
+ 	.master		= &omap2430_l4_core_hwmod,
+ 	.slave		= &omap2430_mmc2_hwmod,
+-	.interface_clk	= { .name = "mmchs2_ick" },
++	.clkdev_dev_id	= "mmci-omap-hs.1",
++	.clkdev_con_id	= "ick",
+ 	.addr		= omap2430_mmc2_addr_space,
+ 	.addr_cnt	= ARRAY_SIZE(omap2430_mmc2_addr_space),
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+@@ -185,8 +187,8 @@ static struct mmc_dev_attr mmc1_dev_attr = {
+ 	.flags = MMC_INTERNAL_XCVR,
+ };
+ 
+-static u8 mmc1_mpu_irqs[] = {
+-	INT_24XX_MMC_IRQ,
++static struct omap_hwmod_irq_info mmc1_mpu_irqs[] = {
++	{ .irq = INT_24XX_MMC_IRQ, },
+ };
+ 
+ static struct omap_hwmod_dma_info mmc1_sdma_chs[] = {
+@@ -195,7 +197,7 @@ static struct omap_hwmod_dma_info mmc1_sdma_chs[] = {
+ };
+ 
+ static struct omap_hwmod_opt_clk mmc1_opt_clks[] = {
+-	{ .role = "dbck", .clk = { .name = "mmchsdb1_fck" } },
++	{ .clkdev_dev_id = "mmci-omap-hs.0", .clkdev_con_id = "mmchsdb_fck" },
+ };
+ 
+ static struct omap_hwmod_ocp_if *omap2430_mmc1_slaves[] = {
+@@ -210,7 +212,8 @@ static struct omap_hwmod omap2430_mmc1_hwmod = {
+ 	.sdma_chs_cnt	= ARRAY_SIZE(mmc1_sdma_chs),
+ 	.opt_clks	= mmc1_opt_clks,
+ 	.opt_clks_cnt	= ARRAY_SIZE(mmc1_opt_clks),
+-	.main_clk	= { .name = "mmchs1_fck" },
++	.clkdev_dev_id	= "mmci-omap-hs.0",
++	.clkdev_con_id	= "fck",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 2,
+@@ -230,8 +233,8 @@ static struct mmc_dev_attr mmc2_dev_attr = {
+ 	.flags = MMC_SUPPORTS_EXTERNAL_XCVR,
+ };
+ 
+-static u8 mmc2_mpu_irqs[] = {
+-	INT_24XX_MMC2_IRQ,
++static struct omap_hwmod_irq_info mmc2_mpu_irqs[] = {
++	{ .irq = INT_24XX_MMC2_IRQ, },
+ };
+ 
+ static struct omap_hwmod_dma_info mmc2_sdma_chs[] = {
+@@ -240,7 +243,7 @@ static struct omap_hwmod_dma_info mmc2_sdma_chs[] = {
+ };
+ 
+ static struct omap_hwmod_opt_clk mmc2_opt_clks[] = {
+-	{ .role = "dbck", .clk = { .name = "mmchsdb2_fck" } },
++	{ .clkdev_dev_id = "mmci-omap-hs.1", .clkdev_con_id = "mmchsdb_fck" },
+ };
+ 
+ static struct omap_hwmod_ocp_if *omap2430_mmc2_slaves[] = {
+@@ -255,7 +258,8 @@ static struct omap_hwmod omap2430_mmc2_hwmod = {
+ 	.sdma_chs_cnt	= ARRAY_SIZE(mmc2_sdma_chs),
+ 	.opt_clks	= mmc2_opt_clks,
+ 	.opt_clks_cnt	= ARRAY_SIZE(mmc2_opt_clks),
+-	.main_clk	= { .name = "mmchs2_fck" },
++	.clkdev_dev_id	= "mmci-omap-hs.1",
++	.clkdev_con_id	= "fck",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 2,
+-- 
+1.5.4.7
 
