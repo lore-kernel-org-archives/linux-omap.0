@@ -1,128 +1,70 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/9] omap3/4: uart: fix full-fifo write abort
-Date: Fri, 19 Feb 2010 10:55:30 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C417FA42@dbde02.ent.ti.com>
-References: <1266483554-15044-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 1/2] twl6030: regulator: Fix vsel calculations in
+ set/get voltage apis
+Date: Fri, 19 Feb 2010 12:09:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03215B13F5@dbde02.ent.ti.com>
+References: <1266420255-4307-1-git-send-email-rnayak@ti.com>
+ <20100217161509.GA13324@rakim.wolfsonmicro.main>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03215B1039@dbde02.ent.ti.com>
+ <20100218094814.GD3315@rakim.wolfsonmicro.main>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03215B1172@dbde02.ent.ti.com>
+ <20100218104032.GA3542@rakim.wolfsonmicro.main>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03215B11D9@dbde02.ent.ti.com>
+ <20100218114237.GE3542@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60851 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47893 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751156Ab0BSFZm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 00:25:42 -0500
-In-Reply-To: <1266483554-15044-1-git-send-email-santosh.shilimkar@ti.com>
+	id S1752930Ab0BSGkL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 01:40:11 -0500
+In-Reply-To: <20100218114237.GE3542@rakim.wolfsonmicro.main>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Samuel Ortiz <sameo@linux.intel.com>, "Kakela, Pekka" <p-kakela@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Bye the way just to add bit more clarity, this patch addresses TX
-hardware restriction in the new UART IP used on omap3630 and omap4430.
-First part of the fix for RX is already in mainline,
-Commit: "ce13d4716a276f4331d78ba28a5093a63822ab95"
-
-More details on this thread are here.
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg19447.html
+ 
 
 > -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Thursday, February 18, 2010 2:29 PM
-> To: tony@atomide.com
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Shilimkar, Santosh; Woodruff,
-> Richard; Ghorai, Sukumar
-> Subject: [PATCH 1/9] omap3/4: uart: fix full-fifo write abort
+> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com] 
+> Sent: Thursday, February 18, 2010 5:13 PM
+> To: Nayak, Rajendra
+> Cc: linux-omap@vger.kernel.org; Liam Girdwood; Samuel Ortiz
+> Subject: Re: [PATCH 1/2] twl6030: regulator: Fix vsel 
+> calculations in set/get voltage apis
 > 
-> This patch is addition to the already merged commit on non-empty
-> uart fifo read abort. "ce13d4716a276f4331d78ba28a5093a63822ab95"
+> On Thu, Feb 18, 2010 at 05:09:53PM +0530, Nayak, Rajendra wrote:
 > 
-> OMAP3630 and OMAP4430 UART IP blocks have a restriction on TX FIFO
-> too. If you try to write to the tx fifo when it is full, the system aborts.
+> > Mark, I get your point. The table values were derived from 
+> what the spec
+> > suggests, but I agree that its confusing that in theory the formula
+> > suggests there could be more selectors than whats present 
+> in the table.
 > 
-> This can be easily reproducible by not suppressing interconnect errors or
-> long duration testing where continuous prints over console from multiple
-> threads. This patch is addressing the issue by ensuring that write is
-> not issued while fifo is full. A timeout is added to avoid any hang
-> on fifo-full for 10 mS which is unlikely case.
+> > I will check if its indeed possible to support all possible 
+> selectors
+> > between say a min/max range. And then have maybe seperate 
+> kind of tables
+> > for twl6030 which only specify min/max range and then use 
+> the formula to
+> > generate the right selector.
 > 
-> Patch is validated on OMAP3630 and OMAP4 SDP.
-> 
-> V2 version removed the additional 1 uS on every TX as per
-> Tony's suggestion
-> 
-> Signed-off-by: Woodruff Richard <r-woodruff2@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> CC: Ghorai Sukumar <s-ghorai@ti.com>
-> ---
->  arch/arm/mach-omap2/serial.c |   31 ++++++++++++++++++++++++++++---
->  1 files changed, 28 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 5f3035e..b79bc89 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -23,6 +23,7 @@
->  #include <linux/serial_reg.h>
->  #include <linux/clk.h>
->  #include <linux/io.h>
-> +#include <linux/delay.h>
-> 
->  #include <plat/common.h>
->  #include <plat/board.h>
-> @@ -160,6 +161,13 @@ static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
->  	return (unsigned int)__raw_readb(up->membase + offset);
->  }
-> 
-> +static inline void __serial_write_reg(struct uart_port *up, int offset,
-> +		int value)
-> +{
-> +	offset <<= up->regshift;
-> +	__raw_writeb(value, up->membase + offset);
-> +}
-> +
->  static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
->  				    int value)
->  {
-> @@ -620,6 +628,20 @@ static unsigned int serial_in_override(struct uart_port *up, int offset)
->  	return __serial_read_reg(up, offset);
->  }
-> 
-> +static void serial_out_override(struct uart_port *up, int offset, int value)
-> +{
-> +	unsigned int status, tmout = 10000;
-> +
-> +	status = __serial_read_reg(up, UART_LSR);
-> +	while (!(status & UART_LSR_THRE)) {
-> +		/* Wait up to 10ms for the character(s) to be sent. */
-> +		if (--tmout == 0)
-> +			break;
-> +		udelay(1);
-> +		status = __serial_read_reg(up, UART_LSR);
-> +	}
-> +	__serial_write_reg(up, offset, value);
-> +}
->  void __init omap_serial_early_init(void)
->  {
->  	int i;
-> @@ -721,11 +743,14 @@ void __init omap_serial_init_port(int port)
->  	 * omap3xxx: Never read empty UART fifo on UARTs
->  	 * with IP rev >=0x52
->  	 */
-> -	if (cpu_is_omap44xx())
-> +	if (cpu_is_omap44xx()) {
->  		uart->p->serial_in = serial_in_override;
-> -	else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
-> -			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
-> +		uart->p->serial_out = serial_out_override;
-> +	} else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
-> +			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV) {
->  		uart->p->serial_in = serial_in_override;
-> +		uart->p->serial_out = serial_out_override;
-> +	}
->  }
-> 
->  /**
-> --
-> 1.6.0.4
+> Another option if you do need the supported voltage list would be to
+> rename the table and have a separate function to do set on 
+> twl6030 which
+> makes the intended usage clear.
 
+Mark, It turns out, all twl6030 regulators can be programmed from
+1.0v to 3.3v with 100mV steps. The spec I was referring to was specfic
+to the OMAP4 platform I am working on. Hence, it does not prevent
+someone using the PMIC on a different platform to have different
+voltage requirements.
+So I was thinking of removing all the twl6030 tables and just use
+the formula to get the selector and make sure they fall in the
+allowed range (1.0v to 3.3v).
+If that sounds good then I can post a patch for this.
+
+> 
