@@ -1,205 +1,128 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 2/9] omap2/3/4: ioremap omap_globals module
-Date: Fri, 19 Feb 2010 10:43:53 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C417FA23@dbde02.ent.ti.com>
+Subject: RE: [PATCH 1/9] omap3/4: uart: fix full-fifo write abort
+Date: Fri, 19 Feb 2010 10:55:30 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C417FA42@dbde02.ent.ti.com>
 References: <1266483554-15044-1-git-send-email-santosh.shilimkar@ti.com>
-	<1266483554-15044-2-git-send-email-santosh.shilimkar@ti.com>
- <87wryaji6j.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FA23dbde02enttico_"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44851 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60851 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750973Ab0BSFOJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Feb 2010 00:14:09 -0500
-In-Reply-To: <87wryaji6j.fsf@deeprootsystems.com>
+	id S1751156Ab0BSFZm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 00:25:42 -0500
+In-Reply-To: <1266483554-15044-1-git-send-email-santosh.shilimkar@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>
 
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FA23dbde02enttico_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Bye the way just to add bit more clarity, this patch addresses TX
+hardware restriction in the new UART IP used on omap3630 and omap4430.
+First part of the fix for RX is already in mainline,
+Commit: "ce13d4716a276f4331d78ba28a5093a63822ab95"
+
+More details on this thread are here.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg19447.html
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Friday, February 19, 2010 3:55 AM
-> To: Shilimkar, Santosh
-> Cc: tony@atomide.com; linux-omap@vger.kernel.org; linux-arm-kernel@lists.=
-infradead.org
-> Subject: Re: [PATCH 2/9] omap2/3/4: ioremap omap_globals module
->=20
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->=20
-> > This is a clean-up patch towards dynamic allocation of IO space
-> > instead of using harcoded macros to calculate virtual addresses.
-> >
-> > Also update the sdrc, prcm, tap and control module to
-> > allocate iospace dynamically
->=20
-> You should drop the referenece to the TAP here since it's dropped.
->=20
-> > As per Tony's suggestion V2 version drops tap changes
-> > becasue ioremap uses cpu_is_omap2420() and cpu_is_omap2430(),
-> > so we can't use that for setting tap_base. Hence ioremap()
-> > won't work for tap until omap2_check_revision() is done
->=20
-> And this type of comment should come after the '---' since
-> it's relevant to the reviewers, but not to the final git history.
->=20
->=20
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > CC: Kevin Hilman <khilman@deeprootsystems.com>
-> > CC: Tony Lindgren <tony@atomide.com>
->=20
-> After that, you can change the CC for me to a Reviewed-by.
+> From: Shilimkar, Santosh
+> Sent: Thursday, February 18, 2010 2:29 PM
+> To: tony@atomide.com
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Shilimkar, Santosh; Woodruff,
+> Richard; Ghorai, Sukumar
+> Subject: [PATCH 1/9] omap3/4: uart: fix full-fifo write abort
+> 
+> This patch is addition to the already merged commit on non-empty
+> uart fifo read abort. "ce13d4716a276f4331d78ba28a5093a63822ab95"
+> 
+> OMAP3630 and OMAP4430 UART IP blocks have a restriction on TX FIFO
+> too. If you try to write to the tx fifo when it is full, the system aborts.
+> 
+> This can be easily reproducible by not suppressing interconnect errors or
+> long duration testing where continuous prints over console from multiple
+> threads. This patch is addressing the issue by ensuring that write is
+> not issued while fifo is full. A timeout is added to avoid any hang
+> on fifo-full for 10 mS which is unlikely case.
+> 
+> Patch is validated on OMAP3630 and OMAP4 SDP.
+> 
+> V2 version removed the additional 1 uS on every TX as per
+> Tony's suggestion
+> 
+> Signed-off-by: Woodruff Richard <r-woodruff2@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> CC: Ghorai Sukumar <s-ghorai@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c |   31 ++++++++++++++++++++++++++++---
+>  1 files changed, 28 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 5f3035e..b79bc89 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/serial_reg.h>
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+> +#include <linux/delay.h>
+> 
+>  #include <plat/common.h>
+>  #include <plat/board.h>
+> @@ -160,6 +161,13 @@ static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
+>  	return (unsigned int)__raw_readb(up->membase + offset);
+>  }
+> 
+> +static inline void __serial_write_reg(struct uart_port *up, int offset,
+> +		int value)
+> +{
+> +	offset <<= up->regshift;
+> +	__raw_writeb(value, up->membase + offset);
+> +}
+> +
+>  static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
+>  				    int value)
+>  {
+> @@ -620,6 +628,20 @@ static unsigned int serial_in_override(struct uart_port *up, int offset)
+>  	return __serial_read_reg(up, offset);
+>  }
+> 
+> +static void serial_out_override(struct uart_port *up, int offset, int value)
+> +{
+> +	unsigned int status, tmout = 10000;
+> +
+> +	status = __serial_read_reg(up, UART_LSR);
+> +	while (!(status & UART_LSR_THRE)) {
+> +		/* Wait up to 10ms for the character(s) to be sent. */
+> +		if (--tmout == 0)
+> +			break;
+> +		udelay(1);
+> +		status = __serial_read_reg(up, UART_LSR);
+> +	}
+> +	__serial_write_reg(up, offset, value);
+> +}
+>  void __init omap_serial_early_init(void)
+>  {
+>  	int i;
+> @@ -721,11 +743,14 @@ void __init omap_serial_init_port(int port)
+>  	 * omap3xxx: Never read empty UART fifo on UARTs
+>  	 * with IP rev >=0x52
+>  	 */
+> -	if (cpu_is_omap44xx())
+> +	if (cpu_is_omap44xx()) {
+>  		uart->p->serial_in = serial_in_override;
+> -	else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
+> -			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
+> +		uart->p->serial_out = serial_out_override;
+> +	} else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
+> +			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV) {
+>  		uart->p->serial_in = serial_in_override;
+> +		uart->p->serial_out = serial_out_override;
+> +	}
+>  }
+> 
+>  /**
+> --
+> 1.6.0.4
 
-Refreshed version attached with style fix and adding the Paul, Kevin's
-Reviewed-by.
-
-Regards,
-Santosh
-=20
-
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FA23dbde02enttico_
-Content-Type: application/octet-stream;
-	name="0002-omap2-3-4-ioremap-omap_globals-module.patch"
-Content-Description: 0002-omap2-3-4-ioremap-omap_globals-module.patch
-Content-Disposition: attachment;
-	filename="0002-omap2-3-4-ioremap-omap_globals-module.patch"; size=7220;
-	creation-date="Fri, 19 Feb 2010 10:40:33 GMT";
-	modification-date="Fri, 19 Feb 2010 10:40:33 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSAzNGIzMTQwOThhNGQ3NmU0Y2EyMjA2MmE4MjRiOGI3NGM0OTAzNDQxIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPgpEYXRlOiBNb24sIDE1IEZlYiAyMDEwIDE4OjAzOjM3ICswNTMwClN1YmplY3Q6IFtQ
-QVRDSCAyLzldIG9tYXAyLzMvNDogaW9yZW1hcCBvbWFwX2dsb2JhbHMgbW9kdWxlCgpUaGlzIGlz
-IGEgY2xlYW4tdXAgcGF0Y2ggdG93YXJkcyBkeW5hbWljIGFsbG9jYXRpb24gb2YgSU8gc3BhY2UK
-aW5zdGVhZCBvZiB1c2luZyBoYXJjb2RlZCBtYWNyb3MgdG8gY2FsY3VsYXRlIHZpcnR1YWwgYWRk
-cmVzc2VzLgoKQWxzbyB1cGRhdGUgdGhlIHNkcmMsIHByY20gYW5kIGNvbnRyb2wgbW9kdWxlIHRv
-IGFsbG9jYXRlCmlvc3BhY2UgZHluYW1pY2FsbHkKClNpZ25lZC1vZmYtYnk6IFNhbnRvc2ggU2hp
-bGlta2FyIDxzYW50b3NoLnNoaWxpbWthckB0aS5jb20+ClJldmlld2VkLWJ5OiBLZXZpbiBIaWxt
-YW4gPGtoaWxtYW5AZGVlcHJvb3RzeXN0ZW1zLmNvbT4KUmV2aWV3ZWQtYnk6IFBhdWwgV2FsbXNs
-ZXkgPHBhdWxAcHdzYW4uY29tPgpDQzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4K
-LS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2NvbnRyb2wuYyAgICAgICAgICAgIHwgICAgNiArKysr
-LQogYXJjaC9hcm0vbWFjaC1vbWFwMi9wcmNtLmMgICAgICAgICAgICAgICB8ICAgMTYgKysrKysr
-KysrKy0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL3NkcmMuYyAgICAgICAgICAgICAgIHwgICAxMSAr
-KysrKysrLQogYXJjaC9hcm0vcGxhdC1vbWFwL2NvbW1vbi5jICAgICAgICAgICAgICB8ICAgMzgg
-KysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tCiBhcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVk
-ZS9wbGF0L2NvbW1vbi5oIHwgICAxOCArKysrKysrKy0tLS0tCiA1IGZpbGVzIGNoYW5nZWQsIDU3
-IGluc2VydGlvbnMoKyksIDMyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21h
-Y2gtb21hcDIvY29udHJvbC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jb250cm9sLmMKaW5kZXgg
-Y2RkMWYzNS4uNDNmOGEzMyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9jb250cm9s
-LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jb250cm9sLmMKQEAgLTE0MCw3ICsxNDAsMTEg
-QEAgc3RhdGljIHN0cnVjdCBvbWFwM19jb250cm9sX3JlZ3MgY29udHJvbF9jb250ZXh0OwogCiB2
-b2lkIF9faW5pdCBvbWFwMl9zZXRfZ2xvYmFsc19jb250cm9sKHN0cnVjdCBvbWFwX2dsb2JhbHMg
-Km9tYXAyX2dsb2JhbHMpCiB7Ci0Jb21hcDJfY3RybF9iYXNlID0gb21hcDJfZ2xvYmFscy0+Y3Ry
-bDsKKwkvKiBTdGF0aWMgbWFwcGluZywgbmV2ZXIgcmVsZWFzZWQgKi8KKwlpZiAob21hcDJfZ2xv
-YmFscy0+Y3RybCkgeworCQlvbWFwMl9jdHJsX2Jhc2UgPSBpb3JlbWFwKG9tYXAyX2dsb2JhbHMt
-PmN0cmwsIFNaXzRLKTsKKwkJV0FSTl9PTighb21hcDJfY3RybF9iYXNlKTsKKwl9CiB9CiAKIHZv
-aWQgX19pb21lbSAqb21hcF9jdHJsX2Jhc2VfZ2V0KHZvaWQpCmRpZmYgLS1naXQgYS9hcmNoL2Fy
-bS9tYWNoLW9tYXAyL3ByY20uYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcHJjbS5jCmluZGV4IGU4
-ZTEyMWEuLjMzOGQ1ZjYgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvcHJjbS5jCisr
-KyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcHJjbS5jCkBAIC0yNzksOSArMjc5LDE5IEBAIGludCBv
-bWFwMl9jbV93YWl0X2lkbGVzdCh2b2lkIF9faW9tZW0gKnJlZywgdTMyIG1hc2ssIGNvbnN0IGNo
-YXIgKm5hbWUpCiAKIHZvaWQgX19pbml0IG9tYXAyX3NldF9nbG9iYWxzX3ByY20oc3RydWN0IG9t
-YXBfZ2xvYmFscyAqb21hcDJfZ2xvYmFscykKIHsKLQlwcm1fYmFzZSA9IG9tYXAyX2dsb2JhbHMt
-PnBybTsKLQljbV9iYXNlID0gb21hcDJfZ2xvYmFscy0+Y207Ci0JY20yX2Jhc2UgPSBvbWFwMl9n
-bG9iYWxzLT5jbTI7CisJLyogU3RhdGljIG1hcHBpbmcsIG5ldmVyIHJlbGVhc2VkICovCisJaWYg
-KG9tYXAyX2dsb2JhbHMtPnBybSkgeworCQlwcm1fYmFzZSA9IGlvcmVtYXAob21hcDJfZ2xvYmFs
-cy0+cHJtLCBTWl84Syk7CisJCVdBUk5fT04oIXBybV9iYXNlKTsKKwl9CisJaWYgKG9tYXAyX2ds
-b2JhbHMtPmNtKSB7CisJCWNtX2Jhc2UgPSBpb3JlbWFwKG9tYXAyX2dsb2JhbHMtPmNtLCBTWl84
-Syk7CisJCVdBUk5fT04oIWNtX2Jhc2UpOworCX0KKwlpZiAob21hcDJfZ2xvYmFscy0+Y20yKSB7
-CisJCWNtMl9iYXNlID0gaW9yZW1hcChvbWFwMl9nbG9iYWxzLT5jbTIsIFNaXzhLKTsKKwkJV0FS
-Tl9PTighY20yX2Jhc2UpOworCX0KIH0KIAogI2lmZGVmIENPTkZJR19BUkNIX09NQVAzCmRpZmYg
-LS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL3NkcmMuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIv
-c2RyYy5jCmluZGV4IGNiZmJkMTQuLjRjNjVmNTYgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gt
-b21hcDIvc2RyYy5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvc2RyYy5jCkBAIC0xMTksOCAr
-MTE5LDE1IEBAIGludCBvbWFwMl9zZHJjX2dldF9wYXJhbXModW5zaWduZWQgbG9uZyByLAogCiB2
-b2lkIF9faW5pdCBvbWFwMl9zZXRfZ2xvYmFsc19zZHJjKHN0cnVjdCBvbWFwX2dsb2JhbHMgKm9t
-YXAyX2dsb2JhbHMpCiB7Ci0Jb21hcDJfc2RyY19iYXNlID0gb21hcDJfZ2xvYmFscy0+c2RyYzsK
-LQlvbWFwMl9zbXNfYmFzZSA9IG9tYXAyX2dsb2JhbHMtPnNtczsKKwkvKiBTdGF0aWMgbWFwcGlu
-ZywgbmV2ZXIgcmVsZWFzZWQgKi8KKwlpZiAob21hcDJfZ2xvYmFscy0+c2RyYykgeworCQlvbWFw
-Ml9zZHJjX2Jhc2UgPSBpb3JlbWFwKG9tYXAyX2dsb2JhbHMtPnNkcmMsIFNaXzY0Syk7CisJCVdB
-Uk5fT04oIW9tYXAyX3NkcmNfYmFzZSk7CisJfQorCWlmIChvbWFwMl9nbG9iYWxzLT5zbXMpIHsK
-KwkJb21hcDJfc21zX2Jhc2UgPSBpb3JlbWFwKG9tYXAyX2dsb2JhbHMtPnNtcywgU1pfNjRLKTsK
-KwkJV0FSTl9PTighb21hcDJfc21zX2Jhc2UpOworCX0KIH0KIAogLyoqCmRpZmYgLS1naXQgYS9h
-cmNoL2FybS9wbGF0LW9tYXAvY29tbW9uLmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvY29tbW9uLmMK
-aW5kZXggNGYyOWU4Yy4uMDg4YzFhMCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2Nv
-bW1vbi5jCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9jb21tb24uYwpAQCAtMjU2LDExICsyNTYs
-MTEgQEAgc3RhdGljIHZvaWQgX19pbml0IF9fb21hcDJfc2V0X2dsb2JhbHMoc3RydWN0IG9tYXBf
-Z2xvYmFscyAqb21hcDJfZ2xvYmFscykKIHN0YXRpYyBzdHJ1Y3Qgb21hcF9nbG9iYWxzIG9tYXAy
-NDJ4X2dsb2JhbHMgPSB7CiAJLmNsYXNzCT0gT01BUDI0MlhfQ0xBU1MsCiAJLnRhcAk9IE9NQVAy
-X0w0X0lPX0FERFJFU1MoMHg0ODAxNDAwMCksCi0JLnNkcmMJPSBPTUFQMl9MM19JT19BRERSRVNT
-KE9NQVAyNDIwX1NEUkNfQkFTRSksCi0JLnNtcwk9IE9NQVAyX0wzX0lPX0FERFJFU1MoT01BUDI0
-MjBfU01TX0JBU0UpLAotCS5jdHJsCT0gT01BUDJfTDRfSU9fQUREUkVTUyhPTUFQMjQyMF9DVFJM
-X0JBU0UpLAotCS5wcm0JPSBPTUFQMl9MNF9JT19BRERSRVNTKE9NQVAyNDIwX1BSTV9CQVNFKSwK
-LQkuY20JPSBPTUFQMl9MNF9JT19BRERSRVNTKE9NQVAyNDIwX0NNX0JBU0UpLAorCS5zZHJjCT0g
-T01BUDI0MjBfU0RSQ19CQVNFLAorCS5zbXMJPSBPTUFQMjQyMF9TTVNfQkFTRSwKKwkuY3RybAk9
-IE9NQVAyNDIwX0NUUkxfQkFTRSwKKwkucHJtCT0gT01BUDI0MjBfUFJNX0JBU0UsCisJLmNtCT0g
-T01BUDI0MjBfQ01fQkFTRSwKIAkudWFydDFfcGh5cwk9IE9NQVAyX1VBUlQxX0JBU0UsCiAJLnVh
-cnQyX3BoeXMJPSBPTUFQMl9VQVJUMl9CQVNFLAogCS51YXJ0M19waHlzCT0gT01BUDJfVUFSVDNf
-QkFTRSwKQEAgLTI3NywxMSArMjc3LDExIEBAIHZvaWQgX19pbml0IG9tYXAyX3NldF9nbG9iYWxz
-XzI0Mngodm9pZCkKIHN0YXRpYyBzdHJ1Y3Qgb21hcF9nbG9iYWxzIG9tYXAyNDN4X2dsb2JhbHMg
-PSB7CiAJLmNsYXNzCT0gT01BUDI0M1hfQ0xBU1MsCiAJLnRhcAk9IE9NQVAyX0w0X0lPX0FERFJF
-U1MoMHg0OTAwYTAwMCksCi0JLnNkcmMJPSBPTUFQMl9MM19JT19BRERSRVNTKE9NQVAyNDNYX1NE
-UkNfQkFTRSksCi0JLnNtcwk9IE9NQVAyX0wzX0lPX0FERFJFU1MoT01BUDI0M1hfU01TX0JBU0Up
-LAotCS5jdHJsCT0gT01BUDJfTDRfSU9fQUREUkVTUyhPTUFQMjQzWF9DVFJMX0JBU0UpLAotCS5w
-cm0JPSBPTUFQMl9MNF9JT19BRERSRVNTKE9NQVAyNDMwX1BSTV9CQVNFKSwKLQkuY20JPSBPTUFQ
-Ml9MNF9JT19BRERSRVNTKE9NQVAyNDMwX0NNX0JBU0UpLAorCS5zZHJjCT0gT01BUDI0M1hfU0RS
-Q19CQVNFLAorCS5zbXMJPSBPTUFQMjQzWF9TTVNfQkFTRSwKKwkuY3RybAk9IE9NQVAyNDNYX0NU
-UkxfQkFTRSwKKwkucHJtCT0gT01BUDI0MzBfUFJNX0JBU0UsCisJLmNtCT0gT01BUDI0MzBfQ01f
-QkFTRSwKIAkudWFydDFfcGh5cwk9IE9NQVAyX1VBUlQxX0JBU0UsCiAJLnVhcnQyX3BoeXMJPSBP
-TUFQMl9VQVJUMl9CQVNFLAogCS51YXJ0M19waHlzCT0gT01BUDJfVUFSVDNfQkFTRSwKQEAgLTI5
-OCwxMSArMjk4LDExIEBAIHZvaWQgX19pbml0IG9tYXAyX3NldF9nbG9iYWxzXzI0M3godm9pZCkK
-IHN0YXRpYyBzdHJ1Y3Qgb21hcF9nbG9iYWxzIG9tYXAzX2dsb2JhbHMgPSB7CiAJLmNsYXNzCT0g
-T01BUDM0M1hfQ0xBU1MsCiAJLnRhcAk9IE9NQVAyX0w0X0lPX0FERFJFU1MoMHg0ODMwQTAwMCks
-Ci0JLnNkcmMJPSBPTUFQMl9MM19JT19BRERSRVNTKE9NQVAzNDNYX1NEUkNfQkFTRSksCi0JLnNt
-cwk9IE9NQVAyX0wzX0lPX0FERFJFU1MoT01BUDM0M1hfU01TX0JBU0UpLAotCS5jdHJsCT0gT01B
-UDJfTDRfSU9fQUREUkVTUyhPTUFQMzQzWF9DVFJMX0JBU0UpLAotCS5wcm0JPSBPTUFQMl9MNF9J
-T19BRERSRVNTKE9NQVAzNDMwX1BSTV9CQVNFKSwKLQkuY20JPSBPTUFQMl9MNF9JT19BRERSRVNT
-KE9NQVAzNDMwX0NNX0JBU0UpLAorCS5zZHJjCT0gT01BUDM0M1hfU0RSQ19CQVNFLAorCS5zbXMJ
-PSBPTUFQMzQzWF9TTVNfQkFTRSwKKwkuY3RybAk9IE9NQVAzNDNYX0NUUkxfQkFTRSwKKwkucHJt
-CT0gT01BUDM0MzBfUFJNX0JBU0UsCisJLmNtCT0gT01BUDM0MzBfQ01fQkFTRSwKIAkudWFydDFf
-cGh5cwk9IE9NQVAzX1VBUlQxX0JBU0UsCiAJLnVhcnQyX3BoeXMJPSBPTUFQM19VQVJUMl9CQVNF
-LAogCS51YXJ0M19waHlzCT0gT01BUDNfVUFSVDNfQkFTRSwKQEAgLTMyNSwxMCArMzI1LDEwIEBA
-IHZvaWQgX19pbml0IG9tYXAyX3NldF9nbG9iYWxzXzM2eHgodm9pZCkKIHN0YXRpYyBzdHJ1Y3Qg
-b21hcF9nbG9iYWxzIG9tYXA0X2dsb2JhbHMgPSB7CiAJLmNsYXNzCT0gT01BUDQ0M1hfQ0xBU1Ms
-CiAJLnRhcAk9IE9NQVAyX0w0X0lPX0FERFJFU1MoT01BUDQ0M1hfU0NNX0JBU0UpLAotCS5jdHJs
-CT0gT01BUDJfTDRfSU9fQUREUkVTUyhPTUFQNDQzWF9DVFJMX0JBU0UpLAotCS5wcm0JPSBPTUFQ
-Ml9MNF9JT19BRERSRVNTKE9NQVA0NDMwX1BSTV9CQVNFKSwKLQkuY20JPSBPTUFQMl9MNF9JT19B
-RERSRVNTKE9NQVA0NDMwX0NNX0JBU0UpLAotCS5jbTIJPSBPTUFQMl9MNF9JT19BRERSRVNTKE9N
-QVA0NDMwX0NNMl9CQVNFKSwKKwkuY3RybAk9IE9NQVA0NDNYX0NUUkxfQkFTRSwKKwkucHJtCT0g
-T01BUDQ0MzBfUFJNX0JBU0UsCisJLmNtCT0gT01BUDQ0MzBfQ01fQkFTRSwKKwkuY20yCT0gT01B
-UDQ0MzBfQ00yX0JBU0UsCiAJLnVhcnQxX3BoeXMJPSBPTUFQNF9VQVJUMV9CQVNFLAogCS51YXJ0
-Ml9waHlzCT0gT01BUDRfVUFSVDJfQkFTRSwKIAkudWFydDNfcGh5cwk9IE9NQVA0X1VBUlQzX0JB
-U0UsCmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5o
-IGIvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9jb21tb24uaAppbmRleCBlMDRhNThl
-Li43NTU2ZTI3IDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2Nv
-bW1vbi5oCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvY29tbW9uLmgKQEAg
-LTM3LDE2ICszNywyMCBAQCBleHRlcm4gdm9pZCBfX2lvbWVtICpnaWNfY3B1X2Jhc2VfYWRkcjsK
-IGV4dGVybiB2b2lkIG9tYXBfbWFwX2NvbW1vbl9pbyh2b2lkKTsKIGV4dGVybiBzdHJ1Y3Qgc3lz
-X3RpbWVyIG9tYXBfdGltZXI7CiAKLS8qIElPIGJhc2VzIGZvciB2YXJpb3VzIE9NQVAgcHJvY2Vz
-c29ycyAqLworLyoKKyAqIElPIGJhc2VzIGZvciB2YXJpb3VzIE9NQVAgcHJvY2Vzc29ycworICog
-RXhjZXB0IHRoZSB0YXAgYmFzZSwgcmVzdCBhbGwgdGhlIGlvIGJhc2VzCisgKiBsaXN0ZWQgYXJl
-IHBoeXNpY2FsIGFkZHJlc3Nlcy4KKyAqLwogc3RydWN0IG9tYXBfZ2xvYmFscyB7CiAJdTMyCQlj
-bGFzczsJCS8qIE9NQVAgY2xhc3MgdG8gZGV0ZWN0ICovCiAJdm9pZCBfX2lvbWVtCSp0YXA7CQkv
-KiBDb250cm9sIG1vZHVsZSBJRCBjb2RlICovCi0Jdm9pZCBfX2lvbWVtCSpzZHJjOwkJLyogU0RS
-QU0gQ29udHJvbGxlciAqLwotCXZvaWQgX19pb21lbQkqc21zOwkJLyogU0RSQU0gTWVtb3J5IFNj
-aGVkdWxlciAqLwotCXZvaWQgX19pb21lbQkqY3RybDsJCS8qIFN5c3RlbSBDb250cm9sIE1vZHVs
-ZSAqLwotCXZvaWQgX19pb21lbQkqcHJtOwkJLyogUG93ZXIgYW5kIFJlc2V0IE1hbmFnZW1lbnQg
-Ki8KLQl2b2lkIF9faW9tZW0JKmNtOwkJLyogQ2xvY2sgTWFuYWdlbWVudCAqLwotCXZvaWQgX19p
-b21lbQkqY20yOworCXVuc2lnbmVkIGxvbmcgICBzZHJjOyAgICAgICAgICAgLyogU0RSQU0gQ29u
-dHJvbGxlciAqLworCXVuc2lnbmVkIGxvbmcgICBzbXM7ICAgICAgICAgICAgLyogU0RSQU0gTWVt
-b3J5IFNjaGVkdWxlciAqLworCXVuc2lnbmVkIGxvbmcgICBjdHJsOyAgICAgICAgICAgLyogU3lz
-dGVtIENvbnRyb2wgTW9kdWxlICovCisJdW5zaWduZWQgbG9uZyAgIHBybTsgICAgICAgICAgICAv
-KiBQb3dlciBhbmQgUmVzZXQgTWFuYWdlbWVudCAqLworCXVuc2lnbmVkIGxvbmcgICBjbTsgICAg
-ICAgICAgICAgLyogQ2xvY2sgTWFuYWdlbWVudCAqLworCXVuc2lnbmVkIGxvbmcgICBjbTI7CiAJ
-dW5zaWduZWQgbG9uZwl1YXJ0MV9waHlzOwogCXVuc2lnbmVkIGxvbmcJdWFydDJfcGh5czsKIAl1
-bnNpZ25lZCBsb25nCXVhcnQzX3BoeXM7Ci0tIAoxLjYuMC40Cgo=
-
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FA23dbde02enttico_--
