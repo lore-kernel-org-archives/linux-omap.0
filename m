@@ -1,94 +1,104 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Fri, 19 Feb 2010 15:47:51 -0600
-Message-ID: <009a01cab1ad$2f39b4d0$544ff780@am.dhcp.ti.com>
-References: <cover.1265801967.git.david.vrabel@csr.com> <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com> <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com> <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com> <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com> <4B7C4608.5010008@csr.com> <alpine.DEB.2.00.1002171254040.24812@utopia.booyaka.com> <4B7D3EAE.1010908@csr.com> <alpine.DEB.2.00.1002180951330.24812@utopia.booyaka.com> <004001cab0c9$b208b2b0$544ff780@am.dhcp.ti.com> <alpine.DEB.2.00.1002181231520.24812@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 20/24] twl6030: add base addr for ID0, ID1, ID2
+Date: Fri, 19 Feb 2010 14:33:41 -0800
+Message-ID: <20100219223340.GF21755@atomide.com>
+References: <1266335895-32741-12-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-13-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-14-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-15-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-16-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-17-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-18-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-19-git-send-email-santosh.shilimkar@ti.com>
+ <1266335895-32741-20-git-send-email-santosh.shilimkar@ti.com>
+ <20100219114142.GD10255@sortiz.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40521 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753042Ab0BSVsH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Feb 2010 16:48:07 -0500
-In-Reply-To: <alpine.DEB.2.00.1002181231520.24812@utopia.booyaka.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58587 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755664Ab0BSWcw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 17:32:52 -0500
+Content-Disposition: inline
+In-Reply-To: <20100219114142.GD10255@sortiz.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Paul Walmsley' <paul@pwsan.com>
-Cc: 'David Vrabel' <david.vrabel@csr.com>, sakoman@gmail.com, r-woodruff2@ti.com, sawant@ti.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, "'Gabay, Benzy'" <benzyg@ti.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, ben@fluff.org.uk, lrg@slimlogic.co.uk, paul@pwsan.com, Balaji T K <balajitk@ti.com>
 
+* Samuel Ortiz <sameo@linux.intel.com> [100219 03:37]:
+> On Tue, Feb 16, 2010 at 09:28:11PM +0530, Santosh Shilimkar wrote:
+> > From: Balaji T K <balajitk@ti.com>
+> > 
+> > Add base address for generic slave ID0, ID1, ID2
+> > and introduced one more entry to align RTC module number between
+> > twl4030 and twl6030
+> Tony, I'm taking this patch. Please let me know if you prefer it to go through
+> your tree.
 
-
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, February 18, 2010 2:21 PM
-> To: Madhusudhan
-> Cc: 'David Vrabel'; sakoman@gmail.com; r-woodruff2@ti.com; sawant@ti.com;
-> linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-> 
-> Hi,
-> 
-> (cc'ing Steve, Richard, Anand)
-> 
-> On Thu, 18 Feb 2010, Madhusudhan wrote:
-> 
-> > Not to add further confusion but as far as I understand SDIO should be
-> > able to asynchronously wakeup OMAP regardless of MMC clocks being OFF .
-> > As per the SDIO spec DAT1 line is used for signaling the card interrupt
-> > to the host. The TRM clearly shows a GPIO connected to DAT1 line for
-> > wakeup through the SDIO interrupt. Wouldn't this help?
-> 
-> Is the integration code in arch/arm/*omap* set to enable wakeup on the
-> DAT1 ball on the OMAP?  I don't see any trace of that in the code.  That
-> would surely prevent wakeup from succeeding on an off-mode enabled kernel.
-> Sounds like there may be other problems.  Why not give it a try with an
-> SDIO card and see if you can get it to work?
-> 
-> > Definitely these are good features that are being added. Just that there
-> > are confusions around and not everyone has a setup to validate these
-> > features.
-> 
-> Hopefully someone inside TI is validating SDIO wakeup on Linux?
-> 
-> > If I look in the mainline kernel today there is only one SDIO card
-> > driver " sdio_uart.c".
-> 
-> [paul@twilight current]$ find . -name "*sdio*c" -print | fgrep -v /core/
-> ./drivers/ssb/sdio.c
-> ./drivers/bluetooth/btsdio.c
-> ./drivers/bluetooth/btmrvl_sdio.c
-> ./drivers/mmc/host/mvsdio.c
-> ./drivers/net/wimax/i2400m/sdio-rx.c
-> ./drivers/net/wimax/i2400m/sdio-tx.c
-> ./drivers/net/wimax/i2400m/sdio.c
-> ./drivers/net/wimax/i2400m/sdio-fw.c
-> ./drivers/net/wireless/iwmc3200wifi/sdio.c
-> ./drivers/net/wireless/libertas/if_sdio.c
-> ./drivers/net/wireless/wl12xx/wl1251_sdio.c
-> ./drivers/net/wireless/b43/sdio.c
-> ./drivers/media/dvb/siano/smssdio.c
-> [paul@twilight current]$
-> 
-> There appear to be least seven SDIO card drivers in 2.6.34-rc7. At least
-> one of these is for a TI chip - the wl1251.  I think some of the
-> Gumstix Overo OMAP3 boards are using an SDIO-connected Marvell Libertas:
-> 
-> http://www.gumstix.com/store/catalog/product_info.php?products_id=252
-> 
-> David is probably testing with a Bluetooth card - maybe he can comment
-> further.
-> 
-> > And at least I don't see a way I can test any of these features myself.
-> 
-> Could you clarify?
-> 
-I meant that right now I am not equipped with a setup that has a SDIO device
-that works to a level that this wakeup feature can be validated.
+OK thanks. I prefer that it goes in via your tree.
 
 Regards,
-Madhu
-> 
-> - Paul
 
+Tony
+ 
+> Cheers,
+> Samuel.
+> 
+>  
+> > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > Signed-off-by: Balaji T K <balajitk@ti.com>
+> > ---
+> >  drivers/mfd/twl-core.c  |    7 +++++--
+> >  include/linux/i2c/twl.h |    5 +++++
+> >  2 files changed, 10 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> > index 2a76065..d820e87 100644
+> > --- a/drivers/mfd/twl-core.c
+> > +++ b/drivers/mfd/twl-core.c
+> > @@ -204,6 +204,7 @@
+> >  /* subchip/slave 3 0x4B - AUDIO */
+> >  #define TWL6030_BASEADD_AUDIO		0x0000
+> >  #define TWL6030_BASEADD_RSV		0x0000
+> > +#define TWL6030_BASEADD_ZERO		0x0000
+> >  
+> >  /* Few power values */
+> >  #define R_CFG_BOOT			0x05
+> > @@ -319,9 +320,11 @@ static struct twl_mapping twl6030_map[] = {
+> >  	{ SUB_CHIP_ID1, TWL6030_BASEADD_CHARGER },
+> >  	{ SUB_CHIP_ID1, TWL6030_BASEADD_GASGAUGE },
+> >  	{ SUB_CHIP_ID1, TWL6030_BASEADD_PWM },
+> > -	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> > -	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> > +	{ SUB_CHIP_ID0, TWL6030_BASEADD_ZERO },
+> > +	{ SUB_CHIP_ID1, TWL6030_BASEADD_ZERO },
+> >  
+> > +	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
+> > +	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
+> >  	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> >  	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> >  	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+> > diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> > index bf1c5be..fcf9286 100644
+> > --- a/include/linux/i2c/twl.h
+> > +++ b/include/linux/i2c/twl.h
+> > @@ -80,6 +80,11 @@
+> >  #define TWL_MODULE_PM_MASTER	TWL4030_MODULE_PM_MASTER
+> >  #define TWL_MODULE_PM_RECEIVER	TWL4030_MODULE_PM_RECEIVER
+> >  #define TWL_MODULE_RTC		TWL4030_MODULE_RTC
+> > +#define TWL_MODULE_PWM		TWL4030_MODULE_PWM0
+> > +
+> > +#define TWL6030_MODULE_ID0	0x0D
+> > +#define TWL6030_MODULE_ID1	0x0E
+> > +#define TWL6030_MODULE_ID2	0x0F
+> >  
+> >  #define GPIO_INTR_OFFSET	0
+> >  #define KEYPAD_INTR_OFFSET	1
+> > -- 
+> > 1.6.0.4
+> > 
+> 
+> -- 
+> Intel Open Source Technology Centre
+> http://oss.intel.com/
