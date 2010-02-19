@@ -1,85 +1,77 @@
-From: <ext-Eero.Nurkkala@nokia.com>
-Subject: RE: [PATCHv4 2/2] ASoC: OMAP-McBSP: ASoC interface for McBSP
- sidetone
-Date: Fri, 19 Feb 2010 08:30:30 +0100
-Message-ID: <1FFEF31EBAA4F64B80D33027D42977602143ED8FED@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1266518549-23809-1-git-send-email-ilkka.koskinen@nokia.com>
- <1266518549-23809-2-git-send-email-ilkka.koskinen@nokia.com>,<1266518549-23809-3-git-send-email-ilkka.koskinen@nokia.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCHv4 0/2] McBSP: OMAP3: Add sidetone feature
+Date: Fri, 19 Feb 2010 10:34:32 +0200
+Message-ID: <201002191034.32391.peter.ujfalusi@nokia.com>
+References: <1266518549-23809-1-git-send-email-ilkka.koskinen@nokia.com> <20100218222229.0f0eb3a9.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
+Content-Type: Text/Plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:49358 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754631Ab0BSHax convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 02:30:53 -0500
-In-Reply-To: <1266518549-23809-3-git-send-email-ilkka.koskinen@nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:34695 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750902Ab0BSIfI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 03:35:08 -0500
+In-Reply-To: <20100218222229.0f0eb3a9.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ilkka.koskinen@nokia.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@nokia.com, jhnikula@gmail.com, broonie@opensource.wolfsonmicro.com, tony
-Cc: eduardo.valentin@nokia.com
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "Koskinen Ilkka (Nokia-D/Tampere)" <ilkka.koskinen@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "tony@atomide.com" <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
 
+On Thursday 18 February 2010 22:22:29 ext Jarkko Nikula wrote:
+>=20
+> I still have two concern:
+>=20
+> 1. port number vs. index difference inside driver code is not enough
+>=20
+> It's just confusing if a machine driver and internal API (mcbsp.c) ha=
+s
+> to use different indexing. See:
+>=20
+> omap_mcbsp_st_add_controls(codec, 2);
+> ...
+> *(unsigned int *)omap3beagle_dai.cpu_dai->private_data =3D 1; /* McBS=
+P2 */
 
-> +
-> +static const struct snd_kcontrol_new omap_mcbsp2_st_controls[] =3D {
-> +       SOC_SINGLE_EXT("McBSP2 Sidetone Switch", 1, 0, 1, 0,
-> +                       omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mod=
-e),
-> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 0 Volu=
-me",
-> +                                     -32768, 32767,
-> +                                     omap_mcbsp2_get_st_ch0_volume,
-> +                                     omap_mcbsp2_set_st_ch0_volume),
-> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP2 Sidetone Channel 1 Volu=
-me",
-> +                                     -32768, 32767,
-> +                                     omap_mcbsp2_get_st_ch1_volume,
-> +                                     omap_mcbsp2_set_st_ch1_volume),
-> +};
-> +
-> +static const struct snd_kcontrol_new omap_mcbsp3_st_controls[] =3D {
-> +       SOC_SINGLE_EXT("McBSP3 Sidetone Switch", 2, 0, 1, 0,
-> +                       omap_mcbsp_st_get_mode, omap_mcbsp_st_put_mod=
-e),
-> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 0 Volu=
-me",
-> +                                     -32768, 32767,
-> +                                     omap_mcbsp3_get_st_ch0_volume,
-> +                                     omap_mcbsp3_set_st_ch0_volume),
-> +       OMAP_MCBSP_SOC_SINGLE_S16_EXT("McBSP3 Sidetone Channel 1 Volu=
-me",
-> +                                     -32768, 32767,
-> +                                     omap_mcbsp3_get_st_ch1_volume,
-> +                                     omap_mcbsp3_set_st_ch1_volume),
-> +};
-> +
+Agreed.
 
-Just a short note,
-"Gain values are in the interval (-2..2) in Q1.14 format, negative valu=
-es are expressed in
-2's complement."
+=20
+> and mcbsp->id use in mcbsp.c.
 
-So, from:
-http://en.wikipedia.org/wiki/Q_(number_format)
+It has always bothered me, I'll take a look and check if there is a rea=
+son why=20
+it is like that, and if possible I'll change the mcbsp->id to be 0 base=
+d (thus=20
+harmonizing the internal and external interface).
+=20
+> 2. I cannot change the sidetone level with alsamixer
+>=20
+> Is this bug with the alsamixer? With amixer I'm able to set positive
+> values but not negative
+>=20
+> amixer set -D hw:0 'McBSP2 Sidetone Channel 0' 32767
+>=20
+> What I'm looking here, is that I can execute a test below with unit
+> impulse response tap filter, hear the sound and note that the volume =
+is
+> changing as I'm changing the sidetone volume :-)
 
-"
-The notation used is Qm.n, where:
+I'm not sure, but you might need to configure the taps as well to have =
+the=20
+correct sidetone.
+Also I have a recollection, that the McBSP sidetone requires DSP mode (=
+TDM) in=20
+order to operate correctly, so on Beagle you might need to set up 4 cha=
+nnel=20
+mode. And how the channel mapping in 4 channel mode works in McBSP side=
+tone is=20
+another matter...
 
-    * Q designates that the number is in Q format notation =97 the Texa=
-s Instruments representation for signed fixed-point numbers.
-    * m (optional; default=3D0) is the number of bits used to designate=
- the two's complement integer portion of the number, exclusive of the s=
-ign bit.
-    * n is the number of bits used to designate the two's complement fr=
-actional portion of the number, i.e. the number of bits to the right of=
- the binary point.
-"
+>=20
+> arecord -f dat >/dev/null |aplay -f dat /dev/zero
 
-=2E.so if you do tests, and find out the gains behave "irrationally" oc=
-casionally, you can't possibly claim it isn't working as expected ;)
-
-- Eero--
+--=20
+P=E9ter
+--
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
 the body of a message to majordomo@vger.kernel.org
