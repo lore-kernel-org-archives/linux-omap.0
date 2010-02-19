@@ -1,64 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/11] USB: Add empty functions in otg.h
-Date: Fri, 19 Feb 2010 15:30:03 -0800
-Message-ID: <20100219233003.10559.36613.stgit@baageli.muru.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 03/11] arm: omap: musb: ioremap only what's ours
+Date: Fri, 19 Feb 2010 15:30:19 -0800
+Message-ID: <20100219233019.10559.71005.stgit@baageli.muru.com>
 References: <20100219232648.10559.380.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51875 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755671Ab0BSX3Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 18:29:16 -0500
-In-Reply-To: <20100219232648.10559.380.stgit@baageli.muru.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100219232648.10559.380.stgit-XB442sTQ5VIxQTnqJstS8Q@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Maulik Mankad <x0082077@ti.com>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, Greg Kroah-Hartman <gregkh@suse.de>, Ajay Kumar Gupta <ajay.gupta@ti.com>, Olof Johansson <olof@lixom.net>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
 
-From: Maulik Mankad <x0082077@ti.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-Add empty functions for usb_nop_xceiv_register()
-and usb_nop_xceiv_unregister() in otg.h so that
-these functions can be called even when
-CONFIG_NOP_USB_XCEIV is not enabled.
+omap3430 TRM says the OTG address space is 4k, not 8k.
 
-It allows to remove ifdef's from board file.
-
-Signed-off-by: Maulik Mankad <x0082077@ti.com>
-Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Acked-by: Olof Johansson <olof@lixom.net>
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- include/linux/usb/otg.h |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
-index 52bb917..fef0972 100644
---- a/include/linux/usb/otg.h
-+++ b/include/linux/usb/otg.h
-@@ -110,9 +110,19 @@ struct otg_transceiver {
- /* for board-specific init logic */
- extern int otg_set_transceiver(struct otg_transceiver *);
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index a80441d..ba71f76 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -152,7 +152,7 @@ void __init usb_musb_init(void)
+ 		musb_resources[0].start = OMAP243X_HS_BASE;
+ 	else
+ 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+-	musb_resources[0].end = musb_resources[0].start + SZ_8K - 1;
++	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
  
-+#if defined(CONFIG_NOP_USB_XCEIV) || defined(CONFIG_NOP_USB_XCEIV_MODULE)
- /* sometimes transceivers are accessed only through e.g. ULPI */
- extern void usb_nop_xceiv_register(void);
- extern void usb_nop_xceiv_unregister(void);
-+#else
-+static inline void usb_nop_xceiv_register(void)
-+{
-+}
-+
-+static inline void usb_nop_xceiv_unregister(void)
-+{
-+}
-+#endif
- 
- /* helpers for direct access thru low-level io interface */
- static inline int otg_io_read(struct otg_transceiver *otg, u32 reg)
+ 	/*
+ 	 * REVISIT: This line can be removed once all the platforms using
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
