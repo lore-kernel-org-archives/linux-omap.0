@@ -1,101 +1,119 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [RFC][PATCH 2/2] DSPBRIDGE: Distinguish between read or write
- buffers
-Date: Fri, 19 Feb 2010 11:45:56 -0600
-Message-ID: <4B7ECE54.20807@ti.com>
-References: <1266532429-30927-1-git-send-email-omar.ramirez@ti.com> <1266532429-30927-2-git-send-email-omar.ramirez@ti.com> <1266532429-30927-3-git-send-email-omar.ramirez@ti.com> <4B7E95C0.3060308@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: Allow mounting root on omaps with CPU_V6 and
+ CPU_V7
+Date: Fri, 19 Feb 2010 10:03:32 -0800
+Message-ID: <20100219180331.GC21755@atomide.com>
+References: <20100219002748.GB21755@atomide.com>
+ <20100219083556.GB19649@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="Md/poaVZ8hnGTzuv"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43447 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751526Ab0BSRqF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Feb 2010 12:46:05 -0500
-In-Reply-To: <4B7E95C0.3060308@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64279 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754634Ab0BSSCy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 13:02:54 -0500
+Content-Disposition: inline
+In-Reply-To: <20100219083556.GB19649@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 2/19/2010 7:44 AM, Chitriki Rudramuni, Deepak wrote:
-> Ramirez Luna, Omar wrote:
->> This patch introduces the check to differentiate the buffers
->> coming to the dsp through bridgedriver. So far they can be
->> input (read) or output (write) or rw (which are treated the
->> same way as an output buffer), this distinctions are made from
->> dsp perspective.
->>
->> Since this needs to be checked on map function, unused
->> bits (16, 15) of flags were used to check for this argument.
->>
->> As 128 byte alignment limitation doesn't affect input buffers
->> only writable buffers are checked. Default value for read buffers
->> is set to be 1, this will enforce that users of bridge will fill
->> the flags with significant values otherwise (if enabled) check
->> will reject buffers not aligned to 128 bytes (even if they fall in
->> the input category).
->>
->> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com>
->> ---
->>   drivers/dsp/bridge/rmgr/proc.c |   16 ++++++++++++----
->>   1 files changed, 12 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
->> index 78a31ef..4fe20ed 100644
->> --- a/drivers/dsp/bridge/rmgr/proc.c
->> +++ b/drivers/dsp/bridge/rmgr/proc.c
->> @@ -71,6 +71,12 @@
->>
->>   #define DSP_CACHE_LINE 128
->>
->> +#define BUFMODE_MASK	(3<<  14)
->> +
->> +/* Buffer modes from DSP perspective */
->> +#define RBUF		0x1	/* Input buffer */
->> +#define WBUF		0x2	/* Output Buffer */
->> +
->>   extern char *iva_img;
->>
->>   /*  ----------------------------------- Globals */
->> @@ -1297,11 +1303,13 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
->>   		 pReqAddr, ulMapAttr, ppMapAddr);
->>
->>   #ifdef CONFIG_BRIDGE_CACHE_LINE_CHECK
->> -	if (!IS_ALIGNED((u32)pMpuAddr, DSP_CACHE_LINE) ||
->> -	    !IS_ALIGNED(size, DSP_CACHE_LINE)) {
->> -		pr_err("%s: not aligned: 0x%x (%d)\n", __func__,
->> +	if ((ulMapAttr&  BUFMODE_MASK) != RBUF) {
-> What if the result of (ulMapAttr&  BUFMODE_MASK) is invalid,still it enters the loop.Since the condition is for writable buffers only,Isn't it better to use "if ((ulMapAttr&  BUFMODE_MASK) == WBUF)" condition?
->
 
-Description:
-"this will enforce that users of bridge will fill
-the flags with significant values otherwise (if enabled) check
-will reject buffers not aligned to 128 bytes (even if they fall in
-the input category)"
+--Md/poaVZ8hnGTzuv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Let say you enable the check but bits are not used (meaning they are set 
-to 0), bridge doesn't have a way to distinguish if this is expected or 
-if you just forgot to fill them.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [100219 00:33]:
+> On Thu, Feb 18, 2010 at 04:27:48PM -0800, Tony Lindgren wrote:
+> > @@ -779,5 +779,5 @@ config CACHE_XSC3L2
+> >  
+> >  config ARM_L1_CACHE_SHIFT
+> >  	int
+> > -	default 6 if ARCH_OMAP3 || ARCH_S5PC1XX
+> > +	default 6 if (ARCH_OMAP3 || ARCH_S5PC1XX) && !ARCH_OMAP2
+> >  	default 5
+> 
+> This one is definitely wrong.  Setting the L1 cache line size larger
+> than it actually is should be safe; setting it smaller is definitely
+> unsafe.
 
-Anyway, if such a strict check is not required then I guess we can use 
-only 1 bit (0 = READ, 1 = WRITE).
+OK dropped that part, updated patch below. Maybe the VFPv3
+code can be fixed to boot on earlier hardware too.
 
-In short: if you are enabling the check then set the proper value for 
-the bit.
+So I guess ARM_L1_CACHE_SHIFT should be only used for alignment, and
+not for for cache operations?
 
->> +		if (!IS_ALIGNED((u32)pMpuAddr, DSP_CACHE_LINE) ||
->> +		    !IS_ALIGNED(ulSize, DSP_CACHE_LINE)) {
->> +			pr_err("%s: not aligned: 0x%x (%d)\n", __func__,
->>   						(u32)pMpuAddr, ulSize);
->> -		return -EFAULT;
->> +			return -EFAULT;
->> +		}
->>   	}
->>   #endif
-> Regards,
-> Deepak
->
+If so, then what have in arch/arm/plat-omap/iommu.c seems buggy:
 
-- omar
+static void flush_iopgd_range(u32 *first, u32 *last)
+{
+	/* FIXME: L2 cache should be taken care of if it exists */
+	do {
+		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
+		    : : "r" (first));
+		first += L1_CACHE_BYTES / sizeof(*first);
+	} while (first <= last);
+}
+
+It seems that this code should use the real cache line size instead to
+avoid every other line not to flush if ARM_L1_CACHE_SHIFT is set larger
+than it is.
+
+Regards,
+
+Tony
+
+--Md/poaVZ8hnGTzuv
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="v6-v7-mount-root-v2.patch"
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 18 Feb 2010 16:28:26 -0800
+Subject: [PATCH] arm: Allow mounting root on omaps with CPU_V6 and CPU_V7
+
+To mount root, we need to disable VFPv3 and HAS_TLS_REG.
+
+Otherwise we'll get something like this for CPUv3:
+
+Freeing init memory: 184K
+Internal error: Oops - undefined instruction: 0 [#1]
+last sysfs file:
+Modules linked in:
+CPU: 0    Not tainted  (2.6.33-rc8-07824-gf2e1d91-dirty #36)
+PC is at no_old_VFP_process+0x8/0x3c
+LR is at __und_usr_unknown+0x0/0x14
+...
+
+Or the system just hangs if HAS_TLS_REG is set.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 184a6bd..7b93898 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1498,7 +1498,7 @@ config VFP
+ config VFPv3
+ 	bool
+ 	depends on VFP
+-	default y if CPU_V7
++	default y if CPU_V7 && !ARCH_OMAP2
+ 
+ config NEON
+ 	bool "Advanced SIMD (NEON) Extension support"
+diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+index 4c2e90d..65f5ebd 100644
+--- a/arch/arm/mm/Kconfig
++++ b/arch/arm/mm/Kconfig
+@@ -718,7 +718,7 @@ config TLS_REG_EMUL
+ config HAS_TLS_REG
+ 	bool
+ 	depends on !TLS_REG_EMUL
+-	default y if SMP || CPU_32v7
++	default y if (SMP || CPU_32v7) && !ARCH_OMAP2
+ 	help
+ 	  This selects support for the CP15 thread register.
+ 	  It is defined to be available on some ARMv6 processors (including
+
+--Md/poaVZ8hnGTzuv--
