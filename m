@@ -1,87 +1,112 @@
-From: Ilkka Koskinen <ikoskine@nokia.com>
-Subject: Re: [PATCHv4 0/2] McBSP: OMAP3: Add sidetone feature
-Date: Fri, 19 Feb 2010 12:05:40 +0200 (EET)
-Message-ID: <alpine.DEB.2.00.1002191026060.2509@tumpelo.nmp.nokia.com>
-References: <1266518549-23809-1-git-send-email-ilkka.koskinen@nokia.com> <20100218222229.0f0eb3a9.jhnikula@gmail.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 1/2] omap: Disable TWL4030/5030 I2C1/I2C4 internal
+ pull-ups
+Date: Fri, 19 Feb 2010 12:37:15 +0100
+Message-ID: <20100219113714.GC10255@sortiz.org>
+References: <1266368241-10459-1-git-send-email-m-sonasath@ti.com>
+ <1266368241-10459-2-git-send-email-m-sonasath@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:39283 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809Ab0BSKEZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 05:04:25 -0500
-In-Reply-To: <20100218222229.0f0eb3a9.jhnikula@gmail.com>
+Received: from mga05.intel.com ([192.55.52.89]:51738 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752460Ab0BSLf7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 06:35:59 -0500
+Content-Disposition: inline
+In-Reply-To: <1266368241-10459-2-git-send-email-m-sonasath@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: "Koskinen Ilkka (Nokia-D/Tampere)" <ilkka.koskinen@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "tony@atomide.com" <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+To: Moiz Sonasath <m-sonasath@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, Allen Pais <allen.pais@ti.com>
+
+Hi Moiz,
+
+On Tue, Feb 16, 2010 at 06:57:21PM -0600, Moiz Sonasath wrote:
+> This patch disables TWL4030/5030 I2C1 adn I2C4(SR) internal pull-up, to
+> use only the external HW resistor >=470 Ohm for the assured
+> functionality in HS mode.
+> 
+> While testing the I2C in High Speed mode, it was discovered that
+> without a proper pull-up resistor, there is data corruption during
+> multi-byte transfer. RTC(time_set) test case was used for testing.
+> 
+> From the analysis done, it was concluded that ideally we need a
+> pull-up of 1.6k Ohm(recomended) or atleast 470 Ohm or greater for
+> assured performance in HS mode.
+Patch applied, many thanks.
+
+Cheers,
+Samuel.
 
 
+> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
+> Signed-off-by: Allen Pais <allen.pais@ti.com>
+> ---
+>  drivers/mfd/twl-core.c  |   13 +++++++++++++
+>  include/linux/i2c/twl.h |   15 +++++++++++++++
+>  2 files changed, 28 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 2a76065..35ae2ee 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -965,6 +965,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  	int				status;
+>  	unsigned			i;
+>  	struct twl4030_platform_data	*pdata = client->dev.platform_data;
+> +	u8 temp;
+>  
+>  	if (!pdata) {
+>  		dev_dbg(&client->dev, "no platform data?\n");
+> @@ -1032,6 +1033,18 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  			goto fail;
+>  	}
+>  
+> +	/* Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
+> +	 * Program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
+> +	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
+> +	 */
+> +
+> +	if (twl_class_is_4030()) {
+> +		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &temp, REG_GPPUPDCTR1);
+> +		temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
+> +		I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
+> +		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
+> +	}
+> +
+>  	status = add_children(pdata, id->driver_data);
+>  fail:
+>  	if (status < 0)
+> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> index bf1c5be..fd95eca 100644
+> --- a/include/linux/i2c/twl.h
+> +++ b/include/linux/i2c/twl.h
+> @@ -239,6 +239,21 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+>  
+>  /*----------------------------------------------------------------------*/
+>  
+> +/*Interface Bit Register (INTBR) offsets
+> + *(Use TWL_4030_MODULE_INTBR)
+> + */
+> +
+> +#define REG_GPPUPDCTR1			0x0F
+> +
+> +/*I2C1 and I2C4(SR) SDA/SCL pull-up control bits */
+> +
+> +#define I2C_SCL_CTRL_PU			BIT(0)
+> +#define I2C_SDA_CTRL_PU			BIT(2)
+> +#define SR_I2C_SCL_CTRL_PU		BIT(4)
+> +#define SR_I2C_SDA_CTRL_PU		BIT(6)
+> +
+> +/*----------------------------------------------------------------------*/
+> +
+>  /*
+>   * Keypad register offsets (use TWL4030_MODULE_KEYPAD)
+>   * ... SIH/interrupt only
+> -- 
+> 1.5.6.3
+> 
 
-On Thu, 18 Feb 2010, ext Jarkko Nikula wrote:
-> On Thu, 18 Feb 2010 20:42:27 +0200
-> Ilkka Koskinen <ilkka.koskinen@nokia.com> wrote:
->
->> The first patch implements McBSP sidetone feature on OMAP3 while the second
->> one provides ALSA interface for using it.
->>
->> The patch set is based on the patch Eduardo Valentin sent to alsa-devel
->> mailing list in October 2009. Channel gain control and enabling the sidetone
->> have been moved to ALSA interface as suggested in comments.
->>
->> These patches apply on top of Janusz Krzysztofik's McBSP register cache
->> patches in linux-omap-2.6.git
->>
->> Since the version 3, the buggy channel gain control has been fixed. ASoC part
->> have been simplified resulting in removing a couple unnecessary functions.
->> Added a comment to ASoC part explaining McBSP port number vs. index values
->> used in OMAP McBSP implementation.
->>
-> I still have two concern:
->
-> 1. port number vs. index difference inside driver code is not enough
->
-> It's just confusing if a machine driver and internal API (mcbsp.c) has
-> to use different indexing. See:
->
-> omap_mcbsp_st_add_controls(codec, 2);
-> ...
-> *(unsigned int *)omap3beagle_dai.cpu_dai->private_data = 1; /* McBSP2 */
->
-> and mcbsp->id use in mcbsp.c.
-
-Ah, that's what you meant by it. Sure, I'll change it.
-
-> 2. I cannot change the sidetone level with alsamixer
->
-I think with the previous patch set, it was impossible to set the other 
-channel's gain as Peter pointed out. But at least now that I try, i can 
-change it with alsamixer.
-
-> Is this bug with the alsamixer? With amixer I'm able to set positive
-> values but not negative
->
-> amixer set -D hw:0 'McBSP2 Sidetone Channel 0' 32767
-
-If you try to give negative values, you need to put '--' before the value.
-
-Such as:
-
-# amixer -Dhw:0 -- sset 'McBSP3 Sidetone Channel 0' -10000
-Simple mixer control 'McBSP3 Sidetone Channel 0',0
-   Capabilities: volume volume-joined
-   Playback channels: Mono
-   Capture channels: Mono
-   Limits: -32768 - 32767
-   Mono: -10000 [35%]
-
-
-> What I'm looking here, is that I can execute a test below with unit
-> impulse response tap filter, hear the sound and note that the volume is
-> changing as I'm changing the sidetone volume :-)
->
-> arecord -f dat >/dev/null |aplay -f dat /dev/zero
-
-As Peter said in the other mail, you need to have the taps also.
-
-Cheers, Ilkka
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
