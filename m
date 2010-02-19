@@ -1,91 +1,68 @@
-From: Kukjin Kim <kgene.kim@samsung.com>
-Subject: RE: [PATCH RE-SEND-3] ARM: MM: Add ARM_L1_CACHE_SHIFT_6 for handle
-	inside each ARCH Kconfig
-Date: Sat, 20 Feb 2010 08:38:54 +0900
-Message-ID: <00a301cab1bc$b57126a0$205373e0$%kim@samsung.com>
-References: <1264747415-6711-1-git-send-email-kgene.kim@samsung.com>
- <20100129102955.GA8919@n2100.arm.linux.org.uk>
- <20100129204845.GM23505@atomide.com>
- <00a201cab1b7$6ff6feb0$4fe4fc10$%kim@samsung.com>
- <20100219231721.GG21755@atomide.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH 03/11] arm: omap: musb: ioremap only what's ours
+Date: Fri, 19 Feb 2010 17:37:40 -0600
+Message-ID: <A24693684029E5489D1D202277BE89445369164A@dlee02.ent.ti.com>
+References: <20100219232648.10559.380.stgit@baageli.muru.com>
+ <20100219233019.10559.71005.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout5.samsung.com ([203.254.224.35]:39092 "EHLO
-	mailout5.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752402Ab0BSXhP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 18:37:15 -0500
-Received: from epmmp1 (mailout5.samsung.com [203.254.224.35])
- by mailout1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KY4004DP4A0WD@mailout1.samsung.com> for
- linux-omap@vger.kernel.org; Sat, 20 Feb 2010 08:37:12 +0900 (KST)
-Received: from kgenekim ([12.23.103.96])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0KY4007C949M7N@mmp1.samsung.com> for
- linux-omap@vger.kernel.org; Sat, 20 Feb 2010 08:36:59 +0900 (KST)
-In-reply-to: <20100219231721.GG21755@atomide.com>
-Content-language: ko
+Received: from comal.ext.ti.com ([198.47.26.152]:36058 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752551Ab0BSXhv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Feb 2010 18:37:51 -0500
+In-Reply-To: <20100219233019.10559.71005.stgit@baageli.muru.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Tony Lindgren' <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org
+To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
-Tony Lindgren wrote:
+Hi,
+
 > -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org
-[mailto:linux-arm-kernel-
-> bounces@lists.infradead.org] On Behalf Of Tony Lindgren
-> Sent: Saturday, February 20, 2010 8:17 AM
-> To: Kukjin Kim
-> Cc: linux-omap@vger.kernel.org; 'Russell King - ARM Linux'; linux-arm-
-> kernel@lists.infradead.org; ben-linux@fluff.org
-> Subject: Re: [PATCH RE-SEND-3] ARM: MM: Add ARM_L1_CACHE_SHIFT_6 for
-> handle inside each ARCH Kconfig
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Friday, February 19, 2010 5:30 PM
+> To: linux-arm-kernel@lists.infradead.org
+> Cc: Felipe Balbi; linux-omap@vger.kernel.org; linux-usb@vger.kernel.org
+> Subject: [PATCH 03/11] arm: omap: musb: ioremap only what's ours
 > 
-> * Kukjin Kim <kgene.kim@samsung.com> [100219 14:56]:
-> >
-> > Tony Lindgren wrote:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [100129 02:27]:
-> > > > On Fri, Jan 29, 2010 at 03:43:35PM +0900, Kukjin Kim wrote:
-> > > > > Add ARM_L1_CACHE_SHIFT_6 to arch/arm/Kconfig to allow CPUs with
-> > > > > L1 cache lines which are 64bytes to indicate this without having to
-> > > > > alter the arch/arm/mm/Kconfig entry each time.
-> > > > >
-> > > > > Update the mm Kconfig so that ARM_L1_CACHE_SHIFT default value
-> > > > > uses this and change OMAP3 and S5PC1XX to select
-> > > ARM_L1_CACHE_SHIFT_6.
-> > > >
-> > > > This looks fine, thanks.
-> > > >
-> > > > Who's going to handle this patch?
-> > >
-> > > I recommend RMK handle this.
-> > >
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-> > >
-> >
-> > Hi Tony and Russell,
-> >
-> > I wonder this patch who does/did handle.
-> > Please let me know.
+> From: Felipe Balbi <felipe.balbi@nokia.com>
 > 
-> Please send your patch to Russell's patch tracking system if you have
-> not yet done so and then Russell will pick it up from there:
+> omap3430 TRM says the OTG address space is 4k, not 8k.
+> 
+> Cc: linux-usb@vger.kernel.org
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/usb-musb.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-
+> musb.c
+> index a80441d..ba71f76 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -152,7 +152,7 @@ void __init usb_musb_init(void)
+>  		musb_resources[0].start = OMAP243X_HS_BASE;
+>  	else
+>  		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+> -	musb_resources[0].end = musb_resources[0].start + SZ_8K - 1;
+> +	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
 
-Hi Tony,
+I'm just curious...
 
-Thanks for your reply.
-I'm sending my patch to Russell's patch tracking system.
+Is this valid also if cpu_is_243x() ?
 
-May I add 'Acked-by: Tony Lindgren <tony@atomide.com>' in my patch?
-
-Thanks.
-
-Best regards,
-Kgene.
---
-Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
-System LSI Division, SAMSUNG ELECTRONICS CO., LTD.
-
+Regards,
+Sergio
+> 
+>  	/*
+>  	 * REVISIT: This line can be removed once all the platforms using
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
