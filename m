@@ -1,399 +1,86 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Fri, 19 Feb 2010 19:37:40 -0600
-Message-ID: <00bd01cab1cd$4a452d20$544ff780@am.dhcp.ti.com>
-References: <cover.1265801967.git.david.vrabel@csr.com> <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com> <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com> <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com> <008801cab1a7$36c49c70$544ff780@am.dhcp.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 00/11] omap updates for 2.6.34, part 4
+Date: Sat, 20 Feb 2010 14:00:38 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19@dbde02.ent.ti.com>
+References: <20100219232648.10559.380.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_00BE_01CAB19A.FFAABD20"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <008801cab1a7$36c49c70$544ff780@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: 'David Vrabel' <david.vrabel@csr.com>, linux-mmc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+	boundary="_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19dbde02enttico_"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33253 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751885Ab0BTIa4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Feb 2010 03:30:56 -0500
+In-Reply-To: <20100219232648.10559.380.stgit@baageli.muru.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is a multi-part message in MIME format.
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19dbde02enttico_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-------=_NextPart_000_00BE_01CAB19A.FFAABD20
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+VG9ueSwgDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtb21h
+cC1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2Vy
+bmVsLm9yZ10gT24gQmVoYWxmIE9mIFRvbnkNCj4gTGluZGdyZW4NCj4gU2VudDogU2F0dXJkYXks
+IEZlYnJ1YXJ5IDIwLCAyMDEwIDU6MDAgQU0NCj4gVG86IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMu
+aW5mcmFkZWFkLm9yZw0KPiBDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVj
+dDogW1BBVENIIDAwLzExXSBvbWFwIHVwZGF0ZXMgZm9yIDIuNi4zNCwgcGFydCA0DQo+IA0KPiBI
+aSBhbGwsDQo+IA0KPiBIZXJlIGFyZSBmZXcgVVNCIHBsYXRmb3JtIGluaXQgcGF0Y2hlcyB0aGF0
+IGhhdmUgYmVlbiBhbHJlYWR5DQo+IHBvc3RlZCB0byBsaW51eC11c2IgYW5kIGxpbnV4LW9tYXAg
+YW5kIGhhdmUgYmVlbiBzaXR0aW5nIGluIGZvci1uZXh0Lg0KPiANCj4gUG9zdGluZyB0aGVtIG9u
+ZSBtb3JlIHRpbWUgdG8gbWFrZSBzdXJlIHBlb3BsZSBvbiBsaW51eC1hcm0ta2VybmVsDQo+IGhh
+dmUgc2VlbiB0aGVzZSB0b28uDQo+IA0KPiBSZWdhcmRzLA0KPiANCj4gVG9ueQ0KPiANCj4gLS0t
+DQo+IA0KPiBGZWxpcGUgQmFsYmkgKDcpOg0KPiAgICAgICBhcm06IG9tYXA6IG11c2I6IGlvcmVt
+YXAgb25seSB3aGF0J3Mgb3Vycw0KPiAgICAgICBvbWFwOiBtdXNiOiByZW1vdmUgdW51c2VkIGRh
+dGENCj4gICAgICAgYXJtOiBvbWFwOiBtdXNiOiB3ZSBjYW4gdXNlIGNsayBmcmFtZXdvcmsNCj4g
+ICAgICAgb21hcDogbXVzYjogcmVtb3ZlIHVudXNlZCBzb2Z0X2NvbiBmaWVsZA0KPiAgICAgICBv
+bWFwOiBtdXNiOiByZW1vdmUgdW51c2VkIGRtYSBkYXRhDQo+ICAgICAgIG9tYXA6IG11c2I6IHJl
+bW92ZSB1bm5lY2Vzc2FyeSByZXR1cm4NCj4gICAgICAgb21hcDogbXVzYjogZ2V0IHJpZCBvZiBk
+eW5fZmlmbw0KPiANCj4gTWF1bGlrIE1hbmthZCAoNCk6DQo+ICAgICAgIFVTQjogQWRkIGVtcHR5
+IGZ1bmN0aW9ucyBpbiBvdGcuaA0KPiAgICAgICBvbWFwOiBtdXNiOiBSZW1vdmUgI2lmZGVmIGZy
+b20gYm9hcmQtb21hcDNldm0uYw0KPiAgICAgICBvbWFwOiBtdXNiOiBQYXNzIGJvYXJkIHNwZWNp
+ZmljIGRhdGEgZnJvbSBib2FyZCBmaWxlDQo+ICAgICAgIG9tYXA6IG11c2I6IEFkZCBVU0Igc3Vw
+cG9ydCB0byA0NDMwIFNEUCBib2FyZCBmaWxlDQo+DQpXZSBuZWVkIGF0dGFjaGVkIHBhdGNoIHRv
+IGtlZXAgbXVsdGktb21hcCBidWlsZCBib290aW5nIG9uIG9tYXA0DQpvbiB0b3Agb2YgdGhpcyBz
+ZXJpZXMuDQoNClJlZ2FyZHMsDQpTYW50b3NoDQoNCg==
 
-
-
-> -----Original Message-----
-> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
-> owner@vger.kernel.org] On Behalf Of Madhusudhan
-> Sent: Friday, February 19, 2010 3:05 PM
-> To: 'David Vrabel'; linux-mmc@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: David Vrabel [mailto:david.vrabel@csr.com]
-> > Sent: Wednesday, February 10, 2010 5:52 AM
-> > To: linux-mmc@vger.kernel.org
-> > Cc: David Vrabel; linux-omap@vger.kernel.org; madhu.cr@ti.com
-> > Subject: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-> >
-> > Enable the use of SDIO card interrupts.  This requires setting ENAWAKEUP
-> > in SYSCONFIG and IWE in HTCL to allow the MMC block to wake-up when in
-> > smart-idle mode.
-> >
-> > FCLK must be enabled while SDIO interrupts are enabled or the MMC block
-> > won't wake-up.
-> >
-> > The writes to STAT and ISE when starting a command are unnecessary and
-> > have been removed.
-> >
-> > Signed-off-by: David Vrabel <david.vrabel@csr.com>
-> > ---
-> > As noted in the FIXME comment, I think the correct thing to do is to
-> > always leave FCLK enabled.  The clock/clockdomain subsystems should be
-> > configuring smart-idle mode making explicit calls to disable FCLK
-> > unnecessary.  I couldn't follow the clock subsystem to see if it was
-> > actually doing this, though.
-> 
-> I Just noticed that SD cards stopped working on Zoom2 if I apply this
-> patch.
-> I will come back with details on what's going on in a bit unless someone
-> else beats me on that.
-> 
-
-A little bit of rearranging the David's changes to the irq handler gets the
-MMC/SD cards to work fine again. Changes are shown in the attached patch for
-now and it should not hurt the CIRQ handling as well. 
-
-Regards,
-Madhu
-
-> Regards,
-> Madhu
-> 
-> 
-> > ---
-> >  drivers/mmc/host/omap_hsmmc.c |   94 ++++++++++++++++++++++++++++------
-> --
-> > -----
-> >  1 files changed, 65 insertions(+), 29 deletions(-)
-> >
-> > diff --git a/drivers/mmc/host/omap_hsmmc.c
-> b/drivers/mmc/host/omap_hsmmc.c
-> > index e6d8cb3..ad0f867 100644
-> > --- a/drivers/mmc/host/omap_hsmmc.c
-> > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > @@ -64,6 +64,7 @@
-> >  #define SDVS_MASK		0x00000E00
-> >  #define SDVSCLR			0xFFFFF1FF
-> >  #define SDVSDET			0x00000400
-> > +#define ENAWAKEUP		(1 << 2)
-> >  #define AUTOIDLE		0x1
-> >  #define SDBP			(1 << 8)
-> >  #define DTO			0xe
-> > @@ -74,9 +75,11 @@
-> >  #define CLKD_SHIFT		6
-> >  #define DTO_MASK		0x000F0000
-> >  #define DTO_SHIFT		16
-> > +#define CIRQ_ENABLE		(1 << 8)
-> >  #define INT_EN_MASK		0x307F0033
-> >  #define BWR_ENABLE		(1 << 4)
-> >  #define BRR_ENABLE		(1 << 5)
-> > +#define CTPL			(1 << 11)
-> >  #define INIT_STREAM		(1 << 1)
-> >  #define DP_SELECT		(1 << 21)
-> >  #define DDIR			(1 << 4)
-> > @@ -84,10 +87,12 @@
-> >  #define MSBS			(1 << 5)
-> >  #define BCE			(1 << 1)
-> >  #define FOUR_BIT		(1 << 1)
-> > +#define IWE			(1 << 24)
-> >  #define DW8			(1 << 5)
-> >  #define CC			0x1
-> >  #define TC			0x02
-> >  #define OD			0x1
-> > +#define CIRQ			(1 << 8)
-> >  #define ERR			(1 << 15)
-> >  #define CMD_TIMEOUT		(1 << 16)
-> >  #define DATA_TIMEOUT		(1 << 20)
-> > @@ -228,7 +233,7 @@ static int omap_hsmmc_context_restore(struct
-> > omap_hsmmc_host *host)
-> >  		;
-> >
-> >  	OMAP_HSMMC_WRITE(host->base, SYSCONFIG,
-> > -			OMAP_HSMMC_READ(host->base, SYSCONFIG) | AUTOIDLE);
-> > +			OMAP_HSMMC_READ(host->base, SYSCONFIG) | AUTOIDLE |
-> > ENAWAKEUP);
-> >
-> >  	if (host->id == OMAP_MMC1_DEVID) {
-> >  		if (host->power_mode != MMC_POWER_OFF &&
-> > @@ -243,7 +248,7 @@ static int omap_hsmmc_context_restore(struct
-> > omap_hsmmc_host *host)
-> >  	}
-> >
-> >  	OMAP_HSMMC_WRITE(host->base, HCTL,
-> > -			OMAP_HSMMC_READ(host->base, HCTL) | hctl);
-> > +			OMAP_HSMMC_READ(host->base, HCTL) | hctl | IWE);
-> >
-> >  	OMAP_HSMMC_WRITE(host->base, CAPA,
-> >  			OMAP_HSMMC_READ(host->base, CAPA) | capa);
-> > @@ -257,7 +262,7 @@ static int omap_hsmmc_context_restore(struct
-> > omap_hsmmc_host *host)
-> >  		;
-> >
-> >  	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> > -	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-> > +	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK | CIRQ);
-> >  	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
-> >
-> >  	/* Do not initialize card-specific things if the power is off */
-> > @@ -426,12 +431,6 @@ omap_hsmmc_start_command(struct omap_hsmmc_host
-> > *host, struct mmc_command *cmd,
-> >  		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
-> >  	host->cmd = cmd;
-> >
-> > -	/*
-> > -	 * Clear status bits and enable interrupts
-> > -	 */
-> > -	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> > -	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-> > -
-> >  	if (host->use_dma)
-> >  		OMAP_HSMMC_WRITE(host->base, IE,
-> >  				 INT_EN_MASK & ~(BRR_ENABLE | BWR_ENABLE));
-> > @@ -638,18 +637,21 @@ static irqreturn_t omap_hsmmc_irq(int irq, void
-> > *dev_id)
-> >  {
-> >  	struct omap_hsmmc_host *host = dev_id;
-> >  	struct mmc_data *data;
-> > -	int end_cmd = 0, end_trans = 0, status;
-> > +	u32 status;
-> > +	int end_cmd = 0, end_trans = 0;
-> > +	bool card_irq = false;
-> >
-> >  	spin_lock(&host->irq_lock);
-> >
-> > -	if (host->mrq == NULL) {
-> > -		OMAP_HSMMC_WRITE(host->base, STAT,
-> > -			OMAP_HSMMC_READ(host->base, STAT));
-> > -		/* Flush posted write */
-> > -		OMAP_HSMMC_READ(host->base, STAT);
-> > -		spin_unlock(&host->irq_lock);
-> > -		return IRQ_HANDLED;
-> > -	}
-> > +	status = OMAP_HSMMC_READ(host->base, STAT);
-> > +	OMAP_HSMMC_WRITE(host->base, STAT, status);
-> > +	OMAP_HSMMC_READ(host->base, STAT); /* Flush posted write. */
-> > +
-> > +	if (status & CIRQ)
-> > +		card_irq = true;
-> > +
-> > +	if (host->mrq == NULL)
-> > +		goto out;
-> >
-> >  	data = host->data;
-> >  	status = OMAP_HSMMC_READ(host->base, STAT);
-> > @@ -704,17 +706,16 @@ static irqreturn_t omap_hsmmc_irq(int irq, void
-> > *dev_id)
-> >  		}
-> >  	}
-> >
-> > -	OMAP_HSMMC_WRITE(host->base, STAT, status);
-> > -	/* Flush posted write */
-> > -	OMAP_HSMMC_READ(host->base, STAT);
-> > -
-> >  	if (end_cmd || ((status & CC) && host->cmd))
-> >  		omap_hsmmc_cmd_done(host, host->cmd);
-> >  	if ((end_trans || (status & TC)) && host->mrq)
-> >  		omap_hsmmc_xfer_done(host, data);
-> > -
-> > +out:
-> >  	spin_unlock(&host->irq_lock);
-> >
-> > +	if (card_irq)
-> > +		mmc_signal_sdio_irq(host->mmc);
-> > +
-> >  	return IRQ_HANDLED;
-> >  }
-> >
-> > @@ -1248,6 +1249,41 @@ static int omap_hsmmc_get_ro(struct mmc_host
-> *mmc)
-> >  	return mmc_slot(host).get_ro(host->dev, 0);
-> >  }
-> >
-> > +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int
-> enable)
-> > +{
-> > +	struct omap_hsmmc_host *host = mmc_priv(mmc);
-> > +	u32 ie, con;
-> > +	unsigned long flags;
-> > +
-> > +	spin_lock_irqsave(&host->irq_lock, flags);
-> > +
-> > +	/*
-> > +	 * When interrupts are enabled, CTPL must be set to enable
-> > +	 * DAT1 input buffer (or the card interrupt is always
-> > +	 * asserted) and FCLK must be enabled else wakeup does not
-> > +	 * work.
-> > +	 *
-> > +	 * FIXME: the power save code probably shouldn't be playing
-> > +	 * with FCLK and allow the clock subsystem to put it into
-> > +	 * smart-idle mode instead.
-> > +	 */
-> > +	con = OMAP_HSMMC_READ(host->base, CON);
-> > +	ie = OMAP_HSMMC_READ(host->base, IE);
-> > +	if (enable) {
-> > +		clk_enable(host->fclk);
-> > +		ie |= CIRQ_ENABLE;
-> > +		con |= CTPL;
-> > +	} else {
-> > +		clk_disable(host->fclk);
-> > +		ie &= ~CIRQ_ENABLE;
-> > +		con &= ~CTPL;
-> > +	}
-> > +	OMAP_HSMMC_WRITE(host->base, CON, con);
-> > +	OMAP_HSMMC_WRITE(host->base, IE, ie);
-> > +
-> > +	spin_unlock_irqrestore(&host->irq_lock, flags);
-> > +}
-> > +
-> >  static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
-> >  {
-> >  	u32 hctl, capa, value;
-> > @@ -1262,14 +1298,14 @@ static void omap_hsmmc_conf_bus_power(struct
-> > omap_hsmmc_host *host)
-> >  	}
-> >
-> >  	value = OMAP_HSMMC_READ(host->base, HCTL) & ~SDVS_MASK;
-> > -	OMAP_HSMMC_WRITE(host->base, HCTL, value | hctl);
-> > +	OMAP_HSMMC_WRITE(host->base, HCTL, value | hctl | IWE);
-> >
-> >  	value = OMAP_HSMMC_READ(host->base, CAPA);
-> >  	OMAP_HSMMC_WRITE(host->base, CAPA, value | capa);
-> >
-> >  	/* Set the controller to AUTO IDLE mode */
-> >  	value = OMAP_HSMMC_READ(host->base, SYSCONFIG);
-> > -	OMAP_HSMMC_WRITE(host->base, SYSCONFIG, value | AUTOIDLE);
-> > +	OMAP_HSMMC_WRITE(host->base, SYSCONFIG, value | AUTOIDLE |
-> > ENAWAKEUP);
-> >
-> >  	/* Set SD bus power bit */
-> >  	set_sd_bus_power(host);
-> > @@ -1516,7 +1552,7 @@ static const struct mmc_host_ops omap_hsmmc_ops =
-> {
-> >  	.set_ios = omap_hsmmc_set_ios,
-> >  	.get_cd = omap_hsmmc_get_cd,
-> >  	.get_ro = omap_hsmmc_get_ro,
-> > -	/* NYET -- enable_sdio_irq */
-> > +	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
-> >  };
-> >
-> >  static const struct mmc_host_ops omap_hsmmc_ps_ops = {
-> > @@ -1526,7 +1562,7 @@ static const struct mmc_host_ops omap_hsmmc_ps_ops
-> =
-> > {
-> >  	.set_ios = omap_hsmmc_set_ios,
-> >  	.get_cd = omap_hsmmc_get_cd,
-> >  	.get_ro = omap_hsmmc_get_ro,
-> > -	/* NYET -- enable_sdio_irq */
-> > +	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
-> >  };
-> >
-> >  #ifdef CONFIG_DEBUG_FS
-> > @@ -1731,7 +1767,7 @@ static int __init omap_hsmmc_probe(struct
-> > platform_device *pdev)
-> >  	mmc->max_seg_size = mmc->max_req_size;
-> >
-> >  	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
-> > -		     MMC_CAP_WAIT_WHILE_BUSY;
-> > +		     MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_SDIO_IRQ;
-> >
-> >  	if (mmc_slot(host).wires >= 8)
-> >  		mmc->caps |= MMC_CAP_8_BIT_DATA;
-> > @@ -1802,7 +1838,7 @@ static int __init omap_hsmmc_probe(struct
-> > platform_device *pdev)
-> >  		}
-> >  	}
-> >
-> > -	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-> > +	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK | CIRQ);
-> >  	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
-> >
-> >  	mmc_host_lazy_disable(host->mmc);
-> > --
-> > 1.6.3.3
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-------=_NextPart_000_00BE_01CAB19A.FFAABD20
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19dbde02enttico_
 Content-Type: application/octet-stream;
-	name="0001-OMAP-Hsmmc-Get-the-SD-cards-to-work-again.patch"
-Content-Transfer-Encoding: quoted-printable
+	name="0001-omap4-multi-omap-Allow-build-to-work.patch"
+Content-Description: 0001-omap4-multi-omap-Allow-build-to-work.patch
 Content-Disposition: attachment;
-	filename="0001-OMAP-Hsmmc-Get-the-SD-cards-to-work-again.patch"
+	filename="0001-omap4-multi-omap-Allow-build-to-work.patch"; size=1407;
+	creation-date="Sat, 20 Feb 2010 14:05:13 GMT";
+	modification-date="Sat, 20 Feb 2010 14:05:13 GMT"
+Content-Transfer-Encoding: base64
 
->From f18edd943659d4a9632cd0c0c64f4c6a4aa2f206 Mon Sep 17 00:00:00 2001
-From: Madhusudhan Chikkature <madhu.cr@ti.com>
-Date: Fri, 19 Feb 2010 19:52:14 -0500
-Subject: [PATCH] OMAP Hsmmc:Get the SD cards to work again.
+RnJvbSBlY2JmY2FiYWUwM2ZmOWY1ZTUwZGY1MjIzMmYwOTAyODg4OTlkNTdmIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
+dGkuY29tPgpEYXRlOiBUdWUsIDE2IEZlYiAyMDEwIDE5OjI5OjIwICswNTMwClN1YmplY3Q6IFtQ
+QVRDSF0gb21hcDQ6IG11bHRpLW9tYXA6IEFsbG93IGJ1aWxkIHRvIHdvcmsKClRoZSBtdXNiIHN1
+cHBvcnQgaXMgZW5hYmxlZCBpbiBvbWFwMyBwbGF0Zm9ybXMuIEZvciBvbWFwNCBvbmx5IGJvYXJk
+CnN1cHBvcnQgaXMgYXZhaWxhYmxlIGFuZCB0aGUgZHJpdmVyIHN0aWxsIGlzbid0IHN1cHBvcnRl
+ZC4KQmVjYXVzZSBvZiB0aGlzIGJ1aWxkIHdpdGggb21hcDNfZGVmY29uZmlnIHVzZWQgZm9yIG11
+bHRpLW9tYXAKZG9lc24ndCB3b3JrIG9uIG9tYXA0NDMwIHNkcC4KClRoaXMgcGF0Y2ggYXZvaWRz
+IHVzYl9tdXNiX2luaXQoKSBieSBhZGRpbmcgYSBjcHUgY2hlY2sKaW4gdGhlIGJvYXJkIGZpbGUu
+CgpUaGFua3MgdG8gQW5hbmQgR2FkaXlhciBhbmQgTWFua2FkIE1hdWxpayBmb3IgdGhlIHN1Z2dl
+c3Rpb24Kb2YgcGF0Y2hpbmcgYm9hcmQgZmlsZSBpbnN0ZWFkIG9mIG11c2IgZHJpdmVyLgoKU2ln
+bmVkLW9mZi1ieTogU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4K
+LS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTQ0MzBzZHAuYyB8ICAgIDQgKysrLQogMSBm
+aWxlcyBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
+IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC00NDMwc2RwLmMgYi9hcmNoL2FybS9tYWNoLW9t
+YXAyL2JvYXJkLTQ0MzBzZHAuYwppbmRleCBjYmRiZmE0Li5hN2FhOWMxIDEwMDY0NAotLS0gYS9h
+cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTQ0MzBzZHAuYworKysgYi9hcmNoL2FybS9tYWNoLW9t
+YXAyL2JvYXJkLTQ0MzBzZHAuYwpAQCAtMjczLDcgKzI3Myw5IEBAIHN0YXRpYyB2b2lkIF9faW5p
+dCBvbWFwXzQ0MzBzZHBfaW5pdCh2b2lkKQogCW9tYXBfc2VyaWFsX2luaXQoKTsKIAkvKiBPTUFQ
+NCBTRFAgdXNlcyBpbnRlcm5hbCB0cmFuc2NlaXZlciBzbyByZWdpc3RlciBub3AgdHJhbnNjZWl2
+ZXIgKi8KIAl1c2Jfbm9wX3hjZWl2X3JlZ2lzdGVyKCk7Ci0JdXNiX211c2JfaW5pdCgmbXVzYl9i
+b2FyZF9kYXRhKTsKKwkvKiBGSVhNRTogYWxsb3cgbXVsdGktb21hcCB0byBib290IHVudGlsIG11
+c2IgaXMgdXBkYXRlZCBmb3Igb21hcDQgKi8KKwlpZiAoIWNwdV9pc19vbWFwNDR4eCgpKQorCQl1
+c2JfbXVzYl9pbml0KCZtdXNiX2JvYXJkX2RhdGEpOwogfQogCiBzdGF0aWMgdm9pZCBfX2luaXQg
+b21hcF80NDMwc2RwX21hcF9pbyh2b2lkKQotLSAKMS42LjAuNAoK
 
-Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c =
-b/drivers/mmc/host/omap_hsmmc.c
-index 27f1426..6c508bd 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -977,19 +977,18 @@ static irqreturn_t omap_hsmmc_irq(int irq, void =
-*dev_id)
- 	struct mmc_data *data;
- 	u32 status;
- 	int end_cmd =3D 0, end_trans =3D 0;
--	bool card_irq =3D false;
-=20
- 	spin_lock(&host->irq_lock);
-=20
--	status =3D OMAP_HSMMC_READ(host->base, STAT);
--	OMAP_HSMMC_WRITE(host->base, STAT, status);
--	OMAP_HSMMC_READ(host->base, STAT); /* Flush posted write. */
--
--	if (status & CIRQ)
--		card_irq =3D true;
-+	if (host->mrq =3D=3D NULL) {
-+		status =3D OMAP_HSMMC_READ(host->base, STAT);
-+		OMAP_HSMMC_WRITE(host->base, STAT,
-+			status);
-+		/* Flush posted write */
-+		OMAP_HSMMC_READ(host->base, STAT);
-=20
--	if (host->mrq =3D=3D NULL)
- 		goto out;
-+	}
-=20
- 	data =3D host->data;
- 	status =3D OMAP_HSMMC_READ(host->base, STAT);
-@@ -1051,7 +1050,7 @@ static irqreturn_t omap_hsmmc_irq(int irq, void =
-*dev_id)
- out:
- 	spin_unlock(&host->irq_lock);
-=20
--	if (card_irq)
-+	if (status & CIRQ)
- 		mmc_signal_sdio_irq(host->mmc);
-=20
- 	return IRQ_HANDLED;
---=20
-1.6.0.4
-
-
-------=_NextPart_000_00BE_01CAB19A.FFAABD20--
-
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19dbde02enttico_--
