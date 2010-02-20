@@ -1,86 +1,47 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 00/11] omap updates for 2.6.34, part 4
-Date: Sat, 20 Feb 2010 14:00:38 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19@dbde02.ent.ti.com>
-References: <20100219232648.10559.380.stgit@baageli.muru.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 0/5] Mailbox: Fix issues for OMAP4
+Date: Sat, 20 Feb 2010 20:30:18 +0200 (EET)
+Message-ID: <20100220.203018.193687397.Hiroshi.DOYU@nokia.com>
+References: <2C1563023E232C49B9F505633D57C2DA2640D0235A@dlee04.ent.ti.com>
+	<20100219.103604.116369681.Hiroshi.DOYU@nokia.com>
+	<20100220001152.GK21755@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19dbde02enttico_"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33253 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885Ab0BTIa4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Feb 2010 03:30:56 -0500
-In-Reply-To: <20100219232648.10559.380.stgit@baageli.muru.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:57491 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753578Ab0BTSah (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Feb 2010 13:30:37 -0500
+In-Reply-To: <20100220001152.GK21755@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com
+Cc: s-anna@ti.com, linux-omap@vger.kernel.org, rob@ti.com, h-kanigeri2@ti.com, subramaniam.ca@ti.com
 
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19dbde02enttico_
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: ext Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] Mailbox: Fix issues for OMAP4
+Date: Sat, 20 Feb 2010 01:11:52 +0100
 
-VG9ueSwgDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtb21h
-cC1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2Vy
-bmVsLm9yZ10gT24gQmVoYWxmIE9mIFRvbnkNCj4gTGluZGdyZW4NCj4gU2VudDogU2F0dXJkYXks
-IEZlYnJ1YXJ5IDIwLCAyMDEwIDU6MDAgQU0NCj4gVG86IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMu
-aW5mcmFkZWFkLm9yZw0KPiBDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVj
-dDogW1BBVENIIDAwLzExXSBvbWFwIHVwZGF0ZXMgZm9yIDIuNi4zNCwgcGFydCA0DQo+IA0KPiBI
-aSBhbGwsDQo+IA0KPiBIZXJlIGFyZSBmZXcgVVNCIHBsYXRmb3JtIGluaXQgcGF0Y2hlcyB0aGF0
-IGhhdmUgYmVlbiBhbHJlYWR5DQo+IHBvc3RlZCB0byBsaW51eC11c2IgYW5kIGxpbnV4LW9tYXAg
-YW5kIGhhdmUgYmVlbiBzaXR0aW5nIGluIGZvci1uZXh0Lg0KPiANCj4gUG9zdGluZyB0aGVtIG9u
-ZSBtb3JlIHRpbWUgdG8gbWFrZSBzdXJlIHBlb3BsZSBvbiBsaW51eC1hcm0ta2VybmVsDQo+IGhh
-dmUgc2VlbiB0aGVzZSB0b28uDQo+IA0KPiBSZWdhcmRzLA0KPiANCj4gVG9ueQ0KPiANCj4gLS0t
-DQo+IA0KPiBGZWxpcGUgQmFsYmkgKDcpOg0KPiAgICAgICBhcm06IG9tYXA6IG11c2I6IGlvcmVt
-YXAgb25seSB3aGF0J3Mgb3Vycw0KPiAgICAgICBvbWFwOiBtdXNiOiByZW1vdmUgdW51c2VkIGRh
-dGENCj4gICAgICAgYXJtOiBvbWFwOiBtdXNiOiB3ZSBjYW4gdXNlIGNsayBmcmFtZXdvcmsNCj4g
-ICAgICAgb21hcDogbXVzYjogcmVtb3ZlIHVudXNlZCBzb2Z0X2NvbiBmaWVsZA0KPiAgICAgICBv
-bWFwOiBtdXNiOiByZW1vdmUgdW51c2VkIGRtYSBkYXRhDQo+ICAgICAgIG9tYXA6IG11c2I6IHJl
-bW92ZSB1bm5lY2Vzc2FyeSByZXR1cm4NCj4gICAgICAgb21hcDogbXVzYjogZ2V0IHJpZCBvZiBk
-eW5fZmlmbw0KPiANCj4gTWF1bGlrIE1hbmthZCAoNCk6DQo+ICAgICAgIFVTQjogQWRkIGVtcHR5
-IGZ1bmN0aW9ucyBpbiBvdGcuaA0KPiAgICAgICBvbWFwOiBtdXNiOiBSZW1vdmUgI2lmZGVmIGZy
-b20gYm9hcmQtb21hcDNldm0uYw0KPiAgICAgICBvbWFwOiBtdXNiOiBQYXNzIGJvYXJkIHNwZWNp
-ZmljIGRhdGEgZnJvbSBib2FyZCBmaWxlDQo+ICAgICAgIG9tYXA6IG11c2I6IEFkZCBVU0Igc3Vw
-cG9ydCB0byA0NDMwIFNEUCBib2FyZCBmaWxlDQo+DQpXZSBuZWVkIGF0dGFjaGVkIHBhdGNoIHRv
-IGtlZXAgbXVsdGktb21hcCBidWlsZCBib290aW5nIG9uIG9tYXA0DQpvbiB0b3Agb2YgdGhpcyBz
-ZXJpZXMuDQoNClJlZ2FyZHMsDQpTYW50b3NoDQoNCg==
+> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100219 00:33]:
+>> Hi Suman,
+>> 
+>> From: "ext Anna, Suman" <s-anna@ti.com>
+>> Subject: [PATCH 0/5] Mailbox: Fix issues for OMAP4 
+>> Date: Thu, 18 Feb 2010 22:07:15 +0100
+>> 
+>> > From f2e895f74544876572adbe3328aa27d20aa1aec4 Mon Sep 17 00:00:00 2001
+>> > From: Suman Anna <s-anna@ti.com>
+>> > Date: Thu, 18 Feb 2010 14:34:39 -0600
+>> > Subject: [PATCH 0/5] Mailbox: Fix issues for OMAP4 
+>> > 
+>> > This patchset has fixes for OMAP4 mailbox SYSCONFIG register.
+>> > Also included are patches for improving mailbox performance, and
+>> > other minor fixes.
+>> 
+>> They look ok to me.
+>> 
+> 
+> I assume I can add your Acked-by then?
 
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19dbde02enttico_
-Content-Type: application/octet-stream;
-	name="0001-omap4-multi-omap-Allow-build-to-work.patch"
-Content-Description: 0001-omap4-multi-omap-Allow-build-to-work.patch
-Content-Disposition: attachment;
-	filename="0001-omap4-multi-omap-Allow-build-to-work.patch"; size=1407;
-	creation-date="Sat, 20 Feb 2010 14:05:13 GMT";
-	modification-date="Sat, 20 Feb 2010 14:05:13 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSBlY2JmY2FiYWUwM2ZmOWY1ZTUwZGY1MjIzMmYwOTAyODg4OTlkNTdmIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPgpEYXRlOiBUdWUsIDE2IEZlYiAyMDEwIDE5OjI5OjIwICswNTMwClN1YmplY3Q6IFtQ
-QVRDSF0gb21hcDQ6IG11bHRpLW9tYXA6IEFsbG93IGJ1aWxkIHRvIHdvcmsKClRoZSBtdXNiIHN1
-cHBvcnQgaXMgZW5hYmxlZCBpbiBvbWFwMyBwbGF0Zm9ybXMuIEZvciBvbWFwNCBvbmx5IGJvYXJk
-CnN1cHBvcnQgaXMgYXZhaWxhYmxlIGFuZCB0aGUgZHJpdmVyIHN0aWxsIGlzbid0IHN1cHBvcnRl
-ZC4KQmVjYXVzZSBvZiB0aGlzIGJ1aWxkIHdpdGggb21hcDNfZGVmY29uZmlnIHVzZWQgZm9yIG11
-bHRpLW9tYXAKZG9lc24ndCB3b3JrIG9uIG9tYXA0NDMwIHNkcC4KClRoaXMgcGF0Y2ggYXZvaWRz
-IHVzYl9tdXNiX2luaXQoKSBieSBhZGRpbmcgYSBjcHUgY2hlY2sKaW4gdGhlIGJvYXJkIGZpbGUu
-CgpUaGFua3MgdG8gQW5hbmQgR2FkaXlhciBhbmQgTWFua2FkIE1hdWxpayBmb3IgdGhlIHN1Z2dl
-c3Rpb24Kb2YgcGF0Y2hpbmcgYm9hcmQgZmlsZSBpbnN0ZWFkIG9mIG11c2IgZHJpdmVyLgoKU2ln
-bmVkLW9mZi1ieTogU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4K
-LS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTQ0MzBzZHAuYyB8ICAgIDQgKysrLQogMSBm
-aWxlcyBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
-IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC00NDMwc2RwLmMgYi9hcmNoL2FybS9tYWNoLW9t
-YXAyL2JvYXJkLTQ0MzBzZHAuYwppbmRleCBjYmRiZmE0Li5hN2FhOWMxIDEwMDY0NAotLS0gYS9h
-cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTQ0MzBzZHAuYworKysgYi9hcmNoL2FybS9tYWNoLW9t
-YXAyL2JvYXJkLTQ0MzBzZHAuYwpAQCAtMjczLDcgKzI3Myw5IEBAIHN0YXRpYyB2b2lkIF9faW5p
-dCBvbWFwXzQ0MzBzZHBfaW5pdCh2b2lkKQogCW9tYXBfc2VyaWFsX2luaXQoKTsKIAkvKiBPTUFQ
-NCBTRFAgdXNlcyBpbnRlcm5hbCB0cmFuc2NlaXZlciBzbyByZWdpc3RlciBub3AgdHJhbnNjZWl2
-ZXIgKi8KIAl1c2Jfbm9wX3hjZWl2X3JlZ2lzdGVyKCk7Ci0JdXNiX211c2JfaW5pdCgmbXVzYl9i
-b2FyZF9kYXRhKTsKKwkvKiBGSVhNRTogYWxsb3cgbXVsdGktb21hcCB0byBib290IHVudGlsIG11
-c2IgaXMgdXBkYXRlZCBmb3Igb21hcDQgKi8KKwlpZiAoIWNwdV9pc19vbWFwNDR4eCgpKQorCQl1
-c2JfbXVzYl9pbml0KCZtdXNiX2JvYXJkX2RhdGEpOwogfQogCiBzdGF0aWMgdm9pZCBfX2luaXQg
-b21hcF80NDMwc2RwX21hcF9pbyh2b2lkKQotLSAKMS42LjAuNAoK
-
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C417FF19dbde02enttico_--
+Yes.
