@@ -1,36 +1,27 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv5 0/2] McBSP: OMAP3: Add sidetone feature
-Date: Mon, 22 Feb 2010 14:39:28 +0000
-Message-ID: <20100222143928.GA2133@rakim.wolfsonmicro.main>
-References: <1266841272-13135-1-git-send-email-ilkka.koskinen@nokia.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
+Date: Mon, 22 Feb 2010 16:55:14 +0200
+Message-ID: <94a0d4531002220655p675f7648rdfd302ea6aeb1b58@mail.gmail.com>
+References: <cover.1266847842.git.david.vrabel@csr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:60468 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752955Ab0BVOja (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Feb 2010 09:39:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1266841272-13135-1-git-send-email-ilkka.koskinen@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <cover.1266847842.git.david.vrabel@csr.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: David Vrabel <david.vrabel@csr.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@nokia.com, jhnikula@gmail.com, tony@atomide.com, eduardo.valentin@nokia.com, ext-Eero.Nurkkala@nokia.com
 
-On Mon, Feb 22, 2010 at 02:21:10PM +0200, Ilkka Koskinen wrote:
-> The first patch implements McBSP sidetone feature on OMAP3 while the second
-> one provides ALSA interface for using it.
-> 
-> The patch set is based on the patch Eduardo Valentin sent to alsa-devel
-> mailing list in October 2009. Channel gain control and enabling the sidetone
-> have been moved to ALSA interface as suggested in comments. 
-> 
-> These patches apply on top of Janusz Krzysztofik's McBSP register cache
-> patches in linux-omap-2.6.git
+On Mon, Feb 22, 2010 at 4:24 PM, David Vrabel <david.vrabel@csr.com> wrote:
+> These patches add support for SDIO cards to the omap_hsmmc driver.
+> Power management changes to prevent SDIO cards from being turned off
+> and losing all state, and card interrupts.
+>
+> I've been unable to test these exact patches as I only have an N900 for
+> testing and the N900 support in mainline is incomplete.
 
-Both patches
+Can't you get the source code with 'apt-get source' in Maemo SDK? It's
+a tarball but at least it's something.
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-
-too.
+-- 
+Felipe Contreras
