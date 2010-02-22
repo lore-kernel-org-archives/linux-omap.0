@@ -1,113 +1,47 @@
-From: "Anna, Suman" <s-anna@ti.com>
-Subject: RE: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
-Date: Mon, 22 Feb 2010 15:44:08 -0600
-Message-ID: <2C1563023E232C49B9F505633D57C2DA2640E02805@dlee04.ent.ti.com>
-References: <2C1563023E232C49B9F505633D57C2DA2640D0235B@dlee04.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C417FF8B@dbde02.ent.ti.com>
- <2C1563023E232C49B9F505633D57C2DA2640E025F9@dlee04.ent.ti.com>
- <20100222213713.GT18786@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 8/9] omap4: Use dma line defines from dma-44xx.h
+Date: Mon, 22 Feb 2010 14:13:52 -0800
+Message-ID: <20100222221352.GY18786@atomide.com>
+References: <1266483554-15044-1-git-send-email-santosh.shilimkar@ti.com>
+ <1266483554-15044-2-git-send-email-santosh.shilimkar@ti.com>
+ <1266483554-15044-3-git-send-email-santosh.shilimkar@ti.com>
+ <1266483554-15044-4-git-send-email-santosh.shilimkar@ti.com>
+ <1266483554-15044-5-git-send-email-santosh.shilimkar@ti.com>
+ <1266483554-15044-6-git-send-email-santosh.shilimkar@ti.com>
+ <1266483554-15044-7-git-send-email-santosh.shilimkar@ti.com>
+ <1266483554-15044-8-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41408 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753983Ab0BVVoQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 16:44:16 -0500
-In-Reply-To: <20100222213713.GT18786@atomide.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57615 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754365Ab0BVWM6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 17:12:58 -0500
+Content-Disposition: inline
+In-Reply-To: <1266483554-15044-8-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "Clark, Rob" <rob@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony,
-
-
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Monday, February 22, 2010 3:37 PM
-> To: Anna, Suman
-> Cc: Shilimkar, Santosh; linux-omap@vger.kernel.org;
-> Hiroshi.DOYU@nokia.com; Clark, Rob; Kanigeri, Hari; C.A, Subramaniam
-> Subject: Re: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [100218 00:56]:
+> This patch removes all the omap4 specific dma request
+> lines defines from plat/dma.h and includes dma-44xx.h
 > 
-> * Anna, Suman <s-anna@ti.com> [100222 11:53]:
-> > Hi Santosh,
-> >
-> > > -----Original Message-----
-> > > From: Shilimkar, Santosh
-> > > Sent: Saturday, February 20, 2010 12:47 PM
-> > > To: Anna, Suman; linux-omap@vger.kernel.org
-> > > Cc: Hiroshi.DOYU@nokia.com; Clark, Rob; Kanigeri, Hari; C.A,
-> Subramaniam
-> > > Subject: RE: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of Anna,
-> > > > Suman
-> > > > Sent: Friday, February 19, 2010 2:37 AM
-> > > > To: linux-omap@vger.kernel.org
-> > > > Cc: Hiroshi.DOYU@nokia.com; Clark, Rob; Kanigeri, Hari; C.A,
-> Subramaniam
-> > > > Subject: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
-> > > >
-> > > > From 78d00b562548e1d95ad12a4d8121be67950daf68 Mon Sep 17 00:00:00
-> 2001
-> > > > From: Suman Anna <s-anna@ti.com>
-> > > > Date: Mon, 25 Jan 2010 18:27:21 -0600
-> > > > Subject: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
-> > > >
-> > > > Remove a compiler warning in device-specific
-> > > > mailbox module.
-> > > >
-> > > > Signed-off-by: Suman Anna <s-anna@ti.com>
-> > > > ---
-> > > >  arch/arm/mach-omap2/mailbox.c |    2 ++
-> > > >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > > >
-> > > > diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-
-> > > omap2/mailbox.c
-> > > > index 2c9fd1c..c970cf6 100644
-> > > > --- a/arch/arm/mach-omap2/mailbox.c
-> > > > +++ b/arch/arm/mach-omap2/mailbox.c
-> > > > @@ -419,8 +419,10 @@ static int __devinit omap2_mbox_probe(struct
-> > > platform_device *pdev)
-> > > >  #endif
-> > > >  	return 0;
-> > > >
-> > > > +#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
-> > > >  err_iva1:
-> > > >  	omap_mbox_unregister(&mbox_dsp_info);
-> > > > +#endif
-> > > Can't we avoid the #ifdef here? Is this "omap_mbox_unregister" omap2
-> > > specific?
-> >
-> > Yes, this #ifdef is specific to 2420. There are other places in the
-> mailbox code which also utilize a similar #ifdef. I have merely added it
-> to remove the compile warning. I think it needs a separate patch to remove
-> all the 2420 specific #ifdefs.
-> 
+> The defines are aligned so no driver should be impacted
+> because of this change.
 
+Dropped this and the next patch as they break compile for _all_
+omap1 machines:
 
-> Let's drop this patch for now. We should fix this with something like
-> this in mailbox.h:
-> 
-> #ifdef CONFIG_ARCH_OMAP2420
-> int omap_mbox_unregister(struct omap_mbox *);
-> #else
-> static inline int omap_mbox_unregister(struct omap_mbox *mbox)
-> {
-> 	return 0;
-> }
-> #endif
-> 
-> That way we can get rid of the ifdefs in other places too.
-> 
-> Tony
+arch/arm/plat-omap/dma.c: In function 'omap_init_dma':
+arch/arm/plat-omap/dma.c:2135: error: 'OMAP44XX_IRQ_SDMA_0' undeclared (first use in this function)
+arch/arm/plat-omap/dma.c:2135: error: (Each undeclared identifier is reported only once
+arch/arm/plat-omap/dma.c:2135: error: for each function it appears in.)
 
-Sorry, my statement is a little bit misleading. The omap_mbox_unregister function itself is not specific to 2420, but rather the call is. It should be called only for 2420, and hence the #ifdef. 
+Suspect the next patch will too, not even going to try to
+build test that.
 
-Regards
-Suman
+Regards,
+
+Tony
