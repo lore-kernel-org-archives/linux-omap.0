@@ -1,136 +1,113 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/9] omap3/4: uart: fix full-fifo write abort
-Date: Mon, 22 Feb 2010 13:39:32 -0800
-Message-ID: <20100222213932.GW18786@atomide.com>
-References: <1266483554-15044-1-git-send-email-santosh.shilimkar@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C417FA42@dbde02.ent.ti.com>
+From: "Anna, Suman" <s-anna@ti.com>
+Subject: RE: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
+Date: Mon, 22 Feb 2010 15:44:08 -0600
+Message-ID: <2C1563023E232C49B9F505633D57C2DA2640E02805@dlee04.ent.ti.com>
+References: <2C1563023E232C49B9F505633D57C2DA2640D0235B@dlee04.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C417FF8B@dbde02.ent.ti.com>
+ <2C1563023E232C49B9F505633D57C2DA2640E025F9@dlee04.ent.ti.com>
+ <20100222213713.GT18786@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50813 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203Ab0BVVim (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 16:38:42 -0500
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C417FA42@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41408 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753983Ab0BVVoQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 16:44:16 -0500
+In-Reply-To: <20100222213713.GT18786@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "Clark, Rob" <rob@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100218 21:22]:
-> Bye the way just to add bit more clarity, this patch addresses TX
-> hardware restriction in the new UART IP used on omap3630 and omap4430.
-> First part of the fix for RX is already in mainline,
-> Commit: "ce13d4716a276f4331d78ba28a5093a63822ab95"
+Tony,
+
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Monday, February 22, 2010 3:37 PM
+> To: Anna, Suman
+> Cc: Shilimkar, Santosh; linux-omap@vger.kernel.org;
+> Hiroshi.DOYU@nokia.com; Clark, Rob; Kanigeri, Hari; C.A, Subramaniam
+> Subject: Re: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
 > 
-> More details on this thread are here.
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg19447.html
-
-Thanks, I've updated the comments for this patch with the link above
-and added the whole series into omap for-next.
-
-Regards,
-
-Tony
- 
-> > -----Original Message-----
-> > From: Shilimkar, Santosh
-> > Sent: Thursday, February 18, 2010 2:29 PM
-> > To: tony@atomide.com
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Shilimkar, Santosh; Woodruff,
-> > Richard; Ghorai, Sukumar
-> > Subject: [PATCH 1/9] omap3/4: uart: fix full-fifo write abort
-> > 
-> > This patch is addition to the already merged commit on non-empty
-> > uart fifo read abort. "ce13d4716a276f4331d78ba28a5093a63822ab95"
-> > 
-> > OMAP3630 and OMAP4430 UART IP blocks have a restriction on TX FIFO
-> > too. If you try to write to the tx fifo when it is full, the system aborts.
-> > 
-> > This can be easily reproducible by not suppressing interconnect errors or
-> > long duration testing where continuous prints over console from multiple
-> > threads. This patch is addressing the issue by ensuring that write is
-> > not issued while fifo is full. A timeout is added to avoid any hang
-> > on fifo-full for 10 mS which is unlikely case.
-> > 
-> > Patch is validated on OMAP3630 and OMAP4 SDP.
-> > 
-> > V2 version removed the additional 1 uS on every TX as per
-> > Tony's suggestion
-> > 
-> > Signed-off-by: Woodruff Richard <r-woodruff2@ti.com>
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > CC: Ghorai Sukumar <s-ghorai@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/serial.c |   31 ++++++++++++++++++++++++++++---
-> >  1 files changed, 28 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> > index 5f3035e..b79bc89 100644
-> > --- a/arch/arm/mach-omap2/serial.c
-> > +++ b/arch/arm/mach-omap2/serial.c
-> > @@ -23,6 +23,7 @@
-> >  #include <linux/serial_reg.h>
-> >  #include <linux/clk.h>
-> >  #include <linux/io.h>
-> > +#include <linux/delay.h>
-> > 
-> >  #include <plat/common.h>
-> >  #include <plat/board.h>
-> > @@ -160,6 +161,13 @@ static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
-> >  	return (unsigned int)__raw_readb(up->membase + offset);
-> >  }
-> > 
-> > +static inline void __serial_write_reg(struct uart_port *up, int offset,
-> > +		int value)
-> > +{
-> > +	offset <<= up->regshift;
-> > +	__raw_writeb(value, up->membase + offset);
-> > +}
-> > +
-> >  static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
-> >  				    int value)
-> >  {
-> > @@ -620,6 +628,20 @@ static unsigned int serial_in_override(struct uart_port *up, int offset)
-> >  	return __serial_read_reg(up, offset);
-> >  }
-> > 
-> > +static void serial_out_override(struct uart_port *up, int offset, int value)
-> > +{
-> > +	unsigned int status, tmout = 10000;
-> > +
-> > +	status = __serial_read_reg(up, UART_LSR);
-> > +	while (!(status & UART_LSR_THRE)) {
-> > +		/* Wait up to 10ms for the character(s) to be sent. */
-> > +		if (--tmout == 0)
-> > +			break;
-> > +		udelay(1);
-> > +		status = __serial_read_reg(up, UART_LSR);
-> > +	}
-> > +	__serial_write_reg(up, offset, value);
-> > +}
-> >  void __init omap_serial_early_init(void)
-> >  {
-> >  	int i;
-> > @@ -721,11 +743,14 @@ void __init omap_serial_init_port(int port)
-> >  	 * omap3xxx: Never read empty UART fifo on UARTs
-> >  	 * with IP rev >=0x52
-> >  	 */
-> > -	if (cpu_is_omap44xx())
-> > +	if (cpu_is_omap44xx()) {
-> >  		uart->p->serial_in = serial_in_override;
-> > -	else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
-> > -			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
-> > +		uart->p->serial_out = serial_out_override;
-> > +	} else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
-> > +			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV) {
-> >  		uart->p->serial_in = serial_in_override;
-> > +		uart->p->serial_out = serial_out_override;
-> > +	}
-> >  }
-> > 
-> >  /**
-> > --
-> > 1.6.0.4
+> * Anna, Suman <s-anna@ti.com> [100222 11:53]:
+> > Hi Santosh,
+> >
+> > > -----Original Message-----
+> > > From: Shilimkar, Santosh
+> > > Sent: Saturday, February 20, 2010 12:47 PM
+> > > To: Anna, Suman; linux-omap@vger.kernel.org
+> > > Cc: Hiroshi.DOYU@nokia.com; Clark, Rob; Kanigeri, Hari; C.A,
+> Subramaniam
+> > > Subject: RE: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
+> > >
+> > > > -----Original Message-----
+> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > owner@vger.kernel.org] On Behalf Of Anna,
+> > > > Suman
+> > > > Sent: Friday, February 19, 2010 2:37 AM
+> > > > To: linux-omap@vger.kernel.org
+> > > > Cc: Hiroshi.DOYU@nokia.com; Clark, Rob; Kanigeri, Hari; C.A,
+> Subramaniam
+> > > > Subject: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
+> > > >
+> > > > From 78d00b562548e1d95ad12a4d8121be67950daf68 Mon Sep 17 00:00:00
+> 2001
+> > > > From: Suman Anna <s-anna@ti.com>
+> > > > Date: Mon, 25 Jan 2010 18:27:21 -0600
+> > > > Subject: [PATCH 1/5] omap2/3/4: mailbox: remove compiler warning
+> > > >
+> > > > Remove a compiler warning in device-specific
+> > > > mailbox module.
+> > > >
+> > > > Signed-off-by: Suman Anna <s-anna@ti.com>
+> > > > ---
+> > > >  arch/arm/mach-omap2/mailbox.c |    2 ++
+> > > >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > > >
+> > > > diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-
+> > > omap2/mailbox.c
+> > > > index 2c9fd1c..c970cf6 100644
+> > > > --- a/arch/arm/mach-omap2/mailbox.c
+> > > > +++ b/arch/arm/mach-omap2/mailbox.c
+> > > > @@ -419,8 +419,10 @@ static int __devinit omap2_mbox_probe(struct
+> > > platform_device *pdev)
+> > > >  #endif
+> > > >  	return 0;
+> > > >
+> > > > +#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+> > > >  err_iva1:
+> > > >  	omap_mbox_unregister(&mbox_dsp_info);
+> > > > +#endif
+> > > Can't we avoid the #ifdef here? Is this "omap_mbox_unregister" omap2
+> > > specific?
+> >
+> > Yes, this #ifdef is specific to 2420. There are other places in the
+> mailbox code which also utilize a similar #ifdef. I have merely added it
+> to remove the compile warning. I think it needs a separate patch to remove
+> all the 2420 specific #ifdefs.
 > 
+
+
+> Let's drop this patch for now. We should fix this with something like
+> this in mailbox.h:
+> 
+> #ifdef CONFIG_ARCH_OMAP2420
+> int omap_mbox_unregister(struct omap_mbox *);
+> #else
+> static inline int omap_mbox_unregister(struct omap_mbox *mbox)
+> {
+> 	return 0;
+> }
+> #endif
+> 
+> That way we can get rid of the ifdefs in other places too.
+> 
+> Tony
+
+Sorry, my statement is a little bit misleading. The omap_mbox_unregister function itself is not specific to 2420, but rather the call is. It should be called only for 2420, and hence the #ifdef. 
+
+Regards
+Suman
