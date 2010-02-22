@@ -1,53 +1,63 @@
-From: David Vrabel <david.vrabel@csr.com>
-Subject: Re: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Mon, 22 Feb 2010 14:28:36 +0000
-Message-ID: <4B829494.5000200@csr.com>
-References: <cover.1265801967.git.david.vrabel@csr.com> <846fbf1a68cde5fd2d7c7ab084ace239c8de6867.1265801967.git.david.vrabel@csr.com> <f4f02c7875316b7f65466a5ac06f5b2b2960aa96.1265801967.git.david.vrabel@csr.com> <9ce6cf93ba1e6c3fd239f732ea5889a856948db3.1265801967.git.david.vrabel@csr.com> <008801cab1a7$36c49c70$544ff780@am.dhcp.ti.com> <00bd01cab1cd$4a452d20$544ff780@am.dhcp.ti.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [PATCHv5 0/2] McBSP: OMAP3: Add sidetone feature
+Date: Mon, 22 Feb 2010 14:33:18 +0000
+Message-ID: <1266849198.3159.37.camel@odin>
+References: <1266841272-13135-1-git-send-email-ilkka.koskinen@nokia.com>
+	<201002221618.15859.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cluster-g.mailcontrol.com ([208.87.233.190]:34296 "EHLO
-	cluster-g.mailcontrol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753115Ab0BVOaH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 09:30:07 -0500
-In-Reply-To: <00bd01cab1cd$4a452d20$544ff780@am.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <201002221618.15859.peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Koskinen Ilkka (Nokia-D/Tampere)" <ilkka.koskinen@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
-Madhusudhan wrote:
+On Mon, 2010-02-22 at 16:18 +0200, Peter Ujfalusi wrote:
+> On Monday 22 February 2010 14:21:10 Koskinen Ilkka (Nokia-D/Tampere) wrote:
+> > The first patch implements McBSP sidetone feature on OMAP3 while the second
+> > one provides ALSA interface for using it.
+> > 
+> > The patch set is based on the patch Eduardo Valentin sent to alsa-devel
+> > mailing list in October 2009. Channel gain control and enabling the
+> > sidetone have been moved to ALSA interface as suggested in comments.
+> > 
+> > These patches apply on top of Janusz Krzysztofik's McBSP register cache
+> > patches in linux-omap-2.6.git
+> > 
+> > Since the version 4, ASoC part has been modified to deal with McBSP ids
+> > consistently (zero based indexing).
+> > 
+> > Eero Nurkkala (1):
+> >   McBSP: OMAP3: Add sidetone feature
+> > 
+> > Ilkka Koskinen (1):
+> >   ASoC: OMAP-McBSP: ASoC interface for McBSP sidetone
+> > 
+> >  arch/arm/mach-omap2/mcbsp.c             |    2 +
+> >  arch/arm/plat-omap/include/plat/mcbsp.h |   60 +++++
+> >  arch/arm/plat-omap/mcbsp.c              |  402
+> > ++++++++++++++++++++++++++++++- sound/soc/omap/omap-mcbsp.c             | 
+> > 138 +++++++++++
+> >  sound/soc/omap/omap-mcbsp.h             |    2 +
+> >  5 files changed, 603 insertions(+), 1 deletions(-)
 > 
-> A little bit of rearranging the David's changes to the irq handler gets the
-> MMC/SD cards to work fine again. Changes are shown in the attached patch for
-> now and it should not hurt the CIRQ handling as well. 
+> Both looks OK for me:
+> 
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-This breaks detecting card interrupts unless a command is in progress.
+Acked-by: Liam Girdwood <lrg@slimlogic.co.uk>
 
->>> +	status = OMAP_HSMMC_READ(host->base, STAT);
->>> +	OMAP_HSMMC_WRITE(host->base, STAT, status);
->>> +	OMAP_HSMMC_READ(host->base, STAT); /* Flush posted write. */
->>> +
->>> +	if (status & CIRQ)
->>> +		card_irq = true;
->>> +
->>> +	if (host->mrq == NULL)
->>> +		goto out;
->>>
->>>  	data = host->data;
->>>  	status = OMAP_HSMMC_READ(host->base, STAT);
-
-This line is the real problem.  We re-read MMCi_STAT after acknowledging
- (clearing) it.
-
-Please see the version #2 of the patchset.
-
-David
 -- 
-David Vrabel, Senior Software Engineer, Drivers
-CSR, Churchill House, Cambridge Business Park,  Tel: +44 (0)1223 692562
-Cowley Road, Cambridge, CB4 0WZ                 http://www.csr.com/
-
-
-Member of the CSR plc group of companies. CSR plc registered in England and Wales, registered number 4187346, registered office Churchill House, Cambridge Business Park, Cowley Road, Cambridge, CB4 0WZ, United Kingdom
+Freelance Developer, SlimLogic Ltd
+ASoC and Voltage Regulator Maintainer.
+http://www.slimlogic.co.uk
