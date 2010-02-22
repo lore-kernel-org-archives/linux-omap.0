@@ -1,43 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv5 0/2] McBSP: OMAP3: Add sidetone feature
-Date: Mon, 22 Feb 2010 10:35:26 -0800
-Message-ID: <20100222183526.GN18786@atomide.com>
-References: <1266841272-13135-1-git-send-email-ilkka.koskinen@nokia.com>
- <20100222143928.GA2133@rakim.wolfsonmicro.main>
+From: "Anna, Suman" <s-anna@ti.com>
+Subject: RE: [PATCH 2/5] omap: mailbox: correct OMAP4 reset logic
+Date: Mon, 22 Feb 2010 14:07:09 -0600
+Message-ID: <2C1563023E232C49B9F505633D57C2DA2640E02643@dlee04.ent.ti.com>
+References: <2C1563023E232C49B9F505633D57C2DA2640D0235C@dlee04.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C417FF8C@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64820 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752029Ab0BVSej (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 13:34:39 -0500
-Content-Disposition: inline
-In-Reply-To: <20100222143928.GA2133@rakim.wolfsonmicro.main>
+Received: from comal.ext.ti.com ([198.47.26.152]:47052 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753818Ab0BVUHR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 15:07:17 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C417FF8C@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Ilkka Koskinen <ilkka.koskinen@nokia.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@nokia.com, jhnikula@gmail.com, eduardo.valentin@nokia.com, ext-Eero.Nurkkala@nokia.com
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "Clark, Rob" <rob@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [100222 06:36]:
-> On Mon, Feb 22, 2010 at 02:21:10PM +0200, Ilkka Koskinen wrote:
-> > The first patch implements McBSP sidetone feature on OMAP3 while the second
-> > one provides ALSA interface for using it.
-> > 
-> > The patch set is based on the patch Eduardo Valentin sent to alsa-devel
-> > mailing list in October 2009. Channel gain control and enabling the sidetone
-> > have been moved to ALSA interface as suggested in comments. 
-> > 
-> > These patches apply on top of Janusz Krzysztofik's McBSP register cache
-> > patches in linux-omap-2.6.git
+Hi Santosh,
+
+> -----Original Message-----
+> From: Shilimkar, Santosh
+> Sent: Saturday, February 20, 2010 12:53 PM
+> To: Anna, Suman; linux-omap@vger.kernel.org
+> Cc: Hiroshi.DOYU@nokia.com; Clark, Rob; Kanigeri, Hari; C.A, Subramaniam
+> Subject: RE: [PATCH 2/5] omap: mailbox: correct OMAP4 reset logic
 > 
-> Both patches
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Anna,
+> > Suman
+> > Sent: Friday, February 19, 2010 2:37 AM
+> > To: linux-omap@vger.kernel.org
+> > Cc: Hiroshi.DOYU@nokia.com; Clark, Rob; Kanigeri, Hari; C.A, Subramaniam
+> > Subject: [PATCH 2/5] omap: mailbox: correct OMAP4 reset logic
+> >
+> > From 2488815a9facca29e2da3ddd279de441a5de6a58 Mon Sep 17 00:00:00 2001
+> > From: Suman Anna <s-anna@ti.com>
+> > Date: Tue, 26 Jan 2010 16:55:29 -0600
+> > Subject: [PATCH 2/5] omap: mailbox: correct OMAP4 reset logic
+> >
+> > OMAP4 mailbox has a different register set. There is
+> > no MAILBOX_SYSSTATUS register. The reset is indicated
+> > with the SOFTRESET bit of the MAILBOX_SYSCONFIG register
+> > itself. This bit should read 0 for a successful Reset.
+> > Also, the SOFTRESET bit occupies bit0 and not bit1 as with
+> > previous generations.
+> >
+> > Signed-off-by: Suman Anna <s-anna@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/mailbox.c |   38 +++++++++++++++++++++++++++-------
+> ----
+> >  1 files changed, 27 insertions(+), 11 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-
+> omap2/mailbox.c
+> > index c970cf6..88e9043 100644
+> > --- a/arch/arm/mach-omap2/mailbox.c
+> > +++ b/arch/arm/mach-omap2/mailbox.c
+> > @@ -40,6 +40,7 @@
+> >  #define AUTOIDLE	(1 << 0)
+> >  #define SOFTRESET	(1 << 1)
+> >  #define SMARTIDLE	(2 << 3)
+> > +#define OMAP4_SOFTRESET	(1 << 0)
+> >
+> >  /* SYSSTATUS: register bit definition */
+> >  #define RESETDONE	(1 << 0)
+> > @@ -99,17 +100,32 @@ static int omap2_mbox_startup(struct omap_mbox
+> *mbox)
+> >  	}
+> >  	clk_enable(mbox_ick_handle);
+> >
+> > -	mbox_write_reg(SOFTRESET, MAILBOX_SYSCONFIG);
+> > -	timeout = jiffies + msecs_to_jiffies(20);
+> > -	do {
+> > -		l = mbox_read_reg(MAILBOX_SYSSTATUS);
+> > -		if (l & RESETDONE)
+> > -			break;
+> > -	} while (!time_after(jiffies, timeout));
+> > -
+> > -	if (!(l & RESETDONE)) {
+> > -		pr_err("Can't take mmu out of reset\n");
+> > -		return -ENODEV;
+> > +	if (cpu_is_omap44xx()) {
+> Not so strong opinion but can we make use of mailbox ip revision instead
+> of cpu_is_xxxx() check.
 > 
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> 
-> too.
 
-OK, I'll add them into omap for-next.
+This may be a better option in the longer-run, but the current mailbox registers are assigned based on the cpu_is_xxxx() macro, and I have used this readily available macro rather doing a new one. Also, note that the IP revision value is not published in the TRM.
 
-Regards,
-
-Tony
+Regards
+Suman
