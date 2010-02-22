@@ -1,55 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] OMAP: omap_device: add omap_device_is_valid()
-Date: Sun, 21 Feb 2010 01:35:47 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1002210131210.24812@utopia.booyaka.com>
-References: <1264532444-22706-1-git-send-email-khilman@deeprootsystems.com> <alpine.DEB.2.00.1001271727450.1248@utopia.booyaka.com> <87ljfirvu2.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 1/2] AM35x: Add missing GPIO mux config for EHCI port
+Date: Mon, 22 Feb 2010 15:51:12 +0530
+Message-ID: <1266834073-7670-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44612 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753906Ab0BUIfs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Feb 2010 03:35:48 -0500
-In-Reply-To: <87ljfirvu2.fsf@deeprootsystems.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:55445 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751592Ab0BVKVS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Feb 2010 05:21:18 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1MALFIX004620
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 22 Feb 2010 04:21:17 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Hi Kevin,
+Adding GPIO mux config used for PHY reset of EHCI port on base board.
+We get below failure message without this patch,
 
-On Thu, 28 Jan 2010, Kevin Hilman wrote:
+"hub 1-0:1.0: unable to enumerate USB device on port 1"
 
-> Hmm, not sure I follow...  
-> 
-> struct omap_device already contains a struct platform_device, which in
-> turn contains a struct device, so to get an omap_device from a struct
-> device, there are two container of operaions: to_platform_device() and
-> to_omap_device()
-> 
-> 
-> from omap_device.h:
-> 
-> struct omap_device {
-> 	u32                             magic;
-> 	struct platform_device		pdev;
->         [...]
-> }
-> #define to_omap_device(x) container_of((x), struct omap_device, pdev)
-> 
-> from platform_device.h:
-> struct platform_device {
-> 	const char	* name;
-> 	int		id;
-> 	struct device	dev;
->         [...]
-> }
-> #define to_platform_device(x) container_of((x), struct platform_device, dev)
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ arch/arm/mach-omap2/board-am3517evm.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Sorry - my E-mail was too hasty and unclear.  What I had in mind was the 
-lifecycle aspect of omap_device - i.e., ensuring that omap_devices are 
-automatically freed by the device core, similar to the way that 
-platform_device_alloc() does it.
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index af99faf..c78a4d0 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -232,6 +232,9 @@ static void __init am3517_evm_init(void)
+ 				ARRAY_SIZE(am3517_evm_devices));
+ 
+ 	omap_serial_init();
++
++	/* Configure GPIO for EHCI port */
++	omap_mux_init_gpio(57, OMAP_PIN_OUTPUT);
+ 	usb_ehci_init(&ehci_pdata);
+ 	/* DSS */
+ 	am3517_evm_display_init();
+-- 
+1.6.2.4
 
-
-- Paul
