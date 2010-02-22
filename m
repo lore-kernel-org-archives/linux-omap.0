@@ -1,46 +1,29 @@
-From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Subject: [PATCHv5 0/2] McBSP: OMAP3: Add sidetone feature
-Date: Mon, 22 Feb 2010 14:21:10 +0200
-Message-ID: <1266841272-13135-1-git-send-email-ilkka.koskinen@nokia.com>
+From: Ryan <ryanphilips19@googlemail.com>
+Subject: pin muxing
+Date: Mon, 22 Feb 2010 17:53:46 +0530
+Message-ID: <376636be1002220423h6617e8der15b736d614e3821a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@nokia.com, jhnikula@gmail.com, broonie@opensource.wolfsonmicro.com, tony@atomide.com
-Cc: eduardo.valentin@nokia.com, ext-Eero.Nurkkala@nokia.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f217.google.com ([209.85.217.217]:38004 "EHLO
+	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751186Ab0BVMXr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 07:23:47 -0500
+Received: by gxk9 with SMTP id 9so3067576gxk.8
+        for <linux-omap@vger.kernel.org>; Mon, 22 Feb 2010 04:23:46 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-The first patch implements McBSP sidetone feature on OMAP3 while the second
-one provides ALSA interface for using it.
+Hello,
+I need to add a couple of mux entries and am refer  to
+arch/arm/mach-omap2/mux.c file.
 
-The patch set is based on the patch Eduardo Valentin sent to alsa-devel
-mailing list in October 2009. Channel gain control and enabling the sidetone
-have been moved to ALSA interface as suggested in comments. 
+I would like to what is the differences between  BALLNUM_34XX_ and
+BALLNUM_3430_ entries.  I could not find any mux entries specific to
+BALLNUM_35XX_.
 
-These patches apply on top of Janusz Krzysztofik's McBSP register cache
-patches in linux-omap-2.6.git
+How does one decide if a pin needs to be pulled up or pulldown.
 
-Since the version 4, ASoC part has been modified to deal with McBSP ids
-consistently (zero based indexing).
-
-Eero Nurkkala (1):
-  McBSP: OMAP3: Add sidetone feature
-
-Ilkka Koskinen (1):
-  ASoC: OMAP-McBSP: ASoC interface for McBSP sidetone
-
- arch/arm/mach-omap2/mcbsp.c             |    2 +
- arch/arm/plat-omap/include/plat/mcbsp.h |   60 +++++
- arch/arm/plat-omap/mcbsp.c              |  402 ++++++++++++++++++++++++++++++-
- sound/soc/omap/omap-mcbsp.c             |  138 +++++++++++
- sound/soc/omap/omap-mcbsp.h             |    2 +
- 5 files changed, 603 insertions(+), 1 deletions(-)
+Warm Regards,
+ Ryan
