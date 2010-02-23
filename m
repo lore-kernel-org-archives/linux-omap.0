@@ -1,7 +1,7 @@
 From: hvaibhav@ti.com
-Subject: [PATCH-V1 05/10] VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
-Date: Tue, 23 Feb 2010 14:04:28 +0530
-Message-ID: <1266914073-30135-6-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V1 10/10] AM3517: Add VPFE Capture driver support
+Date: Tue, 23 Feb 2010 14:04:33 +0530
+Message-ID: <1266914073-30135-11-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <hvaibhav@ti.com>
@@ -12,106 +12,203 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-For the devices like AM3517, it is expected that driver clears the
-interrupt in ISR. Since this is device spcific, callback function
-added to the platform_data.
+AM3517 and DM644x uses same CCDC IP, so reusing the driver
+for AM3517.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- drivers/media/video/ti-media/vpfe_capture.c |   24 ++++++++++++++++++++----
- include/media/ti-media/vpfe_capture.h       |    2 ++
- 2 files changed, 22 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c |  160 +++++++++++++++++++++++++++++++++
+ 1 files changed, 160 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/ti-media/vpfe_capture.c b/drivers/media/video/ti-media/vpfe_capture.c
-index 2f9d3bb..3ffd636 100644
---- a/drivers/media/video/ti-media/vpfe_capture.c
-+++ b/drivers/media/video/ti-media/vpfe_capture.c
-@@ -475,6 +475,11 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
- 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
- 	if (!ret)
- 		vpfe_dev->initialized = 1;
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 195d0ce..9411979 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -30,11 +30,164 @@
+
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/control.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
+
++#include <media/tvp514x.h>
++#include <media/ti-media/vpfe_capture.h>
 +
-+	/* Clear all VPFE/CCDC interrupts */
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(-1);
+ #include "mux.h"
+
++/*
++ * VPFE - Video Decoder interface
++ */
++#define TVP514X_STD_ALL		(V4L2_STD_NTSC | V4L2_STD_PAL)
 +
- unlock:
- 	mutex_unlock(&ccdc_lock);
- 	return ret;
-@@ -562,7 +567,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
-
- 	/* if streaming not started, don't do anything */
- 	if (!vpfe_dev->started)
--		return IRQ_HANDLED;
-+		goto clear_intr;
-
- 	/* only for 6446 this will be applicable */
- 	if (NULL != ccdc_dev->hw_ops.reset)
-@@ -574,7 +579,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 			"frame format is progressive...\n");
- 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
- 			vpfe_process_buffer_complete(vpfe_dev);
--		return IRQ_HANDLED;
-+		goto clear_intr;
- 	}
-
- 	/* interlaced or TB capture check which field we are in hardware */
-@@ -604,7 +609,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 				addr += vpfe_dev->field_off;
- 				ccdc_dev->hw_ops.setfbaddr(addr);
- 			}
--			return IRQ_HANDLED;
-+			goto clear_intr;
- 		}
- 		/*
- 		 * if one field is just being captured configure
-@@ -624,6 +629,10 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 		 */
- 		vpfe_dev->field_id = fid;
- 	}
-+clear_intr:
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
++/* Inputs available at the TVP5146 */
++static struct v4l2_input tvp5146_inputs[] = {
++	{
++		.index	= 0,
++		.name	= "Composite",
++		.type	= V4L2_INPUT_TYPE_CAMERA,
++		.std	= TVP514X_STD_ALL,
++	},
++	{
++		.index	= 1,
++		.name	= "S-Video",
++		.type	= V4L2_INPUT_TYPE_CAMERA,
++		.std	= TVP514X_STD_ALL,
++	},
++};
 +
- 	return IRQ_HANDLED;
- }
-
-@@ -635,8 +644,11 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
-
- 	/* if streaming not started, don't do anything */
--	if (!vpfe_dev->started)
-+	if (!vpfe_dev->started) {
-+		if (vpfe_dev->cfg->clr_intr)
-+			vpfe_dev->cfg->clr_intr(irq);
- 		return IRQ_HANDLED;
++static struct tvp514x_platform_data tvp5146_pdata = {
++	.clk_polarity	= 0,
++	.hs_polarity	= 1,
++	.vs_polarity	= 1
++};
++
++static struct vpfe_route tvp5146_routes[] = {
++	{
++		.input	= INPUT_CVBS_VI1A,
++		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++	{
++		.input	= INPUT_SVIDEO_VI2C_VI1C,
++		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++};
++
++static struct vpfe_subdev_info vpfe_sub_devs[] = {
++	{
++		.name		= "tvp5146",
++		.grp_id		= 0,
++		.num_inputs	= ARRAY_SIZE(tvp5146_inputs),
++		.inputs		= tvp5146_inputs,
++		.routes		= tvp5146_routes,
++		.can_route	= 1,
++		.ccdc_if_params	= {
++			.if_type = VPFE_BT656,
++			.hdpol	= VPFE_PINPOL_POSITIVE,
++			.vdpol	= VPFE_PINPOL_POSITIVE,
++		},
++		.board_info	= {
++			I2C_BOARD_INFO("tvp5146", 0x5C),
++			.platform_data = &tvp5146_pdata,
++		},
++	},
++};
++
++static void am3517_evm_clear_vpfe_intr(int vdint)
++{
++	unsigned int vpfe_int_clr;
++
++	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++
++	switch (vdint) {
++	/* VD0 interrrupt */
++	case INT_35XX_CCDC_VD0_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
++		break;
++	/* VD1 interrrupt */
++	case INT_35XX_CCDC_VD1_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
++		break;
++	/* VD2 interrrupt */
++	case INT_35XX_CCDC_VD2_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
++		break;
++	/* Clear all interrrupts */
++	default:
++		vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
++				AM35XX_VPFE_CCDC_VD1_INT_CLR |
++				AM35XX_VPFE_CCDC_VD2_INT_CLR);
++		vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
++				AM35XX_VPFE_CCDC_VD1_INT_CLR |
++				AM35XX_VPFE_CCDC_VD2_INT_CLR);
++		break;
 +	}
-
- 	spin_lock(&vpfe_dev->dma_queue_lock);
- 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
-@@ -644,6 +656,10 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
- 		vpfe_schedule_next_buffer(vpfe_dev);
- 	spin_unlock(&vpfe_dev->dma_queue_lock);
++	omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
++	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++}
 +
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
++static struct vpfe_config vpfe_cfg = {
++	.num_subdevs	= ARRAY_SIZE(vpfe_sub_devs),
++	.i2c_adapter_id	= 3,
++	.sub_devs	= vpfe_sub_devs,
++	.clr_intr	= am3517_evm_clear_vpfe_intr,
++	.card_name	= "DM6446 EVM",
++	.ccdc		= "DM6446 CCDC",
++};
 +
- 	return IRQ_HANDLED;
- }
++static struct resource vpfe_resources[] = {
++	{
++		.start	= INT_35XX_CCDC_VD0_IRQ,
++		.end	= INT_35XX_CCDC_VD0_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	},
++	{
++		.start	= INT_35XX_CCDC_VD1_IRQ,
++		.end	= INT_35XX_CCDC_VD1_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
++static struct platform_device vpfe_capture_dev = {
++	.name		= CAPTURE_DRV_NAME,
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(vpfe_resources),
++	.resource	= vpfe_resources,
++	.dev = {
++		.dma_mask		= &vpfe_capture_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++		.platform_data		= &vpfe_cfg,
++	},
++};
++
++static struct resource dm644x_ccdc_resource[] = {
++	/* CCDC Base address */
++	{
++		.start	= AM35XX_IPSS_VPFE_BASE,
++		.end	= AM35XX_IPSS_VPFE_BASE + 0xffff,
++		.flags	= IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device dm644x_ccdc_dev = {
++	.name		= "dm644x_ccdc",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(dm644x_ccdc_resource),
++	.resource	= dm644x_ccdc_resource,
++	.dev = {
++		.dma_mask		= &vpfe_capture_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++};
++
+ #define LCD_PANEL_PWR		176
+ #define LCD_PANEL_BKLIGHT_PWR	182
+ #define LCD_PANEL_PWM		181
+@@ -261,6 +414,8 @@ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
 
-diff --git a/include/media/ti-media/vpfe_capture.h b/include/media/ti-media/vpfe_capture.h
-index 5287368..f0a7b7a 100644
---- a/include/media/ti-media/vpfe_capture.h
-+++ b/include/media/ti-media/vpfe_capture.h
-@@ -94,6 +94,8 @@ struct vpfe_config {
- 	/* vpfe clock */
- 	struct clk *vpssclk;
- 	struct clk *slaveclk;
-+	/* Function for Clearing the interrupt */
-+	void (*clr_intr)(int vdint);
+ static struct platform_device *am3517_evm_devices[] __initdata = {
+ 	&am3517_evm_dss_device,
++	&dm644x_ccdc_dev,
++	&vpfe_capture_dev,
  };
 
- struct vpfe_device {
+ static void __init am3517_evm_init_irq(void)
+@@ -310,6 +465,11 @@ static void __init am3517_evm_init(void)
+
+ 	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
+ 				ARRAY_SIZE(am3517evm_i2c_boardinfo));
++
++	clk_add_alias("master", "dm644x_ccdc", "master",
++			&vpfe_capture_dev.dev);
++	clk_add_alias("slave", "dm644x_ccdc", "slave",
++			&vpfe_capture_dev.dev);
+ }
+
+ static void __init am3517_evm_map_io(void)
 --
 1.6.2.4
