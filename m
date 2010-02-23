@@ -1,63 +1,86 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH V2] [PM-WIP-OPP]: Fixing wrong target level being passed during Core DVFS.
-Date: Tue, 23 Feb 2010 10:37:14 -0800
-Message-ID: <87fx4rztlx.fsf@deeprootsystems.com>
-References: <1266944632-9744-1-git-send-email-thara@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] OMAP: HWMOD: Bug fixes in hwmod structure definitions
+Date: Tue, 23 Feb 2010 11:37:19 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002231136340.2701@utopia.booyaka.com>
+References: <1266483755-22878-1-git-send-email-thara@ti.com> <alpine.DEB.2.00.1002181348120.24812@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB0321A204BB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:57234 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562Ab0BWShT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 13:37:19 -0500
-Received: by vws6 with SMTP id 6so504725vws.19
-        for <linux-omap@vger.kernel.org>; Tue, 23 Feb 2010 10:37:18 -0800 (PST)
-In-Reply-To: <1266944632-9744-1-git-send-email-thara@ti.com> (Thara Gopinath's message of "Tue\, 23 Feb 2010 22\:33\:52 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:42554 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752363Ab0BWShU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 13:37:20 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321A204BB@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Thara Gopinath <thara@ti.com> writes:
+On Tue, 23 Feb 2010, Gopinath, Thara wrote:
 
-> As per the current implementaion (u8*)&target_level is being passed
-> to freq_to_opp in set_opp. This would result in updating just the first
-> 8 bits of a u32 variable. Later target_level is passed to
-> resource_set_opp_level as a u32 parameter. This maens
-> a. Initially target_level was 0xabcdefgh.
-> b. freq_to_opp updates the lower eight bits of target_level
-> to 0xXX. Now target_level = 0xabcdefXX.
-> c. We pass 0xabcdefXX as target_level to resource_set_opp_level
-> when we want to pass just 0xXX.
-> This is leading to some corrupted bookkeeping later on in the
-> dvfs path.
->
-> This patch ensures that target_level passed to resource_set_opp_level
-> is actually the level that is intended by freq_to_opp API.
->
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> 
+> 
+> >>-----Original Message-----
+> >>From: Paul Walmsley [mailto:paul@pwsan.com]
+> >>Sent: Friday, February 19, 2010 2:20 AM
+> >>To: Gopinath, Thara
+> >>Cc: linux-omap@vger.kernel.org
+> >>Subject: Re: [PATCH] OMAP: HWMOD: Bug fixes in hwmod structure definitions
+> >>
+> >>Hello Thara,
+> >>
+> >>some comments.
+> >>
+> >>On Thu, 18 Feb 2010, Thara Gopinath wrote:
+> >>
+> >>> This patch corrects the width of some variables in hwmod structures
+> >>> where the values to be stored in these variables exceed the current
+> >>> field width.
+> >>>
+> >>> Signed-off-by: Thara Gopinath <thara@ti.com>
+> >>> Cc: Paul Walmsley <paul@pwsan.com>
+> >>> ---
+> >>>  arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 +++---
+> >>>  1 files changed, 3 insertions(+), 3 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-
+> >>omap/include/plat/omap_hwmod.h
+> >>> index 921990e..06a7f20 100644
+> >>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> >>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> >>> @@ -258,7 +258,7 @@ struct omap_hwmod_sysconfig {
+> >>>  	u16 sysc_offs;
+> >>>  	u16 syss_offs;
+> >>>  	u8 idlemodes;
+> >>> -	u8 sysc_flags;
+> >>> +	u16 sysc_flags;
+> >>
+> >>This part is fine.
+> >>
+> >>>  	u8 clockact;
+> >>>  };
+> >>>
+> >>> @@ -280,9 +280,9 @@ struct omap_hwmod_sysconfig {
+> >>>  struct omap_hwmod_omap2_prcm {
+> >>>  	s16 module_offs;
+> >>>  	u8 prcm_reg_id;
+> >>> -	u8 module_bit;
+> >>> +	u32 module_bit;
+> >>>  	u8 idlest_reg_id;
+> >>> -	u8 idlest_idle_bit;
+> >>> +	u32 idlest_idle_bit;
+> >>>  	u8 idlest_stdby_bit;
+> >>>  };
+> >>
+> >>This part I don't understand.  These are bit shifts in a 32 bit register,
+> >>e.g., (1 << idlest_idle_bit), so how could these ever exceed 31?
+> 
+> Hi Paul,
+> 
+> Oh... ok. I was under the impression these bits are to be assigned the value
+> 1 << shift.. My bad.. Do you want me to re sumbmit the patch with just the
+> first fix.
 
-Thanks, applying to pm-wip-opp after cleaning up the formatting in the changelog
-to be a little more readable.
+Yes.
 
-Kevin
-
-> ---
->  arch/arm/mach-omap2/resource34xx.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-> index 3604a38..2c850a2 100644
-> --- a/arch/arm/mach-omap2/resource34xx.c
-> +++ b/arch/arm/mach-omap2/resource34xx.c
-> @@ -478,6 +478,7 @@ int set_opp(struct shared_resource *resp, u32 target_level)
->  		/* uh uh.. no OPPs?? */
->  		BUG_ON(IS_ERR(oppx));
->  
-> +		target_level = 0;
->  		ret = freq_to_opp((u8 *)&target_level, OPP_L3, req_l3_freq);
->  		/* we dont expect this to fail */
->  		BUG_ON(ret);
-> -- 
-> 1.5.4.7
+_ Paul
