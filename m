@@ -1,41 +1,47 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] musb: fix power field to hold all possible values
-Date: Tue, 23 Feb 2010 22:32:15 +0200
-Message-ID: <20100223203215.GA21920@gandalf>
-References: <1266918404-17715-1-git-send-email-ajay.gupta@ti.com>
- <20100223095154.GA12815@gandalf>
- <19F8576C6E063C45BE387C64729E7394044DA995E5@dbde02.ent.ti.com>
-Reply-To: me@felipebalbi.com
+From: ville.syrjala@nokia.com
+Subject: [PATCH 1/3] OMAPFB: install omapfb.h
+Date: Wed, 24 Feb 2010 00:36:25 +0200
+Message-ID: <1266964587-14381-1-git-send-email-ville.syrjala@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:47589 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754113Ab0BWUc1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 15:32:27 -0500
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DA995E5@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:32398 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754089Ab0BWWgp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 17:36:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@nokia.com>
 
-Hi,
+=46rom: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
 
-On Tue, Feb 23, 2010 at 08:01:50PM +0530, Gupta, Ajay Kumar wrote:
-> Board files are providing the actual mA and it is getting divided in 
-> Arch/arm/mach-omap2/usb-musb.c. See the code snippet below,
-> 
->         musb_plat.clock = "ick";
->         musb_plat.board_data = board_data;
-> -->     musb_plat.power = board_data->power >> 1;
->         musb_plat.mode = board_data->mode;
-> 
-> So we need to either take this patch or fix this logic of dividing the mA
-> supplied from all omap board files.
+omapfb has several custom ioctls so user space needs
+the header in order to utilize them.
 
-that's true, had missed that. Sorry.
+Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
+---
+ include/linux/Kbuild |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
--- 
-balbi
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index 1feed71..505ff9e 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -124,6 +124,7 @@ header-y +=3D nfs2.h
+ header-y +=3D nfs4_mount.h
+ header-y +=3D nfs_mount.h
+ header-y +=3D nl80211.h
++header-y +=3D omapfb.h
+ header-y +=3D param.h
+ header-y +=3D pci_regs.h
+ header-y +=3D perf_event.h
+--=20
+1.6.4.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
