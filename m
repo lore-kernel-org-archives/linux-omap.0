@@ -1,73 +1,37 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 10/11] omap: musb: get rid of dyn_fifo
-Date: Tue, 23 Feb 2010 14:32:50 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DA9946D@dbde02.ent.ti.com>
-References: <20100219232648.10559.380.stgit@baageli.muru.com>
- <20100219233036.10559.29778.stgit@baageli.muru.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39181 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab0BWJC7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 04:02:59 -0500
-In-Reply-To: <20100219233036.10559.29778.stgit@baageli.muru.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: hvaibhav@ti.com
+Subject: [PATCH-V6 0/2] OMAP3: Add V4L2 display driver support
+Date: Tue, 23 Feb 2010 14:57:17 +0530
+Message-ID: <1266917239-7094-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <hvaibhav@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl, Vaibhav Hiremath <hvaibhav@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-arm-
-> kernel-bounces@lists.infradead.org] On Behalf Of Tony Lindgren
-> Sent: Saturday, February 20, 2010 5:01 AM
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: Felipe Balbi; linux-omap@vger.kernel.org; linux-usb@vger.kernel.org
-> Subject: [PATCH 10/11] omap: musb: get rid of dyn_fifo
-> 
-> From: Felipe Balbi <felipe.balbi@nokia.com>
-> 
-> that's deprecated as we can check dyn_fifo from
-> CONFIGDATA register.
-> 
-> Cc: linux-usb@vger.kernel.org
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Felipe,
+This is 6th Version of patch-set, adds support for V4L2 display driver
+ontop of DSS2 framework.
 
-This patch causes musb init failure if below patch[1] is not taken.
+Please note that this patch is dependent on patch which add
+"ti-media" directory (submitted earlier to this patch series).
 
-[1] http://marc.info/?l=linux-omap&m=126088393130177&w=2
 
-I don't see patch [1] in Greg's queue also so please forward it to
-Greg.
+Vaibhav Hiremath (2):
+  OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on top of DSS2
+  OMAP2/3: Add V4L2 DSS driver support in device.c
 
-Regards,
-Ajay 
-
-> ---
->  arch/arm/mach-omap2/usb-musb.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-
-> musb.c
-> index 2221a6c..85feb60 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -49,7 +49,6 @@ static struct resource musb_resources[] = {
-> 
->  static struct musb_hdrc_config musb_config = {
->  	.multipoint	= 1,
-> -	.dyn_fifo	= 1,
->  	.num_eps	= 16,
->  	.ram_bits	= 12,
->  };
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+ arch/arm/plat-omap/devices.c                |   29 +
+ drivers/media/video/ti-media/Kconfig        |   12 +
+ drivers/media/video/ti-media/Makefile       |    4 +
+ drivers/media/video/ti-media/omap_vout.c    | 2655 +++++++++++++++++++++++++++
+ drivers/media/video/ti-media/omap_voutdef.h |  148 ++
+ drivers/media/video/ti-media/omap_voutlib.c |  258 +++
+ drivers/media/video/ti-media/omap_voutlib.h |   34 +
+ 7 files changed, 3140 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/ti-media/omap_vout.c
+ create mode 100644 drivers/media/video/ti-media/omap_voutdef.h
+ create mode 100644 drivers/media/video/ti-media/omap_voutlib.c
+ create mode 100644 drivers/media/video/ti-media/omap_voutlib.h
