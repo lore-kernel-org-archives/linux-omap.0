@@ -1,179 +1,114 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 10/11] OMAP4: clock: Add dummy clock nodes for interface clocks
-Date: Mon, 22 Feb 2010 21:50:58 -0700
-Message-ID: <20100223045056.18888.65308.stgit@localhost.localdomain>
-References: <20100223044915.18888.83242.stgit@localhost.localdomain>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH] PM-WIP-OPP: Fixing wrong target level being passed
+ during Core DVFS.
+Date: Mon, 22 Feb 2010 23:28:06 -0600
+Message-ID: <A24693684029E5489D1D202277BE894453799477@dlee02.ent.ti.com>
+References: <1266481866-10875-1-git-send-email-thara@ti.com>
+ <4B7D558D.7000101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60278 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961Ab0BWE5k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 23:57:40 -0500
-In-Reply-To: <20100223044915.18888.83242.stgit@localhost.localdomain>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59607 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750863Ab0BWF2M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 00:28:12 -0500
+In-Reply-To: <4B7D558D.7000101@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>, "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Nishanth,
 
-On OMAP4 platform the iclk control is completly under hardware control
-and no software control is available.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+> Sent: Thursday, February 18, 2010 8:58 AM
+> To: Gopinath, Thara
+> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Kristo Tero (Nokia-
+> D/Tampere)
+> Subject: Re: [PATCH] PM-WIP-OPP: Fixing wrong target level being passed
+> during Core DVFS.
+> 
+> Gopinath, Thara said the following on 02/18/2010 10:31 AM:
+> > As per the current implementaion (u8*)&target_level is being passed
+> > to freq_to_opp in set_opp. This would result in updating just the first
+> > 8 bits of a u32 variable. Later target_level is passed to
+> > resource_set_opp_level as a u32 parameter. This maens
+> > a. Initially target_level was 0xabcdefgh.
+> > b. freq_to_opp updates the lower eight bits of target_level
+> > to 0xXX. Now target_level = 0xabcdefXX.
+> > c. We pass 0xabcdefXX as target_level to resource_set_opp_level
+> > when we want to pass just 0xXX.
+> > This is leading to some corrupted bookkeeping later on in the
+> > dvfs path.
+> >
+> > This patch ensures that target_level passed to resource_set_opp_level
+> > is actually the level that is intended by freq_to_opp API.
+> 
+> Thanks.. good catch.
+> [PATCH] PM-WIP-OPP: Fixing wrong target level being passed during Core
+> DVFS.
+> Suggestion on the subject:
+> could you put it something like the following so that git-am will
+> throw away PM-WIP-OPP?
+> [PATCH] [PM-WIP-OPP] omap3: pm: Fix wrong target level during core dvfs
+> 
+> ?
+> Some suggestion below.
+> 
+> >
+> > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > ---
+> >  arch/arm/mach-omap2/resource34xx.c |    4 +++-
+> >  1 files changed, 3 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-
+> omap2/resource34xx.c
+> > index 3604a38..d2336d8 100644
+> > --- a/arch/arm/mach-omap2/resource34xx.c
+> > +++ b/arch/arm/mach-omap2/resource34xx.c
+> > @@ -463,6 +463,7 @@ int set_opp(struct shared_resource *resp, u32
+> target_level)
+> >  	} else if (resp == vdd2_resp) {
+> >  		unsigned long req_l3_freq;
+> >  		struct omap_opp *oppx = NULL;
+> > +		u8 opp;
+> >
+> >  		/* Convert the tput in KiB/s to Bus frequency in MHz */
+> >  		req_l3_freq = (target_level * 1000)/4;
+> > @@ -478,10 +479,11 @@ int set_opp(struct shared_resource *resp, u32
+> target_level)
+> >  		/* uh uh.. no OPPs?? */
+> >  		BUG_ON(IS_ERR(oppx));
+> >
+> If you do target_level = 0; here, the entire patch is a oneliner :)
 
-This difference w.r.t previous OMAP's needs all the common driver
-accross OMAP's , cpu_is_xxxx() checks. To avoid poulluting the
-drivers dummy clock nodes are created (The autogeneration
-script has been updated accordingly).
+Actually, IMHO will be even more clean, to standardize all OPP value passing to be u8.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-[paul@pwsan.com: made OMAP1 dummy_ck common and edited patch to reuse that]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap1/clock.c             |   14 ------------
- arch/arm/mach-omap1/clock_data.c        |    6 -----
- arch/arm/mach-omap2/clock.h             |    1 +
- arch/arm/mach-omap2/clock44xx_data.c    |   35 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/clock.c              |   10 +++++++++
- arch/arm/plat-omap/include/plat/clock.h |    2 ++
- 6 files changed, 48 insertions(+), 20 deletions(-)
+Do you really need to be prepared for 2^32 opp values? ;)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 0ba044d..e0aec10 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -38,20 +38,6 @@ struct clk *api_ck_p, *ck_dpll1_p, *ck_ref_p;
-  * Omap1 specific clock functions
-  *-------------------------------------------------------------------------*/
- 
--static int clk_omap1_dummy_enable(struct clk *clk)
--{
--	return 0;
--}
--
--static void clk_omap1_dummy_disable(struct clk *clk)
--{
--}
--
--const struct clkops clkops_dummy = {
--	.enable		= clk_omap1_dummy_enable,
--	.disable	= clk_omap1_dummy_disable,
--};
--
- unsigned long omap1_uart_recalc(struct clk *clk)
- {
- 	unsigned int val = __raw_readl(clk->enable_reg);
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index 8b1d14d..aa8558a 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -27,12 +27,6 @@
-  * Omap1 clocks
-  *-------------------------------------------------------------------------*/
- 
--/* XXX is this necessary? */
--static struct clk dummy_ck = {
--	.name	= "dummy",
--	.ops	= &clkops_dummy,
--};
--
- static struct clk ck_ref = {
- 	.name		= "ck_ref",
- 	.ops		= &clkops_null,
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 49ad473..816d932 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -101,6 +101,7 @@ void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
- extern u8 cpu_mask;
- 
- extern const struct clkops clkops_omap2_dflt_wait;
-+extern const struct clkops clkops_dummy;
- extern const struct clkops clkops_omap2_dflt;
- 
- extern struct clk_functions omap2_clk_functions;
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index c0825cf..28b1079 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -2645,6 +2645,41 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"usim_fclk",			&usim_fclk,	CK_443X),
- 	CLK(NULL,	"utmi_p1_gfclk_ck",		&utmi_p1_gfclk_ck,	CK_443X),
- 	CLK(NULL,	"utmi_p2_gfclk_ck",		&utmi_p2_gfclk_ck,	CK_443X),
-+	CLK(NULL,	"gpio1_dbck",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpio2_dbck",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpio3_dbck",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpio4_dbck",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpio5_dbck",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpio6_dbck",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpmc_ck",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt1_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt2_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt3_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt4_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt5_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt6_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt7_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt8_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt9_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt10_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"gpt11_ick",			&dummy_ck,	CK_443X),
-+	CLK("i2c_omap.1",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("i2c_omap.2",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("i2c_omap.3",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("i2c_omap.4",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omap-mcbsp.1",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omap-mcbsp.2",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omap-mcbsp.3",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omap-mcbsp.4",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omap-mcspi.1",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omap-mcspi.2",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omap-mcspi.3",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omap-mcspi.4",	"ick",				&dummy_ck,	CK_443X),
-+	CLK(NULL,	"uart1_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"uart2_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"uart3_ick",			&dummy_ck,	CK_443X),
-+	CLK(NULL,	"uart4_ick",			&dummy_ck,	CK_443X),
-+	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
- };
- 
- int __init omap4xxx_clk_init(void)
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 6cc13e7..5261a09 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -357,6 +357,16 @@ const struct clkops clkops_null = {
- 	.disable	= clkll_disable_null,
- };
- 
-+/*
-+ * Dummy clock
-+ *
-+ * Used for clock aliases that are needed on some OMAPs, but not others
-+ */
-+struct clk dummy_ck = {
-+	.name	= "dummy",
-+	.ops	= &clkops_null,
-+};
-+
- #ifdef CONFIG_CPU_FREQ
- void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- {
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 6a32ac1..2e2e4c5 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -188,6 +188,8 @@ extern struct clk *omap_clk_get_by_name(const char *name);
- 
- extern const struct clkops clkops_null;
- 
-+extern struct clk dummy_ck;
-+
- /* Clock flags */
- #define ENABLE_REG_32BIT	(1 << 0)	/* Use 32-bit access */
- #define CLOCK_IDLE_CONTROL	(1 << 1)
+Regards,
+Sergio
 
-
+> 
+> > -		ret = freq_to_opp((u8 *)&target_level, OPP_L3, req_l3_freq);
+> > +		ret = freq_to_opp(&opp, OPP_L3, req_l3_freq);
+> >  		/* we dont expect this to fail */
+> >  		BUG_ON(ret);
+> >
+> > +		target_level = opp;
+> >  		ret = resource_set_opp_level(VDD2_OPP, target_level, 0);
+> >  	}
+> >  	return 0;
+> 
+> --
+> Regards,
+> Nishanth Menon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
