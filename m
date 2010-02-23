@@ -1,56 +1,41 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH] DSPBRIDGE: Get rid of memset() from MEM_Calloc()
-Date: Tue, 23 Feb 2010 10:23:13 -0600
-Message-ID: <4B8400F1.9010403@ti.com>
-References: <b487eb065323f57efcaea92d30f8cca5041589ee.1266334736.git.ameya.palande@nokia.com>
+Subject: Re: [PATCH 1/2] DSPBRIDGE: cleanup patch for DRV_RemoveAllSTRMResElements
+ function
+Date: Tue, 23 Feb 2010 10:23:23 -0600
+Message-ID: <4B8400FB.6070006@ti.com>
+References: <496565EC904933469F292DDA3F1663E602CA2B9605@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56008 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47216 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753169Ab0BWQXP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Feb 2010 11:23:15 -0500
-In-Reply-To: <b487eb065323f57efcaea92d30f8cca5041589ee.1266334736.git.ameya.palande@nokia.com>
+	id S1753249Ab0BWQXa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Feb 2010 11:23:30 -0500
+In-Reply-To: <496565EC904933469F292DDA3F1663E602CA2B9605@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-On 2/16/2010 9:40 AM, Ameya Palande wrote:
-> Signed-off-by: Ameya Palande<ameya.palande@nokia.com>
-> ---
->   drivers/dsp/bridge/services/mem.c |   11 ++++-------
->   1 files changed, 4 insertions(+), 7 deletions(-)
+On 2/16/2010 6:39 PM, Guzman Lugo, Fernando wrote:
+>  From 718174a6ed1b54ce0120080a953d7f0a5ebb8d6d Mon Sep 17 00:00:00 2001
+> From: Fernando Guzman Lugo<x0095840@ti.com>
+> Date: Tue, 16 Feb 2010 18:14:26 -0600
+> Subject: [PATCH] DSPBRIDGE: cleanup patch for DRV_RemoveAllSTRMResElements function
 >
-> diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
-> index 614396e..2501eee 100644
-> --- a/drivers/dsp/bridge/services/mem.c
-> +++ b/drivers/dsp/bridge/services/mem.c
-> @@ -227,16 +227,13 @@ void *MEM_Calloc(u32 cBytes, enum MEM_POOLATTRS type)
->   		case MEM_NONPAGED:
->   		/* If non-paged memory required, see note at top of file. */
->   		case MEM_PAGED:
-> -			pMem = kmalloc(cBytes,
-> +			pMem = kzalloc(cBytes,
->   				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
-> -			if (pMem)
-> -				memset(pMem, 0, cBytes);
-> -
->   			break;
->   		case MEM_LARGEVIRTMEM:
-> -			pMem = vmalloc(cBytes);
-> -			if (pMem)
-> -				memset(pMem, 0, cBytes);
-> +			pMem = __vmalloc(cBytes,
-> +				GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO,
-> +				PAGE_KERNEL);
->   			break;
->   		default:
->   			GT_1trace(MEM_debugMask, GT_6CLASS,
+> This patches clenaups the function DRV_RemoveAllSTRMResElements and
+> DRV_ProcFreeSTRMRes and it turns them into one function.
+>
+> Signed-off-by: Fernando Guzman Lugo<x0095840@ti.com>
+> ---
+>   drivers/dsp/bridge/rmgr/drv.c |   66 ++++++++++++----------------------------
+>   1 files changed, 20 insertions(+), 46 deletions(-)
+>
 
 Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 
 Pushed to dspbridge
 
 - omar
+
