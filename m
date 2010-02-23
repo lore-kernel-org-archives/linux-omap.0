@@ -1,90 +1,56 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH] OMAP: HWMOD: Bug fixes in hwmod structure definitions
-Date: Tue, 23 Feb 2010 19:45:40 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321A204BB@dbde02.ent.ti.com>
-References: <1266483755-22878-1-git-send-email-thara@ti.com>
- <alpine.DEB.2.00.1002181348120.24812@utopia.booyaka.com>
+From: Jacob john <jacob.john74@gmail.com>
+Subject: Re: About multicore OMAP
+Date: Tue, 23 Feb 2010 19:50:31 +0530
+Message-ID: <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
+References: <31ee32481002230504m2cc4dfebu85426681e76b4ee@mail.gmail.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E14F4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49943 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752538Ab0BWOPx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 09:15:53 -0500
-In-Reply-To: <alpine.DEB.2.00.1002181348120.24812@utopia.booyaka.com>
-Content-Language: en-US
+Received: from qw-out-2122.google.com ([74.125.92.25]:14332 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752975Ab0BWOUd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 09:20:33 -0500
+Received: by qw-out-2122.google.com with SMTP id 8so716610qwh.37
+        for <linux-omap@vger.kernel.org>; Tue, 23 Feb 2010 06:20:31 -0800 (PST)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E14F4@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+It's=C2=A0Blaze with=C2=A0two lcd's and pico, looks great. Can I have t=
+his
+linux-omap kernel running on OMAP4?, plus I'm looking for SMP
+benchmark results etc.
 
 
->>-----Original Message-----
->>From: Paul Walmsley [mailto:paul@pwsan.com]
->>Sent: Friday, February 19, 2010 2:20 AM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org
->>Subject: Re: [PATCH] OMAP: HWMOD: Bug fixes in hwmod structure definitions
->>
->>Hello Thara,
->>
->>some comments.
->>
->>On Thu, 18 Feb 2010, Thara Gopinath wrote:
->>
->>> This patch corrects the width of some variables in hwmod structures
->>> where the values to be stored in these variables exceed the current
->>> field width.
->>>
->>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>> Cc: Paul Walmsley <paul@pwsan.com>
->>> ---
->>>  arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 +++---
->>>  1 files changed, 3 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-
->>omap/include/plat/omap_hwmod.h
->>> index 921990e..06a7f20 100644
->>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
->>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->>> @@ -258,7 +258,7 @@ struct omap_hwmod_sysconfig {
->>>  	u16 sysc_offs;
->>>  	u16 syss_offs;
->>>  	u8 idlemodes;
->>> -	u8 sysc_flags;
->>> +	u16 sysc_flags;
->>
->>This part is fine.
->>
->>>  	u8 clockact;
->>>  };
->>>
->>> @@ -280,9 +280,9 @@ struct omap_hwmod_sysconfig {
->>>  struct omap_hwmod_omap2_prcm {
->>>  	s16 module_offs;
->>>  	u8 prcm_reg_id;
->>> -	u8 module_bit;
->>> +	u32 module_bit;
->>>  	u8 idlest_reg_id;
->>> -	u8 idlest_idle_bit;
->>> +	u32 idlest_idle_bit;
->>>  	u8 idlest_stdby_bit;
->>>  };
->>
->>This part I don't understand.  These are bit shifts in a 32 bit register,
->>e.g., (1 << idlest_idle_bit), so how could these ever exceed 31?
+thanks
 
-Hi Paul,
-
-Oh... ok. I was under the impression these bits are to be assigned the value
-1 << shift.. My bad.. Do you want me to re sumbmit the patch with just the
-first fix.
-
-Regards
-Thara
-
->>
->>
->>- Paul
+On Tue, Feb 23, 2010 at 7:04 PM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+>
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vge=
+r.kernel.org] On Behalf Of Jacob
+> > john
+> > Sent: Tuesday, February 23, 2010 6:34 PM
+> > To: linux-omap@vger.kernel.org
+> > Subject: About multicore OMAP
+> >
+> > Hi Guys, I workin on OMAP4, just started,
+> > I appreciate, if some one could brief out working drivers and SMP
+> > benchmark data?
+> >
+> Welcome John !!
+> Can be explicit what you are looking for? Which omap4
+> platform do you have ?
+>
+> Regards,
+> Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
