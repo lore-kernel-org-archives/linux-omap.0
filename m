@@ -1,38 +1,92 @@
-From: Mike Frysinger <vapier.adi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/3] backlight: mark struct
-	backlight_ops const
-Date: Mon, 22 Feb 2010 14:35:27 -0500
-Message-ID: <8bd0f97a1002221135n6c52a657i1817063d2664bfda@mail.gmail.com>
-References: <20100221001049.2f63f5d6@neptune.home>
-	<20100221001851.673db863@neptune.home>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 00/11] OMAP clock/hwmod: final set of 2.6.34 patches
+Date: Mon, 22 Feb 2010 21:50:12 -0700
+Message-ID: <20100223044915.18888.83242.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20100221001851.673db863-hY15tx4IgV39zxVx7UNMDg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: =?UTF-8?Q?Bruno_Pr=C3=A9mont?= <bonbons-ud5FBsm0p/xEiooADzr8i9i2O/JbrIOy@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linuxppc-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:60242 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953Ab0BWE5i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 23:57:38 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-T24gU2F0LCBGZWIgMjAsIDIwMTAgYXQgMTg6MTgsIEJydW5vIFByw6ltb250IHdyb3RlOgo+IMKg
-ZHJpdmVycy92aWRlby9iZjU0eC1scTA0M2ZiLmMgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-fCDCoCDCoDIgKy0KPiDCoGRyaXZlcnMvdmlkZW8vYmZpbi10MzUwbWNxYi1mYi5jIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgfCDCoCDCoDIgKy0KCkFja2VkLWJ5OiBNaWtlIEZyeXNpbmdlciA8dmFw
-aWVyQGdlbnRvby5vcmc+Ci1taWtlCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEb3dubG9hZCBJbnRl
-bCYjMTc0OyBQYXJhbGxlbCBTdHVkaW8gRXZhbApUcnkgdGhlIG5ldyBzb2Z0d2FyZSB0b29scyBm
-b3IgeW91cnNlbGYuIFNwZWVkIGNvbXBpbGluZywgZmluZCBidWdzCnByb2FjdGl2ZWx5LCBhbmQg
-ZmluZS10dW5lIGFwcGxpY2F0aW9ucyBmb3IgcGFyYWxsZWwgcGVyZm9ybWFuY2UuClNlZSB3aHkg
-SW50ZWwgUGFyYWxsZWwgU3R1ZGlvIGdvdCBoaWdoIG1hcmtzIGR1cmluZyBiZXRhLgpodHRwOi8v
-cC5zZi5uZXQvc2Z1L2ludGVsLXN3LWRldgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwppYm0tYWNwaS1kZXZlbCBtYWlsaW5nIGxpc3QKaWJtLWFjcGktZGV2
-ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0Cmh0dHBzOi8vbGlzdHMuc291cmNlZm9yZ2UubmV0L2xp
-c3RzL2xpc3RpbmZvL2libS1hY3BpLWRldmVsCg==
+Hello,
+
+Here are a few more OMAP clock and hwmod patches intended for 2.6.34,
+posted in case anyone has any review comments.
+
+These patches have been boot-tested on OSK5912, N800, 2430SDP,
+Overo; and compile-tested on 4430SDP.
+
+
+- Paul
+
+---
+
+size:
+   text	   data	    bss	    dec	    hex	filename
+2882000	 127872	  88872	3098744	 2f4878	vmlinux.osk5912.orig
+2882016	 127872	  88872	3098760	 2f4888	vmlinux.osk5912.patched
+2324953	 121440	  63728	2510121	 264d29	vmlinux.n8x0.orig
+2325885	 121536	  63728	2511149	 26512d	vmlinux.n8x0.patched
+3422044	 176928	 146928	3745900	 39286c	vmlinux.2430sdp.orig
+3423048	 177024	 146928	3747000	 392cb8	vmlinux.2430sdp.patched
+6060161	1797424	5800396	13657981 d0677d	vmlinux.omap3.orig
+6061113	1797488	5800396	13658997 d06b75	vmlinux.omap3.patched
+2049131	 168736	  65412	2283279	 22d70f	vmlinux.4430sdp.orig
+2050167	 169632	  65412	2285211	 22de9b	vmlinux.4430sdp.patched
+
+Paul Walmsley (7):
+      OMAP clock: add omap_clk_get_by_name() for use by OMAP hwmod core code
+      OMAP hwmod: convert hwmod to use hardware clock names rather than clkdev dev+con
+      OMAP hwmod: convert header files with static allocations into C files
+      OMAP hwmod: add hwmod class support
+      OMAP clockdomain: if no autodeps exist, don't try to add or remove them
+      OMAP2/3 clock: combine OMAP2 & 3 boot-time MPU rate change code
+      OMAP2+ clock: revise omap2_clk_{disable,enable}()
+
+Rajendra Nayak (1):
+      OMAP4: clock: Rename leaf clock nodes to end with a _ick or _fck
+
+Santosh Shilimkar (2):
+      OMAP4: clock: Add dummy clock nodes for interface clocks
+      OMAP4: clock: Remove clock hacks from timer-gp.c
+
+Vimarsh Zutshi (1):
+      From 5c87e27fd557a56aca72cd10529c3bdcb0c8a517 Mon Sep 17 00:00:00 2001
+
+
+ arch/arm/configs/omap_4430sdp_defconfig      |    7 
+ arch/arm/mach-omap1/clock.c                  |   14 -
+ arch/arm/mach-omap1/clock_data.c             |    6 
+ arch/arm/mach-omap2/Makefile                 |   12 -
+ arch/arm/mach-omap2/clock.c                  |  220 ++++++++--
+ arch/arm/mach-omap2/clock.h                  |    5 
+ arch/arm/mach-omap2/clock2xxx.c              |   34 -
+ arch/arm/mach-omap2/clock3xxx.c              |   59 ---
+ arch/arm/mach-omap2/clock3xxx_data.c         |    2 
+ arch/arm/mach-omap2/clock44xx_data.c         |  596 ++++++++++++++------------
+ arch/arm/mach-omap2/clockdomain.c            |   16 +
+ arch/arm/mach-omap2/io.c                     |   21 -
+ arch/arm/mach-omap2/omap_hwmod.c             |  244 ++++++-----
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |   38 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |   38 +-
+ arch/arm/mach-omap2/omap_hwmod_34xx.h        |  168 -------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  181 ++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.c |   24 +
+ arch/arm/mach-omap2/omap_hwmod_common_data.h |   24 +
+ arch/arm/mach-omap2/timer-gp.c               |    5 
+ arch/arm/plat-omap/clock.c                   |   37 ++
+ arch/arm/plat-omap/include/plat/clock.h      |    3 
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   71 ++-
+ 23 files changed, 1073 insertions(+), 752 deletions(-)
+ rename arch/arm/mach-omap2/{omap_hwmod_2420.h => omap_hwmod_2420_data.c} (82%)
+ rename arch/arm/mach-omap2/{omap_hwmod_2430.h => omap_hwmod_2430_data.c} (83%)
+ delete mode 100644 arch/arm/mach-omap2/omap_hwmod_34xx.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_common_data.h
+
