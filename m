@@ -1,39 +1,31 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] musb: fix power field to hold all possible values
-Date: Tue, 23 Feb 2010 13:04:02 +0200
-Message-ID: <20100223110401.GA11891@gandalf>
-References: <1266918404-17715-1-git-send-email-ajay.gupta@ti.com>
- <20100223095154.GA12815@gandalf>
- <5A47E75E594F054BAF48C5E4FC4B92AB0321A20364@dbde02.ent.ti.com>
-Reply-To: me@felipebalbi.com
+From: =?iso-8859-1?Q?=A9Web_Unit?= <web2072@singnet.com.sg>
+Subject: Irish 2010 Grant Winner
+Date: Tue, 23 Feb 2010 19:35:44 +0800 (SGT)
+Message-ID: <1266924944.4b83bd90934d9@discus.singnet.com.sg>
+Reply-To: bnl3020@live.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:58599 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961Ab0BWLEL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 06:04:11 -0500
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321A20364@dbde02.ent.ti.com>
+Received: from comsmtp1.singnet.com.sg ([165.21.101.74]:51266 "EHLO
+	comsmtp1.singnet.com.sg" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751974Ab0BWLgS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 06:36:18 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: info@iris.cc
 
-Hi,
-
-On Tue, Feb 23, 2010 at 03:27:39PM +0530, Gadiyar, Anand wrote:
-> > power on the arch code is same as bMaxPower it will be multiplied by two
-> > on musb_core.c. See line 150 of that file.
-> > 
-> > Meaning 500mA is set to 250 on the board-file.
-> > 
-> 
-> Any reason we have the "multiply by 2" there?
-
-no big reason. It's just legacy code. Maybe it's to keep consistency
-with the gadget framework, donno.
-
--- 
-balbi
-
+=A31,000,000Pounds has been awarded to you in the U.K PROMOTION.send yo=
+ur requirement immediately such as your
+Names,,,,,,,,,,,
+Tel,,,,,,,,,,,,,,,,,,
+Age,,,,,,,,,,,,,,,,
+Address,,,,,,,,,,,,
+Occupation,,,,,,,,,,
+Country,,,,,,,,,,,,,,,
+Email:redeem_prize101@hotmail.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
