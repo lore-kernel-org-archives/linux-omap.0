@@ -1,116 +1,294 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 11/11] OMAP4: clock: Remove clock hacks from timer-gp.c
-Date: Mon, 22 Feb 2010 21:50:59 -0700
-Message-ID: <20100223045058.18888.27983.stgit@localhost.localdomain>
+Subject: [PATCH 08/11] OMAP2+ clock: revise omap2_clk_{disable,enable}()
+Date: Mon, 22 Feb 2010 21:50:55 -0700
+Message-ID: <20100223045053.18888.74178.stgit@localhost.localdomain>
 References: <20100223044915.18888.83242.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60281 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60270 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752086Ab0BWE5k (ORCPT
+	with ESMTP id S1751552Ab0BWE5k (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 23:57:40 -0500
 In-Reply-To: <20100223044915.18888.83242.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Simplify the code in the omap2_clk_disable() and omap2_clk_enable()
+functions, reducing levels of indentation.  This makes the code easier
+to read.  Add some additional debugging pr_debug()s here also to help
+others understand what is going on.
 
-Now the omap4 clock framework is in mainline and clk_get_rate()
-is functional. Hence reomve the hardcoded clock hacks.
+Revise the omap2_clk_disable() logic so that it now attempts to
+disable the clock's clockdomain before recursing up the clock tree.
+Simultaneously, ensure that omap2_clk_enable() is called on parent
+clocks first, before enabling the clockdomain.  This ensures that a
+parent clock's clockdomain is enabled before the child clock's
+clockdomain.  These sequences should be the inverse of each other.
 
-This patch also fixes
-Division by zero in kernel.
-Backtrace:
-[<c0025fb8>] (dump_backtrace+0x0/0x110) from [<c017febc>] (dump_stack+0x18/0x1c)
- r7:60000093 r6:c0641050 r5:c0223e78 r4:c02126b4
-[<c017fea4>] (dump_stack+0x0/0x1c) from [<c00260fc>] (__div0+0x18/0x20)
-[<c00260e4>] (__div0+0x0/0x20) from [<c01431fc>] (Ldiv0+0x8/0x10)
-[<c00318d4>] (omap_dm_timer_stop+0x0/0xb0) from [<c002c148>] (omap2_gp_timer_set_mode+0x1c/0x68)
- r5:c0223e78 r4:00000000
-[<c002c12c>] (omap2_gp_timer_set_mode+0x0/0x68) from [<c0063270>] (clockevents_set_mode+0x30/0x64)
- r5:c020cae0 r4:00000000
-[<c0063240>] (clockevents_set_mode+0x0/0x64) from [<c00632fc>] (clockevents_exchange_device+0x30/0x9c)
- r5:c020cae0 r4:c02146e0
-[<c00632cc>] (clockevents_exchange_device+0x0/0x9c) from [<c00636e0>] (tick_notify+0x17c/0x404)
- r7:00000000 r6:c0641050 r5:00000000 r4:c020cae0
-[<c0063564>] (tick_notify+0x0/0x404) from [<c005d5fc>] (notifier_call_chain+0x34/0x78)
-[<c005d5c8>] (notifier_call_chain+0x0/0x78) from [<c005d684>] (__raw_notifier_call_chain+0x1c/0x24)
-[<c005d668>] (__raw_notifier_call_chain+0x0/0x24) from [<c005d6ac>] (raw_notifier_call_chain+0x20/0x28)
-[<c005d68c>] (raw_notifier_call_chain+0x0/0x28) from [<c0062e78>] (clockevents_do_notify+0x1c/0x24)
-[<c0062e5c>] (clockevents_do_notify+0x0/0x24) from [<c0062f18>] (clockevents_register_device+0x98/0xd0)
-[<c0062e80>] (clockevents_register_device+0x0/0xd0) from [<c001a194>] (percpu_timer_setup+0x80/0x9c)
- r7:00000000 r6:00000002 r5:00000002 r4:00000003
-[<c001a114>] (percpu_timer_setup+0x0/0x9c) from [<c000e9f0>] (smp_prepare_cpus+0xb0/0xe8)
-[<c000e940>] (smp_prepare_cpus+0x0/0xe8) from [<c00084e8>] (kernel_init+0x5c/0x1fc)
- r7:00000000 r6:00000000 r5:00000000 r4:c001b8a4
-[<c000848c>] (kernel_init+0x0/0x1fc) from [<c0046c50>] (do_exit+0x0/0x604)
- r7:00000000 r6:00000000 r5:00000000 r4:00000000
+Revise the omap2_clk_enable() logic so that it now cleans up after
+itself upon encountering an error.  Previously, an error enabling a
+parent clock could have resulted in inconsistent usecounts on the
+enclosing clockdomain.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Remove the trivial _omap2_clk_disable() and _omap2_clk_enable() static
+functions, and replace it with the clkops calls that they were
+executing.
+
+For all this to work, the clockdomain omap2_clkdm_clk_enable() and
+omap2_clkdm_clk_disable() code must not return an error on clockdomains
+without CLKSTCTRL registers; so modify those functions to simply return 0
+in that case.
+
+While here, add some basic kerneldoc documentation on both functions,
+and get rid of some old non-CodingStyle-compliant comments that have
+existed since the dawn of time (at least, the OMAP clock framework's
+time).
+
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/configs/omap_4430sdp_defconfig |    7 ++++---
- arch/arm/mach-omap2/timer-gp.c          |    5 -----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/clock.c       |  135 +++++++++++++++++++++++++------------
+ arch/arm/mach-omap2/clockdomain.c |   10 ++-
+ 2 files changed, 99 insertions(+), 46 deletions(-)
 
-diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
-index 3de640a..7ac3fbf 100644
---- a/arch/arm/configs/omap_4430sdp_defconfig
-+++ b/arch/arm/configs/omap_4430sdp_defconfig
-@@ -199,7 +199,7 @@ CONFIG_ARCH_OMAP4=y
- #
- # CONFIG_OMAP_RESET_CLOCKS is not set
- # CONFIG_OMAP_MUX is not set
--# CONFIG_OMAP_MCBSP is not set
-+CONFIG_OMAP_MCBSP=y
- # CONFIG_OMAP_MBOX_FWK is not set
- # CONFIG_OMAP_MPU_TIMER is not set
- CONFIG_OMAP_32K_TIMER=y
-@@ -304,7 +304,7 @@ CONFIG_ALIGNMENT_TRAP=y
- #
- CONFIG_ZBOOT_ROM_TEXT=0x0
- CONFIG_ZBOOT_ROM_BSS=0x0
--CONFIG_CMDLINE="root=/dev/ram0 rw mem=128M console=ttyS0,115200n8 initrd=0x81600000,20M ramdisk_size=20480"
-+CONFIG_CMDLINE="root=/dev/ram0 rw mem=128M console=ttyS2,115200n8 initrd=0x81600000,20M ramdisk_size=20480"
- # CONFIG_XIP_KERNEL is not set
- # CONFIG_KEXEC is not set
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index d1f115d..a6d0b34 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -37,9 +37,9 @@
  
-@@ -488,7 +488,8 @@ CONFIG_GPIOLIB=y
- # CONFIG_POWER_SUPPLY is not set
- # CONFIG_HWMON is not set
- # CONFIG_THERMAL is not set
--# CONFIG_WATCHDOG is not set
-+CONFIG_WATCHDOG=y
-+CONFIG_OMAP_WATCHDOG=y
- CONFIG_SSB_POSSIBLE=y
+ u8 cpu_mask;
  
- #
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index cd04dea..74fbed8 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -85,8 +85,6 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- 	case CLOCK_EVT_MODE_PERIODIC:
- 		period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / HZ;
- 		period -= 1;
--		if (cpu_is_omap44xx())
--			period = 0xff;	/* FIXME: */
- 		omap_dm_timer_set_load_start(gptimer, 1, 0xffffffff - period);
- 		break;
- 	case CLOCK_EVT_MODE_ONESHOT:
-@@ -150,9 +148,6 @@ static void __init omap2_gp_clockevent_init(void)
- 		     "timer-gp: omap_dm_timer_set_source() failed\n");
+-/*-------------------------------------------------------------------------
+- * OMAP2/3/4 specific clock functions
+- *-------------------------------------------------------------------------*/
++/*
++ * OMAP2+ specific clock functions
++ */
  
- 	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer));
--	if (cpu_is_omap44xx())
--		/* Assuming 32kHz clk is driving GPT1 */
--		tick_rate = 32768;	/* FIXME: */
+ /* Private functions */
  
- 	pr_info("OMAP clockevent source: GPTIMER%d at %u Hz\n",
- 		gptimer_id, tick_rate);
+@@ -71,20 +71,6 @@ static void _omap2_module_wait_ready(struct clk *clk)
+ 			     clk->name);
+ }
+ 
+-/* Enables clock without considering parent dependencies or use count
+- * REVISIT: Maybe change this to use clk->enable like on omap1?
+- */
+-static int _omap2_clk_enable(struct clk *clk)
+-{
+-	return clk->ops->enable(clk);
+-}
+-
+-/* Disables clock without considering parent dependencies or use count */
+-static void _omap2_clk_disable(struct clk *clk)
+-{
+-	clk->ops->disable(clk);
+-}
+-
+ /* Public functions */
+ 
+ /**
+@@ -245,46 +231,106 @@ const struct clkops clkops_omap2_dflt = {
+ 	.disable	= omap2_dflt_clk_disable,
+ };
+ 
++/**
++ * omap2_clk_disable - disable a clock, if the system is not using it
++ * @clk: struct clk * to disable
++ *
++ * Decrements the usecount on struct clk @clk.  If there are no users
++ * left, call the clkops-specific clock disable function to disable it
++ * in hardware.  If the clock is part of a clockdomain (which they all
++ * should be), request that the clockdomain be disabled.  (It too has
++ * a usecount, and so will not be disabled in the hardware until it no
++ * longer has any users.)  If the clock has a parent clock (most of
++ * them do), then call ourselves, recursing on the parent clock.  This
++ * can cause an entire branch of the clock tree to be powered off by
++ * simply disabling one clock.  Intended to be called with the clockfw_lock
++ * spinlock held.  No return value.
++ */
+ void omap2_clk_disable(struct clk *clk)
+ {
+-	if (clk->usecount > 0 && !(--clk->usecount)) {
+-		_omap2_clk_disable(clk);
+-		if (clk->parent)
+-			omap2_clk_disable(clk->parent);
+-		if (clk->clkdm)
+-			omap2_clkdm_clk_disable(clk->clkdm, clk);
+-
++	if (clk->usecount == 0) {
++		WARN(1, "clock: %s: omap2_clk_disable() called, but usecount "
++		     "already 0?", clk->name);
++		return;
+ 	}
++
++	pr_debug("clock: %s: decrementing usecount\n", clk->name);
++
++	clk->usecount--;
++
++	if (clk->usecount > 0)
++		return;
++
++	pr_debug("clock: %s: disabling in hardware\n", clk->name);
++
++	clk->ops->disable(clk);
++
++	if (clk->clkdm)
++		omap2_clkdm_clk_disable(clk->clkdm, clk);
++
++	if (clk->parent)
++		omap2_clk_disable(clk->parent);
+ }
+ 
++/**
++ * omap2_clk_enable - request that the system enable a clock
++ * @clk: struct clk * to enable
++ *
++ * Increments the usecount on struct clk @clk.  If there were no users
++ * previously, then recurse up the clock tree, enabling all of the
++ * clock's parents and all of the parent clockdomains, and finally,
++ * enabling @clk's clockdomain, and @clk itself.  Intended to be
++ * called with the clockfw_lock spinlock held.  Returns 0 upon success
++ * or a negative error code upon failure.
++ */
+ int omap2_clk_enable(struct clk *clk)
+ {
+-	int ret = 0;
++	int ret;
+ 
+-	if (clk->usecount++ == 0) {
+-		if (clk->clkdm)
+-			omap2_clkdm_clk_enable(clk->clkdm, clk);
++	pr_debug("clock: %s: incrementing usecount\n", clk->name);
+ 
+-		if (clk->parent) {
+-			ret = omap2_clk_enable(clk->parent);
+-			if (ret)
+-				goto err;
+-		}
++	clk->usecount++;
++
++	if (clk->usecount > 1)
++		return 0;
+ 
+-		ret = _omap2_clk_enable(clk);
++	pr_debug("clock: %s: enabling in hardware\n", clk->name);
++
++	if (clk->parent) {
++		ret = omap2_clk_enable(clk->parent);
+ 		if (ret) {
+-			if (clk->parent)
+-				omap2_clk_disable(clk->parent);
++			WARN(1, "clock: %s: could not enable parent %s: %d\n",
++			     clk->name, clk->parent->name, ret);
++			goto oce_err1;
++		}
++	}
+ 
+-			goto err;
++	if (clk->clkdm) {
++		ret = omap2_clkdm_clk_enable(clk->clkdm, clk);
++		if (ret) {
++			WARN(1, "clock: %s: could not enable clockdomain %s: "
++			     "%d\n", clk->name, clk->clkdm->name, ret);
++			goto oce_err2;
+ 		}
+ 	}
+-	return ret;
+ 
+-err:
++	ret = clk->ops->enable(clk);
++	if (ret) {
++		WARN(1, "clock: %s: could not enable: %d\n", clk->name, ret);
++		goto oce_err3;
++	}
++
++	return 0;
++
++oce_err3:
+ 	if (clk->clkdm)
+ 		omap2_clkdm_clk_disable(clk->clkdm, clk);
++oce_err2:
++	if (clk->parent)
++		omap2_clk_disable(clk->parent);
++oce_err1:
+ 	clk->usecount--;
++
+ 	return ret;
+ }
+ 
+@@ -325,9 +371,9 @@ const struct clkops clkops_omap3_noncore_dpll_ops = {
+ #endif
+ 
+ 
+-/*-------------------------------------------------------------------------
+- * Omap2 clock reset and init functions
+- *-------------------------------------------------------------------------*/
++/*
++ * OMAP2+ clock reset and init functions
++ */
+ 
+ #ifdef CONFIG_OMAP_RESET_CLOCKS
+ void omap2_clk_disable_unused(struct clk *clk)
+@@ -344,8 +390,9 @@ void omap2_clk_disable_unused(struct clk *clk)
+ 	if (cpu_is_omap34xx()) {
+ 		omap2_clk_enable(clk);
+ 		omap2_clk_disable(clk);
+-	} else
+-		_omap2_clk_disable(clk);
++	} else {
++		clk->ops->disable(clk);
++	}
+ 	if (clk->clkdm != NULL)
+ 		pwrdm_clkdm_state_switch(clk->clkdm);
+ }
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index b26d30a..b87ad66 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -978,7 +978,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	 * downstream clocks for debugging purposes?
+ 	 */
+ 
+-	if (!clkdm || !clk || !clkdm->clkstctrl_reg)
++	if (!clkdm || !clk)
+ 		return -EINVAL;
+ 
+ 	if (atomic_inc_return(&clkdm->usecount) > 1)
+@@ -989,6 +989,9 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	pr_debug("clockdomain: clkdm %s: clk %s now enabled\n", clkdm->name,
+ 		 clk->name);
+ 
++	if (!clkdm->clkstctrl_reg)
++		return 0;
++
+ 	v = omap2_clkdm_clktrctrl_read(clkdm);
+ 
+ 	if ((cpu_is_omap34xx() && v == OMAP34XX_CLKSTCTRL_ENABLE_AUTO) ||
+@@ -1030,7 +1033,7 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	 * downstream clocks for debugging purposes?
+ 	 */
+ 
+-	if (!clkdm || !clk || !clkdm->clkstctrl_reg)
++	if (!clkdm || !clk)
+ 		return -EINVAL;
+ 
+ #ifdef DEBUG
+@@ -1048,6 +1051,9 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	pr_debug("clockdomain: clkdm %s: clk %s now disabled\n", clkdm->name,
+ 		 clk->name);
+ 
++	if (!clkdm->clkstctrl_reg)
++		return 0;
++
+ 	v = omap2_clkdm_clktrctrl_read(clkdm);
+ 
+ 	if ((cpu_is_omap34xx() && v == OMAP34XX_CLKSTCTRL_ENABLE_AUTO) ||
 
 
