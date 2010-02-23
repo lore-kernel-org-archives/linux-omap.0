@@ -1,47 +1,49 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 4/4] DSPBRIDGE: Improved mapped memory cleanup
-Date: Tue, 23 Feb 2010 10:23:56 -0600
-Message-ID: <4B84011C.9090603@ti.com>
-References: <cover.1266503387.git.ameya.palande@nokia.com>  <d4615a96b803472a13d249bcf7faf3ce5d315346.1266503387.git.ameya.palande@nokia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: About multicore OMAP
+Date: Tue, 23 Feb 2010 22:20:22 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E15B9@dbde02.ent.ti.com>
+References: <31ee32481002230504m2cc4dfebu85426681e76b4ee@mail.gmail.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E14F4@dbde02.ent.ti.com>
+ <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1545@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47243 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57879 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753346Ab0BWQX7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Feb 2010 11:23:59 -0500
-In-Reply-To: <d4615a96b803472a13d249bcf7faf3ce5d315346.1266503387.git.ameya.palande@nokia.com>
+	id S1753100Ab0BWQua (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Feb 2010 11:50:30 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1545@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: Jacob john <jacob.john74@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 2/18/2010 8:40 AM, Ameya Palande wrote:
-> This patch improves current mapped memory cleanup mechanism by using linux
-> native list implementation. As a side effect we also get following benefits:
->
-> 1. Unnecessary data members in DMM_MAP_OBJECT are removed which results in
->     memory saving.
->
-> 2. Following functions are removed as they are not needed anymore:
->     DRV_ProcFreeDMMRes()
->     DRV_UpdateDMMResElement()
->     DRV_InsertDMMResElement()
->     DRV_GetDMMResElement()
->     DRV_RemoveDMMResElement()
->
-> Signed-off-by: Ameya Palande<ameya.palande@nokia.com>
-> ---
->   arch/arm/plat-omap/include/dspbridge/drv.h         |   30 +---
->   .../plat-omap/include/dspbridge/resourcecleanup.h  |   11 --
->   drivers/dsp/bridge/rmgr/drv.c                      |  161 ++------------------
->   drivers/dsp/bridge/rmgr/drv_interface.c            |    3 +-
->   drivers/dsp/bridge/rmgr/proc.c                     |   43 ++++--
->   5 files changed, 54 insertions(+), 194 deletions(-)
->
-
-Pushed to dspbridge
-
-- omar
-
+Sm9obiwNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtb21hcC1v
+d25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVs
+Lm9yZ10gT24gQmVoYWxmIE9mDQo+IFNoaWxpbWthciwgU2FudG9zaA0KPiBTZW50OiBUdWVzZGF5
+LCBGZWJydWFyeSAyMywgMjAxMCA4OjAxIFBNDQo+IFRvOiBKYWNvYiBqb2huDQo+IENjOiBsaW51
+eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBSRTogQWJvdXQgbXVsdGljb3JlIE9N
+QVANCj4gDQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiBGcm9tOiBKYWNvYiBq
+b2huIFttYWlsdG86amFjb2Iuam9objc0QGdtYWlsLmNvbV0NCj4gPiBTZW50OiBUdWVzZGF5LCBG
+ZWJydWFyeSAyMywgMjAxMCA3OjUxIFBNDQo+ID4gVG86IFNoaWxpbWthciwgU2FudG9zaA0KPiA+
+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiA+IFN1YmplY3Q6IFJlOiBBYm91dCBt
+dWx0aWNvcmUgT01BUA0KPiA+DQo+ID4gSXQnc8KgQmxhemUgd2l0aMKgdHdvIGxjZCdzIGFuZCBw
+aWNvLCBsb29rcyBncmVhdC4gQ2FuIEkgaGF2ZSB0aGlzDQo+ID4gbGludXgtb21hcCBrZXJuZWwg
+cnVubmluZyBvbiBPTUFQND8sIHBsdXMgSSdtIGxvb2tpbmcgZm9yIFNNUA0KPiA+IGJlbmNobWFy
+ayByZXN1bHRzIGV0Yy4NCj4gPg0KPiBMaW51eC1vbWFwIGtlcm5lbCB3aXRoIG9tYXBfNDQzMHNk
+cF9kZWZjb25maWcgd2lsbCBib290IG9uIGJsYXplIHdpdGggU01QLiBUaGlzDQo+IHdvbid0IGhh
+dmUgbG90IG9mIGRyaXZlciBzdXBwb3J0IGFzIHN1Y2ggY3VycmVudGx5LiBBbHNvIEwyIGNhY2hl
+IHN1cHBvcnQgaXMgaW4NCj4gb24gdGhlIHdheSB0byBtYWtlIGl0IHRvIG1haW5saW5lIGFzIHdl
+bGwuIFlvdSBzaG91bGQgYmUgYWJsZSB0byBwbGF5IHdpdGggdGhpcw0KPiB3aXRoIHNvbWUgYmFz
+aWMgYmVuY2htYXJrIHRlc3QgcmVsYXRlZCB0byBDUFUuDQo+IA0KPiBEaXNwbGF5ICwgQXVkaW8s
+IFBpY28sIGtleXBhZCwgdG91Y2hzY3JlZWVuIGV0YyBkcml2ZXJzIGFyZSBhdmFpbGFibGUgd2l0
+aCB0aGUNCj4gcmVsZWFzZSBhbmQgeW91IHNob3VsZCBiZSBhYmxlIGdldCBtb3JlIGRldGFpbHMg
+ZnJvbSB0aGUgVEkgY29udGFjdCBwZXJzb24gd2hvDQo+IGdhdmUgeW91IHRoZSBibGF6ZS4gWW91
+IGNhbiBhbHNvIGdldCB0aGUgcGVyZm9ybWFuY2UgbnVtYmVycyBmcm9tIHNhbWUgc291cmNlDQo+
+IA0KSWYgeW91IG5lZWQgdGhlIGZ1bGwga2VybmVsIHdpdGggYWxsIHRoZSBkcml2ZXJzIEkgbWVu
+dGlvbmVkIGFib3ZlLCB5b3UgY2FuIHVzZQ0KYmVsb3cgZ2l0Lg0KaHR0cDovL2Rldi5vbWFwem9v
+bS5vcmcvP3A9aW50ZWdyYXRpb24va2VybmVsLW9tYXA0LmdpdDthPXNob3J0bG9nO2g9cmVmcy9o
+ZWFkcy9MMjQuNA0KDQpSZWdhcmRzLA0KU2FudG9zaA0KDQo=
