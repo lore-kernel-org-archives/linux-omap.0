@@ -1,177 +1,184 @@
 From: hvaibhav@ti.com
-Subject: [PATCH-V1 09/10] VPFE Capture: Add support for USERPTR mode of operation
-Date: Tue, 23 Feb 2010 14:04:32 +0530
-Message-ID: <1266914073-30135-10-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V1 08/10] DM644x CCDC : Add Suspend/Resume Support
+Date: Tue, 23 Feb 2010 14:04:31 +0530
+Message-ID: <1266914073-30135-9-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37800 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751846Ab0BWIel (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Feb 2010 03:34:41 -0500
 In-Reply-To: <hvaibhav@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl, Vaibhav Hiremath <hvaibhav@ti.com>, Muralidharan Karicheri <m-karicheri2@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl, Vaibhav Hiremath <hvaibhav@ti.com>
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
 ---
- drivers/media/video/ti-media/vpfe_capture.c |   94 ++++++++++++++++++++++----
- 1 files changed, 79 insertions(+), 15 deletions(-)
+ drivers/media/video/ti-media/dm644x_ccdc.c      |  114 +++++++++++++++++++++++
+ drivers/media/video/ti-media/dm644x_ccdc_regs.h |    2 +-
+ 2 files changed, 115 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/ti-media/vpfe_capture.c b/drivers/media/video/ti-media/vpfe_capture.c
-index cece265..7d4ab44 100644
---- a/drivers/media/video/ti-media/vpfe_capture.c
-+++ b/drivers/media/video/ti-media/vpfe_capture.c
-@@ -538,7 +538,24 @@ static void vpfe_schedule_next_buffer(struct vpfe_device *vpfe_dev)
- 					struct videobuf_buffer, queue);
- 	list_del(&vpfe_dev->next_frm->queue);
- 	vpfe_dev->next_frm->state = VIDEOBUF_ACTIVE;
--	addr = videobuf_to_dma_contig(vpfe_dev->next_frm);
-+	if (V4L2_MEMORY_USERPTR == vpfe_dev->memory)
-+		addr = vpfe_dev->cur_frm->boff;
-+	else
-+		addr = videobuf_to_dma_contig(vpfe_dev->next_frm);
-+
-+	ccdc_dev->hw_ops.setfbaddr(addr);
-+}
-+
-+static void vpfe_schedule_bottom_field(struct vpfe_device *vpfe_dev)
-+{
-+	unsigned long addr;
-+
-+	if (V4L2_MEMORY_USERPTR == vpfe_dev->memory)
-+		addr = vpfe_dev->cur_frm->boff;
-+	else
-+		addr = videobuf_to_dma_contig(vpfe_dev->cur_frm);
-+
-+	addr += vpfe_dev->field_off;
- 	ccdc_dev->hw_ops.setfbaddr(addr);
- }
+diff --git a/drivers/media/video/ti-media/dm644x_ccdc.c b/drivers/media/video/ti-media/dm644x_ccdc.c
+index 506bbf5..3045ebc 100644
+--- a/drivers/media/video/ti-media/dm644x_ccdc.c
++++ b/drivers/media/video/ti-media/dm644x_ccdc.c
+@@ -100,6 +100,9 @@ static u32 ccdc_raw_bayer_pix_formats[] =
+ static u32 ccdc_raw_yuv_pix_formats[] =
+ 	{V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
 
-@@ -559,7 +576,6 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
++/* CCDC Save/Restore context */
++static u32 ccdc_ctx[CCDC_REG_END / sizeof(u32)];
++
+ /* register access routines */
+ static inline u32 regr(u32 offset)
  {
- 	struct vpfe_device *vpfe_dev = dev_id;
- 	enum v4l2_field field;
--	unsigned long addr;
- 	int fid;
-
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nStarting vpfe_isr...\n");
-@@ -604,10 +620,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 			 * the CCDC memory address
- 			 */
- 			if (field == V4L2_FIELD_SEQ_TB) {
--				addr =
--				  videobuf_to_dma_contig(vpfe_dev->cur_frm);
--				addr += vpfe_dev->field_off;
--				ccdc_dev->hw_ops.setfbaddr(addr);
-+				vpfe_schedule_bottom_field(vpfe_dev);
- 			}
- 			goto clear_intr;
- 		}
-@@ -1234,7 +1247,10 @@ static int vpfe_videobuf_setup(struct videobuf_queue *vq,
- 	struct vpfe_device *vpfe_dev = fh->vpfe_dev;
-
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_setup\n");
--	*size = config_params.device_bufsize;
-+	*size = vpfe_dev->fmt.fmt.pix.sizeimage;
-+	if (vpfe_dev->memory == V4L2_MEMORY_MMAP &&
-+		vpfe_dev->fmt.fmt.pix.sizeimage > config_params.device_bufsize)
-+		*size = config_params.device_bufsize;
-
- 	if (*count < config_params.min_numbuffers)
- 		*count = config_params.min_numbuffers;
-@@ -1243,6 +1259,46 @@ static int vpfe_videobuf_setup(struct videobuf_queue *vq,
+@@ -845,6 +848,87 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
  	return 0;
  }
 
-+/*
-+ * vpfe_uservirt_to_phys: This function is used to convert user
-+ * space virtual address to physical address.
-+ */
-+static u32 vpfe_uservirt_to_phys(struct vpfe_device *vpfe_dev, u32 virtp)
++static void ccdc_save_context(void)
 +{
-+	struct mm_struct *mm = current->mm;
-+	unsigned long physp = 0;
-+	struct vm_area_struct *vma;
-+
-+	vma = find_vma(mm, virtp);
-+
-+	/* For kernel direct-mapped memory, take the easy way */
-+	if (virtp >= PAGE_OFFSET)
-+		physp = virt_to_phys((void *)virtp);
-+	else if (vma && (vma->vm_flags & VM_IO) && (vma->vm_pgoff))
-+		/* this will catch, kernel-allocated, mmaped-to-usermode addr */
-+		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
-+	else {
-+		/* otherwise, use get_user_pages() for general userland pages */
-+		int res, nr_pages = 1;
-+		struct page *pages;
-+		down_read(&current->mm->mmap_sem);
-+
-+		res = get_user_pages(current, current->mm,
-+				     virtp, nr_pages, 1, 0, &pages, NULL);
-+		up_read(&current->mm->mmap_sem);
-+
-+		if (res == nr_pages)
-+			physp = __pa(page_address(&pages[0]) +
-+				     (virtp & ~PAGE_MASK));
-+		else {
-+			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+				"get_user_pages failed\n");
-+			return 0;
-+		}
-+	}
-+	return physp;
++	ccdc_ctx[CCDC_PCR >> 2] = regr(CCDC_PCR);
++	ccdc_ctx[CCDC_SYN_MODE >> 2] = regr(CCDC_SYN_MODE);
++	ccdc_ctx[CCDC_HD_VD_WID >> 2] = regr(CCDC_HD_VD_WID);
++	ccdc_ctx[CCDC_PIX_LINES >> 2] = regr(CCDC_PIX_LINES);
++	ccdc_ctx[CCDC_HORZ_INFO >> 2] = regr(CCDC_HORZ_INFO);
++	ccdc_ctx[CCDC_VERT_START >> 2] = regr(CCDC_VERT_START);
++	ccdc_ctx[CCDC_VERT_LINES >> 2] = regr(CCDC_VERT_LINES);
++	ccdc_ctx[CCDC_CULLING >> 2] = regr(CCDC_CULLING);
++	ccdc_ctx[CCDC_HSIZE_OFF >> 2] = regr(CCDC_HSIZE_OFF);
++	ccdc_ctx[CCDC_SDOFST >> 2] = regr(CCDC_SDOFST);
++	ccdc_ctx[CCDC_SDR_ADDR >> 2] = regr(CCDC_SDR_ADDR);
++	ccdc_ctx[CCDC_CLAMP >> 2] = regr(CCDC_CLAMP);
++	ccdc_ctx[CCDC_DCSUB >> 2] = regr(CCDC_DCSUB);
++	ccdc_ctx[CCDC_COLPTN >> 2] = regr(CCDC_COLPTN);
++	ccdc_ctx[CCDC_BLKCMP >> 2] = regr(CCDC_BLKCMP);
++	ccdc_ctx[CCDC_FPC >> 2] = regr(CCDC_FPC);
++	ccdc_ctx[CCDC_FPC_ADDR >> 2] = regr(CCDC_FPC_ADDR);
++	ccdc_ctx[CCDC_VDINT >> 2] = regr(CCDC_VDINT);
++	ccdc_ctx[CCDC_ALAW >> 2] = regr(CCDC_ALAW);
++	ccdc_ctx[CCDC_REC656IF >> 2] = regr(CCDC_REC656IF);
++	ccdc_ctx[CCDC_CCDCFG >> 2] = regr(CCDC_CCDCFG);
++	ccdc_ctx[CCDC_FMTCFG >> 2] = regr(CCDC_FMTCFG);
++	ccdc_ctx[CCDC_FMT_HORZ >> 2] = regr(CCDC_FMT_HORZ);
++	ccdc_ctx[CCDC_FMT_VERT >> 2] = regr(CCDC_FMT_VERT);
++	ccdc_ctx[CCDC_FMT_ADDR0 >> 2] = regr(CCDC_FMT_ADDR0);
++	ccdc_ctx[CCDC_FMT_ADDR1 >> 2] = regr(CCDC_FMT_ADDR1);
++	ccdc_ctx[CCDC_FMT_ADDR2 >> 2] = regr(CCDC_FMT_ADDR2);
++	ccdc_ctx[CCDC_FMT_ADDR3 >> 2] = regr(CCDC_FMT_ADDR3);
++	ccdc_ctx[CCDC_FMT_ADDR4 >> 2] = regr(CCDC_FMT_ADDR4);
++	ccdc_ctx[CCDC_FMT_ADDR5 >> 2] = regr(CCDC_FMT_ADDR5);
++	ccdc_ctx[CCDC_FMT_ADDR6 >> 2] = regr(CCDC_FMT_ADDR6);
++	ccdc_ctx[CCDC_FMT_ADDR7 >> 2] = regr(CCDC_FMT_ADDR7);
++	ccdc_ctx[CCDC_PRGEVEN_0 >> 2] = regr(CCDC_PRGEVEN_0);
++	ccdc_ctx[CCDC_PRGEVEN_1 >> 2] = regr(CCDC_PRGEVEN_1);
++	ccdc_ctx[CCDC_PRGODD_0 >> 2] = regr(CCDC_PRGODD_0);
++	ccdc_ctx[CCDC_PRGODD_1 >> 2] = regr(CCDC_PRGODD_1);
++	ccdc_ctx[CCDC_VP_OUT >> 2] = regr(CCDC_VP_OUT);
 +}
 +
- static int vpfe_videobuf_prepare(struct videobuf_queue *vq,
- 				struct videobuf_buffer *vb,
- 				enum v4l2_field field)
-@@ -1259,6 +1315,18 @@ static int vpfe_videobuf_prepare(struct videobuf_queue *vq,
- 		vb->size = vpfe_dev->fmt.fmt.pix.sizeimage;
- 		vb->field = field;
- 	}
-+
-+	if (V4L2_MEMORY_USERPTR == vpfe_dev->memory) {
-+		if (!vb->baddr) {
-+			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+				"buffer address is 0\n");
-+			return -EINVAL;
-+		}
-+		vb->boff = vpfe_uservirt_to_phys(vpfe_dev, vb->baddr);
-+		/* Make sure user addresses are aligned to 32 bytes */
-+		if (!ALIGN(vb->boff, 32))
-+			return -EINVAL;
-+	}
- 	vb->state = VIDEOBUF_PREPARED;
++static void ccdc_restore_context(void)
++{
++	regw(ccdc_ctx[CCDC_SYN_MODE >> 2], CCDC_SYN_MODE);
++	regw(ccdc_ctx[CCDC_HD_VD_WID >> 2], CCDC_HD_VD_WID);
++	regw(ccdc_ctx[CCDC_PIX_LINES >> 2], CCDC_PIX_LINES);
++	regw(ccdc_ctx[CCDC_HORZ_INFO >> 2], CCDC_HORZ_INFO);
++	regw(ccdc_ctx[CCDC_VERT_START >> 2], CCDC_VERT_START);
++	regw(ccdc_ctx[CCDC_VERT_LINES >> 2], CCDC_VERT_LINES);
++	regw(ccdc_ctx[CCDC_CULLING >> 2], CCDC_CULLING);
++	regw(ccdc_ctx[CCDC_HSIZE_OFF >> 2], CCDC_HSIZE_OFF);
++	regw(ccdc_ctx[CCDC_SDOFST >> 2], CCDC_SDOFST);
++	regw(ccdc_ctx[CCDC_SDR_ADDR >> 2], CCDC_SDR_ADDR);
++	regw(ccdc_ctx[CCDC_CLAMP >> 2], CCDC_CLAMP);
++	regw(ccdc_ctx[CCDC_DCSUB >> 2], CCDC_DCSUB);
++	regw(ccdc_ctx[CCDC_COLPTN >> 2], CCDC_COLPTN);
++	regw(ccdc_ctx[CCDC_BLKCMP >> 2], CCDC_BLKCMP);
++	regw(ccdc_ctx[CCDC_FPC >> 2], CCDC_FPC);
++	regw(ccdc_ctx[CCDC_FPC_ADDR >> 2], CCDC_FPC_ADDR);
++	regw(ccdc_ctx[CCDC_VDINT >> 2], CCDC_VDINT);
++	regw(ccdc_ctx[CCDC_ALAW >> 2], CCDC_ALAW);
++	regw(ccdc_ctx[CCDC_REC656IF >> 2], CCDC_REC656IF);
++	regw(ccdc_ctx[CCDC_CCDCFG >> 2], CCDC_CCDCFG);
++	regw(ccdc_ctx[CCDC_FMTCFG >> 2], CCDC_FMTCFG);
++	regw(ccdc_ctx[CCDC_FMT_HORZ >> 2], CCDC_FMT_HORZ);
++	regw(ccdc_ctx[CCDC_FMT_VERT >> 2], CCDC_FMT_VERT);
++	regw(ccdc_ctx[CCDC_FMT_ADDR0 >> 2], CCDC_FMT_ADDR0);
++	regw(ccdc_ctx[CCDC_FMT_ADDR1 >> 2], CCDC_FMT_ADDR1);
++	regw(ccdc_ctx[CCDC_FMT_ADDR2 >> 2], CCDC_FMT_ADDR2);
++	regw(ccdc_ctx[CCDC_FMT_ADDR3 >> 2], CCDC_FMT_ADDR3);
++	regw(ccdc_ctx[CCDC_FMT_ADDR4 >> 2], CCDC_FMT_ADDR4);
++	regw(ccdc_ctx[CCDC_FMT_ADDR5 >> 2], CCDC_FMT_ADDR5);
++	regw(ccdc_ctx[CCDC_FMT_ADDR6 >> 2], CCDC_FMT_ADDR6);
++	regw(ccdc_ctx[CCDC_FMT_ADDR7 >> 2], CCDC_FMT_ADDR7);
++	regw(ccdc_ctx[CCDC_PRGEVEN_0 >> 2], CCDC_PRGEVEN_0);
++	regw(ccdc_ctx[CCDC_PRGEVEN_1 >> 2], CCDC_PRGEVEN_1);
++	regw(ccdc_ctx[CCDC_PRGODD_0 >> 2], CCDC_PRGODD_0);
++	regw(ccdc_ctx[CCDC_PRGODD_1 >> 2], CCDC_PRGODD_1);
++	regw(ccdc_ctx[CCDC_VP_OUT >> 2], CCDC_VP_OUT);
++	regw(ccdc_ctx[CCDC_PCR >> 2], CCDC_PCR);
++}
+ static struct ccdc_hw_device ccdc_hw_dev = {
+ 	.name = "DM6446 CCDC",
+ 	.owner = THIS_MODULE,
+@@ -953,10 +1037,40 @@ static int dm644x_ccdc_remove(struct platform_device *pdev)
  	return 0;
  }
-@@ -1327,13 +1395,6 @@ static int vpfe_reqbufs(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
 
--	if (V4L2_MEMORY_USERPTR == req_buf->memory) {
--		/* we don't support user ptr IO */
--		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_reqbufs:"
--			 " USERPTR IO not supported\n");
--		return  -EINVAL;
--	}
++static int dm644x_ccdc_suspend(struct device *dev)
++{
++	/* Save CCDC context */
++	ccdc_save_context();
++	/* Disable CCDC */
++	ccdc_enable(0);
++	/* Disable both master and slave clock */
++	clk_disable(ccdc_cfg.mclk);
++	clk_disable(ccdc_cfg.sclk);
++
++	return 0;
++}
++
++static int dm644x_ccdc_resume(struct device *dev)
++{
++	/* Enable both master and slave clock */
++	clk_enable(ccdc_cfg.mclk);
++	clk_enable(ccdc_cfg.sclk);
++	/* Restore CCDC context */
++	ccdc_restore_context();
++
++	return 0;
++}
++
++static const struct dev_pm_ops dm644x_ccdc_pm_ops = {
++	.suspend = dm644x_ccdc_suspend,
++	.resume = dm644x_ccdc_resume,
++};
++
+ static struct platform_driver dm644x_ccdc_driver = {
+ 	.driver = {
+ 		.name	= "dm644x_ccdc",
+ 		.owner = THIS_MODULE,
++		.pm = &dm644x_ccdc_pm_ops,
+ 	},
+ 	.remove = __devexit_p(dm644x_ccdc_remove),
+ 	.probe = dm644x_ccdc_probe,
+diff --git a/drivers/media/video/ti-media/dm644x_ccdc_regs.h b/drivers/media/video/ti-media/dm644x_ccdc_regs.h
+index b18d166..90370e4 100644
+--- a/drivers/media/video/ti-media/dm644x_ccdc_regs.h
++++ b/drivers/media/video/ti-media/dm644x_ccdc_regs.h
+@@ -59,7 +59,7 @@
+ #define CCDC_PRGODD_0				0x8c
+ #define CCDC_PRGODD_1				0x90
+ #define CCDC_VP_OUT				0x94
 -
- 	ret = mutex_lock_interruptible(&vpfe_dev->lock);
- 	if (ret)
- 		return ret;
-@@ -1541,7 +1602,10 @@ static int vpfe_streamon(struct file *file, void *priv,
- 	vpfe_dev->cur_frm->state = VIDEOBUF_ACTIVE;
- 	/* Initialize field_id and started member */
- 	vpfe_dev->field_id = 0;
--	addr = videobuf_to_dma_contig(vpfe_dev->cur_frm);
-+	if (V4L2_MEMORY_USERPTR == vpfe_dev->memory)
-+		addr = vpfe_dev->cur_frm->boff;
-+	else
-+		addr = videobuf_to_dma_contig(vpfe_dev->cur_frm);
++#define CCDC_REG_END				0x98
 
- 	/* Calculate field offset */
- 	vpfe_calculate_offsets(vpfe_dev);
+ /***************************************************************
+ *	Define for various register bit mask and shifts for CCDC
 --
 1.6.2.4
+
