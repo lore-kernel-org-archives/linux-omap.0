@@ -1,41 +1,163 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 10/11] omap: musb: get rid of dyn_fifo
-Date: Tue, 23 Feb 2010 20:50:55 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321A20527@dbde02.ent.ti.com>
-References: <20100219232648.10559.380.stgit@baageli.muru.com>
-	 <20100219233036.10559.29778.stgit@baageli.muru.com>
-	 <4B83EC7C.6020406@corscience.de>
- <f3642e6b1002230709r4dcd09bv9c495875bbd873c7@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH]  OMAP: McBSP: Drop unnecessary status/error bit clearing on reg_cache retrieved register values
+Date: Tue, 23 Feb 2010 16:50:38 +0100
+Message-ID: <201002231650.40351.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57348 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752499Ab0BWPVN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 10:21:13 -0500
-In-Reply-To: <f3642e6b1002230709r4dcd09bv9c495875bbd873c7@mail.gmail.com>
-Content-Language: en-US
+Received: from d1.icnet.pl ([212.160.220.21]:39424 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753186Ab0BWPuG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 10:50:06 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Hartmetz <ahartmetz@gmail.com>, Thomas Weber <weber@corscience.de>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-PiA+IEkgdGhpbmsgdGhpcyBwYXRjaCBicmVha3MgbXVzYl9oZHJjLg0KPiA+DQo+ID4gSW4gbXVz
-Yl9jb3JlX2luaXQgaXMgbXVzYi0+Y29uZmlnLT5keW5fZmlmbyBjaGVja2VkIGJ1dCBpcyBuZXZl
-ciBzZXQuDQo+ID4NCj4gPiBTbyBJIGdldCB0aGUgZm9sbG93aW5nIGRtZXNnIG91dHB1dDoNCj4g
-Pg0KPiA+IG11c2JfaGRyYzogQ29uZmlnRGF0YT0weGRlIChVVE1JLTgsIGR5biBGSUZPcywgYnVs
-ayBjb21iaW5lLCBidWxrIHNwbGl0LA0KPiA+IEhCLUlTTyBSeCwgSEItSVNPIFR4LCBTb2Z0Q29u
-bikNCj4gPiBtdXNiX2hkcmM6IE1IRFJDIFJUTCB2ZXJzaW9uIDEuNDAwDQo+ID4gbXVzYl9jb3Jl
-X2luaXQgMTQwNTogcmVjb25maWd1cmUgc29mdHdhcmUgZm9yIER5bmFtaWMgRklGT3MNCj4gPiBt
-dXNiX2hkcmMgbXVzYl9oZHJjOiBtdXNiX2luaXRfY29udHJvbGxlciBmYWlsZWQgd2l0aCBzdGF0
-dXMgLTE5DQo+ID4NCj4gPiBUaG9tYXMNCj4gDQo+IEkgdGhpbmsgSSBoYXZlIHRoZSBzYW1lIHBy
-b2JsZW0uDQo+IFRoZXJlIGFyZSBvdGhlciBwcm9ibGVtcyByaWdodCBub3cgKEknbSB0cnlpbmcg
-c2V2ZXJhbCBkaWZmZXJlbnQgYnJhbmNoL2RlZmNvbmZpZw0KPiBjb21iaW5hdGlvbnMpIHNvIEkg
-Y2FuJ3QgYmUgMTAwJSBzdXJlLg0KPiANCg0KQWpheSByZXBvcnRlZCBlYXJsaWVyIHRvZGF5IFsx
-XSB0aGF0IHRoZXJlIGlzIGEgZGVwZW5kZW5jeSBwYXRjaCBbMl0NCnRoYXQgbmVlZHMgdG8gYmUg
-dGFrZW4gaW4uIExvb2tzIGxpa2UgaXQgd2FzIG1pc3NlZCB3aGVuIHRoZSBNVVNCDQpwYXRjaHNl
-dCB3YXMgYWRkZWQgdG8gbGludXgtb21hcCBmb3IgZXh0cmEgdGVzdGluZy4NCg0KLSBBbmFuZA0K
-DQpbMV0gaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTI2NjkxNTc4ODMxMzAxJnc9
-Mg0KWzJdIGh0dHA6Ly9tYXJjLmluZm8vP2w9bGludXgtb21hcCZtPTEyNjA4ODM5MzEzMDE3NyZ3
-PTINCg==
+The MsBSP register cache will never have any error/status flags set, si=
+nce=20
+these flags are never written to the reg_cache. So it is kind of not=20
+necessary to clear these flags, which are actually always 0.
+
+In other words, clearing the status/error flags are not necessary, sinc=
+e the=20
+reg_cache will never got these bits set. We can just write back the=20
+register content from the cache as it is when clearing an error conditi=
+on.
+
+Created against l-o for-next commit 62a7c2cc4c8e57e80ccf379536f362fe6e8=
+63ac3
+dated 2010-02-22.
+Tested on Amstrad Delta.
+
+Reported-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+
+---
+=46riday 15 January 2010 10:11:28 Peter Ujfalusi wrote:
+> ...
+>
+> > @@ -653,7 +657,7 @@ int omap_mcbsp_pollwrite(unsigned int id
+> >       if (MCBSP_READ(mcbsp, SPCR2) & XSYNC_ERR) {
+> >               /* clear error */
+> >               MCBSP_WRITE(mcbsp, SPCR2,
+> > -                             MCBSP_READ(mcbsp, SPCR2) & (~XSYNC_ER=
+R));
+> > +                             MCBSP_READ_CACHE(mcbsp, SPCR2) & (~XS=
+YNC_ERR));
+>
+> Well, I think here also, the reg_cache does not have the XSYNC_ERR se=
+t, it
+> is only set in the McBSP register.
+
+Peter,
+Yes, that's right.
+
+> >               /* resend */
+> >               return -1;
+> >       } else {
+> > @@ -662,10 +666,12 @@ int omap_mcbsp_pollwrite(unsigned int id
+> >               while (!(MCBSP_READ(mcbsp, SPCR2) & XRDY)) {
+> >                       if (attemps++ > 1000) {
+> >                               MCBSP_WRITE(mcbsp, SPCR2,
+> > -                                         MCBSP_READ(mcbsp, SPCR2) =
+& (~XRST));
+> > +                                             MCBSP_READ_CACHE(mcbs=
+p, SPCR2) &
+> > +                                             (~XRST));=20
+>
+> Also here, the XRST will surely not set in the cached SPCR2...
+
+Probably not. XRST and other xRST flags seem to be controlled by softwa=
+re=20
+only, and can be actually set by omap_mcbsp_request() to get required=20
+functional blocks out of reset state. Here it is toggled back and forth=
+, so=20
+the code has to reset it explicitly and then set it back again.
+
+> This applies fro all other cases regarding to status/error bits in Mc=
+BSP.
+
+You probably managed to point out all applicable cases, since I was not=
+ able=20
+to find more, neither while examining the code itself nor reviewing the=
+=20
+SPRU592E reference one more time.=20
+
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0udelay(10);
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0MCBSP_WRITE(mcbsp, SPCR2,
+> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0MCBSP_READ(mcbsp, =
+SPCR2) | (XRST));
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0MC=
+BSP_READ_CACHE(mcbsp, SPCR2) |
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0(X=
+RST));=20
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0udelay(10);
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0dev_err(mcbsp->dev, "Could not write to"
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0" McBSP%d Register\n", mcb=
+sp->id);
+
+Thanks,
+Janusz
+
+ arch/arm/plat-omap/mcbsp.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+--- git/arch/arm/plat-omap/mcbsp.c.orig	2010-02-23 11:36:43.000000000 +=
+0100
++++ git/arch/arm/plat-omap/mcbsp.c	2010-02-23 16:39:45.000000000 +0100
+@@ -133,8 +133,7 @@ static irqreturn_t omap_mcbsp_tx_irq_han
+ 		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
+ 			irqst_spcr2);
+ 		/* Writing zero to XSYNC_ERR clears the IRQ */
+-		MCBSP_WRITE(mcbsp_tx, SPCR2,
+-			    MCBSP_READ_CACHE(mcbsp_tx, SPCR2) & ~(XSYNC_ERR));
++		MCBSP_WRITE(mcbsp_tx, SPCR2, MCBSP_READ_CACHE(mcbsp_tx, SPCR2));
+ 	} else {
+ 		complete(&mcbsp_tx->tx_irq_completion);
+ 	}
+@@ -154,8 +153,7 @@ static irqreturn_t omap_mcbsp_rx_irq_han
+ 		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
+ 			irqst_spcr1);
+ 		/* Writing zero to RSYNC_ERR clears the IRQ */
+-		MCBSP_WRITE(mcbsp_rx, SPCR1,
+-			    MCBSP_READ_CACHE(mcbsp_rx, SPCR1) & ~(RSYNC_ERR));
++		MCBSP_WRITE(mcbsp_rx, SPCR1, MCBSP_READ_CACHE(mcbsp_rx, SPCR1));
+ 	} else {
+ 		complete(&mcbsp_rx->tx_irq_completion);
+ 	}
+@@ -934,8 +932,7 @@ int omap_mcbsp_pollwrite(unsigned int id
+ 	/* if frame sync error - clear the error */
+ 	if (MCBSP_READ(mcbsp, SPCR2) & XSYNC_ERR) {
+ 		/* clear error */
+-		MCBSP_WRITE(mcbsp, SPCR2,
+-				MCBSP_READ_CACHE(mcbsp, SPCR2) & (~XSYNC_ERR));
++		MCBSP_WRITE(mcbsp, SPCR2, MCBSP_READ_CACHE(mcbsp, SPCR2));
+ 		/* resend */
+ 		return -1;
+ 	} else {
+@@ -975,8 +972,7 @@ int omap_mcbsp_pollread(unsigned int id,
+ 	/* if frame sync error - clear the error */
+ 	if (MCBSP_READ(mcbsp, SPCR1) & RSYNC_ERR) {
+ 		/* clear error */
+-		MCBSP_WRITE(mcbsp, SPCR1,
+-				MCBSP_READ_CACHE(mcbsp, SPCR1) & (~RSYNC_ERR));
++		MCBSP_WRITE(mcbsp, SPCR1, MCBSP_READ_CACHE(mcbsp, SPCR1));
+ 		/* resend */
+ 		return -1;
+ 	} else {
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
