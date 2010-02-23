@@ -1,104 +1,91 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [RESEND][PATCHv2 4/4] OMAP: DSS2: Add Innolux 7" display for
- DEVKIT8000
-Date: Tue, 23 Feb 2010 13:54:55 +0200
-Message-ID: <1266926095.2411.69.camel@tubuntu.research.nokia.com>
-References: <1265917278-22011-1-git-send-email-swirl@gmx.li>
-	 <45a44e481002112155u68c806beg9fe0a3a122d09d25@mail.gmail.com>
-	 <1265988343.2433.312.camel@tubuntu.research.nokia.com>
-	 <4B7E8AA4.40307@corscience.de>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH] PM-WIP-OPP: Fixing wrong target level being passed
+ during Core DVFS.
+Date: Tue, 23 Feb 2010 06:42:17 -0600
+Message-ID: <A24693684029E5489D1D202277BE8944537994FE@dlee02.ent.ti.com>
+References: <1266481866-10875-1-git-send-email-thara@ti.com>
+ <4B7D558D.7000101@ti.com>
+ <A24693684029E5489D1D202277BE894453799477@dlee02.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C013114623A@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4B7E8AA4.40307@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Thomas Weber <weber@corscience.de>
-Cc: ext Jaya Kumar <jayakumar.lkml@gmail.com>, Thomas Weber <swirl@gmx.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48545 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752281Ab0BWMmX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 07:42:23 -0500
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C013114623A@dlee02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
 
-On Fri, 2010-02-19 at 13:57 +0100, ext Thomas Weber wrote:
-> Tomi Valkeinen wrote:
-> > On Fri, 2010-02-12 at 06:55 +0100, ext Jaya Kumar wrote:
-> >   
-> >> On Fri, Feb 12, 2010 at 3:41 AM, Thomas Weber <swirl@gmx.li> wrote:
-> >>     
-> >
-> > [snip]
-> >
-> >   
-> >>> +
-> >>> +static struct omap_video_timings innolux_at_timings = {
-> >>> +       .x_res          = 800,
-> >>> +       .y_res          = 480,
-> >>> +
-> >>> +       .pixel_clock    = 40000,
-> >>> +
-> >>> +       .hsw            = 48,
-> >>> +       .hfp            = 1,
-> >>> +       .hbp            = 1,
-> >>> +
-> >>> +       .vsw            = 3,
-> >>> +       .vfp            = 12,
-> >>> +       .vbp            = 25,
-> >>> +};
-> >>> +
-> >>> +static int innolux_at_panel_probe(struct omap_dss_device *dssdev)
-> >>> +{
-> >>> +       dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-> >>> +               OMAP_DSS_LCD_IHS;
-> >>> +       dssdev->panel.acb = 0x28;
-> >>> +       dssdev->panel.timings = innolux_at_timings;
-> >>> +
-> >>> +       return 0;
-> >>> +}
-> >>> +
-> >>>       
-> >> Hi Thomas, Tomi,
-> >>
-> >> Just curious, does this patch imply that code like this needs to be
-> >> written for every single LCD type and resolution that can be connected
-> >> to omap2? Maybe there is a better way, like a common table of timings
-> >> and values that can be selected with a module option or even
-> >> autodetected.
-> >>     
-> >
-> > Yes, it is true that currently you need to write these for every LCD. I
-> > have been thinking this issue, and I think we can make a common driver. 
-> >
-> > However, it's not just selecting timings, as LCDs can have also other
-> > characteristics than just the video timings. For example, some may have
-> > power on/off line, some reset enable/disable, some need 50ms after
-> > reset, some 80ms after reset etc.
-> >
-> > But if we manage to get a sane set of those settings into the table, we
-> > could perhaps cover most of the "dummy" LCDs with it.
-> >
-> > This change doesn't probably need any changes to the DSS core, only for
-> > the panel driver. Any takers for this task? =) 
-> >
-> >  Tomi
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
-> >   
-> Hello,
+
+
+> -----Original Message-----
+> From: Menon, Nishanth
+> Sent: Monday, February 22, 2010 11:31 PM
+> To: Aguirre, Sergio; Gopinath, Thara
+> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Kristo Tero (Nokia-
+> D/Tampere)
+> Subject: RE: [PATCH] PM-WIP-OPP: Fixing wrong target level being passed
+> during Core DVFS.
 > 
-> sorry but I am not able to take the task.
-> Make it sense to rework this patch or do you want first the changes to
-> the panel driver?
+> > From: Aguirre, Sergio
+> > Sent: Tuesday, February 23, 2010 7:28 AM
+> > To: Menon, Nishanth; Gopinath, Thara
+> [...]
+> > >
+> > > >
+> > > > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > > > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > > > ---
+> > > >  arch/arm/mach-omap2/resource34xx.c |    4 +++-
+> > > >  1 files changed, 3 insertions(+), 1 deletions(-)
+> > > >
+> > > > diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-
+> > > omap2/resource34xx.c
+> > > > index 3604a38..d2336d8 100644
+> > > > --- a/arch/arm/mach-omap2/resource34xx.c
+> > > > +++ b/arch/arm/mach-omap2/resource34xx.c
+> > > > @@ -463,6 +463,7 @@ int set_opp(struct shared_resource *resp, u32
+> > > target_level)
+> > > >  	} else if (resp == vdd2_resp) {
+> > > >  		unsigned long req_l3_freq;
+> > > >  		struct omap_opp *oppx = NULL;
+> > > > +		u8 opp;
+> > > >
+> > > >  		/* Convert the tput in KiB/s to Bus frequency in MHz */
+> > > >  		req_l3_freq = (target_level * 1000)/4;
+> > > > @@ -478,10 +479,11 @@ int set_opp(struct shared_resource *resp, u32
+> > > target_level)
+> > > >  		/* uh uh.. no OPPs?? */
+> > > >  		BUG_ON(IS_ERR(oppx));
+> > > >
+> > > If you do target_level = 0; here, the entire patch is a oneliner :)
+> >
+> > Actually, IMHO will be even more clean, to standardize all OPP value
+> > passing to be u8.
+> >
+> > Do you really need to be prepared for 2^32 opp values? ;)
+> >
+> Using OPP ID has to be completely removed from resource34xx.c -> this
+> action is still pending. In this case, using u8 OR initing the
+> target_level to 0 has the same impact. Why add code that will be removed
+> later on anyways?
 
-I probably won't have time to implement this generic panel driver yet.
-However, I will be merging some DSS driver model changes (sent to
-mailing lists) soon, after which this patch needs to be changed a bit.
+Well, I'm not proposing for code addition, but to fix that code just by changing opp level parameters to u8, instead of u32, like this:
 
-The changes can be found from
-http://gitorious.org/linux-omap-dss2/linux/commits/work but they may
-still change a bit.
+-int set_opp(struct shared_resource *resp, u32 target_level)
++int set_opp(struct shared_resource *resp, u8 target_level)
 
- Tomi
+If you're going to replace all this in the near future, then it's understandable to hold even this patch (target_level = 0).
+
+Regards,
+Sergio
+> 
+> Regards,
+> Nishanth Menon
+
