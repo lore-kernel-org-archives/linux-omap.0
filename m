@@ -1,16 +1,16 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 02/11] OMAP clock: add omap_clk_get_by_name() for use by OMAP
-	hwmod core code
-Date: Mon, 22 Feb 2010 21:50:44 -0700
-Message-ID: <20100223045040.18888.90405.stgit@localhost.localdomain>
+Subject: [PATCH 03/11] OMAP hwmod: convert hwmod to use hardware clock names
+	rather than clkdev dev+con
+Date: Mon, 22 Feb 2010 21:50:45 -0700
+Message-ID: <20100223045044.18888.76276.stgit@localhost.localdomain>
 References: <20100223044915.18888.83242.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60247 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60250 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751251Ab0BWE5i (ORCPT
+	with ESMTP id S1751422Ab0BWE5i (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Feb 2010 23:57:38 -0500
 In-Reply-To: <20100223044915.18888.83242.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
@@ -25,79 +25,218 @@ identify clocks.  This causes problems in the hwmod autogeneration
 process, since the TI hardware database doesn't use platform_device or
 clkdev addressing; it uses a single clock signal name string, which
 tends to bear some resemblance to what is used in the OMAP TRMs.  This
-patch adds a non-exported function to the OMAP clock code,
-omap_clk_get_by_name().  A subsequent patch will convert the hwmod
-code to use this function.
-
-This function is for use only by core code, and practically, no other
-code outside the hwmod code should need it.  Device driver code in the
-kernel must not use this function, which is why it is not exported.
-Drivers should use the appropriate clock alias provided by the clkdev
-data structures, so driver code can be completely SoC-independent.
+patch converts the hwmod code and existing data to use omap_clk_get_by_=
+name(),
+introduced in the previous patch.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/plat-omap/clock.c              |   27 +++++++++++++++++++++++=
-++++
- arch/arm/plat-omap/include/plat/clock.h |    1 +
- 2 files changed, 28 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |   22 ++++++++++--------=
+----
+ arch/arm/mach-omap2/omap_hwmod_2420.h        |    3 +--
+ arch/arm/mach-omap2/omap_hwmod_2430.h        |    3 +--
+ arch/arm/mach-omap2/omap_hwmod_34xx.h        |    3 +--
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   26 ++++++++++--------=
+--------
+ 5 files changed, 23 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index f244b17..6cc13e7 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -313,6 +313,33 @@ void clk_enable_init_clocks(void)
- 	}
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+index fb11ec1..501660a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -416,18 +416,18 @@ static int _init_main_clk(struct omap_hwmod *oh)
+ 	struct clk *c;
+ 	int ret =3D 0;
+=20
+-	if (!oh->clkdev_con_id)
++	if (!oh->main_clk)
+ 		return 0;
+=20
+-	c =3D clk_get_sys(oh->clkdev_dev_id, oh->clkdev_con_id);
+-	WARN(IS_ERR(c), "omap_hwmod: %s: cannot clk_get main_clk %s.%s\n",
+-	     oh->name, oh->clkdev_dev_id, oh->clkdev_con_id);
++	c =3D omap_clk_get_by_name(oh->main_clk);
++	WARN(IS_ERR(c), "omap_hwmod: %s: cannot clk_get main_clk %s\n",
++	     oh->name, oh->main_clk);
+ 	if (IS_ERR(c))
+ 		ret =3D -EINVAL;
+ 	oh->_clk =3D c;
+=20
+ 	WARN(!c->clkdm, "omap_hwmod: %s: missing clockdomain for %s.\n",
+-	     oh->clkdev_con_id, c->name);
++	     oh->main_clk, c->name);
+=20
+ 	return ret;
  }
+@@ -450,13 +450,12 @@ static int _init_interface_clks(struct omap_hwmod=
+ *oh)
+ 		return 0;
 =20
-+/**
-+ * omap_clk_get_by_name - locate OMAP struct clk by its name
-+ * @name: name of the struct clk to locate
-+ *
-+ * Locate an OMAP struct clk by its name.  Assumes that struct clk
-+ * names are unique.  Returns NULL if not found or a pointer to the
-+ * struct clk if found.
-+ */
-+struct clk *omap_clk_get_by_name(const char *name)
-+{
-+	struct clk *c;
-+	struct clk *ret =3D NULL;
-+
-+	mutex_lock(&clocks_mutex);
-+
-+	list_for_each_entry(c, &clocks, node) {
-+		if (!strcmp(c->name, name)) {
-+			ret =3D c;
-+			break;
-+		}
-+	}
-+
-+	mutex_unlock(&clocks_mutex);
-+
-+	return ret;
-+}
-+
- /*
-  * Low level helpers
+ 	for (i =3D 0, os =3D *oh->slaves; i < oh->slaves_cnt; i++, os++) {
+-		if (!os->clkdev_con_id)
++		if (!os->clk)
+ 			continue;
+=20
+-		c =3D clk_get_sys(os->clkdev_dev_id, os->clkdev_con_id);
++		c =3D omap_clk_get_by_name(os->clk);
+ 		WARN(IS_ERR(c), "omap_hwmod: %s: cannot clk_get "
+-		     "interface_clk %s.%s\n", oh->name,
+-		     os->clkdev_dev_id, os->clkdev_con_id);
++		     "interface_clk %s\n", oh->name, os->clk);
+ 		if (IS_ERR(c))
+ 			ret =3D -EINVAL;
+ 		os->_clk =3D c;
+@@ -480,10 +479,9 @@ static int _init_opt_clks(struct omap_hwmod *oh)
+ 	int ret =3D 0;
+=20
+ 	for (i =3D oh->opt_clks_cnt, oc =3D oh->opt_clks; i > 0; i--, oc++) {
+-		c =3D clk_get_sys(oc->clkdev_dev_id, oc->clkdev_con_id);
++		c =3D omap_clk_get_by_name(oc->clk);
+ 		WARN(IS_ERR(c), "omap_hwmod: %s: cannot clk_get opt_clk "
+-		     "%s.%s\n", oh->name, oc->clkdev_dev_id,
+-		     oc->clkdev_con_id);
++		     "%s\n", oh->name, oc->clk);
+ 		if (IS_ERR(c))
+ 			ret =3D -EINVAL;
+ 		oc->_clk =3D c;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420.h b/arch/arm/mach-omap=
+2/omap_hwmod_2420.h
+index a9ca1b9..5932c1d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420.h
++++ b/arch/arm/mach-omap2/omap_hwmod_2420.h
+@@ -117,8 +117,7 @@ static struct omap_hwmod_ocp_if *omap2420_mpu_maste=
+rs[] =3D {
+ /* MPU */
+ static struct omap_hwmod omap2420_mpu_hwmod =3D {
+ 	.name		=3D "mpu_hwmod",
+-	.clkdev_dev_id	=3D NULL,
+-	.clkdev_con_id	=3D "mpu_ck",
++	.main_clk	=3D "mpu_ck",
+ 	.masters	=3D omap2420_mpu_masters,
+ 	.masters_cnt	=3D ARRAY_SIZE(omap2420_mpu_masters),
+ 	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430.h b/arch/arm/mach-omap=
+2/omap_hwmod_2430.h
+index 59a208b..91f79c0 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430.h
++++ b/arch/arm/mach-omap2/omap_hwmod_2430.h
+@@ -119,8 +119,7 @@ static struct omap_hwmod_ocp_if *omap2430_mpu_maste=
+rs[] =3D {
+ /* MPU */
+ static struct omap_hwmod omap2430_mpu_hwmod =3D {
+ 	.name		=3D "mpu_hwmod",
+-	.clkdev_dev_id	=3D NULL,
+-	.clkdev_con_id	=3D "mpu_ck",
++	.main_clk	=3D "mpu_ck",
+ 	.masters	=3D omap2430_mpu_masters,
+ 	.masters_cnt	=3D ARRAY_SIZE(omap2430_mpu_masters),
+ 	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap=
+2/omap_hwmod_34xx.h
+index b6076b9..4aea5b9 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_34xx.h
++++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
+@@ -143,8 +143,7 @@ static struct omap_hwmod_ocp_if *omap34xx_mpu_maste=
+rs[] =3D {
+ /* MPU */
+ static struct omap_hwmod omap34xx_mpu_hwmod =3D {
+ 	.name		=3D "mpu_hwmod",
+-	.clkdev_dev_id	=3D NULL,
+-	.clkdev_con_id	=3D "arm_fck",
++	.main_clk	=3D "arm_fck",
+ 	.masters	=3D omap34xx_mpu_masters,
+ 	.masters_cnt	=3D ARRAY_SIZE(omap34xx_mpu_masters),
+ 	.omap_chip	=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/pl=
+at-omap/include/plat/omap_hwmod.h
+index 665420e..de4d042 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -110,8 +110,7 @@ struct omap_hwmod_dma_info {
+ /**
+  * struct omap_hwmod_opt_clk - optional clocks used by this hwmod
+  * @role: "sys", "32k", "tv", etc -- for use in clk_get()
+- * @clkdev_dev_id: opt clock: clkdev dev_id string
+- * @clkdev_con_id: opt clock: clkdev con_id string
++ * @clk: opt clock: OMAP clock name
+  * @_clk: pointer to the struct clk (filled in at runtime)
+  *
+  * The module's interface clock and main functional clock should not
+@@ -119,8 +118,7 @@ struct omap_hwmod_dma_info {
   */
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-om=
-ap/include/plat/clock.h
-index 5e1c035..6a32ac1 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -184,6 +184,7 @@ unsigned long omap_fixed_divisor_recalc(struct clk =
-*clk);
- extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **ta=
-ble);
- extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table **ta=
-ble);
- #endif
-+extern struct clk *omap_clk_get_by_name(const char *name);
+ struct omap_hwmod_opt_clk {
+ 	const char	*role;
+-	const char	*clkdev_dev_id;
+-	const char	*clkdev_con_id;
++	const char	*clk;
+ 	struct clk	*_clk;
+ };
 =20
- extern const struct clkops clkops_null;
-=20
+@@ -187,8 +185,7 @@ struct omap_hwmod_addr_space {
+  * @master: struct omap_hwmod that initiates OCP transactions on this =
+link
+  * @slave: struct omap_hwmod that responds to OCP transactions on this=
+ link
+  * @addr: address space associated with this link
+- * @clkdev_dev_id: interface clock: clkdev dev_id string
+- * @clkdev_con_id: interface clock: clkdev con_id string
++ * @clk: interface clock: OMAP clock name
+  * @_clk: pointer to the interface struct clk (filled in at runtime)
+  * @fw: interface firewall data
+  * @addr_cnt: ARRAY_SIZE(@addr)
+@@ -207,8 +204,7 @@ struct omap_hwmod_ocp_if {
+ 	struct omap_hwmod		*master;
+ 	struct omap_hwmod		*slave;
+ 	struct omap_hwmod_addr_space	*addr;
+-	const char			*clkdev_dev_id;
+-	const char			*clkdev_con_id;
++	const char			*clk;
+ 	struct clk			*_clk;
+ 	union {
+ 		struct omap_hwmod_omap2_firewall omap2;
+@@ -401,8 +397,7 @@ struct omap_hwmod_omap4_prcm {
+  * @mpu_irqs: ptr to an array of MPU IRQs (see also mpu_irqs_cnt)
+  * @sdma_chs: ptr to an array of SDMA channel IDs (see also sdma_chs_c=
+nt)
+  * @prcm: PRCM data pertaining to this hwmod
+- * @clkdev_dev_id: main clock: clkdev dev_id string
+- * @clkdev_con_id: main clock: clkdev con_id string
++ * @main_clk: main clock: OMAP clock name
+  * @_clk: pointer to the main struct clk (filled in at runtime)
+  * @opt_clks: other device clocks that drivers can request (0..*)
+  * @masters: ptr to array of OCP ifs that this hwmod can initiate on
+@@ -426,10 +421,10 @@ struct omap_hwmod_omap4_prcm {
+  * @omap_chip: OMAP chips this hwmod is present on
+  * @node: list node for hwmod list (internal use)
+  *
+- * @clkdev_dev_id, @clkdev_con_id, and @clk all refer to this module's=
+ "main
+- * clock," which for our purposes is defined as "the functional clock =
+needed
+- * for register accesses to complete."  Modules may not have a main cl=
+ock if
+- * the interface clock also serves as a main clock.
++ * @main_clk refers to this module's "main clock," which for our
++ * purposes is defined as "the functional clock needed for register
++ * accesses to complete."  Modules may not have a main clock if the
++ * interface clock also serves as a main clock.
+  *
+  * Parameter names beginning with an underscore are managed internally=
+ by
+  * the omap_hwmod code and should not be set during initialization.
+@@ -443,8 +438,7 @@ struct omap_hwmod {
+ 		struct omap_hwmod_omap2_prcm omap2;
+ 		struct omap_hwmod_omap4_prcm omap4;
+ 	}				prcm;
+-	const char			*clkdev_dev_id;
+-	const char			*clkdev_con_id;
++	const char			*main_clk;
+ 	struct clk			*_clk;
+ 	struct omap_hwmod_opt_clk	*opt_clks;
+ 	struct omap_hwmod_ocp_if	**masters; /* connect to *_IA */
 
 
 --
