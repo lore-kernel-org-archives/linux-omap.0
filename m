@@ -1,86 +1,153 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/9] omap3/4: uart: fix full-fifo write abort
-Date: Tue, 23 Feb 2010 15:12:25 -0800
-Message-ID: <20100223231225.GL28173@atomide.com>
-References: <1266483554-15044-1-git-send-email-santosh.shilimkar@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C417FA42@dbde02.ent.ti.com>
- <20100222213932.GW18786@atomide.com>
- <20100222230712.GB18786@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1174@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH/RFC 4/4] OMAP2/3 MMC: initial conversion to runtime PM
+Date: Tue, 23 Feb 2010 15:14:30 -0800
+Message-ID: <87635nwnmx.fsf@deeprootsystems.com>
+References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com>
+	<1265244688-4055-5-git-send-email-khilman@deeprootsystems.com>
+	<004501caaf57$480e1b20$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51131 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753249Ab0BWXL3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 18:11:29 -0500
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1174@dbde02.ent.ti.com>
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:36661 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752656Ab0BWXOh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 18:14:37 -0500
+Received: by fxm19 with SMTP id 19so4424676fxm.21
+        for <linux-omap@vger.kernel.org>; Tue, 23 Feb 2010 15:14:36 -0800 (PST)
+In-Reply-To: <004501caaf57$480e1b20$544ff780@am.dhcp.ti.com> (Madhusudhan's message of "Tue\, 16 Feb 2010 16\:27\:53 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: linux-omap@vger.kernel.org, 'Paul Walmsley' <paul@pwsan.com>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100222 23:16]:
-> Tony,
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Tuesday, February 23, 2010 4:37 AM
-> > To: Shilimkar, Santosh
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Woodruff, Richard; Ghorai,
-> > Sukumar
-> > Subject: Re: [PATCH 1/9] omap3/4: uart: fix full-fifo write abort
-> > 
-> > * Tony Lindgren <tony@atomide.com> [100222 13:35]:
-> > > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [100218 21:22]:
-> > > > Bye the way just to add bit more clarity, this patch addresses TX
-> > > > hardware restriction in the new UART IP used on omap3630 and omap4430.
-> > > > First part of the fix for RX is already in mainline,
-> > > > Commit: "ce13d4716a276f4331d78ba28a5093a63822ab95"
-> > > >
-> > > > More details on this thread are here.
-> > > > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg19447.html
-> > >
-> > > Thanks, I've updated the comments for this patch with the link above
-> > > and added the whole series into omap for-next.
-> > 
-> > Except patches 8 and 9 as they break compile for mach-omap1
-> > and need to be updated.
-> >
-> Patch 8 is alright and doesn't break omap1. Patch 7 and patch 9 needs update to fix
-> the mach-omap1 build issue by moving irqs-44xx.h header file to plat-omap directory.
-> Attached are updated 7 and 9.
-> Build tested for omap1 (omap_generic_1710_defconfig and omap_h2_1610_defconfig) and boot
-> tested with omap3_defconfig on omap4430sdp board.
+"Madhusudhan" <madhu.cr@ti.com> writes:
 
-Next time, one patch per email please. And updates as replies
-to the original patches, or else the whole series. And patches
-as inline attachments.
+> <snip>
+>
+>>  err_irq:
+>>  	mmc_host_disable(host->mmc);
+>> -	clk_disable(host->iclk);
+>> +	pm_runtime_suspend(host->dev);
+>
+> Why not pm_runtime_put_sync() here? It can replace the calls:
+> mmc_host_disable(host->mmc);
+> clk_disable(host->iclk);
 
-Otherwise it's hard to keep track of the patches and comment
-them.
+Not knowing a ton about this driver, I'd rather keep the
+mmc_host_disable() since it matches the mmc_host_enable() earlier.
 
-I've updated your patch 9/9 with the following as in omap for-next
-I was getting:
+>>  	clk_put(host->fclk);
+>>  	clk_put(host->iclk);
+>> +
+>>  	if (host->got_dbclk) {
+>>  		clk_disable(host->dbclk);
+>>  		clk_put(host->dbclk);
+>> @@ -2216,7 +2164,8 @@ static int omap_hsmmc_remove(struct platform_device
+>> *pdev)
+>>  		flush_scheduled_work();
+>> 
+>>  		mmc_host_disable(host->mmc);
+>> -		clk_disable(host->iclk);
+>> +		pm_runtime_suspend(host->dev);
+>> +
+>
+> Ditto
+>
+>
+>>  		clk_put(host->fclk);
+>>  		clk_put(host->iclk);
+>>  		if (host->got_dbclk) {
+>> @@ -2272,7 +2221,7 @@ static int omap_hsmmc_suspend(struct device *dev)
+>>  			OMAP_HSMMC_WRITE(host->base, HCTL,
+>>  				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+>>  			mmc_host_disable(host->mmc);
+>> -			clk_disable(host->iclk);
+>> +
+>>  			if (host->got_dbclk)
+>>  				clk_disable(host->dbclk);
+>>  		} else {
+>> @@ -2287,6 +2236,11 @@ static int omap_hsmmc_suspend(struct device *dev)
+>>  			mmc_host_disable(host->mmc);
+>>  		}
+>> 
+>> +		/*
+>> +		 * HACK: "extra" put to compensate for DPM core keeping
+>> +		 *       runtime PM disabled.  -- khilman
+>> +		 */
+>> +		pm_runtime_put_sync(host->dev);
+>>  	}
+>>  	return ret;
+>>  }
+>> @@ -2302,12 +2256,14 @@ static int omap_hsmmc_resume(struct device *dev)
+>>  		return 0;
+>> 
+>>  	if (host) {
+>> -		ret = clk_enable(host->iclk);
+>> -		if (ret)
+>> -			goto clk_en_err;
+>> +		/*
+>> +		 * HACK: "extra" get to compensate for DPM core keeping
+>> +		 *       runtime PM disabled.  -- khilman
+>> +		 */
+>> +		pm_runtime_get_sync(host->dev);
+>> 
+>>  		if (mmc_host_enable(host->mmc) != 0) {
+>> -			clk_disable(host->iclk);
+>> +			pm_runtime_suspend(host->dev);
+>>  			goto clk_en_err;
+>>  		}
+>> 
+>> @@ -2346,9 +2302,37 @@ clk_en_err:
+>>  #define omap_hsmmc_resume		NULL
+>>  #endif
+>> 
+>> +/* called just before device is disabled */
+>> +static int omap_hsmmc_runtime_suspend(struct device *dev)
+>> +{
+>> +	struct omap_hsmmc_host *host;
+>> +
+>> +	dev_dbg(dev, "%s\n", __func__);
+>> +
+>> +	host = platform_get_drvdata(to_platform_device(dev));
+>> +	omap_hsmmc_context_save(host);
+>
+> The context_save fn is now empty. How does it help here?
 
-arch/arm/mach-omap2/usb-musb.c:97: Building for omap_3430sdp_defconfigred (first use in this function)                                                              Building for omap_3630sdp_defconfigch-omap2/usb-musb.c:97: error: (Each undeclared identifier is reported only once
-arch/arm/mach-omap2/usb-musb.c:97: error: for each function it appears in.)
-arch/arm/mach-omap2/usb-musb.c:98: error: 'INT_44XX_HS_USB_DMA' undeclared (first use in this function)
+It doesn't add anything, but I put it there to show that this is the
+only place that context save would be needed, and as an example to other
+drivers.
 
-Regards,
+Kevin
 
-Tony
-
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -94,8 +94,8 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
- 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
- 	} else if (cpu_is_omap44xx()) {
- 		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
--		musb_resources[1].start = INT_44XX_HS_USB_MC;
--		musb_resources[2].start = INT_44XX_HS_USB_DMA;
-+		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
-+		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
- 	}
- 	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
- 
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/* called after device is (re)enabled, ONLY if context was lost */
+>> +static int omap_hsmmc_runtime_resume(struct device *dev)
+>> +{
+>> +	struct omap_hsmmc_host *host;
+>> +
+>> +	dev_dbg(dev, "%s\n", __func__);
+>> +
+>> +	host = platform_get_drvdata(to_platform_device(dev));
+>> +	omap_hsmmc_context_restore(host);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>  static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+>>  	.suspend	= omap_hsmmc_suspend,
+>>  	.resume		= omap_hsmmc_resume,
+>> +	.runtime_suspend = omap_hsmmc_runtime_suspend,
+>> +	.runtime_resume = omap_hsmmc_runtime_resume,
+>>  };
+>> 
+>>  static struct platform_driver omap_hsmmc_driver = {
+>> --
+>> 1.6.6
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
