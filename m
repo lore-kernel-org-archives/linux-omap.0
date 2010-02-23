@@ -1,49 +1,102 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: About multicore OMAP
-Date: Tue, 23 Feb 2010 22:20:22 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E15B9@dbde02.ent.ti.com>
-References: <31ee32481002230504m2cc4dfebu85426681e76b4ee@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E14F4@dbde02.ent.ti.com>
- <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1545@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH] DSPBRIDGE: Remove GT_TRACE conditional macro
+Date: Tue, 23 Feb 2010 11:05:43 -0600
+Message-ID: <1266944743-989-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57879 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58376 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753100Ab0BWQua (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Feb 2010 11:50:30 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1545@dbde02.ent.ti.com>
-Content-Language: en-US
+	id S1753130Ab0BWQ5q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Feb 2010 11:57:46 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jacob john <jacob.john74@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Sm9obiwNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtb21hcC1v
-d25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVs
-Lm9yZ10gT24gQmVoYWxmIE9mDQo+IFNoaWxpbWthciwgU2FudG9zaA0KPiBTZW50OiBUdWVzZGF5
-LCBGZWJydWFyeSAyMywgMjAxMCA4OjAxIFBNDQo+IFRvOiBKYWNvYiBqb2huDQo+IENjOiBsaW51
-eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBSRTogQWJvdXQgbXVsdGljb3JlIE9N
-QVANCj4gDQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiBGcm9tOiBKYWNvYiBq
-b2huIFttYWlsdG86amFjb2Iuam9objc0QGdtYWlsLmNvbV0NCj4gPiBTZW50OiBUdWVzZGF5LCBG
-ZWJydWFyeSAyMywgMjAxMCA3OjUxIFBNDQo+ID4gVG86IFNoaWxpbWthciwgU2FudG9zaA0KPiA+
-IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiA+IFN1YmplY3Q6IFJlOiBBYm91dCBt
-dWx0aWNvcmUgT01BUA0KPiA+DQo+ID4gSXQnc8KgQmxhemUgd2l0aMKgdHdvIGxjZCdzIGFuZCBw
-aWNvLCBsb29rcyBncmVhdC4gQ2FuIEkgaGF2ZSB0aGlzDQo+ID4gbGludXgtb21hcCBrZXJuZWwg
-cnVubmluZyBvbiBPTUFQND8sIHBsdXMgSSdtIGxvb2tpbmcgZm9yIFNNUA0KPiA+IGJlbmNobWFy
-ayByZXN1bHRzIGV0Yy4NCj4gPg0KPiBMaW51eC1vbWFwIGtlcm5lbCB3aXRoIG9tYXBfNDQzMHNk
-cF9kZWZjb25maWcgd2lsbCBib290IG9uIGJsYXplIHdpdGggU01QLiBUaGlzDQo+IHdvbid0IGhh
-dmUgbG90IG9mIGRyaXZlciBzdXBwb3J0IGFzIHN1Y2ggY3VycmVudGx5LiBBbHNvIEwyIGNhY2hl
-IHN1cHBvcnQgaXMgaW4NCj4gb24gdGhlIHdheSB0byBtYWtlIGl0IHRvIG1haW5saW5lIGFzIHdl
-bGwuIFlvdSBzaG91bGQgYmUgYWJsZSB0byBwbGF5IHdpdGggdGhpcw0KPiB3aXRoIHNvbWUgYmFz
-aWMgYmVuY2htYXJrIHRlc3QgcmVsYXRlZCB0byBDUFUuDQo+IA0KPiBEaXNwbGF5ICwgQXVkaW8s
-IFBpY28sIGtleXBhZCwgdG91Y2hzY3JlZWVuIGV0YyBkcml2ZXJzIGFyZSBhdmFpbGFibGUgd2l0
-aCB0aGUNCj4gcmVsZWFzZSBhbmQgeW91IHNob3VsZCBiZSBhYmxlIGdldCBtb3JlIGRldGFpbHMg
-ZnJvbSB0aGUgVEkgY29udGFjdCBwZXJzb24gd2hvDQo+IGdhdmUgeW91IHRoZSBibGF6ZS4gWW91
-IGNhbiBhbHNvIGdldCB0aGUgcGVyZm9ybWFuY2UgbnVtYmVycyBmcm9tIHNhbWUgc291cmNlDQo+
-IA0KSWYgeW91IG5lZWQgdGhlIGZ1bGwga2VybmVsIHdpdGggYWxsIHRoZSBkcml2ZXJzIEkgbWVu
-dGlvbmVkIGFib3ZlLCB5b3UgY2FuIHVzZQ0KYmVsb3cgZ2l0Lg0KaHR0cDovL2Rldi5vbWFwem9v
-bS5vcmcvP3A9aW50ZWdyYXRpb24va2VybmVsLW9tYXA0LmdpdDthPXNob3J0bG9nO2g9cmVmcy9o
-ZWFkcy9MMjQuNA0KDQpSZWdhcmRzLA0KU2FudG9zaA0KDQo=
+Remove GT_TRACE conditional macro
+
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/dbc.h |   14 --------------
+ drivers/dsp/bridge/Makefile                |    5 -----
+ drivers/dsp/bridge/rmgr/drv.c              |    2 --
+ drivers/dsp/bridge/rmgr/drv_interface.c    |    2 --
+ 4 files changed, 0 insertions(+), 23 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
+index c4bf803..4ed8f72 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbc.h
++++ b/arch/arm/plat-omap/include/dspbridge/dbc.h
+@@ -25,13 +25,7 @@
+ #ifndef DBC_
+ #define DBC_
+ 
+-#ifndef GT_TRACE
+-#define GT_TRACE 0	    /* 0 = "trace compiled out"; 1 = "trace active" */
+-#endif
+-
+ /* Assertion Macros: */
+-#if GT_TRACE
+-
+ #define DBC_Assert(exp) \
+     if (!(exp)) \
+ 	pr_err("%s, line %d: Assertion (" #exp ") failed.\n", \
+@@ -39,12 +33,4 @@
+ #define DBC_Require DBC_Assert	/* Function Precondition.  */
+ #define DBC_Ensure  DBC_Assert	/* Function Postcondition. */
+ 
+-#else
+-
+-#define DBC_Assert(exp) {}
+-#define DBC_Require(exp) {}
+-#define DBC_Ensure(exp) {}
+-
+-#endif				/* DEBUG */
+-
+ #endif				/* DBC_ */
+diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
+index 11d92cd..11f48cb 100644
+--- a/drivers/dsp/bridge/Makefile
++++ b/drivers/dsp/bridge/Makefile
+@@ -20,11 +20,6 @@ libhw = hw/hw_prcm.o hw/hw_dspssC64P.o hw/hw_mmu.o hw/hw_mbox.o
+ bridgedriver-objs = $(libgen) $(libservices) $(libwmd) $(libpmgr) $(librmgr) \
+ 			$(libdload) $(libhw)
+ 
+-# Debug
+-ifeq ($(CONFIG_BRIDGE_DEBUG),y)
+-ccflags-y += -DGT_TRACE
+-endif
+-
+ #Machine dependent
+ ccflags-y += -D_TI_ -D_DB_TIOMAP -DTMS32060 \
+ 		-DTICFG_PROC_VER -DTICFG_EVM_TYPE -DCHNL_SMCLASS \
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index ecd5905..47ca742 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -513,9 +513,7 @@ DSP_STATUS DRV_GetDevObject(u32 uIndex, struct DRV_OBJECT *hDrvObject,
+ 			   struct DEV_OBJECT **phDevObject)
+ {
+ 	DSP_STATUS status = DSP_SOK;
+-#if GT_TRACE	/* pDrvObject is used only for Assertions and debug messages.*/
+ 	struct DRV_OBJECT *pDrvObject = (struct DRV_OBJECT *)hDrvObject;
+-#endif
+ 	struct DEV_OBJECT *pDevObject;
+ 	u32 i;
+ 	DBC_Require(MEM_IsValidHandle(pDrvObject, SIGNATURE));
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 3d3f02d..fa97caa 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -533,9 +533,7 @@ err:
+ /* This function maps kernel space memory to user space memory. */
+ static int bridge_mmap(struct file *filp, struct vm_area_struct *vma)
+ {
+-#if GT_TRACE
+ 	u32 offset = vma->vm_pgoff << PAGE_SHIFT;
+-#endif
+ 	u32 status;
+ 
+ 	DBC_Assert(vma->vm_start < vma->vm_end);
+-- 
+1.6.2.4
+
