@@ -1,56 +1,39 @@
-From: Jacob john <jacob.john74@gmail.com>
-Subject: Re: About multicore OMAP
-Date: Tue, 23 Feb 2010 19:50:31 +0530
-Message-ID: <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: About multicore OMAP
+Date: Tue, 23 Feb 2010 20:00:54 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1545@dbde02.ent.ti.com>
 References: <31ee32481002230504m2cc4dfebu85426681e76b4ee@mail.gmail.com>
 	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E14F4@dbde02.ent.ti.com>
+ <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:14332 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752975Ab0BWOUd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 09:20:33 -0500
-Received: by qw-out-2122.google.com with SMTP id 8so716610qwh.37
-        for <linux-omap@vger.kernel.org>; Tue, 23 Feb 2010 06:20:31 -0800 (PST)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E14F4@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50651 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752217Ab0BWObA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Feb 2010 09:31:00 -0500
+In-Reply-To: <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Jacob john <jacob.john74@gmail.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-It's=C2=A0Blaze with=C2=A0two lcd's and pico, looks great. Can I have t=
-his
-linux-omap kernel running on OMAP4?, plus I'm looking for SMP
-benchmark results etc.
-
-
-thanks
-
-On Tue, Feb 23, 2010 at 7:04 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
->
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vge=
-r.kernel.org] On Behalf Of Jacob
-> > john
-> > Sent: Tuesday, February 23, 2010 6:34 PM
-> > To: linux-omap@vger.kernel.org
-> > Subject: About multicore OMAP
-> >
-> > Hi Guys, I workin on OMAP4, just started,
-> > I appreciate, if some one could brief out working drivers and SMP
-> > benchmark data?
-> >
-> Welcome John !!
-> Can be explicit what you are looking for? Which omap4
-> platform do you have ?
->
-> Regards,
-> Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYWNvYiBqb2huIFttYWlsdG86
+amFjb2Iuam9objc0QGdtYWlsLmNvbV0NCj4gU2VudDogVHVlc2RheSwgRmVicnVhcnkgMjMsIDIw
+MTAgNzo1MSBQTQ0KPiBUbzogU2hpbGlta2FyLCBTYW50b3NoDQo+IENjOiBsaW51eC1vbWFwQHZn
+ZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBSZTogQWJvdXQgbXVsdGljb3JlIE9NQVANCj4gDQo+
+IEl0J3PCoEJsYXplIHdpdGjCoHR3byBsY2QncyBhbmQgcGljbywgbG9va3MgZ3JlYXQuIENhbiBJ
+IGhhdmUgdGhpcw0KPiBsaW51eC1vbWFwIGtlcm5lbCBydW5uaW5nIG9uIE9NQVA0PywgcGx1cyBJ
+J20gbG9va2luZyBmb3IgU01QDQo+IGJlbmNobWFyayByZXN1bHRzIGV0Yy4NCj4NCkxpbnV4LW9t
+YXAga2VybmVsIHdpdGggb21hcF80NDMwc2RwX2RlZmNvbmZpZyB3aWxsIGJvb3Qgb24gYmxhemUg
+d2l0aCBTTVAuIFRoaXMNCndvbid0IGhhdmUgbG90IG9mIGRyaXZlciBzdXBwb3J0IGFzIHN1Y2gg
+Y3VycmVudGx5LiBBbHNvIEwyIGNhY2hlIHN1cHBvcnQgaXMgaW4NCm9uIHRoZSB3YXkgdG8gbWFr
+ZSBpdCB0byBtYWlubGluZSBhcyB3ZWxsLiBZb3Ugc2hvdWxkIGJlIGFibGUgdG8gcGxheSB3aXRo
+IHRoaXMNCndpdGggc29tZSBiYXNpYyBiZW5jaG1hcmsgdGVzdCByZWxhdGVkIHRvIENQVS4gDQoN
+CkRpc3BsYXkgLCBBdWRpbywgUGljbywga2V5cGFkLCB0b3VjaHNjcmVlZW4gZXRjIGRyaXZlcnMg
+YXJlIGF2YWlsYWJsZSB3aXRoIHRoZQ0KcmVsZWFzZSBhbmQgeW91IHNob3VsZCBiZSBhYmxlIGdl
+dCBtb3JlIGRldGFpbHMgZnJvbSB0aGUgVEkgY29udGFjdCBwZXJzb24gd2hvDQpnYXZlIHlvdSB0
+aGUgYmxhemUuIFlvdSBjYW4gYWxzbyBnZXQgdGhlIHBlcmZvcm1hbmNlIG51bWJlcnMgZnJvbSBz
+YW1lIHNvdXJjZQ0KDQpSZWdhcmRzLA0KU2FudG9zaA0KDQo=
