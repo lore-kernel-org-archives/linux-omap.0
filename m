@@ -1,161 +1,153 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 05/16] OMAP3: PM: Export get_vdd1_opp and get_vdd2_opp from shared resource framework
-Date: Wed, 24 Feb 2010 14:59:06 +0530
-Message-ID: <1267003757-22456-6-git-send-email-thara@ti.com>
+Subject: [PATCH 01/16] OMAP3: PM: Adding hwmod data for Smartreflex
+Date: Wed, 24 Feb 2010 14:59:02 +0530
+Message-ID: <1267003757-22456-2-git-send-email-thara@ti.com>
 References: <1267003757-22456-1-git-send-email-thara@ti.com>
- <1267003757-22456-2-git-send-email-thara@ti.com>
- <1267003757-22456-3-git-send-email-thara@ti.com>
- <1267003757-22456-4-git-send-email-thara@ti.com>
- <1267003757-22456-5-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59780 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756125Ab0BXJ3b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 04:29:31 -0500
-In-Reply-To: <1267003757-22456-5-git-send-email-thara@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43651 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755564Ab0BXJ3b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Feb 2010 04:29:31 -0500
+In-Reply-To: <1267003757-22456-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-get_vdd1_opp and get_vdd2_opp APIs will be needed by voltage.c
-and smartreflex-class3.c which will get added in the later patches
-in this patch series. So it is very clumsy to declare these API's
-in each of these files and employ the mechanism of getting the opp
-from mpu and l3 clocks.
-This patch removes get_vdd1_opp and get_vdd2_opp from smartreflex.c.
-To keep the implementaion clean these functions are exported out
-in resource34xx.c.
+This patch adds the hwmod strucutres and other hwmod data for
+OMAP3 Smartreflex IP's.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/resource34xx.c |   10 +++++
- arch/arm/mach-omap2/smartreflex.c  |   66 ------------------------------------
- arch/arm/mach-omap2/smartreflex.h  |    2 +
- 3 files changed, 12 insertions(+), 66 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_34xx.h |   92 +++++++++++++++++++++++++++++++++
+ 1 files changed, 92 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index c6cce8b..db5f40e 100644
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -560,3 +560,13 @@ int validate_freq(struct shared_resource *resp, u32 target_level)
- 		return freq_to_opp(&x, OPP_DSP, target_level);
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap2/omap_hwmod_34xx.h
+index 2e629dc..dccb4a4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_34xx.h
++++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
+@@ -25,6 +25,8 @@ static struct omap_hwmod omap34xx_mpu_hwmod;
+ static struct omap_hwmod omap34xx_l3_hwmod;
+ static struct omap_hwmod omap34xx_l4_core_hwmod;
+ static struct omap_hwmod omap34xx_l4_per_hwmod;
++static struct omap_hwmod omap34xx_sr1_hwmod;
++static struct omap_hwmod omap34xx_sr2_hwmod;
+ 
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap34xx_l3__l4_core = {
+@@ -77,9 +79,49 @@ static struct omap_hwmod_ocp_if omap34xx_l4_core__l4_wkup = {
+ 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* L4 CORE -> SR1 interface */
++static struct omap_hwmod_addr_space omap34xx_sr1_addr_space[] = {
++	{
++		.pa_start	= OMAP34XX_SR1_BASE,
++		.pa_end		= OMAP34XX_SR1_BASE + SZ_1K - 1,
++		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
++	},
++};
 +
-+int get_vdd1_opp(void)
-+{
-+	return curr_vdd1_opp;
-+}
++static struct omap_hwmod_ocp_if omap3_l4_core__sr1 = {
++	.master		= &omap34xx_l4_core_hwmod,
++	.slave		= &omap34xx_sr1_hwmod,
++	.clkdev_dev_id	= NULL,
++	.clkdev_con_id  = NULL,
++	.addr		= omap34xx_sr1_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap34xx_sr1_addr_space),
++	.user		= OCP_USER_MPU,
++};
 +
-+int get_vdd2_opp(void)
-+{
-+	return curr_vdd2_opp;
-+}
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index db2e9bf..c00925d 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -46,7 +46,6 @@ struct omap_sr {
- 	int			srid;
- 	int			is_sr_reset;
- 	int			is_autocomp_active;
--	struct clk		*vdd_opp_clk;
- 	u32			clk_length;
- 	void __iomem		*srbase_addr;
- 	unsigned int		irq;
-@@ -115,65 +114,6 @@ static void sr_clk_disable(struct omap_sr *sr)
- 	sr->is_sr_reset = 1;
- }
++/* L4 CORE -> SR1 interface */
++static struct omap_hwmod_addr_space omap34xx_sr2_addr_space[] = {
++	{
++		.pa_start	= OMAP34XX_SR2_BASE,
++		.pa_end		= OMAP34XX_SR2_BASE + SZ_1K - 1,
++		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3_l4_core__sr2 = {
++	.master		= &omap34xx_l4_core_hwmod,
++	.slave		= &omap34xx_sr2_hwmod,
++	.clkdev_dev_id	= NULL,
++	.clkdev_con_id  = NULL,
++	.addr		= omap34xx_sr2_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap34xx_sr2_addr_space),
++	.user		= OCP_USER_MPU,
++};
++
+ /* Slave interfaces on the L4_CORE interconnect */
+ static struct omap_hwmod_ocp_if *omap34xx_l4_core_slaves[] = {
+ 	&omap34xx_l3__l4_core,
++	&omap3_l4_core__sr1,
++	&omap3_l4_core__sr2,
+ };
  
--static u8 get_vdd1_opp(void)
--{
--	struct omap_opp *opp;
--	unsigned long freq;
--	struct omap_sr *sr_info = _sr_lookup(SR1);
--
--	if (!sr_info) {
--		pr_warning("omap_sr struct corresponding to SR1 not found\n");
--		return 0;
--	}
--
--	if (sr_info->vdd_opp_clk == NULL || IS_ERR(sr_info->vdd_opp_clk))
--		return 0;
--
--	freq = sr_info->vdd_opp_clk->rate;
--	opp = opp_find_freq_ceil(OPP_MPU, &freq);
--	if (IS_ERR(opp))
--		return 0;
--	/*
--	 * Use higher freq voltage even if an exact match is not available
--	 * we are probably masking a clock framework bug, so warn
--	 */
--	if (unlikely(freq != sr_info->vdd_opp_clk->rate))
--		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
--			   __func__, freq, sr_info->vdd_opp_clk->rate);
--
--	return opp_get_opp_id(opp);
--}
--
--static u8 get_vdd2_opp(void)
--{
--	struct omap_opp *opp;
--	unsigned long freq;
--	struct omap_sr *sr_info = _sr_lookup(SR2);
--
--	if (!sr_info) {
--		pr_warning("omap_sr struct corresponding to SR2 not found\n");
--		return 0;
--	}
--
--	if (sr_info->vdd_opp_clk == NULL || IS_ERR(sr_info->vdd_opp_clk))
--		return 0;
--
--	freq = sr_info->vdd_opp_clk->rate;
--	opp = opp_find_freq_ceil(OPP_L3, &freq);
--	if (IS_ERR(opp))
--		return 0;
--
--	/*
--	 * Use higher freq voltage even if an exact match is not available
--	 * we are probably masking a clock framework bug, so warn
--	 */
--	if (unlikely(freq != sr_info->vdd_opp_clk->rate))
--		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
--			   __func__, freq, sr_info->vdd_opp_clk->rate);
--	return opp_get_opp_id(opp);
--}
--
--
- static void sr_set_clk_length(struct omap_sr *sr)
- {
- 	struct clk *sys_ck;
-@@ -858,12 +798,6 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
- 		sr_info->irq = odev->hwmods[0]->mpu_irqs[0].irq;
- 	sr_set_clk_length(sr_info);
+ /* Master interfaces on the L4_CORE interconnect */
+@@ -150,12 +192,62 @@ static struct omap_hwmod omap34xx_mpu_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
  
--	if (sr_info->srid == SR1) {
--		sr_info->vdd_opp_clk = clk_get(NULL, "dpll1_ck");
--	} else {
--		sr_info->vdd_opp_clk = clk_get(NULL, "l3_ick");
--	}
--
- 	/* Create the debug fs enteries */
- 	sprintf(name, "sr%d_autocomp", sr_info->srid);
- 	(void) debugfs_create_file(name, S_IRUGO | S_IWUGO, pm_dbg_main_dir,
-diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 20fc128..572cdca 100644
---- a/arch/arm/mach-omap2/smartreflex.h
-+++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -17,6 +17,8 @@
- #include <linux/platform_device.h>
++/* SR common */
++static struct omap_hwmod_sysc_fields sr_sysc_fields = {
++	.clkact_shift	= 20,
++};
++
++static struct omap_hwmod_sysconfig sr_if_ctrl = {
++	.sysc_offs	= 0x24,
++	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_NO_CACHE),
++	.clockact	= CLOCKACT_TEST_ICLK,
++	.sysc_fields	= &sr_sysc_fields,
++};
++
++/* SR1 */
++static struct omap_hwmod_ocp_if *omap34xx_sr1_slaves[] = {
++	&omap3_l4_core__sr1,
++};
++
++static struct omap_hwmod omap34xx_sr1_hwmod = {
++	.name		= "sr1_hwmod",
++	.mpu_irqs	= NULL,
++	.sdma_chs	= NULL,
++	.clkdev_dev_id	= NULL,
++	.clkdev_con_id	= "sr1_fck",
++	.slaves		= omap34xx_sr1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr1_slaves),
++	.sysconfig	= &sr_if_ctrl,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
++};
++
++/* SR2 */
++static struct omap_hwmod_ocp_if *omap34xx_sr2_slaves[] = {
++	&omap3_l4_core__sr2,
++};
++
++static struct omap_hwmod omap34xx_sr2_hwmod = {
++	.name		= "sr2_hwmod",
++	.mpu_irqs	= NULL,
++	.sdma_chs	= NULL,
++	.clkdev_dev_id	= NULL,
++	.clkdev_con_id	= "sr2_fck",
++	.slaves		= omap34xx_sr2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr2_slaves),
++	.sysconfig	= &sr_if_ctrl,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
++};
++
+ static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
+ 	&omap34xx_l3_hwmod,
+ 	&omap34xx_l4_core_hwmod,
+ 	&omap34xx_l4_per_hwmod,
+ 	&omap34xx_l4_wkup_hwmod,
+ 	&omap34xx_mpu_hwmod,
++	&omap34xx_sr1_hwmod,
++	&omap34xx_sr2_hwmod,
+ 	NULL,
+ };
  
- extern struct dentry *pm_dbg_main_dir;
-+extern int get_vdd1_opp(void);
-+extern int get_vdd2_opp(void);
- 
- #define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
- #define PHY_TO_OFF_PM_RECIEVER(p)	(p - 0x5b)
 -- 
 1.7.0.rc1.33.g07cf0f
 
