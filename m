@@ -1,87 +1,295 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] omap2/3/4: serial: Don't init UART4 for 3630 still
-Date: Wed, 24 Feb 2010 06:33:11 -0800
-Message-ID: <87iq9mu2jc.fsf@deeprootsystems.com>
-References: <1267002144-21944-1-git-send-email-saaguirre@ti.com>
-	<A24693684029E5489D1D202277BE8944538C6D8E@dlee02.ent.ti.com>
+Subject: Re: [PATCHv5] OMAP3: Serial: Improved sleep logic
+Date: Wed, 24 Feb 2010 08:04:57 -0800
+Message-ID: <877hq2sjpy.fsf@deeprootsystems.com>
+References: <1266421892-1021-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f179.google.com ([209.85.221.179]:33028 "EHLO
-	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754902Ab0BXOdR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 09:33:17 -0500
-Received: by qyk9 with SMTP id 9so389535qyk.5
-        for <linux-omap@vger.kernel.org>; Wed, 24 Feb 2010 06:33:16 -0800 (PST)
-In-Reply-To: <A24693684029E5489D1D202277BE8944538C6D8E@dlee02.ent.ti.com> (Sergio Aguirre's message of "Wed\, 24 Feb 2010 05\:24\:03 -0600")
+Received: from mail-pz0-f174.google.com ([209.85.222.174]:42349 "EHLO
+	mail-pz0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757171Ab0BXQFF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 11:05:05 -0500
+Received: by pzk4 with SMTP id 4so774850pzk.21
+        for <linux-omap@vger.kernel.org>; Wed, 24 Feb 2010 08:05:04 -0800 (PST)
+In-Reply-To: <1266421892-1021-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Wed\, 17 Feb 2010 17\:51\:32 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Sonasath, Moiz" <m-sonasath@ti.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-"Aguirre, Sergio" <saaguirre@ti.com> writes:
+Tero Kristo <tero.kristo@nokia.com> writes:
 
->> -----Original Message-----
->> From: Aguirre, Sergio
->> Sent: Wednesday, February 24, 2010 3:02 AM
->> To: Tony Lindgren
->> Cc: linux-omap@vger.kernel.org; Pandita, Vikram; Sonasath, Moiz; Aguirre,
->> Sergio
->> Subject: [PATCH] omap2/3/4: serial: Don't init UART4 for 3630 still
->> 
->> The patch named:
->>   "omap2/3/4: Fix mach-omap2/serial.c for multiboot"
->> 
->> Which added UART4 init also for 36xx based boards, broke zoom3
->> booting.
->> 
->> In theory, for zoom3 case, we should have UART4 + external debugboard
->> UART running with no issues. But unless the real issue is fixed,
->> this patch is crucial for Zoom3 booting.
+> From: Tero Kristo <tero.kristo@nokia.com>
 >
-> Just FYI,
->
-> I tried by changing id field in board-zoom-debugboard.c for external
-> UART to -1, which in theory would add a ttyS4, but somehow it didn't
-> worked for me...
+> This patch contains following improvements:
+> - Only RX interrupt will now kick the sleep prevent timer
+> - TX fifo status is checked before disabling clocks, this will prevent
+>   on-going transmission to be cut
+> - Smartidle is now enabled/disabled only while switching clocks, as having
+>   smartidle enabled while RX/TX prevents any interrupts from being
+>   received from UART module
+> - Sleep prevent timer is changed to use timespec instead of a jiffy timer
+>   as jiffy timers are not valid within idle loop (tick scheduler is stopped)
 
-That id field should probably be just changed to 4, or better it should
-be changed to use a symbolic constant that reflects the max number
-of on-chip UARTs.
+Could also probably use hrtimers for this.
+
+That being said, I'm not sure what is the problem you're trying to
+solve with this change.  I don't see any timings that are timing events
+inside the idle loop.
+
+> - Added RX ignore timer for ignoring the first character received during
+>   first millisecond of wakeup, this prevents garbage character to be receive
+>   in low sleep states
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+
+Something is still not quite right here.
+
+This doesn't work on my n900 here when testing this patch on top of
+the PM branch.  The default is now a default timeout of zero.  When I
+enable a 5 sec. timeout for UART2 on RX-51, when the timer expires, I
+no longer have response on the console.
+
+To test, I booted my n900 with init=/bin/sh to avoid all the setup
+done by /sbin/preinit.  Then I enabled a timeout for UART2 only, and
+then the console hangs.
+
+Here's my hunch as to what's happening:
+
+I think the problem is a deadlock in getrawmonotonic().  Nested calls
+here will deadlock due to the xtime_lock being held.
+
+When updading the timeout, sleep_timeout_store() does a
+getrawmonotonic() to update the expiry time.  While this happening,
+the UART interrupt could fire, causing an omap_uart_block_sleep()
+which would also getrawmonotonic() and deadlock in interrupt mode.
 
 Kevin
 
-> I guess the proper fix will be to have:
+> ---
+>  arch/arm/mach-omap2/serial.c |   98 +++++++++++++++++++++++++++++------------
+>  1 files changed, 69 insertions(+), 29 deletions(-)
 >
-> ttyS0 - OMAP3_UART1
-> ttyS1 - OMAP3_UART2
-> ttyS2 - OMAP3_UART3
-> ttyS3 - OMAP3_UART4
-> ttyS4 - ZOOM_UART
->
-> Any Zoom debugboard expert that wants to comment on this?
-
->> 
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> ---
->>  arch/arm/mach-omap2/serial.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
->> index b79bc89..c4a810b 100644
->> --- a/arch/arm/mach-omap2/serial.c
->> +++ b/arch/arm/mach-omap2/serial.c
->> @@ -764,7 +764,7 @@ void __init omap_serial_init(void)
->>  {
->>  	int i, nr_ports;
->> 
->> -	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
->> +	if (!cpu_is_omap4430())
->>  		nr_ports = 3;
->>  	else
->>  		nr_ports = ARRAY_SIZE(omap_uart);
->> --
->> 1.6.3.3
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 5f3035e..f49c465 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -29,6 +29,8 @@
+>  #include <plat/clock.h>
+>  #include <plat/control.h>
+>  
+> +#include <asm/div64.h>
+> +
+>  #include "prm.h"
+>  #include "pm.h"
+>  #include "prm-regbits-34xx.h"
+> @@ -42,13 +44,14 @@
+>   * disabled via sysfs. This also causes that any deeper omap sleep states are
+>   * blocked. 
+>   */
+> -#define DEFAULT_TIMEOUT 0
+> +#define DEFAULT_TIMEOUT (0LL * NSEC_PER_SEC)
+>  
+>  struct omap_uart_state {
+>  	int num;
+>  	int can_sleep;
+> -	struct timer_list timer;
+> -	u32 timeout;
+> +	struct timespec expire_time;
+> +	struct timespec garbage_time;
+> +	u64 timeout;
+>  
+>  	void __iomem *wk_st;
+>  	void __iomem *wk_en;
+> @@ -243,6 +246,9 @@ static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
+>  static inline void omap_uart_restore_context(struct omap_uart_state *uart) {}
+>  #endif /* CONFIG_PM && CONFIG_ARCH_OMAP3 */
+>  
+> +static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
+> +		int enable);
+> +
+>  static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
+>  {
+>  	if (uart->clocked)
+> @@ -250,8 +256,13 @@ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
+>  
+>  	clk_enable(uart->ick);
+>  	clk_enable(uart->fck);
+> +	omap_uart_smart_idle_enable(uart, 0);
+>  	uart->clocked = 1;
+>  	omap_uart_restore_context(uart);
+> +
+> +	/* Set up garbage timer to ignore RX during first 1ms */
+> +	getrawmonotonic(&uart->garbage_time);
+> +	timespec_add_ns(&uart->garbage_time, NSEC_PER_MSEC);
+>  }
+>  
+>  #ifdef CONFIG_PM
+> @@ -263,6 +274,7 @@ static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
+>  
+>  	omap_uart_save_context(uart);
+>  	uart->clocked = 0;
+> +	omap_uart_smart_idle_enable(uart, 1);
+>  	clk_disable(uart->ick);
+>  	clk_disable(uart->fck);
+>  }
+> @@ -320,12 +332,11 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
+>  {
+>  	omap_uart_enable_clocks(uart);
+>  
+> -	omap_uart_smart_idle_enable(uart, 0);
+>  	uart->can_sleep = 0;
+> -	if (uart->timeout)
+> -		mod_timer(&uart->timer, jiffies + uart->timeout);
+> -	else
+> -		del_timer(&uart->timer);
+> +	if (uart->timeout) {
+> +		getrawmonotonic(&uart->expire_time);
+> +		timespec_add_ns(&uart->expire_time, uart->timeout);
+> +	}
+>  }
+>  
+>  static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+> @@ -338,25 +349,24 @@ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+>  	if (!uart->clocked)
+>  		return;
+>  
+> -	omap_uart_smart_idle_enable(uart, 1);
+>  	uart->can_sleep = 1;
+> -	del_timer(&uart->timer);
+> -}
+> -
+> -static void omap_uart_idle_timer(unsigned long data)
+> -{
+> -	struct omap_uart_state *uart = (struct omap_uart_state *)data;
+> -
+> -	omap_uart_allow_sleep(uart);
+>  }
+>  
+>  void omap_uart_prepare_idle(int num)
+>  {
+>  	struct omap_uart_state *uart;
+> +	struct timespec t;
+>  
+>  	list_for_each_entry(uart, &uart_list, node) {
+> +		if (num == uart->num && !uart->can_sleep && uart->timeout) {
+> +			getrawmonotonic(&t);
+> +			if (timespec_compare(&t, &uart->expire_time) > 0)
+> +				uart->can_sleep = 1;
+> +		}
+>  		if (num == uart->num && uart->can_sleep) {
+> -			omap_uart_disable_clocks(uart);
+> +			if (serial_read_reg(uart->p, UART_LSR) &
+> +					UART_LSR_TEMT)
+> +				omap_uart_disable_clocks(uart);
+>  			return;
+>  		}
+>  	}
+> @@ -381,6 +391,7 @@ void omap_uart_resume_idle(int num)
+>  			/* Check for normal UART wakeup */
+>  			if (__raw_readl(uart->wk_st) & uart->wk_mask)
+>  				omap_uart_block_sleep(uart);
+> +
+>  			return;
+>  		}
+>  	}
+> @@ -399,11 +410,18 @@ int omap_uart_can_sleep(void)
+>  {
+>  	struct omap_uart_state *uart;
+>  	int can_sleep = 1;
+> +	struct timespec t;
+>  
+>  	list_for_each_entry(uart, &uart_list, node) {
+>  		if (!uart->clocked)
+>  			continue;
+>  
+> +		if (!uart->can_sleep && uart->timeout) {
+> +			getrawmonotonic(&t);
+> +			if (timespec_compare(&t, &uart->expire_time) > 0)
+> +				uart->can_sleep = 1;
+> +		}
+> +
+>  		if (!uart->can_sleep) {
+>  			can_sleep = 0;
+>  			continue;
+> @@ -428,10 +446,25 @@ int omap_uart_can_sleep(void)
+>  static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+>  {
+>  	struct omap_uart_state *uart = dev_id;
+> +	u8 lsr;
+> +	int ret = IRQ_NONE;
+> +	struct timespec t;
+>  
+> -	omap_uart_block_sleep(uart);
+> +	lsr = serial_read_reg(uart->p, UART_LSR);
+> +	/* Check for receive interrupt */
+> +	if (lsr & UART_LSR_DR) {
+> +		omap_uart_block_sleep(uart);
+> +		if (uart->garbage_time.tv_sec) {
+> +			getrawmonotonic(&t);
+> +			if (timespec_compare(&t, &uart->garbage_time) < 0) {
+> +				serial_read_reg(uart->p, UART_RX);
+> +				uart->garbage_time.tv_sec = 0;
+> +				ret = IRQ_HANDLED;
+> +			}
+> +		}
+> +	}
+>  
+> -	return IRQ_NONE;
+> +	return ret;
+>  }
+>  
+>  static void omap_uart_idle_init(struct omap_uart_state *uart)
+> @@ -441,10 +474,12 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+>  
+>  	uart->can_sleep = 0;
+>  	uart->timeout = DEFAULT_TIMEOUT;
+> -	setup_timer(&uart->timer, omap_uart_idle_timer,
+> -		    (unsigned long) uart);
+> -	if (uart->timeout)
+> -		mod_timer(&uart->timer, jiffies + uart->timeout);
+> +
+> +	if (uart->timeout) {
+> +		getrawmonotonic(&uart->expire_time);
+> +		timespec_add_ns(&uart->expire_time, uart->timeout);
+> +	}
+> +
+>  	omap_uart_smart_idle_enable(uart, 0);
+>  
+>  	if (cpu_is_omap34xx()) {
+> @@ -527,8 +562,12 @@ static ssize_t sleep_timeout_show(struct device *dev,
+>  					struct platform_device, dev);
+>  	struct omap_uart_state *uart = container_of(pdev,
+>  					struct omap_uart_state, pdev);
+> +	u64 val;
+> +
+> +	val = uart->timeout;
+>  
+> -	return sprintf(buf, "%u\n", uart->timeout / HZ);
+> +	do_div(val, NSEC_PER_SEC);
+> +	return sprintf(buf, "%llu\n", val);
+>  }
+>  
+>  static ssize_t sleep_timeout_store(struct device *dev,
+> @@ -546,10 +585,11 @@ static ssize_t sleep_timeout_store(struct device *dev,
+>  		return -EINVAL;
+>  	}
+>  
+> -	uart->timeout = value * HZ;
+> -	if (uart->timeout)
+> -		mod_timer(&uart->timer, jiffies + uart->timeout);
+> -	else
+> +	uart->timeout = (u64)value * NSEC_PER_SEC;
+> +	if (uart->timeout) {
+> +		getrawmonotonic(&uart->expire_time);
+> +		timespec_add_ns(&uart->expire_time, uart->timeout);
+> +	} else
+>  		/* A zero value means disable timeout feature */
+>  		omap_uart_block_sleep(uart);
+>  
+> -- 
+> 1.5.4.3
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
