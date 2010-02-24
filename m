@@ -1,44 +1,50 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: DMA example
-Date: Thu, 25 Feb 2010 02:18:43 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1C4B@dbde02.ent.ti.com>
-References: <4B857F2F.7000201@balister.org>
+From: "Olaya, Margarita" <magi.olaya@ti.com>
+Subject: Re: [PATCHv4 1/7] OMAP4: PMIC: Add support for twl6030
+	codec
+Date: Wed, 24 Feb 2010 15:43:14 -0600
+Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD218C@dlee06.ent.ti.com>
+References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B13@dlee06.ent.ti.com>
+	<1267006169.3274.88.camel@odin> <20100224111328.GA2950@sortiz.org>
+	<20100224132246.GG9018@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34132 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758041Ab0BXUsx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 15:48:53 -0500
-In-Reply-To: <4B857F2F.7000201@balister.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20100224132246.GG9018@sirena.org.uk>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Philip Balister <philip@balister.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Mark,
+
+I'll re-submit the patch series using twl6040_codec instead of twl6030_codec, twl6030 is the power companion chip and twl4030 is the audio chip, so in the case of this patch should I send an incremental patch to rename it?
+
+Regards,
+Margarita
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Philip
-> Balister
-> Sent: Thursday, February 25, 2010 1:04 AM
-> To: linux-omap@vger.kernel.org
-> Subject: DMA example
+> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
+> Sent: Wednesday, February 24, 2010 7:23 AM
+> To: Samuel Ortiz
+> Cc: Liam Girdwood; Olaya, Margarita; alsa-devel@alsa-project.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCHv4 1/7] OMAP4: PMIC: Add support for twl6030 codec
 > 
-> I am trying to setup a dma operation to copy memory from GPMC address
-> space into RAM. The only examples using the omap-dma api use hardware
-> triggers.
+> On Wed, Feb 24, 2010 at 12:13:29PM +0100, Samuel Ortiz wrote:
 > 
-What you mean by GPMC address space. Are you trying to DMA data from NAND/NOR
-to SDRAM/SRAM ?
-
-> When I start a transfer, I end up with a DMA transaction error when I
-> start the transfer.
+> > > Samuel are you OK with this ?
 > 
-> Does anyone have a good example of a software transfer? Currently, I am
-> tracing the omap dma api to see how things map into the registers ....
+> > That seems fine, yes.
+> > Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 > 
-> Philip
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> OK, I've applied this one now - the cross tree issues mean it seems
+> better to get into 2.6.34.  I'll review the rest of the patches now.
