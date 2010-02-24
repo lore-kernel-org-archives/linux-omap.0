@@ -1,270 +1,121 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 02/16] OMAP3: PM: Create list to keep track of various smartreflex instances.
-Date: Wed, 24 Feb 2010 14:59:03 +0530
-Message-ID: <1267003757-22456-3-git-send-email-thara@ti.com>
+Subject: [PATCH 12/16] OMAP3: PM: Support for enabling smartreflex autocompensation by default.
+Date: Wed, 24 Feb 2010 14:59:13 +0530
+Message-ID: <1267003757-22456-13-git-send-email-thara@ti.com>
 References: <1267003757-22456-1-git-send-email-thara@ti.com>
  <1267003757-22456-2-git-send-email-thara@ti.com>
+ <1267003757-22456-3-git-send-email-thara@ti.com>
+ <1267003757-22456-4-git-send-email-thara@ti.com>
+ <1267003757-22456-5-git-send-email-thara@ti.com>
+ <1267003757-22456-6-git-send-email-thara@ti.com>
+ <1267003757-22456-7-git-send-email-thara@ti.com>
+ <1267003757-22456-8-git-send-email-thara@ti.com>
+ <1267003757-22456-9-git-send-email-thara@ti.com>
+ <1267003757-22456-10-git-send-email-thara@ti.com>
+ <1267003757-22456-11-git-send-email-thara@ti.com>
+ <1267003757-22456-12-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51624 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46739 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756147Ab0BXJ3c (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Feb 2010 04:29:32 -0500
-In-Reply-To: <1267003757-22456-2-git-send-email-thara@ti.com>
+	id S1756161Ab0BXJ3d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Feb 2010 04:29:33 -0500
+In-Reply-To: <1267003757-22456-12-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch removes the pointer sr1, sr2 in smartreflex.c and
-instead creatse a list for keeping track of multiple smartreflex
-instances.. This makes it scalable for next gen OMAPs where there
-are more than two smartreflex modules.
+This patch adds support to pdata enable smartreflex autocompenstion
+during init based on init_enable flag passed as pdata.
+
+This patch also adds enabling of autocompensation by
+default (setting init_enable flag to true) in case of ES3.1
+OMAP3430 chip. In the current implementation
+this step is kept in smartreflex.c itself.Later an API can be added
+so that the decision to enable autocompensation by default
+can be passed from the corresponding board files.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |  114 ++++++++++++++++++++++++------------
- 1 files changed, 76 insertions(+), 38 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   32 ++++++++++++++++++++++++++++----
+ 1 files changed, 28 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 1c5ec37..4a9c2e2 100644
+index 96dc76b..085dd05 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -26,6 +26,7 @@
- #include <linux/kobject.h>
- #include <linux/i2c/twl.h>
- #include <linux/io.h>
-+#include <linux/list.h>
+@@ -477,9 +477,15 @@ void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
  
- #include <plat/omap34xx.h>
- #include <plat/control.h>
-@@ -51,9 +52,12 @@ struct omap_sr {
- 	u32		opp5_nvalue;
- 	u32		senp_mod, senn_mod;
- 	void __iomem	*srbase_addr;
--	void __iomem	*vpbase_addr;
-+	struct list_head 	node;
- };
- 
-+/* sr_list contains all the instances of smartreflex module */
-+static LIST_HEAD(sr_list);
-+
- #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
- 
- static inline void sr_write_reg(struct omap_sr *sr, unsigned offset, u32 value)
-@@ -78,6 +82,20 @@ static inline u32 sr_read_reg(struct omap_sr *sr, unsigned offset)
- 	return __raw_readl(SR_REGADDR(offset));
- }
- 
-+static struct omap_sr *_sr_lookup(int srid)
-+{
-+	struct omap_sr *sr_info, *temp_sr_info;
-+
-+	sr_info = NULL;
-+	list_for_each_entry(temp_sr_info, &sr_list, node) {
-+		if (srid == temp_sr_info->srid) {
-+			sr_info = temp_sr_info;
-+			break;
-+		}
-+	}
-+	return sr_info;
-+}
-+
- static int sr_clk_enable(struct omap_sr *sr)
- {
- 	if (clk_enable(sr->clk) != 0) {
-@@ -151,11 +169,17 @@ static u8 get_vdd1_opp(void)
- {
- 	struct omap_opp *opp;
- 	unsigned long freq;
-+	struct omap_sr *sr_info = _sr_lookup(SR1);
- 
--	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk))
-+	if (!sr_info) {
-+		pr_warning("omap_sr struct corresponding to SR1 not found\n");
-+		return 0;
-+	}
-+
-+	if (sr_info->vdd_opp_clk == NULL || IS_ERR(sr_info->vdd_opp_clk))
- 		return 0;
- 
--	freq = sr1.vdd_opp_clk->rate;
-+	freq = sr_info->vdd_opp_clk->rate;
- 	opp = opp_find_freq_ceil(OPP_MPU, &freq);
- 	if (IS_ERR(opp))
- 		return 0;
-@@ -163,9 +187,9 @@ static u8 get_vdd1_opp(void)
- 	 * Use higher freq voltage even if an exact match is not available
- 	 * we are probably masking a clock framework bug, so warn
+ 	sr_class = class_data;
+ 	/*
+-	 * Register the interrupt handler incase requested by the class driver
++	 * Check if any SR module needs to be enabled as part of init.
++	 * In case the probe for the SR module is not yet called the enable
++	 * will not be done here but will be done in the probe whenever
++	 * it gets called. Also register the interrupt handler incase
++	 * requested by the class driver.
  	 */
--	if (unlikely(freq != sr1.vdd_opp_clk->rate))
-+	if (unlikely(freq != sr_info->vdd_opp_clk->rate))
- 		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
--			   __func__, freq, sr1.vdd_opp_clk->rate);
-+			   __func__, freq, sr_info->vdd_opp_clk->rate);
- 
- 	return opp_get_opp_id(opp);
+ 	list_for_each_entry(sr_info, &sr_list, node) {
++		struct omap_smartreflex_data *pdata =
++				sr_info->pdev->dev.platform_data;
+ 		if (sr_class->class_type == SR_CLASS2 &&
+ 				sr_class->notify_flags && sr_info->irq) {
+ 			char name[SMARTREFLEX_NAME_LEN];
+@@ -496,6 +502,8 @@ void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
+ 				return;
+ 			}
+ 		}
++		if (pdata->init_enable)
++			sr_start_vddautocomap(sr_info->srid);
+ 	}
  }
-@@ -174,11 +198,17 @@ static u8 get_vdd2_opp(void)
- {
- 	struct omap_opp *opp;
- 	unsigned long freq;
-+	struct omap_sr *sr_info = _sr_lookup(SR2);
-+
-+	if (!sr_info) {
-+		pr_warning("omap_sr struct corresponding to SR2 not found\n");
-+		return 0;
-+	}
  
--	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk))
-+	if (sr_info->vdd_opp_clk == NULL || IS_ERR(sr_info->vdd_opp_clk))
- 		return 0;
+@@ -562,11 +570,15 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
+ 	list_add(&sr_info->node, &sr_list);
  
--	freq = sr2.vdd_opp_clk->rate;
-+	freq = sr_info->vdd_opp_clk->rate;
- 	opp = opp_find_freq_ceil(OPP_L3, &freq);
- 	if (IS_ERR(opp))
- 		return 0;
-@@ -187,9 +217,9 @@ static u8 get_vdd2_opp(void)
- 	 * Use higher freq voltage even if an exact match is not available
- 	 * we are probably masking a clock framework bug, so warn
+ 	/*
+-	 * Register interrrupt handler if smartreflex class driver is already
+-	 * registered and has requested for interrupts. This will be attempted
++	 * Enable the smartreflex module if init_enable flag is set and
++	 * if the class driver is registered. Also Register interrrupt handler
++	 * if smartreflex class driver is already registered and has
++	 * requested for interrupts. This will be attempted
+ 	 * in the class driver register again if it does not happen here.
  	 */
--	if (unlikely(freq != sr2.vdd_opp_clk->rate))
-+	if (unlikely(freq != sr_info->vdd_opp_clk->rate))
- 		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
--			   __func__, freq, sr2.vdd_opp_clk->rate);
-+			   __func__, freq, sr_info->vdd_opp_clk->rate);
- 	return opp_get_opp_id(opp);
- }
- 
-@@ -694,14 +724,13 @@ static void sr_disable(struct omap_sr *sr)
- 
- void sr_start_vddautocomap(int srid, u32 target_opp_no)
- {
--	struct omap_sr *sr = NULL;
-+	struct omap_sr *sr = _sr_lookup(srid);
- 
--	if (srid == SR1)
--		sr = &sr1;
--	else if (srid == SR2)
--		sr = &sr2;
--	else
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
- 		return;
-+	}
- 
- 	if (sr->is_sr_reset == 1) {
- 		sr_clk_enable(sr);
-@@ -719,14 +748,13 @@ EXPORT_SYMBOL(sr_start_vddautocomap);
- 
- int sr_stop_vddautocomap(int srid)
- {
--	struct omap_sr *sr = NULL;
-+	struct omap_sr *sr = _sr_lookup(srid);
- 
--	if (srid == SR1)
--		sr = &sr1;
--	else if (srid == SR2)
--		sr = &sr2;
--	else
--		return -EINVAL;
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
-+		return false;
-+	}
- 
- 	if (sr->is_autocomp_active == 1) {
- 		sr_disable(sr);
-@@ -744,14 +772,13 @@ EXPORT_SYMBOL(sr_stop_vddautocomap);
- void enable_smartreflex(int srid)
- {
- 	u32 target_opp_no = 0;
--	struct omap_sr *sr = NULL;
-+	struct omap_sr *sr = _sr_lookup(srid);
- 
--	if (srid == SR1)
--		sr = &sr1;
--	else if (srid == SR2)
--		sr = &sr2;
--	else
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
- 		return;
-+	}
- 
- 	if (sr->is_autocomp_active == 1) {
- 		if (sr->is_sr_reset == 1) {
-@@ -779,15 +806,13 @@ void enable_smartreflex(int srid)
- void disable_smartreflex(int srid)
- {
- 	u32 i = 0;
-+	struct omap_sr *sr = _sr_lookup(srid);
- 
--	struct omap_sr *sr = NULL;
--
--	if (srid == SR1)
--		sr = &sr1;
--	else if (srid == SR2)
--		sr = &sr2;
--	else
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
- 		return;
-+	}
- 
- 	if (sr->is_autocomp_active == 1) {
- 		if (sr->is_sr_reset == 0) {
-@@ -920,7 +945,13 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
- static ssize_t omap_sr_vdd1_autocomp_show(struct kobject *kobj,
- 					struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%d\n", sr1.is_autocomp_active);
-+	struct omap_sr *sr_info = _sr_lookup(SR1);
+ 	if (sr_class) {
++		struct omap_smartreflex_data *pdata = pdev->dev.platform_data;
 +
-+	if (!sr_info) {
-+		pr_warning("omap_sr struct corresponding to SR1 not found\n");
-+		return 0;
-+	}
-+	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
- }
+ 		if (sr_class->class_type == SR_CLASS2 &&
+ 				sr_class->notify_flags && sr_info->irq) {
+ 			sprintf(name, "sr%d", sr_info->srid);
+@@ -580,6 +592,8 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
+ 				return ret;
+ 			}
+ 		}
++		if (pdata->init_enable)
++			sr_start_vddautocomap(sr_info->srid);
+ 	}
  
- static ssize_t omap_sr_vdd1_autocomp_store(struct kobject *kobj,
-@@ -960,7 +991,13 @@ static struct kobj_attribute sr_vdd1_autocomp = {
- static ssize_t omap_sr_vdd2_autocomp_show(struct kobject *kobj,
- 					struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%d\n", sr2.is_autocomp_active);
-+	struct omap_sr *sr_info = _sr_lookup(SR2);
-+
-+	if (!sr_info) {
-+		pr_warning("omap_sr struct corresponding to SR2 not found\n");
-+		return 0;
-+	}
-+	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
- }
+ 	pr_info("SmartReflex driver initialized\n");
+@@ -782,7 +796,17 @@ static int __init omap_devinit_smartreflex(void)
+ 		if (WARN_ON(!sr_data))
+ 			return -ENOMEM;
  
- static ssize_t omap_sr_vdd2_autocomp_store(struct kobject *kobj,
-@@ -1010,7 +1047,6 @@ static int __init omap3_sr_init(void)
- 	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
- 	ret |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
- 				R_DCDC_GLOBAL_CFG);
--
- 	if (cpu_is_omap34xx()) {
- 		sr1.clk = clk_get(NULL, "sr1_fck");
- 		sr2.clk = clk_get(NULL, "sr2_fck");
-@@ -1036,6 +1072,8 @@ static int __init omap3_sr_init(void)
- 	ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
- 	if (ret)
- 		pr_err("sysfs_create_file failed: %d\n", ret);
-+	list_add(&sr1.node, &sr_list);
-+	list_add(&sr2.node, &sr_list);
- 
- 	return 0;
- }
+-		sr_data->init_enable = false;
++		/*
++		 * Enable the SR module by default if it is a OMAP3430
++		 * ES3.1 chip
++		 */
++		if (cpu_is_omap343x()) {
++			if (omap_rev() == OMAP3430_REV_ES3_1)
++				sr_data->init_enable = true;
++			else
++				sr_data->init_enable = false;
++		} else
++			sr_data->init_enable = false;
+ 		sr_data->device_enable = omap_device_enable;
+ 		sr_data->device_shutdown = omap_device_shutdown;
+ 		sr_data->device_idle = omap_device_idle;
 -- 
 1.7.0.rc1.33.g07cf0f
 
