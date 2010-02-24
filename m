@@ -1,50 +1,51 @@
-From: "Olaya, Margarita" <magi.olaya@ti.com>
-Subject: Re: [PATCHv4 1/7] OMAP4: PMIC: Add support for twl6030
-	codec
-Date: Wed, 24 Feb 2010 15:43:14 -0600
-Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD218C@dlee06.ent.ti.com>
-References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B13@dlee06.ent.ti.com>
-	<1267006169.3274.88.camel@odin> <20100224111328.GA2950@sortiz.org>
-	<20100224132246.GG9018@sirena.org.uk>
+From: roel kluin <roel.kluin@gmail.com>
+Subject: Re: [PATCH] OMAP: Dereference of NULL autodep in _autodep_lookup()
+Date: Wed, 24 Feb 2010 23:24:23 +0100
+Message-ID: <25e057c01002241424s71cc447di4cb93de895cb665b@mail.gmail.com>
+References: <4B781E05.9040502@gmail.com> <alpine.DEB.2.00.1002221357280.2701@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20100224132246.GG9018@sirena.org.uk>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1002221357280.2701@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Mark,
+> Thanks for the patch, but I don't understand what problem you're
+> pointing out. =C2=A0If autodeps is NULL entering clkdm_init(), then t=
+he
+> for-loop won't even be entered.
 
-I'll re-submit the patch series using twl6040_codec instead of twl6030_codec, twl6030 is the power companion chip and twl4030 is the audio chip, so in the case of this patch should I send an incremental patch to rename it?
+My first patch was wrong, but there's something I think could
+be wrong. In clkdm_init() we have:
 
-Regards,
-Margarita
+for (autodep =3D autodeps; autodep->pwrdm.ptr; autodep++)
+        _autodep_lookup(autodep);
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
-> Sent: Wednesday, February 24, 2010 7:23 AM
-> To: Samuel Ortiz
-> Cc: Liam Girdwood; Olaya, Margarita; alsa-devel@alsa-project.org; linux-omap@vger.kernel.org
-> Subject: Re: [PATCHv4 1/7] OMAP4: PMIC: Add support for twl6030 codec
-> 
-> On Wed, Feb 24, 2010 at 12:13:29PM +0100, Samuel Ortiz wrote:
-> 
-> > > Samuel are you OK with this ?
-> 
-> > That seems fine, yes.
-> > Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-> 
-> OK, I've applied this one now - the cross tree issues mean it seems
-> better to get into 2.6.34.  I'll review the rest of the patches now.
+In _autodep_lookup() we ensure that we don't dereference
+autodep by:
+
+if (!autodep)
+        return;
+
+but if autodep can be NULL we already dereferenced it in
+the aforementioned for loop, so shouldn't that be:
+
+for (autodep =3D autodeps; autodep && autodep->pwrdm.ptr; autodep++)
+        _autodep_lookup(autodep);
+
+Then since this is the only call to _autodep_lookup() we can remove
+that test there. Do you agree?
+
+> It looks like there may be a problem, however, in _clkdm_add_autodeps=
+()
+> and _clkdm_del_autodeps() if no autodeps were passed in. =C2=A0What d=
+o you
+> think about something like the following instead?
+>
+>
+> - Paul
+
+Your suggested patch looks right to me as well.
