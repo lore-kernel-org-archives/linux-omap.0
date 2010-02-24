@@ -1,164 +1,161 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
-Date: Wed, 24 Feb 2010 10:33:27 -0600
-Message-ID: <005001cab56f$17db8460$544ff780@am.dhcp.ti.com>
-References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com> <87ocjftq0z.fsf@deeprootsystems.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [PATCH 01/16] OMAP3: PM: Adding hwmod data for Smartreflex
+Date: Wed, 24 Feb 2010 10:52:39 -0600
+Message-ID: <4B855957.7080805@ti.com>
+References: <1267003757-22456-1-git-send-email-thara@ti.com> <1267003757-22456-2-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44619 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46029 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757244Ab0BXQd3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Feb 2010 11:33:29 -0500
-In-Reply-To: <87ocjftq0z.fsf@deeprootsystems.com>
+	id S1757293Ab0BXQwq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Feb 2010 11:52:46 -0500
+In-Reply-To: <1267003757-22456-2-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Kevin Hilman' <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Thara Gopinath <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Tuesday, February 23, 2010 6:51 PM
-> To: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
+Thara Gopinath wrote:
+> This patch adds the hwmod strucutres and other hwmod data for
+> OMAP3 Smartreflex IP's.
 > 
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_34xx.h |   92 +++++++++++++++++++++++++++++++++
+>  1 files changed, 92 insertions(+), 0 deletions(-)
 > 
-> > This series converts the OMAP HS-MMC driver to use omap_hwmod +
-> > runtime PM API.
-> >
-> > Depends on MMC hwmods available in 'pm-wip/hwmods' branch of
-> > my git tree[1] as well as previously posted runtime PM series:
-> >
-> >    [PATCH/RFC 0/2] initial runtime PM layer for OMAP
-> >
-> > The easies way to experiment/test is to use my 'pm-wip/mmc' branch
-> > which has all the dependencies, and is based on omap/for-next'.
-> > It has been tested by merging with current PM branch.
-> >
-> > [1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
-> >
-> 
-> A question for those of you who actually understand the MMC driver...
-> I'm having problems getting my head around the current PM stuff in the
-> MMC driver.  My primary question is:
-> 
-> Why does the suspend hook need to re-enable the device before
-> suspending?
->
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap2/omap_hwmod_34xx.h
+> index 2e629dc..dccb4a4 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_34xx.h
+> +++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
+> @@ -25,6 +25,8 @@ static struct omap_hwmod omap34xx_mpu_hwmod;
+>  static struct omap_hwmod omap34xx_l3_hwmod;
+>  static struct omap_hwmod omap34xx_l4_core_hwmod;
+>  static struct omap_hwmod omap34xx_l4_per_hwmod;
+> +static struct omap_hwmod omap34xx_sr1_hwmod;
+> +static struct omap_hwmod omap34xx_sr2_hwmod;
+>  
+>  /* L3 -> L4_CORE interface */
+>  static struct omap_hwmod_ocp_if omap34xx_l3__l4_core = {
+> @@ -77,9 +79,49 @@ static struct omap_hwmod_ocp_if omap34xx_l4_core__l4_wkup = {
+>  	.user	= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+>  
+> +/* L4 CORE -> SR1 interface */
+> +static struct omap_hwmod_addr_space omap34xx_sr1_addr_space[] = {
+> +	{
+> +		.pa_start	= OMAP34XX_SR1_BASE,
+> +		.pa_end		= OMAP34XX_SR1_BASE + SZ_1K - 1,
+> +		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
+> +	},
+> +};
+> +
+> +static struct omap_hwmod_ocp_if omap3_l4_core__sr1 = {
+> +	.master		= &omap34xx_l4_core_hwmod,
+> +	.slave		= &omap34xx_sr1_hwmod,
+> +	.clkdev_dev_id	= NULL,
+> +	.clkdev_con_id  = NULL,
+> +	.addr		= omap34xx_sr1_addr_space,
+> +	.addr_cnt	= ARRAY_SIZE(omap34xx_sr1_addr_space),
+> +	.user		= OCP_USER_MPU,
+> +};
+> +
+> +/* L4 CORE -> SR1 interface */
 
-In the scenario where there is no activity on the bus the MMC clocks are
-kept disabled. Now in the suspend path the MMC core will issue certain CMDs
-like CMD7(to end the suspend path) to deselect the card(more of a protocol
-stuff). Hence the host need to be in enabled state before letting the core
-know that there is a suspend request.
-
-
-> When using runtime PM, the MMC device is disabled including
-> clocks off  and regulator off (if power_savings == true) when there
-> is no activity.
-> 
-> Then, in the static suspend hook, it's re-enabled (including taking it out
-> of
-> off, re-enabling regulators etc) only to be quickly disabled again.
-> This seems horribly inefficient.
-> 
-
-This is exactly for the reason I mentioned above.
-
-> I admit to not understanding the MMC layer terribly well, so can someone
-> enlighten me as to what is going on here?
-> 
-> What I am testing here is a patch on top of this series (below) that
-> adds a check to the static suspend hook.  If the device is already
-> runtime suspended, then the suspend and resume hooks should be noop.
-> 
-> This appears to work just fine while testing on omap3evm just doing
-> simple read/write tests before an after suspend resume.
->
-
-I did some basic testing with your previously posted patches. But my testing
-was incomplete because on Zoom2 because for some reason the OFF mode was not
-working even without your patches.
-
-My concern was more with respect to OFF mode in idle path since your patches
-removed context restore calls if I recall correctly. Are you able to hit
-CORE OFF and then come back and do the read/write transfers in idle as well
-as suspend/resume path?
+Comment above should be "SR2 interface"
 
 Regards,
-Madhu
- 
-> Note that if you want to test this patch, it also depends on this
-> patch to runtime PM from the linux-pm list:
-> https://lists.linux-foundation.org/pipermail/linux-pm/2010-
-> February/024275.html
-> 
-> These are all included in an updated version of my pm-wip/mmc branch
-> for ease of testing.  Merge it with the current PM branch, enable
-> CONFIG_PM_RUNTIME and test away.
-> 
-> Kevin
-> 
-> commit 166cba7679fa267ee6e6eb39fd1e871ede5ded16
-> Author: Kevin Hilman <khilman@deeprootsystems.com>
-> Date:   Tue Feb 23 16:21:56 2010 -0800
-> 
->     MMC: omap_hsmmc: check for runtime-suspend in static suspend
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 16d66b9..dd027bb 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2222,6 +2222,9 @@ static int omap_hsmmc_suspend(struct device *dev)
->  	if (host && host->suspended)
->  		return 0;
-> 
-> +	if (pm_is_runtime_suspended(host->dev))
-> +		return 0;
+Mike
+
+> +static struct omap_hwmod_addr_space omap34xx_sr2_addr_space[] = {
+> +	{
+> +		.pa_start	= OMAP34XX_SR2_BASE,
+> +		.pa_end		= OMAP34XX_SR2_BASE + SZ_1K - 1,
+> +		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
+> +	},
+> +};
 > +
->  	if (host) {
->  		host->suspended = 1;
->  		if (host->pdata->suspend) {
-> @@ -2260,12 +2263,6 @@ static int omap_hsmmc_suspend(struct device *dev)
->  			}
->  			mmc_host_disable(host->mmc);
->  		}
-> -
-> -		/*
-> -		 * HACK: "extra" put to compensate for DPM core keeping
-> -		 *       runtime PM disabled.  -- khilman
-> -		 */
-> -		pm_runtime_put_sync(host->dev);
->  	}
->  	return ret;
->  }
-> @@ -2280,13 +2277,10 @@ static int omap_hsmmc_resume(struct device *dev)
->  	if (host && !host->suspended)
->  		return 0;
-> 
-> -	if (host) {
-> -		/*
-> -		 * HACK: "extra" get to compensate for DPM core keeping
-> -		 *       runtime PM disabled.  -- khilman
-> -		 */
-> -		pm_runtime_get_sync(host->dev);
-> +	if (pm_is_runtime_suspended(host->dev))
-> +		return 0;
-> 
-> +	if (host) {
->  		if (mmc_host_enable(host->mmc) != 0) {
->  			pm_runtime_suspend(host->dev);
->  			goto clk_en_err;
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +static struct omap_hwmod_ocp_if omap3_l4_core__sr2 = {
+> +	.master		= &omap34xx_l4_core_hwmod,
+> +	.slave		= &omap34xx_sr2_hwmod,
+> +	.clkdev_dev_id	= NULL,
+> +	.clkdev_con_id  = NULL,
+> +	.addr		= omap34xx_sr2_addr_space,
+> +	.addr_cnt	= ARRAY_SIZE(omap34xx_sr2_addr_space),
+> +	.user		= OCP_USER_MPU,
+> +};
+> +
+>  /* Slave interfaces on the L4_CORE interconnect */
+>  static struct omap_hwmod_ocp_if *omap34xx_l4_core_slaves[] = {
+>  	&omap34xx_l3__l4_core,
+> +	&omap3_l4_core__sr1,
+> +	&omap3_l4_core__sr2,
+>  };
+>  
+>  /* Master interfaces on the L4_CORE interconnect */
+> @@ -150,12 +192,62 @@ static struct omap_hwmod omap34xx_mpu_hwmod = {
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+>  };
+>  
+> +/* SR common */
+> +static struct omap_hwmod_sysc_fields sr_sysc_fields = {
+> +	.clkact_shift	= 20,
+> +};
+> +
+> +static struct omap_hwmod_sysconfig sr_if_ctrl = {
+> +	.sysc_offs	= 0x24,
+> +	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_NO_CACHE),
+> +	.clockact	= CLOCKACT_TEST_ICLK,
+> +	.sysc_fields	= &sr_sysc_fields,
+> +};
+> +
+> +/* SR1 */
+> +static struct omap_hwmod_ocp_if *omap34xx_sr1_slaves[] = {
+> +	&omap3_l4_core__sr1,
+> +};
+> +
+> +static struct omap_hwmod omap34xx_sr1_hwmod = {
+> +	.name		= "sr1_hwmod",
+> +	.mpu_irqs	= NULL,
+> +	.sdma_chs	= NULL,
+> +	.clkdev_dev_id	= NULL,
+> +	.clkdev_con_id	= "sr1_fck",
+> +	.slaves		= omap34xx_sr1_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr1_slaves),
+> +	.sysconfig	= &sr_if_ctrl,
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> +	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+> +};
+> +
+> +/* SR2 */
+> +static struct omap_hwmod_ocp_if *omap34xx_sr2_slaves[] = {
+> +	&omap3_l4_core__sr2,
+> +};
+> +
+> +static struct omap_hwmod omap34xx_sr2_hwmod = {
+> +	.name		= "sr2_hwmod",
+> +	.mpu_irqs	= NULL,
+> +	.sdma_chs	= NULL,
+> +	.clkdev_dev_id	= NULL,
+> +	.clkdev_con_id	= "sr2_fck",
+> +	.slaves		= omap34xx_sr2_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr2_slaves),
+> +	.sysconfig	= &sr_if_ctrl,
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> +	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+> +};
+> +
+>  static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
+>  	&omap34xx_l3_hwmod,
+>  	&omap34xx_l4_core_hwmod,
+>  	&omap34xx_l4_per_hwmod,
+>  	&omap34xx_l4_wkup_hwmod,
+>  	&omap34xx_mpu_hwmod,
+> +	&omap34xx_sr1_hwmod,
+> +	&omap34xx_sr2_hwmod,
+>  	NULL,
+>  };
+>  
 
