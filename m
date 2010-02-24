@@ -1,42 +1,89 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv4 7/7] ASoC: TWL6030: Detect power-up sequence
- completion
-Date: Wed, 24 Feb 2010 13:59:09 +0000
-Message-ID: <20100224135909.GR18896@rakim.wolfsonmicro.main>
-References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B19@dlee06.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] omap2/3/4: serial: Don't init UART4 for 3630 still
+Date: Wed, 24 Feb 2010 06:33:11 -0800
+Message-ID: <87iq9mu2jc.fsf@deeprootsystems.com>
+References: <1267002144-21944-1-git-send-email-saaguirre@ti.com>
+	<A24693684029E5489D1D202277BE8944538C6D8E@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:60641 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757139Ab0BXN7L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Feb 2010 08:59:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1889FA7136B567478A67D4B0F85B0CCE65DD1B19@dlee06.ent.ti.com>
+Received: from mail-qy0-f179.google.com ([209.85.221.179]:33028 "EHLO
+	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902Ab0BXOdR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 09:33:17 -0500
+Received: by qyk9 with SMTP id 9so389535qyk.5
+        for <linux-omap@vger.kernel.org>; Wed, 24 Feb 2010 06:33:16 -0800 (PST)
+In-Reply-To: <A24693684029E5489D1D202277BE8944538C6D8E@dlee02.ent.ti.com> (Sergio Aguirre's message of "Wed\, 24 Feb 2010 05\:24\:03 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Olaya, Margarita" <magi.olaya@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Sonasath, Moiz" <m-sonasath@ti.com>
 
-On Tue, Feb 23, 2010 at 06:10:54PM -0600, Olaya, Margarita wrote:
+"Aguirre, Sergio" <saaguirre@ti.com> writes:
 
-> +	if (naudint) {
-> +		/* wait for ready interrupt with 48 ms timeout */
-> +		time_left = wait_for_completion_timeout(&priv->ready,
-> +					msecs_to_jiffies(48));
-> +	} else {
-> +		/* retry 3 times only */
-> +		for (time_left = 3; time_left > 0; time_left--) {
-> +			mdelay(16);
-> +			twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &intid,
-> +					TWL6030_REG_INTID);
-> +			if (intid & TWL6030_READYINT)
-> +				break;
-> +		}
-> +	}
+>> -----Original Message-----
+>> From: Aguirre, Sergio
+>> Sent: Wednesday, February 24, 2010 3:02 AM
+>> To: Tony Lindgren
+>> Cc: linux-omap@vger.kernel.org; Pandita, Vikram; Sonasath, Moiz; Aguirre,
+>> Sergio
+>> Subject: [PATCH] omap2/3/4: serial: Don't init UART4 for 3630 still
+>> 
+>> The patch named:
+>>   "omap2/3/4: Fix mach-omap2/serial.c for multiboot"
+>> 
+>> Which added UART4 init also for 36xx based boards, broke zoom3
+>> booting.
+>> 
+>> In theory, for zoom3 case, we should have UART4 + external debugboard
+>> UART running with no issues. But unless the real issue is fixed,
+>> this patch is crucial for Zoom3 booting.
+>
+> Just FYI,
+>
+> I tried by changing id field in board-zoom-debugboard.c for external
+> UART to -1, which in theory would add a ttyS4, but somehow it didn't
+> worked for me...
 
-It strikes me that you could combine these two cases - the
-wait_for_completion_timeout() will function just as well as a delay.
-I'd also expect to see an error reported if the device doesn't report as
-ready one way or another.
+That id field should probably be just changed to 4, or better it should
+be changed to use a symbolic constant that reflects the max number
+of on-chip UARTs.
+
+Kevin
+
+> I guess the proper fix will be to have:
+>
+> ttyS0 - OMAP3_UART1
+> ttyS1 - OMAP3_UART2
+> ttyS2 - OMAP3_UART3
+> ttyS3 - OMAP3_UART4
+> ttyS4 - ZOOM_UART
+>
+> Any Zoom debugboard expert that wants to comment on this?
+
+>> 
+>> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/serial.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>> 
+>> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+>> index b79bc89..c4a810b 100644
+>> --- a/arch/arm/mach-omap2/serial.c
+>> +++ b/arch/arm/mach-omap2/serial.c
+>> @@ -764,7 +764,7 @@ void __init omap_serial_init(void)
+>>  {
+>>  	int i, nr_ports;
+>> 
+>> -	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
+>> +	if (!cpu_is_omap4430())
+>>  		nr_ports = 3;
+>>  	else
+>>  		nr_ports = ARRAY_SIZE(omap_uart);
+>> --
+>> 1.6.3.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
