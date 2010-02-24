@@ -1,95 +1,43 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 00/11] OMAP clock/hwmod: final set of 2.6.34 patches
-Date: Wed, 24 Feb 2010 10:35:30 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1715@dbde02.ent.ti.com>
-References: <20100223044915.18888.83242.stgit@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Thara Gopinath <thara@ti.com>
+Subject: [PATCH V2] OMAP: HWMOD: Bug fixes in hwmod structure definitions
+Date: Wed, 24 Feb 2010 10:51:26 +0530
+Message-ID: <1266988886-12548-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40106 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33004 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750706Ab0BXFFm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Feb 2010 00:05:42 -0500
-In-Reply-To: <20100223044915.18888.83242.stgit@localhost.localdomain>
-Content-Language: en-US
+	id S1751219Ab0BXFVc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Feb 2010 00:21:32 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1O5LTsj013738
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 23 Feb 2010 23:21:31 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: Thara Gopinath <thara@ti.com>
 
-UGF1bCwNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtb21hcC1v
-d25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVs
-Lm9yZ10gT24gQmVoYWxmIE9mIFBhdWwNCj4gV2FsbXNsZXkNCj4gU2VudDogVHVlc2RheSwgRmVi
-cnVhcnkgMjMsIDIwMTAgMTA6MjAgQU0NCj4gVG86IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3Jn
-OyBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcNCj4gU3ViamVjdDogW1BBVENI
-IDAwLzExXSBPTUFQIGNsb2NrL2h3bW9kOiBmaW5hbCBzZXQgb2YgMi42LjM0IHBhdGNoZXMNCj4g
-DQo+IEhlbGxvLA0KPiANCj4gSGVyZSBhcmUgYSBmZXcgbW9yZSBPTUFQIGNsb2NrIGFuZCBod21v
-ZCBwYXRjaGVzIGludGVuZGVkIGZvciAyLjYuMzQsDQo+IHBvc3RlZCBpbiBjYXNlIGFueW9uZSBo
-YXMgYW55IHJldmlldyBjb21tZW50cy4NCj4gDQo+IFRoZXNlIHBhdGNoZXMgaGF2ZSBiZWVuIGJv
-b3QtdGVzdGVkIG9uIE9TSzU5MTIsIE44MDAsIDI0MzBTRFAsDQo+IE92ZXJvOyBhbmQgY29tcGls
-ZS10ZXN0ZWQgb24gNDQzMFNEUC4NCj4gDQpJIGhhdmUgYm9vdCB0ZXN0ZWQgdGhpcyBzZXJpZXMg
-YW5kIGVhcmxpZXIgdHdvIHNlcmllcyBvbiBPTUFQNDQzMCBTRFAuDQpUaGV5IGJvb3QgZmluZS4N
-Cj4gDQo+IC0tLQ0KPiANCj4gc2l6ZToNCj4gICAgdGV4dAkgICBkYXRhCSAgICBic3MJICAgIGRl
-YwkgICAgaGV4CWZpbGVuYW1lDQo+IDI4ODIwMDAJIDEyNzg3MgkgIDg4ODcyCTMwOTg3NDQJIDJm
-NDg3OAl2bWxpbnV4Lm9zazU5MTIub3JpZw0KPiAyODgyMDE2CSAxMjc4NzIJICA4ODg3MgkzMDk4
-NzYwCSAyZjQ4ODgJdm1saW51eC5vc2s1OTEyLnBhdGNoZWQNCj4gMjMyNDk1MwkgMTIxNDQwCSAg
-NjM3MjgJMjUxMDEyMQkgMjY0ZDI5CXZtbGludXgubjh4MC5vcmlnDQo+IDIzMjU4ODUJIDEyMTUz
-NgkgIDYzNzI4CTI1MTExNDkJIDI2NTEyZAl2bWxpbnV4Lm44eDAucGF0Y2hlZA0KPiAzNDIyMDQ0
-CSAxNzY5MjgJIDE0NjkyOAkzNzQ1OTAwCSAzOTI4NmMJdm1saW51eC4yNDMwc2RwLm9yaWcNCj4g
-MzQyMzA0OAkgMTc3MDI0CSAxNDY5MjgJMzc0NzAwMAkgMzkyY2I4CXZtbGludXguMjQzMHNkcC5w
-YXRjaGVkDQo+IDYwNjAxNjEJMTc5NzQyNAk1ODAwMzk2CTEzNjU3OTgxIGQwNjc3ZAl2bWxpbnV4
-Lm9tYXAzLm9yaWcNCj4gNjA2MTExMwkxNzk3NDg4CTU4MDAzOTYJMTM2NTg5OTcgZDA2Yjc1CXZt
-bGludXgub21hcDMucGF0Y2hlZA0KPiAyMDQ5MTMxCSAxNjg3MzYJICA2NTQxMgkyMjgzMjc5CSAy
-MmQ3MGYJdm1saW51eC40NDMwc2RwLm9yaWcNCj4gMjA1MDE2NwkgMTY5NjMyCSAgNjU0MTIJMjI4
-NTIxMQkgMjJkZTliCXZtbGludXguNDQzMHNkcC5wYXRjaGVkDQo+IA0KPiBQYXVsIFdhbG1zbGV5
-ICg3KToNCj4gICAgICAgT01BUCBjbG9jazogYWRkIG9tYXBfY2xrX2dldF9ieV9uYW1lKCkgZm9y
-IHVzZSBieSBPTUFQIGh3bW9kIGNvcmUgY29kZQ0KPiAgICAgICBPTUFQIGh3bW9kOiBjb252ZXJ0
-IGh3bW9kIHRvIHVzZSBoYXJkd2FyZSBjbG9jayBuYW1lcyByYXRoZXIgdGhhbiBjbGtkZXYgZGV2
-K2Nvbg0KPiAgICAgICBPTUFQIGh3bW9kOiBjb252ZXJ0IGhlYWRlciBmaWxlcyB3aXRoIHN0YXRp
-YyBhbGxvY2F0aW9ucyBpbnRvIEMgZmlsZXMNCj4gICAgICAgT01BUCBod21vZDogYWRkIGh3bW9k
-IGNsYXNzIHN1cHBvcnQNCj4gICAgICAgT01BUCBjbG9ja2RvbWFpbjogaWYgbm8gYXV0b2RlcHMg
-ZXhpc3QsIGRvbid0IHRyeSB0byBhZGQgb3IgcmVtb3ZlIHRoZW0NCj4gICAgICAgT01BUDIvMyBj
-bG9jazogY29tYmluZSBPTUFQMiAmIDMgYm9vdC10aW1lIE1QVSByYXRlIGNoYW5nZSBjb2RlDQo+
-ICAgICAgIE9NQVAyKyBjbG9jazogcmV2aXNlIG9tYXAyX2Nsa197ZGlzYWJsZSxlbmFibGV9KCkN
-Cj4gDQo+IFJhamVuZHJhIE5heWFrICgxKToNCj4gICAgICAgT01BUDQ6IGNsb2NrOiBSZW5hbWUg
-bGVhZiBjbG9jayBub2RlcyB0byBlbmQgd2l0aCBhIF9pY2sgb3IgX2Zjaw0KPiANCj4gU2FudG9z
-aCBTaGlsaW1rYXIgKDIpOg0KPiAgICAgICBPTUFQNDogY2xvY2s6IEFkZCBkdW1teSBjbG9jayBu
-b2RlcyBmb3IgaW50ZXJmYWNlIGNsb2Nrcw0KPiAgICAgICBPTUFQNDogY2xvY2s6IFJlbW92ZSBj
-bG9jayBoYWNrcyBmcm9tIHRpbWVyLWdwLmMNCj4gDQo+IFZpbWFyc2ggWnV0c2hpICgxKToNCj4g
-ICAgICAgRnJvbSA1Yzg3ZTI3ZmQ1NTdhNTZhY2E3MmNkMTA1MjljM2JkY2IwYzhhNTE3IE1vbiBT
-ZXAgMTcgMDA6MDA6MDAgMjAwMQ0KPiANCj4gDQo+ICBhcmNoL2FybS9jb25maWdzL29tYXBfNDQz
-MHNkcF9kZWZjb25maWcgICAgICB8ICAgIDcNCj4gIGFyY2gvYXJtL21hY2gtb21hcDEvY2xvY2su
-YyAgICAgICAgICAgICAgICAgIHwgICAxNCAtDQo+ICBhcmNoL2FybS9tYWNoLW9tYXAxL2Nsb2Nr
-X2RhdGEuYyAgICAgICAgICAgICB8ICAgIDYNCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZp
-bGUgICAgICAgICAgICAgICAgIHwgICAxMiAtDQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2Nr
-LmMgICAgICAgICAgICAgICAgICB8ICAyMjAgKysrKysrKystLQ0KPiAgYXJjaC9hcm0vbWFjaC1v
-bWFwMi9jbG9jay5oICAgICAgICAgICAgICAgICAgfCAgICA1DQo+ICBhcmNoL2FybS9tYWNoLW9t
-YXAyL2Nsb2NrMnh4eC5jICAgICAgICAgICAgICB8ICAgMzQgLQ0KPiAgYXJjaC9hcm0vbWFjaC1v
-bWFwMi9jbG9jazN4eHguYyAgICAgICAgICAgICAgfCAgIDU5IC0tLQ0KPiAgYXJjaC9hcm0vbWFj
-aC1vbWFwMi9jbG9jazN4eHhfZGF0YS5jICAgICAgICAgfCAgICAyDQo+ICBhcmNoL2FybS9tYWNo
-LW9tYXAyL2Nsb2NrNDR4eF9kYXRhLmMgICAgICAgICB8ICA1OTYgKysrKysrKysrKysrKystLS0t
-LS0tLS0tLS0NCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2tkb21haW4uYyAgICAgICAgICAg
-IHwgICAxNiArDQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2lvLmMgICAgICAgICAgICAgICAgICAg
-ICB8ICAgMjEgLQ0KPiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kLmMgICAgICAgICAg
-ICAgfCAgMjQ0ICsrKysrKy0tLS0tDQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2Rf
-MjQyMF9kYXRhLmMgICB8ICAgMzggKy0NCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21v
-ZF8yNDMwX2RhdGEuYyAgIHwgICAzOCArLQ0KPiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3
-bW9kXzM0eHguaCAgICAgICAgfCAgMTY4IC0tLS0tLS0NCj4gIGFyY2gvYXJtL21hY2gtb21hcDIv
-b21hcF9od21vZF8zeHh4X2RhdGEuYyAgIHwgIDE4MSArKysrKysrKw0KPiAgYXJjaC9hcm0vbWFj
-aC1vbWFwMi9vbWFwX2h3bW9kX2NvbW1vbl9kYXRhLmMgfCAgIDI0ICsNCj4gIGFyY2gvYXJtL21h
-Y2gtb21hcDIvb21hcF9od21vZF9jb21tb25fZGF0YS5oIHwgICAyNCArDQo+ICBhcmNoL2FybS9t
-YWNoLW9tYXAyL3RpbWVyLWdwLmMgICAgICAgICAgICAgICB8ICAgIDUNCj4gIGFyY2gvYXJtL3Bs
-YXQtb21hcC9jbG9jay5jICAgICAgICAgICAgICAgICAgIHwgICAzNyArKw0KPiAgYXJjaC9hcm0v
-cGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9jbG9jay5oICAgICAgfCAgICAzDQo+ICBhcmNoL2FybS9w
-bGF0LW9tYXAvaW5jbHVkZS9wbGF0L29tYXBfaHdtb2QuaCB8ICAgNzEgKystDQo+ICAyMyBmaWxl
-cyBjaGFuZ2VkLCAxMDczIGluc2VydGlvbnMoKyksIDc1MiBkZWxldGlvbnMoLSkNCj4gIHJlbmFt
-ZSBhcmNoL2FybS9tYWNoLW9tYXAyL3tvbWFwX2h3bW9kXzI0MjAuaCA9PiBvbWFwX2h3bW9kXzI0
-MjBfZGF0YS5jfSAoODIlKQ0KPiAgcmVuYW1lIGFyY2gvYXJtL21hY2gtb21hcDIve29tYXBfaHdt
-b2RfMjQzMC5oID0+IG9tYXBfaHdtb2RfMjQzMF9kYXRhLmN9ICg4MyUpDQo+ICBkZWxldGUgbW9k
-ZSAxMDA2NDQgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzM0eHguaA0KPiAgY3JlYXRl
-IG1vZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF8zeHh4X2RhdGEuYw0K
-PiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF9jb21t
-b25fZGF0YS5oDQo+IA0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2Vu
-ZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtb21hcCIgaW4NCj4gdGhlIGJvZHkgb2YgYSBt
-ZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5m
-byBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+This patch corrects the width of sysc_flags in hwmod sysconfig structure
+where the values to be stored to this variable exceed the current
+field width.
+
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 921990e..aad5948 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -258,7 +258,7 @@ struct omap_hwmod_sysconfig {
+ 	u16 sysc_offs;
+ 	u16 syss_offs;
+ 	u8 idlemodes;
+-	u8 sysc_flags;
++	u16 sysc_flags;
+ 	u8 clockact;
+ };
+ 
+-- 
+1.5.4.7
+
