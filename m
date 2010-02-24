@@ -1,18 +1,35 @@
-From: Sir William Wilcox <Sir.WilliamWilcox@24.tc>
-Subject: RE
-Date: Tue, 23 Feb 2010 19:31:33 -0500
-Message-ID: <1266971493.4b8473658093f__37324.8153635815$1266973315$gmane$org@webmail.xcelco.on.ca>
-Reply-To: sir.williamwilcox03@gmail.com
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH 1/2] DSPBRIDGE: logic error fix for SleepDSP timeout value
+Date: Tue, 23 Feb 2010 20:11:02 -0600
+Message-ID: <4B848AB6.7050308@ti.com>
+References: <1266530134-8186-1-git-send-email-omar.ramirez@ti.com> <1266530134-8186-2-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta03.eastlink.ca ([24.224.136.9]:36084 "EHLO mta03.eastlink.ca"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55251 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165Ab0BXBBp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Feb 2010 20:01:45 -0500
+	id S1751710Ab0BXCLI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Feb 2010 21:11:08 -0500
+In-Reply-To: <1266530134-8186-2-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-I work with Euro Million.I can help you win
-4,528,000 GBP.I charge 40%.can we do this deal?
+On 2/18/2010 3:55 PM, Ramirez Luna, Omar wrote:
+> When leaving the loop waiting for the dsp to transition
+> from its power state, timeout value will be negative, therefore
+> a print for "timeout waiting for the dsp" won't be displayed, as
+> the condition to check for is !timeout.
+>
+> Reported-by: Berenice Herrera<berenice@ti.com>
+> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com>
+> ---
+>   drivers/dsp/bridge/wmd/tiomap3430_pwr.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+
+Pushed to dspbridge
+
+- omar
