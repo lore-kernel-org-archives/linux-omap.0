@@ -1,109 +1,53 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-Date: Wed, 24 Feb 2010 01:40:05 -0600
-Message-ID: <A24693684029E5489D1D202277BE8944538C6D6A@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE8944538C6D68@dlee02.ent.ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [ANNOUNCE] dspbridge: kill camelcase
+Date: Wed, 24 Feb 2010 09:38:01 +0200
+Message-ID: <4B84D759.7000801@ti.com>
+References: <4B848B9B.2030002@ti.com> <20100224031325.GM28173@atomide.com>
+Reply-To: <nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40517 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755559Ab0BXHkP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 02:40:15 -0500
-In-Reply-To: <A24693684029E5489D1D202277BE8944538C6D68@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:53914 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755421Ab0BXHiG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 02:38:06 -0500
+In-Reply-To: <20100224031325.GM28173@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hmm..
+Tony Lindgren said the following on 02/24/2010 05:13 AM:
+> * Omar Ramirez Luna <omar.ramirez@ti.com> [100223 18:11]:
+>> Hi All,
+>>
+>> I'm currently working on removing camel case + hungarian notation
+>> from dspbridge code in the following branch:
+>>
+>> dspbridge-next-camelcase on d.o-z
+>>
+>> I'll appreciate if you can mail any unsent patch otherwise it will
+>> need to wait (and be rebased) after the camelcase changes.
+>>
+>> If nobody disagrees I'll be marking dspbridge 0.2 (as per private
+>> discussion) in the upcoming days.
+> 
+> Maybe do a perl or sed script that allows you to convert one
+> string at a time? That way you can regenerate the patches as
+> needed.
+> 
+> We used something like that to convert the musb code a few
+> years ago.
+> 
+> I recommend converting one variable at a time and then compile
+> and boot test in between. Otherwise you can easily convert
+> substrings accidentally and then things will not compile..
 
-I think I sent this patch too soon...
+I think we discussed this quiet some time back:
+http://marc.info/?t=125319739500001&r=1&w=2 - yep there is script 
+available.
 
-Please ignore it, this is not a proper solution I feel..
-
-But what it is true... is that, patch "omap2/3/4: Fix mach-omap2/serial.c for multiboot" is definitely breaking Zoom3 boot, and needs to be fixed.
-
-I'll try to come up with a better patch.
-
+-- 
 Regards,
-Sergio
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
-> Sent: Wednesday, February 24, 2010 1:31 AM
-> To: Tony Lindgren
-> Cc: linux-omap@vger.kernel.org; Sonasath, Moiz; Pandita, Vikram
-> Subject: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-> 
-> From 14bc4ee14ac5a3dab79d9292bf22ab0401879cd5 Mon Sep 17 00:00:00 2001
-> From: Sergio Aguirre <saaguirre@ti.com>
-> Date: Wed, 24 Feb 2010 01:15:55 -0600
-> Subject: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-> 
-> The patch named:
->   "omap2/3/4: Fix mach-omap2/serial.c for multiboot"
-> 
-> Which added UART4 init also for 36xx based boards, broke zoom3
-> booting. External UART must be correctly initialized already
-> by board-zoom-debugboard.c file, therefore the addition on UART4
-> initialization can't be done blindly (i.e. board agnostic)
-> 
-> This patch removes the 36xx uart4 init for the above reason.
-> 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  arch/arm/mach-omap2/serial.c |   10 ++--------
->  1 files changed, 2 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index b79bc89..fe3122b 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -115,7 +115,6 @@ static struct plat_serial8250_port
-> serial_platform_data2[] = {
->  	}
->  };
-> 
-> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
->  static struct plat_serial8250_port serial_platform_data3[] = {
->  	{
->  		.irq		= 70,
-> @@ -132,11 +131,6 @@ static inline void omap2_set_globals_uart4(struct
-> omap_globals *omap2_globals)
->  {
->  	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
->  }
-> -#else
-> -static inline void omap2_set_globals_uart4(struct omap_globals
-> *omap2_globals)
-> -{
-> -}
-> -#endif
-> 
->  void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
->  {
-> @@ -597,7 +591,7 @@ static struct omap_uart_state omap_uart[] = {
->  			},
->  		},
->  	},
-> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-> +#ifdef CONFIG_ARCH_OMAP4
->  	{
->  		.pdev = {
->  			.name			= "serial8250",
-> @@ -764,7 +758,7 @@ void __init omap_serial_init(void)
->  {
->  	int i, nr_ports;
-> 
-> -	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
-> +	if (!cpu_is_omap4430())
->  		nr_ports = 3;
->  	else
->  		nr_ports = ARRAY_SIZE(omap_uart);
-> --
-> 1.6.3.3
-
+Nishanth Menon
