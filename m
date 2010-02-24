@@ -1,123 +1,164 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-Date: Wed, 24 Feb 2010 08:21:29 -0800
-Message-ID: <20100224162129.GO28173@atomide.com>
-References: <A24693684029E5489D1D202277BE8944538C6D68@dlee02.ent.ti.com>
- <A24693684029E5489D1D202277BE8944538C6D6A@dlee02.ent.ti.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
+Date: Wed, 24 Feb 2010 10:33:27 -0600
+Message-ID: <005001cab56f$17db8460$544ff780@am.dhcp.ti.com>
+References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com> <87ocjftq0z.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49537 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757180Ab0BXQUa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 11:20:30 -0500
-Content-Disposition: inline
-In-Reply-To: <A24693684029E5489D1D202277BE8944538C6D6A@dlee02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:44619 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757244Ab0BXQd3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Feb 2010 11:33:29 -0500
+In-Reply-To: <87ocjftq0z.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: 'Kevin Hilman' <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-* Aguirre, Sergio <saaguirre@ti.com> [100223 23:37]:
-> Hmm..
+
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Tuesday, February 23, 2010 6:51 PM
+> To: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
 > 
-> I think I sent this patch too soon...
+> Kevin Hilman <khilman@deeprootsystems.com> writes:
 > 
-> Please ignore it, this is not a proper solution I feel..
+> > This series converts the OMAP HS-MMC driver to use omap_hwmod +
+> > runtime PM API.
+> >
+> > Depends on MMC hwmods available in 'pm-wip/hwmods' branch of
+> > my git tree[1] as well as previously posted runtime PM series:
+> >
+> >    [PATCH/RFC 0/2] initial runtime PM layer for OMAP
+> >
+> > The easies way to experiment/test is to use my 'pm-wip/mmc' branch
+> > which has all the dependencies, and is based on omap/for-next'.
+> > It has been tested by merging with current PM branch.
+> >
+> > [1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
+> >
 > 
-> But what it is true... is that, patch "omap2/3/4: Fix mach-omap2/serial.c for multiboot" is definitely breaking Zoom3 boot, and needs to be fixed.
+> A question for those of you who actually understand the MMC driver...
+> I'm having problems getting my head around the current PM stuff in the
+> MMC driver.  My primary question is:
+> 
+> Why does the suspend hook need to re-enable the device before
+> suspending?
+>
 
-Yes sounds like only zoom has the external uart, other 3630
-boards may be using the internal uart4.
- 
-> I'll try to come up with a better patch.
+In the scenario where there is no activity on the bus the MMC clocks are
+kept disabled. Now in the suspend path the MMC core will issue certain CMDs
+like CMD7(to end the suspend path) to deselect the card(more of a protocol
+stuff). Hence the host need to be in enabled state before letting the core
+know that there is a suspend request.
 
-You can call omap_serial_init_port() for each port from
-board-zoom3.c instead of calling omap_serial_init().
 
-See commit
+> When using runtime PM, the MMC device is disabled including
+> clocks off  and regulator off (if power_savings == true) when there
+> is no activity.
+> 
+> Then, in the static suspend hook, it's re-enabled (including taking it out
+> of
+> off, re-enabling regulators etc) only to be quickly disabled again.
+> This seems horribly inefficient.
+> 
+
+This is exactly for the reason I mentioned above.
+
+> I admit to not understanding the MMC layer terribly well, so can someone
+> enlighten me as to what is going on here?
+> 
+> What I am testing here is a patch on top of this series (below) that
+> adds a check to the static suspend hook.  If the device is already
+> runtime suspended, then the suspend and resume hooks should be noop.
+> 
+> This appears to work just fine while testing on omap3evm just doing
+> simple read/write tests before an after suspend resume.
+>
+
+I did some basic testing with your previously posted patches. But my testing
+was incomplete because on Zoom2 because for some reason the OFF mode was not
+working even without your patches.
+
+My concern was more with respect to OFF mode in idle path since your patches
+removed context restore calls if I recall correctly. Are you able to hit
+CORE OFF and then come back and do the read/write transfers in idle as well
+as suspend/resume path?
 
 Regards,
-
-Tony
-
+Madhu
  
-> Regards,
-> Sergio
+> Note that if you want to test this patch, it also depends on this
+> patch to runtime PM from the linux-pm list:
+> https://lists.linux-foundation.org/pipermail/linux-pm/2010-
+> February/024275.html
 > 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
-> > Sent: Wednesday, February 24, 2010 1:31 AM
-> > To: Tony Lindgren
-> > Cc: linux-omap@vger.kernel.org; Sonasath, Moiz; Pandita, Vikram
-> > Subject: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-> > 
-> > From 14bc4ee14ac5a3dab79d9292bf22ab0401879cd5 Mon Sep 17 00:00:00 2001
-> > From: Sergio Aguirre <saaguirre@ti.com>
-> > Date: Wed, 24 Feb 2010 01:15:55 -0600
-> > Subject: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-> > 
-> > The patch named:
-> >   "omap2/3/4: Fix mach-omap2/serial.c for multiboot"
-> > 
-> > Which added UART4 init also for 36xx based boards, broke zoom3
-> > booting. External UART must be correctly initialized already
-> > by board-zoom-debugboard.c file, therefore the addition on UART4
-> > initialization can't be done blindly (i.e. board agnostic)
-> > 
-> > This patch removes the 36xx uart4 init for the above reason.
-> > 
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/serial.c |   10 ++--------
-> >  1 files changed, 2 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> > index b79bc89..fe3122b 100644
-> > --- a/arch/arm/mach-omap2/serial.c
-> > +++ b/arch/arm/mach-omap2/serial.c
-> > @@ -115,7 +115,6 @@ static struct plat_serial8250_port
-> > serial_platform_data2[] = {
-> >  	}
-> >  };
-> > 
-> > -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-> >  static struct plat_serial8250_port serial_platform_data3[] = {
-> >  	{
-> >  		.irq		= 70,
-> > @@ -132,11 +131,6 @@ static inline void omap2_set_globals_uart4(struct
-> > omap_globals *omap2_globals)
-> >  {
-> >  	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
-> >  }
-> > -#else
-> > -static inline void omap2_set_globals_uart4(struct omap_globals
-> > *omap2_globals)
-> > -{
-> > -}
-> > -#endif
-> > 
-> >  void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
-> >  {
-> > @@ -597,7 +591,7 @@ static struct omap_uart_state omap_uart[] = {
-> >  			},
-> >  		},
-> >  	},
-> > -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-> > +#ifdef CONFIG_ARCH_OMAP4
-> >  	{
-> >  		.pdev = {
-> >  			.name			= "serial8250",
-> > @@ -764,7 +758,7 @@ void __init omap_serial_init(void)
-> >  {
-> >  	int i, nr_ports;
-> > 
-> > -	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
-> > +	if (!cpu_is_omap4430())
-> >  		nr_ports = 3;
-> >  	else
-> >  		nr_ports = ARRAY_SIZE(omap_uart);
-> > --
-> > 1.6.3.3
+> These are all included in an updated version of my pm-wip/mmc branch
+> for ease of testing.  Merge it with the current PM branch, enable
+> CONFIG_PM_RUNTIME and test away.
 > 
+> Kevin
+> 
+> commit 166cba7679fa267ee6e6eb39fd1e871ede5ded16
+> Author: Kevin Hilman <khilman@deeprootsystems.com>
+> Date:   Tue Feb 23 16:21:56 2010 -0800
+> 
+>     MMC: omap_hsmmc: check for runtime-suspend in static suspend
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 16d66b9..dd027bb 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2222,6 +2222,9 @@ static int omap_hsmmc_suspend(struct device *dev)
+>  	if (host && host->suspended)
+>  		return 0;
+> 
+> +	if (pm_is_runtime_suspended(host->dev))
+> +		return 0;
+> +
+>  	if (host) {
+>  		host->suspended = 1;
+>  		if (host->pdata->suspend) {
+> @@ -2260,12 +2263,6 @@ static int omap_hsmmc_suspend(struct device *dev)
+>  			}
+>  			mmc_host_disable(host->mmc);
+>  		}
+> -
+> -		/*
+> -		 * HACK: "extra" put to compensate for DPM core keeping
+> -		 *       runtime PM disabled.  -- khilman
+> -		 */
+> -		pm_runtime_put_sync(host->dev);
+>  	}
+>  	return ret;
+>  }
+> @@ -2280,13 +2277,10 @@ static int omap_hsmmc_resume(struct device *dev)
+>  	if (host && !host->suspended)
+>  		return 0;
+> 
+> -	if (host) {
+> -		/*
+> -		 * HACK: "extra" get to compensate for DPM core keeping
+> -		 *       runtime PM disabled.  -- khilman
+> -		 */
+> -		pm_runtime_get_sync(host->dev);
+> +	if (pm_is_runtime_suspended(host->dev))
+> +		return 0;
+> 
+> +	if (host) {
+>  		if (mmc_host_enable(host->mmc) != 0) {
+>  			pm_runtime_suspend(host->dev);
+>  			goto clk_en_err;
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
