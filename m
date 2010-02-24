@@ -1,493 +1,649 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 06/16] OMAP3: PM: Smartreflex class related changes for smartreflex.c
-Date: Wed, 24 Feb 2010 14:59:07 +0530
-Message-ID: <1267003757-22456-7-git-send-email-thara@ti.com>
+Subject: [PATCH 03/16] OMAP3: PM: Convert smartreflex driver into a platform driver using hwmods and omap-device layer
+Date: Wed, 24 Feb 2010 14:59:04 +0530
+Message-ID: <1267003757-22456-4-git-send-email-thara@ti.com>
 References: <1267003757-22456-1-git-send-email-thara@ti.com>
  <1267003757-22456-2-git-send-email-thara@ti.com>
  <1267003757-22456-3-git-send-email-thara@ti.com>
- <1267003757-22456-4-git-send-email-thara@ti.com>
- <1267003757-22456-5-git-send-email-thara@ti.com>
- <1267003757-22456-6-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46727 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756138Ab0BXJ3b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Feb 2010 04:29:31 -0500
-In-Reply-To: <1267003757-22456-6-git-send-email-thara@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59781 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756132Ab0BXJ3b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 04:29:31 -0500
+In-Reply-To: <1267003757-22456-3-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-OMAP3 smartreflex modules are capable of two different classes
-of implementaion -
-	Class-2: Continuous Software Calibration
-	Class-3: Continuous Hardware Calibration.
-OMAP3 along with T2/Gaia supports the Class 3 implementaion.
-With a different PMIC it can support Class 2 implementaion also.
-
-The idea behind this patch is that smartreflex.c should be able
-to support both the classes of Smartreflex and the class specific
-details for smartreflex should stay out of this file in a separate
-class file.
-This patch introduces smartreflex class specific hooks in
-smartreflex.c. This patch only takes care of smartreflex enable
-disable hooks which differ between Class 2 and Class 3. There
-are some register setting changes between both the classes which
-will be taken care of in a later patch.
-This will form the base for adding class specific
-drivers in later patches.
+This patch converts the exisitng smartreflex library into a
+platform driver with device , driver registrations using hardware mods.
+As part of this Ntarget values are passed as platform data.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c      |    8 +-
- arch/arm/mach-omap2/smartreflex.c |  251 ++++++++++++++++++++----------------
- arch/arm/mach-omap2/smartreflex.h |   48 ++++++--
- 3 files changed, 182 insertions(+), 125 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |  470 +++++++++++++++++++++----------------
+ arch/arm/mach-omap2/smartreflex.h |   27 ++
+ 2 files changed, 293 insertions(+), 204 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index cf9ca23..ece5195 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -430,9 +430,9 @@ void omap_sram_idle(void)
- 	 * Only needed if we are going to enter retention or off.
- 	 */
- 	if (mpu_next_state <= PWRDM_POWER_RET)
--		disable_smartreflex(SR1);
-+		omap_smartreflex_disable(SR1);
- 	if (core_next_state <= PWRDM_POWER_RET)
--		disable_smartreflex(SR2);
-+		omap_smartreflex_disable(SR2);
- 
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
-@@ -531,9 +531,9 @@ void omap_sram_idle(void)
- 	 * retention or off
- 	 */
- 	if (mpu_next_state <= PWRDM_POWER_RET)
--		enable_smartreflex(SR1);
-+		omap_smartreflex_enable(SR1);
- 	if (core_next_state <= PWRDM_POWER_RET)
--		enable_smartreflex(SR2);
-+		omap_smartreflex_enable(SR2);
- 
- 	/* PER */
- 	if (per_next_state < PWRDM_POWER_ON) {
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index c00925d..ba9f899 100644
+index 4a9c2e2..05c72b2 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -55,6 +55,7 @@ struct omap_sr {
+@@ -14,7 +14,6 @@
+  * published by the Free Software Foundation.
+  */
  
- /* sr_list contains all the instances of smartreflex module */
- static LIST_HEAD(sr_list);
-+static struct omap_smartreflex_class_data *sr_class;
+-
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+@@ -33,6 +32,8 @@
+ #include <plat/clock.h>
+ #include <plat/opp.h>
+ #include <plat/opp_twl_tps.h>
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
  
- #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
+ #include "prm.h"
+ #include "smartreflex.h"
+@@ -41,17 +42,14 @@
+ #define MAX_TRIES 100
  
-@@ -388,14 +389,86 @@ static int sr_reset_voltage(int srid)
+ struct omap_sr {
+-	int		srid;
+-	int		is_sr_reset;
+-	int		is_autocomp_active;
+-	struct clk	*clk;
+-	struct clk	*vdd_opp_clk;
+-	u32		clk_length;
+-	u32		req_opp_no;
+-	u32		opp1_nvalue, opp2_nvalue, opp3_nvalue, opp4_nvalue;
+-	u32		opp5_nvalue;
+-	u32		senp_mod, senn_mod;
+-	void __iomem	*srbase_addr;
++	int			srid;
++	int			is_sr_reset;
++	int			is_autocomp_active;
++	struct clk		*vdd_opp_clk;
++	u32			clk_length;
++	void __iomem		*srbase_addr;
++	unsigned int		irq;
++	struct platform_device 	*pdev;
+ 	struct list_head 	node;
+ };
+ 
+@@ -98,71 +96,22 @@ static struct omap_sr *_sr_lookup(int srid)
+ 
+ static int sr_clk_enable(struct omap_sr *sr)
+ {
+-	if (clk_enable(sr->clk) != 0) {
+-		pr_err("Could not enable %s\n", sr->clk->name);
+-		return -1;
+-	}
++	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
+ 
+-	/* set fclk- active , iclk- idle */
+-	sr_modify_reg(sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
+-		      SR_CLKACTIVITY_IOFF_FON);
++	if (pdata->device_enable)
++		pdata->device_enable(sr->pdev);
+ 
  	return 0;
  }
  
--static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
-+static void sr_start_vddautocomap(int srid)
-+{
-+	struct omap_sr *sr = _sr_lookup(srid);
-+
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
-+		return;
-+	}
-+
-+	if (!sr_class || !(sr_class->enable)) {
-+		pr_warning("smartreflex class driver not registered\n");
-+		return;
-+	}
-+
-+	if (sr->is_sr_reset == 1) {
-+		sr_clk_enable(sr);
-+		sr_configure(sr);
-+	}
-+
-+	sr->is_autocomp_active = 1;
-+	if (!sr_class->enable(srid)) {
-+		sr->is_autocomp_active = 0;
-+		if (sr->is_sr_reset == 1)
-+			sr_clk_disable(sr);
-+	}
-+}
-+
-+static void sr_stop_vddautocomap(int srid)
-+{
-+	struct omap_sr *sr = _sr_lookup(srid);
-+
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
-+		return;
-+	}
-+	if (!sr_class || !(sr_class->disable)) {
-+		pr_warning("smartreflex class driver not registered\n");
-+		return;
-+	}
-+
-+	if (sr->is_autocomp_active == 1) {
-+		sr_class->disable(srid);
-+		sr_clk_disable(sr);
-+		sr->is_autocomp_active = 0;
-+		/* Reset the volatage for current OPP */
-+		sr_reset_voltage(srid);
-+	}
-+
-+}
-+
-+/* Public Functions */
-+
-+/**
-+ * sr_enable : Enables the smartreflex module.
-+ * @srid - The id of the sr module to be enabled.
-+ * @target_opp_no - The OPP at which the Voltage domain associated with
-+ * the smartreflex module is operating at. This is required only to program
-+ * the correct Ntarget value.
-+ *
-+ * This API is to be called from the smartreflex class driver to
-+ * enable a smartreflex module. Returns true on success.Returns false if the
-+ * target opp id passed is wrong or if ntarget value is wrong.
-+ */
-+int sr_enable(int srid, u32 target_opp_no)
+ static void sr_clk_disable(struct omap_sr *sr)
+ {
+-	/* set fclk, iclk- idle */
+-	sr_modify_reg(sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
+-		      SR_CLKACTIVITY_IOFF_FOFF);
+-
+-	clk_disable(sr->clk);
+-	sr->is_sr_reset = 1;
+-}
++	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
+ 
+-static struct omap_sr sr1 = {
+-	.srid			= SR1,
+-	.is_sr_reset		= 1,
+-	.is_autocomp_active	= 0,
+-	.clk_length		= 0,
+-	.srbase_addr		= OMAP2_L4_IO_ADDRESS(OMAP34XX_SR1_BASE),
+-};
+-
+-static struct omap_sr sr2 = {
+-	.srid			= SR2,
+-	.is_sr_reset		= 1,
+-	.is_autocomp_active	= 0,
+-	.clk_length		= 0,
+-	.srbase_addr		= OMAP2_L4_IO_ADDRESS(OMAP34XX_SR2_BASE),
+-};
++	if (pdata->device_idle)
++		pdata->device_idle(sr->pdev);
+ 
+-static void cal_reciprocal(u32 sensor, u32 *sengain, u32 *rnsen)
+-{
+-	u32 gn, rn, mul;
+-
+-	for (gn = 0; gn < GAIN_MAXLIMIT; gn++) {
+-		mul = 1 << (gn + 8);
+-		rn = mul / sensor;
+-		if (rn < R_MAXLIMIT) {
+-			*sengain = gn;
+-			*rnsen = rn;
+-		}
+-	}
+-}
+-
+-static u32 cal_test_nvalue(u32 sennval, u32 senpval)
+-{
+-	u32 senpgain, senngain;
+-	u32 rnsenp, rnsenn;
+-
+-	/* Calculating the gain and reciprocal of the SenN and SenP values */
+-	cal_reciprocal(senpval, &senpgain, &rnsenp);
+-	cal_reciprocal(sennval, &senngain, &rnsenn);
+-
+-	return (senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+-		(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+-		(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+-		(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT);
++	sr->is_sr_reset = 1;
+ }
+ 
+ static u8 get_vdd1_opp(void)
+@@ -255,76 +204,6 @@ static void sr_set_clk_length(struct omap_sr *sr)
+ 	}
+ }
+ 
+-static void sr_set_efuse_nvalues(struct omap_sr *sr)
+-{
+-	if (sr->srid == SR1) {
+-		sr->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+-					OMAP343X_SR1_SENNENABLE_MASK) >>
+-					OMAP343X_SR1_SENNENABLE_SHIFT;
+-		sr->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+-					OMAP343X_SR1_SENPENABLE_MASK) >>
+-					OMAP343X_SR1_SENPENABLE_SHIFT;
+-
+-		sr->opp5_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP5_VDD1);
+-		sr->opp4_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP4_VDD1);
+-		sr->opp3_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP3_VDD1);
+-		sr->opp2_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP2_VDD1);
+-		sr->opp1_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP1_VDD1);
+-	} else if (sr->srid == SR2) {
+-		sr->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+-					OMAP343X_SR2_SENNENABLE_MASK) >>
+-					OMAP343X_SR2_SENNENABLE_SHIFT;
+-
+-		sr->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+-					OMAP343X_SR2_SENPENABLE_MASK) >>
+-					OMAP343X_SR2_SENPENABLE_SHIFT;
+-
+-		sr->opp3_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP3_VDD2);
+-		sr->opp2_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP2_VDD2);
+-		sr->opp1_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP1_VDD2);
+-	}
+-}
+-
+-/* Hard coded nvalues for testing purposes, may cause device to hang! */
+-static void sr_set_testing_nvalues(struct omap_sr *sr)
+-{
+-	if (sr->srid == SR1) {
+-		sr->senp_mod = 0x03;	/* SenN-M5 enabled */
+-		sr->senn_mod = 0x03;
+-
+-		/* calculate nvalues for each opp */
+-		sr->opp5_nvalue = cal_test_nvalue(0xacd + 0x330, 0x848 + 0x330);
+-		sr->opp4_nvalue = cal_test_nvalue(0x964 + 0x2a0, 0x727 + 0x2a0);
+-		sr->opp3_nvalue = cal_test_nvalue(0x85b + 0x200, 0x655 + 0x200);
+-		sr->opp2_nvalue = cal_test_nvalue(0x506 + 0x1a0, 0x3be + 0x1a0);
+-		sr->opp1_nvalue = cal_test_nvalue(0x373 + 0x100, 0x28c + 0x100);
+-	} else if (sr->srid == SR2) {
+-		sr->senp_mod = 0x03;
+-		sr->senn_mod = 0x03;
+-
+-		sr->opp3_nvalue = cal_test_nvalue(0x76f + 0x200, 0x579 + 0x200);
+-		sr->opp2_nvalue = cal_test_nvalue(0x4f5 + 0x1c0, 0x390 + 0x1c0);
+-		sr->opp1_nvalue = cal_test_nvalue(0x359, 0x25d);
+-	}
+-
+-}
+-
+-static void sr_set_nvalues(struct omap_sr *sr)
+-{
+-	if (SR_TESTING_NVALUES)
+-		sr_set_testing_nvalues(sr);
+-	else
+-		sr_set_efuse_nvalues(sr);
+-}
+-
+ static void sr_configure_vp(int srid)
+ {
+ 	u32 vpconfig;
+@@ -438,12 +317,13 @@ static void sr_configure(struct omap_sr *sr)
+ {
+ 	u32 sr_config;
+ 	u32 senp_en , senn_en;
++	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
+ 
+ 	if (sr->clk_length == 0)
+ 		sr_set_clk_length(sr);
+ 
+-	senp_en = sr->senp_mod;
+-	senn_en = sr->senn_mod;
++	senp_en = pdata->senp_mod;
++	senn_en = pdata->senn_mod;
+ 	if (sr->srid == SR1) {
+ 		sr_config = SR1_SRCONFIG_ACCUMDATA |
+ 			(sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
+@@ -571,57 +451,33 @@ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
  {
  	u32 nvalue_reciprocal, v;
-+	struct omap_sr *sr = _sr_lookup(srid);
  	struct omap_opp *opp;
- 	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
++	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
  	int uvdc;
  	char vsel;
  
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
+-	sr->req_opp_no = target_opp_no;
+-
+ 	if (sr->srid == SR1) {
+-		switch (target_opp_no) {
+-		case 5:
+-			nvalue_reciprocal = sr->opp5_nvalue;
+-			break;
+-		case 4:
+-			nvalue_reciprocal = sr->opp4_nvalue;
+-			break;
+-		case 3:
+-			nvalue_reciprocal = sr->opp3_nvalue;
+-			break;
+-		case 2:
+-			nvalue_reciprocal = sr->opp2_nvalue;
+-			break;
+-		case 1:
+-			nvalue_reciprocal = sr->opp1_nvalue;
+-			break;
+-		default:
+-			nvalue_reciprocal = sr->opp3_nvalue;
+-			break;
+-		}
+-
+ 		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+ 		if (!opp)
+ 			return false;
+ 	} else {
+-		switch (target_opp_no) {
+-		case 3:
+-			nvalue_reciprocal = sr->opp3_nvalue;
+-			break;
+-		case 2:
+-			nvalue_reciprocal = sr->opp2_nvalue;
+-			break;
+-		case 1:
+-			nvalue_reciprocal = sr->opp1_nvalue;
+-			break;
+-		default:
+-			nvalue_reciprocal = sr->opp3_nvalue;
+-			break;
+-		}
+-
+ 		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+ 		if (!opp)
+ 			return false;
+ 	}
+ 
++	if (target_opp_no > pdata->no_opp) {
++		pr_notice("Wrong target opp\n");
 +		return false;
 +	}
 +
- 	if (sr->srid == SR1) {
- 		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
- 		if (!opp)
-@@ -477,8 +550,16 @@ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
- 	return true;
- }
- 
--static void sr_disable(struct omap_sr *sr)
-+/**
-+ * sr_disable : Disables the smartreflex module.
-+ * @srid - The id of the sr module to be disabled.
-+ *
-+ * This API is to be called from the smartreflex class driver to
-+ * disable a smartreflex module.
-+ */
-+void sr_disable(int srid)
- {
-+	struct omap_sr *sr = _sr_lookup(srid);
- 	u32 i = 0;
- 
- 	sr->is_sr_reset = 1;
-@@ -518,9 +599,19 @@ static void sr_disable(struct omap_sr *sr)
- 	}
- }
- 
--
--void sr_start_vddautocomap(int srid, u32 target_opp_no)
-+/**
-+ * omap_smartreflex_enable : API to enable SR clocks and to call into the
-+ * registered smartreflex class enable API.
-+ * @srid - The id of the sr module to be enabled.
-+ *
-+ * This API is to be called from the kernel in order to enable
-+ * a particular smartreflex module. This API will do the initial
-+ * configurations to turn on the smartreflex module and in turn call
-+ * into the registered smartreflex class enable API.
-+ */
-+void omap_smartreflex_enable(int srid)
- {
-+	u32 target_opp_no = 0;
- 	struct omap_sr *sr = _sr_lookup(srid);
- 
- 	if (!sr) {
-@@ -528,52 +619,8 @@ void sr_start_vddautocomap(int srid, u32 target_opp_no)
- 								srid);
- 		return;
- 	}
--
--	if (sr->is_sr_reset == 1) {
--		sr_clk_enable(sr);
--		sr_configure(sr);
--	}
--
--	sr->is_autocomp_active = 1;
--	if (!sr_enable(sr, target_opp_no)) {
--		sr->is_autocomp_active = 0;
--		if (sr->is_sr_reset == 1)
--			sr_clk_disable(sr);
--	}
--}
--EXPORT_SYMBOL(sr_start_vddautocomap);
--
--int sr_stop_vddautocomap(int srid)
--{
--	struct omap_sr *sr = _sr_lookup(srid);
--
--	if (!sr) {
--		pr_warning("omap_sr struct corresponding to SR%d not found\n",
--								srid);
--		return false;
--	}
--
--	if (sr->is_autocomp_active == 1) {
--		sr_disable(sr);
--		sr_clk_disable(sr);
--		sr->is_autocomp_active = 0;
--		/* Reset the volatage for current OPP */
--		sr_reset_voltage(srid);
--		return true;
--	} else
--		return false;
--
--}
--EXPORT_SYMBOL(sr_stop_vddautocomap);
--
--void enable_smartreflex(int srid)
--{
--	u32 target_opp_no = 0;
--	struct omap_sr *sr = _sr_lookup(srid);
--
--	if (!sr) {
--		pr_warning("omap_sr struct corresponding to SR%d not found\n",
--								srid);
-+	if (!sr_class || !(sr_class->enable)) {
-+		pr_warning("smartreflex class driver not registered\n");
- 		return;
- 	}
- 
-@@ -581,26 +628,24 @@ void enable_smartreflex(int srid)
- 		if (sr->is_sr_reset == 1) {
- 			/* Enable SR clks */
- 			sr_clk_enable(sr);
--
--			if (srid == SR1)
--				target_opp_no = get_vdd1_opp();
--			else if (srid == SR2)
--				target_opp_no = get_vdd2_opp();
--
--			if (!target_opp_no) {
--				pr_info("Current OPP unknown \
--						 Cannot configure SR\n");
--			}
--
- 			sr_configure(sr);
- 
--			if (!sr_enable(sr, target_opp_no))
-+			if (!sr_class->enable(srid))
- 				sr_clk_disable(sr);
- 		}
- 	}
- }
- 
--void disable_smartreflex(int srid)
-+/**
-+ * omap_smartreflex_disable : API to disable SR clocks and to call into the
-+ * registered smartreflex class disable API.
-+ * @srid - The id of the sr module to be disabled.
-+ *
-+ * This API is to be called from the kernel in order to disable
-+ * a particular smartreflex module. This API will in turn call
-+ * into the registered smartreflex class disable API.
-+ */
-+void omap_smartreflex_disable(int srid)
- {
- 	u32 i = 0;
- 	struct omap_sr *sr = _sr_lookup(srid);
-@@ -610,54 +655,43 @@ void disable_smartreflex(int srid)
- 								srid);
- 		return;
- 	}
-+	if (!sr_class || !(sr_class->disable)) {
-+		pr_warning("smartreflex class driver not registered\n");
-+		return;
-+	}
- 
- 	if (sr->is_autocomp_active == 1) {
- 		if (sr->is_sr_reset == 0) {
--
--			sr->is_sr_reset = 1;
--			/* SRCONFIG - disable SR */
--			sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE,
--							~SRCONFIG_SRENABLE);
--
-+			sr_class->disable(srid);
- 			/* Disable SR clk */
- 			sr_clk_disable(sr);
--			if (sr->srid == SR1) {
--				/* Wait for VP idle before disabling VP */
--				while ((!prm_read_mod_reg(OMAP3430_GR_MOD,
--						OMAP3_PRM_VP1_STATUS_OFFSET))
--						&& i++ < MAX_TRIES)
--					udelay(1);
--
--				if (i >= MAX_TRIES)
--					pr_warning("VP1 not idle, still going \
--						ahead with VP1 disable\n");
--
--				/* Disable VP1 */
--				prm_clear_mod_reg_bits(PRM_VP1_CONFIG_VPENABLE,
--						OMAP3430_GR_MOD,
--						OMAP3_PRM_VP1_CONFIG_OFFSET);
--			} else if (sr->srid == SR2) {
--				/* Wait for VP idle before disabling VP */
--				while ((!prm_read_mod_reg(OMAP3430_GR_MOD,
--						OMAP3_PRM_VP2_STATUS_OFFSET))
--						&& i++ < MAX_TRIES)
--					udelay(1);
--
--				if (i >= MAX_TRIES)
--					pr_warning("VP2 not idle, still going \
--						 ahead with VP2 disable\n");
--
--				/* Disable VP2 */
--				prm_clear_mod_reg_bits(PRM_VP2_CONFIG_VPENABLE,
--						OMAP3430_GR_MOD,
--						OMAP3_PRM_VP2_CONFIG_OFFSET);
--			}
- 			/* Reset the volatage for current OPP */
- 			sr_reset_voltage(srid);
- 		}
- 	}
- }
- 
-+/**
-+ * omap_sr_register_class : API to register a smartreflex class parameters.
-+ * @class_data - The structure containing various sr class specific data.
-+ *
-+ * This API is to be called by the smartreflex class driver to register itself
-+ * with the smartreflex driver during init.
-+ */
-+void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
-+{
-+	if (!class_data) {
-+		pr_warning("Smartreflex class data passed is NULL\n");
-+		return;
++	if (!pdata->sr_nvalue) {
++		pr_notice("N target values does not exist for SR%d\n",
++								sr->srid);
++		return false;
 +	}
 +
-+	if (sr_class) {
-+		pr_warning("Smartreflex class driver already registered\n");
-+		return;
-+	}
-+	sr_class = class_data;
-+}
++	nvalue_reciprocal = pdata->sr_nvalue[target_opp_no - 1];
 +
- /* Voltage Scaling using SR VCBYPASS */
- int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
- 					u8 target_vsel, u8 current_vsel)
-@@ -730,9 +764,9 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
- 
- 	if (sr_status) {
- 		if (vdd == VDD1_OPP)
--			sr_start_vddautocomap(SR1, target_opp_no);
-+			sr_start_vddautocomap(SR1);
- 		else if (vdd == VDD2_OPP)
--			sr_start_vddautocomap(SR2, target_opp_no);
-+			sr_start_vddautocomap(SR2);
- 	}
- 
- 	return 0;
-@@ -762,17 +796,10 @@ static int omap_sr_autocomp_store(void *data, u64 val)
- 							sr_info->srid);
- 		return 0;
- 	}
--	if (val == 0) {
-+	if (val == 0)
- 		sr_stop_vddautocomap(sr_info->srid);
--	} else {
--		u32 current_opp;
--
--		if (sr_info->srid == SR1)
--			current_opp = get_vdd1_opp();
--		else
--			current_opp = get_vdd2_opp();
--		sr_start_vddautocomap(sr_info->srid, current_opp);
--	}
-+	else
-+		sr_start_vddautocomap(sr_info->srid);
- 	return 0;
- }
- 
-diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 572cdca..a59a073 100644
---- a/arch/arm/mach-omap2/smartreflex.h
-+++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -243,12 +243,27 @@ extern u32 current_vdd2_opp;
- #define SR_TESTING_NVALUES 	0
- #endif
- 
--/*
-- * Smartreflex module enable/disable interface.
-- * NOTE: if smartreflex is not enabled from sysfs, these functions will not
-- * do anything.
-- */
- #ifdef CONFIG_OMAP_SMARTREFLEX
-+/**
-+ * omap_smartreflex_class_data : Structure to be populated by
-+ * Smartreflex class driver with corresponding class enable disable API's
-+ *
-+ * @enable - API to enable a particular class smaartreflex.
-+ * @disable - API to disable a particular class smartreflex.
-+ * @notify - API to notify the class driver about an event in SR. Not needed
-+ *		for class3.
-+ * @notify_flags - specify the events to be notified to the class driver
-+ * @class_type - specify which smartreflex class. Can be used by the SR driver
-+ * 		to tkae any class based decisions.
-+ */
-+struct omap_smartreflex_class_data {
-+	int (*enable)(int sr_id);
-+	int (*disable)(int sr_id);
-+	int (*notify)(int sr_id, u32 status);
-+	u8 notify_flags;
-+	u8 class_type;
-+};
-+
- /*
-  * omap_smartreflex_data - Smartreflex platform data
-  *
-@@ -274,11 +289,26 @@ struct omap_smartreflex_data {
- 	int (*device_idle)(struct platform_device *pdev);
+ 	if (nvalue_reciprocal == 0) {
+ 		pr_notice("OPP%d doesn't support SmartReflex\n",
+ 								target_opp_no);
+@@ -1033,49 +889,255 @@ static struct kobj_attribute sr_vdd2_autocomp = {
+ 	.store = omap_sr_vdd2_autocomp_store,
  };
  
--void enable_smartreflex(int srid);
--void disable_smartreflex(int srid);
++static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
++{
++	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
++	struct omap_device *odev = to_omap_device(pdev);
++	int ret = 0;
++
++	if (WARN_ON(!sr_info))
++		return -ENOMEM;
++	sr_info->pdev = pdev;
++	sr_info->srid = pdev->id + 1;
++	sr_info->is_sr_reset = 1,
++	sr_info->is_autocomp_active = 0;
++	sr_info->clk_length = 0;
++	sr_info->srbase_addr = odev->hwmods[0]->_rt_va;
++	if (odev->hwmods[0]->mpu_irqs)
++		sr_info->irq = odev->hwmods[0]->mpu_irqs[0].irq;
++	sr_set_clk_length(sr_info);
++
++	if (sr_info->srid == SR1) {
++		sr_info->vdd_opp_clk = clk_get(NULL, "dpll1_ck");
++		ret = sysfs_create_file(power_kobj, &sr_vdd1_autocomp.attr);
++		if (ret)
++			pr_err("sysfs_create_file failed: %d\n", ret);
++	} else {
++		sr_info->vdd_opp_clk = clk_get(NULL, "l3_ick");
++		ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
++		if (ret)
++			pr_err("sysfs_create_file failed: %d\n", ret);
++	}
++
++	/* Call the VPConfig */
++	sr_configure_vp(sr_info->srid);
++	odev->hwmods[0]->dev_attr = sr_info;
++	list_add(&sr_info->node, &sr_list);
++	pr_info("SmartReflex driver initialized\n");
++
++	return ret;
++}
++
++static int __devexit omap_smartreflex_remove(struct platform_device *pdev)
++{
++	struct omap_device *odev = to_omap_device(pdev);
++	struct omap_sr *sr_info = odev->hwmods[0]->dev_attr;
++
++	/* Disable Autocompensation if enabled before removing the module */
++	if (sr_info->is_autocomp_active == 1)
++		sr_stop_vddautocomap(sr_info->srid);
++	list_del(&sr_info->node);
++	return 0;
++}
+ 
++static struct platform_driver smartreflex_driver = {
++	.probe          = omap_smartreflex_probe,
++	.remove         = omap_smartreflex_remove,
++	.driver		= {
++		.name	= "smartreflex",
++	},
++};
+ 
+-static int __init omap3_sr_init(void)
++static int __init sr_init(void)
+ {
+ 	int ret = 0;
+ 	u8 RdReg;
+ 
++	/* TODO: Find an appropriate place for this */
+ 	/* Enable SR on T2 */
+ 	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
+ 			      R_DCDC_GLOBAL_CFG);
+-
+ 	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
+ 	ret |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
+ 				R_DCDC_GLOBAL_CFG);
+-	if (cpu_is_omap34xx()) {
+-		sr1.clk = clk_get(NULL, "sr1_fck");
+-		sr2.clk = clk_get(NULL, "sr2_fck");
+-	}
+-	sr1.vdd_opp_clk = clk_get(NULL, "dpll1_ck");
+-	sr2.vdd_opp_clk = clk_get(NULL, "l3_ick");
+-	sr_set_clk_length(&sr1);
+-	sr_set_clk_length(&sr2);
+ 
+-	/* Call the VPConfig, VCConfig, set N Values. */
+-	sr_set_nvalues(&sr1);
+-	sr_configure_vp(SR1);
++	ret = platform_driver_probe(&smartreflex_driver,
++				omap_smartreflex_probe);
+ 
+-	sr_set_nvalues(&sr2);
+-	sr_configure_vp(SR2);
++	if (ret)
++		pr_err("platform driver register failed for smartreflex");
++	return 0;
++}
+ 
+-	pr_info("SmartReflex driver initialized\n");
++void __exit sr_exit(void)
++{
++	platform_driver_unregister(&smartreflex_driver);
++}
++late_initcall(sr_init);
++module_exit(sr_exit);
+ 
+-	ret = sysfs_create_file(power_kobj, &sr_vdd1_autocomp.attr);
+-	if (ret)
+-		pr_err("sysfs_create_file failed: %d\n", ret);
++MODULE_DESCRIPTION("OMAP SMARTREFLEX DRIVER");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRIVER_NAME);
++MODULE_AUTHOR("Texas Instruments Inc");
+ 
+-	ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
+-	if (ret)
+-		pr_err("sysfs_create_file failed: %d\n", ret);
+-	list_add(&sr1.node, &sr_list);
+-	list_add(&sr2.node, &sr_list);
++/* Device registrations for smartreflex instances */
+ 
+-	return 0;
++#define MAX_HWMOD_NAME_LEN	16
++
++struct omap_device_pm_latency omap_sr_latency[] = {
++	{
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func	 = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST
++	},
++};
++
++/* Read EFUSE values from control registers */
++static void __init omap3_sr_read_efuse(struct omap_smartreflex_data *sr_data,
++						int sr_id)
++{
++	if (sr_id == SR1) {
++		/*
++		 * TODO: When opp framework come into picture use appropriate
++		 * API's to find out number of opp's.
++		 */
++		sr_data->no_opp = 5;
++		sr_data->sr_nvalue = kzalloc(sizeof(sr_data->sr_nvalue) *
++					sr_data->no_opp , GFP_KERNEL);
++		if (WARN_ON(!sr_data->sr_nvalue))
++			return;
++
++		sr_data->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
++					OMAP343X_SR1_SENNENABLE_MASK) >>
++					OMAP343X_SR1_SENNENABLE_SHIFT;
++		sr_data->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
++					OMAP343X_SR1_SENPENABLE_MASK) >>
++					OMAP343X_SR1_SENPENABLE_SHIFT;
++		sr_data->sr_nvalue[4] = omap_ctrl_readl(
++					OMAP343X_CONTROL_FUSE_OPP5_VDD1);
++		sr_data->sr_nvalue[3] = omap_ctrl_readl(
++					OMAP343X_CONTROL_FUSE_OPP4_VDD1);
++		sr_data->sr_nvalue[2] = omap_ctrl_readl(
++					OMAP343X_CONTROL_FUSE_OPP3_VDD1);
++		sr_data->sr_nvalue[1] = omap_ctrl_readl(
++					OMAP343X_CONTROL_FUSE_OPP2_VDD1);
++		sr_data->sr_nvalue[0] = omap_ctrl_readl(
++					OMAP343X_CONTROL_FUSE_OPP1_VDD1);
++	} else if (sr_id == SR2) {
++		/*
++		 * TODO: When opp framework come into picture use appropriate
++		 * API's to find out number of opp's.
++		 */
++		sr_data->no_opp = 3;
++		sr_data->sr_nvalue = kzalloc(sizeof(sr_data->sr_nvalue) *
++					sr_data->no_opp , GFP_KERNEL);
++		if (WARN_ON(!sr_data->sr_nvalue))
++			return;
++
++		sr_data->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
++					OMAP343X_SR2_SENNENABLE_MASK) >>
++					OMAP343X_SR2_SENNENABLE_SHIFT;
++		sr_data->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
++					OMAP343X_SR2_SENPENABLE_MASK) >>
++					OMAP343X_SR2_SENPENABLE_SHIFT;
++		sr_data->sr_nvalue[2] = omap_ctrl_readl(
++					OMAP343X_CONTROL_FUSE_OPP3_VDD2);
++		sr_data->sr_nvalue[1] = omap_ctrl_readl(
++					OMAP343X_CONTROL_FUSE_OPP2_VDD2);
++		sr_data->sr_nvalue[0] = omap_ctrl_readl(
++					OMAP343X_CONTROL_FUSE_OPP1_VDD2);
++	}
+ }
+ 
+-late_initcall(omap3_sr_init);
++/* Hard coded nvalues for testing purposes, may cause device to hang! */
++static void __init omap3_sr_set_testing_nvalues(
++				struct omap_smartreflex_data *sr_data, int srid)
++{
++	if (srid == SR1) {
++		/*
++		 * TODO: When opp framework come into picture use appropriate
++		 * API's to find out number of opp's.
++		 */
++		sr_data->no_opp = 5;
++		sr_data->sr_nvalue = kzalloc(sizeof(sr_data->sr_nvalue) *
++				sr_data->no_opp , GFP_KERNEL);
++		if (WARN_ON(!sr_data->sr_nvalue))
++			return;
++
++		sr_data->senp_mod = 0x03;	/* SenN-M5 enabled */
++		sr_data->senn_mod = 0x03;
++		/* calculate nvalues for each opp */
++		sr_data->sr_nvalue[4] = 0x0;
++		sr_data->sr_nvalue[3] = 0x0;
++		sr_data->sr_nvalue[2] = 0x0;
++		sr_data->sr_nvalue[1] = 0x0;
++		sr_data->sr_nvalue[0] = 0x0;
++	} else if (srid == SR2) {
++		/*
++		 * TODO: When opp framework come into picture use appropriate
++		 * API's to find out number of opp's.
++		 */
++		sr_data->no_opp = 3;
++		sr_data->sr_nvalue = kzalloc(sizeof(sr_data->sr_nvalue) *
++					sr_data->no_opp , GFP_KERNEL);
++		if (WARN_ON(!sr_data->sr_nvalue))
++			return;
++
++		sr_data->senp_mod = 0x03;	/* SenN-M5 enabled */
++		sr_data->senn_mod = 0x03;
++		sr_data->sr_nvalue[2] = 0x0;
++		sr_data->sr_nvalue[1] = 0x0;
++		sr_data->sr_nvalue[0] = 0x0;
++	}
++}
++
++static void __init sr_set_nvalues(struct omap_smartreflex_data *sr_data,
++						int srid)
++{
++	if (cpu_is_omap343x()) {
++		if (SR_TESTING_NVALUES)
++			omap3_sr_set_testing_nvalues(sr_data, srid);
++		else
++			omap3_sr_read_efuse(sr_data, srid);
++	}
++}
++
++static int __init omap_devinit_smartreflex(void)
++{
++	int i = 0;
++	char *name = "smartreflex";
++
++	do {
++		struct omap_smartreflex_data *sr_data;
++		struct omap_device *od;
++		struct omap_hwmod *oh;
++		char oh_name[MAX_HWMOD_NAME_LEN];
++
++		snprintf(oh_name, MAX_HWMOD_NAME_LEN, "sr%d_hwmod", i + 1);
++		oh = omap_hwmod_lookup(oh_name);
++		if (!oh)
++			break;
++
++		sr_data = kzalloc(sizeof(struct omap_smartreflex_data),
++								GFP_KERNEL);
++		if (WARN_ON(!sr_data))
++			return -ENOMEM;
++
++		sr_data->init_enable = false;
++		sr_data->device_enable = omap_device_enable;
++		sr_data->device_shutdown = omap_device_shutdown;
++		sr_data->device_idle = omap_device_idle;
++		sr_set_nvalues(sr_data, i + 1);
++
++		od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
++				       omap_sr_latency,
++				       ARRAY_SIZE(omap_sr_latency));
++		WARN(IS_ERR(od), "Could not build omap_device for %s: %s.\n",
++		     name, oh->name);
++		i++;
++	} while (1);
++
++	return 0;
++}
++arch_initcall(omap_devinit_smartreflex);
+diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+index 2a0e823..f1e8676 100644
+--- a/arch/arm/mach-omap2/smartreflex.h
++++ b/arch/arm/mach-omap2/smartreflex.h
+@@ -14,6 +14,8 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include <linux/platform_device.h>
++
+ #define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
+ #define PHY_TO_OFF_PM_RECIEVER(p)	(p - 0x5b)
+ #define PHY_TO_OFF_PM_INT(p)		(p - 0x2e)
+@@ -243,6 +245,31 @@ extern u32 current_vdd2_opp;
+  * do anything.
+  */
+ #ifdef CONFIG_OMAP_SMARTREFLEX
 +/*
-+ * Smartreflex module enable/disable interface.
-+ * NOTE: if smartreflex is not enabled from sysfs, these functions will not
-+ * do anything.
++ * omap_smartreflex_data - Smartreflex platform data
++ *
++ * @senp_mod	: SENPENABLE value for the sr
++ * @senn_mod	: SENNENABLE value for sr
++ * @sr_nvalue	: array of n target values for sr
++ * @no_opp	: number of opp's for this SR
++ * @init_enable	: whether this sr module needs to enabled at boot up or not
++ * @device_enable	: fn pointer to be populated with omap_device
++ * 			enable API
++ * @device_shutdown	: fn pointer to be populated with omap_device
++ * 			shutdown API
++ * @device_idle		: fn pointer to be pouplated with omap_device idle API
 + */
-+void omap_smartreflex_enable(int srid);
-+void omap_smartreflex_disable(int srid);
++struct omap_smartreflex_data {
++	u32		senp_mod;
++	u32		senn_mod;
++	u32		*sr_nvalue;
++	int		no_opp;
++	bool		init_enable;
++	int (*device_enable)(struct platform_device *pdev);
++	int (*device_shutdown)(struct platform_device *pdev);
++	int (*device_idle)(struct platform_device *pdev);
++};
 +
-+/**
-+ * Smartreflex driver hooks to be called from Smartreflex class driver
-+ */
-+int sr_enable(int srid, u32 target_opp_no);
-+void sr_disable(int srid);
-+
-+/**
-+ * API to register the smartreflex class driver with the smartreflex driver
-+ */
-+void omap_sr_register_class(struct omap_smartreflex_class_data *class_data);
-+
+ void enable_smartreflex(int srid);
+ void disable_smartreflex(int srid);
  int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8 c_vsel);
--void sr_start_vddautocomap(int srid, u32 target_opp_no);
--int sr_stop_vddautocomap(int srid);
- #else
- static inline void enable_smartreflex(int srid) {}
- static inline void disable_smartreflex(int srid) {}
 -- 
 1.7.0.rc1.33.g07cf0f
 
