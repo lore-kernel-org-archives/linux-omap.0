@@ -1,85 +1,68 @@
-From: Jacob john <jacob.john74@gmail.com>
-Subject: Re: About multicore OMAP
-Date: Wed, 24 Feb 2010 10:15:31 +0530
-Message-ID: <31ee32481002232045s6cbebab1x4184b175c6595f6@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: About multicore OMAP
+Date: Wed, 24 Feb 2010 10:24:30 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E16F4@dbde02.ent.ti.com>
 References: <31ee32481002230504m2cc4dfebu85426681e76b4ee@mail.gmail.com>
 	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E14F4@dbde02.ent.ti.com>
 	 <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
 	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1545@dbde02.ent.ti.com>
 	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E15B9@dbde02.ent.ti.com>
+ <31ee32481002232045s6cbebab1x4184b175c6595f6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f179.google.com ([209.85.221.179]:39413 "EHLO
-	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab0BXEpc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 23:45:32 -0500
-Received: by qyk9 with SMTP id 9so219801qyk.5
-        for <linux-omap@vger.kernel.org>; Tue, 23 Feb 2010 20:45:32 -0800 (PST)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C42E15B9@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:39672 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755308Ab0BXEyf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Feb 2010 23:54:35 -0500
+In-Reply-To: <31ee32481002232045s6cbebab1x4184b175c6595f6@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Jacob john <jacob.john74@gmail.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Feb 23, 2010 at 10:20 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> John,
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger=
-=2Ekernel.org] On Behalf Of
->> Shilimkar, Santosh
->> Sent: Tuesday, February 23, 2010 8:01 PM
->> To: Jacob john
->> Cc: linux-omap@vger.kernel.org
->> Subject: RE: About multicore OMAP
->>
->> > -----Original Message-----
->> > From: Jacob john [mailto:jacob.john74@gmail.com]
->> > Sent: Tuesday, February 23, 2010 7:51 PM
->> > To: Shilimkar, Santosh
->> > Cc: linux-omap@vger.kernel.org
->> > Subject: Re: About multicore OMAP
->> >
->> > It's=C2=A0Blaze with=C2=A0two lcd's and pico, looks great. Can I h=
-ave this
->> > linux-omap kernel running on OMAP4?, plus I'm looking for SMP
->> > benchmark results etc.
->> >
->> Linux-omap kernel with omap_4430sdp_defconfig will boot on blaze wit=
-h SMP. This
->> won't have lot of driver support as such currently. Also L2 cache su=
-pport is in
->> on the way to make it to mainline as well. You should be able to pla=
-y with this
->> with some basic benchmark test related to CPU.
->>
->> Display , Audio, Pico, keypad, touchscreeen etc drivers are availabl=
-e with the
->> release and you should be able get more details from the TI contact =
-person who
->> gave you the blaze. You can also get the performance numbers from sa=
-me source
->>
-> If you need the full kernel with all the drivers I mentioned above, y=
-ou can use
-> below git.
-> http://dev.omapzoom.org/?p=3Dintegration/kernel-omap4.git;a=3Dshortlo=
-g;h=3Drefs/heads/L24.4
-
-Good help so far......, wondering why two trees for OMAP4, tell me the
-diff b/n this list and the zoom.
-is there a different mailing list for zoom? confusing... and I am
-sorry....thanks for the pointers
-
->
-> Regards,
-> Santosh
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYWNvYiBqb2huIFttYWlsdG86
+amFjb2Iuam9objc0QGdtYWlsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBGZWJydWFyeSAyNCwg
+MjAxMCAxMDoxNiBBTQ0KPiBUbzogU2hpbGlta2FyLCBTYW50b3NoDQo+IENjOiBsaW51eC1vbWFw
+QHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBSZTogQWJvdXQgbXVsdGljb3JlIE9NQVANCj4g
+DQo+IE9uIFR1ZSwgRmViIDIzLCAyMDEwIGF0IDEwOjIwIFBNLCBTaGlsaW1rYXIsIFNhbnRvc2gN
+Cj4gPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4gd3JvdGU6DQo+ID4gSm9obiwNCj4gPj4gLS0t
+LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogbGludXgtb21hcC1vd25lckB2Z2Vy
+Lmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24g
+QmVoYWxmIE9mDQo+ID4+IFNoaWxpbWthciwgU2FudG9zaA0KPiA+PiBTZW50OiBUdWVzZGF5LCBG
+ZWJydWFyeSAyMywgMjAxMCA4OjAxIFBNDQo+ID4+IFRvOiBKYWNvYiBqb2huDQo+ID4+IENjOiBs
+aW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiA+PiBTdWJqZWN0OiBSRTogQWJvdXQgbXVsdGlj
+b3JlIE9NQVANCj4gPj4NCj4gPj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiA+
+IEZyb206IEphY29iIGpvaG4gW21haWx0bzpqYWNvYi5qb2huNzRAZ21haWwuY29tXQ0KPiA+PiA+
+IFNlbnQ6IFR1ZXNkYXksIEZlYnJ1YXJ5IDIzLCAyMDEwIDc6NTEgUE0NCj4gPj4gPiBUbzogU2hp
+bGlta2FyLCBTYW50b3NoDQo+ID4+ID4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+
+ID4+ID4gU3ViamVjdDogUmU6IEFib3V0IG11bHRpY29yZSBPTUFQDQo+ID4+ID4NCj4gPj4gPiBJ
+dCdzwqBCbGF6ZSB3aXRowqB0d28gbGNkJ3MgYW5kIHBpY28sIGxvb2tzIGdyZWF0LiBDYW4gSSBo
+YXZlIHRoaXMNCj4gPj4gPiBsaW51eC1vbWFwIGtlcm5lbCBydW5uaW5nIG9uIE9NQVA0PywgcGx1
+cyBJJ20gbG9va2luZyBmb3IgU01QDQo+ID4+ID4gYmVuY2htYXJrIHJlc3VsdHMgZXRjLg0KPiA+
+PiA+DQo+ID4+IExpbnV4LW9tYXAga2VybmVsIHdpdGggb21hcF80NDMwc2RwX2RlZmNvbmZpZyB3
+aWxsIGJvb3Qgb24gYmxhemUgd2l0aCBTTVAuIFRoaXMNCj4gPj4gd29uJ3QgaGF2ZSBsb3Qgb2Yg
+ZHJpdmVyIHN1cHBvcnQgYXMgc3VjaCBjdXJyZW50bHkuIEFsc28gTDIgY2FjaGUgc3VwcG9ydCBp
+cyBpbg0KPiA+PiBvbiB0aGUgd2F5IHRvIG1ha2UgaXQgdG8gbWFpbmxpbmUgYXMgd2VsbC4gWW91
+IHNob3VsZCBiZSBhYmxlIHRvIHBsYXkgd2l0aCB0aGlzDQo+ID4+IHdpdGggc29tZSBiYXNpYyBi
+ZW5jaG1hcmsgdGVzdCByZWxhdGVkIHRvIENQVS4NCj4gPj4NCj4gPj4gRGlzcGxheSAsIEF1ZGlv
+LCBQaWNvLCBrZXlwYWQsIHRvdWNoc2NyZWVlbiBldGMgZHJpdmVycyBhcmUgYXZhaWxhYmxlIHdp
+dGggdGhlDQo+ID4+IHJlbGVhc2UgYW5kIHlvdSBzaG91bGQgYmUgYWJsZSBnZXQgbW9yZSBkZXRh
+aWxzIGZyb20gdGhlIFRJIGNvbnRhY3QgcGVyc29uIHdobw0KPiA+PiBnYXZlIHlvdSB0aGUgYmxh
+emUuIFlvdSBjYW4gYWxzbyBnZXQgdGhlIHBlcmZvcm1hbmNlIG51bWJlcnMgZnJvbSBzYW1lIHNv
+dXJjZQ0KPiA+Pg0KPiA+IElmIHlvdSBuZWVkIHRoZSBmdWxsIGtlcm5lbCB3aXRoIGFsbCB0aGUg
+ZHJpdmVycyBJIG1lbnRpb25lZCBhYm92ZSwgeW91IGNhbiB1c2UNCj4gPiBiZWxvdyBnaXQuDQo+
+ID4gaHR0cDovL2Rldi5vbWFwem9vbS5vcmcvP3A9aW50ZWdyYXRpb24va2VybmVsLW9tYXA0Lmdp
+dDthPXNob3J0bG9nO2g9cmVmcy9oZWFkcy9MMjQuNA0KPiANCj4gR29vZCBoZWxwIHNvIGZhci4u
+Li4uLiwgd29uZGVyaW5nIHdoeSB0d28gdHJlZXMgZm9yIE9NQVA0LCB0ZWxsIG1lIHRoZQ0KPiBk
+aWZmIGIvbiB0aGlzIGxpc3QgYW5kIHRoZSB6b29tLg0KPiBpcyB0aGVyZSBhIGRpZmZlcmVudCBt
+YWlsaW5nIGxpc3QgZm9yIHpvb20/IGNvbmZ1c2luZy4uLiBhbmQgSSBhbQ0KPiBzb3JyeS4uLi50
+aGFua3MgZm9yIHRoZSBwb2ludGVycw0KPiANClRoZSBtYWlsaW5nIGxpc3QgaXMgb25seSBvbmUg
+KExpbnV4LW9tYXApLiBUaGVyZSBpcyBubyBkaWZmZXJlbmNlLiBMaW51eC1vbWFwDQp0cmVlIGlz
+IGFsbW9zdCBtYWlubGluZSBlcXVpdmFsZW50IGZyb20gb21hcDQgcG9pbnQgb2Ygdmlldy4gVGhl
+IGZlYXR1cmVzIGFyZSBkZXZlbG9wZWQNCm9uIHRoZSB0cmVlIEkgbWVudGlvbmVkIGFib3ZlLiBU
+aGUgdGVzdGVkIGZlYXR1cmVzIHdpbGwgYmUgdXAtc3RyZWFtZWQgYWZ0ZXIgcmViYXNpbmcgDQpv
+bmUgYnkgb25lLiBZb3Ugd2lsbCBmaW5kIG9ubHkgdXBzdHJlYW1lZC9saW5lZC11cCBmZWF0dXJl
+cyBpbiBsaW51eC1vbWFwIHRyZWUuDQoNClJlZ2FyZHMsDQpTYW50b3NoIA0KDQoNCg==
