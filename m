@@ -1,96 +1,140 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH] OMAP: pass the reboot command to the boot loader
-Date: Wed, 24 Feb 2010 15:14:07 +0200
-Message-ID: <1267017247-18463-1-git-send-email-aaro.koskinen@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:50499 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756951Ab0BXNMa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 08:12:30 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] AM35x: Add musb support
+Date: Wed, 24 Feb 2010 18:48:15 +0530
+Message-ID: <1267017495-17548-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
 
-This patch follows the commit be093beb608edf821b45fe00a8a080fb5c6ed4af
-by Russell King:
+AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
+It supports upto 500mA of power in host mode.
 
-  OMAP wishes to pass state to the boot loader upon reboot in order
-  to instruct it whether to wait for USB-based reflashing or not.
-  There is already a facility to do this via the reboot() syscall,
-  except we ignore the string passed to machine_restart().
-
-The patch adds the missing parameter to omap1_arch_reset() and
-omap_prcm_arch_reset(), and modifies the latter to pass the reboot
-command parameter to the boot loader instead of reboot mode (which is
-for kernel internal use only and cannot be modified by the userspace).
-
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/prcm.c               |    4 ++--
- arch/arm/plat-omap/include/plat/prcm.h   |    2 +-
- arch/arm/plat-omap/include/plat/system.h |    6 +++---
- 3 files changed, 6 insertions(+), 6 deletions(-)
+Created against latest l-o master branch and below patches.
+[1] AM35xx: Add clock support for new modules on AM35xx
+[2] OMAP2/3 clock: Extend find_idlest() to pass back idle
+[3] musb: fix power field to hold all possible values
+[4] musb: Add extvbus in musb_board_data 
 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 338d5f6..0850bb9 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -131,7 +131,7 @@ u32 omap_prcm_get_reset_sources(void)
- EXPORT_SYMBOL(omap_prcm_get_reset_sources);
- 
- /* Resets clock rates and reboots the system. Only called from system.h */
--void omap_prcm_arch_reset(char mode)
-+void omap_prcm_arch_reset(char mode, const char *cmd)
- {
- 	s16 prcm_offs;
- 
-@@ -143,7 +143,7 @@ void omap_prcm_arch_reset(char mode)
- 		u32 l;
- 
- 		prcm_offs = OMAP3430_GR_MOD;
--		l = ('B' << 24) | ('M' << 16) | mode;
-+		l = ('B' << 24) | ('M' << 16) | (cmd ? (u8)*cmd : 0);
- 		/* Reserve the first word in scratchpad for communicating
- 		 * with the boot ROM. A pointer to a data structure
- 		 * describing the boot process can be stored there,
-diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
-index 66938a9..2c89542 100644
---- a/arch/arm/plat-omap/include/plat/prcm.h
-+++ b/arch/arm/plat-omap/include/plat/prcm.h
-@@ -24,7 +24,7 @@
- #define __ASM_ARM_ARCH_OMAP_PRCM_H
- 
- u32 omap_prcm_get_reset_sources(void);
--void omap_prcm_arch_reset(char mode);
-+void omap_prcm_arch_reset(char mode, const char *cmd);
- int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, const char *name);
- 
- #define START_PADCONF_SAVE 0x2
-diff --git a/arch/arm/plat-omap/include/plat/system.h b/arch/arm/plat-omap/include/plat/system.h
-index c58a4ef..d0a119f 100644
---- a/arch/arm/plat-omap/include/plat/system.h
-+++ b/arch/arm/plat-omap/include/plat/system.h
-@@ -22,7 +22,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
+I am posting musb driver layer platform file seperately to linux-usb list.
+
+ arch/arm/mach-omap2/board-am3517evm.c |   10 ++++++++
+ arch/arm/mach-omap2/usb-musb.c        |    4 +++
+ arch/arm/plat-omap/include/plat/usb.h |   38 +++++++++++++++++++++++++++++++++
+ 3 files changed, 52 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index aee0a02..805c7ab 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -273,6 +273,12 @@ static void __init am3517_evm_init_irq(void)
+ 	omap_gpio_init();
  }
  
--static inline void omap1_arch_reset(char mode)
-+static inline void omap1_arch_reset(char mode, const char *cmd)
- {
- 	/*
- 	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
-@@ -43,9 +43,9 @@ static inline void omap1_arch_reset(char mode)
- static inline void arch_reset(char mode, const char *cmd)
- {
- 	if (!cpu_class_is_omap2())
--		omap1_arch_reset(mode);
-+		omap1_arch_reset(mode, cmd);
- 	else
--		omap_prcm_arch_reset(mode);
-+		omap_prcm_arch_reset(mode, cmd);
++static struct omap_musb_board_data musb_board_data = {
++	.interface_type		= MUSB_INTERFACE_ULPI,
++	.mode			= MUSB_OTG,
++	.power			= 500,
++};
++
+ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+ 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+ 	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
+@@ -286,6 +292,8 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* USB OTG DRVVBUS offset = 0x212 */
++	OMAP3_MUX(CHASSIS_DMAREQ3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
+@@ -313,6 +321,8 @@ static void __init am3517_evm_init(void)
+ 
+ 	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
+ 				ARRAY_SIZE(am3517evm_i2c_boardinfo));
++	/* MUSB */
++	usb_musb_init(&musb_board_data);
  }
  
- #endif
+ static void __init am3517_evm_map_io(void)
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 17726ac..1b08cff 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -28,6 +28,7 @@
+ 
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
++#include <mach/am35xx.h>
+ #include <plat/mux.h>
+ #include <plat/usb.h>
+ 
+@@ -89,6 +90,9 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+ 	if (cpu_is_omap243x()) {
+ 		musb_resources[0].start = OMAP243X_HS_BASE;
++	} else if (cpu_is_omap3517()) {
++		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
++		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+ 	} else if (cpu_is_omap34xx()) {
+ 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+ 	} else if (cpu_is_omap44xx()) {
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index d82bf77..2df6c70 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -168,5 +168,43 @@ void omap_usb_init(struct omap_usb_config *pdata);
+ #	define	USBT2TLL5PI		(1 << 17)
+ #	define	USB0PUENACTLOI		(1 << 16)
+ #	define	USBSTANDBYCTRL		(1 << 15)
++/* AM3517 */
++/* USB 2.0 OTG module registers */
++#define USB_REVISION_REG	0x00
++#define USB_CTRL_REG		0x04
++#define USB_STAT_REG		0x08
++#define USB_EMULATION_REG	0x0c
++/* 0x10 Reserved */
++#define USB_AUTOREQ_REG		0x14
++#define USB_SRP_FIX_TIME_REG	0x18
++#define USB_TEARDOWN_REG	0x1c
++#define EP_INTR_SRC_REG		0x20
++#define EP_INTR_SRC_SET_REG	0x24
++#define EP_INTR_SRC_CLEAR_REG	0x28
++#define EP_INTR_MASK_REG	0x2c
++#define EP_INTR_MASK_SET_REG	0x30
++#define EP_INTR_MASK_CLEAR_REG	0x34
++#define EP_INTR_SRC_MASKED_REG	0x38
++#define CORE_INTR_SRC_REG	0x40
++#define CORE_INTR_SRC_SET_REG	0x44
++#define CORE_INTR_SRC_CLEAR_REG	0x48
++#define CORE_INTR_MASK_REG	0x4c
++#define CORE_INTR_MASK_SET_REG	0x50
++#define CORE_INTR_MASK_CLEAR_REG 0x54
++#define CORE_INTR_SRC_MASKED_REG 0x58
++/* 0x5c Reserved */
++#define USB_END_OF_INTR_REG	0x60
++
++/* Control register bits */
++#define USB_SOFT_RESET_MASK	1
++
++/* USB interrupt register bits */
++#define USB_INTR_USB_SHIFT	16
++#define USB_INTR_USB_MASK	(0x1ff << USB_INTR_USB_SHIFT)
++#define USB_INTR_DRVVBUS	0x100
++#define USB_INTR_RX_SHIFT	16
++#define USB_INTR_TX_SHIFT	0
++
++#define USB_MENTOR_CORE_OFFSET	0x400
+ 
+ #endif	/* __ASM_ARCH_OMAP_USB_H */
 -- 
-1.5.6.5
+1.6.2.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
