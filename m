@@ -1,16 +1,15 @@
 From: "Olaya, Margarita" <magi.olaya@ti.com>
-Subject: [PATCHv4 5/7] ASoC: TWL6030: Add restrictions for low-power
- playback mode
-Date: Tue, 23 Feb 2010 18:10:42 -0600
-Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD1B17@dlee06.ent.ti.com>
+Subject: [PATCHv4 6/7] ASoC: TWL6030: Enable audio interrupt
+Date: Tue, 23 Feb 2010 18:10:50 -0600
+Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD1B18@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46310 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754676Ab0BXAKt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 19:10:49 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:32917 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132Ab0BXAK5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 19:10:57 -0500
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,158 +18,186 @@ Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>,
 
 From: Misael Lopez Cruz <x0052729@ti.com>
 
-Low-power playback mode is a special scenario where only headset path
-(headset DAC and driver) is active. Only in this mode the codec can
-support 44.1 and 48 kHz, low-power PLL should provide sysclk signal.
-
-Currently, handsfree DAC and driver are the only components that can
-prevent codec to enter to low-power playback mode. Other components
-like earphone driver, vibrator driver or loopback (which are not yet
-supported in the driver) can cause the same effect.
-
-In order to detect conflicting paths, CODEC driver supervises
-non-low-power widgets powered by DAPM mechanism, just at the point
-pcm trigger callback gets called.
+NAUDINT interrupt line is provided by the TWL6030 codec to signal
+externally events like headset plug/unplug, hook, power-up sequence
+completion, etc.
 
 Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
 Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
 Signed-off-by: Margarita Olaya Cabrera <magi.olaya@ti.com>
 ---
- sound/soc/codecs/twl6030.c |   79 +++++++++++++++++++++++++++++++++++++++----
- 1 files changed, 71 insertions(+), 8 deletions(-)
+ sound/soc/codecs/twl6030.c |   70 ++++++++++++++++++++++++++++++++++++++++---
+ sound/soc/codecs/twl6030.h |   14 +++++++++
+ 2 files changed, 79 insertions(+), 5 deletions(-)
 
 diff --git a/sound/soc/codecs/twl6030.c b/sound/soc/codecs/twl6030.c
-index 792407f..53aa837 100644
+index 53aa837..b8dd5ae 100644
 --- a/sound/soc/codecs/twl6030.c
 +++ b/sound/soc/codecs/twl6030.c
-@@ -48,6 +48,7 @@ struct twl6030_data {
+@@ -46,6 +46,7 @@
+ struct twl6030_data {
+ 	struct snd_soc_codec codec;
  	int audpwron;
++	int naudint;
  	int codec_powered;
  	int pll;
-+	int non_lp;
- 	unsigned int sysclk;
- 	struct snd_pcm_hw_constraint_list *sysclk_constraints;
- };
-@@ -352,6 +353,20 @@ static int headset_power_mode(struct snd_soc_codec *codec, int high_perf)
+ 	int non_lp;
+@@ -61,7 +62,7 @@ static const u8 twl6030_reg[TWL6030_CACHEREGNUM] = {
+ 	0x4B, /* TWL6030_ASICID (ro)	0x01	*/
+ 	0x00, /* TWL6030_ASICREV (ro)	0x02	*/
+ 	0x00, /* TWL6030_INTID		0x03	*/
+-	0x7B, /* TWL6030_INTMR		0x04	*/
++	0x00, /* TWL6030_INTMR		0x04	*/
+ 	0x00, /* TWL6030_NCPCTRL	0x05	*/
+ 	0x00, /* TWL6030_LDOCTL		0x06	*/
+ 	0x00, /* TWL6030_HPPLLCTL	0x07	*/
+@@ -367,6 +368,39 @@ static int twl6030_power_mode_event(struct snd_soc_dapm_widget *w,
  	return 0;
  }
  
-+static int twl6030_power_mode_event(struct snd_soc_dapm_widget *w,
-+			struct snd_kcontrol *kcontrol, int event)
++/* audio interrupt handler */
++static irqreturn_t twl6030_naudint_handler(int irq, void *data)
 +{
-+	struct snd_soc_codec *codec = w->codec;
-+	struct twl6030_data *priv = codec->private_data;
++	struct snd_soc_codec *codec = data;
++	u8 intid;
 +
-+	if (SND_SOC_DAPM_EVENT_ON(event))
-+		priv->non_lp++;
-+	else
-+		priv->non_lp--;
++	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &intid, TWL6030_REG_INTID);
 +
-+	return 0;
++	switch (intid) {
++	case TWL6030_THINT:
++		dev_alert(codec->dev, "die temp over-limit detection\n");
++		break;
++	case TWL6030_PLUGINT:
++	case TWL6030_UNPLUGINT:
++	case TWL6030_HOOKINT:
++		break;
++	case TWL6030_HFINT:
++		dev_alert(codec->dev, "hf drivers over current detection\n");
++		break;
++	case TWL6030_VIBINT:
++		dev_alert(codec->dev, "vib drivers over current detection\n");
++		break;
++	case TWL6030_READYINT:
++		dev_alert(codec->dev, "codec is ready\n");
++		break;
++	default:
++		dev_err(codec->dev, "unknown audio interrupt %d\n", intid);
++		break;
++	}
++
++	return IRQ_HANDLED;
 +}
 +
  /*
   * MICATT volume control:
   * from -6 to 0 dB in 6 dB steps
-@@ -485,10 +500,14 @@ static const struct snd_soc_dapm_widget twl6030_dapm_widgets[] = {
- 			TWL6030_REG_HSLCTL, 0, 0),
- 	SND_SOC_DAPM_DAC("HSDAC Right", "Headset Playback",
- 			TWL6030_REG_HSRCTL, 0, 0),
--	SND_SOC_DAPM_DAC("HFDAC Left", "Handsfree Playback",
--			TWL6030_REG_HFLCTL, 0, 0),
--	SND_SOC_DAPM_DAC("HFDAC Right", "Handsfree Playback",
--			TWL6030_REG_HFRCTL, 0, 0),
-+	SND_SOC_DAPM_DAC_E("HFDAC Left", "Handsfree Playback",
-+			TWL6030_REG_HFLCTL, 0, 0,
-+			twl6030_power_mode_event,
-+			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
-+	SND_SOC_DAPM_DAC_E("HFDAC Right", "Handsfree Playback",
-+			TWL6030_REG_HFRCTL, 0, 0,
-+			twl6030_power_mode_event,
-+			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
+@@ -992,19 +1026,23 @@ static int __devinit twl6030_codec_probe(struct platform_device *pdev)
+ 	struct twl4030_codec_data *twl_codec = pdev->dev.platform_data;
+ 	struct snd_soc_codec *codec;
+ 	struct twl6030_data *priv;
+-	int audpwron;
++	int audpwron, naudint;
+ 	int ret = 0;
  
- 	/* Analog playback switches */
- 	SND_SOC_DAPM_SWITCH("HSDAC Left Playback",
-@@ -504,10 +523,14 @@ static const struct snd_soc_dapm_widget twl6030_dapm_widgets[] = {
- 			SND_SOC_NOPM, 0, 0, &hsl_driver_switch_controls),
- 	SND_SOC_DAPM_SWITCH("Headset Right Driver",
- 			SND_SOC_NOPM, 0, 0, &hsr_driver_switch_controls),
--	SND_SOC_DAPM_SWITCH("Handsfree Left Driver",
--			SND_SOC_NOPM, 0, 0, &hfl_driver_switch_controls),
--	SND_SOC_DAPM_SWITCH("Handsfree Right Driver",
--			SND_SOC_NOPM, 0, 0, &hfr_driver_switch_controls),
-+	SND_SOC_DAPM_SWITCH_E("Handsfree Left Driver",
-+			SND_SOC_NOPM, 0, 0, &hfl_driver_switch_controls,
-+			twl6030_power_mode_event,
-+			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
-+	SND_SOC_DAPM_SWITCH_E("Handsfree Right Driver",
-+			SND_SOC_NOPM, 0, 0, &hfr_driver_switch_controls,
-+			twl6030_power_mode_event,
-+			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
+ 	priv = kzalloc(sizeof(struct twl6030_data), GFP_KERNEL);
+ 	if (priv == NULL)
+ 		return -ENOMEM;
  
- 	/* Analog playback PGAs */
- 	SND_SOC_DAPM_PGA("HFDAC Left PGA",
-@@ -668,6 +691,17 @@ static int twl6030_startup(struct snd_pcm_substream *substream,
- 		return -EINVAL;
+-	if (twl_codec)
++	if (twl_codec) {
+ 		audpwron = twl_codec->audpwron_gpio;
+-	else
++		naudint = twl_codec->naudint_irq;
++	} else {
+ 		audpwron = -EINVAL;
++		naudint = 0;
++	}
+ 
+ 	priv->audpwron = audpwron;
++	priv->naudint = naudint;
+ 
+ 	codec = &priv->codec;
+ 	codec->dev = &pdev->dev;
+@@ -1042,13 +1080,28 @@ static int __devinit twl6030_codec_probe(struct platform_device *pdev)
+ 		priv->codec_powered = 0;
  	}
  
-+	/*
-+	 * capture is not supported at 17.64 MHz,
-+	 * it's reserved for headset low-power playback scenario
-+	 */
-+	if ((priv->sysclk == 17640000) && substream->stream) {
-+		dev_err(codec->dev,
-+			"capture mode is not supported at %dHz\n",
-+			priv->sysclk);
-+		return -EINVAL;
++	if (naudint) {
++		/* audio interrupt */
++		ret = request_threaded_irq(naudint, NULL,
++				twl6030_naudint_handler,
++				IRQF_TRIGGER_LOW | IRQF_ONESHOT,
++				"twl6030_codec", codec);
++		if (ret)
++			goto gpio2_err;
++	} else {
++		dev_warn(codec->dev,
++			"no naudint irq, audio interrupts disabled\n");
++		twl6030_write_reg_cache(codec, TWL6030_REG_INTMR,
++					TWL6030_ALLINT_MSK);
 +	}
 +
- 	snd_pcm_hw_constraint_list(substream->runtime, 0,
- 				SNDRV_PCM_HW_PARAM_RATE,
- 				priv->sysclk_constraints);
-@@ -712,6 +746,34 @@ static int twl6030_hw_params(struct snd_pcm_substream *substream,
- 	return 0;
- }
+ 	/* init vio registers */
+ 	twl6030_init_vio_regs(codec);
  
-+static int twl6030_trigger(struct snd_pcm_substream *substream,
-+			int cmd, struct snd_soc_dai *dai)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_device *socdev = rtd->socdev;
-+	struct snd_soc_codec *codec = socdev->card->codec;
-+	struct twl6030_data *priv = codec->private_data;
-+
-+	switch (cmd) {
-+	case SNDRV_PCM_TRIGGER_START:
-+		/*
-+		 * low-power playback mode is restricted
-+		 * for headset path only
-+		 */
-+		if ((priv->sysclk == 17640000) && priv->non_lp) {
-+			dev_err(codec->dev,
-+				"some enabled paths aren't supported at %dHz\n",
-+				priv->sysclk);
-+			return -EPERM;
-+		}
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
- static int twl6030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
- 		int clk_id, unsigned int freq, int dir)
+ 	/* power on device */
+ 	ret = twl6030_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
+ 	if (ret)
+-		goto gpio2_err;
++		goto irq_err;
+ 
+ 	ret = snd_soc_register_codec(codec);
+ 	if (ret)
+@@ -1067,6 +1120,9 @@ dai_err:
+ 	twl6030_codec = NULL;
+ reg_err:
+ 	twl6030_set_bias_level(codec, SND_SOC_BIAS_OFF);
++irq_err:
++	if (naudint)
++		free_irq(naudint, codec);
+ gpio2_err:
+ 	if (gpio_is_valid(audpwron))
+ 		gpio_free(audpwron);
+@@ -1081,10 +1137,14 @@ static int __devexit twl6030_codec_remove(struct platform_device *pdev)
  {
-@@ -822,6 +884,7 @@ static int twl6030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
- static struct snd_soc_dai_ops twl6030_dai_ops = {
- 	.startup	= twl6030_startup,
- 	.hw_params	= twl6030_hw_params,
-+	.trigger	= twl6030_trigger,
- 	.set_sysclk	= twl6030_set_dai_sysclk,
- };
+ 	struct twl6030_data *priv = twl6030_codec->private_data;
+ 	int audpwron = priv->audpwron;
++	int naudint = priv->naudint;
  
+ 	if (gpio_is_valid(audpwron))
+ 		gpio_free(audpwron);
+ 
++	if (naudint)
++		free_irq(naudint, twl6030_codec);
++
+ 	snd_soc_unregister_dai(&twl6030_dai);
+ 	snd_soc_unregister_codec(twl6030_codec);
+ 
+diff --git a/sound/soc/codecs/twl6030.h b/sound/soc/codecs/twl6030.h
+index c321347..90b8a44 100644
+--- a/sound/soc/codecs/twl6030.h
++++ b/sound/soc/codecs/twl6030.h
+@@ -67,6 +67,20 @@
+ #define TWL6030_VIOREGNUM		18
+ #define TWL6030_VDDREGNUM		21
+ 
++/* INTID (0x03) fields */
++
++#define TWL6030_THINT			0x01
++#define TWL6030_PLUGINT			0x02
++#define TWL6030_UNPLUGINT		0x04
++#define TWL6030_HOOKINT			0x08
++#define TWL6030_HFINT			0x10
++#define TWL6030_VIBINT			0x20
++#define TWL6030_READYINT		0x40
++
++/* INTMR (0x04) fields */
++
++#define TWL6030_ALLINT_MSK		0x7B
++
+ /* NCPCTL (0x05) fields */
+ 
+ #define TWL6030_NCPENA			0x01
 -- 
 1.6.1.3
 
