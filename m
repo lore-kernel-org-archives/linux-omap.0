@@ -1,186 +1,124 @@
-From: "Olaya, Margarita" <magi.olaya@ti.com>
-Subject: [PATCHv4 7/7] ASoC: TWL6030: Detect power-up sequence completion
-Date: Tue, 23 Feb 2010 18:10:54 -0600
-Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD1B19@dlee06.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
+Date: Tue, 23 Feb 2010 16:51:08 -0800
+Message-ID: <87ocjftq0z.fsf@deeprootsystems.com>
+References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32923 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754772Ab0BXALA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 19:11:00 -0500
-Content-Language: en-US
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:61918 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132Ab0BXAvP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 19:51:15 -0500
+Received: by fxm19 with SMTP id 19so4498719fxm.21
+        for <linux-omap@vger.kernel.org>; Tue, 23 Feb 2010 16:51:14 -0800 (PST)
+In-Reply-To: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Wed\,  3 Feb 2010 16\:51\:24 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+To: linux-omap@vger.kernel.org
 
-From: Misael Lopez Cruz <x0052729@ti.com>
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-When the codec is powered-up through external AUDPWRON line it starts
-its power-up sequence. The completion of the sequence is signaled
-through the audio interrupt, and then codec is operational.
+> This series converts the OMAP HS-MMC driver to use omap_hwmod +
+> runtime PM API.
+>
+> Depends on MMC hwmods available in 'pm-wip/hwmods' branch of
+> my git tree[1] as well as previously posted runtime PM series:
+>
+>    [PATCH/RFC 0/2] initial runtime PM layer for OMAP
+>
+> The easies way to experiment/test is to use my 'pm-wip/mmc' branch
+> which has all the dependencies, and is based on omap/for-next'.
+> It has been tested by merging with current PM branch.
+>
+> [1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
+>
 
-If NAUDINT irq is provided, CODEC driver starts a wait_for_completion
-just after AUDPWRON line transitions from low to high. It's signaled as
-complete when servicing READYINT interrupt.
+A question for those of you who actually understand the MMC driver...
+I'm having problems getting my head around the current PM stuff in the
+MMC driver.  My primary question is:
 
-If AUDPWRON gpio line is provided but NAUDINT irq is not, then CODEC
-driver enables READYINT and polls on INTID register. If none of them are
-provided, then CODEC uses manual power sequences and disables all audio
-interrupts.
+Why does the suspend hook need to re-enable the device before
+suspending?  
 
-Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
-Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Signed-off-by: Margarita Olaya Cabrera <magi.olaya@ti.com>
----
- sound/soc/codecs/twl6030.c |   61 +++++++++++++++++++++++++++++++++++++------
- sound/soc/codecs/twl6030.h |    1 +
- 2 files changed, 53 insertions(+), 9 deletions(-)
+When using runtime PM, the MMC device is disabled including
+clocks off  and regulator off (if power_savings == true) when there
+is no activity.
 
-diff --git a/sound/soc/codecs/twl6030.c b/sound/soc/codecs/twl6030.c
-index b8dd5ae..2847f1b 100644
---- a/sound/soc/codecs/twl6030.c
-+++ b/sound/soc/codecs/twl6030.c
-@@ -52,6 +52,7 @@ struct twl6030_data {
- 	int non_lp;
- 	unsigned int sysclk;
- 	struct snd_pcm_hw_constraint_list *sysclk_constraints;
-+	struct completion ready;
- };
+Then, in the static suspend hook, it's re-enabled (including taking it out of
+off, re-enabling regulators etc) only to be quickly disabled again.
+This seems horribly inefficient.
+
+I admit to not understanding the MMC layer terribly well, so can someone
+enlighten me as to what is going on here? 
+
+What I am testing here is a patch on top of this series (below) that
+adds a check to the static suspend hook.  If the device is already
+runtime suspended, then the suspend and resume hooks should be noop.
+
+This appears to work just fine while testing on omap3evm just doing
+simple read/write tests before an after suspend resume.
+
+Note that if you want to test this patch, it also depends on this
+patch to runtime PM from the linux-pm list:
+https://lists.linux-foundation.org/pipermail/linux-pm/2010-February/024275.html
+
+These are all included in an updated version of my pm-wip/mmc branch
+for ease of testing.  Merge it with the current PM branch, enable
+CONFIG_PM_RUNTIME and test away.
+
+Kevin
+
+commit 166cba7679fa267ee6e6eb39fd1e871ede5ded16
+Author: Kevin Hilman <khilman@deeprootsystems.com>
+Date:   Tue Feb 23 16:21:56 2010 -0800
+
+    MMC: omap_hsmmc: check for runtime-suspend in static suspend
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 16d66b9..dd027bb 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2222,6 +2222,9 @@ static int omap_hsmmc_suspend(struct device *dev)
+ 	if (host && host->suspended)
+ 		return 0;
  
- /*
-@@ -372,6 +373,7 @@ static int twl6030_power_mode_event(struct snd_soc_dapm_widget *w,
- static irqreturn_t twl6030_naudint_handler(int irq, void *data)
- {
- 	struct snd_soc_codec *codec = data;
-+	struct twl6030_data *priv = codec->private_data;
- 	u8 intid;
- 
- 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &intid, TWL6030_REG_INTID);
-@@ -391,7 +393,7 @@ static irqreturn_t twl6030_naudint_handler(int irq, void *data)
- 		dev_alert(codec->dev, "vib drivers over current detection\n");
- 		break;
- 	case TWL6030_READYINT:
--		dev_alert(codec->dev, "codec is ready\n");
-+		complete(&priv->ready);
- 		break;
- 	default:
- 		dev_err(codec->dev, "unknown audio interrupt %d\n", intid);
-@@ -626,11 +628,45 @@ static int twl6030_add_widgets(struct snd_soc_codec *codec)
- 	return 0;
- }
- 
-+static int twl6030_power_up_completion(struct snd_soc_codec *codec,
-+					int naudint)
-+{
-+	struct twl6030_data *priv = codec->private_data;
-+	int time_left;
-+	u8 intid;
++	if (pm_is_runtime_suspended(host->dev))
++		return 0;
 +
-+	if (naudint) {
-+		/* wait for ready interrupt with 48 ms timeout */
-+		time_left = wait_for_completion_timeout(&priv->ready,
-+					msecs_to_jiffies(48));
-+	} else {
-+		/* retry 3 times only */
-+		for (time_left = 3; time_left > 0; time_left--) {
-+			mdelay(16);
-+			twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &intid,
-+					TWL6030_REG_INTID);
-+			if (intid & TWL6030_READYINT)
-+				break;
-+		}
-+	}
-+
-+	if (!time_left) {
-+		dev_err(codec->dev, "timeout waiting for READYINT\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+	priv->codec_powered = 1;
-+
-+	return 0;
-+}
-+
- static int twl6030_set_bias_level(struct snd_soc_codec *codec,
- 				enum snd_soc_bias_level level)
- {
- 	struct twl6030_data *priv = codec->private_data;
- 	int audpwron = priv->audpwron;
-+	int naudint = priv->naudint;
-+	int ret;
- 
- 	switch (level) {
- 	case SND_SOC_BIAS_ON:
-@@ -643,8 +679,10 @@ static int twl6030_set_bias_level(struct snd_soc_codec *codec,
- 			/* use AUDPWRON line */
- 			gpio_set_value(audpwron, 1);
- 
--			/* power-up sequence latency */
--			mdelay(16);
-+			/* wait for power-up completion */
-+			ret = twl6030_power_up_completion(codec, naudint);
-+			if (ret)
-+				return ret;
- 
- 			/* sync registers updated during power-up sequence */
- 			twl6030_read(codec, TWL6030_REG_NCPCTL);
-@@ -653,12 +691,11 @@ static int twl6030_set_bias_level(struct snd_soc_codec *codec,
- 		} else {
- 			/* use manual power-up sequence */
- 			twl6030_power_up(codec);
-+			priv->codec_powered = 1;
+ 	if (host) {
+ 		host->suspended = 1;
+ 		if (host->pdata->suspend) {
+@@ -2260,12 +2263,6 @@ static int omap_hsmmc_suspend(struct device *dev)
+ 			}
+ 			mmc_host_disable(host->mmc);
  		}
- 
- 		/* initialize vdd/vss registers with reg_cache */
- 		twl6030_init_vdd_regs(codec);
 -
--		priv->codec_powered = 1;
- 		break;
- 	case SND_SOC_BIAS_OFF:
- 		if (!priv->codec_powered)
-@@ -1067,6 +1104,7 @@ static int __devinit twl6030_codec_probe(struct platform_device *pdev)
- 	mutex_init(&codec->mutex);
- 	INIT_LIST_HEAD(&codec->dapm_widgets);
- 	INIT_LIST_HEAD(&codec->dapm_paths);
-+	init_completion(&priv->ready);
- 
- 	if (gpio_is_valid(audpwron)) {
- 		ret = gpio_request(audpwron, "audpwron");
-@@ -1089,10 +1127,15 @@ static int __devinit twl6030_codec_probe(struct platform_device *pdev)
- 		if (ret)
- 			goto gpio2_err;
- 	} else {
--		dev_warn(codec->dev,
--			"no naudint irq, audio interrupts disabled\n");
--		twl6030_write_reg_cache(codec, TWL6030_REG_INTMR,
--					TWL6030_ALLINT_MSK);
-+		if (gpio_is_valid(audpwron)) {
-+			/* enable only codec ready interrupt */
-+			twl6030_write_reg_cache(codec, TWL6030_REG_INTMR,
-+					~TWL6030_READYMSK & TWL6030_ALLINT_MSK);
-+		} else {
-+			/* no interrupts at all */
-+			twl6030_write_reg_cache(codec, TWL6030_REG_INTMR,
-+						TWL6030_ALLINT_MSK);
-+		}
+-		/*
+-		 * HACK: "extra" put to compensate for DPM core keeping
+-		 *       runtime PM disabled.  -- khilman
+-		 */
+-		pm_runtime_put_sync(host->dev);
  	}
+ 	return ret;
+ }
+@@ -2280,13 +2277,10 @@ static int omap_hsmmc_resume(struct device *dev)
+ 	if (host && !host->suspended)
+ 		return 0;
  
- 	/* init vio registers */
-diff --git a/sound/soc/codecs/twl6030.h b/sound/soc/codecs/twl6030.h
-index 90b8a44..d591be1 100644
---- a/sound/soc/codecs/twl6030.h
-+++ b/sound/soc/codecs/twl6030.h
-@@ -79,6 +79,7 @@
+-	if (host) {
+-		/*
+-		 * HACK: "extra" get to compensate for DPM core keeping
+-		 *       runtime PM disabled.  -- khilman
+-		 */
+-		pm_runtime_get_sync(host->dev);
++	if (pm_is_runtime_suspended(host->dev))
++		return 0;
  
- /* INTMR (0x04) fields */
- 
-+#define TWL6030_READYMSK		0x40
- #define TWL6030_ALLINT_MSK		0x7B
- 
- /* NCPCTL (0x05) fields */
--- 
-1.6.1.3
++	if (host) {
+ 		if (mmc_host_enable(host->mmc) != 0) {
+ 			pm_runtime_suspend(host->dev);
+ 			goto clk_en_err;
+
+
 
