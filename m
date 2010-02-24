@@ -1,124 +1,18 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
-Date: Tue, 23 Feb 2010 16:51:08 -0800
-Message-ID: <87ocjftq0z.fsf@deeprootsystems.com>
-References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com>
+From: Sir William Wilcox <Sir.WilliamWilcox@24.tc>
+Subject: RE
+Date: Tue, 23 Feb 2010 19:31:33 -0500
+Message-ID: <1266971493.4b8473658093f__37324.8153635815$1266973315$gmane$org@webmail.xcelco.on.ca>
+Reply-To: sir.williamwilcox03@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:61918 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753132Ab0BXAvP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Feb 2010 19:51:15 -0500
-Received: by fxm19 with SMTP id 19so4498719fxm.21
-        for <linux-omap@vger.kernel.org>; Tue, 23 Feb 2010 16:51:14 -0800 (PST)
-In-Reply-To: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Wed\,  3 Feb 2010 16\:51\:24 -0800")
+Received: from mta03.eastlink.ca ([24.224.136.9]:36084 "EHLO mta03.eastlink.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752165Ab0BXBBp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Feb 2010 20:01:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
-
-> This series converts the OMAP HS-MMC driver to use omap_hwmod +
-> runtime PM API.
->
-> Depends on MMC hwmods available in 'pm-wip/hwmods' branch of
-> my git tree[1] as well as previously posted runtime PM series:
->
->    [PATCH/RFC 0/2] initial runtime PM layer for OMAP
->
-> The easies way to experiment/test is to use my 'pm-wip/mmc' branch
-> which has all the dependencies, and is based on omap/for-next'.
-> It has been tested by merging with current PM branch.
->
-> [1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
->
-
-A question for those of you who actually understand the MMC driver...
-I'm having problems getting my head around the current PM stuff in the
-MMC driver.  My primary question is:
-
-Why does the suspend hook need to re-enable the device before
-suspending?  
-
-When using runtime PM, the MMC device is disabled including
-clocks off  and regulator off (if power_savings == true) when there
-is no activity.
-
-Then, in the static suspend hook, it's re-enabled (including taking it out of
-off, re-enabling regulators etc) only to be quickly disabled again.
-This seems horribly inefficient.
-
-I admit to not understanding the MMC layer terribly well, so can someone
-enlighten me as to what is going on here? 
-
-What I am testing here is a patch on top of this series (below) that
-adds a check to the static suspend hook.  If the device is already
-runtime suspended, then the suspend and resume hooks should be noop.
-
-This appears to work just fine while testing on omap3evm just doing
-simple read/write tests before an after suspend resume.
-
-Note that if you want to test this patch, it also depends on this
-patch to runtime PM from the linux-pm list:
-https://lists.linux-foundation.org/pipermail/linux-pm/2010-February/024275.html
-
-These are all included in an updated version of my pm-wip/mmc branch
-for ease of testing.  Merge it with the current PM branch, enable
-CONFIG_PM_RUNTIME and test away.
-
-Kevin
-
-commit 166cba7679fa267ee6e6eb39fd1e871ede5ded16
-Author: Kevin Hilman <khilman@deeprootsystems.com>
-Date:   Tue Feb 23 16:21:56 2010 -0800
-
-    MMC: omap_hsmmc: check for runtime-suspend in static suspend
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 16d66b9..dd027bb 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2222,6 +2222,9 @@ static int omap_hsmmc_suspend(struct device *dev)
- 	if (host && host->suspended)
- 		return 0;
- 
-+	if (pm_is_runtime_suspended(host->dev))
-+		return 0;
-+
- 	if (host) {
- 		host->suspended = 1;
- 		if (host->pdata->suspend) {
-@@ -2260,12 +2263,6 @@ static int omap_hsmmc_suspend(struct device *dev)
- 			}
- 			mmc_host_disable(host->mmc);
- 		}
--
--		/*
--		 * HACK: "extra" put to compensate for DPM core keeping
--		 *       runtime PM disabled.  -- khilman
--		 */
--		pm_runtime_put_sync(host->dev);
- 	}
- 	return ret;
- }
-@@ -2280,13 +2277,10 @@ static int omap_hsmmc_resume(struct device *dev)
- 	if (host && !host->suspended)
- 		return 0;
- 
--	if (host) {
--		/*
--		 * HACK: "extra" get to compensate for DPM core keeping
--		 *       runtime PM disabled.  -- khilman
--		 */
--		pm_runtime_get_sync(host->dev);
-+	if (pm_is_runtime_suspended(host->dev))
-+		return 0;
- 
-+	if (host) {
- 		if (mmc_host_enable(host->mmc) != 0) {
- 			pm_runtime_suspend(host->dev);
- 			goto clk_en_err;
-
-
-
+I work with Euro Million.I can help you win
+4,528,000 GBP.I charge 40%.can we do this deal?
