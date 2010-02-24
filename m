@@ -1,108 +1,67 @@
 From: "Olaya, Margarita" <magi.olaya@ti.com>
-Subject: RE: [PATCHv4 3/7] ASoC: TWL6030: Manual power-up/down sequences
-Date: Wed, 24 Feb 2010 17:42:20 -0600
-Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD22D0@dlee06.ent.ti.com>
-References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B15@dlee06.ent.ti.com>
- <1267008036.3274.141.camel@odin>
+Subject: RE: [alsa-devel] [PATCHv4 2/7] ASoC: TWL6030: Add twl6030 codec
+	driver
+Date: Wed, 24 Feb 2010 17:57:25 -0600
+Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD22F0@dlee06.ent.ti.com>
+References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B14@dlee06.ent.ti.com>
+ <1267007881.3274.136.camel@odin> <20100224104256.GB9018@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57676 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:40799 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758546Ab0BXXm0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Feb 2010 18:42:26 -0500
-In-Reply-To: <1267008036.3274.141.camel@odin>
+	id S1758636Ab0BXX5e convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 18:57:34 -0500
+In-Reply-To: <20100224104256.GB9018@sirena.org.uk>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGlhbSBHaXJkd29vZCBb
-bWFpbHRvOmxyZ0BzbGltbG9naWMuY28udWtdDQo+IFNlbnQ6IFdlZG5lc2RheSwgRmVicnVhcnkg
-MjQsIDIwMTAgNDo0MSBBTQ0KPiBUbzogT2xheWEsIE1hcmdhcml0YQ0KPiBDYzogYWxzYS1kZXZl
-bEBhbHNhLXByb2plY3Qub3JnOyBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgYnJvb25pZUBv
-cGVuc291cmNlLndvbGZzb25taWNyby5jb20NCj4gU3ViamVjdDogUmU6IFtQQVRDSHY0IDMvN10g
-QVNvQzogVFdMNjAzMDogTWFudWFsIHBvd2VyLXVwL2Rvd24gc2VxdWVuY2VzDQo+IA0KPiBPbiBU
-dWUsIDIwMTAtMDItMjMgYXQgMTg6MTAgLTA2MDAsIE9sYXlhLCBNYXJnYXJpdGEgd3JvdGU6DQo+
-ID4gRnJvbTogTWlzYWVsIExvcGV6IENydXogPHgwMDUyNzI5QHRpLmNvbT4NCj4gPg0KPiA+IFRX
-TDYwMzAgY29kZWMgZGV2aWNlIGNhbiBiZSBwb3dlcmVkLXVwL2Rvd24gdGhyb3VnaCBhIHNwZWNp
-ZmljIHJlZ2lzdGVyDQo+ID4gd3JpdGVzIHNlcXVlbmNlLiBUaGVzZSBzZXF1ZW5jZXMgY2FuIGJl
-IHVzZWQgd2hlbiBubyBncGlvIGxpbmUgaXMNCj4gPiBwcm92aWRlZCBmb3IgQVVEUFdST04uDQo+
-ID4NCj4gPiBXaGVuIHRoZSBjb2RlYyBpcyBwb3dlcmVkLXVwIGluIHRoaXMgd2F5LCBhdXRvbWF0
-aWMgcG93ZXItZG93biBzZXF1ZW5jZQ0KPiA+ICh0cmlnZ2VyZWQgYnkgdGhlcm1hbCBzaHV0ZG93
-bikgaXMgbm90IHBvc3NpYmxlLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogTWlzYWVsIExvcGV6
-IENydXogPHgwMDUyNzI5QHRpLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBKb3JnZSBFZHVhcmRv
-IENhbmRlbGFyaWEgPGpvcmdlLmNhbmRlbGFyaWFAdGkuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6
-IE1hcmdhcml0YSBPbGF5YSBDYWJyZXJhIDxtYWdpLm9sYXlhQHRpLmNvbT4NCj4gPiAtLS0NCj4g
-PiAgc291bmQvc29jL2NvZGVjcy90d2w2MDMwLmMgfCAgMTEyICsrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrLS0tLS0NCj4gPiAgc291bmQvc29jL2NvZGVjcy90d2w2MDMwLmgg
-fCAgIDE2ICsrKysrKw0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDExNSBpbnNlcnRpb25zKCspLCAx
-MyBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9zb3VuZC9zb2MvY29kZWNzL3R3
-bDYwMzAuYyBiL3NvdW5kL3NvYy9jb2RlY3MvdHdsNjAzMC5jDQo+ID4gaW5kZXggOGI1MmFhMS4u
-ZWM4MzhiMSAxMDA2NDQNCj4gPiAtLS0gYS9zb3VuZC9zb2MvY29kZWNzL3R3bDYwMzAuYw0KPiA+
-ICsrKyBiL3NvdW5kL3NvYy9jb2RlY3MvdHdsNjAzMC5jDQo+ID4gQEAgLTI0NCw2ICsyNDQsODgg
-QEAgc3RhdGljIHZvaWQgdHdsNjAzMF9pbml0X3ZkZF9yZWdzKHN0cnVjdCBzbmRfc29jX2NvZGVj
-ICpjb2RlYykNCj4gPiAgCX0NCj4gPiAgfQ0KPiA+DQo+ID4gKy8qIHR3bDYwMzAgY29kZWMgbWFu
-dWFsIHBvd2VyLXVwIHNlcXVlbmNlICovDQo+ID4gK3N0YXRpYyB2b2lkIHR3bDYwMzBfcG93ZXJf
-dXAoc3RydWN0IHNuZF9zb2NfY29kZWMgKmNvZGVjKQ0KPiA+ICt7DQo+ID4gKwl1OCBuY3BjdGws
-IGxkb2N0bCwgbHBwbGxjdGwsIGFjY2N0bDsNCj4gPiArDQo+ID4gKwluY3BjdGwgPSB0d2w2MDMw
-X3JlYWRfcmVnX2NhY2hlKGNvZGVjLCBUV0w2MDMwX1JFR19OQ1BDVEwpOw0KPiA+ICsJbGRvY3Rs
-ID0gdHdsNjAzMF9yZWFkX3JlZ19jYWNoZShjb2RlYywgVFdMNjAzMF9SRUdfTERPQ1RMKTsNCj4g
-PiArCWxwcGxsY3RsID0gdHdsNjAzMF9yZWFkX3JlZ19jYWNoZShjb2RlYywgVFdMNjAzMF9SRUdf
-TFBQTExDVEwpOw0KPiA+ICsJYWNjY3RsID0gdHdsNjAzMF9yZWFkX3JlZ19jYWNoZShjb2RlYywg
-VFdMNjAzMF9SRUdfQUNDQ1RMKTsNCj4gPiArDQo+ID4gKwkvKiBlbmFibGUgcmVmZXJlbmNlIHN5
-c3RlbSAqLw0KPiA+ICsJbGRvY3RsIHw9IFRXTDYwMzBfUkVGRU5BOw0KPiA+ICsJdHdsNjAzMF93
-cml0ZShjb2RlYywgVFdMNjAzMF9SRUdfTERPQ1RMLCBsZG9jdGwpOw0KPiA+ICsJbWRlbGF5KDEw
-KTsNCj4gPiArCS8qIGVuYWJsZSBpbnRlcm5hbCBvc2NpbGxhdG9yICovDQo+ID4gKwlsZG9jdGwg
-fD0gVFdMNjAzMF9PU0NFTkE7DQo+ID4gKwl0d2w2MDMwX3dyaXRlKGNvZGVjLCBUV0w2MDMwX1JF
-R19MRE9DVEwsIGxkb2N0bCk7DQo+ID4gKwl1ZGVsYXkoMTApOw0KPiA+ICsJLyogZW5hYmxlIGhp
-Z2gtc2lkZSBsZG8gKi8NCj4gPiArCWxkb2N0bCB8PSBUV0w2MDMwX0hTTERPRU5BOw0KPiA+ICsJ
-dHdsNjAzMF93cml0ZShjb2RlYywgVFdMNjAzMF9SRUdfTERPQ1RMLCBsZG9jdGwpOw0KPiA+ICsJ
-dWRlbGF5KDI0NCk7DQo+ID4gKwkvKiBlbmFibGUgbmVnYXRpdmUgY2hhcmdlIHB1bXAgKi8NCj4g
-PiArCW5jcGN0bCB8PSBUV0w2MDMwX05DUEVOQSB8IFRXTDYwMzBfTkNQT1BFTjsNCj4gPiArCXR3
-bDYwMzBfd3JpdGUoY29kZWMsIFRXTDYwMzBfUkVHX05DUENUTCwgbmNwY3RsKTsNCj4gPiArCXVk
-ZWxheSg0ODgpOw0KPiA+ICsJLyogZW5hYmxlIGxvdy1zaWRlIGxkbyAqLw0KPiA+ICsJbGRvY3Rs
-IHw9IFRXTDYwMzBfTFNMRE9FTkE7DQo+ID4gKwl0d2w2MDMwX3dyaXRlKGNvZGVjLCBUV0w2MDMw
-X1JFR19MRE9DVEwsIGxkb2N0bCk7DQo+ID4gKwl1ZGVsYXkoMjQ0KTsNCj4gPiArCS8qIGVuYWJs
-ZSBsb3ctcG93ZXIgcGxsICovDQo+ID4gKwlscHBsbGN0bCB8PSBUV0w2MDMwX0xQTExFTkE7DQo+
-ID4gKwl0d2w2MDMwX3dyaXRlKGNvZGVjLCBUV0w2MDMwX1JFR19MUFBMTENUTCwgbHBwbGxjdGwp
-Ow0KPiA+ICsJLyogcmVzZXQgc3RhdGUgbWFjaGluZSAqLw0KPiA+ICsJYWNjY3RsIHw9IFRXTDYw
-MzBfUkVTRVRTUExJVDsNCj4gPiArCXR3bDYwMzBfd3JpdGUoY29kZWMsIFRXTDYwMzBfUkVHX0FD
-Q0NUTCwgYWNjY3RsKTsNCj4gPiArCW1kZWxheSg1KTsNCj4gPiArCWFjY2N0bCAmPSB+VFdMNjAz
-MF9SRVNFVFNQTElUOw0KPiA+ICsJdHdsNjAzMF93cml0ZShjb2RlYywgVFdMNjAzMF9SRUdfQUND
-Q1RMLCBhY2NjdGwpOw0KPiA+ICsJLyogZGlzYWJsZSBpbnRlcm5hbCBvc2NpbGxhdG9yICovDQo+
-ID4gKwlsZG9jdGwgJj0gflRXTDYwMzBfT1NDRU5BOw0KPiA+ICsJdHdsNjAzMF93cml0ZShjb2Rl
-YywgVFdMNjAzMF9SRUdfTERPQ1RMLCBsZG9jdGwpOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICsvKiB0
-d2w2MDMwIGNvZGVjIG1hbnVhbCBwb3dlci1kb3duIHNlcXVlbmNlICovDQo+ID4gK3N0YXRpYyB2
-b2lkIHR3bDYwMzBfcG93ZXJfZG93bihzdHJ1Y3Qgc25kX3NvY19jb2RlYyAqY29kZWMpDQo+ID4g
-K3sNCj4gPiArCXU4IG5jcGN0bCwgbGRvY3RsLCBscHBsbGN0bCwgYWNjY3RsOw0KPiA+ICsNCj4g
-PiArCW5jcGN0bCA9IHR3bDYwMzBfcmVhZF9yZWdfY2FjaGUoY29kZWMsIFRXTDYwMzBfUkVHX05D
-UENUTCk7DQo+ID4gKwlsZG9jdGwgPSB0d2w2MDMwX3JlYWRfcmVnX2NhY2hlKGNvZGVjLCBUV0w2
-MDMwX1JFR19MRE9DVEwpOw0KPiA+ICsJbHBwbGxjdGwgPSB0d2w2MDMwX3JlYWRfcmVnX2NhY2hl
-KGNvZGVjLCBUV0w2MDMwX1JFR19MUFBMTENUTCk7DQo+ID4gKwlhY2NjdGwgPSB0d2w2MDMwX3Jl
-YWRfcmVnX2NhY2hlKGNvZGVjLCBUV0w2MDMwX1JFR19BQ0NDVEwpOw0KPiA+ICsNCj4gPiArCS8q
-IGVuYWJsZSBpbnRlcm5hbCBvc2NpbGxhdG9yICovDQo+ID4gKwlsZG9jdGwgfD0gVFdMNjAzMF9P
-U0NFTkE7DQo+ID4gKwl0d2w2MDMwX3dyaXRlKGNvZGVjLCBUV0w2MDMwX1JFR19MRE9DVEwsIGxk
-b2N0bCk7DQo+ID4gKwl1ZGVsYXkoMTApOw0KPiA+ICsJLyogZGlzYWJsZSBsb3ctcG93ZXIgcGxs
-ICovDQo+ID4gKwlscHBsbGN0bCAmPSB+VFdMNjAzMF9MUExMRU5BOw0KPiA+ICsJdHdsNjAzMF93
-cml0ZShjb2RlYywgVFdMNjAzMF9SRUdfTFBQTExDVEwsIGxwcGxsY3RsKTsNCj4gPiArCS8qIGRp
-c2FibGUgbG93LXNpZGUgbGRvICovDQo+ID4gKwlsZG9jdGwgJj0gflRXTDYwMzBfTFNMRE9FTkE7
-DQo+ID4gKwl0d2w2MDMwX3dyaXRlKGNvZGVjLCBUV0w2MDMwX1JFR19MRE9DVEwsIGxkb2N0bCk7
-DQo+ID4gKwl1ZGVsYXkoMjQ0KTsNCj4gPiArCS8qIGRpc2FibGUgbmVnYXRpdmUgY2hhcmdlIHB1
-bXAgKi8NCj4gPiArCW5jcGN0bCAmPSB+KFRXTDYwMzBfTkNQRU5BIHwgVFdMNjAzMF9OQ1BPUEVO
-KTsNCj4gPiArCXR3bDYwMzBfd3JpdGUoY29kZWMsIFRXTDYwMzBfUkVHX05DUENUTCwgbmNwY3Rs
-KTsNCj4gPiArCXVkZWxheSg0ODgpOw0KPiA+ICsJLyogZGlzYWJsZSBoaWdoLXNpZGUgbGRvICov
-DQo+ID4gKwlsZG9jdGwgJj0gflRXTDYwMzBfSFNMRE9FTkE7DQo+ID4gKwl0d2w2MDMwX3dyaXRl
-KGNvZGVjLCBUV0w2MDMwX1JFR19MRE9DVEwsIGxkb2N0bCk7DQo+ID4gKwl1ZGVsYXkoMjQ0KTsN
-Cj4gPiArCS8qIGRpc2FibGUgaW50ZXJuYWwgb3NjaWxsYXRvciAqLw0KPiA+ICsJbGRvY3RsICY9
-IH5UV0w2MDMwX09TQ0VOQTsNCj4gPiArCXR3bDYwMzBfd3JpdGUoY29kZWMsIFRXTDYwMzBfUkVH
-X0xET0NUTCwgbGRvY3RsKTsNCj4gPiArCS8qIGRpc2FibGUgcmVmZXJlbmNlIHN5c3RlbSAqLw0K
-PiA+ICsJbGRvY3RsICY9IH5UV0w2MDMwX1JFRkVOQTsNCj4gPiArCXR3bDYwMzBfd3JpdGUoY29k
-ZWMsIFRXTDYwMzBfUkVHX0xET0NUTCwgbGRvY3RsKTsNCj4gPiArCW1kZWxheSgxMCk7DQo+ID4g
-K30NCj4gPiArDQo+ID4gIC8qDQo+IA0KPiANCj4gU29tZSBsYXJnZSBtZGVsYXlzIGhlcmUgYWdh
-aW4uDQo+IA0KPiBMaWFtDQoNCk9rLCBJJ2xsIHZlcmlmeSBhbmQgY2hhbmdlIHRoZW0uDQoNCi0g
-TWFyZ2FyaXRhDQo+IA0KPiAtLQ0KPiBGcmVlbGFuY2UgRGV2ZWxvcGVyLCBTbGltTG9naWMgTHRk
-DQo+IEFTb0MgYW5kIFZvbHRhZ2UgUmVndWxhdG9yIE1haW50YWluZXIuDQo+IGh0dHA6Ly93d3cu
-c2xpbWxvZ2ljLmNvLnVrDQoNCg==
+
+> -----Original Message-----
+> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
+> Sent: Wednesday, February 24, 2010 4:43 AM
+> To: Liam Girdwood
+> Cc: Olaya, Margarita; alsa-devel@alsa-project.org; linux-omap@vger.kernel.org
+> Subject: Re: [alsa-devel] [PATCHv4 2/7] ASoC: TWL6030: Add twl6030 codec driver
+> 
+> On Wed, Feb 24, 2010 at 10:38:01AM +0000, Liam Girdwood wrote:
+> > On Tue, 2010-02-23 at 18:10 -0600, Olaya, Margarita wrote:
+> 
+> > > +       twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &value, reg);
+> > > +       twl6030_write_reg_cache(codec, reg, value);
+> 
+> > You probably want to read from the cache if the register is not
+> > volatile. This saves a slow I2C read.
+> 
+> ...and if you don't satisfy reads from the cache you may as well not
+> bother with it - it's just consuming memory.
+
+We have different functions for those cases.
+
+> 
+> > > +               /* skip read-only registers (ASICID, ASICREV, STATUS) */
+> > > +               if ((reg == TWL6030_REG_ASICID) ||
+> > > +                   (reg == TWL6030_REG_ASICREV) ||
+> > > +                   (reg == TWL6030_REG_STATUS))
+> > > +                       continue;
+> > > +               twl6030_write(codec, reg, cache[reg]);
+> 
+> A switch statement would be nicer here.
+
+You mean something like this?
+
+	switch (reg) {
+	case TWL6030_REG_ASICID:
+	case TWL6030_REG_ASICREV:
+	case TWL6030_REG_STATUS:
+		continue;
+	default:
+	break:
+	}
+
+Regards,
+Margarita
