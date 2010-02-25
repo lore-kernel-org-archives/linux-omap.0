@@ -1,86 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V6 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
-Date: Thu, 25 Feb 2010 14:14:07 -0800
-Message-ID: <20100225221407.GM28173@atomide.com>
-References: <hvaibhav@ti.com>
- <1266917239-7094-3-git-send-email-hvaibhav@ti.com>
+Subject: Re: [PATCH] musb: fix power field to hold all possible values
+Date: Thu, 25 Feb 2010 14:19:40 -0800
+Message-ID: <20100225221940.GN28173@atomide.com>
+References: <1266918404-17715-1-git-send-email-ajay.gupta@ti.com>
+ <20100223095154.GA12815@gandalf>
+ <19F8576C6E063C45BE387C64729E7394044DA995E5@dbde02.ent.ti.com>
+ <20100223203215.GA21920@gandalf>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60327 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934206Ab0BYWNJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 17:13:09 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62985 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934167Ab0BYWSk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 17:18:40 -0500
 Content-Disposition: inline
-In-Reply-To: <1266917239-7094-3-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <20100223203215.GA21920@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, hverkuil@xs4all.nl
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* hvaibhav@ti.com <hvaibhav@ti.com> [100223 01:25]:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
+* Felipe Balbi <me@felipebalbi.com> [100223 12:30]:
+> Hi,
 > 
+> On Tue, Feb 23, 2010 at 08:01:50PM +0530, Gupta, Ajay Kumar wrote:
+> > Board files are providing the actual mA and it is getting divided in 
+> > Arch/arm/mach-omap2/usb-musb.c. See the code snippet below,
+> > 
+> >         musb_plat.clock = "ick";
+> >         musb_plat.board_data = board_data;
+> > -->     musb_plat.power = board_data->power >> 1;
+> >         musb_plat.mode = board_data->mode;
+> > 
+> > So we need to either take this patch or fix this logic of dividing the mA
+> > supplied from all omap board files.
 > 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/plat-omap/devices.c |   29 +++++++++++++++++++++++++++++
->  1 files changed, 29 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> index 30b5db7..64f2a3a 100644
-> --- a/arch/arm/plat-omap/devices.c
-> +++ b/arch/arm/plat-omap/devices.c
-> @@ -357,6 +357,34 @@ static void omap_init_wdt(void)
->  static inline void omap_init_wdt(void) {}
->  #endif
-> 
-> +/*---------------------------------------------------------------------------*/
-> +
-> +#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
-> +	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
-> +#if defined (CONFIG_FB_OMAP2) || defined (CONFIG_FB_OMAP2_MODULE)
-> +static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
-> +};
-> +#else
-> +static struct resource omap_vout_resource[2] = {
-> +};
-> +#endif
-> +
-> +static struct platform_device omap_vout_device = {
-> +	.name		= "omap_vout",
-> +	.num_resources	= ARRAY_SIZE(omap_vout_resource),
-> +	.resource 	= &omap_vout_resource[0],
-> +	.id		= -1,
-> +};
-> +static void omap_init_vout(void)
-> +{
-> +	(void) platform_device_register(&omap_vout_device);
-> +}
+> that's true, had missed that. Sorry.
 
-Allocation can still fail here, please handle the results.
+Hmm, I believe this value is also divided somewhere else but
+I forgot where. In any case, when making changes like this
+please run the standard USB tests for gadgets and OTG.
 
-> +#else
-> +static inline void omap_init_vout(void) {}
-> +#endif
-> +
-> +/*---------------------------------------------------------------------------*/
-> +
->  /*
->   * This gets called after board-specific INIT_MACHINE, and initializes most
->   * on-chip peripherals accessible on this board (except for few like USB):
-> @@ -387,6 +415,7 @@ static int __init omap_init_devices(void)
->  	omap_init_rng();
->  	omap_init_uwire();
->  	omap_init_wdt();
-> +	omap_init_vout();
->  	return 0;
->  }
->  arch_initcall(omap_init_devices);
-
-Looks like this should be in mach-omap2/devices.c instead if it's all
-omap2/3/4 specific.
-
-Regards,
+Otherwise things are guaranteed to break for USB certs :)
 
 Tony
