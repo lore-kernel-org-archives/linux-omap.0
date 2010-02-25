@@ -1,73 +1,84 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [alsa-devel] [PATCHv4 0/7] TWL6030 audio codec initial support
-Date: Thu, 25 Feb 2010 09:13:02 +0000
-Message-ID: <1267089182.3255.58.camel@odin>
-References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B12@dlee06.ent.ti.com>
-	 <1267011618.3274.202.camel@odin>
-	 <1889FA7136B567478A67D4B0F85B0CCE65DD2303@dlee06.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Thomas Weber <swirl@gmx.li>
+Subject: (unknown)
+Date: Thu, 25 Feb 2010 10:36:13 +0100
+Message-ID: <1267090573-17708-1-git-send-email-swirl@gmx.li>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:49327 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752233Ab0BYJOk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 04:14:40 -0500
-Received: by fxm19 with SMTP id 19so6004106fxm.21
-        for <linux-omap@vger.kernel.org>; Thu, 25 Feb 2010 01:14:39 -0800 (PST)
-In-Reply-To: <1889FA7136B567478A67D4B0F85B0CCE65DD2303@dlee06.ent.ti.com>
+Received: from mail.gmx.net ([213.165.64.20]:35697 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753796Ab0BYJfa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Feb 2010 04:35:30 -0500
+Subject: 
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Olaya, Margarita" <magi.olaya@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+To: linux-omap@vger.kernel.org
+Cc: Thomas Weber <swirl@gmx.li>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vikram Pandita <vikram.pandita@ti.com>, Syed Rafiuddin <rafiuddin.syed@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Weber <weber@corscience.de>
 
-On Wed, 2010-02-24 at 18:17 -0600, Olaya, Margarita wrote:
-> 
-> > -----Original Message-----
-> > From: Liam Girdwood [mailto:lrg@slimlogic.co.uk]
-> > Sent: Wednesday, February 24, 2010 5:40 AM
-> > To: Olaya, Margarita
-> > Cc: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org; broonie@opensource.wolfsonmicro.com
-> > Subject: Re: [PATCHv4 0/7] TWL6030 audio codec initial support
-> > 
-> > On Tue, 2010-02-23 at 18:10 -0600, Olaya, Margarita wrote:
-> > > Following patch series add initial support for TWL6030 codec driver.
-> > > The patch set is based on the series sent from Misael Lopez in October 2009.
-> > >
-> > > Changes from v3:
-> > > - Remove snd_soc_init_card function
-> > > - Adapt to latest twl core changes based on Balaji's comment
-> > >
-> > > Regards,
-> > > Margarita
-> > >
-> > > ---
-> > > Misael Lopez Cruz (7):
-> > >   OMAP4: PMIC: Add support for twl6030 codec
-> > >   ASoC: TWL6030: Add twl6030 codec driver
-> > >   ASoC: TWL6030: Manual power-up/down sequences
-> > >   ASoC: TWL6030: Add support for low-power PLL
-> > >   ASoC: TWL6030: Add restrictions for low-power playback mode
-> > >   ASoC: TWL6030: Enable audio interrupt
-> > >   ASoC: TWL6030: Detect power-up sequence completion
-> > 
-> > Btw, since this is a new driver can you rebase the 6 codec patches into
-> > a single patch.
-> > 
-> 
-> The second patch adds the basic support for the codec and the others add features, that way it could be easier to review.
+Subject: [PATCH/RFC] OMAP2: serial.c: Fix number of uarts in early_init
 
-Some of the subsequent patches are actually removing chunks of code
-rather than just adding new features. In this case it's actually easier
-to review the complete codec driver as one patch rather than a series of
-changes (showing your internal development history).
+The omap_serial_early_init prints the following errors:
 
-Thanks
+Could not get uart4_ick
+Could not get uart4_fck
 
-Liam
+because all the uarts available in omap_uart[] will be initialized.
+Only omap4430 and omap3630 have 4 uarts at the moment.
+This patch reduces the number of uarts when cpu is not omap4430 or
+omap3630.
 
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ arch/arm/mach-omap2/serial.c |   15 ++++++++++-----
+ 1 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index b79bc89..da77930 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -644,16 +644,21 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
+ }
+ void __init omap_serial_early_init(void)
+ {
+-	int i;
++	int i, nr_ports;
+ 	char name[16];
+ 
++	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
++		nr_ports = 3;
++	else
++		nr_ports = ARRAY_SIZE(omap_uart);
++
+ 	/*
+ 	 * Make sure the serial ports are muxed on at this point.
+ 	 * You have to mux them off in device drivers later on
+ 	 * if not needed.
+ 	 */
+ 
+-	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
++	for (i = 0; i < nr_ports; i++) {
+ 		struct omap_uart_state *uart = &omap_uart[i];
+ 		struct platform_device *pdev = &uart->pdev;
+ 		struct device *dev = &pdev->dev;
+@@ -669,17 +674,17 @@ void __init omap_serial_early_init(void)
+ 			continue;
+ 		}
+ 
+-		sprintf(name, "uart%d_ick", i+1);
++		sprintf(name, "uart%d_ick", i + 1);
+ 		uart->ick = clk_get(NULL, name);
+ 		if (IS_ERR(uart->ick)) {
+-			printk(KERN_ERR "Could not get uart%d_ick\n", i+1);
++			printk(KERN_ERR "Could not get uart%d_ick\n", i + 1);
+ 			uart->ick = NULL;
+ 		}
+ 
+ 		sprintf(name, "uart%d_fck", i+1);
+ 		uart->fck = clk_get(NULL, name);
+ 		if (IS_ERR(uart->fck)) {
+-			printk(KERN_ERR "Could not get uart%d_fck\n", i+1);
++			printk(KERN_ERR "Could not get uart%d_fck\n", i + 1);
+ 			uart->fck = NULL;
+ 		}
+ 
 -- 
-Freelance Developer, SlimLogic Ltd
-ASoC and Voltage Regulator Maintainer.
-http://www.slimlogic.co.uk
+1.6.4.4
 
