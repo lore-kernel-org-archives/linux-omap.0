@@ -1,82 +1,66 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-Date: Thu, 25 Feb 2010 14:36:11 -0600
-Message-ID: <A24693684029E5489D1D202277BE89445398EBB1@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE8944538C6D68@dlee02.ent.ti.com>
- <A24693684029E5489D1D202277BE8944538C6D6A@dlee02.ent.ti.com>
- <20100224162129.GO28173@atomide.com>
- <A24693684029E5489D1D202277BE89445398E44D@dlee02.ent.ti.com>
- <20100225185547.GH28173@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC][PATCH 1/3] ARM: OMAP3630: PRCM: Add UART4 control bits
+Date: Thu, 25 Feb 2010 14:03:28 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1002251403010.2701@utopia.booyaka.com>
+References: <1267108876-18028-1-git-send-email-saaguirre@ti.com> <1267108876-18028-2-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54624 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933362Ab0BYUgR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 15:36:17 -0500
-In-Reply-To: <20100225185547.GH28173@atomide.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:54957 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933668Ab0BYVD3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 16:03:29 -0500
+In-Reply-To: <1267108876-18028-2-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, 25 Feb 2010, Sergio Aguirre wrote:
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, February 25, 2010 12:56 PM
-> To: Aguirre, Sergio
-> Cc: linux-omap@vger.kernel.org; Sonasath, Moiz; Pandita, Vikram
-> Subject: Re: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-> 
-> * Aguirre, Sergio <saaguirre@ti.com> [100224 19:04]:
-> >
-> >
-> > > -----Original Message-----
-> > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > Sent: Wednesday, February 24, 2010 10:21 AM
-> > > To: Aguirre, Sergio
-> > > Cc: linux-omap@vger.kernel.org; Sonasath, Moiz; Pandita, Vikram
-> > > Subject: Re: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-> > >
-> > > * Aguirre, Sergio <saaguirre@ti.com> [100223 23:37]:
-> > > > Hmm..
-> > > >
-> > > > I think I sent this patch too soon...
-> > > >
-> > > > Please ignore it, this is not a proper solution I feel..
-> > > >
-> > > > But what it is true... is that, patch "omap2/3/4: Fix mach-
-> > > omap2/serial.c for multiboot" is definitely breaking Zoom3 boot, and
-> needs
-> > > to be fixed.
-> > >
-> > > Yes sounds like only zoom has the external uart, other 3630
-> > > boards may be using the internal uart4.
-> >
-> > Actually, I don't see any patch to handle uart4 interface/functional
-> clocks, so I assume the addition of uart4 for 3630 chip is incomplete.
-> >
-> > Shall we apply my 2nd patch, until proper clock handling is in place?
-> >
-> > I don't have an omap4 to test, but I think my patch shouldn't hurt the
-> initial intention to make multiomap builds possible... agree?
-> 
-> See also the recent patch from Thomas. I'd say let's rather fix this
-> properly with your clock related patchset once it's been tested.
-> 
-> We already have all these temporary hacks still in place for omap4,
-> let's try not to add more.
+> This bits are exclusive of omap 36xx family of chips.
 
-Ok, sure. I agree.
+Verified against the Rev C TRM.
 
-I'll try to get a 3630SDP, which I believe has physical access to UART4. With just my Zoom3 I can't do much :/
+Reviewed-by: Paul Walmsley <paul@pwsan.com>
 
-Regards,
-Sergio
+
 > 
-> Regards,
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  arch/arm/mach-omap2/prcm-common.h |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
 > 
-> Tony
+> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+> index 90f603d..c4e7bcb 100644
+> --- a/arch/arm/mach-omap2/prcm-common.h
+> +++ b/arch/arm/mach-omap2/prcm-common.h
+> @@ -390,6 +390,8 @@
+>  #define OMAP3430_EN_MPU_SHIFT				1
+>  
+>  /* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
+> +#define OMAP3630_EN_UART4				(1 << 18)
+> +#define OMAP3630_EN_UART4_SHIFT				18
+>  #define OMAP3430_EN_GPIO6				(1 << 17)
+>  #define OMAP3430_EN_GPIO6_SHIFT				17
+>  #define OMAP3430_EN_GPIO5				(1 << 16)
+> @@ -430,6 +432,8 @@
+>  #define OMAP3430_EN_MCBSP2_SHIFT			0
+>  
+>  /* CM_IDLEST_PER, PM_WKST_PER shared bits */
+> +#define OMAP3630_ST_UART4_SHIFT				18
+> +#define OMAP3630_ST_UART4_MASK				(1 << 18)
+>  #define OMAP3430_ST_GPIO6_SHIFT				17
+>  #define OMAP3430_ST_GPIO6_MASK				(1 << 17)
+>  #define OMAP3430_ST_GPIO5_SHIFT				16
+> -- 
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
