@@ -1,7 +1,7 @@
-From: Jacob john <jacob.john74@gmail.com>
-Subject: Re: About multicore OMAP
-Date: Thu, 25 Feb 2010 19:57:36 +0530
-Message-ID: <31ee32481002250627r6509c52ds46765baafec3828f@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: About multicore OMAP
+Date: Thu, 25 Feb 2010 20:04:02 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF512@dbde02.ent.ti.com>
 References: <31ee32481002230504m2cc4dfebu85426681e76b4ee@mail.gmail.com>
 	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E14F4@dbde02.ent.ti.com>
 	 <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
@@ -11,126 +11,96 @@ References: <31ee32481002230504m2cc4dfebu85426681e76b4ee@mail.gmail.com>
 	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E16F4@dbde02.ent.ti.com>
 	 <31ee32481002250607j34f18276s5d478b5756543a55@mail.gmail.com>
 	 <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF4F5@dbde02.ent.ti.com>
+ <31ee32481002250627r6509c52ds46765baafec3828f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f172.google.com ([209.85.221.172]:33856 "EHLO
-	mail-qy0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932680Ab0BYO1h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 09:27:37 -0500
-Received: by qyk2 with SMTP id 2so484672qyk.1
-        for <linux-omap@vger.kernel.org>; Thu, 25 Feb 2010 06:27:36 -0800 (PST)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF4F5@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:35820 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932710Ab0BYOeK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 09:34:10 -0500
+In-Reply-To: <31ee32481002250627r6509c52ds46765baafec3828f@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Jacob john <jacob.john74@gmail.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Feb 25, 2010 at 7:45 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
->> -----Original Message-----
->> From: Jacob john [mailto:jacob.john74@gmail.com]
->> Sent: Thursday, February 25, 2010 7:37 PM
->> To: Shilimkar, Santosh
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: About multicore OMAP
->>
->> On Wed, Feb 24, 2010 at 10:24 AM, Shilimkar, Santosh
->> <santosh.shilimkar@ti.com> wrote:
->> >> -----Original Message-----
->> >> From: Jacob john [mailto:jacob.john74@gmail.com]
->> >> Sent: Wednesday, February 24, 2010 10:16 AM
->> >> To: Shilimkar, Santosh
->> >> Cc: linux-omap@vger.kernel.org
->> >> Subject: Re: About multicore OMAP
->> >>
->> >> On Tue, Feb 23, 2010 at 10:20 PM, Shilimkar, Santosh
->> >> <santosh.shilimkar@ti.com> wrote:
->> >> > John,
->> >> >> -----Original Message-----
->> >> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owne=
-r@vger.kernel.org] On Behalf Of
->> >> >> Shilimkar, Santosh
->> >> >> Sent: Tuesday, February 23, 2010 8:01 PM
->> >> >> To: Jacob john
->> >> >> Cc: linux-omap@vger.kernel.org
->> >> >> Subject: RE: About multicore OMAP
->> >> >>
->> >> >> > -----Original Message-----
->> >> >> > From: Jacob john [mailto:jacob.john74@gmail.com]
->> >> >> > Sent: Tuesday, February 23, 2010 7:51 PM
->> >> >> > To: Shilimkar, Santosh
->> >> >> > Cc: linux-omap@vger.kernel.org
->> >> >> > Subject: Re: About multicore OMAP
->> >> >> >
->> >> >> > It's=C2=A0Blaze with=C2=A0two lcd's and pico, looks great. C=
-an I have this
->> >> >> > linux-omap kernel running on OMAP4?, plus I'm looking for SM=
-P
->> >> >> > benchmark results etc.
->> >> >> >
->> >> >> Linux-omap kernel with omap_4430sdp_defconfig will boot on bla=
-ze with SMP. This
->> >> >> won't have lot of driver support as such currently. Also L2 ca=
-che support is in
->> >> >> on the way to make it to mainline as well. You should be able =
-to play with this
->> >> >> with some basic benchmark test related to CPU.
->> >> >>
->> >> >> Display , Audio, Pico, keypad, touchscreeen etc drivers are av=
-ailable with the
->> >> >> release and you should be able get more details from the TI co=
-ntact person who
->> >> >> gave you the blaze. You can also get the performance numbers f=
-rom same source
->> >> >>
->> >> > If you need the full kernel with all the drivers I mentioned ab=
-ove, you can use
->> >> > below git.
->> >> > http://dev.omapzoom.org/?p=3Dintegration/kernel-omap4.git;a=3Ds=
-hortlog;h=3Drefs/heads/L24.4
->> >>
->> >> Good help so far......, wondering why two trees for OMAP4, tell m=
-e the
->> >> diff b/n this list and the zoom.
->> >> is there a different mailing list for zoom? confusing... and I am
->> >> sorry....thanks for the pointers
->> >>
->> > The mailing list is only one (Linux-omap). There is no difference.=
- Linux-omap
->> > tree is almost mainline equivalent from omap4 point of view. The f=
-eatures are developed
->> > on the tree I mentioned above. The tested features will be up-stre=
-amed after rebasing
->> > one by one. You will find only upstreamed/lined-up features in lin=
-ux-omap tree.
->> >
->> Thanks Sentosh for your help, what do you advise? you always wanted =
-me
->> to go to zoom, so I don't have to pull from Linux-omap.
->> When I should use zoom and when I should come back to Linux-omap?
->> please clarify. Good way to ask "which is latest?" :)
->> I am sorry, I am confused....help me
->>
-> The dev.omapzoom.org trees gets updated regularly with linux-omap/mai=
-ninle. So basically
-> it is ( Linux-omap-master + =C2=A0Additional drivers including IPC). =
-So you can use the
-> git available on dev.omapzoom.org. This will enable you to have all t=
-he drivers in
-> one tree.
-
-Sounds great, appreciate this, TI gave Android kernel, so from
-omapzoom I get Android kernel?
-please share GIT url path for the same, any readme is there like
-Linux-omap? thanks for your help
->
-> Regards,
-> Santosh
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYWNvYiBqb2huIFttYWlsdG86
+amFjb2Iuam9objc0QGdtYWlsLmNvbV0NCj4gU2VudDogVGh1cnNkYXksIEZlYnJ1YXJ5IDI1LCAy
+MDEwIDc6NTggUE0NCj4gVG86IFNoaWxpbWthciwgU2FudG9zaA0KPiBDYzogbGludXgtb21hcEB2
+Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IEFib3V0IG11bHRpY29yZSBPTUFQDQo+IA0K
+PiBPbiBUaHUsIEZlYiAyNSwgMjAxMCBhdCA3OjQ1IFBNLCBTaGlsaW1rYXIsIFNhbnRvc2gNCj4g
+PHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4gd3JvdGU6DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVz
+c2FnZS0tLS0tDQo+ID4+IEZyb206IEphY29iIGpvaG4gW21haWx0bzpqYWNvYi5qb2huNzRAZ21h
+aWwuY29tXQ0KPiA+PiBTZW50OiBUaHVyc2RheSwgRmVicnVhcnkgMjUsIDIwMTAgNzozNyBQTQ0K
+PiA+PiBUbzogU2hpbGlta2FyLCBTYW50b3NoDQo+ID4+IENjOiBsaW51eC1vbWFwQHZnZXIua2Vy
+bmVsLm9yZw0KPiA+PiBTdWJqZWN0OiBSZTogQWJvdXQgbXVsdGljb3JlIE9NQVANCj4gPj4NCj4g
+Pj4gT24gV2VkLCBGZWIgMjQsIDIwMTAgYXQgMTA6MjQgQU0sIFNoaWxpbWthciwgU2FudG9zaA0K
+PiA+PiA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPiB3cm90ZToNCj4gPj4gPj4gLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gPj4gRnJvbTogSmFjb2Igam9obiBbbWFpbHRvOmphY29i
+LmpvaG43NEBnbWFpbC5jb21dDQo+ID4+ID4+IFNlbnQ6IFdlZG5lc2RheSwgRmVicnVhcnkgMjQs
+IDIwMTAgMTA6MTYgQU0NCj4gPj4gPj4gVG86IFNoaWxpbWthciwgU2FudG9zaA0KPiA+PiA+PiBD
+YzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gPj4gPj4gU3ViamVjdDogUmU6IEFib3V0
+IG11bHRpY29yZSBPTUFQDQo+ID4+ID4+DQo+ID4+ID4+IE9uIFR1ZSwgRmViIDIzLCAyMDEwIGF0
+IDEwOjIwIFBNLCBTaGlsaW1rYXIsIFNhbnRvc2gNCj4gPj4gPj4gPHNhbnRvc2guc2hpbGlta2Fy
+QHRpLmNvbT4gd3JvdGU6DQo+ID4+ID4+ID4gSm9obiwNCj4gPj4gPj4gPj4gLS0tLS1PcmlnaW5h
+bCBNZXNzYWdlLS0tLS0NCj4gPj4gPj4gPj4gRnJvbTogbGludXgtb21hcC1vd25lckB2Z2VyLmtl
+cm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVo
+YWxmDQo+IE9mDQo+ID4+ID4+ID4+IFNoaWxpbWthciwgU2FudG9zaA0KPiA+PiA+PiA+PiBTZW50
+OiBUdWVzZGF5LCBGZWJydWFyeSAyMywgMjAxMCA4OjAxIFBNDQo+ID4+ID4+ID4+IFRvOiBKYWNv
+YiBqb2huDQo+ID4+ID4+ID4+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiA+PiA+
+PiA+PiBTdWJqZWN0OiBSRTogQWJvdXQgbXVsdGljb3JlIE9NQVANCj4gPj4gPj4gPj4NCj4gPj4g
+Pj4gPj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiA+PiA+PiA+IEZyb206IEph
+Y29iIGpvaG4gW21haWx0bzpqYWNvYi5qb2huNzRAZ21haWwuY29tXQ0KPiA+PiA+PiA+PiA+IFNl
+bnQ6IFR1ZXNkYXksIEZlYnJ1YXJ5IDIzLCAyMDEwIDc6NTEgUE0NCj4gPj4gPj4gPj4gPiBUbzog
+U2hpbGlta2FyLCBTYW50b3NoDQo+ID4+ID4+ID4+ID4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJu
+ZWwub3JnDQo+ID4+ID4+ID4+ID4gU3ViamVjdDogUmU6IEFib3V0IG11bHRpY29yZSBPTUFQDQo+
+ID4+ID4+ID4+ID4NCj4gPj4gPj4gPj4gPiBJdCdzwqBCbGF6ZSB3aXRowqB0d28gbGNkJ3MgYW5k
+IHBpY28sIGxvb2tzIGdyZWF0LiBDYW4gSSBoYXZlIHRoaXMNCj4gPj4gPj4gPj4gPiBsaW51eC1v
+bWFwIGtlcm5lbCBydW5uaW5nIG9uIE9NQVA0PywgcGx1cyBJJ20gbG9va2luZyBmb3IgU01QDQo+
+ID4+ID4+ID4+ID4gYmVuY2htYXJrIHJlc3VsdHMgZXRjLg0KPiA+PiA+PiA+PiA+DQo+ID4+ID4+
+ID4+IExpbnV4LW9tYXAga2VybmVsIHdpdGggb21hcF80NDMwc2RwX2RlZmNvbmZpZyB3aWxsIGJv
+b3Qgb24gYmxhemUgd2l0aCBTTVAuIFRoaXMNCj4gPj4gPj4gPj4gd29uJ3QgaGF2ZSBsb3Qgb2Yg
+ZHJpdmVyIHN1cHBvcnQgYXMgc3VjaCBjdXJyZW50bHkuIEFsc28gTDIgY2FjaGUgc3VwcG9ydCBp
+cyBpbg0KPiA+PiA+PiA+PiBvbiB0aGUgd2F5IHRvIG1ha2UgaXQgdG8gbWFpbmxpbmUgYXMgd2Vs
+bC4gWW91IHNob3VsZCBiZSBhYmxlIHRvIHBsYXkgd2l0aCB0aGlzDQo+ID4+ID4+ID4+IHdpdGgg
+c29tZSBiYXNpYyBiZW5jaG1hcmsgdGVzdCByZWxhdGVkIHRvIENQVS4NCj4gPj4gPj4gPj4NCj4g
+Pj4gPj4gPj4gRGlzcGxheSAsIEF1ZGlvLCBQaWNvLCBrZXlwYWQsIHRvdWNoc2NyZWVlbiBldGMg
+ZHJpdmVycyBhcmUgYXZhaWxhYmxlIHdpdGggdGhlDQo+ID4+ID4+ID4+IHJlbGVhc2UgYW5kIHlv
+dSBzaG91bGQgYmUgYWJsZSBnZXQgbW9yZSBkZXRhaWxzIGZyb20gdGhlIFRJIGNvbnRhY3QgcGVy
+c29uIHdobw0KPiA+PiA+PiA+PiBnYXZlIHlvdSB0aGUgYmxhemUuIFlvdSBjYW4gYWxzbyBnZXQg
+dGhlIHBlcmZvcm1hbmNlIG51bWJlcnMgZnJvbSBzYW1lIHNvdXJjZQ0KPiA+PiA+PiA+Pg0KPiA+
+PiA+PiA+IElmIHlvdSBuZWVkIHRoZSBmdWxsIGtlcm5lbCB3aXRoIGFsbCB0aGUgZHJpdmVycyBJ
+IG1lbnRpb25lZCBhYm92ZSwgeW91IGNhbiB1c2UNCj4gPj4gPj4gPiBiZWxvdyBnaXQuDQo+ID4+
+ID4+ID4gaHR0cDovL2Rldi5vbWFwem9vbS5vcmcvP3A9aW50ZWdyYXRpb24va2VybmVsLW9tYXA0
+LmdpdDthPXNob3J0bG9nO2g9cmVmcy9oZWFkcy9MMjQuNA0KPiA+PiA+Pg0KPiA+PiA+PiBHb29k
+IGhlbHAgc28gZmFyLi4uLi4uLCB3b25kZXJpbmcgd2h5IHR3byB0cmVlcyBmb3IgT01BUDQsIHRl
+bGwgbWUgdGhlDQo+ID4+ID4+IGRpZmYgYi9uIHRoaXMgbGlzdCBhbmQgdGhlIHpvb20uDQo+ID4+
+ID4+IGlzIHRoZXJlIGEgZGlmZmVyZW50IG1haWxpbmcgbGlzdCBmb3Igem9vbT8gY29uZnVzaW5n
+Li4uIGFuZCBJIGFtDQo+ID4+ID4+IHNvcnJ5Li4uLnRoYW5rcyBmb3IgdGhlIHBvaW50ZXJzDQo+
+ID4+ID4+DQo+ID4+ID4gVGhlIG1haWxpbmcgbGlzdCBpcyBvbmx5IG9uZSAoTGludXgtb21hcCku
+IFRoZXJlIGlzIG5vIGRpZmZlcmVuY2UuIExpbnV4LW9tYXANCj4gPj4gPiB0cmVlIGlzIGFsbW9z
+dCBtYWlubGluZSBlcXVpdmFsZW50IGZyb20gb21hcDQgcG9pbnQgb2Ygdmlldy4gVGhlIGZlYXR1
+cmVzIGFyZSBkZXZlbG9wZWQNCj4gPj4gPiBvbiB0aGUgdHJlZSBJIG1lbnRpb25lZCBhYm92ZS4g
+VGhlIHRlc3RlZCBmZWF0dXJlcyB3aWxsIGJlIHVwLXN0cmVhbWVkIGFmdGVyIHJlYmFzaW5nDQo+
+ID4+ID4gb25lIGJ5IG9uZS4gWW91IHdpbGwgZmluZCBvbmx5IHVwc3RyZWFtZWQvbGluZWQtdXAg
+ZmVhdHVyZXMgaW4gbGludXgtb21hcCB0cmVlLg0KPiA+PiA+DQo+ID4+IFRoYW5rcyBTZW50b3No
+IGZvciB5b3VyIGhlbHAsIHdoYXQgZG8geW91IGFkdmlzZT8geW91IGFsd2F5cyB3YW50ZWQgbWUN
+Cj4gPj4gdG8gZ28gdG8gem9vbSwgc28gSSBkb24ndCBoYXZlIHRvIHB1bGwgZnJvbSBMaW51eC1v
+bWFwLg0KPiA+PiBXaGVuIEkgc2hvdWxkIHVzZSB6b29tIGFuZCB3aGVuIEkgc2hvdWxkIGNvbWUg
+YmFjayB0byBMaW51eC1vbWFwPw0KPiA+PiBwbGVhc2UgY2xhcmlmeS4gR29vZCB3YXkgdG8gYXNr
+ICJ3aGljaCBpcyBsYXRlc3Q/IiA6KQ0KPiA+PiBJIGFtIHNvcnJ5LCBJIGFtIGNvbmZ1c2VkLi4u
+LmhlbHAgbWUNCj4gPj4NCj4gPiBUaGUgZGV2Lm9tYXB6b29tLm9yZyB0cmVlcyBnZXRzIHVwZGF0
+ZWQgcmVndWxhcmx5IHdpdGggbGludXgtb21hcC9tYWluaW5sZS4gU28gYmFzaWNhbGx5DQo+ID4g
+aXQgaXMgKCBMaW51eC1vbWFwLW1hc3RlciArIMKgQWRkaXRpb25hbCBkcml2ZXJzIGluY2x1ZGlu
+ZyBJUEMpLiBTbyB5b3UgY2FuIHVzZSB0aGUNCj4gPiBnaXQgYXZhaWxhYmxlIG9uIGRldi5vbWFw
+em9vbS5vcmcuIFRoaXMgd2lsbCBlbmFibGUgeW91IHRvIGhhdmUgYWxsIHRoZSBkcml2ZXJzIGlu
+DQo+ID4gb25lIHRyZWUuDQo+IA0KPiBTb3VuZHMgZ3JlYXQsIGFwcHJlY2lhdGUgdGhpcywgVEkg
+Z2F2ZSBBbmRyb2lkIGtlcm5lbCwgc28gZnJvbQ0KPiBvbWFwem9vbSBJIGdldCBBbmRyb2lkIGtl
+cm5lbD8NCj4gcGxlYXNlIHNoYXJlIEdJVCB1cmwgcGF0aCBmb3IgdGhlIHNhbWUsIGFueSByZWFk
+bWUgaXMgdGhlcmUgbGlrZQ0KPiBMaW51eC1vbWFwPyB0aGFua3MgZm9yIHlvdXIgaGVscA0KPiA+
+DQpIZXJlIGlzIHRoZSBsaW5rIGZvciB0aGUgYW5kcm9pZCBnaXQuDQpodHRwOi8vZGV2Lm9tYXB6
+b29tLm9yZy8/cD12aWtyYW0vb21hcDMuZ2l0O2E9c2hvcnRsb2c7aD1yZWZzL2hlYWRzL2FuZHJv
+aWQtMi42LjMyLW9tYXA0DQoNCg0KUmVnYXJkcywNClNhbnRvc2gNCg==
