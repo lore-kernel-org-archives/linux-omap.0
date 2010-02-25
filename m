@@ -1,50 +1,35 @@
 From: Sriramakrishnan <srk@ti.com>
-Subject: [PATCH 2/3] AM3517 EVM : Enable TCA6416 keypad
-Date: Thu, 25 Feb 2010 18:45:00 +0530
-Message-ID: <1267103701-23823-3-git-send-email-srk@ti.com>
-References: <1267103701-23823-1-git-send-email-srk@ti.com>
- <1267103701-23823-2-git-send-email-srk@ti.com>
+Subject: [PATCH 0/3] Add support for TCA6416 based Keypad driver.
+Date: Thu, 25 Feb 2010 18:44:58 +0530
+Message-ID: <1267103701-23823-1-git-send-email-srk@ti.com>
 Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1267103701-23823-2-git-send-email-srk@ti.com>
 Sender: linux-input-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 Cc: Sriramakrishnan <srk@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Update kernel configuration for AM3517EVM to include
-support for TCA6416 keypad.
+AM3517 EVM with APPS board includes keys interfaced to TCA6416 IO expander.
+User keys are connected as GPIO lines to TCA6416 IO expander. Unlike the
+case with generic gpio-keypad driver individual keys do not generate an
+interrupt event. Hence we implement a simple keypad driver(based on gpio-keys)
+that registers as direct I2C client.
 
-Signed-off-by: Sriramakrishnan <srk@ti.com>
----
- arch/arm/configs/am3517_evm_defconfig |   15 ++++++++++++++-
- 1 files changed, 14 insertions(+), 1 deletions(-)
+The implementation has been tested on AM3517 EVM with the driver tested
+in polling mode.
 
-diff --git a/arch/arm/configs/am3517_evm_defconfig b/arch/arm/configs/am3517_evm_defconfig
-index 04a804b..439ba7f 100644
---- a/arch/arm/configs/am3517_evm_defconfig
-+++ b/arch/arm/configs/am3517_evm_defconfig
-@@ -539,7 +539,20 @@ CONFIG_INPUT_EVDEV=y
- #
- # Input Device Drivers
- #
--# CONFIG_INPUT_KEYBOARD is not set
-+CONFIG_INPUT_KEYBOARD=y
-+# CONFIG_KEYBOARD_ADP5588 is not set
-+CONFIG_KEYBOARD_ATKBD=y
-+# CONFIG_QT2160 is not set
-+# CONFIG_KEYBOARD_LKKBD is not set
-+# CONFIG_KEYBOARD_GPIO is not set
-+CONFIG_KEYBOARD_TCA6416=y
-+# CONFIG_KEYBOARD_MATRIX is not set
-+# CONFIG_KEYBOARD_MAX7359 is not set
-+# CONFIG_KEYBOARD_NEWTON is not set
-+# CONFIG_KEYBOARD_OPENCORES is not set
-+# CONFIG_KEYBOARD_STOWAWAY is not set
-+# CONFIG_KEYBOARD_SUNKBD is not set
-+# CONFIG_KEYBOARD_XTKBD is not set
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
- # CONFIG_INPUT_TABLET is not set
--- 
-1.6.2.4
+Sriramakrishnan (3):
+  TCA6416 keypad : Implement keypad driver for keys interfaced to
+    TCA6416
+  AM3517 EVM : Enable TCA6416 keypad
+  AM3517: Board hookup for TCA6416 keypad driver.
+
+ arch/arm/configs/am3517_evm_defconfig   |   15 ++-
+ arch/arm/mach-omap2/board-am3517evm.c   |   48 ++++-
+ drivers/input/keyboard/Kconfig          |   17 ++
+ drivers/input/keyboard/Makefile         |    1 +
+ drivers/input/keyboard/tca6416-keypad.c |  355 +++++++++++++++++++++++++++++++
+ include/linux/tca6416_keypad.h          |   30 +++
+ 6 files changed, 460 insertions(+), 6 deletions(-)
+ create mode 100755 drivers/input/keyboard/tca6416-keypad.c
+ create mode 100755 include/linux/tca6416_keypad.h
 
