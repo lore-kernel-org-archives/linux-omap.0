@@ -1,66 +1,91 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH 1/2 V2] OMAP: DSS: Add display board file for zoom boards
-Date: Thu, 25 Feb 2010 10:10:27 -0600
-Message-ID: <A24693684029E5489D1D202277BE89445398E7A7@dlee02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E94026B7E8B93@dbde02.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026B7E8C25@dbde02.ent.ti.com>
+From: "Olaya, Margarita" <magi.olaya@ti.com>
+Subject: Re: [PATCHv4 0/7] TWL6030 audio codec initial support
+Date: Thu, 25 Feb 2010 11:40:46 -0600
+Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD26C5@dlee06.ent.ti.com>
+References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B12@dlee06.ent.ti.com>
+	<1267011618.3274.202.camel@odin>
+	<1889FA7136B567478A67D4B0F85B0CCE65DD2303@dlee06.ent.ti.com>
+	<1267089182.3255.58.camel@odin>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40689 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932586Ab0BYQKc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 11:10:32 -0500
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026B7E8C25@dbde02.ent.ti.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1267089182.3255.58.camel@odin>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "Y, Kishore" <kishore.y@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-Manjunath,
 
-From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
-Sent: Thursday, February 11, 2010 5:35 AM
-> From: linux-omap-owner@vger.kernel.org
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Y, Kishore
-> Sent: Thursday, February 11, 2010 3:33 PM
 
-<snip>
-
-> > +
-> > +static void zoom_lcd_tv_panel_init(void)
-> > +{
-> > +	int ret;
-> > +	unsigned char lcd_panel_reset_gpio;
-> > +
-> > +	if (omap_rev() > OMAP3430_REV_ES3_0) {
-> > +		/* Production Zoom2 board:
-> > +		 * GPIO-96 is the LCD_RESET_GPIO
-> > +		 */
-> > +		lcd_panel_reset_gpio = LCD_PANEL_RESET_GPIO_PROD;
-> > +	} else {
-> > +		/* Pilot Zoom2 board:
-> > +		 * GPIO-55 is the LCD_RESET_GPIO
-> > +		 */
-> > +		lcd_panel_reset_gpio = LCD_PANEL_RESET_GPIO_PILOT;
-> > +	}
+> -----Original Message-----
+> From: Liam Girdwood [mailto:lrg@slimlogic.co.uk]
+> Sent: Thursday, February 25, 2010 3:13 AM
+> To: Olaya, Margarita
+> Cc: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org; broonie@opensource.wolfsonmicro.com
+> Subject: Re: [alsa-devel] [PATCHv4 0/7] TWL6030 audio codec initial support
 > 
-> How about:
+> On Wed, 2010-02-24 at 18:17 -0600, Olaya, Margarita wrote:
+> >
+> > > -----Original Message-----
+> > > From: Liam Girdwood [mailto:lrg@slimlogic.co.uk]
+> > > Sent: Wednesday, February 24, 2010 5:40 AM
+> > > To: Olaya, Margarita
+> > > Cc: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org; broonie@opensource.wolfsonmicro.com
+> > > Subject: Re: [PATCHv4 0/7] TWL6030 audio codec initial support
+> > >
+> > > On Tue, 2010-02-23 at 18:10 -0600, Olaya, Margarita wrote:
+> > > > Following patch series add initial support for TWL6030 codec driver.
+> > > > The patch set is based on the series sent from Misael Lopez in October 2009.
+> > > >
+> > > > Changes from v3:
+> > > > - Remove snd_soc_init_card function
+> > > > - Adapt to latest twl core changes based on Balaji's comment
+> > > >
+> > > > Regards,
+> > > > Margarita
+> > > >
+> > > > ---
+> > > > Misael Lopez Cruz (7):
+> > > >   OMAP4: PMIC: Add support for twl6030 codec
+> > > >   ASoC: TWL6030: Add twl6030 codec driver
+> > > >   ASoC: TWL6030: Manual power-up/down sequences
+> > > >   ASoC: TWL6030: Add support for low-power PLL
+> > > >   ASoC: TWL6030: Add restrictions for low-power playback mode
+> > > >   ASoC: TWL6030: Enable audio interrupt
+> > > >   ASoC: TWL6030: Detect power-up sequence completion
+> > >
+> > > Btw, since this is a new driver can you rebase the 6 codec patches into
+> > > a single patch.
+> > >
+> >
+> > The second patch adds the basic support for the codec and the others add features, that way it
+> could be easier to review.
 > 
-> lcd_panel_reset_gpio = (omap_rev() > OMAP3430_REV_ES3_0) ?
-> LCD_PANEL_RESET_GPIO_PROD :
-> 						LCD_PANEL_RESET_GPIO_PILOT;
-
-This approach has been discussed many times before, and found incorrect. There is no way to auto-detect valid GPIO for reset as of now. For example: Zoom Pilot + 3630 SOM case will fail here.
-
-I'll push again for my thoughts on this one...
-
-There MUST be a configurable option in kernel menuconfig to select the board revision (Pilot, pre-production). That is the only clean way I can see this could actually work.
+> Some of the subsequent patches are actually removing chunks of code
+> rather than just adding new features. In this case it's actually easier
+> to review the complete codec driver as one patch rather than a series of
+> changes (showing your internal development history).
+> 
+Ok, I'll send a single patch then.
 
 Regards,
-Sergio
+Margarita
 
-<snip>
+> Thanks
+> 
+> Liam
+> 
+> --
+> Freelance Developer, SlimLogic Ltd
+> ASoC and Voltage Regulator Maintainer.
+> http://www.slimlogic.co.uk
