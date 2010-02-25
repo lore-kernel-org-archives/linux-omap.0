@@ -1,40 +1,51 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [PATCHv4 2/7] ASoC: TWL6030: Add twl6030 codec
- driver
-Date: Thu, 25 Feb 2010 10:17:35 +0000
-Message-ID: <20100225101735.GF10141@rakim.wolfsonmicro.main>
-References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B14@dlee06.ent.ti.com>
- <1267007881.3274.136.camel@odin>
- <20100224104256.GB9018@sirena.org.uk>
- <1889FA7136B567478A67D4B0F85B0CCE65DD22F0@dlee06.ent.ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 3/4] USB: MUSB: Add OMAP4 support in MUSB driver
+Date: Thu, 25 Feb 2010 13:20:51 +0300
+Message-ID: <4B864F03.3070507@ru.mvista.com>
+References: <1267079785-14529-1-git-send-email-x0082077@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:46594 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756695Ab0BYKRk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Feb 2010 05:17:40 -0500
-Content-Disposition: inline
-In-Reply-To: <1889FA7136B567478A67D4B0F85B0CCE65DD22F0@dlee06.ent.ti.com>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:56744 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932087Ab0BYKVU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 05:21:20 -0500
+In-Reply-To: <1267079785-14529-1-git-send-email-x0082077@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Olaya, Margarita" <magi.olaya@ti.com>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Maulik Mankad <x0082077@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, David Brownell <david-b@pacbell.net>
 
-On Wed, Feb 24, 2010 at 05:57:25PM -0600, Olaya, Margarita wrote:
+Hello.
 
-> > A switch statement would be nicer here.
+Maulik Mankad wrote:
+> This patch adds CONFIG_ARCH_OMAP4 macro within MUSB driver
+> code and builds the MUSB driver for OMAP4.
+>
+> Signed-off-by: Maulik Mankad <x0082077@ti.com>
+> Cc: Felipe Balbi <felipe.balbi@nokia.com>
+> Cc: Greg Kroah-Hartman <gregkh@suse.de>
+> Cc: David Brownell <david-b@pacbell.net>
+> ---
+> Index: mainline/drivers/usb/musb/Makefile
+> ===================================================================
+> --- mainline.orig/drivers/usb/musb/Makefile
+> +++ mainline/drivers/usb/musb/Makefile
+> @@ -22,6 +22,10 @@ ifeq ($(CONFIG_ARCH_OMAP3430),y)
+>  	musb_hdrc-objs	+= omap2430.o
+>  endif
+>  
+> +ifeq ($(CONFIG_ARCH_OMAP4),y)
+> +	musb_hdrc-objs  += omap2430.o
+> +endif
+> +
+>  ifeq ($(CONFIG_BF54x),y)
+>  	musb_hdrc-objs	+= blackfin.o
+>  endif
 
-> You mean something like this?
+   I think this should be combined with patch 2/4 which doesn't make 
+much sense otherwise...
 
-> 	switch (reg) {
-> 	case TWL6030_REG_ASICID:
-> 	case TWL6030_REG_ASICREV:
-> 	case TWL6030_REG_STATUS:
-> 		continue;
-> 	default:
-> 	break:
-> 	}
+WBR, Sergei
 
-Yes.
