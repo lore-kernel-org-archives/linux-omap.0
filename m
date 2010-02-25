@@ -1,95 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND][PATCH/RFC] OMAP2: serial.c: Fix number of uarts in
- early_init
-Date: Thu, 25 Feb 2010 10:43:55 -0800
-Message-ID: <20100225184355.GF28173@atomide.com>
-References: <1267090819-17796-1-git-send-email-swirl@gmx.li>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 1/3] TCA6416 keypad : Implement keypad driver for keys
+ interfaced to TCA6416
+Date: Thu, 25 Feb 2010 20:47:03 +0200
+Message-ID: <20100225184702.GA5125@gandalf>
+References: <1267103701-23823-1-git-send-email-srk@ti.com>
+ <1267103701-23823-2-git-send-email-srk@ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns1.siteground211.com ([209.62.36.12]:41686 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759052Ab0BYSrK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 13:47:10 -0500
 Content-Disposition: inline
-In-Reply-To: <1267090819-17796-1-git-send-email-swirl@gmx.li>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Weber <swirl@gmx.li>, Sergio Aquirre <saaguirre@ti.com>
-Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vikram Pandita <vikram.pandita@ti.com>, Syed Rafiuddin <rafiuddin.syed@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Thomas Weber <weber@corscience.de>
+In-Reply-To: <1267103701-23823-2-git-send-email-srk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sriramakrishnan <srk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 
-* Thomas Weber <swirl@gmx.li> [100225 01:36]:
-> 
-> The omap_serial_early_init prints the following errors:
-> 
-> Could not get uart4_ick
-> Could not get uart4_fck
-> 
-> because all the uarts available in omap_uart[] will be initialized.
-> Only omap4430 and omap3630 have 4 uarts at the moment.
-> This patch reduces the number of uarts when cpu is not omap4430 or
-> omap3630.
+Hi,
 
-..and I only patched omap_serial_init and forgot about
-the omap_serial_early_init..
+On Thu, Feb 25, 2010 at 06:44:59PM +0530, Sriramakrishnan wrote:
+> This patch implements a simple Keypad driver that functions
+> as an I2C client. It handles key press events for keys
+> connected to TCA6416 I2C based IO expander.
 
-Looks good to me, Sergio, care to test and Ack this? Also, sounds
-like we still need to patch omap4 for uart4 for the clocks.
+what's wrong with gpio-keys ??
 
-Regards,
+> + * Implementation based on drivers/input/keyboard/gpio_keys.c
 
-Tony
- 
-> Signed-off-by: Thomas Weber <weber@corscience.de>
-> ---
->  arch/arm/mach-omap2/serial.c |   15 ++++++++++-----
->  1 files changed, 10 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index b79bc89..da77930 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -644,16 +644,21 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
->  }
->  void __init omap_serial_early_init(void)
->  {
-> -	int i;
-> +	int i, nr_ports;
->  	char name[16];
->  
-> +	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
-> +		nr_ports = 3;
-> +	else
-> +		nr_ports = ARRAY_SIZE(omap_uart);
+I see,
+
+shouldn't you instead provide a gpiolib driver for tca6416 and use the
+generic gpio_keys driver ??
+
+> +	if (!chip->use_polling) {
+
+IMO, you should only use polling if the irq line isn't connected.
+
+> +		if (pdata->irq_is_gpio)
+> +			chip->irqnum = gpio_to_irq(pdata->irqnum);
+
+you can pass the irq number via i2c_board_info. Use it.
+
+> +		else
+> +			chip->irqnum = pdata->irqnum;
 > +
->  	/*
->  	 * Make sure the serial ports are muxed on at this point.
->  	 * You have to mux them off in device drivers later on
->  	 * if not needed.
->  	 */
->  
-> -	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
-> +	for (i = 0; i < nr_ports; i++) {
->  		struct omap_uart_state *uart = &omap_uart[i];
->  		struct platform_device *pdev = &uart->pdev;
->  		struct device *dev = &pdev->dev;
-> @@ -669,17 +674,17 @@ void __init omap_serial_early_init(void)
->  			continue;
->  		}
->  
-> -		sprintf(name, "uart%d_ick", i+1);
-> +		sprintf(name, "uart%d_ick", i + 1);
->  		uart->ick = clk_get(NULL, name);
->  		if (IS_ERR(uart->ick)) {
-> -			printk(KERN_ERR "Could not get uart%d_ick\n", i+1);
-> +			printk(KERN_ERR "Could not get uart%d_ick\n", i + 1);
->  			uart->ick = NULL;
->  		}
->  
->  		sprintf(name, "uart%d_fck", i+1);
->  		uart->fck = clk_get(NULL, name);
->  		if (IS_ERR(uart->fck)) {
-> -			printk(KERN_ERR "Could not get uart%d_fck\n", i+1);
-> +			printk(KERN_ERR "Could not get uart%d_fck\n", i + 1);
->  			uart->fck = NULL;
->  		}
->  
-> -- 
-> 1.6.4.4
-> 
+> +		ret = request_irq(chip->irqnum, tca6416_keys_isr,
+
+it's an i2c driver!!! this should be request_threaded_irq()
+
+-- 
+balbi
