@@ -1,66 +1,111 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/4] USB: MUSB: Enable MUSB for OMAP4 in Kconfig
-Date: Thu, 25 Feb 2010 10:48:34 -0800
-Message-ID: <20100225184833.GG28173@atomide.com>
-References: <1267079758-14480-1-git-send-email-x0082077@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [RESEND][PATCH/RFC] OMAP2: serial.c: Fix number of uarts in
+ early_init
+Date: Fri, 26 Feb 2010 00:23:30 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF5EC@dbde02.ent.ti.com>
+References: <1267090819-17796-1-git-send-email-swirl@gmx.li>
+ <20100225184355.GF28173@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1267079758-14480-1-git-send-email-x0082077-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100225184355.GF28173@atomide.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Thomas Weber <swirl@gmx.li>, "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Thomas Weber <weber@corscience.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org> [100224 22:33]:
-> This patch adds the OMAP4 Kconfig options for MUSB.
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, February 26, 2010 12:14 AM
+> To: Thomas Weber; Aguirre, Sergio
+> Cc: linux-omap@vger.kernel.org; Russell King; Kevin Hilman; Shilimkar, Santosh; Pandita, Vikram;
+> Syed, Rafiuddin; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; Thomas Weber
+> Subject: Re: [RESEND][PATCH/RFC] OMAP2: serial.c: Fix number of uarts in early_init
 > 
-> Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
-> Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org
-> ---
-> Index: mainline/drivers/usb/musb/Kconfig
-> ===================================================================
-> --- mainline.orig/drivers/usb/musb/Kconfig
-> +++ mainline/drivers/usb/musb/Kconfig
-> @@ -38,6 +38,7 @@ config USB_MUSB_SOC
->  	default y if ARCH_DAVINCI
->  	default y if ARCH_OMAP2430
->  	default y if ARCH_OMAP34XX
-> +	default y if ARCH_OMAP4
->  	default y if (BF54x && !BF544)
->  	default y if (BF52x && !BF522 && !BF523)
->  
-> @@ -50,6 +51,9 @@ comment "OMAP 243x high speed USB suppor
->  comment "OMAP 343x high speed USB support"
->  	depends on USB_MUSB_HDRC && ARCH_OMAP34XX
->  
-> +comment "OMAP 44xx high speed USB support"
-> +	depends on USB_MUSB_HDRC && ARCH_OMAP4
-> +
->  comment "Blackfin high speed USB Support"
->  	depends on USB_MUSB_HDRC && ((BF54x && !BF544) || (BF52x && !BF522 && !BF523))
->  
-> @@ -153,7 +157,7 @@ config MUSB_PIO_ONLY
->  config USB_INVENTRA_DMA
->  	bool
->  	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
-> -	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN
-> +	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN || ARCH_OMAP4
->  	help
->  	  Enable DMA transfers using Mentor's engine.
+> * Thomas Weber <swirl@gmx.li> [100225 01:36]:
+> >
+> > The omap_serial_early_init prints the following errors:
+> >
+> > Could not get uart4_ick
+> > Could not get uart4_fck
+> >
+> > because all the uarts available in omap_uart[] will be initialized.
+> > Only omap4430 and omap3630 have 4 uarts at the moment.
+> > This patch reduces the number of uarts when cpu is not omap4430 or
+> > omap3630.
+> 
+> ..and I only patched omap_serial_init and forgot about
+> the omap_serial_early_init..
+> 
+> Looks good to me, Sergio, care to test and Ack this? Also, sounds
+> like we still need to patch omap4 for uart4 for the clocks.
+> 
+Clocks will be take care automatically by "nr_ports" for omap4 too
+with this patch. Below clock changes are just cosmetic ones, isn't it ?
 
-FYI, this needs to be updated as I have patches queued up
-to replace ARCH_OMAP34XX and with ARCH_OMAP3. You might
-want to check all these patches for that and make sure
-they build and work with the omap-for-linus branch.
+Am I missing something?
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> 
+> Tony
+> 
+> > Signed-off-by: Thomas Weber <weber@corscience.de>
+> > ---
+> >  arch/arm/mach-omap2/serial.c |   15 ++++++++++-----
+> >  1 files changed, 10 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> > index b79bc89..da77930 100644
+> > --- a/arch/arm/mach-omap2/serial.c
+> > +++ b/arch/arm/mach-omap2/serial.c
+> > @@ -644,16 +644,21 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
+> >  }
+> >  void __init omap_serial_early_init(void)
+> >  {
+> > -	int i;
+> > +	int i, nr_ports;
+> >  	char name[16];
+> >
+> > +	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
+> > +		nr_ports = 3;
+> > +	else
+> > +		nr_ports = ARRAY_SIZE(omap_uart);
+> > +
+> >  	/*
+> >  	 * Make sure the serial ports are muxed on at this point.
+> >  	 * You have to mux them off in device drivers later on
+> >  	 * if not needed.
+> >  	 */
+> >
+> > -	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+> > +	for (i = 0; i < nr_ports; i++) {
+> >  		struct omap_uart_state *uart = &omap_uart[i];
+> >  		struct platform_device *pdev = &uart->pdev;
+> >  		struct device *dev = &pdev->dev;
+> > @@ -669,17 +674,17 @@ void __init omap_serial_early_init(void)
+> >  			continue;
+> >  		}
+> >
+> > -		sprintf(name, "uart%d_ick", i+1);
+> > +		sprintf(name, "uart%d_ick", i + 1);
+> >  		uart->ick = clk_get(NULL, name);
+> >  		if (IS_ERR(uart->ick)) {
+> > -			printk(KERN_ERR "Could not get uart%d_ick\n", i+1);
+> > +			printk(KERN_ERR "Could not get uart%d_ick\n", i + 1);
+> >  			uart->ick = NULL;
+> >  		}
+> >
+> >  		sprintf(name, "uart%d_fck", i+1);
+> >  		uart->fck = clk_get(NULL, name);
+> >  		if (IS_ERR(uart->fck)) {
+> > -			printk(KERN_ERR "Could not get uart%d_fck\n", i+1);
+> > +			printk(KERN_ERR "Could not get uart%d_fck\n", i + 1);
+> >  			uart->fck = NULL;
+> >  		}
+> >
+> > --
+> > 1.6.4.4
+> >
