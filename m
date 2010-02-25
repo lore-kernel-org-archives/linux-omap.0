@@ -1,108 +1,104 @@
-From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/4] USB: MUSB: Add OMAP4 support in MUSB driver
-Date: Thu, 25 Feb 2010 12:06:25 +0530
-Message-ID: <1267079785-14529-1-git-send-email-x0082077@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+From: Maulik Mankad <x0082077@ti.com>
+Subject: [PATCH 4/4] OMAP: MUSB: Enable Mentor USB options in 4430 defconfig
+Date: Thu, 25 Feb 2010 12:07:53 +0530
+Message-ID: <1267079873-14768-1-git-send-email-x0082077@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33174 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753454Ab0BYGiE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Feb 2010 01:38:04 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Maulik Mankad <x0082077@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>
 
-This patch adds CONFIG_ARCH_OMAP4 macro within MUSB driver
-code and builds the MUSB driver for OMAP4.
+This patch enables Mentor USB peripheral mode
+options for OMAP4 SDP defconfig.
 
-Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
-Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Signed-off-by: Maulik Mankad <x0082077@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 ---
-Index: mainline/drivers/usb/musb/Makefile
+Index: mainline/arch/arm/configs/omap_4430sdp_defconfig
 ===================================================================
---- mainline.orig/drivers/usb/musb/Makefile
-+++ mainline/drivers/usb/musb/Makefile
-@@ -22,6 +22,10 @@ ifeq ($(CONFIG_ARCH_OMAP3430),y)
- 	musb_hdrc-objs	+= omap2430.o
- endif
- 
-+ifeq ($(CONFIG_ARCH_OMAP4),y)
-+	musb_hdrc-objs  += omap2430.o
-+endif
+--- mainline.orig/arch/arm/configs/omap_4430sdp_defconfig
++++ mainline/arch/arm/configs/omap_4430sdp_defconfig
+@@ -531,7 +531,76 @@ CONFIG_SSB_POSSIBLE=y
+ CONFIG_DUMMY_CONSOLE=y
+ # CONFIG_SOUND is not set
+ # CONFIG_HID_SUPPORT is not set
+-# CONFIG_USB_SUPPORT is not set
++CONFIG_USB_SUPPORT=y
++CONFIG_USB_ARCH_HAS_HCD=y
++CONFIG_USB_ARCH_HAS_OHCI=y
++# CONFIG_USB_ARCH_HAS_EHCI is not set
++# CONFIG_USB is not set
++# CONFIG_USB_OTG_WHITELIST is not set
++# CONFIG_USB_OTG_BLACKLIST_HUB is not set
++CONFIG_USB_MUSB_HDRC=y
++CONFIG_USB_MUSB_SOC=y
 +
- ifeq ($(CONFIG_BF54x),y)
- 	musb_hdrc-objs	+= blackfin.o
- endif
-Index: mainline/drivers/usb/musb/musb_core.c
-===================================================================
---- mainline.orig/drivers/usb/musb/musb_core.c
-+++ mainline/drivers/usb/musb/musb_core.c
-@@ -982,7 +982,8 @@ static void musb_shutdown(struct platfor
-  * more than selecting one of a bunch of predefined configurations.
-  */
- #if defined(CONFIG_USB_TUSB6010) || \
--	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
-+	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX) \
-+	|| defined(CONFIG_ARCH_OMAP4)
- static ushort __initdata fifo_mode = 4;
- #else
- static ushort __initdata fifo_mode = 2;
-@@ -1468,7 +1469,8 @@ static int __init musb_core_init(u16 mus
- 
- /*-------------------------------------------------------------------------*/
- 
--#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430) || \
-+	defined(CONFIG_ARCH_OMAP4)
- 
- static irqreturn_t generic_interrupt(int irq, void *__hci)
- {
-Index: mainline/drivers/usb/musb/musb_core.h
-===================================================================
---- mainline.orig/drivers/usb/musb/musb_core.h
-+++ mainline/drivers/usb/musb/musb_core.h
-@@ -204,7 +204,8 @@ enum musb_g_ep0_state {
-  */
- 
- #if defined(CONFIG_ARCH_DAVINCI) || defined(CONFIG_ARCH_OMAP2430) \
--		|| defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_BLACKFIN)
-+		|| defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_BLACKFIN) \
-+		|| defined(CONFIG_ARCH_OMAP4)
- /* REVISIT indexed access seemed to
-  * misbehave (on DaVinci) for at least peripheral IN ...
-  */
-@@ -555,7 +556,8 @@ extern void musb_hnp_stop(struct musb *m
- extern int musb_platform_set_mode(struct musb *musb, u8 musb_mode);
- 
- #if defined(CONFIG_USB_TUSB6010) || defined(CONFIG_BLACKFIN) || \
--	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
-+	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX) || \
-+	defined(CONFIG_ARCH_OMAP4)
- extern void musb_platform_try_idle(struct musb *musb, unsigned long timeout);
- #else
- #define musb_platform_try_idle(x, y)		do {} while (0)
-Index: mainline/drivers/usb/musb/omap2430.h
-===================================================================
---- mainline.orig/drivers/usb/musb/omap2430.h
-+++ mainline/drivers/usb/musb/omap2430.h
-@@ -10,7 +10,8 @@
- #ifndef __MUSB_OMAP243X_H__
- #define __MUSB_OMAP243X_H__
- 
--#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430) \
-+	|| defined(CONFIG_ARCH_OMAP4)
- #include <mach/hardware.h>
- #include <plat/usb.h>
- 
-@@ -23,6 +24,8 @@
- #define	OMAP_HSOTG_BASE		(OMAP243X_HS_BASE)
- #elif	defined(CONFIG_ARCH_OMAP3430)
- #define	OMAP_HSOTG_BASE		(OMAP34XX_HSUSB_OTG_BASE)
-+#elif	defined(CONFIG_ARCH_OMAP4)
-+#define OMAP_HSOTG_BASE		(OMAP44XX_HSUSB_OTG_BASE)
- #endif
- #define OMAP_HSOTG(offset)	(OMAP_HSOTG_BASE + 0x400 + (offset))
- #define OTG_REVISION		OMAP_HSOTG(0x0)
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++#
++# OMAP 44xx high speed USB support
++#
++# CONFIG_USB_MUSB_HOST is not set
++CONFIG_USB_MUSB_PERIPHERAL=y
++# CONFIG_USB_MUSB_OTG is not set
++CONFIG_USB_GADGET_MUSB_HDRC=y
++# CONFIG_MUSB_PIO_ONLY is not set
++CONFIG_USB_INVENTRA_DMA=y
++# CONFIG_USB_TI_CPPI_DMA is not set
++# CONFIG_USB_MUSB_DEBUG is not set
++
++#
++# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
++#
++CONFIG_USB_GADGET=y
++# CONFIG_USB_GADGET_DEBUG is not set
++# CONFIG_USB_GADGET_DEBUG_FILES is not set
++CONFIG_USB_GADGET_VBUS_DRAW=2
++CONFIG_USB_GADGET_SELECTED=y
++# CONFIG_USB_GADGET_AT91 is not set
++# CONFIG_USB_GADGET_ATMEL_USBA is not set
++# CONFIG_USB_GADGET_FSL_USB2 is not set
++# CONFIG_USB_GADGET_LH7A40X is not set
++# CONFIG_USB_GADGET_OMAP is not set
++# CONFIG_USB_GADGET_PXA25X is not set
++# CONFIG_USB_GADGET_R8A66597 is not set
++# CONFIG_USB_GADGET_PXA27X is not set
++# CONFIG_USB_GADGET_S3C_HSOTG is not set
++# CONFIG_USB_GADGET_IMX is not set
++# CONFIG_USB_GADGET_S3C2410 is not set
++# CONFIG_USB_GADGET_M66592 is not set
++# CONFIG_USB_GADGET_AMD5536UDC is not set
++# CONFIG_USB_GADGET_FSL_QE is not set
++# CONFIG_USB_GADGET_CI13XXX is not set
++# CONFIG_USB_GADGET_NET2280 is not set
++# CONFIG_USB_GADGET_GOKU is not set
++# CONFIG_USB_GADGET_LANGWELL is not set
++# CONFIG_USB_GADGET_DUMMY_HCD is not set
++CONFIG_USB_GADGET_DUALSPEED=y
++CONFIG_USB_ZERO=m
++# CONFIG_USB_AUDIO is not set
++# CONFIG_USB_ETH is not set
++# CONFIG_USB_GADGETFS is not set
++CONFIG_USB_FILE_STORAGE=m
++# CONFIG_USB_FILE_STORAGE_TEST is not set
++# CONFIG_USB_MASS_STORAGE is not set
++CONFIG_USB_G_SERIAL=m
++# CONFIG_USB_MIDI_GADGET is not set
++# CONFIG_USB_G_PRINTER is not set
++# CONFIG_USB_CDC_COMPOSITE is not set
++# CONFIG_USB_G_MULTI is not set
++
++#
++# OTG and related infrastructure
++#
++CONFIG_USB_OTG_UTILS=y
++# CONFIG_USB_GPIO_VBUS is not set
++# CONFIG_USB_ULPI is not set
++CONFIG_NOP_USB_XCEIV=y
+ # CONFIG_MMC is not set
+ # CONFIG_MEMSTICK is not set
+ # CONFIG_NEW_LEDS is not set
