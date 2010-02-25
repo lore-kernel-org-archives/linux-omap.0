@@ -1,61 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-Date: Thu, 25 Feb 2010 10:55:47 -0800
-Message-ID: <20100225185547.GH28173@atomide.com>
-References: <A24693684029E5489D1D202277BE8944538C6D68@dlee02.ent.ti.com>
- <A24693684029E5489D1D202277BE8944538C6D6A@dlee02.ent.ti.com>
- <20100224162129.GO28173@atomide.com>
- <A24693684029E5489D1D202277BE89445398E44D@dlee02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v6] OMAP UART: Add omap-serial driver support.
+Date: Thu, 25 Feb 2010 10:54:56 -0800
+Message-ID: <873a0pjgcf.fsf@deeprootsystems.com>
+References: <52471.192.168.10.88.1266504626.squirrel@dbdmail.itg.ti.com>
+	<87hbp6pjg2.fsf@deeprootsystems.com>
+	<20100224185421.GR28173@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56310 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932390Ab0BYSyp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 13:54:45 -0500
-Content-Disposition: inline
-In-Reply-To: <A24693684029E5489D1D202277BE89445398E44D@dlee02.ent.ti.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:60591 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932390Ab0BYSy7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 13:54:59 -0500
+Received: by pwj8 with SMTP id 8so5872429pwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Feb 2010 10:54:59 -0800 (PST)
+In-Reply-To: <20100224185421.GR28173@atomide.com> (Tony Lindgren's message of "Wed\, 24 Feb 2010 10\:54\:22 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-* Aguirre, Sergio <saaguirre@ti.com> [100224 19:04]:
-> 
-> 
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Wednesday, February 24, 2010 10:21 AM
-> > To: Aguirre, Sergio
-> > Cc: linux-omap@vger.kernel.org; Sonasath, Moiz; Pandita, Vikram
-> > Subject: Re: [PATCH] omap2/3/4: serial: Half revert multiboot changes
-> > 
-> > * Aguirre, Sergio <saaguirre@ti.com> [100223 23:37]:
-> > > Hmm..
-> > >
-> > > I think I sent this patch too soon...
-> > >
-> > > Please ignore it, this is not a proper solution I feel..
-> > >
-> > > But what it is true... is that, patch "omap2/3/4: Fix mach-
-> > omap2/serial.c for multiboot" is definitely breaking Zoom3 boot, and needs
-> > to be fixed.
-> > 
-> > Yes sounds like only zoom has the external uart, other 3630
-> > boards may be using the internal uart4.
-> 
-> Actually, I don't see any patch to handle uart4 interface/functional clocks, so I assume the addition of uart4 for 3630 chip is incomplete.
-> 
-> Shall we apply my 2nd patch, until proper clock handling is in place?
-> 
-> I don't have an omap4 to test, but I think my patch shouldn't hurt the initial intention to make multiomap builds possible... agree?
+Tony Lindgren <tony@atomide.com> writes:
 
-See also the recent patch from Thomas. I'd say let's rather fix this
-properly with your clock related patchset once it's been tested.
+> * Kevin Hilman <khilman@deeprootsystems.com> [100224 10:36]:
+>> 
+>> After that and Olof's comments, it should be submitted to linux-serial
+>> and LKML.
+>
+> Also, it needs to be posted as a series with the related
+> hwmod patches needed to actually test this driver with the
+> mainline kernel.
 
-We already have all these temporary hacks still in place for omap4,
-let's try not to add more.
+I think this driver could be submitted upstream for review, even
+without the platform support, as long as it's stated that the 
+platform support is still missing and will merge via linux-omap.
 
-Regards,
+The hwmod stuff is not yet ready for mainline.
 
-Tony
+Kevin
