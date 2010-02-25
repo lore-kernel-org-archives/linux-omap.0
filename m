@@ -1,67 +1,79 @@
-From: "Olaya, Margarita" <magi.olaya@ti.com>
-Subject: RE: [alsa-devel] [PATCHv4 2/7] ASoC: TWL6030: Add twl6030 codec
-	driver
-Date: Wed, 24 Feb 2010 17:57:25 -0600
-Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD22F0@dlee06.ent.ti.com>
-References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B14@dlee06.ent.ti.com>
- <1267007881.3274.136.camel@odin> <20100224104256.GB9018@sirena.org.uk>
+From: Misael Lopez <mlopez@sta.samsung.com>
+Subject: Re: [PATCHv4 1/7] OMAP4: PMIC: Add support for
+	twl6030	codec
+Date: Wed, 24 Feb 2010 18:15:43 -0600
+Message-ID: <9357A55138006545BB696D907C4EDB481B058C88E5@staex7mb1.telecom.sna.samsung.com>
+References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B13@dlee06.ent.ti.com>
+	<1267006169.3274.88.camel@odin> <20100224111328.GA2950@sortiz.org>
+	<20100224132246.GG9018@sirena.org.uk>
+	<1889FA7136B567478A67D4B0F85B0CCE65DD218C@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40799 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758636Ab0BXX5e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 18:57:34 -0500
-In-Reply-To: <20100224104256.GB9018@sirena.org.uk>
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1889FA7136B567478A67D4B0F85B0CCE65DD218C@dlee06.ent.ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Olaya, Margarita" <magi.olaya@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Margarita,
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
-> Sent: Wednesday, February 24, 2010 4:43 AM
-> To: Liam Girdwood
-> Cc: Olaya, Margarita; alsa-devel@alsa-project.org; linux-omap@vger.kernel.org
-> Subject: Re: [alsa-devel] [PATCHv4 2/7] ASoC: TWL6030: Add twl6030 codec driver
+> Mark,
 > 
-> On Wed, Feb 24, 2010 at 10:38:01AM +0000, Liam Girdwood wrote:
-> > On Tue, 2010-02-23 at 18:10 -0600, Olaya, Margarita wrote:
-> 
-> > > +       twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &value, reg);
-> > > +       twl6030_write_reg_cache(codec, reg, value);
-> 
-> > You probably want to read from the cache if the register is not
-> > volatile. This saves a slow I2C read.
-> 
-> ...and if you don't satisfy reads from the cache you may as well not
-> bother with it - it's just consuming memory.
+> I'll re-submit the patch series using twl6040_codec instead of
+> twl6030_codec, twl6030 is the power companion chip and twl4030 is
+> the audio chip, so in the case of this patch should I send an
+> incremental patch to rename it?
 
-We have different functions for those cases.
+As shown in TI's website ([1], [2]):
+- TWL6030 contains PM, USB, I2C, etc
+- TWL6040 contains only audio
 
+Then, TWL6030 is the MFD and TWL6040 is a simple audio codec, and
+this patch ([PATCHv4 1/7] OMAP4: PMIC: Add support for twl6030 codec)
+is not valid since the codec doesn't belong to the MFD anymore.
+
+TWL6040 can become a MFD to support vibrator as Mark pointed out.
+
+-Misa
+
+[1] http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12845&contentId=53245
+[2] http://focus.ti.com/pdfs/wtbu/twl60x0flyer_slyv008.pdf
+
+> Regards,
+> Margarita
 > 
-> > > +               /* skip read-only registers (ASICID, ASICREV, STATUS) */
-> > > +               if ((reg == TWL6030_REG_ASICID) ||
-> > > +                   (reg == TWL6030_REG_ASICREV) ||
-> > > +                   (reg == TWL6030_REG_STATUS))
-> > > +                       continue;
-> > > +               twl6030_write(codec, reg, cache[reg]);
-> 
-> A switch statement would be nicer here.
-
-You mean something like this?
-
-	switch (reg) {
-	case TWL6030_REG_ASICID:
-	case TWL6030_REG_ASICREV:
-	case TWL6030_REG_STATUS:
-		continue;
-	default:
-	break:
-	}
-
-Regards,
-Margarita
+> > -----Original Message-----
+> > From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
+> > Sent: Wednesday, February 24, 2010 7:23 AM
+> > To: Samuel Ortiz
+> > Cc: Liam Girdwood; Olaya, Margarita; alsa-devel@alsa-
+> project.org; linux-omap@vger.kernel.org
+> > Subject: Re: [PATCHv4 1/7] OMAP4: PMIC: Add support for twl6030
+> codec
+> >
+> > On Wed, Feb 24, 2010 at 12:13:29PM +0100, Samuel Ortiz wrote:
+> >
+> > > > Samuel are you OK with this ?
+> >
+> > > That seems fine, yes.
+> > > Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+> >
+> > OK, I've applied this one now - the cross tree issues mean it
+> seems
+> > better to get into 2.6.34.  I'll review the rest of the patches
+> now.
+> _______________________________________________
+> Alsa-devel mailing list
+> Alsa-devel@alsa-project.org
+> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
