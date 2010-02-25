@@ -1,48 +1,179 @@
-From: "Olaya, Margarita" <magi.olaya@ti.com>
-Subject: RE: [PATCHv4 0/7] TWL6030 audio codec initial support
-Date: Wed, 24 Feb 2010 18:17:33 -0600
-Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65DD2303@dlee06.ent.ti.com>
-References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B12@dlee06.ent.ti.com>
- <1267011618.3274.202.camel@odin>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
+Date: Wed, 24 Feb 2010 16:23:59 -0800
+Message-ID: <87vddmmacg.fsf@deeprootsystems.com>
+References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com>
+	<87ocjftq0z.fsf@deeprootsystems.com>
+	<005001cab56f$17db8460$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41561 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758589Ab0BYARl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Feb 2010 19:17:41 -0500
-In-Reply-To: <1267011618.3274.202.camel@odin>
-Content-Language: en-US
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:35075 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758593Ab0BYAYD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Feb 2010 19:24:03 -0500
+Received: by pwj8 with SMTP id 8so5242735pwj.19
+        for <linux-omap@vger.kernel.org>; Wed, 24 Feb 2010 16:24:02 -0800 (PST)
+In-Reply-To: <005001cab56f$17db8460$544ff780@am.dhcp.ti.com> (Madhusudhan's message of "Wed\, 24 Feb 2010 10\:33\:27 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGlhbSBHaXJkd29vZCBb
-bWFpbHRvOmxyZ0BzbGltbG9naWMuY28udWtdDQo+IFNlbnQ6IFdlZG5lc2RheSwgRmVicnVhcnkg
-MjQsIDIwMTAgNTo0MCBBTQ0KPiBUbzogT2xheWEsIE1hcmdhcml0YQ0KPiBDYzogYWxzYS1kZXZl
-bEBhbHNhLXByb2plY3Qub3JnOyBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgYnJvb25pZUBv
-cGVuc291cmNlLndvbGZzb25taWNyby5jb20NCj4gU3ViamVjdDogUmU6IFtQQVRDSHY0IDAvN10g
-VFdMNjAzMCBhdWRpbyBjb2RlYyBpbml0aWFsIHN1cHBvcnQNCj4gDQo+IE9uIFR1ZSwgMjAxMC0w
-Mi0yMyBhdCAxODoxMCAtMDYwMCwgT2xheWEsIE1hcmdhcml0YSB3cm90ZToNCj4gPiBGb2xsb3dp
-bmcgcGF0Y2ggc2VyaWVzIGFkZCBpbml0aWFsIHN1cHBvcnQgZm9yIFRXTDYwMzAgY29kZWMgZHJp
-dmVyLg0KPiA+IFRoZSBwYXRjaCBzZXQgaXMgYmFzZWQgb24gdGhlIHNlcmllcyBzZW50IGZyb20g
-TWlzYWVsIExvcGV6IGluIE9jdG9iZXIgMjAwOS4NCj4gPg0KPiA+IENoYW5nZXMgZnJvbSB2MzoN
-Cj4gPiAtIFJlbW92ZSBzbmRfc29jX2luaXRfY2FyZCBmdW5jdGlvbg0KPiA+IC0gQWRhcHQgdG8g
-bGF0ZXN0IHR3bCBjb3JlIGNoYW5nZXMgYmFzZWQgb24gQmFsYWppJ3MgY29tbWVudA0KPiA+DQo+
-ID4gUmVnYXJkcywNCj4gPiBNYXJnYXJpdGENCj4gPg0KPiA+IC0tLQ0KPiA+IE1pc2FlbCBMb3Bl
-eiBDcnV6ICg3KToNCj4gPiAgIE9NQVA0OiBQTUlDOiBBZGQgc3VwcG9ydCBmb3IgdHdsNjAzMCBj
-b2RlYw0KPiA+ICAgQVNvQzogVFdMNjAzMDogQWRkIHR3bDYwMzAgY29kZWMgZHJpdmVyDQo+ID4g
-ICBBU29DOiBUV0w2MDMwOiBNYW51YWwgcG93ZXItdXAvZG93biBzZXF1ZW5jZXMNCj4gPiAgIEFT
-b0M6IFRXTDYwMzA6IEFkZCBzdXBwb3J0IGZvciBsb3ctcG93ZXIgUExMDQo+ID4gICBBU29DOiBU
-V0w2MDMwOiBBZGQgcmVzdHJpY3Rpb25zIGZvciBsb3ctcG93ZXIgcGxheWJhY2sgbW9kZQ0KPiA+
-ICAgQVNvQzogVFdMNjAzMDogRW5hYmxlIGF1ZGlvIGludGVycnVwdA0KPiA+ICAgQVNvQzogVFdM
-NjAzMDogRGV0ZWN0IHBvd2VyLXVwIHNlcXVlbmNlIGNvbXBsZXRpb24NCj4gDQo+IEJ0dywgc2lu
-Y2UgdGhpcyBpcyBhIG5ldyBkcml2ZXIgY2FuIHlvdSByZWJhc2UgdGhlIDYgY29kZWMgcGF0Y2hl
-cyBpbnRvDQo+IGEgc2luZ2xlIHBhdGNoLg0KPiANCg0KVGhlIHNlY29uZCBwYXRjaCBhZGRzIHRo
-ZSBiYXNpYyBzdXBwb3J0IGZvciB0aGUgY29kZWMgYW5kIHRoZSBvdGhlcnMgYWRkIGZlYXR1cmVz
-LCB0aGF0IHdheSBpdCBjb3VsZCBiZSBlYXNpZXIgdG8gcmV2aWV3Lg0KDQpSZWdhcmRzLA0KTWFy
-Z2FyaXRhDQogDQo+IFRoYW5rcw0KPiANCj4gTGlhbQ0KPiANCj4gLS0NCj4gRnJlZWxhbmNlIERl
-dmVsb3BlciwgU2xpbUxvZ2ljIEx0ZA0KPiBBU29DIGFuZCBWb2x0YWdlIFJlZ3VsYXRvciBNYWlu
-dGFpbmVyLg0KPiBodHRwOi8vd3d3LnNsaW1sb2dpYy5jby51aw0KDQo=
+"Madhusudhan" <madhu.cr@ti.com> writes:
+
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>> Sent: Tuesday, February 23, 2010 6:51 PM
+>> To: linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
+>> 
+>> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>> 
+>> > This series converts the OMAP HS-MMC driver to use omap_hwmod +
+>> > runtime PM API.
+>> >
+>> > Depends on MMC hwmods available in 'pm-wip/hwmods' branch of
+>> > my git tree[1] as well as previously posted runtime PM series:
+>> >
+>> >    [PATCH/RFC 0/2] initial runtime PM layer for OMAP
+>> >
+>> > The easies way to experiment/test is to use my 'pm-wip/mmc' branch
+>> > which has all the dependencies, and is based on omap/for-next'.
+>> > It has been tested by merging with current PM branch.
+>> >
+>> > [1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
+>> >
+>> 
+>> A question for those of you who actually understand the MMC driver...
+>> I'm having problems getting my head around the current PM stuff in the
+>> MMC driver.  My primary question is:
+>> 
+>> Why does the suspend hook need to re-enable the device before
+>> suspending?
+>>
+>
+> In the scenario where there is no activity on the bus the MMC clocks are
+> kept disabled. Now in the suspend path the MMC core will issue certain CMDs
+> like CMD7(to end the suspend path) to deselect the card(more of a protocol
+> stuff). Hence the host need to be in enabled state before letting the core
+> know that there is a suspend request.
+
+I guess what I'm wondering is whether we can (should) have the exact
+same path for runtime PM (idle) and static PM (suspend/resume.)
+
+My current approach is that the suspend is a NOP if the device
+is already runtime suspended.
+
+>> When using runtime PM, the MMC device is disabled including
+>> clocks off  and regulator off (if power_savings == true) when there
+>> is no activity.
+>> 
+>> Then, in the static suspend hook, it's re-enabled (including taking it out
+>> of
+>> off, re-enabling regulators etc) only to be quickly disabled again.
+>> This seems horribly inefficient.
+>> 
+>
+> This is exactly for the reason I mentioned above.
+>
+>> I admit to not understanding the MMC layer terribly well, so can someone
+>> enlighten me as to what is going on here?
+>> 
+>> What I am testing here is a patch on top of this series (below) that
+>> adds a check to the static suspend hook.  If the device is already
+>> runtime suspended, then the suspend and resume hooks should be noop.
+>> 
+>> This appears to work just fine while testing on omap3evm just doing
+>> simple read/write tests before an after suspend resume.
+>>
+>
+> I did some basic testing with your previously posted patches. But my testing
+> was incomplete because on Zoom2 because for some reason the OFF mode was not
+> working even without your patches.
+
+OK, I will try on Zoom2.  I've only tested this so far on OMAP3EVM.
+
+> My concern was more with respect to OFF mode in idle path since your patches
+> removed context restore calls if I recall correctly. 
+
+No, I didn't remove restore.  I just moved it into the runtime PM
+resume callback.
+
+> Are you able to hit CORE OFF and then come back and do the
+> read/write transfers in idle as well as suspend/resume path?
+
+Yes.
+
+Kevin
+
+>  
+>> Note that if you want to test this patch, it also depends on this
+>> patch to runtime PM from the linux-pm list:
+>> https://lists.linux-foundation.org/pipermail/linux-pm/2010-
+>> February/024275.html
+>> 
+>> These are all included in an updated version of my pm-wip/mmc branch
+>> for ease of testing.  Merge it with the current PM branch, enable
+>> CONFIG_PM_RUNTIME and test away.
+>> 
+>> Kevin
+>> 
+>> commit 166cba7679fa267ee6e6eb39fd1e871ede5ded16
+>> Author: Kevin Hilman <khilman@deeprootsystems.com>
+>> Date:   Tue Feb 23 16:21:56 2010 -0800
+>> 
+>>     MMC: omap_hsmmc: check for runtime-suspend in static suspend
+>> 
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 16d66b9..dd027bb 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -2222,6 +2222,9 @@ static int omap_hsmmc_suspend(struct device *dev)
+>>  	if (host && host->suspended)
+>>  		return 0;
+>> 
+>> +	if (pm_is_runtime_suspended(host->dev))
+>> +		return 0;
+>> +
+>>  	if (host) {
+>>  		host->suspended = 1;
+>>  		if (host->pdata->suspend) {
+>> @@ -2260,12 +2263,6 @@ static int omap_hsmmc_suspend(struct device *dev)
+>>  			}
+>>  			mmc_host_disable(host->mmc);
+>>  		}
+>> -
+>> -		/*
+>> -		 * HACK: "extra" put to compensate for DPM core keeping
+>> -		 *       runtime PM disabled.  -- khilman
+>> -		 */
+>> -		pm_runtime_put_sync(host->dev);
+>>  	}
+>>  	return ret;
+>>  }
+>> @@ -2280,13 +2277,10 @@ static int omap_hsmmc_resume(struct device *dev)
+>>  	if (host && !host->suspended)
+>>  		return 0;
+>> 
+>> -	if (host) {
+>> -		/*
+>> -		 * HACK: "extra" get to compensate for DPM core keeping
+>> -		 *       runtime PM disabled.  -- khilman
+>> -		 */
+>> -		pm_runtime_get_sync(host->dev);
+>> +	if (pm_is_runtime_suspended(host->dev))
+>> +		return 0;
+>> 
+>> +	if (host) {
+>>  		if (mmc_host_enable(host->mmc) != 0) {
+>>  			pm_runtime_suspend(host->dev);
+>>  			goto clk_en_err;
+>> 
+>> 
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
