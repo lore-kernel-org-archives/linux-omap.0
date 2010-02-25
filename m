@@ -1,73 +1,82 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RESEND][PATCH/RFC] OMAP2: serial.c: Fix number of uarts in
- early_init
-Date: Fri, 26 Feb 2010 00:28:36 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF5ED@dbde02.ent.ti.com>
-References: <1267090819-17796-1-git-send-email-swirl@gmx.li>
- <20100225184355.GF28173@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF5EC@dbde02.ent.ti.com>
- <20100225185734.GI28173@atomide.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH] omap2/3/4: serial: Half revert multiboot changes
+Date: Thu, 25 Feb 2010 14:36:11 -0600
+Message-ID: <A24693684029E5489D1D202277BE89445398EBB1@dlee02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE8944538C6D68@dlee02.ent.ti.com>
+ <A24693684029E5489D1D202277BE8944538C6D6A@dlee02.ent.ti.com>
+ <20100224162129.GO28173@atomide.com>
+ <A24693684029E5489D1D202277BE89445398E44D@dlee02.ent.ti.com>
+ <20100225185547.GH28173@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60974 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54624 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759034Ab0BYS7B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 13:59:01 -0500
-In-Reply-To: <20100225185734.GI28173@atomide.com>
+	id S933362Ab0BYUgR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 15:36:17 -0500
+In-Reply-To: <20100225185547.GH28173@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Thomas Weber <swirl@gmx.li>, "Aguirre, Sergio" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Thomas Weber <weber@corscience.de>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+
+Hi,
 
 > -----Original Message-----
 > From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, February 26, 2010 12:28 AM
-> To: Shilimkar, Santosh
-> Cc: Thomas Weber; Aguirre, Sergio; linux-omap@vger.kernel.org; Russell King; Kevin Hilman; Pandita,
-> Vikram; Syed, Rafiuddin; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; Thomas
-> Weber
-> Subject: Re: [RESEND][PATCH/RFC] OMAP2: serial.c: Fix number of uarts in early_init
+> Sent: Thursday, February 25, 2010 12:56 PM
+> To: Aguirre, Sergio
+> Cc: linux-omap@vger.kernel.org; Sonasath, Moiz; Pandita, Vikram
+> Subject: Re: [PATCH] omap2/3/4: serial: Half revert multiboot changes
 > 
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [100225 10:51]:
+> * Aguirre, Sergio <saaguirre@ti.com> [100224 19:04]:
+> >
 > >
 > > > -----Original Message-----
 > > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > Sent: Friday, February 26, 2010 12:14 AM
-> > > To: Thomas Weber; Aguirre, Sergio
-> > > Cc: linux-omap@vger.kernel.org; Russell King; Kevin Hilman; Shilimkar, Santosh; Pandita, Vikram;
-> > > Syed, Rafiuddin; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; Thomas Weber
-> > > Subject: Re: [RESEND][PATCH/RFC] OMAP2: serial.c: Fix number of uarts in early_init
+> > > Sent: Wednesday, February 24, 2010 10:21 AM
+> > > To: Aguirre, Sergio
+> > > Cc: linux-omap@vger.kernel.org; Sonasath, Moiz; Pandita, Vikram
+> > > Subject: Re: [PATCH] omap2/3/4: serial: Half revert multiboot changes
 > > >
-> > > * Thomas Weber <swirl@gmx.li> [100225 01:36]:
+> > > * Aguirre, Sergio <saaguirre@ti.com> [100223 23:37]:
+> > > > Hmm..
 > > > >
-> > > > The omap_serial_early_init prints the following errors:
+> > > > I think I sent this patch too soon...
 > > > >
-> > > > Could not get uart4_ick
-> > > > Could not get uart4_fck
+> > > > Please ignore it, this is not a proper solution I feel..
 > > > >
-> > > > because all the uarts available in omap_uart[] will be initialized.
-> > > > Only omap4430 and omap3630 have 4 uarts at the moment.
-> > > > This patch reduces the number of uarts when cpu is not omap4430 or
-> > > > omap3630.
+> > > > But what it is true... is that, patch "omap2/3/4: Fix mach-
+> > > omap2/serial.c for multiboot" is definitely breaking Zoom3 boot, and
+> needs
+> > > to be fixed.
 > > >
-> > > ..and I only patched omap_serial_init and forgot about
-> > > the omap_serial_early_init..
-> > >
-> > > Looks good to me, Sergio, care to test and Ack this? Also, sounds
-> > > like we still need to patch omap4 for uart4 for the clocks.
-> > >
-> > Clocks will be take care automatically by "nr_ports" for omap4 too
-> > with this patch. Below clock changes are just cosmetic ones, isn't it ?
+> > > Yes sounds like only zoom has the external uart, other 3630
+> > > boards may be using the internal uart4.
 > >
-> > Am I missing something?
+> > Actually, I don't see any patch to handle uart4 interface/functional
+> clocks, so I assume the addition of uart4 for 3630 chip is incomplete.
+> >
+> > Shall we apply my 2nd patch, until proper clock handling is in place?
+> >
+> > I don't have an omap4 to test, but I think my patch shouldn't hurt the
+> initial intention to make multiomap builds possible... agree?
 > 
-> Yes sorry, I'm referring to "[RFC][PATCH 0/3] OMAP3630: UART4 startup"
-> series to fix the uart4 issues for 3630, not omap4.
+> See also the recent patch from Thomas. I'd say let's rather fix this
+> properly with your clock related patchset once it's been tested.
 > 
-OK
+> We already have all these temporary hacks still in place for omap4,
+> let's try not to add more.
+
+Ok, sure. I agree.
+
+I'll try to get a 3630SDP, which I believe has physical access to UART4. With just my Zoom3 I can't do much :/
 
 Regards,
-Santosh
+Sergio
+> 
+> Regards,
+> 
+> Tony
