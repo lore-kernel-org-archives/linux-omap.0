@@ -1,47 +1,84 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/6] AM35x: Add missing GPIO mux config for EHCI port
-Date: Thu, 25 Feb 2010 15:03:11 -0800
-Message-ID: <20100225230311.26233.97139.stgit@baageli.muru.com>
+Subject: [PATCH 5/6] AM3517 EVM: Enable I2C support
+Date: Thu, 25 Feb 2010 15:03:16 -0800
+Message-ID: <20100225230315.26233.31309.stgit@baageli.muru.com>
 References: <20100225230116.26233.65157.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65102 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65234 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934451Ab0BYXCI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 18:02:08 -0500
+	with ESMTP id S934451Ab0BYXCM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 18:02:12 -0500
 In-Reply-To: <20100225230116.26233.65157.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-omap@vger.kernel.org
+Cc: Sriramakrishnan <srk@ti.com>, linux-omap@vger.kernel.org
 
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: Sriram <srk@ti.com>
 
-Adding GPIO mux config used for PHY reset of EHCI port on base board.
-We get below failure message without this patch,
+There are multiple devices connected to I2C bus on AM3517EVM
+(for instance audio codec, IO expander etc). Enable I2C support
+in the default kernel configuration for AM3517 EVM.
 
-"hub 1-0:1.0: unable to enumerate USB device on port 1"
-
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Sriramakrishnan <srk@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ arch/arm/configs/am3517_evm_defconfig |   41 ++++++++++++++++++++++++++++++++-
+ 1 files changed, 40 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index e6b8967..aee0a02 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -301,6 +301,9 @@ static void __init am3517_evm_init(void)
- 				ARRAY_SIZE(am3517_evm_devices));
- 
- 	omap_serial_init();
+diff --git a/arch/arm/configs/am3517_evm_defconfig b/arch/arm/configs/am3517_evm_defconfig
+index edae1c2..66a10b5 100644
+--- a/arch/arm/configs/am3517_evm_defconfig
++++ b/arch/arm/configs/am3517_evm_defconfig
+@@ -590,7 +590,46 @@ CONFIG_HW_RANDOM=y
+ # CONFIG_R3964 is not set
+ # CONFIG_RAW_DRIVER is not set
+ # CONFIG_TCG_TPM is not set
+-# CONFIG_I2C is not set
++CONFIG_I2C=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_COMPAT=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_HELPER_AUTO=y
 +
-+	/* Configure GPIO for EHCI port */
-+	omap_mux_init_gpio(57, OMAP_PIN_OUTPUT);
- 	usb_ehci_init(&ehci_pdata);
- 	/* DSS */
- 	am3517_evm_display_init();
++#
++# I2C Hardware Bus support
++#
++
++#
++# I2C system bus drivers (mostly embedded / system-on-chip)
++#
++# CONFIG_I2C_DESIGNWARE is not set
++# CONFIG_I2C_GPIO is not set
++# CONFIG_I2C_OCORES is not set
++CONFIG_I2C_OMAP=y
++# CONFIG_I2C_SIMTEC is not set
++
++#
++# External I2C/SMBus adapter drivers
++#
++# CONFIG_I2C_PARPORT_LIGHT is not set
++# CONFIG_I2C_TAOS_EVM is not set
++# CONFIG_I2C_TINY_USB is not set
++
++#
++# Other I2C/SMBus bus drivers
++#
++# CONFIG_I2C_PCA_PLATFORM is not set
++# CONFIG_I2C_STUB is not set
++
++#
++# Miscellaneous I2C Chip support
++#
++# CONFIG_SENSORS_TSL2550 is not set
++# CONFIG_I2C_DEBUG_CORE is not set
++# CONFIG_I2C_DEBUG_ALGO is not set
++# CONFIG_I2C_DEBUG_BUS is not set
++# CONFIG_I2C_DEBUG_CHIP is not set
+ # CONFIG_SPI is not set
+ 
+ #
 
