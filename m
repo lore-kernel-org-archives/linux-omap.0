@@ -1,56 +1,66 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/3] TCA6416 keypad : Implement keypad driver for keys
- interfaced to TCA6416
-Date: Thu, 25 Feb 2010 20:47:03 +0200
-Message-ID: <20100225184702.GA5125@gandalf>
-References: <1267103701-23823-1-git-send-email-srk@ti.com>
- <1267103701-23823-2-git-send-email-srk@ti.com>
-Reply-To: me@felipebalbi.com
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/4] USB: MUSB: Enable MUSB for OMAP4 in Kconfig
+Date: Thu, 25 Feb 2010 10:48:34 -0800
+Message-ID: <20100225184833.GG28173@atomide.com>
+References: <1267079758-14480-1-git-send-email-x0082077@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:41686 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759052Ab0BYSrK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 13:47:10 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1267103701-23823-2-git-send-email-srk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1267079758-14480-1-git-send-email-x0082077-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sriramakrishnan <srk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 
-Hi,
-
-On Thu, Feb 25, 2010 at 06:44:59PM +0530, Sriramakrishnan wrote:
-> This patch implements a simple Keypad driver that functions
-> as an I2C client. It handles key press events for keys
-> connected to TCA6416 I2C based IO expander.
-
-what's wrong with gpio-keys ??
-
-> + * Implementation based on drivers/input/keyboard/gpio_keys.c
-
-I see,
-
-shouldn't you instead provide a gpiolib driver for tca6416 and use the
-generic gpio_keys driver ??
-
-> +	if (!chip->use_polling) {
-
-IMO, you should only use polling if the irq line isn't connected.
-
-> +		if (pdata->irq_is_gpio)
-> +			chip->irqnum = gpio_to_irq(pdata->irqnum);
-
-you can pass the irq number via i2c_board_info. Use it.
-
-> +		else
-> +			chip->irqnum = pdata->irqnum;
+* Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org> [100224 22:33]:
+> This patch adds the OMAP4 Kconfig options for MUSB.
+> 
+> Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+> Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org
+> ---
+> Index: mainline/drivers/usb/musb/Kconfig
+> ===================================================================
+> --- mainline.orig/drivers/usb/musb/Kconfig
+> +++ mainline/drivers/usb/musb/Kconfig
+> @@ -38,6 +38,7 @@ config USB_MUSB_SOC
+>  	default y if ARCH_DAVINCI
+>  	default y if ARCH_OMAP2430
+>  	default y if ARCH_OMAP34XX
+> +	default y if ARCH_OMAP4
+>  	default y if (BF54x && !BF544)
+>  	default y if (BF52x && !BF522 && !BF523)
+>  
+> @@ -50,6 +51,9 @@ comment "OMAP 243x high speed USB suppor
+>  comment "OMAP 343x high speed USB support"
+>  	depends on USB_MUSB_HDRC && ARCH_OMAP34XX
+>  
+> +comment "OMAP 44xx high speed USB support"
+> +	depends on USB_MUSB_HDRC && ARCH_OMAP4
 > +
-> +		ret = request_irq(chip->irqnum, tca6416_keys_isr,
+>  comment "Blackfin high speed USB Support"
+>  	depends on USB_MUSB_HDRC && ((BF54x && !BF544) || (BF52x && !BF522 && !BF523))
+>  
+> @@ -153,7 +157,7 @@ config MUSB_PIO_ONLY
+>  config USB_INVENTRA_DMA
+>  	bool
+>  	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
+> -	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN
+> +	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN || ARCH_OMAP4
+>  	help
+>  	  Enable DMA transfers using Mentor's engine.
 
-it's an i2c driver!!! this should be request_threaded_irq()
+FYI, this needs to be updated as I have patches queued up
+to replace ARCH_OMAP34XX and with ARCH_OMAP3. You might
+want to check all these patches for that and make sure
+they build and work with the omap-for-linus branch.
 
--- 
-balbi
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
