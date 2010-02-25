@@ -1,89 +1,57 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: About multicore OMAP
-Date: Thu, 25 Feb 2010 19:45:54 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF4F5@dbde02.ent.ti.com>
-References: <31ee32481002230504m2cc4dfebu85426681e76b4ee@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E14F4@dbde02.ent.ti.com>
-	 <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1545@dbde02.ent.ti.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E15B9@dbde02.ent.ti.com>
-	 <31ee32481002232045s6cbebab1x4184b175c6595f6@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E16F4@dbde02.ent.ti.com>
- <31ee32481002250607j34f18276s5d478b5756543a55@mail.gmail.com>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] PCA953x : Fix compilation warning.
+Date: Thu, 25 Feb 2010 15:27:08 +0100
+Message-ID: <20100225152708.213775bd@hyperion.delvare>
+References: <1267104758-32131-1-git-send-email-srk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45292 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932686Ab0BYOQB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Feb 2010 09:16:01 -0500
-In-Reply-To: <31ee32481002250607j34f18276s5d478b5756543a55@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1267104758-32131-1-git-send-email-srk-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sriramakrishnan <srk-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jacob john <jacob.john74@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYWNvYiBqb2huIFttYWlsdG86
-amFjb2Iuam9objc0QGdtYWlsLmNvbV0NCj4gU2VudDogVGh1cnNkYXksIEZlYnJ1YXJ5IDI1LCAy
-MDEwIDc6MzcgUE0NCj4gVG86IFNoaWxpbWthciwgU2FudG9zaA0KPiBDYzogbGludXgtb21hcEB2
-Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IEFib3V0IG11bHRpY29yZSBPTUFQDQo+IA0K
-PiBPbiBXZWQsIEZlYiAyNCwgMjAxMCBhdCAxMDoyNCBBTSwgU2hpbGlta2FyLCBTYW50b3NoDQo+
-IDxzYW50b3NoLnNoaWxpbWthckB0aS5jb20+IHdyb3RlOg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBKYWNvYiBqb2huIFttYWlsdG86amFjb2Iuam9objc0QGdt
-YWlsLmNvbV0NCj4gPj4gU2VudDogV2VkbmVzZGF5LCBGZWJydWFyeSAyNCwgMjAxMCAxMDoxNiBB
-TQ0KPiA+PiBUbzogU2hpbGlta2FyLCBTYW50b3NoDQo+ID4+IENjOiBsaW51eC1vbWFwQHZnZXIu
-a2VybmVsLm9yZw0KPiA+PiBTdWJqZWN0OiBSZTogQWJvdXQgbXVsdGljb3JlIE9NQVANCj4gPj4N
-Cj4gPj4gT24gVHVlLCBGZWIgMjMsIDIwMTAgYXQgMTA6MjAgUE0sIFNoaWxpbWthciwgU2FudG9z
-aA0KPiA+PiA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPiB3cm90ZToNCj4gPj4gPiBKb2huLA0K
-PiA+PiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiA+PiBGcm9tOiBsaW51eC1v
-bWFwLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW9tYXAtb3duZXJAdmdlci5r
-ZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YNCj4gPj4gPj4gU2hpbGlta2FyLCBTYW50b3NoDQo+ID4+
-ID4+IFNlbnQ6IFR1ZXNkYXksIEZlYnJ1YXJ5IDIzLCAyMDEwIDg6MDEgUE0NCj4gPj4gPj4gVG86
-IEphY29iIGpvaG4NCj4gPj4gPj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+ID4+
-ID4+IFN1YmplY3Q6IFJFOiBBYm91dCBtdWx0aWNvcmUgT01BUA0KPiA+PiA+Pg0KPiA+PiA+PiA+
-IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+ID4+ID4gRnJvbTogSmFjb2Igam9obiBb
-bWFpbHRvOmphY29iLmpvaG43NEBnbWFpbC5jb21dDQo+ID4+ID4+ID4gU2VudDogVHVlc2RheSwg
-RmVicnVhcnkgMjMsIDIwMTAgNzo1MSBQTQ0KPiA+PiA+PiA+IFRvOiBTaGlsaW1rYXIsIFNhbnRv
-c2gNCj4gPj4gPj4gPiBDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gPj4gPj4gPiBT
-dWJqZWN0OiBSZTogQWJvdXQgbXVsdGljb3JlIE9NQVANCj4gPj4gPj4gPg0KPiA+PiA+PiA+IEl0
-J3PCoEJsYXplIHdpdGjCoHR3byBsY2QncyBhbmQgcGljbywgbG9va3MgZ3JlYXQuIENhbiBJIGhh
-dmUgdGhpcw0KPiA+PiA+PiA+IGxpbnV4LW9tYXAga2VybmVsIHJ1bm5pbmcgb24gT01BUDQ/LCBw
-bHVzIEknbSBsb29raW5nIGZvciBTTVANCj4gPj4gPj4gPiBiZW5jaG1hcmsgcmVzdWx0cyBldGMu
-DQo+ID4+ID4+ID4NCj4gPj4gPj4gTGludXgtb21hcCBrZXJuZWwgd2l0aCBvbWFwXzQ0MzBzZHBf
-ZGVmY29uZmlnIHdpbGwgYm9vdCBvbiBibGF6ZSB3aXRoIFNNUC4gVGhpcw0KPiA+PiA+PiB3b24n
-dCBoYXZlIGxvdCBvZiBkcml2ZXIgc3VwcG9ydCBhcyBzdWNoIGN1cnJlbnRseS4gQWxzbyBMMiBj
-YWNoZSBzdXBwb3J0IGlzIGluDQo+ID4+ID4+IG9uIHRoZSB3YXkgdG8gbWFrZSBpdCB0byBtYWlu
-bGluZSBhcyB3ZWxsLiBZb3Ugc2hvdWxkIGJlIGFibGUgdG8gcGxheSB3aXRoIHRoaXMNCj4gPj4g
-Pj4gd2l0aCBzb21lIGJhc2ljIGJlbmNobWFyayB0ZXN0IHJlbGF0ZWQgdG8gQ1BVLg0KPiA+PiA+
-Pg0KPiA+PiA+PiBEaXNwbGF5ICwgQXVkaW8sIFBpY28sIGtleXBhZCwgdG91Y2hzY3JlZWVuIGV0
-YyBkcml2ZXJzIGFyZSBhdmFpbGFibGUgd2l0aCB0aGUNCj4gPj4gPj4gcmVsZWFzZSBhbmQgeW91
-IHNob3VsZCBiZSBhYmxlIGdldCBtb3JlIGRldGFpbHMgZnJvbSB0aGUgVEkgY29udGFjdCBwZXJz
-b24gd2hvDQo+ID4+ID4+IGdhdmUgeW91IHRoZSBibGF6ZS4gWW91IGNhbiBhbHNvIGdldCB0aGUg
-cGVyZm9ybWFuY2UgbnVtYmVycyBmcm9tIHNhbWUgc291cmNlDQo+ID4+ID4+DQo+ID4+ID4gSWYg
-eW91IG5lZWQgdGhlIGZ1bGwga2VybmVsIHdpdGggYWxsIHRoZSBkcml2ZXJzIEkgbWVudGlvbmVk
-IGFib3ZlLCB5b3UgY2FuIHVzZQ0KPiA+PiA+IGJlbG93IGdpdC4NCj4gPj4gPiBodHRwOi8vZGV2
-Lm9tYXB6b29tLm9yZy8/cD1pbnRlZ3JhdGlvbi9rZXJuZWwtb21hcDQuZ2l0O2E9c2hvcnRsb2c7
-aD1yZWZzL2hlYWRzL0wyNC40DQo+ID4+DQo+ID4+IEdvb2QgaGVscCBzbyBmYXIuLi4uLi4sIHdv
-bmRlcmluZyB3aHkgdHdvIHRyZWVzIGZvciBPTUFQNCwgdGVsbCBtZSB0aGUNCj4gPj4gZGlmZiBi
-L24gdGhpcyBsaXN0IGFuZCB0aGUgem9vbS4NCj4gPj4gaXMgdGhlcmUgYSBkaWZmZXJlbnQgbWFp
-bGluZyBsaXN0IGZvciB6b29tPyBjb25mdXNpbmcuLi4gYW5kIEkgYW0NCj4gPj4gc29ycnkuLi4u
-dGhhbmtzIGZvciB0aGUgcG9pbnRlcnMNCj4gPj4NCj4gPiBUaGUgbWFpbGluZyBsaXN0IGlzIG9u
-bHkgb25lIChMaW51eC1vbWFwKS4gVGhlcmUgaXMgbm8gZGlmZmVyZW5jZS4gTGludXgtb21hcA0K
-PiA+IHRyZWUgaXMgYWxtb3N0IG1haW5saW5lIGVxdWl2YWxlbnQgZnJvbSBvbWFwNCBwb2ludCBv
-ZiB2aWV3LiBUaGUgZmVhdHVyZXMgYXJlIGRldmVsb3BlZA0KPiA+IG9uIHRoZSB0cmVlIEkgbWVu
-dGlvbmVkIGFib3ZlLiBUaGUgdGVzdGVkIGZlYXR1cmVzIHdpbGwgYmUgdXAtc3RyZWFtZWQgYWZ0
-ZXIgcmViYXNpbmcNCj4gPiBvbmUgYnkgb25lLiBZb3Ugd2lsbCBmaW5kIG9ubHkgdXBzdHJlYW1l
-ZC9saW5lZC11cCBmZWF0dXJlcyBpbiBsaW51eC1vbWFwIHRyZWUuDQo+ID4NCj4gVGhhbmtzIFNl
-bnRvc2ggZm9yIHlvdXIgaGVscCwgd2hhdCBkbyB5b3UgYWR2aXNlPyB5b3UgYWx3YXlzIHdhbnRl
-ZCBtZQ0KPiB0byBnbyB0byB6b29tLCBzbyBJIGRvbid0IGhhdmUgdG8gcHVsbCBmcm9tIExpbnV4
-LW9tYXAuDQo+IFdoZW4gSSBzaG91bGQgdXNlIHpvb20gYW5kIHdoZW4gSSBzaG91bGQgY29tZSBi
-YWNrIHRvIExpbnV4LW9tYXA/DQo+IHBsZWFzZSBjbGFyaWZ5LiBHb29kIHdheSB0byBhc2sgIndo
-aWNoIGlzIGxhdGVzdD8iIDopDQo+IEkgYW0gc29ycnksIEkgYW0gY29uZnVzZWQuLi4uaGVscCBt
-ZQ0KPiANClRoZSBkZXYub21hcHpvb20ub3JnIHRyZWVzIGdldHMgdXBkYXRlZCByZWd1bGFybHkg
-d2l0aCBsaW51eC1vbWFwL21haW5pbmxlLiBTbyBiYXNpY2FsbHkNCml0IGlzICggTGludXgtb21h
-cC1tYXN0ZXIgKyAgQWRkaXRpb25hbCBkcml2ZXJzIGluY2x1ZGluZyBJUEMpLiBTbyB5b3UgY2Fu
-IHVzZSB0aGUNCmdpdCBhdmFpbGFibGUgb24gZGV2Lm9tYXB6b29tLm9yZy4gVGhpcyB3aWxsIGVu
-YWJsZSB5b3UgdG8gaGF2ZSBhbGwgdGhlIGRyaXZlcnMgaW4NCm9uZSB0cmVlLg0KDQpSZWdhcmRz
-LA0KU2FudG9zaA0K
+On Thu, 25 Feb 2010 19:02:38 +0530, Sriramakrishnan wrote:
+> The platform data structure defined in pca953x header file
+> includes references to i2c data structures. Unless the i2c.h
+> file is included ahead of pca953x.h, compiler warning would
+> be generated wherever pca953x header file is included. Added
+> i2c.h to the pca953x.h itself to remove this dependency.
+> 
+> Also included conditional compile macros to guard against
+> multiple inclusion.
+> 
+> Signed-off-by: Sriramakrishnan <srk-l0cyMroinI0@public.gmane.org>
+> ---
+>  include/linux/i2c/pca953x.h |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/i2c/pca953x.h b/include/linux/i2c/pca953x.h
+> index 81736d6..1284a2d 100644
+> --- a/include/linux/i2c/pca953x.h
+> +++ b/include/linux/i2c/pca953x.h
+> @@ -1,3 +1,8 @@
+> +#ifndef __LINUX_PCA953X_H
+> +#define __LINUX_PCA953X_H
+> +
+> +#include <linux/i2c.h>
+> +
+>  /* platform data for the PCA9539 16-bit I/O expander driver */
+>  
+>  struct pca953x_platform_data {
+> @@ -17,3 +22,4 @@ struct pca953x_platform_data {
+>  				void *context);
+>  	char		**names;
+>  };
+> +#endif
+
+Olof Johansson already sent a patch fixing this:
+http://lkml.org/lkml/2010/1/5/327
+
+Andrew Morton accepted this patch so it should go to Linus during the
+next merge window (that is, within the next 2 weeks.)
+
+-- 
+Jean Delvare
