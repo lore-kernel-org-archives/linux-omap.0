@@ -1,46 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] musb: fix power field to hold all possible values
-Date: Thu, 25 Feb 2010 14:19:40 -0800
-Message-ID: <20100225221940.GN28173@atomide.com>
-References: <1266918404-17715-1-git-send-email-ajay.gupta@ti.com>
- <20100223095154.GA12815@gandalf>
- <19F8576C6E063C45BE387C64729E7394044DA995E5@dbde02.ent.ti.com>
- <20100223203215.GA21920@gandalf>
+Subject: Re: [GIT PULL] Second set of OMAP clock/hwmod patches for 2.6.34
+Date: Thu, 25 Feb 2010 14:31:12 -0800
+Message-ID: <20100225223111.GO28173@atomide.com>
+References: <alpine.DEB.2.00.1002241116000.2701@utopia.booyaka.com>
+ <20100224190211.GS28173@atomide.com>
+ <alpine.DEB.2.00.1002241207020.2701@utopia.booyaka.com>
+ <alpine.DEB.2.00.1002241320120.2701@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62985 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63288 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934167Ab0BYWSk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 17:18:40 -0500
+	with ESMTP id S934167Ab0BYWaK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 17:30:10 -0500
 Content-Disposition: inline
-In-Reply-To: <20100223203215.GA21920@gandalf>
+In-Reply-To: <alpine.DEB.2.00.1002241320120.2701@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <me@felipebalbi.com> [100223 12:30]:
-> Hi,
+* Paul Walmsley <paul@pwsan.com> [100224 12:18]:
+> On Wed, 24 Feb 2010, Paul Walmsley wrote:
 > 
-> On Tue, Feb 23, 2010 at 08:01:50PM +0530, Gupta, Ajay Kumar wrote:
-> > Board files are providing the actual mA and it is getting divided in 
-> > Arch/arm/mach-omap2/usb-musb.c. See the code snippet below,
+> > On Wed, 24 Feb 2010, Tony Lindgren wrote:
 > > 
-> >         musb_plat.clock = "ick";
-> >         musb_plat.board_data = board_data;
-> > -->     musb_plat.power = board_data->power >> 1;
-> >         musb_plat.mode = board_data->mode;
+> > > * Paul Walmsley <paul@pwsan.com> [100224 10:15]:
+> > > > 
+> > > > Hi Tony,
+> > > > 
+> > > > The following changes since commit 0482e3c6f704d25b6a4e3c940caeeacece4e6d74:
+> > > >   Tony Lindgren (1):
+> > > >         Merge branch 'omap-fixes-for-linus' into omap-for-linus
+> > > > 
+> > > > are available in the git repository at:
+> > > > 
+> > > >   git://git.pwsan.com/linux-2.6 for_2.6.34_b
+> > > 
+> > > Hmm this does not seem to merge without conflicts to omap-for-linus,
+> > > maybe take a look if you can merge/rebase it?
+> > > 
+> > > I'd assume rebasing or merging your branch with
+> > > 80c20d543d142ee54ec85259b77aaf0b83c32db5 will do the trick.
 > > 
-> > So we need to either take this patch or fix this logic of dividing the mA
-> > supplied from all omap board files.
+> > Looks like 4751227df948582e82f19df30efa662ab71fa980 is the problem.
 > 
-> that's true, had missed that. Sorry.
+> Cool, it turned out to be not too bad to rebase.  for_2.6.34_b branch is 
+> updated.  I'll retest here and resend a pull request after the tests are 
+> complete.
 
-Hmm, I believe this value is also divided somewhere else but
-I forgot where. In any case, when making changes like this
-please run the standard USB tests for gadgets and OTG.
-
-Otherwise things are guaranteed to break for USB certs :)
+OK that's merged now. I think we're pretty much done for this
+merge window. I'll take a look at few more board-*.c patches
+though.
 
 Tony
