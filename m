@@ -1,56 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] Second set of OMAP clock/hwmod patches for 2.6.34
-Date: Thu, 25 Feb 2010 14:31:12 -0800
-Message-ID: <20100225223111.GO28173@atomide.com>
-References: <alpine.DEB.2.00.1002241116000.2701@utopia.booyaka.com>
- <20100224190211.GS28173@atomide.com>
- <alpine.DEB.2.00.1002241207020.2701@utopia.booyaka.com>
- <alpine.DEB.2.00.1002241320120.2701@utopia.booyaka.com>
+Subject: Re: [PATCH 1/5 v2] omap2/3/4: mailbox: remove compiler warning
+Date: Thu, 25 Feb 2010 14:34:14 -0800
+Message-ID: <20100225223413.GP28173@atomide.com>
+References: <2C1563023E232C49B9F505633D57C2DA2640F2CA32@dlee04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63288 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934167Ab0BYWaK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 17:30:10 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50988 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934273Ab0BYWdN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 17:33:13 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1002241320120.2701@utopia.booyaka.com>
+In-Reply-To: <2C1563023E232C49B9F505633D57C2DA2640F2CA32@dlee04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Anna, Suman" <s-anna@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [100224 12:18]:
-> On Wed, 24 Feb 2010, Paul Walmsley wrote:
+* Anna, Suman <s-anna@ti.com> [100223 07:57]:
+> From 02c45559105c62343e31226fe67117231ea10c35 Mon Sep 17 00:00:00 2001
+> From: Suman Anna <s-anna@ti.com>
+> Date: Mon, 25 Jan 2010 18:27:21 -0600
+> Subject: [PATCH] omap2/3/4: mailbox: remove compiler warning
 > 
-> > On Wed, 24 Feb 2010, Tony Lindgren wrote:
-> > 
-> > > * Paul Walmsley <paul@pwsan.com> [100224 10:15]:
-> > > > 
-> > > > Hi Tony,
-> > > > 
-> > > > The following changes since commit 0482e3c6f704d25b6a4e3c940caeeacece4e6d74:
-> > > >   Tony Lindgren (1):
-> > > >         Merge branch 'omap-fixes-for-linus' into omap-for-linus
-> > > > 
-> > > > are available in the git repository at:
-> > > > 
-> > > >   git://git.pwsan.com/linux-2.6 for_2.6.34_b
-> > > 
-> > > Hmm this does not seem to merge without conflicts to omap-for-linus,
-> > > maybe take a look if you can merge/rebase it?
-> > > 
-> > > I'd assume rebasing or merging your branch with
-> > > 80c20d543d142ee54ec85259b77aaf0b83c32db5 will do the trick.
-> > 
-> > Looks like 4751227df948582e82f19df30efa662ab71fa980 is the problem.
+> Remove a compiler warning in device-specific
+> mailbox module.
 > 
-> Cool, it turned out to be not too bad to rebase.  for_2.6.34_b branch is 
-> updated.  I'll retest here and resend a pull request after the tests are 
-> complete.
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-OK that's merged now. I think we're pretty much done for this
-merge window. I'll take a look at few more board-*.c patches
-though.
+Hiroshi, do you want me to queue this? If so, please respond
+with your ack.
 
 Tony
+
+> ---
+>  arch/arm/mach-omap2/mailbox.c |   12 ++++++------
+>  1 files changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+> index 2c9fd1c..a732664 100644
+> --- a/arch/arm/mach-omap2/mailbox.c
+> +++ b/arch/arm/mach-omap2/mailbox.c
+> @@ -409,19 +409,19 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+>  		if (unlikely(!res)) {
+>  			dev_err(&pdev->dev, "invalid irq resource\n");
+>  			ret = -ENODEV;
+> -			goto err_iva1;
+> +			omap_mbox_unregister(&mbox_dsp_info);
+> +			goto err_dsp;
+>  		}
+>  		mbox_iva_info.irq = res->start;
+>  		ret = omap_mbox_register(&pdev->dev, &mbox_iva_info);
+> -		if (ret)
+> -			goto err_iva1;
+> +		if (ret) {
+> +			omap_mbox_unregister(&mbox_dsp_info);
+> +			goto err_dsp;
+> +		}
+>  	}
+>  #endif
+>  	return 0;
+>  
+> -err_iva1:
+> -	omap_mbox_unregister(&mbox_dsp_info);
+> -
+>  err_dsp:
+>  	iounmap(mbox_base);
+>  	return ret;
+> -- 
+> 1.6.6.2
