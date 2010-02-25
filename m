@@ -1,104 +1,191 @@
-From: Maulik Mankad <x0082077@ti.com>
-Subject: [PATCH 4/4] OMAP: MUSB: Enable Mentor USB options in 4430 defconfig
-Date: Thu, 25 Feb 2010 12:07:53 +0530
-Message-ID: <1267079873-14768-1-git-send-email-x0082077@ti.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
+Date: Thu, 25 Feb 2010 10:22:23 +0200
+Message-ID: <4B86333F.9020404@nokia.com>
+References: <1265244688-4055-1-git-send-email-khilman@deeprootsystems.com>	<87ocjftq0z.fsf@deeprootsystems.com>	<005001cab56f$17db8460$544ff780@am.dhcp.ti.com> <87vddmmacg.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33174 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753454Ab0BYGiE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Feb 2010 01:38:04 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:21639 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750741Ab0BYIWd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 03:22:33 -0500
+In-Reply-To: <87vddmmacg.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Maulik Mankad <x0082077@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Madhusudhan <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch enables Mentor USB peripheral mode
-options for OMAP4 SDP defconfig.
+Kevin Hilman wrote:
+> "Madhusudhan" <madhu.cr@ti.com> writes:
+> 
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>>> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>>> Sent: Tuesday, February 23, 2010 6:51 PM
+>>> To: linux-omap@vger.kernel.org
+>>> Subject: Re: [PATCH/RFC 0/4] convert HS-MMC driver to hwmod + runtime PM
+>>>
+>>> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>>>
+>>>> This series converts the OMAP HS-MMC driver to use omap_hwmod +
+>>>> runtime PM API.
+>>>>
+>>>> Depends on MMC hwmods available in 'pm-wip/hwmods' branch of
+>>>> my git tree[1] as well as previously posted runtime PM series:
+>>>>
+>>>>    [PATCH/RFC 0/2] initial runtime PM layer for OMAP
+>>>>
+>>>> The easies way to experiment/test is to use my 'pm-wip/mmc' branch
+>>>> which has all the dependencies, and is based on omap/for-next'.
+>>>> It has been tested by merging with current PM branch.
+>>>>
+>>>> [1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
+>>>>
+>>> A question for those of you who actually understand the MMC driver...
+>>> I'm having problems getting my head around the current PM stuff in the
+>>> MMC driver.  My primary question is:
+>>>
+>>> Why does the suspend hook need to re-enable the device before
+>>> suspending?
+>>>
+>> In the scenario where there is no activity on the bus the MMC clocks are
+>> kept disabled. Now in the suspend path the MMC core will issue certain CMDs
+>> like CMD7(to end the suspend path) to deselect the card(more of a protocol
+>> stuff). Hence the host need to be in enabled state before letting the core
+>> know that there is a suspend request.
+> 
+> I guess what I'm wondering is whether we can (should) have the exact
+> same path for runtime PM (idle) and static PM (suspend/resume.)
+> 
+> My current approach is that the suspend is a NOP if the device
+> is already runtime suspended.
 
-Signed-off-by: Maulik Mankad <x0082077@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
----
-Index: mainline/arch/arm/configs/omap_4430sdp_defconfig
-===================================================================
---- mainline.orig/arch/arm/configs/omap_4430sdp_defconfig
-+++ mainline/arch/arm/configs/omap_4430sdp_defconfig
-@@ -531,7 +531,76 @@ CONFIG_SSB_POSSIBLE=y
- CONFIG_DUMMY_CONSOLE=y
- # CONFIG_SOUND is not set
- # CONFIG_HID_SUPPORT is not set
--# CONFIG_USB_SUPPORT is not set
-+CONFIG_USB_SUPPORT=y
-+CONFIG_USB_ARCH_HAS_HCD=y
-+CONFIG_USB_ARCH_HAS_OHCI=y
-+# CONFIG_USB_ARCH_HAS_EHCI is not set
-+# CONFIG_USB is not set
-+# CONFIG_USB_OTG_WHITELIST is not set
-+# CONFIG_USB_OTG_BLACKLIST_HUB is not set
-+CONFIG_USB_MUSB_HDRC=y
-+CONFIG_USB_MUSB_SOC=y
-+
-+#
-+# OMAP 44xx high speed USB support
-+#
-+# CONFIG_USB_MUSB_HOST is not set
-+CONFIG_USB_MUSB_PERIPHERAL=y
-+# CONFIG_USB_MUSB_OTG is not set
-+CONFIG_USB_GADGET_MUSB_HDRC=y
-+# CONFIG_MUSB_PIO_ONLY is not set
-+CONFIG_USB_INVENTRA_DMA=y
-+# CONFIG_USB_TI_CPPI_DMA is not set
-+# CONFIG_USB_MUSB_DEBUG is not set
-+
-+#
-+# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
-+#
-+CONFIG_USB_GADGET=y
-+# CONFIG_USB_GADGET_DEBUG is not set
-+# CONFIG_USB_GADGET_DEBUG_FILES is not set
-+CONFIG_USB_GADGET_VBUS_DRAW=2
-+CONFIG_USB_GADGET_SELECTED=y
-+# CONFIG_USB_GADGET_AT91 is not set
-+# CONFIG_USB_GADGET_ATMEL_USBA is not set
-+# CONFIG_USB_GADGET_FSL_USB2 is not set
-+# CONFIG_USB_GADGET_LH7A40X is not set
-+# CONFIG_USB_GADGET_OMAP is not set
-+# CONFIG_USB_GADGET_PXA25X is not set
-+# CONFIG_USB_GADGET_R8A66597 is not set
-+# CONFIG_USB_GADGET_PXA27X is not set
-+# CONFIG_USB_GADGET_S3C_HSOTG is not set
-+# CONFIG_USB_GADGET_IMX is not set
-+# CONFIG_USB_GADGET_S3C2410 is not set
-+# CONFIG_USB_GADGET_M66592 is not set
-+# CONFIG_USB_GADGET_AMD5536UDC is not set
-+# CONFIG_USB_GADGET_FSL_QE is not set
-+# CONFIG_USB_GADGET_CI13XXX is not set
-+# CONFIG_USB_GADGET_NET2280 is not set
-+# CONFIG_USB_GADGET_GOKU is not set
-+# CONFIG_USB_GADGET_LANGWELL is not set
-+# CONFIG_USB_GADGET_DUMMY_HCD is not set
-+CONFIG_USB_GADGET_DUALSPEED=y
-+CONFIG_USB_ZERO=m
-+# CONFIG_USB_AUDIO is not set
-+# CONFIG_USB_ETH is not set
-+# CONFIG_USB_GADGETFS is not set
-+CONFIG_USB_FILE_STORAGE=m
-+# CONFIG_USB_FILE_STORAGE_TEST is not set
-+# CONFIG_USB_MASS_STORAGE is not set
-+CONFIG_USB_G_SERIAL=m
-+# CONFIG_USB_MIDI_GADGET is not set
-+# CONFIG_USB_G_PRINTER is not set
-+# CONFIG_USB_CDC_COMPOSITE is not set
-+# CONFIG_USB_G_MULTI is not set
-+
-+#
-+# OTG and related infrastructure
-+#
-+CONFIG_USB_OTG_UTILS=y
-+# CONFIG_USB_GPIO_VBUS is not set
-+# CONFIG_USB_ULPI is not set
-+CONFIG_NOP_USB_XCEIV=y
- # CONFIG_MMC is not set
- # CONFIG_MEMSTICK is not set
- # CONFIG_NEW_LEDS is not set
+One difference is that the card-detect irq is disabled during suspend.
+That means that removeable cards must have their block devices removed
+too (or not if "unsafe-resume" is configured). The advantage of OFF-mode
+is that it will wake-up if someone opens the cover, whereas suspend
+will not.
+
+A similar issue may develop with SDIO which may want to wake-up the
+device from OFF-mode (e.g. wireless card connected via SDIO)
+
+So is the difference that OFF-mode has wakeups but suspend does not?
+
+> 
+>>> When using runtime PM, the MMC device is disabled including
+>>> clocks off  and regulator off (if power_savings == true) when there
+>>> is no activity.
+>>>
+>>> Then, in the static suspend hook, it's re-enabled (including taking it out
+>>> of
+>>> off, re-enabling regulators etc) only to be quickly disabled again.
+>>> This seems horribly inefficient.
+>>>
+>> This is exactly for the reason I mentioned above.
+>>
+>>> I admit to not understanding the MMC layer terribly well, so can someone
+>>> enlighten me as to what is going on here?
+>>>
+>>> What I am testing here is a patch on top of this series (below) that
+>>> adds a check to the static suspend hook.  If the device is already
+>>> runtime suspended, then the suspend and resume hooks should be noop.
+>>>
+>>> This appears to work just fine while testing on omap3evm just doing
+>>> simple read/write tests before an after suspend resume.
+>>>
+>> I did some basic testing with your previously posted patches. But my testing
+>> was incomplete because on Zoom2 because for some reason the OFF mode was not
+>> working even without your patches.
+> 
+> OK, I will try on Zoom2.  I've only tested this so far on OMAP3EVM.
+> 
+>> My concern was more with respect to OFF mode in idle path since your patches
+>> removed context restore calls if I recall correctly. 
+> 
+> No, I didn't remove restore.  I just moved it into the runtime PM
+> resume callback.
+> 
+>> Are you able to hit CORE OFF and then come back and do the
+>> read/write transfers in idle as well as suspend/resume path?
+> 
+> Yes.
+> 
+> Kevin
+> 
+>>  
+>>> Note that if you want to test this patch, it also depends on this
+>>> patch to runtime PM from the linux-pm list:
+>>> https://lists.linux-foundation.org/pipermail/linux-pm/2010-
+>>> February/024275.html
+>>>
+>>> These are all included in an updated version of my pm-wip/mmc branch
+>>> for ease of testing.  Merge it with the current PM branch, enable
+>>> CONFIG_PM_RUNTIME and test away.
+>>>
+>>> Kevin
+>>>
+>>> commit 166cba7679fa267ee6e6eb39fd1e871ede5ded16
+>>> Author: Kevin Hilman <khilman@deeprootsystems.com>
+>>> Date:   Tue Feb 23 16:21:56 2010 -0800
+>>>
+>>>     MMC: omap_hsmmc: check for runtime-suspend in static suspend
+>>>
+>>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>>> index 16d66b9..dd027bb 100644
+>>> --- a/drivers/mmc/host/omap_hsmmc.c
+>>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>>> @@ -2222,6 +2222,9 @@ static int omap_hsmmc_suspend(struct device *dev)
+>>>  	if (host && host->suspended)
+>>>  		return 0;
+>>>
+>>> +	if (pm_is_runtime_suspended(host->dev))
+>>> +		return 0;
+>>> +
+>>>  	if (host) {
+>>>  		host->suspended = 1;
+>>>  		if (host->pdata->suspend) {
+>>> @@ -2260,12 +2263,6 @@ static int omap_hsmmc_suspend(struct device *dev)
+>>>  			}
+>>>  			mmc_host_disable(host->mmc);
+>>>  		}
+>>> -
+>>> -		/*
+>>> -		 * HACK: "extra" put to compensate for DPM core keeping
+>>> -		 *       runtime PM disabled.  -- khilman
+>>> -		 */
+>>> -		pm_runtime_put_sync(host->dev);
+>>>  	}
+>>>  	return ret;
+>>>  }
+>>> @@ -2280,13 +2277,10 @@ static int omap_hsmmc_resume(struct device *dev)
+>>>  	if (host && !host->suspended)
+>>>  		return 0;
+>>>
+>>> -	if (host) {
+>>> -		/*
+>>> -		 * HACK: "extra" get to compensate for DPM core keeping
+>>> -		 *       runtime PM disabled.  -- khilman
+>>> -		 */
+>>> -		pm_runtime_get_sync(host->dev);
+>>> +	if (pm_is_runtime_suspended(host->dev))
+>>> +		return 0;
+>>>
+>>> +	if (host) {
+>>>  		if (mmc_host_enable(host->mmc) != 0) {
+>>>  			pm_runtime_suspend(host->dev);
+>>>  			goto clk_en_err;
+>>>
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
