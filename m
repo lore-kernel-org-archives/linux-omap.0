@@ -1,104 +1,62 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V6 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
-Date: Fri, 26 Feb 2010 12:24:55 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DA99EF6@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1266917239-7094-3-git-send-email-hvaibhav@ti.com>
- <20100225221407.GM28173@atomide.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 1/3] TCA6416 keypad : Implement keypad driver for keys
+ interfaced to TCA6416
+Date: Fri, 26 Feb 2010 00:28:04 -0800
+Message-ID: <20100226082803.GC17444@core.coreip.homeip.net>
+References: <1267103701-23823-1-git-send-email-srk@ti.com>
+ <1267103701-23823-2-git-send-email-srk@ti.com>
+ <20100225184702.GA5125@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20100225221407.GM28173@atomide.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100225184702.GA5125@gandalf>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Sriramakrishnan <srk@ti.com>, linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, February 26, 2010 3:44 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org;
-> hverkuil@xs4all.nl
-> Subject: Re: [PATCH-V6 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
+On Thu, Feb 25, 2010 at 08:47:03PM +0200, Felipe Balbi wrote:
+> Hi,
 > 
-> * hvaibhav@ti.com <hvaibhav@ti.com> [100223 01:25]:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  arch/arm/plat-omap/devices.c |   29 +++++++++++++++++++++++++++++
-> >  1 files changed, 29 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> > index 30b5db7..64f2a3a 100644
-> > --- a/arch/arm/plat-omap/devices.c
-> > +++ b/arch/arm/plat-omap/devices.c
-> > @@ -357,6 +357,34 @@ static void omap_init_wdt(void)
-> >  static inline void omap_init_wdt(void) {}
-> >  #endif
-> >
-> > +/*-----------------------------------------------------------------------
-> ----*/
-> > +
-> > +#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
-> > +	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
-> > +#if defined (CONFIG_FB_OMAP2) || defined (CONFIG_FB_OMAP2_MODULE)
-> > +static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] =
-> {
-> > +};
-> > +#else
-> > +static struct resource omap_vout_resource[2] = {
-> > +};
-> > +#endif
-> > +
-> > +static struct platform_device omap_vout_device = {
-> > +	.name		= "omap_vout",
-> > +	.num_resources	= ARRAY_SIZE(omap_vout_resource),
-> > +	.resource 	= &omap_vout_resource[0],
-> > +	.id		= -1,
-> > +};
-> > +static void omap_init_vout(void)
-> > +{
-> > +	(void) platform_device_register(&omap_vout_device);
-> > +}
+> On Thu, Feb 25, 2010 at 06:44:59PM +0530, Sriramakrishnan wrote:
+> > This patch implements a simple Keypad driver that functions
+> > as an I2C client. It handles key press events for keys
+> > connected to TCA6416 I2C based IO expander.
 > 
-> Allocation can still fail here, please handle the results.
+> what's wrong with gpio-keys ??
 > 
-[Hiremath, Vaibhav] Ok, will do that.
+> > + * Implementation based on drivers/input/keyboard/gpio_keys.c
+> 
+> I see,
+> 
+> shouldn't you instead provide a gpiolib driver for tca6416 and use the
+> generic gpio_keys driver ??
+> 
 
-> > +#else
-> > +static inline void omap_init_vout(void) {}
-> > +#endif
-> > +
-> > +/*-----------------------------------------------------------------------
-> ----*/
-> > +
-> >  /*
-> >   * This gets called after board-specific INIT_MACHINE, and initializes
-> most
-> >   * on-chip peripherals accessible on this board (except for few like
-> USB):
-> > @@ -387,6 +415,7 @@ static int __init omap_init_devices(void)
-> >  	omap_init_rng();
-> >  	omap_init_uwire();
-> >  	omap_init_wdt();
-> > +	omap_init_vout();
-> >  	return 0;
-> >  }
-> >  arch_initcall(omap_init_devices);
-> 
-> Looks like this should be in mach-omap2/devices.c instead if it's all
-> omap2/3/4 specific.
-> 
-[Hiremath, Vaibhav] For sure it's being used for OMAP2/3 and if I understand correctly OMAP4 also uses it.
+Right. The fact that the driver precludes all otehr gpios from being
+used is a major drawback.
 
-Thanks,
-Vaibhav
 
-> Regards,
+> > +	if (!chip->use_polling) {
 > 
-> Tony
+> IMO, you should only use polling if the irq line isn't connected.
+> 
+> > +		if (pdata->irq_is_gpio)
+> > +			chip->irqnum = gpio_to_irq(pdata->irqnum);
+> 
+> you can pass the irq number via i2c_board_info. Use it.
+> 
+> > +		else
+> > +			chip->irqnum = pdata->irqnum;
+> > +
+> > +		ret = request_irq(chip->irqnum, tca6416_keys_isr,
+> 
+> it's an i2c driver!!! this should be request_threaded_irq()
+> 
+
+Threaded IRQ probably does not fit well when you want to support both
+interrupt and polling in the same driver...
+
+-- 
+Dmitry
