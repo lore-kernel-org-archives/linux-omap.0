@@ -1,64 +1,56 @@
-From: "Olaya, Margarita" <magi.olaya@ti.com>
-Subject: Re: [PATCHv4 2/7] ASoC: TWL6030: Add twl6030 codec
-	driver
-Date: Fri, 26 Feb 2010 13:42:35 -0600
-Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65E7E325@dlee06.ent.ti.com>
-References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B14@dlee06.ent.ti.com>
-	<1267007881.3274.136.camel@odin>
-	<1889FA7136B567478A67D4B0F85B0CCE65DD22C9@dlee06.ent.ti.com>
-	<20100225101710.GE10141@rakim.wolfsonmicro.main>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFC v2][PATCH 5/5] omap3: serial: Add uart4 wakeup handling
+Date: Fri, 26 Feb 2010 11:43:34 -0800
+Message-ID: <87ocjbixzt.fsf@deeprootsystems.com>
+References: <1267199592-2245-1-git-send-email-saaguirre@ti.com>
+	<1267199592-2245-6-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20100225101710.GE10141@rakim.wolfsonmicro.main>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f182.google.com ([209.85.223.182]:38083 "EHLO
+	mail-iw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965843Ab0BZTnh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Feb 2010 14:43:37 -0500
+Received: by iwn12 with SMTP id 12so465396iwn.21
+        for <linux-omap@vger.kernel.org>; Fri, 26 Feb 2010 11:43:36 -0800 (PST)
+In-Reply-To: <1267199592-2245-6-git-send-email-saaguirre@ti.com> (Sergio Aguirre's message of "Fri\, 26 Feb 2010 09\:53\:12 -0600")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thursday, February 25, 2010 4:17 AM  Mark Brown wrote: 
+Sergio Aguirre <saaguirre@ti.com> writes:
 
->>> Are these two functions writing the default codec register values
->>> to the CODEC or are these non default (i.e. reset) values. If
->>> they are reset values is it not better to just issue the reset
->>> (and save the slow I2C writes) ?
-> 
->> Yeap, but they write non default values to most of the registers.
-> 
-> Why are these non-default values being set?  The general style with
-> things like this is that the register defaults listed in the
-> driver are
-> the physical defaults, and any explicit configuration is done with
-> register writes.  This makes it clearer what's being changed and
-> means that the actual register defaults are there for use if
-> required. 
-> 
-> Normally only things that should be changed for all systems would be
-> configured in this manner, things like audio paths which might
-> change per system would be left for userspace to configure.
-> 
+This one needs a better changelog also.
 
-I meant to say default values, sorry for the confusion
+Otherwise, change looks right.
 
-In TWL6040 codec, the registers belong to a power supply domain: VDD or VIO.
-When the codec hits suspend state, VIO is not longer supplied, so registers
-lose their values. However, VDD registers preserve their values as they belong
-to a different power domain which still exist in suspend state. So when codec
-resumes, it's only needed to restore VIO registers' values lost during suspend.
-That's the reason why we have two separate functions to set VDD and VIO registers.
-The former is only needed at probe time and the latter is needed every time codec
-resumes.
+Kevin
 
-At probe we are using the default values to keep the codec functional as many
-features have not been enabled yet, some specific values are set using write
-function.
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index da77930..6e1b17e 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -475,6 +475,10 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+>  			wk_mask = OMAP3430_ST_UART3_MASK;
+>  			padconf = 0x19e;
+>  			break;
+> +		case 3:
+> +			wk_mask = OMAP3630_ST_UART4_MASK;
+> +			padconf = 0x0d2;
+> +			break;
+>  		}
+>  		uart->wk_mask = wk_mask;
+>  		uart->padconf = padconf;
+> -- 
+> 1.6.3.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
