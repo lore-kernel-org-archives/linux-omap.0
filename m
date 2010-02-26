@@ -1,56 +1,56 @@
-From: "Maulik" <x0082077@ti.com>
-Subject: RE: [PATCH 2/4] USB: MUSB: Enable MUSB for OMAP4 in Kconfig
-Date: Fri, 26 Feb 2010 14:10:31 +0530
-Message-ID: <000001cab6bf$5df75720$808918ac@apr.dhcp.ti.com>
-References: <1267079758-14480-1-git-send-email-x0082077@ti.com> <20100225184833.GG28173@atomide.com> <20100226004233.GA3241@lixom.net>
+From: "Maulik" <x0082077-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 3/4] USB: MUSB: Add OMAP4 support in MUSB driver
+Date: Fri, 26 Feb 2010 14:13:31 +0530
+Message-ID: <000101cab6bf$c6f64ec0$808918ac@apr.dhcp.ti.com>
+References: <1267079785-14529-1-git-send-email-x0082077@ti.com> <4B864F03.3070507@ru.mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54562 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935550Ab0BZIkt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Feb 2010 03:40:49 -0500
-In-Reply-To: <20100226004233.GA3241@lixom.net>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4B864F03.3070507-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sergei Shtylyov' <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Felipe Balbi' <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, 'Greg Kroah-Hartman' <gregkh-l3A5Bk7waGM@public.gmane.org>, 'David Brownell' <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: 'Olof Johansson' <olof@lixom.net>, 'Tony Lindgren' <tony@atomide.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, 'Felipe Balbi' <felipe.balbi@nokia.com>, 'Greg Kroah-Hartman' <gregkh@suse.de>, 'David Brownell' <david-b@pacbell.net>
 
-> > @@ -153,7 +157,7 @@ config MUSB_PIO_ONLY
-> >  config USB_INVENTRA_DMA
-> >  	bool
-> >  	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
-> > -	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN
-> > +	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN || ARCH_OMAP4
-> >  	help
-> >  	  Enable DMA transfers using Mentor's engine.
-> 
-> FYI, this needs to be updated as I have patches queued up
-> to replace ARCH_OMAP34XX and with ARCH_OMAP3. You might
-> want to check all these patches for that and make sure
-> they build and work with the omap-for-linus branch.
 
-Tony,
+Maulik Mankad wrote:
+> This patch adds CONFIG_ARCH_OMAP4 macro within MUSB driver
+> code and builds the MUSB driver for OMAP4.
+>
+> Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+> Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+> ---
+> Index: mainline/drivers/usb/musb/Makefile
+> ===================================================================
+> --- mainline.orig/drivers/usb/musb/Makefile
+> +++ mainline/drivers/usb/musb/Makefile
+> @@ -22,6 +22,10 @@ ifeq ($(CONFIG_ARCH_OMAP3430),y)
+>  	musb_hdrc-objs	+= omap2430.o
+>  endif
+>  
+> +ifeq ($(CONFIG_ARCH_OMAP4),y)
+> +	musb_hdrc-objs  += omap2430.o
+> +endif
+> +
+>  ifeq ($(CONFIG_BF54x),y)
+>  	musb_hdrc-objs	+= blackfin.o
+>  endif
 
-I shall post a newer version after rebasing and fixing the comments. 
-I believe your patches will soon make to mainline :-)
+>>   I think this should be combined with patch 2/4 which doesn't make 
+>> much sense otherwise...
 
->>Adding more and more depends also doesn't scale well. It's time for
->>someone to switch the test around, add a ARCH_HAS_MUSB, select it on
->>the platforms that has it and make the config option depend on that,
->>similar to how (some) platforms to EHCI today.
+Sergei,
 
->>(i.e. if there's a janitor out there reading this, feel free to go ahead
->>and do it. :-)
-
-Olof,
-
-We have such an option "USB_MUSB_SOC" that takes care of all platforms where
-MUSB is present. But the Inventra DMA case is typical. Not all architectures
-that have MUSB use Inventra DMA for e.g Davinci uses CPPI DMA.
+I shall take care of this in the next version.
 
 Thanks,
 Maulik
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
