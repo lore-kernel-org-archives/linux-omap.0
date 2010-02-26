@@ -1,53 +1,100 @@
-From: "Stehle, Vincent" <v-stehle@ti.com>
-Subject: RE: OMAP Audio
-Date: Fri, 26 Feb 2010 11:09:45 +0100
-Message-ID: <470B922D8A441644AAD7CE6FE610ADEBCF1DC795@dnce01.ent.ti.com>
-References: <4B7AE1AD.7080400@mlbassoc.com>
- <201002171226.05108.peter.ujfalusi@nokia.com>
- <4B7BC86C.8040905@mlbassoc.com>
- <201002171317.27896.peter.ujfalusi@nokia.com>
- <4B7BDAB1.3020503@mlbassoc.com> <20100217194501.7e49ac0c.jhnikula@gmail.com>
- <4B7C2C8F.9040703@mlbassoc.com> <20100217175602.GG2032@sirena.org.uk>
- <4B7C2F11.3010008@mlbassoc.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCHv2] OMAP: pass the reboot command to the boot loader
+Date: Fri, 26 Feb 2010 12:25:28 +0200
+Message-ID: <1267179928-21721-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40283 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751711Ab0BZKJz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Feb 2010 05:09:55 -0500
-Content-Class: urn:content-classes:message
-In-Reply-To: <4B7C2F11.3010008@mlbassoc.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:60176 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752929Ab0BZKXi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Feb 2010 05:23:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, OMAP Linux discussion <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, tony@atomide.com
 
-Gary Thomas:
-> I don't think it matters.  The real problem is how to get 24 bits
-> of data aligned to the right place in the 32 bit frame.  TRM implies
-> that the hardware can do this, I've just not figured out the magic...
+This patch follows the commit be093beb608edf821b45fe00a8a080fb5c6ed4af
+by Russell King:
 
-Hi,
+  OMAP wishes to pass state to the boot loader upon reboot in order
+  to instruct it whether to wait for USB-based reflashing or not.
+  There is already a facility to do this via the reboot() syscall,
+  except we ignore the string passed to machine_restart().
 
-I asked a colleague, who worked on OMAP3 McBSP silicon validation. She =
-told me that in your case, you will need to send 32 bits of data and th=
-at you will have to pad your data beforehand in software.
+The patch adds the missing parameter to omap1_arch_reset() and
+omap_prcm_arch_reset(), and modifies the latter to pass the reboot
+command parameter to the boot loader instead of reboot mode (which is
+for kernel internal use only and cannot be modified by the userspace).
 
-Best regards,
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
 
---
-Vincent Stehl=E9
+v2: Refreshed against the current omap-for-linus branch
+(b610ec502376d915b76a62e22576c5d0462cc9c9).
 
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Lo=
-ubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+ arch/arm/mach-omap2/prcm.c               |    4 ++--
+ arch/arm/plat-omap/include/plat/prcm.h   |    2 +-
+ arch/arm/plat-omap/include/plat/system.h |    6 +++---
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 81872aa..9537f6f 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -133,7 +133,7 @@ u32 omap_prcm_get_reset_sources(void)
+ EXPORT_SYMBOL(omap_prcm_get_reset_sources);
+ 
+ /* Resets clock rates and reboots the system. Only called from system.h */
+-void omap_prcm_arch_reset(char mode)
++void omap_prcm_arch_reset(char mode, const char *cmd)
+ {
+ 	s16 prcm_offs = 0;
+ 
+@@ -145,7 +145,7 @@ void omap_prcm_arch_reset(char mode)
+ 		u32 l;
+ 
+ 		prcm_offs = OMAP3430_GR_MOD;
+-		l = ('B' << 24) | ('M' << 16) | mode;
++		l = ('B' << 24) | ('M' << 16) | (cmd ? (u8)*cmd : 0);
+ 		/* Reserve the first word in scratchpad for communicating
+ 		 * with the boot ROM. A pointer to a data structure
+ 		 * describing the boot process can be stored there,
+diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
+index d6a0e27..9fbd914 100644
+--- a/arch/arm/plat-omap/include/plat/prcm.h
++++ b/arch/arm/plat-omap/include/plat/prcm.h
+@@ -24,7 +24,7 @@
+ #define __ASM_ARM_ARCH_OMAP_PRCM_H
+ 
+ u32 omap_prcm_get_reset_sources(void);
+-void omap_prcm_arch_reset(char mode);
++void omap_prcm_arch_reset(char mode, const char *cmd);
+ int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
+ 			 const char *name);
+ 
+diff --git a/arch/arm/plat-omap/include/plat/system.h b/arch/arm/plat-omap/include/plat/system.h
+index c58a4ef..d0a119f 100644
+--- a/arch/arm/plat-omap/include/plat/system.h
++++ b/arch/arm/plat-omap/include/plat/system.h
+@@ -22,7 +22,7 @@ static inline void arch_idle(void)
+ 	cpu_do_idle();
+ }
+ 
+-static inline void omap1_arch_reset(char mode)
++static inline void omap1_arch_reset(char mode, const char *cmd)
+ {
+ 	/*
+ 	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
+@@ -43,9 +43,9 @@ static inline void omap1_arch_reset(char mode)
+ static inline void arch_reset(char mode, const char *cmd)
+ {
+ 	if (!cpu_class_is_omap2())
+-		omap1_arch_reset(mode);
++		omap1_arch_reset(mode, cmd);
+ 	else
+-		omap_prcm_arch_reset(mode);
++		omap_prcm_arch_reset(mode, cmd);
+ }
+ 
+ #endif
+-- 
+1.5.6.5
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
