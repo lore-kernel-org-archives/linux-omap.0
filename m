@@ -1,57 +1,66 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] musb: Add workqueue for URB giveback
-Date: Fri, 26 Feb 2010 17:54:29 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DB7A9CF@dbde02.ent.ti.com>
-References: <1267180746-6773-1-git-send-email-ajay.gupta@ti.com>
- <201002261233.46872.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201002261233.46872.laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org" <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH] OMAP4: clockdomain: Use logical OR instead of bitwise OR
+Date: Fri, 26 Feb 2010 18:17:25 +0530
+Message-ID: <1267188445-25652-1-git-send-email-rnayak@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53907 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935858Ab0BZMrb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Feb 2010 07:47:31 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com, linux-omap@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>, Abhijit Pagare <abhijitpagare@ti.com>
 
-Hi,
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org]
-> Sent: Friday, February 26, 2010 5:04 PM
-> To: Gupta, Ajay Kumar
-> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org; oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org
-> Subject: Re: [PATCH] musb: Add workqueue for URB giveback
-> 
-> Hi Ajay,
-> 
-> On Friday 26 February 2010 11:39:06 Ajay Kumar Gupta wrote:
-> > Current musb host driver does the giveback of completed urb first and
-> > then start the next request. This is significantly affecting the
-> streaming
-> > from an USB camera wherein we observe huge delay between the two IN
-> tokens
-> > from musb host. This is due to the fact that UVC driver is doing
-> decoding
-> > and further processing in giveback context.
-> 
-> I was thinking about adding a workqueue to the UVC driver for URB
-> processing.
-> If you beat my by writing a patch before I find time to do so, I won't
-> complain ;-)
+This patch fixes usage of bitwise OR in if conditions, and instead
+uses logical OR.
 
-Sure, I will see when I can post a RFC/PATCH for it. Probably after
-two weeks.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Abhijit Pagare <abhijitpagare@ti.com>
+---
 
-Regards,
-Ajay
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Patch generated on top of for_2.6.34_b branch from
+git://git.pwsan.com/linux-2.6 tree.
+
+ arch/arm/mach-omap2/clockdomain.c |    4 ++--
+ arch/arm/mach-omap2/powerdomain.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index b87ad66..be846e6 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -812,7 +812,7 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+ 		cm_set_mod_reg_bits(OMAP24XX_FORCESTATE,
+ 			    clkdm->pwrdm.ptr->prcm_offs, OMAP2_PM_PWSTCTRL);
+ 
+-	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
++	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 
+ 		u32 bits = (OMAP34XX_CLKSTCTRL_FORCE_SLEEP <<
+ 			 __ffs(clkdm->clktrctrl_mask));
+@@ -856,7 +856,7 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+ 		cm_clear_mod_reg_bits(OMAP24XX_FORCESTATE,
+ 			      clkdm->pwrdm.ptr->prcm_offs, OMAP2_PM_PWSTCTRL);
+ 
+-	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
++	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 
+ 		u32 bits = (OMAP34XX_CLKSTCTRL_FORCE_WAKEUP <<
+ 			 __ffs(clkdm->clktrctrl_mask));
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 9a0fb38..ebfce7d 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -222,7 +222,7 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+ {
+ 	struct powerdomain **p = NULL;
+ 
+-	if (cpu_is_omap24xx() | cpu_is_omap34xx()) {
++	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+ 		pwrstctrl_reg_offs = OMAP2_PM_PWSTCTRL;
+ 		pwrstst_reg_offs = OMAP2_PM_PWSTST;
+ 	} else if (cpu_is_omap44xx()) {
+-- 
+1.5.4.7
+
