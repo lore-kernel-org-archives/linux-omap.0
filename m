@@ -1,284 +1,537 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: Re: [PATCH 02/16] OMAP3: PM: Create list to keep track of various
- smartreflex instances.
-Date: Fri, 26 Feb 2010 17:21:13 -0600
-Message-ID: <4B885769.2090505@ti.com>
-References: <1267003757-22456-1-git-send-email-thara@ti.com> <1267003757-22456-2-git-send-email-thara@ti.com> <1267003757-22456-3-git-send-email-thara@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 7/6] omap2: Initialize Menelaus and MMC for N8X0
+Date: Fri, 26 Feb 2010 15:36:15 -0800
+Message-ID: <20100226233615.GG17041@atomide.com>
+References: <20100225230116.26233.65157.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="MGYHOYXEY6WxJCY8"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48447 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753267Ab0BZXVS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Feb 2010 18:21:18 -0500
-In-Reply-To: <1267003757-22456-3-git-send-email-thara@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61375 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966469Ab0BZXfN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Feb 2010 18:35:13 -0500
+Content-Disposition: inline
+In-Reply-To: <20100225230116.26233.65157.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Gopinath, Thara wrote:
-> This patch removes the pointer sr1, sr2 in smartreflex.c and
-> instead creatse a list for keeping track of multiple smartreflex
-> instances.. This makes it scalable for next gen OMAPs where there
-> are more than two smartreflex modules.
-> 
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
->  arch/arm/mach-omap2/smartreflex.c |  114 ++++++++++++++++++++++++------------
->  1 files changed, 76 insertions(+), 38 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index 1c5ec37..4a9c2e2 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -26,6 +26,7 @@
->  #include <linux/kobject.h>
->  #include <linux/i2c/twl.h>
->  #include <linux/io.h>
-> +#include <linux/list.h>
->  
->  #include <plat/omap34xx.h>
->  #include <plat/control.h>
-> @@ -51,9 +52,12 @@ struct omap_sr {
->  	u32		opp5_nvalue;
->  	u32		senp_mod, senn_mod;
->  	void __iomem	*srbase_addr;
-> -	void __iomem	*vpbase_addr;
-> +	struct list_head 	node;
->  };
->  
-> +/* sr_list contains all the instances of smartreflex module */
-> +static LIST_HEAD(sr_list);
-> +
->  #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
->  
->  static inline void sr_write_reg(struct omap_sr *sr, unsigned offset, u32 value)
-> @@ -78,6 +82,20 @@ static inline u32 sr_read_reg(struct omap_sr *sr, unsigned offset)
->  	return __raw_readl(SR_REGADDR(offset));
->  }
->  
-> +static struct omap_sr *_sr_lookup(int srid)
-> +{
-> +	struct omap_sr *sr_info, *temp_sr_info;
-> +
-> +	sr_info = NULL;
-> +	list_for_each_entry(temp_sr_info, &sr_list, node) {
-> +		if (srid == temp_sr_info->srid) {
-> +			sr_info = temp_sr_info;
-> +			break;
-> +		}
-> +	}
-> +	return sr_info;
-> +}
-> +
->  static int sr_clk_enable(struct omap_sr *sr)
->  {
->  	if (clk_enable(sr->clk) != 0) {
-> @@ -151,11 +169,17 @@ static u8 get_vdd1_opp(void)
->  {
->  	struct omap_opp *opp;
->  	unsigned long freq;
-> +	struct omap_sr *sr_info = _sr_lookup(SR1);
 
-Why has the list implementation been chosen over individually registered 
-platform devices?  There seems to be a trend lately in device drivers to 
-have a single platform device with either an array of pointers or a list 
-implementation to track the multiple instances of the same device on a 
-board.  McBSP is another example of this approach.
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Why is that?  Is it a bad idea to have each SR instance be a separate 
-platform device?  Please let me know if my question is nuts.
+Here's one more to initialize the MMC on N8X0. That's handy
+for boot testing the multi-omap kernels on 24xx.
 
-Mike
+For some reason only one of the MMC slots seems to work
+on both N800 and N810 for some reason. No idea why, the
+Menelaus slot switching seems to be all there.
 
->  
-> -	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk))
-> +	if (!sr_info) {
-> +		pr_warning("omap_sr struct corresponding to SR1 not found\n");
-> +		return 0;
-> +	}
-> +
-> +	if (sr_info->vdd_opp_clk == NULL || IS_ERR(sr_info->vdd_opp_clk))
->  		return 0;
->  
-> -	freq = sr1.vdd_opp_clk->rate;
-> +	freq = sr_info->vdd_opp_clk->rate;
->  	opp = opp_find_freq_ceil(OPP_MPU, &freq);
->  	if (IS_ERR(opp))
->  		return 0;
-> @@ -163,9 +187,9 @@ static u8 get_vdd1_opp(void)
->  	 * Use higher freq voltage even if an exact match is not available
->  	 * we are probably masking a clock framework bug, so warn
->  	 */
-> -	if (unlikely(freq != sr1.vdd_opp_clk->rate))
-> +	if (unlikely(freq != sr_info->vdd_opp_clk->rate))
->  		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
-> -			   __func__, freq, sr1.vdd_opp_clk->rate);
-> +			   __func__, freq, sr_info->vdd_opp_clk->rate);
->  
->  	return opp_get_opp_id(opp);
->  }
-> @@ -174,11 +198,17 @@ static u8 get_vdd2_opp(void)
->  {
->  	struct omap_opp *opp;
->  	unsigned long freq;
-> +	struct omap_sr *sr_info = _sr_lookup(SR2);
-> +
-> +	if (!sr_info) {
-> +		pr_warning("omap_sr struct corresponding to SR2 not found\n");
-> +		return 0;
-> +	}
->  
-> -	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk))
-> +	if (sr_info->vdd_opp_clk == NULL || IS_ERR(sr_info->vdd_opp_clk))
->  		return 0;
->  
-> -	freq = sr2.vdd_opp_clk->rate;
-> +	freq = sr_info->vdd_opp_clk->rate;
->  	opp = opp_find_freq_ceil(OPP_L3, &freq);
->  	if (IS_ERR(opp))
->  		return 0;
-> @@ -187,9 +217,9 @@ static u8 get_vdd2_opp(void)
->  	 * Use higher freq voltage even if an exact match is not available
->  	 * we are probably masking a clock framework bug, so warn
->  	 */
-> -	if (unlikely(freq != sr2.vdd_opp_clk->rate))
-> +	if (unlikely(freq != sr_info->vdd_opp_clk->rate))
->  		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
-> -			   __func__, freq, sr2.vdd_opp_clk->rate);
-> +			   __func__, freq, sr_info->vdd_opp_clk->rate);
->  	return opp_get_opp_id(opp);
->  }
->  
-> @@ -694,14 +724,13 @@ static void sr_disable(struct omap_sr *sr)
->  
->  void sr_start_vddautocomap(int srid, u32 target_opp_no)
->  {
-> -	struct omap_sr *sr = NULL;
-> +	struct omap_sr *sr = _sr_lookup(srid);
->  
-> -	if (srid == SR1)
-> -		sr = &sr1;
-> -	else if (srid == SR2)
-> -		sr = &sr2;
-> -	else
-> +	if (!sr) {
-> +		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-> +								srid);
->  		return;
-> +	}
->  
->  	if (sr->is_sr_reset == 1) {
->  		sr_clk_enable(sr);
-> @@ -719,14 +748,13 @@ EXPORT_SYMBOL(sr_start_vddautocomap);
->  
->  int sr_stop_vddautocomap(int srid)
->  {
-> -	struct omap_sr *sr = NULL;
-> +	struct omap_sr *sr = _sr_lookup(srid);
->  
-> -	if (srid == SR1)
-> -		sr = &sr1;
-> -	else if (srid == SR2)
-> -		sr = &sr2;
-> -	else
-> -		return -EINVAL;
-> +	if (!sr) {
-> +		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-> +								srid);
-> +		return false;
-> +	}
->  
->  	if (sr->is_autocomp_active == 1) {
->  		sr_disable(sr);
-> @@ -744,14 +772,13 @@ EXPORT_SYMBOL(sr_stop_vddautocomap);
->  void enable_smartreflex(int srid)
->  {
->  	u32 target_opp_no = 0;
-> -	struct omap_sr *sr = NULL;
-> +	struct omap_sr *sr = _sr_lookup(srid);
->  
-> -	if (srid == SR1)
-> -		sr = &sr1;
-> -	else if (srid == SR2)
-> -		sr = &sr2;
-> -	else
-> +	if (!sr) {
-> +		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-> +								srid);
->  		return;
-> +	}
->  
->  	if (sr->is_autocomp_active == 1) {
->  		if (sr->is_sr_reset == 1) {
-> @@ -779,15 +806,13 @@ void enable_smartreflex(int srid)
->  void disable_smartreflex(int srid)
->  {
->  	u32 i = 0;
-> +	struct omap_sr *sr = _sr_lookup(srid);
->  
-> -	struct omap_sr *sr = NULL;
-> -
-> -	if (srid == SR1)
-> -		sr = &sr1;
-> -	else if (srid == SR2)
-> -		sr = &sr2;
-> -	else
-> +	if (!sr) {
-> +		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-> +								srid);
->  		return;
-> +	}
->  
->  	if (sr->is_autocomp_active == 1) {
->  		if (sr->is_sr_reset == 0) {
-> @@ -920,7 +945,13 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
->  static ssize_t omap_sr_vdd1_autocomp_show(struct kobject *kobj,
->  					struct kobj_attribute *attr, char *buf)
->  {
-> -	return sprintf(buf, "%d\n", sr1.is_autocomp_active);
-> +	struct omap_sr *sr_info = _sr_lookup(SR1);
-> +
-> +	if (!sr_info) {
-> +		pr_warning("omap_sr struct corresponding to SR1 not found\n");
-> +		return 0;
-> +	}
-> +	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
->  }
->  
->  static ssize_t omap_sr_vdd1_autocomp_store(struct kobject *kobj,
-> @@ -960,7 +991,13 @@ static struct kobj_attribute sr_vdd1_autocomp = {
->  static ssize_t omap_sr_vdd2_autocomp_show(struct kobject *kobj,
->  					struct kobj_attribute *attr, char *buf)
->  {
-> -	return sprintf(buf, "%d\n", sr2.is_autocomp_active);
-> +	struct omap_sr *sr_info = _sr_lookup(SR2);
-> +
-> +	if (!sr_info) {
-> +		pr_warning("omap_sr struct corresponding to SR2 not found\n");
-> +		return 0;
-> +	}
-> +	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
->  }
->  
->  static ssize_t omap_sr_vdd2_autocomp_store(struct kobject *kobj,
-> @@ -1010,7 +1047,6 @@ static int __init omap3_sr_init(void)
->  	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
->  	ret |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
->  				R_DCDC_GLOBAL_CFG);
-> -
->  	if (cpu_is_omap34xx()) {
->  		sr1.clk = clk_get(NULL, "sr1_fck");
->  		sr2.clk = clk_get(NULL, "sr2_fck");
-> @@ -1036,6 +1072,8 @@ static int __init omap3_sr_init(void)
->  	ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
->  	if (ret)
->  		pr_err("sysfs_create_file failed: %d\n", ret);
-> +	list_add(&sr1.node, &sr_list);
-> +	list_add(&sr2.node, &sr_list);
->  
->  	return 0;
->  }
+Regards,
 
+Tony
+
+--MGYHOYXEY6WxJCY8
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="n8x0-mmc.patch"
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Fri, 26 Feb 2010 15:31:12 -0800
+Subject: [PATCH] omap2: Initialize Menelaus and MMC for N8X0
+
+Initialize MMC for N8X0
+
+Based on an earlier patches from Nokia released kernel
+sources at:
+
+http://repository.maemo.org/pool/os2008/free/source/k/kernel-source-rx-34/
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index 9de03f8..4cab052 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -17,6 +17,7 @@
+ #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/stddef.h>
++#include <linux/i2c.h>
+ #include <linux/spi/spi.h>
+ #include <linux/usb/musb.h>
+ 
+@@ -25,11 +26,17 @@
+ 
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/menelaus.h>
+ #include <mach/irqs.h>
+ #include <plat/mcspi.h>
+ #include <plat/onenand.h>
++#include <plat/mmc.h>
+ #include <plat/serial.h>
+ 
++static int slot1_cover_open;
++static int slot2_cover_open;
++static struct device *mmc_device;
++
+ static struct omap2_mcspi_device_config p54spi_mcspi_config = {
+ 	.turbo_mode	= 0,
+ 	.single_channel = 1,
+@@ -96,6 +103,442 @@ static void __init n8x0_onenand_init(void) {}
+ 
+ #endif
+ 
++#if defined(CONFIG_MENELAUS) &&						\
++	(defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE))
++
++/*
++ * On both N800 and N810, only the first of the two MMC controllers is in use.
++ * The two MMC slots are multiplexed via Menelaus companion chip over I2C.
++ * On N800, both slots are powered via Menelaus. On N810, only one of the
++ * slots is powered via Menelaus. The N810 EMMC is powered via GPIO.
++ *
++ * VMMC				slot 1 on both N800 and N810
++ * VDCDC3_APE and VMCS2_APE	slot 2 on N800
++ * GPIO23 and GPIO9		slot 2 EMMC on N810
++ *
++ */
++#define N8X0_SLOT_SWITCH_GPIO	96
++#define N810_EMMC_VSD_GPIO	23
++#define NN810_EMMC_VIO_GPIO	9
++
++static int n8x0_mmc_switch_slot(struct device *dev, int slot)
++{
++#ifdef CONFIG_MMC_DEBUG
++	dev_dbg(dev, "Choose slot %d\n", slot + 1);
++#endif
++	gpio_set_value(N8X0_SLOT_SWITCH_GPIO, slot);
++	return 0;
++}
++
++static int n8x0_mmc_set_power_menelaus(struct device *dev, int slot,
++					int power_on, int vdd)
++{
++	int mV;
++
++#ifdef CONFIG_MMC_DEBUG
++	dev_dbg(dev, "Set slot %d power: %s (vdd %d)\n", slot + 1,
++		power_on ? "on" : "off", vdd);
++#endif
++	if (slot == 0) {
++		if (!power_on)
++			return menelaus_set_vmmc(0);
++		switch (1 << vdd) {
++		case MMC_VDD_33_34:
++		case MMC_VDD_32_33:
++		case MMC_VDD_31_32:
++			mV = 3100;
++			break;
++		case MMC_VDD_30_31:
++			mV = 3000;
++			break;
++		case MMC_VDD_28_29:
++			mV = 2800;
++			break;
++		case MMC_VDD_165_195:
++			mV = 1850;
++			break;
++		default:
++			BUG();
++		}
++		return menelaus_set_vmmc(mV);
++	} else {
++		if (!power_on)
++			return menelaus_set_vdcdc(3, 0);
++		switch (1 << vdd) {
++		case MMC_VDD_33_34:
++		case MMC_VDD_32_33:
++			mV = 3300;
++			break;
++		case MMC_VDD_30_31:
++		case MMC_VDD_29_30:
++			mV = 3000;
++			break;
++		case MMC_VDD_28_29:
++		case MMC_VDD_27_28:
++			mV = 2800;
++			break;
++		case MMC_VDD_24_25:
++		case MMC_VDD_23_24:
++			mV = 2400;
++			break;
++		case MMC_VDD_22_23:
++		case MMC_VDD_21_22:
++			mV = 2200;
++			break;
++		case MMC_VDD_20_21:
++			mV = 2000;
++			break;
++		case MMC_VDD_165_195:
++			mV = 1800;
++			break;
++		default:
++			BUG();
++		}
++		return menelaus_set_vdcdc(3, mV);
++	}
++	return 0;
++}
++
++static void n810_set_power_emmc(struct device *dev,
++					 int power_on)
++{
++	dev_dbg(dev, "Set EMMC power %s\n", power_on ? "on" : "off");
++
++	if (power_on) {
++		gpio_set_value(N810_EMMC_VSD_GPIO, 1);
++		msleep(1);
++		gpio_set_value(NN810_EMMC_VIO_GPIO, 1);
++		msleep(1);
++	} else {
++		gpio_set_value(NN810_EMMC_VIO_GPIO, 0);
++		msleep(50);
++		gpio_set_value(N810_EMMC_VSD_GPIO, 0);
++		msleep(50);
++	}
++}
++
++static int n8x0_mmc_set_power(struct device *dev, int slot, int power_on,
++			      int vdd)
++{
++	if (machine_is_nokia_n800() || slot == 0)
++		return n8x0_mmc_set_power_menelaus(dev, slot, power_on, vdd);
++
++	n810_set_power_emmc(dev, power_on);
++
++	return 0;
++}
++
++static int n8x0_mmc_set_bus_mode(struct device *dev, int slot, int bus_mode)
++{
++	int r;
++
++	dev_dbg(dev, "Set slot %d bus mode %s\n", slot + 1,
++		bus_mode == MMC_BUSMODE_OPENDRAIN ? "open-drain" : "push-pull");
++	BUG_ON(slot != 0 && slot != 1);
++	slot++;
++	switch (bus_mode) {
++	case MMC_BUSMODE_OPENDRAIN:
++		r = menelaus_set_mmc_opendrain(slot, 1);
++		break;
++	case MMC_BUSMODE_PUSHPULL:
++		r = menelaus_set_mmc_opendrain(slot, 0);
++		break;
++	default:
++		BUG();
++	}
++	if (r != 0 && printk_ratelimit())
++		dev_err(dev, "MMC: unable to set bus mode for slot %d\n",
++			slot);
++	return r;
++}
++
++static int n8x0_mmc_get_cover_state(struct device *dev, int slot)
++{
++	slot++;
++	BUG_ON(slot != 1 && slot != 2);
++	if (slot == 1)
++		return slot1_cover_open;
++	else
++		return slot2_cover_open;
++}
++
++static void n8x0_mmc_callback(void *data, u8 card_mask)
++{
++	int bit, *openp, index;
++
++	if (machine_is_nokia_n800()) {
++		bit = 1 << 1;
++		openp = &slot2_cover_open;
++		index = 1;
++	} else {
++		bit = 1;
++		openp = &slot1_cover_open;
++		index = 0;
++	}
++
++	if (card_mask & bit)
++		*openp = 1;
++	else
++		*openp = 0;
++
++	omap_mmc_notify_cover_event(mmc_device, index, *openp);
++}
++
++void n8x0_mmc_slot1_cover_handler(void *arg, int closed_state)
++{
++	if (mmc_device == NULL)
++		return;
++
++	slot1_cover_open = !closed_state;
++	omap_mmc_notify_cover_event(mmc_device, 0, closed_state);
++}
++
++static int n8x0_mmc_late_init(struct device *dev)
++{
++	int r, bit, *openp;
++	int vs2sel;
++
++	mmc_device = dev;
++
++	r = menelaus_set_slot_sel(1);
++	if (r < 0)
++		return r;
++
++	if (machine_is_nokia_n800())
++		vs2sel = 0;
++	else
++		vs2sel = 2;
++
++	r = menelaus_set_mmc_slot(2, 0, vs2sel, 1);
++	if (r < 0)
++		return r;
++
++	n8x0_mmc_set_power(dev, 0, MMC_POWER_ON, 16); /* MMC_VDD_28_29 */
++	n8x0_mmc_set_power(dev, 1, MMC_POWER_ON, 16);
++
++	r = menelaus_set_mmc_slot(1, 1, 0, 1);
++	if (r < 0)
++		return r;
++	r = menelaus_set_mmc_slot(2, 1, vs2sel, 1);
++	if (r < 0)
++		return r;
++
++	r = menelaus_get_slot_pin_states();
++	if (r < 0)
++		return r;
++
++	if (machine_is_nokia_n800()) {
++		bit = 1 << 1;
++		openp = &slot2_cover_open;
++	} else {
++		bit = 1;
++		openp = &slot1_cover_open;
++		slot2_cover_open = 0;
++	}
++
++	/* All slot pin bits seem to be inversed until first switch change */
++	if (r == 0xf || r == (0xf & ~bit))
++		r = ~r;
++
++	if (r & bit)
++		*openp = 1;
++	else
++		*openp = 0;
++
++	r = menelaus_register_mmc_callback(n8x0_mmc_callback, NULL);
++
++	return r;
++}
++
++static void n8x0_mmc_shutdown(struct device *dev)
++{
++	int vs2sel;
++
++	if (machine_is_nokia_n800())
++		vs2sel = 0;
++	else
++		vs2sel = 2;
++
++	menelaus_set_mmc_slot(1, 0, 0, 0);
++	menelaus_set_mmc_slot(2, 0, vs2sel, 0);
++}
++
++static void n8x0_mmc_cleanup(struct device *dev)
++{
++	menelaus_unregister_mmc_callback();
++
++	gpio_free(N8X0_SLOT_SWITCH_GPIO);
++
++	if (machine_is_nokia_n810()) {
++		gpio_free(N810_EMMC_VSD_GPIO);
++		gpio_free(NN810_EMMC_VIO_GPIO);
++	}
++}
++
++/*
++ * MMC controller1 has two slots that are multiplexed via I2C.
++ * MMC controller2 is not in use.
++ */
++static struct omap_mmc_platform_data mmc1_data = {
++	.nr_slots			= 2,
++	.switch_slot			= n8x0_mmc_switch_slot,
++	.init				= n8x0_mmc_late_init,
++	.cleanup			= n8x0_mmc_cleanup,
++	.shutdown			= n8x0_mmc_shutdown,
++	.max_freq			= 24000000,
++	.dma_mask			= 0xffffffff,
++	.slots[0] = {
++		.wires			= 4,
++		.set_power		= n8x0_mmc_set_power,
++		.set_bus_mode		= n8x0_mmc_set_bus_mode,
++		.get_cover_state	= n8x0_mmc_get_cover_state,
++		.ocr_mask		= MMC_VDD_165_195 | MMC_VDD_30_31 |
++						MMC_VDD_32_33   | MMC_VDD_33_34,
++		.name			= "internal",
++	},
++	.slots[1] = {
++		.set_power		= n8x0_mmc_set_power,
++		.set_bus_mode		= n8x0_mmc_set_bus_mode,
++		.get_cover_state	= n8x0_mmc_get_cover_state,
++		.ocr_mask		= MMC_VDD_165_195 | MMC_VDD_20_21 |
++						MMC_VDD_21_22 | MMC_VDD_22_23 |
++						MMC_VDD_23_24 | MMC_VDD_24_25 |
++						MMC_VDD_27_28 | MMC_VDD_28_29 |
++						MMC_VDD_29_30 | MMC_VDD_30_31 |
++						MMC_VDD_32_33 | MMC_VDD_33_34,
++		.name			= "external",
++	},
++};
++
++static struct omap_mmc_platform_data *mmc_data[OMAP24XX_NR_MMC];
++
++void __init n8x0_mmc_init(void)
++
++{
++	int err;
++
++	if (machine_is_nokia_n810()) {
++		mmc1_data.slots[0].name = "external";
++
++		/*
++		 * Some Samsung Movinand chips do not like open-ended
++		 * multi-block reads and fall to braind-dead state
++		 * while doing so. Reducing the number of blocks in
++		 * the transfer or delays in clock disable do not help
++		 */
++		mmc1_data.slots[1].name = "internal";
++		mmc1_data.slots[1].ban_openended = 1;
++	}
++
++	err = gpio_request(N8X0_SLOT_SWITCH_GPIO, "MMC slot switch");
++	if (err)
++		return err;
++
++	gpio_direction_output(N8X0_SLOT_SWITCH_GPIO, 0);
++
++	if (machine_is_nokia_n810()) {
++		err = gpio_request(N810_EMMC_VSD_GPIO, "MMC slot 2 Vddf");
++		if (err) {
++			gpio_free(N8X0_SLOT_SWITCH_GPIO);
++			return err;
++		}
++		gpio_direction_output(N810_EMMC_VSD_GPIO, 0);
++
++		err = gpio_request(NN810_EMMC_VIO_GPIO, "MMC slot 2 Vdd");
++		if (err) {
++			gpio_free(N8X0_SLOT_SWITCH_GPIO);
++			gpio_free(N810_EMMC_VSD_GPIO);
++			return err;
++		}
++		gpio_direction_output(NN810_EMMC_VIO_GPIO, 0);
++	}
++
++	mmc_data[0] = &mmc1_data;
++	omap2_init_mmc(mmc_data, OMAP24XX_NR_MMC);
++}
++#else
++
++void __init n8x0_mmc_init(void)
++{
++}
++
++void n8x0_mmc_slot1_cover_handler(void *arg, int state)
++{
++}
++
++#endif	/* CONFIG_MMC_OMAP */
++
++#ifdef CONFIG_MENELAUS
++
++static int n8x0_auto_sleep_regulators(void)
++{
++	u32 val;
++	int ret;
++
++	val = EN_VPLL_SLEEP | EN_VMMC_SLEEP    \
++		| EN_VAUX_SLEEP | EN_VIO_SLEEP \
++		| EN_VMEM_SLEEP | EN_DC3_SLEEP \
++		| EN_VC_SLEEP | EN_DC2_SLEEP;
++
++	ret = menelaus_set_regulator_sleep(1, val);
++	if (ret < 0) {
++		printk(KERN_ERR "Could not set regulators to sleep on "
++			"menelaus: %u\n", ret);
++		return ret;
++	}
++	return 0;
++}
++
++static int n8x0_auto_voltage_scale(void)
++{
++	int ret;
++
++	ret = menelaus_set_vcore_hw(1400, 1050);
++	if (ret < 0) {
++		printk(KERN_ERR "Could not set VCORE voltage on "
++			"menelaus: %u\n", ret);
++		return ret;
++	}
++	return 0;
++}
++
++static int n8x0_menelaus_late_init(struct device *dev)
++{
++	int ret;
++
++	ret = n8x0_auto_voltage_scale();
++	if (ret < 0)
++		return ret;
++	ret = n8x0_auto_sleep_regulators();
++	if (ret < 0)
++		return ret;
++	return 0;
++}
++
++static struct i2c_board_info __initdata n8x0_i2c_board_info_1[] = {
++	{
++		I2C_BOARD_INFO("menelaus", 0x72),
++		.irq = INT_24XX_SYS_NIRQ,
++	},
++};
++
++static struct menelaus_platform_data n8x0_menelaus_platform_data = {
++	.late_init = n8x0_menelaus_late_init,
++};
++
++static void __init n8x0_menelaus_init(void)
++{
++	n8x0_i2c_board_info_1[0].platform_data = &n8x0_menelaus_platform_data;
++	omap_register_i2c_bus(1, 400, n8x0_i2c_board_info_1,
++			      ARRAY_SIZE(n8x0_i2c_board_info_1));
++}
++
++#else
++static inline void __init n8x0_menelaus_init(void)
++{
++}
++#endif
++
+ static void __init n8x0_map_io(void)
+ {
+ 	omap2_set_globals_242x();
+@@ -116,7 +559,9 @@ static void __init n8x0_init_machine(void)
+ 				ARRAY_SIZE(n800_spi_board_info));
+ 
+ 	omap_serial_init();
++	n8x0_menelaus_init();
+ 	n8x0_onenand_init();
++	n8x0_mmc_init();
+ }
+ 
+ MACHINE_START(NOKIA_N800, "Nokia N800")
+
+--MGYHOYXEY6WxJCY8--
