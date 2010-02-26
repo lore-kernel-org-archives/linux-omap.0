@@ -1,40 +1,64 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH 2/4] USB: MUSB: Enable MUSB for OMAP4 in Kconfig
-Date: Fri, 26 Feb 2010 12:54:14 -0600
-Message-ID: <20100226185414.GA10835@lixom.net>
-References: <1267079758-14480-1-git-send-email-x0082077@ti.com> <20100225184833.GG28173@atomide.com> <20100226004233.GA3241@lixom.net> <000001cab6bf$5df75720$808918ac@apr.dhcp.ti.com>
+From: "Olaya, Margarita" <magi.olaya@ti.com>
+Subject: Re: [PATCHv4 2/7] ASoC: TWL6030: Add twl6030 codec
+	driver
+Date: Fri, 26 Feb 2010 13:42:35 -0600
+Message-ID: <1889FA7136B567478A67D4B0F85B0CCE65E7E325@dlee06.ent.ti.com>
+References: <1889FA7136B567478A67D4B0F85B0CCE65DD1B14@dlee06.ent.ti.com>
+	<1267007881.3274.136.camel@odin>
+	<1889FA7136B567478A67D4B0F85B0CCE65DD22C9@dlee06.ent.ti.com>
+	<20100225101710.GE10141@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.lixom.net ([66.141.50.11]:41483 "EHLO mail.lixom.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965706Ab0BZSry (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Feb 2010 13:47:54 -0500
-Content-Disposition: inline
-In-Reply-To: <000001cab6bf$5df75720$808918ac@apr.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20100225101710.GE10141@rakim.wolfsonmicro.main>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Maulik <x0082077@ti.com>
-Cc: 'Tony Lindgren' <tony@atomide.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, 'Felipe Balbi' <felipe.balbi@nokia.com>, 'Greg Kroah-Hartman' <gregkh@suse.de>, 'David Brownell' <david-b@pacbell.net>
 
-On Fri, Feb 26, 2010 at 02:10:31PM +0530, Maulik wrote:
+On Thursday, February 25, 2010 4:17 AM  Mark Brown wrote: 
 
-> >>Adding more and more depends also doesn't scale well. It's time for
-> >>someone to switch the test around, add a ARCH_HAS_MUSB, select it on
-> >>the platforms that has it and make the config option depend on that,
-> >>similar to how (some) platforms to EHCI today.
+>>> Are these two functions writing the default codec register values
+>>> to the CODEC or are these non default (i.e. reset) values. If
+>>> they are reset values is it not better to just issue the reset
+>>> (and save the slow I2C writes) ?
 > 
-> >>(i.e. if there's a janitor out there reading this, feel free to go ahead
-> >>and do it. :-)
+>> Yeap, but they write non default values to most of the registers.
 > 
-> Olof,
+> Why are these non-default values being set?  The general style with
+> things like this is that the register defaults listed in the
+> driver are
+> the physical defaults, and any explicit configuration is done with
+> register writes.  This makes it clearer what's being changed and
+> means that the actual register defaults are there for use if
+> required. 
 > 
-> We have such an option "USB_MUSB_SOC" that takes care of all platforms where
-> MUSB is present. But the Inventra DMA case is typical. Not all architectures
-> that have MUSB use Inventra DMA for e.g Davinci uses CPPI DMA.
+> Normally only things that should be changed for all systems would be
+> configured in this manner, things like audio paths which might
+> change per system would be left for userspace to configure.
+> 
 
-Yeah, sorry. I didn't mean the INVENTRA_DMA config option as much as the top
-MUSB one. So you should be able to switch to that instead of adding a check for
-OMAP4 there then?
+I meant to say default values, sorry for the confusion
 
--Olof
+In TWL6040 codec, the registers belong to a power supply domain: VDD or VIO.
+When the codec hits suspend state, VIO is not longer supplied, so registers
+lose their values. However, VDD registers preserve their values as they belong
+to a different power domain which still exist in suspend state. So when codec
+resumes, it's only needed to restore VIO registers' values lost during suspend.
+That's the reason why we have two separate functions to set VDD and VIO registers.
+The former is only needed at probe time and the latter is needed every time codec
+resumes.
+
+At probe we are using the default values to keep the codec functional as many
+features have not been enabled yet, some specific values are set using write
+function.
