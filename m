@@ -1,60 +1,57 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
 Subject: RE: [PATCH] musb: Add workqueue for URB giveback
-Date: Fri, 26 Feb 2010 17:49:13 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DB7A9C7@dbde02.ent.ti.com>
+Date: Fri, 26 Feb 2010 17:54:29 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DB7A9CF@dbde02.ent.ti.com>
 References: <1267180746-6773-1-git-send-email-ajay.gupta@ti.com>
- <201002261203.27619.oliver@neukum.org>
- <19F8576C6E063C45BE387C64729E7394044DB7A964@dbde02.ent.ti.com>
- <201002261233.59190.oliver@neukum.org>
+ <201002261233.46872.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34476 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935934Ab0BZMTN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Feb 2010 07:19:13 -0500
-In-Reply-To: <201002261233.59190.oliver@neukum.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201002261233.46872.laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org" <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>
 
 Hi,
-> > > Am Freitag, 26. Februar 2010 11:39:06 schrieb Ajay Kumar Gupta:
-> > > > +struct queue *create(void)
-> > > > +{
-> > > > +       struct queue *new;
-> > > > +       new = kmalloc(sizeof(struct queue), GFP_ATOMIC);
-> > > > +       if (!new)
-> > > > +               return NULL;
-> > > > +       new->next = NULL;
-> > > > +       return new;
-> > > > +}
-> > > > +void push_queue(struct musb *musb, struct urb *urb)
-> > > > +{
-> > > > +       struct queue *new, *temp;
-> > > > +
-> > > > +       new = create();
-> > > > +       new->urb = urb;
-> > >
-> > > And you happily follow the NULL pointer in the error case.
-> >
-> > I will put the NULL check here and also during push_queue(). In case
-> > Of memory allocation failure I can giveback the URB right away.
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org]
+> Sent: Friday, February 26, 2010 5:04 PM
+> To: Gupta, Ajay Kumar
+> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org; oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org
+> Subject: Re: [PATCH] musb: Add workqueue for URB giveback
 > 
-> If you do that you'll give back URBs out of order.
-
-Right, this would confuse the class driver and better avoided.
-
-Next option is to add another list_head within URB structure to trace
-the URBs. (as you suggested earlier)
-
--Ajay  
-
-> Now I don't know whether this is defined as something you mustn't
-> do, bad it is not a good idea.
+> Hi Ajay,
 > 
-> 	Regards
-> 		Oliver
+> On Friday 26 February 2010 11:39:06 Ajay Kumar Gupta wrote:
+> > Current musb host driver does the giveback of completed urb first and
+> > then start the next request. This is significantly affecting the
+> streaming
+> > from an USB camera wherein we observe huge delay between the two IN
+> tokens
+> > from musb host. This is due to the fact that UVC driver is doing
+> decoding
+> > and further processing in giveback context.
+> 
+> I was thinking about adding a workqueue to the UVC driver for URB
+> processing.
+> If you beat my by writing a patch before I find time to do so, I won't
+> complain ;-)
+
+Sure, I will see when I can post a RFC/PATCH for it. Probably after
+two weeks.
+
+Regards,
+Ajay
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
