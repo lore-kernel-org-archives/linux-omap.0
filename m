@@ -1,323 +1,407 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] omap: i2c: Add i2c support on omap4 platform
-Date: Fri, 26 Feb 2010 10:27:31 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF6C3@dbde02.ent.ti.com>
-References: <1266597180-25139-1-git-send-email-santosh.shilimkar@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C42E10AD@dbde02.ent.ti.com>
- <20100225214703.GJ28173@atomide.com>
+From: "Y, Kishore" <kishore.y@ti.com>
+Subject: RE: [PATCH 1/2 V3] OMAP: DSS: Add display board file for zoom boards
+Date: Fri, 26 Feb 2010 10:59:06 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026ECD4840@dbde02.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E7394044DA99D99@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37101 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935264Ab0BZE5s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 23:57:48 -0500
-In-Reply-To: <20100225214703.GJ28173@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47879 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751073Ab0BZF3G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Feb 2010 00:29:06 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DA99D99@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, Cory Maccarrone <darkstar6262@gmail.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony,
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, February 26, 2010 3:17 AM
-> To: Shilimkar, Santosh
-> Cc: ben-linux@fluff.org; linux-omap@vger.kernel.org; linux-i2c@vger.kernel.org; Syed, Rafiuddin; Cory
-> Maccarrone
-> Subject: Re: [PATCH] omap: i2c: Add i2c support on omap4 platform
+> From: Hiremath, Vaibhav
+> Sent: Thursday, February 25, 2010 11:53 PM
+> To: Hiremath, Vaibhav; Y, Kishore; Tomi Valkeinen
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 1/2 V3] OMAP: DSS: Add display board file for zoom
+> boards
 > 
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [100222 21:58]:
-> > Ben,
-> > Did you happen to look at this ?
 > 
-> Santosh, can you please also please clarify which omaps this
-> patch has been tested on?
-> 
-This patch is tested on OMAP3430 SDP and OMAP4430 SDP with regular defconfig
-builds and multi-omap build.
-> 
+> > -----Original Message-----
+> > From: Hiremath, Vaibhav
+> > Sent: Thursday, February 25, 2010 11:49 PM
+> > To: Y, Kishore; Tomi Valkeinen
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: RE: [PATCH 1/2 V3] OMAP: DSS: Add display board file for zoom
+> > boards
+> >
+> >
 > > > -----Original Message-----
-> > > From: Shilimkar, Santosh
-> > > Sent: Friday, February 19, 2010 10:03 PM
-> > > To: ben-linux@fluff.org
-> > > Cc: linux-omap@vger.kernel.org; linux-i2c@vger.kernel.org; Shilimkar, Santosh; Syed, Rafiuddin;
-> Cory
-> > > Maccarrone
-> > > Subject: [PATCH] omap: i2c: Add i2c support on omap4 platform
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > owner@vger.kernel.org] On Behalf Of Y, Kishore
+> > > Sent: Thursday, February 25, 2010 9:15 PM
+> > > To: Tomi Valkeinen
+> > > Cc: linux-omap@vger.kernel.org
+> > > Subject: [PATCH 1/2 V3] OMAP: DSS: Add display board file for zoom
+> boards
 > > >
-> > > This patch is rebased version of earlier post to add I2C
-> > > driver support to OMAP4 platform. On OMAP4, all
-> > > I2C register address offsets are changed from OMAP1/2/3 I2C.
-> > > In order to not have #ifdef's at various places in code,
-> > > as well as to support multi-OMAP build, an array is created
-> > > to hold the register addresses with it's offset.
+> > > From: Kishore Y <kishore.y@ti.com>
 > > >
-> > > This patch was submitted, reviewed and acked on mailing list
-> > > already. For more details refer below link
-> > > http://www.mail-archive.com/linux-i2c@vger.kernel.org/msg02281.html
+> > > board-zoom-display.c added as a common file for display fucntionality
+> > > on boards zoom2, zoom3 and 3630sdp
 > > >
-> > > This updated verion has a depedancy on "Add support for 16-bit registers"
-> > > posted on linux-omap. Below is the patch-works link for the same
-> > >
-> > > http://patchwork.kernel.org/patch/72295/
-> > >
-> > > Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> > > Reviewed-by: Paul Walmsley <paul@pwsan.com>
-> > > Reviewed-by: Tony Lindgren <tony@atomide.com>
-> > > Cc: Ben Dooks <ben-linux@fluff.org>
-> > > Cc: Cory Maccarrone <darkstar6262@gmail.com>
+> > > Signed-off-by: Mukund Mittal <mmittal@ti.com>
+> > > Signed-off-by: Kishore Y <kishore.y@ti.com>
+> > > Reviewed-by: Gadiyar, Anand <gadiyar@ti.com>
 > > > ---
-> > >  drivers/i2c/busses/i2c-omap.c |  146 ++++++++++++++++++++++++++++++++---------
-> > >  1 files changed, 114 insertions(+), 32 deletions(-)
+> > >  arch/arm/mach-omap2/Makefile                  |    3 +
+> > >  arch/arm/mach-omap2/board-zoom-display.c      |  185
+> > > +++++++++++++++++++++++++
+> > >  arch/arm/mach-omap2/board-zoom-peripherals.c  |   36 +++++
+> > >  arch/arm/mach-omap2/include/mach/board-zoom.h |    3 +
+> > >  4 files changed, 227 insertions(+), 0 deletions(-)
+> > >  create mode 100644 arch/arm/mach-omap2/board-zoom-display.c
 > > >
-> > > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> > > index 9c3ce4d..7c15496 100644
-> > > --- a/drivers/i2c/busses/i2c-omap.c
-> > > +++ b/drivers/i2c/busses/i2c-omap.c
-> > > @@ -44,29 +44,37 @@
-> > >  /* I2C controller revisions present on specific hardware */
-> > >  #define OMAP_I2C_REV_ON_2430		0x36
-> > >  #define OMAP_I2C_REV_ON_3430		0x3C
-> > > +#define OMAP_I2C_REV_ON_4430		0x40
-> > >
-> > >  /* timeout waiting for the controller to respond */
-> > >  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
-> > >
-> > > -#define OMAP_I2C_REV_REG		0x00
-> > > -#define OMAP_I2C_IE_REG			0x01
-> > > -#define OMAP_I2C_STAT_REG		0x02
-> > > -#define OMAP_I2C_IV_REG			0x03
-> > >  /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
-> > > -#define OMAP_I2C_WE_REG			0x03
-> > > -#define OMAP_I2C_SYSS_REG		0x04
-> > > -#define OMAP_I2C_BUF_REG		0x05
-> > > -#define OMAP_I2C_CNT_REG		0x06
-> > > -#define OMAP_I2C_DATA_REG		0x07
-> > > -#define OMAP_I2C_SYSC_REG		0x08
-> > > -#define OMAP_I2C_CON_REG		0x09
-> > > -#define OMAP_I2C_OA_REG			0x0a
-> > > -#define OMAP_I2C_SA_REG			0x0b
-> > > -#define OMAP_I2C_PSC_REG		0x0c
-> > > -#define OMAP_I2C_SCLL_REG		0x0d
-> > > -#define OMAP_I2C_SCLH_REG		0x0e
-> > > -#define OMAP_I2C_SYSTEST_REG		0x0f
-> > > -#define OMAP_I2C_BUFSTAT_REG		0x10
-> > > +enum {
-> > > +	OMAP_I2C_REV_REG = 0,
-> > > +	OMAP_I2C_IE_REG,
-> > > +	OMAP_I2C_STAT_REG,
-> > > +	OMAP_I2C_IV_REG,
-> > > +	OMAP_I2C_WE_REG,
-> > > +	OMAP_I2C_SYSS_REG,
-> > > +	OMAP_I2C_BUF_REG,
-> > > +	OMAP_I2C_CNT_REG,
-> > > +	OMAP_I2C_DATA_REG,
-> > > +	OMAP_I2C_SYSC_REG,
-> > > +	OMAP_I2C_CON_REG,
-> > > +	OMAP_I2C_OA_REG,
-> > > +	OMAP_I2C_SA_REG,
-> > > +	OMAP_I2C_PSC_REG,
-> > > +	OMAP_I2C_SCLL_REG,
-> > > +	OMAP_I2C_SCLH_REG,
-> > > +	OMAP_I2C_SYSTEST_REG,
-> > > +	OMAP_I2C_BUFSTAT_REG,
-> > > +	OMAP_I2C_REVNB_LO,
-> > > +	OMAP_I2C_REVNB_HI,
-> > > +	OMAP_I2C_IRQSTATUS_RAW,
-> > > +	OMAP_I2C_IRQENABLE_SET,
-> > > +	OMAP_I2C_IRQENABLE_CLR,
+> > > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-
+> omap2/Makefile
+> > > index b32678b..3dbe694 100644
+> > > --- a/arch/arm/mach-omap2/Makefile
+> > > +++ b/arch/arm/mach-omap2/Makefile
+> > > @@ -91,14 +91,17 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-
+> rx51.o
+> > > \
+> > >  					   board-rx51-peripherals.o \
+> > >  					   mmc-twl4030.o
+> > >  obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+> > > +					   board-zoom-display.o \
+> > >  					   board-zoom-peripherals.o \
+> > >  					   mmc-twl4030.o \
+> > >  					   board-zoom-debugboard.o
+> > >  obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+> > > +					   board-zoom-display.o \
+> > >  					   board-zoom-peripherals.o \
+> > >  					   mmc-twl4030.o \
+> > >  					   board-zoom-debugboard.o
+> > >  obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
+> > > +					   board-zoom-display.o \
+> > >  					   board-zoom-peripherals.o \
+> > >  					   mmc-twl4030.o
+> > >  obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
+> > > diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-
+> > > omap2/board-zoom-display.c
+> > > new file mode 100644
+> > > index 0000000..fc5851f
+> > > --- /dev/null
+> > > +++ b/arch/arm/mach-omap2/board-zoom-display.c
+> > > @@ -0,0 +1,185 @@
+> > > +/*
+> > > + * Copyright (C) 2009 Texas Instruments Inc.
+> > > + *
+> > [Hiremath, Vaibhav] 2010???
+> >
+My bad. Manjunath pointed out same thing in earlier version.
+Somehow I missed it again. I will correct this.
+
+> > > + * Modified from mach-omap2/board-zoom-peripherals.c
+> > > + *
+> > > + * This program is free software; you can redistribute it and/or
+> modify
+> > > + * it under the terms of the GNU General Public License version 2 as
+> > > + * published by the Free Software Foundation.
+> > > + */
+> > > +
+> > > +#include <linux/kernel.h>
+> > > +#include <linux/init.h>
+> > > +#include <linux/platform_device.h>
+> > > +#include <linux/gpio.h>
+> > > +#include <linux/i2c/twl.h>
+> > > +#include <linux/spi/spi.h>
+> > > +#include <plat/common.h>
+> > > +#include <plat/control.h>
+> > > +#include <plat/mcspi.h>
+> > > +#include <plat/display.h>
+> > > +
+> > > +#define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
+> > > +#define LCD_PANEL_RESET_GPIO_PROD	96
+> > > +#define LCD_PANEL_RESET_GPIO_PILOT	55
+> > > +#define LCD_PANEL_QVGA_GPIO		56
+> > > +#define TV_PANEL_ENABLE_GPIO		95
+> > > +
+> > > +struct zoom_dss_board_info {
+> > > +	int gpio_flag;
 > > > +};
-> > >
-> > >  /* I2C Interrupt Enable Register (OMAP_I2C_IE): */
-> > >  #define OMAP_I2C_IE_XDR		(1 << 14)	/* TX Buffer drain int enable */
-> > > @@ -169,6 +177,7 @@ struct omap_i2c_dev {
-> > >  	u32			speed;		/* Speed of bus in Khz */
-> > >  	u16			cmd_err;
-> > >  	u8			*buf;
-> > > +	u8			*regs;
-> > >  	size_t			buf_len;
-> > >  	struct i2c_adapter	adapter;
-> > >  	u8			fifo_size;	/* use as flag and value
-> > > @@ -187,15 +196,64 @@ struct omap_i2c_dev {
-> > >  	u16			westate;
+> > > +
+> > > +static void zoom_lcd_tv_panel_init(void)
+> > > +{
+> > > +	int ret;
+> > > +	unsigned char lcd_panel_reset_gpio;
+> > > +
+> > > +	lcd_panel_reset_gpio = (omap_rev() > OMAP3430_REV_ES3_0) ?
+> > > +				LCD_PANEL_RESET_GPIO_PROD :
+> > > +				LCD_PANEL_RESET_GPIO_PILOT;
+> > > +
+> > > +	ret = gpio_request(lcd_panel_reset_gpio, "lcd reset");
+> > > +	if (ret) {
+> > > +		pr_err("Failed to get LCD reset GPIO (gpio%d)\n",
+> > > +			lcd_panel_reset_gpio);
+> > > +		return;
+> > > +	}
+> > > +	gpio_direction_output(lcd_panel_reset_gpio, 1);
+> > > +
+> > > +	ret = gpio_request(LCD_PANEL_QVGA_GPIO, "lcd qvga");
+> > > +	if (ret) {
+> > > +		pr_err("Failed to get LCD_PANEL_QVGA_GPIO (gpio%d).\n",
+> > > +			LCD_PANEL_QVGA_GPIO);
+> > > +		goto err0;
+> > > +	}
+> > > +	gpio_direction_output(LCD_PANEL_QVGA_GPIO, 1);
+> > > +
+> > > +	ret = gpio_request(TV_PANEL_ENABLE_GPIO, "tv panel");
+> > > +	if (ret) {
+> > > +		pr_err("Failed to get TV_PANEL_ENABLE_GPIO (gpio%d).\n",
+> > > +			TV_PANEL_ENABLE_GPIO);
+> > > +		goto err1;
+> > > +	}
+> > > +	gpio_direction_output(TV_PANEL_ENABLE_GPIO, 0);
+> > > +
+> > > +	return;
+> > > +
+> > > +err1:
+> > > +	gpio_free(LCD_PANEL_QVGA_GPIO);
+> > > +err0:
+> > > +	gpio_free(lcd_panel_reset_gpio);
+> > > +}
+> > > +
+> > > +static int zoom_panel_enable_lcd(struct omap_dss_device *dssdev)
+> > > +{
+> > > +	int ret;
+> > > +	struct zoom_dss_board_info *pdata;
+> > > +
+> > > +	pdata = dssdev->dev.platform_data;
+> > > +	if (pdata->gpio_flag == 0) {
+> > > +		ret = gpio_request(LCD_PANEL_ENABLE_GPIO, "lcd enable");
+> > > +		if (ret) {
+> > > +			pr_err("Failed to get"
+> > > +			" LCD_PANEL_ENABLE_GPIO (gpio%d).\n",
+> > > +				LCD_PANEL_ENABLE_GPIO);
+> > > +			return ret;
+> > > +		}
+> > > +		gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
+> > > +		pdata->gpio_flag = 1;
+> > > +	} else {
+> > > +		gpio_set_value(LCD_PANEL_ENABLE_GPIO, 1);
+> > > +	}
+> > > +
+> > [Hiremath, Vaibhav] I think I had mentioned this in your last post, why
+> do
+> > you want to call gpio_request and gpio_direction_output from here and
+> > encapsulate it under one variable. You can very well do this in
+> > zoom_display_init with default value to 0, which is what you are doing
+> in
+> > disable function below. And panel_enable function would get called from
+> init
+> > sequence anyway right?
+> >
+> > With this you can remove gpio_flag altogether and function will become
+> > simple.
+> >
+> > Do you see any issues with it?
+> >
+
+LCD_PANEL_ENABLE_GPIO is not part of core gpios. It is part of twlxxxx chip which gets initialized only after board initialization is complete. Due to this gpio_request() would fail. So we had to add it in enable function which will be called only at dss init and later on.
+
+Regards,
+KK
+
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static void zoom_panel_disable_lcd(struct omap_dss_device *dssdev)
+> > > +{
+> > > +	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 0);
+> > > +}
+> > > +
+> > > +static int zoom_panel_enable_tv(struct omap_dss_device *dssdev)
+> > > +{
+> > > +	gpio_set_value(TV_PANEL_ENABLE_GPIO, 0);
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static void zoom_panel_disable_tv(struct omap_dss_device *dssdev)
+> > > +{
+> > > +	gpio_set_value(TV_PANEL_ENABLE_GPIO, 1);
+> > > +}
+> > > +
+> > > +static struct zoom_dss_board_info zoom_dss_lcd_data = {
+> > > +	.gpio_flag = 0,
+> > > +};
+> > > +
+> > > +static struct omap_dss_device zoom_lcd_device = {
+> > > +	.name = "lcd",
+> > > +	.driver_name = "NEC_8048_panel",
+> > > +	.type = OMAP_DISPLAY_TYPE_DPI,
+> > > +	.phy.dpi.data_lines = 24,
+> > > +	.platform_enable = zoom_panel_enable_lcd,
+> > > +	.platform_disable = zoom_panel_disable_lcd,
+> > > +	.dev = {
+> > > +		.platform_data = &zoom_dss_lcd_data,
+> > > +	},
+> > > +};
+> > > +
+> > > +static struct omap_dss_device zoom_tv_device = {
+> > > +	.name                   = "tv",
+> > > +	.driver_name            = "venc",
+> > > +	.type                   = OMAP_DISPLAY_TYPE_VENC,
+> > > +	.phy.venc.type          = -1,
+> > > +	.platform_enable        = zoom_panel_enable_tv,
+> > > +	.platform_disable       = zoom_panel_disable_tv,
+> > > +};
+> > > +
+> > > +static struct omap_dss_device *zoom_dss_devices[] = {
+> > > +	&zoom_lcd_device,
+> > > +	&zoom_tv_device,
+> > > +};
+> > > +
+> > > +static struct omap_dss_board_info zoom_dss_data = {
+> > > +	.num_devices = ARRAY_SIZE(zoom_dss_devices),
+> > > +	.devices = zoom_dss_devices,
+> > > +	.default_device = &zoom_lcd_device,
+> > > +};
+> > > +
+> > > +static struct platform_device zoom_dss_device = {
+> > > +	.name          = "omapdss",
+> > > +	.id            = -1,
+> > > +	.dev            = {
+> > > +		.platform_data = &zoom_dss_data,
+> > > +	},
+> > > +};
+> > > +
+> > > +static struct omap2_mcspi_device_config dss_lcd_mcspi_config = {
+> > > +	.turbo_mode             = 1,
+> > > +	.single_channel         = 1,  /* 0: slave, 1: master */
+> > > +};
+> > > +
+> > > +static struct spi_board_info nec_8048_spi_board_info[] __initdata = {
+> > > +	[0] = {
+> > > +		.modalias               = "nec_8048_spi",
+> > > +		.bus_num                = 1,
+> > > +		.chip_select            = 2,
+> > > +		.max_speed_hz           = 375000,
+> > > +		.controller_data        = &dss_lcd_mcspi_config,
+> > > +	},
+> > > +};
+> > > +
+> > > +static struct platform_device *zoom_display_devices[] __initdata = {
+> > > +	&zoom_dss_device,
+> > > +};
+> > > +
+> > > +void __init zoom_display_init(enum omap_dss_venc_type venc_type)
+> > > +{
+> > > +	zoom_tv_device.phy.venc.type = venc_type;
+> > > +	platform_add_devices(zoom_display_devices,
+> > > +				ARRAY_SIZE(zoom_display_devices));
+> > > +	spi_register_board_info(nec_8048_spi_board_info,
+> > > +				ARRAY_SIZE(nec_8048_spi_board_info));
+> > > +	zoom_lcd_tv_panel_init();
+> > > +}
+> > > +
+> > > diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> b/arch/arm/mach-
+> > > omap2/board-zoom-peripherals.c
+> > > index 8dd277c..4145a40 100755
+> > > --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> > > +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> > > @@ -170,6 +170,40 @@ static struct twl4030_hsmmc_info mmc[] __initdata
+> = {
+> > >  	{}      /* Terminator */
 > > >  };
 > > >
-> > > +const static u8 reg_map[] = {
-> > > +	[OMAP_I2C_REV_REG] = 0x00,
-> > > +	[OMAP_I2C_IE_REG] = 0x01,
-> > > +	[OMAP_I2C_STAT_REG] = 0x02,
-> > > +	[OMAP_I2C_IV_REG] = 0x03,
-> > > +	[OMAP_I2C_WE_REG] = 0x03,
-> > > +	[OMAP_I2C_SYSS_REG] = 0x04,
-> > > +	[OMAP_I2C_BUF_REG] = 0x05,
-> > > +	[OMAP_I2C_CNT_REG] = 0x06,
-> > > +	[OMAP_I2C_DATA_REG] = 0x07,
-> > > +	[OMAP_I2C_SYSC_REG] = 0x08,
-> > > +	[OMAP_I2C_CON_REG] = 0x09,
-> > > +	[OMAP_I2C_OA_REG] = 0x0a,
-> > > +	[OMAP_I2C_SA_REG] = 0x0b,
-> > > +	[OMAP_I2C_PSC_REG] = 0x0c,
-> > > +	[OMAP_I2C_SCLL_REG] = 0x0d,
-> > > +	[OMAP_I2C_SCLH_REG] = 0x0e,
-> > > +	[OMAP_I2C_SYSTEST_REG] = 0x0f,
-> > > +	[OMAP_I2C_BUFSTAT_REG] = 0x10,
+> > > +static struct regulator_consumer_supply zoom_vpll2_supply = {
+> > > +	.supply         = "vdds_dsi",
 > > > +};
 > > > +
-> > > +const static u8 omap4_reg_map[] = {
-> > > +	[OMAP_I2C_REV_REG] = 0x04,
-> > > +	[OMAP_I2C_IE_REG] = 0x2c,
-> > > +	[OMAP_I2C_STAT_REG] = 0x28,
-> > > +	[OMAP_I2C_IV_REG] = 0x34,
-> > > +	[OMAP_I2C_WE_REG] = 0x34,
-> > > +	[OMAP_I2C_SYSS_REG] = 0x90,
-> > > +	[OMAP_I2C_BUF_REG] = 0x94,
-> > > +	[OMAP_I2C_CNT_REG] = 0x98,
-> > > +	[OMAP_I2C_DATA_REG] = 0x9c,
-> > > +	[OMAP_I2C_SYSC_REG] = 0x20,
-> > > +	[OMAP_I2C_CON_REG] = 0xa4,
-> > > +	[OMAP_I2C_OA_REG] = 0xa8,
-> > > +	[OMAP_I2C_SA_REG] = 0xac,
-> > > +	[OMAP_I2C_PSC_REG] = 0xb0,
-> > > +	[OMAP_I2C_SCLL_REG] = 0xb4,
-> > > +	[OMAP_I2C_SCLH_REG] = 0xb8,
-> > > +	[OMAP_I2C_SYSTEST_REG] = 0xbC,
-> > > +	[OMAP_I2C_BUFSTAT_REG] = 0xc0,
-> > > +	[OMAP_I2C_REVNB_LO] = 0x00,
-> > > +	[OMAP_I2C_REVNB_HI] = 0x04,
-> > > +	[OMAP_I2C_IRQSTATUS_RAW] = 0x24,
-> > > +	[OMAP_I2C_IRQENABLE_SET] = 0x2c,
-> > > +	[OMAP_I2C_IRQENABLE_CLR] = 0x30,
+> > > +static struct regulator_consumer_supply zoom_vdda_dac_supply = {
+> > > +	.supply         = "vdda_dac",
 > > > +};
 > > > +
-> > >  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-> > >  				      int reg, u16 val)
-> > >  {
-> > > -	__raw_writew(val, i2c_dev->base + (reg << i2c_dev->reg_shift));
-> > > +	__raw_writew(val, i2c_dev->base +
-> > > +			(i2c_dev->regs[reg] << i2c_dev->reg_shift));
-> > >  }
-> > >
-> > >  static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
-> > >  {
-> > > -	return __raw_readw(i2c_dev->base + (reg << i2c_dev->reg_shift));
-> > > +	return __raw_readw(i2c_dev->base +
-> > > +				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
-> > >  }
-> > >
-> > >  static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-> > > @@ -264,7 +322,11 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
-> > >  	WARN_ON(dev->idle);
-> > >
-> > >  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-> > > -	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-> > > +	if (dev->rev >= OMAP_I2C_REV_ON_4430)
-> > > +		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
-> > > +	else
-> > > +		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+> > > +static struct regulator_init_data zoom_vpll2 = {
+> > > +	.constraints = {
+> > > +		.min_uV                 = 1800000,
+> > > +		.max_uV                 = 1800000,
+> > > +		.valid_modes_mask       = REGULATOR_MODE_NORMAL
+> > > +					| REGULATOR_MODE_STANDBY,
+> > > +		.valid_ops_mask         = REGULATOR_CHANGE_MODE
+> > > +					| REGULATOR_CHANGE_STATUS,
+> > > +	},
+> > > +	.num_consumer_supplies  = 1,
+> > > +	.consumer_supplies      = &zoom_vpll2_supply,
+> > > +};
 > > > +
-> > >  	if (dev->rev < OMAP_I2C_REV_2) {
-> > >  		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
-> > >  	} else {
-> > > @@ -329,7 +391,9 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > >  			 * REVISIT: Some wkup sources might not be needed.
-> > >  			 */
-> > >  			dev->westate = OMAP_I2C_WE_ALL;
-> > > -			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
-> > > +			if (dev->rev < OMAP_I2C_REV_ON_4430)
-> > > +				omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
-> > > +								dev->westate);
-> > >  		}
-> > >  	}
-> > >  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-> > > @@ -356,7 +420,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > >  			psc = fclk_rate / 12000000;
-> > >  	}
-> > >
-> > > -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> > > +	if (!(cpu_class_is_omap1() || cpu_is_omap2420())) {
-> > >
-> > >  		/*
-> > >  		 * HSI2C controller internal clk rate should be 19.2 Mhz for
-> > > @@ -746,9 +810,12 @@ complete:
-> > >  				if (dev->buf_len) {
-> > >  					*dev->buf++ = w;
-> > >  					dev->buf_len--;
-> > > -					/* Data reg from 2430 is 8 bit wide */
-> > > -					if (!cpu_is_omap2430() &&
-> > > -							!cpu_is_omap34xx()) {
-> > > +					/*
-> > > +					 * Data reg in 2430, omap3 and
-> > > +					 * omap4 is 8 bit wide
-> > > +					 */
-> > > +					if (cpu_class_is_omap1() ||
-> > > +							cpu_is_omap2420()) {
-> > >  						if (dev->buf_len) {
-> > >  							*dev->buf++ = w >> 8;
-> > >  							dev->buf_len--;
-> > > @@ -786,9 +853,12 @@ complete:
-> > >  				if (dev->buf_len) {
-> > >  					w = *dev->buf++;
-> > >  					dev->buf_len--;
-> > > -					/* Data reg from  2430 is 8 bit wide */
-> > > -					if (!cpu_is_omap2430() &&
-> > > -							!cpu_is_omap34xx()) {
-> > > +					/*
-> > > +					 * Data reg in 2430, omap3 and
-> > > +					 * omap4 is 8 bit wide
-> > > +					 */
-> > > +					if (cpu_class_is_omap1() ||
-> > > +							cpu_is_omap2420()) {
-> > >  						if (dev->buf_len) {
-> > >  							w |= *dev->buf++ << 8;
-> > >  							dev->buf_len--;
-> > > @@ -897,6 +967,8 @@ omap_i2c_probe(struct platform_device *pdev)
-> > >
-> > >  	if (cpu_is_omap7xx())
-> > >  		dev->reg_shift = 1;
-> > > +	else if (cpu_is_omap44xx())
-> > > +		dev->reg_shift = 0;
-> > >  	else
-> > >  		dev->reg_shift = 2;
-> > >
-> > > @@ -911,11 +983,16 @@ omap_i2c_probe(struct platform_device *pdev)
-> > >  	if ((r = omap_i2c_get_clocks(dev)) != 0)
-> > >  		goto err_iounmap;
-> > >
-> > > +	if (cpu_is_omap44xx())
-> > > +		dev->regs = (u8 *) omap4_reg_map;
-> > > +	else
-> > > +		dev->regs = (u8 *) reg_map;
+> > > +static struct regulator_init_data zoom_vdac = {
+> > > +	.constraints = {
+> > > +		.min_uV                 = 1800000,
+> > > +		.max_uV                 = 1800000,
+> > > +		.valid_modes_mask       = REGULATOR_MODE_NORMAL
+> > > +					| REGULATOR_MODE_STANDBY,
+> > > +		.valid_ops_mask         = REGULATOR_CHANGE_MODE
+> > > +					| REGULATOR_CHANGE_STATUS,
+> > > +	},
+> > > +	.num_consumer_supplies  = 1,
+> > > +	.consumer_supplies      = &zoom_vdda_dac_supply,
+> > > +};
 > > > +
-> > >  	omap_i2c_unidle(dev);
+> > >  static int zoom_twl_gpio_setup(struct device *dev,
+> > >  		unsigned gpio, unsigned ngpio)
+> > >  {
+> > > @@ -242,6 +276,8 @@ static struct twl4030_platform_data zoom_twldata =
+> {
+> > >  	.vmmc1          = &zoom_vmmc1,
+> > >  	.vmmc2          = &zoom_vmmc2,
+> > >  	.vsim           = &zoom_vsim,
+> > > +	.vpll2		= &zoom_vpll2,
+> > > +	.vdac		= &zoom_vdac,
 > > >
-> > >  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+> > >  };
 > > >
-> > > -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> > > +	if (!(cpu_class_is_omap1() || cpu_is_omap2420())) {
-> > >  		u16 s;
-> > >
-> > >  		/* Set up the fifo size - Get total size */
-> > > @@ -927,8 +1004,13 @@ omap_i2c_probe(struct platform_device *pdev)
-> > >  		 * size. This is to ensure that we can handle the status on int
-> > >  		 * call back latencies.
-> > >  		 */
-> > > -		dev->fifo_size = (dev->fifo_size / 2);
-> > > -		dev->b_hw = 1; /* Enable hardware fixes */
-> > > +		if (dev->rev >= OMAP_I2C_REV_ON_4430) {
-> > > +			dev->fifo_size = 0;
-> > > +			dev->b_hw = 0; /* Disable hardware fixes */
-> > > +		} else {
-> > > +			dev->fifo_size = (dev->fifo_size / 2);
-> > > +			dev->b_hw = 1; /* Enable hardware fixes */
-> > > +		}
-> > >  	}
-> > >
-> > >  	/* reset ASAP, clearing any IRQs */
-> > > --
-> > > 1.6.0.4
+> > > diff --git a/arch/arm/mach-omap2/include/mach/board-zoom.h
+> > b/arch/arm/mach-
+> > > omap2/include/mach/board-zoom.h
+> > > index c93b29e..aec73b4 100644
+> > > --- a/arch/arm/mach-omap2/include/mach/board-zoom.h
+> > > +++ b/arch/arm/mach-omap2/include/mach/board-zoom.h
+> > > @@ -1,5 +1,8 @@
+> > >  /*
+> > >   * Defines for zoom boards
+> > >   */
+> > > +#include <plat/display.h>
+> > > +
+> > >  extern int __init zoom_debugboard_init(void);
+> > >  extern void __init zoom_peripherals_init(void);
+> > > +extern void __init zoom_display_init(enum omap_dss_venc_type
+> venc_type);
+> > [Hiremath, Vaibhav] Just for my understanding, from where you are
+> calling
+> > this function? I believe you are making this extern just to define
+> venc.type
+> > to appropriate value, right?
 > >
+> [Hiremath, Vaibhav] Yes, you are calling this from your board_init
+> function, it is part of your last patch.
+> 
+> Thanks,
+> Vaibhav
+> 
+> > Thanks,
+> > Vaibhav
+> >
+> > > --
+> > > 1.5.6.3
+> > >
+> > > Regards,
+> > > Kishore Y
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
