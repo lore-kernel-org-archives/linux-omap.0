@@ -1,74 +1,70 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH 2/4] USB: MUSB: Enable MUSB for OMAP4 in Kconfig
-Date: Thu, 25 Feb 2010 18:42:33 -0600
-Message-ID: <20100226004233.GA3241@lixom.net>
-References: <1267079758-14480-1-git-send-email-x0082077@ti.com> <20100225184833.GG28173@atomide.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH] musb: fix power field to hold all possible values
+Date: Fri, 26 Feb 2010 10:02:57 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DA99E2B@dbde02.ent.ti.com>
+References: <1266918404-17715-1-git-send-email-ajay.gupta@ti.com>
+ <20100223095154.GA12815@gandalf>
+ <19F8576C6E063C45BE387C64729E7394044DA995E5@dbde02.ent.ti.com>
+ <20100223203215.GA21920@gandalf> <20100225221940.GN28173@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.lixom.net ([66.141.50.11]:35946 "EHLO mail.lixom.net"
+Received: from comal.ext.ti.com ([198.47.26.152]:56540 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934688Ab0BZAgU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Feb 2010 19:36:20 -0500
-Content-Disposition: inline
-In-Reply-To: <20100225184833.GG28173@atomide.com>
+	id S935167Ab0BZEdK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 23:33:10 -0500
+In-Reply-To: <20100225221940.GN28173@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Maulik Mankad <x0082077@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, David Brownell <david-b@pacbell.net>
+To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Feb 25, 2010 at 10:48:34AM -0800, Tony Lindgren wrote:
-> * Maulik Mankad <x0082077@ti.com> [100224 22:33]:
-> > This patch adds the OMAP4 Kconfig options for MUSB.
-> > 
-> > Signed-off-by: Maulik Mankad <x0082077@ti.com>
-> > Cc: Felipe Balbi <felipe.balbi@nokia.com>
-> > Cc: Greg Kroah-Hartman <gregkh@suse.de>
-> > Cc: David Brownell <david-b@pacbell.net
-> > ---
-> > Index: mainline/drivers/usb/musb/Kconfig
-> > ===================================================================
-> > --- mainline.orig/drivers/usb/musb/Kconfig
-> > +++ mainline/drivers/usb/musb/Kconfig
-> > @@ -38,6 +38,7 @@ config USB_MUSB_SOC
-> >  	default y if ARCH_DAVINCI
-> >  	default y if ARCH_OMAP2430
-> >  	default y if ARCH_OMAP34XX
-> > +	default y if ARCH_OMAP4
-> >  	default y if (BF54x && !BF544)
-> >  	default y if (BF52x && !BF522 && !BF523)
-> >  
-> > @@ -50,6 +51,9 @@ comment "OMAP 243x high speed USB suppor
-> >  comment "OMAP 343x high speed USB support"
-> >  	depends on USB_MUSB_HDRC && ARCH_OMAP34XX
-> >  
-> > +comment "OMAP 44xx high speed USB support"
-> > +	depends on USB_MUSB_HDRC && ARCH_OMAP4
-> > +
-> >  comment "Blackfin high speed USB Support"
-> >  	depends on USB_MUSB_HDRC && ((BF54x && !BF544) || (BF52x && !BF522 && !BF523))
-> >  
-> > @@ -153,7 +157,7 @@ config MUSB_PIO_ONLY
-> >  config USB_INVENTRA_DMA
-> >  	bool
-> >  	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
-> > -	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN
-> > +	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN || ARCH_OMAP4
-> >  	help
-> >  	  Enable DMA transfers using Mentor's engine.
+Hi,
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, February 26, 2010 3:50 AM
+> To: Felipe Balbi
+> Cc: Gupta, Ajay Kumar; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] musb: fix power field to hold all possible values
 > 
-> FYI, this needs to be updated as I have patches queued up
-> to replace ARCH_OMAP34XX and with ARCH_OMAP3. You might
-> want to check all these patches for that and make sure
-> they build and work with the omap-for-linus branch.
+> * Felipe Balbi <me@felipebalbi.com> [100223 12:30]:
+> > Hi,
+> >
+> > On Tue, Feb 23, 2010 at 08:01:50PM +0530, Gupta, Ajay Kumar wrote:
+> > > Board files are providing the actual mA and it is getting divided in
+> > > Arch/arm/mach-omap2/usb-musb.c. See the code snippet below,
+> > >
+> > >         musb_plat.clock = "ick";
+> > >         musb_plat.board_data = board_data;
+> > > -->     musb_plat.power = board_data->power >> 1;
+> > >         musb_plat.mode = board_data->mode;
+> > >
+> > > So we need to either take this patch or fix this logic of dividing the
+> mA
+> > > supplied from all omap board files.
+> >
+> > that's true, had missed that. Sorry.
+> 
+> Hmm, I believe this value is also divided somewhere else but
+> I forgot where. In any case, when making changes like this
+> please run the standard USB tests for gadgets and OTG.
+> 
+> Otherwise things are guaranteed to break for USB certs :)
 
-Adding more and more depends also doesn't scale well. It's time for
-someone to switch the test around, add a ARCH_HAS_MUSB, select it on
-the platforms that has it and make the config option depend on that,
-similar to how (some) platforms to EHCI today.
+Tony,
 
-(i.e. if there's a janitor out there reading this, feel free to go ahead
-and do it. :-)
+Currently the flow is,
 
+1. Actual mA provided in all omap board files.
+2. mA gets divided in usb-musb.c
+3. mA multiplied by two in driver/usb/musb/musb_core.c to pass it to
+   hcd->power_budget.
 
--Olof
+So the current patch fixes the logic in step [1] above to fill mA value
+Above 255.
+
+-Ajay
+> 
+> Tony
