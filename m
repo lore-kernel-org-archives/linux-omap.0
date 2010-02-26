@@ -1,68 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/6] AM3517EVM : correct typo - tca6416 mispelt as tca6516
-Date: Thu, 25 Feb 2010 15:03:18 -0800
-Message-ID: <20100225230318.26233.34046.stgit@baageli.muru.com>
-References: <20100225230116.26233.65157.stgit@baageli.muru.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH 2/4] USB: MUSB: Enable MUSB for OMAP4 in Kconfig
+Date: Thu, 25 Feb 2010 18:42:33 -0600
+Message-ID: <20100226004233.GA3241@lixom.net>
+References: <1267079758-14480-1-git-send-email-x0082077@ti.com> <20100225184833.GG28173@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65276 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934451Ab0BYXCO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Feb 2010 18:02:14 -0500
-In-Reply-To: <20100225230116.26233.65157.stgit@baageli.muru.com>
+Received: from mail.lixom.net ([66.141.50.11]:35946 "EHLO mail.lixom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934688Ab0BZAgU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Feb 2010 19:36:20 -0500
+Content-Disposition: inline
+In-Reply-To: <20100225184833.GG28173@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Sriramakrishnan <srk@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Maulik Mankad <x0082077@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, David Brownell <david-b@pacbell.net>
 
-From: Sriram <srk@ti.com>
+On Thu, Feb 25, 2010 at 10:48:34AM -0800, Tony Lindgren wrote:
+> * Maulik Mankad <x0082077@ti.com> [100224 22:33]:
+> > This patch adds the OMAP4 Kconfig options for MUSB.
+> > 
+> > Signed-off-by: Maulik Mankad <x0082077@ti.com>
+> > Cc: Felipe Balbi <felipe.balbi@nokia.com>
+> > Cc: Greg Kroah-Hartman <gregkh@suse.de>
+> > Cc: David Brownell <david-b@pacbell.net
+> > ---
+> > Index: mainline/drivers/usb/musb/Kconfig
+> > ===================================================================
+> > --- mainline.orig/drivers/usb/musb/Kconfig
+> > +++ mainline/drivers/usb/musb/Kconfig
+> > @@ -38,6 +38,7 @@ config USB_MUSB_SOC
+> >  	default y if ARCH_DAVINCI
+> >  	default y if ARCH_OMAP2430
+> >  	default y if ARCH_OMAP34XX
+> > +	default y if ARCH_OMAP4
+> >  	default y if (BF54x && !BF544)
+> >  	default y if (BF52x && !BF522 && !BF523)
+> >  
+> > @@ -50,6 +51,9 @@ comment "OMAP 243x high speed USB suppor
+> >  comment "OMAP 343x high speed USB support"
+> >  	depends on USB_MUSB_HDRC && ARCH_OMAP34XX
+> >  
+> > +comment "OMAP 44xx high speed USB support"
+> > +	depends on USB_MUSB_HDRC && ARCH_OMAP4
+> > +
+> >  comment "Blackfin high speed USB Support"
+> >  	depends on USB_MUSB_HDRC && ((BF54x && !BF544) || (BF52x && !BF522 && !BF523))
+> >  
+> > @@ -153,7 +157,7 @@ config MUSB_PIO_ONLY
+> >  config USB_INVENTRA_DMA
+> >  	bool
+> >  	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
+> > -	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN
+> > +	default ARCH_OMAP2430 || ARCH_OMAP34XX || BLACKFIN || ARCH_OMAP4
+> >  	help
+> >  	  Enable DMA transfers using Mentor's engine.
+> 
+> FYI, this needs to be updated as I have patches queued up
+> to replace ARCH_OMAP34XX and with ARCH_OMAP3. You might
+> want to check all these patches for that and make sure
+> they build and work with the omap-for-linus branch.
 
-Correct instances where tca6416 is misspelt as tca6516 in
-the board-am3517evm file.
+Adding more and more depends also doesn't scale well. It's time for
+someone to switch the test around, add a ARCH_HAS_MUSB, select it on
+the platforms that has it and make the config option depend on that,
+similar to how (some) platforms to EHCI today.
 
-Signed-off-by: Sriramakrishnan <srk@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-am3517evm.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+(i.e. if there's a janitor out there reading this, feel free to go ahead
+and do it. :-)
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index aee0a02..70c1861 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -80,7 +80,7 @@ static void __init am3517_evm_rtc_init(void)
- static struct pca953x_platform_data am3517evm_gpio_expander_info_0 = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- };
--static struct i2c_board_info __initdata am3517evm_tca6516_info_0[] = {
-+static struct i2c_board_info __initdata am3517evm_tca6416_info_0[] = {
- 	{
- 		I2C_BOARD_INFO("tca6416", 0x21),
- 		.platform_data = &am3517evm_gpio_expander_info_0,
-@@ -94,7 +94,7 @@ static struct pca953x_platform_data am3517evm_ui_gpio_expander_info_1 = {
- static struct pca953x_platform_data am3517evm_ui_gpio_expander_info_2 = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES + 32,
- };
--static struct i2c_board_info __initdata am3517evm_ui_tca6516_info[] = {
-+static struct i2c_board_info __initdata am3517evm_ui_tca6416_info[] = {
- 	{
- 		I2C_BOARD_INFO("tca6416", 0x20),
- 		.platform_data = &am3517evm_ui_gpio_expander_info_1,
-@@ -108,10 +108,10 @@ static struct i2c_board_info __initdata am3517evm_ui_tca6516_info[] = {
- static int __init am3517_evm_i2c_init(void)
- {
- 	omap_register_i2c_bus(1, 400, NULL, 0);
--	omap_register_i2c_bus(2, 400, am3517evm_tca6516_info_0,
--			ARRAY_SIZE(am3517evm_tca6516_info_0));
--	omap_register_i2c_bus(3, 400, am3517evm_ui_tca6516_info,
--			ARRAY_SIZE(am3517evm_ui_tca6516_info));
-+	omap_register_i2c_bus(2, 400, am3517evm_tca6416_info_0,
-+			ARRAY_SIZE(am3517evm_tca6416_info_0));
-+	omap_register_i2c_bus(3, 400, am3517evm_ui_tca6416_info,
-+			ARRAY_SIZE(am3517evm_ui_tca6416_info));
- 
- 	return 0;
- }
 
+-Olof
