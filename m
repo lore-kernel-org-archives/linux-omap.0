@@ -1,53 +1,68 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC v3][PATCH 0/6] OMAP3630: UART4 startup (+ new bugfix!)
-Date: Sat, 27 Feb 2010 14:46:05 -0600
-Message-ID: <1267303571-3674-1-git-send-email-saaguirre@ti.com>
+Subject: [RFC v3][PATCH 6/6] omap3: serial: Fix uart4 handling for 3630
+Date: Sat, 27 Feb 2010 14:46:11 -0600
+Message-ID: <1267303571-3674-7-git-send-email-saaguirre@ti.com>
+References: <1267303571-3674-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47797 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030818Ab0B0Up7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 27 Feb 2010 15:45:59 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1RKjwKQ018745
+Received: from devils.ext.ti.com ([198.47.26.153]:38020 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030848Ab0B0UqA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Feb 2010 15:46:00 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1RKjxKG008416
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Sat, 27 Feb 2010 14:45:58 -0600
+	for <linux-omap@vger.kernel.org>; Sat, 27 Feb 2010 14:45:59 -0600
+In-Reply-To: <1267303571-3674-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sergio Aguirre <saaguirre@ti.com>
 
-Hi,
+This patch makes the following:
+ - Adds missing wakeup padding register handling.
+ - Fixes a hardcode to use PER module ONLY on UART3.
+ - Corrects IRQ number to 80 for 3630 case.
 
-This is the v3 of the RFC for UART4 addition for 3630 chips.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/mach-omap2/serial.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
-Changes with respect to v2 [1]:
- - Merged patches for control bits.
- - Fix umproper check during globals setting. cpu_is_omap3630 was
-   invalid at that point. (now 3630 boards are bootable gain!)
- - Fix hardcode to use PER domain on UART3 only.
-
-Indirect dependencies:
- - Tested with Thomas Weber's patch [2].
-
-Thanks for Paul Walmsley and Tony Lindgreen for their initial comments.
-
-Detailed patchlist summary:
-
-Sergio Aguirre (6):
-  OMAP3: serial: Check for zero-based physical addr
-  omap2/3/4: serial: Remove condition for getting uart4_phys
-  ARM: OMAP3630: PRCM: Add UART4 control bits
-  OMAP clock: Add uart4_ick/fck definitions for 3630
-  OMAP3: PRCM: Consider UART4 for 3630 chip in prcm_setup_regs
-  omap3: serial: Fix uart4 handling for 3630
-
- arch/arm/mach-omap2/clock3xxx_data.c  |   22 +++++++++++++++++++++
- arch/arm/mach-omap2/cm-regbits-34xx.h |    2 +
- arch/arm/mach-omap2/pm34xx.c          |    8 +++++-
- arch/arm/mach-omap2/prcm-common.h     |    4 +++
- arch/arm/mach-omap2/serial.c          |   34 +++++++++++++++++++-------------
- 5 files changed, 54 insertions(+), 16 deletions(-)
-
-[1] http://marc.info/?l=linux-omap&m=126719959007695&w=2
-[2] http://marc.info/?l=linux-kernel&m=126709078514087&w=2
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 605422e..d7cea8a 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -444,7 +444,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	omap_uart_smart_idle_enable(uart, 0);
+ 
+ 	if (cpu_is_omap34xx()) {
+-		u32 mod = (uart->num == 2) ? OMAP3430_PER_MOD : CORE_MOD;
++		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
+ 		u32 wk_mask = 0;
+ 		u32 padconf = 0;
+ 
+@@ -463,6 +463,10 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 			wk_mask = OMAP3430_ST_UART3_MASK;
+ 			padconf = 0x19e;
+ 			break;
++		case 3:
++			wk_mask = OMAP3630_ST_UART4_MASK;
++			padconf = 0x0d2;
++			break;
+ 		}
+ 		uart->wk_mask = wk_mask;
+ 		uart->padconf = padconf;
+@@ -689,6 +693,10 @@ void __init omap_serial_early_init(void)
+ 
+ 		if (cpu_is_omap44xx())
+ 			p->irq += 32;
++
++		/* IRQ for UART4 in omap3630 is 80 */
++		if (cpu_is_omap3630() && (i == 3))
++			p->irq = 80;
+ 	}
+ }
+ 
+-- 
+1.6.3.3
 
