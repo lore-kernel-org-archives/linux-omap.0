@@ -1,64 +1,84 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC v3][PATCH 1/6] OMAP3: serial: Check for zero-based physical addr
-Date: Sat, 27 Feb 2010 14:46:06 -0600
-Message-ID: <1267303571-3674-2-git-send-email-saaguirre@ti.com>
+Subject: [RFC v3][PATCH 4/6] OMAP clock: Add uart4_ick/fck definitions for 3630
+Date: Sat, 27 Feb 2010 14:46:09 -0600
+Message-ID: <1267303571-3674-5-git-send-email-saaguirre@ti.com>
 References: <1267303571-3674-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58336 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47798 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030770Ab0B0Up7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1030847Ab0B0Up7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Sat, 27 Feb 2010 15:45:59 -0500
 Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1RKjwEO003878
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o1RKjxDF018748
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Sat, 27 Feb 2010 14:45:58 -0600
+	for <linux-omap@vger.kernel.org>; Sat, 27 Feb 2010 14:45:59 -0600
 In-Reply-To: <1267303571-3674-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sergio Aguirre <saaguirre@ti.com>
 
-This is for protecting a wrong mapping attempt of a zero-based
-physical address.
-
-The result is that, no serial port will be attempted to be mapped.
-
-Also add an additional protection for NULL clocks before attempting
-to enable them (if above condition applies)
+This is only valid for omap 36xx family of chips.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index b79bc89..128bfae 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -659,6 +659,12 @@ void __init omap_serial_early_init(void)
- 		struct device *dev = &pdev->dev;
- 		struct plat_serial8250_port *p = dev->platform_data;
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index d5153b6..e8afaa6 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -2541,6 +2541,16 @@ static struct clk uart3_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
  
-+		/* Don't map zero-based physical address */
-+		if (p->mapbase == 0) {
-+			printk(KERN_WARNING "omap serial: No physical address"
-+			       " for uart#%d, so skipping early_init...\n", i);
-+			continue;
-+		}
- 		/*
- 		 * Module 4KB + L4 interconnect 4KB
- 		 * Static mapping, never released
-@@ -722,6 +728,10 @@ void __init omap_serial_init_port(int port)
- 	pdev = &uart->pdev;
- 	dev = &pdev->dev;
- 
-+	/* Don't proceed if there's no clocks available */
-+	if (!uart->ick || !uart->fck)
-+		return;
++static struct clk uart4_fck = {
++	.name		= "uart4_fck",
++	.ops		= &clkops_omap2_dflt_wait,
++	.parent		= &per_48m_fck,
++	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
++	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
++	.clkdm_name	= "per_clkdm",
++	.recalc		= &followparent_recalc,
++};
 +
- 	omap_uart_enable_clocks(uart);
+ static struct clk gpt2_fck = {
+ 	.name		= "gpt2_fck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+@@ -2791,6 +2801,16 @@ static struct clk uart3_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
  
- 	omap_uart_reset(uart);
++static struct clk uart4_ick = {
++	.name		= "uart4_ick",
++	.ops		= &clkops_omap2_dflt_wait,
++	.parent		= &per_l4_ick,
++	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
++	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
++	.clkdm_name	= "per_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
+ static struct clk gpt9_ick = {
+ 	.name		= "gpt9_ick",
+ 	.ops		= &clkops_omap2_dflt_wait,
+@@ -3420,6 +3440,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"per_96m_fck",	&per_96m_fck,	CK_3XXX),
+ 	CLK(NULL,	"per_48m_fck",	&per_48m_fck,	CK_3XXX),
+ 	CLK(NULL,	"uart3_fck",	&uart3_fck,	CK_3XXX),
++	CLK(NULL,	"uart4_fck",	&uart4_fck,	CK_36XX),
+ 	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_3XXX),
+ 	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_3XXX),
+ 	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_3XXX),
+@@ -3443,6 +3464,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"gpio2_ick",	&gpio2_ick,	CK_3XXX),
+ 	CLK(NULL,	"wdt3_ick",	&wdt3_ick,	CK_3XXX),
+ 	CLK(NULL,	"uart3_ick",	&uart3_ick,	CK_3XXX),
++	CLK(NULL,	"uart4_ick",	&uart4_ick,	CK_36XX),
+ 	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpt7_ick",	&gpt7_ick,	CK_3XXX),
 -- 
 1.6.3.3
 
