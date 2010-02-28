@@ -1,42 +1,38 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] omap: i2c: Add i2c support on omap4 platform
-Date: Sun, 28 Feb 2010 11:01:23 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C43BFCFA@dbde02.ent.ti.com>
-References: <1266597180-25139-1-git-send-email-santosh.shilimkar@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C42E10AD@dbde02.ent.ti.com>
- <20100225214703.GJ28173@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF6C3@dbde02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C43BFC61@dbde02.ent.ti.com>
- <20100227204049.GK17041@atomide.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: Re: [PATCH] board-n8x0: add USB initialization
+Date: Sun, 28 Feb 2010 20:57:09 +0200
+Message-ID: <877hpxfat6.fsf@purkki.valot.fi>
+References: <1267321831-2775-1-git-send-email-alecrim@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100227204049.GK17041-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Syed, Rafiuddin" <rafiuddin.syed-l0cyMroinI0@public.gmane.org>, Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:38562 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935173Ab0B1S5P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Feb 2010 13:57:15 -0500
+Received: by wwa36 with SMTP id 36so948482wwa.19
+        for <linux-omap@vger.kernel.org>; Sun, 28 Feb 2010 10:57:14 -0800 (PST)
+In-Reply-To: <1267321831-2775-1-git-send-email-alecrim@gmail.com> (Francisco Alecrim's message of "Sat\, 27 Feb 2010 21\:50\:31 -0400")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Francisco Alecrim <alecrim@gmail.com>
+Cc: linux-omap@vger.kernel.org, Francisco Alecrim <francisco.alecrim@openbossa.org>, Tony Lindgren <tony@atomide.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org]
-> Sent: Sunday, February 28, 2010 2:11 AM
-> To: Shilimkar, Santosh
-> Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Syed, Rafiuddin; Cory
-> Maccarrone; akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-> Subject: Re: [PATCH] omap: i2c: Add i2c support on omap4 platform
-> 
-> * Shilimkar, Santosh <santosh.shilimkar-l0cyMroinI0@public.gmane.org> [100226 20:05]:
-> > Tony,
-> > What we do with patch now? It's more almost 6 months that this patch is
-> > floating without merge.
-> 
-> Well first we should test it for all omaps. So let's add it into
-> omap-testing for a few days to make sure it does not break anything.
-> 
-> Then let's ask Ben to queue it.
-> 
-Ok with me.
-Regards,
-Santosh
+Hi Francisco,
+
+Francisco Alecrim <alecrim@gmail.com> writes:
+
+> From: Francisco Alecrim <francisco.alecrim@openbossa.org>
+>
+> Signed-off-by: Kalle Valo <kalle.valo@iki.fi>
+> Signed-off-by: Francisco Alecrim <francisco.alecrim@openbossa.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Please do not add my Signed-off-by unless I have explicitly added it.
+And I don't recall giving it to this patch, so it can be removed.
+
+Removing the line doesn't change anything from technical point of
+view, this is just a little bit of legalise we have to deal with.
+
+-- 
+Kalle Valo
