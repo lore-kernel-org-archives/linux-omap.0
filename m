@@ -1,51 +1,67 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv4 7/7] ASoC: TWL6030: Detect power-up
- sequence completion
-Date: Mon, 1 Mar 2010 12:13:37 +0000
-Message-ID: <20100301121336.GA26740@rakim.wolfsonmicro.main>
-References: <1889FA7136B567478A67D4B0F85B0CCE65E7E58C@dlee06.ent.ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 01/03] omap hsmmc: prevent race between dma and hsmmc
+ callback
+Date: Mon, 01 Mar 2010 15:44:58 +0300
+Message-ID: <4B8BB6CA.7000104@ru.mvista.com>
+References: <618f0c911003010325q201fbcedr776da21c709ac421@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1889FA7136B567478A67D4B0F85B0CCE65E7E58C@dlee06.ent.ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Olaya, Margarita" <magi.olaya@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:46580 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260Ab0CAMrL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Mar 2010 07:47:11 -0500
+In-Reply-To: <618f0c911003010325q201fbcedr776da21c709ac421@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Feb 26, 2010 at 06:22:34PM -0600, Olaya, Margarita wrote:
+Hello.
 
-> Do you mean something like this?
-> time_left = wait_for_completion_timeout(&priv->ready,
->                                         msecs_to_jiffies(48));
-> if(!time_left) {
-> 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &intid,
->                                         TWL6040_REG_INTID);
->       if (!(intid & TWL6040_READYINT))
-> 		goto error;
-> }
-> 
-> 	return 0;
-> 
-> error:
-> 	dev_err(codec->dev, "timeout waiting for READYINT\n");
-> 	return -ETIMEDOUT;
+Venkatraman S wrote:
 
-Yes, or wrapped in a for loop with shorter timeouts on the individual
-waits.
+> It is observed that sometimes the MMC Transfer Complete (TC) is not
+> received when DMA completion callback is processed (or takes too long
+> to process)
+> This patch moves the releasing of DMA channel from dma callback to the
+> mmc transfer complete handler.
+> This is observed consistently when descriptor loading is used (see the
+> rest of the series)
+>
+> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   19 +++++++++++--------
+>  1 files changed, 11 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 83f0aff..06337f6 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1046,8 +1046,18 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+>
+>  	if (end_cmd || ((status & CC) && host->cmd))
+>  		omap_hsmmc_cmd_done(host, host->cmd);
+> -	if ((end_trans || (status & TC)) && host->mrq)
+> +	if ((end_trans || (status & TC)) && host->mrq) {
+>  		omap_hsmmc_xfer_done(host, data);
+> +		if (host->dma_ch != -1) {
+> +			omap_free_dma(host->dma_ch);
+> +			host->dma_ch = -1;
+> +		/*
+> +		 * Callback: run in interrupt context.
+> +		 * mutex_unlock will throw a kernel warning if used.
+> +		 */
+>   
 
-> but in this case will it not take unnecessarily 48ms when the
-> interruption line is not valid?
+   The comment should be aligned with the rest of the code.
 
-You're always going to get some additional delay when polling unless you
-busy wait for completion, which obviously has its own problems.
+> +			up(&host->sem);
+> +		}
+> +	}
+>
+>  	spin_unlock(&host->irq_lock);
+
+WBR, Sergei
+
