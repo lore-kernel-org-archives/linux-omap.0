@@ -1,67 +1,117 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: [PATCH] board-n8x0: add USB initialization
-Date: Mon, 01 Mar 2010 10:37:06 +0200
-Message-ID: <873a0kfnf1.fsf@purkki.valot.fi>
-References: <1267321831-2775-1-git-send-email-alecrim@gmail.com>
-	<877hpxfat6.fsf@purkki.valot.fi>
-	<309201e1002281933k1fb52d29sa47b2f4eca35861d@mail.gmail.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH] OMAP4: clockdomain: Use logical OR instead of bitwise OR
+Date: Mon, 1 Mar 2010 14:46:59 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321B9DACA@dbde02.ent.ti.com>
+References: <1267188445-25652-1-git-send-email-rnayak@ti.com>
+ <20100227004130.GH17041@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:51063 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750716Ab0CAIhL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Mar 2010 03:37:11 -0500
-Received: by wya21 with SMTP id 21so1171283wya.19
-        for <linux-omap@vger.kernel.org>; Mon, 01 Mar 2010 00:37:10 -0800 (PST)
-In-Reply-To: <309201e1002281933k1fb52d29sa47b2f4eca35861d@mail.gmail.com> (Francisco Alecrim's message of "Sun\, 28 Feb 2010 23\:33\:45 -0400")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50276 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750696Ab0CAJRH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Mar 2010 04:17:07 -0500
+In-Reply-To: <20100227004130.GH17041@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Francisco Alecrim <alecrim@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pagare, Abhijit" <abhijitpagare@ti.com>
 
-=46rancisco Alecrim <alecrim@gmail.com> writes:
+ 
 
-> Hi Kalle,
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Saturday, February 27, 2010 6:12 AM
+> To: Nayak, Rajendra
+> Cc: paul@pwsan.com; linux-omap@vger.kernel.org; Pagare, Abhijit
+> Subject: Re: [PATCH] OMAP4: clockdomain: Use logical OR 
+> instead of bitwise OR
+> 
+> * Rajendra Nayak <rnayak@ti.com> [100226 04:44]:
+> > This patch fixes usage of bitwise OR in if conditions, and instead
+> > uses logical OR.
+> 
+> Great, can you please check and update this for other similar errors:
 
-Hi again Francisco,
+ok.. updated patch on the way.
 
-> On Sun, Feb 28, 2010 at 2:57 PM, Kalle Valo <kalle.valo@iki.fi> wrote=
-:
->     Please do not add my Signed-off-by unless I have explicitly added=
- it.
->     And I don't recall giving it to this patch, so it can be removed.
->
->
-> I got the initial code from http://www.valot.fi/kalle/n8x0/patches/n8=
-x0-add/
-> 2009-07-31-12:15/07-n8x0-add-usb-support.patch .=A0 I just re-organiz=
-ed some
-> variables. So I didn't remove your Signed-off-by.
-
-Hehe, I had totally forgotten that patch! Sorry :)
-
-> And I merged your patch to Tony's code http://www.mail-archive.com/
-> linux-omap@vger.kernel.org/msg21443.html . So I kept his Signed-off-b=
-y.
-
-[...]
-
-> Sorry! I was not sure about keep or not these Signed-off-by. Do you
-> want me to re-send it without your Signed-off-by? =A0
-
-No, this was my mistake. Please don't remove the Signed-off-by line.
-
-But when you improve a patch originally implemented by somene else
-it's a good practise to mention the history of the patch. For example,
-"Based on Kalle's and Tony's patches", or something like that, is
-enough IMHO.
-
---=20
-Kalle Valo
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> $ grep -r ") | cpu" .
+> ./mach-omap2/prcm.c:    if (cpu_is_omap24xx() | cpu_is_omap34xx())
+> ./mach-omap2/prcm.c:    if (cpu_is_omap24xx() | cpu_is_omap34xx())
+> ./mach-omap2/clockdomain.c:     } else if (cpu_is_omap34xx() 
+> | cpu_is_omap44xx()) {
+> ./mach-omap2/clockdomain.c:     } else if (cpu_is_omap34xx() 
+> | cpu_is_omap44xx()) {
+> ./mach-omap2/clockdomain.c:     } else if (cpu_is_omap34xx() 
+> | cpu_is_omap44xx()) {
+> ./mach-omap2/powerdomain.c:     if (cpu_is_omap24xx() | 
+> cpu_is_omap34xx()) {
+> 
+> Regards,
+> 
+> Tony
+> 
+>  
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> > Cc: Abhijit Pagare <abhijitpagare@ti.com>
+> > ---
+> > 
+> > Patch generated on top of for_2.6.34_b branch from
+> > git://git.pwsan.com/linux-2.6 tree.
+> > 
+> >  arch/arm/mach-omap2/clockdomain.c |    4 ++--
+> >  arch/arm/mach-omap2/powerdomain.c |    2 +-
+> >  2 files changed, 3 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/clockdomain.c 
+> b/arch/arm/mach-omap2/clockdomain.c
+> > index b87ad66..be846e6 100644
+> > --- a/arch/arm/mach-omap2/clockdomain.c
+> > +++ b/arch/arm/mach-omap2/clockdomain.c
+> > @@ -812,7 +812,7 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+> >  		cm_set_mod_reg_bits(OMAP24XX_FORCESTATE,
+> >  			    clkdm->pwrdm.ptr->prcm_offs, 
+> OMAP2_PM_PWSTCTRL);
+> >  
+> > -	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
+> > +	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+> >  
+> >  		u32 bits = (OMAP34XX_CLKSTCTRL_FORCE_SLEEP <<
+> >  			 __ffs(clkdm->clktrctrl_mask));
+> > @@ -856,7 +856,7 @@ int omap2_clkdm_wakeup(struct 
+> clockdomain *clkdm)
+> >  		cm_clear_mod_reg_bits(OMAP24XX_FORCESTATE,
+> >  			      clkdm->pwrdm.ptr->prcm_offs, 
+> OMAP2_PM_PWSTCTRL);
+> >  
+> > -	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
+> > +	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+> >  
+> >  		u32 bits = (OMAP34XX_CLKSTCTRL_FORCE_WAKEUP <<
+> >  			 __ffs(clkdm->clktrctrl_mask));
+> > diff --git a/arch/arm/mach-omap2/powerdomain.c 
+> b/arch/arm/mach-omap2/powerdomain.c
+> > index 9a0fb38..ebfce7d 100644
+> > --- a/arch/arm/mach-omap2/powerdomain.c
+> > +++ b/arch/arm/mach-omap2/powerdomain.c
+> > @@ -222,7 +222,7 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+> >  {
+> >  	struct powerdomain **p = NULL;
+> >  
+> > -	if (cpu_is_omap24xx() | cpu_is_omap34xx()) {
+> > +	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+> >  		pwrstctrl_reg_offs = OMAP2_PM_PWSTCTRL;
+> >  		pwrstst_reg_offs = OMAP2_PM_PWSTST;
+> >  	} else if (cpu_is_omap44xx()) {
+> > -- 
+> > 1.5.4.7
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
