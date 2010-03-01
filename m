@@ -1,19 +1,18 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv6 1/9] OMAP3: PM: Added support functions for omap3 pwrdm handling
-Date: Mon, 01 Mar 2010 15:17:02 -0800
-Message-ID: <877hpvaaz5.fsf@deeprootsystems.com>
+Subject: Re: [PATCHv6 0/9] Refreshed idlestatus patches with minor fixes
+Date: Mon, 01 Mar 2010 15:17:19 -0800
+Message-ID: <87635faayo.fsf@deeprootsystems.com>
 References: <1265999265-4363-1-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-2-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f196.google.com ([209.85.223.196]:52295 "EHLO
-	mail-iw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752523Ab0CAXRH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Mar 2010 18:17:07 -0500
-Received: by iwn34 with SMTP id 34so2860695iwn.15
-        for <linux-omap@vger.kernel.org>; Mon, 01 Mar 2010 15:17:05 -0800 (PST)
-In-Reply-To: <1265999265-4363-2-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 12 Feb 2010 20\:27\:37 +0200")
+Received: from mail-gx0-f227.google.com ([209.85.217.227]:49273 "EHLO
+	mail-gx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752628Ab0CAXRZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Mar 2010 18:17:25 -0500
+Received: by gxk27 with SMTP id 27so1887415gxk.1
+        for <linux-omap@vger.kernel.org>; Mon, 01 Mar 2010 15:17:24 -0800 (PST)
+In-Reply-To: <1265999265-4363-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 12 Feb 2010 20\:27\:36 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <tero.kristo@nokia.com>
@@ -23,122 +22,26 @@ Tero Kristo <tero.kristo@nokia.com> writes:
 
 > From: Tero Kristo <tero.kristo@nokia.com>
 >
-> Added omap3_pwrdm_set_next_pwrst and omap3_pwrdm_read_next_pwrst. These
-> functions add support for INACTIVE and ON states to the standard OMAP
-> powerdomain functions, and add caching logic for the next state. These
-> functions are used in subsequent patches to simplify the logic of the idle
-> loop.
+> Following changes compared to previous set:
 >
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> ---
->  arch/arm/mach-omap2/pm.h     |    2 +
->  arch/arm/mach-omap2/pm34xx.c |   60 +++++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 61 insertions(+), 1 deletions(-)
+> - Fixed a problem with PER domain handling when PER was active
+> - Removed rwlock usage from pwrdm_can_idle as the lock was removed from
+>   powerdomain code
 >
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 75aa685..1d9a740 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -67,6 +67,8 @@ static inline void omap3_pm_init_vc(struct prm_setup_vc *setup_vc)
->  
->  extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
->  extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
-> +extern int omap3_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
-> +extern int omap3_pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
->  
->  extern u32 wakeup_timer_seconds;
->  extern struct omap_dm_timer *gptimer_wakeup;
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 1359ec9..f20d3d8 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -576,6 +576,64 @@ int omap3_can_sleep(void)
->  	return 1;
->  }
->  
-> +struct powerdomain_data {
-> +	u8 next_state;
-> +	u8 init_done;
-> +};
-> +
-> +static struct powerdomain_data mpu_pwrdm_data;
-> +static struct powerdomain_data core_pwrdm_data;
-> +static struct powerdomain_data neon_pwrdm_data;
-> +
-> +static struct powerdomain_data *get_pwrdm_data(struct powerdomain *pwrdm)
-> +{
-> +	if (pwrdm == mpu_pwrdm)
-> +		return &mpu_pwrdm_data;
-> +	else if (pwrdm == core_pwrdm)
-> +		return &core_pwrdm_data;
-> +	else if (pwrdm == neon_pwrdm)
-> +		return &neon_pwrdm_data;
-> +	return NULL;
-> +}
-> +
-> +int omap3_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+> Still applies on top of PM branch.
 
-I think this func should be documented along the lines of the changelog.
-It should describe the caching and the fact that 'INACTIVE' is a state
-that can be read, but not written.
+This is looking good now, and I'm mostly ready to merge this.
+However, a couple more small things need attention.  I'll have some
+small comments on a couple of the individual patches.
 
-> +{
-> +	struct powerdomain_data *data = get_pwrdm_data(pwrdm);
-> +	u8 prg_pwrst;
-> +
-> +	if (!data)
-> +		return pwrdm_set_next_pwrst(pwrdm, pwrst);
-> +
-> +	if (!data->init_done)
-> +		data->init_done = 1;
+The CPUidle patches (3, 7, and 8) need a refresh against current PM
+branch.  In fact, I think 8 can be dropped as a similar fix from
+Sanjeev is merged in the PM branch now.  Also, patch 7 doesn't compile
+against PM branch as it's missing the definition of 'iva2_pd'.
 
-Not sure I follow the purpose of the 'init_done' flag here, but I'm having
-an averse reaction to it.
+Kevin
 
-> +	else if (data->next_state == pwrst)
-> +		return 0;
-> +
-> +	if (pwrst == PWRDM_POWER_INACTIVE)
-> +		prg_pwrst = PWRDM_POWER_ON;
-> +	else
-> +		prg_pwrst = pwrst;
-> +
-> +	pwrdm_set_next_pwrst(pwrdm, prg_pwrst);
-> +
-> +	if (pwrst == PWRDM_POWER_ON)
-> +		omap2_clkdm_deny_idle(pwrdm->pwrdm_clkdms[0]);
-> +	else
-> +		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
-> +
-> +	data->next_state = pwrst;
-> +	return 0;
-> +}
-> +
-> +int omap3_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	struct powerdomain_data *data = get_pwrdm_data(pwrdm);
-> +
-> +	if (!data || !data->init_done)
-> +		return pwrdm_read_next_pwrst(pwrdm);
-> +	return data->next_state;
-> +}
-> +
->  /* This sets pwrdm state (other than mpu & core. Currently only ON &
->   * RET are supported. Function is assuming that clkdm doesn't have
->   * hw_sup mode enabled. */
-> @@ -604,7 +662,7 @@ int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
->  		pwrdm_wait_transition(pwrdm);
->  	}
->  
-> -	ret = pwrdm_set_next_pwrst(pwrdm, state);
-> +	ret = omap3_pwrdm_set_next_pwrst(pwrdm, state);
->  	if (ret) {
->  		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
->  		       pwrdm->name);
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+
