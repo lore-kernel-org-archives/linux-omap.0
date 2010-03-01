@@ -1,59 +1,50 @@
-From: Wang Hui <Hui.Wang-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
-Subject: [PATCH 2/2] USB: musb: omap2430: add mode change from A to B
-Date: Mon, 15 Mar 2010 18:23:42 +0800
-Message-ID: <1268648622-28529-2-git-send-email-Hui.Wang@windriver.com>
-References: <1268648622-28529-1-git-send-email-Hui.Wang@windriver.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1268648622-28529-1-git-send-email-Hui.Wang-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Enric Balletbo i Serra <eballetbo@gmail.com>
+Subject: [PATCH RESEND] omap3: Fix EHCI port for IGEP v2 board.
+Date: Mon,  1 Mar 2010 16:02:36 +0100
+Message-ID: <1267455756-5081-1-git-send-email-eballetbo@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:49746 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755302Ab0COKpT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2010 06:45:19 -0400
+Received: by bwz1 with SMTP id 1so2748686bwz.21
+        for <linux-omap@vger.kernel.org>; Mon, 15 Mar 2010 03:45:17 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-On omap2/3 series platforms, the musb can't raise id pin change
-detection interrupt, so we must change otg mode through sysfs
-interface manually. Currently when the musb is in B mode, if we
-want musb to be changed to A mode, we should plug a mini-A cable
-and then execute echo host > /sys/devices/platform/musb_hdrc/mode.
-But if the musb is in A mode, we can't change it to B mode through
-this method.
-To solve this problem, add a process for sending end session request.
-This process works like this, if the musb is in A mode, it will send
-an end session request first, then it will follow original routine:
-start a new session, during this session, it will identify whether
-A or B is plugging in the socket,  then it will init controller to A
-or B mode according to its identification.
+From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Usage: change cable as you desired,
-       change musb mode by #>echo host[peripheral] > /sys/devices/\
-       platform/musb_hdrc/mode,
-       then you will get required musb mode.
+IGEP v2 uses EHCI port 1 instead of EHCI port 2.
 
-Signed-off-by: Wang Hui <Hui.Wang-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
+Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 ---
- drivers/usb/musb/omap2430.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-igep0020.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 3fe1686..b02897e 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -194,6 +194,11 @@ int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
- {
- 	u8	devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 3c7789d..d55c57b 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -458,13 +458,13 @@ static struct omap_musb_board_data musb_board_data = {
+ };
  
-+	if ((devctl & MUSB_DEVCTL_BDEVICE) == 0x0) {
-+		devctl &= ~MUSB_DEVCTL_SESSION;
-+		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
-+	}
-+
- 	devctl |= MUSB_DEVCTL_SESSION;
- 	musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+-	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+-	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+ 	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+ 
+ 	.phy_reset = true,
+-	.reset_gpio_port[0] = -EINVAL,
+-	.reset_gpio_port[1] = IGEP2_GPIO_USBH_NRESET,
++	.reset_gpio_port[0] = IGEP2_GPIO_USBH_NRESET,
++	.reset_gpio_port[1] = -EINVAL,
+ 	.reset_gpio_port[2] = -EINVAL,
+ };
  
 -- 
-1.5.6.5
+1.5.4.3
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
