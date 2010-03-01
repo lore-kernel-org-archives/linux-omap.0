@@ -1,53 +1,44 @@
-From: Francisco Alecrim <alecrim@gmail.com>
-Subject: Re: [PATCH] board-n8x0: add USB initialization
-Date: Mon, 1 Mar 2010 00:07:25 -0400
-Message-ID: <309201e1002282007y52d8c79eg564f8d0817ab096e@mail.gmail.com>
-References: <1267321831-2775-1-git-send-email-alecrim@gmail.com>
-	 <877hpxfat6.fsf@purkki.valot.fi>
+From: "Maulik" <x0082077-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/4] USB: MUSB: Enable MUSB for OMAP4 in Kconfig
+Date: Mon, 1 Mar 2010 11:11:29 +0530
+Message-ID: <001b01cab901$dadec9a0$808918ac@apr.dhcp.ti.com>
+References: <1267079758-14480-1-git-send-email-x0082077@ti.com> <20100225184833.GG28173@atomide.com> <20100226004233.GA3241@lixom.net> <000001cab6bf$5df75720$808918ac@apr.dhcp.ti.com> <20100226185414.GA10835@lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:33126 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689Ab0CAEHa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Feb 2010 23:07:30 -0500
-Received: by bwz1 with SMTP id 1so105224bwz.21
-        for <linux-omap@vger.kernel.org>; Sun, 28 Feb 2010 20:07:27 -0800 (PST)
-In-Reply-To: <877hpxfat6.fsf@purkki.valot.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100226185414.GA10835-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Olof Johansson' <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Cc: 'Tony Lindgren' <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Felipe Balbi' <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, 'Greg Kroah-Hartman' <gregkh-l3A5Bk7waGM@public.gmane.org>, 'David Brownell' <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-On Sun, Feb 28, 2010 at 2:57 PM, Kalle Valo <kalle.valo@iki.fi> wrote:
->
-> Hi Francisco,
->
-> Francisco Alecrim <alecrim@gmail.com> writes:
->
-> > From: Francisco Alecrim <francisco.alecrim@openbossa.org>
-> >
-> > Signed-off-by: Kalle Valo <kalle.valo@iki.fi>
-> > Signed-off-by: Francisco Alecrim <francisco.alecrim@openbossa.org>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> Please do not add my Signed-off-by unless I have explicitly added it.
-> And I don't recall giving it to this patch, so it can be removed.
+> Olof,
+> 
+> We have such an option "USB_MUSB_SOC" that takes care of all platforms
+where
+> MUSB is present. But the Inventra DMA case is typical. Not all
+architectures
+> that have MUSB use Inventra DMA for e.g Davinci uses CPPI DMA.
 
-I got the initial code from
-http://www.valot.fi/kalle/n8x0/patches/n8x0-add/2009-07-31-12:15/07-n8x0-add-usb-support.patch
-.  I just re-organized some variables. So I didn't remove your
-Signed-off-by.
+>>Yeah, sorry. I didn't mean the INVENTRA_DMA config option as much as the
+>>top
+>>MUSB one. So you should be able to switch to that instead of adding a
+>>check for
+>>OMAP4 there then?
 
-And I merged your patch to Tony's code
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg21443.html .
-So I kept his Signed-off-by.
+Olof,
+So you suggest adding something like below for OMAP4 and all others as well
+right?
 
->
-> Removing the line doesn't change anything from technical point of
-> view, this is just a little bit of legalise we have to deal with.
-
-Sorry! I was not sure about keep or not these Signed-off-by. Do you
-want me to re-send it without your Signed-off-by?
+comment "OMAP 44xx high speed USB support"
+        depends on USB_MUSB_HDRC && USB_MUSB_SOC
 
 Regards,
-Alecrim.
+Maulik
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
