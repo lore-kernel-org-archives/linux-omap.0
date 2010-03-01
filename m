@@ -1,44 +1,87 @@
-From: "Maulik" <x0082077-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/4] USB: MUSB: Enable MUSB for OMAP4 in Kconfig
-Date: Mon, 1 Mar 2010 11:11:29 +0530
-Message-ID: <001b01cab901$dadec9a0$808918ac@apr.dhcp.ti.com>
-References: <1267079758-14480-1-git-send-email-x0082077@ti.com> <20100225184833.GG28173@atomide.com> <20100226004233.GA3241@lixom.net> <000001cab6bf$5df75720$808918ac@apr.dhcp.ti.com> <20100226185414.GA10835@lixom.net>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] board-n8x0: add USB initialization
+Date: Mon, 1 Mar 2010 08:53:12 +0200
+Message-ID: <20100301065312.GA14872@gandalf>
+References: <1267321831-2775-1-git-send-email-alecrim@gmail.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100226185414.GA10835-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Olof Johansson' <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Cc: 'Tony Lindgren' <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Felipe Balbi' <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, 'Greg Kroah-Hartman' <gregkh-l3A5Bk7waGM@public.gmane.org>, 'David Brownell' <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns1.siteground211.com ([209.62.36.12]:46055 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839Ab0CAGxI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Mar 2010 01:53:08 -0500
+Content-Disposition: inline
+In-Reply-To: <1267321831-2775-1-git-send-email-alecrim@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Francisco Alecrim <alecrim@gmail.com>
+Cc: linux-omap@vger.kernel.org, Francisco Alecrim <francisco.alecrim@openbossa.org>, Kalle Valo <kalle.valo@iki.fi>, Tony Lindgren <tony@atomide.com>
 
-> Olof,
-> 
-> We have such an option "USB_MUSB_SOC" that takes care of all platforms
-where
-> MUSB is present. But the Inventra DMA case is typical. Not all
-architectures
-> that have MUSB use Inventra DMA for e.g Davinci uses CPPI DMA.
+Hi,
 
->>Yeah, sorry. I didn't mean the INVENTRA_DMA config option as much as the
->>top
->>MUSB one. So you should be able to switch to that instead of adding a
->>check for
->>OMAP4 there then?
+On Sat, Feb 27, 2010 at 09:50:31PM -0400, Francisco Alecrim wrote:
+> +static struct musb_hdrc_eps_bits musb_eps[] = {
 
-Olof,
-So you suggest adding something like below for OMAP4 and all others as well
-right?
+this structure is being removed from current code, it's
+not used anywhere. You can drop it.
 
-comment "OMAP 44xx high speed USB support"
-        depends on USB_MUSB_HDRC && USB_MUSB_SOC
+> +	{	"ep1_tx", 5,	},
+> +	{	"ep1_rx", 5,	},
+> +	{	"ep2_tx", 5,	},
+> +	{	"ep2_rx", 5,	},
+> +	{	"ep3_tx", 3,	},
+> +	{	"ep3_rx", 3,	},
+> +	{	"ep4_tx", 3,	},
+> +	{	"ep4_rx", 3,	},
+> +	{	"ep5_tx", 2,	},
+> +	{	"ep5_rx", 2,	},
+> +	{	"ep6_tx", 2,	},
+> +	{	"ep6_rx", 2,	},
+> +	{	"ep7_tx", 2,	},
+> +	{	"ep7_rx", 2,	},
+> +	{	"ep8_tx", 2,	},
+> +	{	"ep8_rx", 2,	},
+> +	{	"ep9_tx", 2,	},
+> +	{	"ep9_rx", 2,	},
+> +	{	"ep10_tx", 2,	},
+> +	{	"ep10_rx", 2,	},
+> +	{	"ep11_tx", 2,	},
+> +	{	"ep11_rx", 2,	},
+> +	{	"ep12_tx", 2,	},
+> +	{	"ep12_rx", 2,	},
+> +	{	"ep13_tx", 2,	},
+> +	{	"ep13_rx", 2,	},
+> +	{	"ep14_tx", 2,	},
+> +	{	"ep14_rx", 2,	},
+> +	{	"ep15_tx", 2,	},
+> +	{	"ep15_rx", 2,	},
+> +};
+> +
+> +static struct musb_hdrc_config musb_config = {
+> +	.multipoint	= 1,
+> +	.dyn_fifo	= 1,
+> +	.soft_con	= 1,
+> +	.dma		= 1,
+> +	.num_eps	= 16,
+> +	.dma_channels	= 7,
+> +	.ram_bits	= 12,
+> +	.eps_bits	= musb_eps,
 
-Regards,
-Maulik
+also few fields from here were droped but I can't recall without looking
+at my code. Will only be able to do so tomorrow though.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -1841,6 +1841,7 @@ static struct omap_clk omap2420_clks[] = {
+>  	CLK(NULL,	"aes_ick",	&aes_ick,	CK_242X),
+>  	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
+>  	CLK(NULL,	"usb_fck",	&usb_fck,	CK_242X),
+> +	CLK("musb_hdrc",	"fck",	&osc_ck,	CK_242X),
+
+it's called ick on other archs, let's keep consistency so we can stop
+passing clock names soon.
+
+Unless Tony are Paul have a reason not to do so.
+
+-- 
+balbi
+
