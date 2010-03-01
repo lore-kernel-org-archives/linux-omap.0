@@ -1,43 +1,28 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 1/3] OMAPFB: install omapfb.h
-Date: Mon, 01 Mar 2010 13:24:44 +0200
-Message-ID: <1267442684.2406.11.camel@tubuntu.research.nokia.com>
-References: <1266964587-14381-1-git-send-email-ville.syrjala@nokia.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: [PATCH 00/03] sDMA driver descriptor autoloading feature [version 5]
+	and omap hsmmc driver adaptations
+Date: Mon, 1 Mar 2010 16:55:10 +0530
+Message-ID: <618f0c911003010325t337bb0f4o67e2cb3b2484d767@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:39016 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729Ab0CALZK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Mar 2010 06:25:10 -0500
-In-Reply-To: <1266964587-14381-1-git-send-email-ville.syrjala@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+This patch series is introduction of new sDMA feature: descriptor
+autoloading (v5)
+       and its adoption by omap hsmmc driver.
+Previous thread (v4 of sDMA patch, without hsmmc adoptions) is here:
+http://patchwork.kernel.org/patch/66690/
+Current version(s) based on for-next branch, 7b97f3ed. Tested on omap4430 sdp.
 
-On Tue, 2010-02-23 at 23:36 +0100, Syrjala Ville (Nokia-D/Helsinki)
-wrote:
-> From: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
->=20
-> omapfb has several custom ioctls so user space needs
-> the header in order to utilize them.
->=20
-> Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
+Venkatraman S (3):
+     MMC:  prevent race between dma  and hsmmc callback
+     sDMA: descriptor autoloading feature [version 5]
+     MMC: omap hsmmc adaptation of descriptor autoloading feature
 
-This one, and the 2/3 patch look fine, I'll apply them.
-
-The third one does not apply to my current DSS2 tree, so it needs some
-updating.
-
- Tomi
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/plat-omap/dma.c              |  269 ++++++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/dma.h |  170 +++++++++++++++++++++
+ drivers/mmc/host/omap_hsmmc.c         |  162 ++++++++++++++++----
+ 3 files changed, 571 insertions(+), 30 deletions(-)
