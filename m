@@ -1,148 +1,71 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: [PATCH] mmc: omap_hsmmc: Fix conditional locking
-Date: Mon, 1 Mar 2010 20:01:44 +0100 (CET)
-Message-ID: <alpine.LFD.2.00.1003011952470.4245@localhost.localdomain>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/2] OMAP: UART: omap_device converions, remove implicit 8520 assumptions
+Date: Mon, 01 Mar 2010 11:26:35 -0800
+Message-ID: <87k4tvetck.fsf@deeprootsystems.com>
+References: <1263340728-17929-1-git-send-email-khilman@deeprootsystems.com>
+	<1263340728-17929-3-git-send-email-khilman@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB031E4F22E3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f188.google.com ([209.85.216.188]:63916 "EHLO
+	mail-px0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750808Ab0CAT0j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Mar 2010 14:26:39 -0500
+Received: by pxi26 with SMTP id 26so992464pxi.1
+        for <linux-omap@vger.kernel.org>; Mon, 01 Mar 2010 11:26:39 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E4F22E3@dbde02.ent.ti.com> (Rajendra Nayak's message of "Sat\, 30 Jan 2010 12\:05\:50 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
-Conditional locking on (!in_interrupt()) is broken by design and there
-is no reason to keep the host->irq_lock across the call to
-mmc_request_done(). Also the host->protect_card magic hack does not
-depend on the context
+"Nayak, Rajendra" <rnayak@ti.com> writes:
 
-Fix the mess by dropping host->irq_lock before calling
-mmc_request_done().
+[...]
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+>> +             /*
+>> +              * Need to block sleep long enough for interrupt driven
+>> +              * driver to start.  Console driver is in polling mode
+>> +              * so device needs to be kept enabled while
+>> polling driver
+>> +              * is in use.
+>> +              */
+>> +             uart->timeout = (30 * HZ);
+>> +             omap_uart_block_sleep(uart);
+>> +             uart->timeout = DEFAULT_TIMEOUT;
+>> +
+>> +             if ((cpu_is_omap34xx() && uart->padconf) ||
+>> +                 (uart->wk_en && uart->wk_mask)) {
+>> +                     device_init_wakeup(&od->pdev.dev, true);
+>> +                     DEV_CREATE_FILE(&od->pdev.dev,
+>> &dev_attr_sleep_timeout);
+>> +             }
+>> +
+>> +#ifdef CONFIG_SERIAL_8250_CONSOLE
+>>               /* omap44xx: Never read empty UART fifo
+>>                * omap3xxx: Never read empty UART fifo on UARTs
+>>                * with IP rev >=0x52
+>>                */
+>>               if (cpu_is_omap44xx())
+>> -                     uart->p->serial_in = serial_in_override;
+>> -             else if ((serial_read_reg(uart->p,
+>> UART_OMAP_MVER) & 0xFF)
+>> +                     p->serial_in = serial_in_override;
+>> +             else if ((serial_read_reg(uart, UART_OMAP_MVER) & 0xFF)
+>>                               >= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
+>> -                     uart->p->serial_in = serial_in_override;
+>> +                     p->serial_in = serial_in_override;
+>> +#endif
+>
+> I think this (overriding serial_in) needs to be done sometime before you do a
+> omap_device_build() call. Else this has no affect.
+>
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 4b23225..99a3383 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -468,14 +468,6 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
- 	if (host->use_dma)
- 		cmdreg |= DMA_EN;
- 
--	/*
--	 * In an interrupt context (i.e. STOP command), the spinlock is unlocked
--	 * by the interrupt handler, otherwise (i.e. for a new request) it is
--	 * unlocked here.
--	 */
--	if (!in_interrupt())
--		spin_unlock_irqrestore(&host->irq_lock, host->flags);
--
- 	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
- 	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
- }
-@@ -506,7 +498,9 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
- 		}
- 
- 		host->mrq = NULL;
-+		spin_unlock(&host->irq_lock);
- 		mmc_request_done(host->mmc, mrq);
-+		spin_lock(&host->irq_lock);
- 		return;
- 	}
- 
-@@ -523,7 +517,9 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
- 
- 	if (!data->stop) {
- 		host->mrq = NULL;
-+		spin_unlock(&host->irq_lock);
- 		mmc_request_done(host->mmc, data->mrq);
-+		spin_lock(&host->irq_lock);
- 		return;
- 	}
- 	omap_hsmmc_start_command(host, data->stop, NULL);
-@@ -551,7 +547,9 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
- 	}
- 	if ((host->data == NULL && !host->response_busy) || cmd->error) {
- 		host->mrq = NULL;
-+		spin_unlock(&host->irq_lock);
- 		mmc_request_done(host->mmc, cmd->mrq);
-+		spin_lock(&host->irq_lock);
- 	}
- }
- 
-@@ -1077,37 +1075,31 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
- 	int err;
- 
-+	spin_lock_irqsave(&host->irq_lock, host->flags);
- 	/*
--	 * Prevent races with the interrupt handler because of unexpected
--	 * interrupts, but not if we are already in interrupt context i.e.
--	 * retries.
-+	 * Protect the card from I/O if there is a possibility
-+	 * it can be removed.
- 	 */
--	if (!in_interrupt()) {
--		spin_lock_irqsave(&host->irq_lock, host->flags);
--		/*
--		 * Protect the card from I/O if there is a possibility
--		 * it can be removed.
--		 */
--		if (host->protect_card) {
--			if (host->reqs_blocked < 3) {
--				/*
--				 * Ensure the controller is left in a consistent
--				 * state by resetting the command and data state
--				 * machines.
--				 */
--				omap_hsmmc_reset_controller_fsm(host, SRD);
--				omap_hsmmc_reset_controller_fsm(host, SRC);
--				host->reqs_blocked += 1;
--			}
--			req->cmd->error = -EBADF;
--			if (req->data)
--				req->data->error = -EBADF;
--			spin_unlock_irqrestore(&host->irq_lock, host->flags);
--			mmc_request_done(mmc, req);
--			return;
--		} else if (host->reqs_blocked)
--			host->reqs_blocked = 0;
--	}
-+	if (host->protect_card) {
-+		if (host->reqs_blocked < 3) {
-+			/*
-+			 * Ensure the controller is left in a consistent
-+			 * state by resetting the command and data state
-+			 * machines.
-+			 */
-+			omap_hsmmc_reset_controller_fsm(host, SRD);
-+			omap_hsmmc_reset_controller_fsm(host, SRC);
-+			host->reqs_blocked += 1;
-+		}
-+		req->cmd->error = -EBADF;
-+		if (req->data)
-+			req->data->error = -EBADF;
-+		spin_unlock_irqrestore(&host->irq_lock, host->flags);
-+		mmc_request_done(mmc, req);
-+		return;
-+	} else if (host->reqs_blocked)
-+		host->reqs_blocked = 0;
-+
- 	WARN_ON(host->mrq != NULL);
- 	host->mrq = req;
- 	err = omap_hsmmc_prepare_data(host, req);
-@@ -1116,13 +1108,13 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
- 		if (req->data)
- 			req->data->error = err;
- 		host->mrq = NULL;
--		if (!in_interrupt())
--			spin_unlock_irqrestore(&host->irq_lock, host->flags);
-+		spin_unlock_irqrestore(&host->irq_lock, host->flags);
- 		mmc_request_done(mmc, req);
- 		return;
- 	}
- 
- 	omap_hsmmc_start_command(host, req->cmd, req->data);
-+	spin_unlock_irqrestore(&host->irq_lock, host->flags);
- }
- 
- /* Routine to configure clock values. Exposed API to core */
+Thanks Rajendra, you're right, good catch.
+
+Will fix in next spin.
+
+Thanks ,
+
+Kevin
