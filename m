@@ -1,75 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] serial: Add OMAP high-speed UART driver.
-Date: Mon, 1 Mar 2010 10:46:00 -0800
-Message-ID: <20100301184600.GC3389@atomide.com>
-References: <41322.192.168.10.89.1267454612.squirrel@dbdmail.itg.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <41322.192.168.10.89.1267454612.squirrel@dbdmail.itg.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: Greg KH <greg@kroah.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Olof Johansson <olof@lixom.net>
+From: Sergio Aguirre <saaguirre@ti.com>
+Subject: [RFC part2 v1][PATCH 0/4] omap2/3/4: Some more serial work
+Date: Mon,  1 Mar 2010 12:55:50 -0600
+Message-ID: <1267469754-10638-1-git-send-email-saaguirre@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36023 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947Ab0CASzj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Mar 2010 13:55:39 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o21ItcRJ002241
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 1 Mar 2010 12:55:38 -0600
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Sergio Aguirre <saaguirre@ti.com>
 
-* Govindraj.R <govindraj.raja@ti.com> [100301 06:40]:
-> --- /dev/null
-> +++ b/drivers/serial/omap-serial.c
-> +
-> +static void serial_omap_stop_tx(struct uart_port *port)
-> +{
-> +	struct uart_omap_port *up = (struct uart_omap_port *)port;
-> +
-> +	if (up->use_dma &&
-> +		up->uart_dma.tx_dma_channel != OMAP_UART_DMA_CH_FREE) {
-> +		/*
-> +		 * Check if dma is still active . If yes do nothing,
+Hi,
 
-Looks like an extra space here before the period above.
+This is some proposed cleanups I have been keeping in mind for serial
+initialization.
 
-...
+I'm basically proposing:
+ - Rename "omap_serial_init" -> "omap_serial_init_allports" to give more
+   clarity to the function purpose.
+ - Don't enable internal UARTs for Zoom2/3, since they aren't even
+   physically reachable. As an end result, Zoom2/3 Default uart will be
+   ttyS0.
 
-> +static int serial_omap_start_rxdma(struct uart_omap_port *up)
-> +{
-> +	int ret = 0;
-> +
-> +	if (up->uart_dma.rx_dma_channel == -1) {
-> +		ret = omap_request_dma(up->uart_dma.uart_dma_rx,
-> +				"UART Rx DMA",
-> +				(void *)uart_rx_dma_callback, up,
-> +				&(up->uart_dma.rx_dma_channel));
-> +		if (ret < 0)
-> +			return ret;
-> +
-> +		omap_set_dma_src_params(up->uart_dma.rx_dma_channel, 0,
-> +				OMAP_DMA_AMODE_CONSTANT,
-> +				up->uart_dma.uart_base, 0, 0);
-> +		omap_set_dma_dest_params(up->uart_dma.rx_dma_channel, 0,
-> +				OMAP_DMA_AMODE_POST_INC,
-> +				up->uart_dma.rx_buf_dma_phys, 0, 0);
-> +		omap_set_dma_transfer_params(up->uart_dma.rx_dma_channel,
-> +				OMAP_DMA_DATA_TYPE_S8,
-> +				up->uart_dma.rx_buf_size, 1,
-> +				OMAP_DMA_SYNC_ELEMENT,
-> +				up->uart_dma.uart_dma_rx, 0);
-> +	}
-> +	up->uart_dma.prev_rx_dma_pos = up->uart_dma.rx_buf_dma_phys;
-> +	if (cpu_is_omap44xx())
-> +		omap_writel(0, OMAP44XX_DMA4_BASE
-> +			+ OMAP_DMA4_CDAC(up->uart_dma.rx_dma_channel));
-> +	else
-> +		omap_writel(0, OMAP34XX_DMA4_BASE
-> +			+ OMAP_DMA4_CDAC(up->uart_dma.rx_dma_channel));
+As a side change, I'm doing a chmod to "644" of some "755" files.
 
-NAK. Please don't use omap_read/write for for new code. And do not
-tinker with the omap hardware registers directly in the driver.
+IMPORTANT: This changes are meant to be applied on top of [1] and [2]
 
-This needs to be done properly in arch/arm/plat-omap/dma.c instead.
-
-We really don't want drivers tinkering with the omap hardware
-registers directly except for the driver block registers.
+Please let me know your comments and thoughts.
 
 Regards,
+Sergio
 
-Tony
+Detailed changelog:
+
+Sergio Aguirre (4):
+  omap2/3/4: serial: rename omap_serial_init
+  omap3: zoom2/3 / 3630sdp: Don't init always all uarts
+  omap3: 3630sdp: Explicitly enable all UARTs
+  omap3: zoom 2/3: Change debugboard serial port id
+
+ arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-3630sdp.c          |    1 +
+ arch/arm/mach-omap2/board-4430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-am3517evm.c        |    2 +-
+ arch/arm/mach-omap2/board-apollon.c          |    2 +-
+ arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
+ arch/arm/mach-omap2/board-devkit8000.c       |    2 +-
+ arch/arm/mach-omap2/board-generic.c          |    2 +-
+ arch/arm/mach-omap2/board-h4.c               |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c         |    2 +-
+ arch/arm/mach-omap2/board-ldp.c              |    2 +-
+ arch/arm/mach-omap2/board-n8x0.c             |    2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c      |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+ arch/arm/mach-omap2/board-omap3pandora.c     |    2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
+ arch/arm/mach-omap2/board-overo.c            |    2 +-
+ arch/arm/mach-omap2/board-rx51.c             |    2 +-
+ arch/arm/mach-omap2/board-zoom-debugboard.c  |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
+ arch/arm/mach-omap2/serial.c                 |    8 ++++----
+ arch/arm/plat-omap/include/plat/serial.h     |    2 +-
+ 23 files changed, 25 insertions(+), 25 deletions(-)
+ mode change 100755 => 100644 arch/arm/mach-omap2/board-3630sdp.c
+ mode change 100755 => 100644 arch/arm/mach-omap2/board-zoom-peripherals.c
+
+[1] http://marc.info/?l=linux-omap&m=126730356232287&w=2
+[2] http://marc.info/?l=linux-kernel&m=126709078514087&w=2
+
