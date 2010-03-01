@@ -1,122 +1,45 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] MFD: TWL4030: introduce remove_script function
-Date: Sun, 28 Feb 2010 23:54:07 +0100
-Message-ID: <20100228225406.GA3391@sortiz.org>
-References: <1266858990-3915-1-git-send-email-mturquette@ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the omap tree with the  tree
+Date: Mon, 1 Mar 2010 11:20:41 +1100
+Message-ID: <20100301112041.0c92179b.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1266858990-3915-1-git-send-email-mturquette@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mturquette@gmail.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mike,
+Hi all,
 
-On Mon, Feb 22, 2010 at 11:16:30AM -0600, mturquette@gmail.com wrote:
-> From: Mike Turquette <mturquette@ti.com>
-> 
-> New function twl4030_remove_script(u8 flags) takes a script type as
-> defined in twl.h and prevents any script already loaded in that position
-> from running.  This is accomplished by programming SEQ_ADD_* to 0x3f,
-> the END_OF_SCRIPT value, where SEQ_ADD_* is determined by flags.
-Patch applied, thanks a lot.
+Today's linux-next merge of the omap tree got a conflict in
+arch/arm/plat-omap/Kconfig between commit
+d6d502fa4be1acd01971476fc732c95a4da16d90 ("ARM: 5952/1: ARM: MM: Add
+ARM_L1_CACHE_SHIFT_6 for handle inside each ARCH Kconfig") from the arm
+tree and commits 56213ca4e440c0b6e56a48f5901c55c4ce3cf1ba ("omap2/3:
+Multiboot compile fixes to compile in omap2 and omap3") and
+a8eb7ca0cbb41c9cd379b8d2a2a5efb503aa65e9 ("omap3: Replace ARCH_OMAP34XX
+with ARCH_OMAP3") from the omap tree.
 
-Cheers,
-Samuel.
-
-
-> Signed-off-by: Mike Turquette <mturquette@ti.com>
-> ---
-> 
-> Based on MFD for-next branch.
-> 
-> Future users of this function include OMAP board files for machines
-> facing a race condition between sleep and warm reset.
-> 
->  drivers/mfd/twl4030-power.c |   50 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/i2c/twl.h     |    1 +
->  2 files changed, 51 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-> index 5b045ff..7efa878 100644
-> --- a/drivers/mfd/twl4030-power.c
-> +++ b/drivers/mfd/twl4030-power.c
-> @@ -461,6 +461,56 @@ out:
->  	return err;
->  }
->  
-> +int twl4030_remove_script(u8 flags)
-> +{
-> +	int err = 0;
-> +
-> +	err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, R_KEY_1,
-> +			R_PROTECT_KEY);
-> +	if (err) {
-> +		pr_err("twl4030: unable to unlock PROTECT_KEY\n");
-> +		return err;
-> +	}
-> +
-> +	err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, R_KEY_2,
-> +			R_PROTECT_KEY);
-> +	if (err) {
-> +		pr_err("twl4030: unable to unlock PROTECT_KEY\n");
-> +		return err;
-> +	}
-> +
-> +	if (flags & TWL4030_WRST_SCRIPT) {
-> +		err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, END_OF_SCRIPT,
-> +				R_SEQ_ADD_WARM);
-> +		if (err)
-> +			return err;
-> +	}
-> +	if (flags & TWL4030_WAKEUP12_SCRIPT) {
-> +		if (err)
-> +		err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, END_OF_SCRIPT,
-> +				R_SEQ_ADD_S2A12);
-> +			return err;
-> +	}
-> +	if (flags & TWL4030_WAKEUP3_SCRIPT) {
-> +		err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, END_OF_SCRIPT,
-> +				R_SEQ_ADD_S2A3);
-> +		if (err)
-> +			return err;
-> +	}
-> +	if (flags & TWL4030_SLEEP_SCRIPT) {
-> +		err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, END_OF_SCRIPT,
-> +				R_SEQ_ADD_A2S);
-> +		if (err)
-> +			return err;
-> +	}
-> +
-> +	err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, R_PROTECT_KEY);
-> +	if (err)
-> +		pr_err("TWL4030 Unable to relock registers\n");
-> +
-> +	return err;
-> +}
-> +
->  void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
->  {
->  	int err = 0;
-> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-> index 33d9d5c..d4baff8 100644
-> --- a/include/linux/i2c/twl.h
-> +++ b/include/linux/i2c/twl.h
-> @@ -550,6 +550,7 @@ struct twl4030_power_data {
->  };
->  
->  extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
-> +extern int twl4030_remove_script(u8 flags);
->  
->  struct twl4030_codec_audio_data {
->  	unsigned int	audio_mclk;
-> -- 
-> 1.6.3.2
-> 
-
+I fixed it up (see below) and can carry the fix as necessary.
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+diff --cc arch/arm/plat-omap/Kconfig
+index 2e3eec6,be9484a..0000000
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@@ -19,10 -28,9 +28,10 @@@ config ARCH_OMAP
+  
+  config ARCH_OMAP3
+  	bool "TI OMAP3"
++ 	depends on ARCH_OMAP2PLUS
+  	select CPU_V7
+- 	select COMMON_CLKDEV
+ +	select ARM_L1_CACHE_SHIFT_6
++ 	select USB_ARCH_HAS_EHCI
+  
+  config ARCH_OMAP4
+  	bool "TI OMAP4"
