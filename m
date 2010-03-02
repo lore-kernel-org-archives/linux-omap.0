@@ -1,53 +1,61 @@
-From: =?iso-8859-1?Q?Syrj=E4l=E4_Ville_=28Nokia-D=2FHelsinki=29?=
-	<ville.syrjala@nokia.com>
-Subject: Re: [PATCH 1/3] OMAPFB: install omapfb.h
-Date: Tue, 2 Mar 2010 18:16:31 +0200
-Message-ID: <20100302161631.GK18322@nokia.com>
-References: <1266964587-14381-1-git-send-email-ville.syrjala@nokia.com>
- <1267442684.2406.11.camel@tubuntu.research.nokia.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
+Date: Tue, 2 Mar 2010 21:49:55 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304195754@dbde02.ent.ti.com>
+References: <1267536955-31268-1-git-send-email-manjugk@ti.com>
+ <A24693684029E5489D1D202277BE894453B624B1@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:47400 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753220Ab0CBQR5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 11:17:57 -0500
-Content-Disposition: inline
-In-Reply-To: <1267442684.2406.11.camel@tubuntu.research.nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38808 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753286Ab0CBQUB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 11:20:01 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o22GJw2L003922
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 2 Mar 2010 10:20:00 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o22GJvf9019014
+	for <linux-omap@vger.kernel.org>; Tue, 2 Mar 2010 21:49:57 +0530 (IST)
+In-Reply-To: <A24693684029E5489D1D202277BE894453B624B1@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Mar 01, 2010 at 12:24:44PM +0100, Valkeinen Tomi (Nokia-D/Helsi=
-nki) wrote:
-> Hi,
->=20
-> On Tue, 2010-02-23 at 23:36 +0100, Syrjala Ville (Nokia-D/Helsinki)
-> wrote:
-> > From: Ville Syrj=E4l=E4 <ville.syrjala@nokia.com>
-> >=20
-> > omapfb has several custom ioctls so user space needs
-> > the header in order to utilize them.
-> >=20
-> > Signed-off-by: Ville Syrj=E4l=E4 <ville.syrjala@nokia.com>
->=20
-> This one, and the 2/3 patch look fine, I'll apply them.
->=20
-> The third one does not apply to my current DSS2 tree, so it needs som=
-e
-> updating.
 
-Hmm, OK. Do you want it against master or some other branch? IIRC
-that's what I used.
 
-I just hit a few bugs in this patch as well so I will send a v2 soon.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
+> Sent: Tuesday, March 02, 2010 10:11 AM
+> To: G, Manjunath Kondaiah; linux-omap@vger.kernel.org
+> Cc: G, Manjunath Kondaiah; Tony Lindgren; Shilimkar, Santosh; Raja,
+> Govindraj
+> Subject: RE: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
+> 
+> Manju,
+> 
+<snip>
+> 
+> So, if you want to boot, take series [1] and [2], and then you should be
+> able to boot with ttyS0.
 
---=20
-Ville Syrj=E4l=E4
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes I could boot the zoom3 with your patchset with console on ttyS0:
+
+Relevant Boot Log:
+>Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+>serial8250.0: ttyS0 at MMIO 0x10000000 (irq = 262) is a ST16654
+>console [ttyS0] enabled
+
+> 
+> Regards,
+> Sergio
+> 
+> ---
+> [1] http://marc.info/?l=linux-omap&m=126730356232287&w=2
+> [2] http://marc.info/?l=linux-omap&m=126746974103007&w=2
+> 
