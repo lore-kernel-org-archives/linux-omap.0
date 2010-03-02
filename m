@@ -1,27 +1,27 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: [PATCH 02/16] OMAP3: PM: Create list to keep track of various smartreflex instances.
-Date: Tue, 02 Mar 2010 09:39:35 -0800
-Message-ID: <87y6iazkq0.fsf@deeprootsystems.com>
+Date: Tue, 02 Mar 2010 09:40:34 -0800
+Message-ID: <87sk8izkod.fsf@deeprootsystems.com>
 References: <1267003757-22456-1-git-send-email-thara@ti.com>
 	<1267003757-22456-2-git-send-email-thara@ti.com>
 	<1267003757-22456-3-git-send-email-thara@ti.com>
-	<4B885769.2090505@ti.com>
+	<4B85D58D.5030502@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f190.google.com ([209.85.222.190]:46174 "EHLO
-	mail-pz0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752244Ab0CBRjk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 12:39:40 -0500
-Received: by pzk28 with SMTP id 28so311504pzk.1
-        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 09:39:39 -0800 (PST)
-In-Reply-To: <4B885769.2090505@ti.com> (Mike Turquette's message of "Fri\, 26 Feb 2010 17\:21\:13 -0600")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:43382 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244Ab0CBRki (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 12:40:38 -0500
+Received: by pva4 with SMTP id 4so141027pva.19
+        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 09:40:37 -0800 (PST)
+In-Reply-To: <4B85D58D.5030502@ti.com> (ambresh's message of "Thu\, 25 Feb 2010 07\:12\:37 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
+To: ambresh <a0393775@ti.com>
 Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Mike Turquette <mturquette@ti.com> writes:
+ambresh <a0393775@ti.com> writes:
 
 > Gopinath, Thara wrote:
 >> This patch removes the pointer sr1, sr2 in smartreflex.c and
@@ -83,30 +83,6 @@ Mike Turquette <mturquette@ti.com> writes:
 >>  	struct omap_opp *opp;
 >>  	unsigned long freq;
 >> +	struct omap_sr *sr_info = _sr_lookup(SR1);
->
-> Why has the list implementation been chosen over individually
-> registered platform devices?  
-
-Not sure I follow your question exactly here, but IIUC, Thara converts
-to individually registered platform_devices in the next patch.  This
-is a preliminary one to prepare for that.  In PATCH 03/16, the devices
-are found via hwmod then registered via omap_device_build() (which in
-turn does the platform_device_register())
-
-Kevin
-
-
-> There seems to be a trend lately in
-> device drivers to have a single platform device with either an array
-> of pointers or a list implementation to track the multiple instances
-> of the same device on a board.  McBSP is another example of this
-> approach.
->
-> Why is that?  Is it a bad idea to have each SR instance be a separate
-> platform device?  Please let me know if my question is nuts.
->
-> Mike
->
 >>  -	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk))
 >> +	if (!sr_info) {
 >> +		pr_warning("omap_sr struct corresponding to SR1 not found\n");
@@ -274,5 +250,11 @@ Kevin
 >>  		pr_err("sysfs_create_file failed: %d\n", ret);
 >> +	list_add(&sr1.node, &sr_list);
 >> +	list_add(&sr2.node, &sr_list);
->>   	return 0;
->>  }
+>>  
+> From scaling perspective for Next Gen Omap, I guess it would be better
+> to add list through a loop and the info related to, no of sr's can be
+> passed through SR platform structure?
+
+This is handled by omap_hwmod + omap_device registration in PATCH 03/16.
+
+Kevin
