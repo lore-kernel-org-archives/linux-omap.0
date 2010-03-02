@@ -1,138 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [GIT PULL] OMAP DSS updates for 2.6.34
-Date: Tue, 02 Mar 2010 18:01:59 +0200
-Message-ID: <1267545719.2406.65.camel@tubuntu.research.nokia.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
+Date: Tue, 2 Mar 2010 10:11:06 -0600
+Message-ID: <A24693684029E5489D1D202277BE894453B624B1@dlee02.ent.ti.com>
+References: <1267536955-31268-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44178 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753651Ab0CBQLK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 11:11:10 -0500
+In-Reply-To: <1267536955-31268-1-git-send-email-manjugk@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
-Hi Linus,
+Manju,
 
-Please pull the OMAP Display Subsystem patches below.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Manjunatha GK
+> Sent: Tuesday, March 02, 2010 7:36 AM
+> To: linux-omap@vger.kernel.org
+> Cc: G, Manjunath Kondaiah; Tony Lindgren; Shilimkar, Santosh; Raja,
+> Govindraj
+> Subject: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
+> 
+> The commit id "5550bc33a1a9002976022cc794fe8c52ad9a0021" seems to be
+> broken
+> zoom3 boot which adds support for UART4 on OMAP4 and OMAP3630.
+> 
+> But, it looks like OMAP3630 UART4 interface and functional clock nodes
+> needs
+> to be added for omap3630. Thus limiting no. of UART's for 3630 to 3 to
+> prevent
+> boot up issues until clock nodes are added for UART4 on OMAP3630.
 
-- Couple of new panel drivers
-- Various small fixes and improvements
-- Multiple patches making the DSS device model more sane, moving the
-control from the DSS core driver to the panel drivers. This makes it
-possible for the panel drivers to fully control what is going on,
-instead of having to work with the limits imposed by the DSS core.
+I already tried a similar patch here:
 
- Tomi
+http://patchwork.kernel.org/patch/81692/
 
+But as it is really not solving anything, and Tony rejected it, I started working on the needed bits to get UART4 enabled, therefore I have came up with this patch series:
 
-The following changes since commit 13dda80e48439b446d0bc9bab34b91484bc8=
-f533:
-  Linus Torvalds (1):
-        Merge branch 'davinci-for-linus' of git://git.kernel.org/.../kh=
-ilman/linux-davinci
+- [RFC v3][PATCH 0/6] OMAP3630: UART4 startup (+ new bugfix!) [1]
 
-are available in the git repository at:
+Also, I'm working in my spare time on a cleanup proposal [2], which I'll repost today, given some comments from Kevin.
 
-  git://gitorious.org/linux-omap-dss2/linux.git for-linus
+So, if you want to boot, take series [1] and [2], and then you should be able to boot with ttyS0.
 
-Aaro Koskinen (1):
-      OMAP: DSS: Taal: fix error returns in taal_probe()
+Regards,
+Sergio
 
-Grazvydas Ignotas (1):
-      OMAP: DSS: add TPO TD043MTEA1 panel
+---
+[1] http://marc.info/?l=linux-omap&m=126730356232287&w=2
+[2] http://marc.info/?l=linux-omap&m=126746974103007&w=2
 
-Janusz Krzysztofik (2):
-      omapfb: Fix 12-bit display (RGB444 color mode) handling
-      omapfb: lcd_ams_delta: add support for contrast control
-
-Mike Rapoport (1):
-      OMAP: DSS2: add Toppoly TDO35S panel
-
-Tomi Valkeinen (41):
-      OMAP: DSS2: Improve Kconfig help texts
-      OMAP: DSS2: enable VDDS_DSI when using DPI
-      OMAP: 3430SDP: remove vdvi regulator
-      OMAP: DSS2: OMAPFB: implement OMAPFB_GET_DISPLAY_INFO
-      OMAP: DSS2: fix irq-stats compilation
-      OMAP: DSS2: OMAPFB: Add omapfb_update_window prototype
-      OMAP: DSS2: improve DSS clk src selection
-      OMAP: DSS2: DSI: add dsi_bus_is_locked()
-      OMAP: DSS2: DSI: add helpers for DCS read/write
-      OMAP: DSS2: DSI: export dsi_vc_enable_hs()
-      OMAP: DSS2: DSI: configure all DSI VCs
-      OMAP: DSS2: DSI: remove dsi_vc_print_status()
-      OMAP: DSS2: Check ctx loss count only when starting the first clo=
-ck
-      OMAP: DSS2: remove sub-panel system
-      OMAP: DSS2: fix driver probe error handling
-      OMAP: DSS2: OMAPFB: fix dssdev cleanup on error
-      OMAP: DSS2: OMAPFB: fix cleanup on dssdev enable error
-      OMAP: DSS2: fix get_dsi/dispc_clk_source() usage
-      OMAP: DSS2: DSI: change DSI bus_lock to semaphore
-      OMAP: DSS2: DSI: remove auto-update perf measurement
-      OMAP: DSS2: move run_test()
-      OMAP: DSS2: move memory_read()
-      OMAP: DSS2: move set/get_mirror()
-      OMAP: DSS2: move get/set_rotate()
-      OMAP: DSS2: move wait_vsync()
-      OMAP: DSS2: move enable/disable_channel to overlay manager
-      OMAP: DSS2: move get_resolution()
-      OMAP: DSS2: move get_recommended_bpp()
-      OMAP: DSS2: move enable/get_te()
-      OMAP: DSS2: move set/get_update_mode()
-      OMAP: DSS2: move update() and sync()
-      OMAP: DSS2: move enable/disable/suspend/resume
-      OMAP: DSS2: move set/get_wss()
-      OMAP: DSS2: move timing functions
-      OMAP: DSS2: DSI: remove external TE support
-      OMAP: DSS2: OMAPFB: Remove FB_OMAP2_FORCE_AUTO_UPDATE
-      OMAP: DSS2: DSI: add dsi_vc_dcs_read_2() helper
-      OMAP: DSS2: TPO-TD03MTEA1: fix function names
-      OMAP: DSS2: DSI: add error prints
-      OMAP: DSS2: Taal: Fix ESD check
-      OMAP: DSS2: Taal: Fix TE when resuming
-
-Vaibhav Hiremath (1):
-      OMAP: DSS2: Add Sharp LQ043T1DG01 panel driver
-
-Ville Syrj=C3=A4l=C3=A4 (2):
-      OMAP: DSS2: OMAPFB: install omapfb.h
-      OMAP: DSS2: OMAPFB: Constify some function parameters
-
- arch/arm/mach-omap2/board-3430sdp.c                |    4 -
- arch/arm/plat-omap/include/plat/display.h          |  117 ++-
- drivers/video/omap/lcd_ams_delta.c                 |   93 ++-
- drivers/video/omap/omapfb_main.c                   |    7 +-
- drivers/video/omap2/displays/Kconfig               |   18 +
- drivers/video/omap2/displays/Makefile              |    3 +
- drivers/video/omap2/displays/panel-generic.c       |   56 +-
- .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  159 +++
- .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   77 +-
- drivers/video/omap2/displays/panel-taal.c          |  253 ++++-
- .../video/omap2/displays/panel-toppoly-tdo35s.c    |  154 +++
- .../video/omap2/displays/panel-tpo-td043mtea1.c    |  528 ++++++++++
- drivers/video/omap2/dss/Kconfig                    |   26 +-
- drivers/video/omap2/dss/core.c                     |  117 ++-
- drivers/video/omap2/dss/dispc.c                    |   42 +-
- drivers/video/omap2/dss/display.c                  |  119 +--
- drivers/video/omap2/dss/dpi.c                      |  144 +---
- drivers/video/omap2/dss/dsi.c                      | 1031 +++++-------=
---------
- drivers/video/omap2/dss/dss.c                      |   42 +-
- drivers/video/omap2/dss/dss.h                      |   23 +-
- drivers/video/omap2/dss/manager.c                  |   48 +-
- drivers/video/omap2/dss/overlay.c                  |    2 +-
- drivers/video/omap2/dss/rfbi.c                     |  321 +------
- drivers/video/omap2/dss/sdi.c                      |  115 +--
- drivers/video/omap2/dss/venc.c                     |  296 +++----
- drivers/video/omap2/omapfb/Kconfig                 |   11 +-
- drivers/video/omap2/omapfb/omapfb-ioctl.c          |   68 +-
- drivers/video/omap2/omapfb/omapfb-main.c           |  133 ++--
- drivers/video/omap2/omapfb/omapfb.h                |    9 +
- include/linux/Kbuild                               |    1 +
- include/linux/omapfb.h                             |    9 +
- 31 files changed, 2186 insertions(+), 1840 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-sharp-lq043t1dg0=
-1.c
- create mode 100644 drivers/video/omap2/displays/panel-toppoly-tdo35s.c
- create mode 100644 drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+> 
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Manjunatha GK <manjugk@ti.com>
+> Signed-off-by: Govindraj R <govindraj.raja@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c |    7 ++++++-
+>  1 files changed, 6 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index b79bc89..ac22a4e 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -764,7 +764,12 @@ void __init omap_serial_init(void)
+>  {
+>  	int i, nr_ports;
+> 
+> -	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
+> +	/* Limit no.of UART ports to three for OMAP3630 since
+> +	 * clock nodes are yet to be updated for 3630 UART4.
+> +	 * TODO: update clock nodes for 3630 UART4 and then enable
+> +	 * check for !(cpu_is_omap3630())
+> +	 */
+> +	if (!cpu_is_omap4430())
+>  		nr_ports = 3;
+>  	else
+>  		nr_ports = ARRAY_SIZE(omap_uart);
+> --
+> 1.6.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
