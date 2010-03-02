@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: [PATCH 06/16] OMAP3: PM: Smartreflex class related changes for smartreflex.c
-Date: Tue, 02 Mar 2010 15:37:46 -0800
-Message-ID: <871vg2thv9.fsf@deeprootsystems.com>
+Date: Tue, 02 Mar 2010 15:52:42 -0800
+Message-ID: <87iq9es2lx.fsf@deeprootsystems.com>
 References: <1267003757-22456-1-git-send-email-thara@ti.com>
 	<1267003757-22456-2-git-send-email-thara@ti.com>
 	<1267003757-22456-3-git-send-email-thara@ti.com>
@@ -12,12 +12,12 @@ References: <1267003757-22456-1-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:50881 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754996Ab0CBXhu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 18:37:50 -0500
-Received: by gwb15 with SMTP id 15so432981gwb.19
-        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 15:37:49 -0800 (PST)
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:37717 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758050Ab0CBXwq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 18:52:46 -0500
+Received: by pwj8 with SMTP id 8so500971pwj.19
+        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 15:52:45 -0800 (PST)
 In-Reply-To: <1267003757-22456-7-git-send-email-thara@ti.com> (Thara Gopinath's message of "Wed\, 24 Feb 2010 14\:59\:07 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -52,6 +52,7 @@ Thara Gopinath <thara@ti.com> writes:
 >  arch/arm/mach-omap2/smartreflex.h |   48 ++++++--
 >  3 files changed, 182 insertions(+), 125 deletions(-)
 >
+
 [...]
 
 > diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
@@ -63,9 +64,18 @@ Thara Gopinath <thara@ti.com> writes:
 >  /* sr_list contains all the instances of smartreflex module */
 >  static LIST_HEAD(sr_list);
 > +static struct omap_smartreflex_class_data *sr_class;
+>  
+>  #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
+>  
+> @@ -388,14 +389,86 @@ static int sr_reset_voltage(int srid)
+>  	return 0;
+>  }
+>  
+> -static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+> +static void sr_start_vddautocomap(int srid)
 
-I think the class should be part of 'struct omap_sr'.  This should be
-coded in a way to allow a different class type or each SR module (even
-if that is never useful in practice.)
+Either in this patch or in an additional patch (previous to this one)
+can you fix the name of these autocomp functions: *_vddautocomap ->
+*_vddautocomp.  I don't think comap means anything.
 
 Kevin
