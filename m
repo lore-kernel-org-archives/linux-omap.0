@@ -1,41 +1,71 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
-Date: Tue, 2 Mar 2010 15:29:33 -0800
-Message-ID: <5e088bd91003021529u23bf4fc7n22c04086b0323c2e@mail.gmail.com>
-References: <cover.1265801967.git.david.vrabel@csr.com>
-	 <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com>
-	 <4B7C4608.5010008@csr.com>
-	 <alpine.DEB.2.00.1002171254040.24812@utopia.booyaka.com>
-	 <4B7D3EAE.1010908@csr.com>
-	 <alpine.DEB.2.00.1002180951330.24812@utopia.booyaka.com>
-	 <004001cab0c9$b208b2b0$544ff780@am.dhcp.ti.com>
-	 <alpine.DEB.2.00.1002181231520.24812@utopia.booyaka.com>
-	 <5e088bd91002181416l33dc2fe4u8d2a09d12ea0344e@mail.gmail.com>
-	 <00cf01caba54$f39dba60$544ff780@am.dhcp.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 06/16] OMAP3: PM: Smartreflex class related changes for smartreflex.c
+Date: Tue, 02 Mar 2010 15:37:46 -0800
+Message-ID: <871vg2thv9.fsf@deeprootsystems.com>
+References: <1267003757-22456-1-git-send-email-thara@ti.com>
+	<1267003757-22456-2-git-send-email-thara@ti.com>
+	<1267003757-22456-3-git-send-email-thara@ti.com>
+	<1267003757-22456-4-git-send-email-thara@ti.com>
+	<1267003757-22456-5-git-send-email-thara@ti.com>
+	<1267003757-22456-6-git-send-email-thara@ti.com>
+	<1267003757-22456-7-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:39680 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754350Ab0CBX3f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 18:29:35 -0500
-In-Reply-To: <00cf01caba54$f39dba60$544ff780@am.dhcp.ti.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:50881 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754996Ab0CBXhu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 18:37:50 -0500
+Received: by gwb15 with SMTP id 15so432981gwb.19
+        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 15:37:49 -0800 (PST)
+In-Reply-To: <1267003757-22456-7-git-send-email-thara@ti.com> (Thara Gopinath's message of "Wed\, 24 Feb 2010 14\:59\:07 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, David Vrabel <david.vrabel@csr.com>, r-woodruff2@ti.com, sawant@ti.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
 
-On Tue, Mar 2, 2010 at 2:08 PM, Madhusudhan <madhu.cr@ti.com> wrote:
+Thara Gopinath <thara@ti.com> writes:
 
->> That is correct, a Wi2Wi wifi module is connected via mmc2 on the
->> Overo Air and Fire products.
+> OMAP3 smartreflex modules are capable of two different classes
+> of implementaion -
+> 	Class-2: Continuous Software Calibration
+> 	Class-3: Continuous Hardware Calibration.
+> OMAP3 along with T2/Gaia supports the Class 3 implementaion.
+> With a different PMIC it can support Class 2 implementaion also.
+>
+> The idea behind this patch is that smartreflex.c should be able
+> to support both the classes of Smartreflex and the class specific
+> details for smartreflex should stay out of this file in a separate
+> class file.
+> This patch introduces smartreflex class specific hooks in
+> smartreflex.c. This patch only takes care of smartreflex enable
+> disable hooks which differ between Class 2 and Class 3. There
+> are some register setting changes between both the classes which
+> will be taken care of in a later patch.
+> This will form the base for adding class specific
+> drivers in later patches.
+>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c      |    8 +-
+>  arch/arm/mach-omap2/smartreflex.c |  251 ++++++++++++++++++++----------------
+>  arch/arm/mach-omap2/smartreflex.h |   48 ++++++--
+>  3 files changed, 182 insertions(+), 125 deletions(-)
+>
+[...]
 
-> A dumb question. Is this Wi2Wi wifi module available as a standard SDIO card
-> which can be plugged into a SD card cage? Or is it specifically designed for
-> the gumstix board?
+> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+> index c00925d..ba9f899 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -55,6 +55,7 @@ struct omap_sr {
+>  
+>  /* sr_list contains all the instances of smartreflex module */
+>  static LIST_HEAD(sr_list);
+> +static struct omap_smartreflex_class_data *sr_class;
 
-The module on Overo is soldered directly to the board. It is a
-standard part, not custom.  I am not aware if wi2wi also sells a SD
-version.
+I think the class should be part of 'struct omap_sr'.  This should be
+coded in a way to allow a different class type or each SR module (even
+if that is never useful in practice.)
 
-Steve
+Kevin
