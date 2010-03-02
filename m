@@ -1,28 +1,23 @@
 From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCHv6 9/9] OMAP3: PM: Added support for suspending to
- INACTIVE state
-Date: Tue, 2 Mar 2010 11:12:36 +0100
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A224BF70AF00@NOK-EUMSG-02.mgdnok.nokia.com>
+Subject: RE: [PATCHv6 4/9] OMAP3: PM: Removed pwrdm state hacking from
+ omap_sram_idle
+Date: Tue, 2 Mar 2010 11:13:04 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A224BF70AF04@NOK-EUMSG-02.mgdnok.nokia.com>
 References: <1265999265-4363-1-git-send-email-tero.kristo@nokia.com>
 	<1265999265-4363-2-git-send-email-tero.kristo@nokia.com>
 	<1265999265-4363-3-git-send-email-tero.kristo@nokia.com>
 	<1265999265-4363-4-git-send-email-tero.kristo@nokia.com>
 	<1265999265-4363-5-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-6-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-7-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-8-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-9-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-10-git-send-email-tero.kristo@nokia.com>
- <873a0j8v6x.fsf@deeprootsystems.com>
+ <87mxyr8vq0.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:16792 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:16807 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752086Ab0CBKNn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 05:13:43 -0500
-In-Reply-To: <873a0j8v6x.fsf@deeprootsystems.com>
+	with ESMTP id S1752315Ab0CBKNu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 05:13:50 -0500
+In-Reply-To: <87mxyr8vq0.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -33,97 +28,116 @@ Cc: linux-omap@vger.kernel.org
 
 >-----Original Message-----
 >From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->Sent: 02 March, 2010 01:43
+>Sent: 02 March, 2010 01:32
 >To: Kristo Tero (Nokia-D/Tampere)
 >Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCHv6 9/9] OMAP3: PM: Added support for 
->suspending to INACTIVE state
+>Subject: Re: [PATCHv6 4/9] OMAP3: PM: Removed pwrdm state 
+>hacking from omap_sram_idle
 >
 >Tero Kristo <tero.kristo@nokia.com> writes:
 >
 >> From: Tero Kristo <tero.kristo@nokia.com>
 >>
->> With the new support functions this is now possible. 
->Suspending to INACTIVE
->> is useful for testing purposes.
+>> Following hacks will be moved inside cpuidle in subsequent patch:
+>>
+>> - CAM domain prevents idle completely
+>> - PER should not go OFF if core remains active
+>>
+>> This simplifies the design and allows cpuidle to keep better 
+>track of which
+>> power states system will actually enter.
 >>
 >> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->> ---
->>  arch/arm/mach-omap2/pm34xx.c |   11 ++++++-----
->>  1 files changed, 6 insertions(+), 5 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/pm34xx.c 
->b/arch/arm/mach-omap2/pm34xx.c
->> index cdbedcf..41d6cc3 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -633,11 +633,12 @@ int set_pwrdm_state(struct powerdomain 
->*pwrdm, u32 state)
->>  	if (pwrdm == NULL || IS_ERR(pwrdm))
->>  		return -EINVAL;
->>  
->> -	while (!(pwrdm->pwrsts & (1 << state))) {
->> -		if (state == PWRDM_POWER_OFF)
->> -			return ret;
->> -		state--;
->> -	}
 >
->The comment above set_pwrdm_state() says only ON & RET are supported.
->Please update that comment as well.
+>I think this should be combined with PATCH 7.  IOW, the removal and
+>re-addition should be in the same patch.
 
-True, ancient info there. OFF for example has been supported for ages already.
-
->
->
->> +	if (state != PWRDM_POWER_INACTIVE)
->> +		while (!(pwrdm->pwrsts & (1 << state))) {
->> +			if (state == PWRDM_POWER_OFF)
->> +				return ret;
->> +			state--;
->> +		}
->
->I think all powerdomains can be inactive right?
-
-Yes.
-
->I think it would be cleaner to just have all the pwrdm->pwrsts fields
->include intactive as a valid option.
->
->Something like the patch below.  IIRC, you did something like this in
->one of the earlier versions of the patch.
-
-Yeah, something like this was done previously, however Paul did not like the idea of changing the generic powerdomain code too much so I dropped it completely. It is now done only via the support functions in patch #1, and only done for the powerdomains that actually need it for the cpuidle (mpu/core/neon.) It would be possible to add support for the rest of the powerdomains also, but I decided to drop this in favor of getting the patch set in.
+Ok, will change this.
 
 >
 >Kevin
 >
->diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h 
->b/arch/arm/plat-omap/include/plat/powerdomain.h
->index a1ecd47..c692472 100644
->--- a/arch/arm/plat-omap/include/plat/powerdomain.h
->+++ b/arch/arm/plat-omap/include/plat/powerdomain.h
->@@ -31,17 +31,17 @@
-> #define PWRDM_MAX_PWRSTS	4
-> 
-> /* Powerdomain allowable state bitfields */
->-#define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | \
->+#define PWRSTS_ON		((1 << PWRDM_POWER_INACTIVE) | \
-> 				 (1 << PWRDM_POWER_ON))
-> 
->+#define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | PWRSTS_ON)
->+
-> #define PWRSTS_OFF_RET		((1 << PWRDM_POWER_OFF) | \
-> 				 (1 << PWRDM_POWER_RET))
-> 
->-#define PWRSTS_RET_ON		((1 << PWRDM_POWER_RET) | \
->-				 (1 << PWRDM_POWER_ON))
->-
->-#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
->+#define PWRSTS_RET_ON		((1 << PWRDM_POWER_RET) | PWRSTS_ON)
-> 
->+#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
-> 
-> /* Powerdomain flags */
-> #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware 
->save-and-restore support */
+>> ---
+>>  arch/arm/mach-omap2/pm34xx.c |   19 ++-----------------
+>>  1 files changed, 2 insertions(+), 17 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c 
+>b/arch/arm/mach-omap2/pm34xx.c
+>> index c2d80fc..cdbedcf 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -93,7 +93,6 @@ static int (*_omap_save_secure_sram)(u32 *addr);
+>>  
+>>  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+>>  static struct powerdomain *core_pwrdm, *per_pwrdm;
+>> -static struct powerdomain *cam_pwrdm;
+>>  
+>>  static struct prm_setup_vc prm_setup = {
+>>  	.clksetup = 0xff,
+>> @@ -373,7 +372,6 @@ void omap_sram_idle(void)
+>>  	int core_next_state = PWRDM_POWER_ON;
+>>  	int core_prev_state, per_prev_state;
+>>  	u32 sdrc_pwr = 0;
+>> -	int per_state_modified = 0;
+>>  
+>>  	if (!_omap_sram_idle)
+>>  		return;
+>> @@ -411,20 +409,11 @@ void omap_sram_idle(void)
+>>  	core_next_state = omap3_pwrdm_read_next_pwrst(core_pwrdm);
+>>  	if (per_next_state < PWRDM_POWER_ON) {
+>>  		omap2_gpio_prepare_for_idle(per_next_state);
+>> -		if (per_next_state == PWRDM_POWER_OFF) {
+>> -			if (core_next_state == PWRDM_POWER_ON) {
+>> -				per_next_state = PWRDM_POWER_RET;
+>> -				pwrdm_set_next_pwrst(per_pwrdm, 
+>per_next_state);
+>> -				per_state_modified = 1;
+>> -			} else
+>> -				omap3_per_save_context();
+>> -		}
+>> +		if (per_next_state == PWRDM_POWER_OFF)
+>> +			omap3_per_save_context();
+>>  		omap_uart_prepare_idle(2);
+>>  	}
+>>  
+>> -	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
+>> -		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+>> -
+>>  	/*
+>>  	 * Disable smartreflex before entering WFI.
+>>  	 * Only needed if we are going to enter retention or off.
+>> @@ -554,8 +543,6 @@ void omap_sram_idle(void)
+>>  		}
+>>  		omap2_gpio_resume_after_idle();
+>>  		omap_uart_resume_idle(2);
+>> -		if (per_state_modified)
+>> -			pwrdm_set_next_pwrst(per_pwrdm, 
+>PWRDM_POWER_OFF);
+>>  	}
+>>  
+>>  	/* Disable IO-PAD and IO-CHAIN wakeup */
+>> @@ -564,7 +551,6 @@ void omap_sram_idle(void)
+>>  		omap3_disable_io_chain();
+>>  	}
+>>  
+>> -
+>>  	pwrdm_post_transition();
+>>  }
+>>  
+>> @@ -1239,7 +1225,6 @@ static int __init omap3_pm_init(void)
+>>  	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
+>>  	per_pwrdm = pwrdm_lookup("per_pwrdm");
+>>  	core_pwrdm = pwrdm_lookup("core_pwrdm");
+>> -	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
+>>  
+>>  	neon_clkdm = clkdm_lookup("neon_clkdm");
+>>  	mpu_clkdm = clkdm_lookup("mpu_clkdm");
+>> -- 
+>> 1.5.4.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
