@@ -1,104 +1,174 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] serial: Add OMAP high-speed UART driver.
-Date: Mon, 1 Mar 2010 22:08:22 -0800
-Message-ID: <20100302060821.GI3389@atomide.com>
-References: <41322.192.168.10.89.1267454612.squirrel@dbdmail.itg.ti.com>
- <20100301184600.GC3389@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026ED95FC1@dbde02.ent.ti.com>
+Subject: Re: linux-next: manual merge of the omap tree with the  tree
+Date: Mon, 1 Mar 2010 22:25:19 -0800
+Message-ID: <20100302062519.GJ3389@atomide.com>
+References: <20100301112041.0c92179b.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="ftEhullJWpWg/VHq"
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026ED95FC1@dbde02.ent.ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, Greg KH <greg@kroah.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Olof Johansson <olof@lixom.net>
+In-Reply-To: <20100301112041.0c92179b.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <rmk@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* G, Manjunath Kondaiah <manjugk@ti.com> [100301 21:48]:
-> Tony,
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org 
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> > Sent: Tuesday, March 02, 2010 12:16 AM
-> > To: Raja, Govindraj
-> > Cc: Greg KH; linux-serial@vger.kernel.org; 
-> > linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org; 
-> > Kevin Hilman; Olof Johansson
-> > Subject: Re: [PATCH] serial: Add OMAP high-speed UART driver.
-> > 
-> > * Govindraj.R <govindraj.raja@ti.com> [100301 06:40]:
-> > > --- /dev/null
-> > > +++ b/drivers/serial/omap-serial.c
-> > > +
-> > > +static void serial_omap_stop_tx(struct uart_port *port)
-> > > +{
-> > > +	struct uart_omap_port *up = (struct uart_omap_port *)port;
-> > > +
-> > > +	if (up->use_dma &&
-> > > +		up->uart_dma.tx_dma_channel != OMAP_UART_DMA_CH_FREE) {
-> > > +		/*
-> > > +		 * Check if dma is still active . If yes do nothing,
-> > 
-> > Looks like an extra space here before the period above.
-> > 
-> > ...
-> > 
-> > > +static int serial_omap_start_rxdma(struct uart_omap_port *up)
-> > > +{
-> > > +	int ret = 0;
-> > > +
-> > > +	if (up->uart_dma.rx_dma_channel == -1) {
-> > > +		ret = omap_request_dma(up->uart_dma.uart_dma_rx,
-> > > +				"UART Rx DMA",
-> > > +				(void *)uart_rx_dma_callback, up,
-> > > +				&(up->uart_dma.rx_dma_channel));
-> > > +		if (ret < 0)
-> > > +			return ret;
-> > > +
-> > > +		omap_set_dma_src_params(up->uart_dma.rx_dma_channel, 0,
-> > > +				OMAP_DMA_AMODE_CONSTANT,
-> > > +				up->uart_dma.uart_base, 0, 0);
-> > > +		omap_set_dma_dest_params(up->uart_dma.rx_dma_channel, 0,
-> > > +				OMAP_DMA_AMODE_POST_INC,
-> > > +				up->uart_dma.rx_buf_dma_phys, 0, 0);
-> > > +		
-> > omap_set_dma_transfer_params(up->uart_dma.rx_dma_channel,
-> > > +				OMAP_DMA_DATA_TYPE_S8,
-> > > +				up->uart_dma.rx_buf_size, 1,
-> > > +				OMAP_DMA_SYNC_ELEMENT,
-> > > +				up->uart_dma.uart_dma_rx, 0);
-> > > +	}
-> > > +	up->uart_dma.prev_rx_dma_pos = up->uart_dma.rx_buf_dma_phys;
-> > > +	if (cpu_is_omap44xx())
-> > > +		omap_writel(0, OMAP44XX_DMA4_BASE
-> > > +			+ OMAP_DMA4_CDAC(up->uart_dma.rx_dma_channel));
-> > > +	else
-> > > +		omap_writel(0, OMAP34XX_DMA4_BASE
-> > > +			+ OMAP_DMA4_CDAC(up->uart_dma.rx_dma_channel));
-> > 
-> > NAK. Please don't use omap_read/write for for new code. And do not
-> > tinker with the omap hardware registers directly in the driver.
-> > 
-> > This needs to be done properly in arch/arm/plat-omap/dma.c instead.
-> 
-> Thanks for the suggestion.
-> 
-> Currently, dma_read/dma_write are #define's in dma.c which cannot be 
-> accessed outside dma.c. I don't see any API's in dma.c for setting required 
-> value for this register?
 
-Hmm isn't this the same as omap_get_dma_dst_pos(int lch)? If you're
-trying do something that's not in dma.c, we can add a new function
-for it.
+--ftEhullJWpWg/VHq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> Can we move dma_read/dma_write to header file so that it can be global or 
-> Is there alternate way to perform this operation with existing dma driver?
+* Stephen Rothwell <sfr@canb.auug.org.au> [100228 16:17]:
+> Hi all,
+> 
+> Today's linux-next merge of the omap tree got a conflict in
+> arch/arm/plat-omap/Kconfig between commit
+> d6d502fa4be1acd01971476fc732c95a4da16d90 ("ARM: 5952/1: ARM: MM: Add
+> ARM_L1_CACHE_SHIFT_6 for handle inside each ARCH Kconfig") from the arm
+> tree and commits 56213ca4e440c0b6e56a48f5901c55c4ce3cf1ba ("omap2/3:
+> Multiboot compile fixes to compile in omap2 and omap3") and
+> a8eb7ca0cbb41c9cd379b8d2a2a5efb503aa65e9 ("omap3: Replace ARCH_OMAP34XX
+> with ARCH_OMAP3") from the omap tree.
+> 
+> I fixed it up (see below) and can carry the fix as necessary.
+> -- 
+> Cheers,
+> Stephen Rothwell                    sfr@canb.auug.org.au
+> 
+> diff --cc arch/arm/plat-omap/Kconfig
+> index 2e3eec6,be9484a..0000000
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@@ -19,10 -28,9 +28,10 @@@ config ARCH_OMAP
+>   
+>   config ARCH_OMAP3
+>   	bool "TI OMAP3"
+> + 	depends on ARCH_OMAP2PLUS
+>   	select CPU_V7
+> - 	select COMMON_CLKDEV
+>  +	select ARM_L1_CACHE_SHIFT_6
+> + 	select USB_ARCH_HAS_EHCI
+>   
+>   config ARCH_OMAP4
+>   	bool "TI OMAP4"
 
-No thanks, that again leads all drivers messing with the DMA registers
-directly and can easily lead to errors.
+Thanks, I've merged omap for-next with the mainline to resolve this.
+
+FYI, also need the following not-yet-ready patch to compile omaps.
+
+The weird thing is that unless I set ehci_pdata from __initconst
+to __initdata in board-omap3touchbook.c, I get the following early_param
+error:
+ 
+error: __setup_str_early_touchbook_revision causes a section type conflict
+
+The error does not seem to be related to ehci_pdata, and only happens
+for board-omap3touchbook.c.
+
+Anybody got ideas?
 
 Regards,
 
-Tony
+Tony 
+
+--ftEhullJWpWg/VHq
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="build-fixes.patch"
+
+>From f8b8a130c8cfef6cc885a61dcee339ba71b497a4 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 1 Mar 2010 21:54:09 -0800
+Subject: [PATCH] omap: Fix compile for early_param and omap_smc1
+
+Commit 2b0d8c251b8876d530a6bf671eb5425838fa698a changed ARM to use
+the common early_param code. Fix compile for omaps accordingly.
+
+Commit d309427e792ea750cdd312e7a92cf6047ae44962 added support for
+CACHE_L2X0, this however breaks multi-omap builds for V6 because of
+dsb and smc. The proper fix is to separate omap_smc1 into a separate
+.S file and compile it with -Wa,-march=armv7-a flags.
+
+Also for some reason touchbook produces a compile error
+
+error: __setup_str_early_touchbook_revision causes a section type conflict
+
+Unless ehci_pdata is set to __initdata instead of __initconst.
+No idea yet why this happens only on touchbook.
+
+Not-Yet-Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 180ac11..a462d50 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -49,7 +49,7 @@ static struct omap_board_config_kernel sdp4430_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&sdp4430_lcd_config },
+ };
+ 
+-#ifdef CONFIG_CACHE_L2X0
++#if defined(CONFIG_SMP) && defined(CONFIG_CACHE_L2X0)
+ noinline void omap_smc1(u32 fn, u32 arg)
+ {
+ 	register u32 r12 asm("r12") = fn;
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 3943d0f..07b7a32 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -493,7 +493,7 @@ static void __init omap3touchbook_flash_init(void)
+ 	}
+ }
+ 
+-static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
++static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
+ 
+ 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+ 	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
+@@ -518,14 +518,14 @@ static void omap3_touchbook_poweroff(void)
+ 	gpio_direction_output(TB_KILL_POWER_GPIO, 0);
+ }
+ 
+-static void __init early_touchbook_revision(char **p)
++static int __init early_touchbook_revision(char *p)
+ {
+-	if (!*p)
+-		return;
++	if (!p)
++		return 0;
+ 
+-	strict_strtoul(*p, 10, &touchbook_revision);
++	return strict_strtoul(p, 10, &touchbook_revision);
+ }
+-__early_param("tbr=", early_touchbook_revision);
++early_param("tbr", early_touchbook_revision);
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
+diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
+index 55a4de5..1d88425 100644
+--- a/drivers/video/omap2/vram.c
++++ b/drivers/video/omap2/vram.c
+@@ -511,13 +511,17 @@ static u32 omap_vram_sdram_size __initdata;
+ static u32 omap_vram_def_sdram_size __initdata;
+ static u32 omap_vram_def_sdram_start __initdata;
+ 
+-static void __init omap_vram_early_vram(char **p)
++static int __init omap_vram_early_vram(char *p)
+ {
+-	omap_vram_def_sdram_size = memparse(*p, p);
+-	if (**p == ',')
+-		omap_vram_def_sdram_start = simple_strtoul((*p) + 1, p, 16);
++	char *endp;
++
++	omap_vram_def_sdram_size = memparse(p, &endp);
++	if (*endp == ',')
++		omap_vram_def_sdram_start = simple_strtoul(endp + 1, &p, 16);
++
++	return 0;
+ }
+-__early_param("vram=", omap_vram_early_vram);
++early_param("vram", omap_vram_early_vram);
+ 
+ /*
+  * Called from map_io. We need to call to this early enough so that we
+
+--ftEhullJWpWg/VHq--
