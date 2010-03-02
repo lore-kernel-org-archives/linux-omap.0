@@ -1,44 +1,50 @@
-From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH] OMAP: Fixing build warning with omap3_defconfig
-Date: Tue,  2 Mar 2010 16:26:08 +0530
-Message-ID: <1267527368-19690-1-git-send-email-anuj.aggarwal@ti.com>
+From: Manjunatha GK <manjugk@ti.com>
+Subject: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
+Date: Tue,  2 Mar 2010 19:05:55 +0530
+Message-ID: <1267536955-31268-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59523 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36089 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752181Ab0CBK4O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Mar 2010 05:56:14 -0500
+	id S1753019Ab0CBNRk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Mar 2010 08:17:40 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: Manjunatha GK <manjugk@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
 
-Fixes the below build warning when compiled with omap3_defconfig:
+The commit id "5550bc33a1a9002976022cc794fe8c52ad9a0021" seems to be broken
+zoom3 boot which adds support for UART4 on OMAP4 and OMAP3630.
 
-  CC      arch/arm/mach-omap2/board-am3517evm.o
-  In file included from arch/arm/mach-omap2/board-am3517evm.c:23:
-  include/linux/i2c/pca953x.h:14: warning: 'struct i2c_client' declared
-  	inside parameter list
-  include/linux/i2c/pca953x.h:14: warning: its scope is only this definition
-  	or declaration, which is probably not what you want
-  include/linux/i2c/pca953x.h:17: warning: 'struct i2c_client' declared inside
-  	parameter list
-  CC      arch/arm/mach-omap2/usb-musb.o
+But, it looks like OMAP3630 UART4 interface and functional clock nodes needs
+to be added for omap3630. Thus limiting no. of UART's for 3630 to 3 to prevent
+boot up issues until clock nodes are added for UART4 on OMAP3630.
 
-Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
+Signed-off-by: Govindraj R <govindraj.raja@ti.com>
 ---
- include/linux/i2c/pca953x.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/serial.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/include/linux/i2c/pca953x.h b/include/linux/i2c/pca953x.h
-index 81736d6..6c8f853 100644
---- a/include/linux/i2c/pca953x.h
-+++ b/include/linux/i2c/pca953x.h
-@@ -1,4 +1,5 @@
- /* platform data for the PCA9539 16-bit I/O expander driver */
-+#include <linux/i2c.h>
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index b79bc89..ac22a4e 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -764,7 +764,12 @@ void __init omap_serial_init(void)
+ {
+ 	int i, nr_ports;
  
- struct pca953x_platform_data {
- 	/* number of the first GPIO */
+-	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
++	/* Limit no.of UART ports to three for OMAP3630 since
++	 * clock nodes are yet to be updated for 3630 UART4.
++	 * TODO: update clock nodes for 3630 UART4 and then enable
++	 * check for !(cpu_is_omap3630())
++	 */
++	if (!cpu_is_omap4430())
+ 		nr_ports = 3;
+ 	else
+ 		nr_ports = ARRAY_SIZE(omap_uart);
 -- 
-1.6.2.4
+1.6.0.4
 
