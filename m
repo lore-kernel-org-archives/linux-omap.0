@@ -1,585 +1,278 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap updates for 2.6.34
-Date: Tue, 2 Mar 2010 09:28:15 -0800
-Message-ID: <20100302172815.GE7393@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 02/16] OMAP3: PM: Create list to keep track of various smartreflex instances.
+Date: Tue, 02 Mar 2010 09:39:35 -0800
+Message-ID: <87y6iazkq0.fsf@deeprootsystems.com>
+References: <1267003757-22456-1-git-send-email-thara@ti.com>
+	<1267003757-22456-2-git-send-email-thara@ti.com>
+	<1267003757-22456-3-git-send-email-thara@ti.com>
+	<4B885769.2090505@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63720 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751363Ab0CBR1N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 12:27:13 -0500
-Content-Disposition: inline
+Received: from mail-pz0-f190.google.com ([209.85.222.190]:46174 "EHLO
+	mail-pz0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244Ab0CBRjk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 12:39:40 -0500
+Received: by pzk28 with SMTP id 28so311504pzk.1
+        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 09:39:39 -0800 (PST)
+In-Reply-To: <4B885769.2090505@ti.com> (Mike Turquette's message of "Fri\, 26 Feb 2010 17\:21\:13 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Hi Linus,
+Mike Turquette <mturquette@ti.com> writes:
 
-Please pull omap updates from:
+> Gopinath, Thara wrote:
+>> This patch removes the pointer sr1, sr2 in smartreflex.c and
+>> instead creatse a list for keeping track of multiple smartreflex
+>> instances.. This makes it scalable for next gen OMAPs where there
+>> are more than two smartreflex modules.
+>>
+>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/smartreflex.c |  114 ++++++++++++++++++++++++------------
+>>  1 files changed, 76 insertions(+), 38 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+>> index 1c5ec37..4a9c2e2 100644
+>> --- a/arch/arm/mach-omap2/smartreflex.c
+>> +++ b/arch/arm/mach-omap2/smartreflex.c
+>> @@ -26,6 +26,7 @@
+>>  #include <linux/kobject.h>
+>>  #include <linux/i2c/twl.h>
+>>  #include <linux/io.h>
+>> +#include <linux/list.h>
+>>   #include <plat/omap34xx.h>
+>>  #include <plat/control.h>
+>> @@ -51,9 +52,12 @@ struct omap_sr {
+>>  	u32		opp5_nvalue;
+>>  	u32		senp_mod, senn_mod;
+>>  	void __iomem	*srbase_addr;
+>> -	void __iomem	*vpbase_addr;
+>> +	struct list_head 	node;
+>>  };
+>>  +/* sr_list contains all the instances of smartreflex module */
+>> +static LIST_HEAD(sr_list);
+>> +
+>>  #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
+>>   static inline void sr_write_reg(struct omap_sr *sr, unsigned
+>> offset, u32 value)
+>> @@ -78,6 +82,20 @@ static inline u32 sr_read_reg(struct omap_sr *sr, unsigned offset)
+>>  	return __raw_readl(SR_REGADDR(offset));
+>>  }
+>>  +static struct omap_sr *_sr_lookup(int srid)
+>> +{
+>> +	struct omap_sr *sr_info, *temp_sr_info;
+>> +
+>> +	sr_info = NULL;
+>> +	list_for_each_entry(temp_sr_info, &sr_list, node) {
+>> +		if (srid == temp_sr_info->srid) {
+>> +			sr_info = temp_sr_info;
+>> +			break;
+>> +		}
+>> +	}
+>> +	return sr_info;
+>> +}
+>> +
+>>  static int sr_clk_enable(struct omap_sr *sr)
+>>  {
+>>  	if (clk_enable(sr->clk) != 0) {
+>> @@ -151,11 +169,17 @@ static u8 get_vdd1_opp(void)
+>>  {
+>>  	struct omap_opp *opp;
+>>  	unsigned long freq;
+>> +	struct omap_sr *sr_info = _sr_lookup(SR1);
+>
+> Why has the list implementation been chosen over individually
+> registered platform devices?  
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-for-linus
+Not sure I follow your question exactly here, but IIUC, Thara converts
+to individually registered platform_devices in the next patch.  This
+is a preliminary one to prepare for that.  In PATCH 03/16, the devices
+are found via hwmod then registered via omap_device_build() (which in
+turn does the platform_device_register())
 
-Regards,
+Kevin
 
-Tony
 
-The following changes since commit ac0f6f927db539e03e1f3f61bcd4ed57d5cde7a9:
-  Linus Torvalds (1):
-        Merge branch 'for-linus' of master.kernel.org:/home/rmk/linux-2.6-arm
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-for-linus
-
-Abhijit Pagare (13):
-      ARM: OMAP4: PM: OMAP4 essential basic initialisations.
-      ARM: OMAP4: PM: OMAP4 Power Domain Porting Related Clean-up.
-      ARM: OMAP4: PM: Add the Autogenerated OMAP4 specific power domain framework.
-      ARM: OMAP4: PM: Adapt the existing OMAP2/3 and common Power Domain Frameworks.
-      ARM: OMAP4: PM: Refine the APIs to support OMAP4 features.
-      ARM: OMAP4: PM: Make OMAP3 Clock-domain framework compatible for OMAP4.
-      ARM: OMAP4: PM: Modify Clock-domain interfaces for OMAP4 compatibility.
-      ARM: OMAP4: PM: Add the Autogenerated OMAP4 specific clock domain framework.
-      ARM: OMAP4: PM: Adapt the existing OMAP2/3 Clock Domain Frameworks.
-      ARM: OMAP4: PM: Refine the APIs to support OMAP4 features.
-      ARM: OMAP4 clock framework: Remove the checks preventing OMAP4 clockdomain validation
-      ARM: OMAP4 clock domains : Add the missing Clock Domain Structure
-      ARM: OMAP4 clock domain: Add check for avoiding dependency related update.
-
-Adrian Hunter (10):
-      omap_hsmmc: Move gpio and regulator control from board file
-      omap: Rename mmc-twl4030 files to hsmmc
-      omap: Rename hsmmc symbols to reflect independence from twl4030
-      omap: Reconnect hsmmc context loss count
-      omap: RX51: Remux to pull eMMC lines down when powering off
-      omap_hsmmc: Allow for power saving without going off
-      omap_hsmmc: Fix disable timeouts
-      omap_hsmmc: Ensure regulator enable / disable are paired
-      omap_hsmmc: Allow for a shared VccQ
-      omap_hsmmc: allow compile without regulator framework
-
-Ajay Kumar Gupta (2):
-      AM35x: Add missing GPIO mux config for EHCI port
-      AM35x: Enable OMAP_MUX in defconfig
-
-Eero Nurkkala (1):
-      McBSP: OMAP3: Add sidetone feature
-
-Enric Balletbo i Serra (8):
-      omap3: Add platform data for the twl4030_codec MFD on IGEP v2
-      omap3: Fix typo on IGEP v2 board
-      omap3: Add platform init code for EHCI driver on IGEP v2
-      omap3: Enable DSS2 for IGEP v2 board
-      omap3: Add support for flash on IGEP v2 board
-      omap3: SDRC: add timing data for Numonyx M65KxxxxAM
-      omap3: Use timing data for omap2_init_common_hw on IGEP v2
-      omap3: Update defconfig for IGEP v2 to allow new drivers andfeatures
-
-Felipe Balbi (11):
-      omap1: mailbox: kill compile warning
-      omap2/3/4: mailbox: kill compile warning in mailbox.c
-      omap2/3/4: gpmc: kill compile warning
-      omap2/3/4: gpmc: avoid section definitions on headers
-      arm: omap: kill compile warning on board-4430-sdp.c
-      arm: omap: musb: ioremap only what's ours
-      omap: musb: remove unused data
-      arm: omap: musb: we can use clk framework
-      omap: musb: remove unused soft_con field
-      omap: musb: remove unused dma data
-      omap: musb: remove unnecessary return
-
-Grazvydas Ignotas (3):
-      OMAP: pandora: add DSS2 support and related regulators
-      omap3: pandora: update regulator setup
-      omap3: pandora: update defconfig
-
-Hiroshi DOYU (3):
-      omap iommu: cleanup iommu page address mask and definitions
-      omap: iommu: fix incorrect address for supersection 1st entry
-      omap iommu: fix incorrect address for largepage 1st entry
-
-Ilkka Koskinen (1):
-      ASoC: OMAP-McBSP: ASoC interface for McBSP sidetone
-
-Janusz Krzysztofik (4):
-      omap: McBSP: Use macros for all register read/write operations
-      omap: McBSP: Modify macros/functions API for easy cache access
-      omap: McBSP: Introduce caching in register write operations
-      omap: McBSP: Use cache when modifying individual register bits
-
-Jarkko Nikula (1):
-      omap: i2c: Fix muxing for command line enabled bus
-
-Jonas Zetterberg (2):
-      IGEPv2: Added WIFI support
-      IGEPv2: Use Red Led1 as Heartbeat if configured
-
-Jorge Eduardo Candelaria (3):
-      OMAP4: IRQ: Add McPDM IRQ definition
-      ARM: OMAP4: Add McPDM base address
-      OMAP4: MCPDM: Register McPDM platform device
-
-Kalle Jokiniemi (2):
-      OMAP3: cpuidle: Add valid field into C-state parameter passing
-      OMAP3: RX-51: Pass cpu idle parameters
-
-Kevin Hilman (8):
-      OMAP: omap_device: optionally auto-adjust device activate/deactivate latencies
-      OMAP: hwmod: add API for slave idlemode setting
-      OMAP3: cpuidle: configure latencies/thresholds from board file
-      OMAP3: RX-51: support sleep indicator LEDs
-      OMAP: omap_device: add omap_device_is_valid()
-      OMAP: omap_device: when 'called from invalid state', print state
-      OMAP3: clock: use std _MASK suffix for CM_FCLKEN_IVA2 defines
-      OMAP2/3: PRCM: fix misc. compiler warnings
-
-Ladislav Michl (2):
-      omap: convert boards to use physmap-flash
-      MTD: remove no longer used OMAP flash map
-
-Lesly A M (1):
-      omap3: pm: Add T2 Keypad as a wakeup source
-
-Maulik Mankad (4):
-      USB: Add empty functions in otg.h
-      omap: musb: Remove #ifdef from board-omap3evm.c
-      omap: musb: Pass board specific data from board file
-      omap: musb: Add USB support to 4430 SDP board file
-
-Mike Rapoport (1):
-      omap3: cm-t35: add DSS2 display support
-
-Mike Turquette (1):
-      OMAP3630: Clock: Workaround for DPLL HS divider limitation
-
-Paul Walmsley (51):
-      OMAP3 clock: reorganize CK_* platform flags
-      OMAP clock: make the fixed divisor clock code available for all OMAPs
-      OMAP1 clock: convert armwdt_ck to use the fixed divisor recalc function
-      OMAP2/3 clkdm/pwrdm: move wkdep/sleepdep handling from pwrdm to clkdm
-      OMAP2/3 clockdomains: split shared structures so usecounting works
-      OMAP2 clockdomain: modem clockdomain is only present on OMAP2430
-      OMAP clockdomain/powerdomain: remove runtime register/unregister
-      OMAP clockdomains: add usecounting for wakeup and sleep dependencies
-      OMAP powerdomain/PM: use symbolic constants for the max number of power states
-      OMAP powerdomain: rearrange struct powerdomain to save some memory
-      OMAP powerdomain: remove pwrdm_clk_state_switch
-      OMAP clockdomain/powerdomain: improve documentation
-      OMAP3 clock: move OMAP3-specific DPLL functions to dpll3xxx.c
-      OMAP2/3/4 clock: move DPLL clock functions into mach-omap2/clkt_dpll.c
-      OMAP2/3/4 clock: move clksel clock functions into mach-omap2/clkt_clksel.c
-      OMAP2 clock: move all static functions to the top of the file
-      OMAP2/3/4 clock: combine all omap2_clk_functions
-      OMAP2xxx clock: move the DPLL+CORE composite clock code into mach-omap2/clkt2xxx_dpllcore.c
-      OMAP2xxx clock: move the DVFS virtual clock code into mach-omap2/clkt2xxx_virt_prcm_set.c
-      OMAP2xxx clock: move the APLL clock code into mach-omap2/clkt2xxx_apll.c
-      OMAP2xxx clock: move osc_clk code into mach-omap2/clkt2xxx_osc.c
-      OMAP2xxx clock: move sys_clk code into mach-omap2/clkt2xxx_sys.c
-      OMAP2 clock: don't compile OMAP2430-only functions on non-2430 builds
-      OMAP3 clock: split out DPLL3 M2 divider functions into mach-omap2/clkt34xx_dpll3m2.c
-      OMAP2/3 clock: clean up omap*_clk_arch_init()
-      OMAP2/3 clock: remove unnecessary includes and clean up header
-      OMAP2/3/4 clock: omap2_clk_prepare_for_reboot() is OMAP2xxx-only
-      OMAP3 DPLL: reorganize static functions
-      OMAP clock: resolve all remaining sparse warnings
-      OMAP2/3/4 clock: rename and clean the omap2_clk_init() functions
-      OMAP2+ powerdomains/clockdomains: prepare for multi-OMAP configs
-      OMAP2/3/4 clock: fix DPLL multiplier value errors; also copyrights, includes, documentation
-      OMAP4 clock: drop the CLOCK_IN_OMAP4430 clock flag
-      OMAP2xxx clock: GFX functional clock rates are not independently changeable
-      OMAP2xxx clock: drop DELAYED_APP flag from non-clksel clocks
-      OMAP2 clock: drop CONFIG_PARTICIPANT clock flag
-      OMAP clock: compress clock flags down to a u8
-      OMAP clock: drop .id field; ensure each clock has a unique name
-      OMAP3/4 clock: split into per-chip family files
-      OMAP2 clock: split OMAP2420, OMAP2430 clock data into their own files
-      OMAP2430 clock: make func_96m_ck parent-selectable
-      OMAP2 clock: drop DELAYED_APP clock flag
-      OMAP clock: drop RATE_FIXED clock flag
-      OMAP4 clock: drop the ALWAYS_ENABLED clock flag
-      OMAP clock: add omap_clk_get_by_name() for use by OMAP hwmod core code
-      OMAP hwmod: convert hwmod to use hardware clock names rather than clkdev dev+con
-      OMAP hwmod: convert header files with static allocations into C files
-      OMAP hwmod: add hwmod class support
-      OMAP clockdomain: if no autodeps exist, don't try to add or remove them
-      OMAP2/3 clock: combine OMAP2 & 3 boot-time MPU rate change code
-      OMAP2+ clock: revise omap2_clk_{disable,enable}()
-
-Rajendra Nayak (3):
-      OMAP4: PRCM: Define shift macros as n instead of 1 << n
-      OMAP3: PM: add scratchpad locking function
-      OMAP4: clock: Rename leaf clock nodes to end with a _ick or _fck
-
-Ranjith Lohithakshan (4):
-      AM35xx: Add AM35xx specific control module registers
-      AM35xx: Clock table updates for AM3505/17
-      OMAP2/3 clock: Extend find_idlest() to pass back idle state value
-      AM35xx: Add clock support for new modules on AM35xx
-
-Richard Woodruff (1):
-      OMAP3 clock: introduce DPLL4 Jtype
-
-Rob Clark (1):
-      omap2/3/4: mailbox: use dedicated work queue for handling mailbox rx interrupt
-
-Sanjeev Premi (6):
-      omap3evm: Add mux settings for keypad
-      omap3evm: Fixes after moving to matrix_keypad
-      omap3evm: Configure GPIO175 for touchscreen PEN_IRQ
-      OMAP3EVM: PM: Update defconfig
-      OMAP3: cpuidle: Update statistics for correct state
-      OMAP3 clock: Check return values for clk_get()
-
-Santosh Shilimkar (12):
-      omap4: multi-omap: Allow build to work
-      omap3/4: uart: fix full-fifo write abort
-      omap2/3/4: ioremap omap_globals module
-      omap4: sdma: Enable the idle modes on omap4
-      omap: sdma: Limit the secure reserve channel fix for omap3
-      omap4: Fix omap_type() for omap4
-      omap3/4: Remove overlapping mapping of L4_WKUP io space
-      omap4: Add auto-generated irq and dma headers
-      omap4: Use dma line defines from dma-44xx.h
-      omap4: Use irq line defines from irq-44xx.h
-      OMAP4: clock: Add dummy clock nodes for interface clocks
-      OMAP4: clock: Remove clock hacks from timer-gp.c
-
-Sriram (2):
-      AM3517 EVM: Enable I2C support
-      AM3517 EVM: correct typo - tca6416 mispelt as tca6516
-
-Suman Anna (2):
-      omap: mailbox: correct OMAP4 reset logic
-      omap: mailbox: correct OMAP4 SIDLEMODE logic
-
-Tero Kristo (2):
-      OMAP3: PM: Added support for L2 aux ctrl register save and restore
-      OMAP3: Clock: Added IDLEST definitions for SGX
-
-Thara Gopinath (5):
-      OMAP2/3 PM: Adding powerdomain APIs for reading the next logic and mem state
-      OMAP3 PM: Defining .pwrsts_logic_ret field for core power domain structure
-      OMAP3 PM: Adding counters for power domain logic off and mem off during retention.
-      OMAP3: hwmod: support to specify the offset position of various SYSCONFIG register bits.
-      OMAP: HWMOD: Add support for early device register into omap device layer
-
-Thomas Weber (2):
-      Add minimal support for DevKit8000
-      Add devkit8000_defconfig
-
-Tony Lindgren (32):
-      Merge branch 'for_2.6.34_4f4e65_a' of git://git.pwsan.com/linux-2.6 into omap-for-linus
-      Merge branch 'omap-fixes-for-linus' into omap-for-linus
-      Merge branch 'for-tony' of git://gitorious.org/linux-omap-dss2/linux into omap-for-linus
-      omap: Clean the serial port defines
-      omap: Make uncompress code and DEBUG_LL code generic
-      omap: Remove old DEBUG_LL serial port options
-      Merge branch 'debug-ll' into omap-for-linus
-      omap2/3: Make get_irqnr_and_base common for mach-omap2 multiboot
-      omap2/3: Multiboot compile fixes to compile in omap2 and omap3
-      omap: Fix dmtimer.c for multi-omap boot
-      omap2/3/4: Fix omap2_map_common_io for multi-omap
-      omap2/3/4: Fix mbox init for multi-omap
-      omap2: Convert ARCH_OMAP24XX to ARCH_OMAP2
-      omap3: Replace ARCH_OMAP34XX with ARCH_OMAP3
-      omap2/3/4: Replace orred CONFIG_ARCH_OMAP2/3/4 with CONFIG_ARCH_OMAP2PLUS
-      omap2/3: Fix initcalls for multi-omap
-      omap2/3: Update omap3_defconfig to build in all the 2420 based boards
-      omap: Move multi-omap ifdeffery into it's own header file
-      omap2/3/4: Clean up defines for entry-macro.S
-      omap4: Use get_irqnr_preamble
-      omap2/3/4: Clean up entry-macro.s for adding support for omap4 multiboot
-      omap2/3/4: Allow booting omap4 with multi-omap configuration
-      omap3/4: Fix compile for multi-omap for clkops_noncore_dpll_ops
-      omap: Fix gpio.c for multi-omap for omap4
-      omap2/3/4: Fix mach-omap2/serial.c for multiboot
-      omap2/3/4: Add omap4 into omap3_defconfig
-      omap3: Clean-up for omap_mux_init
-      Merge branch 'omap-fixes-for-linus' into omap-for-linus
-      Merge branch 'pm-2.6.34' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-linus
-      Merge branch 'for_2.6.34_b' of git://git.pwsan.com/linux-2.6 into omap-for-linus
-      omap2: Initialize Menelaus and MMC for N8X0
-      Merge with mainline to remove plat-omap/Kconfig conflict
-
-Vaibhav Hiremath (8):
-      OMAP: Enable DSS2 for OMAP3EVM board
-      OMAP: AM3517: Enable DSS2 for AM3517EVM board
-      AM35xx: Introduce am35xx.h file
-      AM35xx: Add AM35xx intr_clr & sw_rst cntrl reg bit definition
-      AM35xx: Update irq.h for AM35xx IPSS module interrupts
-      AM3517: Enable basic I2C Support
-      AM3517: Enable RTC driver support for AM3517EVM
-      AM3517: Enable I2C-GPIO Expander driver support for AM3517EVM
-
-Vimal Singh (3):
-      omap2/3/4: Introducing 'gpmc-nand.c' for GPMC specific NAND init
-      omap3: SDP: Introducing 'board-sdp-flash.c' for flash init
-      omap3: Add support for flash on 3430SDP board
-
-Vimarsh Zutshi (1):
-      OMAP3: clock: add capability to change rate of dpll4_m5_ck_3630
-
-Vishwanath BS (3):
-      OMAP3 clock: Remove FreqSel for 3630
-      OMAP3 clock: Introduce 3630 DPLL4 HSDivider changes
-      OMAP3 clock: add support for 192Mhz DPLL4M2 output
-
-manjugk manjugk (1):
-      Zoom3: Defconfig update
-
-vikram pandita (2):
-      omap2/3/4: serial: fix coding style indentaion
-      omap: zoom3: enable ehci support
-
- arch/arm/configs/am3517_evm_defconfig              |   43 +-
- arch/arm/configs/devkit8000_defconfig              | 1889 ++++++++++++++++++++
- arch/arm/configs/igep0020_defconfig                |  525 ++++---
- arch/arm/configs/omap3_defconfig                   |  180 ++-
- arch/arm/configs/omap3_evm_defconfig               |    6 +-
- arch/arm/configs/omap3_pandora_defconfig           |  678 ++++++--
- arch/arm/configs/omap_4430sdp_defconfig            |    7 +-
- arch/arm/configs/omap_zoom3_defconfig              |    6 +-
- arch/arm/configs/rx51_defconfig                    |    4 +-
- arch/arm/mach-omap1/Makefile                       |    2 +-
- arch/arm/mach-omap1/board-fsample.c                |    9 +-
- arch/arm/mach-omap1/board-h2.c                     |    9 +-
- arch/arm/mach-omap1/board-h3.c                     |    9 +-
- arch/arm/mach-omap1/board-innovator.c              |    9 +-
- arch/arm/mach-omap1/board-osk.c                    |    9 +-
- arch/arm/mach-omap1/board-palmte.c                 |    9 +-
- arch/arm/mach-omap1/board-palmtt.c                 |    9 +-
- arch/arm/mach-omap1/board-palmz71.c                |   10 +-
- arch/arm/mach-omap1/board-perseus2.c               |    9 +-
- arch/arm/mach-omap1/board-sx1.c                    |   11 +-
- arch/arm/mach-omap1/board-voiceblue.c              |    9 +-
- arch/arm/mach-omap1/clock.c                        |   25 +-
- arch/arm/mach-omap1/clock_data.c                   |   44 +-
- arch/arm/mach-omap1/devices.c                      |    2 +-
- arch/arm/mach-omap1/flash.c                        |   33 +
- arch/arm/mach-omap1/i2c.c                          |    6 +-
- arch/arm/mach-omap1/include/mach/debug-macro.S     |   88 +-
- arch/arm/mach-omap1/mailbox.c                      |    9 +-
- arch/arm/mach-omap1/mcbsp.c                        |   16 +-
- arch/arm/mach-omap1/serial.c                       |    6 +-
- arch/arm/mach-omap2/Kconfig                        |   61 +-
- arch/arm/mach-omap2/Makefile                       |   87 +-
- arch/arm/mach-omap2/board-2430sdp.c                |   23 +-
- arch/arm/mach-omap2/board-3430sdp.c                |  147 ++-
- arch/arm/mach-omap2/board-3630sdp.c                |    4 +-
- arch/arm/mach-omap2/board-4430sdp.c                |   18 +-
- arch/arm/mach-omap2/board-am3517evm.c              |  237 +++-
- arch/arm/mach-omap2/board-apollon.c                |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c                 |  255 +++-
- arch/arm/mach-omap2/board-devkit8000.c             |  697 ++++++++
- arch/arm/mach-omap2/board-generic.c                |    2 +-
- arch/arm/mach-omap2/board-h4.c                     |    9 +-
- arch/arm/mach-omap2/board-igep0020.c               |  285 +++-
- arch/arm/mach-omap2/board-ldp.c                    |   16 +-
- arch/arm/mach-omap2/board-n8x0.c                   |  447 +++++-
- arch/arm/mach-omap2/board-omap3beagle.c            |   16 +-
- arch/arm/mach-omap2/board-omap3evm.c               |  299 +++-
- arch/arm/mach-omap2/board-omap3pandora.c           |  196 ++-
- arch/arm/mach-omap2/board-omap3touchbook.c         |   16 +-
- arch/arm/mach-omap2/board-overo.c                  |   16 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c       |   63 +-
- arch/arm/mach-omap2/board-rx51.c                   |   54 +-
- arch/arm/mach-omap2/board-sdp-flash.c              |  272 +++
- arch/arm/mach-omap2/board-zoom-peripherals.c       |   23 +-
- arch/arm/mach-omap2/board-zoom2.c                  |    2 +-
- arch/arm/mach-omap2/board-zoom3.c                  |   18 +-
- arch/arm/mach-omap2/clkt2xxx_apll.c                |  122 ++
- arch/arm/mach-omap2/clkt2xxx_dpllcore.c            |  173 ++
- arch/arm/mach-omap2/clkt2xxx_osc.c                 |   62 +
- arch/arm/mach-omap2/clkt2xxx_sys.c                 |   50 +
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c       |  254 +++
- arch/arm/mach-omap2/clkt34xx_dpll3m2.c             |  121 ++
- arch/arm/mach-omap2/clkt_clksel.c                  |  409 +++++
- arch/arm/mach-omap2/clkt_dpll.c                    |  386 ++++
- arch/arm/mach-omap2/clock.c                        | 1029 +++---------
- arch/arm/mach-omap2/clock.h                        |   50 +-
- .../{clock2xxx_data.c => clock2420_data.c}         |  705 ++------
- arch/arm/mach-omap2/clock2430.c                    |   59 +
- .../{clock2xxx_data.c => clock2430_data.c}         |  643 ++-----
- arch/arm/mach-omap2/clock2xxx.c                    |  599 +------
- arch/arm/mach-omap2/clock2xxx.h                    |   31 +-
- arch/arm/mach-omap2/clock34xx.c                    |  261 +---
- arch/arm/mach-omap2/clock34xx.h                    |   19 +-
- arch/arm/mach-omap2/clock3517.c                    |  124 ++
- arch/arm/mach-omap2/clock3517.h                    |   14 +
- arch/arm/mach-omap2/clock36xx.c                    |   72 +
- arch/arm/mach-omap2/clock36xx.h                    |   13 +
- arch/arm/mach-omap2/clock3xxx.c                    |  104 ++
- arch/arm/mach-omap2/clock3xxx.h                    |   21 +
- .../{clock34xx_data.c => clock3xxx_data.c}         |  888 +++++++---
- arch/arm/mach-omap2/clock44xx.c                    |   33 -
- arch/arm/mach-omap2/clock44xx.h                    |   13 +-
- arch/arm/mach-omap2/clock44xx_data.c               |  734 ++++----
- arch/arm/mach-omap2/clockdomain.c                  |  788 +++++++--
- arch/arm/mach-omap2/clockdomains.h                 |  672 +++++++-
- arch/arm/mach-omap2/clockdomains44xx.h             |  250 +++
- arch/arm/mach-omap2/cm-regbits-34xx.h              |   28 +-
- arch/arm/mach-omap2/cm-regbits-44xx.h              |  536 +++---
- arch/arm/mach-omap2/cm.h                           |    8 +-
- arch/arm/mach-omap2/control.c                      |    6 +-
- arch/arm/mach-omap2/cpuidle34xx.c                  |  226 ++-
- arch/arm/mach-omap2/devices.c                      |   45 +-
- arch/arm/mach-omap2/{dpll.c => dpll3xxx.c}         |  191 ++-
- arch/arm/mach-omap2/emu.c                          |    3 +
- arch/arm/mach-omap2/gpmc-nand.c                    |  139 ++
- arch/arm/mach-omap2/gpmc.c                         |    6 +-
- arch/arm/mach-omap2/hsmmc.c                        |  266 +++
- arch/arm/mach-omap2/{mmc-twl4030.h => hsmmc.h}     |   14 +-
- arch/arm/mach-omap2/i2c.c                          |    6 +-
- arch/arm/mach-omap2/id.c                           |    6 +
- arch/arm/mach-omap2/include/mach/am35xx.h          |   26 +
- arch/arm/mach-omap2/include/mach/board-sdp.h       |   21 +
- arch/arm/mach-omap2/include/mach/debug-macro.S     |  130 ++-
- arch/arm/mach-omap2/include/mach/entry-macro.S     |  128 ++-
- arch/arm/mach-omap2/io.c                           |  107 +-
- arch/arm/mach-omap2/mailbox.c                      |   47 +-
- arch/arm/mach-omap2/mcbsp.c                        |   24 +-
- arch/arm/mach-omap2/mmc-twl4030.c                  |  542 ------
- arch/arm/mach-omap2/mux.c                          |   52 +-
- arch/arm/mach-omap2/mux.h                          |    2 +-
- arch/arm/mach-omap2/omap_hwmod.c                   |  315 +++-
- .../{omap_hwmod_2420.h => omap_hwmod_2420_data.c}  |   38 +-
- .../{omap_hwmod_2430.h => omap_hwmod_2430_data.c}  |   38 +-
- arch/arm/mach-omap2/omap_hwmod_34xx.h              |  168 --
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  181 ++
- arch/arm/mach-omap2/omap_hwmod_common_data.c       |   68 +
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |   24 +
- arch/arm/mach-omap2/opp2xxx.h                      |    5 +
- arch/arm/mach-omap2/pm-debug.c                     |   25 +-
- arch/arm/mach-omap2/pm.h                           |   20 +
- arch/arm/mach-omap2/pm24xx.c                       |   54 +-
- arch/arm/mach-omap2/pm34xx.c                       |   43 +-
- arch/arm/mach-omap2/powerdomain.c                  |  776 +++-----
- arch/arm/mach-omap2/powerdomains.h                 |  134 +-
- arch/arm/mach-omap2/powerdomains24xx.h             |   91 +-
- arch/arm/mach-omap2/powerdomains34xx.h             |  159 +--
- arch/arm/mach-omap2/powerdomains44xx.h             |  310 ++++
- arch/arm/mach-omap2/prcm-common.h                  |    9 +
- arch/arm/mach-omap2/prcm.c                         |  114 +-
- arch/arm/mach-omap2/prm-regbits-44xx.h             | 1010 ++++++------
- arch/arm/mach-omap2/prm.h                          |   17 +-
- arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h     |   51 +
- arch/arm/mach-omap2/sdrc.c                         |   11 +-
- arch/arm/mach-omap2/serial.c                       |   80 +-
- arch/arm/mach-omap2/sleep34xx.S                    |   61 +-
- arch/arm/mach-omap2/timer-gp.c                     |    5 -
- arch/arm/mach-omap2/timer-mpu.c                    |    2 +-
- arch/arm/mach-omap2/usb-musb.c                     |   82 +-
- arch/arm/plat-omap/Kconfig                         |   57 +-
- arch/arm/plat-omap/clock.c                         |   52 +-
- arch/arm/plat-omap/common.c                        |   69 +-
- arch/arm/plat-omap/devices.c                       |   39 +-
- arch/arm/plat-omap/dma.c                           |   10 +-
- arch/arm/plat-omap/dmtimer.c                       |  126 +-
- arch/arm/plat-omap/gpio.c                          |  302 ++--
- arch/arm/plat-omap/i2c.c                           |   18 +-
- arch/arm/plat-omap/include/plat/clkdev_omap.h      |   26 +-
- arch/arm/plat-omap/include/plat/clock.h            |  100 +-
- arch/arm/plat-omap/include/plat/clockdomain.h      |   98 +-
- arch/arm/plat-omap/include/plat/common.h           |   24 +-
- arch/arm/plat-omap/include/plat/control.h          |   40 +-
- arch/arm/plat-omap/include/plat/cpu.h              |   92 +-
- arch/arm/plat-omap/include/plat/dma-44xx.h         |  147 ++
- arch/arm/plat-omap/include/plat/dma.h              |   86 +-
- arch/arm/plat-omap/include/plat/flash.h            |   16 +
- arch/arm/plat-omap/include/plat/gpmc.h             |    4 +-
- arch/arm/plat-omap/include/plat/i2c.h              |    5 +-
- arch/arm/plat-omap/include/plat/io.h               |   42 +-
- arch/arm/plat-omap/include/plat/irqs-44xx.h        |  144 ++
- arch/arm/plat-omap/include/plat/irqs.h             |  102 +-
- arch/arm/plat-omap/include/plat/mcbsp.h            |   72 +-
- arch/arm/plat-omap/include/plat/memory.h           |    3 +-
- arch/arm/plat-omap/include/plat/menelaus.h         |    2 +-
- arch/arm/plat-omap/include/plat/mmc.h              |   35 +-
- arch/arm/plat-omap/include/plat/multi.h            |   94 +
- arch/arm/plat-omap/include/plat/mux.h              |    2 +-
- arch/arm/plat-omap/include/plat/nand.h             |   10 +-
- arch/arm/plat-omap/include/plat/omap16xx.h         |   74 +-
- arch/arm/plat-omap/include/plat/omap24xx.h         |    6 +-
- arch/arm/plat-omap/include/plat/omap34xx.h         |    6 +-
- arch/arm/plat-omap/include/plat/omap44xx.h         |    3 +
- arch/arm/plat-omap/include/plat/omap_device.h      |   11 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h       |  138 ++-
- arch/arm/plat-omap/include/plat/powerdomain.h      |   95 +-
- arch/arm/plat-omap/include/plat/prcm.h             |   11 +-
- arch/arm/plat-omap/include/plat/serial.h           |   70 +-
- arch/arm/plat-omap/include/plat/uncompress.h       |  181 ++-
- arch/arm/plat-omap/include/plat/usb.h              |   11 +-
- arch/arm/plat-omap/io.c                            |    4 -
- arch/arm/plat-omap/iommu.c                         |    6 +-
- arch/arm/plat-omap/iopgtable.h                     |   50 +-
- arch/arm/plat-omap/mailbox.c                       |    8 +-
- arch/arm/plat-omap/mcbsp.c                         |  774 ++++++--
- arch/arm/plat-omap/omap_device.c                   |  102 +-
- arch/arm/plat-omap/sram.c                          |    2 +-
- drivers/char/hw_random/Kconfig                     |    2 +-
- drivers/mfd/Kconfig                                |    2 +-
- drivers/mmc/host/omap_hsmmc.c                      |  400 ++++-
- drivers/mtd/maps/Kconfig                           |    9 -
- drivers/mtd/maps/Makefile                          |    1 -
- drivers/mtd/maps/omap_nor.c                        |  188 --
- drivers/mtd/nand/omap2.c                           |   35 +-
- drivers/net/smc911x.h                              |    4 +-
- drivers/spi/Kconfig                                |    2 +-
- drivers/spi/omap2_mcspi.c                          |    2 +-
- drivers/usb/Kconfig                                |    2 +-
- drivers/usb/host/ehci-hcd.c                        |    2 +-
- drivers/usb/musb/Kconfig                           |    6 +-
- drivers/usb/musb/musb_core.c                       |    2 +-
- drivers/usb/musb/musb_core.h                       |    2 +-
- drivers/w1/masters/Kconfig                         |    2 +-
- drivers/watchdog/Kconfig                           |    2 +-
- include/linux/usb/musb.h                           |    3 +
- include/linux/usb/otg.h                            |   10 +
- sound/soc/omap/omap-mcbsp.c                        |  144 ++-
- sound/soc/omap/omap-mcbsp.h                        |    4 +-
- 206 files changed, 17707 insertions(+), 8571 deletions(-)
- create mode 100644 arch/arm/configs/devkit8000_defconfig
- create mode 100644 arch/arm/mach-omap1/flash.c
- create mode 100644 arch/arm/mach-omap2/board-devkit8000.c
- create mode 100644 arch/arm/mach-omap2/board-sdp-flash.c
- create mode 100644 arch/arm/mach-omap2/clkt2xxx_apll.c
- create mode 100644 arch/arm/mach-omap2/clkt2xxx_dpllcore.c
- create mode 100644 arch/arm/mach-omap2/clkt2xxx_osc.c
- create mode 100644 arch/arm/mach-omap2/clkt2xxx_sys.c
- create mode 100644 arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
- create mode 100644 arch/arm/mach-omap2/clkt34xx_dpll3m2.c
- create mode 100644 arch/arm/mach-omap2/clkt_clksel.c
- create mode 100644 arch/arm/mach-omap2/clkt_dpll.c
- copy arch/arm/mach-omap2/{clock2xxx_data.c => clock2420_data.c} (72%)
- create mode 100644 arch/arm/mach-omap2/clock2430.c
- rename arch/arm/mach-omap2/{clock2xxx_data.c => clock2430_data.c} (75%)
- create mode 100644 arch/arm/mach-omap2/clock3517.c
- create mode 100644 arch/arm/mach-omap2/clock3517.h
- create mode 100644 arch/arm/mach-omap2/clock36xx.c
- create mode 100644 arch/arm/mach-omap2/clock36xx.h
- create mode 100644 arch/arm/mach-omap2/clock3xxx.c
- create mode 100644 arch/arm/mach-omap2/clock3xxx.h
- rename arch/arm/mach-omap2/{clock34xx_data.c => clock3xxx_data.c} (80%)
- delete mode 100644 arch/arm/mach-omap2/clock44xx.c
- create mode 100644 arch/arm/mach-omap2/clockdomains44xx.h
- rename arch/arm/mach-omap2/{dpll.c => dpll3xxx.c} (85%)
- create mode 100644 arch/arm/mach-omap2/gpmc-nand.c
- create mode 100644 arch/arm/mach-omap2/hsmmc.c
- rename arch/arm/mach-omap2/{mmc-twl4030.h => hsmmc.h} (63%)
- create mode 100644 arch/arm/mach-omap2/include/mach/am35xx.h
- create mode 100644 arch/arm/mach-omap2/include/mach/board-sdp.h
- delete mode 100644 arch/arm/mach-omap2/mmc-twl4030.c
- rename arch/arm/mach-omap2/{omap_hwmod_2420.h => omap_hwmod_2420_data.c} (82%)
- rename arch/arm/mach-omap2/{omap_hwmod_2430.h => omap_hwmod_2430_data.c} (83%)
- delete mode 100644 arch/arm/mach-omap2/omap_hwmod_34xx.h
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_common_data.c
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_common_data.h
- create mode 100644 arch/arm/mach-omap2/powerdomains44xx.h
- create mode 100644 arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h
- create mode 100644 arch/arm/plat-omap/include/plat/dma-44xx.h
- create mode 100644 arch/arm/plat-omap/include/plat/flash.h
- create mode 100644 arch/arm/plat-omap/include/plat/irqs-44xx.h
- create mode 100644 arch/arm/plat-omap/include/plat/multi.h
+> There seems to be a trend lately in
+> device drivers to have a single platform device with either an array
+> of pointers or a list implementation to track the multiple instances
+> of the same device on a board.  McBSP is another example of this
+> approach.
+>
+> Why is that?  Is it a bad idea to have each SR instance be a separate
+> platform device?  Please let me know if my question is nuts.
+>
+> Mike
+>
+>>  -	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk))
+>> +	if (!sr_info) {
+>> +		pr_warning("omap_sr struct corresponding to SR1 not found\n");
+>> +		return 0;
+>> +	}
+>> +
+>> +	if (sr_info->vdd_opp_clk == NULL || IS_ERR(sr_info->vdd_opp_clk))
+>>  		return 0;
+>>  -	freq = sr1.vdd_opp_clk->rate;
+>> +	freq = sr_info->vdd_opp_clk->rate;
+>>  	opp = opp_find_freq_ceil(OPP_MPU, &freq);
+>>  	if (IS_ERR(opp))
+>>  		return 0;
+>> @@ -163,9 +187,9 @@ static u8 get_vdd1_opp(void)
+>>  	 * Use higher freq voltage even if an exact match is not available
+>>  	 * we are probably masking a clock framework bug, so warn
+>>  	 */
+>> -	if (unlikely(freq != sr1.vdd_opp_clk->rate))
+>> +	if (unlikely(freq != sr_info->vdd_opp_clk->rate))
+>>  		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
+>> -			   __func__, freq, sr1.vdd_opp_clk->rate);
+>> +			   __func__, freq, sr_info->vdd_opp_clk->rate);
+>>   	return opp_get_opp_id(opp);
+>>  }
+>> @@ -174,11 +198,17 @@ static u8 get_vdd2_opp(void)
+>>  {
+>>  	struct omap_opp *opp;
+>>  	unsigned long freq;
+>> +	struct omap_sr *sr_info = _sr_lookup(SR2);
+>> +
+>> +	if (!sr_info) {
+>> +		pr_warning("omap_sr struct corresponding to SR2 not found\n");
+>> +		return 0;
+>> +	}
+>>  -	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk))
+>> +	if (sr_info->vdd_opp_clk == NULL || IS_ERR(sr_info->vdd_opp_clk))
+>>  		return 0;
+>>  -	freq = sr2.vdd_opp_clk->rate;
+>> +	freq = sr_info->vdd_opp_clk->rate;
+>>  	opp = opp_find_freq_ceil(OPP_L3, &freq);
+>>  	if (IS_ERR(opp))
+>>  		return 0;
+>> @@ -187,9 +217,9 @@ static u8 get_vdd2_opp(void)
+>>  	 * Use higher freq voltage even if an exact match is not available
+>>  	 * we are probably masking a clock framework bug, so warn
+>>  	 */
+>> -	if (unlikely(freq != sr2.vdd_opp_clk->rate))
+>> +	if (unlikely(freq != sr_info->vdd_opp_clk->rate))
+>>  		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
+>> -			   __func__, freq, sr2.vdd_opp_clk->rate);
+>> +			   __func__, freq, sr_info->vdd_opp_clk->rate);
+>>  	return opp_get_opp_id(opp);
+>>  }
+>>  @@ -694,14 +724,13 @@ static void sr_disable(struct omap_sr *sr)
+>>   void sr_start_vddautocomap(int srid, u32 target_opp_no)
+>>  {
+>> -	struct omap_sr *sr = NULL;
+>> +	struct omap_sr *sr = _sr_lookup(srid);
+>>  -	if (srid == SR1)
+>> -		sr = &sr1;
+>> -	else if (srid == SR2)
+>> -		sr = &sr2;
+>> -	else
+>> +	if (!sr) {
+>> +		pr_warning("omap_sr struct corresponding to SR%d not found\n",
+>> +								srid);
+>>  		return;
+>> +	}
+>>   	if (sr->is_sr_reset == 1) {
+>>  		sr_clk_enable(sr);
+>> @@ -719,14 +748,13 @@ EXPORT_SYMBOL(sr_start_vddautocomap);
+>>   int sr_stop_vddautocomap(int srid)
+>>  {
+>> -	struct omap_sr *sr = NULL;
+>> +	struct omap_sr *sr = _sr_lookup(srid);
+>>  -	if (srid == SR1)
+>> -		sr = &sr1;
+>> -	else if (srid == SR2)
+>> -		sr = &sr2;
+>> -	else
+>> -		return -EINVAL;
+>> +	if (!sr) {
+>> +		pr_warning("omap_sr struct corresponding to SR%d not found\n",
+>> +								srid);
+>> +		return false;
+>> +	}
+>>   	if (sr->is_autocomp_active == 1) {
+>>  		sr_disable(sr);
+>> @@ -744,14 +772,13 @@ EXPORT_SYMBOL(sr_stop_vddautocomap);
+>>  void enable_smartreflex(int srid)
+>>  {
+>>  	u32 target_opp_no = 0;
+>> -	struct omap_sr *sr = NULL;
+>> +	struct omap_sr *sr = _sr_lookup(srid);
+>>  -	if (srid == SR1)
+>> -		sr = &sr1;
+>> -	else if (srid == SR2)
+>> -		sr = &sr2;
+>> -	else
+>> +	if (!sr) {
+>> +		pr_warning("omap_sr struct corresponding to SR%d not found\n",
+>> +								srid);
+>>  		return;
+>> +	}
+>>   	if (sr->is_autocomp_active == 1) {
+>>  		if (sr->is_sr_reset == 1) {
+>> @@ -779,15 +806,13 @@ void enable_smartreflex(int srid)
+>>  void disable_smartreflex(int srid)
+>>  {
+>>  	u32 i = 0;
+>> +	struct omap_sr *sr = _sr_lookup(srid);
+>>  -	struct omap_sr *sr = NULL;
+>> -
+>> -	if (srid == SR1)
+>> -		sr = &sr1;
+>> -	else if (srid == SR2)
+>> -		sr = &sr2;
+>> -	else
+>> +	if (!sr) {
+>> +		pr_warning("omap_sr struct corresponding to SR%d not found\n",
+>> +								srid);
+>>  		return;
+>> +	}
+>>   	if (sr->is_autocomp_active == 1) {
+>>  		if (sr->is_sr_reset == 0) {
+>> @@ -920,7 +945,13 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
+>>  static ssize_t omap_sr_vdd1_autocomp_show(struct kobject *kobj,
+>>  					struct kobj_attribute *attr, char *buf)
+>>  {
+>> -	return sprintf(buf, "%d\n", sr1.is_autocomp_active);
+>> +	struct omap_sr *sr_info = _sr_lookup(SR1);
+>> +
+>> +	if (!sr_info) {
+>> +		pr_warning("omap_sr struct corresponding to SR1 not found\n");
+>> +		return 0;
+>> +	}
+>> +	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
+>>  }
+>>   static ssize_t omap_sr_vdd1_autocomp_store(struct kobject *kobj,
+>> @@ -960,7 +991,13 @@ static struct kobj_attribute sr_vdd1_autocomp = {
+>>  static ssize_t omap_sr_vdd2_autocomp_show(struct kobject *kobj,
+>>  					struct kobj_attribute *attr, char *buf)
+>>  {
+>> -	return sprintf(buf, "%d\n", sr2.is_autocomp_active);
+>> +	struct omap_sr *sr_info = _sr_lookup(SR2);
+>> +
+>> +	if (!sr_info) {
+>> +		pr_warning("omap_sr struct corresponding to SR2 not found\n");
+>> +		return 0;
+>> +	}
+>> +	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
+>>  }
+>>   static ssize_t omap_sr_vdd2_autocomp_store(struct kobject *kobj,
+>> @@ -1010,7 +1047,6 @@ static int __init omap3_sr_init(void)
+>>  	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
+>>  	ret |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
+>>  				R_DCDC_GLOBAL_CFG);
+>> -
+>>  	if (cpu_is_omap34xx()) {
+>>  		sr1.clk = clk_get(NULL, "sr1_fck");
+>>  		sr2.clk = clk_get(NULL, "sr2_fck");
+>> @@ -1036,6 +1072,8 @@ static int __init omap3_sr_init(void)
+>>  	ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
+>>  	if (ret)
+>>  		pr_err("sysfs_create_file failed: %d\n", ret);
+>> +	list_add(&sr1.node, &sr_list);
+>> +	list_add(&sr2.node, &sr_list);
+>>   	return 0;
+>>  }
