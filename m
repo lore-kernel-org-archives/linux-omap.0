@@ -1,183 +1,99 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv6 1/9] OMAP3: PM: Added support functions for omap3 pwrdm handling
-Date: Tue, 02 Mar 2010 09:14:24 -0800
-Message-ID: <87d3zm1w9b.fsf@deeprootsystems.com>
-References: <1265999265-4363-1-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-2-git-send-email-tero.kristo@nokia.com>
-	<877hpvaaz5.fsf@deeprootsystems.com>
-	<1F18D6510CF0474A8C9500565A7E41A224BF70AF2C@NOK-EUMSG-02.mgdnok.nokia.com>
+Subject: Re: [PATCH v2] OMAP: DMA: Add API for setting channel dest addr
+Date: Tue, 02 Mar 2010 09:16:45 -0800
+Message-ID: <87635e1w5e.fsf@deeprootsystems.com>
+References: <1267536973-31296-1-git-send-email-manjugk@ti.com>
+	<618f0c911003020551p3af75870u16270b9b9ecb7d94@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:33329 "EHLO
+Received: from qw-out-2122.google.com ([74.125.92.26]:52807 "EHLO
 	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952Ab0CBRO2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 12:14:28 -0500
-Received: by qw-out-2122.google.com with SMTP id 5so87427qwd.37
-        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 09:14:27 -0800 (PST)
-In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A224BF70AF2C@NOK-EUMSG-02.mgdnok.nokia.com> (Tero Kristo's message of "Tue\, 2 Mar 2010 11\:20\:28 +0100")
+	with ESMTP id S1751776Ab0CBRQw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 12:16:52 -0500
+Received: by qw-out-2122.google.com with SMTP id 5so88121qwd.37
+        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 09:16:51 -0800 (PST)
+In-Reply-To: <618f0c911003020551p3af75870u16270b9b9ecb7d94@mail.gmail.com> (Venkatraman S.'s message of "Tue\, 2 Mar 2010 19\:21\:56 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: Manjunatha GK <manjugk@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
 
-<Tero.Kristo@nokia.com> writes:
+Venkatraman S <svenkatr@ti.com> writes:
 
->  
+> Manjunath,
 >
->>-----Original Message-----
->>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->>Sent: 02 March, 2010 01:17
->>To: Kristo Tero (Nokia-D/Tampere)
->>Cc: linux-omap@vger.kernel.org
->>Subject: Re: [PATCHv6 1/9] OMAP3: PM: Added support functions 
->>for omap3 pwrdm handling
+> On Tue, Mar 2, 2010 at 7:06 PM, Manjunatha GK <manjugk@ti.com> wrote:
+>> The new API - omap_set_dma_dst_pos(int lch, int value) is added
+>> for setting channel destination address in CPC/CDAC register
 >>
->>Tero Kristo <tero.kristo@nokia.com> writes:
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Cc: S, Venkatraman <svenkatr@ti.com>
+>> Signed-off-by: Manjunatha GK <manjugk@ti.com>
+>> Signed-off-by: Govindraj R <govindraj.raja@ti.com>
+>> ---
+>> =A0arch/arm/plat-omap/dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 17 ++++=
++++++++++++++
+>> =A0arch/arm/plat-omap/include/plat/dma.h | =A0 =A01 +
+>> =A02 files changed, 18 insertions(+), 0 deletions(-)
 >>
->>> From: Tero Kristo <tero.kristo@nokia.com>
->>>
->>> Added omap3_pwrdm_set_next_pwrst and 
->>omap3_pwrdm_read_next_pwrst. These
->>> functions add support for INACTIVE and ON states to the standard OMAP
->>> powerdomain functions, and add caching logic for the next 
->>state. These
->>> functions are used in subsequent patches to simplify the 
->>logic of the idle
->>> loop.
->>>
->>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->>> ---
->>>  arch/arm/mach-omap2/pm.h     |    2 +
->>>  arch/arm/mach-omap2/pm34xx.c |   60 
->>+++++++++++++++++++++++++++++++++++++++++-
->>>  2 files changed, 61 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
->>> index 75aa685..1d9a740 100644
->>> --- a/arch/arm/mach-omap2/pm.h
->>> +++ b/arch/arm/mach-omap2/pm.h
->>> @@ -67,6 +67,8 @@ static inline void omap3_pm_init_vc(struct 
->>prm_setup_vc *setup_vc)
->>>  
->>>  extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
->>>  extern int omap3_pm_set_suspend_state(struct powerdomain 
->>*pwrdm, int state);
->>> +extern int omap3_pwrdm_set_next_pwrst(struct powerdomain 
->>*pwrdm, u8 pwrst);
->>> +extern int omap3_pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
->>>  
->>>  extern u32 wakeup_timer_seconds;
->>>  extern struct omap_dm_timer *gptimer_wakeup;
->>> diff --git a/arch/arm/mach-omap2/pm34xx.c 
->>b/arch/arm/mach-omap2/pm34xx.c
->>> index 1359ec9..f20d3d8 100644
->>> --- a/arch/arm/mach-omap2/pm34xx.c
->>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>> @@ -576,6 +576,64 @@ int omap3_can_sleep(void)
->>>  	return 1;
->>>  }
->>>  
->>> +struct powerdomain_data {
->>> +	u8 next_state;
->>> +	u8 init_done;
->>> +};
->>> +
->>> +static struct powerdomain_data mpu_pwrdm_data;
->>> +static struct powerdomain_data core_pwrdm_data;
->>> +static struct powerdomain_data neon_pwrdm_data;
->>> +
->>> +static struct powerdomain_data *get_pwrdm_data(struct 
->>powerdomain *pwrdm)
->>> +{
->>> +	if (pwrdm == mpu_pwrdm)
->>> +		return &mpu_pwrdm_data;
->>> +	else if (pwrdm == core_pwrdm)
->>> +		return &core_pwrdm_data;
->>> +	else if (pwrdm == neon_pwrdm)
->>> +		return &neon_pwrdm_data;
->>> +	return NULL;
->>> +}
->>> +
->>> +int omap3_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+>> index 2ab224c..c73f11a 100644
+>> --- a/arch/arm/plat-omap/dma.c
+>> +++ b/arch/arm/plat-omap/dma.c
+>> @@ -1109,6 +1109,23 @@ dma_addr_t omap_get_dma_dst_pos(int lch)
+>> =A0}
+>> =A0EXPORT_SYMBOL(omap_get_dma_dst_pos);
 >>
->>I think this func should be documented along the lines of the 
->>changelog.
->>It should describe the caching and the fact that 'INACTIVE' is a state
->>that can be read, but not written.
+>> +/**
+>> + * omap_set_dma_dst_pos() - Set DMA channel destination address
+>> + * @arg1: =A0lch =A0 =A0 =A0DMA logical channel number
+>> + * @arg2: =A0value =A0 =A0Value to write into CDAC register
+>> + *
+>> + * Writes "value" into the register CPC/CDAC
+>> + */
+>> +void omap_set_dma_dst_pos(int lch, int value)
+>> +{
+>> + =A0 =A0 =A0 if (cpu_is_omap15xx())
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_write(value, CPC(lch));
+>> + =A0 =A0 =A0 else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_write(value, CDAC(lch));
+>> +
+>> +}
+>> +EXPORT_SYMBOL(omap_set_dma_dst_pos);
+>> +
+>> =A0int omap_get_dma_active_status(int lch)
+>> =A0{
+>> =A0 =A0 =A0 =A0return (dma_read(CCR(lch)) & OMAP_DMA_CCR_EN) !=3D 0;
+>> diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-o=
+map/include/plat/dma.h
+>> index 02232ca..3b6e43e 100644
+>> --- a/arch/arm/plat-omap/include/plat/dma.h
+>> +++ b/arch/arm/plat-omap/include/plat/dma.h
+>> @@ -509,6 +509,7 @@ extern int omap_set_dma_callback(int lch,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *data);
+>> =A0extern dma_addr_t omap_get_dma_src_pos(int lch);
+>> =A0extern dma_addr_t omap_get_dma_dst_pos(int lch);
+>> +extern void omap_set_dma_dst_pos(int lch, int value);
+>> =A0extern void omap_clear_dma(int lch);
+>> =A0extern int omap_get_dma_active_status(int lch);
+>> =A0extern int omap_dma_running(void);
+>> --
+>  CDAC is not the destination address, as the API seems to suggest.
+> CDSA (Channel Destination Start Address) is.
 >
-> Ok, will do the change.
->
->>> +{
->>> +	struct powerdomain_data *data = get_pwrdm_data(pwrdm);
->>> +	u8 prg_pwrst;
->>> +
->>> +	if (!data)
->>> +		return pwrdm_set_next_pwrst(pwrdm, pwrst);
->>> +
->>> +	if (!data->init_done)
->>> +		data->init_done = 1;
->>
->>Not sure I follow the purpose of the 'init_done' flag here, 
->>but I'm having
->>an averse reaction to it.
->
-> init_done actually means if the cache is valid or not. If not, we ignore the current cached state. Another way of doing this would be to initialize all values at proper point during boot by reading from HW, or just put the HW reset values to the cache during compile time. The cache validity bit is needed in the read_next_pwrst code also below.
+> CDAC is a running counter of the current transfer.
+> I propose to update the omap_start_dma to reset CDAC to 0 always.
 
-I'd rather see this done using init-time reads from the HW.
+I agree with Venkat.  I think having it reset for every transfer
+by default is the right way to handle this.
 
 Kevin
 
-
->>
->>> +	else if (data->next_state == pwrst)
->>> +		return 0;
->>> +
->>> +	if (pwrst == PWRDM_POWER_INACTIVE)
->>> +		prg_pwrst = PWRDM_POWER_ON;
->>> +	else
->>> +		prg_pwrst = pwrst;
->>> +
->>> +	pwrdm_set_next_pwrst(pwrdm, prg_pwrst);
->>> +
->>> +	if (pwrst == PWRDM_POWER_ON)
->>> +		omap2_clkdm_deny_idle(pwrdm->pwrdm_clkdms[0]);
->>> +	else
->>> +		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
->>> +
->>> +	data->next_state = pwrst;
->>> +	return 0;
->>> +}
->>> +
->>> +int omap3_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
->>> +{
->>> +	struct powerdomain_data *data = get_pwrdm_data(pwrdm);
->>> +
->>> +	if (!data || !data->init_done)
->>> +		return pwrdm_read_next_pwrst(pwrdm);
->>> +	return data->next_state;
->>> +}
->>> +
->>>  /* This sets pwrdm state (other than mpu & core. Currently only ON &
->>>   * RET are supported. Function is assuming that clkdm doesn't have
->>>   * hw_sup mode enabled. */
->>> @@ -604,7 +662,7 @@ int set_pwrdm_state(struct powerdomain 
->>*pwrdm, u32 state)
->>>  		pwrdm_wait_transition(pwrdm);
->>>  	}
->>>  
->>> -	ret = pwrdm_set_next_pwrst(pwrdm, state);
->>> +	ret = omap3_pwrdm_set_next_pwrst(pwrdm, state);
->>>  	if (ret) {
->>>  		printk(KERN_ERR "Unable to set state of 
->>powerdomain: %s\n",
->>>  		       pwrdm->name);
->>> -- 
->>> 1.5.4.3
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe 
->>linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
