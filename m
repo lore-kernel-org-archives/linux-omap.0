@@ -1,52 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: i2c: Add i2c support on omap4 platform
-Date: Tue, 2 Mar 2010 14:54:46 -0800
-Message-ID: <20100302225445.GA14164@atomide.com>
-References: <1266597180-25139-1-git-send-email-santosh.shilimkar@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C42E10AD@dbde02.ent.ti.com>
- <20100225214703.GJ28173@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF6C3@dbde02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C43BFC61@dbde02.ent.ti.com>
- <20100227204049.GK17041@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C43BFCFA@dbde02.ent.ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH 3/3] mmc: omap_hsmmc: enable SDIO card interrupts
+Date: Tue, 2 Mar 2010 15:29:33 -0800
+Message-ID: <5e088bd91003021529u23bf4fc7n22c04086b0323c2e@mail.gmail.com>
+References: <cover.1265801967.git.david.vrabel@csr.com>
+	 <004901cab001$6b19f6c0$544ff780@am.dhcp.ti.com>
+	 <4B7C4608.5010008@csr.com>
+	 <alpine.DEB.2.00.1002171254040.24812@utopia.booyaka.com>
+	 <4B7D3EAE.1010908@csr.com>
+	 <alpine.DEB.2.00.1002180951330.24812@utopia.booyaka.com>
+	 <004001cab0c9$b208b2b0$544ff780@am.dhcp.ti.com>
+	 <alpine.DEB.2.00.1002181231520.24812@utopia.booyaka.com>
+	 <5e088bd91002181416l33dc2fe4u8d2a09d12ea0344e@mail.gmail.com>
+	 <00cf01caba54$f39dba60$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53431 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752997Ab0CBWxl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 17:53:41 -0500
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C43BFCFA@dbde02.ent.ti.com>
+Received: from qw-out-2122.google.com ([74.125.92.26]:39680 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754350Ab0CBX3f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 18:29:35 -0500
+In-Reply-To: <00cf01caba54$f39dba60$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, Cory Maccarrone <darkstar6262@gmail.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, David Vrabel <david.vrabel@csr.com>, r-woodruff2@ti.com, sawant@ti.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100227 21:28]:
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Sunday, February 28, 2010 2:11 AM
-> > To: Shilimkar, Santosh
-> > Cc: ben-linux@fluff.org; linux-omap@vger.kernel.org; linux-i2c@vger.kernel.org; Syed, Rafiuddin; Cory
-> > Maccarrone; akpm@linux-foundation.org
-> > Subject: Re: [PATCH] omap: i2c: Add i2c support on omap4 platform
-> > 
-> > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [100226 20:05]:
-> > > Tony,
-> > > What we do with patch now? It's more almost 6 months that this patch is
-> > > floating without merge.
-> > 
-> > Well first we should test it for all omaps. So let's add it into
-> > omap-testing for a few days to make sure it does not break anything.
-> > 
-> > Then let's ask Ben to queue it.
-> > 
-> Ok with me.
+On Tue, Mar 2, 2010 at 2:08 PM, Madhusudhan <madhu.cr@ti.com> wrote:
 
-I've tried it out and seems to work just fine on 2420. I've applied
-it for testing into omap-testing (and master) branches now.
+>> That is correct, a Wi2Wi wifi module is connected via mmc2 on the
+>> Overo Air and Fire products.
 
-Would be nice to get an ack from people using 7xx too on this.
+> A dumb question. Is this Wi2Wi wifi module available as a standard SDIO card
+> which can be plugged into a SD card cage? Or is it specifically designed for
+> the gumstix board?
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+The module on Overo is soldered directly to the board. It is a
+standard part, not custom.  I am not aware if wi2wi also sells a SD
+version.
+
+Steve
