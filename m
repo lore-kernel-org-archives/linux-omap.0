@@ -1,104 +1,823 @@
 From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCHv3 3/4] Regulator: OMAP: Kconfig modified to select TWL4030 for OMAP3-platforms
-Date: Tue,  2 Mar 2010 15:59:53 +0530
-Message-ID: <1267525793-3220-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [PATCHv3 4/4] Regulator: OMAP: Use common regulator supplies and init data structs
+Date: Tue,  2 Mar 2010 16:00:00 +0530
+Message-ID: <1267525800-3264-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48878 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830Ab0CBKaD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 05:30:03 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:38909 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752163Ab0CBKaK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Mar 2010 05:30:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-Kconfig is modified so that PMIC TWL4030 is automatically selected for
-platforms using it. It is required to compile twl4030-pmic.c in the build.
+Removing the common supplies and regulator init data structs for various
+OMAP3 platforms and referring them from the twl4030 common file.
 
 Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c          |  135 ++-----------------------
+ arch/arm/mach-omap2/board-cm-t35.c           |   47 +--------
+ arch/arm/mach-omap2/board-igep0020.c         |   24 +----
+ arch/arm/mach-omap2/board-ldp.c              |   24 +----
+ arch/arm/mach-omap2/board-omap3beagle.c      |   47 +--------
+ arch/arm/mach-omap2/board-omap3evm.c         |   47 +--------
+ arch/arm/mach-omap2/board-omap3touchbook.c   |   47 +--------
+ arch/arm/mach-omap2/board-overo.c            |   23 +----
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   71 ++------------
+ 9 files changed, 47 insertions(+), 418 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 1974dda..f58f321 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -57,6 +57,7 @@ config MACH_OMAP3_BEAGLE
- 	bool "OMAP3 BEAGLE board"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CBB
-+	select PMIC_TWL4030
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index f312b15..e414371 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -47,6 +47,7 @@
+ #include "sdram-qimonda-hyb18m512160af-6.h"
+ #include "hsmmc.h"
+ #include "pm.h"
++#include "twl4030-pmic.h"
 
- config MACH_DEVKIT8000
-         bool "DEVKIT8000 board"
-@@ -66,16 +67,19 @@ config MACH_OMAP_LDP
- 	bool "OMAP3 LDP board"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CBB
-+	select PMIC_TWL4030
+ #define CONFIG_DISABLE_HFCLK 1
 
- config MACH_OVERO
- 	bool "Gumstix Overo board"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CBB
-+	select PMIC_TWL4030
+@@ -365,18 +366,6 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}	/* Terminator */
+ };
 
- config MACH_OMAP3EVM
- 	bool "OMAP 3530 EVM board"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CBB
-+	select PMIC_TWL4030
+-static struct regulator_consumer_supply sdp3430_vmmc1_supply = {
+-	.supply			= "vmmc",
+-};
+-
+-static struct regulator_consumer_supply sdp3430_vsim_supply = {
+-	.supply			= "vmmc_aux",
+-};
+-
+-static struct regulator_consumer_supply sdp3430_vmmc2_supply = {
+-	.supply			= "vmmc",
+-};
+-
+ static int sdp3430_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+@@ -390,9 +379,9 @@ static int sdp3430_twl_gpio_setup(struct device *dev,
+ 	/* link regulators to MMC adapters ... we "know" the
+ 	 * regulators will be set up only *after* we return.
+ 	 */
+-	sdp3430_vmmc1_supply.dev = mmc[0].dev;
+-	sdp3430_vsim_supply.dev = mmc[0].dev;
+-	sdp3430_vmmc2_supply.dev = mmc[1].dev;
++	twl4030_vmmc1_supply.dev = mmc[0].dev;
++	twl4030_vsim_supply.dev = mmc[0].dev;
++	twl4030_vmmc2_supply.dev = mmc[1].dev;
 
- config PMIC_TWL4030
- 	bool "TWL4030/TPS65950 Power Module"
-@@ -100,11 +104,13 @@ config MACH_OMAP3_TOUCHBOOK
- 	bool "OMAP3 Touch Book"
- 	depends on ARCH_OMAP3
- 	select BACKLIGHT_CLASS_DEVICE
-+	select PMIC_TWL4030
+ 	/* gpio + 7 is "sub_lcd_en_bkl" (output/PWM1) */
+ 	gpio_request(gpio + 7, "sub_lcd_en_bkl");
+@@ -422,108 +411,6 @@ static struct twl4030_madc_platform_data sdp3430_madc_data = {
+ 	.irq_line	= 1,
+ };
 
- config MACH_OMAP_3430SDP
- 	bool "OMAP 3430 SDP board"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CBB
-+	select PMIC_TWL4030
+-/*
+- * Apply all the fixed voltages since most versions of U-Boot
+- * don't bother with that initialization.
+- */
+-
+-/* VAUX1 for mainboard (irda and sub-lcd) */
+-static struct regulator_init_data sdp3430_vaux1 = {
+-	.constraints = {
+-		.min_uV			= 2800000,
+-		.max_uV			= 2800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-/* VAUX2 for camera module */
+-static struct regulator_init_data sdp3430_vaux2 = {
+-	.constraints = {
+-		.min_uV			= 2800000,
+-		.max_uV			= 2800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-/* VAUX3 for LCD board */
+-static struct regulator_init_data sdp3430_vaux3 = {
+-	.constraints = {
+-		.min_uV			= 2800000,
+-		.max_uV			= 2800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-/* VAUX4 for OMAP VDD_CSI2 (camera) */
+-static struct regulator_init_data sdp3430_vaux4 = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
+-static struct regulator_init_data sdp3430_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &sdp3430_vmmc1_supply,
+-};
+-
+-/* VMMC2 for MMC2 card */
+-static struct regulator_init_data sdp3430_vmmc2 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 1850000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &sdp3430_vmmc2_supply,
+-};
+-
+-/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
+-static struct regulator_init_data sdp3430_vsim = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 3000000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &sdp3430_vsim_supply,
+-};
+-
+ /* VDAC for DSS driving S-Video */
+ static struct regulator_init_data sdp3430_vdac = {
+ 	.constraints = {
+@@ -587,13 +474,13 @@ static struct twl4030_platform_data sdp3430_twldata = {
+ 	.usb		= &sdp3430_usb_data,
+ 	.codec		= &sdp3430_codec,
 
- config MACH_NOKIA_N800
-        bool
-@@ -131,27 +137,32 @@ config MACH_OMAP_ZOOM2
- 	bool "OMAP3 Zoom2 board"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CBB
-+	select PMIC_TWL4030
+-	.vaux1		= &sdp3430_vaux1,
+-	.vaux2		= &sdp3430_vaux2,
+-	.vaux3		= &sdp3430_vaux3,
+-	.vaux4		= &sdp3430_vaux4,
+-	.vmmc1		= &sdp3430_vmmc1,
+-	.vmmc2		= &sdp3430_vmmc2,
+-	.vsim		= &sdp3430_vsim,
++	.vaux1		= &twl4030_vaux1_data,
++	.vaux2		= &twl4030_vaux2_data,
++	.vaux3		= &twl4030_vaux3_data,
++	.vaux4		= &twl4030_vaux4_data,
++	.vmmc1		= &twl4030_vmmc1_data,
++	.vmmc2		= &twl4030_vmmc2_data,
++	.vsim		= &twl4030_vsim_data,
+ 	.vdac		= &sdp3430_vdac,
+ 	.vpll2		= &sdp3430_vpll2,
+ };
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index afa77ca..051c931 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -51,6 +51,7 @@
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "hsmmc.h"
++#include "twl4030-pmic.h"
 
- config MACH_OMAP_ZOOM3
- 	bool "OMAP3630 Zoom3 board"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CBP
-+	select PMIC_TWL4030
+ #define CM_T35_GPIO_PENDOWN	57
 
- config MACH_CM_T35
- 	bool "CompuLab CM-T35 module"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CUS
- 	select OMAP_MUX
-+	select PMIC_TWL4030
+@@ -494,14 +495,6 @@ out:
+ 	return;
+ }
 
- config MACH_IGEP0020
- 	bool "IGEP v2 board"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CBB
-+	select PMIC_TWL4030
+-static struct regulator_consumer_supply cm_t35_vmmc1_supply = {
+-	.supply			= "vmmc",
+-};
+-
+-static struct regulator_consumer_supply cm_t35_vsim_supply = {
+-	.supply			= "vmmc_aux",
+-};
+-
+ static struct regulator_consumer_supply cm_t35_vdac_supply = {
+ 	.supply		= "vdda_dac",
+ 	.dev		= &cm_t35_dss_device.dev,
+@@ -512,36 +505,6 @@ static struct regulator_consumer_supply cm_t35_vdvi_supply = {
+ 	.dev		= &cm_t35_dss_device.dev,
+ };
 
- config MACH_OMAP_3630SDP
- 	bool "OMAP3630 SDP board"
- 	depends on ARCH_OMAP3
- 	select OMAP_PACKAGE_CBP
-+	select PMIC_TWL4030
+-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+-static struct regulator_init_data cm_t35_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &cm_t35_vmmc1_supply,
+-};
+-
+-/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+-static struct regulator_init_data cm_t35_vsim = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 3000000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &cm_t35_vsim_supply,
+-};
+-
+ /* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+ static struct regulator_init_data cm_t35_vdac = {
+ 	.constraints = {
+@@ -645,8 +608,8 @@ static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
+ 	omap2_hsmmc_init(mmc);
 
- config MACH_OMAP_4430SDP
- 	bool "OMAP 4430 SDP board"
+ 	/* link regulators to MMC adapters */
+-	cm_t35_vmmc1_supply.dev = mmc[0].dev;
+-	cm_t35_vsim_supply.dev = mmc[0].dev;
++	twl4030_vmmc1_supply.dev = mmc[0].dev;
++	twl4030_vsim_supply.dev = mmc[0].dev;
+
+ 	/* setup USB with proper PHY reset GPIOs */
+ 	ehci_pdata.reset_gpio_port[0] = gpio + 6;
+@@ -672,8 +635,8 @@ static struct twl4030_platform_data cm_t35_twldata = {
+ 	.keypad		= &cm_t35_kp_data,
+ 	.usb		= &cm_t35_usb_data,
+ 	.gpio		= &cm_t35_gpio_data,
+-	.vmmc1		= &cm_t35_vmmc1,
+-	.vsim		= &cm_t35_vsim,
++	.vmmc1		= &twl4030_vmmc1_data,
++	.vsim		= &twl4030_vsim_data,
+ 	.vdac		= &cm_t35_vdac,
+ 	.vpll2		= &cm_t35_vpll2,
+ };
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 9958987..514697c 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -35,6 +35,7 @@
+ #include "mux.h"
+ #include "hsmmc.h"
+ #include "sdram-numonyx-m65kxxxxam.h"
++#include "twl4030-pmic.h"
+
+ #define IGEP2_SMSC911X_CS       5
+ #define IGEP2_SMSC911X_GPIO     176
+@@ -208,29 +209,10 @@ static inline void __init igep2_init_smsc911x(void) { }
+ static struct omap_board_config_kernel igep2_config[] __initdata = {
+ };
+
+-static struct regulator_consumer_supply igep2_vmmc1_supply = {
+-	.supply		= "vmmc",
+-};
+-
+ static struct regulator_consumer_supply igep2_vmmc2_supply = {
+ 	.supply		= "vmmc",
+ };
+
+-/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
+-static struct regulator_init_data igep2_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies  = 1,
+-	.consumer_supplies      = &igep2_vmmc1_supply,
+-};
+-
+ /* VMMC2 for OMAP VDD_MMC2 (i/o) and MMC2 WIFI */
+ static struct regulator_init_data igep2_vmmc2 = {
+ 	.constraints = {
+@@ -272,7 +254,7 @@ static int igep2_twl_gpio_setup(struct device *dev,
+ 	/* link regulators to MMC adapters ... we "know" the
+ 	 * regulators will be set up only *after* we return.
+ 	*/
+-	igep2_vmmc1_supply.dev = mmc[0].dev;
++	twl4030_vmmc1_supply.dev = mmc[0].dev;
+ 	igep2_vmmc2_supply.dev = mmc[1].dev;
+
+ 	return 0;
+@@ -411,7 +393,7 @@ static struct twl4030_platform_data igep2_twldata = {
+ 	.usb		= &igep2_usb_data,
+ 	.codec		= &igep2_codec_data,
+ 	.gpio		= &igep2_gpio_data,
+-	.vmmc1          = &igep2_vmmc1,
++	.vmmc1          = &twl4030_vmmc1_data,
+ 	.vmmc2		= &igep2_vmmc2,
+ 	.vpll2		= &igep2_vpll2,
+
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 5fcb52e..ed0154e 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -45,6 +45,7 @@
+
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "twl4030-pmic.h"
+
+ #define LDP_SMSC911X_CS		1
+ #define LDP_SMSC911X_GPIO	152
+@@ -310,25 +311,6 @@ static struct twl4030_madc_platform_data ldp_madc_data = {
+ 	.irq_line	= 1,
+ };
+
+-static struct regulator_consumer_supply ldp_vmmc1_supply = {
+-	.supply			= "vmmc",
+-};
+-
+-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+-static struct regulator_init_data ldp_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &ldp_vmmc1_supply,
+-};
+-
+ static struct twl4030_platform_data ldp_twldata = {
+ 	.irq_base	= TWL4030_IRQ_BASE,
+ 	.irq_end	= TWL4030_IRQ_END,
+@@ -336,7 +318,7 @@ static struct twl4030_platform_data ldp_twldata = {
+ 	/* platform_data for children goes here */
+ 	.madc		= &ldp_madc_data,
+ 	.usb		= &ldp_usb_data,
+-	.vmmc1		= &ldp_vmmc1,
++	.vmmc1		= &twl4030_vmmc1_data,
+ 	.gpio		= &ldp_gpio_data,
+ 	.keypad		= &ldp_kp_twl4030_data,
+ };
+@@ -404,7 +386,7 @@ static void __init omap_ldp_init(void)
+
+ 	omap2_hsmmc_init(mmc);
+ 	/* link regulators to MMC adapters */
+-	ldp_vmmc1_supply.dev = mmc[0].dev;
++	twl4030_vmmc1_supply.dev = mmc[0].dev;
+ }
+
+ static void __init omap_ldp_map_io(void)
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 6eb77e1..464bd14 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -46,6 +46,7 @@
+
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "twl4030-pmic.h"
+
+ #define GPMC_CS0_BASE  0x60
+ #define GPMC_CS_SIZE   0x30
+@@ -126,14 +127,6 @@ static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
+ 	.ctrl_name	= "internal",
+ };
+
+-static struct regulator_consumer_supply beagle_vmmc1_supply = {
+-	.supply			= "vmmc",
+-};
+-
+-static struct regulator_consumer_supply beagle_vsim_supply = {
+-	.supply			= "vmmc_aux",
+-};
+-
+ static struct gpio_led gpio_leds[];
+
+ static int beagle_twl_gpio_setup(struct device *dev,
+@@ -150,8 +143,8 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 	omap2_hsmmc_init(mmc);
+
+ 	/* link regulators to MMC adapters */
+-	beagle_vmmc1_supply.dev = mmc[0].dev;
+-	beagle_vsim_supply.dev = mmc[0].dev;
++	twl4030_vmmc1_supply.dev = mmc[0].dev;
++	twl4030_vsim_supply.dev = mmc[0].dev;
+
+ 	/* REVISIT: need ehci-omap hooks for external VBUS
+ 	 * power switch and overcurrent detect
+@@ -191,36 +184,6 @@ static struct regulator_consumer_supply beagle_vdvi_supply = {
+ 	.dev		= &omap3_beagle_lcd_device.dev,
+ };
+
+-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+-static struct regulator_init_data beagle_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &beagle_vmmc1_supply,
+-};
+-
+-/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+-static struct regulator_init_data beagle_vsim = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 3000000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &beagle_vsim_supply,
+-};
+-
+ /* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+ static struct regulator_init_data beagle_vdac = {
+ 	.constraints = {
+@@ -271,8 +234,8 @@ static struct twl4030_platform_data beagle_twldata = {
+ 	.usb		= &beagle_usb_data,
+ 	.gpio		= &beagle_gpio_data,
+ 	.codec		= &beagle_codec_data,
+-	.vmmc1		= &beagle_vmmc1,
+-	.vsim		= &beagle_vsim,
++	.vmmc1		= &twl4030_vmmc1_data,
++	.vsim		= &twl4030_vsim_data,
+ 	.vdac		= &beagle_vdac,
+ 	.vpll2		= &beagle_vpll2,
+ };
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index d6bc88c..61fb896 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -46,6 +46,7 @@
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "hsmmc.h"
++#include "twl4030-pmic.h"
+
+ #define OMAP3_EVM_TS_GPIO	175
+ #define OMAP3_EVM_EHCI_VBUS	22
+@@ -329,44 +330,6 @@ static struct platform_device omap3_evm_dss_device = {
+ 	},
+ };
+
+-static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
+-	.supply			= "vmmc",
+-};
+-
+-static struct regulator_consumer_supply omap3evm_vsim_supply = {
+-	.supply			= "vmmc_aux",
+-};
+-
+-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+-static struct regulator_init_data omap3evm_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &omap3evm_vmmc1_supply,
+-};
+-
+-/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+-static struct regulator_init_data omap3evm_vsim = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 3000000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &omap3evm_vsim_supply,
+-};
+-
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+@@ -410,8 +373,8 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
+ 	omap2_hsmmc_init(mmc);
+
+ 	/* link regulators to MMC adapters */
+-	omap3evm_vmmc1_supply.dev = mmc[0].dev;
+-	omap3evm_vsim_supply.dev = mmc[0].dev;
++	twl4030_vmmc1_supply.dev = mmc[0].dev;
++	twl4030_vsim_supply.dev = mmc[0].dev;
+
+ 	/*
+ 	 * Most GPIOs are for USB OTG.  Some are mostly sent to
+@@ -563,8 +526,8 @@ static int __init omap3_evm_i2c_init(void)
+ 	 * REVISIT: These entries can be set in omap3evm_twl_data
+ 	 * after a merge with MFD tree
+ 	 */
+-	omap3evm_twldata.vmmc1 = &omap3evm_vmmc1;
+-	omap3evm_twldata.vsim = &omap3evm_vsim;
++	omap3evm_twldata.vmmc1 = &twl4030_vmmc1_data;
++	omap3evm_twldata.vsim = &twl4030_vsim_data;
+
+ 	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
+ 			ARRAY_SIZE(omap3evm_i2c_boardinfo));
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 3943d0f..2388198 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -51,6 +51,7 @@
+
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "twl4030-pmic.h"
+
+ #include <asm/setup.h>
+
+@@ -140,14 +141,6 @@ static struct omap_lcd_config omap3_touchbook_lcd_config __initdata = {
+ 	.ctrl_name	= "internal",
+ };
+
+-static struct regulator_consumer_supply touchbook_vmmc1_supply = {
+-	.supply			= "vmmc",
+-};
+-
+-static struct regulator_consumer_supply touchbook_vsim_supply = {
+-	.supply			= "vmmc_aux",
+-};
+-
+ static struct gpio_led gpio_leds[];
+
+ static int touchbook_twl_gpio_setup(struct device *dev,
+@@ -164,8 +157,8 @@ static int touchbook_twl_gpio_setup(struct device *dev,
+ 	omap2_hsmmc_init(mmc);
+
+ 	/* link regulators to MMC adapters */
+-	touchbook_vmmc1_supply.dev = mmc[0].dev;
+-	touchbook_vsim_supply.dev = mmc[0].dev;
++	twl4030_vmmc1_supply.dev = mmc[0].dev;
++	twl4030_vsim_supply.dev = mmc[0].dev;
+
+ 	/* REVISIT: need ehci-omap hooks for external VBUS
+ 	 * power switch and overcurrent detect
+@@ -205,36 +198,6 @@ static struct regulator_consumer_supply touchbook_vdvi_supply = {
+ 	.dev		= &omap3_touchbook_lcd_device.dev,
+ };
+
+-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+-static struct regulator_init_data touchbook_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &touchbook_vmmc1_supply,
+-};
+-
+-/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+-static struct regulator_init_data touchbook_vsim = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 3000000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &touchbook_vsim_supply,
+-};
+-
+ /* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+ static struct regulator_init_data touchbook_vdac = {
+ 	.constraints = {
+@@ -285,8 +248,8 @@ static struct twl4030_platform_data touchbook_twldata = {
+ 	.usb		= &touchbook_usb_data,
+ 	.gpio		= &touchbook_gpio_data,
+ 	.codec		= &touchbook_codec_data,
+-	.vmmc1		= &touchbook_vmmc1,
+-	.vsim		= &touchbook_vsim,
++	.vmmc1		= &twl4030_vmmc1_data,
++	.vsim		= &twl4030_vsim_data,
+ 	.vdac		= &touchbook_vdac,
+ 	.vpll2		= &touchbook_vpll2,
+ };
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 50872a4..4707695 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -49,6 +49,7 @@
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "hsmmc.h"
++#include "twl4030-pmic.h"
+
+ #define OVERO_GPIO_BT_XGATE	15
+ #define OVERO_GPIO_W2W_NRESET	16
+@@ -290,16 +291,12 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}	/* Terminator */
+ };
+
+-static struct regulator_consumer_supply overo_vmmc1_supply = {
+-	.supply			= "vmmc",
+-};
+-
+ static int overo_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+ 	omap2_hsmmc_init(mmc);
+
+-	overo_vmmc1_supply.dev = mmc[0].dev;
++	twl4030_vmmc1_supply.dev = mmc[0].dev;
+
+ 	return 0;
+ }
+@@ -315,20 +312,6 @@ static struct twl4030_usb_data overo_usb_data = {
+ 	.usb_mode	= T2_USB_MODE_ULPI,
+ };
+
+-static struct regulator_init_data overo_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &overo_vmmc1_supply,
+-};
+-
+ static struct twl4030_codec_audio_data overo_audio_data = {
+ 	.audio_mclk = 26000000,
+ };
+@@ -346,7 +329,7 @@ static struct twl4030_platform_data overo_twldata = {
+ 	.gpio		= &overo_gpio_data,
+ 	.usb		= &overo_usb_data,
+ 	.codec		= &overo_codec_data,
+-	.vmmc1		= &overo_vmmc1,
++	.vmmc1		= &twl4030_vmmc1_data,
+ };
+
+ static struct i2c_board_info __initdata overo_i2c_boardinfo[] = {
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index ca95d8d..3796a92 100755
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -26,6 +26,7 @@
+
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "twl4030-pmic.h"
+
+ /* Zoom2 has Qwerty keyboard*/
+ static int board_keymap[] = {
+@@ -94,63 +95,6 @@ static struct twl4030_keypad_data zoom_kp_twl4030_data = {
+ 	.rep		= 1,
+ };
+
+-static struct regulator_consumer_supply zoom_vmmc1_supply = {
+-	.supply		= "vmmc",
+-};
+-
+-static struct regulator_consumer_supply zoom_vsim_supply = {
+-	.supply		= "vmmc_aux",
+-};
+-
+-static struct regulator_consumer_supply zoom_vmmc2_supply = {
+-	.supply		= "vmmc",
+-};
+-
+-/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
+-static struct regulator_init_data zoom_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies  = 1,
+-	.consumer_supplies      = &zoom_vmmc1_supply,
+-};
+-
+-/* VMMC2 for MMC2 card */
+-static struct regulator_init_data zoom_vmmc2 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 1850000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies  = 1,
+-	.consumer_supplies      = &zoom_vmmc2_supply,
+-};
+-
+-/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
+-static struct regulator_init_data zoom_vsim = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 3000000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies  = 1,
+-	.consumer_supplies      = &zoom_vsim_supply,
+-};
+-
+ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{
+ 		.name		= "external",
+@@ -181,9 +125,9 @@ static int zoom_twl_gpio_setup(struct device *dev,
+ 	/* link regulators to MMC adapters ... we "know" the
+ 	 * regulators will be set up only *after* we return.
+ 	*/
+-	zoom_vmmc1_supply.dev = mmc[0].dev;
+-	zoom_vsim_supply.dev = mmc[0].dev;
+-	zoom_vmmc2_supply.dev = mmc[1].dev;
++	twl4030_vmmc1_supply.dev = mmc[0].dev;
++	twl4030_vsim_supply.dev = mmc[0].dev;
++	twl4030_vmmc2_supply.dev = mmc[1].dev;
+
+ 	return 0;
+ }
+@@ -240,10 +184,9 @@ static struct twl4030_platform_data zoom_twldata = {
+ 	.gpio		= &zoom_gpio_data,
+ 	.keypad		= &zoom_kp_twl4030_data,
+ 	.codec		= &zoom_codec_data,
+-	.vmmc1          = &zoom_vmmc1,
+-	.vmmc2          = &zoom_vmmc2,
+-	.vsim           = &zoom_vsim,
+-
++	.vmmc1		= &twl4030_vmmc1_data,
++	.vmmc2		= &twl4030_vmmc2_data,
++	.vsim		= &twl4030_vsim_data,
+ };
+
+ static struct i2c_board_info __initdata zoom_i2c_boardinfo[] = {
 --
 1.6.2.4
 
