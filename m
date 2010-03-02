@@ -1,61 +1,104 @@
 From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCHv3 2/4] Regulator: OMAP: Modifying Kconfig/Makefile to choose from available PMICs
-Date: Tue,  2 Mar 2010 15:59:47 +0530
-Message-ID: <1267525787-3169-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [PATCHv3 3/4] Regulator: OMAP: Kconfig modified to select TWL4030 for OMAP3-platforms
+Date: Tue,  2 Mar 2010 15:59:53 +0530
+Message-ID: <1267525793-3220-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48873 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:48878 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646Ab0CBK37 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 05:29:59 -0500
+	with ESMTP id S1751830Ab0CBKaD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 05:30:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-Kconfig is modified for OMAP3 EVM so that user can choose the appropriate
-PMIC (currently only TWL4030). Config options for other PMICs will be
-added later on.
-Makefile is modified so that twl4030-pmic.c gets compiled for the
-platforms having TWL4030 as the PMIC.
+Kconfig is modified so that PMIC TWL4030 is automatically selected for
+platforms using it. It is required to compile twl4030-pmic.c in the build.
 
 Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig  |    9 +++++++++
- arch/arm/mach-omap2/Makefile |    1 +
- 2 files changed, 10 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Kconfig |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index a8a3d1e..1974dda 100644
+index 1974dda..f58f321 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -77,6 +77,15 @@ config MACH_OMAP3EVM
+@@ -57,6 +57,7 @@ config MACH_OMAP3_BEAGLE
+ 	bool "OMAP3 BEAGLE board"
  	depends on ARCH_OMAP3
  	select OMAP_PACKAGE_CBB
++	select PMIC_TWL4030
 
-+config PMIC_TWL4030
-+	bool "TWL4030/TPS65950 Power Module"
-+	default y
-+	select TWL4030_CORE
-+	select REGULATOR_TWL4030 if REGULATOR
-+	help
-+	  Say yes here if you are using the TWL4030/TPS65950 based power module
-+	  for the EVM boards.
-+
- config MACH_OMAP3517EVM
- 	bool "OMAP3517/ AM3517 EVM board"
+ config MACH_DEVKIT8000
+         bool "DEVKIT8000 board"
+@@ -66,16 +67,19 @@ config MACH_OMAP_LDP
+ 	bool "OMAP3 LDP board"
  	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 2069fb3..c33e24d 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -137,6 +137,7 @@ obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK)	+= board-omap3touchbook.o \
- 					   hsmmc.o
-+obj-$(CONFIG_PMIC_TWL4030)		+= twl4030-pmic.o
- obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
+ 	select OMAP_PACKAGE_CBB
++	select PMIC_TWL4030
 
- obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
+ config MACH_OVERO
+ 	bool "Gumstix Overo board"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CBB
++	select PMIC_TWL4030
+
+ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CBB
++	select PMIC_TWL4030
+
+ config PMIC_TWL4030
+ 	bool "TWL4030/TPS65950 Power Module"
+@@ -100,11 +104,13 @@ config MACH_OMAP3_TOUCHBOOK
+ 	bool "OMAP3 Touch Book"
+ 	depends on ARCH_OMAP3
+ 	select BACKLIGHT_CLASS_DEVICE
++	select PMIC_TWL4030
+
+ config MACH_OMAP_3430SDP
+ 	bool "OMAP 3430 SDP board"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CBB
++	select PMIC_TWL4030
+
+ config MACH_NOKIA_N800
+        bool
+@@ -131,27 +137,32 @@ config MACH_OMAP_ZOOM2
+ 	bool "OMAP3 Zoom2 board"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CBB
++	select PMIC_TWL4030
+
+ config MACH_OMAP_ZOOM3
+ 	bool "OMAP3630 Zoom3 board"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CBP
++	select PMIC_TWL4030
+
+ config MACH_CM_T35
+ 	bool "CompuLab CM-T35 module"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CUS
+ 	select OMAP_MUX
++	select PMIC_TWL4030
+
+ config MACH_IGEP0020
+ 	bool "IGEP v2 board"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CBB
++	select PMIC_TWL4030
+
+ config MACH_OMAP_3630SDP
+ 	bool "OMAP3630 SDP board"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_PACKAGE_CBP
++	select PMIC_TWL4030
+
+ config MACH_OMAP_4430SDP
+ 	bool "OMAP 4430 SDP board"
 --
 1.6.2.4
 
