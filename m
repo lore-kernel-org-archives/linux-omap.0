@@ -1,57 +1,94 @@
-From: Manjunatha GK <manjugk@ti.com>
-Subject: [PATCH] OMAP: DMA: Init CDAC to Zero
-Date: Wed,  3 Mar 2010 15:25:18 +0530
-Message-ID: <1267610118-30748-1-git-send-email-manjugk@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48779 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754359Ab0CCJgx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Mar 2010 04:36:53 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: RE: [PATCH] mmc: omap_hsmmc: Fix conditional locking
+Date: Wed, 3 Mar 2010 11:16:25 +0100 (CET)
+Message-ID: <alpine.LFD.2.00.1003030756120.4245@localhost.localdomain>
+References: <alpine.LFD.2.00.1003011952470.4245@localhost.localdomain> <010101caba72$1dd1d790$544ff780@am.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <010101caba72$1dd1d790$544ff780@am.dhcp.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'LKML' <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Manjunatha GK <manjugk@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-The register DMA4_CDAC needs to be initialized to zero
-before starting DMA transfer.
+On Tue, 2 Mar 2010, Madhusudhan wrote:
+> > Conditional locking on (!in_interrupt()) is broken by design and there
+> > is no reason to keep the host->irq_lock across the call to
+> > mmc_request_done(). Also the host->protect_card magic hack does not
+> > depend on the context
+> > 
+> 
+> Can you please elaborate why the existing logic is broken?
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Govindraj R <govindraj.raja@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Reported-by:S, Venkatraman <svenkatr@ti.com>
-Signed-off-by: Manjunatha GK <manjugk@ti.com>
----
-It was aligned to reset CDAC to zero in omap_start_dma(int lch)
-instead of creating new API for accessing CDAC register.
+Locks are only to be held to serialize data or state. 
 
-Discussion thread is at:
-http://patchwork.kernel.org/patch/83176/
-http://patchwork.kernel.org/patch/82948/
+The mmc_request_done() call does _NOT_ require that at all. So
+dropping the lock there is the right thing to do.
 
+Also conditional locking on in_interrupt() is generally a nono as it
+relies on assumptions which are not necessarily true in all
+circumstances. Just one simple example: interrupt threading will make
+it explode nicely and it did already with the realtime patches
+applied.
 
- arch/arm/plat-omap/dma.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+Such code constructs prevent us to do generic changes to the kernel
+behaviour without any real good reason.
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 2ab224c..96741d4 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -936,6 +936,14 @@ void omap_start_dma(int lch)
- {
- 	u32 l;
+> It locks at the new request and unlocks just before issuing the cmd. Further
+> IRQ handler has these calls hence the !in_interrupt check.
+
+Aside of the conditional locking I have several issues with that code:
+
+1) The code flow is massively unreadable:
+
+   omap_hsmmc_start_command()
+   {
+	.....
+	if (!in_interrupt())
+	   spin_unlock_irq();
+   }
  
-+	/* CPC/CDAC register needs to be initialized to zero
-+	 * before starting dma transfer.
-+	 */
-+	if (cpu_is_omap15xx())
-+		dma_write(0, CPC(lch));
-+	else
-+		dma_write(0, CDAC(lch));
-+
- 	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
- 		int next_lch, cur_lch;
- 		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
--- 
-1.6.0.4
+   omap_hsmmc_request()
+   {
+	if (!in_interrupt())
+	   spin_lock_irq();
 
+	omap_hsmmc_start_command();
+   }
+
+We generally want to see the lock/unlock pairs in one function and not
+having to figure out where the heck unlock happens.
+
+2) The point of unlocking is patently wrong
+
+   omap_hsmmc_start_command()
+   {
+	.....
+	if (!in_interrupt())
+	   spin_unlock_irq();
+--->
+	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
+--->
+        OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
+   }
+
+What happens, if you get a spurious interrupt here ? Same for SMP,
+though you are probably protected by the core mmc code request
+serialization there.
+
+> How does this patch improve that? In fact with your patch for a data
+> transfer cmd there are several lock-unlock calls.
+
+1) The patch simply removes conditional locking and moves the lock
+   sections to those places which protect something. Aside of that it
+   makes the code easier to understand.
+
+2) What's the point of not having those lock/unlocks ? On UP the
+   spinlock is a NOOP anyway, so you won't even notice. On SMP you
+   won't notice either, simply because the lock is cache hot and
+   almost never contended.
+
+Thanks,
+
+	tglx
