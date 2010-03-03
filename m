@@ -1,100 +1,78 @@
-From: hari n <hari.zoom@gmail.com>
-Subject: Re: [PATCH] Add support for packet synchronised sDMA transfers.
-Date: Wed, 3 Mar 2010 07:02:40 -0600
-Message-ID: <2183bec21003030502y4e29d943o49b85cba937922a0@mail.gmail.com>
-References: <1267611658-18946-1-git-send-email-f-goucem@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: [PATCHv2 5/5] ASoC: OMAP3: Report delay caused by the
+	internal FIFO
+Date: Wed,  3 Mar 2010 15:08:09 +0200
+Message-ID: <1267621689-30337-7-git-send-email-peter.ujfalusi@nokia.com>
+References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:40742 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753815Ab0CCNCo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 08:02:44 -0500
-Received: by wwa36 with SMTP id 36so745685wwa.19
-        for <linux-omap@vger.kernel.org>; Wed, 03 Mar 2010 05:02:41 -0800 (PST)
-In-Reply-To: <1267611658-18946-1-git-send-email-f-goucem@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: broonie@opensource.wolfsonmicro.com, tony@atomide.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, ext-eero.nurkkala@nokia.com, lrg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
-To: Fabrice Goucem <f-goucem@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-I believe, packet mode is already supported in the current DMA driver.
-Both the FS and BS bits of the CCR are set when packet mode is
-selected. This is because, enum for OMAP_DMA_SYNC_PACKET is '0x03'
-(i.e OMAP_DMA_SYNC_FRAME | OMAP_DMA_SYNC_BLOCK).
+Use the new delay calback function to report the delay through
+ALSA for application caused by the internal FIFO.
 
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+---
+ sound/soc/omap/omap-mcbsp.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
 
-On Wed, Mar 3, 2010 at 4:20 AM, Fabrice Goucem <f-goucem@ti.com> wrote:
-> System DMA packet synchronisation is currently not supported in the
-> Linux Kernel.
-> This patch provides necessary modifications to support packet
-> synchronisation:
-> Function omap_set_dma_transfer_params() handles value OMAP_DMA_SYNC_P=
-ACKET
-> to program FS and BS bits of register CCR.
-> Users can give the packet size to the DMA driver by using parameters
-> src_fi / dst_fi in functions omap_set_dma_src_params() /
-> omap_set_dma_dest_params().
->
-> Patch has been validated using OMAP's McSPI (on Zoom2, OMAP3430):
-> McSPI is configured to use DMA transfer.
-> FIFO are activated with a threshold of 16 bytes (i.e. DMA requests wi=
-ll be
-> triggered as soon as more than 16 bytes are free in the FIFO).
-> A frame of 132 elements (bytes) has been transfered, by packets of 16
-> elements. Resulting transfer was 8 packets of 16 elements plus a last=
- packet
-> of 4 elements.
->
-> Modifications tested building on OMAP2, OMAP3 and OMAP4 configuration=
-s.
->
-> Signed-off-by: Fabrice Goucem <f-goucem@ti.com>
-> Acked-by: Venkatraman S <svenkatr@ti.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Shilpa Maddi <s-maddi@ti.com>
-> ---
-> =A0arch/arm/plat-omap/dma.c | =A0 =A06 ++++--
-> =A01 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 2ab224c..48f9355 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -293,12 +293,14 @@ void omap_set_dma_transfer_params(int lch, int =
-data_type, int elem_count,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0val |=3D (dma_trigger & ~0x1f) << 14;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0val |=3D dma_trigger & 0x1f;
->
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (sync_mode & OMAP_DMA_SYNC_FRAME)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if ((sync_mode =3D=3D OMAP_DMA_SYNC_FRA=
-ME) ||
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (sync_mode =3D=3D OMAP_DMA_SYNC=
-_PACKET))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0val |=3D 1 << 5;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0val &=3D ~(1 << 5);
->
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (sync_mode & OMAP_DMA_SYNC_BLOCK)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if ((sync_mode =3D=3D OMAP_DMA_SYNC_BLO=
-CK) ||
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (sync_mode =3D=3D OMAP_DMA_SYNC=
-_PACKET))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0val |=3D 1 << 18;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0val &=3D ~(1 << 18);
-> --
-> 1.6.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index e814a95..2952fb0 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -256,6 +256,31 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
+ 	return err;
+ }
+ 
++static snd_pcm_sframes_t omap_mcbsp_dai_delay(
++			struct snd_pcm_substream *substream,
++			struct snd_soc_dai *dai)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
++	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
++	u16 fifo_use;
++	snd_pcm_sframes_t delay;
++
++	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
++		fifo_use = omap_mcbsp_get_tx_delay(mcbsp_data->bus_id);
++	else
++		fifo_use = omap_mcbsp_get_rx_delay(mcbsp_data->bus_id);
++
++	/*
++	 * Divide the used locations with the channel count to get the
++	 * FIFO usage in samples (don't care about partial samples in the
++	 * buffer).
++	 */
++	delay = fifo_use / substream->runtime->channels;
++
++	return delay;
++}
++
+ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 				    struct snd_pcm_hw_params *params,
+ 				    struct snd_soc_dai *dai)
+@@ -607,6 +632,7 @@ static struct snd_soc_dai_ops omap_mcbsp_dai_ops = {
+ 	.startup	= omap_mcbsp_dai_startup,
+ 	.shutdown	= omap_mcbsp_dai_shutdown,
+ 	.trigger	= omap_mcbsp_dai_trigger,
++	.delay		= omap_mcbsp_dai_delay,
+ 	.hw_params	= omap_mcbsp_dai_hw_params,
+ 	.set_fmt	= omap_mcbsp_dai_set_dai_fmt,
+ 	.set_clkdiv	= omap_mcbsp_dai_set_clkdiv,
+-- 
+1.7.0
