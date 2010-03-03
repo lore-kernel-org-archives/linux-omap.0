@@ -1,120 +1,40 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: About multicore OMAP
-Date: Wed, 3 Mar 2010 19:28:17 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C457743E@dbde02.ent.ti.com>
-References: <31ee32481002230504m2cc4dfebu85426681e76b4ee@mail.gmail.com>
-	 <31ee32481002230620p40c15a10s86bf17fbacff9e94@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E1545@dbde02.ent.ti.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E15B9@dbde02.ent.ti.com>
-	 <31ee32481002232045s6cbebab1x4184b175c6595f6@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C42E16F4@dbde02.ent.ti.com>
-	 <31ee32481002250607j34f18276s5d478b5756543a55@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF4F5@dbde02.ent.ti.com>
-	 <31ee32481002250627r6509c52ds46765baafec3828f@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C43BF512@dbde02.ent.ti.com>
- <31ee32481003030556w19911048v5c7e4624f7b649d3@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH] OMAP3: PM: Enable wake-up from McBSP2,
+	3 and 4 modules
+Date: Wed, 3 Mar 2010 16:08:30 +0200
+Message-ID: <201003031608.30444.peter.ujfalusi@nokia.com>
+References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1267621689-30337-3-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58920 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754301Ab0CCN6W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Mar 2010 08:58:22 -0500
-In-Reply-To: <31ee32481003030556w19911048v5c7e4624f7b649d3@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1267621689-30337-3-git-send-email-peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Jacob john <jacob.john74@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYWNvYiBqb2huIFttYWlsdG86
-amFjb2Iuam9objc0QGdtYWlsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBNYXJjaCAwMywgMjAx
-MCA3OjI3IFBNDQo+IFRvOiBTaGlsaW1rYXIsIFNhbnRvc2gNCj4gQ2M6IGxpbnV4LW9tYXBAdmdl
-ci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBBYm91dCBtdWx0aWNvcmUgT01BUA0KPiANCj4g
-T24gVGh1LCBGZWIgMjUsIDIwMTAgYXQgODowNCBQTSwgU2hpbGlta2FyLCBTYW50b3NoDQo+IDxz
-YW50b3NoLnNoaWxpbWthckB0aS5jb20+IHdyb3RlOg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3Nh
-Z2UtLS0tLQ0KPiA+PiBGcm9tOiBKYWNvYiBqb2huIFttYWlsdG86amFjb2Iuam9objc0QGdtYWls
-LmNvbV0NCj4gPj4gU2VudDogVGh1cnNkYXksIEZlYnJ1YXJ5IDI1LCAyMDEwIDc6NTggUE0NCj4g
-Pj4gVG86IFNoaWxpbWthciwgU2FudG9zaA0KPiA+PiBDYzogbGludXgtb21hcEB2Z2VyLmtlcm5l
-bC5vcmcNCj4gPj4gU3ViamVjdDogUmU6IEFib3V0IG11bHRpY29yZSBPTUFQDQo+ID4+DQo+ID4+
-IE9uIFRodSwgRmViIDI1LCAyMDEwIGF0IDc6NDUgUE0sIFNoaWxpbWthciwgU2FudG9zaA0KPiA+
-PiA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPiB3cm90ZToNCj4gPj4gPj4gLS0tLS1PcmlnaW5h
-bCBNZXNzYWdlLS0tLS0NCj4gPj4gPj4gRnJvbTogSmFjb2Igam9obiBbbWFpbHRvOmphY29iLmpv
-aG43NEBnbWFpbC5jb21dDQo+ID4+ID4+IFNlbnQ6IFRodXJzZGF5LCBGZWJydWFyeSAyNSwgMjAx
-MCA3OjM3IFBNDQo+ID4+ID4+IFRvOiBTaGlsaW1rYXIsIFNhbnRvc2gNCj4gPj4gPj4gQ2M6IGxp
-bnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+ID4+ID4+IFN1YmplY3Q6IFJlOiBBYm91dCBtdWx0
-aWNvcmUgT01BUA0KPiA+PiA+Pg0KPiA+PiA+PiBPbiBXZWQsIEZlYiAyNCwgMjAxMCBhdCAxMDoy
-NCBBTSwgU2hpbGlta2FyLCBTYW50b3NoDQo+ID4+ID4+IDxzYW50b3NoLnNoaWxpbWthckB0aS5j
-b20+IHdyb3RlOg0KPiA+PiA+PiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiA+
-PiA+PiBGcm9tOiBKYWNvYiBqb2huIFttYWlsdG86amFjb2Iuam9objc0QGdtYWlsLmNvbV0NCj4g
-Pj4gPj4gPj4gU2VudDogV2VkbmVzZGF5LCBGZWJydWFyeSAyNCwgMjAxMCAxMDoxNiBBTQ0KPiA+
-PiA+PiA+PiBUbzogU2hpbGlta2FyLCBTYW50b3NoDQo+ID4+ID4+ID4+IENjOiBsaW51eC1vbWFw
-QHZnZXIua2VybmVsLm9yZw0KPiA+PiA+PiA+PiBTdWJqZWN0OiBSZTogQWJvdXQgbXVsdGljb3Jl
-IE9NQVANCj4gPj4gPj4gPj4NCj4gPj4gPj4gPj4gT24gVHVlLCBGZWIgMjMsIDIwMTAgYXQgMTA6
-MjAgUE0sIFNoaWxpbWthciwgU2FudG9zaA0KPiA+PiA+PiA+PiA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPiB3cm90ZToNCj4gPj4gPj4gPj4gPiBKb2huLA0KPiA+PiA+PiA+PiA+PiAtLS0tLU9y
-aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiA+PiA+PiA+PiBGcm9tOiBsaW51eC1vbWFwLW93bmVy
-QHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3Jn
-XSBPbg0KPiBCZWhhbGYNCj4gPj4gT2YNCj4gPj4gPj4gPj4gPj4gU2hpbGlta2FyLCBTYW50b3No
-DQo+ID4+ID4+ID4+ID4+IFNlbnQ6IFR1ZXNkYXksIEZlYnJ1YXJ5IDIzLCAyMDEwIDg6MDEgUE0N
-Cj4gPj4gPj4gPj4gPj4gVG86IEphY29iIGpvaG4NCj4gPj4gPj4gPj4gPj4gQ2M6IGxpbnV4LW9t
-YXBAdmdlci5rZXJuZWwub3JnDQo+ID4+ID4+ID4+ID4+IFN1YmplY3Q6IFJFOiBBYm91dCBtdWx0
-aWNvcmUgT01BUA0KPiA+PiA+PiA+PiA+Pg0KPiA+PiA+PiA+PiA+PiA+IC0tLS0tT3JpZ2luYWwg
-TWVzc2FnZS0tLS0tDQo+ID4+ID4+ID4+ID4+ID4gRnJvbTogSmFjb2Igam9obiBbbWFpbHRvOmph
-Y29iLmpvaG43NEBnbWFpbC5jb21dDQo+ID4+ID4+ID4+ID4+ID4gU2VudDogVHVlc2RheSwgRmVi
-cnVhcnkgMjMsIDIwMTAgNzo1MSBQTQ0KPiA+PiA+PiA+PiA+PiA+IFRvOiBTaGlsaW1rYXIsIFNh
-bnRvc2gNCj4gPj4gPj4gPj4gPj4gPiBDYzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4g
-Pj4gPj4gPj4gPj4gPiBTdWJqZWN0OiBSZTogQWJvdXQgbXVsdGljb3JlIE9NQVANCj4gPj4gPj4g
-Pj4gPj4gPg0KPiA+PiA+PiA+PiA+PiA+IEl0J3PCoEJsYXplIHdpdGjCoHR3byBsY2QncyBhbmQg
-cGljbywgbG9va3MgZ3JlYXQuIENhbiBJIGhhdmUgdGhpcw0KPiA+PiA+PiA+PiA+PiA+IGxpbnV4
-LW9tYXAga2VybmVsIHJ1bm5pbmcgb24gT01BUDQ/LCBwbHVzIEknbSBsb29raW5nIGZvciBTTVAN
-Cj4gPj4gPj4gPj4gPj4gPiBiZW5jaG1hcmsgcmVzdWx0cyBldGMuDQo+ID4+ID4+ID4+ID4+ID4N
-Cj4gPj4gPj4gPj4gPj4gTGludXgtb21hcCBrZXJuZWwgd2l0aCBvbWFwXzQ0MzBzZHBfZGVmY29u
-ZmlnIHdpbGwgYm9vdCBvbiBibGF6ZSB3aXRoIFNNUC4gVGhpcw0KPiA+PiA+PiA+PiA+PiB3b24n
-dCBoYXZlIGxvdCBvZiBkcml2ZXIgc3VwcG9ydCBhcyBzdWNoIGN1cnJlbnRseS4gQWxzbyBMMiBj
-YWNoZSBzdXBwb3J0IGlzIGluDQo+ID4+ID4+ID4+ID4+IG9uIHRoZSB3YXkgdG8gbWFrZSBpdCB0
-byBtYWlubGluZSBhcyB3ZWxsLiBZb3Ugc2hvdWxkIGJlIGFibGUgdG8gcGxheSB3aXRoIHRoaXMN
-Cj4gPj4gPj4gPj4gPj4gd2l0aCBzb21lIGJhc2ljIGJlbmNobWFyayB0ZXN0IHJlbGF0ZWQgdG8g
-Q1BVLg0KPiA+PiA+PiA+PiA+Pg0KPiA+PiA+PiA+PiA+PiBEaXNwbGF5ICwgQXVkaW8sIFBpY28s
-IGtleXBhZCwgdG91Y2hzY3JlZWVuIGV0YyBkcml2ZXJzIGFyZSBhdmFpbGFibGUgd2l0aCB0aGUN
-Cj4gPj4gPj4gPj4gPj4gcmVsZWFzZSBhbmQgeW91IHNob3VsZCBiZSBhYmxlIGdldCBtb3JlIGRl
-dGFpbHMgZnJvbSB0aGUgVEkgY29udGFjdCBwZXJzb24gd2hvDQo+ID4+ID4+ID4+ID4+IGdhdmUg
-eW91IHRoZSBibGF6ZS4gWW91IGNhbiBhbHNvIGdldCB0aGUgcGVyZm9ybWFuY2UgbnVtYmVycyBm
-cm9tIHNhbWUgc291cmNlDQo+ID4+ID4+ID4+ID4+DQo+ID4+ID4+ID4+ID4gSWYgeW91IG5lZWQg
-dGhlIGZ1bGwga2VybmVsIHdpdGggYWxsIHRoZSBkcml2ZXJzIEkgbWVudGlvbmVkIGFib3ZlLCB5
-b3UgY2FuIHVzZQ0KPiA+PiA+PiA+PiA+IGJlbG93IGdpdC4NCj4gPj4gPj4gPj4gPiBodHRwOi8v
-ZGV2Lm9tYXB6b29tLm9yZy8/cD1pbnRlZ3JhdGlvbi9rZXJuZWwtb21hcDQuZ2l0O2E9c2hvcnRs
-b2c7aD1yZWZzL2hlYWRzL0wyNC40DQo+ID4+ID4+ID4+DQo+ID4+ID4+ID4+IEdvb2QgaGVscCBz
-byBmYXIuLi4uLi4sIHdvbmRlcmluZyB3aHkgdHdvIHRyZWVzIGZvciBPTUFQNCwgdGVsbCBtZSB0
-aGUNCj4gPj4gPj4gPj4gZGlmZiBiL24gdGhpcyBsaXN0IGFuZCB0aGUgem9vbS4NCj4gPj4gPj4g
-Pj4gaXMgdGhlcmUgYSBkaWZmZXJlbnQgbWFpbGluZyBsaXN0IGZvciB6b29tPyBjb25mdXNpbmcu
-Li4gYW5kIEkgYW0NCj4gPj4gPj4gPj4gc29ycnkuLi4udGhhbmtzIGZvciB0aGUgcG9pbnRlcnMN
-Cj4gPj4gPj4gPj4NCj4gPj4gPj4gPiBUaGUgbWFpbGluZyBsaXN0IGlzIG9ubHkgb25lIChMaW51
-eC1vbWFwKS4gVGhlcmUgaXMgbm8gZGlmZmVyZW5jZS4gTGludXgtb21hcA0KPiA+PiA+PiA+IHRy
-ZWUgaXMgYWxtb3N0IG1haW5saW5lIGVxdWl2YWxlbnQgZnJvbSBvbWFwNCBwb2ludCBvZiB2aWV3
-LiBUaGUgZmVhdHVyZXMgYXJlIGRldmVsb3BlZA0KPiA+PiA+PiA+IG9uIHRoZSB0cmVlIEkgbWVu
-dGlvbmVkIGFib3ZlLiBUaGUgdGVzdGVkIGZlYXR1cmVzIHdpbGwgYmUgdXAtc3RyZWFtZWQgYWZ0
-ZXIgcmViYXNpbmcNCj4gPj4gPj4gPiBvbmUgYnkgb25lLiBZb3Ugd2lsbCBmaW5kIG9ubHkgdXBz
-dHJlYW1lZC9saW5lZC11cCBmZWF0dXJlcyBpbiBsaW51eC1vbWFwIHRyZWUuDQo+ID4+ID4+ID4N
-Cj4gPj4gPj4gVGhhbmtzIFNlbnRvc2ggZm9yIHlvdXIgaGVscCwgd2hhdCBkbyB5b3UgYWR2aXNl
-PyB5b3UgYWx3YXlzIHdhbnRlZCBtZQ0KPiA+PiA+PiB0byBnbyB0byB6b29tLCBzbyBJIGRvbid0
-IGhhdmUgdG8gcHVsbCBmcm9tIExpbnV4LW9tYXAuDQo+ID4+ID4+IFdoZW4gSSBzaG91bGQgdXNl
-IHpvb20gYW5kIHdoZW4gSSBzaG91bGQgY29tZSBiYWNrIHRvIExpbnV4LW9tYXA/DQo+ID4+ID4+
-IHBsZWFzZSBjbGFyaWZ5LiBHb29kIHdheSB0byBhc2sgIndoaWNoIGlzIGxhdGVzdD8iIDopDQo+
-ID4+ID4+IEkgYW0gc29ycnksIEkgYW0gY29uZnVzZWQuLi4uaGVscCBtZQ0KPiA+PiA+Pg0KPiA+
-PiA+IFRoZSBkZXYub21hcHpvb20ub3JnIHRyZWVzIGdldHMgdXBkYXRlZCByZWd1bGFybHkgd2l0
-aCBsaW51eC1vbWFwL21haW5pbmxlLiBTbyBiYXNpY2FsbHkNCj4gPj4gPiBpdCBpcyAoIExpbnV4
-LW9tYXAtbWFzdGVyICsgwqBBZGRpdGlvbmFsIGRyaXZlcnMgaW5jbHVkaW5nIElQQykuIFNvIHlv
-dSBjYW4gdXNlIHRoZQ0KPiA+PiA+IGdpdCBhdmFpbGFibGUgb24gZGV2Lm9tYXB6b29tLm9yZy4g
-VGhpcyB3aWxsIGVuYWJsZSB5b3UgdG8gaGF2ZSBhbGwgdGhlIGRyaXZlcnMgaW4NCj4gPj4gPiBv
-bmUgdHJlZS4NCj4gPj4NCj4gPj4gU291bmRzIGdyZWF0LCBhcHByZWNpYXRlIHRoaXMsIFRJIGdh
-dmUgQW5kcm9pZCBrZXJuZWwsIHNvIGZyb20NCj4gPj4gb21hcHpvb20gSSBnZXQgQW5kcm9pZCBr
-ZXJuZWw/DQo+ID4+IHBsZWFzZSBzaGFyZSBHSVQgdXJsIHBhdGggZm9yIHRoZSBzYW1lLCBhbnkg
-cmVhZG1lIGlzIHRoZXJlIGxpa2UNCj4gPj4gTGludXgtb21hcD8gdGhhbmtzIGZvciB5b3VyIGhl
-bHANCj4gPj4gPg0KPiA+IEhlcmUgaXMgdGhlIGxpbmsgZm9yIHRoZSBhbmRyb2lkIGdpdC4NCj4g
-PiBodHRwOi8vZGV2Lm9tYXB6b29tLm9yZy8/cD12aWtyYW0vb21hcDMuZ2l0O2E9c2hvcnRsb2c7
-aD1yZWZzL2hlYWRzL2FuZHJvaWQtMi42LjMyLW9tYXA0DQo+IFNlbnRvc2gsIGNhbiBJIGhhdmUg
-dWJvb3QgbGluayBmb3Igb21hcDQsIHRoYW5rcyBmb3IgeW91ciBoZWxwLg0KDQpodHRwOi8vZGV2
-Lm9tYXB6b29tLm9yZy8/cD1ib290bG9hZGVyL3UtYm9vdC5naXQ7YT1zaG9ydGxvZztoPXJlZnMv
-aGVhZHMvb21hcDRfZGV2DQoNClJlZ2FyZHMsDQpTYW50b3NoDQo=
+On Wednesday 03 March 2010 15:08:05 Ujfalusi Peter (Nokia-D/Tampere) wrote:
+> Wake-up from McBSP ports are needed, especially when the THRESHOLD
+> dma mode is in use for audio playback.
+> =
+
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+
+Hmmm, please disregard this patch, I have forgot to clean up the directory.
+This has been already taken for 2.6.33 kernel.
+Only the [PATCHv2] prefix is valid for this series.
+Sorry for the noise.
+
+-- =
+
+P=E9ter
