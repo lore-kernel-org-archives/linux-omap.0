@@ -1,50 +1,41 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH] OMAP3: PM: Enable wake-up from McBSP2, 3 and 4 modules
-Date: Wed,  3 Mar 2010 15:08:05 +0200
-Message-ID: <1267621689-30337-3-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [PATCHv2 1/5] ASoC: core: fix tailing whitespace in soc_pcm_apply_symmetry
+Date: Wed,  3 Mar 2010 15:08:04 +0200
+Message-ID: <1267621689-30337-2-git-send-email-peter.ujfalusi@nokia.com>
 References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:32549 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753912Ab0CCNIi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 08:08:38 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:34224 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753874Ab0CCNJT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 08:09:19 -0500
 In-Reply-To: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: broonie@opensource.wolfsonmicro.com, tony@atomide.com
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, jhnikula@gmail.com, ext-eero.nurkkala@nokia.com
 
-Wake-up from McBSP ports are needed, especially when the THRESHOLD
-dma mode is in use for audio playback.
+My editor removes the tailing spaces, which causes problems when
+changing the soc-core.c
+Removing the space.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ sound/soc/soc-core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 81ed252..6b17647 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -878,12 +878,16 @@ static void __init prcm_setup_regs(void)
- 	/* Enable wakeups in PER */
- 	prm_write_mod_reg(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
- 			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
--			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3,
-+			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3 |
-+			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
-+			  OMAP3430_EN_MCBSP4,
- 			  OMAP3430_PER_MOD, PM_WKEN);
- 	/* and allow them to wake up MPU */
- 	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
- 			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
--			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3,
-+			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3 |
-+			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
-+			  OMAP3430_EN_MCBSP4,
- 			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index a03bac9..37c872e 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -315,7 +315,7 @@ static int soc_pcm_apply_symmetry(struct snd_pcm_substream *substream)
  
- 	/* Don't attach IVA interrupts */
+ 	if (codec_dai->symmetric_rates || cpu_dai->symmetric_rates ||
+ 	    machine->symmetric_rates) {
+-		dev_dbg(card->dev, "Symmetry forces %dHz rate\n", 
++		dev_dbg(card->dev, "Symmetry forces %dHz rate\n",
+ 			machine->rate);
+ 
+ 		ret = snd_pcm_hw_constraint_minmax(substream->runtime,
 -- 
-1.6.5.3
+1.7.0
 
