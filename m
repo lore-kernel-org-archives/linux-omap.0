@@ -1,130 +1,79 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCHv2 4/5] OMAP3: McBSP: Add interface for FIFO caused delay query
-Date: Wed,  3 Mar 2010 15:08:08 +0200
-Message-ID: <1267621689-30337-6-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [PATCHv2 2/5] ASoC: core: soc level wrapper for
+	pcm_pointer callback
+Date: Wed,  3 Mar 2010 15:08:06 +0200
+Message-ID: <1267621689-30337-4-git-send-email-peter.ujfalusi@nokia.com>
 References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:32540 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753907Ab0CCNIf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 08:08:35 -0500
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: broonie@opensource.wolfsonmicro.com, tony@atomide.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, jhnikula@gmail.com, ext-eero.nurkkala@nokia.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, ext-eero.nurkkala@nokia.com, lrg@slimlogic.co.uk
+List-Id: linux-omap@vger.kernel.org
 
-New functions for querying the FIFO caused delay on both
-TX and RX path.
-On TX path the return value shows the number of used
-locations in the FIFO.
-On RX papth it returns the number of locations to be filled
-to reach the threshold value (DMA will be triggered to read
-the data out from the FIFO).
+Create a soc level wrapper for pcm_pointer callback.
+This will facilitate the soc level handling of different
+HW buffers in the audio path.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
- arch/arm/plat-omap/include/plat/mcbsp.h |    6 +++
- arch/arm/plat-omap/mcbsp.c              |   55 +++++++++++++++++++++++++++++++
- 2 files changed, 61 insertions(+), 0 deletions(-)
+ sound/soc/soc-core.c |   19 ++++++++++++++++++-
+ 1 files changed, 18 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 3974835..1bd7021 100644
---- a/arch/arm/plat-omap/include/plat/mcbsp.h
-+++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -149,6 +149,8 @@
- #define OMAP_MCBSP_REG_WAKEUPEN	0xA8
- #define OMAP_MCBSP_REG_XCCR	0xAC
- #define OMAP_MCBSP_REG_RCCR	0xB0
-+#define OMAP_MCBSP_REG_XBUFFSTAT	0xB4
-+#define OMAP_MCBSP_REG_RBUFFSTAT	0xB8
- #define OMAP_MCBSP_REG_SSELCR	0xBC
- 
- #define OMAP_ST_REG_REV		0x00
-@@ -471,6 +473,8 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold);
- void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold);
- u16 omap_mcbsp_get_max_tx_threshold(unsigned int id);
- u16 omap_mcbsp_get_max_rx_threshold(unsigned int id);
-+u16 omap_mcbsp_get_tx_delay(unsigned int id);
-+u16 omap_mcbsp_get_rx_delay(unsigned int id);
- int omap_mcbsp_get_dma_op_mode(unsigned int id);
- #else
- static inline void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
-@@ -479,6 +483,8 @@ static inline void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
- { }
- static inline u16 omap_mcbsp_get_max_tx_threshold(unsigned int id) { return 0; }
- static inline u16 omap_mcbsp_get_max_rx_threshold(unsigned int id) { return 0; }
-+static inline u16 omap_mcbsp_get_tx_delay(unsigned int id) { return 0; }
-+static inline u16 omap_mcbsp_get_rx_delay(unsigned int id) { return 0; }
- static inline int omap_mcbsp_get_dma_op_mode(unsigned int id) { return 0; }
- #endif
- int omap_mcbsp_request(unsigned int id);
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index e47686e..5e6d309 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -561,6 +561,61 @@ u16 omap_mcbsp_get_max_rx_threshold(unsigned int id)
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index 37c872e..de5223d 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -797,6 +797,23 @@ static int soc_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
+ 	return 0;
  }
- EXPORT_SYMBOL(omap_mcbsp_get_max_rx_threshold);
  
-+#define MCBSP2_FIFO_SIZE	0x500 /* 1024 + 256 locations */
-+#define MCBSP1345_FIFO_SIZE	0x80  /* 128 locations */
 +/*
-+ * omap_mcbsp_get_tx_delay returns the number of used slots in the McBSP FIFO
++ * soc level wrapper for pointer callback
 + */
-+u16 omap_mcbsp_get_tx_delay(unsigned int id)
++static snd_pcm_uframes_t soc_pcm_pointer(struct snd_pcm_substream *substream)
 +{
-+	struct omap_mcbsp *mcbsp;
-+	u16 buffstat;
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_device *socdev = rtd->socdev;
++	struct snd_soc_card *card = socdev->card;
++	struct snd_soc_platform *platform = card->platform;
++	snd_pcm_uframes_t offset = 0;
 +
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
++	if (platform->pcm_ops->pointer)
++		offset = platform->pcm_ops->pointer(substream);
 +
-+	/* Returns the number of free locations in the buffer */
-+	buffstat = MCBSP_READ(mcbsp, XBUFFSTAT);
-+
-+	/* Number of slots are different in McBSP ports */
-+	if (mcbsp->id == 2)
-+		return MCBSP2_FIFO_SIZE - buffstat;
-+	else
-+		return MCBSP1345_FIFO_SIZE - buffstat;
++	return offset;
 +}
-+EXPORT_SYMBOL(omap_mcbsp_get_tx_delay);
 +
-+/*
-+ * omap_mcbsp_get_rx_delay returns the number of free slots in the McBSP FIFO
-+ * to reach the threshold value (when the DMA will be triggered to read it)
-+ */
-+u16 omap_mcbsp_get_rx_delay(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	u16 buffstat, threshold;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	/* Returns the number of used locations in the buffer */
-+	buffstat = MCBSP_READ(mcbsp, RBUFFSTAT);
-+	/* RX threshold */
-+	threshold = MCBSP_READ(mcbsp, THRSH1);
-+
-+	/* Return the number of location till we reach the threshold limit */
-+	if (threshold <= buffstat)
-+		return 0;
-+	else
-+		return threshold - buffstat;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_get_rx_delay);
-+
- /*
-  * omap_mcbsp_get_dma_op_mode just return the current configured
-  * operating mode for the mcbsp channel
+ /* ASoC PCM operations */
+ static struct snd_pcm_ops soc_pcm_ops = {
+ 	.open		= soc_pcm_open,
+@@ -805,6 +822,7 @@ static struct snd_pcm_ops soc_pcm_ops = {
+ 	.hw_free	= soc_pcm_hw_free,
+ 	.prepare	= soc_pcm_prepare,
+ 	.trigger	= soc_pcm_trigger,
++	.pointer	= soc_pcm_pointer,
+ };
+ 
+ #ifdef CONFIG_PM
+@@ -1331,7 +1349,6 @@ static int soc_new_pcm(struct snd_soc_device *socdev,
+ 	dai_link->pcm = pcm;
+ 	pcm->private_data = rtd;
+ 	soc_pcm_ops.mmap = platform->pcm_ops->mmap;
+-	soc_pcm_ops.pointer = platform->pcm_ops->pointer;
+ 	soc_pcm_ops.ioctl = platform->pcm_ops->ioctl;
+ 	soc_pcm_ops.copy = platform->pcm_ops->copy;
+ 	soc_pcm_ops.silence = platform->pcm_ops->silence;
 -- 
 1.7.0
-
