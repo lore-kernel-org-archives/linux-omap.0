@@ -1,78 +1,109 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCHv2 5/5] ASoC: OMAP3: Report delay caused by the
-	internal FIFO
-Date: Wed,  3 Mar 2010 15:08:09 +0200
-Message-ID: <1267621689-30337-7-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [PATCHv2 3/5] ASoC: core: Add delay operation to snd_soc_dai_ops
+Date: Wed,  3 Mar 2010 15:08:07 +0200
+Message-ID: <1267621689-30337-5-git-send-email-peter.ujfalusi@nokia.com>
 References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:32536 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753815Ab0CCNIf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 08:08:35 -0500
 In-Reply-To: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: broonie@opensource.wolfsonmicro.com, tony@atomide.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, ext-eero.nurkkala@nokia.com, lrg@slimlogic.co.uk
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, tony@atomide.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, jhnikula@GMAIL.COM, ext-eero.nurkkala@nokia.com
 
-Use the new delay calback function to report the delay through
-ALSA for application caused by the internal FIFO.
+The delay callback can be used by the core to query the delay
+on the dai caused by FIFO or delay in the platform side.
+In case if both CPU and CODEC dai has FIFO the delay reported
+by each will be added to form the full delay on the chain.
+If none of the dai has FIFO, than the delay will be kept as
+zero.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
- sound/soc/omap/omap-mcbsp.c |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
+ include/sound/soc-dai.h |    6 ++++++
+ include/sound/soc.h     |    7 +++++++
+ sound/soc/soc-core.c    |   18 ++++++++++++++++++
+ 3 files changed, 31 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index e814a95..2952fb0 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -256,6 +256,31 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
- 	return err;
+diff --git a/include/sound/soc-dai.h b/include/sound/soc-dai.h
+index 061f16d..be9cd47 100644
+--- a/include/sound/soc-dai.h
++++ b/include/sound/soc-dai.h
+@@ -182,6 +182,12 @@ struct snd_soc_dai_ops {
+ 		struct snd_soc_dai *);
+ 	int (*trigger)(struct snd_pcm_substream *, int,
+ 		struct snd_soc_dai *);
++	/*
++	 * For hardware based FIFO caused delay reporting.
++	 * Optional.
++	 */
++	snd_pcm_sframes_t (*delay)(struct snd_pcm_substream *,
++		struct snd_soc_dai *);
+ };
+ 
+ /*
+diff --git a/include/sound/soc.h b/include/sound/soc.h
+index 5d234a8..c010824 100644
+--- a/include/sound/soc.h
++++ b/include/sound/soc.h
+@@ -469,6 +469,13 @@ struct snd_soc_platform {
+ 		struct snd_pcm *);
+ 	void (*pcm_free)(struct snd_pcm *);
+ 
++	/*
++	 * For platform caused delay reporting.
++	 * Optional.
++	 */
++	snd_pcm_sframes_t (*delay)(struct snd_pcm_substream *,
++		struct snd_soc_dai *);
++
+ 	/* platform stream ops */
+ 	struct snd_pcm_ops *pcm_ops;
+ };
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index de5223d..e9c2dc1 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -799,6 +799,8 @@ static int soc_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
+ 
+ /*
+  * soc level wrapper for pointer callback
++ * If cpu_dai, codec_dai, platform driver has the delay callback, than
++ * the runtime->delay will be updated accordingly.
+  */
+ static snd_pcm_uframes_t soc_pcm_pointer(struct snd_pcm_substream *substream)
+ {
+@@ -806,11 +808,27 @@ static snd_pcm_uframes_t soc_pcm_pointer(struct snd_pcm_substream *substream)
+ 	struct snd_soc_device *socdev = rtd->socdev;
+ 	struct snd_soc_card *card = socdev->card;
+ 	struct snd_soc_platform *platform = card->platform;
++	struct snd_soc_dai_link *machine = rtd->dai;
++	struct snd_soc_dai *cpu_dai = machine->cpu_dai;
++	struct snd_soc_dai *codec_dai = machine->codec_dai;
++	struct snd_pcm_runtime *runtime = substream->runtime;
+ 	snd_pcm_uframes_t offset = 0;
++	snd_pcm_sframes_t delay = 0;
+ 
+ 	if (platform->pcm_ops->pointer)
+ 		offset = platform->pcm_ops->pointer(substream);
+ 
++	if (cpu_dai->ops->delay)
++		delay += cpu_dai->ops->delay(substream, cpu_dai);
++
++	if (codec_dai->ops->delay)
++		delay += codec_dai->ops->delay(substream, codec_dai);
++
++	if (platform->delay)
++		delay += platform->delay(substream, codec_dai);
++
++	runtime->delay = delay;
++
+ 	return offset;
  }
  
-+static snd_pcm_sframes_t omap_mcbsp_dai_delay(
-+			struct snd_pcm_substream *substream,
-+			struct snd_soc_dai *dai)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-+	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
-+	u16 fifo_use;
-+	snd_pcm_sframes_t delay;
-+
-+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-+		fifo_use = omap_mcbsp_get_tx_delay(mcbsp_data->bus_id);
-+	else
-+		fifo_use = omap_mcbsp_get_rx_delay(mcbsp_data->bus_id);
-+
-+	/*
-+	 * Divide the used locations with the channel count to get the
-+	 * FIFO usage in samples (don't care about partial samples in the
-+	 * buffer).
-+	 */
-+	delay = fifo_use / substream->runtime->channels;
-+
-+	return delay;
-+}
-+
- static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 				    struct snd_pcm_hw_params *params,
- 				    struct snd_soc_dai *dai)
-@@ -607,6 +632,7 @@ static struct snd_soc_dai_ops omap_mcbsp_dai_ops = {
- 	.startup	= omap_mcbsp_dai_startup,
- 	.shutdown	= omap_mcbsp_dai_shutdown,
- 	.trigger	= omap_mcbsp_dai_trigger,
-+	.delay		= omap_mcbsp_dai_delay,
- 	.hw_params	= omap_mcbsp_dai_hw_params,
- 	.set_fmt	= omap_mcbsp_dai_set_dai_fmt,
- 	.set_clkdiv	= omap_mcbsp_dai_set_clkdiv,
 -- 
 1.7.0
+
