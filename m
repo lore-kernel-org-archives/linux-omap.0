@@ -1,38 +1,58 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv2 0/5] FIFO caused playback delay (latency)
-	handling in	soc/omap
-Date: Wed, 3 Mar 2010 13:38:07 +0000
-Message-ID: <20100303133806.GA15105@sirena.org.uk>
-References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
+Date: Wed, 3 Mar 2010 19:08:31 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026ED96A2E@dbde02.ent.ti.com>
+References: <1267536955-31268-1-git-send-email-manjugk@ti.com>
+ <A24693684029E5489D1D202277BE894453B624B1@dlee02.ent.ti.com>
+  <E0D41E29EB0DAC4E9F3FF173962E9E94026ED966D3@dbde02.ent.ti.com>
+ <A24693684029E5489D1D202277BE894453C080DC@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: alsa-devel@alsa-project.org, tony@atomide.com, ext-eero.nurkkala@nokia.com, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44413 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752288Ab0CCNig convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 08:38:36 -0500
+In-Reply-To: <A24693684029E5489D1D202277BE894453C080DC@dlee02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Aguirre, Sergio" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
-On Wed, Mar 03, 2010 at 03:08:03PM +0200, Peter Ujfalusi wrote:
 
-> Peter Ujfalusi (5):
->   ASoC: core: fix tailing whitespace in soc_pcm_apply_symmetry
->   ASoC: core: soc level wrapper for pcm_pointer callback
->   ASoC: core: Add delay operation to snd_soc_dai_ops
 
-I'll apply these just now, thanks!
+> > To update further, it seems to be working on zoom3 with ttyS0
+> > with following combination of patches:
+> > 
+> > 1.
+> > [RFC,part2,v1,4/4] omap3: zoom 2/3: Change debugboard serial port id
+> > [RFC,part2,v1,3/4] omap3: 3630sdp: Explicitly enable all UARTs
+> > [RFC,part2,v1,2/4] omap3: zoom2/3 / 3630sdp: Don't init 
+> always all uarts
+> > [RFC,part2,v1,1/4] omap2/3/4: serial: rename omap_serial_init
+> > 
+> > 2.
+> > [RESEND,PATCH/RFC] OMAP2: serial.c: Fix number of uarts in 
+> early_init
+> > 
+> > 3.
+> > [RFC,v3,6/6] omap3: serial: Fix uart4 handling for 3630
+> > [RFC,v3,5/6] OMAP3: PRCM: Consider UART4 for 3630 chip in 
+> prcm_setup_regs
+> > [RFC,v3,4/6] OMAP clock: Add uart4_ick/fck definitions for 3630
+> > [RFC,v3,3/6] ARM: OMAP3630: PRCM: Add UART4 control bits
+> > [RFC,v3,2/6] omap2/3/4: serial: Remove condition for 
+> getting uart4_phys
+> > [RFC,v3,1/6] OMAP3: serial: Check for zero-based physical addr
+> 
+> Yeah, that should be the total patchlist applied.
+> 
+> I'm assuming you're applying from bottom to top order in your 
+> list above...
 
->   OMAP3: McBSP: Add interface for FIFO caused delay query
->   ASoC: OMAP3: Report delay caused by the internal FIFO
+Yes. But, you will be dropping v1 part2 series right?
 
-These also look OK to me but there's the arch/arm dependency.
+Regards,
+Manjunath
