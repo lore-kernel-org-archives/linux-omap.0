@@ -1,79 +1,50 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCHv2 2/5] ASoC: core: soc level wrapper for
-	pcm_pointer callback
-Date: Wed,  3 Mar 2010 15:08:06 +0200
-Message-ID: <1267621689-30337-4-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [PATCH] OMAP3: PM: Enable wake-up from McBSP2, 3 and 4 modules
+Date: Wed,  3 Mar 2010 15:08:05 +0200
+Message-ID: <1267621689-30337-3-git-send-email-peter.ujfalusi@nokia.com>
 References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:32549 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753912Ab0CCNIi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 08:08:38 -0500
 In-Reply-To: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: broonie@opensource.wolfsonmicro.com, tony@atomide.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, ext-eero.nurkkala@nokia.com, lrg@slimlogic.co.uk
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, tony@atomide.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, jhnikula@gmail.com, ext-eero.nurkkala@nokia.com
 
-Create a soc level wrapper for pcm_pointer callback.
-This will facilitate the soc level handling of different
-HW buffers in the audio path.
+Wake-up from McBSP ports are needed, especially when the THRESHOLD
+dma mode is in use for audio playback.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
- sound/soc/soc-core.c |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
-index 37c872e..de5223d 100644
---- a/sound/soc/soc-core.c
-+++ b/sound/soc/soc-core.c
-@@ -797,6 +797,23 @@ static int soc_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 81ed252..6b17647 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -878,12 +878,16 @@ static void __init prcm_setup_regs(void)
+ 	/* Enable wakeups in PER */
+ 	prm_write_mod_reg(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
+ 			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
+-			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3,
++			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3 |
++			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
++			  OMAP3430_EN_MCBSP4,
+ 			  OMAP3430_PER_MOD, PM_WKEN);
+ 	/* and allow them to wake up MPU */
+ 	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
+ 			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
+-			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3,
++			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3 |
++			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
++			  OMAP3430_EN_MCBSP4,
+ 			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
  
-+/*
-+ * soc level wrapper for pointer callback
-+ */
-+static snd_pcm_uframes_t soc_pcm_pointer(struct snd_pcm_substream *substream)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_device *socdev = rtd->socdev;
-+	struct snd_soc_card *card = socdev->card;
-+	struct snd_soc_platform *platform = card->platform;
-+	snd_pcm_uframes_t offset = 0;
-+
-+	if (platform->pcm_ops->pointer)
-+		offset = platform->pcm_ops->pointer(substream);
-+
-+	return offset;
-+}
-+
- /* ASoC PCM operations */
- static struct snd_pcm_ops soc_pcm_ops = {
- 	.open		= soc_pcm_open,
-@@ -805,6 +822,7 @@ static struct snd_pcm_ops soc_pcm_ops = {
- 	.hw_free	= soc_pcm_hw_free,
- 	.prepare	= soc_pcm_prepare,
- 	.trigger	= soc_pcm_trigger,
-+	.pointer	= soc_pcm_pointer,
- };
- 
- #ifdef CONFIG_PM
-@@ -1331,7 +1349,6 @@ static int soc_new_pcm(struct snd_soc_device *socdev,
- 	dai_link->pcm = pcm;
- 	pcm->private_data = rtd;
- 	soc_pcm_ops.mmap = platform->pcm_ops->mmap;
--	soc_pcm_ops.pointer = platform->pcm_ops->pointer;
- 	soc_pcm_ops.ioctl = platform->pcm_ops->ioctl;
- 	soc_pcm_ops.copy = platform->pcm_ops->copy;
- 	soc_pcm_ops.silence = platform->pcm_ops->silence;
+ 	/* Don't attach IVA interrupts */
 -- 
-1.7.0
+1.6.5.3
+
