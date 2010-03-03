@@ -1,156 +1,70 @@
-From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCH] omap3: Fix support for the LEDs connected to GPIO outputs on IGEP v2 board.
-Date: Mon,  1 Mar 2010 12:18:08 +0100
-Message-ID: <1267442288-3106-2-git-send-email-eballetbo@gmail.com>
-References: <1267442288-3106-1-git-send-email-eballetbo@gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: DMA: Init CDAC to Zero
+Date: Wed, 03 Mar 2010 10:29:12 -0800
+Message-ID: <87iq9dcl8n.fsf@deeprootsystems.com>
+References: <1267610118-30748-1-git-send-email-manjugk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:38453 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754969Ab0CCRhu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 12:37:50 -0500
-Received: by mail-bw0-f209.google.com with SMTP id 1so114868bwz.21
-        for <linux-omap@vger.kernel.org>; Wed, 03 Mar 2010 09:37:50 -0800 (PST)
-In-Reply-To: <1267442288-3106-1-git-send-email-eballetbo@gmail.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:55209 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754490Ab0CCS3P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 13:29:15 -0500
+Received: by pvb32 with SMTP id 32so76030pvb.19
+        for <linux-omap@vger.kernel.org>; Wed, 03 Mar 2010 10:29:15 -0800 (PST)
+In-Reply-To: <1267610118-30748-1-git-send-email-manjugk@ti.com> (Manjunatha GK's message of "Wed\,  3 Mar 2010 15\:25\:18 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+To: Manjunatha GK <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
 
-From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Manjunatha GK <manjugk@ti.com> writes:
 
-Select CONFIG_LEDS_GPIO to enable IGEP v2 LED support and control of supported
-LEDs from userspace. Otherwise GPIO LEDs are exported as GPIO 26, 27 and 28 using
-the gpiolib framework.
+> The register DMA4_CDAC needs to be initialized to zero
+> before starting DMA transfer.
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Govindraj R <govindraj.raja@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Reported-by:S, Venkatraman <svenkatr@ti.com>
+> Signed-off-by: Manjunatha GK <manjugk@ti.com>
+> ---
+> It was aligned to reset CDAC to zero in omap_start_dma(int lch)
+> instead of creating new API for accessing CDAC register.
+>
+> Discussion thread is at:
+> http://patchwork.kernel.org/patch/83176/
+> http://patchwork.kernel.org/patch/82948/
+>
+>
+>  arch/arm/plat-omap/dma.c |    8 ++++++++
+>  1 files changed, 8 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 2ab224c..96741d4 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -936,6 +936,14 @@ void omap_start_dma(int lch)
+>  {
+>  	u32 l;
+>  
+> +	/* CPC/CDAC register needs to be initialized to zero
+> +	 * before starting dma transfer.
+> +	 */
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
----
- arch/arm/mach-omap2/board-igep0020.c |   54 ++++++++++++++++++++++-----------
- 1 files changed, 36 insertions(+), 18 deletions(-)
+Please fix the multi-line comment style.  Search for 'multi-line' in
+Documentation/CodingStyle for details.
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 26f65ca..19aaff0 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -16,7 +16,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/gpio.h>
--#include <linux/leds.h>
- #include <linux/interrupt.h>
- 
- #include <linux/regulator/machine.h>
-@@ -39,8 +38,8 @@
- #define IGEP2_SMSC911X_CS       5
- #define IGEP2_SMSC911X_GPIO     176
- #define IGEP2_GPIO_USBH_NRESET  24
--#define IGEP2_GPIO_LED0_RED 	26
--#define IGEP2_GPIO_LED0_GREEN 	27
-+#define IGEP2_GPIO_LED0_GREEN 	26
-+#define IGEP2_GPIO_LED0_RED 	27
- #define IGEP2_GPIO_LED1_RED   	28
- #define IGEP2_GPIO_DVI_PUP	170
- #define IGEP2_GPIO_WIFI_NPD 	94
-@@ -355,34 +354,50 @@ static void __init igep2_display_init(void)
- 	    gpio_direction_output(IGEP2_GPIO_DVI_PUP, 1))
- 		pr_err("IGEP v2: Could not obtain gpio GPIO_DVI_PUP\n");
- }
--#ifdef CONFIG_LEDS_TRIGGERS
--static struct gpio_led gpio_leds[] = {
-+
-+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-+#include <linux/leds.h>
-+
-+static struct gpio_led igep2_gpio_leds[] = {
- 	{
--		.name = "GPIO_LED1_RED",
-+		.name = "led0:red",
-+		.gpio = IGEP2_GPIO_LED0_RED,
-+	},
-+	{
-+		.name = "led0:green",
- 		.default_trigger = "heartbeat",
-+		.gpio = IGEP2_GPIO_LED0_GREEN,
-+	},
-+	{
-+		.name = "led1:red",
- 		.gpio = IGEP2_GPIO_LED1_RED,
- 	},
- };
- 
--static struct gpio_led_platform_data gpio_leds_info = {
--	.leds           = gpio_leds,
--	.num_leds       = ARRAY_SIZE(gpio_leds),
-+static struct gpio_led_platform_data igep2_led_pdata = {
-+	.leds           = igep2_gpio_leds,
-+	.num_leds       = ARRAY_SIZE(igep2_gpio_leds),
- };
- 
--static struct platform_device leds_gpio = {
-+static struct platform_device igep2_led_device = {
- 	 .name   = "leds-gpio",
- 	 .id     = -1,
- 	 .dev    = {
--		 .platform_data  =  &gpio_leds_info,
-+		 .platform_data  =  &igep2_led_pdata,
- 	},
- };
-+
-+static void __init igep2_init_led(void)
-+{
-+	platform_device_register(&igep2_led_device);
-+}
-+
-+#else
-+static inline void igep2_init_led(void) {}
- #endif
- 
- static struct platform_device *igep2_devices[] __initdata = {
- 	&igep2_dss_device,
--#ifdef CONFIG_LEDS_TRIGGERS
--	&leds_gpio,
--#endif
- };
- 
- static void __init igep2_init_irq(void)
-@@ -471,31 +486,34 @@ static void __init igep2_init(void)
- 	usb_ehci_init(&ehci_pdata);
- 
- 	igep2_flash_init();
-+	igep2_init_led();
- 	igep2_display_init();
- 	igep2_init_smsc911x();
- 
- 	/* GPIO userspace leds */
--	if ((gpio_request(IGEP2_GPIO_LED0_RED, "GPIO_LED0_RED") == 0) &&
-+#if !defined(CONFIG_LEDS_GPIO) && !defined(CONFIG_LEDS_GPIO_MODULE)
-+	if ((gpio_request(IGEP2_GPIO_LED0_RED, "led0:red") == 0) &&
- 	    (gpio_direction_output(IGEP2_GPIO_LED0_RED, 1) == 0)) {
- 		gpio_export(IGEP2_GPIO_LED0_RED, 0);
- 		gpio_set_value(IGEP2_GPIO_LED0_RED, 0);
- 	} else
- 		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_RED\n");
- 
--	if ((gpio_request(IGEP2_GPIO_LED0_GREEN, "GPIO_LED0_GREEN") == 0) &&
-+	if ((gpio_request(IGEP2_GPIO_LED0_GREEN, "led0:green") == 0) &&
- 	    (gpio_direction_output(IGEP2_GPIO_LED0_GREEN, 1) == 0)) {
- 		gpio_export(IGEP2_GPIO_LED0_GREEN, 0);
- 		gpio_set_value(IGEP2_GPIO_LED0_GREEN, 0);
- 	} else
- 		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_GREEN\n");
--#ifndef CONFIG_LEDS_TRIGGERS
--	if ((gpio_request(IGEP2_GPIO_LED1_RED, "GPIO_LED1_RED") == 0) &&
-+
-+	if ((gpio_request(IGEP2_GPIO_LED1_RED, "led1:red") == 0) &&
- 	    (gpio_direction_output(IGEP2_GPIO_LED1_RED, 1) == 0)) {
- 		gpio_export(IGEP2_GPIO_LED1_RED, 0);
- 		gpio_set_value(IGEP2_GPIO_LED1_RED, 0);
- 	} else
- 		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED1_RED\n");
- #endif
-+
- 	/* GPIO W-LAN + Bluetooth combo module */
- 	if ((gpio_request(IGEP2_GPIO_WIFI_NPD, "GPIO_WIFI_NPD") == 0) &&
- 	    (gpio_direction_output(IGEP2_GPIO_WIFI_NPD, 1) == 0)) {
--- 
-1.5.4.3
+Kevin
 
+> +	if (cpu_is_omap15xx())
+> +		dma_write(0, CPC(lch));
+> +	else
+> +		dma_write(0, CDAC(lch));
+> +
+>  	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
+>  		int next_lch, cur_lch;
+>  		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
+> -- 
+> 1.6.0.4
