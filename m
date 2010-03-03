@@ -1,21 +1,109 @@
-From: "arrogate Davies" <treehugger848@gmail.com>
-Subject: Reach 4.8 million new businesses - we have that list and more
-Date: Wed,  3 Mar 2010 10:57:25 +0700 (ICT)
-Message-ID: <20100303035725.8C95C3C6030E@mailserver.bacgiang.gov.vn>
-Reply-To: mary462441@gmail.com
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH] serial: Add OMAP high-speed UART driver.
+Date: Wed, 3 Mar 2010 10:56:15 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026ED965F2__19793.1367358708$1267594006$gmane$org@dbde02.ent.ti.com>
+References: <41322.192.168.10.89.1267454612.squirrel@dbdmail.itg.ti.com>
+	 <20100301184600.GC3389@atomide.com>
+	 <E0D41E29EB0DAC4E9F3FF173962E9E94026ED95FC1@dbde02.ent.ti.com>
+	 <20100302060821.GI3389@atomide.com>
+	 <E0D41E29EB0DAC4E9F3FF173962E9E94026ED9600D@dbde02.ent.ti.com>
+	 <20100302065224.GL3389@atomide.com>
+ <618f0c911003020546mb7c8412o2bac4e86a081332b@mail.gmail.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94026ED96358@dbde02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C44C22F6@dbde02.ent.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94026ED963B1@dbde02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C44C2348@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.bacgiang.gov.vn ([222.255.23.22]:28657 "EHLO
-	mailserver.bacgiang.gov.vn" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753800Ab0CCE0N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 23:26:13 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:39258 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751572Ab0CCF01 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 00:26:27 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C44C2348@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mipauly@uwaterloo.ca, eyevinals@aol.com, eastwest@eastwest.com.ph, sitahuzeto@muxoco.us
-
-I have alot of good quality American Databases at decent prices. Contact me here:  Wade.Trotter@smartlistbuy.net for a complete catalog of what we have.
-
- 
-  
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, Greg KH <greg@kroah.>
 
 
-to adjust your subscription status email to rembox@smartlistbuy.net
+
+> -----Original Message-----
+> From: Shilimkar, Santosh 
+> Sent: Tuesday, March 02, 2010 8:43 PM
+> To: G, Manjunath Kondaiah; S, Venkatraman; Tony Lindgren; 
+> Raja, Govindraj; Greg KH; linux-serial@vger.kernel.org; 
+> linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org; 
+> Kevin Hilman; Olof Johansson
+> Subject: RE: [PATCH] serial: Add OMAP high-speed UART driver.
+> 
+> > -----Original Message-----
+> > From: G, Manjunath Kondaiah
+> > Sent: Tuesday, March 02, 2010 8:34 PM
+> > To: Shilimkar, Santosh; S, Venkatraman; Tony Lindgren; 
+> Raja, Govindraj; Greg KH; linux-
+> > serial@vger.kernel.org; linux-omap@vger.kernel.org; 
+> linux-kernel@vger.kernel.org; Kevin Hilman; Olof
+> > Johansson
+> > Subject: RE: [PATCH] serial: Add OMAP high-speed UART driver.
+> > 
+> > 
+> > Santosh,
+> > 
+> > > -----Original Message-----
+> > > From: Shilimkar, Santosh
+> > > Sent: Tuesday, March 02, 2010 7:34 PM
+> > > To: G, Manjunath Kondaiah; S, Venkatraman; Tony Lindgren;
+> > > Raja, Govindraj; Greg KH; linux-serial@vger.kernel.org;
+> > > linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
+> > > Kevin Hilman; Olof Johansson
+> > > Subject: RE: [PATCH] serial: Add OMAP high-speed UART driver.
+> > >
+> > > <snip snip>
+> > > > > > --
+> > > > > CDAC is a shadow register used for monitoring the DMA channel.
+> > > > >  I think it would be a lot
+> > > > > simpler if omap_start_dma() always resets CDAC to 0, and the
+> > > > > UART driver
+> > > > > just not set it explicitly.
+> > > >
+> > > > This seems to be better option than exposing CDAC read/write API
+> > > > to other drivers since user need to write '0' before
+> > > starting any DMA
+> > > > transfer which can be be done in omap_start_dma().
+> > > >
+> > > > I am wondering how other drivers are using DMA transfer
+> > > API's without
+> > > > resetting CDAC to zero.
+> > > >
+> > > It's needed only if some one is interested in that count.
+> > > UART seems to
+> > > using this counter where as other driver don't.
+> > >
+> > > Why do you think drivers need to know about counter value ?
+> > 
+> > Reading of non zero value(after reset to zero and enabling 
+> dma channel)
+> > from CDAC register indicates that, DMA transfer has started 
+> and user can
+> > rely on DMA4_CCENi and DMA4_CCFNi element and frame counters.
+> > 
+> > If the CDAC value is zero even after starting DMA channel, indicates
+> > error.
+> Not necessary. The DMA can still wait for the hw sync signal 
+> and the CDAC
+> can remain 0 if the hw sync in not received. This will be any 
+> way returned 
+> by DMA error ( SYNC lost)
+> 
+> This register was mainly suppose to be used for debug purposes.
+
+As per TRM, CDAC can also be used for monitoring synchroized data 
+transfer apart from hw sync signal monitoring.
+
+Anyway, we have are aligned to set this register to zero in 
+omap_start_dma() which will over ride this patch.
+
+Regards,
+Manjunath
