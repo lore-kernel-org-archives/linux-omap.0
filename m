@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 12/16] OMAP3: PM: Support for enabling smartreflex autocompensation by default.
-Date: Tue, 02 Mar 2010 16:48:51 -0800
-Message-ID: <87d3zmqlfw.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 14/16] OMAP3: PM: Implement latest h/w recommendations for SR and VP registers and SR VP enable disable sequence.
+Date: Tue, 02 Mar 2010 16:54:51 -0800
+Message-ID: <87y6iap6lg.fsf@deeprootsystems.com>
 References: <1267003757-22456-1-git-send-email-thara@ti.com>
 	<1267003757-22456-2-git-send-email-thara@ti.com>
 	<1267003757-22456-3-git-send-email-thara@ti.com>
@@ -15,16 +15,18 @@ References: <1267003757-22456-1-git-send-email-thara@ti.com>
 	<1267003757-22456-11-git-send-email-thara@ti.com>
 	<1267003757-22456-12-git-send-email-thara@ti.com>
 	<1267003757-22456-13-git-send-email-thara@ti.com>
+	<1267003757-22456-14-git-send-email-thara@ti.com>
+	<1267003757-22456-15-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:51404 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758460Ab0CCAsz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 19:48:55 -0500
-Received: by gwb15 with SMTP id 15so462309gwb.19
-        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 16:48:54 -0800 (PST)
-In-Reply-To: <1267003757-22456-13-git-send-email-thara@ti.com> (Thara Gopinath's message of "Wed\, 24 Feb 2010 14\:59\:13 +0530")
+Received: from mail-yx0-f182.google.com ([209.85.210.182]:36297 "EHLO
+	mail-yx0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752556Ab0CCAyy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Mar 2010 19:54:54 -0500
+Received: by yxe12 with SMTP id 12so495455yxe.33
+        for <linux-omap@vger.kernel.org>; Tue, 02 Mar 2010 16:54:53 -0800 (PST)
+In-Reply-To: <1267003757-22456-15-git-send-email-thara@ti.com> (Thara Gopinath's message of "Wed\, 24 Feb 2010 14\:59\:15 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Thara Gopinath <thara@ti.com>
@@ -32,108 +34,398 @@ Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vis
 
 Thara Gopinath <thara@ti.com> writes:
 
-> This patch adds support to pdata enable smartreflex autocompenstion
-> during init based on init_enable flag passed as pdata.
+> This patch introduces OMAP3 specific values for Smartreflex and
+> Voltage processor registers as per the latest TI recommendations.
+> This patch also improves the smartreflex and voltage processor
+> enable disable sequences as per the latest recommendations.
 >
-> This patch also adds enabling of autocompensation by
-> default (setting init_enable flag to true) in case of ES3.1
-> OMAP3430 chip. In the current implementation
-> this step is kept in smartreflex.c itself.Later an API can be added
-> so that the decision to enable autocompensation by default
-> can be passed from the corresponding board files.
->
+> These recommendations were first formed based on experimentations
+> on Nokia Rover platform  and were implemented in the Rover code
+> base first by Nishanth Menon and Paul Walmsley.
+
+I think this was pointed out by others, but Rover should be replaced
+with n900.
+
 > Signed-off-by: Thara Gopinath <thara@ti.com>
 > ---
->  arch/arm/mach-omap2/smartreflex.c |   32 ++++++++++++++++++++++++++++----
->  1 files changed, 28 insertions(+), 4 deletions(-)
+>  arch/arm/mach-omap2/smartreflex.c |   65 ++++++++++++++++++++-----
+>  arch/arm/mach-omap2/smartreflex.h |    6 +-
+>  arch/arm/mach-omap2/voltage.c     |   95 ++++++++++++++++++++++++++++++------
+>  arch/arm/mach-omap2/voltage.h     |   16 ++++---
+>  4 files changed, 142 insertions(+), 40 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index 96dc76b..085dd05 100644
+> index 8a4c48b..ca2223d 100644
 > --- a/arch/arm/mach-omap2/smartreflex.c
 > +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -477,9 +477,15 @@ void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
+> @@ -24,6 +24,7 @@
+>  #include <linux/io.h>
+>  #include <linux/list.h>
+>  #include <linux/debugfs.h>
+> +#include <linux/delay.h>
 >  
->  	sr_class = class_data;
->  	/*
-> -	 * Register the interrupt handler incase requested by the class driver
-> +	 * Check if any SR module needs to be enabled as part of init.
-> +	 * In case the probe for the SR module is not yet called the enable
-> +	 * will not be done here but will be done in the probe whenever
-> +	 * it gets called. Also register the interrupt handler incase
-> +	 * requested by the class driver.
->  	 */
->  	list_for_each_entry(sr_info, &sr_list, node) {
-> +		struct omap_smartreflex_data *pdata =
-> +				sr_info->pdev->dev.platform_data;
->  		if (sr_class->class_type == SR_CLASS2 &&
->  				sr_class->notify_flags && sr_info->irq) {
->  			char name[SMARTREFLEX_NAME_LEN];
-> @@ -496,6 +502,8 @@ void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
->  				return;
->  			}
+>  #include <plat/control.h>
+>  #include <plat/omap_hwmod.h>
+> @@ -32,6 +33,7 @@
+>  #include "smartreflex.h"
+>  
+>  #define SMARTREFLEX_NAME_LEN	16
+> +#define SR_DISABLE_TIMEOUT	200
+>  
+>  struct omap_sr {
+>  	int			srid;
+> @@ -184,11 +186,9 @@ static void sr_set_regfields(struct omap_sr *sr)
+>  		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
+>  		sr->accum_data = OMAP3430_SR_ACCUMDATA;
+>  		if (sr->srid == SR1) {
+> -			sr->err_minlimit = OMAP3430_SR1_ERRMINLIMIT;
+>  			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
+>  			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
+>  		} else {
+> -			sr->err_minlimit = OMAP3430_SR2_ERRMINLIMIT;
+>  			sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
+>  			sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
 >  		}
-> +		if (pdata->init_enable)
-> +			sr_start_vddautocomap(sr_info->srid);
-
-I think this flag is better named enable_on_init.  
-
+> @@ -280,11 +280,6 @@ static void sr_start_vddautocomap(int srid)
+>  		return;
 >  	}
+>  
+> -	if (sr->is_sr_reset == 1) {
+> -		sr_clk_enable(sr);
+> -		sr_configure(sr);
+> -	}
+> -
+>  	sr->is_autocomp_active = 1;
+>  	if (!sr_class->enable(srid)) {
+>  		sr->is_autocomp_active = 0;
+> @@ -351,8 +346,20 @@ int sr_enable(int srid, u32 target_opp_no)
+>  		return false;
+>  	}
+>  
+> -	nvalue_reciprocal = pdata->sr_nvalue[target_opp_no - 1];
+> +	/*
+> +	 * For OMAP3430 errminlimit is dependent on opp. So choose
+> +	 * it appropriately
+> +	 */
+> +	if (cpu_is_omap343x())
+> +		sr->err_minlimit = (target_opp_no > 2) ?
+> +			OMAP3430_SR_ERRMINLIMIT_HIGHOPP :
+> +			OMAP3430_SR_ERRMINLIMIT_LOWOPP;
+> +
+> +	/* Enable the clocks and configure SR */
+> +	sr_clk_enable(sr);
+> +	sr_configure(sr);
+>  
+> +	nvalue_reciprocal = pdata->sr_nvalue[target_opp_no - 1];
+>  	if (nvalue_reciprocal == 0) {
+>  		pr_notice("OPP%d doesn't support SmartReflex\n",
+>  								target_opp_no);
+> @@ -375,10 +382,44 @@ int sr_enable(int srid, u32 target_opp_no)
+>  void sr_disable(int srid)
+>  {
+>  	struct omap_sr *sr = _sr_lookup(srid);
+> +	int timeout = 0;
+> +
+> +	/* Check if SR is already disabled. If yes do nothing */
+> +	if (!(sr_read_reg(sr, SRCONFIG) & SRCONFIG_SRENABLE))
+> +		return;
+> +
+> +	/* Enable MCUDisableAcknowledge interrupt */
+> +	sr_modify_reg(sr, ERRCONFIG,
+> +			ERRCONFIG_MCUDISACKINTEN, ERRCONFIG_MCUDISACKINTEN);
+>  
+> -	sr->is_sr_reset = 1;
+>  	/* SRCONFIG - disable SR */
+> -	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, ~SRCONFIG_SRENABLE);
+> +	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
+> +
+> +	/* Disable all other SR interrupts and clear the status */
+> +	sr_modify_reg(sr, ERRCONFIG,
+> +			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
+> +			ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_VPBOUNDINTEN),
+> +			(ERRCONFIG_MCUACCUMINTST | ERRCONFIG_MCUVALIDINTST |
+> +			ERRCONFIG_MCUBOUNDINTST | ERRCONFIG_VPBOUNDINTST));
+> +
+> +	/* Wait for SR to be disabled.
+> +	 * wait until ERRCONFIG.MCUDISACKINTST = 1. Typical latency is 1us.
+> +	 */
+> +	while ((timeout < SR_DISABLE_TIMEOUT) &&
+> +		(!(sr_read_reg(sr, ERRCONFIG) & ERRCONFIG_MCUDISACKINTST))) {
+> +
+> +		udelay(1);
+> +		timeout++;
+> +	}
+
+Please use omap_test_timeout() from <plat/common.h>
+
+> +	if (timeout == SR_DISABLE_TIMEOUT)
+> +		pr_warning("SR%d disable timedout\n", srid);
+> +
+> +	/* Disable MCUDisableAcknowledge interrupt & clear pending interrupt
+> +	 * Also enable VPBOUND interrrupt
+> +	 */
+> +	sr_modify_reg(sr, ERRCONFIG, ERRCONFIG_MCUDISACKINTEN,
+> +			ERRCONFIG_MCUDISACKINTST);
 >  }
 >  
-> @@ -562,11 +570,15 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
->  	list_add(&sr_info->node, &sr_list);
+>  /**
+> @@ -407,10 +448,6 @@ void omap_smartreflex_enable(int srid)
 >  
->  	/*
-> -	 * Register interrrupt handler if smartreflex class driver is already
-> -	 * registered and has requested for interrupts. This will be attempted
-> +	 * Enable the smartreflex module if init_enable flag is set and
-> +	 * if the class driver is registered. Also Register interrrupt handler
-> +	 * if smartreflex class driver is already registered and has
-> +	 * requested for interrupts. This will be attempted
->  	 * in the class driver register again if it does not happen here.
->  	 */
->  	if (sr_class) {
-> +		struct omap_smartreflex_data *pdata = pdev->dev.platform_data;
-> +
->  		if (sr_class->class_type == SR_CLASS2 &&
->  				sr_class->notify_flags && sr_info->irq) {
->  			sprintf(name, "sr%d", sr_info->srid);
-> @@ -580,6 +592,8 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
->  				return ret;
->  			}
+>  	if (sr->is_autocomp_active == 1) {
+>  		if (sr->is_sr_reset == 1) {
+> -			/* Enable SR clks */
+> -			sr_clk_enable(sr);
+> -			sr_configure(sr);
+> -
+>  			if (!sr_class->enable(srid))
+>  				sr_clk_disable(sr);
 >  		}
-> +		if (pdata->init_enable)
-> +			sr_start_vddautocomap(sr_info->srid);
->  	}
-
-As with the duplicate request_irq() in previous patch, I don't follow
-why it's the start is needed twice.  
-
-Is it to handle the case where no class driver is installed?
-
+> diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+> index fbb6bf4..ae8d5db 100644
+> --- a/arch/arm/mach-omap2/smartreflex.h
+> +++ b/arch/arm/mach-omap2/smartreflex.h
+> @@ -110,10 +110,10 @@ extern struct dentry *pm_dbg_main_dir;
+>  #define OMAP3430_SR2_SENPAVGWEIGHT	0x01
+>  #define OMAP3430_SR2_SENNAVGWEIGHT	0x01
 >  
->  	pr_info("SmartReflex driver initialized\n");
-> @@ -782,7 +796,17 @@ static int __init omap_devinit_smartreflex(void)
->  		if (WARN_ON(!sr_data))
->  			return -ENOMEM;
+> -#define OMAP3430_SR_ERRWEIGHT		0x07
+> +#define OMAP3430_SR_ERRWEIGHT		0x04
+>  #define OMAP3430_SR_ERRMAXLIMIT		0x02
+> -#define OMAP3430_SR1_ERRMINLIMIT	0xFA
+> -#define OMAP3430_SR2_ERRMINLIMIT	0xF9
+> +#define OMAP3430_SR_ERRMINLIMIT_HIGHOPP	0xF9
+> +#define OMAP3430_SR_ERRMINLIMIT_LOWOPP	0xF4
 >  
-> -		sr_data->init_enable = false;
+>  /* TODO:3630/OMAP4 values if it has to come from this file */
+>  
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index c0c2c17..49167c0 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/pm.h>
+>  #include <linux/delay.h>
+>  #include <linux/io.h>
+> +#include <linux/clk.h>
+>  
+>  #include <plat/omap-pm.h>
+>  #include <plat/omap34xx.h>
+> @@ -28,9 +29,9 @@
+>  #include "prm-regbits-34xx.h"
+>  #include "voltage.h"
+>  
+> -#define MAX_TRIES 100
+> +#define VP_IDLE_TIMEOUT 200
+>  
+> -/**
+> +/*
+>   * OMAP3 Voltage controller SR parameters. TODO: Pass this info as part of
+>   * board data or PMIC data
+>   */
+> @@ -281,13 +282,32 @@ static void __init vp_configure(int vp_id)
+>  static void __init vp_reg_configure(int vp_id)
+>  {
+>  	if (cpu_is_omap34xx()) {
+> +		struct clk *sys_ck;
+> +		u32 sys_clk_speed, timeout_val;
+> +
+>  		vp_reg[vp_id].vp_offs = omap3_vp_offs[vp_id];
+>  		if (vp_id == VP1) {
+> +			/*
+> +			 * OMAP3430 has error gain varying btw higher and
+> +			 * lower opp's
+> +			 */
+> +			vp_reg[vp_id].vp_errorgain = (((get_vdd1_opp() > 2) ?
+> +					(OMAP3_VP_CONFIG_ERRORGAIN_HIGHOPP) :
+> +					(OMAP3_VP_CONFIG_ERRORGAIN_LOWOPP)) <<
+> +					OMAP3430_ERRORGAIN_SHIFT);
+>  			vp_reg[vp_id].vp_vddmin = (OMAP3_VP1_VLIMITTO_VDDMIN <<
+>  					OMAP3430_VDDMIN_SHIFT);
+>  			vp_reg[vp_id].vp_vddmax = (OMAP3_VP1_VLIMITTO_VDDMAX <<
+>  					OMAP3430_VDDMAX_SHIFT);
+>  		} else if (vp_id == VP2) {
+> +			/*
+> +			 * OMAP3430 has error gain varying btw higher and
+> +			 * lower opp's
+> +			 */
+> +			vp_reg[vp_id].vp_errorgain = (((get_vdd2_opp() > 2) ?
+> +					(OMAP3_VP_CONFIG_ERRORGAIN_HIGHOPP) :
+> +					(OMAP3_VP_CONFIG_ERRORGAIN_LOWOPP)) <<
+> +					OMAP3430_ERRORGAIN_SHIFT);
+>  			vp_reg[vp_id].vp_vddmin = (OMAP3_VP2_VLIMITTO_VDDMIN <<
+>  					OMAP3430_VDDMIN_SHIFT);
+>  			vp_reg[vp_id].vp_vddmax = (OMAP3_VP2_VLIMITTO_VDDMAX <<
+> @@ -299,8 +319,6 @@ static void __init vp_reg_configure(int vp_id)
+>  		}
+>  		vp_reg[vp_id].vp_erroroffset = (OMAP3_VP_CONFIG_ERROROFFSET <<
+>  					OMAP3430_INITVOLTAGE_SHIFT);
+> -		vp_reg[vp_id].vp_errorgain = (OMAP3_VP_CONFIG_ERRORGAIN <<
+> -					OMAP3430_ERRORGAIN_SHIFT);
+>  		vp_reg[vp_id].vp_smpswaittimemin =
+>  					(OMAP3_VP_VSTEPMIN_SMPSWAITTIMEMIN <<
+>  					OMAP3430_SMPSWAITTIMEMIN_SHIFT);
+> @@ -311,7 +329,18 @@ static void __init vp_reg_configure(int vp_id)
+>  					OMAP3430_VSTEPMIN_SHIFT);
+>  		vp_reg[vp_id].vp_stepmax = (OMAP3_VP_VSTEPMAX_VSTEPMAX <<
+>  					OMAP3430_VSTEPMAX_SHIFT);
+> -		vp_reg[vp_id].vp_timeout = (OMAP3_VP_VLIMITTO_TIMEOUT <<
 > +		/*
-> +		 * Enable the SR module by default if it is a OMAP3430
-> +		 * ES3.1 chip
+> +		 * Use sys clk speed to convet the VP timeout in us to no of
+                                        ^^^^^^
+typo: convert
+also, please change 'no of...' to 'number of...'
 
-You should add a comment about why: starting with ES3.1, efuse values can be trusted?
-
+> +		 * clock cycles
 > +		 */
-> +		if (cpu_is_omap343x()) {
-> +			if (omap_rev() == OMAP3430_REV_ES3_1)
-> +				sr_data->init_enable = true;
-> +			else
-> +				sr_data->init_enable = false;
-> +		} else
-> +			sr_data->init_enable = false;
->  		sr_data->device_enable = omap_device_enable;
->  		sr_data->device_shutdown = omap_device_shutdown;
->  		sr_data->device_idle = omap_device_idle;
+> +		sys_ck = clk_get(NULL, "sys_ck");
+
+need to check for error here
+
+> +		sys_clk_speed = clk_get_rate(sys_ck);
+> +		clk_put(sys_ck);
+> +		/* Divide to avoid overflow */
+> +		sys_clk_speed /= 1000;
+> +		timeout_val = (sys_clk_speed * OMAP3_VP_VLIMITTO_TIMEOUT_US) /
+> +					1000;
+> +		vp_reg[vp_id].vp_timeout = (timeout_val <<
+>  					OMAP3430_TIMEOUT_SHIFT);
+>  	}
+>  	/* TODO Extend this for OMAP4 ?? Or need a separate file  */
+> @@ -338,7 +367,12 @@ static int vc_bypass_scale_voltage(u32 vdd, u8 target_vsel, u8 current_vsel)
+>  		vc_cmdval0 |= (target_vsel << VC_CMD_ON_SHIFT);
+>  		voltage_write_reg(vc_reg.vc_cmdval0_reg, vc_cmdval0);
+>  		reg_addr = R_VDD1_SR_CONTROL;
+> -
+> +		/* OMAP3430 has errorgain varying btw higher and lower opp's */
+> +		if (cpu_is_omap34xx())
+> +			vp_reg[vdd].vp_errorgain = (((get_vdd1_opp() > 2) ?
+> +					(OMAP3_VP_CONFIG_ERRORGAIN_HIGHOPP) :
+> +					(OMAP3_VP_CONFIG_ERRORGAIN_LOWOPP)) <<
+> +					OMAP3430_ERRORGAIN_SHIFT);
+>  	} else if (vdd == VDD2_OPP) {
+>  		u32 vc_cmdval1;
+>  
+> @@ -347,12 +381,29 @@ static int vc_bypass_scale_voltage(u32 vdd, u8 target_vsel, u8 current_vsel)
+>  		vc_cmdval1 |= (target_vsel << VC_CMD_ON_SHIFT);
+>  		voltage_write_reg(vc_reg.vc_cmdval1_reg, vc_cmdval1);
+>  		reg_addr = R_VDD2_SR_CONTROL;
+> +		/* OMAP3430 has errorgain varying btw higher and lower opp's */
+> +		if (cpu_is_omap34xx())
+> +			vp_reg[vdd].vp_errorgain = (((get_vdd2_opp() > 2) ?
+> +					(OMAP3_VP_CONFIG_ERRORGAIN_HIGHOPP) :
+> +					(OMAP3_VP_CONFIG_ERRORGAIN_LOWOPP)) <<
+> +					OMAP3430_ERRORGAIN_SHIFT);
+>  	} else {
+>  		pr_warning("Wrong VDD passed in vc_bypass_scale_voltage %d\n",
+>  				vdd);
+>  		return false;
+>  	}
+>  
+> +	/* OMAP3430 has errorgain varying btw higher and lower opp's */
+> +	if (cpu_is_omap34xx()) {
+> +		u32 errorgain =
+> +			voltage_read_reg(vp_reg[vdd - 1].vp_offs.
+> +				vp_vpconfig_reg);
+> +		errorgain &= ~VP_ERRORGAIN_MASK;
+> +		errorgain |= vp_reg[vdd].vp_errorgain;
+> +
+> +		voltage_write_reg(vp_reg[vdd - 1].vp_offs.vp_vpconfig_reg,
+> +				errorgain);
+> +	}
+>  	vc_bypass_value = (target_vsel << VC_DATA_SHIFT) |
+>  			(reg_addr << VC_REGADDR_SHIFT) |
+>  			(R_SRI2C_SLAVE_ADDR << VC_SLAVEADDR_SHIFT);
+> @@ -419,6 +470,10 @@ void omap_voltageprocessor_enable(int vp_id)
+>  {
+>  	u32 vpconfig;
+>  
+> +	/* If VP is already enabled, do nothing. Return */
+> +	if (voltage_read_reg(vp_reg[vp_id - 1].vp_offs.vp_vpconfig_reg) &
+> +				VP_CONFIG_VPENABLE)
+> +		return;
+>  	/*
+>  	 * This latching is required only if VC bypass method is used for
+>  	 * voltage scaling during dvfs.
+> @@ -439,21 +494,29 @@ void omap_voltageprocessor_enable(int vp_id)
+>   */
+>  void omap_voltageprocessor_disable(int vp_id)
+>  {
+> -	int i = 0;
+>  	u32 vpconfig;
+> +	int timeout = 0;
+>  
+> -	/* Wait for VP idle before disabling VP */
+> -	while ((!voltage_read_reg(vp_reg[vp_id - 1].vp_offs.vp_status_reg)) &&
+> -				i++ < MAX_TRIES)
+> -		udelay(1);
+> -
+> -	if (i >= MAX_TRIES)
+> -		pr_warning("VP1 not idle, still going ahead with \
+> -						VP1 disable\n");
+> -	/* Disable VP1 */
+> +	/* If VP is already disabled, do nothing. Return */
+> +	if (!(voltage_read_reg(vp_reg[vp_id - 1].vp_offs.vp_vpconfig_reg) &
+> +				VP_CONFIG_VPENABLE))
+> +		return;
+> +	/* Disable VP */
+>  	vpconfig = voltage_read_reg(vp_reg[vp_id - 1].vp_offs.vp_vpconfig_reg);
+>  	vpconfig &= ~VP_CONFIG_VPENABLE;
+>  	voltage_write_reg(vp_reg[vp_id - 1].vp_offs.vp_vpconfig_reg, vpconfig);
+> +
+> +	/*
+> +	 * Wait for VP idle Typical latency is <2us. Maximum latency is ~100us
+> +	 */
+> +	while ((timeout++ < VP_IDLE_TIMEOUT) &&
+> +			(!(voltage_read_reg(vp_reg[vp_id - 1].vp_offs
+> +			.vp_status_reg))))
+> +		udelay(1);
+
+another use for omap_test_timeout()
+
+> +	if (timeout >= VP_IDLE_TIMEOUT)
+> +		pr_warning("VP%d idle timedout\n", vp_id);
+> +	return;
+>  }
+>  
+>  /**
+> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> index 64c506c..c3203c9 100644
+> --- a/arch/arm/mach-omap2/voltage.h
+> +++ b/arch/arm/mach-omap2/voltage.h
+> @@ -22,6 +22,7 @@ extern int get_vdd2_opp(void);
+>  #define VP_CONFIG_INITVDD	OMAP3430_INITVDD
+>  #define VP_FORCEUPDATE		OMAP3430_FORCEUPDATE
+>  #define VP_CONFIG_VPENABLE	OMAP3430_VPENABLE
+> +#define VP_ERRORGAIN_MASK	OMAP3430_ERRORGAIN_MASK
+>  #define VP_INITVOLTAGE_MASK	OMAP3430_INITVOLTAGE_MASK
+>  #define VP_INITVOLTAGE_SHIFT	OMAP3430_INITVOLTAGE_SHIFT
+>  
+> @@ -52,16 +53,17 @@ extern int get_vdd2_opp(void);
+>   * board file or PMIC data structure
+>   */
+>  #define OMAP3_VP_CONFIG_ERROROFFSET		0x00
+> -#define OMAP3_VP_CONFIG_ERRORGAIN		0x20
+> -#define	OMAP3_VP_VSTEPMIN_SMPSWAITTIMEMIN	0x01F4
+> +#define OMAP3_VP_CONFIG_ERRORGAIN_LOWOPP	0x0C
+> +#define OMAP3_VP_CONFIG_ERRORGAIN_HIGHOPP	0x18
+> +#define	OMAP3_VP_VSTEPMIN_SMPSWAITTIMEMIN	0x3C
+>  #define OMAP3_VP_VSTEPMIN_VSTEPMIN		0x1
+> -#define OMAP3_VP_VSTEPMAX_SMPSWAITTIMEMAX	0x01F4
+> +#define OMAP3_VP_VSTEPMAX_SMPSWAITTIMEMAX	0x3C
+>  #define OMAP3_VP_VSTEPMAX_VSTEPMAX		0x04
+> -#define OMAP3_VP1_VLIMITTO_VDDMIN		0x0
+> -#define OMAP3_VP1_VLIMITTO_VDDMAX		0x3C
+> +#define OMAP3_VP1_VLIMITTO_VDDMIN		0x14
+> +#define OMAP3_VP1_VLIMITTO_VDDMAX		0x42
+>  #define OMAP3_VP2_VLIMITTO_VDDMAX		0x2C
+> -#define OMAP3_VP2_VLIMITTO_VDDMIN		0x0
+> -#define OMAP3_VP_VLIMITTO_TIMEOUT		0xFFFF
+> +#define OMAP3_VP2_VLIMITTO_VDDMIN		0x18
+> +#define OMAP3_VP_VLIMITTO_TIMEOUT_US		0x200
+>  
+>  #define VOLTAGE_MOD	OMAP3430_GR_MOD
+>  /* TODO OMAP4 VP register values if the same file is used for OMAP4*/
+> -- 
+> 1.7.0.rc1.33.g07cf0f
 
 Kevin
