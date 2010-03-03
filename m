@@ -1,45 +1,68 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge][PATCH 08/10] omap3: 3630sdp: Explicitly enable all UARTs
-Date: Wed,  3 Mar 2010 08:18:43 -0600
-Message-ID: <1267625925-22616-9-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge][PATCH 06/10] omap3: serial: Fix uart4 handling for 3630
+Date: Wed,  3 Mar 2010 08:18:41 -0600
+Message-ID: <1267625925-22616-7-git-send-email-saaguirre@ti.com>
 References: <1267625925-22616-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59923 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754301Ab0CCOSf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Mar 2010 09:18:35 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o23EIZjU025860
+Received: from devils.ext.ti.com ([198.47.26.153]:41981 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754498Ab0CCOSe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 09:18:34 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o23EIY4J025031
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 3 Mar 2010 08:18:35 -0600
+	for <linux-omap@vger.kernel.org>; Wed, 3 Mar 2010 08:18:34 -0600
 In-Reply-To: <1267625925-22616-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sergio Aguirre <saaguirre@ti.com>
 
-All UARTs seem physically reachable, so, enable them all.
+This patch makes the following:
+ - Adds missing wakeup padding register handling.
+ - Fixes a hardcode to use PER module ONLY on UART3.
+ - Corrects IRQ number to 80 for 3630 case.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/board-3630sdp.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
- mode change 100755 => 100644 arch/arm/mach-omap2/board-3630sdp.c
+ arch/arm/mach-omap2/serial.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-old mode 100755
-new mode 100644
-index 4386d2b..35df894
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -96,6 +96,7 @@ static struct omap_board_mux board_mux[] __initdata = {
- static void __init omap_sdp_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
-+	omap_serial_init_allports();
- 	zoom_peripherals_init();
- 	board_smc91x_init();
- 	enable_board_wakeup_source();
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 351ba62..c3bad91 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -444,7 +444,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	omap_uart_smart_idle_enable(uart, 0);
+ 
+ 	if (cpu_is_omap34xx()) {
+-		u32 mod = (uart->num == 2) ? OMAP3430_PER_MOD : CORE_MOD;
++		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
+ 		u32 wk_mask = 0;
+ 		u32 padconf = 0;
+ 
+@@ -463,6 +463,10 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 			wk_mask = OMAP3430_ST_UART3_MASK;
+ 			padconf = 0x19e;
+ 			break;
++		case 3:
++			wk_mask = OMAP3630_ST_UART4_MASK;
++			padconf = 0x0d2;
++			break;
+ 		}
+ 		uart->wk_mask = wk_mask;
+ 		uart->padconf = padconf;
+@@ -694,6 +698,10 @@ void __init omap_serial_early_init(void)
+ 
+ 		if (cpu_is_omap44xx())
+ 			p->irq += 32;
++
++		/* IRQ for UART4 in omap3630 is 80 */
++		if (cpu_is_omap3630() && (i == 3))
++			p->irq = 80;
+ 	}
+ }
+ 
 -- 
 1.6.3.3
 
