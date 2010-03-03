@@ -1,110 +1,79 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
-Date: Wed, 3 Mar 2010 12:08:13 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026ED966D3@dbde02.ent.ti.com>
-References: <1267536955-31268-1-git-send-email-manjugk@ti.com>
- <A24693684029E5489D1D202277BE894453B624B1@dlee02.ent.ti.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: RE: [PATCHv3 2/4] Regulator: OMAP: Modifying Kconfig/Makefile to
+ 	choose from available PMICs
+Date: Wed, 3 Mar 2010 12:25:14 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321CBC701@dbde02.ent.ti.com>
+References: <1267525787-3169-1-git-send-email-anuj.aggarwal@ti.com>
+ <6ed0b2681003020923m2c7526fn11995334c36c8a83@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41855 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750779Ab0CCGiS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 01:38:18 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:52682 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753Ab0CCGz2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 01:55:28 -0500
+In-Reply-To: <6ed0b2681003020923m2c7526fn11995334c36c8a83@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
-
-
-
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 
 > -----Original Message-----
-> From: G, Manjunath Kondaiah 
-> Sent: Wednesday, March 03, 2010 11:31 AM
-> To: Aguirre, Sergio; linux-omap@vger.kernel.org
-> Cc: Tony Lindgren; Shilimkar, Santosh; Raja, Govindraj
-> Subject: RE: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
-> 
-> Sergio,
-> 
-> > -----Original Message-----
-> > From: Aguirre, Sergio 
-> > Sent: Tuesday, March 02, 2010 9:41 PM
-> > To: G, Manjunath Kondaiah; linux-omap@vger.kernel.org
-> > Cc: G, Manjunath Kondaiah; Tony Lindgren; Shilimkar, Santosh; 
-> > Raja, Govindraj
-> > Subject: RE: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
-> > 
-> > Manju,
-> > 
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of Manjunatha GK
-> > > Sent: Tuesday, March 02, 2010 7:36 AM
-> > > To: linux-omap@vger.kernel.org
-> > > Cc: G, Manjunath Kondaiah; Tony Lindgren; Shilimkar, 
-> Santosh; Raja,
-> > > Govindraj
-> > > Subject: [PATCH] OMAP: Zoom3: Fix Zoom3 booting issue
-> > > 
-> > > The commit id "5550bc33a1a9002976022cc794fe8c52ad9a0021" 
-> seems to be
-> > > broken
-> > > zoom3 boot which adds support for UART4 on OMAP4 and OMAP3630.
-> > > 
-> > > But, it looks like OMAP3630 UART4 interface and functional 
-> > clock nodes
-> > > needs
-> > > to be added for omap3630. Thus limiting no. of UART's for 
-> > 3630 to 3 to
-> > > prevent
-> > > boot up issues until clock nodes are added for UART4 on OMAP3630.
-> > 
-> > I already tried a similar patch here:
-> > 
-> > http://patchwork.kernel.org/patch/81692/
-> > 
-> > But as it is really not solving anything, and Tony rejected 
-> > it, I started working on the needed bits to get UART4 
-> > enabled, therefore I have came up with this patch series:
-> > 
-> > - [RFC v3][PATCH 0/6] OMAP3630: UART4 startup (+ new bugfix!) [1]
-> > 
-> > Also, I'm working in my spare time on a cleanup proposal [2], 
-> > which I'll repost today, given some comments from Kevin.
-> > 
-> > So, if you want to boot, take series [1] and [2], and then 
-> > you should be able to boot with ttyS0.
-> 
-> Sergio, did you test this combination on zoom3? It seems to 
-> be not working
-> on zoom3 with ttyS0 and also with ttyS3.
-> 
-> Where as, reducing number of uarts(for 3630) to 3 seems to 
-> working fine for 
-> ttyS3 on zoom3.
-
-To update further, it seems to be working on zoom3 with ttyS0
-with following combination of patches:
-
-1.
-[RFC,part2,v1,4/4] omap3: zoom 2/3: Change debugboard serial port id 
-[RFC,part2,v1,3/4] omap3: 3630sdp: Explicitly enable all UARTs 
-[RFC,part2,v1,2/4] omap3: zoom2/3 / 3630sdp: Don't init always all uarts 
-[RFC,part2,v1,1/4] omap2/3/4: serial: rename omap_serial_init 
-
-2.
-[RESEND,PATCH/RFC] OMAP2: serial.c: Fix number of uarts in early_init
-
-3.
-[RFC,v3,6/6] omap3: serial: Fix uart4 handling for 3630 
-[RFC,v3,5/6] OMAP3: PRCM: Consider UART4 for 3630 chip in prcm_setup_regs 
-[RFC,v3,4/6] OMAP clock: Add uart4_ick/fck definitions for 3630 
-[RFC,v3,3/6] ARM: OMAP3630: PRCM: Add UART4 control bits 
-[RFC,v3,2/6] omap2/3/4: serial: Remove condition for getting uart4_phys 
-[RFC,v3,1/6] OMAP3: serial: Check for zero-based physical addr
-
--Manjunath
+> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
+> Sent: Tuesday, March 02, 2010 10:54 PM
+> To: Aggarwal, Anuj
+> Cc: tony@atomide.com; linux-omap@vger.kernel.org;
+> broonie@opensource.wolfsonmicro.com; lrg@slimlogic.co.uk
+> Subject: Re: [PATCHv3 2/4] Regulator: OMAP: Modifying Kconfig/Makefil=
+e to
+> choose from available PMICs
+>=20
+> On Tue, Mar 2, 2010 at 12:29 PM, Anuj Aggarwal <anuj.aggarwal@ti.com>
+> wrote:
+> > Kconfig is modified for OMAP3 EVM so that user can choose the
+> appropriate
+> > PMIC (currently only TWL4030). Config options for other PMICs will =
+be
+> > added later on.
+> > Makefile is modified so that twl4030-pmic.c gets compiled for the
+> > platforms having TWL4030 as the PMIC.
+> >
+> > Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> > ---
+> > =A0arch/arm/mach-omap2/Kconfig =A0| =A0 =A09 +++++++++
+> > =A0arch/arm/mach-omap2/Makefile | =A0 =A01 +
+> > =A02 files changed, 10 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kcon=
+fig
+> > index a8a3d1e..1974dda 100644
+> > --- a/arch/arm/mach-omap2/Kconfig
+> > +++ b/arch/arm/mach-omap2/Kconfig
+> > @@ -77,6 +77,15 @@ config MACH_OMAP3EVM
+> > =A0 =A0 =A0 =A0depends on ARCH_OMAP3
+> > =A0 =A0 =A0 =A0select OMAP_PACKAGE_CBB
+> >
+> > +config PMIC_TWL4030
+> > + =A0 =A0 =A0 bool "TWL4030/TPS65950 Power Module"
+> > + =A0 =A0 =A0 default y
+> > + =A0 =A0 =A0 select TWL4030_CORE
+> > + =A0 =A0 =A0 select REGULATOR_TWL4030 if REGULATOR
+> > + =A0 =A0 =A0 help
+> > + =A0 =A0 =A0 =A0 Say yes here if you are using the TWL4030/TPS6595=
+0 based power
+> module
+> > + =A0 =A0 =A0 =A0 for the EVM boards.
+> > +
+>=20
+> Any reason to have this user configurable? The boards that depend on
+> it will always need it to be enabled to compile, and the ones that
+> don't always want it disabled.
+[Aggarwal, Anuj] OMAP3 EVM can have different PMICs like TWL4030,
+TPS65023, TPS6507x etc; user can configure the kernel accordingly.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
