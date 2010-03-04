@@ -1,67 +1,41 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: usb_nop_xceiv_register() missing when OTG built as modules
-Date: Thu, 4 Mar 2010 09:59:52 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DB7B6BD@dbde02.ent.ti.com>
-References: <87635d54nn.fsf@deeprootsystems.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH]  OMAP: McBSP: Drop unnecessary status/error bit
+ clearing on reg_cache retrieved register values
+Date: Thu, 4 Mar 2010 08:49:57 +0200
+Message-ID: <20100304084957.28c2a9c9.jhnikula@gmail.com>
+References: <201002231650.40351.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60964 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755212Ab0CDE35 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 23:29:57 -0500
-In-Reply-To: <87635d54nn.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:62732 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752884Ab0CDGtK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 01:49:10 -0500
+Received: by ewy20 with SMTP id 20so1518810ewy.21
+        for <linux-omap@vger.kernel.org>; Wed, 03 Mar 2010 22:49:09 -0800 (PST)
+In-Reply-To: <201002231650.40351.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Thursday, March 04, 2010 5:39 AM
-> To: linux-omap@vger.kernel.org
-> Subject: usb_nop_xceiv_register() missing when OTG built as modules
-> 
-> This just started happening with v2.6.33.
-> 
-> On OMAP3EVM, usb_nop_xceiv_register() is called in the board file,
-> but if USB gadget support is built as a module, this causes a link
-> error (below)
+On Tue, 23 Feb 2010 16:50:38 +0100
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
 
-Kevin,
-
-usb_nop_xceiv_register() is defined at drivers/usb/otg/nop-usb-xceiv.c file
-which gets compiled if CONFIG_NOP_USB_XCEIV=y.
-
-I think you have enabled CONFIG_NOP_USB_XCEIV as module?
-
-Regards,
-Ajay
-
+> The MsBSP register cache will never have any error/status flags set, since 
+> these flags are never written to the reg_cache. So it is kind of not 
+> necessary to clear these flags, which are actually always 0.
 > 
-> This is obviously broken, and this hook needs to be fixed to work when
-> called as a module.
+> In other words, clearing the status/error flags are not necessary, since the 
+> reg_cache will never got these bits set. We can just write back the 
+> register content from the cache as it is when clearing an error condition.
 > 
-> To reproduce, start with omap3_defconfig and change both USB host
-> and gadget to be built as modules.
+> Created against l-o for-next commit 62a7c2cc4c8e57e80ccf379536f362fe6e863ac3
+> dated 2010-02-22.
+> Tested on Amstrad Delta.
 > 
-> Kevin
+> Reported-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 > 
-> 
->   [...]
->   LD      .tmp_vmlinux1
-> arch/arm/mach-omap2/built-in.o: In function `omap3_evm_init':
-> /opt/home/khilman/work.local/kernel/omap/dev/arch/arm/mach-omap2/board-
-> omap3evm.c:686: undefined reference to `usb_nop_xceiv_register'
-> arch/arm/mach-omap2/built-in.o: In function `omap_4430sdp_init':
-> /opt/home/khilman/work.local/kernel/omap/dev/arch/arm/mach-omap2/board-
-> 4430sdp.c:143: undefined reference to `usb_nop_xceiv_register'
-> make[1]: *** [.tmp_vmlinux1] Error 1
-> make: *** [sub-make] Error 2
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
