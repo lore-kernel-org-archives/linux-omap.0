@@ -1,64 +1,74 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Re: OMAPFB: cannot parse default modes
-Date: Thu, 4 Mar 2010 17:08:58 +0100
-Message-ID: <70c9a9111003040808g59f787a8t89437888459c12bd@mail.gmail.com>
-References: <70c9a9111003040725j63355a27j38e3f7b07e7ba43a@mail.gmail.com>
-	 <1267718281.25148.41.camel@tubuntu.research.nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: vdds_dsi doesn't exist on all omap3430 arch chip
+Date: Thu, 04 Mar 2010 18:15:10 +0200
+Message-ID: <1267719310.25148.51.camel@tubuntu.research.nokia.com>
+References: <4B8F8B76.9050807@windriver.com>
+	 <1267699040.2406.115.camel@tubuntu.research.nokia.com>
+	 <19F8576C6E063C45BE387C64729E7394044DC534C4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:61798 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753319Ab0CDQI7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 11:08:59 -0500
-Received: by pwj8 with SMTP id 8so1726567pwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 04 Mar 2010 08:08:59 -0800 (PST)
-In-Reply-To: <1267718281.25148.41.camel@tubuntu.research.nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:20915 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752415Ab0CDQPf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 11:15:35 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DC534C4@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "ext stanley.miao" <stanley.miao@windriver.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-=46or me also works, thanks
+On Thu, 2010-03-04 at 17:00 +0100, ext Hiremath, Vaibhav wrote:
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Tomi Valkeinen
+> > Sent: Thursday, March 04, 2010 4:07 PM
+> > To: ext stanley.miao
+> > Cc: linux-fbdev-devel@lists.sourceforge.net; linux-omap@vger.kernel.org
+> > Subject: Re: vdds_dsi doesn't exist on all omap3430 arch chip
+> > 
+> > Hi,
+> > 
+> > On Thu, 2010-03-04 at 11:29 +0100, ext stanley.miao wrote:
+> > > Hi, Tomi,
+> > >
+> > > The commit below:
+> > > http://www.gitorious.org/linux-omap-
+> > dss2/linux/commit/ec70668fa99b2dd0d305fbdb451a728f2e2a4c58
+> > > doesn't apply to ti_omap_am3517. There is no "vdds_dsi" on am3517.
+> > 
+> > DSS hardware seems to require vdds_dsi power on OMAP3 chips. You need to
+> > add it to the board file's regulator configuration. Or do you mean that
+> > on am3517 there's no power connected to OMAP's vdds_dsi line?
+> > 
+> [Hiremath, Vaibhav] Tomi,
+> 
+> Currently we do have only one EVM for AM3517 available in the market and which doesn't support DSI interface, so there is no DSI power source available or required. Also the power chip being used is low cost which doesn't have these many sources available. 
+> 
+> At-least for our internal release, the quick solution I did is, I have encapsulated the regulator_* API calls under !cpu_is_omap3517() && !cpu_is_omap3505().
+> 
+> The ideal solution would be to take the input from board hook up part for power supply also, that way we can support OMAP3 based various EVM's where we have different power chip. Since I am busy with some other high priority issues, I will be able to take this up after this only.
 
-Best regards,
+Hmm okay, so what is AM3517 exactly =)?
 
-Enric
+An OMAP-like SoC, with the same DSS block as on OMAP?
 
-2010/3/4 Tomi Valkeinen <tomi.valkeinen@nokia.com>:
-> On Thu, 2010-03-04 at 16:25 +0100, ext Enric Balletb=C3=B2 i Serra wr=
-ote:
->> Hello,
->>
->> Testing the Linux Omap master branch on IGEP v2 board I get this fea=
-ture
->>
->> [ =C2=A0 17.565155] omapfb omapfb: cannot parse default modes
->>
->> My kernel command line is something like =C2=A0'..
->> omapfb.mode=3Ddvi:1280x720MR-24@60' which works without problems wit=
-h
->> latest 2.6.33-rc8. Any idea about this ? There is something differen=
-t
->> between 2.6.33 and 2.633-rc8 ? I'm missing something ?
->
-> There's no difference between the tagged 2.6.33-rc8 and 2.6.33. But i=
-n
-> the current merge window there went a big bunch of DSS patches in, an=
-d
-> you are right, setting modes doesn't work in git HEAD.
->
-> There's some code missing related to mode setting, and it needs some
-> thinking how to make it properly. But here's a quick hack patch I mad=
-e,
-> that makes mode setting work at least for me on 3430SDP.
->
-> =C2=A0Tomi
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think this power issue should be asked from some TI HW guy who can
+tell us what is going on there. If OMAP3430 requires vdds_dsi power to
+power all the pins (and this is still unclear, although it is the
+current assumption), then which OMAP variants need the power and which
+do not?
+
+Also something related I've been wondering: Different OMAP versions have
+different DSS features. Currently we check these features by checking
+what OMAP version we're running on.
+
+But there is a readable revision number in the DSS HW blocks, and if
+that could be used to choose which features are available, it'd be a
+much better solution. TRM doesn't mention these revision numbers. I
+wonder if TI has a list of DSS revisions...
+
+ Tomi
+
+
