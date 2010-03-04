@@ -1,60 +1,117 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: OMAPFB: cannot parse default modes
-Date: Thu, 4 Mar 2010 21:24:40 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DC534C2@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: OMAPFB: cannot parse default modes
+Date: Thu, 04 Mar 2010 17:58:01 +0200
+Message-ID: <1267718281.25148.41.camel@tubuntu.research.nokia.com>
 References: <70c9a9111003040725j63355a27j38e3f7b07e7ba43a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary="=-ktOwlIJtgi9JmQlzIoWA"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59934 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751406Ab0CDPyr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 10:54:47 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:62589 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406Ab0CDP6Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 10:58:25 -0500
 In-Reply-To: <70c9a9111003040725j63355a27j38e3f7b07e7ba43a@mail.gmail.com>
-Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?Enric_Balletb=F2_i_Serra?= <eballetbo@gmail.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: ext Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Enric Balletb=F2 i Serra
-> Sent: Thursday, March 04, 2010 8:55 PM
-> To: Tomi Valkeinen
-> Cc: linux-omap@vger.kernel.org
-> Subject: OMAPFB: cannot parse default modes
->=20
+--=-ktOwlIJtgi9JmQlzIoWA
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+On Thu, 2010-03-04 at 16:25 +0100, ext Enric Balletbò i Serra wrote:
 > Hello,
->=20
-> Testing the Linux Omap master branch on IGEP v2 board I get this feat=
-ure
->=20
+> 
+> Testing the Linux Omap master branch on IGEP v2 board I get this feature
+> 
 > [   17.565155] omapfb omapfb: cannot parse default modes
->=20
+> 
 > My kernel command line is something like  '..
-> omapfb.mode=3Ddvi:1280x720MR-24@60' which works without problems with
+> omapfb.mode=dvi:1280x720MR-24@60' which works without problems with
 > latest 2.6.33-rc8. Any idea about this ? There is something different
 > between 2.6.33 and 2.633-rc8 ? I'm missing something ?
->=20
-[Hiremath, Vaibhav] Please make sure that the mode you are specifying i=
-s present in modedb.c file., unless it won't work.
 
-Thanks,
-Vaibhav
+There's no difference between the tagged 2.6.33-rc8 and 2.6.33. But in
+the current merge window there went a big bunch of DSS patches in, and
+you are right, setting modes doesn't work in git HEAD.
 
-> Thanks in advance,
->=20
-> Enric
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There's some code missing related to mode setting, and it needs some
+thinking how to make it properly. But here's a quick hack patch I made,
+that makes mode setting work at least for me on 3430SDP.
+
+ Tomi
+
+
+--=-ktOwlIJtgi9JmQlzIoWA
+Content-Disposition: attachment; filename="0001-hack-for-set-mode.patch"
+Content-Type: text/x-patch; name="0001-hack-for-set-mode.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+>From cfd210495c3f42c700f569f722818c52c6dfc7c3 Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Date: Thu, 4 Mar 2010 17:52:43 +0200
+Subject: [PATCH] hack for set mode
+
+---
+ drivers/video/omap2/displays/panel-generic.c |   33 ++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/video/omap2/displays/panel-generic.c
+index c59e4ba..57c3a26 100644
+--- a/drivers/video/omap2/displays/panel-generic.c
++++ b/drivers/video/omap2/displays/panel-generic.c
+@@ -116,6 +116,35 @@ static int generic_panel_resume(struct omap_dss_device *dssdev)
+ 	return 0;
+ }
+ 
++static void generic_panel_set_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	int r;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++		omapdss_dpi_display_disable(dssdev);
++
++	dssdev->panel.timings = *timings;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
++		r = omapdss_dpi_display_enable(dssdev);
++		if (r)
++			printk("enable failed\n");
++	}
++}
++
++static void generic_panel_get_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	*timings = dssdev->panel.timings;
++}
++
++static int generic_panel_check_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	return 0;
++}
++
+ static struct omap_dss_driver generic_driver = {
+ 	.probe		= generic_panel_probe,
+ 	.remove		= generic_panel_remove,
+@@ -125,6 +154,10 @@ static struct omap_dss_driver generic_driver = {
+ 	.suspend	= generic_panel_suspend,
+ 	.resume		= generic_panel_resume,
+ 
++	.set_timings	= generic_panel_set_timings,
++	.get_timings	= generic_panel_get_timings,
++	.check_timings	= generic_panel_check_timings,
++
+ 	.driver         = {
+ 		.name   = "generic_panel",
+ 		.owner  = THIS_MODULE,
+-- 
+1.6.5
+
+
+--=-ktOwlIJtgi9JmQlzIoWA--
+
