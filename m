@@ -1,125 +1,32 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: mainline - build breaks with omap3_defconfig
-Date: Thu, 4 Mar 2010 19:47:13 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C4577C43@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0321CBCE50@dbde02.ent.ti.com>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: OMAPFB: cannot parse default modes
+Date: Thu, 4 Mar 2010 16:25:03 +0100
+Message-ID: <70c9a9111003040725j63355a27j38e3f7b07e7ba43a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_EAF47CD23C76F840A9E7FCE10091EFAB02C4577C43dbde02enttico_"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55589 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751667Ab0CDORT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Mar 2010 09:17:19 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321CBCE50@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:39087 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754500Ab0CDPZD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 10:25:03 -0500
+Received: by pvb32 with SMTP id 32so384212pvb.19
+        for <linux-omap@vger.kernel.org>; Thu, 04 Mar 2010 07:25:03 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C4577C43dbde02enttico_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
+Testing the Linux Omap master branch on IGEP v2 board I get this feature
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kern=
-el.org] On Behalf Of
-> Gadiyar, Anand
-> Sent: Thursday, March 04, 2010 7:37 PM
-> To: Linux OMAP Mailing List; Tony Lindgren
-> Subject: mainline - build breaks with omap3_defconfig
->=20
-> Hi,
->=20
-> Felipe already reported one issue with the board-omap3touchbook.c
-> causing a build break. After working around that, there's another
-> build break when compiling the 4430SDP board file.
->=20
->   CC      arch/arm/mach-omap2/board-4430sdp.o
-> /tmp/cc7lJWsG.s: Assembler messages:
-> /tmp/cc7lJWsG.s:45: Error: selected processor does not support `dsb'
-> /tmp/cc7lJWsG.s:46: Error: selected processor does not support `smc'
-> make[1]: *** [arch/arm/mach-omap2/board-4430sdp.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
+[   17.565155] omapfb omapfb: cannot parse default modes
 
-This one is fixed by Tony in a temporary patch=20
+My kernel command line is something like  '..
+omapfb.mode=dvi:1280x720MR-24@60' which works without problems with
+latest 2.6.33-rc8. Any idea about this ? There is something different
+between 2.6.33 and 2.633-rc8 ? I'm missing something ?
 
-Regards,
-Santosh
+Thanks in advance,
 
-
-
-
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C4577C43dbde02enttico_
-Content-Type: application/octet-stream; name="build-fixes.patch"
-Content-Description: build-fixes.patch
-Content-Disposition: attachment; filename="build-fixes.patch"; size=3509;
-	creation-date="Thu, 04 Mar 2010 19:47:10 GMT";
-	modification-date="Thu, 04 Mar 2010 19:47:10 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSBmOGI4YTEzMGM4Y2ZlZjZjYzg4NWE2MWRjZWUzMzliYTcxYjQ5N2E0IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQ0KRnJvbTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NCkRh
-dGU6IE1vbiwgMSBNYXIgMjAxMCAyMTo1NDowOSAtMDgwMA0KU3ViamVjdDogW1BBVENIXSBvbWFw
-OiBGaXggY29tcGlsZSBmb3IgZWFybHlfcGFyYW0gYW5kIG9tYXBfc21jMQ0KDQpDb21taXQgMmIw
-ZDhjMjUxYjg4NzZkNTMwYTZiZjY3MWViNTQyNTgzOGZhNjk4YSBjaGFuZ2VkIEFSTSB0byB1c2UN
-CnRoZSBjb21tb24gZWFybHlfcGFyYW0gY29kZS4gRml4IGNvbXBpbGUgZm9yIG9tYXBzIGFjY29y
-ZGluZ2x5Lg0KDQpDb21taXQgZDMwOTQyN2U3OTJlYTc1MGNkZDMxMmU3YTkyY2Y2MDQ3YWU0NDk2
-MiBhZGRlZCBzdXBwb3J0IGZvcg0KQ0FDSEVfTDJYMCwgdGhpcyBob3dldmVyIGJyZWFrcyBtdWx0
-aS1vbWFwIGJ1aWxkcyBmb3IgVjYgYmVjYXVzZSBvZg0KZHNiIGFuZCBzbWMuIFRoZSBwcm9wZXIg
-Zml4IGlzIHRvIHNlcGFyYXRlIG9tYXBfc21jMSBpbnRvIGEgc2VwYXJhdGUNCi5TIGZpbGUgYW5k
-IGNvbXBpbGUgaXQgd2l0aCAtV2EsLW1hcmNoPWFybXY3LWEgZmxhZ3MuDQoNCkFsc28gZm9yIHNv
-bWUgcmVhc29uIHRvdWNoYm9vayBwcm9kdWNlcyBhIGNvbXBpbGUgZXJyb3INCg0KZXJyb3I6IF9f
-c2V0dXBfc3RyX2Vhcmx5X3RvdWNoYm9va19yZXZpc2lvbiBjYXVzZXMgYSBzZWN0aW9uIHR5cGUg
-Y29uZmxpY3QNCg0KVW5sZXNzIGVoY2lfcGRhdGEgaXMgc2V0IHRvIF9faW5pdGRhdGEgaW5zdGVh
-ZCBvZiBfX2luaXRjb25zdC4NCk5vIGlkZWEgeWV0IHdoeSB0aGlzIGhhcHBlbnMgb25seSBvbiB0
-b3VjaGJvb2suDQoNCk5vdC1ZZXQtU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBh
-dG9taWRlLmNvbT4NCg0KZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtNDQz
-MHNkcC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC00NDMwc2RwLmMNCmluZGV4IDE4MGFj
-MTEuLmE0NjJkNTAgMTAwNjQ0DQotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTQ0MzBz
-ZHAuYw0KKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC00NDMwc2RwLmMNCkBAIC00OSw3
-ICs0OSw3IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9jb25maWdfa2VybmVsIHNkcDQ0MzBf
-Y29uZmlnW10gX19pbml0ZGF0YSA9IHsNCiAJeyBPTUFQX1RBR19MQ0QsCQkmc2RwNDQzMF9sY2Rf
-Y29uZmlnIH0sDQogfTsNCiANCi0jaWZkZWYgQ09ORklHX0NBQ0hFX0wyWDANCisjaWYgZGVmaW5l
-ZChDT05GSUdfU01QKSAmJiBkZWZpbmVkKENPTkZJR19DQUNIRV9MMlgwKQ0KIG5vaW5saW5lIHZv
-aWQgb21hcF9zbWMxKHUzMiBmbiwgdTMyIGFyZykNCiB7DQogCXJlZ2lzdGVyIHUzMiByMTIgYXNt
-KCJyMTIiKSA9IGZuOw0KZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21h
-cDN0b3VjaGJvb2suYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDN0b3VjaGJvb2su
-Yw0KaW5kZXggMzk0M2QwZi4uMDdiN2EzMiAxMDA2NDQNCi0tLSBhL2FyY2gvYXJtL21hY2gtb21h
-cDIvYm9hcmQtb21hcDN0b3VjaGJvb2suYw0KKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2Fy
-ZC1vbWFwM3RvdWNoYm9vay5jDQpAQCAtNDkzLDcgKzQ5Myw3IEBAIHN0YXRpYyB2b2lkIF9faW5p
-dCBvbWFwM3RvdWNoYm9va19mbGFzaF9pbml0KHZvaWQpDQogCX0NCiB9DQogDQotc3RhdGljIHN0
-cnVjdCBlaGNpX2hjZF9vbWFwX3BsYXRmb3JtX2RhdGEgZWhjaV9wZGF0YSBfX2luaXRjb25zdCA9
-IHsNCitzdGF0aWMgc3RydWN0IGVoY2lfaGNkX29tYXBfcGxhdGZvcm1fZGF0YSBlaGNpX3BkYXRh
-IF9faW5pdGRhdGEgPSB7DQogDQogCS5wb3J0X21vZGVbMF0gPSBFSENJX0hDRF9PTUFQX01PREVf
-UEhZLA0KIAkucG9ydF9tb2RlWzFdID0gRUhDSV9IQ0RfT01BUF9NT0RFX1BIWSwNCkBAIC01MTgs
-MTQgKzUxOCwxNCBAQCBzdGF0aWMgdm9pZCBvbWFwM190b3VjaGJvb2tfcG93ZXJvZmYodm9pZCkN
-CiAJZ3Bpb19kaXJlY3Rpb25fb3V0cHV0KFRCX0tJTExfUE9XRVJfR1BJTywgMCk7DQogfQ0KIA0K
-LXN0YXRpYyB2b2lkIF9faW5pdCBlYXJseV90b3VjaGJvb2tfcmV2aXNpb24oY2hhciAqKnApDQor
-c3RhdGljIGludCBfX2luaXQgZWFybHlfdG91Y2hib29rX3JldmlzaW9uKGNoYXIgKnApDQogew0K
-LQlpZiAoISpwKQ0KLQkJcmV0dXJuOw0KKwlpZiAoIXApDQorCQlyZXR1cm4gMDsNCiANCi0Jc3Ry
-aWN0X3N0cnRvdWwoKnAsIDEwLCAmdG91Y2hib29rX3JldmlzaW9uKTsNCisJcmV0dXJuIHN0cmlj
-dF9zdHJ0b3VsKHAsIDEwLCAmdG91Y2hib29rX3JldmlzaW9uKTsNCiB9DQotX19lYXJseV9wYXJh
-bSgidGJyPSIsIGVhcmx5X3RvdWNoYm9va19yZXZpc2lvbik7DQorZWFybHlfcGFyYW0oInRiciIs
-IGVhcmx5X3RvdWNoYm9va19yZXZpc2lvbik7DQogDQogc3RhdGljIHN0cnVjdCBvbWFwX211c2Jf
-Ym9hcmRfZGF0YSBtdXNiX2JvYXJkX2RhdGEgPSB7DQogCS5pbnRlcmZhY2VfdHlwZQkJPSBNVVNC
-X0lOVEVSRkFDRV9VTFBJLA0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vb21hcDIvdnJhbS5j
-IGIvZHJpdmVycy92aWRlby9vbWFwMi92cmFtLmMNCmluZGV4IDU1YTRkZTUuLjFkODg0MjUgMTAw
-NjQ0DQotLS0gYS9kcml2ZXJzL3ZpZGVvL29tYXAyL3ZyYW0uYw0KKysrIGIvZHJpdmVycy92aWRl
-by9vbWFwMi92cmFtLmMNCkBAIC01MTEsMTMgKzUxMSwxNyBAQCBzdGF0aWMgdTMyIG9tYXBfdnJh
-bV9zZHJhbV9zaXplIF9faW5pdGRhdGE7DQogc3RhdGljIHUzMiBvbWFwX3ZyYW1fZGVmX3NkcmFt
-X3NpemUgX19pbml0ZGF0YTsNCiBzdGF0aWMgdTMyIG9tYXBfdnJhbV9kZWZfc2RyYW1fc3RhcnQg
-X19pbml0ZGF0YTsNCiANCi1zdGF0aWMgdm9pZCBfX2luaXQgb21hcF92cmFtX2Vhcmx5X3ZyYW0o
-Y2hhciAqKnApDQorc3RhdGljIGludCBfX2luaXQgb21hcF92cmFtX2Vhcmx5X3ZyYW0oY2hhciAq
-cCkNCiB7DQotCW9tYXBfdnJhbV9kZWZfc2RyYW1fc2l6ZSA9IG1lbXBhcnNlKCpwLCBwKTsNCi0J
-aWYgKCoqcCA9PSAnLCcpDQotCQlvbWFwX3ZyYW1fZGVmX3NkcmFtX3N0YXJ0ID0gc2ltcGxlX3N0
-cnRvdWwoKCpwKSArIDEsIHAsIDE2KTsNCisJY2hhciAqZW5kcDsNCisNCisJb21hcF92cmFtX2Rl
-Zl9zZHJhbV9zaXplID0gbWVtcGFyc2UocCwgJmVuZHApOw0KKwlpZiAoKmVuZHAgPT0gJywnKQ0K
-KwkJb21hcF92cmFtX2RlZl9zZHJhbV9zdGFydCA9IHNpbXBsZV9zdHJ0b3VsKGVuZHAgKyAxLCAm
-cCwgMTYpOw0KKw0KKwlyZXR1cm4gMDsNCiB9DQotX19lYXJseV9wYXJhbSgidnJhbT0iLCBvbWFw
-X3ZyYW1fZWFybHlfdnJhbSk7DQorZWFybHlfcGFyYW0oInZyYW0iLCBvbWFwX3ZyYW1fZWFybHlf
-dnJhbSk7DQogDQogLyoNCiAgKiBDYWxsZWQgZnJvbSBtYXBfaW8uIFdlIG5lZWQgdG8gY2FsbCB0
-byB0aGlzIGVhcmx5IGVub3VnaCBzbyB0aGF0IHdlDQo=
-
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C4577C43dbde02enttico_--
+Enric
