@@ -1,60 +1,74 @@
-From: "Manjunatha GK" <manjugk@ti.com>
-Subject: [PATCH v2] OMAP: DMA: Init CDAC to zero
-Date: Thu, 04 Mar 2010 07:15:39 +0500
-Message-ID: <1267667139-17599-1-git-send-email-manjugk@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: usb_nop_xceiv_register() missing when OTG built as modules
+Date: Thu, 04 Mar 2010 09:32:40 -0800
+Message-ID: <87eik03scn.fsf@deeprootsystems.com>
+References: <87635d54nn.fsf@deeprootsystems.com>
+	<19F8576C6E063C45BE387C64729E7394044DB7B6BD@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [117.192.118.213] ([117.192.118.213]:49792 "EHLO manju-desktop"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756063Ab0CDQ53 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Mar 2010 11:57:29 -0500
+Received: from mail-px0-f181.google.com ([209.85.216.181]:55250 "EHLO
+	mail-px0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146Ab0CDRkL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 12:40:11 -0500
+Received: by pxi11 with SMTP id 11so932926pxi.15
+        for <linux-omap@vger.kernel.org>; Thu, 04 Mar 2010 09:40:11 -0800 (PST)
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DB7B6BD@dbde02.ent.ti.com> (Ajay Kumar Gupta's message of "Thu\, 4 Mar 2010 09\:59\:52 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Manjunatha GK <manjugk@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The register DMA4_CDAC needs to be initialized to zero
-before starting DMA transfer.
+"Gupta, Ajay Kumar" <ajay.gupta@ti.com> writes:
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Govindraj R <govindraj.raja@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Reported-by:S, Venkatraman <svenkatr@ti.com>
-Signed-off-by: Manjunatha GK <manjugk@ti.com>
----
-It was aligned to reset CDAC to zero in omap_start_dma(int lch)
-instead of creating new API for accessing CDAC register.
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>> Sent: Thursday, March 04, 2010 5:39 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: usb_nop_xceiv_register() missing when OTG built as modules
+>> 
+>> This just started happening with v2.6.33.
+>> 
+>> On OMAP3EVM, usb_nop_xceiv_register() is called in the board file,
+>> but if USB gadget support is built as a module, this causes a link
+>> error (below)
+>
+> Kevin,
+>
+> usb_nop_xceiv_register() is defined at drivers/usb/otg/nop-usb-xceiv.c file
+> which gets compiled if CONFIG_NOP_USB_XCEIV=y.
+>
+> I think you have enabled CONFIG_NOP_USB_XCEIV as module?
 
-Discussion thread is at:
-http://patchwork.kernel.org/patch/83176/
-http://patchwork.kernel.org/patch/82948/
+Yes, I did that intentionally.  I *want* USB compiled as a module.  If
+I do that, the build fails, and that's a bug that needs to be fixed.
 
-v2 changes:
-Fixed multiline comments as per CodingStyle
+Kevin
 
- arch/arm/plat-omap/dma.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 2ab224c..f6c9bdc 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -936,6 +936,15 @@ void omap_start_dma(int lch)
- {
- 	u32 l;
- 
-+	/*
-+	 * The CPC/CDAC register needs to be initialized to zero
-+	 * before starting dma transfer.
-+	 */
-+	if (cpu_is_omap15xx())
-+		dma_write(0, CPC(lch));
-+	else
-+		dma_write(0, CDAC(lch));
-+
- 	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
- 		int next_lch, cur_lch;
- 		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
--- 
-1.6.3.3
-
+>
+>> 
+>> This is obviously broken, and this hook needs to be fixed to work when
+>> called as a module.
+>> 
+>> To reproduce, start with omap3_defconfig and change both USB host
+>> and gadget to be built as modules.
+>> 
+>> Kevin
+>> 
+>> 
+>>   [...]
+>>   LD      .tmp_vmlinux1
+>> arch/arm/mach-omap2/built-in.o: In function `omap3_evm_init':
+>> /opt/home/khilman/work.local/kernel/omap/dev/arch/arm/mach-omap2/board-
+>> omap3evm.c:686: undefined reference to `usb_nop_xceiv_register'
+>> arch/arm/mach-omap2/built-in.o: In function `omap_4430sdp_init':
+>> /opt/home/khilman/work.local/kernel/omap/dev/arch/arm/mach-omap2/board-
+>> 4430sdp.c:143: undefined reference to `usb_nop_xceiv_register'
+>> make[1]: *** [.tmp_vmlinux1] Error 1
+>> make: *** [sub-make] Error 2
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
