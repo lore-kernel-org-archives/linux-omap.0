@@ -1,19 +1,25 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v1] serial: Add OMAP high-speed UART driver.
-Date: Thu, 4 Mar 2010 18:03:33 +0530 (IST)
-Message-ID: <54335.192.168.10.89.1267706013.squirrel@dbdmail.itg.ti.com>
+Subject: Reposting: [PATCH v1] serial: Add OMAP high-speed UART driver.
+Date: Thu, 4 Mar 2010 18:22:34 +0530 (IST)
+Message-ID: <40015.192.168.10.89.1267707154.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50243 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50881 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754223Ab0CDMds (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Mar 2010 07:33:48 -0500
+	id S1754839Ab0CDMwm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Mar 2010 07:52:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, Alan Cox <alan@linux.intel.com>
+To: linux-serial@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, Alan Cox <alan@linux.intel.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+
+This time CC'ing Linux-serial and LKML too, forgot last time.
+
+--
+Govindraj.R
+
 
 This patch adds driver support for OMAP3/4 high speed UART.
 
@@ -1564,7 +1570,5 @@ index 8c3dd36..e02b945 100644
  #include <linux/compiler.h>
 -- 
 1.6.3.3
-
-
 
 
