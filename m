@@ -1,121 +1,40 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH] mmc: omap_hsmmc: Fix conditional locking
-Date: Wed, 3 Mar 2010 16:52:39 -0600
-Message-ID: <007d01cabb24$39c26b60$544ff780@am.dhcp.ti.com>
-References: <alpine.LFD.2.00.1003011952470.4245@localhost.localdomain> <010101caba72$1dd1d790$544ff780@am.dhcp.ti.com> <alpine.LFD.2.00.1003030756120.4245@localhost.localdomain>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: usb_nop_xceiv_register() missing when OTG built as modules
+Date: Wed, 03 Mar 2010 16:09:16 -0800
+Message-ID: <87635d54nn.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44519 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751487Ab0CCWwv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 17:52:51 -0500
-In-Reply-To: <alpine.LFD.2.00.1003030756120.4245@localhost.localdomain>
+Received: from mail-yw0-f197.google.com ([209.85.211.197]:63604 "EHLO
+	mail-yw0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753401Ab0CDAJc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Mar 2010 19:09:32 -0500
+Received: by ywh35 with SMTP id 35so659583ywh.4
+        for <linux-omap@vger.kernel.org>; Wed, 03 Mar 2010 16:09:30 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Thomas Gleixner' <tglx@linutronix.de>
-Cc: 'LKML' <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+To: linux-omap@vger.kernel.org
+
+This just started happening with v2.6.33.
+
+On OMAP3EVM, usb_nop_xceiv_register() is called in the board file,
+but if USB gadget support is built as a module, this causes a link
+error (below)
+
+This is obviously broken, and this hook needs to be fixed to work when
+called as a module.
+
+To reproduce, start with omap3_defconfig and change both USB host
+and gadget to be built as modules.
+
+Kevin
 
 
-
-> -----Original Message-----
-> From: Thomas Gleixner [mailto:tglx@linutronix.de]
-> Sent: Wednesday, March 03, 2010 4:16 AM
-> To: Madhusudhan
-> Cc: 'LKML'; linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org
-> Subject: RE: [PATCH] mmc: omap_hsmmc: Fix conditional locking
-> 
-> On Tue, 2 Mar 2010, Madhusudhan wrote:
-> > > Conditional locking on (!in_interrupt()) is broken by design and there
-> > > is no reason to keep the host->irq_lock across the call to
-> > > mmc_request_done(). Also the host->protect_card magic hack does not
-> > > depend on the context
-> > >
-> >
-> > Can you please elaborate why the existing logic is broken?
-> 
-> Locks are only to be held to serialize data or state.
-> 
-> The mmc_request_done() call does _NOT_ require that at all. So
-> dropping the lock there is the right thing to do.
-> 
-> Also conditional locking on in_interrupt() is generally a nono as it
-> relies on assumptions which are not necessarily true in all
-> circumstances. Just one simple example: interrupt threading will make
-> it explode nicely and it did already with the realtime patches
-> applied.
-> 
-> Such code constructs prevent us to do generic changes to the kernel
-> behaviour without any real good reason.
-> 
-> > It locks at the new request and unlocks just before issuing the cmd.
-> Further
-> > IRQ handler has these calls hence the !in_interrupt check.
-> 
-> Aside of the conditional locking I have several issues with that code:
-> 
-> 1) The code flow is massively unreadable:
-> 
->    omap_hsmmc_start_command()
->    {
-> 	.....
-> 	if (!in_interrupt())
-> 	   spin_unlock_irq();
->    }
-> 
->    omap_hsmmc_request()
->    {
-> 	if (!in_interrupt())
-> 	   spin_lock_irq();
-> 
-> 	omap_hsmmc_start_command();
->    }
-> 
-> We generally want to see the lock/unlock pairs in one function and not
-> having to figure out where the heck unlock happens.
-> 
-> 2) The point of unlocking is patently wrong
-> 
->    omap_hsmmc_start_command()
->    {
-> 	.....
-> 	if (!in_interrupt())
-> 	   spin_unlock_irq();
-> --->
-> 	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
-> --->
->         OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
->    }
-> 
-> What happens, if you get a spurious interrupt here ? Same for SMP,
-> though you are probably protected by the core mmc code request
-> serialization there.
-> 
-> > How does this patch improve that? In fact with your patch for a data
-> > transfer cmd there are several lock-unlock calls.
-> 
-> 1) The patch simply removes conditional locking and moves the lock
->    sections to those places which protect something. Aside of that it
->    makes the code easier to understand.
-> 
-> 2) What's the point of not having those lock/unlocks ? On UP the
->    spinlock is a NOOP anyway, so you won't even notice. On SMP you
->    won't notice either, simply because the lock is cache hot and
->    almost never contended.
-> 
-
-Sounds reasonable.Readbility is still a factor but works for me as the main
-intention here is to remove the in_interrupt conditional.
-
-Acked-by: Madhusudhan Chikkature<madhu.cr@ti.com>
-
-Best Regards,
-Madhu
-
-
-> Thanks,
-> 
-> 	tglx
-
+  [...]
+  LD      .tmp_vmlinux1
+arch/arm/mach-omap2/built-in.o: In function `omap3_evm_init':
+/opt/home/khilman/work.local/kernel/omap/dev/arch/arm/mach-omap2/board-omap3evm.c:686: undefined reference to `usb_nop_xceiv_register'
+arch/arm/mach-omap2/built-in.o: In function `omap_4430sdp_init':
+/opt/home/khilman/work.local/kernel/omap/dev/arch/arm/mach-omap2/board-4430sdp.c:143: undefined reference to `usb_nop_xceiv_register'
+make[1]: *** [.tmp_vmlinux1] Error 1
+make: *** [sub-make] Error 2
