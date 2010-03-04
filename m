@@ -1,42 +1,25 @@
-From: felipe.balbi@nokia.com
-Subject: [PATCH 1/2] Manual revert of "omap: Fix compile for early_param and omap_smc1"
-Date: Thu,  4 Mar 2010 09:57:16 +0200
-Message-ID: <1267689436-20340-1-git-send-email-felipe.balbi@nokia.com>
-References: <20100304075022.GJ15954@nokia.com>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: vdds_dsi doesn't exist on all omap3430 arch chip
+Date: Thu, 04 Mar 2010 18:29:10 +0800
+Message-ID: <4B8F8B76.9050807@windriver.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18556 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753651Ab0CDH5v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 02:57:51 -0500
-In-Reply-To: <20100304075022.GJ15954@nokia.com>
+Received: from mail.windriver.com ([147.11.1.11]:55671 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753442Ab0CDKWV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 05:22:21 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-fbdev-devel@lists.sourceforge.net, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+Hi, Tomi,
 
-This reverts the early_param part of commit
-a91741262f0ae82d651c7270bc1354016c5bb9dd.
+The commit below:
+http://www.gitorious.org/linux-omap-dss2/linux/commit/ec70668fa99b2dd0d305fbdb451a728f2e2a4c58
+doesn't apply to ti_omap_am3517. There is no "vdds_dsi" on am3517.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 07b7a32..2a5bf5c 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -493,7 +493,7 @@ static void __init omap3touchbook_flash_init(void)
- 	}
- }
- 
--static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
-+static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 
- 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
- 	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--- 
-1.7.0.rc0.33.g7c3932
+Stanley.
 
