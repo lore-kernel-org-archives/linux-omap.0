@@ -1,117 +1,63 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: OMAPFB: cannot parse default modes
-Date: Thu, 04 Mar 2010 17:58:01 +0200
-Message-ID: <1267718281.25148.41.camel@tubuntu.research.nokia.com>
-References: <70c9a9111003040725j63355a27j38e3f7b07e7ba43a@mail.gmail.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: vdds_dsi doesn't exist on all omap3430 arch chip
+Date: Thu, 4 Mar 2010 21:30:34 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DC534C4@dbde02.ent.ti.com>
+References: <4B8F8B76.9050807@windriver.com>
+ <1267699040.2406.115.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-ktOwlIJtgi9JmQlzIoWA"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:62589 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751406Ab0CDP6Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 10:58:25 -0500
-In-Reply-To: <70c9a9111003040725j63355a27j38e3f7b07e7ba43a@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:33572 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751405Ab0CDQAy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Mar 2010 11:00:54 -0500
+In-Reply-To: <1267699040.2406.115.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "ext stanley.miao" <stanley.miao@windriver.com>
+Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
---=-ktOwlIJtgi9JmQlzIoWA
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-
-On Thu, 2010-03-04 at 16:25 +0100, ext Enric Balletbò i Serra wrote:
-> Hello,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tomi Valkeinen
+> Sent: Thursday, March 04, 2010 4:07 PM
+> To: ext stanley.miao
+> Cc: linux-fbdev-devel@lists.sourceforge.net; linux-omap@vger.kernel.org
+> Subject: Re: vdds_dsi doesn't exist on all omap3430 arch chip
 > 
-> Testing the Linux Omap master branch on IGEP v2 board I get this feature
+> Hi,
 > 
-> [   17.565155] omapfb omapfb: cannot parse default modes
+> On Thu, 2010-03-04 at 11:29 +0100, ext stanley.miao wrote:
+> > Hi, Tomi,
+> >
+> > The commit below:
+> > http://www.gitorious.org/linux-omap-
+> dss2/linux/commit/ec70668fa99b2dd0d305fbdb451a728f2e2a4c58
+> > doesn't apply to ti_omap_am3517. There is no "vdds_dsi" on am3517.
 > 
-> My kernel command line is something like  '..
-> omapfb.mode=dvi:1280x720MR-24@60' which works without problems with
-> latest 2.6.33-rc8. Any idea about this ? There is something different
-> between 2.6.33 and 2.633-rc8 ? I'm missing something ?
+> DSS hardware seems to require vdds_dsi power on OMAP3 chips. You need to
+> add it to the board file's regulator configuration. Or do you mean that
+> on am3517 there's no power connected to OMAP's vdds_dsi line?
+> 
+[Hiremath, Vaibhav] Tomi,
 
-There's no difference between the tagged 2.6.33-rc8 and 2.6.33. But in
-the current merge window there went a big bunch of DSS patches in, and
-you are right, setting modes doesn't work in git HEAD.
+Currently we do have only one EVM for AM3517 available in the market and which doesn't support DSI interface, so there is no DSI power source available or required. Also the power chip being used is low cost which doesn't have these many sources available. 
 
-There's some code missing related to mode setting, and it needs some
-thinking how to make it properly. But here's a quick hack patch I made,
-that makes mode setting work at least for me on 3430SDP.
+At-least for our internal release, the quick solution I did is, I have encapsulated the regulator_* API calls under !cpu_is_omap3517() && !cpu_is_omap3505().
 
- Tomi
+The ideal solution would be to take the input from board hook up part for power supply also, that way we can support OMAP3 based various EVM's where we have different power chip. Since I am busy with some other high priority issues, I will be able to take this up after this only.
 
 
---=-ktOwlIJtgi9JmQlzIoWA
-Content-Disposition: attachment; filename="0001-hack-for-set-mode.patch"
-Content-Type: text/x-patch; name="0001-hack-for-set-mode.patch"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Thanks,
+Vaibhav
 
->From cfd210495c3f42c700f569f722818c52c6dfc7c3 Mon Sep 17 00:00:00 2001
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Date: Thu, 4 Mar 2010 17:52:43 +0200
-Subject: [PATCH] hack for set mode
-
----
- drivers/video/omap2/displays/panel-generic.c |   33 ++++++++++++++++++++++++++
- 1 files changed, 33 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/video/omap2/displays/panel-generic.c
-index c59e4ba..57c3a26 100644
---- a/drivers/video/omap2/displays/panel-generic.c
-+++ b/drivers/video/omap2/displays/panel-generic.c
-@@ -116,6 +116,35 @@ static int generic_panel_resume(struct omap_dss_device *dssdev)
- 	return 0;
- }
- 
-+static void generic_panel_set_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	int r;
-+
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-+		omapdss_dpi_display_disable(dssdev);
-+
-+	dssdev->panel.timings = *timings;
-+
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
-+		r = omapdss_dpi_display_enable(dssdev);
-+		if (r)
-+			printk("enable failed\n");
-+	}
-+}
-+
-+static void generic_panel_get_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	*timings = dssdev->panel.timings;
-+}
-+
-+static int generic_panel_check_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	return 0;
-+}
-+
- static struct omap_dss_driver generic_driver = {
- 	.probe		= generic_panel_probe,
- 	.remove		= generic_panel_remove,
-@@ -125,6 +154,10 @@ static struct omap_dss_driver generic_driver = {
- 	.suspend	= generic_panel_suspend,
- 	.resume		= generic_panel_resume,
- 
-+	.set_timings	= generic_panel_set_timings,
-+	.get_timings	= generic_panel_get_timings,
-+	.check_timings	= generic_panel_check_timings,
-+
- 	.driver         = {
- 		.name   = "generic_panel",
- 		.owner  = THIS_MODULE,
--- 
-1.6.5
-
-
---=-ktOwlIJtgi9JmQlzIoWA--
-
+>  Tomi
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
