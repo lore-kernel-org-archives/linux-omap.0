@@ -1,291 +1,1040 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH 2/2] DSPBRIDGE: DSP recovery feature
-Date: Fri, 5 Mar 2010 04:12:35 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E602CA9E405F@dlee06.ent.ti.com>
+From: ville.syrjala@nokia.com
+Subject: [PATCH v3 1/4] DSS2: OMAPFB: Add support for switching memory regions
+Date: Fri,  5 Mar 2010 15:26:19 +0200
+Message-ID: <1267795582-21004-1-git-send-email-ville.syrjala@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52500 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751225Ab0CEKMk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 05:12:40 -0500
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:44273 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750924Ab0CEN0o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 08:26:44 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@nokia.com>
 
->From 7db8ef8ac43e42a486b02c0647417da2b2387552 Mon Sep 17 00:00:00 2001
-From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Fri, 5 Mar 2010 03:57:19 -0600
-Subject: [PATCH 2/2] DSPBRIDGE: DSP recovery feature
+=46rom: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
 
-This patch implements a workqueue in charge of reseting
-DSP in case of fatal error.
+Separate the memory region from the framebuffer device a little bit.
+It's now possible to select the memory region used by the framebuffer
+device using the new mem_idx parameter of omapfb_plane_info. If the
+mem_idx is specified it will be interpreted as an index into the
+memory regions array, if it's not specified the framebuffer's index is
+used instead. So by default each framebuffer keeps using it's own
+memory region which preserves backwards compatibility.
 
-Original idea taken from:
-http://android.git.kernel.org/?p=kernel/omap.git;a=commit;h=8af1fbcda4b05a8777b4f3819da98340bd5d9de2
+This allows cloning the same memory region to several overlays and yet
+each overlay can be controlled independently since they can be
+associated with separate framebuffer devices.
 
-Features:
--Recovery is done reloading baseimage.
--Workqueue will load last baseimage loaded.
--In order workqueue can reload the baseimage absolute path for
-baseimage must be used.
--Workqueue will wait until all the dspbridge handles are closed
--During recovery process all ioctl calls will return -EIO
--After DSP crash applications must close their dspbridge handles
-and open a new dspbridge handle, bridge_open function will block until
-recovery process is done or timeout.
-
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/drv.h |    3 +
- drivers/dsp/bridge/Kconfig                 |    8 ++++
- drivers/dsp/bridge/pmgr/wcd.c              |   14 +++----
- drivers/dsp/bridge/rmgr/drv_interface.c    |   63 ++++++++++++++++++++++++++++
- drivers/dsp/bridge/rmgr/proc.c             |    9 +---
- drivers/dsp/bridge/wmd/ue_deh.c            |    6 ++-
- 6 files changed, 88 insertions(+), 15 deletions(-)
+Changes since v2:
+* Removed the use_count and rely on just counting all active overlays. =
+A bit racy
+  but no chance of getting stuck in a state where memory allocation can=
+'t be changed.
+* s/source_idx/mem_idx as that seems to be a little more self explanato=
+ry
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-index 2191a87..d6e1c73 100644
---- a/arch/arm/plat-omap/include/dspbridge/drv.h
-+++ b/arch/arm/plat-omap/include/dspbridge/drv.h
-@@ -389,4 +389,7 @@ extern u32 drv_request_resources(u32 dw_context, u32 *pDevNodeString);
-  */
- extern u32 drv_release_resources(u32 dw_context, struct drv_object *hdrv_obj);
- 
-+#ifdef CONFIG_BRIDGE_RECOVERY
-+	void bridge_recover_schedule(void);
-+#endif
- #endif /* DRV_ */
-diff --git a/drivers/dsp/bridge/Kconfig b/drivers/dsp/bridge/Kconfig
-index 8d33142..a0cf5f0 100644
---- a/drivers/dsp/bridge/Kconfig
-+++ b/drivers/dsp/bridge/Kconfig
-@@ -52,6 +52,14 @@ config WDT_TIMEOUT
- 	   Watchdog timer timeout value, after that time if the watchdog timer
- 	   counter is not reset the wdt overflow interrupt will be triggered
- 
-+config BRIDGE_RECOVERY
-+	bool "DSP Recovery Support"
-+	depends on MPU_BRIDGE
-+	help
-+	  In case of DSP fatal error, BRIDGE driver will try to
-+	  recover itself.
-+
-+
- comment "Bridge Notifications"
- 	depends on MPU_BRIDGE
- 
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 3338cca..c8b53c2 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -381,7 +381,7 @@ u32 wcd_init_complete2(void)
- 	u32 status = DSP_SOK;
- 	struct cfg_devnode *dev_node;
- 	struct dev_object *hdev_obj;
--	u32 dev_type;
-+	u32 dev_type, tmp;
- 
- 	DBC_REQUIRE(wcd_c_refs > 0);
- 
-@@ -396,13 +396,11 @@ u32 wcd_init_complete2(void)
- 		if (DSP_FAILED(dev_get_dev_type(hdev_obj, &dev_type)))
- 			continue;
- 
--		if ((dev_type == DSP_UNIT) || (dev_type == IVA_UNIT)) {
--			if (DSP_FAILED(proc_auto_start(dev_node, hdev_obj))) {
--				status = DSP_EFAIL;
--				/* break; */
--			}
--		}
--	}			/* End For Loop */
-+		if ((dev_type == DSP_UNIT) || (dev_type == IVA_UNIT))
-+			if (cfg_get_auto_start(dev_node, &tmp) == DSP_SOK
-+									&& tmp)
-+				proc_auto_start(dev_node, hdev_obj);
-+	}
- 
- 	return status;
- }
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index b866661..0fe7ed3 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -91,6 +91,15 @@ static s32 shm_size = 0x500000;	/* 5 MB */
- static u32 phys_mempool_base;
- static u32 phys_mempool_size;
- static int tc_wordswapon;	/* Default value is always false */
-+#ifdef CONFIG_BRIDGE_RECOVERY
-+#define REC_TIMEOUT 5000	/*recovery timeout in msecs */
-+static atomic_t bridge_cref;	/* number of bridge open handles */
-+static struct workqueue_struct *bridge_rec_queue;
-+static struct work_struct bridge_recovery_work;
-+static DECLARE_COMPLETION_ONSTACK(bridge_comp);
-+static DECLARE_COMPLETION_ONSTACK(bridge_open_comp);
-+static bool recover;
-+#endif
- 
- #ifdef CONFIG_PM
- struct omap34_xx_bridge_suspend_data {
-@@ -189,6 +198,33 @@ u32 vdd1_dsp_freq[6][4] = {
- 	{0, 430000, 355000, 430000},
- };
- 
-+#ifdef CONFIG_BRIDGE_RECOVERY
-+static void bridge_recover(struct work_struct *work)
+ drivers/video/omap2/omapfb/omapfb-ioctl.c |  163 ++++++++++++++++++++-=
+----
+ drivers/video/omap2/omapfb/omapfb-main.c  |  184 +++++++++++++++++++--=
+--------
+ drivers/video/omap2/omapfb/omapfb-sysfs.c |   60 ++++++++--
+ drivers/video/omap2/omapfb/omapfb.h       |   38 ++++++-
+ include/linux/omapfb.h                    |    5 +-
+ 5 files changed, 339 insertions(+), 111 deletions(-)
+
+diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/=
+omap2/omapfb/omapfb-ioctl.c
+index 1ffa760..cd00bdc 100644
+--- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
++++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+@@ -34,12 +34,37 @@
+=20
+ #include "omapfb.h"
+=20
++static u8 get_mem_idx(struct omapfb_info *ofbi)
 +{
-+	struct dev_object *dev;
-+	struct cfg_devnode *dev_node;
-+	if (atomic_read(&bridge_cref)) {
-+		INIT_COMPLETION(bridge_comp);
-+		while (!wait_for_completion_timeout(&bridge_comp,
-+						msecs_to_jiffies(REC_TIMEOUT)))
-+			pr_info("%s:%d handle(s) still opened\n",
-+					__func__, atomic_read(&bridge_cref));
-+	}
-+	dev = dev_get_first();
-+	dev_get_dev_node(dev, &dev_node);
-+	if (!dev_node || DSP_FAILED(proc_auto_start(dev_node, dev)))
-+		pr_err("DSP could not be restarted\n");
-+	recover = false;
-+	complete_all(&bridge_open_comp);
++	if (ofbi->id =3D=3D ofbi->region->id)
++		return 0;
++
++	return OMAPFB_MEM_IDX_ENABLED | ofbi->region->id;
 +}
 +
-+void bridge_recover_schedule(void)
++static struct omapfb2_mem_region *get_mem_region(struct omapfb_info *o=
+fbi,
++						 u8 mem_idx)
 +{
-+	INIT_COMPLETION(bridge_open_comp);
-+	recover = true;
-+	queue_work(bridge_rec_queue, &bridge_recovery_work);
++	struct omapfb2_device *fbdev =3D ofbi->fbdev;
++
++	if (mem_idx & OMAPFB_MEM_IDX_ENABLED)
++		mem_idx &=3D OMAPFB_MEM_IDX_MASK;
++	else
++		mem_idx =3D ofbi->id;
++
++	if (mem_idx >=3D fbdev->num_fbs)
++		return NULL;
++
++	return omapfb_get_mem_region(&fbdev->regions[mem_idx]);
 +}
-+#endif
- #ifdef CONFIG_BRIDGE_DVFS
- static int dspbridge_post_scale(struct notifier_block *op, unsigned long level,
- 				void *ptr)
-@@ -323,6 +359,12 @@ static int __devinit omap34_xx_bridge_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+#ifdef CONFIG_BRIDGE_RECOVERY
-+	bridge_rec_queue = create_workqueue("bridge_rec_queue");
-+	INIT_WORK(&bridge_recovery_work, bridge_recover);
-+	INIT_COMPLETION(bridge_comp);
-+#endif
 +
- 	DBC_ASSERT(status == 0);
- 	DBC_ASSERT(DSP_SUCCEEDED(init_status));
- 
-@@ -443,6 +485,13 @@ static int bridge_open(struct inode *ip, struct file *filp)
- 	 * dload_allocate a new process context and insert it into global
- 	 * process context list.
- 	 */
-+
-+#ifdef CONFIG_BRIDGE_RECOVERY
-+	if (recover)
-+		if (wait_for_completion_interruptible_timeout(&bridge_open_comp,
-+				msecs_to_jiffies(REC_TIMEOUT * 3)) <= 0)
-+			return -EBUSY;
-+#endif
- 	pr_ctxt = mem_calloc(sizeof(struct process_context), MEM_PAGED);
- 	if (pr_ctxt) {
- 		pr_ctxt->res_state = PROC_RES_ALLOCATED;
-@@ -458,6 +507,10 @@ static int bridge_open(struct inode *ip, struct file *filp)
- 
- 	filp->private_data = pr_ctxt;
- 
-+#ifdef CONFIG_BRIDGE_RECOVERY
-+	if (!status)
-+		atomic_inc(&bridge_cref);
-+#endif
- 	return status;
- }
- 
-@@ -484,6 +537,10 @@ static int bridge_release(struct inode *ip, struct file *filp)
- 	filp->private_data = NULL;
- 
- err:
-+#ifdef CONFIG_BRIDGE_RECOVERY
-+	if (!atomic_dec_return(&bridge_cref))
-+		complete(&bridge_comp);
-+#endif
- 	return status;
- }
- 
-@@ -496,6 +553,12 @@ static long bridge_ioctl(struct file *filp, unsigned int code,
- 	union Trapped_Args buf_in;
- 
- 	DBC_REQUIRE(filp != NULL);
-+#ifdef CONFIG_BRIDGE_RECOVERY
-+	if (recover) {
-+		status = -EIO;
-+		goto err;
-+	}
-+#endif
- #ifdef CONFIG_PM
- 	status = omap34_xxbridge_suspend_lockout(&bridge_suspend_data, filp);
- 	if (status != 0)
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 5bc7ec7..1c94729 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -53,6 +53,7 @@
- #include <dspbridge/msg.h>
- #include <dspbridge/wmdioctl.h>
- #include <dspbridge/drv.h>
-+#include <dspbridge/reg.h>
- 
- /*  ----------------------------------- This */
- #include <dspbridge/proc.h>
-@@ -257,7 +258,6 @@ u32 proc_auto_start(struct cfg_devnode *dev_node_obj,
- 		    struct dev_object *hdev_obj)
+ static int omapfb_setup_plane(struct fb_info *fbi, struct omapfb_plane=
+_info *pi)
  {
- 	u32 status = DSP_EFAIL;
--	u32 dw_auto_start = 0;	/* autostart flag */
- 	struct proc_object *pProcObject;
- 	char sz_exec_file[MAXCMDLINELEN];
- 	char *argv[2];
-@@ -293,11 +293,6 @@ u32 proc_auto_start(struct cfg_devnode *dev_node_obj,
- 	if (DSP_FAILED(status))
- 		goto func_cont;
- 
--	status = cfg_get_auto_start(dev_node_obj, &dw_auto_start);
--	if (DSP_FAILED(status) || !dw_auto_start) {
--		status = DSP_EFAIL;
--		goto func_cont;
--	}
- 	/* Get the default executable for this board... */
- 	dev_get_dev_type(hdev_obj, (u32 *) &dev_type);
- 	pProcObject->processor_id = dev_type;
-@@ -1024,6 +1019,8 @@ u32 proc_load(void *hprocessor, const s32 argc_index, const char **user_args,
- 		if (DSP_SUCCEEDED((*pProcObject->intf_fxns->pfn_brd_status)
- 				  (pProcObject->hwmd_context, &brd_state))) {
- 			pr_info("%s: Processor Loaded %s\n", __func__, pargv0);
-+			reg_set_value(DEFEXEC, (u8 *)pargv0,
-+							strlen(pargv0) + 1);
- 			DBC_ASSERT(brd_state == BRD_LOADED);
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+ 	struct omapfb2_device *fbdev =3D ofbi->fbdev;
+ 	struct omap_overlay *ovl;
+-	struct omap_overlay_info info;
++	struct omap_overlay_info old_info;
++	struct omapfb2_mem_region *old_rg, *new_rg;
+ 	int r =3D 0;
+=20
+ 	DBG("omapfb_setup_plane\n");
+@@ -52,57 +77,101 @@ static int omapfb_setup_plane(struct fb_info *fbi,=
+ struct omapfb_plane_info *pi)
+ 	/* XXX uses only the first overlay */
+ 	ovl =3D ofbi->overlays[0];
+=20
+-	if (pi->enabled && !ofbi->region.size) {
++	old_rg =3D omapfb_get_mem_region(ofbi->region);
++	new_rg =3D get_mem_region(ofbi, pi->mem_idx);
++	if (!new_rg) {
++		r =3D -EINVAL;
++		goto put_old;
++	}
++
++	if (pi->enabled && !new_rg->size) {
+ 		/*
+ 		 * This plane's memory was freed, can't enable it
+ 		 * until it's reallocated.
+ 		 */
+ 		r =3D -EINVAL;
+-		goto out;
++		goto put_new;
+ 	}
+=20
+-	ovl->get_overlay_info(ovl, &info);
++	ovl->get_overlay_info(ovl, &old_info);
+=20
+-	info.pos_x =3D pi->pos_x;
+-	info.pos_y =3D pi->pos_y;
+-	info.out_width =3D pi->out_width;
+-	info.out_height =3D pi->out_height;
+-	info.enabled =3D pi->enabled;
++	if (old_rg !=3D new_rg) {
++		ofbi->region =3D new_rg;
++		set_fb_fix(fbi);
++	}
+=20
+-	r =3D ovl->set_overlay_info(ovl, &info);
+-	if (r)
+-		goto out;
++	if (pi->enabled) {
++		struct omap_overlay_info info;
+=20
+-	if (ovl->manager) {
+-		r =3D ovl->manager->apply(ovl->manager);
++		r =3D omapfb_setup_overlay(fbi, ovl, pi->pos_x, pi->pos_y,
++			pi->out_width, pi->out_height);
+ 		if (r)
+-			goto out;
++			goto undo;
++
++		ovl->get_overlay_info(ovl, &info);
++
++		if (!info.enabled) {
++			info.enabled =3D pi->enabled;
++			r =3D ovl->set_overlay_info(ovl, &info);
++			if (r)
++				goto undo;
++		}
++	} else {
++		struct omap_overlay_info info;
++
++		ovl->get_overlay_info(ovl, &info);
++
++		info.enabled =3D pi->enabled;
++		info.pos_x =3D pi->pos_x;
++		info.pos_y =3D pi->pos_y;
++		info.out_width =3D pi->out_width;
++		info.out_height =3D pi->out_height;
++
++		r =3D ovl->set_overlay_info(ovl, &info);
++		if (r)
++			goto undo;
+ 	}
+=20
+-out:
+-	if (r)
+-		dev_err(fbdev->dev, "setup_plane failed\n");
++	if (ovl->manager)
++		ovl->manager->apply(ovl->manager);
++
++	omapfb_put_mem_region(new_rg);
++	omapfb_put_mem_region(old_rg);
++
++	return 0;
++
++ undo:
++	if (old_rg !=3D new_rg) {
++		ofbi->region =3D old_rg;
++		set_fb_fix(fbi);
++	}
++
++	ovl->set_overlay_info(ovl, &old_info);
++ put_new:
++	omapfb_put_mem_region(new_rg);
++ put_old:
++	omapfb_put_mem_region(old_rg);
++ out:
++	dev_err(fbdev->dev, "setup_plane failed\n");
++
+ 	return r;
+ }
+=20
+ static int omapfb_query_plane(struct fb_info *fbi, struct omapfb_plane=
+_info *pi)
+ {
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
++	struct omap_overlay *ovl =3D ofbi->overlays[0];
++	struct omap_overlay_info *ovli =3D &ovl->info;
+=20
+ 	if (ofbi->num_overlays !=3D 1) {
+ 		memset(pi, 0, sizeof(*pi));
+ 	} else {
+-		struct omap_overlay_info *ovli;
+-		struct omap_overlay *ovl;
+-
+-		ovl =3D ofbi->overlays[0];
+-		ovli =3D &ovl->info;
+-
+ 		pi->pos_x =3D ovli->pos_x;
+ 		pi->pos_y =3D ovli->pos_y;
+ 		pi->enabled =3D ovli->enabled;
+ 		pi->channel_out =3D 0; /* xxx */
+ 		pi->mirror =3D 0;
++		pi->mem_idx =3D get_mem_idx(ofbi);
+ 		pi->out_width =3D ovli->out_width;
+ 		pi->out_height =3D ovli->out_height;
+ 	}
+@@ -115,30 +184,57 @@ static int omapfb_setup_mem(struct fb_info *fbi, =
+struct omapfb_mem_info *mi)
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+ 	struct omapfb2_device *fbdev =3D ofbi->fbdev;
+ 	struct omapfb2_mem_region *rg;
+-	int r, i;
++	int r =3D 0;
+ 	size_t size;
++	int i;
+=20
+ 	if (mi->type > OMAPFB_MEMTYPE_MAX)
+ 		return -EINVAL;
+=20
+ 	size =3D PAGE_ALIGN(mi->size);
+=20
+-	rg =3D &ofbi->region;
++	rg =3D ofbi->region;
+=20
+-	for (i =3D 0; i < ofbi->num_overlays; i++) {
+-		if (ofbi->overlays[i]->info.enabled)
+-			return -EBUSY;
++	/* FIXME probably should be a rwsem ... */
++	mutex_lock(&rg->mtx);
++	while (rg->ref) {
++		mutex_unlock(&rg->mtx);
++		schedule();
++		mutex_lock(&rg->mtx);
++	}
++
++	if (atomic_read(&rg->map_count)) {
++		r =3D -EBUSY;
++		goto out;
++	}
++
++	for (i =3D 0; i < fbdev->num_fbs; i++) {
++		struct omapfb_info *ofbi2 =3D FB2OFB(fbdev->fbs[i]);
++		int j;
++
++		if (ofbi2->region !=3D rg)
++			continue;
++
++		for (j =3D 0; j < ofbi2->num_overlays; j++) {
++			if (ofbi2->overlays[j]->info.enabled) {
++				r =3D -EBUSY;
++				goto out;
++			}
++		}
+ 	}
+=20
+ 	if (rg->size !=3D size || rg->type !=3D mi->type) {
+ 		r =3D omapfb_realloc_fbmem(fbi, size, mi->type);
+ 		if (r) {
+ 			dev_err(fbdev->dev, "realloc fbmem failed\n");
+-			return r;
++			goto out;
  		}
  	}
-diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index 5f1ea43..8b4e9be 100644
---- a/drivers/dsp/bridge/wmd/ue_deh.c
-+++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -287,8 +287,12 @@ void bridge_deh_notify(struct deh_mgr *hdeh_mgr, u32 ulEventMask, u32 dwErrInfo)
+=20
+-	return 0;
++ out:
++	mutex_unlock(&rg->mtx);
++
++	return r;
+ }
+=20
+ static int omapfb_query_mem(struct fb_info *fbi, struct omapfb_mem_inf=
+o *mi)
+@@ -146,12 +242,15 @@ static int omapfb_query_mem(struct fb_info *fbi, =
+struct omapfb_mem_info *mi)
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+ 	struct omapfb2_mem_region *rg;
+=20
+-	rg =3D &ofbi->region;
+ 	memset(mi, 0, sizeof(*mi));
+=20
++	rg =3D omapfb_get_mem_region(ofbi->region);
++
+ 	mi->size =3D rg->size;
+ 	mi->type =3D rg->type;
+=20
++	omapfb_put_mem_region(rg);
++
+ 	return 0;
+ }
+=20
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/o=
+map2/omapfb/omapfb-main.c
+index 4a76917..dcd9d49 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -156,7 +156,7 @@ static void fill_fb(struct fb_info *fbi)
+=20
+ static unsigned omapfb_get_vrfb_offset(const struct omapfb_info *ofbi,=
+ int rot)
+ {
+-	const struct vrfb *vrfb =3D &ofbi->region.vrfb;
++	const struct vrfb *vrfb =3D &ofbi->region->vrfb;
+ 	unsigned offset;
+=20
+ 	switch (rot) {
+@@ -184,27 +184,27 @@ static unsigned omapfb_get_vrfb_offset(const stru=
+ct omapfb_info *ofbi, int rot)
+ static u32 omapfb_get_region_rot_paddr(const struct omapfb_info *ofbi,=
+ int rot)
+ {
+ 	if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB) {
+-		return ofbi->region.vrfb.paddr[rot]
++		return ofbi->region->vrfb.paddr[rot]
+ 			+ omapfb_get_vrfb_offset(ofbi, rot);
+ 	} else {
+-		return ofbi->region.paddr;
++		return ofbi->region->paddr;
+ 	}
+ }
+=20
+ static u32 omapfb_get_region_paddr(const struct omapfb_info *ofbi)
+ {
+ 	if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB)
+-		return ofbi->region.vrfb.paddr[0];
++		return ofbi->region->vrfb.paddr[0];
+ 	else
+-		return ofbi->region.paddr;
++		return ofbi->region->paddr;
+ }
+=20
+ static void __iomem *omapfb_get_region_vaddr(const struct omapfb_info =
+*ofbi)
+ {
+ 	if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB)
+-		return ofbi->region.vrfb.vaddr[0];
++		return ofbi->region->vrfb.vaddr[0];
+ 	else
+-		return ofbi->region.vaddr;
++		return ofbi->region->vaddr;
+ }
+=20
+ static struct omapfb_colormode omapfb_colormodes[] =3D {
+@@ -449,7 +449,7 @@ static int check_vrfb_fb_size(unsigned long region_=
+size,
+ static int check_fb_size(const struct omapfb_info *ofbi,
+ 		struct fb_var_screeninfo *var)
+ {
+-	unsigned long max_frame_size =3D ofbi->region.size;
++	unsigned long max_frame_size =3D ofbi->region->size;
+ 	int bytespp =3D var->bits_per_pixel >> 3;
+ 	unsigned long line_size =3D var->xres_virtual * bytespp;
+=20
+@@ -496,7 +496,7 @@ static int check_fb_size(const struct omapfb_info *=
+ofbi,
+ static int setup_vrfb_rotation(struct fb_info *fbi)
+ {
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+-	struct omapfb2_mem_region *rg =3D &ofbi->region;
++	struct omapfb2_mem_region *rg =3D ofbi->region;
+ 	struct vrfb *vrfb =3D &rg->vrfb;
+ 	struct fb_var_screeninfo *var =3D &fbi->var;
+ 	struct fb_fix_screeninfo *fix =3D &fbi->fix;
+@@ -557,9 +557,9 @@ static int setup_vrfb_rotation(struct fb_info *fbi)
+ 		return r;
+=20
+ 	/* used by open/write in fbmem.c */
+-	fbi->screen_base =3D ofbi->region.vrfb.vaddr[0];
++	fbi->screen_base =3D ofbi->region->vrfb.vaddr[0];
+=20
+-	fix->smem_start =3D ofbi->region.vrfb.paddr[0];
++	fix->smem_start =3D ofbi->region->vrfb.paddr[0];
+=20
+ 	switch (var->nonstd) {
+ 	case OMAPFB_COLOR_YUV422:
+@@ -598,7 +598,7 @@ void set_fb_fix(struct fb_info *fbi)
+ 	struct fb_fix_screeninfo *fix =3D &fbi->fix;
+ 	struct fb_var_screeninfo *var =3D &fbi->var;
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+-	struct omapfb2_mem_region *rg =3D &ofbi->region;
++	struct omapfb2_mem_region *rg =3D ofbi->region;
+=20
+ 	DBG("set_fb_fix\n");
+=20
+@@ -667,9 +667,6 @@ int check_fb_var(struct fb_info *fbi, struct fb_var=
+_screeninfo *var)
+=20
+ 	DBG("check_fb_var %d\n", ofbi->id);
+=20
+-	if (ofbi->region.size =3D=3D 0)
+-		return 0;
+-
+ 	r =3D fb_mode_to_dss_mode(var, &mode);
+ 	if (r) {
+ 		DBG("cannot convert var to omap dss mode\n");
+@@ -689,7 +686,8 @@ int check_fb_var(struct fb_info *fbi, struct fb_var=
+_screeninfo *var)
+ 	if (check_fb_res_bounds(var))
+ 		return -EINVAL;
+=20
+-	if (check_fb_size(ofbi, var))
++	/* When no memory is allocated ignore the size check */
++	if (ofbi->region->size !=3D 0 && check_fb_size(ofbi, var))
+ 		return -EINVAL;
+=20
+ 	if (var->xres + var->xoffset > var->xres_virtual)
+@@ -821,9 +819,43 @@ static unsigned calc_rotation_offset_vrfb(const st=
+ruct fb_var_screeninfo *var,
+ 	return offset;
+ }
+=20
++static void omapfb_calc_addr(const struct omapfb_info *ofbi,
++			     const struct fb_var_screeninfo *var,
++			     const struct fb_fix_screeninfo *fix,
++			     int rotation, u32 *paddr, void __iomem **vaddr)
++{
++	u32 data_start_p;
++	void __iomem *data_start_v;
++	int offset;
++
++	if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB) {
++		data_start_p =3D omapfb_get_region_rot_paddr(ofbi, rotation);
++		data_start_v =3D NULL;
++	} else {
++		data_start_p =3D omapfb_get_region_paddr(ofbi);
++		data_start_v =3D omapfb_get_region_vaddr(ofbi);
++	}
++
++	if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB)
++		offset =3D calc_rotation_offset_vrfb(var, fix, rotation);
++	else
++		offset =3D calc_rotation_offset_dma(var, fix, rotation);
++
++	data_start_p +=3D offset;
++	data_start_v +=3D offset;
++
++	if (offset)
++		DBG("offset %d, %d =3D %d\n",
++		    var->xoffset, var->yoffset, offset);
++
++	DBG("paddr %x, vaddr %p\n", data_start_p, data_start_v);
++
++	*paddr =3D data_start_p;
++	*vaddr =3D data_start_v;
++}
+=20
+ /* setup overlay according to the fb */
+-static int omapfb_setup_overlay(struct fb_info *fbi, struct omap_overl=
+ay *ovl,
++int omapfb_setup_overlay(struct fb_info *fbi, struct omap_overlay *ovl=
+,
+ 		u16 posx, u16 posy, u16 outw, u16 outh)
+ {
+ 	int r =3D 0;
+@@ -831,9 +863,8 @@ static int omapfb_setup_overlay(struct fb_info *fbi=
+, struct omap_overlay *ovl,
+ 	struct fb_var_screeninfo *var =3D &fbi->var;
+ 	struct fb_fix_screeninfo *fix =3D &fbi->fix;
+ 	enum omap_color_mode mode =3D 0;
+-	int offset;
+-	u32 data_start_p;
+-	void __iomem *data_start_v;
++	u32 data_start_p =3D 0;
++	void __iomem *data_start_v =3D NULL;
+ 	struct omap_overlay_info info;
+ 	int xres, yres;
+ 	int screen_width;
+@@ -860,28 +891,9 @@ static int omapfb_setup_overlay(struct fb_info *fb=
+i, struct omap_overlay *ovl,
+ 		yres =3D var->yres;
+ 	}
+=20
+-
+-	if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB) {
+-		data_start_p =3D omapfb_get_region_rot_paddr(ofbi, rotation);
+-		data_start_v =3D NULL;
+-	} else {
+-		data_start_p =3D omapfb_get_region_paddr(ofbi);
+-		data_start_v =3D omapfb_get_region_vaddr(ofbi);
+-	}
+-
+-	if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB)
+-		offset =3D calc_rotation_offset_vrfb(var, fix, rotation);
+-	else
+-		offset =3D calc_rotation_offset_dma(var, fix, rotation);
+-
+-	data_start_p +=3D offset;
+-	data_start_v +=3D offset;
+-
+-	if (offset)
+-		DBG("offset %d, %d =3D %d\n",
+-				var->xoffset, var->yoffset, offset);
+-
+-	DBG("paddr %x, vaddr %p\n", data_start_p, data_start_v);
++	if (ofbi->region->size)
++		omapfb_calc_addr(ofbi, var, fix, rotation,
++				 &data_start_p, &data_start_v);
+=20
+ 	r =3D fb_mode_to_dss_mode(var, &mode);
+ 	if (r) {
+@@ -958,9 +970,9 @@ int omapfb_apply_changes(struct fb_info *fbi, int i=
+nit)
+=20
+ 		DBG("apply_changes, fb %d, ovl %d\n", ofbi->id, ovl->id);
+=20
+-		if (ofbi->region.size =3D=3D 0) {
++		if (ofbi->region->size =3D=3D 0) {
+ 			/* the fb is not available. disable the overlay */
+-			omapfb_overlay_enable(ovl, 0);
++			r =3D omapfb_overlay_enable(ovl, false);
+ 			if (!init && ovl->manager)
+ 				ovl->manager->apply(ovl->manager);
+ 			continue;
+@@ -1006,36 +1018,48 @@ err:
+  * DO NOT MODIFY PAR */
+ static int omapfb_check_var(struct fb_var_screeninfo *var, struct fb_i=
+nfo *fbi)
+ {
++	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+ 	int r;
+=20
+ 	DBG("check_var(%d)\n", FB2OFB(fbi)->id);
+=20
++	omapfb_get_mem_region(ofbi->region);
++
+ 	r =3D check_fb_var(fbi, var);
+=20
++	omapfb_put_mem_region(ofbi->region);
++
+ 	return r;
+ }
+=20
+ /* set the video mode according to info->var */
+ static int omapfb_set_par(struct fb_info *fbi)
+ {
++	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+ 	int r;
+=20
+ 	DBG("set_par(%d)\n", FB2OFB(fbi)->id);
+=20
++	omapfb_get_mem_region(ofbi->region);
++
+ 	set_fb_fix(fbi);
+=20
+ 	r =3D setup_vrfb_rotation(fbi);
+ 	if (r)
+-		return r;
++		goto out;
+=20
+ 	r =3D omapfb_apply_changes(fbi, 0);
+=20
++ out:
++	omapfb_put_mem_region(ofbi->region);
++
+ 	return r;
+ }
+=20
+ static int omapfb_pan_display(struct fb_var_screeninfo *var,
+ 		struct fb_info *fbi)
+ {
++	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+ 	struct fb_var_screeninfo new_var;
+ 	int r;
+=20
+@@ -1051,23 +1075,31 @@ static int omapfb_pan_display(struct fb_var_scr=
+eeninfo *var,
+=20
+ 	fbi->var =3D new_var;
+=20
++	omapfb_get_mem_region(ofbi->region);
++
+ 	r =3D omapfb_apply_changes(fbi, 0);
+=20
++	omapfb_put_mem_region(ofbi->region);
++
+ 	return r;
+ }
+=20
+ static void mmap_user_open(struct vm_area_struct *vma)
+ {
+-	struct omapfb_info *ofbi =3D (struct omapfb_info *)vma->vm_private_da=
+ta;
++	struct omapfb2_mem_region *rg =3D vma->vm_private_data;
+=20
+-	atomic_inc(&ofbi->map_count);
++	omapfb_get_mem_region(rg);
++	atomic_inc(&rg->map_count);
++	omapfb_put_mem_region(rg);
+ }
+=20
+ static void mmap_user_close(struct vm_area_struct *vma)
+ {
+-	struct omapfb_info *ofbi =3D (struct omapfb_info *)vma->vm_private_da=
+ta;
++	struct omapfb2_mem_region *rg =3D vma->vm_private_data;
+=20
+-	atomic_dec(&ofbi->map_count);
++	omapfb_get_mem_region(rg);
++	atomic_dec(&rg->map_count);
++	omapfb_put_mem_region(rg);
+ }
+=20
+ static struct vm_operations_struct mmap_user_ops =3D {
+@@ -1079,9 +1111,11 @@ static int omapfb_mmap(struct fb_info *fbi, stru=
+ct vm_area_struct *vma)
+ {
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+ 	struct fb_fix_screeninfo *fix =3D &fbi->fix;
++	struct omapfb2_mem_region *rg;
+ 	unsigned long off;
+ 	unsigned long start;
+ 	u32 len;
++	int r =3D -EINVAL;
+=20
+ 	if (vma->vm_end - vma->vm_start =3D=3D 0)
+ 		return 0;
+@@ -1089,12 +1123,14 @@ static int omapfb_mmap(struct fb_info *fbi, str=
+uct vm_area_struct *vma)
+ 		return -EINVAL;
+ 	off =3D vma->vm_pgoff << PAGE_SHIFT;
+=20
++	rg =3D omapfb_get_mem_region(ofbi->region);
++
+ 	start =3D omapfb_get_region_paddr(ofbi);
+ 	len =3D fix->smem_len;
+ 	if (off >=3D len)
+-		return -EINVAL;
++		goto error;
+ 	if ((vma->vm_end - vma->vm_start + off) > len)
+-		return -EINVAL;
++		goto error;
+=20
+ 	off +=3D start;
+=20
+@@ -1104,13 +1140,24 @@ static int omapfb_mmap(struct fb_info *fbi, str=
+uct vm_area_struct *vma)
+ 	vma->vm_flags |=3D VM_IO | VM_RESERVED;
+ 	vma->vm_page_prot =3D pgprot_writecombine(vma->vm_page_prot);
+ 	vma->vm_ops =3D &mmap_user_ops;
+-	vma->vm_private_data =3D ofbi;
++	vma->vm_private_data =3D rg;
+ 	if (io_remap_pfn_range(vma, vma->vm_start, off >> PAGE_SHIFT,
+-			     vma->vm_end - vma->vm_start, vma->vm_page_prot))
+-		return -EAGAIN;
++			vma->vm_end - vma->vm_start, vma->vm_page_prot)) {
++		r =3D -EAGAIN;
++		goto error;
++	}
++
+ 	/* vm_ops.open won't be called for mmap itself. */
+-	atomic_inc(&ofbi->map_count);
++	atomic_inc(&rg->map_count);
++
++	omapfb_put_mem_region(rg);
++
+ 	return 0;
++
++ error:
++	omapfb_put_mem_region(ofbi->region);
++
++	return r;
+ }
+=20
+ /* Store a single color palette entry into a pseudo palette or the har=
+dware
+@@ -1299,7 +1346,9 @@ static void omapfb_free_fbmem(struct fb_info *fbi=
+)
+ 	struct omapfb2_device *fbdev =3D ofbi->fbdev;
+ 	struct omapfb2_mem_region *rg;
+=20
+-	rg =3D &ofbi->region;
++	rg =3D ofbi->region;
++
++	WARN_ON(atomic_read(&rg->map_count));
+=20
+ 	if (rg->paddr)
+ 		if (omap_vram_free(rg->paddr, rg->size))
+@@ -1354,8 +1403,15 @@ static int omapfb_alloc_fbmem(struct fb_info *fb=
+i, unsigned long size,
+ 	void __iomem *vaddr;
+ 	int r;
+=20
+-	rg =3D &ofbi->region;
+-	memset(rg, 0, sizeof(*rg));
++	rg =3D ofbi->region;
++
++	rg->paddr =3D 0;
++	rg->vaddr =3D NULL;
++	memset(&rg->vrfb, 0, sizeof rg->vrfb);
++	rg->size =3D 0;
++	rg->type =3D 0;
++	rg->alloc =3D false;
++	rg->map =3D false;
+=20
+ 	size =3D PAGE_ALIGN(size);
+=20
+@@ -1608,7 +1664,7 @@ static int omapfb_allocate_all_fbs(struct omapfb2=
+_device *fbdev)
+ 	for (i =3D 0; i < fbdev->num_fbs; i++) {
+ 		struct omapfb_info *ofbi =3D FB2OFB(fbdev->fbs[i]);
+ 		struct omapfb2_mem_region *rg;
+-		rg =3D &ofbi->region;
++		rg =3D ofbi->region;
+=20
+ 		DBG("region%d phys %08x virt %p size=3D%lu\n",
+ 				i,
+@@ -1625,7 +1681,7 @@ int omapfb_realloc_fbmem(struct fb_info *fbi, uns=
+igned long size, int type)
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+ 	struct omapfb2_device *fbdev =3D ofbi->fbdev;
+ 	struct omap_dss_device *display =3D fb2display(fbi);
+-	struct omapfb2_mem_region *rg =3D &ofbi->region;
++	struct omapfb2_mem_region *rg =3D ofbi->region;
+ 	unsigned long old_size =3D rg->size;
+ 	unsigned long old_paddr =3D rg->paddr;
+ 	int old_type =3D rg->type;
+@@ -1708,7 +1764,7 @@ static int omapfb_fb_init(struct omapfb2_device *=
+fbdev, struct fb_info *fbi)
+ 	fbi->flags =3D FBINFO_FLAG_DEFAULT;
+ 	fbi->pseudo_palette =3D fbdev->pseudo_palette;
+=20
+-	if (ofbi->region.size =3D=3D 0) {
++	if (ofbi->region->size =3D=3D 0) {
+ 		clear_fb_info(fbi);
+ 		return 0;
+ 	}
+@@ -1870,6 +1926,10 @@ static int omapfb_create_framebuffers(struct oma=
+pfb2_device *fbdev)
+ 		ofbi->fbdev =3D fbdev;
+ 		ofbi->id =3D i;
+=20
++		ofbi->region =3D &fbdev->regions[i];
++		ofbi->region->id =3D i;
++		mutex_init(&ofbi->region->mtx);
++
+ 		/* assign these early, so that fb alloc can use them */
+ 		ofbi->rotation_type =3D def_vrfb ? OMAP_DSS_ROT_VRFB :
+ 			OMAP_DSS_ROT_DMA;
+@@ -1941,7 +2001,7 @@ static int omapfb_create_framebuffers(struct omap=
+fb2_device *fbdev)
+ 		if (ofbi->num_overlays > 0) {
+ 			struct omap_overlay *ovl =3D ofbi->overlays[0];
+=20
+-			r =3D omapfb_overlay_enable(ovl, 1);
++			r =3D omapfb_overlay_enable(ovl, true);
+=20
+ 			if (r) {
+ 				dev_err(fbdev->dev,
+diff --git a/drivers/video/omap2/omapfb/omapfb-sysfs.c b/drivers/video/=
+omap2/omapfb/omapfb-sysfs.c
+index 62bb88f..caedbaa 100644
+--- a/drivers/video/omap2/omapfb/omapfb-sysfs.c
++++ b/drivers/video/omap2/omapfb/omapfb-sysfs.c
+@@ -49,6 +49,7 @@ static ssize_t store_rotate_type(struct device *dev,
+ {
+ 	struct fb_info *fbi =3D dev_get_drvdata(dev);
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
++	struct omapfb2_mem_region *rg;
+ 	enum omap_dss_rotation_type rot_type;
+ 	int r;
+=20
+@@ -63,9 +64,11 @@ static ssize_t store_rotate_type(struct device *dev,
+ 	if (rot_type =3D=3D ofbi->rotation_type)
+ 		goto out;
+=20
+-	if (ofbi->region.size) {
++	rg =3D omapfb_get_mem_region(ofbi->region);
++
++	if (rg->size) {
+ 		r =3D -EBUSY;
+-		goto out;
++		goto put_region;
+ 	}
+=20
+ 	ofbi->rotation_type =3D rot_type;
+@@ -74,7 +77,10 @@ static ssize_t store_rotate_type(struct device *dev,
+ 	 * Since the VRAM for this FB is not allocated at the moment we don't
+ 	 * need to do any further parameter checking at this point.
+ 	 */
++put_region:
++	omapfb_put_mem_region(rg);
+ out:
++
+ 	unlock_fb_info(fbi);
+=20
+ 	return r ? r : count;
+@@ -242,6 +248,7 @@ static ssize_t store_overlays(struct device *dev, s=
+truct device_attribute *attr,
+ 	/* detach unused overlays */
+ 	for (i =3D 0; i < ofbi->num_overlays; ++i) {
+ 		int t, found;
++		struct omapfb2_mem_region *rg;
+=20
+ 		ovl =3D ofbi->overlays[i];
+=20
+@@ -259,7 +266,9 @@ static ssize_t store_overlays(struct device *dev, s=
+truct device_attribute *attr,
+=20
+ 		DBG("detaching %d\n", ofbi->overlays[i]->id);
+=20
+-		omapfb_overlay_enable(ovl, 0);
++		rg =3D omapfb_get_mem_region(ofbi->region);
++		r =3D omapfb_overlay_enable(ovl, false);
++		omapfb_put_mem_region(ofbi->region);
+=20
+ 		if (ovl->manager)
+ 			ovl->manager->apply(ovl->manager);
+@@ -402,7 +411,7 @@ static ssize_t show_size(struct device *dev,
+ 	struct fb_info *fbi =3D dev_get_drvdata(dev);
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+=20
+-	return snprintf(buf, PAGE_SIZE, "%lu\n", ofbi->region.size);
++	return snprintf(buf, PAGE_SIZE, "%lu\n", ofbi->region->size);
+ }
+=20
+ static ssize_t store_size(struct device *dev, struct device_attribute =
+*attr,
+@@ -410,6 +419,8 @@ static ssize_t store_size(struct device *dev, struc=
+t device_attribute *attr,
+ {
+ 	struct fb_info *fbi =3D dev_get_drvdata(dev);
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
++	struct omapfb2_device *fbdev =3D ofbi->fbdev;
++	struct omapfb2_mem_region *rg;
+ 	unsigned long size;
+ 	int r;
+ 	int i;
+@@ -418,15 +429,38 @@ static ssize_t store_size(struct device *dev, str=
+uct device_attribute *attr,
+=20
+ 	lock_fb_info(fbi);
+=20
+-	for (i =3D 0; i < ofbi->num_overlays; i++) {
+-		if (ofbi->overlays[i]->info.enabled) {
+-			r =3D -EBUSY;
+-			goto out;
++	rg =3D ofbi->region;
++
++	/* FIXME probably should be a rwsem ... */
++	mutex_lock(&rg->mtx);
++	while (rg->ref) {
++		mutex_unlock(&rg->mtx);
++		schedule();
++		mutex_lock(&rg->mtx);
++	}
++
++	if (atomic_read(&rg->map_count)) {
++		r =3D -EBUSY;
++		goto out;
++	}
++
++	for (i =3D 0; i < fbdev->num_fbs; i++) {
++		struct omapfb_info *ofbi2 =3D FB2OFB(fbdev->fbs[i]);
++		int j;
++
++		if (ofbi2->region !=3D rg)
++			continue;
++
++		for (j =3D 0; j < ofbi2->num_overlays; j++) {
++			if (ofbi2->overlays[j]->info.enabled) {
++				r =3D -EBUSY;
++				goto out;
++			}
  		}
- 
- 		/* Filter subsequent notifications when an error occurs */
--		if (dev_context->dw_brd_state != BRD_ERROR)
-+		if (dev_context->dw_brd_state != BRD_ERROR) {
- 			ntfy_notify(deh_mgr_obj->ntfy_obj, ulEventMask);
-+#ifdef CONFIG_BRIDGE_RECOVERY
-+			bridge_recover_schedule();
-+#endif
-+		}
- 
- 		/* Set the Board state as ERROR */
- 		dev_context->dw_brd_state = BRD_ERROR;
--- 
-1.6.0.4
+ 	}
+=20
+-	if (size !=3D ofbi->region.size) {
+-		r =3D omapfb_realloc_fbmem(fbi, size, ofbi->region.type);
++	if (size !=3D ofbi->region->size) {
++		r =3D omapfb_realloc_fbmem(fbi, size, ofbi->region->type);
+ 		if (r) {
+ 			dev_err(dev, "realloc fbmem failed\n");
+ 			goto out;
+@@ -435,6 +469,8 @@ static ssize_t store_size(struct device *dev, struc=
+t device_attribute *attr,
+=20
+ 	r =3D count;
+ out:
++	mutex_unlock(&rg->mtx);
++
+ 	unlock_fb_info(fbi);
+=20
+ 	return r;
+@@ -446,7 +482,7 @@ static ssize_t show_phys(struct device *dev,
+ 	struct fb_info *fbi =3D dev_get_drvdata(dev);
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+=20
+-	return snprintf(buf, PAGE_SIZE, "%0x\n", ofbi->region.paddr);
++	return snprintf(buf, PAGE_SIZE, "%0x\n", ofbi->region->paddr);
+ }
+=20
+ static ssize_t show_virt(struct device *dev,
+@@ -455,7 +491,7 @@ static ssize_t show_virt(struct device *dev,
+ 	struct fb_info *fbi =3D dev_get_drvdata(dev);
+ 	struct omapfb_info *ofbi =3D FB2OFB(fbi);
+=20
+-	return snprintf(buf, PAGE_SIZE, "%p\n", ofbi->region.vaddr);
++	return snprintf(buf, PAGE_SIZE, "%p\n", ofbi->region->vaddr);
+ }
+=20
+ static struct device_attribute omapfb_attrs[] =3D {
+diff --git a/drivers/video/omap2/omapfb/omapfb.h b/drivers/video/omap2/=
+omapfb/omapfb.h
+index cd54fdb..ce15533 100644
+--- a/drivers/video/omap2/omapfb/omapfb.h
++++ b/drivers/video/omap2/omapfb/omapfb.h
+@@ -44,6 +44,7 @@ extern unsigned int omapfb_debug;
+ #define OMAPFB_MAX_OVL_PER_FB 3
+=20
+ struct omapfb2_mem_region {
++	int             id;
+ 	u32		paddr;
+ 	void __iomem	*vaddr;
+ 	struct vrfb	vrfb;
+@@ -51,13 +52,15 @@ struct omapfb2_mem_region {
+ 	u8		type;		/* OMAPFB_PLANE_MEM_* */
+ 	bool		alloc;		/* allocated by the driver */
+ 	bool		map;		/* kernel mapped by the driver */
++	struct mutex    mtx;
++	unsigned int    ref;
++	atomic_t	map_count;
+ };
+=20
+ /* appended to fb_info */
+ struct omapfb_info {
+ 	int id;
+-	struct omapfb2_mem_region region;
+-	atomic_t map_count;
++	struct omapfb2_mem_region *region;
+ 	int num_overlays;
+ 	struct omap_overlay *overlays[OMAPFB_MAX_OVL_PER_FB];
+ 	struct omapfb2_device *fbdev;
+@@ -76,6 +79,7 @@ struct omapfb2_device {
+=20
+ 	unsigned num_fbs;
+ 	struct fb_info *fbs[10];
++	struct omapfb2_mem_region regions[10];
+=20
+ 	unsigned num_displays;
+ 	struct omap_dss_device *displays[10];
+@@ -117,6 +121,9 @@ int omapfb_update_window(struct fb_info *fbi,
+ int dss_mode_to_fb_mode(enum omap_color_mode dssmode,
+ 			struct fb_var_screeninfo *var);
+=20
++int omapfb_setup_overlay(struct fb_info *fbi, struct omap_overlay *ovl=
+,
++		u16 posx, u16 posy, u16 outw, u16 outh);
++
+ /* find the display connected to this fb, if any */
+ static inline struct omap_dss_device *fb2display(struct fb_info *fbi)
+ {
+@@ -143,13 +150,36 @@ static inline void omapfb_unlock(struct omapfb2_d=
+evice *fbdev)
+ }
+=20
+ static inline int omapfb_overlay_enable(struct omap_overlay *ovl,
+-		int enable)
++					int enable)
+ {
+ 	struct omap_overlay_info info;
++	int r;
+=20
+ 	ovl->get_overlay_info(ovl, &info);
++	if (info.enabled =3D=3D enable)
++		return 0;
+ 	info.enabled =3D enable;
+-	return ovl->set_overlay_info(ovl, &info);
++	r =3D ovl->set_overlay_info(ovl, &info);
++	if (r)
++		return r;
++
++	return 0;
++}
++
++static inline struct omapfb2_mem_region *
++omapfb_get_mem_region(struct omapfb2_mem_region *rg)
++{
++	mutex_lock(&rg->mtx);
++	rg->ref++;
++	mutex_unlock(&rg->mtx);
++	return rg;
++}
++
++static inline void omapfb_put_mem_region(struct omapfb2_mem_region *rg=
+)
++{
++	mutex_lock(&rg->mtx);
++	rg->ref--;
++	mutex_unlock(&rg->mtx);
+ }
+=20
+ #endif
+diff --git a/include/linux/omapfb.h b/include/linux/omapfb.h
+index 9bdd914..5de473c 100644
+--- a/include/linux/omapfb.h
++++ b/include/linux/omapfb.h
+@@ -85,6 +85,9 @@
+ #define OMAPFB_MEMTYPE_SRAM		1
+ #define OMAPFB_MEMTYPE_MAX		1
+=20
++#define OMAPFB_MEM_IDX_ENABLED	0x8
++#define OMAPFB_MEM_IDX_MASK	0x7
++
+ enum omapfb_color_format {
+ 	OMAPFB_COLOR_RGB565 =3D 0,
+ 	OMAPFB_COLOR_YUV422,
+@@ -136,7 +139,7 @@ struct omapfb_plane_info {
+ 	__u8  enabled;
+ 	__u8  channel_out;
+ 	__u8  mirror;
+-	__u8  reserved1;
++	__u8  mem_idx;
+ 	__u32 out_width;
+ 	__u32 out_height;
+ 	__u32 reserved2[12];
+--=20
+1.6.4.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
