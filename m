@@ -1,50 +1,54 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [RFC part1/2 merge][PATCH 06/10] omap3: serial: Fix uart4
- handling for 3630
-Date: Fri, 5 Mar 2010 17:11:57 -0600
-Message-ID: <A24693684029E5489D1D202277BE894453D6866B@dlee02.ent.ti.com>
-References: <1267625925-22616-1-git-send-email-saaguirre@ti.com>
-	<1267625925-22616-7-git-send-email-saaguirre@ti.com>
- <87sk8ez96n.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP2: fix cpu_is_omap24* optimizations
+Date: Fri,  5 Mar 2010 15:37:12 -0800
+Message-ID: <1267832232-26187-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56185 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755930Ab0CEXMA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 18:12:00 -0500
-In-Reply-To: <87sk8ez96n.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-qy0-f199.google.com ([209.85.221.199]:41744 "EHLO
+	mail-qy0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755407Ab0CEXpA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 18:45:00 -0500
+Received: by qyk37 with SMTP id 37so2841922qyk.20
+        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 15:45:00 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
+Currently if omap2420 is defined but not omap2430, cpu_is_omap2430()
+is still defined as a macro, instead of #define'd to zero.  This
+results in conditional cpu_is_omap2430() code still being compiled,
+and leads to possible compile/link errors.  In particular for hwmod
+init calls in io.c
 
-From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-Sent: Friday, March 05, 2010 4:38 PM
+To fix, add extra #ifdefs to CPU check macros to ensure that the
+is_omap* macros are zero for each OMAP2 if they are not configured
+into the kernel.
 
-<snip>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/plat-omap/include/plat/cpu.h |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-> > @@ -694,6 +698,10 @@ void __init omap_serial_early_init(void)
-> >
-> >  		if (cpu_is_omap44xx())
-> >  			p->irq += 32;
-> > +
-> > +		/* IRQ for UART4 in omap3630 is 80 */
-> > +		if (cpu_is_omap3630() && (i == 3))
-> > +			p->irq = 80;
-> 
-> Should add a symbolic name to irqs.h and use it here, instead
-> of hard-coded constant.
-
-Sounds like a nice idea! Thanks!
-
-I'll update the patchset and resend.
-
-Regards,
-Sergio
-> 
-> Kevin
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index ed8786c..7514174 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -167,10 +167,14 @@ IS_OMAP_SUBCLASS(443x, 0x443)
+ #if defined(MULTI_OMAP2)
+ # if defined(CONFIG_ARCH_OMAP2)
+ #  undef  cpu_is_omap24xx
+-#  undef  cpu_is_omap242x
+-#  undef  cpu_is_omap243x
+ #  define cpu_is_omap24xx()		is_omap24xx()
++# endif
++# if defined (CONFIG_ARCH_OMAP2420)
++#  undef  cpu_is_omap242x
+ #  define cpu_is_omap242x()		is_omap242x()
++# endif
++# if defined (CONFIG_ARCH_OMAP2430)
++#  undef  cpu_is_omap243x
+ #  define cpu_is_omap243x()		is_omap243x()
+ # endif
+ # if defined(CONFIG_ARCH_OMAP3)
+-- 
+1.6.6
 
