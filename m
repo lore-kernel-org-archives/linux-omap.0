@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 06/16] OMAP3: PM: Smartreflex class related changes for smartreflex.c
-Date: Fri, 05 Mar 2010 10:30:37 -0800
-Message-ID: <87mxym1v02.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 07/16] OMAP3: PM: Adding smartreflex class 3 driver.
+Date: Fri, 05 Mar 2010 11:12:16 -0800
+Message-ID: <87d3zi1t2n.fsf@deeprootsystems.com>
 References: <1267003757-22456-1-git-send-email-thara@ti.com>
 	<1267003757-22456-2-git-send-email-thara@ti.com>
 	<1267003757-22456-3-git-send-email-thara@ti.com>
@@ -9,18 +9,19 @@ References: <1267003757-22456-1-git-send-email-thara@ti.com>
 	<1267003757-22456-5-git-send-email-thara@ti.com>
 	<1267003757-22456-6-git-send-email-thara@ti.com>
 	<1267003757-22456-7-git-send-email-thara@ti.com>
-	<87iq9es2lx.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2B8@dbde02.ent.ti.com>
+	<1267003757-22456-8-git-send-email-thara@ti.com>
+	<87y6iav7lh.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2B2@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:48976 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754669Ab0CESak (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 13:30:40 -0500
-Received: by pvb32 with SMTP id 32so807009pvb.19
-        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 10:30:39 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2B8@dbde02.ent.ti.com> (Thara Gopinath's message of "Fri\, 5 Mar 2010 20\:48\:43 +0530")
+Received: from mail-px0-f175.google.com ([209.85.216.175]:58370 "EHLO
+	mail-px0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755353Ab0CETMU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 14:12:20 -0500
+Received: by pxi5 with SMTP id 5so1284950pxi.21
+        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 11:12:19 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2B2@dbde02.ent.ti.com> (Thara Gopinath's message of "Fri\, 5 Mar 2010 20\:33\:58 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Gopinath, Thara" <thara@ti.com>
@@ -30,69 +31,174 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 
 >>>-----Original Message-----
 >>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>Sent: Wednesday, March 03, 2010 5:23 AM
+>>>Sent: Wednesday, March 03, 2010 1:07 AM
 >>>To: Gopinath, Thara
 >>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Menon, Nishanth; Cousson, Benoit; Sripathy,
 >>>Vishwanath; Sawant, Anand
->>>Subject: Re: [PATCH 06/16] OMAP3: PM: Smartreflex class related changes for smartreflex.c
+>>>Subject: Re: [PATCH 07/16] OMAP3: PM: Adding smartreflex class 3 driver.
 >>>
 >>>Thara Gopinath <thara@ti.com> writes:
 >>>
->>>> OMAP3 smartreflex modules are capable of two different classes
->>>> of implementaion -
->>>> 	Class-2: Continuous Software Calibration
->>>> 	Class-3: Continuous Hardware Calibration.
->>>> OMAP3 along with T2/Gaia supports the Class 3 implementaion.
->>>> With a different PMIC it can support Class 2 implementaion also.
->>>>
->>>> The idea behind this patch is that smartreflex.c should be able
->>>> to support both the classes of Smartreflex and the class specific
->>>> details for smartreflex should stay out of this file in a separate
->>>> class file.
->>>> This patch introduces smartreflex class specific hooks in
->>>> smartreflex.c. This patch only takes care of smartreflex enable
->>>> disable hooks which differ between Class 2 and Class 3. There
->>>> are some register setting changes between both the classes which
->>>> will be taken care of in a later patch.
->>>> This will form the base for adding class specific
->>>> drivers in later patches.
+>>>> This patch adds smartreflex class 3 driver. This driver hooks
+>>>> up with the generic smartreflex driver smartreflex.c to abstract
+>>>> out class specific implementations out of the generic driver.
 >>>>
 >>>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>>> ---
->>>>  arch/arm/mach-omap2/pm34xx.c      |    8 +-
->>>>  arch/arm/mach-omap2/smartreflex.c |  251 ++++++++++++++++++++----------------
->>>>  arch/arm/mach-omap2/smartreflex.h |   48 ++++++--
->>>>  3 files changed, 182 insertions(+), 125 deletions(-)
->>>>
 >>>
->>>[...]
+>>>I like this abstraction, but I don't like that it still uses OPP IDs.
 >>>
->>>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
->>>> index c00925d..ba9f899 100644
->>>> --- a/arch/arm/mach-omap2/smartreflex.c
->>>> +++ b/arch/arm/mach-omap2/smartreflex.c
->>>> @@ -55,6 +55,7 @@ struct omap_sr {
->>>>
->>>>  /* sr_list contains all the instances of smartreflex module */
->>>>  static LIST_HEAD(sr_list);
->>>> +static struct omap_smartreflex_class_data *sr_class;
->>>>
->>>>  #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
->>>>
->>>> @@ -388,14 +389,86 @@ static int sr_reset_voltage(int srid)
->>>>  	return 0;
->>>>  }
->>>>
->>>> -static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
->>>> +static void sr_start_vddautocomap(int srid)
+>>>So, before doing this, we need to get rid of OPP IDs from the
+>>>smartreflex layer and keep OPP ID usage isolated to SRF.
 >>>
->>>Either in this patch or in an additional patch (previous to this one)
->>>can you fix the name of these autocomp functions: *_vddautocomap ->
->>>*_vddautocomp.  I don't think comap means anything.
+>>>It appears the only reason we need OPP IDs in SR is because the Nvalue
+>>>tables are indexed by OPP ID in sr_enable().
 >
-> I can fix this. I would prefer this change to be a part of one of the existing patches in the patch set so that I do not increase the patch count and it will be easier for me to sen a V2.
+> Actually this is not true. If you see my patch14 sr err_minlimit and
+> vp errorgain are opp dependent. In fact for 3630 for VDD1 there are
+> 4 supported OPP's and 4 different values for err_minlimit and
+> errorgain - one for each opp. So we might still need the opp id.
 
-See previous reply.  Please feel free to add/remove patches when
-sending a V2 series.
+Yes, they are related to OPP IDs, but my primary objection is passing
+around OPP IDs.  Passing around OPP IDs *musb* be removed from the new
+SR layer.  OPP IDs are deprecated, and create multiple portability
+problems.
+
+As I proposed initially, this mapping needs to stay inside
+smartreflex.  A mapping of voltage to OPP ID (which will give you the
+nvalue, err_minlimit and errorgain) should work fine.
 
 Kevin
+
+>>>
+>>>One way to fix this is for this SR layer to keep it's own mapping of
+>>>voltage to nvalue.  So instead of taking OPP ID, sr_enable() should
+>>>take a voltage (or frequency) and use that to look up the nvalue.
+>>>
+>
+>>>a couple other minor comments below...
+>
+> Thank you for these comments and I will fix them in V2
+>
+> Regards
+> Thara
+>>>
+>>>> ---
+>>>>  arch/arm/mach-omap2/Makefile             |    1 +
+>>>>  arch/arm/mach-omap2/smartreflex-class3.c |   49 ++++++++++++++++++++++++++++++
+>>>>  arch/arm/plat-omap/Kconfig               |   11 ++++++-
+>>>>  3 files changed, 60 insertions(+), 1 deletions(-)
+>>>>  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+>>>> index f6f901f..cd8ab86 100644
+>>>> --- a/arch/arm/mach-omap2/Makefile
+>>>> +++ b/arch/arm/mach-omap2/Makefile
+>>>> @@ -52,6 +52,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+>>>>  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
+>>>>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+>>>>  obj-$(CONFIG_OMAP_SMARTREFLEX)	+= smartreflex.o
+>>>> +obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+>>>>
+>>>>  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+>>>>  AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+>>>> diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+>>>> new file mode 100644
+>>>> index 0000000..d2e98a5
+>>>> --- /dev/null
+>>>> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
+>>>> @@ -0,0 +1,49 @@
+>>>> +/*
+>>>> + * Smart reflex Class 3 specific implementations
+>>>> + *
+>>>> + * Copyright (C) 2009 Texas Instruments, Inc.
+>>>
+>>>2010
+>>>
+>>>> + * Thara Gopinath <thara@ti.com>
+>>>> + *
+>>>> + * This program is free software; you can redistribute it and/or modify
+>>>> + * it under the terms of the GNU General Public License version 2 as
+>>>> + * published by the Free Software Foundation.
+>>>> + */
+>>>> +
+>>>> +#include "smartreflex.h"
+>>>> +
+>>>> +static int sr_class3_enable(int id)
+>>>> +{
+>>>> +	int target_opp_no = 0;
+>>>
+>>>insert blank line
+>>>
+>>>> +	if (id == SR1)
+>>>> +		target_opp_no = get_vdd1_opp();
+>>>> +	else if (id == SR2)
+>>>> +		target_opp_no = get_vdd2_opp();
+>>>> +	if (!target_opp_no) {
+>>>> +		pr_warning("Targetopp not known.Cannot enable SR%d\n", id);
+>>>> +		return false;
+>>>> +	}
+>>>
+>>>and here
+>>>
+>>>> +	return sr_enable(id, target_opp_no);
+>>>> +}
+>>>>
+>>>> +static int sr_class3_disable(int id)
+>>>> +{
+>>>> +	int target_opp_no = 0;
+>>>
+>>>blank line
+>>>
+>>>> +	if (id == SR1)
+>>>> +		target_opp_no = get_vdd1_opp();
+>>>> +	else if (id == SR2)
+>>>> +		target_opp_no = get_vdd2_opp();
+>>>> +	sr_disable(id);
+>>>
+>>>blank line
+>>>
+>>>> +	return true;
+>>>> +}
+>>>> +/* SR class3 structure */
+>>>> +struct omap_smartreflex_class_data class3_data = {
+>>>> +	.enable = sr_class3_enable,
+>>>> +	.disable = sr_class3_disable,
+>>>> +};
+>>>> +
+>>>> +static int __init sr_class3_init(void)
+>>>> +{
+>>>> +	omap_sr_register_class(&class3_data);
+>>>> +	return 0;
+>>>> +}
+>>>> +late_initcall(sr_class3_init);
+>>>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+>>>> index cef67f3..9d286e6 100644
+>>>> --- a/arch/arm/plat-omap/Kconfig
+>>>> +++ b/arch/arm/plat-omap/Kconfig
+>>>> @@ -54,7 +54,7 @@ config OMAP_DEBUG_LEDS
+>>>>
+>>>>  config OMAP_SMARTREFLEX
+>>>>  	bool "SmartReflex support"
+>>>> -	depends on ARCH_OMAP3 && TWL4030_CORE && PM
+>>>> +	depends on ARCH_OMAP3 && PM
+>>>>  	help
+>>>>  	  Say Y if you want to enable SmartReflex.
+>>>>
+>>>> @@ -69,6 +69,15 @@ config OMAP_SMARTREFLEX
+>>>>  	  compensation for VDD1 and VDD2, user must write 1 to
+>>>>  	  /sys/power/sr_vddX_autocomp, where X is 1 or 2.
+>>>>
+>>>> +config OMAP_SMARTREFLEX_CLASS3
+>>>> +	bool "Class 3 mode of Smartreflex Implementation"
+>>>> +	depends on OMAP_SMARTREFLEX && TWL4030_CORE
+>>>> +	help
+>>>> +	  Say Y to enable Class 3 implementation of Smartreflex
+>>>> +
+>>>> +	  Class 3 implementation of Smartreflex employs continuous hardware
+>>>> +	  voltage caliberation.
+>>>> +
+>>>>  config OMAP_SMARTREFLEX_TESTING
+>>>>  	bool "Smartreflex testing support"
+>>>>  	depends on OMAP_SMARTREFLEX
+>>>> --
+>>>> 1.7.0.rc1.33.g07cf0f
