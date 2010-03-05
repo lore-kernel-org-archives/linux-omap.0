@@ -1,65 +1,63 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: Snipping irrelevant text from a discussion (was: "RE: [PATCH
-	15/16] OMAP3: PM: VP force update method of voltage scaling")
-Date: Fri, 5 Mar 2010 23:18:23 +0200
-Message-ID: <94a0d4531003051318q65c3c711he385093be960ff5e@mail.gmail.com>
-References: <1267003757-22456-1-git-send-email-thara@ti.com>
-	 <1267003757-22456-14-git-send-email-thara@ti.com>
-	 <1267003757-22456-15-git-send-email-thara@ti.com>
-	 <1267003757-22456-16-git-send-email-thara@ti.com>
-	 <87ljeap6f6.fsf@deeprootsystems.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2BB@dbde02.ent.ti.com>
-	 <94a0d4531003050726y52b2fe51r7fc11558144eb7e1@mail.gmail.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2C1@dbde02.ent.ti.com>
-	 <94a0d4531003050822v75785338r22c6b23bfb3ae2b1@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE894453D681E6@dlee02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: usb_nop_xceiv_register() missing when OTG built as modules
+Date: Fri, 05 Mar 2010 14:02:32 -0800
+Message-ID: <87y6i6zatj.fsf@deeprootsystems.com>
+References: <87635d54nn.fsf@deeprootsystems.com>
+	<19F8576C6E063C45BE387C64729E7394044DB7B6BD@dbde02.ent.ti.com>
+	<87eik03scn.fsf@deeprootsystems.com>
+	<20100305090426.GG12757@nokia.com>
+	<871vfy3azr.fsf@deeprootsystems.com>
+	<558f5bffd42210a777154737d6730232@secure211.sgcpanel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f189.google.com ([209.85.223.189]:56092 "EHLO
-	mail-iw0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755083Ab0CEVSY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 16:18:24 -0500
-Received: by iwn27 with SMTP id 27so1222759iwn.5
-        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 13:18:23 -0800 (PST)
-In-Reply-To: <A24693684029E5489D1D202277BE894453D681E6@dlee02.ent.ti.com>
+Received: from mail-ew0-f212.google.com ([209.85.219.212]:61652 "EHLO
+	mail-ew0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755614Ab0CEWCi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 17:02:38 -0500
+Received: by ewy4 with SMTP id 4so2736436ewy.28
+        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 14:02:37 -0800 (PST)
+In-Reply-To: <558f5bffd42210a777154737d6730232@secure211.sgcpanel.com> (me@felipebalbi.com's message of "Fri\, 05 Mar 2010 13\:54\:04 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "Gopinath, Thara" <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: me@felipebalbi.com
+Cc: felipe.balbi@nokia.com, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, linux-omap@vger.kernel.org
 
-Hey Sergio,
+<me@felipebalbi.com> writes:
 
-On Fri, Mar 5, 2010 at 8:17 PM, Aguirre, Sergio <saaguirre@ti.com> wrote:
-> Hey!
+> On Fri, 05 Mar 2010 09:59:52 -0800, Kevin Hilman
+>> It would be my fault if I wrote those board files.  ;)
 >
-> You guys take a "chill pill", ok? :) Let's not start shouting at people and point fingers.
+> sure, sorry. Maybe I didn't express myself really well.
+>
+>>> I suggest you keep usb as a module, but keep nop xceiv built-in.
+>> 
+>> Yes, that's the workaround I'm already using, but it is not a fix.
+>> 
+>> This dependency breaks the ability to build a minimal kernel with
+>> everything as modules (allmodconfig)
+>
+> now this is a really good point. Haven't thought that way...
+>
+>> The nop xceiv needs a way for built-in code to register itself for
+>> the cases when no xceiv is built as a module.
+>
+> when way to do that is not to use usb_nop_xceiv_register() and
+> add the platform_device to the board-files. I never really liked
+> the whole usb_nop_xceiv_register() hackery. Almost all board-files
+> have a list of platform_devices which get added by platform_add_devices()
+> anyways, so why not using that ??
+>
+> to me the usb_nop_xceiv_register() thing is just a lazy way of
+> defining platform_devices. Specially one that takes some 3
+> lines of code only.
 
-I'm not really angry, and I'm not blaming Thara either. I just tried
-to do some constructive criticism that was apparently not accepted,
-and I decided not to push it any further.
+Completely agree.  I didn't take the time to look into the USB code to
+see if a simple plaform device creation would fix this.
 
-> My 2 cents is that, usually, when discussion starts about a topic, or a
-> specific parts of code, you should remove irrelevant text, and substitute
-> by a "<snip>" line, just to give reference that some irrelevant text used to
-> be there... so if you're interested, just jump to the mailing list archive, and look it out for yourself.
+If so, any chance of a patch for OMAP3EVM and 4430SDP?
 
-Indeed, specially when dealing with a heated argument, it's sometimes
-important to specify where you have snipped text. Although I think
-most of the time that's not needed, a "snip" comment is preferable to
-dozes or hundreds of extra lines.
+I'll be happy to test on OMAP3EVM, but don't have a 4430.
 
-> Also, this is completely off topic, and has nothing to do with the original patch subject. Therefore a proper subject rename must happen.
+Kevin
 
-Right.
-
-> If you want to take this topic further, please figure it out between you two
-> And, if necessary, the list maintainer, allright?
-
-Yeah, that's something for Tony to decide, but I didn't think it was a
-good idea to push for it right now.
-
-Cheers.
-
--- 
-Felipe Contreras
