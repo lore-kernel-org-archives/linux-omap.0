@@ -1,33 +1,48 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: usb_nop_xceiv_register() missing when OTG built as modules
-Date: Fri, 5 Mar 2010 11:04:26 +0200
-Message-ID: <20100305090426.GG12757@nokia.com>
-References: <87635d54nn.fsf@deeprootsystems.com>
- <19F8576C6E063C45BE387C64729E7394044DB7B6BD@dbde02.ent.ti.com>
- <87eik03scn.fsf@deeprootsystems.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [PATCH 0/2] Implementation of Watch dog timer and recovery for DSP
+Date: Fri, 5 Mar 2010 04:09:42 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E602CA9E405D@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:44972 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505Ab0CEJFO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 04:05:14 -0500
-Content-Disposition: inline
-In-Reply-To: <87eik03scn.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49433 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754880Ab0CEKJr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 05:09:47 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-On Thu, Mar 04, 2010 at 06:32:40PM +0100, ext Kevin Hilman wrote:
->Yes, I did that intentionally.  I *want* USB compiled as a module.  If
->I do that, the build fails, and that's a bug that needs to be fixed.
+>From 7db8ef8ac43e42a486b02c0647417da2b2387552 Mon Sep 17 00:00:00 2001
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Fri, 5 Mar 2010 04:14:10 -0600
+Subject: [PATCH 0/2] Implementation of Watch dog timer and recovery for DSP
 
-it depends on where you're calling usb_nop_xceiv_register(), if you're 
-calling from a file that's built-into the kernel, then it's your fault.
 
-I suggest you keep usb as a module, but keep nop xceiv built-in.
+This two patches implementent a watch dog timer to catch DSP hangs and also
+implement DSP recovery feature.
 
--- 
-balbi
+Fernando Guzman Lugo (2):
+  DSPBRIDGE: Implement WDT3 to notify DSP hangs
+  DSPBRIDGE: DSP recovery feature
+
+ arch/arm/plat-omap/include/dspbridge/_chnl_sm.h |    7 ++
+ arch/arm/plat-omap/include/dspbridge/dbdefs.h   |    3 +
+ arch/arm/plat-omap/include/dspbridge/drv.h      |    6 +
+ arch/arm/plat-omap/include/dspbridge/io_sm.h    |   13 +++
+ drivers/dsp/bridge/Kconfig                      |   25 +++++
+ drivers/dsp/bridge/pmgr/wcd.c                   |   14 +--
+ drivers/dsp/bridge/rmgr/drv.c                   |    3 +-
+ drivers/dsp/bridge/rmgr/drv_interface.c         |   63 ++++++++++++
+ drivers/dsp/bridge/rmgr/proc.c                  |   14 +--
+ drivers/dsp/bridge/services/clk.c               |    4 +-
+ drivers/dsp/bridge/wmd/_tiomap.h                |    6 +
+ drivers/dsp/bridge/wmd/io_sm.c                  |  117 +++++++++++++++++++++++
+ drivers/dsp/bridge/wmd/tiomap3430.c             |   13 +++
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c         |   17 ++++
+ drivers/dsp/bridge/wmd/tiomap_sm.c              |    5 +
+ drivers/dsp/bridge/wmd/ue_deh.c                 |   22 ++++-
+ 16 files changed, 312 insertions(+), 20 deletions(-)
