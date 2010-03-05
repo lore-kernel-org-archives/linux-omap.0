@@ -1,16 +1,16 @@
 From: ville.syrjala@nokia.com
-Subject: [PATCH 2/4] DSS2: Check if display supports update mode changes
-Date: Fri,  5 Mar 2010 15:26:20 +0200
-Message-ID: <1267795582-21004-2-git-send-email-ville.syrjala@nokia.com>
+Subject: [PATCH 4/4] DSS2: clear spurious SYNC_LOST_DIGIT interrupts
+Date: Fri,  5 Mar 2010 15:26:22 +0200
+Message-ID: <1267795582-21004-4-git-send-email-ville.syrjala@nokia.com>
 References: <1267795582-21004-1-git-send-email-ville.syrjala@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:18378 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874Ab0CEN0n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 08:26:43 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:19904 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751784Ab0CEN1U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 08:27:20 -0500
 In-Reply-To: <1267795582-21004-1-git-send-email-ville.syrjala@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,31 +19,46 @@ Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Ville=20S
 
 =46rom: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
 
-Check whether the display actually has the set_update_mode() function
-before calling it. Only the sysfs codepath was broken, the omapfb ioctl
-had the necessary protection.
+When DSS transitions from off mode to on VENC may generate a spurious
+SYNC_LOST_DIGIT error. Just ack it when restoring the context. Also
+restore IRQENABLE last to avoid triggering interrupts before the
+context is fully restored.
 
 Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
 ---
- drivers/video/omap2/dss/display.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/dispc.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/ds=
-s/display.c
-index 6a74ea1..3a8f146 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -82,6 +82,9 @@ static ssize_t display_upd_mode_store(struct device *=
-dev,
- 	int val, r;
- 	enum omap_dss_update_mode mode;
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/=
+dispc.c
+index e777e35..b8c1603 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -335,7 +335,7 @@ void dispc_save_context(void)
+ void dispc_restore_context(void)
+ {
+ 	RR(SYSCONFIG);
+-	RR(IRQENABLE);
++	/*RR(IRQENABLE);*/
+ 	/*RR(CONTROL);*/
+ 	RR(CONFIG);
+ 	RR(DEFAULT_COLOR0);
+@@ -472,6 +472,15 @@ void dispc_restore_context(void)
 =20
-+	if (!dssdev->driver->set_update_mode)
-+		return -EINVAL;
+ 	/* enable last, because LCD & DIGIT enable are here */
+ 	RR(CONTROL);
 +
- 	val =3D simple_strtoul(buf, NULL, 10);
++	/* clear spurious SYNC_LOST_DIGIT interrupts */
++	dispc_write_reg(DISPC_IRQSTATUS, DISPC_IRQ_SYNC_LOST_DIGIT);
++
++	/*
++	 * enable last so IRQs won't trigger before
++	 * the context is fully restored
++	 */
++	RR(IRQENABLE);
+ }
 =20
- 	switch (val) {
+ #undef SR
 --=20
 1.6.4.4
 
