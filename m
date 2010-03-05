@@ -1,160 +1,65 @@
-From: Francisco Alecrim <alecrim@gmail.com>
-Subject: [PATCH v3] board-n8x0: add USB initialization
-Date: Fri,  5 Mar 2010 16:13:04 -0400
-Message-ID: <1267819984-8537-1-git-send-email-alecrim@gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: Snipping irrelevant text from a discussion (was: "RE: [PATCH
+	15/16] OMAP3: PM: VP force update method of voltage scaling")
+Date: Fri, 5 Mar 2010 23:18:23 +0200
+Message-ID: <94a0d4531003051318q65c3c711he385093be960ff5e@mail.gmail.com>
+References: <1267003757-22456-1-git-send-email-thara@ti.com>
+	 <1267003757-22456-14-git-send-email-thara@ti.com>
+	 <1267003757-22456-15-git-send-email-thara@ti.com>
+	 <1267003757-22456-16-git-send-email-thara@ti.com>
+	 <87ljeap6f6.fsf@deeprootsystems.com>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2BB@dbde02.ent.ti.com>
+	 <94a0d4531003050726y52b2fe51r7fc11558144eb7e1@mail.gmail.com>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2C1@dbde02.ent.ti.com>
+	 <94a0d4531003050822v75785338r22c6b23bfb3ae2b1@mail.gmail.com>
+	 <A24693684029E5489D1D202277BE894453D681E6@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:37283 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755678Ab0CEUN2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 15:13:28 -0500
-Received: by vws9 with SMTP id 9so1977083vws.19
-        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 12:13:27 -0800 (PST)
+Received: from mail-iw0-f189.google.com ([209.85.223.189]:56092 "EHLO
+	mail-iw0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755083Ab0CEVSY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 16:18:24 -0500
+Received: by iwn27 with SMTP id 27so1222759iwn.5
+        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 13:18:23 -0800 (PST)
+In-Reply-To: <A24693684029E5489D1D202277BE894453D681E6@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Francisco Alecrim <francisco.alecrim@openbossa.org>, Kalle Valo <kalle.valo@iki.fi>, Tony Lindgren <tony@atomide.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "Gopinath, Thara" <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-From: Francisco Alecrim <francisco.alecrim@openbossa.org>
+Hey Sergio,
 
-Based on Kalle's and Tony's patches. Some variables re-organized and
-unused code remove(68499cc5716bbeca16ca8c83ec6e9f04b8dbfacb).
+On Fri, Mar 5, 2010 at 8:17 PM, Aguirre, Sergio <saaguirre@ti.com> wrote:
+> Hey!
+>
+> You guys take a "chill pill", ok? :) Let's not start shouting at people and point fingers.
 
-Signed-off-by: Kalle Valo <kalle.valo@iki.fi>
-Signed-off-by: Francisco Alecrim <francisco.alecrim@openbossa.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-n8x0.c     |   98 ++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clock2420_data.c |    1 +
- 2 files changed, 99 insertions(+), 0 deletions(-)
+I'm not really angry, and I'm not blaming Thara either. I just tried
+to do some constructive criticism that was apparently not accepted,
+and I decided not to push it any further.
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 31846e6..c939977 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -39,6 +39,103 @@ static int slot1_cover_open;
- static int slot2_cover_open;
- static struct device *mmc_device;
- 
-+#define TUSB6010_ASYNC_CS	1
-+#define TUSB6010_SYNC_CS	4
-+#define TUSB6010_GPIO_INT	58
-+#define TUSB6010_GPIO_ENABLE	0
-+#define TUSB6010_DMACHAN	0x3f
-+
-+#if defined(CONFIG_USB_TUSB6010) || \
-+	defined(CONFIG_USB_TUSB6010_MODULE)
-+/*
-+ * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
-+ * 1.5 V voltage regulators of PM companion chip. Companion chip will then
-+ * provide then PGOOD signal to TUSB6010 which will release it from reset.
-+ */
-+static int tusb_set_power(int state)
-+{
-+	int i, retval = 0;
-+
-+	if (state) {
-+		gpio_set_value(TUSB6010_GPIO_ENABLE, 1);
-+		msleep(1);
-+
-+		/* Wait until TUSB6010 pulls INT pin down */
-+		i = 100;
-+		while (i && gpio_get_value(TUSB6010_GPIO_INT)) {
-+			msleep(1);
-+			i--;
-+		}
-+
-+		if (!i) {
-+			printk(KERN_ERR "tusb: powerup failed\n");
-+			retval = -ENODEV;
-+		}
-+	} else {
-+		gpio_set_value(TUSB6010_GPIO_ENABLE, 0);
-+		msleep(10);
-+	}
-+
-+	return retval;
-+}
-+
-+static struct musb_hdrc_config musb_config = {
-+	.multipoint	= 1,
-+	.dyn_fifo	= 1,
-+	.num_eps	= 16,
-+	.ram_bits	= 12,
-+};
-+
-+static struct musb_hdrc_platform_data tusb_data = {
-+#if defined(CONFIG_USB_MUSB_OTG)
-+	.mode		= MUSB_OTG,
-+#elif defined(CONFIG_USB_MUSB_PERIPHERAL)
-+	.mode		= MUSB_PERIPHERAL,
-+#else /* defined(CONFIG_USB_MUSB_HOST) */
-+	.mode		= MUSB_HOST,
-+#endif
-+	.set_power	= tusb_set_power,
-+	.min_power	= 25,	/* x2 = 50 mA drawn from VBUS as peripheral */
-+	.power		= 100,	/* Max 100 mA VBUS for host mode */
-+	.config		= &musb_config,
-+};
-+
-+static void __init n8x0_usb_init(void)
-+{
-+	int ret = 0;
-+	static char	announce[] __initdata = KERN_INFO "TUSB 6010\n";
-+
-+	/* PM companion chip power control pin */
-+	ret = gpio_request(TUSB6010_GPIO_ENABLE, "TUSB6010 enable");
-+	if (ret != 0) {
-+		printk(KERN_ERR "Could not get TUSB power GPIO%i\n",
-+		       TUSB6010_GPIO_ENABLE);
-+		return;
-+	}
-+	gpio_direction_output(TUSB6010_GPIO_ENABLE, 0);
-+
-+	tusb_set_power(0);
-+
-+	ret = tusb6010_setup_interface(&tusb_data, TUSB6010_REFCLK_19, 2,
-+					TUSB6010_ASYNC_CS, TUSB6010_SYNC_CS,
-+					TUSB6010_GPIO_INT, TUSB6010_DMACHAN);
-+	if (ret != 0)
-+		goto err;
-+
-+	printk(announce);
-+
-+	return;
-+
-+err:
-+	gpio_free(TUSB6010_GPIO_ENABLE);
-+}
-+#else
-+
-+static void __init n8x0_usb_init(void) {}
-+
-+#endif /*CONFIG_USB_TUSB6010 */
-+
-+
- static struct omap2_mcspi_device_config p54spi_mcspi_config = {
- 	.turbo_mode	= 0,
- 	.single_channel = 1,
-@@ -593,6 +690,7 @@ static void __init n8x0_init_machine(void)
- 	n8x0_menelaus_init();
- 	n8x0_onenand_init();
- 	n8x0_mmc_init();
-+	n8x0_usb_init();
- }
- 
- MACHINE_START(NOKIA_N800, "Nokia N800")
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index f12af95..d932b14 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -1841,6 +1841,7 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"aes_ick",	&aes_ick,	CK_242X),
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
- 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_242X),
-+	CLK("musb_hdrc",	"fck",	&osc_ck,	CK_242X),
- };
- 
- /*
+> My 2 cents is that, usually, when discussion starts about a topic, or a
+> specific parts of code, you should remove irrelevant text, and substitute
+> by a "<snip>" line, just to give reference that some irrelevant text used to
+> be there... so if you're interested, just jump to the mailing list archive, and look it out for yourself.
+
+Indeed, specially when dealing with a heated argument, it's sometimes
+important to specify where you have snipped text. Although I think
+most of the time that's not needed, a "snip" comment is preferable to
+dozes or hundreds of extra lines.
+
+> Also, this is completely off topic, and has nothing to do with the original patch subject. Therefore a proper subject rename must happen.
+
+Right.
+
+> If you want to take this topic further, please figure it out between you two
+> And, if necessary, the list maintainer, allright?
+
+Yeah, that's something for Tony to decide, but I didn't think it was a
+good idea to push for it right now.
+
+Cheers.
+
 -- 
-1.6.3.3
-
+Felipe Contreras
