@@ -1,8 +1,8 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 11/16] OMAP3: PM: Configurations for Smartreflex Class 2
- and Smartreflex Class 3
-Date: Fri, 5 Mar 2010 20:42:53 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2B3@dbde02.ent.ti.com>
+Subject: RE: [PATCH 09/16] OMAP3: PM: Creating separate files for handling
+ OMAP3 voltage related operations.
+Date: Fri, 5 Mar 2010 20:47:17 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2B6@dbde02.ent.ti.com>
 References: <1267003757-22456-1-git-send-email-thara@ti.com>
 	<1267003757-22456-2-git-send-email-thara@ti.com>
 	<1267003757-22456-3-git-send-email-thara@ti.com>
@@ -13,18 +13,16 @@ References: <1267003757-22456-1-git-send-email-thara@ti.com>
 	<1267003757-22456-8-git-send-email-thara@ti.com>
 	<1267003757-22456-9-git-send-email-thara@ti.com>
 	<1267003757-22456-10-git-send-email-thara@ti.com>
-	<1267003757-22456-11-git-send-email-thara@ti.com>
-	<1267003757-22456-12-git-send-email-thara@ti.com>
- <87tysyqlyk.fsf@deeprootsystems.com>
+ <87zl2qtrtn.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51219 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51548 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753297Ab0CEPNF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 10:13:05 -0500
-In-Reply-To: <87tysyqlyk.fsf@deeprootsystems.com>
+	id S1752516Ab0CEPRY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 10:17:24 -0500
+In-Reply-To: <87zl2qtrtn.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -35,397 +33,232 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 
 >>-----Original Message-----
 >>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Wednesday, March 03, 2010 6:08 AM
+>>Sent: Wednesday, March 03, 2010 1:33 AM
 >>To: Gopinath, Thara
 >>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Menon, Nishanth; Cousson, Benoit; Sripathy,
 >>Vishwanath; Sawant, Anand
->>Subject: Re: [PATCH 11/16] OMAP3: PM: Configurations for Smartreflex Class 2 and Smartreflex Class 3
+>>Subject: Re: [PATCH 09/16] OMAP3: PM: Creating separate files for handling OMAP3 voltage related
+>>operations.
 >>
 >>Thara Gopinath <thara@ti.com> writes:
 >>
->>> There are two separate modules in SmartReflex-AVS :
->>> MinMaxAvg module and Error module. Class3 uses the Error module only.
->>> In Class2 you can choose between either module since it is software based.
->>> The registers are mapped to the modules as followed:
->>>
->>> MinMaxAvg module: AccumData, MinMaxAvgEnable, MinMaxAvgValid,
->>>         MinMaxAvgAccumValid, SenVal, SenMin, SenMax, SenAverage,
->>>         AverageWeight, MCUAccum, MCUValid, MCUBounds.
->>>
->>> Error module: SenNGain, SenPGain, SenPRN, SenNRN, AvgError,
->>>         SenError, VPBounds, ErrWeight, ErrMaxLimit, ErrMinLimit.
->>>
->>> Shared between both: SRClkLength, SREnable, SenEnable, SenNEnable,
->>>         SenPEnable, DelayCtrl, MCUDisableAck, ClkActivity.
->>>
->>> This patch introduces class specific configuration of registers in smartreflex.c
->>> This also allows for choosing between Error module and Minmaxavg module
->>> for Class 2 SR. This patch allows allows for registering for smartreflex
->>> interrupt handler and notification of interrupts in case requested by
->>> the smartreflex class driver.
+>>> This patch creates voltage.c and voltage.h files and
+>>> moves all voltage processor and voltage controller specific code
+>>> from smartreflex.c and other places in the OMAP3 codebase into
+>>> these two files.
+>>> This along with smartreflex class driver addition will make
+>>> smartreflex.c a generic driver to support both Class 2 and
+>>> Class 3 smartreflex implementaions.
 >>>
 >>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>
+>>This is definitely in the right direction.  Thanks Thara.
+>>
+>>Also, is this expected to be common for OMAP4?   If not, maybe
+>>this should be named voltage3xxx.[ch]?
+
+Hi Kevin,
+
+Looks like we could re-use the same file. I will anyways double check this with the experts in TI and let you know.
+>>
+>>More comments below, primarily regarding how the various VP/VC
+>>registers are defined and accessed.  I'd rather see them as offsets
+>>into the PRCM rather than absolute virtual addresses.  More on that
+>>below...
+>>
 >>> ---
->>>  arch/arm/mach-omap2/smartreflex-class3.c |    1 +
->>>  arch/arm/mach-omap2/smartreflex.c        |  199 ++++++++++++++++++++++++------
->>>  arch/arm/mach-omap2/smartreflex.h        |   24 ++++-
->>>  3 files changed, 186 insertions(+), 38 deletions(-)
+>>>  arch/arm/mach-omap2/Makefile             |    3 +-
+>>>  arch/arm/mach-omap2/board-3430sdp.c      |    3 +-
+>>>  arch/arm/mach-omap2/pm.h                 |    7 -
+>>>  arch/arm/mach-omap2/pm34xx.c             |   87 +-----
+>>>  arch/arm/mach-omap2/resource34xx.c       |   15 +-
+>>>  arch/arm/mach-omap2/resource34xx.h       |    1 -
+>>>  arch/arm/mach-omap2/smartreflex-class3.c |    4 +
+>>>  arch/arm/mach-omap2/smartreflex.c        |  370 +--------------------
+>>>  arch/arm/mach-omap2/smartreflex.h        |  139 --------
+>>>  arch/arm/mach-omap2/voltage.c            |  550 ++++++++++++++++++++++++++++++
+>>>  arch/arm/mach-omap2/voltage.h            |   74 ++++
+>>>  11 files changed, 640 insertions(+), 613 deletions(-)
+>>>  create mode 100644 arch/arm/mach-omap2/voltage.c
+>>>  create mode 100644 arch/arm/mach-omap2/voltage.h
 >>>
->>> diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
->>> index 8e3b530..aae88b6 100644
->>> --- a/arch/arm/mach-omap2/smartreflex-class3.c
->>> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
->>> @@ -43,6 +43,7 @@ static int sr_class3_disable(int id)
->>>  struct omap_smartreflex_class_data class3_data = {
->>>     .enable = sr_class3_enable,
->>>     .disable = sr_class3_disable,
->>> +   .class_type = SR_CLASS3,
->>>  };
->>>
->>>  static int __init sr_class3_init(void)
->>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
->>> index f7c1182..96dc76b 100644
->>> --- a/arch/arm/mach-omap2/smartreflex.c
->>> +++ b/arch/arm/mach-omap2/smartreflex.c
->>> @@ -38,6 +38,12 @@ struct omap_sr {
->>>     int                     is_sr_reset;
->>>     int                     is_autocomp_active;
->>>     u32                     clk_length;
->>> +   u32                     err_weight;
->>> +   u32                     err_minlimit;
->>> +   u32                     err_maxlimit;
->>> +   u32                     accum_data;
->>> +   u32                     senn_avgweight;
->>> +   u32                     senp_avgweight;
->>>     void __iomem            *srbase_addr;
->>>     unsigned int            irq;
->>>     struct platform_device  *pdev;
->>> @@ -106,6 +112,24 @@ static void sr_clk_disable(struct omap_sr *sr)
->>>     sr->is_sr_reset = 1;
->>>  }
->>>
->>> +static irqreturn_t sr_omap_isr(int irq, void *data)
->>> +{
->>> +   struct omap_sr *sr_info = (struct omap_sr *)data;
->>> +   u32 status;
->>> +
->>> +   /* Read the status bits */
->>> +   status = sr_read_reg(sr_info, ERRCONFIG);
->>> +
->>> +   /* Clear them by writing back */
->>> +   sr_write_reg(sr_info, ERRCONFIG, status);
->>> +
->>> +   /* Call the class driver notify function if registered*/
->>> +   if (sr_class->class_type == SR_CLASS2 && sr_class->notify)
->>> +           sr_class->notify(sr_info->srid, status);
->>> +
->>> +   return IRQ_HANDLED;
->>> +}
->>> +
->>>  static void sr_set_clk_length(struct omap_sr *sr)
->>>  {
->>>     struct clk *sys_ck;
->>> @@ -137,50 +161,96 @@ static void sr_set_clk_length(struct omap_sr *sr)
->>>     }
->>>  }
->>>
->>> +static void sr_set_regfields(struct omap_sr *sr)
->>> +{
->>> +   /*
->>> +    * For time being these values are defined in smartreflex.h
->>> +    * and populated during init. May be they can be moved to board
->>> +    * file or pmic specific data structure. In that case these structure
->>> +    * fields will have to be populated using the pdata or pmic structure.
->>> +    */
->>> +   if (cpu_is_omap343x()) {
->>> +           sr->err_weight = OMAP3430_SR_ERRWEIGHT;
->>> +           sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
->>> +           sr->accum_data = OMAP3430_SR_ACCUMDATA;
->>> +           if (sr->srid == SR1) {
->>> +                   sr->err_minlimit = OMAP3430_SR1_ERRMINLIMIT;
->>> +                   sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
->>> +                   sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
->>> +           } else {
->>> +                   sr->err_minlimit = OMAP3430_SR2_ERRMINLIMIT;
->>> +                   sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
->>> +                   sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
->>> +           }
->>> +   }
->>> +   /* TODO: 3630 and Omap4 specific bit field values */
->>> +}
->>> +
->>>  static void sr_configure(struct omap_sr *sr)
->>>  {
->>>     u32 sr_config;
->>>     u32 senp_en , senn_en;
->>>     struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
->>>
->>> +   /* Common settings for SR Class3 and SR Class2 */
->>>     if (sr->clk_length == 0)
->>>             sr_set_clk_length(sr);
->>>
->>>     senp_en = pdata->senp_mod;
->>>     senn_en = pdata->senn_mod;
->>> -   if (sr->srid == SR1) {
->>> -           sr_config = SR1_SRCONFIG_ACCUMDATA |
->>> -                   (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
->>> -                   SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
->>> -                   SRCONFIG_MINMAXAVG_EN |
->>> -                   (senn_en << SRCONFIG_SENNENABLE_SHIFT) |
->>> -                   (senp_en << SRCONFIG_SENPENABLE_SHIFT) |
->>> -                   SRCONFIG_DELAYCTRL;
->>> -
->>> -           sr_write_reg(sr, SRCONFIG, sr_config);
->>> -           sr_write_reg(sr, AVGWEIGHT, SR1_AVGWEIGHT_SENPAVGWEIGHT |
->>> -                                   SR1_AVGWEIGHT_SENNAVGWEIGHT);
->>>
->>> +   sr_config = (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
->>> +           SRCONFIG_SENENABLE | (senn_en << SRCONFIG_SENNENABLE_SHIFT) |
->>> +           (senp_en << SRCONFIG_SENPENABLE_SHIFT) | SRCONFIG_DELAYCTRL;
->>> +   sr_write_reg(sr, SRCONFIG, sr_config);
->>> +
->>> +   if ((sr_class->class_type == SR_CLASS3) || (sr_class->class_type ==
->>> +           SR_CLASS2 && sr_class->mod_use == SR_USE_ERROR_MOD)) {
->>> +           /*
->>> +            * SR settings if using the ERROR module inside Smartreflex.
->>> +            * SR CLASS 3 by default uses only the ERROR module where as
->>> +            * SR CLASS 2 can choose between ERROR module and MINMAXAVG
->>> +            * module.
->>> +            */
->>> +           u32 sr_errconfig;
->>> +
->>> +           sr_modify_reg(sr, SRCONFIG, SRCONFIG_ERRGEN_EN,
->>> +                   SRCONFIG_ERRGEN_EN);
->>> +           sr_errconfig = (sr->err_weight << ERRCONFIG_ERRWEIGHT_SHIFT) |
->>> +                   (sr->err_maxlimit << ERRCONFIG_ERRMAXLIMIT_SHIFT) |
->>> +                   (sr->err_minlimit <<  ERRCONFIG_ERRMiNLIMIT_SHIFT);
->>>             sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
->>>                     SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
->>> -                   (SR1_ERRWEIGHT | SR1_ERRMAXLIMIT | SR1_ERRMINLIMIT));
->>> -
->>> -   } else if (sr->srid == SR2) {
->>> -           sr_config = SR2_SRCONFIG_ACCUMDATA |
->>> -                   (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
->>> -                   SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
->>> -                   SRCONFIG_MINMAXAVG_EN |
->>> -                   (senn_en << SRCONFIG_SENNENABLE_SHIFT) |
->>> -                   (senp_en << SRCONFIG_SENPENABLE_SHIFT) |
->>> -                   SRCONFIG_DELAYCTRL;
->>> -
->>> -           sr_write_reg(sr, SRCONFIG, sr_config);
->>> -           sr_write_reg(sr, AVGWEIGHT, SR2_AVGWEIGHT_SENPAVGWEIGHT |
->>> -                                   SR2_AVGWEIGHT_SENNAVGWEIGHT);
->>> -           sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
->>> -                   SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
->>> -                   (SR2_ERRWEIGHT | SR2_ERRMAXLIMIT | SR2_ERRMINLIMIT));
->>> +                   sr_errconfig);
->>> +           /* Enabling the interrupts if the ERROR module is used */
->>> +           sr_modify_reg(sr, ERRCONFIG,
->>> +                   (ERRCONFIG_VPBOUNDINTEN),
->>> +                   (ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST));
->>> +   } else if ((sr_class->class_type == SR_CLASS2) &&
->>> +                   (sr_class->mod_use == SR_USE_ERROR_MOD)) {
 >>
->>This 'else if' will never happen as the condition is identical to one
->>of the conditions of the first if.
+>>[...]
 >>
->>Based on the comment below, I'm assuming it you meant SR_USE_MINMAXAVG_MOD.
+>>> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+>>> new file mode 100644
+>>> index 0000000..c0c2c17
+>>> --- /dev/null
+>>> +++ b/arch/arm/mach-omap2/voltage.c
+>>> @@ -0,0 +1,550 @@
+>>> +/*
+>>> + * OMAP3/OMAP4 Voltage Management Routines
+>>> + *
+>>> + * Copyright (C) 2007 Texas Instruments, Inc.
+>>> + * Rajendra Nayak <rnayak@ti.com>
+>>> + * Lesly A M <x0080970@ti.com>
+>>> + *
+>>> + * Copyright (C) 2008 Nokia Corporation
+>>> + * Kalle Jokiniemi
+>>> + *
+>>> + * Copyright (C) 2010 Texas Instruments, Inc.
+>>> + * Thara Gopinath <thara@ti.com>
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify
+>>> + * it under the terms of the GNU General Public License version 2 as
+>>> + * published by the Free Software Foundation.
+>>> + */
+>>> +
+>>> +#include <linux/pm.h>
+>>> +#include <linux/delay.h>
+>>> +#include <linux/io.h>
+>>> +
+>>> +#include <plat/omap-pm.h>
+>>> +#include <plat/omap34xx.h>
+>>> +#include <plat/opp.h>
+>>> +#include <plat/opp_twl_tps.h>
+>>> +
+>>> +#include "prm-regbits-34xx.h"
+>>> +#include "voltage.h"
+>>> +
+>>> +#define MAX_TRIES 100
+>>> +
+>>> +/**
+>>> + * OMAP3 Voltage controller SR parameters. TODO: Pass this info as part of
+>>> + * board data or PMIC data
+>>> + */
+>>> +#define R_SRI2C_SLAVE_ADDR              0x12
+>>> +#define R_VDD1_SR_CONTROL               0x00
+>>> +#define R_VDD2_SR_CONTROL		0x01
+>>> +
+>>> +
+>>> +/* Voltage processor register offsets */
+>>> +struct vp_reg_offs {
+>>> +	void __iomem *vp_vpconfig_reg;
+>>> +	void __iomem *vp_vstepmin_reg;
+>>> +	void __iomem *vp_vstepmax_reg;
+>>> +	void __iomem *vp_vlimitto_reg;
+>>> +	void __iomem *vp_status_reg;
+>>> +	void __iomem *vp_voltage_reg;
+>>> +};
+>>>
+>>> +/*
+>>> + * Voltage processor structure conttaining info about
+>>> + * the various register offsets and the bit field values
+>>> + * for a particular instance of voltage processor.
+>>> + */
+>>> +struct vp_reg_info {
+>>> +	struct vp_reg_offs vp_offs;
+>>> +	/* Bit fields for VPx_VPCONFIG */
+>>> +	u32 vp_erroroffset;
+>>> +	u32 vp_errorgain;
+>>> +	/* Bit fields for VPx_VSTEPMIN */
+>>> +	u32 vp_stepmin;
+>>> +	u32 vp_smpswaittimemin;
+>>> +	/* Bit fields for VPx_VSTEPMAX */
+>>> +	u32 vp_stepmax;
+>>> +	u32 vp_smpswaittimemax;
+>>> +	/* Bit fields for VPx_VLIMITTO */
+>>> +	u32 vp_vddmin;
+>>> +	u32 vp_vddmax;
+>>> +	u32 vp_timeout;
+>>> +};
+>>> +static struct vp_reg_info *vp_reg;
+>>> +/*
+>>> + * Number of scalable voltage domains that has an independent
+>>> + * Voltage processor
+>>> + */
+>>> +static int no_scalable_vdd;
+>>> +
+>>> +/* OMAP3 VP register offsets and other definitions */
+>>> +struct __init vp_reg_offs omap3_vp_offs[] = {
+>>> +	/* VP1 */
+>>> +	{
+>>> +		.vp_vpconfig_reg = OMAP3430_PRM_VP1_CONFIG,
+>>> +		.vp_vstepmin_reg = OMAP3430_PRM_VP1_VSTEPMIN,
+>>> +		.vp_vstepmax_reg = OMAP3430_PRM_VP1_VSTEPMAX,
+>>> +		.vp_vlimitto_reg = OMAP3430_PRM_VP1_VLIMITTO,
+>>> +		.vp_status_reg = OMAP3430_PRM_VP1_STATUS,
+>>> +		.vp_voltage_reg = OMAP3430_PRM_VP1_VOLTAGE,
+>>> +	},
+>>> +	/* VP2 */
+>>> +	{	.vp_vpconfig_reg = OMAP3430_PRM_VP2_CONFIG,
+>>> +		.vp_vstepmin_reg = OMAP3430_PRM_VP2_VSTEPMIN,
+>>> +		.vp_vstepmax_reg = OMAP3430_PRM_VP2_VSTEPMAX,
+>>> +		.vp_vlimitto_reg = OMAP3430_PRM_VP2_VLIMITTO,
+>>> +		.vp_status_reg = OMAP3430_PRM_VP2_STATUS,
+>>> +		.vp_voltage_reg = OMAP3430_PRM_VP2_VOLTAGE,
+>>> +	},
+>>> +};
+>>> +
+>>
+>>
+>>Rather than absolute physical addresses, these should all simply be u8
+>>offset values from the GR_MOD base.  Changing the type to u8
+>>and appending _OFFSET to the name should do the trick.
+>>
+>>Also, I think you could remove the vp_ prefix from the name.
 
-Yes .. Thanks for catching this.
-
->>
->>> +           /*
->>> +            * SR settings if using the MINMAXAVG module inside
->>> +            * Smartreflex. SR CLASS 3 does not use this module where as
->>> +            * SR CLASS 2 can choose between ERROR module and MINMAXAVG
->>> +            * module.
->>> +            */
->>> +           u32 avgwt;
->>>
->>> +           sr_modify_reg(sr, SRCONFIG, SRCONFIG_ACCUMDATA_MASK,
->>> +                   sr->accum_data << SRCONFIG_ACCUMDATA_SHIFT);
->>> +           avgwt = (sr->senp_avgweight << AVGWEIGHT_SENPAVGWEIGHT_SHIFT) |
->>> +                   (sr->senn_avgweight << AVGWEIGHT_SENNAVGWEIGHT_SHIFT);
->>> +           sr_write_reg(sr, AVGWEIGHT, avgwt);
->>> +           /*
->>> +            * Enabling the interrupts if MINMAXAVG module is used.
->>> +            * TODO: check if all the interrupts are mandatory
->>> +            */
->>> +           sr_modify_reg(sr, ERRCONFIG,
->>> +                   (ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
->>> +                   ERRCONFIG_MCUBOUNDINTEN),
->>> +                   (ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUACCUMINTST |
->>> +                    ERRCONFIG_MCUVALIDINTEN | ERRCONFIG_MCUVALIDINTST |
->>> +                    ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_MCUBOUNDINTST));
->>>     }
->>>     sr->is_sr_reset = 0;
->>>  }
->>> @@ -280,12 +350,6 @@ int sr_enable(int srid, u32 target_opp_no)
->>>     }
->>>
->>>     sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
->>> -
->>> -   /* Enable the interrupt */
->>> -   sr_modify_reg(sr, ERRCONFIG,
->>> -                   (ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST),
->>> -                   (ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST));
->>> -
->>>     /* SRCONFIG - enable SR */
->>>     sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
->>>     return true;
->>> @@ -384,6 +448,8 @@ void omap_smartreflex_disable(int srid)
->>>   */
->>>  void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
->>>  {
->>> +   struct omap_sr *sr_info;
->>> +
->>>     if (!class_data) {
->>>             pr_warning("Smartreflex class data passed is NULL\n");
->>>             return;
->>> @@ -393,7 +459,44 @@ void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
->>>             pr_warning("Smartreflex class driver already registered\n");
->>>             return;
->>>     }
->>> +
->>> +   if ((class_data->class_type != SR_CLASS2) &&
->>> +                   (class_data->class_type != SR_CLASS3)) {
->>> +           pr_warning("SR Class type passed is invalid. So cannot \
->>> +                           register the class structure\n");
->>> +           return;
->>> +   }
->>> +
->>> +   if ((class_data->class_type == SR_CLASS2) &&
->>> +                   !((class_data->mod_use == SR_USE_MINMAXAVG_MOD) ||
->>> +                   (class_data->mod_use == SR_USE_ERROR_MOD))) {
->>> +           pr_warning("SR Class 2 specified but whether to use error \
->>> +                           module or minmaxavg module not specified\n");
->>> +           return;
->>> +   }
->>> +
->>>     sr_class = class_data;
->>> +   /*
->>> +    * Register the interrupt handler incase requested by the class driver
->>> +    */
->>> +   list_for_each_entry(sr_info, &sr_list, node) {
->>> +           if (sr_class->class_type == SR_CLASS2 &&
->>> +                           sr_class->notify_flags && sr_info->irq) {
->>> +                   char name[SMARTREFLEX_NAME_LEN];
->>> +                   int ret;
->>> +
->>> +                   sprintf(name, "sr%d", sr_info->srid);
->>> +                   ret = request_irq(sr_info->irq, sr_omap_isr,
->>> +                                   IRQF_DISABLED, name, (void *)sr_info);
->>> +                   if (ret < 0) {
->>> +                           pr_warning("ERROR in registering interrupt \
->>> +                                   handler for SR%d Smartreflex will \
->>> +                                   not function as desired\n",
->>> +                                   sr_info->srid);
->>> +                           return;
->>> +                   }
->>> +           }
->>> +   }
->>>  }
->>>
->>>  /* PM Debug Fs enteries to enable disable smartreflex.*/
->>> @@ -448,6 +551,7 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
->>>     if (odev->hwmods[0]->mpu_irqs)
->>>             sr_info->irq = odev->hwmods[0]->mpu_irqs[0].irq;
->>>     sr_set_clk_length(sr_info);
->>> +   sr_set_regfields(sr_info);
->>>
->>>     /* Create the debug fs enteries */
->>>     sprintf(name, "sr%d_autocomp", sr_info->srid);
->>> @@ -456,8 +560,29 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
->>>
->>>     odev->hwmods[0]->dev_attr = sr_info;
->>>     list_add(&sr_info->node, &sr_list);
->>> -   pr_info("SmartReflex driver initialized\n");
->>>
->>> +   /*
->>> +    * Register interrrupt handler if smartreflex class driver is already
->>> +    * registered and has requested for interrupts. This will be attempted
->>> +    * in the class driver register again if it does not happen here.
->>> +    */
->>
->>Why the duplicate attempts to request_irq()?  Seems like it's only needed
->>in the register_class hook above.
-
-Duplicate attempt is so that it does not matter whether the class driver gets registered before the smartreflex driver gets registered. So if smartreflex driver gets registered first the request_irq will happen only when class driver gets registered. On the other hand if class driver gets registered first then the request_irq will happen from here. The thing to notice is that there is only a duplicate attempt. Actual double registrations does not happen.
+I also initially thought of keeping u8 offsets and using prm_read_mod_reg and prm_write_mod_reg. But apparently in OMAP4 we are thinking of doing away with the u8 offsets and define only the absolute register value. Plus GR_MOD will be different for OMAP3 and OMAP4. Also not all registers may belong to GR_MOD(esp in OMAP4). To avoid all these complications I thought let me use absolute addresses in voltage.c
 
 Regards
 Thara
 >>
->>> +   if (sr_class) {
->>> +           if (sr_class->class_type == SR_CLASS2 &&
->>> +                           sr_class->notify_flags && sr_info->irq) {
->>> +                   sprintf(name, "sr%d", sr_info->srid);
->>> +                   ret = request_irq(sr_info->irq, sr_omap_isr,
->>> +                                   IRQF_DISABLED, name, (void *)sr_info);
->>> +                   if (ret < 0) {
->>> +                           pr_warning("ERROR in registering interrupt \
->>> +                                   handler for SR%d. Smartreflex will \
->>> +                                   not function as desired\n",
->>> +                                   sr_info->srid);
->>> +                           return ret;
->>> +                   }
->>> +           }
->>> +   }
+>>> +#define OMAP3_NO_SCALABLE_VDD ARRAY_SIZE(omap3_vp_offs)
+>>> +static struct vp_reg_info omap3_vp_reg[OMAP3_NO_SCALABLE_VDD];
 >>> +
->>> +   pr_info("SmartReflex driver initialized\n");
->>>     return ret;
->>>  }
->>>
->>> diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
->>> index 7a1f0c7..f8fc8a4 100644
->>> --- a/arch/arm/mach-omap2/smartreflex.h
->>> +++ b/arch/arm/mach-omap2/smartreflex.h
->>> @@ -124,6 +124,24 @@ extern struct dentry *pm_dbg_main_dir;
->>>  #endif
->>>
->>>  #ifdef CONFIG_OMAP_SMARTREFLEX
->>> +/*
->>> + * The smart reflex driver supports both CLASS2 and CLASS3 SR.
->>> + * The smartreflex class driver should pass the class type.
->>> + * Should be used to populate the class_type field of the
->>> + * omap_smartreflex_class_data structure.
+>>> +
+>>> +/* TODO: OMAP4 register offsets */
+>>> +
+>>> +/**
+>>> + * Voltage controller register offsets
 >>> + */
->>> +#define SR_CLASS2  0x1
->>> +#define SR_CLASS3  0x2
->>> +
+>>> +struct vc_reg_info {
+>>> +	void __iomem *vc_cmdval0_reg;
+>>> +	void __iomem *vc_cmdval1_reg;
+>>> +	void __iomem *vc_bypass_val_reg;
+>>
+>>u8 offsets from GR_MOD please.
+>>
+>>vc_ prefix is redundant here also
+>>
+>>> +} vc_reg;
 >>> +/*
->>> + * CLASS2 SR can use either the MINMAXAVG module or the ERROR module
->>> + * of the Smartreflex. Should be used to populate the mod_use field
->>> + * of omap_smartreflex_class_data structure is class_type is chosen
->>> + * as SR_CLASS2.
+>>> + * Default voltage controller settings for OMAP3
 >>> + */
->>> +#define SR_USE_MINMAXAVG_MOD       0x1
->>> +#define SR_USE_ERROR_MOD   0x2
+>>> +static struct prm_setup_vc vc_config = {
+>>> +	.clksetup = 0xff,
+>>> +	.voltsetup_time1 = 0xfff,
+>>> +	.voltsetup_time2 = 0xfff,
+>>> +	.voltoffset = 0xff,
+>>> +	.voltsetup2 = 0xff,
+>>> +	.vdd0_on = 0x30,        /* 1.2v */
+>>> +	.vdd0_onlp = 0x20,      /* 1.0v */
+>>> +	.vdd0_ret = 0x1e,       /* 0.975v */
+>>> +	.vdd0_off = 0x00,       /* 0.6v */
+>>> +	.vdd1_on = 0x2c,        /* 1.15v */
+>>> +	.vdd1_onlp = 0x20,      /* 1.0v */
+>>> +	.vdd1_ret = 0x1e,       /* .975v */
+>>> +	.vdd1_off = 0x00,       /* 0.6v */
+>>> +};
 >>> +
->>>  /**
->>>   * omap_smartreflex_class_data : Structure to be populated by
->>>   * Smartreflex class driver with corresponding class enable disable API's
->>> @@ -134,7 +152,10 @@ extern struct dentry *pm_dbg_main_dir;
->>>   *         for class3.
->>>   * @notify_flags - specify the events to be notified to the class driver
->>>   * @class_type - specify which smartreflex class. Can be used by the SR driver
->>> - *                 to tkae any class based decisions.
->>> + *                 to take any class based decisions.
->>> + * @mod_use - specify whether to use the error module or minmaxavg module for
->>> + *         smartreflex caliberations in case of class2 SR. In case of
->>                            ^^^^^^^^^^^^^
->>typo: calibration
+>>> +static inline u32 voltage_read_reg(void __iomem *offset)
+>>> +{
+>>> +	return __raw_readl(offset);
+>>> +}
 >>
->>> + *         class 3 SR only error module is used.
->>>   */
->>>  struct omap_smartreflex_class_data {
->>>     int (*enable)(int sr_id);
->>> @@ -142,6 +163,7 @@ struct omap_smartreflex_class_data {
->>>     int (*notify)(int sr_id, u32 status);
->>>     u8 notify_flags;
->>>     u8 class_type;
->>> +   u8 mod_use;
+>>These should use prm_[read|write]_*
 >>
->>This name isn't terribly clear.  Maybe mode?  or calibration_mode?
+>>static inline u32 voltage_read_reg(u8 offset)
+>>{
+>>        return prm_read_mod_reg(OMAP3430_GR_MOD, offset);
+>>}
 >>
+>>> +
+>>> +static inline void voltage_write_reg(void __iomem *offset, u32 value)
+>>> +{
+>>> +	__raw_writel(value, offset);
+>>> +}
+>>> +
 >>
 >>Kevin
