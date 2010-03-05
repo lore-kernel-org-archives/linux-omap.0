@@ -1,69 +1,51 @@
-From: ville.syrjala@nokia.com
-Subject: [PATCH 3/4] DSS2: Make wait_for_go() succeed for disabled displays
-Date: Fri,  5 Mar 2010 15:26:21 +0200
-Message-ID: <1267795582-21004-3-git-send-email-ville.syrjala@nokia.com>
-References: <1267795582-21004-1-git-send-email-ville.syrjala@nokia.com>
+From: Laurent Epinat <laurent.epinat@cioinfoindus.fr>
+Subject: dspbridge and dll64P questions
+Date: Fri, 05 Mar 2010 14:33:12 +0100
+Message-ID: <4B910818.8070404@cioinfoindus.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:18494 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784Ab0CEN1t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 08:27:49 -0500
-In-Reply-To: <1267795582-21004-1-git-send-email-ville.syrjala@nokia.com>
+Received: from smtp-out04.msg.oleane.net ([62.161.7.2]:50006 "EHLO
+	smtp-out04.msg.oleane.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752456Ab0CEOOx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 09:14:53 -0500
+Received: from smtp01.msg.oleane.net (smtp01.mail.priv [172.17.20.110])
+	by smtp-out04.msg.oleane.net with ESMTP id o25DrV29001785
+	for <linux-omap@vger.kernel.org>; Fri, 5 Mar 2010 14:53:31 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@nokia.com>
+To: omar.ramirez@ti.com, Ameya Palande <ameya.palande@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-=46rom: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
+Hello all
 
-When the display is not active make the wait_for_go() functions return
-immediately.
+I Used dspbridge for video player and
+I have some questions (I'm a newbies about dsp)
 
-Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
----
- drivers/video/omap2/dss/manager.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+I downloaded the codec pack (Android_DSP_Binaries-L25.12) from MyGForge site
 
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/ds=
-s/manager.c
-index 913142d..0e7b036 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -524,7 +524,7 @@ static int dss_mgr_wait_for_go(struct omap_overlay_=
-manager *mgr)
- 	int i;
- 	struct omap_dss_device *dssdev =3D mgr->device;
-=20
--	if (!dssdev)
-+	if (!dssdev || dssdev->state !=3D OMAP_DSS_DISPLAY_ACTIVE)
- 		return 0;
-=20
- 	if (dssdev->type =3D=3D OMAP_DISPLAY_TYPE_VENC) {
-@@ -595,11 +595,14 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *=
-ovl)
- 	int r;
- 	int i;
-=20
--	if (!ovl->manager || !ovl->manager->device)
-+	if (!ovl->manager)
- 		return 0;
-=20
- 	dssdev =3D ovl->manager->device;
-=20
-+	if (!dssdev || dssdev->state !=3D OMAP_DSS_DISPLAY_ACTIVE)
-+		return 0;
-+
- 	if (dssdev->type =3D=3D OMAP_DISPLAY_TYPE_VENC) {
- 		irq =3D DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
- 		channel =3D OMAP_DSS_CHANNEL_DIGIT;
---=20
-1.6.4.4
+Where can I find the codec decode MPEG2 called  mp2vdec_sn.dll64P ?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+How can I re-compile them (or re-link) ?
+
+which difference from Android_DSP_Binaries-L25.12  and Android_DSP_Binaries-RLS25.14M1
+
+because on RLS25.14M1 nothing works
+
+
+thanks
+
+
+-- 
+
+Salutations
+Laurent Epinat -> mailto:laurent.epinat@cioinfoindus.fr
+
+CIO Informatique
+Le millenium
+1, rue de Presse - BP 710
+42950 Saint-Etienne Cedex 9
+
+Tel    33 (0) 477 93 34 32
+Tcopie 33 (0) 477 79 75 55
+WWW : http://www.cioinfoindus.fr/
