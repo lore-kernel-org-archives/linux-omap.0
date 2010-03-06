@@ -1,33 +1,37 @@
-From: MICROSOFT DEPARTMENT <web30114@singnet.com.sg>
-Subject: 2010 Award Promotion
-Date: Sat, 06 Mar 2010 11:51:59 +0800 (SGT)
-Message-ID: <1267847519.4b91d15fc499b@discus.singnet.com.sg>
-Reply-To: dr_terrycole@btinternet.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH] DSPBRIDGE: driver version 0.2
+Date: Fri,  5 Mar 2010 23:11:39 -0600
+Message-ID: <1267852299-23337-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comsmtp1.singnet.com.sg ([165.21.101.74]:54703 "EHLO
-	comsmtp1.singnet.com.sg" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667Ab0CFDzn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 22:55:43 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:36594 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751096Ab0CFE5q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 23:57:46 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: info@mll.co.uk
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-=A3450,000Pounds has been awarded to you in=20
-the MICROSOFT PROMO. send to this office=20
-the following:
-Names...........
-Tel..............
-Age............
-Address..........
-Occupation.........
-Country.............
-Email: dr_terrycole@btinternet.com
-Tel: +44 702 408 1795
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+driver version 0.2
+
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ drivers/dsp/bridge/rmgr/drv_interface.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index fa97caa..3f5af34 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -70,7 +70,7 @@
+ #define BRIDGE_NAME "C6410"
+ /*  ----------------------------------- Globals */
+ #define DRIVER_NAME  "DspBridge"
+-#define DSPBRIDGE_VERSION	"0.1"
++#define DSPBRIDGE_VERSION	"0.2"
+ s32 dsp_debug;
+ 
+ struct platform_device *omap_dspbridge_dev;
+-- 
+1.6.2.4
+
