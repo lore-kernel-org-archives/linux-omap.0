@@ -1,170 +1,61 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/16] OMAP3: PM: Adding hwmod data for Smartreflex
-Date: Fri, 05 Mar 2010 16:45:47 -0800
-Message-ID: <87zl2mwa4k.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 00/16] OMAP3: PM: Smartreflex and voltage revamp.
+Date: Fri, 05 Mar 2010 16:58:43 -0800
+Message-ID: <87k4tqw9j0.fsf@deeprootsystems.com>
 References: <1267003757-22456-1-git-send-email-thara@ti.com>
-	<1267003757-22456-2-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:44529 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761Ab0CFApv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 19:45:51 -0500
-Received: by gwb15 with SMTP id 15so2049136gwb.19
-        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 16:45:50 -0800 (PST)
-In-Reply-To: <1267003757-22456-2-git-send-email-thara@ti.com> (Thara Gopinath's message of "Wed\, 24 Feb 2010 14\:59\:02 +0530")
+Received: from mail-yw0-f184.google.com ([209.85.211.184]:54094 "EHLO
+	mail-yw0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751641Ab0CFBFt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 20:05:49 -0500
+Received: by ywh14 with SMTP id 14so1838024ywh.15
+        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 17:05:48 -0800 (PST)
+In-Reply-To: <1267003757-22456-1-git-send-email-thara@ti.com> (Thara Gopinath's message of "Wed\, 24 Feb 2010 14\:59\:01 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, "Thara Gopinath (none)" <thara@omaplbp.india.ti.com>
 
 Thara Gopinath <thara@ti.com> writes:
 
-> This patch adds the hwmod strucutres and other hwmod data for
-> OMAP3 Smartreflex IP's.
+> From: Thara Gopinath <thara@omaplbp.(none)>
 >
-> Signed-off-by: Thara Gopinath <thara@ti.com>
+> This main motivations behind this patch series are the following
+> 1. Making smartreflex a platform driver with omap-device layer.
+> 2. Separating voltage specific code from smartreflex.c and other
+>    locations and consolidating them into voltage.c and voltage.h.
+> 3. Smartreflex module can have Class 3 or Class 2 implementations
+>    depending on the PMIC in use. Making smartreflex.c capable
+>    of handling both the class implementaions and separating out
+>    class specific code into a separate class driver.
+> 4. Implementating  latest TI recommended register settings for
+>   Smartreflex and Voltage processor module as well as recommended
+>   sequences for enabling and disabling of Smartreflex and Voltage
+>   processor modules.
+> 5. Implementing VP force update method of voltage scaling which is
+>    again TI hardware recommended.
+>
+> What this patch series does not address are
+> 1. Separating PMIC specific portions from smartreflex and voltage code.
+> 2. OMAP3630 and OMP4 smartreflex support.
+>
+> This patch series is based on Kevin's PM tree origin/pm-wip-opp branch
+> and is dependent on the following patches not yet applied onto this branch.
 
-Thara,
+Hi Thara,
 
-When resending, please rebase on top of current PM branch and current
-pm-wip-opp.  The hwmod data in mainline has been reorganized a bit and
-will require a slight rework of this patch.
+One other request for V2.
 
-Thanks,
+Could you separate out any patches to SRF (resourc34xx) into their own
+patches please?  This will facilitate upstream merging when SR is
+finalized because while SR will be (hopefully) going upstream soon,
+SRF will not.
+
+A quick look shows patches 5, 8, 9 as having changes to
+resource*.[ch].  Please separate those out as separate patches.
+
+Once again, thanks for your efforts on this much needed SR rework,
 
 Kevin
-
-> ---
->  arch/arm/mach-omap2/omap_hwmod_34xx.h |   92 +++++++++++++++++++++++++++++++++
->  1 files changed, 92 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-> index 2e629dc..dccb4a4 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_34xx.h
-> +++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-> @@ -25,6 +25,8 @@ static struct omap_hwmod omap34xx_mpu_hwmod;
->  static struct omap_hwmod omap34xx_l3_hwmod;
->  static struct omap_hwmod omap34xx_l4_core_hwmod;
->  static struct omap_hwmod omap34xx_l4_per_hwmod;
-> +static struct omap_hwmod omap34xx_sr1_hwmod;
-> +static struct omap_hwmod omap34xx_sr2_hwmod;
->  
->  /* L3 -> L4_CORE interface */
->  static struct omap_hwmod_ocp_if omap34xx_l3__l4_core = {
-> @@ -77,9 +79,49 @@ static struct omap_hwmod_ocp_if omap34xx_l4_core__l4_wkup = {
->  	.user	= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/* L4 CORE -> SR1 interface */
-> +static struct omap_hwmod_addr_space omap34xx_sr1_addr_space[] = {
-> +	{
-> +		.pa_start	= OMAP34XX_SR1_BASE,
-> +		.pa_end		= OMAP34XX_SR1_BASE + SZ_1K - 1,
-> +		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-> +	},
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap3_l4_core__sr1 = {
-> +	.master		= &omap34xx_l4_core_hwmod,
-> +	.slave		= &omap34xx_sr1_hwmod,
-> +	.clkdev_dev_id	= NULL,
-> +	.clkdev_con_id  = NULL,
-> +	.addr		= omap34xx_sr1_addr_space,
-> +	.addr_cnt	= ARRAY_SIZE(omap34xx_sr1_addr_space),
-> +	.user		= OCP_USER_MPU,
-> +};
-> +
-> +/* L4 CORE -> SR1 interface */
-> +static struct omap_hwmod_addr_space omap34xx_sr2_addr_space[] = {
-> +	{
-> +		.pa_start	= OMAP34XX_SR2_BASE,
-> +		.pa_end		= OMAP34XX_SR2_BASE + SZ_1K - 1,
-> +		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-> +	},
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap3_l4_core__sr2 = {
-> +	.master		= &omap34xx_l4_core_hwmod,
-> +	.slave		= &omap34xx_sr2_hwmod,
-> +	.clkdev_dev_id	= NULL,
-> +	.clkdev_con_id  = NULL,
-> +	.addr		= omap34xx_sr2_addr_space,
-> +	.addr_cnt	= ARRAY_SIZE(omap34xx_sr2_addr_space),
-> +	.user		= OCP_USER_MPU,
-> +};
-> +
->  /* Slave interfaces on the L4_CORE interconnect */
->  static struct omap_hwmod_ocp_if *omap34xx_l4_core_slaves[] = {
->  	&omap34xx_l3__l4_core,
-> +	&omap3_l4_core__sr1,
-> +	&omap3_l4_core__sr2,
->  };
->  
->  /* Master interfaces on the L4_CORE interconnect */
-> @@ -150,12 +192,62 @@ static struct omap_hwmod omap34xx_mpu_hwmod = {
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->  };
->  
-> +/* SR common */
-> +static struct omap_hwmod_sysc_fields sr_sysc_fields = {
-> +	.clkact_shift	= 20,
-> +};
-> +
-> +static struct omap_hwmod_sysconfig sr_if_ctrl = {
-> +	.sysc_offs	= 0x24,
-> +	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_NO_CACHE),
-> +	.clockact	= CLOCKACT_TEST_ICLK,
-> +	.sysc_fields	= &sr_sysc_fields,
-> +};
-> +
-> +/* SR1 */
-> +static struct omap_hwmod_ocp_if *omap34xx_sr1_slaves[] = {
-> +	&omap3_l4_core__sr1,
-> +};
-> +
-> +static struct omap_hwmod omap34xx_sr1_hwmod = {
-> +	.name		= "sr1_hwmod",
-> +	.mpu_irqs	= NULL,
-> +	.sdma_chs	= NULL,
-> +	.clkdev_dev_id	= NULL,
-> +	.clkdev_con_id	= "sr1_fck",
-> +	.slaves		= omap34xx_sr1_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr1_slaves),
-> +	.sysconfig	= &sr_if_ctrl,
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
-> +};
-> +
-> +/* SR2 */
-> +static struct omap_hwmod_ocp_if *omap34xx_sr2_slaves[] = {
-> +	&omap3_l4_core__sr2,
-> +};
-> +
-> +static struct omap_hwmod omap34xx_sr2_hwmod = {
-> +	.name		= "sr2_hwmod",
-> +	.mpu_irqs	= NULL,
-> +	.sdma_chs	= NULL,
-> +	.clkdev_dev_id	= NULL,
-> +	.clkdev_con_id	= "sr2_fck",
-> +	.slaves		= omap34xx_sr2_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr2_slaves),
-> +	.sysconfig	= &sr_if_ctrl,
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
-> +};
-> +
->  static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
->  	&omap34xx_l3_hwmod,
->  	&omap34xx_l4_core_hwmod,
->  	&omap34xx_l4_per_hwmod,
->  	&omap34xx_l4_wkup_hwmod,
->  	&omap34xx_mpu_hwmod,
-> +	&omap34xx_sr1_hwmod,
-> +	&omap34xx_sr2_hwmod,
->  	NULL,
->  };
->  
-> -- 
-> 1.7.0.rc1.33.g07cf0f
