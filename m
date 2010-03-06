@@ -1,90 +1,177 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] ARM: Add omap-specific barrier implementation
-Date: Sat,  6 Mar 2010 14:43:04 +0530
-Message-ID: <1267866784-10465-1-git-send-email-santosh.shilimkar@ti.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: Fix conditional locking
+Date: Sat, 06 Mar 2010 14:54:15 +0200
+Message-ID: <4B925077.1060803@nokia.com>
+References: <alpine.LFD.2.00.1003011952470.4245@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:19727 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750813Ab0CFMy0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Mar 2010 07:54:26 -0500
+In-Reply-To: <alpine.LFD.2.00.1003011952470.4245@localhost.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
 
-This patch defines ARCH_HAS_BARRIERS for the OMAP4 platform if
-CACHE_L2X0 is enabled and adds the mach/barriers.h file. The mb() and
-wmb() barriers perform an L2 cache sync in addition to the DSB.
+Thomas Gleixner wrote:
+> Conditional locking on (!in_interrupt()) is broken by design and there
+> is no reason to keep the host->irq_lock across the call to
+> mmc_request_done(). Also the host->protect_card magic hack does not
+> depend on the context
 
-The patch is based on top of Catalin's below series
-	- [PATCH v3 0/4] ARM mandatory barriers
-	- http://permalink.gmane.org/gmane.linux.ports.arm.kernel/75425
+Card protect does depend on not being invoked in the middle of a request.
+For example, it could result in a open-ended read being started but never
+stopped.
 
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/include/mach/barriers.h |   32 +++++++++++++++++++++++++++
- arch/arm/plat-omap/Kconfig                  |    1 +
- 2 files changed, 33 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/include/mach/barriers.h
+in_interrupt() can be replaced with a new flag 'in_request' that is set
+in omap_hsmmc_request() and cleared after mmc_request_done()
 
-diff --git a/arch/arm/mach-omap2/include/mach/barriers.h b/arch/arm/mach-omap2/include/mach/barriers.h
-new file mode 100644
-index 0000000..e29aebf
---- /dev/null
-+++ b/arch/arm/mach-omap2/include/mach/barriers.h
-@@ -0,0 +1,32 @@
-+/*
-+ * omap barriers.h
-+ *
-+ * Copyright (C) 2010 Texas Instruments Ltd.
-+ * Copyright (C) 2010 ARM Ltd.
-+ * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ * based on realview version of Catalin Marinas <catalin.marinas@arm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#ifndef __MACH_BARRIERS_H
-+#define __MACH_BARRIERS_H
-+
-+#include <asm/outercache.h>
-+
-+#define rmb()		dmb()
-+#define wmb()		do { dsb(); outer_sync(); } while (0)
-+#define mb()		wmb()
-+
-+#endif	/* __MACH_BARRIERS_H */
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 6da796e..4812da4 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -38,6 +38,7 @@ config ARCH_OMAP4
- 	depends on ARCH_OMAP2PLUS
- 	select CPU_V7
- 	select ARM_GIC
-+	select ARCH_HAS_BARRIERS if CACHE_L2X0
- 
- endchoice
- 
--- 
-1.6.0.4
+Also, as you allude to in another email, the spinlock, while preventing an
+oops, does not stop the unwanted interrupt, which will cause problems.
+
+I can make the necessary changes but it will be a few days before
+I have the time.
+
+> 
+> Fix the mess by dropping host->irq_lock before calling
+> mmc_request_done().
+> 
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 4b23225..99a3383 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -468,14 +468,6 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
+>  	if (host->use_dma)
+>  		cmdreg |= DMA_EN;
+>  
+> -	/*
+> -	 * In an interrupt context (i.e. STOP command), the spinlock is unlocked
+> -	 * by the interrupt handler, otherwise (i.e. for a new request) it is
+> -	 * unlocked here.
+> -	 */
+> -	if (!in_interrupt())
+> -		spin_unlock_irqrestore(&host->irq_lock, host->flags);
+> -
+>  	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
+>  	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
+>  }
+> @@ -506,7 +498,9 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
+>  		}
+>  
+>  		host->mrq = NULL;
+> +		spin_unlock(&host->irq_lock);
+>  		mmc_request_done(host->mmc, mrq);
+> +		spin_lock(&host->irq_lock);
+>  		return;
+>  	}
+>  
+> @@ -523,7 +517,9 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
+>  
+>  	if (!data->stop) {
+>  		host->mrq = NULL;
+> +		spin_unlock(&host->irq_lock);
+>  		mmc_request_done(host->mmc, data->mrq);
+> +		spin_lock(&host->irq_lock);
+>  		return;
+>  	}
+>  	omap_hsmmc_start_command(host, data->stop, NULL);
+> @@ -551,7 +547,9 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
+>  	}
+>  	if ((host->data == NULL && !host->response_busy) || cmd->error) {
+>  		host->mrq = NULL;
+> +		spin_unlock(&host->irq_lock);
+>  		mmc_request_done(host->mmc, cmd->mrq);
+> +		spin_lock(&host->irq_lock);
+>  	}
+>  }
+>  
+> @@ -1077,37 +1075,31 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+>  	struct omap_hsmmc_host *host = mmc_priv(mmc);
+>  	int err;
+>  
+> +	spin_lock_irqsave(&host->irq_lock, host->flags);
+>  	/*
+> -	 * Prevent races with the interrupt handler because of unexpected
+> -	 * interrupts, but not if we are already in interrupt context i.e.
+> -	 * retries.
+> +	 * Protect the card from I/O if there is a possibility
+> +	 * it can be removed.
+>  	 */
+> -	if (!in_interrupt()) {
+> -		spin_lock_irqsave(&host->irq_lock, host->flags);
+> -		/*
+> -		 * Protect the card from I/O if there is a possibility
+> -		 * it can be removed.
+> -		 */
+> -		if (host->protect_card) {
+> -			if (host->reqs_blocked < 3) {
+> -				/*
+> -				 * Ensure the controller is left in a consistent
+> -				 * state by resetting the command and data state
+> -				 * machines.
+> -				 */
+> -				omap_hsmmc_reset_controller_fsm(host, SRD);
+> -				omap_hsmmc_reset_controller_fsm(host, SRC);
+> -				host->reqs_blocked += 1;
+> -			}
+> -			req->cmd->error = -EBADF;
+> -			if (req->data)
+> -				req->data->error = -EBADF;
+> -			spin_unlock_irqrestore(&host->irq_lock, host->flags);
+> -			mmc_request_done(mmc, req);
+> -			return;
+> -		} else if (host->reqs_blocked)
+> -			host->reqs_blocked = 0;
+> -	}
+> +	if (host->protect_card) {
+> +		if (host->reqs_blocked < 3) {
+> +			/*
+> +			 * Ensure the controller is left in a consistent
+> +			 * state by resetting the command and data state
+> +			 * machines.
+> +			 */
+> +			omap_hsmmc_reset_controller_fsm(host, SRD);
+> +			omap_hsmmc_reset_controller_fsm(host, SRC);
+> +			host->reqs_blocked += 1;
+> +		}
+> +		req->cmd->error = -EBADF;
+> +		if (req->data)
+> +			req->data->error = -EBADF;
+> +		spin_unlock_irqrestore(&host->irq_lock, host->flags);
+> +		mmc_request_done(mmc, req);
+> +		return;
+> +	} else if (host->reqs_blocked)
+> +		host->reqs_blocked = 0;
+> +
+>  	WARN_ON(host->mrq != NULL);
+>  	host->mrq = req;
+>  	err = omap_hsmmc_prepare_data(host, req);
+> @@ -1116,13 +1108,13 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+>  		if (req->data)
+>  			req->data->error = err;
+>  		host->mrq = NULL;
+> -		if (!in_interrupt())
+> -			spin_unlock_irqrestore(&host->irq_lock, host->flags);
+> +		spin_unlock_irqrestore(&host->irq_lock, host->flags);
+>  		mmc_request_done(mmc, req);
+>  		return;
+>  	}
+>  
+>  	omap_hsmmc_start_command(host, req->cmd, req->data);
+> +	spin_unlock_irqrestore(&host->irq_lock, host->flags);
+>  }
+>  
+>  /* Routine to configure clock values. Exposed API to core */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
