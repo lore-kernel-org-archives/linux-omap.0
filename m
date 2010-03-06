@@ -1,49 +1,33 @@
-From: "Y, Kishore" <kishore.y@ti.com>
-Subject: [PATCH 0/2 V4] Enable DSS on zoom2/3 and 3630 sdp boards
-Date: Sat, 6 Mar 2010 19:55:34 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026EE415C1@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/2] ftrace - add ftrace function_graph support on ARM
+Date: Sat, 6 Mar 2010 20:18:49 +0000
+Message-ID: <20100306201849.GD13262@n2100.arm.linux.org.uk>
+References: <4B91A39F.8050502@am.sony.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51433 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753068Ab0CFOZ1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Mar 2010 09:25:27 -0500
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <4B91A39F.8050502@am.sony.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tim Bird <tim.bird@am.sony.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Kishore Y <kishore.y@ti.com>
+On Fri, Mar 05, 2010 at 04:36:47PM -0800, Tim Bird wrote:
+> IRQENTRY_TEXT was added to vmlinux.lds.S (to eliminate
+> a compiler error on kernel/trace/trace_functions_graph.c),
+> although no routines were marked as __irq_entry.
 
-This patch series enables DSS and FB in zoom2, zoom3 and 3630sdp.
+Well, ARM already places the assembly exception text in its own separate
+section for other reasons.  We can't place it in two sections.
 
-Changes from version 3:
-  - incorporated cosmetic changes
-  - use twl init function for twl gpio's
-
-OMAP: DSS: Enable display on ZOOM2/3 & 3630SDP
-	- Included display in boards and enabled in defconfig
-OMAP: DSS: Add display board file for zoom boards
-	- Display board file added common for all boards
-
- arch/arm/configs/omap_3630sdp_defconfig       |   60 +++++++++-
- arch/arm/configs/omap_zoom2_defconfig         |   60 +++++++++-
- arch/arm/configs/omap_zoom3_defconfig         |   60 +++++++++-
- arch/arm/mach-omap2/Makefile                  |    3 +
- arch/arm/mach-omap2/board-3630sdp.c           |    1 +
- arch/arm/mach-omap2/board-zoom-display.c      |  158 +++++++++++++++++++++++++
- arch/arm/mach-omap2/board-zoom-peripherals.c  |   50 ++++++++-
- arch/arm/mach-omap2/board-zoom2.c             |    1 +
- arch/arm/mach-omap2/board-zoom3.c             |    1 +
- arch/arm/mach-omap2/include/mach/board-zoom.h |    3 +
- 10 files changed, 393 insertions(+), 4 deletions(-)
-
-Tested on top of LO kernel on dss2 brnach
-commit id: 98d31bf6566be9e716f6dfdce8eb39d1c1097b7c 
-OMAP: AM3517: Enable DSS2 for AM3517EVM board
-
-Regards,
-Kishore Y
+What is __irq_entry used for?  Just the low level assembly or C functions?
