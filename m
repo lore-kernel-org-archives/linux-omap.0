@@ -1,61 +1,34 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/16] OMAP3: PM: Smartreflex and voltage revamp.
-Date: Fri, 05 Mar 2010 16:58:43 -0800
-Message-ID: <87k4tqw9j0.fsf@deeprootsystems.com>
-References: <1267003757-22456-1-git-send-email-thara@ti.com>
+From: MICROSOFT DEPARTMENT <web30114@singnet.com.sg>
+Subject: 2010 Award Promotion
+Date: Sat, 06 Mar 2010 11:50:52 +0800 (SGT)
+Message-ID: <1267847452.4b91d11cf07ae@discus.singnet.com.sg>
+Reply-To: dr_terrycole@btinternet.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f184.google.com ([209.85.211.184]:54094 "EHLO
-	mail-yw0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751641Ab0CFBFt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 20:05:49 -0500
-Received: by ywh14 with SMTP id 14so1838024ywh.15
-        for <linux-omap@vger.kernel.org>; Fri, 05 Mar 2010 17:05:48 -0800 (PST)
-In-Reply-To: <1267003757-22456-1-git-send-email-thara@ti.com> (Thara Gopinath's message of "Wed\, 24 Feb 2010 14\:59\:01 +0530")
+Received: from comsmtp1.singnet.com.sg ([165.21.101.74]:54404 "EHLO
+	comsmtp1.singnet.com.sg" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750745Ab0CFDya (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 22:54:30 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, "Thara Gopinath (none)" <thara@omaplbp.india.ti.com>
+To: info@mll.co.uk
 
-Thara Gopinath <thara@ti.com> writes:
 
-> From: Thara Gopinath <thara@omaplbp.(none)>
->
-> This main motivations behind this patch series are the following
-> 1. Making smartreflex a platform driver with omap-device layer.
-> 2. Separating voltage specific code from smartreflex.c and other
->    locations and consolidating them into voltage.c and voltage.h.
-> 3. Smartreflex module can have Class 3 or Class 2 implementations
->    depending on the PMIC in use. Making smartreflex.c capable
->    of handling both the class implementaions and separating out
->    class specific code into a separate class driver.
-> 4. Implementating  latest TI recommended register settings for
->   Smartreflex and Voltage processor module as well as recommended
->   sequences for enabling and disabling of Smartreflex and Voltage
->   processor modules.
-> 5. Implementing VP force update method of voltage scaling which is
->    again TI hardware recommended.
->
-> What this patch series does not address are
-> 1. Separating PMIC specific portions from smartreflex and voltage code.
-> 2. OMAP3630 and OMP4 smartreflex support.
->
-> This patch series is based on Kevin's PM tree origin/pm-wip-opp branch
-> and is dependent on the following patches not yet applied onto this branch.
-
-Hi Thara,
-
-One other request for V2.
-
-Could you separate out any patches to SRF (resourc34xx) into their own
-patches please?  This will facilitate upstream merging when SR is
-finalized because while SR will be (hopefully) going upstream soon,
-SRF will not.
-
-A quick look shows patches 5, 8, 9 as having changes to
-resource*.[ch].  Please separate those out as separate patches.
-
-Once again, thanks for your efforts on this much needed SR rework,
-
-Kevin
+=A3450,000Pounds has been awarded to you in=20
+the MICROSOFT PROMO. send to this office=20
+the following:
+Names...........
+Tel..............
+Age............
+Address..........
+Occupation.........
+Country.............
+Email: dr_terrycole@btinternet.com
+Tel: +44 702 408 1795
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
