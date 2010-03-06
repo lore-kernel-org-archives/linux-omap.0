@@ -1,20 +1,19 @@
 From: MICROSOFT DEPARTMENT <web30114@singnet.com.sg>
 Subject: 2010 Award Promotion
-Date: Sat, 06 Mar 2010 11:50:52 +0800 (SGT)
-Message-ID: <1267847452.4b91d11cf07ae@discus.singnet.com.sg>
+Date: Sat, 06 Mar 2010 11:51:59 +0800 (SGT)
+Message-ID: <1267847519.4b91d15fc499b@discus.singnet.com.sg>
 Reply-To: dr_terrycole@btinternet.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comsmtp1.singnet.com.sg ([165.21.101.74]:54404 "EHLO
+Received: from comsmtp1.singnet.com.sg ([165.21.101.74]:54703 "EHLO
 	comsmtp1.singnet.com.sg" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750745Ab0CFDya (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 22:54:30 -0500
+	with ESMTP id S1751667Ab0CFDzn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Mar 2010 22:55:43 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: info@mll.co.uk
-
 
 =A3450,000Pounds has been awarded to you in=20
 the MICROSOFT PROMO. send to this office=20
