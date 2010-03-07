@@ -1,304 +1,165 @@
-From: Ben Dooks <ben-linux@fluff.org>
-Subject: Re: [PATCH] omap: i2c: Add i2c support on omap4 platform
-Date: Sun, 7 Mar 2010 22:18:19 +0000
-Message-ID: <20100307221819.GA15071@fluff.org.uk>
-References: <1266597180-25139-1-git-send-email-santosh.shilimkar@ti.com>
+From: Ben Dooks <ben@fluff.org>
+Subject: Re: [PATCH] mmc-omap: Add support for 16-bit and 32-bit registers
+Date: Sun, 7 Mar 2010 22:59:01 +0000
+Message-ID: <20100307225901.GU10014@trinity.fluff.org>
+References: <1267984078-6036-1-git-send-email-darkstar6262@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aeryn.fluff.org.uk ([87.194.8.8]:36712 "EHLO
-	kira.home.fluff.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752798Ab0CGWSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Mar 2010 17:18:22 -0500
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1266597180-25139-1-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1267984078-6036-1-git-send-email-darkstar6262@gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-mmc@vger.kernel.org, akpm@linux-foundation.org, Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Marek Belisko <marek.belisko@open-nandra.com>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>, Cory Maccarrone <darkstar6262@gmail.com>
 
-On Fri, Feb 19, 2010 at 10:03:00PM +0530, Santosh Shilimkar wrote:
-> This patch is rebased version of earlier post to add I2C
-> driver support to OMAP4 platform. On OMAP4, all
-> I2C register address offsets are changed from OMAP1/2/3 I2C.
-> In order to not have #ifdef's at various places in code,
-> as well as to support multi-OMAP build, an array is created
-> to hold the register addresses with it's offset.
+On Sun, Mar 07, 2010 at 09:47:58AM -0800, Cory Maccarrone wrote:
+> From: Marek Belisko <marek.belisko@open-nandra.com>
 > 
-> This patch was submitted, reviewed and acked on mailing list
-> already. For more details refer below link
-> http://www.mail-archive.com/linux-i2c@vger.kernel.org/msg02281.html
-> 
-> This updated verion has a depedancy on "Add support for 16-bit registers"
-> posted on linux-omap. Below is the patch-works link for the same
-> 
-> http://patchwork.kernel.org/patch/72295/
+> The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
+> a modification of the register addresses in the mmc-omap driver.  To resolve
+> this, a bit shift is performed on base register addresses, either by 1 or 2
+> bits depending on the CPU in use.  This yields the correct registers for
+> each CPU.
 
-currently even with this patch applied it doesn't apply cleanly.
+merged the previous one into my tree earlier today.
  
-> Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> Reviewed-by: Paul Walmsley <paul@pwsan.com>
-> Reviewed-by: Tony Lindgren <tony@atomide.com>
-> Cc: Ben Dooks <ben-linux@fluff.org>
-> Cc: Cory Maccarrone <darkstar6262@gmail.com>
+> Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
+> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  drivers/i2c/busses/i2c-omap.c |  146 ++++++++++++++++++++++++++++++++---------
->  1 files changed, 114 insertions(+), 32 deletions(-)
+>  drivers/mmc/host/omap.c |   62 +++++++++++++++++++++++++----------------------
+>  1 files changed, 33 insertions(+), 29 deletions(-)
 > 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 9c3ce4d..7c15496 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -44,29 +44,37 @@
->  /* I2C controller revisions present on specific hardware */
->  #define OMAP_I2C_REV_ON_2430		0x36
->  #define OMAP_I2C_REV_ON_3430		0x3C
-> +#define OMAP_I2C_REV_ON_4430		0x40
+> This is a resubmit of a patch I sent in several months ago.  Tony Lindgren merged
+> this into linux-omap's master and testing branches but has stated that he will not
+> merge it further as linux-mmc needs to approve this.  There hasn't been any comments
+> raised on either of the linux-omap or linux-mmc mailing lists about problems.  Due to
+> the unique nature of the omap7xx platform, this patch is required for MMC card access.
+> Is there any chance this can be included into the next -rc cycle, as it is a fix for
+> devices that have 16-bit registers?
+> 
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index c6d7e8e..53362c4 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -38,30 +38,30 @@
+>  #include <plat/fpga.h>
 >  
->  /* timeout waiting for the controller to respond */
->  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+>  #define	OMAP_MMC_REG_CMD	0x00
+> -#define	OMAP_MMC_REG_ARGL	0x04
+> -#define	OMAP_MMC_REG_ARGH	0x08
+> -#define	OMAP_MMC_REG_CON	0x0c
+> -#define	OMAP_MMC_REG_STAT	0x10
+> -#define	OMAP_MMC_REG_IE		0x14
+> -#define	OMAP_MMC_REG_CTO	0x18
+> -#define	OMAP_MMC_REG_DTO	0x1c
+> -#define	OMAP_MMC_REG_DATA	0x20
+> -#define	OMAP_MMC_REG_BLEN	0x24
+> -#define	OMAP_MMC_REG_NBLK	0x28
+> -#define	OMAP_MMC_REG_BUF	0x2c
+> -#define OMAP_MMC_REG_SDIO	0x34
+> -#define	OMAP_MMC_REG_REV	0x3c
+> -#define	OMAP_MMC_REG_RSP0	0x40
+> -#define	OMAP_MMC_REG_RSP1	0x44
+> -#define	OMAP_MMC_REG_RSP2	0x48
+> -#define	OMAP_MMC_REG_RSP3	0x4c
+> -#define	OMAP_MMC_REG_RSP4	0x50
+> -#define	OMAP_MMC_REG_RSP5	0x54
+> -#define	OMAP_MMC_REG_RSP6	0x58
+> -#define	OMAP_MMC_REG_RSP7	0x5c
+> -#define	OMAP_MMC_REG_IOSR	0x60
+> -#define	OMAP_MMC_REG_SYSC	0x64
+> -#define	OMAP_MMC_REG_SYSS	0x68
+> +#define	OMAP_MMC_REG_ARGL	0x01
+> +#define	OMAP_MMC_REG_ARGH	0x02
+> +#define	OMAP_MMC_REG_CON	0x03
+> +#define	OMAP_MMC_REG_STAT	0x04
+> +#define	OMAP_MMC_REG_IE		0x05
+> +#define	OMAP_MMC_REG_CTO	0x06
+> +#define	OMAP_MMC_REG_DTO	0x07
+> +#define	OMAP_MMC_REG_DATA	0x08
+> +#define	OMAP_MMC_REG_BLEN	0x09
+> +#define	OMAP_MMC_REG_NBLK	0x0a
+> +#define	OMAP_MMC_REG_BUF	0x0b
+> +#define	OMAP_MMC_REG_SDIO	0x0d
+> +#define	OMAP_MMC_REG_REV	0x0f
+> +#define	OMAP_MMC_REG_RSP0	0x10
+> +#define	OMAP_MMC_REG_RSP1	0x11
+> +#define	OMAP_MMC_REG_RSP2	0x12
+> +#define	OMAP_MMC_REG_RSP3	0x13
+> +#define	OMAP_MMC_REG_RSP4	0x14
+> +#define	OMAP_MMC_REG_RSP5	0x15
+> +#define	OMAP_MMC_REG_RSP6	0x16
+> +#define	OMAP_MMC_REG_RSP7	0x17
+> +#define	OMAP_MMC_REG_IOSR	0x18
+> +#define	OMAP_MMC_REG_SYSC	0x19
+> +#define	OMAP_MMC_REG_SYSS	0x1a
 >  
-> -#define OMAP_I2C_REV_REG		0x00
-> -#define OMAP_I2C_IE_REG			0x01
-> -#define OMAP_I2C_STAT_REG		0x02
-> -#define OMAP_I2C_IV_REG			0x03
->  /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
-> -#define OMAP_I2C_WE_REG			0x03
-> -#define OMAP_I2C_SYSS_REG		0x04
-> -#define OMAP_I2C_BUF_REG		0x05
-> -#define OMAP_I2C_CNT_REG		0x06
-> -#define OMAP_I2C_DATA_REG		0x07
-> -#define OMAP_I2C_SYSC_REG		0x08
-> -#define OMAP_I2C_CON_REG		0x09
-> -#define OMAP_I2C_OA_REG			0x0a
-> -#define OMAP_I2C_SA_REG			0x0b
-> -#define OMAP_I2C_PSC_REG		0x0c
-> -#define OMAP_I2C_SCLL_REG		0x0d
-> -#define OMAP_I2C_SCLH_REG		0x0e
-> -#define OMAP_I2C_SYSTEST_REG		0x0f
-> -#define OMAP_I2C_BUFSTAT_REG		0x10
-> +enum {
-> +	OMAP_I2C_REV_REG = 0,
-> +	OMAP_I2C_IE_REG,
-> +	OMAP_I2C_STAT_REG,
-> +	OMAP_I2C_IV_REG,
-> +	OMAP_I2C_WE_REG,
-> +	OMAP_I2C_SYSS_REG,
-> +	OMAP_I2C_BUF_REG,
-> +	OMAP_I2C_CNT_REG,
-> +	OMAP_I2C_DATA_REG,
-> +	OMAP_I2C_SYSC_REG,
-> +	OMAP_I2C_CON_REG,
-> +	OMAP_I2C_OA_REG,
-> +	OMAP_I2C_SA_REG,
-> +	OMAP_I2C_PSC_REG,
-> +	OMAP_I2C_SCLL_REG,
-> +	OMAP_I2C_SCLH_REG,
-> +	OMAP_I2C_SYSTEST_REG,
-> +	OMAP_I2C_BUFSTAT_REG,
-> +	OMAP_I2C_REVNB_LO,
-> +	OMAP_I2C_REVNB_HI,
-> +	OMAP_I2C_IRQSTATUS_RAW,
-> +	OMAP_I2C_IRQENABLE_SET,
-> +	OMAP_I2C_IRQENABLE_CLR,
-> +};
+>  #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
+>  #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
+> @@ -77,8 +77,9 @@
+>  #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
+>  #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
 >  
->  /* I2C Interrupt Enable Register (OMAP_I2C_IE): */
->  #define OMAP_I2C_IE_XDR		(1 << 14)	/* TX Buffer drain int enable */
-> @@ -169,6 +177,7 @@ struct omap_i2c_dev {
->  	u32			speed;		/* Speed of bus in Khz */
->  	u16			cmd_err;
->  	u8			*buf;
-> +	u8			*regs;
->  	size_t			buf_len;
->  	struct i2c_adapter	adapter;
->  	u8			fifo_size;	/* use as flag and value
-> @@ -187,15 +196,64 @@ struct omap_i2c_dev {
->  	u16			westate;
->  };
+> -#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
+> -#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
+> +#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
+> +#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
+> +#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
 >  
-> +const static u8 reg_map[] = {
-> +	[OMAP_I2C_REV_REG] = 0x00,
-> +	[OMAP_I2C_IE_REG] = 0x01,
-> +	[OMAP_I2C_STAT_REG] = 0x02,
-> +	[OMAP_I2C_IV_REG] = 0x03,
-> +	[OMAP_I2C_WE_REG] = 0x03,
-> +	[OMAP_I2C_SYSS_REG] = 0x04,
-> +	[OMAP_I2C_BUF_REG] = 0x05,
-> +	[OMAP_I2C_CNT_REG] = 0x06,
-> +	[OMAP_I2C_DATA_REG] = 0x07,
-> +	[OMAP_I2C_SYSC_REG] = 0x08,
-> +	[OMAP_I2C_CON_REG] = 0x09,
-> +	[OMAP_I2C_OA_REG] = 0x0a,
-> +	[OMAP_I2C_SA_REG] = 0x0b,
-> +	[OMAP_I2C_PSC_REG] = 0x0c,
-> +	[OMAP_I2C_SCLL_REG] = 0x0d,
-> +	[OMAP_I2C_SCLH_REG] = 0x0e,
-> +	[OMAP_I2C_SYSTEST_REG] = 0x0f,
-> +	[OMAP_I2C_BUFSTAT_REG] = 0x10,
-> +};
-> +
-> +const static u8 omap4_reg_map[] = {
-> +	[OMAP_I2C_REV_REG] = 0x04,
-> +	[OMAP_I2C_IE_REG] = 0x2c,
-> +	[OMAP_I2C_STAT_REG] = 0x28,
-> +	[OMAP_I2C_IV_REG] = 0x34,
-> +	[OMAP_I2C_WE_REG] = 0x34,
-> +	[OMAP_I2C_SYSS_REG] = 0x90,
-> +	[OMAP_I2C_BUF_REG] = 0x94,
-> +	[OMAP_I2C_CNT_REG] = 0x98,
-> +	[OMAP_I2C_DATA_REG] = 0x9c,
-> +	[OMAP_I2C_SYSC_REG] = 0x20,
-> +	[OMAP_I2C_CON_REG] = 0xa4,
-> +	[OMAP_I2C_OA_REG] = 0xa8,
-> +	[OMAP_I2C_SA_REG] = 0xac,
-> +	[OMAP_I2C_PSC_REG] = 0xb0,
-> +	[OMAP_I2C_SCLL_REG] = 0xb4,
-> +	[OMAP_I2C_SCLH_REG] = 0xb8,
-> +	[OMAP_I2C_SYSTEST_REG] = 0xbC,
-> +	[OMAP_I2C_BUFSTAT_REG] = 0xc0,
-> +	[OMAP_I2C_REVNB_LO] = 0x00,
-> +	[OMAP_I2C_REVNB_HI] = 0x04,
-> +	[OMAP_I2C_IRQSTATUS_RAW] = 0x24,
-> +	[OMAP_I2C_IRQENABLE_SET] = 0x2c,
-> +	[OMAP_I2C_IRQENABLE_CLR] = 0x30,
-> +};
-> +
->  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
->  				      int reg, u16 val)
->  {
-> -	__raw_writew(val, i2c_dev->base + (reg << i2c_dev->reg_shift));
-> +	__raw_writew(val, i2c_dev->base +
-> +			(i2c_dev->regs[reg] << i2c_dev->reg_shift));
->  }
+>  /*
+>   * Command types
+> @@ -132,6 +133,7 @@ struct mmc_omap_host {
+>  	int			irq;
+>  	unsigned char		bus_mode;
+>  	unsigned char		hw_bus_mode;
+> +	unsigned int		reg_shift;
 >  
->  static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
->  {
-> -	return __raw_readw(i2c_dev->base + (reg << i2c_dev->reg_shift));
-> +	return __raw_readw(i2c_dev->base +
-> +				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
->  }
+>  	struct work_struct	cmd_abort_work;
+>  	unsigned		abort:1;
+> @@ -679,9 +681,9 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
+>  	host->data->bytes_xfered += n;
 >  
->  static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-> @@ -264,7 +322,11 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
->  	WARN_ON(dev->idle);
->  
->  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-> -	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-> +	if (dev->rev >= OMAP_I2C_REV_ON_4430)
-> +		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
-> +	else
-> +		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-> +
->  	if (dev->rev < OMAP_I2C_REV_2) {
->  		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
+>  	if (write) {
+> -		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
+> +		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
 >  	} else {
-> @@ -329,7 +391,9 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			 * REVISIT: Some wkup sources might not be needed.
->  			 */
->  			dev->westate = OMAP_I2C_WE_ALL;
-> -			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
-> +			if (dev->rev < OMAP_I2C_REV_ON_4430)
-> +				omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
-> +								dev->westate);
+> -		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
+> +		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
+>  	}
+>  }
+>  
+> @@ -899,7 +901,7 @@ mmc_omap_prepare_dma(struct mmc_omap_host *host, struct mmc_data *data)
+>  	int dst_port = 0;
+>  	int sync_dev = 0;
+>  
+> -	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
+> +	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
+>  	frame = data->blksz;
+>  	count = sg_dma_len(sg);
+>  
+> @@ -1492,6 +1494,8 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
 >  		}
 >  	}
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-> @@ -356,7 +420,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			psc = fclk_rate / 12000000;
->  	}
 >  
-> -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> +	if (!(cpu_class_is_omap1() || cpu_is_omap2420())) {
->  
->  		/*
->  		 * HSI2C controller internal clk rate should be 19.2 Mhz for
-> @@ -746,9 +810,12 @@ complete:
->  				if (dev->buf_len) {
->  					*dev->buf++ = w;
->  					dev->buf_len--;
-> -					/* Data reg from 2430 is 8 bit wide */
-> -					if (!cpu_is_omap2430() &&
-> -							!cpu_is_omap34xx()) {
-> +					/*
-> +					 * Data reg in 2430, omap3 and
-> +					 * omap4 is 8 bit wide
-> +					 */
-> +					if (cpu_class_is_omap1() ||
-> +							cpu_is_omap2420()) {
->  						if (dev->buf_len) {
->  							*dev->buf++ = w >> 8;
->  							dev->buf_len--;
-> @@ -786,9 +853,12 @@ complete:
->  				if (dev->buf_len) {
->  					w = *dev->buf++;
->  					dev->buf_len--;
-> -					/* Data reg from  2430 is 8 bit wide */
-> -					if (!cpu_is_omap2430() &&
-> -							!cpu_is_omap34xx()) {
-> +					/*
-> +					 * Data reg in 2430, omap3 and
-> +					 * omap4 is 8 bit wide
-> +					 */
-> +					if (cpu_class_is_omap1() ||
-> +							cpu_is_omap2420()) {
->  						if (dev->buf_len) {
->  							w |= *dev->buf++ << 8;
->  							dev->buf_len--;
-> @@ -897,6 +967,8 @@ omap_i2c_probe(struct platform_device *pdev)
->  
->  	if (cpu_is_omap7xx())
->  		dev->reg_shift = 1;
-> +	else if (cpu_is_omap44xx())
-> +		dev->reg_shift = 0;
->  	else
->  		dev->reg_shift = 2;
->  
-> @@ -911,11 +983,16 @@ omap_i2c_probe(struct platform_device *pdev)
->  	if ((r = omap_i2c_get_clocks(dev)) != 0)
->  		goto err_iounmap;
->  
-> +	if (cpu_is_omap44xx())
-> +		dev->regs = (u8 *) omap4_reg_map;
-> +	else
-> +		dev->regs = (u8 *) reg_map;
+> +	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
 > +
->  	omap_i2c_unidle(dev);
+>  	return 0;
 >  
->  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
->  
-> -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> +	if (!(cpu_class_is_omap1() || cpu_is_omap2420())) {
->  		u16 s;
->  
->  		/* Set up the fifo size - Get total size */
-> @@ -927,8 +1004,13 @@ omap_i2c_probe(struct platform_device *pdev)
->  		 * size. This is to ensure that we can handle the status on int
->  		 * call back latencies.
->  		 */
-> -		dev->fifo_size = (dev->fifo_size / 2);
-> -		dev->b_hw = 1; /* Enable hardware fixes */
-> +		if (dev->rev >= OMAP_I2C_REV_ON_4430) {
-> +			dev->fifo_size = 0;
-> +			dev->b_hw = 0; /* Disable hardware fixes */
-> +		} else {
-> +			dev->fifo_size = (dev->fifo_size / 2);
-> +			dev->b_hw = 1; /* Enable hardware fixes */
-> +		}
->  	}
->  
->  	/* reset ASAP, clearing any IRQs */
+>  err_plat_cleanup:
 > -- 
-> 1.6.0.4
+> 1.6.3.3
 > 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
-Ben (ben@fluff.org, http://www.fluff.org/)
+-- 
+Ben
 
-  'a smiley only costs 4 bytes'
+Q:      What's a light-year?
+A:      One-third less calories than a regular year.
+
