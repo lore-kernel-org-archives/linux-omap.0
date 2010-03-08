@@ -1,239 +1,181 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] omap: i2c: Add i2c support on omap4 platform
-Date: Mon, 8 Mar 2010 13:10:27 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C461A14A@dbde02.ent.ti.com>
-References: <1266597180-25139-1-git-send-email-santosh.shilimkar@ti.com>
- <20100307221819.GA15071@fluff.org.uk>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C4619F89@dbde02.ent.ti.com>
+From: Ben Dooks <ben-linux@fluff.org>
+Subject: Re: [PATCH] mmc-omap: Add support for 16-bit and 32-bit registers
+Date: Mon, 8 Mar 2010 10:04:14 +0000
+Message-ID: <20100308100414.GV10014@trinity.fluff.org>
+References: <1267984078-6036-1-git-send-email-darkstar6262@gmail.com> <20100307225901.GU10014@trinity.fluff.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_EAF47CD23C76F840A9E7FCE10091EFAB02C461A14Adbde02enttico_"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C4619F89-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Syed, Rafiuddin" <rafiuddin.syed-l0cyMroinI0@public.gmane.org>, Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100307225901.GU10014@trinity.fluff.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ben Dooks <ben@fluff.org>
+Cc: Cory Maccarrone <darkstar6262@gmail.com>, linux-mmc@vger.kernel.org, akpm@linux-foundation.org, Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Marek Belisko <marek.belisko@open-nandra.com>
 List-Id: linux-omap@vger.kernel.org
 
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C461A14Adbde02enttico_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On Sun, Mar 07, 2010 at 10:59:01PM +0000, Ben Dooks wrote:
+> On Sun, Mar 07, 2010 at 09:47:58AM -0800, Cory Maccarrone wrote:
+> > From: Marek Belisko <marek.belisko@open-nandra.com>
+> > 
+> > The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
+> > a modification of the register addresses in the mmc-omap driver.  To resolve
+> > this, a bit shift is performed on base register addresses, either by 1 or 2
+> > bits depending on the CPU in use.  This yields the correct registers for
+> > each CPU.
+> 
+> merged the previous one into my tree earlier today.
 
-Ben,
-> -----Original Message-----
-> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-owner-u79uwXL29Tb/PtFMR13I2A@public.gmane.org=
-el.org] On Behalf Of
-> Shilimkar, Santosh
-> Sent: Monday, March 08, 2010 10:31 AM
-> To: Ben Dooks
-> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Syed, Rafiuddi=
-n; Cory Maccarrone
-> Subject: RE: [PATCH] omap: i2c: Add i2c support on omap4 platform
->=20
-> > -----Original Message-----
-> > From: Ben Dooks [mailto:ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org]
-> > Sent: Monday, March 08, 2010 3:48 AM
-> > To: Shilimkar, Santosh
-> > Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-i2c-u79uwXL29TY@public.gmane.org=
-nel.org; Syed, Rafiuddin;
-> Cory
-> > Maccarrone
-> > Subject: Re: [PATCH] omap: i2c: Add i2c support on omap4 platform
-> >
-> > On Fri, Feb 19, 2010 at 10:03:00PM +0530, Santosh Shilimkar wrote:
-> > > This patch is rebased version of earlier post to add I2C
-> > > driver support to OMAP4 platform. On OMAP4, all
-> > > I2C register address offsets are changed from OMAP1/2/3 I2C.
-> > > In order to not have #ifdef's at various places in code,
-> > > as well as to support multi-OMAP build, an array is created
-> > > to hold the register addresses with it's offset.
-> > >
-> > > This patch was submitted, reviewed and acked on mailing list
-> > > already. For more details refer below link
-> > > http://www.mail-archive.com/linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg02281.html
-> > >
-> > > This updated verion has a depedancy on "Add support for 16-bit regist=
-ers"
-> > > posted on linux-omap. Below is the patch-works link for the same
-> > >
-> > > http://patchwork.kernel.org/patch/72295/
-> >
-> > currently even with this patch applied it doesn't apply cleanly.
-> May be it needs refresh after recent merges? Are you ok if I refresh this=
- patch
-> against latest mainline on top of below patch and repost
-> 	http://patchwork.kernel.org/patch/72295/
+ignore this, didn't read the message properly and thought it was the i2c
+patch.
+  
+> > Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
+> > Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  drivers/mmc/host/omap.c |   62 +++++++++++++++++++++++++----------------------
+> >  1 files changed, 33 insertions(+), 29 deletions(-)
+> > 
+> > This is a resubmit of a patch I sent in several months ago.  Tony Lindgren merged
+> > this into linux-omap's master and testing branches but has stated that he will not
+> > merge it further as linux-mmc needs to approve this.  There hasn't been any comments
+> > raised on either of the linux-omap or linux-mmc mailing lists about problems.  Due to
+> > the unique nature of the omap7xx platform, this patch is required for MMC card access.
+> > Is there any chance this can be included into the next -rc cycle, as it is a fix for
+> > devices that have 16-bit registers?
+> > 
+> > diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> > index c6d7e8e..53362c4 100644
+> > --- a/drivers/mmc/host/omap.c
+> > +++ b/drivers/mmc/host/omap.c
+> > @@ -38,30 +38,30 @@
+> >  #include <plat/fpga.h>
+> >  
+> >  #define	OMAP_MMC_REG_CMD	0x00
+> > -#define	OMAP_MMC_REG_ARGL	0x04
+> > -#define	OMAP_MMC_REG_ARGH	0x08
+> > -#define	OMAP_MMC_REG_CON	0x0c
+> > -#define	OMAP_MMC_REG_STAT	0x10
+> > -#define	OMAP_MMC_REG_IE		0x14
+> > -#define	OMAP_MMC_REG_CTO	0x18
+> > -#define	OMAP_MMC_REG_DTO	0x1c
+> > -#define	OMAP_MMC_REG_DATA	0x20
+> > -#define	OMAP_MMC_REG_BLEN	0x24
+> > -#define	OMAP_MMC_REG_NBLK	0x28
+> > -#define	OMAP_MMC_REG_BUF	0x2c
+> > -#define OMAP_MMC_REG_SDIO	0x34
+> > -#define	OMAP_MMC_REG_REV	0x3c
+> > -#define	OMAP_MMC_REG_RSP0	0x40
+> > -#define	OMAP_MMC_REG_RSP1	0x44
+> > -#define	OMAP_MMC_REG_RSP2	0x48
+> > -#define	OMAP_MMC_REG_RSP3	0x4c
+> > -#define	OMAP_MMC_REG_RSP4	0x50
+> > -#define	OMAP_MMC_REG_RSP5	0x54
+> > -#define	OMAP_MMC_REG_RSP6	0x58
+> > -#define	OMAP_MMC_REG_RSP7	0x5c
+> > -#define	OMAP_MMC_REG_IOSR	0x60
+> > -#define	OMAP_MMC_REG_SYSC	0x64
+> > -#define	OMAP_MMC_REG_SYSS	0x68
+> > +#define	OMAP_MMC_REG_ARGL	0x01
+> > +#define	OMAP_MMC_REG_ARGH	0x02
+> > +#define	OMAP_MMC_REG_CON	0x03
+> > +#define	OMAP_MMC_REG_STAT	0x04
+> > +#define	OMAP_MMC_REG_IE		0x05
+> > +#define	OMAP_MMC_REG_CTO	0x06
+> > +#define	OMAP_MMC_REG_DTO	0x07
+> > +#define	OMAP_MMC_REG_DATA	0x08
+> > +#define	OMAP_MMC_REG_BLEN	0x09
+> > +#define	OMAP_MMC_REG_NBLK	0x0a
+> > +#define	OMAP_MMC_REG_BUF	0x0b
+> > +#define	OMAP_MMC_REG_SDIO	0x0d
+> > +#define	OMAP_MMC_REG_REV	0x0f
+> > +#define	OMAP_MMC_REG_RSP0	0x10
+> > +#define	OMAP_MMC_REG_RSP1	0x11
+> > +#define	OMAP_MMC_REG_RSP2	0x12
+> > +#define	OMAP_MMC_REG_RSP3	0x13
+> > +#define	OMAP_MMC_REG_RSP4	0x14
+> > +#define	OMAP_MMC_REG_RSP5	0x15
+> > +#define	OMAP_MMC_REG_RSP6	0x16
+> > +#define	OMAP_MMC_REG_RSP7	0x17
+> > +#define	OMAP_MMC_REG_IOSR	0x18
+> > +#define	OMAP_MMC_REG_SYSC	0x19
+> > +#define	OMAP_MMC_REG_SYSS	0x1a
+> >  
+> >  #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
+> >  #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
+> > @@ -77,8 +77,9 @@
+> >  #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
+> >  #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
+> >  
+> > -#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
+> > -#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
+> > +#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
+> > +#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
+> > +#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
+> >  
+> >  /*
+> >   * Command types
+> > @@ -132,6 +133,7 @@ struct mmc_omap_host {
+> >  	int			irq;
+> >  	unsigned char		bus_mode;
+> >  	unsigned char		hw_bus_mode;
+> > +	unsigned int		reg_shift;
+> >  
+> >  	struct work_struct	cmd_abort_work;
+> >  	unsigned		abort:1;
+> > @@ -679,9 +681,9 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
+> >  	host->data->bytes_xfered += n;
+> >  
+> >  	if (write) {
+> > -		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
+> > +		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
+> >  	} else {
+> > -		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
+> > +		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
+> >  	}
+> >  }
+> >  
+> > @@ -899,7 +901,7 @@ mmc_omap_prepare_dma(struct mmc_omap_host *host, struct mmc_data *data)
+> >  	int dst_port = 0;
+> >  	int sync_dev = 0;
+> >  
+> > -	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
+> > +	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
+> >  	frame = data->blksz;
+> >  	count = sg_dma_len(sg);
+> >  
+> > @@ -1492,6 +1494,8 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
+> >  		}
+> >  	}
+> >  
+> > +	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
+> > +
+> >  	return 0;
+> >  
+> >  err_plat_cleanup:
+> > -- 
+> > 1.6.3.3
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> -- 
+> Ben
+> 
+> Q:      What's a light-year?
+> A:      One-third less calories than a regular year.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Attached refreshed version which directly applies against the mainline sinc=
-e=20
-"Add support for 16-bit registers" is already merged.
+-- 
+-- 
+Ben
 
-Boot tested on OMAP4 SDP platform.=20
+Q:      What's a light-year?
+A:      One-third less calories than a regular year.
 
-Regards,
-Santosh
-
-
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C461A14Adbde02enttico_
-Content-Type: application/octet-stream;
-	name="0001-omap-i2c-Add-i2c-support-on-omap4-platform.patch"
-Content-Description: 0001-omap-i2c-Add-i2c-support-on-omap4-platform.patch
-Content-Disposition: attachment;
-	filename="0001-omap-i2c-Add-i2c-support-on-omap4-platform.patch"; size=8537;
-	creation-date="Mon, 08 Mar 2010 11:49:20 GMT";
-	modification-date="Mon, 08 Mar 2010 11:49:20 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSBkYWQ3Y2VlZTNiNTQzN2E1ZWE1ZjA0YzFjOTRmZjQxOGIyNmRjZWEwIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPgpEYXRlOiBNb24sIDggTWFyIDIwMTAgMTE6NDM6MTEgKzA1MzAKU3ViamVjdDogW1BB
-VENIIHYyXSBvbWFwOiBpMmM6IEFkZCBpMmMgc3VwcG9ydCBvbiBvbWFwNCBwbGF0Zm9ybQoKVGhp
-cyBwYXRjaCBpcyByZWJhc2VkIHZlcnNpb24gb2YgZWFybGllciBwb3N0IHRvIGFkZCBJMkMKZHJp
-dmVyIHN1cHBvcnQgdG8gT01BUDQgcGxhdGZvcm0uIE9uIE9NQVA0LCBhbGwKSTJDIHJlZ2lzdGVy
-IGFkZHJlc3Mgb2Zmc2V0cyBhcmUgY2hhbmdlZCBmcm9tIE9NQVAxLzIvMyBJMkMuCkluIG9yZGVy
-IHRvIG5vdCBoYXZlICNpZmRlZidzIGF0IHZhcmlvdXMgcGxhY2VzIGluIGNvZGUsCmFzIHdlbGwg
-YXMgdG8gc3VwcG9ydCBtdWx0aS1PTUFQIGJ1aWxkLCBhbiBhcnJheSBpcyBjcmVhdGVkCnRvIGhv
-bGQgdGhlIHJlZ2lzdGVyIGFkZHJlc3NlcyB3aXRoIGl0J3Mgb2Zmc2V0LgoKVGhpcyBwYXRjaCB3
-YXMgc3VibWl0dGVkLCByZXZpZXdlZCBhbmQgYWNrZWQgb24gbWFpbGluZyBsaXN0CmFscmVhZHku
-IEZvciBtb3JlIGRldGFpbHMgcmVmZXIgYmVsb3cgbGluawpodHRwOi8vd3d3Lm1haWwtYXJjaGl2
-ZS5jb20vbGludXgtaTJjQHZnZXIua2VybmVsLm9yZy9tc2cwMjI4MS5odG1sCgpTaWduZWQtb2Zm
-LWJ5OiBTeWVkIFJhZml1ZGRpbiA8cmFmaXVkZGluLnN5ZWRAdGkuY29tPgpTaWduZWQtb2ZmLWJ5
-OiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPgpBY2tlZC1ieTog
-S2V2aW4gSGlsbWFuIDxraGlsbWFuQGRlZXByb290c3lzdGVtcy5jb20+ClJldmlld2VkLWJ5OiBQ
-YXVsIFdhbG1zbGV5IDxwYXVsQHB3c2FuLmNvbT4KQWNrZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRv
-bnlAYXRvbWlkZS5jb20+CkFja2VkLWJ5OiBBbmdlbG8gQXJyaWZhbm8gPG1pa25peEBnbWFpbC5j
-b20+ClRlc3RlZC1ieTogQW5nZWxvIEFycmlmYW5vIDxtaWtuaXhAZ21haWwuY29tPgpBY2tlZC1i
-eTogQ29yeSBNYWNjYXJyb25lIDxkYXJrc3RhcjYyNjJAZ21haWwuY29tPgpUZXN0ZWQtYnk6IENv
-cnkgTWFjY2Fycm9uZSA8ZGFya3N0YXI2MjYyQGdtYWlsLmNvbT4KQ2M6IEJlbiBEb29rcyA8YmVu
-LWxpbnV4QGZsdWZmLm9yZz4KLS0tClRoZSBwYXRjaCBpcyBnZW5lcmF0ZWQgYWdhaW5zdCBsYXRl
-c3QgbWFpbmxpbmUgY29tbWl0IAoiMjVjZjg0Y2YzNzdjMGFhZTVkYmNmOTM3ZWE4OWJjNzg5M2Ri
-NTE3NiIgZnJvbSBMaW51cyBhbmQgaGFzIG5vCmRlcGVuZGFuY3kgbm93LgogZHJpdmVycy9pMmMv
-YnVzc2VzL2kyYy1vbWFwLmMgfCAgMTQ2ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-LS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDExNCBpbnNlcnRpb25zKCspLCAzMiBkZWxldGlv
-bnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW9tYXAuYyBiL2RyaXZl
-cnMvaTJjL2J1c3Nlcy9pMmMtb21hcC5jCmluZGV4IDkxM2FiZDcuLmVlMzFlNGQgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtb21hcC5jCisrKyBiL2RyaXZlcnMvaTJjL2J1c3Nl
-cy9pMmMtb21hcC5jCkBAIC00NCwyOSArNDQsMzcgQEAKIC8qIEkyQyBjb250cm9sbGVyIHJldmlz
-aW9ucyBwcmVzZW50IG9uIHNwZWNpZmljIGhhcmR3YXJlICovCiAjZGVmaW5lIE9NQVBfSTJDX1JF
-Vl9PTl8yNDMwCQkweDM2CiAjZGVmaW5lIE9NQVBfSTJDX1JFVl9PTl8zNDMwCQkweDNDCisjZGVm
-aW5lIE9NQVBfSTJDX1JFVl9PTl80NDMwCQkweDQwCiAKIC8qIHRpbWVvdXQgd2FpdGluZyBmb3Ig
-dGhlIGNvbnRyb2xsZXIgdG8gcmVzcG9uZCAqLwogI2RlZmluZSBPTUFQX0kyQ19USU1FT1VUICht
-c2Vjc190b19qaWZmaWVzKDEwMDApKQogCi0jZGVmaW5lIE9NQVBfSTJDX1JFVl9SRUcJCTB4MDAK
-LSNkZWZpbmUgT01BUF9JMkNfSUVfUkVHCQkJMHgwMQotI2RlZmluZSBPTUFQX0kyQ19TVEFUX1JF
-RwkJMHgwMgotI2RlZmluZSBPTUFQX0kyQ19JVl9SRUcJCQkweDAzCiAvKiBGb3IgT01BUDMgSTJD
-X0lWIGhhcyBjaGFuZ2VkIHRvIEkyQ19XRSAod2FrZXVwIGVuYWJsZSkgKi8KLSNkZWZpbmUgT01B
-UF9JMkNfV0VfUkVHCQkJMHgwMwotI2RlZmluZSBPTUFQX0kyQ19TWVNTX1JFRwkJMHgwNAotI2Rl
-ZmluZSBPTUFQX0kyQ19CVUZfUkVHCQkweDA1Ci0jZGVmaW5lIE9NQVBfSTJDX0NOVF9SRUcJCTB4
-MDYKLSNkZWZpbmUgT01BUF9JMkNfREFUQV9SRUcJCTB4MDcKLSNkZWZpbmUgT01BUF9JMkNfU1lT
-Q19SRUcJCTB4MDgKLSNkZWZpbmUgT01BUF9JMkNfQ09OX1JFRwkJMHgwOQotI2RlZmluZSBPTUFQ
-X0kyQ19PQV9SRUcJCQkweDBhCi0jZGVmaW5lIE9NQVBfSTJDX1NBX1JFRwkJCTB4MGIKLSNkZWZp
-bmUgT01BUF9JMkNfUFNDX1JFRwkJMHgwYwotI2RlZmluZSBPTUFQX0kyQ19TQ0xMX1JFRwkJMHgw
-ZAotI2RlZmluZSBPTUFQX0kyQ19TQ0xIX1JFRwkJMHgwZQotI2RlZmluZSBPTUFQX0kyQ19TWVNU
-RVNUX1JFRwkJMHgwZgotI2RlZmluZSBPTUFQX0kyQ19CVUZTVEFUX1JFRwkJMHgxMAorZW51bSB7
-CisJT01BUF9JMkNfUkVWX1JFRyA9IDAsCisJT01BUF9JMkNfSUVfUkVHLAorCU9NQVBfSTJDX1NU
-QVRfUkVHLAorCU9NQVBfSTJDX0lWX1JFRywKKwlPTUFQX0kyQ19XRV9SRUcsCisJT01BUF9JMkNf
-U1lTU19SRUcsCisJT01BUF9JMkNfQlVGX1JFRywKKwlPTUFQX0kyQ19DTlRfUkVHLAorCU9NQVBf
-STJDX0RBVEFfUkVHLAorCU9NQVBfSTJDX1NZU0NfUkVHLAorCU9NQVBfSTJDX0NPTl9SRUcsCisJ
-T01BUF9JMkNfT0FfUkVHLAorCU9NQVBfSTJDX1NBX1JFRywKKwlPTUFQX0kyQ19QU0NfUkVHLAor
-CU9NQVBfSTJDX1NDTExfUkVHLAorCU9NQVBfSTJDX1NDTEhfUkVHLAorCU9NQVBfSTJDX1NZU1RF
-U1RfUkVHLAorCU9NQVBfSTJDX0JVRlNUQVRfUkVHLAorCU9NQVBfSTJDX1JFVk5CX0xPLAorCU9N
-QVBfSTJDX1JFVk5CX0hJLAorCU9NQVBfSTJDX0lSUVNUQVRVU19SQVcsCisJT01BUF9JMkNfSVJR
-RU5BQkxFX1NFVCwKKwlPTUFQX0kyQ19JUlFFTkFCTEVfQ0xSLAorfTsKIAogLyogSTJDIEludGVy
-cnVwdCBFbmFibGUgUmVnaXN0ZXIgKE9NQVBfSTJDX0lFKTogKi8KICNkZWZpbmUgT01BUF9JMkNf
-SUVfWERSCQkoMSA8PCAxNCkJLyogVFggQnVmZmVyIGRyYWluIGludCBlbmFibGUgKi8KQEAgLTE2
-OSw2ICsxNzcsNyBAQCBzdHJ1Y3Qgb21hcF9pMmNfZGV2IHsKIAl1MzIJCQlzcGVlZDsJCS8qIFNw
-ZWVkIG9mIGJ1cyBpbiBLaHogKi8KIAl1MTYJCQljbWRfZXJyOwogCXU4CQkJKmJ1ZjsKKwl1OAkJ
-CSpyZWdzOwogCXNpemVfdAkJCWJ1Zl9sZW47CiAJc3RydWN0IGkyY19hZGFwdGVyCWFkYXB0ZXI7
-CiAJdTgJCQlmaWZvX3NpemU7CS8qIHVzZSBhcyBmbGFnIGFuZCB2YWx1ZQpAQCAtMTg3LDE1ICsx
-OTYsNjQgQEAgc3RydWN0IG9tYXBfaTJjX2RldiB7CiAJdTE2CQkJd2VzdGF0ZTsKIH07CiAKK2Nv
-bnN0IHN0YXRpYyB1OCByZWdfbWFwW10gPSB7CisJW09NQVBfSTJDX1JFVl9SRUddID0gMHgwMCwK
-KwlbT01BUF9JMkNfSUVfUkVHXSA9IDB4MDEsCisJW09NQVBfSTJDX1NUQVRfUkVHXSA9IDB4MDIs
-CisJW09NQVBfSTJDX0lWX1JFR10gPSAweDAzLAorCVtPTUFQX0kyQ19XRV9SRUddID0gMHgwMywK
-KwlbT01BUF9JMkNfU1lTU19SRUddID0gMHgwNCwKKwlbT01BUF9JMkNfQlVGX1JFR10gPSAweDA1
-LAorCVtPTUFQX0kyQ19DTlRfUkVHXSA9IDB4MDYsCisJW09NQVBfSTJDX0RBVEFfUkVHXSA9IDB4
-MDcsCisJW09NQVBfSTJDX1NZU0NfUkVHXSA9IDB4MDgsCisJW09NQVBfSTJDX0NPTl9SRUddID0g
-MHgwOSwKKwlbT01BUF9JMkNfT0FfUkVHXSA9IDB4MGEsCisJW09NQVBfSTJDX1NBX1JFR10gPSAw
-eDBiLAorCVtPTUFQX0kyQ19QU0NfUkVHXSA9IDB4MGMsCisJW09NQVBfSTJDX1NDTExfUkVHXSA9
-IDB4MGQsCisJW09NQVBfSTJDX1NDTEhfUkVHXSA9IDB4MGUsCisJW09NQVBfSTJDX1NZU1RFU1Rf
-UkVHXSA9IDB4MGYsCisJW09NQVBfSTJDX0JVRlNUQVRfUkVHXSA9IDB4MTAsCit9OworCitjb25z
-dCBzdGF0aWMgdTggb21hcDRfcmVnX21hcFtdID0geworCVtPTUFQX0kyQ19SRVZfUkVHXSA9IDB4
-MDQsCisJW09NQVBfSTJDX0lFX1JFR10gPSAweDJjLAorCVtPTUFQX0kyQ19TVEFUX1JFR10gPSAw
-eDI4LAorCVtPTUFQX0kyQ19JVl9SRUddID0gMHgzNCwKKwlbT01BUF9JMkNfV0VfUkVHXSA9IDB4
-MzQsCisJW09NQVBfSTJDX1NZU1NfUkVHXSA9IDB4OTAsCisJW09NQVBfSTJDX0JVRl9SRUddID0g
-MHg5NCwKKwlbT01BUF9JMkNfQ05UX1JFR10gPSAweDk4LAorCVtPTUFQX0kyQ19EQVRBX1JFR10g
-PSAweDljLAorCVtPTUFQX0kyQ19TWVNDX1JFR10gPSAweDIwLAorCVtPTUFQX0kyQ19DT05fUkVH
-XSA9IDB4YTQsCisJW09NQVBfSTJDX09BX1JFR10gPSAweGE4LAorCVtPTUFQX0kyQ19TQV9SRUdd
-ID0gMHhhYywKKwlbT01BUF9JMkNfUFNDX1JFR10gPSAweGIwLAorCVtPTUFQX0kyQ19TQ0xMX1JF
-R10gPSAweGI0LAorCVtPTUFQX0kyQ19TQ0xIX1JFR10gPSAweGI4LAorCVtPTUFQX0kyQ19TWVNU
-RVNUX1JFR10gPSAweGJDLAorCVtPTUFQX0kyQ19CVUZTVEFUX1JFR10gPSAweGMwLAorCVtPTUFQ
-X0kyQ19SRVZOQl9MT10gPSAweDAwLAorCVtPTUFQX0kyQ19SRVZOQl9ISV0gPSAweDA0LAorCVtP
-TUFQX0kyQ19JUlFTVEFUVVNfUkFXXSA9IDB4MjQsCisJW09NQVBfSTJDX0lSUUVOQUJMRV9TRVRd
-ID0gMHgyYywKKwlbT01BUF9JMkNfSVJRRU5BQkxFX0NMUl0gPSAweDMwLAorfTsKKwogc3RhdGlj
-IGlubGluZSB2b2lkIG9tYXBfaTJjX3dyaXRlX3JlZyhzdHJ1Y3Qgb21hcF9pMmNfZGV2ICppMmNf
-ZGV2LAogCQkJCSAgICAgIGludCByZWcsIHUxNiB2YWwpCiB7Ci0JX19yYXdfd3JpdGV3KHZhbCwg
-aTJjX2Rldi0+YmFzZSArIChyZWcgPDwgaTJjX2Rldi0+cmVnX3NoaWZ0KSk7CisJX19yYXdfd3Jp
-dGV3KHZhbCwgaTJjX2Rldi0+YmFzZSArCisJCQkoaTJjX2Rldi0+cmVnc1tyZWddIDw8IGkyY19k
-ZXYtPnJlZ19zaGlmdCkpOwogfQogCiBzdGF0aWMgaW5saW5lIHUxNiBvbWFwX2kyY19yZWFkX3Jl
-ZyhzdHJ1Y3Qgb21hcF9pMmNfZGV2ICppMmNfZGV2LCBpbnQgcmVnKQogewotCXJldHVybiBfX3Jh
-d19yZWFkdyhpMmNfZGV2LT5iYXNlICsgKHJlZyA8PCBpMmNfZGV2LT5yZWdfc2hpZnQpKTsKKwly
-ZXR1cm4gX19yYXdfcmVhZHcoaTJjX2Rldi0+YmFzZSArCisJCQkJKGkyY19kZXYtPnJlZ3NbcmVn
-XSA8PCBpMmNfZGV2LT5yZWdfc2hpZnQpKTsKIH0KIAogc3RhdGljIGludCBfX2luaXQgb21hcF9p
-MmNfZ2V0X2Nsb2NrcyhzdHJ1Y3Qgb21hcF9pMmNfZGV2ICpkZXYpCkBAIC0yNjQsNyArMzIyLDEx
-IEBAIHN0YXRpYyB2b2lkIG9tYXBfaTJjX2lkbGUoc3RydWN0IG9tYXBfaTJjX2RldiAqZGV2KQog
-CVdBUk5fT04oZGV2LT5pZGxlKTsKIAogCWRldi0+aWVzdGF0ZSA9IG9tYXBfaTJjX3JlYWRfcmVn
-KGRldiwgT01BUF9JMkNfSUVfUkVHKTsKLQlvbWFwX2kyY193cml0ZV9yZWcoZGV2LCBPTUFQX0ky
-Q19JRV9SRUcsIDApOworCWlmIChkZXYtPnJldiA+PSBPTUFQX0kyQ19SRVZfT05fNDQzMCkKKwkJ
-b21hcF9pMmNfd3JpdGVfcmVnKGRldiwgT01BUF9JMkNfSVJRRU5BQkxFX0NMUiwgMSk7CisJZWxz
-ZQorCQlvbWFwX2kyY193cml0ZV9yZWcoZGV2LCBPTUFQX0kyQ19JRV9SRUcsIDApOworCiAJaWYg
-KGRldi0+cmV2IDwgT01BUF9JMkNfUkVWXzIpIHsKIAkJaXYgPSBvbWFwX2kyY19yZWFkX3JlZyhk
-ZXYsIE9NQVBfSTJDX0lWX1JFRyk7IC8qIFJlYWQgY2xlYXJzICovCiAJfSBlbHNlIHsKQEAgLTMy
-OSw3ICszOTEsOSBAQCBzdGF0aWMgaW50IG9tYXBfaTJjX2luaXQoc3RydWN0IG9tYXBfaTJjX2Rl
-diAqZGV2KQogCQkJICogUkVWSVNJVDogU29tZSB3a3VwIHNvdXJjZXMgbWlnaHQgbm90IGJlIG5l
-ZWRlZC4KIAkJCSAqLwogCQkJZGV2LT53ZXN0YXRlID0gT01BUF9JMkNfV0VfQUxMOwotCQkJb21h
-cF9pMmNfd3JpdGVfcmVnKGRldiwgT01BUF9JMkNfV0VfUkVHLCBkZXYtPndlc3RhdGUpOworCQkJ
-aWYgKGRldi0+cmV2IDwgT01BUF9JMkNfUkVWX09OXzQ0MzApCisJCQkJb21hcF9pMmNfd3JpdGVf
-cmVnKGRldiwgT01BUF9JMkNfV0VfUkVHLAorCQkJCQkJCQlkZXYtPndlc3RhdGUpOwogCQl9CiAJ
-fQogCW9tYXBfaTJjX3dyaXRlX3JlZyhkZXYsIE9NQVBfSTJDX0NPTl9SRUcsIDApOwpAQCAtMzU2
-LDcgKzQyMCw3IEBAIHN0YXRpYyBpbnQgb21hcF9pMmNfaW5pdChzdHJ1Y3Qgb21hcF9pMmNfZGV2
-ICpkZXYpCiAJCQlwc2MgPSBmY2xrX3JhdGUgLyAxMjAwMDAwMDsKIAl9CiAKLQlpZiAoY3B1X2lz
-X29tYXAyNDMwKCkgfHwgY3B1X2lzX29tYXAzNHh4KCkpIHsKKwlpZiAoIShjcHVfY2xhc3NfaXNf
-b21hcDEoKSB8fCBjcHVfaXNfb21hcDI0MjAoKSkpIHsKIAogCQkvKgogCQkgKiBIU0kyQyBjb250
-cm9sbGVyIGludGVybmFsIGNsayByYXRlIHNob3VsZCBiZSAxOS4yIE1oeiBmb3IKQEAgLTc0Niw5
-ICs4MTAsMTIgQEAgY29tcGxldGU6CiAJCQkJaWYgKGRldi0+YnVmX2xlbikgewogCQkJCQkqZGV2
-LT5idWYrKyA9IHc7CiAJCQkJCWRldi0+YnVmX2xlbi0tOwotCQkJCQkvKiBEYXRhIHJlZyBmcm9t
-IDI0MzAgaXMgOCBiaXQgd2lkZSAqLwotCQkJCQlpZiAoIWNwdV9pc19vbWFwMjQzMCgpICYmCi0J
-CQkJCQkJIWNwdV9pc19vbWFwMzR4eCgpKSB7CisJCQkJCS8qCisJCQkJCSAqIERhdGEgcmVnIGlu
-IDI0MzAsIG9tYXAzIGFuZAorCQkJCQkgKiBvbWFwNCBpcyA4IGJpdCB3aWRlCisJCQkJCSAqLwor
-CQkJCQlpZiAoY3B1X2NsYXNzX2lzX29tYXAxKCkgfHwKKwkJCQkJCQljcHVfaXNfb21hcDI0MjAo
-KSkgewogCQkJCQkJaWYgKGRldi0+YnVmX2xlbikgewogCQkJCQkJCSpkZXYtPmJ1ZisrID0gdyA+
-PiA4OwogCQkJCQkJCWRldi0+YnVmX2xlbi0tOwpAQCAtNzg2LDkgKzg1MywxMiBAQCBjb21wbGV0
-ZToKIAkJCQlpZiAoZGV2LT5idWZfbGVuKSB7CiAJCQkJCXcgPSAqZGV2LT5idWYrKzsKIAkJCQkJ
-ZGV2LT5idWZfbGVuLS07Ci0JCQkJCS8qIERhdGEgcmVnIGZyb20gIDI0MzAgaXMgOCBiaXQgd2lk
-ZSAqLwotCQkJCQlpZiAoIWNwdV9pc19vbWFwMjQzMCgpICYmCi0JCQkJCQkJIWNwdV9pc19vbWFw
-MzR4eCgpKSB7CisJCQkJCS8qCisJCQkJCSAqIERhdGEgcmVnIGluIDI0MzAsIG9tYXAzIGFuZAor
-CQkJCQkgKiBvbWFwNCBpcyA4IGJpdCB3aWRlCisJCQkJCSAqLworCQkJCQlpZiAoY3B1X2NsYXNz
-X2lzX29tYXAxKCkgfHwKKwkJCQkJCQljcHVfaXNfb21hcDI0MjAoKSkgewogCQkJCQkJaWYgKGRl
-di0+YnVmX2xlbikgewogCQkJCQkJCXcgfD0gKmRldi0+YnVmKysgPDwgODsKIAkJCQkJCQlkZXYt
-PmJ1Zl9sZW4tLTsKQEAgLTkwNSwxMSArOTc1LDE2IEBAIG9tYXBfaTJjX3Byb2JlKHN0cnVjdCBw
-bGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJaWYgKChyID0gb21hcF9pMmNfZ2V0X2Nsb2NrcyhkZXYp
-KSAhPSAwKQogCQlnb3RvIGVycl9pb3VubWFwOwogCisJaWYgKGNwdV9pc19vbWFwNDR4eCgpKQor
-CQlkZXYtPnJlZ3MgPSAodTggKikgb21hcDRfcmVnX21hcDsKKwllbHNlCisJCWRldi0+cmVncyA9
-ICh1OCAqKSByZWdfbWFwOworCiAJb21hcF9pMmNfdW5pZGxlKGRldik7CiAKIAlkZXYtPnJldiA9
-IG9tYXBfaTJjX3JlYWRfcmVnKGRldiwgT01BUF9JMkNfUkVWX1JFRykgJiAweGZmOwogCi0JaWYg
-KGNwdV9pc19vbWFwMjQzMCgpIHx8IGNwdV9pc19vbWFwMzR4eCgpKSB7CisJaWYgKCEoY3B1X2Ns
-YXNzX2lzX29tYXAxKCkgfHwgY3B1X2lzX29tYXAyNDIwKCkpKSB7CiAJCXUxNiBzOwogCiAJCS8q
-IFNldCB1cCB0aGUgZmlmbyBzaXplIC0gR2V0IHRvdGFsIHNpemUgKi8KQEAgLTkyMSwxMiArOTk2
-LDE5IEBAIG9tYXBfaTJjX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJCSAq
-IHNpemUuIFRoaXMgaXMgdG8gZW5zdXJlIHRoYXQgd2UgY2FuIGhhbmRsZSB0aGUgc3RhdHVzIG9u
-IGludAogCQkgKiBjYWxsIGJhY2sgbGF0ZW5jaWVzLgogCQkgKi8KLQkJZGV2LT5maWZvX3NpemUg
-PSAoZGV2LT5maWZvX3NpemUgLyAyKTsKLQkJZGV2LT5iX2h3ID0gMTsgLyogRW5hYmxlIGhhcmR3
-YXJlIGZpeGVzICovCisJCWlmIChkZXYtPnJldiA+PSBPTUFQX0kyQ19SRVZfT05fNDQzMCkgewor
-CQkJZGV2LT5maWZvX3NpemUgPSAwOworCQkJZGV2LT5iX2h3ID0gMDsgLyogRGlzYWJsZSBoYXJk
-d2FyZSBmaXhlcyAqLworCQl9IGVsc2UgeworCQkJZGV2LT5maWZvX3NpemUgPSAoZGV2LT5maWZv
-X3NpemUgLyAyKTsKKwkJCWRldi0+Yl9odyA9IDE7IC8qIEVuYWJsZSBoYXJkd2FyZSBmaXhlcyAq
-LworCQl9CiAJfQogCiAJaWYgKGNwdV9pc19vbWFwN3h4KCkpCiAJCWRldi0+cmVnX3NoaWZ0ID0g
-MTsKKwllbHNlIGlmIChjcHVfaXNfb21hcDQ0eHgoKSkKKwkJZGV2LT5yZWdfc2hpZnQgPSAwOwog
-CWVsc2UKIAkJZGV2LT5yZWdfc2hpZnQgPSAyOwogCi0tIAoxLjYuMC40Cgo=
-
---_002_EAF47CD23C76F840A9E7FCE10091EFAB02C461A14Adbde02enttico_--
