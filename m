@@ -1,77 +1,37 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH/RFT v3] OMAP4: fix temporary hacks that break multi-omap PM
-Date: Mon,  8 Mar 2010 10:52:48 -0800
-Message-ID: <1268074368-27026-1-git-send-email-khilman@deeprootsystems.com>
+From: Pablo Bitton <pablo.bitton@gmail.com>
+Subject: probe of omap2-nand failed with -16
+Date: Mon, 8 Mar 2010 22:04:51 +0200
+Message-ID: <7448ec711003081204r6d4fd037o7a87a767a71c54d2@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f200.google.com ([209.85.222.200]:47916 "EHLO
-	mail-pz0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755086Ab0CHSwv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 13:52:51 -0500
-Received: by pzk38 with SMTP id 38so1204942pzk.33
-        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 10:52:51 -0800 (PST)
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:34393 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755523Ab0CHUEx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 15:04:53 -0500
+Received: by bwz1 with SMTP id 1so3189615bwz.21
+        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 12:04:51 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-When building for multi-omap, and OMAP4 is enabled, CONFIG_ARCH_OMAP4
-will be true and prevent included code from building/running for
-OMAP2/3 as well.
+Hi,
 
-This problem exists in io.c where some hwmod/PM/SDRC init code is
-prevented from running even on OMAP2/3 when OMAP4 is included in a
-multi-OMAP build.
+I've started working on beagle board.
 
-A quick glance suggests that this #ifndef is no longer needed.  The
-called functions should work fine or fail gracefully in the OMAP4
-case.
+Using pre-compiled kernel (angstrom) - i've got nand driver loaded and running.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
+When I am trying to compile my own kernel from the source, I get error:
 
-Needs testing on OMAP4 since still no OMAP4 hardware here.
+>> probe of omap2-nand failed with -16 (EBUSY)
 
-Updates from v2:
-- actually applies to l-o master 
+I've selected all configs for Nand...
 
-Updates from v1:
-- removed additional #ifdef block in init_common_hw()
+Am I missing something? Mux configuration? GPIO's?
+Anybody has any idea?
 
- arch/arm/mach-omap2/io.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 402e8f0..595446f 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -309,7 +309,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- {
- 	pwrdm_init(powerdomains_omap);
- 	clkdm_init(clockdomains_omap, clkdm_autodeps);
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is ready */
- 	if (cpu_is_omap242x())
- 		omap2420_hwmod_init();
- 	else if (cpu_is_omap243x())
-@@ -319,7 +318,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	omap2_mux_init();
- 	/* The OPP tables have to be registered before a clk init */
- 	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
--#endif
- 
- 	if (cpu_is_omap2420())
- 		omap2420_clk_init();
-@@ -333,11 +331,10 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 		pr_err("Could not init clock framework - unknown CPU\n");
- 
- 	omap_serial_early_init();
--#ifndef CONFIG_ARCH_OMAP4
- 	omap_hwmod_late_init();
- 	omap_pm_if_init();
- 	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
- 	_omap2_init_reprogram_sdrc();
--#endif
-+
- 	gpmc_init();
- }
--- 
-1.7.0.2
 
+thanks,
+--
+Pablo
