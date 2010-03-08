@@ -1,60 +1,41 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v2][PATCH 01/11] OMAP3: serial: Check for zero-based physical addr
-Date: Mon,  8 Mar 2010 11:20:44 -0600
-Message-ID: <1268068854-13429-2-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v2][PATCH 09/11] omap3: 3630sdp: Explicitly enable all UARTs
+Date: Mon,  8 Mar 2010 11:20:52 -0600
+Message-ID: <1268068854-13429-10-git-send-email-saaguirre@ti.com>
 References: <1268068854-13429-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45648 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51719 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753355Ab0CHRUB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Mar 2010 12:20:01 -0500
+	id S1753576Ab0CHRUC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Mar 2010 12:20:02 -0500
 In-Reply-To: <1268068854-13429-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Sergio Aguirre <saaguirre@ti.com>
 
-This is for protecting a wrong mapping attempt of a zero-based
-physical address.
-
-The result is that, no serial port will be attempted to be mapped.
-
-Also add an additional protection for NULL clocks before attempting
-to enable them (if above condition applies)
+All UARTs seem physically reachable, so, enable them all.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-3630sdp.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+ mode change 100755 => 100644 arch/arm/mach-omap2/board-3630sdp.c
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index da77930..1ca4330 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -664,6 +664,12 @@ void __init omap_serial_early_init(void)
- 		struct device *dev = &pdev->dev;
- 		struct plat_serial8250_port *p = dev->platform_data;
- 
-+		/* Don't map zero-based physical address */
-+		if (p->mapbase == 0) {
-+			printk(KERN_WARNING "omap serial: No physical address"
-+			       " for uart#%d, so skipping early_init...\n", i);
-+			continue;
-+		}
- 		/*
- 		 * Module 4KB + L4 interconnect 4KB
- 		 * Static mapping, never released
-@@ -727,6 +733,10 @@ void __init omap_serial_init_port(int port)
- 	pdev = &uart->pdev;
- 	dev = &pdev->dev;
- 
-+	/* Don't proceed if there's no clocks available */
-+	if (!uart->ick || !uart->fck)
-+		return;
-+
- 	omap_uart_enable_clocks(uart);
- 
- 	omap_uart_reset(uart);
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+old mode 100755
+new mode 100644
+index 4386d2b..399117a
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -96,6 +96,7 @@ static struct omap_board_mux board_mux[] __initdata = {
+ static void __init omap_sdp_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
++	omap_serial_init();
+ 	zoom_peripherals_init();
+ 	board_smc91x_init();
+ 	enable_board_wakeup_source();
 -- 
 1.6.3.3
 
