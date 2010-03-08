@@ -1,44 +1,64 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [RFC part1/2 merge v2][PATCH 00/11] omap2/3/4: uart4 fixes +
- zoom2/3 changes
-Date: Mon, 8 Mar 2010 11:22:29 -0600
-Message-ID: <A24693684029E5489D1D202277BE894453D68E93@dlee02.ent.ti.com>
-References: <1268068854-13429-1-git-send-email-saaguirre@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sergio Aguirre <saaguirre@ti.com>
+Subject: [RFC part1/2 merge v2 RESEND][PATCH 02/10] omap2/3/4: serial: Remove condition for getting uart4_phys
+Date: Mon,  8 Mar 2010 11:28:44 -0600
+Message-ID: <1268069332-14082-3-git-send-email-saaguirre@ti.com>
+References: <1268069332-14082-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51885 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52205 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985Ab0CHRWe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 12:22:34 -0500
-In-Reply-To: <1268068854-13429-1-git-send-email-saaguirre@ti.com>
-Content-Language: en-US
+	id S1752891Ab0CHR15 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Mar 2010 12:27:57 -0500
+In-Reply-To: <1268069332-14082-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Sergio Aguirre <saaguirre@ti.com>
 
-> -----Original Message-----
-> From: Aguirre, Sergio
-> Sent: Monday, March 08, 2010 11:21 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Kevin Hilman; Pandita, Vikram; Paul Walmsley; Tony Lindgren; Aguirre,
-> Sergio
-> Subject: [RFC part1/2 merge v2][PATCH 00/11] omap2/3/4: uart4 fixes +
-> zoom2/3 changes
-> 
-> Hi,
-> 
-> This is v2 of my serial work series merge found here: [1]
-> 
-> And it's meant to be applied on top of Thomas's patch: [2]
-> 
-> Changelog compared to previous version:
->  - Replaced hardcoded IRQ for UART4 in 3630 by newly created
->    INT_36XX_UART4_IRQ define. (Thanks Kevin)
+This check is invalid, since we haven't filled the
+omap_revision var at this point.
 
-Oops, sent a wrong past internal revision... sorry for the spam, but I'll resend with the correction.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/mach-omap2/serial.c |   14 +-------------
+ 1 files changed, 1 insertions(+), 13 deletions(-)
 
-Regards,
-Sergio
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 1ca4330..351ba62 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -115,7 +115,6 @@ static struct plat_serial8250_port serial_platform_data2[] = {
+ 	}
+ };
+ 
+-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static struct plat_serial8250_port serial_platform_data3[] = {
+ 	{
+ 		.irq		= 70,
+@@ -128,23 +127,12 @@ static struct plat_serial8250_port serial_platform_data3[] = {
+ 	}
+ };
+ 
+-static inline void omap2_set_globals_uart4(struct omap_globals *omap2_globals)
+-{
+-	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
+-}
+-#else
+-static inline void omap2_set_globals_uart4(struct omap_globals *omap2_globals)
+-{
+-}
+-#endif
+-
+ void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
+ {
+ 	serial_platform_data0[0].mapbase = omap2_globals->uart1_phys;
+ 	serial_platform_data1[0].mapbase = omap2_globals->uart2_phys;
+ 	serial_platform_data2[0].mapbase = omap2_globals->uart3_phys;
+-	if (cpu_is_omap3630() || cpu_is_omap44xx())
+-		omap2_set_globals_uart4(omap2_globals);
++	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
+ }
+ 
+ static inline unsigned int __serial_read_reg(struct uart_port *up,
+-- 
+1.6.3.3
+
