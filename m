@@ -1,104 +1,64 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv6 9/9] OMAP3: PM: Added support for suspending to INACTIVE state
-Date: Mon, 08 Mar 2010 09:16:12 -0800
-Message-ID: <87wrxmvin7.fsf@deeprootsystems.com>
-References: <1265999265-4363-1-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-2-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-3-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-4-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-5-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-6-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-7-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-8-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-9-git-send-email-tero.kristo@nokia.com>
-	<1265999265-4363-10-git-send-email-tero.kristo@nokia.com>
-	<873a0j8v6x.fsf@deeprootsystems.com>
-	<1F18D6510CF0474A8C9500565A7E41A224BF70AF00@NOK-EUMSG-02.mgdnok.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sergio Aguirre <saaguirre@ti.com>
+Subject: [RFC part1/2 merge v2][PATCH 02/11] omap2/3/4: serial: Remove condition for getting uart4_phys
+Date: Mon,  8 Mar 2010 11:20:45 -0600
+Message-ID: <1268068854-13429-3-git-send-email-saaguirre@ti.com>
+References: <1268068854-13429-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:38603 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751642Ab0CHRQT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 12:16:19 -0500
-Received: by pvb32 with SMTP id 32so1472258pvb.19
-        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 09:16:19 -0800 (PST)
-In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A224BF70AF00@NOK-EUMSG-02.mgdnok.nokia.com> (Tero Kristo's message of "Tue\, 2 Mar 2010 11\:12\:36 +0100")
+Received: from comal.ext.ti.com ([198.47.26.152]:51709 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750987Ab0CHRT7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Mar 2010 12:19:59 -0500
+In-Reply-To: <1268068854-13429-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Sergio Aguirre <saaguirre@ti.com>
 
-<Tero.Kristo@nokia.com> writes:
+This check is invalid, since we haven't filled the
+omap_revision var at this point.
 
-[...]
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/mach-omap2/serial.c |   14 +-------------
+ 1 files changed, 1 insertions(+), 13 deletions(-)
 
-> True, ancient info there. OFF for example has been supported for ages already.
->
->>
->>
->>> +	if (state != PWRDM_POWER_INACTIVE)
->>> +		while (!(pwrdm->pwrsts & (1 << state))) {
->>> +			if (state == PWRDM_POWER_OFF)
->>> +				return ret;
->>> +			state--;
->>> +		}
->>
->>I think all powerdomains can be inactive right?
->
-> Yes.
->
->>I think it would be cleaner to just have all the pwrdm->pwrsts fields
->>include intactive as a valid option.
->>
->>Something like the patch below.  IIRC, you did something like this in
->>one of the earlier versions of the patch.
->
-> Yeah, something like this was done previously, however Paul did not
-> like the idea of changing the generic powerdomain code too much so I
-> dropped it completely. It is now done only via the support functions
-> in patch #1, and only done for the powerdomains that actually need
-> it for the cpuidle (mpu/core/neon.) It would be possible to add
-> support for the rest of the powerdomains also, but I decided to drop
-> this in favor of getting the patch set in.
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 1ca4330..351ba62 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -115,7 +115,6 @@ static struct plat_serial8250_port serial_platform_data2[] = {
+ 	}
+ };
+ 
+-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static struct plat_serial8250_port serial_platform_data3[] = {
+ 	{
+ 		.irq		= 70,
+@@ -128,23 +127,12 @@ static struct plat_serial8250_port serial_platform_data3[] = {
+ 	}
+ };
+ 
+-static inline void omap2_set_globals_uart4(struct omap_globals *omap2_globals)
+-{
+-	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
+-}
+-#else
+-static inline void omap2_set_globals_uart4(struct omap_globals *omap2_globals)
+-{
+-}
+-#endif
+-
+ void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
+ {
+ 	serial_platform_data0[0].mapbase = omap2_globals->uart1_phys;
+ 	serial_platform_data1[0].mapbase = omap2_globals->uart2_phys;
+ 	serial_platform_data2[0].mapbase = omap2_globals->uart3_phys;
+-	if (cpu_is_omap3630() || cpu_is_omap44xx())
+-		omap2_set_globals_uart4(omap2_globals);
++	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
+ }
+ 
+ static inline unsigned int __serial_read_reg(struct uart_port *up,
+-- 
+1.6.3.3
 
-I'm not proposing changing any of the other powerdomain code.  Just
-changing the PWRSTS_* defines, essentially so that INACTIVE is
-a valid state.
-
-That will eliminate the need for a special check for inactive in this
-patch.
-
-Kevin
-
->>
->>diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h 
->>b/arch/arm/plat-omap/include/plat/powerdomain.h
->>index a1ecd47..c692472 100644
->>--- a/arch/arm/plat-omap/include/plat/powerdomain.h
->>+++ b/arch/arm/plat-omap/include/plat/powerdomain.h
->>@@ -31,17 +31,17 @@
->> #define PWRDM_MAX_PWRSTS	4
->> 
->> /* Powerdomain allowable state bitfields */
->>-#define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | \
->>+#define PWRSTS_ON		((1 << PWRDM_POWER_INACTIVE) | \
->> 				 (1 << PWRDM_POWER_ON))
->> 
->>+#define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | PWRSTS_ON)
->>+
->> #define PWRSTS_OFF_RET		((1 << PWRDM_POWER_OFF) | \
->> 				 (1 << PWRDM_POWER_RET))
->> 
->>-#define PWRSTS_RET_ON		((1 << PWRDM_POWER_RET) | \
->>-				 (1 << PWRDM_POWER_ON))
->>-
->>-#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
->>+#define PWRSTS_RET_ON		((1 << PWRDM_POWER_RET) | PWRSTS_ON)
->> 
->>+#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
->> 
->> /* Powerdomain flags */
->> #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware 
->>save-and-restore support */
->>
