@@ -1,45 +1,35 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [RFC part1/2 merge v2 RESEND][PATCH 09/10] omap3: zoom 2/3:
- Change debugboard serial port id
-Date: Mon, 8 Mar 2010 12:02:18 -0600
-Message-ID: <A24693684029E5489D1D202277BE894453D68F41@dlee02.ent.ti.com>
-References: <1268069332-14082-1-git-send-email-saaguirre@ti.com>
-	<1268069332-14082-10-git-send-email-saaguirre@ti.com>
- <878wa2u233.fsf@deeprootsystems.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 1/3] OMAP3: PM: Bug fix in Smartreflex driver.
+Date: Mon, 8 Mar 2010 20:05:06 +0200
+Message-ID: <20100308180505.GA6630@gandalf>
+References: <1268068851-30022-1-git-send-email-thara@ti.com>
+ <1268068851-30022-2-git-send-email-thara@ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49161 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751969Ab0CHSCj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 13:02:39 -0500
-In-Reply-To: <878wa2u233.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from ns1.siteground211.com ([209.62.36.12]:35770 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753421Ab0CHSE5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 13:04:57 -0500
+Content-Disposition: inline
+In-Reply-To: <1268068851-30022-2-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, vishwanath.bs@ti.com, sawant@ti.com, b-cousson@ti.com
 
-From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-Sent: Monday, March 08, 2010 11:59 AM
-> Sergio Aguirre <saaguirre@ti.com> writes:
+On Mon, Mar 08, 2010 at 10:50:49PM +0530, Thara Gopinath wrote:
+> This patch sets and unsets is_sr_reset is appropriate places so that
+> trying to enable smart reflex in a non-supported OMAP chip does not
+> lead to unnecessary crash
 > 
-> > This is now changed to PLAT8250_DEV_PLATFORM (= 0), because
-> > it is the only port that's going to be initted in Zoom 2/3 boards.
->                                          ^^^^^^^
-> 
-> minor nit: not a word.  :) please use the much harder to spell:
-> initialized.  ;)
+> Signed-off-by: Thara Gopinath <thara@ti.com>
 
-:) Ok. Will fix.
+$SUBJECT is not really useful. You could describe the problem slightly
+by saying something like:
 
-Thanks and Regards,
-Sergio
+fix crash when enabling SmartReflex on non-supported OMAPs
 
-> 
-> Kevin
-> 
-
-<snip>
-
+-- 
+balbi
