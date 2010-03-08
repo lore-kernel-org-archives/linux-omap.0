@@ -1,80 +1,45 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v2][PATCH 04/11] OMAP clock: Add uart4_ick/fck definitions for 3630
-Date: Mon,  8 Mar 2010 11:20:47 -0600
-Message-ID: <1268068854-13429-5-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v2][PATCH 08/11] omap3: zoom2/3 / 3630sdp: Don't init always all uarts
+Date: Mon,  8 Mar 2010 11:20:51 -0600
+Message-ID: <1268068854-13429-9-git-send-email-saaguirre@ti.com>
 References: <1268068854-13429-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51731 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754125Ab0CHRUQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Mar 2010 12:20:16 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:48369 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753940Ab0CHRUF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 12:20:05 -0500
 In-Reply-To: <1268068854-13429-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Sergio Aguirre <saaguirre@ti.com>
 
-This is only valid for omap 36xx family of chips.
+This is useless, since in Zoom2/3 boards, the ports aren't even
+physically accessible.
+
+They must be explicitly initted in the board-zoom2.c, board-zoom3.c
+and board-3630sdp.c files instead.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/clock3xxx_data.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+ mode change 100755 => 100644 arch/arm/mach-omap2/board-zoom-peripherals.c
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index d5153b6..e8afaa6 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -2541,6 +2541,16 @@ static struct clk uart3_fck = {
- 	.recalc		= &followparent_recalc,
- };
- 
-+static struct clk uart4_fck = {
-+	.name		= "uart4_fck",
-+	.ops		= &clkops_omap2_dflt_wait,
-+	.parent		= &per_48m_fck,
-+	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
-+	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
-+	.clkdm_name	= "per_clkdm",
-+	.recalc		= &followparent_recalc,
-+};
-+
- static struct clk gpt2_fck = {
- 	.name		= "gpt2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
-@@ -2791,6 +2801,16 @@ static struct clk uart3_ick = {
- 	.recalc		= &followparent_recalc,
- };
- 
-+static struct clk uart4_ick = {
-+	.name		= "uart4_ick",
-+	.ops		= &clkops_omap2_dflt_wait,
-+	.parent		= &per_l4_ick,
-+	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
-+	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
-+	.clkdm_name	= "per_clkdm",
-+	.recalc		= &followparent_recalc,
-+};
-+
- static struct clk gpt9_ick = {
- 	.name		= "gpt9_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
-@@ -3420,6 +3440,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"per_96m_fck",	&per_96m_fck,	CK_3XXX),
- 	CLK(NULL,	"per_48m_fck",	&per_48m_fck,	CK_3XXX),
- 	CLK(NULL,	"uart3_fck",	&uart3_fck,	CK_3XXX),
-+	CLK(NULL,	"uart4_fck",	&uart4_fck,	CK_36XX),
- 	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_3XXX),
- 	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_3XXX),
- 	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_3XXX),
-@@ -3443,6 +3464,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"gpio2_ick",	&gpio2_ick,	CK_3XXX),
- 	CLK(NULL,	"wdt3_ick",	&wdt3_ick,	CK_3XXX),
- 	CLK(NULL,	"uart3_ick",	&uart3_ick,	CK_3XXX),
-+	CLK(NULL,	"uart4_ick",	&uart4_ick,	CK_36XX),
- 	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_3XXX),
- 	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_3XXX),
- 	CLK(NULL,	"gpt7_ick",	&gpt7_ick,	CK_3XXX),
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+old mode 100755
+new mode 100644
+index ca95d8d..6b39849
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -280,7 +280,6 @@ static void enable_board_wakeup_source(void)
+ void __init zoom_peripherals_init(void)
+ {
+ 	omap_i2c_init();
+-	omap_serial_init();
+ 	usb_musb_init(&musb_board_data);
+ 	enable_board_wakeup_source();
+ }
 -- 
 1.6.3.3
 
