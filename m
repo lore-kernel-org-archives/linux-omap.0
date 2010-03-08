@@ -1,12 +1,12 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v2 RESEND][PATCH 03/10] ARM: OMAP3630: PRCM: Add UART4 control bits
-Date: Mon,  8 Mar 2010 11:28:45 -0600
-Message-ID: <1268069332-14082-4-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v2 RESEND][PATCH 10/10] omap3: zoom2/3: Register only 1 8250 port
+Date: Mon,  8 Mar 2010 11:28:52 -0600
+Message-ID: <1268069332-14082-11-git-send-email-saaguirre@ti.com>
 References: <1268069332-14082-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46185 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52210 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754590Ab0CHR17 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754607Ab0CHR17 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 8 Mar 2010 12:27:59 -0500
 In-Reply-To: <1268069332-14082-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,49 +14,41 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Sergio Aguirre <saaguirre@ti.com>
 
-This bits are exclusive of omap 36xx family of chips.
+There's no more serial ports available, so, doesn't make sense
+to create 4 device nodes.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
- arch/arm/mach-omap2/prcm-common.h     |    4 ++++
- 2 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/configs/omap_zoom2_defconfig |    2 +-
+ arch/arm/configs/omap_zoom3_defconfig |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index a3a3ca0..834b671 100644
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -649,6 +649,8 @@
- #define OMAP3430_ST_MCBSP2_MASK				(1 << 0)
- 
- /* CM_AUTOIDLE_PER */
-+#define OMAP3630_AUTO_UART4				(1 << 18)
-+#define OMAP3630_AUTO_UART4_SHIFT			18
- #define OMAP3430_AUTO_GPIO6				(1 << 17)
- #define OMAP3430_AUTO_GPIO6_SHIFT			17
- #define OMAP3430_AUTO_GPIO5				(1 << 16)
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 90f603d..c4e7bcb 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -390,6 +390,8 @@
- #define OMAP3430_EN_MPU_SHIFT				1
- 
- /* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
-+#define OMAP3630_EN_UART4				(1 << 18)
-+#define OMAP3630_EN_UART4_SHIFT				18
- #define OMAP3430_EN_GPIO6				(1 << 17)
- #define OMAP3430_EN_GPIO6_SHIFT				17
- #define OMAP3430_EN_GPIO5				(1 << 16)
-@@ -430,6 +432,8 @@
- #define OMAP3430_EN_MCBSP2_SHIFT			0
- 
- /* CM_IDLEST_PER, PM_WKST_PER shared bits */
-+#define OMAP3630_ST_UART4_SHIFT				18
-+#define OMAP3630_ST_UART4_MASK				(1 << 18)
- #define OMAP3430_ST_GPIO6_SHIFT				17
- #define OMAP3430_ST_GPIO6_MASK				(1 << 17)
- #define OMAP3430_ST_GPIO5_SHIFT				16
+diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
+index a82e813..3dfd2d5 100644
+--- a/arch/arm/configs/omap_zoom2_defconfig
++++ b/arch/arm/configs/omap_zoom2_defconfig
+@@ -660,7 +660,7 @@ CONFIG_DEVKMEM=y
+ CONFIG_SERIAL_8250=y
+ CONFIG_SERIAL_8250_CONSOLE=y
+ CONFIG_SERIAL_8250_NR_UARTS=32
+-CONFIG_SERIAL_8250_RUNTIME_UARTS=4
++CONFIG_SERIAL_8250_RUNTIME_UARTS=1
+ CONFIG_SERIAL_8250_EXTENDED=y
+ CONFIG_SERIAL_8250_MANY_PORTS=y
+ CONFIG_SERIAL_8250_SHARE_IRQ=y
+diff --git a/arch/arm/configs/omap_zoom3_defconfig b/arch/arm/configs/omap_zoom3_defconfig
+index ff8ac3d..a1c0c43 100644
+--- a/arch/arm/configs/omap_zoom3_defconfig
++++ b/arch/arm/configs/omap_zoom3_defconfig
+@@ -680,7 +680,7 @@ CONFIG_DEVKMEM=y
+ CONFIG_SERIAL_8250=y
+ CONFIG_SERIAL_8250_CONSOLE=y
+ CONFIG_SERIAL_8250_NR_UARTS=32
+-CONFIG_SERIAL_8250_RUNTIME_UARTS=4
++CONFIG_SERIAL_8250_RUNTIME_UARTS=1
+ CONFIG_SERIAL_8250_EXTENDED=y
+ CONFIG_SERIAL_8250_MANY_PORTS=y
+ CONFIG_SERIAL_8250_SHARE_IRQ=y
 -- 
 1.6.3.3
 
