@@ -1,74 +1,90 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC part1/2 merge v2 RESEND][PATCH 05/10] OMAP3: PRCM: Consider UART4 for 3630 chip in prcm_setup_regs
-Date: Mon, 08 Mar 2010 09:55:57 -0800
-Message-ID: <87fx4au28i.fsf@deeprootsystems.com>
-References: <1268069332-14082-1-git-send-email-saaguirre@ti.com>
-	<1268069332-14082-6-git-send-email-saaguirre@ti.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [UPDATE] kill camel case
+Date: Mon, 8 Mar 2010 11:58:00 -0600
+Message-ID: <4B953AA8.1030905@ti.com>
+References: <4B8C80D5.6020803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:11662 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412Ab0CHR4N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 12:56:13 -0500
-Received: by qw-out-2122.google.com with SMTP id 5so1172389qwd.37
-        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 09:56:12 -0800 (PST)
-In-Reply-To: <1268069332-14082-6-git-send-email-saaguirre@ti.com> (Sergio Aguirre's message of "Mon\,  8 Mar 2010 11\:28\:47 -0600")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48326 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751969Ab0CHR6G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Mar 2010 12:58:06 -0500
+In-Reply-To: <4B8C80D5.6020803@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergio Aguirre <saaguirre@ti.com>
-Cc: linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, "Ameya.Palande@nokia.com" <Ameya.Palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Sergio Aguirre <saaguirre@ti.com> writes:
+Hi,
 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Deleted: dspbridge-next-camelcase
+Published dspbridge-camelcase-v2
 
-This one needs a descriptive changelog.
+Following patches were dropped:
+dspbridge: camelcase replace DSP_FAILED for dsp_failed
+dspbridge: camelcase replace GB_NOBITS for gb_nobits
+dspbridge: camelcase replace BITS_PER_BYTE for bits_per_byte
+dspbridge: camelcase replace CINIT_PAGE_BITS for cinit_page_bits
+dspbridge: camelcase replace DSPBRIDGE_VERSION for dspbridge_version
+dspbridge: camelcase replace LOG_BITS_PER_BYTE for log_bits_per_byte
+dspbridge: camelcase replace MMU_GFLUSH for mmu_gflush
+dspbridge: camelcase replace SCALE_BITS for scale_bits
+dspbridge: camelcase replace TGTAU_BITS for tgtau_bits
 
-Kevin
+Modified
+dspbridge: camelcase replace MAP_L4PERIPHERAL for map_l4_peripheral
+	renamed map_l4peripheral ==> map_l4_peripheral
+dspbridge: camelcase replace MemInfo for mem_seg_info
+	renamed mem_seg__info ==> mem_seg_info
 
-> ---
->  arch/arm/mach-omap2/pm34xx.c |    8 ++++++--
->  1 files changed, 6 insertions(+), 2 deletions(-)
+String replacements were fixed (i.e. replacementes made for Write, 
+Allocate, Deallocate)
+
+Compilation break if compiled as part of the kernel on msg_init.
+
+If no more comments I'll push this as a single patch after 0.2.
+
+Regards,
+
+Omar
+
+On 3/1/2010 9:07 PM, Omar Ramirez Luna wrote:
+> Hi All,
 >
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index fee2efb..81082f2 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -734,6 +734,9 @@ static void __init omap3_d2d_idle(void)
->  
->  static void __init prcm_setup_regs(void)
->  {
-> +	u32 omap3630_auto_uart4 = cpu_is_omap3630() ? OMAP3630_AUTO_UART4 : 0;
-> +	u32 omap3630_en_uart4 = cpu_is_omap3630() ? OMAP3630_EN_UART4 : 0;
-> +
->  	/* XXX Reset all wkdeps. This should be done when initializing
->  	 * powerdomains */
->  	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
-> @@ -820,6 +823,7 @@ static void __init prcm_setup_regs(void)
->  		CM_AUTOIDLE);
->  
->  	cm_write_mod_reg(
-> +		omap3630_auto_uart4 |
->  		OMAP3430_AUTO_GPIO6 |
->  		OMAP3430_AUTO_GPIO5 |
->  		OMAP3430_AUTO_GPIO4 |
-> @@ -899,14 +903,14 @@ static void __init prcm_setup_regs(void)
->  			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
->  			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3 |
->  			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
-> -			  OMAP3430_EN_MCBSP4,
-> +			  OMAP3430_EN_MCBSP4 | omap3630_en_uart4,
->  			  OMAP3430_PER_MOD, PM_WKEN);
->  	/* and allow them to wake up MPU */
->  	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
->  			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
->  			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3 |
->  			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
-> -			  OMAP3430_EN_MCBSP4,
-> +			  OMAP3430_EN_MCBSP4 | omap3630_en_uart4,
->  			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
->  
->  	/* Don't attach IVA interrupts */
-> -- 
-> 1.6.3.3
+> CamelCase script execution has been completed, so far I replaced all the
+> tokens picked up by the killcc script[1], and all the changes are
+> present in the following branches:
+>
+> dspbridge-next-camelcase
+> ------------------------
+> It has all the changes made in three steps:
+>
+> 1) Replaced all the new tokens not present in bridge code, after that
+> solved compilation problems caused by symbols with same name as kernel
+> symbols.
+> 2) Replaced tokens that were already present in bridge code either as
+> symbols or strings.
+> 3) Replaced tokens generated by script, which were same as other
+> symbols, i.e. hChnlMgr and pChnlMgr will generate chnl_mgr.
+>
+> dspbridge-next-camelcase2
+> -------------------------
+> It has the same changes as above but these are broken into single patches.
+>
+> Total number of patches: 2795
+> diff-stat: 157 files changed, 18385 insertions(+), 18385 deletions(-)
+>
+> Please take a look to the logs[2] as they might be easier to review
+> rather than looking at each patch. Also I placed the steps to follow on
+> the patch commits of dspbridge-next-camelcase.
+>
+> - omar
+>
+> ---
+> [1] http://marc.info/?l=linux-omap&m=125353475429517&w=2
+> [2] https://gforge.ti.com/gf/project/omapbridge/docman/?subdir=30, logs
+> for point 2 and 3 have the following format for tokens<old>  |<new>  |
+> <comments>
+
