@@ -1,63 +1,63 @@
-From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v2 RESEND][PATCH 05/10] OMAP3: PRCM: Consider UART4 for 3630 chip in prcm_setup_regs
-Date: Mon,  8 Mar 2010 11:28:47 -0600
-Message-ID: <1268069332-14082-6-git-send-email-saaguirre@ti.com>
-References: <1268069332-14082-1-git-send-email-saaguirre@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/3] OMAP3: PM: OMAP3630 support for smartreflex driver
+Date: Mon, 08 Mar 2010 09:36:26 -0800
+Message-ID: <87eijuvhph.fsf@deeprootsystems.com>
+References: <1268068851-30022-1-git-send-email-thara@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46191 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753632Ab0CHR2L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Mar 2010 12:28:11 -0500
-In-Reply-To: <1268069332-14082-1-git-send-email-saaguirre@ti.com>
+Received: from mail-qy0-f198.google.com ([209.85.221.198]:45622 "EHLO
+	mail-qy0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194Ab0CHRgb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 12:36:31 -0500
+Received: by qyk36 with SMTP id 36so4454443qyk.19
+        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 09:36:30 -0800 (PST)
+In-Reply-To: <1268068851-30022-1-git-send-email-thara@ti.com> (Thara Gopinath's message of "Mon\,  8 Mar 2010 22\:50\:48 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Sergio Aguirre <saaguirre@ti.com>
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, vishwanath.bs@ti.com, sawant@ti.com, b-cousson@ti.com
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+Thara Gopinath <thara@ti.com> writes:
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index fee2efb..81082f2 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -734,6 +734,9 @@ static void __init omap3_d2d_idle(void)
- 
- static void __init prcm_setup_regs(void)
- {
-+	u32 omap3630_auto_uart4 = cpu_is_omap3630() ? OMAP3630_AUTO_UART4 : 0;
-+	u32 omap3630_en_uart4 = cpu_is_omap3630() ? OMAP3630_EN_UART4 : 0;
-+
- 	/* XXX Reset all wkdeps. This should be done when initializing
- 	 * powerdomains */
- 	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
-@@ -820,6 +823,7 @@ static void __init prcm_setup_regs(void)
- 		CM_AUTOIDLE);
- 
- 	cm_write_mod_reg(
-+		omap3630_auto_uart4 |
- 		OMAP3430_AUTO_GPIO6 |
- 		OMAP3430_AUTO_GPIO5 |
- 		OMAP3430_AUTO_GPIO4 |
-@@ -899,14 +903,14 @@ static void __init prcm_setup_regs(void)
- 			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
- 			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3 |
- 			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
--			  OMAP3430_EN_MCBSP4,
-+			  OMAP3430_EN_MCBSP4 | omap3630_en_uart4,
- 			  OMAP3430_PER_MOD, PM_WKEN);
- 	/* and allow them to wake up MPU */
- 	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
- 			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
- 			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3 |
- 			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
--			  OMAP3430_EN_MCBSP4,
-+			  OMAP3430_EN_MCBSP4 | omap3630_en_uart4,
- 			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
- 
- 	/* Don't attach IVA interrupts */
--- 
-1.6.3.3
+> This patch series adds support for the updated 45nm smrtrelfex IP
+> supported in OMAP3630 and OMAP4 in the smartreflex driver and
+> adds support to enable smartreflex autocompensation for OMAP3630
+> using test nvalues.
+>
+> This patch series is based on the following patch series/patches
+> for proper functionality.
+> 	http://marc.info/?l=linux-omap&m=126700378625593&w=2
+> 	http://patchwork.kernel.org/patch/77739/
+>
+> This patch series has been tested on OMAP3630 SDP board with
+> CONFIG_OMAP_SMARTREFLEX_TESTING option enabled in the menuconfig.
+>
+> This patch series has been based on Kevin's PM tree
+> origin/pm-wip-opp branch 
 
+It appears to also depend on the previous SR rework series.  It
+doesn't apply directly to pm-wip-opp.
+
+> and on adea81232e8fc82334bca3707efa23dc854f29fc commit id.
+
+This commit is a rather old version of pm-wip-opp, please refresh
+against current.
+
+Kevin
+
+
+
+
+> Thara Gopinath (3):
+>   OMAP3: PM: Bug fix in Smartreflex driver.
+>   OMAP3: PM: Smartreflex IP update changes for OMAP3630
+>   OMAP3: PM: Adding OMAP3630 support in smartreflex driver
+>
+>  arch/arm/mach-omap2/omap_hwmod_34xx.h     |   49 ++++-
+>  arch/arm/mach-omap2/smartreflex.c         |  354 +++++++++++++++++++++++-----
+>  arch/arm/mach-omap2/smartreflex.h         |   51 ++++-
+>  arch/arm/mach-omap2/voltage.c             |  167 +++++++++++---
+>  arch/arm/mach-omap2/voltage.h             |   32 ++-
+>  arch/arm/plat-omap/include/plat/control.h |    8 +
+>  6 files changed, 542 insertions(+), 119 deletions(-)
