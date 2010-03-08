@@ -1,74 +1,117 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH/RFT v2] OMAP4: fix temporary hacks that break multi-omap PM
-Date: Mon,  8 Mar 2010 10:32:31 -0800
-Message-ID: <1268073151-12332-1-git-send-email-khilman@deeprootsystems.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [UPDATE] kill camel case
+Date: Mon, 8 Mar 2010 12:33:04 -0600
+Message-ID: <4B9542E0.2090306@ti.com>
+References: <4B8C80D5.6020803@ti.com> <4B953AA8.1030905@ti.com> <4B953D83.6070005@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f198.google.com ([209.85.221.198]:36341 "EHLO
-	mail-qy0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751969Ab0CHSc6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 13:32:58 -0500
-Received: by qyk36 with SMTP id 36so4519320qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 10:32:57 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:53707 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755077Ab0CHSdL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 13:33:11 -0500
+In-Reply-To: <4B953D83.6070005@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, "Ameya.Palande@nokia.com" <Ameya.Palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-When building for multi-omap, and OMAP4 is enabled, CONFIG_ARCH_OMAP4
-will be true and prevent included code from building/running for
-OMAP2/3 as well.
+Hi,
 
-This problem exists in io.c where some hwmod/PM/SDRC init code is
-prevented from running even on OMAP2/3 when OMAP4 is included in a
-multi-OMAP build.
+It will be fixed once they are pushed as a single patch.
 
-A quick glance suggests that this #ifndef is no longer needed.  The
-called functions should work fine or fail gracefully in the OMAP4
-case.
+Regards,
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
+Omar
 
-Needs testing on OMAP4 since still no OMAP4 hardware here.
-
-Updates from v1:
-- removed additional #ifdef block in init_common_hw()
-
- arch/arm/mach-omap2/io.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 81312b4..daefe79 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -309,7 +309,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- {
- 	pwrdm_init(powerdomains_omap);
- 	clkdm_init(clockdomains_omap, clkdm_autodeps);
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is ready */
- #ifdef CONFIG_ARCH_OMAP2420
- 	if (cpu_is_omap242x())
- 		omap2420_hwmod_init();
-@@ -325,7 +324,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	omap2_mux_init();
- 	/* The OPP tables have to be registered before a clk init */
- 	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
--#endif
- 
- 	if (cpu_is_omap2420())
- 		omap2420_clk_init();
-@@ -339,11 +337,10 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 		pr_err("Could not init clock framework - unknown CPU\n");
- 
- 	omap_serial_early_init();
--#ifndef CONFIG_ARCH_OMAP4
- 	omap_hwmod_late_init();
- 	omap_pm_if_init();
- 	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
- 	_omap2_init_reprogram_sdrc();
--#endif
-+
- 	gpmc_init();
- }
--- 
-1.7.0.2
+On 3/8/2010 12:10 PM, Chitriki Rudramuni, Deepak wrote:
+> Omar,
+>
+> Missing your Signed-off-by for all the patches in
+> "dspbridge-camelcase-v2" branch.
+>
+> Thanks,
+> Deepak
+>
+> Omar Ramirez Luna wrote:
+>> Hi,
+>>
+>> Deleted: dspbridge-next-camelcase
+>> Published dspbridge-camelcase-v2
+>>
+>> Following patches were dropped:
+>> dspbridge: camelcase replace DSP_FAILED for dsp_failed
+>> dspbridge: camelcase replace GB_NOBITS for gb_nobits
+>> dspbridge: camelcase replace BITS_PER_BYTE for bits_per_byte
+>> dspbridge: camelcase replace CINIT_PAGE_BITS for cinit_page_bits
+>> dspbridge: camelcase replace DSPBRIDGE_VERSION for dspbridge_version
+>> dspbridge: camelcase replace LOG_BITS_PER_BYTE for log_bits_per_byte
+>> dspbridge: camelcase replace MMU_GFLUSH for mmu_gflush
+>> dspbridge: camelcase replace SCALE_BITS for scale_bits
+>> dspbridge: camelcase replace TGTAU_BITS for tgtau_bits
+>>
+>> Modified
+>> dspbridge: camelcase replace MAP_L4PERIPHERAL for map_l4_peripheral
+>> 	renamed map_l4peripheral ==>  map_l4_peripheral
+>> dspbridge: camelcase replace MemInfo for mem_seg_info
+>> 	renamed mem_seg__info ==>  mem_seg_info
+>>
+>> String replacements were fixed (i.e. replacementes made for Write,
+>> Allocate, Deallocate)
+>>
+>> Compilation break if compiled as part of the kernel on msg_init.
+>>
+>> If no more comments I'll push this as a single patch after 0.2.
+>>
+>> Regards,
+>>
+>> Omar
+>>
+>> On 3/1/2010 9:07 PM, Omar Ramirez Luna wrote:
+>>
+>>> Hi All,
+>>>
+>>> CamelCase script execution has been completed, so far I replaced all the
+>>> tokens picked up by the killcc script[1], and all the changes are
+>>> present in the following branches:
+>>>
+>>> dspbridge-next-camelcase
+>>> ------------------------
+>>> It has all the changes made in three steps:
+>>>
+>>> 1) Replaced all the new tokens not present in bridge code, after that
+>>> solved compilation problems caused by symbols with same name as kernel
+>>> symbols.
+>>> 2) Replaced tokens that were already present in bridge code either as
+>>> symbols or strings.
+>>> 3) Replaced tokens generated by script, which were same as other
+>>> symbols, i.e. hChnlMgr and pChnlMgr will generate chnl_mgr.
+>>>
+>>> dspbridge-next-camelcase2
+>>> -------------------------
+>>> It has the same changes as above but these are broken into single patches.
+>>>
+>>> Total number of patches: 2795
+>>> diff-stat: 157 files changed, 18385 insertions(+), 18385 deletions(-)
+>>>
+>>> Please take a look to the logs[2] as they might be easier to review
+>>> rather than looking at each patch. Also I placed the steps to follow on
+>>> the patch commits of dspbridge-next-camelcase.
+>>>
+>>> - omar
+>>>
+>>> ---
+>>> [1] http://marc.info/?l=linux-omap&m=125353475429517&w=2
+>>> [2] https://gforge.ti.com/gf/project/omapbridge/docman/?subdir=30, logs
+>>> for point 2 and 3 have the following format for tokens<old>   |<new>   |
+>>> <comments>
+>>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
 
