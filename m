@@ -1,181 +1,347 @@
-From: Ben Dooks <ben-linux@fluff.org>
-Subject: Re: [PATCH] mmc-omap: Add support for 16-bit and 32-bit registers
-Date: Mon, 8 Mar 2010 10:04:14 +0000
-Message-ID: <20100308100414.GV10014@trinity.fluff.org>
-References: <1267984078-6036-1-git-send-email-darkstar6262@gmail.com> <20100307225901.GU10014@trinity.fluff.org>
+From: ambresh <a0393775@ti.com>
+Subject: Re: [PATCH RFC]OMAP3:PM:Dynamic Calculation of SDRC stall latency
+ during DVFS
+Date: Mon, 8 Mar 2010 15:36:10 +0530
+Message-ID: <4B94CC12.3000104@ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031E80D573@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100307225901.GU10014@trinity.fluff.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ben Dooks <ben@fluff.org>
-Cc: Cory Maccarrone <darkstar6262@gmail.com>, linux-mmc@vger.kernel.org, akpm@linux-foundation.org, Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Marek Belisko <marek.belisko@open-nandra.com>
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:46133 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753113Ab0CHKGS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Mar 2010 05:06:18 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB031E80D573@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Sun, Mar 07, 2010 at 10:59:01PM +0000, Ben Dooks wrote:
-> On Sun, Mar 07, 2010 at 09:47:58AM -0800, Cory Maccarrone wrote:
-> > From: Marek Belisko <marek.belisko@open-nandra.com>
-> > 
-> > The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
-> > a modification of the register addresses in the mmc-omap driver.  To resolve
-> > this, a bit shift is performed on base register addresses, either by 1 or 2
-> > bits depending on the CPU in use.  This yields the correct registers for
-> > each CPU.
+Reddy, Teerth wrote:
+> From: Teerth Reddy <teerth@ti.com>
 > 
-> merged the previous one into my tree earlier today.
+> Dynamic Calculation of SDRC stall latency during DVFS
+> 
+> The patch has the changes to calculate the dpll3 clock stabilization delay dynamically. The SRAM delay is calibrated during bootup using the gptimers and used while calculating the stabilization delay. By using the dynamic method the dependency on the type of cache being used is removed. Hence there is no need of loop based calculation.
+> 
+> The wait time for L3 clock stabilization is calculated using the formula : 4*REFCLK + 8*CLKOUTX2, which uses the M, N and M2 read from the registers.Since this value gives slightly less value, 2us is added as buffer for safety.
+> This works fine for omap3. 
+> 
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
+> Signed-off-by: Romit Dasgupta <romit@ti.com>
+> ---
+>  arch/arm/mach-omap2/clkt34xx_dpll3m2.c    |   52 ++++++++++++++++++++++++-----
+>  arch/arm/mach-omap2/clock34xx.h           |    2 +
+>  arch/arm/mach-omap2/clock34xx_data.c      |   11 ++++++
+>  arch/arm/mach-omap2/sram34xx.S            |   17 +++++++++
+>  arch/arm/plat-omap/dmtimer.c              |    6 +++
+>  arch/arm/plat-omap/include/plat/dmtimer.h |    1 +
+>  arch/arm/plat-omap/include/plat/sram.h    |    5 +++
+>  arch/arm/plat-omap/sram.c                 |   51 ++++++++++++++++++++++++++++
+>  8 files changed, 136 insertions(+), 9 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+> index 8716a01..2e6d774 100644
+> --- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+> +++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+> @@ -24,13 +24,22 @@
+>  #include <plat/clock.h>
+>  #include <plat/sram.h>
+>  #include <plat/sdrc.h>
+> +#include <plat/prcm.h>
+>  
+>  #include "clock.h"
+>  #include "clock34xx.h"
+>  #include "sdrc.h"
+> +#include "cm.h"
+>  
+>  #define CYCLES_PER_MHZ			1000000
+>  
+> +#define	DPLL_M_MASK	0x7ff
+> +#define	DPLL_N_MASK	0x7f
+> +#define	DPLL_M2_MASK	0x1f
+> +#define	SHIFT_DPLL_M	16
+> +#define	SHIFT_DPLL_N	8
+> +#define	SHIFT_DPLL_M2	27
+> +
+>  /*
+>   * CORE DPLL (DPLL3) M2 divider rate programming functions
+>   *
+> @@ -55,6 +64,11 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+>  	struct omap_sdrc_params *sdrc_cs0;
+>  	struct omap_sdrc_params *sdrc_cs1;
+>  	int ret;
+> +	u32 clk_sel_regval;
+> +	u32 core_dpll_mul_m, core_dpll_div_n, core_dpll_clkoutdiv_m2;
+> +	u32 sys_clk_rate, sdrc_clk_stab;
+> +	u32 nr1, nr2, nr, dr;
+> +	unsigned int delay_sram;
+>  
+>  	if (!clk || !rate)
+>  		return -EINVAL;
+> @@ -78,16 +92,36 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+>  		unlock_dll = 1;
+>  	}
+>  
+> -	/*
+> -	 * XXX This only needs to be done when the CPU frequency changes
+> -	 */
+> +	clk_sel_regval = cm_read_mod_reg(PLL_MOD, CM_CLKSEL);
 
-ignore this, didn't read the message properly and thought it was the i2c
-patch.
-  
-> > Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
-> > Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  drivers/mmc/host/omap.c |   62 +++++++++++++++++++++++++----------------------
-> >  1 files changed, 33 insertions(+), 29 deletions(-)
-> > 
-> > This is a resubmit of a patch I sent in several months ago.  Tony Lindgren merged
-> > this into linux-omap's master and testing branches but has stated that he will not
-> > merge it further as linux-mmc needs to approve this.  There hasn't been any comments
-> > raised on either of the linux-omap or linux-mmc mailing lists about problems.  Due to
-> > the unique nature of the omap7xx platform, this patch is required for MMC card access.
-> > Is there any chance this can be included into the next -rc cycle, as it is a fix for
-> > devices that have 16-bit registers?
-> > 
-> > diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> > index c6d7e8e..53362c4 100644
-> > --- a/drivers/mmc/host/omap.c
-> > +++ b/drivers/mmc/host/omap.c
-> > @@ -38,30 +38,30 @@
-> >  #include <plat/fpga.h>
-> >  
-> >  #define	OMAP_MMC_REG_CMD	0x00
-> > -#define	OMAP_MMC_REG_ARGL	0x04
-> > -#define	OMAP_MMC_REG_ARGH	0x08
-> > -#define	OMAP_MMC_REG_CON	0x0c
-> > -#define	OMAP_MMC_REG_STAT	0x10
-> > -#define	OMAP_MMC_REG_IE		0x14
-> > -#define	OMAP_MMC_REG_CTO	0x18
-> > -#define	OMAP_MMC_REG_DTO	0x1c
-> > -#define	OMAP_MMC_REG_DATA	0x20
-> > -#define	OMAP_MMC_REG_BLEN	0x24
-> > -#define	OMAP_MMC_REG_NBLK	0x28
-> > -#define	OMAP_MMC_REG_BUF	0x2c
-> > -#define OMAP_MMC_REG_SDIO	0x34
-> > -#define	OMAP_MMC_REG_REV	0x3c
-> > -#define	OMAP_MMC_REG_RSP0	0x40
-> > -#define	OMAP_MMC_REG_RSP1	0x44
-> > -#define	OMAP_MMC_REG_RSP2	0x48
-> > -#define	OMAP_MMC_REG_RSP3	0x4c
-> > -#define	OMAP_MMC_REG_RSP4	0x50
-> > -#define	OMAP_MMC_REG_RSP5	0x54
-> > -#define	OMAP_MMC_REG_RSP6	0x58
-> > -#define	OMAP_MMC_REG_RSP7	0x5c
-> > -#define	OMAP_MMC_REG_IOSR	0x60
-> > -#define	OMAP_MMC_REG_SYSC	0x64
-> > -#define	OMAP_MMC_REG_SYSS	0x68
-> > +#define	OMAP_MMC_REG_ARGL	0x01
-> > +#define	OMAP_MMC_REG_ARGH	0x02
-> > +#define	OMAP_MMC_REG_CON	0x03
-> > +#define	OMAP_MMC_REG_STAT	0x04
-> > +#define	OMAP_MMC_REG_IE		0x05
-> > +#define	OMAP_MMC_REG_CTO	0x06
-> > +#define	OMAP_MMC_REG_DTO	0x07
-> > +#define	OMAP_MMC_REG_DATA	0x08
-> > +#define	OMAP_MMC_REG_BLEN	0x09
-> > +#define	OMAP_MMC_REG_NBLK	0x0a
-> > +#define	OMAP_MMC_REG_BUF	0x0b
-> > +#define	OMAP_MMC_REG_SDIO	0x0d
-> > +#define	OMAP_MMC_REG_REV	0x0f
-> > +#define	OMAP_MMC_REG_RSP0	0x10
-> > +#define	OMAP_MMC_REG_RSP1	0x11
-> > +#define	OMAP_MMC_REG_RSP2	0x12
-> > +#define	OMAP_MMC_REG_RSP3	0x13
-> > +#define	OMAP_MMC_REG_RSP4	0x14
-> > +#define	OMAP_MMC_REG_RSP5	0x15
-> > +#define	OMAP_MMC_REG_RSP6	0x16
-> > +#define	OMAP_MMC_REG_RSP7	0x17
-> > +#define	OMAP_MMC_REG_IOSR	0x18
-> > +#define	OMAP_MMC_REG_SYSC	0x19
-> > +#define	OMAP_MMC_REG_SYSS	0x1a
-> >  
-> >  #define	OMAP_MMC_STAT_CARD_ERR		(1 << 14)
-> >  #define	OMAP_MMC_STAT_CARD_IRQ		(1 << 13)
-> > @@ -77,8 +77,9 @@
-> >  #define	OMAP_MMC_STAT_CARD_BUSY		(1 <<  2)
-> >  #define	OMAP_MMC_STAT_END_OF_CMD	(1 <<  0)
-> >  
-> > -#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG_##reg)
-> > -#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG_##reg)
-> > +#define OMAP_MMC_REG(host, reg)		(OMAP_MMC_REG_##reg << (host)->reg_shift)
-> > +#define OMAP_MMC_READ(host, reg)	__raw_readw((host)->virt_base + OMAP_MMC_REG(host, reg))
-> > +#define OMAP_MMC_WRITE(host, reg, val)	__raw_writew((val), (host)->virt_base + OMAP_MMC_REG(host, reg))
-> >  
-> >  /*
-> >   * Command types
-> > @@ -132,6 +133,7 @@ struct mmc_omap_host {
-> >  	int			irq;
-> >  	unsigned char		bus_mode;
-> >  	unsigned char		hw_bus_mode;
-> > +	unsigned int		reg_shift;
-> >  
-> >  	struct work_struct	cmd_abort_work;
-> >  	unsigned		abort:1;
-> > @@ -679,9 +681,9 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
-> >  	host->data->bytes_xfered += n;
-> >  
-> >  	if (write) {
-> > -		__raw_writesw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-> > +		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
-> >  	} else {
-> > -		__raw_readsw(host->virt_base + OMAP_MMC_REG_DATA, host->buffer, n);
-> > +		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer, n);
-> >  	}
-> >  }
-> >  
-> > @@ -899,7 +901,7 @@ mmc_omap_prepare_dma(struct mmc_omap_host *host, struct mmc_data *data)
-> >  	int dst_port = 0;
-> >  	int sync_dev = 0;
-> >  
-> > -	data_addr = host->phys_base + OMAP_MMC_REG_DATA;
-> > +	data_addr = host->phys_base + OMAP_MMC_REG(host, DATA);
-> >  	frame = data->blksz;
-> >  	count = sg_dma_len(sg);
-> >  
-> > @@ -1492,6 +1494,8 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
-> >  		}
-> >  	}
-> >  
-> > +	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
-> > +
-> >  	return 0;
-> >  
-> >  err_plat_cleanup:
-> > -- 
-> > 1.6.3.3
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> -- 
-> -- 
-> Ben
-> 
-> Q:      What's a light-year?
-> A:      One-third less calories than a regular year.
-> 
+*clk already as reference to CM_CLKSEL:
+
+  static struct clk dpll3_m2_ck = {
+[...]
+         .clksel_reg     = OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+         .clksel_mask    = OMAP3430_CORE_DPLL_CLKOUT_DIV_MASK,
+[...]
+
+so please use .clksel_reg to read the register content.
+
+> +
+> +	/* Get the M, N and M2 values required for getting sdrc clk stab */
+> +	core_dpll_mul_m = (clk_sel_regval >> SHIFT_DPLL_M) & DPLL_M_MASK;
+> +	core_dpll_div_n = (clk_sel_regval >> SHIFT_DPLL_N) & DPLL_N_MASK;
+> +	core_dpll_clkoutdiv_m2 = (clk_sel_regval >> SHIFT_DPLL_M2) &
+> +								DPLL_M2_MASK;
+> +	sys_clk_rate = clk_get_rate(clk_get(NULL, "osc_sys_ck"));
+
+Should it be "sys_ck" instead of "osc_sys_ck"?
+
+According to my understanding from trm, I guess CLKINP represents DPLL3 
+reference clock (DPLL3_ALWON_FCLK) which is nothing but "sys_ck".
+
+Should not make a difference when the sys_clk divisor is 1, but if it is 
+2, then sys_ck=osc_sys_ck/2.
+
+
+> +
+> +	sys_clk_rate = sys_clk_rate / 1000000;
+
+Use the macro CYCLES_PER_MHZ instead of magic number.	
+
+> +
+> +	/* wait time for L3 clk stabilization = 4*REFCLK + 8*CLKOUTX2 */
+> +	nr1 = (4 * (core_dpll_div_n + 1) * 2 * core_dpll_clkoutdiv_m2 *
+> +							 core_dpll_mul_m);
+> +	nr2 = 8 * (core_dpll_div_n + 1);
+> +	nr = nr1 + nr2;
+> +
+> +	dr = 2 * sys_clk_rate * core_dpll_mul_m * core_dpll_clkoutdiv_m2;
+> +
+
+I am not able to understand the calculations completely for
+(nr1 + nr2) / dr. and I guess you could simplify the calculation a bit 
+by removing the redundant multiplications and divisions.
+And also may be you can use m, n & m2 instead of core_dpll_xxx_xx, to 
+make code more readable.
+
+
+Regards,
+Ambresh
+
+> +	sdrc_clk_stab = nr / dr;
+> +
+> +	/* Adding 2us to sdrc clk stab */
+> +	sdrc_clk_stab = sdrc_clk_stab + 2;
+> +
+> +	delay_sram = delay_sram_val();
+> +
+> +	/* Calculate the number of MPU cycles to wait for SDRC to stabilize */
+>  	_mpurate = arm_fck_p->rate / CYCLES_PER_MHZ;
+> -	c = (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
+> -	c += 1;  /* for safety */
+> -	c *= SDRC_MPURATE_LOOPS;
+> -	c >>= SDRC_MPURATE_SCALE;
+> -	if (c == 0)
+> -		c = 1;
+> +
+> +	c = ((sdrc_clk_stab * _mpurate) / (delay_sram * 2));
+>  
+>  	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+>  		 validrate);
+> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h index 313efc0..97afe34 100644
+> --- a/arch/arm/mach-omap2/clock34xx.h
+> +++ b/arch/arm/mach-omap2/clock34xx.h
+> @@ -22,4 +22,6 @@ extern const struct clkops clkops_omap3430es2_hsotgusb_wait;  extern const struct clkops clkops_omap3430es2_dss_usbhost_wait;
+>  extern const struct clkops omap3_clkops_noncore_dpll_ops;
+>  
+> +unsigned int delay_sram_val(void);
+> +
+>  #endif
+> diff --git a/arch/arm/mach-omap2/clock34xx_data.c b/arch/arm/mach-omap2/clock34xx_data.c
+> index 8728f1f..cf7384b 100644
+> --- a/arch/arm/mach-omap2/clock34xx_data.c
+> +++ b/arch/arm/mach-omap2/clock34xx_data.c
+> @@ -22,6 +22,7 @@
+>  
+>  #include <plat/control.h>
+>  #include <plat/clkdev_omap.h>
+> +#include <plat/sram.h>
+>  
+>  #include "clock.h"
+>  #include "clock34xx.h"
+> @@ -52,6 +53,8 @@
+>  static struct clk dpll1_fck;
+>  static struct clk dpll2_fck;
+>  
+> +unsigned int delay_sram;
+> +
+>  /* PRM CLOCKS */
+>  
+>  /* According to timer32k.c, this is a 32768Hz clock, not a 32000Hz clock. */ @@ -3275,5 +3278,13 @@ int __init omap3xxx_clk_init(void)
+>  	sdrc_ick_p = clk_get(NULL, "sdrc_ick");
+>  	arm_fck_p = clk_get(NULL, "arm_fck");
+>  
+> +	/* Measure sram delay */
+> +	delay_sram = measure_sram_delay(10000);
+> +	pr_debug("SRAM delay: %d\n", delay_sram);
+>  	return 0;
+>  }
+> +
+> +unsigned int delay_sram_val(void)
+> +{
+> +	return delay_sram;
+> +}
+> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S index de99ba2..bbeef26 100644
+> --- a/arch/arm/mach-omap2/sram34xx.S
+> +++ b/arch/arm/mach-omap2/sram34xx.S
+> @@ -313,3 +313,20 @@ core_m2_mask_val:
+>  ENTRY(omap3_sram_configure_core_dpll_sz)
+>  	.word	. - omap3_sram_configure_core_dpll
+>  
+> +ENTRY(__sram_wait_delay)
+> +	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
+> +	ldr	r2, [r0]
+> +
+> +loop1:
+> +	subs 	r1, r1, #1
+> +	bne	loop1
+> +
+> +	isb
+> +	ldr	r3, [r0]
+> +	subs	r4, r3, r2
+> +
+> +	mov 	r0, r4 			@ return value
+> +	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
+> +
+> +ENTRY(__sram_wait_delay_sz)
+> +	.word	. - __sram_wait_delay
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c index 24bf692..d00a44a 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -712,6 +712,12 @@ void omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value  }  EXPORT_SYMBOL_GPL(omap_dm_timer_write_counter);
+>  
+> +unsigned int omap_dm_timer_get_phys_base(unsigned int gptimer) {
+> +	return dm_timers[gptimer - 1].phys_base; } 
+> +EXPORT_SYMBOL_GPL(omap_dm_timer_get_phys_base);
+> +
+>  int omap_dm_timers_active(void)
+>  {
+>  	int i;
+> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+> index 20f1054..f75d43e 100644
+> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
+> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+> @@ -55,6 +55,7 @@ void omap_dm_timer_free(struct omap_dm_timer *timer);  void omap_dm_timer_enable(struct omap_dm_timer *timer);  void omap_dm_timer_disable(struct omap_dm_timer *timer);
+>  
+> +unsigned int omap_dm_timer_get_phys_base(unsigned int gptimer);
+>  int omap_dm_timer_get_irq(struct omap_dm_timer *timer);
+>  
+>  u32 omap_dm_timer_modify_idlect_mask(u32 inputmask); diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
+> index 16a1b45..3ee366c 100644
+> --- a/arch/arm/plat-omap/include/plat/sram.h
+> +++ b/arch/arm/plat-omap/include/plat/sram.h
+> @@ -69,6 +69,11 @@ extern u32 omap3_sram_configure_core_dpll(
+>  			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);  extern unsigned long omap3_sram_configure_core_dpll_sz;
+>  
+> +extern unsigned int measure_sram_delay(unsigned int);
+> +
+> +extern u32 __sram_wait_delay(unsigned int, unsigned int); extern 
+> +unsigned long __sram_wait_delay_sz;
+> +
+>  #ifdef CONFIG_PM
+>  extern void omap_push_sram_idle(void);
+>  #else
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c index 51f4dfb..e541e8f 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -30,6 +30,9 @@
+>  #include <plat/cpu.h>
+>  #include <plat/vram.h>
+>  
+> +#include <linux/clk.h>
+> +#include <plat/dmtimer.h>
+> +#include <plat/io.h>
+>  #include <plat/control.h>
+>  
+>  #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) @@ -74,6 +77,9 @@
+>  
+>  #define ROUND_DOWN(value,boundary)	((value) & (~((boundary)-1)))
+>  
+> +/* GPT10 TCRR register offset */
+> +#define OMAP_TIMER_COUNTER_OFFSET	0x28
+> +
+>  static unsigned long omap_sram_start;
+>  static unsigned long omap_sram_base;
+>  static unsigned long omap_sram_size;
+> @@ -437,11 +443,56 @@ static inline int omap34xx_sram_init(void)  }  #endif
+>  
+> +
+> +#ifdef CONFIG_ARCH_OMAP3
+> +unsigned long (*_omap3_sram_delay)(void * __iomem, unsigned int); 
+> +unsigned int  measure_sram_delay(unsigned int loop) {
+> +	static struct omap_dm_timer *gpt;
+> +	unsigned long flags, diff = 0, gt_rate, mpurate;
+> +	unsigned int delay_sram, error_gain;
+> +	void * __iomem gpt10_counter_reg;
+> +
+> +	omap_dm_timer_init();
+> +	gpt = omap_dm_timer_request_specific(10);
+> +	if (!gpt)
+> +		pr_err("Could not get the gptimer\n");
+> +	omap_dm_timer_set_source(gpt, OMAP_TIMER_SRC_SYS_CLK);
+> +
+> +	gpt10_counter_reg =
+> +			OMAP2_L4_IO_ADDRESS(omap_dm_timer_get_phys_base(10) +
+> +					OMAP_TIMER_COUNTER_OFFSET);
+> +
+> +	gt_rate = clk_get_rate(omap_dm_timer_get_fclk(gpt));
+> +	omap_dm_timer_set_load_start(gpt, 0, 0);
+> +
+> +	local_irq_save(flags);
+> +	diff = _omap3_sram_delay(gpt10_counter_reg, loop);
+> +	local_irq_restore(flags);
+> +
+> +	omap_dm_timer_stop(gpt);
+> +	omap_dm_timer_free(gpt);
+> +
+> +	mpurate = clk_get_rate(clk_get(NULL, "arm_fck"));
+> +
+> +	/* calculate the sram delay */
+> +	delay_sram = (((mpurate / gt_rate) * diff) / (loop * 2));
+> +
+> +	error_gain = mpurate / gt_rate;
+> +	delay_sram = delay_sram + error_gain;
+> +
+> +	return delay_sram;
+> +}
+> +#endif
+> +
+>  int __init omap_sram_init(void)
+>  {
+>  	omap_detect_sram();
+>  	omap_map_sram();
+>  
+> +	_omap3_sram_delay = omap_sram_push(__sram_wait_delay,
+> +						__sram_wait_delay_sz);
+> +
+>  	if (!(cpu_class_is_omap2()))
+>  		omap1_sram_init();
+>  	else if (cpu_is_omap242x())
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
--- 
-Ben
-
-Q:      What's a light-year?
-A:      One-third less calories than a regular year.
 
