@@ -1,37 +1,57 @@
-From: Pablo Bitton <pablo.bitton@gmail.com>
-Subject: probe of omap2-nand failed with -16
-Date: Mon, 8 Mar 2010 22:04:51 +0200
-Message-ID: <7448ec711003081204r6d4fd037o7a87a767a71c54d2@mail.gmail.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [RFC part1/2 merge v2 RESEND][PATCH 01/10] OMAP3: serial: Check
+ for zero-based physical addr
+Date: Mon, 8 Mar 2010 14:28:21 -0600
+Message-ID: <A24693684029E5489D1D202277BE894453E4CF84@dlee02.ent.ti.com>
+References: <1268069332-14082-1-git-send-email-saaguirre@ti.com>
+ <1268069332-14082-2-git-send-email-saaguirre@ti.com>
+ <20100308182443.GD6630@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:34393 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755523Ab0CHUEx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 15:04:53 -0500
-Received: by bwz1 with SMTP id 1so3189615bwz.21
-        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 12:04:51 -0800 (PST)
+Received: from comal.ext.ti.com ([198.47.26.152]:34418 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753798Ab0CHU2c convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 15:28:32 -0500
+In-Reply-To: <20100308182443.GD6630@gandalf>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-
-Hi,
-
-I've started working on beagle board.
-
-Using pre-compiled kernel (angstrom) - i've got nand driver loaded and running.
-
-When I am trying to compile my own kernel from the source, I get error:
-
->> probe of omap2-nand failed with -16 (EBUSY)
-
-I've selected all configs for Nand...
-
-Am I missing something? Mux configuration? GPIO's?
-Anybody has any idea?
+To: "me@felipebalbi.com" <me@felipebalbi.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
 
 
-thanks,
---
-Pablo
+> -----Original Message-----
+> From: Felipe Balbi [mailto:me@felipebalbi.com]
+> Sent: Monday, March 08, 2010 12:25 PM
+> To: Aguirre, Sergio
+> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Pandita, Vikram; Paul
+> Walmsley; Tony Lindgren
+> Subject: Re: [RFC part1/2 merge v2 RESEND][PATCH 01/10] OMAP3: serial:
+> Check for zero-based physical addr
+> 
+> On Mon, Mar 08, 2010 at 11:28:43AM -0600, Sergio Aguirre wrote:
+> > @@ -727,6 +733,10 @@ void __init omap_serial_init_port(int port)
+> >  	pdev = &uart->pdev;
+> >  	dev = &pdev->dev;
+> >
+> > +	/* Don't proceed if there's no clocks available */
+> > +	if (!uart->ick || !uart->fck)
+> > +		return;
+> 
+> with that loop getting the clocks I would expect this not to happen. If
+> it happens, then I would guess it deserves a
+> BUG_ON(!uart->ick || !uart->fck)
+
+Yeah, makes sense.
+
+Will fix.
+
+Thanks,
+Sergio
+
+> 
+> --
+> balbi
