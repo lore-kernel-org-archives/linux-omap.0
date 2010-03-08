@@ -1,106 +1,104 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: GPIO: Added dynamic control logic for pad wakeups
-Date: Mon, 08 Mar 2010 09:06:04 -0800
-Message-ID: <873a0awxoj.fsf@deeprootsystems.com>
-References: <1255695824-17523-1-git-send-email-tero.kristo@nokia.com>
+Subject: Re: [PATCHv6 9/9] OMAP3: PM: Added support for suspending to INACTIVE state
+Date: Mon, 08 Mar 2010 09:16:12 -0800
+Message-ID: <87wrxmvin7.fsf@deeprootsystems.com>
+References: <1265999265-4363-1-git-send-email-tero.kristo@nokia.com>
+	<1265999265-4363-2-git-send-email-tero.kristo@nokia.com>
+	<1265999265-4363-3-git-send-email-tero.kristo@nokia.com>
+	<1265999265-4363-4-git-send-email-tero.kristo@nokia.com>
+	<1265999265-4363-5-git-send-email-tero.kristo@nokia.com>
+	<1265999265-4363-6-git-send-email-tero.kristo@nokia.com>
+	<1265999265-4363-7-git-send-email-tero.kristo@nokia.com>
+	<1265999265-4363-8-git-send-email-tero.kristo@nokia.com>
+	<1265999265-4363-9-git-send-email-tero.kristo@nokia.com>
+	<1265999265-4363-10-git-send-email-tero.kristo@nokia.com>
+	<873a0j8v6x.fsf@deeprootsystems.com>
+	<1F18D6510CF0474A8C9500565A7E41A224BF70AF00@NOK-EUMSG-02.mgdnok.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:62223 "EHLO
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:38603 "EHLO
 	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987Ab0CHRGI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 12:06:08 -0500
-Received: by pvb32 with SMTP id 32so1468194pvb.19
-        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 09:06:07 -0800 (PST)
-In-Reply-To: <1255695824-17523-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 16 Oct 2009 15\:23\:44 +0300")
+	with ESMTP id S1751642Ab0CHRQT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 12:16:19 -0500
+Received: by pvb32 with SMTP id 32so1472258pvb.19
+        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 09:16:19 -0800 (PST)
+In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A224BF70AF00@NOK-EUMSG-02.mgdnok.nokia.com> (Tero Kristo's message of "Tue\, 2 Mar 2010 11\:12\:36 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
+To: Tero.Kristo@nokia.com
 Cc: linux-omap@vger.kernel.org
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+<Tero.Kristo@nokia.com> writes:
 
-> From: Tero Kristo <tero.kristo@nokia.com>
+[...]
+
+> True, ancient info there. OFF for example has been supported for ages already.
 >
-> Pad wakeups are now enabled if the corresponding GPIO interrupt is enabled.
+>>
+>>
+>>> +	if (state != PWRDM_POWER_INACTIVE)
+>>> +		while (!(pwrdm->pwrsts & (1 << state))) {
+>>> +			if (state == PWRDM_POWER_OFF)
+>>> +				return ret;
+>>> +			state--;
+>>> +		}
+>>
+>>I think all powerdomains can be inactive right?
 >
-> Applies on top of PM branch.
+> Yes.
 >
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-
-I just discovered this one in patchwork... sorry for the delay.
-
-Changes in wakeup state should not be directly correlated to interrupt
-enabled GPIOs.  Rather, this should only be done for GPIOs that are
-explicitly wakeup enabled (via enable_irq_wake(), which in turn
-calls gpio_wake_enable()).
-
-A couple other minor comments below...
-
-> ---
->  arch/arm/plat-omap/gpio.c |   22 +++++++++++++++++++++-
->  1 files changed, 21 insertions(+), 1 deletions(-)
+>>I think it would be cleaner to just have all the pwrdm->pwrsts fields
+>>include intactive as a valid option.
+>>
+>>Something like the patch below.  IIRC, you did something like this in
+>>one of the earlier versions of the patch.
 >
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index e242112..fa79db2 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -267,6 +267,7 @@ static struct gpio_bank gpio_bank_34xx[6] = {
->  #define OMAP34XX_PAD_SAFE_MODE 0x7
->  #define OMAP34XX_PAD_IN_PU_GPIO 0x11c
->  #define OMAP34XX_PAD_IN_PD_GPIO 0x10c
-> +#define OMAP34XX_PAD_WAKE_EN (1 << 14)
+> Yeah, something like this was done previously, however Paul did not
+> like the idea of changing the generic powerdomain code too much so I
+> dropped it completely. It is now done only via the support functions
+> in patch #1, and only done for the powerdomains that actually need
+> it for the cpuidle (mpu/core/neon.) It would be possible to add
+> support for the rest of the powerdomains also, but I decided to drop
+> this in favor of getting the patch set in.
 
-Can use BIT(14) here
+I'm not proposing changing any of the other powerdomain code.  Just
+changing the PWRSTS_* defines, essentially so that INACTIVE is
+a valid state.
 
->  struct omap3_gpio_regs {
->  	u32 sysconfig;
-> @@ -713,6 +714,8 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
->  {
->  	void __iomem *base = bank->base;
->  	u32 gpio_bit = 1 << gpio;
-> +	struct gpio_pad *pad;
-> +	int gpio_num;
->  	u32 val;
->  
->  	if (cpu_is_omap44xx()) {
-> @@ -750,6 +753,23 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
->  			 * GPIO wakeup request can only be generated on edge
->  			 * transitions
->  			 */
-
-The comment above needs to stay with the original code.
-
-> +			pad = gpio_pads;
-> +
-> +			gpio_num = bank->virtual_irq_start - IH_GPIO_BASE +
-> +				gpio;
-> +			/* Find the pad corresponding the GPIO */
-> +			while (pad->gpio >= 0 && pad->gpio != gpio_num)
-> +				pad++;
-> +			/* Enable / disable pad wakeup */
-> +			if (pad->gpio == gpio_num) {
-> +				val = omap_ctrl_readw(pad->offset);
-> +				if (trigger & IRQ_TYPE_EDGE_BOTH)
-> +					val |= OMAP34XX_PAD_WAKE_EN;
-> +				else
-> +					val &= ~(u16)OMAP34XX_PAD_WAKE_EN;
-> +				omap_ctrl_writew(val, pad->offset);
-> +			}
-> +
->  			if (trigger & IRQ_TYPE_EDGE_BOTH)
->  				__raw_writel(1 << gpio, bank->base
->  					+ OMAP24XX_GPIO_SETWKUENA);
-> @@ -1654,7 +1674,7 @@ static int __init omap3_gpio_pads_init(void)
->  	gpio_pads[gpio_amt].gpio = -1;
->  	return 0;
->  }
-> -late_initcall(omap3_gpio_pads_init);
-> +early_initcall(omap3_gpio_pads_init);
-
-This change isn't explained in the changelog and appears unrelated to
-this patch.
-
+That will eliminate the need for a special check for inactive in this
+patch.
 
 Kevin
+
+>>
+>>diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h 
+>>b/arch/arm/plat-omap/include/plat/powerdomain.h
+>>index a1ecd47..c692472 100644
+>>--- a/arch/arm/plat-omap/include/plat/powerdomain.h
+>>+++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+>>@@ -31,17 +31,17 @@
+>> #define PWRDM_MAX_PWRSTS	4
+>> 
+>> /* Powerdomain allowable state bitfields */
+>>-#define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | \
+>>+#define PWRSTS_ON		((1 << PWRDM_POWER_INACTIVE) | \
+>> 				 (1 << PWRDM_POWER_ON))
+>> 
+>>+#define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | PWRSTS_ON)
+>>+
+>> #define PWRSTS_OFF_RET		((1 << PWRDM_POWER_OFF) | \
+>> 				 (1 << PWRDM_POWER_RET))
+>> 
+>>-#define PWRSTS_RET_ON		((1 << PWRDM_POWER_RET) | \
+>>-				 (1 << PWRDM_POWER_ON))
+>>-
+>>-#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
+>>+#define PWRSTS_RET_ON		((1 << PWRDM_POWER_RET) | PWRSTS_ON)
+>> 
+>>+#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
+>> 
+>> /* Powerdomain flags */
+>> #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware 
+>>save-and-restore support */
+>>
