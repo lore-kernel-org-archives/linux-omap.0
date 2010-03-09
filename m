@@ -1,53 +1,225 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: GPIO: Added dynamic control logic for pad
- wakeups
-Date: Tue, 9 Mar 2010 12:01:04 -0800
-Message-ID: <20100309200104.GB2900@atomide.com>
-References: <1255695824-17523-1-git-send-email-tero.kristo@nokia.com>
- <873a0awxoj.fsf@deeprootsystems.com>
- <1F18D6510CF0474A8C9500565A7E41A224FCDB832F@NOK-EUMSG-02.mgdnok.nokia.com>
- <20100309190125.GA2900@atomide.com>
- <87vdd5nvmx.fsf@deeprootsystems.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: kernel panic with latest DSS
+Date: Tue, 9 Mar 2010 11:58:19 -0800
+Message-ID: <5e088bd91003091158l6cfa0b76u204e5432389d573@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54967 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751121Ab0CIT7p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 14:59:45 -0500
-Content-Disposition: inline
-In-Reply-To: <87vdd5nvmx.fsf@deeprootsystems.com>
+Received: from qw-out-2122.google.com ([74.125.92.25]:53683 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751494Ab0CIUEZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 15:04:25 -0500
+Received: by qw-out-2122.google.com with SMTP id 8so72412qwh.37
+        for <linux-omap@vger.kernel.org>; Tue, 09 Mar 2010 12:04:24 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tero.Kristo@nokia.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100309 11:23]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > * Tero.Kristo@nokia.com <Tero.Kristo@nokia.com> [100309 00:20]:
-> >> >
-> >> >Changes in wakeup state should not be directly correlated to interrupt
-> >> >enabled GPIOs.  Rather, this should only be done for GPIOs that are
-> >> >explicitly wakeup enabled (via enable_irq_wake(), which in turn
-> >> >calls gpio_wake_enable()).
-> >> 
-> >> This logic somehow escapes me... I would guess drivers should not care during dynamic idle whether the device is in off/ret/ina and interrupts should just work. This is done to make this happen. Also, I understood that gpio wakeup logic is needed for the suspend wakeup, which is quite different from dynamic idle wakeup.
-> >> 
-> >> However, if this is intended behavior for the kernel, then I will accept it. You are saying the code below should be moved into the gpio_wake_enable() / disable() calls?
-> >
-> > I agree. I'd assume during the idle modes we want everything to
-> > automatically wake the system up. Otherwise we again have non-standard
-> > Linux behaviour that's mysterious to track down. The enable_irq_wake
-> > should only be needed for suspend states.
-> 
-> OK, then essentially all GPIO IRQs need to be configured in the
-> equivalent of an enable_irq_wake'd state by default.  That means
-> IO pad wakeups *and* module-level wakeups.
-> 
-> Upon suspend, the ability to wakeup should be removed for all except
-> for those that have been explicitly enabled via enable_irq_wake().
+I just updated all my Beagle and Overo DSS patches to apply on the
+latest linux-omap head.
 
-That sounds pretty good to me.
+I ran into a slight issue with parsing defaults, but saw that Tomi had
+already posted a workaround for that.
 
-Tony
+With that patch applied I get pretty good results until I try to do
+something like play a DVD or display video from a webcam.
+
+At that point I get a kernel panic.  See below.
+
+Has anyone else run into this?
+
+Steve
+
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+pgd = ddedc000
+[00000000] *pgd=9ddb8031, *pte=00000000, *ppte=00000000
+Internal error: Oops: 817 [#1]
+last sysfs file: /sys/devices/platform/musb_hdrc/usb1/1-1/1-1:1.0/uevent
+Modules linked in: ipv6 udf sr_mod cdrom sg uvcvideo videodev ads7846
+v4l1_compat
+CPU: 0    Not tainted  (2.6.33 #1)
+PC is at dispc_fclk_rate+0x24/0x2c
+LR is at dispc_fclk_rate+0xc/0x2c
+pc : [<c02b8c3c>]    lr : [<c02b8c24>]    psr: 80000093
+sp : de5d7b58  ip : 00000200  fp : 00000140
+r10: 00000000  r9 : 00000400  r8 : 00000140
+r7 : 000000f0  r6 : c067c638  r5 : 00000200  r4 : 00010003
+r3 : 00000000  r2 : 00000003  r1 : 00000200  r0 : 00000000
+Flags: Nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment user
+Control: 10c5387d  Table: 9dedc019  DAC: 00000015
+Process X (pid: 1379, stack limit = 0xde5d62f0)
+Stack: (0xde5d7b58 to 0xde5d8000)
+7b40:                                                       00000140 c02b8cb0
+7b60: 00000001 c02b8f84 de4b4400 c02973ac c062b4b8 c011b3f4 00000037 60000013
+7b80: 00000140 dfabbe68 00000001 c02bc888 000000ff 00000000 00000000 00000000
+7ba0: 00000180 00000200 0000009a 000000fe 80c12000 00000002 00000001 00000000
+7bc0: de5d7d00 dfabbc00 dfabbe10 00000000 000000f0 de5d7bf4 00000400 c06646ac
+7be0: c0664aac 00000000 00000000 c067c638 00000180 c067c6c0 00000002 0000009a
+7c00: 000000f0 c02bc2e0 0000009a 00000140 000000f0 00000200 00000180 00000400
+7c20: 00000000 00000000 00000000 00000000 000000ff c011b40c 00000000 80c12000
+7c40: dfabbc00 de5d7ddc 00000088 c067c6c0 00000200 00000180 00000002 00000000
+7c60: 00000002 00000000 c067c638 df9bfd40 00000003 00000001 00000044 c067c638
+7c80: 60000013 c02bc880 c067c6fc 00000000 00000000 00000000 df9bfd40 dfa20a00
+7ca0: dfa20a00 001a7d18 de5d6000 001a3c70 00000202 c02c24d8 ffffffff ffffffff
+7cc0: 00000000 000043d1 00000001 80c12000 e0c80000 01400140 000000f0 00000400
+7ce0: 00000000 00000000 00fe0000 0200009a 00ff0180 00000000 00000000 00000000
+7d00: 00000000 000001ca 00000140 000000f0 000043d1 00000050 00000030 00000003
+7d20: 0000000f 00000020 00000004 00000000 00000000 00000020 00000000 de5d7d76
+7d40: c06646dc ffffffff de5d7d76 c06646dc ffffffff 00000002 00000000 c029572c
+7d60: 00000020 00000000 000000fe 0000009a 00000001 00000200 00000180 de5d6000
+7d80: de5d6000 c049ada0 22222222 22222222 22222222 22222222 de5d7dd8 dfabbc08
+7da0: dfabbc08 001a7d18 001a7d18 001a7d18 de5d6000 001a3c70 00000202 40444f34
+7dc0: dfabbc00 001a7d18 001a7d18 001a7d18 001a3c70 c02a50d4 00000001 00000140
+7de0: 000000f0 00000140 000000f0 00000000 00000000 00000010 00000000 00000000
+7e00: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+7e20: 00000000 00000000 00000000 00000001 00000000 ffffffff ffffffff 00000000
+7e40: 000043d1 00000050 00000030 00000003 0000000f 00000020 00000004 00000000
+7e60: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 de5d7e88
+7e80: c0129930 c0113148 dfa20000 00000100 c0664cc0 c02a8ca4 df99f400 c0123240
+7ea0: 00000000 40a5ffff 40a5ffff 40a60000 ddc72e00 000401d8 ddeac140 ddeac0d0
+7ec0: dfabbe68 80c12000 40a60000 00000000 ddeac140 ddeac0f4 ddeac0d0 40a3a000
+7ee0: 00000000 00000000 ddeac140 dfbc28c0 ddc72e00 c0161e7c 40a3a000 ddeac0d0
+7f00: dfbc28c0 40444f34 001a7d18 dfbc28c0 001a7d18 c0184958 00000007 dfbc28c0
+7f20: 40444f34 c018503c 00000000 fffffffd 00000000 c01317fc de5d7f64 00000000
+7f40: ddc42600 c01162b8 00000000 de79de00 ddc72e00 ddc421c0 de5d7fac de5d7f68
+7f60: c049a390 c011628c 00000007 001a7d18 40444f34 dfbc28c0 c00f30c4 de5d6000
+7f80: 001a3c70 c01850c4 00000000 00000000 000000c0 001a37d8 40550170 001a3c70
+7fa0: 00000036 c00f2f40 001a37d8 40550170 00000007 40444f34 001a7d18 00000200
+7fc0: 001a37d8 40550170 001a3c70 00000036 00000000 000000f0 001a3c70 00000202
+7fe0: 00000000 beec18a0 40545bf0 404af63c 60000010 00000007 80a91021 80a91421
+[<c02b8c3c>] (dispc_fclk_rate+0x24/0x2c) from [<c02b8cb0>]
+(dispc_pclk_rate+0x14/0x30)
+[<c02b8cb0>] (dispc_pclk_rate+0x14/0x30) from [<c02b8f84>]
+(dispc_setup_plane+0x2b8/0x123c)
+[<c02b8f84>] (dispc_setup_plane+0x2b8/0x123c) from [<c02bc2e0>]
+(configure_dispc+0x2f0/0x520)
+[<c02bc2e0>] (configure_dispc+0x2f0/0x520) from [<c02bc880>]
+(omap_dss_mgr_apply+0x370/0x3bc)
+[<c02bc880>] (omap_dss_mgr_apply+0x370/0x3bc) from [<c02c24d8>]
+(omapfb_ioctl+0x390/0x1044)
+[<c02c24d8>] (omapfb_ioctl+0x390/0x1044) from [<c02a50d4>]
+(do_fb_ioctl+0x574/0x5b8)
+[<c02a50d4>] (do_fb_ioctl+0x574/0x5b8) from [<c0184958>] (vfs_ioctl+0x2c/0x70)
+[<c0184958>] (vfs_ioctl+0x2c/0x70) from [<c018503c>] (do_vfs_ioctl+0x4d0/0x520)
+[<c018503c>] (do_vfs_ioctl+0x4d0/0x520) from [<c01850c4>] (sys_ioctl+0x38/0x5c)
+[<c01850c4>] (sys_ioctl+0x38/0x5c) from [<c00f2f40>] (ret_fast_syscall+0x0/0x2c)
+Code: 1a000002 e28dd004 e49de004 eaffedf7 (e5833000)
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+pgd = ddedc000
+[00000000] *pgd=9ddb8031, *pte=00000000, *ppte=00000000
+Internal error: Oops: 817 [#2]
+last sysfs file: /sys/devices/platform/musb_hdrc/usb1/1-1/1-1:1.0/uevent
+Modules linked in: ipv6 udf sr_mod cdrom sg uvcvideo videodev ads7846
+v4l1_compat
+CPU: 0    Tainted: G      D     (2.6.33 #1)
+PC is at dispc_fclk_rate+0x24/0x2c
+LR is at dispc_fclk_rate+0xc/0x2c
+pc : [<c02b8c3c>]    lr : [<c02b8c24>]    psr: 80000113
+sp : de5d7700  ip : 00000200  fp : 00000140
+r10: 00000000  r9 : 00000400  r8 : 00000140
+r7 : 000000f0  r6 : c067c638  r5 : 00000200  r4 : 00010003
+r3 : 00000000  r2 : 00000003  r1 : 00000200  r0 : 00000000
+Flags: Nzcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+Control: 10c5387d  Table: 9dedc019  DAC: 00000015
+Process X (pid: 1379, stack limit = 0xde5d62f0)
+Stack: (0xde5d7700 to 0xde5d8000)
+7700: 00000140 c02b8cb0 00000001 c02b8f84 00000000 c062aee8 00000001 de4a80c0
+7720: de5d7764 de5d7730 c0117fe4 c0111f04 4cad7c30 00000000 000000ff 00000000
+7740: 00000000 00000000 00000180 00000200 0000009a 000000fe 80c12000 00000002
+7760: 00000001 00000000 00000000 de5d7798 0000021a c0137ec8 000000f0 0000021a
+7780: 1112b230 0000021a c0620bc0 00000000 00000000 c067c638 00000180 c067c6c0
+77a0: 00000002 0000009a 000000f0 c02bc2e0 0000009a 00000140 000000f0 00000200
+77c0: 00000180 00000400 00000000 00000000 00000000 00000000 000000ff c0130820
+77e0: 00000000 80c12000 000084e7 7fffffff 00000088 c067c6c0 00000200 00000180
+7800: 1110d559 00000000 de5d7907 de5d7840 000000a2 00000000 00000019 de5d7b10
+7820: 00000000 de5d6000 bf000000 c02bcba4 de5d7b10 00007840 de5d7840 c02b7dc4
+7840: c02bcb38 00000000 0000000e 00000000 00000000 00000000 00000000 00000000
+7860: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+7880: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+78a0: df8c2240 00000000 00000000 c02b549c 40000113 c01450e0 00000030 c062dc34
+78c0: 00000019 c02b8c3e c02b8c40 c0146b28 c011f2ec 00000019 00000000 c00f2074
+78e0: 00000008 ffffffff fa200000 c00f2af4 00000000 c065c5dc 00000080 00000080
+7900: 00000001 de5d796f c02b8c3e c02b8c40 de5d7b10 00000000 de5d6000 bf000000
+7920: 0000889e de5d7938 c00f6238 c011a428 60000113 ffffffff de5d62f0 0000000b
+7940: 00000000 00000008 31000005 30303061 20323030 64383265 34303064 39346520
+7960: 30306564 61652034 64656666 28203766 33383565 30303033 00002029 00000000
+7980: 00000817 00000000 de5d7b10 ddc72e00 00000817 00000000 00000817 ddc72e00
+79a0: 00000140 c00f9844 00010000 de6dda00 00000000 00000000 de5d7b10 c00f9aa0
+79c0: de5d79ee c06646e8 ffffffff 00000002 00000000 c029572c 00000020 00000000
+79e0: 00000004 de5d7a1e c06646c3 ffffffff de5d7a1e c06646c3 ffffffff 00000002
+7a00: 00000000 c029572c 00000000 00000000 00000000 ffffffff 00000001 de327a56
+7a20: c06646e8 ffffffff de5d7a56 c06646e8 ffffffff 00000002 00000000 c029572c
+7a40: 00000020 00000000 00000004 ffffffff ffffffff c061eb10 00000817 de5d7b10
+7a60: 00000000 00000193 00000000 c00f2288 c06646c3 00000010 0000000a c06646c4
+7a80: 00000002 c0296ffc 00000010 00000002 ffffffff 0000000a ffffffff ffffffff
+7aa0: de5d7ac0 de5d7ac4 00000400 c06646ac c0664aac ffffffff ffffffff c05a8897
+7ac0: 00000010 00000002 ffffffff 0000000a ffffffff ffffffff de5d7af8 00000400
+7ae0: 00000000 00000000 de5d7b7c c06646ac 00000013 c0296ffc ffffffff de5d7b44
+7b00: c067c638 000000f0 00000140 c00f2aac 00000000 00000200 00000003 00000000
+7b20: 00010003 00000200 c067c638 000000f0 00000140 00000400 00000000 00000140
+7b40: 00000200 de5d7b58 c02b8c24 c02b8c3c 80000093 ffffffff 00000140 c02b8cb0
+7b60: 00000001 c02b8f84 de4b4400 c02973ac c062b4b8 c011b3f4 00000037 60000013
+7b80: 00000140 dfabbe68 00000001 c02bc888 000000ff 00000000 00000000 00000000
+7ba0: 00000180 00000200 0000009a 000000fe 80c12000 00000002 00000001 00000000
+7bc0: de5d7d00 dfabbc00 dfabbe10 00000000 000000f0 de5d7bf4 00000400 c06646ac
+7be0: c0664aac 00000000 00000000 c067c638 00000180 c067c6c0 00000002 0000009a
+7c00: 000000f0 c02bc2e0 0000009a 00000140 000000f0 00000200 00000180 00000400
+7c20: 00000000 00000000 00000000 00000000 000000ff c011b40c 00000000 80c12000
+7c40: dfabbc00 de5d7ddc 00000088 c067c6c0 00000200 00000180 00000002 00000000
+7c60: 00000002 00000000 c067c638 df9bfd40 00000003 00000001 00000044 c067c638
+7c80: 60000013 c02bc880 c067c6fc 00000000 00000000 00000000 df9bfd40 dfa20a00
+7ca0: dfa20a00 001a7d18 de5d6000 001a3c70 00000202 c02c24d8 ffffffff ffffffff
+7cc0: 00000000 000043d1 00000001 80c12000 e0c80000 01400140 000000f0 00000400
+7ce0: 00000000 00000000 00fe0000 0200009a 00ff0180 00000000 00000000 00000000
+7d00: 00000000 000001ca 00000140 000000f0 000043d1 00000050 00000030 00000003
+7d20: 0000000f 00000020 00000004 00000000 00000000 00000020 00000000 de5d7d76
+7d40: c06646dc ffffffff de5d7d76 c06646dc ffffffff 00000002 00000000 c029572c
+7d60: 00000020 00000000 000000fe 0000009a 00000001 00000200 00000180 de5d6000
+7d80: de5d6000 c049ada0 22222222 22222222 22222222 22222222 de5d7dd8 dfabbc08
+7da0: dfabbc08 001a7d18 001a7d18 001a7d18 de5d6000 001a3c70 00000202 40444f34
+7dc0: dfabbc00 001a7d18 001a7d18 001a7d18 001a3c70 c02a50d4 00000001 00000140
+7de0: 000000f0 00000140 000000f0 00000000 00000000 00000010 00000000 00000000
+7e00: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+7e20: 00000000 00000000 00000000 00000001 00000000 ffffffff ffffffff 00000000
+7e40: 000043d1 00000050 00000030 00000003 0000000f 00000020 00000004 00000000
+7e60: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 de5d7e88
+7e80: c0129930 c0113148 dfa20000 00000100 c0664cc0 c02a8ca4 df99f400 c0123240
+7ea0: 00000000 40a5ffff 40a5ffff 40a60000 ddc72e00 000401d8 ddeac140 ddeac0d0
+7ec0: dfabbe68 80c12000 40a60000 00000000 ddeac140 ddeac0f4 ddeac0d0 40a3a000
+7ee0: 00000000 00000000 ddeac140 dfbc28c0 ddc72e00 c0161e7c 40a3a000 ddeac0d0
+7f00: dfbc28c0 40444f34 001a7d18 dfbc28c0 001a7d18 c0184958 00000007 dfbc28c0
+7f20: 40444f34 c018503c 00000000 fffffffd 00000000 c01317fc de5d7f64 00000000
+7f40: ddc42600 c01162b8 00000000 de79de00 ddc72e00 ddc421c0 de5d7fac de5d7f68
+7f60: c049a390 c011628c 00000007 001a7d18 40444f34 dfbc28c0 c00f30c4 de5d6000
+7f80: 001a3c70 c01850c4 00000000 00000000 000000c0 001a37d8 40550170 001a3c70
+7fa0: 00000036 c00f2f40 001a37d8 40550170 00000007 40444f34 001a7d18 00000200
+7fc0: 001a37d8 40550170 001a3c70 00000036 00000000 000000f0 001a3c70 00000202
+7fe0: 00000000 beec18a0 40545bf0 404af63c 60000010 00000007 80a91021 80a91421
+[<c02b8c3c>] (dispc_fclk_rate+0x24/0x2c) from [<c02b8cb0>]
+(dispc_pclk_rate+0x14/0x30)
+[<c02b8cb0>] (dispc_pclk_rate+0x14/0x30) from [<c02b8f84>]
+(dispc_setup_plane+0x2b8/0x123c)
+[<c02b8f84>] (dispc_setup_plane+0x2b8/0x123c) from [<c02bc2e0>]
+(configure_dispc+0x2f0/0x520)
+[<c02bc2e0>] (configure_dispc+0x2f0/0x520) from [<c02bcba4>]
+(dss_apply_irq_handler+0x6c/0xd0)
+[<c02bcba4>] (dss_apply_irq_handler+0x6c/0xd0) from [<c02b7dc4>]
+(dispc_irq_handler+0xf4/0x170)
+[<c02b7dc4>] (dispc_irq_handler+0xf4/0x170) from [<c02b549c>]
+(dss_irq_handler_omap3+0x20/0x30)
+[<c02b549c>] (dss_irq_handler_omap3+0x20/0x30) from [<c01450e0>]
+(handle_IRQ_event+0x38/0xfc)
+[<c01450e0>] (handle_IRQ_event+0x38/0xfc) from [<c0146b28>]
+(handle_level_irq+0x8c/0xf4)
+[<c0146b28>] (handle_level_irq+0x8c/0xf4) from [<c00f2074>]
+(asm_do_IRQ+0x74/0x98)
+[<c00f2074>] (asm_do_IRQ+0x74/0x98) from [<c00f2af4>] (__irq_svc+0x34/0x80)
+Exception stack(0xde5d78f0 to 0xde5d7938)
+78e0:                                     00000000 c065c5dc 00000080 00000080
+7900: 00000001 de5d796f c02b8c3e c02b8c40 de5d7b10 00000000 de5d6000 bf000000
+7920: 0000889e de5d7938 c00f6238 c011a428 60000113 ffffffff
+[<c00f2af4>] (__irq_svc+0x34/0x80) from [<c011a428>] (oops_exit+0x0/0x38)
+[<c011a428>] (oops_exit+0x0/0x38) from [<0000000b>] (0xb)
+Code: 1a000002 e28dd004 e49de004 eaffedf7 (e5833000)
+---[ end trace 0b23e477db9ceae6 ]---
+Kernel panic - not syncing: Fatal exception in interrupt
