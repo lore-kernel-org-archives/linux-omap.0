@@ -1,109 +1,129 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH/RFT v3] OMAP4: fix temporary hacks that break multi-omap
- PM
-Date: Tue, 9 Mar 2010 14:24:06 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C461A9CA@dbde02.ent.ti.com>
-References: <1268074368-27026-1-git-send-email-khilman@deeprootsystems.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] OMAP3: GPIO: Added dynamic control logic for pad wakeups
+Date: Tue, 9 Mar 2010 09:24:06 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A224FCDB832F@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1255695824-17523-1-git-send-email-tero.kristo@nokia.com>
+ <873a0awxoj.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35388 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752837Ab0CIIyM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 03:54:12 -0500
-In-Reply-To: <1268074368-27026-1-git-send-email-khilman@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.230]:29183 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751097Ab0CIIYN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 03:24:13 -0500
+In-Reply-To: <873a0awxoj.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org
 
-Kevin,
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
-> Hilman
-> Sent: Tuesday, March 09, 2010 12:23 AM
-> To: linux-omap@vger.kernel.org
-> Subject: [PATCH/RFT v3] OMAP4: fix temporary hacks that break multi-omap PM
-> 
-> When building for multi-omap, and OMAP4 is enabled, CONFIG_ARCH_OMAP4
-> will be true and prevent included code from building/running for
-> OMAP2/3 as well.
-> 
-> This problem exists in io.c where some hwmod/PM/SDRC init code is
-> prevented from running even on OMAP2/3 when OMAP4 is included in a
-> multi-OMAP build.
-> 
-> A quick glance suggests that this #ifndef is no longer needed.  The
-> called functions should work fine or fail gracefully in the OMAP4
-> case.
-> 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-> 
-> Needs testing on OMAP4 since still no OMAP4 hardware here.
-> 
-Did you build test this ?
-This patch breaks builds on latest linux-omap master and mainline.
+ 
 
-omap_4430sdp_defconfig
-arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_hw':
-/work/linux-omap-2.6/arch/arm/mach-omap2/io.c:334: undefined reference to `omap_hwmod_late_init'
-/work/linux-omap-2.6/arch/arm/mach-omap2/io.c:336: undefined reference to `omap2_sdrc_init'
-make: *** [.tmp_vmlinux1] Error 1
+>-----Original Message-----
+>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: 08 March, 2010 19:06
+>To: Kristo Tero (Nokia-D/Tampere)
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCH] OMAP3: GPIO: Added dynamic control logic 
+>for pad wakeups
+>
+>Tero Kristo <tero.kristo@nokia.com> writes:
+>
+>> From: Tero Kristo <tero.kristo@nokia.com>
+>>
+>> Pad wakeups are now enabled if the corresponding GPIO 
+>interrupt is enabled.
+>>
+>> Applies on top of PM branch.
+>>
+>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+>
+>I just discovered this one in patchwork... sorry for the delay.
+>
+>Changes in wakeup state should not be directly correlated to interrupt
+>enabled GPIOs.  Rather, this should only be done for GPIOs that are
+>explicitly wakeup enabled (via enable_irq_wake(), which in turn
+>calls gpio_wake_enable()).
 
-omap3_defconfig
-arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_hw':
-/work/linux-omap-2.6/arch/arm/mach-omap2/io.c:315: undefined reference to `omap2430_hwmod_init'
-make: *** [.tmp_vmlinux1] Error 1
+This logic somehow escapes me... I would guess drivers should not care during dynamic idle whether the device is in off/ret/ina and interrupts should just work. This is done to make this happen. Also, I understood that gpio wakeup logic is needed for the suspend wakeup, which is quite different from dynamic idle wakeup.
 
+However, if this is intended behavior for the kernel, then I will accept it. You are saying the code below should be moved into the gpio_wake_enable() / disable() calls?
 
-> Updates from v2:
-> - actually applies to l-o master
-> 
-> Updates from v1:
-> - removed additional #ifdef block in init_common_hw()
-> 
->  arch/arm/mach-omap2/io.c |    5 +----
->  1 files changed, 1 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 402e8f0..595446f 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -309,7 +309,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  {
->  	pwrdm_init(powerdomains_omap);
->  	clkdm_init(clockdomains_omap, clkdm_autodeps);
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is ready */
->  	if (cpu_is_omap242x())
->  		omap2420_hwmod_init();
->  	else if (cpu_is_omap243x())
-> @@ -319,7 +318,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  	omap2_mux_init();
->  	/* The OPP tables have to be registered before a clk init */
->  	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
-> -#endif
-> 
->  	if (cpu_is_omap2420())
->  		omap2420_clk_init();
-> @@ -333,11 +331,10 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  		pr_err("Could not init clock framework - unknown CPU\n");
-> 
->  	omap_serial_early_init();
-> -#ifndef CONFIG_ARCH_OMAP4
->  	omap_hwmod_late_init();
->  	omap_pm_if_init();
->  	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
->  	_omap2_init_reprogram_sdrc();
-> -#endif
-> +
->  	gpmc_init();
->  }
-> --
-> 1.7.0.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>A couple other minor comments below...
+>
+>> ---
+>>  arch/arm/plat-omap/gpio.c |   22 +++++++++++++++++++++-
+>>  1 files changed, 21 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+>> index e242112..fa79db2 100644
+>> --- a/arch/arm/plat-omap/gpio.c
+>> +++ b/arch/arm/plat-omap/gpio.c
+>> @@ -267,6 +267,7 @@ static struct gpio_bank gpio_bank_34xx[6] = {
+>>  #define OMAP34XX_PAD_SAFE_MODE 0x7
+>>  #define OMAP34XX_PAD_IN_PU_GPIO 0x11c
+>>  #define OMAP34XX_PAD_IN_PD_GPIO 0x10c
+>> +#define OMAP34XX_PAD_WAKE_EN (1 << 14)
+>
+>Can use BIT(14) here
+>
+>>  struct omap3_gpio_regs {
+>>  	u32 sysconfig;
+>> @@ -713,6 +714,8 @@ static inline void 
+>set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+>>  {
+>>  	void __iomem *base = bank->base;
+>>  	u32 gpio_bit = 1 << gpio;
+>> +	struct gpio_pad *pad;
+>> +	int gpio_num;
+>>  	u32 val;
+>>  
+>>  	if (cpu_is_omap44xx()) {
+>> @@ -750,6 +753,23 @@ static inline void 
+>set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+>>  			 * GPIO wakeup request can only be 
+>generated on edge
+>>  			 * transitions
+>>  			 */
+>
+>The comment above needs to stay with the original code.
+>
+>> +			pad = gpio_pads;
+>> +
+>> +			gpio_num = bank->virtual_irq_start - 
+>IH_GPIO_BASE +
+>> +				gpio;
+>> +			/* Find the pad corresponding the GPIO */
+>> +			while (pad->gpio >= 0 && pad->gpio != gpio_num)
+>> +				pad++;
+>> +			/* Enable / disable pad wakeup */
+>> +			if (pad->gpio == gpio_num) {
+>> +				val = omap_ctrl_readw(pad->offset);
+>> +				if (trigger & IRQ_TYPE_EDGE_BOTH)
+>> +					val |= OMAP34XX_PAD_WAKE_EN;
+>> +				else
+>> +					val &= 
+>~(u16)OMAP34XX_PAD_WAKE_EN;
+>> +				omap_ctrl_writew(val, pad->offset);
+>> +			}
+>> +
+>>  			if (trigger & IRQ_TYPE_EDGE_BOTH)
+>>  				__raw_writel(1 << gpio, bank->base
+>>  					+ OMAP24XX_GPIO_SETWKUENA);
+>> @@ -1654,7 +1674,7 @@ static int __init omap3_gpio_pads_init(void)
+>>  	gpio_pads[gpio_amt].gpio = -1;
+>>  	return 0;
+>>  }
+>> -late_initcall(omap3_gpio_pads_init);
+>> +early_initcall(omap3_gpio_pads_init);
+>
+>This change isn't explained in the changelog and appears unrelated to
+>this patch.
+
+The reason for this change is that we need the gpio->pad mapping early now to enable wakeups properly. Otherwise some components can enable gpio interrupts early in the boot cycle and they will miss their wakeup setting because the map does not exist yet. I think another way to do this would be to enable wakeups for all enabled interrupts during the omap3_gpio_pads_init().
+
+-Tero
