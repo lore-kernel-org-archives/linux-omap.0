@@ -1,66 +1,49 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 0/3] OMAP3: PM: OMAP3630 support for smartreflex driver
-Date: Tue, 9 Mar 2010 14:29:07 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321DCB0AC@dbde02.ent.ti.com>
-References: <1268068851-30022-1-git-send-email-thara@ti.com>
- <87eijuvhph.fsf@deeprootsystems.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Snipping irrelevant text from a discussion (was: "RE: [PATCH
+ 15/16] OMAP3: PM: VP force update method of voltage scaling")
+Date: Tue, 9 Mar 2010 08:51:33 +0200
+Message-ID: <20100309065133.GC22418@nokia.com>
+References: <1267003757-22456-15-git-send-email-thara@ti.com>
+ <1267003757-22456-16-git-send-email-thara@ti.com>
+ <87ljeap6f6.fsf@deeprootsystems.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2BB@dbde02.ent.ti.com>
+ <94a0d4531003050726y52b2fe51r7fc11558144eb7e1@mail.gmail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2C1@dbde02.ent.ti.com>
+ <94a0d4531003050822v75785338r22c6b23bfb3ae2b1@mail.gmail.com>
+ <A24693684029E5489D1D202277BE894453D681E6@dlee02.ent.ti.com>
+ <94a0d4531003051318q65c3c711he385093be960ff5e@mail.gmail.com>
+ <20100309014236.GN2900@atomide.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38140 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753539Ab0CII7O convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 03:59:14 -0500
-In-Reply-To: <87eijuvhph.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:57265 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751732Ab0CIGxN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 01:53:13 -0500
+Content-Disposition: inline
+In-Reply-To: <20100309014236.GN2900@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Gopinath, Thara" <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
+On Tue, Mar 09, 2010 at 02:42:36AM +0100, ext Tony Lindgren wrote:
+>After a quick search for "mailing list netiquette" I cam up with
+>the following links:
+>
+>http://linux.sgms-centre.com/misc/netiquette.php
+>http://en.opensuse.org/OpenSUSE_mailing_list_netiquette
+>
+>We can add that to some of the wiki pages so people can start
+>following the "proper" standards. Anybody got better links?
 
+How about this ?
 
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Monday, March 08, 2010 11:06 PM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Menon, Nishanth; Sripathy, Vishwanath; Sawant, Anand;
->>Cousson, Benoit
->>Subject: Re: [PATCH 0/3] OMAP3: PM: OMAP3630 support for smartreflex driver
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>> This patch series adds support for the updated 45nm smrtrelfex IP
->>> supported in OMAP3630 and OMAP4 in the smartreflex driver and
->>> adds support to enable smartreflex autocompensation for OMAP3630
->>> using test nvalues.
->>>
->>> This patch series is based on the following patch series/patches
->>> for proper functionality.
->>> 	http://marc.info/?l=linux-omap&m=126700378625593&w=2
->>> 	http://patchwork.kernel.org/patch/77739/
->>>
->>> This patch series has been tested on OMAP3630 SDP board with
->>> CONFIG_OMAP_SMARTREFLEX_TESTING option enabled in the menuconfig.
->>>
->>> This patch series has been based on Kevin's PM tree
->>> origin/pm-wip-opp branch
->>
->>It appears to also depend on the previous SR rework series.  It
->>doesn't apply directly to pm-wip-opp.
+http://en.wikipedia.org/wiki/Top_posting#Interleaved_style
 
-Hi Kevin,
+it explains all the posting styles but we want the interleaved style or 
+inline reply without top-posting.
 
-The patch/series dependency mentions the previous SR rework patch series in the above line.
-
->>
->>> and on adea81232e8fc82334bca3707efa23dc854f29fc commit id.
->>
->>This commit is a rather old version of pm-wip-opp, please refresh
->>against current.
-
-I will do this. I will send out a V2 for both this series and the earlier smartreflex rework series.
-
-Regards
-Thara
+-- 
+balbi
