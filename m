@@ -1,90 +1,126 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 2/4] Regulator: OMAP: Modifying Kconfig/Makefile to
- choose from available PMICs
-Date: Mon, 8 Mar 2010 14:55:32 -0800
-Message-ID: <20100308225532.GG2900@atomide.com>
-References: <1267525787-3169-1-git-send-email-anuj.aggarwal@ti.com>
- <6ed0b2681003020923m2c7526fn11995334c36c8a83@mail.gmail.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0321CBC701@dbde02.ent.ti.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: Commit 0c8219f0... breaks omap7xx support
+Date: Mon, 8 Mar 2010 17:51:53 -0800
+Message-ID: <6cb013311003081751u2c7cd8c6v59472ee85ac90e77@mail.gmail.com>
+References: <6cb013311003062056v3ed83a53u2636838348bf4845@mail.gmail.com>
+	<20100309004832.GK2900@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60215 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755773Ab0CHWyQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 17:54:16 -0500
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321CBC701@dbde02.ent.ti.com>
+Received: from mail-px0-f181.google.com ([209.85.216.181]:35302 "EHLO
+	mail-px0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756496Ab0CIBwO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Mar 2010 20:52:14 -0500
+Received: by pxi11 with SMTP id 11so1734927pxi.15
+        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 17:52:14 -0800 (PST)
+In-Reply-To: <20100309004832.GK2900@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, miknix@gmail.com, a.j.buxton@gmail.com, linwizard-devel@lists.sf.net
 
-* Aggarwal, Anuj <anuj.aggarwal@ti.com> [100302 22:52]:
-> > -----Original Message-----
-> > From: Grazvydas Ignotas [mailto:notasas@gmail.com]
-> > Sent: Tuesday, March 02, 2010 10:54 PM
-> > To: Aggarwal, Anuj
-> > Cc: tony@atomide.com; linux-omap@vger.kernel.org;
-> > broonie@opensource.wolfsonmicro.com; lrg@slimlogic.co.uk
-> > Subject: Re: [PATCHv3 2/4] Regulator: OMAP: Modifying Kconfig/Makef=
-ile to
-> > choose from available PMICs
-> >=20
-> > On Tue, Mar 2, 2010 at 12:29 PM, Anuj Aggarwal <anuj.aggarwal@ti.co=
-m>
-> > wrote:
-> > > Kconfig is modified for OMAP3 EVM so that user can choose the
-> > appropriate
-> > > PMIC (currently only TWL4030). Config options for other PMICs wil=
-l be
-> > > added later on.
-> > > Makefile is modified so that twl4030-pmic.c gets compiled for the
-> > > platforms having TWL4030 as the PMIC.
-> > >
-> > > Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
-> > > ---
-> > > =C2=A0arch/arm/mach-omap2/Kconfig =C2=A0| =C2=A0 =C2=A09 ++++++++=
-+
-> > > =C2=A0arch/arm/mach-omap2/Makefile | =C2=A0 =C2=A01 +
-> > > =C2=A02 files changed, 10 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kc=
-onfig
-> > > index a8a3d1e..1974dda 100644
-> > > --- a/arch/arm/mach-omap2/Kconfig
-> > > +++ b/arch/arm/mach-omap2/Kconfig
-> > > @@ -77,6 +77,15 @@ config MACH_OMAP3EVM
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0depends on ARCH_OMAP3
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0select OMAP_PACKAGE_CBB
-> > >
-> > > +config PMIC_TWL4030
-> > > + =C2=A0 =C2=A0 =C2=A0 bool "TWL4030/TPS65950 Power Module"
-> > > + =C2=A0 =C2=A0 =C2=A0 default y
-> > > + =C2=A0 =C2=A0 =C2=A0 select TWL4030_CORE
-> > > + =C2=A0 =C2=A0 =C2=A0 select REGULATOR_TWL4030 if REGULATOR
-> > > + =C2=A0 =C2=A0 =C2=A0 help
-> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 Say yes here if you are using the T=
-WL4030/TPS65950 based power
-> > module
-> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 for the EVM boards.
-> > > +
-> >=20
-> > Any reason to have this user configurable? The boards that depend o=
-n
-> > it will always need it to be enabled to compile, and the ones that
-> > don't always want it disabled.
+On Mon, Mar 8, 2010 at 4:48 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Cory Maccarrone <darkstar6262@gmail.com> [100306 20:53]:
+>> All,
+>>
+>> I've finally gotten some time to test the latest linux-omap code, an=
+d
+>> found the following commit:
+>>
+>> =C2=A0 =C2=A0 4f2c49fedf... omap: Clean the serial port defines
+>>
+>> breaks current omap7xx support. =C2=A0To get linux-omap master to bo=
+ot, I
+>> had to revert that, and the three two that follow it:
+>>
+>> =C2=A0 =C2=A0 0c8219f03... omap: Make uncompress code and DEBUG_LL c=
+ode generic
+>> =C2=A0 =C2=A0 61b603b4e...omap: Remove old DEBUG_LL serial port opti=
+ons
+>>
+>> in order to boot with DEBUG_LL enabled. =C2=A0Disabled, I only neede=
+d to
+>> revert the last two.
+>
+> Hmm OK thanks for bisecting this. The first patch seems to have
+> a bug for uncompress.h on non omap3 platforms, see the attached
+> patch.
+>
+> Are you sure you have CONFIG_EARLY_PRINTK and earlyprintk also
+> in your cmdline?
+>
 
-> [Aggarwal, Anuj] OMAP3 EVM can have different PMICs like TWL4030,
-> TPS65023, TPS6507x etc; user can configure the kernel accordingly.
+I am now :)  It crashes equally with those enabled.
 
-We need to be able to compile in support for multiple PMICs, so
-just probe for PMICs via I2C and use the one you find.
+>> I don't know enough about that part of the kernel to debug it, so al=
+l
+>> I can offer is a test result. =C2=A0For reference, this was on
+>> board-htcherald using the htcherald_defconfig settings.
+>
+> Can you try the following:
+>
+> - Use the current mainline kernel head
+> - make sure you have DEBUG_LL and EARLY_PRINTK enabled in your .confi=
+g
+> - check that you have earlyprintk also in the kernel cmdline
+> - no other serial patches applied
+>
 
-Regards,
+No output, kernel crashes, watchdog reboots the device with this setup.
 
-Tony
+> If no serial output, please temporarily hardcode the values
+> for your 7xx board in mach-omap1/include/mach/debug-macro.S for
+> omap_uart_phys and omap_uart_virt. Maybe that will give some
+> more clues.
+>
+
+Same result as above with the hardcoding.
+
+> If you don't have any serial output with that, then try this:
+>
+> - reset some branch to 4f2c49fedf
+> - make sure you have DEBUG_LL and EARLY_PRINTK enabled in your .confi=
+g
+> - check that you have earlyprintk also in the kernel cmdline
+> - apply the following patch for the uncompress code
+>
+
+This worked.  I was able to boot in with DEBUG_LL enabled and
+everything appears to be working properly.
+
+> That way you might be able to track down further where things
+> break with the patches following 4f2c49fedf.
+>
+> Regards,
+>
+> Tony
+>
+> --- a/arch/arm/plat-omap/include/plat/uncompress.h
+> +++ b/arch/arm/plat-omap/include/plat/uncompress.h
+> @@ -42,11 +42,11 @@ static void putc(int c)
+> =C2=A0#ifdef CONFIG_ARCH_OMAP
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Will get removed in the next patch, set=
+ to OMAP3 to compile */
+> =C2=A0#ifdef CONFIG_OMAP_LL_DEBUG_UART3
+> - =C2=A0 =C2=A0 =C2=A0 uart =3D (volatile u8 *)(OMAP3_UART3_BASE);
+> + =C2=A0 =C2=A0 =C2=A0 uart =3D (volatile u8 *)(OMAP1_UART3_BASE);
+> =C2=A0#elif defined(CONFIG_OMAP_LL_DEBUG_UART2)
+> - =C2=A0 =C2=A0 =C2=A0 uart =3D (volatile u8 *)(OMAP3_UART2_BASE);
+> + =C2=A0 =C2=A0 =C2=A0 uart =3D (volatile u8 *)(OMAP1_UART2_BASE);
+> =C2=A0#elif defined(CONFIG_OMAP_LL_DEBUG_UART1)
+> - =C2=A0 =C2=A0 =C2=A0 uart =3D (volatile u8 *)(OMAP3_UART1_BASE);
+> + =C2=A0 =C2=A0 =C2=A0 uart =3D (volatile u8 *)(OMAP1_UART1_BASE);
+> =C2=A0#elif defined(CONFIG_OMAP_LL_DEBUG_NONE)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0return;
+> =C2=A0#else
+>
+
+Any other hints?  I'm going to start looking at the changes, I'm
+beginning to understand them more.
+
+Thanks
+- Cory
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
