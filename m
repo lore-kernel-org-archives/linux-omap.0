@@ -1,49 +1,51 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: Snipping irrelevant text from a discussion (was: "RE: [PATCH
- 15/16] OMAP3: PM: VP force update method of voltage scaling")
-Date: Tue, 9 Mar 2010 08:51:33 +0200
-Message-ID: <20100309065133.GC22418@nokia.com>
-References: <1267003757-22456-15-git-send-email-thara@ti.com>
- <1267003757-22456-16-git-send-email-thara@ti.com>
- <87ljeap6f6.fsf@deeprootsystems.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2BB@dbde02.ent.ti.com>
- <94a0d4531003050726y52b2fe51r7fc11558144eb7e1@mail.gmail.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0321CBD2C1@dbde02.ent.ti.com>
- <94a0d4531003050822v75785338r22c6b23bfb3ae2b1@mail.gmail.com>
- <A24693684029E5489D1D202277BE894453D681E6@dlee02.ent.ti.com>
- <94a0d4531003051318q65c3c711he385093be960ff5e@mail.gmail.com>
- <20100309014236.GN2900@atomide.com>
-Reply-To: felipe.balbi@nokia.com
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: probe of omap2-nand failed with -16
+Date: Tue, 9 Mar 2010 12:08:56 +0530
+Message-ID: <ce9ab5791003082238m370275afkc1df90b8822e35c8@mail.gmail.com>
+References: <7448ec711003081204r6d4fd037o7a87a767a71c54d2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57265 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732Ab0CIGxN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 01:53:13 -0500
-Content-Disposition: inline
-In-Reply-To: <20100309014236.GN2900@atomide.com>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:62696 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751781Ab0CIGjR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 01:39:17 -0500
+Received: by bwz1 with SMTP id 1so3556471bwz.21
+        for <linux-omap@vger.kernel.org>; Mon, 08 Mar 2010 22:39:16 -0800 (PST)
+In-Reply-To: <7448ec711003081204r6d4fd037o7a87a767a71c54d2@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Gopinath, Thara" <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Pablo Bitton <pablo.bitton@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Mar 09, 2010 at 02:42:36AM +0100, ext Tony Lindgren wrote:
->After a quick search for "mailing list netiquette" I cam up with
->the following links:
+On Tue, Mar 9, 2010 at 1:34 AM, Pablo Bitton <pablo.bitton@gmail.com> wrote:
+> Hi,
 >
->http://linux.sgms-centre.com/misc/netiquette.php
->http://en.opensuse.org/OpenSUSE_mailing_list_netiquette
+> I've started working on beagle board.
 >
->We can add that to some of the wiki pages so people can start
->following the "proper" standards. Anybody got better links?
+> Using pre-compiled kernel (angstrom) - i've got nand driver loaded and running.
+>
+> When I am trying to compile my own kernel from the source, I get error:
+>
+>>> probe of omap2-nand failed with -16 (EBUSY)
 
-How about this ?
+This happens because we moved 'gpmc_cs_request' from nand driver
+(nand/omap2.c) probe to 'mach-omap2/gpmc-nand.c'.
 
-http://en.wikipedia.org/wiki/Top_posting#Interleaved_style
+>
+> I've selected all configs for Nand...
+>
+> Am I missing something? Mux configuration? GPIO's?
+> Anybody has any idea?
 
-it explains all the posting styles but we want the interleaved style or 
-inline reply without top-posting.
+Yes. You need to adopt gpmc-nand.c for beagle boards.
+
+For help you may have a look into below commits:
+1. <http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=c2798e9342a1394de966c31703e0410ee3988378>
+
+2. <http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=88c8460ac32283e2a25e36e4670ff5ab02f3b521>
+
 
 -- 
-balbi
+Regards,
+Vimal Singh
