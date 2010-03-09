@@ -1,131 +1,61 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH/RFT v3] OMAP4: fix temporary hacks that break multi-omap PM
-Date: Tue, 09 Mar 2010 08:38:57 -0800
-Message-ID: <87ocixsb4u.fsf@deeprootsystems.com>
-References: <1268074368-27026-1-git-send-email-khilman@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02C461A9CA@dbde02.ent.ti.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH V4] OMAP: DSS: Add NEC NL8048HL11-01B display panel
+Date: Tue, 9 Mar 2010 10:59:41 -0600
+Message-ID: <A24693684029E5489D1D202277BE894453E4D7D6@dlee02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026EE415C0@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f179.google.com ([209.85.221.179]:48855 "EHLO
-	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752552Ab0CIQjD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 11:39:03 -0500
-Received: by qyk9 with SMTP id 9so5940843qyk.5
-        for <linux-omap@vger.kernel.org>; Tue, 09 Mar 2010 08:39:00 -0800 (PST)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C461A9CA@dbde02.ent.ti.com> (Santosh Shilimkar's message of "Tue\, 9 Mar 2010 14\:24\:06 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:48882 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751018Ab0CIQ7q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 11:59:46 -0500
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026EE415C0@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: "Y, Kishore" <kishore.y@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+Hi Kishore,
 
-> Kevin,
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
->> Hilman
->> Sent: Tuesday, March 09, 2010 12:23 AM
->> To: linux-omap@vger.kernel.org
->> Subject: [PATCH/RFT v3] OMAP4: fix temporary hacks that break multi-omap PM
->> 
->> When building for multi-omap, and OMAP4 is enabled, CONFIG_ARCH_OMAP4
->> will be true and prevent included code from building/running for
->> OMAP2/3 as well.
->> 
->> This problem exists in io.c where some hwmod/PM/SDRC init code is
->> prevented from running even on OMAP2/3 when OMAP4 is included in a
->> multi-OMAP build.
->> 
->> A quick glance suggests that this #ifndef is no longer needed.  The
->> called functions should work fine or fail gracefully in the OMAP4
->> case.
->> 
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->> 
->> Needs testing on OMAP4 since still no OMAP4 hardware here.
->> 
-> Did you build test this ?
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Y, Kishore
+> Sent: Saturday, March 06, 2010 8:17 AM
+> To: Tomi Valkeinen
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH V4] OMAP: DSS: Add NEC NL8048HL11-01B display panel
+> 
+> From: Erik Gilling <konkers@android.com>
+> Date: Wed, 2 Dec 2009 22:05:34 +0530
+> Subject: [PATCH] OMAP: DSS: Add NEC NL8048HL11-01B display panel
+> 
+> NEC WVGA LCD NL8048HL11-01B support has been added.
 
-I did, but only with omap3_defconfig.
+I think this driver is out-of-date after the "OMAP DSS2 model restructuring"
+patch series got merged:
 
-> This patch breaks builds on latest linux-omap master and mainline.
->
-> omap_4430sdp_defconfig
-> arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_hw':
-> /work/linux-omap-2.6/arch/arm/mach-omap2/io.c:334: undefined reference to `omap_hwmod_late_init'
-> /work/linux-omap-2.6/arch/arm/mach-omap2/io.c:336: undefined reference to `omap2_sdrc_init'
-> make: *** [.tmp_vmlinux1] Error 1
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg23491.html
 
-I didn't test this OMAP4-only config.  I can see if I can wrap these
-calls in if (!cpu_is_*) checks as a temporary workaround.
+At least I see this error happening:
 
-But the bigger issue is still there.  These OMAP4 #ifdefs break
-multi-omap functionality (specifically PM) for OMAP2/3.
+<snip>$ make ARCH=arm -j4 uImage >/dev/null
+drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c: In function 'nec_8048_panel_probe':
+drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c:55: error: 'struct <anonymous>' has no member named 'recommended_bpp'
+make[4]: *** [drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.o] Error 1
+make[3]: *** [drivers/video/omap2/displays] Error 2
+make[3]: *** Waiting for unfinished jobs....
+make[2]: *** [drivers/video/omap2] Error 2
+make[1]: *** [drivers/video] Error 2
+make: *** [drivers] Error 2
 
->
-> omap3_defconfig
-> arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_hw':
-> /work/linux-omap-2.6/arch/arm/mach-omap2/io.c:315: undefined reference to `omap2430_hwmod_init'
-> make: *** [.tmp_vmlinux1] Error 1
+Which is firing after applying this patch:
 
-This one is fixed by an earlier patch to the cpu_is macros.  I will post the next
-version as a series since they are related
+	OMAP: DSS2: move get_recommended_bpp()
 
-   http://patchwork.kernel.org/patch/83859/
+So, I guess you have to rework the panel driver to make it work with latest linux-omap master branch.
 
-Kevin
-
-
->
->
->> Updates from v2:
->> - actually applies to l-o master
->> 
->> Updates from v1:
->> - removed additional #ifdef block in init_common_hw()
->> 
->>  arch/arm/mach-omap2/io.c |    5 +----
->>  1 files changed, 1 insertions(+), 4 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
->> index 402e8f0..595446f 100644
->> --- a/arch/arm/mach-omap2/io.c
->> +++ b/arch/arm/mach-omap2/io.c
->> @@ -309,7 +309,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->>  {
->>  	pwrdm_init(powerdomains_omap);
->>  	clkdm_init(clockdomains_omap, clkdm_autodeps);
->> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is ready */
->>  	if (cpu_is_omap242x())
->>  		omap2420_hwmod_init();
->>  	else if (cpu_is_omap243x())
->> @@ -319,7 +318,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->>  	omap2_mux_init();
->>  	/* The OPP tables have to be registered before a clk init */
->>  	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
->> -#endif
->> 
->>  	if (cpu_is_omap2420())
->>  		omap2420_clk_init();
->> @@ -333,11 +331,10 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->>  		pr_err("Could not init clock framework - unknown CPU\n");
->> 
->>  	omap_serial_early_init();
->> -#ifndef CONFIG_ARCH_OMAP4
->>  	omap_hwmod_late_init();
->>  	omap_pm_if_init();
->>  	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
->>  	_omap2_init_reprogram_sdrc();
->> -#endif
->> +
->>  	gpmc_init();
->>  }
->> --
->> 1.7.0.2
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Sergio
