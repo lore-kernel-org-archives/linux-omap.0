@@ -1,43 +1,64 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v3][PATCH 09/10] omap3: zoom 2/3: Change debugboard serial port id
-Date: Tue,  9 Mar 2010 10:16:53 -0600
-Message-ID: <1268151414-17071-10-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v3][PATCH 02/10] omap2/3/4: serial: Remove condition for getting uart4_phys
+Date: Tue,  9 Mar 2010 10:16:46 -0600
+Message-ID: <1268151414-17071-3-git-send-email-saaguirre@ti.com>
 References: <1268151414-17071-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59113 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46182 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754595Ab0CIQQM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Mar 2010 11:16:12 -0500
+	id S1754595Ab0CIQQG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Mar 2010 11:16:06 -0500
 In-Reply-To: <1268151414-17071-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Sergio Aguirre <saaguirre@ti.com>
 
-This is now changed to PLAT8250_DEV_PLATFORM (= 0), because
-it's the only port that's going to be initialized in
-Zoom 2/3 boards.
-
-So, it doesn't make sense to keep the hardcoded 3 value anymore.
+This check is invalid, since we haven't filled the
+omap_revision var at this point.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/board-zoom-debugboard.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/serial.c |   14 +-------------
+ 1 files changed, 1 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-index bb4018b..e15d2e8 100644
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -96,7 +96,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 6010d3d..c9e203b 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -115,7 +115,6 @@ static struct plat_serial8250_port serial_platform_data2[] = {
+ 	}
+ };
  
- static struct platform_device zoom_debugboard_serial_device = {
- 	.name			= "serial8250",
--	.id			= 3,
-+	.id			= PLAT8250_DEV_PLATFORM,
- 	.dev			= {
- 		.platform_data	= serial_platform_data,
- 	},
+-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static struct plat_serial8250_port serial_platform_data3[] = {
+ 	{
+ 		.irq		= 70,
+@@ -128,23 +127,12 @@ static struct plat_serial8250_port serial_platform_data3[] = {
+ 	}
+ };
+ 
+-static inline void omap2_set_globals_uart4(struct omap_globals *omap2_globals)
+-{
+-	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
+-}
+-#else
+-static inline void omap2_set_globals_uart4(struct omap_globals *omap2_globals)
+-{
+-}
+-#endif
+-
+ void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
+ {
+ 	serial_platform_data0[0].mapbase = omap2_globals->uart1_phys;
+ 	serial_platform_data1[0].mapbase = omap2_globals->uart2_phys;
+ 	serial_platform_data2[0].mapbase = omap2_globals->uart3_phys;
+-	if (cpu_is_omap3630() || cpu_is_omap44xx())
+-		omap2_set_globals_uart4(omap2_globals);
++	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
+ }
+ 
+ static inline unsigned int __serial_read_reg(struct uart_port *up,
 -- 
 1.6.3.3
 
