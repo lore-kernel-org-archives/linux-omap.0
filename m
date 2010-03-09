@@ -1,64 +1,69 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v3][PATCH 01/10] OMAP3: serial: Check for zero-based physical addr
-Date: Tue,  9 Mar 2010 10:16:45 -0600
-Message-ID: <1268151414-17071-2-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v3][PATCH 05/10] OMAP3: PRCM: Consider UART4 for 3630 chip in prcm_setup_regs
+Date: Tue,  9 Mar 2010 10:16:49 -0600
+Message-ID: <1268151414-17071-6-git-send-email-saaguirre@ti.com>
 References: <1268151414-17071-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59102 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754522Ab0CIQP7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Mar 2010 11:15:59 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:56590 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755211Ab0CIQQF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 11:16:05 -0500
 In-Reply-To: <1268151414-17071-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Sergio Aguirre <saaguirre@ti.com>
 
-This is for protecting a wrong mapping attempt of a zero-based
-physical address.
+To standarize among other uarts (1 to 3), we shall now:
 
-The result is that, no serial port will be attempted to be mapped.
-
-Also add an additional protection for NULL clocks before attempting
-to enable them (if above condition applies)
+ - Enable uart4 autodile bit.
+ - Enable uart4 wakeup in PER.
+ - Allow uart4 to wakeup the MPU.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index da77930..6010d3d 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -664,6 +664,12 @@ void __init omap_serial_early_init(void)
- 		struct device *dev = &pdev->dev;
- 		struct plat_serial8250_port *p = dev->platform_data;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index fee2efb..81082f2 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -734,6 +734,9 @@ static void __init omap3_d2d_idle(void)
  
-+		/* Don't map zero-based physical address */
-+		if (p->mapbase == 0) {
-+			printk(KERN_WARNING "omap serial: No physical address"
-+			       " for uart#%d, so skipping early_init...\n", i);
-+			continue;
-+		}
- 		/*
- 		 * Module 4KB + L4 interconnect 4KB
- 		 * Static mapping, never released
-@@ -727,6 +733,14 @@ void __init omap_serial_init_port(int port)
- 	pdev = &uart->pdev;
- 	dev = &pdev->dev;
- 
-+	/* Don't proceed if there's no clocks available */
-+	if (unlikely(!uart->ick || !uart->fck)) {
-+		printk(KERN_ERR "Can't init uart%d, no clocks available\n",
-+		       port);
-+		WARN_ON(1);
-+		return;
-+	}
+ static void __init prcm_setup_regs(void)
+ {
++	u32 omap3630_auto_uart4 = cpu_is_omap3630() ? OMAP3630_AUTO_UART4 : 0;
++	u32 omap3630_en_uart4 = cpu_is_omap3630() ? OMAP3630_EN_UART4 : 0;
 +
- 	omap_uart_enable_clocks(uart);
+ 	/* XXX Reset all wkdeps. This should be done when initializing
+ 	 * powerdomains */
+ 	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
+@@ -820,6 +823,7 @@ static void __init prcm_setup_regs(void)
+ 		CM_AUTOIDLE);
  
- 	omap_uart_reset(uart);
+ 	cm_write_mod_reg(
++		omap3630_auto_uart4 |
+ 		OMAP3430_AUTO_GPIO6 |
+ 		OMAP3430_AUTO_GPIO5 |
+ 		OMAP3430_AUTO_GPIO4 |
+@@ -899,14 +903,14 @@ static void __init prcm_setup_regs(void)
+ 			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
+ 			  OMAP3430_EN_GPIO6 | OMAP3430_EN_UART3 |
+ 			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
+-			  OMAP3430_EN_MCBSP4,
++			  OMAP3430_EN_MCBSP4 | omap3630_en_uart4,
+ 			  OMAP3430_PER_MOD, PM_WKEN);
+ 	/* and allow them to wake up MPU */
+ 	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
+ 			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
+ 			  OMAP3430_GRPSEL_GPIO6 | OMAP3430_EN_UART3 |
+ 			  OMAP3430_EN_MCBSP2 | OMAP3430_EN_MCBSP3 |
+-			  OMAP3430_EN_MCBSP4,
++			  OMAP3430_EN_MCBSP4 | omap3630_en_uart4,
+ 			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
+ 
+ 	/* Don't attach IVA interrupts */
 -- 
 1.6.3.3
 
