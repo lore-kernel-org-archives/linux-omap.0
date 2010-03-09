@@ -1,79 +1,47 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH/RFT 2/2] OMAP4: fix temporary hacks that break multi-omap PM
-Date: Tue,  9 Mar 2010 09:04:01 -0800
-Message-ID: <1268154241-24788-3-git-send-email-khilman@deeprootsystems.com>
-References: <1268154241-24788-1-git-send-email-khilman@deeprootsystems.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [RFC part1/2 merge v3][PATCH 01/10] OMAP3: serial: Check for
+ zero-based physical addr
+Date: Tue, 9 Mar 2010 19:39:33 +0200
+Message-ID: <20100309173933.GA3866@gandalf>
+References: <1268151414-17071-1-git-send-email-saaguirre@ti.com>
+ <1268151414-17071-2-git-send-email-saaguirre@ti.com>
+ <20100309162115.GJ3851@gandalf>
+ <A24693684029E5489D1D202277BE894453E4D72D@dlee02.ent.ti.com>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:36356 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755387Ab0CIRES (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 12:04:18 -0500
-Received: by mail-fx0-f213.google.com with SMTP id 5so1524568fxm.29
-        for <linux-omap@vger.kernel.org>; Tue, 09 Mar 2010 09:04:17 -0800 (PST)
-In-Reply-To: <1268154241-24788-1-git-send-email-khilman@deeprootsystems.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:47024 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752578Ab0CIRjX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 12:39:23 -0500
+Content-Disposition: inline
+In-Reply-To: <A24693684029E5489D1D202277BE894453E4D72D@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-When building for multi-omap, and OMAP4 is enabled, CONFIG_ARCH_OMAP4
-will be true and prevent included code from building/running for
-OMAP2/3 as well.
+Hi,
 
-This problem exists in io.c where some hwmod/PM/SDRC init code is
-prevented from running even on OMAP2/3 when OMAP4 is included in a
-multi-OMAP build.
+On Tue, Mar 09, 2010 at 10:30:08AM -0600, Aguirre, Sergio wrote:
+> Ok, I didn't do that, since there are other printks in the same function.
+> 
+> I can change it here, no problem.
+> 
+> I guess I can add a separate patch to standardize and change all
+> printks to dev_* macros... would that make sense?
 
-A quick glance suggests that this #ifndef is no longer needed in most
-of the cases.  In the remaining cases, the function is wrapped with
-"if (cpu_is_omap24xx() || cpu_is_omap34xx())" which will be optimized
-out for OMAP4-only builds.
+sure that would make more sense :-)
 
-Note that this is only a short-term fix.  Longer-term, OMAP4
-needs to create init functions for SDRC and hwmod late-init.
+> > change printk() + WARN_ON() into:
+> > 
+> > WARN(1, "%s: can't init uart%d, no clocks available\n",
+> > 	koject_name(&dev->kobj), port);
+> 
+> That looks nicer. Thanks!
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/io.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+np
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 402e8f0..f33409c 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -309,7 +309,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- {
- 	pwrdm_init(powerdomains_omap);
- 	clkdm_init(clockdomains_omap, clkdm_autodeps);
--#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is ready */
- 	if (cpu_is_omap242x())
- 		omap2420_hwmod_init();
- 	else if (cpu_is_omap243x())
-@@ -319,7 +318,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	omap2_mux_init();
- 	/* The OPP tables have to be registered before a clk init */
- 	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
--#endif
- 
- 	if (cpu_is_omap2420())
- 		omap2420_clk_init();
-@@ -333,11 +331,12 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 		pr_err("Could not init clock framework - unknown CPU\n");
- 
- 	omap_serial_early_init();
--#ifndef CONFIG_ARCH_OMAP4
--	omap_hwmod_late_init();
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
-+		omap_hwmod_late_init();
- 	omap_pm_if_init();
--	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
--	_omap2_init_reprogram_sdrc();
--#endif
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx()) { /* FIXME: OMAP4 */
-+		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
-+		_omap2_init_reprogram_sdrc();
-+	}
- 	gpmc_init();
- }
 -- 
-1.7.0.2
-
+balbi
