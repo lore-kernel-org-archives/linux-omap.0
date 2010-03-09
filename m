@@ -1,54 +1,45 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v3][PATCH 10/10] omap3: zoom2/3: Register only 1 8250 port
-Date: Tue,  9 Mar 2010 10:16:54 -0600
-Message-ID: <1268151414-17071-11-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v3][PATCH 07/10] omap3: zoom2/3 / 3630sdp: Don't init always all uarts
+Date: Tue,  9 Mar 2010 10:16:51 -0600
+Message-ID: <1268151414-17071-8-git-send-email-saaguirre@ti.com>
 References: <1268151414-17071-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46189 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46192 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754595Ab0CIQQJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Mar 2010 11:16:09 -0500
+	id S1755245Ab0CIQQM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Mar 2010 11:16:12 -0500
 In-Reply-To: <1268151414-17071-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Sergio Aguirre <saaguirre@ti.com>
 
-There's no more serial ports available, so, doesn't make sense
-to create 4 device nodes.
+This is useless, since in Zoom2/3 boards, the ports aren't even
+physically accessible.
+
+They must be explicitly initted in the board-zoom2.c, board-zoom3.c
+and board-3630sdp.c files instead.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/configs/omap_zoom2_defconfig |    2 +-
- arch/arm/configs/omap_zoom3_defconfig |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+ mode change 100755 => 100644 arch/arm/mach-omap2/board-zoom-peripherals.c
 
-diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
-index a82e813..3dfd2d5 100644
---- a/arch/arm/configs/omap_zoom2_defconfig
-+++ b/arch/arm/configs/omap_zoom2_defconfig
-@@ -660,7 +660,7 @@ CONFIG_DEVKMEM=y
- CONFIG_SERIAL_8250=y
- CONFIG_SERIAL_8250_CONSOLE=y
- CONFIG_SERIAL_8250_NR_UARTS=32
--CONFIG_SERIAL_8250_RUNTIME_UARTS=4
-+CONFIG_SERIAL_8250_RUNTIME_UARTS=1
- CONFIG_SERIAL_8250_EXTENDED=y
- CONFIG_SERIAL_8250_MANY_PORTS=y
- CONFIG_SERIAL_8250_SHARE_IRQ=y
-diff --git a/arch/arm/configs/omap_zoom3_defconfig b/arch/arm/configs/omap_zoom3_defconfig
-index ff8ac3d..a1c0c43 100644
---- a/arch/arm/configs/omap_zoom3_defconfig
-+++ b/arch/arm/configs/omap_zoom3_defconfig
-@@ -680,7 +680,7 @@ CONFIG_DEVKMEM=y
- CONFIG_SERIAL_8250=y
- CONFIG_SERIAL_8250_CONSOLE=y
- CONFIG_SERIAL_8250_NR_UARTS=32
--CONFIG_SERIAL_8250_RUNTIME_UARTS=4
-+CONFIG_SERIAL_8250_RUNTIME_UARTS=1
- CONFIG_SERIAL_8250_EXTENDED=y
- CONFIG_SERIAL_8250_MANY_PORTS=y
- CONFIG_SERIAL_8250_SHARE_IRQ=y
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+old mode 100755
+new mode 100644
+index ca95d8d..6b39849
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -280,7 +280,6 @@ static void enable_board_wakeup_source(void)
+ void __init zoom_peripherals_init(void)
+ {
+ 	omap_i2c_init();
+-	omap_serial_init();
+ 	usb_musb_init(&musb_board_data);
+ 	enable_board_wakeup_source();
+ }
 -- 
 1.6.3.3
 
