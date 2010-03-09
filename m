@@ -1,137 +1,129 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: [PATCH] OMAP3 PM : Remove IVA state conflict between PM and
- DspBridge code
-Date: Tue, 9 Mar 2010 18:53:05 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030435F185@dbde02.ent.ti.com>
+From: Deva R <r.devaraj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [android-kernel] Android bootup process from
+	linux-omap-pm branch
+Date: Tue, 9 Mar 2010 15:58:59 +0530
+Message-ID: <e9bb0a641003090228u284891b9o105933563f9c9e93@mail.gmail.com>
+References: <2cd4ff051003090200i4e29c84dr7634f11fd9b032eb@mail.gmail.com>
+Reply-To: r.devaraj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49578 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750870Ab0CINXP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 08:23:15 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o29DNBAc018648
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 9 Mar 2010 07:23:14 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o29DNBdg018891
-	for <linux-omap@vger.kernel.org>; Tue, 9 Mar 2010 18:53:11 +0530 (IST)
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/alternative; boundary=00504501607253c1b704815ba6cd
+Return-path: <39CKWSwkJD_gw.ij0fwfolrfnq.htrfsiwtni-utwynsllttlqjlwtzux.htr-WNnxsJb2WYALHLMFiseIBxPsWskHk0ljAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <2cd4ff051003090200i4e29c84dr7634f11fd9b032eb-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Post: <http://groups.google.com/group/android-porting/post?hl=en_US>,
+	<mailto:android-porting-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:android-porting+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/android-porting?hl=en_US>
+Sender: android-porting-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/android-porting/subscribe?hl=en_US>,
+	<mailto:android-porting+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/android-porting/subscribe?hl=en_US>,
+	<mailto:android-porting+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: android-kernel-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Cc: android-porting <android-porting-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, Mai Daftedar <mai.daftedar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, rowboat-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Shweta Gulati <shweta.gulati@ti.com>
+--00504501607253c1b704815ba6cd
+Content-Type: text/plain; charset=ISO-8859-1
 
-When the Dsp Bridge module is loaded, the state Of Iva Power domain 
-configured in suspend path (provided enable_off_mode is disabled) by
-DspBridge code and PM code are different so IVA does not 
-enter the target state .Per and Core domain have sleep dependency over IVA,
-so they also don't enter. 
+Hi Mai,
+You can keep android FS in ext3 partition, and invoke its init as usual via
+kernel arguments..
 
-This Patch puts IVA to Off  and in suspend path the code 
-excludes IVA state transition through PM code ,thus only DspBridge 
-code handles IVA state.And all the powerdomains enter target state
-(RETENTION or OFF)in suspend path.
+for eg, in rowboat env,
+uImage -> will be the linux-omap-pm kernel image
+init =/init -> in bootargs will load android init from mmc partition 2.
 
-Signed-off-by: Sripathy Vishwanath <vishwanath.bs@ti.com>
-Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
----
+Beagleboard# setenv bootcmd 'mmc init; fatload mmc 0 84000000
+*uImage;* bootm 84000000'
+Beagleboard# setenv bootargs 'mem=128M androidboot.console=ttyS2
+console=tty0 console=ttyS2,115200n8 root=/dev/mmcblk0p2 rw
+*init=/**init *rootwait omapfb.video_mode=640x480MR-16@60'
+Beagleboard# saveenv
+Beagleboard# reset
 
-Index: kernel-omap3/arch/arm/mach-omap2/pm34xx.c
-===================================================================
---- kernel-omap3.orig/arch/arm/mach-omap2/pm34xx.c
-+++ kernel-omap3/arch/arm/mach-omap2/pm34xx.c
-@@ -764,16 +764,20 @@ static int omap3_pm_suspend(void)
- 		omap2_pm_wakeup_on_timer(wakeup_timer_seconds);
- 
- 	/* Read current next_pwrsts */
--	list_for_each_entry(pwrst, &pwrst_list, node)
--		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
--	/* Set ones wanted by suspend */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
--		if (set_pwrdm_state(pwrst->pwrdm, pwrst->next_state))
--			goto restore;
--		if (pwrdm_clear_all_prev_pwrst(pwrst->pwrdm))
--			goto restore;
-+		  if (strcmp("iva2_pwrdm", pwrst->pwrdm->name))
-+			pwrst->saved_state =
-+				pwrdm_read_next_pwrst(pwrst->pwrdm);
-+	}
-+		/* Set ones wanted by suspend */
-+	list_for_each_entry(pwrst, &pwrst_list, node) {
-+		if (strcmp("iva2_pwrdm", pwrst->pwrdm->name)) {
-+			if (set_pwrdm_state(pwrst->pwrdm, pwrst->next_state))
-+				goto restore;
-+			if (pwrdm_clear_all_prev_pwrst(pwrst->pwrdm))
-+				goto restore;
-+		}
- 	}
--
- 	omap_uart_prepare_suspend();
- 	omap3_intc_suspend();
- 
-@@ -782,14 +786,16 @@ static int omap3_pm_suspend(void)
- restore:
- 	/* Restore next_pwrsts */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
--		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
--		if (state > pwrst->next_state) {
--			printk(KERN_INFO "Powerdomain (%s) didn't enter "
--			       "target state %d\n",
--			       pwrst->pwrdm->name, pwrst->next_state);
--			ret = -1;
-+		if (strcmp("iva2_pwrdm", pwrst->pwrdm->name)) {
-+			state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
-+			if (state > pwrst->next_state) {
-+				printk(KERN_INFO "Powerdomain (%s) didn't enter"
-+					"target state %d\n", pwrst->pwrdm->name,
-+					pwrst->next_state);
-+				ret = -1;
-+			}
-+			set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
- 		}
--		set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
- 	}
- 	if (ret)
- 		printk(KERN_ERR "Could not enter target state in pm_suspend\n");
-@@ -1136,6 +1142,12 @@ static void __init prcm_setup_regs(void)
- 
- 	/* Clear any pending PRCM interrupts */
- 	prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+	 /* Put the IVA2 In Idle */
-+	prm_rmw_mod_reg_bits(OMAP3430_LASTPOWERSTATEENTERED_MASK, 0,
-+			OMAP3430_IVA2_MOD, PM_PWSTCTRL);
-+	/* Make Clock transition Automatic */
-+	cm_rmw_mod_reg_bits(OMAP3430_CLKTRCTRL_IVA2_MASK, 0x3,
-+			OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
- 
- 	omap3_iva_idle();
- 	omap3_d2d_idle();
-@@ -1160,8 +1172,10 @@ void omap3_pm_off_mode_enable(int disabl
- 	resource_unlock_opp(VDD2_OPP);
- #endif
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
--		pwrst->next_state = state;
--		set_pwrdm_state(pwrst->pwrdm, state);
-+		if (strcmp("iva2_pwrdm", pwrst->pwrdm->name)) {
-+			pwrst->next_state = state;
-+			set_pwrdm_state(pwrst->pwrdm, state);
-+		}
- 	}
- }
- 
-@@ -1274,7 +1288,10 @@ static int __init pwrdms_setup(struct po
- 	if (!pwrst)
- 		return -ENOMEM;
- 	pwrst->pwrdm = pwrdm;
--	pwrst->next_state = PWRDM_POWER_RET;
-+	if (strcmp("iva2_pwrdm", pwrdm->name))
-+		pwrst->next_state = PWRDM_POWER_RET;
-+	else
-+		 pwrst->next_state = PWRDM_POWER_OFF;
- 	list_add(&pwrst->node, &pwrst_list);
- 
- 	if (pwrdm_has_hdwr_sar(pwrdm))
+
+
+
+On Tue, Mar 9, 2010 at 3:30 PM, Mai Daftedar <mai.daftedar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+
+> Hi All,
+>  I'm working on android ported on a beagleboard.using the rowboat version.
+>  I was faced with some errors related to the smart reflex VDD
+> autocompansation and as a resolution I wanted to change the current
+> linux kernel to the linux-omap-pm latest branches with smart reflex
+> patches.
+> My question now is how can I start the android init from the
+> linux-omap kernel?..
+>
+>
+> Any help would be appreciate
+> Thanks in Advance
+> Best Regards
+> Mai
+>
+> --
+> unsubscribe: android-kernel+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org<android-kernel%2Bunsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+> website: http://groups.google.com/group/android-kernel
+
+-- 
+unsubscribe: android-porting+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+website: http://groups.google.com/group/android-porting
+
+--00504501607253c1b704815ba6cd
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi Mai,<br>You can keep android FS in ext3 partition, and invoke its init a=
+s usual via kernel arguments..<br><br>for eg, in rowboat env,<br>uImage -&g=
+t; will be the linux-omap-pm kernel image<br>init =3D/init -&gt; in bootarg=
+s will load android init from mmc partition 2.<br>
+<pre class=3D"prettyprint"><a name=3D"Beagleboard"><font style=3D"font-fami=
+ly: tahoma,sans-serif;" size=3D"2"><span class=3D"typ">Beagleboard</span><s=
+pan class=3D"com"># setenv bootcmd &#39;mmc init; fatload mmc 0 84000000 <b=
+><u>uImage;</u></b> bootm 84000000&#39;</span><span class=3D"pln"><br>
+</span><span class=3D"typ">Beagleboard</span><span class=3D"com"># setenv b=
+ootargs &#39;mem=3D128M androidboot.console=3DttyS2 console=3Dtty0 console=
+=3DttyS2,115200n8 root=3D/dev/mmcblk0p2 rw </span><u><b><span class=3D"pln"=
+>init</span><span class=3D"pun">=3D/</span></b></u><span class=3D"pln"><u><=
+b>init </b></u>rootwait omapfb</span><span class=3D"pun">.</span><span clas=
+s=3D"pln">video_mode</span><span class=3D"pun">=3D</span><span class=3D"lit=
+">640x480MR</span><span class=3D"pun">-</span><span class=3D"lit">16</span>=
+<span class=3D"pun">@</span><span class=3D"lit">60</span></font><span class=
+=3D"str"><font style=3D"font-family: tahoma,sans-serif;" size=3D"2">&#39;<b=
+r>
+Beagleboard# saveenv<br>Beagleboard# reset <br></font><br></span></a></pre>=
+<br><br><br><div class=3D"gmail_quote">On Tue, Mar 9, 2010 at 3:30 PM, Mai =
+Daftedar <span dir=3D"ltr">&lt;<a href=3D"mailto:mai.daftedar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org">ma=
+i.daftedar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a>&gt;</span> wrote:<br>
+<blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, =
+204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Hi All,<br>
+ =A0I&#39;m working on android ported on a beagleboard.using the rowboat ve=
+rsion.<br>
+ =A0I was faced with some errors related to the smart reflex VDD<br>
+autocompansation and as a resolution I wanted to change the current<br>
+linux kernel to the linux-omap-pm latest branches with smart reflex<br>
+patches.<br>
+My question now is how can I start the android init from the<br>
+linux-omap kernel?..<br>
+<br>
+<br>
+Any help would be appreciate<br>
+Thanks in Advance<br>
+Best Regards<br>
+Mai<br>
+<font color=3D"#888888"><br>
+--<br>
+unsubscribe: <a href=3D"mailto:android-kernel%2Bunsubscribe-/JYPxA39Uh4Ykp1iOSErHA@public.gmane.org=
+m">android-kernel+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org</a><br>
+website: <a href=3D"http://groups.google.com/group/android-kernel" target=
+=3D"_blank">http://groups.google.com/group/android-kernel</a></font></block=
+quote></div><br>
+
+<p></p>
+
+-- <br />
+unsubscribe: android-porting+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org<br />
+website: <a href=3D"http://groups.google.com/group/android-porting">http://=
+groups.google.com/group/android-porting</a><br />
+
+--00504501607253c1b704815ba6cd--
