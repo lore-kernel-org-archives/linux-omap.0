@@ -1,71 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Commit 0c8219f0... breaks omap7xx support
-Date: Tue, 9 Mar 2010 07:56:37 -0800
-Message-ID: <20100309155636.GS2900@atomide.com>
-References: <6cb013311003062056v3ed83a53u2636838348bf4845@mail.gmail.com>
- <20100309004832.GK2900@atomide.com>
- <6cb013311003081751u2c7cd8c6v59472ee85ac90e77@mail.gmail.com>
- <20100309024602.GQ2900@atomide.com>
- <6cb013311003081906n751bedb4k2794ed40ed68d7ec@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sergio Aguirre <saaguirre@ti.com>
+Subject: [RFC part1/2 merge v3][PATCH 03/10] ARM: OMAP3630: PRCM: Add UART4 control bits
+Date: Tue,  9 Mar 2010 10:16:47 -0600
+Message-ID: <1268151414-17071-4-git-send-email-saaguirre@ti.com>
+References: <1268151414-17071-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56192 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751813Ab0CIPzR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 10:55:17 -0500
-Content-Disposition: inline
-In-Reply-To: <6cb013311003081906n751bedb4k2794ed40ed68d7ec@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59101 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754258Ab0CIQP7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Mar 2010 11:15:59 -0500
+In-Reply-To: <1268151414-17071-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org, miknix@gmail.com, a.j.buxton@gmail.com, linwizard-devel@lists.sf.net
+To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Sergio Aguirre <saaguirre@ti.com>
 
-* Cory Maccarrone <darkstar6262@gmail.com> [100308 19:03]:
-> On Mon, Mar 8, 2010 at 6:46 PM, Tony Lindgren <tony@atomide.com> wrote:
-> 
-> Alright, I found it.  0c8219f0302d0d27fda52c790d38406801e547ec removed
-> this code from uncompress.h:
-> 
->     -               if (check_port(uart, shift))
->     -                       break;
-> 
-> which was in a while loop in putc(), with check_port defined as:
-> 
->     #define UART_OMAP_MDR1         0x08    /* mode definition register */
->     #define check_port(base, shift) ((base[UART_OMAP_MDR1 << shift] & 7) == 0)
-> 
-> and shift = 0.  Without the break, putc() was silent.  If I put in
-> similar code back into putc():
-> 
->     +       if ((uart_base[0x08] & 7) != 0)
->     +               return;
-> 
-> it boots.
-> 
-> Unfortunately, I don't have access to the serial console, so I have no
-> idea if any of the serial port work was actually working (the Herald
-> is a phone, and the only output I have is USB, which can act as
-> serial, but I'm ill-equipped to make that work).  I suspect this is
-> always returning true, and as such we're not getting serial output
-> through the uncompress.  Not sure what's needed to fix this, but at
-> least that little bit of code makes it boot for me.
+This bits are exclusive of omap 36xx family of chips.
 
-OK. It's not a bug it's a feature :)
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
+ arch/arm/mach-omap2/prcm-common.h     |    4 ++++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
-If you don't have anything connected to the serial port, then
-DEBUG_LL should not do anything as it just waits for fifo to empty.
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index a3a3ca0..834b671 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -649,6 +649,8 @@
+ #define OMAP3430_ST_MCBSP2_MASK				(1 << 0)
+ 
+ /* CM_AUTOIDLE_PER */
++#define OMAP3630_AUTO_UART4				(1 << 18)
++#define OMAP3630_AUTO_UART4_SHIFT			18
+ #define OMAP3430_AUTO_GPIO6				(1 << 17)
+ #define OMAP3430_AUTO_GPIO6_SHIFT			17
+ #define OMAP3430_AUTO_GPIO5				(1 << 16)
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 90f603d..c4e7bcb 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -390,6 +390,8 @@
+ #define OMAP3430_EN_MPU_SHIFT				1
+ 
+ /* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
++#define OMAP3630_EN_UART4				(1 << 18)
++#define OMAP3630_EN_UART4_SHIFT				18
+ #define OMAP3430_EN_GPIO6				(1 << 17)
+ #define OMAP3430_EN_GPIO6_SHIFT				17
+ #define OMAP3430_EN_GPIO5				(1 << 16)
+@@ -430,6 +432,8 @@
+ #define OMAP3430_EN_MCBSP2_SHIFT			0
+ 
+ /* CM_IDLEST_PER, PM_WKST_PER shared bits */
++#define OMAP3630_ST_UART4_SHIFT				18
++#define OMAP3630_ST_UART4_MASK				(1 << 18)
+ #define OMAP3430_ST_GPIO6_SHIFT				17
+ #define OMAP3430_ST_GPIO6_MASK				(1 << 17)
+ #define OMAP3430_ST_GPIO5_SHIFT				16
+-- 
+1.6.3.3
 
-Sounds like we should either have most of uncompress.h in ifdef
-CONFIG_DEBUG_LL so it does not do anything unless set.
-
-We may also want to also define DEBUG_LL_OMAP_NONE in uncompress.h
-to allow booting systems with no serial port with DEBUG_LL set,
-but I don't know if that's really needed.
-
-Does your system boot without any patches if DEBUG_LL is not set
-in your .config?
-
-Regards,
-
-Tony 
