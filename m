@@ -1,52 +1,48 @@
-From: "Maulik" <x0082077-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/4] USB: MUSB: Enable MUSB for OMAP4 in Kconfig
-Date: Wed, 10 Mar 2010 15:47:08 +0530
-Message-ID: <00f701cac03a$da51cab0$808918ac@apr.dhcp.ti.com>
-References: <1267079758-14480-1-git-send-email-x0082077@ti.com> <20100225184833.GG28173@atomide.com> <20100226004233.GA3241@lixom.net> <000001cab6bf$5df75720$808918ac@apr.dhcp.ti.com> <20100226185414.GA10835@lixom.net> <001b01cab901$dadec9a0$808918ac@apr.dhcp.ti.com> <20100301154329.GA4154@lixom.net>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100301154329.GA4154-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Olof Johansson' <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Cc: 'Tony Lindgren' <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Felipe Balbi' <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, 'Greg Kroah-Hartman' <gregkh-l3A5Bk7waGM@public.gmane.org>, 'David Brownell' <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+Subject: [PATCH 2/2] omap2_mcspi: small fixes of output data format
+Date: Wed, 10 Mar 2010 12:18:36 +0200
+Message-ID: <1268216316-32552-2-git-send-email-roman.tereshonkov@nokia.com>
+References: <1268216316-32552-1-git-send-email-roman.tereshonkov@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:52712 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142Ab0CJKSy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2010 05:18:54 -0500
+In-Reply-To: <1268216316-32552-1-git-send-email-roman.tereshonkov@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: scott@jumpnowtek.com, gadiyar@ti.com, Roman Tereshonkov <roman.tereshonkov@nokia.com>
 
+Replaces %04x by %08x for 32-bits data output.
 
->Hmm. I must be missing something, but it looks odd to have both the
->USB_MUSB_HDRC and USB_MUSB_SOC high-level config options, especially since
->the depends are duplicated across them.
+Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+---
+ drivers/spi/omap2_mcspi.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
->In general, options like these tend to scale badly:
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index 35b31fe..2ebdca8 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -532,7 +532,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 					goto out;
+ 				}
+ #ifdef VERBOSE
+-				dev_dbg(&spi->dev, "write-%d %04x\n",
++				dev_dbg(&spi->dev, "write-%d %08x\n",
+ 						word_len, *tx);
+ #endif
+ 				__raw_writel(*tx++, tx_reg);
+@@ -550,7 +550,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 					mcspi_write_chconf0(spi, l);
+ 				*rx++ = __raw_readl(rx_reg);
+ #ifdef VERBOSE
+-				dev_dbg(&spi->dev, "read-%d %04x\n",
++				dev_dbg(&spi->dev, "read-%d %08x\n",
+ 						word_len, *(rx - 1));
+ #endif
+ 			}
+-- 
+1.6.2.rc1.3.g81d3f
 
->config USB_MUSB_SOC
- >       boolean
- >       depends on USB_MUSB_HDRC
- >       default y if ARCH_DAVINCI
- >       default y if ARCH_OMAP2430
- >      default y if ARCH_OMAP34XX
- >       default y if (BF54x && !BF544)
- >       default y if (BF52x && !BF522 && !BF523)
-
->I.e. every single platform needs to add a new line. It's better
->to have a config option that is selected from the platform code
->(arch/arm/mach-omap2/Kconfig for the specific SOC in this case), that
-
-Olof,
-
-I agree with this. Since this change will impact many platforms it will
-require thorough testing and review. Can we have OMAP4 MUSB driver support 
-queued up without this Kconfig enhancement? I believe the driver patches can
-
-go in independent of this enhancement.
-
-Regards,
-Maulik
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
