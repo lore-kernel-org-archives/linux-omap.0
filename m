@@ -1,63 +1,95 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv6] OMAP3: Serial: Improved sleep logic
-Date: Wed, 10 Mar 2010 10:20:54 -0800
-Message-ID: <87aaugf37d.fsf@deeprootsystems.com>
-References: <1267118749-1836-1-git-send-email-tero.kristo@nokia.com>
-	<87ljebdb3c.fsf@deeprootsystems.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: kernel panic with latest DSS
+Date: Wed, 10 Mar 2010 10:42:21 -0800
+Message-ID: <5e088bd91003101042t236c5d90p62c700c424d83e12@mail.gmail.com>
+References: <5e088bd91003091158l6cfa0b76u204e5432389d573@mail.gmail.com>
+	 <5e088bd91003101016s4148751es1a142c21d1540564@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:48619 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751226Ab0CJSVB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2010 13:21:01 -0500
-Received: by fxm19 with SMTP id 19so8955325fxm.21
-        for <linux-omap@vger.kernel.org>; Wed, 10 Mar 2010 10:21:00 -0800 (PST)
-In-Reply-To: <87ljebdb3c.fsf@deeprootsystems.com> (Kevin Hilman's message of "Mon\, 01 Mar 2010 12\:46\:15 -0800")
+Received: from mail-qy0-f204.google.com ([209.85.221.204]:58983 "EHLO
+	mail-qy0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754673Ab0CJSm0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2010 13:42:26 -0500
+Received: by qyk42 with SMTP id 42so1819922qyk.19
+        for <linux-omap@vger.kernel.org>; Wed, 10 Mar 2010 10:42:25 -0800 (PST)
+In-Reply-To: <5e088bd91003101016s4148751es1a142c21d1540564@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+On Wed, Mar 10, 2010 at 10:16 AM, Steve Sakoman <sakoman@gmail.com> wro=
+te:
 
-> Tero Kristo <tero.kristo@nokia.com> writes:
+> The issue occurs in the following section of code in
+> drivers/video/omap2/dss/dispc.c:
 >
->> From: Tero Kristo <tero.kristo@nokia.com>
->>
->> This patch contains following improvements:
->> - Only RX interrupt will now kick the sleep prevent timer
->> - TX fifo status is checked before disabling clocks, this will prevent
->>   on-going transmission to be cut
->> - Smartidle is now enabled/disabled only while switching clocks, as having
->>   smartidle enabled while RX/TX prevents any wakeups from being received
->>   from UART module
->> - Added workqueue for wakeup checks, as jiffy timer access within the
->>   idle loop results into skewed timers as jiffy timers are stopped
->> - Added garbage_timer for ignoring the first character received during
->>   the first tick after clock enable, this prevents garbage characters to be
->>   received in low sleep states
->> - omap_uart_enable_irqs() changed to use enable_irq / disable_irq instead
->>   of request / free. Using request/free changes the behavior after first
->>   suspend due to reversed interrupt handler ordering
->>
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> unsigned long dispc_fclk_rate(void)
+> {
+> =A0 =A0 =A0 =A0unsigned long r =3D 0;
 >
-> Thanks Tero.  This version looks good.
+> =A0 =A0 =A0 =A0if (dss_get_dispc_clk_source() =3D=3D DSS_SRC_DSS1_ALW=
+ON_FCLK)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0r =3D dss_clk_get_rate(DSS_CLK_FCK1);
+> =A0 =A0 =A0 =A0else
+> #ifdef CONFIG_OMAP2_DSS_DSI
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0r =3D dsi_get_dsi1_pll_rate();
+> #else
+> =A0 =A0 =A0 =A0BUG();
+> #endif
+> =A0 =A0 =A0 =A0return r;
+> }
 >
-> Adding to pm-fixes queue for 2.6.34-rcX after minor change below...
->
+> Since my machines don't have DSI displays CONFIG_OMAP2_DSS_DSI is not
+> defined and the BUG() call is triggered.
 
-There's still something slightly strange going on here...
+The issue seems to be the test for DSS_SRC_DSS1_ALWON_FCLK.
 
-I noticed via powertop that the garbage timer is now one of the top
-reasons for wakeup in an idle system.  Seems like the garbage timer
-is firing when it shouldn't be, and triggering unnecessary wakeups
+Looking at  drivers/video/omap2/dss/dispc.c I see that
+DSS_SRC_DSS1_ALWON_FCLK will never be returned since clk_src is always
+set to 0 or 1 based on a test of DSS_SRC_DSS1_ALWON_FCLK :
 
-Based on powertop stats, the garbage timer is firing about 3x more
-often than the GPtimer that should be waking the system.
+void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
+{
+	int b;
 
-I haven't dug any deeper, but this needs to be fixed before merging
-upstream.
+	BUG_ON(clk_src !=3D DSS_SRC_DSI1_PLL_FCLK &&
+			clk_src !=3D DSS_SRC_DSS1_ALWON_FCLK);
 
-Kevin
+	b =3D clk_src =3D=3D DSS_SRC_DSS1_ALWON_FCLK ? 0 : 1;
+
+	REG_FLD_MOD(DSS_CONTROL, b, 0, 0);	/* DISPC_CLK_SWITCH */
+
+	dss.dispc_clk_source =3D clk_src;
+}
+
+It seems to me that the test should return to the way it was in the
+previous DSS version, i.e. a test for 0:
+
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/=
+dispc.c
+index e777e35..be9b3de 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -2218,7 +2218,7 @@ unsigned long dispc_fclk_rate(void)
+ {
+ 	unsigned long r =3D 0;
+
+-	if (dss_get_dispc_clk_source() =3D=3D DSS_SRC_DSS1_ALWON_FCLK)
++	if (dss_get_dispc_clk_source() =3D=3D 0)
+ 		r =3D dss_clk_get_rate(DSS_CLK_FCK1);
+ 	else
+ #ifdef CONFIG_OMAP2_DSS_DSI
+
+A test build confirms that this change restores my ability to play
+DVD's and display webcam streams.  My understanding of this code is
+superficial, so hopefully Tomi can comment on whether this is a good
+fix or not.
+
+Steve
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
