@@ -1,97 +1,127 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: Commit 0c8219f0... breaks omap7xx support
-Date: Tue, 9 Mar 2010 15:41:47 -0800
-Message-ID: <6cb013311003091541k6a18c16bv4bb3d35f101e5bab@mail.gmail.com>
-References: <6cb013311003062056v3ed83a53u2636838348bf4845@mail.gmail.com>
-	<20100309004832.GK2900@atomide.com> <6cb013311003081751u2c7cd8c6v59472ee85ac90e77@mail.gmail.com>
-	<20100309024602.GQ2900@atomide.com> <6cb013311003081906n751bedb4k2794ed40ed68d7ec@mail.gmail.com>
-	<20100309155636.GS2900@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:19711 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751366Ab0CIXmI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 18:42:08 -0500
-Received: by qw-out-2122.google.com with SMTP id 8so148436qwh.37
-        for <linux-omap@vger.kernel.org>; Tue, 09 Mar 2010 15:42:07 -0800 (PST)
-In-Reply-To: <20100309155636.GS2900@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: y@google.com
+Subject: [PATCH] omap: resource: Add per-resource mutex for OMAP resource framework
+Date: Tue,  9 Mar 2010 16:09:12 -0800
+Message-ID: <14510.3905736052$1268179842@news.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: android-kernel@googlegroups.com, Chunqiu Wang <cqwang@motorola.com>, Mike Chan <mike@android.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <tero.kristo@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, miknix@gmail.com, a.j.buxton@gmail.com, linwizard-devel@lists.sf.net
 
-On Tue, Mar 9, 2010 at 7:56 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Cory Maccarrone <darkstar6262@gmail.com> [100308 19:03]:
->> On Mon, Mar 8, 2010 at 6:46 PM, Tony Lindgren <tony@atomide.com> wro=
-te:
->>
->> Alright, I found it. =C2=A00c8219f0302d0d27fda52c790d38406801e547ec =
-removed
->> this code from uncompress.h:
->>
->> =C2=A0 =C2=A0 - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if =
-(check_port(uart, shift))
->> =C2=A0 =C2=A0 - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 break;
->>
->> which was in a while loop in putc(), with check_port defined as:
->>
->> =C2=A0 =C2=A0 #define UART_OMAP_MDR1 =C2=A0 =C2=A0 =C2=A0 =C2=A0 0x0=
-8 =C2=A0 =C2=A0/* mode definition register */
->> =C2=A0 =C2=A0 #define check_port(base, shift) ((base[UART_OMAP_MDR1 =
-<< shift] & 7) =3D=3D 0)
->>
->> and shift =3D 0. =C2=A0Without the break, putc() was silent. =C2=A0I=
-f I put in
->> similar code back into putc():
->>
->> =C2=A0 =C2=A0 + =C2=A0 =C2=A0 =C2=A0 if ((uart_base[0x08] & 7) !=3D =
-0)
->> =C2=A0 =C2=A0 + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret=
-urn;
->>
->> it boots.
->>
->> Unfortunately, I don't have access to the serial console, so I have =
-no
->> idea if any of the serial port work was actually working (the Herald
->> is a phone, and the only output I have is USB, which can act as
->> serial, but I'm ill-equipped to make that work). =C2=A0I suspect thi=
-s is
->> always returning true, and as such we're not getting serial output
->> through the uncompress. =C2=A0Not sure what's needed to fix this, bu=
-t at
->> least that little bit of code makes it boot for me.
->
-> OK. It's not a bug it's a feature :)
->
-> If you don't have anything connected to the serial port, then
-> DEBUG_LL should not do anything as it just waits for fifo to empty.
->
-> Sounds like we should either have most of uncompress.h in ifdef
-> CONFIG_DEBUG_LL so it does not do anything unless set.
->
-> We may also want to also define DEBUG_LL_OMAP_NONE in uncompress.h
-> to allow booting systems with no serial port with DEBUG_LL set,
-> but I don't know if that's really needed.
->
-> Does your system boot without any patches if DEBUG_LL is not set
-> in your .config?
->
-> Regards,
->
-> Tony
->
+From: Chunqiu Wang <cqwang@motorola.com>
 
-No, it doesn't.  Seems like the debugging code is still trying to run,
-even disabled.  If I add in that check, it'll boot with DEBUG_LL not
-set, but won't without that.
+Current OMAP resource fwk uses a global res_mutex
+for resource_request and resource_release calls
+for all the available resources.It may cause dead
+lock if resource_request/resource_release is called
+recursively.
 
-- Cory
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For current OMAP3 VDD1/VDD2 resource, the change_level
+implementation is mach-omap2/resource34xx.c/set_opp(),
+when using resource_release to remove vdd1 constraint,
+this function may call resource_release again to release
+Vdd2 constrait if target vdd1 level is less than OPP3.
+in this scenario, the global res_mutex down operation
+will be called again, this will cause the second
+down operation hang there.
+
+To fix the problem, per-resource mutex is added
+to avoid hangup when resource_request/resource_release
+is called recursively.
+
+Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
+Signed-off-by: Mike Chan <mike@android.com>
+---
+ arch/arm/plat-omap/include/plat/resource.h |    2 ++
+ arch/arm/plat-omap/resource.c              |   21 ++++++++++-----------
+ 2 files changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/resource.h b/arch/arm/plat-omap/include/plat/resource.h
+index 9acebcc..b5aff1f 100644
+--- a/arch/arm/plat-omap/include/plat/resource.h
++++ b/arch/arm/plat-omap/include/plat/resource.h
+@@ -54,6 +54,8 @@ struct shared_resource {
+ 	/* Shared resource operations */
+ 	struct shared_resource_ops *ops;
+ 	struct list_head node;
++	/* Protect each resource */
++	struct mutex resource_mutex;
+ };
+ 
+ struct shared_resource_ops {
+diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
+index f1cdecf..0a7b79b 100644
+--- a/arch/arm/plat-omap/resource.c
++++ b/arch/arm/plat-omap/resource.c
+@@ -277,6 +277,7 @@ int resource_register(struct shared_resource *resp)
+ 	}
+ 
+ 	INIT_LIST_HEAD(&resp->users_list);
++	mutex_init(&resp->resource_mutex);
+ 
+ 	/* Add the resource to the resource list */
+ 	list_add(&resp->node, &res_list);
+@@ -339,14 +340,13 @@ int resource_request(const char *name, struct device *dev,
+ 	struct  users_list *user;
+ 	int 	found = 0, ret = 0;
+ 
+-	down(&res_mutex);
+-	resp = _resource_lookup(name);
++	resp = resource_lookup(name);
+ 	if (!resp) {
+ 		printk(KERN_ERR "resource_request: Invalid resource name\n");
+-		ret = -EINVAL;
+-		goto res_unlock;
++		return -EINVAL;
+ 	}
+ 
++	mutex_lock(&resp->resource_mutex);
+ 	/* Call the resource specific validate function */
+ 	if (resp->ops->validate_level) {
+ 		ret = resp->ops->validate_level(resp, level);
+@@ -375,7 +375,7 @@ int resource_request(const char *name, struct device *dev,
+ 	user->level = level;
+ 
+ res_unlock:
+-	up(&res_mutex);
++	mutex_unlock(&resp->resource_mutex);
+ 	/*
+ 	 * Recompute and set the current level for the resource.
+ 	 * NOTE: update_resource level moved out of spin_lock, as it may call
+@@ -406,14 +406,13 @@ int resource_release(const char *name, struct device *dev)
+ 	struct users_list *user;
+ 	int found = 0, ret = 0;
+ 
+-	down(&res_mutex);
+-	resp = _resource_lookup(name);
++	resp = resource_lookup(name);
+ 	if (!resp) {
+ 		printk(KERN_ERR "resource_release: Invalid resource name\n");
+-		ret = -EINVAL;
+-		goto res_unlock;
++		return -EINVAL;
+ 	}
+ 
++	mutex_lock(&resp->resource_mutex);
+ 	list_for_each_entry(user, &resp->users_list, node) {
+ 		if (user->dev == dev) {
+ 			found = 1;
+@@ -434,7 +433,7 @@ int resource_release(const char *name, struct device *dev)
+ 	/* Recompute and set the current level for the resource */
+ 	ret = update_resource_level(resp);
+ res_unlock:
+-	up(&res_mutex);
++	mutex_unlock(&resp->resource_mutex);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(resource_release);
+@@ -458,7 +457,7 @@ int resource_get_level(const char *name)
+ 		up(&res_mutex);
+ 		return -EINVAL;
+ 	}
+-	ret = resp->curr_level;
++	ret =  resp->curr_level;
+ 	up(&res_mutex);
+ 	return ret;
+ }
+-- 
+1.6.6.2
