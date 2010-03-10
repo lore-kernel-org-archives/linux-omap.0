@@ -1,11 +1,15 @@
 From: y@google.com
 Subject: [PATCH] omap: resource: Add per-resource mutex for OMAP resource framework
 Date: Tue,  9 Mar 2010 16:09:12 -0800
-Message-ID: <14510.3905736052$1268179842@news.gmane.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: android-kernel@googlegroups.com, Chunqiu Wang <cqwang@motorola.com>, Mike Chan <mike@android.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <tero.kristo@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Message-ID: <45354.3850141161$1268179842@news.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([216.239.33.17]:43550 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754989Ab0CJAKV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Mar 2010 19:10:21 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+Cc: android-kernel@googlegroups.com, Chunqiu Wang <cqwang@motorola.com>, Mike Chan <mike@android.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <tero.kristo@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
 From: Chunqiu Wang <cqwang@motorola.com>
 
@@ -125,3 +129,4 @@ index f1cdecf..0a7b79b 100644
  }
 -- 
 1.6.6.2
+
