@@ -1,96 +1,97 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH/RFT 2/2] OMAP4: fix temporary hacks that break
- multi-omap PM
-Date: Wed, 10 Mar 2010 12:18:00 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C46F0F9C@dbde02.ent.ti.com>
-References: <1268154241-24788-1-git-send-email-khilman@deeprootsystems.com>
- <1268154241-24788-3-git-send-email-khilman@deeprootsystems.com>
+From: ambresh <a0393775@ti.com>
+Subject: Re: [PATCH RFC]OMAP3:PM:Dynamic Calculation of SDRC stall latency
+ during DVFS
+Date: Wed, 10 Mar 2010 12:38:16 +0530
+Message-ID: <4B974560.5070704@ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB031E80D573@dbde02.ent.ti.com> <4B94CC12.3000104@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0321DCB3DC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59865 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753862Ab0CJGsF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2010 01:48:05 -0500
-In-Reply-To: <1268154241-24788-3-git-send-email-khilman@deeprootsystems.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:43419 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753862Ab0CJHIY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2010 02:08:24 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321DCB3DC@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gurav , Pramod" <pramod.gurav@ti.com>
+Cc: "K, Ambresh" <ambresh@ti.com>, "Reddy, Teerth" <teerth@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Kandasamy, Rajkumar" <rajkumark@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
-> Hilman
-> Sent: Tuesday, March 09, 2010 10:34 PM
-> To: linux-omap@vger.kernel.org
-> Subject: [PATCH/RFT 2/2] OMAP4: fix temporary hacks that break multi-omap PM
+Gurav , Pramod wrote:
+> Hi Ambresh,
 > 
-> When building for multi-omap, and OMAP4 is enabled, CONFIG_ARCH_OMAP4
-> will be true and prevent included code from building/running for
-> OMAP2/3 as well.
+>>> +	clk_sel_regval = cm_read_mod_reg(PLL_MOD, CM_CLKSEL);
+>> *clk already as reference to CM_CLKSEL:
+>>
+>>   static struct clk dpll3_m2_ck = {
+>> [...]
+>>          .clksel_reg     = OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+>>          .clksel_mask    = OMAP3430_CORE_DPLL_CLKOUT_DIV_MASK,
+>> [...]
+>>
+>> so please use .clksel_reg to read the register content.
+>>
 > 
-> This problem exists in io.c where some hwmod/PM/SDRC init code is
-> prevented from running even on OMAP2/3 when OMAP4 is included in a
-> multi-OMAP build.
+> This will be done.
 > 
-> A quick glance suggests that this #ifndef is no longer needed in most
-> of the cases.  In the remaining cases, the function is wrapped with
-> "if (cpu_is_omap24xx() || cpu_is_omap34xx())" which will be optimized
-> out for OMAP4-only builds.
+>>> +	sys_clk_rate = clk_get_rate(clk_get(NULL, "osc_sys_ck"));
+>> Should it be "sys_ck" instead of "osc_sys_ck"?
+>>
+>> According to my understanding from trm, I guess CLKINP represents DPLL3
+>> reference clock (DPLL3_ALWON_FCLK) which is nothing but "sys_ck".
+>>
+>> Should not make a difference when the sys_clk divisor is 1, but if it is
+>> 2, then sys_ck=osc_sys_ck/2.
 > 
-> Note that this is only a short-term fix.  Longer-term, OMAP4
-> needs to create init functions for SDRC and hwmod late-init.
 > 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/mach-omap2/io.c |   13 ++++++-------
->  1 files changed, 6 insertions(+), 7 deletions(-)
+> Yes, it has to be sys_ck and it will be taken care.
 > 
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 402e8f0..f33409c 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -309,7 +309,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  {
->  	pwrdm_init(powerdomains_omap);
->  	clkdm_init(clockdomains_omap, clkdm_autodeps);
-> -#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is ready */
->  	if (cpu_is_omap242x())
->  		omap2420_hwmod_init();
->  	else if (cpu_is_omap243x())
-> @@ -319,7 +318,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  	omap2_mux_init();
->  	/* The OPP tables have to be registered before a clk init */
->  	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
-> -#endif
+>>> +	/* wait time for L3 clk stabilization = 4*REFCLK + 8*CLKOUTX2 */
+>>> +	nr1 = (4 * (core_dpll_div_n + 1) * 2 * core_dpll_clkoutdiv_m2 *
+>>> +							 core_dpll_mul_m);
+>>> +	nr2 = 8 * (core_dpll_div_n + 1);
+>>> +	nr = nr1 + nr2;
+>>> +
+>>> +	dr = 2 * sys_clk_rate * core_dpll_mul_m * core_dpll_clkoutdiv_m2;
+>>> +
+>> I am not able to understand the calculations completely for
+>> (nr1 + nr2) / dr. and I guess you could simplify the calculation a bit
+>> by removing the redundant multiplications and divisions.
+>> And also may be you can use m, n & m2 instead of core_dpll_xxx_xx, to
+>> make code more readable.
+>>
+
+We can get ride of the steps used to calculate CLKOUTX2, by simply 
+calling parent's (dpll3_ck) clk->recalc function pointer.
+
+recalc function will return CLKOUT, so CLKOUTX2 = CLKOUT * 2.
+
+pseudo code
+------------
+struct clk *parent = clk->parent;
+clkout = parent->recalc();
+clkoutx2 = clkout * 2;
+
+To derive REFCLK. the only unknown parameter will be N, which can be 
+read from .clksel_reg.
+
+Why can't we use do_div() api to calculate REFCLK, instead of manual 
+calculation?
+
+
+Regards,
+Ambresh
+
+
+
+
 > 
->  	if (cpu_is_omap2420())
->  		omap2420_clk_init();
-> @@ -333,11 +331,12 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  		pr_err("Could not init clock framework - unknown CPU\n");
+> I am restructuring the formula with appropriate variable names.
 > 
->  	omap_serial_early_init();
-> -#ifndef CONFIG_ARCH_OMAP4
-> -	omap_hwmod_late_init();
-> +	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
-This is in pipeline with ongoing hwmod work.
-> +		omap_hwmod_late_init();
->  	omap_pm_if_init();
-> -	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
-> -	_omap2_init_reprogram_sdrc();
-> -#endif
-> +	if (cpu_is_omap24xx() || cpu_is_omap34xx()) { /* FIXME: OMAP4 */
-This FIXME should be removed because there no SDRC on OMAP4.
-> +		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
-> +		_omap2_init_reprogram_sdrc();
-> +	}
->  	gpmc_init();
->  }
-> --
-> 1.7.0.2
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thank you for your comments.
+> 
+> Regards,
+> Pramod
+
