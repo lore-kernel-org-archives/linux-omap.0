@@ -1,112 +1,81 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] [I2C-OMAP] Add support for 16-bit registers
-Date: Wed, 10 Mar 2010 14:30:00 -0800
-Message-ID: <20100310223000.GT2900@atomide.com>
-References: <1260669242-29865-1-git-send-email-darkstar6262@gmail.com>
- <6cb013311001090947m2268833cv3784f469dc8b861d@mail.gmail.com>
- <20100109183321.GH2879@atomide.com>
- <6cb013311001091035x54321b3aqb814f476200980af@mail.gmail.com>
- <20100112012814.GK5055@atomide.com>
- <87k4tkf3ye.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: struct dmtimer definition not available in header file
+Date: Wed, 10 Mar 2010 14:37:52 -0800
+Message-ID: <20100310223752.GV2900@atomide.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0321DCB6CA@dbde02.ent.ti.com>
+ <87lje0glhj.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Ns7jmDPpOpCD+GE/"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87k4tkf3ye.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: linux-omap@vger.kernel.org
-
-
---Ns7jmDPpOpCD+GE/
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49287 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757370Ab0CJWgd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2010 17:36:33 -0500
 Content-Disposition: inline
+In-Reply-To: <87lje0glhj.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Gurav , Pramod" <pramod.gurav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> [100310 10:01]:
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+* Kevin Hilman <khilman@deeprootsystems.com> [100310 09:14]:
+> "Gurav , Pramod" <pramod.gurav@ti.com> writes:
 > 
-> > * Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [100109 10:34]:
-> >> On Sat, Jan 9, 2010 at 10:33 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> >> >
-> >> > Let's plan on adding this into omap-testing branch next week so
-> >> > we can make sure things are OK for the other platforms.
-> >> >
-> >> > Then assuming no issues, let's ask Ben can queue it.
-> >> >
-> >> 
-> >> Excellent, thank you!
+> > Hi All,
+> > I am using dmtimer in my code. Code looks like this:
 > >
-> > Applied to omap-testing with the following fix. Can you please merge
-> > it into your original patch?
+> > {
+> >         static struct omap_dm_timer *gpt;
+> >         void * __iomem gpt10_counter_reg;
+> >         unsigned long gpt_phys_base;
+> >
+> >         omap_dm_timer_init();
+> >         gpt = omap_dm_timer_request();
+> >         if (!gpt) {
+> >                 pr_err("Could not get the gptimer\n");
+> >                 return -1;
+> >         }
+> >         omap_dm_timer_set_source(gpt, OMAP_TIMER_SRC_SYS_CLK);
+> >
+> >         gpt_phys_base = gpt->phys_base;
+> >
+> >         gpt10_counter_reg =
+> >                         OMAP2_L4_IO_ADDRESS(gpt_phys_base +
+> >                                         OMAP_TIMER_COUNTER_OFFSET);
+
+We should use ioremap for allthings like this nowadays.
+There are static mappings in place for that.
+
+> >         gt_rate = clk_get_rate(omap_dm_timer_get_fclk(gpt));
+> >         omap_dm_timer_set_load_start(gpt, 0, 0);
+> > 	
+> > 	.
+> > 	.
+> > 	.
+> > }
+> >
+> > I am not able to reference *gpt as the file does not know about struct omap_dm_timer. I have included plat/dmtimer.h.
+> >
+> > Why doesn't the dmtimer struct definition appear in plat/dmtimer.h ?
+> > Is there any reason for this?
 > 
-> Unfortunately, Tony's additional fix did not make it into the version
-> that was merged to mainline, which results in a crash during
-> probe when using v2.6.34-rc1.
+> The declaration appears there, but the definition is hidden.
 > 
-> Ben, can you queue the fix below from Tony for -rc2?
+> In fact, it is is hidden to prevent exactly the type of thing you're
+> trying to do, and to provide all access to DM timer details via the DM
+> timer API.
+> 
+> Looking at your example, I'm guessing you're trying to implement one
+> of my ideas for the SDRC delay calculation by passing the base address
+> to the assembly routine.
+> 
+> As I suggested in my original patch, the better way to do this would
+> be to extend the dmtimer API, and use C instead of assembly.
 
-The original patch attached again below.
-
-Oops, did I maybe send a wrong patchwork link earlier to the
-patch?
-
-Anyways, for the future, considering how critical this driver is
-for all omaps.. And considering how badly this driver needs some
-updates done..
-
-How about we pile up the i2c-omap patches for testing into linux-omap
-branch first, then ask Ben to pull it around -rc6 after we've all
-acked and tested the changes?
-
-Ben does that sound OK to you?
+And if it's generic code, you're better off using Linux hrtimers
+instead. Otherwise there's a good chance your timer won't wake up
+the system from the idle mode and you miss the timer events.
 
 Regards,
 
 Tony
-
---Ns7jmDPpOpCD+GE/
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="i2c-init-fix.patch"
-
->From 07e3b9fc5a37c3d1228ecc6fb2726211bb8d41df Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Tue, 9 Mar 2010 16:53:18 -0800
-Subject: [PATCH] i2c-omap: Fix reg_shift init
-
-Otherwise register access won't work during probe
-for omap_i2c_unidle.
-
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index c7c2375..3d7cf1f 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -894,6 +894,12 @@ omap_i2c_probe(struct platform_device *pdev)
- 	dev->idle = 1;
- 	dev->dev = &pdev->dev;
- 	dev->irq = irq->start;
-+
-+	if (cpu_is_omap7xx())
-+		dev->reg_shift = 1;
-+	else
-+		dev->reg_shift = 2;
-+
- 	dev->base = ioremap(mem->start, resource_size(mem));
- 	if (!dev->base) {
- 		r = -ENOMEM;
-@@ -925,11 +931,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 		dev->b_hw = 1; /* Enable hardware fixes */
- 	}
- 
--	if (cpu_is_omap7xx())
--		dev->reg_shift = 1;
--	else
--		dev->reg_shift = 2;
--
- 	/* reset ASAP, clearing any IRQs */
- 	omap_i2c_init(dev);
- 
-
---Ns7jmDPpOpCD+GE/--
