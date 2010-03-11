@@ -1,45 +1,47 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 0/3] USB compile fixes omaps
-Date: Thu, 11 Mar 2010 10:03:16 -0800
-Message-ID: <20100311180023.20537.27516.stgit@baageli.muru.com>
+Subject: [PATCH 2/3] usb: Fix USB_SUSPEND dependency for OTG
+Date: Thu, 11 Mar 2010 10:03:29 -0800
+Message-ID: <20100311180329.20537.95308.stgit@baageli.muru.com>
+References: <20100311180023.20537.27516.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100311180023.20537.27516.stgit-XB442sTQ5VIxQTnqJstS8Q@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe & Greg,
+To use this, PM_RUNTIME must be set as discussed at:
 
-Here are three fixes to make USB compile for omaps.
-Can you please take a look and queue?
+http://thread.gmane.org/gmane.linux.usb.general/27432/focus=4460
 
-The tusb6010 DMA fix needs a platform init patch that I'll
-send along with other omap fixes.
+Otherwise we'll get errors like:
 
-Regards,
+drivers/usb/core/hcd.c:1892: error: 'pm_wq' undeclared (first use in this function)
+drivers/usb/core/hcd.c:1892: error: (Each undeclared identifier is reported only once
+drivers/usb/core/hcd.c:1892: error: for each function it appears in.)
 
-Tony
-
-
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
+ drivers/usb/core/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Tony Lindgren (3):
-      usb: Fix compile error for omaps for musb_hdrc
-      usb: Fix USB_SUSPEND dependency for OTG
-      usb: Fix tusb6010 for DMA API
+diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
+index 97a819c..7e59444 100644
+--- a/drivers/usb/core/Kconfig
++++ b/drivers/usb/core/Kconfig
+@@ -109,7 +109,7 @@ config USB_SUSPEND
+ config USB_OTG
+ 	bool
+ 	depends on USB && EXPERIMENTAL
+-	select USB_SUSPEND
++	depends on USB_SUSPEND
+ 	default n
+ 
+ 
 
-
- drivers/usb/core/Kconfig         |    2 +-
- drivers/usb/musb/musb_core.h     |    4 ++--
- drivers/usb/musb/tusb6010.c      |   13 +++++++++++++
- drivers/usb/musb/tusb6010_omap.c |   22 ++++++++++++++--------
- 4 files changed, 30 insertions(+), 11 deletions(-)
-
--- 
-Signature
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
