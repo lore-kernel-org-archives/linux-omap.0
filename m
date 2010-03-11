@@ -1,41 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH-Fix] OMAP: Add DSI regulator supply to OMAP3EVM board
- file
-Date: Thu, 11 Mar 2010 11:27:38 +0200
-Message-ID: <1268299658.28571.89.camel@tubuntu.research.nokia.com>
+From: hvaibhav@ti.com
+Subject: [PATCH] OMAP: Replace vdvi with vdds_dsi regulator supply in OMAP3EVM board file
+Date: Thu, 11 Mar 2010 15:00:42 +0530
+Message-ID: <1268299842-8070-1-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
-	 <1268297717-8062-1-git-send-email-hvaibhav@ti.com>
-	 <1268297945.28571.81.camel@tubuntu.research.nokia.com>
-	 <19F8576C6E063C45BE387C64729E7394044DD32B4F@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:65146 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484Ab0CKJ2J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 04:28:09 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DD32B4F@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41938 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752193Ab0CKJa6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 04:30:58 -0500
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Tomi.Valkeinen@nokia.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-> > Are you sure vdvi is required by the panel? At least the panel in
-> > 3430SDP doesn't require it.
-> [Hiremath, Vaibhav] As I mentioned before also, we don't need vdvi supply for OMAP3EVM. Infact there is no supply like vdvi coming out of TWL4030
-> Since it was being used in panel file I had defined it. But now I can see that we are no longer using vdvi supply, so I can safely remove this supply. Thanks for pointing me to this.
-> 
-> I have created another patch which will replace the vdvi with vdds_dsi regulator supply; I have tested it on OMAP3EVM.
-> 
-> Please merge this patch, without this OMAP3EVM DSS/Fbdev will fail in regulator_get.
+With recent changes happened in OMAP2/3 DSS library for regulator interface, it
+is required to define DSI regulator supply, and since we don't need VDVI
+supply so remove it.
 
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Board file changes will go through Tony. And you should generally send
-the patches as inline patches, not attachments.
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 017bb2f..ea1014b 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -515,8 +515,8 @@ static struct regulator_init_data omap3_evm_vdac = {
 
- Tomi
+ /* VPLL2 for digital video outputs */
+ static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
+-	.supply		= "vdvi",
+-	.dev		= &omap3_evm_lcd_device.dev,
++	.supply		= "vdds_dsi",
++	.dev		= &omap3_evm_dss_device.dev,
+ };
 
+ static struct regulator_init_data omap3_evm_vpll2 = {
+--
+1.6.2.4
 
