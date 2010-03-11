@@ -1,62 +1,78 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v4][PATCH 04/11] ARM: OMAP3630: PRCM: Add UART4 control bits
-Date: Wed, 10 Mar 2010 18:14:17 -0600
-Message-ID: <1268266464-15702-5-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v4][PATCH 07/11] omap3: serial: Fix uart4 handling for 3630
+Date: Wed, 10 Mar 2010 18:14:20 -0600
+Message-ID: <1268266464-15702-8-git-send-email-saaguirre@ti.com>
 References: <1268266464-15702-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36546 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932943Ab0CKANV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Mar 2010 19:13:21 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:46530 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932952Ab0CKANZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2010 19:13:25 -0500
 In-Reply-To: <1268266464-15702-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Sergio Aguirre <saaguirre@ti.com>
 
-This bits are exclusive of omap 36xx family of chips.
+This patch makes the following:
+ - Adds missing wakeup padding register handling.
+ - Fixes a hardcode to use PER module ONLY on UART3.
+ - Adds UART4 IRQ number define for 36xx chips.
+ - Corrects IRQ number for 3630 case.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
- arch/arm/mach-omap2/prcm-common.h     |    4 ++++
- 2 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/serial.c           |    9 ++++++++-
+ arch/arm/plat-omap/include/plat/irqs.h |    2 ++
+ 2 files changed, 10 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index a3a3ca0..834b671 100644
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -649,6 +649,8 @@
- #define OMAP3430_ST_MCBSP2_MASK				(1 << 0)
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 3771254..4ff395d 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -444,7 +444,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	omap_uart_smart_idle_enable(uart, 0);
  
- /* CM_AUTOIDLE_PER */
-+#define OMAP3630_AUTO_UART4				(1 << 18)
-+#define OMAP3630_AUTO_UART4_SHIFT			18
- #define OMAP3430_AUTO_GPIO6				(1 << 17)
- #define OMAP3430_AUTO_GPIO6_SHIFT			17
- #define OMAP3430_AUTO_GPIO5				(1 << 16)
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 90f603d..c4e7bcb 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -390,6 +390,8 @@
- #define OMAP3430_EN_MPU_SHIFT				1
+ 	if (cpu_is_omap34xx()) {
+-		u32 mod = (uart->num == 2) ? OMAP3430_PER_MOD : CORE_MOD;
++		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
+ 		u32 wk_mask = 0;
+ 		u32 padconf = 0;
  
- /* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
-+#define OMAP3630_EN_UART4				(1 << 18)
-+#define OMAP3630_EN_UART4_SHIFT				18
- #define OMAP3430_EN_GPIO6				(1 << 17)
- #define OMAP3430_EN_GPIO6_SHIFT				17
- #define OMAP3430_EN_GPIO5				(1 << 16)
-@@ -430,6 +432,8 @@
- #define OMAP3430_EN_MCBSP2_SHIFT			0
+@@ -463,6 +463,10 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 			wk_mask = OMAP3430_ST_UART3_MASK;
+ 			padconf = 0x19e;
+ 			break;
++		case 3:
++			wk_mask = OMAP3630_ST_UART4_MASK;
++			padconf = 0x0d2;
++			break;
+ 		}
+ 		uart->wk_mask = wk_mask;
+ 		uart->padconf = padconf;
+@@ -694,6 +698,9 @@ void __init omap_serial_early_init(void)
  
- /* CM_IDLEST_PER, PM_WKST_PER shared bits */
-+#define OMAP3630_ST_UART4_SHIFT				18
-+#define OMAP3630_ST_UART4_MASK				(1 << 18)
- #define OMAP3430_ST_GPIO6_SHIFT				17
- #define OMAP3430_ST_GPIO6_MASK				(1 << 17)
- #define OMAP3430_ST_GPIO5_SHIFT				16
+ 		if (cpu_is_omap44xx())
+ 			p->irq += 32;
++
++		if (cpu_is_omap3630() && (i == 3))
++			p->irq = INT_36XX_UART4_IRQ;
+ 	}
+ }
+ 
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index b65088a..7d3820c 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -358,6 +358,8 @@
+ #define INT_35XX_CCDC_VD1_IRQ		92
+ #define INT_35XX_CCDC_VD2_IRQ		93
+ 
++#define INT_36XX_UART4_IRQ	80
++
+ /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730/850) and
+  * 16 MPUIO lines */
+ #define OMAP_MAX_GPIO_LINES	192
 -- 
 1.6.3.3
 
