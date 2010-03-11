@@ -1,51 +1,112 @@
 From: Pramod Gurav <pramod.gurav@ti.com>
-Subject: [PATCH 0/2] OMAP3: Dynamic Calculation of SDRC stall latency during DVFS
-Date: Thu, 11 Mar 2010 17:04:55 +0530
-Message-ID: <1268307297-23330-1-git-send-email-pramod.gurav@ti.com>
+Subject: [PATCH 2/2] OMAP3630: SDRC: Change in DVFS Latency Formula for OMAP3630
+Date: Thu, 11 Mar 2010 17:04:57 +0530
+Message-ID: <1268307297-23330-3-git-send-email-pramod.gurav@ti.com>
+References: <1268307297-23330-1-git-send-email-pramod.gurav@ti.com>
+ <1268307297-23330-2-git-send-email-pramod.gurav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33526 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33528 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129Ab0CKL2o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Mar 2010 06:28:44 -0500
+	id S1752702Ab0CKL2p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Mar 2010 06:28:45 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2BBSfHM005821
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2BBSgjD005822
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 11 Mar 2010 05:28:43 -0600
+	for <linux-omap@vger.kernel.org>; Thu, 11 Mar 2010 05:28:44 -0600
+In-Reply-To: <1268307297-23330-2-git-send-email-pramod.gurav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Pramod Gurav <pramod.gurav@ti.com>
+Cc: Pramod Gurav <pramod.gurav@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-The patch has the changes to calculate the dpll3 clock stabilization
-delay dynamically. The SRAM delay is calibrated during bootup using the
-gptimers and used while calculating the stabilization delay. By using
-the dynamic method the dependency on the type of cache being used is
-removed.
+This patch uses new formula to derive the dpll3 clock Stabilization
+delay during DVFS for OMAP3630. The formula used is :
+Latency = 2 * SYS_CLK + 10 * CLKOUTX2
 
-Formula to calculate the DVFS latency for 3430 and 3630 are different.
-The second patch implements the formula for later.
+Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Signed-off-by: Pramod Gurav <pramod.gurav@ti.com>
 
-Below is the summery of the comments from the commumnity, 
-those are addressed by these patches:
+---
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c |   53 +++++++++++++++++++++++--------
+ 1 files changed, 39 insertions(+), 14 deletions(-)
 
-1. Subject of the patch mentioned as OMAP3: SDRC: instead of OMAP3: PM.
-2. The first available dmtimer is requested dynamically instead of statically 
-   requesting a dmtimer. Thus hardcoding is avoided.
-3. Excluded use of direct physical address of dmtimer. Instead used dmtimer APIs.
-3. Only the counter loop is run in ASM.
-4. Restructuring of formula for DVFS latency for 3430.
-5. Adding new implementation for DVFS latency for 3630.
-
-Teerth Reddy (1):
-  OMAP3: SDRC: Dynamic Calculation of SDRC stall latency during DVFS
-Pramod Gurav (2):
-  OMAP3630: SDRC: Change in DVFS Latency Formula for OMAP3630
-
- arch/arm/mach-omap2/clkt34xx_dpll3m2.c |   83 ++++++++++++++++++++++++++++----
- arch/arm/mach-omap2/clock34xx.h        |    2 +
- arch/arm/mach-omap2/clock3xxx_data.c   |   12 +++++
- arch/arm/mach-omap2/sram34xx.S         |   11 ++++
- arch/arm/plat-omap/include/plat/sram.h |    4 ++
- arch/arm/plat-omap/sram.c              |   49 +++++++++++++++++++
- 6 files changed, 151 insertions(+), 10 deletions(-)
+diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+index 3f61eb2..eee0332 100644
+--- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
++++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+@@ -67,7 +67,7 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 	u32 clk_sel_regval;
+ 	u32 core_dpll_mul_m, core_dpll_div_n, core_dpll_clkoutdiv_m2;
+ 	u32 sys_clk_rate, sdrc_clk_stab;
+-	u32 refclk, clkoutx2, switch_latency;
++	u32 refclk, clkoutx2, switch_latency, dpll_lock_freq;
+ 	unsigned int delay_sram;
+ 
+ 	if (!clk || !rate)
+@@ -103,25 +103,50 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 
+ 	sys_clk_rate = sys_clk_rate / CYCLES_PER_MHZ;
+ 
+-	/* wait time for L3 clk stabilization = 4*REFCLK + 8*CLKOUTX2 */
+-	refclk = (4 * (core_dpll_div_n + 1)) / sys_clk_rate;
+-	clkoutx2 = ((core_dpll_div_n + 1) * core_dpll_clkoutdiv_m2) /
++	if (cpu_is_omap3630()) {
++		/*
++		 * wait time for L3 clk stabilization =
++		 * 2*SYS_CLK + 10*CLKOUTX2
++		 */
++		/* Avoid truncation of float values */
++		refclk = 2000 / sys_clk_rate;
++		dpll_lock_freq = (1000 * 100 * (core_dpll_div_n + 1))/
++					(2 * sys_clk_rate * core_dpll_mul_m);
++		clkoutx2 = 10 * (dpll_lock_freq * core_dpll_clkoutdiv_m2) / 100;
++		switch_latency = refclk + clkoutx2;
++
++		/* Adding 1000 nano seconds to sdrc clk stab */
++		sdrc_clk_stab = switch_latency + 1000;
++
++		delay_sram = delay_sram_val();
++		/*
++		 * Calculate the number of MPU cycles to wait for
++		 * SDRC to stabilize
++		 */
++		_mpurate = arm_fck_p->rate / CYCLES_PER_MHZ;
++
++		c = ((sdrc_clk_stab * _mpurate) / (delay_sram * 2 * 1000));
++	} else {
++		/* wait time for L3 clk stabilization = 4*REFCLK + 8*CLKOUTX2*/
++		refclk = (4 * (core_dpll_div_n + 1)) / sys_clk_rate;
++		clkoutx2 = ((core_dpll_div_n + 1) * core_dpll_clkoutdiv_m2) /
+ 					(sys_clk_rate * core_dpll_mul_m * 2);
+-	switch_latency =  refclk + 8 * clkoutx2;
++		switch_latency =  refclk + 8 * clkoutx2;
+ 
+-	/* Adding 2us to sdrc clk stab */
+-	sdrc_clk_stab =  switch_latency + 2;
++		/* Adding 2us to sdrc clk stab */
++		sdrc_clk_stab =  switch_latency + 2;
+ 
+-	delay_sram = delay_sram_val();
++		delay_sram = delay_sram_val();
+ 
+-	/*
+-	 * Calculate the number of MPU cycles
+-	 * to wait for SDRC to stabilize
+-	 */
++		/*
++		 * Calculate the number of MPU cycles
++		 * to wait for SDRC to stabilize
++		 */
++		_mpurate = arm_fck_p->rate / CYCLES_PER_MHZ;
+ 
+-	_mpurate = arm_fck_p->rate / CYCLES_PER_MHZ;
++		c = ((sdrc_clk_stab * _mpurate) / (delay_sram * 2));
+ 
+-	c = ((sdrc_clk_stab * _mpurate) / (delay_sram * 2));
++	}
+ 
+ 	pr_debug("m = %d, n = %d, m2 =%d\n", core_dpll_mul_m, core_dpll_div_n,
+ 						core_dpll_clkoutdiv_m2);
+-- 
+1.5.6.3
 
