@@ -1,28 +1,37 @@
-From: Peter Barada <peter.barada@gmail.com>
-Subject: Trying to understand how to use new OMAP mux code
-Date: Thu, 11 Mar 2010 17:24:31 -0500
-Message-ID: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM/OMAP: Remove the +x bit from a couple of source
+ files
+Date: Thu, 11 Mar 2010 14:34:29 -0800
+Message-ID: <20100311223429.GQ2900@atomide.com>
+References: <20100306001446.439b4218@digital-domain.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:41301 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750902Ab0CKWcT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 17:32:19 -0500
-Received: by pwi1 with SMTP id 1so293338pwi.19
-        for <linux-omap@vger.kernel.org>; Thu, 11 Mar 2010 14:32:18 -0800 (PST)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54040 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751011Ab0CKWdI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 17:33:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20100306001446.439b4218@digital-domain.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Andrew Clayton <andrew@digital-domain.net>
+Cc: linux-omap@vger.kernel.org
 
-1) Suppose I want to talk to a bluetooth chip through UART2.  UART2_TX
- gives me a choice of pins to hook up to, either to pin AA26 in Mode0,
-or pin AF5 in Mode1.  If I use omape_mux_init_signal("uart2_tx",
-OMAP_PIN_OUTPUT), which pin will that map to?
+* Andrew Clayton <andrew@digital-domain.net> [100305 16:33]:
+> Signed-off-by: Andrew Clayton <andrew@digital-domain.net>
+> ---
+>  0 files changed, 0 insertions(+), 0 deletions(-)
+>  mode change 100755 => 100644 arch/arm/mach-omap2/board-3630sdp.c
+>  mode change 100755 => 100644 arch/arm/mach-omap2/board-zoom-peripherals.c
+> 
+> diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+> old mode 100755
+> new mode 100644
+> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> old mode 100755
+> new mode 100644
 
-2) How can I tell the muxing code that I want a specific pin for my
-UART2_TX signal (that's not a GPIO since those can be directly
-specified by GPIO number)?
+Uhh, not again.. Applying, thanks.
 
-
-Thanks in advance!
+Tony
