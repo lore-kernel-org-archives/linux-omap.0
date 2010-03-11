@@ -1,64 +1,77 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v4][PATCH 03/11] omap2/3/4: serial: Remove condition for getting uart4_phys
-Date: Wed, 10 Mar 2010 18:14:16 -0600
-Message-ID: <1268266464-15702-4-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v4][PATCH 02/11] OMAP3: serial: Use dev_* macros instead of printk
+Date: Wed, 10 Mar 2010 18:14:15 -0600
+Message-ID: <1268266464-15702-3-git-send-email-saaguirre@ti.com>
 References: <1268266464-15702-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35594 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49036 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932920Ab0CKANU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Mar 2010 19:13:20 -0500
+	id S932947Ab0CKANV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Mar 2010 19:13:21 -0500
 In-Reply-To: <1268266464-15702-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Sergio Aguirre <saaguirre@ti.com>
 
-This check is invalid, since we haven't filled the
-omap_revision var at this point.
+As we have a struct device populated at the time we are
+printing the errors, using dev_* macros makes more sense,
+as could give a better idea where the error/warning came from.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   14 +-------------
- 1 files changed, 1 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/serial.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index a55e6ae..3771254 100644
+index ef91fc0..a55e6ae 100644
 --- a/arch/arm/mach-omap2/serial.c
 +++ b/arch/arm/mach-omap2/serial.c
-@@ -115,7 +115,6 @@ static struct plat_serial8250_port serial_platform_data2[] = {
+@@ -550,7 +550,7 @@ static ssize_t sleep_timeout_store(struct device *dev,
+ 	unsigned int value;
+ 
+ 	if (sscanf(buf, "%u", &value) != 1) {
+-		printk(KERN_ERR "sleep_timeout_store: Invalid value\n");
++		dev_err(dev, "sleep_timeout_store: Invalid value\n");
+ 		return -EINVAL;
  	}
- };
  
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- static struct plat_serial8250_port serial_platform_data3[] = {
- 	{
- 		.irq		= 70,
-@@ -128,23 +127,12 @@ static struct plat_serial8250_port serial_platform_data3[] = {
- 	}
- };
+@@ -666,8 +666,8 @@ void __init omap_serial_early_init(void)
  
--static inline void omap2_set_globals_uart4(struct omap_globals *omap2_globals)
--{
--	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
--}
--#else
--static inline void omap2_set_globals_uart4(struct omap_globals *omap2_globals)
--{
--}
--#endif
--
- void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
- {
- 	serial_platform_data0[0].mapbase = omap2_globals->uart1_phys;
- 	serial_platform_data1[0].mapbase = omap2_globals->uart2_phys;
- 	serial_platform_data2[0].mapbase = omap2_globals->uart3_phys;
--	if (cpu_is_omap3630() || cpu_is_omap44xx())
--		omap2_set_globals_uart4(omap2_globals);
-+	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
- }
+ 		/* Don't map zero-based physical address */
+ 		if (p->mapbase == 0) {
+-			printk(KERN_WARNING "omap serial: No physical address"
+-			       " for uart#%d, so skipping early_init...\n", i);
++			dev_warn(dev, "no physical address for uart#%d,"
++				 " so skipping early_init...\n", i);
+ 			continue;
+ 		}
+ 		/*
+@@ -676,21 +676,21 @@ void __init omap_serial_early_init(void)
+ 		 */
+ 		p->membase = ioremap(p->mapbase, SZ_8K);
+ 		if (!p->membase) {
+-			printk(KERN_ERR "ioremap failed for uart%i\n", i + 1);
++			dev_err(dev, "ioremap failed for uart%i\n", i + 1);
+ 			continue;
+ 		}
  
- static inline unsigned int __serial_read_reg(struct uart_port *up,
+ 		sprintf(name, "uart%d_ick", i + 1);
+ 		uart->ick = clk_get(NULL, name);
+ 		if (IS_ERR(uart->ick)) {
+-			printk(KERN_ERR "Could not get uart%d_ick\n", i + 1);
++			dev_err(dev, "Could not get uart%d_ick\n", i + 1);
+ 			uart->ick = NULL;
+ 		}
+ 
+ 		sprintf(name, "uart%d_fck", i+1);
+ 		uart->fck = clk_get(NULL, name);
+ 		if (IS_ERR(uart->fck)) {
+-			printk(KERN_ERR "Could not get uart%d_fck\n", i + 1);
++			dev_err(dev, "Could not get uart%d_fck\n", i + 1);
+ 			uart->fck = NULL;
+ 		}
+ 
 -- 
 1.6.3.3
 
