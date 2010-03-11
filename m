@@ -1,57 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: Replace vdvi with vdds_dsi regulator supply in
- OMAP3EVM board file
-Date: Thu, 11 Mar 2010 14:18:21 -0800
-Message-ID: <20100311221821.GM2900@atomide.com>
-References: <hvaibhav@ti.com>
- <1268299842-8070-1-git-send-email-hvaibhav@ti.com>
+Subject: Re: [PATCH 1/1] Regulator: Registering USB internal LDOs for
+ TWL4030
+Date: Thu, 11 Mar 2010 14:22:47 -0800
+Message-ID: <20100311222247.GN2900@atomide.com>
+References: <1263201918-8185-1-git-send-email-anuj.aggarwal@ti.com>
+ <20100111105612.GA20717@rakim.wolfsonmicro.main>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0321B9DE1E@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62956 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758429Ab0CKWRC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 17:17:02 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63826 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756936Ab0CKWV2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 17:21:28 -0500
 Content-Disposition: inline
-In-Reply-To: <1268299842-8070-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321B9DE1E@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: linux-omap@vger.kernel.org, Tomi.Valkeinen@nokia.com
+To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-* hvaibhav@ti.com <hvaibhav@ti.com> [100311 01:28]:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
+* Aggarwal, Anuj <anuj.aggarwal@ti.com> [100301 22:21]:
+> > -----Original Message-----
+> > From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
+> > Sent: Monday, January 11, 2010 4:26 PM
+> > To: Aggarwal, Anuj
+> > Cc: linux-omap@vger.kernel.org; lrg@slimlogic.co.uk
+> > Subject: Re: [PATCH 1/1] Regulator: Registering USB internal LDOs for
+> > TWL4030
+> > 
+> > On Mon, Jan 11, 2010 at 02:55:18PM +0530, Anuj Aggarwal wrote:
+> > > Adding member variables for USB internal LDOs in twl4030_platform_data
+> > > and registering them in twl-core.c if the variables are populated
+> > > from board-evm file.
+> > 
+> > > Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> > 
+> > Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Tony,
 > 
-> With recent changes happened in OMAP2/3 DSS library for regulator interface, it
-> is required to define DSI regulator supply, and since we don't need VDVI
-> supply so remove it.
+> Can you pull this patch? I have tried it on for-next tip, it applies
+> cleanly.
 
-This one does not seem to apply, maybe this should be merged into
-one of your pending patches?
+This needs to go to Samuel, see MAINTAINERS file for MFD.
 
 Tony
- 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index 017bb2f..ea1014b 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -515,8 +515,8 @@ static struct regulator_init_data omap3_evm_vdac = {
-> 
->  /* VPLL2 for digital video outputs */
->  static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
-> -	.supply		= "vdvi",
-> -	.dev		= &omap3_evm_lcd_device.dev,
-> +	.supply		= "vdds_dsi",
-> +	.dev		= &omap3_evm_dss_device.dev,
->  };
-> 
->  static struct regulator_init_data omap3_evm_vpll2 = {
-> --
-> 1.6.2.4
-> 
