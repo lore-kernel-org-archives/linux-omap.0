@@ -1,30 +1,68 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] USB MUSB patches for OMAP4
-Date: Thu, 11 Mar 2010 14:37:34 +0200
-Message-ID: <20100311123734.GO20878@nokia.com>
-References: <1268308511-21415-1-git-send-email-x0082077@ti.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1268308511-21415-1-git-send-email-x0082077-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: kernel panic with latest DSS
+Date: Thu, 11 Mar 2010 13:45:50 +0100
+Message-ID: <EA594AD7-44AB-4D7A-B576-3D88B948F07C@student.utwente.nl>
+References: <5e088bd91003091158l6cfa0b76u204e5432389d573@mail.gmail.com> <5e088bd91003101016s4148751es1a142c21d1540564@mail.gmail.com> <18410E43-78D3-4406-879B-37712FCE8B5C@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:58569 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757595Ab0CKMp5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 07:45:57 -0500
+Received: by ewy20 with SMTP id 20so1028282ewy.1
+        for <linux-omap@vger.kernel.org>; Thu, 11 Mar 2010 04:45:54 -0800 (PST)
+In-Reply-To: <18410E43-78D3-4406-879B-37712FCE8B5C@student.utwente.nl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: Steve Sakoman <sakoman@gmail.com>, linux-omap@vger.kernel.org, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>
 
-On Thu, Mar 11, 2010 at 12:55:11PM +0100, ext Maulik Mankad wrote:
->Greg,
->
->Here is a Version 2 of driver patches that enable MUSB
->driver support for OMAP4.
 
-applied, all three of them
+Op 11 mrt 2010, om 10:24 heeft Koen Kooi het volgende geschreven:
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Op 10 mrt 2010, om 19:16 heeft Steve Sakoman het volgende geschreven:
+> 
+>> On Tue, Mar 9, 2010 at 11:58 AM, Steve Sakoman <sakoman@gmail.com> wrote:
+>>> I just updated all my Beagle and Overo DSS patches to apply on the
+>>> latest linux-omap head.
+>>> 
+>>> I ran into a slight issue with parsing defaults, but saw that Tomi had
+>>> already posted a workaround for that.
+>>> 
+>>> With that patch applied I get pretty good results until I try to do
+>>> something like play a DVD or display video from a webcam.
+>>> 
+>>> At that point I get a kernel panic.  See below.
+>> 
+>> I did a little more research on this.
+>> 
+>> The issue occurs in the following section of code in
+>> drivers/video/omap2/dss/dispc.c:
+>> 
+>> unsigned long dispc_fclk_rate(void)
+>> {
+>> 	unsigned long r = 0;
+>> 
+>> 	if (dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK)
+>> 		r = dss_clk_get_rate(DSS_CLK_FCK1);
+>> 	else
+>> #ifdef CONFIG_OMAP2_DSS_DSI
+>> 		r = dsi_get_dsi1_pll_rate();
+>> #else
+>> 	BUG();
+>> #endif
+>> 	return r;
+>> }
+>> 
+>> Since my machines don't have DSI displays CONFIG_OMAP2_DSS_DSI is not
+>> defined and the BUG() call is triggered.
+>> 
+>> I don't know enough about what *should* be happening here to propose a
+>> fix, but I'll continue looking.
+> 
+> Not that you need the DSI_PLL config to get tighter timings to do e.g. 74.25MHz for 720p60. I had to rediscover that this week on DM37xx.....
+
+That was supposed to read "note", so you *do* need it.
