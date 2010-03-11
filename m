@@ -1,157 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/19] omap3: Fix support for the LEDs connected to GPIO
-	outputs on IGEP v2board
-Date: Thu, 11 Mar 2010 15:48:32 -0800
-Message-ID: <20100311234831.4500.71999.stgit@baageli.muru.com>
+Subject: [PATCH 13/19] omap: mach-omap2/io.c: fix function declarations
+Date: Thu, 11 Mar 2010 15:48:37 -0800
+Message-ID: <20100311234837.4500.84957.stgit@baageli.muru.com>
 References: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52575 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753917Ab0CKXrJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:47:09 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53681 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753917Ab0CKXrN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:47:13 -0500
 In-Reply-To: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@nokia.com>
 
-From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
 
-Select CONFIG_LEDS_GPIO to enable IGEP v2 LED support and control of supported
-LEDs from userspace. Otherwise GPIO LEDs are exported as GPIO 26, 27 and 28 using
-the gpiolib framework.
+Get rid of the following warnings:
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+	warning: non-ANSI function declaration of function [...]
+
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-igep0020.c |   54 +++++++++++++++++++++++-----------
- 1 files changed, 36 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/io.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 4f1accf..3c7789d 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -16,7 +16,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/gpio.h>
--#include <linux/leds.h>
- #include <linux/interrupt.h>
- 
- #include <linux/regulator/machine.h>
-@@ -39,8 +38,8 @@
- #define IGEP2_SMSC911X_CS       5
- #define IGEP2_SMSC911X_GPIO     176
- #define IGEP2_GPIO_USBH_NRESET  24
--#define IGEP2_GPIO_LED0_RED 	26
--#define IGEP2_GPIO_LED0_GREEN 	27
-+#define IGEP2_GPIO_LED0_GREEN 	26
-+#define IGEP2_GPIO_LED0_RED 	27
- #define IGEP2_GPIO_LED1_RED   	28
- #define IGEP2_GPIO_DVI_PUP	170
- #define IGEP2_GPIO_WIFI_NPD 	94
-@@ -355,34 +354,50 @@ static void __init igep2_display_init(void)
- 	    gpio_direction_output(IGEP2_GPIO_DVI_PUP, 1))
- 		pr_err("IGEP v2: Could not obtain gpio GPIO_DVI_PUP\n");
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 402e8f0..ae89d55 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -237,7 +237,7 @@ static void __init _omap2_map_common_io(void)
  }
--#ifdef CONFIG_LEDS_TRIGGERS
--static struct gpio_led gpio_leds[] = {
-+
-+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-+#include <linux/leds.h>
-+
-+static struct gpio_led igep2_gpio_leds[] = {
- 	{
--		.name = "GPIO_LED1_RED",
-+		.name = "led0:red",
-+		.gpio = IGEP2_GPIO_LED0_RED,
-+	},
-+	{
-+		.name = "led0:green",
- 		.default_trigger = "heartbeat",
-+		.gpio = IGEP2_GPIO_LED0_GREEN,
-+	},
-+	{
-+		.name = "led1:red",
- 		.gpio = IGEP2_GPIO_LED1_RED,
- 	},
- };
  
--static struct gpio_led_platform_data gpio_leds_info = {
--	.leds           = gpio_leds,
--	.num_leds       = ARRAY_SIZE(gpio_leds),
-+static struct gpio_led_platform_data igep2_led_pdata = {
-+	.leds           = igep2_gpio_leds,
-+	.num_leds       = ARRAY_SIZE(igep2_gpio_leds),
- };
- 
--static struct platform_device leds_gpio = {
-+static struct platform_device igep2_led_device = {
- 	 .name   = "leds-gpio",
- 	 .id     = -1,
- 	 .dev    = {
--		 .platform_data  =  &gpio_leds_info,
-+		 .platform_data  =  &igep2_led_pdata,
- 	},
- };
-+
-+static void __init igep2_init_led(void)
-+{
-+	platform_device_register(&igep2_led_device);
-+}
-+
-+#else
-+static inline void igep2_init_led(void) {}
+ #ifdef CONFIG_ARCH_OMAP2420
+-void __init omap242x_map_common_io()
++void __init omap242x_map_common_io(void)
+ {
+ 	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
+ 	iotable_init(omap242x_io_desc, ARRAY_SIZE(omap242x_io_desc));
+@@ -246,7 +246,7 @@ void __init omap242x_map_common_io()
  #endif
  
- static struct platform_device *igep2_devices[] __initdata = {
- 	&igep2_dss_device,
--#ifdef CONFIG_LEDS_TRIGGERS
--	&leds_gpio,
--#endif
- };
- 
- static void __init igep2_init_irq(void)
-@@ -471,31 +486,34 @@ static void __init igep2_init(void)
- 	usb_ehci_init(&ehci_pdata);
- 
- 	igep2_flash_init();
-+	igep2_init_led();
- 	igep2_display_init();
- 	igep2_init_smsc911x();
- 
- 	/* GPIO userspace leds */
--	if ((gpio_request(IGEP2_GPIO_LED0_RED, "GPIO_LED0_RED") == 0) &&
-+#if !defined(CONFIG_LEDS_GPIO) && !defined(CONFIG_LEDS_GPIO_MODULE)
-+	if ((gpio_request(IGEP2_GPIO_LED0_RED, "led0:red") == 0) &&
- 	    (gpio_direction_output(IGEP2_GPIO_LED0_RED, 1) == 0)) {
- 		gpio_export(IGEP2_GPIO_LED0_RED, 0);
- 		gpio_set_value(IGEP2_GPIO_LED0_RED, 0);
- 	} else
- 		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_RED\n");
- 
--	if ((gpio_request(IGEP2_GPIO_LED0_GREEN, "GPIO_LED0_GREEN") == 0) &&
-+	if ((gpio_request(IGEP2_GPIO_LED0_GREEN, "led0:green") == 0) &&
- 	    (gpio_direction_output(IGEP2_GPIO_LED0_GREEN, 1) == 0)) {
- 		gpio_export(IGEP2_GPIO_LED0_GREEN, 0);
- 		gpio_set_value(IGEP2_GPIO_LED0_GREEN, 0);
- 	} else
- 		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_GREEN\n");
--#ifndef CONFIG_LEDS_TRIGGERS
--	if ((gpio_request(IGEP2_GPIO_LED1_RED, "GPIO_LED1_RED") == 0) &&
-+
-+	if ((gpio_request(IGEP2_GPIO_LED1_RED, "led1:red") == 0) &&
- 	    (gpio_direction_output(IGEP2_GPIO_LED1_RED, 1) == 0)) {
- 		gpio_export(IGEP2_GPIO_LED1_RED, 0);
- 		gpio_set_value(IGEP2_GPIO_LED1_RED, 0);
- 	} else
- 		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED1_RED\n");
+ #ifdef CONFIG_ARCH_OMAP2430
+-void __init omap243x_map_common_io()
++void __init omap243x_map_common_io(void)
+ {
+ 	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
+ 	iotable_init(omap243x_io_desc, ARRAY_SIZE(omap243x_io_desc));
+@@ -255,7 +255,7 @@ void __init omap243x_map_common_io()
  #endif
-+
- 	/* GPIO W-LAN + Bluetooth combo module */
- 	if ((gpio_request(IGEP2_GPIO_WIFI_NPD, "GPIO_WIFI_NPD") == 0) &&
- 	    (gpio_direction_output(IGEP2_GPIO_WIFI_NPD, 1) == 0)) {
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+-void __init omap34xx_map_common_io()
++void __init omap34xx_map_common_io(void)
+ {
+ 	iotable_init(omap34xx_io_desc, ARRAY_SIZE(omap34xx_io_desc));
+ 	_omap2_map_common_io();
+@@ -263,7 +263,7 @@ void __init omap34xx_map_common_io()
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP4
+-void __init omap44xx_map_common_io()
++void __init omap44xx_map_common_io(void)
+ {
+ 	iotable_init(omap44xx_io_desc, ARRAY_SIZE(omap44xx_io_desc));
+ 	_omap2_map_common_io();
 
