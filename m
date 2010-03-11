@@ -1,67 +1,41 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: kernel panic with latest DSS
-Date: Thu, 11 Mar 2010 10:24:51 +0100
-Message-ID: <18410E43-78D3-4406-879B-37712FCE8B5C@student.utwente.nl>
-References: <5e088bd91003091158l6cfa0b76u204e5432389d573@mail.gmail.com> <5e088bd91003101016s4148751es1a142c21d1540564@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH-Fix] OMAP: Add DSI regulator supply to OMAP3EVM board
+ file
+Date: Thu, 11 Mar 2010 11:27:38 +0200
+Message-ID: <1268299658.28571.89.camel@tubuntu.research.nokia.com>
+References: <hvaibhav@ti.com>
+	 <1268297717-8062-1-git-send-email-hvaibhav@ti.com>
+	 <1268297945.28571.81.camel@tubuntu.research.nokia.com>
+	 <19F8576C6E063C45BE387C64729E7394044DD32B4F@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:42899 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750765Ab0CKJY6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 04:24:58 -0500
-Received: by ewy8 with SMTP id 8so1731638ewy.28
-        for <linux-omap@vger.kernel.org>; Thu, 11 Mar 2010 01:24:56 -0800 (PST)
-In-Reply-To: <5e088bd91003101016s4148751es1a142c21d1540564@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:65146 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752484Ab0CKJ2J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 04:28:09 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DD32B4F@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
 
-Op 10 mrt 2010, om 19:16 heeft Steve Sakoman het volgende geschreven:
+> > Are you sure vdvi is required by the panel? At least the panel in
+> > 3430SDP doesn't require it.
+> [Hiremath, Vaibhav] As I mentioned before also, we don't need vdvi supply for OMAP3EVM. Infact there is no supply like vdvi coming out of TWL4030
+> Since it was being used in panel file I had defined it. But now I can see that we are no longer using vdvi supply, so I can safely remove this supply. Thanks for pointing me to this.
+> 
+> I have created another patch which will replace the vdvi with vdds_dsi regulator supply; I have tested it on OMAP3EVM.
+> 
+> Please merge this patch, without this OMAP3EVM DSS/Fbdev will fail in regulator_get.
 
-> On Tue, Mar 9, 2010 at 11:58 AM, Steve Sakoman <sakoman@gmail.com> wrote:
->> I just updated all my Beagle and Overo DSS patches to apply on the
->> latest linux-omap head.
->> 
->> I ran into a slight issue with parsing defaults, but saw that Tomi had
->> already posted a workaround for that.
->> 
->> With that patch applied I get pretty good results until I try to do
->> something like play a DVD or display video from a webcam.
->> 
->> At that point I get a kernel panic.  See below.
-> 
-> I did a little more research on this.
-> 
-> The issue occurs in the following section of code in
-> drivers/video/omap2/dss/dispc.c:
-> 
-> unsigned long dispc_fclk_rate(void)
-> {
-> 	unsigned long r = 0;
-> 
-> 	if (dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK)
-> 		r = dss_clk_get_rate(DSS_CLK_FCK1);
-> 	else
-> #ifdef CONFIG_OMAP2_DSS_DSI
-> 		r = dsi_get_dsi1_pll_rate();
-> #else
-> 	BUG();
-> #endif
-> 	return r;
-> }
-> 
-> Since my machines don't have DSI displays CONFIG_OMAP2_DSS_DSI is not
-> defined and the BUG() call is triggered.
-> 
-> I don't know enough about what *should* be happening here to propose a
-> fix, but I'll continue looking.
+Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Not that you need the DSI_PLL config to get tighter timings to do e.g. 74.25MHz for 720p60. I had to rediscover that this week on DM37xx.....
+Board file changes will go through Tony. And you should generally send
+the patches as inline patches, not attachments.
 
-regards,
+ Tomi
 
-Koen
+
