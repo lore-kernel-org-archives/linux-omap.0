@@ -1,72 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 13/19] omap: mach-omap2/io.c: fix function declarations
-Date: Thu, 11 Mar 2010 15:48:37 -0800
-Message-ID: <20100311234837.4500.84957.stgit@baageli.muru.com>
+Subject: [PATCH 12/19] omap: Fix gpio_resume_after_retention
+Date: Thu, 11 Mar 2010 15:48:34 -0800
+Message-ID: <20100311234834.4500.12726.stgit@baageli.muru.com>
 References: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53681 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753917Ab0CKXrN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:47:13 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52633 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753917Ab0CKXrL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:47:11 -0500
 In-Reply-To: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Sergio Aguirre <saaguirre@ti.com>, linux-omap@vger.kernel.org
 
-From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+From: Tony Lindgren <Aguirre>
 
-Get rid of the following warnings:
+For omap4 case, this was wrongly writing GPIO_LEVELDETECTx
+registers with OMAP24XX_ offset and OMAP4_ offset.
 
-	warning: non-ANSI function declaration of function [...]
+Bug introduced in commit:
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+  commit 3f1686a9bfe74979c6ad538c78039730f665f77e
+  Author: Tony Lindgren <tony@atomide.com>
+  Date:   Mon Feb 15 09:27:25 2010 -0800
+
+      omap: Fix gpio.c for multi-omap for omap4
+
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/io.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/gpio.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 402e8f0..ae89d55 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -237,7 +237,7 @@ static void __init _omap2_map_common_io(void)
- }
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 337199e..76a347b 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -2140,18 +2140,18 @@ void omap2_gpio_resume_after_retention(void)
+ 		if (gen) {
+ 			u32 old0, old1;
  
- #ifdef CONFIG_ARCH_OMAP2420
--void __init omap242x_map_common_io()
-+void __init omap242x_map_common_io(void)
- {
- 	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
- 	iotable_init(omap242x_io_desc, ARRAY_SIZE(omap242x_io_desc));
-@@ -246,7 +246,7 @@ void __init omap242x_map_common_io()
- #endif
+-			if (cpu_is_omap24xx() || cpu_is_omap44xx()) {
++			if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+ 				old0 = __raw_readl(bank->base +
+ 					OMAP24XX_GPIO_LEVELDETECT0);
+ 				old1 = __raw_readl(bank->base +
+ 					OMAP24XX_GPIO_LEVELDETECT1);
+-			__raw_writel(old0 | gen, bank->base +
++				__raw_writel(old0 | gen, bank->base +
+ 					OMAP24XX_GPIO_LEVELDETECT0);
+-			__raw_writel(old1 | gen, bank->base +
++				__raw_writel(old1 | gen, bank->base +
+ 					OMAP24XX_GPIO_LEVELDETECT1);
+-			__raw_writel(old0, bank->base +
++				__raw_writel(old0, bank->base +
+ 					OMAP24XX_GPIO_LEVELDETECT0);
+-			__raw_writel(old1, bank->base +
++				__raw_writel(old1, bank->base +
+ 					OMAP24XX_GPIO_LEVELDETECT1);
+ 			}
  
- #ifdef CONFIG_ARCH_OMAP2430
--void __init omap243x_map_common_io()
-+void __init omap243x_map_common_io(void)
- {
- 	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
- 	iotable_init(omap243x_io_desc, ARRAY_SIZE(omap243x_io_desc));
-@@ -255,7 +255,7 @@ void __init omap243x_map_common_io()
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP3
--void __init omap34xx_map_common_io()
-+void __init omap34xx_map_common_io(void)
- {
- 	iotable_init(omap34xx_io_desc, ARRAY_SIZE(omap34xx_io_desc));
- 	_omap2_map_common_io();
-@@ -263,7 +263,7 @@ void __init omap34xx_map_common_io()
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP4
--void __init omap44xx_map_common_io()
-+void __init omap44xx_map_common_io(void)
- {
- 	iotable_init(omap44xx_io_desc, ARRAY_SIZE(omap44xx_io_desc));
- 	_omap2_map_common_io();
 
