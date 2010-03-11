@@ -1,58 +1,39 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/3] usb: Fix compile error for omaps for musb_hdrc
-Date: Thu, 11 Mar 2010 10:03:22 -0800
-Message-ID: <20100311180322.20537.3614.stgit@baageli.muru.com>
-References: <20100311180023.20537.27516.stgit@baageli.muru.com>
+From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/3] usb: Fix USB_SUSPEND dependency for OTG
+Date: Thu, 11 Mar 2010 23:50:49 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321EC93DC@dbde02.ent.ti.com>
+References: <20100311180329.20537.95308.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100311180023.20537.27516.stgit-XB442sTQ5VIxQTnqJstS8Q@public.gmane.org>
+In-Reply-To: <20100311180329.20537.95308.stgit-XB442sTQ5VIxQTnqJstS8Q@public.gmane.org>
+Content-Language: en-US
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-CONFIG_ARCH_OMAP34XX is now CONFIG_ARCH_OMAP3.
-
-But since drivers/usb/musb/omap2430.c use CONFIG_PM for these
-registers and functions, do the same for the header.
-
-Otherwise we get the following for most omap3 defconfigs:
-
-drivers/usb/musb/omap2430.c:261: error: expected identifier or '(' before 'do'
-drivers/usb/musb/omap2430.c:261: error: expected identifier or '(' before 'while'
-drivers/usb/musb/omap2430.c:268: error: expected identifier or '(' before 'do'
-drivers/usb/musb/omap2430.c:268: error: expected identifier or '(' before 'while'
-
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/usb/musb/musb_core.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index d849fb8..cd9f4a9 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -469,7 +469,7 @@ struct musb_csr_regs {
- 
- struct musb_context_registers {
- 
--#if defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP2430)
-+#ifdef CONFIG_PM
- 	u32 otg_sysconfig, otg_forcestandby;
- #endif
- 	u8 power;
-@@ -483,7 +483,7 @@ struct musb_context_registers {
- 	struct musb_csr_regs index_regs[MUSB_C_NUM_EPS];
- };
- 
--#if defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP2430)
-+#ifdef CONFIG_PM
- extern void musb_platform_save_context(struct musb *musb,
- 		struct musb_context_registers *musb_context);
- extern void musb_platform_restore_context(struct musb *musb,
-
+VG9ueSBMaW5kZ3JlbiB3cm90ZToNCj4gDQo+IFRvIHVzZSB0aGlzLCBQTV9SVU5USU1FIG11c3Qg
+YmUgc2V0IGFzIGRpc2N1c3NlZCBhdDoNCj4gDQo+IGh0dHA6Ly90aHJlYWQuZ21hbmUub3JnL2dt
+YW5lLmxpbnV4LnVzYi5nZW5lcmFsLzI3NDMyL2ZvY3VzPTQ0NjANCj4gDQo+IE90aGVyd2lzZSB3
+ZSdsbCBnZXQgZXJyb3JzIGxpa2U6DQo+IA0KPiBkcml2ZXJzL3VzYi9jb3JlL2hjZC5jOjE4OTI6
+IGVycm9yOiAncG1fd3EnIHVuZGVjbGFyZWQgKGZpcnN0IHVzZSBpbiB0aGlzIGZ1bmN0aW9uKQ0K
+PiBkcml2ZXJzL3VzYi9jb3JlL2hjZC5jOjE4OTI6IGVycm9yOiAoRWFjaCB1bmRlY2xhcmVkIGlk
+ZW50aWZpZXIgaXMgcmVwb3J0ZWQgb25seSBvbmNlDQo+IGRyaXZlcnMvdXNiL2NvcmUvaGNkLmM6
+MTg5MjogZXJyb3I6IGZvciBlYWNoIGZ1bmN0aW9uIGl0IGFwcGVhcnMgaW4uKQ0KPiANCj4gU2ln
+bmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NCg0KSGkgVG9ueSwN
+Cg0KSSBhbHJlYWR5IHBvc3RlZCB0aGlzIHBhdGNoIGxhc3QgbW9udGguIFN0aWxsIHdhaXRpbmcg
+Zm9yIGl0DQp0byBnZXQgcXVldWVkLg0KDQo8aHR0cDovL21hcmMuaW5mby8/bD1saW51eC11c2Im
+bT0xMjY2NzU4ODMyMjEwOTgmdz0yPg0KDQotIEFuYW5kDQoNCg0KPiAtLS0NCj4gIGRyaXZlcnMv
+dXNiL2NvcmUvS2NvbmZpZyB8ICAgIDIgKy0NCj4gIDEgZmlsZXMgY2hhbmdlZCwgMSBpbnNlcnRp
+b25zKCspLCAxIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdXNiL2Nv
+cmUvS2NvbmZpZyBiL2RyaXZlcnMvdXNiL2NvcmUvS2NvbmZpZw0KPiBpbmRleCA5N2E4MTljLi43
+ZTU5NDQ0IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL3VzYi9jb3JlL0tjb25maWcNCj4gKysrIGIv
+ZHJpdmVycy91c2IvY29yZS9LY29uZmlnDQo+IEBAIC0xMDksNyArMTA5LDcgQEAgY29uZmlnIFVT
+Ql9TVVNQRU5EDQo+ICBjb25maWcgVVNCX09URw0KPiAgCWJvb2wNCj4gIAlkZXBlbmRzIG9uIFVT
+QiAmJiBFWFBFUklNRU5UQUwNCj4gLQlzZWxlY3QgVVNCX1NVU1BFTkQNCj4gKwlkZXBlbmRzIG9u
+IFVTQl9TVVNQRU5EDQo+ICAJZGVmYXVsdCBuDQo+ICANCj4gIA0KPiANCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
