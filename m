@@ -1,59 +1,51 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor
-	autoloading feature
-Date: Thu, 11 Mar 2010 16:22:19 +0530
-Message-ID: <618f0c911003110252i36d6fc31wbaef4ad7a17565b1@mail.gmail.com>
-References: <618f0c911003010327s290fcce1ud665b5a16392aea1@mail.gmail.com>
-	 <011301cac0b6$542b1190$544ff780@am.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <011301cac0b6$542b1190$544ff780@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+From: Pramod Gurav <pramod.gurav@ti.com>
+Subject: [PATCH 0/2] OMAP3: Dynamic Calculation of SDRC stall latency during DVFS
+Date: Thu, 11 Mar 2010 17:04:55 +0530
+Message-ID: <1268307297-23330-1-git-send-email-pramod.gurav@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33526 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752129Ab0CKL2o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Mar 2010 06:28:44 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2BBSfHM005821
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 11 Mar 2010 05:28:43 -0600
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Pramod Gurav <pramod.gurav@ti.com>
 
-Madhusudhan <madhu.cr@ti.com> wrote:
->> -----Original Message-----
->> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
->> owner@vger.kernel.org] On Behalf Of Venkatraman S
->> Sent: Monday, March 01, 2010 5:27 AM
->> To: linux-mmc@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
->> linux-omap@vger.kernel.org
->> Subject: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor
->> autoloading feature
->>
->> Start to use the sDMA descriptor autoloading feature.
->> For large datablocks, the MMC driver has to repeatedly setup, program
->> and teardown the
->> dma channel for each element of the sglist received in omap_hsmmc_request.
->>
->> By using descriptor autoloading, transfers from / to each element of
->> the sglist is pre programmed
->> into a linked list. The sDMA driver completes the entire transaction
->> and provides a single interrupt.
->>
->> Due to this, number of dma interrupts for a typical 100MB transfer on the
->> MMC is
->> reduced from 25000 to about 400 (approximate). Transfer speeds are
->> improved by ~5%
->> (Though it varies on the size of read / write & improves on huge
->> transfers)
->>
->> Descriptor autoloading is available only in 3630 and 4430 (as of now).
->> Hence normal DMA
->> mode is also retained.
->>
->> Tested on omap4430 sdp.
->>
->> Signed-off-by: Venkatraman S <svenkatr@ti.com>
->
-> I don't see any issues with this patch except the concern I had on the first
-> patch in the series. Why is that change linked to this series?
->
-  Thanks. The problem was seen only in the context of using descriptor
-load. Would
-you prefer that I post it as a separate patch ?
-Regards,
-Venkat.
+The patch has the changes to calculate the dpll3 clock stabilization
+delay dynamically. The SRAM delay is calibrated during bootup using the
+gptimers and used while calculating the stabilization delay. By using
+the dynamic method the dependency on the type of cache being used is
+removed.
+
+Formula to calculate the DVFS latency for 3430 and 3630 are different.
+The second patch implements the formula for later.
+
+Below is the summery of the comments from the commumnity, 
+those are addressed by these patches:
+
+1. Subject of the patch mentioned as OMAP3: SDRC: instead of OMAP3: PM.
+2. The first available dmtimer is requested dynamically instead of statically 
+   requesting a dmtimer. Thus hardcoding is avoided.
+3. Excluded use of direct physical address of dmtimer. Instead used dmtimer APIs.
+3. Only the counter loop is run in ASM.
+4. Restructuring of formula for DVFS latency for 3430.
+5. Adding new implementation for DVFS latency for 3630.
+
+Teerth Reddy (1):
+  OMAP3: SDRC: Dynamic Calculation of SDRC stall latency during DVFS
+Pramod Gurav (2):
+  OMAP3630: SDRC: Change in DVFS Latency Formula for OMAP3630
+
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c |   83 ++++++++++++++++++++++++++++----
+ arch/arm/mach-omap2/clock34xx.h        |    2 +
+ arch/arm/mach-omap2/clock3xxx_data.c   |   12 +++++
+ arch/arm/mach-omap2/sram34xx.S         |   11 ++++
+ arch/arm/plat-omap/include/plat/sram.h |    4 ++
+ arch/arm/plat-omap/sram.c              |   49 +++++++++++++++++++
+ 6 files changed, 151 insertions(+), 10 deletions(-)
+
