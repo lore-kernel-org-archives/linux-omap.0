@@ -1,21 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED]  > > [RESEND][PATCH/RFC] OMAP2: serial.c: Fix number of uarts in early_init
-Date: Thu, 11 Mar 2010 16:55:46 -0500
-Message-ID: <notify-1268344627@atomide.com>
-References: <1267090819-17796-1-git-send-email-swirl@gmx.li>
+Subject: [APPLIED] [PATCHv2] OMAP: pass the reboot command to the boot loader
+Date: Thu, 11 Mar 2010 16:58:02 -0500
+Message-ID: <notify-1268344765@atomide.com>
+References: <1267179928-21721-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61707 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65399 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755230Ab0CKVzq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 16:55:46 -0500
+	with ESMTP id S1757031Ab0CKV6C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 16:58:02 -0500
 Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
 	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
 	(envelope-from <tony@atomide.com>)
-	id 1NpqM5-0002Nt-Sy
-	for linux-omap@vger.kernel.org; Thu, 11 Mar 2010 21:55:46 +0000
-In-Reply-To: <1267090819-17796-1-git-send-email-swirl@gmx.li>
+	id 1NpqOH-0003gQ-UZ
+	for linux-omap@vger.kernel.org; Thu, 11 Mar 2010 21:58:02 +0000
+In-Reply-To: <1267179928-21721-1-git-send-email-aaro.koskinen@nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -26,12 +26,12 @@ by youw fwiendly patch wobot.
 
 Branch in linux-omap: omap-fixes
 
-Initial commit ID (Likely to change): a347e26b81e9724ac6bc71a537dcdc3a7fa39697
+Initial commit ID (Likely to change): 943c26fba31960a004a4c8eab3a83679cb789d69
 
 PatchWorks
-http://patchwork.kernel.org/patch/81923/
+http://patchwork.kernel.org/patch/82291/
 
 Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=a347e26b81e9724ac6bc71a537dcdc3a7fa39697
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=943c26fba31960a004a4c8eab3a83679cb789d69
 
 
