@@ -1,46 +1,56 @@
-From: hvaibhav@ti.com
-Subject: [PATCH] OMAP: Replace vdvi with vdds_dsi regulator supply in OMAP3EVM board file
-Date: Thu, 11 Mar 2010 15:00:42 +0530
-Message-ID: <1268299842-8070-1-git-send-email-hvaibhav@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH-Fix] OMAP: Add DSI regulator supply to OMAP3EVM board
+ file
+Date: Thu, 11 Mar 2010 11:30:50 +0200
+Message-ID: <1268299850.28571.92.camel@tubuntu.research.nokia.com>
 References: <hvaibhav@ti.com>
+	 <1268297717-8062-1-git-send-email-hvaibhav@ti.com>
+	 <1268297945.28571.81.camel@tubuntu.research.nokia.com>
+	 <19F8576C6E063C45BE387C64729E7394044DD32B51@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41938 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193Ab0CKJa6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 04:30:58 -0500
-In-Reply-To: <hvaibhav@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:27922 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752345Ab0CKJbJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 04:31:09 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DD32B51@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Tomi.Valkeinen@nokia.com, Vaibhav Hiremath <hvaibhav@ti.com>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+> [Hiremath, Vaibhav] Tomi,
+> 
+> Also, there are few patches which still are not merged to main-line, like
+> 
+> commit 98d31bf6566be9e716f6dfdce8eb39d1c1097b7c
+> Author: Vaibhav Hiremath <hvaibhav@ti.com>
+> Date:   Wed Jan 13 17:17:10 2010 +0530
+> 
+>     OMAP: AM3517: Enable DSS2 for AM3517EVM board
+> 
+>     Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>     [tomi.valkeinen@nokia.com: removed the board file changes]
+>     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> 
+> commit bb8a88ac57564e2e7ccc813be1d74c45bb467549
+> Author: Vaibhav Hiremath <hvaibhav@ti.com>
+> Date:   Mon Jan 4 15:34:16 2010 +0100
+> 
+>     OMAP: Enable DSS2 for OMAP3EVM board
+> 
+>     Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>     [tomi.valkeinen@nokia.com: removed the board file changes]
+>     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> 
+> 
+> Any specific reason why are holding this back?
 
-With recent changes happened in OMAP2/3 DSS library for regulator interface, it
-is required to define DSI regulator supply, and since we don't need VDVI
-supply so remove it.
+Board file patches go through linux-omap. Those patches seem to be in
+linux-omap/master, so I guess they'll go through at some point soon.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ Tomi
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 017bb2f..ea1014b 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -515,8 +515,8 @@ static struct regulator_init_data omap3_evm_vdac = {
-
- /* VPLL2 for digital video outputs */
- static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
--	.supply		= "vdvi",
--	.dev		= &omap3_evm_lcd_device.dev,
-+	.supply		= "vdds_dsi",
-+	.dev		= &omap3_evm_dss_device.dev,
- };
-
- static struct regulator_init_data omap3_evm_vpll2 = {
---
-1.6.2.4
 
