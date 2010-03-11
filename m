@@ -1,37 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH 57/66] arch/arm/plat-omap/include/plat/blizzard.h:
-Date: Thu, 11 Mar 2010 16:59:32 -0500
-Message-ID: <notify-1268344852@atomide.com>
-References: <1267289508-31031-58-git-send-email-andrea.gelmini@gelma.net>
+Subject: Re: [PATCH] omap3: Fix EHCI port for IGEP v2 board.
+Date: Thu, 11 Mar 2010 14:04:20 -0800
+Message-ID: <20100311220420.GL2900@atomide.com>
+References: <1267442288-3106-1-git-send-email-eballetbo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50052 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55896 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757330Ab0CKV7c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 16:59:32 -0500
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1NpqPi-0005u5-Qr
-	for linux-omap@vger.kernel.org; Thu, 11 Mar 2010 21:59:31 +0000
-In-Reply-To: <1267289508-31031-58-git-send-email-andrea.gelmini@gelma.net>
+	with ESMTP id S1758231Ab0CKWDA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 17:03:00 -0500
 Content-Disposition: inline
+In-Reply-To: <1267442288-3106-1-git-send-email-eballetbo@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Enric Balletbo i Serra <eballetbo@gmail.com>
+Cc: linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Enric Balletbo i Serra <eballetbo@gmail.com> [100303 09:34]:
+> From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+> 
+> IGEP v2 uses EHCI port 1 instead of EHCI port 2.
 
-Branch in linux-omap: omap-fixes
+This does not seem to apply, can you please refresh please?
 
-Initial commit ID (Likely to change): a694acf36251cf9f454422d9cf43ee3f2c859d66
-
-PatchWorks
-http://patchwork.kernel.org/patch/82674/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=a694acf36251cf9f454422d9cf43ee3f2c859d66
-
-
+Tony
+ 
+> Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+> ---
+>  arch/arm/mach-omap2/board-igep0020.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+> index 9958987..26f65ca 100644
+> --- a/arch/arm/mach-omap2/board-igep0020.c
+> +++ b/arch/arm/mach-omap2/board-igep0020.c
+> @@ -443,13 +443,13 @@ static struct omap_musb_board_data musb_board_data = {
+>  };
+>  
+>  static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+> -	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> -	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
+> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+>  	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+>  
+>  	.phy_reset = true,
+> -	.reset_gpio_port[0] = -EINVAL,
+> -	.reset_gpio_port[1] = IGEP2_GPIO_USBH_NRESET,
+> +	.reset_gpio_port[0] = IGEP2_GPIO_USBH_NRESET,
+> +	.reset_gpio_port[1] = -EINVAL,
+>  	.reset_gpio_port[2] = -EINVAL,
+>  };
+>  
+> -- 
+> 1.5.4.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
