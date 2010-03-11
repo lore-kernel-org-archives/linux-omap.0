@@ -1,71 +1,72 @@
-From: Maulik Mankad <x0082077@ti.com>
-Subject: [PATCH v2 2/3] USB: MUSB: Build MUSB driver for OMAP4
-Date: Thu, 11 Mar 2010 17:28:30 +0530
-Message-ID: <1268308710-21832-1-git-send-email-x0082077@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35842 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757638Ab0CKL6m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Mar 2010 06:58:42 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 3/3] USB: MUSB: Add OMAP4 support in MUSB driver
+Date: Thu, 11 Mar 2010 17:29:21 +0530
+Message-ID: <1268308761-21982-1-git-send-email-x0082077@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Maulik Mankad <x0082077@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, David Brownell <david-b@pacbell.net>, Sergei Shtylyov <sshtylyov@mvista.com>, Olof Johansson <olof@lixom.net>
 
-This patch updates the Makefile to build the
-MUSB driver for OMAP4. It also sets the Kconfig
-options for OMAP4.
+This patch adds CONFIG_ARCH_OMAP4 macro within 
+MUSB driver.
 
-Signed-off-by: Maulik Mankad <x0082077@ti.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Olof Johansson <olof@lixom.net>
-
-Index: mainline/drivers/usb/musb/Kconfig
+Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+---
+Index: mainline/drivers/usb/musb/musb_core.c
 ===================================================================
---- mainline.orig/drivers/usb/musb/Kconfig
-+++ mainline/drivers/usb/musb/Kconfig
-@@ -38,6 +38,7 @@ config USB_MUSB_SOC
- 	default y if ARCH_DAVINCI
- 	default y if ARCH_OMAP2430
- 	default y if ARCH_OMAP3
-+	default y if ARCH_OMAP4
- 	default y if (BF54x && !BF544)
- 	default y if (BF52x && !BF522 && !BF523)
+--- mainline.orig/drivers/usb/musb/musb_core.c
++++ mainline/drivers/usb/musb/musb_core.c
+@@ -982,7 +982,8 @@ static void musb_shutdown(struct platfor
+  * more than selecting one of a bunch of predefined configurations.
+  */
+ #if defined(CONFIG_USB_TUSB6010) || \
+-	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
++	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) \
++	|| defined(CONFIG_ARCH_OMAP4)
+ static ushort __initdata fifo_mode = 4;
+ #else
+ static ushort __initdata fifo_mode = 2;
+@@ -1457,7 +1458,8 @@ static int __init musb_core_init(u16 mus
  
-@@ -50,6 +51,9 @@ comment "OMAP 243x high speed USB suppor
- comment "OMAP 343x high speed USB support"
- 	depends on USB_MUSB_HDRC && ARCH_OMAP3
+ /*-------------------------------------------------------------------------*/
  
-+comment "OMAP 44xx high speed USB support"
-+	depends on USB_MUSB_HDRC && ARCH_OMAP4
-+
- comment "Blackfin high speed USB Support"
- 	depends on USB_MUSB_HDRC && ((BF54x && !BF544) || (BF52x && !BF522 && !BF523))
+-#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430) || \
++	defined(CONFIG_ARCH_OMAP4)
  
-@@ -153,7 +157,7 @@ config MUSB_PIO_ONLY
- config USB_INVENTRA_DMA
- 	bool
- 	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
--	default ARCH_OMAP2430 || ARCH_OMAP3 || BLACKFIN
-+	default ARCH_OMAP2430 || ARCH_OMAP3 || BLACKFIN || ARCH_OMAP4
- 	help
- 	  Enable DMA transfers using Mentor's engine.
- 
-Index: mainline/drivers/usb/musb/Makefile
+ static irqreturn_t generic_interrupt(int irq, void *__hci)
+ {
+Index: mainline/drivers/usb/musb/musb_core.h
 ===================================================================
---- mainline.orig/drivers/usb/musb/Makefile
-+++ mainline/drivers/usb/musb/Makefile
-@@ -22,6 +22,10 @@ ifeq ($(CONFIG_ARCH_OMAP3430),y)
- 	musb_hdrc-objs	+= omap2430.o
- endif
+--- mainline.orig/drivers/usb/musb/musb_core.h
++++ mainline/drivers/usb/musb/musb_core.h
+@@ -213,7 +213,8 @@ enum musb_g_ep0_state {
+  */
  
-+ifeq ($(CONFIG_ARCH_OMAP4),y)
-+	musb_hdrc-objs  += omap2430.o
-+endif
-+
- ifeq ($(CONFIG_BF54x),y)
- 	musb_hdrc-objs	+= blackfin.o
- endif
+ #if defined(CONFIG_ARCH_DAVINCI) || defined(CONFIG_ARCH_OMAP2430) \
+-		|| defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_BLACKFIN)
++		|| defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_BLACKFIN) \
++		|| defined(CONFIG_ARCH_OMAP4)
+ /* REVISIT indexed access seemed to
+  * misbehave (on DaVinci) for at least peripheral IN ...
+  */
+@@ -596,7 +597,8 @@ extern void musb_hnp_stop(struct musb *m
+ extern int musb_platform_set_mode(struct musb *musb, u8 musb_mode);
+ 
+ #if defined(CONFIG_USB_TUSB6010) || defined(CONFIG_BLACKFIN) || \
+-	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
++	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
++	defined(CONFIG_ARCH_OMAP4)
+ extern void musb_platform_try_idle(struct musb *musb, unsigned long timeout);
+ #else
+ #define musb_platform_try_idle(x, y)		do {} while (0)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
