@@ -1,46 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor
- autoloading feature
-Date: Thu, 11 Mar 2010 10:39:44 -0800
-Message-ID: <20100311183944.GJ2900@atomide.com>
-References: <618f0c911003100612l33b1fec9s163720a5a93a1787@mail.gmail.com>
- <20100310224110.GW2900@atomide.com>
- <618f0c911003110708s5015f2bftb443b9ea57cb6477@mail.gmail.com>
+Subject: Re: [PATCH 2/3] usb: Fix USB_SUSPEND dependency for OTG
+Date: Thu, 11 Mar 2010 10:41:28 -0800
+Message-ID: <20100311184128.GK2900@atomide.com>
+References: <20100311180329.20537.95308.stgit@baageli.muru.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0321EC93DC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <618f0c911003110708s5015f2bftb443b9ea57cb6477@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321EC93DC@dbde02.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Venkatraman S <svenkatr@ti.com> [100311 07:04]:
+* Gadiyar, Anand <gadiyar@ti.com> [100311 10:24]:
 > Tony Lindgren wrote:
-> >
-> > Does the driver still work in PIO mode?
-> >
-> > We need to have the drivers capable to fail over to PIO mode
-> > as the DMA channels can run out.
-> >
+> > 
+> > To use this, PM_RUNTIME must be set as discussed at:
+> > 
+> > http://thread.gmane.org/gmane.linux.usb.general/27432/focus=4460
+> > 
+> > Otherwise we'll get errors like:
+> > 
+> > drivers/usb/core/hcd.c:1892: error: 'pm_wq' undeclared (first use in this function)
+> > drivers/usb/core/hcd.c:1892: error: (Each undeclared identifier is reported only once
+> > drivers/usb/core/hcd.c:1892: error: for each function it appears in.)
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > 
->    The driver doesn't have an automatic fallback to PIO,
-> even without my patch. A error return from omap_request_dma is
-> propogated all the way back to the transfer request.
->   The decision to use_dma (the variable) is unaltered.
+> Hi Tony,
+> 
+> I already posted this patch last month. Still waiting for it
+> to get queued.
+> 
+> <http://marc.info/?l=linux-usb&m=126675883221098&w=2>
 
-OK, that might explain some nasty surprises then..
-
-With these patches, does the driver still work in PIO mode though?
- 
->    Infact, it would be easier to implement a runtime fallback after
-> this patch is
-> merged as I have separated out the capability and runtime selection.
-> (dma_caps and dma_in_use).
-
-Sounds good to me, thanks for looking into it.
-
-Regards,
+OK thanks, I just found the thread but no patches. So my version
+can then be dropped.
 
 Tony
