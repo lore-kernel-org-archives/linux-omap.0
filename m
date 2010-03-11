@@ -1,78 +1,80 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v4][PATCH 07/11] omap3: serial: Fix uart4 handling for 3630
-Date: Wed, 10 Mar 2010 18:14:20 -0600
-Message-ID: <1268266464-15702-8-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v4][PATCH 05/11] OMAP clock: Add uart4_ick/fck definitions for 3630
+Date: Wed, 10 Mar 2010 18:14:18 -0600
+Message-ID: <1268266464-15702-6-git-send-email-saaguirre@ti.com>
 References: <1268266464-15702-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46530 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932952Ab0CKANZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Mar 2010 19:13:25 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:49041 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932947Ab0CKANY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Mar 2010 19:13:24 -0500
 In-Reply-To: <1268266464-15702-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Sergio Aguirre <saaguirre@ti.com>
 
-This patch makes the following:
- - Adds missing wakeup padding register handling.
- - Fixes a hardcode to use PER module ONLY on UART3.
- - Adds UART4 IRQ number define for 36xx chips.
- - Corrects IRQ number for 3630 case.
+This is only valid for omap 36xx family of chips.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/serial.c           |    9 ++++++++-
- arch/arm/plat-omap/include/plat/irqs.h |    2 ++
- 2 files changed, 10 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 3771254..4ff395d 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -444,7 +444,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 	omap_uart_smart_idle_enable(uart, 0);
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index d5153b6..e8afaa6 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -2541,6 +2541,16 @@ static struct clk uart3_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
  
- 	if (cpu_is_omap34xx()) {
--		u32 mod = (uart->num == 2) ? OMAP3430_PER_MOD : CORE_MOD;
-+		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
- 		u32 wk_mask = 0;
- 		u32 padconf = 0;
- 
-@@ -463,6 +463,10 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 			wk_mask = OMAP3430_ST_UART3_MASK;
- 			padconf = 0x19e;
- 			break;
-+		case 3:
-+			wk_mask = OMAP3630_ST_UART4_MASK;
-+			padconf = 0x0d2;
-+			break;
- 		}
- 		uart->wk_mask = wk_mask;
- 		uart->padconf = padconf;
-@@ -694,6 +698,9 @@ void __init omap_serial_early_init(void)
- 
- 		if (cpu_is_omap44xx())
- 			p->irq += 32;
++static struct clk uart4_fck = {
++	.name		= "uart4_fck",
++	.ops		= &clkops_omap2_dflt_wait,
++	.parent		= &per_48m_fck,
++	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
++	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
++	.clkdm_name	= "per_clkdm",
++	.recalc		= &followparent_recalc,
++};
 +
-+		if (cpu_is_omap3630() && (i == 3))
-+			p->irq = INT_36XX_UART4_IRQ;
- 	}
- }
+ static struct clk gpt2_fck = {
+ 	.name		= "gpt2_fck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+@@ -2791,6 +2801,16 @@ static struct clk uart3_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
  
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index b65088a..7d3820c 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -358,6 +358,8 @@
- #define INT_35XX_CCDC_VD1_IRQ		92
- #define INT_35XX_CCDC_VD2_IRQ		93
- 
-+#define INT_36XX_UART4_IRQ	80
++static struct clk uart4_ick = {
++	.name		= "uart4_ick",
++	.ops		= &clkops_omap2_dflt_wait,
++	.parent		= &per_l4_ick,
++	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
++	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
++	.clkdm_name	= "per_clkdm",
++	.recalc		= &followparent_recalc,
++};
 +
- /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730/850) and
-  * 16 MPUIO lines */
- #define OMAP_MAX_GPIO_LINES	192
+ static struct clk gpt9_ick = {
+ 	.name		= "gpt9_ick",
+ 	.ops		= &clkops_omap2_dflt_wait,
+@@ -3420,6 +3440,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"per_96m_fck",	&per_96m_fck,	CK_3XXX),
+ 	CLK(NULL,	"per_48m_fck",	&per_48m_fck,	CK_3XXX),
+ 	CLK(NULL,	"uart3_fck",	&uart3_fck,	CK_3XXX),
++	CLK(NULL,	"uart4_fck",	&uart4_fck,	CK_36XX),
+ 	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_3XXX),
+ 	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_3XXX),
+ 	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_3XXX),
+@@ -3443,6 +3464,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"gpio2_ick",	&gpio2_ick,	CK_3XXX),
+ 	CLK(NULL,	"wdt3_ick",	&wdt3_ick,	CK_3XXX),
+ 	CLK(NULL,	"uart3_ick",	&uart3_ick,	CK_3XXX),
++	CLK(NULL,	"uart4_ick",	&uart4_ick,	CK_36XX),
+ 	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpt7_ick",	&gpt7_ick,	CK_3XXX),
 -- 
 1.6.3.3
 
