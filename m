@@ -1,51 +1,86 @@
-From: Sriramakrishnan <srk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/4] OMAP3 : clock data: Update name string for EMAC clocks.
-Date: Thu, 11 Mar 2010 20:43:41 +0530
-Message-ID: <1268320422-32656-4-git-send-email-srk@ti.com>
-References: <1268320422-32656-1-git-send-email-srk@ti.com>
-	<1268320422-32656-2-git-send-email-srk@ti.com>
-	<1268320422-32656-3-git-send-email-srk@ti.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCHv6] OMAP3: Serial: Improved sleep logic
+Date: Thu, 11 Mar 2010 17:20:41 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A224FCF7B6C7@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1267118749-1836-1-git-send-email-tero.kristo@nokia.com>
+	<87ljebdb3c.fsf@deeprootsystems.com> <87aaugf37d.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1268320422-32656-3-git-send-email-srk-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sriramakrishnan <srk-l0cyMroinI0@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:59519 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933204Ab0CKQVA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 11:21:00 -0500
+In-Reply-To: <87aaugf37d.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org
 
-The emac driver uses generic name for the module and phy
-clocks. Updated the omap3xxx_clks table to match the names
-used by the Davinci emac driver.
+ 
 
-Signed-off-by: Sriramakrishnan <srk-l0cyMroinI0@public.gmane.org>
----
- arch/arm/mach-omap2/clock3xxx_data.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+>-----Original Message-----
+>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: 10 March, 2010 20:21
+>To: Kristo Tero (Nokia-D/Tampere)
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCHv6] OMAP3: Serial: Improved sleep logic
+>
+>Kevin Hilman <khilman@deeprootsystems.com> writes:
+>
+>> Tero Kristo <tero.kristo@nokia.com> writes:
+>>
+>>> From: Tero Kristo <tero.kristo@nokia.com>
+>>>
+>>> This patch contains following improvements:
+>>> - Only RX interrupt will now kick the sleep prevent timer
+>>> - TX fifo status is checked before disabling clocks, this 
+>will prevent
+>>>   on-going transmission to be cut
+>>> - Smartidle is now enabled/disabled only while switching 
+>clocks, as having
+>>>   smartidle enabled while RX/TX prevents any wakeups from 
+>being received
+>>>   from UART module
+>>> - Added workqueue for wakeup checks, as jiffy timer access 
+>within the
+>>>   idle loop results into skewed timers as jiffy timers are stopped
+>>> - Added garbage_timer for ignoring the first character 
+>received during
+>>>   the first tick after clock enable, this prevents garbage 
+>characters to be
+>>>   received in low sleep states
+>>> - omap_uart_enable_irqs() changed to use enable_irq / 
+>disable_irq instead
+>>>   of request / free. Using request/free changes the 
+>behavior after first
+>>>   suspend due to reversed interrupt handler ordering
+>>>
+>>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>>
+>> Thanks Tero.  This version looks good.
+>>
+>> Adding to pm-fixes queue for 2.6.34-rcX after minor change below...
+>>
+>
+>There's still something slightly strange going on here...
+>
+>I noticed via powertop that the garbage timer is now one of the top
+>reasons for wakeup in an idle system.  Seems like the garbage timer
+>is firing when it shouldn't be, and triggering unnecessary wakeups
+>
+>Based on powertop stats, the garbage timer is firing about 3x more
+>often than the GPtimer that should be waking the system.
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index d5153b6..989da2e 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3472,8 +3472,8 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"ipss_ick",	&ipss_ick,	CK_AM35XX),
- 	CLK(NULL,	"rmii_ck",	&rmii_ck,	CK_AM35XX),
- 	CLK(NULL,	"pclk_ck",	&pclk_ck,	CK_AM35XX),
--	CLK("davinci_emac",	"ick",		&emac_ick,	CK_AM35XX),
--	CLK("davinci_emac",	"fck",		&emac_fck,	CK_AM35XX),
-+	CLK("davinci_emac",	"emac_clk",	&emac_ick,	CK_AM35XX),
-+	CLK("davinci_emac",	"phy_clk",	&emac_fck,	CK_AM35XX),
- 	CLK("vpfe-capture",	"master",	&vpfe_ick,	CK_AM35XX),
- 	CLK("vpfe-capture",	"slave",	&vpfe_fck,	CK_AM35XX),
- 	CLK("musb_hdrc",	"ick",		&hsotgusb_ick_am35xx,	CK_AM35XX),
--- 
-1.6.2.4
+You get one timer expire each wakeup cycle, but the system actually fires its own timer for each UART, thus you get 3x. It is possible to optimize the timer a bit by only firing it if we have a wakeup from UART, but this probably causes occasional garbage to the console, if a wakeup from some other source than UART and UART RX happen at the same time. Might be the lesser of two evils though.
+
+I can experiment with this change a bit and see how it behaves.
+
+>
+>I haven't dug any deeper, but this needs to be fixed before merging
+>upstream.
+>
+>Kevin
+>
