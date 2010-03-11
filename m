@@ -1,72 +1,42 @@
-From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 3/3] USB: MUSB: Add OMAP4 support in MUSB driver
-Date: Thu, 11 Mar 2010 17:29:21 +0530
-Message-ID: <1268308761-21982-1-git-send-email-x0082077@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH-Fix] OMAP: Add DSI regulator supply to OMAP3EVM board
+ file
+Date: Thu, 11 Mar 2010 14:25:18 +0200
+Message-ID: <1268310318.28571.103.camel@tubuntu.research.nokia.com>
+References: <hvaibhav@ti.com>
+	 <1268297717-8062-1-git-send-email-hvaibhav@ti.com>
+	 <1268297945.28571.81.camel@tubuntu.research.nokia.com>
+	 <19F8576C6E063C45BE387C64729E7394044DD32B51@dbde02.ent.ti.com>
+	 <1268299850.28571.92.camel@tubuntu.research.nokia.com>
+	 <19F8576C6E063C45BE387C64729E7394044DD32B73@dbde02.ent.ti.com>
+	 <1268300631.28571.94.camel@tubuntu.research.nokia.com>
+	 <19F8576C6E063C45BE387C64729E7394044DD32B8D@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:42561 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751693Ab0CKMZg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 07:25:36 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DD32B8D@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-This patch adds CONFIG_ARCH_OMAP4 macro within 
-MUSB driver.
+On Thu, 2010-03-11 at 11:03 +0100, ext Hiremath, Vaibhav wrote:
+> > 
+> [Hiremath, Vaibhav] Tomi, the above patch has already present in main-line. The patch I am talking about is defconfig update for DSS on both OMAP3EVM and AM3517EVM.
+> It happened to be the same commit description at your repository when you split it.
 
-Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
-Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
----
-Index: mainline/drivers/usb/musb/musb_core.c
-===================================================================
---- mainline.orig/drivers/usb/musb/musb_core.c
-+++ mainline/drivers/usb/musb/musb_core.c
-@@ -982,7 +982,8 @@ static void musb_shutdown(struct platfor
-  * more than selecting one of a bunch of predefined configurations.
-  */
- #if defined(CONFIG_USB_TUSB6010) || \
--	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
-+	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) \
-+	|| defined(CONFIG_ARCH_OMAP4)
- static ushort __initdata fifo_mode = 4;
- #else
- static ushort __initdata fifo_mode = 2;
-@@ -1457,7 +1458,8 @@ static int __init musb_core_init(u16 mus
- 
- /*-------------------------------------------------------------------------*/
- 
--#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430) || \
-+	defined(CONFIG_ARCH_OMAP4)
- 
- static irqreturn_t generic_interrupt(int irq, void *__hci)
- {
-Index: mainline/drivers/usb/musb/musb_core.h
-===================================================================
---- mainline.orig/drivers/usb/musb/musb_core.h
-+++ mainline/drivers/usb/musb/musb_core.h
-@@ -213,7 +213,8 @@ enum musb_g_ep0_state {
-  */
- 
- #if defined(CONFIG_ARCH_DAVINCI) || defined(CONFIG_ARCH_OMAP2430) \
--		|| defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_BLACKFIN)
-+		|| defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_BLACKFIN) \
-+		|| defined(CONFIG_ARCH_OMAP4)
- /* REVISIT indexed access seemed to
-  * misbehave (on DaVinci) for at least peripheral IN ...
-  */
-@@ -596,7 +597,8 @@ extern void musb_hnp_stop(struct musb *m
- extern int musb_platform_set_mode(struct musb *musb, u8 musb_mode);
- 
- #if defined(CONFIG_USB_TUSB6010) || defined(CONFIG_BLACKFIN) || \
--	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
-+	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
-+	defined(CONFIG_ARCH_OMAP4)
- extern void musb_platform_try_idle(struct musb *musb, unsigned long timeout);
- #else
- #define musb_platform_try_idle(x, y)		do {} while (0)
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, you are right. I seem to have confused the patch with board changes
+and defconf changes. I'll take the defconfig changes to my next pull
+request.
+
+I also changed the patch descriptions a bit, so that I won't mix them up
+again =).
+
+ Tomi
+
+
