@@ -1,197 +1,103 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 06/19] omap: Enable PM_RUNTIME in defconfigs to avoid USB
-	compile errors
-Date: Thu, 11 Mar 2010 15:48:19 -0800
-Message-ID: <20100311234819.4500.4924.stgit@baageli.muru.com>
+Subject: [PATCH 09/19] omap: pass the reboot command to the boot loader
+Date: Thu, 11 Mar 2010 15:48:26 -0800
+Message-ID: <20100311234826.4500.402.stgit@baageli.muru.com>
 References: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52366 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753632Ab0CKXq4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:46:56 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53339 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753721Ab0CKXrD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:47:03 -0500
 In-Reply-To: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@nokia.com>
 
-While waiting for the related USB patch, fix compile by enabling
-it in the defconfigs. As discussed at:
+From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
 
-http://thread.gmane.org/gmane.linux.usb.general/27432/focus=4460
+This patch follows the commit be093beb608edf821b45fe00a8a080fb5c6ed4af
+by Russell King:
 
-Otherwise we'll get errors like:
+  OMAP wishes to pass state to the boot loader upon reboot in order
+  to instruct it whether to wait for USB-based reflashing or not.
+  There is already a facility to do this via the reboot() syscall,
+  except we ignore the string passed to machine_restart().
 
-drivers/usb/core/hcd.c:1892: error: 'pm_wq' undeclared (first use in this function)
-drivers/usb/core/hcd.c:1892: error: (Each undeclared identifier is reported only once
-drivers/usb/core/hcd.c:1892: error: for each function it appears in.)
+The patch adds the missing parameter to omap1_arch_reset() and
+omap_prcm_arch_reset(), and modifies the latter to pass the reboot
+command parameter to the boot loader instead of reboot mode (which is
+for kernel internal use only and cannot be modified by the userspace).
 
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/cm_t35_defconfig          |    2 +-
- arch/arm/configs/n770_defconfig            |    1 +
- arch/arm/configs/omap3_beagle_defconfig    |    1 +
- arch/arm/configs/omap3_defconfig           |    2 +-
- arch/arm/configs/omap3_evm_defconfig       |    1 +
- arch/arm/configs/omap3_touchbook_defconfig |    2 +-
- arch/arm/configs/omap_3430sdp_defconfig    |    1 +
- arch/arm/configs/omap_3630sdp_defconfig    |    2 +-
- arch/arm/configs/omap_h2_1610_defconfig    |    1 +
- arch/arm/configs/omap_zoom2_defconfig      |    1 +
- arch/arm/configs/omap_zoom3_defconfig      |    2 +-
- arch/arm/configs/rx51_defconfig            |    1 +
- 12 files changed, 12 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/prcm.c               |    4 ++--
+ arch/arm/plat-omap/include/plat/prcm.h   |    2 +-
+ arch/arm/plat-omap/include/plat/system.h |    6 +++---
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/configs/cm_t35_defconfig b/arch/arm/configs/cm_t35_defconfig
-index 893cd26..032b49b 100644
---- a/arch/arm/configs/cm_t35_defconfig
-+++ b/arch/arm/configs/cm_t35_defconfig
-@@ -358,7 +358,7 @@ CONFIG_PM_SLEEP=y
- CONFIG_SUSPEND=y
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
--# CONFIG_PM_RUNTIME is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 81872aa..9537f6f 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -133,7 +133,7 @@ u32 omap_prcm_get_reset_sources(void)
+ EXPORT_SYMBOL(omap_prcm_get_reset_sources);
  
-diff --git a/arch/arm/configs/n770_defconfig b/arch/arm/configs/n770_defconfig
-index 75cae18..de0c28a 100644
---- a/arch/arm/configs/n770_defconfig
-+++ b/arch/arm/configs/n770_defconfig
-@@ -308,6 +308,7 @@ CONFIG_PM_SLEEP=y
- CONFIG_SUSPEND_UP_POSSIBLE=y
- CONFIG_SUSPEND=y
- # CONFIG_APM_EMULATION is not set
-+CONFIG_PM_RUNTIME=y
+ /* Resets clock rates and reboots the system. Only called from system.h */
+-void omap_prcm_arch_reset(char mode)
++void omap_prcm_arch_reset(char mode, const char *cmd)
+ {
+ 	s16 prcm_offs = 0;
  
- #
- # Networking
-diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-index c7999f5..5a9e95f 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -324,6 +324,7 @@ CONFIG_PM_SLEEP=y
- CONFIG_SUSPEND=y
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
+@@ -145,7 +145,7 @@ void omap_prcm_arch_reset(char mode)
+ 		u32 l;
  
-diff --git a/arch/arm/configs/omap3_defconfig b/arch/arm/configs/omap3_defconfig
-index 714835e..d6ad921 100644
---- a/arch/arm/configs/omap3_defconfig
-+++ b/arch/arm/configs/omap3_defconfig
-@@ -450,7 +450,7 @@ CONFIG_SUSPEND=y
- # CONFIG_PM_TEST_SUSPEND is not set
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
--# CONFIG_PM_RUNTIME is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
+ 		prcm_offs = OMAP3430_GR_MOD;
+-		l = ('B' << 24) | ('M' << 16) | mode;
++		l = ('B' << 24) | ('M' << 16) | (cmd ? (u8)*cmd : 0);
+ 		/* Reserve the first word in scratchpad for communicating
+ 		 * with the boot ROM. A pointer to a data structure
+ 		 * describing the boot process can be stored there,
+diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
+index d6a0e27..9fbd914 100644
+--- a/arch/arm/plat-omap/include/plat/prcm.h
++++ b/arch/arm/plat-omap/include/plat/prcm.h
+@@ -24,7 +24,7 @@
+ #define __ASM_ARM_ARCH_OMAP_PRCM_H
  
-diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
-index e2ad859..a6dd6d1 100644
---- a/arch/arm/configs/omap3_evm_defconfig
-+++ b/arch/arm/configs/omap3_evm_defconfig
-@@ -340,6 +340,7 @@ CONFIG_PM_SLEEP=y
- CONFIG_SUSPEND=y
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
+ u32 omap_prcm_get_reset_sources(void);
+-void omap_prcm_arch_reset(char mode);
++void omap_prcm_arch_reset(char mode, const char *cmd);
+ int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
+ 			 const char *name);
  
-diff --git a/arch/arm/configs/omap3_touchbook_defconfig b/arch/arm/configs/omap3_touchbook_defconfig
-index 74fe6be..968fbaa 100644
---- a/arch/arm/configs/omap3_touchbook_defconfig
-+++ b/arch/arm/configs/omap3_touchbook_defconfig
-@@ -368,7 +368,7 @@ CONFIG_SUSPEND=y
- # CONFIG_PM_TEST_SUSPEND is not set
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
--# CONFIG_PM_RUNTIME is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
+diff --git a/arch/arm/plat-omap/include/plat/system.h b/arch/arm/plat-omap/include/plat/system.h
+index c58a4ef..d0a119f 100644
+--- a/arch/arm/plat-omap/include/plat/system.h
++++ b/arch/arm/plat-omap/include/plat/system.h
+@@ -22,7 +22,7 @@ static inline void arch_idle(void)
+ 	cpu_do_idle();
+ }
  
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index bb2917e..ddde429 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -363,6 +363,7 @@ CONFIG_PM_SLEEP=y
- CONFIG_SUSPEND=y
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
+-static inline void omap1_arch_reset(char mode)
++static inline void omap1_arch_reset(char mode, const char *cmd)
+ {
+ 	/*
+ 	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
+@@ -43,9 +43,9 @@ static inline void omap1_arch_reset(char mode)
+ static inline void arch_reset(char mode, const char *cmd)
+ {
+ 	if (!cpu_class_is_omap2())
+-		omap1_arch_reset(mode);
++		omap1_arch_reset(mode, cmd);
+ 	else
+-		omap_prcm_arch_reset(mode);
++		omap_prcm_arch_reset(mode, cmd);
+ }
  
-diff --git a/arch/arm/configs/omap_3630sdp_defconfig b/arch/arm/configs/omap_3630sdp_defconfig
-index d25c3d4..609f348 100644
---- a/arch/arm/configs/omap_3630sdp_defconfig
-+++ b/arch/arm/configs/omap_3630sdp_defconfig
-@@ -361,7 +361,7 @@ CONFIG_SUSPEND=y
- # CONFIG_PM_TEST_SUSPEND is not set
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
--# CONFIG_PM_RUNTIME is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
- 
-diff --git a/arch/arm/configs/omap_h2_1610_defconfig b/arch/arm/configs/omap_h2_1610_defconfig
-index 5231895..91ef2ed 100644
---- a/arch/arm/configs/omap_h2_1610_defconfig
-+++ b/arch/arm/configs/omap_h2_1610_defconfig
-@@ -331,6 +331,7 @@ CONFIG_PM_SLEEP=y
- CONFIG_SUSPEND=y
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- 
- #
-diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
-index a82e813..f5c6e11 100644
---- a/arch/arm/configs/omap_zoom2_defconfig
-+++ b/arch/arm/configs/omap_zoom2_defconfig
-@@ -343,6 +343,7 @@ CONFIG_SUSPEND=y
- # CONFIG_PM_TEST_SUSPEND is not set
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
- 
-diff --git a/arch/arm/configs/omap_zoom3_defconfig b/arch/arm/configs/omap_zoom3_defconfig
-index ff8ac3d..ea9a501 100644
---- a/arch/arm/configs/omap_zoom3_defconfig
-+++ b/arch/arm/configs/omap_zoom3_defconfig
-@@ -361,7 +361,7 @@ CONFIG_SUSPEND=y
- # CONFIG_PM_TEST_SUSPEND is not set
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
--# CONFIG_PM_RUNTIME is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
- 
-diff --git a/arch/arm/configs/rx51_defconfig b/arch/arm/configs/rx51_defconfig
-index 193bd33..45135ff 100644
---- a/arch/arm/configs/rx51_defconfig
-+++ b/arch/arm/configs/rx51_defconfig
-@@ -322,6 +322,7 @@ CONFIG_PM_SLEEP=y
- CONFIG_SUSPEND=y
- CONFIG_SUSPEND_FREEZER=y
- # CONFIG_APM_EMULATION is not set
-+CONFIG_PM_RUNTIME=y
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
- 
+ #endif
 
