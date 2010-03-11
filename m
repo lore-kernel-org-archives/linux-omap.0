@@ -1,92 +1,32 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv6] OMAP3: Serial: Improved sleep logic
-Date: Thu, 11 Mar 2010 08:29:39 -0800
-Message-ID: <87iq92ddos.fsf@deeprootsystems.com>
-References: <1267118749-1836-1-git-send-email-tero.kristo@nokia.com>
-	<87ljebdb3c.fsf@deeprootsystems.com>
-	<87aaugf37d.fsf@deeprootsystems.com>
-	<1F18D6510CF0474A8C9500565A7E41A224FCF7B6C7@NOK-EUMSG-02.mgdnok.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Reposting: [PATCH v1] serial: Add OMAP high-speed UART driver.
+Date: Thu, 11 Mar 2010 08:37:01 -0800
+Message-ID: <20100311163700.GC2900@atomide.com>
+References: <40015.192.168.10.89.1267707156.squirrel@dbdmail.itg.ti.com>
+ <38271.10.24.255.17.1268313278.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f194.google.com ([209.85.222.194]:61121 "EHLO
-	mail-pz0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933238Ab0CKQ3m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 11:29:42 -0500
-Received: by pzk32 with SMTP id 32so114915pzk.4
-        for <linux-omap@vger.kernel.org>; Thu, 11 Mar 2010 08:29:41 -0800 (PST)
-In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A224FCF7B6C7@NOK-EUMSG-02.mgdnok.nokia.com> (Tero Kristo's message of "Thu\, 11 Mar 2010 17\:20\:41 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <38271.10.24.255.17.1268313278.squirrel@dbdmail.itg.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: Greg KH <greg@kroah.com>, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Olof Johansson <olof@lixom.net>, Alan Cox <alan@linux.intel.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: linux-omap@vger.kernel.org
 
-<Tero.Kristo@nokia.com> writes:
+* Govindraj.R <govindraj.raja@ti.com> [100311 05:11]:
+> 
+> Hi Greg,
+> 
+> Could you please have this patch into your tty tree now?
+> 
+> As I do not see any further comment in community on this
+> for quite long time now.
 
->  
->
->>-----Original Message-----
->>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->>Sent: 10 March, 2010 20:21
->>To: Kristo Tero (Nokia-D/Tampere)
->>Cc: linux-omap@vger.kernel.org
->>Subject: Re: [PATCHv6] OMAP3: Serial: Improved sleep logic
->>
->>Kevin Hilman <khilman@deeprootsystems.com> writes:
->>
->>> Tero Kristo <tero.kristo@nokia.com> writes:
->>>
->>>> From: Tero Kristo <tero.kristo@nokia.com>
->>>>
->>>> This patch contains following improvements:
->>>> - Only RX interrupt will now kick the sleep prevent timer
->>>> - TX fifo status is checked before disabling clocks, this 
->>will prevent
->>>>   on-going transmission to be cut
->>>> - Smartidle is now enabled/disabled only while switching 
->>clocks, as having
->>>>   smartidle enabled while RX/TX prevents any wakeups from 
->>being received
->>>>   from UART module
->>>> - Added workqueue for wakeup checks, as jiffy timer access 
->>within the
->>>>   idle loop results into skewed timers as jiffy timers are stopped
->>>> - Added garbage_timer for ignoring the first character 
->>received during
->>>>   the first tick after clock enable, this prevents garbage 
->>characters to be
->>>>   received in low sleep states
->>>> - omap_uart_enable_irqs() changed to use enable_irq / 
->>disable_irq instead
->>>>   of request / free. Using request/free changes the 
->>behavior after first
->>>>   suspend due to reversed interrupt handler ordering
->>>>
->>>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->>>
->>> Thanks Tero.  This version looks good.
->>>
->>> Adding to pm-fixes queue for 2.6.34-rcX after minor change below...
->>>
->>
->>There's still something slightly strange going on here...
->>
->>I noticed via powertop that the garbage timer is now one of the top
->>reasons for wakeup in an idle system.  Seems like the garbage timer
->>is firing when it shouldn't be, and triggering unnecessary wakeups
->>
->>Based on powertop stats, the garbage timer is firing about 3x more
->>often than the GPtimer that should be waking the system.
->
-> You get one timer expire each wakeup cycle, but the system actually fires its own timer for each UART, thus you get 3x. It is possible to optimize the timer a bit by only firing it if we have a wakeup from UART, but this probably causes occasional garbage to the console, if a wakeup from some other source than UART and UART RX happen at the same time. Might be the lesser of two evils though.
->
-> I can experiment with this change a bit and see how it behaves.
->
+There are still outstanding comments. I've commented several
+times that this patch needs to be posted with the related
+patches so people can actually try it out.
 
-OK, the 3x makes sense, but the garbage timer should never be the
-cause of a wakeup.
+Regards,
 
-Maybe you also need to be sure that the garbage timer is disabled
-before clocks are disabled so it doesn't fire and cause a wakeup.
-
-Kevin
+Tony
