@@ -1,132 +1,64 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] omap4: Fix build break by moving omap_smc1 into a separate .S
-Date: Thu, 11 Mar 2010 13:03:46 +0530
-Message-ID: <1268292826-1937-1-git-send-email-santosh.shilimkar@ti.com>
+From: hvaibhav@ti.com
+Subject: [PATCH-Fix] OMAP: Add DSI regulator supply to OMAP3EVM board file
+Date: Thu, 11 Mar 2010 14:25:17 +0530
+Message-ID: <1268297717-8062-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36800 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753106Ab0CKHdx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 02:33:53 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:57265 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753166Ab0CKIz2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Mar 2010 03:55:28 -0500
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Tomi.Valkeinen@nokia.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-This patch moves omap_smc1 function to a seperate omap44xx-smc.S file
-and sets compile flags as -Wa,-march=armv7-a.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-This fix was suggested by Tony Lindgren <tony@atomide.com>
+With recent changes happened in OMAP2/3 DSS library for regulator interface, it
+is required to define DSI regulator supply, without this DSS (in turn Fbdev)
+fails to get regulator.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
-The patch is generated against the latest mainline and also applies
-on l-o master. Below two dependencies to test this patch on l-o
-master with multi-omap build
-	1. Revert Tony's commit d2fe713acc5afc9664afff440b3abe133a1c529f
-	   "omap3/4: Fix compile for omap_smc1"
-	2. Apply Kevin's "[PATCH 0/2] fixes for broken PM init with multi-OMAP" 	   series
-   
-The patch is tested with multi-omap build on OMAP3430 and OMAP4430
-SDPs.
- arch/arm/mach-omap2/Makefile        |    3 +++
- arch/arm/mach-omap2/board-4430sdp.c |   26 +-------------------------
- arch/arm/mach-omap2/omap44xx-smc.S  |   34 ++++++++++++++++++++++++++++++++++
- 3 files changed, 38 insertions(+), 25 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap44xx-smc.S
+ arch/arm/mach-omap2/board-omap3evm.c |   16 +++++++++++-----
+ 1 files changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 2069fb3..4b9fc57 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -22,6 +22,9 @@ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
- # SMP support ONLY available for OMAP4
- obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
- obj-$(CONFIG_LOCAL_TIMERS)		+= timer-mpu.o
-+obj-$(CONFIG_ARCH_OMAP4)		+= omap44xx-smc.o
-+
-+AFLAGS_omap44xx-smc.o			:=-Wa,-march=armv7-a
- 
- # Functions loaded to SRAM
- obj-$(CONFIG_ARCH_OMAP2420)		+= sram242x.o
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 180ac11..b88f28c 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -50,33 +50,9 @@ static struct omap_board_config_kernel sdp4430_config[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 017bb2f..a05de10 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -514,9 +514,15 @@ static struct regulator_init_data omap3_evm_vdac = {
  };
- 
- #ifdef CONFIG_CACHE_L2X0
--noinline void omap_smc1(u32 fn, u32 arg)
--{
--	register u32 r12 asm("r12") = fn;
--	register u32 r0 asm("r0") = arg;
--
--	/* This is common routine cache secure monitor API used to
--	 * modify the PL310 secure registers.
--	 * r0 contains the value to be modified and "r12" contains
--	 * the monitor API number. It uses few CPU registers
--	 * internally and hence they need be backed up including
--	 * link register "lr".
--	 * Explicitly save r11 and r12 the compiler generated code
--	 * won't save it.
--	 */
--	asm volatile(
--		"stmfd r13!, {r11,r12}\n"
--		"dsb\n"
--		"smc\n"
--		"ldmfd r13!, {r11,r12}\n"
--		: "+r" (r0), "+r" (r12)
--		:
--		: "r4", "r5", "r10", "lr", "cc");
--}
--EXPORT_SYMBOL(omap_smc1);
--
- static int __init omap_l2_cache_init(void)
- {
-+	extern void omap_smc1(u32 fn, u32 arg);
- 	void __iomem *l2cache_base;
- 
- 	/* To avoid code running on other OMAPs in
-diff --git a/arch/arm/mach-omap2/omap44xx-smc.S b/arch/arm/mach-omap2/omap44xx-smc.S
-new file mode 100644
-index 0000000..3e1db6e
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap44xx-smc.S
-@@ -0,0 +1,34 @@
-+/*
-+ * OMAP44xx secure APIs file.
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ *
-+ *
-+ * This program is free software,you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/linkage.h>
-+
-+/*
-+ * This is common routine to manage secure monitor API
-+ * used to modify the PL310 secure registers.
-+ * 'r0' contains the value to be modified and 'r12' contains
-+ * the monitor API number. It uses few CPU registers
-+ * internally and hence they need be backed up including
-+ * link register "lr".
-+ * Function signature : void omap_smc1(u32 fn, u32 arg)
-+ */
-+
-+ENTRY(omap_smc1)
-+	stmfd   sp!, {r2-r12, lr}
-+	mov	r12, r0
-+	mov 	r0, r1
-+	dsb
-+	smc
-+	ldmfd   sp!, {r2-r12, pc}
-+END(omap_smc1)
-+
-+
--- 
-1.6.0.4
+
+ /* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
+-	.supply		= "vdvi",
+-	.dev		= &omap3_evm_lcd_device.dev,
++static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
++	{
++		.supply		= "vdvi",
++		.dev		= &omap3_evm_lcd_device.dev,
++	},
++	{
++		.supply		= "vdds_dsi",
++		.dev		= &omap3_evm_dss_device.dev,
++	},
+ };
+
+ static struct regulator_init_data omap3_evm_vpll2 = {
+@@ -530,8 +536,8 @@ static struct regulator_init_data omap3_evm_vpll2 = {
+ 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &omap3_evm_vpll2_supply,
++	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vpll2_supplies),
++	.consumer_supplies	= omap3_evm_vpll2_supplies,
+ };
+
+ static struct twl4030_platform_data omap3evm_twldata = {
+--
+1.6.2.4
 
