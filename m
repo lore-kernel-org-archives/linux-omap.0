@@ -1,47 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] omap2_mcspi: Flush posted writes
-Date: Thu, 11 Mar 2010 14:40:43 -0800
-Message-ID: <20100311224043.GS2900@atomide.com>
-References: <1268216316-32552-1-git-send-email-roman.tereshonkov@nokia.com>
+Subject: Re: compile break on dss2 branch for zoom3
+Date: Thu, 11 Mar 2010 14:42:28 -0800
+Message-ID: <20100311224228.GT2900@atomide.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026EFB4FA5@dbde02.ent.ti.com>
+ <1268307780.28571.101.camel@tubuntu.research.nokia.com>
+ <20100311131135.GU20878@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62574 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600Ab0CKWjW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 17:39:22 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53634 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751953Ab0CKWlJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 17:41:09 -0500
 Content-Disposition: inline
-In-Reply-To: <1268216316-32552-1-git-send-email-roman.tereshonkov@nokia.com>
+In-Reply-To: <20100311131135.GU20878@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-Cc: linux-omap@vger.kernel.org, scott@jumpnowtek.com, gadiyar@ti.com
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "ext Y, Kishore" <kishore.y@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Roman Tereshonkov <roman.tereshonkov@nokia.com> [100310 02:16]:
-> mcspi_write_chconf0 is used to control rx/tx triggering.
-> Post-write flushing is needed to get the immediate effect.
+* Felipe Balbi <felipe.balbi@nokia.com> [100311 05:09]:
+> On Thu, Mar 11, 2010 at 12:43:00PM +0100, Valkeinen Tomi (Nokia-D/Helsinki) wrote:
+> >>When I disable usb, build goes through but the board does not bootup with this image. It is stuck at uncompressing linux.
+> >
+> >Yes, mainstream linux tree seems to be broken. Not much I can do to help
+> >you there. You can try rebasing on top of later mainstrean version,
+> >perhaps it's been fixed there.
 > 
-> Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-> ---
->  drivers/spi/omap2_mcspi.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index 715c518..35b31fe 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -203,6 +203,7 @@ static inline void mcspi_write_chconf0(const struct spi_device *spi, u32 val)
->  
->  	cs->chconf0 = val;
->  	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, val);
-> +	mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
->  }
->  
->  static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
+> you need to enable CONFIG_PM_RUNTIME
 
-Looks like good fixes, these should be resent to the
-spi list and maintainers. See the MAINTAINERS file.
+I have a patch queued up to do that for the related defconfig
+files while we wait for the usb patch to get merged. Will post
+later today.
 
-Regards,
-
-Tony 
+Tony
