@@ -1,127 +1,67 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-Fix] OMAP: Add DSI regulator supply to OMAP3EVM board
- file
-Date: Thu, 11 Mar 2010 14:50:29 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DD32B51@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	 <1268297717-8062-1-git-send-email-hvaibhav@ti.com>
- <1268297945.28571.81.camel@tubuntu.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: kernel panic with latest DSS
+Date: Thu, 11 Mar 2010 10:24:51 +0100
+Message-ID: <18410E43-78D3-4406-879B-37712FCE8B5C@student.utwente.nl>
+References: <5e088bd91003091158l6cfa0b76u204e5432389d573@mail.gmail.com> <5e088bd91003101016s4148751es1a142c21d1540564@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42797 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754520Ab0CKJUr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 04:20:47 -0500
-Content-Language: en-US
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:42899 "EHLO
+	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765Ab0CKJY6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 04:24:58 -0500
+Received: by ewy8 with SMTP id 8so1731638ewy.28
+        for <linux-omap@vger.kernel.org>; Thu, 11 Mar 2010 01:24:56 -0800 (PST)
+In-Reply-To: <5e088bd91003101016s4148751es1a142c21d1540564@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>
 
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Thursday, March 11, 2010 2:49 PM
-> To: 'Tomi Valkeinen'
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: RE: [PATCH-Fix] OMAP: Add DSI regulator supply to OMAP3EVM board
-> file
+Op 10 mrt 2010, om 19:16 heeft Steve Sakoman het volgende geschreven:
+
+> On Tue, Mar 9, 2010 at 11:58 AM, Steve Sakoman <sakoman@gmail.com> wrote:
+>> I just updated all my Beagle and Overo DSS patches to apply on the
+>> latest linux-omap head.
+>> 
+>> I ran into a slight issue with parsing defaults, but saw that Tomi had
+>> already posted a workaround for that.
+>> 
+>> With that patch applied I get pretty good results until I try to do
+>> something like play a DVD or display video from a webcam.
+>> 
+>> At that point I get a kernel panic.  See below.
 > 
+> I did a little more research on this.
 > 
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Thursday, March 11, 2010 2:29 PM
-> > To: Hiremath, Vaibhav
-> > Cc: linux-omap@vger.kernel.org; tony@atomide.com
-> > Subject: Re: [PATCH-Fix] OMAP: Add DSI regulator supply to OMAP3EVM board
-> > file
-> >
-> > Hi,
-> >
-> > On Thu, 2010-03-11 at 09:55 +0100, ext hvaibhav@ti.com wrote:
-> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > > With recent changes happened in OMAP2/3 DSS library for regulator
-> > interface, it
-> > > is required to define DSI regulator supply, without this DSS (in turn
-> > Fbdev)
-> > > fails to get regulator.
-> > >
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > ---
-> > >  arch/arm/mach-omap2/board-omap3evm.c |   16 +++++++++++-----
-> > >  1 files changed, 11 insertions(+), 5 deletions(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> > omap2/board-omap3evm.c
-> > > index 017bb2f..a05de10 100644
-> > > --- a/arch/arm/mach-omap2/board-omap3evm.c
-> > > +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> > > @@ -514,9 +514,15 @@ static struct regulator_init_data omap3_evm_vdac =
+> The issue occurs in the following section of code in
+> drivers/video/omap2/dss/dispc.c:
+> 
+> unsigned long dispc_fclk_rate(void)
 > {
-> > >  };
-> > >
-> > >  /* VPLL2 for digital video outputs */
-> > > -static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
-> > > -	.supply		= "vdvi",
-> > > -	.dev		= &omap3_evm_lcd_device.dev,
-> > > +static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
-> > > +	{
-> > > +		.supply		= "vdvi",
-> > > +		.dev		= &omap3_evm_lcd_device.dev,
-> > > +	},
-> >
-> > Are you sure vdvi is required by the panel? At least the panel in
-> > 3430SDP doesn't require it.
-> [Hiremath, Vaibhav] As I mentioned before also, we don't need vdvi supply
-> for OMAP3EVM. Infact there is no supply like vdvi coming out of TWL4030
-> Since it was being used in panel file I had defined it. But now I can see
-> that we are no longer using vdvi supply, so I can safely remove this supply.
-> Thanks for pointing me to this.
+> 	unsigned long r = 0;
 > 
-> I have created another patch which will replace the vdvi with vdds_dsi
-> regulator supply; I have tested it on OMAP3EVM.
+> 	if (dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK)
+> 		r = dss_clk_get_rate(DSS_CLK_FCK1);
+> 	else
+> #ifdef CONFIG_OMAP2_DSS_DSI
+> 		r = dsi_get_dsi1_pll_rate();
+> #else
+> 	BUG();
+> #endif
+> 	return r;
+> }
 > 
-> Please merge this patch, without this OMAP3EVM DSS/Fbdev will fail in
-> regulator_get.
+> Since my machines don't have DSI displays CONFIG_OMAP2_DSS_DSI is not
+> defined and the BUG() call is triggered.
 > 
-> Thanks,
-> Vaibhav
-> 
-[Hiremath, Vaibhav] Tomi,
+> I don't know enough about what *should* be happening here to propose a
+> fix, but I'll continue looking.
 
-Also, there are few patches which still are not merged to main-line, like
+Not that you need the DSI_PLL config to get tighter timings to do e.g. 74.25MHz for 720p60. I had to rediscover that this week on DM37xx.....
 
-commit 98d31bf6566be9e716f6dfdce8eb39d1c1097b7c
-Author: Vaibhav Hiremath <hvaibhav@ti.com>
-Date:   Wed Jan 13 17:17:10 2010 +0530
+regards,
 
-    OMAP: AM3517: Enable DSS2 for AM3517EVM board
-
-    Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-    [tomi.valkeinen@nokia.com: removed the board file changes]
-    Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-
-commit bb8a88ac57564e2e7ccc813be1d74c45bb467549
-Author: Vaibhav Hiremath <hvaibhav@ti.com>
-Date:   Mon Jan 4 15:34:16 2010 +0100
-
-    OMAP: Enable DSS2 for OMAP3EVM board
-
-    Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-    [tomi.valkeinen@nokia.com: removed the board file changes]
-    Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-
-
-Any specific reason why are holding this back?
-
-Thanks,
-Vaibhav
-
-> 
-> >
-> >  Tomi
-> >
-
+Koen
