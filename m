@@ -1,52 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: Fixing build warning with omap3_defconfig
-Date: Thu, 11 Mar 2010 14:23:53 -0800
-Message-ID: <20100311222353.GO2900@atomide.com>
-References: <1267527368-19690-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: Re: [PATCHv2 0/5] FIFO caused playback delay (latency) handling in
+ soc/omap
+Date: Thu, 11 Mar 2010 14:26:55 -0800
+Message-ID: <20100311222655.GP2900@atomide.com>
+References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
+ <20100303133806.GA15105@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54952 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758552Ab0CKWWd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 17:22:33 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52556 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758481Ab0CKWZj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 17:25:39 -0500
 Content-Disposition: inline
-In-Reply-To: <1267527368-19690-1-git-send-email-anuj.aggarwal@ti.com>
+In-Reply-To: <20100303133806.GA15105@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, jhnikula@gmail.com, ext-eero.nurkkala@nokia.com
 
-* Anuj Aggarwal <anuj.aggarwal@ti.com> [100302 02:52]:
-> Fixes the below build warning when compiled with omap3_defconfig:
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [100303 05:34]:
+> On Wed, Mar 03, 2010 at 03:08:03PM +0200, Peter Ujfalusi wrote:
 > 
->   CC      arch/arm/mach-omap2/board-am3517evm.o
->   In file included from arch/arm/mach-omap2/board-am3517evm.c:23:
->   include/linux/i2c/pca953x.h:14: warning: 'struct i2c_client' declared
->   	inside parameter list
->   include/linux/i2c/pca953x.h:14: warning: its scope is only this definition
->   	or declaration, which is probably not what you want
->   include/linux/i2c/pca953x.h:17: warning: 'struct i2c_client' declared inside
->   	parameter list
->   CC      arch/arm/mach-omap2/usb-musb.o
+> > Peter Ujfalusi (5):
+> >   ASoC: core: fix tailing whitespace in soc_pcm_apply_symmetry
+> >   ASoC: core: soc level wrapper for pcm_pointer callback
+> >   ASoC: core: Add delay operation to snd_soc_dai_ops
 > 
-> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
-> ---
->  include/linux/i2c/pca953x.h |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+> I'll apply these just now, thanks!
 > 
-> diff --git a/include/linux/i2c/pca953x.h b/include/linux/i2c/pca953x.h
-> index 81736d6..6c8f853 100644
-> --- a/include/linux/i2c/pca953x.h
-> +++ b/include/linux/i2c/pca953x.h
-> @@ -1,4 +1,5 @@
->  /* platform data for the PCA9539 16-bit I/O expander driver */
-> +#include <linux/i2c.h>
->  
->  struct pca953x_platform_data {
->  	/* number of the first GPIO */
+> >   OMAP3: McBSP: Add interface for FIFO caused delay query
+> >   ASoC: OMAP3: Report delay caused by the internal FIFO
 > 
+> These also look OK to me but there's the arch/arm dependency.
 
-This needs to go via the I2C list.
+I think the only one is the McBSP patch above.
 
-Tony
+Care to take that too to keep things working?
+
+Acked-by: Tony Lindgren <tony@atomide.com>
