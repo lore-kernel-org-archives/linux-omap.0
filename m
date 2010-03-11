@@ -1,12 +1,12 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [RFC part1/2 merge v4][PATCH 02/11] OMAP3: serial: Use dev_* macros instead of printk
-Date: Wed, 10 Mar 2010 18:14:15 -0600
-Message-ID: <1268266464-15702-3-git-send-email-saaguirre@ti.com>
+Subject: [RFC part1/2 merge v4][PATCH 01/11] OMAP3: serial: Check for zero-based physical addr
+Date: Wed, 10 Mar 2010 18:14:14 -0600
+Message-ID: <1268266464-15702-2-git-send-email-saaguirre@ti.com>
 References: <1268266464-15702-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49036 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:35596 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932947Ab0CKANV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S932944Ab0CKANV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 10 Mar 2010 19:13:21 -0500
 In-Reply-To: <1268266464-15702-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,64 +14,50 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, Sergio Aguirre <saaguirre@ti.com>
 
-As we have a struct device populated at the time we are
-printing the errors, using dev_* macros makes more sense,
-as could give a better idea where the error/warning came from.
+This is for protecting a wrong mapping attempt of a zero-based
+physical address.
+
+The result is that, no serial port will be attempted to be mapped.
+
+Also add an additional protection for NULL clocks before attempting
+to enable them (if above condition applies)
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/serial.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index ef91fc0..a55e6ae 100644
+index da77930..ef91fc0 100644
 --- a/arch/arm/mach-omap2/serial.c
 +++ b/arch/arm/mach-omap2/serial.c
-@@ -550,7 +550,7 @@ static ssize_t sleep_timeout_store(struct device *dev,
- 	unsigned int value;
+@@ -664,6 +664,12 @@ void __init omap_serial_early_init(void)
+ 		struct device *dev = &pdev->dev;
+ 		struct plat_serial8250_port *p = dev->platform_data;
  
- 	if (sscanf(buf, "%u", &value) != 1) {
--		printk(KERN_ERR "sleep_timeout_store: Invalid value\n");
-+		dev_err(dev, "sleep_timeout_store: Invalid value\n");
- 		return -EINVAL;
- 	}
- 
-@@ -666,8 +666,8 @@ void __init omap_serial_early_init(void)
- 
- 		/* Don't map zero-based physical address */
- 		if (p->mapbase == 0) {
--			printk(KERN_WARNING "omap serial: No physical address"
--			       " for uart#%d, so skipping early_init...\n", i);
-+			dev_warn(dev, "no physical address for uart#%d,"
-+				 " so skipping early_init...\n", i);
- 			continue;
- 		}
++		/* Don't map zero-based physical address */
++		if (p->mapbase == 0) {
++			printk(KERN_WARNING "omap serial: No physical address"
++			       " for uart#%d, so skipping early_init...\n", i);
++			continue;
++		}
  		/*
-@@ -676,21 +676,21 @@ void __init omap_serial_early_init(void)
- 		 */
- 		p->membase = ioremap(p->mapbase, SZ_8K);
- 		if (!p->membase) {
--			printk(KERN_ERR "ioremap failed for uart%i\n", i + 1);
-+			dev_err(dev, "ioremap failed for uart%i\n", i + 1);
- 			continue;
- 		}
+ 		 * Module 4KB + L4 interconnect 4KB
+ 		 * Static mapping, never released
+@@ -727,6 +733,13 @@ void __init omap_serial_init_port(int port)
+ 	pdev = &uart->pdev;
+ 	dev = &pdev->dev;
  
- 		sprintf(name, "uart%d_ick", i + 1);
- 		uart->ick = clk_get(NULL, name);
- 		if (IS_ERR(uart->ick)) {
--			printk(KERN_ERR "Could not get uart%d_ick\n", i + 1);
-+			dev_err(dev, "Could not get uart%d_ick\n", i + 1);
- 			uart->ick = NULL;
- 		}
++	/* Don't proceed if there's no clocks available */
++	if (unlikely(!uart->ick || !uart->fck)) {
++		WARN(1, "%s: can't init uart%d, no clocks available\n",
++		     kobject_name(&dev->kobj), port);
++		return;
++	}
++
+ 	omap_uart_enable_clocks(uart);
  
- 		sprintf(name, "uart%d_fck", i+1);
- 		uart->fck = clk_get(NULL, name);
- 		if (IS_ERR(uart->fck)) {
--			printk(KERN_ERR "Could not get uart%d_fck\n", i + 1);
-+			dev_err(dev, "Could not get uart%d_fck\n", i + 1);
- 			uart->fck = NULL;
- 		}
- 
+ 	omap_uart_reset(uart);
 -- 
 1.6.3.3
 
