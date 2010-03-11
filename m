@@ -1,133 +1,71 @@
 From: Maulik Mankad <x0082077@ti.com>
-Subject: [PATCH v2 1/3] USB: MUSB: Set transceiver interface type
-Date: Thu, 11 Mar 2010 17:26:25 +0530
-Message-ID: <1268308585-21604-1-git-send-email-x0082077@ti.com>
+Subject: [PATCH v2 2/3] USB: MUSB: Build MUSB driver for OMAP4
+Date: Thu, 11 Mar 2010 17:28:30 +0530
+Message-ID: <1268308710-21832-1-git-send-email-x0082077@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47316 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757614Ab0CKL4s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 06:56:48 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:35842 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757638Ab0CKL6m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Mar 2010 06:58:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Maulik Mankad <x0082077@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <david-b@pacbell.net>, Greg Kroah-Hartman <gregkh@suse.de>, Sergei Shtylyov <sshtylyov@mvista.com>, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, Maulik Mankad <x0082077@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, David Brownell <david-b@pacbell.net>, Sergei Shtylyov <sshtylyov@mvista.com>, Olof Johansson <olof@lixom.net>
 
-Program the OTG_INTERFSEL register based on
-transcevier type passed from board file.
-
-Adapt signature of musb_platform_init() function
-for davinci, blackfin and tusb6010.
+This patch updates the Makefile to build the
+MUSB driver for OMAP4. It also sets the Kconfig
+options for OMAP4.
 
 Signed-off-by: Maulik Mankad <x0082077@ti.com>
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: David Brownell <david-b@pacbell.net>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: David Brownell <david-b@pacbell.net>
 Cc: Sergei Shtylyov <sshtylyov@mvista.com>
 Cc: Olof Johansson <olof@lixom.net>
----
- drivers/usb/musb/blackfin.c  |    2 +-
- drivers/usb/musb/davinci.c   |    2 +-
- drivers/usb/musb/musb_core.c |    2 +-
- drivers/usb/musb/musb_core.h |    2 +-
- drivers/usb/musb/omap2430.c  |   13 +++++++++++--
- drivers/usb/musb/tusb6010.c  |    2 +-
- 6 files changed, 16 insertions(+), 7 deletions(-)
 
-Index: mainline/drivers/usb/musb/blackfin.c
+Index: mainline/drivers/usb/musb/Kconfig
 ===================================================================
---- mainline.orig/drivers/usb/musb/blackfin.c
-+++ mainline/drivers/usb/musb/blackfin.c
-@@ -277,7 +277,7 @@ int musb_platform_set_mode(struct musb *
- 	return -EIO;
- }
+--- mainline.orig/drivers/usb/musb/Kconfig
++++ mainline/drivers/usb/musb/Kconfig
+@@ -38,6 +38,7 @@ config USB_MUSB_SOC
+ 	default y if ARCH_DAVINCI
+ 	default y if ARCH_OMAP2430
+ 	default y if ARCH_OMAP3
++	default y if ARCH_OMAP4
+ 	default y if (BF54x && !BF544)
+ 	default y if (BF52x && !BF522 && !BF523)
  
--int __init musb_platform_init(struct musb *musb)
-+int __init musb_platform_init(struct musb *musb, void *board_data)
- {
+@@ -50,6 +51,9 @@ comment "OMAP 243x high speed USB suppor
+ comment "OMAP 343x high speed USB support"
+ 	depends on USB_MUSB_HDRC && ARCH_OMAP3
  
- 	/*
-Index: mainline/drivers/usb/musb/davinci.c
-===================================================================
---- mainline.orig/drivers/usb/musb/davinci.c
-+++ mainline/drivers/usb/musb/davinci.c
-@@ -377,7 +377,7 @@ int musb_platform_set_mode(struct musb *
- 	return -EIO;
- }
- 
--int __init musb_platform_init(struct musb *musb)
-+int __init musb_platform_init(struct musb *musb, void *board_data)
- {
- 	void __iomem	*tibase = musb->ctrl_base;
- 	u32		revision;
-Index: mainline/drivers/usb/musb/musb_core.c
-===================================================================
---- mainline.orig/drivers/usb/musb/musb_core.c
-+++ mainline/drivers/usb/musb/musb_core.c
-@@ -1948,7 +1948,7 @@ bad_config:
- 	 * isp1504, non-OTG, etc) mostly hooking up through ULPI.
- 	 */
- 	musb->isr = generic_interrupt;
--	status = musb_platform_init(musb);
-+	status = musb_platform_init(musb, plat->board_data);
- 
- 	if (status < 0)
- 		goto fail;
-Index: mainline/drivers/usb/musb/musb_core.h
-===================================================================
---- mainline.orig/drivers/usb/musb/musb_core.h
-+++ mainline/drivers/usb/musb/musb_core.h
-@@ -608,7 +608,7 @@ extern int musb_platform_get_vbus_status
- #define musb_platform_get_vbus_status(x)	0
- #endif
- 
--extern int __init musb_platform_init(struct musb *musb);
-+extern int __init musb_platform_init(struct musb *musb, void *board_data);
- extern int musb_platform_exit(struct musb *musb);
- 
- #endif	/* __MUSB_CORE_H__ */
-Index: mainline/drivers/usb/musb/omap2430.c
-===================================================================
---- mainline.orig/drivers/usb/musb/omap2430.c
-+++ mainline/drivers/usb/musb/omap2430.c
-@@ -200,9 +200,10 @@ int musb_platform_set_mode(struct musb *
- 	return 0;
- }
- 
--int __init musb_platform_init(struct musb *musb)
-+int __init musb_platform_init(struct musb *musb, void *board_data)
- {
- 	u32 l;
-+	struct omap_musb_board_data *data = board_data;
- 
- #if defined(CONFIG_ARCH_OMAP2430)
- 	omap_cfg_reg(AE5_2430_USB0HS_STP);
-@@ -236,7 +237,15 @@ int __init musb_platform_init(struct mus
- 	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
- 
- 	l = musb_readl(musb->mregs, OTG_INTERFSEL);
--	l |= ULPI_12PIN;
++comment "OMAP 44xx high speed USB support"
++	depends on USB_MUSB_HDRC && ARCH_OMAP4
 +
-+	if (data->interface_type == MUSB_INTERFACE_UTMI) {
-+		/* OMAP4 uses Internal PHY GS70 which uses UTMI interface */
-+		l &= ~ULPI_12PIN;       /* Disable ULPI */
-+		l |= UTMI_8BIT;         /* Enable UTMI  */
-+	} else {
-+		l |= ULPI_12PIN;
-+	}
-+
- 	musb_writel(musb->mregs, OTG_INTERFSEL, l);
+ comment "Blackfin high speed USB Support"
+ 	depends on USB_MUSB_HDRC && ((BF54x && !BF544) || (BF52x && !BF522 && !BF523))
  
- 	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
-Index: mainline/drivers/usb/musb/tusb6010.c
+@@ -153,7 +157,7 @@ config MUSB_PIO_ONLY
+ config USB_INVENTRA_DMA
+ 	bool
+ 	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
+-	default ARCH_OMAP2430 || ARCH_OMAP3 || BLACKFIN
++	default ARCH_OMAP2430 || ARCH_OMAP3 || BLACKFIN || ARCH_OMAP4
+ 	help
+ 	  Enable DMA transfers using Mentor's engine.
+ 
+Index: mainline/drivers/usb/musb/Makefile
 ===================================================================
---- mainline.orig/drivers/usb/musb/tusb6010.c
-+++ mainline/drivers/usb/musb/tusb6010.c
-@@ -1091,7 +1091,7 @@ err:
- 	return -ENODEV;
- }
+--- mainline.orig/drivers/usb/musb/Makefile
++++ mainline/drivers/usb/musb/Makefile
+@@ -22,6 +22,10 @@ ifeq ($(CONFIG_ARCH_OMAP3430),y)
+ 	musb_hdrc-objs	+= omap2430.o
+ endif
  
--int __init musb_platform_init(struct musb *musb)
-+int __init musb_platform_init(struct musb *musb, void *board_data)
- {
- 	struct platform_device	*pdev;
- 	struct resource		*mem;
++ifeq ($(CONFIG_ARCH_OMAP4),y)
++	musb_hdrc-objs  += omap2430.o
++endif
++
+ ifeq ($(CONFIG_BF54x),y)
+ 	musb_hdrc-objs	+= blackfin.o
+ endif
