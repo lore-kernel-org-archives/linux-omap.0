@@ -1,86 +1,87 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCHv6] OMAP3: Serial: Improved sleep logic
-Date: Thu, 11 Mar 2010 17:20:41 +0100
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A224FCF7B6C7@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1267118749-1836-1-git-send-email-tero.kristo@nokia.com>
-	<87ljebdb3c.fsf@deeprootsystems.com> <87aaugf37d.fsf@deeprootsystems.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor autoloading feature
+Date: Thu, 11 Mar 2010 10:27:53 -0600
+Message-ID: <004401cac137$cccbf0c0$544ff780@am.dhcp.ti.com>
+References: <618f0c911003010327s290fcce1ud665b5a16392aea1@mail.gmail.com> <011301cac0b6$542b1190$544ff780@am.dhcp.ti.com> <618f0c911003110252i36d6fc31wbaef4ad7a17565b1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:59519 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933204Ab0CKQVA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 11:21:00 -0500
-In-Reply-To: <87aaugf37d.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:51342 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754053Ab0CKQ2E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Mar 2010 11:28:04 -0500
+In-Reply-To: <618f0c911003110252i36d6fc31wbaef4ad7a17565b1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
+To: 'Venkatraman S' <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
- 
 
->-----Original Message-----
->From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->Sent: 10 March, 2010 20:21
->To: Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCHv6] OMAP3: Serial: Improved sleep logic
->
->Kevin Hilman <khilman@deeprootsystems.com> writes:
->
->> Tero Kristo <tero.kristo@nokia.com> writes:
->>
->>> From: Tero Kristo <tero.kristo@nokia.com>
->>>
->>> This patch contains following improvements:
->>> - Only RX interrupt will now kick the sleep prevent timer
->>> - TX fifo status is checked before disabling clocks, this 
->will prevent
->>>   on-going transmission to be cut
->>> - Smartidle is now enabled/disabled only while switching 
->clocks, as having
->>>   smartidle enabled while RX/TX prevents any wakeups from 
->being received
->>>   from UART module
->>> - Added workqueue for wakeup checks, as jiffy timer access 
->within the
->>>   idle loop results into skewed timers as jiffy timers are stopped
->>> - Added garbage_timer for ignoring the first character 
->received during
->>>   the first tick after clock enable, this prevents garbage 
->characters to be
->>>   received in low sleep states
->>> - omap_uart_enable_irqs() changed to use enable_irq / 
->disable_irq instead
->>>   of request / free. Using request/free changes the 
->behavior after first
->>>   suspend due to reversed interrupt handler ordering
->>>
->>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->>
->> Thanks Tero.  This version looks good.
->>
->> Adding to pm-fixes queue for 2.6.34-rcX after minor change below...
->>
->
->There's still something slightly strange going on here...
->
->I noticed via powertop that the garbage timer is now one of the top
->reasons for wakeup in an idle system.  Seems like the garbage timer
->is firing when it shouldn't be, and triggering unnecessary wakeups
->
->Based on powertop stats, the garbage timer is firing about 3x more
->often than the GPtimer that should be waking the system.
 
-You get one timer expire each wakeup cycle, but the system actually fires its own timer for each UART, thus you get 3x. It is possible to optimize the timer a bit by only firing it if we have a wakeup from UART, but this probably causes occasional garbage to the console, if a wakeup from some other source than UART and UART RX happen at the same time. Might be the lesser of two evils though.
+> -----Original Message-----
+> From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of
+> Venkatraman S
+> Sent: Thursday, March 11, 2010 4:52 AM
+> To: Madhusudhan
+> Cc: linux-mmc@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor
+> autoloading feature
+> 
+> Madhusudhan <madhu.cr@ti.com> wrote:
+> >> -----Original Message-----
+> >> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
+> >> owner@vger.kernel.org] On Behalf Of Venkatraman S
+> >> Sent: Monday, March 01, 2010 5:27 AM
+> >> To: linux-mmc@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> >> linux-omap@vger.kernel.org
+> >> Subject: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor
+> >> autoloading feature
+> >>
+> >> Start to use the sDMA descriptor autoloading feature.
+> >> For large datablocks, the MMC driver has to repeatedly setup, program
+> >> and teardown the
+> >> dma channel for each element of the sglist received in
+> omap_hsmmc_request.
+> >>
+> >> By using descriptor autoloading, transfers from / to each element of
+> >> the sglist is pre programmed
+> >> into a linked list. The sDMA driver completes the entire transaction
+> >> and provides a single interrupt.
+> >>
+> >> Due to this, number of dma interrupts for a typical 100MB transfer on
+> the
+> >> MMC is
+> >> reduced from 25000 to about 400 (approximate). Transfer speeds are
+> >> improved by ~5%
+> >> (Though it varies on the size of read / write & improves on huge
+> >> transfers)
+> >>
+> >> Descriptor autoloading is available only in 3630 and 4430 (as of now).
+> >> Hence normal DMA
+> >> mode is also retained.
+> >>
+> >> Tested on omap4430 sdp.
+> >>
+> >> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> >
+> > I don't see any issues with this patch except the concern I had on the
+> first
+> > patch in the series. Why is that change linked to this series?
+> >
+>   Thanks. The problem was seen only in the context of using descriptor
+> load. Would
+> you prefer that I post it as a separate patch ?
 
-I can experiment with this change a bit and see how it behaves.
+My point is why that change is needed for this feature to work? 
 
->
->I haven't dug any deeper, but this needs to be fixed before merging
->upstream.
->
->Kevin
->
+When DMA is completed and a callback is received the ch can be freed. Once
+TC is received the core is notified of the same.
+
+Can the first patch be dropped? Or do you see issues?
+
+> Regards,
+> Venkat.
+
