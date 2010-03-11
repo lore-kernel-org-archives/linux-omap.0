@@ -1,61 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/19] omap2/3/4: mailbox: remove compiler warning
-Date: Thu, 11 Mar 2010 15:48:24 -0800
-Message-ID: <20100311234824.4500.50674.stgit@baageli.muru.com>
+Subject: [PATCH 10/19] omap: Checkpatch cleanup for blizzard.h
+Date: Thu, 11 Mar 2010 15:48:29 -0800
+Message-ID: <20100311234829.4500.8994.stgit@baageli.muru.com>
 References: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52448 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753672Ab0CKXrB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:47:01 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53427 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753786Ab0CKXrG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:47:06 -0500
 In-Reply-To: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org
+Cc: Andrea Gelmini <andrea.gelmini@gelma.net>, linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: Andrea Gelmini <andrea.gelmini@gelma.net>
 
-Remove a compiler warning in device-specific
-mailbox module.
+arch/arm/plat-omap/include/plat/blizzard.h:9:
+ERROR: spaces prohibited around that ':' (ctx:WxW)
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Andrea Gelmini <andrea.gelmini@gelma.net>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mailbox.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/plat-omap/include/plat/blizzard.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 52a981c..318f363 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -430,19 +430,19 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
- 		if (unlikely(!res)) {
- 			dev_err(&pdev->dev, "invalid irq resource\n");
- 			ret = -ENODEV;
--			goto err_iva1;
-+			omap_mbox_unregister(&mbox_dsp_info);
-+			goto err_dsp;
- 		}
- 		mbox_iva_info.irq = res->start;
- 		ret = omap_mbox_register(&pdev->dev, &mbox_iva_info);
--		if (ret)
--			goto err_iva1;
-+		if (ret) {
-+			omap_mbox_unregister(&mbox_dsp_info);
-+			goto err_dsp;
-+		}
- 	}
- #endif
- 	return 0;
+diff --git a/arch/arm/plat-omap/include/plat/blizzard.h b/arch/arm/plat-omap/include/plat/blizzard.h
+index 8d160f1..56e7f2e 100644
+--- a/arch/arm/plat-omap/include/plat/blizzard.h
++++ b/arch/arm/plat-omap/include/plat/blizzard.h
+@@ -6,7 +6,7 @@ struct blizzard_platform_data {
+ 	void		(*power_down)(struct device *dev);
+ 	unsigned long	(*get_clock_rate)(struct device *dev);
  
--err_iva1:
--	omap_mbox_unregister(&mbox_dsp_info);
--
- err_dsp:
- 	iounmap(mbox_base);
- 	return ret;
+-	unsigned	te_connected : 1;
++	unsigned	te_connected:1;
+ };
+ 
+ #endif
 
