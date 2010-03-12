@@ -1,37 +1,40 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [APPLIED] DSPBRIDGE: Camel case removal
-Date: Fri, 12 Mar 2010 00:28:59 -0600
-Message-ID: <4B99DF2B.1070001@ti.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: Re: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor
+	autoloading feature
+Date: Fri, 12 Mar 2010 13:48:12 +0530
+Message-ID: <618f0c911003120018q581154cel48fc130567f99fb3@mail.gmail.com>
+References: <618f0c911003100612l33b1fec9s163720a5a93a1787@mail.gmail.com>
+	 <20100310224110.GW2900@atomide.com>
+	 <618f0c911003110708s5015f2bftb443b9ea57cb6477@mail.gmail.com>
+	 <20100311183944.GJ2900@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43482 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753204Ab0CLG3G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Mar 2010 01:29:06 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100311183944.GJ2900@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Ameya.Palande@nokia.com" <Ameya.Palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-Hi All,
+Tony Lindgren wrote:
+> * Venkatraman S <svenkatr@ti.com> [100311 07:04]:
+>> Tony Lindgren wrote:
+>> >
+>> > Does the driver still work in PIO mode?
+>> >
+>> > We need to have the drivers capable to fail over to PIO mode
+>> > as the DMA channels can run out.
+>> >
+>>
+>> =A0 =A0The driver doesn't have an automatic fallback to PIO,
+>> even without my patch. A error return from omap_request_dma is
+>> propogated all the way back to the transfer request.
+>> =A0 The decision to use_dma (the variable) is unaltered.
+>
+> OK, that might explain some nasty surprises then..
+>
+> With these patches, does the driver still work in PIO mode though?
 
-Camel case removal patch was pushed into dspbridge branch.
-
-This patch removes camel case symbols picked up by script found at:
-
-http://marc.info/?l=linux-omap&m=125353475429517&w=2
-
-It also has Lindent changes on top of it.
-
-The count of modifications is as follows:
-166 files changed, 21359 insertions(+), 20952 deletions(-)
-
-Note: as this is a huge patch which changes big part of bridge code, 
-when running checkpatch on it, it will alert of issues which were 
-already present in the code.
-
-Regards,
-
-Omar
+No. The workhorse code to actually push the data byte by byte
+is not present in the hsmmc driver.
