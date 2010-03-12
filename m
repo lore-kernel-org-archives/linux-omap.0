@@ -1,81 +1,144 @@
-From: Peter Barada <peter.barada@gmail.com>
-Subject: Re: Trying to understand how to use new OMAP mux code
-Date: Thu, 11 Mar 2010 23:48:45 -0500
-Message-ID: <738b3f7e1003112048n4859b29agefe9658dc5d70572@mail.gmail.com>
-References: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
-	 <20100311224812.GU2900@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 17/19] omap: Add DSI regulator supply to OMAP3EVM board
+ file
+Date: Fri, 12 Mar 2010 10:18:40 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DD32D7B@dbde02.ent.ti.com>
+References: <20100311234404.4500.82861.stgit@baageli.muru.com>
+ <20100311234847.4500.24584.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:61620 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753926Ab0CLEsp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 23:48:45 -0500
-Received: by pvb32 with SMTP id 32so327514pvb.19
-        for <linux-omap@vger.kernel.org>; Thu, 11 Mar 2010 20:48:45 -0800 (PST)
-In-Reply-To: <20100311224812.GU2900@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40198 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753926Ab0CLEtF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 23:49:05 -0500
+In-Reply-To: <20100311234847.4500.24584.stgit@baageli.muru.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Mar 11, 2010 at 5:48 PM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Peter Barada <peter.barada@gmail.com> [100311 14:29]:
->> 1) Suppose I want to talk to a bluetooth chip through UART2. =A0UART=
-2_TX
->> =A0gives me a choice of pins to hook up to, either to pin AA26 in Mo=
-de0,
->> or pin AF5 in Mode1. =A0If I use omape_mux_init_signal("uart2_tx",
->> OMAP_PIN_OUTPUT), which pin will that map to?
->
-> You need to check the omap package type you're using to find
-> out the correct ball name. If you get lucky, that's already in
-> mux34xx.c and you don't need search through the TRMs :)
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, March 12, 2010 5:19 AM
+> To: linux-arm-kernel@lists.infradead.org
+> Cc: Tomi Valkeinen; linux-omap@vger.kernel.org; Hiremath, Vaibhav
+> Subject: [PATCH 17/19] omap: Add DSI regulator supply to OMAP3EVM board file
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> With recent changes happened in OMAP2/3 DSS library for regulator interface,
+> it
+> is required to define DSI regulator supply, without this DSS (in turn Fbdev)
+> fails to get regulator.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3evm.c |   16 +++++++++++-----
+>  1 files changed, 11 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> omap2/board-omap3evm.c
+> index 017bb2f..a05de10 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -514,9 +514,15 @@ static struct regulator_init_data omap3_evm_vdac = {
+>  };
+> 
+>  /* VPLL2 for digital video outputs */
+> -static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
+> -	.supply		= "vdvi",
+> -	.dev		= &omap3_evm_lcd_device.dev,
+> +static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
+> +	{
+> +		.supply		= "vdvi",
+> +		.dev		= &omap3_evm_lcd_device.dev,
+> +	},
+> +	{
+> +		.supply		= "vdds_dsi",
+> +		.dev		= &omap3_evm_dss_device.dev,
+> +	},
+>  };
+> 
+>  static struct regulator_init_data omap3_evm_vpll2 = {
+> @@ -530,8 +536,8 @@ static struct regulator_init_data omap3_evm_vpll2 = {
+>  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+>  					| REGULATOR_CHANGE_STATUS,
+>  	},
+> -	.num_consumer_supplies	= 1,
+> -	.consumer_supplies	= &omap3_evm_vpll2_supply,
+> +	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vpll2_supplies),
+> +	.consumer_supplies	= omap3_evm_vpll2_supplies,
+>  };
+> 
+>  static struct twl4030_platform_data omap3evm_twldata = {
+[Hiremath, Vaibhav] Tony,
+Please use the patch below, I have fixed Mark's comments to use devname instead of dev.
 
-The ball name helps me to identify it, but if I understand correctly,
-none of the mux code allows the use of a ball name - I have to use the
-mode0 name of the ball I want to use (and as you say later qualified
-by the signal I want hooked up to that pi), right?
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index ea1014b..f5c815a 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -514,10 +514,8 @@ static struct regulator_init_data omap3_evm_vdac = {
+ };
 
->> 2) How can I tell the muxing code that I want a specific pin for my
->> UART2_TX signal (that's not a GPIO since those can be directly
->> specified by GPIO number)?
->
-> Then you want to use the full signal name:
->
-> omap_mux_init_signal("mode0_name.desired_mode", OMAP_PIN_FLAGS)
->
-> But as the balls can be separate for each package type, you
-> need to figure that out first.
+ /* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
+-       .supply         = "vdds_dsi",
+-       .dev            = &omap3_evm_dss_device.dev,
+-};
++static struct regulator_consumer_supply omap3_evm_vpll2_supply =
++       REGULATOR_SUPPLY("vdds_dsi", "omapdss");
 
-If my board sets up the balls packaging right (for a 3530 CBB
-package), then "omap_mux_init_signal("mcbsp3_clkx.uart2_tx",
-OMAP_PIN_OUTPUT);", will setup pin AF5 as mode2, output - thereby
-muxing GPIO pin 142 to the UART2_TX signal?
-
-Next question is for the AM3517 (491 pin), I see the setup for
-board-am3517evm int he 2.6.33-rc3 kernel refers to the CBB package
-which the comments indicate is a 515 pin package - is this the correct
-package to use for the AM3517?  Since I have to traverse from my
-schematic via ball name to signal name, it helps to know I'm looking
-at the right package list.
-
-Also, it looks like the references in arch/arm/mach-omap2/mux24xx.c to
-TI forum URLs (e.g.  http://community.ti.com/forums/t/10982.aspx)
-takes you to http://e2e.ti.com/support/default.aspx - do you need a
-"myTI" login to see that forum message?.
+ static struct regulator_init_data omap3_evm_vpll2 = {
+        .constraints = {
 
 
-> Regards,
->
-> Tony
->
+[Hiremath, Vaibhav] Since you have already merged the patch , I have created patch on top of linux-omap/master below.
 
-So if I use: omap
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index a05de10..f5c815a 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -514,16 +514,8 @@ static struct regulator_init_data omap3_evm_vdac = {
+ };
+
+ /* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
+-       {
+-               .supply         = "vdvi",
+-               .dev            = &omap3_evm_lcd_device.dev,
+-       },
+-       {
+-               .supply         = "vdds_dsi",
+-               .dev            = &omap3_evm_dss_device.dev,
+-       },
+-};
++static struct regulator_consumer_supply omap3_evm_vpll2_supply =
++       REGULATOR_SUPPLY("vdds_dsi", "omapdss");
+
+ static struct regulator_init_data omap3_evm_vpll2 = {
+        .constraints = {
+@@ -536,8 +528,8 @@ static struct regulator_init_data omap3_evm_vpll2 = {
+                .valid_ops_mask         = REGULATOR_CHANGE_MODE
+                                        | REGULATOR_CHANGE_STATUS,
+        },
+-       .num_consumer_supplies  = ARRAY_SIZE(omap3_evm_vpll2_supplies),
+-       .consumer_supplies      = omap3_evm_vpll2_supplies,
++       .num_consumer_supplies  = 1,
++       .consumer_supplies      = &omap3_evm_vpll2_supply,
+ };
+
+ static struct twl4030_platform_data omap3evm_twldata = {
+diff --git a/drivers/mtd/maps/omap_nor.c b/drivers/mtd/maps/omap_nor.c
+deleted file mode 100644
+index e69de29..0000000
+
+Thanks,
+Vaibhav
