@@ -1,42 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 18/19] omap: Add DSI regulator supply to OMAP3EVM board
-	file
-Date: Thu, 11 Mar 2010 16:06:51 -0800
-Message-ID: <20100312000651.GZ2900@atomide.com>
+Subject: Re: [PATCH 19/19] omap: McBSP: Drop unnecessary status/error bit
+ clearing on reg_cacheretrieved register values
+Date: Thu, 11 Mar 2010 16:10:59 -0800
+Message-ID: <20100312001058.GA2900@atomide.com>
 References: <20100311234404.4500.82861.stgit@baageli.muru.com>
-	<20100311235958.GX2900@atomide.com>
+ <20100312000059.GY2900@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51756 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755405Ab0CLAJh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 19:09:37 -0500
 Content-Disposition: inline
-In-Reply-To: <20100311235958.GX2900@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+In-Reply-To: <20100312000059.GY2900@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [100311 15:55]:
-> From 9c7ceeb2621349f180be4779d954352bcc8df9cd Mon Sep 17 00:00:00 2001
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> Date: Thu, 11 Mar 2010 08:55:17 +0000
-> Subject: [PATCH] omap: Add DSI regulator supply to OMAP3EVM board file
+* Tony Lindgren <tony@atomide.com> [100311 16:04]:
+> From eee91441bf26c6ea88656eb9866e706b1e07d30b Mon Sep 17 00:00:00 2001
+> From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> Date: Tue, 23 Feb 2010 15:50:38 +0000
+> Subject: [PATCH] omap: McBSP: Drop unnecessary status/error bit clearing on reg_cacheretrieved register values
 > 
-> With recent changes happened in OMAP2/3 DSS library for regulator interface, it
-> is required to define DSI regulator supply, without this DSS (in turn Fbdev)
-> fails to get regulator.
+> The MsBSP register cache will never have any error/status flags set, since
+> these flags are never written to the reg_cache. So it is kind of not
+> necessary to clear these flags, which are actually always 0.
+> 
+> In other words, clearing the status/error flags are not necessary, since the
+> reg_cache will never got these bits set. We can just write back the
+> register content from the cache as it is when clearing an error condition.
+> 
+> Tested on Amstrad Delta.
 
-Oops, had to manually send the last two messages.. This is already
-at 17/18, so please ignore.
-
-Regards,
+And this one is really patch 18/19. Sorry again.
 
 Tony
