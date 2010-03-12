@@ -1,59 +1,63 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v3 0/5] omap3: pm: Update TRITON power scripts and making it generic.
-Date: Fri, 12 Mar 2010 21:01:02 +0530
-Message-ID: <1268407862-22511-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH v3 1/5] omap3: pm: fix for twl4030 script load
+Date: Fri, 12 Mar 2010 21:01:18 +0530
+Message-ID: <1268407878-22535-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56932 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934030Ab0CLPLD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Mar 2010 10:11:03 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:38215 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934030Ab0CLPLR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 10:11:17 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-This series of patch implements a updated TRITON power scripts.
-Also moving the sleep, wakeup & warm_reset sequence to a generic script file,
-which can be used by different OMAP3 board with the power companion chip TWL4030.
+Keeping the twl4030_config_sleep_sequence() call under the flag checking will fix
+the over writting of other sequences with the sleep sequences when loading the scripts.
 
-This patch series is based off Kevin's tree origin/pm branch.
-
-This changes are tested on OMAP3430 SDP board with:
-	enable_off_mode
-	voltage_off_while_idle
-	sleep_while_idle (VDD1/VDD2 voltage scaling to 0v)
-enabled in cpuidle and suspned path.
-
-Also tested for reboot and dvfs.
-
-Lesly A M (5):
-  omap3: pm: fix for twl4030 script load
-  omap3: pm: Using separate clk/volt setup_time for RET and OFF states
-  omap3: pm: Generic TRITON power scripts for OMAP3 based boards
-  omap3: pm: Use generic TRITON power scripts for 3430SDP board
-  omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP
-    board
-
- arch/arm/mach-omap2/Makefile                  |   12 ++-
- arch/arm/mach-omap2/board-3430sdp.c           |  139 ++++++++----------------
- arch/arm/mach-omap2/board-3630sdp.c           |   25 ++++-
- arch/arm/mach-omap2/board-zoom-peripherals.c  |   44 ++++++++-
- arch/arm/mach-omap2/board-zoom2.c             |   25 ++++-
- arch/arm/mach-omap2/board-zoom3.c             |   25 ++++-
- arch/arm/mach-omap2/include/mach/board-zoom.h |    2 +-
- arch/arm/mach-omap2/pm.h                      |   21 +++--
- arch/arm/mach-omap2/pm34xx.c                  |   14 ++-
- arch/arm/mach-omap2/twl4030-script.c          |  143 +++++++++++++++++++++++++
- arch/arm/mach-omap2/twl4030-script.h          |   15 +++
- arch/arm/mach-omap2/voltage.c                 |   94 ++++++++++++-----
- arch/arm/mach-omap2/voltage.h                 |    1 +
- drivers/mfd/twl4030-power.c                   |    6 -
- include/linux/i2c/twl.h                       |    4 +
- 15 files changed, 424 insertions(+), 146 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030-script.c
- create mode 100644 arch/arm/mach-omap2/twl4030-script.h
+Removed the warning print with checking order of scripts, since the order
+is not important. Only the values configured in the register, which is pointing to
+the starting address of each sequence should be correct.
 
 Signed-off-by: Lesly A M <x0080970@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
+---
+ drivers/mfd/twl4030-power.c |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 7efa878..bd98733 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -423,7 +423,6 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+ 	       u8 address)
+ {
+ 	int err;
+-	static int order;
+ 
+ 	/* Make sure the script isn't going beyond last valid address (0x3f) */
+ 	if ((address + tscript->size) > END_OF_SCRIPT) {
+@@ -444,7 +443,6 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+ 		err = twl4030_config_wakeup12_sequence(address);
+ 		if (err)
+ 			goto out;
+-		order = 1;
+ 	}
+ 	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
+ 		err = twl4030_config_wakeup3_sequence(address);
+@@ -452,10 +450,6 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+ 			goto out;
+ 	}
+ 	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+-		if (order)
+-			pr_warning("TWL4030: Bad order of scripts (sleep "\
+-					"script before wakeup) Leads to boot"\
+-					"failure on some boards\n");
+ 		err = twl4030_config_sleep_sequence(address);
+ out:
+ 	return err;
+-- 
+1.6.0.4
+
