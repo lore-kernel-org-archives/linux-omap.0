@@ -1,68 +1,74 @@
-From: Manjunatha GK <manjugk@ti.com>
-Subject: [PATCH] OMAP: PM: Fix Zoom3 defconfig build
-Date: Fri, 12 Mar 2010 17:32:21 +0530
-Message-ID: <1268395341-14457-1-git-send-email-manjugk@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47597 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752984Ab0CLLmU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Mar 2010 06:42:20 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: "Govindarajan, Sriramakrishnan" <srk@ti.com>
+Subject: RE: [PATCHv2 0/3] Add support for TCA6416 based Keypad driver.
+Date: Fri, 12 Mar 2010 17:12:45 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030445C4A7@dbde02.ent.ti.com>
+References: <1268385499-7075-1-git-send-email-srk@ti.com>
+ <6ed0b2681003120323r2a1b72a9m344d71431ebcd7c4@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <6ed0b2681003120323r2a1b72a9m344d71431ebcd7c4@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, Manjunatha GK <manjugk@ti.com>
-
-The zoom3 defconfig build is broken with pm branch.
-
-This patch fixes the build by enabling CPU_FREQ options in defconfig.
-
-Build and boot tested on Zoom3 board.
-
-Build error log:
-arch/arm/mach-omap2/clock3xxx_data.c: In function 'omap3xxx_clk_init':
-arch/arm/mach-omap2/clock3xxx_data.c:3563: error: 'struct clk_functions' has no member named 'clk_init_cpufreq_table'
-arch/arm/mach-omap2/clock3xxx_data.c:3564: error: 'omap3_clk_init_cpufreq_table' undeclared (first use in this function)
-arch/arm/mach-omap2/clock3xxx_data.c:3564: error: (Each undeclared identifier is reported only once
-arch/arm/mach-omap2/clock3xxx_data.c:3564: error: for each function it appears in.)
-make[1]: *** [arch/arm/mach-omap2/clock3xxx_data.o] Error 1
 
 
-Signed-off-by: Manjunatha GK <manjugk@ti.com>
----
- arch/arm/configs/omap_zoom3_defconfig |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/configs/omap_zoom3_defconfig b/arch/arm/configs/omap_zoom3_defconfig
-index ff8ac3d..f615e3a 100644
---- a/arch/arm/configs/omap_zoom3_defconfig
-+++ b/arch/arm/configs/omap_zoom3_defconfig
-@@ -323,8 +323,24 @@ CONFIG_CMDLINE="root=/dev/nfs nfsroot=192.168.0.1:/home/user/buildroot ip=192.16
- #
- # CPU Power Management
- #
--# CONFIG_CPU_FREQ is not set
--# CONFIG_CPU_IDLE is not set
-+CONFIG_CPU_FREQ=y
-+CONFIG_CPU_FREQ_TABLE=y
-+# CONFIG_CPU_FREQ_DEBUG is not set
-+CONFIG_CPU_FREQ_STAT=y
-+# CONFIG_CPU_FREQ_STAT_DETAILS is not set
-+CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
-+# CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE is not set
-+# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
-+# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
-+# CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
-+CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
-+# CONFIG_CPU_FREQ_GOV_POWERSAVE is not set
-+CONFIG_CPU_FREQ_GOV_USERSPACE=y
-+CONFIG_CPU_FREQ_GOV_ONDEMAND=y
-+CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
-+CONFIG_CPU_IDLE=y
-+CONFIG_CPU_IDLE_GOV_LADDER=y
-+CONFIG_CPU_IDLE_GOV_MENU=y
- 
- #
- # Floating point emulation
--- 
-1.6.0.4
-
+> -----Original Message-----
+> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
+> Sent: Friday, March 12, 2010 4:54 PM
+> To: Govindarajan, Sriramakrishnan
+> Cc: linux-omap@vger.kernel.org; linux-input@vger.kernel.org
+> Subject: Re: [PATCHv2 0/3] Add support for TCA6416 based Keypad drive=
+r.
+>=20
+> On Fri, Mar 12, 2010 at 11:18 AM, Sriramakrishnan <srk@ti.com> wrote:
+> > AM3517 EVM with APPS board includes keys interfaced to TCA6416 IO
+> expander
+> > User keys are connected as GPIO lines to TCA6416 IO expander. Unlik=
+e the
+> > case with generic gpio-keypad driver individual keys do not generat=
+e an
+> > interrupt event. Hence we implement a simple keypad driver, that
+> > registers as direct I2C client.
+> >
+> > The implementation has been tested on AM3517 EVM with the driver te=
+sted
+> > in polling mode.
+> >
+> > Version2 of the patch series addresses review comments from the ear=
+lier
+> > posting - specifically redesigned to eliminate overhead of using
+> gpio_keys
+> > data structures.
+> >
+> > Sriramakrishnan (3):
+> > =A0TCA6416 keypad : Implement keypad driver for keys interfaced to
+> > =A0 =A0TCA6416
+> > =A0AM3517: Board hookup for TCA6416 keypad driver.
+> > =A0AM3517 EVM : Enable TCA6416 keypad.
+> >
+> > =A0arch/arm/configs/am3517_evm_defconfig =A0 | =A0 16 ++-
+> > =A0arch/arm/mach-omap2/board-am3517evm.c =A0 | =A0 47 ++++-
+> > =A0drivers/input/keyboard/Kconfig =A0 =A0 =A0 =A0 =A0| =A0 16 ++
+> > =A0drivers/input/keyboard/Makefile =A0 =A0 =A0 =A0 | =A0 =A01 +
+> > =A0drivers/input/keyboard/tca6416-keypad.c | =A0354
+> +++++++++++++++++++++++++++++++
+> > =A0include/linux/tca6416_keypad.h =A0 =A0 =A0 =A0 =A0| =A0 34 +++
+> > =A06 files changed, 462 insertions(+), 6 deletions(-)
+> > =A0mode change 100644 =3D> 100755 arch/arm/mach-omap2/board-am3517e=
+vm.c
+> > =A0create mode 100755 drivers/input/keyboard/tca6416-keypad.c
+> > =A0create mode 100755 include/linux/tca6416_keypad.h
+>=20
+> Please fix mode - remove +x flags.
+[Sriram] Thanks for pointing out. I will await further review comments
+And post the updated version thereafter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
