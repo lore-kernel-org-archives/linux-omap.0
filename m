@@ -1,96 +1,57 @@
-From: "Lesly Arackal Manuel" <leslyam@ti.com>
-Subject: RE: [PATCH v3 0/5] omap3: pm: Update TRITON power scripts and making it generic.
-Date: Fri, 12 Mar 2010 20:52:16 +0530
-Message-ID: <002801cac1f7$cd9a12f0$518918ac@apr.dhcp.ti.com>
-References: <1268407862-22511-1-git-send-email-leslyam@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: [RFC][PATCH 2/3] OMAP: DSS2: Prevent recursive Panel Enable/Disable calls from SDI
+Date: Fri, 12 Mar 2010 17:27:23 +0200
+Message-ID: <1268407644-31230-3-git-send-email-roger.quadros@nokia.com>
+References: <1268407644-31230-1-git-send-email-roger.quadros@nokia.com>
+ <1268407644-31230-2-git-send-email-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38820 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934264Ab0CLPWY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 10:22:24 -0500
-In-Reply-To: <1268407862-22511-1-git-send-email-leslyam@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:60543 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934310Ab0CLP2K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 10:28:10 -0500
+In-Reply-To: <1268407644-31230-2-git-send-email-roger.quadros@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
+To: Tomi.Valkeinen@nokia.com
+Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org
 
-This patch has dependency on SmartReflex patch send by Thara Gopinath.
+From: Roger Quadros <roger.quadros@nokia.com>
 
+Panel enable/disable is now done inside display manager,
+so don't need to do it again.
+
+Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
 ---
-[PATCH 2/6] OMAP3: PM: Splitting voltage and smartreflex class specific code
-from smartreflex driver.
+ drivers/video/omap2/dss/sdi.c |    9 ---------
+ 1 files changed, 0 insertions(+), 9 deletions(-)
 
-1. Create voltage.c and voltage.h files and move all voltage
-processor and voltage controller specific code from smartreflex.c
-to these two files.
----
-
-These patches are created on top of voltage changes done by Thara in
-SmartReflex patch series.
-
-Thanks & Regards,
-Lesly A M
-
-
------Original Message-----
-From: Lesly A M [mailto:leslyam@ti.com] 
-Sent: Friday, March 12, 2010 9:01 PM
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M; Nishanth Menon; David Derrick; Samuel Ortiz
-Subject: [PATCH v3 0/5] omap3: pm: Update TRITON power scripts and making it
-generic. 
-
-This series of patch implements a updated TRITON power scripts.
-Also moving the sleep, wakeup & warm_reset sequence to a generic script
-file,
-which can be used by different OMAP3 board with the power companion chip
-TWL4030.
-
-This patch series is based off Kevin's tree origin/pm branch.
-
-This changes are tested on OMAP3430 SDP board with:
-	enable_off_mode
-	voltage_off_while_idle
-	sleep_while_idle (VDD1/VDD2 voltage scaling to 0v)
-enabled in cpuidle and suspned path.
-
-Also tested for reboot and dvfs.
-
-Lesly A M (5):
-  omap3: pm: fix for twl4030 script load
-  omap3: pm: Using separate clk/volt setup_time for RET and OFF states
-  omap3: pm: Generic TRITON power scripts for OMAP3 based boards
-  omap3: pm: Use generic TRITON power scripts for 3430SDP board
-  omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP
-    board
-
- arch/arm/mach-omap2/Makefile                  |   12 ++-
- arch/arm/mach-omap2/board-3430sdp.c           |  139
-++++++++----------------
- arch/arm/mach-omap2/board-3630sdp.c           |   25 ++++-
- arch/arm/mach-omap2/board-zoom-peripherals.c  |   44 ++++++++-
- arch/arm/mach-omap2/board-zoom2.c             |   25 ++++-
- arch/arm/mach-omap2/board-zoom3.c             |   25 ++++-
- arch/arm/mach-omap2/include/mach/board-zoom.h |    2 +-
- arch/arm/mach-omap2/pm.h                      |   21 +++--
- arch/arm/mach-omap2/pm34xx.c                  |   14 ++-
- arch/arm/mach-omap2/twl4030-script.c          |  143
-+++++++++++++++++++++++++
- arch/arm/mach-omap2/twl4030-script.h          |   15 +++
- arch/arm/mach-omap2/voltage.c                 |   94 ++++++++++++-----
- arch/arm/mach-omap2/voltage.h                 |    1 +
- drivers/mfd/twl4030-power.c                   |    6 -
- include/linux/i2c/twl.h                       |    4 +
- 15 files changed, 424 insertions(+), 146 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030-script.c
- create mode 100644 arch/arm/mach-omap2/twl4030-script.h
-
-Signed-off-by: Lesly A M <x0080970@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: David Derrick <dderrick@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index 12eb404..45aab89 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -115,12 +115,6 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 
+ 	dssdev->manager->enable(dssdev->manager);
+ 
+-	if (dssdev->driver->enable) {
+-		r = dssdev->driver->enable(dssdev);
+-		if (r)
+-			goto err3;
+-	}
+-
+ 	sdi.skip_init = 0;
+ 
+ 	return 0;
+@@ -137,9 +131,6 @@ EXPORT_SYMBOL(omapdss_sdi_display_enable);
+ 
+ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
+ {
+-	if (dssdev->driver->disable)
+-		dssdev->driver->disable(dssdev);
+-
+ 	dssdev->manager->disable(dssdev->manager);
+ 
+ 	dss_sdi_disable();
+-- 
+1.6.0.4
 
