@@ -1,52 +1,96 @@
-From: Scott Ellis <scott@jumpnowtek.com>
-Subject: [PATCH 6/6] SPI omap2_mcspi.c: Limit debug messages from
- setup_transfer
-Date: Fri, 12 Mar 2010 10:22:14 -0500
-Message-ID: <1268407334.14445.55.camel@quad>
+From: "Lesly Arackal Manuel" <leslyam@ti.com>
+Subject: RE: [PATCH v3 0/5] omap3: pm: Update TRITON power scripts and making it generic.
+Date: Fri, 12 Mar 2010 20:52:16 +0530
+Message-ID: <002801cac1f7$cd9a12f0$518918ac@apr.dhcp.ti.com>
+References: <1268407862-22511-1-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pan.gwi.net ([207.5.128.165]:4945 "EHLO pan.gwi.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934254Ab0CLPWP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Mar 2010 10:22:15 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:38820 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934264Ab0CLPWY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 10:22:24 -0500
+In-Reply-To: <1268407862-22511-1-git-send-email-leslyam@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: spi-devel-general@lists.sourceforge.net
-Cc: David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: linux-omap@vger.kernel.org
+Cc: 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
 
-Limit the debug messages put out in omap2_mcspi_setup_transfer().
-If you are overriding the speed on transfers, the volume is 
-excessive. 
+This patch has dependency on SmartReflex patch send by Thara Gopinath.
 
-Wrap it with VERBOSE.
+---
+[PATCH 2/6] OMAP3: PM: Splitting voltage and smartreflex class specific code
+from smartreflex driver.
 
-Signed-off-by: Scott Ellis <scott@jumpnowtek.com>
+1. Create voltage.c and voltage.h files and move all voltage
+processor and voltage controller specific code from smartreflex.c
+to these two files.
+---
 
- drivers/spi/omap2_mcspi.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+These patches are created on top of voltage changes done by Thara in
+SmartReflex patch series.
 
-diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-index adc6fd3..b2dbbc0 100644
---- a/drivers/spi/omap2_mcspi.c
-+++ b/drivers/spi/omap2_mcspi.c
-@@ -637,11 +637,12 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
- 
- 	mcspi_write_chconf0(spi, l);
- 
-+#ifdef VERBOSE
- 	dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
- 			OMAP2_MCSPI_MAX_FREQ / (1 << div),
- 			(spi->mode & SPI_CPHA) ? "trailing" : "leading",
- 			(spi->mode & SPI_CPOL) ? "inverted" : "normal");
--
-+#endif
- 	return 0;
- }
- 
+Thanks & Regards,
+Lesly A M
 
 
+-----Original Message-----
+From: Lesly A M [mailto:leslyam@ti.com] 
+Sent: Friday, March 12, 2010 9:01 PM
+To: linux-omap@vger.kernel.org
+Cc: Lesly A M; Nishanth Menon; David Derrick; Samuel Ortiz
+Subject: [PATCH v3 0/5] omap3: pm: Update TRITON power scripts and making it
+generic. 
 
+This series of patch implements a updated TRITON power scripts.
+Also moving the sleep, wakeup & warm_reset sequence to a generic script
+file,
+which can be used by different OMAP3 board with the power companion chip
+TWL4030.
 
+This patch series is based off Kevin's tree origin/pm branch.
+
+This changes are tested on OMAP3430 SDP board with:
+	enable_off_mode
+	voltage_off_while_idle
+	sleep_while_idle (VDD1/VDD2 voltage scaling to 0v)
+enabled in cpuidle and suspned path.
+
+Also tested for reboot and dvfs.
+
+Lesly A M (5):
+  omap3: pm: fix for twl4030 script load
+  omap3: pm: Using separate clk/volt setup_time for RET and OFF states
+  omap3: pm: Generic TRITON power scripts for OMAP3 based boards
+  omap3: pm: Use generic TRITON power scripts for 3430SDP board
+  omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP
+    board
+
+ arch/arm/mach-omap2/Makefile                  |   12 ++-
+ arch/arm/mach-omap2/board-3430sdp.c           |  139
+++++++++----------------
+ arch/arm/mach-omap2/board-3630sdp.c           |   25 ++++-
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |   44 ++++++++-
+ arch/arm/mach-omap2/board-zoom2.c             |   25 ++++-
+ arch/arm/mach-omap2/board-zoom3.c             |   25 ++++-
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    2 +-
+ arch/arm/mach-omap2/pm.h                      |   21 +++--
+ arch/arm/mach-omap2/pm34xx.c                  |   14 ++-
+ arch/arm/mach-omap2/twl4030-script.c          |  143
++++++++++++++++++++++++++
+ arch/arm/mach-omap2/twl4030-script.h          |   15 +++
+ arch/arm/mach-omap2/voltage.c                 |   94 ++++++++++++-----
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ drivers/mfd/twl4030-power.c                   |    6 -
+ include/linux/i2c/twl.h                       |    4 +
+ 15 files changed, 424 insertions(+), 146 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl4030-script.c
+ create mode 100644 arch/arm/mach-omap2/twl4030-script.h
+
+Signed-off-by: Lesly A M <x0080970@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: David Derrick <dderrick@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 
