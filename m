@@ -1,49 +1,59 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/2] musb: add musb support for AM35x
-Date: Fri, 12 Mar 2010 18:04:47 +0300
-Message-ID: <4B9A580F.4030600@ru.mvista.com>
-References: <1267017527-17591-1-git-send-email-ajay.gupta@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1267017527-17591-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Lesly A M <leslyam@ti.com>
+Subject: [PATCH v3 0/5] omap3: pm: Update TRITON power scripts and making it generic.
+Date: Fri, 12 Mar 2010 21:01:02 +0530
+Message-ID: <1268407862-22511-1-git-send-email-leslyam@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:56932 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934030Ab0CLPLD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Mar 2010 10:11:03 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Ajay Kumar Gupta wrote:
+This series of patch implements a updated TRITON power scripts.
+Also moving the sleep, wakeup & warm_reset sequence to a generic script file,
+which can be used by different OMAP3 board with the power companion chip TWL4030.
 
-> AM35x has musb interface and uses CPPI4.1 DMA engine.
-> Current patch supports only PIO mode and there are on-going
-> discussions on location of CPPI4.1 DMA.
->
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+This patch series is based off Kevin's tree origin/pm branch.
 
-   Overlooked one thing...
+This changes are tested on OMAP3430 SDP board with:
+	enable_off_mode
+	voltage_off_while_idle
+	sleep_while_idle (VDD1/VDD2 voltage scaling to 0v)
+enabled in cpuidle and suspned path.
 
-[...]
+Also tested for reboot and dvfs.
 
-> +int musb_platform_exit(struct musb *musb)
-> +{
->   
-[...]
-> +	phy_off();
-> +
-> +	usb_nop_xceiv_unregister();
-> +
-> +	return 0;
->   
+Lesly A M (5):
+  omap3: pm: fix for twl4030 script load
+  omap3: pm: Using separate clk/volt setup_time for RET and OFF states
+  omap3: pm: Generic TRITON power scripts for OMAP3 based boards
+  omap3: pm: Use generic TRITON power scripts for 3430SDP board
+  omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP
+    board
 
-   You forgot the calls to clk_disable() for both your clocks...
+ arch/arm/mach-omap2/Makefile                  |   12 ++-
+ arch/arm/mach-omap2/board-3430sdp.c           |  139 ++++++++----------------
+ arch/arm/mach-omap2/board-3630sdp.c           |   25 ++++-
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |   44 ++++++++-
+ arch/arm/mach-omap2/board-zoom2.c             |   25 ++++-
+ arch/arm/mach-omap2/board-zoom3.c             |   25 ++++-
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    2 +-
+ arch/arm/mach-omap2/pm.h                      |   21 +++--
+ arch/arm/mach-omap2/pm34xx.c                  |   14 ++-
+ arch/arm/mach-omap2/twl4030-script.c          |  143 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/twl4030-script.h          |   15 +++
+ arch/arm/mach-omap2/voltage.c                 |   94 ++++++++++++-----
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ drivers/mfd/twl4030-power.c                   |    6 -
+ include/linux/i2c/twl.h                       |    4 +
+ 15 files changed, 424 insertions(+), 146 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl4030-script.c
+ create mode 100644 arch/arm/mach-omap2/twl4030-script.h
 
-> +}
-> +
->   
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Lesly A M <x0080970@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: David Derrick <dderrick@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
