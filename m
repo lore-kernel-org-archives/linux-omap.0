@@ -1,15 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 18/19] omap: Add DSI regulator supply to OMAP3EVM board file
-Date: Thu, 11 Mar 2010 15:59:58 -0800
-Message-ID: <20100311235958.GX2900@atomide.com>
+Subject: [PATCH 19/19] omap: McBSP: Drop unnecessary status/error bit
+ clearing on reg_cacheretrieved register values
+Date: Thu, 11 Mar 2010 16:00:59 -0800
+Message-ID: <20100312000059.GY2900@atomide.com>
 References: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62808 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755043Ab0CKX6f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:58:35 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52027 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755254Ab0CKX7i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:59:38 -0500
 Content-Disposition: inline
 In-Reply-To: <20100311234404.4500.82861.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -17,50 +18,67 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
->From 9c7ceeb2621349f180be4779d954352bcc8df9cd Mon Sep 17 00:00:00 2001
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Date: Thu, 11 Mar 2010 08:55:17 +0000
-Subject: [PATCH] omap: Add DSI regulator supply to OMAP3EVM board file
+>From eee91441bf26c6ea88656eb9866e706b1e07d30b Mon Sep 17 00:00:00 2001
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Date: Tue, 23 Feb 2010 15:50:38 +0000
+Subject: [PATCH] omap: McBSP: Drop unnecessary status/error bit clearing on reg_cacheretrieved register values
 
-With recent changes happened in OMAP2/3 DSS library for regulator interface, it
-is required to define DSI regulator supply, without this DSS (in turn Fbdev)
-fails to get regulator.
+The MsBSP register cache will never have any error/status flags set, since
+these flags are never written to the reg_cache. So it is kind of not
+necessary to clear these flags, which are actually always 0.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+In other words, clearing the status/error flags are not necessary, since the
+reg_cache will never got these bits set. We can just write back the
+register content from the cache as it is when clearing an error condition.
+
+Tested on Amstrad Delta.
+
+Reported-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 017bb2f..a05de10 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -514,9 +514,15 @@ static struct regulator_init_data omap3_evm_vdac = {
- };
- 
- /* VPLL2 for digital video outputs */
--static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
--	.supply		= "vdvi",
--	.dev		= &omap3_evm_lcd_device.dev,
-+static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
-+	{
-+		.supply		= "vdvi",
-+		.dev		= &omap3_evm_lcd_device.dev,
-+	},
-+	{
-+		.supply		= "vdds_dsi",
-+		.dev		= &omap3_evm_dss_device.dev,
-+	},
- };
- 
- static struct regulator_init_data omap3_evm_vpll2 = {
-@@ -530,8 +536,8 @@ static struct regulator_init_data omap3_evm_vpll2 = {
- 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &omap3_evm_vpll2_supply,
-+	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vpll2_supplies),
-+	.consumer_supplies	= omap3_evm_vpll2_supplies,
- };
- 
- static struct twl4030_platform_data omap3evm_twldata = {
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index e47686e..52dfcc8 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -133,8 +133,7 @@ static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
+ 		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
+ 			irqst_spcr2);
+ 		/* Writing zero to XSYNC_ERR clears the IRQ */
+-		MCBSP_WRITE(mcbsp_tx, SPCR2,
+-			    MCBSP_READ_CACHE(mcbsp_tx, SPCR2) & ~(XSYNC_ERR));
++		MCBSP_WRITE(mcbsp_tx, SPCR2, MCBSP_READ_CACHE(mcbsp_tx, SPCR2));
+ 	} else {
+ 		complete(&mcbsp_tx->tx_irq_completion);
+ 	}
+@@ -154,8 +153,7 @@ static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
+ 		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
+ 			irqst_spcr1);
+ 		/* Writing zero to RSYNC_ERR clears the IRQ */
+-		MCBSP_WRITE(mcbsp_rx, SPCR1,
+-			    MCBSP_READ_CACHE(mcbsp_rx, SPCR1) & ~(RSYNC_ERR));
++		MCBSP_WRITE(mcbsp_rx, SPCR1, MCBSP_READ_CACHE(mcbsp_rx, SPCR1));
+ 	} else {
+ 		complete(&mcbsp_rx->tx_irq_completion);
+ 	}
+@@ -934,8 +932,7 @@ int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
+ 	/* if frame sync error - clear the error */
+ 	if (MCBSP_READ(mcbsp, SPCR2) & XSYNC_ERR) {
+ 		/* clear error */
+-		MCBSP_WRITE(mcbsp, SPCR2,
+-				MCBSP_READ_CACHE(mcbsp, SPCR2) & (~XSYNC_ERR));
++		MCBSP_WRITE(mcbsp, SPCR2, MCBSP_READ_CACHE(mcbsp, SPCR2));
+ 		/* resend */
+ 		return -1;
+ 	} else {
+@@ -975,8 +972,7 @@ int omap_mcbsp_pollread(unsigned int id, u16 *buf)
+ 	/* if frame sync error - clear the error */
+ 	if (MCBSP_READ(mcbsp, SPCR1) & RSYNC_ERR) {
+ 		/* clear error */
+-		MCBSP_WRITE(mcbsp, SPCR1,
+-				MCBSP_READ_CACHE(mcbsp, SPCR1) & (~RSYNC_ERR));
++		MCBSP_WRITE(mcbsp, SPCR1, MCBSP_READ_CACHE(mcbsp, SPCR1));
+ 		/* resend */
+ 		return -1;
+ 	} else {
