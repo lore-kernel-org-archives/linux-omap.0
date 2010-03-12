@@ -1,84 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 19/19] omap: McBSP: Drop unnecessary status/error bit
- clearing on reg_cacheretrieved register values
-Date: Thu, 11 Mar 2010 16:00:59 -0800
-Message-ID: <20100312000059.GY2900@atomide.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH 12/19] omap: Fix gpio_resume_after_retention
+Date: Thu, 11 Mar 2010 18:04:44 -0600
+Message-ID: <A24693684029E5489D1D202277BE894453FB1216@dlee02.ent.ti.com>
 References: <20100311234404.4500.82861.stgit@baageli.muru.com>
+ <20100311234834.4500.12726.stgit@baageli.muru.com>
+ <A24693684029E5489D1D202277BE894453FB11F8@dlee02.ent.ti.com>
+ <20100311235640.GW2900@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52027 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755254Ab0CKX7i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 18:59:38 -0500
-Content-Disposition: inline
-In-Reply-To: <20100311234404.4500.82861.stgit@baageli.muru.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47265 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755263Ab0CLAEw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 19:04:52 -0500
+In-Reply-To: <20100311235640.GW2900@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From eee91441bf26c6ea88656eb9866e706b1e07d30b Mon Sep 17 00:00:00 2001
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Date: Tue, 23 Feb 2010 15:50:38 +0000
-Subject: [PATCH] omap: McBSP: Drop unnecessary status/error bit clearing on reg_cacheretrieved register values
 
-The MsBSP register cache will never have any error/status flags set, since
-these flags are never written to the reg_cache. So it is kind of not
-necessary to clear these flags, which are actually always 0.
 
-In other words, clearing the status/error flags are not necessary, since the
-reg_cache will never got these bits set. We can just write back the
-register content from the cache as it is when clearing an error condition.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Thursday, March 11, 2010 5:57 PM
+> To: Aguirre, Sergio
+> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 12/19] omap: Fix gpio_resume_after_retention
+> 
+> * Aguirre, Sergio <saaguirre@ti.com> [100311 15:47]:
+> > Hi Tony,
+> >
+> > > -----Original Message-----
+> > > From: Tony Lindgren [mailto:tony@atomide.com]
+> > > Sent: Thursday, March 11, 2010 5:49 PM
+> > > To: linux-arm-kernel@lists.infradead.org
+> > > Cc: Aguirre, Sergio; linux-omap@vger.kernel.org
+> > > Subject: [PATCH 12/19] omap: Fix gpio_resume_after_retention
+> > >
+> > > From: Tony Lindgren <Aguirre>
+> >
+> > Something funky mix happened with the authorship here :)
+> >
+> > Should be:
+> >
+> > From: Sergio Aguirre <saaguirre@ti.com>
+> 
+> Thanks, updated patch below.
+> 
+> I think this issue is related to applying patches from
+> patchwork.kernel.org with email addresses in Lastname, Firstname
+> format..
 
-Tested on Amstrad Delta.
+Hmm... I see.
 
-Reported-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+I normally send my patches with this alias:
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index e47686e..52dfcc8 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -133,8 +133,7 @@ static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
- 		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
- 			irqst_spcr2);
- 		/* Writing zero to XSYNC_ERR clears the IRQ */
--		MCBSP_WRITE(mcbsp_tx, SPCR2,
--			    MCBSP_READ_CACHE(mcbsp_tx, SPCR2) & ~(XSYNC_ERR));
-+		MCBSP_WRITE(mcbsp_tx, SPCR2, MCBSP_READ_CACHE(mcbsp_tx, SPCR2));
- 	} else {
- 		complete(&mcbsp_tx->tx_irq_completion);
- 	}
-@@ -154,8 +153,7 @@ static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
- 		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
- 			irqst_spcr1);
- 		/* Writing zero to RSYNC_ERR clears the IRQ */
--		MCBSP_WRITE(mcbsp_rx, SPCR1,
--			    MCBSP_READ_CACHE(mcbsp_rx, SPCR1) & ~(RSYNC_ERR));
-+		MCBSP_WRITE(mcbsp_rx, SPCR1, MCBSP_READ_CACHE(mcbsp_rx, SPCR1));
- 	} else {
- 		complete(&mcbsp_rx->tx_irq_completion);
- 	}
-@@ -934,8 +932,7 @@ int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
- 	/* if frame sync error - clear the error */
- 	if (MCBSP_READ(mcbsp, SPCR2) & XSYNC_ERR) {
- 		/* clear error */
--		MCBSP_WRITE(mcbsp, SPCR2,
--				MCBSP_READ_CACHE(mcbsp, SPCR2) & (~XSYNC_ERR));
-+		MCBSP_WRITE(mcbsp, SPCR2, MCBSP_READ_CACHE(mcbsp, SPCR2));
- 		/* resend */
- 		return -1;
- 	} else {
-@@ -975,8 +972,7 @@ int omap_mcbsp_pollread(unsigned int id, u16 *buf)
- 	/* if frame sync error - clear the error */
- 	if (MCBSP_READ(mcbsp, SPCR1) & RSYNC_ERR) {
- 		/* clear error */
--		MCBSP_WRITE(mcbsp, SPCR1,
--				MCBSP_READ_CACHE(mcbsp, SPCR1) & (~RSYNC_ERR));
-+		MCBSP_WRITE(mcbsp, SPCR1, MCBSP_READ_CACHE(mcbsp, SPCR1));
- 		/* resend */
- 		return -1;
- 	} else {
+alias gsend='git send-email --smtp-server /usr/bin/msmtp --from "Sergio Aguirre <saaguirre@ti.com>" --envelope-sender="Sergio Aguirre <saaguirre@ti.com>"'
+
+and then just do:
+
+gsend --to='linux-omap@vger.kernel.org' patches/forLO_20100311/0001-mypatch.patch
+
+But somehow the patch ends up (I'm guessing through TI LDAP server) changing that to "Aguirre, Sergio"...
+
+and also Patchworks seems to continue display my old fullname: "Aguirre Rodriguez, Sergio Alberto"... I guess it's in a static data cache somewhere, maybe?
+
+Does anyone know how to overcome this kind of scenario, and force what --from param says?
+
+Regards,
+Sergio
+
+> 
+> Tony
