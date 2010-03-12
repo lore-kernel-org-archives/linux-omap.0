@@ -1,118 +1,227 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCHv7 3/7] OMAP3: CPUidle: Fixed support for ON / INACTIVE states
-Date: Fri, 12 Mar 2010 17:39:13 +0200
-Message-ID: <1268408357-15621-3-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1268408357-15621-1-git-send-email-tero.kristo@nokia.com>
- <1268408357-15621-2-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCHv7] OMAP3: Serial: Improved sleep logic
+Date: Fri, 12 Mar 2010 17:38:52 +0200
+Message-ID: <1268408332-15579-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53994 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757962Ab0CLNyw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 08:54:52 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o2CDrj2f007397
-	for <linux-omap@vger.kernel.org>; Fri, 12 Mar 2010 07:54:51 -0600
+Received: from smtp.nokia.com ([192.100.122.233]:35054 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758123Ab0CLNyx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 08:54:53 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o2CDsV24019358
+	for <linux-omap@vger.kernel.org>; Fri, 12 Mar 2010 15:54:50 +0200
 Received: from localhost.localdomain (sokoban.nmp.nokia.com [172.22.215.13])
-	by mgw-da01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o2CDsV8k003701
-	for <linux-omap@vger.kernel.org>; Fri, 12 Mar 2010 15:54:34 +0200
-In-Reply-To: <1268408357-15621-2-git-send-email-tero.kristo@nokia.com>
+	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o2CDs7gi018832
+	for <linux-omap@vger.kernel.org>; Fri, 12 Mar 2010 15:54:07 +0200
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Tero Kristo <tero.kristo@nokia.com>
 
-New powerdomain support code for INACTIVE state removes the need to control
-clockdomains directly from cpuidle. Also, cpuidle state definitions can now
-directly support ON / INACTIVE simplifying the implementation.
+This patch contains following improvements:
+- Only RX interrupt will now kick the sleep prevent timer
+- TX fifo status is checked before disabling clocks, this will prevent
+  on-going transmission to be cut
+- Smartidle is now enabled/disabled only while switching clocks, as having
+  smartidle enabled while RX/TX prevents any wakeups from being received
+  from UART module
+- Added workqueue for wakeup checks, as jiffy timer access within the
+  idle loop results into skewed timers as jiffy timers are stopped
+- Added garbage_timer for ignoring the first character received during
+  the first tick after clock enable, this prevents garbage characters to be
+  received in low sleep states
+- omap_uart_enable_irqs() changed to use enable_irq / disable_irq instead
+  of request / free. Using request/free changes the behavior after first
+  suspend due to reversed interrupt handler ordering
 
 Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   36 ++++++------------------------------
- 1 files changed, 6 insertions(+), 30 deletions(-)
+ arch/arm/mach-omap2/serial.c |   70 ++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 60 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 3d3d035..9445e1e 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -93,20 +93,6 @@ static int omap3_idle_bm_check(void)
- 	return 0;
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 5f3035e..d9785d2 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -23,6 +23,7 @@
+ #include <linux/serial_reg.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/workqueue.h>
+ 
+ #include <plat/common.h>
+ #include <plat/board.h>
+@@ -48,7 +49,10 @@ struct omap_uart_state {
+ 	int num;
+ 	int can_sleep;
+ 	struct timer_list timer;
++	struct timer_list garbage_timer;
++	struct work_struct wakeup_work;
+ 	u32 timeout;
++	u8 garbage_ignore;
+ 
+ 	void __iomem *wk_st;
+ 	void __iomem *wk_en;
+@@ -243,6 +247,11 @@ static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
+ static inline void omap_uart_restore_context(struct omap_uart_state *uart) {}
+ #endif /* CONFIG_PM && CONFIG_ARCH_OMAP3 */
+ 
++#ifdef CONFIG_PM
++static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
++		int enable);
++#endif
++
+ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
+ {
+ 	if (uart->clocked)
+@@ -252,6 +261,9 @@ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
+ 	clk_enable(uart->fck);
+ 	uart->clocked = 1;
+ 	omap_uart_restore_context(uart);
++#ifdef CONFIG_PM
++	omap_uart_smart_idle_enable(uart, 0);
++#endif
  }
  
--static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
--				struct clockdomain *clkdm)
--{
--	omap2_clkdm_allow_idle(clkdm);
--	return 0;
--}
--
--static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
--				struct clockdomain *clkdm)
--{
--	omap2_clkdm_deny_idle(clkdm);
--	return 0;
--}
--
- /**
-  * omap3_enter_idle - Programs OMAP3 to enter the specified state
-  * @dev: cpuidle device
-@@ -130,25 +116,15 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	local_irq_disable();
- 	local_fiq_disable();
+ #ifdef CONFIG_PM
+@@ -263,8 +275,13 @@ static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
  
--	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
--	pwrdm_set_next_pwrst(core_pd, core_state);
-+	omap3_pwrdm_set_next_pwrst(mpu_pd, mpu_state);
-+	omap3_pwrdm_set_next_pwrst(core_pd, core_state);
+ 	omap_uart_save_context(uart);
+ 	uart->clocked = 0;
++	omap_uart_smart_idle_enable(uart, 1);
+ 	clk_disable(uart->ick);
+ 	clk_disable(uart->fck);
++	if (uart->garbage_ignore) {
++		del_timer(&uart->garbage_timer);
++		uart->garbage_ignore = 0;
++	}
+ }
  
- 	if (omap_irq_pending() || need_resched())
- 		goto return_sleep_time;
+ static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
+@@ -320,7 +337,6 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
+ {
+ 	omap_uart_enable_clocks(uart);
  
--	if (cx->type == OMAP3_STATE_C1) {
--		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
--		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
--	}
--
- 	/* Execute ARM wfi */
- 	omap_sram_idle();
+-	omap_uart_smart_idle_enable(uart, 0);
+ 	uart->can_sleep = 0;
+ 	if (uart->timeout)
+ 		mod_timer(&uart->timer, jiffies + uart->timeout);
+@@ -338,7 +354,6 @@ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+ 	if (!uart->clocked)
+ 		return;
  
--	if (cx->type == OMAP3_STATE_C1) {
--		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
--		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
--	}
--
- return_sleep_time:
- 	getnstimeofday(&ts_postidle);
- 	ts_idle = timespec_sub(ts_postidle, ts_preidle);
-@@ -326,8 +302,8 @@ void omap_init_power_states(void)
- 			cpuidle_params_table[OMAP3_STATE_C2].wake_latency;
- 	omap3_power_states[OMAP3_STATE_C2].threshold =
- 			cpuidle_params_table[OMAP3_STATE_C2].threshold;
--	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_ON;
--	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
-+	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_INACTIVE;
-+	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_INACTIVE;
- 	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID;
+-	omap_uart_smart_idle_enable(uart, 1);
+ 	uart->can_sleep = 1;
+ 	del_timer(&uart->timer);
+ }
+@@ -350,18 +365,45 @@ static void omap_uart_idle_timer(unsigned long data)
+ 	omap_uart_allow_sleep(uart);
+ }
  
- 	/* C3 . MPU CSWR + Core inactive */
-@@ -341,7 +317,7 @@ void omap_init_power_states(void)
- 	omap3_power_states[OMAP3_STATE_C3].threshold =
- 			cpuidle_params_table[OMAP3_STATE_C3].threshold;
- 	omap3_power_states[OMAP3_STATE_C3].mpu_state = PWRDM_POWER_RET;
--	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_ON;
-+	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_INACTIVE;
- 	omap3_power_states[OMAP3_STATE_C3].flags = CPUIDLE_FLAG_TIME_VALID |
- 				CPUIDLE_FLAG_CHECK_BM;
++static void omap_uart_garbage_timer(unsigned long data)
++{
++	struct omap_uart_state *uart = (struct omap_uart_state *)data;
++
++	uart->garbage_ignore = 0;
++}
++
++static void omap_uart_wakeup_work(struct work_struct *work)
++{
++	struct omap_uart_state *uart =
++		container_of(work, struct omap_uart_state, wakeup_work);
++
++	omap_uart_block_sleep(uart);
++
++	/* Set up garbage timer to ignore RX during first jiffy */
++	if (uart->timeout)
++		mod_timer(&uart->garbage_timer, jiffies + 1);
++}
++
+ void omap_uart_prepare_idle(int num)
+ {
+ 	struct omap_uart_state *uart;
  
-@@ -356,7 +332,7 @@ void omap_init_power_states(void)
- 	omap3_power_states[OMAP3_STATE_C4].threshold =
- 			cpuidle_params_table[OMAP3_STATE_C4].threshold;
- 	omap3_power_states[OMAP3_STATE_C4].mpu_state = PWRDM_POWER_OFF;
--	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_ON;
-+	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_INACTIVE;
- 	omap3_power_states[OMAP3_STATE_C4].flags = CPUIDLE_FLAG_TIME_VALID |
- 				CPUIDLE_FLAG_CHECK_BM;
+ 	list_for_each_entry(uart, &uart_list, node) {
+ 		if (num == uart->num && uart->can_sleep) {
+-			omap_uart_disable_clocks(uart);
++			if (serial_read_reg(uart->p, UART_LSR) &
++					UART_LSR_TEMT)
++				omap_uart_disable_clocks(uart);
+ 			return;
+ 		}
+ 	}
+ }
+ 
++static void serial_wakeup(struct omap_uart_state *uart)
++{
++	uart->garbage_ignore = 1;
++	schedule_work(&uart->wakeup_work);
++}
++
+ void omap_uart_resume_idle(int num)
+ {
+ 	struct omap_uart_state *uart;
+@@ -375,12 +417,12 @@ void omap_uart_resume_idle(int num)
+ 				u16 p = omap_ctrl_readw(uart->padconf);
+ 
+ 				if (p & OMAP3_PADCONF_WAKEUPEVENT0)
+-					omap_uart_block_sleep(uart);
++					serial_wakeup(uart);
+ 			}
+ 
+ 			/* Check for normal UART wakeup */
+ 			if (__raw_readl(uart->wk_st) & uart->wk_mask)
+-				omap_uart_block_sleep(uart);
++				serial_wakeup(uart);
+ 			return;
+ 		}
+ 	}
+@@ -429,7 +471,14 @@ static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+ {
+ 	struct omap_uart_state *uart = dev_id;
+ 
+-	omap_uart_block_sleep(uart);
++	/* Check for receive interrupt */
++	while (serial_read_reg(uart->p, UART_LSR) & UART_LSR_DR) {
++		omap_uart_block_sleep(uart);
++		if (uart->garbage_ignore)
++			serial_read_reg(uart->p, UART_RX);
++		else
++			break;
++	}
+ 
+ 	return IRQ_NONE;
+ }
+@@ -443,6 +492,9 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	uart->timeout = DEFAULT_TIMEOUT;
+ 	setup_timer(&uart->timer, omap_uart_idle_timer,
+ 		    (unsigned long) uart);
++	setup_timer(&uart->garbage_timer, omap_uart_garbage_timer,
++		    (unsigned long) uart);
++	INIT_WORK(&uart->wakeup_work, omap_uart_wakeup_work);
+ 	if (uart->timeout)
+ 		mod_timer(&uart->timer, jiffies + uart->timeout);
+ 	omap_uart_smart_idle_enable(uart, 0);
+@@ -507,15 +559,13 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 
+ void omap_uart_enable_irqs(int enable)
+ {
+-	int ret;
+ 	struct omap_uart_state *uart;
+ 
+ 	list_for_each_entry(uart, &uart_list, node) {
+ 		if (enable)
+-			ret = request_irq(uart->p->irq, omap_uart_interrupt,
+-				IRQF_SHARED, "serial idle", (void *)uart);
++			enable_irq(uart->p->irq);
+ 		else
+-			free_irq(uart->p->irq, (void *)uart);
++			disable_irq(uart->p->irq);
+ 	}
+ }
  
 -- 
 1.5.4.3
