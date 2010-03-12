@@ -1,109 +1,155 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: Trying to understand how to use new OMAP mux code
-Date: Fri, 12 Mar 2010 11:12:14 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E619F2D2@dbde02.ent.ti.com>
-References: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
-	 <20100311224812.GU2900@atomide.com>
- <738b3f7e1003112048n4859b29agefe9658dc5d70572@mail.gmail.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: Re: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor
+	autoloading feature
+Date: Fri, 12 Mar 2010 11:33:18 +0530
+Message-ID: <618f0c911003112203q2bdf88a4s7b8307f1ca8a693c@mail.gmail.com>
+References: <618f0c911003010327s290fcce1ud665b5a16392aea1@mail.gmail.com>
+	 <011301cac0b6$542b1190$544ff780@am.dhcp.ti.com>
+	 <618f0c911003110252i36d6fc31wbaef4ad7a17565b1@mail.gmail.com>
+	 <004401cac137$cccbf0c0$544ff780@am.dhcp.ti.com>
+	 <618f0c911003110942s2f663928ie1203244fbd32da7@mail.gmail.com>
+	 <009901cac18b$cc93e5a0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54378 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751864Ab0CLFmU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 00:42:20 -0500
-In-Reply-To: <738b3f7e1003112048n4859b29agefe9658dc5d70572@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <009901cac18b$cc93e5a0$544ff780@am.dhcp.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peter.barada@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-=20
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org=20
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Peter Barada
-> Sent: Friday, March 12, 2010 10:19 AM
-> To: Tony Lindgren
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: Trying to understand how to use new OMAP mux code
->=20
-> On Thu, Mar 11, 2010 at 5:48 PM, Tony Lindgren=20
-> <tony@atomide.com> wrote:
-> > * Peter Barada <peter.barada@gmail.com> [100311 14:29]:
-> >> 1) Suppose I want to talk to a bluetooth chip through=20
-> UART2. =A0UART2_TX
-> >> =A0gives me a choice of pins to hook up to, either to pin=20
-> AA26 in Mode0,
-> >> or pin AF5 in Mode1. =A0If I use omape_mux_init_signal("uart2_tx",
-> >> OMAP_PIN_OUTPUT), which pin will that map to?
-> >
-> > You need to check the omap package type you're using to find
-> > out the correct ball name. If you get lucky, that's already in
-> > mux34xx.c and you don't need search through the TRMs :)
->=20
-> The ball name helps me to identify it, but if I understand correctly,
-> none of the mux code allows the use of a ball name - I have to use th=
+Madhusudhan wrote:
+>
+>
+>> -----Original Message-----
+>> From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of
+>> Venkatraman S
+>> Sent: Thursday, March 11, 2010 11:43 AM
+>> To: Madhusudhan
+>> Cc: linux-mmc@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+>> linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor
+>> autoloading feature
+>>
+>> Madhusudhan <madhu.cr@ti.com> wrote:
+>> >> -----Original Message-----
+>> >> From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of
+>> >> Venkatraman S
+>> >> Sent: Thursday, March 11, 2010 4:52 AM
+>> >> To: Madhusudhan
+>> >> Cc: linux-mmc@vger.kernel.org; linux-arm-kernel@lists.infradead.o=
+rg;
+>> >> linux-omap@vger.kernel.org
+>> >> Subject: Re: [PATCH 03/03] omap hsmmc: adaptation of sdma descrip=
+tor
+>> >> autoloading feature
+>> >>
+>> >> Madhusudhan <madhu.cr@ti.com> wrote:
+>> >> >> -----Original Message-----
+>> >> >> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
+>> >> >> owner@vger.kernel.org] On Behalf Of Venkatraman S
+>> >> >> Sent: Monday, March 01, 2010 5:27 AM
+>> >> >> To: linux-mmc@vger.kernel.org; linux-arm-kernel@lists.infradea=
+d.org;
+>> >> >> linux-omap@vger.kernel.org
+>> >> >> Subject: [PATCH 03/03] omap hsmmc: adaptation of sdma descript=
+or
+>> >> >> autoloading feature
+>> >> >>
+>> >> >> Start to use the sDMA descriptor autoloading feature.
+>> >> >> For large datablocks, the MMC driver has to repeatedly setup,
+>> program
+>> >> >> and teardown the
+>> >> >> dma channel for each element of the sglist received in
+>> >> omap_hsmmc_request.
+>> >> >>
+>> >> >> By using descriptor autoloading, transfers from / to each elem=
+ent of
+>> >> >> the sglist is pre programmed
+>> >> >> into a linked list. The sDMA driver completes the entire trans=
+action
+>> >> >> and provides a single interrupt.
+>> >> >>
+>> >> >> Due to this, number of dma interrupts for a typical 100MB tran=
+sfer
+>> on
+>> >> the
+>> >> >> MMC is
+>> >> >> reduced from 25000 to about 400 (approximate). Transfer speeds=
+ are
+>> >> >> improved by ~5%
+>> >> >> (Though it varies on the size of read / write & improves on hu=
+ge
+>> >> >> transfers)
+>> >> >>
+>> >> >> Descriptor autoloading is available only in 3630 and 4430 (as =
+of
+>> now).
+>> >> >> Hence normal DMA
+>> >> >> mode is also retained.
+>> >> >>
+>> >> >> Tested on omap4430 sdp.
+>> >> >>
+>> >> >> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+>> >> >
+>> >> > I don't see any issues with this patch except the concern I had=
+ on
+>> the
+>> >> first
+>> >> > patch in the series. Why is that change linked to this series?
+>> >> >
+>> >> =A0 Thanks. The problem was seen only in the context of using des=
+criptor
+>> >> load. Would
+>> >> you prefer that I post it as a separate patch ?
+>> >
+>> > My point is why that change is needed for this feature to work?
+>> >
+>> > When DMA is completed and a callback is received the ch can be fre=
+ed.
+>> Once
+>> > TC is received the core is notified of the same.
+>> >
+>> > Can the first patch be dropped? Or do you see issues?
+>> Yes there are issues without this patch when the scatterlist is larg=
 e
-> mode0 name of the ball I want to use (and as you say later qualified
-> by the signal I want hooked up to that pi), right?
->=20
-> >> 2) How can I tell the muxing code that I want a specific pin for m=
-y
-> >> UART2_TX signal (that's not a GPIO since those can be directly
-> >> specified by GPIO number)?
-> >
-> > Then you want to use the full signal name:
-> >
-> > omap_mux_init_signal("mode0_name.desired_mode", OMAP_PIN_FLAGS)
-> >
-> > But as the balls can be separate for each package type, you
-> > need to figure that out first.
->=20
-> If my board sets up the balls packaging right (for a 3530 CBB
-> package), then "omap_mux_init_signal("mcbsp3_clkx.uart2_tx",
-> OMAP_PIN_OUTPUT);", will setup pin AF5 as mode2, output - thereby
-> muxing GPIO pin 142 to the UART2_TX signal?
->=20
-> Next question is for the AM3517 (491 pin), I see the setup for
-> board-am3517evm int he 2.6.33-rc3 kernel refers to the CBB package
-> which the comments indicate is a 515 pin package - is this the correc=
+>> (300+ blocks), where the dma completion interrupt is received but th=
+e
+>> mmc driver hangs waiting for TC. I don't see the issue if I delay th=
+e
+>> execution of omap_free_dma inside the dma callback.
+>
+> This is strange. Ideally after the dma cb is received the transfer co=
+mplete
+> interrupt should fire.
+>
+> Your first patch would break a corner erroneous case the driver is al=
+ready
+> handling. A scenario where TC was received before DMA cb came. There =
+is
+> timeout logic in the driver which handles this case to let the reques=
 t
-> package to use for the AM3517?  Since I have to traverse from my
-> schematic via ball name to signal name, it helps to know I'm looking
-> at the right package list.
->=20
-> Also, it looks like the references in arch/arm/mach-omap2/mux24xx.c t=
-o
-> TI forum URLs (e.g.  http://community.ti.com/forums/t/10982.aspx)
-> takes you to http://e2e.ti.com/support/default.aspx - do you need a
-> "myTI" login to see that forum message?.
+> succeed if a dma cb was received after a while otherwise err out. See=
+ the
+> function omap_hsmmc_start_dma_transfer.
+>
+> Is there a way to keep both the cases handled? If not we have to make
+> changes based on which of these scenario is very odd.
 
-No login is required. It is just that the forum backend has changed and
-the original link would be leading to a HTTP404 redirecting you to the
-main page. If we know the original title, search should help in locatin=
-g
-the original post.
+   I think these cases are already handled properly. All actions are
+taken if, and only if, TC is received.
+Once TC is received, the sequence of execution is unaltered by DMA
+callback. Dma callback
+is effectively a no-op after the final block is transmitted.
 
-Best regards,
-Sanjeev
+   We can in fact get rid of the timeout logic. Of course, the DMA
+channel is cleared
+once the TC is received, hence there would be no spurious DMA callbacks=
+ during
+the start of next transaction. [The only hanging case is when the TC
+is never triggerred,
+even after a successful transfer, but that's another issue altogether]
 
->=20
->=20
-> > Regards,
-> >
-> > Tony
-> >
->=20
-> So if I use: omap
-> --
-> To unsubscribe from this list: send the line "unsubscribe=20
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Venkat.
