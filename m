@@ -1,40 +1,49 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH 03/03] omap hsmmc: adaptation of sdma descriptor
-	autoloading feature
-Date: Fri, 12 Mar 2010 13:48:12 +0530
-Message-ID: <618f0c911003120018q581154cel48fc130567f99fb3@mail.gmail.com>
-References: <618f0c911003100612l33b1fec9s163720a5a93a1787@mail.gmail.com>
-	 <20100310224110.GW2900@atomide.com>
-	 <618f0c911003110708s5015f2bftb443b9ea57cb6477@mail.gmail.com>
-	 <20100311183944.GJ2900@atomide.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCHv2 0/5] FIFO caused playback delay (latency) handling in
+ soc/omap
+Date: Fri, 12 Mar 2010 10:30:50 +0200
+Message-ID: <20100312103050.b83db5c4.jhnikula@gmail.com>
+References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
+	<20100311222655.GP2900@atomide.com>
+	<186E584F-F553-44F0-A49D-361BB76E0EE4@opensource.wolfsonmicro.com>
+	<201003120818.30290.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20100311183944.GJ2900@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:49647 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756460Ab0CLI3a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 03:29:30 -0500
+Received: by ewy20 with SMTP id 20so374465ewy.1
+        for <linux-omap@vger.kernel.org>; Fri, 12 Mar 2010 00:29:28 -0800 (PST)
+In-Reply-To: <201003120818.30290.peter.ujfalusi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: ext Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
 
-Tony Lindgren wrote:
-> * Venkatraman S <svenkatr@ti.com> [100311 07:04]:
->> Tony Lindgren wrote:
->> >
->> > Does the driver still work in PIO mode?
->> >
->> > We need to have the drivers capable to fail over to PIO mode
->> > as the DMA channels can run out.
->> >
->>
->> =A0 =A0The driver doesn't have an automatic fallback to PIO,
->> even without my patch. A error return from omap_request_dma is
->> propogated all the way back to the transfer request.
->> =A0 The decision to use_dma (the variable) is unaltered.
->
-> OK, that might explain some nasty surprises then..
->
-> With these patches, does the driver still work in PIO mode though?
+On Fri, 12 Mar 2010 08:18:30 +0200
+Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
 
-No. The workhorse code to actually push the data byte by byte
-is not present in the hsmmc driver.
+> On Friday 12 March 2010 00:43:41 ext Mark Brown wrote:
+> 
+> > I can do, though there was some debate about how useful the
+> > information the hardware returns actually is - could folks confirm
+> > what the consensus there was, please?
+> 
+> Yeah, that thread went silent without final go or no go...
+> 
+...
+> All in all, I think the usage of the BUFFSTAT register is a good compromise for 
+> all cases, and it is needed for the cases, where the codec also have buffer of 
+> it's own.
+> 
+And one point is that the BUFFSTAT use doesn't make things worse than
+currently.  Now the application doesn't have any information about the
+HW buffer caused audio latencies so reporting them makes the things
+better than currently.
+
+
+-- 
+Jarkko
