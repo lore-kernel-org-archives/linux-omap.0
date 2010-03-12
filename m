@@ -1,46 +1,50 @@
-From: Trilok Soni <soni.trilok@gmail.com>
-Subject: Re: [PATCHv2 0/3] Add support for TCA6416 based Keypad driver.
-Date: Sat, 13 Mar 2010 02:08:20 +0530
-Message-ID: <5d5443651003121238l7fb1c5b1rbcbea660c5cf83c@mail.gmail.com>
-References: <1268385499-7075-1-git-send-email-srk@ti.com>
-	 <6ed0b2681003120323r2a1b72a9m344d71431ebcd7c4@mail.gmail.com>
-	 <FCCFB4CDC6E5564B9182F639FC356087030445C4A7@dbde02.ent.ti.com>
-	 <20100312172943.GH2900@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 3/4] OMAP3 : clock data: Update name string for EMAC clocks.
+Date: Fri, 12 Mar 2010 15:26:45 -0800
+Message-ID: <8763515dfu.fsf@deeprootsystems.com>
+References: <1268320422-32656-1-git-send-email-srk@ti.com>
+	<1268320422-32656-2-git-send-email-srk@ti.com>
+	<1268320422-32656-3-git-send-email-srk@ti.com>
+	<1268320422-32656-4-git-send-email-srk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:58902 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757211Ab0CLUiV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 15:38:21 -0500
-In-Reply-To: <20100312172943.GH2900@atomide.com>
+Received: from mail-iw0-f176.google.com ([209.85.223.176]:44966 "EHLO
+	mail-iw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933475Ab0CLX0s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 18:26:48 -0500
+In-Reply-To: <1268320422-32656-4-git-send-email-srk@ti.com> (Sriramakrishnan's message of "Thu\, 11 Mar 2010 20\:43\:41 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Govindarajan, Sriramakrishnan" <srk@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+To: Sriramakrishnan <srk@ti.com>
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
 
-Hi,
+Sriramakrishnan <srk@ti.com> writes:
 
-On Fri, Mar 12, 2010 at 10:59 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Govindarajan, Sriramakrishnan <srk@ti.com> [100312 03:39]:
->>
->> > Please fix mode - remove +x flags.
->>
->> [Sriram] Thanks for pointing out. I will await further review comments
->> And post the updated version thereafter
+> The emac driver uses generic name for the module and phy
+> clocks. Updated the omap3xxx_clks table to match the names
+> used by the Davinci emac driver.
 >
-> Please fix mode change issue at TI in general.
+> Signed-off-by: Sriramakrishnan <srk@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock3xxx_data.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 >
-> We're getting these executable mode change patches from TI on regular basis.
->
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index d5153b6..989da2e 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -3472,8 +3472,8 @@ static struct omap_clk omap3xxx_clks[] = {
+>  	CLK(NULL,	"ipss_ick",	&ipss_ick,	CK_AM35XX),
+>  	CLK(NULL,	"rmii_ck",	&rmii_ck,	CK_AM35XX),
+>  	CLK(NULL,	"pclk_ck",	&pclk_ck,	CK_AM35XX),
+> -	CLK("davinci_emac",	"ick",		&emac_ick,	CK_AM35XX),
+> -	CLK("davinci_emac",	"fck",		&emac_fck,	CK_AM35XX),
+> +	CLK("davinci_emac",	"emac_clk",	&emac_ick,	CK_AM35XX),
+> +	CLK("davinci_emac",	"phy_clk",	&emac_fck,	CK_AM35XX),
 
-Better way to add checking +x attribute support internally in
-checkpatch.pl and let everybody scan through checkpatch.pl before
-submitting a patch to ML. It works !!!
+As I mentioned in the review of the equivalent davinci changes,
+I'm not crazy abou the _clk suffixes on the con_id.  I think
+these should be called "main" (or "emac") and "phy".
 
-
-
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Kevin
