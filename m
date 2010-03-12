@@ -1,94 +1,120 @@
 From: Scott Ellis <scott@jumpnowtek.com>
-Subject: [PATCH 2/6] SPI omap2_mcspi: Add max_clk_div field to mcspi
- platform config
-Date: Fri, 12 Mar 2010 10:21:47 -0500
-Message-ID: <1268407307.14445.51.camel@quad>
+Subject: [PATCH 3/6] SPI omap2_mcspi.c: Use appropriate clock divider value
+Date: Fri, 12 Mar 2010 10:21:55 -0500
+Message-ID: <1268407315.14445.52.camel@quad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pan.gwi.net ([207.5.128.165]:3108 "EHLO pan.gwi.net"
+Received: from pan.gwi.net ([207.5.128.165]:2424 "EHLO pan.gwi.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934020Ab0CLPVt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Mar 2010 10:21:49 -0500
+	id S934020Ab0CLPV5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Mar 2010 10:21:57 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: spi-devel-general@lists.sourceforge.net
-Cc: David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org
+Cc: David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-The McSPI_CHxCONF.CLKD register field has different limits for the
-OMAP3 then the OMAP24xx. As per recommendation from the linux-omap
-list, added a field for max_clk_div to the platform data for use in 
-omap2_mcspi.c.
+The MCSPI_CHxCONF.CLKD register field has different limits 
+for the OMAP3 then the OMAP24xx. 
 
-Used in a subsequent patch. 
+Use the new max_clk_div value from 
+omap2_mcspi_platform_config.
 
 Signed-off-by: Scott Ellis <scott@jumpnowtek.com>
 
- arch/arm/mach-omap2/devices.c           |   16 ++++++++++++++++
- arch/arm/plat-omap/include/plat/mcspi.h |    1 +
- 2 files changed, 17 insertions(+), 0 deletions(-)
+ drivers/spi/omap2_mcspi.c |   27 ++++++++++++++++++---------
+ 1 files changed, 18 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 23e4d77..d4ad126 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -302,6 +302,11 @@ static inline void omap_init_sti(void) {}
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index fe1b56d..37e6d73 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -37,6 +37,7 @@
  
- static struct omap2_mcspi_platform_config omap2_mcspi1_config = {
- 	.num_cs		= 4,
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-+	.max_clk_div	= 0x0c,
-+#else
-+	.max_clk_div	= 0x0f,
-+#endif
+ #include <plat/dma.h>
+ #include <plat/clock.h>
++#include <plat/mcspi.h>
+ 
+
+ #define OMAP2_MCSPI_MAX_FREQ		48000000
+@@ -128,6 +129,7 @@ struct omap2_mcspi {
+ 	unsigned long		phys;
+ 	/* SPI1 has 4 channels, while SPI2 has 2 */
+ 	struct omap2_mcspi_dma	*dma_channels;
++	int			max_clk_div;
  };
  
- static struct resource omap2_mcspi1_resources[] = {
-@@ -324,6 +329,11 @@ static struct platform_device omap2_mcspi1 = {
+ struct omap2_mcspi_cs {
+@@ -588,11 +590,12 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 	cs->word_len = word_len;
  
- static struct omap2_mcspi_platform_config omap2_mcspi2_config = {
- 	.num_cs		= 2,
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-+	.max_clk_div	= 0x0c,
-+#else
-+	.max_clk_div	= 0x0f,
-+#endif
- };
+ 	if (spi->max_speed_hz) {
+-		while (div <= 15 && (OMAP2_MCSPI_MAX_FREQ / (1 << div))
+-					> spi->max_speed_hz)
++		while (div <= mcspi->max_clk_div &&
++			(OMAP2_MCSPI_MAX_FREQ/(1 << div)) > spi->max_speed_hz)
+ 			div++;
+-	} else
+-		div = 15;
++	} else {
++		div = mcspi->max_clk_div;
++	}
  
- static struct resource omap2_mcspi2_resources[] = {
-@@ -348,6 +358,11 @@ static struct platform_device omap2_mcspi2 = {
- 	defined(CONFIG_ARCH_OMAP4)
- static struct omap2_mcspi_platform_config omap2_mcspi3_config = {
- 	.num_cs		= 2,
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-+	.max_clk_div	= 0x0c,
-+#else
-+	.max_clk_div	= 0x0f,
-+#endif
- };
+ 	l = mcspi_cached_chconf0(spi);
  
- static struct resource omap2_mcspi3_resources[] = {
-@@ -372,6 +387,7 @@ static struct platform_device omap2_mcspi3 = {
- #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- static struct omap2_mcspi_platform_config omap2_mcspi4_config = {
- 	.num_cs		= 1,
-+	.max_clk_div	= 0x0c,
- };
+@@ -893,6 +896,8 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
+ 	unsigned long		flags;
+ 	struct spi_transfer	*t;
  
- static struct resource omap2_mcspi4_resources[] = {
-diff --git a/arch/arm/plat-omap/include/plat/mcspi.h b/arch/arm/plat-omap/include/plat/mcspi.h
-index 1254e49..9fadddd 100644
---- a/arch/arm/plat-omap/include/plat/mcspi.h
-+++ b/arch/arm/plat-omap/include/plat/mcspi.h
-@@ -3,6 +3,7 @@
++	mcspi = spi_master_get_devdata(spi->master);
++
+ 	m->actual_length = 0;
+ 	m->status = 0;
  
- struct omap2_mcspi_platform_config {
- 	unsigned short	num_cs;
-+	unsigned short	max_clk_div;
- };
+@@ -917,10 +922,13 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
+ 					t->bits_per_word);
+ 			return -EINVAL;
+ 		}
+-		if (t->speed_hz && t->speed_hz < OMAP2_MCSPI_MAX_FREQ/(1<<16)) {
++		if (t->speed_hz &&
++			t->speed_hz < OMAP2_MCSPI_MAX_FREQ
++					/(1 << mcspi->max_clk_div)) {
+ 			dev_dbg(&spi->dev, "%d Hz max exceeds %d\n",
+-					t->speed_hz,
+-					OMAP2_MCSPI_MAX_FREQ/(1<<16));
++				t->speed_hz,
++				OMAP2_MCSPI_MAX_FREQ
++					/(1 << mcspi->max_clk_div));
+ 			return -EINVAL;
+ 		}
  
- struct omap2_mcspi_device_config {
+@@ -955,8 +963,6 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
+ 		}
+ 	}
+ 
+-	mcspi = spi_master_get_devdata(spi->master);
+-
+ 	spin_lock_irqsave(&mcspi->lock, flags);
+ 	list_add_tail(&m->queue, &mcspi->msg_queue);
+ 	queue_work(omap2_mcspi_wq, &mcspi->work);
+@@ -1049,6 +1055,7 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 	int			status = 0, i;
+ 	const u8		*rxdma_id, *txdma_id;
+ 	unsigned		num_chipselect;
++	struct omap2_mcspi_platform_config *pdata;
+ 
+ 	switch (pdev->id) {
+ 	case 1:
+@@ -1101,6 +1108,8 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 
+ 	mcspi = spi_master_get_devdata(master);
+ 	mcspi->master = master;
++	pdata = (struct omap2_mcspi_platform_config *)pdev->dev.platform_data;
++	mcspi->max_clk_div = pdata->max_clk_div;
+ 
+ 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (r == NULL) {
 
 
 
