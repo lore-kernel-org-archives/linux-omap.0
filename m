@@ -1,74 +1,39 @@
-From: "Govindarajan, Sriramakrishnan" <srk@ti.com>
-Subject: RE: [PATCHv2 0/3] Add support for TCA6416 based Keypad driver.
-Date: Fri, 12 Mar 2010 17:12:45 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030445C4A7@dbde02.ent.ti.com>
-References: <1268385499-7075-1-git-send-email-srk@ti.com>
- <6ed0b2681003120323r2a1b72a9m344d71431ebcd7c4@mail.gmail.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 12/19] omap: Fix gpio_resume_after_retention
+Date: Fri, 12 Mar 2010 15:19:02 +0200
+Message-ID: <20100312131902.GD3802@nokia.com>
+References: <20100311234404.4500.82861.stgit@baageli.muru.com>
+ <20100311234834.4500.12726.stgit@baageli.muru.com>
+ <A24693684029E5489D1D202277BE894453FB11F8@dlee02.ent.ti.com>
+ <20100311235640.GW2900@atomide.com>
+ <A24693684029E5489D1D202277BE894453FB1216@dlee02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0321EC96B2@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <6ed0b2681003120323r2a1b72a9m344d71431ebcd7c4@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:34763 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932788Ab0CLNUE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 08:20:04 -0500
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321EC96B2@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Fri, Mar 12, 2010 at 11:37:50AM +0100, ext Gadiyar, Anand wrote:
+>I send patches with an explicit "From: Anand Gadiyar <gadiyar@ti.com>"
+>line in the content. This seems to work okay.
+>
+>Can you check if this works for you?
 
+$ git config --global sendemail.from "Sergio Aguirre <saaguirre@ti.com>"
+$ git send-email --to linux-omap@vger.kernel.org --from saaguirre@ti.com 0001-mypatch.patch
 
-> -----Original Message-----
-> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
-> Sent: Friday, March 12, 2010 4:54 PM
-> To: Govindarajan, Sriramakrishnan
-> Cc: linux-omap@vger.kernel.org; linux-input@vger.kernel.org
-> Subject: Re: [PATCHv2 0/3] Add support for TCA6416 based Keypad drive=
-r.
->=20
-> On Fri, Mar 12, 2010 at 11:18 AM, Sriramakrishnan <srk@ti.com> wrote:
-> > AM3517 EVM with APPS board includes keys interfaced to TCA6416 IO
-> expander
-> > User keys are connected as GPIO lines to TCA6416 IO expander. Unlik=
-e the
-> > case with generic gpio-keypad driver individual keys do not generat=
-e an
-> > interrupt event. Hence we implement a simple keypad driver, that
-> > registers as direct I2C client.
-> >
-> > The implementation has been tested on AM3517 EVM with the driver te=
-sted
-> > in polling mode.
-> >
-> > Version2 of the patch series addresses review comments from the ear=
-lier
-> > posting - specifically redesigned to eliminate overhead of using
-> gpio_keys
-> > data structures.
-> >
-> > Sriramakrishnan (3):
-> > =A0TCA6416 keypad : Implement keypad driver for keys interfaced to
-> > =A0 =A0TCA6416
-> > =A0AM3517: Board hookup for TCA6416 keypad driver.
-> > =A0AM3517 EVM : Enable TCA6416 keypad.
-> >
-> > =A0arch/arm/configs/am3517_evm_defconfig =A0 | =A0 16 ++-
-> > =A0arch/arm/mach-omap2/board-am3517evm.c =A0 | =A0 47 ++++-
-> > =A0drivers/input/keyboard/Kconfig =A0 =A0 =A0 =A0 =A0| =A0 16 ++
-> > =A0drivers/input/keyboard/Makefile =A0 =A0 =A0 =A0 | =A0 =A01 +
-> > =A0drivers/input/keyboard/tca6416-keypad.c | =A0354
-> +++++++++++++++++++++++++++++++
-> > =A0include/linux/tca6416_keypad.h =A0 =A0 =A0 =A0 =A0| =A0 34 +++
-> > =A06 files changed, 462 insertions(+), 6 deletions(-)
-> > =A0mode change 100644 =3D> 100755 arch/arm/mach-omap2/board-am3517e=
-vm.c
-> > =A0create mode 100755 drivers/input/keyboard/tca6416-keypad.c
-> > =A0create mode 100755 include/linux/tca6416_keypad.h
->=20
-> Please fix mode - remove +x flags.
-[Sriram] Thanks for pointing out. I will await further review comments
-And post the updated version thereafter
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This will forge git to add the From: Sergio Aguirre <saaguirre@ti.com> 
+when sending the patches
+
+-- 
+balbi
