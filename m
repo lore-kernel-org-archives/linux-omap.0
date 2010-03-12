@@ -1,158 +1,43 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: kernel panic with latest DSS
-Date: Fri, 12 Mar 2010 12:51:33 +0200
-Message-ID: <1268391093.28571.137.camel@tubuntu.research.nokia.com>
-References: <5e088bd91003091158l6cfa0b76u204e5432389d573@mail.gmail.com>
-	 <5e088bd91003101016s4148751es1a142c21d1540564@mail.gmail.com>
-	 <5e088bd91003101042t236c5d90p62c700c424d83e12@mail.gmail.com>
-	 <3647DBDA80551C4696E9E4506F0BE08E255DC2F2A7@NOK-EUMSG-02.mgdnok.nokia.com>
-	 <5e088bd91003101148o82a07e2j4df803d23ee78d83@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv2 0/5] FIFO caused playback delay	(latency)
+	handling in soc/omap
+Date: Fri, 12 Mar 2010 11:12:36 +0000
+Message-ID: <20100312111235.GA23739@sirena.org.uk>
+References: <1267621689-30337-1-git-send-email-peter.ujfalusi@nokia.com>
+	<20100311222655.GP2900@atomide.com>
+	<186E584F-F553-44F0-A49D-361BB76E0EE4@opensource.wolfsonmicro.com>
+	<201003120818.30290.peter.ujfalusi@nokia.com>
+	<20100312103050.b83db5c4.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:42112 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932092Ab0CLKwA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 05:52:00 -0500
-In-Reply-To: <5e088bd91003101148o82a07e2j4df803d23ee78d83@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20100312103050.b83db5c4.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: ext Steve Sakoman <sakoman@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Can you try this patch?
+On Fri, Mar 12, 2010 at 10:30:50AM +0200, Jarkko Nikula wrote:
+> Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
 
-I haven't run into this earlier as I always have DSI compiled in. It
-possibly doesn't behave correctly in that case either, but doesn't
-crash.
+> > All in all, I think the usage of the BUFFSTAT register is a good compromise for 
+> > all cases, and it is needed for the cases, where the codec also have buffer of 
+> > it's own.
 
- Tomi
+> And one point is that the BUFFSTAT use doesn't make things worse than
+> currently.  Now the application doesn't have any information about the
+> HW buffer caused audio latencies so reporting them makes the things
+> better than currently.
 
-
->From c065bb82e1358105d57d80974ce71d3e5aeabf35 Mon Sep 17 00:00:00 2001
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Date: Fri, 12 Mar 2010 12:46:05 +0200
-Subject: [PATCH] OMAP: DSS2: initialize dss clk sources properly
-
-Clk sources were not initialized, leading to kernel crash, or possibly to
-strange behaviour if DSI was compiled in.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
----
- drivers/video/omap2/dss/dss.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 8254a42..5434418 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -590,6 +590,9 @@ int dss_init(bool skip_init)
- 		}
- 	}
- 
-+	dss.dsi_clk_source = DSS_SRC_DSS1_ALWON_FCLK;
-+	dss.dispc_clk_source = DSS_SRC_DSS1_ALWON_FCLK;
-+
- 	dss_save_context();
- 
- 	rev = dss_read_reg(DSS_REVISION);
--- 
-1.6.5
-
-
-
-
-
-
-On Wed, 2010-03-10 at 20:48 +0100, ext Steve Sakoman wrote:
-> On Wed, Mar 10, 2010 at 10:58 AM,  <Tomi.Valkeinen@nokia.com> wrote:
-> 
-> > I haven't had time to look at this, but I don't think your analysis is correct.
-> 
-> You are correct of course.  My sleepy eyes neglected to notice that
-> double = and that makes a big difference :-)
-> 
-> > What first comes to my mind is that dss.dispc_clk_source is, for some reason, uninitialized. Could you put prints to dss_select_dispc_clk_source to see if it's called, and if so, what is assigned to dss.dispc_clk_source?
-> 
-> I did a build with that change and it does seem that
-> dss_select_dispc_clk_source is never called.
-> 
-> Steve
-> 
-> >  Tomi
-> >
-> > ________________________________________
-> > From: ext Steve Sakoman [sakoman@gmail.com]
-> > Sent: Wednesday, March 10, 2010 20:42
-> > To: linux-omap@vger.kernel.org; Valkeinen Tomi (Nokia-D/Helsinki)
-> > Subject: Re: kernel panic with latest DSS
-> >
-> > On Wed, Mar 10, 2010 at 10:16 AM, Steve Sakoman <sakoman@gmail.com> wrote:
-> >
-> >> The issue occurs in the following section of code in
-> >> drivers/video/omap2/dss/dispc.c:
-> >>
-> >> unsigned long dispc_fclk_rate(void)
-> >> {
-> >>        unsigned long r = 0;
-> >>
-> >>        if (dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK)
-> >>                r = dss_clk_get_rate(DSS_CLK_FCK1);
-> >>        else
-> >> #ifdef CONFIG_OMAP2_DSS_DSI
-> >>                r = dsi_get_dsi1_pll_rate();
-> >> #else
-> >>        BUG();
-> >> #endif
-> >>        return r;
-> >> }
-> >>
-> >> Since my machines don't have DSI displays CONFIG_OMAP2_DSS_DSI is not
-> >> defined and the BUG() call is triggered.
-> >
-> > The issue seems to be the test for DSS_SRC_DSS1_ALWON_FCLK.
-> >
-> > Looking at  drivers/video/omap2/dss/dispc.c I see that
-> > DSS_SRC_DSS1_ALWON_FCLK will never be returned since clk_src is always
-> > set to 0 or 1 based on a test of DSS_SRC_DSS1_ALWON_FCLK :
-> >
-> > void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
-> > {
-> >        int b;
-> >
-> >        BUG_ON(clk_src != DSS_SRC_DSI1_PLL_FCLK &&
-> >                        clk_src != DSS_SRC_DSS1_ALWON_FCLK);
-> >
-> >        b = clk_src == DSS_SRC_DSS1_ALWON_FCLK ? 0 : 1;
-> >
-> >        REG_FLD_MOD(DSS_CONTROL, b, 0, 0);      /* DISPC_CLK_SWITCH */
-> >
-> >        dss.dispc_clk_source = clk_src;
-> > }
-> >
-> > It seems to me that the test should return to the way it was in the
-> > previous DSS version, i.e. a test for 0:
-> >
-> > diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-> > index e777e35..be9b3de 100644
-> > --- a/drivers/video/omap2/dss/dispc.c
-> > +++ b/drivers/video/omap2/dss/dispc.c
-> > @@ -2218,7 +2218,7 @@ unsigned long dispc_fclk_rate(void)
-> >  {
-> >        unsigned long r = 0;
-> >
-> > -       if (dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK)
-> > +       if (dss_get_dispc_clk_source() == 0)
-> >                r = dss_clk_get_rate(DSS_CLK_FCK1);
-> >        else
-> >  #ifdef CONFIG_OMAP2_DSS_DSI
-> >
-> > A test build confirms that this change restores my ability to play
-> > DVD's and display webcam streams.  My understanding of this code is
-> > superficial, so hopefully Tomi can comment on whether this is a good
-> > fix or not.
-> >
-> > Steve
-
-
+OK, that's what I thought - just wanted to confirm.  I've applied both
+patches now.
