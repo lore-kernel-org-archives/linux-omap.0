@@ -1,122 +1,109 @@
-From: hvaibhav@ti.com
-Subject: [PATCH FIX] OMAP: DSS: Fix for kernel crash during reboot
-Date: Fri, 12 Mar 2010 11:04:22 +0530
-Message-ID: <1268372062-5269-1-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: Trying to understand how to use new OMAP mux code
+Date: Fri, 12 Mar 2010 11:12:14 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E619F2D2@dbde02.ent.ti.com>
+References: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
+	 <20100311224812.GU2900@atomide.com>
+ <738b3f7e1003112048n4859b29agefe9658dc5d70572@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59786 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54378 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751088Ab0CLFee (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Mar 2010 00:34:34 -0500
-In-Reply-To: <hvaibhav@ti.com>
+	id S1751864Ab0CLFmU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 00:42:20 -0500
+In-Reply-To: <738b3f7e1003112048n4859b29agefe9658dc5d70572@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@nokia.com, tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Peter Barada <peter.barada@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+=20
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org=20
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Peter Barada
+> Sent: Friday, March 12, 2010 10:19 AM
+> To: Tony Lindgren
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: Trying to understand how to use new OMAP mux code
+>=20
+> On Thu, Mar 11, 2010 at 5:48 PM, Tony Lindgren=20
+> <tony@atomide.com> wrote:
+> > * Peter Barada <peter.barada@gmail.com> [100311 14:29]:
+> >> 1) Suppose I want to talk to a bluetooth chip through=20
+> UART2. =A0UART2_TX
+> >> =A0gives me a choice of pins to hook up to, either to pin=20
+> AA26 in Mode0,
+> >> or pin AF5 in Mode1. =A0If I use omape_mux_init_signal("uart2_tx",
+> >> OMAP_PIN_OUTPUT), which pin will that map to?
+> >
+> > You need to check the omap package type you're using to find
+> > out the correct ball name. If you get lucky, that's already in
+> > mux34xx.c and you don't need search through the TRMs :)
+>=20
+> The ball name helps me to identify it, but if I understand correctly,
+> none of the mux code allows the use of a ball name - I have to use th=
+e
+> mode0 name of the ball I want to use (and as you say later qualified
+> by the signal I want hooked up to that pi), right?
+>=20
+> >> 2) How can I tell the muxing code that I want a specific pin for m=
+y
+> >> UART2_TX signal (that's not a GPIO since those can be directly
+> >> specified by GPIO number)?
+> >
+> > Then you want to use the full signal name:
+> >
+> > omap_mux_init_signal("mode0_name.desired_mode", OMAP_PIN_FLAGS)
+> >
+> > But as the balls can be separate for each package type, you
+> > need to figure that out first.
+>=20
+> If my board sets up the balls packaging right (for a 3530 CBB
+> package), then "omap_mux_init_signal("mcbsp3_clkx.uart2_tx",
+> OMAP_PIN_OUTPUT);", will setup pin AF5 as mode2, output - thereby
+> muxing GPIO pin 142 to the UART2_TX signal?
+>=20
+> Next question is for the AM3517 (491 pin), I see the setup for
+> board-am3517evm int he 2.6.33-rc3 kernel refers to the CBB package
+> which the comments indicate is a 515 pin package - is this the correc=
+t
+> package to use for the AM3517?  Since I have to traverse from my
+> schematic via ball name to signal name, it helps to know I'm looking
+> at the right package list.
+>=20
+> Also, it looks like the references in arch/arm/mach-omap2/mux24xx.c t=
+o
+> TI forum URLs (e.g.  http://community.ti.com/forums/t/10982.aspx)
+> takes you to http://e2e.ti.com/support/default.aspx - do you need a
+> "myTI" login to see that forum message?.
 
-Kernel crash is observed when you include DSS, respctive drivers and issue
-"reboot" command.
-Added return from function omapdss_dpi_display_disable, if interface is already
-disabled.
+No login is required. It is just that the forum backend has changed and
+the original link would be leading to a HTTP404 redirecting you to the
+main page. If we know the original title, search should help in locatin=
+g
+the original post.
 
-Crash Log -
-============
-root@omap3evm:~# reboot
+Best regards,
+Sanjeev
 
-Broadcast message from root (ttyS0) (Fri Dec  4 03:51:10 2009):
-
-The system is going down for reboot NOW!
-INIT: Switching to runlevel: 6
-INIT: Sending processes the TERM signal
-INIT:Stopping telnet daemon.
-Stopping syslogd/klogd: stopped syslogd (pid 1187)
-stopped klogd (pid 1189)
-done
-Stopping thttpd.
-NOT deconfiguring network interfaces: / is an NFS mount
-Sending all processes the TERM signal...
-Sending all processes the KILL signal...
-Unmounting remote filesystems...
-Deactivating swap...
-Unmounting local filesystems...
-mount: can't find /mnt/ram in /proc/mounts
-umount: none busy - remounted read-only
-mount: cannot read /proc/mounts: No such file or directory
-Rebooting... Unable to handle kernel NULL pointer dereference at virtual
-address 0000007c
-pgd = c7dac000
-[0000007c] *pgd=87f52031, *pte=00000000, *ppte=00000000
-Internal error: Oops: 17 [#1]
-last sysfs file: /sys/kernel/uevent_seqnum
-Modules linked in:
-CPU: 0    Not tainted  (2.6.34-rc1-07844-g49f7ae9-dirty #1)
-PC is at omapdss_dpi_display_disable+0x14/0x3c
-LR is at omapdss_dpi_display_disable+0x18/0x3c
-pc : [<c019d64c>]    lr : [<c019d650>]    psr: 60000013
-sp : c6ccde40  ip : fa070000  fp : 00000000
-r10: 00000000  r9 : c6ccc000  r8 : c0030028
-r7 : 00000002  r6 : 00000000  r5 : c019d8e0  r4 : c03d7a98
-r3 : 00000000  r2 : 00000000  r1 : 00000002  r0 : 00000000
-Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-Control: 10c5387d  Table: 87dac019  DAC: 00000015
-Process reboot (pid: 1237, stack limit = 0xc6ccc2e8)
-Stack: (0xc6ccde40 to 0xc6cce000)
-de40: c03d7a98 c01a5ea8 00000000 c019d8f0 00000000 c01c7e48 c7c44cf8 c7c84170
-de60: c03d8ad8 c03da84c fee1dead c01c944c c03d8ad8 c01c5490 00000000 c0063f9c
-de80: 00000000 c0063fdc 00000000 c0064178 c7f3d6c0 c0094168 000000b4 00000000
-dea0: 00000000 c028a0e4 bee2fc90 000000ee 00000000 000003b8 c7dad000 00000000
-dec0: 00000002 c6d54b20 c7c166c0 c7f3d6c0 400ee980 c7f3d6f4 00000200 c7c166c0
-dee0: c7f3d6c0 c0036560 c7e1c040 c0240700 c03cdfc4 c03ce034 00000007 c6ccdfb0
-df00: 400ee980 000121d8 c7e1c040 c7e1c0e0 c6c88740 c028bc08 c7e1c040 00000000
-df20: c6ccdf20 c6ccdf20 c789c6e8 c789db98 ffffffff c00b7508 c7801398 c789db98
-df40: ffffffff c00b4958 c789db98 00000000 ffffffff c00b4fe0 00000014 c00a74c8
-df60: 00000000 00000000 c6c88740 00000000 c6f866c0 00000006 c6c88740 00000000
-df80: c6f866c0 c00a45ec c6f866e8 c6f866c0 c6c88740 00000000 00000001 00000004
-dfa0: 00000058 c002fe80 00000000 00000001 fee1dead 28121969 01234567 00000002
-dfc0: 00000000 00000001 00000004 00000058 000121d0 00000001 00000001 00000000
-dfe0: 400f6710 bee2fcb8 000092f0 400f6728 60000010 fee1dead 00000000 00000000
-[<c019d64c>] (omapdss_dpi_display_disable+0x14/0x3c) from [<c01a5ea8>]
-(generic_panel_disable+0xc/0x18)
-[<c01a5ea8>] (generic_panel_disable+0xc/0x18) from [<c019d8f0>]
-(dss_disable_device+0x10/0x18)
-[<c019d8f0>] (dss_disable_device+0x10/0x18) from [<c01c7e48>]
-(bus_for_each_dev+0x44/0x74)
-[<c01c7e48>] (bus_for_each_dev+0x44/0x74) from [<c01c944c>]
-(platform_drv_shutdown+0x18/0x1c)
-[<c01c944c>] (platform_drv_shutdown+0x18/0x1c) from [<c01c5490>]
-(device_shutdown+0x54/0x84)
-[<c01c5490>] (device_shutdown+0x54/0x84) from [<c0063f9c>]
-(kernel_restart_prepare+0x24/0x34)
-[<c0063f9c>] (kernel_restart_prepare+0x24/0x34) from [<c0063fdc>]
-(kernel_restart+0xc/0x40)
-[<c0063fdc>] (kernel_restart+0xc/0x40) from [<c0064178>]
-(sys_reboot+0x160/0x1b8)
-[<c0064178>] (sys_reboot+0x160/0x1b8) from [<c002fe80>]
-(ret_fast_syscall+0x0/0x2c)
-Code: e59031a4 e1a04000 e1a00003 e1a0e00f (e593f07c)
-***[ end trace c52dd0f51f03150e ]***
-
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/video/omap2/dss/dpi.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 960e977..70c6902 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -210,6 +210,9 @@ EXPORT_SYMBOL(omapdss_dpi_display_enable);
-
- void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
- {
-+	if (dssdev->state == OMAP_DSS_DISPLAY_DISABLED)
-+		return;
-+
- 	dssdev->manager->disable(dssdev->manager);
-
- #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
---
-1.6.2.4
-
+>=20
+>=20
+> > Regards,
+> >
+> > Tony
+> >
+>=20
+> So if I use: omap
+> --
+> To unsubscribe from this list: send the line "unsubscribe=20
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
