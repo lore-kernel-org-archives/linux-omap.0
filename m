@@ -1,36 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 19b/19] ARM/OMAP: Remove the +x bit from a couple of source
- files
-Date: Thu, 11 Mar 2010 16:11:19 -0800
-Message-ID: <20100312001119.GB2900@atomide.com>
-References: <20100311234404.4500.82861.stgit@baageli.muru.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2] [I2C-OMAP] Add support for 16-bit registers
+Date: Thu, 11 Mar 2010 16:17:53 -0800
+Message-ID: <20100312001753.GC2900@atomide.com>
+References: <1260669242-29865-1-git-send-email-darkstar6262@gmail.com>
+ <6cb013311001090947m2268833cv3784f469dc8b861d@mail.gmail.com>
+ <20100109183321.GH2879@atomide.com>
+ <6cb013311001091035x54321b3aqb814f476200980af@mail.gmail.com>
+ <20100112012814.GK5055@atomide.com>
+ <87k4tkf3ye.fsf@deeprootsystems.com>
+ <20100310223000.GT2900@atomide.com>
+ <878w9ydd6x.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61887 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755405Ab0CLAJ6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 19:09:58 -0500
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100311234404.4500.82861.stgit@baageli.muru.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <878w9ydd6x.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
 
->From 5aeb05c97c94f03627ad6983a0b5069ea539d084 Mon Sep 17 00:00:00 2001
-From: Andrew Clayton <andrew@digital-domain.net>
-Date: Sat, 6 Mar 2010 00:14:46 +0000
-Subject: [PATCH] ARM/OMAP: Remove the +x bit from a couple of source files
+* Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> [100311 08:36]:
+> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+> >
+> > Anyways, for the future, considering how critical this driver is
+> > for all omaps.. And considering how badly this driver needs some
+> > updates done..
+> >
+> > How about we pile up the i2c-omap patches for testing into linux-omap
+> > branch first, then ask Ben to pull it around -rc6 after we've all
+> > acked and tested the changes?
+> >
+> > Ben does that sound OK to you?
+> 
+> Here's another one to add to omap-testing then.
+> 
+> This one has been submitted to linux-i2c a couple times and been in
+> the OMAP PM branch for a while.
 
-Remove the +x bit from a couple of source files
+OK, let's add that to omap-testing after we're done with the initial
+fixes. This does not currently apply on top of omap-testing, BTW.
 
-Signed-off-by: Andrew Clayton <andrew@digital-domain.net>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Regards,
 
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-old mode 100755
-new mode 100644
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-old mode 100755
-new mode 100644
+Tony
