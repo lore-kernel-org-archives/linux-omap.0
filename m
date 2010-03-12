@@ -1,64 +1,51 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 03/16] OMAP3: PM: Convert smartreflex driver into a
- platform driver using hwmods and omap-device layer
-Date: Fri, 12 Mar 2010 15:18:54 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321EC965D@dbde02.ent.ti.com>
-References: <1267003757-22456-1-git-send-email-thara@ti.com>
-	<1267003757-22456-2-git-send-email-thara@ti.com>
-	<1267003757-22456-3-git-send-email-thara@ti.com>
-	<1267003757-22456-4-git-send-email-thara@ti.com>
- <87hboyy3wi.fsf@deeprootsystems.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 12/19] omap: Fix gpio_resume_after_retention
+Date: Fri, 12 Mar 2010 16:07:50 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0321EC96B2@dbde02.ent.ti.com>
+References: <20100311234404.4500.82861.stgit@baageli.muru.com>
+ <20100311234834.4500.12726.stgit@baageli.muru.com>
+ <A24693684029E5489D1D202277BE894453FB11F8@dlee02.ent.ti.com>
+ <20100311235640.GW2900@atomide.com>
+ <A24693684029E5489D1D202277BE894453FB1216@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41629 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932067Ab0CLJtC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 04:49:02 -0500
-In-Reply-To: <87hboyy3wi.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55036 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757270Ab0CLKiC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 05:38:02 -0500
+In-Reply-To: <A24693684029E5489D1D202277BE894453FB1216@dlee02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+> I normally send my patches with this alias:
+> 
+> alias gsend='git send-email --smtp-server /usr/bin/msmtp 
+> --from "Sergio Aguirre <saaguirre@ti.com>" 
+> --envelope-sender="Sergio Aguirre <saaguirre@ti.com>"'
+> 
+> and then just do:
+> 
+> gsend --to='linux-omap@vger.kernel.org' 
+> patches/forLO_20100311/0001-mypatch.patch
+> 
+> But somehow the patch ends up (I'm guessing through TI LDAP 
+> server) changing that to "Aguirre, Sergio"...
+> 
+> and also Patchworks seems to continue display my old 
+> fullname: "Aguirre Rodriguez, Sergio Alberto"... I guess it's 
+> in a static data cache somewhere, maybe?
+> 
+> Does anyone know how to overcome this kind of scenario, and 
+> force what --from param says?
 
+I send patches with an explicit "From: Anand Gadiyar <gadiyar@ti.com>"
+line in the content. This seems to work okay.
 
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Tuesday, March 02, 2010 11:58 PM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Menon, Nishanth; Cousson, Benoit; Sripathy,
->>Vishwanath; Sawant, Anand
->>Subject: Re: [PATCH 03/16] OMAP3: PM: Convert smartreflex driver into a platform driver using hwmods
->>and omap-device layer
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>> This patch converts the exisitng smartreflex library into a
->>> platform driver with device , driver registrations using hardware mods.
->>> As part of this Ntarget values are passed as platform data.
->>>
->>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>
->>Nice work Thara.  This is good.  Some minor comments below, but some
->>general comments first.
->>
->>As discussed, eventually (longer term) we'll want to move the driver
->>parts of this to a regulator driver.  To ease that transition, I think
->>it would be nice to start now by separating the driver portions of
->>this file from the device portions.
->>
->>You've already done a good job of keeping them separate in this file
->>(most of the device stuff is at the end) but I think having a separate
->>file is probably even better.  Maybe move driver stuff to sr_driver.c
->>and leave device stuff in smartreflex.c?  I don't care much about the
->>names at this point.
-Hi Kevin,
+Can you check if this works for you?
 
-Quick question.. If we are going to separate out smartreflex device portions from this file , can't we keep them in devices.c instead of going for a separate file?
-
-Regards
-Thara
-
+- Anand
