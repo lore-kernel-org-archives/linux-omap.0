@@ -1,19 +1,16 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: (unknown)
-Date: Fri, 12 Mar 2010 21:40:00 +0530
-Message-ID: <1268410200-28620-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH] MFD: TWL4030: changes for TRITON glitch fix
+Date: Fri, 12 Mar 2010 21:41:36 +0530
+Message-ID: <1268410296-28993-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40167 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755083Ab0CLPt6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Mar 2010 10:49:58 -0500
-Subject: 
+Received: from devils.ext.ti.com ([198.47.26.153]:40714 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701Ab0CLPvf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 10:51:35 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
-
-Subject: [PATCH] MFD: TWL4030: changes for TRITON glitch fix.
 
 Fix for TWL5030 Silicon Errata 27 & 28:
 27 - VDD1, VDD2, may have glitches when their output value is updated.
