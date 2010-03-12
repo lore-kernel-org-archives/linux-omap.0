@@ -1,144 +1,122 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 17/19] omap: Add DSI regulator supply to OMAP3EVM board
- file
-Date: Fri, 12 Mar 2010 10:18:40 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DD32D7B@dbde02.ent.ti.com>
-References: <20100311234404.4500.82861.stgit@baageli.muru.com>
- <20100311234847.4500.24584.stgit@baageli.muru.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: hvaibhav@ti.com
+Subject: [PATCH FIX] OMAP: DSS: Fix for kernel crash during reboot
+Date: Fri, 12 Mar 2010 11:04:22 +0530
+Message-ID: <1268372062-5269-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40198 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753926Ab0CLEtF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Mar 2010 23:49:05 -0500
-In-Reply-To: <20100311234847.4500.24584.stgit@baageli.muru.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:59786 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751088Ab0CLFee (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Mar 2010 00:34:34 -0500
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@nokia.com, tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, March 12, 2010 5:19 AM
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: Tomi Valkeinen; linux-omap@vger.kernel.org; Hiremath, Vaibhav
-> Subject: [PATCH 17/19] omap: Add DSI regulator supply to OMAP3EVM board file
-> 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> With recent changes happened in OMAP2/3 DSS library for regulator interface,
-> it
-> is required to define DSI regulator supply, without this DSS (in turn Fbdev)
-> fails to get regulator.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm.c |   16 +++++++++++-----
->  1 files changed, 11 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> omap2/board-omap3evm.c
-> index 017bb2f..a05de10 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -514,9 +514,15 @@ static struct regulator_init_data omap3_evm_vdac = {
->  };
-> 
->  /* VPLL2 for digital video outputs */
-> -static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
-> -	.supply		= "vdvi",
-> -	.dev		= &omap3_evm_lcd_device.dev,
-> +static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
-> +	{
-> +		.supply		= "vdvi",
-> +		.dev		= &omap3_evm_lcd_device.dev,
-> +	},
-> +	{
-> +		.supply		= "vdds_dsi",
-> +		.dev		= &omap3_evm_dss_device.dev,
-> +	},
->  };
-> 
->  static struct regulator_init_data omap3_evm_vpll2 = {
-> @@ -530,8 +536,8 @@ static struct regulator_init_data omap3_evm_vpll2 = {
->  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
->  					| REGULATOR_CHANGE_STATUS,
->  	},
-> -	.num_consumer_supplies	= 1,
-> -	.consumer_supplies	= &omap3_evm_vpll2_supply,
-> +	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vpll2_supplies),
-> +	.consumer_supplies	= omap3_evm_vpll2_supplies,
->  };
-> 
->  static struct twl4030_platform_data omap3evm_twldata = {
-[Hiremath, Vaibhav] Tony,
-Please use the patch below, I have fixed Mark's comments to use devname instead of dev.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index ea1014b..f5c815a 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -514,10 +514,8 @@ static struct regulator_init_data omap3_evm_vdac = {
- };
+Kernel crash is observed when you include DSS, respctive drivers and issue
+"reboot" command.
+Added return from function omapdss_dpi_display_disable, if interface is already
+disabled.
 
- /* VPLL2 for digital video outputs */
--static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
--       .supply         = "vdds_dsi",
--       .dev            = &omap3_evm_dss_device.dev,
--};
-+static struct regulator_consumer_supply omap3_evm_vpll2_supply =
-+       REGULATOR_SUPPLY("vdds_dsi", "omapdss");
+Crash Log -
+============
+root@omap3evm:~# reboot
 
- static struct regulator_init_data omap3_evm_vpll2 = {
-        .constraints = {
+Broadcast message from root (ttyS0) (Fri Dec  4 03:51:10 2009):
 
+The system is going down for reboot NOW!
+INIT: Switching to runlevel: 6
+INIT: Sending processes the TERM signal
+INIT:Stopping telnet daemon.
+Stopping syslogd/klogd: stopped syslogd (pid 1187)
+stopped klogd (pid 1189)
+done
+Stopping thttpd.
+NOT deconfiguring network interfaces: / is an NFS mount
+Sending all processes the TERM signal...
+Sending all processes the KILL signal...
+Unmounting remote filesystems...
+Deactivating swap...
+Unmounting local filesystems...
+mount: can't find /mnt/ram in /proc/mounts
+umount: none busy - remounted read-only
+mount: cannot read /proc/mounts: No such file or directory
+Rebooting... Unable to handle kernel NULL pointer dereference at virtual
+address 0000007c
+pgd = c7dac000
+[0000007c] *pgd=87f52031, *pte=00000000, *ppte=00000000
+Internal error: Oops: 17 [#1]
+last sysfs file: /sys/kernel/uevent_seqnum
+Modules linked in:
+CPU: 0    Not tainted  (2.6.34-rc1-07844-g49f7ae9-dirty #1)
+PC is at omapdss_dpi_display_disable+0x14/0x3c
+LR is at omapdss_dpi_display_disable+0x18/0x3c
+pc : [<c019d64c>]    lr : [<c019d650>]    psr: 60000013
+sp : c6ccde40  ip : fa070000  fp : 00000000
+r10: 00000000  r9 : c6ccc000  r8 : c0030028
+r7 : 00000002  r6 : 00000000  r5 : c019d8e0  r4 : c03d7a98
+r3 : 00000000  r2 : 00000000  r1 : 00000002  r0 : 00000000
+Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+Control: 10c5387d  Table: 87dac019  DAC: 00000015
+Process reboot (pid: 1237, stack limit = 0xc6ccc2e8)
+Stack: (0xc6ccde40 to 0xc6cce000)
+de40: c03d7a98 c01a5ea8 00000000 c019d8f0 00000000 c01c7e48 c7c44cf8 c7c84170
+de60: c03d8ad8 c03da84c fee1dead c01c944c c03d8ad8 c01c5490 00000000 c0063f9c
+de80: 00000000 c0063fdc 00000000 c0064178 c7f3d6c0 c0094168 000000b4 00000000
+dea0: 00000000 c028a0e4 bee2fc90 000000ee 00000000 000003b8 c7dad000 00000000
+dec0: 00000002 c6d54b20 c7c166c0 c7f3d6c0 400ee980 c7f3d6f4 00000200 c7c166c0
+dee0: c7f3d6c0 c0036560 c7e1c040 c0240700 c03cdfc4 c03ce034 00000007 c6ccdfb0
+df00: 400ee980 000121d8 c7e1c040 c7e1c0e0 c6c88740 c028bc08 c7e1c040 00000000
+df20: c6ccdf20 c6ccdf20 c789c6e8 c789db98 ffffffff c00b7508 c7801398 c789db98
+df40: ffffffff c00b4958 c789db98 00000000 ffffffff c00b4fe0 00000014 c00a74c8
+df60: 00000000 00000000 c6c88740 00000000 c6f866c0 00000006 c6c88740 00000000
+df80: c6f866c0 c00a45ec c6f866e8 c6f866c0 c6c88740 00000000 00000001 00000004
+dfa0: 00000058 c002fe80 00000000 00000001 fee1dead 28121969 01234567 00000002
+dfc0: 00000000 00000001 00000004 00000058 000121d0 00000001 00000001 00000000
+dfe0: 400f6710 bee2fcb8 000092f0 400f6728 60000010 fee1dead 00000000 00000000
+[<c019d64c>] (omapdss_dpi_display_disable+0x14/0x3c) from [<c01a5ea8>]
+(generic_panel_disable+0xc/0x18)
+[<c01a5ea8>] (generic_panel_disable+0xc/0x18) from [<c019d8f0>]
+(dss_disable_device+0x10/0x18)
+[<c019d8f0>] (dss_disable_device+0x10/0x18) from [<c01c7e48>]
+(bus_for_each_dev+0x44/0x74)
+[<c01c7e48>] (bus_for_each_dev+0x44/0x74) from [<c01c944c>]
+(platform_drv_shutdown+0x18/0x1c)
+[<c01c944c>] (platform_drv_shutdown+0x18/0x1c) from [<c01c5490>]
+(device_shutdown+0x54/0x84)
+[<c01c5490>] (device_shutdown+0x54/0x84) from [<c0063f9c>]
+(kernel_restart_prepare+0x24/0x34)
+[<c0063f9c>] (kernel_restart_prepare+0x24/0x34) from [<c0063fdc>]
+(kernel_restart+0xc/0x40)
+[<c0063fdc>] (kernel_restart+0xc/0x40) from [<c0064178>]
+(sys_reboot+0x160/0x1b8)
+[<c0064178>] (sys_reboot+0x160/0x1b8) from [<c002fe80>]
+(ret_fast_syscall+0x0/0x2c)
+Code: e59031a4 e1a04000 e1a00003 e1a0e00f (e593f07c)
+***[ end trace c52dd0f51f03150e ]***
 
-[Hiremath, Vaibhav] Since you have already merged the patch , I have created patch on top of linux-omap/master below.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/video/omap2/dss/dpi.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 960e977..70c6902 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -210,6 +210,9 @@ EXPORT_SYMBOL(omapdss_dpi_display_enable);
 
+ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+ {
++	if (dssdev->state == OMAP_DSS_DISPLAY_DISABLED)
++		return;
++
+ 	dssdev->manager->disable(dssdev->manager);
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index a05de10..f5c815a 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -514,16 +514,8 @@ static struct regulator_init_data omap3_evm_vdac = {
- };
+ #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+--
+1.6.2.4
 
- /* VPLL2 for digital video outputs */
--static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
--       {
--               .supply         = "vdvi",
--               .dev            = &omap3_evm_lcd_device.dev,
--       },
--       {
--               .supply         = "vdds_dsi",
--               .dev            = &omap3_evm_dss_device.dev,
--       },
--};
-+static struct regulator_consumer_supply omap3_evm_vpll2_supply =
-+       REGULATOR_SUPPLY("vdds_dsi", "omapdss");
-
- static struct regulator_init_data omap3_evm_vpll2 = {
-        .constraints = {
-@@ -536,8 +528,8 @@ static struct regulator_init_data omap3_evm_vpll2 = {
-                .valid_ops_mask         = REGULATOR_CHANGE_MODE
-                                        | REGULATOR_CHANGE_STATUS,
-        },
--       .num_consumer_supplies  = ARRAY_SIZE(omap3_evm_vpll2_supplies),
--       .consumer_supplies      = omap3_evm_vpll2_supplies,
-+       .num_consumer_supplies  = 1,
-+       .consumer_supplies      = &omap3_evm_vpll2_supply,
- };
-
- static struct twl4030_platform_data omap3evm_twldata = {
-diff --git a/drivers/mtd/maps/omap_nor.c b/drivers/mtd/maps/omap_nor.c
-deleted file mode 100644
-index e69de29..0000000
-
-Thanks,
-Vaibhav
