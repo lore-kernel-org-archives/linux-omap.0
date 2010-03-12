@@ -1,65 +1,93 @@
 From: Scott Ellis <scott@jumpnowtek.com>
-Subject: [PATCH 4/6] SPI omap2_mcspi.c: Use the transfer speed_hz value if
- provided
-Date: Fri, 12 Mar 2010 10:22:04 -0500
-Message-ID: <1268407324.14445.53.camel@quad>
+Subject: [PATCH 5/6] SPI omap2_mcspi.c: Use num chipselects from platform
+ data
+Date: Fri, 12 Mar 2010 10:22:09 -0500
+Message-ID: <1268407329.14445.54.camel@quad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pan.gwi.net ([207.5.128.165]:3498 "EHLO pan.gwi.net"
+Received: from pan.gwi.net ([207.5.128.165]:3753 "EHLO pan.gwi.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934020Ab0CLPWH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Mar 2010 10:22:07 -0500
+	id S934020Ab0CLPWK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Mar 2010 10:22:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: spi-devel-general@lists.sourceforge.net
 Cc: David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-omap2_mcspi_setup_transfer() gets called if a transfer has a non-zero
-speed_hz value but it is never used in the function to override the
-speed. 
-
-This patch enables its use.
+The platform data already has the number of chip select lines 
+for each McSPI module. No need to figure it out again in 
+probe().
 
 Signed-off-by: Scott Ellis <scott@jumpnowtek.com>
 
- drivers/spi/omap2_mcspi.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/spi/omap2_mcspi.c |    9 ++-------
+ 1 files changed, 2 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-index 37e6d73..2a93a73 100644
+index cce23c5..cd9fdc2 100644
 --- a/drivers/spi/omap2_mcspi.c
 +++ b/drivers/spi/omap2_mcspi.c
-@@ -580,18 +580,24 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
- 	struct spi_master *spi_cntrl;
- 	u32 l = 0, div = 0;
- 	u8 word_len = spi->bits_per_word;
-+	u32 speed_hz = spi->max_speed_hz;
+@@ -1058,33 +1058,28 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 	struct resource		*r;
+ 	int			status = 0, i;
+ 	const u8		*rxdma_id, *txdma_id;
+-	unsigned		num_chipselect;
+ 	struct omap2_mcspi_platform_config *pdata;
  
- 	mcspi = spi_master_get_devdata(spi->master);
- 	spi_cntrl = mcspi->master;
+ 	switch (pdev->id) {
+ 	case 1:
+ 		rxdma_id = spi1_rxdma_id;
+ 		txdma_id = spi1_txdma_id;
+-		num_chipselect = 4;
+ 		break;
+ 	case 2:
+ 		rxdma_id = spi2_rxdma_id;
+ 		txdma_id = spi2_txdma_id;
+-		num_chipselect = 2;
+ 		break;
+ #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) \
+ 	|| defined(CONFIG_ARCH_OMAP4)
+ 	case 3:
+ 		rxdma_id = spi3_rxdma_id;
+ 		txdma_id = spi3_txdma_id;
+-		num_chipselect = 2;
+ 		break;
+ #endif
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ 	case 4:
+ 		rxdma_id = spi4_rxdma_id;
+ 		txdma_id = spi4_txdma_id;
+-		num_chipselect = 1;
+ 		break;
+ #endif
+ 	default:
+@@ -1106,7 +1101,6 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 	master->setup = omap2_mcspi_setup;
+ 	master->transfer = omap2_mcspi_transfer;
+ 	master->cleanup = omap2_mcspi_cleanup;
+-	master->num_chipselect = num_chipselect;
  
--	if (t != NULL && t->bits_per_word)
--		word_len = t->bits_per_word;
-+	if (t != NULL) {
-+		if (t->bits_per_word)
-+			word_len = t->bits_per_word;
-+
-+		if (t->speed_hz)
-+			speed_hz = t->speed_hz;
-+	}
+ 	dev_set_drvdata(&pdev->dev, master);
  
- 	cs->word_len = word_len;
+@@ -1114,6 +1108,7 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 	mcspi->master = master;
+ 	pdata = (struct omap2_mcspi_platform_config *)pdev->dev.platform_data;
+ 	mcspi->max_clk_div = pdata->max_clk_div;
++	master->num_chipselect = pdata->num_cs;
  
--	if (spi->max_speed_hz) {
-+	if (speed_hz) {
- 		while (div <= mcspi->max_clk_div &&
--			(OMAP2_MCSPI_MAX_FREQ/(1 << div)) > spi->max_speed_hz)
-+			(OMAP2_MCSPI_MAX_FREQ/(1 << div)) > speed_hz)
- 			div++;
- 	} else {
- 		div = mcspi->max_clk_div;
+ 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (r == NULL) {
+@@ -1160,7 +1155,7 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+ 	if (mcspi->dma_channels == NULL)
+ 		goto err3;
+ 
+-	for (i = 0; i < num_chipselect; i++) {
++	for (i = 0; i < master->num_chipselect; i++) {
+ 		mcspi->dma_channels[i].dma_rx_channel = -1;
+ 		mcspi->dma_channels[i].dma_rx_sync_dev = rxdma_id[i];
+ 		mcspi->dma_channels[i].dma_tx_channel = -1;
 
 
 
