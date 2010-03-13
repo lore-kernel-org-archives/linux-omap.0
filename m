@@ -1,69 +1,48 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 03/16] OMAP3: PM: Convert smartreflex driver into a platform driver using hwmods and omap-device layer
-Date: Fri, 12 Mar 2010 16:36:56 -0800
-Message-ID: <87aaud2h1z.fsf@deeprootsystems.com>
-References: <1267003757-22456-1-git-send-email-thara@ti.com>
-	<1267003757-22456-2-git-send-email-thara@ti.com>
-	<1267003757-22456-3-git-send-email-thara@ti.com>
-	<1267003757-22456-4-git-send-email-thara@ti.com>
-	<87hboyy3wi.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0321EC965D@dbde02.ent.ti.com>
+From: "Olaya, Margarita" <magi.olaya@ti.com>
+Subject: [PATCHv5 0/2] TWL6040 audio codec initial support
+Date: Fri, 12 Mar 2010 19:52:11 -0600
+Message-ID: <1889FA7136B567478A67D4B0F85B0CCE66173AF5@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:52241 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935828Ab0CMAhA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 19:37:00 -0500
-Received: by pwi1 with SMTP id 1so1079718pwi.19
-        for <linux-omap@vger.kernel.org>; Fri, 12 Mar 2010 16:36:59 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321EC965D@dbde02.ent.ti.com> (Thara Gopinath's message of "Fri\, 12 Mar 2010 15\:18\:54 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52727 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751367Ab0CMBwW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 20:52:22 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 
-"Gopinath, Thara" <thara@ti.com> writes:
+Following patch series add initial support for TWL6040 codec driver.
+The patch set is based on the series sent from Misael Lopez in October 2009.
 
->>>-----Original Message-----
->>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>Sent: Tuesday, March 02, 2010 11:58 PM
->>>To: Gopinath, Thara
->>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Menon, Nishanth; Cousson, Benoit; Sripathy,
->>>Vishwanath; Sawant, Anand
->>>Subject: Re: [PATCH 03/16] OMAP3: PM: Convert smartreflex driver into a platform driver using hwmods
->>>and omap-device layer
->>>
->>>Thara Gopinath <thara@ti.com> writes:
->>>
->>>> This patch converts the exisitng smartreflex library into a
->>>> platform driver with device , driver registrations using hardware mods.
->>>> As part of this Ntarget values are passed as platform data.
->>>>
->>>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>>
->>>Nice work Thara.  This is good.  Some minor comments below, but some
->>>general comments first.
->>>
->>>As discussed, eventually (longer term) we'll want to move the driver
->>>parts of this to a regulator driver.  To ease that transition, I think
->>>it would be nice to start now by separating the driver portions of
->>>this file from the device portions.
->>>
->>>You've already done a good job of keeping them separate in this file
->>>(most of the device stuff is at the end) but I think having a separate
->>>file is probably even better.  Maybe move driver stuff to sr_driver.c
->>>and leave device stuff in smartreflex.c?  I don't care much about the
->>>names at this point.
->
-> Quick question.. If we are going to separate out smartreflex device
-> portions from this file , can't we keep them in devices.c instead of
-> going for a separate file?
+Changes from v4:
+- Rename twl6030_codec as twl6040_codec
+- Rebase the 6 codec patches into a single patch
+- Rename twl6040_read as twl6040_read_reg_volatile
+- Use msleep instead of large mdelays
+- Add more trigger sources
+- Restructure set_bias_level function to avoid transitions like PREPARE->ON
 
-Ultimately, that's Tony's call, but I would prefer to see a separate
-specific file for SR device init.
+Regards,
+Margarita
+---
 
-Kevin
+Misael Lopez Cruz (1):
+  ASoC: TWL6040: Add twl6040 codec driver
 
+Margarita Olaya Cabrera (1):
+  OMAP4: PMIC: Rename twl6030_codec as twl6040_codec
 
-
+ drivers/mfd/twl-core.c     |    4 +-
+ include/linux/i2c/twl.h    |    6 +-
+ sound/soc/codecs/Kconfig   |    4 +
+ sound/soc/codecs/Makefile  |    2 +
+ sound/soc/codecs/twl6040.c | 1223 ++++++++++++++++++++++++++++++++++++++++++++
+ sound/soc/codecs/twl6040.h |  141 +++++
+ 6 files changed, 1375 insertions(+), 5 deletions(-)
+ create mode 100644 sound/soc/codecs/twl6040.c
+ create mode 100644 sound/soc/codecs/twl6040.h
