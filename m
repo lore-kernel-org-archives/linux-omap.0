@@ -1,48 +1,69 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH v2] [I2C-OMAP] Add support for 16-bit registers
-Date: Fri, 12 Mar 2010 16:28:00 -0800
-Message-ID: <87eijp2hgv.fsf@deeprootsystems.com>
-References: <1260669242-29865-1-git-send-email-darkstar6262@gmail.com>
-	<6cb013311001090947m2268833cv3784f469dc8b861d@mail.gmail.com>
-	<20100109183321.GH2879@atomide.com>
-	<6cb013311001091035x54321b3aqb814f476200980af@mail.gmail.com>
-	<20100112012814.GK5055@atomide.com>
-	<87k4tkf3ye.fsf@deeprootsystems.com>
-	<20100310223000.GT2900@atomide.com>
-	<878w9ydd6x.fsf@deeprootsystems.com>
-	<20100312001753.GC2900@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 03/16] OMAP3: PM: Convert smartreflex driver into a platform driver using hwmods and omap-device layer
+Date: Fri, 12 Mar 2010 16:36:56 -0800
+Message-ID: <87aaud2h1z.fsf@deeprootsystems.com>
+References: <1267003757-22456-1-git-send-email-thara@ti.com>
+	<1267003757-22456-2-git-send-email-thara@ti.com>
+	<1267003757-22456-3-git-send-email-thara@ti.com>
+	<1267003757-22456-4-git-send-email-thara@ti.com>
+	<87hboyy3wi.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0321EC965D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100312001753.GC2900-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message of "Thu\, 11 Mar 2010 16\:17\:53 -0800")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:52241 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935828Ab0CMAhA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Mar 2010 19:37:00 -0500
+Received: by pwi1 with SMTP id 1so1079718pwi.19
+        for <linux-omap@vger.kernel.org>; Fri, 12 Mar 2010 16:36:59 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321EC965D@dbde02.ent.ti.com> (Thara Gopinath's message of "Fri\, 12 Mar 2010 15\:18\:54 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+"Gopinath, Thara" <thara@ti.com> writes:
 
-> * Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> [100311 08:36]:
->> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
->> >
->> > Anyways, for the future, considering how critical this driver is
->> > for all omaps.. And considering how badly this driver needs some
->> > updates done..
->> >
->> > How about we pile up the i2c-omap patches for testing into linux-omap
->> > branch first, then ask Ben to pull it around -rc6 after we've all
->> > acked and tested the changes?
->> >
->> > Ben does that sound OK to you?
->> 
->> Here's another one to add to omap-testing then.
->> 
->> This one has been submitted to linux-i2c a couple times and been in
->> the OMAP PM branch for a while.
+>>>-----Original Message-----
+>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>Sent: Tuesday, March 02, 2010 11:58 PM
+>>>To: Gopinath, Thara
+>>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Menon, Nishanth; Cousson, Benoit; Sripathy,
+>>>Vishwanath; Sawant, Anand
+>>>Subject: Re: [PATCH 03/16] OMAP3: PM: Convert smartreflex driver into a platform driver using hwmods
+>>>and omap-device layer
+>>>
+>>>Thara Gopinath <thara@ti.com> writes:
+>>>
+>>>> This patch converts the exisitng smartreflex library into a
+>>>> platform driver with device , driver registrations using hardware mods.
+>>>> As part of this Ntarget values are passed as platform data.
+>>>>
+>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>>
+>>>Nice work Thara.  This is good.  Some minor comments below, but some
+>>>general comments first.
+>>>
+>>>As discussed, eventually (longer term) we'll want to move the driver
+>>>parts of this to a regulator driver.  To ease that transition, I think
+>>>it would be nice to start now by separating the driver portions of
+>>>this file from the device portions.
+>>>
+>>>You've already done a good job of keeping them separate in this file
+>>>(most of the device stuff is at the end) but I think having a separate
+>>>file is probably even better.  Maybe move driver stuff to sr_driver.c
+>>>and leave device stuff in smartreflex.c?  I don't care much about the
+>>>names at this point.
 >
-> OK, let's add that to omap-testing after we're done with the initial
-> fixes. This does not currently apply on top of omap-testing, BTW.
+> Quick question.. If we are going to separate out smartreflex device
+> portions from this file , can't we keep them in devices.c instead of
+> going for a separate file?
 
-The patch is against v2.6.34-rc1.
+Ultimately, that's Tony's call, but I would prefer to see a separate
+specific file for SR device init.
 
 Kevin
+
+
+
