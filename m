@@ -1,110 +1,86 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCHv5 2/2] ASoC: TWL6040: Add twl6040 codec driver
-Date: Sat, 13 Mar 2010 05:23:27 -0600
-Message-ID: <05b5d6bc0abd41e31334184e66718cec@secure211.sgcpanel.com>
-References: <1889FA7136B567478A67D4B0F85B0CCE66173AF7@dlee06.ent.ti.com>
+From: Scott Ellis <scott@jumpnowtek.com>
+Subject: [PATCH 2/6 Revised] SPI omap2_mcspi: Add max_clk_div field to
+ mcspi platform config
+Date: Sun, 14 Mar 2010 13:25:48 -0400
+Message-ID: <1268587548.30878.11.camel@quad>
+References: <1268407307.14445.51.camel@quad>
+	 <20100312172148.GG2900@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:34966 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933646Ab0CMLX3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Mar 2010 06:23:29 -0500
-In-Reply-To: <1889FA7136B567478A67D4B0F85B0CCE66173AF7@dlee06.ent.ti.com>
+Received: from pan.gwi.net ([207.5.128.165]:3887 "EHLO pan.gwi.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751075Ab0CNRZv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 14 Mar 2010 13:25:51 -0400
+In-Reply-To: <20100312172148.GG2900@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Olaya, Margarita" <magi.olaya@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
+To: spi-devel-general@lists.sourceforge.net
+Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Andrew Morton <akpm@linux-foundation.org>, Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi,
+The McSPI_CHxCONF.CLKD register field has different limits for
+the OMAP3 then the OMAP24xx. New max_clk_div field added to
+mcspi platform config structure to keep track of this.
 
-On Fri, 12 Mar 2010 19:52:20 -0600, "Olaya, Margarita" <magi.olaya@ti.com>
-wrote:
-> +/*
-> + * twl6040 register cache & default register settings
-> + */
-> +static const u8 twl6040_reg[TWL6040_CACHEREGNUM] = {
-> +       0x00, /* not used               0x00    */
-> +       0x4B, /* TWL6040_ASICID (ro)    0x01    */
-> +       0x00, /* TWL6040_ASICREV (ro)   0x02    */
-> +       0x00, /* TWL6040_INTID          0x03    */
-> +       0x00, /* TWL6040_INTMR          0x04    */
-> +       0x00, /* TWL6040_NCPCTRL        0x05    */
-> +       0x00, /* TWL6040_LDOCTL         0x06    */
-> +       0x00, /* TWL6040_HPPLLCTL       0x07    */
-> +       0x00, /* TWL6040_LPPLLCTL       0x08    */
-> +       0x00, /* TWL6040_LPPLLDIV       0x09    */
-> +       0x00, /* TWL6040_AMICBCTL       0x0A    */
-> +       0x00, /* TWL6040_DMICBCTL       0x0B    */
-> +       0x18, /* TWL6040_MICLCTL        0x0C    */
-> +       0x18, /* TWL6040_MICRCTL        0x0D    */
-> +       0x00, /* TWL6040_MICGAIN        0x0E    */
-> +       0x1B, /* TWL6040_LINEGAIN       0x0F    */
-> +       0x00, /* TWL6040_HSLCTL         0x10    */
-> +       0x00, /* TWL6040_HSRCTL         0x11    */
-> +       0x00, /* TWL6040_HSGAIN         0x12    */
-> +       0x06, /* TWL6040_EARCTL         0x13    */
-> +       0x00, /* TWL6040_HFLCTL         0x14    */
-> +       0x03, /* TWL6040_HFLGAIN        0x15    */
-> +       0x00, /* TWL6040_HFRCTL         0x16    */
-> +       0x03, /* TWL6040_HFRGAIN        0x17    */
-> +       0x00, /* TWL6040_VIBCTLL        0x18    */
-> +       0x00, /* TWL6040_VIBDATL        0x19    */
-> +       0x00, /* TWL6040_VIBCTLR        0x1A    */
-> +       0x00, /* TWL6040_VIBDATR        0x1B    */
-> +       0x00, /* TWL6040_HKCTL1         0x1C    */
-> +       0x00, /* TWL6040_HKCTL2         0x1D    */
-> +       0x00, /* TWL6040_GPOCTL         0x1E    */
-> +       0x00, /* TWL6040_ALB            0x1F    */
-> +       0x00, /* TWL6040_DLB            0x20    */
-> +       0x00, /* not used               0x21    */
-> +       0x00, /* not used               0x22    */
-> +       0x00, /* not used               0x23    */
-> +       0x00, /* not used               0x24    */
-> +       0x00, /* not used               0x25    */
-> +       0x00, /* not used               0x26    */
-> +       0x00, /* not used               0x27    */
-> +       0x00, /* TWL6040_TRIM1          0x28    */
-> +       0x00, /* TWL6040_TRIM2          0x29    */
-> +       0x00, /* TWL6040_TRIM3          0x2A    */
-> +       0x00, /* TWL6040_HSOTRIM        0x2B    */
-> +       0x00, /* TWL6040_HFOTRIM        0x2C    */
-> +       0x09, /* TWL6040_ACCCTL         0x2D    */
-> +       0x00, /* TWL6040_STATUS (ro)    0x2E    */
-> +};
+Revised patch to not break multi-omap booting.
 
-a little comment about what the default values are would
-be nice.
+Signed-off-by: Scott Ellis <scott@jumpnowtek.com>
 
-#ifdef CONFIG_PM
+ arch/arm/mach-omap2/devices.c           |   14 ++++++++++++++
+ arch/arm/plat-omap/include/plat/mcspi.h |    1 +
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
-> +static int twl6040_suspend(struct platform_device *pdev, pm_message_t
-> state)
-> +{
-> +       struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-> +       struct snd_soc_codec *codec = socdev->card->codec;
-> +
-> +       twl6040_set_bias_level(codec, SND_SOC_BIAS_OFF);
-> +
-> +       return 0;
-> +}
-> +
-> +static int twl6040_resume(struct platform_device *pdev)
-> +{
-> +       struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-> +       struct snd_soc_codec *codec = socdev->card->codec;
-> +
-> +       twl6040_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
-> +       twl6040_set_bias_level(codec, codec->suspend_bias_level);
-> +
-> +       return 0;
-> +}
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 23e4d77..200f382 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -415,6 +415,11 @@ static inline void omap4_mcspi_fixup(void)
+ 	defined(CONFIG_ARCH_OMAP4)
+ static inline void omap2_mcspi3_init(void)
+ {
++	if (cpu_is_omap343x() || cpu_is_omap44xx())
++		omap2_mcspi3_config.max_clk_div = 0x0c;
++	else
++		omap2_mcspi3_config.max_clk_div = 0x0f;
++
+ 	platform_device_register(&omap2_mcspi3);
+ }
+ #else
+@@ -426,6 +431,7 @@ static inline void omap2_mcspi3_init(void)
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static inline void omap2_mcspi4_init(void)
+ {
++	omap2_mcspi4_config.max_clk_div = 0x0c;
+ 	platform_device_register(&omap2_mcspi4);
+ }
+ #else
+@@ -439,6 +445,14 @@ static void omap_init_mcspi(void)
+ 	if (cpu_is_omap44xx())
+ 		omap4_mcspi_fixup();
+ 
++	if (cpu_is_omap343x() || cpu_is_omap44xx()) {
++		omap2_mcspi1_config.max_clk_div = 0x0c;
++		omap2_mcspi2_config.max_clk_div = 0x0c;
++	} else {
++		omap2_mcspi1_config.max_clk_div = 0x0f;
++		omap2_mcspi2_config.max_clk_div = 0x0f;
++	}
++
+ 	platform_device_register(&omap2_mcspi1);
+ 	platform_device_register(&omap2_mcspi2);
+ 
+diff --git a/arch/arm/plat-omap/include/plat/mcspi.h b/arch/arm/plat-omap/include/plat/mcspi.h
+index 1254e49..9fadddd 100644
+--- a/arch/arm/plat-omap/include/plat/mcspi.h
++++ b/arch/arm/plat-omap/include/plat/mcspi.h
+@@ -3,6 +3,7 @@
+ 
+ struct omap2_mcspi_platform_config {
+ 	unsigned short	num_cs;
++	unsigned short	max_clk_div;
+ };
+ 
+ struct omap2_mcspi_device_config {
 
-#else
-#define twl6040_suspend    NULL
-#define twl6040_resume     NULL
-#endif
 
--- 
-balbi
