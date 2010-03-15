@@ -1,118 +1,81 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH 0/7] omap3: serial code for 3630 and zoom2/3 fixes
-Date: Mon, 15 Mar 2010 15:36:55 -0500
-Message-ID: <A24693684029E5489D1D202277BE89445405400C@dlee02.ent.ti.com>
-References: <1268424009-18974-1-git-send-email-saaguirre@ti.com>
+From: Ned Forrester <nforrester@whoi.edu>
+Subject: Re: [spi-devel-general] SPI troubles
+Date: Mon, 15 Mar 2010 16:57:27 -0400
+Message-ID: <4B9E9F37.9030906@whoi.edu>
+References: <4b9d9f11.9a15f10a.3902.6dc3@mx.google.com>	<4B9E466E.3040405@whoi.edu> <4b9e58d3.11435e0a.1736.2cf9@mx.google.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_A24693684029E5489D1D202277BE89445405400Cdlee02entticom_"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42001 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932138Ab0COUhE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Mar 2010 16:37:04 -0400
-In-Reply-To: <1268424009-18974-1-git-send-email-saaguirre@ti.com>
-Content-Language: en-US
+Received: from postal2-e0.whoi.edu ([128.128.76.88]:35342 "EHLO
+	postal2.whoi.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757076Ab0COU5c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2010 16:57:32 -0400
+In-Reply-To: <4b9e58d3.11435e0a.1736.2cf9@mx.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <me@felipebalbi.com>
+To: Ben Gamari <bgamari.foss@gmail.com>
+Cc: beagleboard@googlegroups.com, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
 
---_002_A24693684029E5489D1D202277BE89445405400Cdlee02entticom_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On 03/15/2010 11:57 AM, Ben Gamari wrote:
+> When measuring the SIMO signal on the expansion connector with my daughterboard
+> connected, I noticed that the daughterboard's level shifter appeared to be
+> driving the signal higher than it should, to ~2.9 Volts. I then checked the
+> 1.8V rail voltage and found that it too was higher than expected, again at 2.9
+> volts. When I unplug the daughterboard, the 1.8V rail voltage returns to its
+> expected value.
+>
+> On Mon, 15 Mar 2010 10:38:38 -0400, Ned Forrester <nforrester@whoi.edu> wrote:
+>> I'd be happy to check your circuit for you, if it were posted in a more
+>> widely used format.  How about a PDF of the schematic.
+>>
+> Certainly, it's a available at http://goldnerlab.physics.umass.edu/~bgamari/schematic.png.
 
-Tony,
+Your problem is likely caused by pulling the THREE STATE pin to 5V.  The
+spec sheet is explicit (in the Absolute Maximum ratings on page 2, and
+in the functional description on page 12 that this pin should be pulled
+to VL, not VCC to enable the outputs.  Likely by pulling it to 5V the
+some part of the chip is biased wrong and may cause OVL1 to be pulled
+above VL.
 
-Please find attached pull request for your convenience.
+I can't exactly explain the symptoms you report above, based on the
+mis-connected pin, but most anything could be happening in the MAX3390
+once the absolute maximum ratings have been exceeded.  The 10K resistors
+on the THREE STATE lines may have saved the circuit from permanent
+damage, but they may not save it from improper operation.
 
-Regards,
-Sergio
+Other suggestions, nothing fatal...
 
-> -----Original Message-----
-> From: Aguirre, Sergio
-> Sent: Friday, March 12, 2010 2:00 PM
-> To: Tony Lindgren
-> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Pandita, Vikram; Paul
-> Walmsley; Felipe Balbi; Aguirre, Sergio
-> Subject: [PATCH 0/7] omap3: serial code for 3630 and zoom2/3 fixes
->=20
-> Hi,
->=20
-> This series contains fixes for omap2/3/4 serial code, and are
-> fixing:
->  - Avoid doing ioremapp of a zero-based physical address.
->    (causing a kernel panic during early init on 3630boards)
->  - Unproper omap_revision check during uart globals setup.
->    (omap_revision is not yet filled at that point)
->  - Don't try to enable all uarts generically for zoom2/3
->    and 3630sdp.
->  - Make zoom2/3 just register one serial port (ttyS0).
->=20
-> This is a subset of the original series found here: [1]
->=20
-> Thanks to:
->  - Vikram Pandita
->  - Paul Walmsley
->  - Kevin Hilman
->  - Manjunath Kondaiah
->  - Felipe Balbi
->  - Tony Lindgreen
->=20
-> For all the feedback recieved so far.
->=20
-> Regards,
-> Sergio
->=20
-> Sergio Aguirre (7):
->   OMAP3: serial: Check for zero-based physical addr
->   OMAP3: serial: Use dev_* macros instead of printk
->   omap2/3/4: serial: Remove condition for getting uart4_phys
->   omap3: zoom2/3 / 3630sdp: Don't init always all uarts
->   omap3: 3630sdp: Explicitly enable all UARTs
->   omap3: zoom 2/3: Change debugboard serial port id
->   omap3: zoom2/3: Register only 1 8250 port
->=20
->  arch/arm/configs/omap_zoom2_defconfig        |    2 +-
->  arch/arm/configs/omap_zoom3_defconfig        |    2 +-
->  arch/arm/mach-omap2/board-3630sdp.c          |    1 +
->  arch/arm/mach-omap2/board-zoom-debugboard.c  |    2 +-
->  arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
->  arch/arm/mach-omap2/serial.c                 |   35 +++++++++++++-------=
--
-> ----
->  6 files changed, 22 insertions(+), 21 deletions(-)
->=20
-> [1] http://marc.info/?l=3Dlinux-omap&m=3D126826639903105&w=3D2
+1. The pinout of the MAX3390E on the drawing is for the TSSOP package.
+Hopefully that is the package you actually used.
 
+2. All uncommitted inputs should be terminated high or low.  This
+applies to: LS2 pins 4, 5 and 13; LS3 pin 13 and possibly unused pins on
+the A/Ds and D/A.
 
---_002_A24693684029E5489D1D202277BE89445405400Cdlee02entticom_
-Content-Type: text/plain; name="pullreq_tony_20100315.txt"
-Content-Description: pullreq_tony_20100315.txt
-Content-Disposition: attachment; filename="pullreq_tony_20100315.txt";
-	size=1109; creation-date="Mon, 15 Mar 2010 15:36:19 GMT";
-	modification-date="Mon, 15 Mar 2010 15:36:19 GMT"
-Content-Transfer-Encoding: base64
+3. The MAX3390E family has extremely low drive capability and slow
+response.  Is this device really fast enough for your intended clock
+rates?  Note that the device can only pull down 1ma, and can only pull
+up 20ua.  If there are any pull-downs or pull-ups on the BeagleBoard,
+the MAX3390E might not be able to drive them.
 
-VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCBhODQyYjVmOWNlNzBlMWI3MzhlYWJi
-NGQ3MTk4NjAwNzAxODBlZDFjOgogIFRvbnkgTGluZGdyZW4gKDEpOgogICAgICAgIFJldmVydCAi
-b21hcDogQWRkIERTSSByZWd1bGF0b3Igc3VwcGx5IHRvIE9NQVAzRVZNIGJvYXJkIGZpbGUiCgph
-cmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoKCiAgZ2l0Oi8vZGV2Lm9tYXB6
-b29tLm9yZy9wdWIvc2NtL3NhYWd1aXJyZS9saW51eC1vbWFwLWNhbWVyYS5naXQgb21hcC1maXhl
-cwoKU2VyZ2lvIEFndWlycmUgKDcpOgogICAgICBPTUFQMzogc2VyaWFsOiBDaGVjayBmb3IgemVy
-by1iYXNlZCBwaHlzaWNhbCBhZGRyCiAgICAgIE9NQVAzOiBzZXJpYWw6IFVzZSBkZXZfKiBtYWNy
-b3MgaW5zdGVhZCBvZiBwcmludGsKICAgICAgb21hcDIvMy80OiBzZXJpYWw6IFJlbW92ZSBjb25k
-aXRpb24gZm9yIGdldHRpbmcgdWFydDRfcGh5cwogICAgICBvbWFwMzogem9vbTIvMyAvIDM2MzBz
-ZHA6IERvbid0IGluaXQgYWx3YXlzIGFsbCB1YXJ0cwogICAgICBvbWFwMzogMzYzMHNkcDogRXhw
-bGljaXRseSBlbmFibGUgYWxsIFVBUlRzCiAgICAgIG9tYXAzOiB6b29tIDIvMzogQ2hhbmdlIGRl
-YnVnYm9hcmQgc2VyaWFsIHBvcnQgaWQKICAgICAgb21hcDM6IHpvb20yLzM6IFJlZ2lzdGVyIG9u
-bHkgMSA4MjUwIHBvcnQKCiBhcmNoL2FybS9jb25maWdzL29tYXBfem9vbTJfZGVmY29uZmlnICAg
-ICAgICB8ICAgIDIgKy0KIGFyY2gvYXJtL2NvbmZpZ3Mvb21hcF96b29tM19kZWZjb25maWcgICAg
-ICAgIHwgICAgMiArLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0zNjMwc2RwLmMgICAgICAg
-ICAgfCAgICAxICsKIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtem9vbS1kZWJ1Z2JvYXJkLmMg
-IHwgICAgMiArLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC16b29tLXBlcmlwaGVyYWxzLmMg
-fCAgICAxIC0KIGFyY2gvYXJtL21hY2gtb21hcDIvc2VyaWFsLmMgICAgICAgICAgICAgICAgIHwg
-ICAzNSArKysrKysrKysrKysrLS0tLS0tLS0tLS0tCiA2IGZpbGVzIGNoYW5nZWQsIDIyIGluc2Vy
-dGlvbnMoKyksIDIxIGRlbGV0aW9ucygtKQo=
+4. I find it curious that the AVDD to the A/D and D/A is fead through a
+1ohm resistor that is paralleled by C11 and C12.  Likely you meant to
+tie one side of each of C11 and C12 (the side now connected to C10
+positive) to ground.  That connection would make a filter to reduce the
+noise on AVDD rather than passing the noise along.
 
---_002_A24693684029E5489D1D202277BE89445405400Cdlee02entticom_--
+5. Is see on the Maxim site that this series of translators is not
+recommended for new design.  Likely the suggested alternatives have much
+better specifications.
+
+-- 
+Ned Forrester                                       nforrester@whoi.edu
+Oceanographic Systems Lab                                  508-289-2226
+Applied Ocean Physics and Engineering Dept.
+Woods Hole Oceanographic Institution          Woods Hole, MA 02543, USA
+http://www.whoi.edu/
+http://www.whoi.edu/sbl/liteSite.do?litesiteid=7212
+http://www.whoi.edu/hpb/Site.do?id=1532
+http://www.whoi.edu/page.do?pid=10079
+
