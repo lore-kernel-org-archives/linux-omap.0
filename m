@@ -1,52 +1,118 @@
-From: Scott Ellis <scott@jumpnowtek.com>
-Subject: Re: [PATCH 2/6 Revised] SPI omap2_mcspi: Add max_clk_div field to
- mcspi platform config
-Date: Mon, 15 Mar 2010 16:30:22 -0400
-Message-ID: <1268685022.8594.130.camel@quad>
-References: <1268407307.14445.51.camel@quad>
-	 <20100312172148.GG2900@atomide.com> <1268587548.30878.11.camel@quad>
-	 <20100315163246.GT2900@atomide.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH 0/7] omap3: serial code for 3630 and zoom2/3 fixes
+Date: Mon, 15 Mar 2010 15:36:55 -0500
+Message-ID: <A24693684029E5489D1D202277BE89445405400C@dlee02.ent.ti.com>
+References: <1268424009-18974-1-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="_002_A24693684029E5489D1D202277BE89445405400Cdlee02entticom_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pan.gwi.net ([207.5.128.165]:4139 "EHLO pan.gwi.net"
+Received: from bear.ext.ti.com ([192.94.94.41]:42001 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936703Ab0COUa3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Mar 2010 16:30:29 -0400
-In-Reply-To: <20100315163246.GT2900@atomide.com>
+	id S932138Ab0COUhE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Mar 2010 16:37:04 -0400
+In-Reply-To: <1268424009-18974-1-git-send-email-saaguirre@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: spi-devel-general@lists.sourceforge.net, David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Andrew Morton <akpm@linux-foundation.org>, Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <me@felipebalbi.com>
 
-> Hmm now it looks like you're missing 3630 handling?
-> 
-> If the max_clk_div is 0x0f for 2420 and 2430, then you
-> can just check for cpu_is_omap24xx(). If it's only
-> different for 2420, then you can check for cpu_is_omap2420().
-> 
-> That way it should be more future proof, and you don't
-> need to change it for new processors.
-> 
-Anand Gadiyar <gadiyar <at> ti.com> verified 0x0f for the 2430.
+--_002_A24693684029E5489D1D202277BE89445405400Cdlee02entticom_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-I think SWPU177D is the correct TRM for the omap3630 and if so then 0x0c
-is the correct value.
+Tony,
 
-I did not verify the omap44xx value and just assumed similar to the
-omap3's. My bad.
+Please find attached pull request for your convenience.
 
-Can you or someone point me to links for the omap2420 and the omap44xx
-TRMs? I'm not having any luck finding them.
+Regards,
+Sergio
 
-Then it can be verified whether a cpu_is_omap24xx() check is sufficient.
-It probably is.
+> -----Original Message-----
+> From: Aguirre, Sergio
+> Sent: Friday, March 12, 2010 2:00 PM
+> To: Tony Lindgren
+> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Pandita, Vikram; Paul
+> Walmsley; Felipe Balbi; Aguirre, Sergio
+> Subject: [PATCH 0/7] omap3: serial code for 3630 and zoom2/3 fixes
+>=20
+> Hi,
+>=20
+> This series contains fixes for omap2/3/4 serial code, and are
+> fixing:
+>  - Avoid doing ioremapp of a zero-based physical address.
+>    (causing a kernel panic during early init on 3630boards)
+>  - Unproper omap_revision check during uart globals setup.
+>    (omap_revision is not yet filled at that point)
+>  - Don't try to enable all uarts generically for zoom2/3
+>    and 3630sdp.
+>  - Make zoom2/3 just register one serial port (ttyS0).
+>=20
+> This is a subset of the original series found here: [1]
+>=20
+> Thanks to:
+>  - Vikram Pandita
+>  - Paul Walmsley
+>  - Kevin Hilman
+>  - Manjunath Kondaiah
+>  - Felipe Balbi
+>  - Tony Lindgreen
+>=20
+> For all the feedback recieved so far.
+>=20
+> Regards,
+> Sergio
+>=20
+> Sergio Aguirre (7):
+>   OMAP3: serial: Check for zero-based physical addr
+>   OMAP3: serial: Use dev_* macros instead of printk
+>   omap2/3/4: serial: Remove condition for getting uart4_phys
+>   omap3: zoom2/3 / 3630sdp: Don't init always all uarts
+>   omap3: 3630sdp: Explicitly enable all UARTs
+>   omap3: zoom 2/3: Change debugboard serial port id
+>   omap3: zoom2/3: Register only 1 8250 port
+>=20
+>  arch/arm/configs/omap_zoom2_defconfig        |    2 +-
+>  arch/arm/configs/omap_zoom3_defconfig        |    2 +-
+>  arch/arm/mach-omap2/board-3630sdp.c          |    1 +
+>  arch/arm/mach-omap2/board-zoom-debugboard.c  |    2 +-
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
+>  arch/arm/mach-omap2/serial.c                 |   35 +++++++++++++-------=
+-
+> ----
+>  6 files changed, 22 insertions(+), 21 deletions(-)
+>=20
+> [1] http://marc.info/?l=3Dlinux-omap&m=3D126826639903105&w=3D2
 
-Or if someone with access to those manuals could do a quick check...
 
-It's the max value of the MCSPI_CHxCONF.CLKD register field.
+--_002_A24693684029E5489D1D202277BE89445405400Cdlee02entticom_
+Content-Type: text/plain; name="pullreq_tony_20100315.txt"
+Content-Description: pullreq_tony_20100315.txt
+Content-Disposition: attachment; filename="pullreq_tony_20100315.txt";
+	size=1109; creation-date="Mon, 15 Mar 2010 15:36:19 GMT";
+	modification-date="Mon, 15 Mar 2010 15:36:19 GMT"
+Content-Transfer-Encoding: base64
 
+VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCBhODQyYjVmOWNlNzBlMWI3MzhlYWJi
+NGQ3MTk4NjAwNzAxODBlZDFjOgogIFRvbnkgTGluZGdyZW4gKDEpOgogICAgICAgIFJldmVydCAi
+b21hcDogQWRkIERTSSByZWd1bGF0b3Igc3VwcGx5IHRvIE9NQVAzRVZNIGJvYXJkIGZpbGUiCgph
+cmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoKCiAgZ2l0Oi8vZGV2Lm9tYXB6
+b29tLm9yZy9wdWIvc2NtL3NhYWd1aXJyZS9saW51eC1vbWFwLWNhbWVyYS5naXQgb21hcC1maXhl
+cwoKU2VyZ2lvIEFndWlycmUgKDcpOgogICAgICBPTUFQMzogc2VyaWFsOiBDaGVjayBmb3IgemVy
+by1iYXNlZCBwaHlzaWNhbCBhZGRyCiAgICAgIE9NQVAzOiBzZXJpYWw6IFVzZSBkZXZfKiBtYWNy
+b3MgaW5zdGVhZCBvZiBwcmludGsKICAgICAgb21hcDIvMy80OiBzZXJpYWw6IFJlbW92ZSBjb25k
+aXRpb24gZm9yIGdldHRpbmcgdWFydDRfcGh5cwogICAgICBvbWFwMzogem9vbTIvMyAvIDM2MzBz
+ZHA6IERvbid0IGluaXQgYWx3YXlzIGFsbCB1YXJ0cwogICAgICBvbWFwMzogMzYzMHNkcDogRXhw
+bGljaXRseSBlbmFibGUgYWxsIFVBUlRzCiAgICAgIG9tYXAzOiB6b29tIDIvMzogQ2hhbmdlIGRl
+YnVnYm9hcmQgc2VyaWFsIHBvcnQgaWQKICAgICAgb21hcDM6IHpvb20yLzM6IFJlZ2lzdGVyIG9u
+bHkgMSA4MjUwIHBvcnQKCiBhcmNoL2FybS9jb25maWdzL29tYXBfem9vbTJfZGVmY29uZmlnICAg
+ICAgICB8ICAgIDIgKy0KIGFyY2gvYXJtL2NvbmZpZ3Mvb21hcF96b29tM19kZWZjb25maWcgICAg
+ICAgIHwgICAgMiArLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0zNjMwc2RwLmMgICAgICAg
+ICAgfCAgICAxICsKIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtem9vbS1kZWJ1Z2JvYXJkLmMg
+IHwgICAgMiArLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC16b29tLXBlcmlwaGVyYWxzLmMg
+fCAgICAxIC0KIGFyY2gvYXJtL21hY2gtb21hcDIvc2VyaWFsLmMgICAgICAgICAgICAgICAgIHwg
+ICAzNSArKysrKysrKysrKysrLS0tLS0tLS0tLS0tCiA2IGZpbGVzIGNoYW5nZWQsIDIyIGluc2Vy
+dGlvbnMoKyksIDIxIGRlbGV0aW9ucygtKQo=
 
-
-
+--_002_A24693684029E5489D1D202277BE89445405400Cdlee02entticom_--
