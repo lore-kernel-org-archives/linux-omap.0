@@ -1,43 +1,61 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH 6/7] omap3: zoom 2/3: Change debugboard serial port id
-Date: Mon, 15 Mar 2010 18:04:11 -0500
-Message-ID: <1268694252-21985-7-git-send-email-saaguirre@ti.com>
-References: <1268694252-21985-1-git-send-email-saaguirre@ti.com>
+Subject: [PATCH 0/7] omap3: serial code for 3630 and zoom2/3 fixes
+Date: Mon, 15 Mar 2010 18:04:05 -0500
+Message-ID: <1268694252-21985-1-git-send-email-saaguirre@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49261 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54819 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937075Ab0COXCd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Mar 2010 19:02:33 -0400
-In-Reply-To: <1268694252-21985-1-git-send-email-saaguirre@ti.com>
+	id S932386Ab0COXCa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Mar 2010 19:02:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
 
-This is now changed to PLAT8250_DEV_PLATFORM (= 0), because
-it's the only port that's going to be initialized in
-Zoom 2/3 boards.
+Hi,
 
-So, it doesn't make sense to keep the hardcoded 3 value anymore.
+This series contains fixes for omap2/3/4 serial code, and are
+fixing:
+ - Avoid doing ioremap of a zero-based physical address.
+   (causing a kernel panic during early init on 3630boards)
+ - Unproper omap_revision check during uart globals setup.
+   (omap_revision is not yet filled at that point)
+ - Don't try to enable all uarts generically for zoom2/3
+   and 3630sdp.
+ - Make zoom2/3 just register one serial port (ttyS0).
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/board-zoom-debugboard.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This is a subset of the original series found here: [1]
 
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-index bb4018b..e15d2e8 100644
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -96,7 +96,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 
- static struct platform_device zoom_debugboard_serial_device = {
- 	.name			= "serial8250",
--	.id			= 3,
-+	.id			= PLAT8250_DEV_PLATFORM,
- 	.dev			= {
- 		.platform_data	= serial_platform_data,
- 	},
--- 
-1.6.3.3
+Thanks to:
+ - Vikram Pandita
+ - Paul Walmsley
+ - Kevin Hilman
+ - Manjunath Kondaiah
+ - Felipe Balbi
+ - Tony Lindgreen
 
+For all the feedback recieved so far.
+
+Regards,
+Sergio
+
+Detailed changelog:
+
+Sergio Aguirre (7):
+  OMAP3: serial: Check for zero-based physical addr
+  OMAP3: serial: Use dev_* macros instead of printk
+  omap2/3/4: serial: Remove condition for getting uart4_phys
+  omap3: zoom2/3 / 3630sdp: Don't init always all uarts
+  omap3: 3630sdp: Explicitly enable all UARTs
+  omap3: zoom 2/3: Change debugboard serial port id
+  omap3: zoom2/3: Register only 1 8250 port
+
+ arch/arm/configs/omap_zoom2_defconfig        |    2 +-
+ arch/arm/configs/omap_zoom3_defconfig        |    2 +-
+ arch/arm/mach-omap2/board-3630sdp.c          |    1 +
+ arch/arm/mach-omap2/board-zoom-debugboard.c  |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
+ arch/arm/mach-omap2/serial.c                 |   35 +++++++++++++------------
+ 6 files changed, 22 insertions(+), 21 deletions(-)
+
+[1] http://marc.info/?l=linux-omap&m=126826639903105&w=2
