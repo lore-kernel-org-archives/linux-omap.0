@@ -1,81 +1,79 @@
-From: Ned Forrester <nforrester@whoi.edu>
-Subject: Re: [spi-devel-general] SPI troubles
-Date: Mon, 15 Mar 2010 16:57:27 -0400
-Message-ID: <4B9E9F37.9030906@whoi.edu>
-References: <4b9d9f11.9a15f10a.3902.6dc3@mx.google.com>	<4B9E466E.3040405@whoi.edu> <4b9e58d3.11435e0a.1736.2cf9@mx.google.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/6 Revised] SPI omap2_mcspi: Add
+ max_clk_div field to mcspi platform config
+Date: Mon, 15 Mar 2010 14:02:36 -0700
+Message-ID: <20100315210236.GE2900@atomide.com>
+References: <1268407307.14445.51.camel@quad>
+	<20100312172148.GG2900@atomide.com>
+	<1268587548.30878.11.camel@quad>
+	<20100315163246.GT2900@atomide.com>
+	<1268685022.8594.130.camel@quad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from postal2-e0.whoi.edu ([128.128.76.88]:35342 "EHLO
-	postal2.whoi.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757076Ab0COU5c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2010 16:57:32 -0400
-In-Reply-To: <4b9e58d3.11435e0a.1736.2cf9@mx.google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1268685022.8594.130.camel@quad>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Scott Ellis <scott-oZqG5KApg2M/jFmSBShxMA@public.gmane.org>
+Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Aaro Koskinen <Aaro.Koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roman Tereshonkov <roman.tereshonkov-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gamari <bgamari.foss@gmail.com>
-Cc: beagleboard@googlegroups.com, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
 
-On 03/15/2010 11:57 AM, Ben Gamari wrote:
-> When measuring the SIMO signal on the expansion connector with my daughterboard
-> connected, I noticed that the daughterboard's level shifter appeared to be
-> driving the signal higher than it should, to ~2.9 Volts. I then checked the
-> 1.8V rail voltage and found that it too was higher than expected, again at 2.9
-> volts. When I unplug the daughterboard, the 1.8V rail voltage returns to its
-> expected value.
->
-> On Mon, 15 Mar 2010 10:38:38 -0400, Ned Forrester <nforrester@whoi.edu> wrote:
->> I'd be happy to check your circuit for you, if it were posted in a more
->> widely used format.  How about a PDF of the schematic.
->>
-> Certainly, it's a available at http://goldnerlab.physics.umass.edu/~bgamari/schematic.png.
+* Scott Ellis <scott-oZqG5KApg2M/jFmSBShxMA@public.gmane.org> [100315 13:27]:
+> > Hmm now it looks like you're missing 3630 handling?
+> > 
+> > If the max_clk_div is 0x0f for 2420 and 2430, then you
+> > can just check for cpu_is_omap24xx(). If it's only
+> > different for 2420, then you can check for cpu_is_omap2420().
+> > 
+> > That way it should be more future proof, and you don't
+> > need to change it for new processors.
+> > 
+> Anand Gadiyar <gadiyar <at> ti.com> verified 0x0f for the 2430.
+> 
+> I think SWPU177D is the correct TRM for the omap3630 and if so then 0x0c
+> is the correct value.
+> 
+> I did not verify the omap44xx value and just assumed similar to the
+> omap3's. My bad.
+> 
+> Can you or someone point me to links for the omap2420 and the omap44xx
+> TRMs? I'm not having any luck finding them.
 
-Your problem is likely caused by pulling the THREE STATE pin to 5V.  The
-spec sheet is explicit (in the Absolute Maximum ratings on page 2, and
-in the functional description on page 12 that this pin should be pulled
-to VL, not VCC to enable the outputs.  Likely by pulling it to 5V the
-some part of the chip is biased wrong and may cause OVL1 to be pulled
-above VL.
+I don't think those are publicly available yet for 4430 and still for
+2420..
 
-I can't exactly explain the symptoms you report above, based on the
-mis-connected pin, but most anything could be happening in the MAX3390
-once the absolute maximum ratings have been exceeded.  The 10K resistors
-on the THREE STATE lines may have saved the circuit from permanent
-damage, but they may not save it from improper operation.
+But looks like 2420, 2430 and 4430 TRMs says that 0xf = 32768
+max divider for CLKD.
 
-Other suggestions, nothing fatal...
+Only 3430 and 3630 TRMs says 0xd, 0xe, 0xf = Division not supported.
 
-1. The pinout of the MAX3390E on the drawing is for the TSSOP package.
-Hopefully that is the package you actually used.
+But then again, the TRMs can have errors.
 
-2. All uncommitted inputs should be terminated high or low.  This
-applies to: LS2 pins 4, 5 and 13; LS3 pin 13 and possibly unused pins on
-the A/Ds and D/A.
+> Then it can be verified whether a cpu_is_omap24xx() check is sufficient.
+> It probably is.
 
-3. The MAX3390E family has extremely low drive capability and slow
-response.  Is this device really fast enough for your intended clock
-rates?  Note that the device can only pull down 1ma, and can only pull
-up 20ua.  If there are any pull-downs or pull-ups on the BeagleBoard,
-the MAX3390E might not be able to drive them.
+Then the 4430 TRM must have an error.. Can somebody from TI
+confirm the CLKD max value for 4430 please?
+ 
+> Or if someone with access to those manuals could do a quick check...
+> 
+> It's the max value of the MCSPI_CHxCONF.CLKD register field.
 
-4. I find it curious that the AVDD to the A/D and D/A is fead through a
-1ohm resistor that is paralleled by C11 and C12.  Likely you meant to
-tie one side of each of C11 and C12 (the side now connected to C10
-positive) to ground.  That connection would make a filter to reduce the
-noise on AVDD rather than passing the noise along.
+Regards,
 
-5. Is see on the Maxim site that this series of translators is not
-recommended for new design.  Likely the suggested alternatives have much
-better specifications.
+Tony
 
--- 
-Ned Forrester                                       nforrester@whoi.edu
-Oceanographic Systems Lab                                  508-289-2226
-Applied Ocean Physics and Engineering Dept.
-Woods Hole Oceanographic Institution          Woods Hole, MA 02543, USA
-http://www.whoi.edu/
-http://www.whoi.edu/sbl/liteSite.do?litesiteid=7212
-http://www.whoi.edu/hpb/Site.do?id=1532
-http://www.whoi.edu/page.do?pid=10079
-
+------------------------------------------------------------------------------
+Download Intel&#174; Parallel Studio Eval
+Try the new software tools for yourself. Speed compiling, find bugs
+proactively, and fine-tune applications for parallel performance.
+See why Intel Parallel Studio got high marks during beta.
+http://p.sf.net/sfu/intel-sw-dev
