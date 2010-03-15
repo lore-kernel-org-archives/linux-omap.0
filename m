@@ -1,72 +1,119 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/2] USB: musb: omap2430: add mode change from A to B
-Date: Mon, 15 Mar 2010 14:22:38 +0300
-Message-ID: <4B9E187E.6090802@ru.mvista.com>
-References: <1268648622-28529-1-git-send-email-Hui.Wang@windriver.com> <1268648622-28529-2-git-send-email-Hui.Wang@windriver.com>
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: Re: [RFC][PATCH 3/3] OMAP: DSS2: Use vdds_sdi regulator supply in
+ SDI
+Date: Mon, 15 Mar 2010 13:26:43 +0200
+Message-ID: <4B9E1973.50504@nokia.com>
+References: <1268407644-31230-1-git-send-email-roger.quadros@nokia.com>	 <1268407644-31230-2-git-send-email-roger.quadros@nokia.com>	 <1268407644-31230-3-git-send-email-roger.quadros@nokia.com>	 <1268407644-31230-4-git-send-email-roger.quadros@nokia.com> <1268646814.2417.39.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1268648622-28529-2-git-send-email-Hui.Wang-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wang Hui <Hui.Wang-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:63814 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936138Ab0COLwx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2010 07:52:53 -0400
+In-Reply-To: <1268646814.2417.39.camel@tubuntu.research.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello.
+Hi,
 
-Wang Hui wrote:
+Valkeinen Tomi (Nokia-D/Helsinki) wrote:
+> On Fri, 2010-03-12 at 16:27 +0100, Quadros Roger (Nokia-D/Helsinki)
+> wrote:
+>> From: Roger Quadros <roger.quadros@nokia.com>
+>>
+>> This patch enables the use of vdds_sdi regulator in SDI subsystem.
+>> We can disable the vdds_sdi voltage when not in use to save
+>> power.
+>>
+>> Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
+>> ---
+>>  drivers/video/omap2/dss/sdi.c |   23 +++++++++++++++++++++--
+>>  1 files changed, 21 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+>> index 45aab89..e816e80 100644
+>> --- a/drivers/video/omap2/dss/sdi.c
+>> +++ b/drivers/video/omap2/dss/sdi.c
+>> @@ -23,13 +23,16 @@
+>>  #include <linux/clk.h>
+>>  #include <linux/delay.h>
+>>  #include <linux/err.h>
+>> +#include <linux/regulator/consumer.h>
+>>  
+>>  #include <plat/display.h>
+>> +#include <plat/cpu.h>
+>>  #include "dss.h"
+>>  
+>>  static struct {
+>>  	bool skip_init;
+>>  	bool update_enabled;
+>> +	struct regulator *vdds_sdi_reg;
+>>  } sdi;
+>>  
+>>  static void sdi_basic_init(void)
+>> @@ -57,6 +60,12 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+>>  		goto err0;
+>>  	}
+>>  
+>> +	if (cpu_is_omap34xx()) {
+>> +		r = regulator_enable(sdi.vdds_sdi_reg);
+>> +		if (r)
+>> +			goto err1;
+>> +	}
+>> +
+>>  	/* In case of skip_init sdi_init has already enabled the clocks */
+>>  	if (!sdi.skip_init)
+>>  		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
+>> @@ -118,10 +127,10 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+>>  	sdi.skip_init = 0;
+>>  
+>>  	return 0;
+>> -err3:
+>> -	dssdev->manager->disable(dssdev->manager);
+>>  err2:
+>>  	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
+>> +	if (cpu_is_omap34xx())
+>> +		regulator_enable(sdi.vdds_sdi_reg);
+>>  err1:
+>>  	omap_dss_stop_device(dssdev);
+>>  err0:
+>> @@ -137,6 +146,9 @@ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
+>>  
+>>  	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
+>>  
+>> +	if (cpu_is_omap34xx())
+>> +		regulator_enable(sdi.vdds_sdi_reg);
+>> +
+>>  	omap_dss_stop_device(dssdev);
+>>  }
+>>  EXPORT_SYMBOL(omapdss_sdi_display_disable);
+>> @@ -144,6 +156,13 @@ EXPORT_SYMBOL(omapdss_sdi_display_disable);
+>>  int sdi_init_display(struct omap_dss_device *dssdev)
+>>  {
+>>  	DSSDBG("SDI init\n");
+>> +	if (cpu_is_omap34xx()) {
+>> +		sdi.vdds_sdi_reg = dss_get_vdds_sdi();
+>> +		if (IS_ERR(sdi.vdds_sdi_reg)) {
+>> +			DSSERR("can't get VDDS_SDI regulator\n");
+>> +			return PTR_ERR(sdi.vdds_sdi_reg);
+>> +		}
+>> +	}
+>>  
+>>  	return 0;
+>>  }
+> 
+> Same comment here as to DPI patch, I think the regulator init should be
+> done in sdi_init().
+> 
+OK.
 
-> On omap2/3 series platforms, the musb can't raise id pin change
-> detection interrupt, so we must change otg mode through sysfs
-> interface manually. Currently when the musb is in B mode, if we
-> want musb to be changed to A mode, we should plug a mini-A cable
-> and then execute echo host > /sys/devices/platform/musb_hdrc/mode.
-> But if the musb is in A mode, we can't change it to B mode through
-> this method.
-> To solve this problem, add a process for sending end session request.
-> This process works like this, if the musb is in A mode, it will send
-> an end session request first, then it will follow original routine:
-> start a new session, during this session, it will identify whether
-> A or B is plugging in the socket,  then it will init controller to A
-> or B mode according to its identification.
->
-> Usage: change cable as you desired,
->        change musb mode by #>echo host[peripheral] > /sys/devices/\
->        platform/musb_hdrc/mode,
->        then you will get required musb mode.
->
-> Signed-off-by: Wang Hui <Hui.Wang-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
-> ---
->  drivers/usb/musb/omap2430.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 3fe1686..b02897e 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -194,6 +194,11 @@ int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
->  {
->  	u8	devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
->  
-> +	if ((devctl & MUSB_DEVCTL_BDEVICE) == 0x0) {
-> +		devctl &= ~MUSB_DEVCTL_SESSION;
-> +		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
-> +	}
-> +
->  	devctl |= MUSB_DEVCTL_SESSION;
->  	musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
->   
+> And why do you test for omap34xx?
+> 
+I just assumed that, so i guess that was wrong. Will check the TRM and fix it.
 
-   The whole musb_platform_set_mode() seems to be implemented 
-incorrectly on OMAPs -- it shouldn't touch the DevCtl.Session bit. This 
-function should control the ID pin override instead -- if the controller 
-supports it. SRP must be initiated thru other means, i.e. 'srp' file in 
-sysfs.
+-roger
 
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
