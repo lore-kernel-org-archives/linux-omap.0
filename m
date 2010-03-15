@@ -1,45 +1,37 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH RESEND] omap3: Fix EHCI port for IGEP v2 board.
-Date: Mon, 15 Mar 2010 18:03:23 +0200
-Message-ID: <20100315160322.GB3879@gandalf>
-References: <1267455756-5081-1-git-send-email-eballetbo@gmail.com>
-Reply-To: me@felipebalbi.com
+From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Subject: Re: [PATCH 2/2] USB: musb: omap2430: add mode change from A to B
+Date: Mon, 15 Mar 2010 18:10:25 +0200
+Message-ID: <20100315161024.GC3879@gandalf>
+References: <1268648622-28529-1-git-send-email-Hui.Wang@windriver.com>
+ <1268648622-28529-2-git-send-email-Hui.Wang@windriver.com>
+ <4B9E187E.6090802@ru.mvista.com>
+Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:50255 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965235Ab0COQC7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2010 12:02:59 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1267455756-5081-1-git-send-email-eballetbo@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <4B9E187E.6090802-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: Wang Hui <Hui.Wang-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Hi,
+On Mon, Mar 15, 2010 at 02:22:38PM +0300, Sergei Shtylyov wrote:
+>    The whole musb_platform_set_mode() seems to be implemented 
+> incorrectly on OMAPs -- it shouldn't touch the DevCtl.Session bit. This 
 
-On Mon, Mar 01, 2010 at 04:02:36PM +0100, Enric Balletbo i Serra wrote:
-> @@ -458,13 +458,13 @@ static struct omap_musb_board_data musb_board_data = {
->  };
->  
->  static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-> -	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-> -	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
->  	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
->  
->  	.phy_reset = true,
-> -	.reset_gpio_port[0] = -EINVAL,
-> -	.reset_gpio_port[1] = IGEP2_GPIO_USBH_NRESET,
-> +	.reset_gpio_port[0] = IGEP2_GPIO_USBH_NRESET,
-> +	.reset_gpio_port[1] = -EINVAL,
+correct. It should be changing the id pin rules just like in tusb6010.c
 
-no way to be backwards compatible ? Is it worth to be backwards
-compatible ?
+> function should control the ID pin override instead -- if the controller 
+> supports it. SRP must be initiated thru other means, i.e. 'srp' file in 
+> sysfs.
+
+via musb_gadget_wakeup()
 
 -- 
 balbi
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
