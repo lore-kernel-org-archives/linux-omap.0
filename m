@@ -1,37 +1,52 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 2/6 Revised] SPI omap2_mcspi: Add max_clk_div field to
- mcspi platform config
-Date: Mon, 15 Mar 2010 20:03:51 +0200
-Message-ID: <20100315180351.GB3857@gandalf>
-References: <1268407307.14445.51.camel@quad>
- <20100312172148.GG2900@atomide.com>
- <1268587548.30878.11.camel@quad>
- <20100315163246.GT2900@atomide.com>
-Reply-To: me@felipebalbi.com
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: Re: [PATCH RESEND] omap3: Fix EHCI port for IGEP v2 board.
+Date: Mon, 15 Mar 2010 19:20:29 +0100
+Message-ID: <70c9a9111003151120y46eabefaw9e91507e9dbff8a0@mail.gmail.com>
+References: <1267455756-5081-1-git-send-email-eballetbo@gmail.com>
+	 <20100315160322.GB3879@gandalf>
+	 <70c9a9111003151005j1233d8ffhe6c8f3440c1a4864@mail.gmail.com>
+	 <70c9a9111003151006x41a1a965j4efa2edcaf5eeb90@mail.gmail.com>
+	 <70c9a9111003151007v30403921j83003f9e1706a859@mail.gmail.com>
+	 <20100315180141.GA3857@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:35984 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933721Ab0COSDl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2010 14:03:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20100315163246.GT2900@atomide.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:36619 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965642Ab0COSUk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2010 14:20:40 -0400
+Received: by pwi1 with SMTP id 1so2141277pwi.19
+        for <linux-omap@vger.kernel.org>; Mon, 15 Mar 2010 11:20:39 -0700 (PDT)
+In-Reply-To: <20100315180141.GA3857@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Scott Ellis <scott@jumpnowtek.com>, spi-devel-general@lists.sourceforge.net, David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Andrew Morton <akpm@linux-foundation.org>, Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: me@felipebalbi.com
+Cc: linux-omap@vger.kernel.org
 
 Hi,
- 
-On Mon, Mar 15, 2010 at 09:32:46AM -0700, Tony Lindgren wrote:
-> Hmm now it looks like you're missing 3630 handling?
 
-a bit unrelated but Tony, would you mind looking at patches splitting
-devices.c into something like dev34xx.c dev24xx.c and dev44xx.c ??
+2010/3/15 Felipe Balbi <me@felipebalbi.com>:
+> Hi,
+>
+> please don't top-post. Read more at [1].
 
-personally I think we should have mach-omap3 and mach-omap4 directories
-but that would be too intrusive IMO.
+Sorry
 
--- 
-balbi
+> is there a IGEP v1 board available ? Are there any developers around
+> using it ? If true, you should try to be backwards compatible.
+
+Yes, IGEP v1 is available but it's a different platform with different processor
+and aren't compatible.
+
+See http://www.igep-platform.com.
+
+ - IGEPv1 is low-power and fan-less single board computer based on ATMEL
+ ARM9 processor.
+
+ - IGEPv2 is low-power and fan-less single board computer based on
+OMAP35x processor.
+
+Regards,
+
+--
+Enric
