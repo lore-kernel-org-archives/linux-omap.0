@@ -1,144 +1,62 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: Multiple errors while compiling from master
-Date: Mon, 15 Mar 2010 20:04:12 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E623BAC0@dbde02.ent.ti.com>
+From: Ned Forrester <nforrester-/d+BM93fTQY@public.gmane.org>
+Subject: Re: SPI troubles
+Date: Mon, 15 Mar 2010 10:38:38 -0400
+Message-ID: <4B9E466E.3040405@whoi.edu>
+References: <4b9d9f11.9a15f10a.3902.6dc3@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48015 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932644Ab0COOeQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Mar 2010 10:34:16 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2FEYCfc014538
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 15 Mar 2010 09:34:14 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2FEYBc5000557
-	for <linux-omap@vger.kernel.org>; Mon, 15 Mar 2010 20:04:12 +0530 (IST)
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <4b9d9f11.9a15f10a.3902.6dc3-ATjtLOhZ0NVl57MIdRCFDg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ben Gamari <bgamari.foss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi all,
+On 03/14/2010 10:44 PM, Ben Gamari wrote:
+> 
+> When measuring the SIMO signal on the expansion connector with my daughterboard
+> connected, I noticed that the daughterboard's level shifter appeared to be
+> driving the signal higher than it should, to ~2.9 Volts. I then checked the
+> 1.8V rail voltage and found that it too was higher than expected, again at 2.9
+> volts. When I unplug the daughterboard, the 1.8V rail voltage returns to its
+> expected value.
+> 
+> I'm both perplexed and concerned with this behavior. I completely fail to
+> see how my board is raising the voltage on the 1.8V rail (schematic available
+> at [3]).  While the BeagleBoard seems quite stable, I'm very concerned that
+> perhaps the daughterboard over-drove the SIMO ball and burned out some subset
+> of the OMAP.  Regardless, as mentioned earlier, I have verified the
+> functionality of the same ball as a GPIO input. Thus, I am thoroughly confused.
+> Is it possible that the ball's GPIO receiver could remain functional while the
+> McSPI receiver is burned out?
+>
+> [3] http://goldnerlab.physics.umass.edu/git?p=tracker-board.git;a=summary
 
-While trying to build kernel from master, I encounter many errors (pasted below).
+I'd be happy to check your circuit for you, if it were posted in a more
+widely used format.  How about a PDF of the schematic.
 
-I believe the reason is missing headers - plat/resource.h and smartreflex.h
-...but I couldn't find them in the tree.
-
-premi # ls -l arch/arm/plat-omap/include/plat/res*
-ls: No match.
-premi # ls -l arch/arm/mach-omap2/smart*
-ls: No match.
-premi #
-
-I am at commit: a842b5f9ce70e1b738eabb4d719860070180ed1c
-
-Best regards,
-Sanjeev
+-- 
+Ned Forrester                                       nforrester-/d+BM93fTQY@public.gmane.org
+Oceanographic Systems Lab                                  508-289-2226
+Applied Ocean Physics and Engineering Dept.
+Woods Hole Oceanographic Institution          Woods Hole, MA 02543, USA
+http://www.whoi.edu/
+http://www.whoi.edu/sbl/liteSite.do?litesiteid=7212
+http://www.whoi.edu/hpb/Site.do?id=1532
+http://www.whoi.edu/page.do?pid=10079
 
 
-arch/arm/mach-omap2/pm34xx.c:43:27: error: plat/resource.h: No such file or directory
-arch/arm/mach-omap2/pm34xx.c:51:25: error: smartreflex.h: No such file or directory
-arch/arm/mach-omap2/pm34xx.c:98: error: variable 'prm_setup' has initializer but incomplete type
-arch/arm/mach-omap2/pm34xx.c:99: error: unknown field 'clksetup' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:99: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:99: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:100: error: unknown field 'voltsetup_time1' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:100: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:100: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:101: error: unknown field 'voltsetup_time2' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:101: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:101: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:102: error: unknown field 'voltoffset' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:102: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:102: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:103: error: unknown field 'voltsetup2' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:103: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:103: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:104: error: unknown field 'vdd0_on' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:104: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:104: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:105: error: unknown field 'vdd0_onlp' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:105: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:105: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:106: error: unknown field 'vdd0_ret' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:106: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:106: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:107: error: unknown field 'vdd0_off' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:107: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:107: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:108: error: unknown field 'vdd1_on' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:108: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:108: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:109: error: unknown field 'vdd1_onlp' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:109: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:109: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:110: error: unknown field 'vdd1_ret' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:110: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:110: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c:111: error: unknown field 'vdd1_off' specified in initializer
-arch/arm/mach-omap2/pm34xx.c:111: warning: excess elements in struct initializer
-arch/arm/mach-omap2/pm34xx.c:111: warning: (near initialization for 'prm_setup')
-arch/arm/mach-omap2/pm34xx.c: In function 'omap_sram_idle':
-arch/arm/mach-omap2/pm34xx.c:411: error: implicit declaration of function 'omap2_gpio_prepare_for_idle'
-arch/arm/mach-omap2/pm34xx.c:431: error: implicit declaration of function 'disable_smartreflex'
-arch/arm/mach-omap2/pm34xx.c:431: error: 'SR1' undeclared (first use in this function)
-arch/arm/mach-omap2/pm34xx.c:431: error: (Each undeclared identifier is reported only once
-arch/arm/mach-omap2/pm34xx.c:431: error: for each function it appears in.)
-arch/arm/mach-omap2/pm34xx.c:433: error: 'SR2' undeclared (first use in this function)
-arch/arm/mach-omap2/pm34xx.c:508: error: implicit declaration of function 'usb_musb_disable_autoidle'
-arch/arm/mach-omap2/pm34xx.c:532: error: implicit declaration of function 'enable_smartreflex'
-arch/arm/mach-omap2/pm34xx.c:546: error: implicit declaration of function 'omap3_gpio_restore_pad_context'
-arch/arm/mach-omap2/pm34xx.c:551: error: implicit declaration of function 'omap2_gpio_resume_after_idle'
-arch/arm/mach-omap2/pm34xx.c: In function 'omap3_pm_init_vc':
-arch/arm/mach-omap2/pm34xx.c:1083: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1083: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1084: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1084: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1085: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1085: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1086: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1086: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1087: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1087: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1088: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1088: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1089: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1089: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1090: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1090: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1091: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1091: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1092: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1092: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1093: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1093: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1094: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1094: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c:1095: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1095: error: dereferencing pointer to incomplete type
-arch/arm/mach-omap2/pm34xx.c: In function 'configure_vc':
-arch/arm/mach-omap2/pm34xx.c:1246: error: 'R_SRI2C_SLAVE_ADDR' undeclared (first use in this function)
-arch/arm/mach-omap2/pm34xx.c:1246: error: 'OMAP3430_SMPS_SA1_SHIFT' undeclared (first use in this function)
-arch/arm/mach-omap2/pm34xx.c:1247: error: 'OMAP3430_SMPS_SA0_SHIFT' undeclared (first use in this function)
-arch/arm/mach-omap2/pm34xx.c:1249: error: 'R_VDD2_SR_CONTROL' undeclared (first use in this function)
-arch/arm/mach-omap2/pm34xx.c:1250: error: 'R_VDD1_SR_CONTROL' undeclared (first use in this function)
-arch/arm/mach-omap2/pm34xx.c:1253: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1254: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1255: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1256: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1259: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1260: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1261: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1262: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1273: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1275: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1277: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1281: error: invalid use of undefined type 'struct prm_setup_vc'
-arch/arm/mach-omap2/pm34xx.c:1283: error: invalid use of undefined type 'struct prm_setup_vc'
-make[1]: *** [arch/arm/mach-omap2/pm34xx.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+------------------------------------------------------------------------------
+Download Intel&#174; Parallel Studio Eval
+Try the new software tools for yourself. Speed compiling, find bugs
+proactively, and fine-tune applications for parallel performance.
+See why Intel Parallel Studio got high marks during beta.
+http://p.sf.net/sfu/intel-sw-dev
