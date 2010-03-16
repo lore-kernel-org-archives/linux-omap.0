@@ -1,67 +1,56 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH RESEND] omap3: Fix EHCI port for IGEP v2 board.
-Date: Tue, 16 Mar 2010 08:55:35 +0200
-Message-ID: <20100316065535.GB5438@nokia.com>
-References: <1267455756-5081-1-git-send-email-eballetbo@gmail.com>
-Reply-To: felipe.balbi@nokia.com
+From: wanghui <Hui.Wang@windriver.com>
+Subject: Re: [PATCH 2/2] USB: musb: omap2430: add mode change from A to B
+Date: Tue, 16 Mar 2010 18:13:50 +0800
+Message-ID: <4B9F59DE.4070807@windriver.com>
+References: <1268648622-28529-1-git-send-email-Hui.Wang@windriver.com> <1268648622-28529-2-git-send-email-Hui.Wang@windriver.com> <4B9E187E.6090802@ru.mvista.com> <20100315161024.GC3879@gandalf>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19566 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755734Ab0CPG4s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Mar 2010 02:56:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1267455756-5081-1-git-send-email-eballetbo@gmail.com>
+Received: from mail.windriver.com ([147.11.1.11]:38193 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S937665Ab0CPKNU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Mar 2010 06:13:20 -0400
+In-Reply-To: <20100315161024.GC3879@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
+To: me@felipebalbi.com
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, tony@atomide.com, felipe.balbi@nokia.com, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Mon, Mar 01, 2010 at 04:02:36PM +0100, ext Enric Balletbo i Serra wrote:
->From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Felipe Balbi wrote:
+> On Mon, Mar 15, 2010 at 02:22:38PM +0300, Sergei Shtylyov wrote:
+>   
+>>    The whole musb_platform_set_mode() seems to be implemented 
+>> incorrectly on OMAPs -- it shouldn't touch the DevCtl.Session bit. This 
+>>     
 >
->IGEP v2 uses EHCI port 1 instead of EHCI port 2.
+> correct. It should be changing the id pin rules just like in tusb6010.c
 >
->Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+>   
+>> function should control the ID pin override instead -- if the controller 
+>> supports it. SRP must be initiated thru other means, i.e. 'srp' file in 
+>> sysfs.
+>>     
+>
+> via musb_gadget_wakeup()
+>
+>   
+Thank you for your comments.
+It is right that in this function, we should only change id pin rules 
+according to user's choice, and
+leave mode transition to the ISR.
+But things are different on omap platforms, because the id pin change 
+can't trigger ISR.
+For example, when we configure the kernel, we choose musb working as OTG 
+mode. Then we plug a mini-A or a mini-B cable in the socket, after
+that we execute insmod g_ether.ko, at this time, the musb will 
+initialize to A or B working mode. how to change
+its working mode from A to B or B to A at this time? I think if the 
+platform can support id detection ISR, your method
+is workable. But on omap platforms, we must change cable(id pin state) 
+manually first, then let the controller to re-initiate a session forcibly.
+This action (clear/set session bit) don't 100% equal to send a SRP, and 
+i don't really want to send a SRP too.
 
-I'm happy with the explanation:
-
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-
->---
-> arch/arm/mach-omap2/board-igep0020.c |    8 ++++----
-> 1 files changed, 4 insertions(+), 4 deletions(-)
->
->diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
->index 3c7789d..d55c57b 100644
->--- a/arch/arm/mach-omap2/board-igep0020.c
->+++ b/arch/arm/mach-omap2/board-igep0020.c
->@@ -458,13 +458,13 @@ static struct omap_musb_board_data musb_board_data = {
-> };
->
-> static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
->-	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
->-	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
->+	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
->+	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-> 	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
->
-> 	.phy_reset = true,
->-	.reset_gpio_port[0] = -EINVAL,
->-	.reset_gpio_port[1] = IGEP2_GPIO_USBH_NRESET,
->+	.reset_gpio_port[0] = IGEP2_GPIO_USBH_NRESET,
->+	.reset_gpio_port[1] = -EINVAL,
-> 	.reset_gpio_port[2] = -EINVAL,
-> };
->
->-- 
->1.5.4.3
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-balbi
+If without this function for omap platforms, we can change musb working 
+mode only through rebooting kernel or rmmod/insmod gadget driver module.
