@@ -1,15 +1,15 @@
 From: "Olaya, Margarita" <magi.olaya@ti.com>
-Subject: Re: [PATCH 1/2] OMAP4: PMIC: Rename twl6030_codec as
-	twl6040_codec
-Date: Tue, 16 Mar 2010 12:35:40 -0500
-Message-ID: <1889FA7136B567478A67D4B0F85B0CCE66217061@dlee06.ent.ti.com>
-References: <1889FA7136B567478A67D4B0F85B0CCE66173AF6@dlee06.ent.ti.com>
-	<ea13b3e438eb2455f4d0d91396f2500e@secure211.sgcpanel.com>
+Subject: Re: [PATCHv5 2/2] ASoC: TWL6040: Add twl6040 codec
+	driver
+Date: Tue, 16 Mar 2010 12:51:10 -0500
+Message-ID: <1889FA7136B567478A67D4B0F85B0CCE66217087@dlee06.ent.ti.com>
+References: <1889FA7136B567478A67D4B0F85B0CCE66173AF7@dlee06.ent.ti.com>
+	<05b5d6bc0abd41e31334184e66718cec@secure211.sgcpanel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <ea13b3e438eb2455f4d0d91396f2500e@secure211.sgcpanel.com>
+In-Reply-To: <05b5d6bc0abd41e31334184e66718cec@secure211.sgcpanel.com>
 Content-Language: en-US
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
@@ -21,33 +21,39 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
 To: Felipe Balbi <me@felipebalbi.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, Samuel Ortiz <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday, March 13, 2010 5:18 AM  Felipe Balbi wrote: 
+On Saturday, March 13, 2010 5:23 AM  Felipe Balbi wrote: 
 
 > Hi,
 > 
-> On Fri, 12 Mar 2010 19:52:15 -0600, "Olaya, Margarita"
+> On Fri, 12 Mar 2010 19:52:20 -0600, "Olaya, Margarita"
 > <magi.olaya@ti.com> wrote:
+>> +/*
+>> + * twl6040 register cache & default register settings + */
+>> +static const u8 twl6040_reg[TWL6040_CACHEREGNUM] = {
+>> +       0x00, /* not used               0x00    */
+>> +       0x4B, /* TWL6040_ASICID (ro)    0x01    */
+[snip]
 > 
-> please add a description here. Why do you need to rename it ?
+> a little comment about what the default values are would be nice.
 
-Ok, I'll add a description. We were using twl6030 for Phoenix
-Audio and Phoenix Power chips but Phoenix Audio is actually twl6040.
+Most of the codecs only have the register description, not sure if this
+is an standard in alsa. Some values are kind of hard to describe briefly.
 
 > 
->> Signed-off-by: Margarita Olaya Cabrera <magi.olaya@ti.com>
+> #ifdef CONFIG_PM
 > 
-> [snip]
+>> +static int twl6040_suspend(struct platform_device *pdev,
+[snip]
 > 
->>  	if (twl_has_codec() && pdata->codec && twl_class_is_6030()) {
->>  		sub_chip_id = twl_map[TWL_MODULE_AUDIO_VOICE].sid;
->> -		child = add_child(sub_chip_id, "twl6030_codec",
->> +		child = add_child(sub_chip_id, "twl6040_codec",
-> 
-> you rename the platform_device but no the platform_driver ??
-> how do you expect the driver to probe() ??
+> #else
+> #define twl6040_suspend    NULL
+> #define twl6040_resume     NULL
+> #endif
 
-Platform_driver register is called in twl6040.c file, I haven't found an issue
-at probe.
+I'll add this.
+
+Regards,
+Margarita
