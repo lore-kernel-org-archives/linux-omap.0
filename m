@@ -1,51 +1,49 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHV2] OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under DVFS+SR operation
-Date: Wed, 17 Mar 2010 11:01:48 -0700
-Message-ID: <87pr32q12r.fsf@deeprootsystems.com>
-References: <1268313365-18495-1-git-send-email-vishwanath.bs@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH] arm: Fix mounting root on omaps with CPU_V6 and CPU_V7
+Date: Wed, 17 Mar 2010 18:07:57 +0000
+Message-ID: <1268849278.19565.28.camel@e102109-lin.cambridge.arm.com>
+References: <20100317175731.GE2900@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:36179 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755286Ab0CQSBv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 14:01:51 -0400
-Received: by pva4 with SMTP id 4so687631pva.19
-        for <linux-omap@vger.kernel.org>; Wed, 17 Mar 2010 11:01:51 -0700 (PDT)
-In-Reply-To: <1268313365-18495-1-git-send-email-vishwanath.bs@ti.com> (Vishwanath BS's message of "Thu\, 11 Mar 2010 18\:46\:05 +0530")
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:36676 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752594Ab0CQSIJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Mar 2010 14:08:09 -0400
+In-Reply-To: <20100317175731.GE2900@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, Shweta Gulati <shweta.gulati@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Vishwanath BS <vishwanath.bs@ti.com> writes:
+On Wed, 2010-03-17 at 17:57 +0000, Tony Lindgren wrote:
+> Here's an updated version of this patch with more details.
+> 
+> Looks like VFPv3 is only available on V7:
+> 
+> http://www.arm.com/products/processors/technologies/vector-floating-point.php
 
-> From: Shweta Gulati <shweta.gulati@ti.com>
->
-> DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM UCs
-> running DSP codec was earlier restricted as DSP crashed.
-> The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and OPP2.
-> The solution is to make sure DPLL1/DPLL2 bypass clock is always less than 
-> maximum supported frequency for the specific OPP
->
-> Tested on 3630 ZOOM3.
->
-> changes in V2 : Rebased to new OPP implementation
->
-> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> ---
+But does it cause any problem if the feature is enabled in the kernel?
+The vfp_init() code should check for its presence and set the hwcap
+accordingly.
 
-This should be broken up into two parts.  One that applies to mainline
-(or l-o master), and another that fixes SRF that can be applied to PM
-branch.  The first will be targted for mainline, but the SRF change
-will be only in PM branch, as SRF is deprecated and will be replaced.
+Ideally, we should fix the VFP handling code to cope with dynamic
+detection.
 
-That being said, the approach in this patch is not the right approach.
-It appears to completely ignore the min/max dividers that are already
-managed by the clock/DPLL code.
+> HAS_TLS reg is only on ARM11 starting with r1p0:
+> 
+> http://infocenter.arm.com/help/topic/com.arm.doc.ddi0211k/Babeihid.html
+> 
+> So that explains why it won't work on omap2420 as it's r0p2.
 
-Please add this support by modifying/extending the existing clock/DPLL
-management code instead of manually writing registers.
+Same here, would it work with dynamic detection?
 
-Kevin
+I would like to get v6+v7 support working fine together on RealView
+boards as well (though not much spare time) but without disabling the
+features that are present on v7 if they can be detected at run-time.
+
+-- 
+Catalin
+
