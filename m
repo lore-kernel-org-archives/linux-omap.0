@@ -1,71 +1,64 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv5 2/2] ASoC: TWL6040: Add twl6040 codec
-	driver
-Date: Tue, 16 Mar 2010 18:19:26 +0000
-Message-ID: <778BD450-4E6A-481F-A87B-9C7E4CCFDB83@opensource.wolfsonmicro.com>
-References: <1889FA7136B567478A67D4B0F85B0CCE66173AF7@dlee06.ent.ti.com>
-	<05b5d6bc0abd41e31334184e66718cec@secure211.sgcpanel.com>
-	<1889FA7136B567478A67D4B0F85B0CCE66217087@dlee06.ent.ti.com>
-	(sfid-20100316_175124_684510_30CE5530)
-Mime-Version: 1.0 (iPhone Mail 7E18)
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: Multiple errors while compiling from master
+Date: Wed, 17 Mar 2010 12:47:19 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E623C00E@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E623BAC0@dbde02.ent.ti.com>
+ <20100315160259.GQ2900@atomide.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1889FA7136B567478A67D4B0F85B0CCE66217087@dlee06.ent.ti.com>
-	(sfid-20100316_175124_684510_30CE5530)
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Olaya, Margarita" <magi.olaya@ti.com>
-Cc: Felipe Balbi <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58014 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753018Ab0CQHRb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 03:17:31 -0400
+In-Reply-To: <20100315160259.GQ2900@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 16 Mar 2010, at 17:51, "Olaya, Margarita" <magi.olaya@ti.com> wrote:
 
-> On Saturday, March 13, 2010 5:23 AM  Felipe Balbi wrote:
->
->> Hi,
->>
->> On Fri, 12 Mar 2010 19:52:20 -0600, "Olaya, Margarita"
->> <magi.olaya@ti.com> wrote:
->>> +/*
->>> + * twl6040 register cache & default register settings + */
->>> +static const u8 twl6040_reg[TWL6040_CACHEREGNUM] = {
->>> +       0x00, /* not used               0x00    */
->>> +       0x4B, /* TWL6040_ASICID (ro)    0x01    */
-> [snip]
->>
->> a little comment about what the default values are would be nice.
->
-> Most of the codecs only have the register description, not sure if  
-> this
-> is an standard in alsa. Some values are kind of hard to describe  
-> briefly.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Monday, March 15, 2010 9:33 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: Multiple errors while compiling from master
+> 
+> * Premi, Sanjeev <premi@ti.com> [100315 07:30]:
+> > Hi all,
+> > 
+> > While trying to build kernel from master, I encounter many 
+> errors (pasted below).
+> > 
+> > I believe the reason is missing headers - plat/resource.h 
+> and smartreflex.h
+> > ...but I couldn't find them in the tree.
+> > 
+> > premi # ls -l arch/arm/plat-omap/include/plat/res*
+> > ls: No match.
+> > premi # ls -l arch/arm/mach-omap2/smart*
+> > ls: No match.
+> > premi #
+> > 
+> > I am at commit: a842b5f9ce70e1b738eabb4d719860070180ed1c
+> 
+> It should build fine for all omaps now. Maybe do git status and see
+> if you have something extra applied? Those files are currently
+> only in Kevin's PM branch.
 
-The standard is that these are the power on reset values, used to init  
-the register cache and reduce the amount of I/O done to restore on  
-resume.
+Sorry! It was due to wrong commit pushed on the master; did not
+realize it earlier.
 
->
->>
->> #ifdef CONFIG_PM
->>
->>> +static int twl6040_suspend(struct platform_device *pdev,
-> [snip]
->>
->> #else
->> #define twl6040_suspend    NULL
->> #define twl6040_resume     NULL
->> #endif
->
-> I'll add this.
->
+Verified the build after removing this commit.
+
+Best regards,
+Sanjeev
+
+> 
 > Regards,
-> Margarita
->
+> 
+> Tony
+> 
