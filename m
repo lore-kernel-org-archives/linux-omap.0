@@ -1,104 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] arm: Fix mounting root on omaps with CPU_V6 and CPU_V7
-Date: Wed, 17 Mar 2010 10:57:31 -0700
-Message-ID: <20100317175731.GE2900@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHV2] OMAP3 PM: Fix for DSP Crash at OPP 1 and 2 under DVFS+SR operation
+Date: Wed, 17 Mar 2010 11:01:48 -0700
+Message-ID: <87pr32q12r.fsf@deeprootsystems.com>
+References: <1268313365-18495-1-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="HTLCc13+3hfAZ6SL"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62065 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab0CQR4I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 13:56:08 -0400
-Content-Disposition: inline
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:36179 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755286Ab0CQSBv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 14:01:51 -0400
+Received: by pva4 with SMTP id 4so687631pva.19
+        for <linux-omap@vger.kernel.org>; Wed, 17 Mar 2010 11:01:51 -0700 (PDT)
+In-Reply-To: <1268313365-18495-1-git-send-email-vishwanath.bs@ti.com> (Vishwanath BS's message of "Thu\, 11 Mar 2010 18\:46\:05 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, Shweta Gulati <shweta.gulati@ti.com>
 
+Vishwanath BS <vishwanath.bs@ti.com> writes:
 
---HTLCc13+3hfAZ6SL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> From: Shweta Gulati <shweta.gulati@ti.com>
+>
+> DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM UCs
+> running DSP codec was earlier restricted as DSP crashed.
+> The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and OPP2.
+> The solution is to make sure DPLL1/DPLL2 bypass clock is always less than 
+> maximum supported frequency for the specific OPP
+>
+> Tested on 3630 ZOOM3.
+>
+> changes in V2 : Rebased to new OPP implementation
+>
+> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> ---
 
-Hi all,
+This should be broken up into two parts.  One that applies to mainline
+(or l-o master), and another that fixes SRF that can be applied to PM
+branch.  The first will be targted for mainline, but the SRF change
+will be only in PM branch, as SRF is deprecated and will be replaced.
 
-Here's an updated version of this patch with more details.
+That being said, the approach in this patch is not the right approach.
+It appears to completely ignore the min/max dividers that are already
+managed by the clock/DPLL code.
 
-Looks like VFPv3 is only available on V7:
+Please add this support by modifying/extending the existing clock/DPLL
+management code instead of manually writing registers.
 
-http://www.arm.com/products/processors/technologies/vector-floating-point.php
-
-HAS_TLS reg is only on ARM11 starting with r1p0:
-
-http://infocenter.arm.com/help/topic/com.arm.doc.ddi0211k/Babeihid.html
-
-So that explains why it won't work on omap2420 as it's r0p2.
-
-Regards,
-
-Tony
-
---HTLCc13+3hfAZ6SL
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="v6-v7-no-vfpv3-no-tls.patch"
-
->From adebf62d18a03ed26ec20f95860976f80690e9f1 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 15 Mar 2010 15:25:43 -0700
-Subject: [PATCH] arm: Fix mounting root on omaps with CPU_V6 and CPU_V7
-
-To mount root on omap2420, we need to disable VFPv3 and
-HAS_TLS_REG.
-
-VFPv3 is only available on CPU_V7. TLS_REG is only available
-on ARM11 starting with r1p0 and later. As omap2420 is r0p2,
-it does not have TLS_REG.
-
-Otherwise we'll get something like this for CPUv3:
-
-Freeing init memory: 184K
-Internal error: Oops - undefined instruction: 0 [#1]
-last sysfs file:
-Modules linked in:
-CPU: 0    Not tainted  (2.6.33-rc8-07824-gf2e1d91-dirty #36)
-PC is at no_old_VFP_process+0x8/0x3c
-LR is at __und_usr_unknown+0x0/0x14
-...
-
-Or the system just hangs if HAS_TLS_REG is set.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index d97d893..409ae23 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1549,7 +1549,7 @@ config VFP
- config VFPv3
- 	bool
- 	depends on VFP
--	default y if CPU_V7
-+	default y if CPU_V7 && !CPU_V6
- 
- config NEON
- 	bool "Advanced SIMD (NEON) Extension support"
-diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
-index c4ed9f9..ff0c829 100644
---- a/arch/arm/mm/Kconfig
-+++ b/arch/arm/mm/Kconfig
-@@ -718,11 +718,11 @@ config TLS_REG_EMUL
- config HAS_TLS_REG
- 	bool
- 	depends on !TLS_REG_EMUL
--	default y if SMP || CPU_32v7
-+	default y if (SMP || CPU_32v7) && !ARCH_OMAP2
- 	help
- 	  This selects support for the CP15 thread register.
--	  It is defined to be available on some ARMv6 processors (including
--	  all SMP capable ARMv6's) or later processors.  User space may
-+	  It is defined to be available on some ARMv6 processors (r1p0 and
-+	  later, including all SMP capable ARMv6's).  User space may
- 	  assume directly accessing that register and always obtain the
- 	  expected value only on ARMv7 and above.
- 
-
---HTLCc13+3hfAZ6SL--
+Kevin
