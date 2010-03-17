@@ -1,16 +1,16 @@
 From: ville.syrjala@nokia.com
-Subject: [PATCH v4 7/8] DSS2: OMAPFB: Make lockdep happy
-Date: Thu, 18 Mar 2010 00:46:22 +0200
-Message-ID: <1268865983-16270-8-git-send-email-ville.syrjala@nokia.com>
+Subject: [PATCH v4 6/8] DSS2: OMAPFB: Convert the memory region locking to rwsem
+Date: Thu, 18 Mar 2010 00:46:21 +0200
+Message-ID: <1268865983-16270-7-git-send-email-ville.syrjala@nokia.com>
 References: <1268865983-16270-1-git-send-email-ville.syrjala@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:63357 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:63360 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756226Ab0CQWqz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 18:46:55 -0400
+	with ESMTP id S1756274Ab0CQWq6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 18:46:58 -0400
 In-Reply-To: <1268865983-16270-1-git-send-email-ville.syrjala@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,152 +19,141 @@ Cc: Imre Deak <imre.deak@nokia.com>, linux-fbdev@vger.kernel.org, linux-omap@vge
 
 =46rom: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
 
-When more than one memory region needs to be lockd at the same time use
-the memory region id to fix the order in which the locks are taken. Als=
-o
-one needs to use the _nested() versions of the locking primitives. The
-memory region id can serve as the lock class there as well.
+R/W semaphore is a goof fit for the memory region locking pattern.
+So use it.
 
 Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
 ---
- drivers/video/omap2/omapfb/omapfb-ioctl.c |   45 +++++++++++++++++++++=
-+-------
- drivers/video/omap2/omapfb/omapfb-sysfs.c |    2 +-
- drivers/video/omap2/omapfb/omapfb.h       |    2 +-
- 3 files changed, 36 insertions(+), 13 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-ioctl.c |   10 ++--------
+ drivers/video/omap2/omapfb/omapfb-main.c  |    2 +-
+ drivers/video/omap2/omapfb/omapfb-sysfs.c |   10 ++--------
+ drivers/video/omap2/omapfb/omapfb.h       |   13 +++++--------
+ 4 files changed, 10 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/=
 omap2/omapfb/omapfb-ioctl.c
-index 4d5e5af..a3681da 100644
+index f02b1b0..4d5e5af 100644
 --- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
 +++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-@@ -55,7 +55,7 @@ static struct omapfb2_mem_region *get_mem_region(stru=
-ct omapfb_info *ofbi,
- 	if (mem_idx >=3D fbdev->num_fbs)
- 		return NULL;
-=20
--	return omapfb_get_mem_region(&fbdev->regions[mem_idx]);
-+	return &fbdev->regions[mem_idx];
- }
-=20
- static int omapfb_setup_plane(struct fb_info *fbi, struct omapfb_plane=
-_info *pi)
-@@ -77,20 +77,30 @@ static int omapfb_setup_plane(struct fb_info *fbi, =
-struct omapfb_plane_info *pi)
- 	/* XXX uses only the first overlay */
- 	ovl =3D ofbi->overlays[0];
-=20
--	old_rg =3D omapfb_get_mem_region(ofbi->region);
-+	old_rg =3D ofbi->region;
- 	new_rg =3D get_mem_region(ofbi, pi->mem_idx);
- 	if (!new_rg) {
- 		r =3D -EINVAL;
--		goto put_old;
-+		goto out;
- 	}
-=20
-+	/* Take the locks in a specific order to keep lockdep happy */
-+	if (old_rg->id < new_rg->id) {
-+		omapfb_get_mem_region(old_rg);
-+		omapfb_get_mem_region(new_rg);
-+	} else if (new_rg->id < old_rg->id) {
-+		omapfb_get_mem_region(new_rg);
-+		omapfb_get_mem_region(old_rg);
-+	} else
-+		omapfb_get_mem_region(old_rg);
-+
- 	if (pi->enabled && !new_rg->size) {
- 		/*
- 		 * This plane's memory was freed, can't enable it
- 		 * until it's reallocated.
- 		 */
- 		r =3D -EINVAL;
--		goto put_new;
-+		goto put_mem;
- 	}
-=20
- 	ovl->get_overlay_info(ovl, &old_info);
-@@ -135,8 +145,15 @@ static int omapfb_setup_plane(struct fb_info *fbi,=
- struct omapfb_plane_info *pi)
- 	if (ovl->manager)
- 		ovl->manager->apply(ovl->manager);
-=20
--	omapfb_put_mem_region(new_rg);
--	omapfb_put_mem_region(old_rg);
-+	/* Release the locks in a specific order to keep lockdep happy */
-+	if (old_rg->id > new_rg->id) {
-+		omapfb_put_mem_region(old_rg);
-+		omapfb_put_mem_region(new_rg);
-+	} else if (new_rg->id > old_rg->id) {
-+		omapfb_put_mem_region(new_rg);
-+		omapfb_put_mem_region(old_rg);
-+	} else
-+		omapfb_put_mem_region(old_rg);
-=20
- 	return 0;
-=20
-@@ -147,10 +164,16 @@ static int omapfb_setup_plane(struct fb_info *fbi=
-, struct omapfb_plane_info *pi)
- 	}
-=20
- 	ovl->set_overlay_info(ovl, &old_info);
-- put_new:
--	omapfb_put_mem_region(new_rg);
-- put_old:
--	omapfb_put_mem_region(old_rg);
-+ put_mem:
-+	/* Release the locks in a specific order to keep lockdep happy */
-+	if (old_rg->id > new_rg->id) {
-+		omapfb_put_mem_region(old_rg);
-+		omapfb_put_mem_region(new_rg);
-+	} else if (new_rg->id > old_rg->id) {
-+		omapfb_put_mem_region(new_rg);
-+		omapfb_put_mem_region(old_rg);
-+	} else
-+		omapfb_put_mem_region(old_rg);
-  out:
- 	dev_err(fbdev->dev, "setup_plane failed\n");
-=20
-@@ -198,7 +221,7 @@ static int omapfb_setup_mem(struct fb_info *fbi, st=
-ruct omapfb_mem_info *mi)
+@@ -198,13 +198,7 @@ static int omapfb_setup_mem(struct fb_info *fbi, s=
+truct omapfb_mem_info *mi)
 =20
  	rg =3D ofbi->region;
 =20
--	down_write(&rg->lock);
-+	down_write_nested(&rg->lock, rg->id);
+-	/* FIXME probably should be a rwsem ... */
+-	mutex_lock(&rg->mtx);
+-	while (rg->ref) {
+-		mutex_unlock(&rg->mtx);
+-		schedule();
+-		mutex_lock(&rg->mtx);
+-	}
++	down_write(&rg->lock);
 =20
  	if (atomic_read(&rg->map_count)) {
  		r =3D -EBUSY;
+@@ -235,7 +229,7 @@ static int omapfb_setup_mem(struct fb_info *fbi, st=
+ruct omapfb_mem_info *mi)
+ 	}
+=20
+  out:
+-	mutex_unlock(&rg->mtx);
++	up_write(&rg->lock);
+=20
+ 	return r;
+ }
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/o=
+map2/omapfb/omapfb-main.c
+index d330032..2bd5b42 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -1929,7 +1929,7 @@ static int omapfb_create_framebuffers(struct omap=
+fb2_device *fbdev)
+=20
+ 		ofbi->region =3D &fbdev->regions[i];
+ 		ofbi->region->id =3D i;
+-		mutex_init(&ofbi->region->mtx);
++		init_rwsem(&ofbi->region->lock);
+=20
+ 		/* assign these early, so that fb alloc can use them */
+ 		ofbi->rotation_type =3D def_vrfb ? OMAP_DSS_ROT_VRFB :
 diff --git a/drivers/video/omap2/omapfb/omapfb-sysfs.c b/drivers/video/=
 omap2/omapfb/omapfb-sysfs.c
-index aa22f7b..1b7cf57 100644
+index 6aee279..aa22f7b 100644
 --- a/drivers/video/omap2/omapfb/omapfb-sysfs.c
 +++ b/drivers/video/omap2/omapfb/omapfb-sysfs.c
-@@ -445,7 +445,7 @@ static ssize_t store_size(struct device *dev, struc=
-t device_attribute *attr,
+@@ -445,13 +445,7 @@ static ssize_t store_size(struct device *dev, stru=
+ct device_attribute *attr,
 =20
  	rg =3D ofbi->region;
 =20
--	down_write(&rg->lock);
-+	down_write_nested(&rg->lock, rg->id);
+-	/* FIXME probably should be a rwsem ... */
+-	mutex_lock(&rg->mtx);
+-	while (rg->ref) {
+-		mutex_unlock(&rg->mtx);
+-		schedule();
+-		mutex_lock(&rg->mtx);
+-	}
++	down_write(&rg->lock);
 =20
  	if (atomic_read(&rg->map_count)) {
  		r =3D -EBUSY;
+@@ -483,7 +477,7 @@ static ssize_t store_size(struct device *dev, struc=
+t device_attribute *attr,
+=20
+ 	r =3D count;
+ out:
+-	mutex_unlock(&rg->mtx);
++	up_write(&rg->lock);
+=20
+ 	unlock_fb_info(fbi);
+=20
 diff --git a/drivers/video/omap2/omapfb/omapfb.h b/drivers/video/omap2/=
 omapfb/omapfb.h
-index 195a760..676b55d 100644
+index db3aef5..195a760 100644
 --- a/drivers/video/omap2/omapfb/omapfb.h
 +++ b/drivers/video/omap2/omapfb/omapfb.h
-@@ -165,7 +165,7 @@ static inline int omapfb_overlay_enable(struct omap=
-_overlay *ovl,
+@@ -27,6 +27,8 @@
+ #define DEBUG
+ #endif
+=20
++#include <linux/rwsem.h>
++
+ #include <plat/display.h>
+=20
+ #ifdef DEBUG
+@@ -52,9 +54,8 @@ struct omapfb2_mem_region {
+ 	u8		type;		/* OMAPFB_PLANE_MEM_* */
+ 	bool		alloc;		/* allocated by the driver */
+ 	bool		map;		/* kernel mapped by the driver */
+-	struct mutex    mtx;
+-	unsigned int    ref;
+ 	atomic_t	map_count;
++	struct rw_semaphore lock;
+ };
+=20
+ /* appended to fb_info */
+@@ -164,17 +165,13 @@ static inline int omapfb_overlay_enable(struct om=
+ap_overlay *ovl,
  static inline struct omapfb2_mem_region *
  omapfb_get_mem_region(struct omapfb2_mem_region *rg)
  {
--	down_read(&rg->lock);
-+	down_read_nested(&rg->lock, rg->id);
+-	mutex_lock(&rg->mtx);
+-	rg->ref++;
+-	mutex_unlock(&rg->mtx);
++	down_read(&rg->lock);
  	return rg;
  }
 =20
+ static inline void omapfb_put_mem_region(struct omapfb2_mem_region *rg=
+)
+ {
+-	mutex_lock(&rg->mtx);
+-	rg->ref--;
+-	mutex_unlock(&rg->mtx);
++	up_read(&rg->lock);
+ }
+=20
+ #endif
 --=20
 1.6.4.4
 
