@@ -1,219 +1,131 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v3 1/4] DSS2: OMAPFB: Add support for switching memory
- regions
-Date: Wed, 17 Mar 2010 15:50:45 +0200
-Message-ID: <1268833845.2417.274.camel@tubuntu.research.nokia.com>
-References: <1267795582-21004-1-git-send-email-ville.syrjala@nokia.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH 0/4 RFC]OMAP:GPIO: Make GPIO an early init device
+Date: Wed, 17 Mar 2010 19:40:21 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C489C445@dbde02.ent.ti.com>
+References: <20100216194618.GR21755@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:38821 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753605Ab0CQNw0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 09:52:26 -0400
-In-Reply-To: <1267795582-21004-1-git-send-email-ville.syrjala@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48703 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754903Ab0CQOKh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 10:10:37 -0400
+In-Reply-To: <20100216194618.GR21755@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Tony, 
 
-On Fri, 2010-03-05 at 14:26 +0100, Syrjala Ville (Nokia-D/Helsinki)
-wrote:
-> From: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
->=20
-> Separate the memory region from the framebuffer device a little bit.
-> It's now possible to select the memory region used by the framebuffer
-> device using the new mem_idx parameter of omapfb_plane_info. If the
-> mem_idx is specified it will be interpreted as an index into the
-> memory regions array, if it's not specified the framebuffer's index i=
-s
-> used instead. So by default each framebuffer keeps using it's own
-> memory region which preserves backwards compatibility.
->=20
-> This allows cloning the same memory region to several overlays and ye=
-t
-> each overlay can be controlled independently since they can be
-> associated with separate framebuffer devices.
+> > > >
+> > > > http://www.pwsan.com/omap/patches/gpio/0002-OMAP-GPIO-split-omap1-and-
+> > > omap2.patch
+> > >
+> > > What, make two almost identical copies of the shared code? No way!
+> > > Instead, please keep the common code under plat-omap:
+> > >
+> > > arch/arm/plat-omap/gpio.c
+> > >
+> > > Then implement the processor specific functions:
+> > >
+> > > arch/arm/mach-omap1/gpio.c
+> > > arch/arm/mach-omap2/gpio.c
+> > > arch/arm/mach-omap2/gpio24xx.c
+> > > arch/arm/mach-omap2/gpio44xx.c
+> > >
+> > > Then have a subsys_initcall in processor specific implementation
+> > > that sets the function pointers in the common code.
+> > >
+> > Tony,
+> >
+> > The current gpio.c has functions with code similar as mentioned below:
+> > {
+> > 	#ifdef CONFIG_ARCH_OMAP1
+> > 		Get the reg offset for OMAP1
+> > 	#endif
+> > 	#ifdef CONFIG_ARCH_OMAP15XX
+> > 		Get the reg offset for OMAP15XX
+> > 	#endif
+> > 	#ifdef CONFIG_ARCH_OMAP16XX
+> > 		Get the reg offset for OMAP16XX
+> > 	#endif
+> > 	#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+> > 		Get the reg offset for this OMAP
+> > 	#endif
+> > 	#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> > 		Get the reg offset for OMAP2&3
+> > 	#endif
+> > 	#if defined(CONFIG_ARCH_OMAP4)
+> > 		Get the reg offset for OMAP4
+> > 	#endif
+> >
+> > 	Read/write the register
+> > }
+> >
+> > If function pointers are used in common code (plat-omap/gpio.c), the API's in
+> this file would essentially do nothing but invoke these pointers. IMHO this is
+> simply adding one unnecessary level of indirection.
+> > Please correct me if I am missing out something.
+> 
+> For those you can just set the various reg offsets once
+> during __init based on the omap type and then the function
+> stays the same.
+> 
+> For example, in arch/arm/mach-omap2/gpio44xx.c you could
+> have something like the following (completely untested):
+> 
+> static const struct gpio_reg omap4_gpio_reg[] = {
+> 	...
+> };
+> 
+> static const struct gpio_bank omap4_gpio_bank[] = {
+> 	...
+> };
+> 
+> static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
+> {
+> 	...
+> }
+> 
+> static int omap_gpio_resume(struct sys_device *dev)
+> {
+> 	...
+> }
+> 
+> const struct omap_gpio omap4_gpio = {
+> 	.regs		= omap4_gpio_reg,
+> 	.banks		= omap4_gpio_bank,
+> 	.suspend	= omap4_gpio_suspend,
+> 	.resume		= omap4_gpio_resume,
+> 	...
+> };
+> 
+> ...
+> 
+> static int __init omap_gpio_init(void)
+> {
+> 	if (!cpu_is_omap44xx())
+> 		return -ENODEV;
+> 
+> 	return omap_gpio_init(omap4_gpio);
+> }
+> arch_initcall(omap44xx_gpio_init);
+> 
+> For some of them, you want to be able to implement the whole
+> function depending on the omap type that you boot.
+> 
+> We're already doing it like this in most places, the gpio.c code
+> just needs to be updated for that.
 
-Couple of comments inline. Mostly about making the patch a bit simpler.
+Thanks. Can you please specify some example code & location in the 
+current code base, so that I can align exactly before sending my
+next version of patches? 
 
->=20
-> Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
-> ---
-> Changes since v2:
-> * Removed the use_count and rely on just counting all active overlays=
-=2E A bit racy
->   but no chance of getting stuck in a state where memory allocation c=
-an't be changed.
-> * s/source_idx/mem_idx as that seems to be a little more self explana=
-tory
->=20
->  drivers/video/omap2/omapfb/omapfb-ioctl.c |  163 +++++++++++++++++++=
-+-----
->  drivers/video/omap2/omapfb/omapfb-main.c  |  184 +++++++++++++++++++=
-----------
->  drivers/video/omap2/omapfb/omapfb-sysfs.c |   60 ++++++++--
->  drivers/video/omap2/omapfb/omapfb.h       |   38 ++++++-
->  include/linux/omapfb.h                    |    5 +-
->  5 files changed, 339 insertions(+), 111 deletions(-)
+> 
+> Regards,
+> 
+> Tony
 
-<snip>
-
-> +static void omapfb_calc_addr(const struct omapfb_info *ofbi,
-> +                            const struct fb_var_screeninfo *var,
-> +                            const struct fb_fix_screeninfo *fix,
-> +                            int rotation, u32 *paddr, void __iomem *=
-*vaddr)
-> +{
-> +       u32 data_start_p;
-> +       void __iomem *data_start_v;
-> +       int offset;
-> +
-> +       if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB) {
-> +               data_start_p =3D omapfb_get_region_rot_paddr(ofbi, ro=
-tation);
-> +               data_start_v =3D NULL;
-> +       } else {
-> +               data_start_p =3D omapfb_get_region_paddr(ofbi);
-> +               data_start_v =3D omapfb_get_region_vaddr(ofbi);
-> +       }
-> +
-> +       if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB)
-> +               offset =3D calc_rotation_offset_vrfb(var, fix, rotati=
-on);
-> +       else
-> +               offset =3D calc_rotation_offset_dma(var, fix, rotatio=
-n);
-> +
-> +       data_start_p +=3D offset;
-> +       data_start_v +=3D offset;
-> +
-> +       if (offset)
-> +               DBG("offset %d, %d =3D %d\n",
-> +                   var->xoffset, var->yoffset, offset);
-> +
-> +       DBG("paddr %x, vaddr %p\n", data_start_p, data_start_v);
-> +
-> +       *paddr =3D data_start_p;
-> +       *vaddr =3D data_start_v;
-> +}
->=20
->  /* setup overlay according to the fb */
-> -static int omapfb_setup_overlay(struct fb_info *fbi, struct omap_ove=
-rlay *ovl,
-> +int omapfb_setup_overlay(struct fb_info *fbi, struct omap_overlay *o=
-vl,
->                 u16 posx, u16 posy, u16 outw, u16 outh)
->  {
->         int r =3D 0;
-> @@ -831,9 +863,8 @@ static int omapfb_setup_overlay(struct fb_info *f=
-bi, struct omap_overlay *ovl,
->         struct fb_var_screeninfo *var =3D &fbi->var;
->         struct fb_fix_screeninfo *fix =3D &fbi->fix;
->         enum omap_color_mode mode =3D 0;
-> -       int offset;
-> -       u32 data_start_p;
-> -       void __iomem *data_start_v;
-> +       u32 data_start_p =3D 0;
-> +       void __iomem *data_start_v =3D NULL;
->         struct omap_overlay_info info;
->         int xres, yres;
->         int screen_width;
-> @@ -860,28 +891,9 @@ static int omapfb_setup_overlay(struct fb_info *=
-fbi, struct omap_overlay *ovl,
->                 yres =3D var->yres;
->         }
->=20
-> -
-> -       if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB) {
-> -               data_start_p =3D omapfb_get_region_rot_paddr(ofbi, ro=
-tation);
-> -               data_start_v =3D NULL;
-> -       } else {
-> -               data_start_p =3D omapfb_get_region_paddr(ofbi);
-> -               data_start_v =3D omapfb_get_region_vaddr(ofbi);
-> -       }
-> -
-> -       if (ofbi->rotation_type =3D=3D OMAP_DSS_ROT_VRFB)
-> -               offset =3D calc_rotation_offset_vrfb(var, fix, rotati=
-on);
-> -       else
-> -               offset =3D calc_rotation_offset_dma(var, fix, rotatio=
-n);
-> -
-> -       data_start_p +=3D offset;
-> -       data_start_v +=3D offset;
-> -
-> -       if (offset)
-> -               DBG("offset %d, %d =3D %d\n",
-> -                               var->xoffset, var->yoffset, offset);
-> -
-> -       DBG("paddr %x, vaddr %p\n", data_start_p, data_start_v);
-> +       if (ofbi->region->size)
-> +               omapfb_calc_addr(ofbi, var, fix, rotation,
-> +                                &data_start_p, &data_start_v);
->=20
->         r =3D fb_mode_to_dss_mode(var, &mode);
->         if (r) {
-
-Moving this code to omapfb_calc_addr() could perhaps be a separate
-patch? I don't see other changes in there.
-
->  static struct device_attribute omapfb_attrs[] =3D {
-> diff --git a/drivers/video/omap2/omapfb/omapfb.h b/drivers/video/omap=
-2/omapfb/omapfb.h
-> index cd54fdb..ce15533 100644
-> --- a/drivers/video/omap2/omapfb/omapfb.h
-> +++ b/drivers/video/omap2/omapfb/omapfb.h
-
->  static inline int omapfb_overlay_enable(struct omap_overlay *ovl,
-> -               int enable)
-> +                                       int enable)
->  {
->         struct omap_overlay_info info;
-> +       int r;
->=20
->         ovl->get_overlay_info(ovl, &info);
-> +       if (info.enabled =3D=3D enable)
-> +               return 0;
->         info.enabled =3D enable;
-> -       return ovl->set_overlay_info(ovl, &info);
-> +       r =3D ovl->set_overlay_info(ovl, &info);
-> +       if (r)
-> +               return r;
-> +
-> +       return 0;
-> +}
-
-There are perhaps more changes here than needed. int r is not needed,
-and the last lines do not need to be changed. And is if (info.enabled =3D=
-=3D
-enable) required by this patch, or is it just optimization? If
-optimization, it could be in separate patch.
-
->  #endif
-> diff --git a/include/linux/omapfb.h b/include/linux/omapfb.h
-> index 9bdd914..5de473c 100644
-> --- a/include/linux/omapfb.h
-> +++ b/include/linux/omapfb.h
-> @@ -85,6 +85,9 @@
->  #define OMAPFB_MEMTYPE_SRAM            1
->  #define OMAPFB_MEMTYPE_MAX             1
->=20
-> +#define OMAPFB_MEM_IDX_ENABLED 0x8
-> +#define OMAPFB_MEM_IDX_MASK    0x7
-
-Should enabled be 0x80, and mask 0x7f? There are never that many mem
-indexes, but is there any point in limiting the value?
-
- Tomi
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
