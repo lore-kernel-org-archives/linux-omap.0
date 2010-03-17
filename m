@@ -1,149 +1,143 @@
-From: ville.syrjala@nokia.com
-Subject: [PATCH v4 8/8] DSS2: OMAPFB: Add some locking debug checks
-Date: Thu, 18 Mar 2010 00:46:23 +0200
-Message-ID: <1268865983-16270-9-git-send-email-ville.syrjala@nokia.com>
-References: <1268865983-16270-1-git-send-email-ville.syrjala@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4 RFC]OMAP:GPIO: Make GPIO an early init device
+Date: Wed, 17 Mar 2010 16:19:27 -0700
+Message-ID: <20100317231927.GL2900@atomide.com>
+References: <20100216194618.GR21755@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C489C445@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28656 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756285Ab0CQWrE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 18:47:04 -0400
-In-Reply-To: <1268865983-16270-1-git-send-email-ville.syrjala@nokia.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54843 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181Ab0CQXR7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 19:17:59 -0400
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C489C445@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Imre Deak <imre.deak@nokia.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@nokia.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-=46rom: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
+* Varadarajan, Charulatha <charu@ti.com> [100317 07:07]:
+> Tony, 
+> 
+> > > > >
+> > > > > http://www.pwsan.com/omap/patches/gpio/0002-OMAP-GPIO-split-omap1-and-
+> > > > omap2.patch
+> > > >
+> > > > What, make two almost identical copies of the shared code? No way!
+> > > > Instead, please keep the common code under plat-omap:
+> > > >
+> > > > arch/arm/plat-omap/gpio.c
+> > > >
+> > > > Then implement the processor specific functions:
+> > > >
+> > > > arch/arm/mach-omap1/gpio.c
+> > > > arch/arm/mach-omap2/gpio.c
+> > > > arch/arm/mach-omap2/gpio24xx.c
+> > > > arch/arm/mach-omap2/gpio44xx.c
+> > > >
+> > > > Then have a subsys_initcall in processor specific implementation
+> > > > that sets the function pointers in the common code.
+> > > >
+> > > Tony,
+> > >
+> > > The current gpio.c has functions with code similar as mentioned below:
+> > > {
+> > > 	#ifdef CONFIG_ARCH_OMAP1
+> > > 		Get the reg offset for OMAP1
+> > > 	#endif
+> > > 	#ifdef CONFIG_ARCH_OMAP15XX
+> > > 		Get the reg offset for OMAP15XX
+> > > 	#endif
+> > > 	#ifdef CONFIG_ARCH_OMAP16XX
+> > > 		Get the reg offset for OMAP16XX
+> > > 	#endif
+> > > 	#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+> > > 		Get the reg offset for this OMAP
+> > > 	#endif
+> > > 	#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> > > 		Get the reg offset for OMAP2&3
+> > > 	#endif
+> > > 	#if defined(CONFIG_ARCH_OMAP4)
+> > > 		Get the reg offset for OMAP4
+> > > 	#endif
+> > >
+> > > 	Read/write the register
+> > > }
+> > >
+> > > If function pointers are used in common code (plat-omap/gpio.c), the API's in
+> > this file would essentially do nothing but invoke these pointers. IMHO this is
+> > simply adding one unnecessary level of indirection.
+> > > Please correct me if I am missing out something.
+> > 
+> > For those you can just set the various reg offsets once
+> > during __init based on the omap type and then the function
+> > stays the same.
+> > 
+> > For example, in arch/arm/mach-omap2/gpio44xx.c you could
+> > have something like the following (completely untested):
+> > 
+> > static const struct gpio_reg omap4_gpio_reg[] = {
+> > 	...
+> > };
+> > 
+> > static const struct gpio_bank omap4_gpio_bank[] = {
+> > 	...
+> > };
+> > 
+> > static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
+> > {
+> > 	...
+> > }
+> > 
+> > static int omap_gpio_resume(struct sys_device *dev)
+> > {
+> > 	...
+> > }
+> > 
+> > const struct omap_gpio omap4_gpio = {
+> > 	.regs		= omap4_gpio_reg,
+> > 	.banks		= omap4_gpio_bank,
+> > 	.suspend	= omap4_gpio_suspend,
+> > 	.resume		= omap4_gpio_resume,
+> > 	...
+> > };
+> > 
+> > ...
+> > 
+> > static int __init omap_gpio_init(void)
+> > {
+> > 	if (!cpu_is_omap44xx())
+> > 		return -ENODEV;
+> > 
+> > 	return omap_gpio_init(omap4_gpio);
+> > }
+> > arch_initcall(omap44xx_gpio_init);
+> > 
+> > For some of them, you want to be able to implement the whole
+> > function depending on the omap type that you boot.
+> > 
+> > We're already doing it like this in most places, the gpio.c code
+> > just needs to be updated for that.
+> 
+> Thanks. Can you please specify some example code & location in the 
+> current code base, so that I can align exactly before sending my
+> next version of patches? 
 
-Trigger WARN_ON() messages from various places in the code in case the
-memory region is not currently locked.
+See mach-omap2/clock.c for example for struct clk_functions.
 
-Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
----
- drivers/video/omap2/omapfb/omapfb-ioctl.c |    2 ++
- drivers/video/omap2/omapfb/omapfb-main.c  |    6 ++++++
- drivers/video/omap2/omapfb/omapfb-sysfs.c |    2 ++
- drivers/video/omap2/omapfb/omapfb.h       |    3 +++
- 4 files changed, 13 insertions(+), 0 deletions(-)
+Please do the changes in a set where each change patch can be
+easily reviewed and tested. Maybe something like the following
+patches:
 
-diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/=
-omap2/omapfb/omapfb-ioctl.c
-index a3681da..64e70e0 100644
---- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
-+++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-@@ -222,6 +222,7 @@ static int omapfb_setup_mem(struct fb_info *fbi, st=
-ruct omapfb_mem_info *mi)
- 	rg =3D ofbi->region;
-=20
- 	down_write_nested(&rg->lock, rg->id);
-+	atomic_inc(&rg->lock_count);
-=20
- 	if (atomic_read(&rg->map_count)) {
- 		r =3D -EBUSY;
-@@ -252,6 +253,7 @@ static int omapfb_setup_mem(struct fb_info *fbi, st=
-ruct omapfb_mem_info *mi)
- 	}
-=20
-  out:
-+	atomic_dec(&rg->lock_count);
- 	up_write(&rg->lock);
-=20
- 	return r;
-diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/o=
-map2/omapfb/omapfb-main.c
-index 2bd5b42..ac7625d 100644
---- a/drivers/video/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -667,6 +667,8 @@ int check_fb_var(struct fb_info *fbi, struct fb_var=
-_screeninfo *var)
-=20
- 	DBG("check_fb_var %d\n", ofbi->id);
-=20
-+	WARN_ON(!atomic_read(&ofbi->region->lock_count));
-+
- 	r =3D fb_mode_to_dss_mode(var, &mode);
- 	if (r) {
- 		DBG("cannot convert var to omap dss mode\n");
-@@ -872,6 +874,8 @@ int omapfb_setup_overlay(struct fb_info *fbi, struc=
-t omap_overlay *ovl,
- 	int rotation =3D var->rotate;
- 	int i;
-=20
-+	WARN_ON(!atomic_read(&ofbi->region->lock_count));
-+
- 	for (i =3D 0; i < ofbi->num_overlays; i++) {
- 		if (ovl !=3D ofbi->overlays[i])
- 			continue;
-@@ -965,6 +969,8 @@ int omapfb_apply_changes(struct fb_info *fbi, int i=
-nit)
- 		fill_fb(fbi);
- #endif
-=20
-+	WARN_ON(!atomic_read(&ofbi->region->lock_count));
-+
- 	for (i =3D 0; i < ofbi->num_overlays; i++) {
- 		ovl =3D ofbi->overlays[i];
-=20
-diff --git a/drivers/video/omap2/omapfb/omapfb-sysfs.c b/drivers/video/=
-omap2/omapfb/omapfb-sysfs.c
-index 1b7cf57..cf2f478 100644
---- a/drivers/video/omap2/omapfb/omapfb-sysfs.c
-+++ b/drivers/video/omap2/omapfb/omapfb-sysfs.c
-@@ -446,6 +446,7 @@ static ssize_t store_size(struct device *dev, struc=
-t device_attribute *attr,
- 	rg =3D ofbi->region;
-=20
- 	down_write_nested(&rg->lock, rg->id);
-+	atomic_inc(&rg->lock_count);
-=20
- 	if (atomic_read(&rg->map_count)) {
- 		r =3D -EBUSY;
-@@ -477,6 +478,7 @@ static ssize_t store_size(struct device *dev, struc=
-t device_attribute *attr,
-=20
- 	r =3D count;
- out:
-+	atomic_dec(&rg->lock_count);
- 	up_write(&rg->lock);
-=20
- 	unlock_fb_info(fbi);
-diff --git a/drivers/video/omap2/omapfb/omapfb.h b/drivers/video/omap2/=
-omapfb/omapfb.h
-index 676b55d..1305fc9 100644
---- a/drivers/video/omap2/omapfb/omapfb.h
-+++ b/drivers/video/omap2/omapfb/omapfb.h
-@@ -56,6 +56,7 @@ struct omapfb2_mem_region {
- 	bool		map;		/* kernel mapped by the driver */
- 	atomic_t	map_count;
- 	struct rw_semaphore lock;
-+	atomic_t	lock_count;
- };
-=20
- /* appended to fb_info */
-@@ -166,11 +167,13 @@ static inline struct omapfb2_mem_region *
- omapfb_get_mem_region(struct omapfb2_mem_region *rg)
- {
- 	down_read_nested(&rg->lock, rg->id);
-+	atomic_inc(&rg->lock_count);
- 	return rg;
- }
-=20
- static inline void omapfb_put_mem_region(struct omapfb2_mem_region *rg=
-)
- {
-+	atomic_dec(&rg->lock_count);
- 	up_read(&rg->lock);
- }
-=20
---=20
-1.6.4.4
+1. Add support for passing platform_data to omap_gpio_init()
+2. Add support for implementing SoC specific omap_gpio_AAA()
+3. Add support for implementing SoC specific omap_gpio_BBB()
+4. Add support for implementing SoC specific omap_gpio_CCC()
+...
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards,
+
+Tony
