@@ -1,53 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] sec: omap sha1 & md5 driver
-Date: Wed, 17 Mar 2010 13:49:36 -0700
-Message-ID: <20100317204936.GK2900@atomide.com>
-References: <cover.1268830685.git.dmitry.kasatkin@nokia.com>
- <2f55c827126b6cfc3b09b5b6df7532fc5ea4403e.1268830685.git.dmitry.kasatkin@nokia.com>
- <20100317170805.GB3857@gandalf>
+From: Bill Gatliff <bgat@billgatliff.com>
+Subject: Question on OTG transceivers
+Date: Wed, 17 Mar 2010 16:35:02 -0500
+Message-ID: <4BA14B06.8050202@billgatliff.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100317170805.GB3857@gandalf>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>, herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:64904 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074Ab0CQVey (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 17:34:54 -0400
+Received: by gyg8 with SMTP id 8so647844gyg.19
+        for <linux-omap@vger.kernel.org>; Wed, 17 Mar 2010 14:34:53 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Felipe Balbi <me@felipebalbi.com> [100317 10:04]:
-> On Wed, Mar 17, 2010 at 03:12:50PM +0200, Dmitry Kasatkin wrote:
-> > Earlier kernel contained omap sha1 and md5 driver, which was not maintained,
-> > was not ported to new crypto APIs and removed from the source tree.
-> 
-> > +#include <linux/version.h>
-> > +#include <linux/err.h>
-> > +#include <linux/device.h>
-> > +#include <linux/module.h>
-> > +#include <linux/init.h>
-> > +#include <linux/errno.h>
-> > +#include <linux/cryptohash.h>
-> > +#include <linux/interrupt.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/clk.h>
-> > +#include <linux/irq.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/scatterlist.h>
-> > +#include <linux/dma-mapping.h>
-> > +#include <linux/delay.h>
-> > +#include <linux/crypto.h>
-> > +#include <crypto/scatterwalk.h>
-> > +#include <crypto/algapi.h>
-> > +#include <crypto/sha.h>
-> > +#include <crypto/hash.h>
-> > +#include <crypto/internal/hash.h>
-> > +
-> > +#include <plat/cpu.h>
-> > +#include <plat/dma.h>
-> > +#include <mach/irqs.h>
-> > +#include <mach/io.h>
-> > +
+Guys:
 
-Please include linux/io.h instead of mach/io.h.
 
-Tony
+I have a Beagleboard-like unit here that uses two SMSC USB3320C-EZK
+PHYs: one for EHCI (usb1), the other for OTG (usb0).
+
+Two questions.  First, the code in drivers/usb/otg/ulpi.c looks like it
+might be what I need (my attempts so far with the "nop" transceiver have
+ended in failure).  Am I right?
+
+Second, it looks like otg_set_transceiver() assumes there is only one
+transceiver in the system.  On a device like the OMAP3530 with multiple
+ports, this seems like an odd assumption--- and one that clearly isn't
+accurate for my platform.  Or am I paying attention to the wrong stuff?
+
+Can anyone help navigate me through the trees in this forest?  :)
+
+
+Thanks!
+
+
+b.g.
+
+-- 
+Bill Gatliff
+Embedded systems training and consulting
+http://billgatliff.com
+bgat@billgatliff.com
+
