@@ -1,67 +1,72 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [PATCHv6 2/2] ASoC: TWL6040: Add twl6040 codec
- driver
-Date: Thu, 18 Mar 2010 08:43:48 +0000
-Message-ID: <1268901828.3773.3.camel@odin>
-References: <1889FA7136B567478A67D4B0F85B0CCE662AC372@dlee06.ent.ti.com>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: Re: [PATCH v3 1/4] DSS2: OMAPFB: Add support for switching memory
+	regions
+Date: Thu, 18 Mar 2010 10:52:39 +0200
+Message-ID: <20100318085239.GE30422@localhost>
+References: <1267795582-21004-1-git-send-email-ville.syrjala@nokia.com> <20100317173407.GD30422@localhost> <20100317201425.GI18243@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1889FA7136B567478A67D4B0F85B0CCE662AC372@dlee06.ent.ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Olaya, Margarita" <magi.olaya@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:23231 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750936Ab0CRIxY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 04:53:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20100317201425.GI18243@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>
+Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2010-03-17 at 17:42 -0500, Olaya, Margarita wrote:
-> From: Misael Lopez Cruz <x0052729@ti.com>
+On Wed, Mar 17, 2010 at 09:14:25PM +0100, Syrjala Ville (Nokia-D/Helsinki) wrote:
+> On Wed, Mar 17, 2010 at 06:34:07PM +0100, Deak Imre (Nokia-D/Helsinki) wrote:
+> > Hi,
+> > 
+> > couple of minor comments inlined.
+> > 
+> > On Fri, Mar 05, 2010 at 02:26:19PM +0100, Syrjala Ville (Nokia-D/Helsinki) wrote:
+> > [...]
+> > > @@ -115,30 +184,57 @@ static int omapfb_setup_mem(struct fb_info *fbi, struct omapfb_mem_info *mi)
+> > >         struct omapfb_info *ofbi = FB2OFB(fbi);
+> > >         struct omapfb2_device *fbdev = ofbi->fbdev;
+> > >         struct omapfb2_mem_region *rg;
+> > > -       int r, i;
+> > > +       int r = 0;
+> > >         size_t size;
+> > > +       int i;
+> > > 
+> > >         if (mi->type > OMAPFB_MEMTYPE_MAX)
+> > >                 return -EINVAL;
+> > > 
+> > >         size = PAGE_ALIGN(mi->size);
+> > > 
+> > > -       rg = &ofbi->region;
+> > > +       rg = ofbi->region;
+> > > 
+> > > -       for (i = 0; i < ofbi->num_overlays; i++) {
+> > > -               if (ofbi->overlays[i]->info.enabled)
+> > > -                       return -EBUSY;
+> > > +       /* FIXME probably should be a rwsem ... */
+> > > +       mutex_lock(&rg->mtx);
+> > > +       while (rg->ref) {
+> > > +               mutex_unlock(&rg->mtx);
+> > > +               schedule();
+> > > +               mutex_lock(&rg->mtx);
+> > > +       }
+> > 
+> > Yes, rwsem would mean no unnecessary scheduling and also make things
+> > clearer.
 > 
-> Initial version of TWL6040 codec driver.
-> 
-> The TWL6040 codec uses a proprietary PDM-based digital audio interface.
-> Audio paths supported are:
-> 
-> - Input: Main Mic, Sub Mic, Headset Mic, Auxiliary-FM Left/Right
-> - Output: Headset Left/Right, Handsfree Left/Right
-> 
-> TWL6040 codec supports power-up/down manual and automatic sequence.
-> Manual sequence is done through a specific register writes sequence.
-> Automatic sequence is done when the codec is powered-up through the
-> external AUDPWRON line. The completion of the sequence is signaled
-> through the audio interrupt.
-> 
-> TWL6040 codec sysclk can be provided by: low-power or high
-> performance PLL:
-> 
-> - The low-power PLL takes a low-frequency input at 32,768 Hz and
-> generates an approximate of 17.64 or 19.2 MHz (for 44.1 KHz and 48 KHz
-> respectively)
-> 
-> - The high-performance PLL generates an exact 19.2 MHz clock signal
-> from high-frequency input at 12/19.2/26/38.4 MHz.
-> 
-> Low-power playback mode is a special scenario where only headset path
-> (headset DAC and driver) is active.
-> 
-> For the particular case of headset path, PLL being used defines the
-> headset power mode: low-power, high-performance.
-> 
-> Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
-> Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-> Signed-off-by: Margarita Olaya Cabrera <magi.olaya@ti.com>
+> Just tried it and seems to be mostly OK. We get lockdep checking as a
+> bonus. It didn't like setup_plane taking the same rwsem twice so I
+> added a check to see if the old and new regions are the same and just
+> lock once in that case. I thought rwsem was supposed to be OK with
+> read recursion but perhaps I was mitaken, or perhaps it's just lockdep
+> that's misbehaving.
 
-Acked-by: Liam Girdwood <lrg@slimlogic.co.uk>
+Ah ok, so it's not so obvious change. Nested read locks could really lead
+to a deadlock I think. A read lock will block if there is a write waiter
+in the queue to avoid write starvation..
 
--- 
-Freelance Developer, SlimLogic Ltd
-ASoC and Voltage Regulator Maintainer.
-http://www.slimlogic.co.uk
+--Imre
+
