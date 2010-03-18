@@ -1,7 +1,7 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCHv2 15/17] OMAP3: PM: Implement latest h/w recommendations for SR and VP registers and SR VP enable disable sequence.
-Date: Thu, 18 Mar 2010 14:45:53 +0530
-Message-ID: <1268903755-4151-16-git-send-email-thara@ti.com>
+Subject: [PATCHv2 12/17] OMAP3: PM: Configurations for Smartreflex Class 2 and Smartreflex Class 3
+Date: Thu, 18 Mar 2010 14:45:50 +0530
+Message-ID: <1268903755-4151-13-git-send-email-thara@ti.com>
 References: <1268903755-4151-1-git-send-email-thara@ti.com>
  <1268903755-4151-2-git-send-email-thara@ti.com>
  <1268903755-4151-3-git-send-email-thara@ti.com>
@@ -14,420 +14,388 @@ References: <1268903755-4151-1-git-send-email-thara@ti.com>
  <1268903755-4151-10-git-send-email-thara@ti.com>
  <1268903755-4151-11-git-send-email-thara@ti.com>
  <1268903755-4151-12-git-send-email-thara@ti.com>
- <1268903755-4151-13-git-send-email-thara@ti.com>
- <1268903755-4151-14-git-send-email-thara@ti.com>
- <1268903755-4151-15-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38284 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751338Ab0CRJQL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 05:16:11 -0400
-In-Reply-To: <1268903755-4151-15-git-send-email-thara@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57341 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751229Ab0CRJQJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Mar 2010 05:16:09 -0400
+In-Reply-To: <1268903755-4151-12-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch introduces OMAP3 specific values for Smartreflex and
-Voltage processor registers as per the latest TI recommendations.
-This patch also improves the smartreflex and voltage processor
-enable disable sequences as per the latest recommendations.
+There are two separate modules in SmartReflex-AVS :
+MinMaxAvg module and Error module. Class3 uses the Error module only.
+In Class2 you can choose between either module since it is software based.
+The registers are mapped to the modules as followed:
 
-These recommendations were first formed based on experimentations
-on N900 platform  and were implemented in the N900 codebase
-base first by Nishanth Menon and Paul Walmsley.
+MinMaxAvg module: AccumData, MinMaxAvgEnable, MinMaxAvgValid,
+        MinMaxAvgAccumValid, SenVal, SenMin, SenMax, SenAverage,
+        AverageWeight, MCUAccum, MCUValid, MCUBounds.
+
+Error module: SenNGain, SenPGain, SenPRN, SenNRN, AvgError,
+        SenError, VPBounds, ErrWeight, ErrMaxLimit, ErrMinLimit.
+
+Shared between both: SRClkLength, SREnable, SenEnable, SenNEnable,
+        SenPEnable, DelayCtrl, MCUDisableAck, ClkActivity.
+
+This patch introduces class specific configuration of registers in smartreflex.c
+This also allows for choosing between Error module and Minmaxavg module
+for Class 2 SR. This patch allows allows for registering for smartreflex
+interrupt handler and notification of interrupts in case requested by
+the smartreflex class driver.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   72 ++++++++++++++++++++++++-----
- arch/arm/mach-omap2/smartreflex.h |    9 ++-
- arch/arm/mach-omap2/voltage.c     |   93 +++++++++++++++++++++++++++++++-----
- arch/arm/mach-omap2/voltage.h     |   16 ++++---
- 4 files changed, 155 insertions(+), 35 deletions(-)
+ arch/arm/mach-omap2/smartreflex-class3.c |    1 +
+ arch/arm/mach-omap2/smartreflex.c        |  201 ++++++++++++++++++++++++------
+ arch/arm/mach-omap2/smartreflex.h        |   22 ++++
+ 3 files changed, 187 insertions(+), 37 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+index 7904ed9..96c46c1 100644
+--- a/arch/arm/mach-omap2/smartreflex-class3.c
++++ b/arch/arm/mach-omap2/smartreflex-class3.c
+@@ -42,6 +42,7 @@ static int sr_class3_disable(int id)
+ struct omap_smartreflex_class_data class3_data = {
+ 	.enable = sr_class3_enable,
+ 	.disable = sr_class3_disable,
++	.class_type = SR_CLASS3,
+ };
+ 
+ static int __init sr_class3_init(void)
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 7858113..1d7d2e6 100644
+index 3f93b6e..35848d9 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -27,13 +27,16 @@
- #include <linux/io.h>
- #include <linux/list.h>
- #include <linux/debugfs.h>
-+#include <linux/delay.h>
- 
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
-+#include <plat/common.h>
- 
- #include "smartreflex.h"
- 
- #define SMARTREFLEX_NAME_LEN	16
-+#define SR_DISABLE_TIMEOUT	200
- 
- struct omap_sr {
- 	int				srid;
-@@ -207,17 +210,33 @@ static void sr_set_regfields(struct omap_sr *sr)
- 	 * fields will have to be populated using the pdata or pmic structure.
- 	 */
- 	if (cpu_is_omap343x()) {
-+		struct omap_smartreflex_data *pdata =
-+					sr->pdev->dev.platform_data;
- 		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
- 		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
- 		sr->accum_data = OMAP3430_SR_ACCUMDATA;
- 		if (sr->srid == SR1) {
--			sr->err_minlimit = OMAP3430_SR1_ERRMINLIMIT;
- 			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
- 			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
-+			pdata->sr_volt_data[0].sr_errminlimit =
-+					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
-+			pdata->sr_volt_data[1].sr_errminlimit =
-+					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
-+			pdata->sr_volt_data[2].sr_errminlimit =
-+					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
-+			pdata->sr_volt_data[3].sr_errminlimit =
-+					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
-+			pdata->sr_volt_data[4].sr_errminlimit =
-+					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
- 		} else {
--			sr->err_minlimit = OMAP3430_SR2_ERRMINLIMIT;
- 			sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
- 			sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
-+			pdata->sr_volt_data[0].sr_errminlimit =
-+					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
-+			pdata->sr_volt_data[1].sr_errminlimit =
-+					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
-+			pdata->sr_volt_data[2].sr_errminlimit =
-+					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
- 		}
- 	}
- 	/* TODO: 3630 and Omap4 specific bit field values */
-@@ -307,11 +326,6 @@ static void sr_start_vddautocomp(int srid)
- 		return;
- 	}
- 
--	if (sr->is_sr_reset == 1) {
--		sr_clk_enable(sr);
--		sr_configure(sr);
--	}
--
- 	sr->is_autocomp_active = 1;
- 	if (!sr_class->enable(srid)) {
- 		sr->is_autocomp_active = 0;
-@@ -412,6 +426,13 @@ int sr_enable(int srid, unsigned long volt)
- 		return false;
- 	}
- 
-+	/* errminlimit is opp dependent and hence linked to voltage */
-+	sr->err_minlimit = volt_data.sr_errminlimit;
-+
-+	/* Enable the clocks and configure SR */
-+	sr_clk_enable(sr);
-+	sr_configure(sr);
-+
- 	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
- 	/* SRCONFIG - enable SR */
- 	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
-@@ -428,6 +449,7 @@ int sr_enable(int srid, unsigned long volt)
- void sr_disable(int srid)
- {
- 	struct omap_sr *sr = _sr_lookup(srid);
-+	int timeout = 0;
- 
- 	if (!sr) {
- 		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-@@ -435,10 +457,39 @@ void sr_disable(int srid)
- 		return;
- 	}
- 
--	sr->is_sr_reset = 1;
-+	/* Check if SR is already disabled. If yes do nothing */
-+	if (!(sr_read_reg(sr, SRCONFIG) & SRCONFIG_SRENABLE))
-+		return;
-+
-+	/* Enable MCUDisableAcknowledge interrupt */
-+	sr_modify_reg(sr, ERRCONFIG,
-+			ERRCONFIG_MCUDISACKINTEN, ERRCONFIG_MCUDISACKINTEN);
-+
- 	/* SRCONFIG - disable SR */
--	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, ~SRCONFIG_SRENABLE);
-+	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
-+
-+	/* Disable all other SR interrupts and clear the status */
-+	sr_modify_reg(sr, ERRCONFIG,
-+			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
-+			ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_VPBOUNDINTEN),
-+			(ERRCONFIG_MCUACCUMINTST | ERRCONFIG_MCUVALIDINTST |
-+			ERRCONFIG_MCUBOUNDINTST | ERRCONFIG_VPBOUNDINTST));
- 
-+	/* Wait for SR to be disabled.
-+	 * wait until ERRCONFIG.MCUDISACKINTST = 1. Typical latency is 1us.
-+	 */
-+	omap_test_timeout((sr_read_reg(sr, ERRCONFIG) &
-+			ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
-+			timeout);
-+
-+	if (timeout >= SR_DISABLE_TIMEOUT)
-+		pr_warning("SR%d disable timedout\n", srid);
-+
-+	/* Disable MCUDisableAcknowledge interrupt & clear pending interrupt
-+	 * Also enable VPBOUND interrrupt
-+	 */
-+	sr_modify_reg(sr, ERRCONFIG, ERRCONFIG_MCUDISACKINTEN,
-+			ERRCONFIG_MCUDISACKINTST);
+@@ -40,6 +40,12 @@ struct omap_sr {
+ 	int				is_sr_reset;
+ 	int				is_autocomp_active;
+ 	u32				clk_length;
++	u32				err_weight;
++	u32				err_minlimit;
++	u32				err_maxlimit;
++	u32				accum_data;
++	u32				senn_avgweight;
++	u32				senp_avgweight;
+ 	unsigned int			irq;
+ 	struct platform_device		*pdev;
+ 	struct omap_sr_volt_tuple	*volt_tuple;
+@@ -132,6 +138,24 @@ static int sr_match_volt(struct omap_sr *sr, unsigned long volt,
+ 	return false;
  }
  
- /**
-@@ -468,9 +519,6 @@ void omap_smartreflex_enable(int srid)
++static irqreturn_t sr_omap_isr(int irq, void *data)
++{
++	struct omap_sr *sr_info = (struct omap_sr *)data;
++	u32 status;
++
++	/* Read the status bits */
++	status = sr_read_reg(sr_info, ERRCONFIG);
++
++	/* Clear them by writing back */
++	sr_write_reg(sr_info, ERRCONFIG, status);
++
++	/* Call the class driver notify function if registered*/
++	if (sr_class->class_type == SR_CLASS2 && sr_class->notify)
++		sr_class->notify(sr_info->srid, status);
++
++	return IRQ_HANDLED;
++}
++
+ static void sr_set_clk_length(struct omap_sr *sr)
+ {
+ 	struct clk *sys_ck;
+@@ -163,50 +187,96 @@ static void sr_set_clk_length(struct omap_sr *sr)
+ 	}
+ }
  
- 	if (sr->is_autocomp_active == 1) {
- 		if (sr->is_sr_reset == 1) {
--			/* Enable SR clks */
--			sr_clk_enable(sr);
--			sr_configure(sr);
- 			if (!sr_class->enable(srid))
- 				sr_clk_disable(sr);
- 		}
++static void sr_set_regfields(struct omap_sr *sr)
++{
++	/*
++	 * For time being these values are defined in smartreflex.h
++	 * and populated during init. May be they can be moved to board
++	 * file or pmic specific data structure. In that case these structure
++	 * fields will have to be populated using the pdata or pmic structure.
++	 */
++	if (cpu_is_omap343x()) {
++		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
++		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
++		sr->accum_data = OMAP3430_SR_ACCUMDATA;
++		if (sr->srid == SR1) {
++			sr->err_minlimit = OMAP3430_SR1_ERRMINLIMIT;
++			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
++			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
++		} else {
++			sr->err_minlimit = OMAP3430_SR2_ERRMINLIMIT;
++			sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
++			sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
++		}
++	}
++	/* TODO: 3630 and Omap4 specific bit field values */
++}
++
+ static void sr_configure(struct omap_sr *sr)
+ {
+ 	u32 sr_config;
+ 	u32 senp_en , senn_en;
+ 	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
+ 
++	/* Common settings for SR Class3 and SR Class2 */
+ 	if (sr->clk_length == 0)
+ 		sr_set_clk_length(sr);
+ 
+ 	senp_en = pdata->senp_mod;
+ 	senn_en = pdata->senn_mod;
+-	if (sr->srid == SR1) {
+-		sr_config = SR1_SRCONFIG_ACCUMDATA |
+-			(sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
+-			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
+-			SRCONFIG_MINMAXAVG_EN |
+-			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
+-			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
+-			SRCONFIG_DELAYCTRL;
+-
+-		sr_write_reg(sr, SRCONFIG, sr_config);
+-		sr_write_reg(sr, AVGWEIGHT, SR1_AVGWEIGHT_SENPAVGWEIGHT |
+-					SR1_AVGWEIGHT_SENNAVGWEIGHT);
+ 
++	sr_config = (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
++		SRCONFIG_SENENABLE | (senn_en << SRCONFIG_SENNENABLE_SHIFT) |
++		(senp_en << SRCONFIG_SENPENABLE_SHIFT) | SRCONFIG_DELAYCTRL;
++	sr_write_reg(sr, SRCONFIG, sr_config);
++
++	if ((sr_class->class_type == SR_CLASS3) || (sr_class->class_type ==
++		SR_CLASS2 && sr_class->calib_mode == SR_USE_ERROR_MOD)) {
++		/*
++		 * SR settings if using the ERROR module inside Smartreflex.
++		 * SR CLASS 3 by default uses only the ERROR module where as
++		 * SR CLASS 2 can choose between ERROR module and MINMAXAVG
++		 * module.
++		 */
++		u32 sr_errconfig;
++
++		sr_modify_reg(sr, SRCONFIG, SRCONFIG_ERRGEN_EN,
++			SRCONFIG_ERRGEN_EN);
++		sr_errconfig = (sr->err_weight << ERRCONFIG_ERRWEIGHT_SHIFT) |
++			(sr->err_maxlimit << ERRCONFIG_ERRMAXLIMIT_SHIFT) |
++			(sr->err_minlimit <<  ERRCONFIG_ERRMiNLIMIT_SHIFT);
+ 		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
+ 			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
+-			(SR1_ERRWEIGHT | SR1_ERRMAXLIMIT | SR1_ERRMINLIMIT));
+-
+-	} else if (sr->srid == SR2) {
+-		sr_config = SR2_SRCONFIG_ACCUMDATA |
+-			(sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
+-			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
+-			SRCONFIG_MINMAXAVG_EN |
+-			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
+-			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
+-			SRCONFIG_DELAYCTRL;
+-
+-		sr_write_reg(sr, SRCONFIG, sr_config);
+-		sr_write_reg(sr, AVGWEIGHT, SR2_AVGWEIGHT_SENPAVGWEIGHT |
+-					SR2_AVGWEIGHT_SENNAVGWEIGHT);
+-		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
+-			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
+-			(SR2_ERRWEIGHT | SR2_ERRMAXLIMIT | SR2_ERRMINLIMIT));
+-
++			sr_errconfig);
++		/* Enabling the interrupts if the ERROR module is used */
++		sr_modify_reg(sr, ERRCONFIG,
++			(ERRCONFIG_VPBOUNDINTEN),
++			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST));
++	} else if ((sr_class->class_type == SR_CLASS2) &&
++			(sr_class->calib_mode == SR_USE_MINMAXAVG_MOD)) {
++		/*
++		 * SR settings if using the MINMAXAVG module inside
++		 * Smartreflex. SR CLASS 3 does not use this module where as
++		 * SR CLASS 2 can choose between ERROR module and MINMAXAVG
++		 * module.
++		 */
++		u32 avgwt;
++
++		sr_modify_reg(sr, SRCONFIG, SRCONFIG_ACCUMDATA_MASK,
++			sr->accum_data << SRCONFIG_ACCUMDATA_SHIFT);
++		avgwt = (sr->senp_avgweight << AVGWEIGHT_SENPAVGWEIGHT_SHIFT) |
++			(sr->senn_avgweight << AVGWEIGHT_SENNAVGWEIGHT_SHIFT);
++		sr_write_reg(sr, AVGWEIGHT, avgwt);
++		/*
++		 * Enabling the interrupts if MINMAXAVG module is used.
++		 * TODO: check if all the interrupts are mandatory
++		 */
++		sr_modify_reg(sr, ERRCONFIG,
++			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
++			ERRCONFIG_MCUBOUNDINTEN),
++			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUACCUMINTST |
++			 ERRCONFIG_MCUVALIDINTEN | ERRCONFIG_MCUVALIDINTST |
++			 ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_MCUBOUNDINTST));
+ 	}
+ 	sr->is_sr_reset = 0;
+ }
+@@ -261,6 +331,36 @@ static void  sr_stop_vddautocomp(int srid)
+ 	}
+ }
+ 
++/**
++ * This function handles the intializations which have to be done
++ * only when both sr device and class driver regiter has
++ * completed. This will be attempted to be called from both sr class
++ * driver register and sr device intializtion API's. Only one call
++ * will ultimately succeed.
++ *
++ * Currenly this function registers interrrupt handler for a particular SR
++ * if smartreflex class driver is already registered and has
++ * requested for interrupts and the SR interrupt line in present.
++ */
++static int sr_late_init(struct omap_sr *sr_info)
++{
++	char name[SMARTREFLEX_NAME_LEN];
++	int ret = 0;
++
++	if (sr_class->class_type == SR_CLASS2 &&
++		sr_class->notify_flags && sr_info->irq) {
++
++		sprintf(name, "sr%d", sr_info->srid);
++		ret = request_irq(sr_info->irq, sr_omap_isr,
++				IRQF_DISABLED, name, (void *)sr_info);
++		if (ret < 0)
++			pr_warning("ERROR in registering interrupt \
++				handler for SR%d. Smartreflex will \
++				not function as desired\n", sr_info->srid);
++	}
++	return ret;
++}
++
+ /* Public Functions */
+ 
+ /**
+@@ -297,12 +397,6 @@ int sr_enable(int srid, unsigned long volt)
+ 	}
+ 
+ 	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
+-
+-	/* Enable the interrupt */
+-	sr_modify_reg(sr, ERRCONFIG,
+-			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST),
+-			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST));
+-
+ 	/* SRCONFIG - enable SR */
+ 	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
+ 	return true;
+@@ -409,6 +503,8 @@ void omap_smartreflex_disable(int srid)
+  */
+ void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
+ {
++	struct omap_sr *sr_info;
++
+ 	if (!class_data) {
+ 		pr_warning("Smartreflex class data passed is NULL\n");
+ 		return;
+@@ -418,7 +514,30 @@ void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
+ 		pr_warning("Smartreflex class driver already registered\n");
+ 		return;
+ 	}
++
++	if ((class_data->class_type != SR_CLASS2) &&
++			(class_data->class_type != SR_CLASS3)) {
++		pr_warning("SR Class type passed is invalid. So cannot \
++				register the class structure\n");
++		return;
++	}
++
++	if ((class_data->class_type == SR_CLASS2) &&
++			!((class_data->calib_mode == SR_USE_MINMAXAVG_MOD) ||
++			(class_data->calib_mode == SR_USE_ERROR_MOD))) {
++		pr_warning("SR Class 2 specified but whether to use error \
++				module or minmaxavg module not specified\n");
++		return;
++	}
++
+ 	sr_class = class_data;
++
++	/*
++	 * Call into late init to do intializations that require
++	 * both sr driver and sr class driver to be initiallized.
++	 */
++	list_for_each_entry(sr_info, &sr_list, node)
++		sr_late_init(sr_info);
+ }
+ 
+ /* PM Debug Fs enteries to enable disable smartreflex.*/
+@@ -472,6 +591,7 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
+ 	if (odev->hwmods[0]->mpu_irqs)
+ 		sr_info->irq = odev->hwmods[0]->mpu_irqs[0].irq;
+ 	sr_set_clk_length(sr_info);
++	sr_set_regfields(sr_info);
+ 
+ 	/* Create the debug fs enteries */
+ 	sprintf(name, "sr%d_autocomp", sr_info->srid);
+@@ -480,8 +600,15 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
+ 
+ 	odev->hwmods[0]->dev_attr = sr_info;
+ 	list_add(&sr_info->node, &sr_list);
+-	pr_info("SmartReflex driver initialized\n");
+ 
++	/*
++	 * Call into late init to do intializations that require
++	 * both sr driver and sr class driver to be initiallized.
++	 */
++	if (sr_class)
++		ret = sr_late_init(sr_info);
++
++	pr_info("SmartReflex driver initialized\n");
+ 	return ret;
+ }
+ 
 diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 58681b6..01d3534 100644
+index 12a76c4..52309e0 100644
 --- a/arch/arm/mach-omap2/smartreflex.h
 +++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -110,10 +110,10 @@ extern struct dentry *pm_dbg_main_dir;
- #define OMAP3430_SR2_SENPAVGWEIGHT	0x01
- #define OMAP3430_SR2_SENNAVGWEIGHT	0x01
+@@ -124,6 +124,24 @@ extern struct dentry *pm_dbg_main_dir;
+ #endif
  
--#define OMAP3430_SR_ERRWEIGHT		0x07
-+#define OMAP3430_SR_ERRWEIGHT		0x04
- #define OMAP3430_SR_ERRMAXLIMIT		0x02
--#define OMAP3430_SR1_ERRMINLIMIT	0xFA
--#define OMAP3430_SR2_ERRMINLIMIT	0xF9
-+#define OMAP3430_SR_ERRMINLIMIT_HIGHOPP	0xF9
-+#define OMAP3430_SR_ERRMINLIMIT_LOWOPP	0xF4
- 
- /* TODO:3630/OMAP4 values if it has to come from this file */
- 
-@@ -177,10 +177,13 @@ struct omap_smartreflex_class_data {
-  *
-  * @voltage	: The possible voltage value
-  * @sr_nvalue	: Smartreflex N target value at voltage <voltage>
-+ * @sr_errminlimt : SR error min limit value. This value is different
-+ *			at differnet opp and thus is linked with voltage.
+ #ifdef CONFIG_OMAP_SMARTREFLEX
++/*
++ * The smart reflex driver supports both CLASS2 and CLASS3 SR.
++ * The smartreflex class driver should pass the class type.
++ * Should be used to populate the class_type field of the
++ * omap_smartreflex_class_data structure.
++ */
++#define SR_CLASS2	0x1
++#define SR_CLASS3	0x2
++
++/*
++ * CLASS2 SR can use either the MINMAXAVG module or the ERROR module
++ * of the Smartreflex. Should be used to populate the mod_use field
++ * of omap_smartreflex_class_data structure is class_type is chosen
++ * as SR_CLASS2.
++ */
++#define SR_USE_MINMAXAVG_MOD	0x1
++#define SR_USE_ERROR_MOD	0x2
++
+ /**
+  * omap_smartreflex_class_data : Structure to be populated by
+  * Smartreflex class driver with corresponding class enable disable API's
+@@ -135,6 +153,9 @@ extern struct dentry *pm_dbg_main_dir;
+  * @notify_flags - specify the events to be notified to the class driver
+  * @class_type - specify which smartreflex class. Can be used by the SR driver
+  *		to take any class based decisions.
++ * @calib_mode - specify whether to use the error module or minmaxavg module
++ *		for smartreflex calibrations in case of class2 SR. In case of
++ *		class 3 SR only error module is used.
   */
- struct omap_sr_volt_data {
- 	unsigned long	voltage;
- 	u32		sr_nvalue;
-+	u32		sr_errminlimit;
+ struct omap_smartreflex_class_data {
+ 	int (*enable)(int sr_id);
+@@ -142,6 +163,7 @@ struct omap_smartreflex_class_data {
+ 	int (*notify)(int sr_id, u32 status);
+ 	u8 notify_flags;
+ 	u8 class_type;
++	u8 calib_mode;
  };
  
  /**
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 754b6b2..d660d02 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -29,13 +29,16 @@
- #include <plat/opp.h>
- #include <plat/opp_twl_tps.h>
- #include <plat/clock.h>
-+#include <plat/common.h>
- 
- #include "prm-regbits-34xx.h"
- #include "voltage.h"
- 
--#define MAX_TRIES 100
-+#define VP_IDLE_TIMEOUT		200
-+#define VDD1_LOWOPP_VOLT	1075000
-+#define VDD2_LOWOPP_VOLT	1050000
- 
--/**
-+/*
-  * OMAP3 Voltage controller SR parameters. TODO: Pass this info as part of
-  * board data or PMIC data
-  */
-@@ -212,6 +215,21 @@ static void __init init_voltagecontroller(void)
- 	voltage_write_reg(prm_voltsetup2_reg, vc_config.voltsetup2);
- }
- 
-+static u8 omap3_get_vp_errorgain(int vp_id, unsigned long volt)
-+{
-+	unsigned long lowopp_volt;
-+
-+	if (vp_id == VP1)
-+		lowopp_volt = VDD1_LOWOPP_VOLT;
-+	else if (vp_id == VP2)
-+		lowopp_volt = VDD2_LOWOPP_VOLT;
-+	else {
-+		pr_warning("Voltage processor%d does not exisit", vp_id);
-+		return 0;
-+	}
-+	return ((volt > lowopp_volt) ? (OMAP3_VP_CONFIG_ERRORGAIN_HIGHOPP) :
-+		(OMAP3_VP_CONFIG_ERRORGAIN_LOWOPP));
-+}
- static void vp_latch_vsel(int vp_id)
- {
- 	u32 vpconfig;
-@@ -282,13 +300,19 @@ static void __init vp_configure(int vp_id)
- static void __init vp_reg_configure(int vp_id)
- {
- 	if (cpu_is_omap34xx()) {
-+		struct clk *sys_ck;
-+		u32 sys_clk_speed, timeout_val;
-+		unsigned long curr_volt;
-+
- 		vp_reg[vp_id].vp_offs = omap3_vp_offs[vp_id];
- 		if (vp_id == VP1) {
-+			curr_volt = get_curr_vdd1_voltage();
- 			vp_reg[vp_id].vp_vddmin = (OMAP3_VP1_VLIMITTO_VDDMIN <<
- 					OMAP3430_VDDMIN_SHIFT);
- 			vp_reg[vp_id].vp_vddmax = (OMAP3_VP1_VLIMITTO_VDDMAX <<
- 					OMAP3430_VDDMAX_SHIFT);
- 		} else if (vp_id == VP2) {
-+			curr_volt = get_curr_vdd2_voltage();
- 			vp_reg[vp_id].vp_vddmin = (OMAP3_VP2_VLIMITTO_VDDMIN <<
- 					OMAP3430_VDDMIN_SHIFT);
- 			vp_reg[vp_id].vp_vddmax = (OMAP3_VP2_VLIMITTO_VDDMAX <<
-@@ -300,7 +324,9 @@ static void __init vp_reg_configure(int vp_id)
- 		}
- 		vp_reg[vp_id].vp_erroroffset = (OMAP3_VP_CONFIG_ERROROFFSET <<
- 					OMAP3430_INITVOLTAGE_SHIFT);
--		vp_reg[vp_id].vp_errorgain = (OMAP3_VP_CONFIG_ERRORGAIN <<
-+		/* OMAP3430 has errorgain varying btw higher and lower opp's */
-+		vp_reg[vp_id].vp_errorgain = (omap3_get_vp_errorgain
-+					(vp_id, curr_volt) <<
- 					OMAP3430_ERRORGAIN_SHIFT);
- 		vp_reg[vp_id].vp_smpswaittimemin =
- 					(OMAP3_VP_VSTEPMIN_SMPSWAITTIMEMIN <<
-@@ -312,7 +338,23 @@ static void __init vp_reg_configure(int vp_id)
- 					OMAP3430_VSTEPMIN_SHIFT);
- 		vp_reg[vp_id].vp_stepmax = (OMAP3_VP_VSTEPMAX_VSTEPMAX <<
- 					OMAP3430_VSTEPMAX_SHIFT);
--		vp_reg[vp_id].vp_timeout = (OMAP3_VP_VLIMITTO_TIMEOUT <<
-+		/*
-+		 * Use sys clk speed to convert the VP timeout in us to
-+		 * number of clock cycles
-+		 */
-+		sys_ck = clk_get(NULL, "sys_ck");
-+		if (IS_ERR(sys_ck)) {
-+			pr_warning("Could not get the sys clk to calculate \
-+					timeout value for VP %d\n", vp_id + 1);
-+			return;
-+		}
-+		sys_clk_speed = clk_get_rate(sys_ck);
-+		clk_put(sys_ck);
-+		/* Divide to avoid overflow */
-+		sys_clk_speed /= 1000;
-+		timeout_val = (sys_clk_speed * OMAP3_VP_VLIMITTO_TIMEOUT_US) /
-+					1000;
-+		vp_reg[vp_id].vp_timeout = (timeout_val <<
- 					OMAP3430_TIMEOUT_SHIFT);
- 	}
- 	/* TODO Extend this for OMAP4 ?? Or need a separate file  */
-@@ -358,6 +400,19 @@ static int vc_bypass_scale_voltage(u32 vdd, unsigned long target_volt,
- 		return false;
- 	}
- 
-+	/* OMAP3430 has errorgain varying btw higher and lower opp's */
-+	if (cpu_is_omap34xx()) {
-+		u32 errorgain = voltage_read_reg(vp_reg[vdd - 1].vp_offs.
-+					vpconfig_reg);
-+
-+		vp_reg[vdd - 1].vp_errorgain = (omap3_get_vp_errorgain(
-+						(vdd - 1), target_volt) <<
-+						OMAP3430_ERRORGAIN_SHIFT);
-+		errorgain &= ~VP_ERRORGAIN_MASK;
-+		errorgain |= vp_reg[vdd - 1].vp_errorgain;
-+		voltage_write_reg(vp_reg[vdd - 1].vp_offs.vpconfig_reg,
-+				errorgain);
-+	}
- 	vc_bypass_value = (target_vsel << VC_DATA_SHIFT) |
- 			(reg_addr << VC_REGADDR_SHIFT) |
- 			(R_SRI2C_SLAVE_ADDR << VC_SLAVEADDR_SHIFT);
-@@ -474,6 +529,10 @@ void omap_voltageprocessor_enable(int vp_id)
- {
- 	u32 vpconfig;
- 
-+	/* If VP is already enabled, do nothing. Return */
-+	if (voltage_read_reg(vp_reg[vp_id - 1].vp_offs.vpconfig_reg) &
-+				VP_CONFIG_VPENABLE)
-+		return;
- 	/*
- 	 * This latching is required only if VC bypass method is used for
- 	 * voltage scaling during dvfs.
-@@ -494,21 +553,29 @@ void omap_voltageprocessor_enable(int vp_id)
-  */
- void omap_voltageprocessor_disable(int vp_id)
- {
--	int i = 0;
- 	u32 vpconfig;
-+	int timeout;
- 
--	/* Wait for VP idle before disabling VP */
--	while ((!voltage_read_reg(vp_reg[vp_id - 1].vp_offs.status_reg)) &&
--				i++ < MAX_TRIES)
--		udelay(1);
-+	/* If VP is already disabled, do nothing. Return */
-+	if (!(voltage_read_reg(vp_reg[vp_id - 1].vp_offs.vpconfig_reg) &
-+				VP_CONFIG_VPENABLE))
-+		return;
- 
--	if (i >= MAX_TRIES)
--		pr_warning("VP1 not idle, still going ahead with \
--						VP1 disable\n");
--	/* Disable VP1 */
-+	/* Disable VP */
- 	vpconfig = voltage_read_reg(vp_reg[vp_id - 1].vp_offs.vpconfig_reg);
- 	vpconfig &= ~VP_CONFIG_VPENABLE;
- 	voltage_write_reg(vp_reg[vp_id - 1].vp_offs.vpconfig_reg, vpconfig);
-+
-+	/*
-+	 * Wait for VP idle Typical latency is <2us. Maximum latency is ~100us
-+	 */
-+	omap_test_timeout((voltage_read_reg
-+			(vp_reg[vp_id - 1].vp_offs.status_reg)),
-+			VP_IDLE_TIMEOUT, timeout);
-+
-+	if (timeout >= VP_IDLE_TIMEOUT)
-+		pr_warning("VP%d idle timedout\n", vp_id);
-+	return;
- }
- 
- /**
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 56829b5..88d9b07 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -20,6 +20,7 @@
- #define VP_CONFIG_INITVDD	OMAP3430_INITVDD
- #define VP_FORCEUPDATE		OMAP3430_FORCEUPDATE
- #define VP_CONFIG_VPENABLE	OMAP3430_VPENABLE
-+#define VP_ERRORGAIN_MASK	OMAP3430_ERRORGAIN_MASK
- #define VP_INITVOLTAGE_MASK	OMAP3430_INITVOLTAGE_MASK
- #define VP_INITVOLTAGE_SHIFT	OMAP3430_INITVOLTAGE_SHIFT
- 
-@@ -50,16 +51,17 @@
-  * board file or PMIC data structure
-  */
- #define OMAP3_VP_CONFIG_ERROROFFSET		0x00
--#define OMAP3_VP_CONFIG_ERRORGAIN		0x20
--#define	OMAP3_VP_VSTEPMIN_SMPSWAITTIMEMIN	0x01F4
-+#define OMAP3_VP_CONFIG_ERRORGAIN_LOWOPP	0x0C
-+#define OMAP3_VP_CONFIG_ERRORGAIN_HIGHOPP	0x18
-+#define OMAP3_VP_VSTEPMIN_SMPSWAITTIMEMIN	0x3C
- #define OMAP3_VP_VSTEPMIN_VSTEPMIN		0x1
--#define OMAP3_VP_VSTEPMAX_SMPSWAITTIMEMAX	0x01F4
-+#define OMAP3_VP_VSTEPMAX_SMPSWAITTIMEMAX	0x3C
- #define OMAP3_VP_VSTEPMAX_VSTEPMAX		0x04
--#define OMAP3_VP1_VLIMITTO_VDDMIN		0x0
--#define OMAP3_VP1_VLIMITTO_VDDMAX		0x3C
-+#define OMAP3_VP1_VLIMITTO_VDDMIN		0x14
-+#define OMAP3_VP1_VLIMITTO_VDDMAX		0x42
- #define OMAP3_VP2_VLIMITTO_VDDMAX		0x2C
--#define OMAP3_VP2_VLIMITTO_VDDMIN		0x0
--#define OMAP3_VP_VLIMITTO_TIMEOUT		0xFFFF
-+#define OMAP3_VP2_VLIMITTO_VDDMIN		0x18
-+#define OMAP3_VP_VLIMITTO_TIMEOUT_US		0x200
- 
- #define VOLTAGE_MOD	OMAP3430_GR_MOD
- /* TODO OMAP4 VP register values if the same file is used for OMAP4*/
 -- 
 1.7.0.rc1.33.g07cf0f
 
