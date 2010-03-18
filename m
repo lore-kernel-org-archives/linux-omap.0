@@ -1,61 +1,47 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: Asoc with TWL4030 on overo
-Date: Thu, 18 Mar 2010 16:40:02 +0200
-Message-ID: <20100318164002.70c710a3.jhnikula@gmail.com>
-References: <201003180823.55248.rok@kanardia.eu>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v4 1/2] OMAP3: SDRC: Dynamic Calculation of SDRC stall latency during DVFS
+Date: Thu, 18 Mar 2010 07:48:28 -0700
+Message-ID: <87ljdpofcz.fsf@deeprootsystems.com>
+References: <1268888148-10983-1-git-send-email-pramod.gurav@ti.com>
+	<1268888148-10983-2-git-send-email-pramod.gurav@ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E94026F078B5E@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:60120 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753715Ab0CROiQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 10:38:16 -0400
-Received: by ewy8 with SMTP id 8so1223535ewy.28
-        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 07:38:14 -0700 (PDT)
-In-Reply-To: <201003180823.55248.rok@kanardia.eu>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:55913 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753333Ab0CROsb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 10:48:31 -0400
+Received: by pwi5 with SMTP id 5so571726pwi.19
+        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 07:48:31 -0700 (PDT)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026F078B5E@dbde02.ent.ti.com> (Manjunath Kondaiah G.'s message of "Thu\, 18 Mar 2010 11\:47\:52 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rok =?UTF-8?B?TWFya292acSN?= <rok@kanardia.eu>
-Cc: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "Gurav , Pramod" <pramod.gurav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Reddy, Teerth" <teerth@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-Hi
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 
-On Thu, 18 Mar 2010 08:23:55 +0100
-Rok Markovi=C4=8D <rok@kanardia.eu> wrote:
+>> +#ifdef CONFIG_ARCH_OMAP3
+>> +void (*_omap3_sram_delay)(unsigned int);
+>> +unsigned int  measure_sram_delay(unsigned int loop)
+>> +{
+>> +	static struct omap_dm_timer *gpt;
+>> +	unsigned long flags, diff = 0, gt_rate, mpurate;
+>> +	unsigned int delay_sram, error_gain;
+>> +	unsigned int start = 0, end = 0;
+>> +
+>> +	omap_dm_timer_init();
+>> +	gpt = omap_dm_timer_request();
+>> +	if (!gpt) {
+>
+> Request timer API returns NULL on failure. 
+> Use   BUG_ON(gpt == NULL);
 
-> I am trying to play sound on overo board. With latest kernel I cannot=
- get=20
-> any sound, while with kernel 2.6.33-rc6-07400-ga05966f-dirty sound is=
-=20
-> played by ALSA correctly. I am using ALSA 1.0.22 with asound.conf lik=
-e=20
+No.  BUG_ON() will panic the kernel and hang here.  There is no need
+to crash the kernel for that.
 
-Beagle plays fine on linux-omap head. One reason could be the patch
-below as it requires that the user space must activate the headset
-output path by proper mixer settings.
+Current aproach is fine, or if a more verbose warning is desired,
+you can use if (WARN_ON(!gpt)) ... and drop the pr_err()
 
-commit e47c796d58a21fc58b00dffb7265bb66de987773
-Author: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Date:   Wed Feb 17 09:49:54 2010 +0200
-
-    ASoC: TWL4030: Use codec defaults for Headset initial configuration
-   =20
-    Disable the amplifiers for the headset outputs, and do not select
-    routings by default to the headset outputs.
-
-
-Does it work if you active the Headset path?
-
-amixer set -D hw:0 'Headset' 0dB
-amixer set -D hw:0 'HeadsetL Mixer AudioL2' on
-amixer set -D hw:0 'HeadsetR Mixer AudioR2' on
-
-
---=20
-Jarkko
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
