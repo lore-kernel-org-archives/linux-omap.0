@@ -1,51 +1,69 @@
-From: "Olaya, Margarita" <magi.olaya@ti.com>
-Subject: Re: [PATCHv6 2/2][RESEND] ASoC: TWL6040: Add twl6040
-	codec driver
-Date: Thu, 18 Mar 2010 15:37:48 -0500
-Message-ID: <1889FA7136B567478A67D4B0F85B0CCE662AC968@dlee06.ent.ti.com>
-References: <1889FA7136B567478A67D4B0F85B0CCE662AC7F1@dlee06.ent.ti.com>
-	<20100318181623.GG6142@rakim.wolfsonmicro.main>
-	<87d3z1jxh6.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <87d3z1jxh6.fsf@deeprootsystems.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH 2/2] DSPBRIDGE: Fix header locations mach to plat
+Date: Thu, 18 Mar 2010 15:57:09 -0600
+Message-ID: <1268949429-30368-3-git-send-email-omar.ramirez@ti.com>
+References: <1268949429-30368-1-git-send-email-omar.ramirez@ti.com>
+ <1268949429-30368-2-git-send-email-omar.ramirez@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39251 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752311Ab0CRVmL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Mar 2010 17:42:11 -0400
+In-Reply-To: <1268949429-30368-2-git-send-email-omar.ramirez@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, Guzman Lugo Fernando <x0095840@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-On Thursday, March 18, 2010 12:28 PM  Kevin Hilman wrote: 
+Fix header locations, replaced mach to plat
 
-> 
-> [...]
-> 
->> Looks like MUA trouble.  From the message headers it looks like you
->> might be using Outlook or something, I'm not sure what to suggest
->> for that - enough folks at TI are submitting patches that
->> something must've been worked out for your mail system.
-> 
-> Indeed, You need to get outlook out of the picture for
-> sending patches.
-> 
-> Using git-format-patch + git-send-email directly to your SMTP
-> servers seems to be working well for others inside TI.
-> 
-> Kevin
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+Acked-by: Ameya Palande <ameya.palande@nokia.com>
+---
+ arch/arm/mach-omap2/dspbridge.c                |    2 +-
+ arch/arm/plat-omap/include/dspbridge/host_os.h |    2 +-
+ drivers/dsp/bridge/wmd/tiomap3430.c            |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Yeah, I'm using Outlook because I had some issues with my server
-and git-send-email. I'll review my configurations to avoid this
-kind of problems in futures post.
+diff --git a/arch/arm/mach-omap2/dspbridge.c b/arch/arm/mach-omap2/dspbridge.c
+index ea109a3..4150896 100644
+--- a/arch/arm/mach-omap2/dspbridge.c
++++ b/arch/arm/mach-omap2/dspbridge.c
+@@ -14,7 +14,7 @@
+ #include <linux/platform_device.h>
+ 
+ #ifdef CONFIG_BRIDGE_DVFS
+-#include <mach/omap-pm.h>
++#include <plat/omap-pm.h>
+ #endif
+ 
+ #include <dspbridge/host_os.h>
+diff --git a/arch/arm/plat-omap/include/dspbridge/host_os.h b/arch/arm/plat-omap/include/dspbridge/host_os.h
+index 92b12de..faf1aaa 100644
+--- a/arch/arm/plat-omap/include/dspbridge/host_os.h
++++ b/arch/arm/plat-omap/include/dspbridge/host_os.h
+@@ -43,7 +43,7 @@
+ #include <linux/ioport.h>
+ #include <linux/platform_device.h>
+ #include <dspbridge/dbtype.h>
+-#include <mach/clock.h>
++#include <plat/clock.h>
+ #include <linux/clk.h>
+ #include <linux/pagemap.h>
+ #include <asm/cacheflush.h>
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 949279d..b49a965 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -24,7 +24,7 @@
+ #include <mach-omap2/cm.h>
+ #include <mach-omap2/prm-regbits-34xx.h>
+ #include <mach-omap2/cm-regbits-34xx.h>
+-#include <mach/control.h>
++#include <plat/control.h>
+ 
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <dspbridge/std.h>
+-- 
+1.6.2.4
 
-Thanks & Regards,
-Margarita 
