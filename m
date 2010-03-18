@@ -1,35 +1,45 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: patch series versioning: please keep version numbers consistent
-Date: Thu, 18 Mar 2010 08:07:14 -0700
-Message-ID: <87ocilmzx9.fsf@deeprootsystems.com>
+Subject: Re: [PATCH v4 1/2] OMAP3: SDRC: Dynamic Calculation of SDRC stall latency during DVFS
+Date: Thu, 18 Mar 2010 08:09:23 -0700
+Message-ID: <87k4t9mzto.fsf@deeprootsystems.com>
+References: <1268888148-10983-1-git-send-email-pramod.gurav@ti.com>
+	<1268888148-10983-2-git-send-email-pramod.gurav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:45521 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751385Ab0CRPHS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 11:07:18 -0400
-Received: by pva4 with SMTP id 4so1146136pva.19
-        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 08:07:17 -0700 (PDT)
+Received: from mail-pz0-f200.google.com ([209.85.222.200]:55234 "EHLO
+	mail-pz0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385Ab0CRPJ1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 11:09:27 -0400
+Received: by pzk38 with SMTP id 38so1754925pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 08:09:26 -0700 (PDT)
+In-Reply-To: <1268888148-10983-2-git-send-email-pramod.gurav@ti.com> (Pramod Gurav's message of "Thu\, 18 Mar 2010 10\:25\:47 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Pramod Gurav <pramod.gurav@ti.com>
+Cc: linux-omap@vger.kernel.org, Teerth Reddy <teerth@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-Hello,
+Pramod Gurav <pramod.gurav@ti.com> writes:
 
-If you are using version numbering in your patch series, please be
-sure to update the version number for *all patches* in series.  Even
-if only one patch of the series has changed in the updated series,
-please update the version number for all patches.  Having different
-version numbers within a series is confusing, and is more difficult to
-follow when using automated tools such as patchworks.
+> From: Teerth Reddy <teerth@ti.com>
+>
+> The patch has the changes to calculate the dpll3 clock stabilization
+> delay dynamically. The SRAM delay is calibrated during bootup using the
+> gptimers and used while calculating the stabilization delay. By using
+> the dynamic method the dependency on the type of cache being used is
+> removed.
+>
+> The wait time for L3 clock stabilization is calculated using the formula
+>         = 4*REFCLK + 8*CLKOUTX2,
+> which uses the M, N and M2 read from the registers.
+> Since this gives slightly less value, 2us is added as buffer for safety.
+> This works fine for omap3.
+>
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
+> Signed-off-by: Pramod Gurav <pramod.gurav@ti.com>
+> Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-Keeping versioning consistent is easy when using 'git format-patch'.
-Simply use the --subject-prefix option to add a version number, and it
-will be added to every patch in the series.  For example
-
-  $ git format-patch -o tmp --subject-prefix='PATCH v3' <start>..<until>
-
-Will ensure that all the subjects have the same versioning.
+OK, I'm now OK with the GP timer usage in this version.  The rest will
+need to be reviewed/merged by Paul.
 
 Kevin
