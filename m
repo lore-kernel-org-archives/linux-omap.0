@@ -1,48 +1,36 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCHv2 0/3] OMAP: DSS2: Allow us to use SDI
-Date: Thu, 18 Mar 2010 09:39:39 +0200
-Message-ID: <4BA1D8BB.8080604@nokia.com>
-References: <1268829321-29769-1-git-send-email-roger.quadros@nokia.com> <1268835050.2417.277.camel@tubuntu.research.nokia.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [alsa-devel] [PATCHv2 1/2] OMAP4: PMIC: Rename twl6030_codec
+ as twl6040_codec
+Date: Thu, 18 Mar 2010 08:43:20 +0000
+Message-ID: <1268901800.3773.2.camel@odin>
+References: <1889FA7136B567478A67D4B0F85B0CCE662AC371@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56465 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753191Ab0CRHkn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 03:40:43 -0400
-In-Reply-To: <1268835050.2417.277.camel@tubuntu.research.nokia.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:58201 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750886Ab0CRIn1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 04:43:27 -0400
+Received: by vws20 with SMTP id 20so242821vws.19
+        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 01:43:24 -0700 (PDT)
+In-Reply-To: <1889FA7136B567478A67D4B0F85B0CCE662AC371@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Olaya, Margarita" <magi.olaya@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-Hi,
+On Wed, 2010-03-17 at 17:42 -0500, Olaya, Margarita wrote:
+> Correction for chips:
+> twl6030 is Phoenix Power chip
+> twl6040 is Phoenix Audio chip
+> 
+> Signed-off-by: Margarita Olaya Cabrera <magi.olaya@ti.com>
 
-Valkeinen Tomi (Nokia-D/Helsinki) wrote:
-> Hi,
-> 
-> On Wed, 2010-03-17 at 13:35 +0100, Quadros Roger (Nokia-D/Helsinki)
-> wrote:
->> SDI now makes use of vdds_sdi regulator supply.
->> DPI can now be disabled on systems that don't have it
->>
->> changes since v1:
->> - Incorporated review comments
->> - no more omap3xx checks for regulator enable/disable in SDI
->> - Added Kconfig option to enable/disable DPI
->>
->> Roger Quadros (3):
->>   OMAP: DSS2: Add Kconfig option for DPI display type
->>   OMAP: DSS2: Remove redundant enable/disable calls from SDI
->>   OMAP: DSS2: Use vdds_sdi regulator supply in SDI
-> 
-> I think this patch set looks ok. Thanks!
-> 
->  Tomi
-> 
-> Ps. I took the liberty of removing an extra #include <plat/cpu.h>
+Acked-by: Liam Girdwood <lrg@slimlogic.co.uk>
 
-Thanks, I had overlooked it.
+-- 
+Freelance Developer, SlimLogic Ltd
+ASoC and Voltage Regulator Maintainer.
+http://www.slimlogic.co.uk
 
--roger
