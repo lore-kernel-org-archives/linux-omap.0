@@ -1,78 +1,62 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PM-WIP-OPP][PATCH 1/4] omap3: pm: cpufreq: BUG_ON cleanup
-Date: Thu, 18 Mar 2010 15:49:21 -0700
-Message-ID: <87tysdi6tq.fsf@deeprootsystems.com>
-References: <1268937891-19445-1-git-send-email-nm@ti.com>
-	<1268937891-19445-2-git-send-email-nm@ti.com>
+Subject: Re: [PATCHv7 4/7] OMAP3: Clock: Added IDLEST definitions for SGX
+Date: Thu, 18 Mar 2010 15:54:21 -0700
+Message-ID: <87ocili6le.fsf@deeprootsystems.com>
+References: <1268408357-15621-1-git-send-email-tero.kristo@nokia.com>
+	<1268408357-15621-2-git-send-email-tero.kristo@nokia.com>
+	<1268408357-15621-3-git-send-email-tero.kristo@nokia.com>
+	<1268408357-15621-4-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:42236 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751893Ab0CRWtZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 18:49:25 -0400
-Received: by pwi5 with SMTP id 5so948812pwi.19
-        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 15:49:24 -0700 (PDT)
-In-Reply-To: <1268937891-19445-2-git-send-email-nm@ti.com> (Nishanth Menon's message of "Thu\, 18 Mar 2010 13\:44\:48 -0500")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:51624 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752528Ab0CRWyZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 18:54:25 -0400
+Received: by pva4 with SMTP id 4so1403690pva.19
+        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 15:54:24 -0700 (PDT)
+In-Reply-To: <1268408357-15621-4-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 12 Mar 2010 17\:39\:14 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Linux-Omap <linux-omap@vger.kernel.org>, Ambresh K <ambresh@ti.com>, Benoit Cousson <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, Sanjeev Premi <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, Thara Gopinath <thara@ti.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+Tero Kristo <tero.kristo@nokia.com> writes:
 
-> BUG_ON should not ideally contain a functional code. Remove it out.
+> From: Tero Kristo <tero.kristo@nokia.com>
+>
+> Added definitions for OMAP3430ES2_ST_SGX_SHIFT and OMAP3430ES2_ST_SGX_MASK
+> as these were missing.
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 
-True.  But this code should not be using BUG_ON() in the first place.
-
-We should not crash the whole kernel in this case, just fail
-with a warning.
-
-If you're cleaning this up, can you make it fail more gracefully.
+FYI... looks like Paul already merged this one.
 
 Kevin
 
-
-> Ref: http://marc.info/?l=linux-kernel&m=109391212925546&w=2
->
-> Cc: Ambresh K <ambresh@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-> Cc: Sanjeev Premi <premi@ti.com>
-> Cc: Tero Kristo <tero.kristo@nokia.com>
-> Cc: Thara Gopinath <thara@ti.com>
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
 > ---
->  arch/arm/mach-omap2/cpufreq34xx.c |    8 +++++---
->  1 files changed, 5 insertions(+), 3 deletions(-)
+>  arch/arm/mach-omap2/cm-regbits-34xx.h |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
-> index c453ec5..f0ed3ae 100644
-> --- a/arch/arm/mach-omap2/cpufreq34xx.c
-> +++ b/arch/arm/mach-omap2/cpufreq34xx.c
-> @@ -111,6 +111,7 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
+> diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> index 6923deb..60f9b16 100644
+> --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
+> +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> @@ -379,6 +379,10 @@
+>  #define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_SHIFT		1
+>  #define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_MASK		(1 << 1)
 >  
->  void __init omap3_pm_init_opp_table(void)
->  {
-> +	int r;
->  	struct omap_opp_def **omap3_opp_def_list;
->  	struct omap_opp_def *omap34xx_opp_def_list[] = {
->  		omap34xx_mpu_rate_table,
-> @@ -126,8 +127,9 @@ void __init omap3_pm_init_opp_table(void)
->  	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
->  				omap34xx_opp_def_list;
->  
-> -	BUG_ON(opp_init_list(OPP_MPU, omap3_opp_def_list[0]));
-> -	BUG_ON(opp_init_list(OPP_L3, omap3_opp_def_list[1]));
-> -	BUG_ON(opp_init_list(OPP_DSP, omap3_opp_def_list[2]));
-> +	r = opp_init_list(OPP_MPU, omap3_opp_def_list[0]);
-> +	r |= opp_init_list(OPP_L3, omap3_opp_def_list[1]);
-> +	r |= opp_init_list(OPP_DSP, omap3_opp_def_list[2]);
-> +	BUG_ON(r);
->  }
->  
+> +/* CM_IDLEST_SGX */
+> +#define OMAP3430ES2_ST_SGX_SHIFT			1
+> +#define OMAP3430ES2_ST_SGX_MASK				(1 << 1)
+> +
+>  /* CM_ICLKEN_SGX */
+>  #define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_SHIFT		0
+>  #define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_MASK		(1 << 0)
 > -- 
-> 1.6.3.3
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
