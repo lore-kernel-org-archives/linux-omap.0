@@ -1,156 +1,87 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv7 1/7] OMAP3: PM: Added support functions for omap3 pwrdm handling
-Date: Thu, 18 Mar 2010 15:55:46 -0700
-Message-ID: <87fx3xi6j1.fsf@deeprootsystems.com>
-References: <1268408357-15621-1-git-send-email-tero.kristo@nokia.com>
+Subject: Re: [PATCH v3 1/5] omap3: pm: fix for twl4030 script load
+Date: Thu, 18 Mar 2010 16:20:36 -0700
+Message-ID: <87y6hpgqt7.fsf@deeprootsystems.com>
+References: <1268407878-22535-1-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:57038 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752712Ab0CRWzw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 18:55:52 -0400
-Received: by pwi5 with SMTP id 5so950765pwi.19
-        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 15:55:51 -0700 (PDT)
-In-Reply-To: <1268408357-15621-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 12 Mar 2010 17\:39\:11 +0200")
+Received: from mail-yw0-f172.google.com ([209.85.211.172]:40701 "EHLO
+	mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751622Ab0CRXUp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 19:20:45 -0400
+Received: by ywh2 with SMTP id 2so326403ywh.33
+        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 16:20:44 -0700 (PDT)
+In-Reply-To: <1268407878-22535-1-git-send-email-leslyam@ti.com> (Lesly A. M.'s message of "Fri\, 12 Mar 2010 21\:01\:18 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Lesly A M <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+Lesly A M <leslyam@ti.com> writes:
 
-> From: Tero Kristo <tero.kristo@nokia.com>
->
-> Added omap3_pwrdm_set_next_pwrst and omap3_pwrdm_read_next_pwrst. These
-> functions add support for INACTIVE and ON states to the standard OMAP
-> powerdomain functions, and add caching logic for the next state. HW
-> directly supports the reading of INACTIVE / ON from the previous state
-> register, but programming INACTIVE / ON can't be done directly.
->
-> These functions are used in subsequent patches to simplify the logic of
-> the idle loop.
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> Keeping the twl4030_config_sleep_sequence() call under the flag checking will fix
+> the over writting of other sequences with the sleep sequences when loading the scripts.
 
-This series looks good to me now.  
+Sorry, but I read this 4-5 times and still have no idea what it means,
+or how it relates to this patch.
 
-I'm ready pull into the PM branch, but would like a review/ack from
-Paul before submitting for upstream merge
+> Removed the warning print with checking order of scripts, since the order
+> is not important. 
+
+OK, this much I get, and see what the patch is doing.
+
+> Only the values configured in the register, which is pointing to
+> the starting address of each sequence should be correct.
+
+aw, bummer. -ECONFUSED again
+
+Please fix the changelog to not only summarize *what* is being changed,
+but *why*.
 
 Kevin
 
-
+> Signed-off-by: Lesly A M <x0080970@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: David Derrick <dderrick@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
 > ---
->  arch/arm/mach-omap2/pm.h     |    2 +
->  arch/arm/mach-omap2/pm34xx.c |   65 +++++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 66 insertions(+), 1 deletions(-)
+>  drivers/mfd/twl4030-power.c |    6 ------
+>  1 files changed, 0 insertions(+), 6 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index b761be5..5f35911 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -67,6 +67,8 @@ static inline void omap3_pm_init_vc(struct prm_setup_vc *setup_vc)
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index 7efa878..bd98733 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -423,7 +423,6 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+>  	       u8 address)
+>  {
+>  	int err;
+> -	static int order;
 >  
->  extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
->  extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
-> +extern int omap3_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
-> +extern int omap3_pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
->  
->  extern u32 wakeup_timer_seconds;
->  extern struct omap_dm_timer *gptimer_wakeup;
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index a30941a..da4e684 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -576,6 +576,68 @@ int omap3_can_sleep(void)
->  	return 1;
->  }
->  
-> +struct powerdomain_data {
-> +	u8 next_state;
-> +};
-> +
-> +static struct powerdomain_data mpu_pwrdm_data;
-> +static struct powerdomain_data core_pwrdm_data;
-> +static struct powerdomain_data neon_pwrdm_data;
-> +
-> +static struct powerdomain_data *get_pwrdm_data(struct powerdomain *pwrdm)
-> +{
-> +	if (pwrdm == mpu_pwrdm)
-> +		return &mpu_pwrdm_data;
-> +	else if (pwrdm == core_pwrdm)
-> +		return &core_pwrdm_data;
-> +	else if (pwrdm == neon_pwrdm)
-> +		return &neon_pwrdm_data;
-> +	return NULL;
-> +}
-> +
-> +static void omap3_pwrdm_init_pwrst_cache(struct powerdomain *pwrdm)
-> +{
-> +	struct powerdomain_data *data = get_pwrdm_data(pwrdm);
-> +	if (data)
-> +		data->next_state = pwrdm_read_next_pwrst(pwrdm);
-> +}
-> +
-> +int omap3_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
-> +{
-> +	struct powerdomain_data *data = get_pwrdm_data(pwrdm);
-> +	u8 prg_pwrst;
-> +
-> +	if (!data)
-> +		return pwrdm_set_next_pwrst(pwrdm, pwrst);
-> +
-> +	if (data->next_state == pwrst)
-> +		return 0;
-> +
-> +	if (pwrst == PWRDM_POWER_INACTIVE)
-> +		prg_pwrst = PWRDM_POWER_ON;
-> +	else
-> +		prg_pwrst = pwrst;
-> +
-> +	pwrdm_set_next_pwrst(pwrdm, prg_pwrst);
-> +
-> +	if (pwrst == PWRDM_POWER_ON)
-> +		omap2_clkdm_deny_idle(pwrdm->pwrdm_clkdms[0]);
-> +	else
-> +		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
-> +
-> +	data->next_state = pwrst;
-> +	return 0;
-> +}
-> +
-> +int omap3_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	struct powerdomain_data *data = get_pwrdm_data(pwrdm);
-> +
-> +	if (!data)
-> +		return pwrdm_read_next_pwrst(pwrdm);
-> +	return data->next_state;
-> +}
-> +
->  /* This sets pwrdm state (other than mpu & core. Currently only ON &
->   * RET are supported. Function is assuming that clkdm doesn't have
->   * hw_sup mode enabled. */
-> @@ -604,7 +666,7 @@ int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
->  		pwrdm_wait_transition(pwrdm);
+>  	/* Make sure the script isn't going beyond last valid address (0x3f) */
+>  	if ((address + tscript->size) > END_OF_SCRIPT) {
+> @@ -444,7 +443,6 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+>  		err = twl4030_config_wakeup12_sequence(address);
+>  		if (err)
+>  			goto out;
+> -		order = 1;
 >  	}
->  
-> -	ret = pwrdm_set_next_pwrst(pwrdm, state);
-> +	ret = omap3_pwrdm_set_next_pwrst(pwrdm, state);
->  	if (ret) {
->  		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
->  		       pwrdm->name);
-> @@ -1103,6 +1165,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
->  	if (!pwrdm->pwrsts)
->  		return 0;
->  
-> +	omap3_pwrdm_init_pwrst_cache(pwrdm);
->  	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
->  	if (!pwrst)
->  		return -ENOMEM;
+>  	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
+>  		err = twl4030_config_wakeup3_sequence(address);
+> @@ -452,10 +450,6 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+>  			goto out;
+>  	}
+>  	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+> -		if (order)
+> -			pr_warning("TWL4030: Bad order of scripts (sleep "\
+> -					"script before wakeup) Leads to boot"\
+> -					"failure on some boards\n");
+>  		err = twl4030_config_sleep_sequence(address);
+>  out:
+>  	return err;
 > -- 
-> 1.5.4.3
+> 1.6.0.4
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
