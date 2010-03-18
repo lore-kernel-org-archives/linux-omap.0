@@ -1,95 +1,248 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCHv2 00/17] OMAP3: PM: Smartreflex and voltage revamp.
-Date: Thu, 18 Mar 2010 14:45:38 +0530
-Message-ID: <1268903755-4151-1-git-send-email-thara@ti.com>
+Subject: [PATCHv2 04/17] OMAP3: PM: Move smartreflex autocompensation enable disable hooks to PM debugfs.
+Date: Thu, 18 Mar 2010 14:45:42 +0530
+Message-ID: <1268903755-4151-5-git-send-email-thara@ti.com>
+References: <1268903755-4151-1-git-send-email-thara@ti.com>
+ <1268903755-4151-2-git-send-email-thara@ti.com>
+ <1268903755-4151-3-git-send-email-thara@ti.com>
+ <1268903755-4151-4-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50241 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47864 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750922Ab0CRJQI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1750958Ab0CRJQI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 18 Mar 2010 05:16:08 -0400
+In-Reply-To: <1268903755-4151-4-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-The main motivations behind this patch series are the following
-1. Making smartreflex a platform driver with omap-device layer.
-2. Separating voltage specific code from smartreflex.c and other
-   locations and consolidating them into voltage.c and voltage.h.
-3. Smartreflex module can have Class 3 or Class 2 implementations
-   depending on the PMIC in use. Making smartreflex.c capable
-   of handling both the class implementaions and separating out
-   class specific code into a separate class driver.
-4. Remove dependencies on opp id in the smartreflex and
-   voltage drivers
-5. Implementating  latest TI recommended register settings for
-  Smartreflex and Voltage processor module as well as recommended
-  sequences for enabling and disabling of Smartreflex and Voltage
-  processor modules.
-6. Implementing VP force update method of voltage scaling which is
-   again TI hardware recommended.
+This patch moves the hooks to enable disable smartreflex
+autocompensation to pm debugfs from the /sys/power/.
 
-What this patch series does not address are
-1. Separating PMIC specific portions from smartreflex and voltage code.
-2. OMAP3630 and OMP4 smartreflex support.
+To enable autocompensation for smartreflex SR<n> do
+        echo 1 > <path>/pm_debug/sr<n>_autocomp
+To disable autocompensation for smartreflex SR<n> do
+        echo 0 > <path>/pm_debug/sr<n>_autocomp
 
-This patch series is based on Kevin's PM tree origin/pm-wip-opp branch
-and is dependent on the following patches not yet applied onto this branch.
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
+ arch/arm/mach-omap2/pm-debug.c    |    4 +-
+ arch/arm/mach-omap2/smartreflex.c |  114 ++++++++++--------------------------
+ arch/arm/mach-omap2/smartreflex.h |    2 +
+ 3 files changed, 36 insertions(+), 84 deletions(-)
 
-	http://patchwork.kernel.org/patch/81504/
-	http://patchwork.kernel.org/patch/81606/
-
-This patch series has been tested on OMAP3430 SDP with basic power
-management tests including the dvfs scripts.
-
-Thara Gopinath (17):
-  OMAP3: PM: Adding hwmod data for Smartreflex
-  OMAP3: PM: Create list to keep track of various smartreflex
-    instances.
-  OMAP3: PM: Convert smartreflex driver into a platform driver using
-    hwmods and omap-device layer
-  OMAP3: PM: Move smartreflex autocompensation enable disable hooks to
-    PM debugfs.
-  OMAP3: PM: Remove OPP id dependency from smartreflex driver
-  OMAP3: PM: Correcting API names in samrtreflex driver.
-  OMAP3: PM: Smartreflex class related changes for smartreflex.c
-  OMAP3: PM: Adding smartreflex class 3 driver.
-  OMAP3: PM: Creating separate files for handling OMAP3 voltage related
-    operations.
-  OMAP3: PM: Disabling Smartreflex across both frequency and voltage
-    scaling during DVFS.
-  OMAP3: PM: Cleaning up of smartreflex header file.
-  OMAP3: PM: Configurations for Smartreflex Class 2 and Smartreflex
-    Class 3
-  OMAP3: PM: Support for enabling smartreflex autocompensation by
-    default.
-  OMAP3: PM: Correcting accessing of ERRCONFIG register in
-    smartreflex.c
-  OMAP3: PM: Implement latest h/w recommendations for SR and VP
-    registers and SR VP enable disable sequence.
-  OMAP3: PM: VP force update method of voltage scaling
-  OMAP3: PM: Enabling Smartreflex Class 3 driver by default in pm
-    defconfig
-
- arch/arm/configs/omap3_pm_defconfig        |    1 +
- arch/arm/mach-omap2/Makefile               |    6 +-
- arch/arm/mach-omap2/board-3430sdp.c        |    3 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   94 ++
- arch/arm/mach-omap2/pm-debug.c             |    4 +-
- arch/arm/mach-omap2/pm.h                   |    7 -
- arch/arm/mach-omap2/pm34xx.c               |   95 +--
- arch/arm/mach-omap2/resource34xx.c         |   27 +-
- arch/arm/mach-omap2/resource34xx.h         |    1 -
- arch/arm/mach-omap2/smartreflex-class3.c   |   53 ++
- arch/arm/mach-omap2/smartreflex.c          | 1297 +++++++++++-----------------
- arch/arm/mach-omap2/smartreflex.h          |  336 ++++----
- arch/arm/mach-omap2/sr_device.c            |  196 +++++
- arch/arm/mach-omap2/voltage.c              |  823 ++++++++++++++++++
- arch/arm/mach-omap2/voltage.h              |   80 ++
- arch/arm/plat-omap/Kconfig                 |   11 +-
- 16 files changed, 1935 insertions(+), 1099 deletions(-)
- create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
- create mode 100644 arch/arm/mach-omap2/sr_device.c
- create mode 100644 arch/arm/mach-omap2/voltage.c
- create mode 100644 arch/arm/mach-omap2/voltage.h
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 8aafd71..ce46059 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -162,7 +162,7 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
+ 
+ static void pm_dbg_regset_store(u32 *ptr);
+ 
+-struct dentry *pm_dbg_dir;
++struct dentry *pm_dbg_dir, *pm_dbg_main_dir;
+ 
+ static int pm_dbg_init_done;
+ 
+@@ -613,7 +613,7 @@ static int __init pm_dbg_init(void)
+ 					   S_IRUGO | S_IWUGO, d,
+ 					   &voltage_off_while_idle,
+ 					   &pm_dbg_option_fops);
+-
++	pm_dbg_main_dir = d;
+ 	pm_dbg_init_done = 1;
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 4147ace..4065b45 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -24,11 +24,11 @@
+ #include <linux/delay.h>
+ #include <linux/err.h>
+ #include <linux/clk.h>
+-#include <linux/sysfs.h>
+ #include <linux/kobject.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/io.h>
+ #include <linux/list.h>
++#include <linux/debugfs.h>
+ 
+ #include <plat/omap34xx.h>
+ #include <plat/clock.h>
+@@ -42,6 +42,7 @@
+ #include "prm-regbits-34xx.h"
+ 
+ #define MAX_TRIES 100
++#define SMARTREFLEX_NAME_LEN	16
+ 
+ struct omap_sr {
+ 	int			srid;
+@@ -801,103 +802,53 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
+ 	return 0;
+ }
+ 
+-/* Sysfs interface to select SR VDD1 auto compensation */
+-static ssize_t omap_sr_vdd1_autocomp_show(struct kobject *kobj,
+-					struct kobj_attribute *attr, char *buf)
++/* PM Debug Fs enteries to enable disable smartreflex.*/
++
++static int omap_sr_autocomp_show(void *data, u64 *val)
+ {
+-	struct omap_sr *sr_info = _sr_lookup(SR1);
++	struct omap_sr *sr_info = (struct omap_sr *) data;
+ 
+ 	if (!sr_info) {
+-		pr_warning("omap_sr struct corresponding to SR1 not found\n");
++		pr_warning("omap_sr struct corresponding to SR%d not found\n",
++							sr_info->srid);
+ 		return 0;
+ 	}
+-	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
++	*val = sr_info->is_autocomp_active;
++	return 0;
+ }
+ 
+-static ssize_t omap_sr_vdd1_autocomp_store(struct kobject *kobj,
+-					struct kobj_attribute *attr,
+-					const char *buf, size_t n)
++static int omap_sr_autocomp_store(void *data, u64 val)
+ {
+-	unsigned short value;
+-
+-	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
+-		pr_err("sr_vdd1_autocomp: Invalid value\n");
+-		return -EINVAL;
+-	}
+-
+-	if (value == 0) {
+-		sr_stop_vddautocomap(SR1);
+-	} else {
+-		u32 current_vdd1opp_no = get_vdd1_opp();
+-		if (!current_vdd1opp_no) {
+-			pr_err("sr_vdd1_autocomp: Current VDD1 opp unknown\n");
+-			return -EINVAL;
+-		}
+-		sr_start_vddautocomap(SR1, current_vdd1opp_no);
+-	}
+-	return n;
+-}
+-
+-static struct kobj_attribute sr_vdd1_autocomp = {
+-	.attr = {
+-	.name = __stringify(sr_vdd1_autocomp),
+-	.mode = 0644,
+-	},
+-	.show = omap_sr_vdd1_autocomp_show,
+-	.store = omap_sr_vdd1_autocomp_store,
+-};
+-
+-/* Sysfs interface to select SR VDD2 auto compensation */
+-static ssize_t omap_sr_vdd2_autocomp_show(struct kobject *kobj,
+-					struct kobj_attribute *attr, char *buf)
+-{
+-	struct omap_sr *sr_info = _sr_lookup(SR2);
++	struct omap_sr *sr_info = (struct omap_sr *) data;
+ 
+ 	if (!sr_info) {
+-		pr_warning("omap_sr struct corresponding to SR2 not found\n");
++		pr_warning("omap_sr struct corresponding to SR%d not found\n",
++							sr_info->srid);
+ 		return 0;
+ 	}
+-	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
+-}
+-
+-static ssize_t omap_sr_vdd2_autocomp_store(struct kobject *kobj,
+-					struct kobj_attribute *attr,
+-					const char *buf, size_t n)
+-{
+-	unsigned short value;
+-
+-	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
+-		pr_err("sr_vdd2_autocomp: Invalid value\n");
+-		return -EINVAL;
+-	}
+-
+-	if (value == 0) {
+-		sr_stop_vddautocomap(SR2);
++	if (val == 0) {
++		sr_stop_vddautocomap(sr_info->srid);
+ 	} else {
+-		u32 current_vdd2opp_no = get_vdd2_opp();
+-		if (!current_vdd2opp_no) {
+-			pr_err("sr_vdd2_autocomp: Current VDD2 opp unknown\n");
+-			return -EINVAL;
+-		}
+-		sr_start_vddautocomap(SR2, current_vdd2opp_no);
++		u32 current_opp;
++
++		if (sr_info->srid == SR1)
++			current_opp = get_vdd1_opp();
++		else
++			current_opp = get_vdd2_opp();
++		sr_start_vddautocomap(sr_info->srid, current_opp);
+ 	}
+-	return n;
++	return 0;
+ }
+ 
+-static struct kobj_attribute sr_vdd2_autocomp = {
+-	.attr = {
+-	.name = __stringify(sr_vdd2_autocomp),
+-	.mode = 0644,
+-	},
+-	.show = omap_sr_vdd2_autocomp_show,
+-	.store = omap_sr_vdd2_autocomp_store,
+-};
++DEFINE_SIMPLE_ATTRIBUTE(pm_sr_fops, omap_sr_autocomp_show,
++		omap_sr_autocomp_store, "%llu\n");
+ 
+ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
+ {
+ 	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
+ 	struct omap_device *odev = to_omap_device(pdev);
+ 	int ret = 0;
++	char name[SMARTREFLEX_NAME_LEN];
+ 
+ 	if (WARN_ON(!sr_info))
+ 		return -ENOMEM;
+@@ -912,16 +863,15 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
+ 
+ 	if (sr_info->srid == SR1) {
+ 		sr_info->vdd_opp_clk = clk_get(NULL, "dpll1_ck");
+-		ret = sysfs_create_file(power_kobj, &sr_vdd1_autocomp.attr);
+-		if (ret)
+-			pr_err("sysfs_create_file failed: %d\n", ret);
+ 	} else {
+ 		sr_info->vdd_opp_clk = clk_get(NULL, "l3_ick");
+-		ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
+-		if (ret)
+-			pr_err("sysfs_create_file failed: %d\n", ret);
+ 	}
+ 
++	/* Create the debug fs enteries */
++	sprintf(name, "sr%d_autocomp", sr_info->srid);
++	(void) debugfs_create_file(name, S_IRUGO | S_IWUGO, pm_dbg_main_dir,
++				(void *)sr_info, &pm_sr_fops);
++
+ 	/* Call the VPConfig */
+ 	sr_configure_vp(sr_info->srid);
+ 	odev->hwmods[0]->dev_attr = sr_info;
+diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+index 4f886c1..f7e6e1b 100644
+--- a/arch/arm/mach-omap2/smartreflex.h
++++ b/arch/arm/mach-omap2/smartreflex.h
+@@ -16,6 +16,8 @@
+ 
+ #include <linux/platform_device.h>
+ 
++extern struct dentry *pm_dbg_main_dir;
++
+ #define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
+ #define PHY_TO_OFF_PM_RECIEVER(p)	(p - 0x5b)
+ #define PHY_TO_OFF_PM_INT(p)		(p - 0x2e)
+-- 
+1.7.0.rc1.33.g07cf0f
 
