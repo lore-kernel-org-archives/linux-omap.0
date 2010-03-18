@@ -1,143 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4 RFC]OMAP:GPIO: Make GPIO an early init device
-Date: Wed, 17 Mar 2010 16:19:27 -0700
-Message-ID: <20100317231927.GL2900@atomide.com>
-References: <20100216194618.GR21755@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C489C445@dbde02.ent.ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: Question on OTG transceivers
+Date: Thu, 18 Mar 2010 08:58:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03220FB2A2@dbde02.ent.ti.com>
+References: <4BA14B06.8050202@billgatliff.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54843 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751181Ab0CQXR7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 19:17:59 -0400
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C489C445@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43032 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752085Ab0CRD3E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Mar 2010 23:29:04 -0400
+In-Reply-To: <4BA14B06.8050202@billgatliff.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Bill Gatliff <bgat@billgatliff.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Varadarajan, Charulatha <charu@ti.com> [100317 07:07]:
-> Tony, 
+ 
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Bill Gatliff
+> Sent: Thursday, March 18, 2010 3:05 AM
+> To: linux-omap@vger.kernel.org
+> Subject: Question on OTG transceivers
 > 
-> > > > >
-> > > > > http://www.pwsan.com/omap/patches/gpio/0002-OMAP-GPIO-split-omap1-and-
-> > > > omap2.patch
-> > > >
-> > > > What, make two almost identical copies of the shared code? No way!
-> > > > Instead, please keep the common code under plat-omap:
-> > > >
-> > > > arch/arm/plat-omap/gpio.c
-> > > >
-> > > > Then implement the processor specific functions:
-> > > >
-> > > > arch/arm/mach-omap1/gpio.c
-> > > > arch/arm/mach-omap2/gpio.c
-> > > > arch/arm/mach-omap2/gpio24xx.c
-> > > > arch/arm/mach-omap2/gpio44xx.c
-> > > >
-> > > > Then have a subsys_initcall in processor specific implementation
-> > > > that sets the function pointers in the common code.
-> > > >
-> > > Tony,
-> > >
-> > > The current gpio.c has functions with code similar as mentioned below:
-> > > {
-> > > 	#ifdef CONFIG_ARCH_OMAP1
-> > > 		Get the reg offset for OMAP1
-> > > 	#endif
-> > > 	#ifdef CONFIG_ARCH_OMAP15XX
-> > > 		Get the reg offset for OMAP15XX
-> > > 	#endif
-> > > 	#ifdef CONFIG_ARCH_OMAP16XX
-> > > 		Get the reg offset for OMAP16XX
-> > > 	#endif
-> > > 	#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-> > > 		Get the reg offset for this OMAP
-> > > 	#endif
-> > > 	#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-> > > 		Get the reg offset for OMAP2&3
-> > > 	#endif
-> > > 	#if defined(CONFIG_ARCH_OMAP4)
-> > > 		Get the reg offset for OMAP4
-> > > 	#endif
-> > >
-> > > 	Read/write the register
-> > > }
-> > >
-> > > If function pointers are used in common code (plat-omap/gpio.c), the API's in
-> > this file would essentially do nothing but invoke these pointers. IMHO this is
-> > simply adding one unnecessary level of indirection.
-> > > Please correct me if I am missing out something.
-> > 
-> > For those you can just set the various reg offsets once
-> > during __init based on the omap type and then the function
-> > stays the same.
-> > 
-> > For example, in arch/arm/mach-omap2/gpio44xx.c you could
-> > have something like the following (completely untested):
-> > 
-> > static const struct gpio_reg omap4_gpio_reg[] = {
-> > 	...
-> > };
-> > 
-> > static const struct gpio_bank omap4_gpio_bank[] = {
-> > 	...
-> > };
-> > 
-> > static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
-> > {
-> > 	...
-> > }
-> > 
-> > static int omap_gpio_resume(struct sys_device *dev)
-> > {
-> > 	...
-> > }
-> > 
-> > const struct omap_gpio omap4_gpio = {
-> > 	.regs		= omap4_gpio_reg,
-> > 	.banks		= omap4_gpio_bank,
-> > 	.suspend	= omap4_gpio_suspend,
-> > 	.resume		= omap4_gpio_resume,
-> > 	...
-> > };
-> > 
-> > ...
-> > 
-> > static int __init omap_gpio_init(void)
-> > {
-> > 	if (!cpu_is_omap44xx())
-> > 		return -ENODEV;
-> > 
-> > 	return omap_gpio_init(omap4_gpio);
-> > }
-> > arch_initcall(omap44xx_gpio_init);
-> > 
-> > For some of them, you want to be able to implement the whole
-> > function depending on the omap type that you boot.
-> > 
-> > We're already doing it like this in most places, the gpio.c code
-> > just needs to be updated for that.
+> Guys:
 > 
-> Thanks. Can you please specify some example code & location in the 
-> current code base, so that I can align exactly before sending my
-> next version of patches? 
+> 
+> I have a Beagleboard-like unit here that uses two SMSC USB3320C-EZK
+> PHYs: one for EHCI (usb1), the other for OTG (usb0).
+> 
+> Two questions.  First, the code in drivers/usb/otg/ulpi.c looks like it
+> might be what I need (my attempts so far with the "nop" transceiver have
+> ended in failure).  Am I right?
+> 
 
-See mach-omap2/clock.c for example for struct clk_functions.
+Actually, the way the ehci-omap driver is currently written, it assumes
+the transceiver is present and available - you don't need a separate
+driver to access it.
 
-Please do the changes in a set where each change patch can be
-easily reviewed and tested. Maybe something like the following
-patches:
+For that matter, the same probably holds for the OTG driver as well - you
+really don't need a driver for transparent transceivers like the SMSC332x.
 
-1. Add support for passing platform_data to omap_gpio_init()
-2. Add support for implementing SoC specific omap_gpio_AAA()
-3. Add support for implementing SoC specific omap_gpio_BBB()
-4. Add support for implementing SoC specific omap_gpio_CCC()
-...
+I'm not sure why the code was written this way to introduce NOP XCEIVs
+(need to go through the changelog to find out why, maybe).
+
+> Second, it looks like otg_set_transceiver() assumes there is only one
+> transceiver in the system.  On a device like the OMAP3530 with multiple
+> ports, this seems like an odd assumption--- and one that clearly isn't
+> accurate for my platform.  Or am I paying attention to the wrong stuff?
+> 
+> Can anyone help navigate me through the trees in this forest?  :)
+
+I think this assumption comes from some part of the OTG spec which says
+that OTG devices can have only one external USB port.
+
+But embedded devices can certainly have more than one transceiver (for example
+to connect an on-board USB device without exposing an external port) - so
+maybe there's no point keeping this restriction any more.
 
 
-Regards,
-
-Tony
+- Anand
