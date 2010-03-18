@@ -1,37 +1,51 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv2 00/17] OMAP3: PM: Smartreflex and voltage revamp.
-Date: Thu, 18 Mar 2010 14:15:24 -0500
-Message-ID: <4BA27BCC.60404@ti.com>
-References: <1268903755-4151-1-git-send-email-thara@ti.com>
+From: "Olaya, Margarita" <magi.olaya@ti.com>
+Subject: Re: [PATCHv6 2/2][RESEND] ASoC: TWL6040: Add twl6040
+	codec driver
+Date: Thu, 18 Mar 2010 15:37:48 -0500
+Message-ID: <1889FA7136B567478A67D4B0F85B0CCE662AC968@dlee06.ent.ti.com>
+References: <1889FA7136B567478A67D4B0F85B0CCE662AC7F1@dlee06.ent.ti.com>
+	<20100318181623.GG6142@rakim.wolfsonmicro.main>
+	<87d3z1jxh6.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60009 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751618Ab0CRTP0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Mar 2010 15:15:26 -0400
-In-Reply-To: <1268903755-4151-1-git-send-email-thara@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <87d3z1jxh6.fsf@deeprootsystems.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Gopinath, Thara had written, on 03/18/2010 04:15 AM, the following:
-[..]
+On Thursday, March 18, 2010 12:28 PM  Kevin Hilman wrote: 
 
-> This patch series is based on Kevin's PM tree origin/pm-wip-opp branch
-> and is dependent on the following patches not yet applied onto this branch.
 > 
-> 	http://patchwork.kernel.org/patch/81504/
-> 	http://patchwork.kernel.org/patch/81606/
-The 2nd patch does not seem to apply anymore
+> [...]
+> 
+>> Looks like MUA trouble.  From the message headers it looks like you
+>> might be using Outlook or something, I'm not sure what to suggest
+>> for that - enough folks at TI are submitting patches that
+>> something must've been worked out for your mail system.
+> 
+> Indeed, You need to get outlook out of the picture for
+> sending patches.
+> 
+> Using git-format-patch + git-send-email directly to your SMTP
+> servers seems to be working well for others inside TI.
+> 
+> Kevin
 
-see [1] - no more sysc_flags as it was queued to .34-rcX?
+Yeah, I'm using Outlook because I had some issues with my server
+and git-send-email. I'll review my configurations to avoid this
+kind of problems in futures post.
 
--- 
-Regards,
-Nishanth Menon
-Ref:
-[1] 
-http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=blob;f=arch/arm/plat-omap/include/plat/omap_hwmod.h;h=440b4164f2f65e8557713ce9fff2636ed02fe523;hb=pm-wip-opp#l258
+Thanks & Regards,
+Margarita 
