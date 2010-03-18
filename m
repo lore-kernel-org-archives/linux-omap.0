@@ -1,59 +1,43 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v4 1/2] OMAP3: SDRC: Dynamic Calculation of SDRC stall
+From: ambresh <a0393775@ti.com>
+Subject: Re: [PATCH v4 1/2] OMAP3: SDRC: Dynamic Calculation of SDRC stall
  latency during DVFS
-Date: Thu, 18 Mar 2010 11:47:52 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F078B5E@dbde02.ent.ti.com>
-References: <1268888148-10983-1-git-send-email-pramod.gurav@ti.com>
- <1268888148-10983-2-git-send-email-pramod.gurav@ti.com>
+Date: Thu, 18 Mar 2010 12:45:43 +0530
+Message-ID: <4BA1D31F.3070809@ti.com>
+References: <1268888148-10983-1-git-send-email-pramod.gurav@ti.com> <1268888148-10983-2-git-send-email-pramod.gurav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="iso-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49350 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42589 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751353Ab0CRGR5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 02:17:57 -0400
+	id S1752577Ab0CRHPs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Mar 2010 03:15:48 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2I6Hs6S024853
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2I7FjX2017815
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 01:17:56 -0500
+	for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 02:15:47 -0500
 Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2I6Hrwm017377
-	for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 11:47:53 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2I7Fimt004816
+	for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 12:45:45 +0530 (IST)
 In-Reply-To: <1268888148-10983-2-git-send-email-pramod.gurav@ti.com>
-Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gurav , Pramod" <pramod.gurav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Reddy, Teerth" <teerth@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+To: "Gurav , Pramod" <pramod.gurav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Reddy, Teerth" <teerth@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-
-
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gurav , Pramod
-> Sent: Thursday, March 18, 2010 10:26 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Reddy, Teerth; Gurav , Pramod; Sripathy, Vishwanath
-> Subject: [PATCH v4 1/2] OMAP3: SDRC: Dynamic Calculation of 
-> SDRC stall latency during DVFS
-> 
+Gurav , Pramod wrote:
 > From: Teerth Reddy <teerth@ti.com>
 > 
 > The patch has the changes to calculate the dpll3 clock stabilization
-> delay dynamically. The SRAM delay is calibrated during bootup 
-> using the
+> delay dynamically. The SRAM delay is calibrated during bootup using the
 > gptimers and used while calculating the stabilization delay. By using
 > the dynamic method the dependency on the type of cache being used is
 > removed.
 > 
-> The wait time for L3 clock stabilization is calculated using 
-> the formula
+> The wait time for L3 clock stabilization is calculated using the formula
 >         = 4*REFCLK + 8*CLKOUTX2,
 > which uses the M, N and M2 read from the registers.
-> Since this gives slightly less value, 2us is added as buffer 
-> for safety.
+> Since this gives slightly less value, 2us is added as buffer for safety.
 > This works fine for omap3.
 > 
 > Signed-off-by: Teerth Reddy <teerth@ti.com>
@@ -61,20 +45,17 @@ Cc: "Reddy, Teerth" <teerth@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.co
 > Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com>
 > 
 > ---
->  arch/arm/mach-omap2/clkt34xx_dpll3m2.c |   54 
-> +++++++++++++++++++++++++++-----
+>  arch/arm/mach-omap2/clkt34xx_dpll3m2.c |   54 +++++++++++++++++++++++++++-----
 >  arch/arm/mach-omap2/clock34xx.h        |    2 +
 >  arch/arm/mach-omap2/clock3xxx.c        |    2 +-
 >  arch/arm/mach-omap2/clock3xxx.h        |    1 +
 >  arch/arm/mach-omap2/clock3xxx_data.c   |   13 ++++++++
 >  arch/arm/mach-omap2/sram34xx.S         |    8 +++++
 >  arch/arm/plat-omap/include/plat/sram.h |    4 ++
->  arch/arm/plat-omap/sram.c              |   51 
-> ++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/sram.c              |   51 ++++++++++++++++++++++++++++++
 >  8 files changed, 126 insertions(+), 9 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c 
-> b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+> diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
 > index b2b1e37..29421b1 100644
 > --- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
 > +++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
@@ -94,9 +75,6 @@ Cc: "Reddy, Teerth" <teerth@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.co
 > +
 > +#define		DPLL_M_MASK		0x7ff
 > +#define		DPLL_N_MASK		0x7f
-
-Use one more tab
-
 > +#define		DPLL_M2_MASK		0x1f
 > +#define		SHIFT_DPLL_M		16
 > +#define		SHIFT_DPLL_N		8
@@ -104,8 +82,7 @@ Use one more tab
 >  
 >  /*
 >   * CORE DPLL (DPLL3) M2 divider rate programming functions
-> @@ -56,6 +64,11 @@ int omap3_core_dpll_m2_set_rate(struct clk 
-> *clk, unsigned long rate)
+> @@ -56,6 +64,11 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
 >  	struct omap_sdrc_params *sdrc_cs0;
 >  	struct omap_sdrc_params *sdrc_cs1;
 >  	int ret;
@@ -117,19 +94,15 @@ Use one more tab
 >  
 >  	if (!clk || !rate)
 >  		return -EINVAL;
-> @@ -79,16 +92,41 @@ int omap3_core_dpll_m2_set_rate(struct 
-> clk *clk, unsigned long rate)
+> @@ -79,16 +92,41 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
 >  		unlock_dll = 1;
 >  	}
 >  
 > +	clk_sel_regval = __raw_readl(clk->clksel_reg);
 > +
-> +	/* Get the M, N and M2 values required for getting sdrc 
-> clk stab */
-> +	core_dpll_mul_m = (clk_sel_regval >> SHIFT_DPLL_M) & 
-> DPLL_M_MASK;
-> +	core_dpll_div_n = (clk_sel_regval >> SHIFT_DPLL_N) & 
-> DPLL_N_MASK;
+> +	/* Get the M, N and M2 values required for getting sdrc clk stab */
+> +	core_dpll_mul_m = (clk_sel_regval >> SHIFT_DPLL_M) & DPLL_M_MASK;
+> +	core_dpll_div_n = (clk_sel_regval >> SHIFT_DPLL_N) & DPLL_N_MASK;
 > +	core_dpll_clkoutdiv_m2 = (clk_sel_regval >> SHIFT_DPLL_M2) &
 > +							DPLL_M2_MASK;
 > +	sys_clk_rate = clk_get_rate(sys_ck_p);
@@ -139,8 +112,7 @@ Use one more tab
 > +	/* wait time for L3 clk stabilization = 4*REFCLK + 8*CLKOUTX2 */
 > +	refclk = (4 * (core_dpll_div_n + 1)) / sys_clk_rate;
 > +	clkoutx2 = ((core_dpll_div_n + 1) * core_dpll_clkoutdiv_m2) /
-> +					(sys_clk_rate * 
-> core_dpll_mul_m * 2);
+> +					(sys_clk_rate * core_dpll_mul_m * 2);
 > +	switch_latency =  refclk + 8 * clkoutx2;
 > +
 > +	/* Adding 2us to sdrc clk stab */
@@ -164,32 +136,25 @@ Use one more tab
 > +
 > +	c = ((sdrc_clk_stab * _mpurate) / (delay_sram * 2));
 > +
-> +	pr_debug("m = %d, n = %d, m2 =%d\n", core_dpll_mul_m, 
-> core_dpll_div_n,
+> +	pr_debug("m = %d, n = %d, m2 =%d\n", core_dpll_mul_m, core_dpll_div_n,
 > +						core_dpll_clkoutdiv_m2);
-> +	pr_debug("switch_latency = %d, sys_clk_rate = %d, 
-> cycles = %d\n",
-> +					switch_latency, 
-> sys_clk_rate, c);
+> +	pr_debug("switch_latency = %d, sys_clk_rate = %d, cycles = %d\n",
+> +					switch_latency, sys_clk_rate, c);
 >  
->  	pr_debug("clock: changing CORE DPLL rate from %lu to 
-> %lu\n", clk->rate,
+>  	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
 >  		 validrate);
-> diff --git a/arch/arm/mach-omap2/clock34xx.h 
-> b/arch/arm/mach-omap2/clock34xx.h
+> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
 > index 628e8de..a9f2204 100644
 > --- a/arch/arm/mach-omap2/clock34xx.h
 > +++ b/arch/arm/mach-omap2/clock34xx.h
-> @@ -12,4 +12,6 @@ extern const struct clkops 
-> clkops_omap3430es2_ssi_wait;
+> @@ -12,4 +12,6 @@ extern const struct clkops clkops_omap3430es2_ssi_wait;
 >  extern const struct clkops clkops_omap3430es2_hsotgusb_wait;
 >  extern const struct clkops clkops_omap3430es2_dss_usbhost_wait;
 >  
 > +unsigned int delay_sram_val(void);
 > +
 >  #endif
-> diff --git a/arch/arm/mach-omap2/clock3xxx.c 
-> b/arch/arm/mach-omap2/clock3xxx.c
+> diff --git a/arch/arm/mach-omap2/clock3xxx.c b/arch/arm/mach-omap2/clock3xxx.c
 > index a447c4d..ce84a98 100644
 > --- a/arch/arm/mach-omap2/clock3xxx.c
 > +++ b/arch/arm/mach-omap2/clock3xxx.c
@@ -202,8 +167,7 @@ Use one more tab
 >  
 >  int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
 >  {
-> diff --git a/arch/arm/mach-omap2/clock3xxx.h 
-> b/arch/arm/mach-omap2/clock3xxx.h
+> diff --git a/arch/arm/mach-omap2/clock3xxx.h b/arch/arm/mach-omap2/clock3xxx.h
 > index 8bbeeaf..475d0c7 100644
 > --- a/arch/arm/mach-omap2/clock3xxx.h
 > +++ b/arch/arm/mach-omap2/clock3xxx.h
@@ -215,8 +179,7 @@ Use one more tab
 >  
 >  extern const struct clkops clkops_noncore_dpll_ops;
 >  
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c 
-> b/arch/arm/mach-omap2/clock3xxx_data.c
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
 > index 57522de..280adff 100644
 > --- a/arch/arm/mach-omap2/clock3xxx_data.c
 > +++ b/arch/arm/mach-omap2/clock3xxx_data.c
@@ -236,8 +199,7 @@ Use one more tab
 > +
 >  /* PRM CLOCKS */
 >  
->  /* According to timer32k.c, this is a 32768Hz clock, not a 
-> 32000Hz clock. */
+>  /* According to timer32k.c, this is a 32768Hz clock, not a 32000Hz clock. */
 > @@ -3598,6 +3601,16 @@ int __init omap3xxx_clk_init(void)
 >  	/* Avoid sleeping during omap3_core_dpll_m2_set_rate() */
 >  	sdrc_ick_p = clk_get(NULL, "sdrc_ick");
@@ -255,8 +217,7 @@ Use one more tab
 > +{
 > +	return delay_sram;
 > +}
-> diff --git a/arch/arm/mach-omap2/sram34xx.S 
-> b/arch/arm/mach-omap2/sram34xx.S
+> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
 > index de99ba2..5a1631f 100644
 > --- a/arch/arm/mach-omap2/sram34xx.S
 > +++ b/arch/arm/mach-omap2/sram34xx.S
@@ -272,8 +233,7 @@ Use one more tab
 > +
 > +ENTRY(__sram_wait_delay_sz)
 > +	.word   . - __sram_wait_delay
-> diff --git a/arch/arm/plat-omap/include/plat/sram.h 
-> b/arch/arm/plat-omap/include/plat/sram.h
+> diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
 > index 16a1b45..dd294a8 100644
 > --- a/arch/arm/plat-omap/include/plat/sram.h
 > +++ b/arch/arm/plat-omap/include/plat/sram.h
@@ -318,16 +278,8 @@ Use one more tab
 > +	omap_dm_timer_init();
 > +	gpt = omap_dm_timer_request();
 > +	if (!gpt) {
-
-Request timer API returns NULL on failure. 
-Use   BUG_ON(gpt == NULL);
-
 > +		pr_err("Could not get the gptimer\n");
 > +		return -1;
-
-If timer is not available, can we use fixed delay instead 
-returning error.
-
 > +	}
 > +
 > +	omap_dm_timer_set_source(gpt, OMAP_TIMER_SRC_SYS_CLK);
@@ -352,6 +304,16 @@ returning error.
 > +
 > +	error_gain = mpurate / gt_rate;
 > +	delay_sram = delay_sram + error_gain;
+
+Cosmetic changes:
+
+         error_gain = mpurate / gt_rate;
+         delay_sram = (error_gain * diff) / (loop);
+         delay_sram += error_gain;
+
+Thanks,
+Ambresh
+
 > +
 > +	return delay_sram;
 > +}
@@ -370,12 +332,4 @@ returning error.
 >  	if (!(cpu_class_is_omap2()))
 >  		omap1_sram_init();
 >  	else if (cpu_is_omap242x())
-> -- 
-> 1.5.6.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
