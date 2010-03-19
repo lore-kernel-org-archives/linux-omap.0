@@ -1,409 +1,271 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] MFD: TWL4030: changes for TRITON glitch fix
-Date: Thu, 18 Mar 2010 17:01:18 -0700
-Message-ID: <87tysddvsh.fsf@deeprootsystems.com>
-References: <1268410296-28993-1-git-send-email-leslyam@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and check
+ for it on V6
+Date: Thu, 18 Mar 2010 18:35:21 -0700
+Message-ID: <20100319013521.GP2900@atomide.com>
+References: <20100317175731.GE2900@atomide.com>
+ <1268849278.19565.28.camel@e102109-lin.cambridge.arm.com>
+ <20100317191114.GH2900@atomide.com>
+ <1268910826.15334.32.camel@e102109-lin.cambridge.arm.com>
+ <20100318170021.GN2900@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="jB+02Y6wHc2pEa2x"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:48227 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704Ab0CSAB0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 20:01:26 -0400
-Received: by bwz1 with SMTP id 1so2574449bwz.21
-        for <linux-omap@vger.kernel.org>; Thu, 18 Mar 2010 17:01:24 -0700 (PDT)
-In-Reply-To: <1268410296-28993-1-git-send-email-leslyam@ti.com> (Lesly A. M.'s message of "Fri\, 12 Mar 2010 21\:41\:36 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60494 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752240Ab0CSBdv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 21:33:51 -0400
+Content-Disposition: inline
+In-Reply-To: <20100318170021.GN2900@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lesly A M <leslyam@ti.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Lesly A M <leslyam@ti.com> writes:
 
-> Fix for TWL5030 Silicon Errata 27 & 28:
-> 27 - VDD1, VDD2, may have glitches when their output value is updated.
-> 28 - VDD1 and / or VDD2 DCDC clock may stop working when internal clock
-> is switched from internal to external.
->
-> Workaround requires the TWL DCDCs to use HFCLK instead of internal oscillator.
-> Also enable TWL watchdog before switching the osc to recover
-> if the VDD1/VDD2 stop working.
->
-> Fix is required for TWL5030 Silicon version less than or equal to ES1.1
-> Changes are done under the macro CONFIG_TWL5030_GLITCH_FIX,
-> since the IDCODE register on TWL5030 Si is not updated correctly.
->
-> Updated the TWL resource settings and volt, clock setuptime.
->
-> Changes taken from Nishanth Menons gaia glitch fix patch.
->
-> Signed-off-by: Lesly A M <leslyam@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: David Derrick <dderrick@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> ---
+--jB+02Y6wHc2pEa2x
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Some general comments:
+* Tony Lindgren <tony@atomide.com> [100318 09:55]:
+> * Catalin Marinas <catalin.marinas@arm.com> [100318 04:10]:
+> > On Wed, 2010-03-17 at 19:11 +0000, Tony Lindgren wrote:
+> > > * Catalin Marinas <catalin.marinas@arm.com> [100317 11:04]:
+> > > > On Wed, 2010-03-17 at 17:57 +0000, Tony Lindgren wrote:
+> > > > > HAS_TLS reg is only on ARM11 starting with r1p0:
+> > > > >
+> > > > > http://infocenter.arm.com/help/topic/com.arm.doc.ddi0211k/Babeihid.html
+> > > > >
+> > > > > So that explains why it won't work on omap2420 as it's r0p2.
+> > > >
+> > > > Same here, would it work with dynamic detection?
+> > > 
+> > > Hmm I believe here the problem is __switch_to in entry-armv.S.
+> > > I don't think we want to dynamically test it every time.. Or
+> > > at least it would have to be optimized out in most cases.
+> > 
+> > But if you disable this, you won't be able to use an SMP build on both
+> > v6 and v7. Anyway, I don't think that dynamically checking this would
+> > introduce performance penalties, the __switch_to code is pretty complex
+> > already with all the notifier calls.
+> 
+> OK. I'll take a look at setting the TLS a HWCAP flag.
 
-Why do you need a Kconfig option for this?  
+Below is a patch for convert CONFIG_HAS_TLS_REG into HWCAP_TLS.
 
-The changelog says IDCODE is not updated correctly, but the code is
-using detection in SW to see if the fix is required, so that should be
-default behavior.
+I've tested it with V6 r0p2 with no HWCAP_TLS, and V7 that has HWCAP_TLS.
+I also forced CONFIG_TLS_REG_EMUL and booted on V6 r0p2, and it booted OK.
 
-Even if SW detection is not reliable, Kconfig is not the right
-approach here.  Board code should simply set a flag or register
-a hook if the fix is required.
+Could somebody please test this patch on a real CONFIG_TLS_REG_EMUL
+system?
 
-This patch has failed my 15 minute rule (if I can't understand a patch
-in 15 minutes, blame it on the changelog.)
+Also, I wonder if the change __kuser_get_tls is safe?
 
-I'm having troubles understanding the intended sequence of events
-here.  Various script pointers are being passed around and overwritten
-etc., and it is not terribly clear what the outcome is.  The changelog
-needs some updating to clarify that.   A lot of the confusion stems
-from what belongs in board files and what belongs in common code.
+I changed it to assume that if 0xffff0ff0 == 0, then we have HWCAP_TLS.
 
-More comments inline below...
+Regards,
 
-> This patch has dependency on:
-> 	SmartReflex patch series from Thara.
-> 	Update TRITON power scripts from Lesly.
->
-> This patch series is based off Kevin's tree origin/pm branch.
->
-> This changes are tested on OMAP3430 SDP board with:
-> 	enable_off_mode
-> 	voltage_off_while_idle
-> 	sleep_while_idle (VDD1/VDD2 voltage scaling to 0v) enabled in cpuidle and suspned path.
->
-> Also tested for reboot and dvfs.
->
->  arch/arm/mach-omap2/board-3430sdp.c           |   40 +++++++++
->  arch/arm/mach-omap2/board-zoom-peripherals.c  |   40 +++++++++
->  arch/arm/mach-omap2/include/mach/board-sdp.h  |    4 +
->  arch/arm/mach-omap2/include/mach/board-zoom.h |    4 +
->  arch/arm/mach-omap2/twl4030-script.c          |   84 +++++++++++++++++++
->  arch/arm/mach-omap2/twl4030-script.h          |    9 ++
->  arch/arm/mach-omap2/voltage.c                 |   10 +++
->  arch/arm/mach-omap2/voltage.h                 |    4 +
->  arch/arm/plat-omap/Kconfig                    |    7 ++
->  drivers/mfd/twl4030-power.c                   |  106 +++++++++++++++++++++++++
->  10 files changed, 308 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-> index 4f94b6f..d174d21 100644
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -475,6 +475,36 @@ static struct twl4030_resconfig twl4030_rconfig[] = {
->  	{ 0, 0},
->  };
->  
-> +#ifdef CONFIG_TWL5030_GLITCH_FIX
-> +static struct twl4030_resconfig twl4030_rconfig_glitchfix[] = {
-> +	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
-> +	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_ALL, .type = 1,
-> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-> +	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_ALL, .type = 0,
-> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-> +	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_ALL, .type = 1,
-> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-> +	{ .resource = RES_VIO, .devgroup = DEV_GRP_ALL, .type = 2,
-> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-> +	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +		.type = 4, .type2 = 1, .remap_sleep = RES_STATE_OFF },
-> +	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
-> +	{ .resource = RES_REGEN, .devgroup = DEV_GRP_ALL, .type = 2,
-> +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-> +	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_ALL, .type = 0,
-> +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-> +	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_ALL, .type = 3,
-> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-> +	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_ALL, .type = 6,
-> +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-> +	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +		.type = 0, .type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-> +	{ 0, 0},
-> +};
-> +#endif
-> +
->  static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
->  	.resource_config = twl4030_rconfig,
->  };
-> @@ -840,6 +870,16 @@ static struct omap_musb_board_data musb_board_data = {
->  	.power			= 100,
->  };
->  
-> +#ifdef CONFIG_TWL5030_GLITCH_FIX
-> +void twl5030_glitchfix_changes_3430sdp(void)
-> +{
-> +	sdp3430_t2scripts_data.resource_config = twl4030_rconfig_glitchfix;
-> +	use_twl4030_script_glitchfix(&sdp3430_t2scripts_data);
-> +	omap_voltage_twl5030_glitchfix();
-> +}
-> +EXPORT_SYMBOL(twl5030_glitchfix_changes_3430sdp);
-> +#endif
+Tony
 
-No board-specific callbacks via global functions please.  If this is
-needed, please make a platform_data hook function for this.
+--jB+02Y6wHc2pEa2x
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="arm-check-tls.patch"
 
-That being said, Is don't really see what is board specific about this
-fix.  
+>From 81d4bf2481c4ef5fd80261605977b5f55e4515e4 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 18 Mar 2010 12:02:43 -0700
+Subject: [PATCH] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and check for it on V6
 
-Maybe I'm mising something, and I didn't compare in detail, but it
-looks like the scripts below for SDP and Zoom2 are identical.
+The TLS register is only available on V6 r1p0 and later.
+Test for it and use it if available.
 
-That suggests to me that the modified scripts belong in common code.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-[...]
+diff --git a/arch/arm/include/asm/hwcap.h b/arch/arm/include/asm/hwcap.h
+index f7bd52b..c1062c3 100644
+--- a/arch/arm/include/asm/hwcap.h
++++ b/arch/arm/include/asm/hwcap.h
+@@ -19,6 +19,7 @@
+ #define HWCAP_NEON	4096
+ #define HWCAP_VFPv3	8192
+ #define HWCAP_VFPv3D16	16384
++#define HWCAP_TLS	32768
+ 
+ #if defined(__KERNEL__) && !defined(__ASSEMBLY__)
+ /*
+diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
+index 6c5cf36..5a5aac8 100644
+--- a/arch/arm/kernel/entry-armv.S
++++ b/arch/arm/kernel/entry-armv.S
+@@ -739,11 +739,13 @@ ENTRY(__switch_to)
+ #ifdef CONFIG_MMU
+ 	ldr	r6, [r2, #TI_CPU_DOMAIN]
+ #endif
+-#if defined(CONFIG_HAS_TLS_REG)
+-	mcr	p15, 0, r3, c13, c0, 3		@ set TLS register
+-#elif !defined(CONFIG_TLS_REG_EMUL)
+-	mov	r4, #0xffff0fff
+-	str	r3, [r4, #-15]			@ TLS val at 0xffff0ff0
++#if !defined(CONFIG_TLS_REG_EMUL)
++	ldr	r4, =elf_hwcap
++	ldr	r4, [r4, #0]
++	tst	r4, #HWCAP_TLS			@ hardware with TLS?
++	mcrne	p15, 0, r3, c13, c0, 3		@ set TLS register
++	moveq	r4, #0xffff0fff
++	streq	r3, [r4, #-15]			@ TLS val at 0xffff0ff0
+ #endif
+ #ifdef CONFIG_MMU
+ 	mcr	p15, 0, r6, c3, c0, 0		@ Set domain register
+@@ -1009,15 +1011,12 @@ kuser_cmpxchg_fixup:
+  */
+ 
+ __kuser_get_tls:				@ 0xffff0fe0
+-
+-#if !defined(CONFIG_HAS_TLS_REG) && !defined(CONFIG_TLS_REG_EMUL)
+-	ldr	r0, [pc, #(16 - 8)]		@ TLS stored at 0xffff0ff0
+-#else
+-	mrc	p15, 0, r0, c13, c0, 3		@ read TLS register
+-#endif
++	ldr     r0, [pc, #(16 - 8)]		@ TLS set at 0xffff0ff0?
++	cmp	r0, #0				@ assume hw TLS if not set
++	mrceq	p15, 0, r0, c13, c0, 3		@ read TLS register
+ 	usr_ret	lr
+ 
+-	.rep	5
++	.rep	3
+ 	.word	0			@ pad up to __kuser_helper_version
+ 	.endr
+ 
+diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+index c91c77b..de9d2dc 100644
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -269,6 +269,24 @@ static void __init cacheid_init(void)
+ extern struct proc_info_list *lookup_processor_type(unsigned int);
+ extern struct machine_desc *lookup_machine_type(unsigned int);
+ 
++#ifdef CONFIG_CPU_V6
++static void __init feat_v6_fixup(void)
++{
++	int id = read_cpuid_id();
++
++	if (id & 0x000f0000 != 0x00070000)
++		return;
++
++	/* HWCAP_TLS is available only on V6 r1p0 and later */
++	if (((id >> 20) & 3) == 0)
++		elf_hwcap &= ~HWCAP_TLS;
++}
++#else
++static inline void feat_v6_fixup(void)
++{
++}
++#endif
++
+ static void __init setup_processor(void)
+ {
+ 	struct proc_info_list *list;
+@@ -311,6 +329,8 @@ static void __init setup_processor(void)
+ 	elf_hwcap &= ~HWCAP_THUMB;
+ #endif
+ 
++	feat_v6_fixup();
++
+ 	cacheid_init();
+ 	cpu_proc_init();
+ }
+diff --git a/arch/arm/kernel/traps.c b/arch/arm/kernel/traps.c
+index 1621e53..bdffef5 100644
+--- a/arch/arm/kernel/traps.c
++++ b/arch/arm/kernel/traps.c
+@@ -518,16 +518,19 @@ asmlinkage int arm_syscall(int no, struct pt_regs *regs)
+ 
+ 	case NR(set_tls):
+ 		thread->tp_value = regs->ARM_r0;
+-#if defined(CONFIG_HAS_TLS_REG)
+-		asm ("mcr p15, 0, %0, c13, c0, 3" : : "r" (regs->ARM_r0) );
+-#elif !defined(CONFIG_TLS_REG_EMUL)
+-		/*
+-		 * User space must never try to access this directly.
+-		 * Expect your app to break eventually if you do so.
+-		 * The user helper at 0xffff0fe0 must be used instead.
+-		 * (see entry-armv.S for details)
+-		 */
+-		*((unsigned int *)0xffff0ff0) = regs->ARM_r0;
++#if !defined(CONFIG_TLS_REG_EMUL)
++		if (elf_hwcap & HWCAP_TLS) {
++			asm ("mcr p15, 0, %0, c13, c0, 3"
++				: : "r" (regs->ARM_r0));
++		} else {
++			/*
++			 * User space must never try to access this directly.
++			 * Expect your app to break eventually if you do so.
++			 * The user helper at 0xffff0fe0 must be used instead.
++			 * (see entry-armv.S for details)
++			 */
++			*((unsigned int *)0xffff0ff0) = regs->ARM_r0;
++		}
+ #endif
+ 		return 0;
+ 
+diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+index c4ed9f9..45e99c1 100644
+--- a/arch/arm/mm/Kconfig
++++ b/arch/arm/mm/Kconfig
+@@ -715,17 +715,6 @@ config TLS_REG_EMUL
+ 	  a few prototypes like that in existence) and therefore access to
+ 	  that required register must be emulated.
+ 
+-config HAS_TLS_REG
+-	bool
+-	depends on !TLS_REG_EMUL
+-	default y if SMP || CPU_32v7
+-	help
+-	  This selects support for the CP15 thread register.
+-	  It is defined to be available on some ARMv6 processors (including
+-	  all SMP capable ARMv6's) or later processors.  User space may
+-	  assume directly accessing that register and always obtain the
+-	  expected value only on ARMv7 and above.
+-
+ config NEEDS_SYSCALL_FOR_CMPXCHG
+ 	bool
+ 	help
+diff --git a/arch/arm/mm/proc-v6.S b/arch/arm/mm/proc-v6.S
+index 7a5337e..e10626a 100644
+--- a/arch/arm/mm/proc-v6.S
++++ b/arch/arm/mm/proc-v6.S
+@@ -239,7 +239,8 @@ __v6_proc_info:
+ 	b	__v6_setup
+ 	.long	cpu_arch_name
+ 	.long	cpu_elf_name
+-	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_JAVA
++	/* See also feat_v6_fixup() for HWCAP_TLS */
++	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_JAVA|HWCAP_TLS
+ 	.long	cpu_v6_name
+ 	.long	v6_processor_functions
+ 	.long	v6wbi_tlb_fns
+@@ -262,7 +263,8 @@ __pj4_v6_proc_info:
+ 	b	__v6_setup
+ 	.long	cpu_arch_name
+ 	.long	cpu_elf_name
+-	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP
++	/* See also feat_v6_fixup() for HWCAP_TLS */
++	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_TLS
+ 	.long	cpu_pj4_name
+ 	.long	v6_processor_functions
+ 	.long	v6wbi_tlb_fns
+diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+index 7aaf88a..8071bcd 100644
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -344,7 +344,7 @@ __v7_proc_info:
+ 	b	__v7_setup
+ 	.long	cpu_arch_name
+ 	.long	cpu_elf_name
+-	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP
++	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_TLS
+ 	.long	cpu_v7_name
+ 	.long	v7_processor_functions
+ 	.long	v7wbi_tlb_fns
 
-> diff --git a/arch/arm/mach-omap2/twl4030-script.c b/arch/arm/mach-omap2/twl4030-script.c
-> index cfa623b..90117b6 100644
-> --- a/arch/arm/mach-omap2/twl4030-script.c
-> +++ b/arch/arm/mach-omap2/twl4030-script.c
-> @@ -74,6 +74,68 @@ static struct twl4030_script wakeup_p3_script __initdata = {
->  	.flags  = TWL4030_WAKEUP3_SCRIPT,
->  };
->  
-> +#ifdef CONFIG_TWL5030_GLITCH_FIX
-> +struct prm_setup_vc twl4030_voltsetup_time_glitchfix = {
-> +	/* VOLT SETUPTIME for RET & OFF */
-> +	.voltsetup_time1_ret = 0x005B,
-> +	.voltsetup_time2_ret = 0x0055,
-> +	.voltsetup_time1_off = 0x00B3,
-> +	.voltsetup_time2_off = 0x00A0,
-> +	.voltoffset = 0x10,
-> +	.voltsetup2 = 0x16B,
-> +};
-
-I don't see where this struct is used in this patch.
-
-> +/*
-> + * Sequence to controll the TRITON Power resources,
-> + * when the system goes into sleep.
-> + * Executed upon P1_P2/P3 transition for sleep.
-> + */
-> +static struct twl4030_ins __initdata sleep_on_seq_glitchfix[] = {
-> +	/* Singular message to disable HCLKOUT */
-> +	{MSG_SINGULAR(DEV_GRP_NULL, RES_HFCLKOUT, RES_STATE_SLEEP), 20},
-> +	/* Broadcast message to put res to sleep */
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-> +							RES_STATE_SLEEP), 2},
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-> +							RES_STATE_SLEEP), 2},
-> +};
-> +
-> +static struct twl4030_script sleep_on_script_glitchfix __initdata = {
-> +	.script	= sleep_on_seq_glitchfix,
-> +	.size	= ARRAY_SIZE(sleep_on_seq_glitchfix),
-> +	.flags	= TWL4030_SLEEP_SCRIPT,
-> +};
-> +
-> +/*
-> + * Sequence to controll the TRITON Power resources,
-> + * when the system wakeup from sleep.
-> + * Executed upon P1/P2/P3 transition for wakeup.
-> + */
-> +static struct twl4030_ins wakeup_seq_glitchfix[] __initdata = {
-> +	/* Broadcast message to put res(TYPE2 =1) to active */
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-> +							RES_STATE_ACTIVE), 55},
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-> +							RES_STATE_ACTIVE), 55},
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-> +							RES_STATE_ACTIVE), 54},
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-> +							RES_STATE_ACTIVE), 1},
-> +	/* Singular message to enable HCLKOUT */
-> +	{MSG_SINGULAR(DEV_GRP_NULL, RES_HFCLKOUT, RES_STATE_ACTIVE), 1},
-> +	/* Broadcast message to put res(TYPE2 =1) to active */
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-> +							RES_STATE_ACTIVE), 2},
-> +};
-> +
-> +static struct twl4030_script wakeup_script_glitchfix __initdata = {
-> +	.script	= wakeup_seq_glitchfix,
-> +	.size	= ARRAY_SIZE(wakeup_seq_glitchfix),
-> +	.flags	= TWL4030_WAKEUP12_SCRIPT | TWL4030_WAKEUP3_SCRIPT,
-> +};
-> +
-> +#endif
-> +
->  /*
->   * Sequence to reset the TRITON Power resources,
->   * when the system gets warm reset.
-> @@ -140,4 +202,26 @@ void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc)
->  	setup_vc->voltoffset = twl4030_voltsetup_time.voltoffset;
->  	setup_vc->voltsetup2 = twl4030_voltsetup_time.voltsetup2;
->  }
-> +
-> +#ifdef CONFIG_TWL5030_GLITCH_FIX
-> +/* TRITON script for sleep, wakeup & warm_reset */
-> +static struct twl4030_script *twl4030_scripts_glitchfix[] __initdata = {
-> +	&sleep_on_script_glitchfix,
-> +	&wakeup_script_glitchfix,
-> +	&wrst_script,
-> +};
-> +
-> +struct twl4030_power_data twl4030_script_glitchfix __initdata = {
-> +	.scripts	= twl4030_scripts_glitchfix,
-> +	.num		= ARRAY_SIZE(twl4030_scripts_glitchfix),
-> +};
-> +
-> +void use_twl4030_script_glitchfix(
-> +		struct twl4030_power_data *t2scripts_data)
-> +{
-> +	t2scripts_data->scripts = twl4030_script_glitchfix.scripts;
-> +	t2scripts_data->num = twl4030_script_glitchfix.num;
-> +}
-> +#endif
-> +
->  #endif
-> diff --git a/arch/arm/mach-omap2/twl4030-script.h b/arch/arm/mach-omap2/twl4030-script.h
-> index 5161861..418f5af 100644
-> --- a/arch/arm/mach-omap2/twl4030-script.h
-> +++ b/arch/arm/mach-omap2/twl4030-script.h
-> @@ -7,9 +7,18 @@
->  #ifdef CONFIG_TWL4030_POWER
->  extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data);
->  extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc);
-> +#ifdef CONFIG_TWL5030_GLITCH_FIX
-> +void use_twl4030_script_glitchfix(
-> +		struct twl4030_power_data *t2scripts_data);
-> +#endif
-> +
->  #else
->  extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data) {}
->  extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc) {}
-> +#ifdef CONFIG_TWL5030_GLITCH_FIX
-> +void use_twl4030_script_glitchfix(
-> +		struct twl4030_power_data *t2scripts_data) {}
-> +#endif
->  #endif
->  
->  #endif
-> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-> index 4b1dcdb..45590f3 100644
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -525,6 +525,16 @@ void __init omap_voltage_init_vc(struct prm_setup_vc *setup_vc)
->  	vc_config.vdd2_off = setup_vc->vdd2_off;
->  }
->  
-> +#ifdef CONFIG_TWL5030_GLITCH_FIX
-> +void omap_voltage_twl5030_glitchfix(void)
-> +{
-> +	vc_config.clksetup_off = 0x17B;
-> +
-> +	vc_config.voltoffset = 0x10;
-> +	vc_config.voltsetup2 = 0x16B;
-> +}
-> +#endif
-> +
-
-This needs documentation, and use of symbolic constants intead of
-hard-coded values.
-
->  void update_voltsetup_time(int core_next_state)
->  {
->  	/* update voltsetup time */
-> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-> index 7bc4948..0830274 100644
-> --- a/arch/arm/mach-omap2/voltage.h
-> +++ b/arch/arm/mach-omap2/voltage.h
-> @@ -74,6 +74,10 @@ void omap_voltageprocessor_enable(int vp_id);
->  void omap_voltageprocessor_disable(int vp_id);
->  void omap_voltage_init_vc(struct prm_setup_vc *setup_vc);
->  void update_voltsetup_time(int core_next_state);
-> +#ifdef CONFIG_TWL5030_GLITCH_FIX
-> +void omap_voltage_twl5030_glitchfix(void);
-> +#endif
-> +
->  void omap_voltage_init(void);
->  int omap_voltage_scale(int vdd, u8 target_vsel, u8 current_vsel);
->  void omap_reset_voltage(int vdd);
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index 232fd9e..0e32ad2 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -84,6 +84,13 @@ config OMAP_SMARTREFLEX_TESTING
->  
->  	  WARNING: Enabling this option may cause your device to hang!
->  
-> +config TWL5030_GLITCH_FIX
-> +	bool "TWL5030 glitch fix"
-> +	depends on TWL4030_CORE
-> +	default n
-> +	help
-> +	  Say Y if you want to enable TWL5030 glitch fix.
-> +
->  config OMAP_RESET_CLOCKS
->  	bool "Reset unused clocks during boot"
->  	depends on ARCH_OMAP
-> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-> index bd98733..86f7176 100644
-> --- a/drivers/mfd/twl4030-power.c
-> +++ b/drivers/mfd/twl4030-power.c
-> @@ -30,8 +30,11 @@
->  #include <linux/platform_device.h>
->  
->  #include <asm/mach-types.h>
-> +#include <mach/board-sdp.h>
-> +#include <mach/board-zoom.h>
-
-Having to include board-specific headers in a generic driver should be
-a red flag that there is something wrong with the approach being
-taken.
-
->  static u8 twl4030_start_script_address = 0x2b;
-> +static u32 twl4030_rev;
->  
->  #define PWR_P1_SW_EVENTS	0x10
->  #define PWR_DEVOFF	(1<<0)
-> @@ -67,6 +70,23 @@ static u8 twl4030_start_script_address = 0x2b;
->  #define R_KEY_1			0xC0
->  #define R_KEY_2			0x0C
->  
-> +#define R_VDD1_OSC		0x5C
-> +#define R_VDD2_OSC		0x6A
-> +#define R_VIO_OSC		0x52
-> +#define EXT_FS_CLK_EN		(0x1 << 6)
-> +
-> +#define R_WDT_CFG		0x03
-> +#define WDT_WRK_TIMEOUT		0x03
-> +
-> +#define R_UNLOCK_TEST_REG	0x12
-> +#define TWL_EEPROM_R_UNLOCK	0x49
-> +
-> +#define TWL_SIL_TYPE(rev)	((rev) & 0x00FFFFFF)
-> +#define TWL_SIL_REV(rev)	((rev) >> 24)
-> +#define TWL_SIL_5030		0x09002F
-> +#define TWL_REV_1_0		0x00
-> +#define TWL_REV_1_1		0x10
-> +
->  /* resource configuration registers
->     <RESOURCE>_DEV_GRP   at address 'n+0'
->     <RESOURCE>_TYPE      at address 'n+1'
-> @@ -505,6 +525,79 @@ int twl4030_remove_script(u8 flags)
->  	return err;
->  }
->  
-> +#ifdef CONFIG_TWL5030_GLITCH_FIX
-> +/**
-> + * @brief twl_workaround - Fix for TWL5030 Silicon Errata 27 & 28:
-> + * 27 - VDD1, VDD2, may have glitches when their output value is updated.
-> + * 28 - VDD1 and / or VDD2 DCDC clock may stop working when internal clock is
-> + * switched from internal to external.
-> + *
-> + * Workaround requires the TWL DCDCs to use HFCLK instead of
-> + * internal oscillator. Also enable TWL watchdog before switching the osc
-> + * to recover if the VDD1/VDD2 stop working.
-> + *
-> + * WARNING: Should change board dependent script file to handle
-> + * RET and OFF mode sequences correctly.
-
-Again, why is this board dependent?
-
-Kevin
+--jB+02Y6wHc2pEa2x--
