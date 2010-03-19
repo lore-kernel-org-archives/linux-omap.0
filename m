@@ -1,13 +1,13 @@
 From: hvaibhav@ti.com
-Subject: [Resubmit: PATCH-V6 0/2] OMAP3: Add V4L2 display driver support
-Date: Fri, 19 Mar 2010 15:12:47 +0530
-Message-ID: <1268991769-7368-1-git-send-email-hvaibhav@ti.com>
+Subject: [Resubmit: PATCH-V6 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
+Date: Fri, 19 Mar 2010 15:12:49 +0530
+Message-ID: <1268991769-7368-3-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60480 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60482 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751128Ab0CSJmz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Mar 2010 05:42:55 -0400
+	id S1751280Ab0CSJm4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Mar 2010 05:42:56 -0400
 In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,26 +16,58 @@ Cc: linux-omap@vger.kernel.org, m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Refreshed on top of latest linuxtv/master repository and
-resubmitting the patch series again.
 
-Please note that this patch is dependent on patch which add "ti-media"
-directory (submitted earlier to this patch series).
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/devices.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
-Vaibhav Hiremath (2):
-  OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on top of DSS2
-  OMAP2/3: Add V4L2 DSS driver support in device.c
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 18ad931..83c92cd 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -763,6 +763,33 @@ static inline void omap_hdq_init(void)
+ static inline void omap_hdq_init(void) {}
+ #endif
 
- arch/arm/mach-omap2/devices.c               |   28 +
- drivers/media/video/ti-media/Kconfig        |   12 +
- drivers/media/video/ti-media/Makefile       |    4 +
- drivers/media/video/ti-media/omap_vout.c    | 2655 +++++++++++++++++++++++++++
- drivers/media/video/ti-media/omap_voutdef.h |  148 ++
- drivers/media/video/ti-media/omap_voutlib.c |  258 +++
- drivers/media/video/ti-media/omap_voutlib.h |   34 +
- 7 files changed, 3139 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/ti-media/omap_vout.c
- create mode 100644 drivers/media/video/ti-media/omap_voutdef.h
- create mode 100644 drivers/media/video/ti-media/omap_voutlib.c
- create mode 100644 drivers/media/video/ti-media/omap_voutlib.h
++/*---------------------------------------------------------------------------*/
++
++#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
++	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
++#if defined (CONFIG_FB_OMAP2) || defined (CONFIG_FB_OMAP2_MODULE)
++static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
++};
++#else
++static struct resource omap_vout_resource[2] = {
++};
++#endif
++
++static struct platform_device omap_vout_device = {
++	.name		= "omap_vout",
++	.num_resources	= ARRAY_SIZE(omap_vout_resource),
++	.resource 	= &omap_vout_resource[0],
++	.id		= -1,
++};
++static void omap_init_vout(void)
++{
++	if (platform_device_register(&omap_vout_device) < 0)
++		printk(KERN_ERR "Unable to register OMAP-VOUT device\n");
++}
++#else
++static inline void omap_init_vout(void) {}
++#endif
++
+ /*-------------------------------------------------------------------------*/
+
+ static int __init omap2_init_devices(void)
+@@ -777,6 +804,7 @@ static int __init omap2_init_devices(void)
+ 	omap_hdq_init();
+ 	omap_init_sti();
+ 	omap_init_sha1_md5();
++	omap_init_vout();
+
+ 	return 0;
+ }
+--
+1.6.2.4
 
