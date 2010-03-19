@@ -1,104 +1,59 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PM-WIP-OPP][PATCH 1/4] omap3: pm: cpufreq: BUG_ON cleanup
-Date: Fri, 19 Mar 2010 13:49:32 -0700
-Message-ID: <87pr30ujdv.fsf@deeprootsystems.com>
-References: <1268937891-19445-1-git-send-email-nm@ti.com>
-	<1268937891-19445-2-git-send-email-nm@ti.com>
-	<87tysdi6tq.fsf@deeprootsystems.com> <4BA3886E.9070906@ti.com>
-	<871vfgxkz5.fsf@deeprootsystems.com> <20100319175213.GC3836@gandalf>
-	<87iq8sw3uf.fsf@deeprootsystems.com> <4BA3D6F8.4000709@ti.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: [PATCH 2/2] DSPBRIDGE: DSP recovery feature
+Date: Fri, 19 Mar 2010 16:49:24 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CACBD655@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602CA9E405F@dlee06.ent.ti.com>
+	 <94a0d4531003190451h23ad1a16x994973cdfeb3c83f@mail.gmail.com>
+	 <94a0d4531003190853y7b6bda0dg6db8ab263bbb8532@mail.gmail.com>
+	 <19F8576C6E063C45BE387C64729E7394044DE0E3DE@dbde02.ent.ti.com>
+	 <94a0d4531003190918v7e943d5ax16baf6945472530c@mail.gmail.com>
+ <94a0d4531003191200r425652c3ybf505c353b2ad847@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f172.google.com ([209.85.211.172]:63970 "EHLO
-	mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751595Ab0CSUtf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 16:49:35 -0400
-Received: by ywh2 with SMTP id 2so790015ywh.33
-        for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 13:49:35 -0700 (PDT)
-In-Reply-To: <4BA3D6F8.4000709@ti.com> (Nishanth Menon's message of "Fri\, 19 Mar 2010 14\:56\:40 -0500")
+Received: from bear.ext.ti.com ([192.94.94.41]:46340 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752309Ab0CSVt2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 17:49:28 -0400
+In-Reply-To: <94a0d4531003191200r425652c3ybf505c353b2ad847@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "me@felipebalbi.com" <me@felipebalbi.com>, Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>, "Hebbar, Shivananda" <x0hebbar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-Nishanth Menon <nm@ti.com> writes:
 
-> Kevin Hilman had written, on 03/19/2010 01:42 PM, the following:
->> Felipe Balbi <me@felipebalbi.com> writes:
+
+>-----Original Message-----
+>From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+>Sent: Friday, March 19, 2010 1:00 PM
+>To: Hebbar, Shivananda
+>Cc: Guzman Lugo, Fernando; linux-omap@vger.kernel.org; Hiroshi DOYU; Ameya
+>Palande; felipe.contreras@nokia.com
+>Subject: Re: [PATCH 2/2] DSPBRIDGE: DSP recovery feature
+>
+>On Fri, Mar 19, 2010 at 6:18 PM, Felipe Contreras
+><felipe.contreras@gmail.com> wrote:
+>> On Fri, Mar 19, 2010 at 6:05 PM, Hebbar, Shivananda <x0hebbar@ti.com>
+>wrote:
+>>> Client app must register for MMUFault/DSPSysError events. Then only
+>>> You will receive notifications.
 >>
->>> On Fri, Mar 19, 2010 at 10:46:54AM -0700, Kevin Hilman wrote:
->>>> IMO, Using BUG* macros usually indicates improper or incomplete error
->>>> handling rather than a real catastrophic system failure.
->>> on the other hand a kernel oops and system hang will always get
->>> noted. Rather than a WARN() which simply sits in the log buffer.
->>
->> Of course, but what I'm trying to avoid is making other people deal
->> with a BUG inserted by a developer when proper error checking and
->> recovery is what is really needed.
->>
-> I respect your views. but a few moments of thoughts:
-> how would the recovery look like? I can think of 2 options here.. do
-> share your views:
+>> It is registered, and it was receiving notifications on old versions
+>> of the bridge... not any more.
 >
-> Option 1:
-> if (opp_init_list(OPP_MPU, omap3_opp_def_list[0])) {
-> 	WARN("dsp OPP table registration failed");
-> 	return;
-> }
-> if (opp_init_list(OPP_L3, omap3_opp_def_list[1])) {
-> 	WARN("dsp OPP table registration failed");
-> 	return;
-> }
-> if (opp_init_list(OPP_DSP, omap3_opp_def_list[2])) {
-> 	WARN("dsp OPP table registration failed");
-> 	return;
-> }
+>Strike that strike... the regression happens only with this patch.
+>Apparently the get_events ioctl fails constantly... that's why the
+>MMUFAULT is not reported.
+
+Do you mean applying DSP recovery process you are no able to receive MMUFault notifications?
+
+I am going to check that case. Is there any possibility that the process is stuck waiting other event?
+
+Regards,
+Fernando.
+
 >
-> Option 2:
-> 	if (opp_init_list(OPP_MPU, omap3_opp_def_list[0]))
-> 		return;
-> 	if (opp_init_list(OPP_L3, omap3_opp_def_list[1]))
-> 		goto mpu_disable;
-> 	if (opp_init_list(OPP_DSP, omap3_opp_def_list[2]))
-> 		goto l3_disable;
-> 	return;
->
-> l3_disable:
-> 	freq = 0;
-> 	while (!IS_ERR(opp = opp_find_freq_ceil(OPP_L3, &freq)) {
-> 		opp_disable(opp);
-> 		freq++;
-> 	}
-> mpu_disable:
-> 	freq = 0;
-> 	while (!IS_ERR(opp = opp_find_freq_ceil(OPP_MPU, &freq)) {
-> 		opp_disable(opp);
-> 		freq++;
-> 	}
-> 	WARN("Registration of OPP tables failed!!");
-> 	return;
->
-> Option 1 is a bad idea as it leaves the system in an invalid state
-> Option 2 is the better idea as we dont have a opp_delete option(not
-> required usually).
-
-I'm OK with either actually, as either is better than BUG_ON()
-instead of error checking.
-
-With option 1, the system is not really in an invalid state, just and
-untested state.  What will happen is users of the OPP API will error
-codes when trying to get OPPs and they should fail gracefully as well.
-
-Once again, this is about proper error checking, and robustness, not
-about causing a panic() when something (relatively) minor happens.
-
-> All that code for something that will almost never happen?	
-
-Yes.  That's what error checking is all about.
-
-Kevin
-
-P.S. I can't find the ref atm, but I mentioned not liking the BUG_ON
-     early in the review of the OPP layer, and it would need to be
-     cleaned up before upstream merge.
+>--
+>Felipe Contreras
