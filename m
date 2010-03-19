@@ -1,69 +1,63 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 2/5] omap3: pm: Using separate clk/volt setup_time for RET and OFF states
-Date: Fri, 19 Mar 2010 10:34:53 -0700
-Message-ID: <87ocikxlj6.fsf@deeprootsystems.com>
-References: <1268407891-22559-1-git-send-email-leslyam@ti.com>
-	<87eijhgqe4.fsf@deeprootsystems.com>
-	<009c01cac732$5d237ee0$518918ac@apr.dhcp.ti.com>
+Subject: Re: [PATCH] omap: fix clocksource_32k to start from zero
+Date: Fri, 19 Mar 2010 10:41:02 -0700
+Message-ID: <87iq8sxl8x.fsf@deeprootsystems.com>
+References: <1269007534-9282-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:33578 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323Ab0CSRe4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 13:34:56 -0400
-Received: by pwi5 with SMTP id 5so1383147pwi.19
-        for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 10:34:55 -0700 (PDT)
-In-Reply-To: <009c01cac732$5d237ee0$518918ac@apr.dhcp.ti.com> (Lesly Arackal Manuel's message of "Fri\, 19 Mar 2010 12\:34\:04 +0530")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:62292 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751460Ab0CSRlG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 13:41:06 -0400
+Received: by pva4 with SMTP id 4so1716719pva.19
+        for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 10:41:05 -0700 (PDT)
+In-Reply-To: <1269007534-9282-1-git-send-email-aaro.koskinen@nokia.com> (Aaro Koskinen's message of "Fri\, 19 Mar 2010 16\:05\:34 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lesly Arackal Manuel <leslyam@ti.com>
-Cc: linux-omap@vger.kernel.org, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com
 
-Please don't top post: http://www.elinux.org/Netiquette
+Aaro Koskinen <aaro.koskinen@nokia.com> writes:
 
-"Lesly Arackal Manuel" <leslyam@ti.com> writes:
+> When the 32k sync timer is used for sched_clock(), it should count
+> time from the kernel boot (clocksource init) instead of the last HW
+> reset. Otherwise printk.time values will jump suddenly during the boot:
+>
+> 	[    0.000000] calling  omap2_clk_arch_init+0x0/0x138 @ 1
+> 	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned -22 after 0 usecs
+> 	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned with error code -22
+> 	[    0.000000] calling  omap_init_clocksource_32k+0x0/0x98 @ 1
+> 	[  508.697937] initcall omap_init_clocksource_32k+0x0/0x98 returned 0 after 0 usecs
+> 	[  508.697967] calling  omap_init_devices+0x0/0x38 @ 1
+> 	[  508.698425] initcall omap_init_devices+0x0/0x38 returned 0 after 0 usecs
+>
+> This will confuse tools such as scripts/bootgraph.pl.
+>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+> ---
+>
+> See also the thread in linux-kernel:
+> http://marc.info/?t=126893533300022&r=1&w=2
+>
+>  arch/arm/plat-omap/common.c |   14 +++++++++-----
+>  1 files changed, 9 insertions(+), 5 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> index 088c1a0..ce2ad10 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -100,10 +100,12 @@ EXPORT_SYMBOL(omap_get_var_config);
+>  
+>  #include <linux/clocksource.h>
+>  
+> +static u32 offset_32k __read_mostly;
+> +
 
-> Hi Kevin,
->
-> If my understanding is correct.
->
-> The clk_setuptime is board specific, depends on the osc/XTAL used on	the
-> board. So the clk_setuptime has to come from the board file.
->
-> Volt_setuptime & volt_offset is PM IC specific, depends on the PM IC's SMPS
-> characteristics. So this can be updated from the script file.
->
-> Finally the voltage cmd values (on, onlp, ret &off) is Si Specific, Varies
-> with Si(OMAP3430, OMAP3630, ...). So can be updated in voltage file itself.
+I think you need a comment in the code here as well, something like
+the first sentence from the changelog, so readers of this code can
+make easy sense of the '- offset_32k'.
 
-Then, all the defaults should be in SoC specific code with the ability
-for board files to override clk_setuptime.
+Otherwise,
 
-Kevin
-
->
-> Just correct if I'm wrong.
->
-> Thanks & Regards,
-> Lesly A M
->
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Friday, March 19, 2010 5:00 AM
-> To: Lesly A M
-> Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
-> Samuel Ortiz
-> Subject: Re: [PATCH v3 2/5] omap3: pm: Using separate clk/volt setup_time
-> for RET and OFF states
->
-> Lesly A M <leslyam@ti.com> writes:
->
->> Copied the setuptime in each board file, since OMAP3430 & OMAP3630
->> has different voltage levels for the same states.
->
-> So that suggests there should be 2 tables (one per SoC), rather than
-> one for each board file.  IOW, the setup times are SoC specific, not
-> board specific, so they don't belong in board files.
->
-> Kevin
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
