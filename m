@@ -1,185 +1,98 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: kernel panic with latest DSS
-Date: Fri, 19 Mar 2010 19:41:47 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DE0E3BB@dbde02.ent.ti.com>
-References: <5e088bd91003091158l6cfa0b76u204e5432389d573@mail.gmail.com>
-	 <5e088bd91003101016s4148751es1a142c21d1540564@mail.gmail.com>
-	 <5e088bd91003101042t236c5d90p62c700c424d83e12@mail.gmail.com>
-	 <3647DBDA80551C4696E9E4506F0BE08E255DC2F2A7@NOK-EUMSG-02.mgdnok.nokia.com>
-	 <5e088bd91003101148o82a07e2j4df803d23ee78d83@mail.gmail.com>
- <1268391093.28571.137.camel@tubuntu.research.nokia.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PM-WIP-OPP][PATCH 1/4] omap3: pm: cpufreq: BUG_ON cleanup
+Date: Fri, 19 Mar 2010 09:21:34 -0500
+Message-ID: <4BA3886E.9070906@ti.com>
+References: <1268937891-19445-1-git-send-email-nm@ti.com>	<1268937891-19445-2-git-send-email-nm@ti.com> <87tysdi6tq.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41288 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331Ab0CSOLz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 10:11:55 -0400
-In-Reply-To: <1268391093.28571.137.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:60804 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750921Ab0CSOVi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Mar 2010 10:21:38 -0400
+In-Reply-To: <87tysdi6tq.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, ext Steve Sakoman <sakoman@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>
+
+Kevin Hilman had written, on 03/18/2010 05:49 PM, the following:
+> Nishanth Menon <nm@ti.com> writes:
+> 
+>> BUG_ON should not ideally contain a functional code. Remove it out.
+> 
+> True.  But this code should not be using BUG_ON() in the first place.
+> 
+> We should not crash the whole kernel in this case, just fail
+> with a warning.
+> 
+> If you're cleaning this up, can you make it fail more gracefully.
+I agree  if this was a preipheral driver or a non-critical path. but in 
+this case:
+
+a) we are speaking of a core description of the h/w - OPPs frequencies 
+and voltages which out which the functionality of the system is at 
+stake. I am not speaking of just having a basic kernel boot up to shell 
+prompt - we need the kernel to do much better than that.
+
+b) Is there any reason why the registration could fail - if it did fail 
+at this point, there is something catastrophic happening - some other 
+driver is going beserk OR Opp layer is by itself screwed up - why 
+continue if we can warn the system and force a fix of the code?
+
+c) is there a recovery mechanism to put the system back in a usable mode 
+with dvfs etc? I might prefer to get some ideas on it..
+
+> 
+> Kevin
+> 
+> 
+>> Ref: http://marc.info/?l=linux-kernel&m=109391212925546&w=2
+>>
+>> Cc: Ambresh K <ambresh@ti.com>
+>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+>> Cc: Sanjeev Premi <premi@ti.com>
+>> Cc: Tero Kristo <tero.kristo@nokia.com>
+>> Cc: Thara Gopinath <thara@ti.com>
+>>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/cpufreq34xx.c |    8 +++++---
+>>  1 files changed, 5 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
+>> index c453ec5..f0ed3ae 100644
+>> --- a/arch/arm/mach-omap2/cpufreq34xx.c
+>> +++ b/arch/arm/mach-omap2/cpufreq34xx.c
+>> @@ -111,6 +111,7 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
+>>  
+>>  void __init omap3_pm_init_opp_table(void)
+>>  {
+>> +	int r;
+>>  	struct omap_opp_def **omap3_opp_def_list;
+>>  	struct omap_opp_def *omap34xx_opp_def_list[] = {
+>>  		omap34xx_mpu_rate_table,
+>> @@ -126,8 +127,9 @@ void __init omap3_pm_init_opp_table(void)
+>>  	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
+>>  				omap34xx_opp_def_list;
+>>  
+>> -	BUG_ON(opp_init_list(OPP_MPU, omap3_opp_def_list[0]));
+>> -	BUG_ON(opp_init_list(OPP_L3, omap3_opp_def_list[1]));
+>> -	BUG_ON(opp_init_list(OPP_DSP, omap3_opp_def_list[2]));
+>> +	r = opp_init_list(OPP_MPU, omap3_opp_def_list[0]);
+>> +	r |= opp_init_list(OPP_L3, omap3_opp_def_list[1]);
+>> +	r |= opp_init_list(OPP_DSP, omap3_opp_def_list[2]);
+>> +	BUG_ON(r);
+>>  }
+>>  
+>> -- 
+>> 1.6.3.3
 
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tomi Valkeinen
-> Sent: Friday, March 12, 2010 4:22 PM
-> To: ext Steve Sakoman
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: kernel panic with latest DSS
-> 
-> Can you try this patch?
-> 
-> I haven't run into this earlier as I always have DSI compiled in. It
-> possibly doesn't behave correctly in that case either, but doesn't
-> crash.
-> 
->  Tomi
-> 
-> 
-> >From c065bb82e1358105d57d80974ce71d3e5aeabf35 Mon Sep 17 00:00:00 2001
-> From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> Date: Fri, 12 Mar 2010 12:46:05 +0200
-> Subject: [PATCH] OMAP: DSS2: initialize dss clk sources properly
-> 
-> Clk sources were not initialized, leading to kernel crash, or possibly to
-> strange behaviour if DSI was compiled in.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> ---
->  drivers/video/omap2/dss/dss.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-> index 8254a42..5434418 100644
-> --- a/drivers/video/omap2/dss/dss.c
-> +++ b/drivers/video/omap2/dss/dss.c
-> @@ -590,6 +590,9 @@ int dss_init(bool skip_init)
->  		}
->  	}
-> 
-> +	dss.dsi_clk_source = DSS_SRC_DSS1_ALWON_FCLK;
-> +	dss.dispc_clk_source = DSS_SRC_DSS1_ALWON_FCLK;
-> +
-[Hiremath, Vaibhav] This patch is required.
-
-Actually when I rebased my V4L2 driver with latest linux-omap/master and I got a kernel crash in dispc_fck_rate API. And after some round of debugging it turns out to be the same fix, with this it seems to be ok and working for me.
-
-Thanks,
-Vaibhav
-
->  	dss_save_context();
-> 
->  	rev = dss_read_reg(DSS_REVISION);
-> --
-> 1.6.5
-> 
-> 
-> 
-> 
-> 
-> 
-> On Wed, 2010-03-10 at 20:48 +0100, ext Steve Sakoman wrote:
-> > On Wed, Mar 10, 2010 at 10:58 AM,  <Tomi.Valkeinen@nokia.com> wrote:
-> >
-> > > I haven't had time to look at this, but I don't think your analysis is
-> correct.
-> >
-> > You are correct of course.  My sleepy eyes neglected to notice that
-> > double = and that makes a big difference :-)
-> >
-> > > What first comes to my mind is that dss.dispc_clk_source is, for some
-> reason, uninitialized. Could you put prints to dss_select_dispc_clk_source
-> to see if it's called, and if so, what is assigned to dss.dispc_clk_source?
-> >
-> > I did a build with that change and it does seem that
-> > dss_select_dispc_clk_source is never called.
-> >
-> > Steve
-> >
-> > >  Tomi
-> > >
-> > > ________________________________________
-> > > From: ext Steve Sakoman [sakoman@gmail.com]
-> > > Sent: Wednesday, March 10, 2010 20:42
-> > > To: linux-omap@vger.kernel.org; Valkeinen Tomi (Nokia-D/Helsinki)
-> > > Subject: Re: kernel panic with latest DSS
-> > >
-> > > On Wed, Mar 10, 2010 at 10:16 AM, Steve Sakoman <sakoman@gmail.com>
-> wrote:
-> > >
-> > >> The issue occurs in the following section of code in
-> > >> drivers/video/omap2/dss/dispc.c:
-> > >>
-> > >> unsigned long dispc_fclk_rate(void)
-> > >> {
-> > >>        unsigned long r = 0;
-> > >>
-> > >>        if (dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK)
-> > >>                r = dss_clk_get_rate(DSS_CLK_FCK1);
-> > >>        else
-> > >> #ifdef CONFIG_OMAP2_DSS_DSI
-> > >>                r = dsi_get_dsi1_pll_rate();
-> > >> #else
-> > >>        BUG();
-> > >> #endif
-> > >>        return r;
-> > >> }
-> > >>
-> > >> Since my machines don't have DSI displays CONFIG_OMAP2_DSS_DSI is not
-> > >> defined and the BUG() call is triggered.
-> > >
-> > > The issue seems to be the test for DSS_SRC_DSS1_ALWON_FCLK.
-> > >
-> > > Looking at  drivers/video/omap2/dss/dispc.c I see that
-> > > DSS_SRC_DSS1_ALWON_FCLK will never be returned since clk_src is always
-> > > set to 0 or 1 based on a test of DSS_SRC_DSS1_ALWON_FCLK :
-> > >
-> > > void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
-> > > {
-> > >        int b;
-> > >
-> > >        BUG_ON(clk_src != DSS_SRC_DSI1_PLL_FCLK &&
-> > >                        clk_src != DSS_SRC_DSS1_ALWON_FCLK);
-> > >
-> > >        b = clk_src == DSS_SRC_DSS1_ALWON_FCLK ? 0 : 1;
-> > >
-> > >        REG_FLD_MOD(DSS_CONTROL, b, 0, 0);      /* DISPC_CLK_SWITCH */
-> > >
-> > >        dss.dispc_clk_source = clk_src;
-> > > }
-> > >
-> > > It seems to me that the test should return to the way it was in the
-> > > previous DSS version, i.e. a test for 0:
-> > >
-> > > diff --git a/drivers/video/omap2/dss/dispc.c
-> b/drivers/video/omap2/dss/dispc.c
-> > > index e777e35..be9b3de 100644
-> > > --- a/drivers/video/omap2/dss/dispc.c
-> > > +++ b/drivers/video/omap2/dss/dispc.c
-> > > @@ -2218,7 +2218,7 @@ unsigned long dispc_fclk_rate(void)
-> > >  {
-> > >        unsigned long r = 0;
-> > >
-> > > -       if (dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK)
-> > > +       if (dss_get_dispc_clk_source() == 0)
-> > >                r = dss_clk_get_rate(DSS_CLK_FCK1);
-> > >        else
-> > >  #ifdef CONFIG_OMAP2_DSS_DSI
-> > >
-> > > A test build confirms that this change restores my ability to play
-> > > DVD's and display webcam streams.  My understanding of this code is
-> > > superficial, so hopefully Tomi can comment on whether this is a good
-> > > fix or not.
-> > >
-> > > Steve
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
