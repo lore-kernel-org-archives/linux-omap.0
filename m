@@ -1,46 +1,219 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH v2] [I2C-OMAP] Add support for 16-bit registers
-Date: Fri, 19 Mar 2010 11:05:09 +0200
-Message-ID: <20100319110509.76784df2.jhnikula@gmail.com>
-References: <1260669242-29865-1-git-send-email-darkstar6262@gmail.com>
-	<6cb013311001090947m2268833cv3784f469dc8b861d@mail.gmail.com>
-	<20100109183321.GH2879@atomide.com>
-	<6cb013311001091035x54321b3aqb814f476200980af@mail.gmail.com>
-	<20100112012814.GK5055@atomide.com>
-	<87k4tkf3ye.fsf@deeprootsystems.com>
-	<20100310223000.GT2900@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: hvaibhav@ti.com
+Subject: [Resubmit: PATCH-V2] AM3517: Add VPFE Capture driver support
+Date: Fri, 19 Mar 2010 15:07:49 +0530
+Message-ID: <1268991469-2747-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:53052 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752208Ab0CSJDW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 05:03:22 -0400
-In-Reply-To: <20100310223000.GT2900@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60309 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750802Ab0CSJhy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Mar 2010 05:37:54 -0400
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Ben Dooks <ben-linux@fluff.org>, Cory Maccarrone <darkstar6262@gmail.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Wed, 10 Mar 2010 14:30:00 -0800
-Tony Lindgren <tony@atomide.com> wrote:
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-> * Kevin Hilman <khilman@deeprootsystems.com> [100310 10:01]:
-> > Tony Lindgren <tony@atomide.com> writes:
-> > 
-...
-> > Unfortunately, Tony's additional fix did not make it into the version
-> > that was merged to mainline, which results in a crash during
-> > probe when using v2.6.34-rc1.
-> > 
-> > Ben, can you queue the fix below from Tony for -rc2?
-> 
-> The original patch attached again below.
-> 
-FWIW,
+AM3517 and DM644x uses same CCDC IP, so reusing the driver
+for AM3517.
 
-Tony's "[PATCH] i2c-omap: Fix reg_shift init" makes the mainline
-2.6.34-rc1 booting on OMAP3.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/board-am3517evm.c |  160 +++++++++++++++++++++++++++++++++
+ 1 files changed, 160 insertions(+), 0 deletions(-)
 
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index f04311f..d2d2ced 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -30,11 +30,164 @@
+
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/control.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
+
++#include <media/tvp514x.h>
++#include <media/ti-media/vpfe_capture.h>
++
+ #include "mux.h"
+
++/*
++ * VPFE - Video Decoder interface
++ */
++#define TVP514X_STD_ALL		(V4L2_STD_NTSC | V4L2_STD_PAL)
++
++/* Inputs available at the TVP5146 */
++static struct v4l2_input tvp5146_inputs[] = {
++	{
++		.index	= 0,
++		.name	= "Composite",
++		.type	= V4L2_INPUT_TYPE_CAMERA,
++		.std	= TVP514X_STD_ALL,
++	},
++	{
++		.index	= 1,
++		.name	= "S-Video",
++		.type	= V4L2_INPUT_TYPE_CAMERA,
++		.std	= TVP514X_STD_ALL,
++	},
++};
++
++static struct tvp514x_platform_data tvp5146_pdata = {
++	.clk_polarity	= 0,
++	.hs_polarity	= 1,
++	.vs_polarity	= 1
++};
++
++static struct vpfe_route tvp5146_routes[] = {
++	{
++		.input	= INPUT_CVBS_VI1A,
++		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++	{
++		.input	= INPUT_SVIDEO_VI2C_VI1C,
++		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++};
++
++static struct vpfe_subdev_info vpfe_sub_devs[] = {
++	{
++		.name		= "tvp5146",
++		.grp_id		= 0,
++		.num_inputs	= ARRAY_SIZE(tvp5146_inputs),
++		.inputs		= tvp5146_inputs,
++		.routes		= tvp5146_routes,
++		.can_route	= 1,
++		.ccdc_if_params	= {
++			.if_type = VPFE_BT656,
++			.hdpol	= VPFE_PINPOL_POSITIVE,
++			.vdpol	= VPFE_PINPOL_POSITIVE,
++		},
++		.board_info	= {
++			I2C_BOARD_INFO("tvp5146", 0x5C),
++			.platform_data = &tvp5146_pdata,
++		},
++	},
++};
++
++static void am3517_evm_clear_vpfe_intr(int vdint)
++{
++	unsigned int vpfe_int_clr;
++
++	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++
++	switch (vdint) {
++	/* VD0 interrrupt */
++	case INT_35XX_CCDC_VD0_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
++		break;
++	/* VD1 interrrupt */
++	case INT_35XX_CCDC_VD1_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
++		break;
++	/* VD2 interrrupt */
++	case INT_35XX_CCDC_VD2_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
++		break;
++	/* Clear all interrrupts */
++	default:
++		vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
++				AM35XX_VPFE_CCDC_VD1_INT_CLR |
++				AM35XX_VPFE_CCDC_VD2_INT_CLR);
++		vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
++				AM35XX_VPFE_CCDC_VD1_INT_CLR |
++				AM35XX_VPFE_CCDC_VD2_INT_CLR);
++		break;
++	}
++	omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
++	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++}
++
++static struct vpfe_config vpfe_cfg = {
++	.num_subdevs	= ARRAY_SIZE(vpfe_sub_devs),
++	.i2c_adapter_id	= 3,
++	.sub_devs	= vpfe_sub_devs,
++	.clr_intr	= am3517_evm_clear_vpfe_intr,
++	.card_name	= "DM6446 EVM",
++	.ccdc		= "DM6446 CCDC",
++};
++
++static struct resource vpfe_resources[] = {
++	{
++		.start	= INT_35XX_CCDC_VD0_IRQ,
++		.end	= INT_35XX_CCDC_VD0_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	},
++	{
++		.start	= INT_35XX_CCDC_VD1_IRQ,
++		.end	= INT_35XX_CCDC_VD1_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
++static struct platform_device vpfe_capture_dev = {
++	.name		= CAPTURE_DRV_NAME,
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(vpfe_resources),
++	.resource	= vpfe_resources,
++	.dev = {
++		.dma_mask		= &vpfe_capture_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++		.platform_data		= &vpfe_cfg,
++	},
++};
++
++static struct resource dm644x_ccdc_resource[] = {
++	/* CCDC Base address */
++	{
++		.start	= AM35XX_IPSS_VPFE_BASE,
++		.end	= AM35XX_IPSS_VPFE_BASE + 0xffff,
++		.flags	= IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device dm644x_ccdc_dev = {
++	.name		= "dm644x_ccdc",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(dm644x_ccdc_resource),
++	.resource	= dm644x_ccdc_resource,
++	.dev = {
++		.dma_mask		= &vpfe_capture_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++};
++
+ #define LCD_PANEL_PWR		176
+ #define LCD_PANEL_BKLIGHT_PWR	182
+ #define LCD_PANEL_PWM		181
+@@ -261,6 +414,8 @@ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
+
+ static struct platform_device *am3517_evm_devices[] __initdata = {
+ 	&am3517_evm_dss_device,
++	&dm644x_ccdc_dev,
++	&vpfe_capture_dev,
+ };
+
+ static void __init am3517_evm_init_irq(void)
+@@ -313,6 +468,11 @@ static void __init am3517_evm_init(void)
+
+ 	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
+ 				ARRAY_SIZE(am3517evm_i2c_boardinfo));
++
++	clk_add_alias("master", "dm644x_ccdc", "master",
++			&vpfe_capture_dev.dev);
++	clk_add_alias("slave", "dm644x_ccdc", "slave",
++			&vpfe_capture_dev.dev);
+ }
+
+ static void __init am3517_evm_map_io(void)
+--
+1.6.2.4
+
