@@ -1,63 +1,71 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] omap: fix clocksource_32k to start from zero
-Date: Fri, 19 Mar 2010 10:41:02 -0700
-Message-ID: <87iq8sxl8x.fsf@deeprootsystems.com>
-References: <1269007534-9282-1-git-send-email-aaro.koskinen@nokia.com>
+Subject: Re: [PM-WIP-OPP][PATCH 1/4] omap3: pm: cpufreq: BUG_ON cleanup
+Date: Fri, 19 Mar 2010 10:46:54 -0700
+Message-ID: <871vfgxkz5.fsf@deeprootsystems.com>
+References: <1268937891-19445-1-git-send-email-nm@ti.com>
+	<1268937891-19445-2-git-send-email-nm@ti.com>
+	<87tysdi6tq.fsf@deeprootsystems.com> <4BA3886E.9070906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:62292 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460Ab0CSRlG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 13:41:06 -0400
-Received: by pva4 with SMTP id 4so1716719pva.19
-        for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 10:41:05 -0700 (PDT)
-In-Reply-To: <1269007534-9282-1-git-send-email-aaro.koskinen@nokia.com> (Aaro Koskinen's message of "Fri\, 19 Mar 2010 16\:05\:34 +0200")
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:47053 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751637Ab0CSRq7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 13:46:59 -0400
+Received: by pwi5 with SMTP id 5so1390600pwi.19
+        for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 10:46:59 -0700 (PDT)
+In-Reply-To: <4BA3886E.9070906@ti.com> (Nishanth Menon's message of "Fri\, 19 Mar 2010 09\:21\:34 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+To: Nishanth Menon <nm@ti.com>
+Cc: Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>
 
-Aaro Koskinen <aaro.koskinen@nokia.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> When the 32k sync timer is used for sched_clock(), it should count
-> time from the kernel boot (clocksource init) instead of the last HW
-> reset. Otherwise printk.time values will jump suddenly during the boot:
+> Kevin Hilman had written, on 03/18/2010 05:49 PM, the following:
+>> Nishanth Menon <nm@ti.com> writes:
+>>
+>>> BUG_ON should not ideally contain a functional code. Remove it out.
+>>
+>> True.  But this code should not be using BUG_ON() in the first place.
+>>
+>> We should not crash the whole kernel in this case, just fail
+>> with a warning.
+>>
+>> If you're cleaning this up, can you make it fail more gracefully.
+> I agree  if this was a preipheral driver or a non-critical path. but
+> in this case:
 >
-> 	[    0.000000] calling  omap2_clk_arch_init+0x0/0x138 @ 1
-> 	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned -22 after 0 usecs
-> 	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned with error code -22
-> 	[    0.000000] calling  omap_init_clocksource_32k+0x0/0x98 @ 1
-> 	[  508.697937] initcall omap_init_clocksource_32k+0x0/0x98 returned 0 after 0 usecs
-> 	[  508.697967] calling  omap_init_devices+0x0/0x38 @ 1
-> 	[  508.698425] initcall omap_init_devices+0x0/0x38 returned 0 after 0 usecs
->
-> This will confuse tools such as scripts/bootgraph.pl.
->
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-> ---
->
-> See also the thread in linux-kernel:
-> http://marc.info/?t=126893533300022&r=1&w=2
->
->  arch/arm/plat-omap/common.c |   14 +++++++++-----
->  1 files changed, 9 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> index 088c1a0..ce2ad10 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -100,10 +100,12 @@ EXPORT_SYMBOL(omap_get_var_config);
->  
->  #include <linux/clocksource.h>
->  
-> +static u32 offset_32k __read_mostly;
-> +
+> a) we are speaking of a core description of the h/w - OPPs frequencies
+> and voltages which out which the functionality of the system is at
+> stake. I am not speaking of just having a basic kernel boot up to
+> shell prompt - we need the kernel to do much better than that.
 
-I think you need a comment in the code here as well, something like
-the first sentence from the changelog, so readers of this code can
-make easy sense of the '- offset_32k'.
+A system can boot fine without OPPs/DVFS.  OPPs will not be
+registered with CPUfreq, and no DVFS atempts will be made.  
 
-Otherwise,
+> b) Is there any reason why the registration could fail - if it did
+> fail at this point, there is something catastrophic happening - some
+> other driver is going beserk OR Opp layer is by itself screwed up -
+> why continue if we can warn the system and force a fix of the code?
 
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Using WARN() will produce a nice loud message that alert users, get
+reported and get fixed as well.
+
+> c) is there a recovery mechanism to put the system back in a usable
+> mode with dvfs etc? I might prefer to get some ideas on it..
+
+What is to recover from?  While not optimal in power/performance, a
+kernel can boot and work just fine without OPPs/DVFS.  If this call
+fails, no DVFS will be available but the system is still quite usable.
+
+The bigger problem is that everyone things that their
+feature/subsystem is so crucial that any problems should hang the
+system, when things could actually continue just fine without it in
+most cases.
+
+IMO, Using BUG* macros usually indicates improper or incomplete error
+handling rather than a real catastrophic system failure.
+
+Kevin
+
