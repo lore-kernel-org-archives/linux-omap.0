@@ -1,52 +1,53 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PM-WIP-OPP][PATCH 4/4] omap3: srf: remove hardcoded opp
- dependency
-Date: Fri, 19 Mar 2010 16:47:48 +0200
-Message-ID: <20100319144747.GV18995@nokia.com>
+Subject: Re: [PM-WIP-OPP][PATCH 1/4] omap3: pm: cpufreq: BUG_ON cleanup
+Date: Fri, 19 Mar 2010 16:50:06 +0200
+Message-ID: <20100319145006.GW18995@nokia.com>
 References: <1268937891-19445-1-git-send-email-nm@ti.com>
  <1268937891-19445-2-git-send-email-nm@ti.com>
- <1268937891-19445-3-git-send-email-nm@ti.com>
- <1268937891-19445-4-git-send-email-nm@ti.com>
- <1268937891-19445-5-git-send-email-nm@ti.com>
+ <87tysdi6tq.fsf@deeprootsystems.com>
+ <4BA3886E.9070906@ti.com>
 Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:60930 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968Ab0CSOsq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 10:48:46 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:56540 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751139Ab0CSOvr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 10:51:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1268937891-19445-5-git-send-email-nm@ti.com>
+In-Reply-To: <4BA3886E.9070906@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Nishanth Menon <nm@ti.com>
-Cc: Linux-Omap <linux-omap@vger.kernel.org>, Ambresh K <ambresh@ti.com>, Benoit Cousson <b-cousson@ti.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>, Sanjeev Premi <premi@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>, Thara Gopinath <thara@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>
 
-On Thu, Mar 18, 2010 at 07:44:51PM +0100, ext Nishanth Menon wrote:
->@@ -131,5 +133,16 @@ void __init omap3_pm_init_opp_table(void)
-> 	r |= opp_init_list(OPP_L3, omap3_opp_def_list[1]);
-> 	r |= opp_init_list(OPP_DSP, omap3_opp_def_list[2]);
-> 	BUG_ON(r);
->+
->+	/* First get the l3 thresh from highest l3 opp */
->+	freq = ULONG_MAX;
->+	opp = opp_find_freq_floor(OPP_L3, &freq);
->+	l3_thresh = freq * 4 / 1000;
->+	/* Now setup the L3 bandwidth restrictions for right mpu freqs */
->+	freq = cpu_is_omap3630() ? 500000000 : 600000000;
+On Fri, Mar 19, 2010 at 03:21:34PM +0100, ext Nishanth Menon wrote:
+>Kevin Hilman had written, on 03/18/2010 05:49 PM, the following:
+>> Nishanth Menon <nm@ti.com> writes:
+>>
+>>> BUG_ON should not ideally contain a functional code. Remove it out.
+>>
+>> True.  But this code should not be using BUG_ON() in the first place.
+>>
+>> We should not crash the whole kernel in this case, just fail
+>> with a warning.
+>>
+>> If you're cleaning this up, can you make it fail more gracefully.
+>I agree  if this was a preipheral driver or a non-critical path. but in
+>this case:
+>
+>a) we are speaking of a core description of the h/w - OPPs frequencies
+>and voltages which out which the functionality of the system is at
+>stake. I am not speaking of just having a basic kernel boot up to shell
+>prompt - we need the kernel to do much better than that.
+>
+>b) Is there any reason why the registration could fail - if it did fail
+>at this point, there is something catastrophic happening - some other
+>driver is going beserk OR Opp layer is by itself screwed up - why
+>continue if we can warn the system and force a fix of the code?
 
-I also don't like this. Don't you have somewhere else you could pick ?
-
->+	while (!IS_ERR(opp = opp_find_freq_ceil(OPP_MPU, &freq))) {
->+		opp_store_data(opp, "l3thresh", (void *) l3_thresh);
->+		freq++;
->+	}
-
-this is a good example of what I mean. Instead of saving l3_thresh, why 
-don't you group all those data in a structure (which could even be 
-defined per-cpu really, you already have cpufreq34xx, so you could have 
-cpufreq24xx 36xx 44xx, etc) and just store that in a void * ??
+I agree with Nishanth here. If it fails at this point, we deserve the 
+BUG().
 
 -- 
 balbi
