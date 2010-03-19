@@ -1,55 +1,104 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6 Revised] SPI omap2_mcspi: Add max_clk_div field to
- mcspi platform config
-Date: Fri, 19 Mar 2010 13:38:22 -0700
-Message-ID: <20100319203822.GX2900@atomide.com>
-References: <1268407307.14445.51.camel@quad>
- <20100312172148.GG2900@atomide.com>
- <1268587548.30878.11.camel@quad>
- <20100315163246.GT2900@atomide.com>
- <1268685022.8594.130.camel@quad>
- <20100315210236.GE2900@atomide.com>
- <1269027991.586.63.camel@quad>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PM-WIP-OPP][PATCH 1/4] omap3: pm: cpufreq: BUG_ON cleanup
+Date: Fri, 19 Mar 2010 13:49:32 -0700
+Message-ID: <87pr30ujdv.fsf@deeprootsystems.com>
+References: <1268937891-19445-1-git-send-email-nm@ti.com>
+	<1268937891-19445-2-git-send-email-nm@ti.com>
+	<87tysdi6tq.fsf@deeprootsystems.com> <4BA3886E.9070906@ti.com>
+	<871vfgxkz5.fsf@deeprootsystems.com> <20100319175213.GC3836@gandalf>
+	<87iq8sw3uf.fsf@deeprootsystems.com> <4BA3D6F8.4000709@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58664 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751397Ab0CSUhD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 16:37:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1269027991.586.63.camel@quad>
+Received: from mail-yw0-f172.google.com ([209.85.211.172]:63970 "EHLO
+	mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751595Ab0CSUtf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 16:49:35 -0400
+Received: by ywh2 with SMTP id 2so790015ywh.33
+        for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 13:49:35 -0700 (PDT)
+In-Reply-To: <4BA3D6F8.4000709@ti.com> (Nishanth Menon's message of "Fri\, 19 Mar 2010 14\:56\:40 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Scott Ellis <scott@jumpnowtek.com>
-Cc: spi-devel-general@lists.sourceforge.net, David Brownell <dbrownell@users.sourceforge.net>, Grant Likely <grant.likely@secretlab.ca>, Andrew Morton <akpm@linux-foundation.org>, Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>
 
-* Scott Ellis <scott@jumpnowtek.com> [100319 12:43]:
-> > Only 3430 and 3630 TRMs says 0xd, 0xe, 0xf = Division not supported.
-> > 
-> I tested a 3503 with clock divider values of 0x0d, 0x0e and 0x0f.
-> It worked fine.
-> I collected data off the SPI bus successfully at the expected
-> frequencies of 5859 Hz, 2929 Hz and 1464 Hz.
-> 
-> > But then again, the TRMs can have errors.
-> > 
-> Looks like this is a case of that. 
+Nishanth Menon <nm@ti.com> writes:
 
-OK, good thing you checked it :)
- 
-> My patches #2 and #3 are unnecessary then and #4 makes use of a new 
-> field added in #3.
-> 
-> I can resubmit #4, "Use transfer speed_hz if provided". That was the 
-> original problem I was working on. 
-> 
-> Should I leave the hard-coded 0x0f in the code or would you prefer a
-> named constant?
+> Kevin Hilman had written, on 03/19/2010 01:42 PM, the following:
+>> Felipe Balbi <me@felipebalbi.com> writes:
+>>
+>>> On Fri, Mar 19, 2010 at 10:46:54AM -0700, Kevin Hilman wrote:
+>>>> IMO, Using BUG* macros usually indicates improper or incomplete error
+>>>> handling rather than a real catastrophic system failure.
+>>> on the other hand a kernel oops and system hang will always get
+>>> noted. Rather than a WARN() which simply sits in the log buffer.
+>>
+>> Of course, but what I'm trying to avoid is making other people deal
+>> with a BUG inserted by a developer when proper error checking and
+>> recovery is what is really needed.
+>>
+> I respect your views. but a few moments of thoughts:
+> how would the recovery look like? I can think of 2 options here.. do
+> share your views:
+>
+> Option 1:
+> if (opp_init_list(OPP_MPU, omap3_opp_def_list[0])) {
+> 	WARN("dsp OPP table registration failed");
+> 	return;
+> }
+> if (opp_init_list(OPP_L3, omap3_opp_def_list[1])) {
+> 	WARN("dsp OPP table registration failed");
+> 	return;
+> }
+> if (opp_init_list(OPP_DSP, omap3_opp_def_list[2])) {
+> 	WARN("dsp OPP table registration failed");
+> 	return;
+> }
+>
+> Option 2:
+> 	if (opp_init_list(OPP_MPU, omap3_opp_def_list[0]))
+> 		return;
+> 	if (opp_init_list(OPP_L3, omap3_opp_def_list[1]))
+> 		goto mpu_disable;
+> 	if (opp_init_list(OPP_DSP, omap3_opp_def_list[2]))
+> 		goto l3_disable;
+> 	return;
+>
+> l3_disable:
+> 	freq = 0;
+> 	while (!IS_ERR(opp = opp_find_freq_ceil(OPP_L3, &freq)) {
+> 		opp_disable(opp);
+> 		freq++;
+> 	}
+> mpu_disable:
+> 	freq = 0;
+> 	while (!IS_ERR(opp = opp_find_freq_ceil(OPP_MPU, &freq)) {
+> 		opp_disable(opp);
+> 		freq++;
+> 	}
+> 	WARN("Registration of OPP tables failed!!");
+> 	return;
+>
+> Option 1 is a bad idea as it leaves the system in an invalid state
+> Option 2 is the better idea as we dont have a opp_delete option(not
+> required usually).
 
-Named constant in the long run, but a minimal fix is best for the
--rc cycle.
+I'm OK with either actually, as either is better than BUG_ON()
+instead of error checking.
 
-Regards,
+With option 1, the system is not really in an invalid state, just and
+untested state.  What will happen is users of the OPP API will error
+codes when trying to get OPPs and they should fail gracefully as well.
 
-Tony
+Once again, this is about proper error checking, and robustness, not
+about causing a panic() when something (relatively) minor happens.
+
+> All that code for something that will almost never happen?	
+
+Yes.  That's what error checking is all about.
+
+Kevin
+
+P.S. I can't find the ref atm, but I mentioned not liking the BUG_ON
+     early in the review of the OPP layer, and it would need to be
+     cleaned up before upstream merge.
