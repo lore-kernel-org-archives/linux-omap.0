@@ -1,58 +1,37 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: Re: [PATCH v3 1/4] DSS2: OMAPFB: Add support for switching memory
-	regions
-Date: Fri, 19 Mar 2010 09:46:04 +0200
-Message-ID: <20100319074604.GA19537@localhost>
-References: <1267795582-21004-1-git-send-email-ville.syrjala@nokia.com> <20100317173407.GD30422@localhost> <20100317201425.GI18243@nokia.com> <20100318085239.GE30422@localhost> <20100318152604.GM18243@nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and
+	check for it on V6
+Date: Fri, 19 Mar 2010 08:53:17 +0000
+Message-ID: <20100319085317.GA8451@n2100.arm.linux.org.uk>
+References: <20100317175731.GE2900@atomide.com> <1268849278.19565.28.camel@e102109-lin.cambridge.arm.com> <20100317191114.GH2900@atomide.com> <1268910826.15334.32.camel@e102109-lin.cambridge.arm.com> <20100318170021.GN2900@atomide.com> <20100319013521.GP2900@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19205 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707Ab0CSHqW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 03:46:22 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43103 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792Ab0CSIxd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 04:53:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20100318152604.GM18243@nokia.com>
+In-Reply-To: <20100319013521.GP2900@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>
-Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 18, 2010 at 04:26:04PM +0100, Syrjala Ville (Nokia-D/Helsinki) wrote:
-> [...]
-> > > Just tried it and seems to be mostly OK. We get lockdep checking as a
-> > > bonus. It didn't like setup_plane taking the same rwsem twice so I
-> > > added a check to see if the old and new regions are the same and just
-> > > lock once in that case. I thought rwsem was supposed to be OK with
-> > > read recursion but perhaps I was mitaken, or perhaps it's just lockdep
-> > > that's misbehaving.
-> > 
-> > Ah ok, so it's not so obvious change. Nested read locks could really lead
-> > to a deadlock I think. A read lock will block if there is a write waiter
-> > in the queue to avoid write starvation..
-> 
-> Yes but I think in out case it should be fine because if we hit this:
-> 
->  t  thread 1     thread 2
->  |
->  |  down_read(0)
->  |               down_write(1)
->  v  down_read(1)
-> 
-> then thread 2 will eventually do a up_write() without taking any
-> other region rwsem, and thread 1 can then continue.
+On Thu, Mar 18, 2010 at 06:35:21PM -0700, Tony Lindgren wrote:
+> -#if defined(CONFIG_HAS_TLS_REG)
+> -	mcr	p15, 0, r3, c13, c0, 3		@ set TLS register
+> -#elif !defined(CONFIG_TLS_REG_EMUL)
+> -	mov	r4, #0xffff0fff
+> -	str	r3, [r4, #-15]			@ TLS val at 0xffff0ff0
+> +#if !defined(CONFIG_TLS_REG_EMUL)
+> +	ldr	r4, =elf_hwcap
+> +	ldr	r4, [r4, #0]
+> +	tst	r4, #HWCAP_TLS			@ hardware with TLS?
 
-Yes and things will work fine with the extra ordering you added. But
-lockdep was right in that without the ordering you can get - the not
-too likely - scenario:
+This is really really inefficient.  Both the second ldr and tst will stall
+the pipeline because they need to wait for the result of the precending
+ldr.  Can we do better by re-ordering some instructions?
 
-t thread 1        thread 2       thread 3      thread 4
-| down_read(0)
-|                 down_write(0)
-|                                down_read(1)
-|                                              down_write(1)
-| down_read(1)
-v                                down_read(0)
-
---Imre
-
+Also, the ifndef seems incorrect - if we have TLS_REG_EMUL we seem to omit
+all this code.
