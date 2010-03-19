@@ -1,41 +1,127 @@
-From: Jamie Lokier <jamie@shareable.org>
-Subject: Re: [PATCH] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and check for it on V6
-Date: Fri, 19 Mar 2010 03:46:45 +0000
-Message-ID: <20100319034645.GG14108@shareable.org>
-References: <20100317175731.GE2900@atomide.com> <1268849278.19565.28.camel@e102109-lin.cambridge.arm.com> <20100317191114.GH2900@atomide.com> <1268910826.15334.32.camel@e102109-lin.cambridge.arm.com> <20100318170021.GN2900@atomide.com> <20100319013521.GP2900@atomide.com>
+From: "Lesly Arackal Manuel" <leslyam@ti.com>
+Subject: RE: [PATCH v3 1/5] omap3: pm: fix for twl4030 script load
+Date: Fri, 19 Mar 2010 11:00:01 +0530
+Message-ID: <009b01cac725$3a475070$518918ac@apr.dhcp.ti.com>
+References: <1268407878-22535-1-git-send-email-leslyam@ti.com> <87y6hpgqt7.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail2.shareable.org ([80.68.89.115]:48144 "EHLO
-	mail2.shareable.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751470Ab0CSDqt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Mar 2010 23:46:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20100319013521.GP2900@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51140 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750764Ab0CSFaL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Mar 2010 01:30:11 -0400
+In-Reply-To: <87y6hpgqt7.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: 'Kevin Hilman' <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
 
-Tony Lindgren wrote:
-> Also, I wonder if the change __kuser_get_tls is safe?
-> 
-> +	ldr     r0, [pc, #(16 - 8)]		@ TLS set at 0xffff0ff0?
-> +	cmp	r0, #0				@ assume hw TLS if not set
-> +	mrceq	p15, 0, r0, c13, c0, 3		@ read TLS register
+Hi Kevin,
 
-You cannot assume the TLS value is non-zero, because it's provided by
-userspace to use however it wants.  It doesn't even have to be an address.
+Comments inline
 
-I'm thinking, why not an alternative() macro like on x86, which is a
-very nice way to describe run-time patches of one or a few instructions
-which depend on arch feature bits.
+Thanks & Regards,
+Lesly A M
 
-Then all that switch_to() logic could be made the size it was before.
+-----Original Message-----
+From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+Sent: Friday, March 19, 2010 4:51 AM
+To: Lesly A M
+Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
+Samuel Ortiz
+Subject: Re: [PATCH v3 1/5] omap3: pm: fix for twl4030 script load
 
-An alternative() macro could make a lot of other chip-dependent calls
-smaller too, i.e. all those which dispatch through function pointers
-at present for cache flushing etc - they could become direct calls, or
-an inline instruction or two when possible.
+Lesly A M <leslyam@ti.com> writes:
 
--- Jamie
+> Keeping the twl4030_config_sleep_sequence() call under the flag checking
+will fix
+> the over writting of other sequences with the sleep sequences when loading
+the scripts.
+
+Sorry, but I read this 4-5 times and still have no idea what it means,
+or how it relates to this patch.
+
+[Lesly] All other sequence are getting over written by sleep seq.
+Because twl4030_config_sleep_sequence() function is getting called always
+when we enter load_twl4030_script().
+And it will also over write the starting address of all seq with 0x2F.
+
+> Removed the warning print with checking order of scripts, since the order
+> is not important. 
+
+OK, this much I get, and see what the patch is doing.
+
+> Only the values configured in the register, which is pointing to
+> the starting address of each sequence should be correct.
+
+aw, bummer. -ECONFUSED again
+
+Please fix the changelog to not only summarize *what* is being changed,
+but *why*.
+
+[Lesly] Why the order is not important.
+Since each seq is independent and not falling trough any other seq.
+Only thing we have to do is program the start address of each seq correctly.
+
+Kevin
+
+> Signed-off-by: Lesly A M <x0080970@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: David Derrick <dderrick@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> ---
+>  drivers/mfd/twl4030-power.c |    6 ------
+>  1 files changed, 0 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index 7efa878..bd98733 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -423,7 +423,6 @@ static int __init load_twl4030_script(struct
+twl4030_script *tscript,
+>  	       u8 address)
+>  {
+>  	int err;
+> -	static int order;
+>  
+>  	/* Make sure the script isn't going beyond last valid address (0x3f)
+*/
+>  	if ((address + tscript->size) > END_OF_SCRIPT) {
+> @@ -444,7 +443,6 @@ static int __init load_twl4030_script(struct
+twl4030_script *tscript,
+>  		err = twl4030_config_wakeup12_sequence(address);
+>  		if (err)
+>  			goto out;
+> -		order = 1;
+>  	}
+>  	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
+>  		err = twl4030_config_wakeup3_sequence(address);
+> @@ -452,10 +450,6 @@ static int __init load_twl4030_script(struct
+twl4030_script *tscript,
+>  			goto out;
+>  	}
+>  	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+> -		if (order)
+> -			pr_warning("TWL4030: Bad order of scripts (sleep "\
+> -					"script before wakeup) Leads to
+boot"\
+> -					"failure on some boards\n");
+
+
+Since calling this is not executed under the flag TWL4030_SLEEP_SCRIPT, will
+be executed always.
+>  		err = twl4030_config_sleep_sequence(address);
+
+
+>  out:
+>  	return err;
+> -- 
+> 1.6.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
