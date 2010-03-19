@@ -1,165 +1,102 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH v2 2/2] OMAP3630 SDRC: Change in DVFS Latency Formula
- for OMAP3630
-Date: Fri, 19 Mar 2010 18:47:38 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703045F2FF1@dbde02.ent.ti.com>
-References: <1268888148-10983-1-git-send-email-pramod.gurav@ti.com>
- <1268888148-10983-2-git-send-email-pramod.gurav@ti.com>
- <1268888148-10983-3-git-send-email-pramod.gurav@ti.com>
- <4BA1D3A3.7090708@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] omap: fix clocksource_32k to start from zero
+Date: Fri, 19 Mar 2010 16:05:34 +0200
+Message-ID: <1269007534-9282-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48526 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752368Ab0CSNRn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 09:17:43 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2JDHeIg017653
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 08:17:42 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2JDHdel018998
-	for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 18:47:39 +0530 (IST)
-In-Reply-To: <4BA1D3A3.7090708@ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:51456 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752443Ab0CSODC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 10:03:02 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Ambresh" <ambresh@ti.com>, "Gurav , Pramod" <pramod.gurav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, tony@atomide.com
 
+When the 32k sync timer is used for sched_clock(), it should count
+time from the kernel boot (clocksource init) instead of the last HW
+reset. Otherwise printk.time values will jump suddenly during the boot:
 
+	[    0.000000] calling  omap2_clk_arch_init+0x0/0x138 @ 1
+	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned -22 after 0 usecs
+	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned with error code -22
+	[    0.000000] calling  omap_init_clocksource_32k+0x0/0x98 @ 1
+	[  508.697937] initcall omap_init_clocksource_32k+0x0/0x98 returned 0 after 0 usecs
+	[  508.697967] calling  omap_init_devices+0x0/0x38 @ 1
+	[  508.698425] initcall omap_init_devices+0x0/0x38 returned 0 after 0 usecs
 
-> -----Original Message-----
-> From: K, Ambresh
-> Sent: Thursday, March 18, 2010 12:48 PM
-> To: Gurav , Pramod
-> Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath
-> Subject: Re: [PATCH v2 2/2] OMAP3630 SDRC: Change in DVFS Latency Formula for
-> OMAP3630
-> 
-> Gurav , Pramod wrote:
-> > This patch uses new formula to derive the dpll3 clock Stabilization
-> > delay during DVFS for OMAP3630. The formula used is :
-> > Latency = 2 * SYS_CLK + 10 * CLKOUTX2
-> >
-> > 1usec buffer time is added for safety.
-> >
-> > Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com>
-> > Signed-off-by: Pramod Gurav <pramod.gurav@ti.com>
-> >
-> > ---
-> >  arch/arm/mach-omap2/clkt34xx_dpll3m2.c |   60
-> ++++++++++++++++++++++----------
-> >  1 files changed, 41 insertions(+), 19 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-
-> omap2/clkt34xx_dpll3m2.c
-> > index 29421b1..58979ec 100644
-> > --- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-> > +++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-> > @@ -40,6 +40,9 @@
-> >  #define		SHIFT_DPLL_N		8
-> >  #define		SHIFT_DPLL_M2		27
-> >
-> > +#define		AVOID_TRUNC_1000	1000
-> > +#define		AVOID_TRUNC_100		100
-> > +
-> >  /*
-> >   * CORE DPLL (DPLL3) M2 divider rate programming functions
-> >   *
-> > @@ -67,7 +70,7 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned
-> long rate)
-> >  	u32 clk_sel_regval;
-> >  	u32 core_dpll_mul_m, core_dpll_div_n, core_dpll_clkoutdiv_m2;
-> >  	u32 sys_clk_rate, sdrc_clk_stab;
-> > -	u32 refclk, clkoutx2, switch_latency;
-> > +	u32 refclk, clkoutx2, switch_latency, dpll_lock_freq;
-> >  	unsigned int delay_sram;
-> >
-> >  	if (!clk || !rate)
-> > @@ -100,28 +103,47 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk,
-> unsigned long rate)
-> >  	core_dpll_clkoutdiv_m2 = (clk_sel_regval >> SHIFT_DPLL_M2) &
-> >  							DPLL_M2_MASK;
-> >  	sys_clk_rate = clk_get_rate(sys_ck_p);
-> > -
-> >  	sys_clk_rate = sys_clk_rate / CYCLES_PER_MHZ;
-> >
-> > -	/* wait time for L3 clk stabilization = 4*REFCLK + 8*CLKOUTX2 */
-> > -	refclk = (4 * (core_dpll_div_n + 1)) / sys_clk_rate;
-> > -	clkoutx2 = ((core_dpll_div_n + 1) * core_dpll_clkoutdiv_m2) /
-> > -					(sys_clk_rate * core_dpll_mul_m * 2);
-> > -	switch_latency =  refclk + 8 * clkoutx2;
-> > -
-> > -	/* Adding 2us to sdrc clk stab */
-> > -	sdrc_clk_stab =  switch_latency + 2;
-> > -
-> > -	delay_sram = delay_sram_val();
-> > -
-> > -	/*
-> > -	 * Calculate the number of MPU cycles
-> > -	 * to wait for SDRC to stabilize
-> > -	 */
-> > -
-> >  	_mpurate = arm_fck_p->rate / CYCLES_PER_MHZ;
-> > +	delay_sram = delay_sram_val();
-> >
-> > -	c = ((sdrc_clk_stab * _mpurate) / (delay_sram * 2));
-> > +	if (cpu_is_omap3630()) {
-> > +		/*
-> > +		 * wait time for L3 clk stabilization =
-> > +		 * 2*SYS_CLK + 10*CLKOUTX2
-> > +		 */
-> > +		/*
-> > +		 * To avoid truncation of floating values, AVOID_TRUNC_1000 &
-> > +		 * AVOID_TRUNC_100 are multiplied and divided appropriately
-> > +		 */
-> > +		refclk = 2 * (AVOID_TRUNC_1000 / sys_clk_rate);
-> > +		dpll_lock_freq = (AVOID_TRUNC_1000 * AVOID_TRUNC_100 *
-> > +					(core_dpll_div_n + 1))/
-> > +					(2 * sys_clk_rate * core_dpll_mul_m);
-> > +		clkoutx2 = 10 * (dpll_lock_freq * core_dpll_clkoutdiv_m2) /
-> > +							AVOID_TRUNC_100;
-> > +		switch_latency = refclk + clkoutx2;
-> > +
-> > +		/* Adding 1000 nano seconds to sdrc clk stab */
-> > +		sdrc_clk_stab = switch_latency + 1000;
-> > +		c = ((sdrc_clk_stab * _mpurate) /
-> > +					(delay_sram * 2 * AVOID_TRUNC_1000));
-> > +	} else {
-> > +		/* wait time for L3 clk stabilization = 4*REFCLK + 8*CLKOUTX2 */
-> > +		refclk = (4 * (core_dpll_div_n + 1)) / sys_clk_rate;
-> > +		clkoutx2 = ((core_dpll_div_n + 1) * core_dpll_clkoutdiv_m2) /
-> > +					(sys_clk_rate * core_dpll_mul_m * 2);
-> > +		switch_latency =  refclk + 8 * clkoutx2;
-> > +
-> > +		/* Adding 2us to sdrc clk stab */
-> > +		sdrc_clk_stab =  switch_latency + 2;
-> > +		/*
-> > +		 * Calculate the number of MPU cycles to wait for
-> > +		 * SDRC to stabilize
-> > +		 */
-> > +		c = ((sdrc_clk_stab * _mpurate) / (delay_sram * 2));
-> > +	}
-> >
-> -PFA,
-> 
-> - Attached patch provides further optimized 3630 & 3430 path for
-> calculating M2 stablization delay.
-> 
-> - The formula used to compute clkoutx2, is actually calculating for
-> clkoutm2x2 according to trm  clkoutx2 = (Fref * 2 * M)/ (N + 1).
->   (Thanks to Eduardo for pointing this).
-> 
-No, CLKOUTX2 is dependent on M2. Pls refer to table 3-45 (DPLL Operating Mode and Latency) in 3630 TRM Version D. 
+This will confuse tools such as scripts/bootgraph.pl.
 
-Regards
-Vishwa
-> Thanks,
-> Ambresh
-> 
-> >  	pr_debug("m = %d, n = %d, m2 =%d\n", core_dpll_mul_m, core_dpll_div_n,
-> >  						core_dpll_clkoutdiv_m2);
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+
+See also the thread in linux-kernel:
+http://marc.info/?t=126893533300022&r=1&w=2
+
+ arch/arm/plat-omap/common.c |   14 +++++++++-----
+ 1 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 088c1a0..ce2ad10 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -100,10 +100,12 @@ EXPORT_SYMBOL(omap_get_var_config);
+ 
+ #include <linux/clocksource.h>
+ 
++static u32 offset_32k __read_mostly;
++
+ #ifdef CONFIG_ARCH_OMAP16XX
+ static cycle_t omap16xx_32k_read(struct clocksource *cs)
+ {
+-	return omap_readl(OMAP16XX_TIMER_32K_SYNCHRONIZED);
++	return omap_readl(OMAP16XX_TIMER_32K_SYNCHRONIZED) - offset_32k;
+ }
+ #else
+ #define omap16xx_32k_read	NULL
+@@ -112,7 +114,7 @@ static cycle_t omap16xx_32k_read(struct clocksource *cs)
+ #ifdef CONFIG_ARCH_OMAP2420
+ static cycle_t omap2420_32k_read(struct clocksource *cs)
+ {
+-	return omap_readl(OMAP2420_32KSYNCT_BASE + 0x10);
++	return omap_readl(OMAP2420_32KSYNCT_BASE + 0x10) - offset_32k;
+ }
+ #else
+ #define omap2420_32k_read	NULL
+@@ -121,7 +123,7 @@ static cycle_t omap2420_32k_read(struct clocksource *cs)
+ #ifdef CONFIG_ARCH_OMAP2430
+ static cycle_t omap2430_32k_read(struct clocksource *cs)
+ {
+-	return omap_readl(OMAP2430_32KSYNCT_BASE + 0x10);
++	return omap_readl(OMAP2430_32KSYNCT_BASE + 0x10) - offset_32k;
+ }
+ #else
+ #define omap2430_32k_read	NULL
+@@ -130,7 +132,7 @@ static cycle_t omap2430_32k_read(struct clocksource *cs)
+ #ifdef CONFIG_ARCH_OMAP3
+ static cycle_t omap34xx_32k_read(struct clocksource *cs)
+ {
+-	return omap_readl(OMAP3430_32KSYNCT_BASE + 0x10);
++	return omap_readl(OMAP3430_32KSYNCT_BASE + 0x10) - offset_32k;
+ }
+ #else
+ #define omap34xx_32k_read	NULL
+@@ -139,7 +141,7 @@ static cycle_t omap34xx_32k_read(struct clocksource *cs)
+ #ifdef CONFIG_ARCH_OMAP4
+ static cycle_t omap44xx_32k_read(struct clocksource *cs)
+ {
+-	return omap_readl(OMAP4430_32KSYNCT_BASE + 0x10);
++	return omap_readl(OMAP4430_32KSYNCT_BASE + 0x10) - offset_32k;
+ }
+ #else
+ #define omap44xx_32k_read	NULL
+@@ -227,6 +229,8 @@ static int __init omap_init_clocksource_32k(void)
+ 		clocksource_32k.mult = clocksource_hz2mult(32768,
+ 					    clocksource_32k.shift);
+ 
++		offset_32k = clocksource_32k.read(&clocksource_32k);
++
+ 		if (clocksource_register(&clocksource_32k))
+ 			printk(err, clocksource_32k.name);
+ 	}
+-- 
+1.5.6.5
 
