@@ -1,54 +1,58 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: mainline kernel - GPIO warning at bootup
-Date: Fri, 19 Mar 2010 12:21:23 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03220FB89C@dbde02.ent.ti.com>
+From: "Lesly Arackal Manuel" <leslyam@ti.com>
+Subject: RE: [PATCH v3 2/5] omap3: pm: Using separate clk/volt setup_time for RET and OFF states
+Date: Fri, 19 Mar 2010 12:34:04 +0530
+Message-ID: <009c01cac732$5d237ee0$518918ac@apr.dhcp.ti.com>
+References: <1268407891-22559-1-git-send-email-leslyam@ti.com> <87eijhgqe4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49439 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750705Ab0CSGvZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Mar 2010 02:51:25 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2J6pLJN014011
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 01:51:24 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2J6pKeL017911
-	for <linux-omap@vger.kernel.org>; Fri, 19 Mar 2010 12:21:21 +0530 (IST)
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:40440 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751038Ab0CSHEN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Mar 2010 03:04:13 -0400
+In-Reply-To: <87eijhgqe4.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: 'Kevin Hilman' <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
 
-Hi all,
+Hi Kevin,
 
-I get the following warning at bootup. This is on mainline kernel
-(omap3_defconfig) on a 3430 SDP.
+If my understanding is correct.
 
-I thought we'd seen this earlier, not sure if there is a fix.
+The clk_setuptime is board specific, depends on the osc/XTAL used on	the
+board. So the clk_setuptime has to come from the board file.
 
-I can provide the full booup log if needed. Any pointers would also
-be okay - I can look at a fix if no one else already has.
+Volt_setuptime & volt_offset is PM IC specific, depends on the PM IC's SMPS
+characteristics. So this can be updated from the script file.
 
-Regards,
-Anand
+Finally the voltage cmd values (on, onlp, ret &off) is Si Specific, Varies
+with Si(OMAP3430, OMAP3630, ...). So can be updated in voltage file itself.
 
+Just correct if I'm wrong.
 
-[   72.990051] ------------[ cut here ]------------
-[   72.994720] WARNING: at drivers/gpio/gpiolib.c:1238 gpio_free+0x114/0x13c()
-[   73.001739] Modules linked in:
-[   73.004852] [<c0044320>] (unwind_backtrace+0x0/0xec) from [<c00725d0>] (warn_slowpath_common+0x48/0x60)
-[   73.014343] [<c00725d0>] (warn_slowpath_common+0x48/0x60) from [<c01fd33c>] (gpio_free+0x114/0x13c)
-[   73.023468] [<c01fd33c>] (gpio_free+0x114/0x13c) from [<c0420914>] (ads7846_probe+0x87c/0xae0)
-[   73.032135] [<c0420914>] (ads7846_probe+0x87c/0xae0) from [<c0278838>] (spi_drv_probe+0x18/0x1c)
-[   73.041015] [<c0278838>] (spi_drv_probe+0x18/0x1c) from [<c023a4dc>] (driver_probe_device+0xc0/0x178)
-[   73.050292] [<c023a4dc>] (driver_probe_device+0xc0/0x178) from [<c023a5f4>] (__driver_attach+0x60/0x84)
-[   73.059753] [<c023a5f4>] (__driver_attach+0x60/0x84) from [<c0239d48>] (bus_for_each_dev+0x44/0x74)
-[   73.068878] [<c0239d48>] (bus_for_each_dev+0x44/0x74) from [<c02396b0>] (bus_add_driver+0x9c/0x21c)
-[   73.078002] [<c02396b0>] (bus_add_driver+0x9c/0x21c) from [<c023a8ec>] (driver_register+0xa8/0x130)
-[   73.087097] [<c023a8ec>] (driver_register+0xa8/0x130) from [<c003e34c>] (do_one_initcall+0x5c/0x1b8)
-[   73.096313] [<c003e34c>] (do_one_initcall+0x5c/0x1b8) from [<c0008578>] (kernel_init+0x90/0x144)
-[   73.105163] [<c0008578>] (kernel_init+0x90/0x144) from [<c003f970>] (kernel_thread_exit+0x0/0x8)
-[   73.114013] ---[ end trace 1b75b31a2719ed1d ]---
+Thanks & Regards,
+Lesly A M
+
+-----Original Message-----
+From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+Sent: Friday, March 19, 2010 5:00 AM
+To: Lesly A M
+Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
+Samuel Ortiz
+Subject: Re: [PATCH v3 2/5] omap3: pm: Using separate clk/volt setup_time
+for RET and OFF states
+
+Lesly A M <leslyam@ti.com> writes:
+
+> Copied the setuptime in each board file, since OMAP3430 & OMAP3630
+> has different voltage levels for the same states.
+
+So that suggests there should be 2 tables (one per SoC), rather than
+one for each board file.  IOW, the setup times are SoC specific, not
+board specific, so they don't belong in board files.
+
+Kevin
+
