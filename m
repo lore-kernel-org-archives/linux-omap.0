@@ -1,129 +1,74 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH RFC 3/5] usb: ohci: Add Kconfig entries for ohci-omap3
-Date: Sun, 21 Mar 2010 17:02:01 +0530
-Message-ID: <1269171123-9874-4-git-send-email-gadiyar@ti.com>
-References: <1269171123-9874-1-git-send-email-gadiyar@ti.com>
- <1269171123-9874-2-git-send-email-gadiyar@ti.com>
- <1269171123-9874-3-git-send-email-gadiyar@ti.com>
+From: ambresh <a0393775@ti.com>
+Subject: Re: [PATCH v4 1/2] OMAP3: SDRC: Dynamic Calculation of SDRC stall
+ latency during DVFS
+Date: Sun, 21 Mar 2010 18:54:42 +0530
+Message-ID: <4BA61E1A.8080603@ti.com>
+References: <1268888148-10983-1-git-send-email-pramod.gurav@ti.com> <1268888148-10983-2-git-send-email-pramod.gurav@ti.com> <4BA1D31F.3070809@ti.com> <FCCFB4CDC6E5564B9182F639FC35608703045F2FED@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37141 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752061Ab0CULcJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Mar 2010 07:32:09 -0400
-In-Reply-To: <1269171123-9874-3-git-send-email-gadiyar@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34031 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752559Ab0CUNZA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 21 Mar 2010 09:25:00 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2LDOvhY008016
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Sun, 21 Mar 2010 08:24:59 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2LDOu7p025588
+	for <linux-omap@vger.kernel.org>; Sun, 21 Mar 2010 18:54:56 +0530 (IST)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703045F2FED@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Anand Gadiyar <gadiyar@ti.com>
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: "K, Ambresh" <ambresh@ti.com>, "Gurav , Pramod" <pramod.gurav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Reddy, Teerth" <teerth@ti.com>
 
-On OMAP systems, we have two different of OHCI controllers. The legacy
-one is present in OMAP1/2 chips, and the newer one comes bundled as
-a companion to the EHCI controller on OMAP3 and newer chips.
+Sripathy, Vishwanath wrote:
+> 
 
-We may have multi-omap configurations where OMAP2 and OMAP3
-support may be enabled in the same kernel, and need a mechanism
-to keep both drivers around.
+>>> +	/* calculate the sram delay */
+>>> +	delay_sram = (((mpurate / gt_rate) * diff) / (loop * 2));
+>>> +
+>>> +	error_gain = mpurate / gt_rate;
+>>> +	delay_sram = delay_sram + error_gain;
+>> Cosmetic changes:
+>>
+>>          error_gain = mpurate / gt_rate;
+>>          delay_sram = (error_gain * diff) / (loop);
+>>          delay_sram += error_gain;
+>>
+> Why *2 is missing in your code? 2 is needed since the loop takes 2 arm cycles.
 
-This patch adds a Kconfig entry for each of these drivers.
-I've only tested the omap3_defconfig on omap3 boards, and
-don't have any old omap1/omap2 boards around.
+its a typo, it should be (loop * 2).
 
-I'd like feedback on the approach used here, as I'm not sure
-if this is a good way to go.
+BR,
+Ambresh
 
-NYET-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
----
- drivers/usb/host/Kconfig    |   15 +++++++++++++++
- drivers/usb/host/ohci-hcd.c |   31 +++++++++++++++++++++++++++++--
- 2 files changed, 44 insertions(+), 2 deletions(-)
+> 
+> Regards
+> Vishwa
+>> Thanks,
+>> Ambresh
+>>
+>>> +
+>>> +	return delay_sram;
+>>> +}
+>>> +#endif
+>>> +
+>>>  int __init omap_sram_init(void)
+>>>  {
+>>>  	omap_detect_sram();
+>>>  	omap_map_sram();
+>>>
+>>> +#ifdef CONFIG_ARCH_OMAP3
+>>> +	_omap3_sram_delay = omap_sram_push(__sram_wait_delay,
+>>> +						__sram_wait_delay_sz);
+>>> +#endif
+>>> +
+>>>  	if (!(cpu_class_is_omap2()))
+>>>  		omap1_sram_init();
+>>>  	else if (cpu_is_omap242x())
+> 
 
-Index: linux-2.6/drivers/usb/host/ohci-hcd.c
-===================================================================
---- linux-2.6.orig/drivers/usb/host/ohci-hcd.c
-+++ linux-2.6/drivers/usb/host/ohci-hcd.c
-@@ -1006,9 +1006,14 @@ MODULE_LICENSE ("GPL");
- #define PLATFORM_DRIVER		ohci_hcd_s3c2410_driver
- #endif
- 
--#ifdef CONFIG_ARCH_OMAP
-+#ifdef CONFIG_USB_OHCI_HCD_OMAP1
- #include "ohci-omap.c"
--#define PLATFORM_DRIVER		ohci_hcd_omap_driver
-+#define OMAP1_PLATFORM_DRIVER	ohci_hcd_omap_driver
-+#endif
-+
-+#ifdef CONFIG_USB_OHCI_HCD_OMAP3
-+#include "ohci-omap3.c"
-+#define OMAP3_PLATFORM_DRIVER	ohci_hcd_omap3_driver
- #endif
- 
- #ifdef CONFIG_ARCH_LH7A404
-@@ -1092,6 +1097,8 @@ MODULE_LICENSE ("GPL");
- 
- #if	!defined(PCI_DRIVER) &&		\
- 	!defined(PLATFORM_DRIVER) &&	\
-+	!defined(OMAP1_PLATFORM_DRIVER) &&	\
-+	!defined(OMAP3_PLATFORM_DRIVER) &&	\
- 	!defined(OF_PLATFORM_DRIVER) &&	\
- 	!defined(SA1111_DRIVER) &&	\
- 	!defined(PS3_SYSTEM_BUS_DRIVER) && \
-@@ -1133,6 +1140,18 @@ static int __init ohci_hcd_mod_init(void
- 		goto error_platform;
- #endif
- 
-+#ifdef OMAP1_PLATFORM_DRIVER
-+	retval = platform_driver_register(&OMAP1_PLATFORM_DRIVER);
-+	if (retval < 0)
-+		goto error_omap1_platform;
-+#endif
-+
-+#ifdef OMAP3_PLATFORM_DRIVER
-+	retval = platform_driver_register(&OMAP3_PLATFORM_DRIVER);
-+	if (retval < 0)
-+		goto error_omap3_platform;
-+#endif
-+
- #ifdef OF_PLATFORM_DRIVER
- 	retval = of_register_platform_driver(&OF_PLATFORM_DRIVER);
- 	if (retval < 0)
-@@ -1200,6 +1219,14 @@ static int __init ohci_hcd_mod_init(void
- 	platform_driver_unregister(&PLATFORM_DRIVER);
-  error_platform:
- #endif
-+#ifdef OMAP1_PLATFORM_DRIVER
-+	platform_driver_unregister(&OMAP1_PLATFORM_DRIVER);
-+ error_omap1_platform:
-+#endif
-+#ifdef OMAP3_PLATFORM_DRIVER
-+	platform_driver_unregister(&OMAP3_PLATFORM_DRIVER);
-+ error_omap3_platform:
-+#endif
- #ifdef PS3_SYSTEM_BUS_DRIVER
- 	ps3_ohci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
-  error_ps3:
-Index: linux-2.6/drivers/usb/host/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/usb/host/Kconfig
-+++ linux-2.6/drivers/usb/host/Kconfig
-@@ -207,6 +207,21 @@ config USB_OHCI_HCD
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ohci-hcd.
- 
-+config USB_OHCI_HCD_OMAP1
-+	bool "OHCI support for OMAP1/2 chips"
-+	depends on USB_OHCI_HCD && (ARCH_OMAP1 || ARCH_OMAP2)
-+	default y
-+	---help---
-+	  Enables support for the OHCI controller on OMAP1/2 chips.
-+
-+config USB_OHCI_HCD_OMAP3
-+	bool "OHCI support for OMAP3 and later chips"
-+	depends on USB_OHCI_HCD && (ARCH_OMAP3 || ARCH_OMAP4)
-+	default y
-+	---help---
-+	  Enables support for the on-chip OHCI controller on
-+	  OMAP3 and later chips.
-+
- config USB_OHCI_HCD_PPC_SOC
- 	bool "OHCI support for on-chip PPC USB controller"
- 	depends on USB_OHCI_HCD && (STB03xxx || PPC_MPC52xx)
