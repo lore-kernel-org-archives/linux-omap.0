@@ -1,764 +1,129 @@
 From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH RFC 2/5] usb: ohci: introduce omap3 ohci-hcd driver
-Date: Sun, 21 Mar 2010 17:02:00 +0530
-Message-ID: <1269171123-9874-3-git-send-email-gadiyar@ti.com>
+Subject: [PATCH RFC 3/5] usb: ohci: Add Kconfig entries for ohci-omap3
+Date: Sun, 21 Mar 2010 17:02:01 +0530
+Message-ID: <1269171123-9874-4-git-send-email-gadiyar@ti.com>
 References: <1269171123-9874-1-git-send-email-gadiyar@ti.com>
  <1269171123-9874-2-git-send-email-gadiyar@ti.com>
+ <1269171123-9874-3-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45271 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751956Ab0CULcJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Mar 2010 07:32:09 -0400
-In-Reply-To: <1269171123-9874-2-git-send-email-gadiyar@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37141 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752061Ab0CULcJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Mar 2010 07:32:09 -0400
+In-Reply-To: <1269171123-9874-3-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Anand Gadiyar <gadiyar@ti.com>
 
-Add support for the OHCI controller present in OMAP3 and newer chips.
+On OMAP systems, we have two different of OHCI controllers. The legacy
+one is present in OMAP1/2 chips, and the newer one comes bundled as
+a companion to the EHCI controller on OMAP3 and newer chips.
 
-The code is mostly based off the ehci-omap.c driver.
-Some of it is common to both drivers and will eventually
-need to be factored out to platform init files.
+We may have multi-omap configurations where OMAP2 and OMAP3
+support may be enabled in the same kernel, and need a mechanism
+to keep both drivers around.
 
-In its current state, the driver cannot co-exist with the
-EHCI driver, and this will be fixed in later versions. The second
-one to be loaded will overwrite settings made by the other. For now,
-this driver should allow the few users of OMAP3 OHCI to get going.
+This patch adds a Kconfig entry for each of these drivers.
+I've only tested the omap3_defconfig on omap3 boards, and
+don't have any old omap1/omap2 boards around.
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+I'd like feedback on the approach used here, as I'm not sure
+if this is a good way to go.
+
+NYET-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
-This driver has been sitting in internal trees for a long time,
-for no real reason. I've finally found the time to clean it
-up and submit it for review.
+ drivers/usb/host/Kconfig    |   15 +++++++++++++++
+ drivers/usb/host/ohci-hcd.c |   31 +++++++++++++++++++++++++++++--
+ 2 files changed, 44 insertions(+), 2 deletions(-)
 
- drivers/usb/host/ohci-omap3.c |  722 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 722 insertions(+)
-
-Index: linux-2.6/drivers/usb/host/ohci-omap3.c
+Index: linux-2.6/drivers/usb/host/ohci-hcd.c
 ===================================================================
---- /dev/null
-+++ linux-2.6/drivers/usb/host/ohci-omap3.c
-@@ -0,0 +1,722 @@
-+/*
-+ * ohci-omap3.c - driver for OHCI on OMAP3 and later processors
-+ *
-+ * Bus Glue for OMAP3 USBHOST 3 port OHCI controller
-+ * This controller is also used in later OMAPs and AM35x chips
-+ *
-+ * Copyright (C) 2007-2010 Texas Instruments, Inc.
-+ * Author: Vikram Pandita <vikram.pandita@ti.com>
-+ * Author: Anand Gadiyar <gadiyar@ti.com>
-+ *
-+ * Based on ehci-omap.c and some other ohci glue layers
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+ *
-+ * TODO (last updated Mar 10th, 2010):
-+ *	- add kernel-doc
-+ *	- Factor out code common to EHCI to a separate file
-+ *	- Make EHCI and OHCI coexist together
-+ *	  - needs newer silicon versions to actually work
-+ *	  - the last one to be loaded currently steps on the other's toes
-+ *	- Add hooks for configuring transceivers, etc. at init/exit
-+ *	- Add aggressive clock-management code
-+ */
-+
-+#include <linux/platform_device.h>
-+#include <linux/clk.h>
-+
-+#include <plat/usb.h>
-+
-+/*
-+ * OMAP USBHOST Register addresses: VIRTUAL ADDRESSES
-+ *	Use ohci_omap_readl()/ohci_omap_writel() functions
-+ */
-+
-+/* TLL Register Set */
-+#define	OMAP_USBTLL_REVISION				(0x00)
-+#define	OMAP_USBTLL_SYSCONFIG				(0x10)
-+#define	OMAP_USBTLL_SYSCONFIG_CACTIVITY			(1 << 8)
-+#define	OMAP_USBTLL_SYSCONFIG_SIDLEMODE			(1 << 3)
-+#define	OMAP_USBTLL_SYSCONFIG_ENAWAKEUP			(1 << 2)
-+#define	OMAP_USBTLL_SYSCONFIG_SOFTRESET			(1 << 1)
-+#define	OMAP_USBTLL_SYSCONFIG_AUTOIDLE			(1 << 0)
-+
-+#define	OMAP_USBTLL_SYSSTATUS				(0x14)
-+#define	OMAP_USBTLL_SYSSTATUS_RESETDONE			(1 << 0)
-+
-+#define	OMAP_USBTLL_IRQSTATUS				(0x18)
-+#define	OMAP_USBTLL_IRQENABLE				(0x1C)
-+
-+#define	OMAP_TLL_SHARED_CONF				(0x30)
-+#define	OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN		(1 << 6)
-+#define	OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN		(1 << 5)
-+#define	OMAP_TLL_SHARED_CONF_USB_DIVRATION		(1 << 2)
-+#define	OMAP_TLL_SHARED_CONF_FCLK_REQ			(1 << 1)
-+#define	OMAP_TLL_SHARED_CONF_FCLK_IS_ON			(1 << 0)
-+
-+#define	OMAP_TLL_CHANNEL_CONF(num)			(0x040 + 0x004 * num)
-+#define OMAP_TLL_CHANNEL_CONF_FSLSMODE_SHIFT		24
-+#define	OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF		(1 << 11)
-+#define	OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE		(1 << 10)
-+#define	OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE		(1 << 9)
-+#define	OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE		(1 << 8)
-+#define OMAP_TLL_CHANNEL_CONF_CHANMODE_FSLS		(1 << 1)
-+#define	OMAP_TLL_CHANNEL_CONF_CHANEN			(1 << 0)
-+
-+#define OMAP_TLL_CHANNEL_COUNT				3
-+
-+/* UHH Register Set */
-+#define	OMAP_UHH_REVISION				(0x00)
-+#define	OMAP_UHH_SYSCONFIG				(0x10)
-+#define	OMAP_UHH_SYSCONFIG_MIDLEMODE			(1 << 12)
-+#define	OMAP_UHH_SYSCONFIG_CACTIVITY			(1 << 8)
-+#define	OMAP_UHH_SYSCONFIG_SIDLEMODE			(1 << 3)
-+#define	OMAP_UHH_SYSCONFIG_ENAWAKEUP			(1 << 2)
-+#define	OMAP_UHH_SYSCONFIG_SOFTRESET			(1 << 1)
-+#define	OMAP_UHH_SYSCONFIG_AUTOIDLE			(1 << 0)
-+
-+#define	OMAP_UHH_SYSSTATUS				(0x14)
-+#define	OMAP_UHH_HOSTCONFIG				(0x40)
-+#define	OMAP_UHH_HOSTCONFIG_ULPI_BYPASS			(1 << 0)
-+#define	OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS		(1 << 0)
-+#define	OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS		(1 << 11)
-+#define	OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS		(1 << 12)
-+#define OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN		(1 << 2)
-+#define OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN		(1 << 3)
-+#define OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN		(1 << 4)
-+#define OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN		(1 << 5)
-+#define OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS		(1 << 8)
-+#define OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS		(1 << 9)
-+#define OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS		(1 << 10)
-+
-+#define	OMAP_UHH_DEBUG_CSR				(0x44)
-+
-+/*-------------------------------------------------------------------------*/
-+
-+static inline void ohci_omap_writel(void __iomem *base, u32 reg, u32 val)
-+{
-+	__raw_writel(val, base + reg);
-+}
-+
-+static inline u32 ohci_omap_readl(void __iomem *base, u32 reg)
-+{
-+	return __raw_readl(base + reg);
-+}
-+
-+static inline void ohci_omap_writeb(void __iomem *base, u8 reg, u8 val)
-+{
-+	__raw_writeb(val, base + reg);
-+}
-+
-+static inline u8 ohci_omap_readb(void __iomem *base, u8 reg)
-+{
-+	return __raw_readb(base + reg);
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+
-+struct ohci_hcd_omap {
-+	struct ohci_hcd		*ohci;
-+	struct device		*dev;
-+
-+	struct clk		*usbhost_ick;
-+	struct clk		*usbhost2_120m_fck;
-+	struct clk		*usbhost1_48m_fck;
-+	struct clk		*usbtll_fck;
-+	struct clk		*usbtll_ick;
-+
-+	/* port_mode: TLL/PHY, 2/3/4/6-PIN, DP-DM/DAT-SE0 */
-+	enum ohci_omap3_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-+	void __iomem		*uhh_base;
-+	void __iomem		*tll_base;
-+	void __iomem		*ohci_base;
-+};
-+
-+/*-------------------------------------------------------------------------*/
-+
-+static void ohci_omap3_clock_power(struct ohci_hcd_omap *omap, int on)
-+{
-+	if (on) {
-+		clk_enable(omap->usbtll_ick);
-+		clk_enable(omap->usbtll_fck);
-+		clk_enable(omap->usbhost_ick);
-+		clk_enable(omap->usbhost1_48m_fck);
-+		clk_enable(omap->usbhost2_120m_fck);
-+	} else {
-+		clk_disable(omap->usbhost2_120m_fck);
-+		clk_disable(omap->usbhost1_48m_fck);
-+		clk_disable(omap->usbhost_ick);
-+		clk_disable(omap->usbtll_fck);
-+		clk_disable(omap->usbtll_ick);
-+	}
-+}
-+
-+static int ohci_omap3_init(struct usb_hcd *hcd)
-+{
-+	struct ohci_hcd *ohci = hcd_to_ohci(hcd);
-+	int ret;
-+
-+	dev_dbg(hcd->self.controller, "starting OHCI controller\n");
-+
-+	ret = ohci_init(ohci);
-+
-+	return ret;
-+}
-+
-+
-+/*-------------------------------------------------------------------------*/
-+
-+static int ohci_omap3_start(struct usb_hcd *hcd)
-+{
-+	struct ohci_hcd	*ohci = hcd_to_ohci(hcd);
-+	int ret;
-+
-+	/*
-+	 * RemoteWakeupConnected has to be set explicitly before
-+	 * calling ohci_run. The reset value of RWC is 0.
-+	 */
-+	ohci->hc_control = OHCI_CTRL_RWC;
-+	writel(OHCI_CTRL_RWC, &ohci->regs->control);
-+
-+	ret = ohci_run(ohci);
-+
-+	if (ret < 0) {
-+		dev_err(hcd->self.controller, "can't start\n");
-+		ohci_stop(hcd);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+
-+/*-------------------------------------------------------------------------*/
-+
-+static unsigned ohci_omap3_fslsmode(enum ohci_omap3_port_mode mode)
-+{
-+	switch (mode) {
-+	case OMAP_OHCI_PORT_MODE_UNUSED:
-+	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
-+		return 0x0;
-+
-+	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
-+		return 0x1;
-+
-+	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
-+		return 0x2;
-+
-+	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
-+		return 0x3;
-+
-+	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
-+		return 0x4;
-+
-+	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
-+		return 0x5;
-+
-+	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
-+		return 0x6;
-+
-+	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
-+		return 0x7;
-+
-+	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
-+		return 0xA;
-+
-+	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
-+		return 0xB;
-+	default:
-+		pr_warning("Invalid port mode, using default\n");
-+		return 0x0;
-+	}
-+}
-+
-+static void ohci_omap3_tll_config(struct ohci_hcd_omap *omap)
-+{
-+	u32 reg;
-+	int i;
-+
-+	/* Program TLL SHARED CONF */
-+	reg = ohci_omap_readl(omap->tll_base, OMAP_TLL_SHARED_CONF);
-+	reg &= ~OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN;
-+	reg &= ~OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN;
-+	reg |= OMAP_TLL_SHARED_CONF_USB_DIVRATION;
-+	reg |= OMAP_TLL_SHARED_CONF_FCLK_IS_ON;
-+	ohci_omap_writel(omap->tll_base, OMAP_TLL_SHARED_CONF, reg);
-+
-+	/* Program each TLL channel */
-+	/*
-+	 * REVISIT: Only the 3-pin and 4-pin PHY modes have
-+	 * actually been tested.
-+	 */
-+	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
-+
-+		/* Enable only those channels that are actually used */
-+		if (omap->port_mode[i] == OMAP_OHCI_PORT_MODE_UNUSED)
-+			continue;
-+
-+		reg = ohci_omap_readl(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i));
-+		reg |= ohci_omap3_fslsmode(omap->port_mode[i])
-+				<< OMAP_TLL_CHANNEL_CONF_FSLSMODE_SHIFT;
-+		reg |= OMAP_TLL_CHANNEL_CONF_CHANMODE_FSLS;
-+		reg |= OMAP_TLL_CHANNEL_CONF_CHANEN;
-+		ohci_omap_writel(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i), reg);
-+	}
-+}
-+
-+/* omap_start_ohc
-+ *	- Start the TI USBHOST controller
-+ */
-+static int omap_start_ohc(struct ohci_hcd_omap *omap, struct usb_hcd *hcd)
-+{
-+	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
-+	u32 reg = 0;
-+	int ret = 0;
-+
-+	dev_dbg(omap->dev, "starting TI OHCI USB Controller\n");
-+
-+	/* Get all the clock handles we need */
-+	omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
-+	if (IS_ERR(omap->usbhost_ick)) {
-+		ret =  PTR_ERR(omap->usbhost_ick);
-+		goto err_host_ick;
-+	}
-+
-+	omap->usbhost2_120m_fck = clk_get(omap->dev, "usbhost_120m_fck");
-+	if (IS_ERR(omap->usbhost2_120m_fck)) {
-+		ret = PTR_ERR(omap->usbhost2_120m_fck);
-+		goto err_host_120m_fck;
-+	}
-+
-+	omap->usbhost1_48m_fck = clk_get(omap->dev, "usbhost_48m_fck");
-+	if (IS_ERR(omap->usbhost1_48m_fck)) {
-+		ret = PTR_ERR(omap->usbhost1_48m_fck);
-+		goto err_host_48m_fck;
-+	}
-+
-+	omap->usbtll_fck = clk_get(omap->dev, "usbtll_fck");
-+	if (IS_ERR(omap->usbtll_fck)) {
-+		ret = PTR_ERR(omap->usbtll_fck);
-+		goto err_tll_fck;
-+	}
-+
-+	omap->usbtll_ick = clk_get(omap->dev, "usbtll_ick");
-+	if (IS_ERR(omap->usbtll_ick)) {
-+		ret = PTR_ERR(omap->usbtll_ick);
-+		goto err_tll_ick;
-+	}
-+
-+	/* Now enable all the clocks in the correct order */
-+	ohci_omap3_clock_power(omap, 1);
-+
-+	/* perform TLL soft reset, and wait until reset is complete */
-+	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
-+			OMAP_USBTLL_SYSCONFIG_SOFTRESET);
-+
-+	/* Wait for TLL reset to complete */
-+	while (!(ohci_omap_readl(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
-+			& OMAP_USBTLL_SYSSTATUS_RESETDONE)) {
-+		cpu_relax();
-+
-+		if (time_after(jiffies, timeout)) {
-+			dev_dbg(omap->dev, "operation timed out\n");
-+			ret = -EINVAL;
-+			goto err_sys_status;
-+		}
-+	}
-+
-+	dev_dbg(omap->dev, "TLL reset done\n");
-+
-+	/* (1<<3) = no idle mode only for initial debugging */
-+	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
-+			OMAP_USBTLL_SYSCONFIG_ENAWAKEUP |
-+			OMAP_USBTLL_SYSCONFIG_SIDLEMODE |
-+			OMAP_USBTLL_SYSCONFIG_CACTIVITY);
-+
-+
-+	/* Put UHH in NoIdle/NoStandby mode */
-+	reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSCONFIG);
-+	reg |= (OMAP_UHH_SYSCONFIG_ENAWAKEUP
-+			| OMAP_UHH_SYSCONFIG_SIDLEMODE
-+			| OMAP_UHH_SYSCONFIG_CACTIVITY
-+			| OMAP_UHH_SYSCONFIG_MIDLEMODE);
-+	reg &= ~OMAP_UHH_SYSCONFIG_AUTOIDLE;
-+	reg &= ~OMAP_UHH_SYSCONFIG_SOFTRESET;
-+
-+	ohci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
-+
-+	reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
-+
-+	/* setup ULPI bypass and burst configurations */
-+	reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
-+			| OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN
-+			| OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN);
-+	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
-+
-+	/*
-+	 * REVISIT: Pi_CONNECT_STATUS controls MStandby
-+	 * assertion and Swakeup generation - let us not
-+	 * worry about this for now. OMAP HWMOD framework
-+	 * might take care of this later. If not, we can
-+	 * update these registers when adding aggressive
-+	 * clock management code.
-+	 *
-+	 * For now, turn off all the Pi_CONNECT_STATUS bits
-+	 *
-+	if (omap->port_mode[0] == OMAP_OHCI_PORT_MODE_UNUSED)
-+		reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
-+	if (omap->port_mode[1] == OMAP_OHCI_PORT_MODE_UNUSED)
-+		reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
-+	if (omap->port_mode[2] == OMAP_OHCI_PORT_MODE_UNUSED)
-+		reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
-+	 */
-+	reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
-+	reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
-+	reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
-+
-+	 if (omap_rev() <= OMAP3430_REV_ES2_1) {
-+		/*
-+		 * All OHCI modes need to go through the TLL,
-+		 * unlike in the EHCI case. So use UTMI mode
-+		 * for all ports for OHCI, on ES2.x silicon
-+		 */
-+		dev_dbg(omap->dev, "OMAP3 ES version <= ES2.1\n");
-+		reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
-+	} else {
-+		dev_dbg(omap->dev, "OMAP3 ES version > ES2.1\n");
-+		if (omap->port_mode[0] == OMAP_OHCI_PORT_MODE_UNUSED)
-+			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
-+		else
-+			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
-+
-+		if (omap->port_mode[1] == OMAP_OHCI_PORT_MODE_UNUSED)
-+			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
-+		else
-+			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
-+
-+		if (omap->port_mode[2] == OMAP_OHCI_PORT_MODE_UNUSED)
-+			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
-+		else
-+			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
-+
-+	}
-+	ohci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
-+	dev_dbg(omap->dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
-+
-+	ohci_omap3_tll_config(omap);
-+
-+	return 0;
-+
-+err_sys_status:
-+	ohci_omap3_clock_power(omap, 0);
-+	clk_put(omap->usbtll_ick);
-+
-+err_tll_ick:
-+	clk_put(omap->usbtll_fck);
-+
-+err_tll_fck:
-+	clk_put(omap->usbhost1_48m_fck);
-+
-+err_host_48m_fck:
-+	clk_put(omap->usbhost2_120m_fck);
-+
-+err_host_120m_fck:
-+	clk_put(omap->usbhost_ick);
-+
-+err_host_ick:
-+	return ret;
-+}
-+
-+static void omap_stop_ohc(struct ohci_hcd_omap *omap, struct usb_hcd *hcd)
-+{
-+	unsigned long timeout = jiffies + msecs_to_jiffies(100);
-+
-+	dev_dbg(omap->dev, "stopping TI EHCI USB Controller\n");
-+
-+	/* Reset OMAP modules for insmod/rmmod to work */
-+	ohci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG,
-+			OMAP_UHH_SYSCONFIG_SOFTRESET);
-+	while (!(ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSSTATUS)
-+				& (1 << 0))) {
-+		cpu_relax();
-+
-+		if (time_after(jiffies, timeout))
-+			dev_dbg(omap->dev, "operation timed out\n");
-+	}
-+
-+	while (!(ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSSTATUS)
-+				& (1 << 1))) {
-+		cpu_relax();
-+
-+		if (time_after(jiffies, timeout))
-+			dev_dbg(omap->dev, "operation timed out\n");
-+	}
-+
-+	while (!(ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSSTATUS)
-+				& (1 << 2))) {
-+		cpu_relax();
-+
-+		if (time_after(jiffies, timeout))
-+			dev_dbg(omap->dev, "operation timed out\n");
-+	}
-+
-+	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG, (1 << 1));
-+
-+	while (!(ohci_omap_readl(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
-+				& (1 << 0))) {
-+		cpu_relax();
-+
-+		if (time_after(jiffies, timeout))
-+			dev_dbg(omap->dev, "operation timed out\n");
-+	}
-+
-+	ohci_omap3_clock_power(omap, 0);
-+
-+	if (omap->usbtll_fck != NULL) {
-+		clk_put(omap->usbtll_fck);
-+		omap->usbtll_fck = NULL;
-+	}
-+
-+	if (omap->usbhost_ick != NULL) {
-+		clk_put(omap->usbhost_ick);
-+		omap->usbhost_ick = NULL;
-+	}
-+
-+	if (omap->usbhost1_48m_fck != NULL) {
-+		clk_put(omap->usbhost1_48m_fck);
-+		omap->usbhost1_48m_fck = NULL;
-+	}
-+
-+	if (omap->usbhost2_120m_fck != NULL) {
-+		clk_put(omap->usbhost2_120m_fck);
-+		omap->usbhost2_120m_fck = NULL;
-+	}
-+
-+	if (omap->usbtll_ick != NULL) {
-+		clk_put(omap->usbtll_ick);
-+		omap->usbtll_ick = NULL;
-+	}
-+
-+	dev_dbg(omap->dev, "Clock to USB host has been disabled\n");
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+
-+static const struct hc_driver ohci_omap3_hc_driver = {
-+	.description =		hcd_name,
-+	.product_desc =		"OMAP3 OHCI Host Controller",
-+	.hcd_priv_size =	sizeof(struct ohci_hcd),
-+
-+	/*
-+	 * generic hardware linkage
-+	 */
-+	.irq =			ohci_irq,
-+	.flags =		HCD_USB11 | HCD_MEMORY,
-+
-+	/*
-+	 * basic lifecycle operations
-+	 */
-+	.reset =		ohci_omap3_init,
-+	.start =		ohci_omap3_start,
-+	.stop =			ohci_stop,
-+	.shutdown =		ohci_shutdown,
-+
-+	/*
-+	 * managing i/o requests and associated device resources
-+	 */
-+	.urb_enqueue =		ohci_urb_enqueue,
-+	.urb_dequeue =		ohci_urb_dequeue,
-+	.endpoint_disable =	ohci_endpoint_disable,
-+
-+	/*
-+	 * scheduling support
-+	 */
-+	.get_frame_number =	ohci_get_frame,
-+
-+	/*
-+	 * root hub support
-+	 */
-+	.hub_status_data =	ohci_hub_status_data,
-+	.hub_control =		ohci_hub_control,
-+#ifdef	CONFIG_PM
-+	.bus_suspend =		ohci_bus_suspend,
-+	.bus_resume =		ohci_bus_resume,
+--- linux-2.6.orig/drivers/usb/host/ohci-hcd.c
++++ linux-2.6/drivers/usb/host/ohci-hcd.c
+@@ -1006,9 +1006,14 @@ MODULE_LICENSE ("GPL");
+ #define PLATFORM_DRIVER		ohci_hcd_s3c2410_driver
+ #endif
+ 
+-#ifdef CONFIG_ARCH_OMAP
++#ifdef CONFIG_USB_OHCI_HCD_OMAP1
+ #include "ohci-omap.c"
+-#define PLATFORM_DRIVER		ohci_hcd_omap_driver
++#define OMAP1_PLATFORM_DRIVER	ohci_hcd_omap_driver
 +#endif
-+	.start_port_reset =	ohci_start_port_reset,
-+};
 +
-+/*-------------------------------------------------------------------------*/
++#ifdef CONFIG_USB_OHCI_HCD_OMAP3
++#include "ohci-omap3.c"
++#define OMAP3_PLATFORM_DRIVER	ohci_hcd_omap3_driver
+ #endif
+ 
+ #ifdef CONFIG_ARCH_LH7A404
+@@ -1092,6 +1097,8 @@ MODULE_LICENSE ("GPL");
+ 
+ #if	!defined(PCI_DRIVER) &&		\
+ 	!defined(PLATFORM_DRIVER) &&	\
++	!defined(OMAP1_PLATFORM_DRIVER) &&	\
++	!defined(OMAP3_PLATFORM_DRIVER) &&	\
+ 	!defined(OF_PLATFORM_DRIVER) &&	\
+ 	!defined(SA1111_DRIVER) &&	\
+ 	!defined(PS3_SYSTEM_BUS_DRIVER) && \
+@@ -1133,6 +1140,18 @@ static int __init ohci_hcd_mod_init(void
+ 		goto error_platform;
+ #endif
+ 
++#ifdef OMAP1_PLATFORM_DRIVER
++	retval = platform_driver_register(&OMAP1_PLATFORM_DRIVER);
++	if (retval < 0)
++		goto error_omap1_platform;
++#endif
 +
++#ifdef OMAP3_PLATFORM_DRIVER
++	retval = platform_driver_register(&OMAP3_PLATFORM_DRIVER);
++	if (retval < 0)
++		goto error_omap3_platform;
++#endif
 +
-+/* configure so an HC device and id are always provided */
-+/* always called with process context; sleeping is OK */
+ #ifdef OF_PLATFORM_DRIVER
+ 	retval = of_register_platform_driver(&OF_PLATFORM_DRIVER);
+ 	if (retval < 0)
+@@ -1200,6 +1219,14 @@ static int __init ohci_hcd_mod_init(void
+ 	platform_driver_unregister(&PLATFORM_DRIVER);
+  error_platform:
+ #endif
++#ifdef OMAP1_PLATFORM_DRIVER
++	platform_driver_unregister(&OMAP1_PLATFORM_DRIVER);
++ error_omap1_platform:
++#endif
++#ifdef OMAP3_PLATFORM_DRIVER
++	platform_driver_unregister(&OMAP3_PLATFORM_DRIVER);
++ error_omap3_platform:
++#endif
+ #ifdef PS3_SYSTEM_BUS_DRIVER
+ 	ps3_ohci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
+  error_ps3:
+Index: linux-2.6/drivers/usb/host/Kconfig
+===================================================================
+--- linux-2.6.orig/drivers/usb/host/Kconfig
++++ linux-2.6/drivers/usb/host/Kconfig
+@@ -207,6 +207,21 @@ config USB_OHCI_HCD
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ohci-hcd.
+ 
++config USB_OHCI_HCD_OMAP1
++	bool "OHCI support for OMAP1/2 chips"
++	depends on USB_OHCI_HCD && (ARCH_OMAP1 || ARCH_OMAP2)
++	default y
++	---help---
++	  Enables support for the OHCI controller on OMAP1/2 chips.
 +
-+/**
-+ * ohci_hcd_omap_probe - initialize OMAP-based HCDs
-+ *
-+ * Allocates basic resources for this USB host controller, and
-+ * then invokes the start() method for the HCD associated with it
-+ * through the hotplug entry's driver_data.
-+ */
-+static int ohci_hcd_omap_probe(struct platform_device *pdev)
-+{
-+	struct ohci_hcd_omap_platform_data *pdata = pdev->dev.platform_data;
-+	struct ohci_hcd_omap *omap;
-+	struct resource *res;
-+	struct usb_hcd *hcd;
++config USB_OHCI_HCD_OMAP3
++	bool "OHCI support for OMAP3 and later chips"
++	depends on USB_OHCI_HCD && (ARCH_OMAP3 || ARCH_OMAP4)
++	default y
++	---help---
++	  Enables support for the on-chip OHCI controller on
++	  OMAP3 and later chips.
 +
-+	int irq = platform_get_irq(pdev, 0);
-+	int ret = -ENODEV;
-+
-+	if (!pdata) {
-+		dev_dbg(&pdev->dev, "missing platform_data\n");
-+		goto err_pdata;
-+	}
-+
-+	if (usb_disabled())
-+		goto err_disabled;
-+
-+	omap = kzalloc(sizeof(*omap), GFP_KERNEL);
-+	if (!omap) {
-+		ret = -ENOMEM;
-+		goto err_disabled;
-+	}
-+
-+	hcd = usb_create_hcd(&ohci_omap3_hc_driver, &pdev->dev,
-+			dev_name(&pdev->dev));
-+	if (!hcd) {
-+		ret = -ENOMEM;
-+		goto err_create_hcd;
-+	}
-+
-+	platform_set_drvdata(pdev, omap);
-+	omap->dev		= &pdev->dev;
-+	omap->port_mode[0]		= pdata->port_mode[0];
-+	omap->port_mode[1]		= pdata->port_mode[1];
-+	omap->port_mode[2]		= pdata->port_mode[2];
-+	omap->ohci		= hcd_to_ohci(hcd);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+
-+	hcd->rsrc_start = res->start;
-+	hcd->rsrc_len = resource_size(res);
-+
-+	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
-+	if (!hcd->regs) {
-+		dev_err(&pdev->dev, "OHCI ioremap failed\n");
-+		ret = -ENOMEM;
-+		goto err_ioremap;
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	omap->uhh_base = ioremap(res->start, resource_size(res));
-+	if (!omap->uhh_base) {
-+		dev_err(&pdev->dev, "UHH ioremap failed\n");
-+		ret = -ENOMEM;
-+		goto err_uhh_ioremap;
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-+	omap->tll_base = ioremap(res->start, resource_size(res));
-+	if (!omap->tll_base) {
-+		dev_err(&pdev->dev, "TLL ioremap failed\n");
-+		ret = -ENOMEM;
-+		goto err_tll_ioremap;
-+	}
-+
-+	ret = omap_start_ohc(omap, hcd);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "failed to start ehci\n");
-+		goto err_start;
-+	}
-+
-+	ohci_hcd_init(omap->ohci);
-+
-+	ret = usb_add_hcd(hcd, irq, IRQF_DISABLED);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "failed to add hcd with err %d\n", ret);
-+		goto err_add_hcd;
-+	}
-+
-+	return 0;
-+
-+err_add_hcd:
-+	omap_stop_ohc(omap, hcd);
-+
-+err_start:
-+	iounmap(omap->tll_base);
-+
-+err_tll_ioremap:
-+	iounmap(omap->uhh_base);
-+
-+err_uhh_ioremap:
-+	iounmap(hcd->regs);
-+
-+err_ioremap:
-+	usb_put_hcd(hcd);
-+
-+err_create_hcd:
-+	kfree(omap);
-+err_disabled:
-+err_pdata:
-+	return ret;
-+}
-+
-+/* may be called without controller electrically present */
-+/* may be called with controller, bus, and devices active */
-+
-+/**
-+ * ohci_hcd_omap_remove - shutdown processing for OHCI HCDs
-+ * @pdev: USB Host Controller being removed
-+ *
-+ * Reverses the effect of usb_hcd_omap_probe(), first invoking
-+ * the HCD's stop() method.  It is always called from a thread
-+ * context, normally "rmmod", "apmd", or something similar.
-+ */
-+static int ohci_hcd_omap_remove(struct platform_device *pdev)
-+{
-+	struct ohci_hcd_omap *omap = platform_get_drvdata(pdev);
-+	struct usb_hcd *hcd = ohci_to_hcd(omap->ohci);
-+
-+	usb_remove_hcd(hcd);
-+	omap_stop_ohc(omap, hcd);
-+	iounmap(hcd->regs);
-+	iounmap(omap->tll_base);
-+	iounmap(omap->uhh_base);
-+	usb_put_hcd(hcd);
-+	kfree(omap);
-+
-+	return 0;
-+}
-+
-+static void ohci_hcd_omap_shutdown(struct platform_device *pdev)
-+{
-+	struct ohci_hcd_omap *omap = platform_get_drvdata(pdev);
-+	struct usb_hcd *hcd = ohci_to_hcd(omap->ohci);
-+
-+	if (hcd->driver->shutdown)
-+		hcd->driver->shutdown(hcd);
-+}
-+
-+static struct platform_driver ohci_hcd_omap3_driver = {
-+	.probe		= ohci_hcd_omap_probe,
-+	.remove		= ohci_hcd_omap_remove,
-+	.shutdown	= ohci_hcd_omap_shutdown,
-+	.driver		= {
-+		.name	= "ohci-omap3",
-+	},
-+};
-+
-+MODULE_ALIAS("platform:omap3-ohci");
-+MODULE_AUTHOR("Anand Gadiyar <gadiyar@ti.com>");
+ config USB_OHCI_HCD_PPC_SOC
+ 	bool "OHCI support for on-chip PPC USB controller"
+ 	depends on USB_OHCI_HCD && (STB03xxx || PPC_MPC52xx)
