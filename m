@@ -1,364 +1,226 @@
-From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Subject: Re: [PATCH RFC 2/5] usb: ohci: introduce omap3 ohci-hcd driver
-Date: Sun, 21 Mar 2010 20:43:46 +0200
-Message-ID: <20100321184345.GB3841@gandalf>
-References: <1269171123-9874-1-git-send-email-gadiyar@ti.com>
- <1269171123-9874-2-git-send-email-gadiyar@ti.com>
- <1269171123-9874-3-git-send-email-gadiyar@ti.com>
-Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: RE: [PM-WIP-OPP][PATCH 3/4] omap: pm: opp: add ability to store
+ data per opp
+Date: Sun, 21 Mar 2010 22:50:58 +0100
+Message-ID: <74583B8642AB8841B30447520659FCA9EBAC2C6A@dnce01.ent.ti.com>
+References: <1268937891-19445-1-git-send-email-nm@ti.com>
+ <1268937891-19445-2-git-send-email-nm@ti.com>
+ <1268937891-19445-3-git-send-email-nm@ti.com>
+ <1268937891-19445-4-git-send-email-nm@ti.com>
+ <20100319144333.GU18995@nokia.com> <4BA3975E.70206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1269171123-9874-3-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:52684 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753308Ab0CUVvJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Mar 2010 17:51:09 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <4BA3975E.70206@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>
 
-On Sun, Mar 21, 2010 at 05:02:00PM +0530, Anand Gadiyar wrote:
-> This driver has been sitting in internal trees for a long time,
-> for no real reason. I've finally found the time to clean it
-> up and submit it for review.
+Hi Nishanth,
 
-Thanks a lot :-)
+>From: Menon, Nishanth
+>Sent: Friday, March 19, 2010 4:25 PM
+>
+>Felipe Balbi had written, on 03/19/2010 09:43 AM, the following:
+>> hi,
+>>
+>> On Thu, Mar 18, 2010 at 07:44:50PM +0100, ext Nishanth Menon wrote:
+>>> +int opp_store_data(struct omap_opp *opp, char *name, void *data)
+>>> +{
+>>> +   return -EINVAL;
+>>
+>> Would -ENODATA fit better ??
+>wondered later on if 0 is better here and get_data with -ENODATA - for
+>the actual code also..
+>
+>>
+>>> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+>>> index bb8120e..15f6f7c 100644
+>>> --- a/arch/arm/plat-omap/opp.c
+>>> +++ b/arch/arm/plat-omap/opp.c
+>>> @@ -14,12 +14,19 @@
+>>> #include <linux/errno.h>
+>>> #include <linux/err.h>
+>>> #include <linux/init.h>
+>>> +#include <linux/list.h>
+>>> #include <linux/slab.h>
+>>> #include <linux/cpufreq.h>
+>>>
+>>> #include <plat/opp_twl_tps.h>
+>>> #include <plat/opp.h>
+>>>
+>>> +struct omap_opp_data {
+>>> +   char *name;
+>>> +   void *data;
+>>> +   struct list_head list;
+>>> +};
+>>> +
+>>> /**
+>>>  * struct omap_opp - OMAP OPP description structure
+>>>  * @enabled:        true/false - marking this OPP as enabled/disabled
+>>> @@ -37,6 +44,7 @@ struct omap_opp {
+>>>     unsigned long rate;
+>>>     unsigned long u_volt;
+>>>     u8 opp_id;
+>>> +   struct list_head data_list;
+>>> };
+>>>
+>>> /*
+>>> @@ -218,6 +226,7 @@ static void omap_opp_populate(struct omap_opp *opp,
+>>>     opp->rate = opp_def->freq;
+>>>     opp->enabled = opp_def->enabled;
+>>>     opp->u_volt = opp_def->u_volt;
+>>> +   INIT_LIST_HEAD(&opp->data_list);
+>>> }
+>>>
+>>> int opp_add(enum opp_t opp_type, const struct omap_opp_def *opp_def)
+>>> @@ -352,6 +361,63 @@ int opp_disable(struct omap_opp *opp)
+>>>     return 0;
+>>> }
+>>>
+>>> +void *opp_get_data(struct omap_opp *opp, char *name)
+>>> +{
+>>> +   void *data = ERR_PTR(-EINVAL);
+>>> +   struct omap_opp_data *tmp;
+>>> +
+>>> +   if (unlikely(!opp || !name))
+>>> +           return ERR_PTR(-EINVAL);
+>>> +
+>>> +   list_for_each_entry(tmp, &opp->data_list, list)
+>>> +           if (!strcmp(name, tmp->name)) {
+>>> +                   data = tmp->data;
+>>> +                   break;
+>>> +           }
+>>> +   return data;
+>>> +}
+>>> +
+>>> +int opp_store_data(struct omap_opp *opp, char *name, void *data)
+>>> +{
+>>> +   struct omap_opp_data *new;
+>>> +   if (unlikely(!opp || !name))
+>>> +           return -EINVAL;
+>>> +   /* NAK to double registration */
+>>> +   if (unlikely(!IS_ERR(opp_get_data(opp, name))))
+>>> +           return -EINVAL;
+>>> +
+>>> +   new = kmalloc(sizeof(struct omap_opp), GFP_KERNEL);
+>>> +   if (!new)
+>>> +           return -ENOMEM;
+>>> +   new->name = kmalloc(strlen(name) + 1, GFP_KERNEL);
+>>> +   if (!new->name) {
+>>> +           kfree(new);
+>>> +           return -ENOMEM;
+>>> +   }
+>>> +   new->data = data;
+>>> +   strcpy(new->name, name);
+>>> +   INIT_LIST_HEAD(&new->list);
+>>> +   list_add(&new->list, &opp->data_list);
+>>> +   return 0;
+>>> +}
+>>
+>> will you really want to add several data entries there ? I don't see the
+>> point. Maybe I'm missing something.
+>>
+>> I like the idea of having a void * to allow you to store anything there.
+>> But generally that's a 1 - 1 relation:
+>>
+>> 1 device/bus/(in this case) opp - 1 data.
+>
+>I think I am lost here -> why device/bus/opp? this is a 1-many
+>relationship. here is an example of it:
+>OPP by definition is a tuple (voltage,frequency).
+>
+>for each OPP, we may have additional information which is custom to a
+>specific SOC ->
+>OMAP2 and OMAP1 have no SR module -> so I dont need to store SR nTarget
+>value.
+>
+>data type 1: OMAP34xx and OMAP3630 have SR, and nTarget is a *per chip*
+>calibration value specific to an OPP -however, we have 5 OPPs (or upto 7
+>in the case of 3440 etc.) in omap34xx while omap3630 has upto 4 OPPs.
+>in omap3630, we use ABB data which is in addition to nTarget (if my
+>meager understanding of this is right)..
+>
+>data type 2: The dependency of vdd1 OPP to vdd2 opp is variant based on SOC.
+>
+>the types of data which is stored per OPP is changing all the time and
+>in future we will have varied data again.
+>
+>Now, based on your proposal as I understand,
+>struct omap2_data {
+>blah_o21
+>blah_o22
+>};
+>
+>struct omap3_data {
+>blah_o31
+>blah_o32
+>blah_o33
+>}
+>
+>struct omap4_data {
+>blah_o41
+>blah_o42
+>blah_o31
+>blah_o32
+>}
+>
+>and so on (remember we may have shared or similar data between various
+>SOCs at times)
+>
+>redundancy, maintenance are the problems i see other than ability to
+>have a module which uses blah_o31 to be generic and not know the
+>difference between struct omap3_data and omap4_data
+>the resultant module code will look like:
+>if (cpu_is_omap3430()) {
+>       my_blaho31 = ((struct omap3_data *) get_opp_data(opp))->blah_o31;
+>} else if cpu_is...() {
+>..
+>}
+>
+>now in the approach I took,
+>you could have:
+>struct sr_ntarget_type{
+>       unsigned long nTarget;
+>       something else if needed
+>}
 
-> +struct ohci_hcd_omap {
-> +	struct ohci_hcd		*ohci;
-> +	struct device		*dev;
-> +
-> +	struct clk		*usbhost_ick;
-> +	struct clk		*usbhost2_120m_fck;
-> +	struct clk		*usbhost1_48m_fck;
-> +	struct clk		*usbtll_fck;
-> +	struct clk		*usbtll_ick;
-> +
-> +	/* port_mode: TLL/PHY, 2/3/4/6-PIN, DP-DM/DAT-SE0 */
-> +	enum ohci_omap3_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-> +	void __iomem		*uhh_base;
-> +	void __iomem		*tll_base;
-> +	void __iomem		*ohci_base;
+I'm still not convinced...
 
-this is something we need to think carefully, right ? I believe ehci is
-already ioremap()ing uhh_base and tll_base ??
+It appears that there is still some confusion with what OPP is or should be.
 
-> +static void ohci_omap3_clock_power(struct ohci_hcd_omap *omap, int on)
-> +{
-> +	if (on) {
-> +		clk_enable(omap->usbtll_ick);
-> +		clk_enable(omap->usbtll_fck);
-> +		clk_enable(omap->usbhost_ick);
-> +		clk_enable(omap->usbhost1_48m_fck);
-> +		clk_enable(omap->usbhost2_120m_fck);
-> +	} else {
-> +		clk_disable(omap->usbhost2_120m_fck);
-> +		clk_disable(omap->usbhost1_48m_fck);
-> +		clk_disable(omap->usbhost_ick);
-> +		clk_disable(omap->usbtll_fck);
-> +		clk_disable(omap->usbtll_ick);
-> +	}
-> +}
-> +
-> +static int ohci_omap3_init(struct usb_hcd *hcd)
-> +{
-> +	struct ohci_hcd *ohci = hcd_to_ohci(hcd);
-> +	int ret;
-> +
-> +	dev_dbg(hcd->self.controller, "starting OHCI controller\n");
-> +
-> +	ret = ohci_init(ohci);
-> +
-> +	return ret;
+The OPP layer, for my point of view was done to handle the freq -> voltage association per IP. This layer should be flexible because we can add or remove dynamically any OPP.
 
-how about:
+All the data related to SR and ABB belong to the characterized voltages that belong to a certain OPP for a voltage rail. These informations are not configurable at all and not related to any IP. They are well defined for a particular SoC techno (65nm, 45nm) for a voltage domain.
+So they should belong to a SoC specific file, and should be hard coded for a voltage domain.
+The point is that you should not tie SR Ntarget, ABB... to the OPP itself but to the voltage. Hence the need to have other voltage -> SR, ABB table in the voltage management code only.
+We should not clutter the OPP layer with something that is voltage related.
 
-static int ohci_omap3_init(struct usb_hcd *hcd)
-{
-	dev_dbg(hcd->self.controller, "starting OHCI controller\n");
+The other point is that up to now, all voltage related data are a super set of the previous SoC data, so you can define only one voltage_data structure that work for all SoC. If the data is useless for previous platform, just put 0 or a flag to disable that parameter.
 
-	return ohci_init(hcd_to_ohci(hcd));
-}
 
-> +static int ohci_omap3_start(struct usb_hcd *hcd)
-> +{
-> +	struct ohci_hcd	*ohci = hcd_to_ohci(hcd);
-> +	int ret;
-> +
-> +	/*
-> +	 * RemoteWakeupConnected has to be set explicitly before
-> +	 * calling ohci_run. The reset value of RWC is 0.
-> +	 */
-> +	ohci->hc_control = OHCI_CTRL_RWC;
-> +	writel(OHCI_CTRL_RWC, &ohci->regs->control);
-> +
-> +	ret = ohci_run(ohci);
-> +
-> +	if (ret < 0) {
-> +		dev_err(hcd->self.controller, "can't start\n");
-> +		ohci_stop(hcd);
-> +		return ret;
-> +	}
+Regarding the link between voltage domains, there are two different types that should not be necessarily handled by the OPP layer.
 
-add a blank line before return
+- The first case is the one we have today to handle the MPU -> L3 dependency: In that case it is a pure policy dependency, that can or not be applied depending of the need and of the customer.
+Is it the OPP layer responsibility to handle policy? If it is the case, we should add much more stuff to expose that to user mode and allow a certain amount of flexibility.
+- The second case is due to HW limitation like on OMAP4, where we cannot have the highest OPP on MPU or IVA with the lowest one on the CORE.
+In that case, we probably have to handle that in the low level voltage management part and not in the OPP layer.
 
-> +	return 0;
-> +}
-> +
-> +
 
-one blank line only.
+Bottom line is I still think this is a little bit over-engineered for the real need, and on the other side that does not fully solve the needs.
 
-> +/*-------------------------------------------------------------------------*/
-> +
-> +static unsigned ohci_omap3_fslsmode(enum ohci_omap3_port_mode mode)
-> +{
-> +	switch (mode) {
-> +	case OMAP_OHCI_PORT_MODE_UNUSED:
-> +	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
-> +		return 0x0;
+Regards,
+Benoit
 
-what are these magic numbers ? Could we have some defines for those ? Or
-at least some comment about them.
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
 
-> +/* omap_start_ohc
-> + *	- Start the TI USBHOST controller
-> + */
-> +static int omap_start_ohc(struct ohci_hcd_omap *omap, struct usb_hcd *hcd)
-> +{
-> +	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
-> +	u32 reg = 0;
-> +	int ret = 0;
-> +
-> +	dev_dbg(omap->dev, "starting TI OHCI USB Controller\n");
-> +
-> +	/* Get all the clock handles we need */
-> +	omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
-> +	if (IS_ERR(omap->usbhost_ick)) {
 
-some dev_dbg() or dev_err() on the failing cases would help when
-debugging probe() failures.
 
-> +		ret =  PTR_ERR(omap->usbhost_ick);
-> +		goto err_host_ick;
-> +	}
-> +
-> +	omap->usbhost2_120m_fck = clk_get(omap->dev, "usbhost_120m_fck");
-> +	if (IS_ERR(omap->usbhost2_120m_fck)) {
-> +		ret = PTR_ERR(omap->usbhost2_120m_fck);
-> +		goto err_host_120m_fck;
-> +	}
-> +
-> +	omap->usbhost1_48m_fck = clk_get(omap->dev, "usbhost_48m_fck");
-> +	if (IS_ERR(omap->usbhost1_48m_fck)) {
-> +		ret = PTR_ERR(omap->usbhost1_48m_fck);
-> +		goto err_host_48m_fck;
-> +	}
-> +
-> +	omap->usbtll_fck = clk_get(omap->dev, "usbtll_fck");
-> +	if (IS_ERR(omap->usbtll_fck)) {
-> +		ret = PTR_ERR(omap->usbtll_fck);
-> +		goto err_tll_fck;
-> +	}
-> +
-> +	omap->usbtll_ick = clk_get(omap->dev, "usbtll_ick");
-> +	if (IS_ERR(omap->usbtll_ick)) {
-> +		ret = PTR_ERR(omap->usbtll_ick);
-> +		goto err_tll_ick;
-> +	}
-> +
-> +	/* Now enable all the clocks in the correct order */
-> +	ohci_omap3_clock_power(omap, 1);
-> +
-> +	/* perform TLL soft reset, and wait until reset is complete */
-> +	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
-> +			OMAP_USBTLL_SYSCONFIG_SOFTRESET);
-> +
-> +	/* Wait for TLL reset to complete */
-> +	while (!(ohci_omap_readl(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
-> +			& OMAP_USBTLL_SYSSTATUS_RESETDONE)) {
-> +		cpu_relax();
-> +
-> +		if (time_after(jiffies, timeout)) {
-> +			dev_dbg(omap->dev, "operation timed out\n");
-> +			ret = -EINVAL;
-> +			goto err_sys_status;
-> +		}
-> +	}
-> +
-> +	dev_dbg(omap->dev, "TLL reset done\n");
-> +
-> +	/* (1<<3) = no idle mode only for initial debugging */
-> +	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
-> +			OMAP_USBTLL_SYSCONFIG_ENAWAKEUP |
-> +			OMAP_USBTLL_SYSCONFIG_SIDLEMODE |
-> +			OMAP_USBTLL_SYSCONFIG_CACTIVITY);
-> +
-> +
-> +	/* Put UHH in NoIdle/NoStandby mode */
-> +	reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSCONFIG);
-> +	reg |= (OMAP_UHH_SYSCONFIG_ENAWAKEUP
-> +			| OMAP_UHH_SYSCONFIG_SIDLEMODE
-> +			| OMAP_UHH_SYSCONFIG_CACTIVITY
-> +			| OMAP_UHH_SYSCONFIG_MIDLEMODE);
-> +	reg &= ~OMAP_UHH_SYSCONFIG_AUTOIDLE;
-> +	reg &= ~OMAP_UHH_SYSCONFIG_SOFTRESET;
-> +
-> +	ohci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
-> +
-> +	reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
-> +
-> +	/* setup ULPI bypass and burst configurations */
-> +	reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
-> +			| OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN
-> +			| OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN);
-> +	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
-> +
-> +	/*
-> +	 * REVISIT: Pi_CONNECT_STATUS controls MStandby
-> +	 * assertion and Swakeup generation - let us not
-> +	 * worry about this for now. OMAP HWMOD framework
-> +	 * might take care of this later. If not, we can
-> +	 * update these registers when adding aggressive
-> +	 * clock management code.
-> +	 *
-> +	 * For now, turn off all the Pi_CONNECT_STATUS bits
-> +	 *
-> +	if (omap->port_mode[0] == OMAP_OHCI_PORT_MODE_UNUSED)
-> +		reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
-> +	if (omap->port_mode[1] == OMAP_OHCI_PORT_MODE_UNUSED)
-> +		reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
-> +	if (omap->port_mode[2] == OMAP_OHCI_PORT_MODE_UNUSED)
-> +		reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
-> +	 */
-> +	reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
-> +	reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
-> +	reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
-> +
-> +	 if (omap_rev() <= OMAP3430_REV_ES2_1) {
-
-can we do this check on the platform code instead and set a flag on the
-platform_data ??
-
-the driver has to be compilable on other archs so we don't break
-randconfig.
-
-> +static const struct hc_driver ohci_omap3_hc_driver = {
-> +	.description =		hcd_name,
-> +	.product_desc =		"OMAP3 OHCI Host Controller",
-> +	.hcd_priv_size =	sizeof(struct ohci_hcd),
-> +
-> +	/*
-> +	 * generic hardware linkage
-> +	 */
-> +	.irq =			ohci_irq,
-> +	.flags =		HCD_USB11 | HCD_MEMORY,
-> +
-> +	/*
-> +	 * basic lifecycle operations
-> +	 */
-> +	.reset =		ohci_omap3_init,
-> +	.start =		ohci_omap3_start,
-> +	.stop =			ohci_stop,
-> +	.shutdown =		ohci_shutdown,
-> +
-> +	/*
-> +	 * managing i/o requests and associated device resources
-> +	 */
-> +	.urb_enqueue =		ohci_urb_enqueue,
-> +	.urb_dequeue =		ohci_urb_dequeue,
-> +	.endpoint_disable =	ohci_endpoint_disable,
-> +
-> +	/*
-> +	 * scheduling support
-> +	 */
-> +	.get_frame_number =	ohci_get_frame,
-> +
-> +	/*
-> +	 * root hub support
-> +	 */
-> +	.hub_status_data =	ohci_hub_status_data,
-> +	.hub_control =		ohci_hub_control,
-> +#ifdef	CONFIG_PM
-> +	.bus_suspend =		ohci_bus_suspend,
-> +	.bus_resume =		ohci_bus_resume,
-> +#endif
-> +	.start_port_reset =	ohci_start_port_reset,
-> +};
-> +
-> +/*-------------------------------------------------------------------------*/
-> +
-> +
-
-one blank like only.
-
-> +/* configure so an HC device and id are always provided */
-> +/* always called with process context; sleeping is OK */
-
-multi-line comment style is wrong.
-
-> +/**
-> + * ohci_hcd_omap_probe - initialize OMAP-based HCDs
-> + *
-> + * Allocates basic resources for this USB host controller, and
-> + * then invokes the start() method for the HCD associated with it
-> + * through the hotplug entry's driver_data.
-> + */
-> +static int ohci_hcd_omap_probe(struct platform_device *pdev)
-
-__init or __devinit ??
-
-> +{
-> +	struct ohci_hcd_omap_platform_data *pdata = pdev->dev.platform_data;
-> +	struct ohci_hcd_omap *omap;
-> +	struct resource *res;
-> +	struct usb_hcd *hcd;
-> +
-> +	int irq = platform_get_irq(pdev, 0);
-> +	int ret = -ENODEV;
-> +
-> +	if (!pdata) {
-> +		dev_dbg(&pdev->dev, "missing platform_data\n");
-> +		goto err_pdata;
-> +	}
-> +
-> +	if (usb_disabled())
-> +		goto err_disabled;
-
-you should do this before even testing for a platform_data.
-
-> +/* may be called without controller electrically present */
-> +/* may be called with controller, bus, and devices active */
-
-multi-line comment style.
-
-> +/**
-> + * ohci_hcd_omap_remove - shutdown processing for OHCI HCDs
-> + * @pdev: USB Host Controller being removed
-> + *
-> + * Reverses the effect of usb_hcd_omap_probe(), first invoking
-> + * the HCD's stop() method.  It is always called from a thread
-> + * context, normally "rmmod", "apmd", or something similar.
-> + */
-> +static int ohci_hcd_omap_remove(struct platform_device *pdev)
-
-__exit or __devexit ??
-
-> +static struct platform_driver ohci_hcd_omap3_driver = {
-> +	.probe		= ohci_hcd_omap_probe,
-> +	.remove		= ohci_hcd_omap_remove,
-
-__exit_p() or __devexit_p() ??
-
-> +	.shutdown	= ohci_hcd_omap_shutdown,
-> +	.driver		= {
-> +		.name	= "ohci-omap3",
-> +	},
-
-no suspend/resume yet ?? :-(
-
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
