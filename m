@@ -1,212 +1,52 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH RFC 1/5] omap3: add platform init code for OHCI driver
-Date: Sun, 21 Mar 2010 17:01:59 +0530
-Message-ID: <1269171123-9874-2-git-send-email-gadiyar@ti.com>
+From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH RFC 5/5] omap: 3630sdp: add ohci platform init
+Date: Sun, 21 Mar 2010 17:02:03 +0530
+Message-ID: <1269171123-9874-6-git-send-email-gadiyar@ti.com>
 References: <1269171123-9874-1-git-send-email-gadiyar@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37142 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752124Ab0CULcJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Mar 2010 07:32:09 -0400
-In-Reply-To: <1269171123-9874-1-git-send-email-gadiyar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+ <1269171123-9874-2-git-send-email-gadiyar@ti.com>
+ <1269171123-9874-3-git-send-email-gadiyar@ti.com>
+ <1269171123-9874-4-git-send-email-gadiyar@ti.com>
+ <1269171123-9874-5-git-send-email-gadiyar@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1269171123-9874-5-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Anand Gadiyar <gadiyar@ti.com>
 
-Add platform init code for the OMAP3 OHCI driver.
+Add platform initialization code for OHCI on the 3630SDP.
 
-Also, by default add mux-mode changes for all 6 pads for a
-given port. This needs to be tailored down depending on the
-actual port modes used.
-
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/usb-ehci.c        |  131 ++++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/usb.h |   20 +++++
- 2 files changed, 151 insertions(+)
+ arch/arm/mach-omap2/board-3630sdp.c |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-Index: linux-2.6/arch/arm/mach-omap2/usb-ehci.c
+Index: linux-2.6/arch/arm/mach-omap2/board-3630sdp.c
 ===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/usb-ehci.c
-+++ linux-2.6/arch/arm/mach-omap2/usb-ehci.c
-@@ -236,3 +236,134 @@ void __init usb_ehci_init(const struct e
- 
- #endif /* CONFIG_USB_EHCI_HCD */
- 
-+#if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-+
-+static struct resource ohci_resources[] = {
-+	{
-+		.start   = OMAP34XX_OHCI_BASE,
-+		.end     = OMAP34XX_OHCI_BASE + SZ_1K - 1,
-+		.flags   = IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= OMAP34XX_UHH_CONFIG_BASE,
-+		.end	= OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= OMAP34XX_USBTLL_BASE,
-+		.end	= OMAP34XX_USBTLL_BASE + SZ_4K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{         /* general IRQ */
-+		.start   = INT_34XX_OHCI_IRQ,
-+		.flags   = IORESOURCE_IRQ,
-+	}
-+};
-+
-+/* The dmamask must be set for OHCI to work */
-+static u64 ohci_dmamask = ~(u32)0;
-+
-+static void usb_release(struct device *dev)
-+{
-+	/* normally not freed */
-+}
-+
-+static struct platform_device ohci_device = {
-+	.name           = "ohci-omap3",
-+	.id             = 0,
-+	.dev = {
-+		.release		= usb_release,
-+		.dma_mask               = &ohci_dmamask,
-+		.coherent_dma_mask      = 0xffffffff,
-+		.platform_data          = NULL,
-+	},
-+	.num_resources  = ARRAY_SIZE(ohci_resources),
-+	.resource       = ohci_resources,
-+};
-+
-+static void setup_ohci_io_mux(enum ohci_omap3_port_mode *port_mode)
-+{
-+	/* REVISIT: these need to be tailored for each of the modes */
-+	switch (port_mode[0]) {
-+	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
-+		omap_mux_init_signal("mm1_rxdp",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm1_rxdm",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm1_txse0",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm1_rxrcv",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm1_txdat",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm1_txen_n", OMAP_PIN_OUTPUT);
-+		break;
-+	case OMAP_OHCI_PORT_MODE_UNUSED:
-+	default:
-+		/* FALLTHROUGH */
-+		break;
-+	}
-+	switch (port_mode[1]) {
-+	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
-+		omap_mux_init_signal("mm2_rxdp",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm2_rxdm",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm2_txse0",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm2_rxrcv",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm2_txdat",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm2_txen_n", OMAP_PIN_OUTPUT);
-+		break;
-+	case OMAP_OHCI_PORT_MODE_UNUSED:
-+	default:
-+		/* FALLTHROUGH */
-+		break;
-+	}
-+	switch (port_mode[2]) {
-+	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
-+		omap_mux_init_signal("mm3_rxdp",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm3_rxdm",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm3_txse0",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm3_rxrcv",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm3_txdat",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("mm3_txen_n", OMAP_PIN_OUTPUT);
-+		break;
-+	case OMAP_OHCI_PORT_MODE_UNUSED:
-+	default:
-+		/* FALLTHROUGH */
-+		break;
-+	}
-+}
-+
-+void __init usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata)
-+{
-+	platform_device_add_data(&ohci_device, pdata, sizeof(*pdata));
-+
-+	/* Setup Pin IO MUX for OHCI */
-+	if (cpu_is_omap34xx())
-+		setup_ohci_io_mux(pdata->port_mode);
-+
-+	if (platform_device_register(&ohci_device) < 0) {
-+		pr_err("Unable to register FS-USB (OHCI) device\n");
-+		return;
-+	}
-+}
-+
-+#else
-+
-+void __init usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata)
-+{
-+}
-+
-+#endif /* CONFIG_USB_OHCI_HCD */
-Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
-===================================================================
---- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
-+++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
-@@ -13,6 +13,20 @@ enum ehci_hcd_omap_mode {
- 	EHCI_HCD_OMAP_MODE_TLL,
+--- linux-2.6.orig/arch/arm/mach-omap2/board-3630sdp.c
++++ linux-2.6/arch/arm/mach-omap2/board-3630sdp.c
+@@ -66,6 +66,12 @@ static const struct ehci_hcd_omap_platfo
+ 	.reset_gpio_port[2]  = -EINVAL
  };
  
-+enum ohci_omap3_port_mode {
-+	OMAP_OHCI_PORT_MODE_UNUSED,
-+	OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0,
-+	OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM,
-+	OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0,
-+	OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM,
-+	OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0,
-+	OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM,
-+	OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0,
-+	OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM,
-+	OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0,
-+	OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM,
++static const struct ohci_hcd_omap_platform_data ohci_pdata __initconst = {
++	.port_mode[0] = OMAP_OHCI_PORT_MODE_UNUSED,
++	.port_mode[1] = OMAP_OHCI_PORT_MODE_UNUSED,
++	.port_mode[2] = OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0,
 +};
 +
- struct ehci_hcd_omap_platform_data {
- 	enum ehci_hcd_omap_mode		port_mode[OMAP3_HS_USB_PORTS];
- 	unsigned			phy_reset:1;
-@@ -21,6 +35,10 @@ struct ehci_hcd_omap_platform_data {
- 	int	reset_gpio_port[OMAP3_HS_USB_PORTS];
- };
+ static void __init omap_sdp_map_io(void)
+ {
+ 	omap2_set_globals_36xx();
+@@ -100,6 +106,7 @@ static void __init omap_sdp_init(void)
+ 	board_smc91x_init();
+ 	enable_board_wakeup_source();
+ 	usb_ehci_init(&ehci_pdata);
++	usb_ohci_init(&ohci_pdata);
+ }
  
-+struct ohci_hcd_omap_platform_data {
-+	enum ohci_omap3_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-+};
-+
- /*-------------------------------------------------------------------------*/
- 
- #define OMAP1_OTG_BASE			0xfffb0400
-@@ -55,6 +73,8 @@ extern void usb_musb_init(struct omap_mu
- 
- extern void usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata);
- 
-+extern void usb_ohci_init(struct ohci_hcd_omap_platform_data *pdata);
-+
- #endif
- 
- void omap_usb_init(struct omap_usb_config *pdata);
+ MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
