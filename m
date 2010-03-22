@@ -1,153 +1,52 @@
-From: Charulatha V <charu@ti.com>
-Subject: [PATCH] OMAP: GPIO: Fix OMAP4 GPIO reg access issues
-Date: Mon, 22 Mar 2010 20:08:24 +0530
-Message-ID: <1269268704-31347-1-git-send-email-charu@ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCHv2 00/17] OMAP3: PM: Smartreflex and voltage revamp.
+Date: Mon, 22 Mar 2010 20:09:51 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03220FBFA5@dbde02.ent.ti.com>
+References: <1268903755-4151-1-git-send-email-thara@ti.com>
+ <4BA27BCC.60404@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50113 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53837 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751235Ab0CVOfI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Mar 2010 10:35:08 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2MEZ547028372
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 22 Mar 2010 09:35:07 -0500
+	id S1751493Ab0CVOkE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 10:40:04 -0400
+In-Reply-To: <4BA27BCC.60404@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Charulatha V <charu@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Access to some of the OMAP4 GPIO registers are not properly handled.
-This patch fixes it.
 
-Signed-off-by: Charulatha V <charu@ti.com>
----
- arch/arm/plat-omap/gpio.c |   61 +++++++++++++++++++++++++++++++++++---------
- 1 files changed, 55 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 76a347b..3a9891c 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -137,7 +137,11 @@
- #define OMAP4_GPIO_IRQSTATUSCLR1	0x0040
- #define OMAP4_GPIO_IRQWAKEN0		0x0044
- #define OMAP4_GPIO_IRQWAKEN1		0x0048
--#define OMAP4_GPIO_SYSSTATUS		0x0104
-+#define OMAP4_GPIO_SYSSTATUS		0x0114
-+#define OMAP4_GPIO_IRQENABLE1		0x011c
-+#define OMAP4_GPIO_WAKE_EN		0x0120
-+#define OMAP4_GPIO_IRQSTATUS2		0x0128
-+#define OMAP4_GPIO_IRQENABLE2		0x012c
- #define OMAP4_GPIO_CTRL			0x0130
- #define OMAP4_GPIO_OE			0x0134
- #define OMAP4_GPIO_DATAIN		0x0138
-@@ -148,6 +152,10 @@
- #define OMAP4_GPIO_FALLINGDETECT	0x014c
- #define OMAP4_GPIO_DEBOUNCENABLE	0x0150
- #define OMAP4_GPIO_DEBOUNCINGTIME	0x0154
-+#define OMAP4_GPIO_CLEARIRQENABLE1	0x0160
-+#define OMAP4_GPIO_SETIRQENABLE1	0x0164
-+#define OMAP4_GPIO_CLEARWKUENA		0x0180
-+#define OMAP4_GPIO_SETWKUENA		0x0184
- #define OMAP4_GPIO_CLEARDATAOUT		0x0190
- #define OMAP4_GPIO_SETDATAOUT		0x0194
- /*
-@@ -591,12 +599,16 @@ static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
- 		reg += OMAP7XX_GPIO_DATA_OUTPUT;
- 		break;
- #endif
--#ifdef CONFIG_ARCH_OMAP2PLUS
-+#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- 	case METHOD_GPIO_24XX:
--	case METHOD_GPIO_44XX:
- 		reg += OMAP24XX_GPIO_DATAOUT;
- 		break;
- #endif
-+#ifdef CONFIG_ARCH_OMAP4
-+	case METHOD_GPIO_44XX:
-+		reg += OMAP4_GPIO_DATAOUT;
-+		break;
-+#endif
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1200,11 +1215,17 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
- #endif
- 	if (!cpu_class_is_omap1()) {
- 		if (!bank->mod_usage) {
-+			void __iomem *reg = bank->base;
- 			u32 ctrl;
--			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
--			ctrl &= 0xFFFFFFFE;
-+
-+			if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+				reg += OMAP24XX_GPIO_CTRL;
-+			else if (cpu_is_omap44xx())
-+				reg += OMAP4_GPIO_CTRL;
-+			ctrl = __raw_readl(reg);
- 			/* Module is enabled, clocks are not gated */
--			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
-+			ctrl &= 0xFFFFFFFE;
-+			__raw_writel(ctrl, reg);
- 		}
- 		bank->mod_usage |= 1 << offset;
- 	}
-@@ -1226,22 +1247,34 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
- 		__raw_writel(1 << offset, reg);
- 	}
- #endif
--#ifdef CONFIG_ARCH_OMAP2PLUS
--	if ((bank->method == METHOD_GPIO_24XX) ||
--			(bank->method == METHOD_GPIO_44XX)) {
-+#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-+	if (bank->method == METHOD_GPIO_24XX) {
- 		/* Disable wake-up during idle for dynamic tick */
- 		void __iomem *reg = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
- 		__raw_writel(1 << offset, reg);
- 	}
- #endif
-+#ifdef CONFIG_ARCH_OMAP4
-+	if (bank->method == METHOD_GPIO_44XX) {
-+		/* Disable wake-up during idle for dynamic tick */
-+		void __iomem *reg = bank->base + OMAP4_GPIO_IRQWAKEN0;
-+		__raw_writel(1 << offset, reg);
-+	}
-+#endif
- 	if (!cpu_class_is_omap1()) {
- 		bank->mod_usage &= ~(1 << offset);
- 		if (!bank->mod_usage) {
-+			void __iomem *reg = bank->base;
- 			u32 ctrl;
--			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
-+
-+			if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+				reg += OMAP24XX_GPIO_CTRL;
-+			else if (cpu_is_omap44xx())
-+				reg += OMAP4_GPIO_CTRL;
-+			ctrl = __raw_readl(reg);
- 			/* Module is disabled, clocks are gated */
- 			ctrl |= 1;
--			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
-+			__raw_writel(ctrl, reg);
- 		}
- 	}
- 	_reset_gpio(bank, bank->chip.base + offset);
-@@ -1570,9 +1603,14 @@ static int gpio_is_input(struct gpio_bank *bank, int mask)
- 		reg += OMAP7XX_GPIO_DIR_CONTROL;
- 		break;
- 	case METHOD_GPIO_24XX:
--	case METHOD_GPIO_44XX:
- 		reg += OMAP24XX_GPIO_OE;
- 		break;
-+	case METHOD_GPIO_44XX:
-+		reg += OMAP4_GPIO_OE;
-+		break;
-+	default:
-+		WARN_ON(1);
-+		return -EINVAL;
- 	}
- 	return __raw_readl(reg) & mask;
- }
--- 
-1.6.3.3
+>>-----Original Message-----
+>>From: Menon, Nishanth
+>>Sent: Friday, March 19, 2010 12:45 AM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com; paul@pwsan.com; Cousson, Benoit;
+>>Sripathy, Vishwanath; Sawant, Anand
+>>Subject: Re: [PATCHv2 00/17] OMAP3: PM: Smartreflex and voltage revamp.
+>>
+>>Gopinath, Thara had written, on 03/18/2010 04:15 AM, the following:
+>>[..]
+>>
+>>> This patch series is based on Kevin's PM tree origin/pm-wip-opp branch
+>>> and is dependent on the following patches not yet applied onto this branch.
+>>>
+>>> 	http://patchwork.kernel.org/patch/81504/
+>>> 	http://patchwork.kernel.org/patch/81606/
+>>The 2nd patch does not seem to apply anymore
+>>
+>>see [1] - no more sysc_flags as it was queued to .34-rcX?
 
+I do not understand this.. Second patch seems to apply for me on wip-opp branch off Kevin's tree
+>>
+>>--
+>>Regards,
+>>Nishanth Menon
+>>Ref:
+>>[1]
+>>http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=blob;f=arch/arm/plat-
+>>omap/include/plat/omap_hwmod.h;h=440b4164f2f65e8557713ce9fff2636ed02fe523;hb=pm-wip-opp#l258
